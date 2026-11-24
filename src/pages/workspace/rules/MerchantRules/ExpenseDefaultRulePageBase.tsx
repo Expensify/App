@@ -180,7 +180,7 @@ function ExpenseDefaultRulePageBase({
     const {convertToDisplayString, convertToDisplayStringWithoutCurrency} = useCurrencyListActions();
     const policy = usePolicy(policyID);
     const {canWrite: canWriteRules} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.RULES);
-    const {submitters: submitterNamesByAccountID, cards: cardDescriptionsByID} = useExpenseDefaultConditionNames(policy);
+    const {submitters: submitterNamesByAccountID, cards: cardDescriptionsByID, areCardsLoaded} = useExpenseDefaultConditionNames(policy);
     // The page is on its way out, so the rule it was editing no longer being there is expected rather than an
     // error worth showing.
     const [isClosing, setIsClosing] = useState(false);
@@ -305,6 +305,8 @@ function ExpenseDefaultRulePageBase({
     const formTags = getTagArrayFromName(form?.tag ?? '');
 
     const isBillableEnabled = policy?.disabledFields?.defaultBillable !== true;
+    // Tax rate and has stay behind the beta until their backend fixes are live.
+    const canUseBetaConditions = isBetaEnabled(CONST.BETAS.EXPENSE_DEFAULT_CONDITIONS);
     const areCardsEnabled = !!policy?.areExpensifyCardsEnabled || !!policy?.areCompanyCardsEnabled;
 
     const isVendorMatchingBetaEnabled = isBetaEnabled(CONST.BETAS.VENDOR_MATCHING);
@@ -333,9 +335,9 @@ function ExpenseDefaultRulePageBase({
     const currenciesToMatch = form?.currenciesToMatch ?? [];
     const currenciesToMatchDisplayName = currenciesToMatch.length > 0 ? currenciesToMatch.join(', ') : undefined;
     const submittersToMatch = form?.submittersToMatch ?? [];
-    // A submitter who has left the workspace keeps their account ID, so the row still shows the rule matches on someone.
+    // An account this user holds no details for, such as one a copied rule names, reads as hidden rather than as the stored ID.
     const submittersToMatchDisplayName =
-        submittersToMatch.length > 0 ? submittersToMatch.map((submitterAccountID) => submitterNamesByAccountID?.[submitterAccountID] ?? submitterAccountID).join(', ') : undefined;
+        submittersToMatch.length > 0 ? submittersToMatch.map((submitterAccountID) => submitterNamesByAccountID?.[submitterAccountID] ?? translate('common.hidden')).join(', ') : undefined;
     const merchantTypesToMatch = form?.merchantTypesToMatch ?? [];
     const merchantTypesToMatchDisplayName =
         merchantTypesToMatch.length > 0 ? merchantTypesToMatch.map((merchantType) => getMerchantTypeLabel(merchantType, translate)).join(', ') : undefined;
@@ -346,8 +348,11 @@ function ExpenseDefaultRulePageBase({
     const amountMatchType = form?.amountMatchType ?? getDefaultMatchType('amountMatchType');
     const getAmountToMatchDisplayName = () => (amountToMatch ? getAmountComparisonText(amountToMatch, amountMatchType, translate, convertToDisplayStringWithoutCurrency) : undefined);
     const cardsToMatch = form?.cardsToMatch ?? [];
-    // A card that has left the workspace keeps its ID, so the row still shows the rule matches on one.
-    const cardsToMatchDisplayName = cardsToMatch.length > 0 ? cardsToMatch.map((cardID) => cardDescriptionsByID?.[cardID] ?? cardID).join(', ') : undefined;
+    // A card that has been deactivated or closed drops out of the card lists, so the row names it as deleted once every card has arrived.
+    const cardsToMatchDisplayName =
+        cardsToMatch.length > 0
+            ? cardsToMatch.map((cardID) => cardDescriptionsByID?.[cardID] ?? (areCardsLoaded ? translate('workspace.companyCards.deletedCard') : cardID)).join(', ')
+            : undefined;
     const hasToMatch = form?.hasToMatch ?? [];
     const hasMatchType = form?.hasMatchType ?? CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO;
     const getHasToMatchDisplayName = () => {
@@ -603,7 +608,7 @@ function ExpenseDefaultRulePageBase({
                           icon: icons.CreditCard,
                       }
                     : undefined,
-                hasUsableTaxRates(policy) || taxRatesToMatch.length > 0
+                canUseBetaConditions && (hasUsableTaxRates(policy) || taxRatesToMatch.length > 0)
                     ? {
                           key: 'taxRatesToMatch',
                           description: translate('workspace.taxes.taxRate'),
@@ -613,13 +618,15 @@ function ExpenseDefaultRulePageBase({
                           icon: icons.InvoiceGeneric,
                       }
                     : undefined,
-                {
-                    key: 'hasToMatch',
-                    description: translate('workspace.rules.merchantRules.hasOrDoesNotHave'),
-                    title: getHasToMatchDisplayName(),
-                    onPress: () => Navigation.navigate(getRuleRoute(DYNAMIC_ROUTES.RULES_HAS_TO_MATCH_FROM_EXPENSE.path, ROUTES.RULES_HAS_TO_MATCH.getRoute(policyID, ruleID))),
-                    icon: icons.Paperclip,
-                },
+                canUseBetaConditions
+                    ? {
+                          key: 'hasToMatch',
+                          description: translate('workspace.rules.merchantRules.hasOrDoesNotHave'),
+                          title: getHasToMatchDisplayName(),
+                          onPress: () => Navigation.navigate(getRuleRoute(DYNAMIC_ROUTES.RULES_HAS_TO_MATCH_FROM_EXPENSE.path, ROUTES.RULES_HAS_TO_MATCH.getRoute(policyID, ruleID))),
+                          icon: icons.Paperclip,
+                      }
+                    : undefined,
             ],
         },
         {

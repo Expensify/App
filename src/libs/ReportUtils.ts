@@ -165,6 +165,7 @@ import {
     getRuleApprovers,
     getSubmitToAccountID,
     getSubmitToEmail,
+    isSubmittingToSelf,
     getTagGLCode,
     getVendorDisplayName,
     hasDependentTags as hasDependentTagsPolicyUtils,
@@ -1927,10 +1928,14 @@ function isGroupChat(report: OnyxEntry<Report> | Partial<Report>): boolean {
  *
  * Any member of a group chat can invite. On an expense report an invited member gains visibility of every expense on it,
  * so inviting is limited to the submitter and policy admins, and only while the report is still open.
+ * On an open support ticket, only the customer and assigned support rep can invite.
  */
 function canInviteMembersToReport(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>, isReportArchived: boolean, currentUserAccountID?: number): boolean {
-    if (isReportArchived || isSupportTicket(report)) {
+    if (isReportArchived) {
         return false;
+    }
+    if (isSupportTicket(report)) {
+        return isOpenReport(report) && !!currentUserAccountID && (report?.ownerAccountID === currentUserAccountID || report?.managerID === currentUserAccountID);
     }
     if (isGroupChat(report)) {
         return true;
@@ -1939,6 +1944,19 @@ function canInviteMembersToReport(report: OnyxEntry<Report>, policy: OnyxEntry<P
         return false;
     }
     return isCurrentUserSubmitter(report, currentUserAccountID) || isPolicyAdminPolicyUtils(policy);
+}
+
+/** Whether the assigned support rep can remove a participant from an open ticket. */
+function canRemoveSupportTicketParticipant(report: OnyxEntry<Report>, isReportArchived: boolean, currentUserAccountID: number | undefined, targetAccountID: number): boolean {
+    return (
+        isSupportTicket(report) &&
+        !isReportArchived &&
+        isOpenReport(report) &&
+        !!currentUserAccountID &&
+        report?.managerID === currentUserAccountID &&
+        targetAccountID !== report.ownerAccountID &&
+        targetAccountID !== report.managerID
+    );
 }
 
 /**
@@ -5996,7 +6014,16 @@ function getAvailableReportFields(report: OnyxEntry<Report>, policyReportFields:
     return fields.filter(Boolean) as PolicyReportField[];
 }
 
-function isTransactionFromExpenseReport(report: OnyxInputOrEntry<Report>, policy: OnyxInputOrEntry<Policy>): boolean {
+function isTransactionFromExpenseReport(
+    report: OnyxInputOrEntry<Report>,
+    policy: OnyxInputOrEntry<Policy>,
+    transaction: OnyxInputOrEntry<Transaction> | TransactionWithOptionalSearchFields,
+): boolean {
+    // A deleted transaction is moved to the trash report, so neither its report nor its policy can be resolved anymore.
+    // It keeps the sign convention it was stored with, which is the expense report one.
+    if (!!transaction && isDeletedTransaction(transaction)) {
+        return true;
+    }
     return isEmptyObject(report) ? isGroupPolicyPolicyUtils(policy) : isExpenseReport(report);
 }
 
@@ -6007,7 +6034,7 @@ function isTransactionFromExpenseReport(report: OnyxInputOrEntry<Report>, policy
  */
 function getTransactionDisplayAmount(transaction: OnyxInputOrEntry<Transaction>, report: OnyxInputOrEntry<Report>, policy: OnyxInputOrEntry<Policy>): number {
     const isFromTrackedExpense = transaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
-    return getTransactionAmount(transaction, isTransactionFromExpenseReport(report, policy), isFromTrackedExpense, !!transaction && isDeletedTransaction(transaction));
+    return getTransactionAmount(transaction, isTransactionFromExpenseReport(report, policy, transaction), isFromTrackedExpense, !!transaction && isDeletedTransaction(transaction));
 }
 
 /**
@@ -6027,7 +6054,7 @@ function getTransactionDetails(
     }
 
     const report = getReportOrDraftReport({reportID: transaction?.reportID, fallbackReport: 'report' in transaction ? transaction.report : undefined});
-    const isFromExpenseReport = isTransactionFromExpenseReport(report, policy);
+    const isFromExpenseReport = isTransactionFromExpenseReport(report, policy, transaction);
 
     return {
         created: getFormattedCreated(transaction),
@@ -6200,7 +6227,7 @@ function getNextApproverAccountID(report: OnyxEntry<Report>, rules: OnyxCollecti
 
     const ownerLogin = getLoginByAccountID(report?.ownerAccountID, getAllPersonalDetails());
     const approvalChain = getApprovalChain(policy, report, ownerLogin, rules);
-    const submitToAccountID = getSubmitToAccountID(policy, report, ownerLogin, rules);
+    const submitToAccountID = getSubmitToAccountID(policy, report, ownerLogin, rules, personalDetailsByLogins);
 
     if (isUnapproved) {
         if (approvalChain.includes(currentUserLogin)) {
@@ -8616,7 +8643,7 @@ type BuildOptimisticEmptyReportParams = {
     isASAPSubmitBetaEnabled: boolean;
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
     rules: OnyxCollection<Rule>;
-    personalDetailsByLogins?: PersonalDetailsByLogin;
+    personalDetailsByLogins: PersonalDetailsByLogin;
 };
 
 function buildOptimisticEmptyReport({
@@ -11392,20 +11419,18 @@ function shouldBlockSubmitDueToStrictPolicyRules(
     return hasAnyViolations(reportID, transactionViolations, currentUserAccountIDParam, currentUserEmailParam, reportTransactions, report, policy);
 }
 
-/**
- * @param reportOwnerPersonalDetailsByLogin - Only the report owner's entry is needed, because the next approver's account ID is only
- * compared against the owner's. Approvers missing from the map get a generated account ID, which never equals the owner's.
- */
 function shouldBlockSubmitDueToPreventSelfApproval(
     report: OnyxEntry<Report>,
     policy: OnyxEntry<Policy>,
     rules: OnyxCollection<Rule>,
-    reportOwnerPersonalDetailsByLogin: PersonalDetailsByLogin,
+    reportOwnerPersonalDetails: PersonalDetails | undefined,
 ): boolean {
     if (!policy?.preventSelfApproval || !isReportOwner(report)) {
         return false;
     }
 
+    const reportOwnerLogin = reportOwnerPersonalDetails?.login;
+    const reportOwnerPersonalDetailsByLogin: PersonalDetailsByLogin = reportOwnerLogin && reportOwnerPersonalDetails ? {[reportOwnerLogin]: reportOwnerPersonalDetails} : {};
     const nextApproverAccountID = getNextApproverAccountID(report, rules, undefined, undefined, reportOwnerPersonalDetailsByLogin);
     const isSubmitterSameAsNextApprover = nextApproverAccountID === report?.ownerAccountID;
 
@@ -11413,8 +11438,7 @@ function shouldBlockSubmitDueToPreventSelfApproval(
         // An open report hasn't been routed to anybody yet, so what matters is who it is about to be submitted to.
         // getNextApproverAccountID answers "who approves after me", which points at somebody else whenever the
         // submitter is the first of several approvers, so it can't detect self-submission on its own.
-        const submitToAccountID = getSubmitToAccountID(policy, report, getLoginByAccountID(report?.ownerAccountID, getAllPersonalDetails()), rules);
-        return submitToAccountID === report?.ownerAccountID || isSubmitterSameAsNextApprover;
+        return isSubmittingToSelf(policy, report, reportOwnerLogin, rules) || isSubmitterSameAsNextApprover;
     }
 
     return isProcessingReport(report) && (report?.managerID === report?.ownerAccountID || isSubmitterSameAsNextApprover);
@@ -13576,6 +13600,18 @@ function canLeaveChat(
     isReportArchived = false,
     parentReportAction?: ReportAction,
 ): boolean {
+    if (isSupportTicket(report)) {
+        // The customer and assigned support rep must stay on the ticket. Other invited participants can leave.
+        return (
+            !isReportArchived &&
+            !isAnonymousUser &&
+            !!currentUserAccountID &&
+            !isHiddenForCurrentUser(getReportNotificationPreference(report, currentUserAccountID)) &&
+            report?.ownerAccountID !== currentUserAccountID &&
+            report?.managerID !== currentUserAccountID
+        );
+    }
+
     if (isRootGroupChat(report, isReportArchived)) {
         return true;
     }
@@ -16476,6 +16512,7 @@ export {
     pushTransactionAutoSelectionsOnyxData,
     navigateOnDeleteExpense,
     canRejectReportAction,
+    canRemoveSupportTicketParticipant,
     isPayBlocked,
     hasReportBeenRejectedToSubmitter,
     hasReportBeenReopened,

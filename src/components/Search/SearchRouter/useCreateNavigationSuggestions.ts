@@ -10,6 +10,7 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
+import {useGetPersonalDetailsByLogin} from '@hooks/usePersonalDetailByLogin';
 import usePreferredPolicy from '@hooks/usePreferredPolicy';
 
 import {showSupportalPermissionDenied} from '@libs/actions/App';
@@ -114,6 +115,7 @@ function useCreateNavigationSuggestions(query = '', shouldBuildItems = true): Na
     const icons = useMemoizedLazyExpensifyIcons(['Coins', 'Receipt', 'Cash', 'Transfer', 'MoneyCircle', 'Location', 'Document', 'ChatBubble', 'InvoiceGeneric', 'Suitcase', 'NewWorkspace']);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const {getCurrencyDecimals} = useCurrencyListActions();
+    const getPersonalDetailsByLogin = useGetPersonalDetailsByLogin();
     const {isBetaEnabled} = usePermissions();
     const {isOffline} = useNetwork();
     const {isRestrictedPolicyCreation} = usePreferredPolicy();
@@ -160,6 +162,7 @@ function useCreateNavigationSuggestions(query = '', shouldBuildItems = true): Na
                 isTrackIntentUser,
                 getCurrencyDecimals,
                 rules,
+                personalDetailsByLogins: getPersonalDetailsByLogin(),
                 shouldDismissEmptyReportsConfirmation,
             });
             // Navigate to the Reports page first so getCreateReportRoute() resolves against

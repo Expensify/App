@@ -145,6 +145,7 @@ describe('MoneyRequest', () => {
             report: fakeReport,
             currentUserAccountID,
             currentUserEmail: CURRENT_USER_EMAIL,
+            currentUserPersonalDetails: {accountID: currentUserAccountID, login: CURRENT_USER_EMAIL},
             shouldGenerateTransactionThreadReport: false,
             isASAPSubmitBetaEnabled: false,
             transactionViolations: {},
@@ -762,8 +763,11 @@ describe('MoneyRequest', () => {
         const secondSplitParticipantID = '101';
 
         const selfDMReport = createSelfDM(Number(SELF_DM_REPORT_ID), TEST_USER_ACCOUNT_ID);
+        const CURRENT_USER_LOGIN = 'test@test.com';
+        const CURRENT_USER_ACCOUNT_ID = 1;
 
         const baseParams = {
+            personalDetailsByLogins: {[CURRENT_USER_LOGIN]: {accountID: CURRENT_USER_ACCOUNT_ID, login: CURRENT_USER_LOGIN}},
             isVendorMatchingBetaEnabled: false,
             iouType: CONST.IOU.TYPE.CREATE,
             report: fakeReport,
@@ -773,8 +777,13 @@ describe('MoneyRequest', () => {
             transactionID: '121',
             personalDetails: {},
             waypoints: {},
-            currentUserLogin: 'test@test.com',
-            currentUserAccountID: 1,
+            currentUserLogin: CURRENT_USER_LOGIN,
+            currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+            currentUserPersonalDetails: {
+                accountID: CURRENT_USER_ACCOUNT_ID,
+                login: CURRENT_USER_LOGIN,
+                email: CURRENT_USER_LOGIN,
+            },
             backToReport: undefined,
             shouldSkipConfirmation: false,
             defaultExpensePolicy: undefined,
@@ -803,7 +812,7 @@ describe('MoneyRequest', () => {
             formatPhoneNumber,
             delegateAccountID: undefined,
             participants: getMoneyRequestParticipantOptions({
-                currentUserAccountID: 1,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 report: fakeReport,
                 policy: fakePolicy,
                 personalDetails: {},
@@ -909,6 +918,24 @@ describe('MoneyRequest', () => {
             });
 
             expect(TrackExpense.trackExpense).toHaveBeenCalledWith(expect.objectContaining({conciergeChat}));
+        });
+
+        it('threads currentUserPersonalDetails through to trackExpense when skipping confirmation', () => {
+            // Given a track distance expense that skips confirmation
+            // When the distance step navigates
+            handleMoneyRequestStepDistanceNavigation({
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                ...baseParams,
+                manualDistance: 20,
+                shouldSkipConfirmation: true,
+                iouType: CONST.IOU.TYPE.TRACK,
+                draftTransactionIDs: [baseParams.transactionID],
+                delegateAccountID: undefined,
+                getCurrencySymbol: getCurrencySymbolLocal,
+            });
+
+            // Then trackExpense gets the caller's details instead of reading the current user from Onyx
+            expect(TrackExpense.trackExpense).toHaveBeenCalledWith(expect.objectContaining({currentUserPersonalDetails: baseParams.currentUserPersonalDetails}));
         });
 
         it('call trackExpense for TRACK iouType when from manual distance step and skipping confirmation', async () => {

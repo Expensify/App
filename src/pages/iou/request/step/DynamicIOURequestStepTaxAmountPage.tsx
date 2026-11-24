@@ -141,6 +141,7 @@ function DynamicIOURequestStepTaxAmountPage({
             updateMoneyRequestTaxAmount({
                 isVendorMatchingBetaEnabled,
                 transactionID,
+                transaction: currentTransaction,
                 transactionThreadReport: report,
                 parentReport,
                 iouReportOwnerLogin,
