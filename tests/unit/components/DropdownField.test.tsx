@@ -11,7 +11,7 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
-import type {ReactNode} from 'react';
+import type {ComponentRef, ReactNode} from 'react';
 
 import React, {createRef} from 'react';
 import {View} from 'react-native';
@@ -48,7 +48,7 @@ const pressRow = () => fireEvent.press(screen.getByTestId(ROW_TEST_ID), {nativeE
  * geometry, which the test renderer never lays out, so each test says where the row sits instead.
  */
 const mockRowAt = (rowTop: number, rowX = ROW_X, rowWidth = ROW_WIDTH) =>
-    jest.spyOn(View.prototype, 'measureInWindow').mockImplementation((callback) => {
+    jest.spyOn<ComponentRef<typeof View>, 'measureInWindow'>(View.prototype, 'measureInWindow').mockImplementation((callback) => {
         callback(rowX, rowTop, rowWidth, ROW_HEIGHT);
     });
 
@@ -460,7 +460,7 @@ describe('DropdownField', () => {
             const {rerender} = renderField(true, onPress);
             openListAndSettle();
             let answerMeasurement: (() => void) | undefined;
-            jest.spyOn(View.prototype, 'measureInWindow').mockImplementation((callback) => {
+            jest.spyOn<ComponentRef<typeof View>, 'measureInWindow'>(View.prototype, 'measureInWindow').mockImplementation((callback) => {
                 answerMeasurement = () => callback(RESIZED_ROW_X, ROW_TOP, RESIZED_ROW_WIDTH, ROW_HEIGHT);
             });
 

@@ -559,7 +559,7 @@ export default await buildOxlintConfig({
             rules: {'no-restricted-imports': ['error', {paths: restrictedImportPaths, patterns: restrictedImportPatterns}]},
         },
         {
-            files: ['src/languages/**', 'src/CONST/index.ts', 'src/NAICS.ts'],
+            files: ['src/languages/**', 'src/CONST/index.ts', 'src/CONST/SENTRY_LABEL.ts', 'src/NAICS.ts'],
             rules: {
                 'max-lines': 'off',
             },

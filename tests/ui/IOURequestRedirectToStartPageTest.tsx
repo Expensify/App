@@ -42,6 +42,7 @@ jest.mock('react-native-vision-camera', () => ({
     useCameraDevice: jest.fn(),
     useCameraDevices: jest.fn(() => []),
     usePhotoOutput: jest.fn(() => ({capturePhoto: jest.fn()})),
+    useFrameOutput: jest.fn(() => ({})),
 }));
 
 // Stands in for the module-level navigation-ready promise so each test can decide whether the NavigationContainer

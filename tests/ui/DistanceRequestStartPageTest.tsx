@@ -57,6 +57,7 @@ jest.mock('react-native-vision-camera', () => ({
     useCameraDevice: jest.fn(),
     useCameraDevices: jest.fn(() => []),
     usePhotoOutput: jest.fn(() => ({capturePhoto: jest.fn()})),
+    useFrameOutput: jest.fn(() => ({})),
 }));
 
 // Plain objects, not jest mocks, so they aren't cleared by `jest.clearAllMocks()`. Both mocks below delegate to the
