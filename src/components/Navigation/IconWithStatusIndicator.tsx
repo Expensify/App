@@ -14,6 +14,8 @@ import {View} from 'react-native';
 type IconWithStatusIndicatorProps = {
     src: IconAsset;
     fill: string;
+
+    /** Width and height of the icon, in px */
     size: number;
 
     /** The StatusIndicator of the icon's destination, positioned against the icon */

@@ -130,7 +130,8 @@ function MoreMenuPopover({isVisible, onClose, onModalHide, focusedTabRouteName}:
             innerContainerStyle: styles.alignItemsCenter,
             isSelected: item.isActive,
             shouldShowBasicTitle: !item.isActive,
-            titleStyle: item.isActive ? undefined : styles.textSupporting,
+            // PopoverMenu passes the item's props after its own title style, so this replaces its flex1 and has to repeat it.
+            titleStyle: [styles.flex1, !item.isActive && styles.textSupporting],
             wrapperStyle: [styles.br3, item.isActive && styles.activeComponentBG],
             badgeText: 'badgeText' in item ? item.badgeText : undefined,
             // The badge is a todo count, which is green everywhere else it is shown.
