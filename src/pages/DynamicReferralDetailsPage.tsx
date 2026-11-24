@@ -20,25 +20,27 @@ import type {ReferralDetailsNavigatorParamList} from '@libs/Navigation/types';
 
 import colors from '@styles/theme/colors';
 
+import {callIfAuthenticated} from '@userActions/Session';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
-import React, {useRef} from 'react';
-
-import {showContextMenu} from './inbox/report/ContextMenu/ReportActionContextMenu';
+import {authTokenTypeSelector} from '@selectors/Session';
+import React from 'react';
+import {View} from 'react-native';
 
 type DynamicReferralDetailsPageProps = PlatformStackScreenProps<ReferralDetailsNavigatorParamList, typeof SCREENS.DYNAMIC_REFERRAL_DETAILS>;
 
 function DynamicReferralDetailsPage({route}: DynamicReferralDetailsPageProps) {
-    const icons = useMemoizedLazyExpensifyIcons(['Checkmark', 'Copy', 'NewWindow', 'QuestionMark']);
+    const icons = useMemoizedLazyExpensifyIcons(['Checkmark', 'Copy', 'QuestionMark']);
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const illustrations = useMemoizedLazyIllustrations(['PaymentHands']);
     const {translate} = useLocalize();
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
-    const popoverAnchor = useRef(null);
+    const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
     const {isExecuting, singleExecution} = useSingleExecution();
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.REFERRAL_DETAILS.path);
     let {contentType} = route.params;
@@ -85,27 +87,29 @@ function DynamicReferralDetailsPage({route}: DynamicReferralDetailsPageProps) {
                 />
             )}
 
-            <MenuItem
+            <MenuItem.Root
                 sentryLabel={CONST.SENTRY_LABEL.REFERRAL_PROGRAM.LEARN_MORE}
-                wrapperStyle={styles.mb4}
-                ref={popoverAnchor}
-                title={translate('requestorStep.learnMore')}
-                icon={icons.QuestionMark}
-                shouldShowRightIcon
-                iconRight={icons.NewWindow}
-                disabled={isExecuting}
-                shouldBlockSelection
-                shouldShowContextMenuHint
-                onPress={singleExecution(() => openExternalLink(CONST.REFERRAL_PROGRAM.LEARN_MORE_LINK))}
-                onSecondaryInteraction={(e) =>
-                    showContextMenu({
-                        type: CONST.CONTEXT_MENU_TYPES.LINK,
-                        event: e,
-                        selection: CONST.REFERRAL_PROGRAM.LEARN_MORE_LINK,
-                        contextMenuAnchor: popoverAnchor.current,
-                    })
-                }
-            />
+                style={styles.mb4}
+                isDisabled={isExecuting}
+                onPress={callIfAuthenticated(
+                    singleExecution(() => openExternalLink(CONST.REFERRAL_PROGRAM.LEARN_MORE_LINK)),
+                    session,
+                )}
+            >
+                <View style={[styles.flexRow, StyleUtils.getMenuItemTextContainerStyle(false)]}>
+                    <MenuItem.Leading>
+                        <View style={styles.mr3}>
+                            <MenuItem.Icon src={icons.QuestionMark} />
+                        </View>
+                    </MenuItem.Leading>
+                    <MenuItem.Content>
+                        <MenuItem.Title>{translate('requestorStep.learnMore')}</MenuItem.Title>
+                    </MenuItem.Content>
+                    <MenuItem.Trailing>
+                        <MenuItem.ExternalLink link={CONST.REFERRAL_PROGRAM.LEARN_MORE_LINK} />
+                    </MenuItem.Trailing>
+                </View>
+            </MenuItem.Root>
         </HeaderPageLayout>
     );
 }

@@ -65,7 +65,6 @@
 "../../src/components/AnimatedFlatListWithCellRenderer.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/components/ApprovalWorkflowSection.tsx"	"@typescript-eslint/no-deprecated/MenuItem"	2
 "../../src/components/ApproverSelectionList.tsx"	"no-restricted-imports"	1
-"../../src/components/AttachmentPicker/index.native.tsx"	"@typescript-eslint/no-deprecated/MenuItem"	1
 "../../src/components/AttachmentPicker/index.native.tsx"	"@typescript-eslint/no-unnecessary-type-assertion"	1
 "../../src/components/AttachmentPicker/index.native.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/components/AttachmentPicker/index.native.tsx"	"react-hooks/refs"	1
@@ -1007,7 +1006,6 @@
 "../../src/pages/DynamicEditReportFieldPage.tsx"	"no-restricted-imports"	1
 "../../src/pages/DynamicFlagCommentPage.tsx"	"no-restricted-imports"	1
 "../../src/pages/DynamicNewReportWorkspaceSelectionPage.tsx"	"no-restricted-imports"	1
-"../../src/pages/DynamicReferralDetailsPage.tsx"	"@typescript-eslint/no-deprecated/MenuItem"	1
 "../../src/pages/DynamicReportChangeApproverPage.tsx"	"no-restricted-imports"	1
 "../../src/pages/DynamicReportChangeWorkspacePage.tsx"	"no-restricted-imports"	1
 "../../src/pages/DynamicReportParticipantDetailsPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
@@ -1663,7 +1661,6 @@
 "../../src/pages/workspace/companyCards/WorkspaceVerifyWorkAccountPage.tsx"	"react-hooks/set-state-in-effect"	1
 "../../src/pages/workspace/ConnectExistingBusinessBankAccountPage.tsx"	"no-restricted-imports"	1
 "../../src/pages/workspace/connections/ConnectionCard.tsx"	"@typescript-eslint/no-deprecated/MenuItem"	1
-"../../src/pages/workspace/connections/ConnectionsAccountingPage.tsx"	"@typescript-eslint/no-deprecated/MenuItem"	1
 "../../src/pages/workspace/connections/ConnectionsMergeProviderCard.tsx"	"@typescript-eslint/no-deprecated/MenuItemWithTopDescription"	1
 "../../src/pages/workspace/connections/ConnectionsMergeProviderCard.tsx"	"@typescript-eslint/no-deprecated/RowMenuItem"	1
 "../../src/pages/workspace/copyPolicySettings/CopyPolicySettingsConfirmPage.tsx"	"no-restricted-imports"	1

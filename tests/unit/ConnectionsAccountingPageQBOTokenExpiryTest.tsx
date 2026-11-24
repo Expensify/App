@@ -1,4 +1,4 @@
-import {fireEvent, render, screen} from '@testing-library/react-native';
+import {fireEvent, render, renderHook, screen} from '@testing-library/react-native';
 
 import ComposeProviders from '@components/ComposeProviders';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
@@ -6,11 +6,16 @@ import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import type TextComponent from '@components/Text';
 
+import useThemeStyles from '@hooks/useThemeStyles';
+
+import Navigation from '@libs/Navigation/Navigation';
+
 import ConnectionsAccountingPage from '@pages/workspace/connections/ConnectionsAccountingPage';
 
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import type Policy from '@src/types/onyx/Policy';
 
 import type * as ReactNavigation from '@react-navigation/native';
@@ -167,6 +172,38 @@ describe.each(PAGES_UNDER_TEST)('$pageName QBO refresh token expiry warning', ({
     beforeEach(() => {
         jest.clearAllMocks();
         mockCanWriteAccounting = true;
+    });
+
+    it('retains configuration navigation through the composed Import row', async () => {
+        // Given an administrator viewing a verified QBO connection.
+        await renderPage(PageUnderTest, buildQBOPolicy(addDays(new Date(), 90)));
+
+        // When the configuration row is activated.
+        fireEvent.press(screen.getByRole('button', {name: 'Import'}), {nativeEvent: {}});
+
+        // Then it still opens the QBO import settings page.
+        expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_IMPORT.getRoute(POLICY_ID));
+    });
+
+    it('keeps the connected company readable and non-interactive for a read-only member', async () => {
+        // Given a QBO connection with one fixed company and no accounting write access.
+        mockCanWriteAccounting = false;
+        const policy = buildQBOPolicy(addDays(new Date(), 90));
+        if (!policy.connections?.quickbooksOnline?.config) {
+            throw new Error('Expected a QBO configuration');
+        }
+        policy.connections.quickbooksOnline.config.companyName = 'Example company';
+        const {result} = renderHook(() => useThemeStyles());
+
+        // When the real accounting page renders the company row.
+        await renderPage(PageUnderTest, policy);
+
+        // Then the value stays regular-weight, single-line and undimmed, with no edit action.
+        expect(screen.getByText('Example company')).toHaveProp('numberOfLines', 1);
+        expect(screen.getByText('Example company')).toHaveStyle(result.current.fontWeightNormal);
+        expect(screen.getByLabelText(/Example company/)).toBeEnabled();
+        expect(screen.queryByRole('button', {name: /Example company/})).toBeNull();
+        expect(screen.queryByRole('button', {name: 'Import'})).toBeNull();
     });
 
     it('should warn with the expiry date and offer to reconnect when the token expires within the warning window', async () => {

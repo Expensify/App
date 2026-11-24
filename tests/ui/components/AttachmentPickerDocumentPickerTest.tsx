@@ -1,9 +1,13 @@
-import {fireEvent, render, screen, waitFor} from '@testing-library/react-native';
+import {act, fireEvent, render, renderHook, screen, waitFor, within} from '@testing-library/react-native';
 
-import AttachmentPicker from '@components/AttachmentPicker';
+import AttachmentPicker from '@components/AttachmentPicker/index.native';
 import Button from '@components/Button';
+import Icon from '@components/Icon';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
+import Popover from '@components/Popover';
+
+import useTheme from '@hooks/useTheme';
 
 import processPickedAssetsSequentially from '@libs/fileDownload/processPickedAssets';
 
@@ -19,6 +23,15 @@ import {Alert} from 'react-native';
 import Onyx from 'react-native-onyx';
 
 import {translateLocal} from '../../utils/TestHelper';
+
+jest.mock(
+    '@components/Popover',
+    () =>
+        ({isVisible, children}: React.PropsWithChildren<{isVisible: boolean}>) =>
+            isVisible ? children : null,
+);
+let mockFocusedIndex = -1;
+jest.mock('@hooks/useArrowKeyFocusManager', () => () => [mockFocusedIndex, jest.fn()]);
 
 // Jest resolves the bare specifier to the web no-op, so mock the shape and let each test opt into the native move.
 jest.mock('@libs/ReceiptStorage', () => ({
@@ -80,7 +93,7 @@ function pickDocuments(documents: NonEmptyArray<PickedDocument>) {
     mockKeepLocalCopy.mockResolvedValue([toSuccessfulLocalCopy(first), ...rest.map(toSuccessfulLocalCopy)]);
 }
 
-function renderPicker() {
+function renderPicker(shouldSkipAttachmentTypeModal = true) {
     const onPicked = jest.fn<void, [FileObject[]]>();
     const onCanceled = jest.fn();
     const onClosed = jest.fn();
@@ -88,13 +101,13 @@ function renderPicker() {
     render(
         <OnyxListItemProvider>
             <LocaleContextProvider>
-                <AttachmentPicker shouldSkipAttachmentTypeModal>
+                <AttachmentPicker shouldSkipAttachmentTypeModal={shouldSkipAttachmentTypeModal}>
                     {({openPicker}) => (
                         <Button
                             onPress={() => openPicker({onPicked, onCanceled, onClosed})}
                             sentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}
                         >
-                            <Button.Text>Choose file</Button.Text>
+                            <Button.Text>Open picker</Button.Text>
                         </Button>
                     )}
                 </AttachmentPicker>
@@ -121,12 +134,50 @@ describe('AttachmentPicker document picker DNG transcoding', () => {
 
     beforeEach(() => {
         jest.clearAllMocks();
+        mockFocusedIndex = -1;
         alertSpy = jest.spyOn(Alert, 'alert').mockImplementation(() => {});
         mockProcessPickedAssetsSequentially.mockResolvedValue([CONVERTED_ASSET]);
     });
 
     afterEach(() => {
         alertSpy.mockRestore();
+        jest.useRealTimers();
+    });
+
+    it('opens the document picker through the composed Choose file menu row after dismissal', async () => {
+        // Given an attachment picker that shows its normal menu before selecting a document.
+        jest.useFakeTimers();
+        pickDocuments([PDF_DOCUMENT]);
+        const {onPicked, onClosed} = renderPicker(false);
+        fireEvent.press(screen.getByRole('button', {name: 'Open picker'}), {nativeEvent: {}});
+
+        // When Choose file is activated and the popover finishes its hide animation.
+        fireEvent.press(screen.getByRole('button', {name: translateLocal('attachmentPicker.chooseDocument')}), {nativeEvent: {}});
+        expect(mockPick).not.toHaveBeenCalled();
+        fireEvent(screen.UNSAFE_getByType(Popover), 'modalHide');
+        await act(async () => {
+            jest.advanceTimersByTime(200);
+        });
+
+        // Then the existing native document selection flow still delivers the picked file.
+        await waitFor(() => expect(onClosed).toHaveBeenCalled());
+        expect(mockPick).toHaveBeenCalledTimes(1);
+        expect(onPicked).toHaveBeenCalledWith([expect.objectContaining({name: PDF_DOCUMENT.name})]);
+    });
+
+    it('retains the keyboard-focused option background and active icon color', () => {
+        // Given keyboard navigation has focused the first attachment option without pointer hover.
+        mockFocusedIndex = 0;
+        const {result} = renderHook(() => useTheme());
+        renderPicker(false);
+
+        // When the options menu opens with that focus state.
+        fireEvent.press(screen.getByRole('button', {name: 'Open picker'}), {nativeEvent: {}});
+        const row = screen.getByRole('button', {name: translateLocal('attachmentPicker.takePhoto')});
+
+        // Then both the focus background and icon keep the legacy keyboard-focus colors.
+        expect(row).toHaveStyle({backgroundColor: result.current.hoverComponentBG});
+        expect(within(row).UNSAFE_getByType(Icon).props.fill).toBe(result.current.iconMenu);
     });
 
     it('passes a selection with no DNG through without attempting a transcode', async () => {
