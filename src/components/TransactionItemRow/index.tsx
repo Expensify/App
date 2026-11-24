@@ -77,7 +77,6 @@ function TransactionItemRow({
     onArrowRightPress,
     isHover = false,
     shouldShowArrowRightOnNarrowLayout,
-    narrowSubtitle,
     reportActions,
     transactionThreadReportID: transactionThreadReportIDProp,
     checkboxSentryLabel,
@@ -174,7 +173,6 @@ function TransactionItemRow({
             shouldShowBottomBorder,
             onArrowRightPress,
             shouldShowArrowRightOnNarrowLayout,
-            narrowSubtitle,
         };
 
         return (
