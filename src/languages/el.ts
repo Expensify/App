@@ -1297,6 +1297,8 @@ const translations: TranslationDeepObject<typeof en> = {
     },
     insightsPage: {
         tagLevel: (level: string) => `Επίπεδο ετικέτας ${level}`,
+        noTaggedExpenses: 'Δεν υπάρχουν δαπάνες με ετικέτες',
+        noExpensesForTagLevel: (tagLevelName: string) => `Δεν υπάρχουν δαπάνες για ${tagLevelName} σε αυτό το εύρος ημερομηνιών.`,
         tagLevelLabel: 'Επίπεδο ετικέτας',
         parent: 'Γονέας',
         shareOfTotal: 'Μερίδιο του συνόλου (%)',
@@ -8216,6 +8218,7 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
                 willBeReadyToUse: 'Αυτή η κάρτα θα είναι έτοιμη για χρήση αμέσως.',
                 willBeReadyToShip: 'Αυτή η κάρτα θα είναι έτοιμη για αποστολή άμεσα.',
                 cardholder: 'Κάτοχος κάρτας',
+                cardholderEmail: 'Email κατόχου κάρτας',
                 cardType: 'Τύπος κάρτας',
                 limit: 'Όριο',
                 limitType: 'Τύπος ορίου',

@@ -1400,6 +1400,9 @@ const translations = {
         writingYourInsights: 'Writing your insights',
         tagLevel: (level: string) => `Tag level ${level}`,
         tagLevelLabel: 'Tag level',
+        noTaggedExpenses: 'No tagged expenses',
+        // @context The selected tag list name can be a custom name like Department or a fallback like Tag level 2.
+        noExpensesForTagLevel: (tagLevelName: string) => `No expenses for ${tagLevelName} in this date range.`,
         parent: 'Parent',
         shareOfTotal: 'Share of total (%)',
         viewOnSpend: 'View on Spend',
@@ -8735,6 +8738,7 @@ const translations = {
                 willBeReadyToUse: 'This card will be ready to use immediately.',
                 willBeReadyToShip: 'This card will be ready to ship immediately.',
                 cardholder: 'Cardholder',
+                cardholderEmail: 'Cardholder email',
                 cardType: 'Card type',
                 limit: 'Limit',
                 limitType: 'Limit type',

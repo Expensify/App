@@ -1209,6 +1209,8 @@ const translations: TranslationDeepObject<typeof en> = {
     },
     insightsPage: {
         tagLevel: (level: string) => `标签级别 ${level}`,
+        noTaggedExpenses: '没有带标签的费用',
+        noExpensesForTagLevel: (tagLevelName: string) => `此日期范围内没有 ${tagLevelName} 的费用。`,
         tagLevelLabel: '标签级别',
         parent: '父级',
         shareOfTotal: '占总计的比例（%）',
@@ -7736,6 +7738,7 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                 willBeReadyToUse: '此卡将立即可用。',
                 willBeReadyToShip: '此卡将立即准备发货。',
                 cardholder: '持卡人',
+                cardholderEmail: '持卡人电子邮箱',
                 cardType: '卡类型',
                 limit: '限额',
                 limitType: '限额类型',
