@@ -1,4 +1,3 @@
-/** Measures the trigger in the window, then shows the popover at its measured position. */
 import type {AnchorPosition} from '@src/styles';
 import type AnchorAlignment from '@src/types/utils/AnchorAlignment';
 
@@ -11,6 +10,7 @@ import usePopoverPosition from './usePopoverPosition';
 
 type AnchorElement = ComponentRef<typeof View> | HTMLDivElement;
 
+/** Measures the trigger in the window, then shows the popover at its measured position. */
 function useAnchoredPopoverOpener<TAnchor extends AnchorElement = ComponentRef<typeof View>>(anchorAlignment: AnchorAlignment, showPopover: () => void) {
     const {calculatePopoverPosition} = usePopoverPosition();
 

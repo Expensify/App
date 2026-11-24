@@ -47,6 +47,7 @@ describe('useAnchoredPopoverOpener', () => {
         const showPopover = jest.fn();
         const {result} = renderHook(() => useAnchoredPopoverOpener<HTMLDivElement>(ANCHOR_ALIGNMENT, showPopover));
         act(() => result.current.openPopover());
+        expect(showPopover).not.toHaveBeenCalled();
 
         // When the measurement resolves
         await act(async () => {
