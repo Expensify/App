@@ -200,7 +200,8 @@ describe('AttachmentCarouselView web', () => {
         const attachment: Attachment = {source: 'second.png'};
 
         // When a token has no index, navigation still receives it, then an empty token set clears focus
-        act(() => viewability({viewableItems: [{item: attachment, key: 'second', index: null, isViewable: true}], changed: []}));
+        const tokenWithoutIndex = Object.assign(createMock<Parameters<typeof viewability>[0]['viewableItems'][number]>({item: attachment, key: 'second', isViewable: true}), {index: null});
+        act(() => viewability({viewableItems: [tokenWithoutIndex], changed: []}));
         expect(props.onNavigate).toHaveBeenCalledWith(attachment);
         expect(props.setPage).not.toHaveBeenCalled();
         expect(screen.getByText('first.png:true')).toBeOnTheScreen();

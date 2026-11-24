@@ -6,6 +6,9 @@ import {getReimbursableTotal, getUnheldReimbursableTotal} from './ReportUtils';
 /** How long a saved quote must still be valid to be reused, so it doesn't expire while the admin reviews it */
 const MIN_REUSED_QUOTE_VALIDITY_MS = 5 * 60 * 1000;
 
+/** A quote counts as expired this long before its expiry time, since the device clock can differ from the server's */
+const QUOTE_EXPIRY_MARGIN_MS = 30 * 1000;
+
 /** The payment a quote is asked for, covering the whole reimbursable amount or only the part not on hold */
 function getWiseQuoteRequest(report: Report, full: boolean, bankAccountID: number): WiseQuoteRequest {
     // Expense report totals are stored as negative numbers
@@ -28,4 +31,12 @@ function canReuseWiseQuote(report: Report, request: WiseQuoteRequest, now = Date
     );
 }
 
-export {canReuseWiseQuote, getWiseQuoteRequest};
+/** Whether Wise would reject paying with a quote that expires at this time */
+function isWiseQuoteExpired(expiresAt: string | undefined, now = Date.now()): boolean {
+    if (!expiresAt) {
+        return false;
+    }
+    return new Date(expiresAt).getTime() - now <= QUOTE_EXPIRY_MARGIN_MS;
+}
+
+export {canReuseWiseQuote, getWiseQuoteRequest, isWiseQuoteExpired};
