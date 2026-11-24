@@ -2,8 +2,8 @@ import {renderHook} from '@testing-library/react-native';
 
 import useSearchKeyParam from '@components/Search/hooks/useSearchKeyParam';
 
-import {savedSearchIDToSearchKey} from '@libs/SearchKeyUtils';
-import {buildSearchQueryJSON} from '@libs/SearchQueryUtils';
+import {savedSearchIDToSearchKey, TODO_SEARCH_KEYS} from '@libs/SearchKeyUtils';
+import {buildQueryStringWithResetFilters, buildSearchQueryJSON} from '@libs/SearchQueryUtils';
 import {getSuggestedSearches} from '@libs/SearchUIUtils';
 
 import CONST from '@src/CONST';
@@ -30,6 +30,7 @@ const RECONCILIATION_QUERY = `${RECONCILIATION_QUERY_WITHOUT_WITHDRAWN} ${CONST.
 type FocusedScreen = {name: string; params: {searchKey?: string}};
 
 let mockFocusedScreen: FocusedScreen | undefined;
+let mockAccountID = 1;
 const mockUseOnyx = jest.fn<[unknown], [key: string]>();
 
 // Mirrors `CommonActions.setParams`, which merges into the focused route's params, so that a param the hook
@@ -60,6 +61,11 @@ jest.mock('@hooks/useRootNavigationState', () => ({
 jest.mock('@hooks/useOnyx', () => ({
     __esModule: true,
     default: (key: string) => mockUseOnyx(key),
+}));
+
+jest.mock('@hooks/useCurrentUserPersonalDetails', () => ({
+    __esModule: true,
+    default: () => ({accountID: mockAccountID}),
 }));
 
 function mockSearchScreenFocused({searchKey}: {searchKey?: string} = {}) {
@@ -94,6 +100,7 @@ function renderSearchKeyParam(query: string, {searchKey}: {searchKey?: string} =
 describe('useSearchKeyParam', () => {
     beforeEach(() => {
         mockFocusedScreen = undefined;
+        mockAccountID = 1;
         mockUseOnyx.mockReset();
         // `mockClear`, not `mockReset`: the latter would strip the merge implementation.
         mockSetParams.mockClear();
@@ -220,6 +227,74 @@ describe('useSearchKeyParam', () => {
     describe('searchKey route param', () => {
         const savedSearches = {[SAVED_SEARCH_ID]: {query: `type:${CONST.SEARCH.DATA_TYPES.EXPENSE} merchant:Amazon`, name: 'My search'}};
 
+        it.each([...TODO_SEARCH_KEYS])('keeps %s and its Reset defaults when other default filters are cleared', (searchKey) => {
+            // Given an explicitly selected to-do tab with its original default query
+            const defaultQuery = getSuggestedSearches()[searchKey].searchQuery;
+            const {result, rerender} = renderSearchKeyParam(defaultQuery, {searchKey});
+            mockSetParams.mockClear();
+
+            // When advanced filters remove the user restriction and add other refinements
+            const editedQuery = `type:expense-report action:${searchKey} status:approved policyID:456`;
+            rerender(editedQuery);
+
+            // Then the tab and its original Reset defaults survive without writing a Reports key
+            expect(result.current.currentSearchKey).toBe(searchKey);
+            expect(result.current.currentDefaultSearchQueryJSON?.hash).toBe(buildSearchQueryJSON(defaultQuery)?.hash);
+            expect(mockSetParams).not.toHaveBeenCalled();
+
+            const editedQueryJSON = buildSearchQueryJSON(editedQuery);
+            const defaultQueryJSON = result.current.currentDefaultSearchQueryJSON;
+            if (!editedQueryJSON) {
+                throw new Error('Expected a valid edited query');
+            }
+            const resetQuery = buildQueryStringWithResetFilters(editedQueryJSON, defaultQueryJSON);
+            rerender(resetQuery);
+            expect(result.current.currentSearchKey).toBe(searchKey);
+            expect(buildSearchQueryJSON(resetQuery)?.hash).toBe(buildSearchQueryJSON(defaultQuery)?.hash);
+        });
+
+        it('keeps Approve when a query without To is opened directly', () => {
+            // Given a restored Approve query with To cleared
+            const query = 'type:expense-report action:approve status:approved';
+
+            // When the route explicitly identifies the Approve tab
+            const {result} = renderSearchKeyParam(query, {searchKey: CONST.SEARCH.SEARCH_KEYS.APPROVE});
+
+            // Then the hook does not infer Reports from the missing default key
+            expect(result.current.currentSearchKey).toBe(CONST.SEARCH.SEARCH_KEYS.APPROVE);
+            expect(mockSetParams).not.toHaveBeenCalled();
+        });
+
+        it('keeps Approve and Reset defaults for an expected-empty query after removing To', () => {
+            // Given Approve with its original recipient restriction
+            const searchKey = CONST.SEARCH.SEARCH_KEYS.APPROVE;
+            const defaultQuery = getSuggestedSearches()[searchKey].searchQuery;
+            const {result, rerender} = renderSearchKeyParam(defaultQuery, {searchKey});
+            mockSetParams.mockClear();
+
+            // When removing To and selecting approved reports that need approval in an unrelated workspace
+            // The hook does not consume results; this pins query identity, not the rendered empty state.
+            rerender('type:expense-report action:approve status:approved policyID:456');
+
+            // Then an expected-empty query must not fall back to Reports or replace the Reset defaults
+            expect(result.current.currentSearchKey).toBe(searchKey);
+            expect(getRouteSearchKey()).toBe(searchKey);
+            expect(result.current.currentDefaultSearchQueryJSON?.hash).toBe(buildSearchQueryJSON(defaultQuery)?.hash);
+            expect(mockSetParams).not.toHaveBeenCalled();
+        });
+
+        it.each(['type:expense-report', 'type:expense-report -action:approve', 'type:expense-report action:pay', 'type:expense action:approve'])(
+            'does not retain a stale Approve key for %s',
+            (query) => {
+                // Given an Approve route whose query no longer has the defining action and type
+                // When the hook validates the explicit key
+                const {result} = renderSearchKeyParam(query, {searchKey: CONST.SEARCH.SEARCH_KEYS.APPROVE});
+
+                // Then it derives the destination rather than trusting the stale Approve key
+                expect(result.current.currentSearchKey).not.toBe(CONST.SEARCH.SEARCH_KEYS.APPROVE);
+            },
+        );
+
         it('wins over the key derived from the query', () => {
             // The query is the "Reconciliation" default query, so it would otherwise resolve to that key.
             const {result} = renderSearchKeyParam(RECONCILIATION_QUERY, {searchKey: CONST.SEARCH.SEARCH_KEYS.EXPENSES});
@@ -293,6 +368,24 @@ describe('useSearchKeyParam', () => {
             rerender(query);
 
             expect(result.current.currentSearchKey).toBe(CONST.SEARCH.SEARCH_KEYS.RECONCILIATION);
+        });
+
+        it('does not retain an unchanged saved search key under a new account', () => {
+            // Given a saved search key that ordinary validation would accept in either account
+            mockOnyx({[ONYXKEYS.SAVED_SEARCHES]: savedSearches});
+            const query = `type:${CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT} category:Food`;
+            const {result, rerender} = renderSearchKeyParam(query, {searchKey: savedSearchIDToSearchKey(SAVED_SEARCH_ID)});
+            expect(result.current.currentSearchKey).toBe(savedSearchIDToSearchKey(SAVED_SEARCH_ID));
+
+            // When the account changes before navigation removes the old search screen
+            mockAccountID = 2;
+            rerender(query);
+            mockNavigationBlurred();
+            rerender(query);
+
+            // Then the previous account's saved key cannot override the key derived from the current query
+            expect(result.current.currentSearchKey).toBe(CONST.SEARCH.SEARCH_KEYS.REPORTS);
+            expect(mockSetParams).not.toHaveBeenCalled();
         });
 
         it('derives the generic key after a filter tweak when the route carries no param', () => {

@@ -11,12 +11,16 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
+import getActiveTabName from '@libs/Navigation/helpers/getActiveTabName';
+import getTopmostFullScreenRoute from '@libs/Navigation/helpers/getTopmostFullScreenRoute';
+import runAfterClosingScreenUnmount from '@libs/Navigation/helpers/runAfterClosingScreenUnmount';
 import Navigation from '@libs/Navigation/Navigation';
 
 import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
-import {DYNAMIC_ROUTES} from '@src/ROUTES';
+import NAVIGATORS from '@src/NAVIGATORS';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 
 import React from 'react';
 import {View} from 'react-native';
@@ -27,9 +31,26 @@ function WorkspaceOwnerRestrictedAction() {
     const styles = useThemeStyles();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Unlock']);
 
+    const openPaymentCardForm = () => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.ADD_PAYMENT_CARD.path, ROUTES.SETTINGS_SUBSCRIPTION.route));
+
     const addPaymentCard = () => {
         Navigation.dismissModal({
-            afterTransition: () => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.ADD_PAYMENT_CARD.path)),
+            // The transition ends a moment before React removes this screen. Opening the card form in that gap shows
+            // this screen again for a frame, so wait until it is gone.
+            afterTransition: () =>
+                runAfterClosingScreenUnmount(() => {
+                    // Opening the form from another tab switches to Subscription underneath it on its own. Opening
+                    // Subscription first from there would push a second tab navigator and make the form stutter.
+                    // Only another Settings page, such as Profile, would stay under the form, so open Subscription first there.
+                    const isOnSettingsTab = getActiveTabName(getTopmostFullScreenRoute()) === NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR;
+                    const shouldOpenSubscriptionFirst = isOnSettingsTab && !Navigation.isActiveRoute(ROUTES.SETTINGS_SUBSCRIPTION.route);
+                    if (!shouldOpenSubscriptionFirst) {
+                        openPaymentCardForm();
+                        return;
+                    }
+
+                    Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION.route, {afterTransition: openPaymentCardForm});
+                }),
         });
     };
 

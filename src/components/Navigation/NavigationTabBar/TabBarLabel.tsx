@@ -7,6 +7,8 @@ import type {StyleProp, ViewStyle} from 'react-native';
 import React from 'react';
 import {View} from 'react-native';
 
+import TabBarLabelBoldPlaceholder from './TabBarLabelBoldPlaceholder';
+
 type TabBarLabelProps = {
     label: string;
     isSelected: boolean;
@@ -27,13 +29,11 @@ function TabBarLabel({label, isSelected, numberOfLines, style}: TabBarLabelProps
             >
                 {label}
             </Text>
-            <Text
-                aria-hidden
+            <TabBarLabelBoldPlaceholder
+                label={label}
                 numberOfLines={numberOfLines}
                 style={[textStyle, styles.textBold, styles.navigationTabBarLabelBoldPlaceholder]}
-            >
-                {label}
-            </Text>
+            />
         </View>
     );
 }

@@ -12,6 +12,7 @@ import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import {isReportTransactionThread, isValidReportIDFromPath} from '@libs/ReportUtils';
+import {logReceiptNotFound} from '@libs/telemetry/ReceiptObservability';
 import {getParentReportActionDeletionStatus} from '@libs/TransactionNavigationUtils';
 
 import CONST from '@src/CONST';
@@ -51,7 +52,7 @@ function ReportNotFoundGuard({children}: ReportNotFoundGuardProps) {
     });
     const [isLoadingReportData = true] = useOnyx(ONYXKEYS.IS_LOADING_REPORT_DATA);
     const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP);
-    const [deleteTransactionNavigateBackUrl] = useOnyx(ONYXKEYS.NVP_DELETE_TRANSACTION_NAVIGATE_BACK_URL);
+    const [deleteTransactionNavigateBackUrl] = useOnyx(ONYXKEYS.RAM_ONLY_PENDING_TRANSACTION_DELETE_URL);
 
     const reportID = report?.reportID;
     const isOptimisticDelete = report?.statusNum === CONST.REPORT.STATUS_NUM.CLOSED;
@@ -99,8 +100,21 @@ function ReportNotFoundGuard({children}: ReportNotFoundGuardProps) {
             deleteTransactionNavigateBackUrl,
             isBillHidden,
         });
+        logReceiptNotFound({
+            screen: 'report',
+            reportID: reportID ?? reportIDFromRoute,
+            isOptimisticDelete,
+            isPendingCreation,
+            isLoadingApp,
+            isOffline,
+            hasDeleteTransactionNavigateBackUrl: !!deleteTransactionNavigateBackUrl,
+            isInvalidReportPath,
+            isBillHidden,
+        });
     }, [
         shouldShowNotFoundPage,
+        reportIDFromRoute,
+        isInvalidReportPath,
         isPendingCreation,
         isLoadingApp,
         isLoadingReportData,
@@ -177,7 +191,8 @@ function ReportNotFoundInnerGuard({reportIDFromPath, children}: ReportNotFoundIn
             isParentActionDeleted,
             isParentActionMissingAfterLoad,
         });
-    }, [shouldShowNotFoundPage, reportIDFromPath, isParentActionDeleted, isParentActionMissingAfterLoad]);
+        logReceiptNotFound({screen: 'transactionThread', reportID: reportIDFromPath, isOffline, isParentActionDeleted, isParentActionMissingAfterLoad});
+    }, [shouldShowNotFoundPage, reportIDFromPath, isParentActionDeleted, isParentActionMissingAfterLoad, isOffline]);
 
     return (
         <FullPageNotFoundView

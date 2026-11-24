@@ -5,59 +5,68 @@ import isCountryCode from '@components/DynamicForm/utils/isCountryCode';
 import {getAllFields, getPages} from '@components/DynamicForm/utils/paginate';
 
 import {getCountryCode, resolveStateCode} from '@libs/CountryUtils';
-import {toSavedFile} from '@libs/getWiseOnboardingPageParams';
+import {getSourceOfWealthEntries, withSavedFiles} from '@libs/getWiseOnboardingPageParams';
 import {getCurrentAddress, getStreetLines} from '@libs/PersonalDetailsUtils';
 
 import CONST from '@src/CONST';
+import STATES_BY_COUNTRY from '@src/CONST/STATES_BY_COUNTRY';
 import type {PrivatePersonalDetails} from '@src/types/onyx';
 import type {ACHDataReimbursementAccount} from '@src/types/onyx/ReimbursementAccount';
 
 import type {OnyxEntry} from 'react-native-onyx';
-import type {TupleToUnion, ValueOf} from 'type-fest';
-
-import {CONST as COMMON_CONST} from 'expensify-common';
+import type {TupleToUnion} from 'type-fest';
 
 import US from './forms/US';
 
 /** The bank account's company details the business page shows, under the same keys, and the onboarding pages already saved to Wise */
-const WISE_BUSINESS_ACCOUNT_KEYS = ['bankAccountID', 'companyName', 'incorporationType', 'wise'] as const satisfies ReadonlyArray<keyof ACHDataReimbursementAccount>;
+const WISE_BUSINESS_ACCOUNT_KEYS = ['bankAccountID', 'companyName', 'wise'] as const satisfies ReadonlyArray<keyof ACHDataReimbursementAccount>;
 
 type WiseBusinessAccountData = Pick<ACHDataReimbursementAccount, TupleToUnion<typeof WISE_BUSINESS_ACCOUNT_KEYS>>;
-
-/** Incorporation types with one matching Wise company type. The others are left for the admin to pick. */
-const COMPANY_TYPE_BY_INCORPORATION_TYPE: Partial<Record<string, ValueOf<typeof CONST.WISE.COMPANY_TYPE>>> = {
-    [CONST.INCORPORATION_TYPES.LLC]: CONST.WISE.COMPANY_TYPE.LIMITED_LIABILITY_COMPANY,
-    [CONST.INCORPORATION_TYPES.CORPORATION]: CONST.WISE.COMPANY_TYPE.FOR_PROFIT_CORPORATION,
-    [CONST.INCORPORATION_TYPES.SOLE_PROPRIETORSHIP]: CONST.WISE.COMPANY_TYPE.SOLE_PROPRIETORSHIP,
-};
 
 const ALL_FIELDS = getAllFields(getPages(US));
 
 const READONLY_KEYS = new Set(ALL_FIELDS.filter((field) => field.readonly).map((field) => field.key));
 
-/** The state picker lists US states by code, so a US state that is not one is left out */
+/** The state picker lists states by code, so a state saved as its full name is turned into the code, and a state that matches neither is left out */
 function getStateCode(countryCode: string | undefined, state: string | undefined): string | undefined {
-    if (countryCode !== CONST.COUNTRY.US) {
+    const stateOptions = STATES_BY_COUNTRY[countryCode ?? ''];
+    if (!stateOptions || !state) {
         return state;
     }
-    const stateCode = resolveStateCode(state ?? '');
-    return stateCode in COMMON_CONST.STATES ? stateCode : undefined;
+    const stateCode = resolveStateCode(state, stateOptions);
+    return Object.hasOwn(stateOptions, stateCode) ? stateCode : undefined;
+}
+
+/** A saved answer the draft can hold as it is. A key a later save dropped comes back as null. */
+function isSavedAnswer(answer: unknown): answer is string | boolean | string[] {
+    if (typeof answer === 'string' || typeof answer === 'boolean') {
+        return true;
+    }
+    if (!Array.isArray(answer)) {
+        return false;
+    }
+    const items: unknown[] = answer;
+    return items.every((item) => typeof item === 'string');
 }
 
 /** The answers of every saved page, with each saved file as a draft entry the next save can tell apart from a new one. A key a later save dropped comes back as null and is left out. */
 function getSavedAnswers(wise: WiseBusinessAccountData['wise']): DynamicFormValues {
-    const answers: DynamicFormValues = {};
+    let answers: DynamicFormValues = {};
     for (const pageAnswers of Object.values(wise?.pages ?? {})) {
-        for (const [key, answer] of Object.entries(pageAnswers ?? {})) {
-            if (answer !== null && answer !== undefined) {
+        for (const [key, answer] of Object.entries<unknown>(pageAnswers ?? {})) {
+            if (key === CONST.WISE.SOURCE_OF_WEALTH_LIST_KEY) {
+                const entries = getSourceOfWealthEntries(answer);
+                answers[CONST.WISE.SOURCE_OF_WEALTH_INFO_KEY] = entries.map((entry) => entry.businessSourceOfWealthInfo);
+                answers[CONST.WISE.SOURCE_OF_FUNDS_KEY] = entries.filter((entry) => entry.isSourceOfFund).map((entry) => entry.businessSourceOfWealthInfo);
+            } else if (isSavedAnswer(answer)) {
                 answers[key] = answer;
             }
         }
     }
     for (const pageDocuments of Object.values(wise?.documents ?? {})) {
-        for (const [fieldKey, fileKeys] of Object.entries(pageDocuments ?? {})) {
-            if (fileKeys?.length) {
-                answers[fieldKey] = fileKeys.map(toSavedFile);
+        for (const [fileKey, savedFileKeys] of Object.entries(pageDocuments ?? {})) {
+            if (savedFileKeys?.length) {
+                answers = withSavedFiles(answers, fileKey, savedFileKeys);
             }
         }
     }
@@ -98,7 +107,6 @@ function getWiseBusinessOnboardingPrefill(
         [addressKeys.zipCode]: address?.zip,
         [addressKeys.country]: countryCode,
         companyName: business?.companyName,
-        companyType: COMPANY_TYPE_BY_INCORPORATION_TYPE[business?.incorporationType ?? ''],
         // What the user already saved to Wise wins over the details above
         ...getSavedAnswers(business?.wise),
     };
