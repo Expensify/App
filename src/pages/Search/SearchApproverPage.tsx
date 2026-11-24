@@ -19,7 +19,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import {addReportApprover} from '@libs/actions/IOU/ReportWorkflow';
 import Navigation from '@libs/Navigation/Navigation';
-import {getMemberAccountIDsForWorkspace, isPendingDeletePolicy, isPolicyAdmin} from '@libs/PolicyUtils';
+import {getMemberAccountIDsForWorkspace, hasDynamicExternalWorkflow, isPendingDeletePolicy, isPolicyAdmin} from '@libs/PolicyUtils';
 import {canReassignAsApprover, getDisplayNameForParticipant, hasViolations as hasViolationsReportUtils, isAllowedToApproveExpenseReport} from '@libs/ReportUtils';
 
 import CONST from '@src/CONST';
@@ -56,6 +56,8 @@ function SearchApproverPage({isReassignment = false}: SearchApproverPageProps) {
     const isLoadingReportData = selectedReports.some(
         (selectedReport) => !allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${selectedReport.reportID}`] || !allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${selectedReport.policyID}`],
     );
+
+    const hasSelectedDEWEnabledPolicy = selectedReports.some((selectedReport) => hasDynamicExternalWorkflow(allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${selectedReport.policyID}`]));
 
     const intersectedEmployees = (() => {
         const uniquePolicyIds = Array.from(new Set(selectedReports.map((selectedReport) => selectedReport.policyID)));
@@ -152,7 +154,7 @@ function SearchApproverPage({isReassignment = false}: SearchApproverPageProps) {
 
     const addApprover = () => {
         const employeeAccountID = allApprovers.find((approver) => approver.login === selectedApproverEmail)?.value;
-        if ((isReassignment && !canReassignAllReports) || !selectedApproverEmail || !employeeAccountID) {
+        if (hasSelectedDEWEnabledPolicy || (isReassignment && !canReassignAllReports) || !selectedApproverEmail || !employeeAccountID) {
             return;
         }
 
@@ -237,7 +239,7 @@ function SearchApproverPage({isReassignment = false}: SearchApproverPageProps) {
             isLoadingReportData={isLoadingReportData}
             policy={allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${selectedReports.at(0)?.policyID}`]}
             shouldShowNotFoundViewLink={false}
-            shouldShowNotFoundView={isReassignment && !canReassignAllReports}
+            shouldShowNotFoundView={hasSelectedDEWEnabledPolicy || (isReassignment && !canReassignAllReports)}
             shouldRequirePolicyAdmin={!isReassignment || !canReassignAllReports}
             allApprovers={allApprovers}
             listEmptyContentSubtitle={translate(selectedReports.length === 1 ? 'workflowsPage.emptyContent.approverSubtitle' : 'workflowsPage.emptyContent.bulkApproverSubtitle')}

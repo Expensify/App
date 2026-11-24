@@ -82,5 +82,5 @@ function PersonalDetailsByLoginProvider({children}: ChildrenProps) {
 }
 
 export default PersonalDetailsByLoginProvider;
-export {EMPTY_PERSONAL_DETAILS_BY_LOGIN, PersonalDetailsByLoginContext};
+export {buildPersonalDetailsByLogin, EMPTY_PERSONAL_DETAILS_BY_LOGIN, PersonalDetailsByLoginContext};
 export type {PersonalDetailsByLogin};

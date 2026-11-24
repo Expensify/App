@@ -44,8 +44,6 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {CompanyCardFeed} from '@src/types/onyx';
-import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 import {format} from 'date-fns';
 import React from 'react';
@@ -71,7 +69,7 @@ function PersonalCardDetailsPage({route}: PersonalCardDetailsPageProps) {
 
     const {isOffline} = useNetwork();
 
-    const [cardList, cardListMetadata] = useOnyx(ONYXKEYS.CARD_LIST);
+    const [cardList] = useOnyx(ONYXKEYS.CARD_LIST);
     const [allTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const [savedColumnLayouts] = useOnyx(ONYXKEYS.NVP_SAVED_CSV_COLUMN_LAYOUT_LIST);
@@ -162,13 +160,12 @@ function PersonalCardDetailsPage({route}: PersonalCardDetailsPageProps) {
         : translate('workspace.moreFeatures.companyCards.neverUpdated');
 
     const getCardIconSource = () => {
-        return getCardFeedIcon(cardBank as CompanyCardFeed, illustrations, companyCardFeedIcons);
+        return getCardFeedIcon(card?.bank, illustrations, companyCardFeedIcons);
     };
 
     const navigateToTransactions = () => navigateToCardTransactions(cardID);
 
-    // Don't show NotFoundPage if data is still loading
-    if (!card && !isLoadingOnyxValue(cardListMetadata)) {
+    if (!card) {
         return <NotFoundPage />;
     }
 
@@ -177,7 +174,7 @@ function PersonalCardDetailsPage({route}: PersonalCardDetailsPageProps) {
         return <NotFoundPage />;
     }
 
-    const plaidUrl = getPlaidInstitutionIconUrl(cardBank as CompanyCardFeed);
+    const plaidUrl = getPlaidInstitutionIconUrl(card?.bank);
 
     return (
         <ScreenWrapper
