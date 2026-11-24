@@ -122,8 +122,14 @@ function getWeekEndsOn(): WeekDay {
 // eslint-disable-next-line @typescript-eslint/no-redundant-type-constituents
 function getLocalDateFromDatetime(locale: Locale | undefined, currentSelectedTimezone: string | SelectedTimezone, datetime?: string): Date {
     if (!datetime) {
-        const res = toZonedTime(new Date(), currentSelectedTimezone);
-        if (Number.isNaN(res.getTime())) {
+        let res: Date | undefined;
+        try {
+            res = toZonedTime(new Date(), currentSelectedTimezone);
+        } catch {
+            // Another user's timezone can be any text. date-fns-tz returns an invalid date for most names it doesn't
+            // know, but throws for some, such as `constructor`, so both get the current date below.
+        }
+        if (!res || Number.isNaN(res.getTime())) {
             Log.warn('DateUtils.getLocalDateFromDatetime: toZonedTime returned an invalid date. Returning current date.', {
                 locale,
                 datetime,
@@ -278,13 +284,21 @@ function datetimeToRelative(locale: Locale | undefined, datetime: string, curren
  * @returns
  */
 function getZoneAbbreviation(datetime: string | Date, selectedTimezone: SelectedTimezone, dateFnsLocale: DateFnsLocale | undefined): string {
-    // The zone name comes from `Intl`, so passing the language gives its own name for the zone, such as the German
-    // abbreviation for Central European Summer Time, instead of always the English one.
-    const abbreviation = formatInTimeZone(datetime, selectedTimezone, 'zzz', {locale: dateFnsLocale});
-    if (abbreviation === 'GMT') {
-        return formatInTimeZone(datetime, selectedTimezone, 'O', {locale: dateFnsLocale});
+    const supportedTimezone = fallbackToSupportedTimezone(selectedTimezone);
+    try {
+        // The zone name comes from `Intl`, so passing the language gives its own name for the zone, such as the German
+        // abbreviation for Central European Summer Time, instead of always the English one.
+        const abbreviation = formatInTimeZone(datetime, supportedTimezone, 'zzz', {locale: dateFnsLocale});
+        if (abbreviation === 'GMT') {
+            return formatInTimeZone(datetime, supportedTimezone, 'O', {locale: dateFnsLocale});
+        }
+        return abbreviation;
+    } catch {
+        // The timezone can come from another user's personal details, which the server stores as any text, and an
+        // invalid date or timezone makes formatting throw. There is no abbreviation to show then, and throwing here
+        // would crash the page rendering it.
+        return '';
     }
-    return abbreviation;
 }
 
 /**
@@ -644,9 +658,19 @@ function getStatusUntilDate(
         return '';
     }
 
-    const date = fromZonedTime(inputDate, inputDateTimeZone);
-    const input = toZonedTime(date, currentSelectedTimezone);
-    const now = toZonedTime(new Date(), currentSelectedTimezone);
+    // Some native platforms only know older timezone names. Another user's timezone can also be text that is not a
+    // timezone this platform knows under any name, and that is read in the device's timezone.
+    const supportedCurrentTimezone = fallbackToSupportedTimezone(currentSelectedTimezone);
+    const date = fromZonedTime(inputDate, fallbackToSupportedTimezone(inputDateTimeZone));
+    const input = toZonedTime(date, supportedCurrentTimezone);
+    const now = toZonedTime(new Date(), supportedCurrentTimezone);
+
+    // The server stores any clear-after text that PHP can parse, such as `tomorrow`, which is not a date here, and
+    // formatting an invalid date throws. There is no date to show then, and throwing would crash the chat list.
+    if (!isValid(input) || !isValid(now)) {
+        return '';
+    }
+
     const endOfToday = endOfDay(now);
 
     // If the date is adjusted to the following day
