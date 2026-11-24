@@ -73,15 +73,21 @@ function WorkspaceMemberCategoryVisibilityPage({policy, route}: WorkspaceMemberC
     const illustrations = useMemoizedLazyIllustrations(['Telescope']);
     const {canWrite: canWriteCategories} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.CATEGORIES);
     const {showConfirmModal} = useConfirmModal();
-    const employeePersonalDetails = usePersonalDetailsByLogins(Object.keys(policy?.employeeList ?? {}));
+    const employeeLogins = Object.keys(policy?.employeeList ?? {});
+    const employeePersonalDetails = usePersonalDetailsByLogins(employeeLogins);
     const [bulkEditSelection] = useOnyx(ONYXKEYS.RAM_ONLY_WORKSPACE_MEMBERS_SELECTED_FOR_BULK_EDIT);
 
     // Members picked on another workspace's member list are left out, even when they also belong to this one
     const bulkEditAccountIDs = isBulkEdit && bulkEditSelection?.policyID === policyID ? bulkEditSelection.accountIDs : [];
     const accountIDs = isBulkEdit ? bulkEditAccountIDs : [accountID];
-    const memberLogins = accountIDs
-        .map((memberAccountID) => Object.keys(policy?.employeeList ?? {}).find((login) => employeePersonalDetails[login]?.accountID === memberAccountID))
-        .filter((login): login is string => !!login);
+    const loginsByAccountID = new Map<number, string>();
+    for (const login of employeeLogins) {
+        const employeeAccountID = employeePersonalDetails[login]?.accountID;
+        if (employeeAccountID !== undefined && !loginsByAccountID.has(employeeAccountID)) {
+            loginsByAccountID.set(employeeAccountID, login);
+        }
+    }
+    const memberLogins = accountIDs.map((memberAccountID) => loginsByAccountID.get(memberAccountID)).filter((login): login is string => !!login);
     const memberLogin = memberLogins.at(0);
 
     // The selection only lives in memory, so a bulk edit opened from a link or after a refresh goes back to the list

@@ -234,6 +234,37 @@ describe('WorkspaceMembers', () => {
             await waitForBatchedUpdatesWithAct();
         });
 
+        it('shows a failed category visibility change on the member’s row, and dismissing it keeps the member', async () => {
+            // Given a bulk category visibility change the server rejected for a member, which this list is where the admin returns to
+            const errorMessage = 'Category visibility could not be saved';
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, {
+                    employeeList: {[userEmail]: {errorFields: {categoryVisibility: {1: errorMessage}}}},
+                });
+            });
+
+            // When the members list renders
+            const {unmount} = renderPage(SCREENS.WORKSPACE.MEMBERS, {policyID: policy.id});
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the error shows on the member's row
+            expect(await screen.findByText(errorMessage)).toBeOnTheScreen();
+
+            // When the admin dismisses it
+            const memberRow = screen.getByLabelText(new RegExp(`^Member User, ${userEmail}`));
+            const dismissButton = within(memberRow).getByLabelText(TestHelper.translateLocal('common.dismiss'));
+            fireEvent.press(dismissButton);
+            await waitForBatchedUpdatesWithAct();
+
+            // Then only the error is cleared, and the member stays on the workspace
+            const updatedPolicy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`);
+            expect(updatedPolicy?.employeeList?.[userEmail]?.errorFields?.categoryVisibility).toBeUndefined();
+            expect(updatedPolicy?.employeeList?.[userEmail]?.email).toBe(userEmail);
+
+            unmount();
+            await waitForBatchedUpdatesWithAct();
+        });
+
         it('is not offered to a People Admin', async () => {
             // Given a Control workspace with categories, where the current user is a People Admin rather than a workspace admin
             await act(async () => {

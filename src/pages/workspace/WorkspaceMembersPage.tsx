@@ -36,6 +36,7 @@ import useWorkspaceMembers from '@hooks/useWorkspaceMembers';
 
 import {isConnectionInProgress, syncConnection} from '@libs/actions/connections';
 import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
+import {clearPolicyMemberCategoryVisibilityError} from '@libs/actions/Policy/Category';
 import {updateMemberRoleInline} from '@libs/actions/Policy/InlineEdit';
 import {
     clearAddMemberError,
@@ -413,7 +414,16 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
         });
     };
 
-    const dismissError = (login: string, accountID: number, pendingAction?: PendingAction) => {
+    const dismissError = (login: string, accountID: number, pendingAction?: PendingAction, hasCategoryVisibilityError = false, hasMemberError = true) => {
+        if (hasCategoryVisibilityError) {
+            clearPolicyMemberCategoryVisibilityError(route.params.policyID, login);
+        }
+
+        // Only a category visibility change failed, so the member is left as is: clearing an add error would remove them
+        if (!hasMemberError) {
+            return;
+        }
+
         if (pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
             clearDeleteMemberError(route.params.policyID, login);
             return;
@@ -525,15 +535,16 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
                 !canMemberManageMemberWithRole(policy, currentUserLogin ?? '', policyEmployee.role),
             shouldShowEmployeeUserID: shouldShowCustomField1Column,
             shouldShowEmployeePayrollID: shouldShowCustomField2Column,
-            errors: getLatestErrorMessageField(policyEmployee),
-            pendingAction: policyEmployee.pendingAction,
+            errors: getLatestErrorMessageField({errors: {...policyEmployee.errorFields?.categoryVisibility, ...policyEmployee.errors}}),
+            pendingAction: policyEmployee.pendingAction ?? policyEmployee.pendingFields?.categoryVisibility,
             disabled: isPendingDeleteOrError,
             canEditRole,
             onChangeRole: (newRole) => changeMemberRole(login, accountID, policyEmployee.role, newRole),
             // Note which secondary login was used to invite this primary login
             invitedSecondaryLogin: details?.login ? (invitedPrimaryToSecondaryLogins[details.login] ?? '') : '',
             action: () => openMemberDetails(accountID, login),
-            dismissError: () => dismissError(login, accountID, policyEmployee.pendingAction),
+            dismissError: () =>
+                dismissError(login, accountID, policyEmployee.pendingAction, !isEmptyObject(policyEmployee.errorFields?.categoryVisibility), !isEmptyObject(policyEmployee.errors)),
         };
     });
 
