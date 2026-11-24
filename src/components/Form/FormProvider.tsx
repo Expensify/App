@@ -11,6 +11,7 @@ import useOnyx from '@hooks/useOnyx';
 import usePressLoading from '@hooks/usePressLoading';
 
 import {isSafari} from '@libs/Browser';
+import ComposerFocusManager from '@libs/ComposerFocusManager';
 import {getLatestErrorMessage} from '@libs/ErrorUtils';
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import type {CancelHandle} from '@libs/Navigation/TransitionTracker';
@@ -539,6 +540,10 @@ function FormProvider({
                         blurTransitionHandle.current?.cancel();
                         blurTransitionHandle.current = TransitionTracker.runAfterTransitions({
                             callback: () => {
+                                // A delayed blur must not change the shared layout after navigation or after focus moves to another input.
+                                if (!isFocusedRef.current || ComposerFocusManager.getActiveInput()) {
+                                    return;
+                                }
                                 setIsBlurred(true);
                             },
                             waitForUpcomingTransition: true,
