@@ -4,7 +4,7 @@ import {makeRequestWithSideEffects, write} from '@libs/API';
 import type {SubmitWiseBusinessOnboardingParams, UpdateWiseOnboardingAdditionalDataParams} from '@libs/API/parameters';
 import {SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
-import getWiseOnboardingPageParams from '@libs/getWiseOnboardingPageParams';
+import getWiseOnboardingPageParams, {isWiseOnboardingStep} from '@libs/getWiseOnboardingPageParams';
 import {rand64} from '@libs/NumberUtils';
 
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -107,6 +107,14 @@ function saveWiseOnboardingPage(bankAccountID: number, page: DynamicFormPage, an
     saveWiseOnboardingPageThroughQueue(params);
 }
 
+/** Marks a page the user left offline as unsaved, since its answers are only in the draft, so the next visit opens on it. A key that is not a step is never saved, so it is not marked. */
+function markWiseOnboardingPageUnsaved(step: string) {
+    if (!isWiseOnboardingStep(step)) {
+        return;
+    }
+    Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {wiseOnboardingUnsavedPages: {[step]: true}});
+}
+
 /** Drops the unsaved pages of the bank account the draft held, since they say nothing about another account's saves */
 function clearWiseOnboardingUnsavedPages() {
     Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {wiseOnboardingUnsavedPages: null});
@@ -164,4 +172,11 @@ function clearWiseBusinessOnboardingSubmission() {
 }
 
 export default saveWiseOnboardingPage;
-export {clearWiseIntroReadBankAccountID, clearWiseBusinessOnboardingSubmission, clearWiseOnboardingUnsavedPages, openReimbursementAccountPageForWiseIntro, submitWiseBusinessOnboarding};
+export {
+    clearWiseIntroReadBankAccountID,
+    clearWiseBusinessOnboardingSubmission,
+    clearWiseOnboardingUnsavedPages,
+    markWiseOnboardingPageUnsaved,
+    openReimbursementAccountPageForWiseIntro,
+    submitWiseBusinessOnboarding,
+};

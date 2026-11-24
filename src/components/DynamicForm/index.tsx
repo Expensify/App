@@ -76,7 +76,7 @@ function DynamicFormFlow({
     layout = 'auto',
     hasConfirmation = true,
     shouldDisableNextWhenOffline,
-    shouldOfferToContinueLaterWhenOffline,
+    onSaveForLater,
     children,
 }: DynamicFormFlowProps) {
     const styles = useThemeStyles();
@@ -339,8 +339,9 @@ function DynamicFormFlow({
         prevPage();
     };
 
-    /** Leaves the flow from any page. The draft and the pages saved so far already hold the answers, so nothing more is saved. */
+    /** Leaves the flow from any page. The draft and the pages saved so far already hold the answers, so nothing more is saved. The page left was not saved, so the screen gets it to mark. */
     const saveForLater = () => {
+        onSaveForLater?.(pages.find((page) => page.key === currentPageName));
         leaveFlow();
         if (!SHOULD_SHOW_PROGRESS_SAVED_TOAST) {
             return;
@@ -378,7 +379,7 @@ function DynamicFormFlow({
             stepIndex={stepIndex}
             stepTitle={stepTitle || undefined}
             shouldShowStepIndicator={isStepIndicatorAsked && stepNames.length > 1}
-            shouldShowOfflineIndicatorInWideScreen={shouldDisableNextWhenOffline || shouldOfferToContinueLaterWhenOffline}
+            shouldShowOfflineIndicatorInWideScreen={shouldDisableNextWhenOffline || !!onSaveForLater}
         >
             {isLoading || isDraftLoading || isRedirecting || isClearingEarlierVisit || isOnUnavailablePage || (!hasPageToShow && pages.length > 0) ? (
                 <View style={[styles.flex1, styles.fullScreenLoading]}>
@@ -412,7 +413,7 @@ function DynamicFormFlow({
                     refreshError={refreshError}
                     shouldShowFieldErrors={shouldShowFieldErrors}
                     shouldDisableNextWhenOffline={shouldDisableNextWhenOffline}
-                    onSaveForLater={shouldOfferToContinueLaterWhenOffline ? saveForLater : undefined}
+                    onSaveForLater={onSaveForLater ? saveForLater : undefined}
                     validatePage={validatePage}
                 >
                     {children}

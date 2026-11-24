@@ -12,24 +12,19 @@ import type {OnyxEntry} from 'react-native-onyx';
 
 import {isSavingWiseOnboardingPageSelector, unsavedWiseOnboardingPageKeysSelector} from '@selectors/ReimbursementAccount';
 
-import useLocalize from './useLocalize';
 import useOnyx from './useOnyx';
 
 const saveErrorSelector = (reimbursementAccount: OnyxEntry<ReimbursementAccount>) => getLatestErrorMessage(reimbursementAccount);
 
 /**
- * Whether the Wise onboarding pages are still saving, the pages that have not saved, and the error to show when a page did not save. Wise has every page
- * once none is set.
- * A later page's save clears the shared error, so a page that is still unsaved shows the generic one.
+ * Whether the Wise onboarding pages are still saving, the steps that have not saved, and the error the server sent for a save. Wise has every page once no
+ * step the form still asks for is unsaved, which only the screen can tell, since a step's pages can leave the form after it was marked.
  */
 function useWiseOnboardingSaveStatus() {
-    const {translate} = useLocalize();
     const [serverError] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {selector: saveErrorSelector});
     const [isSaving = false] = useOnyx(ONYXKEYS.RAM_ONLY_WISE_ONBOARDING_PENDING_SAVES, {selector: isSavingWiseOnboardingPageSelector});
     const [unsavedPageKeys = getEmptyArray<string>()] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {selector: unsavedWiseOnboardingPageKeysSelector});
-
-    const saveError = serverError || (unsavedPageKeys.length > 0 && !isSaving ? translate('common.genericErrorMessage') : undefined);
-    return {isSaving, saveError, unsavedPageKeys};
+    return {isSaving, serverError, unsavedPageKeys};
 }
 
 export default useWiseOnboardingSaveStatus;

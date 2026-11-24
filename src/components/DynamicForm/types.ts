@@ -101,9 +101,11 @@ type DynamicFormFlowProps = Pick<DynamicFormFieldsProps, 'currency' | 'maxFileSi
     /**
      * Keeps Next and Confirm enabled offline, and a press offline opens a modal that offers to leave the flow, as Back from the first page does, or to try
      * again. For flows that save each page to the server as the user leaves it, so the answers are kept for a later visit. Shows the offline indicator on
-     * wide screens too. Off by default.
+     * wide screens too. Without it, the flow does not offer this.
+     * Receives the page the user left, whose answers are drafted but were never saved, so the screen can mark it unsaved. The confirmation page holds no
+     * answers of its own, so leaving from it passes no page.
      */
-    shouldOfferToContinueLaterWhenOffline?: boolean;
+    onSaveForLater?: (page: DynamicFormPage | undefined) => void;
 };
 
 /** Props of every page in the flow: useSubPage's routing props plus the form's data */

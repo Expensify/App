@@ -7,6 +7,7 @@ import {ModalActions} from '@components/Modal/Global/ModalContext';
 import useDecisionModal from '@hooks/useDecisionModal';
 import useLocalize from '@hooks/useLocalize';
 
+import Log from '@libs/Log';
 import {refreshAndCheckIsOffline} from '@libs/NetworkState';
 
 import {useEffect, useRef} from 'react';
@@ -77,8 +78,10 @@ function useContinueOfflineModal() {
                         })
                 );
             })
-            .catch(() => {
+            // The modal can be pressed again, and a failure in leaving or going on is logged, since the user only sees the form stay where it was
+            .catch((error: unknown) => {
                 isModalOpenRef.current = false;
+                Log.warn('[DynamicForm] The continue offline modal failed', {error: error instanceof Error ? error.message : String(error)});
             });
     };
 

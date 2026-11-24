@@ -19,6 +19,7 @@ import saveWiseOnboardingPage, {openReimbursementAccountPageForWiseIntro} from '
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type {WiseBusinessOnboardingForm} from '@src/types/form';
 import type {BankAccount, DismissedProductTraining, DynamicFormPage, PrivatePersonalDetails} from '@src/types/onyx';
@@ -400,7 +401,7 @@ describe('WiseBusinessOnboardingPage', () => {
         await renderPage();
 
         // Then Next offline explains the connection and offers to leave, since each page is saved to Wise as the user leaves it and a page with an SSN cannot be queued
-        expect(mockFlowProps).toHaveBeenLastCalledWith(expect.objectContaining({shouldOfferToContinueLaterWhenOffline: true}));
+        expect(mockFlowProps.mock.lastCall?.[0].onSaveForLater).toBeDefined();
         expect(mockFlowProps).toHaveBeenLastCalledWith(expect.not.objectContaining({shouldDisableNextWhenOffline: true}));
     });
 
@@ -678,6 +679,45 @@ describe('WiseBusinessOnboardingPage', () => {
 
         // Then Confirm does not wait for the save forever, and the user stays with an error, since Wise may not have the page
         expect(flowProps?.isSavingPages).toBe(false);
+        expect(navigateSpy).not.toHaveBeenCalled();
+        expect(flowProps?.submitError).toBe('common.genericErrorMessage');
+    });
+
+    it('lets the user confirm when a step that did not save is no longer in the form', async () => {
+        // Given the documents page was left unsaved, and the business no longer needs enhanced due diligence, so no page saves that step again
+        await renderPage({
+            reimbursementAccount: {...REIMBURSEMENT_ACCOUNT, wiseOnboardingUnsavedPages: {[CONST.WISE.ONBOARDING_STEP.BUSINESS_SOURCE_OF_WEALTH_PROOF]: true}},
+            subPage: CONST.DYNAMIC_FORM.CONFIRMATION_PAGE_KEY,
+        });
+        const navigateSpy = jest.spyOn(Navigation, 'navigate').mockImplementation(() => {});
+
+        // When the user taps Confirm
+        const flowProps = mockFlowProps.mock.lastCall?.[0];
+        act(() => flowProps?.onSubmit({}));
+
+        // Then the stale mark shows no error and does not hold the user, since Wise does not need that page
+        expect(flowProps?.submitError).toBeUndefined();
+        expect(flowProps?.unsavedPageKeys).toEqual([]);
+        expect(navigateSpy).toHaveBeenCalledWith(expect.stringContaining(DYNAMIC_ROUTES.WISE_ACCEPT_TERMS.path), {forceReplace: true});
+    });
+
+    it('keeps the user on the confirmation page when a requirement step did not save and the requirements of this bank account are not on the device', async () => {
+        // Given the documents page was left unsaved, and the device holds another bank account's details, so the form does not have the requirement pages yet
+        await renderPage({
+            reimbursementAccount: {
+                achData: {...REIMBURSEMENT_ACCOUNT.achData, bankAccountID: BANK_ACCOUNT_ID + 1},
+                wiseOnboardingUnsavedPages: {[CONST.WISE.ONBOARDING_STEP.BUSINESS_SOURCE_OF_WEALTH_PROOF]: true},
+            },
+            subPage: CONST.DYNAMIC_FORM.CONFIRMATION_PAGE_KEY,
+            shouldLeaveReadRunning: true,
+        });
+        const navigateSpy = jest.spyOn(Navigation, 'navigate').mockImplementation(() => {});
+
+        // When the user taps Confirm
+        const flowProps = mockFlowProps.mock.lastCall?.[0];
+        act(() => flowProps?.onSubmit({}));
+
+        // Then they stay with an error, since the documents page may still be one Wise needs
         expect(navigateSpy).not.toHaveBeenCalled();
         expect(flowProps?.submitError).toBe('common.genericErrorMessage');
     });

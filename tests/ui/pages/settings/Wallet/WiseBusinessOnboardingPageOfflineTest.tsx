@@ -200,10 +200,13 @@ describe('WiseBusinessOnboardingPage offline', () => {
         mockShownModals.at(0)?.answer(ModalActions.CONFIRM);
         await waitForBatchedUpdatesWithAct();
 
-        // Then the flow closes to the intro as Back from the first page does, and the draft still holds the answers for the next visit
+        // Then the flow closes to the intro as Back from the first page does, the draft still holds the answers for the next visit,
+        // and the business page is marked unsaved, since Wise never got it, so the next visit opens on it instead of skipping it
         expect(goBackSpy).toHaveBeenCalledWith(INTRO_PATH);
         const draft = await getOnyxValue(ONYXKEYS.FORMS.WISE_BUSINESS_ONBOARDING_FORM_DRAFT);
         expect(draft).toEqual(expect.objectContaining({companyName: COMPLETE_DRAFT.companyName}));
+        const reimbursementAccount = await getOnyxValue(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
+        expect(reimbursementAccount?.wiseOnboardingUnsavedPages).toEqual({[CONST.WISE.ONBOARDING_STEP.BUSINESS]: true});
     });
 
     it('asks again when Try again finds the device still offline', async () => {

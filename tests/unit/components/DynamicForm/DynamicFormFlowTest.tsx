@@ -109,7 +109,7 @@ type RenderFlowOptions = {
     maxFileSize?: number;
     onRefreshRequirements?: (inputID: string, value: FormValue) => void;
     shouldDisableNextWhenOffline?: boolean;
-    shouldOfferToContinueLaterWhenOffline?: boolean;
+    onSaveForLater?: (page: DynamicFormPage | undefined) => void;
     unsavedPageKeys?: string[];
     isLoading?: boolean;
 };
@@ -143,7 +143,7 @@ async function renderFlow({
     maxFileSize,
     onRefreshRequirements,
     shouldDisableNextWhenOffline,
-    shouldOfferToContinueLaterWhenOffline,
+    onSaveForLater,
     unsavedPageKeys,
     isLoading,
 }: RenderFlowOptions = {}) {
@@ -171,7 +171,7 @@ async function renderFlow({
             onRefreshRequirements={onRefreshRequirements}
             isSubmitting={submitting}
             shouldDisableNextWhenOffline={shouldDisableNextWhenOffline}
-            shouldOfferToContinueLaterWhenOffline={shouldOfferToContinueLaterWhenOffline}
+            onSaveForLater={onSaveForLater}
             unsavedPageKeys={unsavedPageKeys}
             isLoading={isLoading}
         />
@@ -467,7 +467,7 @@ describe('DynamicFormFlow', () => {
     it('hands its pages a way to leave for later offline only when the screen asks, and it leaves as Back from the first page does', async () => {
         // Given one flow that leaves the option out and one whose screen offers to continue later offline, on its second page with an answer in memory
         const defaultFlow = await renderFlow();
-        const offeringFlow = await renderFlow({shouldOfferToContinueLaterWhenOffline: true, pageIndex: 1, currentPageName: 'recipient', sensitiveAnswers: {ssn: '123456789'}});
+        const offeringFlow = await renderFlow({onSaveForLater: jest.fn(), pageIndex: 1, currentPageName: 'recipient', sensitiveAnswers: {ssn: '123456789'}});
 
         // When the second flow's page leaves for later
         offeringFlow.pageProps?.onSaveForLater?.();
@@ -477,6 +477,27 @@ describe('DynamicFormFlow', () => {
         expect(defaultFlow.pageProps?.onSaveForLater).toBeUndefined();
         expect(offeringFlow.onBack).toHaveBeenCalledTimes(1);
         expect(clearSensitiveAnswers).toHaveBeenCalledWith(FORM_ID);
+    });
+
+    it('tells the screen which page was left for later, and passes no page from the confirmation page', async () => {
+        // Given one flow on its second page and one on its confirmation page, both offering to continue later offline
+        const onSaveForLater = jest.fn();
+        const pageFlow = await renderFlow({onSaveForLater, pageIndex: 1, currentPageName: 'recipient'});
+        const confirmationFlow = await renderFlow({
+            onSaveForLater,
+            hasConfirmation: true,
+            pageIndex: 2,
+            currentPageName: CONST.DYNAMIC_FORM.CONFIRMATION_PAGE_KEY,
+        });
+
+        // When each flow's page leaves for later
+        pageFlow.pageProps?.onSaveForLater?.();
+        confirmationFlow.pageProps?.onSaveForLater?.();
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the screen gets the second page, whose answers are drafted but were not saved, and no page from the confirmation page, which has no answers of its own
+        expect(onSaveForLater).toHaveBeenNthCalledWith(1, expect.objectContaining({key: 'recipient'}));
+        expect(onSaveForLater).toHaveBeenNthCalledWith(2, undefined);
     });
 
     it('drafts the page answers, keeps sensitive ones in memory, and hands the screen the sensitive ones apart', async () => {
