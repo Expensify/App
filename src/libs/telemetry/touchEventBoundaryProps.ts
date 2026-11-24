@@ -32,7 +32,7 @@ const UNKNOWN_LABEL = new RegExp(`^(?!${oneOf(collectSentryLabels(CONST.SENTRY_L
  * matches, so component names, accessibility labels and test IDs are skipped here at once. Only strings shaped like a
  * label reach `UNKNOWN_LABEL`, which has a branch for every label and is slow on Hermes.
  */
-const NOT_LABEL_SHAPED = /^(?![A-Z][A-Za-z0-9]*(?:-[A-Z][A-Za-z0-9]*){1,2}$)/;
+const NON_LABEL_SHAPE = /^(?![A-Z][A-Za-z0-9]*(?:-[A-Z][A-Za-z0-9]*){1,2}$)/;
 
 /**
  * Sentry on mobile names each tap after a label found on the tapped element or its parents. By default it uses
@@ -48,7 +48,7 @@ const touchEventBoundaryProps: TouchEventBoundaryProps = {
     // If no parent has a valid label, the tap is not reported.
     // Sentry checks component names against this too. It works because the views that carry `sentryLabel` have no
     // component name, so adding Sentry's component annotation Babel plugin would make every label get skipped.
-    ignoreNames: [NOT_LABEL_SHAPED, UNKNOWN_LABEL],
+    ignoreNames: [NON_LABEL_SHAPE, UNKNOWN_LABEL],
 };
 
 export default touchEventBoundaryProps;
