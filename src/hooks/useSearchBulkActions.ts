@@ -71,7 +71,7 @@ import {getLoginByAccountID} from '@libs/PersonalDetailsUtils';
 import {canAccessPolicyBankAccount} from '@libs/PolicyPaymentUtils';
 import {canPayViaABA, getConnectedIntegration, hasDynamicExternalWorkflow, isAdminOfCardEnabledPolicy, isSubmitPolicy} from '@libs/PolicyUtils';
 import {getReportName} from '@libs/ReportNameUtils';
-import {getReportAccountingExportActions, isMergeActionForSelectedTransactions, isUnapproveAction} from '@libs/ReportSecondaryActionUtils';
+import {getReportAccountingExportActions, isMergeActionForSelectedTransactions} from '@libs/ReportSecondaryActionUtils';
 import {
     canEditMultipleTransactions,
     canIOUBePaid,
@@ -181,6 +181,7 @@ import type {RejectModalAction} from './useHoldRejectEducationalModal';
 
 import useAllTransactions from './useAllTransactions';
 import useBulkPayOptions from './useBulkPayOptions';
+import useBulkUnapproveAction from './useBulkUnapproveAction';
 import useConfirmModal from './useConfirmModal';
 import {useCurrencyListActions} from './useCurrencyList';
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
@@ -729,6 +730,16 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
     const searchResults = currentSearchResults?.data ? currentSearchResults : lastNonEmptySearchResultsRef.current;
 
     const {showConfirmModal} = useConfirmModal();
+    const {canUnapproveSelectedReport, unapproveSelectedReports} = useBulkUnapproveAction({
+        queryJSON,
+        selectedReports,
+        areAllMatchingItemsSelected,
+        excludedTransactions,
+        searchData: currentSearchResults?.data,
+        currentSearchKey,
+        allReports,
+        policies,
+    });
     const {showWiseQuoteCarouselModal} = useWiseQuoteConfirmModal();
     const {showDecisionModal} = useDecisionModal();
 
@@ -792,6 +803,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         'Trashcan',
         'ThumbsUp',
         'ThumbsDown',
+        'CircularArrowBackwards',
         'ArrowRight',
         'ArrowCollapse',
         'Stopwatch',
@@ -1611,56 +1623,6 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         translate,
         dateFnsLocale,
         convertToDisplayString,
-    ]);
-
-    const handleUnapproveWithDEWCheck = useCallback(async () => {
-        if (isDelegateAccessRestricted) {
-            showDelegateNoAccessModal();
-            return;
-        }
-
-        if (isAccountLocked) {
-            showLockedAccountModal();
-            return;
-        }
-
-        if (isOffline) {
-            showOfflineModal();
-            return;
-        }
-
-        if (!hash) {
-            return;
-        }
-
-        const selectedItems = selectedReports.length ? selectedReports : Object.values(selectedTransactions);
-
-        const restrictedPolicyID = getRestrictedPolicyID(selectedItems, userBillingGracePeriodEnds, ownerBillingGracePeriodEnd, amountOwed, policies, accountID);
-        if (restrictedPolicyID) {
-            Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(restrictedPolicyID));
-            return;
-        }
-
-        const reportIDList = !selectedReports.length ? Object.values(selectedTransactions).map((transaction) => transaction.reportID) : selectedReports.map((report) => report.reportID);
-        const uniqueReportIDs = [...new Set(reportIDList.filter((reportID): reportID is string => reportID !== undefined))];
-        const searchData = searchResults?.data;
-        const snapshotTransactionsByReportID = getTransactionsByReportID(searchData ?? {});
-    }, [
-        isDelegateAccessRestricted,
-        showDelegateNoAccessModal,
-        isAccountLocked,
-        showLockedAccountModal,
-        isOffline,
-        showOfflineModal,
-        hash,
-        selectedReports,
-        selectedTransactions,
-        userBillingGracePeriodEnds,
-        ownerBillingGracePeriodEnd,
-        amountOwed,
-        policies,
-        accountID,
-        searchResults?.data,
     ]);
 
     const {expenseCount, uniqueReportCount} = useMemo(() => {
@@ -2967,13 +2929,13 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         };
 
         const unapproveButtonOption: DropdownOption<SearchHeaderOptionValue> = {
-            icon: expensifyIcons.ThumbsDown,
-            text: translate('iou.unapprove'),
+            icon: expensifyIcons.CircularArrowBackwards,
+            text: translate('search.bulkActions.unapprove'),
             value: CONST.SEARCH.BULK_ACTION_TYPES.UNAPPROVE,
             sentryLabel: CONST.SENTRY_LABEL.SEARCH.BULK_ACTIONS_UNAPPROVE,
             shouldCloseModalOnSelect: true,
             onSelected: () => {
-                handleUnapproveWithDEWCheck();
+                unapproveSelectedReports();
             },
         };
 
@@ -3377,14 +3339,8 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             // The backend rejects the entire move if any matching expense is invalid
             const isAllMatchingSelectionMovable = isEmptyObject(excludedTransactions) && (!hasUnloadedMatchingExpenses || isUnreportedOnlyQuery);
 
-            const shouldShowUnapproveOptionForAllMatchingItems =
-                !isOffline &&
-                isExpenseReportType &&
-                selectedReports.some((selectedReport) => {
-                    const report = getReportFromSearchSnapshot(selectedReport.reportID, currentSearchResults?.data, allReports);
-                    const policy = getPolicyFromSearchSnapshot(selectedReport.policyID, currentSearchResults?.data, policies);
-                    return !!report && isUnapproveAction(currentUserLogin ?? '', accountID ?? CONST.DEFAULT_NUMBER_ID, report, policy);
-                });
+            // Unapprove is a report action too, so show it when any loaded report qualifies and let the backend skip the rest.
+            const shouldShowUnapproveOptionForAllMatchingItems = !isOffline && isExpenseReportType && selectedReports.some(canUnapproveSelectedReport);
 
             const allMatchingOptions: Array<DropdownOption<SearchHeaderOptionValue>> = [];
             if (shouldShowApproveOptionForAllMatchingItems) {
@@ -3517,15 +3473,8 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             options.push(approveButtonOption);
         }
 
-        const shouldShowUnapproveOption =
-            !isOffline &&
-            isExpenseReportType &&
-            selectedReports.length > 0 &&
-            selectedReports.every((selectedReport) => {
-                const report = getReportFromSearchSnapshot(selectedReport.reportID, currentSearchResults?.data, allReports);
-                const policy = getPolicyFromSearchSnapshot(selectedReport.policyID, currentSearchResults?.data, policies);
-                return !!report && isUnapproveAction(currentUserLogin ?? '', accountID ?? CONST.DEFAULT_NUMBER_ID, report, policy);
-            });
+        // Unapprove only applies to whole reports, so it needs a report selection where every report passes the More menu rule.
+        const shouldShowUnapproveOption = !isOffline && isExpenseReportType && selectedReports.length > 0 && selectedReports.every(canUnapproveSelectedReport);
 
         if (shouldShowUnapproveOption) {
             options.push(unapproveButtonOption);
@@ -3923,6 +3872,8 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         handleExportCurrentView,
         beginExportWithTemplate,
         handleApproveWithDEWCheck,
+        canUnapproveSelectedReport,
+        unapproveSelectedReports,
         allTransactionViolations,
         isDelegateAccessRestricted,
         dismissedRejectUseExplanation,
