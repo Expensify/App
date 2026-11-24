@@ -6,13 +6,17 @@ import type {SearchTagGroup} from '@src/types/onyx/SearchResults';
 
 import type {GroupedItem, SearchDateFilterKeys, SearchGroupBy} from './types';
 
+/** Returns the value a tag group is filtered by. Grouped snapshots use an empty string or "(untagged)", but Search filters require "none" for missing tags. */
+function getTagFilterValue(tag: string): string {
+    return tag === '' || tag === CONST.SEARCH.TAG_UNTAGGED_GROUP_VALUE ? CONST.SEARCH.TAG_EMPTY_VALUE : tag;
+}
+
 /** Builds the query fragment narrowing a query to a tag group's expenses. */
 function buildTagFilterQuery({tag, tagLevel, parentTagPath}: Pick<SearchTagGroup, 'tag' | 'tagLevel' | 'parentTagPath'>): string {
     if (tagLevel !== undefined) {
         return `tag:${sanitizeSearchValue(tag)} tagLevel:${tagLevel} tagParent:${sanitizeSearchValue(parentTagPath ?? '') || '""'}`;
     }
-    // Grouped snapshots use an empty string or "(untagged)", but Search filters require "none" for missing tags.
-    return `tag:${sanitizeSearchValue(tag === '' || tag === CONST.SEARCH.TAG_UNTAGGED_GROUP_VALUE ? CONST.SEARCH.TAG_EMPTY_VALUE : tag)}`;
+    return `tag:${sanitizeSearchValue(getTagFilterValue(tag))}`;
 }
 
 /** The dates a time bucket covers */
@@ -163,5 +167,5 @@ const CHART_GROUP_BY_CONFIG: Record<SearchGroupBy, ChartGroupByConfig> = {
 };
 
 export default CHART_GROUP_BY_CONFIG;
-export {buildTagFilterQuery};
+export {buildTagFilterQuery, getTagFilterValue};
 export type {ChartBucketRange};

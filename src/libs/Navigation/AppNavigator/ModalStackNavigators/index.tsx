@@ -1577,6 +1577,7 @@ const SearchColumnsModalStackNavigator = createModalStackNavigator<SearchColumns
 
 const InsightsDetailsModalStackNavigator = createModalStackNavigator<InsightsDetailsParamList>({
     [SCREENS.INSIGHTS_DETAILS]: () => require<ReactComponentModule>('../../../../pages/Insights/details/InsightsDetailsPage').default,
+    [SCREENS.INSIGHTS_EXCLUDE]: () => require<ReactComponentModule>('../../../../pages/Insights/exclude/InsightsExcludePage').default,
 });
 
 const ShareModalStackNavigator = createModalStackNavigator<ShareNavigatorParamList>({

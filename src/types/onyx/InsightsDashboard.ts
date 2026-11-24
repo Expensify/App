@@ -13,6 +13,9 @@ type InsightsSearchKey = ValueOf<typeof CONST.INSIGHTS.SEARCH_KEY>;
 /** Key identifying a graph within a dashboard response */
 type InsightsGraphKey = ValueOf<typeof CONST.INSIGHTS.GRAPH>;
 
+/** Saved filter key holding the items the user excluded from one graph */
+type InsightsExclusionsSearchKey = `${typeof CONST.INSIGHTS.EXCLUSIONS_SEARCH_KEY_PREFIX}${InsightsGraphKey}`;
+
 /** Reference to graph data stored in a search snapshot */
 type InsightsGraph = {
     /** Hash of the graph's search snapshot */
@@ -133,5 +136,5 @@ type InsightsDashboard = {
     responseJsonCode?: number;
 };
 
-export type {AIInsight, AIInsightChip, InsightsDashboardID, InsightsFutureExpenses, InsightsGraphKey, InsightsSearchKey};
+export type {AIInsight, AIInsightChip, InsightsDashboardID, InsightsExclusionsSearchKey, InsightsFutureExpenses, InsightsGraphKey, InsightsSearchKey};
 export default InsightsDashboard;

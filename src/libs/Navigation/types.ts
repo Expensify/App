@@ -1630,6 +1630,12 @@ type InsightsDetailsParamList = {
         /** Last day the dashboard counted expenses through, so Top expenses stops on the same day as the chart. Missing when the panel is opened from a link. */
         asOf?: string;
     };
+    [SCREENS.INSIGHTS_EXCLUDE]: {
+        dashboardID: string;
+
+        /** Ranking chart whose excluded items the panel edits */
+        graphKey: string;
+    };
 };
 
 type RestrictedActionParamList = {

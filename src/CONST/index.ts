@@ -10841,6 +10841,20 @@ const CONST = {
             SUBMITTED: 'submitted',
             APPROVED: 'approved',
         },
+
+        /** Prefix of the saved filter keys that hold the items a user excluded from one graph, followed by the graph key */
+        EXCLUSIONS_SEARCH_KEY_PREFIX: 'insightsExclusions_',
+
+        /** What a ranking graph that offers Exclude ranks, naming its items in the Exclude panel and the Excluding line */
+        RANKED_ITEMS: {
+            SPENDERS: 'spenders',
+            MERCHANTS: 'merchants',
+            CATEGORIES: 'categories',
+            TAGS: 'tags',
+            SUBMITTERS: 'submitters',
+            APPROVERS: 'approvers',
+            PAYERS: 'payers',
+        },
     },
 
     SECTION_LIST_ITEM_TYPE: {
