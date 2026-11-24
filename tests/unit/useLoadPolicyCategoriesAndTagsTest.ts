@@ -18,6 +18,8 @@ import type {ValueOf} from 'type-fest';
 import React, {useContext} from 'react';
 import Onyx from 'react-native-onyx';
 
+import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
+
 /**
  * Both hooks own the picker's loading flag. Without a policyID no read is ever dispatched, so the loading state key
  * stays absent forever and the flag has to settle on false, otherwise the picker sits on a skeleton for good.
@@ -189,5 +191,74 @@ describe('useLoadPolicyTags hasLoadedPolicyTags', () => {
         await waitFor(() => {
             expect(result.current.hasLoadedPolicyTags).toBe(true);
         });
+    });
+});
+
+describe('useLoadPolicyTags with several pickers', () => {
+    const LOADING_STATE_KEY = `${ONYXKEYS.COLLECTION.RAM_ONLY_POLICY_TAGS_LOADING_STATE}${POLICY_ID}` as const;
+
+    beforeAll(() => {
+        Onyx.init({keys: ONYXKEYS});
+    });
+
+    beforeEach(async () => {
+        mockOpenPolicyTagsPage.mockClear();
+        await Onyx.clear();
+    });
+
+    it('sends one read when two pickers for the same policy mount together', async () => {
+        // Given an admin whose tags were never read in this session
+        await setCurrentUserRole(CONST.POLICY.ROLE.ADMIN);
+
+        // When the tag page and its picker mount in the same render, before the read's loading state can reach Onyx
+        renderHook(() => {
+            useLoadPolicyTags(POLICY_ID);
+            useLoadPolicyTags(POLICY_ID);
+        });
+
+        // Then only the first picker sends the read
+        await waitFor(() => {
+            expect(mockOpenPolicyTagsPage).toHaveBeenCalledWith(POLICY_ID);
+        });
+        expect(mockOpenPolicyTagsPage).toHaveBeenCalledTimes(1);
+    });
+
+    it('lets a later picker send the read when the picker that sent it unmounted before its loading state landed', async () => {
+        // Given an admin whose picker sent a read and then closed before the read's loading state reached Onyx
+        await setCurrentUserRole(CONST.POLICY.ROLE.ADMIN);
+        const firstPicker = renderHook(() => useLoadPolicyTags(POLICY_ID));
+        await waitFor(() => {
+            expect(mockOpenPolicyTagsPage).toHaveBeenCalledTimes(1);
+        });
+        firstPicker.unmount();
+
+        // When another picker for the same policy mounts
+        renderHook(() => useLoadPolicyTags(POLICY_ID));
+
+        // Then it sends the read itself, so a closed picker cannot leave the policy without tags
+        await waitFor(() => {
+            expect(mockOpenPolicyTagsPage).toHaveBeenCalledTimes(2);
+        });
+    });
+
+    it('lets a later picker retry after the read fails', async () => {
+        // Given an admin whose tags read started and then failed, which leaves hasOnceLoaded unset
+        await setCurrentUserRole(CONST.POLICY.ROLE.ADMIN);
+        const firstPicker = renderHook(() => useLoadPolicyTags(POLICY_ID));
+        await waitFor(() => {
+            expect(mockOpenPolicyTagsPage).toHaveBeenCalledTimes(1);
+        });
+        await Onyx.merge(LOADING_STATE_KEY, {isLoading: true});
+        await waitForBatchedUpdates();
+        await Onyx.merge(LOADING_STATE_KEY, {isLoading: false});
+
+        // When another picker for the same policy mounts while the first one is still open
+        renderHook(() => useLoadPolicyTags(POLICY_ID));
+
+        // Then the new picker retries the read, because the failed one no longer blocks it
+        await waitFor(() => {
+            expect(mockOpenPolicyTagsPage).toHaveBeenCalledTimes(2);
+        });
+        firstPicker.unmount();
     });
 });
