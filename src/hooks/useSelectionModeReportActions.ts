@@ -133,6 +133,7 @@ function useSelectionModeReportActions({
 
     // Submit/approve via shared useLifecycleActions (no animations on mobile, skipAnimation=true)
     const {
+        actions: lifecycleActions,
         confirmApproval: lifecycleConfirmApproval,
         handleSubmitReport: lifecycleHandleSubmitReport,
         shouldBlockSubmit,
@@ -211,6 +212,7 @@ function useSelectionModeReportActions({
     const hasSubmitAction = primaryAction === CONST.REPORT.PRIMARY_ACTIONS.SUBMIT || secondaryActions.includes(CONST.REPORT.SECONDARY_ACTIONS.SUBMIT);
     const hasApproveAction = primaryAction === CONST.REPORT.PRIMARY_ACTIONS.APPROVE || secondaryActions.includes(CONST.REPORT.SECONDARY_ACTIONS.APPROVE);
     const hasPayAction = primaryAction === CONST.REPORT.PRIMARY_ACTIONS.PAY || secondaryActions.includes(CONST.REPORT.SECONDARY_ACTIONS.PAY);
+    const hasUnapproveAction = secondaryActions.includes(CONST.REPORT.SECONDARY_ACTIONS.UNAPPROVE);
 
     const allExpensesSelected = isEveryReportTransactionSelected(transactions, selectedTransactionIDs);
 
@@ -296,6 +298,9 @@ function useSelectionModeReportActions({
                 subMenuItems: paymentSubMenuItems,
                 onSelected: () => {},
             };
+        }
+        if (hasUnapproveAction) {
+            actions[idx++] = lifecycleActions[CONST.REPORT.SECONDARY_ACTIONS.UNAPPROVE];
         }
         return actions;
     })();
