@@ -4896,6 +4896,14 @@ const translations = {
         bankDetails: 'Bank details',
         accountHolderDetails: 'Account holder details',
         howDoWeProtectYourData: 'How do we protect your data?',
+        notices: {
+            katakanaName: 'Enter your name exactly as it appears on your Japanese bank account. It is usually written in カタカナ (katakana). A mismatch may delay or reject your payment.',
+            alipayRecipients: 'Only mainland Chinese, Hong Kong, or Macao recipients can be paid through Alipay.',
+            alipayLimits:
+                'Alipay can receive up to 50,000 CNY per payment and between 300,000 and 600,000 CNY per year. Monthly limits on the number of payments may also apply, depending on the purpose of the payment.',
+            malaysianNonResidentLimit:
+                'Non-residents with a bank account in Malaysia can only receive 10,000 Malaysian ringgit per day. A payment above this limit may lead your bank to close your account.',
+        },
         currencyHeader: "What's your bank account's currency?",
         confirmationStepHeader: 'Check your info.',
         confirmationStepSubHeader: 'Double check the details below, and check the terms box to confirm.',

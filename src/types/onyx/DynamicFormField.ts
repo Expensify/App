@@ -62,6 +62,30 @@ type DynamicFormLink = {
     type?: never;
 };
 
+/** Advice about a whole page in its content, such as a limit on what the account can receive. It asks nothing and shows wherever the schema puts it. Advice about one field is that field's `description` instead. */
+type DynamicFormNotice = {
+    /** Can match a field's key, since notices and fields are told apart by `type` */
+    key: string;
+
+    /** What tells a notice apart from a heading, which has no `type` and no `url` either */
+    presentation: 'notice';
+
+    /** The schema author's wording, shown when there is no textKey */
+    text?: string;
+
+    /** Translation of `text`, used instead of it when set */
+    textKey?: TranslationPaths;
+
+    /** Hides the notice while the condition is not met */
+    showWhen?: DynamicFormCondition;
+
+    /** Only a field has a type, which is what tells a notice apart from a field */
+    type?: never;
+
+    /** Only a link has a URL, which is what tells a link apart from a notice */
+    url?: never;
+};
+
 /** One allowed value of a select or radio field */
 type DynamicFormFieldOption = Pick<DynamicFormFieldBase, 'label' | 'labelKey'> & {
     /** Value submitted to the server */
@@ -305,8 +329,8 @@ type DynamicFormListItem = {
 /** A field as the schema sends it, which can be of a type this App version does not know */
 type DynamicFormSchemaField = DynamicFormField | (DynamicFormFieldBase & {type: string});
 
-/** A heading, a link or a field of a page */
-type DynamicFormContentItem = DynamicFormHeading | DynamicFormLink | DynamicFormSchemaField;
+/** A heading, a link, a notice or a field of a page */
+type DynamicFormContentItem = DynamicFormHeading | DynamicFormLink | DynamicFormNotice | DynamicFormSchemaField;
 
 /** A page of a multi-page form. It is a heading with its own content, so it can carry a title, a description and a `showWhen`. */
 type DynamicFormPage = DynamicFormHeading & {
@@ -349,6 +373,7 @@ export type {
     DynamicFormListField,
     DynamicFormListItem,
     DynamicFormMultiChoiceField,
+    DynamicFormNotice,
     DynamicFormNumberField,
     DynamicFormPage,
     DynamicFormSchema,
