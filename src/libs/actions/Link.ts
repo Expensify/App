@@ -522,7 +522,8 @@ function openReportFromDeepLink(
 
     // A native share that arrives before it is known whether onboarding comes first is parked, not replayed below.
     // useOnboardingFlowRouter or the onboarding exit opens it. See #101425.
-    if (isNativeShareLink(route) && shouldParkNativeShare(isAuthenticated)) {
+    // An anonymous session is not parked: the replay below sends it to sign-in, since it cannot access the share flow.
+    if (isNativeShareLink(route) && shouldParkNativeShare(isAuthenticated) && !isAnonymousUser(currentSession)) {
         setPendingNativeShare();
         return;
     }

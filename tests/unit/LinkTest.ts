@@ -500,6 +500,20 @@ describe('Link.openReportFromDeepLink', () => {
         expect(openPendingNativeShare()).toBe(true);
     });
 
+    it('does not park a native share for an anonymous session', async () => {
+        // Given an anonymous public-room session, which cannot access the share flow
+        mockedIsAnonymousUser.mockReturnValue(true);
+
+        // When the share link is processed while onboarding is not settled
+        openReportFromDeepLink(`new-expensify://${ROUTES.SHARE_ROOT}`, {}, true, undefined, undefined, false, false, 1, {}, {});
+        await waitForBatchedUpdates();
+
+        // Then it is not parked, so the existing replay sends the user to sign in instead of opening the share flow
+        expect(mockedWaitForUserSignIn).toHaveBeenCalled();
+        expect(openPendingNativeShare()).toBe(false);
+        mockedIsAnonymousUser.mockReturnValue(false);
+    });
+
     it('leaves a native share to react-navigation once onboarding is settled', async () => {
         // Given a user who signed in during this session and for whom onboarding has already been ruled out
         openPendingNativeShare();

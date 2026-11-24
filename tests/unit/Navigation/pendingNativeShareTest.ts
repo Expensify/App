@@ -25,6 +25,25 @@ jest.mock('@libs/SessionUtils', () => ({
     didUserLogInDuringSession: jest.fn(() => true),
 }));
 
+// Holds the callbacks that wait for a transition, so a test can decide when the welcome modal has finished closing.
+const mockTransitionCallbacks: Array<() => void> = [];
+
+jest.mock('@libs/Navigation/TransitionTracker', () => ({
+    __esModule: true,
+    default: {
+        runAfterTransitions: jest.fn(({callback}: {callback: () => void}) => {
+            mockTransitionCallbacks.push(callback);
+            return {cancel: jest.fn()};
+        }),
+    },
+}));
+
+function finishTransitions() {
+    for (const callback of mockTransitionCallbacks.splice(0)) {
+        callback();
+    }
+}
+
 const stateListeners: Array<() => void> = [];
 
 jest.mock('@libs/Navigation/navigationRef', () => ({
@@ -74,6 +93,7 @@ describe('pending native share', () => {
         // Resets the parked share and the "onboarding settled" mark, like a sign-out does.
         runSessionCleanupCallbacks();
         stateListeners.length = 0;
+        mockTransitionCallbacks.length = 0;
         mockedNavigationRef.isReady.mockReturnValue(true);
         mockedNavigationRef.getRootState.mockReturnValue(buildRootState(SCREENS.HOME));
     });
@@ -238,6 +258,12 @@ describe('pending native share', () => {
         // When the user dismisses the modal
         emitRootState(SCREENS.HOME);
 
+        // Then the push waits for the modal's closing transition, because the modal can navigate once it ends
+        expect(mockedNavigation.navigate).toHaveBeenCalledTimes(1);
+
+        // When that transition has finished
+        finishTransitions();
+
         // Then the share flow is pushed again, and consumed once it mounts
         expect(mockedNavigation.navigate).toHaveBeenCalledTimes(2);
         expect(mockedNavigation.navigate).toHaveBeenLastCalledWith(ROUTES.SHARE_ROOT, {waitForTransition: true});
@@ -253,11 +279,27 @@ describe('pending native share', () => {
         openPendingNativeShare();
         expect(mockedNavigation.navigate).toHaveBeenCalledTimes(1);
 
-        // When the modal is dismissed
+        // When the modal is dismissed and its closing transition has finished
         emitRootState(SCREENS.HOME);
+        finishTransitions();
 
         // Then the share flow is pushed again
         expect(mockedNavigation.navigate).toHaveBeenCalledTimes(2);
+    });
+
+    it('does not push after the welcome modal closes if the user signed out in the meantime', () => {
+        // Given a push that a welcome modal redirected, and the modal is then dismissed
+        setPendingNativeShare();
+        openPendingNativeShare();
+        emitRootState(SCREENS.HOME, NAVIGATORS.MIGRATED_USER_MODAL_NAVIGATOR);
+        emitRootState(SCREENS.HOME);
+
+        // When the session ends before the closing transition finishes
+        runSessionCleanupCallbacks();
+        finishTransitions();
+
+        // Then nothing is pushed for the next account
+        expect(mockedNavigation.navigate).toHaveBeenCalledTimes(1);
     });
 
     it('gives up instead of looping when the push keeps being redirected', () => {
@@ -267,6 +309,7 @@ describe('pending native share', () => {
         for (let i = 0; i < 4; i++) {
             emitRootState(SCREENS.HOME, NAVIGATORS.MIGRATED_USER_MODAL_NAVIGATOR);
             emitRootState(SCREENS.HOME);
+            finishTransitions();
         }
 
         // Then the attempts are capped and the intent is dropped rather than retried forever

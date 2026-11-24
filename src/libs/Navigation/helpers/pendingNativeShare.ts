@@ -1,6 +1,7 @@
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import navigationRef from '@libs/Navigation/navigationRef';
+import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import {registerSessionCleanupCallback} from '@libs/SessionCleanup';
 import {didUserLogInDuringSession} from '@libs/SessionUtils';
 
@@ -125,7 +126,17 @@ function openShareFlowOnceAccepted() {
             return;
         }
         attempts++;
-        pushShareFlow();
+
+        // The welcome modal can navigate once its closing transition ends, so push after that or the share gets buried.
+        TransitionTracker.runAfterTransitions({
+            callback: () => {
+                if (nativeShareStatus !== 'opening') {
+                    return;
+                }
+                pushShareFlow();
+            },
+            waitForUpcomingTransition: true,
+        });
     });
 
     pushShareFlow();
