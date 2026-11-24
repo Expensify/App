@@ -246,7 +246,11 @@ function AutoGrowHeightInputContainer({children, style, shouldKeepMinimumHeight 
                         // A page that opens while the previous page's keyboard is hiding has no other layout yet, and an autofocused input can bring the
                         // keyboard back before keyboardDidHide, so nothing would measure the slot again. Its first layout is used instead.
                         viewportHeightRef.current = windowHeight;
-                        startMeasurement('clamp', previousAvailableHeight, didWidthChange);
+                        // The kept slot has not changed, so the settled cap still fits it. Clamping again at the full slot grew a filled input past it,
+                        // and the probe that followed shrank it to one row, on every frame of the animation. Only a new width changes how the text wraps.
+                        if (didWidthChange) {
+                            startMeasurement('clamp', previousAvailableHeight, true);
+                        }
                         return;
                     }
 
@@ -263,8 +267,8 @@ function AutoGrowHeightInputContainer({children, style, shouldKeepMinimumHeight 
                     } else if (nativeKeyboardFallbackRef.current && !didWidthChange) {
                         // Native can emit stale and intermediate allocations throughout the keyboard animation.
                         // Keep the keyboard-derived slot until onLayout reaches that exact allocation instead of adopting an animation frame as the next baseline.
+                        // That slot is already measured, so there is nothing to measure again.
                         viewportHeightRef.current = windowHeight;
-                        startMeasurement('clamp', previousAvailableHeight, didWidthChange);
                         return;
                     } else if (pendingNativeLayoutRef.current) {
                         if (!areHeightsEqual(availableHeight, previousAvailableHeight)) {
