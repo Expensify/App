@@ -52,7 +52,7 @@ describe('Merchant rule tax summary', () => {
         return waitForBatchedUpdates();
     });
 
-    const describeRule = (policy: Policy, rule: Rule) =>
+    const getRuleRows = (policy: Policy, rule: Rule) =>
         getMerchantRulesTableData({
             policy,
             policyID: policy.id,
@@ -62,21 +62,23 @@ describe('Merchant rule tax summary', () => {
             convertToDisplayStringWithoutCurrency,
             isOffline: false,
             onNavigate: () => {},
-        }).at(0)?.ruleDescription;
+        });
+
+    const describeRule = (policy: Policy, rule: Rule) => getRuleRows(policy, rule).at(0)?.ruleDescription;
 
     describe('Expense defaults table', () => {
-        it('marks the tax action inactive only while workspace taxes are off', () => {
+        it('hides a tax-only rule until workspace taxes are turned back on', () => {
             // Given a saved tax rule and a workspace that still has its rate
             const policy = buildPolicy({[TAX_KEY]: {name: 'GST', value: '15%'}});
             const rule = buildTaxRule();
 
-            // When taxes are disabled and enabled again, both summaries still show the saved default
-            const inactive = describeRule({...policy, tax: {trackingEnabled: false}}, rule);
-            const active = describeRule(policy, rule);
+            // When the table is built with taxes off and then on again
+            const taxesOff = getRuleRows({...policy, tax: {trackingEnabled: false}}, rule);
+            const taxesOn = describeRule(policy, rule);
 
-            // Then only the summary for the disabled workspace explains that the action is inactive
-            expect(inactive).toBe('Update tax to "GST (15%)" (inactive: taxes are off)');
-            expect(active).toBe('Update tax to "GST (15%)"');
+            // Then the saved rule has no row while taxes are off and returns unchanged when they're back on
+            expect(taxesOff).toEqual([]);
+            expect(taxesOn).toBe('Update tax to "GST (15%)"');
         });
 
         it('prefers the live rate over the one captured when the rule was saved', () => {

@@ -174,6 +174,26 @@ describe('getCategoryContextualRules', () => {
             expect(rules.at(0)?.dynamicRoutePath).toBe(DYNAMIC_ROUTES.WORKSPACE_CATEGORY_RULES_TAX_EDIT.getRoute('rule1'));
         });
 
+        it('hides a tax-only rule while workspace taxes are off', () => {
+            // Given a category with a saved tax default, but workspace taxes are off
+            const policyWithTaxesOff = {...policyWithTaxRule, tax: {trackingEnabled: false}};
+
+            // When opening the category details
+            const rules = getCategoryContextualRules({
+                policy: policyWithTaxesOff,
+                policyRules: taxDefaultRules,
+                category,
+                categoryName: 'Travel',
+                translate: translateLocal,
+                convertToDisplayString,
+                convertToDisplayStringWithoutCurrency,
+                isOffline: false,
+            });
+
+            // Then the paused default does not get a row
+            expect(rules).toEqual([]);
+        });
+
         it('does not list a tax default belonging to another category', () => {
             // Given a tax default that only matches Travel
             // When the rules are built for a different category
@@ -276,7 +296,7 @@ describe('getCategoryContextualRules', () => {
             expect(rules.at(0)?.summary).toBe('Update amount to "$10.00"');
         });
 
-        it('describes every field a rule sets, not just the tax', () => {
+        it('keeps the non-tax actions visible while workspace taxes are off', () => {
             // Given a rule that sets a tax and an amount
             const taxAndAmountRules: OnyxCollection<Rule> = {
                 [`${ONYXKEYS.COLLECTION.RULE}rule1`]: {
@@ -304,8 +324,8 @@ describe('getCategoryContextualRules', () => {
                 isOffline: false,
             });
 
-            // Then only the tax action is marked inactive; the amount action still applies
-            expect(rules.at(0)?.summary).toBe('Update tax to "VAT (20%)" (inactive: taxes are off), update amount to "$10.00"');
+            // Then the amount still applies and the tax action is hidden
+            expect(rules.at(0)?.summary).toBe('Update amount to "$10.00"');
         });
 
         it('shows what a rule matches on, so two rules with the same action can be told apart', () => {
