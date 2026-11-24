@@ -226,7 +226,7 @@ describe('HybridApp sign-out after the NewDot session ends', () => {
     });
 
     it('signs OldDot out when a Search response clears Onyx', async () => {
-        // Given a Search, whose response is applied together with its request's data
+        // Given a Search, whose response is not applied in one update when it carries a clear
         const request = {command: READ_COMMANDS.SEARCH, data: {apiRequestType: CONST.API_REQUEST_TYPE.MAKE_REQUEST_WITH_SIDE_EFFECTS}};
 
         // When its response carries a clear
