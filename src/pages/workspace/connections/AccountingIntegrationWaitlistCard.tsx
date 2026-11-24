@@ -138,7 +138,12 @@ function AccountingIntegrationWaitlistCard({connectionName, title, icon, policyI
                         <View style={[isOnWaitlist && styles.flex1, styles.justifyContentCenter]}>
                             <MenuItem.Trailing>
                                 {isOnWaitlist ? (
-                                    <Text style={[styles.textSupporting, styles.flexShrink1, styles.textAlignRight]}>{translate('workspace.accounting.integrationWaitlist.onWaitlist')}</Text>
+                                    <Text
+                                        variant="label"
+                                        style={[styles.textSupporting, styles.flexShrink1, styles.textAlignRight]}
+                                    >
+                                        {translate('workspace.accounting.integrationWaitlist.onWaitlist')}
+                                    </Text>
                                 ) : (
                                     <Button
                                         onPress={joinWaitlist}
