@@ -98,7 +98,7 @@ function ReportFooter() {
 
     const shouldShowComposerOptimistically = !isAnonymousUser && isPublicRoom(report) && !!isLoadingInitialReportActions;
     const canPerformWriteAction = canUserPerformWriteAction(report, isReportArchived) ?? shouldShowComposerOptimistically;
-    const shouldHideComposer = !canPerformWriteAction || (isBlockedFromChat ?? false) || (isOffline && isSupportTicket(report));
+    const shouldHideComposer = !canPerformWriteAction || (isBlockedFromChat ?? false) || isResolvedSupportTicket(report) || (isOffline && isSupportTicket(report));
     const canWriteInReport = canWriteInReportUtil(report);
     const isSystemChat = isSystemChatUtil(report);
     const isAdminsOnlyPostingRoom = isAdminsOnlyPostingRoomUtil(report);

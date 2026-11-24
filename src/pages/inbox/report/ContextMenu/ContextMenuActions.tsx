@@ -211,7 +211,9 @@ import {
     getReportPreviewMessageForCopy,
     getUnreportedTransactionMessage,
     getWorkspaceNameUpdatedMessage,
+    isChatThread,
     isExpenseReport,
+    isResolvedSupportTicket,
     isSelfDM,
     isSupportTicket,
     shouldDisableThread,
@@ -274,7 +276,7 @@ import React from 'react';
 
 import type {ContextMenuAnchor} from './ReportActionContextMenu';
 
-import {hideContextMenu, showDeleteModal} from './ReportActionContextMenu';
+import {handleHoldEducationalModal, hideContextMenu, showDeleteModal} from './ReportActionContextMenu';
 
 /** Gets the HTML version of the message in an action */
 function getActionHtml(reportAction: OnyxInputOrEntry<ReportAction>): string {
@@ -408,6 +410,7 @@ type ContextMenuActionPayload = {
     iouTransactionViolations: OnyxEntry<TransactionViolations>;
     iouTransactionReport: OnyxEntry<ReportType>;
     moneyRequestActionChildReport: OnyxEntry<ReportType>;
+    moneyRequestChatReport: OnyxEntry<ReportType>;
     bankAccountList: OnyxEntry<BankAccountList>;
     isOffline: boolean;
     conciergeReportID: string | undefined;
@@ -683,10 +686,11 @@ const ContextMenuActions: ContextMenuAction[] = [
         isAnonymousAction: false,
         textTranslateKey: 'reportActionContextMenu.editAction',
         icon: 'Pencil',
-        shouldShow: ({type, reportAction, originalReportActions, isArchivedRoom, isChronosReport, moneyRequestAction, moneyRequestReportActions, iouTransaction, rules}) =>
+        shouldShow: ({type, report, reportAction, originalReportActions, isArchivedRoom, isChronosReport, moneyRequestAction, moneyRequestReportActions, iouTransaction, rules}) =>
             type === CONST.CONTEXT_MENU_TYPES.REPORT_ACTION &&
             (canEditReportAction(reportAction, iouTransaction, rules, originalReportActions) || canEditReportAction(moneyRequestAction, iouTransaction, rules, moneyRequestReportActions)) &&
             !isArchivedRoom &&
+            !isResolvedSupportTicket(report) &&
             !isChronosReport,
         onPress: (
             closePopover,
@@ -877,6 +881,7 @@ const ContextMenuActions: ContextMenuAction[] = [
                 iouTransactionViolations,
                 iouTransactionReport,
                 moneyRequestActionChildReport,
+                moneyRequestChatReport,
                 isDelegateAccessRestricted,
                 showDelegateNoAccessModal,
                 isOffline,
@@ -891,41 +896,28 @@ const ContextMenuActions: ContextMenuAction[] = [
                 return;
             }
 
+            const performHold = () =>
+                changeMoneyRequestHoldStatus({
+                    reportAction: moneyRequestAction,
+                    iouTransaction,
+                    iouTransactionReport,
+                    reportActionChildReport: moneyRequestActionChildReport,
+                    policy: moneyRequestPolicy,
+                    isOffline,
+                    currentUserLogin: currentUserPersonalDetails?.login ?? '',
+                    currentUserAccountID: currentUserPersonalDetails.accountID,
+                    transactionViolations: iouTransactionViolations,
+                    isTrackIntentUser,
+                    delegateAccountID,
+                    rules,
+                });
+
             if (closePopover) {
-                hideContextMenu(false, () =>
-                    changeMoneyRequestHoldStatus({
-                        reportAction: moneyRequestAction,
-                        iouTransaction,
-                        iouTransactionReport,
-                        reportActionChildReport: moneyRequestActionChildReport,
-                        policy: moneyRequestPolicy,
-                        isOffline,
-                        currentUserLogin: currentUserPersonalDetails?.login ?? '',
-                        currentUserAccountID: currentUserPersonalDetails.accountID,
-                        transactionViolations: iouTransactionViolations,
-                        isTrackIntentUser,
-                        delegateAccountID,
-                        rules,
-                    }),
-                );
+                hideContextMenu(false, () => handleHoldEducationalModal(performHold, moneyRequestChatReport));
                 return;
             }
 
-            // No popover to hide, call changeMoneyRequestHoldStatus immediately
-            changeMoneyRequestHoldStatus({
-                reportAction: moneyRequestAction,
-                iouTransaction,
-                iouTransactionReport,
-                reportActionChildReport: moneyRequestActionChildReport,
-                policy: moneyRequestPolicy,
-                isOffline,
-                currentUserLogin: currentUserPersonalDetails?.login ?? '',
-                currentUserAccountID: currentUserPersonalDetails.accountID,
-                transactionViolations: iouTransactionViolations,
-                isTrackIntentUser,
-                delegateAccountID,
-                rules,
-            });
+            handleHoldEducationalModal(performHold, moneyRequestChatReport);
         },
         getDescription: () => {},
         sentryLabel: CONST.SENTRY_LABEL.CONTEXT_MENU.HOLD,
@@ -1390,7 +1382,9 @@ const ContextMenuActions: ContextMenuAction[] = [
                         ),
                     );
                 } else if (isReimbursementQueuedAction(reportAction)) {
-                    Clipboard.setString(getReimbursementQueuedActionMessage({reportAction, translate, formatPhoneNumber, report, shouldUseShortDisplayName: false}));
+                    // Match ReimbursementQueuedContent, which names the parent report's owner when the action is in a thread.
+                    const queuedPaymentReport = isChatThread(report) ? getReportOrDraftReport({reportID: report?.parentReportID}) : report;
+                    Clipboard.setString(getReimbursementQueuedActionMessage({reportAction, translate, formatPhoneNumber, report: queuedPaymentReport, shouldUseShortDisplayName: false}));
                 } else if (isActionableMentionWhisper(reportAction)) {
                     const targetAccountIDs = getOriginalMessage(reportAction)?.inviteeAccountIDs;
                     const mentionWhisperMessage = getActionableMentionWhisperMessage(translate, reportAction, getPersonalDetailsListByIDs(targetAccountIDs, personalDetails));

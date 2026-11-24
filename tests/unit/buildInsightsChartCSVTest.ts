@@ -1,4 +1,6 @@
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
+import type {ChartStackStage} from '@components/Search/buildStackedSeries';
+import {getStageDuration} from '@components/Search/chartMetricValue';
 import type {GroupedItem} from '@components/Search/types';
 
 import {translate as translatePhrase} from '@libs/Localize';
@@ -184,6 +186,44 @@ describe('buildInsightsChartCSV', () => {
         expect(csv).toBe('\uFEFFFrom,Expenses,Total,Currency\r\nAlex Smith,2,123.45,USD');
     });
 
+    it('exports selected-level names, ancestors, and shares of all spend in chart order', () => {
+        // Given tag rows with the same display labels as the chart
+        const data: GroupedItem[] = [
+            {
+                ...GROUP_FIELDS,
+                groupedBy: CONST.SEARCH.GROUP_BY.TAG,
+                tag: 'R&D: West',
+                formattedTagName: 'R&D: West',
+                tagLevel: 2,
+                parentTagPath: 'US',
+                percentOfTotal: 40,
+            },
+            {
+                ...GROUP_FIELDS,
+                groupedBy: CONST.SEARCH.GROUP_BY.TAG,
+                tag: '=1+1',
+                formattedTagName: '=1+1',
+                tagLevel: 2,
+                parentTagPath: '',
+                percentOfTotal: -5,
+                total: -150,
+            },
+        ];
+
+        // When the tag ranking is exported
+        const csv = buildInsightsChartCSV({
+            data,
+            groupBy: CONST.SEARCH.GROUP_BY.TAG,
+            currency: CONST.CURRENCY.USD,
+            getCurrencyDecimals,
+            translate,
+            today: AFTER_EVERY_PERIOD,
+        });
+
+        // Then parents stay separate, untagged spend is not redistributed, and formulas cannot execute
+        expect(csv).toBe("\uFEFFTag,Parent,Total,Share of total (%),Expenses,Currency\r\nR&D: West,US,123.45,40,2,USD\r\n'=1+1,,-1.50,-5,2,USD");
+    });
+
     it('exports the average days a duration chart plots instead of the amount', () => {
         // Given submitter groups whose reports took 2.5 days on average to submit
         const data: GroupedItem[] = [{...GROUP_FIELDS, groupedBy: CONST.SEARCH.GROUP_BY.FROM, accountID: 1, formattedFrom: 'Alex Smith', averageDuration: 2.5 * CONST.DATE.SECONDS_PER_DAY}];
@@ -202,5 +242,45 @@ describe('buildInsightsChartCSV', () => {
 
         // Then the CSV carries the durations the chart shows, not a money total the chart never draws
         expect(csv).toBe('\uFEFFFrom,Reports,Average days\r\nAlex Smith,2,2.5');
+    });
+
+    it('writes a stacked chart one column per stage, leaving unavailable stages empty', () => {
+        // Given a month whose reports took no time to approve and were never paid, charted with the submit, approve and pay stages
+        const month: GroupedItem = {
+            ...GROUP_FIELDS,
+            groupedBy: CONST.SEARCH.GROUP_BY.MONTH,
+            year: 2026,
+            month: 2,
+            formattedMonth: 'February 2026',
+            shortFormattedMonth: 'Feb',
+            sortKey: 202602,
+            submitAverageTime: 1.5 * CONST.DATE.SECONDS_PER_DAY,
+            approveAverageTime: 0,
+            reimburseAverageTime: null,
+        };
+        const toStage = (label: string, durationField: 'submitAverageTime' | 'approveAverageTime' | 'reimburseAverageTime'): ChartStackStage => ({
+            key: label,
+            label,
+            color: '',
+            comparisonColor: '',
+            getValue: (item) => getStageDuration(item, durationField),
+        });
+        const stages = [toStage('Created → Submitted', 'submitAverageTime'), toStage('Submitted → Approved', 'approveAverageTime'), toStage('Approved → Paid', 'reimburseAverageTime')];
+
+        // When the chart is exported
+        const csv = buildInsightsChartCSV({
+            data: [month],
+            groupBy: CONST.SEARCH.GROUP_BY.MONTH,
+            currency: CONST.CURRENCY.USD,
+            getCurrencyDecimals,
+            translate,
+            today: AFTER_EVERY_PERIOD,
+            countDimension: CONST.SEARCH.CHART_COUNT_DIMENSION.REPORT,
+            metric: CONST.SEARCH.CHART_METRIC.DURATION,
+            stages,
+        });
+
+        // Then each stage gets its own column in days, an instant approval reads 0.0, and the unpaid stage is left empty rather than read as 0 days
+        expect(csv).toBe('\uFEFFDate,Reports,Created → Submitted,Submitted → Approved,Approved → Paid\r\n2026-02-01,2,1.5,0.0,');
     });
 });
