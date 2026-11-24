@@ -225,6 +225,19 @@ describe('HybridApp sign-out after the NewDot session ends', () => {
         expect(signOutFromOldDotSpy).toHaveBeenCalledTimes(1);
     });
 
+    it('signs OldDot out when a Search response clears Onyx', async () => {
+        // Given a Search, whose response is applied together with its request's data
+        const request = {command: READ_COMMANDS.SEARCH, data: {apiRequestType: CONST.API_REQUEST_TYPE.MAKE_REQUEST_WITH_SIDE_EFFECTS}};
+
+        // When its response carries a clear
+        await applyOnyxUpdates({type: CONST.ONYX_UPDATE_TYPES.HTTPS, lastUpdateID: LAST_UPDATE_ID + 1, previousUpdateID: LAST_UPDATE_ID, request, response: getAccountClosedResponse()});
+        await waitForBatchedUpdates();
+
+        // Then it gets the same teardown as any other response, so the session doesn't end in NewDot only
+        expect(await getOnyxValue(ONYXKEYS.HYBRID_APP)).toEqual(RESET_HYBRID_APP_STATE);
+        expect(signOutFromOldDotSpy).toHaveBeenCalledTimes(1);
+    });
+
     it('still signs OldDot out and lets the user sign back in when a write after the clear fails', async () => {
         // Given a read response that carries a clear, and storage that fails a write after the clear, because Onyx runs the clear before the rest of the batch
         const request = {command: READ_COMMANDS.OPEN_PAYMENTS_PAGE, data: {apiRequestType: CONST.API_REQUEST_TYPE.READ}};
