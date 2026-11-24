@@ -49,7 +49,7 @@ function UnreportedExpenseListItem<TItem extends ListItem>({
 
     const pressableStyle = [styles.transactionListItemStyle, isSelected && styles.activeComponentBG];
 
-    const animatedHighlightStyle = useRowHighlightAnimation({shouldHighlight: item?.shouldAnimateInHighlight ?? false});
+    const animatedHighlightStyle = useRowHighlightAnimation({shouldHighlight: item?.shouldAnimateInHighlight ?? false, highlightKey: item?.keyForList});
     const StyleUtils = useStyleUtils();
     const pressableRef = useRef<ComponentRef<typeof View>>(null);
 

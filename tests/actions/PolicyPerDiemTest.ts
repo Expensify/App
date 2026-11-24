@@ -11,6 +11,7 @@ import {
 import * as API from '@libs/API';
 import {WRITE_COMMANDS} from '@libs/API/types';
 
+import CONST from '@src/CONST';
 import OnyxUpdateManager from '@src/libs/actions/OnyxUpdateManager';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {CustomUnit, Rate} from '@src/types/onyx/Policy';
@@ -261,8 +262,12 @@ describe('actions/Policy/PerDiem', () => {
                             customUnits: {
                                 [customUnitID]: {
                                     rates: {
-                                        [rateID]: updatedRate,
-                                        [unchangedRateID]: null,
+                                        [rateID]: {
+                                            subRates: [{...currentRate.subRates?.[0], pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}, currentRate.subRates?.[1]],
+                                            errors: null,
+                                            errorFields: null,
+                                        },
+                                        [unchangedRateID]: {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE, errors: null, errorFields: null},
                                     },
                                     errorFields: {deleteRates: null},
                                 },
@@ -313,7 +318,17 @@ describe('actions/Policy/PerDiem', () => {
             expect.objectContaining({
                 optimisticData: [
                     expect.objectContaining({
-                        value: {customUnits: {[customUnitID]: {rates: [], errorFields: {deleteRates: null}}}},
+                        value: {
+                            customUnits: {
+                                [customUnitID]: {
+                                    rates: {
+                                        [rateID]: {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE, errors: null, errorFields: null},
+                                        [unchangedRateID]: {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE, errors: null, errorFields: null},
+                                    },
+                                    errorFields: {deleteRates: null},
+                                },
+                            },
+                        },
                     }),
                 ],
             }),
@@ -351,23 +366,27 @@ describe('actions/Policy/PerDiem', () => {
             expect.objectContaining({
                 optimisticData: [
                     expect.objectContaining({
-                        value: {customUnits: {[customUnitID]: {rates: {[rateID]: null}, errorFields: {deleteRates: null}}}},
+                        value: {
+                            customUnits: {[customUnitID]: {rates: {[rateID]: {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE, errors: null, errorFields: null}}}},
+                        },
                     }),
                 ],
             }),
         );
     });
 
-    it('keeps empty rates as an array and restores every destination when clearing all rates fails', async () => {
-        // Given multiple destinations and a paused request so the empty optimistic state can be checked.
+    it('keeps every destination pending deletion and restores them when clearing all rates fails', async () => {
+        // Given multiple destinations and a paused request so the optimistic state can be checked.
         mockFetch.pause();
         const selectedSubRates = getSelectedSubRates(customUnit);
 
-        // When every row is deleted, the custom unit must remain with an explicit empty rates array.
+        // When every row is deleted, every destination remains available for offline feedback.
         deleteWorkspacePerDiemRates('policy', customUnit, selectedSubRates);
         await waitForBatchedUpdates();
         let policy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}policy`);
-        expect(policy?.customUnits?.[customUnitID]?.rates).toEqual([]);
+        expect(policy?.customUnits?.[customUnitID]?.rates?.[rateID]?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
+        expect(policy?.customUnits?.[customUnitID]?.rates?.[unchangedRateID]?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
+        expect(policy?.customUnits?.[customUnitID]?.rates?.[rateID]?.subRates).toEqual(currentRate.subRates);
         expect(policy?.customUnits?.[customUnitID]?.errorFields?.deleteRates).toBeFalsy();
 
         mockFetch.fail();
@@ -380,6 +399,7 @@ describe('actions/Policy/PerDiem', () => {
         expect(Array.isArray(restoredRates)).toBe(false);
         expect(Object.keys(restoredRates ?? {})).toEqual(Object.keys(customUnit.rates));
         expect(restoredRates?.[rateID]?.subRates).toEqual(currentRate.subRates);
+        expect(restoredRates?.[rateID]?.pendingAction).toBeFalsy();
         expect(restoredRates?.[unchangedRateID]).toEqual(customUnit.rates[unchangedRateID]);
         expect(restoredRates).toEqual(customUnit.rates);
         expect(Object.values(policy?.customUnits?.[customUnitID]?.errorFields?.deleteRates ?? {})).toEqual(['workspace.perDiem.deleteRatesError']);
@@ -404,8 +424,11 @@ describe('actions/Policy/PerDiem', () => {
         deleteWorkspacePerDiemRates('policy', customUnit, selectedSubRates);
         await waitForBatchedUpdates();
         let policy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}policy`);
-        expect(policy?.customUnits?.[customUnitID]?.rates?.[rateID]?.subRates).toEqual([currentRate.subRates?.[1]]);
-        expect(policy?.customUnits?.[customUnitID]?.rates?.[unchangedRateID]).toBeFalsy();
+        expect(policy?.customUnits?.[customUnitID]?.rates?.[rateID]?.subRates).toEqual([
+            {...currentRate.subRates?.[0], pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE},
+            currentRate.subRates?.[1],
+        ]);
+        expect(policy?.customUnits?.[customUnitID]?.rates?.[unchangedRateID]?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
         mockFetch.fail();
         await mockFetch.resume();
         await waitForBatchedUpdates();
@@ -469,6 +492,161 @@ describe('actions/Policy/PerDiem', () => {
         expect(policy?.customUnits?.[customUnitID]?.errorFields?.deleteRates).toBeFalsy();
     });
 
+    it.each([
+        ['partial destination', ['breakfast'], [rateID, unchangedRateID], ['lunch']],
+        ['whole destination', ['breakfast', 'lunch'], [unchangedRateID], undefined],
+        ['all destinations', ['breakfast', 'lunch', 'breakfast-two'], [], undefined],
+    ])('removes the selected rows only after a successful deletion of %s', async (_description, selectedIDs, expectedRateIDs, remainingSubRateIDs) => {
+        // Given a paused request, as when a deletion is queued offline.
+        mockFetch.pause();
+        const selectedRows = Object.values(customUnit.rates).flatMap((rate) =>
+            (rate.subRates ?? [])
+                .filter((subRate) => selectedIDs.includes(subRate.id))
+                .map((subRate) => ({destination: rate.name ?? '', subRateName: subRate.name, rate: subRate.rate, currency: 'USD', rateID: rate.customUnitRateID, subRateID: subRate.id})),
+        );
+
+        // When deletion is requested, the original rows remain until the request succeeds.
+        deleteWorkspacePerDiemRates('policy', customUnit, selectedRows);
+        await waitForBatchedUpdates();
+        let policy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}policy`);
+        expect(policy?.customUnits?.[customUnitID]?.rates?.[rateID]?.subRates?.map((subRate) => subRate.id)).toEqual(['breakfast', 'lunch']);
+        await mockFetch.resume();
+        await waitForBatchedUpdates();
+
+        // Then only the selected rows are removed, including the empty array expected for delete-all.
+        policy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}policy`);
+        const rates = policy?.customUnits?.[customUnitID]?.rates;
+        expect(Object.keys(rates ?? {})).toEqual(expectedRateIDs);
+        expect(rates?.[rateID]?.subRates?.map((subRate) => subRate.id)).toEqual(remainingSubRateIDs);
+        if (!expectedRateIDs.length) {
+            expect(rates).toEqual([]);
+        }
+    });
+
+    it('marks only the selected subrate and restores it with an error if deletion fails', async () => {
+        // Given a destination with two subrates and a paused deletion request.
+        mockFetch.pause();
+
+        // When only Breakfast is deleted, Lunch must remain editable rather than being marked for deletion.
+        deleteWorkspacePerDiemRates('policy', customUnit, [{destination: 'Destination One', subRateName: 'Breakfast', rate: 1700, currency: 'USD', rateID, subRateID: 'breakfast'}]);
+        await waitForBatchedUpdates();
+        let policy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}policy`);
+        const pendingRate = policy?.customUnits?.[customUnitID]?.rates?.[rateID];
+        expect(pendingRate?.pendingAction).toBeFalsy();
+        expect(pendingRate?.subRates?.[0].pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
+        expect(pendingRate?.subRates?.[1]).toEqual(currentRate.subRates?.[1]);
+        mockFetch.fail();
+        await mockFetch.resume();
+        await waitForBatchedUpdates();
+
+        // Then failure restores both subrates without pending state and attaches the error only to Breakfast.
+        policy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}policy`);
+        const restoredRate = policy?.customUnits?.[customUnitID]?.rates?.[rateID];
+        expect(restoredRate?.subRates).toEqual(currentRate.subRates);
+        expect(restoredRate?.errorFields?.breakfast).toBeTruthy();
+        expect(restoredRate?.errorFields?.lunch).toBeFalsy();
+    });
+
+    it.each([false, true])('preserves the earlier destination deletion outcome when a later delete-all fails (first succeeds: %s)', async (doesFirstDeletionSucceed) => {
+        // Given an online destination deletion whose response is held while another destination remains available.
+        await Onyx.merge(ONYXKEYS.NETWORK, {shouldForceOffline: false});
+        await waitForBatchedUpdates();
+        let responseCount = 0;
+        mockFetch.mockAPICommand(WRITE_COMMANDS.UPDATE_WORKSPACE_CUSTOM_UNIT, () => ({jsonCode: responseCount++ === 0 && doesFirstDeletionSucceed ? 200 : 400}));
+        mockFetch.pause();
+        const writeSpy = jest.spyOn(API, 'write');
+        deleteWorkspacePerDiemRates('policy', customUnit, [
+            {destination: 'Destination Two', subRateName: 'Breakfast', rate: 2000, currency: 'USD', rateID: unchangedRateID, subRateID: 'breakfast-two'},
+        ]);
+        await waitForBatchedUpdates();
+        expect(mockFetch).toHaveBeenCalled();
+        let policy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}policy`);
+        expect(policy?.customUnits?.[customUnitID]?.rates?.[unchangedRateID]?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
+
+        // When all remaining rows are deleted before the first request finishes, and delete-all then fails.
+        deleteWorkspacePerDiemRates(
+            'policy',
+            policy?.customUnits?.[customUnitID],
+            (currentRate.subRates ?? []).map((subrate) => ({
+                destination: 'Destination One',
+                subRateName: subrate.name,
+                rate: subrate.rate,
+                currency: 'USD',
+                rateID,
+                subRateID: subrate.id,
+            })),
+        );
+        expect(writeSpy).toHaveBeenNthCalledWith(2, WRITE_COMMANDS.UPDATE_WORKSPACE_CUSTOM_UNIT, {policyID: 'policy', customUnitID, deleteAllRates: true}, expect.any(Object));
+        await waitForBatchedUpdates();
+        await mockFetch.resume();
+        await waitForBatchedUpdates();
+
+        // Then only its own request decides whether the earlier destination is restored, with its original failure error.
+        expect(responseCount).toBe(2);
+        policy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}policy`);
+        const rates = policy?.customUnits?.[customUnitID]?.rates;
+        expect(rates?.[rateID]?.subRates).toEqual(currentRate.subRates);
+        expect(rates?.[rateID]?.errorFields?.breakfast).toBeFalsy();
+        expect(policy?.customUnits?.[customUnitID]?.errorFields?.deleteRates).toBeTruthy();
+        const earlierRate = rates?.[unchangedRateID];
+        if (doesFirstDeletionSucceed) {
+            expect(earlierRate).toBeFalsy();
+        } else {
+            expect(earlierRate?.subRates).toEqual(customUnit.rates[unchangedRateID].subRates);
+            expect(earlierRate?.pendingAction).toBeFalsy();
+            expect(earlierRate?.errorFields?.['breakfast-two']).toBeTruthy();
+        }
+    });
+
+    it.each([true, false])('does not restore an earlier deleted subrate when the next deletion succeeds: %s', async (doesSecondDeletionSucceed) => {
+        // Given three sibling subrates, so two deletions can be queued independently while offline.
+        const unit = {...customUnit, rates: {...customUnit.rates, [rateID]: {...currentRate, subRates: [...(currentRate.subRates ?? []), {id: 'dinner', name: 'Dinner', rate: 2500}]}}};
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}policy`, {customUnits: {[customUnitID]: unit}});
+        let deletionCount = 0;
+        mockFetch.mockAPICommand(WRITE_COMMANDS.UPDATE_WORKSPACE_CUSTOM_UNIT, () => ({jsonCode: deletionCount++ === 0 || doesSecondDeletionSucceed ? 200 : 400}));
+        mockFetch.pause();
+        deleteWorkspacePerDiemRates('policy', unit, [{destination: 'Destination One', subRateName: 'Breakfast', rate: 1700, currency: 'USD', rateID, subRateID: 'breakfast'}]);
+        await waitForBatchedUpdates();
+        let policy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}policy`);
+
+        // When Lunch is also deleted before Breakfast's deletion has completed.
+        deleteWorkspacePerDiemRates('policy', policy?.customUnits?.[customUnitID], [
+            {destination: 'Destination One', subRateName: 'Lunch', rate: 1904, currency: 'USD', rateID, subRateID: 'lunch'},
+        ]);
+        await waitForBatchedUpdates();
+        await mockFetch.resume();
+        await waitForBatchedUpdates();
+
+        // Then completing the later request cannot bring back Breakfast, even as a permanently pending row.
+        policy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}policy`);
+        const rate = policy?.customUnits?.[customUnitID]?.rates?.[rateID];
+        expect(rate?.subRates?.map((subRate) => subRate.id)).toEqual(doesSecondDeletionSucceed ? ['dinner'] : ['lunch', 'dinner']);
+        expect(rate?.subRates?.some((subRate) => subRate.pendingAction)).toBe(false);
+        expect(!!rate?.errorFields?.lunch).toBe(!doesSecondDeletionSucceed);
+    });
+
+    it.each([true, false])('preserves a completed deletion when a queued sibling edit succeeds: %s', async (doesEditSucceed) => {
+        // Given a subrate deletion followed by a sibling amount edit, both queued offline.
+        let requestCount = 0;
+        mockFetch.mockAPICommand(WRITE_COMMANDS.UPDATE_WORKSPACE_CUSTOM_UNIT, () => ({jsonCode: requestCount++ === 0 || doesEditSucceed ? 200 : 400}));
+        mockFetch.pause();
+        deleteWorkspacePerDiemRates('policy', customUnit, [{destination: 'Destination One', subRateName: 'Breakfast', rate: 1700, currency: 'USD', rateID, subRateID: 'breakfast'}]);
+        await waitForBatchedUpdates();
+        let policy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}policy`);
+        editPerDiemRateAmount('policy', rateID, 'lunch', policy?.customUnits?.[customUnitID], 2200);
+        await waitForBatchedUpdates();
+
+        // When the deletion succeeds and the following edit completes.
+        await mockFetch.resume();
+        await waitForBatchedUpdates();
+
+        // Then Breakfast stays removed, and Lunch has either its confirmed amount or its restored amount and error.
+        policy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}policy`);
+        const rate = policy?.customUnits?.[customUnitID]?.rates?.[rateID];
+        expect(rate?.subRates).toEqual([{id: 'lunch', name: 'Lunch', rate: doesEditSucceed ? 2200 : 1904}]);
+        expect(!!rate?.errorFields?.lunch).toBe(!doesEditSucceed);
+    });
+
     it('restores deleted Per Diem rows with dismissible errors when deletion fails', async () => {
         // Given one complete destination selected for deletion and a paused API request.
         mockFetch.pause();
@@ -486,7 +664,7 @@ describe('actions/Policy/PerDiem', () => {
         ]);
         await waitForBatchedUpdates();
         let policy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}policy`);
-        expect(policy?.customUnits?.[customUnitID]?.rates?.[unchangedRateID]).toBeFalsy();
+        expect(policy?.customUnits?.[customUnitID]?.rates?.[unchangedRateID]?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
 
         mockFetch.fail();
         await mockFetch.resume();
@@ -496,6 +674,7 @@ describe('actions/Policy/PerDiem', () => {
         policy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}policy`);
         const restoredRate = policy?.customUnits?.[customUnitID]?.rates?.[unchangedRateID];
         expect(restoredRate?.subRates).toEqual(customUnit.rates[unchangedRateID].subRates);
+        expect(restoredRate?.pendingAction).toBeFalsy();
         expect(restoredRate?.errorFields?.['breakfast-two']).toBeTruthy();
 
         clearPerDiemRateError('policy', customUnitID, unchangedRateID, 'breakfast-two');

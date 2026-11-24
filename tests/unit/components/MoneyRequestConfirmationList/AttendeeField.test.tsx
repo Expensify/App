@@ -1,8 +1,8 @@
 import {render, waitFor} from '@testing-library/react-native';
 
+import type DropdownField from '@components/DropdownField';
 import ConfirmationFieldsProvider from '@components/MoneyRequestConfirmationFields/Provider';
 import AttendeeField from '@components/MoneyRequestConfirmationList/sections/AttendeeField';
-import type ExpenseFieldDropdown from '@components/MoneyRequestConfirmationList/sections/ExpenseFieldDropdown';
 import ExpenseFormLayoutContext, {dropdownRowsExpenseFormLayout} from '@components/MoneyRequestConfirmationList/sections/ExpenseFormLayoutContext';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 
@@ -22,9 +22,9 @@ jest.mock('@libs/Navigation/Navigation', () => ({navigate: jest.fn()}));
 
 // Records what the row decided and renders its list straight away, so each test can read both without pressing anything.
 let mockShouldOpenInDropdown: boolean | undefined;
-type ExpenseFieldDropdownMockProps = Pick<ComponentProps<typeof ExpenseFieldDropdown>, 'shouldOpenInDropdown' | 'renderDropdown'>;
-jest.mock('@components/MoneyRequestConfirmationList/sections/ExpenseFieldDropdown', () => {
-    return ({shouldOpenInDropdown, renderDropdown}: ExpenseFieldDropdownMockProps) => {
+type DropdownFieldMockProps = Pick<ComponentProps<typeof DropdownField>, 'shouldOpenInDropdown' | 'renderDropdown'>;
+jest.mock('@components/DropdownField', () => {
+    return ({shouldOpenInDropdown, renderDropdown}: DropdownFieldMockProps) => {
         const {MODAL} = jest.requireActual<{default: typeof CONST}>('@src/CONST').default;
         mockShouldOpenInDropdown = shouldOpenInDropdown;
         return renderDropdown({

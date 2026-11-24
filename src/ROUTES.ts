@@ -13,6 +13,7 @@ import type {EnablePaymentsPageType, EnablePaymentsSubPageType, IOUAction, IOURe
 import type {ReplacementReason} from './libs/actions/Card';
 import type {RootNavigatorParamList} from './libs/Navigation/types';
 import type {SearchKey} from './libs/SearchKeyUtils';
+import type {UrlWithParams} from './libs/Url';
 import type {Screen} from './SCREENS';
 import type {ExpenseRuleFormFieldID} from './types/form/ExpenseRuleForm';
 import type {CardFeedWithDomainID, CompanyCardFeedWithDomainID} from './types/onyx';
@@ -118,6 +119,8 @@ const DYNAMIC_ROUTES = {
         path: 'verify-account',
         entryScreens: [
             SCREENS.SETTINGS.WALLET.ROOT,
+            SCREENS.SETTINGS.TROUBLESHOOT,
+            SCREENS.TEST_TOOLS_MODAL.ROOT,
             SCREENS.SETTINGS.ADD_BANK_ACCOUNT,
             SCREENS.SETTINGS.PROFILE.DYNAMIC_CONTACT_METHODS,
             SCREENS.WORKSPACE.COMPANY_CARDS,
@@ -239,7 +242,12 @@ const DYNAMIC_ROUTES = {
     WISE_GLOBAL_REIMBURSEMENTS_INTRO: {
         path: 'global-reimbursements/:bankAccountID',
         entryScreens: ENABLE_GLOBAL_REIMBURSEMENTS_ENTRY_SCREENS,
-        getRoute: (bankAccountID: number | undefined) => `global-reimbursements/${bankAccountID}` as const,
+        getRoute: (bankAccountID: number | undefined, isPayingMultipleReports?: boolean) =>
+            getUrlWithParams(`global-reimbursements/${bankAccountID}`, {
+                // Shows the copy for several reports when bulk pay could not pay any of them
+                isPayingMultipleReports: isPayingMultipleReports ? 'true' : undefined,
+            }),
+        queryParams: ['isPayingMultipleReports'],
     },
     WISE_BUSINESS_ONBOARDING: {
         path: 'business-onboarding/:subPage?/:action?',
@@ -1051,14 +1059,11 @@ const DYNAMIC_ROUTES = {
     ADDRESS_COUNTRY: {
         path: 'country',
         entryScreens: [
-            SCREENS.SETTINGS.PROFILE.ADDRESS,
             SCREENS.SETTINGS.PROFILE.PRIVATE_PERSONAL_DETAILS,
             SCREENS.SETTINGS.PREFERENCES.HOME_ADDRESS,
             SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_OVERVIEW_ADDRESS,
             SCREENS.WORKSPACE.OFFICE_LOCATION_ADD,
             SCREENS.WORKSPACE.OFFICE_LOCATION_EDIT,
-            SCREENS.SETTINGS.WALLET.DYNAMIC_CARDS_DIGITAL_DETAILS_UPDATE_ADDRESS,
-            SCREENS.DOMAIN_CARD.DOMAIN_CARD_UPDATE_ADDRESS,
             SCREENS.TRAVEL.ENABLE,
             SCREENS.SETTINGS.DYNAMIC_ADD_US_BANK_ACCOUNT,
             SCREENS.ADD_PERSONAL_BANK_ACCOUNT_ROOT,
@@ -1070,14 +1075,11 @@ const DYNAMIC_ROUTES = {
     ADDRESS_STATE: {
         path: 'state',
         entryScreens: [
-            SCREENS.SETTINGS.PROFILE.ADDRESS,
             SCREENS.SETTINGS.PROFILE.PRIVATE_PERSONAL_DETAILS,
             SCREENS.SETTINGS.PREFERENCES.HOME_ADDRESS,
             SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_OVERVIEW_ADDRESS,
             SCREENS.WORKSPACE.OFFICE_LOCATION_ADD,
             SCREENS.WORKSPACE.OFFICE_LOCATION_EDIT,
-            SCREENS.SETTINGS.WALLET.DYNAMIC_CARDS_DIGITAL_DETAILS_UPDATE_ADDRESS,
-            SCREENS.DOMAIN_CARD.DOMAIN_CARD_UPDATE_ADDRESS,
             SCREENS.TRAVEL.ENABLE,
             SCREENS.SETTINGS.DYNAMIC_ADD_US_BANK_ACCOUNT,
             SCREENS.ADD_PERSONAL_BANK_ACCOUNT_ROOT,
@@ -1128,6 +1130,10 @@ const DYNAMIC_ROUTES = {
     WORKSPACE_CATEGORY_GL_CODE: {
         path: 'gl-code',
         entryScreens: [SCREENS.WORKSPACE.DYNAMIC_CATEGORY_SETTINGS],
+    },
+    WORKSPACE_CATEGORY_VISIBLE_TO: {
+        path: 'visible-to',
+        entryScreens: [SCREENS.WORKSPACE.DYNAMIC_CATEGORY_SETTINGS, SCREENS.SETTINGS_CATEGORIES.DYNAMIC_SETTINGS_CATEGORY_SETTINGS],
     },
     WORKSPACE_CATEGORY_FLAG_AMOUNTS_OVER: {
         path: 'flag-amounts',
@@ -1245,6 +1251,54 @@ const DYNAMIC_ROUTES = {
     },
     RULES_TAG_TO_MATCH_FROM_EXPENSE: {
         path: 'rule-tag-to-match',
+        entryScreens: EXPENSE_DEFAULT_RULE_STEP_ENTRY_SCREENS,
+    },
+    RULES_CURRENCY_TO_MATCH_FROM_EXPENSE: {
+        path: 'rule-currency-to-match',
+        entryScreens: EXPENSE_DEFAULT_RULE_STEP_ENTRY_SCREENS,
+    },
+    RULES_TAX_RATE_TO_MATCH_FROM_EXPENSE: {
+        path: 'rule-tax-rate-to-match',
+        entryScreens: EXPENSE_DEFAULT_RULE_STEP_ENTRY_SCREENS,
+    },
+    RULES_REIMBURSABLE_TO_MATCH_FROM_EXPENSE: {
+        path: 'rule-reimbursable-to-match',
+        entryScreens: EXPENSE_DEFAULT_RULE_STEP_ENTRY_SCREENS,
+    },
+    RULES_BILLABLE_TO_MATCH_FROM_EXPENSE: {
+        path: 'rule-billable-to-match',
+        entryScreens: EXPENSE_DEFAULT_RULE_STEP_ENTRY_SCREENS,
+    },
+    RULES_SUBMITTER_TO_MATCH_FROM_EXPENSE: {
+        path: 'rule-submitter-to-match',
+        entryScreens: EXPENSE_DEFAULT_RULE_STEP_ENTRY_SCREENS,
+    },
+    RULES_DATE_TO_MATCH_FROM_EXPENSE: {
+        path: 'rule-date-to-match',
+        entryScreens: EXPENSE_DEFAULT_RULE_STEP_ENTRY_SCREENS,
+    },
+    RULES_DATE_MATCH_TYPE_FROM_EXPENSE: {
+        path: 'rule-date-match-type',
+        entryScreens: [SCREENS.WORKSPACE.DYNAMIC_RULES_DATE_TO_MATCH],
+    },
+    RULES_AMOUNT_TO_MATCH_FROM_EXPENSE: {
+        path: 'rule-amount-to-match',
+        entryScreens: EXPENSE_DEFAULT_RULE_STEP_ENTRY_SCREENS,
+    },
+    RULES_AMOUNT_MATCH_TYPE_FROM_EXPENSE: {
+        path: 'rule-amount-match-type',
+        entryScreens: [SCREENS.WORKSPACE.DYNAMIC_RULES_AMOUNT_TO_MATCH],
+    },
+    RULES_HAS_TO_MATCH_FROM_EXPENSE: {
+        path: 'rule-has-to-match',
+        entryScreens: EXPENSE_DEFAULT_RULE_STEP_ENTRY_SCREENS,
+    },
+    RULES_CARD_TO_MATCH_FROM_EXPENSE: {
+        path: 'rule-card-to-match',
+        entryScreens: EXPENSE_DEFAULT_RULE_STEP_ENTRY_SCREENS,
+    },
+    RULES_MERCHANT_TYPE_TO_MATCH_FROM_EXPENSE: {
+        path: 'rule-merchant-type-to-match',
         entryScreens: EXPENSE_DEFAULT_RULE_STEP_ENTRY_SCREENS,
     },
     RULES_MERCHANT_PREVIEW_MATCHES_FROM_EXPENSE: {
@@ -1633,10 +1687,6 @@ const DYNAMIC_ROUTES = {
         path: 'reveal-validate-code/:cardID',
         entryScreens: [SCREENS.SETTINGS.WALLET.DYNAMIC_DOMAIN_CARD],
         getRoute: (cardID: string) => `reveal-validate-code/${cardID}` as const,
-    },
-    WALLET_CARD_DIGITAL_DETAILS_UPDATE_ADDRESS: {
-        path: 'digital-details/update-address',
-        entryScreens: [SCREENS.SETTINGS.WALLET.DYNAMIC_DOMAIN_CARD],
     },
     WALLET_CARD_CHANGE_PIN: {
         path: 'change-pin/:cardID',
@@ -2510,17 +2560,11 @@ const ROUTES = {
     SEARCH_REJECT_REASON_RHP: 'search/reject',
     SEARCH_CHANGE_WORKSPACE_RHP: 'search/change-workspace/search',
     SEARCH_EDIT_MULTIPLE_TRANSACTIONS_RHP: 'search/edit-multiple-transactions',
-    SEARCH_EDIT_MULTIPLE_AMOUNT_RHP: 'search/edit-multiple/amount',
-    SEARCH_EDIT_MULTIPLE_DESCRIPTION_RHP: 'search/edit-multiple/description',
-    SEARCH_EDIT_MULTIPLE_MERCHANT_RHP: 'search/edit-multiple/merchant',
-    SEARCH_EDIT_MULTIPLE_DATE_RHP: 'search/edit-multiple/date',
     SEARCH_EDIT_MULTIPLE_CATEGORY_RHP: 'search/edit-multiple/category',
     SEARCH_EDIT_MULTIPLE_TAG_RHP: {
         route: 'search/edit-multiple/tag/:tagListIndex',
         getRoute: (tagListIndex = 0) => `search/edit-multiple/tag/${tagListIndex}` as const,
     },
-    SEARCH_EDIT_MULTIPLE_BILLABLE_RHP: 'search/edit-multiple/billable',
-    SEARCH_EDIT_MULTIPLE_REIMBURSABLE_RHP: 'search/edit-multiple/reimbursable',
     SEARCH_EDIT_MULTIPLE_ATTENDEES_RHP: 'search/edit-multiple/attendees',
     SEARCH_EDIT_MULTIPLE_TAX_RHP: 'search/edit-multiple/tax',
     MOVE_TRANSACTIONS_SEARCH_RHP: {
@@ -2721,10 +2765,6 @@ const ROUTES = {
         route: 'settings/card/:cardID?',
         getRoute: (cardID: string) => `settings/card/${cardID}` as const,
     },
-    SETTINGS_DOMAIN_CARD_UPDATE_ADDRESS: {
-        route: 'settings/card/:cardID/update-address',
-        getRoute: (cardID: string) => `settings/card/${cardID}/update-address` as const,
-    },
     SETTINGS_DOMAIN_CARD_CONFIRM_VALIDATE_CODE: {
         route: 'settings/card/:cardID/confirm-validate-code',
         getRoute: (cardID: string) => `settings/card/${cardID}/confirm-validate-code` as const,
@@ -2861,7 +2901,6 @@ const ROUTES = {
             return `settings/rules/edit/${hash ?? ':hash'}/${field ? StringUtils.camelToHyphenCase(field) : ''}${index !== undefined ? `/${index === -1 ? ':index' : index}` : ''}` as const;
         },
     },
-    SETTINGS_ADDRESS: 'settings/profile/address',
     SETTINGS_PRIVATE_PERSONAL_DETAILS: {
         route: 'settings/profile/private-personal-details',
         getRoute: (fieldToFocus?: string) => `settings/profile/private-personal-details${fieldToFocus ? `?fieldToFocus=${encodeURIComponent(fieldToFocus)}` : ''}` as const,
@@ -3749,32 +3788,7 @@ const ROUTES = {
     },
     POLICY_ACCOUNTING: {
         route: 'workspaces/:policyID/accounting',
-        getRoute: (
-            policyID: string | undefined,
-            newConnectionName?: ConnectionName,
-            integrationToDisconnect?: ConnectionName,
-            shouldDisconnectIntegrationBeforeConnecting?: boolean,
-            isIntuitEnterpriseSuite?: boolean,
-        ) => {
-            if (!policyID) {
-                Log.warn('Invalid policyID is used to build the POLICY_ACCOUNTING route');
-            }
-
-            let queryParams = '';
-            if (newConnectionName) {
-                queryParams += `?newConnectionName=${newConnectionName}`;
-                if (integrationToDisconnect) {
-                    queryParams += `&integrationToDisconnect=${integrationToDisconnect}`;
-                }
-                if (shouldDisconnectIntegrationBeforeConnecting !== undefined) {
-                    queryParams += `&shouldDisconnectIntegrationBeforeConnecting=${shouldDisconnectIntegrationBeforeConnecting}`;
-                }
-                if (isIntuitEnterpriseSuite !== undefined) {
-                    queryParams += `&isIntuitEnterpriseSuite=${isIntuitEnterpriseSuite}`;
-                }
-            }
-            return `workspaces/${policyID}/accounting${queryParams}` as const;
-        },
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting` as const,
     },
     WORKSPACE_CONNECTIONS: {
         route: 'workspaces/:policyID/connections',
@@ -3897,9 +3911,9 @@ const ROUTES = {
     },
     WORKSPACE_UPGRADE: {
         route: 'workspaces/:policyID?/upgrade/:featureName?',
-        getRoute: (policyID?: string, featureName?: string, backTo?: string, reportID?: string, upgradePlanType?: string) => {
+        getRoute: (policyID?: string, featureName?: string, backTo?: string, reportID?: string, upgradePlanType?: string, governmentRateCountry?: string) => {
             const base = policyID ? (`workspaces/${policyID}/upgrade/${encodeURIComponent(featureName ?? '')}` as const) : (`workspaces/upgrade` as const);
-            const urlWithParams = reportID || upgradePlanType ? getUrlWithParams(base, {reportID, upgradePlanType}) : base;
+            const urlWithParams = reportID || upgradePlanType || governmentRateCountry ? getUrlWithParams(base, {reportID, upgradePlanType, governmentRateCountry}) : base;
             return getUrlWithBackToParam(urlWithParams, backTo);
         },
     },
@@ -4705,6 +4719,54 @@ const ROUTES = {
         route: 'workspaces/:policyID/rules/merchant-rules/:ruleID/tag-to-match',
         getRoute: (policyID: string, ruleID?: string) => `workspaces/${policyID}/rules/merchant-rules/${ruleID ?? 'new'}/tag-to-match` as const,
     },
+    RULES_CURRENCY_TO_MATCH: {
+        route: 'workspaces/:policyID/rules/merchant-rules/:ruleID/currency-to-match',
+        getRoute: (policyID: string, ruleID?: string) => `workspaces/${policyID}/rules/merchant-rules/${ruleID ?? 'new'}/currency-to-match` as const,
+    },
+    RULES_TAX_RATE_TO_MATCH: {
+        route: 'workspaces/:policyID/rules/merchant-rules/:ruleID/tax-rate-to-match',
+        getRoute: (policyID: string, ruleID?: string) => `workspaces/${policyID}/rules/merchant-rules/${ruleID ?? 'new'}/tax-rate-to-match` as const,
+    },
+    RULES_REIMBURSABLE_TO_MATCH: {
+        route: 'workspaces/:policyID/rules/merchant-rules/:ruleID/reimbursable-to-match',
+        getRoute: (policyID: string, ruleID?: string) => `workspaces/${policyID}/rules/merchant-rules/${ruleID ?? 'new'}/reimbursable-to-match` as const,
+    },
+    RULES_BILLABLE_TO_MATCH: {
+        route: 'workspaces/:policyID/rules/merchant-rules/:ruleID/billable-to-match',
+        getRoute: (policyID: string, ruleID?: string) => `workspaces/${policyID}/rules/merchant-rules/${ruleID ?? 'new'}/billable-to-match` as const,
+    },
+    RULES_SUBMITTER_TO_MATCH: {
+        route: 'workspaces/:policyID/rules/merchant-rules/:ruleID/submitter-to-match',
+        getRoute: (policyID: string, ruleID?: string) => `workspaces/${policyID}/rules/merchant-rules/${ruleID ?? 'new'}/submitter-to-match` as const,
+    },
+    RULES_DATE_TO_MATCH: {
+        route: 'workspaces/:policyID/rules/merchant-rules/:ruleID/date-to-match',
+        getRoute: (policyID: string, ruleID?: string) => `workspaces/${policyID}/rules/merchant-rules/${ruleID ?? 'new'}/date-to-match` as const,
+    },
+    RULES_DATE_MATCH_TYPE: {
+        route: 'workspaces/:policyID/rules/merchant-rules/:ruleID/date-match-type',
+        getRoute: (policyID: string, ruleID?: string) => `workspaces/${policyID}/rules/merchant-rules/${ruleID ?? 'new'}/date-match-type` as const,
+    },
+    RULES_AMOUNT_TO_MATCH: {
+        route: 'workspaces/:policyID/rules/merchant-rules/:ruleID/amount-to-match',
+        getRoute: (policyID: string, ruleID?: string) => `workspaces/${policyID}/rules/merchant-rules/${ruleID ?? 'new'}/amount-to-match` as const,
+    },
+    RULES_AMOUNT_MATCH_TYPE: {
+        route: 'workspaces/:policyID/rules/merchant-rules/:ruleID/amount-match-type',
+        getRoute: (policyID: string, ruleID?: string) => `workspaces/${policyID}/rules/merchant-rules/${ruleID ?? 'new'}/amount-match-type` as const,
+    },
+    RULES_HAS_TO_MATCH: {
+        route: 'workspaces/:policyID/rules/merchant-rules/:ruleID/has-to-match',
+        getRoute: (policyID: string, ruleID?: string) => `workspaces/${policyID}/rules/merchant-rules/${ruleID ?? 'new'}/has-to-match` as const,
+    },
+    RULES_CARD_TO_MATCH: {
+        route: 'workspaces/:policyID/rules/merchant-rules/:ruleID/card-to-match',
+        getRoute: (policyID: string, ruleID?: string) => `workspaces/${policyID}/rules/merchant-rules/${ruleID ?? 'new'}/card-to-match` as const,
+    },
+    RULES_MERCHANT_TYPE_TO_MATCH: {
+        route: 'workspaces/:policyID/rules/merchant-rules/:ruleID/merchant-type-to-match',
+        getRoute: (policyID: string, ruleID?: string) => `workspaces/${policyID}/rules/merchant-rules/${ruleID ?? 'new'}/merchant-type-to-match` as const,
+    },
     RULES_AGENT_NEW: {
         route: 'workspaces/:policyID/rules/agent-rules/new',
         getRoute: (policyID: string, generationID?: string) => getUrlWithParams(`workspaces/${policyID}/rules/agent-rules/new` as const, {generationID}),
@@ -4759,7 +4821,7 @@ const ROUTES = {
     ONBOARDING_PERSONAL_DETAILS: {
         route: 'onboarding/personal-details',
 
-        getRoute: (backTo?: string) => getUrlWithBackToParam(`onboarding/personal-details`, backTo),
+        getRoute: (backTo?: string): UrlWithParams<'onboarding/personal-details'> => getUrlWithBackToParam(`onboarding/personal-details`, backTo),
     },
     ONBOARDING_PRIVATE_DOMAIN: {
         route: 'onboarding/private-domain',
@@ -4770,22 +4832,22 @@ const ROUTES = {
     ONBOARDING_EMPLOYEES: {
         route: 'onboarding/employees',
 
-        getRoute: (backTo?: string) => getUrlWithBackToParam(`onboarding/employees`, backTo),
+        getRoute: (backTo?: string): UrlWithParams<'onboarding/employees'> => getUrlWithBackToParam(`onboarding/employees`, backTo),
     },
     ONBOARDING_ACCOUNTING: {
         route: 'onboarding/accounting',
 
-        getRoute: () => 'onboarding/accounting' as const,
+        getRoute: (): UrlWithParams<'onboarding/accounting'> => 'onboarding/accounting' as const,
     },
     ONBOARDING_INTERESTED_FEATURES: {
         route: 'onboarding/interested-features',
 
-        getRoute: () => 'onboarding/interested-features' as const,
+        getRoute: (): UrlWithParams<'onboarding/interested-features'> => 'onboarding/interested-features' as const,
     },
     ONBOARDING_PURPOSE: {
         route: 'onboarding/purpose',
 
-        getRoute: (backTo?: string) => getUrlWithBackToParam(`onboarding/purpose`, backTo),
+        getRoute: (backTo?: string): UrlWithParams<'onboarding/purpose'> => getUrlWithBackToParam(`onboarding/purpose`, backTo),
     },
     ONBOARDING_WORKSPACES: {
         route: 'onboarding/join-workspaces',
@@ -4811,7 +4873,7 @@ const ROUTES = {
         route: 'onboarding/personaltrackcase',
 
         // eslint-disable-next-line @typescript-eslint/no-deprecated -- Legacy route generation, consistent with other onboarding routes
-        getRoute: (backTo?: string) => getUrlWithBackToParam(`onboarding/personaltrackcase`, backTo),
+        getRoute: (backTo?: string): UrlWithParams<'onboarding/personaltrackcase'> => getUrlWithBackToParam(`onboarding/personaltrackcase`, backTo),
     },
     TEST_DRIVE_DEMO_ROOT: 'onboarding/test-drive/demo',
     AUTO_SUBMIT_MODAL_ROOT: '/auto-submit',

@@ -175,6 +175,12 @@ const lineHeightBadge: Pick<TextStyle, 'lineHeight'> = isSafari() ? {lineHeight:
 // silently stops matching when either of those changes, and it cannot follow `componentSizeSmall` across pixel ratios.
 const bulkActionBarHeight = variables.componentSizeSmall + variables.bulkActionBarPaddingVertical * 2;
 
+// A subnav row's label lines up with the label of the row above: the row's padding, the icon and the icon-label gap.
+const flatNavigationBarSubnavIndent = variables.flatNavigationBarRowPadding + variables.iconSizeNormal + variables.flatNavigationBarItemGap;
+
+// The subnav rule runs under the centre of the icons above it: the row's inset, padding and half the icon.
+const flatNavigationBarSubnavRuleLeft = variables.flatNavigationBarRowInset + variables.flatNavigationBarRowPadding + variables.iconSizeNormal / 2;
+
 const picker = (theme: ThemeColors) =>
     ({
         backgroundColor: theme.transparent,
@@ -949,7 +955,7 @@ const staticStyles = (theme: ThemeColors) =>
         flatNavigationBarItem: {
             flexDirection: 'row',
             alignItems: 'center',
-            gap: 12,
+            gap: variables.flatNavigationBarItemGap,
             height: variables.flatNavigationBarItemHeight,
             paddingHorizontal: variables.flatNavigationBarRowPadding,
             marginHorizontal: variables.flatNavigationBarRowInset,
@@ -960,6 +966,49 @@ const staticStyles = (theme: ThemeColors) =>
 
         flatNavigationBarAccountItem: {
             height: variables.flatNavigationBarAccountItemHeight,
+        },
+
+        // The label lines up with the label of the destination row above the subnav.
+        flatNavigationBarSubnavItem: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            gap: variables.spacing2,
+            height: variables.flatNavigationBarSubnavItemHeight,
+            paddingLeft: flatNavigationBarSubnavIndent,
+            paddingRight: variables.flatNavigationBarRowPadding,
+            marginHorizontal: variables.flatNavigationBarRowInset,
+            borderRadius: variables.componentBorderRadiusNormal,
+            overflow: 'hidden',
+        },
+
+        // Sits at the bottom of its row, which leaves the gap above the group.
+        flatNavigationBarSubnavHeader: {
+            height: variables.flatNavigationBarSubnavHeaderHeight,
+            justifyContent: 'flex-end',
+            paddingBottom: 4,
+            paddingLeft: flatNavigationBarSubnavIndent,
+            paddingRight: variables.flatNavigationBarRowPadding,
+            marginHorizontal: variables.flatNavigationBarRowInset,
+        },
+
+        // The active row's marker slides along this rule.
+        flatNavigationBarSubnavRule: {
+            position: 'absolute',
+            top: 0,
+            bottom: 0,
+            left: flatNavigationBarSubnavRuleLeft,
+            width: 1,
+            backgroundColor: theme.border,
+        },
+
+        flatNavigationBarSubnavMarker: {
+            position: 'absolute',
+            top: 0,
+            left: flatNavigationBarSubnavRuleLeft - Math.floor(variables.flatNavigationBarSubnavMarkerWidth / 2),
+            width: variables.flatNavigationBarSubnavMarkerWidth,
+            height: variables.flatNavigationBarSubnavMarkerHeight,
+            borderRadius: variables.componentBorderRadiusRounded,
+            backgroundColor: theme.success,
         },
 
         flatNavigationBarDivider: {
@@ -2172,8 +2221,14 @@ const staticStyles = (theme: ThemeColors) =>
         floatingActionButtonPosition: {
             position: 'absolute',
             top: -variables.componentSizeLarge - 16,
-            right: 16,
+            right: variables.floatingActionButtonRightOffset,
             zIndex: 10,
+        },
+
+        // Keeps the footer's content clear of the floating (+) button, which sits over its right end on narrow layouts.
+        searchPageFooterFABClearance: {
+            // The button's offset from the edge, its width and a 12px gap before the footer content.
+            paddingRight: variables.floatingActionButtonRightOffset + variables.componentSizeLarge + 12,
         },
 
         floatingGpsButton: {
@@ -4408,6 +4463,14 @@ const staticStyles = (theme: ThemeColors) =>
             right: 16,
             flexDirection: 'row',
             gap: 8,
+        },
+
+        receiptEnhancementToastContainer: {
+            ...positioning.pAbsolute,
+            ...positioning.l0,
+            ...positioning.r0,
+            bottom: 32,
+            alignItems: 'center',
         },
 
         // Float above the receipt to avoid zooming with it.

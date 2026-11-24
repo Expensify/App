@@ -28,6 +28,8 @@ To connect BambooHR, you must:
 
 BambooHR syncs employees to one Expensify workspace. If your organization uses multiple workspaces, choose the workspace you want to sync before connecting BambooHR.
 
+To prepare access in BambooHR before you connect, follow the [OAuth setup guide](https://expensify.integrations.guide/articles/6597267) or the [API key setup guide](https://expensify.integrations.guide/articles/5431279).
+
 ---
 
 ## How to connect BambooHR to Expensify
