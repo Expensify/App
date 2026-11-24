@@ -71,7 +71,7 @@ import {getLoginByAccountID} from '@libs/PersonalDetailsUtils';
 import {canAccessPolicyBankAccount} from '@libs/PolicyPaymentUtils';
 import {canPayViaABA, getConnectedIntegration, hasDynamicExternalWorkflow, isAdminOfCardEnabledPolicy, isSubmitPolicy} from '@libs/PolicyUtils';
 import {getReportName} from '@libs/ReportNameUtils';
-import {getReportAccountingExportActions, isMergeActionForSelectedTransactions} from '@libs/ReportSecondaryActionUtils';
+import {getReportAccountingExportActions, isMergeActionForSelectedTransactions, isUnapproveAction} from '@libs/ReportSecondaryActionUtils';
 import {
     canEditMultipleTransactions,
     canIOUBePaid,
@@ -2968,7 +2968,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
 
         const unapproveButtonOption: DropdownOption<SearchHeaderOptionValue> = {
             icon: expensifyIcons.ThumbsDown,
-            text: translate('search.bulkActions.unapprove'),
+            text: translate('iou.unapprove'),
             value: CONST.SEARCH.BULK_ACTION_TYPES.UNAPPROVE,
             sentryLabel: CONST.SENTRY_LABEL.SEARCH.BULK_ACTIONS_UNAPPROVE,
             shouldCloseModalOnSelect: true,
@@ -3377,10 +3377,24 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             // The backend rejects the entire move if any matching expense is invalid
             const isAllMatchingSelectionMovable = isEmptyObject(excludedTransactions) && (!hasUnloadedMatchingExpenses || isUnreportedOnlyQuery);
 
+            const shouldShowUnapproveOptionForAllMatchingItems =
+                !isOffline &&
+                isExpenseReportType &&
+                selectedReports.some((selectedReport) => {
+                    const report = getReportFromSearchSnapshot(selectedReport.reportID, currentSearchResults?.data, allReports);
+                    const policy = getPolicyFromSearchSnapshot(selectedReport.policyID, currentSearchResults?.data, policies);
+                    return !!report && isUnapproveAction(currentUserLogin ?? '', accountID ?? CONST.DEFAULT_NUMBER_ID, report, policy);
+                });
+
             const allMatchingOptions: Array<DropdownOption<SearchHeaderOptionValue>> = [];
             if (shouldShowApproveOptionForAllMatchingItems) {
                 allMatchingOptions.push(approveButtonOption);
             }
+
+            if (shouldShowUnapproveOptionForAllMatchingItems) {
+                allMatchingOptions.push(unapproveButtonOption);
+            }
+
             if (shouldShowSubmitOptionForAllMatchingItems) {
                 allMatchingOptions.push(submitButtonOption);
             }
@@ -3501,6 +3515,20 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
 
         if (shouldShowApproveOption) {
             options.push(approveButtonOption);
+        }
+
+        const shouldShowUnapproveOption =
+            !isOffline &&
+            isExpenseReportType &&
+            selectedReports.length > 0 &&
+            selectedReports.every((selectedReport) => {
+                const report = getReportFromSearchSnapshot(selectedReport.reportID, currentSearchResults?.data, allReports);
+                const policy = getPolicyFromSearchSnapshot(selectedReport.policyID, currentSearchResults?.data, policies);
+                return !!report && isUnapproveAction(currentUserLogin ?? '', accountID ?? CONST.DEFAULT_NUMBER_ID, report, policy);
+            });
+
+        if (shouldShowUnapproveOption) {
+            options.push(unapproveButtonOption);
         }
 
         const hasNoRejectedTransaction = selectedTransactionsKeys.every(

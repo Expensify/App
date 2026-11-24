@@ -1420,4 +1420,12 @@ function getSecondaryTransactionThreadActions({
 
     return options;
 }
-export {getSecondaryReportActions, getSecondaryTransactionThreadActions, isMergeActionForSelectedTransactions, getReportAccountingExportActions, isSplitAction, isChangeWorkspaceAction};
+export {
+    getSecondaryReportActions,
+    getSecondaryTransactionThreadActions,
+    isMergeActionForSelectedTransactions,
+    getReportAccountingExportActions,
+    isSplitAction,
+    isChangeWorkspaceAction,
+    isUnapproveAction,
+};
