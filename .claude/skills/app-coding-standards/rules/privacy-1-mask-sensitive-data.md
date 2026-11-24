@@ -55,16 +55,17 @@ Flag ONLY when ALL of these are true:
 - The changed code adds or moves an input, or a display of a value, holding one of: a bank account or routing number, a card number, CVV, expiry, PIN or cardholder name, a tax ID, registration number, SSN or ID document, a legal name, date of birth, phone number or home address, a 2FA, magic or validate code, a recovery code, or a password, API key or other credential
 - Neither the element nor a container that applies to it masks it. These mask it:
     - `forwardedFSClass={CONST.FULLSTORY.CLASS.MASK}` (or `fsClass` on a `View`, `Text` or `Pressable`) on the element itself
-    - an enclosing `FSClassView`, or a `FormProvider`, `ScreenWrapper`, `Modal` or `PopoverWithoutOverlay` with `forwardedFSClass={CONST.FULLSTORY.CLASS.MASK}`. A `ScreenWrapper`, `Modal` or `PopoverWithoutOverlay` in between starts over unmasked, so a masked container above it doesn't count
+    - an enclosing `FSClassView`, or a `FormProvider`, `ScreenWrapper`, `Modal` or `PopoverWithoutOverlay` with `forwardedFSClass={CONST.FULLSTORY.CLASS.MASK}`. A `ScreenWrapper`, `Modal` or `PopoverWithoutOverlay` in between starts over unmasked, so a masked container above it doesn't count. A closer `UNMASK`, on the element or a nearer container, also overrides the mask
     - for text inputs only, `secureTextEntry`, or an `autoComplete` or `textContentType` value listed in `src/libs/Fullstory/isSensitiveInput.ts`
-    - a masked-by-default sub-step (`FullNameStep`, `DateOfBirthStep`, `AddressStep`, `ConfirmationStep`) that the code doesn't override with `UNMASK`, or `RegistrationNumberStep`, which always masks
+    - a masked-by-default sub-step (`FullNameStep`, `DateOfBirthStep`, `AddressStep`, `ConfirmationStep`) that the code doesn't override with `UNMASK`, or `RegistrationNumberStep`, which always masks. `ConfirmationStep` only masks its rows, so its `pageSubtitle`, group names and `children` need their own mask when they show sensitive data
     - for anything that isn't a text input, a masked ancestor `View`. A plain `<View fsClass={CONST.FULLSTORY.CLASS.MASK}>` doesn't count for text inputs, because they set their own class
 
 **DO NOT flag if:**
 
 - The value only shows the last 4 digits of a card or account
 - The value is a label, a field name, a help or error message, or a placeholder, not the data itself
-- The data belongs to a workspace, a report or an expense (workspace name, address or settings, merchant, amount), which are unmasked by design
+- The data belongs to a workspace, a report or an expense (workspace name, address or settings, merchant, amount), which are unmasked by design. This doesn't cover bank, card or business identity data, which the first condition covers
+- The value is a login, email or display name, even when it's a phone number
 - The element is inside a chat that `getChatFSClass` already masks
 - The code is a test or story
 

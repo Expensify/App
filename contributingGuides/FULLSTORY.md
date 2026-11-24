@@ -7,7 +7,7 @@ FullStory records sessions on web and native. Everything it records is readable 
 Masked:
 
 - Self DMs
-- DMs, groups and rooms that Concierge isn't a member of, including their composer and their message previews in the LHN (the chat name and avatar stay visible). Workspace chats, #admins, #announce, invoice rooms and threads of expenses, reports and invoices stay unmasked. See `getChatFSClass` below.
+- DMs, groups and rooms that Concierge isn't a member of, including their composer and their message previews in the LHN (the chat name and avatar stay visible). Workspace chats, #admins, #announce, invoice rooms, threads of expenses, reports and invoices, and the user's DM with a custom agent stay unmasked. See `getChatFSClass` below.
 - Bank account, wallet and payment card flows: the fields with sensitive or personal data, both the inputs and the screens that show the values back
 - Personal details: legal name, date of birth, phone number and address
 - Business and identity data: tax IDs, registration numbers, beneficial owners and signers, ID documents
@@ -108,7 +108,7 @@ Most shared components already do: `TextInput`, `InputWrapper`, `MenuItem` (the 
 
 ### Sub-step forms
 
-`FullNameStep`, `DateOfBirthStep`, `AddressStep` and `ConfirmationStep` in `src/components/SubStepForms` mask by default, because they are used for KYC and bank flows, and `RegistrationNumberStep` always masks. `SingleFieldStep` doesn't, so pass `forwardedFSClass={CONST.FULLSTORY.CLASS.MASK}` when its field is sensitive. Pass `UNMASK` to a masked-by-default step only when nothing it shows is sensitive.
+`FullNameStep`, `DateOfBirthStep`, `AddressStep` and `ConfirmationStep` in `src/components/SubStepForms` mask by default, because they are used for KYC and bank flows, and `RegistrationNumberStep` always masks. `SingleFieldStep` doesn't, so pass `forwardedFSClass={CONST.FULLSTORY.CLASS.MASK}` when its field is sensitive. Pass `UNMASK` to a masked-by-default step only when nothing it shows is sensitive. `ConfirmationStep` only masks its rows: its `pageSubtitle`, group names and `children` aren't masked, so mask them yourself if they show sensitive data.
 
 ### Content rendered outside its screen
 
