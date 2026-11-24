@@ -9,7 +9,7 @@ import SidebarUtils from '@libs/SidebarUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Policy, Report, ReportAttributesDerivedValue} from '@src/types/onyx';
+import type {Report, ReportAttributesDerivedValue} from '@src/types/onyx';
 import type {ReportAttributes} from '@src/types/onyx/DerivedValues';
 
 import type {OnyxMultiSetInput} from 'react-native-onyx';
@@ -1103,7 +1103,7 @@ describe('useSidebarOrderedReports', () => {
         mockSidebarUtils.getReportsToDisplayInLHN.mockReturnValue(displayedReports);
         await act(async () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}7`, displayedReports['7']);
-            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}8`, {id: '8', name: 'Workspace'} as Policy);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}8`, {id: '8', name: 'Workspace'});
         });
         renderHook(() => useSidebarOrderedReports(), {wrapper: TestWrapper});
         await waitForBatchedUpdatesWithAct();

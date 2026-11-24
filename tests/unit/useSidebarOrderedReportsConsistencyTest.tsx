@@ -11,6 +11,9 @@ import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, Report, ReportAction, Transaction} from '@src/types/onyx';
+import type {ReportCollectionDataSet} from '@src/types/onyx/Report';
+import type {ReportActionsCollectionDataSet} from '@src/types/onyx/ReportAction';
+import type {TransactionCollectionDataSet} from '@src/types/onyx/Transaction';
 
 import React from 'react';
 import Onyx from 'react-native-onyx';
@@ -66,7 +69,7 @@ function getCommentAction(reportActionID: string, created: string, actorAccountI
         created,
         actorAccountID,
         message: [{type: CONST.REPORT.MESSAGE.TYPE.COMMENT, html: 'comment', text: 'comment'}],
-    } as ReportAction;
+    };
 }
 
 function getInitialData() {
@@ -157,8 +160,9 @@ function getInitialData() {
                 actorAccountID: CURRENT_USER_ACCOUNT_ID,
                 childReportID: threadReportID,
                 message: [{type: CONST.REPORT.MESSAGE.TYPE.COMMENT, html: '$10.00 expense', text: '$10.00 expense'}],
+                // eslint-disable-next-line @typescript-eslint/no-deprecated -- the backend still sends originalMessage on report actions
                 originalMessage: {type: CONST.IOU.REPORT_ACTION_TYPE.CREATE, IOUTransactionID: transactionID, IOUReportID: reportID, amount: 1000, currency: CONST.CURRENCY.USD},
-            } as ReportAction,
+            },
         };
     }
     // A chat with no visible message counts as empty and stays out of the LHN
@@ -222,14 +226,14 @@ async function applyRandomChange(random: ReturnType<typeof createRandom>, step: 
             return `notification preference ${notificationPreference} on ${reportID}`;
         }
         case 4: {
-            const state = random.pick([
-                [CONST.REPORT.STATE_NUM.OPEN, CONST.REPORT.STATUS_NUM.OPEN],
-                [CONST.REPORT.STATE_NUM.SUBMITTED, CONST.REPORT.STATUS_NUM.SUBMITTED],
-                [CONST.REPORT.STATE_NUM.APPROVED, CONST.REPORT.STATUS_NUM.APPROVED],
-                [CONST.REPORT.STATE_NUM.APPROVED, CONST.REPORT.STATUS_NUM.REIMBURSED],
+            const state = random.pick<Pick<Report, 'stateNum' | 'statusNum'>>([
+                {stateNum: CONST.REPORT.STATE_NUM.OPEN, statusNum: CONST.REPORT.STATUS_NUM.OPEN},
+                {stateNum: CONST.REPORT.STATE_NUM.SUBMITTED, statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED},
+                {stateNum: CONST.REPORT.STATE_NUM.APPROVED, statusNum: CONST.REPORT.STATUS_NUM.APPROVED},
+                {stateNum: CONST.REPORT.STATE_NUM.APPROVED, statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED},
             ]);
-            await Onyx.merge(reportKey, {stateNum: state.at(0), statusNum: state.at(1)});
-            return `state ${state.join('/')} on ${reportID}`;
+            await Onyx.merge(reportKey, state);
+            return `state ${state.stateNum}/${state.statusNum} on ${reportID}`;
         }
         case 5: {
             const hasDraft = random.chance(0.5);
@@ -302,9 +306,7 @@ describe('useSidebarOrderedReports', () => {
             [ONYXKEYS.SESSION]: {accountID: CURRENT_USER_ACCOUNT_ID, email: CURRENT_USER_LOGIN},
             [ONYXKEYS.PERSONAL_DETAILS_LIST]: {
                 [CURRENT_USER_ACCOUNT_ID]: {accountID: CURRENT_USER_ACCOUNT_ID, login: CURRENT_USER_LOGIN, displayName: 'Current User'},
-                1: {accountID: 1, login: 'one@test.com', displayName: 'One'},
-                2: {accountID: 2, login: 'two@test.com', displayName: 'Two'},
-                3: {accountID: 3, login: 'three@test.com', displayName: 'Three'},
+                ...Object.fromEntries(OTHER_ACCOUNT_IDS.map((accountID) => [accountID, {accountID, login: `user${accountID}@test.com`, displayName: `User ${accountID}`}])),
                 ...Object.fromEntries(
                     Array.from({length: 8}, (unused, index) => [
                         DIRECT_CHAT_ACCOUNT_ID + index,
@@ -313,11 +315,21 @@ describe('useSidebarOrderedReports', () => {
                 ),
             },
             [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.DEFAULT,
-            [`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`]: policy,
         });
-        await Onyx.multiSet(Object.fromEntries(Object.entries(reports).map(([reportID, report]) => [`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, report])));
-        await Onyx.multiSet(Object.fromEntries(Object.entries(reportActions).map(([reportID, actions]) => [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, actions])));
-        await Onyx.multiSet(Object.fromEntries(Object.entries(transactions).map(([transactionID, transaction]) => [`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, transaction])));
+        await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, policy);
+        const reportCollection: ReportCollectionDataSet = {};
+        for (const [reportID, report] of Object.entries(reports)) {
+            reportCollection[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`] = report;
+        }
+        const reportActionsCollection: ReportActionsCollectionDataSet = {};
+        for (const [reportID, actions] of Object.entries(reportActions)) {
+            reportActionsCollection[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`] = actions;
+        }
+        const transactionCollection: TransactionCollectionDataSet = {};
+        for (const [transactionID, transaction] of Object.entries(transactions)) {
+            transactionCollection[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`] = transaction;
+        }
+        await Onyx.multiSet({...reportCollection, ...reportActionsCollection, ...transactionCollection});
         await waitForBatchedUpdatesWithAct();
         currentReportIDForTestsValue = undefined;
         const {result: liveResult, rerender, unmount} = renderHook(() => useSidebarOrderedReportsState(), {wrapper: TestWrapper});
