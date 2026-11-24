@@ -13,7 +13,7 @@ import {
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getDistanceRateCustomUnitRate} from '@libs/PolicyUtils';
 import {getIOUActionForTransactionID} from '@libs/ReportActionsUtils';
-import {applyRules, isTrackExpenseReportNew} from '@libs/ReportUtils';
+import {applyRules, doesNeedRules, isTrackExpenseReportNew} from '@libs/ReportUtils';
 import {filterRulesForPolicy} from '@libs/RuleUtils';
 import showInlineEditError from '@libs/showInlineEditError';
 import {isDistanceRequest, isExpenseUnreported, isPerDiemRequest} from '@libs/TransactionUtils';
@@ -199,7 +199,7 @@ function useTransactionInlineEdit({transactionID, hash, linkedReportAction}: Use
         disabled: hasSelectedTransactions,
         shouldSelectPolicyForUnreported: shouldSelectPolicy,
     });
-    const doPermissionsNeedRules = typeof resolvedPermissions === 'function';
+    const doPermissionsNeedRules = doesNeedRules(resolvedPermissions);
     const [policyRules] = useOnyx(ONYXKEYS.COLLECTION.RULE, {selector: (rules) => (doPermissionsNeedRules ? filterRulesForPolicy(rules, editPolicy?.id) : undefined)});
     const permissions = applyRules(resolvedPermissions, policyRules);
 

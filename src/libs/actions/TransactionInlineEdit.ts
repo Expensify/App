@@ -13,6 +13,7 @@ import {isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {
     applyRules,
     canUserPerformWriteAction,
+    doesNeedRules,
     isArchivedReport,
     isInvoiceReport,
     isIOUReport,
@@ -565,8 +566,8 @@ function resolveTransactionEditPermissions({
         };
     };
 
-    const isSettledWithoutRules = [canEdit, canEditDate, canEditMerchant, canEditCategory, canEditAmount, canEditTag].every((permission) => typeof permission === 'boolean');
-    return isSettledWithoutRules ? getPermissions(undefined) : getPermissions;
+    const doPermissionsNeedRules = [canEdit, canEditDate, canEditMerchant, canEditCategory, canEditAmount, canEditTag].some(doesNeedRules);
+    return doPermissionsNeedRules ? getPermissions : getPermissions(undefined);
 }
 
 export {

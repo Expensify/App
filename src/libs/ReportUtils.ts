@@ -6114,8 +6114,12 @@ function canEditMoneyRequest(
  */
 type RuleDependent<T> = T | ((rules: OnyxCollection<Rule>) => T);
 
+function doesNeedRules<T>(result: RuleDependent<T>): result is (rules: OnyxCollection<Rule>) => T {
+    return result instanceof Function;
+}
+
 function applyRules<T>(result: RuleDependent<T>, rules: OnyxCollection<Rule>): T {
-    return result instanceof Function ? result(rules) : result;
+    return doesNeedRules(result) ? result(rules) : result;
 }
 
 /** ANDs two permissions, staying settled whenever the rules can't change the combined answer. */
@@ -16263,6 +16267,7 @@ export {
     resolveCanEditMoneyRequest,
     resolveCanEditFieldOfMoneyRequest,
     applyRules,
+    doesNeedRules,
     canEditReportAction,
     canEditReportDescription,
     canEditRoomVisibility,
