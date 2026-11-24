@@ -52,18 +52,19 @@ describe('Has filter required violation stages', () => {
         const onChange = jest.fn();
         function HasFilterHost() {
             const [selectedValues, setSelectedValues] = React.useState(value);
+            const [isHasNegated, setIsHasNegated] = React.useState(isNegated);
             return (
                 <ListFilterContent
                     baseFilterKey={CONST.SEARCH.SYNTAX_FILTER_KEYS.HAS}
                     value={selectedValues}
                     violationNames={violationNames}
-                    isNegated={isNegated}
+                    isNegated={isHasNegated}
                     policyID={undefined}
                     onChange={(newValue) => {
                         onChange(newValue);
                         setSelectedValues(Array.isArray(newValue) ? newValue : []);
                     }}
-                    onNegationChange={jest.fn()}
+                    onNegationChange={setIsHasNegated}
                 />
             );
         }
@@ -97,9 +98,9 @@ describe('Has filter required violation stages', () => {
         expect(jest.mocked(Tooltip).mock.lastCall?.[0].shouldRender).toBe(shouldRender);
     });
 
-    it('disables Has negation with the unavailable tooltip while positive violations are selected', () => {
-        // Given a positive violation filter in the shared Has content used by all filter surfaces
-        renderHasFilter(['overLimit']);
+    it.each(VIOLATION_HAS_VALUES)('disables Has negation while the %s stage is positively selected', (stage) => {
+        // Given a positive violation filter with a stage alongside an unrelated Has value
+        renderHasFilter(['overLimit'], [CONST.SEARCH.HAS_VALUES.RECEIPT, stage]);
 
         // When the Has negation toggle is rendered
         const props = jest.mocked(NegatableFilter).mock.lastCall?.[0];
@@ -150,6 +151,26 @@ describe('Has filter required violation stages', () => {
         // Then the selected negative option has no disabling tooltip
         expect(props?.isNegated).toBe(true);
         expect(props?.negationDisabledTooltip).toBeUndefined();
+    });
+
+    it('can switch a receipt-only filter from negative to positive and back with positive violations', () => {
+        // Given over-limit expenses without receipts, with no violation stage selected in Has
+        renderHasFilter(['overLimit'], [CONST.SEARCH.HAS_VALUES.RECEIPT], true);
+
+        // When the user switches the live popup to Has
+        act(() => jest.mocked(NegatableFilter).mock.lastCall?.[0].onNegationChange(false));
+
+        // Then Receipt can still be negated because the selection contains no violation stage
+        expect(jest.mocked(NegatableFilter).mock.lastCall?.[0].isNegated).toBe(false);
+        expect(jest.mocked(NegatableFilter).mock.lastCall?.[0].negationDisabledTooltip).toBeUndefined();
+
+        // When the user switches back to Doesn't have
+        act(() => jest.mocked(NegatableFilter).mock.lastCall?.[0].onNegationChange(true));
+
+        // Then the original negative filter is restored without losing Receipt
+        expect(jest.mocked(NegatableFilter).mock.lastCall?.[0].isNegated).toBe(true);
+        expect(jest.mocked(NegatableFilter).mock.lastCall?.[0].negationDisabledTooltip).toBeUndefined();
+        expect(getRow(CONST.SEARCH.HAS_VALUES.RECEIPT).isSelected).toBe(true);
     });
 
     it.each(VIOLATION_HAS_VALUES)('locks the remaining %s stage after the other stage is unchecked', (stage) => {

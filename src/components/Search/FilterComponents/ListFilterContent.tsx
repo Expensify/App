@@ -6,7 +6,7 @@ import useOnyx from '@hooks/useOnyx';
 import useShouldReturnTripRooms from '@hooks/useShouldReturnTripRooms';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {isFilterNegatable, isLastRequiredViolationHasValue} from '@libs/SearchQueryUtils';
+import {hasValuesIncludeViolationFilter, isFilterNegatable, isLastRequiredViolationHasValue} from '@libs/SearchQueryUtils';
 import {getHasOptions, getMultiSelectFilterOptions, getSingleSelectFilterOptions, getViolationFilterOptions, normalizeTripStatuses} from '@libs/SearchUIUtils';
 import type {SearchFilter} from '@libs/SearchUIUtils';
 
@@ -212,7 +212,9 @@ function ListFilterContent({
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const isFilterKeyNegatable = isFilterNegatable(baseFilterKey);
-    const isNegationDisabled = baseFilterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.HAS && !!violationNames?.length && !isNegated;
+    // Only violation-stage selections need to stay positive; other Has values can still be negated.
+    const isNegationDisabled =
+        baseFilterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.HAS && !!violationNames?.length && !isNegated && hasValuesIncludeViolationFilter(Array.isArray(value) ? value : undefined);
     const selectionListTextInputStyle = [selectionListTextInputStyleProp, isFilterKeyNegatable && styles.pt2];
 
     let content;
