@@ -13530,8 +13530,7 @@ function canDuplicateExpenseIntoSourceReport({
     isASAPSubmitBetaEnabled,
     rules,
 }: CanDuplicateExpenseIntoSourceReportParams): boolean {
-    // A bill's expenses come only from the vendor's invoice.
-    if (!isExpenseReport(sourceReport) || isBillReport(sourceReport) || isSourceReportArchived || !chatReport || isChatReportArchived || !isPolicyAccessible(policy, currentUserLogin)) {
+    if (!isExpenseReport(sourceReport) || isSourceReportArchived || !chatReport || isChatReportArchived || !isPolicyAccessible(policy, currentUserLogin)) {
         return false;
     }
 
