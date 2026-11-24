@@ -22,7 +22,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import {expensifyLoginsSelector, isCurrentUserValidated} from '@libs/UserUtils';
 
 import {setDisableDismissOnEscape} from '@userActions/Modal';
-import {clearGetAccessiblePoliciesErrors, getAccessiblePolicies} from '@userActions/Policy/Policy';
+import {clearGetAccessiblePoliciesErrors, validateUserAndGetAccessiblePolicies} from '@userActions/Policy/Policy';
 import {resendValidateCode} from '@userActions/User';
 
 import CONST from '@src/CONST';
@@ -257,7 +257,7 @@ function BaseOnboardingPrivateDomain({shouldUseNativeStyles, route}: BaseOnboard
                     <ValidateCodeForm
                         validateCodeActionErrorField="getAccessiblePolicies"
                         handleSubmitForm={(code) => {
-                            getAccessiblePolicies(
+                            validateUserAndGetAccessiblePolicies(
                                 code,
                                 validateEmailTaskReport,
                                 validateEmailTaskParentReport,

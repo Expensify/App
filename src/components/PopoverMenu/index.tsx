@@ -11,6 +11,8 @@ import ScrollView from '@components/ScrollView';
 import SearchBar from '@components/SearchBar';
 import Text from '@components/Text';
 
+import useAccessibilityAnnouncement from '@hooks/useAccessibilityAnnouncement';
+import useActiveElementRole from '@hooks/useActiveElementRole';
 import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
 import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
@@ -37,6 +39,8 @@ import type {AnchorPosition} from '@src/styles';
 import type {Errors, PendingAction} from '@src/types/onyx/OnyxCommon';
 import type AnchorAlignment from '@src/types/utils/AnchorAlignment';
 import type IconAsset from '@src/types/utils/IconAsset';
+import type WithSentryLabel from '@src/types/utils/SentryLabel';
+import type {WithRequiredSentryLabel} from '@src/types/utils/SentryLabel';
 
 import type {ComponentRef, ReactNode, RefObject} from 'react';
 import type {GestureResponderEvent, LayoutChangeEvent, NativeScrollEvent, NativeSyntheticEvent, StyleProp, TextStyle, ViewStyle} from 'react-native';
@@ -47,65 +51,69 @@ import {StyleSheet, View} from 'react-native';
 
 import usePopoverMenuFocusManagement from './usePopoverMenuFocusManagement';
 
-type PopoverMenuItem = MenuItemProps & {
-    /** Text label */
-    text: string;
+/** A row that can't be pressed (`interactive: false`), such as a header, needs no label. */
+type PopoverMenuItemSentryLabel = WithRequiredSentryLabel | ({interactive: false} & WithSentryLabel);
 
-    /** Badge text to be shown near the right end. */
-    badgeText?: string;
+type PopoverMenuItem = MenuItemProps &
+    PopoverMenuItemSentryLabel & {
+        /** Text label */
+        text: string;
 
-    onSelected?: () => void;
-    subMenuItems?: PopoverMenuItem[];
+        /** Badge text to be shown near the right end. */
+        badgeText?: string;
 
-    /** Header text to be displayed when this item's sub menu is opened */
-    subMenuHeaderText?: string;
+        onSelected?: () => void;
+        subMenuItems?: PopoverMenuItem[];
 
-    /** Back button text to be shown if sub menu items are opened */
-    backButtonText?: string;
+        /** Header text to be displayed when this item's sub menu is opened */
+        subMenuHeaderText?: string;
 
-    /** Determines whether the menu item is disabled or not */
-    disabled?: boolean;
+        /** Back button text to be shown if sub menu items are opened */
+        backButtonText?: string;
 
-    /** Determines whether the menu item's onSelected() function is called after the modal is hidden
-     *  It is meant to be used in situations where, after clicking on the modal, another one is opened.
-     */
-    shouldCallAfterModalHide?: boolean;
+        /** Determines whether the menu item is disabled or not */
+        disabled?: boolean;
 
-    shouldCloseAllModals?: boolean;
-    pendingAction?: PendingAction;
+        /** Determines whether the menu item's onSelected() function is called after the modal is hidden
+         *  It is meant to be used in situations where, after clicking on the modal, another one is opened.
+         */
+        shouldCallAfterModalHide?: boolean;
 
-    /** Errors to display under the menu item (e.g. when an inline toggle's save fails) */
-    errors?: Errors | null;
+        shouldCloseAllModals?: boolean;
+        pendingAction?: PendingAction;
 
-    /** Callback to dismiss the item's errors */
-    onCloseError?: () => void;
+        /** Errors to display under the menu item (e.g. when an inline toggle's save fails) */
+        errors?: Errors | null;
 
-    rightIcon?: IconAsset;
+        /** Callback to dismiss the item's errors */
+        onCloseError?: () => void;
 
-    key?: string;
+        rightIcon?: IconAsset;
 
-    /** Whether to ignore key and use a fallback key for React rendering instead. */
-    shouldIgnoreKeyForRendering?: boolean;
+        key?: string;
 
-    /** Whether to keep the modal open after clicking on the menu item */
-    shouldKeepModalOpen?: boolean;
+        /** Whether to ignore key and use a fallback key for React rendering instead. */
+        shouldIgnoreKeyForRendering?: boolean;
 
-    testID?: string;
+        /** Whether to keep the modal open after clicking on the menu item */
+        shouldKeepModalOpen?: boolean;
 
-    /** Whether to show a loading spinner icon for the menu item */
-    shouldShowLoadingSpinnerIcon?: boolean;
+        testID?: string;
 
-    shouldCloseModalOnSelect?: boolean;
+        /** Whether to show a loading spinner icon for the menu item */
+        shouldShowLoadingSpinnerIcon?: boolean;
 
-    /** Whether selecting this item should avoid restoring focus to the popover before a follow-up modal opens on iOS */
-    shouldSkipFocusRestore?: boolean;
+        shouldCloseModalOnSelect?: boolean;
 
-    /** Whether to render a divider before this menu item */
-    addSeparatorBefore?: boolean;
+        /** Whether selecting this item should avoid restoring focus to the popover before a follow-up modal opens on iOS */
+        shouldSkipFocusRestore?: boolean;
 
-    /** Additional data for the menu item */
-    additionalData?: Record<string, unknown>;
-};
+        /** Whether to render a divider before this menu item */
+        addSeparatorBefore?: boolean;
+
+        /** Additional data for the menu item */
+        additionalData?: Record<string, unknown>;
+    };
 
 type ModalAnimationProps = Pick<ReanimatedModalProps, 'animationInDelay' | 'animationIn' | 'animationInTiming' | 'animationOut' | 'animationOutTiming'>;
 
@@ -421,14 +429,29 @@ function BasePopoverMenu({
     const [enteredSubMenuIndexes, setEnteredSubMenuIndexes] = useState<readonly number[]>(CONST.EMPTY_ARRAY);
     const isWeb = getPlatform() === CONST.PLATFORM.WEB;
     const isSearchEnabled = !!searchInputOptions;
+    const activeElementRole = useActiveElementRole();
+    // Menus that do not synchronize focusedIndex can otherwise select a stale item when a different row has actual focus.
+    const shouldFocusedControlHandleEnter = isSearchEnabled || !shouldUpdateFocusedIndex;
+    const isInteractiveElementFocused =
+        shouldFocusedControlHandleEnter && !!activeElementRole && [CONST.ROLE.BUTTON, CONST.ROLE.CHECKBOX, CONST.ROLE.SWITCH].some((role) => role === activeElementRole);
     const [isSearchInputFocused, setIsSearchInputFocused] = useState(false);
+    const [arrowFocusedItemAnnouncement, setArrowFocusedItemAnnouncement] = useState({message: '', key: 0});
     const scrollViewRef = useRef<ComponentRef<typeof ScrollView>>(null);
     const rowLayoutsRef = useRef(new Map<number, {height: number; y: number}>());
     const scrollOffsetRef = useRef(0);
     const scrollViewHeightRef = useRef(0);
-    const scrollFocusedRowIntoView = (index: number, shouldScroll: boolean) => {
+    const handleFocusedIndexChange = (index: number, shouldScroll: boolean) => {
         if (!isSearchEnabled || !shouldScroll) {
             return;
+        }
+        if (isWeb && isSearchInputFocused) {
+            const focusedItem = currentMenuItems.at(index);
+            if (focusedItem) {
+                const message = [focusedItem.text, focusedItem.description, focusedItem.badgeText]
+                    .filter((value): value is string => typeof value === 'string' && value.length > 0)
+                    .join(', ');
+                setArrowFocusedItemAnnouncement((previousAnnouncement) => ({message, key: previousAnnouncement.key + 1}));
+            }
         }
         const rowLayout = rowLayoutsRef.current.get(index);
         if (!rowLayout || scrollViewHeightRef.current === 0) {
@@ -445,11 +468,19 @@ function BasePopoverMenu({
             });
         }
     };
+    const [hasKeyBeenPressed, setHasKeyBeenPressed] = useState(false);
     const [focusedIndex, setFocusedIndex] = useArrowKeyFocusManager({
         initialFocusedIndex: currentMenuItemsFocusedIndex,
         maxIndex: currentMenuItems.length - 1,
         isActive: isVisible,
-        onFocusedIndexChange: scrollFocusedRowIntoView,
+        onFocusedIndexChange: handleFocusedIndexChange,
+        setHasKeyBeenPressed: isSearchEnabled ? () => setHasKeyBeenPressed(true) : undefined,
+    });
+    useAccessibilityAnnouncement(arrowFocusedItemAnnouncement.message, isWeb && isVisible && isSearchInputFocused && !!arrowFocusedItemAnnouncement.message, {
+        shouldAnnounceOnNative: false,
+        shouldAnnounceOnWeb: true,
+        announcementKey: arrowFocusedItemAnnouncement.key,
+        politeness: 'polite',
     });
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['BackArrow', 'ReceiptScan', 'MoneyCircle']);
     const prevMenuItems = usePrevious(menuItems);
@@ -468,7 +499,6 @@ function BasePopoverMenu({
         }
     }
 
-    const [hasKeyBeenPressed, setHasKeyBeenPressed] = useState(false);
     const {
         effectiveRestoreFocusType,
         handleModalHide: handleFocusManagementModalHide,
@@ -490,7 +520,8 @@ function BasePopoverMenu({
     };
 
     const isRadioButtonMode = enteredSubMenuIndexes.length === 0 ? shouldShowRadioButton : !!getPreviousSubMenu().at(enteredSubMenuIndexes.at(-1) ?? -1)?.shouldShowRadioButton;
-
+    // Browser row focus must follow Tab navigation, while native menus keep the caller's touch-focus safeguard.
+    const shouldUpdateFocusedIndexOnRowFocus = shouldUpdateFocusedIndex || (isWeb && (isSearchEnabled || (isRadioButtonMode && hasKeyBeenPressed)));
     // In radio-button mode, suppress the visual highlight until the user starts navigating,
     // even though the selected item is already focused (for immediate Enter/arrow support).
     useEffect(() => {
@@ -498,6 +529,11 @@ function BasePopoverMenu({
             return;
         }
         const handleKeyDown = (e: KeyboardEvent) => {
+            // Native Tab focus must finish before a searchable menu updates its logical focus.
+            // Otherwise, focus synchronization moves to the selected row first and the browser advances past it.
+            if (isSearchEnabled && e.key === CONST.KEYBOARD_SHORTCUTS.TAB.shortcutKey) {
+                return;
+            }
             const isNavigationKey = [
                 CONST.KEYBOARD_SHORTCUTS.ARROW_UP,
                 CONST.KEYBOARD_SHORTCUTS.ARROW_DOWN,
@@ -512,7 +548,7 @@ function BasePopoverMenu({
         };
         addKeyDownPressListener(handleKeyDown);
         return () => removeKeyDownPressListener(handleKeyDown);
-    }, [isVisible, isRadioButtonMode]);
+    }, [isVisible, isRadioButtonMode, isSearchEnabled]);
 
     const selectItem = (index: number, event?: GestureResponderEvent | KeyboardEvent) => {
         const selectedItem = currentMenuItems.at(index);
@@ -592,8 +628,15 @@ function BasePopoverMenu({
             shouldShowLoadingSpinnerIcon,
             badgeText,
             addSeparatorBefore,
+            sentryLabel,
+            onPress,
+            onSecondaryInteraction,
+            interactive,
             ...menuItemProps
         } = item;
+        // Only an interactive item handles presses, and its type requires a label. Its own onPress wins over selecting it.
+        const pressProps =
+            interactive === false ? {} : {sentryLabel, onPress: onPress ?? ((event: GestureResponderEvent | KeyboardEvent) => selectItem(menuIndex, event)), onSecondaryInteraction};
         const icon = typeof item.icon === 'string' ? expensifyIcons[item.icon as keyof typeof expensifyIcons] : item.icon;
 
         const reactKey = shouldIgnoreKeyForRendering ? `${item.text}_${menuIndex}` : (key ?? `${item.text}_${menuIndex}`);
@@ -613,7 +656,6 @@ function BasePopoverMenu({
                         key={reactKey}
                         pressableTestID={menuItemTestID ?? `PopoverMenuItem-${item.text}`}
                         title={text}
-                        onPress={(event) => selectItem(menuIndex, event)}
                         focused={isVisuallyFocused}
                         shouldSyncFocus={!isSearchInputFocused}
                         shouldCheckActionAllowedOnPress={false}
@@ -621,7 +663,7 @@ function BasePopoverMenu({
                         shouldShowRightIcon={!!item.rightIcon}
                         brickRoadIndicator={item.brickRoadIndicator}
                         onFocus={() => {
-                            if (!shouldUpdateFocusedIndex) {
+                            if (!shouldUpdateFocusedIndexOnRowFocus) {
                                 return;
                             }
                             setFocusedIndex(menuIndex);
@@ -644,6 +686,8 @@ function BasePopoverMenu({
                         role={CONST.ROLE.BUTTON}
                         // Spread other props dynamically
                         {...menuItemProps}
+                        interactive={interactive}
+                        {...pressProps}
                         shouldShowRadioButton={isRadioButtonMode}
                         hasSubMenuItems={!!subMenuItems?.length}
                         shouldShowLoadingSpinnerIcon={shouldShowLoadingSpinnerIcon}
@@ -690,7 +734,7 @@ function BasePopoverMenu({
             // Keep focus on a stay-open item (e.g. an inline toggle) so the next arrow key continues from it; otherwise reset.
             setFocusedIndex(staysOpenOnSelect ? focusedIndex : -1);
         },
-        {isActive: isVisible},
+        {isActive: isVisible && !isInteractiveElementFocused},
     );
 
     const keyboardShortcutSpaceCallback = (e?: GestureResponderEvent | KeyboardEvent) => {
@@ -743,7 +787,12 @@ function BasePopoverMenu({
             setEnteredSubMenuIndexes(CONST.EMPTY_ARRAY);
             setCurrentMenuItems(menuItems);
             if (isSearchEnabled) {
-                rowLayoutsRef.current.clear();
+                // Rows reused after filtering may not emit another onLayout event, so preserve measurements for the remaining visual positions.
+                for (const rowIndex of rowLayoutsRef.current.keys()) {
+                    if (rowIndex >= menuItems.length) {
+                        rowLayoutsRef.current.delete(rowIndex);
+                    }
+                }
                 scrollOffsetRef.current = 0;
                 scrollViewRef.current?.scrollTo({y: 0, animated: false});
                 setFocusedIndex(menuItems.length > 0 ? 0 : -1);
@@ -786,7 +835,7 @@ function BasePopoverMenu({
                 : [];
     } else {
         const stylesArray: ViewStyle[] = [
-            StyleSheet.flatten(styles.createMenuContainer),
+            styles.createMenuContainer,
             {
                 width: variables.compactPopoverMenuWidth,
             },
@@ -874,8 +923,16 @@ function BasePopoverMenu({
                                     label={searchInputOptions.label}
                                     inputValue={searchInputOptions.value}
                                     onChangeText={searchInputOptions.onChangeText}
-                                    onFocus={() => setIsSearchInputFocused(true)}
-                                    onBlur={() => setIsSearchInputFocused(false)}
+                                    onFocus={() => {
+                                        setArrowFocusedItemAnnouncement((previousAnnouncement) => ({...previousAnnouncement, message: ''}));
+                                        setIsSearchInputFocused(true);
+                                    }}
+                                    onBlur={() => {
+                                        // Native focus becomes the source of truth after leaving search, so an earlier arrow highlight must not redirect Tab.
+                                        setHasKeyBeenPressed(false);
+                                        setArrowFocusedItemAnnouncement((previousAnnouncement) => ({...previousAnnouncement, message: ''}));
+                                        setIsSearchInputFocused(false);
+                                    }}
                                     shouldShowEmptyState={searchInputOptions.shouldShowEmptyState}
                                     shouldShowIcon={false}
                                     style={[styles.mw100, searchInputOptions.style]}

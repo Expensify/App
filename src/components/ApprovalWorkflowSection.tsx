@@ -17,6 +17,7 @@ import React from 'react';
 import {View} from 'react-native';
 
 import Button from './Button';
+import FormHelpMessage from './FormHelpMessage';
 import Icon from './Icon';
 import MenuItem from './MenuItem';
 import OfflineWithFeedback from './OfflineWithFeedback';
@@ -64,7 +65,7 @@ function ApprovalWorkflowSection({
     isRecruitingAdvancedMode = false,
     hrFinalApproverEmail,
 }: ApprovalWorkflowSectionProps) {
-    const icons = useMemoizedLazyExpensifyIcons(['ArrowRight', 'Lightbulb', 'Pencil', 'Users', 'UserCheck']);
+    const icons = useMemoizedLazyExpensifyIcons(['ArrowRight', 'DotIndicator', 'Lightbulb', 'Pencil', 'Users', 'UserCheck']);
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate, toLocaleOrdinalWithWords, localeCompare, formatPhoneNumber} = useLocalize();
@@ -101,7 +102,8 @@ function ApprovalWorkflowSection({
         convertToDisplayString,
     });
 
-    const sortedMembers = approvalWorkflow.isDefault ? [] : sortAlphabetically(approvalWorkflow.members, 'displayName', localeCompare);
+    // Sort a copy, since the Approvals list keys each workflow by its first member.
+    const sortedMembers = approvalWorkflow.isDefault ? [] : sortAlphabetically([...approvalWorkflow.members], 'displayName', localeCompare);
 
     // Mirror the approver row's pending opacity on the "Expenses from" row so both fade together while
     // the workflow (e.g. a member invited offline) is still pending server confirmation.
@@ -225,10 +227,30 @@ function ApprovalWorkflowSection({
                                         />
                                     </View>
                                 }
-                                brickRoadIndicator={getApproverError(approver) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
-                                errorText={getApproverError(approver)}
                                 sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.WORKFLOWS.APPROVAL_SECTION_APPROVER}
                             />
+                            {!!getApproverError(approver) && (
+                                // Uses the approver row's own icon column and title margin, so the dot sits under its icon and the text starts under its title
+                                <View style={[styles.flexRow, styles.alignItemsStart, styles.mt1]}>
+                                    <View
+                                        accessible
+                                        role={CONST.ROLE.IMG}
+                                        accessibilityLabel={CONST.ACCESSIBILITY_LABELS.ERROR}
+                                        style={styles.popoverMenuIcon}
+                                    >
+                                        <Icon
+                                            src={icons.DotIndicator}
+                                            fill={theme.danger}
+                                        />
+                                    </View>
+                                    <FormHelpMessage
+                                        message={getApproverError(approver)}
+                                        isError
+                                        shouldShowRedDotIndicator={false}
+                                        style={[styles.flex1, styles.ml3, styles.mt0, styles.mb0]}
+                                    />
+                                </View>
+                            )}
                         </View>
                     </OfflineWithFeedback>
                 ))}

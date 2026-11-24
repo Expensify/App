@@ -4,7 +4,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useParticipantsPolicyTags from '@hooks/useParticipantsPolicyTags';
 import usePermissions from '@hooks/usePermissions';
-import useReportTransactions from '@hooks/useReportTransactions';
+import {useGetPersonalDetailsByLogin} from '@hooks/usePersonalDetailByLogin';
 
 import {getStringifiedGPSCoordinates} from '@libs/GPSDraftDetailsUtils';
 import {getReusableP2PReportID} from '@libs/IOUUtils';
@@ -12,7 +12,7 @@ import {getChatReportFromMoneyRequestReport, isMoneyRequestReport as isMoneyRequ
 import markSubmitExpenseEnd from '@libs/telemetry/markSubmitExpenseEnd';
 import {getDistanceRequestType, getIsFromGlobalCreate, getRateID, getSelectedRouteDistance, getValidWaypoints, hasAppliedCommuterExclusion} from '@libs/TransactionUtils';
 
-import {createDistanceRequest as createDistanceRequestIOUActions} from '@userActions/IOU/Split';
+import {commitDistanceRequest, planDistanceRequest} from '@userActions/IOU/Split';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -92,8 +92,8 @@ function useDistanceSubmission({
     const {isTrackIntentUser, isLookingAroundUser} = useSubmissionOnboardingIntent();
     const delegateAccountID = useDelegateAccountID();
     const {transactionViolationsRef} = useSubmissionViolations();
-    const reportTransactions = useReportTransactions(report?.reportID);
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
+    const getPersonalDetailsByLogin = useGetPersonalDetailsByLogin();
     const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE);
     const participantsPolicyTags = useParticipantsPolicyTags(selectedParticipants);
 
@@ -135,12 +135,10 @@ function useDistanceSubmission({
         const optimisticChatReportID = getReusableP2PReportID(participant, transaction.reportID);
         const shouldIncludeCommuterExclusionOverrides = hasAppliedCommuterExclusion(transaction);
 
-        const {chatReportID: distanceChatReportID, transactionID: distanceTransactionID} = createDistanceRequestIOUActions({
+        const distanceRequestPlan = planDistanceRequest({
             isVendorMatchingBetaEnabled,
             getCurrencyDecimals,
-            writeBarrier,
             report,
-            moneyRequestReportTransactions: reportTransactions,
             participants: selectedParticipantsForRequest,
             optimisticChatReportID,
             currentUserLogin: currentUserPersonalDetails.login ?? '',
@@ -195,8 +193,11 @@ function useDistanceSubmission({
             formatPhoneNumber,
             participantsPolicyTags,
             rules,
+            personalDetailsByLogins: getPersonalDetailsByLogin(),
             reusableDistanceRoutes,
         });
+        commitDistanceRequest(distanceRequestPlan, writeBarrier);
+        const {chatReportID: distanceChatReportID, transactionID: distanceTransactionID} = distanceRequestPlan;
 
         const isExpenseReport = isMoneyRequestReportReportUtils(report);
         performPostBatchCleanup({

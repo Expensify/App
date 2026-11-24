@@ -2,7 +2,6 @@ import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import {PressableWithFeedback} from '@components/Pressable';
 import RadioButton from '@components/RadioButton';
-import type {ExpenseReportListItemType, TransactionListItemType} from '@components/Search/SearchList/ListItem/types';
 import UserInfoAndActionButtonRow from '@components/Search/SearchList/ListItem/UserInfoAndActionButtonRow';
 import TransactionItemRow from '@components/TransactionItemRow';
 
@@ -55,12 +54,12 @@ function DuplicateTransactionItem({transaction, isLastItem, isSelected, shouldSh
     });
     const ownerPersonalDetails = report?.ownerAccountID ? personalDetails?.[report.ownerAccountID] : undefined;
     const reportStatusItem = ownerPersonalDetails
-        ? ({
+        ? {
               ...report,
               from: ownerPersonalDetails,
               to: ownerPersonalDetails,
               formattedFrom: ownerPersonalDetails.displayName ?? '',
-          } as ExpenseReportListItemType)
+          }
         : undefined;
 
     const handlePreviewPress = () => {
@@ -120,7 +119,7 @@ function DuplicateTransactionItem({transaction, isLastItem, isSelected, shouldSh
                             />
                         )}
                         <TransactionItemRow
-                            transactionItem={transaction as TransactionListItemType}
+                            transactionItem={transaction}
                             report={report}
                             policy={policy}
                             shouldUseNarrowLayout

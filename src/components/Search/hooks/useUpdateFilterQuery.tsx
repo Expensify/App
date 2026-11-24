@@ -6,9 +6,10 @@ import useOnyx from '@hooks/useOnyx';
 
 import Navigation from '@libs/Navigation/Navigation';
 import {markQueryAsRefinement} from '@libs/SearchQueryRefinement';
-import {buildFilterQueryWithSortDefaults, buildSearchQueryJSON} from '@libs/SearchQueryUtils';
+import {buildFilterQueryWithSortDefaults, buildSearchQueryJSON, hasValuesIncludeViolationFilter, VIOLATION_HAS_VALUES} from '@libs/SearchQueryUtils';
 import {filterValidHasValues} from '@libs/SearchUIUtils';
 
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {SearchAdvancedFiltersForm} from '@src/types/form';
 import {getEmptyObject} from '@src/types/utils/EmptyObject';
@@ -31,6 +32,19 @@ function useUpdateFilterQuery(queryJSON: SearchQueryJSON | undefined) {
             updatedFilterFormValues.statusNot = undefined;
             updatedFilterFormValues.has = filterValidHasValues(updatedFilterFormValues.has, updatedFilterFormValues.type, translate);
             updatedFilterFormValues.hasNot = filterValidHasValues(updatedFilterFormValues.hasNot, updatedFilterFormValues.type, translate);
+        }
+
+        // The filters UI pairs the violation grouping with a violation has value, so the Has pill shows which stages the
+        // groups count. Choosing the grouping adds both stages, and removing them (by clearing the Has pill, or by
+        // switching to a type that has no violations) drops the grouping. A query that reached the page without one, like
+        // an older saved search, is left alone, since Auth reads both stages for it. Typed queries get both stages from
+        // getQueryWithUpdatedValues.
+        if (updatedFilterFormValues.groupBy === CONST.SEARCH.GROUP_BY.VIOLATION && !hasValuesIncludeViolationFilter(updatedFilterFormValues.has)) {
+            if (currentValues.groupBy !== CONST.SEARCH.GROUP_BY.VIOLATION) {
+                updatedFilterFormValues.has = [...(updatedFilterFormValues.has ?? []), ...VIOLATION_HAS_VALUES];
+            } else if (hasValuesIncludeViolationFilter(currentValues.has)) {
+                updatedFilterFormValues.groupBy = undefined;
+            }
         }
 
         if (updatedFilterFormValues.groupBy !== currentValues.groupBy) {
