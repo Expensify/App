@@ -466,6 +466,8 @@ function submitSkipConfirmationExpense(args: SubmitAmountArgs, ctx: SubmitAmount
                 formatPhoneNumber,
                 getCurrencyDecimals,
                 rules,
+                // Only used for the optimistic next approver of a submitted workspace report, which this skip-confirmation flow never targets (it excludes policy expense chats).
+                personalDetailsByLogins: undefined,
             });
         }
         cleanupAfterSkipConfirmSubmit(overrides.shouldHandleNavigation, {

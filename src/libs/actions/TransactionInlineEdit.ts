@@ -65,6 +65,7 @@ import {
     updateMoneyRequestTag,
 } from './IOU/UpdateMoneyRequest';
 import {createTransactionThreadReport} from './Report';
+import {markInFlightSearchRequestsStale} from './Search';
 
 type TransactionEditPermissions = {
     canEditDate: boolean;
@@ -267,6 +268,7 @@ function getIouParamsForTransaction({
 function editTransactionDateInline(params: TransactionInlineEditParams, newDate: string, personalPolicyOutputCurrency: string | undefined) {
     const iouParams = getIouParamsForTransaction(params);
 
+    markInFlightSearchRequestsStale(params.hash);
     updateMoneyRequestDate({
         isVendorMatchingBetaEnabled: params.isVendorMatchingBetaEnabled,
         ...iouParams,
@@ -298,6 +300,7 @@ function editTransactionMerchantInline(translate: LocalizedTranslate, params: Tr
     // Building params can create a transaction thread, so do it only once the merchant is valid.
     const iouParams = getIouParamsForTransaction(params);
 
+    markInFlightSearchRequestsStale(params.hash);
     updateMoneyRequestMerchant({
         isVendorMatchingBetaEnabled: params.isVendorMatchingBetaEnabled,
         ...iouParams,
@@ -321,6 +324,7 @@ function editTransactionDescriptionInline(translate: LocalizedTranslate, params:
     }
 
     const iouParams = getIouParamsForTransaction(params);
+    markInFlightSearchRequestsStale(params.hash);
     updateMoneyRequestDescription({
         isVendorMatchingBetaEnabled: params.isVendorMatchingBetaEnabled,
         ...iouParams,
@@ -332,6 +336,7 @@ function editTransactionDescriptionInline(translate: LocalizedTranslate, params:
 /** Updates the category of an expense from the Search results table or the Expense Report page. */
 function editTransactionCategoryInline(params: TransactionInlineEditParams, newCategory: string) {
     const iouParams = getIouParamsForTransaction(params);
+    markInFlightSearchRequestsStale(params.hash);
     updateMoneyRequestCategory({
         isVendorMatchingBetaEnabled: params.isVendorMatchingBetaEnabled,
         ...iouParams,
@@ -362,6 +367,7 @@ function editTransactionAmountInline(translate: LocalizedTranslate, params: Tran
     const taxPercentage = getTaxValue(iouParams.policy, iouParams.transaction, taxCode) ?? '';
     const decimals = params.getCurrencyDecimals(getCurrency(iouParams.transaction));
     const taxAmount = convertToBackendAmount(calculateTaxAmount(taxPercentage, newAmount, decimals));
+    markInFlightSearchRequestsStale(params.hash);
     updateMoneyRequestAmountAndCurrency({
         isVendorMatchingBetaEnabled: params.isVendorMatchingBetaEnabled,
         ...iouParams,
@@ -381,6 +387,7 @@ function editTransactionAmountInline(translate: LocalizedTranslate, params: Tran
 /** Updates the tag of an expense from the Search results table or the Expense Report page. */
 function editTransactionTagInline(params: TransactionInlineEditParams, newTag: string) {
     const iouParams = getIouParamsForTransaction(params);
+    markInFlightSearchRequestsStale(params.hash);
     updateMoneyRequestTag({
         isVendorMatchingBetaEnabled: params.isVendorMatchingBetaEnabled,
         ...iouParams,

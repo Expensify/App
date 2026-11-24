@@ -1,7 +1,7 @@
 import {render, waitFor} from '@testing-library/react-native';
 
+import type {DropdownFieldRenderProps} from '@components/DropdownField';
 import ConfirmationFieldsProvider from '@components/MoneyRequestConfirmationFields/Provider';
-import type {ExpenseFieldDropdownRenderProps} from '@components/MoneyRequestConfirmationList/sections/ExpenseFieldDropdown';
 import ExpenseFormLayoutContext, {dropdownRowsExpenseFormLayout} from '@components/MoneyRequestConfirmationList/sections/ExpenseFormLayoutContext';
 import TaxFields from '@components/MoneyRequestConfirmationList/sections/TaxFields';
 
@@ -32,8 +32,8 @@ jest.mock('@components/NumberWithSymbolForm', () => () => null);
 
 // Records what the row decided and renders its list straight away, so each test can read both without pressing anything.
 let mockShouldOpenInDropdown: boolean | undefined;
-jest.mock('@components/MoneyRequestConfirmationList/sections/ExpenseFieldDropdown', () => {
-    return ({shouldOpenInDropdown, renderDropdown}: {shouldOpenInDropdown: boolean; renderDropdown: (props: ExpenseFieldDropdownRenderProps) => ReactNode}) => {
+jest.mock('@components/DropdownField', () => {
+    return ({shouldOpenInDropdown, renderDropdown}: {shouldOpenInDropdown: boolean; renderDropdown: (props: DropdownFieldRenderProps) => ReactNode}) => {
         mockShouldOpenInDropdown = shouldOpenInDropdown;
         return renderDropdown({
             isVisible: true,

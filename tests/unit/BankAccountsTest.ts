@@ -8,12 +8,14 @@ import {
     connectBankAccountManually,
     connectBankAccountWithPlaid,
     createCollectOnlyDepositAccount,
+    createCorpayBankAccountForWalletFlow,
     deletePaymentBankAccount,
     getCorpayOnboardingFields,
 } from '@userActions/BankAccounts';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {InternationalBankAccountForm} from '@src/types/form';
 import type {LastPaymentMethod, PersonalBankAccount} from '@src/types/onyx';
 import type PlaidBankAccount from '@src/types/onyx/PlaidBankAccount';
 
@@ -183,6 +185,49 @@ describe('BankAccounts', () => {
             // Then the server's specific message still wins over the generic fallback
             const personalBankAccount = await getOnyxValue(ONYXKEYS.PERSONAL_BANK_ACCOUNT);
             expect(getLatestErrorMessage(personalBankAccount)).toBe(serverMessage);
+        });
+    });
+
+    describe('createCorpayBankAccountForWalletFlow', () => {
+        const draft: InternationalBankAccountForm = {bankCountry: CONST.COUNTRY.GB, bankCurrency: CONST.CURRENCY.GBP, acceptTerms: 'true'};
+
+        beforeAll(() => Onyx.init({keys: ONYXKEYS}));
+
+        beforeEach(async () => {
+            await Onyx.set(ONYXKEYS.FORMS.INTERNATIONAL_BANK_ACCOUNT_FORM_DRAFT, draft);
+        });
+
+        afterEach(() => Onyx.clear());
+
+        test('clears the completed draft after successful creation without waiting for the success screen to finish', async () => {
+            // Given a retained international draft that could otherwise reopen at confirmation
+            createCorpayBankAccountForWalletFlow(draft, 'individual', CONST.COUNTRY.GB, 'wire');
+            const [, , onyxData] = mockWrite.mock.calls.at(-1) ?? [];
+
+            // When the API applies the successful creation updates, even without a mounted confirmation
+            await Onyx.update(onyxData?.successData ?? []);
+            await waitForBatchedUpdates();
+
+            // Then the draft is removed and the normal success state is preserved
+            expect(await getOnyxValue(ONYXKEYS.FORMS.INTERNATIONAL_BANK_ACCOUNT_FORM_DRAFT)).toBeUndefined();
+            expect(await getOnyxValue(ONYXKEYS.REIMBURSEMENT_ACCOUNT)).toEqual(expect.objectContaining({isSuccess: true, isLoading: false}));
+        });
+
+        test('preserves the draft while creation is pending and after failure so it can be retried', async () => {
+            // Given a filled draft submitted for creation
+            createCorpayBankAccountForWalletFlow(draft, 'individual', CONST.COUNTRY.GB, 'wire');
+            const [, , onyxData] = mockWrite.mock.calls.at(-1) ?? [];
+
+            // When optimistic updates are applied while the request is pending
+            await Onyx.update(onyxData?.optimisticData ?? []);
+            await waitForBatchedUpdates();
+
+            // Then the draft remains available, including after failure updates are applied
+            expect(await getOnyxValue(ONYXKEYS.FORMS.INTERNATIONAL_BANK_ACCOUNT_FORM_DRAFT)).toEqual(draft);
+            await Onyx.update(onyxData?.failureData ?? []);
+            await waitForBatchedUpdates();
+            expect(await getOnyxValue(ONYXKEYS.FORMS.INTERNATIONAL_BANK_ACCOUNT_FORM_DRAFT)).toEqual(draft);
+            expect(await getOnyxValue(ONYXKEYS.REIMBURSEMENT_ACCOUNT)).toEqual(expect.objectContaining({isSuccess: false, isLoading: false}));
         });
     });
 

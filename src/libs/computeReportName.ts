@@ -14,6 +14,7 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type {Locale as DateFnsLocale} from 'date-fns';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
+import {isLinkedToBillSelector} from '@selectors/ReportNameValuePairs';
 import {format} from 'date-fns';
 import {Str} from 'expensify-common';
 
@@ -43,6 +44,7 @@ import {
     getChangedApproverActionMessage,
     getCompanyAddressUpdateMessage,
     getCompanyCardConnectionBroken30DaysMessage,
+    getCompanyCardConsentExpiringMessage,
     getCompanyCardConnectionBrokenMessage,
     getConciergeAutoSelectDistanceRateMessage,
     getCreatedReportForUnapprovedTransactionsMessage,
@@ -68,7 +70,7 @@ import {
     getLinkedTransactionID,
     getMarkedReimbursedMessage,
     getMccGroupCategoryMessage,
-    getMessageOfOldDotReportAction,
+    getMessageTextOfOldDotReportAction,
     getOriginalMessage,
     getOverLimitForwardsToUpdateMessage,
     getPlaidBalanceFailureMessage,
@@ -663,6 +665,10 @@ function computeReportNameBasedOnReportAction({
         return Parser.htmlToText(getCompanyCardConnectionBroken30DaysMessage(translate, parentReportAction));
     }
 
+    if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.COMPANY_CARD_CONSENT_EXPIRING)) {
+        return Parser.htmlToText(getCompanyCardConsentExpiringMessage(translate, parentReportAction));
+    }
+
     if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.PERSONAL_CARD_CONNECTION_BROKEN)) {
         return Parser.htmlToText(getCardConnectionBrokenMessage(undefined, getOriginalMessage(parentReportAction)?.cardName, translate, false));
     }
@@ -704,7 +710,7 @@ function computeReportNameBasedOnReportAction({
     }
 
     if (isOldDotReportAction(parentReportAction)) {
-        return getMessageOfOldDotReportAction(translate, parentReportAction);
+        return getMessageTextOfOldDotReportAction(translate, parentReportAction);
     }
 
     if (isRenamedAction(parentReportAction)) {
@@ -1088,6 +1094,7 @@ function computeReportName({
             personalDetailsList,
             policy,
             invoiceReceiverPolicy,
+            isLinkedToBillSelector(allReportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`]),
         );
     }
 
