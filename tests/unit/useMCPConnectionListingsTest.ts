@@ -48,7 +48,7 @@ describe('useMCPConnectionListings', () => {
         // When the admin connects Grok
         grok?.onConnect?.();
 
-        // Then MCP is enabled and the Grok connector directory opens instead of the help guide
+        // Then MCP is enabled and the Grok connector directory opens so the admin can finish connecting in Grok
         expect(enablePolicyFeatureForConnection).toHaveBeenCalledWith(policy, CONST.POLICY.MORE_FEATURES.IS_MCP_ENABLED);
         expect(openExternalLink).toHaveBeenCalledWith('https://grok.com/connectors');
     });
