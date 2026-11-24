@@ -108,7 +108,7 @@ const chatTypes = {
     SYSTEM: 'system',
 } as const;
 
-// Canonical onboarding answer values. Additional catalog products report interest using Other and a software name.
+// Options on the onboarding accounting step, in display order. BaseOnboardingAccounting needs an icon and label for each key.
 const ONBOARDING_ACCOUNTING_MAPPING = {
     quickbooksOnline: 'QuickBooks Online',
     intuitEnterpriseSuite: 'Intuit Enterprise Suite',
@@ -125,6 +125,22 @@ const ONBOARDING_ACCOUNTING_MAPPING = {
 };
 
 type OnboardingAccountingOption = keyof typeof ONBOARDING_ACCOUNTING_MAPPING;
+
+/** Accounting connections not offered on the onboarding accounting step. Remove one from this union to offer it. */
+type UnofferedOnboardingAccountingConnection =
+    | typeof CONST.POLICY.CONNECTIONS.NAME.DUALENTRY
+    | typeof CONST.POLICY.CONNECTIONS.NAME.CAMPFIRE
+    // Covered by the Microsoft Dynamics option, and still behind the BUSINESS_CENTRAL beta.
+    | typeof CONST.POLICY.CONNECTIONS.NAME.BUSINESS_CENTRAL
+    | typeof CONST.POLICY.CONNECTIONS.NAME.ZOHO_BOOKS
+    // Still behind the DIGITS beta.
+    | typeof CONST.POLICY.CONNECTIONS.NAME.DIGITS;
+
+type UnhandledAccountingConnection = Exclude<TupleToUnion<typeof CONST.POLICY.CONNECTIONS.ACCOUNTING_CONNECTION_NAMES>, OnboardingAccountingOption | UnofferedOnboardingAccountingConnection>;
+
+// Fails typecheck if an accounting connection is neither offered on the onboarding step nor listed above.
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+type AssertEveryAccountingConnectionIsHandled<T extends never = UnhandledAccountingConnection> = T;
 
 // Explicit type annotation is required
 const cardActiveStates: number[] = [2, 3, 4, 7];

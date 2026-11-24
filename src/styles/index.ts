@@ -6242,21 +6242,11 @@ const staticStyles = (theme: ThemeColors) =>
             flexShrink: 1,
         },
 
-        onboardingAccountingItem: {
-            backgroundColor: theme.cardBG,
-            borderRadius: variables.onboardingAccountingItemBorderRadius,
-            padding: 12,
-            minHeight: 56,
-            flexDirection: 'row',
-            alignItems: 'center',
-            width: '100%',
-        },
-
-        // Leave room for the column gap and keep the final odd item at half width.
+        // Three 32% tiles plus gaps overflow the 576px row, so wrap at 30% and cap the width instead.
+        // Uses width, not flexBasis, since native Yoga caches a flexBasis percentage across rotations.
         onboardingAccountingItemWide: {
-            width: '48%',
-            maxWidth: '49%',
-            flexGrow: 1,
+            width: '30%',
+            maxWidth: '32%',
         },
 
         onboardingTileNarrow: {

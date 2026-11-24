@@ -17,8 +17,7 @@ import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWorkspaceAccountID from '@hooks/useWorkspaceAccountID';
 
-import {accountingConnectionIconNames} from '@libs/accountingIntegrationIconNames';
-import {getQBORefreshTokenExpiryDate, getQBORefreshTokenExpiryStatus, isAccountingConnectionAvailable} from '@libs/AccountingUtils';
+import {getQBORefreshTokenExpiryDate, getQBORefreshTokenExpiryStatus} from '@libs/AccountingUtils';
 import {isAuthenticationError, isConnectionInProgress, isConnectionUnverified, removePolicyConnection, syncConnection} from '@libs/actions/connections';
 import {isExpensifyCardFullySetUp} from '@libs/CardUtils';
 import DateUtils from '@libs/DateUtils';
@@ -90,7 +89,21 @@ function useConnectedAccountingIntegration(policy: OnyxEntry<Policy>, {onDisconn
     const workspaceAccountID = useWorkspaceAccountID(policyID);
     const allCardSettings = useExpensifyCardFeeds(policyID);
     const icons = useMemoizedLazyExpensifyIcons(['ArrowRight', 'CircularArrowBackwards', 'ExpensifyCard', 'Gear', 'Key', 'NewWindow', 'Pencil', 'Send', 'Sync', 'Trashcan']);
-    const accountingIcons = useMemoizedLazyExpensifyIcons(accountingConnectionIconNames);
+    const accountingIcons = useMemoizedLazyExpensifyIcons([
+        'IntacctSquare',
+        'IntuitSquare',
+        'QBOSquare',
+        'XeroSquare',
+        'NetSuiteSquare',
+        'QBDSquare',
+        'CertiniaSquare',
+        'RilletSquare',
+        'DualEntrySquare',
+        'CampfireSquare',
+        'DigitsSquare',
+        'BusinessCentralSquare',
+        'ZohoBooksSquare',
+    ]);
     const [cardFeeds] = useCardFeeds(policyID);
     const [cardLists] = useCardsLists();
     const {canWrite: canWriteAccounting, showReadOnlyModal} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.ACCOUNTING);
@@ -117,7 +130,17 @@ function useConnectedAccountingIntegration(policy: OnyxEntry<Policy>, {onDisconn
 
     const isSyncInProgress = isConnectionInProgress(connectionSyncProgress, policy);
     const connectionSyncStage = connectionSyncProgress?.stageInProgress;
-    const accountingIntegrations = CONST.POLICY.CONNECTIONS.ACCOUNTING_CONNECTION_NAMES.filter((name) => isAccountingConnectionAvailable(name, policy, isBetaEnabled));
+    const canUseBusinessCentralIntegration = isBetaEnabled(CONST.BETAS.BUSINESS_CENTRAL) || !!policy?.connections?.businessCentral;
+    const canUseDigitsIntegration = isBetaEnabled(CONST.BETAS.DIGITS) || !!policy?.connections?.digits;
+    const accountingIntegrations = CONST.POLICY.CONNECTIONS.ACCOUNTING_CONNECTION_NAMES.filter((name) => {
+        if (name === CONST.POLICY.CONNECTIONS.NAME.BUSINESS_CENTRAL) {
+            return canUseBusinessCentralIntegration;
+        }
+        if (name === CONST.POLICY.CONNECTIONS.NAME.DIGITS) {
+            return canUseDigitsIntegration;
+        }
+        return true;
+    });
     const syncingAccountingIntegration = accountingIntegrations.find((integration) => integration === connectionSyncProgress?.connectionName);
     const connectedIntegration = getConnectedIntegration(policy, accountingIntegrations) ?? syncingAccountingIntegration;
     const isIntuitEnterpriseSuiteSyncInProgress = isSyncInProgress && activeIntegration?.name === CONST.POLICY.CONNECTIONS.NAME.QBO && activeIntegration.isIntuitEnterpriseSuite === true;

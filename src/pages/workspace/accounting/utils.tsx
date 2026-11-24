@@ -14,8 +14,6 @@ import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 
-import type {accountingConnectionIconNames} from '@libs/accountingIntegrationIconNames';
-import accountingIntegrationIconNames from '@libs/accountingIntegrationIconNames';
 import {getAccountingIntegrationDisplayName, getQuickbooksOnlineIntegrationName, isIntuitEnterpriseSuiteConnection} from '@libs/AccountingUtils';
 import {isAuthenticationError} from '@libs/actions/connections';
 import {getCardsCustomExportPendingAction, areCardsCustomExportInErrorFields} from '@libs/CardFeedUtils';
@@ -37,7 +35,6 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
 
 import type {OnyxEntry} from 'react-native-onyx';
-import type {TupleToUnion} from 'type-fest';
 
 import React from 'react';
 
@@ -69,7 +66,22 @@ function getCurrentAccountingIntegrationName(policy: OnyxEntry<Policy>, translat
     return currentConnectionName === CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY.quickbooksOnline ? getQuickbooksOnlineIntegrationName(policy, translate) : currentConnectionName;
 }
 
-type AccountingIntegrationIcons = Record<TupleToUnion<typeof accountingConnectionIconNames>, IconAsset>;
+type AccountingIntegrationIcons = Record<
+    | 'IntacctSquare'
+    | 'IntuitSquare'
+    | 'QBOSquare'
+    | 'XeroSquare'
+    | 'NetSuiteSquare'
+    | 'QBDSquare'
+    | 'CertiniaSquare'
+    | 'RilletSquare'
+    | 'DualEntrySquare'
+    | 'CampfireSquare'
+    | 'DigitsSquare'
+    | 'BusinessCentralSquare'
+    | 'ZohoBooksSquare',
+    IconAsset
+>;
 
 type GetAccountingIntegrationDataOptions = {
     policy?: Policy;
@@ -175,9 +187,7 @@ function getAccountingIntegrationData(
         case CONST.POLICY.CONNECTIONS.NAME.QBO:
             return {
                 title: translate(shouldUseIntuitEnterpriseSuite ? 'workspace.accounting.intuitEnterpriseSuite' : 'workspace.accounting.qbo'),
-                icon: expensifyIcons?.[
-                    accountingIntegrationIconNames[shouldUseIntuitEnterpriseSuite ? CONST.POLICY.CONNECTIONS.ACCOUNTING_INTEGRATION_ALIASES.INTUIT_ENTERPRISE_SUITE : connectionName]
-                ],
+                icon: shouldUseIntuitEnterpriseSuite ? expensifyIcons?.IntuitSquare : expensifyIcons?.QBOSquare,
                 setupConnectionFlow: (
                     <ConnectToQuickbooksOnlineFlow
                         policyID={policyID}
@@ -244,7 +254,7 @@ function getAccountingIntegrationData(
         case CONST.POLICY.CONNECTIONS.NAME.XERO:
             return {
                 title: translate('workspace.accounting.xero'),
-                icon: expensifyIcons?.[accountingIntegrationIconNames[connectionName]],
+                icon: expensifyIcons?.XeroSquare,
                 setupConnectionFlow: (
                     <ConnectToXeroFlow
                         policyID={policyID}
@@ -283,7 +293,7 @@ function getAccountingIntegrationData(
         case CONST.POLICY.CONNECTIONS.NAME.NETSUITE:
             return {
                 title: translate('workspace.accounting.netsuite'),
-                icon: expensifyIcons?.[accountingIntegrationIconNames[connectionName]],
+                icon: expensifyIcons?.NetSuiteSquare,
                 setupConnectionFlow: (
                     <ConnectToNetSuiteFlow
                         policyID={policyID}
@@ -357,7 +367,7 @@ function getAccountingIntegrationData(
         case CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT:
             return {
                 title: translate('workspace.accounting.intacct'),
-                icon: expensifyIcons?.[accountingIntegrationIconNames[connectionName]],
+                icon: expensifyIcons?.IntacctSquare,
                 setupConnectionFlow: (
                     <ConnectToSageIntacctFlow
                         policyID={policyID}
@@ -403,7 +413,7 @@ function getAccountingIntegrationData(
         case CONST.POLICY.CONNECTIONS.NAME.QBD:
             return {
                 title: translate('workspace.accounting.qbd'),
-                icon: expensifyIcons?.[accountingIntegrationIconNames[connectionName]],
+                icon: expensifyIcons?.QBDSquare,
                 setupConnectionFlow: (
                     <ConnectToQuickbooksDesktopFlow
                         policyID={policyID}
@@ -485,7 +495,7 @@ function getAccountingIntegrationData(
             }
             return {
                 title: certiniaTitle,
-                icon: expensifyIcons?.[accountingIntegrationIconNames[connectionName]],
+                icon: expensifyIcons?.CertiniaSquare,
                 setupConnectionFlow: (
                     <ConnectToCertiniaFlow
                         policyID={policyID}
@@ -510,7 +520,7 @@ function getAccountingIntegrationData(
         case CONST.POLICY.CONNECTIONS.NAME.RILLET: {
             return {
                 title: translate('workspace.accounting.rillet'),
-                icon: expensifyIcons?.[accountingIntegrationIconNames[connectionName]],
+                icon: expensifyIcons?.RilletSquare,
                 setupConnectionFlow: (
                     <ConnectToRilletFlow
                         policyID={policyID}
@@ -568,7 +578,7 @@ function getAccountingIntegrationData(
         case CONST.POLICY.CONNECTIONS.NAME.DUALENTRY: {
             return {
                 title: translate('workspace.accounting.dualEntry'),
-                icon: expensifyIcons?.[accountingIntegrationIconNames[connectionName]],
+                icon: expensifyIcons?.DualEntrySquare,
                 setupConnectionFlow: (
                     <ConnectToDualEntryFlow
                         policyID={policyID}
@@ -626,7 +636,7 @@ function getAccountingIntegrationData(
         case CONST.POLICY.CONNECTIONS.NAME.CAMPFIRE: {
             return {
                 title: translate('workspace.accounting.campfire'),
-                icon: expensifyIcons?.[accountingIntegrationIconNames[connectionName]],
+                icon: expensifyIcons?.CampfireSquare,
                 setupConnectionFlow: (
                     <ConnectToCampfireFlow
                         policyID={policyID}
@@ -683,7 +693,7 @@ function getAccountingIntegrationData(
         case CONST.POLICY.CONNECTIONS.NAME.DIGITS:
             return {
                 title: translate('workspace.accounting.digits'),
-                icon: expensifyIcons?.[accountingIntegrationIconNames[connectionName]],
+                icon: expensifyIcons?.DigitsSquare,
                 setupConnectionFlow: (
                     <ConnectToDigitsFlow
                         policyID={policyID}
@@ -716,7 +726,7 @@ function getAccountingIntegrationData(
         case CONST.POLICY.CONNECTIONS.NAME.ZOHO_BOOKS:
             return {
                 title: translate('workspace.accounting.zohoBooks'),
-                icon: expensifyIcons?.[accountingIntegrationIconNames[connectionName]],
+                icon: expensifyIcons?.ZohoBooksSquare,
                 setupConnectionFlow: (
                     <ConnectToZohoBooksFlow
                         policyID={policyID}
@@ -768,7 +778,7 @@ function getAccountingIntegrationData(
         case CONST.POLICY.CONNECTIONS.NAME.BUSINESS_CENTRAL: {
             return {
                 title: translate('workspace.accounting.businessCentral'),
-                icon: expensifyIcons?.[accountingIntegrationIconNames[connectionName]],
+                icon: expensifyIcons?.BusinessCentralSquare,
                 setupConnectionFlow: (
                     <ConnectToBusinessCentralFlow
                         policyID={policyID}
