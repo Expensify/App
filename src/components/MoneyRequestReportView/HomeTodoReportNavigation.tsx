@@ -1,7 +1,9 @@
 import PrevNextButtons from '@components/PrevNextButtons';
 
+import {playHomeTodoReportTransition} from '@libs/HomeTodoReportTransition';
 import openReportInPlace from '@libs/Navigation/helpers/openReportInPlace';
 
+import {useRoute} from '@react-navigation/native';
 import React from 'react';
 
 /**
@@ -18,13 +20,14 @@ type HomeTodoReportNavigationProps = {
 };
 
 function HomeTodoReportNavigation({reportID, reportIDs}: HomeTodoReportNavigationProps) {
+    const route = useRoute();
     const currentIndex = reportIDs.indexOf(reportID);
 
     const goToReport = (nextReportID: string | undefined) => {
         if (!nextReportID) {
             return;
         }
-        openReportInPlace(nextReportID);
+        playHomeTodoReportTransition(route.key, () => openReportInPlace(nextReportID));
     };
 
     if (currentIndex === -1 || reportIDs.length < 2) {

@@ -1,5 +1,6 @@
 import DateUtils from '@libs/DateUtils';
 import Growl from '@libs/Growl';
+import {playHomeTodoReportExit, playHomeTodoReportTransition} from '@libs/HomeTodoReportTransition';
 import {getHomeTodoReportRoute, getLatestHomeTodoReportAction, getNextHomeTodoReportID, isHomeTodoActionComplete} from '@libs/HomeTodoReviewUtils';
 import openReportInPlace from '@libs/Navigation/helpers/openReportInPlace';
 import Navigation from '@libs/Navigation/Navigation';
@@ -56,6 +57,16 @@ const TOAST_TRANSLATION_KEYS = {
     [CONST.SEARCH.SEARCH_KEYS.EXPORT]: 'homePage.forYouSection.reportExported',
 } as const;
 
+/** Keeps the report on screen briefly after the action, so the result icon can pop in before the next report arrives */
+const RESULT_HOLD_DURATION = 550;
+
+const CELEBRATION_TRANSLATION_KEYS = {
+    [CONST.SEARCH.SEARCH_KEYS.SUBMIT]: 'homePage.forYouSection.allReportsSubmitted',
+    [CONST.SEARCH.SEARCH_KEYS.APPROVE]: 'homePage.forYouSection.allReportsApproved',
+    [CONST.SEARCH.SEARCH_KEYS.PAY]: 'homePage.forYouSection.allReportsPaid',
+    [CONST.SEARCH.SEARCH_KEYS.EXPORT]: 'homePage.forYouSection.allReportsExported',
+} as const;
+
 function useHomeTodoAutoAdvance({reportID, searchKey, reportIDs}: UseHomeTodoAutoAdvanceParams) {
     const {translate} = useLocalize();
     // The report sits in the RHP, where shouldUseNarrowLayout is always true. The toast position and the report route
@@ -96,23 +107,37 @@ function useHomeTodoAutoAdvance({reportID, searchKey, reportIDs}: UseHomeTodoAut
 
     // Reads the latest data at the moment the action lands, without re-running the effect below whenever it changes.
     const advanceToNextReport = useEffectEvent(() => {
-        Growl.success({
-            bodyText: translate(TOAST_TRANSLATION_KEYS[searchKey]),
-            position: isSmallScreenWidth ? undefined : CONST.GROWL.POSITION.BOTTOM_RIGHT,
-        });
-
+        const growlPosition = isSmallScreenWidth ? undefined : CONST.GROWL.POSITION.BOTTOM_RIGHT;
         const reportIDsNeedingAction = filterReportIDsNeedingTodoAction(searchKey, reportIDs, todoClassificationParams);
         const nextReportID = getNextHomeTodoReportID(reportIDs, reportID, reportIDsNeedingAction);
 
         if (!nextReportID) {
-            clearHomeTodoReview();
-            Navigation.goBack(ROUTES.HOME);
+            // The last report shows its result like the others, then leaves the same way before the RHP closes.
+            playHomeTodoReportExit(
+                route.key,
+                () => {
+                    Growl.celebrate({
+                        title: translate('homePage.forYouSection.allDone'),
+                        bodyText: translate(CELEBRATION_TRANSLATION_KEYS[searchKey]),
+                        position: growlPosition,
+                    });
+                    clearHomeTodoReview();
+                    Navigation.goBack(ROUTES.HOME);
+                },
+                {isFocused, holdDuration: RESULT_HOLD_DURATION},
+            );
             return;
         }
 
+        Growl.success({
+            bodyText: translate(TOAST_TRANSLATION_KEYS[searchKey]),
+            position: growlPosition,
+        });
+
         // The report's navigator is targeted directly because a SET_PARAMS action without a target never reaches it
         // when a screen opened over the report sits in another navigator, as the RHP does on narrow layouts.
-        openReportInPlace(nextReportID, route.key, navigation.getState()?.key);
+        const navigatorKey = navigation.getState()?.key;
+        playHomeTodoReportTransition(route.key, () => openReportInPlace(nextReportID, route.key, navigatorKey), {isFocused, holdDuration: RESULT_HOLD_DURATION});
 
         // The action was taken on a screen opened over the report, so bring the report, now showing the next one, back on top.
         if (!isFocused) {

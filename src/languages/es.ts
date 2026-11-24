@@ -1176,6 +1176,11 @@ const translations: TranslationDeepObject<typeof en> = {
             reportApproved: 'Informe aprobado',
             reportPaid: 'Informe pagado',
             reportExported: 'Informe exportado',
+            allDone: '¡Todo listo!',
+            allReportsSubmitted: 'Enviaste todos los informes. Bien hecho.',
+            allReportsApproved: 'Aprobaste todos los informes. Bien hecho.',
+            allReportsPaid: 'Pagaste todos los informes. Bien hecho.',
+            allReportsExported: 'Exportaste todos los informes. Bien hecho.',
         },
         gettingStartedSection: {
             title: 'Primeros pasos',

@@ -1152,6 +1152,11 @@ const translations: TranslationDeepObject<typeof en> = {
             reportApproved: 'レポートを承認しました',
             reportPaid: 'レポートは支払済みです',
             reportExported: 'レポートをエクスポートしました',
+            allDone: 'すべて完了！',
+            allReportsSubmitted: 'すべてのレポートを提出しました。お見事です。',
+            allReportsApproved: 'すべてのレポートを承認しました。お見事です。',
+            allReportsPaid: 'すべてのレポートを支払いました。お見事です。',
+            allReportsExported: 'すべてのレポートをエクスポートしました。お見事です。',
         },
         upcomingTravel: '今後の出張',
         upcomingTravelSection: {

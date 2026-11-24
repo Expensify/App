@@ -1168,6 +1168,11 @@ const translations: TranslationDeepObject<typeof en> = {
             reportApproved: 'Note de frais approuvée',
             reportPaid: 'Note de frais payée',
             reportExported: 'Note de frais exportée',
+            allDone: 'Tout est fait !',
+            allReportsSubmitted: 'Vous avez soumis toutes les notes de frais. Bien joué.',
+            allReportsApproved: 'Vous avez approuvé toutes les notes de frais. Bien joué.',
+            allReportsPaid: 'Vous avez payé toutes les notes de frais. Bien joué.',
+            allReportsExported: 'Vous avez exporté toutes les notes de frais. Bien joué.',
         },
         upcomingTravel: 'Voyages à venir',
         upcomingTravelSection: {

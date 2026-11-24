@@ -1125,6 +1125,11 @@ const translations: TranslationDeepObject<typeof en> = {
             reportApproved: '报销单已批准',
             reportPaid: '报销单已支付',
             reportExported: '报表已导出',
+            allDone: '全部完成！',
+            allReportsSubmitted: '你已提交所有报表。干得漂亮。',
+            allReportsApproved: '你已批准所有报表。干得漂亮。',
+            allReportsPaid: '你已支付所有报表。干得漂亮。',
+            allReportsExported: '你已导出所有报表。干得漂亮。',
         },
         upcomingTravel: '即将出行',
         upcomingTravelSection: {

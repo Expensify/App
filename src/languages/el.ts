@@ -1226,6 +1226,11 @@ const translations: TranslationDeepObject<typeof en> = {
             reportApproved: 'Η αναφορά εγκρίθηκε',
             reportPaid: 'Η έκθεση πληρώθηκε',
             reportExported: 'Η αναφορά εξαχθεί',
+            allDone: 'Όλα έτοιμα!',
+            allReportsSubmitted: 'Υποβάλατε όλες τις αναφορές. Μπράβο.',
+            allReportsApproved: 'Εγκρίνατε όλες τις αναφορές. Μπράβο.',
+            allReportsPaid: 'Πληρώσατε όλες τις αναφορές. Μπράβο.',
+            allReportsExported: 'Εξαγάγατε όλες τις αναφορές. Μπράβο.',
         },
         recentlyAddedSection: {
             title: 'Προστέθηκαν πρόσφατα',

@@ -1,9 +1,11 @@
 import type {ButtonWithDropdownMenuRef} from '@components/ButtonWithDropdownMenu/types';
 import MoneyReportHeaderPrimaryAction from '@components/MoneyReportHeaderPrimaryAction';
 import {useMoneyReportTransactionThread} from '@components/MoneyReportTransactionThreadContext';
+import {usePaymentAnimationsContext} from '@components/PaymentAnimationsContext';
 import {useSearchSelectionActions, useSearchSelectionContext} from '@components/Search/SearchContext';
 
 import useExportAgainModal from '@hooks/useExportAgainModal';
+import useHomeTodoReview from '@hooks/useHomeTodoReview';
 import useLayoutSpacing from '@hooks/useLayoutSpacing';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -17,11 +19,12 @@ import ONYXKEYS from '@src/ONYXKEYS';
 
 import type {ValueOf} from 'type-fest';
 
-import React, {useEffect, useRef} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 
 import type {MoneyReportHeaderActionsProps} from './types';
 
+import HomeTodoActionResultIcon from './HomeTodoActionResultIcon';
 import MoneyReportHeaderSecondaryActions from './MoneyReportHeaderSecondaryActions';
 import MoneyReportHeaderSelectionDropdown from './MoneyReportHeaderSelectionDropdown';
 
@@ -68,6 +71,12 @@ function MoneyReportHeaderActions({reportID, primaryAction, isReportInSearch, ba
 
     const narrowedPrimaryAction = narrowPrimaryAction(primaryAction);
 
+    // A Home to-do review shows the action's result as an icon in place of the button, right before it moves on.
+    const {isInHomeTodoReview} = useHomeTodoReview(reportID, backTo);
+    const {isApprovedAnimationRunning, isPaidAnimationRunning, isSubmittingAnimationRunning} = usePaymentAnimationsContext();
+    const shouldShowHomeTodoResult = isInHomeTodoReview && (isApprovedAnimationRunning || isPaidAnimationRunning || isSubmittingAnimationRunning);
+    const [primaryActionWidth, setPrimaryActionWidth] = useState(0);
+
     // A wide layout acts on the selection through the bulk action bar floating over the list instead, so the report's own
     // actions stay in the header but are disabled while a selection is being built up.
     if (shouldDisableReportActions && shouldUseNarrowLayoutOnWideRHP) {
@@ -86,14 +95,29 @@ function MoneyReportHeaderActions({reportID, primaryAction, isReportInSearch, ba
     return (
         <View style={[styles.flexRow, styles.gap2, ...(!shouldDisplayNarrowMoreButton ? [styles.pb3, pageGutter, styles.w100, styles.alignItemsCenter, styles.justifyContentCenter] : [])]}>
             {!!primaryAction && (
-                <View style={!shouldDisplayNarrowMoreButton ? [styles.flex1] : undefined}>
-                    <MoneyReportHeaderPrimaryAction
-                        reportID={reportID}
-                        chatReportID={chatReport?.reportID}
-                        primaryAction={primaryAction}
-                        onExportModalOpen={() => triggerExportOrConfirm(CONST.REPORT.EXPORT_OPTIONS.EXPORT_TO_INTEGRATION)}
-                        isDisabled={shouldDisableReportActions}
-                    />
+                <View
+                    style={!shouldDisplayNarrowMoreButton ? [styles.flex1] : undefined}
+                    onLayout={(event) => {
+                        if (shouldShowHomeTodoResult) {
+                            return;
+                        }
+                        setPrimaryActionWidth(event.nativeEvent.layout.width);
+                    }}
+                >
+                    {shouldShowHomeTodoResult ? (
+                        <HomeTodoActionResultIcon
+                            reportID={reportID}
+                            minWidth={primaryActionWidth}
+                        />
+                    ) : (
+                        <MoneyReportHeaderPrimaryAction
+                            reportID={reportID}
+                            chatReportID={chatReport?.reportID}
+                            primaryAction={primaryAction}
+                            onExportModalOpen={() => triggerExportOrConfirm(CONST.REPORT.EXPORT_OPTIONS.EXPORT_TO_INTEGRATION)}
+                            isDisabled={shouldDisableReportActions}
+                        />
+                    )}
                 </View>
             )}
             <MoneyReportHeaderSecondaryActions

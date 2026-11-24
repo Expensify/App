@@ -21,7 +21,7 @@ jest.mock('@react-navigation/native', () => ({
     useNavigation: () => ({getState: () => ({key: 'navigator'})}),
     useIsFocused: () => true,
 }));
-jest.mock('@libs/Growl', () => ({success: jest.fn()}));
+jest.mock('@libs/Growl', () => ({success: jest.fn(), celebrate: jest.fn()}));
 jest.mock('@libs/Navigation/Navigation', () => ({goBack: jest.fn()}));
 jest.mock('@libs/Navigation/helpers/openReportInPlace', () => jest.fn());
 jest.mock('@userActions/HomeTodoReview', () => ({
@@ -97,8 +97,8 @@ describe('useHomeTodoAutoAdvance', () => {
             await waitForBatchedUpdates();
         });
 
-        // Then the review confirms the approval and returns Home, since no other report needs it
-        expect(Growl.success).toHaveBeenCalledTimes(1);
+        // Then the review celebrates the finished row and returns Home, since no other report needs it
+        expect(Growl.celebrate).toHaveBeenCalledTimes(1);
         expect(Navigation.goBack).toHaveBeenCalledWith(ROUTES.HOME);
     });
 
@@ -129,8 +129,8 @@ describe('useHomeTodoAutoAdvance', () => {
             await waitForBatchedUpdates();
         });
 
-        // Then the review still confirms the approval and returns Home, since no other report needs it
-        expect(Growl.success).toHaveBeenCalledTimes(1);
+        // Then the review still celebrates the finished row and returns Home, since no other report needs it
+        expect(Growl.celebrate).toHaveBeenCalledTimes(1);
         expect(Navigation.goBack).toHaveBeenCalledWith(ROUTES.HOME);
     });
 
@@ -156,7 +156,7 @@ describe('useHomeTodoAutoAdvance', () => {
         });
 
         // Then the review stays on the report, because the user took no new action on it
-        expect(Growl.success).not.toHaveBeenCalled();
+        expect(Growl.celebrate).not.toHaveBeenCalled();
         expect(Navigation.goBack).not.toHaveBeenCalled();
     });
 });

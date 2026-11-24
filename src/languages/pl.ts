@@ -1193,6 +1193,11 @@ const translations: TranslationDeepObject<typeof en> = {
             reportApproved: 'Raport zatwierdzony',
             reportPaid: 'Raport opłacony',
             reportExported: 'Raport wyeksportowany',
+            allDone: 'Wszystko gotowe!',
+            allReportsSubmitted: 'Wszystkie raporty zostały złożone. Świetna robota.',
+            allReportsApproved: 'Wszystkie raporty zostały zatwierdzone. Świetna robota.',
+            allReportsPaid: 'Wszystkie raporty zostały opłacone. Świetna robota.',
+            allReportsExported: 'Wszystkie raporty zostały wyeksportowane. Świetna robota.',
         },
         upcomingTravel: 'Nadchodząca podróż',
         upcomingTravelSection: {

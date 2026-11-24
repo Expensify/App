@@ -14,6 +14,7 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 
 import {abandonReviewDuplicateTransactions} from '@libs/actions/Transaction';
 import {clearTwoFactorAuthData} from '@libs/actions/TwoFactorAuthActions';
+import {homeTodoPanelOpacity, homeTodoPanelTranslateX} from '@libs/HomeTodoReportTransition';
 import hideKeyboardOnSwipe from '@libs/Navigation/AppNavigator/hideKeyboardOnSwipe';
 import * as ModalStackNavigators from '@libs/Navigation/AppNavigator/ModalStackNavigators';
 import useModalStackScreenOptions from '@libs/Navigation/AppNavigator/ModalStackNavigators/useModalStackScreenOptions';
@@ -51,6 +52,7 @@ import type {StyleProp, ViewStyle} from 'react-native';
 import React, {useEffect, useRef, useState} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import {Animated, DeviceEventEmitter, StyleSheet, View} from 'react-native';
+import Reanimated, {useAnimatedStyle} from 'react-native-reanimated';
 
 import getRHPFrameStyle from './getRHPFrameStyle';
 import {NarrowPaneContextProvider} from './NarrowPaneContext';
@@ -136,17 +138,22 @@ function RightModalDialogFrame({hasDialogSemantics, style, contentStyle, onConta
     const isDialogAroundHandle = !!resizeHandle;
     const isCardDialog = hasDialogSemantics && !isDialogAroundHandle;
     const isOuterDialog = hasDialogSemantics && isDialogAroundHandle;
+    // Moves the whole panel when a Home to-do review swaps reports, and rests at full opacity otherwise.
+    const homeTodoPanelStyle = useAnimatedStyle(() => ({
+        opacity: homeTodoPanelOpacity.get(),
+        transform: [{translateX: homeTodoPanelTranslateX.get()}],
+    }));
 
     return (
         // The outer box always renders, so a handle appearing or disappearing doesn't remount the stack navigator.
-        <View
+        <Reanimated.View
             ref={isDialogAroundHandle ? onContainerRef : undefined}
             role={isOuterDialog ? CONST.ROLE.DIALOG : undefined}
             aria-modal={isOuterDialog || undefined}
             aria-label={isOuterDialog && hasName ? dialogAriaLabel : undefined}
             // Focusable so SRs / claimDialogFocus can land on the dialog when it has no nested controls.
             tabIndex={isOuterDialog ? -1 : undefined}
-            style={resizeHandle?.dialogStyle ?? [StyleSheet.absoluteFill, styles.pointerEventsBoxNone]}
+            style={[resizeHandle?.dialogStyle ?? [StyleSheet.absoluteFill, styles.pointerEventsBoxNone], homeTodoPanelStyle]}
         >
             <Animated.View
                 ref={isDialogAroundHandle ? undefined : onContainerRef}
@@ -159,7 +166,7 @@ function RightModalDialogFrame({hasDialogSemantics, style, contentStyle, onConta
                 <View style={contentStyle}>{children}</View>
             </Animated.View>
             {resizeHandle?.element}
-        </View>
+        </Reanimated.View>
     );
 }
 

@@ -1163,6 +1163,11 @@ const translations: TranslationDeepObject<typeof en> = {
             reportApproved: 'Rapport goedgekeurd',
             reportPaid: 'Rapport betaald',
             reportExported: 'Rapport geëxporteerd',
+            allDone: 'Helemaal klaar!',
+            allReportsSubmitted: 'Je hebt alle rapporten ingediend. Goed gedaan.',
+            allReportsApproved: 'Je hebt alle rapporten goedgekeurd. Goed gedaan.',
+            allReportsPaid: 'Je hebt alle rapporten betaald. Goed gedaan.',
+            allReportsExported: 'Je hebt alle rapporten geëxporteerd. Goed gedaan.',
         },
         upcomingTravel: 'Aankomende reizen',
         upcomingTravelSection: {

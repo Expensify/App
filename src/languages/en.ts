@@ -1297,6 +1297,11 @@ const translations = {
             reportApproved: 'Report approved',
             reportPaid: 'Report paid',
             reportExported: 'Report exported',
+            allDone: 'All done!',
+            allReportsSubmitted: 'You submitted every report. Nicely handled.',
+            allReportsApproved: 'You approved every report. Nicely handled.',
+            allReportsPaid: 'You paid every report. Nicely handled.',
+            allReportsExported: 'You exported every report. Nicely handled.',
             emptyStateMessages: {
                 thumbsUpStarsTitle: "You're done!",
                 thumbsUpStarsDescription: 'Thumbs up to you, stay tuned for more tasks.',

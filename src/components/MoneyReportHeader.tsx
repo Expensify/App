@@ -1,4 +1,5 @@
 import useCarouselTransactionIDs from '@hooks/useCarouselTransactionIDs';
+import useHomeTodoReview from '@hooks/useHomeTodoReview';
 import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useMoneyReportHeaderMoreContentVisibility from '@hooks/useMoneyReportHeaderMoreContentVisibility';
@@ -18,7 +19,6 @@ import {getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
@@ -124,8 +124,7 @@ function MoneyReportHeaderContent({reportID: reportIDProp, shouldDisplayBackButt
     const backTo = (route.params as {backTo?: Route} | undefined)?.backTo;
 
     // A report opened from a Home to-do row pages through that row's reports instead of search results.
-    const [homeTodoReview] = useOnyx(ONYXKEYS.RAM_ONLY_HOME_TODO_REVIEW);
-    const isInHomeTodoReview = backTo === ROUTES.HOME && !!reportIDProp && !!homeTodoReview?.reportIDs.includes(reportIDProp);
+    const {homeTodoReview, isInHomeTodoReview} = useHomeTodoReview(reportIDProp, backTo);
     const shouldShowHomeTodoNavigation = !shouldShowTransactionNavigation && !shouldShowReportNavigation && isInHomeTodoReview && (homeTodoReview?.reportIDs.length ?? 0) > 1;
 
     const {statusBarType, shouldShowNextStep, hasStatusOrNextStep} = useMoneyReportHeaderMoreContentVisibility(reportIDProp);

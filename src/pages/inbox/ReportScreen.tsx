@@ -5,6 +5,7 @@ import WideRHPOverlayWrapper from '@components/WideRHPOverlayWrapper';
 
 import useConciergeAskState from '@hooks/useConciergeAskState';
 import {useCurrentReportIDState} from '@hooks/useCurrentReportID';
+import useHomeTodoReportTransition from '@hooks/useHomeTodoReportTransition';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSubmitToDestinationVisible from '@hooks/useSubmitToDestinationVisible';
@@ -77,6 +78,7 @@ function ReportScreenEditMessageProvider({reportID, children}: ReportScreenEditM
 function ReportScreen({route, navigation, shouldDeferReportActions = false}: ReportScreenProps) {
     const styles = useThemeStyles();
     const reportIDFromRoute = getNonEmptyStringOnyxID(route.params?.reportID);
+    useHomeTodoReportTransition(reportIDFromRoute);
     const {shouldCenterWelcomeWithComposer} = useConciergeAskState(reportIDFromRoute);
     const {isInNarrowPaneModal} = useResponsiveLayout();
     const {currentReportID: currentReportIDValue} = useCurrentReportIDState();
