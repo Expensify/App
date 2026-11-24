@@ -312,6 +312,99 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
             const updatedViolations = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`);
             expect(updatedViolations?.map((violation) => violation.name)).toEqual([CONST.VIOLATIONS.OVER_AUTO_APPROVAL_LIMIT]);
         });
+
+        describe('when an admin recodes a restricted member’s expense', () => {
+            const transactionID = '1';
+            const ADMIN_ACCOUNT_ID = 123;
+            const ADMIN_EMAIL = 'admin@example.com';
+            const MEMBER_ACCOUNT_ID = 456;
+            const OTHER_ACCOUNT_ID = 789;
+            const adminPolicy: Policy = {...createRandomPolicy(0, CONST.POLICY.TYPE.CORPORATE), role: CONST.POLICY.ROLE.ADMIN};
+            const memberReport: Report = {...createRandomReport(4, undefined), type: CONST.REPORT.TYPE.EXPENSE, ownerAccountID: MEMBER_ACCOUNT_ID};
+            // The member can use Meals, while Fuel is limited to another member
+            const policyCategories = {
+                Meals: {name: 'Meals', enabled: true, visibleTo: {[MEMBER_ACCOUNT_ID]: true}},
+                Fuel: {name: 'Fuel', enabled: true, visibleTo: {[OTHER_ACCOUNT_ID]: true}},
+            };
+
+            const recode = async (category: string, {currentUserAccountID = ADMIN_ACCOUNT_ID, currentUserEmail = ADMIN_EMAIL} = {}) => {
+                const transaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`);
+                updateMoneyRequestCategory({
+                    isVendorMatchingBetaEnabled: false,
+                    rules: undefined,
+                    transactionID,
+                    transaction,
+                    transactionThreadReport: {reportID: '3'},
+                    parentReport: memberReport,
+                    iouReportOwnerLogin: undefined,
+                    reportPolicyTags: undefined,
+                    category,
+                    policy: adminPolicy,
+                    policyTagList: undefined,
+                    policyCategories,
+                    policyRecentlyUsedCategories: [],
+                    currentUserAccountIDParam: currentUserAccountID,
+                    currentUserEmailParam: currentUserEmail,
+                    isASAPSubmitBetaEnabled: false,
+                    delegateAccountID: undefined,
+                    isTrackIntentUser: false,
+                    violations: undefined,
+                    getCurrencyDecimals: getCurrencyDecimalsLocal,
+                    getCurrencySymbol: getCurrencySymbolLocal,
+                });
+                await waitForBatchedUpdates();
+                return getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`);
+            };
+
+            beforeEach(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {amount: 100, transactionID, category: 'Meals'});
+            });
+
+            it('dismisses categoryNotAllowed when the new category is one the member can’t use', async () => {
+                // Given a member's expense coded to Meals, which they can use
+                // When the admin recodes it to Fuel, which the member can't use
+                mockFetch.pause();
+                const updatedTransaction = await recode('Fuel');
+
+                // Then the violation is dismissed right away under the admin, so nobody sees an override flagged as a mistake
+                expect(updatedTransaction?.comment?.dismissedViolations?.[CONST.VIOLATIONS.CATEGORY_NOT_ALLOWED]?.[ADMIN_EMAIL]).toBeTruthy();
+                await mockFetch.resume();
+            });
+
+            it('removes the dismissal when the admin recodes to a category the member can use', async () => {
+                // Given an expense whose categoryNotAllowed the admin already dismissed by overriding
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {
+                    comment: {dismissedViolations: {[CONST.VIOLATIONS.CATEGORY_NOT_ALLOWED]: {[ADMIN_EMAIL]: 1}}},
+                });
+
+                // When the admin recodes it to Meals, which the member can use
+                const updatedTransaction = await recode('Meals');
+
+                // Then the dismissal is gone, so a later move to a category the member can't use is flagged again
+                expect(updatedTransaction?.comment?.dismissedViolations?.[CONST.VIOLATIONS.CATEGORY_NOT_ALLOWED]).toBeUndefined();
+            });
+
+            it('removes the dismissal again when the request fails', async () => {
+                // Given an expense with no dismissal, and a request that will fail
+                mockFetch.fail();
+
+                // When the admin recodes it to Fuel
+                const updatedTransaction = await recode('Fuel');
+
+                // Then the optimistic dismissal is rolled back, since the override never reached the server
+                expect(updatedTransaction?.comment?.dismissedViolations?.[CONST.VIOLATIONS.CATEGORY_NOT_ALLOWED]).toBeUndefined();
+                mockFetch.succeed();
+            });
+
+            it('doesn’t dismiss anything when the member recodes their own expense', async () => {
+                // Given the member themselves, who isn't reviewing their own expense
+                // When they recode it, even to a category they can't use
+                const updatedTransaction = await recode('Fuel', {currentUserAccountID: MEMBER_ACCOUNT_ID, currentUserEmail: 'member@example.com'});
+
+                // Then nothing is dismissed, so the violation shows to them and their approver
+                expect(updatedTransaction?.comment?.dismissedViolations?.[CONST.VIOLATIONS.CATEGORY_NOT_ALLOWED]).toBeUndefined();
+            });
+        });
     });
 
     describe('updateMoneyRequestAmountAndCurrency', () => {

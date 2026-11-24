@@ -3,6 +3,7 @@ import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
 import * as API from '@libs/API';
 import type {UpdateMoneyRequestParams} from '@libs/API/parameters';
 import {WRITE_COMMANDS} from '@libs/API/types';
+import {isCategoryVisibleToMember} from '@libs/CategoryUtils';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import {getChangedTagLevels} from '@libs/MerchantRuleSuggestionUtils';
@@ -20,6 +21,8 @@ import {
     isExpenseReport,
     isInvoiceReport as isInvoiceReportReportUtils,
     isOneTransactionThread,
+    isPolicyAdmin,
+    isReportManager,
     isSelfDM,
     isTrackExpenseReport,
     shouldEnableNegative,
@@ -60,6 +63,7 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import type {NullishDeep, OnyxCollection, OnyxEntry, OnyxKey, OnyxUpdate} from 'react-native-onyx';
 
+import {getUnixTime} from 'date-fns';
 // eslint-disable-next-line you-dont-need-lodash-underscore/union-by
 import lodashUnionBy from 'lodash/unionBy';
 import Onyx from 'react-native-onyx';
@@ -1325,6 +1329,58 @@ function updateMoneyRequestDistance({
     API.write(WRITE_COMMANDS.UPDATE_MONEY_REQUEST_DISTANCE, params, onyxData);
 }
 
+/**
+ * An admin or approver coding a member's expense to a category the member can't use is overriding their category
+ * visibility, so categoryNotAllowed is dismissed for everyone, matching the dismissal the backend saves. Any other
+ * category change drops that dismissal, so the violation shows again if the expense later ends up on a category the
+ * member can't use without an override.
+ */
+function buildCategoryOverrideDismissalOnyxData({
+    transactionID,
+    transaction,
+    category,
+    policy,
+    iouReport,
+    policyCategories,
+    currentUserAccountID,
+    currentUserEmail,
+}: {
+    transactionID: string;
+    transaction: OnyxEntry<OnyxTypes.Transaction>;
+    category: string;
+    policy: OnyxEntry<OnyxTypes.Policy>;
+    iouReport: OnyxEntry<OnyxTypes.Report>;
+    policyCategories: OnyxEntry<OnyxTypes.PolicyCategories>;
+    currentUserAccountID: number;
+    currentUserEmail: string;
+}): {optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.TRANSACTION>>; failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.TRANSACTION>>} {
+    const ownerAccountID = iouReport?.ownerAccountID;
+    const newPolicyCategory = category ? policyCategories?.[category] : undefined;
+    const isReviewer = isPolicyAdmin(policy) || isReportManager(iouReport, currentUserAccountID);
+    // A category that isn't loaded is left alone, since whether the member can use it isn't known
+    const isOverridingVisibility =
+        ownerAccountID !== undefined && ownerAccountID !== currentUserAccountID && isReviewer && !!newPolicyCategory && !isCategoryVisibleToMember(newPolicyCategory, ownerAccountID);
+    const previousDismissal = transaction?.comment?.dismissedViolations?.[CONST.VIOLATIONS.CATEGORY_NOT_ALLOWED];
+
+    let optimisticDismissal: Record<string, string | number> | null;
+    if (isOverridingVisibility) {
+        optimisticDismissal = {[currentUserEmail]: getUnixTime(new Date())};
+    } else if (previousDismissal) {
+        optimisticDismissal = null;
+    } else {
+        return {optimisticData: [], failureData: []};
+    }
+
+    // The dismissal is merged, so on failure a key this change added is removed with null, and the old ones come back
+    const failureDismissal = previousDismissal ? {...previousDismissal, ...(isOverridingVisibility && !previousDismissal[currentUserEmail] ? {[currentUserEmail]: null} : {})} : null;
+
+    const key = `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}` as const;
+    return {
+        optimisticData: [{onyxMethod: Onyx.METHOD.MERGE, key, value: {comment: {dismissedViolations: {[CONST.VIOLATIONS.CATEGORY_NOT_ALLOWED]: optimisticDismissal}}}}],
+        failureData: [{onyxMethod: Onyx.METHOD.MERGE, key, value: {comment: {dismissedViolations: {[CONST.VIOLATIONS.CATEGORY_NOT_ALLOWED]: failureDismissal}}}}],
+    };
+}
+
 /** Updates the category of an expense */
 function updateMoneyRequestCategory({
     transactionID,
@@ -1401,6 +1457,19 @@ function updateMoneyRequestCategory({
         getCurrencySymbol,
         rules,
     });
+    const categoryOverrideDismissalOnyxData = buildCategoryOverrideDismissalOnyxData({
+        transactionID,
+        transaction,
+        category,
+        policy,
+        iouReport: parentReport,
+        policyCategories,
+        currentUserAccountID: currentUserAccountIDParam,
+        currentUserEmail: currentUserEmailParam,
+    });
+    onyxData.optimisticData?.push(...categoryOverrideDismissalOnyxData.optimisticData);
+    onyxData.failureData?.push(...categoryOverrideDismissalOnyxData.failureData);
+
     API.write(WRITE_COMMANDS.UPDATE_MONEY_REQUEST_CATEGORY, params, onyxData);
     trackMerchantRuleSuggestion({
         transactionID,
