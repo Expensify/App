@@ -10,8 +10,8 @@ import {
 } from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/parseAttribute';
 import parseRawAxisStyle from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/parseRawAxisStyle';
 
-import type {SkFont, SkTypeface} from '@shopify/react-native-skia';
 import type {TNode} from 'react-native-render-html';
+import type {SkFont, SkTypeface} from 'react-native-skia';
 import type {XAxisSide, YAxisSide} from 'victory-native';
 
 /**

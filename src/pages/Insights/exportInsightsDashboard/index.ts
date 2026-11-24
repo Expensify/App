@@ -1,7 +1,7 @@
 /** Captures live dashboard content without depending on WebGL's discarded drawing buffers. */
 import createDownloadLink from '@libs/fileDownload/createDownloadLink';
 
-import type {ISkiaViewApiWeb} from '@shopify/react-native-skia/lib/module/specs/NativeSkiaModule.web';
+import type {ISkiaViewApiWeb} from 'react-native-skia/lib/module/specs/NativeSkiaModule.web';
 
 import type ExportInsightsDashboard from './types';
 
@@ -20,7 +20,8 @@ const exportInsightsDashboard: ExportInsightsDashboard = async ({headerRef, cont
     const elements = [header, controls, content];
     const bounds = elements.map((element) => element.getBoundingClientRect());
 
-    // Skia clears its WebGL buffers after paint. Copy them in the same task as its redraw, before another paint can clear them.
+    // Redraw every Skia view so each canvas holds its latest frame when it is copied below. Skia paints a redraw in a
+    // microtask, so the copy waits for one.
     const skia = (globalThis as typeof globalThis & {SkiaViewApi?: ISkiaViewApiWeb}).SkiaViewApi;
     for (const view of Object.values(skia?.views ?? {})) {
         view.redraw();

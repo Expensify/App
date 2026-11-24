@@ -7138,9 +7138,17 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
                 title: 'すべてのカテゴリを削除または無効にすることはできません',
                 description: `ワークスペースでカテゴリが必須のため、少なくとも1つのカテゴリは有効のままにする必要があります。`,
             },
+            visibleTo: '表示対象',
+            membersCount: ({count}: {count: number}) => ({
+                one: 'メンバー 1 人',
+                other: `${count}名のメンバー`,
+            }),
+            visibleToDescription: ({categoryName}: {categoryName: string}) => `経費を申請する際に、どのメンバーが「${categoryName}」カテゴリを使用できるかを選択します。`,
             cannotDisableCategoryForMembers: {
                 title: ({categoryName}: {categoryName: string}) => `${categoryName}を無効にできません`,
                 bulkTitle: 'これらのカテゴリーは無効にできません',
+                removeAccessTitle: ({categoryName}: {categoryName: string}) => `${categoryName} へのアクセス権を削除できません`,
+                bulkRemoveAccessTitle: 'これらのカテゴリへのアクセス権は削除できません',
                 description: ({count}: {count: number}) => ({
                     one: '1人のメンバーが選択できるカテゴリがなくなってしまいます。該当メンバーのカテゴリの表示設定を更新してから、もう一度お試しください。',
                     other: `${count} 人のメンバーが選択できるカテゴリがなくなります。これらのメンバーのカテゴリの表示設定を更新してから、もう一度お試しください。`,
@@ -8498,6 +8506,10 @@ Control プランは、アクティブメンバー1人あたり月額 $9 から�
             timezoneInputLabel: 'タイムゾーン',
             timezoneInputHelpText: '自動レポート送信には、お客様のタイムゾーンが使用されます',
             timezoneErrorMessage: 'タイムゾーンを変更できませんでした。もう一度お試しいただくか、サポートにお問い合わせください。',
+            directReimbursementCurrencyTitle: '直接払い戻しではこの通貨を利用できません',
+            directReimbursementCurrencyPrompt: (currency: string) =>
+                `このワークスペースは Expensify を通じてメンバーに直接払い戻しを行いますが、${currency} では利用できません。${currency} を使用するには、ワークフローで支払をオフにしてから再度オンにし、Expensify 外で支払が行われるようにしてください。`,
+            goToWorkflows: 'ワークフローに移動',
         },
         officeLocations: {
             title: 'オフィス所在地',
@@ -10842,6 +10854,10 @@ ${reportName}`,
         appliedFilters: '適用されたフィルター',
         resetFilters: 'フィルターをリセット',
         searchResults: {
+            tooManyKeywords: `検索キーワードが多すぎます。キーワードを${CONST.SEARCH.MAX_KEYWORD_TOKENS}個以下にして、もう一度お試しください。`,
+            unsupportedGrouping: 'この検索ではグループ化やグラフ表示は使用できません。グループ化を解除し、テーブル表示を使用してください。',
+            invalidReportID: '有効なレポートIDを入力してください。未報告の経費を検索するには、status:unreported を使用してください。',
+            unsupportedFilter: 'この検索では "is:" フィルターは使用できません。未報告の経費を検索するには、status:unreported を使用してください。',
             emptyResults: {
                 title: '表示するものはありません',
                 subtitle: `検索条件を調整するか、＋ボタンを使って作成してみてください。`,

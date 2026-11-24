@@ -8,8 +8,8 @@ import {useVictoryChartContext, VictoryChartProvider, VictoryChartScaledProvider
 import type {ProcessNodeResult} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/types';
 import Text from '@components/Text';
 
-import type {SkFont, SkTypeface} from '@shopify/react-native-skia';
 import type {TNode} from 'react-native-render-html';
+import type {SkFont, SkTypeface} from 'react-native-skia';
 
 import React, {Activity} from 'react';
 
@@ -19,7 +19,7 @@ const mockTypeface = {} as SkTypeface;
 
 jest.mock('@components/Charts/utils/getVictoryChartTreeTypeface', () => jest.fn(() => mockTypeface));
 
-jest.mock('@shopify/react-native-skia', () => ({
+jest.mock('react-native-skia', () => ({
     FontHinting: {None: 0},
     Skia: {
         Font: jest.fn((typeface: SkTypeface, size: number) => ({
