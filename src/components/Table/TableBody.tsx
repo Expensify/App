@@ -429,7 +429,7 @@ function TableBodyList({contentContainerStyle, emptyMessage, onLayout, style, ..
         onLoad?.(info);
     };
 
-    const renderListItem = (info: ListRenderItemInfo<TableData>) => {
+    const renderRow = (info: ListRenderItemInfo<TableData>) => {
         const rowKind = getSyntheticRowKind(info.index, tableListMetadata);
 
         switch (rowKind) {
@@ -447,12 +447,6 @@ function TableBodyList({contentContainerStyle, emptyMessage, onLayout, style, ..
                     isAccessibilityHidden,
                 });
 
-                // The stuck copy sits over the list rather than in its content, so it misses the padding that keeps
-                // the rows out of the horizontal safe area the list reaches into.
-                if (info.target === 'StickyHeader' && (listSafeAreaReach.left || listSafeAreaReach.right)) {
-                    return <View style={[StyleUtils.getPaddingLeft(listSafeAreaReach.left), StyleUtils.getPaddingRight(listSafeAreaReach.right)]}>{headerElement}</View>;
-                }
-
                 return headerElement;
             }
             case 'data':
@@ -469,6 +463,18 @@ function TableBodyList({contentContainerStyle, emptyMessage, onLayout, style, ..
                 );
             }
         }
+    };
+
+    const renderListItem = (info: ListRenderItemInfo<TableData>) => {
+        const row = renderRow(info);
+
+        // A stuck row sits over the list rather than in its content, so it misses the padding that keeps the rows
+        // out of the horizontal safe area the list reaches into.
+        if (!row || info.target !== 'StickyHeader' || (!listSafeAreaReach.left && !listSafeAreaReach.right)) {
+            return row;
+        }
+
+        return <View style={[StyleUtils.getPaddingLeft(listSafeAreaReach.left), StyleUtils.getPaddingRight(listSafeAreaReach.right)]}>{row}</View>;
     };
 
     const keyExtractorForList = (item: TableData, index: number) => {

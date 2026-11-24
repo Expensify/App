@@ -1,4 +1,4 @@
-import {useHorizontalSafeAreaBleedReach} from '@components/HorizontalSafeArea/useHorizontalSafeAreaBleed';
+import useHorizontalSafeAreaReach from '@components/HorizontalSafeArea/useHorizontalSafeAreaReach';
 import ScrollView from '@components/ScrollView';
 
 import useScrollEventEmitter from '@hooks/useScrollEventEmitter';
@@ -50,8 +50,9 @@ function TabSelectorBase<K extends string = string>({
     const {containerRef} = useTabSelectorState();
     const {onContainerLayout, onContainerScroll} = useTabSelectorActions();
     const triggerScrollEvent = useScrollEventEmitter();
-    // The same reach the row's ScrollView applies, so a tab scrolled under the horizontal safe area doesn't count as visible.
-    const safeAreaReach = useHorizontalSafeAreaBleedReach(true);
+    // The row's ScrollView reaches the screen edge by this much, so a tab scrolled under the horizontal safe area
+    // doesn't count as visible.
+    const safeAreaReach = useHorizontalSafeAreaReach();
 
     const activeIndex = tabs.findIndex((tab) => tab.key === activeTabKey);
 
