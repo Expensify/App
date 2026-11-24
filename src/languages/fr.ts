@@ -1029,6 +1029,7 @@ const translations: TranslationDeepObject<typeof en> = {
     },
     supportalSwitcher: {
         title: 'Portail d’assistance vers un autre compte',
+        navigationLabel: 'Supportal',
         emailLabel: 'Adresse e-mail',
         reasonLabel: 'Raison de connexion à l’assistance',
         reasonHint: 'Aucun ticket récent trouvé pour ce compte.',
@@ -1254,6 +1255,8 @@ const translations: TranslationDeepObject<typeof en> = {
     },
     insightsPage: {
         tagLevel: (level: string) => `Niveau de tag ${level}`,
+        noTaggedExpenses: 'Aucune dépense avec un tag',
+        noExpensesForTagLevel: (tagLevelName: string) => `Aucune dépense pour ${tagLevelName} sur cette période.`,
         tagLevelLabel: 'Niveau de tag',
         parent: 'Parent',
         shareOfTotal: 'Part du total (%)',
@@ -1309,7 +1312,6 @@ const translations: TranslationDeepObject<typeof en> = {
         viewDetails: 'Afficher les détails',
         viewAll: 'Tout afficher',
         topExpenses: 'Dépenses principales',
-        noExpensesInRange: 'Aucune dépense dans cette plage',
         efficiency: 'Efficacité',
         workflowEfficiency: 'Efficacité du flux de travail',
         averageProcessingTime: 'Délai moyen de traitement',
@@ -1318,6 +1320,29 @@ const translations: TranslationDeepObject<typeof en> = {
         mostTimeToPay: 'Délai de paiement le plus long',
         share: 'Part de la part totale (%)',
         averageDays: 'Jours en moyenne',
+        summary: {
+            title: 'Résumé',
+            over: (percentage: string) => `${percentage} de plus`,
+            under: (percentage: string) => `${percentage} en dessous`,
+            versusMerchantAverage: (amount: string) => `${amount} par rapport à la moyenne de ce commerçant`,
+            versusMemberAverage: (amount: string) => `${amount} par rapport à la moyenne de ce membre`,
+            versusCategoryAverage: (amount: string) => `${amount} par rapport à la moyenne de cette catégorie`,
+            versusAverageDay: (amount: string) => `${amount} vs jour moyen`,
+            versusAverageWeek: (amount: string) => `${amount} vs semaine moyenne`,
+            versusAverageMonth: (amount: string) => `${amount} vs mois moyen`,
+            versusAverageQuarter: (amount: string) => `${amount} vs trimestre moyen`,
+            moreHistoryNeeded: 'Plus d’historique requis :',
+            daysOfHistoryNeeded: (count: number) => `La comparaison moyenne s’affichera après ${count} jours complets d’historique`,
+            weeksOfHistoryNeeded: (count: number) => `La comparaison moyenne s’affichera après ${count} semaines complètes d’historique`,
+            monthsOfHistoryNeeded: (count: number) => `La comparaison moyenne s'affichera après ${count} mois complets d'historique`,
+            quartersOfHistoryNeeded: (count: number) => `La comparaison moyenne s’affichera après ${count} trimestres complets d’historique`,
+            periodSpend: (period: string) => `Dépenses de ${period}`,
+            dayAverage: (count: number) => `Moyenne sur ${count} jours`,
+            weekAverage: (count: number) => `Moyenne sur ${count} semaines`,
+            monthAverage: (count: number) => `Moyenne sur ${count} mois`,
+            quarterAverage: (count: number) => `Moyenne sur ${count} trimestres`,
+            shareOfTotal: 'Part du total',
+        },
         generatingAIInsights: 'Génération d’analyses IA...',
         generatingAIInsightsSubtitle: 'Cela ne devrait pas prendre plus d’une minute',
         readingChart: (chartTitle: string) => `Lecture de ${chartTitle}`,
@@ -1935,6 +1960,12 @@ const translations: TranslationDeepObject<typeof en> = {
             debitedAmount: 'Montant débité',
             employeeReceived: "L'employé a reçu",
             payAll: 'Tout payer',
+            fxRateExpiredTitle: 'Taux de change expiré',
+            fxRatesExpiredTitle: 'Taux de change expirés',
+            fxRateExpiredPrompt: 'Vérifiez le taux le plus récent avant de payer.',
+            fxRatesExpiredPrompt: 'Vérifiez les taux les plus récents avant de payer.',
+            getLatestRate: 'Obtenir le dernier taux',
+            getLatestRates: 'Obtenir les derniers taux',
             reportCount: ({count}: {count: number}) => ({
                 one: '1 note de frais',
                 other: `${count} notes de frais`,
@@ -2358,6 +2389,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 }
                 return `En attente de la fin du traitement du paiement annulé${formattedETA}.`;
             },
+            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_PAYMENT_REVIEW]: (params: ReportNextStepMessageParams) => `Paiement en attente, attendez une autre mise à jour.`,
             [CONST.NEXT_STEP.MESSAGE_KEY.SUBMITTING_TO_SELF]: (params: ReportNextStepMessageParams) =>
                 `Oups ! Il semble que vous soumettiez cette note de frais à <strong>vous-même</strong>. L’approbation de vos propres notes de frais est <strong>interdite</strong> par votre espace de travail. Veuillez soumettre cette note de frais à une autre personne ou contacter votre administrateur pour changer la personne à qui vous soumettez.`,
             [CONST.NEXT_STEP.MESSAGE_KEY.REJECTED_REPORT]: ({actor, actorType}: ReportNextStepMessageParams) => {
@@ -2590,6 +2622,8 @@ const translations: TranslationDeepObject<typeof en> = {
             leftHandNavCache: 'Cache de la navigation de gauche',
             clearleftHandNavCache: 'Effacer',
             softKillTheApp: 'Arrêter l’application en douceur',
+            testBusinessBankAccount: 'Tester le compte bancaire professionnel en USD',
+            testPersonalBankAccount: 'Tester le compte bancaire personnel en USD',
             kill: 'Tuer',
             sentryDebug: 'Débogage Sentry',
             sentrySendDescription: 'Envoyer les données à Sentry',
@@ -2597,6 +2631,7 @@ const translations: TranslationDeepObject<typeof en> = {
             sentryHighlightedSpanOps: 'Noms de segments surlignés',
             sentryHighlightedSpanOpsPlaceholder: 'ui.interaction.clic, navigation, ui.chargement',
             showBranchNameInTitle: 'Afficher le nom de la branche dans le titre du navigateur',
+            hideEnvironmentBadge: 'Masquer le badge d’environnement',
             betaOverrides: 'Remplacements de bêtas',
             betaOverridesDescription:
                 "Les remplacements ne s'appliquent qu'à cet appareil et n'affectent que les vérifications côté frontend. Une bêta ne conserve un remplacement que tant qu'il diffère des bêtas de votre compte ; la rebasculer supprime donc le remplacement. « Réinitialiser tous les remplacements » rétablit les valeurs de votre compte. Certaines bêtas sont aussi contrôlées par le backend et peuvent donc échouer au niveau de la requête.",
@@ -3329,8 +3364,8 @@ const translations: TranslationDeepObject<typeof en> = {
             rejected: {title: 'Compte bancaire rejeté', heading: 'Notre partenaire a rejeté votre compte bancaire', description: "Discutez avec Concierge pour plus d'informations."},
         },
         wiseSetupRow: {
-            inProgress: {message: 'Configuration des remboursements globaux en cours.', link: 'Continuer.'},
-            inReview: {message: 'Configuration des remboursements globaux en cours d’examen.', link: 'Vérifier le statut.'},
+            inProgress: {message: 'Configuration des remboursements globaux en cours.'},
+            inReview: {message: 'Configuration des remboursements globaux en cours d’examen.', action: 'Vérifier le statut'},
         },
         wiseGlobalReimbursementsIntro: {
             title: 'Configurer les remboursements globaux ?',
@@ -5389,6 +5424,10 @@ ${amount} pour ${merchant} - ${date}`,
             railTicketExchange: (origin: string, destination: string, startDate: string) => `Votre billet de train pour ${origin} → ${destination} le ${startDate} a été échangé.`,
             railTicketUpdate: (origin: string, destination: string, startDate: string) => `Votre billet de train pour ${origin} → ${destination} le ${startDate} a été mis à jour.`,
             defaultUpdate: (type: string) => `Votre réservation de ${type} a été mise à jour.`,
+            hotelBooked: (hotelName: string, startDate: string) => `Votre réservation d'hôtel à ${hotelName} (arrivée le ${startDate}) a été effectuée.`,
+            carBooked: (vendor: string, startDate: string) => `Votre location de voiture ${vendor} (prise en charge le ${startDate}) a été réservée.`,
+            railTicketBooked: (origin: string, destination: string, startDate: string) => `Votre billet de train pour ${origin} → ${destination} le ${startDate} a été réservé.`,
+            defaultBooked: (type: string) => `Votre réservation de ${type} a été effectuée.`,
         },
         flightTo: 'Vol à destination de',
         trainTo: 'Train pour',
@@ -5652,6 +5691,9 @@ ${amount} pour ${merchant} - ${date}`,
             },
             chatgpt: {
                 title: 'ChatGPT',
+            },
+            grok: {
+                title: 'Grok',
             },
         },
         connections: {
@@ -8099,6 +8141,7 @@ Le forfait Control commence à 9 $ par Membre actif et par mois.`,
                 willBeReadyToUse: 'Cette carte sera prête à être utilisée immédiatement.',
                 willBeReadyToShip: 'Cette carte sera prête à être expédiée immédiatement.',
                 cardholder: 'Titulaire de la carte',
+                cardholderEmail: 'Adresse e-mail du titulaire de la carte',
                 cardType: 'Type de carte',
                 limit: 'Limite',
                 limitType: 'Type de limite',
@@ -11690,7 +11733,9 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                     mentionedAccountID?: number;
                 }) => {
                     let warningTime = 'bientôt';
-                    if (warningDaysBeforeExpiry === CONST.COMPANY_CARDS.CONSENT_EXPIRY_WARNING_DAYS.TWO_WEEKS) {
+                    if (warningDaysBeforeExpiry === CONST.COMPANY_CARDS.CONSENT_EXPIRY_WARNING_DAYS.ONE_MONTH) {
+                        warningTime = 'dans un mois';
+                    } else if (warningDaysBeforeExpiry === CONST.COMPANY_CARDS.CONSENT_EXPIRY_WARNING_DAYS.TWO_WEEKS) {
                         warningTime = 'dans deux semaines';
                     } else if (warningDaysBeforeExpiry === CONST.COMPANY_CARDS.CONSENT_EXPIRY_WARNING_DAYS.ONE_WEEK) {
                         warningTime = 'dans une semaine';
@@ -11786,7 +11831,8 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                 reimbursementRefundedWithoutBankAccount: 'Les fonds ont été renvoyés. Vous pouvez réessayer le paiement.',
                 reimbursementHeld:
                     'Paiement en attente pendant que notre partenaire termine un examen. Attendez une autre mise à jour. Discutez avec <concierge-link>Concierge</concierge-link>.',
-                reimbursementReleased: 'L’examen est terminé et votre paiement est en cours d’acheminement. Le taux de change final peut modifier le montant.',
+                reimbursementReleased: ({expectedDate}: {expectedDate: string}) => `Paiement effectué, les fonds devraient arriver d’ici le ${expectedDate}.`,
+                reimbursementReleasedWithoutDate: 'Paiement effectué.',
             },
             error: {
                 invalidCredentials: 'Identifiants invalides, veuillez vérifier la configuration de votre connexion.',
