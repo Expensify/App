@@ -7,7 +7,7 @@ import type * as ChartUtils from '@components/Charts/utils';
 import {SIN_45} from '@components/Charts/VictoryTheme';
 import {CHART_SERIES_KEY} from '@components/Search/buildChartSeries';
 
-import type {SkTypefaceFontProvider} from '@shopify/react-native-skia';
+import type {SkTypefaceFontProvider} from 'react-native-skia';
 
 import createMock from '../../../utils/createMock';
 

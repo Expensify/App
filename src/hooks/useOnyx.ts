@@ -1,4 +1,4 @@
-import {SearchQueryContext, SearchResultsContext} from '@components/Search/SearchContext';
+import {SearchQueryContext, SearchShouldUseLiveDataContext} from '@components/Search/SearchContext';
 import {useIsOnSearch} from '@components/Search/SearchScopeProvider';
 
 import isSnapshotCompatibleKey from '@libs/SnapshotUtils';
@@ -14,20 +14,6 @@ import {use} from 'react';
 import {useOnyx as useOnyxWithoutSnapshots} from 'react-native-onyx';
 
 type UseOnyxWithoutSnapshots = typeof useOnyxWithoutSnapshots;
-
-const COLLECTION_VALUES = Object.values(ONYXKEYS.COLLECTION);
-const getDataByPath = (data: SearchResults['data'], path: string) => {
-    // Handle prefixed collections
-    for (const collection of COLLECTION_VALUES) {
-        if (path.startsWith(collection)) {
-            const key = `${collection}${path.slice(collection.length)}`;
-            return data?.[key as keyof typeof data];
-        }
-    }
-
-    // Handle direct keys
-    return data?.[path as keyof typeof data];
-};
 
 // Helper function to get key data from snapshot
 const getKeyData = <TKey extends OnyxKey, TReturnValue>(snapshotData: SearchResults, key: TKey): TReturnValue => {
@@ -45,7 +31,7 @@ const getKeyData = <TKey extends OnyxKey, TReturnValue>(snapshotData: SearchResu
         }
         return (Object.keys(result).length > 0 ? result : undefined) as TReturnValue;
     }
-    return getDataByPath(snapshotData?.data, key) as TReturnValue;
+    return snapshotData?.data?.[key as keyof SearchResults['data']] as TReturnValue;
 };
 
 /**
@@ -82,9 +68,8 @@ const useOnyx: UseOnyxWithoutSnapshots = <TKey extends OnyxKey, TReturnValue = O
     let shouldUseLiveData = false;
     if (isOnSearch && isSnapshotCompatible) {
         const {currentSearchHash: searchContextCurrentSearchHash} = use(SearchQueryContext);
-        const {shouldUseLiveData: contextShouldUseLiveData} = use(SearchResultsContext);
         currentSearchHash = searchContextCurrentSearchHash;
-        shouldUseLiveData = !!contextShouldUseLiveData;
+        shouldUseLiveData = use(SearchShouldUseLiveDataContext);
     }
 
     const useOnyxOptions = options as UseOnyxOptions<OnyxKey, OnyxValue<OnyxKey>> | undefined;

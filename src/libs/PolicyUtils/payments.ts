@@ -10,7 +10,7 @@ import type {BankAccountList, OnyxInputOrEntry, Policy} from '@src/types/onyx';
 import type {NullishDeep, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 
-import {canMemberWrite} from './permissions';
+import {canMemberWrite, isPolicyAdmin} from './permissions';
 import {isGroupPolicy} from './policyType';
 
 /**
@@ -104,6 +104,19 @@ function getReimbursementChoice(policy: OnyxInputOrEntry<Policy>): ValueOf<typeo
     }
 }
 
+/**
+ * Whether the server will refuse to switch this workspace to `currency` because the workspace uses Direct reimbursement.
+ * Checking first lets the currency picker explain the block instead of sending a change that the server rejects.
+ */
+function isCurrencyChangeBlockedByDirectReimbursement(policy: OnyxInputOrEntry<Policy>, currency: string): boolean {
+    if (getReimbursementChoice(policy) !== CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES || currency === policy?.outputCurrency) {
+        return false;
+    }
+
+    const allowedCurrencies: readonly string[] = CONST.CURRENCIES_ALLOWED_ON_DIRECT_WORKSPACE_CHANGE;
+    return !allowedCurrencies.includes(currency);
+}
+
 function arePaymentsEnabled(policy: OnyxInputOrEntry<Policy>): boolean {
     return getReimbursementChoice(policy) !== CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO;
 }
@@ -126,6 +139,18 @@ function isAutoPayApprovedReportsAvailable(policy: OnyxInputOrEntry<Policy>): bo
 function getReimburserAccountID(policy: OnyxEntry<Policy>): number {
     const reimburserEmail = policy?.achAccount?.reimburser ?? policy?.owner ?? '';
     return reimburserEmail ? (getAccountIDsByLogins([reimburserEmail]).at(0) ?? -1) : -1;
+}
+
+/**
+ * Whether the current user can pay the workspace's reports via ABA
+ */
+function canPayViaABA(policy: OnyxInputOrEntry<Policy>, isPayViaABABetaEnabled: boolean): boolean {
+    const withdrawalAccount = policy?.reimbursement?.countries?.[CONST.COUNTRY.AU];
+
+    // Accounts set up through Corpay don't have the bank user ID and company name that the ABA file needs
+    const isCorpayAccount = !!withdrawalAccount?.additionalData?.verifications?.corpay;
+
+    return isPayViaABABetaEnabled && isPolicyAdmin(policy) && policy?.outputCurrency === CONST.CURRENCY.AUD && withdrawalAccount?.state === CONST.BANK_ACCOUNT.STATE.OPEN && !isCorpayAccount;
 }
 
 /** Get the ISO codes of the workspace's reimbursement countries, leaving out countries waiting to be deleted */
@@ -179,10 +204,12 @@ export {
     isPolicyPayer,
     canAdminPayReport,
     getReimbursementChoice,
+    isCurrencyChangeBlockedByDirectReimbursement,
     arePaymentsEnabled,
     hasReimbursementCountries,
     isAutoPayApprovedReportsAvailable,
     getReimburserAccountID,
+    canPayViaABA,
     getReimbursementCountryISOs,
     getPolicyBankAccountCountry,
     getReimbursementAccountCountries,
