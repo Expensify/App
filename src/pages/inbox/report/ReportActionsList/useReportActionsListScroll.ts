@@ -199,7 +199,8 @@ function useReportActionsListScroll({
             getItemType: (item: OnyxTypes.ReportAction) => item.actionName,
             onEndReached: loadOlderChatsOnEndReached,
             onEndReachedThreshold: 0.75,
-            onStartReached: loadNewerChatsAfterTransitions,
+            // FlashList calls this once per entry into the start zone, so don't use that call up before there are newer messages.
+            onStartReached: hasNewerActions ? loadNewerChatsAfterTransitions : undefined,
             onStartReachedThreshold: 0.75,
             onLayout: (event: LayoutChangeEvent) => {
                 onLayout?.(event);
