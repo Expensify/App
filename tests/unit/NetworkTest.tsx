@@ -286,9 +286,6 @@ describe('NetworkTests', () => {
         });
         await waitForBatchedUpdates();
         await SequentialQueue.waitForIdle();
-        await new Promise((resolve) => {
-            setTimeout(resolve, 300);
-        });
         await waitForBatchedUpdates();
 
         // Then the create is sent only twice (407, then "already created"), and the expense is no longer pending, has no error and is out of the queue
