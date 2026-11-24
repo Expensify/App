@@ -1,4 +1,4 @@
-import {format as dateFnsFormat, getISOWeek, parseISO} from 'date-fns';
+import {format as dateFnsFormat, getDayOfYear, getISOWeek, parseISO} from 'date-fns';
 
 /**
  * Get ordinal suffix for a day (st, nd, rd, th)
@@ -17,15 +17,6 @@ function getOrdinalSuffix(day: number): string {
         default:
             return 'th';
     }
-}
-
-/**
- * Calculate day of year (0-indexed)
- */
-function calculateDayOfYear(date: Date): number {
-    const year = date.getFullYear();
-    const yearStart = new Date(year, 0, 1);
-    return Math.floor((date.getTime() - yearStart.getTime()) / (1000 * 60 * 60 * 24));
 }
 
 /**
@@ -106,7 +97,8 @@ function createDateTokens(date: Date): Array<{token: string; value: string}> {
     const day = date.getDate();
     const dayOfWeek = date.getDay(); // 0 = Sunday, 6 = Saturday
     const isoDayOfWeek = dayOfWeek === 0 ? 7 : dayOfWeek; // 1 = Monday, 7 = Sunday
-    const dayOfYear = calculateDayOfYear(date);
+    // Formula day numbers start at 0 on January 1, while date-fns starts at 1
+    const dayOfYear = getDayOfYear(date) - 1;
     const daysInMonth = new Date(year, month, 0).getDate();
     const weekNumber = getISOWeek(date);
 
@@ -114,6 +106,9 @@ function createDateTokens(date: Date): Array<{token: string; value: string}> {
     const {fullMonthName, shortMonthName, fullDayName, shortDayName} = getLocalizedNames(date);
 
     const {hours, minutes, seconds, hours12, meridiem, meridiemUpperCase} = getTimeComponents(date);
+
+    // The backend reads a stored date and time as UTC, so the ISO and Unix times do too
+    const storedTimeAsUTC = new Date(Date.UTC(year, date.getMonth(), day, hours, minutes, seconds, date.getMilliseconds()));
 
     return [
         // Year formats (longest to shortest)
@@ -162,9 +157,9 @@ function createDateTokens(date: Date): Array<{token: string; value: string}> {
         {token: 'a', value: meridiem},
 
         // Full Date/Time formats
-        {token: 'c', value: date.toISOString()}, // ISO 8601: 2025-01-08T15:30:45.123Z
+        {token: 'c', value: storedTimeAsUTC.toISOString()}, // ISO 8601: 2025-01-08T15:30:45.123Z
         {token: 'r', value: formatRFC2822(date)}, // RFC 2822: Thu, 08 Jan 2025 15:30:45 +0000
-        {token: 'U', value: Math.floor(date.getTime() / 1000).toString()}, // Unix timestamp
+        {token: 'U', value: Math.floor(storedTimeAsUTC.getTime() / 1000).toString()}, // Unix timestamp
     ];
 }
 

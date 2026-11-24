@@ -64,9 +64,32 @@ describe('Formula west of UTC', () => {
         // When their times are computed
         const submitTime = compute('{report:submit:date:yyyy-MM-dd HH:mm:ss}', context);
         const expenseTime = compute('{report:startdate:yyyy-MM-dd HH:mm}', context);
+        const expenseISOTime = compute('{report:startdate:c}', context);
+        const expenseUnixTime = compute('{report:startdate:U}', context);
 
-        // Then they show the stored time, like the backend, rather than shifting it by the user's distance from UTC
+        // Then they show the stored time, like the backend, rather than shifting it by the user's distance from UTC.
+        // The backend reads stored times as UTC, so the ISO and Unix times treat them as UTC too.
         expect(submitTime).toBe('2025-01-08 15:30:45');
         expect(expenseTime).toBe('2025-01-20 00:00');
+        expect(expenseISOTime).toBe('2025-01-20T00:00:00.000Z');
+        expect(expenseUnixTime).toBe('1737331200');
+    });
+
+    test('day of the year during daylight saving time', () => {
+        // Given an expense dated during daylight saving time, when a day since January 1 is an hour short
+        const context: FormulaContext = {
+            getCurrencyDecimals: getCurrencyDecimalsLocal,
+            report: createMock<Report>({reportID: '123'}),
+            policy: createMock<Policy>({}),
+            allTransactions: {
+                trans1: createMock<Transaction>({transactionID: 'trans1', reportID: '123', created: '2025-07-04', merchant: 'Hotel', amount: 5000}),
+            },
+        };
+
+        // When its day of the year is computed
+        const dayOfYear = compute('{report:startdate:z}', context);
+
+        // Then it counts whole days from January 1, starting at 0, like the backend
+        expect(dayOfYear).toBe('184');
     });
 });

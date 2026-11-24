@@ -27,8 +27,13 @@ class TimezoneEnvironment extends TestEnvironment {
     }
 
     async teardown() {
-        // Jest reuses worker processes for other test files, which expect the time zone the test command set
-        process.env.TZ = this.originalTimezone;
+        // Jest reuses worker processes for other test files, which expect the time zone the test command set. Assigning
+        // undefined would store the string "undefined", which Node reads as UTC, so an unset TZ is deleted instead.
+        if (this.originalTimezone === undefined) {
+            delete process.env.TZ;
+        } else {
+            process.env.TZ = this.originalTimezone;
+        }
         await super.teardown();
     }
 }
