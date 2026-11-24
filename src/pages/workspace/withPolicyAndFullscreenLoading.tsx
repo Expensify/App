@@ -1,11 +1,9 @@
 import FullscreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 
 import useOnyx from '@hooks/useOnyx';
-import {useAllPersonalDetails} from '@hooks/usePersonalDetails';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {PersonalDetailsList} from '@src/types/onyx';
 
 import type {ComponentType} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -19,7 +17,6 @@ import withPolicy, {policyDefaultProps} from './withPolicy';
 
 type WithPolicyAndFullscreenLoadingOnyxProps = {
     isLoadingReportData: OnyxEntry<boolean>;
-    personalDetails: OnyxEntry<PersonalDetailsList>;
 };
 
 type WithPolicyAndFullscreenLoadingProps = WithPolicyProps & WithPolicyAndFullscreenLoadingOnyxProps;
@@ -40,7 +37,6 @@ function WithPolicyAndFullscreenLoadingImpl<TProps extends WithPolicyAndFullscre
     ...rest
 }: WithPolicyAndFullscreenLoadingImplProps<TProps>) {
     const [isLoadingReportData = true] = useOnyx(ONYXKEYS.IS_LOADING_REPORT_DATA);
-    const [personalDetails] = useAllPersonalDetails();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     if ((isLoadingPolicy || isLoadingReportData) && isEmpty(policy) && isEmpty(policyDraft)) {
@@ -51,7 +47,6 @@ function WithPolicyAndFullscreenLoadingImpl<TProps extends WithPolicyAndFullscre
         <WrappedComponent
             {...(rest as unknown as TProps)}
             isLoadingReportData={isLoadingReportData}
-            personalDetails={personalDetails}
             policy={policy}
             policyDraft={policyDraft}
         />

@@ -139,6 +139,7 @@ function DynamicIOURequestStepTaxAmountPage({
                 ONYXKEYS.NVP_INTRO_SELECTED,
             ]);
             updateMoneyRequestTaxAmount({
+                translate,
                 isVendorMatchingBetaEnabled,
                 transactionID,
                 transaction: currentTransaction,
