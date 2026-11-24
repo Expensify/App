@@ -6,6 +6,7 @@ import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOpt
 
 import {clearDomainSecurityGroupSettingError, updateDomainSecurityGroup} from '@userActions/Domain';
 
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 import {domainSecurityGroupSettingErrorsSelector, domainSecurityGroupSettingPendingActionSelector, selectGroupByID} from '@selectors/Domain';
@@ -42,6 +43,7 @@ function RestrictExpenseWorkspaceCreationToggle({domainAccountID, groupID}: Rest
                 title={translate('domain.groups.restrictExpenseWorkspaceCreation')}
                 subtitle={translate('domain.groups.restrictExpenseWorkspaceCreationDescription')}
                 switchAccessibilityLabel={translate('domain.groups.restrictExpenseWorkspaceCreation')}
+                switchSentryLabel={CONST.SENTRY_LABEL.DOMAIN.GROUPS.RESTRICT_EXPENSE_WORKSPACE_CREATION_SWITCH}
                 shouldPlaceSubtitleBelowSwitch
                 isActive={isEnabled}
                 onToggle={(enabled) => {

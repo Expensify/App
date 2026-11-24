@@ -106,7 +106,7 @@ To explore the underlying expenses, select **More (⋮)** on the visualization, 
 
 ## Can you export Spend over time?
 
-Grouped totals and chart summaries can't be exported directly from **Spend over time**, but you can export the underlying expenses from **Spend**.
+In **Insights**, select **Export** to export the current dashboard, including **Spend over time**, as a PNG image. To export the underlying expenses instead, use **Spend**.
 
 [Learn how to export expenses](/articles/new-expensify/reports-and-expenses/How-to-Export-Expenses).
 

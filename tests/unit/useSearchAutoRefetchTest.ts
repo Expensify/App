@@ -6,9 +6,11 @@ import type {UseSearchAutoRefetch} from '@hooks/useSearchAutoRefetch';
 
 import {search} from '@libs/actions/Search';
 
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {MemberCustomFieldsByPolicyID} from '@src/selectors/Policy';
 import type {Transaction} from '@src/types/onyx';
+import type ReportActionName from '@src/types/onyx/ReportActionName';
 
 import Onyx from 'react-native-onyx';
 
@@ -32,10 +34,14 @@ jest.mock('@rnmapbox/maps', () => ({
 let mockIsOffline = false;
 jest.mock('@hooks/useNetwork', () => jest.fn(() => ({isOffline: mockIsOffline})));
 
+let mockIsInPreloadedTab = false;
+jest.mock('@hooks/useIsInPreloadedTab', () => jest.fn(() => mockIsInPreloadedTab));
+
 afterEach(() => {
     jest.clearAllMocks();
     mockIsOffline = false;
     mockUseIsFocused.mockReturnValue(true);
+    mockIsInPreloadedTab = false;
 });
 
 describe('useSearchAutoRefetch', () => {
@@ -290,6 +296,29 @@ describe('useSearchAutoRefetch', () => {
         expect(search).toHaveBeenCalledWith({queryJSON: baseProps.queryJSON, searchKey: undefined, offset: 0, shouldCalculateTotals: false, isLoading: false});
     });
 
+    it.each([
+        ['edited', {amount: 250}],
+        ['removed from its report', {reportID: CONST.REPORT.UNREPORTED_REPORT_ID}],
+    ])('should trigger search on a grouped search when a transaction is %s', (_, transactionChange) => {
+        // Given a search grouped by approver, whose snapshot only holds the groups and not their transactions or reports
+        const transaction = createMock<Transaction>({transactionID: '1', amount: 100, reportID: '10'});
+        const initialProps = createMock<UseSearchAutoRefetch>({
+            ...baseProps,
+            queryJSON: {...baseProps.queryJSON, groupBy: CONST.SEARCH.GROUP_BY.APPROVER},
+            transactions: {transactions_1: transaction},
+            previousTransactions: {transactions_1: transaction},
+        });
+        const {rerender} = renderHook((props: UseSearchAutoRefetch) => useSearchAutoRefetch(props), {
+            initialProps,
+        });
+
+        // When the transaction changes
+        rerender(createMock<UseSearchAutoRefetch>({...initialProps, transactions: {transactions_1: {...transaction, ...transactionChange}}}));
+
+        // Then the search runs again, because the snapshot can't show whether the change touches one of its groups
+        expect(search).toHaveBeenCalledTimes(1);
+    });
+
     it('should not trigger search when the edited transaction is absent from the results', () => {
         const visibleTransaction = createMock<Transaction>({transactionID: '1', amount: 100});
         const filteredOutTransaction = createMock<Transaction>({transactionID: '99', amount: 100});
@@ -407,6 +436,39 @@ describe('useSearchAutoRefetch', () => {
 
         rerender({...settledProps});
         expect(search).toHaveBeenCalledTimes(1);
+    });
+
+    it('should not keep a deferred search from a preloaded tab for when it is opened', () => {
+        // Given a Spend tab preloaded at idle that is not active yet, showing an expense
+        const transaction = createMock<Transaction>({transactionID: '1', amount: 100});
+        const editedTransaction = createMock<Transaction>({transactionID: '1', amount: 250});
+        const initialProps = createMock<UseSearchAutoRefetch>({
+            ...baseProps,
+            searchResults: {
+                ...baseProps.searchResults,
+                data: {
+                    transactions_1: {transactionID: '1'},
+                },
+            },
+            transactions: {transactions_1: transaction},
+            previousTransactions: {transactions_1: transaction},
+        });
+        mockIsInPreloadedTab = true;
+        mockIsOffline = true;
+        const {rerender} = renderHook((props: UseSearchAutoRefetch) => useSearchAutoRefetch(props), {
+            initialProps,
+        });
+
+        // When that expense changes while the tab is hidden, and the user then opens the tab
+        const editedProps = createMock<UseSearchAutoRefetch>({...initialProps, transactions: {transactions_1: editedTransaction}});
+        rerender(editedProps);
+        rerender(createMock<UseSearchAutoRefetch>({...editedProps, previousTransactions: {transactions_1: editedTransaction}}));
+        mockIsInPreloadedTab = false;
+        mockIsOffline = false;
+        rerender(createMock<UseSearchAutoRefetch>({...editedProps, previousTransactions: {transactions_1: editedTransaction}}));
+
+        // Then no refetch goes out, since the page refreshes the whole snapshot on first open and a second request would repeat it
+        expect(search).not.toHaveBeenCalled();
     });
 
     it('should not trigger search when only the snapshot changes and the collections are unchanged', () => {
@@ -615,6 +677,129 @@ describe('useSearchAutoRefetch', () => {
 
         rerender(updatedProps);
         expect(search).not.toHaveBeenCalled();
+    });
+
+    describe('workflow report actions', () => {
+        const transaction1 = createMock<Transaction>({transactionID: '1'});
+        const approverProps = createMock<UseSearchAutoRefetch>({
+            ...baseProps,
+            queryJSON: {...baseProps.queryJSON, groupBy: 'approver' as const},
+            searchResults: {
+                ...baseProps.searchResults,
+                data: {
+                    transactions_1: transaction1,
+                },
+            },
+            transactions: {transactions_1: transaction1},
+            previousTransactions: {transactions_1: transaction1},
+            reportActions: {
+                reportActions_1: {
+                    '1': {actionName: 'CREATED', reportActionID: '1'},
+                },
+            },
+            previousReportActions: {
+                reportActions_1: {
+                    '1': {actionName: 'CREATED', reportActionID: '1'},
+                },
+            },
+        });
+
+        const withAddedAction = (props: UseSearchAutoRefetch, actionName: ReportActionName) =>
+            createMock<UseSearchAutoRefetch>({
+                ...props,
+                reportActions: {
+                    reportActions_1: {
+                        '1': {actionName: 'CREATED', reportActionID: '1'},
+                        '2': {actionName, reportActionID: '2'},
+                    },
+                },
+            });
+
+        it.each<ReportActionName>(CONST.REPORT.WORKFLOW_ACTIONS)('should trigger search when a %s report action is added while grouped by approver', (actionName) => {
+            // Given a search grouped by approver whose results already show a row
+            const {rerender} = renderHook((props: UseSearchAutoRefetch) => useSearchAutoRefetch(props), {
+                initialProps: approverProps,
+            });
+
+            // When a workflow action such as an approval or an approver change is added, which changes no transaction
+            rerender(withAddedAction(approverProps, actionName));
+
+            // Then the search runs again, because the report's expenses can move in or out of an approver group
+            expect(search).toHaveBeenCalledTimes(1);
+        });
+
+        it.each([CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, CONST.SEARCH.SYNTAX_OPERATORS.NOT_EQUAL_TO])(
+            'should trigger search when an APPROVED report action is added while the has:approved-violation filter uses %s',
+            (operator) => {
+                // Given a search that includes or excludes approved violations, whose results already show a row
+                const approvedViolationProps = createMock<UseSearchAutoRefetch>({
+                    ...approverProps,
+                    queryJSON: {
+                        ...baseProps.queryJSON,
+                        flatFilters: [{key: CONST.SEARCH.SYNTAX_FILTER_KEYS.HAS, filters: [{operator, value: CONST.SEARCH.HAS_VALUES.APPROVED_VIOLATION}]}],
+                    },
+                });
+                const {rerender} = renderHook((props: UseSearchAutoRefetch) => useSearchAutoRefetch(props), {
+                    initialProps: approvedViolationProps,
+                });
+
+                // When a report is approved, which adds a report action but changes no transaction
+                rerender(withAddedAction(approvedViolationProps, 'APPROVED'));
+
+                // Then the search runs again, because the report's violations now count as approved violations either way
+                expect(search).toHaveBeenCalledTimes(1);
+            },
+        );
+
+        it.each([CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, CONST.SEARCH.SYNTAX_OPERATORS.NOT_EQUAL_TO])(
+            'should trigger search when a SUBMITTED report action is added while the has:submitted-violation filter uses %s',
+            (operator) => {
+                // Given a search that includes or excludes submitted violations, whose results already show a row
+                const submittedViolationProps = createMock<UseSearchAutoRefetch>({
+                    ...approverProps,
+                    queryJSON: {
+                        ...baseProps.queryJSON,
+                        flatFilters: [{key: CONST.SEARCH.SYNTAX_FILTER_KEYS.HAS, filters: [{operator, value: CONST.SEARCH.HAS_VALUES.SUBMITTED_VIOLATION}]}],
+                    },
+                });
+                const {rerender} = renderHook((props: UseSearchAutoRefetch) => useSearchAutoRefetch(props), {
+                    initialProps: submittedViolationProps,
+                });
+
+                // When a report is submitted, which adds a report action but changes no transaction
+                rerender(withAddedAction(submittedViolationProps, 'SUBMITTED'));
+
+                // Then the search runs again, because the report's violations now count as submitted violations either way
+                expect(search).toHaveBeenCalledTimes(1);
+            },
+        );
+
+        it('should not trigger search when a non-approval report action is added while grouped by approver', () => {
+            // Given a search grouped by approver whose results already show a row
+            const {rerender} = renderHook((props: UseSearchAutoRefetch) => useSearchAutoRefetch(props), {
+                initialProps: approverProps,
+            });
+
+            // When a comment is added, which doesn't change who approves the report
+            rerender(withAddedAction(approverProps, 'ADDCOMMENT'));
+
+            // Then no search is triggered
+            expect(search).not.toHaveBeenCalled();
+        });
+
+        it("should not trigger search when an approval report action is added and the query doesn't depend on workflow state", () => {
+            // Given a search with no approver grouping and no approver, workflow date or violation filter
+            const ungroupedProps = createMock<UseSearchAutoRefetch>({...approverProps, queryJSON: baseProps.queryJSON});
+            const {rerender} = renderHook((props: UseSearchAutoRefetch) => useSearchAutoRefetch(props), {
+                initialProps: ungroupedProps,
+            });
+
+            // When a report is approved
+            rerender(withAddedAction(ungroupedProps, 'APPROVED'));
+
+            // Then no search is triggered, because the query's results don't depend on the report's workflow state
+            expect(search).not.toHaveBeenCalled();
+        });
     });
 
     describe('member custom field changes', () => {

@@ -120,7 +120,7 @@ function DeepLinkHandler({onInitialUrl}: DeepLinkHandlerProps) {
                 }
 
                 initialUrlProcessed.current = true;
-                onInitialUrl(url);
+                onInitialUrl(url ?? null);
 
                 if (url) {
                     if (conciergeReportID === undefined) {

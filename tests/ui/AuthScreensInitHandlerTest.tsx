@@ -78,6 +78,7 @@ jest.mock('@libs/SessionUtils', () => ({
 jest.mock('@libs/ActiveClientManager', () => ({
     isClientTheLeader: jest.fn(() => true),
     init: jest.fn(),
+    getLogTab: jest.fn(),
     isReady: jest.fn(() => Promise.resolve()),
 }));
 
@@ -266,17 +267,43 @@ describe('AuthScreensInitHandler', () => {
         expect(mockedSubscribeToUserEvents).not.toHaveBeenCalled();
     });
 
-    it('signs out when logging in as new user during transition', async () => {
+    it('signs out when logging in as a new user via a supportal transition', async () => {
+        // Given a signed-in account and a supportal transition link for another account
+        mockedGetCurrentUrl.mockReturnValue(`https://new.expensify.com/${ROUTES.TRANSITION_BETWEEN_APPS}?authTokenType=${CONST.AUTH_TOKEN_TYPES.SUPPORT}`);
+        mockedIsLoggingInAsNewUser.mockReturnValue(true);
+
+        await Onyx.merge(ONYXKEYS.SESSION, {accountID: TEST_ACCOUNT_ID, email: 'test@test.com'});
+        await waitForBatchedUpdates();
+
+        // When the signed-in screens initialize
+        renderAuthScreensInitHandler();
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the current account is signed out right away, because a supportal link does not ask to switch accounts
+        expect(signOutAndRedirectToSignIn).toHaveBeenCalledWith(
+            expect.objectContaining({accountID: TEST_ACCOUNT_ID, email: 'test@test.com'}),
+            false,
+            true,
+            true,
+            undefined,
+            CONST.SIGN_OUT_REASON.LOGIN_AS_NEW_USER,
+        );
+    });
+
+    it('does not sign out for a non-supportal transition', async () => {
+        // Given a signed-in account and a transition link for another account
         mockedGetCurrentUrl.mockReturnValue(`https://new.expensify.com/${ROUTES.TRANSITION_BETWEEN_APPS}`);
         mockedIsLoggingInAsNewUser.mockReturnValue(true);
 
         await Onyx.merge(ONYXKEYS.SESSION, {accountID: TEST_ACCOUNT_ID, email: 'test@test.com'});
         await waitForBatchedUpdates();
 
+        // When the signed-in screens initialize
         renderAuthScreensInitHandler();
         await waitForBatchedUpdatesWithAct();
 
-        expect(signOutAndRedirectToSignIn).toHaveBeenCalledWith(false, false, true, undefined, CONST.SIGN_OUT_REASON.LOGIN_AS_NEW_USER);
+        // Then the current account stays signed in, because LogOutPreviousUserPage asks before it switches accounts
+        expect(signOutAndRedirectToSignIn).not.toHaveBeenCalled();
     });
 
     it('calls openApp when didUserLogInDuringSession returns true', async () => {

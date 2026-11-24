@@ -15,16 +15,13 @@ type MoneyRequestConfirmationListItem = (Participant & {keyForList: string}) | O
 
 type MoneyRequestConfirmationListProps = {
     /** Runs validation and submits. */
-    onConfirm?: () => void;
+    onConfirm?: () => void | Promise<void>;
 
     /** Opens the participant picker owned by the page. */
     onOpenParticipantPicker: () => void;
 
-    /** Whether the page participant picker is open. */
-    isParticipantPickerVisible?: boolean;
-
     /** The payment method the SettlementButton chose. */
-    onSendMoney?: (paymentMethod: PaymentMethodType | undefined) => void;
+    onSendMoney?: (paymentMethod: PaymentMethodType | undefined) => Promise<void>;
 
     /** The IOU flow being confirmed. */
     iouType: Exclude<IOUType, typeof CONST.IOU.TYPE.REQUEST | typeof CONST.IOU.TYPE.SEND>;
@@ -77,8 +74,8 @@ type MoneyRequestConfirmationListProps = {
     /** Whether manual entry of amount / merchant / date is offered. */
     canEnterScanFieldsManually?: boolean;
 
-    /** ID of a partially filled Scan among the transactions being confirmed. */
-    partiallyManuallyFilledScanID?: string;
+    /** The other transactions being confirmed with this one, which Create submits together with it. */
+    siblingTransactions?: OnyxTypes.Transaction[];
 
     /** Brings another confirmed transaction on screen. */
     onSwitchToTransaction?: (transactionID: string) => void;

@@ -23,7 +23,7 @@ import {getTagListLabel, getTagLists, hasPerTagListRequired, isAttendeeTrackingE
 
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
 
-import variables from '@styles/variables';
+import {callIfAuthenticated} from '@userActions/Session';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -33,6 +33,7 @@ import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
 
+import {authTokenTypeSelector} from '@selectors/Session';
 import React, {useEffect} from 'react';
 import {View} from 'react-native';
 
@@ -69,6 +70,7 @@ function IndividualExpenseRulesSectionRevamp({policyID, canWriteRules}: Individu
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const policy = usePolicy(policyID);
+    const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
     // Every toggle here owes a locked-out member the read-only modal, the way the pre-revamp section gave all four of
     // them. Splitting this section out dropped it, so a member saw a lock with nothing explaining it. Only the modal is
     // taken from the hook: its `canWrite` is the `canWriteRules` prop already.
@@ -240,31 +242,38 @@ function IndividualExpenseRulesSectionRevamp({policyID, canWriteRules}: Individu
     ];
 
     const renderMenuItems = (items: BasicRuleMenuItem[]) =>
-        items.map((item) => (
-            <OfflineWithFeedback
-                pendingAction={item.pendingAction}
-                key={item.key}
-            >
-                <MenuItem
-                    title={item.title}
-                    description={item.description}
-                    icon={item.icon}
-                    iconWidth={variables.iconSizeNormal}
-                    iconHeight={variables.iconSizeNormal}
-                    shouldIconUseAutoWidthStyle
-                    shouldShowBasicTitle
-                    innerContainerStyle={styles.gap5}
-                    titleStyle={[styles.ml0, !item.description && styles.colorMuted]}
-                    descriptionTextStyle={[styles.ml0, styles.breakWord]}
-                    shouldShowRightIcon={canWriteRules}
-                    onPress={() => handleMenuItemPress(item)}
-                    interactive={canWriteRules}
-                    wrapperStyle={[styles.sectionMenuItemTopDescription]}
-                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.INDIVIDUAL_EXPENSES_MENU_ITEM}
-                    numberOfLinesDescription={1}
-                />
-            </OfflineWithFeedback>
-        ));
+        items.map((item) => {
+            const onPress = canWriteRules ? callIfAuthenticated(() => handleMenuItemPress(item), session) : undefined;
+            return (
+                <OfflineWithFeedback
+                    key={item.key}
+                    pendingAction={item.pendingAction}
+                >
+                    <MenuItem.Root
+                        onPress={onPress}
+                        style={styles.sectionMenuItemTopDescription}
+                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.INDIVIDUAL_EXPENSES_MENU_ITEM}
+                    >
+                        <MenuItem.Row>
+                            <MenuItem.Leading>
+                                <View style={styles.mr2}>
+                                    <MenuItem.IconNarrow src={item.icon} />
+                                </View>
+                            </MenuItem.Leading>
+                            <MenuItem.Content>
+                                <MenuItem.Title style={[styles.fontWeightNormal, !item.description && styles.colorMuted]}>{item.title}</MenuItem.Title>
+                                {!!item.description && <MenuItem.Description numberOfLines={1}>{item.description}</MenuItem.Description>}
+                            </MenuItem.Content>
+                            {!!onPress && (
+                                <MenuItem.Trailing>
+                                    <MenuItem.Chevron />
+                                </MenuItem.Trailing>
+                            )}
+                        </MenuItem.Row>
+                    </MenuItem.Root>
+                </OfflineWithFeedback>
+            );
+        });
 
     return (
         <Section
@@ -283,6 +292,7 @@ function IndividualExpenseRulesSectionRevamp({policyID, canWriteRules}: Individu
                     title={translate('workspace.rules.individualExpenseRules.requireCompanyCard')}
                     subtitle={translate('workspace.rules.individualExpenseRules.requireCompanyCardDescription')}
                     switchAccessibilityLabel={translate('workspace.rules.individualExpenseRules.requireCompanyCard')}
+                    switchSentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.REQUIRE_COMPANY_CARD_SWITCH}
                     wrapperStyle={[styles.pv3]}
                     isActive={requireCompanyCardsEnabled}
                     disabled={isRequireCompanyCardsLocked}
@@ -297,6 +307,7 @@ function IndividualExpenseRulesSectionRevamp({policyID, canWriteRules}: Individu
                     title={translate('workspace.rules.individualExpenseRules.eReceipts')}
                     subtitle={translate('workspace.rules.individualExpenseRules.eReceiptsHint')}
                     switchAccessibilityLabel={translate('workspace.rules.individualExpenseRules.eReceipts')}
+                    switchSentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.E_RECEIPTS_SWITCH}
                     shouldParseSubtitle
                     wrapperStyle={[styles.pv3]}
                     isActive={areEReceiptsEnabled}
@@ -311,6 +322,7 @@ function IndividualExpenseRulesSectionRevamp({policyID, canWriteRules}: Individu
                     title={translate('workspace.rules.individualExpenseRules.attendeeTracking')}
                     subtitle={translate('workspace.rules.individualExpenseRules.attendeeTrackingHint')}
                     switchAccessibilityLabel={translate('workspace.rules.individualExpenseRules.attendeeTracking')}
+                    switchSentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.ATTENDEE_TRACKING_SWITCH}
                     wrapperStyle={[styles.pv3]}
                     isActive={isAttendeeTrackingEnabledForPolicy}
                     disabled={!canWriteRules || isCollect}

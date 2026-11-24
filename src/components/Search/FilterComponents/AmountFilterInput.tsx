@@ -33,12 +33,13 @@ type AmountFilterInputProps = {
     label: string;
     name?: string;
     autoFocus?: boolean;
+    errorText?: string;
     containerStyles?: StyleProp<ViewStyle>;
     onAmountChange: (amount: string) => void;
     onCurrencyChange: (currency: string) => void;
 };
 
-function AmountFilterInput({ref, baseFilterKey, amount, currency, label, name, autoFocus, containerStyles, onAmountChange, onCurrencyChange}: AmountFilterInputProps) {
+function AmountFilterInput({ref, baseFilterKey, amount, currency, label, name, autoFocus, errorText, containerStyles, onAmountChange, onCurrencyChange}: AmountFilterInputProps) {
     const {translate, preferredLocale} = useLocalize();
     const {getCurrencyDecimals} = useCurrencyListActions();
     const [isCurrencyPickerVisible, setIsCurrencyPickerVisible] = useState(false);
@@ -58,6 +59,7 @@ function AmountFilterInput({ref, baseFilterKey, amount, currency, label, name, a
                 inputMode={CONST.INPUT_MODE.DECIMAL}
                 shouldAllowNegative
                 autoFocus={autoFocus}
+                errorText={errorText}
             />
         );
     }
@@ -76,6 +78,7 @@ function AmountFilterInput({ref, baseFilterKey, amount, currency, label, name, a
                 hideSymbol={!currency}
                 decimals={currency ? getCurrencyDecimals(currency) : CONST.DEFAULT_CURRENCY_DECIMALS}
                 label={label}
+                accessibilityLabel={[label.trim(), currency || translate('common.anyCurrency')].join(', ')}
                 testID={name}
                 onInputChange={onAmountChange}
                 allowNegativeInput
@@ -88,6 +91,7 @@ function AmountFilterInput({ref, baseFilterKey, amount, currency, label, name, a
                 shouldShowBigNumberPad={false}
                 shouldUseBorderlessButtons
                 autoFocus={autoFocus}
+                errorText={errorText}
             />
             <IOURequestStepCurrencyModal
                 isPickerVisible={isCurrencyPickerVisible}

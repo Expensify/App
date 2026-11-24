@@ -1,4 +1,5 @@
 import type {OptionRowLHNProps} from '@components/LHNOptionsList/types';
+import {getFlatNavSidebarRowProps} from '@components/Navigation/FlatNavigationBar/useFlatNavSidebarRowProps';
 
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
@@ -6,7 +7,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import CONST from '@src/CONST';
 
-import type {ColorValue, ViewStyle} from 'react-native';
+import type {ColorValue, StyleProp, ViewStyle} from 'react-native';
 
 import {useState} from 'react';
 import {StyleSheet} from 'react-native';
@@ -17,6 +18,9 @@ type UseOptionRowChromeParams = {
 
     /** Display density mode. `COMPACT` switches to the compact layout styles. */
     viewMode: NonNullable<OptionRowLHNProps['viewMode']>;
+
+    /** Whether the row takes the flat navigation bar's selected and hover backgrounds */
+    shouldUseFlatNavigationBar: boolean;
 };
 
 /**
@@ -29,23 +33,24 @@ type UseOptionRowChromeParams = {
  * Per-leaf derivations (`isInFocusMode`, `singleAvatarContainerStyle`, `displayNameStyle`)
  * live inside their consuming leaf component (`Avatar`, `Title`) and are not returned here.
  */
-function useOptionRowChrome({isOptionFocused, viewMode}: UseOptionRowChromeParams) {
+function useOptionRowChrome({isOptionFocused, viewMode, shouldUseFlatNavigationBar}: UseOptionRowChromeParams) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
+    const {selectedStyle, hoveredStyle} = getFlatNavSidebarRowProps(isOptionFocused, shouldUseFlatNavigationBar, styles);
     const [hovered, setHovered] = useState(false);
 
     const isInFocusMode = viewMode === CONST.OPTION_MODE.COMPACT;
 
-    const sidebarInnerRowStyle = StyleSheet.flatten<ViewStyle>(
-        isInFocusMode
-            ? [styles.chatLinkRowPressable, styles.flexGrow1, styles.optionItemAvatarNameWrapper, styles.optionRowCompact, styles.justifyContentCenter]
-            : [styles.chatLinkRowPressable, styles.flexGrow1, styles.optionItemAvatarNameWrapper, styles.optionRow, styles.justifyContentCenter],
-    );
+    const sidebarInnerRowStyles: StyleProp<ViewStyle> = isInFocusMode
+        ? [styles.chatLinkRowPressable, styles.flexGrow1, styles.optionItemAvatarNameWrapper, styles.optionRowCompact, styles.justifyContentCenter]
+        : [styles.chatLinkRowPressable, styles.flexGrow1, styles.optionItemAvatarNameWrapper, styles.optionRow, styles.justifyContentCenter];
+    const sidebarInnerRowStyle = StyleSheet.flatten(sidebarInnerRowStyles);
     const contentContainerStyles = isInFocusMode ? [styles.flex1, styles.flexRow, styles.overflowHidden, StyleUtils.getCompactContentContainerStyles()] : [styles.flex1];
 
-    const hoveredBackgroundColor = !!styles.sidebarLinkHover && 'backgroundColor' in styles.sidebarLinkHover ? styles.sidebarLinkHover.backgroundColor : theme.sidebar;
-    const focusedBackgroundColor = styles.sidebarLinkActive.backgroundColor;
+    const defaultHoveredBackgroundColor = !!styles.sidebarLinkHover && 'backgroundColor' in styles.sidebarLinkHover ? styles.sidebarLinkHover.backgroundColor : theme.sidebar;
+    const hoveredBackgroundColor = hoveredStyle?.backgroundColor ?? defaultHoveredBackgroundColor;
+    const focusedBackgroundColor = selectedStyle?.backgroundColor ?? styles.sidebarLinkActive.backgroundColor;
 
     let avatarBackgroundColor: ColorValue = theme.sidebar;
     if (isOptionFocused) {
@@ -59,6 +64,8 @@ function useOptionRowChrome({isOptionFocused, viewMode}: UseOptionRowChromeParam
         sidebarInnerRowStyle,
         contentContainerStyles,
         avatarBackgroundColor,
+        selectedStyle,
+        hoveredStyle,
     };
 }
 

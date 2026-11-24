@@ -22,7 +22,7 @@ import type {WorkspaceSplitNavigatorParamList} from '@navigation/types';
 
 import {setAddNewCompanyCardStepAndData} from '@userActions/CompanyCards';
 import {openLink} from '@userActions/Link';
-import {callFunctionIfActionIsAllowed} from '@userActions/Session';
+import {callIfAuthenticated} from '@userActions/Session';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -103,7 +103,7 @@ function ImportFromFileStep() {
                         testID="ImportFromFileStep-TemplateLink"
                         role={CONST.ROLE.BUTTON}
                         accessibilityLabel={translate('workspace.companyCards.addNewCard.createFileFeedHelpText.templateLink')}
-                        sentryLabel="ImportFromFileStep-TemplateLink"
+                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.COMPANY_CARDS.IMPORT_FROM_FILE_TEMPLATE_LINK}
                         onPress={downloadTemplate}
                         style={styles.dInlineFlex}
                     >
@@ -117,7 +117,7 @@ function ImportFromFileStep() {
                         // while onPress preventDefault()s the anchor's default navigation and routes through openLink on every platform.
                         href={CONST.COMPANY_CARDS_CREATE_FILE_FEED_HELP_URL}
                         accessibilityLabel={translate('workspace.companyCards.addNewCard.createFileFeedHelpText.helpGuideLink')}
-                        sentryLabel="ImportFromFileStep-HelpGuideLink"
+                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.COMPANY_CARDS.IMPORT_FROM_FILE_HELP_GUIDE_LINK}
                         onPress={(event) => {
                             event?.preventDefault();
                             openLink(CONST.COMPANY_CARDS_CREATE_FILE_FEED_HELP_URL, environmentURL, false, session);
@@ -128,7 +128,10 @@ function ImportFromFileStep() {
                     </PressableWithoutFeedback>
                     <WrappingText text={translate('workspace.companyCards.addNewCard.createFileFeedHelpText.instructionEnd')} />
                 </View>
-                <MenuItem.Root onPress={callFunctionIfActionIsAllowed(() => Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_LAYOUT_NAME.getRoute(policyID)), false, session)}>
+                <MenuItem.Root
+                    onPress={callIfAuthenticated(() => Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_LAYOUT_NAME.getRoute(policyID)), session)}
+                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.COMPANY_CARDS.IMPORT_FROM_FILE_LAYOUT_NAME}
+                >
                     <MenuItemField.Row
                         name={translate('workspace.companyCards.addNewCard.companyCardLayoutName')}
                         value={companyCardLayoutName}
@@ -145,6 +148,7 @@ function ImportFromFileStep() {
                 </MenuItem.Root>
                 <View style={[styles.mh5, styles.pb5, styles.mt3, styles.flexGrow1, styles.justifyContentEnd, styles.gap3]}>
                     <Button
+                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.COMPANY_CARDS.IMPORT_FROM_FILE_DOWNLOAD_TEMPLATE}
                         size={CONST.BUTTON_SIZE.LARGE}
                         style={[styles.w100]}
                         onPress={downloadTemplate}
@@ -153,6 +157,7 @@ function ImportFromFileStep() {
                         <Button.Text>{translate('workspace.companyCards.addNewCard.downloadTemplate')}</Button.Text>
                     </Button>
                     <ButtonDisabledWhenOffline
+                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.COMPANY_CARDS.IMPORT_FROM_FILE_NEXT}
                         variant={CONST.BUTTON_VARIANT.SUCCESS}
                         size={CONST.BUTTON_SIZE.LARGE}
                         style={[styles.w100]}

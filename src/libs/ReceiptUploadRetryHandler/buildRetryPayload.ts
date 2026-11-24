@@ -1,7 +1,7 @@
 /** Decides whether a failed receipt upload can be retried and rebuilds its `RequestMoney` call from Onyx. */
 import {isLocalFile} from '@libs/fileDownload/FileUtils';
 import {getAllReportActions, isCreatedAction} from '@libs/ReportActionsUtils';
-import {getTransactionDetails} from '@libs/ReportUtils';
+import {getTransactionDetails, isMoneyRequestReport} from '@libs/ReportUtils';
 import {getIsFromGlobalCreate, isDistanceRequest, isPerDiemRequest, isTimeRequest} from '@libs/TransactionUtils';
 
 import {getAllPersonalDetails, getAllReports, getAllTransactionViolations} from '@userActions/IOU';
@@ -18,7 +18,7 @@ import type {FileObject} from '@src/types/utils/Attachment';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
-import type {ReceiptRetryContext} from './types';
+import type {ReceiptRetryContext, ReceiptRetryDispatchContext} from './types';
 
 import isRetrySupported from './isRetrySupported';
 
@@ -104,14 +104,15 @@ function buildRetryTransactionParams(context: ReceiptRetryContext, receiptFile: 
 /** Checks the action here too, not only in `retryReceiptUpload`, so the button is hidden instead of doing nothing. */
 function canBuildRetryPayload(context: ReceiptRetryContext): boolean {
     const {transaction, iouReport, receiptError, currentUserPersonalDetails} = context;
-    if (receiptError.action !== CONST.IOU.ACTION_PARAMS.MONEY_REQUEST) {
+    const wouldOverwriteReportWithExpense = !isMoneyRequestReport(iouReport);
+    if (receiptError.action !== CONST.IOU.ACTION_PARAMS.MONEY_REQUEST || wouldOverwriteReportWithExpense) {
         return false;
     }
     return isRetryableFlow(context) && !!iouReport?.reportID && !!transaction?.transactionID && !!resolveParticipant(iouReport, currentUserPersonalDetails.accountID);
 }
 
 /** Rebuilds the `RequestMoney` call behind a failed receipt upload from the records the failure left in Onyx. */
-function buildRetryPayload(context: ReceiptRetryContext, receiptFile: FileObject): RequestMoneyInformation | undefined {
+function buildRetryPayload(context: ReceiptRetryDispatchContext, receiptFile: FileObject): RequestMoneyInformation | undefined {
     const {
         transaction,
         iouReport,
@@ -120,6 +121,7 @@ function buildRetryPayload(context: ReceiptRetryContext, receiptFile: FileObject
         policyParams,
         isVendorMatchingBetaEnabled,
         rules,
+        personalDetailsByLogins,
         conciergeReportID,
         isSelfTourViewed,
         isASAPSubmitBetaEnabled,
@@ -166,6 +168,7 @@ function buildRetryPayload(context: ReceiptRetryContext, receiptFile: FileObject
         personalDetails: getAllPersonalDetails(),
         isVendorMatchingBetaEnabled,
         rules,
+        personalDetailsByLogins,
         conciergeChat: conciergeReportID ? getAllReports()?.[`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`] : undefined,
         isSelfTourViewed,
         isASAPSubmitBetaEnabled,

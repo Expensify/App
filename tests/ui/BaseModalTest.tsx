@@ -6,12 +6,16 @@ import type ReanimatedModalProps from '@components/Modal/ReanimatedModal/types';
 
 import type UseResponsiveLayout from '@hooks/useResponsiveLayout';
 
+import type ComposerFocusManagerType from '@libs/ComposerFocusManager';
+
 import type * as ModalActions from '@userActions/Modal';
 
 import CONST from '@src/CONST';
 
 import React from 'react';
 import {View} from 'react-native';
+
+import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 describe('BaseModal', () => {
     afterEach(() => {
@@ -164,9 +168,9 @@ describe('BaseModal', () => {
                     },
                 };
             });
-            jest.doMock('@hooks/useIsResizableSingleRHP', () => ({
+            jest.doMock('@hooks/useResizableSingleRHP', () => ({
                 __esModule: true,
-                default: () => isResizableSingleRHP,
+                default: () => ({isResizable: isResizableSingleRHP, isFloating: isResizableSingleRHP}),
             }));
             jest.doMock('@hooks/useSingleRHPWidth', () => ({
                 __esModule: true,
@@ -367,5 +371,42 @@ describe('BaseModal', () => {
 
         unmount();
         expect(setModalCovering).toHaveBeenLastCalledWith(coveringModalID, false);
+    });
+
+    it('resolves its ready-to-focus promise when it is unmounted while still visible', async () => {
+        // Given a shown confirm modal, which makes every delayed composer focus wait until the modal is gone
+        const modalProps: ReanimatedModalProps[] = [];
+        jest.doMock('react', () => React);
+        jest.doMock('@components/Modal/ReanimatedModal', () => ({
+            __esModule: true,
+            default: (props: ReanimatedModalProps) => {
+                modalProps.push(props);
+                return null;
+            },
+        }));
+        const {default: BaseModal} = jest.requireActual<{default: typeof BaseModalComponent}>('@components/Modal/BaseModal');
+        const {default: ComposerFocusManager} = jest.requireActual<{default: typeof ComposerFocusManagerType}>('@libs/ComposerFocusManager');
+        const {unmount} = render(
+            <BaseModal
+                isVisible
+                type={CONST.MODAL.MODAL_TYPE.CONFIRM}
+            >
+                {null}
+            </BaseModal>,
+        );
+        modalProps.at(-1)?.onModalWillShow?.();
+        let isReadyToFocus = false;
+        ComposerFocusManager.isReadyToFocus().then(() => {
+            isReadyToFocus = true;
+        });
+        await waitForBatchedUpdates();
+        expect(isReadyToFocus).toBe(false);
+
+        // When it is unmounted without its isVisible prop turning false, which is how the global modal stack closes a modal
+        unmount();
+        await waitForBatchedUpdates();
+
+        // Then the wait is over, so a composer that asks for focus afterwards, like the inline edit composer, still gets it
+        expect(isReadyToFocus).toBe(true);
     });
 });

@@ -19,6 +19,7 @@ import {close} from '@userActions/Modal';
 
 import CONST from '@src/CONST';
 
+import type {ComponentRef} from 'react';
 import type {TextInput, View} from 'react-native';
 
 import React, {createRef} from 'react';
@@ -82,12 +83,14 @@ describe('EmojiPicker anchors', () => {
     it.each(['view', 'input'])('preserves the supplied %s ref and measures before a closing menu destroys the anchor', async (kind) => {
         // Given a native anchor whose measurement is available only while its context menu exists
         const order: string[] = [];
-        const measureInWindow = jest.fn((callback: Parameters<View['measureInWindow']>[0]) => {
+        const measureInWindow = jest.fn((callback: Parameters<ComponentRef<typeof View>['measureInWindow']>[0]) => {
             order.push('measure');
             callback(10, 20, 30, 40);
         });
         const blur = jest.fn(() => order.push('blur'));
-        const anchor: EmojiPopoverAnchor = {current: kind === 'view' ? createMock<View>({blur, measureInWindow}) : createMock<TextInput>({blur, measureInWindow})};
+        const anchor: EmojiPopoverAnchor = {
+            current: kind === 'view' ? createMock<ComponentRef<typeof View>>({blur, measureInWindow}) : createMock<ComponentRef<typeof TextInput>>({blur, measureInWindow}),
+        };
         jest.mocked(close).mockImplementation((callback) => {
             order.push('close');
             anchor.current = null;
@@ -147,7 +150,7 @@ describe('EmojiPicker anchors', () => {
         // Given a measurable anchor and the picker dimensions listener
         const dimensions = jest.spyOn(Dimensions, 'addEventListener');
         let x = 10;
-        const anchor: EmojiPopoverAnchor = {current: createMock<View>({blur: jest.fn(), measureInWindow: (callback) => callback(x, 20, 30, 40)})};
+        const anchor: EmojiPopoverAnchor = {current: createMock<ComponentRef<typeof View>>({blur: jest.fn(), measureInWindow: (callback) => callback(x, 20, 30, 40)})};
         const {ref, picker, rerender} = renderEmojiPicker();
         await act(async () => {
             picker.showEmojiPicker({emojiPopoverAnchor: anchor, onModalHide: jest.fn(), onEmojiSelected: jest.fn()});

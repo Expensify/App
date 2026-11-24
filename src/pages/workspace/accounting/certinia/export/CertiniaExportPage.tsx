@@ -18,6 +18,7 @@ import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 
 import CONST from '@src/CONST';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
+import type {SentryLabel} from '@src/types/utils/SentryLabel';
 
 import React from 'react';
 
@@ -27,6 +28,7 @@ type ExportRow = {
     helperText?: string;
     onPress?: () => void;
     subscribedSettings: string[];
+    sentryLabel: SentryLabel;
 };
 
 function CertiniaExportPage({policy}: WithPolicyConnectionsProps) {
@@ -50,6 +52,7 @@ function CertiniaExportPage({policy}: WithPolicyConnectionsProps) {
 
     const preferredExporterRow: ExportRow = {
         description: translate('workspace.accounting.preferredExporter'),
+        sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.CERTINIA.EXPORT_ROW.PREFERRED_EXPORTER,
         // We use the logical OR (||) here instead of ?? because `exporter` could be an empty string on a fresh connection
         title: exportConfig?.exporter || policyOwner,
         onPress: !policyID ? undefined : () => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.POLICY_ACCOUNTING_CERTINIA_PREFERRED_EXPORTER.path)),
@@ -60,18 +63,21 @@ function CertiniaExportPage({policy}: WithPolicyConnectionsProps) {
         preferredExporterRow,
         {
             description: translate('workspace.certinia.reportExportStatus.label'),
+            sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.CERTINIA.EXPORT_ROW.REPORT_EXPORT_STATUS,
             title: normalizedReportExportStatus ? translate(`workspace.certinia.reportExportStatus.values.${normalizedReportExportStatus}`) : exportStatus,
             onPress: !policyID ? undefined : () => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.POLICY_ACCOUNTING_CERTINIA_REPORT_EXPORT_STATUS.path)),
             subscribedSettings: [CONST.CERTINIA_CONFIG.EXPORT_STATUS],
         },
         {
             description: translate('workspace.certinia.exportReimbursable.label'),
+            sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.CERTINIA.EXPORT_ROW.EXPORT_REIMBURSABLE,
             title: translate('workspace.certinia.expenseReports'),
             helperText: translate('workspace.certinia.exportReimbursableExpenseReports.helperText'),
             subscribedSettings: [CONST.CERTINIA_CONFIG.REIMBURSABLE],
         },
         {
             description: translate('workspace.certinia.exportNonReimbursable.label'),
+            sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.CERTINIA.EXPORT_ROW.EXPORT_NON_REIMBURSABLE,
             title: translate('workspace.certinia.expenseReports'),
             helperText: translate('workspace.certinia.exportNonReimbursableExpenseReports.helperText'),
             subscribedSettings: [CONST.CERTINIA_CONFIG.NON_REIMBURSABLE],
@@ -82,29 +88,34 @@ function CertiniaExportPage({policy}: WithPolicyConnectionsProps) {
         preferredExporterRow,
         {
             description: translate('workspace.certinia.exportStatus.label'),
+            sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.CERTINIA.EXPORT_ROW.EXPORT_STATUS,
             title: normalizedFFAExportStatus ? translate(`workspace.certinia.exportStatus.values.${normalizedFFAExportStatus}`) : undefined,
             onPress: !policyID ? undefined : () => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.POLICY_ACCOUNTING_CERTINIA_EXPORT_STATUS.path)),
             subscribedSettings: [CONST.CERTINIA_CONFIG.EXPORT_STATUS],
         },
         {
             description: translate('workspace.certinia.exportDate.label'),
+            sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.CERTINIA.EXPORT_ROW.EXPORT_DATE,
             title: exportDate ? translate(`workspace.certinia.exportDate.values.${exportDate}`) : undefined,
             onPress: !policyID ? undefined : () => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.POLICY_ACCOUNTING_CERTINIA_EXPORT_DATE.path)),
             subscribedSettings: [CONST.CERTINIA_CONFIG.EXPORT_DATE],
         },
         {
             description: translate('workspace.certinia.exportReimbursable.label'),
+            sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.CERTINIA.EXPORT_ROW.EXPORT_REIMBURSABLE,
             title: translate('workspace.certinia.payableInvoices'),
             helperText: translate('workspace.certinia.exportReimbursable.helperText'),
             subscribedSettings: [CONST.CERTINIA_CONFIG.REIMBURSABLE],
         },
         {
             description: translate('workspace.certinia.exportNonReimbursable.label'),
+            sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.CERTINIA.EXPORT_ROW.EXPORT_NON_REIMBURSABLE,
             title: translate('workspace.certinia.payableInvoices'),
             subscribedSettings: [CONST.CERTINIA_CONFIG.NON_REIMBURSABLE],
         },
         {
             description: translate('workspace.accounting.defaultVendor'),
+            sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.CERTINIA.EXPORT_ROW.DEFAULT_VENDOR,
             title: defaultVendorTitle,
             onPress: !policyID ? undefined : () => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.POLICY_ACCOUNTING_CERTINIA_DEFAULT_VENDOR.path)),
             subscribedSettings: [CONST.CERTINIA_CONFIG.VENDOR_ACCOUNT],
@@ -135,6 +146,7 @@ function CertiniaExportPage({policy}: WithPolicyConnectionsProps) {
                         pendingAction={pendingAction}
                     >
                         <MenuItemField
+                            sentryLabel={row.sentryLabel}
                             name={row.description}
                             onPress={row.onPress}
                             value={row.title}

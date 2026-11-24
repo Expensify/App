@@ -3,6 +3,7 @@ import {ModalActions} from '@components/Modal/Global/ModalContext';
 import useConfirmModal from '@hooks/useConfirmModal';
 import useLocalize from '@hooks/useLocalize';
 
+import getNavigationActionForReplay from '@libs/Navigation/helpers/getNavigationActionForReplay';
 import navigationRef from '@libs/Navigation/navigationRef';
 import {useRegisterTabSwitchGuard} from '@libs/Navigation/TabSwitchGuardContext';
 
@@ -24,6 +25,7 @@ function useDiscardChangesConfirmation({
     onVisibilityChange,
     onConfirm,
     onTabSwitchDiscard,
+    shouldCloseRHPOnDiscard = false,
 }: UseDiscardChangesConfirmationOptions): DiscardChangesConfirmation {
     const route = useRoute();
     const {translate} = useLocalize();
@@ -46,6 +48,8 @@ function useDiscardChangesConfirmation({
 
     useRegisterTabSwitchGuard(route.name, hasUnsavedChanges, onTabSwitchDiscard, onCancel);
 
+    const getActionToReplay = (action: NavigationAction) => (shouldCloseRHPOnDiscard ? getNavigationActionForReplay(action) : action);
+
     const showDiscardModal = (blockedAction?: NavigationAction) => {
         blockedNavigationAction.current = blockedAction;
         isDiscardModalOpen.current = true;
@@ -61,7 +65,7 @@ function useDiscardChangesConfirmation({
             const confirmNavigation = () => {
                 isReplayingBlockedNavigation.current = true;
                 if (blockedNavigationAction.current) {
-                    navigationRef.current?.dispatch(blockedNavigationAction.current);
+                    navigationRef.current?.dispatch(getActionToReplay(blockedNavigationAction.current));
                     blockedNavigationAction.current = undefined;
                 } else {
                     navigationRef.current?.goBack();
@@ -77,7 +81,7 @@ function useDiscardChangesConfirmation({
     usePreventRemove(shouldPreventRemove, ({data}: {data: {action: NavigationAction}}) => {
         // The action delivered here carries react-navigation's visited-routes marker, so re-dispatching it skips this screen's prevention
         if (isReplayingBlockedNavigation.current || !hasUnsavedChanges()) {
-            navigationRef.current?.dispatch(data.action);
+            navigationRef.current?.dispatch(getActionToReplay(data.action));
             return;
         }
         if (isDiscardModalOpen.current) {

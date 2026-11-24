@@ -12,9 +12,12 @@ import PressableWithSecondaryInteraction from '@components/PressableWithSecondar
 
 import Log from '@libs/Log';
 
+import CONST from '@src/CONST';
+
 import type {EventListenerCallback, EventMapCore, NavigationProp, NavigationState, ParamListBase} from '@react-navigation/native';
 import type {ComponentRef, PropsWithChildren, ReactNode} from 'react';
 import type {GestureResponderEvent, View as RNViewType} from 'react-native';
+import type {Writable} from 'type-fest';
 
 import {NavigationContext} from '@react-navigation/core';
 import React, {useEffect, useLayoutEffect, useRef} from 'react';
@@ -23,6 +26,7 @@ import {View} from 'react-native';
 import createMock from '../utils/createMock';
 
 const {useIsAtActiveLevel} = PopoverMenu;
+const sentryLabel = CONST.SENTRY_LABEL.TEST.LABEL;
 
 type MenuItemMockProps = Record<string, unknown> & {
     title?: string;
@@ -275,6 +279,7 @@ describe('PopoverMenu V2', () => {
                         <PopoverMenu.Item
                             text="Hidden"
                             onSelect={() => {}}
+                            sentryLabel={sentryLabel}
                         />
                     </PopoverMenu.Content>
                 </Harness>,
@@ -290,6 +295,7 @@ describe('PopoverMenu V2', () => {
                         <PopoverMenu.Item
                             text="Visible"
                             onSelect={() => {}}
+                            sentryLabel={sentryLabel}
                         />
                     </PopoverMenu.Content>
                 </Harness>,
@@ -304,6 +310,7 @@ describe('PopoverMenu V2', () => {
                         <PopoverMenu.Item
                             text="Default"
                             onSelect={() => {}}
+                            sentryLabel={sentryLabel}
                         />
                     </PopoverMenu.Content>
                 </Harness>,
@@ -322,6 +329,7 @@ describe('PopoverMenu V2', () => {
                         <PopoverMenu.Item
                             text="A"
                             onSelect={() => {}}
+                            sentryLabel={sentryLabel}
                         />
                     </PopoverMenu.Content>
                 </Harness>,
@@ -339,6 +347,7 @@ describe('PopoverMenu V2', () => {
                             <PopoverMenu.Item
                                 text="A"
                                 onSelect={() => {}}
+                                sentryLabel={sentryLabel}
                             />
                         </PopoverMenu.Content>
                     </PopoverMenu.Root>,
@@ -357,6 +366,7 @@ describe('PopoverMenu V2', () => {
                         <PopoverMenu.Item
                             text="A"
                             onSelect={() => {}}
+                            sentryLabel={sentryLabel}
                         />
                     </PopoverMenu.Content>
                 </Harness>
@@ -378,6 +388,7 @@ describe('PopoverMenu V2', () => {
                         <PopoverMenu.Item
                             text="A"
                             onSelect={() => {}}
+                            sentryLabel={sentryLabel}
                         />
                     </PopoverMenu.Content>
                 </Harness>
@@ -403,6 +414,7 @@ describe('PopoverMenu V2', () => {
                         <PopoverMenu.Item
                             text="A"
                             onSelect={() => {}}
+                            sentryLabel={sentryLabel}
                         />
                     </PopoverMenu.Content>
                 </Harness>,
@@ -425,11 +437,11 @@ describe('PopoverMenu V2', () => {
             render(
                 <NavigationContext.Provider value={mockNavigation}>
                     <PopoverMenu.Root>
-                        <PopoverMenu.Trigger>
+                        <PopoverMenu.Trigger sentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}>
                             <PressableWithFeedback
                                 onPress={() => {}}
                                 accessibilityLabel="Open menu"
-                                sentryLabel="TriggerTest"
+                                sentryLabel={CONST.SENTRY_LABEL.HEADER.MORE_BUTTON}
                                 testID="trigger"
                             >
                                 <View testID="trigger-icon" />
@@ -454,11 +466,11 @@ describe('PopoverMenu V2', () => {
             render(
                 <NavigationContext.Provider value={mockNavigation}>
                     <PopoverMenu.Root>
-                        <PopoverMenu.Trigger>
+                        <PopoverMenu.Trigger sentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}>
                             <PressableWithFeedback
                                 onPress={consumerOnPress}
                                 accessibilityLabel="Open menu"
-                                sentryLabel="TriggerTest"
+                                sentryLabel={CONST.SENTRY_LABEL.HEADER.MORE_BUTTON}
                                 testID="trigger"
                             >
                                 <View testID="trigger-icon" />
@@ -481,11 +493,11 @@ describe('PopoverMenu V2', () => {
             render(
                 <NavigationContext.Provider value={mockNavigation}>
                     <PopoverMenu.Root>
-                        <PopoverMenu.Trigger>
+                        <PopoverMenu.Trigger sentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}>
                             <PressableWithFeedback
                                 onPress={consumerOnPress}
                                 accessibilityLabel="Open menu"
-                                sentryLabel="TriggerTest"
+                                sentryLabel={CONST.SENTRY_LABEL.HEADER.MORE_BUTTON}
                                 testID="trigger"
                             >
                                 <View testID="trigger-icon" />
@@ -513,10 +525,10 @@ describe('PopoverMenu V2', () => {
             render(
                 <NavigationContext.Provider value={mockNavigation}>
                     <PopoverMenu.Root>
-                        <PopoverMenu.Trigger>
+                        <PopoverMenu.Trigger sentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}>
                             <PressableWithFeedback
                                 accessibilityLabel="X"
-                                sentryLabel="X"
+                                sentryLabel={CONST.SENTRY_LABEL.HEADER.MORE_BUTTON}
                                 testID="trigger"
                             >
                                 <View />
@@ -535,12 +547,12 @@ describe('PopoverMenu V2', () => {
             render(
                 <NavigationContext.Provider value={mockNavigation}>
                     <PopoverMenu.Root>
-                        <PopoverMenu.Trigger>
+                        <PopoverMenu.Trigger sentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}>
                             <PressableWithFeedback
                                 ref={consumerRef}
                                 onPress={() => {}}
                                 accessibilityLabel="Open menu"
-                                sentryLabel="TriggerTest"
+                                sentryLabel={CONST.SENTRY_LABEL.HEADER.MORE_BUTTON}
                                 testID="trigger"
                             >
                                 <View testID="trigger-icon" />
@@ -560,23 +572,23 @@ describe('PopoverMenu V2', () => {
             render(
                 <NavigationContext.Provider value={mockNavigation}>
                     <PopoverMenu.Root>
-                        <PopoverMenu.Trigger>
+                        <PopoverMenu.Trigger sentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}>
                             <PressableWithFeedback
                                 ref={refA}
                                 onPress={consumerOnPressA}
                                 accessibilityLabel="Open A"
-                                sentryLabel="A"
+                                sentryLabel={CONST.SENTRY_LABEL.HEADER.MORE_BUTTON}
                                 testID="trigger-a"
                             >
                                 <View />
                             </PressableWithFeedback>
                         </PopoverMenu.Trigger>
-                        <PopoverMenu.Trigger>
+                        <PopoverMenu.Trigger sentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}>
                             <PressableWithFeedback
                                 ref={refB}
                                 onPress={consumerOnPressB}
                                 accessibilityLabel="Open B"
-                                sentryLabel="B"
+                                sentryLabel={CONST.SENTRY_LABEL.HEADER.MORE_BUTTON}
                                 testID="trigger-b"
                             >
                                 <View />
@@ -600,12 +612,12 @@ describe('PopoverMenu V2', () => {
             render(
                 <NavigationContext.Provider value={mockNavigation}>
                     <PopoverMenu.Root>
-                        <PopoverMenu.Trigger>
+                        <PopoverMenu.Trigger sentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}>
                             <PassthroughWrapper>
                                 <PassthroughWrapper>
                                     <PressableWithFeedback
                                         accessibilityLabel="Open menu"
-                                        sentryLabel="TriggerTest"
+                                        sentryLabel={CONST.SENTRY_LABEL.HEADER.MORE_BUTTON}
                                         testID="trigger"
                                     >
                                         <View testID="trigger-icon" />
@@ -627,12 +639,12 @@ describe('PopoverMenu V2', () => {
             render(
                 <NavigationContext.Provider value={mockNavigation}>
                     <PopoverMenu.Root>
-                        <PopoverMenu.Trigger>
+                        <PopoverMenu.Trigger sentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}>
                             <>
                                 <View testID="trigger-sibling" />
                                 <PressableWithFeedback
                                     accessibilityLabel="Open menu"
-                                    sentryLabel="TriggerTest"
+                                    sentryLabel={CONST.SENTRY_LABEL.HEADER.MORE_BUTTON}
                                     testID="trigger"
                                 >
                                     <View />
@@ -658,7 +670,7 @@ describe('PopoverMenu V2', () => {
             render(
                 <NavigationContext.Provider value={mockNavigation}>
                     <PopoverMenu.Root>
-                        <PopoverMenu.Trigger>
+                        <PopoverMenu.Trigger sentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}>
                             <CapturePressResponderSlot />
                         </PopoverMenu.Trigger>
                     </PopoverMenu.Root>
@@ -686,11 +698,12 @@ describe('PopoverMenu V2', () => {
             render(
                 <NavigationContext.Provider value={mockNavigation}>
                     <PopoverMenu.Root>
-                        <PopoverMenu.SecondaryInteractionTrigger>
+                        <PopoverMenu.SecondaryInteractionTrigger sentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}>
                             <PressableWithSecondaryInteraction
                                 onSecondaryInteraction={() => {}}
                                 accessibilityLabel="Long-press me"
                                 testID="secondary-trigger"
+                                sentryLabel={sentryLabel}
                             >
                                 <View testID="secondary-icon" />
                             </PressableWithSecondaryInteraction>
@@ -721,11 +734,12 @@ describe('PopoverMenu V2', () => {
             render(
                 <NavigationContext.Provider value={mockNavigation}>
                     <PopoverMenu.Root>
-                        <PopoverMenu.SecondaryInteractionTrigger>
+                        <PopoverMenu.SecondaryInteractionTrigger sentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}>
                             <PressableWithSecondaryInteraction
                                 onSecondaryInteraction={consumerOnSecondary}
                                 accessibilityLabel="Long-press me"
                                 testID="secondary-trigger"
+                                sentryLabel={sentryLabel}
                             >
                                 <View testID="secondary-icon" />
                             </PressableWithSecondaryInteraction>
@@ -749,11 +763,12 @@ describe('PopoverMenu V2', () => {
             render(
                 <NavigationContext.Provider value={mockNavigation}>
                     <PopoverMenu.Root>
-                        <PopoverMenu.SecondaryInteractionTrigger>
+                        <PopoverMenu.SecondaryInteractionTrigger sentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}>
                             <PressableWithSecondaryInteraction
                                 onSecondaryInteraction={consumerOnSecondary}
                                 accessibilityLabel="Long-press me"
                                 testID="secondary-trigger"
+                                sentryLabel={sentryLabel}
                             >
                                 <View testID="secondary-icon" />
                             </PressableWithSecondaryInteraction>
@@ -792,6 +807,7 @@ describe('PopoverMenu V2', () => {
                                 <PopoverMenu.Item
                                     text="X"
                                     onSelect={() => {}}
+                                    sentryLabel={sentryLabel}
                                 />
                             </PopoverMenu.Sub.Content>
                         </PopoverMenu.Sub>
@@ -827,6 +843,7 @@ describe('PopoverMenu V2', () => {
                                 <PopoverMenu.Item
                                     text="Fast"
                                     onSelect={() => {}}
+                                    sentryLabel={sentryLabel}
                                 />
                             </PopoverMenu.Sub.Content>
                         </PopoverMenu.Sub>
@@ -859,6 +876,7 @@ describe('PopoverMenu V2', () => {
                                 <PopoverMenu.Item
                                     text="Fast"
                                     onSelect={() => {}}
+                                    sentryLabel={sentryLabel}
                                 />
                             </PopoverMenu.Sub.Content>
                         </PopoverMenu.Sub>
@@ -881,7 +899,10 @@ describe('PopoverMenu V2', () => {
                 <Harness initialOpen>
                     <PopoverMenu.Content>
                         <PopoverMenu.Sub id="probe-sub">
-                            <PopoverMenu.Sub.Trigger text="Open" />
+                            <PopoverMenu.Sub.Trigger
+                                text="Open"
+                                sentryLabel={sentryLabel}
+                            />
                             <PopoverMenu.Sub.Content>
                                 <ProbeHook />
                             </PopoverMenu.Sub.Content>
@@ -914,7 +935,10 @@ describe('PopoverMenu V2', () => {
                     <PopoverMenu.Content>
                         <NavigationProbe />
                         <PopoverMenu.Sub id="speed-sub">
-                            <PopoverMenu.Sub.Trigger text="Open" />
+                            <PopoverMenu.Sub.Trigger
+                                text="Open"
+                                sentryLabel={sentryLabel}
+                            />
                             <PopoverMenu.Sub.Content>
                                 <ProbeHook />
                             </PopoverMenu.Sub.Content>
@@ -1063,6 +1087,7 @@ describe('PopoverMenu V2', () => {
                         <PopoverMenu.Item
                             text="Pay"
                             onSelect={onSelect}
+                            sentryLabel={sentryLabel}
                         />
                     </PopoverMenu.Content>
                 </Harness>,
@@ -1082,6 +1107,7 @@ describe('PopoverMenu V2', () => {
                         <PopoverMenu.Item
                             text="Pay"
                             onSelect={() => {}}
+                            sentryLabel={sentryLabel}
                         />
                     </PopoverMenu.Content>
                 </Harness>,
@@ -1102,6 +1128,7 @@ describe('PopoverMenu V2', () => {
                         <PopoverMenu.Item
                             text="Stay"
                             onSelect={(event) => event.preventDefault()}
+                            sentryLabel={sentryLabel}
                         />
                     </PopoverMenu.Content>
                 </Harness>,
@@ -1120,6 +1147,7 @@ describe('PopoverMenu V2', () => {
                             text="Disabled"
                             disabled
                             onSelect={onSelect}
+                            sentryLabel={sentryLabel}
                         />
                     </PopoverMenu.Content>
                 </Harness>,
@@ -1136,7 +1164,10 @@ describe('PopoverMenu V2', () => {
                     onOpenChange={onOpenChange}
                 >
                     <PopoverMenu.Content>
-                        <PopoverMenu.Item text="Plain" />
+                        <PopoverMenu.Item
+                            text="Plain"
+                            sentryLabel={sentryLabel}
+                        />
                     </PopoverMenu.Content>
                 </Harness>,
             );
@@ -1152,14 +1183,17 @@ describe('PopoverMenu V2', () => {
                         <PopoverMenu.Item
                             text="A"
                             onSelect={() => {}}
+                            sentryLabel={sentryLabel}
                         />
                         <PopoverMenu.Item
                             text="B"
                             onSelect={() => {}}
+                            sentryLabel={sentryLabel}
                         />
                         <PopoverMenu.Item
                             text="Last"
                             onSelect={() => {}}
+                            sentryLabel={sentryLabel}
                         />
                     </PopoverMenu.Content>
                 </Harness>,
@@ -1179,6 +1213,7 @@ describe('PopoverMenu V2', () => {
                             text="Wallet"
                             isSelected
                             onSelect={() => {}}
+                            sentryLabel={sentryLabel}
                         />
                     </PopoverMenu.Content>
                 </Harness>,
@@ -1196,6 +1231,7 @@ describe('PopoverMenu V2', () => {
                         <PopoverMenu.RadioItem
                             text="Wallet"
                             onSelect={() => {}}
+                            sentryLabel={sentryLabel}
                         />
                     </PopoverMenu.Content>
                 </Harness>,
@@ -1218,6 +1254,7 @@ describe('PopoverMenu V2', () => {
                         <PopoverMenu.RadioItem
                             text="Pick"
                             onSelect={onSelect}
+                            sentryLabel={sentryLabel}
                         />
                     </PopoverMenu.Content>
                 </Harness>,
@@ -1238,6 +1275,7 @@ describe('PopoverMenu V2', () => {
                             isSelected
                             rightIcon={customRightIcon}
                             onSelect={() => {}}
+                            sentryLabel={sentryLabel}
                         />
                     </PopoverMenu.Content>
                 </Harness>,
@@ -1257,6 +1295,7 @@ describe('PopoverMenu V2', () => {
                             text="Plain"
                             rightIcon={customRightIcon}
                             onSelect={() => {}}
+                            sentryLabel={sentryLabel}
                         />
                     </PopoverMenu.Content>
                 </Harness>,
@@ -1277,6 +1316,7 @@ describe('PopoverMenu V2', () => {
                             disabled
                             isSelected
                             onSelect={onSelect}
+                            sentryLabel={sentryLabel}
                         />
                     </PopoverMenu.Content>
                 </Harness>,
@@ -1295,6 +1335,7 @@ describe('PopoverMenu V2', () => {
                         <PopoverMenu.Item
                             text="Below"
                             onSelect={() => {}}
+                            sentryLabel={sentryLabel}
                         />
                     </PopoverMenu.Content>
                 </Harness>,
@@ -1313,6 +1354,7 @@ describe('PopoverMenu V2', () => {
                         <PopoverMenu.Item
                             text="Wallet"
                             onSelect={() => {}}
+                            sentryLabel={sentryLabel}
                         />
                     </PopoverMenu.Content>
                 </Harness>,
@@ -1326,12 +1368,16 @@ describe('PopoverMenu V2', () => {
                     <PopoverMenu.Content>
                         <PopoverMenu.Header>Pick a payment</PopoverMenu.Header>
                         <PopoverMenu.Sub id="sub-test">
-                            <PopoverMenu.Sub.Trigger text="Pay as business" />
+                            <PopoverMenu.Sub.Trigger
+                                text="Pay as business"
+                                sentryLabel={sentryLabel}
+                            />
                             <PopoverMenu.Sub.Content>
                                 <PopoverMenu.Sub.BackButton text="Business" />
                                 <PopoverMenu.Item
                                     text="Inner"
                                     onSelect={() => {}}
+                                    sentryLabel={sentryLabel}
                                 />
                             </PopoverMenu.Sub.Content>
                         </PopoverMenu.Sub>
@@ -1351,20 +1397,26 @@ describe('PopoverMenu V2', () => {
                     <PopoverMenu.Item
                         text="Top 1"
                         onSelect={() => {}}
+                        sentryLabel={sentryLabel}
                     />
                     <PopoverMenu.Sub id="sub-test">
-                        <PopoverMenu.Sub.Trigger text="Pay as business" />
+                        <PopoverMenu.Sub.Trigger
+                            text="Pay as business"
+                            sentryLabel={sentryLabel}
+                        />
                         <PopoverMenu.Sub.Content>
                             <PopoverMenu.Sub.BackButton text="Business" />
                             <PopoverMenu.Item
                                 text="Sub option"
                                 onSelect={() => {}}
+                                sentryLabel={sentryLabel}
                             />
                         </PopoverMenu.Sub.Content>
                     </PopoverMenu.Sub>
                     <PopoverMenu.Item
                         text="Top 2"
                         onSelect={() => {}}
+                        sentryLabel={sentryLabel}
                     />
                 </PopoverMenu.Content>
             </Harness>
@@ -1406,19 +1458,21 @@ describe('PopoverMenu V2', () => {
                             <PopoverMenu.Sub.Trigger
                                 text="Drill"
                                 onPress={consumerOnPress}
+                                sentryLabel={sentryLabel}
                             />
                             <PopoverMenu.Sub.Content>
                                 <PopoverMenu.Sub.BackButton text="Back" />
                                 <PopoverMenu.Item
                                     text="Inner"
                                     onSelect={() => {}}
+                                    sentryLabel={sentryLabel}
                                 />
                             </PopoverMenu.Sub.Content>
                         </PopoverMenu.Sub>
                     </PopoverMenu.Content>
                 </Harness>,
             );
-            const event = createMock<GestureResponderEvent>({
+            const event: Writable<GestureResponderEvent> = createMock<GestureResponderEvent>({
                 defaultPrevented: false,
                 preventDefault() {
                     event.defaultPrevented = true;
@@ -1444,11 +1498,15 @@ describe('PopoverMenu V2', () => {
                 >
                     <PopoverMenu.Content>
                         <PopoverMenu.Sub id="sub-test">
-                            <PopoverMenu.Sub.Trigger text="Sub" />
+                            <PopoverMenu.Sub.Trigger
+                                text="Sub"
+                                sentryLabel={sentryLabel}
+                            />
                             <PopoverMenu.Sub.Content>
                                 <PopoverMenu.Item
                                     text="Choose"
                                     onSelect={() => {}}
+                                    sentryLabel={sentryLabel}
                                 />
                             </PopoverMenu.Sub.Content>
                         </PopoverMenu.Sub>
@@ -1471,12 +1529,16 @@ describe('PopoverMenu V2', () => {
                     >
                         <PopoverMenu.Content>
                             <PopoverMenu.Sub id="A">
-                                <PopoverMenu.Sub.Trigger text="Open Sub" />
+                                <PopoverMenu.Sub.Trigger
+                                    text="Open Sub"
+                                    sentryLabel={sentryLabel}
+                                />
                                 <PopoverMenu.Sub.Content>
                                     <PopoverMenu.Sub.BackButton text="Back" />
                                     <PopoverMenu.Item
                                         text="Choose"
                                         onSelect={() => {}}
+                                        sentryLabel={sentryLabel}
                                     />
                                 </PopoverMenu.Sub.Content>
                             </PopoverMenu.Sub>
@@ -1508,12 +1570,16 @@ describe('PopoverMenu V2', () => {
                     <PopoverMenu.Content>
                         <NavProbe />
                         <PopoverMenu.Sub id="A">
-                            <PopoverMenu.Sub.Trigger text="Open Sub" />
+                            <PopoverMenu.Sub.Trigger
+                                text="Open Sub"
+                                sentryLabel={sentryLabel}
+                            />
                             <PopoverMenu.Sub.Content>
                                 <PopoverMenu.Sub.BackButton text="Back" />
                                 <PopoverMenu.Item
                                     text="Choose"
                                     onSelect={() => {}}
+                                    sentryLabel={sentryLabel}
                                 />
                             </PopoverMenu.Sub.Content>
                         </PopoverMenu.Sub>
@@ -1539,12 +1605,16 @@ describe('PopoverMenu V2', () => {
                     <PopoverMenu.Content>
                         <NavProbe />
                         <PopoverMenu.Sub id="A">
-                            <PopoverMenu.Sub.Trigger text="Open Sub" />
+                            <PopoverMenu.Sub.Trigger
+                                text="Open Sub"
+                                sentryLabel={sentryLabel}
+                            />
                             <PopoverMenu.Sub.Content>
                                 <PopoverMenu.Sub.BackButton text="Back" />
                                 <PopoverMenu.Item
                                     text="Choose"
                                     onSelect={() => {}}
+                                    sentryLabel={sentryLabel}
                                 />
                             </PopoverMenu.Sub.Content>
                         </PopoverMenu.Sub>
@@ -1563,20 +1633,28 @@ describe('PopoverMenu V2', () => {
                 <Harness initialOpen>
                     <PopoverMenu.Content>
                         <PopoverMenu.Sub id="A">
-                            <PopoverMenu.Sub.Trigger text="Open A" />
+                            <PopoverMenu.Sub.Trigger
+                                text="Open A"
+                                sentryLabel={sentryLabel}
+                            />
                             <PopoverMenu.Sub.Content>
                                 <PopoverMenu.Sub.BackButton text="Back to root" />
                                 <PopoverMenu.Item
                                     text="A item"
                                     onSelect={() => {}}
+                                    sentryLabel={sentryLabel}
                                 />
                                 <PopoverMenu.Sub id="B">
-                                    <PopoverMenu.Sub.Trigger text="Open B" />
+                                    <PopoverMenu.Sub.Trigger
+                                        text="Open B"
+                                        sentryLabel={sentryLabel}
+                                    />
                                     <PopoverMenu.Sub.Content>
                                         <PopoverMenu.Sub.BackButton text="Back to A" />
                                         <PopoverMenu.Item
                                             text="B item"
                                             onSelect={() => {}}
+                                            sentryLabel={sentryLabel}
                                         />
                                     </PopoverMenu.Sub.Content>
                                 </PopoverMenu.Sub>
@@ -1614,14 +1692,19 @@ describe('PopoverMenu V2', () => {
                             <PopoverMenu.Item
                                 text="Top"
                                 onSelect={() => {}}
+                                sentryLabel={sentryLabel}
                             />
                             {showSub && (
                                 <PopoverMenu.Sub id="A">
-                                    <PopoverMenu.Sub.Trigger text="Open A" />
+                                    <PopoverMenu.Sub.Trigger
+                                        text="Open A"
+                                        sentryLabel={sentryLabel}
+                                    />
                                     <PopoverMenu.Sub.Content>
                                         <PopoverMenu.Item
                                             text="A item"
                                             onSelect={() => {}}
+                                            sentryLabel={sentryLabel}
                                         />
                                     </PopoverMenu.Sub.Content>
                                 </PopoverMenu.Sub>
@@ -1650,19 +1733,27 @@ describe('PopoverMenu V2', () => {
                             <PopoverMenu.Item
                                 text="Top"
                                 onSelect={() => {}}
+                                sentryLabel={sentryLabel}
                             />
                             {showSubs && (
                                 <PopoverMenu.Sub id="A">
-                                    <PopoverMenu.Sub.Trigger text="Open A" />
+                                    <PopoverMenu.Sub.Trigger
+                                        text="Open A"
+                                        sentryLabel={sentryLabel}
+                                    />
                                     <PopoverMenu.Sub.Content>
                                         <PopoverMenu.Sub.BackButton text="Back to root" />
                                         <PopoverMenu.Sub id="B">
-                                            <PopoverMenu.Sub.Trigger text="Open B" />
+                                            <PopoverMenu.Sub.Trigger
+                                                text="Open B"
+                                                sentryLabel={sentryLabel}
+                                            />
                                             <PopoverMenu.Sub.Content>
                                                 <PopoverMenu.Sub.BackButton text="Back to A" />
                                                 <PopoverMenu.Item
                                                     text="B item"
                                                     onSelect={() => {}}
+                                                    sentryLabel={sentryLabel}
                                                 />
                                             </PopoverMenu.Sub.Content>
                                         </PopoverMenu.Sub>
@@ -1699,17 +1790,24 @@ describe('PopoverMenu V2', () => {
                         <PopoverMenu.Content>
                             <NavProbe />
                             <PopoverMenu.Sub id="A">
-                                <PopoverMenu.Sub.Trigger text="Open A" />
+                                <PopoverMenu.Sub.Trigger
+                                    text="Open A"
+                                    sentryLabel={sentryLabel}
+                                />
                                 <PopoverMenu.Sub.Content>
                                     <PopoverMenu.Sub.BackButton text="Back to root" />
                                     {showInner && (
                                         <PopoverMenu.Sub id="B">
-                                            <PopoverMenu.Sub.Trigger text="Open B" />
+                                            <PopoverMenu.Sub.Trigger
+                                                text="Open B"
+                                                sentryLabel={sentryLabel}
+                                            />
                                             <PopoverMenu.Sub.Content>
                                                 <PopoverMenu.Sub.BackButton text="Back to A" />
                                                 <PopoverMenu.Item
                                                     text="B item"
                                                     onSelect={() => {}}
+                                                    sentryLabel={sentryLabel}
                                                 />
                                             </PopoverMenu.Sub.Content>
                                         </PopoverMenu.Sub>
@@ -1744,13 +1842,17 @@ describe('PopoverMenu V2', () => {
                 <Harness initialOpen>
                     <PopoverMenu.Content>
                         <PopoverMenu.Sub id="sub-test">
-                            <PopoverMenu.Sub.Trigger text="Trigger" />
+                            <PopoverMenu.Sub.Trigger
+                                text="Trigger"
+                                sentryLabel={sentryLabel}
+                            />
                             <PopoverMenu.Sub.Content>
                                 <PopoverMenu.Sub.BackButton text="Back" />
                                 <CustomRow />
                                 <PopoverMenu.Item
                                     text="Inner"
                                     onSelect={() => {}}
+                                    sentryLabel={sentryLabel}
                                 />
                             </PopoverMenu.Sub.Content>
                         </PopoverMenu.Sub>
@@ -1781,15 +1883,22 @@ describe('PopoverMenu V2', () => {
                 <Harness initialOpen>
                     <PopoverMenu.Content>
                         <PopoverMenu.Sub id="outer">
-                            <PopoverMenu.Sub.Trigger text="Outer" />
+                            <PopoverMenu.Sub.Trigger
+                                text="Outer"
+                                sentryLabel={sentryLabel}
+                            />
                             <PopoverMenu.Sub.Content>
                                 <SelfGatedRow />
                                 <PopoverMenu.Sub id="inner">
-                                    <PopoverMenu.Sub.Trigger text="Inner" />
+                                    <PopoverMenu.Sub.Trigger
+                                        text="Inner"
+                                        sentryLabel={sentryLabel}
+                                    />
                                     <PopoverMenu.Sub.Content>
                                         <PopoverMenu.Item
                                             text="Innermost"
                                             onSelect={() => {}}
+                                            sentryLabel={sentryLabel}
                                         />
                                     </PopoverMenu.Sub.Content>
                                 </PopoverMenu.Sub>
@@ -1820,17 +1929,24 @@ describe('PopoverMenu V2', () => {
                 <Harness initialOpen>
                     <PopoverMenu.Content>
                         <PopoverMenu.Sub id="outer">
-                            <PopoverMenu.Sub.Trigger text="Open outer" />
+                            <PopoverMenu.Sub.Trigger
+                                text="Open outer"
+                                sentryLabel={sentryLabel}
+                            />
                             <PopoverMenu.Sub.Content>
                                 <PopoverMenu.Sub.BackButton text="Back to root" />
                                 <PopoverMenu.Sub id="inner">
-                                    <PopoverMenu.Sub.Trigger text="Open inner" />
+                                    <PopoverMenu.Sub.Trigger
+                                        text="Open inner"
+                                        sentryLabel={sentryLabel}
+                                    />
                                     <PopoverMenu.Sub.Content>
                                         <PopoverMenu.Sub.BackButton text="Back to outer" />
                                         <InnerCustomRow />
                                         <PopoverMenu.Item
                                             text="Innermost"
                                             onSelect={() => {}}
+                                            sentryLabel={sentryLabel}
                                         />
                                     </PopoverMenu.Sub.Content>
                                 </PopoverMenu.Sub>
@@ -1855,14 +1971,19 @@ describe('PopoverMenu V2', () => {
                         <PopoverMenu.Item
                             text="Above"
                             onSelect={() => {}}
+                            sentryLabel={sentryLabel}
                         />
                         <PopoverMenu.Sub id="sub-test">
-                            <PopoverMenu.Sub.Trigger text="Trigger" />
+                            <PopoverMenu.Sub.Trigger
+                                text="Trigger"
+                                sentryLabel={sentryLabel}
+                            />
                             <PopoverMenu.Sub.Content>
                                 <PopoverMenu.Sub.BackButton text="Back" />
                                 <PopoverMenu.Item
                                     text="Inner"
                                     onSelect={() => {}}
+                                    sentryLabel={sentryLabel}
                                 />
                             </PopoverMenu.Sub.Content>
                         </PopoverMenu.Sub>
@@ -1892,6 +2013,7 @@ describe('PopoverMenu V2', () => {
                             <PopoverMenu.Item
                                 text={`tick-${tick}`}
                                 onSelect={() => {}}
+                                sentryLabel={sentryLabel}
                             />
                             <RegisterSubProbe />
                         </PopoverMenu.Content>
@@ -1915,16 +2037,21 @@ describe('PopoverMenu V2', () => {
                 <Harness initialOpen>
                     <PopoverMenu.Content>
                         <PopoverMenu.Sub id="sub">
-                            <PopoverMenu.Sub.Trigger text="Open" />
+                            <PopoverMenu.Sub.Trigger
+                                text="Open"
+                                sentryLabel={sentryLabel}
+                            />
                             <PopoverMenu.Sub.Content>
                                 <PopoverMenu.Sub.BackButton text="Back" />
                                 <PopoverMenu.Item
                                     text="First"
                                     onSelect={() => {}}
+                                    sentryLabel={sentryLabel}
                                 />
                                 <PopoverMenu.Item
                                     text="Second"
                                     onSelect={() => {}}
+                                    sentryLabel={sentryLabel}
                                 />
                             </PopoverMenu.Sub.Content>
                         </PopoverMenu.Sub>
@@ -1953,22 +2080,29 @@ describe('PopoverMenu V2', () => {
                             <PopoverMenu.Item
                                 text="Outer-A"
                                 onSelect={() => {}}
+                                sentryLabel={sentryLabel}
                             />
                             <PopoverMenu.Item
                                 text="Outer-B"
                                 onSelect={() => {}}
+                                sentryLabel={sentryLabel}
                             />
                             {showSub && (
                                 <PopoverMenu.Sub id="sub">
-                                    <PopoverMenu.Sub.Trigger text="Open" />
+                                    <PopoverMenu.Sub.Trigger
+                                        text="Open"
+                                        sentryLabel={sentryLabel}
+                                    />
                                     <PopoverMenu.Sub.Content>
                                         <PopoverMenu.Item
                                             text="Inner-A"
                                             onSelect={() => {}}
+                                            sentryLabel={sentryLabel}
                                         />
                                         <PopoverMenu.Item
                                             text="Inner-B"
                                             onSelect={() => {}}
+                                            sentryLabel={sentryLabel}
                                         />
                                     </PopoverMenu.Sub.Content>
                                 </PopoverMenu.Sub>
@@ -2002,11 +2136,13 @@ describe('PopoverMenu V2', () => {
                         <PopoverMenu.Item
                             text="A"
                             onSelect={() => {}}
+                            sentryLabel={sentryLabel}
                         />
                         <PopoverMenu.Separator />
                         <PopoverMenu.Item
                             text="B"
                             onSelect={() => {}}
+                            sentryLabel={sentryLabel}
                         />
                     </PopoverMenu.Content>
                 </Harness>,
@@ -2022,11 +2158,15 @@ describe('PopoverMenu V2', () => {
                     <PopoverMenu.Content>
                         <PopoverMenu.Separator />
                         <PopoverMenu.Sub id="sub-test">
-                            <PopoverMenu.Sub.Trigger text="Sub" />
+                            <PopoverMenu.Sub.Trigger
+                                text="Sub"
+                                sentryLabel={sentryLabel}
+                            />
                             <PopoverMenu.Sub.Content>
                                 <PopoverMenu.Item
                                     text="Inner"
                                     onSelect={() => {}}
+                                    sentryLabel={sentryLabel}
                                 />
                             </PopoverMenu.Sub.Content>
                         </PopoverMenu.Sub>
@@ -2047,6 +2187,7 @@ describe('PopoverMenu V2', () => {
                     key={index}
                     text={`Item ${index}`}
                     onSelect={() => {}}
+                    sentryLabel={sentryLabel}
                 />
             ));
             render(
@@ -2065,6 +2206,7 @@ describe('PopoverMenu V2', () => {
                     key={index}
                     text={`Item ${index}`}
                     onSelect={() => {}}
+                    sentryLabel={sentryLabel}
                 />
             ));
             render(
@@ -2084,11 +2226,15 @@ describe('PopoverMenu V2', () => {
                     <PopoverMenu.Content>
                         <PopoverMenu.Group>
                             <PopoverMenu.Sub id="sub-test">
-                                <PopoverMenu.Sub.Trigger text="Open" />
+                                <PopoverMenu.Sub.Trigger
+                                    text="Open"
+                                    sentryLabel={sentryLabel}
+                                />
                                 <PopoverMenu.Sub.Content>
                                     <PopoverMenu.Item
                                         text="Inside"
                                         onSelect={() => {}}
+                                        sentryLabel={sentryLabel}
                                     />
                                 </PopoverMenu.Sub.Content>
                             </PopoverMenu.Sub>
@@ -2110,6 +2256,7 @@ describe('PopoverMenu V2', () => {
                             <PopoverMenu.Item
                                 text="USD"
                                 onSelect={() => {}}
+                                sentryLabel={sentryLabel}
                             />
                         </PopoverMenu.Group>
                     </PopoverMenu.Content>
@@ -2127,14 +2274,19 @@ describe('PopoverMenu V2', () => {
                             <PopoverMenu.Item
                                 text="USD"
                                 onSelect={() => {}}
+                                sentryLabel={sentryLabel}
                             />
                         </PopoverMenu.Group>
                         <PopoverMenu.Sub id="sub-test">
-                            <PopoverMenu.Sub.Trigger text="More" />
+                            <PopoverMenu.Sub.Trigger
+                                text="More"
+                                sentryLabel={sentryLabel}
+                            />
                             <PopoverMenu.Sub.Content>
                                 <PopoverMenu.Item
                                     text="Inner"
                                     onSelect={() => {}}
+                                    sentryLabel={sentryLabel}
                                 />
                             </PopoverMenu.Sub.Content>
                         </PopoverMenu.Sub>
@@ -2157,11 +2309,11 @@ describe('PopoverMenu V2', () => {
         it('throws when Trigger is rendered outside Root', () => {
             expect(() =>
                 render(
-                    <PopoverMenu.Trigger>
+                    <PopoverMenu.Trigger sentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}>
                         <PressableWithFeedback
                             onPress={() => {}}
                             accessibilityLabel="X"
-                            sentryLabel="X"
+                            sentryLabel={CONST.SENTRY_LABEL.HEADER.MORE_BUTTON}
                         >
                             <View />
                         </PressableWithFeedback>
@@ -2173,10 +2325,11 @@ describe('PopoverMenu V2', () => {
         it('throws when SecondaryInteractionTrigger is rendered outside Root', () => {
             expect(() =>
                 render(
-                    <PopoverMenu.SecondaryInteractionTrigger>
+                    <PopoverMenu.SecondaryInteractionTrigger sentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}>
                         <PressableWithSecondaryInteraction
                             onSecondaryInteraction={() => {}}
                             accessibilityLabel="X"
+                            sentryLabel={sentryLabel}
                         >
                             <View />
                         </PressableWithSecondaryInteraction>
@@ -2200,6 +2353,7 @@ describe('PopoverMenu V2', () => {
                         <PopoverMenu.Item
                             text="A"
                             onSelect={() => {}}
+                            sentryLabel={sentryLabel}
                         />
                     </PopoverMenu.Content>,
                 ),
@@ -2213,6 +2367,7 @@ describe('PopoverMenu V2', () => {
                         <PopoverMenu.Item
                             text="A"
                             onSelect={() => {}}
+                            sentryLabel={sentryLabel}
                         />
                     </Harness>,
                 ),
@@ -2236,7 +2391,10 @@ describe('PopoverMenu V2', () => {
                 render(
                     <Harness initialOpen>
                         <PopoverMenu.Sub id="sub-test">
-                            <PopoverMenu.Sub.Trigger text="X" />
+                            <PopoverMenu.Sub.Trigger
+                                text="X"
+                                sentryLabel={sentryLabel}
+                            />
                         </PopoverMenu.Sub>
                     </Harness>,
                 ),
@@ -2248,7 +2406,10 @@ describe('PopoverMenu V2', () => {
                 render(
                     <Harness initialOpen>
                         <PopoverMenu.Content>
-                            <PopoverMenu.Sub.Trigger text="X" />
+                            <PopoverMenu.Sub.Trigger
+                                text="X"
+                                sentryLabel={sentryLabel}
+                            />
                         </PopoverMenu.Content>
                     </Harness>,
                 ),
@@ -2324,6 +2485,7 @@ describe('PopoverMenu V2', () => {
                                 <PopoverMenu.Item
                                     text="X"
                                     onSelect={() => {}}
+                                    sentryLabel={sentryLabel}
                                 />
                             </PopoverMenu.Sub.Content>
                         </PopoverMenu.Content>
@@ -2359,6 +2521,7 @@ describe('PopoverMenu V2', () => {
                         <PopoverMenu.RadioItem
                             text="X"
                             onSelect={() => {}}
+                            sentryLabel={sentryLabel}
                         />
                     </Harness>,
                 ),
@@ -2394,6 +2557,7 @@ describe('PopoverMenu V2', () => {
                         <PopoverMenu.Item
                             text="X"
                             onSelect={() => {}}
+                            sentryLabel={sentryLabel}
                         />
                     </PopoverMenu.ScrollableContent>,
                 ),
@@ -2414,14 +2578,17 @@ describe('PopoverMenu V2', () => {
                         <PopoverMenu.Item
                             text="Alpha"
                             onSelect={() => {}}
+                            sentryLabel={sentryLabel}
                         />
                         <PopoverMenu.Item
                             text="Beta"
                             onSelect={() => {}}
+                            sentryLabel={sentryLabel}
                         />
                         <PopoverMenu.Item
                             text="Gamma"
                             onSelect={() => {}}
+                            sentryLabel={sentryLabel}
                         />
                     </PopoverMenu.Content>
                 </Harness>,
@@ -2447,15 +2614,18 @@ describe('PopoverMenu V2', () => {
                         <PopoverMenu.Item
                             text="A"
                             onSelect={() => {}}
+                            sentryLabel={sentryLabel}
                         />
                         <PopoverMenu.Item
                             text="B-disabled"
                             disabled
                             onSelect={() => {}}
+                            sentryLabel={sentryLabel}
                         />
                         <PopoverMenu.Item
                             text="C"
                             onSelect={() => {}}
+                            sentryLabel={sentryLabel}
                         />
                     </PopoverMenu.Content>
                 </Harness>,
@@ -2481,10 +2651,12 @@ describe('PopoverMenu V2', () => {
                         <PopoverMenu.Item
                             text="Alpha"
                             onSelect={onSelectAlpha}
+                            sentryLabel={sentryLabel}
                         />
                         <PopoverMenu.Item
                             text="Beta"
                             onSelect={onSelectBeta}
+                            sentryLabel={sentryLabel}
                         />
                     </PopoverMenu.Content>
                 </Harness>,
@@ -2507,6 +2679,7 @@ describe('PopoverMenu V2', () => {
                             text="Disabled"
                             disabled
                             onSelect={onSelectDisabled}
+                            sentryLabel={sentryLabel}
                         />
                     </PopoverMenu.Content>
                 </Harness>,

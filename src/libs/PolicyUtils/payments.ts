@@ -5,12 +5,12 @@
 import {getAccountIDsByLogins} from '@libs/PersonalDetailsUtils';
 
 import CONST from '@src/CONST';
-import type {OnyxInputOrEntry, Policy} from '@src/types/onyx';
+import type {BankAccountList, OnyxInputOrEntry, Policy} from '@src/types/onyx';
 
 import type {NullishDeep, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 
-import {canMemberWrite} from './permissions';
+import {canMemberWrite, isPolicyAdmin} from './permissions';
 import {isGroupPolicy} from './policyType';
 
 /**
@@ -104,8 +104,28 @@ function getReimbursementChoice(policy: OnyxInputOrEntry<Policy>): ValueOf<typeo
     }
 }
 
+/**
+ * Whether the server will refuse to switch this workspace to `currency` because the workspace uses Direct reimbursement.
+ * Checking first lets the currency picker explain the block instead of sending a change that the server rejects.
+ */
+function isCurrencyChangeBlockedByDirectReimbursement(policy: OnyxInputOrEntry<Policy>, currency: string): boolean {
+    if (getReimbursementChoice(policy) !== CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES || currency === policy?.outputCurrency) {
+        return false;
+    }
+
+    const allowedCurrencies: readonly string[] = CONST.CURRENCIES_ALLOWED_ON_DIRECT_WORKSPACE_CHANGE;
+    return !allowedCurrencies.includes(currency);
+}
+
 function arePaymentsEnabled(policy: OnyxInputOrEntry<Policy>): boolean {
     return getReimbursementChoice(policy) !== CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO;
+}
+
+/**
+ * Deselected countries can remain in Onyx with falsy values, so only truthy entries count as selected.
+ */
+function hasReimbursementCountries(policy: OnyxInputOrEntry<Policy>): boolean {
+    return Object.values(policy?.reimbursement?.countries ?? {}).some((value) => !!value);
 }
 
 /** Whether the workspace has everything auto-pay approved reports needs: workflows, direct reimbursements, and a business bank account. */
@@ -121,13 +141,76 @@ function getReimburserAccountID(policy: OnyxEntry<Policy>): number {
     return reimburserEmail ? (getAccountIDsByLogins([reimburserEmail]).at(0) ?? -1) : -1;
 }
 
+/**
+ * Whether the current user can pay the workspace's reports via ABA
+ */
+function canPayViaABA(policy: OnyxInputOrEntry<Policy>, isPayViaABABetaEnabled: boolean): boolean {
+    const withdrawalAccount = policy?.reimbursement?.countries?.[CONST.COUNTRY.AU];
+
+    // Accounts set up through Corpay don't have the bank user ID and company name that the ABA file needs
+    const isCorpayAccount = !!withdrawalAccount?.additionalData?.verifications?.corpay;
+
+    return isPayViaABABetaEnabled && isPolicyAdmin(policy) && policy?.outputCurrency === CONST.CURRENCY.AUD && withdrawalAccount?.state === CONST.BANK_ACCOUNT.STATE.OPEN && !isCorpayAccount;
+}
+
+/** Get the ISO codes of the workspace's reimbursement countries, leaving out countries waiting to be deleted */
+function getReimbursementCountryISOs(countries: NonNullable<Policy['reimbursement']>['countries']): string[] {
+    return Object.entries(countries ?? {})
+        .filter(([, country]) => country?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE)
+        .map(([countryISO]) => countryISO);
+}
+
+/**
+ * Get the country of the workspace's bank account from the user's bank account list. Returns undefined when the list
+ * doesn't have the account, because only its owner has it there.
+ */
+function getPolicyBankAccountCountry(policy: OnyxEntry<Policy>, bankAccountList: OnyxEntry<BankAccountList>): string | undefined {
+    const achBankAccountID = policy?.achAccount?.bankAccountID;
+    const achBankAccount = achBankAccountID ? bankAccountList?.[achBankAccountID] : undefined;
+    if (!achBankAccount) {
+        return undefined;
+    }
+
+    // Some accounts only have the top-level bankCountry, and legacy US accounts can omit the country entirely
+    return achBankAccount.accountData?.additionalData?.country ?? achBankAccount.bankCountry ?? CONST.COUNTRY.US;
+}
+
+/**
+ * Get the countries the workspace has a withdrawal account in. The server never removes these from the workspace's
+ * reimbursement countries, so they can't be deselected.
+ *
+ * @param policyBankAccountCountry - the country of the workspace's bank account, from `getPolicyBankAccountCountry`
+ */
+function getReimbursementAccountCountries(policy: OnyxEntry<Policy>, policyBankAccountCountry: string | undefined): string[] {
+    const countries = Object.entries(policy?.reimbursement?.countries ?? {})
+        .filter(([, country]) => !!country?.bankAccountID)
+        .map(([countryISO]) => countryISO);
+
+    if (!policy?.achAccount?.bankAccountID) {
+        return countries;
+    }
+
+    // An admin who doesn't own the bank account can't read its country, but a USD workspace's account is always in the US
+    const achAccountCountry = policyBankAccountCountry ?? (policy.outputCurrency === CONST.CURRENCY.USD ? CONST.COUNTRY.US : undefined);
+    if (!achAccountCountry || countries.includes(achAccountCountry)) {
+        return countries;
+    }
+    return [...countries, achAccountCountry];
+}
+
 export {
     getReimburserEmail,
     getOwnerChangePayerSuccessData,
     isPolicyPayer,
     canAdminPayReport,
     getReimbursementChoice,
+    isCurrencyChangeBlockedByDirectReimbursement,
     arePaymentsEnabled,
+    hasReimbursementCountries,
     isAutoPayApprovedReportsAvailable,
     getReimburserAccountID,
+    canPayViaABA,
+    getReimbursementCountryISOs,
+    getPolicyBankAccountCountry,
+    getReimbursementAccountCountries,
 };

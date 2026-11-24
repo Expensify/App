@@ -10,6 +10,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import CONST from '@src/CONST';
 import type IconAsset from '@src/types/utils/IconAsset';
+import type {SentryLabel} from '@src/types/utils/SentryLabel';
 
 import type {EventMapCore, NavigationProp, NavigationState, ParamListBase} from '@react-navigation/native';
 
@@ -18,23 +19,24 @@ import {createStackNavigator} from '@react-navigation/stack';
 import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
 
-type IconAndTitle = {
+type DebugTabDetails = {
     icon: IconAsset;
     title: string;
+    sentryLabel: SentryLabel;
 };
 
-function getIconAndTitle(icons: Record<'Document' | 'Exclamation' | 'Eye' | 'Info', IconAsset>, route: string, translate: LocaleContextProps['translate']): IconAndTitle {
+function getTabDetails(icons: Record<'Document' | 'Exclamation' | 'Eye' | 'Info', IconAsset>, route: string, translate: LocaleContextProps['translate']): DebugTabDetails {
     switch (route) {
         case CONST.DEBUG.DETAILS:
-            return {icon: icons.Info, title: translate('debug.details')};
+            return {icon: icons.Info, title: translate('debug.details'), sentryLabel: CONST.SENTRY_LABEL.DEBUG_TAB_NAVIGATOR.DETAILS};
         case CONST.DEBUG.JSON:
-            return {icon: icons.Eye, title: translate('debug.JSON')};
+            return {icon: icons.Eye, title: translate('debug.JSON'), sentryLabel: CONST.SENTRY_LABEL.DEBUG_TAB_NAVIGATOR.JSON};
         case CONST.DEBUG.REPORT_ACTIONS:
-            return {icon: icons.Document, title: translate('debug.reportActions')};
+            return {icon: icons.Document, title: translate('debug.reportActions'), sentryLabel: CONST.SENTRY_LABEL.DEBUG_TAB_NAVIGATOR.REPORT_ACTIONS};
         case CONST.DEBUG.REPORT_ACTION_PREVIEW:
-            return {icon: icons.Document, title: translate('debug.reportActionPreview')};
+            return {icon: icons.Document, title: translate('debug.reportActionPreview'), sentryLabel: CONST.SENTRY_LABEL.DEBUG_TAB_NAVIGATOR.REPORT_ACTION_PREVIEW};
         case CONST.DEBUG.TRANSACTION_VIOLATIONS:
-            return {icon: icons.Exclamation, title: translate('debug.violations')};
+            return {icon: icons.Exclamation, title: translate('debug.violations'), sentryLabel: CONST.SENTRY_LABEL.DEBUG_TAB_NAVIGATOR.TRANSACTION_VIOLATIONS};
         default:
             throw new Error(`Route ${route} has no icon nor title set.`);
     }
@@ -101,7 +103,7 @@ function DebugTabNavigator({id, routes}: DebugTabNavigatorProps) {
                         position: undefined,
                         isActive,
                     });
-                    const {icon, title} = getIconAndTitle(icons, route.name, translate);
+                    const {icon, title, sentryLabel} = getTabDetails(icons, route.name, translate);
 
                     const onPress = () => {
                         navigation.navigate(routeData.name, {...routeData?.params, screen: route.name});
@@ -110,6 +112,7 @@ function DebugTabNavigator({id, routes}: DebugTabNavigatorProps) {
 
                     return (
                         <TabSelectorItem
+                            sentryLabel={sentryLabel}
                             tabKey={route.name}
                             key={route.name}
                             icon={icon}

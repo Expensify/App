@@ -2,9 +2,14 @@ import {useIsCapturingChart} from '@components/Charts/context/ChartCaptureContex
 import {useTooltipData} from '@components/Charts/hooks';
 import type {ChartDataPoint, ChartSeries} from '@components/Charts/types';
 import formatTooltipComparison from '@components/Charts/utils/formatTooltipComparison';
+import formatTooltipStacks from '@components/Charts/utils/formatTooltipStacks';
+import type {SearchChartCountDimension} from '@components/Search/types';
 
 import useLocalize from '@hooks/useLocalize';
 
+import CONST from '@src/CONST';
+
+import type {ReactNode} from 'react';
 import type {DerivedValue, SharedValue} from 'react-native-reanimated';
 import type {NonEmptyTuple} from 'type-fest';
 
@@ -14,6 +19,7 @@ import {scheduleOnRN} from 'react-native-worklets';
 
 import ChartTooltip from './ChartTooltip';
 import ChartTooltipComparison from './ChartTooltipComparison';
+import ChartTooltipStacks from './ChartTooltipStacks';
 import ChartTooltipSummary from './ChartTooltipSummary';
 
 type ChartTooltipLayerProps = {
@@ -31,6 +37,9 @@ type ChartTooltipLayerProps = {
     /** Formats a numeric value for display */
     formatValue: (value: number) => string;
 
+    /** What each point's count counts. Defaults to expenses. */
+    countDimension?: SearchChartCountDimension;
+
     /** The width of the chart container */
     chartWidth: number;
 
@@ -45,6 +54,12 @@ type ChartTooltipLayerProps = {
 
     /** Whether a compared tooltip shows how the primary series changed against the compared one */
     shouldShowTooltipChange?: boolean;
+
+    /** Called with the shown data point when the tooltip is pressed */
+    onPress?: (dataPoint: ChartDataPoint, index: number) => void;
+
+    /** Shown below the tooltip's amounts */
+    footer?: ReactNode;
 };
 
 /**
@@ -57,11 +72,14 @@ function ChartTooltipLayer({
     data,
     series,
     formatValue,
+    countDimension = CONST.SEARCH.CHART_COUNT_DIMENSION.EXPENSE,
     chartWidth,
     initialTooltipPosition,
     onChartMoved,
     onDismiss,
     shouldShowTooltipChange = true,
+    onPress,
+    footer,
 }: ChartTooltipLayerProps) {
     const isCapturing = useIsCapturingChart();
     const [activeDataIndex, setActiveDataIndex] = useState(-1);
@@ -76,16 +94,17 @@ function ChartTooltipLayer({
         },
     );
 
-    const {preferredLocale} = useLocalize();
+    const {preferredLocale, translate} = useLocalize();
     const isContentCurrent = useDerivedValue(() => matchedIndex.get() === laidOutIndex.get());
-    const tooltipData = useTooltipData(activeDataIndex, data, series, formatValue);
+    const tooltipData = useTooltipData(activeDataIndex, data, series, formatValue, countDimension);
     const activeDataPoint = data.at(activeDataIndex);
 
     if (isCapturing || !tooltipData || !activeDataPoint) {
         return null;
     }
 
-    const comparison = formatTooltipComparison(activeDataPoint, series, formatValue, preferredLocale);
+    const stacks = formatTooltipStacks(activeDataPoint, series, formatValue, translate('search.chartValueUnavailable'));
+    const comparison = stacks ? undefined : formatTooltipComparison(activeDataPoint, series, formatValue, preferredLocale);
 
     return (
         <ChartTooltip
@@ -98,19 +117,28 @@ function ChartTooltipLayer({
             onDismiss={onDismiss}
             contentKey={activeDataIndex}
             onContentLayout={() => laidOutIndex.set(activeDataIndex)}
+            onPress={onPress ? () => onPress(activeDataPoint, activeDataIndex) : undefined}
         >
-            {comparison ? (
+            {!!stacks && (
+                <ChartTooltipStacks
+                    stacks={stacks.stacks}
+                    averageRow={stacks.averageRow}
+                />
+            )}
+            {!!comparison && (
                 <ChartTooltipComparison
                     rows={comparison.rows}
                     change={shouldShowTooltipChange ? comparison.change : undefined}
                 />
-            ) : (
+            )}
+            {!stacks && !comparison && (
                 <ChartTooltipSummary
                     value={tooltipData.value}
-                    note={tooltipData.note}
-                    expenseCount={tooltipData.expenseCount}
+                    percentage={tooltipData.percentage}
+                    secondaryValue={tooltipData.secondaryValue}
                 />
             )}
+            {footer}
         </ChartTooltip>
     );
 }
