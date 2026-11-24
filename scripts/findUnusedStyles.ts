@@ -23,12 +23,6 @@ const UNUSED_STYLE_KEY_ALLOWLIST = new Set(['finePrintStrong']);
 const DYNAMIC_STYLE_KEY_FILES = new Set(['src/components/Avatar/layouts/getDiagonalAvatarSizing.ts', 'src/components/Avatar/layouts/getSubscriptAvatarSizing.ts']);
 // Use EXCLUDED_STYLE_DIRS to clarify which directories are being ignored
 const EXCLUDED_STYLE_DIRS = ['src/styles/utils/**', 'src/styles/generators/**', 'src/styles/theme/**'];
-// The style functions in src/styles/index.ts whose returned objects hold the definitions. `styles` itself only spreads the other three.
-const INDEX_STYLE_FUNCTION_NAMES = new Set(['styles', 'staticStyles', 'dynamicStyles', 'plainStyles']);
-// The functions that must each yield definitions (`styles` only spreads them), so losing one of them cannot go unnoticed.
-const REQUIRED_INDEX_STYLE_FUNCTION_NAMES = ['staticStyles', 'dynamicStyles', 'plainStyles'];
-// If src/styles/index.ts yields fewer definitions than this in total, the script is no longer reading it correctly and must fail instead of passing blind.
-const MIN_INDEX_STYLE_DEFINITIONS = 500;
 
 // Unwraps an arrow function body down to the style object: `({...})`, `{...}`, `{...} satisfies T`, `{...} as T`, `<T>{...}`, `{...}!`, a call whose first argument is the style object (`StyleSheet.create({...})`)
 // or a block body that returns one of these (the last top-level `return` counts).
@@ -64,24 +58,34 @@ class ComprehensiveStylesFinder {
 
     private indexDefinitionCounts = new Map<string, number>();
 
+    private indexRootName: string | undefined;
+
+    private indexSpreadFunctionNames: string[] = [];
+
     constructor(rootDir: string) {
         this.rootDir = rootDir;
     }
 
     /**
-     * Checks that src/styles/index.ts was read as expected. Returns an error message when a required style function yields no definitions
-     * or the total is below the floor, so the check cannot pass blind after a refactor of that file. Returns undefined when the structure is fine.
+     * Checks that src/styles/index.ts was read as expected. Returns an error message when the root style function (the `export default` of the file) is not found,
+     * when a function it spreads has no matching declaration or yields no definitions, or when a root that spreads nothing yields none itself,
+     * so the check cannot pass blind after a refactor of that file. Returns undefined when the structure is fine.
      */
     public getIndexStructureProblem(): string | undefined {
-        for (const functionName of REQUIRED_INDEX_STYLE_FUNCTION_NAMES) {
-            if (!this.indexDefinitionCounts.get(functionName)) {
-                return `❌ Read 0 style definitions from ${functionName} in src/styles/index.ts. The script no longer matches the structure of that file.`;
-            }
+        const structureMismatch = 'The script no longer matches the structure of that file.';
+        if (!this.indexRootName) {
+            return `❌ Found no \`export default\` style function in src/styles/index.ts. ${structureMismatch}`;
         }
 
-        const indexDefinitionTotal = Array.from(this.indexDefinitionCounts.values()).reduce((sum, count) => sum + count, 0);
-        if (indexDefinitionTotal < MIN_INDEX_STYLE_DEFINITIONS) {
-            return `❌ Read only ${indexDefinitionTotal} style definitions from src/styles/index.ts (expected at least ${MIN_INDEX_STYLE_DEFINITIONS}). The script no longer matches the structure of that file.`;
+        // The root usually only spreads the other style functions, so it may yield nothing itself. Without any spread it must hold the definitions.
+        if (this.indexSpreadFunctionNames.length === 0 && !this.indexDefinitionCounts.get(this.indexRootName)) {
+            return `❌ Read 0 style definitions from ${this.indexRootName} in src/styles/index.ts. ${structureMismatch}`;
+        }
+
+        for (const functionName of this.indexSpreadFunctionNames) {
+            if (!this.indexDefinitionCounts.get(functionName)) {
+                return `❌ Read 0 style definitions from ${functionName} in src/styles/index.ts. ${structureMismatch}`;
+            }
         }
 
         return undefined;
@@ -131,41 +135,67 @@ class ComprehensiveStylesFinder {
     }
 
     private extractStyleKeysFromFile(sourceFile: ts.SourceFile, file: string): void {
+        if (file === 'src/styles/index.ts') {
+            this.extractIndexStyleDefinitions(sourceFile, file);
+            return;
+        }
+
         const visit = (node: ts.Node) => {
-            // For styles/index.ts, only process styles that are inside the style functions
-            if (file === 'src/styles/index.ts') {
-                // Look for the style functions (arrow functions assigned to one of INDEX_STYLE_FUNCTION_NAMES)
-                if (
-                    ts.isVariableDeclaration(node) &&
-                    ts.isIdentifier(node.name) &&
-                    INDEX_STYLE_FUNCTION_NAMES.has(node.name.text) &&
-                    node.initializer &&
-                    ts.isArrowFunction(node.initializer)
-                ) {
-                    // Process only the body of the style functions
-                    if (node.initializer.body) {
-                        const styleObject = getStyleObject(node.initializer.body);
-                        if (styleObject) {
-                            // Process each property in the returned object
-                            this.indexDefinitionCounts.set(node.name.text, this.extractStyleDefinitionsFromObject(styleObject, sourceFile, file));
-                        }
-                    }
-                    return; // Don't continue traversing for style functions
-                }
-
-                // Skip processing top-level constants and other functions for styles/index.ts
-                if (ts.isVariableDeclaration(node) || ts.isFunctionDeclaration(node)) {
-                    return;
-                }
-            } else {
-                // For other files, process all style-like nodes normally
-                this.extractStyleDefinitionFromNode(node, sourceFile, file);
-            }
-
+            // For other files, process all style-like nodes normally
+            this.extractStyleDefinitionFromNode(node, sourceFile, file);
             ts.forEachChild(node, visit);
         };
 
         visit(sourceFile);
+    }
+
+    /**
+     * Reads the definitions of src/styles/index.ts without knowing any function names. The root is the identifier in `export default <root>`,
+     * and the functions that hold the definitions are the root itself plus every function it spreads (`...staticStyles(theme)`).
+     * Top-level constants and other functions are skipped.
+     */
+    private extractIndexStyleDefinitions(sourceFile: ts.SourceFile, file: string): void {
+        const arrowFunctions = new Map<string, ts.ArrowFunction>();
+        let rootName: string | undefined;
+
+        const collect = (node: ts.Node) => {
+            if (ts.isExportAssignment(node) && !node.isExportEquals && ts.isIdentifier(node.expression)) {
+                rootName = node.expression.text;
+            }
+            if (ts.isVariableDeclaration(node) && ts.isIdentifier(node.name) && node.initializer && ts.isArrowFunction(node.initializer)) {
+                arrowFunctions.set(node.name.text, node.initializer);
+            }
+            // Don't continue traversing for variable declarations and functions
+            if (ts.isVariableDeclaration(node) || ts.isFunctionDeclaration(node)) {
+                return;
+            }
+            ts.forEachChild(node, collect);
+        };
+        collect(sourceFile);
+
+        this.indexRootName = rootName;
+        const rootFunction = rootName ? arrowFunctions.get(rootName) : undefined;
+        if (!rootName || !rootFunction) {
+            return;
+        }
+
+        const rootObject = getStyleObject(rootFunction.body);
+        if (rootObject) {
+            for (const property of rootObject.properties) {
+                if (ts.isSpreadAssignment(property) && ts.isCallExpression(property.expression) && ts.isIdentifier(property.expression.expression)) {
+                    this.indexSpreadFunctionNames.push(property.expression.expression.text);
+                }
+            }
+        }
+
+        for (const functionName of new Set([rootName, ...this.indexSpreadFunctionNames])) {
+            const styleFunction = arrowFunctions.get(functionName);
+            const styleObject = styleFunction ? getStyleObject(styleFunction.body) : undefined;
+            if (styleObject) {
+                // Process each property in the returned object
+                this.indexDefinitionCounts.set(functionName, this.extractStyleDefinitionsFromObject(styleObject, sourceFile, file));
+            }
+        }
     }
 
     /**

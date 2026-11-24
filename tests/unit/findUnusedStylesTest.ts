@@ -59,6 +59,8 @@ describe('findUnusedStyles', () => {
                         color: 'red',
                     },
                 }) satisfies Styles;
+
+                export default styles;
             `);
 
             mockGlobSync
@@ -84,6 +86,8 @@ describe('findUnusedStyles', () => {
                         color: 'blue',
                     },
                 }) satisfies Styles;
+
+                export default styles;
             `);
 
             const componentContent = Str.dedent(`
@@ -111,6 +115,8 @@ describe('findUnusedStyles', () => {
                     destructuredStyle: { color: 'green' },
                     unusedStyle: { color: 'red' },
                 }) satisfies Styles;
+
+                export default styles;
             `);
 
             const componentContent = Str.dedent(`
@@ -137,6 +143,8 @@ describe('findUnusedStyles', () => {
                     },
                     unusedStyle: { color: 'red' },
                 }) satisfies Styles;
+
+                export default styles;
             `);
 
             const componentContent = Str.dedent(`
@@ -163,6 +171,8 @@ describe('findUnusedStyles', () => {
                     },
                     unusedStyle: { color: 'red' },
                 }) satisfies Styles;
+
+                export default styles;
             `);
 
             const componentContent = Str.dedent(`
@@ -185,6 +195,8 @@ describe('findUnusedStyles', () => {
                     dynamicStyle: { color: 'purple' },
                     unusedStyle: { color: 'red' },
                 }) satisfies Styles;
+
+                export default styles;
             `);
 
             const componentContent = Str.dedent(`
@@ -208,6 +220,8 @@ describe('findUnusedStyles', () => {
                     utilUsedStyle: { fontWeight: 'bold' },
                     unusedStyle: { color: 'red' },
                 }) satisfies Styles;
+
+                export default styles;
             `);
 
             const utilContent = Str.dedent(`
@@ -233,6 +247,8 @@ describe('findUnusedStyles', () => {
                 const styles = (theme: ThemeColors) => ({
                     commentedStyle: { color: 'orange' },
                 }) satisfies Styles;
+
+                export default styles;
             `);
 
             const componentContent = Str.dedent(`
@@ -262,6 +278,8 @@ describe('findUnusedStyles', () => {
                         color: 'blue' 
                     },
                 }) satisfies Styles;
+
+                export default styles;
             `);
 
             const componentContent = Str.dedent(`
@@ -282,6 +300,8 @@ describe('findUnusedStyles', () => {
                 const styles = (theme: ThemeColors) => ({
                     validStyle: { color: 'blue' },
                 }) satisfies Styles;
+
+                export default styles;
             `);
 
             const malformedContent = Str.dedent(`
@@ -342,6 +362,8 @@ describe('findUnusedStyles', () => {
                 const styles = (theme: ThemeColors) => ({
                     ${manyStyles}
                 }) satisfies Styles;
+
+                export default styles;
             `);
 
             // Use only the first style
@@ -363,15 +385,15 @@ describe('findUnusedStyles', () => {
 
     describe('Index style functions', () => {
         it.each([
-            ['an object with satisfies', 'const plainStyles = () => ({entryStyle: {width: 1} satisfies ViewStyle}) satisfies Styles;'],
-            ['a helper call', 'const plainStyles = (theme: ThemeColors) => ({entryStyle: someHelper(theme)}) satisfies Styles;'],
-            ['a shorthand property', 'const staticStyles = () => ({entryStyle}) satisfies Styles;'],
-            ['a Platform.select call', 'const staticStyles = () => ({entryStyle: Platform.select({web: {width: 1}, default: {}})}) satisfies Styles;'],
-            ['an as const body', 'const staticStyles = () => ({entryStyle: {width: 1}}) as const;'],
-            ['a block body with a return', 'const staticStyles = () => { const local = 1; return {entryStyle: {width: local}}; };'],
-        ])('should report an unused style written as %s', (_name, stylesContent) => {
+            ['an object with satisfies', 'plainStyles', 'const plainStyles = () => ({entryStyle: {width: 1} satisfies ViewStyle}) satisfies Styles;'],
+            ['a helper call', 'plainStyles', 'const plainStyles = (theme: ThemeColors) => ({entryStyle: someHelper(theme)}) satisfies Styles;'],
+            ['a shorthand property', 'staticStyles', 'const staticStyles = () => ({entryStyle}) satisfies Styles;'],
+            ['a Platform.select call', 'staticStyles', 'const staticStyles = () => ({entryStyle: Platform.select({web: {width: 1}, default: {}})}) satisfies Styles;'],
+            ['an as const body', 'staticStyles', 'const staticStyles = () => ({entryStyle: {width: 1}}) as const;'],
+            ['a block body with a return', 'staticStyles', 'const staticStyles = () => { const local = 1; return {entryStyle: {width: local}}; };'],
+        ])('should report an unused style written as %s', (_name, functionName, functionContent) => {
             // Given a style that is written in a shape other than a plain object literal or a method, and that nothing uses
-            setupMockFiles(stylesContent, '// No style usage here');
+            setupMockFiles(withRootStyles(functionContent, functionName), '// No style usage here');
 
             // When the finder looks for unused styles
             const result = finder.findUnusedStyles();
@@ -390,7 +412,7 @@ describe('findUnusedStyles', () => {
                         },
                     }) satisfies StaticStyles;
             `);
-            setupMockFiles(stylesContent, '// No style usage here');
+            setupMockFiles(withRootStyles(stylesContent, 'staticStyles'), '// No style usage here');
 
             // When the finder looks for unused styles
             const result = finder.findUnusedStyles();
@@ -407,7 +429,7 @@ describe('findUnusedStyles', () => {
                     usedDynamicStyle: (isSmall: boolean) => ({width: isSmall ? 3 : 4}),
                 });
             `);
-            setupMockFiles(stylesContent, 'styles.usedDynamicStyle(true);');
+            setupMockFiles(withRootStyles(stylesContent, 'dynamicStyles'), 'styles.usedDynamicStyle(true);');
 
             // When the finder looks for unused styles
             const result = finder.findUnusedStyles();
@@ -424,7 +446,7 @@ describe('findUnusedStyles', () => {
                     siblingStyle: {fontSize: 10},
                 });
             `);
-            setupMockFiles(stylesContent, '// No style usage here');
+            setupMockFiles(withRootStyles(stylesContent, 'staticStyles'), '// No style usage here');
 
             // When the finder looks for unused styles
             const result = finder.findUnusedStyles();
@@ -441,6 +463,8 @@ describe('findUnusedStyles', () => {
                         width: 24,
                     },
                 }) satisfies Styles;
+
+                export default styles;
             `);
             const sizingContent = `const key: 'singleAvatarXSmall' = 'singleAvatarXSmall';`;
 
@@ -460,47 +484,89 @@ describe('findUnusedStyles', () => {
     });
 
     describe('Index structure guard', () => {
-        const createEntries = (count: number) => Array.from({length: count}, (_, index) => `entry${index}: {width: ${index}},`).join('\n');
+        it('should read a newly named style function that the root spreads', () => {
+            // Given an index file where the root spreads a function with a name the script has never seen
+            const stylesContent = withRootStyles(
+                `
+                const staticStyles = () => ({usedStyle: {width: 1}});
+                const extraStyles = () => ({extraUnusedStyle: {width: 2}});
+            `,
+                'staticStyles',
+                'extraStyles',
+            );
+            setupMockFiles(stylesContent, 'styles.usedStyle;');
 
-        it('should name the style function that yields no definitions', () => {
-            // Given an index file where dynamicStyles no longer exists under that name, e.g. after a rename
+            // When the finder looks for unused styles
+            const result = finder.findUnusedStyles();
+
+            // Then the unused key of the new function is reported, so adding a style function never needs a script change
+            expect(result.map((style) => style.key)).toEqual(['extraUnusedStyle']);
+            expect(finder.getIndexStructureProblem()).toBeUndefined();
+        });
+
+        it('should fail the guard when the file has no export default', () => {
+            // Given an index file with style functions but no `export default`, so there is no root to start from
             const stylesContent = `
-                const staticStyles = () => ({${createEntries(600)}});
-                const renamedDynamicStyles = () => ({entry: {width: 1}});
-                const plainStyles = () => ({plainEntry: {width: 1}});
+                const staticStyles = () => ({entryStyle: {width: 1}});
+                const styles = () => ({...staticStyles()});
             `;
             setupMockFiles(stylesContent, '// No style usage here');
 
             // When the structure is checked after the scan
             finder.findUnusedStyles();
 
-            // Then the problem names dynamicStyles, so losing one function cannot hide behind the total of the others
+            // Then the problem is reported, so a file the script cannot read fails loudly instead of passing with 0 definitions
+            expect(finder.getIndexStructureProblem()).toContain('export default');
+        });
+
+        it('should name a spread function that yields no definitions', () => {
+            // Given an index file where the root spreads a function whose object the script cannot read
+            const stylesContent = withRootStyles(
+                `
+                const staticStyles = () => ({entryStyle: {width: 1}});
+                const emptyStyles = () => buildStyles();
+            `,
+                'staticStyles',
+                'emptyStyles',
+            );
+            setupMockFiles(stylesContent, '// No style usage here');
+
+            // When the structure is checked after the scan
+            finder.findUnusedStyles();
+
+            // Then the problem names emptyStyles, so losing one function cannot hide behind the definitions of the others
+            expect(finder.getIndexStructureProblem()).toContain('emptyStyles');
+        });
+
+        it('should name a spread function that has no declaration', () => {
+            // Given an index file where the root spreads a function that is no longer declared as an arrow function, e.g. after a rename
+            const stylesContent = withRootStyles(
+                `
+                const staticStyles = () => ({entryStyle: {width: 1}});
+                function dynamicStyles() { return {entry: {width: 1}}; }
+            `,
+                'staticStyles',
+                'dynamicStyles',
+            );
+            setupMockFiles(stylesContent, '// No style usage here');
+
+            // When the structure is checked after the scan
+            finder.findUnusedStyles();
+
+            // Then the problem names dynamicStyles, so a refactor of one function fails loudly instead of dropping its definitions
             expect(finder.getIndexStructureProblem()).toContain('dynamicStyles');
         });
 
-        it('should report a total below the floor', () => {
-            // Given an index file where all three functions are read but yield only a few definitions
-            const stylesContent = `
+        it('should report no problem for a healthy index file', () => {
+            // Given an index file where the root spreads functions that all yield definitions
+            const stylesContent = withRootStyles(
+                `
                 const staticStyles = () => ({a: {width: 1}});
                 const dynamicStyles = () => ({b: () => ({width: 1})});
-                const plainStyles = () => ({c: {width: 1}});
-            `;
-            setupMockFiles(stylesContent, '// No style usage here');
-
-            // When the structure is checked after the scan
-            finder.findUnusedStyles();
-
-            // Then the problem reports the low total, so a refactor that silently drops most of the file fails loudly
-            expect(finder.getIndexStructureProblem()).toContain('Read only 3 style definitions');
-        });
-
-        it('should report no problem for a healthy index file', () => {
-            // Given an index file where every function yields definitions and the total reaches the floor
-            const stylesContent = `
-                const staticStyles = () => ({${createEntries(500)}});
-                const dynamicStyles = () => ({b: () => ({width: 1})});
-                const plainStyles = () => ({c: {width: 1}});
-            `;
+            `,
+                'staticStyles',
+                'dynamicStyles',
+            );
             setupMockFiles(stylesContent, '// No style usage here');
 
             // When the structure is checked after the scan
@@ -510,6 +576,12 @@ describe('findUnusedStyles', () => {
             expect(finder.getIndexStructureProblem()).toBeUndefined();
         });
     });
+
+    // Appends a root `styles` function that spreads the given functions, followed by `export default styles;`, the shape of src/styles/index.ts
+    function withRootStyles(functionsContent: string, ...functionNames: string[]) {
+        const spreads = functionNames.map((name) => `...${name}(theme),`).join('\n');
+        return `${functionsContent}\nconst styles = (theme: ThemeColors) => ({\n${spreads}\n}) satisfies Styles;\nexport default styles;\n`;
+    }
 
     // Helper function to setup common mock scenarios
     function setupMockFiles(stylesContent: string, componentContent: string) {
