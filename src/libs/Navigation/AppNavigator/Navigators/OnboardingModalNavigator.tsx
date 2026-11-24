@@ -110,6 +110,8 @@ function OnboardingModalNavigator() {
             <View
                 ref={outerViewRef}
                 onClick={handleOuterClick}
+                // Lets FullStory exclude clicks outside the modal from the dead-click metric; the flow intentionally can't be skipped.
+                dataSet={{sentryLabel: CONST.SENTRY_LABEL.ONBOARDING.OUTER_AREA}}
                 style={styles.onboardingNavigatorOuterView}
             >
                 <FocusTrapForScreens>

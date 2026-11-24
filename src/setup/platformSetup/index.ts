@@ -6,6 +6,8 @@ import Visibility from '@libs/Visibility';
 
 import Config from '@src/CONFIG';
 
+import type {AppRegistry as WebAppRegistry} from 'react-native-web';
+
 import {AppRegistry} from 'react-native';
 
 import type PlatformSpecificUpdater from './types';
@@ -70,7 +72,8 @@ export default function () {
     // Initialize Cache API
     CacheAPI.init();
 
-    AppRegistry.runApplication(Config.APP_NAME, {
+    // react-native-web renders into a DOM node, which React Native's types describe as a native root tag.
+    (AppRegistry.runApplication as WebAppRegistry['runApplication'])(Config.APP_NAME, {
         rootTag: document.getElementById('root'),
     });
 

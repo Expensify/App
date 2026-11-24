@@ -366,6 +366,7 @@ describe('IOURequestEditReportCommon', () => {
             renderIOURequestEditReportCommon({selectedReportID: currentReport.reportID, transactionIDs: [FAKE_TRANSACTION_ID], selectReport});
             await waitForBatchedUpdatesWithAct();
             fireEvent.press(screen.getByText('Expense Report'));
+            await waitForBatchedUpdatesWithAct();
 
             expect(mockShowConfirmModal).not.toHaveBeenCalled();
             expect(selectReport).toHaveBeenCalledTimes(1);
@@ -428,6 +429,7 @@ describe('IOURequestEditReportCommon', () => {
             });
             await waitForBatchedUpdatesWithAct();
             fireEvent.press(screen.getByText('Expense Report'));
+            await waitForBatchedUpdatesWithAct();
 
             expect(mockShowConfirmModal).not.toHaveBeenCalled();
             expect(selectReport).toHaveBeenCalledTimes(1);
@@ -516,6 +518,7 @@ describe('IOURequestEditReportCommon', () => {
 
             // When the destination report is selected
             fireEvent.press(screen.getByText('Expense Report'));
+            await waitForBatchedUpdatesWithAct();
 
             // Then the move is blocked and the warning is shown through the global confirm modal
             expect(selectReport).not.toHaveBeenCalled();

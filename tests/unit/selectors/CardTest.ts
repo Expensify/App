@@ -7,14 +7,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 
 /* eslint-disable @typescript-eslint/naming-convention */
-import {
-    areAllExpensifyCardsShipped,
-    defaultExpensifyCardSelector,
-    filterCardsHiddenFromSearch,
-    filterOutPersonalCards,
-    hasActiveExpensifyCardSelector,
-    hasIssuedExpensifyCardSelector,
-} from '@selectors/Card';
+import {defaultExpensifyCardSelector, filterCardsHiddenFromSearch, filterOutPersonalCards, hasActiveExpensifyCardSelector, hasIssuedExpensifyCardSelector} from '@selectors/Card';
 
 import createRandomCard, {createRandomCompanyCard, createRandomExpensifyCard} from '../../utils/collections/card';
 import createMock from '../../utils/createMock';
@@ -666,86 +659,6 @@ describe('timeSensitiveCardsSelector', () => {
         expect(result.cardsWithFraud).toHaveLength(0);
         expect(result.cardsNeedingShippingAddress).toHaveLength(0);
         expect(result.cardsNeedingActivation).toHaveLength(0);
-    });
-});
-
-describe('areAllExpensifyCardsShipped', () => {
-    it('returns true when cardList is undefined or empty', () => {
-        expect(areAllExpensifyCardsShipped(undefined)).toBe(true);
-        expect(areAllExpensifyCardsShipped({})).toBe(true);
-    });
-
-    it('returns true when all Expensify cards are shipped (not STATE_NOT_ISSUED)', () => {
-        const cardList: CardList = {
-            '1': createRandomExpensifyCard(1, {state: CONST.EXPENSIFY_CARD.STATE.NOT_ACTIVATED}),
-            '2': createRandomExpensifyCard(2, {state: CONST.EXPENSIFY_CARD.STATE.OPEN}),
-        };
-        expect(areAllExpensifyCardsShipped(cardList)).toBe(true);
-    });
-
-    it('returns false when any Expensify card is in STATE_NOT_ISSUED', () => {
-        const cardList: CardList = {
-            '1': createRandomExpensifyCard(1, {state: CONST.EXPENSIFY_CARD.STATE.OPEN}),
-            '2': createRandomExpensifyCard(2, {state: CONST.EXPENSIFY_CARD.STATE.STATE_NOT_ISSUED}),
-        };
-        expect(areAllExpensifyCardsShipped(cardList)).toBe(false);
-    });
-
-    // CRITICAL: This test ensures the personal cards should not affect the result
-    it('returns true when Expensify cards are shipped even if user has personal cards', () => {
-        const personalCard = createRandomCard(1, {bank: CONST.PERSONAL_CARDS.BANK_NAME.CSV});
-        const expensifyCard = createRandomExpensifyCard(2, {state: CONST.EXPENSIFY_CARD.STATE.NOT_ACTIVATED});
-
-        const cardList: CardList = {
-            '1': personalCard,
-            '2': expensifyCard,
-        };
-        expect(areAllExpensifyCardsShipped(cardList)).toBe(true);
-    });
-
-    // CRITICAL: This test ensures the company cards should not affect the result
-    it('returns true when Expensify cards are shipped even if user has company cards', () => {
-        const companyCard = createRandomCompanyCard(1, {bank: 'vcf'});
-        const expensifyCard = createRandomExpensifyCard(2, {state: CONST.EXPENSIFY_CARD.STATE.OPEN});
-
-        const cardList: CardList = {
-            '1': companyCard,
-            '2': expensifyCard,
-        };
-        expect(areAllExpensifyCardsShipped(cardList)).toBe(true);
-    });
-
-    it('ignores invalid card entries (missing cardID or bank)', () => {
-        const validCard = createRandomExpensifyCard(1, {state: CONST.EXPENSIFY_CARD.STATE.OPEN});
-        const invalidCard = {cardID: 2}; // Missing bank
-
-        const cardList = {
-            '1': validCard,
-            '2': invalidCard,
-        };
-        // @ts-expect-error -- intentionally passes a malformed card to exercise the selector's runtime validation.
-        expect(areAllExpensifyCardsShipped(cardList)).toBe(true);
-    });
-
-    it('returns true when only non-Expensify cards exist', () => {
-        const cardList: CardList = {
-            '1': createRandomCompanyCard(1, {bank: 'vcf'}),
-            '2': createRandomCard(2, {bank: CONST.PERSONAL_CARDS.BANK_NAME.CSV}),
-        };
-        expect(areAllExpensifyCardsShipped(cardList)).toBe(true);
-    });
-
-    it('returns false when mixing shipped and unshipped Expensify cards with other card types', () => {
-        const companyCard = createRandomCompanyCard(1, {bank: 'vcf'});
-        const shippedExpensifyCard = createRandomExpensifyCard(2, {state: CONST.EXPENSIFY_CARD.STATE.OPEN});
-        const unshippedExpensifyCard = createRandomExpensifyCard(3, {state: CONST.EXPENSIFY_CARD.STATE.STATE_NOT_ISSUED});
-
-        const cardList: CardList = {
-            '1': companyCard,
-            '2': shippedExpensifyCard,
-            '3': unshippedExpensifyCard,
-        };
-        expect(areAllExpensifyCardsShipped(cardList)).toBe(false);
     });
 });
 

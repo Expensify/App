@@ -14,7 +14,7 @@ import GenericPressable from './GenericPressable';
  * Therefore it shifts the element to bring it back to focus.
  * https://github.com/Expensify/App/issues/6806
  */
-function PressableWithoutFocus({children, onPress, onLongPress, ...rest}: PressableProps) {
+function PressableWithoutFocus({children, onPress, onLongPress, sentryLabel, ...rest}: PressableProps) {
     const ref = useRef<ComponentRef<typeof View>>(null);
 
     const pressAndBlur = () => {
@@ -22,12 +22,14 @@ function PressableWithoutFocus({children, onPress, onLongPress, ...rest}: Pressa
         onPress?.();
     };
 
+    // Only a pressable with a handler has something to blur after, and its props require a label with the handler.
+    const pressProps = onPress || onLongPress ? {onPress: pressAndBlur, onLongPress, sentryLabel} : {};
+
     return (
         <GenericPressable
-            onPress={pressAndBlur}
-            onLongPress={onLongPress}
             ref={ref}
             {...rest}
+            {...pressProps}
         >
             {children}
         </GenericPressable>
