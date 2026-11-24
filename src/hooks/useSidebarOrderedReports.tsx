@@ -125,6 +125,7 @@ function SidebarOrderedReportsContextProvider({
     const policiesUpdates = useCollectionDelta(allPolicies);
     const [transactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
     const transactionsUpdates = useCollectionDelta(transactions);
+    const prevTransactions = usePrevious(transactions);
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const transactionViolationsUpdates = useCollectionDelta(transactionViolations);
     const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
@@ -206,8 +207,14 @@ function SidebarOrderedReportsContextProvider({
             }
         }
         if (transactionsUpdates) {
-            for (const key of Object.values(transactionsUpdates ?? {}).map((transaction) => `${ONYXKEYS.COLLECTION.REPORT}${transaction?.reportID}`)) {
-                reportsToUpdate.add(key);
+            for (const [transactionKey, transaction] of Object.entries(transactionsUpdates)) {
+                reportsToUpdate.add(`${ONYXKEYS.COLLECTION.REPORT}${transaction?.reportID}`);
+
+                // A moved or deleted expense also changes the report it left
+                const previousReportID = prevTransactions?.[transactionKey]?.reportID;
+                if (previousReportID && previousReportID !== transaction?.reportID) {
+                    reportsToUpdate.add(`${ONYXKEYS.COLLECTION.REPORT}${previousReportID}`);
+                }
             }
         }
         if (transactionViolationsUpdates) {
@@ -272,6 +279,7 @@ function SidebarOrderedReportsContextProvider({
         policiesUpdates,
         chatReports,
         transactions,
+        prevTransactions,
         lhnReportAttributes,
         isDefaultRoomsBetaEnabled,
         isBillPayBetaEnabled,
