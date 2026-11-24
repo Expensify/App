@@ -563,6 +563,28 @@ describe('PolicyDistanceRatesUtils', () => {
             expect(getDefaultEuroDistanceRateCountry(policyInUS, 'IE')).toBe('IE');
             expect(getDefaultEuroDistanceRateCountry(policyInUS, 'US')).toBe('AT');
         });
+
+        it('keeps the copied government rate country after auto-update was turned off', () => {
+            // Given an EUR workspace with a French address that turned auto-update off but kept its copied German rate
+            const policy: Policy = {
+                ...createRandomPolicy(1),
+                outputCurrency: CONST.CURRENCY.EUR,
+                shouldAutoUpdateGovernmentDistanceRates: false,
+                address: {addressStreet: '', city: '', state: '', zipCode: '', country: 'FR'},
+                customUnits: {
+                    unit1: {
+                        customUnitID: 'unit1',
+                        name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+                        attributes: {unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS},
+                        rates: {rate1: {customUnitRateID: 'rate1', attributes: {governmentRate: {sourceRateID: 'DE_2026-01-01'}}}},
+                    },
+                },
+            };
+
+            // When we pick the default country
+            // Then the copied rate's country wins, so the Government tab names the country of the rate the workspace already has
+            expect(getDefaultEuroDistanceRateCountry(policy, 'IE')).toBe('DE');
+        });
     });
 
     describe('isGovernmentRateCountry', () => {

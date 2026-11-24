@@ -373,16 +373,25 @@ function getAutoUpdateGovernmentRateCountry(policy: Policy | null | undefined): 
     return getGovernmentRateCountryForCurrency(policy.outputCurrency);
 }
 
-/** Whether the policy has a government rate copied for its currency. Copied rates stay in the list after auto-update is turned off. */
-function hasGovernmentRateForCurrency(policy: OnyxEntry<Policy>): boolean {
+/** The country of the government rate copied for the policy's currency. Copied rates stay in the list after auto-update is turned off. */
+function getCopiedGovernmentRateCountry(policy: OnyxEntry<Policy>): GovernmentRateCountry | undefined {
     const currency = policy?.outputCurrency;
-    const countries: readonly string[] = isSharedGovernmentRateCurrency(currency)
+    const countries: ReadonlyArray<GovernmentRateCountry | undefined> = isSharedGovernmentRateCurrency(currency)
         ? CONST.CUSTOM_UNITS.GOVERNMENT_RATE_SUPPORTED_EUR_COUNTRIES
-        : [getGovernmentRateCountryForCurrency(currency) ?? ''];
-    return Object.values(getDistanceRateCustomUnit(policy)?.rates ?? {}).some((rate) => {
-        const sourceRateID = rate.attributes?.governmentRate?.sourceRateID;
-        return rate.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && !!sourceRateID && countries.includes(sourceRateID.split('_').at(0) ?? '');
-    });
+        : [getGovernmentRateCountryForCurrency(currency)];
+    for (const rate of Object.values(getDistanceRateCustomUnit(policy)?.rates ?? {})) {
+        const sourceRateCountry = rate.attributes?.governmentRate?.sourceRateID?.split('_').at(0);
+        const country = rate.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE ? undefined : countries.find((countryCode) => countryCode === sourceRateCountry);
+        if (country) {
+            return country;
+        }
+    }
+    return undefined;
+}
+
+/** Whether the policy has a government rate copied for its currency. */
+function hasGovernmentRateForCurrency(policy: OnyxEntry<Policy>): boolean {
+    return !!getCopiedGovernmentRateCountry(policy);
 }
 
 /** The unit a country publishes its mileage rates in. */
@@ -462,13 +471,13 @@ function getDistanceRateCountryForCurrency(currency: string | undefined, currenc
 }
 
 /**
- * The euro country a new distance rate defaults to. A workspace that already auto-updates its government rate keeps that
- * rate's country. Otherwise we try the company address, then the admin's IP address, then fall back to Austria.
+ * The euro country a new distance rate defaults to. A workspace that already has a government rate keeps that rate's
+ * country, even with auto-update off. Otherwise we try the company address, then the admin's IP address, then fall back to Austria.
  */
 function getDefaultEuroDistanceRateCountry(policy: OnyxEntry<Policy>, countryByIp: string | undefined): Country {
-    const autoUpdateCountry = policy?.shouldAutoUpdateGovernmentDistanceRates ? getAutoUpdateGovernmentRateCountry(policy) : undefined;
-    if (autoUpdateCountry) {
-        return autoUpdateCountry;
+    const governmentRateCountry = (policy?.shouldAutoUpdateGovernmentDistanceRates ? getAutoUpdateGovernmentRateCountry(policy) : undefined) ?? getCopiedGovernmentRateCountry(policy);
+    if (governmentRateCountry) {
+        return governmentRateCountry;
     }
 
     const addressCountry = policy?.address?.country;
