@@ -320,15 +320,18 @@ function SidebarOrderedReportsContextProvider({
         const updatedReports = getUpdatedReports();
         const hasCachedReports = Object.keys(currentReportsToDisplay).length > 0;
 
-        // When a dependency changes but no report-specific keys were updated, getUpdatedReports() returns [].
-        // Rather than falling through to a full scan of all reports, recheck only the already-displayed reports.
-        let effectiveUpdatedReports = updatedReports.length === 0 && hasCachedReports ? Object.keys(currentReportsToDisplay) : updatedReports;
+        let effectiveUpdatedReports = updatedReports;
 
         // When guide personal details hydrate after the reports collection, guideAccountIDs changes but
         // getUpdatedReports() returns no report keys. Re-evaluate all reports so domain rooms previously
         // filtered out can appear in the LHN.
         if (hasCachedReports && prevGuideAccountIDs !== undefined && guideAccountIDs !== prevGuideAccountIDs) {
             effectiveUpdatedReports = Object.keys(chatReports ?? {});
+        }
+
+        // No report changed, so the reports kept from the last run are still the ones to show
+        if (hasCachedReports && effectiveUpdatedReports.length === 0) {
+            return currentReportsToDisplay;
         }
         const shouldDoIncrementalUpdate = effectiveUpdatedReports.length > 0 && hasCachedReports;
         let reportsToDisplay: ReportsToDisplayInLHN = {};
