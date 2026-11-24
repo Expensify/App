@@ -103,6 +103,9 @@ jest.mock('@hooks/useCardFeedsForDisplay', () => jest.fn(() => ({defaultCardFeed
 
 const RORY_EMAIL = 'rory@expensifail.com';
 const RORY_ACCOUNT_ID = 3;
+const RORY_PERSONAL_DETAILS_BY_LOGINS: PersonalDetailsByLogin = {
+    [RORY_EMAIL]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL},
+};
 const CARLOS_EMAIL = 'cmartins@expensifail.com';
 const CARLOS_ACCOUNT_ID = 1;
 
@@ -141,9 +144,6 @@ describe('actions/IOU/ReportWorkflow', () => {
             keys: ONYXKEYS,
             initialKeyStates: {
                 [ONYXKEYS.SESSION]: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
-                [ONYXKEYS.PERSONAL_DETAILS_LIST]: {
-                    [RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL},
-                },
             },
         });
         initOnyxDerivedValues();
@@ -211,6 +211,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                 .then(() => {
                     if (chatReport) {
                         requestMoney({
+                            personalDetailsByLogins: RORY_PERSONAL_DETAILS_BY_LOGINS,
                             isVendorMatchingBetaEnabled: false,
                             getCurrencyDecimals: getCurrencyDecimalsLocal,
                             conciergeChat: undefined,
@@ -942,6 +943,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                 .then(() => {
                     if (chatReport) {
                         requestMoney({
+                            personalDetailsByLogins: RORY_PERSONAL_DETAILS_BY_LOGINS,
                             isVendorMatchingBetaEnabled: false,
                             getCurrencyDecimals: getCurrencyDecimalsLocal,
                             conciergeChat: undefined,
@@ -1036,6 +1038,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                     .then(() => {
                         if (chatReport) {
                             requestMoney({
+                                personalDetailsByLogins: RORY_PERSONAL_DETAILS_BY_LOGINS,
                                 isVendorMatchingBetaEnabled: false,
                                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                                 conciergeChat: undefined,
@@ -1093,6 +1096,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                     .then(() => {
                         if (chatReport) {
                             requestMoney({
+                                personalDetailsByLogins: RORY_PERSONAL_DETAILS_BY_LOGINS,
                                 isVendorMatchingBetaEnabled: false,
                                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                                 conciergeChat: undefined,
@@ -1363,6 +1367,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                     .then(() => {
                         if (chatReport) {
                             requestMoney({
+                                personalDetailsByLogins: RORY_PERSONAL_DETAILS_BY_LOGINS,
                                 isVendorMatchingBetaEnabled: false,
                                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                                 conciergeChat: undefined,
@@ -1420,6 +1425,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                     .then(() => {
                         if (chatReport) {
                             requestMoney({
+                                personalDetailsByLogins: RORY_PERSONAL_DETAILS_BY_LOGINS,
                                 isVendorMatchingBetaEnabled: false,
                                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                                 conciergeChat: undefined,
@@ -1637,6 +1643,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                 .then(() => {
                     if (chatReport) {
                         requestMoney({
+                            personalDetailsByLogins: RORY_PERSONAL_DETAILS_BY_LOGINS,
                             isVendorMatchingBetaEnabled: false,
                             getCurrencyDecimals: getCurrencyDecimalsLocal,
                             conciergeChat: undefined,
@@ -1875,6 +1882,7 @@ describe('actions/IOU/ReportWorkflow', () => {
 
             if (chatReport) {
                 requestMoney({
+                    personalDetailsByLogins: RORY_PERSONAL_DETAILS_BY_LOGINS,
                     isVendorMatchingBetaEnabled: false,
                     getCurrencyDecimals: getCurrencyDecimalsLocal,
                     conciergeChat: undefined,
@@ -3859,6 +3867,33 @@ describe('actions/IOU/ReportWorkflow', () => {
             // When the invoice is archived
             expect(canIOUBePaid(iouReport, chatReport, policy, {}, RORY_EMAIL, RORY_ACCOUNT_ID, [], true, true, invoiceReceiverPolicy)).toBe(false);
             expect(canIOUBePaid(iouReport, chatReport, policy, {}, RORY_EMAIL, RORY_ACCOUNT_ID, [], false, true, invoiceReceiverPolicy)).toBe(false);
+        });
+
+        it('does not offer Pay on an invoice that the receiver pays through its linked bill', () => {
+            // Given an invoice that the receiver's policy admin could pay
+            const {policy, convertedInvoiceChat: chatReport}: InvoiceTestData = InvoiceData;
+            const invoiceReceiverPolicyID = getInvoiceReceiverPolicyID(chatReport);
+            if (!invoiceReceiverPolicyID) {
+                throw new Error('Expected the invoice receiver to be a business policy.');
+            }
+            const invoiceReceiverPolicy = {
+                ...createRandomPolicy(Number(invoiceReceiverPolicyID), CONST.POLICY.TYPE.TEAM),
+                id: invoiceReceiverPolicyID,
+                role: CONST.POLICY.ROLE.ADMIN,
+            };
+            const iouReport = {
+                ...createRandomReport(1, undefined),
+                type: CONST.REPORT.TYPE.INVOICE,
+                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+            };
+            expect(canIOUBePaid(iouReport, chatReport, policy, {}, RORY_EMAIL, RORY_ACCOUNT_ID, [], false, false, invoiceReceiverPolicy)).toBe(true);
+
+            // When Auth marks the invoice hidden for the receiver because it has a linked bill
+            const linkedInvoice = {...iouReport, isHiddenForBillReceiver: true};
+
+            // Then the invoice offers no Pay, because the receiver pays the bill as in Classic
+            expect(canIOUBePaid(linkedInvoice, chatReport, policy, {}, RORY_EMAIL, RORY_ACCOUNT_ID, [], false, false, invoiceReceiverPolicy)).toBe(false);
+            expect(canIOUBePaid(linkedInvoice, chatReport, policy, {}, RORY_EMAIL, RORY_ACCOUNT_ID, [], true, false, invoiceReceiverPolicy)).toBe(false);
         });
 
         it('reads the archived state only from the isChatReportArchived parameter, not from Onyx', async () => {
@@ -6671,6 +6706,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                         ],
                     },
                     undefined,
+                    undefined,
                     false,
                 ),
             ).toBe(false);
@@ -6699,6 +6735,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                         ],
                     },
                     derivedIsEmptyReport: undefined,
+                    pendingExpenseActionMetadata: undefined,
                     hasGuidesEmails: false,
                 }),
             ).not.toBe(CONST.REPORT_IN_LHN_REASONS.HAS_GBR);

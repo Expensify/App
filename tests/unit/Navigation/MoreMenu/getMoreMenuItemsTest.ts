@@ -1,16 +1,37 @@
 import FLAT_NAV from '@libs/Navigation/FlatNav/FLAT_NAV';
 import {FLAT_NAV_SECTION_DEFINITIONS} from '@libs/Navigation/FlatNav/FlatNavUtils';
-import type {FlatNavSection, FlatNavSectionID} from '@libs/Navigation/FlatNav/types';
+import type {FlatNavSavedSearchItem, FlatNavSection, FlatNavSectionID} from '@libs/Navigation/FlatNav/types';
 import getMoreMenuItems from '@libs/Navigation/MoreMenu/getMoreMenuItems';
 import type {GetMoreMenuItemsParams} from '@libs/Navigation/MoreMenu/getMoreMenuItems';
 import MORE_MENU from '@libs/Navigation/MoreMenu/MORE_MENU';
+import {savedSearchIDToSearchKey} from '@libs/SearchKeyUtils';
 
 import NAVIGATORS from '@src/NAVIGATORS';
 import SCREENS from '@src/SCREENS';
 
-/** The items of a section do not matter here, only whether the section is visible. */
+/** The More menu lists a section only when it has a search to open, and any item that can be opened will do here. */
+function createSavedSearchItem(overrides: Partial<FlatNavSavedSearchItem> = {}): FlatNavSavedSearchItem {
+    return {
+        type: FLAT_NAV.ITEM_TYPE.SAVED_SEARCH,
+        key: savedSearchIDToSearchKey('1'),
+        sectionID: FLAT_NAV.SECTION.SAVED,
+        savedSearchID: '1',
+        name: 'Saved 1',
+        title: 'Saved 1',
+        query: 'type:expense',
+        iconName: 'Bookmark',
+        isDisabled: false,
+        ...overrides,
+    };
+}
+
 function createSections(ids: FlatNavSectionID[]): FlatNavSection[] {
-    return FLAT_NAV_SECTION_DEFINITIONS.filter((definition) => ids.includes(definition.id)).map(({id, translationPath, iconName}) => ({id, translationPath, iconName, items: []}));
+    return FLAT_NAV_SECTION_DEFINITIONS.filter((definition) => ids.includes(definition.id)).map(({id, translationPath, iconName}) => ({
+        id,
+        translationPath,
+        iconName,
+        items: [createSavedSearchItem()],
+    }));
 }
 
 const ALL_SECTIONS = createSections([FLAT_NAV.SECTION.EXPENSES, FLAT_NAV.SECTION.REPORTS, FLAT_NAV.SECTION.ACCOUNTING, FLAT_NAV.SECTION.SAVED]);
@@ -71,6 +92,31 @@ describe('getMoreMenuItems', () => {
 
         // Then only the destinations that always exist are listed, so More never offers an empty section
         expect(items.map((item) => item.id)).toEqual([MORE_MENU.ITEM.INSIGHTS, MORE_MENU.ITEM.WORKSPACES]);
+    });
+
+    it('should drop Saved while every saved search is pending delete', () => {
+        // Given an offline user who deleted their only saved search, so the Saved section is still visible but its only row is disabled
+        const savedSection: FlatNavSection = {...getSection(FLAT_NAV.SECTION.SAVED), items: [createSavedSearchItem({isDisabled: true})]};
+
+        // When the More entries are built
+        const items = getItems({sections: [getSection(FLAT_NAV.SECTION.ACCOUNTING), savedSection]});
+
+        // Then Saved is left out, because the entry would have no search to open and a press on it would do nothing
+        expect(items.map((item) => item.id)).toEqual([MORE_MENU.ITEM.ACCOUNTING, MORE_MENU.ITEM.INSIGHTS, MORE_MENU.ITEM.WORKSPACES]);
+    });
+
+    it('should keep Saved while one saved search can still be opened', () => {
+        // Given an offline user who deleted one of two saved searches, so the Saved section has a disabled row followed by a live one
+        const savedSection: FlatNavSection = {
+            ...getSection(FLAT_NAV.SECTION.SAVED),
+            items: [createSavedSearchItem({isDisabled: true}), createSavedSearchItem({key: savedSearchIDToSearchKey('2'), savedSearchID: '2'})],
+        };
+
+        // When the More entries are built
+        const items = getItems({sections: [getSection(FLAT_NAV.SECTION.ACCOUNTING), savedSection]});
+
+        // Then Saved stays listed, because a press on it still opens the live saved search
+        expect(items.map((item) => item.id)).toEqual([MORE_MENU.ITEM.ACCOUNTING, MORE_MENU.ITEM.SAVED, MORE_MENU.ITEM.INSIGHTS, MORE_MENU.ITEM.WORKSPACES]);
     });
 
     it('should draw the Workspaces dot with the color the tab bar uses', () => {

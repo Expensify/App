@@ -173,6 +173,13 @@ function reportTypeAndParentIDsSelector(report: OnyxEntry<Report>): Pick<Report,
     return {type: report.type, chatReportID: report.chatReportID, parentReportID: report.parentReportID};
 }
 
+function reportPolicyAndChatReportIDsSelector(report: OnyxEntry<Report>): Pick<Report, 'policyID' | 'chatReportID'> | undefined {
+    if (!report) {
+        return undefined;
+    }
+    return {policyID: report.policyID, chatReportID: report.chatReportID};
+}
+
 const policyIDsWithEmptyReportsSelector =
     (accountID: number | undefined, transactionsByReportID: Record<string, Transaction[]>, hasDismissedEmptyReportsConfirmation: boolean) => (reports: OnyxCollection<Report>) => {
         if (hasDismissedEmptyReportsConfirmation || !accountID) {
@@ -366,6 +373,8 @@ function getStableReportSelector(report: OnyxEntry<Report>) {
         type: report.type,
         visibility: report.visibility,
         invoiceReceiver: report.invoiceReceiver,
+        isHiddenForBillReceiver: report.isHiddenForBillReceiver,
+        isAwaitingActionFromCurrentUser: report.isAwaitingActionFromCurrentUser,
         transactionCount: report.transactionCount,
         parentReportID: report.parentReportID,
         parentReportActionID: report.parentReportActionID,
@@ -464,6 +473,7 @@ export {
     policyChatRoomsSelector,
     reportAvatarFieldsSelector,
     reportAvatarKindSelector,
+    reportPolicyAndChatReportIDsSelector,
     reportPolicyFieldsSelector,
     reportTypeAndParentIDsSelector,
     roomAvatarFieldsSelector,

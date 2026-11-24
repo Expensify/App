@@ -21,7 +21,9 @@ import {isAnonymousSessionSelector} from '@selectors/Session';
 import {useEffect} from 'react';
 
 import getActiveTabRoute from './getActiveTabRoute';
+import {isNavigationToNativeTabItem} from './nativeTabItemUtils';
 import {isInboxTabAtChatList, isNativeTabSelectionEnabled} from './tabScreenListeners';
+import useIsTabRootRevealing from './useIsTabRootRevealing';
 import useIsWorkspacesTabRestored from './useIsWorkspacesTabRestored';
 
 /** stale === false distinguishes a fully realized NavigationState from a PartialState. */
@@ -29,12 +31,16 @@ function isRealizedNavigationState(state: NavigationState | PartialState<Navigat
     return state?.stale === false;
 }
 
-function useNativeTabNavigator() {
+type NativeTabNavigatorParams = {
+    /** Whether the bar shows the flat nav items: Home, Inbox, Expenses, Reports and More */
+    isFlatNavTabBarEnabled?: boolean;
+};
+
+function useNativeTabNavigator({isFlatNavTabBarEnabled = false}: NativeTabNavigatorParams = {}) {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {isBlockingViewVisible} = useFullScreenBlockingViewState();
     const {translate} = useLocalize();
     const [isAnonymousUser = false] = useOnyx(ONYXKEYS.SESSION, {selector: isAnonymousSessionSelector});
-    const tabWithoutBarItem = NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR;
     const {indicatorColor: inboxDotColor} = useInboxTabIndicatorStatus();
     const {indicatorColor: workspacesIndicatorColor, status: workspacesIndicatorStatus} = useWorkspacesTabIndicatorStatus();
     const route = useRoute();
@@ -43,21 +49,34 @@ function useNativeTabNavigator() {
     // mounts, so the nearest navigation listener context is still the parent stack's.
     const tabState = useNavigationState((parentState) => parentState.routes.find((parentRoute) => parentRoute.key === route.key)?.state);
     const activeTabRoute = getActiveTabRoute(tabState);
-    const shouldShowNativeTabBar = shouldUseNarrowLayout && isTabRouteAtRoot(activeTabRoute) && !isBlockingViewVisible;
+    const isAtTabRoot = isTabRouteAtRoot(activeTabRoute);
+    const [isTabRootRevealing, setIsTabRootRevealing] = useIsTabRootRevealing(isAtTabRoot, activeTabRoute?.key);
+    const shouldShowNativeTabBar = shouldUseNarrowLayout && (isAtTabRoot || isTabRootRevealing) && !isBlockingViewVisible;
     const getTabRoute = (tabName: string) => (isRealizedNavigationState(tabState) ? tabState.routes.find((tabRoute) => tabRoute.name === tabName) : undefined);
     const isInboxAtChatList = isInboxTabAtChatList(getTabRoute(NAVIGATORS.REPORTS_SPLIT_NAVIGATOR));
     const isWorkspacesTabRestored = useIsWorkspacesTabRestored(getTabRoute(NAVIGATORS.WORKSPACE_NAVIGATOR));
 
+    const workspacesDotColor = workspacesIndicatorStatus ? workspacesIndicatorColor : undefined;
     const dotColors: Record<string, string | undefined> = {
         [NAVIGATORS.REPORTS_SPLIT_NAVIGATOR]: inboxDotColor,
-        [NAVIGATORS.WORKSPACE_NAVIGATOR]: workspacesIndicatorStatus ? workspacesIndicatorColor : undefined,
+        [isFlatNavTabBarEnabled ? SCREENS.NATIVE_TAB_ITEM.MORE : NAVIGATORS.WORKSPACE_NAVIGATOR]: workspacesDotColor,
     };
+    // Only the items in the bar get a label: the iOS labels are sized by how many items the bar has, and a tab without
+    // a label is hidden from the bar.
     const tabLabels: Record<string, string> = {
         [SCREENS.HOME]: translate('common.home'),
         [NAVIGATORS.REPORTS_SPLIT_NAVIGATOR]: translate('common.inbox'),
-        [NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR]: translate('common.spend'),
-        [SCREENS.INSIGHTS]: translate('common.insights'),
-        [NAVIGATORS.WORKSPACE_NAVIGATOR]: translate('common.workspacesTabTitle'),
+        ...(isFlatNavTabBarEnabled
+            ? {
+                  [SCREENS.NATIVE_TAB_ITEM.EXPENSES]: translate('common.expenses'),
+                  [SCREENS.NATIVE_TAB_ITEM.REPORTS]: translate('common.reports'),
+                  [SCREENS.NATIVE_TAB_ITEM.MORE]: translate('common.more'),
+              }
+            : {
+                  [NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR]: translate('common.spend'),
+                  [SCREENS.INSIGHTS]: translate('common.insights'),
+                  [NAVIGATORS.WORKSPACE_NAVIGATOR]: translate('common.workspacesTabTitle'),
+              }),
     };
 
     useEffect(() => {
@@ -71,6 +90,8 @@ function useNativeTabNavigator() {
     // this TAB_NAVIGATOR. Without restoration it would default to index 0. We restore the saved
     // state by overriding the bottom-tab router's getInitialState, the same pattern SplitRouter
     // uses for its split navigators.
+    // A placeholder of the flat nav bar is never focused and never enters the history: the bar navigates to it when the
+    // user selects it, and its tab press handler navigates to the route it stands for instead.
     const tabRouterOverride = <Action extends NavigationAction>(
         originalRouter: Router<TabNavigationState<TabNavigatorParamList>, Action>,
     ): Partial<Router<TabNavigationState<TabNavigatorParamList>, Action>> => ({
@@ -78,11 +99,12 @@ function useNativeTabNavigator() {
             const preserved = getPreservedNavigatorState<TabNavigationState<TabNavigatorParamList>>(route.key);
             return preserved ? originalRouter.getRehydratedState(preserved, configOptions) : originalRouter.getInitialState(configOptions);
         },
+        getStateForAction: (state, action, configOptions) => (isNavigationToNativeTabItem(action) ? state : originalRouter.getStateForAction(state, action, configOptions)),
     });
 
     const isTabSelectionEnabled = (routeName: string) => isNativeTabSelectionEnabled(routeName, {isAnonymousUser, isInboxAtChatList, isWorkspacesTabRestored});
 
-    return {shouldShowNativeTabBar, dotColors, tabLabels, tabWithoutBarItem, tabRouterOverride, isTabSelectionEnabled};
+    return {shouldShowNativeTabBar, dotColors, tabLabels, tabRouterOverride, isTabSelectionEnabled, setIsTabRootRevealing};
 }
 
 export default useNativeTabNavigator;

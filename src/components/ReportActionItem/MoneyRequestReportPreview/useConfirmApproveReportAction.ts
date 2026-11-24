@@ -6,6 +6,7 @@
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
 import {useLockedAccountActions, useLockedAccountState} from '@components/LockedAccountModalProvider';
 
+import useConfirmApproveReportViolations from '@hooks/useConfirmApproveReportViolations';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useOnyx from '@hooks/useOnyx';
@@ -39,6 +40,7 @@ function useConfirmApproveReportAction(actionButtonData: ReturnType<typeof useRe
     const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
 
     const {iouReport, policy, ownerLogin, userBillingGracePeriodEnds, amountOwed, ownerBillingGracePeriodEnd, delegateEmail, delegateAccountID} = actionButtonData;
+    const confirmApproveReportViolations = useConfirmApproveReportViolations({report: iouReport, policy});
 
     return (full = true) => {
         if (isDelegateAccessRestricted) {
@@ -46,28 +48,30 @@ function useConfirmApproveReportAction(actionButtonData: ReturnType<typeof useRe
         } else if (isAccountLocked) {
             showLockedAccountModal();
         } else {
-            approveMoneyRequest({
-                personalDetailsByLogins: getPersonalDetailsByLogin(),
-                getCurrencyDecimals,
-                expenseReport: iouReport,
-                expenseReportPolicy: policy,
-                rules,
-                currentUserAccountIDParam: currentUserDetails.accountID,
-                currentUserEmailParam: currentUserDetails.email ?? '',
-                hasViolations,
-                isASAPSubmitBetaEnabled: isBetaEnabled(CONST.BETAS.ASAP_SUBMIT),
-                userBillingGracePeriodEnds,
-                amountOwed,
-                ownerBillingGracePeriodEnd,
-                ownerLogin,
-                full,
-                onApproved: startApprovedAnimation,
-                delegateEmail,
-                delegateAccountID,
-                isTrackIntentUser,
-                allTransactionViolations,
-                isChatReportArchived,
-            });
+            confirmApproveReportViolations(() => {
+                approveMoneyRequest({
+                    personalDetailsByLogins: getPersonalDetailsByLogin(),
+                    getCurrencyDecimals,
+                    expenseReport: iouReport,
+                    expenseReportPolicy: policy,
+                    rules,
+                    currentUserAccountIDParam: currentUserDetails.accountID,
+                    currentUserEmailParam: currentUserDetails.email ?? '',
+                    hasViolations,
+                    isASAPSubmitBetaEnabled: isBetaEnabled(CONST.BETAS.ASAP_SUBMIT),
+                    userBillingGracePeriodEnds,
+                    amountOwed,
+                    ownerBillingGracePeriodEnd,
+                    ownerLogin,
+                    full,
+                    onApproved: startApprovedAnimation,
+                    delegateEmail,
+                    delegateAccountID,
+                    isTrackIntentUser,
+                    allTransactionViolations,
+                    isChatReportArchived,
+                });
+            }, full);
         }
     };
 }

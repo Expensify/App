@@ -1,3 +1,5 @@
+import * as Reconnect from '@libs/actions/Reconnect';
+import redirectToSignIn from '@libs/actions/SignInRedirect';
 import Reauthentication, {resetReauthentication} from '@libs/Middleware/Reauthentication';
 import SaveResponseInOnyx from '@libs/Middleware/SaveResponseInOnyx';
 import reauthenticate from '@libs/Reauthentication';
@@ -301,5 +303,128 @@ describe('Reauthentication middleware', () => {
                 expect(resolve).toHaveBeenCalledWith({jsonCode: CONST.JSON_CODE.UNABLE_TO_RETRY});
             })
             .finally(() => setHasRadio(true));
+    });
+
+    test('should give each reauthentication flow a fresh retry budget', async () => {
+        // Given three separate expired-session flows where each Authenticate fails 4 times before it succeeds,
+        // so the failures add up to more than MAX_REQUEST_RETRIES across the session but not within one flow
+        jest.useFakeTimers({doNotFake: ['nextTick', 'setImmediate']});
+        const reconnectSpy = jest.spyOn(Reconnect, 'reconnect').mockImplementation(() => {});
+        const failuresPerFlow = 4;
+        const flowCount = 3;
+        expect(failuresPerFlow * flowCount).toBeGreaterThan(CONST.NETWORK.MAX_REQUEST_RETRIES);
+
+        try {
+            for (let flow = 0; flow < flowCount; flow++) {
+                for (let failure = 0; failure < failuresPerFlow; failure++) {
+                    jest.mocked(reauthenticate).mockRejectedValueOnce(new Error(CONST.ERROR.FAILED_TO_FETCH));
+                }
+                jest.mocked(reauthenticate).mockResolvedValueOnce({wasSuccessful: true});
+
+                // When a READ request hits an expired session and the retries run out their backoff timers
+                const middlewarePromise = Reauthentication(
+                    Promise.resolve({jsonCode: CONST.JSON_CODE.NOT_AUTHENTICATED}),
+                    {command: 'TestCommand', data: {apiRequestType: CONST.API_REQUEST_TYPE.READ}},
+                    false,
+                );
+                await jest.runAllTimersAsync();
+                await middlewarePromise;
+            }
+
+            // Then every flow reauthenticates and the user is never signed out
+            expect(reauthenticate).toHaveBeenCalledTimes(flowCount * (failuresPerFlow + 1));
+            expect(reconnectSpy).toHaveBeenCalledTimes(flowCount);
+            expect(redirectToSignIn).not.toHaveBeenCalled();
+        } finally {
+            jest.mocked(reauthenticate).mockReset();
+            reconnectSpy.mockRestore();
+            jest.useRealTimers();
+        }
+    });
+
+    describe('replay after a successful reauthentication', () => {
+        beforeEach(() => {
+            Request.addMiddleware(Reauthentication);
+            jest.mocked(reauthenticate).mockResolvedValue({wasSuccessful: true});
+        });
+
+        test('replays a queued write once and resolves when the replay succeeds', () => {
+            // Given a queued write whose session expired, and a server that accepts it with the fresh token
+            const xhr = jest.spyOn(HttpUtils, 'xhr').mockResolvedValueOnce({jsonCode: CONST.JSON_CODE.NOT_AUTHENTICATED}).mockResolvedValue({jsonCode: CONST.JSON_CODE.SUCCESS});
+            const request: OnyxRequest<typeof ONYXKEYS.NETWORK> = {
+                command: 'TestCommand',
+                data: {apiRequestType: CONST.API_REQUEST_TYPE.WRITE},
+            };
+
+            // When the queue sends it
+            return Request.processWithMiddleware(request, true).then((response) => {
+                // Then it is replayed once after reauthenticating, so a normal session expiry still recovers in place
+                expect(response?.jsonCode).toBe(CONST.JSON_CODE.SUCCESS);
+                expect(reauthenticate).toHaveBeenCalledTimes(1);
+                expect(xhr).toHaveBeenCalledTimes(2);
+            });
+        });
+
+        test('rejects a queued write that is rejected again after reauthentication instead of replaying it forever', () => {
+            // Given a queued write the server keeps rejecting even with a fresh token, like a body the browser sent empty
+            const xhr = jest.spyOn(HttpUtils, 'xhr').mockResolvedValue({jsonCode: CONST.JSON_CODE.NOT_AUTHENTICATED});
+            const request: OnyxRequest<typeof ONYXKEYS.NETWORK> = {
+                command: 'TestCommand',
+                data: {apiRequestType: CONST.API_REQUEST_TYPE.WRITE},
+            };
+
+            // When the queue sends it
+            return (
+                expect(Request.processWithMiddleware(request, true))
+                    // Then the second rejection is handed to the queue's backoff instead of reauthenticating and replaying again
+                    .rejects.toThrow(CONST.ERROR.REAUTH_REPLAY_REJECTED)
+                    .then(() => {
+                        expect(reauthenticate).toHaveBeenCalledTimes(1);
+                        expect(xhr).toHaveBeenCalledTimes(2);
+                    })
+            );
+        });
+
+        test('rejects the same way when the replay gets an HTTP 407', () => {
+            // Given a queued write that keeps failing with an HTTP-level 407 instead of a JSON one
+            const xhr = jest.spyOn(HttpUtils, 'xhr').mockRejectedValue(
+                new HttpsError({
+                    message: 'Proxy Authentication Required',
+                    status: String(CONST.JSON_CODE.NOT_AUTHENTICATED),
+                }),
+            );
+            const request: OnyxRequest<typeof ONYXKEYS.NETWORK> = {
+                command: 'TestCommand',
+                data: {apiRequestType: CONST.API_REQUEST_TYPE.WRITE},
+            };
+
+            // When the queue sends it
+            return (
+                expect(Request.processWithMiddleware(request, true))
+                    // Then the second rejection is handed to the queue's backoff instead of reauthenticating and replaying again
+                    .rejects.toThrow(CONST.ERROR.REAUTH_REPLAY_REJECTED)
+                    .then(() => {
+                        expect(reauthenticate).toHaveBeenCalledTimes(1);
+                        expect(xhr).toHaveBeenCalledTimes(2);
+                    })
+            );
+        });
+
+        test('resolves a side-effect request with the 407 when the replay is rejected again', () => {
+            // Given a side-effect request the server keeps rejecting even with a fresh token
+            const xhr = jest.spyOn(HttpUtils, 'xhr').mockResolvedValue({jsonCode: CONST.JSON_CODE.NOT_AUTHENTICATED});
+            const request: OnyxRequest<typeof ONYXKEYS.NETWORK> = {
+                command: 'TestCommand',
+                data: {apiRequestType: CONST.API_REQUEST_TYPE.MAKE_REQUEST_WITH_SIDE_EFFECTS},
+            };
+
+            // When it is sent outside the queue
+            return Request.processWithMiddleware(request, false).then((response) => {
+                // Then the caller gets the 407 after one replay, so its failure data runs instead of the request hanging
+                expect(response?.jsonCode).toBe(CONST.JSON_CODE.NOT_AUTHENTICATED);
+                expect(reauthenticate).toHaveBeenCalledTimes(1);
+                expect(xhr).toHaveBeenCalledTimes(2);
+            });
+        });
     });
 });

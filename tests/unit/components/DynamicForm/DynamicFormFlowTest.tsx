@@ -110,6 +110,7 @@ type RenderFlowOptions = {
     onRefreshRequirements?: (inputID: string, value: FormValue) => void;
     shouldDisableNextWhenOffline?: boolean;
     unsavedPageKeys?: string[];
+    isLoading?: boolean;
 };
 
 function mockSubPage(currentPageName: string, pageIndex: number, isRedirecting: boolean) {
@@ -142,6 +143,7 @@ async function renderFlow({
     onRefreshRequirements,
     shouldDisableNextWhenOffline,
     unsavedPageKeys,
+    isLoading,
 }: RenderFlowOptions = {}) {
     await Onyx.set(`${FORM_ID}Draft`, draft);
     await Onyx.set(ONYXKEYS.RAM_ONLY_DYNAMIC_FORM_SENSITIVE_ANSWERS, {[FORM_ID]: sensitiveAnswers});
@@ -168,6 +170,7 @@ async function renderFlow({
             isSubmitting={submitting}
             shouldDisableNextWhenOffline={shouldDisableNextWhenOffline}
             unsavedPageKeys={unsavedPageKeys}
+            isLoading={isLoading}
         />
     );
     const {rerender, unmount} = render(renderWith(isSubmitting));
@@ -566,6 +569,17 @@ describe('DynamicFormFlow', () => {
         expect(HeaderWithBackButtonAndTitle).toHaveBeenCalled();
         expect(ActivityIndicator).toHaveBeenCalled();
         expect(FullscreenLoadingIndicator).not.toHaveBeenCalled();
+        expect(mockCurrentPage).not.toHaveBeenCalled();
+    });
+
+    it('shows a spinner below the header in place of the page while the screen asks it to', async () => {
+        // Given a screen waiting for a save that can add pages
+        // When the flow renders with isLoading
+        await renderFlow({isLoading: true});
+
+        // Then the header stays and a spinner replaces the page, so the user does not see a page they are about to leave
+        expect(HeaderWithBackButtonAndTitle).toHaveBeenCalled();
+        expect(ActivityIndicator).toHaveBeenCalled();
         expect(mockCurrentPage).not.toHaveBeenCalled();
     });
 

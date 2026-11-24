@@ -1,14 +1,20 @@
 import type {PaymentMethod} from '@components/KYCWall/types';
+import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 
 import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
 
 import * as API from '@libs/API';
 import type {MarkReportPaymentReceivedParams, PayInvoiceParams, PayMoneyRequestParams} from '@libs/API/parameters';
 import {WRITE_COMMANDS} from '@libs/API/types';
-import {shouldSetUpGlobalReimbursementsBeforePaying} from '@libs/BankAccountUtils';
+import {getCommandURL} from '@libs/ApiUtils';
+import {getBusinessBankAccountForPayment, shouldSetUpGlobalReimbursementsBeforePaying} from '@libs/BankAccountUtils';
 import DateUtils from '@libs/DateUtils';
+import type HttpsError from '@libs/Errors/HttpsError';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
+import fileDownload from '@libs/fileDownload';
 import Navigation from '@libs/Navigation/Navigation';
+import enhanceParameters from '@libs/Network/enhanceParameters';
+import {getIsOffline} from '@libs/NetworkState';
 import {buildOptimisticNextStep} from '@libs/NextStepUtils';
 import {getPersonalDetailsForAccountIDs} from '@libs/PersonalDetailsUtils';
 import {isPaidGroupPolicy, isPolicyAdmin} from '@libs/PolicyUtils';
@@ -30,6 +36,7 @@ import playSound, {SOUNDS} from '@libs/Sound';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import {shouldSplitScanFailedTransactions} from '@libs/TransactionUtils';
 
+import {showEnableGlobalReimbursementsModal} from '@userActions/App';
 import {buildPolicyData, generatePolicyID} from '@userActions/Policy/Policy';
 import type {BuildPolicyDataKeys} from '@userActions/Policy/Policy';
 import {completeOnboarding} from '@userActions/Report';
@@ -45,9 +52,10 @@ import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import type {OnyxData} from '@src/types/onyx/Request';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
-import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry, OnyxKey, OnyxUpdate} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 
+import {format} from 'date-fns';
 import Onyx from 'react-native-onyx';
 
 import type AdditionalPayOnyxData from './types/AdditionalPayOnyxData';
@@ -931,18 +939,62 @@ function completePaymentOnboarding(
 
 /**
  * Returns the paying bank account when the payment must wait for global reimbursements onboarding, so payMoneyRequest opens the onboarding instead of paying.
+ * The backend flags the reports that go through global reimbursements on their waiting-to-pay next step, because only it knows the submitter's deposit account.
+ * The flag describes a payment from the workspace reimbursement account only, so a payment from any other account is left to the backend.
  */
 function getBankAccountToSetUpBeforePaying({
     paymentType,
+    iouReport,
+    policy,
     methodID,
     bankAccountList,
     isWiseReimbursementsBetaEnabled,
-}: Pick<PayMoneyRequestFunctionParams, 'paymentType' | 'methodID' | 'bankAccountList' | 'isWiseReimbursementsBetaEnabled'>): OnyxTypes.BankAccount | undefined {
-    if (!isWiseReimbursementsBetaEnabled || paymentType !== CONST.IOU.PAYMENT_TYPE.VBBA || !methodID) {
+}: Pick<PayMoneyRequestFunctionParams, 'paymentType' | 'iouReport' | 'policy' | 'methodID' | 'bankAccountList' | 'isWiseReimbursementsBetaEnabled'>): OnyxTypes.BankAccount | undefined {
+    if (!isWiseReimbursementsBetaEnabled || paymentType !== CONST.IOU.PAYMENT_TYPE.VBBA || !methodID || !iouReport?.nextStep?.requiresGlobalReimbursement) {
+        return undefined;
+    }
+    if (methodID !== policy?.achAccount?.bankAccountID) {
         return undefined;
     }
     const bankAccount = bankAccountList?.[methodID];
     return shouldSetUpGlobalReimbursementsBeforePaying(bankAccount) ? bankAccount : undefined;
+}
+
+/**
+ * Whether the backend may still reject this payment until the paying account is set up for global reimbursements.
+ * The pre-check above can't catch every such payment, because only the backend knows the submitter's deposit account.
+ * For a payment from the workspace reimbursement account the next step flag already answers, and the pre-check stops every payment it flags.
+ */
+function canGlobalReimbursementsRejectPayment(
+    params: Pick<PayMoneyRequestFunctionParams, 'paymentType' | 'iouReport' | 'policy' | 'methodID' | 'bankAccountList' | 'isWiseReimbursementsBetaEnabled'>,
+): boolean {
+    if (params.iouReport?.nextStep && !!params.methodID && params.methodID === params.policy?.achAccount?.bankAccountID) {
+        return false;
+    }
+    return shouldSetUpGlobalReimbursementsBeforePaying(getBusinessBankAccountForPayment(params));
+}
+
+/**
+ * Holds the optimistic payment back until the backend answers. Showing the report as paid and then rolling it back on a global reimbursements
+ * rejection makes it drop out of the lists and come back, so the report only shows a loading state while the payment is in flight.
+ * On success the response carries the paid report, and only the last used payment method, which the backend doesn't send back, is saved.
+ * On failure the optimistic data is applied before the failure data, so a failure ends in the same state it would after an optimistic
+ * payment, and the failure data never merges errors into report actions that don't exist.
+ */
+function holdOptimisticPayOnyxDataUntilResponse<TKey extends OnyxKey>(onyxData: OnyxData<TKey>, iouReportID: string): OnyxData<TKey> {
+    const loadingStateKey = `${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${iouReportID}` as const;
+    const loadingStateOnyxData: AdditionalPayOnyxData = {
+        optimisticData: [{onyxMethod: Onyx.METHOD.MERGE, key: loadingStateKey, value: {isActionLoading: true}}],
+        successData: [{onyxMethod: Onyx.METHOD.MERGE, key: loadingStateKey, value: {isActionLoading: false}}],
+        failureData: [{onyxMethod: Onyx.METHOD.MERGE, key: loadingStateKey, value: {isActionLoading: false}}],
+    };
+    const heldOnyxData: OnyxData<TKey> = {
+        ...onyxData,
+        optimisticData: [],
+        successData: [...(onyxData.successData ?? []), ...(onyxData.optimisticData ?? []).filter((update) => update.key === ONYXKEYS.NVP_LAST_PAYMENT_METHOD)],
+        failureData: [...(onyxData.optimisticData ?? []), ...(onyxData.failureData ?? [])],
+    };
+    return mergeAdditionalPayOnyxData(heldOnyxData, loadingStateOnyxData);
 }
 
 function payMoneyRequest(params: PayMoneyRequestFunctionParams) {
@@ -991,13 +1043,9 @@ function payMoneyRequest(params: PayMoneyRequestFunctionParams) {
     }
 
     // The backend rejects this payment until the account is set up for global reimbursements, so open the onboarding right away instead of showing an optimistic payment
-    const bankAccountToSetUp = getBankAccountToSetUpBeforePaying({paymentType, methodID, bankAccountList, isWiseReimbursementsBetaEnabled});
+    const bankAccountToSetUp = getBankAccountToSetUpBeforePaying({paymentType, iouReport, policy, methodID, bankAccountList, isWiseReimbursementsBetaEnabled});
     if (methodID && bankAccountToSetUp) {
-        Onyx.set(ONYXKEYS.RAM_ONLY_ENABLE_GLOBAL_REIMBURSEMENTS_MODAL, {
-            bankAccountID: methodID,
-            bankCountry: bankAccountToSetUp.bankCountry,
-            bankCurrency: bankAccountToSetUp.bankCurrency,
-        });
+        showEnableGlobalReimbursementsModal({bankAccountID: methodID, bankCountry: bankAccountToSetUp.bankCountry, bankCurrency: bankAccountToSetUp.bankCurrency});
         return;
     }
 
@@ -1046,13 +1094,114 @@ function payMoneyRequest(params: PayMoneyRequestFunctionParams) {
     // Expensify Wallets.
     const apiCommand = paymentType === CONST.IOU.PAYMENT_TYPE.EXPENSIFY ? WRITE_COMMANDS.PAY_MONEY_REQUEST_WITH_WALLET : WRITE_COMMANDS.PAY_MONEY_REQUEST;
 
-    onPaid?.();
-    if (shouldPlaySuccessSound) {
-        playSound(SOUNDS.SUCCESS);
+    // Offline the payment is queued and has to show as paid right away, and a partial payment creates the report for the held expenses optimistically
+    const shouldHoldOptimisticPayment =
+        full &&
+        !getIsOffline() &&
+        !!iouReport?.reportID &&
+        canGlobalReimbursementsRejectPayment({paymentType, iouReport, policy, methodID, bankAccountList, isWiseReimbursementsBetaEnabled});
+    const requestOnyxData = shouldHoldOptimisticPayment && iouReport?.reportID ? holdOptimisticPayOnyxDataUntilResponse(onyxData, iouReport.reportID) : onyxData;
+
+    // A held payment may still be rejected, so it doesn't celebrate before the backend answers
+    if (!shouldHoldOptimisticPayment) {
+        onPaid?.();
+        if (shouldPlaySuccessSound) {
+            playSound(SOUNDS.SUCCESS);
+        }
     }
-    API.write(apiCommand, {...payMoneyRequestParams, wiseQuoteID}, mergeAdditionalPayOnyxData(onyxData, additionalOnyxData));
+    API.write(apiCommand, {...payMoneyRequestParams, wiseQuoteID}, mergeAdditionalPayOnyxData(requestOnyxData, additionalOnyxData));
     notifyNewAction(!full ? (Navigation.getTopmostReportId() ?? iouReport?.reportID) : iouReport?.reportID, undefined, true);
     return payMoneyRequestParams.optimisticHoldReportID;
+}
+
+type PayViaABAFunctionParams = {
+    reportIDs: string[];
+    policy: OnyxEntry<OnyxTypes.Policy>;
+    shouldReimburseHeldTransactions?: boolean;
+    introSelected: OnyxEntry<OnyxTypes.IntroSelected>;
+    isSelfTourViewed: boolean | undefined;
+    currentUserAccountID: number;
+    conciergeChat: OnyxEntry<OnyxTypes.Report>;
+    delegateAccountID: number | undefined;
+    userBillingGracePeriodEnds: OnyxCollection<OnyxTypes.BillingGraceEndPeriod>;
+    amountOwed: OnyxEntry<number>;
+    ownerBillingGracePeriodEnd?: OnyxEntry<number>;
+    translate: LocalizedTranslate;
+    onDownloadFailed: (error?: HttpsError) => void;
+    onPaid?: () => void;
+};
+
+/**
+ * Downloads the ABA file for paying the given reports. The backend marks them as "paid elsewhere" when it creates the file.
+ * Resolves once the download has finished or failed.
+ */
+async function payViaABA(params: PayViaABAFunctionParams): Promise<void> {
+    const {
+        reportIDs,
+        policy,
+        shouldReimburseHeldTransactions = true,
+        introSelected,
+        isSelfTourViewed,
+        currentUserAccountID,
+        conciergeChat,
+        delegateAccountID,
+        userBillingGracePeriodEnds,
+        amountOwed,
+        ownerBillingGracePeriodEnd,
+        translate,
+        onDownloadFailed,
+        onPaid,
+    } = params;
+    if (policy && shouldRestrictUserBillableActions(policy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, currentUserAccountID)) {
+        Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy.id));
+        return;
+    }
+
+    completePaymentOnboarding(CONST.IOU.PAYMENT_SELECTED.BBA, introSelected, isSelfTourViewed, currentUserAccountID, conciergeChat, delegateAccountID);
+
+    const finalParameters = enhanceParameters(WRITE_COMMANDS.PAY_VIA_ABA, {reportIDList: reportIDs.join(','), shouldReimburseHeldTransactions});
+    const formData = new FormData();
+    for (const [key, value] of Object.entries(finalParameters)) {
+        formData.append(key, String(value));
+    }
+
+    // Matches the file names Classic gives ABA files
+    const fileName = reportIDs.length === 1 ? `ABA_Report_${reportIDs.at(0)}.aba` : `ABA_Report_Bulk_${format(new Date(), CONST.DATE.FNS_FORMAT_STRING)}.aba`;
+    let hasDownloadFailed = false;
+    const handleDownloadFailed = (error?: HttpsError) => {
+        hasDownloadFailed = true;
+        onDownloadFailed(error);
+    };
+
+    // The file download doesn't go through the write queue, so we wait for queued writes to reach the server first
+    await API.waitForWrites(WRITE_COMMANDS.PAY_VIA_ABA);
+    return fileDownload(
+        translate,
+        getCommandURL({command: WRITE_COMMANDS.PAY_VIA_ABA}),
+        fileName,
+        '',
+        false,
+        formData,
+        CONST.NETWORK.METHOD.POST,
+        handleDownloadFailed,
+        undefined,
+        false,
+    ).then(() => {
+        if (hasDownloadFailed) {
+            return;
+        }
+
+        // A successful download means the reports are paid, so we mark them as paid now to stop the Pay button
+        // reappearing before the BE's pusher updates arrive.
+        Onyx.update(
+            reportIDs.map((reportID) => ({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+                value: {statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED, stateNum: CONST.REPORT.STATE_NUM.APPROVED},
+            })),
+        );
+        onPaid?.();
+    });
 }
 
 function markReportPaymentReceived({
@@ -1373,5 +1522,5 @@ function savePreferredPaymentMethod(
     });
 }
 
-export {cancelPayment, completePaymentOnboarding, getBankAccountToSetUpBeforePaying, markReportPaymentReceived, payInvoice, payMoneyRequest, savePreferredPaymentMethod};
+export {cancelPayment, completePaymentOnboarding, getBankAccountToSetUpBeforePaying, markReportPaymentReceived, payInvoice, payMoneyRequest, payViaABA, savePreferredPaymentMethod};
 export type {PayMoneyRequestFunctionParams};

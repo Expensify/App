@@ -228,6 +228,7 @@ function DynamicIOURequestStepDistance({
     };
 
     const {suppressDiscardPrompt} = useDiscardChangesConfirmation({
+        shouldCloseRHPOnDiscard: action === CONST.IOU.ACTION.CREATE,
         getHasUnsavedChanges: () => {
             const typedManualDistance = manualDistanceValue ? roundToTwoDecimalPlaces(parseFloat(manualDistanceValue)) : undefined;
             const manualDistanceChanged = manualDistanceValue !== undefined && typedManualDistance !== currentDistance;
@@ -451,6 +452,7 @@ function DynamicIOURequestStepDistance({
         waypoints,
         currentUserLogin: currentUserEmailParam,
         currentUserAccountID: currentUserAccountIDParam,
+        currentUserPersonalDetails,
         currentUserLocalCurrency: currentUserPersonalDetails.localCurrencyCode ?? CONST.CURRENCY.USD,
         backTo,
         backToReport,
@@ -577,6 +579,7 @@ function DynamicIOURequestStepDistance({
             }
             if (transaction?.transactionID && report?.reportID) {
                 updateMoneyRequestDistance({
+                    translate,
                     isVendorMatchingBetaEnabled,
                     transaction,
                     transactionThreadReport: report,
@@ -707,6 +710,7 @@ function DynamicIOURequestStepDistance({
         const isRouteSelectionOnlyChange = shouldUpdateSelectedRoute && !isDistanceChanged && !isDistanceUnitChanged && !haveWaypointsChanged;
         const hasRouteChanged = haveWaypointsChanged && !deepEqual(transactionBackup?.routes, transaction?.routes);
         updateMoneyRequestDistance({
+            translate,
             isVendorMatchingBetaEnabled,
             transaction,
             transactionThreadReport: report,

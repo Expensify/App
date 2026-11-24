@@ -517,8 +517,6 @@ function useConnectedAccountingIntegration(policy: OnyxEntry<Policy>, {onDisconn
             connectionMessage = translate('workspace.accounting.lastSync', datetimeToRelative);
         }
 
-        // Digits only has its Import page so far. Its export and advanced pages are added in later releases, so their rows stay hidden until then.
-        const shouldShowExportAndAdvancedOptions = connectedIntegration !== CONST.POLICY.CONNECTIONS.NAME.DIGITS;
         const configurationOptions = canWriteAccounting
             ? [
                   {
@@ -533,27 +531,22 @@ function useConnectedAccountingIntegration(policy: OnyxEntry<Policy>, {onDisconn
                           : undefined,
                       pendingAction: settingsPendingAction(integrationData?.subscribedImportSettings, integrationData?.pendingFields),
                   },
-                  ...(shouldShowExportAndAdvancedOptions
-                      ? [
-                            {
-                                icon: icons.Send,
-                                iconRight: icons.ArrowRight,
-                                shouldShowRightIcon: true,
-                                title: translate('workspace.accounting.export'),
-                                sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.CONNECTIONS.ACCOUNTING_CONFIG_ROW.EXPORT,
-                                onPress: integrationData?.onExportPagePress,
-                                brickRoadIndicator:
-                                    areSettingsInErrorFields(integrationData?.subscribedExportSettings, integrationData?.errorFields) ||
-                                    shouldShowReimbursableExportDestinationAccountError(policy) ||
-                                    integrationData?.externalSubscribedExportSettingsHasErrorFields
-                                        ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR
-                                        : undefined,
-                                pendingAction:
-                                    settingsPendingAction(integrationData?.subscribedExportSettings, integrationData?.pendingFields) ??
-                                    integrationData?.externalSubscribedExportSettingsPendingAction,
-                            },
-                        ]
-                      : []),
+                  {
+                      icon: icons.Send,
+                      iconRight: icons.ArrowRight,
+                      shouldShowRightIcon: true,
+                      title: translate('workspace.accounting.export'),
+                      sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.CONNECTIONS.ACCOUNTING_CONFIG_ROW.EXPORT,
+                      onPress: integrationData?.onExportPagePress,
+                      brickRoadIndicator:
+                          areSettingsInErrorFields(integrationData?.subscribedExportSettings, integrationData?.errorFields) ||
+                          shouldShowReimbursableExportDestinationAccountError(policy) ||
+                          integrationData?.externalSubscribedExportSettingsHasErrorFields
+                              ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR
+                              : undefined,
+                      pendingAction:
+                          settingsPendingAction(integrationData?.subscribedExportSettings, integrationData?.pendingFields) ?? integrationData?.externalSubscribedExportSettingsPendingAction,
+                  },
                   ...(shouldShowCardReconciliationOption && integrationData?.onCardReconciliationPagePress
                       ? [
                             {
@@ -566,22 +559,18 @@ function useConnectedAccountingIntegration(policy: OnyxEntry<Policy>, {onDisconn
                             },
                         ]
                       : []),
-                  ...(shouldShowExportAndAdvancedOptions
-                      ? [
-                            {
-                                icon: icons.Gear,
-                                iconRight: icons.ArrowRight,
-                                shouldShowRightIcon: true,
-                                title: translate('workspace.accounting.advanced'),
-                                sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.CONNECTIONS.ACCOUNTING_CONFIG_ROW.ADVANCED,
-                                onPress: integrationData?.onAdvancedPagePress,
-                                brickRoadIndicator: areSettingsInErrorFields(integrationData?.subscribedAdvancedSettings, integrationData?.errorFields)
-                                    ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR
-                                    : undefined,
-                                pendingAction: settingsPendingAction(integrationData?.subscribedAdvancedSettings, integrationData?.pendingFields),
-                            },
-                        ]
-                      : []),
+                  {
+                      icon: icons.Gear,
+                      iconRight: icons.ArrowRight,
+                      shouldShowRightIcon: true,
+                      title: translate('workspace.accounting.advanced'),
+                      sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.CONNECTIONS.ACCOUNTING_CONFIG_ROW.ADVANCED,
+                      onPress: integrationData?.onAdvancedPagePress,
+                      brickRoadIndicator: areSettingsInErrorFields(integrationData?.subscribedAdvancedSettings, integrationData?.errorFields)
+                          ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR
+                          : undefined,
+                      pendingAction: settingsPendingAction(integrationData?.subscribedAdvancedSettings, integrationData?.pendingFields),
+                  },
               ]
             : [];
 

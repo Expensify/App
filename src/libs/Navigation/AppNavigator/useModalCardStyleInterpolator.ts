@@ -8,6 +8,8 @@ import {isMobileChrome, isMobileSafari} from '@libs/Browser';
 import {getSidePanelInsetStyleValue} from '@libs/Navigation/helpers/sidePanelWidth';
 
 import type {StackCardInterpolatedStyle, StackCardInterpolationProps} from '@react-navigation/stack';
+import type {ViewStyle} from 'react-native';
+import type {Writable} from 'type-fest';
 
 // Import Animated directly from 'react-native' as animations are used with navigation.
 // eslint-disable-next-line no-restricted-imports
@@ -19,6 +21,12 @@ type ModalCardStyleInterpolatorProps = {
     props: StackCardInterpolationProps;
     enter: EnterAnimation;
     applySidePanelOffset?: boolean;
+
+    /**
+     * Whether the card is pinned to the viewport with position: fixed and the measured screen width, which works around Safari not updating heights (see getNavigationModalCardStyles).
+     * Pass false for cards whose container eases its width, such as the panes next to the flat navigation bar, because the measured width lags the transition and the content jumps.
+     */
+    shouldPinCardToViewport?: boolean;
 };
 
 type ModalCardStyleInterpolator = (props: ModalCardStyleInterpolatorProps) => StackCardInterpolatedStyle;
@@ -42,8 +50,9 @@ const useModalCardStyleInterpolator = (): ModalCardStyleInterpolator => {
         },
         enter,
         applySidePanelOffset = false,
+        shouldPinCardToViewport = true,
     }) => {
-        const cardStyle = StyleUtils.getCardStyles(screen.width);
+        const cardStyle: Writable<Animated.WithAnimatedValue<ViewStyle>> = shouldPinCardToViewport ? StyleUtils.getCardStyles(screen.width) : {};
 
         if (applySidePanelOffset) {
             // A resizable panel's inset is left to CSS, so dragging its edge moves the page without rendering the cards.
