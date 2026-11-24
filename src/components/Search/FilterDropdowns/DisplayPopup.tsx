@@ -17,7 +17,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {close} from '@libs/actions/Modal';
 import clearSelectedText from '@libs/clearSelectedText/clearSelectedText';
 import Navigation from '@libs/Navigation/Navigation';
-import {buildQueryStringWithResetDisplay, getChangedDisplayOptionsCount, getDisplayDefaultQueryJSON, getGroupCurrencyValue} from '@libs/SearchQueryUtils';
+import {buildQueryStringWithResetDisplay, getChangedDisplayOptions, getDisplayDefaultQueryJSON, getGroupCurrencyValue} from '@libs/SearchQueryUtils';
 import {canEditSearchColumns, getGroupBySections, getHasOptionAvailability, getSearchColumnTranslationKey, getValidGroupBy, getViewOptions} from '@libs/SearchUIUtils';
 
 import {callIfAuthenticated} from '@userActions/Session';
@@ -82,6 +82,7 @@ function DisplayPopup({queryJSON, searchResults, closeOverlay, onSort}: DisplayP
     const shouldShowColumnsButton = isLargeScreenWidth && canEditSearchColumns(queryJSON.type, shouldReturnTripRooms);
 
     const limitValue = searchAdvancedFilters[CONST.SEARCH.SYNTAX_ROOT_KEYS.LIMIT];
+    const changedDisplayOptions = getChangedDisplayOptions(queryJSON, currentDefaultSearchQueryJSON);
 
     if (!selectedDisplayFilter) {
         const openSearchColumns = () => {
@@ -97,7 +98,7 @@ function DisplayPopup({queryJSON, searchResults, closeOverlay, onSort}: DisplayP
         const validGroupByValue = getValidGroupBy(groupByValue);
         const groupCurrencyValue = searchAdvancedFilters[CONST.SEARCH.SYNTAX_FILTER_KEYS.GROUP_CURRENCY];
         const viewValue = searchAdvancedFilters[CONST.SEARCH.SYNTAX_ROOT_KEYS.VIEW];
-        const canResetDisplay = getChangedDisplayOptionsCount(queryJSON, currentDefaultSearchQueryJSON) > 0;
+        const canResetDisplay = Object.values(changedDisplayOptions ?? {}).some(Boolean);
 
         const resetDisplayOptions = () => {
             const queryString = buildQueryStringWithResetDisplay(queryJSON, currentDefaultSearchQueryJSON);
@@ -207,6 +208,7 @@ function DisplayPopup({queryJSON, searchResults, closeOverlay, onSort}: DisplayP
                     onSortOrderPress={() => setSelectedDisplayFilter(CONST.SEARCH.SYNTAX_ROOT_KEYS.SORT_ORDER)}
                     onBackButtonPress={goBack}
                     closeOverlay={closeOverlay}
+                    shouldShowResetButton={!!changedDisplayOptions?.sort}
                 />
             );
         case CONST.SEARCH.SYNTAX_ROOT_KEYS.SORT_ORDER:
@@ -216,6 +218,7 @@ function DisplayPopup({queryJSON, searchResults, closeOverlay, onSort}: DisplayP
                     onSort={onSort}
                     onBackButtonPress={goBack}
                     closeOverlay={closeOverlay}
+                    shouldShowResetButton={!!changedDisplayOptions?.sortOrder}
                 />
             );
         case CONST.SEARCH.SYNTAX_ROOT_KEYS.GROUP_BY:
@@ -224,6 +227,7 @@ function DisplayPopup({queryJSON, searchResults, closeOverlay, onSort}: DisplayP
                     sections={groupBySections}
                     value={groupBy}
                     defaultValue={defaultQueryJSON?.groupBy}
+                    shouldShowResetButton={!!changedDisplayOptions?.groupBy}
                     closeOverlay={closeOverlay}
                     onBackButtonPress={goBack}
                     onChange={(newValue) => {
@@ -243,6 +247,7 @@ function DisplayPopup({queryJSON, searchResults, closeOverlay, onSort}: DisplayP
                 <CurrencyPopup
                     value={searchAdvancedFilters[CONST.SEARCH.SYNTAX_FILTER_KEYS.GROUP_CURRENCY]}
                     defaultValue={defaultQueryJSON ? getGroupCurrencyValue(defaultQueryJSON) : undefined}
+                    shouldShowResetButton={!!changedDisplayOptions?.groupCurrency}
                     onChange={(item) => updateFilterForm({groupCurrency: item?.value})}
                     label={translate('common.groupCurrency')}
                     onBackButtonPress={goBack}
@@ -259,6 +264,7 @@ function DisplayPopup({queryJSON, searchResults, closeOverlay, onSort}: DisplayP
                     items={viewOptions}
                     value={view}
                     defaultValue={defaultQueryJSON?.view}
+                    shouldShowResetButton={!!changedDisplayOptions?.view}
                     label={translate('search.view.label')}
                     onBackButtonPress={goBack}
                     closeOverlay={closeOverlay}
@@ -273,6 +279,7 @@ function DisplayPopup({queryJSON, searchResults, closeOverlay, onSort}: DisplayP
                     placeholder={translate('search.filters.limit')}
                     initialValue={limitValue}
                     defaultValue={defaultQueryJSON?.limit?.toString()}
+                    shouldShowResetButton={!!changedDisplayOptions?.limit}
                     label={translate('search.display.limitResults')}
                     onBackButtonPress={goBack}
                     closeOverlay={closeOverlay}

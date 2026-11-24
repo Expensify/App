@@ -43,9 +43,10 @@ type SortByPopupProps = {
     onSortOrderPress: () => void;
     onBackButtonPress: () => void;
     closeOverlay: () => void;
+    shouldShowResetButton: boolean;
 };
 
-function SortByPopup({searchResults, queryJSON, groupBy, onSort, onSortOrderPress, onBackButtonPress, closeOverlay}: SortByPopupProps) {
+function SortByPopup({searchResults, queryJSON, groupBy, shouldShowResetButton, onSort, onSortOrderPress, onBackButtonPress, closeOverlay}: SortByPopupProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {accountID} = useCurrentUserPersonalDetails();
@@ -115,7 +116,7 @@ function SortByPopup({searchResults, queryJSON, groupBy, onSort, onSortOrderPres
     return (
         <BasePopup
             label={translate('search.display.sortBy')}
-            onReset={resetChanges}
+            onReset={shouldShowResetButton ? resetChanges : undefined}
             onApply={applyChanges}
             onBackButtonPress={onBackButtonPress}
             resetSentryLabel={CONST.SENTRY_LABEL.SEARCH.DISPLAY_POPUP_RESET.SORT_BY}

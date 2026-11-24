@@ -54,6 +54,7 @@ import {
     getValidLastQuery,
     hasFiltersChangedFromDefault,
     isSearchQuerySavable,
+    getChangedDisplayOptions,
     getChangedDisplayOptionsCount,
     isFilterNegated,
     normalizeDatePresetsInQuery,
@@ -4097,6 +4098,67 @@ describe('SearchQueryUtils', () => {
             // Then the header offers Save, so the new layout can be kept
             expect(isSearchQuerySavable(movedPinQueryJSON, defaultQueryJSON)).toBe(true);
             expect(isSearchQuerySavable(unpinnedQueryJSON, defaultQueryJSON)).toBe(true);
+        });
+    });
+
+    describe('getChangedDisplayOptions', () => {
+        it('marks nothing as changed when the display options match the default query', () => {
+            // Given a query that only adds a filter to its default
+            const defaultQueryJSON = buildSearchQueryJSON('type:expense');
+            const currentQueryJSON = buildSearchQueryJSON('type:expense category:travel');
+
+            // When checking which display options changed
+            // Then none did, so no option offers Reset
+            expect(getChangedDisplayOptions(currentQueryJSON, defaultQueryJSON)).toEqual({
+                sort: false,
+                sortOrder: false,
+                groupBy: false,
+                view: false,
+                limit: false,
+                groupCurrency: false,
+                columns: false,
+            });
+        });
+
+        it('marks only the options that differ from the default query', () => {
+            // Given a grouped query with a group currency and a limit, on top of an ungrouped default
+            const defaultQueryJSON = buildSearchQueryJSON('type:expense');
+            const currentQueryJSON = buildSearchQueryJSON('type:expense groupBy:category groupCurrency:EUR limit:10');
+
+            // When checking which display options changed
+            const changedOptions = getChangedDisplayOptions(currentQueryJSON, defaultQueryJSON);
+
+            // Then the grouping, group currency and limit offer Reset, while the view still matches the default
+            expect(changedOptions?.groupBy).toBe(true);
+            expect(changedOptions?.groupCurrency).toBe(true);
+            expect(changedOptions?.limit).toBe(true);
+            expect(changedOptions?.view).toBe(false);
+        });
+
+        it('marks the sort as changed when only the sort order differs', () => {
+            // Given a query that keeps the default sort column but flips its order
+            const defaultQueryJSON = buildSearchQueryJSON('type:expense sortBy:date sortOrder:desc');
+            const currentQueryJSON = buildSearchQueryJSON('type:expense sortBy:date sortOrder:asc');
+
+            // When checking which display options changed
+            const changedOptions = getChangedDisplayOptions(currentQueryJSON, defaultQueryJSON);
+
+            // Then both the sort order and the sort offer Reset, since resetting the sort puts back the order too
+            expect(changedOptions?.sortOrder).toBe(true);
+            expect(changedOptions?.sort).toBe(true);
+        });
+
+        it('marks the sort but not the sort order as changed when only the sort column differs', () => {
+            // Given a query that keeps the default sort order but sorts by another column
+            const defaultQueryJSON = buildSearchQueryJSON('type:expense sortBy:date sortOrder:desc');
+            const currentQueryJSON = buildSearchQueryJSON('type:expense sortBy:amount sortOrder:desc');
+
+            // When checking which display options changed
+            const changedOptions = getChangedDisplayOptions(currentQueryJSON, defaultQueryJSON);
+
+            // Then only the sort offers Reset, since the order already matches the default
+            expect(changedOptions?.sort).toBe(true);
+            expect(changedOptions?.sortOrder).toBe(false);
         });
     });
 

@@ -45,6 +45,7 @@ type SingleSelectPopupProps<T> = {
     shouldUseFixedPopoverHeight?: boolean;
 
     allowDeselect?: boolean;
+    shouldShowResetButton?: boolean;
     applySentryLabel: SentryLabel;
     resetSentryLabel: SentryLabel;
 };
@@ -66,6 +67,7 @@ function SingleSelectPopup<T extends string>({
     shouldShowList = true,
     shouldUseFixedPopoverHeight,
     allowDeselect,
+    shouldShowResetButton = true,
     applySentryLabel,
     resetSentryLabel,
 }: SingleSelectPopupProps<T>) {
@@ -85,7 +87,7 @@ function SingleSelectPopup<T extends string>({
         <BasePopup
             label={label}
             showLabel={showLabel}
-            onReset={resetChanges}
+            onReset={shouldShowResetButton ? resetChanges : undefined}
             onApply={applyChanges}
             onBackButtonPress={onBackButtonPress}
             resetSentryLabel={resetSentryLabel}

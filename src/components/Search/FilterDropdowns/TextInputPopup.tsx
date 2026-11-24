@@ -21,10 +21,23 @@ type TextInputPopupProps = {
     closeOverlay: () => void;
     onChange: (value: string) => void;
     applySentryLabel: SentryLabel;
+    shouldShowResetButton?: boolean;
     resetSentryLabel: SentryLabel;
 };
 
-function TextInputPopup({style, initialValue, defaultValue = '', label, placeholder, onBackButtonPress, closeOverlay, onChange, applySentryLabel, resetSentryLabel}: TextInputPopupProps) {
+function TextInputPopup({
+    style,
+    initialValue,
+    defaultValue = '',
+    label,
+    placeholder,
+    shouldShowResetButton = true,
+    onBackButtonPress,
+    closeOverlay,
+    onChange,
+    applySentryLabel,
+    resetSentryLabel,
+}: TextInputPopupProps) {
     const styles = useThemeStyles();
     const [value, setValue] = useState(initialValue);
 
@@ -41,7 +54,7 @@ function TextInputPopup({style, initialValue, defaultValue = '', label, placehol
     return (
         <BasePopup
             label={label}
-            onReset={resetChanges}
+            onReset={shouldShowResetButton ? resetChanges : undefined}
             onApply={applyChanges}
             onBackButtonPress={onBackButtonPress}
             resetSentryLabel={resetSentryLabel}

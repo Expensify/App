@@ -19,9 +19,10 @@ type SortOrderPopupProps = {
     onSort: () => void;
     onBackButtonPress: () => void;
     closeOverlay: () => void;
+    shouldShowResetButton: boolean;
 };
 
-function SortOrderPopup({queryJSON, onSort, onBackButtonPress, closeOverlay}: SortOrderPopupProps) {
+function SortOrderPopup({queryJSON, shouldShowResetButton, onSort, onBackButtonPress, closeOverlay}: SortOrderPopupProps) {
     const {translate} = useLocalize();
     const {clearSelectedTransactions} = useSearchSelectionActions();
     const {currentDefaultSearchQueryJSON} = useSearchQueryContext();
@@ -48,6 +49,7 @@ function SortOrderPopup({queryJSON, onSort, onBackButtonPress, closeOverlay}: So
             onBackButtonPress={onBackButtonPress}
             closeOverlay={closeOverlay}
             defaultValue={defaultSortOrder}
+            shouldShowResetButton={shouldShowResetButton}
             onChange={(item) => {
                 if (!item) {
                     return;

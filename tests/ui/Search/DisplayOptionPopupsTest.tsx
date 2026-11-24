@@ -5,6 +5,7 @@ import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import CurrencyPopup from '@components/Search/FilterDropdowns/CurrencyPopup';
 import GroupByPopup from '@components/Search/FilterDropdowns/GroupByPopup';
+import TextInputPopup from '@components/Search/FilterDropdowns/TextInputPopup';
 import ThemeProvider from '@components/ThemeProvider';
 
 import {MouseProvider} from '@hooks/useMouseContext';
@@ -68,7 +69,7 @@ async function pressRowAndApply(rowText: string) {
     await waitForBatchedUpdatesWithAct();
 }
 
-describe('Display popup deselection', () => {
+describe('Display option popups', () => {
     beforeAll(() => {
         Onyx.init({keys: ONYXKEYS});
     });
@@ -91,6 +92,7 @@ describe('Display popup deselection', () => {
                     closeOverlay={jest.fn()}
                     onBackButtonPress={jest.fn()}
                     onChange={onChange}
+                    shouldShowResetButton
                 />,
             );
         }
@@ -156,6 +158,87 @@ describe('Display popup deselection', () => {
 
             // Then EUR stays selected, so the other currency pickers behave as before
             expect(onChange).toHaveBeenCalledWith(expect.objectContaining({value: 'EUR'}));
+        });
+    });
+
+    describe('Reset button', () => {
+        const resetLabels = {
+            applySentryLabel: CONST.SENTRY_LABEL.SEARCH.DISPLAY_POPUP_APPLY.GROUP_CURRENCY,
+            resetSentryLabel: CONST.SENTRY_LABEL.SEARCH.DISPLAY_POPUP_RESET.GROUP_CURRENCY,
+        } as const;
+
+        // The pickers shared with screens outside the Display popup, which show Reset unless told otherwise
+        const sharedPopups: Array<[string, (shouldShowResetButton?: boolean) => React.ReactElement]> = [
+            [
+                'CurrencyPopup',
+                (shouldShowResetButton) => (
+                    <CurrencyPopup
+                        value="EUR"
+                        onChange={jest.fn()}
+                        closeOverlay={jest.fn()}
+                        shouldShowResetButton={shouldShowResetButton}
+                        {...resetLabels}
+                    />
+                ),
+            ],
+            [
+                'TextInputPopup',
+                (shouldShowResetButton) => (
+                    <TextInputPopup
+                        initialValue="10"
+                        onChange={jest.fn()}
+                        closeOverlay={jest.fn()}
+                        shouldShowResetButton={shouldShowResetButton}
+                        {...resetLabels}
+                    />
+                ),
+            ],
+        ];
+
+        // The Group by picker is only used by the Display popup, so it's always told whether to show Reset
+        const popups: Array<[string, (shouldShowResetButton: boolean) => React.ReactElement]> = [
+            [
+                'GroupByPopup',
+                (shouldShowResetButton) => (
+                    <GroupByPopup
+                        sections={GROUP_BY_SECTIONS}
+                        value={{text: 'Category', value: CONST.SEARCH.GROUP_BY.CATEGORY}}
+                        closeOverlay={jest.fn()}
+                        onChange={jest.fn()}
+                        onBackButtonPress={jest.fn()}
+                        shouldShowResetButton={shouldShowResetButton}
+                    />
+                ),
+            ],
+            ...sharedPopups,
+        ];
+
+        it.each(popups)('%s hides Reset when the option matches the default', async (_, renderPopup) => {
+            // Given an option whose value already matches the default, so resetting it would change nothing
+            // When its popup opens
+            await renderWithProviders(renderPopup(false));
+
+            // Then only Apply is offered
+            expect(screen.queryByText(translateLocal('common.reset'))).not.toBeOnTheScreen();
+            expect(screen.getByText(translateLocal('common.apply'))).toBeOnTheScreen();
+        });
+
+        it.each(popups)('%s shows Reset when the option differs from the default', async (_, renderPopup) => {
+            // Given an option whose value differs from the default
+            // When its popup opens
+            await renderWithProviders(renderPopup(true));
+
+            // Then Reset is offered next to Apply
+            expect(screen.getByText(translateLocal('common.reset'))).toBeOnTheScreen();
+        });
+
+        it.each(sharedPopups)('%s shows Reset when not told otherwise, like the pickers outside the Display popup', async (_, renderPopup) => {
+            // Given a popup used outside the Display popup, which doesn't say whether to show Reset
+            // When it opens
+            await renderWithProviders(renderPopup());
+
+            // Then Reset is still offered, as before
+            expect(screen.getByText(translateLocal('common.reset'))).toBeOnTheScreen();
         });
     });
 });

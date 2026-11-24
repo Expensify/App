@@ -28,9 +28,10 @@ type GroupByPopupProps = {
     onBackButtonPress: () => void;
     closeOverlay: () => void;
     onChange: (value: SearchGroupBy | undefined) => void;
+    shouldShowResetButton: boolean;
 };
 
-function GroupByPopup({value, defaultValue, sections, onBackButtonPress, closeOverlay, onChange}: GroupByPopupProps) {
+function GroupByPopup({value, defaultValue, sections, shouldShowResetButton, onBackButtonPress, closeOverlay, onChange}: GroupByPopupProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const [selectedItem, setSelectedItem] = useState(value);
@@ -74,7 +75,7 @@ function GroupByPopup({value, defaultValue, sections, onBackButtonPress, closeOv
 
     return (
         <BasePopup
-            onReset={resetChanges}
+            onReset={shouldShowResetButton ? resetChanges : undefined}
             onApply={applyChanges}
             onBackButtonPress={onBackButtonPress}
             label={translate('search.display.groupBy')}
