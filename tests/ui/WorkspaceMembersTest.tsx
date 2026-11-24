@@ -235,11 +235,11 @@ describe('WorkspaceMembers', () => {
         });
 
         it('shows a failed category visibility change on the member’s row, and dismissing it keeps the member', async () => {
-            // Given a bulk category visibility change the server rejected for a member, which this list is where the admin returns to
+            // Given a bulk category visibility change the server rejected for a member, since this list is where the admin returns to
             const errorMessage = 'Category visibility could not be saved';
             await act(async () => {
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, {
-                    employeeList: {[userEmail]: {errorFields: {categoryVisibility: {1: errorMessage}}}},
+                    employeeList: {[userEmail]: {errorFields: {categoryVisibility: {categoryVisibilityError: errorMessage}}}},
                 });
             });
 
