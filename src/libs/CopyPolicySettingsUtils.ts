@@ -287,7 +287,9 @@ function isCopyPolicySettingsPartEnabledOnSource(part: Part, context: CopyPolicy
         case 'members':
             return context.memberCount > 1;
         case 'reports':
-            return context.reportFieldsCount > 0 || Object.keys(policy?.exportLayouts ?? {}).length > 0;
+            return (
+                context.reportFieldsCount > 0 || Object.values(policy?.exportLayouts ?? {}).some((layout) => !!layout && layout.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE)
+            );
         case 'accounting':
             return context.connectedIntegrationCount > 0;
         case 'categories':

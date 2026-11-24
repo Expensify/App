@@ -1,5 +1,7 @@
 import {act, fireEvent, render, screen} from '@testing-library/react-native';
 
+import {LocaleContext} from '@components/LocaleContextProvider';
+import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import type {ConfirmButtonOptions, ListItem} from '@components/SelectionList/types';
 
@@ -11,6 +13,7 @@ import WorkspaceDuplicateSelectFeaturesForm from '@pages/workspace/duplicate/Wor
 import {duplicateWorkspace} from '@userActions/Policy/Policy';
 
 import CONST from '@src/CONST';
+import IntlStore from '@src/languages/IntlStore';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy} from '@src/types/onyx';
 import type Rule from '@src/types/onyx/Rule';
@@ -19,6 +22,7 @@ import React from 'react';
 import Onyx from 'react-native-onyx';
 
 import createRandomPolicy from '../utils/collections/policies';
+import createMock from '../utils/createMock';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
@@ -107,9 +111,11 @@ async function renderForm(hasWorkspaceRules: boolean, overrides: Partial<Policy>
     await waitForBatchedUpdates();
 
     render(
-        <OnyxListItemProvider>
-            <WorkspaceDuplicateSelectFeaturesForm policyID={POLICY_ID} />
-        </OnyxListItemProvider>,
+        <LocaleContext.Provider value={createMock<LocaleContextProps>({translate: TestHelper.translateLocal, numberFormat: (number) => String(number)})}>
+            <OnyxListItemProvider>
+                <WorkspaceDuplicateSelectFeaturesForm policyID={POLICY_ID} />
+            </OnyxListItemProvider>
+        </LocaleContext.Provider>,
     );
     await waitForBatchedUpdates();
 }
@@ -141,8 +147,9 @@ function getSentParts(): Part[] | undefined {
 }
 
 describe('WorkspaceDuplicateSelectFeaturesForm Rules and Merchant rules', () => {
-    beforeAll(() => {
+    beforeAll(async () => {
         Onyx.init({keys: ONYXKEYS});
+        await IntlStore.load(CONST.LOCALES.EN);
     });
 
     beforeEach(() => {
@@ -277,6 +284,7 @@ describe('WorkspaceDuplicateSelectFeaturesForm Rules and Merchant rules', () => 
 
         // Then Reports is offered so its export layout can be copied.
         expect(getSentParts()).toContain('reports');
+        expect(getRow('reports')?.alternateText).toBe('Custom');
     });
 
     it('hides Invoices when a business bank account is its only configuration', async () => {
@@ -324,7 +332,40 @@ describe('WorkspaceDuplicateSelectFeaturesForm Rules and Merchant rules', () => 
 
         // Then markup remains available to copy even without other invoice configuration.
         expect(getRow('invoices')?.isSelected).toBe(true);
+        expect(getRow('invoices')?.alternateText).toBe('Marked up by 25%');
         expect(getSentParts()).toContain('invoices');
+    });
+
+    it('hides Reports when its only export layout is queued for deletion', async () => {
+        // Given no report fields and one deleted export layout.
+        await renderForm(false, {
+            fieldList: {},
+            exportLayouts: {
+                deleted: {name: 'Deleted', templateName: 'deleted', type: 'csv', policyID: POLICY_ID, description: '', pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE},
+            },
+        });
+
+        // When the available settings are submitted.
+        pressContinue();
+
+        // Then an unavailable layout cannot make Reports selectable.
+        expect(getRow('reports')).toBeUndefined();
+        expect(getSentParts()).not.toContain('reports');
+    });
+
+    it('describes legacy rules and a single category without misleading counts', async () => {
+        // Given one category and one legacy approval rule without a modern rules_ record.
+        await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${POLICY_ID}`, {Meals: {name: 'Meals', enabled: true}});
+        await renderForm(false, {rules: {approvalRules: [{approver: '', applyWhen: []}]}});
+        await act(async () => Onyx.set(`${ONYXKEYS.COLLECTION.RULE}merchantRule`, null));
+        await waitForBatchedUpdates();
+
+        // When the selection descriptions are rendered.
+        const rules = getRow('codingRules');
+
+        // Then the legacy-only row has a count and one category uses a grammatical label and value.
+        expect(rules?.alternateText).toBe('1 expense default');
+        expect(getRow('categories')?.alternateText).toBe('Categories: 1');
     });
 
     it('includes Time tracking and Receipt partners from the shared copy settings list', async () => {

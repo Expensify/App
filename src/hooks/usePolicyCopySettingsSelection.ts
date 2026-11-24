@@ -55,7 +55,7 @@ function usePolicyCopySettingsSelection(
         ? [{id: '', name: '', owner: '', role: CONST.POLICY.ROLE.ADMIN, type: sourcePolicy?.type ?? CONST.POLICY.TYPE.TEAM, outputCurrency: newPolicyCurrency}]
         : targetPolicies;
     const sourcePolicyID = sourcePolicy?.id;
-    const {translate} = useLocalize();
+    const {translate, numberFormat} = useLocalize();
     const {showConfirmModal} = useConfirmModal();
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${sourcePolicyID}`);
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${sourcePolicyID}`);
@@ -88,6 +88,10 @@ function usePolicyCopySettingsSelection(
     const policyFields = Object.values(sourcePolicy?.fieldList ?? {}).filter((field) => !!field && field.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
     const reportFieldsCount = policyFields.filter((field) => field.target !== CONST.REPORT_FIELD_TARGETS.INVOICE).length;
     const invoiceFieldsCount = policyFields.filter((field) => field.target === CONST.REPORT_FIELD_TARGETS.INVOICE).length;
+    const exportLayouts = Object.values(sourcePolicy?.exportLayouts ?? {}).filter((layout) => !!layout && layout.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
+    const legacyRulesCount = [...Object.values(sourcePolicy?.rules?.codingRules ?? {}), ...(sourcePolicy?.rules?.approvalRules ?? []), ...(sourcePolicy?.rules?.expenseRules ?? [])].filter(
+        (rule) => !!rule && (!('pendingAction' in rule) || rule.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE),
+    ).length;
     const connectedIntegration = getAllValidConnectedIntegration(sourcePolicy, CONST.POLICY.CONNECTIONS.ACCOUNTING_CONNECTION_NAMES);
     const distanceRatesCount = Object.values(getDistanceRateCustomUnit(sourcePolicy)?.rates ?? {}).filter(
         (rate) => !!rate && rate.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
@@ -172,33 +176,35 @@ function usePolicyCopySettingsSelection(
             case CONST.POLICY.POLICY_FEATURE.OVERVIEW:
                 return formattedAddress || undefined;
             case CONST.POLICY.POLICY_FEATURE.MEMBERS:
-                return memberCount > 1 ? `${memberCount} ${translate('workspace.common.members')}` : undefined;
+                return memberCount > 1 ? `${translate('workspace.common.members')}: ${numberFormat(memberCount)}` : undefined;
             case 'reports':
-                return reportFieldsCount > 0 ? `${reportFieldsCount} ${translate('workspace.common.reportFields')}` : undefined;
+                return reportFieldsCount > 0 ? `${translate('workspace.common.reportFields')}: ${numberFormat(reportFieldsCount)}` : exportLayouts.map((layout) => layout.name).join(', ');
             case CONST.POLICY.POLICY_FEATURE.ACCOUNTING:
                 return connectedIntegration?.length ? connectedIntegration.map((name) => CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[name]).join(', ') : undefined;
             case CONST.POLICY.POLICY_FEATURE.CATEGORIES:
-                return categoriesCount > 0 ? `${categoriesCount} ${translate('workspace.duplicateWorkspace.categories')}` : undefined;
+                return categoriesCount > 0 ? `${translate('workspace.common.categories')}: ${numberFormat(categoriesCount)}` : undefined;
             case CONST.POLICY.POLICY_FEATURE.TAGS:
-                return totalTags > 0 ? `${totalTags} ${translate('workspace.common.tags')}` : undefined;
+                return totalTags > 0 ? `${translate('workspace.common.tags')}: ${numberFormat(totalTags)}` : undefined;
             case CONST.POLICY.POLICY_FEATURE.TAXES:
-                return taxesCount > 0 ? `${taxesCount} ${translate('workspace.common.taxes')}` : undefined;
+                return taxesCount > 0 ? `${translate('workspace.common.taxes')}: ${numberFormat(taxesCount)}` : undefined;
             case CONST.POLICY.POLICY_FEATURE.WORKFLOWS:
                 return workflows?.join(', ');
             case CONST.POLICY.POLICY_FEATURE.RULES:
                 return rules?.length ? `${rules.length} ${translate('workspace.common.workspace')} ${translate('workspace.common.rules')}: ${rules.join(', ')}` : undefined;
             case 'codingRules':
-                return codingRulesCount > 0 ? translate('workspace.duplicateWorkspace.merchantRulesCount', {count: codingRulesCount}) : undefined;
+                return translate('workspace.duplicateWorkspace.merchantRulesCount', {count: codingRulesCount || legacyRulesCount});
             case 'distanceRates':
-                return distanceRatesCount > 0 ? `${distanceRatesCount} ${translate('iou.rates')}` : undefined;
+                return distanceRatesCount > 0 ? `${translate('iou.rates')}: ${numberFormat(distanceRatesCount)}` : undefined;
             case 'perDiem':
-                return perDiemCount > 0 ? `${perDiemCount} ${translate('workspace.common.perDiem')}` : undefined;
+                return perDiemCount > 0 ? `${translate('workspace.common.perDiem')}: ${numberFormat(perDiemCount)}` : undefined;
             case 'timeTracking':
                 return getTimeTrackingCopySettingsDescription(sourcePolicy, translate);
             case 'receiptPartners':
                 return getReceiptPartnersCopySettingsDescription(sourcePolicy, translate);
             case 'invoices':
-                return invoiceFieldsCount ? `${invoiceFieldsCount} ${translate('workspace.common.invoiceFields')}` : undefined;
+                return invoiceFieldsCount
+                    ? `${translate('workspace.common.invoiceFields')}: ${numberFormat(invoiceFieldsCount)}`
+                    : translate('violations.invoiceMarkup', sourcePolicy?.invoice?.markUp ?? CONST.DEFAULT_NUMBER_ID);
             default:
                 return undefined;
         }
@@ -273,9 +279,14 @@ function usePolicyCopySettingsSelection(
         if (isNewPolicy || isSelected || !isMembersPart(part)) {
             setSelectedFeatures((prev) => {
                 const current = prev ?? resolvedSelectedFeatures;
-                return isSelected
-                    ? current.filter((selectedPart) => selectedPart !== part && !(part === CONST.POLICY.POLICY_FEATURE.OVERVIEW && hasTargetWithoutAddress && selectedPart === 'travel'))
-                    : [...current, part];
+                if (!isSelected) {
+                    return [...current, part];
+                }
+                const partsToRemove: Part[] = [part];
+                if (part === 'overview' && hasTargetWithoutAddress) {
+                    partsToRemove.push('travel');
+                }
+                return current.filter((selectedPart) => !partsToRemove.includes(selectedPart));
             });
             return;
         }
