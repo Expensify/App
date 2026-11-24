@@ -1,3 +1,7 @@
+/**
+ * Measures the anchor element's position on screen, opens the anchored popover,
+ * and guards against concurrent in-flight measurement calls.
+ */
 import type {AnchorPosition} from '@src/styles';
 import type AnchorAlignment from '@src/types/utils/AnchorAlignment';
 
