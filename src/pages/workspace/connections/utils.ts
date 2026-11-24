@@ -11,6 +11,7 @@ const MCP_CONNECTOR = {
     CLAUDE: 'claude',
     CHATGPT: 'chatgpt',
     CURSOR: 'cursor',
+    GROK: 'grok',
     MCP: 'mcp',
 } as const;
 

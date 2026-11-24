@@ -8,10 +8,16 @@ import type {ValueOf} from 'type-fest';
 
 import * as Sentry from '@sentry/react-native';
 
+import {EXPENSE_EDIT_COMMANDS} from './ReceiptObservability';
+
 type ExpenseCreationErrorType = ValueOf<typeof CONST.TELEMETRY.EXPENSE_ERROR_TYPE>;
 type ErrorSource = ValueOf<typeof CONST.TELEMETRY.EXPENSE_ERROR_SOURCE>;
 
-const EXPENSE_COMMANDS = new Set<string>([WRITE_COMMANDS.REQUEST_MONEY, WRITE_COMMANDS.TRACK_EXPENSE]);
+// Edits, moves, merges and receipt changes fail too, and a failure there loses data just like a failed create.
+const EXPENSE_COMMANDS = new Set<string>([WRITE_COMMANDS.REQUEST_MONEY, WRITE_COMMANDS.TRACK_EXPENSE, WRITE_COMMANDS.REPLACE_RECEIPT, ...EXPENSE_EDIT_COMMANDS]);
+
+// The server message can name people or merchants. It was already sent for these creates, so only they keep it.
+const COMMANDS_WITH_SERVER_MESSAGE = new Set<string>([WRITE_COMMANDS.REQUEST_MONEY, WRITE_COMMANDS.TRACK_EXPENSE]);
 
 // Commands that indicate a lost expense (e.g., OpenReport fails because expense report was lost)
 const LOST_EXPENSE_INDICATOR_COMMANDS = new Set<string>([WRITE_COMMANDS.OPEN_REPORT]);
@@ -125,7 +131,7 @@ function trackExpenseApiError(context: ApiErrorContext): void {
         const extra: Record<string, unknown> = {
             command,
             jsonCode,
-            ...(message && {message}),
+            ...(message && COMMANDS_WITH_SERVER_MESSAGE.has(command) && {message}),
         };
 
         const eventMessage = isOpenReport ? `OpenReport Failed: jsonCode ${jsonCode} (possible lost expense)` : `Expense API Error: ${command} returned ${jsonCode}`;

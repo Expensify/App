@@ -37,6 +37,7 @@ import {getCardDescriptionForSearchTable} from '@src/libs/CardUtils';
 import DateUtils from '@src/libs/DateUtils';
 import getTransactionFromTransactionListItem, {SEARCH_TRANSACTION_ROW_ONLY_FIELD_NAMES} from '@src/libs/getTransactionFromTransactionListItem';
 import {findSelfDMReportID} from '@src/libs/ReportUtils';
+import {getCustomColumns} from '@src/libs/SearchColumnsUtils';
 import {savedSearchIDToSearchKey, TODO_SEARCH_KEYS} from '@src/libs/SearchKeyUtils';
 import {buildSearchQueryJSON, getDateRangeForPreset, getQueryHashes, getUserFriendlyValue} from '@src/libs/SearchQueryUtils';
 import * as SearchQueryUtils from '@src/libs/SearchQueryUtils';
@@ -3297,6 +3298,76 @@ describe('SearchUIUtils', () => {
             // Every destination the report was exported to is part of the sort value, so reports showing the same set
             // of "Exported to" icons sort next to each other.
             expect(exportedTransaction?.exportedTo).toBe(`${CONST.REPORT.EXPORT_OPTION_LABELS.DEFAULT_CSV}, ${CONST.EXPORT_LABELS.XERO}`);
+        });
+
+        it('should fill formattedViolations from the positive has filter only, ignoring a negated one', () => {
+            // Given an expense whose report has a submit snapshot and an approve snapshot with different violations,
+            // and a query that includes approved violations but excludes submitted ones
+            const violationsReportID = 'formatted-violations-report';
+            const violationsTransactionID = 'formatted-violations-transaction';
+            const data = {
+                ...searchResults.data,
+                [`${ONYXKEYS.COLLECTION.REPORT}${violationsReportID}`]: {...report1, reportID: violationsReportID},
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}${violationsTransactionID}`]: {
+                    ...searchResults.data[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID2}`],
+                    transactionID: violationsTransactionID,
+                    reportID: violationsReportID,
+                },
+                [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${violationsReportID}`]: {
+                    submitted: {
+                        accountID: adminAccountID,
+                        actionName: CONST.REPORT.ACTIONS.TYPE.SUBMITTED,
+                        created: '2024-12-21 13:05:20',
+                        message: [],
+                        reportActionID: 'submitted',
+                        reportID: violationsReportID,
+                        originalMessage: {
+                            amount: 1000,
+                            currency: CONST.CURRENCY.USD,
+                            violations: {transactions: {[violationsTransactionID]: [{name: CONST.VIOLATIONS.MISSING_CATEGORY}]}},
+                        },
+                    },
+                    approved: {
+                        accountID: adminAccountID,
+                        actionName: CONST.REPORT.ACTIONS.TYPE.APPROVED,
+                        created: '2024-12-22 13:05:20',
+                        message: [],
+                        reportActionID: 'approved',
+                        reportID: violationsReportID,
+                        originalMessage: {
+                            amount: 1000,
+                            currency: CONST.CURRENCY.USD,
+                            expenseReportID: violationsReportID,
+                            violations: {transactions: {[violationsTransactionID]: [{name: CONST.VIOLATIONS.OVER_LIMIT}, {name: CONST.VIOLATIONS.MISSING_COMMENT}]}},
+                        },
+                    },
+                },
+            } as OnyxTypes.SearchResults['data'];
+            const queryJSON = buildSearchQueryJSON(`type:expense has:${CONST.SEARCH.HAS_VALUES.APPROVED_VIOLATION} -has:${CONST.SEARCH.HAS_VALUES.SUBMITTED_VIOLATION}`);
+
+            // When the expense rows are built for that query
+            const result = getSectionsByType(
+                SearchUIUtils.getSections({
+                    dateFnsLocale: undefined,
+                    type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+                    data,
+                    currentAccountID: adminAccountID,
+                    currentUserEmail: adminEmail,
+                    translate: translateLocal,
+                    formatPhoneNumber,
+                    bankAccountList: {},
+                    rules: undefined,
+                    queryJSON,
+                    conciergeReportID: undefined,
+                    convertToDisplayString,
+                    reportAttributesDerivedValue: {},
+                }),
+                SearchUIUtils.isTransactionListItemType,
+            )[0];
+            const violationsTransaction = result.find((item) => item.transactionID === violationsTransactionID);
+
+            // Then only the approve-stage labels are listed alphabetically, so the sort key matches the cell for this query
+            expect(violationsTransaction?.formattedViolations).toBe(`${translateLocal('violations.shortName.missingComment')}, ${translateLocal('violations.shortName.overLimit')}`);
         });
 
         it('should return getReportSections result when type is EXPENSE REPORT', async () => {
@@ -9458,6 +9529,61 @@ describe('SearchUIUtils', () => {
             ]);
         });
 
+        it('should sort the violations column by its labels, with expenses without violations first when ascending', () => {
+            // Given expenses whose violation labels are already joined alphabetically, as the Violations cell lists them, and one
+            // expense without violations
+            const baseTransaction = transactionsListItems.at(0);
+            if (!baseTransaction) {
+                throw new Error('Missing base transaction fixture');
+            }
+            const transactions: TransactionListItemType[] = [
+                {...baseTransaction, transactionID: 'missing-category', keyForList: 'missing-category', formattedViolations: translateLocal('violations.shortName.missingCategory')},
+                {...baseTransaction, transactionID: 'no-violations', keyForList: 'no-violations', formattedViolations: undefined},
+                {
+                    ...baseTransaction,
+                    transactionID: 'card-match-and-tag',
+                    keyForList: 'card-match-and-tag',
+                    formattedViolations: `${translateLocal('violations.shortName.rter')}, ${translateLocal('violations.shortName.missingTag')}`,
+                },
+                {...baseTransaction, transactionID: 'description', keyForList: 'description', formattedViolations: translateLocal('violations.shortName.missingComment')},
+            ];
+
+            // When the expenses are sorted by the Violations column in both directions
+            const ascendingResult = SearchUIUtils.getSortedSections(
+                CONST.SEARCH.DATA_TYPES.EXPENSE,
+                [...transactions],
+                localeCompare,
+                translateLocal,
+                CONST.SEARCH.TABLE_COLUMNS.VIOLATIONS,
+                CONST.SEARCH.SORT_ORDER.ASC,
+                undefined,
+            );
+            const descendingResult = SearchUIUtils.getSortedSections(
+                CONST.SEARCH.DATA_TYPES.EXPENSE,
+                [...transactions],
+                localeCompare,
+                translateLocal,
+                CONST.SEARCH.TABLE_COLUMNS.VIOLATIONS,
+                CONST.SEARCH.SORT_ORDER.DESC,
+                undefined,
+            );
+
+            // Then the rows follow the labels the column shows, not the raw violation names, and the expense without
+            // violations comes first ascending and last descending, as the backend orders it
+            expect(ascendingResult.map((item) => ('transactionID' in item ? item.transactionID : undefined))).toEqual([
+                'no-violations',
+                'card-match-and-tag',
+                'description',
+                'missing-category',
+            ]);
+            expect(descendingResult.map((item) => ('transactionID' in item ? item.transactionID : undefined))).toEqual([
+                'missing-category',
+                'description',
+                'card-match-and-tag',
+                'no-violations',
+            ]);
+        });
+
         it('should sort expenses by the Rejected column, ranking expenses without the field as not rejected', () => {
             // Given a rejected expense, a never rejected one, and one returned without the field, with `inserted` set so
             // the tie breaker between the equal rows is predictable
@@ -12228,6 +12354,40 @@ describe('SearchUIUtils', () => {
         });
     });
 
+    test.each([
+        [false, true],
+        [true, false],
+    ])('Change approver on a dynamic external workflow for a report the admin submitted: preventSelfApproval=%s', (preventSelfApproval, expected) => {
+        // Given an admin's own submitted report on a dynamic external workflow, where bypassing the approvers is the admin's only approver change
+        const dewPolicyID = 'dewPolicy';
+        const dewReportID = 'dewReport';
+        const data = createMock<OnyxTypes.SearchResults['data']>({
+            policy_dewPolicy: {
+                id: dewPolicyID,
+                role: CONST.POLICY.ROLE.ADMIN,
+                type: CONST.POLICY.TYPE.CORPORATE,
+                approvalMode: CONST.POLICY.APPROVAL_MODE.DYNAMICEXTERNAL,
+                preventSelfApproval,
+            },
+            report_dewReport: {
+                reportID: dewReportID,
+                policyID: dewPolicyID,
+                type: CONST.REPORT.TYPE.EXPENSE,
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+                ownerAccountID: adminAccountID,
+                managerID: adminAccountID + 1,
+                total: -1000,
+            },
+        });
+
+        // When the Search actions are computed for the report
+        const actions = SearchUIUtils.getActions(data, {}, `report_${dewReportID}`, CONST.SEARCH.SEARCH_KEYS.EXPENSES, '', adminAccountID, {}, {}, undefined);
+
+        // Then Change approver is offered only when the admin may approve their own report, so it never opens an empty page
+        expect(actions.includes(CONST.SEARCH.ACTION_TYPES.CHANGE_APPROVER)).toBe(expected);
+    });
+
     test('Should return true if the search result has valid type', () => {
         expect(SearchUIUtils.shouldShowEmptyState(false, transactionReportGroupListItems.length, searchResults.search.type)).toBe(true);
         expect(SearchUIUtils.shouldShowEmptyState(true, 0, searchResults.search.type)).toBe(true);
@@ -13333,7 +13493,7 @@ describe('SearchUIUtils', () => {
 
             // Then Rejected is offered in the Search column picker but only shown once picked, and it is not offered in the
             // single-report view because the report view's transactions never carry the field
-            expect(SearchUIUtils.getCustomColumns(CONST.SEARCH.DATA_TYPES.EXPENSE)).toContain(CONST.SEARCH.TABLE_COLUMNS.DECLINED);
+            expect(getCustomColumns(CONST.SEARCH.DATA_TYPES.EXPENSE)).toContain(CONST.SEARCH.TABLE_COLUMNS.DECLINED);
             expect(SearchUIUtils.getCustomColumnDefault(CONST.SEARCH.DATA_TYPES.EXPENSE)).not.toContain(CONST.SEARCH.TABLE_COLUMNS.DECLINED);
             expect(Object.values(CONST.SEARCH.REPORT_DETAILS_CUSTOM_COLUMNS)).not.toContain(CONST.SEARCH.TABLE_COLUMNS.DECLINED);
             expect(defaultColumns).not.toContain(CONST.SEARCH.TABLE_COLUMNS.DECLINED);
@@ -13350,7 +13510,7 @@ describe('SearchUIUtils', () => {
 
             // Then Rejected is offered in the expense report column picker, stays out of the defaults, and is shown in the
             // picked position once chosen, so it is sent in the query columns the backend reads to return the field
-            expect(SearchUIUtils.getCustomColumns(CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT)).toContain(CONST.SEARCH.TABLE_COLUMNS.DECLINED);
+            expect(getCustomColumns(CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT)).toContain(CONST.SEARCH.TABLE_COLUMNS.DECLINED);
             expect(SearchUIUtils.getCustomColumnDefault(CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT)).not.toContain(CONST.SEARCH.TABLE_COLUMNS.DECLINED);
             expect(defaultColumns).not.toContain(CONST.SEARCH.TABLE_COLUMNS.DECLINED);
             expect(pickedResult).toEqual(visibleColumns);
@@ -13872,10 +14032,30 @@ describe('SearchUIUtils', () => {
             expect(tagGLCodeHeader?.sortColumnName).toBe(CONST.SEARCH.SORT_BY_COLUMNS.TAG_GL_CODE);
         });
 
-        test('Should exclude Violations from sort options', () => {
-            expect(SearchUIUtils.getSortByOptions([CONST.SEARCH.TABLE_COLUMNS.VIOLATIONS, CONST.SEARCH.TABLE_COLUMNS.CATEGORY_GL_CODE], translateLocal)).toEqual([
+        test('Should include Violations in sort options', () => {
+            // Given the Violations column is shown next to another sortable column
+            const columns = [CONST.SEARCH.TABLE_COLUMNS.VIOLATIONS, CONST.SEARCH.TABLE_COLUMNS.CATEGORY_GL_CODE];
+
+            // When the Sort by options are built for those columns
+            const sortByOptions = SearchUIUtils.getSortByOptions(columns, translateLocal);
+
+            // Then Violations can be picked, since the rows sort by the violation labels the column shows
+            expect(sortByOptions).toEqual([
+                {text: translateLocal('common.violations'), value: CONST.SEARCH.TABLE_COLUMNS.VIOLATIONS},
                 {text: translateLocal('common.categoryGLCode'), value: CONST.SEARCH.SORT_BY_COLUMNS.CATEGORY_GL_CODE},
             ]);
+        });
+
+        test('Should make the Violations header sortable', () => {
+            // Given the expense table headers
+            const headers = getExpenseHeaders();
+
+            // When the Violations header is looked up
+            const violationsHeader = headers.find(({columnName}) => columnName === CONST.SEARCH.TABLE_COLUMNS.VIOLATIONS);
+
+            // Then it isn't marked unsortable, so clicking it sorts the rows like the other column headers
+            expect(violationsHeader).toBeDefined();
+            expect(violationsHeader?.isColumnSortable).not.toBe(false);
         });
 
         test('Should show MCC whenever that column is selected, even with no displayable MCC', () => {
@@ -14685,12 +14865,12 @@ describe('SearchUIUtils', () => {
 
     describe('Test getCustomColumns', () => {
         it('should return custom columns for EXPENSE type', () => {
-            const columns = SearchUIUtils.getCustomColumns(CONST.SEARCH.DATA_TYPES.EXPENSE);
+            const columns = getCustomColumns(CONST.SEARCH.DATA_TYPES.EXPENSE);
             expect(columns).toEqual(Object.values(CONST.SEARCH.TYPE_CUSTOM_COLUMNS.EXPENSE));
         });
 
         it('should return custom columns for CATEGORY groupBy', () => {
-            const columns = SearchUIUtils.getCustomColumns(CONST.SEARCH.GROUP_BY.CATEGORY);
+            const columns = getCustomColumns(CONST.SEARCH.GROUP_BY.CATEGORY);
             expect(columns).toEqual(Object.values(CONST.SEARCH.GROUP_CUSTOM_COLUMNS.CATEGORY));
             expect(columns).toContain(CONST.SEARCH.TABLE_COLUMNS.GROUP_CATEGORY);
             expect(columns).toContain(CONST.SEARCH.TABLE_COLUMNS.GROUP_EXPENSES);
@@ -14698,7 +14878,7 @@ describe('SearchUIUtils', () => {
         });
 
         it('should return custom columns for MERCHANT groupBy', () => {
-            const columns = SearchUIUtils.getCustomColumns(CONST.SEARCH.GROUP_BY.MERCHANT);
+            const columns = getCustomColumns(CONST.SEARCH.GROUP_BY.MERCHANT);
             expect(columns).toEqual(Object.values(CONST.SEARCH.GROUP_CUSTOM_COLUMNS.MERCHANT));
             expect(columns).toContain(CONST.SEARCH.TABLE_COLUMNS.GROUP_MERCHANT);
             expect(columns).toContain(CONST.SEARCH.TABLE_COLUMNS.GROUP_EXPENSES);
@@ -14706,7 +14886,7 @@ describe('SearchUIUtils', () => {
         });
 
         it('should return empty array for undefined value', () => {
-            const columns = SearchUIUtils.getCustomColumns(undefined);
+            const columns = getCustomColumns(undefined);
             expect(columns).toEqual([]);
         });
     });
@@ -14844,6 +15024,7 @@ describe('SearchUIUtils', () => {
                 personalDetails,
                 isSelfTourViewed: false,
                 hasCompletedGuidedSetupFlow: true,
+                isOwnedByCurrentUser: false,
             });
         });
 
@@ -14999,6 +15180,79 @@ describe('SearchUIUtils', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${selfDMReportID}`, null);
             await Onyx.set(ONYXKEYS.SELF_DM_REPORT_ID, null);
             await waitForBatchedUpdates();
+        });
+
+        describe('legacy unreported expense with no IOU action anywhere', () => {
+            const selfDMReportID = 'own-self-dm-legacy';
+
+            /** An unreported Search row with no IOU action, whose `from` is the card holder when the card is known. */
+            function buildLegacyUnreportedItem(managedCard: boolean, fromAccountID: number) {
+                return {
+                    ...transactionListItem,
+                    reportID: CONST.REPORT.UNREPORTED_REPORT_ID,
+                    report: undefined,
+                    reportAction: undefined,
+                    managedCard,
+                    from: {accountID: fromAccountID},
+                };
+            }
+
+            beforeEach(async () => {
+                // The current user's self DM is loaded but holds no IOU action for the expense
+                jest.mocked(createTransactionThreadReport).mockReturnValue(threadReport);
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${selfDMReportID}`, {reportID: selfDMReportID, type: CONST.REPORT.TYPE.CHAT, chatType: CONST.REPORT.CHAT_TYPE.SELF_DM});
+                await Onyx.set(ONYXKEYS.SELF_DM_REPORT_ID, selfDMReportID);
+                await waitForBatchedUpdates();
+            });
+
+            afterEach(async () => {
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${selfDMReportID}`, null);
+                await Onyx.set(ONYXKEYS.SELF_DM_REPORT_ID, null);
+                await waitForBatchedUpdates();
+            });
+
+            test("Should create the thread in the current user's self DM for an expense that is not on a managed card", () => {
+                // Given an expense that is not on a managed card, which only its owner can see, so `from` is empty
+                const item = buildLegacyUnreportedItem(false, CONST.REPORT.OWNER_ACCOUNT_ID_FAKE);
+
+                // When the current user opens it from Search
+                const targetReportID = SearchUIUtils.createAndOpenSearchTransactionThread({...baseParams, item, shouldNavigate: false});
+
+                // Then the thread is created in their self DM as their own expense, with the transaction passed so the legacy fallback builds the missing action
+                expect(targetReportID).toBe(threadReportID);
+                expect(createTransactionThreadReport).toHaveBeenCalledWith(
+                    expect.objectContaining({
+                        selfDMReportID,
+                        isOwnedByCurrentUser: true,
+                        transaction: expect.objectContaining({reportID: CONST.REPORT.UNREPORTED_REPORT_ID}),
+                    }),
+                );
+            });
+
+            test("Should create the thread in the current user's self DM for an expense on their own managed card", () => {
+                // Given an expense on a managed card that the current user holds
+                const item = buildLegacyUnreportedItem(true, currentUserAccountID);
+
+                // When the current user opens it from Search
+                const targetReportID = SearchUIUtils.createAndOpenSearchTransactionThread({...baseParams, item, shouldNavigate: false});
+
+                // Then the thread is created in their self DM as their own expense
+                expect(targetReportID).toBe(threadReportID);
+                expect(createTransactionThreadReport).toHaveBeenCalledWith(expect.objectContaining({selfDMReportID, isOwnedByCurrentUser: true}));
+            });
+
+            test("Should not open an expense on another member's managed card", () => {
+                // Given an expense on another member's managed card, which an admin sees on their card feed
+                const item = buildLegacyUnreportedItem(true, currentUserAccountID + 1);
+
+                // When the admin opens it from Search
+                const targetReportID = SearchUIUtils.createAndOpenSearchTransactionThread({...baseParams, item});
+
+                // Then nothing is created, because without an action the member's self DM is unknown and the admin's own self DM is the wrong place
+                expect(targetReportID).toBeUndefined();
+                expect(createTransactionThreadReport).not.toHaveBeenCalled();
+                expect(Navigation.navigate).not.toHaveBeenCalled();
+            });
         });
 
         test("Should reuse the thread already created under another user's self DM instead of creating a new one", async () => {
@@ -16288,7 +16542,7 @@ describe('SearchUIUtils', () => {
             });
 
             expect(SearchUIUtils.getSubmittedViolationsForTransaction([submitAction], transactionIDForViolations, translateLocal)).toBe(
-                `${translateLocal('violations.shortName.missingCategory')}, ${translateLocal('violations.shortName.missingComment')}`,
+                `${translateLocal('violations.shortName.missingComment')}, ${translateLocal('violations.shortName.missingCategory')}`,
             );
         });
 
@@ -16377,7 +16631,7 @@ describe('SearchUIUtils', () => {
             const violations = SearchUIUtils.getSubmittedViolationsForTransaction([firstSubmit, secondSubmit], transactionIDForViolations, translateLocal);
 
             // Then both are listed, because the first submission still matches violation:receiptRequired in Search and Insights
-            expect(violations).toBe(`${translateLocal('violations.shortName.receiptRequired')}, ${translateLocal('violations.shortName.itemizedReceiptRequired')}`);
+            expect(violations).toBe(`${translateLocal('violations.shortName.itemizedReceiptRequired')}, ${translateLocal('violations.shortName.receiptRequired')}`);
         });
 
         test('keeps receiptRequired when itemizedReceiptRequired is not present', () => {
@@ -16388,7 +16642,7 @@ describe('SearchUIUtils', () => {
             });
 
             expect(SearchUIUtils.getSubmittedViolationsForTransaction([submitAction], transactionIDForViolations, translateLocal)).toBe(
-                `${translateLocal('violations.shortName.receiptRequired')}, ${translateLocal('violations.shortName.missingCategory')}`,
+                `${translateLocal('violations.shortName.missingCategory')}, ${translateLocal('violations.shortName.receiptRequired')}`,
             );
         });
 
@@ -16516,7 +16770,7 @@ describe('SearchUIUtils', () => {
             });
 
             expect(SearchUIUtils.getApprovedViolationsForTransaction([forwardedAction], transactionIDForViolations, translateLocal)).toBe(
-                `${translateLocal('violations.shortName.missingCategory')}, ${translateLocal('violations.shortName.missingComment')}`,
+                `${translateLocal('violations.shortName.missingComment')}, ${translateLocal('violations.shortName.missingCategory')}`,
             );
         });
 
@@ -16594,7 +16848,7 @@ describe('SearchUIUtils', () => {
             const violations = SearchUIUtils.getApprovedViolationsForTransaction([forwardedAction, approvedAction], transactionIDForViolations, translateLocal);
 
             // Then both are listed, because the forwarded snapshot still matches violation:receiptRequired in Search and Insights
-            expect(violations).toBe(`${translateLocal('violations.shortName.receiptRequired')}, ${translateLocal('violations.shortName.itemizedReceiptRequired')}`);
+            expect(violations).toBe(`${translateLocal('violations.shortName.itemizedReceiptRequired')}, ${translateLocal('violations.shortName.receiptRequired')}`);
         });
 
         test('falls back to the raw identifier when no short-name translation exists', () => {
@@ -16732,6 +16986,25 @@ describe('SearchUIUtils', () => {
                     translateLocal,
                 ),
             ).toBe(`${translateLocal('violations.shortName.missingCategory')}, ${translateLocal('violations.shortName.missingTag')}, ${translateLocal('violations.shortName.overLimit')}`);
+        });
+
+        test('lists the labels alphabetically, whatever order the snapshot holds the names in', () => {
+            // Given a submit snapshot whose names are out of label order
+            const reportActions = [
+                createSubmittedAction({
+                    transactions: {
+                        [transactionIDForViolations]: [{name: CONST.VIOLATIONS.RULE_VIOLATION}, {name: CONST.VIOLATIONS.MISSING_CATEGORY}, {name: CONST.VIOLATIONS.CUSTOM_RULES}],
+                    },
+                }),
+            ];
+
+            // When the violations are read for a submitted-violation search
+            const violations = SearchUIUtils.getViolationsForTransaction(reportActions, transactionIDForViolations, [CONST.SEARCH.HAS_VALUES.SUBMITTED_VIOLATION], translateLocal);
+
+            // Then the labels read alphabetically, matching the key the Violations column sorts by
+            expect(violations).toBe(
+                `${translateLocal('violations.shortName.customRules')}, ${translateLocal('violations.shortName.missingCategory')}, ${translateLocal('violations.shortName.ruleViolation')}`,
+            );
         });
     });
 

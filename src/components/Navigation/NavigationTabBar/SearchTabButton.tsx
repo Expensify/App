@@ -15,6 +15,8 @@ import React, {useEffect} from 'react';
 import NAVIGATION_TABS from './NAVIGATION_TABS';
 import TabBarItem from './TabBarItem';
 import useSearchTabNavigation from './useSearchTabNavigation';
+import useSignedInLinkRoute from './useSignedInLinkRoute';
+import useStoredSearchTabRoute from './useStoredSearchTabRoute';
 
 type SearchTabButtonProps = {
     selectedTab: ValueOf<typeof NAVIGATION_TABS>;
@@ -27,6 +29,8 @@ function SearchTabButton({selectedTab, isWideLayout}: SearchTabButtonProps) {
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['ReceiptMultiple']);
     const searchAccessibilityState = {selected: selectedTab === NAVIGATION_TABS.SEARCH};
     const navigateToSearch = useSearchTabNavigation(selectedTab === NAVIGATION_TABS.SEARCH);
+    const getSignedInLinkRoute = useSignedInLinkRoute();
+    const searchTabRoute = getSignedInLinkRoute(useStoredSearchTabRoute());
 
     // The wide button gets no hover out when it goes away while hovered, on a switch to the narrow layout or an unmount.
     useEffect(() => () => setIsSearchTabHovered(false), [isWideLayout]);
@@ -35,6 +39,7 @@ function SearchTabButton({selectedTab, isWideLayout}: SearchTabButtonProps) {
         return (
             <PressableWithFeedback
                 onPress={navigateToSearch}
+                linkRoute={searchTabRoute}
                 role={CONST.ROLE.TAB}
                 accessibilityLabel={translate('common.spend')}
                 accessibilityState={searchAccessibilityState}
@@ -58,6 +63,7 @@ function SearchTabButton({selectedTab, isWideLayout}: SearchTabButtonProps) {
     return (
         <PressableWithFeedback
             onPress={navigateToSearch}
+            linkRoute={searchTabRoute}
             role={CONST.ROLE.TAB}
             accessibilityLabel={translate('common.spend')}
             accessibilityState={searchAccessibilityState}

@@ -1,3 +1,4 @@
+import {renderTabRootScrollComponent} from '@components/Navigation/TabBarBottomContent/TabRootScrollViewMarker';
 import useTabRootScrollProps from '@components/Navigation/TabBarBottomContent/useTabRootScrollProps';
 import type {SearchListItem} from '@components/Search/SearchList/ListItem/types';
 
@@ -52,6 +53,7 @@ function BaseSearchList({
                 maintainVisibleContentPosition={{disabled: true}}
                 stickyHeaderIndices={stickyHeaderIndices}
                 getItemType={getItemType}
+                renderScrollComponent={renderTabRootScrollComponent}
             />
         </>
     );

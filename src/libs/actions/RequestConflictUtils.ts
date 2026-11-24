@@ -431,7 +431,39 @@ function resolveVacationDelegateDeletionConflicts<TKey extends OnyxKey>(persiste
     };
 }
 
+/**
+ * Replacements before a detach belong to the receipt history. An upload already attempted may also be stored on the
+ * server, so only later unsent replacements can be dropped. Return their indices oldest first for rollback inheritance.
+ */
+function getSupersededReplaceReceiptIndices(persistedRequests: AnyRequest[], transactionID: string): number[] {
+    const indices: number[] = [];
+    for (let index = persistedRequests.length - 1; index >= 0; index--) {
+        const request = persistedRequests.at(index);
+        if (request?.data?.transactionID !== transactionID) {
+            continue;
+        }
+        if (request.command === WRITE_COMMANDS.DETACH_RECEIPT || (request.command === WRITE_COMMANDS.REPLACE_RECEIPT && request.isRollback)) {
+            break;
+        }
+        if (request.command === WRITE_COMMANDS.REPLACE_RECEIPT) {
+            indices.unshift(index);
+        }
+    }
+    return indices;
+}
+
+/** Append the latest upload after dependencies queued since the superseded uploads, such as the thread's OpenReport. */
+function resolveReplaceReceiptConflicts(persistedRequests: AnyRequest[], transactionID: string): ConflictActionData {
+    const indices = getSupersededReplaceReceiptIndices(persistedRequests, transactionID);
+    if (indices.length === 0) {
+        return {conflictAction: {type: 'push'}};
+    }
+    return {conflictAction: {type: 'delete', indices, pushNewRequest: true}};
+}
+
 export {
+    getSupersededReplaceReceiptIndices,
+    resolveReplaceReceiptConflicts,
     resolveDuplicationConflictAction,
     resolveOpenAppDuplicationConflictAction,
     resolveOpenReportDuplicationConflictAction,
