@@ -294,7 +294,6 @@ const FILTER_KEYS = {
 
     CONVERTED_AMOUNT_NOT: 'convertedAmountNot',
     CONVERTED_AMOUNT_EQUAL_TO: 'convertedAmountEqualTo',
-    CONVERTED_AMOUNT_LESS_THAN_NOT: 'convertedAmountLessThanNot',
     CONVERTED_AMOUNT_LESS_THAN: 'convertedAmountLessThan',
     CONVERTED_AMOUNT_LESS_THAN_OR_EQUAL_TO: 'convertedAmountLessThanOrEqualTo',
     CONVERTED_AMOUNT_GREATER_THAN: 'convertedAmountGreaterThan',
@@ -1092,7 +1091,6 @@ type SearchAdvancedFiltersForm = Form<
         [FILTER_KEYS.CONVERTED_AMOUNT_GREATER_THAN_OR_EQUAL_TO]: string;
         [FILTER_KEYS.CONVERTED_AMOUNT_LESS_THAN]: string;
         [FILTER_KEYS.CONVERTED_AMOUNT_LESS_THAN_OR_EQUAL_TO]: string;
-        [FILTER_KEYS.CONVERTED_AMOUNT_LESS_THAN_NOT]: string;
 
         [FILTER_KEYS.PURCHASE_AMOUNT_EQUAL_TO]: string;
         [FILTER_KEYS.PURCHASE_AMOUNT_NOT]: string;
