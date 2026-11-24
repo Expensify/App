@@ -479,6 +479,7 @@ function isDeletedAction(reportAction: OnyxInputOrEntry<ReportAction | Optimisti
         reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_DIRECTOR_INFORMATION_REQUIRED ||
         reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED_REPORT_FOR_UNAPPROVED_TRANSACTIONS ||
         reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.REASSIGN_APPROVER ||
+        reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ACTION_DELEGATE_SUBMIT ||
         reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.MERGED_EXPENSE_DELETED ||
         reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_AUTO_CATEGORIZE_NEW_EXPENSES ||
         reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_EMPLOYEE_DISPLAY_NAME ||
@@ -738,7 +739,7 @@ function getSystemMessageDisplayState(
     const firstAction = reportActions.at(0);
     const lastAction = reportActions.at(-1);
     const isNewestFirst = !!firstAction && !!lastAction && isNewerReportAction(firstAction, lastAction);
-    const chronologicalActions = isNewestFirst ? reportActions.toReversed() : reportActions;
+    const chronologicalActions = isNewestFirst ? [...reportActions].reverse() : reportActions;
 
     const appendAction = (reportAction: ReportAction) => {
         reportActionIDToDisplayIndex.set(reportAction.reportActionID, displayReportActions.length);
@@ -3033,8 +3034,23 @@ function getTravelUpdateMessage(
 ) {
     const details = getOriginalMessage(action);
     const formattedStartDate = formatDate?.(details?.start.date ?? '', false) ?? format(details?.start.date ?? '', CONST.DATE.FNS_DATE_TIME_FORMAT_STRING);
+    const railOrigin = details?.start.cityName ?? details?.start.shortName ?? '';
+    const railDestination = details?.end.cityName ?? details?.end.shortName ?? '';
 
     switch (details?.operation) {
+        case CONST.TRAVEL.UPDATE_OPERATION_TYPE.BOOKING_CREATED:
+            if (details.type === CONST.RESERVATION_TYPE.HOTEL && details.start.longName) {
+                // Spotnana sends some hotel names in all caps, so this matches how the trip room preview shows them
+                return translate('travel.updates.hotelBooked', Str.recapitalize(details.start.longName), formattedStartDate);
+            }
+            if (details.type === CONST.RESERVATION_TYPE.CAR && details.vendor) {
+                return translate('travel.updates.carBooked', details.vendor, formattedStartDate);
+            }
+            if (details.type === CONST.RESERVATION_TYPE.TRAIN && (railOrigin || railDestination)) {
+                return translate('travel.updates.railTicketBooked', railOrigin, railDestination, formattedStartDate);
+            }
+            return translate('travel.updates.defaultBooked', details.type);
+
         case CONST.TRAVEL.UPDATE_OPERATION_TYPE.BOOKING_TICKETED:
             return translate(
                 'travel.updates.bookingTicketed',
@@ -3095,12 +3111,7 @@ function getTravelUpdateMessage(
                 return translate('travel.updates.defaultUpdate', details.type);
             }
             if (details.type === CONST.RESERVATION_TYPE.TRAIN) {
-                return translate(
-                    'travel.updates.railTicketUpdate',
-                    details.start.cityName ?? details.start.shortName ?? '',
-                    details.end.cityName ?? details.end.shortName ?? '',
-                    formattedStartDate,
-                );
+                return translate('travel.updates.railTicketUpdate', railOrigin, railDestination, formattedStartDate);
             }
             return translate('travel.updates.flightUpdated', details.route?.airlineCode ?? '', details.start.shortName ?? '', details.end?.shortName ?? '', formattedStartDate);
 
@@ -3109,30 +3120,15 @@ function getTravelUpdateMessage(
                 return translate('travel.updates.defaultUpdate', details.type);
             }
             if (details.type === CONST.RESERVATION_TYPE.TRAIN) {
-                return translate(
-                    'travel.updates.railTicketUpdate',
-                    details.start.cityName ?? details.start.shortName ?? '',
-                    details.end.cityName ?? details.end.shortName ?? '',
-                    formattedStartDate,
-                );
+                return translate('travel.updates.railTicketUpdate', railOrigin, railDestination, formattedStartDate);
             }
             return translate('travel.updates.flightUpdated', details.route?.airlineCode ?? '', details.start.shortName ?? '', details.end?.shortName ?? '', formattedStartDate);
 
         case CONST.TRAVEL.UPDATE_OPERATION_TYPE.REFUND:
-            return translate(
-                'travel.updates.railTicketRefund',
-                details.start.cityName ?? details.start.shortName ?? '',
-                details.end.cityName ?? details.end.shortName ?? '',
-                formattedStartDate,
-            );
+            return translate('travel.updates.railTicketRefund', railOrigin, railDestination, formattedStartDate);
 
         case CONST.TRAVEL.UPDATE_OPERATION_TYPE.EXCHANGE:
-            return translate(
-                'travel.updates.railTicketExchange',
-                details.start.cityName ?? details.start.shortName ?? '',
-                details.end.cityName ?? details.end.shortName ?? '',
-                formattedStartDate,
-            );
+            return translate('travel.updates.railTicketExchange', railOrigin, railDestination, formattedStartDate);
 
         default:
             return translate('travel.updates.defaultUpdate', details?.type ?? '');

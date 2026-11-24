@@ -1,4 +1,3 @@
-import type {FormOnyxValues} from '@components/Form/types';
 import FullNameStep from '@components/SubStepForms/FullNameStep';
 
 import useLocalize from '@hooks/useLocalize';
@@ -22,8 +21,8 @@ function LegalNameUBO({onNext, onMove, isEditing, beneficialOwnerBeingModifiedID
 
     const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT);
 
-    const firstNameInputID = `${BENEFICIAL_OWNER_PREFIX}_${beneficialOwnerBeingModifiedID}_${FIRST_NAME}` as keyof FormOnyxValues;
-    const lastNameInputID = `${BENEFICIAL_OWNER_PREFIX}_${beneficialOwnerBeingModifiedID}_${LAST_NAME}` as keyof FormOnyxValues;
+    const firstNameInputID = `${BENEFICIAL_OWNER_PREFIX}_${beneficialOwnerBeingModifiedID}_${FIRST_NAME}` as const;
+    const lastNameInputID = `${BENEFICIAL_OWNER_PREFIX}_${beneficialOwnerBeingModifiedID}_${LAST_NAME}` as const;
     const stepFields = [firstNameInputID, lastNameInputID];
     const defaultValues = {
         firstName: SafeString(reimbursementAccountDraft?.[firstNameInputID]),

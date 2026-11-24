@@ -311,27 +311,14 @@ describe('useConnectedAccountingIntegration', () => {
     });
 
     describe('Configuration rows for Digits', () => {
-        it('should show the Import and Export rows but not the Advanced row', () => {
-            // Given a workspace connected to Digits, which has its Import and Export pages but no Advanced page yet
+        it('should show the Import, Export and Advanced rows', () => {
+            // Given a workspace connected to Digits, which now has all three configuration pages
             mockConnectedIntegration = CONST.POLICY.CONNECTIONS.NAME.DIGITS;
 
             // When the connected integration's settings rows are built
             const titles = getSettingsMenuItemTitles(policy);
 
-            // Then Advanced is left out, because its page arrives in a later release and the row would lead nowhere
-            expect(titles).toContain('workspace.accounting.import');
-            expect(titles).toContain('workspace.accounting.export');
-            expect(titles).not.toContain('workspace.accounting.advanced');
-        });
-
-        it('should keep the Advanced row for other connectors', () => {
-            // Given a workspace connected to Campfire, which has every configuration page
-            mockConnectedIntegration = CONST.POLICY.CONNECTIONS.NAME.CAMPFIRE;
-
-            // When the connected integration's settings rows are built
-            const titles = getSettingsMenuItemTitles(campfirePolicy);
-
-            // Then all three rows show, since only Digits hides the row for a page it doesn't have yet
+            // Then all three rows show, the same as for Campfire, whose pages Digits copies
             expect(titles).toEqual(expect.arrayContaining(['workspace.accounting.import', 'workspace.accounting.export', 'workspace.accounting.advanced']));
         });
     });

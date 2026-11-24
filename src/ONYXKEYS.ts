@@ -702,6 +702,9 @@ const ONYXKEYS = {
     /** Indicates whether the git branch name should be shown in the browser tab title */
     SHOULD_SHOW_BRANCH_NAME_IN_TITLE: 'shouldShowBranchNameInTitle',
 
+    /** Indicates whether the environment badge (DEV, STG, etc.) should be hidden, for example to take screenshots */
+    SHOULD_HIDE_ENVIRONMENT_BADGE: 'shouldHideEnvironmentBadge',
+
     /** Indicates whether Sentry debug mode is enabled - logs Sentry requests to console */
     IS_SENTRY_DEBUG_ENABLED: 'isSentryDebugEnabled',
 
@@ -1004,6 +1007,8 @@ const ONYXKEYS = {
     /** Whether the user has denied the contact import permission prompt */
     HAS_DENIED_CONTACT_IMPORT_PROMPT: 'hasDeniedContactImportPrompt',
 
+    IS_RECEIPT_ENHANCEMENT_ENABLED: 'isReceiptEnhancementEnabled',
+
     /** Maps each newly-added transaction ID to its search data type, flagging it for the "Expense added" growl */
     RAM_ONLY_EXPENSE_ADDED_GROWL_TRANSACTION_IDS: 'expenseAddedGrowlTransactionIDs',
 
@@ -1151,6 +1156,9 @@ const ONYXKEYS = {
 
         /** One entry per Insights dashboard and set of filters, keyed by dashboard ID and query hash, holding everything the backend returns for it */
         INSIGHTS: 'insights_',
+
+        /** Data of the Insights Details panels, keyed by a hash of the graph, filters, period and item */
+        INSIGHTS_DETAILS: 'insightsDetails_',
 
         /** Preloaded Concierge answers keyed by question, account, and Insights filters. */
         INSIGHTS_EXPLANATION: 'insightsExplanation_',
@@ -1783,6 +1791,7 @@ type OnyxCollectionValuesMapping = {
     [ONYXKEYS.COLLECTION.DOMAIN_ACCOUNT_MERGE_REQUEST]: OnyxTypes.DomainAccountMergeRequest;
     [ONYXKEYS.COLLECTION.SNAPSHOT]: OnyxTypes.SearchResults;
     [ONYXKEYS.COLLECTION.INSIGHTS]: OnyxTypes.InsightsDashboard;
+    [ONYXKEYS.COLLECTION.INSIGHTS_DETAILS]: OnyxTypes.InsightsDetails;
     [ONYXKEYS.COLLECTION.INSIGHTS_EXPLANATION]: OnyxTypes.InsightsExplanation;
     [ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT]: OnyxTypes.Agent;
     [ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END]: OnyxTypes.BillingGraceEndPeriod;
@@ -2041,6 +2050,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.IS_DEBUG_MODE_ENABLED]: boolean;
     [ONYXKEYS.BETA_OVERRIDES]: OnyxTypes.BetaOverrides;
     [ONYXKEYS.SHOULD_SHOW_BRANCH_NAME_IN_TITLE]: boolean;
+    [ONYXKEYS.SHOULD_HIDE_ENVIRONMENT_BADGE]: boolean;
     [ONYXKEYS.IS_SENTRY_DEBUG_ENABLED]: boolean;
     [ONYXKEYS.IS_SENTRY_SEND_ENABLED]: boolean;
     [ONYXKEYS.SENTRY_DEBUG_HIGHLIGHTED_SPAN_OPS]: string[];
@@ -2149,6 +2159,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.SINGLE_RHP_WIDTH]: number;
     [ONYXKEYS.SIDE_PANEL_WIDTH]: number;
     [ONYXKEYS.HAS_DENIED_CONTACT_IMPORT_PROMPT]: boolean | undefined;
+    [ONYXKEYS.IS_RECEIPT_ENHANCEMENT_ENABLED]: boolean | undefined;
     [ONYXKEYS.PERSONAL_POLICY_ID]: string;
     [ONYXKEYS.RAM_ONLY_EXPENSE_ADDED_GROWL_TRANSACTION_IDS]: Record<string, SearchDataTypes>;
     [ONYXKEYS.ROOM_ID_HIGHLIGHT_ON_ROOMS_PAGE]: string | null;

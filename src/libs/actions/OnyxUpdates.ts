@@ -1,6 +1,7 @@
 import {SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import Log from '@libs/Log';
 import PusherUtils from '@libs/PusherUtils';
+import {logReceiptRolledBack} from '@libs/telemetry/ReceiptObservability';
 import {trackExpenseApiError} from '@libs/telemetry/trackExpenseCreationError';
 
 import CONFIG from '@src/CONFIG';
@@ -159,6 +160,7 @@ function applyHTTPSOnyxUpdates<TKey extends OnyxKey>(
                     message: response.message,
                     requestData: request.data,
                 });
+                logReceiptRolledBack({command: request.command, data: request.data, failureData: request.failureData, trigger: 'serverError'});
 
                 return updateHandler(request.failureData);
             }

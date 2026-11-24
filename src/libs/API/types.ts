@@ -48,6 +48,7 @@ const WRITE_COMMANDS = {
     OPEN_REPORT: 'OpenReport',
     OPEN_BULK_CHANGE_APPROVER_PAGE: 'OpenBulkChangeApproverPage',
     DELETE_PAYMENT_BANK_ACCOUNT: 'DeletePaymentBankAccount',
+    CREATE_TEST_BANK_ACCOUNT: 'CreateTestBankAccount',
     UPDATE_PERSONAL_INFORMATION_FOR_BANK_ACCOUNT: 'UpdatePersonalInformationForBankAccount',
     VALIDATE_BANK_ACCOUNT_WITH_TRANSACTIONS: 'ValidateBankAccountWithTransactions',
     UPDATE_COMPANY_INFORMATION_FOR_BANK_ACCOUNT: 'UpdateCompanyInformationForBankAccount',
@@ -866,6 +867,7 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.OPEN_REPORT]: Parameters.OpenReportParams;
     [WRITE_COMMANDS.OPEN_BULK_CHANGE_APPROVER_PAGE]: Parameters.OpenBulkChangeApproverPageParams;
     [WRITE_COMMANDS.DELETE_PAYMENT_BANK_ACCOUNT]: Parameters.DeletePaymentBankAccountParams;
+    [WRITE_COMMANDS.CREATE_TEST_BANK_ACCOUNT]: Parameters.CreateTestBankAccountParams;
     [WRITE_COMMANDS.UPDATE_PERSONAL_INFORMATION_FOR_BANK_ACCOUNT]: Parameters.UpdatePersonalInformationForBankAccountParams;
     [WRITE_COMMANDS.VALIDATE_BANK_ACCOUNT_WITH_TRANSACTIONS]: Parameters.ValidateBankAccountWithTransactionsParams;
     [WRITE_COMMANDS.UPDATE_COMPANY_INFORMATION_FOR_BANK_ACCOUNT]: Parameters.UpdateCompanyInformationForBankAccountParams;
@@ -1760,6 +1762,7 @@ const READ_COMMANDS = {
     OPEN_SEARCH_CATEGORY_FILTERS_PAGE: 'OpenSearchCategoryFiltersPage',
     SEARCH: 'Search',
     GET_INSIGHTS: 'GetInsights',
+    GET_INSIGHTS_DETAILS: 'GetInsightsDetails',
     GET_INSIGHTS_EXPLANATION: 'GetInsightsExplanation',
     GET_TRANSACTIONS_CONVERTED_AMOUNT: 'GetTransactionsConvertedAmount',
     GET_OLDER_ACTIONS: 'GetOlderActions',
@@ -1909,6 +1912,7 @@ type ReadCommandParameters = {
     [READ_COMMANDS.OPEN_SEARCH_PAGE]: Parameters.OpenSearchPageParams;
     [READ_COMMANDS.SEARCH]: Parameters.SearchParams;
     [READ_COMMANDS.GET_INSIGHTS]: Parameters.GetInsightsParams;
+    [READ_COMMANDS.GET_INSIGHTS_DETAILS]: Parameters.GetInsightsDetailsParams;
     [READ_COMMANDS.GET_INSIGHTS_EXPLANATION]: Parameters.GetInsightsExplanationParams;
     [READ_COMMANDS.GET_TRANSACTIONS_CONVERTED_AMOUNT]: Parameters.GetTransactionsConvertedAmountParams;
     [READ_COMMANDS.BEGIN_SIGNIN]: Parameters.BeginSignInParams;
@@ -2008,8 +2012,9 @@ const SIDE_EFFECT_REQUEST_COMMANDS = {
     SEARCH: 'Search',
     SEARCH_COMPANY_CARD_BY_NUMBER: 'SearchCompanyCardByNumber',
     GET_INSIGHTS: 'GetInsights',
-    GET_SCIM_TOKEN: 'GetSCIMToken',
+    GET_INSIGHTS_DETAILS: 'GetInsightsDetails',
     GET_INSIGHTS_EXPLANATION: 'GetInsightsExplanation',
+    GET_SCIM_TOKEN: 'GetSCIMToken',
     PARSE_EXPENSE_FILTERS: 'ParseExpenseFilters',
     TRANSLATE_RECEIPT: 'TranslateReceipt',
 

@@ -1620,10 +1620,6 @@ const CONST = {
         DEFAULT_LETTER_AVATARS: 'defaultLetterAvatars',
         ARCHIVE_POLICIES: 'archivePolicies',
         MERGE_ATS: 'mergeATSConnections',
-        REPORT_MERGE: 'reportMerge',
-        INSIGHTS_AI: 'insightsAI',
-        INSIGHTS_COMPLIANCE: 'insightsCompliance',
-        INSIGHTS_EFFICIENCY: 'insightsEfficiency',
         NL_FILTERS: 'nlFilters',
         SUPPORT_TICKET: 'supportTicket',
         RESIZABLE_TABLE_COLUMNS: 'resizableTableColumns',
@@ -1633,6 +1629,7 @@ const CONST = {
         TRAVEL_APPROVAL: 'travelApproval',
         FLAT_NAV: 'flatNav',
         RECEIPT_TRANSLATION: 'receiptTranslation',
+        RECEIPT_ENHANCEMENT: 'receiptEnhancement',
         SCAN_FLASH_TORCH: 'scanFlashTorch',
         NEW_DOT_BILL_PAY: 'newDotBillPay',
         HYBRID_WEB: 'hybridWeb',
@@ -1650,6 +1647,11 @@ const CONST = {
     BANK_ACCOUNT_TYPES: {
         WALLET: 'WALLET',
     },
+    TEST_BANK_ACCOUNT_TYPE: {
+        BUSINESS: 'business',
+        PERSONAL: 'personal',
+    },
+    TEST_BANK_ACCOUNT_STAGING_EMAIL_DOMAIN: 'expensifail.com',
     COUNTRY: {
         AS: 'AS',
         AU: 'AU',
@@ -3452,6 +3454,7 @@ const CONST = {
         DUPLICATE_RECORD: 'A record already exists with this ID',
         ALREADY_CREATED: 'AlreadyCreated',
         SERVICE_UNAVAILABLE: 'serviceUnavailable',
+        REAUTH_REPLAY_REJECTED: 'reauthReplayRejected',
 
         // The "Upgrade" is intentional as the 426 HTTP code means "Upgrade Required" and sent by the API. We use the "Update" language everywhere else in the front end when this gets returned.
         UPDATE_REQUIRED: 'Upgrade Required',
@@ -6337,6 +6340,7 @@ const CONST = {
     },
     COMPANY_CARDS: {
         CONSENT_EXPIRY_WARNING_DAYS: {
+            ONE_MONTH: 30,
             TWO_WEEKS: 14,
             ONE_WEEK: 7,
         },
@@ -10441,6 +10445,7 @@ const CONST = {
             },
         },
         UPDATE_OPERATION_TYPE: {
+            BOOKING_CREATED: 'BOOKING_CREATED',
             BOOKING_TICKETED: 'BOOKING_TICKETED',
             TICKET_VOIDED: 'TICKET_VOIDED',
             TICKET_REFUNDED: 'TICKET_REFUNDED',

@@ -37,7 +37,7 @@ type InsightsGraph = {
 /** Kind of signal an AI insight was detected from */
 type AIInsightSignal = ValueOf<typeof CONST.INSIGHTS.AI_INSIGHT.SIGNAL>;
 
-/** A chip's value, either a whole-number percentage or an amount */
+/** Values that can represent a change or an observed statistic */
 type AIInsightChipValue =
     | {
           unit: typeof CONST.INSIGHTS.AI_INSIGHT.CHIP_UNIT.PERCENT;
@@ -49,6 +49,12 @@ type AIInsightChipValue =
           /** Amount in cents */
           value: number;
           currency: string;
+      }
+    | {
+          unit: typeof CONST.INSIGHTS.AI_INSIGHT.CHIP_UNIT.DURATION;
+
+          /** Duration in seconds */
+          value: number;
       };
 
 /** Chip showing how much an item changed */
@@ -62,12 +68,6 @@ type AIInsightNeutralChip = (
     | AIInsightChipValue
     | {
           unit: typeof CONST.INSIGHTS.AI_INSIGHT.CHIP_UNIT.COUNT;
-          value: number;
-      }
-    | {
-          unit: typeof CONST.INSIGHTS.AI_INSIGHT.CHIP_UNIT.DURATION;
-
-          /** Average processing duration in seconds */
           value: number;
       }
 ) & {

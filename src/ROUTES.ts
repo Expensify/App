@@ -13,6 +13,7 @@ import type {EnablePaymentsPageType, EnablePaymentsSubPageType, IOUAction, IOURe
 import type {ReplacementReason} from './libs/actions/Card';
 import type {RootNavigatorParamList} from './libs/Navigation/types';
 import type {SearchKey} from './libs/SearchKeyUtils';
+import type {UrlWithParams} from './libs/Url';
 import type {Screen} from './SCREENS';
 import type {ExpenseRuleFormFieldID} from './types/form/ExpenseRuleForm';
 import type {CardFeedWithDomainID, CompanyCardFeedWithDomainID} from './types/onyx';
@@ -118,6 +119,8 @@ const DYNAMIC_ROUTES = {
         path: 'verify-account',
         entryScreens: [
             SCREENS.SETTINGS.WALLET.ROOT,
+            SCREENS.SETTINGS.TROUBLESHOOT,
+            SCREENS.TEST_TOOLS_MODAL.ROOT,
             SCREENS.SETTINGS.ADD_BANK_ACCOUNT,
             SCREENS.SETTINGS.PROFILE.DYNAMIC_CONTACT_METHODS,
             SCREENS.WORKSPACE.COMPANY_CARDS,
@@ -4818,7 +4821,7 @@ const ROUTES = {
     ONBOARDING_PERSONAL_DETAILS: {
         route: 'onboarding/personal-details',
 
-        getRoute: (backTo?: string) => getUrlWithBackToParam(`onboarding/personal-details`, backTo),
+        getRoute: (backTo?: string): UrlWithParams<'onboarding/personal-details'> => getUrlWithBackToParam(`onboarding/personal-details`, backTo),
     },
     ONBOARDING_PRIVATE_DOMAIN: {
         route: 'onboarding/private-domain',
@@ -4829,22 +4832,22 @@ const ROUTES = {
     ONBOARDING_EMPLOYEES: {
         route: 'onboarding/employees',
 
-        getRoute: (backTo?: string) => getUrlWithBackToParam(`onboarding/employees`, backTo),
+        getRoute: (backTo?: string): UrlWithParams<'onboarding/employees'> => getUrlWithBackToParam(`onboarding/employees`, backTo),
     },
     ONBOARDING_ACCOUNTING: {
         route: 'onboarding/accounting',
 
-        getRoute: () => 'onboarding/accounting' as const,
+        getRoute: (): UrlWithParams<'onboarding/accounting'> => 'onboarding/accounting' as const,
     },
     ONBOARDING_INTERESTED_FEATURES: {
         route: 'onboarding/interested-features',
 
-        getRoute: () => 'onboarding/interested-features' as const,
+        getRoute: (): UrlWithParams<'onboarding/interested-features'> => 'onboarding/interested-features' as const,
     },
     ONBOARDING_PURPOSE: {
         route: 'onboarding/purpose',
 
-        getRoute: (backTo?: string) => getUrlWithBackToParam(`onboarding/purpose`, backTo),
+        getRoute: (backTo?: string): UrlWithParams<'onboarding/purpose'> => getUrlWithBackToParam(`onboarding/purpose`, backTo),
     },
     ONBOARDING_WORKSPACES: {
         route: 'onboarding/join-workspaces',
@@ -4870,7 +4873,7 @@ const ROUTES = {
         route: 'onboarding/personaltrackcase',
 
         // eslint-disable-next-line @typescript-eslint/no-deprecated -- Legacy route generation, consistent with other onboarding routes
-        getRoute: (backTo?: string) => getUrlWithBackToParam(`onboarding/personaltrackcase`, backTo),
+        getRoute: (backTo?: string): UrlWithParams<'onboarding/personaltrackcase'> => getUrlWithBackToParam(`onboarding/personaltrackcase`, backTo),
     },
     TEST_DRIVE_DEMO_ROOT: 'onboarding/test-drive/demo',
     AUTO_SUBMIT_MODAL_ROOT: '/auto-submit',
@@ -5778,6 +5781,30 @@ const ROUTES = {
     POLICY_ACCOUNTING_DIGITS_COMPANY_CARD_ACCOUNT: {
         route: 'workspaces/:policyID/accounting/digits/export/company-card-account',
         getRoute: (policyID: string) => `workspaces/${policyID}/accounting/digits/export/company-card-account` as const,
+    },
+    POLICY_ACCOUNTING_DIGITS_ADVANCED: {
+        route: 'workspaces/:policyID/accounting/digits/advanced',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/digits/advanced` as const,
+    },
+    POLICY_ACCOUNTING_DIGITS_EXPORT_METHOD: {
+        route: 'workspaces/:policyID/accounting/digits/advanced/export-method',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/digits/advanced/export-method` as const,
+    },
+    POLICY_ACCOUNTING_DIGITS_BILL_PAYMENT_ACCOUNT: {
+        route: 'workspaces/:policyID/accounting/digits/advanced/bill-payment-account',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/digits/advanced/bill-payment-account` as const,
+    },
+    POLICY_ACCOUNTING_DIGITS_EXPENSIFY_CARD_SETTLEMENT_ACCOUNT: {
+        route: 'workspaces/:policyID/accounting/digits/advanced/expensify-card-settlement-account',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/digits/advanced/expensify-card-settlement-account` as const,
+    },
+    POLICY_ACCOUNTING_DIGITS_TRAVEL_BILLING_SETTLEMENT_ACCOUNT: {
+        route: 'workspaces/:policyID/accounting/digits/advanced/travel-billing-settlement-account',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/digits/advanced/travel-billing-settlement-account` as const,
+    },
+    POLICY_ACCOUNTING_DIGITS_TRAVEL_BILLING_PAYABLE_ACCOUNT: {
+        route: 'workspaces/:policyID/accounting/digits/advanced/travel-billing-payable-account',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/digits/advanced/travel-billing-payable-account` as const,
     },
     POLICY_ACCOUNTING_BUSINESS_CENTRAL_PREREQUISITES: {
         route: 'workspaces/:policyID/accounting/business-central/prerequisites',
