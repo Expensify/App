@@ -93,7 +93,6 @@ import {
     getTransactionDetails,
     isActionCreator,
     isExpenseOrBillReport,
-    isExpenseReport,
     isInvoiceReport,
     isOpenReport,
     isReportApproved,
@@ -1898,7 +1897,7 @@ function MoneyRequestView({
                         />
                     </OfflineWithFeedback>
                 )}
-                {!!parentReport && isExpenseReport(parentReport) && !isFromReviewDuplicates && !isFromMergeTransaction && (
+                {!!parentReport && isExpenseOrBillReport(parentReport) && !isFromReviewDuplicates && !isFromMergeTransaction && (
                     <MoneyRequestViewAdditionalFields
                         transaction={transaction}
                         report={parentReport}

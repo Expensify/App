@@ -1500,7 +1500,7 @@ function isInvoiceReport(report: OnyxInputOrEntry<Report>): boolean {
 }
 
 function isFinancialReportsForBusinesses(report: OnyxEntry<Report>): boolean {
-    return report?.type === CONST.REPORT.TYPE.EXPENSE || report?.type === CONST.REPORT.TYPE.INVOICE;
+    return report?.type === CONST.REPORT.TYPE.EXPENSE || report?.type === CONST.REPORT.TYPE.BILL || report?.type === CONST.REPORT.TYPE.INVOICE;
 }
 
 function isNewDotInvoice(invoiceRoomID: string | undefined): boolean {
@@ -2928,7 +2928,7 @@ function isExpenseRequest(report: OnyxInputOrEntry<Report>): report is Thread {
     if (isThread(report)) {
         const parentReportAction = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`]?.[report.parentReportActionID];
         const parentReport = getReport(report?.parentReportID, deprecatedAllReports);
-        return isExpenseReport(parentReport) && !isEmptyObject(parentReportAction) && isTransactionThread(parentReportAction);
+        return isExpenseOrBillReport(parentReport) && !isEmptyObject(parentReportAction) && isTransactionThread(parentReportAction);
     }
     return false;
 }
@@ -5005,7 +5005,7 @@ function getIcons({
     if (isExpenseRequest(report)) {
         return getIconsForExpenseRequest(report, personalDetails, policy, translate, resolvedParentReportAction);
     }
-    if (isExpenseReport(report)) {
+    if (isExpenseOrBillReport(report)) {
         return getIconsForExpenseReport(report, personalDetails, policy, formatPhoneNumber, translate);
     }
     if (isIOUReport(report)) {
@@ -5359,7 +5359,7 @@ function getActionTypeForAssigneeToComplete(
             return CONST.REPORT.ACTION_TYPES_FOR_ASSIGNEE_TO_COMPLETE.TASK;
         }
 
-        if (isProcessingReport(report) && isExpenseReport(report)) {
+        if (isProcessingReport(report) && isExpenseOrBillReport(report)) {
             return CONST.REPORT.ACTION_TYPES_FOR_ASSIGNEE_TO_COMPLETE.EXPENSE;
         }
     }
@@ -5819,7 +5819,7 @@ function getNegatedReportTotals(
 }
 
 function getBillableAndTaxTotal(report: OnyxEntry<Report>, transactions: Array<OnyxEntry<Transaction>>) {
-    if (!isExpenseReport(report)) {
+    if (!isExpenseOrBillReport(report)) {
         return {
             billableTotal: 0,
             taxTotal: 0,
@@ -5993,7 +5993,7 @@ function canEditReportTitle(
         getAvailableReportFields(report, Object.values(policy?.fieldList ?? {})).find((reportField) => isReportFieldOfTypeTitle(reportField)) ?? getTitleFieldWithFallback(policy);
     const isFieldDisabled = isReportFieldDisabled(report, titleField, policy, rules, reportOwnerLogin);
 
-    return !isFieldDisabled && isAdminOwnerApproverOrReportOwner(report, policy, currentUserAccountID) && isExpenseReport(report) && isGroupPolicyPolicyUtils(policy);
+    return !isFieldDisabled && isAdminOwnerApproverOrReportOwner(report, policy, currentUserAccountID) && isExpenseOrBillReport(report) && isGroupPolicyPolicyUtils(policy);
 }
 
 /**
@@ -6232,7 +6232,9 @@ function canEditMoneyRequest(
     const moneyRequestReport = report ?? getReportOrDraftReport({reportID: String(moneyRequestReportID)});
     // Without an IOU action, the submitter of an expense report stands in for the requester, because only they can add expenses to it.
     // This function has no current-user parameter, so it passes the same module-level account ID that isActionRequestor uses.
-    const isRequestor = isActionlessReportedExpense ? isExpenseReport(moneyRequestReport) && isCurrentUserSubmitter(moneyRequestReport, deprecatedCurrentUserAccountID) : isActionRequestor;
+    const isRequestor = isActionlessReportedExpense
+        ? isExpenseOrBillReport(moneyRequestReport) && isCurrentUserSubmitter(moneyRequestReport, deprecatedCurrentUserAccountID)
+        : isActionRequestor;
 
     const isSubmitted = isProcessingReport(moneyRequestReport);
     if (isIOUReport(moneyRequestReport)) {
@@ -6454,8 +6456,8 @@ function canCurrentUserEditExpense(
     reportPolicy: OnyxEntry<Policy>,
     rules: OnyxCollection<Rule>,
 ): boolean {
-    const isAdmin = isExpenseReport(moneyRequestReport) && reportPolicy?.role === CONST.POLICY.ROLE.ADMIN;
-    const isManager = isExpenseReport(moneyRequestReport) && deprecatedCurrentUserAccountID === moneyRequestReport?.managerID;
+    const isAdmin = isExpenseOrBillReport(moneyRequestReport) && reportPolicy?.role === CONST.POLICY.ROLE.ADMIN;
+    const isManager = isExpenseOrBillReport(moneyRequestReport) && deprecatedCurrentUserAccountID === moneyRequestReport?.managerID;
     const isRequestor = deprecatedCurrentUserAccountID === reportAction?.actorAccountID;
     const ownerLogin = getLoginByAccountID(moneyRequestReport?.ownerAccountID, getAllPersonalDetails());
     const isApprover =
@@ -6540,8 +6542,8 @@ function canEditFieldOfMoneyRequest({
     // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
     const reportPolicy = policy ?? getPolicy(moneyRequestReport?.policyID);
     // Moving an expense to another report weighs these two on their own rather than as part of the combined check.
-    const isAdmin = isExpenseReport(moneyRequestReport) && reportPolicy?.role === CONST.POLICY.ROLE.ADMIN;
-    const isManager = isExpenseReport(moneyRequestReport) && deprecatedCurrentUserAccountID === moneyRequestReport?.managerID;
+    const isAdmin = isExpenseOrBillReport(moneyRequestReport) && reportPolicy?.role === CONST.POLICY.ROLE.ADMIN;
+    const isManager = isExpenseOrBillReport(moneyRequestReport) && deprecatedCurrentUserAccountID === moneyRequestReport?.managerID;
 
     // Admins can add or replace a receipt on an approved expense so a missing receipt can still be provided after approval.
     const isAdminChangingReceiptOnApprovedReport = isAdmin && fieldToEdit === CONST.EDIT_REQUEST_FIELD.RECEIPT && !isDeleteAction && !isSettled(moneyRequestReport);
@@ -6593,7 +6595,7 @@ function canEditFieldOfMoneyRequest({
 
     if (fieldToEdit === CONST.EDIT_REQUEST_FIELD.DISTANCE_RATE) {
         // The distance rate can be modified only on the distance expense reports
-        return (isExpenseReport(moneyRequestReport) || isUnreportedExpense) && isDistanceRequest(transaction);
+        return (isExpenseOrBillReport(moneyRequestReport) || isUnreportedExpense) && isDistanceRequest(transaction);
     }
 
     if (fieldToEdit === CONST.EDIT_REQUEST_FIELD.REPORT) {
@@ -7112,7 +7114,7 @@ function getReportPreviewMessage(
 
     const parentReport = getParentReport(report);
     const policyName = getPolicyName({report: parentReport ?? report, policy, unavailableTranslation: translate('workspace.common.unavailable')});
-    const payerName = isExpenseReport(report)
+    const payerName = isExpenseOrBillReport(report)
         ? policyName
         : getDisplayNameForParticipant({
               accountID: report.managerID,
@@ -7324,7 +7326,7 @@ function getReportPreviewReportActionMessage(
     // report action and read back by every viewer, so it must not follow the locale of whoever happened to build it. These mirror
     // `workspace.common.unavailable` and `common.hidden` in `src/languages/en.ts`, and ReportUtilsTest asserts they do not drift from them.
     const policyName = getPolicyName({report: parentReport ?? report, policy, unavailableTranslation: 'Unavailable workspace'});
-    const payerName = isExpenseReport(report)
+    const payerName = isExpenseOrBillReport(report)
         ? policyName
         : getDisplayNameForParticipant({
               accountID: report.managerID,
@@ -12466,7 +12468,7 @@ function shouldReportShowSubscript(report: OnyxEntry<Report>, isReportArchived =
         return true;
     }
 
-    if (isExpenseReport(report)) {
+    if (isExpenseOrBillReport(report)) {
         return true;
     }
 
@@ -12958,7 +12960,7 @@ function getIOUReportActionDisplayMessage(
         }
     }
 
-    const amount = getTransactionAmount(transaction, !isEmptyObject(iouReport) && isExpenseReport(iouReport), transaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID) ?? 0;
+    const amount = getTransactionAmount(transaction, !isEmptyObject(iouReport) && isExpenseOrBillReport(iouReport), transaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID) ?? 0;
     const formattedAmount = convertToDisplayString(amount, getCurrency(transaction)) ?? '';
     const isRequestSettled = isSettled(IOUReportID);
     const isApproved = isReportApproved({report: iouReport});
@@ -15980,7 +15982,7 @@ function getTransactionSortValue(
         case CONST.SEARCH.SORT_BY_COLUMNS.TAG_GL_CODE:
             return getTagGLCode(policyTagLists, getTag(transaction));
         case CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT:
-            return getTransactionAmount(transaction, isExpenseReport(report), transaction.reportID === CONST.REPORT.UNREPORTED_REPORT_ID);
+            return getTransactionAmount(transaction, isExpenseOrBillReport(report), transaction.reportID === CONST.REPORT.UNREPORTED_REPORT_ID);
         case CONST.SEARCH.TABLE_COLUMNS.TOTAL:
             return Math.abs(transaction.convertedAmount ?? 0);
         case CONST.SEARCH.TABLE_COLUMNS.DESCRIPTION:
@@ -15994,13 +15996,13 @@ function getTransactionSortValue(
         case CONST.SEARCH.TABLE_COLUMNS.EXCHANGE_RATE:
             return getExchangeRate(transaction, report?.currency);
         case CONST.SEARCH.TABLE_COLUMNS.ORIGINAL_AMOUNT:
-            return getOriginalAmountForDisplay(transaction, isExpenseReport(report));
+            return getOriginalAmountForDisplay(transaction, isExpenseOrBillReport(report));
         case CONST.SEARCH.TABLE_COLUMNS.MCC:
             return getMCCForDisplay(transaction.mcc);
         case CONST.SEARCH.TABLE_COLUMNS.TAX_CODE:
             return transaction.taxCode ?? '';
         case CONST.SEARCH.TABLE_COLUMNS.TAX_AMOUNT:
-            return getTaxAmount(transaction, isExpenseReport(report));
+            return getTaxAmount(transaction, isExpenseOrBillReport(report));
         case CONST.SEARCH.TABLE_COLUMNS.TAX_RATE:
             return getTaxName(translate, policy, transaction) ?? '';
         case CONST.SEARCH.TABLE_COLUMNS.CARD:

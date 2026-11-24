@@ -12,6 +12,8 @@ import {
     canHoldUnholdReportAction,
     canIOUBePaid,
     canRejectReportAction,
+    canEditReportTitle,
+    getMoneyRequestSpendBreakdown,
     isExpenseOrBillReport,
     isExpenseReport,
     isMoneyRequestReport,
@@ -170,6 +172,22 @@ describe('Bill Pay', () => {
         expect(isExpenseReport(bill)).toBe(false);
         expect(isExpenseOrBillReport(bill)).toBe(true);
         expect(isBillReport(expenseReport)).toBe(false);
+    });
+
+    it('shows the total of a bill like the total of an expense report', () => {
+        // Given a bill and an expense report that both store their total as a negative amount
+        // When the app computes the totals it displays
+        // Then both show the same positive total
+        expect(getMoneyRequestSpendBreakdown(bill).totalDisplaySpend).toBe(125);
+        expect(getMoneyRequestSpendBreakdown(bill).totalDisplaySpend).toBe(getMoneyRequestSpendBreakdown(expenseReport).totalDisplaySpend);
+    });
+
+    it('lets the approver rename a bill', () => {
+        // Given a submitted bill on a group policy and its approver
+        // When the app checks whether the approver can edit the title
+        // Then the approver can rename the bill like an expense report
+        expect(canEditReportTitle(bill, policy, accountID, undefined, email)).toBe(canEditReportTitle(expenseReport, policy, accountID, undefined, email));
+        expect(canEditReportTitle(bill, policy, accountID, undefined, email)).toBe(true);
     });
 
     it('lets only the approver approve a submitted bill', () => {

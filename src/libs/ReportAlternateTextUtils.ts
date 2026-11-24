@@ -244,7 +244,7 @@ import {
     isDM,
     isDeprecatedGroupDM,
     isDomainRoom,
-    isExpenseReport,
+    isExpenseOrBillReport,
     isGroupChat as isGroupChatUtil,
     isInvoiceRoom,
     isMoneyRequestReport as reportUtilsIsMoneyRequestReport,
@@ -800,7 +800,7 @@ function getLastMessageTextForReport({
     } else if (isInviteOrRemovedAction(lastReportAction)) {
         lastMessageTextFromReport = getRoomChangeLogMessage(translate, lastReportAction);
     } else if (isRenamedAction(lastReportAction)) {
-        lastMessageTextFromReport = getRenamedAction(translate, lastReportAction, isExpenseReport(report));
+        lastMessageTextFromReport = getRenamedAction(translate, lastReportAction, isExpenseOrBillReport(report));
     } else if (isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.DELETED_TRANSACTION)) {
         lastMessageTextFromReport = getDeletedTransactionMessage(translate, lastReportAction, convertToDisplayString);
     } else if (isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.UNDELETED_TRANSACTION)) {
@@ -991,9 +991,9 @@ function getLastMessageTextForReport({
             lastMessageTextFromReport = translate('iou.receiptScanning', {count: scanningTransactions.length});
         } else if (report?.transactionCount && report?.transactionCount > 0 && report?.currency) {
             const latestVisibleMoneyRequestAction = getLatestVisibleMoneyRequestAction(reportID, canUserPerformWrite, sortedActions?.[reportID], visibleReportActionsDataParam);
-            if (isExpenseReport(report) && latestVisibleMoneyRequestAction) {
+            if (isExpenseOrBillReport(report) && latestVisibleMoneyRequestAction) {
                 lastMessageTextFromReport = getExpenseReportPreviewText(report, latestVisibleMoneyRequestAction, translate, transactions, convertToDisplayString);
-            } else if (!isExpenseReport(report)) {
+            } else if (!isExpenseOrBillReport(report)) {
                 lastMessageTextFromReport = lastVisibleMessage?.lastMessageText;
             } else if (!isCreatedAction(lastReportAction)) {
                 lastMessageTextFromReport =
@@ -1282,7 +1282,7 @@ function getReportAlternateText({
     const isThreadReport = isChatThread(report);
     const isTaskReportFlag = isTaskReport(report);
     const isAllowedToComment = canUserPerformWriteAction(report, isReportArchived);
-    const isExpense = isExpenseReport(report);
+    const isExpense = isExpenseOrBillReport(report);
     const reportMetadata = reportMetadataParam ?? getReportMetadata(report.reportID);
     // eslint-disable-next-line @typescript-eslint/no-deprecated
     const resolvedOneTransactionThreadReportID = oneTransactionThreadReportID ?? deprecatedCachedOneTransactionThreadReportIDs[report.reportID];

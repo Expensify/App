@@ -165,7 +165,7 @@ import {
     isChatThread,
     isClosedExpenseReportWithNoExpenses,
     isConciergeChatReport,
-    isExpenseReport,
+    isExpenseOrBillReport,
     isGroupChat,
     isInvoiceReport,
     isInvoiceRoom,
@@ -715,7 +715,7 @@ function computeReportNameBasedOnReportAction({
     }
 
     if (isRenamedAction(parentReportAction)) {
-        return getRenamedAction(translate, parentReportAction, isExpenseReport(parentReport));
+        return getRenamedAction(translate, parentReportAction, isExpenseOrBillReport(parentReport));
     }
 
     if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.RESOLVED_DUPLICATES)) {

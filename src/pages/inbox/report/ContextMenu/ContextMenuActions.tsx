@@ -213,7 +213,7 @@ import {
     getUnreportedTransactionMessage,
     getWorkspaceNameUpdatedMessage,
     isChatThread,
-    isExpenseReport,
+    isExpenseOrBillReport,
     isResolvedSupportTicket,
     isSelfDM,
     isSupportTicket,
@@ -1386,7 +1386,7 @@ const ContextMenuActions: ContextMenuAction[] = [
                 } else if (isActionableTrackExpense(reportAction)) {
                     setClipboardMessage(CONST.ACTIONABLE_TRACK_EXPENSE_WHISPER_MESSAGE);
                 } else if (isRenamedAction(reportAction)) {
-                    setClipboardMessage(getRenamedAction(translate, reportAction, isExpenseReport(report)));
+                    setClipboardMessage(getRenamedAction(translate, reportAction, isExpenseOrBillReport(report)));
                 } else if (
                     isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.SUBMITTED) ||
                     isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.SUBMITTED_AND_CLOSED) ||
