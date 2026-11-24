@@ -141,6 +141,9 @@ import {
     getUpdatedIndividualBudgetNotificationMessage,
     getUpdatedManualApprovalThresholdMessage,
     getUpdatedMemberWorkArrangementMessage,
+    getTravelSetupMemberAccessMessage,
+    getUpdatedTravelAutoEnableNewMembersMessage,
+    getUpdatedMemberTravelAccessMessage,
     getUpdatedOfficeLocationMessage,
     getUpdatedOwnershipMessage,
     getUpdatedProhibitedExpensesMessage,
@@ -871,6 +874,15 @@ function getLastMessageTextForReport({
     }
     if (isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_MEMBER_WORK_ARRANGEMENT)) {
         lastMessageTextFromReport = getUpdatedMemberWorkArrangementMessage(translate, lastReportAction);
+    }
+    if (isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_MEMBER_TRAVEL_ACCESS)) {
+        lastMessageTextFromReport = getUpdatedMemberTravelAccessMessage(translate, lastReportAction);
+    }
+    if (isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.SET_UP_TRAVEL_MEMBER_ACCESS)) {
+        lastMessageTextFromReport = getTravelSetupMemberAccessMessage(translate, lastReportAction);
+    }
+    if (isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_TRAVEL_AUTO_ENABLE_NEW_MEMBERS)) {
+        lastMessageTextFromReport = getUpdatedTravelAutoEnableNewMembersMessage(translate, lastReportAction);
     }
     if (isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_OFFICE_LOCATION)) {
         lastMessageTextFromReport = getAddedOfficeLocationMessage(translate, lastReportAction);

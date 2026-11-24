@@ -20,6 +20,7 @@ import useKeyboardState from '@hooks/useKeyboardState';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -82,6 +83,7 @@ function DynamicAddAgentPageContent({route, template}: DynamicAddAgentPageConten
     const shouldShrinkPromptInput = isInLandscapeMode && isKeyboardActive;
     const landscapePromptHeight = shouldShrinkPromptInput ? PROMPT_MAX_HEIGHT_ON_KEYBOARD_OPEN_LANDSCAPE_MODE : styles.h42.height;
     const {accountID: currentUserAccountID, login: currentUserLogin, displayName} = useCurrentUserPersonalDetails();
+    const {isBetaEnabled} = usePermissions();
     const defaultAgentName = template?.name ?? (displayName ? translate('addAgentPage.defaultAgentName', displayName) : undefined);
     const defaultPrompt = template?.prompt ?? translate('addAgentPage.defaultPrompt');
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Pencil']);
@@ -90,7 +92,7 @@ function DynamicAddAgentPageContent({route, template}: DynamicAddAgentPageConten
     const hasSubmittedRef = useRef(false);
     const hasLeftPageRef = useRef(false);
     const formRef = useRef<FormRef>(null);
-    const availableRoleItems = getAssignableWorkspaceMemberRoleItems(translate, undefined, policy, currentUserLogin ?? '');
+    const availableRoleItems = getAssignableWorkspaceMemberRoleItems(translate, undefined, policy, currentUserLogin ?? '', isBetaEnabled(CONST.BETAS.TRAVEL_MEMBER_ACCESS));
     // The role list is ordered for display, so the default comes from the role hierarchy instead.
     const defaultRole = POLICY_ROLE_RANKING.find((role) => availableRoleItems.some((item) => item.value === role));
     const roleOptions = availableRoleItems.map((roleItem) => ({

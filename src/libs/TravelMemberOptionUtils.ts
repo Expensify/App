@@ -1,3 +1,6 @@
+/**
+ * Labels and picker options for a workspace member's travel access.
+ */
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 import type {ListItem} from '@components/SelectionList/types';
 

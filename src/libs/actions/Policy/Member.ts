@@ -85,7 +85,7 @@ type AddMembersToWorkspaceOptions = {
     /** The workspace's categories, so the invited members can use every category until the backend sends visibleTo */
     policyCategories?: OnyxEntry<PolicyCategories>;
 
-    /** Whether the invited members can book travel */
+    /** The inviter's travel choice when it differs from the workspace's new member travel setting. Omit it to follow the setting. */
     canUseTravel?: boolean;
 };
 
@@ -954,6 +954,9 @@ function buildAddMembersToWorkspaceOnyxData(
           })
         : {onyxSuccessData: [], onyxOptimisticData: [], onyxFailureData: [], reportCreationData: {}};
 
+    // The inviter's choice wins; without one, the server turns travel off while the workspace's new member travel setting is off
+    const shouldTurnOffTravel = (canUseTravel ?? policy.travelSettings?.autoEnableNewMembers) === false;
+
     const optimisticMembersState: OnyxCollectionInputValue<PolicyEmployee> = {};
     const successMembersState: OnyxCollectionInputValue<PolicyEmployee> = {};
     const failureMembersState: OnyxCollectionInputValue<PolicyEmployee> = {};
@@ -964,7 +967,9 @@ function buildAddMembersToWorkspaceOnyxData(
             role: effectiveRole,
             submitsTo: approverEmail ?? getDefaultApprover(policy),
             ...(hasOfficeWorkArrangement !== undefined ? {hasOfficeWorkArrangement} : {}),
-            ...(canUseTravel !== undefined ? {canUseTravel} : {}),
+
+            // A missing key means the member can book, so only a turned off invitee gets the key
+            ...(shouldTurnOffTravel ? {canUseTravel: false} : {}),
         };
         successMembersState[email] = {pendingAction: null};
         failureMembersState[email] = {

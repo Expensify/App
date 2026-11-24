@@ -6,6 +6,7 @@ import compareOptionalValues from '@components/Table/compareOptionalValues';
 
 import useCopySelectionEvent from '@hooks/useCopySelectionEvent';
 import useLocalize from '@hooks/useLocalize';
+import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -61,8 +62,6 @@ type WorkspaceMemberRowData = TableData & {
     /** Whether the member can book travel, set on workspaces provisioned for travel */
     canUseTravel?: boolean;
 
-    /** Whether the member's travel access is stored, rather than shown as off because it isn't set yet */
-    isTravelAccessStored?: boolean;
     canEditTravelAccess?: boolean;
     onChangeTravelAccess?: (canUseTravel: boolean) => void;
 };
@@ -120,6 +119,7 @@ export default function WorkspaceMembersTable({
 }: WorkspaceMembersTableProps) {
     const styles = useThemeStyles();
     const {translate, localeCompare, toLocaleOrdinalWithWords} = useLocalize();
+    const {isBetaEnabled} = usePermissions();
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
     useCopySelectionEvent();
     const shouldUseNarrowTableLayout = shouldUseNarrowLayout || isMediumScreenWidth;
@@ -391,10 +391,13 @@ export default function WorkspaceMembersTable({
             value: WORKSPACE_MEMBER_FILTER_VALUES.PAYMENTS_ADMINS,
         });
 
-        filterConfig.role.options.push({
-            label: translate('workspace.people.travelAdmins'),
-            value: WORKSPACE_MEMBER_FILTER_VALUES.TRAVEL_ADMINS,
-        });
+        // Travel admins can only be assigned with the travel member access beta
+        if (isBetaEnabled(CONST.BETAS.TRAVEL_MEMBER_ACCESS)) {
+            filterConfig.role.options.push({
+                label: translate('workspace.people.travelAdmins'),
+                value: WORKSPACE_MEMBER_FILTER_VALUES.TRAVEL_ADMINS,
+            });
+        }
 
         filterConfig.role.options.push({
             label: translate('workspace.people.auditors'),

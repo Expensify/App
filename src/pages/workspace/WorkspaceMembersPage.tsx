@@ -68,7 +68,6 @@ import {
     arePaymentsEnabled,
     canEditWorkspaceSettings as canEditWorkspaceSettingsUtil,
     canMemberAssignRole,
-    canMemberChangeTravelAccess,
     canMemberManageMemberWithRole,
     canMemberRead,
     canMemberWrite,
@@ -76,6 +75,7 @@ import {
     getConnectionExporters,
     getMemberAccountIDsForWorkspace,
     getReimburserEmail,
+    canChangeMemberTravelAccess,
     canMemberUseTravel,
     getSelectableRoles,
     hasActiveExpensifyCard,
@@ -263,7 +263,8 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
 
     // Members who only manage travel can select members too, so they can change travel access in bulk
     const isProvisionedForTravel = isWorkspaceProvisionedForTravel(policy?.travelSettings);
-    const canWriteTravel = isProvisionedForTravel && isBetaEnabled(CONST.BETAS.TRAVEL_MEMBER_ACCESS) && canMemberWrite(policy, currentUserLogin ?? '', CONST.POLICY.POLICY_FEATURE.TRAVEL);
+    const isTravelMemberAccessBetaEnabled = isBetaEnabled(CONST.BETAS.TRAVEL_MEMBER_ACCESS);
+    const canWriteTravel = isProvisionedForTravel && isTravelMemberAccessBetaEnabled && canMemberWrite(policy, currentUserLogin ?? '', CONST.POLICY.POLICY_FEATURE.TRAVEL);
     const canSelectMembers = canWriteMembers || canWriteTravel;
     const canSelectMultiple = canSelectMembers && (shouldUseNarrowLayout ? isMobileSelectionModeEnabled : true);
 
@@ -464,7 +465,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
     const shouldShowOfficeLocationColumn = !shouldUseNarrowLayout && shouldShowOfficeLocations;
     const officeLocations = getAssignableOfficeLocations(policy, translate, localeCompare);
     const shouldShowBankAccountColumn = !shouldUseNarrowLayout && !isMediumScreenWidth && shouldShowMemberBankAccounts;
-    const shouldShowTravelColumn = !shouldUseNarrowLayout && isProvisionedForTravel && isBetaEnabled(CONST.BETAS.TRAVEL_MEMBER_ACCESS);
+    const shouldShowTravelColumn = !shouldUseNarrowLayout && isProvisionedForTravel && isTravelMemberAccessBetaEnabled;
 
     // Unlike the custom fields, this column applies to every workspace type, so it isn't gated on Control.
     const isApprovalsEnabled = areApprovalsEnabled(policy);
@@ -499,6 +500,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
         const isCurrentUser = accountID === session?.accountID;
         const isReimburser = isPolicyReimburser(policy, login);
         const canReimburserChangeRole = assignablePayerRoles.some((payerRole) => payerRole !== policyEmployee.role);
+        const canChangeTravelAccess = canChangeMemberTravelAccess(policy, currentUserLogin ?? '', login, isTravelMemberAccessBetaEnabled);
         const canEditRole =
             canAssignMemberRole &&
             !isSelectionModeActive &&
@@ -531,10 +533,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
             isSelectionDisabled:
                 accountID === policy?.ownerAccountID ||
                 accountID === session?.accountID ||
-                !(
-                    (canWriteMembers && canMemberManageMemberWithRole(policy, currentUserLogin ?? '', policyEmployee.role)) ||
-                    (canWriteTravel && canMemberChangeTravelAccess(policy, currentUserLogin ?? '', login))
-                ),
+                !((canWriteMembers && canMemberManageMemberWithRole(policy, currentUserLogin ?? '', policyEmployee.role)) || canChangeTravelAccess),
             shouldShowEmployeeUserID: shouldShowCustomField1Column,
             shouldShowEmployeePayrollID: shouldShowCustomField2Column,
             errors: getLatestErrorMessageField(policyEmployee),
@@ -543,15 +542,8 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
             canEditRole,
             onChangeRole: (newRole) => changeMemberRole(login, accountID, policyEmployee.role, newRole),
             canUseTravel: shouldShowTravelColumn ? canMemberUseTravel(policy, login) : undefined,
-            isTravelAccessStored: typeof policyEmployee.canUseTravel === 'boolean',
-            // A member still being added or without a loaded accountID would be sent to the server under an accountID it
-            // doesn't know
-            canEditTravelAccess:
-                canMemberChangeTravelAccess(policy, currentUserLogin ?? '', login) &&
-                !isSelectionModeActive &&
-                !isPendingDeleteOrError &&
-                policyEmployee.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD &&
-                hasKnownAccountID,
+            // A member without a loaded accountID would be sent to the server under an accountID it doesn't know
+            canEditTravelAccess: canChangeTravelAccess && !isSelectionModeActive && !isPendingDeleteOrError && hasKnownAccountID,
             onChangeTravelAccess: (canUseTravel) => setPolicyTravelMemberAccess(policy, [{email: login, accountID}], canUseTravel),
             // Note which secondary login was used to invite this primary login
             invitedSecondaryLogin: details?.login ? (invitedPrimaryToSecondaryLogins[details.login] ?? '') : '',
@@ -629,15 +621,14 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
             return policy?.employeeList?.[email]?.role;
         });
         const canManageSelectedEmployees = canWriteMembers && selectedEmployeesRoles.every((role) => canMemberManageMemberWithRole(policy, currentUserLogin ?? '', role));
-        const canChangeSelectedTravelAccess = canWriteTravel && selectedEmployees.every((email) => canMemberChangeTravelAccess(policy, currentUserLogin ?? '', email));
+        const canChangeSelectedTravelAccess =
+            canWriteTravel && selectedEmployees.every((email) => canChangeMemberTravelAccess(policy, currentUserLogin ?? '', email, isTravelMemberAccessBetaEnabled));
         const options: Array<DropdownOption<WorkspaceMemberBulkActionType>> = [];
 
         // The Authorized Payer (reimburser) must stay a valid payer, so a selection holding them may only be moved to a role that can pay.
         const reimburserEmail = getReimburserEmail(policy);
         const hasAtLeastOnePayer = !!reimburserEmail && selectedEmployees.includes(reimburserEmail);
-        const selectableRoles = getSelectableRoles(policy, currentUserLogin ?? '', hasAtLeastOnePayer ? [...PAYER_ROLES] : undefined).filter(
-            (selectableRole) => isBetaEnabled(CONST.BETAS.TRAVEL_MEMBER_ACCESS) || selectableRole !== CONST.POLICY.ROLE.TRAVEL_ADMIN,
-        );
+        const selectableRoles = getSelectableRoles(policy, currentUserLogin ?? '', isTravelMemberAccessBetaEnabled, hasAtLeastOnePayer ? [...PAYER_ROLES] : undefined);
 
         if (isPaidGroupPolicy(policy) && canManageSelectedEmployees && selectableRoles.length > 0) {
             options.push({

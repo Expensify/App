@@ -11084,6 +11084,17 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
                 : `zmienił(a) proces akceptacji dla ${member}, żeby przestać przekazywać raporty powyżej ${previousLimit}`,
         changedApprovalLimit: ({member, limit, previousLimit}: {member: string; limit: string; previousLimit: string}) =>
             `zmienił obieg akceptacji dla ${member}, aby przekazywać raporty powyżej ${limit} (wcześniej ${previousLimit})`,
+        updatedTravelAutoEnableNewMembers: ({enabled}: {enabled: boolean}) =>
+            enabled ? 'włączył(a) rezerwowanie podróży dla nowych członków' : 'wyłączył(a) rezerwowanie podróży dla nowych członków',
+        updatedMemberTravelAccess: ({displayName, canUseTravel}: {displayName: string; canUseTravel: boolean}) =>
+            canUseTravel ? `włączył(a) rezerwowanie podróży dla użytkownika ${displayName}` : `wyłączył(a) rezerwowanie podróży dla użytkownika ${displayName}`,
+        setUpTravelMemberAccess: ({memberNames}: {memberNames: string}) => `wyłączył(a) rezerwowanie podróży dla: ${memberNames}`,
+        travelSetupOtherMembers: ({count}: {count: number}) => ({
+            one: '1 inna osoba',
+            few: `${count} inne osoby`,
+            many: `${count} innych osób`,
+            other: `${count} innej osoby`,
+        }),
         updatedMemberWorkArrangement: ({displayName, newArrangement, oldArrangement}: {displayName: string; newArrangement: string; oldArrangement: string}) =>
             `zmienił(a) tryb pracy użytkownika ${displayName} na ${newArrangement} (wcześniej ${oldArrangement})`,
         updatedDefaultWorkArrangement: ({newArrangement, oldArrangement}: {newArrangement: string; oldArrangement: string}) =>

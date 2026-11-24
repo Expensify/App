@@ -1,6 +1,5 @@
 /**
- * Popover picker for inline editing a member's travel setting, used by the travel members list and the workspace
- * members table.
+ * Popover picker for inline editing a member's travel access in the workspace members table.
  */
 
 import useResponsiveLayout from '@hooks/useResponsiveLayout';

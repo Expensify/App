@@ -5639,6 +5639,48 @@ function getUpdatedMemberWorkArrangementMessage(translate: LocalizedTranslate, r
     return translate('workspaceActions.updatedMemberWorkArrangement', {displayName, newArrangement, oldArrangement});
 }
 
+function getUpdatedMemberTravelAccessMessage(translate: LocalizedTranslate, reportAction: OnyxEntry<ReportAction>): string {
+    if (!isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_MEMBER_TRAVEL_ACCESS)) {
+        return getReportActionText(reportAction);
+    }
+    const {name, email, newValue} = getOriginalMessage(reportAction) ?? {};
+    const displayName = name ?? (email ? formatPhoneNumber(email) : '');
+    if (typeof newValue !== 'boolean' || !displayName) {
+        return getReportActionText(reportAction);
+    }
+    return translate('workspaceActions.updatedMemberTravelAccess', {displayName, canUseTravel: newValue});
+}
+
+function getTravelSetupMemberAccessMessage(translate: LocalizedTranslate, reportAction: OnyxEntry<ReportAction>): string {
+    if (!isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.SET_UP_TRAVEL_MEMBER_ACCESS)) {
+        return getReportActionText(reportAction);
+    }
+    const {members = [], count = 0} = getOriginalMessage(reportAction) ?? {};
+    const names = members
+        .slice(0, CONST.TRAVEL.MAX_SETUP_CHANGE_LOG_NAMES_SHOWN)
+        .map(({name, email}) => name ?? (email ? formatPhoneNumber(email) : ''))
+        .filter((name) => !!name);
+    if (names.length === 0) {
+        return getReportActionText(reportAction);
+    }
+
+    // The log names the first members and counts the rest, so a large workspace gets one short message
+    const otherCount = count - names.length;
+    const listedMembers = otherCount > 0 ? [...names, translate('workspaceActions.travelSetupOtherMembers', {count: otherCount})] : names;
+    return translate('workspaceActions.setUpTravelMemberAccess', {memberNames: formatList(listedMembers)});
+}
+
+function getUpdatedTravelAutoEnableNewMembersMessage(translate: LocalizedTranslate, reportAction: OnyxEntry<ReportAction>): string {
+    if (!isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_TRAVEL_AUTO_ENABLE_NEW_MEMBERS)) {
+        return getReportActionText(reportAction);
+    }
+    const {newValue} = getOriginalMessage(reportAction) ?? {};
+    if (typeof newValue !== 'boolean') {
+        return getReportActionText(reportAction);
+    }
+    return translate('workspaceActions.updatedTravelAutoEnableNewMembers', {enabled: newValue});
+}
+
 function getAddedOfficeLocationMessage(translate: LocalizedTranslate, reportAction: OnyxEntry<ReportAction>): string {
     if (!isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_OFFICE_LOCATION)) {
         return getReportActionText(reportAction);
@@ -6592,6 +6634,9 @@ export {
     getUpdatedCommuterExclusionsMessage,
     getPolicyWorkArrangementMessage,
     getUpdatedMemberWorkArrangementMessage,
+    getUpdatedMemberTravelAccessMessage,
+    getTravelSetupMemberAccessMessage,
+    getUpdatedTravelAutoEnableNewMembersMessage,
     getAddedOfficeLocationMessage,
     getUpdatedOfficeLocationMessage,
     getDeletedOfficeLocationMessage,

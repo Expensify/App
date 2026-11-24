@@ -145,9 +145,10 @@ describe('actions/Policy/Travel', () => {
             setPolicyTravelAutoEnableNewMembers(fakePolicy, true);
             await waitForBatchedUpdates();
 
-            // Then it shows as on and pending, and goes to the dedicated command rather than SetPolicyTravelSettings
+            // Then the stored false is removed, since a missing setting means on, and it shows as pending and goes to the
+            // dedicated command rather than SetPolicyTravelSettings
             const optimisticPolicy = await getPolicy(fakePolicy.id);
-            expect(optimisticPolicy?.travelSettings?.autoEnableNewMembers).toBe(true);
+            expect(optimisticPolicy?.travelSettings?.autoEnableNewMembers).toBeUndefined();
             expect(optimisticPolicy?.pendingFields?.autoEnableNewMembers).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
             await mockFetch?.resume?.();
             await waitForBatchedUpdates();
@@ -156,13 +157,13 @@ describe('actions/Policy/Travel', () => {
 
             // And the pending state clears once it saves
             const settledPolicy = await getPolicy(fakePolicy.id);
-            expect(settledPolicy?.travelSettings?.autoEnableNewMembers).toBe(true);
+            expect(settledPolicy?.travelSettings?.autoEnableNewMembers).toBeUndefined();
             expect(settledPolicy?.pendingFields?.autoEnableNewMembers).toBeFalsy();
         });
 
         it('reverts the setting and shows an error when saving fails', async () => {
-            // Given a travel workspace where new members join with travel on
-            const fakePolicy: Policy = {...createRandomPolicy(0), travelSettings: {autoEnableNewMembers: true}};
+            // Given a travel workspace where new members join with travel on, which is stored as no setting at all
+            const fakePolicy: Policy = {...createRandomPolicy(0), travelSettings: {}};
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
 
             // When turning it off fails
@@ -173,9 +174,9 @@ describe('actions/Policy/Travel', () => {
             await mockFetch?.resume?.();
             await waitForBatchedUpdates();
 
-            // Then the setting goes back to on with an error on the row
+            // Then the setting goes back to on, with nothing stored, and an error on the row
             const policy = await getPolicy(fakePolicy.id);
-            expect(policy?.travelSettings?.autoEnableNewMembers).toBe(true);
+            expect(policy?.travelSettings?.autoEnableNewMembers).toBeUndefined();
             expect(policy?.pendingFields?.autoEnableNewMembers).toBeFalsy();
             expect(policy?.errorFields?.autoEnableNewMembers).toBeTruthy();
         });

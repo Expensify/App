@@ -621,6 +621,30 @@ describe('actions/PolicyMember', () => {
             await mockFetch?.resume?.();
         });
 
+        it('shows a member invited while new members start with travel off as unable to book travel', async () => {
+            // Given a workspace whose new member travel setting is off, and one where it is missing, which means on
+            const offPolicy = {...createRandomPolicy(1), travelSettings: {autoEnableNewMembers: false}};
+            const onPolicy = {...createRandomPolicy(2), travelSettings: {}};
+            const offEmail = 'off@gmail.com';
+            const onEmail = 'on@gmail.com';
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${offPolicy.id}`, offPolicy);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${onPolicy.id}`, onPolicy);
+
+            // When a member is invited to each, before the backend responds
+            mockFetch?.pause?.();
+            Member.addMembersToWorkspace({[offEmail]: 1234}, {}, 'Welcome', offPolicy, [], CONST.POLICY.ROLE.USER, currentUser, {});
+            Member.addMembersToWorkspace({[onEmail]: 5678}, {}, 'Welcome', onPolicy, [], CONST.POLICY.ROLE.USER, currentUser, {});
+            await waitForBatchedUpdates();
+
+            // Then the member joining the first workspace starts with travel off, the same as the server stores, and the
+            // other has nothing stored, so they can book travel
+            const offPolicyResult = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${offPolicy.id}`);
+            const onPolicyResult = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${onPolicy.id}`);
+            expect(offPolicyResult?.employeeList?.[offEmail]?.canUseTravel).toBe(false);
+            expect(onPolicyResult?.employeeList?.[onEmail]).not.toHaveProperty('canUseTravel');
+            await mockFetch?.resume?.();
+        });
+
         it('lets an invited member use every category while some categories are limited to other members', async () => {
             // Given a workspace where Fuel is limited to one member, Meals to a member being invited back with a stale entry, and Travel is open to everyone
             const policyID = '1';
