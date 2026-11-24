@@ -30,7 +30,7 @@
  * <Header>
  *   <Header.BackButton onPress={goBack} />
  *   <Header.AvatarWithDisplayName report={report} />
- *   <Header.IconButton onPress={onPress} iconSrc={icon} tooltipText={text} />
+ *   <Header.IconButton onPress={onPress} iconSrc={icon} tooltipText={text} sentryLabel={sentryLabel} />
  * </Header>
  * ```
  */
