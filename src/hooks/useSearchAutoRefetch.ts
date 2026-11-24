@@ -58,7 +58,6 @@ type UseSearchAutoRefetch = {
     shouldCalculateTotals: boolean;
 };
 
-/** The collections as they were when Search could last refetch, kept while the refetch is deferred */
 type DeferredRefetchBaseline = {
     transactions: OnyxCollection<Transaction>;
     reportActions: OnyxCollection<ReportActions>;
@@ -105,8 +104,7 @@ function useSearchAutoRefetch({
         }
     }
 
-    // Declared before the refetch effect so it runs first. When the response lands, the refetch effect then sees the
-    // cleared flag in the same commit and can compare a baseline kept while the search was in flight.
+    // Must run before the refetch effect, so a baseline kept during an in-flight search is compared when the response lands.
     useEffect(() => {
         // For live data, isLoading is always false, so we also need to reset when searchResultsData changes
         // For snapshot data, we wait for isLoading to become false after the API call completes
@@ -129,8 +127,7 @@ function useSearchAutoRefetch({
             return;
         }
 
-        // A deferred refetch compares against the collections from before Search went inactive, because `usePrevious`
-        // keeps advancing while it is inactive and would hide the changes made in the meantime.
+        // `usePrevious` keeps advancing while Search is inactive, so a deferred refetch compares against the saved baseline.
         const baseline = deferredRefetchBaselineRef.current;
         const baseTransactions = baseline ? baseline.transactions : previousTransactions;
         const baseReportActions = baseline ? baseline.reportActions : previousReportActions;
@@ -147,18 +144,15 @@ function useSearchAutoRefetch({
         // entries the user creates from the RHP until they close it.
         const isSearchStillActive = isFocused || isSearchTopmostFullScreenRoute();
         if (!isSearchStillActive || isOffline) {
-            // On native the Spend tab stays mounted behind the other tabs, and the comparisons below walk every transaction
-            // and report action. Running them on every write while the user is elsewhere would be wasted, so the
-            // collections from before the first such write are kept and compared once, when Search can refetch again.
-            // Collections still loading are no baseline: compared against them, the first real data would look like an
-            // initial load and every change after it would be skipped.
+            // Skip the full diff while inactive and compare once on return. Empty (still loading) collections aren't saved,
+            // or every later change would look like the initial load.
             if (!baseline && hasCollectionData(previousTransactions, previousReportActions)) {
                 deferredRefetchBaselineRef.current = {transactions: previousTransactions, reportActions: previousReportActions, memberCustomFields: previousMemberCustomFields};
             }
             return;
         }
 
-        // Keep the baseline while a search is in flight, so the changes it holds are compared once the response lands.
+        // Keep the baseline until the in-flight search responds.
         if (searchTriggeredRef.current) {
             return;
         }
@@ -221,8 +215,7 @@ function useSearchAutoRefetch({
 
             // Only skip search if there are no new items AND search results aren't empty
             // This ensures deletions that result in empty data still trigger search
-            // A deferred comparison folds every write made while Search was inactive into one, so an expense created and then
-            // updated by the server only shows up as added. Its update is invisible, so it is refetched rather than skipped.
+            // A deferred comparison can't see server edits to expenses added while inactive, so it always searches again.
             if (
                 !isDeferredComparison &&
                 !hasAGenuinelyNewID &&
@@ -383,7 +376,6 @@ function hasChangedTransactionInSearchResults(
     return changedTransactionIDs.some((transactionID) => searchResultIDs.has(transactionID));
 }
 
-/** Whether either collection holds anything yet, so it can serve as the starting point of a comparison */
 function hasCollectionData(transactions: OnyxCollection<Transaction>, reportActions: OnyxCollection<ReportActions>): boolean {
     return !isEmptyObject(transactions) || Object.values(reportActions ?? {}).some((actions) => !isEmptyObject(actions));
 }
