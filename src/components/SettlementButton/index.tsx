@@ -21,6 +21,7 @@ import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import {usePersonalDetailsByIDs} from '@hooks/usePersonalDetails';
 import usePolicy from '@hooks/usePolicy';
+import useReportBankPaySkippedModal from '@hooks/useReportBankPaySkippedModal';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useVerifyAccountAndResume from '@hooks/useVerifyAccountAndResume';
 
@@ -174,6 +175,7 @@ function SettlementButton({
     const shouldShowPayWithExpensifyOption = !shouldHidePaymentOptions;
     const shouldShowPayElsewhereOption = !shouldHidePaymentOptions && !isInvoiceReport;
     const isBankAccountLocked = canAccessPolicyBankAccount(policy, bankAccountList) && policy?.achAccount?.state === CONST.BANK_ACCOUNT.STATE.LOCKED;
+    const {isBankPayBlocked, showReportBankPaySkippedModal} = useReportBankPaySkippedModal({bankAccountList, report: iouReport, policy, onlyShowPayElsewhere});
 
     function getLatestPersonalBankAccount() {
         return formattedPaymentMethods.filter((ba) => getBankAccountData(ba.accountData)?.type === CONST.BANK_ACCOUNT.TYPE.PERSONAL);
@@ -252,7 +254,12 @@ function SettlementButton({
         return checkForPostValidationBlockers();
     };
 
-    const runPaymentAction = (paymentMethodType: PaymentMethodType | undefined, action: () => void | Promise<void>, paymentMethod?: PaymentMethod) => {
+    const runPaymentAction = (paymentMethodType: PaymentMethodType | undefined, action: () => void | Promise<void>, paymentMethod?: PaymentMethod, bankAccountID?: number) => {
+        const isABAPayment = paymentMethod === CONST.PAYMENT_METHODS.ABA;
+        if (isBankPayBlocked && (paymentMethodType !== CONST.IOU.PAYMENT_TYPE.ELSEWHERE || isABAPayment)) {
+            showReportBankPaySkippedModal({bankAccountID, isABAPayment});
+            return;
+        }
         if (checkForNecessaryAction(paymentMethodType, action, paymentMethod)) {
             return;
         }
@@ -281,7 +288,7 @@ function SettlementButton({
 
     let paymentButtonOptions: Array<DropdownOption<string>>;
 
-    if (onlyShowPayElsewhere) {
+    if (onlyShowPayElsewhere && !isBankPayBlocked) {
         paymentButtonOptions = [shouldUseShortForm ? shortFormPayElsewhereButton : paymentMethods[CONST.IOU.PAYMENT_TYPE.ELSEWHERE]];
     } else {
         const buttonOptions: Array<DropdownOption<string>> = [];
@@ -326,13 +333,17 @@ function SettlementButton({
                         shouldIgnoreCompactStyle: true,
                         sentryLabel: CONST.SENTRY_LABEL.SETTLEMENT_BUTTON.PAYMENT_MENU.BUSINESS_BANK_ACCOUNT,
                         onSelected: () =>
-                            runPaymentAction(CONST.IOU.PAYMENT_TYPE.VBBA, () =>
-                                onPress({
-                                    paymentType: CONST.IOU.PAYMENT_TYPE.VBBA,
-                                    payAsBusiness: true,
-                                    methodID: account.methodID,
-                                    paymentMethod: CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT,
-                                }),
+                            runPaymentAction(
+                                CONST.IOU.PAYMENT_TYPE.VBBA,
+                                () =>
+                                    onPress({
+                                        paymentType: CONST.IOU.PAYMENT_TYPE.VBBA,
+                                        payAsBusiness: true,
+                                        methodID: account.methodID,
+                                        paymentMethod: CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT,
+                                    }),
+                                CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT,
+                                account.methodID,
                             ),
                     });
                 }
