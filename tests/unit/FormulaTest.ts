@@ -814,14 +814,17 @@ describe('CustomFormula', () => {
             expect(compute('{report:autoreporting:end}', context)).toBe('2025-01-14');
         });
 
-        test('should fall back to current date for trip frequency when no transactions', () => {
+        test('trip frequency on a report without expenses', () => {
+            // Given a trip report created before today that has no expenses yet
             mockReportUtils.getReportTransactions.mockReturnValue([]);
-
             const policy = createMock<Policy>({autoReporting: true, autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.TRIP});
-            const context = createMockContext(policy);
 
-            expect(compute('{report:autoreporting:start}', context)).toBe('2025-01-19');
-            expect(compute('{report:autoreporting:end}', context)).toBe('2025-01-19');
+            // When the auto-reporting parts are computed
+            const context: FormulaContext = {...createMockContext(policy), report: createMock<Report>({reportID: '123', created: '2025-01-10 09:00:00.000'})};
+
+            // Then they use the report's created date, like the backend, rather than today
+            expect(compute('{report:autoreporting:start}', context)).toBe('2025-01-10');
+            expect(compute('{report:autoreporting:end}', context)).toBe('2025-01-10');
         });
 
         test.each([

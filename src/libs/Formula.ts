@@ -738,9 +738,6 @@ function getOldestTransactionDate(reportID: string, context?: FormulaContext): s
     }
 
     const transactions = getAllReportTransactionsWithContext(reportID, context);
-    if (!transactions || transactions.length === 0) {
-        return new Date().toISOString();
-    }
 
     let oldestDate: string | undefined;
 
@@ -874,12 +871,13 @@ function getAutoReportingDates(policy: OnyxEntry<Policy>, report: Report, curren
     // into such a workspace from a member's personal workspace.
     const hasAutoReportingPeriod = isDelayedSubmissionEnabled(policy) && frequency !== CONST.POLICY.AUTO_REPORTING_FREQUENCIES.IMMEDIATE;
     if (!hasAutoReportingPeriod || frequency === CONST.POLICY.AUTO_REPORTING_FREQUENCIES.TRIP) {
-        const oldestTransactionDateString = getOldestTransactionDate(report.reportID, context);
-        const newestTransactionDateString = getNewestTransactionDate(report.reportID, context);
-        // Parse expense dates the same way formatDate does, so a date stored without a time keeps its day west of UTC
+        // Like the backend, a report without expenses uses the date it was created
+        const startDateString = getOldestTransactionDate(report.reportID, context) ?? report.created;
+        const endDateString = getNewestTransactionDate(report.reportID, context) ?? report.created;
+        // Parse these the same way formatDate does, so a date stored without a time keeps its day west of UTC
         return {
-            startDate: oldestTransactionDateString ? parseISO(oldestTransactionDateString) : currentDate,
-            endDate: newestTransactionDateString ? parseISO(newestTransactionDateString) : currentDate,
+            startDate: startDateString ? parseISO(startDateString) : currentDate,
+            endDate: endDateString ? parseISO(endDateString) : currentDate,
         };
     }
 
@@ -946,9 +944,6 @@ function getNewestTransactionDate(reportID: string, context?: FormulaContext): s
     }
 
     const transactions = getAllReportTransactionsWithContext(reportID, context);
-    if (!transactions || transactions.length === 0) {
-        return new Date().toISOString();
-    }
 
     let newestDate: string | undefined;
 
