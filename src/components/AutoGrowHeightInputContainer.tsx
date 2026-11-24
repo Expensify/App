@@ -5,6 +5,7 @@ import useKeyboardState from '@hooks/useKeyboardState';
 import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
 import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
 import useStyleUtils from '@hooks/useStyleUtils';
+import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 
 import captureInputScrolledToEnd from '@libs/captureInputScrolledToEnd';
@@ -47,6 +48,7 @@ function areHeightsEqual(firstHeight: number, secondHeight: number) {
 }
 
 function AutoGrowHeightInputContainer({children, style, shouldKeepMinimumHeight = false, shouldUseWebViewportHeightFallback = true}: AutoGrowHeightInputContainerProps) {
+    const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {windowHeight} = useWindowDimensions();
     const {isKeyboardActive, isKeyboardShown, isKeyboardAnimatingRef, keyboardActiveHeight, keyboardHeight} = useKeyboardState();
@@ -234,7 +236,10 @@ function AutoGrowHeightInputContainer({children, style, shouldKeepMinimumHeight 
     return (
         <ScrollView
             ref={containerRef}
-            style={[StyleUtils.getAutoGrowHeightInputContainerStyles(shouldKeepMinimumHeight), style]}
+            // In iOS Safari, a tap on the empty space below the input (this container) moved the caret back into the input. The input blurred and
+            // refocused, so the keyboard stayed open and the form then hid Save behind it. With that space not selectable, the tap blurs the input
+            // as it does without this container. The content keeps the input and its messages selectable.
+            style={[StyleUtils.getAutoGrowHeightInputContainerStyles(shouldKeepMinimumHeight), styles.userSelectNone, style]}
             showsVerticalScrollIndicator={false}
             keyboardShouldPersistTaps="handled"
             nestedScrollEnabled
@@ -311,6 +316,7 @@ function AutoGrowHeightInputContainer({children, style, shouldKeepMinimumHeight 
         >
             <View
                 ref={contentRef}
+                style={styles.userSelectText}
                 onLayout={(event) => {
                     const {height: contentHeight, width: contentWidth} = event.nativeEvent.layout;
                     const didContentLayoutChange = contentWidth !== contentLayoutRef.current.width || contentHeight !== contentLayoutRef.current.height;
