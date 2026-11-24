@@ -367,7 +367,12 @@ describe('actions/Policy/PerDiem', () => {
                 optimisticData: [
                     expect.objectContaining({
                         value: {
-                            customUnits: {[customUnitID]: {rates: {[rateID]: {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE, errors: null, errorFields: null}}}},
+                            customUnits: {
+                                [customUnitID]: {
+                                    rates: {[rateID]: {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE, errors: null, errorFields: null}},
+                                    errorFields: {deleteRates: null},
+                                },
+                            },
                         },
                     }),
                 ],
@@ -472,6 +477,49 @@ describe('actions/Policy/PerDiem', () => {
         policy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}policy`);
         expect(Object.keys(policy?.customUnits?.[customUnitID]?.errorFields?.deleteRates ?? {})).toHaveLength(shouldSucceed ? 0 : 1);
         expect(policy?.customUnits?.[customUnitID]?.rates).toEqual(shouldSucceed ? [] : customUnit.rates);
+    });
+
+    it('keeps a single-row error when the selection contains the same row twice', async () => {
+        // Given a duplicated selection that still represents only one deleted row.
+        const selectedSubRates = getSelectedSubRates(customUnit).filter((subRate) => subRate.subRateID === 'breakfast');
+        mockFetch.fail();
+
+        // When the request fails, duplicate entries must not turn it into a bulk failure.
+        deleteWorkspacePerDiemRates('policy', customUnit, [...selectedSubRates, ...selectedSubRates]);
+        await waitForBatchedUpdates();
+
+        // Then both sibling subrates remain and only the selected row receives feedback.
+        const policy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}policy`);
+        const restoredUnit = policy?.customUnits?.[customUnitID];
+        expect(restoredUnit?.rates?.[rateID]?.subRates).toEqual(currentRate.subRates);
+        expect(restoredUnit?.rates?.[rateID]?.errorFields?.breakfast).toBeTruthy();
+        expect(restoredUnit?.rates?.[rateID]?.errorFields?.lunch).toBeFalsy();
+        expect(restoredUnit?.errorFields?.deleteRates).toBeFalsy();
+        expect(restoredUnit?.rates?.[unchangedRateID]).toEqual(customUnit.rates[unchangedRateID]);
+    });
+
+    it('shows a bulk error for matching subrate IDs in different destinations', async () => {
+        // Given two destinations whose Breakfast rows share an ID, with Lunch left unselected.
+        const unit: CustomUnit = {
+            ...customUnit,
+            rates: {
+                ...customUnit.rates,
+                [unchangedRateID]: {...customUnit.rates[unchangedRateID], subRates: [{id: 'breakfast', name: 'Breakfast', rate: 2000}]},
+            },
+        };
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}policy`, {customUnits: {[customUnitID]: unit}});
+        const selectedSubRates = getSelectedSubRates(unit).filter((subRate) => subRate.subRateID === 'breakfast');
+        mockFetch.fail();
+
+        // When both rows fail deletion, their destination IDs must keep them distinct.
+        deleteWorkspacePerDiemRates('policy', unit, selectedSubRates);
+        await waitForBatchedUpdates();
+
+        // Then both destinations are restored without row errors, with exactly one bulk message.
+        const policy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}policy`);
+        const restoredUnit = policy?.customUnits?.[customUnitID];
+        expect(restoredUnit?.rates).toEqual(unit.rates);
+        expect(Object.values(restoredUnit?.errorFields?.deleteRates ?? {})).toEqual(['workspace.perDiem.deleteRatesError']);
     });
 
     it('keeps a row error when deleting the last remaining subrate fails', async () => {
