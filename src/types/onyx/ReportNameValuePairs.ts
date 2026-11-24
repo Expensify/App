@@ -113,6 +113,10 @@ type ReportNameValuePairs = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** Original reportID that spawned the current report */
     originalID?: string;
 
+    /** On a card statement report, the ID of the card the statement belongs to. Auth sends it as a number. */
+    // eslint-disable-next-line @typescript-eslint/naming-convention -- Auth stores this NVP under the key expensify_statementCardID
+    expensify_statementCardID?: string | number;
+
     /** On an invoice, the reportID of the bill linked to it. Auth sends it as a number, and an empty value means no bill. */
     billID?: string | number;
 
