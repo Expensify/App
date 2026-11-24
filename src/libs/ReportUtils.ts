@@ -5515,41 +5515,36 @@ function getReasonAndReportActionThatRequiresAttention({
     const invoiceReceiverPolicy = invoiceReceiverPolicyID ? resolvePolicy(invoiceReceiverPolicyID) : undefined;
     const actionTypeForAssigneeToComplete = getActionTypeForAssigneeToComplete(optionOrReport, parentReportAction);
 
-    // A bill holds no report previews, so it skips the scan for them below.
-    const isBill = isBillReport(optionOrReport);
-
     // Compute IOU candidate upfront so we can compare timestamps with task candidate
     const {
         reportAction: iouReportActionToApproveOrPay,
         actionBadge,
         isBlockedOnlyByHeldReports,
-    } = isBill
-        ? {reportAction: undefined, actionBadge: undefined, isBlockedOnlyByHeldReports: false}
-        : getIOUReportActionWithBadge({
-              chatReport: optionOrReport,
-              policy,
-              reportMetadata,
-              invoiceReceiverPolicy,
-              currentUserLogin,
-              currentUserAccountID,
-              chatReportActions: reportActions,
-              allViolations: transactionViolations,
-              // Always false here because of the early return above, but we still pass it so getIOUReportActionWithBadge doesn't read the archived state from the Onyx cache
-              isChatReportArchived: isReportArchived,
-              allReports: reports,
-              allReportActionsParam: allReportActionsParam ?? allReportActions,
-              reportsTransactions,
-          });
+    } = getIOUReportActionWithBadge({
+        chatReport: optionOrReport,
+        policy,
+        reportMetadata,
+        invoiceReceiverPolicy,
+        currentUserLogin,
+        currentUserAccountID,
+        chatReportActions: reportActions,
+        allViolations: transactionViolations,
+        // Always false here because of the early return above, but we still pass it so getIOUReportActionWithBadge doesn't read the archived state from the Onyx cache
+        isChatReportArchived: isReportArchived,
+        allReports: reports,
+        allReportActionsParam: allReportActionsParam ?? allReportActions,
+        reportsTransactions,
+    });
     // Add only labels a green dot the chat would show anyway, so it must not change whether the dot shows. Run the checks
     // below as if no candidate was found, exactly like before Add existed.
     const dotCandidateAction = actionBadge === CONST.REPORT.ACTION_BADGE.ADD ? undefined : iouReportActionToApproveOrPay;
 
-    // A bill has no parent chat, so its own expenses decide whether its approver must act.
+    // A bill's own expenses decide whether its approver must act on it.
     // Fall back to the chat's outstanding child so the pending-only check still runs when no badge action was found.
-    const iouReportID = isBill ? optionOrReport.reportID : (getIOUReportIDFromReportActionPreview(dotCandidateAction) ?? optionOrReport.iouReportID);
+    const iouReportID = isBillReport(optionOrReport) ? optionOrReport.reportID : (getIOUReportIDFromReportActionPreview(dotCandidateAction) ?? optionOrReport.iouReportID);
     const transactions = getReportTransactions(iouReportID, reportsTransactions);
 
-    // Bills have no parent chat to show a report preview badge, so the approver's green dot goes on the bill itself.
+    // The bill's approver gets the green dot on the bill itself.
     if (canApproveBill(optionOrReport, policy, reportMetadata, currentUserAccountID, transactions)) {
         return {
             reason: CONST.REQUIRES_ATTENTION_REASONS.IS_WAITING_FOR_ASSIGNEE_TO_COMPLETE_ACTION,
