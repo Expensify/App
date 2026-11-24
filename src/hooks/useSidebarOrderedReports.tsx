@@ -173,6 +173,9 @@ function SidebarOrderedReportsContextProvider({
     const prevPriorityMode = usePrevious(priorityMode);
     const prevIsOffline = usePrevious(isOffline);
     const prevConciergeReportID = usePrevious(conciergeReportID);
+    const prevCurrentUserLogin = usePrevious(currentUserLogin);
+    const prevAccountID = usePrevious(accountID);
+    const prevSession = usePrevious(session);
 
     /**
      * Find the reports that need to be updated in the LHN
@@ -185,7 +188,10 @@ function SidebarOrderedReportsContextProvider({
             isBillPayBetaEnabled !== prevIsBillPayBetaEnabled ||
             priorityMode !== prevPriorityMode ||
             isOffline !== prevIsOffline ||
-            conciergeReportID !== prevConciergeReportID
+            conciergeReportID !== prevConciergeReportID ||
+            currentUserLogin !== prevCurrentUserLogin ||
+            accountID !== prevAccountID ||
+            session !== prevSession
         ) {
             for (const key of Object.keys(chatReports ?? {})) {
                 reportsToUpdate.add(key);
@@ -300,6 +306,12 @@ function SidebarOrderedReportsContextProvider({
         prevIsOffline,
         conciergeReportID,
         prevConciergeReportID,
+        currentUserLogin,
+        prevCurrentUserLogin,
+        accountID,
+        prevAccountID,
+        session,
+        prevSession,
         prevDerivedCurrentReportID,
         derivedCurrentReportID,
     ]);
