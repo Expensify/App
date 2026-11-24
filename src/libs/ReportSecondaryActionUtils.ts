@@ -170,8 +170,7 @@ function isSplitAction(
         return true;
     }
 
-    // A bill must keep the expenses of the vendor's invoice.
-    if (!isExpenseReportUtils(report) || isBillReport(report)) {
+    if (!isExpenseReportUtils(report)) {
         return false;
     }
 
@@ -371,8 +370,7 @@ function isApproveAction(
         isDuplicate(transaction, currentUserLogin, currentUserAccountID, report, ownerLogin, policy, violations?.[ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS + transaction.transactionID]),
     );
 
-    // Bills can't resolve duplicates, so the primary action is still Approve for a bill with duplicates.
-    if (isExpenseReport && isProcessingReport && reportHasDuplicatedTransactions && !isBillReport(report)) {
+    if (isExpenseReport && isProcessingReport && reportHasDuplicatedTransactions) {
         return true;
     }
 
@@ -469,8 +467,7 @@ function isCancelPaymentAction(
     const isExpenseReport = isExpenseReportUtils(report);
     const isIOUReport = isIOUReportUtils(report);
 
-    // Bills can't be paid or have their payment canceled in NewDot yet, even when they were paid in Classic.
-    if ((!isExpenseReport && !isIOUReport) || isBillReport(report)) {
+    if (!isExpenseReport && !isIOUReport) {
         return false;
     }
 
@@ -522,8 +519,7 @@ function isCancelPaymentAction(
 }
 
 function isReceivedPaymentAction(report: Report, reportTransactions: Transaction[] = [], reportActions: ReportAction[] = [], policy?: Policy): boolean {
-    // The bill's owner pays the vendor, so the owner never receives a payment on it.
-    if (!isExpenseReportUtils(report) || isBillReport(report) || !isCurrentUserSubmitter(report)) {
+    if (!isExpenseReportUtils(report) || !isCurrentUserSubmitter(report)) {
         return false;
     }
 
@@ -800,8 +796,7 @@ function isRetractAction(report: Report, policy?: Policy): boolean {
     // This should be removed after we change how instant submit works
     const isInstantSubmit = isInstantSubmitEnabled(policy);
 
-    // A bill arrives submitted from the vendor's invoice, so its owner can't take it back to draft.
-    if (!isExpenseReport || isInstantSubmit || isBillReport(report)) {
+    if (!isExpenseReport || isInstantSubmit) {
         return false;
     }
 
@@ -824,9 +819,7 @@ function isReopenAction(report: Report, policy?: Policy): boolean {
     }
 
     const isExpenseReport = isExpenseReportUtils(report);
-
-    // A bill arrives submitted from the vendor's invoice, so it can't go back to draft.
-    if (!isExpenseReport || isBillReport(report)) {
+    if (!isExpenseReport) {
         return false;
     }
 
@@ -982,8 +975,7 @@ function isDuplicateReportAction(report: Report): boolean {
         return false;
     }
 
-    // Copying a bill would turn the vendor's expenses into the owner's own expenses.
-    if (!isExpenseReportUtils(report) || isBillReport(report)) {
+    if (!isExpenseReportUtils(report)) {
         return false;
     }
 
