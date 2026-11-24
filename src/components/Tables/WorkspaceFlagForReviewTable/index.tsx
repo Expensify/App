@@ -7,7 +7,7 @@ import useLocalize from '@hooks/useLocalize';
 
 import type {FlagForReviewTableItem} from '@libs/FlagForReviewRulesUtils';
 
-import type CONST from '@src/CONST';
+import CONST from '@src/CONST';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
 
 import React from 'react';
@@ -53,6 +53,7 @@ function WorkspaceFlagForReviewTable({rulesData, selectionEnabled, selectedKeys,
             conditionColumnLabel={translate('workspace.rules.flagForReviewTable.tableColumnCondition')}
             ruleColumnLabel={translate('workspace.rules.flagForReviewTable.tableColumnRule')}
             renderRow={renderRow}
+            columnResizingID={CONST.TABLES.COLUMN_RESIZING_IDS.WORKSPACE_FLAG_FOR_REVIEW}
         />
     );
 }

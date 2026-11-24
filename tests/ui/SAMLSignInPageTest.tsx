@@ -50,7 +50,7 @@ jest.mock('@userActions/Session', () => ({
     clearSignInData: jest.fn(),
     setAccountError: jest.fn(),
     setIsAuthenticatingWithShortLivedToken: jest.fn(),
-    signInWithShortLivedAuthToken: jest.fn(),
+    signInWithShortLivedAuthToken: jest.fn().mockResolvedValue(undefined),
 }));
 
 const mockedOpenAuthSessionAsync = jest.mocked(openAuthSessionAsync);
@@ -190,7 +190,7 @@ describe('SAMLSignInPage', () => {
         renderPage();
         await waitForBatchedUpdatesWithAct();
 
-        expect(signInWithShortLivedAuthToken).toHaveBeenCalledWith('token', true, '/search?q=status:outstanding', 'user@saml.example.com');
+        expect(signInWithShortLivedAuthToken).toHaveBeenCalledWith('token', undefined, true, '/search?q=status:outstanding', 'user@saml.example.com');
         expect(clearSignInData).not.toHaveBeenCalled();
     });
 
@@ -202,7 +202,7 @@ describe('SAMLSignInPage', () => {
         renderPage();
         await waitForBatchedUpdatesWithAct();
 
-        expect(signInWithShortLivedAuthToken).toHaveBeenCalledWith('token', true, '/search?q=status:outstanding', 'user@saml.example.com');
+        expect(signInWithShortLivedAuthToken).toHaveBeenCalledWith('token', undefined, true, '/search?q=status:outstanding', 'user@saml.example.com');
     });
     it('waits until the app is active to sign in with a token that came back while it was in the background', async () => {
         // Given the token comes back from an authenticator app before iOS marks the app active again
@@ -229,7 +229,7 @@ describe('SAMLSignInPage', () => {
 
         // Then it signs in once with the token it kept
         expect(signInWithShortLivedAuthToken).toHaveBeenCalledTimes(1);
-        expect(signInWithShortLivedAuthToken).toHaveBeenCalledWith('token', true, '/search?q=status:outstanding', 'user@saml.example.com');
+        expect(signInWithShortLivedAuthToken).toHaveBeenCalledWith('token', undefined, true, '/search?q=status:outstanding', 'user@saml.example.com');
 
         currentStateSpy.mockRestore();
         addEventListenerSpy.mockRestore();

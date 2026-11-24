@@ -2,12 +2,13 @@ import type {Emoji} from '@assets/emojis/types';
 
 import Composer from '@components/Composer';
 import type {ComposerRef, CustomSelectionChangeEvent, TextSelection} from '@components/Composer/types';
+import FSClassContext from '@components/FSClassView/FSClassContext';
 import {useWideRHPState} from '@components/WideRHPContextProvider';
 
 import {useMentionedAccountIDToNameMap} from '@hooks/useAccountIDToNameMap';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useIsInSidePanel from '@hooks/useIsInSidePanel';
-import useKeyboardState from '@hooks/useKeyboardState';
+import useKeyboardShownRef from '@hooks/useKeyboardShownRef';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -211,7 +212,7 @@ function ComposerWithSuggestions({
 }: ComposerWithSuggestionsProps) {
     const lastReportAction = useLastEditableAction(reportID);
     const route = useRoute();
-    const {isKeyboardShown} = useKeyboardState();
+    const isKeyboardShownRef = useKeyboardShownRef();
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -570,7 +571,7 @@ function ComposerWithSuggestions({
 
     const handleKeyPress = (event: TextInputKeyPressEvent) => {
         const webEvent = event as unknown as KeyboardEvent;
-        if (!webEvent || canSkipTriggerHotkeys(shouldUseNarrowLayout, isKeyboardShown)) {
+        if (!webEvent || canSkipTriggerHotkeys(shouldUseNarrowLayout, isKeyboardShownRef.current)) {
             return;
         }
 
@@ -1022,19 +1023,22 @@ function ComposerWithSuggestions({
                 />
             </View>
 
-            <Suggestions
-                ref={suggestionsRef}
-                isComposerFocused={isComposerFocused}
-                updateComment={updateComment}
-                measureParentContainerAndReportCursor={measureParentContainerAndReportCursor}
-                isGroupPolicyReport={isGroupPolicyReport}
-                policyID={policyID}
-                // Input
-                value={text}
-                selection={selection}
-                setSelection={onSuggestionSelected}
-                resetKeyboardInput={resetKeyboardInput}
-            />
+            {/* The suggestions render in a portal, outside the chat's masked views, so they take the chat's FullStory class from this context */}
+            <FSClassContext.Provider value={forwardedFSClass}>
+                <Suggestions
+                    ref={suggestionsRef}
+                    isComposerFocused={isComposerFocused}
+                    updateComment={updateComment}
+                    measureParentContainerAndReportCursor={measureParentContainerAndReportCursor}
+                    isGroupPolicyReport={isGroupPolicyReport}
+                    policyID={policyID}
+                    // Input
+                    value={text}
+                    selection={selection}
+                    setSelection={onSuggestionSelected}
+                    resetKeyboardInput={resetKeyboardInput}
+                />
+            </FSClassContext.Provider>
 
             {isValidReportIDFromPath(reportID) && (
                 <SilentCommentUpdater
