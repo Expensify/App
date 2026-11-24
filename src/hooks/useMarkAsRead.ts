@@ -94,7 +94,7 @@ type UseMarkAsReadParams = {
     /** Identifies the list surface consuming the hook, so unrelated surfaces don't share previous-report tracking. */
     scopeKey?: string;
 
-    /** Skips marking as read on report change while the screen is mounted but not navigation-focused (e.g. behind a modal or details screen) */
+    /** Skips marking as read, on mount and on report change, while the screen is mounted but not navigation-focused (e.g. behind a modal or details screen) */
     shouldRequireScreenFocus?: boolean;
 };
 
@@ -227,6 +227,11 @@ function useMarkAsRead({
             return;
         }
 
+        // Same for a screen left mounted under another one, it marks read once the user is back on it
+        if (shouldRequireScreenFocus && !isFocused) {
+            return;
+        }
+
         if (!isReportUnreadValue || didMarkReportAsReadInitially.current) {
             didMarkReportAsReadInitially.current = true;
             return;
@@ -244,7 +249,7 @@ function useMarkAsRead({
         // one-shot initial mark-as-read, and re-running it whenever the user scrolls or pagination state changes would
         // mark the report as read long after mount.
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [isHiddenFromUser, isReportUnreadValue, reportID, isReportActionsLoaded]);
+    }, [isHiddenFromUser, shouldRequireScreenFocus, isFocused, isReportUnreadValue, reportID, isReportActionsLoaded]);
 
     const didMarkOnReportChangeRef = useRef(false);
 

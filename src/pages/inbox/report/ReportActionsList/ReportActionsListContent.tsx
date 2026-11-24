@@ -11,6 +11,7 @@ import useLocalize from '@hooks/useLocalize';
 import useMarkAsRead from '@hooks/useMarkAsRead';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useRetireMerchantRuleSuggestionOnLeave from '@hooks/useRetireMerchantRuleSuggestionOnLeave';
 import useSidePanelState from '@hooks/useSidePanelState';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -86,6 +87,7 @@ function ReportActionsListContent({reportID, onLayout}: ReportActionsListProps) 
     const {handleShowPreviousMessages: onShowPreviousMessages} = useReportActionsListActions();
 
     const {isOffline} = useNetwork();
+    const {isInNarrowPaneModal} = useResponsiveLayout();
     const route = useRoute<PlatformStackRouteProp<ReportsSplitNavigatorParamList, typeof SCREENS.REPORT>>();
     const linkedReportActionID = route?.params?.reportActionID;
     const {sessionStartTime} = useSidePanelState();
@@ -149,6 +151,8 @@ function ReportActionsListContent({reportID, onLayout}: ReportActionsListProps) 
         sortedVisibleReportActions,
         isScrolledToEnd: !hasScrolledOverThreshold,
         hasNewerActions,
+        // An RHP left under another screen is still mounted, so don't mark it read while it's out of focus
+        shouldRequireScreenFocus: isInNarrowPaneModal,
     });
 
     const reportActionsListData = useReportActionsListData({
