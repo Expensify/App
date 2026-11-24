@@ -204,7 +204,7 @@ type GetTrackExpenseInformationParams = {
     isASAPSubmitBetaEnabled: boolean;
     currentUserAccountIDParam: number;
     currentUserEmailParam: string;
-    currentUserPersonalDetails?: CurrentUserPersonalDetails;
+    currentUserPersonalDetails: CurrentUserPersonalDetails;
     introSelected: OnyxEntry<OnyxTypes.IntroSelected>;
     activePolicy?: OnyxEntry<OnyxTypes.Policy>;
     conciergeChat: OnyxEntry<OnyxTypes.Report>;
@@ -235,7 +235,7 @@ type DeleteTrackExpenseParams = {
     violations: OnyxCollection<OnyxTypes.TransactionViolations>;
     isSingleTransactionView: boolean | undefined;
     isChatReportArchived: boolean | undefined;
-    isChatIOUReportArchived: boolean | undefined;
+    isChatIOUReportArchived: boolean;
     allTransactionViolationsParam: OnyxCollection<OnyxTypes.TransactionViolations>;
     currentUserAccountID: number;
     currentUserEmail: string;
@@ -255,7 +255,7 @@ type BuildOnyxDataForTrackExpenseParams = {
     isASAPSubmitBetaEnabled: boolean;
     quickAction: OnyxEntry<OnyxTypes.QuickAction>;
     currentUserAccountID: number;
-    currentUserPersonalDetails?: CurrentUserPersonalDetails;
+    currentUserPersonalDetails: CurrentUserPersonalDetails;
 };
 
 /** Builds the Onyx data for track expense */

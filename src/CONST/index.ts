@@ -1620,7 +1620,6 @@ const CONST = {
         DEFAULT_LETTER_AVATARS: 'defaultLetterAvatars',
         ARCHIVE_POLICIES: 'archivePolicies',
         MERGE_ATS: 'mergeATSConnections',
-        REPORT_MERGE: 'reportMerge',
         INSIGHTS_AI: 'insightsAI',
         INSIGHTS_COMPLIANCE: 'insightsCompliance',
         INSIGHTS_EFFICIENCY: 'insightsEfficiency',
@@ -1633,6 +1632,7 @@ const CONST = {
         TRAVEL_APPROVAL: 'travelApproval',
         FLAT_NAV: 'flatNav',
         RECEIPT_TRANSLATION: 'receiptTranslation',
+        RECEIPT_ENHANCEMENT: 'receiptEnhancement',
         SCAN_FLASH_TORCH: 'scanFlashTorch',
         NEW_DOT_BILL_PAY: 'newDotBillPay',
         HYBRID_WEB: 'hybridWeb',
@@ -3457,6 +3457,7 @@ const CONST = {
         DUPLICATE_RECORD: 'A record already exists with this ID',
         ALREADY_CREATED: 'AlreadyCreated',
         SERVICE_UNAVAILABLE: 'serviceUnavailable',
+        REAUTH_REPLAY_REJECTED: 'reauthReplayRejected',
 
         // The "Upgrade" is intentional as the 426 HTTP code means "Upgrade Required" and sent by the API. We use the "Update" language everywhere else in the front end when this gets returned.
         UPDATE_REQUIRED: 'Upgrade Required',
@@ -6343,6 +6344,7 @@ const CONST = {
     },
     COMPANY_CARDS: {
         CONSENT_EXPIRY_WARNING_DAYS: {
+            ONE_MONTH: 30,
             TWO_WEEKS: 14,
             ONE_WEEK: 7,
         },

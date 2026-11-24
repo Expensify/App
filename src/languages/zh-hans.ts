@@ -996,7 +996,14 @@ const translations: TranslationDeepObject<typeof en> = {
             admins: '仅限管理员',
         },
     },
-    supportalSwitcher: {title: '切换 Supportal 到其他账户', emailLabel: '电子邮箱地址', reasonLabel: '支持登录原因', reasonHint: '未找到此账户的近期工单。', login: '登录'},
+    supportalSwitcher: {
+        title: '切换 Supportal 到其他账户',
+        navigationLabel: 'Supportal',
+        emailLabel: '电子邮箱地址',
+        reasonLabel: '支持登录原因',
+        reasonHint: '未找到此账户的近期工单。',
+        login: '登录',
+    },
     sidebarScreen: {
         buttonFind: '查找内容…',
         buttonMySettings: '我的设置',
@@ -1202,6 +1209,8 @@ const translations: TranslationDeepObject<typeof en> = {
     },
     insightsPage: {
         tagLevel: (level: string) => `标签级别 ${level}`,
+        noTaggedExpenses: '没有带标签的费用',
+        noExpensesForTagLevel: (tagLevelName: string) => `此日期范围内没有 ${tagLevelName} 的费用。`,
         tagLevelLabel: '标签级别',
         parent: '父级',
         shareOfTotal: '占总计的比例（%）',
@@ -1250,7 +1259,6 @@ const translations: TranslationDeepObject<typeof en> = {
         viewDetails: '查看详情',
         viewAll: '查看全部',
         topExpenses: '最高花费',
-        noExpensesInRange: '此范围内没有报销费用',
         efficiency: '效率',
         workflowEfficiency: '工作流程效率',
         averageProcessingTime: '平均处理时间',
@@ -1259,6 +1267,29 @@ const translations: TranslationDeepObject<typeof en> = {
         mostTimeToPay: '最长付款时间',
         share: '占比',
         averageDays: '平均天数',
+        summary: {
+            title: '摘要',
+            over: (percentage: string) => `超出 ${percentage}`,
+            under: (percentage: string) => `低于 ${percentage}`,
+            versusMerchantAverage: (amount: string) => `${amount} 与该商家平均值对比`,
+            versusMemberAverage: (amount: string) => `${amount} 对比此成员的平均值`,
+            versusCategoryAverage: (amount: string) => `${amount} 对比此类别的平均值`,
+            versusAverageDay: (amount: string) => `${amount} 对比平均日`,
+            versusAverageWeek: (amount: string) => `${amount} 对比平均周`,
+            versusAverageMonth: (amount: string) => `${amount} 对比平均月份`,
+            versusAverageQuarter: (amount: string) => `${amount} 对比平均季度`,
+            moreHistoryNeeded: '需要更多历史记录：',
+            daysOfHistoryNeeded: (count: number) => `在完成 ${count} 天的历史记录后将显示平均对比`,
+            weeksOfHistoryNeeded: (count: number) => `在拥有连续 ${count} 个完整周的历史记录后将显示平均对比`,
+            monthsOfHistoryNeeded: (count: number) => `在累积满 ${count} 个完整月的历史记录后将显示平均对比`,
+            quartersOfHistoryNeeded: (count: number) => `在拥有 ${count} 个完整季度的历史记录后将显示平均比较`,
+            periodSpend: (period: string) => `${period} 支出`,
+            dayAverage: (count: number) => `${count} 天平均值`,
+            weekAverage: (count: number) => `${count} 周平均值`,
+            monthAverage: (count: number) => `${count} 个月平均值`,
+            quarterAverage: (count: number) => `${count} 个季度平均值`,
+            shareOfTotal: '总份额',
+        },
         generatingAIInsights: '正在生成 AI 洞察…',
         generatingAIInsightsSubtitle: '这不会花费超过一分钟',
         readingChart: (chartTitle: string) => `正在读取 ${chartTitle}`,
@@ -1408,6 +1439,8 @@ const translations: TranslationDeepObject<typeof en> = {
         flash: '闪光',
         flipCamera: '翻转摄像头',
         multiScan: '多重扫描',
+        receiptEnhancements: '收据增强',
+        receiptEnhancementsEnabled: '已开启收据增强',
         shutter: '快门',
         gallery: '图库',
         deleteReceipt: '删除收据',
@@ -2494,6 +2527,7 @@ const translations: TranslationDeepObject<typeof en> = {
             sentryHighlightedSpanOps: '高亮的跨度名称',
             sentryHighlightedSpanOpsPlaceholder: 'ui.interaction.click，navigation，ui.load',
             showBranchNameInTitle: '在浏览器标题中显示分支名称',
+            hideEnvironmentBadge: '隐藏环境徽章',
             betaOverrides: 'Beta 覆盖',
             betaOverridesDescription:
                 '覆盖仅适用于此设备，且仅影响前端检查。仅当 Beta 与你账户中的 Beta 不同时，才会保留覆盖，因此切换回原值会移除该覆盖。“重置所有覆盖”会恢复你账户中的值。部分 Beta 同时受后端控制，因此仍可能在请求层面失败。',
@@ -5442,6 +5476,9 @@ ${amount}，商户：${merchant} - 日期：${date}`,
             chatgpt: {
                 title: 'ChatGPT',
             },
+            grok: {
+                title: 'Grok',
+            },
         },
         connections: {
             tabs: {
@@ -7725,6 +7762,7 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                 willBeReadyToUse: '此卡将立即可用。',
                 willBeReadyToShip: '此卡将立即准备发货。',
                 cardholder: '持卡人',
+                cardholderEmail: '持卡人电子邮箱',
                 cardType: '卡类型',
                 limit: '限额',
                 limitType: '限额类型',
@@ -9605,6 +9643,30 @@ ${reportName}`,
             noVendorsFoundDescription: '请在 Digits 中添加供应商，然后再次同步连接',
             noAccountsFound: '未找到账户',
             noAccountsFoundDescription: '请在 Digits 中添加银行账户或信用卡账户，然后再次同步连接',
+            noBankAccountsFoundDescription: '请在 Digits 中添加银行账户，然后再次同步连接',
+            noPayableAccountsFoundDescription: '请在 Digits 中添加信用卡或流动负债账户，然后再次同步连接',
+            autoSyncDescription: '每天自动同步 Digits 和 Expensify。报告实时同步。',
+            accountingMethods: {
+                label: '导出方式',
+                description: '选择何时导出报销。',
+                values: {
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: '应计',
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: '现金',
+                },
+                alternateText: {
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: '自付费用将在最终批准后导出',
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: '自付报销将在付款时导出',
+                },
+            },
+            syncReimbursedReports: '同步已报销报表',
+            syncReimbursedReportsDescription: '当报表通过 ACH 支付时，将在此账户中生成一笔账单付款。',
+            billPaymentAccount: {label: '账单支付账户', description: '选择用于支付账单的账户，我们会在 Digits 中创建这笔付款。'},
+            syncExpensifyCardSettlements: '同步 Expensify 卡结算',
+            settlementAccount: {label: 'Expensify 卡结算账户', description: '选择你的结算账户，我们会在 Digits 中创建付款。'},
+            syncTravelBillingSettlements: '同步合并差旅结算',
+            travelBillingSettlementAccount: {label: '合并差旅账单结算账户', description: '选择你的结算账户，我们会在 Digits 中创建付款。'},
+            travelBillingPayableAccount: {label: '合并差旅账单应付账户'},
+            missingSettlementAccount: (accountName: string) => `在你选择 ${accountName} 之前，结算将不会同步。`,
         },
         zohoBooks: {
             organization: 'Zoho Books 组织',
@@ -11131,7 +11193,9 @@ ${reportName}`,
                     mentionedAccountID?: number;
                 }) => {
                     let warningTime = '即将';
-                    if (warningDaysBeforeExpiry === CONST.COMPANY_CARDS.CONSENT_EXPIRY_WARNING_DAYS.TWO_WEEKS) {
+                    if (warningDaysBeforeExpiry === CONST.COMPANY_CARDS.CONSENT_EXPIRY_WARNING_DAYS.ONE_MONTH) {
+                        warningTime = '一个月后';
+                    } else if (warningDaysBeforeExpiry === CONST.COMPANY_CARDS.CONSENT_EXPIRY_WARNING_DAYS.TWO_WEEKS) {
                         warningTime = '两周后';
                     } else if (warningDaysBeforeExpiry === CONST.COMPANY_CARDS.CONSENT_EXPIRY_WARNING_DAYS.ONE_WEEK) {
                         warningTime = '一周后';

@@ -7,6 +7,7 @@ import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeed
 import RHPResizeHandle from '@components/RHPResizeHandle';
 
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSidePanelActions from '@hooks/useSidePanelActions';
 import useSidePanelState from '@hooks/useSidePanelState';
@@ -88,7 +89,7 @@ function useAwaitSidePanelClose(shouldMount: boolean): boolean {
 }
 
 function MultifactorAuthenticationModalNavigator() {
-    const {isCancelConfirmVisible, isModalOpen, scenario} = useMultifactorAuthenticationState();
+    const {isAuthorizationComplete, isCancelConfirmVisible, isModalOpen, scenario} = useMultifactorAuthenticationState();
     const {requestCancel, hideCancelConfirm, confirmCancel} = useMultifactorAuthentication();
     const {dispatch} = useMultifactorAuthenticationActions();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
@@ -99,6 +100,10 @@ function MultifactorAuthenticationModalNavigator() {
     const [phase, setPhase] = useState<Phase>(isModalOpen ? 'open' : 'closed');
     const backdropProgress = useSharedValue(0);
     const modalCardStyleInterpolator = useModalCardStyleInterpolator();
+    const {isOffline} = useNetwork();
+
+    // Offline, the flow can't finish and close itself, so keep the modal visible to leave a way out
+    const isModalHidden = !!scenario?.shouldHideModalOnSuccess && isAuthorizationComplete && !isOffline;
     const CancelConfirmModal = scenario?.modals.cancelConfirmation ?? DefaultCancelConfirmModal;
 
     const isStackReadyToMount = useAwaitSidePanelClose(phase !== 'closed');
@@ -219,8 +224,9 @@ function MultifactorAuthenticationModalNavigator() {
 
     return (
         <View
-            style={[StyleSheet.absoluteFill, styles.mfaModalNavigatorRoot]}
-            pointerEvents="box-none"
+            style={[StyleSheet.absoluteFill, styles.mfaModalNavigatorRoot, isModalHidden && styles.opacity0]}
+            pointerEvents={isModalHidden ? 'none' : 'box-none'}
+            aria-hidden={isModalHidden}
         >
             {!shouldUseNarrowLayout && (
                 <Animated.View style={[StyleSheet.absoluteFill, styles.overlayBackground, backdropAnimatedStyle]}>

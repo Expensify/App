@@ -479,6 +479,7 @@ function isDeletedAction(reportAction: OnyxInputOrEntry<ReportAction | Optimisti
         reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_DIRECTOR_INFORMATION_REQUIRED ||
         reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED_REPORT_FOR_UNAPPROVED_TRANSACTIONS ||
         reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.REASSIGN_APPROVER ||
+        reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ACTION_DELEGATE_SUBMIT ||
         reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.MERGED_EXPENSE_DELETED ||
         reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_AUTO_CATEGORIZE_NEW_EXPENSES ||
         reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_EMPLOYEE_DISPLAY_NAME ||
@@ -738,7 +739,7 @@ function getSystemMessageDisplayState(
     const firstAction = reportActions.at(0);
     const lastAction = reportActions.at(-1);
     const isNewestFirst = !!firstAction && !!lastAction && isNewerReportAction(firstAction, lastAction);
-    const chronologicalActions = isNewestFirst ? reportActions.toReversed() : reportActions;
+    const chronologicalActions = isNewestFirst ? [...reportActions].reverse() : reportActions;
 
     const appendAction = (reportAction: ReportAction) => {
         reportActionIDToDisplayIndex.set(reportAction.reportActionID, displayReportActions.length);

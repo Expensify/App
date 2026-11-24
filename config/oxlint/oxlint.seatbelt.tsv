@@ -59,7 +59,6 @@
 "../../src/components/AddressForm.tsx"	"@typescript-eslint/no-unnecessary-type-assertion"	1
 "../../src/components/AddressForm.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/components/AddressSearch/isCurrentTargetInsideContainer.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
-"../../src/components/AmountTextInput.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/components/AnchorForAttachmentsOnly/index.tsx"	"no-restricted-syntax"	1
 "../../src/components/AnchorForCommentsOnly/index.tsx"	"no-restricted-syntax"	1
 "../../src/components/AnimatedFlatListWithCellRenderer.tsx"	"@typescript-eslint/no-deprecated/Animated.createAnimatedComponent"	1
@@ -116,7 +115,6 @@
 "../../src/components/DecisionModal.tsx"	"@typescript-eslint/no-deprecated/DecisionModal"	1
 "../../src/components/DialogLabelContext.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/components/DisplayNames/DisplayNamesWithTooltip.tsx"	"react-hooks/refs"	6
-"../../src/components/DistanceRequest/DistanceRequestRenderItem.tsx"	"@typescript-eslint/no-deprecated/MenuItemWithTopDescription"	1
 "../../src/components/DotIndicatorMessage.tsx"	"@typescript-eslint/no-unnecessary-type-assertion"	1
 "../../src/components/DragAndDrop/NoDropZone/index.tsx"	"react-hooks/refs"	1
 "../../src/components/DragAndDrop/Provider/index.tsx"	"react-hooks/refs"	4
@@ -208,9 +206,7 @@
 "../../src/components/MoneyRequestConfirmationList/sections/AmountField.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/components/MoneyRequestConfirmationList/sections/AmountField.tsx"	"no-restricted-imports"	1
 "../../src/components/MoneyRequestConfirmationList/sections/AttendeeField.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
-"../../src/components/MoneyRequestConfirmationList/sections/CategoryField.tsx"	"@typescript-eslint/no-deprecated/MenuItemWithTopDescription"	1
 "../../src/components/MoneyRequestConfirmationList/sections/DateField.tsx"	"react-hooks/purity"	2
-"../../src/components/MoneyRequestConfirmationList/sections/RateField.tsx"	"@typescript-eslint/no-deprecated/MenuItemWithTopDescription"	1
 "../../src/components/MoneyRequestConfirmationList/sections/selectors.ts"	"@typescript-eslint/no-unsafe-type-assertion"	3
 "../../src/components/MoneyRequestConfirmationList/sections/TaxFields.tsx"	"@typescript-eslint/no-deprecated/NumberWithSymbolForm"	1
 "../../src/components/MoneyRequestConfirmationList/sections/TaxFields.tsx"	"@typescript-eslint/no-deprecated/NumberWithSymbolFormRef"	1
@@ -711,7 +707,7 @@
 "../../src/libs/actions/ScheduleCall.ts"	"no-restricted-syntax"	1
 "../../src/libs/actions/Search.ts"	"@typescript-eslint/no-misused-promises"	1
 "../../src/libs/actions/Search.ts"	"@typescript-eslint/no-unnecessary-type-assertion"	4
-"../../src/libs/actions/Search.ts"	"@typescript-eslint/no-unsafe-type-assertion"	15
+"../../src/libs/actions/Search.ts"	"@typescript-eslint/no-unsafe-type-assertion"	13
 "../../src/libs/actions/Session/index.ts"	"@typescript-eslint/no-unnecessary-type-assertion"	1
 "../../src/libs/actions/Session/index.ts"	"@typescript-eslint/no-unsafe-type-assertion"	3
 "../../src/libs/actions/Session/index.ts"	"no-restricted-syntax"	9
@@ -935,7 +931,7 @@
 "../../src/libs/SearchQueryUtils.ts"	"@typescript-eslint/no-unsafe-type-assertion"	47
 "../../src/libs/SearchQueryUtils.ts"	"unicorn/prefer-string-replace-all"	1
 "../../src/libs/SearchUIUtils.ts"	"@typescript-eslint/no-unnecessary-type-assertion"	3
-"../../src/libs/SearchUIUtils.ts"	"@typescript-eslint/no-unsafe-type-assertion"	64
+"../../src/libs/SearchUIUtils.ts"	"@typescript-eslint/no-unsafe-type-assertion"	52
 "../../src/libs/SearchUIUtils.ts"	"no-restricted-imports"	1
 "../../src/libs/ShortcutManager/index.ts"	"@typescript-eslint/no-unnecessary-type-assertion"	1
 "../../src/libs/SidebarUtils.ts"	"@typescript-eslint/no-unnecessary-type-assertion"	1
@@ -946,7 +942,7 @@
 "../../src/libs/telemetry/forwardLogsToSentry.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/libs/telemetry/TelemetrySynchronizer.ts"	"rulesdir/no-direct-personal-details-list"	1
 "../../src/libs/TransactionPreviewUtils.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
-"../../src/libs/TransactionUtils/getUpdatedTransaction.ts"	"@typescript-eslint/no-deprecated/translateLocal"	2
+"../../src/libs/TransactionUtils/getUpdatedTransaction.ts"	"@typescript-eslint/no-deprecated/translateLocal"	1
 "../../src/libs/TransactionUtils/index.ts"	"@typescript-eslint/no-deprecated/getReportTransactions"	1
 "../../src/libs/TransactionUtils/index.ts"	"@typescript-eslint/no-unsafe-type-assertion"	3
 "../../src/libs/TransactionUtils/index.ts"	"import/no-cycle"	4
@@ -1773,8 +1769,6 @@
 "../../src/pages/workspace/rooms/WorkspaceRoomsPage.tsx"	"no-restricted-imports"	1
 "../../src/pages/workspace/rules/AgentRules/AddAgentRulePage.tsx"	"react/no-unstable-nested-components"	1
 "../../src/pages/workspace/rules/FlagForReviewRules/FlagForReviewRuleAmountPageBase.tsx"	"@typescript-eslint/no-unnecessary-type-assertion"	1
-"../../src/pages/workspace/rules/IndividualExpenseRulesSectionRevamp.tsx"	"@typescript-eslint/no-deprecated/MenuItem"	1
-"../../src/pages/workspace/rules/MerchantRules/ExpenseDefaultRulePageBase.tsx"	"@typescript-eslint/no-deprecated/MenuItemWithTopDescription"	1
 "../../src/pages/workspace/tags/DynamicEditTagPage.tsx"	"no-restricted-imports"	1
 "../../src/pages/workspace/tags/DynamicTagApproverPage.tsx"	"no-restricted-imports"	1
 "../../src/pages/workspace/tags/DynamicTagGLCodePage.tsx"	"no-restricted-imports"	1
@@ -1836,7 +1830,6 @@
 "../../src/pages/workspace/WorkspaceOverviewClientIDPage.tsx"	"no-restricted-imports"	1
 "../../src/pages/workspace/WorkspaceOverviewCurrencyPage.tsx"	"no-restricted-imports"	1
 "../../src/pages/workspace/WorkspaceOverviewDescriptionPage.tsx"	"no-restricted-imports"	1
-"../../src/pages/workspace/WorkspaceOverviewPage.tsx"	"@typescript-eslint/no-deprecated/MenuItemWithTopDescription"	1
 "../../src/pages/workspace/WorkspaceOverviewPage.tsx"	"@typescript-eslint/no-unnecessary-type-assertion"	1
 "../../src/pages/workspace/WorkspaceOverviewPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/pages/workspace/WorkspaceOverviewSharePage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1

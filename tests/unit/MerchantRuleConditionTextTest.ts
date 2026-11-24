@@ -120,12 +120,26 @@ describe('Expense default condition text', () => {
         expect(getHasConditionText(values, EQUAL_TO, translateLocal)).toBe('Has "Receipt, Tag"');
     });
 
-    it('falls back to the stored ID when a member has left the workspace', () => {
+    it('names a member who has left the workspace the way the rest of the app does', () => {
         // Given a rule matching on someone who is no longer listed
         const filters: RuleFilterNode = {left: FILTER.FROM, operator: EQUAL_TO, right: ['99999']};
 
         // When the row's condition text is built
-        // Then the row still shows the rule matches on someone rather than dropping the condition
-        expect(getConditionText(filters)).toBe('Submitter is "99999"');
+        // Then the row reads as it would anywhere the app cannot resolve a member, rather than showing the stored ID
+        expect(getConditionText(filters)).toBe('Submitter is "Hidden"');
+    });
+
+    it('names a card as deleted only once every card has arrived', () => {
+        // Given a rule matching on a card that none of the names cover
+        const filters: RuleFilterNode = {left: FILTER.CARD_ID, operator: EQUAL_TO, right: ['99999']};
+
+        // When the cards are still loading
+        // Then the row keeps the stored ID, since the card may still arrive
+        expect(getConditionText(filters)).toBe('Card is "99999"');
+
+        // When every card has arrived and the card is still missing
+        // Then the card is gone for good, so the row names it as deleted
+        const loadedConditionNames = {...conditionNames, areCardsLoaded: true};
+        expect(getExpenseDefaultConditionText(filters, translateLocal, convertToDisplayStringWithoutCurrency, false, policy, loadedConditionNames)).toBe('Card is "Deleted card"');
     });
 });
