@@ -6,6 +6,7 @@ import useOnboardingTaskInformation from '@hooks/useOnboardingTaskInformation';
 import useOnyx from '@hooks/useOnyx';
 import useParentReportAction from '@hooks/useParentReportAction';
 import usePermissions from '@hooks/usePermissions';
+import {useGetPersonalDetailsByLogin} from '@hooks/usePersonalDetailByLogin';
 import useTransactionsByID from '@hooks/useTransactionsByID';
 
 import {completeTestDriveTask} from '@libs/actions/Task';
@@ -122,6 +123,7 @@ function useRequestMoneySubmission({
     const {transactionViolationsRef} = useSubmissionViolations();
     const {submitWithGpsPoint} = useGpsCapture();
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
+    const getPersonalDetailsByLogin = useGetPersonalDetailsByLogin();
     const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE);
     const [isSelfTourViewed = false] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
@@ -314,6 +316,7 @@ function useRequestMoneySubmission({
                 delegateAccountID,
                 formatPhoneNumber,
                 rules,
+                personalDetailsByLogins: getPersonalDetailsByLogin(),
             });
             existingIOUReport = iouReport;
             if (!iouReport) {

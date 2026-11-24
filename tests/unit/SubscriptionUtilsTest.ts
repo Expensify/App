@@ -1114,75 +1114,46 @@ describe('SubscriptionUtils', () => {
 
     describe('shouldShowDiscountBanner', () => {
         const ownerAccountID = 234;
-        const policyID = '100012';
         afterEach(async () => {
             await Onyx.clear();
         });
 
         it('should return false if the user is not on a free trial', async () => {
-            const policies = {
-                [`${ONYXKEYS.COLLECTION.POLICY}${policyID}`]: {
-                    ...createRandomPolicy(Number(policyID)),
-                    ownerAccountID,
-                    type: CONST.POLICY.TYPE.CORPORATE,
-                },
-            };
             await Onyx.multiSet({
                 [ONYXKEYS.SESSION]: {accountID: ownerAccountID},
                 [ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL]: null,
                 [ONYXKEYS.NVP_LAST_DAY_FREE_TRIAL]: null,
             });
-            expect(shouldShowDiscountBanner(ownerAccountID, true, 'corporate', undefined, undefined, undefined, policies)).toBeFalsy();
+            expect(shouldShowDiscountBanner(true, true, 'corporate', undefined, undefined, undefined)).toBeFalsy();
         });
 
         it(`should return false if user has already added a payment method`, async () => {
-            const policies = {
-                [`${ONYXKEYS.COLLECTION.POLICY}${policyID}`]: {
-                    ...createRandomPolicy(Number(policyID)),
-                    ownerAccountID,
-                    type: CONST.POLICY.TYPE.TEAM,
-                },
-            };
             await Onyx.multiSet({
                 [ONYXKEYS.SESSION]: {accountID: ownerAccountID},
                 [ONYXKEYS.NVP_BILLING_FUND_ID]: 8010,
             });
-            expect(shouldShowDiscountBanner(ownerAccountID, true, 'corporate', undefined, undefined, 8010, policies)).toBeFalsy();
+            expect(shouldShowDiscountBanner(true, true, 'corporate', undefined, undefined, 8010)).toBeFalsy();
         });
 
         it('should return false if the user is on Team plan', async () => {
             const firstDayFreeTrial = formatDate(subDays(new Date(), 1), CONST.DATE.FNS_DATE_TIME_FORMAT_STRING);
-            const policies = {
-                [`${ONYXKEYS.COLLECTION.POLICY}${policyID}`]: {
-                    ...createRandomPolicy(Number(policyID)),
-                    ownerAccountID,
-                    type: CONST.POLICY.TYPE.CORPORATE,
-                },
-            };
             await Onyx.multiSet({
                 [ONYXKEYS.SESSION]: {accountID: ownerAccountID},
                 [ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL]: firstDayFreeTrial,
                 [ONYXKEYS.NVP_LAST_DAY_FREE_TRIAL]: formatDate(addDays(new Date(), 10), CONST.DATE.FNS_DATE_TIME_FORMAT_STRING),
             });
-            expect(shouldShowDiscountBanner(ownerAccountID, true, 'team', firstDayFreeTrial, undefined, undefined, policies)).toBeFalsy();
+            expect(shouldShowDiscountBanner(true, true, 'team', firstDayFreeTrial, undefined, undefined)).toBeFalsy();
         });
 
         it('should return true if the date is before the free trial end date or within the 8 days from the trial start date', async () => {
             const firstDayFreeTrial = formatDate(subDays(new Date(), 1), CONST.DATE.FNS_DATE_TIME_FORMAT_STRING);
             const lastDayFreeTrial = formatDate(addDays(new Date(), 10), CONST.DATE.FNS_DATE_TIME_FORMAT_STRING);
-            const policies = {
-                [`${ONYXKEYS.COLLECTION.POLICY}${policyID}`]: {
-                    ...createRandomPolicy(Number(policyID)),
-                    ownerAccountID,
-                    type: CONST.POLICY.TYPE.CORPORATE,
-                },
-            };
             await Onyx.multiSet({
                 [ONYXKEYS.SESSION]: {accountID: ownerAccountID},
                 [ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL]: firstDayFreeTrial,
                 [ONYXKEYS.NVP_LAST_DAY_FREE_TRIAL]: lastDayFreeTrial,
             });
-            expect(shouldShowDiscountBanner(ownerAccountID, true, 'corporate', firstDayFreeTrial, lastDayFreeTrial, undefined, policies)).toBeTruthy();
+            expect(shouldShowDiscountBanner(true, true, 'corporate', firstDayFreeTrial, lastDayFreeTrial, undefined)).toBeTruthy();
         });
 
         it("should return false if user's trial is during the discount period but has no workspaces", async () => {
@@ -1192,7 +1163,25 @@ describe('SubscriptionUtils', () => {
                 [ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL]: firstDayFreeTrial,
                 [ONYXKEYS.NVP_LAST_DAY_FREE_TRIAL]: formatDate(addDays(new Date(), 10), CONST.DATE.FNS_DATE_TIME_FORMAT_STRING),
             });
-            expect(shouldShowDiscountBanner(ownerAccountID, true, 'corporate', firstDayFreeTrial, undefined, undefined, {})).toBeFalsy();
+            expect(shouldShowDiscountBanner(false, true, 'corporate', firstDayFreeTrial, undefined, undefined)).toBeFalsy();
+        });
+
+        it.each([
+            {plan: CONST.POLICY.TYPE.CORPORATE, hasTeam2025Pricing: true, expected: true},
+            {plan: CONST.POLICY.TYPE.CORPORATE, hasTeam2025Pricing: false, expected: true},
+            {plan: CONST.POLICY.TYPE.TEAM, hasTeam2025Pricing: true, expected: false},
+            {plan: CONST.POLICY.TYPE.TEAM, hasTeam2025Pricing: false, expected: true},
+            {plan: null, hasTeam2025Pricing: true, expected: true},
+        ])('should return $expected for plan $plan when hasTeam2025Pricing is $hasTeam2025Pricing', ({plan, hasTeam2025Pricing, expected}) => {
+            // Given a user who owns a paid workspace and is within the early discount window of the free trial
+            const firstDayFreeTrial = formatDate(subDays(new Date(), 1), CONST.DATE.FNS_DATE_TIME_FORMAT_STRING);
+            const lastDayFreeTrial = formatDate(addDays(new Date(), 10), CONST.DATE.FNS_DATE_TIME_FORMAT_STRING);
+
+            // When the banner check runs with the plan type and the owned paid workspace flag the callers pass in
+            const result = shouldShowDiscountBanner(true, hasTeam2025Pricing, plan, firstDayFreeTrial, lastDayFreeTrial, undefined);
+
+            // Then only a Team plan on the 2025 pricing hides the banner, because that plan has no early discount
+            expect(result).toBe(expected);
         });
     });
 

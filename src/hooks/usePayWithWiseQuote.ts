@@ -24,10 +24,12 @@ function usePayWithWiseQuote() {
         }
 
         const isPayingUnheldOnly = params.full === false;
-        getWiseQuote(iouReport, !isPayingUnheldOnly);
+        const getQuote = () => getWiseQuote(iouReport, !isPayingUnheldOnly);
+        getQuote();
         showWiseQuoteConfirmModal({
             reportID,
             isPayingUnheldOnly,
+            getNewQuotes: getQuote,
             onConfirm: (wiseQuoteID) => {
                 payMoneyRequest({...params, wiseQuoteID});
                 onPaymentSent?.();
