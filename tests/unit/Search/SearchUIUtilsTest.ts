@@ -4835,7 +4835,7 @@ describe('SearchUIUtils', () => {
         it('should apply date filter when expanding year group', () => {
             // Test that adjustTimeRangeToDateFilters correctly applies a date filter
             // when expanding a year group (e.g., date >= 2025-12-01)
-            const yearDateRange = DateUtils.getYearDateRange(2025);
+            const yearDateRange = {start: '2025-01-01', end: '2025-12-31'};
             const dateFilter = {
                 key: CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE,
                 filters: [
@@ -4857,7 +4857,7 @@ describe('SearchUIUtils', () => {
 
         it('should apply date filter with both start and end limits when expanding year group', () => {
             // Test that adjustTimeRangeToDateFilters correctly applies both start and end date filters
-            const yearDateRange = DateUtils.getYearDateRange(2025);
+            const yearDateRange = {start: '2025-01-01', end: '2025-12-31'};
             const dateFilter = {
                 key: CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE,
                 filters: [
@@ -4881,7 +4881,7 @@ describe('SearchUIUtils', () => {
         });
 
         it('should return original time range when no date filter is provided', () => {
-            const yearDateRange = DateUtils.getYearDateRange(2025);
+            const yearDateRange = {start: '2025-01-01', end: '2025-12-31'};
 
             const result = SearchUIUtils.adjustTimeRangeToDateFilters(yearDateRange, undefined);
 
@@ -5001,7 +5001,7 @@ describe('SearchUIUtils', () => {
             it('should intersect date preset with additional constraints instead of overwriting', () => {
                 // Test that when combining a date preset (EQUAL_TO) with additional constraints,
                 // we intersect the ranges (take max for start, min for end) rather than overwriting
-                const yearDateRange = DateUtils.getYearDateRange(2026);
+                const yearDateRange = {start: '2026-01-01', end: '2026-12-31'};
                 const dateFilter = {
                     key: CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE,
                     filters: [
@@ -5028,7 +5028,7 @@ describe('SearchUIUtils', () => {
             it('should intersect date preset end limit with additional constraints', () => {
                 // Test that when combining a date preset with an end constraint,
                 // we take the minimum (earliest) end date to intersect ranges
-                const yearDateRange = DateUtils.getYearDateRange(2026);
+                const yearDateRange = {start: '2026-01-01', end: '2026-12-31'};
                 const dateFilter = {
                     key: CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE,
                     filters: [
