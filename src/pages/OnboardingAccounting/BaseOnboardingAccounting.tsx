@@ -228,7 +228,7 @@ function BaseOnboardingAccounting({shouldUseNativeStyles}: BaseOnboardingAccount
                         />
                     </View>
                     {filteredOptions.length > 0 ? (
-                        <View style={[styles.flexRow, styles.flexWrap, styles.gap3]}>
+                        <View style={[styles.flexRow, styles.flexWrap, styles.gap2]}>
                             {filteredOptions.map((option) => (
                                 <AccountingOptionRow
                                     key={option.isOther ? option.integration : (option.connectionName ?? `${option.integration}-${option.name}`)}

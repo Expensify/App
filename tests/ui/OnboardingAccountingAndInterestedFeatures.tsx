@@ -8,6 +8,7 @@ import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnboardingHeader from '@components/OnboardingHeader';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import {PressableWithoutFeedback} from '@components/Pressable';
+import RadioButton from '@components/RadioButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import BaseSearchBar from '@components/SearchBar/BaseSearchBar';
 import CompactSearchBar from '@components/SearchBar/CompactSearchBar';
@@ -206,6 +207,10 @@ describe('Onboarding interested features and accounting pages', () => {
             expect(radios.at(index)).toHaveProp('accessibilityLabel', option.name);
         }
         expect(radios.at(-1)).toHaveProp('accessibilityLabel', TestHelper.translateLocal('workspace.accounting.other'));
+        for (const row of result.UNSAFE_getAllByType(AccountingOptionRow)) {
+            const {option}: {option?: AccountingOption} = row.props;
+            expect(within(row).UNSAFE_queryAllByType(RadioButton)).toHaveLength(option?.isComingSoon ? 0 : 1);
+        }
         expect(result.UNSAFE_getAllByType(Icon).filter((icon) => icon.props.width === 28 && icon.props.height === 28)).toHaveLength(17);
         expect(screen.queryAllByRole(CONST.ROLE.TAB)).toHaveLength(0);
     });
@@ -235,6 +240,8 @@ describe('Onboarding interested features and accounting pages', () => {
         expect(screen.getByText(TestHelper.translateLocal('onboarding.accounting.title'))).toHaveStyle({marginBottom: 24});
         expect(StyleSheet.flatten(searchContainerStyle)).toMatchObject({marginBottom: 0, width: '100%', maxWidth: '100%'});
         expect(StyleSheet.flatten(searchWrapperStyle)).toMatchObject({marginBottom: 12});
+        const {style: gridStyle}: Pick<ViewProps, 'style'> = result.UNSAFE_getAllByType(AccountingOptionRow).at(0)?.parent?.props ?? {};
+        expect(StyleSheet.flatten(gridStyle)).toMatchObject({flexDirection: 'row', flexWrap: 'wrap', gap: 8});
         // All content that can exceed the keyboard-reduced viewport scrolls, while Back never collapses.
         const scrollView = result.UNSAFE_getByType(ScrollView);
         expect(within(scrollView).getByLabelText(TestHelper.translateLocal('common.search'))).toBeOnTheScreen();
@@ -443,11 +450,27 @@ describe('Onboarding interested features and accounting pages', () => {
         const badge = screen.queryByText(TestHelper.translateLocal('workspace.accounting.integrationWaitlist.comingSoon'));
         expect(!!badge).toBe(['Odoo', 'Exact Online', 'Sage Accounting'].includes(name));
         // When it is selected and submitted
-        fireEvent.press(screen.getByText(name));
+        fireEvent.press(screen.getByRole(CONST.ROLE.RADIO, {name}));
         await waitForBatchedUpdatesWithAct();
+        expect(screen.getByRole(CONST.ROLE.RADIO, {name})).toBeChecked();
         continueOnboarding();
         // Then the name is forwarded without inventing a backend integration value
         await waitFor(() => expect(mockCompleteOnboardingFlow).toHaveBeenCalledWith(expect.objectContaining({userReportedIntegration: 'other', userReportedIntegrationName: name})));
+    });
+
+    it('selects a Coming soon row with Space without scrolling the page', async () => {
+        // Given a Coming soon option without a visible radio control
+        renderAccountingPage();
+        await waitForBatchedUpdatesWithAct();
+        const preventDefault = jest.fn();
+
+        // When the focused row receives Space
+        fireEvent(screen.getByRole(CONST.ROLE.RADIO, {name: 'Odoo'}), 'keyDown', {nativeEvent: {code: 'Space'}, preventDefault});
+        await waitForBatchedUpdatesWithAct();
+
+        // Then selection remains keyboard-accessible and the browser does not scroll
+        expect(preventDefault).toHaveBeenCalledTimes(1);
+        expect(screen.getByRole(CONST.ROLE.RADIO, {name: 'Odoo'})).toBeChecked();
     });
 
     it.each<[OnboardingAccounting, string]>([

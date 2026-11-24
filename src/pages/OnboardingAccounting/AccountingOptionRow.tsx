@@ -40,7 +40,17 @@ function AccountingOptionRow({option, isSelected, onSelect}: AccountingOptionRow
             onPress={() => onSelect(option)}
             accessibilityLabel={option.name}
             sentryLabel={CONST.SENTRY_LABEL.ONBOARDING.ACCOUNTING_SELECT_INTEGRATION}
-            accessible={false}
+            accessible={!!option.isComingSoon}
+            accessibilityRole={option.isComingSoon ? CONST.ROLE.RADIO : undefined}
+            accessibilityState={option.isComingSoon ? {checked: isSelected} : undefined}
+            accessibilityHint={option.isComingSoon ? translate('workspace.accounting.integrationWaitlist.comingSoon') : undefined}
+            onKeyDown={(event) => {
+                if (!option.isComingSoon || event.nativeEvent.code !== 'Space') {
+                    return;
+                }
+                event.preventDefault();
+                onSelect(option);
+            }}
             hoverStyle={isSelected ? undefined : styles.hoveredComponentBG}
             style={[styles.onboardingAccountingItem, onboardingIsMediumOrLargerScreenWidth && styles.onboardingAccountingItemWide, isSelected && styles.onboardingTileSelected]}
         >
@@ -59,12 +69,14 @@ function AccountingOptionRow({option, isSelected, onSelect}: AccountingOptionRow
                     style={styles.mr2}
                 />
             )}
-            <RadioButton
-                isChecked={isSelected}
-                onPress={() => onSelect(option)}
-                accessibilityLabel={option.name}
-                sentryLabel={CONST.SENTRY_LABEL.ONBOARDING.ACCOUNTING_SELECT_INTEGRATION}
-            />
+            {!option.isComingSoon && (
+                <RadioButton
+                    isChecked={isSelected}
+                    onPress={() => onSelect(option)}
+                    accessibilityLabel={option.name}
+                    sentryLabel={CONST.SENTRY_LABEL.ONBOARDING.ACCOUNTING_SELECT_INTEGRATION}
+                />
+            )}
         </PressableWithoutFeedback>
     );
 }
