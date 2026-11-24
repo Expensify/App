@@ -17,6 +17,7 @@ import type {ReportActions, SearchResults, Transaction} from '@src/types/onyx';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
 import {useIsFocused} from '@react-navigation/native';
+import {deepEqual} from 'fast-equals';
 import {useEffect, useRef} from 'react';
 
 import useIsInPreloadedTab from './useIsInPreloadedTab';
@@ -382,6 +383,10 @@ function hasWrittenTransactionInSearchResults(
 
 /**
  * Whether a transaction the results depend on was replaced in Onyx: it is on screen, or it moved into or out of a report on screen.
+ *
+ * A replaced object only counts when its values differ. Another tab's write reaches this tab as a fresh copy read from
+ * storage, even when nothing changed, and a to-do search response writes every transaction it returns. Without the
+ * value comparison, background tabs on the same to-do search refetch each other's responses forever.
  */
 function hasChangedTransactionInSearchResults(
     transactions: OnyxCollection<Transaction>,
@@ -401,7 +406,7 @@ function hasChangedTransactionInSearchResults(
     for (const key of transactionKeys) {
         const transaction = transactions?.[key];
         const previousTransaction = previousTransactions?.[key];
-        if (!transaction?.transactionID || !previousTransactionKeys.has(key) || previousTransaction === transaction) {
+        if (!transaction?.transactionID || !previousTransactionKeys.has(key) || previousTransaction === transaction || deepEqual(previousTransaction, transaction)) {
             continue;
         }
         if (isGroupedSearch) {

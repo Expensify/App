@@ -463,6 +463,19 @@ describe('useSearchAutoRefetch', () => {
         expect(search).toHaveBeenCalledTimes(1);
     });
 
+    it('should not trigger search in a background tab when another tab writes a transaction in the results with the same values', () => {
+        // Given Search in a tab that is not the leader
+        mockIsClientTheLeader = false;
+        const transaction = createMock<Transaction>({transactionID: '1', amount: 100});
+        const {rerender} = renderWithResults({transactions_1: row('1')}, {transactions_1: transaction});
+
+        // When another tab's Search response writes the same transaction, so this tab reads it back from storage as a new object with unchanged values
+        rerender({transactions: {transactions_1: {...transaction}}});
+
+        // Then Search does not request the results again. Otherwise two background tabs on the same to-do search refetch each other's responses forever.
+        expect(search).not.toHaveBeenCalled();
+    });
+
     it('should trigger the deferred search once Search is active again, after previousTransactions caught up', async () => {
         // Given Search showing an expense while it is offline
         mockIsOffline = true;
