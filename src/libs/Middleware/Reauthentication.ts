@@ -134,7 +134,6 @@ function handleExpiredSession<TKey extends OnyxKey>(
         return Promise.resolve(data);
     }
 
-    // The rejection handler only covers reauthenticate itself, so an error from the replay (e.g. REAUTH_REPLAY_REJECTED or ALREADY_CREATED) reaches the queue unchanged.
     return reauthenticate(request?.commandName).then(
         (result) => {
             if (!result.wasSuccessful) {
