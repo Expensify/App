@@ -6,11 +6,9 @@ import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import LoadingIndicator from '@components/LoadingIndicator';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
-import ParticipantPicker from '@components/ParticipantPicker';
 import PrevNextButtons from '@components/PrevNextButtons';
 import ScreenWrapper from '@components/ScreenWrapper';
 
-import useBlockDistanceRequest from '@hooks/useBlockDistanceRequest';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useFetchRoute from '@hooks/useFetchRoute';
@@ -34,7 +32,6 @@ import {isMobileSafari} from '@libs/Browser';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {
-    getIsWorkspacesOnlyForTransaction,
     getSelectedWorkspacePolicyID,
     isMovingTransactionFromTrackExpense as isMovingTransactionFromTrackExpenseIOUUtils,
     isSelfDMSoleDestination,
@@ -55,7 +52,6 @@ import {
     isDistanceRequest as isDistanceRequestTransactionUtils,
     isManualDistanceRequest as isManualDistanceRequestTransactionUtils,
     isOdometerDistanceRequest as isOdometerDistanceRequestTransactionUtils,
-    isPartiallyEnteredScanExpense,
     isScanning,
     isScanRequest,
 } from '@libs/TransactionUtils';
@@ -85,7 +81,6 @@ import CONST from '@src/CONST';
 import type {IOUType} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
-import SCREENS from '@src/SCREENS';
 import type {Report} from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
 import type {Receipt} from '@src/types/onyx/Transaction';
@@ -97,7 +92,7 @@ import {validTransactionDraftIDsSelector} from '@selectors/TransactionDraft';
 import React, {startTransition, useEffect, useState} from 'react';
 import {View} from 'react-native';
 
-import type {IOURequestStepConfirmationProps, StepConfirmationParams} from './types';
+import type {IOURequestStepConfirmationProps} from './types';
 import type {ConfirmationSubmissionParams, ConfirmationVariantProps} from './variants/types';
 
 import useConfirmationTransactionPager from './useConfirmationTransactionPager';
@@ -163,7 +158,8 @@ function IOURequestStepConfirmationContent({
     const {convertToDisplayString} = useCurrencyListActions();
     const params = route.params;
     const {iouType, reportID, transactionID: initialTransactionID, action, backToReport, backTo} = params;
-    const participantsAutoAssignedFromRoute = route.name === SCREENS.MONEY_REQUEST.STEP_CONFIRMATION ? (params as StepConfirmationParams).participantsAutoAssigned : undefined;
+    // Only the confirmation step route has this param. Checking `route.name` would not narrow `params`, because the route type covers both screens.
+    const participantsAutoAssignedFromRoute = 'participantsAutoAssigned' in params ? params.participantsAutoAssigned : undefined;
 
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const personalDetails = usePersonalDetails();
@@ -259,12 +255,6 @@ function IOURequestStepConfirmationContent({
     const isManualDistanceRequest = isManualDistanceRequestTransactionUtils(transaction);
     const isManualRequest = transaction?.iouRequestType === CONST.IOU.REQUEST_TYPE.MANUAL;
     const isOdometerDistanceRequest = isOdometerDistanceRequestTransactionUtils(transaction);
-    const blockDistanceRequestIfNeeded = useBlockDistanceRequest({
-        policyID: policy?.id,
-        isDistanceRequest,
-        isManualDistanceRequest,
-        isOdometerDistanceRequest,
-    });
     const isTimeRequest = requestType === CONST.IOU.REQUEST_TYPE.TIME;
     const {isLookingAroundUser} = useSubmissionOnboardingIntent();
     const privateIsArchivedMap = usePrivateIsArchivedMap();
@@ -344,25 +334,14 @@ function IOURequestStepConfirmationContent({
         rules,
     });
 
-    const {
-        defaultParticipants,
-        isParticipantPickerVisible,
-        participantPickerIOUType,
-        openParticipantPicker,
-        closeParticipantPicker,
-        closeParticipantPickerForReferralNavigation,
-        handleParticipantsAdded,
-    } = useParticipantPickerState({
+    const {defaultParticipants, openParticipantPicker} = useParticipantPickerState({
         transaction,
-        transactions,
         iouType,
+        action,
         reportID,
         reportDrafts,
         navigation,
-        policyID,
-        isDistanceRequest,
         isManualRequest,
-        blockDistanceRequestIfNeeded,
     });
 
     let isPolicyExpenseChat;
@@ -389,8 +368,8 @@ function IOURequestStepConfirmationContent({
         }
     }
 
-    // The confirmation only validates the transaction it shows, so find the partially filled one across all receipts.
-    const partiallyManuallyFilledScanID = transactions.find((item) => isPartiallyEnteredScanExpense(item, canEnterScanFieldsManually, isPolicyExpenseChat))?.transactionID;
+    // While the next receipt loads the pager still shows the previous one, so filter by the one shown.
+    const siblingTransactions = transactions.filter((item) => item.transactionID !== transaction?.transactionID);
 
     const isFromGlobalCreate = transaction?.isFromGlobalCreate === true || transaction?.isFromFloatingActionButton === true;
 
@@ -593,10 +572,11 @@ function IOURequestStepConfirmationContent({
      */
     const setReceiptOnDrop = (files: FileObject[]) => {
         const file = files.at(0);
-        if (!file) {
+        // Dropped files come from the browser, so they are always Files.
+        if (!(file instanceof File)) {
             return;
         }
-        const source = URL.createObjectURL(file as Blob);
+        const source = URL.createObjectURL(file);
         setMoneyRequestReceipt(currentTransactionID, source, file.name ?? '', true, file.type);
     };
 
@@ -652,7 +632,6 @@ function IOURequestStepConfirmationContent({
     const listProps: ConfirmationVariantProps['listProps'] = {
         transaction,
         selectedParticipants: participants,
-        isParticipantPickerVisible,
         onOpenParticipantPicker: openParticipantPicker,
         onToggleBillable: setBillable,
         showRemoveExpenseConfirmModal: () => {
@@ -674,7 +653,7 @@ function IOURequestStepConfirmationContent({
         isPerDiemRequest,
         shouldShowSmartScanFields,
         canEnterScanFieldsManually,
-        partiallyManuallyFilledScanID,
+        siblingTransactions,
         onSwitchToTransaction: setCurrentTransactionID,
         action,
         isConfirmed,
@@ -813,25 +792,6 @@ function IOURequestStepConfirmationContent({
                         </DragAndDropConsumer>
 
                         {renderSubmissionVariant()}
-
-                        <ParticipantPicker
-                            participants={participants}
-                            iouType={participantPickerIOUType}
-                            action={action}
-                            isPerDiemRequest={isPerDiemRequest}
-                            isTimeRequest={isTimeRequest}
-                            isWorkspacesOnly={getIsWorkspacesOnlyForTransaction(transaction, requestType)}
-                            shouldExcludeP2P={(transaction?.amount ?? 0) < 0}
-                            onParticipantsAdded={handleParticipantsAdded}
-                            onFinish={closeParticipantPicker}
-                            isVisible={isParticipantPickerVisible}
-                            onClose={closeParticipantPicker}
-                            onCloseForReferralNavigation={closeParticipantPickerForReferralNavigation}
-                            // Clicking the backdrop (outside the panel) should dismiss the whole expense creation RHP,
-                            // matching standard RHP behavior, not just close the stacked participant picker.
-                            onBackdropPress={() => Navigation.dismissModal()}
-                            shouldBlockParticipantSelection={blockDistanceRequestIfNeeded}
-                        />
                     </View>
                 </View>
             </DragAndDropProvider>

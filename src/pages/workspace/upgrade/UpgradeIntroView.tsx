@@ -17,6 +17,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type IconAsset from '@src/types/utils/IconAsset';
+import type {SentryLabel} from '@src/types/utils/SentryLabel';
 
 import type {StyleProp, ViewStyle} from 'react-native';
 
@@ -48,7 +49,10 @@ type UpgradeIntroViewProps = {
     unlockBadgeText?: string;
 
     /** Called when the primary button is pressed. */
-    onUpgrade: () => void;
+    onUpgrade: () => void | Promise<void>;
+
+    /** Each flow passes its own, since the primary button runs different work per flow. */
+    upgradeSentryLabel: SentryLabel;
 
     /** Whether the primary button is disabled. */
     buttonDisabled?: boolean;
@@ -71,6 +75,7 @@ function UpgradeIntroView({
     onlyAvailableOnPlanHTML,
     buttonText,
     onUpgrade,
+    upgradeSentryLabel,
     buttonDisabled,
     loading,
     unlockBadgeText,
@@ -116,6 +121,7 @@ function UpgradeIntroView({
                     )}
                 </View>
                 <Button
+                    sentryLabel={upgradeSentryLabel}
                     isLoading={loading}
                     testID="upgrade-button"
                     variant={CONST.BUTTON_VARIANT.SUCCESS}

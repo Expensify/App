@@ -13,6 +13,7 @@ import useOnyx from '@hooks/useOnyx';
 import usePersonalDetailByLogin from '@hooks/usePersonalDetailByLogin';
 import useReconcileHighContrastIntent from '@hooks/useReconcileHighContrastIntent';
 import useReportAttributes from '@hooks/useReportAttributes';
+import useRequestsKeptOnSAMLSignOut from '@hooks/useRequestsKeptOnSAMLSignOut';
 import useRootNavigationState from '@hooks/useRootNavigationState';
 
 import {init, isClientTheLeader} from '@libs/ActiveClientManager';
@@ -51,7 +52,9 @@ import type {ReportAttributesDerivedValue} from '@src/types/onyx';
 import {CommonActions} from '@react-navigation/native';
 import {guidedSetupAndTourStatusSelector} from '@selectors/Onboarding';
 import {accountIDSelector, displayNameSelector} from '@selectors/PersonalDetails';
-import {useEffect, useRef} from 'react';
+import React, {useEffect, useRef} from 'react';
+
+import SearchTabPreload from './SearchTabPreload';
 
 function initializePusher(
     currentUserAccountID: number | undefined,
@@ -119,6 +122,7 @@ function AuthScreensInitHandler() {
     reportAttributesRef.current = reportAttributes;
 
     useReconcileHighContrastIntent();
+    useRequestsKeptOnSAMLSignOut();
 
     const topmostReportID = useRootNavigationState(Navigation.getFocusedReportId);
     // Not `Navigation.isNavigationReady()`: that resolves on the container's first render, before this navigator exists.
@@ -160,7 +164,13 @@ function AuthScreensInitHandler() {
             return;
         }
         // This means sign in in RHP was successful, so we can subscribe to user events
-        initializePusher(session?.accountID, session?.email, () => topmostOneTransactionThreadReportIDRef.current, formatPhoneNumber, () => reportAttributesRef.current);
+        initializePusher(
+            session?.accountID,
+            session?.email,
+            () => topmostOneTransactionThreadReportIDRef.current,
+            formatPhoneNumber,
+            () => reportAttributesRef.current,
+        );
         // eslint-disable-next-line react-hooks/exhaustive-deps -- This handler should only be re-registered when the session changes.
     }, [session?.accountID, session?.email]);
 
@@ -168,14 +178,16 @@ function AuthScreensInitHandler() {
         const isLoggingInAsNewUser = !!session?.email && SessionUtils.isLoggingInAsNewUser(currentUrl, session.email);
         // Sign out the current user if we're transitioning with a different user
         const isTransitioning = currentUrl.includes(ROUTES.TRANSITION_BETWEEN_APPS);
-        const isSupportalTransition = currentUrl.includes('authTokenType=support');
-        if (isLoggingInAsNewUser && isTransitioning) {
+        const isSupportalTransition = getSearchParamFromUrl(currentUrl, 'authTokenType') === CONST.AUTH_TOKEN_TYPES.SUPPORT;
+
+        // A non-supportal account switch waits for the user to confirm in LogOutPreviousUserPage instead of signing out here.
+        if (isLoggingInAsNewUser && isTransitioning && isSupportalTransition) {
             Log.info('[AuthScreensInitHandler] Signing out for a transition to another user', false, {
                 isLinkNamingDelegator: SessionUtils.isLoggingInAsDelegate(currentUrl),
                 isDelegateSession: Session.isDelegateSession(session),
                 isSupportalTransition,
             });
-            Session.signOutAndRedirectToSignIn(false, isSupportalTransition, true, undefined, CONST.SIGN_OUT_REASON.LOGIN_AS_NEW_USER);
+            Session.signOutAndRedirectToSignIn(session, false, isSupportalTransition, true, undefined, CONST.SIGN_OUT_REASON.LOGIN_AS_NEW_USER);
             return () => {
                 Session.cleanupSession();
             };
@@ -189,7 +201,13 @@ function AuthScreensInitHandler() {
         });
         PusherConnectionManager.init();
 
-        initializePusher(session?.accountID, session?.email, () => topmostOneTransactionThreadReportIDRef.current, formatPhoneNumber, () => reportAttributesRef.current).finally(() => {
+        initializePusher(
+            session?.accountID,
+            session?.email,
+            () => topmostOneTransactionThreadReportIDRef.current,
+            formatPhoneNumber,
+            () => reportAttributesRef.current,
+        ).finally(() => {
             endSpan(CONST.TELEMETRY.SPAN_NAVIGATION.PUSHER_INIT);
         });
 
@@ -275,7 +293,13 @@ function AuthScreensInitHandler() {
         return () => task.cancel();
     }, [isLoadingApp, tabNavigatorStateKey]);
 
-    return null;
+    // Its own component, so its Onyx reads re-render only the preload. Rendered here to reuse isLoadingApp and tabNavigatorStateKey.
+    return (
+        <SearchTabPreload
+            isLoadingApp={isLoadingApp}
+            tabNavigatorStateKey={tabNavigatorStateKey}
+        />
+    );
 }
 
 export default AuthScreensInitHandler;

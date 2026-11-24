@@ -27,6 +27,8 @@ import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs
 import DateUtils from '@libs/DateUtils';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import type Platform from '@libs/getPlatform/types';
+import {getIntegrationWaitlistField, getIntegrationWaitlistNVPKey} from '@libs/IntegrationWaitlistUtils';
+import type {WaitlistIntegration} from '@libs/IntegrationWaitlistUtils';
 import Log from '@libs/Log';
 import {getMovedReportID} from '@libs/ModifiedExpenseMessage';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
@@ -47,6 +49,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {ExpenseRuleForm, FlagForReviewRuleForm, MerchantRuleForm, MerchantTypeRuleForm, RequireFieldsRuleForm, SpendRuleForm} from '@src/types/form';
 import type {AppReview, Beta, BlockedFromConcierge, CustomStatusDraft, ExpenseRule, NewLogin, ReportAttributesDerivedValue, Session} from '@src/types/onyx';
+import type {AccountingIntegrationWaitlistConnectionName} from '@src/types/onyx/AccountingIntegrationWaitlist';
 import type Login from '@src/types/onyx/Login';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 import type {AnyOnyxServerUpdate, OnyxServerUpdate} from '@src/types/onyx/OnyxUpdatesFromServer';
@@ -180,7 +183,7 @@ function clearRevokeError(loginKey: string) {
  */
 function closeAccount(reason: string, validateCode: string) {
     // Note: successData does not need to set isLoading to false because if the CloseAccount
-    // command succeeds, a Pusher response will clear all Onyx data.
+    // command succeeds, its response clears all Onyx data.
 
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.FORMS.CLOSE_ACCOUNT_FORM>> = [
         {
@@ -202,12 +205,6 @@ function closeAccount(reason: string, validateCode: string) {
     API.write(WRITE_COMMANDS.CLOSE_ACCOUNT, parameters, {
         optimisticData,
         failureData,
-    }).then((response) => {
-        // The account stays open when the validateCode is rejected, so OldDot must stay signed in to keep the state of both apps in sync
-        if (!CONFIG.IS_HYBRID_APP || response?.jsonCode !== CONST.JSON_CODE.SUCCESS) {
-            return;
-        }
-        HybridAppModule.signOutFromOldDot();
     });
 }
 
@@ -1331,53 +1328,90 @@ function setNameValuePair<TKey extends OnyxKey>(name: TKey, value: SetNameValueP
     });
 }
 
-function joinExactOnlineWaitlist() {
+function joinIntegrationWaitlist(integration: WaitlistIntegration) {
     const signupTimestamp = DateUtils.getDBTime();
+    const nvpKey = getIntegrationWaitlistNVPKey(integration);
+    const field = getIntegrationWaitlistField(integration);
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.ACCOUNT>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.ACCOUNT,
             value: {
-                pendingFields: {exactOnlineWaitlist: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD},
-                errorFields: {exactOnlineWaitlist: null},
+                pendingFields: {[field]: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD},
+                errorFields: {[field]: null},
             },
         },
     ];
     // The confirmation modal must not treat a queued signup as confirmed membership.
-    const successData: Array<OnyxUpdate<typeof ONYXKEYS.NVP_EXACT_ONLINE_WAITLIST | typeof ONYXKEYS.ACCOUNT>> = [
+    const successData: Array<OnyxUpdate<typeof nvpKey | typeof ONYXKEYS.ACCOUNT>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.NVP_EXACT_ONLINE_WAITLIST,
+            key: nvpKey,
             value: signupTimestamp,
         },
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.ACCOUNT,
-            value: {pendingFields: {exactOnlineWaitlist: null}},
+            value: {pendingFields: {[field]: null}},
         },
     ];
-    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.NVP_EXACT_ONLINE_WAITLIST | typeof ONYXKEYS.ACCOUNT>> = [
+    const failureData: Array<OnyxUpdate<typeof nvpKey | typeof ONYXKEYS.ACCOUNT>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.NVP_EXACT_ONLINE_WAITLIST,
+            key: nvpKey,
             value: '',
         },
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.ACCOUNT,
             value: {
-                pendingFields: {exactOnlineWaitlist: null},
-                errorFields: {exactOnlineWaitlist: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage')},
+                pendingFields: {[field]: null},
+                errorFields: {[field]: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage')},
             },
         },
     ];
 
     // The queued request keeps this timestamp when it retries, preserving the original signup time.
-    API.write(WRITE_COMMANDS.SET_NAME_VALUE_PAIR, {name: ONYXKEYS.NVP_EXACT_ONLINE_WAITLIST, value: signupTimestamp}, {optimisticData, successData, failureData});
+    API.write(WRITE_COMMANDS.SET_NAME_VALUE_PAIR, {name: nvpKey, value: signupTimestamp}, {optimisticData, successData, failureData});
 }
 
-function clearExactOnlineWaitlistError() {
-    Onyx.merge(ONYXKEYS.ACCOUNT, {errorFields: {exactOnlineWaitlist: null}});
+function clearIntegrationWaitlistError(integration: WaitlistIntegration) {
+    Onyx.merge(ONYXKEYS.ACCOUNT, {errorFields: {[getIntegrationWaitlistField(integration)]: null}});
+}
+
+/**
+ * Signs the workspace up to hear when an accounting integration becomes available. The server sends back the whole
+ * waitlist, so this only tracks the request itself.
+ */
+function joinAccountingIntegrationWaitlist(policyID: string, connectionName: AccountingIntegrationWaitlistConnectionName) {
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.ACCOUNTING_INTEGRATION_WAITLIST_REQUESTS>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.ACCOUNTING_INTEGRATION_WAITLIST_REQUESTS,
+            value: {[policyID]: {[connectionName]: {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD, errors: null}}},
+        },
+    ];
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.ACCOUNTING_INTEGRATION_WAITLIST_REQUESTS>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.ACCOUNTING_INTEGRATION_WAITLIST_REQUESTS,
+            value: {[policyID]: {[connectionName]: null}},
+        },
+    ];
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.ACCOUNTING_INTEGRATION_WAITLIST_REQUESTS>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.ACCOUNTING_INTEGRATION_WAITLIST_REQUESTS,
+            value: {[policyID]: {[connectionName]: {pendingAction: null, errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage')}}},
+        },
+    ];
+
+    API.write(WRITE_COMMANDS.JOIN_ACCOUNTING_INTEGRATION_WAITLIST, {policyID, connectionName}, {optimisticData, successData, failureData});
+}
+
+/** Removes the workspace's failed attempt to join an accounting integration waitlist, so the user can try again */
+function clearAccountingIntegrationWaitlistError(policyID: string, connectionName: AccountingIntegrationWaitlistConnectionName) {
+    Onyx.merge(ONYXKEYS.ACCOUNTING_INTEGRATION_WAITLIST_REQUESTS, {[policyID]: {[connectionName]: null}});
 }
 
 function dismissMarketingWindow(updateKey: string) {
@@ -1442,6 +1476,10 @@ function setIsDebugModeEnabled(isDebugModeEnabled: boolean) {
 
 function setShouldShowBranchNameInTitle(value: boolean) {
     Onyx.set(ONYXKEYS.SHOULD_SHOW_BRANCH_NAME_IN_TITLE, value);
+}
+
+function setShouldHideEnvironmentBadge(value: boolean) {
+    Onyx.set(ONYXKEYS.SHOULD_HIDE_ENVIRONMENT_BADGE, value);
 }
 
 function setBetaOverride(beta: Beta, value: boolean) {
@@ -2098,8 +2136,10 @@ export {
     clearDraftCustomStatus,
     requestRefund,
     setNameValuePair,
-    joinExactOnlineWaitlist,
-    clearExactOnlineWaitlistError,
+    joinIntegrationWaitlist,
+    clearIntegrationWaitlistError,
+    joinAccountingIntegrationWaitlist,
+    clearAccountingIntegrationWaitlistError,
     setSubmitMigrationModalShown,
     clearUnvalidatedNewContactMethodAction,
     clearPendingContactActionErrors,
@@ -2107,6 +2147,7 @@ export {
     clearValidateCodeActionError,
     setIsDebugModeEnabled,
     setShouldShowBranchNameInTitle,
+    setShouldHideEnvironmentBadge,
     setBetaOverride,
     clearBetaOverride,
     clearBetaOverrides,

@@ -6,6 +6,9 @@ type KeyboardAvoidingViewProps = RNKeyboardAvoidingViewProps & {
      * The KeyboardAvoidingView will use a negative keyboardVerticalOffset.
      */
     shouldOffsetBottomSafeAreaPadding?: boolean;
+
+    /** Measure the view's screen position to account for modal headers on iOS. */
+    automaticOffset?: boolean;
 };
 
 // eslint-disable-next-line import/prefer-default-export

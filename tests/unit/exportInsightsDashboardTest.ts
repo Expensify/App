@@ -5,18 +5,19 @@ import type ExportInsightsDashboard from '@pages/Insights/exportInsightsDashboar
 import type {InsightsCaptureRef} from '@pages/Insights/exportInsightsDashboard/types';
 
 import type {Options} from 'modern-screenshot';
+import type {ComponentRef} from 'react';
 import type {View} from 'react-native';
 
-import {Skia} from '@shopify/react-native-skia';
 import {domToCanvas} from 'modern-screenshot';
+import {PixelRatio, Platform} from 'react-native';
 import RNFS from 'react-native-fs';
 import Share from 'react-native-share';
+import {Skia} from 'react-native-skia';
 import {captureRef, releaseCapture} from 'react-native-view-shot';
 
 import createMock from '../utils/createMock';
 
 const mockDrawImage = jest.fn();
-const mockDrawImageRect = jest.fn();
 const mockClear = jest.fn();
 const mockImageDispose = jest.fn();
 const mockSurfaceDispose = jest.fn();
@@ -28,11 +29,11 @@ jest.mock('modern-screenshot', () => ({domToCanvas: jest.fn()}));
 jest.mock('react-native-view-shot', () => ({captureRef: jest.fn(), releaseCapture: jest.fn()}));
 jest.mock('react-native-share', () => ({open: jest.fn()}));
 jest.mock('react-native-fs', () => ({CachesDirectoryPath: '/cache', writeFile: jest.fn(), unlink: jest.fn()}));
-jest.mock('@shopify/react-native-skia', () => ({
+jest.mock('react-native-skia', () => ({
     Skia: {
         Surface: {
             MakeOffscreen: jest.fn(() => ({
-                getCanvas: () => ({clear: mockClear, drawImage: mockDrawImage, drawImageRect: mockDrawImageRect}),
+                getCanvas: () => ({clear: mockClear, drawImage: mockDrawImage}),
                 flush: jest.fn(),
                 makeImageSnapshot: () => ({encodeToBase64: mockEncode, dispose: mockImageDispose}),
                 dispose: mockSurfaceDispose,
@@ -42,7 +43,6 @@ jest.mock('@shopify/react-native-skia', () => ({
         Image: {MakeImageFromEncoded: jest.fn(() => ({dispose: mockImageDispose}))},
         Paint: () => ({dispose: mockPaintDispose}),
         Color: (color: string) => color,
-        XYWHRect: (x: number, y: number, width: number, height: number) => ({x, y, width, height}),
     },
 }));
 
@@ -103,37 +103,9 @@ describe('exportInsightsDashboard on web', () => {
         expect(domToCanvas).toHaveBeenNthCalledWith(3, content, expect.objectContaining({scale: 2, backgroundColor}));
         expect(fillRect).toHaveBeenCalledWith(0, 0, 1000, 2708);
         expect(drawImage).toHaveBeenCalledWith(headerImage, 0, 0);
-        expect(drawImage).toHaveBeenCalledWith(controlsImage, 200, 168, 400, 60);
+        expect(drawImage).toHaveBeenCalledWith(controlsImage, 200, 168);
         expect(drawImage).toHaveBeenCalledWith(contentImage, 40, 268);
         expect(createDownloadLink).toHaveBeenCalledWith('blob:insights', fileName);
-    });
-
-    it.each([20, -200])('fits the full narrow controls row within the page when its left edge is %s', async (controlsLeft) => {
-        // Given a filter row wider than the page, before or after horizontal scrolling
-        const header = document.createElement('div');
-        const controls = document.createElement('div');
-        const content = document.createElement('div');
-        jest.spyOn(header, 'getBoundingClientRect').mockReturnValue(createMock<DOMRect>({left: 0}));
-        jest.spyOn(controls, 'getBoundingClientRect').mockReturnValue(createMock<DOMRect>({left: controlsLeft}));
-        jest.spyOn(content, 'getBoundingClientRect').mockReturnValue(createMock<DOMRect>({left: 20}));
-        const headerImage = document.createElement('canvas');
-        headerImage.width = 800;
-        headerImage.height = 128;
-        const controlsImage = document.createElement('canvas');
-        controlsImage.width = 1440;
-        controlsImage.height = 72;
-        const contentImage = document.createElement('canvas');
-        contentImage.width = 720;
-        contentImage.height = 2400;
-        captureNode.mockResolvedValueOnce(headerImage).mockResolvedValueOnce(controlsImage).mockResolvedValueOnce(contentImage);
-
-        // When the dashboard is exported at the page's width
-        await exportInsightsDashboard({headerRef: {current: header}, controlsRef: {current: controls}, contentRef: {current: content}, fileName, backgroundColor});
-
-        // Then every filter fits between the page margins without stretching or overlapping the content
-        expect(fillRect).toHaveBeenCalledWith(0, 0, 800, 2684);
-        expect(drawImage).toHaveBeenCalledWith(controlsImage, 40, 168, 720, 36);
-        expect(drawImage).toHaveBeenCalledWith(contentImage, 40, 244);
     });
 
     it('propagates a PNG encoding failure instead of downloading an empty file', async () => {
@@ -202,7 +174,7 @@ describe('exportInsightsDashboard on web', () => {
 
 describe('exportInsightsDashboard on native', () => {
     function makeRef(height: number, x = 0, width = 400): InsightsCaptureRef {
-        return {current: createMock<View>({measureInWindow: (callback) => callback(x, 0, width, height)})};
+        return {current: createMock<ComponentRef<typeof View>>({measureInWindow: (callback) => callback(x, 0, width, height)})};
     }
 
     beforeEach(() => {
@@ -213,8 +185,17 @@ describe('exportInsightsDashboard on native', () => {
         jest.mocked(Share.open).mockResolvedValue({success: false, message: ''});
     });
 
-    it('shares a named temporary PNG and cleans up when the share sheet is dismissed', async () => {
-        // Given a page header and filter row above an inset dashboard taller than the viewport
+    afterEach(() => jest.restoreAllMocks());
+
+    it.each([
+        {platform: 'iOS', os: 'ios' as const, prefix: '', capturePixelRatio: 3},
+        {platform: 'Android', os: 'android' as const, prefix: 'file://', capturePixelRatio: 1},
+    ])('shares a named temporary PNG and cleans up dismissed sharing on $platform', async ({os, prefix, capturePixelRatio}) => {
+        // Given a 3x native screen and a dashboard taller than the viewport
+        jest.replaceProperty(Platform, 'OS', os);
+        jest.spyOn(PixelRatio, 'get').mockReturnValue(3);
+        const loadCapture = jest.spyOn(Skia.Data, 'fromURI');
+        jest.mocked(captureRef).mockReset().mockResolvedValueOnce(`${prefix}/header.png`).mockResolvedValueOnce(`${prefix}/controls.png`).mockResolvedValueOnce(`${prefix}/content.png`);
         const headerRef = makeRef(64, 0, 500);
         const controlsRef = makeRef(30, 100, 280);
         const contentRef = makeRef(1200, 20);
@@ -222,32 +203,27 @@ describe('exportInsightsDashboard on native', () => {
         // When the dashboard is exported and the user cancels sharing
         await exportInsightsDashboardNative({headerRef, controlsRef, contentRef, fileName, backgroundColor});
 
-        // Then capture uses 2x dimensions, sharing does not treat cancellation as failure, and temporary files are removed
-        expect(captureRef).toHaveBeenNthCalledWith(3, contentRef, expect.objectContaining({width: 800, height: 2400, handleGLSurfaceViewOnAndroid: true}));
+        // Then capture produces 2x pixels on either platform and cleanup retains the original paths
+        expect(loadCapture).toHaveBeenNthCalledWith(1, 'file:///header.png');
+        expect(loadCapture).toHaveBeenNthCalledWith(2, 'file:///controls.png');
+        expect(loadCapture).toHaveBeenNthCalledWith(3, 'file:///content.png');
+        expect(captureRef).toHaveBeenNthCalledWith(
+            3,
+            contentRef,
+            expect.objectContaining({width: 800 / capturePixelRatio, height: 2400 / capturePixelRatio, handleGLSurfaceViewOnAndroid: true}),
+        );
         expect(Skia.Surface.MakeOffscreen).toHaveBeenCalledWith(1000, 2708);
         expect(mockClear).toHaveBeenCalledWith(backgroundColor);
-        expect(mockDrawImageRect).toHaveBeenCalledWith(expect.anything(), {x: 0, y: 0, width: 560, height: 60}, {x: 200, y: 168, width: 560, height: 60}, expect.anything());
-        expect(mockDrawImage).toHaveBeenNthCalledWith(2, expect.anything(), 40, 268, expect.anything());
+        expect(mockDrawImage).toHaveBeenNthCalledWith(2, expect.anything(), 200, 168, expect.anything());
+        expect(mockDrawImage).toHaveBeenNthCalledWith(3, expect.anything(), 40, 268, expect.anything());
         expect(RNFS.writeFile).toHaveBeenCalledWith(`/cache/${fileName}`, 'png-base64', 'base64');
         expect(Share.open).toHaveBeenCalledWith({url: `file:///cache/${fileName}`, type: 'image/png', failOnCancel: false});
         expect(RNFS.unlink).toHaveBeenCalledWith(`/cache/${fileName}`);
         expect(releaseCapture).toHaveBeenCalledTimes(3);
+        expect(releaseCapture).toHaveBeenNthCalledWith(1, `${prefix}/header.png`);
+        expect(releaseCapture).toHaveBeenNthCalledWith(2, `${prefix}/controls.png`);
+        expect(releaseCapture).toHaveBeenNthCalledWith(3, `${prefix}/content.png`);
         expect(mockSurfaceDispose).toHaveBeenCalledTimes(1);
-    });
-
-    it.each([20, -200])('fits the full narrow controls row within the page when its left edge is %s', async (controlsLeft) => {
-        // Given a filter row wider than the page, before or after horizontal scrolling
-        const headerRef = makeRef(64, 0, 400);
-        const controlsRef = makeRef(36, controlsLeft, 720);
-        const contentRef = makeRef(1200, 20, 360);
-
-        // When the dashboard is exported at the page's width
-        await exportInsightsDashboardNative({headerRef, controlsRef, contentRef, fileName, backgroundColor});
-
-        // Then the full row is scaled into the margins and the content starts below its fitted height
-        expect(Skia.Surface.MakeOffscreen).toHaveBeenCalledWith(800, 2684);
-        expect(mockDrawImageRect).toHaveBeenCalledWith(expect.anything(), {x: 0, y: 0, width: 1440, height: 72}, {x: 40, y: 168, width: 720, height: 36}, expect.anything());
-        expect(mockDrawImage).toHaveBeenNthCalledWith(2, expect.anything(), 40, 244, expect.anything());
     });
 
     it('releases a partial capture when the next section fails', async () => {

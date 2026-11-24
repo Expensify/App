@@ -17,7 +17,6 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Card} from '@src/types/onyx';
-import type {CompanyCardFeed} from '@src/types/onyx/CardFeeds';
 
 import React, {useEffect, useEffectEvent} from 'react';
 
@@ -94,14 +93,16 @@ function FixCompanyCardConnection({card, policyID, policyName}: FixCompanyCardCo
         return <FixCompanyCardConnectionSkeleton />;
     }
 
-    const customFeedName = cardFeeds?.settings?.companyCardNicknames?.[card.bank as CompanyCardFeed];
-    const feedName = getCustomOrFormattedFeedName(translate, card.bank as CompanyCardFeed, customFeedName, false) ?? '';
+    const customFeedName = cardFeeds?.settings?.companyCardNicknames?.[card.bank];
+    const feedName = getCustomOrFormattedFeedName(translate, card.bank, customFeedName, false) ?? '';
     const subtitle = policyName
         ? translate('homePage.timeSensitiveSection.fixCompanyCardConnection.subtitle', {policyName})
         : translate('homePage.timeSensitiveSection.fixCompanyCardConnection.defaultSubtitle');
 
     return (
         <BaseWidgetItem
+            sentryLabel={CONST.SENTRY_LABEL.HOME_PAGE.TIME_SENSITIVE_ITEM.FIX_COMPANY_CARD_CONNECTION}
+            buttonSentryLabel={CONST.SENTRY_LABEL.HOME_PAGE.TIME_SENSITIVE_ITEM_BUTTON.FIX_COMPANY_CARD_CONNECTION}
             icon={icons.Connect}
             title={translate('homePage.timeSensitiveSection.fixCompanyCardConnection.title', {feedName})}
             subtitle={subtitle}

@@ -114,7 +114,7 @@ From **Workspaces**, workspace admins can:
 - Manage members under **Members**
 - Enable features under **More features**
 - Configure workflows
-- Connect accounting integrations under **Accounting**
+- Connect accounting integrations under **Connections**
 - Manage categories and tags
 
 Learn how to [create and set up a company workspace](/articles/new-expensify/getting-started/Create-a-company-workspace). 
@@ -138,7 +138,7 @@ You can also access:
  - **Help** to access help and support resources, including support contacts
  - **What's new** to view product updates
  - **About** to see app details
- - **Troubleshoot** to run diagnostics or switch to Expensify Classic
+ - **Troubleshoot** to run diagnostics or select **Switch to Expensify Classic** if you're eligible. [Learn who can switch to Expensify Classic](/articles/new-expensify/settings/Switch-between-New-Expensify-and-Expensify-Classic#who-can-switch-between-new-expensify-and-expensify-classic).
  - **Save the world** to explore Expensify.org campaigns
  - **Sign out** to log out of your account
 
@@ -165,9 +165,8 @@ If your account manager, partner manager, or guide has a scheduling link set up,
 
 - On the **Help** page, next to each support contact that has a scheduling link (account manager, partner manager, or guide).
 - In the header of your direct message with that support contact.
-- In the header of your **Concierge** chat.
 
-In **Concierge**, only one **Book a call** button appears at a time, even if more than one of your support contacts has a scheduling link.
+In your **Concierge** chat, select **Talk to a human** in the header to request support instead.
 
 The **Book a call** button only appears if the support contact has a scheduling link configured. If you don't see it, you can still message the support contact directly or ask **Concierge** to help schedule a call.
 
@@ -220,7 +219,7 @@ You can start common actions from **Search** instead of using the **➕ Create**
 2. Type the name of the action you want to start, such as **Create expense**, **Create report**, **Track distance**, **Start chat**, or **Book travel**. You can also type **go** or **go to** before the name, such as **go to book travel**.
 3. Select the action to start it.
 
-Only the actions available to you appear. **Book travel** appears only when Expensify Travel is enabled on your active workspace, and it opens the same booking tool as the **Book travel** option in the **➕ Create** button.
+Only the actions available to you appear. **Book travel** appears when any of your accessible workspaces has Expensify Travel enabled and set up, just like the **Book travel** option in the **➕ Create** button. If your default workspace has Expensify Travel disabled, either option explains why you can't book travel yet.
 
 Learn how to [enable Expensify Travel on a workspace](/articles/travel/company-setup/Enable-Travel-on-a-Workspace).
 
@@ -264,7 +263,7 @@ Yes. Select the **Search** icon, type **Book travel**, then select the **Book tr
 
 ## Why don’t I see Book travel in Search?
 
-**Book travel** appears only when Expensify Travel is enabled on your active workspace. If a different workspace has Expensify Travel enabled, make that workspace active and search again. If no workspace has it enabled, ask a workspace admin to [enable Expensify Travel on a workspace](/articles/travel/company-setup/Enable-Travel-on-a-Workspace).
+**Book travel** appears when any of your accessible workspaces has Expensify Travel enabled and set up. If none do, ask a workspace admin to [enable Expensify Travel on a workspace](/articles/travel/company-setup/Enable-Travel-on-a-Workspace). If your default workspace has Expensify Travel disabled, selecting **Book travel** explains why you can't book travel yet.
 
 ## Where do I manage workspace settings?
 
@@ -299,7 +298,7 @@ If no contacts are assigned, these options will not appear on the **Help** page.
 
 ## Why don't I see the Book a call button?
 
-You'll only see the **Book a call** button if you have an assigned support contact (account manager, partner manager, or guide) who has a scheduling link configured. If no support contact is assigned or none has a scheduling link set up, the button won't appear. In **Concierge**, only one **Book a call** button shows at a time.
+You'll only see the **Book a call** button if you have an assigned support contact (account manager, partner manager, or guide) who has a scheduling link configured. If no support contact is assigned or none has a scheduling link set up, the button won't appear. In your **Concierge** chat, the header shows **Talk to a human** instead.
 
 ## Are there keyboard shortcuts for opening reports or workspaces?
 

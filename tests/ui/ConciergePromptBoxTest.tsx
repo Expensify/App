@@ -1,12 +1,16 @@
+// cspell:ignore Donnerstag Januar
 import {act, fireEvent, render, screen, waitFor} from '@testing-library/react-native';
 
 import type {Emoji} from '@assets/emojis/types';
 
+import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import type Mention from '@components/MentionSuggestions/types';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import useAskConcierge from '@components/Search/SearchRouter/useAskConcierge';
+import {KeyboardShownRefContext} from '@components/withKeyboardState';
 
-import useKeyboardState from '@hooks/useKeyboardState';
+import useLocalize from '@hooks/useLocalize';
+import type * as UseLocalizeModule from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 
 import type * as BrowserModule from '@libs/Browser';
@@ -150,8 +154,6 @@ jest.mock('@react-navigation/core', () => ({
 
 jest.mock('@hooks/useResponsiveLayout', () => jest.fn());
 
-jest.mock('@hooks/useKeyboardState', () => jest.fn());
-
 jest.mock('@libs/Browser', () => ({
     ...jest.requireActual<typeof BrowserModule>('@libs/Browser'),
     isSafari: jest.fn(() => false),
@@ -184,20 +186,24 @@ const mockUsePersonalDetails = jest.mocked(usePersonalDetails);
 const mockUseAskConcierge = jest.mocked(useAskConcierge);
 const mockUseIsFocused = jest.mocked(useIsFocused);
 const mockUseResponsiveLayout = jest.mocked(useResponsiveLayout);
-const mockUseKeyboardState = jest.mocked(useKeyboardState);
 const mockIsSafari = jest.mocked(isSafari);
 const mockClose = jest.mocked(close);
 const mockIsAnonymousUser = jest.mocked(isAnonymousUser);
 const mockSignOutAndRedirectToSignIn = jest.mocked(signOutAndRedirectToSignIn);
 
+// Stands in for the ref KeyboardStateProvider keeps up to date, so tests can show or hide the keyboard without a re-render.
+const keyboardShownRef = {current: false};
+
 function ConciergePromptBoxWrapper({isCopyLoading = false}: {isCopyLoading?: boolean} = {}) {
     const [isMenuVisible, setIsMenuVisible] = useState(false);
     return (
-        <ConciergePromptBox
-            isMenuVisible={isMenuVisible}
-            setIsMenuVisible={setIsMenuVisible}
-            isCopyLoading={isCopyLoading}
-        />
+        <KeyboardShownRefContext.Provider value={keyboardShownRef}>
+            <ConciergePromptBox
+                isMenuVisible={isMenuVisible}
+                setIsMenuVisible={setIsMenuVisible}
+                isCopyLoading={isCopyLoading}
+            />
+        </KeyboardShownRefContext.Provider>
     );
 }
 
@@ -218,13 +224,7 @@ function setResponsiveLayout(shouldUseNarrowLayout: boolean) {
 }
 
 function setKeyboardShown(isKeyboardShown: boolean) {
-    mockUseKeyboardState.mockReturnValue({
-        isKeyboardShown,
-        isKeyboardActive: isKeyboardShown,
-        keyboardHeight: isKeyboardShown ? 300 : 0,
-        keyboardActiveHeight: isKeyboardShown ? 300 : 0,
-        isKeyboardAnimatingRef: {current: false},
-    });
+    keyboardShownRef.current = isKeyboardShown;
 }
 
 function setAskConcierge(shouldShowAskConcierge = true) {
@@ -320,6 +320,35 @@ describe('ConciergePromptBox', () => {
         mockIsSafari.mockReturnValue(false);
         mockIsAnonymousUser.mockReturnValue(false);
         mockUseIsFocused.mockReturnValue(true);
+    });
+
+    it('renders the Home date with German weekday and date order without a year', async () => {
+        // Given the German app preference and a fixed date in the provider's selected timezone
+        jest.useFakeTimers({doNotFake: ['setImmediate', 'nextTick']});
+        jest.setSystemTime(new Date('2026-01-22T20:00:00Z'));
+        const originalImplementation = jest.mocked(useLocalize).getMockImplementation();
+        jest.mocked(useLocalize).mockImplementation(jest.requireActual<typeof UseLocalizeModule>('@hooks/useLocalize').default);
+        await act(async () => Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, CONST.LOCALES.DE));
+        let rendered: ReturnType<typeof render> | undefined;
+        try {
+            // When the actual Home prompt uses the real locale provider and date formatter
+            rendered = render(
+                <LocaleContextProvider>
+                    <ConciergePromptBoxWrapper />
+                </LocaleContextProvider>,
+            );
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the heading is a German weekday/month/day phrase, not English ordering with translated words
+            expect(screen.getByText('Donnerstag, 22. Januar')).toBeOnTheScreen();
+        } finally {
+            rendered?.unmount();
+            if (originalImplementation) {
+                jest.mocked(useLocalize).mockImplementation(originalImplementation);
+            }
+            await act(async () => Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, null));
+            jest.useRealTimers();
+        }
     });
 
     describe('sending a message', () => {
@@ -625,13 +654,12 @@ describe('ConciergePromptBox', () => {
         });
 
         it('does not submit while the on-screen keyboard is up', () => {
-            // Given a narrow layout with the keyboard shown, where Enter inserts a newline instead
-            setResponsiveLayout(true);
-            setKeyboardShown(true);
+            // Given a wide layout, so only the keyboard decides whether Enter submits, and a typed message
             render(<ConciergePromptBoxWrapper />);
             fireEvent.changeText(getInput(), 'Where is my expense?');
 
-            // When Enter is pressed
+            // When the keyboard comes up without re-rendering the box, as KeyboardStateProvider does, and Enter is pressed
+            setKeyboardShown(true);
             pressEnter();
 
             // Then nothing is sent

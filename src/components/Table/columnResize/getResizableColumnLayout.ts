@@ -9,8 +9,9 @@ import type {ValueOf} from 'type-fest';
 import type {ResizableColumn} from './resolveDraggedColumnWidths';
 
 import {SCROLL_EXTENT_FLOOR_VARIABLE, getColumnWidthValue, getColumnsWidthExpression, getGrowableColumnTrack} from './columnWidthExpressions';
+import getAbsorbedColumnWidths from './getAbsorbedColumnWidths';
 import getColumnsWidthSum from './getColumnsWidthSum';
-import resolveDraggedColumnWidths, {isColumnResizable} from './resolveDraggedColumnWidths';
+import resolveDraggedColumnWidths, {getColumnAbsorbers, isColumnResizable} from './resolveDraggedColumnWidths';
 
 type ColumnWidthTarget = ValueOf<typeof CONST.TABLES.COLUMN_RESIZE.WIDTH_TARGET>;
 
@@ -100,6 +101,24 @@ function getResizableColumnLayout({columns, resolvedColumnWidths, resizedColumnK
     const growableColumnKey = columns.findLast((column) => !!column.label)?.key;
     const availableColumnsWidth = getAvailableColumnsWidth(tableWidth, rowChromeWidths);
     const columnWidths = {...resolvedColumnWidths};
+
+    // A badge or other content that never truncates overflows into the next cell once the column is dragged under it.
+    // A width saved below that floor is raised here, and the columns to its right give the space back, the same as a drag.
+    for (const [index, column] of columns.entries()) {
+        if (!isColumnResizable(column) || column.dragMinWidth === undefined) {
+            continue;
+        }
+
+        const deficit = column.dragMinWidth - (columnWidths[column.key] ?? 0);
+
+        if (deficit <= 0) {
+            continue;
+        }
+
+        columnWidths[column.key] = column.dragMinWidth;
+        Object.assign(columnWidths, getAbsorbedColumnWidths(getColumnAbsorbers(columns.slice(index + 1), resizedColumnKeys), columnWidths, deficit));
+    }
+
     const resizableColumnKeys = columns.filter(isColumnResizable).map((column) => column.key);
     const isGrowableColumnResizable = !!growableColumnKey && resizableColumnKeys.includes(growableColumnKey);
 
@@ -107,7 +126,8 @@ function getResizableColumnLayout({columns, resolvedColumnWidths, resizedColumnK
     // A fixed-width column only fills the leftover through its track, so a drag takes that room before the row overflows.
     // Floored so the row never overflows the table by a fraction of a pixel.
     if (growableColumnKey && isGrowableColumnResizable) {
-        const leftoverWidth = Math.floor(availableColumnsWidth - getColumnsWidthSum(columns, resolvedColumnWidths));
+        // From the raised widths, so a column lifted to its drag floor gives that space back instead of overflowing the row.
+        const leftoverWidth = Math.floor(availableColumnsWidth - getColumnsWidthSum(columns, columnWidths));
         columnWidths[growableColumnKey] = (columnWidths[growableColumnKey] ?? 0) + Math.max(leftoverWidth, 0);
     }
 
@@ -130,6 +150,16 @@ function getResizableColumnLayout({columns, resolvedColumnWidths, resizedColumnK
 
         // A width already below the drag bound stays put rather than jumping wider.
         dragMinWidths[growableColumnKey] = Math.min(minWidth, paintedWidth);
+    }
+
+    for (const column of columns) {
+        if (!isColumnResizable(column) || column.dragMinWidth === undefined) {
+            continue;
+        }
+
+        // The last headed column's floor falls back to the usual drag bound once the row overflows, which is narrow
+        // enough to paint a badge over the next cell. Keep the column's own floor when it is the stricter one.
+        dragMinWidths[column.key] = Math.max(dragMinWidths[column.key] ?? 0, column.dragMinWidth);
     }
 
     // Held to the same bounds as a drag, so a fit never leaves the room a drag couldn't, which the growable column would take back on the next render.

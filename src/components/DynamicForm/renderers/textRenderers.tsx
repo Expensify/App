@@ -1,10 +1,11 @@
 import AmountForm from '@components/AmountForm';
-import CurrencyPicker from '@components/CurrencyPicker';
 import DatePicker from '@components/DatePicker';
+import CurrencyDropdownAdapter from '@components/DynamicForm/adapters/CurrencyDropdownAdapter';
 import DynamicFormOnFileTextInput from '@components/DynamicForm/components/DynamicFormOnFileTextInput';
 import getLocalizedText, {getFieldLabel, getInputLabel} from '@components/DynamicForm/utils/getLocalizedText';
 import hasProvidedAnswer from '@components/DynamicForm/utils/hasProvidedAnswer';
 import InputWrapper from '@components/Form/InputWrapper';
+import FSClassView from '@components/FSClassView';
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 import PercentageForm from '@components/PercentageForm';
 import TextInput from '@components/TextInput';
@@ -105,9 +106,9 @@ const TEXT_RENDERERS: Pick<DynamicFieldRendererMap, 'text' | 'number' | 'date' |
     amount: (field, {values, translate, styles, currency}, inputProps) => {
         const chosenCurrency = field.currencyKey ? values[field.currencyKey] : undefined;
         const amountCurrency = typeof chosenCurrency === 'string' && chosenCurrency !== '' ? chosenCurrency : currency;
-        // AmountForm takes no FullStory class, so the mask goes on a View around it
+        // AmountForm takes no FullStory class, so the mask goes on an FSClassView around it, which its input follows
         const amountInput = (
-            <View fsClass={inputProps.forwardedFSClass}>
+            <FSClassView forwardedFSClass={inputProps.forwardedFSClass}>
                 <InputWrapper
                     InputComponent={AmountForm}
                     {...inputProps}
@@ -116,7 +117,7 @@ const TEXT_RENDERERS: Pick<DynamicFieldRendererMap, 'text' | 'number' | 'date' |
                     displayAsTextInput
                     isCurrencyPressable={false}
                 />
-            </View>
+            </FSClassView>
         );
         if (!field.currencyKey) {
             return {isMenuRow: false, input: amountInput};
@@ -125,18 +126,18 @@ const TEXT_RENDERERS: Pick<DynamicFieldRendererMap, 'text' | 'number' | 'date' |
             isMenuRow: false,
             input: (
                 <>
-                    {/* The picker is a push row, so it pulls into the field row's padding to sit as far from its neighbors as a push row does */}
-                    <View style={[styles.mhn5, styles.mtn1, styles.mb3]}>
+                    {/* Spaced from the amount the way two neighboring fields are */}
+                    <View style={styles.mb4}>
                         <InputWrapper
-                            InputComponent={CurrencyPicker}
+                            InputComponent={CurrencyDropdownAdapter}
                             inputID={field.currencyKey}
                             shouldSaveDraft={inputProps.shouldSaveDraft}
                             forwardedFSClass={inputProps.forwardedFSClass}
-                            // A sensitive currency is not drafted, so the picker starts from the one kept in memory
+                            // A sensitive currency is not drafted, so the dropdown starts from the one kept in memory
                             defaultValue={amountCurrency}
                             label={translate('common.currency')}
+                            title={translate('common.currency')}
                             accessibilityLabel={`${translate('common.currency')}, ${getFieldLabel(field, translate)}`}
-                            shouldReadErrorWithLabel
                         />
                     </View>
                     {amountInput}

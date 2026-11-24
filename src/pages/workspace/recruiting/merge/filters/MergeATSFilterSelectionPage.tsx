@@ -134,6 +134,7 @@ function MergeATSFilterSelectionPage({
                         addBottomSafeAreaPadding
                     >
                         <Button
+                            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RECRUITING.MERGE_ATS_FILTER_SELECTION_SAVE}
                             size={CONST.BUTTON_SIZE.LARGE}
                             variant={CONST.BUTTON_VARIANT.SUCCESS}
                             onPress={handleSave}

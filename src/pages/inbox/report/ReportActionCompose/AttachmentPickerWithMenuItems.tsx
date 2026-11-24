@@ -14,6 +14,7 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
+import {useGetPersonalDetailsByLogin} from '@hooks/usePersonalDetailByLogin';
 import usePopoverPosition from '@hooks/usePopoverPosition';
 import usePreferredPolicy from '@hooks/usePreferredPolicy';
 import usePrevious from '@hooks/usePrevious';
@@ -60,6 +61,11 @@ type MoneyRequestOptions = Record<
     Exclude<IOUType, typeof CONST.IOU.TYPE.REQUEST | typeof CONST.IOU.TYPE.SEND | typeof CONST.IOU.TYPE.CREATE | typeof CONST.IOU.TYPE.SPLIT_EXPENSE>,
     PopoverMenuItem[]
 >;
+
+const POPOVER_ANCHOR_ALIGNMENT = {
+    horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
+    vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
+};
 
 type AttachmentPickerWithMenuItemsProps = {
     report: OnyxEntry<OnyxTypes.Report>;
@@ -151,7 +157,6 @@ function AttachmentPickerWithMenuItems({
     const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
     const [lastDistanceExpenseType] = useOnyx(ONYXKEYS.NVP_LAST_DISTANCE_EXPENSE_TYPE);
     const [draftTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftIDsSelector});
-    const distanceExpenseType = getDistanceExpenseTypeForPolicy(policy, lastDistanceExpenseType);
     const blockDistanceRequestIfNeeded = useBlockDistanceRequest({
         policyID: policy?.id,
         isDistanceRequest: true,
@@ -169,6 +174,7 @@ function AttachmentPickerWithMenuItems({
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
     const {getCurrencyDecimals} = useCurrencyListActions();
+    const getPersonalDetailsByLogin = useGetPersonalDetailsByLogin();
 
     const selectOption = (onSelected: () => void, shouldRestrictAction: boolean) => {
         if (
@@ -190,17 +196,18 @@ function AttachmentPickerWithMenuItems({
         onConfirm: (shouldDismissEmptyReportsConfirmation) =>
             selectOption(
                 () =>
-                    createNewReport(
-                        currentUserPersonalDetails,
+                    createNewReport({
+                        ownerPersonalDetails: currentUserPersonalDetails,
                         hasViolations,
                         isASAPSubmitBetaEnabled,
                         policy,
                         isTrackIntentUser,
                         getCurrencyDecimals,
                         rules,
-                        true,
+                        personalDetailsByLogins: getPersonalDetailsByLogin(),
+                        shouldNotifyNewAction: true,
                         shouldDismissEmptyReportsConfirmation,
-                    ),
+                    }),
                 true,
             ),
     });
@@ -209,10 +216,21 @@ function AttachmentPickerWithMenuItems({
         if (shouldShowEmptyReportConfirmation) {
             openCreateReportConfirmation();
         } else {
-            createNewReport(currentUserPersonalDetails, hasViolations, isASAPSubmitBetaEnabled, policy, isTrackIntentUser, getCurrencyDecimals, rules, true, false);
+            createNewReport({
+                ownerPersonalDetails: currentUserPersonalDetails,
+                hasViolations,
+                isASAPSubmitBetaEnabled,
+                policy,
+                isTrackIntentUser,
+                getCurrencyDecimals,
+                rules,
+                personalDetailsByLogins: getPersonalDetailsByLogin(),
+                shouldNotifyNewAction: true,
+            });
         }
     };
 
+    const distanceExpenseType = getDistanceExpenseTypeForPolicy(policy, lastDistanceExpenseType);
     const isReportTeachersUnite = isTeachersUniteReport(report);
 
     /**
@@ -224,7 +242,7 @@ function AttachmentPickerWithMenuItems({
                 icon: icons.Transfer,
                 text: translate('iou.splitExpense'),
                 shouldCallAfterModalHide: shouldUseNarrowLayout,
-                sentryLabel: CONST.SENTRY_LABEL.REPORT.ATTACHMENT_PICKER_MENU_SPLIT_EXPENSE,
+                sentryLabel: CONST.SENTRY_LABEL.REPORT.ATTACHMENT_PICKER_MENU.SPLIT_EXPENSE,
                 onSelected: () => selectOption(() => startMoneyRequest(CONST.IOU.TYPE.SPLIT, report?.reportID ?? String(CONST.DEFAULT_NUMBER_ID), draftTransactionIDs), true),
             },
         ],
@@ -233,14 +251,14 @@ function AttachmentPickerWithMenuItems({
                 icon: getIconForAction(CONST.IOU.TYPE.CREATE, icons),
                 text: translate('iou.createExpense'),
                 shouldCallAfterModalHide: shouldUseNarrowLayout,
-                sentryLabel: CONST.SENTRY_LABEL.REPORT.ATTACHMENT_PICKER_MENU_CREATE_EXPENSE,
+                sentryLabel: CONST.SENTRY_LABEL.REPORT.ATTACHMENT_PICKER_MENU.CREATE_EXPENSE,
                 onSelected: () => selectOption(() => startMoneyRequest(CONST.IOU.TYPE.SUBMIT, report?.reportID ?? String(CONST.DEFAULT_NUMBER_ID), draftTransactionIDs), true),
             },
             {
                 icon: icons.Location,
                 text: translate('quickAction.recordDistance'),
                 shouldCallAfterModalHide: shouldUseNarrowLayout,
-                sentryLabel: CONST.SENTRY_LABEL.REPORT.ATTACHMENT_PICKER_MENU_TRACK_DISTANCE,
+                sentryLabel: CONST.SENTRY_LABEL.REPORT.ATTACHMENT_PICKER_MENU.TRACK_DISTANCE,
                 onSelected: () =>
                     selectOption(() => {
                         if (blockDistanceRequestIfNeeded()) {
@@ -255,7 +273,7 @@ function AttachmentPickerWithMenuItems({
                 icon: getIconForAction(CONST.IOU.TYPE.SEND, icons),
                 text: translate('iou.paySomeone', getPayeeName(report, translate, accountID)),
                 shouldCallAfterModalHide: shouldUseNarrowLayout,
-                sentryLabel: CONST.SENTRY_LABEL.REPORT.ATTACHMENT_PICKER_MENU_PAY_SOMEONE,
+                sentryLabel: CONST.SENTRY_LABEL.REPORT.ATTACHMENT_PICKER_MENU.PAY_SOMEONE,
                 onSelected: () => {
                     if (isDelegateAccessRestricted) {
                         close(() => {
@@ -272,14 +290,14 @@ function AttachmentPickerWithMenuItems({
                 icon: getIconForAction(CONST.IOU.TYPE.CREATE, icons),
                 text: translate('iou.createExpense'),
                 shouldCallAfterModalHide: shouldUseNarrowLayout,
-                sentryLabel: CONST.SENTRY_LABEL.REPORT.ATTACHMENT_PICKER_MENU_CREATE_EXPENSE,
+                sentryLabel: CONST.SENTRY_LABEL.REPORT.ATTACHMENT_PICKER_MENU.CREATE_EXPENSE,
                 onSelected: () => selectOption(() => startMoneyRequest(CONST.IOU.TYPE.TRACK, report?.reportID ?? String(CONST.DEFAULT_NUMBER_ID), draftTransactionIDs), true),
             },
             {
                 icon: icons.Location,
                 text: translate('iou.trackDistance'),
                 shouldCallAfterModalHide: shouldUseNarrowLayout,
-                sentryLabel: CONST.SENTRY_LABEL.REPORT.ATTACHMENT_PICKER_MENU_TRACK_DISTANCE,
+                sentryLabel: CONST.SENTRY_LABEL.REPORT.ATTACHMENT_PICKER_MENU.TRACK_DISTANCE,
                 onSelected: () =>
                     selectOption(() => {
                         if (blockDistanceRequestIfNeeded()) {
@@ -294,7 +312,7 @@ function AttachmentPickerWithMenuItems({
                 icon: icons.InvoiceGeneric,
                 text: translate('workspace.invoices.sendInvoice'),
                 shouldCallAfterModalHide: shouldUseNarrowLayout,
-                sentryLabel: CONST.SENTRY_LABEL.REPORT.ATTACHMENT_PICKER_MENU_SEND_INVOICE,
+                sentryLabel: CONST.SENTRY_LABEL.REPORT.ATTACHMENT_PICKER_MENU.SEND_INVOICE,
                 onSelected: () => selectOption(() => startMoneyRequest(CONST.IOU.TYPE.INVOICE, report?.reportID ?? String(CONST.DEFAULT_NUMBER_ID), draftTransactionIDs), false),
             },
         ],
@@ -312,7 +330,7 @@ function AttachmentPickerWithMenuItems({
                       icon: icons.Document,
                       text: translate('report.newReport.createReport'),
                       shouldCallAfterModalHide: shouldUseNarrowLayout,
-                      sentryLabel: CONST.SENTRY_LABEL.REPORT.ATTACHMENT_PICKER_MENU_CREATE_REPORT,
+                      sentryLabel: CONST.SENTRY_LABEL.REPORT.ATTACHMENT_PICKER_MENU.CREATE_REPORT,
                       onSelected: () => selectOption(() => handleCreateReport(), true),
                   },
               ];
@@ -327,10 +345,22 @@ function AttachmentPickerWithMenuItems({
                   icon: icons.Task,
                   text: translate('newTaskPage.assignTask'),
                   shouldCallAfterModalHide: shouldUseNarrowLayout,
-                  sentryLabel: CONST.SENTRY_LABEL.REPORT.ATTACHMENT_PICKER_MENU_ASSIGN_TASK,
+                  sentryLabel: CONST.SENTRY_LABEL.REPORT.ATTACHMENT_PICKER_MENU.ASSIGN_TASK,
                   onSelected: () => clearOutTaskInfoAndNavigate(currentUserPersonalDetails.accountID, undefined, reportID, report),
               },
           ];
+
+    const menuItems = [
+        ...moneyRequestOptions,
+        ...(!isReportTeachersUnite ? createReportOption : []),
+        ...taskOption,
+        {
+            icon: icons.Paperclip,
+            text: translate('reportActionCompose.addAttachment'),
+            disabled: shouldDisableAttachmentItem,
+            sentryLabel: CONST.SENTRY_LABEL.REPORT.ATTACHMENT_PICKER_MENU.ADD_ATTACHMENT,
+        },
+    ];
 
     const onPopoverMenuClose = () => {
         setMenuVisibility(false);
@@ -360,10 +390,7 @@ function AttachmentPickerWithMenuItems({
             return;
         }
 
-        calculatePopoverPosition(actionButtonRef as React.RefObject<ComponentRef<typeof View>>, {
-            horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
-            vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
-        }).then((position) => {
+        calculatePopoverPosition(actionButtonRef as React.RefObject<ComponentRef<typeof View>>, POPOVER_ANCHOR_ALIGNMENT).then((position) => {
             setPopoverAnchorPosition({...position, vertical: position.vertical - CONST.MODAL.POPOVER_MENU_PADDING});
         });
     }, [isMenuVisible, calculatePopoverPosition, actionButtonRef]);
@@ -400,17 +427,6 @@ function AttachmentPickerWithMenuItems({
                         onClosed: () => setIsLoaderVisible(false),
                     });
                 };
-                const menuItems = [
-                    ...moneyRequestOptions,
-                    ...(!isReportTeachersUnite ? createReportOption : []),
-                    ...taskOption,
-                    {
-                        icon: icons.Paperclip,
-                        text: translate('reportActionCompose.addAttachment'),
-                        disabled: shouldDisableAttachmentItem,
-                        sentryLabel: CONST.SENTRY_LABEL.REPORT.ATTACHMENT_PICKER_MENU_ADD_ATTACHMENT,
-                    },
-                ];
                 return (
                     <>
                         <View
@@ -483,10 +499,7 @@ function AttachmentPickerWithMenuItems({
                                 }
                             }}
                             anchorPosition={popoverAnchorPosition ?? {horizontal: 0, vertical: 0}}
-                            anchorAlignment={{
-                                horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
-                                vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
-                            }}
+                            anchorAlignment={POPOVER_ANCHOR_ALIGNMENT}
                             menuItems={menuItems}
                             anchorRef={actionButtonRef}
                             enableEdgeToEdgeBottomSafeAreaPadding

@@ -1,7 +1,8 @@
+import type {ViewableItemsChangedHandler} from '@components/FlashList/types';
 import Text from '@components/Text';
 
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
-import useIsFocusedRef from '@hooks/useIsFocusedRef';
+import useIsScreenVisible from '@hooks/useIsScreenVisible';
 import useLocalize from '@hooks/useLocalize';
 import {usePersonalDetail} from '@hooks/usePersonalDetails';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -13,12 +14,11 @@ import {getCreated} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import {loginSelector} from '@src/selectors/PersonalDetails';
 import type {Policy, Report, Transaction} from '@src/types/onyx';
-import type {ViewToken} from '@src/types/utils/ReactNativeCompat';
 
 import type {FlashListRef, ListRenderItem, ListRenderItemInfo} from '@shopify/flash-list';
 import type {OnyxEntry} from 'react-native-onyx';
 
-import React, {useEffect, useRef, useState} from 'react';
+import React, {useEffect, useEffectEvent, useRef, useState} from 'react';
 import {View} from 'react-native';
 
 import type {MoneyRequestReportPreviewStyleType} from './types';
@@ -82,7 +82,7 @@ function useReportPreviewCarousel({
     const {translate, localeCompare} = useLocalize();
     const currentUserDetails = useCurrentUserPersonalDetails();
     const [ownerLogin] = usePersonalDetail(iouReport?.ownerAccountID, loginSelector);
-    const isFocusedRef = useIsFocusedRef();
+    const isScreenVisible = useIsScreenVisible();
 
     let sortedTransactions: Transaction[];
     if (shouldShowAccessPlaceHolder) {
@@ -153,43 +153,55 @@ function useReportPreviewCarousel({
     const visibleItemsOnEndCount = Math.floor((currentWidth - 2 * styles.pl2.paddingLeft - lastItemWithGap) / itemWithGap) + 1;
     const viewabilityConfig = {itemVisiblePercentThreshold: 100};
 
-    const carouselTransactionsRef = useRef(carouselTransactions);
-
     useEffect(() => {
-        carouselTransactionsRef.current = carouselTransactions;
         onOrderedTransactionsChange?.(sortedTransactions);
-    }, [carouselTransactions, onOrderedTransactionsChange, sortedTransactions]);
+    }, [onOrderedTransactionsChange, sortedTransactions]);
 
-    useEffect(() => {
-        const index = carouselTransactions.findIndex((transaction) => newTransactionIDs?.has(transaction.transactionID));
+    // Scrolled to once while a transaction stays new, so returning to the chat doesn't pull the user back from older cards.
+    const scrolledToNewTransactionIDRef = useRef<string | undefined>(undefined);
 
+    const scrollToNewTransaction = useEffectEvent((newTransactionIDsWhenDelayStarted: Set<string>) => {
+        if (!isScreenVisible) {
+            return;
+        }
+        // Looked up when the delay ends, so the carousel scrolls to where the transaction is now, even if it moved during the delay.
+        // Only a transaction that was already new when this delay started counts, so one that became new later waits for its own delay.
+        const index = carouselTransactions.findIndex((transaction) => newTransactionIDs?.has(transaction.transactionID) && newTransactionIDsWhenDelayStarted.has(transaction.transactionID));
         if (index < 0) {
             return;
         }
-        const newTransaction = carouselTransactions.at(index);
-        setTimeout(() => {
-            if (!isFocusedRef.current) {
-                return;
-            }
+        const transactionID = carouselTransactions.at(index)?.transactionID;
+        if (!transactionID || transactionID === scrolledToNewTransactionIDRef.current) {
+            return;
+        }
 
-            // If the new transaction is not available at the index it was on before the delay, avoid the scrolling
-            // because we are scrolling to either a wrong or unavailable transaction (which can cause crash).
-            if (newTransaction?.transactionID !== carouselTransactionsRef.current.at(index)?.transactionID) {
-                return;
-            }
+        // Recorded only when the carousel is mounted to scroll, so a later run can still scroll to this transaction.
+        const carousel = carouselRef.current;
+        if (!carousel) {
+            return;
+        }
+        scrolledToNewTransactionIDRef.current = transactionID;
+        carousel.scrollToIndex({
+            index,
+            viewOffset: -2 * styles.gap2.gap,
+            animated: true,
+        });
+    });
 
-            carouselRef.current?.scrollToIndex({
-                index,
-                viewOffset: -2 * styles.gap2.gap,
-                animated: true,
-            });
-        }, CONST.PENDING_TRANSACTION_SCROLL_DELAY);
+    useEffect(() => {
+        // A transaction that is no longer new can only become new again by leaving the report and coming back, which earns another scroll.
+        if (scrolledToNewTransactionIDRef.current && !newTransactionIDs?.has(scrolledToNewTransactionIDRef.current)) {
+            scrolledToNewTransactionIDRef.current = undefined;
+        }
+        if (!isScreenVisible || !newTransactionIDs?.size) {
+            return;
+        }
+        // Not cleared when the effect runs again: the set of new IDs is rebuilt on every write to the report's transactions, so clearing would keep postponing the scroll.
+        // A timer that fires after unmount finds no carousel and does nothing.
+        setTimeout(() => scrollToNewTransaction(newTransactionIDs), CONST.PENDING_TRANSACTION_SCROLL_DELAY);
+    }, [newTransactionIDs, isScreenVisible]);
 
-        // We only want to scroll to a new transaction when the set of new transaction IDs changes.
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [newTransactionIDs]);
-
-    const onViewableItemsChanged = ({viewableItems}: {viewableItems: ViewToken[]; changed: ViewToken[]}) => {
+    const onViewableItemsChanged = ({viewableItems}: Parameters<ViewableItemsChangedHandler>[0]) => {
         const newIndex = viewableItems.at(0)?.index;
         if (typeof newIndex === 'number') {
             setCurrentIndex(newIndex);

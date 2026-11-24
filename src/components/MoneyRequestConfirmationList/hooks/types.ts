@@ -2,6 +2,7 @@ import type {ConfirmationListLayoutProps} from '@components/MoneyRequestConfirma
 import type {DistanceRequestControllerProps} from '@components/MoneyRequestConfirmationList/DistanceRequestController';
 import type {FieldAutoSelectorProps} from '@components/MoneyRequestConfirmationList/FieldAutoSelector';
 import type {SplitBillControllerProps} from '@components/MoneyRequestConfirmationList/SplitBillController';
+import type {SplitCategoryTaxControllerProps} from '@components/MoneyRequestConfirmationList/SplitCategoryTaxController';
 import type {TaxControllerProps} from '@components/MoneyRequestConfirmationList/TaxController';
 import type {MoneyRequestConfirmationListProps} from '@components/MoneyRequestConfirmationList/types';
 import type {SharedFooterProps} from '@components/MoneyRequestConfirmationListFooter/types';
@@ -35,6 +36,9 @@ type UseConfirmationListDataParams = MoneyRequestConfirmationListProps & {
     /** Not a page prop: the distance variant sets it for itself */
     isDistanceRequest?: boolean;
 
+    /** Not a page prop: the scan variant sets it for itself, so it holds before the draft is initialized as a scan */
+    isScanRequest?: boolean;
+
     /** Only a distance variant passes this */
     distanceState?: ConfirmationDistanceState;
 };
@@ -52,6 +56,9 @@ type ConfirmationListData = {
 
     /** Spread onto `SplitBillController` */
     splitBillControllerProps: SplitBillControllerProps;
+
+    /** Spread onto `SplitCategoryTaxController` */
+    splitCategoryTaxControllerProps: SplitCategoryTaxControllerProps;
 
     /** Spread onto `FieldAutoSelector` */
     fieldAutoSelectProps: FieldAutoSelectorProps;

@@ -28,7 +28,7 @@ import goToSettings from '@libs/goToSettings';
 import {isMovingTransactionFromTrackExpense} from '@libs/IOUUtils';
 import isTeachersUnitePolicyID from '@libs/isTeachersUnitePolicyID';
 import Navigation from '@libs/Navigation/Navigation';
-import {formatSectionsFromSearchTerm, getHeaderMessage, getParticipantsOption, getPolicyExpenseReportOption, isCurrentUser} from '@libs/OptionsListUtils';
+import {formatSelectedParticipantsFromSearchTerm, getHeaderMessage, getParticipantsOption, getPolicyExpenseReportOption, isCurrentUser} from '@libs/OptionsListUtils';
 import type {Option} from '@libs/OptionsListUtils';
 import {doesPersonalDetailMatchSearchTerm} from '@libs/OptionsListUtils/searchMatchUtils';
 import type {OptionWithKey} from '@libs/OptionsListUtils/types';
@@ -54,6 +54,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 
 import lodashPick from 'lodash/pick';
 import React, {useContext, useEffect} from 'react';
+import Onyx from 'react-native-onyx';
 import {RESULTS} from 'react-native-permissions';
 
 import ImportContactButton from './ImportContactButton';
@@ -116,16 +117,17 @@ type ParticipantSearchResultsProps = {
     /** Whether to find the participant matching initiallySelectedReportID and move it to the top of the list */
     shouldMoveSelectedToTop?: boolean;
 
-    onRestrictedParticipantSelected?: () => void;
-
-    /** Callback to dismiss the participant picker overlay before the referral banner navigates, so the referral RHP isn't covered */
-    onCloseParticipantPicker?: () => void;
-
     /**
      * Called before committing a participant/workspace selection.
      * Return true to block the selection (e.g. manual/odometer distance into a commuter-exclusion workspace).
      */
     shouldBlockParticipantSelection?: (policyID?: string) => boolean;
+
+    /** Whether the import contacts prompt may be shown when the picker opens */
+    shouldShowContactImportPrompt?: boolean;
+
+    /** Whether to hold off focusing the search input, e.g. while the share flow is still checking the shared file */
+    shouldDeferTextInputAutoFocus?: boolean;
 };
 
 function ParticipantSearchResults({
@@ -146,9 +148,9 @@ function ParticipantSearchResults({
     onFinish,
     initiallySelectedReportID,
     shouldMoveSelectedToTop = false,
-    onRestrictedParticipantSelected,
-    onCloseParticipantPicker,
     shouldBlockParticipantSelection,
+    shouldShowContactImportPrompt = true,
+    shouldDeferTextInputAutoFocus = false,
 }: ParticipantSearchResultsProps) {
     const getParticipantOptionKey = (option: Partial<Participant>) => option.reportID ?? option.accountID?.toString() ?? option.login ?? option.phoneNumber ?? '';
     const isIOUSplit = iouType === CONST.IOU.TYPE.SPLIT;
@@ -177,21 +179,18 @@ function ParticipantSearchResults({
     const reportAttributesDerived = useReportAttributes();
     const privateIsArchivedMap = usePrivateIsArchivedMap();
 
-    // When the surrounding ScreenWrapper runs in edge-to-edge mode (e.g. the new manual expense flow's ParticipantPicker),
+    // When the surrounding ScreenWrapper runs in edge-to-edge mode,
     // it does not apply bottom safe area padding itself, so the fixed footer must consume it. Otherwise the footer
     // (referral banner / Next button) renders behind the system navigation bar.
     const screenWrapperStatusContext = useContext(ScreenWrapperStatusContext);
     const addBottomSafeAreaPadding = !(screenWrapperStatusContext?.isSafeAreaBottomPaddingApplied ?? false);
 
-    // Policy and billing data — owned here, used for getValidOptionsConfig and billing gate in onSelectRow
+    // Policy data, owned here and used for getValidOptionsConfig and the billing gate in addParticipant
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
     const getReportByID = useSelectedExpenseReports(participants);
     const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`];
-    const [userBillingGracePeriodEnds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
-    const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
-    const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
     const {isRestrictedToPreferredPolicy, preferredPolicyID} = usePreferredPolicy();
 
     const {isDismissed: isDismissedReferralBanner} = useDismissedReferralBanners({referralContentType: CONST.REFERRAL_PROGRAM.CONTENT_TYPES.SUBMIT_EXPENSE});
@@ -202,7 +201,7 @@ function ParticipantSearchResults({
     const includeOwnedWorkspaceChats = !shouldExcludeWorkspaces && canUseWorkspaceChats;
 
     const getValidOptionsConfig = {
-        selectedOptions: participants as Participant[],
+        selectedOptions: participants,
         excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
         includeOwnedWorkspaceChats,
         excludeWorkspacesWithoutCreateExpensePermission: canUseWorkspaceChats,
@@ -252,7 +251,7 @@ function ParticipantSearchResults({
 
     const offlineMessage: string = isOffline ? `${translate('common.youAppearToBeOffline')} ${translate('search.resultsAreLimited')}` : '';
 
-    const handleSelectionChange = (options: OptionData[]) => {
+    const handleSelectionChange = (options: Array<Participant | OptionData>) => {
         if (!isIOUSplit) {
             return;
         }
@@ -260,26 +259,27 @@ function ParticipantSearchResults({
         onParticipantsAdded(sanitizedParticipants);
     };
 
-    const {searchTerm, debouncedSearchTerm, setSearchTerm, availableOptions, selectedOptions, toggleSelection, areOptionsInitialized, onListEndReached, contactState} = useSearchSelector({
-        selectionMode: isIOUSplit ? CONST.SEARCH_SELECTOR.SELECTION_MODE_MULTI : CONST.SEARCH_SELECTOR.SELECTION_MODE_SINGLE,
-        searchContext: CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_GENERAL,
-        includeUserToInvite: !isCategorizeOrShareAction && !isPerDiemRequest && !isTimeRequest && !isTransactionFromCreditCardImport && !shouldExcludeP2P,
-        excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
-        includeRecentReports: true,
-        maxRecentReportsToShow: CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW,
-        getValidOptionsConfig,
-        shouldInitialize: didScreenTransitionEnd,
-        enablePhoneContacts: isNative,
-        contactOptions: contacts,
-        initialSelected: participants as OptionData[],
-        onSelectionChange: handleSelectionChange,
-        onSingleSelect: (option: OptionData) => {
-            if (isIOUSplit) {
-                return;
-            }
-            addSingleParticipant(option);
-        },
-    });
+    const {searchTerm, debouncedSearchTerm, setSearchTerm, availableOptions, selectedOptions, toggleSelection, areOptionsInitialized, onListEndReached, contactState} =
+        useSearchSelector<Participant>({
+            selectionMode: isIOUSplit ? CONST.SEARCH_SELECTOR.SELECTION_MODE_MULTI : CONST.SEARCH_SELECTOR.SELECTION_MODE_SINGLE,
+            searchContext: CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_GENERAL,
+            includeUserToInvite: !isCategorizeOrShareAction && !isPerDiemRequest && !isTimeRequest && !isTransactionFromCreditCardImport && !shouldExcludeP2P,
+            excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
+            includeRecentReports: true,
+            maxRecentReportsToShow: CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW,
+            getValidOptionsConfig,
+            shouldInitialize: didScreenTransitionEnd,
+            enablePhoneContacts: isNative,
+            contactOptions: contacts,
+            initialSelected: participants,
+            onSelectionChange: handleSelectionChange,
+            onSingleSelect: (option: Participant | OptionData) => {
+                if (isIOUSplit) {
+                    return;
+                }
+                addSingleParticipant(option);
+            },
+        });
 
     const cleanSearchTerm = debouncedSearchTerm.trim().toLowerCase();
 
@@ -316,11 +316,7 @@ function ParticipantSearchResults({
     let header = '';
     if (areOptionsInitialized && didScreenTransitionEnd) {
         const selectedParticipantKeys = new Set(participants.map((participant) => getParticipantOptionKey(participant)).filter(Boolean));
-        const formatResults = formatSectionsFromSearchTerm(
-            searchTerm,
-            participants.map((participant) => ({...participant, reportID: participant.reportID})) as OptionData[],
-            [],
-            [],
+        const formatResults = formatSelectedParticipantsFromSearchTerm(searchTerm, participants, {
             privateIsArchivedMap,
             currentUserAccountID,
             allPolicies,
@@ -331,10 +327,8 @@ function ParticipantSearchResults({
             getReportByID,
             rules,
             personalDetails,
-            true,
-            undefined,
             reportAttributesDerived,
-        );
+        });
         sections.push({...formatResults.section, sectionIndex: 0});
 
         const workspaceChats = (availableOptions.workspaceChats ?? []).filter(
@@ -448,7 +442,7 @@ function ParticipantSearchResults({
      * @param option
      */
     const addParticipantToSelection = (option: Participant) => {
-        toggleSelection(option as OptionData);
+        toggleSelection(option);
     };
 
     // Right now you can't split a request with a workspace and other additional participants
@@ -500,26 +494,26 @@ function ParticipantSearchResults({
                 isDismissedReferralBanner={isDismissedReferralBanner}
                 onConfirmSelection={confirmSelection}
                 onNewWorkspace={() => onFinish()}
-                onCloseParticipantPicker={onCloseParticipantPicker}
             />
         );
 
-    const onSelectRow = (option: Participant) => {
+    const addParticipant = async (option: Participant) => {
         const optionPolicyID = option.policyID ?? (option.reportID ? getReportOrDraftReport({reportID: option.reportID})?.policyID : undefined);
         if (shouldBlockParticipantSelection?.(optionPolicyID)) {
             return;
         }
 
         const optionPolicy = optionPolicyID ? allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${optionPolicyID}`] : undefined;
-        if (
-            option.isPolicyExpenseChat &&
-            optionPolicyID &&
-            optionPolicy &&
-            shouldRestrictUserBillableActions(optionPolicy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, currentUserAccountID)
-        ) {
-            onRestrictedParticipantSelected?.();
-            Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(optionPolicyID));
-            return;
+        if (option.isPolicyExpenseChat && optionPolicyID && optionPolicy) {
+            const [userBillingGracePeriodEnds, ownerBillingGracePeriodEnd, amountOwed] = await Onyx.multiGet([
+                ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END,
+                ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END,
+                ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED,
+            ]);
+            if (shouldRestrictUserBillableActions(optionPolicy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, currentUserAccountID)) {
+                Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(optionPolicyID));
+                return;
+            }
         }
 
         if (isIOUSplit) {
@@ -564,7 +558,7 @@ function ParticipantSearchResults({
         label: translate('selectionList.nameEmailOrPhoneNumber'),
         hint: offlineMessage,
         onChangeText: setSearchTerm,
-        disableAutoFocus: !textInputAutoFocus,
+        disableAutoFocus: !textInputAutoFocus || shouldDeferTextInputAutoFocus,
         headerMessage: header,
     };
 
@@ -574,6 +568,7 @@ function ParticipantSearchResults({
         onFocusTextInput: () => {
             setTextInputAutoFocus(true);
         },
+        isEnabled: shouldShowContactImportPrompt,
     });
 
     return (
@@ -590,7 +585,7 @@ function ParticipantSearchResults({
             ListItem={InviteMemberListItem}
             textInputOptions={textInputOptions}
             shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
-            onSelectRow={onSelectRow}
+            onSelectRow={addParticipant}
             shouldSingleExecuteRowSelect
             customListHeaderContent={importContactsButtonComponent}
             customHeaderContent={

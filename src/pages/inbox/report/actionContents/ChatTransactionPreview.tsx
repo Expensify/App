@@ -1,4 +1,3 @@
-import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import TransactionPreview from '@components/ReportActionItem/TransactionPreview';
 import {useIsOnSearch} from '@components/Search/SearchScopeProvider';
 
@@ -11,6 +10,7 @@ import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import getReportRouteForCurrentContext from '@libs/Navigation/helpers/getReportRouteForCurrentContext';
 import Navigation from '@libs/Navigation/Navigation';
+import {getAllPersonalDetails} from '@libs/PersonalDetailsStore';
 import {getIOUReportIDFromReportActionPreview, isSplitBillAction, isTrackExpenseAction} from '@libs/ReportActionsUtils';
 
 import {createTransactionThreadReport} from '@userActions/Report';
@@ -52,7 +52,6 @@ function ChatTransactionPreview({action, reportID, chatReport, iouReport, should
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const isOnSearch = useIsOnSearch();
     const personalDetail = useCurrentUserPersonalDetails();
-    const personalDetails = usePersonalDetails();
 
     const createAndOpenTransactionThread = async () => {
         const [introSelected, conciergeReportID, onboarding, fullPolicySnapshotData] = await Onyx.multiGet([
@@ -72,7 +71,7 @@ function ChatTransactionPreview({action, reportID, chatReport, iouReport, should
             currentUserAccountID: personalDetail.accountID,
             iouReport,
             iouReportAction: action,
-            personalDetails,
+            personalDetails: getAllPersonalDetails(),
             fullPolicySnapshotLastModified: fullPolicySnapshotLastModifiedSelector(fullPolicySnapshotData),
         });
         if (!createdTransactionThreadReport?.reportID) {

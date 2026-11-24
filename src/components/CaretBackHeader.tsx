@@ -45,7 +45,7 @@ function CaretBackHeader({onBackButtonPress, onCloseButtonPress, shouldShowBackB
                     style={[styles.flexRow, styles.alignItemsCenter, styles.gap3, styles.borderRadiusNormal]}
                     role={CONST.ROLE.BUTTON}
                     accessibilityLabel={translate('common.back')}
-                    sentryLabel="OnboardingHeader-Back"
+                    sentryLabel={CONST.SENTRY_LABEL.ONBOARDING.HEADER_BACK}
                     focusable={isFocusable}
                     tabIndex={isFocusable ? 0 : -1}
                 >

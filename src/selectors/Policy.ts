@@ -6,12 +6,17 @@ import isTeachersUnitePolicyID from '@libs/isTeachersUnitePolicyID';
 import {getConnectedHRProvider} from '@libs/merge/HRUtils';
 import type {PolicyPaymentAttribution} from '@libs/PolicyPaymentUtils';
 import {
+    canCreateExpensesOnPolicy,
+    canEditWorkspaceSettings,
     canSendInvoice,
     getActiveAdminWorkspaces,
+    getActiveEmployeeWorkspaces,
+    getActivePolicies,
     getActivePoliciesWithExpenseChat,
     getOwnedPaidPolicies,
     getPolicyIDFromDomainName,
     getPolicyRole,
+    hasAnyPaidPolicy,
     hasPolicyWithXeroConnection,
     // eslint-disable-next-line no-restricted-imports -- isPaidGroupPolicy is intentional: copy-settings targets are billing/paid-only (Collect/Control), so free group plans like Submit must be excluded (see createCopySettingsEligibleTargetsSelector).
     isPaidGroupPolicy,
@@ -21,6 +26,7 @@ import {
     isPolicyAdmin,
     isArchivedOrPendingDeletePolicy,
     isArchivedPolicy,
+    isGroupPolicy,
     isPolicyProvisionedForTravel,
     isTimeTrackingEnabled,
     shouldShowPolicy,
@@ -160,7 +166,12 @@ const createWorkspaceListPoliciesSelector =
                         ownerAccountID: details.ownerAccountID,
                         ownerEmail: details.ownerEmail,
                         ownerDefaultAvatar:
-                            details.ownerAccountID && details.ownerEmail ? getDefaultAvatarURL({accountID: details.ownerAccountID, accountEmail: details.ownerEmail}) : undefined,
+                            details.ownerAccountID && details.ownerEmail
+                                ? getDefaultAvatarURL({
+                                      accountID: details.ownerAccountID,
+                                      accountEmail: details.ownerEmail,
+                                  })
+                                : undefined,
                         avatar: details.avatar,
                     };
                 }
@@ -212,7 +223,10 @@ type TimeSensitiveAdminPolicies = {
 const createTimeSensitiveAdminPoliciesSelector =
     (currentUserLogin: string | undefined, connectionSyncProgress: OnyxCollection<PolicyConnectionSyncProgress>) =>
     (policies: OnyxCollection<Policy>): TimeSensitiveAdminPolicies => {
-        const result: TimeSensitiveAdminPolicies = {policies: [], brokenConnections: []};
+        const result: TimeSensitiveAdminPolicies = {
+            policies: [],
+            brokenConnections: [],
+        };
 
         for (const policy of getActiveAdminWorkspaces(policies, currentUserLogin)) {
             result.policies.push({
@@ -258,6 +272,32 @@ const createHasAdminPolicyWithXeroConnectionSelector =
         hasPolicyWithXeroConnection(getActiveAdminWorkspaces(policies, currentUserLogin));
 
 const hasActiveAdminPoliciesSelector = (policies: OnyxCollection<Policy>, currentUserAccountLogin: string) => getActiveAdminWorkspaces(policies, currentUserAccountLogin).length > 0;
+
+type ProductTrainingPolicyFlags = {
+    /** Whether the user is an employee of at least one active workspace */
+    isUserPolicyEmployee: boolean;
+
+    /** Whether the user is an admin of at least one active workspace */
+    isUserPolicyAdmin: boolean;
+
+    /** Whether any workspace in the collection is a paid one */
+    isUserInPaidPolicy: boolean;
+};
+
+// Three booleans out, so the session-wide product training provider doesn't re-render on every policy_ write
+const productTrainingPolicyFlagsSelector = (policies: OnyxCollection<Policy>, currentUserLogin: string | undefined): ProductTrainingPolicyFlags => ({
+    isUserPolicyEmployee: getActiveEmployeeWorkspaces(policies, currentUserLogin).length > 0,
+    isUserPolicyAdmin: getActiveAdminWorkspaces(policies, currentUserLogin).length > 0,
+    isUserInPaidPolicy: hasAnyPaidPolicy(policies),
+});
+
+/**
+ * Whether the user could edit the settings of any active group workspace, which is what the upgrade page gates on once a
+ * workspace is in the route. Admins pass, and so do editors on a Submit workspace, who `getActiveAdminWorkspaces`
+ * leaves out. Personal policies don't count because they can't be upgraded.
+ */
+const canEditAnyWorkspaceSettingsSelector = (policies: OnyxCollection<Policy>, currentUserAccountLogin: string): boolean =>
+    getActivePolicies(policies, currentUserAccountLogin).some((policy) => isGroupPolicy(policy) && canEditWorkspaceSettings(policy, currentUserAccountLogin));
 
 /**
  * Creates a selector for whether the user belongs to any workspace with Travel enabled and provisioned, so subscribers only
@@ -366,6 +406,11 @@ const createMemberCustomFieldsSelector = (policyIDs: string[]) => {
             }
             const customFieldsByLogin: Record<string, MemberCustomFields> = {};
             for (const [login, employee] of Object.entries(employeeList)) {
+                // Despite the non-null employee type, entries can be null or undefined at runtime.
+                // Skip them so valid members' custom fields are still selected without crashing Search.
+                if (!employee) {
+                    continue;
+                }
                 customFieldsByLogin[login] = Object.fromEntries(customFieldKeys.map((key) => [key, employee[key]]));
             }
             customFieldsByPolicyID[policyID] = customFieldsByLogin;
@@ -465,7 +510,7 @@ const createFilteredPoliciesInfoSelector =
         let filteredPoliciesCount = 0;
         let firstPolicy: BillingRestrictionPolicy | undefined;
         for (const policy of Object.values(policies ?? {})) {
-            if (!policy || !shouldShowPolicy(policy, false, email) || isTeachersUnitePolicyID(policy.id)) {
+            if (!policy || !shouldShowPolicy(policy, false, email) || isTeachersUnitePolicyID(policy.id) || !canCreateExpensesOnPolicy(policy, email)) {
                 continue;
             }
             if (filteredPoliciesCount === 0) {
@@ -489,8 +534,7 @@ const hasOnlyPersonalPoliciesSelector = (policies: OnyxCollection<Policy>): bool
  */
 const homeAndOfficeCommuterExclusionPolicyNameSelector = (policies: OnyxCollection<Policy>): string | undefined =>
     Object.values(policies ?? {}).find(
-        (policy): policy is Policy =>
-            !!policy && policy.commuterExclusions?.method === CONST.POLICY.COMMUTER_EXCLUSION_METHOD.HOME_AND_OFFICE && policy.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+        (policy): policy is Policy => !!policy && policy.commuterExclusions?.method === CONST.POLICY.COMMUTER_EXCLUSION_METHOD.HOME_AND_OFFICE && !isArchivedOrPendingDeletePolicy(policy),
     )?.name;
 
 function isAdminPolicyConnectedTo(policy: OnyxEntry<Policy>, connectionName: ReusablePolicyConnectionName): policy is Policy {
@@ -687,6 +731,8 @@ export {
     createWorkspaceListPoliciesSelector,
     activeAdminPoliciesSelector,
     hasActiveAdminPoliciesSelector,
+    productTrainingPolicyFlagsSelector,
+    canEditAnyWorkspaceSettingsSelector,
     createHasAdminPolicyWithXeroConnectionSelector,
     createTimeSensitiveAdminPoliciesSelector,
     createHasTravelEnabledPolicySelector,

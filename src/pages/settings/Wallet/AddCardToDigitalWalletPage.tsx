@@ -34,7 +34,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 import {cardByIdSelector} from '@selectors/Card';
 import React, {useEffect, useRef, useState} from 'react';
@@ -58,7 +57,7 @@ function AddCardToDigitalWalletPage({
     const illustrations = useMemoizedLazyIllustrations(['CardIntoWallet', 'ThumbsUpStars', 'CardDenied']);
     const primaryLogin = usePrimaryContactMethod();
 
-    const [card, cardMetadata] = useOnyx(ONYXKEYS.CARD_LIST, {selector: cardByIdSelector(cardID)});
+    const [card] = useOnyx(ONYXKEYS.CARD_LIST, {selector: cardByIdSelector(cardID)});
     const [isCheckingPendingApproval] = useOnyx(ONYXKEYS.RAM_ONLY_IS_CHECKING_PENDING_WALLET_APPROVAL);
     const currentCardID = card?.cardID;
     const latestError = getLatestErrorMessageField(card);
@@ -116,7 +115,7 @@ function AddCardToDigitalWalletPage({
 
     const isWaitingForPendingApproval = !isOffline && isCheckingPendingApproval !== false && !hasPendingApproval && !submittedRequest;
 
-    if (isWaitingForPendingApproval || (!card && isLoadingOnyxValue(cardMetadata))) {
+    if (isWaitingForPendingApproval) {
         return <FullScreenLoadingIndicator onGoBack={goBackToEntryPoint} />;
     }
 
@@ -179,6 +178,7 @@ function AddCardToDigitalWalletPage({
                     illustrationStyle={styles.digitalWalletResultIllustration}
                     descriptionStyle={styles.textSupporting}
                     buttonText={translate('common.buttonConfirm')}
+                    buttonSentryLabel={CONST.SENTRY_LABEL.EXPENSIFY_CARD_PAGE.DIGITAL_WALLET_RESULT_CONFIRM}
                     onButtonPress={goBackToEntryPoint}
                 />
             </ScreenWrapper>
@@ -223,6 +223,7 @@ function AddCardToDigitalWalletPage({
                         ) : (
                             <View style={[styles.flexRow, styles.gap2]}>
                                 <ButtonDisabledWhenOffline
+                                    sentryLabel={CONST.SENTRY_LABEL.EXPENSIFY_CARD_PAGE.DIGITAL_WALLET_DENY}
                                     variant={CONST.BUTTON_VARIANT.DANGER}
                                     size={CONST.BUTTON_SIZE.LARGE}
                                     style={styles.flex1}
@@ -231,6 +232,7 @@ function AddCardToDigitalWalletPage({
                                     <Button.Text>{translate('addCardToDigitalWallet.deny')}</Button.Text>
                                 </ButtonDisabledWhenOffline>
                                 <ButtonDisabledWhenOffline
+                                    sentryLabel={CONST.SENTRY_LABEL.EXPENSIFY_CARD_PAGE.DIGITAL_WALLET_CONFIRM}
                                     variant={CONST.BUTTON_VARIANT.SUCCESS}
                                     size={CONST.BUTTON_SIZE.LARGE}
                                     style={styles.flex1}

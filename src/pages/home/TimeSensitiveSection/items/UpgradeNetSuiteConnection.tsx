@@ -24,6 +24,8 @@ function UpgradeNetSuiteConnection({policyID, policyName}: Props) {
 
     return (
         <BaseWidgetItem
+            sentryLabel={CONST.SENTRY_LABEL.HOME_PAGE.TIME_SENSITIVE_ITEM.UPGRADE_NETSUITE_CONNECTION}
+            buttonSentryLabel={CONST.SENTRY_LABEL.HOME_PAGE.TIME_SENSITIVE_ITEM_BUTTON.UPGRADE_NETSUITE_CONNECTION}
             icon={icons.Connect}
             title={translate('homePage.timeSensitiveSection.upgradeNetSuiteConnection.title')}
             subtitle={policyName}

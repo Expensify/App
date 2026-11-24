@@ -1,11 +1,13 @@
 import useSelectionListPopoverLayout from '@hooks/useSelectionListPopoverLayout';
 
 import CONST from '@src/CONST';
+import type {SentryLabel} from '@src/types/utils/SentryLabel';
 
 import type {ComponentRef, ReactNode} from 'react';
 import type {View} from 'react-native';
 
 import React, {useRef} from 'react';
+import {Keyboard} from 'react-native';
 import Animated from 'react-native-reanimated';
 
 import type PopoverWithMeasuredContentProps from './PopoverWithMeasuredContent/types';
@@ -31,7 +33,7 @@ type AnchoredSelectionListPopoverProps = {
     title: string;
 
     /** Sentry label for the header's back button, so each list's presses are attributed to it */
-    backButtonSentryLabel: string;
+    backButtonSentryLabel: SentryLabel;
 
     /** Actions shown at the right end of the header, e.g. an add button */
     headerActions?: ReactNode;
@@ -117,7 +119,11 @@ function AnchoredSelectionListPopover({
                 {shouldShowHeader && (
                     <SelectionListPopoverHeader
                         title={title}
-                        onBackButtonPress={onClose}
+                        onBackButtonPress={() => {
+                            // The keyboard would otherwise stay up until the search input unmounts at the end of the sheet's closing animation
+                            Keyboard.dismiss();
+                            onClose();
+                        }}
                         backButtonSentryLabel={backButtonSentryLabel}
                     >
                         {headerActions}

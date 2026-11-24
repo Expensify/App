@@ -10,9 +10,9 @@ import {CONST as COMMON_CONST} from 'expensify-common';
 import {
     arePaymentsEnabled as arePaymentsEnabledUtils,
     canAdminPayReport,
+    canSubmitOwnReportOnPolicy,
     getIntegrationAccountingMethod,
-    getManagerAccountID,
-    getSubmitToAccountID,
+    isSubmittingToSelf,
     getValidConnectedIntegration,
     hasDynamicExternalWorkflow,
     hasIntegrationAutoSync,
@@ -22,9 +22,9 @@ import {
     isPolicyAdmin as isPolicyAdminPolicyUtils,
     isPolicyApprover,
     isPreferredExporter,
-    isSubmitAndClose,
     isSubmitPolicy,
     isSubmitterApproveBlockedOnSubmitWorkspace,
+    isWorkflowApprover,
 } from './PolicyUtils';
 import {
     getAllReportActions,
@@ -36,7 +36,6 @@ import {
     isMoneyRequestAction,
 } from './ReportActionsUtils';
 import {
-    canAddTransaction as canAddTransactionUtil,
     canHoldUnholdReportAction,
     getMoneyRequestSpendBreakdown,
     getParentReport,
@@ -61,14 +60,15 @@ import {
     isReportApproved as isReportApprovedUtils,
     isReportManager,
     isSettled,
+    isExportInProgress,
 } from './ReportUtils';
 import {
     allHavePendingRTERViolation,
     getTransactionViolations,
+    hasOnlyUnsettledExpenses,
     hasPendingRTERViolation as hasPendingRTERViolationTransactionUtils,
     isDuplicate,
     isOnHold as isOnHoldTransactionUtils,
-    isPending,
     isScanning,
     isTransactionSubmittable,
     shouldShowBrokenConnectionViolationForMultipleTransactions,
@@ -121,17 +121,6 @@ type IsExportActionOptions = {
     reportTransactions?: Transaction[];
 };
 
-function isAddExpenseAction(report: Report, reportTransactions: Transaction[], isChatReportArchived: boolean, rules: OnyxCollection<Rule>) {
-    if (isChatReportArchived) {
-        return false;
-    }
-
-    const isExpenseReport = isExpenseReportUtils(report);
-    const canAddTransaction = canAddTransactionUtil(report, rules);
-
-    return isExpenseReport && canAddTransaction && reportTransactions.length === 0;
-}
-
 function isSubmitAction(
     report: Report,
     reportTransactions: Transaction[],
@@ -169,20 +158,17 @@ function isSubmitAction(
         return false;
     }
 
-    const submitToAccountID = getSubmitToAccountID(policy, report, ownerLogin, rules);
-
-    if (submitToAccountID === report.ownerAccountID && policy?.preventSelfApproval && !isReportSubmitter) {
+    if (isSubmittingToSelf(policy, report, ownerLogin, rules) && policy?.preventSelfApproval && !isReportSubmitter) {
         return false;
     }
 
-    // Workflow approver (direct submitsTo, not rule approvers). Fail closed on unresolved ownerLogin — else falls back to policy.approver.
-    const isWorkflowApprover =
-        !isReportSubmitter &&
-        currentUserAccountID !== undefined &&
-        !!ownerLogin &&
-        !isSubmitAndClose(policy) &&
-        currentUserAccountID === getManagerAccountID(policy, ownerLogin, rules, report.total ?? 0);
-    const canBeSubmitter = isReportSubmitter || isWorkflowApprover;
+    // A role that cannot create expenses cannot submit its own report.
+    if (isReportSubmitter && !canSubmitOwnReportOnPolicy(policy, currentUserEmail)) {
+        return false;
+    }
+
+    const isCurrentUserWorkflowApprover = !isReportSubmitter && isWorkflowApprover(policy, ownerLogin, rules, report.total ?? 0, currentUserEmail);
+    const canBeSubmitter = isReportSubmitter || isCurrentUserWorkflowApprover;
     return isExpenseReport && canBeSubmitter && isOpenReport && reportTransactions.length !== 0;
 }
 
@@ -218,7 +204,7 @@ function isApproveAction(report: Report, reportTransactions: Transaction[], curr
         return false;
     }
 
-    return !reportTransactions.every((transaction) => isPending(transaction));
+    return !hasOnlyUnsettledExpenses(reportTransactions, report);
 }
 
 function isPrimaryPayAction({
@@ -298,6 +284,10 @@ function isPrimaryPayAction({
 
 function isExportAction(report: Report, currentUserLogin: string, policy?: Policy, reportActions?: ReportAction[], options?: IsExportActionOptions) {
     if (!policy) {
+        return false;
+    }
+
+    if (isExportInProgress(reportActions)) {
         return false;
     }
 
@@ -684,7 +674,6 @@ function getTransactionThreadPrimaryAction(
 export {
     getReportPrimaryAction,
     getTransactionThreadPrimaryAction,
-    isAddExpenseAction,
     isPrimaryPayAction,
     isExportAction,
     isApproveAction,

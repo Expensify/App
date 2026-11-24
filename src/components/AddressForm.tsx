@@ -1,6 +1,7 @@
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
 import {getInvalidAddressErrorTranslationPath, isRequiredFulfilled} from '@libs/ValidationUtils';
 
 import type {Country} from '@src/CONST';
@@ -15,7 +16,6 @@ import React, {createContext, useContext} from 'react';
 import {View} from 'react-native';
 
 import type {FormInputErrors, FormOnyxValues} from './Form/types';
-import type {State} from './StateSelector';
 
 import AddressSearch from './AddressSearch';
 import CountrySelector from './CountrySelector';
@@ -29,9 +29,11 @@ type CountryZipRegex = {
     samples?: string;
 };
 
+const countryZipRegexData: Partial<Record<string, CountryZipRegex>> = COMMON_CONST.COUNTRY_ZIP_REGEX_DATA;
+
 type AddressFormID = typeof ONYXKEYS.FORMS.HOME_ADDRESS_FORM | typeof ONYXKEYS.FORMS.WORKSPACE_OFFICE_LOCATION_FORM;
 
-type AddressFormProps<TFormID extends AddressFormID> = {
+type AddressFormProps<TFormID extends AddressFormID> = ForwardedFSClassProps & {
     /** Address city field */
     city?: string;
 
@@ -126,7 +128,7 @@ function AddressFormFields() {
     const {translate} = useLocalize();
     const {city, country, state, street1, street2, zip, onAddressChanged, shouldSaveDraft, shouldHideCountrySelector} = useContext(AddressFieldsContext);
 
-    const zipSampleFormat = (country && (COMMON_CONST.COUNTRY_ZIP_REGEX_DATA[country] as CountryZipRegex)?.samples) ?? '';
+    const zipSampleFormat = (country && countryZipRegexData[country]?.samples) ?? '';
 
     const zipFormat = translate('common.zipCodeExampleFormat', zipSampleFormat);
 
@@ -187,7 +189,7 @@ function AddressFormFields() {
                     <InputWrapper
                         InputComponent={StateSelector}
                         inputID={INPUT_IDS.STATE}
-                        value={state as State}
+                        value={state}
                         onValueChange={onAddressChanged}
                         shouldSaveDraft={shouldSaveDraft}
                     />
@@ -252,6 +254,7 @@ function AddressForm<TFormID extends AddressFormID>({
     shouldRequireZip = false,
     shouldValidatePhysicalAddress = false,
     addBottomSafeAreaPadding = true,
+    forwardedFSClass,
     children,
     validate,
 }: AddressFormProps<TFormID>) {
@@ -313,7 +316,7 @@ function AddressForm<TFormID extends AddressFormID>({
         }
 
         // If no country is selected, default value is an empty string and there's no related regex data so we default to an empty object
-        const countryRegexDetails = (values.country ? COMMON_CONST.COUNTRY_ZIP_REGEX_DATA?.[values.country] : {}) as CountryZipRegex;
+        const countryRegexDetails = values.country ? countryZipRegexData?.[values.country] : {};
 
         // The postal code system might not exist for a country, so no regex either for them.
         const countrySpecificZipRegex = countryRegexDetails?.regex;
@@ -345,6 +348,7 @@ function AddressForm<TFormID extends AddressFormID>({
             submitButtonText={submitButtonText}
             enabledWhenOffline={enabledWhenOfflineProp}
             addBottomSafeAreaPadding={addBottomSafeAreaPadding}
+            forwardedFSClass={forwardedFSClass}
         >
             <AddressFieldsContext.Provider value={{city, country, state, street1, street2, zip, onAddressChanged, shouldSaveDraft, shouldHideCountrySelector}}>
                 {children ?? <AddressFormFields />}

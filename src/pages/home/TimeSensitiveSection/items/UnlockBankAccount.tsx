@@ -58,6 +58,8 @@ function UnlockBankAccount({bankAccountID, policyName}: UnlockBankAccountProps) 
 
     return (
         <BaseWidgetItem
+            sentryLabel={CONST.SENTRY_LABEL.HOME_PAGE.TIME_SENSITIVE_ITEM.UNLOCK_BANK_ACCOUNT}
+            buttonSentryLabel={CONST.SENTRY_LABEL.HOME_PAGE.TIME_SENSITIVE_ITEM_BUTTON.UNLOCK_BANK_ACCOUNT}
             icon={icons.BankLock}
             title={title}
             subtitle={subtitle}
