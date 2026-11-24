@@ -1888,6 +1888,10 @@ const translations: TranslationDeepObject<typeof en> = {
             allTransactionsPendingMarkAsDoneDescription: 'Nie możesz oznaczyć tego raportu jako wykonanego, ponieważ wszystkie transakcje są w toku. Zaksięgowanie ich może zająć kilka dni.',
             allExpensesOnHoldDescription: 'Nie możesz przesłać tego raportu, ponieważ wszystkie wydatki są wstrzymane. Usuń wstrzymanie, aby przesłać.',
             allExpensesOnHoldMarkAsDoneDescription: 'Nie możesz oznaczyć tego raportu jako wykonanego, ponieważ wszystkie wydatki są wstrzymane. Usuń wstrzymanie, aby kontynuować.',
+            heldCorporateCardExpensesDescription:
+                'Nie możesz przesłać tego raportu, ponieważ jego wstrzymanych wydatków z kart firmowych nie można przenieść z tego wyciągu z karty. Usuń wstrzymanie, aby przesłać.',
+            heldCorporateCardExpensesMarkAsDoneDescription:
+                'Nie możesz oznaczyć tego raportu jako wykonanego, ponieważ jego wstrzymanych wydatków z kart firmowych nie można przenieść z tego wyciągu z karty. Usuń wstrzymanie, aby kontynuować.',
             reportsNotSubmittedTitle: 'Wyślij raporty',
             reportsNotMarkedAsDoneTitle: 'Oznacz raporty jako gotowe',
             reportsNotSubmittedDescription: 'Nie udało się wysłać tych raportów. Sprawdź, czy wydatki nie są wstrzymane ani oczekujące, a potem spróbuj ponownie.',

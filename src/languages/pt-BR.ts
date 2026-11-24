@@ -1845,6 +1845,10 @@ const translations: TranslationDeepObject<typeof en> = {
                 'Você não pode marcar este relatório como concluído porque todas as transações estão pendentes. Elas podem levar alguns dias para serem lançadas.',
             allExpensesOnHoldDescription: 'Você não pode enviar este relatório porque todas as despesas estão em espera. Remova a espera para enviar.',
             allExpensesOnHoldMarkAsDoneDescription: 'Você não pode marcar este relatório como concluído porque todas as despesas estão em espera. Remova a espera para continuar.',
+            heldCorporateCardExpensesDescription:
+                'Você não pode enviar este relatório porque as despesas de cartão corporativo em espera não podem ser retiradas deste extrato do cartão. Remova a espera para enviar.',
+            heldCorporateCardExpensesMarkAsDoneDescription:
+                'Você não pode marcar este relatório como concluído porque as despesas de cartão corporativo em espera não podem ser retiradas deste extrato do cartão. Remova a espera para continuar.',
             reportsNotSubmittedTitle: 'Enviar relatórios',
             reportsNotMarkedAsDoneTitle: 'Marcar relatórios como concluídos',
             reportsNotSubmittedDescription: 'Esses relatórios não puderam ser enviados. Verifique se as despesas não estão retidas ou pendentes e tente novamente.',

@@ -1844,6 +1844,10 @@ const translations: TranslationDeepObject<typeof en> = {
                 'Je kunt dit rapport niet markeren als voltooid omdat alle transacties in behandeling zijn. Het kan een paar dagen duren voordat ze worden verwerkt.',
             allExpensesOnHoldDescription: 'Je kunt dit rapport niet indienen omdat alle uitgaven zijn gepauzeerd. Verwijder de pauzering om het in te dienen.',
             allExpensesOnHoldMarkAsDoneDescription: 'Je kunt dit rapport niet markeren als voltooid omdat alle uitgaven zijn gepauzeerd. Verwijder de pauzering om door te gaan.',
+            heldCorporateCardExpensesDescription:
+                'Je kunt dit rapport niet indienen omdat de gepauzeerde bedrijfskaartuitgaven niet van dit kaartafschrift kunnen worden verplaatst. Verwijder de pauzering om het in te dienen.',
+            heldCorporateCardExpensesMarkAsDoneDescription:
+                'Je kunt dit rapport niet markeren als voltooid omdat de gepauzeerde bedrijfskaartuitgaven niet van dit kaartafschrift kunnen worden verplaatst. Verwijder de pauzering om door te gaan.',
             reportsNotSubmittedTitle: 'Rapporten indienen',
             reportsNotMarkedAsDoneTitle: 'Rapporten markeren als voltooid',
             reportsNotSubmittedDescription: 'Deze rapporten konden niet worden ingediend. Controleer of er geen onkosten vastgehouden of in behandeling zijn en probeer het dan opnieuw.',

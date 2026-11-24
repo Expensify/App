@@ -1860,6 +1860,10 @@ const translations: TranslationDeepObject<typeof en> = {
             allExpensesOnHoldDescription: 'Vous ne pouvez pas soumettre cette note de frais, car toutes les dépenses sont en attente. Supprimez le blocage pour soumettre.',
             allExpensesOnHoldMarkAsDoneDescription:
                 'Vous ne pouvez pas marquer cette note de frais comme terminée, car toutes les dépenses sont en attente. Supprimez le blocage pour continuer.',
+            heldCorporateCardExpensesDescription:
+                'Vous ne pouvez pas soumettre cette note de frais, car ses dépenses de cartes d’entreprise en attente ne peuvent pas être retirées de ce relevé de carte. Supprimez le blocage pour soumettre.',
+            heldCorporateCardExpensesMarkAsDoneDescription:
+                'Vous ne pouvez pas marquer cette note de frais comme terminée, car ses dépenses de cartes d’entreprise en attente ne peuvent pas être retirées de ce relevé de carte. Supprimez le blocage pour continuer.',
             reportsNotSubmittedTitle: 'Soumettre des notes de frais',
             reportsNotMarkedAsDoneTitle: 'Marquer les notes de frais comme terminées',
             reportsNotSubmittedDescription: "Ces notes de frais n'ont pas pu être soumises. Vérifiez qu'aucune dépense n'est en attente ou en suspens, puis réessayez.",

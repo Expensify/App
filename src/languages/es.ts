@@ -1809,6 +1809,10 @@ const translations: TranslationDeepObject<typeof en> = {
             allTransactionsPendingMarkAsDoneDescription: 'No puedes marcar este informe como listo porque todas las transacciones están pendientes. Pueden tardar unos días en procesarse.',
             allExpensesOnHoldDescription: 'No puedes enviar este informe porque todos los gastos están retenidos. Elimina la retención para enviarlo.',
             allExpensesOnHoldMarkAsDoneDescription: 'No puedes marcar este informe como listo porque todos los gastos están retenidos. Elimina la retención para continuar.',
+            heldCorporateCardExpensesDescription:
+                'No puedes enviar este informe porque sus gastos retenidos de tarjetas de empresa no se pueden sacar de este estado de cuenta de la tarjeta. Elimina la retención para enviarlo.',
+            heldCorporateCardExpensesMarkAsDoneDescription:
+                'No puedes marcar este informe como listo porque sus gastos retenidos de tarjetas de empresa no se pueden sacar de este estado de cuenta de la tarjeta. Elimina la retención para continuar.',
             reportsNotSubmittedTitle: 'Enviar informes',
             reportsNotMarkedAsDoneTitle: 'Marcar informes como listos',
             reportsNotSubmittedDescription: 'No se han podido enviar estos informes. Comprueba que no haya gastos retenidos o pendientes y vuelve a intentarlo.',
