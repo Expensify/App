@@ -390,10 +390,12 @@ function buildOptimisticNextStep(params: BuildOptimisticNextStepParams): ReportN
             const reimbursementChoice = getReimbursementChoice(policy);
             const isReimbursementDisabled = reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO;
 
-            // The server returns no further action for approved expense reports on policies that reimburse outside Expensify (Indirect).
+            // The server returns no further action for approved reports on workspaces that reimburse outside Expensify (Indirect)
+            const isReimbursementManual = reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL;
+
             // Bills still wait for the payer, because manual reimbursement only skips expense reports.
-            const isReimbursementManual = reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL && !isBillReport(report);
-            if (isInvoiceReport(report) || reimbursableSpend === 0 || isReimbursementDisabled || isReimbursementManual) {
+            const shouldSkipPayment = isReimbursementManual && !isBillReport(report);
+            if (isInvoiceReport(report) || reimbursableSpend === 0 || isReimbursementDisabled || shouldSkipPayment) {
                 nextStep = nextStepNoActionRequired;
                 break;
             }
