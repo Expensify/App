@@ -28,6 +28,7 @@ import Text from './Text';
 
 const RUNNING_TITLES = {
     [CONST.SEARCH.BULK_ACTION_TYPES.APPROVE]: 'bulkAction.approvingTitle',
+    [CONST.SEARCH.BULK_ACTION_TYPES.UNAPPROVE]: 'bulkAction.unapprovingTitle',
     [CONST.SEARCH.BULK_ACTION_TYPES.SUBMIT]: 'bulkAction.submittingTitle',
     [CONST.SEARCH.BULK_ACTION_TYPES.PAY]: 'bulkAction.payingTitle',
     [CONST.SEARCH.BULK_ACTION_TYPES.HOLD]: 'bulkAction.holdingTitle',
@@ -40,6 +41,7 @@ const RUNNING_TITLES = {
 
 const DONE_TITLES = {
     [CONST.SEARCH.BULK_ACTION_TYPES.APPROVE]: 'bulkAction.approvedTitle',
+    [CONST.SEARCH.BULK_ACTION_TYPES.UNAPPROVE]: 'bulkAction.unapprovedTitle',
     [CONST.SEARCH.BULK_ACTION_TYPES.SUBMIT]: 'bulkAction.submittedTitle',
     [CONST.SEARCH.BULK_ACTION_TYPES.PAY]: 'bulkAction.paidTitle',
     [CONST.SEARCH.BULK_ACTION_TYPES.HOLD]: 'bulkAction.heldTitle',
@@ -52,6 +54,7 @@ const DONE_TITLES = {
 
 const FAILED_BODIES = {
     [CONST.SEARCH.BULK_ACTION_TYPES.APPROVE]: 'bulkAction.notApprovedBody',
+    [CONST.SEARCH.BULK_ACTION_TYPES.UNAPPROVE]: 'bulkAction.notUnapprovedBody',
     [CONST.SEARCH.BULK_ACTION_TYPES.SUBMIT]: 'bulkAction.notSubmittedBody',
     [CONST.SEARCH.BULK_ACTION_TYPES.PAY]: 'bulkAction.notPaidBody',
     [CONST.SEARCH.BULK_ACTION_TYPES.HOLD]: 'bulkAction.notHeldBody',

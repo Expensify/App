@@ -8,6 +8,7 @@ type BulkActionState = ValueOf<typeof CONST.BULK_ACTION.STATE>;
 /** Bulk actions from Search "Select all" that run on the backend */
 type BulkActionType =
     | typeof CONST.SEARCH.BULK_ACTION_TYPES.APPROVE
+    | typeof CONST.SEARCH.BULK_ACTION_TYPES.UNAPPROVE
     | typeof CONST.SEARCH.BULK_ACTION_TYPES.SUBMIT
     | typeof CONST.SEARCH.BULK_ACTION_TYPES.PAY
     | typeof CONST.SEARCH.BULK_ACTION_TYPES.HOLD

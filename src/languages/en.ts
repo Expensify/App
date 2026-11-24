@@ -13453,6 +13453,7 @@ const translations = {
     },
     bulkAction: {
         approvingTitle: 'Approving reports...',
+        unapprovingTitle: 'Unapproving reports...',
         submittingTitle: 'Submitting reports...',
         payingTitle: 'Marking reports as paid...',
         holdingTitle: 'Holding expenses...',
@@ -13469,6 +13470,10 @@ const translations = {
         approvedTitle: ({doneCount, count}: {doneCount: number; count: number}) => ({
             one: `Approved ${doneCount} of ${count} report`,
             other: `Approved ${doneCount} of ${count} reports`,
+        }),
+        unapprovedTitle: ({doneCount, count}: {doneCount: number; count: number}) => ({
+            one: `Unapproved ${doneCount} of ${count} report`,
+            other: `Unapproved ${doneCount} of ${count} reports`,
         }),
         submittedTitle: ({doneCount, count}: {doneCount: number; count: number}) => ({
             one: `Submitted ${doneCount} of ${count} report`,
@@ -13507,6 +13512,10 @@ const translations = {
         notApprovedBody: ({count}: {count: number}) => ({
             one: "1 report couldn't be approved.",
             other: `${count} reports couldn't be approved.`,
+        }),
+        notUnapprovedBody: ({count}: {count: number}) => ({
+            one: "1 report couldn't be unapproved.",
+            other: `${count} reports couldn't be unapproved.`,
         }),
         notSubmittedBody: ({count}: {count: number}) => ({
             one: "1 report couldn't be submitted.",
