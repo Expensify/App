@@ -7341,6 +7341,41 @@ const translations = {
             noVendorsFoundDescription: 'Please add vendors in Digits and sync the connection again',
             noAccountsFound: 'No accounts found',
             noAccountsFoundDescription: 'Please add bank or credit card accounts in Digits and sync the connection again',
+            noBankAccountsFoundDescription: 'Please add bank accounts in Digits and sync the connection again',
+            noPayableAccountsFoundDescription: 'Please add credit card or current liability accounts in Digits and sync the connection again',
+            autoSyncDescription: 'Sync Digits and Expensify automatically, every day. Reports sync in realtime.',
+            accountingMethods: {
+                label: 'Export method',
+                description: 'Choose when to export expenses.',
+                values: {
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: 'Accrual',
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: 'Cash',
+                },
+                alternateText: {
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: 'Out-of-pocket expenses will export when final approved',
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: 'Out-of-pocket expenses will export when paid',
+                },
+            },
+            syncReimbursedReports: 'Sync reimbursed reports',
+            syncReimbursedReportsDescription: 'When a report is paid via ACH, a bill payment will be generated in this account.',
+            billPaymentAccount: {
+                label: 'Bill payment account',
+                description: "Choose where to pay bills from and we'll create the payment in Digits.",
+            },
+            syncExpensifyCardSettlements: 'Sync Expensify Card settlements',
+            settlementAccount: {
+                label: 'Expensify Card settlement account',
+                description: "Choose your settlement account and we'll create the payment in Digits.",
+            },
+            syncTravelBillingSettlements: 'Sync Consolidated Travel Billing settlements',
+            travelBillingSettlementAccount: {
+                label: 'Consolidated Travel Billing settlement account',
+                description: "Choose your settlement account and we'll create the payment in Digits.",
+            },
+            travelBillingPayableAccount: {
+                label: 'Consolidated Travel Billing payable account',
+            },
+            missingSettlementAccount: (accountName: string) => `Settlements won't sync until you choose the ${accountName}.`,
         },
         zohoBooks: {
             organization: 'Zoho Books organization',
