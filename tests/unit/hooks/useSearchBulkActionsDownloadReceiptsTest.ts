@@ -299,6 +299,25 @@ describe('useSearchBulkActions - Download receipts', () => {
             expect(getDownloadReceiptsOption(result.current.headerButtonsOptions)?.text).toBe('common.downloadReceipt:1');
         });
 
+        it('counts only the receipts of the selected reports', async () => {
+            // Given two selected reports with a receipt each, and a third report with a receipt that is loaded but not selected
+            mockSelectedReports = [makeSelectedReport(), makeSelectedReport({reportID: '2'})];
+            mockSelectedTransactions = {tx1: makeSelectedTransaction()};
+            mockCurrentSearchResults = makeReportSearchResults([
+                {reportID: '1', withReceipt: true},
+                {reportID: '2', withReceipt: true},
+                {reportID: '3', withReceipt: true},
+            ]);
+
+            // When the bulk actions are built
+            const {result} = renderHookWithProvider(() => useSearchBulkActions({queryJSON: expenseReportQueryJSON}));
+
+            // Then the label counts the two selected reports' receipts and leaves out the unselected report's one
+            await waitFor(() => {
+                expect(getDownloadReceiptsOption(result.current.headerButtonsOptions)?.text).toBe('common.downloadReceipt:2');
+            });
+        });
+
         it('hides the option when no selected report has a receipt', async () => {
             mockSelectedReports = [makeSelectedReport()];
             mockSelectedTransactions = {tx1: makeSelectedTransaction()};

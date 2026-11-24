@@ -1831,6 +1831,62 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
             expect(report?.unheldTotal).toBe(10);
             expect(report?.unheldNonReimbursableTotal).toBe(10);
         });
+
+        it.each([
+            {pending: ['t1', 't1', 't2'], shouldDeleteReport: true, description: 'every other expense is pending deletion, listed with a duplicate'},
+            {pending: ['t1', 'not-on-report'], shouldDeleteReport: false, description: 'another expense is left on the report'},
+        ])('deletes the report comments only when the last expense is deleted ($description)', async ({pending, shouldDeleteReport}) => {
+            // Given an expense report with three expenses and a visible comment
+            const expenseReport: Report = {...createRandomReport(21, undefined), type: CONST.REPORT.TYPE.EXPENSE, total: 30, currency: CONST.CURRENCY.USD};
+            const buildTransaction = (transactionID: string, index: number): Transaction => ({
+                ...createRandomTransaction(index),
+                transactionID,
+                amount: 10,
+                currency: CONST.CURRENCY.USD,
+                reportID: expenseReport.reportID,
+            });
+            const transactions = [buildTransaction('t1', 1), buildTransaction('t2', 2), buildTransaction('t3', 3)];
+            const commentAction: ReportAction = {
+                ...createRandomReportAction(21),
+                reportActionID: 'comment',
+                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                reportID: expenseReport.reportID,
+                message: [{type: 'COMMENT', html: 'Hello', text: 'Hello'}],
+                pendingAction: null,
+            };
+            for (const transaction of transactions) {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
+            }
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`, expenseReport);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport.reportID}`, {[commentAction.reportActionID]: commentAction});
+            await waitForBatchedUpdates();
+            mockFetch?.pause?.();
+
+            // When the third expense is deleted during a bulk delete with the given pending list
+            deleteMoneyRequest({
+                transactionThreadReportActions: undefined,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                transactionID: 't3',
+                reportAction: undefined,
+                transactions: {},
+                violations: {},
+                iouReport: expenseReport,
+                iouReportTransactions: transactions,
+                chatReport: expenseReport,
+                transactionThreadReport: undefined,
+                transactionIDsPendingDeletion: pending,
+                selectedTransactionIDs: ['t1', 't2', 't3'],
+                allTransactionViolationsParam: {},
+                currentUserAccountID: TEST_USER_ACCOUNT_ID,
+                currentUserEmail: TEST_USER_LOGIN,
+            });
+            await waitForBatchedUpdates();
+
+            // Then the comment is deleted with the report only when no other expense is left on it
+            const reportActions = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport.reportID}`);
+            expect(reportActions?.[commentAction.reportActionID]?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE).toBe(shouldDeleteReport);
+            mockFetch?.resume?.();
+        });
     });
 
     describe('deleteMoneyRequest report preview message wording', () => {

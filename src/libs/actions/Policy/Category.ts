@@ -1875,6 +1875,10 @@ function setPolicyMemberCategoryVisibility(
     const successCategories: Record<string, NullishDeep<PolicyCategory>> = {};
     const failureCategories: Record<string, NullishDeep<PolicyCategory>> = {};
 
+    // Every category open to everyone gets restricted to the same other members, so compute them once
+    const changedAccountIDSet = new Set(accountIDs);
+    const otherMemberVisibleToEntries = policyMemberAccountIDs.filter((accountID) => !changedAccountIDSet.has(accountID)).map((accountID) => [accountID, true] as const);
+
     for (const category of Object.values(policyCategories)) {
         if (!category.enabled) {
             continue;
@@ -1891,7 +1895,7 @@ function setPolicyMemberCategoryVisibility(
             if (shouldBeVisible) {
                 continue;
             }
-            optimisticVisibleTo = Object.fromEntries(policyMemberAccountIDs.filter((accountID) => !accountIDs.includes(accountID)).map((accountID) => [accountID, true]));
+            optimisticVisibleTo = Object.fromEntries(otherMemberVisibleToEntries);
             failureVisibleTo = null;
         } else {
             const changedAccountIDs = accountIDs.filter((accountID) => !!previousVisibleTo[accountID] !== shouldBeVisible);

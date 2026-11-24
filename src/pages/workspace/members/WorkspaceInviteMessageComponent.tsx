@@ -154,6 +154,13 @@ function WorkspaceInviteMessageComponent({
     };
 
     const personalDetailsOfInvitedEmails = getPersonalDetailsForAccountIDs(Object.values(invitedEmailsToAccountIDsDraft ?? {}), allPersonalDetails ?? {});
+    // Many people can be invited at once, so the invited logins are indexed by accountID instead of being searched for each name
+    const invitedLoginByAccountID = new Map<number, string>();
+    for (const [login, accountID] of Object.entries(invitedEmailsToAccountIDsDraft ?? {})) {
+        if (!invitedLoginByAccountID.has(accountID)) {
+            invitedLoginByAccountID.set(accountID, login);
+        }
+    }
     const memberNames = Object.values(personalDetailsOfInvitedEmails)
         .map((personalDetail) => {
             const displayName = temporaryGetDisplayNameOrDefault({passedPersonalDetails: personalDetail, defaultValue: '', shouldFallbackToHidden: false, translate, formatPhoneNumber});
@@ -163,10 +170,7 @@ function WorkspaceInviteMessageComponent({
 
             // We don't have login details for users who are not in the database yet
             // So we need to fallback to their login from the invitedEmailsToAccountIDsDraft
-            const accountID = personalDetail.accountID;
-            const loginFromInviteMap = Object.entries(invitedEmailsToAccountIDsDraft ?? {}).find(([, id]) => id === accountID)?.[0];
-
-            return loginFromInviteMap;
+            return invitedLoginByAccountID.get(personalDetail.accountID);
         })
         .join(', ');
 

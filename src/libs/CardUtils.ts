@@ -819,8 +819,9 @@ function forEachAssignedCard(cardsList: CardList | undefined, callback: (card: C
 
 function getCardsByCardholderName(cardsList: OnyxEntry<WorkspaceCardsList>, policyMembersAccountIDs: number[]): Card[] {
     const result: Card[] = [];
+    const policyMembersAccountIDSet = new Set(policyMembersAccountIDs);
     forEachAssignedCard(cardsList, (card) => {
-        if (!card.accountID || !policyMembersAccountIDs.includes(card.accountID)) {
+        if (!card.accountID || !policyMembersAccountIDSet.has(card.accountID)) {
             return;
         }
         result.push(card);

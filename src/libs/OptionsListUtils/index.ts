@@ -941,19 +941,40 @@ function hasEnabledOptions(options: PolicyCategories | PolicyTag[]): boolean {
     return Object.values(options).some(isOptionEnabled);
 }
 
+type SelectedReportKeys = {
+    accountIDs: Set<number>;
+    reportIDs: Set<string>;
+};
+
+/**
+ * Collects the non-empty accountIDs and reportIDs of the selected options, so each report option can be checked in O(1).
+ */
+function getSelectedReportKeys(selectedOptions: ReadonlyArray<Partial<SearchOptionData>>): SelectedReportKeys {
+    const accountIDs = new Set<number>();
+    const reportIDs = new Set<string>();
+    for (const option of selectedOptions) {
+        if (option.accountID) {
+            accountIDs.add(option.accountID);
+        }
+        if (option.reportID) {
+            reportIDs.add(option.reportID);
+        }
+    }
+    return {accountIDs, reportIDs};
+}
+
 /**
  * Checks if a report option is selected based on matching accountID or reportID.
  *
  * @param reportOption - The report option to be checked.
- * @param selectedOptions - Array of selected options to compare with.
+ * @param selectedReportKeys - The accountIDs and reportIDs of the selected options, from getSelectedReportKeys.
  * @returns true if the report option matches any of the selected options by accountID or reportID, false otherwise.
  */
-function isReportSelected(reportOption: SearchOptionData, selectedOptions: ReadonlyArray<Partial<SearchOptionData>>) {
-    if (!selectedOptions || selectedOptions.length === 0) {
-        return false;
-    }
-
-    return selectedOptions.some((option) => (option.accountID && option.accountID === reportOption.accountID) || (option.reportID && option.reportID === reportOption.reportID));
+function isReportSelected(reportOption: SearchOptionData, selectedReportKeys: SelectedReportKeys) {
+    return (
+        (reportOption.accountID !== undefined && selectedReportKeys.accountIDs.has(reportOption.accountID)) ||
+        (reportOption.reportID !== undefined && selectedReportKeys.reportIDs.has(reportOption.reportID))
+    );
 }
 
 function processReport(
@@ -2225,6 +2246,7 @@ function prepareReportOptionsForDisplay(
     } = config;
 
     const validOptions: Array<SearchOption<Report>> = [];
+    const selectedReportKeys = getSelectedReportKeys(selectedOptions);
 
     const preferRecentExpenseReports = action === CONST.IOU.ACTION.CREATE;
 
@@ -2300,7 +2322,7 @@ function prepareReportOptionsForDisplay(
                 },
             ),
         );
-        const isSelected = isReportSelected(option, selectedOptions);
+        const isSelected = isReportSelected(option, selectedReportKeys);
 
         let isOptionUnread = option.isUnread;
         if (shouldUnreadBeBold) {

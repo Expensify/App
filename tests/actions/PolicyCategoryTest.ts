@@ -195,6 +195,28 @@ describe('actions/PolicyCategory', () => {
             expect(updatedCategories?.Software?.visibleTo).toEqual(buildVisibleTo(2));
             await mockFetch?.resume?.();
         });
+
+        it('restricts every category open to everyone to the same other members when several members lose access', async () => {
+            // Given three categories open to everyone, so the restriction for the other members is shared by all of them
+            mockFetch?.pause?.();
+            const openCategories: PolicyCategories = {
+                Travel: {name: 'Travel', enabled: true, visibleTo: null},
+                Meals: {name: 'Meals', enabled: true, visibleTo: null},
+                Office: {name: 'Office', enabled: true, visibleTo: null},
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`, openCategories);
+
+            // When the admin limits two members to Travel only
+            setPolicyMemberCategoryVisibility(policyID, [1, 3], ['Travel'], openCategories, policyMemberAccountIDs, ['alice@example.com', 'carol@example.com']);
+            await waitForBatchedUpdates();
+
+            // Then both other categories are restricted to the only member left out of the change, and Travel stays open
+            const updatedCategories = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
+            expect(updatedCategories?.Meals?.visibleTo).toEqual(buildVisibleTo(2));
+            expect(updatedCategories?.Office?.visibleTo).toEqual(buildVisibleTo(2));
+            expect(updatedCategories?.Travel?.visibleTo).toBeUndefined();
+            await mockFetch?.resume?.();
+        });
     });
     describe('setPolicyCategoryMemberVisibility', () => {
         const policyID = 'policyID';

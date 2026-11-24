@@ -556,7 +556,8 @@ function WorkspaceCompanyCardsTable({
         ) : undefined;
     // Derived here rather than from the table's own rows, so the floating bar and the narrow layout's dropdown are
     // built from one selection.
-    const selectedCards = cardsData.filter((card) => !card.disabled && validSelectedCardKeys.includes(keyExtractor(card)));
+    const validSelectedCardKeySet = new Set(validSelectedCardKeys);
+    const selectedCards = cardsData.filter((card) => !card.disabled && validSelectedCardKeySet.has(keyExtractor(card)));
     const bulkActionOptions = useWorkspaceCompanyCardsBulkActions({
         policyID,
         domainOrWorkspaceAccountID,

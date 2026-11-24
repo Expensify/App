@@ -109,8 +109,18 @@ function isAgentRuleFallbackState(state: GeneratedRuleState): boolean {
 /** Replaces the generated categories with the workspace's own spelling of them, and drops any the workspace has no enabled category for */
 function withPolicyCategories(values: GeneratedRuleValues, policyCategories: OnyxEntry<PolicyCategories>): GeneratedRuleValues {
     const {category, categoriesToMatch, ...rest} = values;
-    const findPolicyCategoryName = (categoryName: string) =>
-        Object.values(policyCategories ?? {}).find((candidate) => candidate.enabled && getDecodedCategoryName(candidate.name) === getDecodedCategoryName(categoryName))?.name;
+    // Decode each enabled category once instead of once per generated category. The first match wins, like Array.find.
+    const policyCategoryNameByDecodedName = new Map<string, string>();
+    for (const candidate of Object.values(policyCategories ?? {})) {
+        if (!candidate.enabled) {
+            continue;
+        }
+        const decodedName = getDecodedCategoryName(candidate.name);
+        if (!policyCategoryNameByDecodedName.has(decodedName)) {
+            policyCategoryNameByDecodedName.set(decodedName, candidate.name);
+        }
+    }
+    const findPolicyCategoryName = (categoryName: string) => policyCategoryNameByDecodedName.get(getDecodedCategoryName(categoryName));
     const policyCategoryName = category ? findPolicyCategoryName(category) : undefined;
     return {
         ...rest,

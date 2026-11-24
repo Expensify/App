@@ -4,7 +4,6 @@
  */
 import type {PersonalDetailsByLogin} from '@components/PersonalDetailsByLoginProvider';
 
-import {getCategoryApproverRule} from '@libs/CategoryUtils';
 import {getHRAdvancedModeFinalApprover} from '@libs/merge/HRUtils';
 import {getAccountIDsByLogins} from '@libs/PersonalDetailsUtils';
 import {isApprovalWorkflowRule, isRuleFilterComparison} from '@libs/RuleUtils';
@@ -25,7 +24,6 @@ import type {ValueOf} from 'type-fest';
 import {isPolicyMember} from './members';
 import {isPolicyApprover} from './permissions';
 import {isGroupPolicy} from './policyType';
-import {getTagApproverRule} from './rules';
 import {isSubmitAndClose} from './workflows';
 
 /** The report facts an approval workflow rule is matched against. */
@@ -130,10 +128,32 @@ function hasCustomApprovalWorkflow(policy: OnyxEntry<Policy>): boolean {
     );
 }
 
+/**
+ * Map each category or tag to the approver of the first rule matching it, the same rule getCategoryApproverRule
+ * and getTagApproverRule find.
+ */
+function getFirstRuleApproverByValue(approvalRules: ApprovalRule[], field: typeof CONST.POLICY.FIELDS.CATEGORY | typeof CONST.POLICY.FIELDS.TAG): Map<string, string> {
+    const approverByValue = new Map<string, string>();
+    for (const rule of approvalRules) {
+        for (const {condition, field: ruleField, value} of rule.applyWhen) {
+            if (condition !== CONST.POLICY.RULE_CONDITIONS.MATCHES || ruleField !== field || approverByValue.has(value)) {
+                continue;
+            }
+            approverByValue.set(value, rule.approver);
+        }
+    }
+    return approverByValue;
+}
+
 function getRuleApprovers(policy: OnyxEntry<Policy>, expenseReport: OnyxEntry<Report>) {
     const categoryApprovers: string[] = [];
     const tagApprovers: string[] = [];
     const allReportTransactions = getAllSortedTransactions(expenseReport?.reportID);
+
+    // A report can hold many expenses, so the rules are indexed once instead of being scanned for each one
+    const approvalRules = policy?.rules?.approvalRules ?? [];
+    const categoryApproverByName = getFirstRuleApproverByValue(approvalRules, CONST.POLICY.FIELDS.CATEGORY);
+    const tagApproverByName = getFirstRuleApproverByValue(approvalRules, CONST.POLICY.FIELDS.TAG);
 
     // Before submitting to their `submitsTo` (in a policy on Advanced Approvals), submit to category/tag approvers.
     // Category approvers are prioritized, then tag approvers.
@@ -141,8 +161,8 @@ function getRuleApprovers(policy: OnyxEntry<Policy>, expenseReport: OnyxEntry<Re
         const transaction = allReportTransactions.at(i);
         const tag = getTag(transaction);
         const category = getCategory(transaction);
-        const categoryApprover = getCategoryApproverRule(policy?.rules?.approvalRules ?? [], category)?.approver;
-        const tagApprover = getTagApproverRule(policy, tag)?.approver;
+        const categoryApprover = categoryApproverByName.get(category);
+        const tagApprover = tagApproverByName.get(tag);
         if (categoryApprover) {
             categoryApprovers.push(categoryApprover);
         }

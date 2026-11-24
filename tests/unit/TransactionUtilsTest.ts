@@ -7172,3 +7172,22 @@ describe('buildOptimisticTransaction distance customUnit', () => {
         expect(existingTransaction.comment?.customUnit?.quantity).toBe(10);
     });
 });
+
+describe('getTransactionsByID', () => {
+    it('returns the transaction find would return for every ID', () => {
+        // Given two transactions sharing an ID, because callers replaced transactions.find with this index and find returns the first match
+        const first = {...createRandomTransaction(1), transactionID: 'shared', amount: 100};
+        const duplicate = {...createRandomTransaction(2), transactionID: 'shared', amount: 200};
+        const other = {...createRandomTransaction(3), transactionID: 'other'};
+        const transactions = [first, duplicate, other];
+
+        // When indexing the transactions
+        const transactionsByID = TransactionUtils.getTransactionsByID(transactions);
+
+        // Then each ID, including a missing one, gives the same transaction as find
+        for (const transactionID of ['shared', 'other', 'missing']) {
+            expect(transactionsByID.get(transactionID)).toBe(transactions.find((transaction) => transaction.transactionID === transactionID));
+        }
+        expect(transactionsByID.get('shared')?.amount).toBe(100);
+    });
+});

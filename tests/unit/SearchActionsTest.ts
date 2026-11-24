@@ -911,6 +911,73 @@ describe('getPayOption', () => {
         expect(getShouldEnableBulkPayOption(selectedReports)).toBe(false);
     });
 
+    describe('with transactions selected next to reports', () => {
+        function makeSelectedTransaction(reportID: string | undefined, action: SelectedTransactions[string]['action']): SelectedTransactions[string] {
+            return {
+                isSelected: true,
+                canReject: false,
+                canHold: false,
+                canSplit: false,
+                hasBeenSplit: false,
+                canChangeReport: false,
+                isHeld: false,
+                canUnhold: false,
+                action,
+                reportID,
+                policyID: 'policy1',
+                amount: 100,
+                displayAmount: 100,
+                currency: 'USD',
+                isFromOneTransactionReport: false,
+            };
+        }
+
+        it('ignores transactions that cannot be paid when they belong to a selected report', () => {
+            // Given two payable reports and an expense that cannot be paid inside one of them, so the report selection already covers it
+            const selectedReports = [makeSelectedReport('1', true), makeSelectedReport('2', true)];
+            const selectedTransactions: SelectedTransactions = {
+                tx1: makeSelectedTransaction('2', CONST.SEARCH.ACTION_TYPES.VIEW),
+            };
+
+            // When the bulk pay eligibility is computed
+            const {shouldEnableBulkPayOption} = getPayOption(selectedReports, selectedTransactions, undefined, ['1', '2'], undefined);
+
+            // Then bulk pay stays enabled, because only expenses outside the selected reports have to be payable on their own
+            expect(shouldEnableBulkPayOption).toBe(true);
+        });
+
+        it('disables bulk pay when a transaction that cannot be paid belongs to a report that is not selected', () => {
+            // Given a payable report plus an expense from another report and an expense without a report, neither of which can be paid
+            const selectedReports = [makeSelectedReport('1', true)];
+            const selectedTransactions: SelectedTransactions = {
+                tx1: makeSelectedTransaction('3', CONST.SEARCH.ACTION_TYPES.VIEW),
+                tx2: makeSelectedTransaction(undefined, CONST.SEARCH.ACTION_TYPES.VIEW),
+            };
+
+            // When the bulk pay eligibility is computed
+            const {shouldEnableBulkPayOption} = getPayOption(selectedReports, selectedTransactions, undefined, ['1'], undefined);
+
+            // Then bulk pay is disabled by the expense from report 3, while the expense without a report is not checked at all
+            expect(shouldEnableBulkPayOption).toBe(false);
+        });
+
+        it('enables bulk pay when every transaction outside the selected reports is payable', () => {
+            // Given a payable report plus payable expenses from another report, and an expense without a report that cannot be paid, which is never checked
+            const selectedReports = [makeSelectedReport('1', true)];
+            const selectedTransactions: SelectedTransactions = {
+                tx1: makeSelectedTransaction('3', CONST.SEARCH.ACTION_TYPES.PAY),
+                tx2: makeSelectedTransaction('3', CONST.SEARCH.ACTION_TYPES.PAY),
+                tx3: makeSelectedTransaction(undefined, CONST.SEARCH.ACTION_TYPES.VIEW),
+            };
+
+            // When the bulk pay eligibility is computed
+            const {shouldEnableBulkPayOption} = getPayOption(selectedReports, selectedTransactions, undefined, ['1'], undefined);
+
+            // Then bulk pay is enabled
+            expect(shouldEnableBulkPayOption).toBe(true);
+        });
+    });
+
     describe('openSearchTagFiltersPage', () => {
         beforeEach(async () => {
             Onyx.init({keys: ONYXKEYS});

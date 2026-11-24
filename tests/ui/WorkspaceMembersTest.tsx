@@ -546,6 +546,49 @@ describe('WorkspaceMembers', () => {
             unmount();
             confirmModalSpy.mockRestore();
         });
+
+        it.each([{isArchived: false}, {isArchived: true}])(
+            'should warn about a member who only approves an outstanding report when that report is not archived (archived: $isArchived)',
+            async ({isArchived}) => {
+                // Given the auditor isn't an approver on employeeList, but was made the approver of a submitted report through "Change approver"
+                const reportID = '999';
+                await act(async () => {
+                    await Onyx.set(ONYXKEYS.DERIVED.OUTSTANDING_REPORTS_BY_POLICY_ID, {
+                        [policy.id]: {
+                            [`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]: {
+                                reportID,
+                                policyID: policy.id,
+                                type: CONST.REPORT.TYPE.EXPENSE,
+                                managerID: auditorAccountID,
+                                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+                            },
+                        },
+                    });
+                    await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`, isArchived ? {private_isArchived: '2025-01-01 00:00:00'} : {});
+                });
+                const showConfirmModal = jest.fn<Promise<{action: typeof ModalActions.CLOSE}>, [{prompt?: unknown}]>(() => Promise.resolve({action: ModalActions.CLOSE}));
+                const confirmModalSpy = jest.spyOn(useConfirmModalModule, 'default').mockReturnValue(createMock<ReturnType<typeof useConfirmModalModule.default>>({showConfirmModal}));
+                const {unmount} = renderPage(SCREENS.WORKSPACE.MEMBERS, {policyID: policy.id});
+                await waitForBatchedUpdatesWithAct();
+
+                // When the admin asks to remove the auditor
+                await screen.findByText(ADMIN_OPTION);
+                selectCheckboxByMemberName('Auditor');
+                await openBulkActions();
+                const removeMenuItem = screen.getByText(TestHelper.translateLocal('workspace.people.removeMembersTitle', {count: 1}));
+                fireEvent.press(removeMenuItem, {nativeEvent: {}, type: 'press', target: removeMenuItem, currentTarget: removeMenuItem});
+                await waitForBatchedUpdatesWithAct();
+
+                // Then the approver warning is shown only while the report still waits on them, since an archived report no longer does
+                const warningPrompt = TestHelper.translateLocal('workspace.people.removeMembersWarningPrompt', 'Auditor User', 'Owner User');
+                const prompts = showConfirmModal.mock.calls.map(([options]) => options.prompt);
+                expect(prompts.includes(warningPrompt)).toBe(!isArchived);
+
+                unmount();
+                confirmModalSpy.mockRestore();
+            },
+        );
     });
 
     describe('RuleBot restrictions', () => {

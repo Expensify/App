@@ -44,8 +44,17 @@ function useMembersNeedCategoryModal(policyID: string | undefined) {
 
     // isRemovingAccess is for a category's "Visible to" page, where the category stays enabled and only these members lose it.
     const showMembersNeedCategoryModal = (accountIDs: number[], categoryNames: string[], isRemovingAccess = false) => {
+        // Many members can be blocked at once, so their logins are indexed by accountID instead of being searched for each one.
+        // When two logins share an accountID, the first one in the employee list is kept.
+        const loginByAccountID = new Map<number, string>();
+        for (const login of employeeLogins) {
+            const loginAccountID = employeePersonalDetails[login]?.accountID;
+            if (loginAccountID !== undefined && !loginByAccountID.has(loginAccountID)) {
+                loginByAccountID.set(loginAccountID, login);
+            }
+        }
         const memberLogins = accountIDs
-            .map((accountID) => employeeLogins.find((login) => employeePersonalDetails[login]?.accountID === accountID))
+            .map((accountID) => loginByAccountID.get(accountID))
             .filter((login): login is string => !!login)
             .slice(0, MAX_LISTED_MEMBERS);
         // Members whose details haven't loaded aren't named, so they're counted here instead.

@@ -77,7 +77,7 @@ function WorkspaceWorkflowsApprovalsApproverPage({policy, personalDetails, isLoa
     if (!employeeList) {
         allApprovers = [];
     } else {
-        const membersEmail = approvalWorkflow?.members?.map((member) => member.email);
+        const memberEmails = new Set(approvalWorkflow?.members?.map((member) => member.email));
         const policyMemberEmailsToAccountIDs = getMemberAccountIDsForWorkspace(employeeList, employeePersonalDetails);
         const approvers = Object.values(employeeList)
             .map((employee): SelectionListApprover | null => {
@@ -91,7 +91,7 @@ function WorkspaceWorkflowsApprovalsApproverPage({policy, personalDetails, isLoa
                 if (shouldFilterOutExpensifyTeam && isExpensifyTeam(email) && visibleSelectedApproverEmail !== email) {
                     return null;
                 }
-                if (!isDefault && policy?.preventSelfApproval && membersEmail?.includes(email) && visibleSelectedApproverEmail !== email) {
+                if (!isDefault && policy?.preventSelfApproval && memberEmails.has(email) && visibleSelectedApproverEmail !== email) {
                     return null;
                 }
 

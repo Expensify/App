@@ -4,6 +4,7 @@ import OnyxListItemProvider from '@components/OnyxListItemProvider';
 
 import useDeleteTransactions from '@hooks/useDeleteTransactions';
 
+import {updateSplitTransactions} from '@libs/actions/IOU/SplitTransactionUpdate';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import {buildOptimisticIOUReportAction} from '@libs/ReportUtils';
 
@@ -35,6 +36,10 @@ jest.mock('@libs/Navigation/Navigation', () => ({
 jest.mock('@react-navigation/native');
 jest.mock('@libs/Navigation/helpers/isSearchTopmostFullScreenRoute', () => jest.fn());
 jest.mock('@libs/Navigation/helpers/isReportTopmostSplitNavigator', () => jest.fn());
+jest.mock('@libs/actions/IOU/SplitTransactionUpdate', () => ({
+    ...jest.requireActual<Record<string, unknown>>('@libs/actions/IOU/SplitTransactionUpdate'),
+    updateSplitTransactions: jest.fn(),
+}));
 jest.mock('@src/libs/actions/Report', () => ({
     ...jest.requireActual<Record<string, unknown>>('@src/libs/actions/Report'),
     setDeleteTransactionNavigateBackUrl: jest.fn(),
@@ -235,5 +240,108 @@ describe('useDeleteTransactions', () => {
         const selfDMActions = (await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${selfDMReport.reportID}`)) as ReportActions | undefined;
         const deletedAction = selfDMActions?.[iouAction.reportActionID];
         expect(Array.isArray(deletedAction?.message) ? deletedAction?.message.at(0)?.html : undefined).toBe('');
+    });
+
+    it('picks each expense its own IOU action when deleting several expenses of one report, preferring a live action from either source', async () => {
+        // Given three expenses on one report: the first has a deleted action in Onyx and a live one only in the passed actions,
+        // the second has its action only in Onyx, and the third only in the passed actions
+        const expenseReport = createExpenseReport(1);
+        const buildTransaction = (transactionID: string): Transaction => ({
+            transactionID,
+            amount: -10000,
+            currency: 'USD',
+            merchant: 'Test Merchant',
+            comment: {comment: 'Test comment'},
+            created: DateUtils.getDBTime(),
+            reportID: expenseReport.reportID,
+        });
+        const buildIOUAction = (transactionID: string, reportActionID: string): ReportAction => ({
+            ...buildOptimisticIOUReportAction({
+                type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                amount: 10000,
+                currency: 'USD',
+                comment: '',
+                participants: [{accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}],
+                transactionID,
+                iouReportID: expenseReport.reportID,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+            }),
+            reportActionID,
+            reportID: expenseReport.reportID,
+            pendingAction: null,
+        });
+        const deletedAction: ReportAction = {...buildIOUAction('t1', 'deleted-action'), pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE};
+        const liveAction = buildIOUAction('t1', 'live-action');
+        const collectionOnlyAction = buildIOUAction('t2', 'collection-action');
+        const passedOnlyAction = buildIOUAction('t3', 'passed-action');
+
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`, expenseReport);
+        for (const transactionID of ['t1', 't2', 't3']) {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, buildTransaction(transactionID));
+        }
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport.reportID}`, {
+            [deletedAction.reportActionID]: deletedAction,
+            [collectionOnlyAction.reportActionID]: collectionOnlyAction,
+        });
+        await waitForBatchedUpdates();
+
+        const {result} = renderHook(() => useDeleteTransactions({report: expenseReport, reportActions: [liveAction, passedOnlyAction]}), {wrapper: OnyxListItemProvider});
+        await waitForBatchedUpdates();
+
+        // When the three expenses are deleted together
+        act(() => {
+            result.current.deleteTransactions(['t1', 't2', 't3'], {}, {});
+        });
+        await waitForBatchedUpdates();
+
+        // Then each DeleteMoneyRequest carries the action the single-expense lookup would pick for that expense
+        expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.DELETE_MONEY_REQUEST, 3);
+        expectAPICommandToHaveBeenCalledWith(WRITE_COMMANDS.DELETE_MONEY_REQUEST, 0, {transactionID: 't1', reportActionID: liveAction.reportActionID});
+        expectAPICommandToHaveBeenCalledWith(WRITE_COMMANDS.DELETE_MONEY_REQUEST, 1, {transactionID: 't2', reportActionID: collectionOnlyAction.reportActionID});
+        expectAPICommandToHaveBeenCalledWith(WRITE_COMMANDS.DELETE_MONEY_REQUEST, 2, {transactionID: 't3', reportActionID: passedOnlyAction.reportActionID});
+    });
+
+    it('keeps only the live split siblings of the deleted split, ignoring deleted siblings and splits of another expense', async () => {
+        // Given an expense split in four, where one split is pending deletion, and a split of another expense on the same report
+        const expenseReport = {...createExpenseReport(1), statusNum: CONST.REPORT.STATUS_NUM.OPEN};
+        const buildSplit = (transactionID: string, originalTransactionID: string, pendingAction?: Transaction['pendingAction']): Transaction => ({
+            transactionID,
+            amount: -1000,
+            currency: 'USD',
+            merchant: 'Test Merchant',
+            comment: {comment: '', originalTransactionID, source: CONST.IOU.TYPE.SPLIT},
+            created: DateUtils.getDBTime(),
+            reportID: expenseReport.reportID,
+            pendingAction,
+        });
+        const splits = [
+            buildSplit('split-deleted-now', 'original'),
+            buildSplit('split-kept-1', 'original'),
+            buildSplit('split-kept-2', 'original'),
+            buildSplit('split-already-deleted', 'original', CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE),
+            buildSplit('split-of-other-expense', 'other-original'),
+        ];
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`, expenseReport);
+        for (const split of splits) {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${split.transactionID}`, split);
+        }
+        await waitForBatchedUpdates();
+
+        const {result} = renderHook(() => useDeleteTransactions({report: expenseReport, reportActions: []}), {wrapper: OnyxListItemProvider});
+        await waitForBatchedUpdates();
+
+        // When one split is deleted
+        act(() => {
+            result.current.deleteTransactions(['split-deleted-now'], {}, {});
+        });
+        await waitForBatchedUpdates();
+
+        // Then the split is rebuilt from its two live siblings only
+        expect(updateSplitTransactions).toHaveBeenCalledTimes(1);
+        const remainingSplitIDs = jest
+            .mocked(updateSplitTransactions)
+            .mock.calls.at(0)?.[0]
+            .transactionData.splitExpenses.map((splitExpense) => splitExpense.transactionID);
+        expect(remainingSplitIDs).toEqual(['split-kept-1', 'split-kept-2']);
     });
 });

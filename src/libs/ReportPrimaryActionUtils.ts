@@ -64,6 +64,7 @@ import {
 } from './ReportUtils';
 import {
     allHavePendingRTERViolation,
+    getTransactionsByID,
     getTransactionViolations,
     hasOnlyUnsettledExpenses,
     hasPendingRTERViolation as hasPendingRTERViolationTransactionUtils,
@@ -485,13 +486,15 @@ function getAllExpensesToHoldIfApplicable(
         return [];
     }
 
+    const reportTransactionsByID = getTransactionsByID(reportTransactions);
+
     return reportActions?.filter((action) => {
         if (!isMoneyRequestAction(action) || action.childType !== CONST.REPORT.TYPE.CHAT) {
             return false;
         }
 
         const transactionID = getOriginalMessage(action)?.IOUTransactionID;
-        const transaction = reportTransactions.find((reportTransaction) => reportTransaction.transactionID === transactionID);
+        const transaction = transactionID ? reportTransactionsByID.get(transactionID) : undefined;
         const holdReportAction = getReportAction(action?.childReportID, `${transaction?.comment?.hold ?? ''}`);
         return canHoldUnholdReportAction(report, action, holdReportAction, transaction, policy, currentUserAccountID, rules, reportOwnerLogin).canUnholdRequest;
     });

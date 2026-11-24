@@ -92,6 +92,7 @@ import {
     canRequestMoney,
     canSeeDefaultRoom,
     canUserPerformWriteAction,
+    didCurrentUserPlaceHoldOnReportExpense,
     doesReportBelongToWorkspace,
     doReportsHaveMatchingReportFieldValues,
     excludeParticipantsForDisplay,
@@ -105,6 +106,10 @@ import {
     getBankAccountRoute,
     getBillableAndTaxTotal,
     getChatByParticipants,
+    getPolicyExpenseChatsByOwnerAccountID,
+    getParticipantsChatKey,
+    getChatsByParticipantsKey,
+    getApproverAccountIDsOfOutstandingPolicyReports,
     getChatListItemReportName,
     getChatReportFromMoneyRequestReport,
     getChatRoomSubtitle,
@@ -181,6 +186,7 @@ import {
     getUserDetailTooltipText,
     getViolatingReportIDForRBRInLHN,
     getWhisperDisplayNames,
+    getWorkspaceChats,
     getWorkspaceIcon,
     getWorkspaceNameUpdatedMessage,
     hasActionWithErrorsForTransaction,
@@ -7877,6 +7883,84 @@ describe('ReportUtils', () => {
         });
     });
 
+    describe('didCurrentUserPlaceHoldOnReportExpense', () => {
+        const otherAccountID = 999;
+        const buildHeldExpense = (index: number, holdActorAccountID: number) => {
+            const transactionID = `held${index}`;
+            const childReportID = `child${index}`;
+            const holdActionID = `hold${index}`;
+            const holdAction: ReportAction = {...createRandomReportAction(index), reportActionID: holdActionID, actorAccountID: holdActorAccountID};
+            const transaction: Transaction = {...createRandomTransaction(index), transactionID, comment: {hold: holdActionID}};
+            const iouAction: ReportAction = {
+                ...createRandomReportAction(index),
+                reportActionID: `iou_${transactionID}`,
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                childReportID,
+                originalMessage: {type: CONST.IOU.REPORT_ACTION_TYPE.CREATE, IOUTransactionID: transactionID, amount: 100, currency: CONST.CURRENCY.USD},
+            };
+            return {transaction, iouAction, holdActionsKey: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${childReportID}` as const, holdActions: {[holdActionID]: holdAction}};
+        };
+
+        it('checks the hold creator of each action against the matching expense', async () => {
+            // Given two held expenses where only the second hold was placed by the current user, because each IOU action must be matched to its own expense
+            const first = buildHeldExpense(1, otherAccountID);
+            const second = buildHeldExpense(2, currentUserAccountID);
+            await Onyx.set(first.holdActionsKey, first.holdActions);
+            await Onyx.set(second.holdActionsKey, second.holdActions);
+            await waitForBatchedUpdates();
+            const reportActions = {[first.iouAction.reportActionID]: first.iouAction, [second.iouAction.reportActionID]: second.iouAction};
+
+            // When checking with both expenses and with only the first one
+            const withBoth = didCurrentUserPlaceHoldOnReportExpense(reportActions, [first.transaction, second.transaction], currentUserAccountID);
+            const withFirstOnly = didCurrentUserPlaceHoldOnReportExpense(reportActions, [first.transaction], currentUserAccountID);
+
+            // Then only the expense held by the current user counts, and an action without a matching expense is ignored
+            expect(withBoth).toBe(true);
+            expect(withFirstOnly).toBe(false);
+        });
+
+        it('uses the first expense when the same transaction ID appears twice', async () => {
+            // Given a duplicate entry for an expense where only the second copy is on hold, because the old lookup used find
+            const held = buildHeldExpense(3, currentUserAccountID);
+            await Onyx.set(held.holdActionsKey, held.holdActions);
+            await waitForBatchedUpdates();
+            const copyWithoutHold: Transaction = {...held.transaction, comment: {}};
+
+            // When checking with the copy that is not on hold first
+            const result = didCurrentUserPlaceHoldOnReportExpense({[held.iouAction.reportActionID]: held.iouAction}, [copyWithoutHold, held.transaction], currentUserAccountID);
+
+            // Then the first copy wins, so the hold isn't counted
+            expect(result).toBe(false);
+        });
+    });
+
+    describe('getWorkspaceChats', () => {
+        it('returns the workspace chats owned by any of the given accounts', () => {
+            // Given workspace chats owned by different accounts, a chat in another workspace and a chat with no owner, because the accounts are matched with a Set
+            const workspaceID = 'workspaceChatsPolicy';
+            const buildWorkspaceChat = (reportID: string, ownerAccountID: number | undefined, policyID = workspaceID): Report => ({
+                reportID,
+                policyID,
+                ownerAccountID,
+                type: CONST.REPORT.TYPE.CHAT,
+                chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+            });
+            const reports: OnyxCollection<Report> = {
+                [`${ONYXKEYS.COLLECTION.REPORT}1`]: buildWorkspaceChat('1', 1),
+                [`${ONYXKEYS.COLLECTION.REPORT}2`]: buildWorkspaceChat('2', 2),
+                [`${ONYXKEYS.COLLECTION.REPORT}3`]: buildWorkspaceChat('3', 3),
+                [`${ONYXKEYS.COLLECTION.REPORT}4`]: buildWorkspaceChat('4', 1, 'otherPolicy'),
+                [`${ONYXKEYS.COLLECTION.REPORT}5`]: buildWorkspaceChat('5', undefined),
+            };
+
+            // When getting the chats of accounts 1 and 3
+            const chats = getWorkspaceChats(workspaceID, [1, 3], reports);
+
+            // Then only the chats of those accounts in the workspace are returned
+            expect(chats.map((chat) => chat?.reportID)).toEqual(['1', '3']);
+        });
+    });
+
     describe('canEditMoneyRequest', () => {
         it('it should return false for archived invoice', async () => {
             const invoiceReport: Report = {
@@ -14454,6 +14538,114 @@ describe('ReportUtils', () => {
             expect(isApproverOfOutstandingPolicyReports(approverAccountID, undefined, noArchivedReports)).toBe(false);
             expect(isApproverOfOutstandingPolicyReports(approverAccountID, {}, noArchivedReports)).toBe(false);
             expect(isApproverOfOutstandingPolicyReports(undefined, outstandingReports, noArchivedReports)).toBe(false);
+        });
+    });
+
+    describe('getApproverAccountIDsOfOutstandingPolicyReports', () => {
+        it('gives the same answer as isApproverOfOutstandingPolicyReports for every member', () => {
+            // Given submitted, open, archived and unassigned reports, because the members page checks every selected member against this Set
+            const buildReport = (reportID: number, report: Partial<Report>): Report => ({
+                ...createRandomReport(reportID, undefined),
+                policyID: policy.id,
+                type: CONST.REPORT.TYPE.EXPENSE,
+                ...report,
+            });
+            const submitted = {stateNum: CONST.REPORT.STATE_NUM.SUBMITTED, statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED};
+            const outstandingReports: OnyxCollection<Report> = {
+                [`${ONYXKEYS.COLLECTION.REPORT}1`]: buildReport(1, {...submitted, managerID: 1}),
+                [`${ONYXKEYS.COLLECTION.REPORT}2`]: buildReport(2, {stateNum: CONST.REPORT.STATE_NUM.OPEN, statusNum: CONST.REPORT.STATUS_NUM.OPEN, managerID: 2}),
+                [`${ONYXKEYS.COLLECTION.REPORT}3`]: buildReport(3, {...submitted, managerID: 3}),
+                [`${ONYXKEYS.COLLECTION.REPORT}4`]: buildReport(4, {...submitted, managerID: undefined}),
+                [`${ONYXKEYS.COLLECTION.REPORT}5`]: buildReport(5, {...submitted, managerID: 1}),
+            };
+            const archivedReports = {[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}3`]: true};
+
+            // When building the Set once
+            const approverAccountIDs = getApproverAccountIDsOfOutstandingPolicyReports(outstandingReports, archivedReports);
+
+            // Then each member, including a missing account ID, gets the same answer as the per-member check
+            for (const accountID of [1, 2, 3, 4, 0, undefined]) {
+                expect(approverAccountIDs.has(accountID ?? CONST.DEFAULT_NUMBER_ID)).toBe(isApproverOfOutstandingPolicyReports(accountID, outstandingReports, archivedReports));
+            }
+            expect([...approverAccountIDs]).toEqual([1]);
+        });
+    });
+
+    describe('getChatsByParticipantsKey', () => {
+        it('returns the same chat as getChatByParticipants for every participant list', () => {
+            // Given DMs, a duplicated DM, a group chat, a system chat and a workspace chat, because split loops look up each participant in this index
+            const buildChat = (reportID: string, participantAccountIDs: number[], report: Partial<Report> = {}): Report => ({
+                reportID,
+                type: CONST.REPORT.TYPE.CHAT,
+                participants: Object.fromEntries(participantAccountIDs.map((accountID) => [accountID, {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS}])),
+                ...report,
+            });
+            const reports: OnyxCollection<Report> = {
+                [`${ONYXKEYS.COLLECTION.REPORT}1`]: buildChat('1', [currentUserAccountID, 2]),
+                [`${ONYXKEYS.COLLECTION.REPORT}2`]: buildChat('2', [currentUserAccountID, 2]),
+                [`${ONYXKEYS.COLLECTION.REPORT}3`]: buildChat('3', [currentUserAccountID, 10]),
+                [`${ONYXKEYS.COLLECTION.REPORT}4`]: buildChat('4', [currentUserAccountID, 2, 10], {chatType: CONST.REPORT.CHAT_TYPE.GROUP}),
+                [`${ONYXKEYS.COLLECTION.REPORT}5`]: buildChat('5', [currentUserAccountID, 20], {chatType: CONST.REPORT.CHAT_TYPE.SYSTEM}),
+                [`${ONYXKEYS.COLLECTION.REPORT}6`]: buildChat('6', [currentUserAccountID, 30], {chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT, policyID: 'policy'}),
+                [`${ONYXKEYS.COLLECTION.REPORT}7`]: undefined,
+            };
+            const participantLists = [
+                [2, currentUserAccountID],
+                [currentUserAccountID, 10],
+                [10, currentUserAccountID, 2],
+                [20, currentUserAccountID],
+                [30, currentUserAccountID],
+                [99, currentUserAccountID],
+                [],
+            ];
+
+            for (const shouldIncludeGroupChats of [false, true]) {
+                // When indexing the chats once
+                const chatsByParticipantsKey = getChatsByParticipantsKey(reports, shouldIncludeGroupChats);
+
+                // Then every lookup, including the first of two duplicated DMs, matches the full scan
+                for (const participantList of participantLists) {
+                    expect(chatsByParticipantsKey.get(getParticipantsChatKey(participantList))?.reportID).toBe(
+                        getChatByParticipants([...participantList], reports, shouldIncludeGroupChats)?.reportID,
+                    );
+                }
+            }
+            expect(getChatsByParticipantsKey(reports).get(getParticipantsChatKey([2, currentUserAccountID]))?.reportID).toBe('1');
+            expect(getChatsByParticipantsKey(reports).get(getParticipantsChatKey([20, currentUserAccountID]))?.reportID).toBe('5');
+            expect(getChatsByParticipantsKey(reports, true).get(getParticipantsChatKey([2, 10, currentUserAccountID]))?.reportID).toBe('4');
+        });
+    });
+
+    describe('getPolicyExpenseChatsByOwnerAccountID', () => {
+        it('returns the same chat as getPolicyExpenseChat for every owner', () => {
+            // Given workspace chats with a duplicated owner, a thread, a chat in another workspace and a chat with no owner, because inviting members looks up each invitee in this index
+            const policyID = 'expenseChatsPolicy';
+            const buildWorkspaceChat = (reportID: string, ownerAccountID: number | undefined, report: Partial<Report> = {}): Report => ({
+                reportID,
+                policyID,
+                ownerAccountID,
+                type: CONST.REPORT.TYPE.CHAT,
+                chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+                ...report,
+            });
+            const reports: OnyxCollection<Report> = {
+                [`${ONYXKEYS.COLLECTION.REPORT}1`]: buildWorkspaceChat('1', 1, {parentReportID: '100', parentReportActionID: '200'}),
+                [`${ONYXKEYS.COLLECTION.REPORT}2`]: buildWorkspaceChat('2', 1),
+                [`${ONYXKEYS.COLLECTION.REPORT}3`]: buildWorkspaceChat('3', 1),
+                [`${ONYXKEYS.COLLECTION.REPORT}4`]: buildWorkspaceChat('4', 2, {policyID: 'otherPolicy'}),
+                [`${ONYXKEYS.COLLECTION.REPORT}5`]: buildWorkspaceChat('5', undefined),
+                [`${ONYXKEYS.COLLECTION.REPORT}6`]: buildWorkspaceChat('6', 3, {chatType: CONST.REPORT.CHAT_TYPE.POLICY_ROOM}),
+            };
+
+            // When indexing the chats of the workspace once
+            const chatsByOwnerAccountID = getPolicyExpenseChatsByOwnerAccountID(policyID, reports);
+
+            // Then every owner, including a missing one, gets the same chat as the full scan, and the first non-thread chat wins
+            for (const ownerAccountID of [1, 2, 3, 0, 99]) {
+                expect(chatsByOwnerAccountID.get(ownerAccountID)?.reportID).toBe(getPolicyExpenseChat(ownerAccountID, policyID, reports)?.reportID);
+            }
+            expect(chatsByOwnerAccountID.get(1)?.reportID).toBe('2');
+            expect(getPolicyExpenseChatsByOwnerAccountID(undefined, reports).size).toBe(0);
         });
     });
 

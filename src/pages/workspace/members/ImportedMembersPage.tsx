@@ -305,21 +305,24 @@ function ImportedMembersPage({route}: ImportedMembersPageProps) {
         });
 
         const allMembers = [...(members ?? [])];
+        // A spreadsheet can list thousands of members, so we keep their emails in a Set, updated with every push to allMembers.
+        const allMemberEmails = new Set(allMembers.map((member) => member.email));
 
         // Add approvers who are not in the workspace
         const approverEmails = (members ?? []).flatMap((member) => (member.approvers ?? []).flatMap((approver) => [approver.email, approver.overLimitForwardsTo ?? '']));
         for (const approverEmail of approverEmails) {
-            if (!approverEmail || allMembers.some((member) => member.email === approverEmail) || isPolicyMemberWithoutPendingDelete(approverEmail, policy)) {
+            if (!approverEmail || allMemberEmails.has(approverEmail) || isPolicyMemberWithoutPendingDelete(approverEmail, policy)) {
                 continue;
             }
             isRoleMissing = true;
             allMembers.push({email: approverEmail, role: ''});
+            allMemberEmails.add(approverEmail);
         }
 
         // Add submitsTo, forwardsTo, and overLimitForwardsTo members if they are not in the workspace
         if (members) {
             for (const member of members) {
-                if (member.submitsTo && !allMembers.some((m) => m.email === member.submitsTo) && !isPolicyMemberWithoutPendingDelete(member.submitsTo, policy)) {
+                if (member.submitsTo && !allMemberEmails.has(member.submitsTo) && !isPolicyMemberWithoutPendingDelete(member.submitsTo, policy)) {
                     isRoleMissing = true;
                     allMembers.push({
                         email: member.submitsTo,
@@ -331,9 +334,10 @@ function ImportedMembersPage({route}: ImportedMembersPageProps) {
                         approvalLimit: undefined,
                         overLimitForwardsTo: undefined,
                     });
+                    allMemberEmails.add(member.submitsTo);
                 }
 
-                if (member.forwardsTo && !allMembers.some((m) => m.email === member.forwardsTo) && !isPolicyMemberWithoutPendingDelete(member.forwardsTo, policy)) {
+                if (member.forwardsTo && !allMemberEmails.has(member.forwardsTo) && !isPolicyMemberWithoutPendingDelete(member.forwardsTo, policy)) {
                     isRoleMissing = true;
                     allMembers.push({
                         email: member.forwardsTo,
@@ -345,13 +349,10 @@ function ImportedMembersPage({route}: ImportedMembersPageProps) {
                         approvalLimit: undefined,
                         overLimitForwardsTo: undefined,
                     });
+                    allMemberEmails.add(member.forwardsTo);
                 }
 
-                if (
-                    member.overLimitForwardsTo &&
-                    !allMembers.some((m) => m.email === member.overLimitForwardsTo) &&
-                    !isPolicyMemberWithoutPendingDelete(member.overLimitForwardsTo, policy)
-                ) {
+                if (member.overLimitForwardsTo && !allMemberEmails.has(member.overLimitForwardsTo) && !isPolicyMemberWithoutPendingDelete(member.overLimitForwardsTo, policy)) {
                     isRoleMissing = true;
                     allMembers.push({
                         email: member.overLimitForwardsTo,
@@ -363,6 +364,7 @@ function ImportedMembersPage({route}: ImportedMembersPageProps) {
                         approvalLimit: undefined,
                         overLimitForwardsTo: undefined,
                     });
+                    allMemberEmails.add(member.overLimitForwardsTo);
                 }
             }
         }

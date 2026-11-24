@@ -1443,6 +1443,50 @@ describe('actions/PolicyMember', () => {
             expect(employeeList?.[secondaryEmail]).toBeUndefined();
             expect(employeeList?.[ownerEmail]).toBeDefined();
         });
+
+        it('should skip removed members and their paired logins when picking the new default approver and drop their approval rules', async () => {
+            // Given a default approver who forwards to the secondary login of a member being removed, who forwards to a member who stays
+            const policyID = '34567';
+            const ownerEmail = 'owner@gmail.com';
+            const approverEmail = 'approver@gmail.com';
+            const primaryEmail = 'primary@gmail.com';
+            const secondaryEmail = 'secondary@gmail.com';
+            const nextApproverEmail = 'next@gmail.com';
+            const policy = {
+                ...createRandomPolicy(Number(policyID)),
+                owner: ownerEmail,
+                approver: approverEmail,
+                primaryLoginsInvited: {[secondaryEmail]: primaryEmail},
+                employeeList: {
+                    [ownerEmail]: {email: ownerEmail, role: CONST.POLICY.ROLE.ADMIN},
+                    [approverEmail]: {email: approverEmail, role: CONST.POLICY.ROLE.USER, forwardsTo: secondaryEmail},
+                    [primaryEmail]: {email: primaryEmail, role: CONST.POLICY.ROLE.USER},
+                    [secondaryEmail]: {email: secondaryEmail, role: CONST.POLICY.ROLE.USER, forwardsTo: nextApproverEmail},
+                    [nextApproverEmail]: {email: nextApproverEmail, role: CONST.POLICY.ROLE.USER},
+                },
+                rules: {
+                    approvalRules: [
+                        {approver: approverEmail, applyWhen: [{condition: CONST.POLICY.RULE_CONDITIONS.MATCHES, field: CONST.POLICY.FIELDS.CATEGORY, value: 'Travel'}]},
+                        {approver: nextApproverEmail, applyWhen: [{condition: CONST.POLICY.RULE_CONDITIONS.MATCHES, field: CONST.POLICY.FIELDS.CATEGORY, value: 'Meals'}]},
+                    ],
+                },
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
+
+            // When the default approver and the primary login are removed while the request is still pending
+            mockFetch?.pause?.();
+            Member.removeMembers(policy, [approverEmail, primaryEmail], {[approverEmail]: 2, [primaryEmail]: 3});
+            await waitForBatchedUpdates();
+
+            // Then the paired secondary login is skipped too, so the default approver moves to the next member who stays,
+            // and only the rule of the removed approver is dropped
+            const policyResult = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
+            expect(policyResult?.approver).toBe(nextApproverEmail);
+            expect(policyResult?.rules?.approvalRules?.map((rule) => rule.approver)).toEqual([nextApproverEmail]);
+            expect(policyResult?.employeeList?.[secondaryEmail]?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
+            expect(policyResult?.employeeList?.[nextApproverEmail]?.pendingAction).toBeUndefined();
+            await mockFetch?.resume?.();
+        });
     });
 
     describe('importPolicyMembers', () => {

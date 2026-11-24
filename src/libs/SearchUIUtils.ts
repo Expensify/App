@@ -2038,6 +2038,16 @@ function getTransactionsSections({
     const currentQueryJSON = queryJSON ?? getCurrentSearchQueryJSON();
     const violationHasValues = getPositiveHasFilterValues(currentQueryJSON);
     const shouldFormatViolations = hasValuesIncludeViolationFilter(violationHasValues);
+    // Each report's actions are filtered once, so the violations column doesn't scan every action of a report again for each of its expenses.
+    const violationSnapshotActionsByReportID = new Map<string | undefined, OnyxTypes.ReportAction[]>();
+    const getViolationSnapshotActionsForReport = (reportID: string | undefined) => {
+        let violationSnapshotActions = violationSnapshotActionsByReportID.get(reportID);
+        if (!violationSnapshotActions) {
+            violationSnapshotActions = getViolationSnapshotActions(Object.values(data[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`] ?? {}));
+            violationSnapshotActionsByReportID.set(reportID, violationSnapshotActions);
+        }
+        return violationSnapshotActions;
+    };
 
     for (const key of transactionKeys) {
         const transactionItem = data[key];
@@ -2136,7 +2146,7 @@ function getTransactionsSections({
                 ...(shouldFormatViolations
                     ? {
                           formattedViolations: getViolationsForTransaction(
-                              Object.values(data[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionItem.reportID}`] ?? {}),
+                              getViolationSnapshotActionsForReport(transactionItem.reportID),
                               transactionItem.transactionID,
                               violationHasValues,
                               translate,
@@ -6012,6 +6022,16 @@ function collectSubmittedViolationNamesForTransaction(violationNames: Set<string
     }
 }
 
+/**
+ * Keeps only the actions that can hold a violations snapshot, in their original order. The collectors below skip
+ * every other action, so passing this subset to getViolationsForTransaction gives the same result.
+ */
+function getViolationSnapshotActions(reportActions: OnyxTypes.ReportAction[]): OnyxTypes.ReportAction[] {
+    return reportActions.filter(
+        (action) => isSubmittedAction(action) || isSubmittedAndClosedAction(action) || isAddExpenseOnSubmittedAction(action) || isApprovedAction(action) || isForwardedAction(action),
+    );
+}
+
 function collectApprovedViolationNamesForTransaction(violationNames: Set<string>, reportActions: OnyxTypes.ReportAction[], transactionID: string) {
     for (const action of reportActions) {
         if (!isApprovedAction(action) && !isForwardedAction(action)) {
@@ -8759,6 +8779,7 @@ export {
     getSubmittedViolationsForTransaction,
     getApprovedViolationsForTransaction,
     getViolationsForTransaction,
+    getViolationSnapshotActions,
     getSettlementStatus,
     getSettlementStatusBadgeProps,
     getSearchColumnTranslationKey,

@@ -132,6 +132,7 @@ function ShareBankAccount({route}: ShareBankAccountProps) {
         setShareBankAccountAdmins(selectedOptions);
         shareBankAccount(Number(bankAccountID), emails);
     };
+    const selectedLogins = new Set(selectedOptions.map((selectedOption) => selectedOption.login));
     const getAdminList = () => {
         if (admins.length === 0) {
             return [];
@@ -139,7 +140,7 @@ function ShareBankAccount({route}: ShareBankAccountProps) {
 
         let adminsToDisplay = admins.map((admin) => ({
             ...admin,
-            isSelected: selectedOptions.some((selectedOption) => selectedOption.login === admin.login),
+            isSelected: selectedLogins.has(admin.login),
         }));
 
         // Apply search filter if there's a search term
@@ -156,14 +157,13 @@ function ShareBankAccount({route}: ShareBankAccountProps) {
     const toggleSelectAll = () => {
         setIsAlertVisible(false);
 
-        const areAllFilteredOptionsSelected = adminsList.length > 0 && adminsList.every((admin) => selectedOptions.some((selected) => selected.login === admin.login));
+        const areAllFilteredOptionsSelected = adminsList.length > 0 && adminsList.every((admin) => selectedLogins.has(admin.login));
 
         if (areAllFilteredOptionsSelected) {
             const filteredLogins = new Set(adminsList.map((admin) => admin.login));
             setSelectedOptions(selectedOptions.filter((option) => !filteredLogins.has(option.login)));
         } else {
-            const existingLogins = new Set(selectedOptions.map((option) => option.login));
-            const newSelections = adminsList.filter((admin) => !existingLogins.has(admin.login)).map((admin) => ({...admin, isSelected: true}));
+            const newSelections = adminsList.filter((admin) => !selectedLogins.has(admin.login)).map((admin) => ({...admin, isSelected: true}));
             setSelectedOptions([...selectedOptions, ...newSelections]);
         }
     };

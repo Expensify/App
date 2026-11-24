@@ -18,6 +18,7 @@ function useWorkspaceAgents(policy: OnyxEntry<Policy>) {
     const policyID = policy?.id;
     const workspaceAccountID = useWorkspaceAccountID(policyID);
     const workspaceMembers = useWorkspaceMembers(policy);
+    const workspaceMemberAccountIDs = new Set(workspaceMembers.map((member) => member.accountID));
 
     const manageableWorkspaceAgents: OnyxCollection<Agent> = Object.fromEntries(
         Object.entries(allAgents ?? {}).filter(([key, agent]) => {
@@ -30,7 +31,7 @@ function useWorkspaceAgents(policy: OnyxEntry<Policy>) {
             }
             const accountID = Number(key.slice(ONYXKEYS.COLLECTION.AGENT.length));
             const isAgentOwnedByWorkspace = agent.ownerAccountID === workspaceAccountID;
-            const isAgentMemberOfWorkspace = !!workspaceMembers.find((member) => member.accountID === accountID);
+            const isAgentMemberOfWorkspace = workspaceMemberAccountIDs.has(accountID);
             if (!isAgentOwnedByWorkspace && !isAgentMemberOfWorkspace) {
                 return false;
             }

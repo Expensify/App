@@ -67,8 +67,8 @@ function CardSelector({value = [], selectionListTextInputStyle, selectionListSty
     // checkbox still reflects the live selection, so selecting/deselecting a card no longer makes it jump between sections.
     // Only float the initial selection when the list is long enough to warrant it (>= STANDARD_LIST_ITEM_LIMIT), mirroring
     // the shared moveInitialSelectionToTop gate; for short lists items stay in their natural order so nothing is pinned.
-    const initialSelectedValues = useInitialValue(() => value);
-    const wasInitiallySelected = (item: CardFilterItem) => !!item.keyForList && initialSelectedValues.includes(item.keyForList);
+    const initialSelectedValues = useInitialValue(() => new Set(value));
+    const wasInitiallySelected = (item: CardFilterItem) => !!item.keyForList && initialSelectedValues.has(item.keyForList);
     const shouldPinInitialSelection = shouldShowSearchInput;
 
     const searchFunction = (item: CardFilterItem) =>

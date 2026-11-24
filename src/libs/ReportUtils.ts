@@ -198,6 +198,7 @@ import {
     getCrossBorderReimbursedMessage,
     getElsewherePaymentReportActionMessage,
     getIOUActionForTransactionID,
+    getIOUActionsByTransactionID,
     getIOUReportIDFromReportActionPreview,
     getLastVisibleAction,
     getLastVisibleAction as getLastVisibleActionReportActionsUtils,
@@ -293,6 +294,7 @@ import {
     getAmount as getTransactionAmount,
     getCreated as getTransactionCreated,
     getTransactionID,
+    getTransactionsByID,
     getWaypoints,
     hasAnyTransactionWithoutRTERViolation,
     hasMissingSmartscanFields as hasMissingSmartscanFieldsTransactionUtils,
@@ -5812,12 +5814,13 @@ function isHoldCreator(transaction: OnyxEntry<Transaction>, reportID: string | u
  * all-held report in that user's to-do queue, since only the person who placed a hold can remove it.
  */
 function didCurrentUserPlaceHoldOnReportExpense(reportActions: OnyxEntry<ReportActions>, reportTransactions: Transaction[], currentUserAccountID?: number): boolean {
+    const reportTransactionsByID = getTransactionsByID(reportTransactions);
     return Object.values(reportActions ?? {}).some((action) => {
         if (!isMoneyRequestAction(action)) {
             return false;
         }
         const transactionID = getOriginalMessage(action)?.IOUTransactionID;
-        const transaction = reportTransactions.find((reportTransaction) => reportTransaction.transactionID === transactionID);
+        const transaction = transactionID ? reportTransactionsByID.get(transactionID) : undefined;
         return !!transaction && isOnHoldTransactionUtils(transaction) && isHoldCreator(transaction, action.childReportID, currentUserAccountID);
     });
 }
@@ -6292,15 +6295,23 @@ function canEditMultipleTransactions(
         return false;
     }
 
+    // Selected expenses often share a report, so merge and index each report's actions once instead of scanning them per expense.
+    const actionsByReportID = new Map<string | undefined, {actionsForReport: ReportActions; iouActionsByTransactionID: Map<string, ReportAction>}>();
     for (const transaction of selectedTransactions) {
         const isUnreportedExpense = !transaction.reportID || transaction.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
         if (isUnreportedExpense) {
             continue;
         }
 
-        const reportActionsKey = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transaction.reportID}` as const;
-        const actionsForReport = {...(searchSnapshotData?.[reportActionsKey] ?? {}), ...(reportActions?.[reportActionsKey] ?? {})};
-        const reportAction = getIOUActionForTransactionID(Object.values(actionsForReport), transaction.transactionID);
+        let cachedActions = actionsByReportID.get(transaction.reportID);
+        if (!cachedActions) {
+            const reportActionsKey = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transaction.reportID}` as const;
+            const mergedActions: ReportActions = {...(searchSnapshotData?.[reportActionsKey] ?? {}), ...(reportActions?.[reportActionsKey] ?? {})};
+            cachedActions = {actionsForReport: mergedActions, iouActionsByTransactionID: getIOUActionsByTransactionID(Object.values(mergedActions))};
+            actionsByReportID.set(transaction.reportID, cachedActions);
+        }
+        const {actionsForReport, iouActionsByTransactionID} = cachedActions;
+        const reportAction = iouActionsByTransactionID.get(transaction.transactionID);
         const reportKey = `${ONYXKEYS.COLLECTION.REPORT}${transaction.reportID}` as const;
         const report = reports?.[reportKey] ?? (searchSnapshotData?.[reportKey] as OnyxEntry<Report>);
         const policy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`];
@@ -11884,6 +11895,65 @@ function getPolicyExpenseChat(ownerAccountID: number | undefined, policyID: stri
 }
 
 /**
+ * Indexes the chats getChatByParticipants can return by their participants key (see getParticipantsChatKey), for callers that look up
+ * many participant lists against the same reports. The first report in collection order wins a key, like getChatByParticipants.
+ */
+function getChatsByParticipantsKey(reports: OnyxCollection<Report> = deprecatedAllReports, shouldIncludeGroupChats = false): Map<string, Report> {
+    const chatsByParticipantsKey = new Map<string, Report>();
+    for (const report of Object.values(reports ?? {})) {
+        if (!report) {
+            continue;
+        }
+        if (!shouldIncludeGroupChats && !isOneOnOneChat(report) && !isSystemChat(report)) {
+            continue;
+        }
+        if (shouldIncludeGroupChats && !isGroupChat(report)) {
+            continue;
+        }
+        const participantsKey = getParticipantsChatKey(Object.keys(report.participants ?? {}).map(Number));
+        if (!chatsByParticipantsKey.has(participantsKey)) {
+            chatsByParticipantsKey.set(participantsKey, report);
+        }
+    }
+    return chatsByParticipantsKey;
+}
+
+/**
+ * Indexes the policy expense chats of a policy by their owner, for callers that look up many owners against the same reports.
+ * Each entry is what getPolicyExpenseChat returns for that owner: the first matching report in collection order.
+ */
+function getPolicyExpenseChatsByOwnerAccountID(policyID: string | undefined, reports: OnyxCollection<Report> = deprecatedAllReports): Map<number, Report> {
+    const chatsByOwnerAccountID = new Map<number, Report>();
+    if (!policyID) {
+        return chatsByOwnerAccountID;
+    }
+    for (const report of Object.values(reports ?? {})) {
+        if (!report?.ownerAccountID || report.policyID !== policyID || !isPolicyExpenseChat(report) || isThread(report)) {
+            continue;
+        }
+        if (!chatsByOwnerAccountID.has(report.ownerAccountID)) {
+            chatsByOwnerAccountID.set(report.ownerAccountID, report);
+        }
+    }
+    return chatsByOwnerAccountID;
+}
+
+/**
+ * Account IDs of the members who approve at least one of the policy's reports that are waiting for their approval.
+ * Each ID gives the same answer as isApproverOfOutstandingPolicyReports, for callers that check many members.
+ */
+function getApproverAccountIDsOfOutstandingPolicyReports(outstandingReportsForPolicy: OnyxCollection<Report>, privateIsArchivedMap: Readonly<Record<string, boolean>>): Set<number> {
+    const approverAccountIDs = new Set<number>();
+    for (const report of Object.values(outstandingReportsForPolicy ?? {})) {
+        if (!report?.managerID || !isProcessingReport(report) || privateIsArchivedMap[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`]) {
+            continue;
+        }
+        approverAccountIDs.add(report.managerID);
+    }
+    return approverAccountIDs;
+}
+
+/**
  * Returns the chat an expense created from the given report should go to. For IOU and expense reports that is their linked chat,
  * for any other report it is the report itself.
  * An expense report received from another session can arrive without chatReportID, so we recover its workspace chat from its own policy and owner.
@@ -12556,8 +12626,9 @@ function canCreateRequest(
 }
 
 function getWorkspaceChats(policyID: string | undefined, accountIDs: number[], reports: OnyxCollection<Report> = deprecatedAllReports): Array<OnyxEntry<Report>> {
+    const accountIDsSet = new Set(accountIDs);
     return Object.values(reports ?? {}).filter(
-        (report) => isPolicyExpenseChat(report) && !!policyID && report?.policyID === policyID && report?.ownerAccountID && accountIDs.includes(report?.ownerAccountID),
+        (report) => isPolicyExpenseChat(report) && !!policyID && report?.policyID === policyID && report?.ownerAccountID && accountIDsSet.has(report?.ownerAccountID),
     );
 }
 
@@ -16236,6 +16307,9 @@ export {
     getParticipantIcon,
     getParticipantsAccountIDsForDisplay,
     getParticipantsChatKey,
+    getChatsByParticipantsKey,
+    getPolicyExpenseChatsByOwnerAccountID,
+    getApproverAccountIDsOfOutstandingPolicyReports,
     getParticipantsList,
     getPendingChatMembers,
     getPendingDeleteMemberAccountIDs,

@@ -153,7 +153,8 @@ function WorkspaceWorkflowsApprovalsEditPage({policy, isLoadingReportData = true
             }
 
             // We need to remove members and approvers that are no longer in the updated workflow
-            const membersToRemove = initialApprovalWorkflow.members.filter((initialMember) => !approvalWorkflow.members.some((member) => member.email === initialMember.email));
+            const memberEmails = new Set(approvalWorkflow.members.map((member) => member.email));
+            const membersToRemove = initialApprovalWorkflow.members.filter((initialMember) => !memberEmails.has(initialMember.email));
             const approversToRemove = initialApprovalWorkflow.approvers.filter((initialApprover) => !approvalWorkflow.approvers.some((approver) => approver.email === initialApprover.email));
             Navigation.goBack(undefined, {
                 afterTransition: () => {

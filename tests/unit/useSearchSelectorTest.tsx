@@ -552,6 +552,42 @@ describe('useSearchSelector selection and non-existing options', () => {
         const personalDetailLogins = result.current.availableOptions.personalDetails.map((o) => o.login);
         expect(personalDetailLogins).toContain('alice@expensify.com');
     });
+
+    it('marks options selected when they share an accountID, reportID or login with a selected option', async () => {
+        // Given options that each match one selected option by a single key, plus options that only share empty or placeholder keys
+        const byAccountID = createMock<OptionData>({text: 'A', login: 'a@expensify.com', accountID: 1, keyForList: 'a'});
+        const byLogin = createMock<OptionData>({text: 'B', login: 'b@expensify.com', accountID: 2, keyForList: 'b'});
+        const byReportID = createMock<OptionData>({text: 'Room', reportID: '10', keyForList: 'room'});
+        const placeholderReport = createMock<OptionData>({text: 'Placeholder', reportID: '-1', keyForList: 'placeholder'});
+        const zeroAccount = createMock<OptionData>({text: 'Zero', login: 'zero@expensify.com', accountID: 0, keyForList: 'zero'});
+        const unselected = createMock<OptionData>({text: 'C', login: 'c@expensify.com', accountID: 3, keyForList: 'c'});
+        mockGetValidOptions.mockReturnValue({
+            options: {recentReports: [byReportID, placeholderReport], personalDetails: [byAccountID, byLogin, zeroAccount, unselected], userToInvite: null, currentUserOption: null},
+        });
+
+        // When the selection holds those keys, including a '-1' reportID and a 0 accountID that doOptionsMatch ignores
+        const {result} = renderHook(() =>
+            useSearchSelectorBase({
+                selectionMode: CONST.SEARCH_SELECTOR.SELECTION_MODE_MULTI,
+                searchContext: CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_GENERAL,
+                shouldKeepSelectedInAvailableOptions: true,
+                initialSelected: [
+                    createMock<OptionData>({accountID: 1}),
+                    createMock<OptionData>({login: 'b@expensify.com'}),
+                    createMock<OptionData>({reportID: '10'}),
+                    createMock<OptionData>({reportID: '-1'}),
+                    createMock<OptionData>({accountID: 0, login: 'other@expensify.com'}),
+                ],
+            }),
+        );
+        await waitForBatchedUpdatesWithAct();
+
+        // Then only options matching a non-empty key are selected, the same result as comparing each pair with doOptionsMatch
+        const selectedByKey = Object.fromEntries(
+            [...result.current.availableOptions.personalDetails, ...result.current.availableOptions.recentReports].map((option) => [option.keyForList, option.isSelected]),
+        );
+        expect(selectedByKey).toEqual({a: true, b: true, room: true, placeholder: false, zero: false, c: false});
+    });
 });
 
 // Imported device contacts are always given a generated (optimistic) accountID, even when that person already exists in Onyx.

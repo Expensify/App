@@ -73,6 +73,7 @@ import {
     canRolePay,
     getConnectionExporters,
     getMemberAccountIDsForWorkspace,
+    getPolicyApproverLogins,
     getReimburserEmail,
     getSelectableRoles,
     hasActiveExpensifyCard,
@@ -80,13 +81,12 @@ import {
     isGroupPolicy,
     isPaidGroupPolicy,
     isPolicyAdmin,
-    isPolicyApprover,
     isSubmitPolicy,
     PAYER_ROLES,
     shouldHideDynamicExternalWorkflowPeople,
 } from '@libs/PolicyUtils';
 import type {MemberEmailsToAccountIDs} from '@libs/PolicyUtils';
-import {getDisplayNameForParticipant, isApproverOfOutstandingPolicyReports} from '@libs/ReportUtils';
+import {getApproverAccountIDsOfOutstandingPolicyReports, getDisplayNameForParticipant} from '@libs/ReportUtils';
 import getShouldPopoverUseScrollView from '@libs/shouldPopoverUseScrollView';
 import {generateAccountID} from '@libs/UserUtils';
 import {getFirstApproverByMemberEmail, hasMultiLevelApprovalWorkflow, updateWorkflowDataOnApproverRemoval} from '@libs/WorkflowUtils';
@@ -261,10 +261,12 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
 
     let confirmModalPrompt;
     const hiddenText = translate('common.hidden');
+    // Every member can be selected at once, so both lookups are built once instead of scanning the employee list
+    // and the outstanding reports for each selected member.
+    const policyApproverLogins = getPolicyApproverLogins(policy);
+    const outstandingReportApproverAccountIDs = getApproverAccountIDsOfOutstandingPolicyReports(outstandingReportsForPolicy, privateIsArchivedMap);
     const approverEmail = selectedEmployees.find(
-        (selectedEmployee) =>
-            isPolicyApprover(policy, selectedEmployee) ||
-            isApproverOfOutstandingPolicyReports(policyMemberEmailsToAccountIDs[selectedEmployee], outstandingReportsForPolicy, privateIsArchivedMap),
+        (selectedEmployee) => policyApproverLogins.has(selectedEmployee) || outstandingReportApproverAccountIDs.has(policyMemberEmailsToAccountIDs[selectedEmployee]),
     );
     if (approverEmail) {
         const approverAccountID = policyMemberEmailsToAccountIDs[approverEmail];
@@ -325,7 +327,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
      */
     const removeUsers = () => {
         // Check if any of the members are approvers
-        const hasApprovers = selectedEmployees.some((email) => isPolicyApprover(policy, email));
+        const hasApprovers = selectedEmployees.some((email) => policyApproverLogins.has(email));
 
         if (hasApprovers) {
             // Fall back to the employeeList email and policy owner, so submitters are still reassigned when personal
@@ -333,7 +335,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
             const ownerEmail = ownerDetails?.login ?? policy?.owner;
             let currentWorkflows = approvalWorkflows;
             for (const login of selectedEmployees) {
-                if (!isPolicyApprover(policy, login) || !ownerEmail) {
+                if (!policyApproverLogins.has(login) || !ownerEmail) {
                     continue;
                 }
 

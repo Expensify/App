@@ -2715,8 +2715,9 @@ function shouldShowBulkOptionForRemainingTransactions(selectedTransactions: Sele
     if (!selectedTransactions || isEmpty(selectedTransactions)) {
         return true;
     }
+    const selectedReportIDSet = new Set(selectedReportIDs);
     const neededFilterTransactions = transactionKeys?.filter(
-        (transactionIDKey) => selectedTransactions[transactionIDKey]?.reportID && !selectedReportIDs?.includes(selectedTransactions[transactionIDKey]?.reportID),
+        (transactionIDKey) => selectedTransactions[transactionIDKey]?.reportID && !selectedReportIDSet.has(selectedTransactions[transactionIDKey]?.reportID),
     );
     if (!neededFilterTransactions?.length) {
         return true;
@@ -2748,11 +2749,8 @@ function getPayOption(
     const shouldShowBulkPayOption =
         selectedReports.length > 0
             ? payableReports.length > 0 &&
-              payableReports.every(
-                  (report) =>
-                      getSelectedReportType(report) === getSelectedReportType(firstPayableReport) &&
-                      shouldShowBulkOptionForRemainingTransactions(selectedTransactions, selectedReportIDs, transactionKeys),
-              )
+              shouldShowBulkOptionForRemainingTransactions(selectedTransactions, selectedReportIDs, transactionKeys) &&
+              payableReports.every((report) => getSelectedReportType(report) === getSelectedReportType(firstPayableReport))
             : transactionKeys.every(
                   (transactionIDKey) =>
                       selectedTransactions[transactionIDKey].action === CONST.SEARCH.ACTION_TYPES.PAY &&

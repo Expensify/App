@@ -495,6 +495,129 @@ describe('ReportActionsUtils', () => {
         it('returns false if IOUTransactionID does not match any provided reportTransactionIDs', () => {
             expect(isIOUActionMatchingTransactionList(mockIOUAction, ['123', '124'])).toBeFalsy();
         });
+
+        it('returns the same result for a Set of reportTransactionIDs as for the array', () => {
+            // Given the same transaction IDs as an array and as a Set, because callers that loop over many actions pass a Set
+            const matchingIDs = ['123', mockOriginalMessage.IOUTransactionID];
+            const otherIDs = ['123', '124'];
+
+            // When matching the IOU action against both forms
+            const matchesArray = isIOUActionMatchingTransactionList(mockIOUAction, matchingIDs);
+            const matchesSet = isIOUActionMatchingTransactionList(mockIOUAction, new Set(matchingIDs));
+            const otherArray = isIOUActionMatchingTransactionList(mockIOUAction, otherIDs);
+            const otherSet = isIOUActionMatchingTransactionList(mockIOUAction, new Set(otherIDs));
+
+            // Then the Set gives the same answer as the array in both the matching and the non-matching case
+            expect(matchesSet).toBe(matchesArray);
+            expect(matchesSet).toBe(true);
+            expect(otherSet).toBe(otherArray);
+            expect(otherSet).toBe(false);
+        });
+    });
+
+    describe('getIOUActionsByTransactionID', () => {
+        const iouOriginalMessage = getOriginalMessage<typeof CONST.REPORT.ACTIONS.TYPE.IOU>(mockIOUAction);
+        if (!iouOriginalMessage) {
+            throw new Error('Expected the IOU mock action to have an original message');
+        }
+        const deletedMessage = [{deleted: '2025-11-27 09:06:16.568', type: 'COMMENT', text: ''}];
+
+        const buildIOUAction = (
+            reportActionID: string,
+            IOUTransactionID: string,
+            overrides: Partial<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU>> = {},
+        ): ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> => ({
+            ...mockIOUAction,
+            reportActionID,
+            originalMessage: {...iouOriginalMessage, IOUTransactionID},
+            ...overrides,
+        });
+
+        const commentAction = createMock<ReportAction>({
+            reportActionID: 'comment',
+            actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+            originalMessage: {html: 'Hello', whisperedTo: [], IOUTransactionID: 't1'},
+        });
+
+        // t1 has a deleted action before a live one, t2 has two live duplicates, t3 has only deleted actions,
+        // t4 has a pending delete action before a live one.
+        const actions: ReportAction[] = [
+            commentAction,
+            buildIOUAction('1', 't1', {message: deletedMessage}),
+            buildIOUAction('2', 't2'),
+            buildIOUAction('3', 't1'),
+            buildIOUAction('4', 't2'),
+            buildIOUAction('5', 't3', {message: deletedMessage}),
+            buildIOUAction('6', 't3', {message: deletedMessage}),
+            buildIOUAction('7', 't4', {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}),
+            buildIOUAction('8', 't4'),
+        ];
+        const transactionIDs = ['t1', 't2', 't3', 't4', 'missing'];
+
+        it.each([false, true])('matches getIOUActionForTransactionID for every transaction when shouldPreferLiveAction is %s', (shouldPreferLiveAction) => {
+            // Given actions with duplicates, deleted and pending delete actions, and a comment carrying an IOUTransactionID,
+            // because the index must be a drop-in replacement for looking up each transaction separately
+
+            // When indexing the actions once
+            const actionsByTransactionID = ReportActionsUtils.getIOUActionsByTransactionID(actions, shouldPreferLiveAction);
+
+            // Then every transaction maps to the same action the per-transaction lookup returns
+            for (const transactionID of transactionIDs) {
+                expect(actionsByTransactionID.get(transactionID)).toBe(ReportActionsUtils.getIOUActionForTransactionID(actions, transactionID, shouldPreferLiveAction));
+            }
+        });
+
+        it('keeps the first matching action when shouldPreferLiveAction is false', () => {
+            // Given two actions for t1 where the first one is deleted, because getIOUActionForTransactionID uses find
+
+            // When indexing without preferring live actions
+            const actionsByTransactionID = ReportActionsUtils.getIOUActionsByTransactionID(actions);
+
+            // Then the first action wins for each transaction, even the deleted one
+            expect(actionsByTransactionID.get('t1')?.reportActionID).toBe('1');
+            expect(actionsByTransactionID.get('t2')?.reportActionID).toBe('2');
+            expect(actionsByTransactionID.get('t4')?.reportActionID).toBe('7');
+        });
+
+        it('prefers the first live action and falls back to the first match when none is live', () => {
+            // Given t1 with a deleted then a live action, t3 with only deleted actions and t4 with a pending delete then a live action,
+            // because after an undelete a live action and a deleted one can claim the same transaction
+
+            // When indexing with shouldPreferLiveAction
+            const actionsByTransactionID = ReportActionsUtils.getIOUActionsByTransactionID(actions, true);
+
+            // Then the live action wins, a pending delete action is not treated as live, and t3 falls back to its first action
+            expect(actionsByTransactionID.get('t1')?.reportActionID).toBe('3');
+            expect(actionsByTransactionID.get('t2')?.reportActionID).toBe('2');
+            expect(actionsByTransactionID.get('t3')?.reportActionID).toBe('5');
+            expect(actionsByTransactionID.get('t4')?.reportActionID).toBe('8');
+        });
+
+        it('ignores actions that are not money requests', () => {
+            // Given only a comment whose original message has an IOUTransactionID, because only IOU actions create expenses
+
+            // When indexing it
+            const actionsByTransactionID = ReportActionsUtils.getIOUActionsByTransactionID([commentAction]);
+
+            // Then nothing is indexed
+            expect(actionsByTransactionID.size).toBe(0);
+        });
+
+        it('gives the same result for a ReportActions object as for an array', () => {
+            // Given the same actions keyed by reportActionID, because callers pass Onyx report actions directly
+            const actionsObject: ReportActions = {};
+            for (const action of actions) {
+                actionsObject[action.reportActionID] = action;
+            }
+
+            // When indexing the object and the array of its values
+            const fromObject = ReportActionsUtils.getIOUActionsByTransactionID(actionsObject, true);
+            const fromArray = ReportActionsUtils.getIOUActionsByTransactionID(Object.values(actionsObject), true);
+
+            // Then both indexes are equal, and an empty input gives an empty index
+            expect(fromObject).toEqual(fromArray);
+            expect(ReportActionsUtils.getIOUActionsByTransactionID(undefined).size).toBe(0);
+        });
     });
 
     describe('getOneTransactionThreadReportAction', () => {
@@ -623,6 +746,35 @@ describe('ReportActionsUtils', () => {
                 false,
             );
             expect(result).toEqual(linkedActionWithChildReportID);
+        });
+
+        it('should return undefined when the report has more than one visible transaction, even with a single IOU action', () => {
+            // Given a single linked IOU action but two visible transactions, because legacy imports can create transactions without IOU actions
+
+            // When looking for the one-transaction thread action
+            const result = ReportActionsUtils.getOneTransactionThreadReportAction(mockedReports[IOUReportID], mockedReports[mockChatReportID], [linkedActionWithChildReportID], false, [
+                IOUTransactionID,
+                IOUExpenseTransactionID,
+            ]);
+
+            // Then the report is not treated as a one-transaction report
+            expect(result).toBeUndefined();
+        });
+
+        it('should still return the send money action when there is more than one visible transaction', () => {
+            // Given a single Pay action in a DM, because the send money flow is resolved before transactions are counted
+            const sendMoneyChildReportID = 'sendMoneyChildReportID';
+            const sendMoneyAction = {...payAction, childReportID: sendMoneyChildReportID};
+            const dmChatReport = {...mockChatReport, chatType: undefined, parentReportID: undefined, parentReportActionID: undefined};
+
+            // When looking for the one-transaction thread action with two visible transactions
+            const result = ReportActionsUtils.getOneTransactionThreadReportAction(mockedReports[IOUReportID], dmChatReport, [sendMoneyAction], false, [
+                IOUTransactionID,
+                IOUExpenseTransactionID,
+            ]);
+
+            // Then the send money action is still returned
+            expect(result?.childReportID).toBe(sendMoneyChildReportID);
         });
 
         describe('getTransactionThreadReportIDFromAction', () => {

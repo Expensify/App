@@ -7,7 +7,7 @@ import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import * as NumberUtils from '@libs/NumberUtils';
 import {getLoginByAccountID} from '@libs/PersonalDetailsUtils';
 import {getDistanceRateCustomUnitRate, getPolicyForDistanceRateID, getTagLists, hasDependentTags} from '@libs/PolicyUtils';
-import {getIOUActionForTransactionID} from '@libs/ReportActionsUtils';
+import {getIOUActionsByTransactionID} from '@libs/ReportActionsUtils';
 import type {TransactionDetails} from '@libs/ReportUtils';
 import {
     buildOptimisticCreatedReportAction,
@@ -234,6 +234,17 @@ function updateMultipleMoneyRequests({
         (callerTransactionsByReportID[txn.reportID] ??= {})[txn.transactionID] = txn;
     }
 
+    // Edited expenses usually share a few reports, so index each report's IOU actions once instead of scanning them per expense
+    const iouActionsByReportActionsKey = new Map<string, Map<string, OnyxTypes.ReportAction>>();
+    const getIOUAction = (reportActionsKey: `${typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS}${string}`, transactionID: string) => {
+        let iouActionsByTransactionID = iouActionsByReportActionsKey.get(reportActionsKey);
+        if (!iouActionsByTransactionID) {
+            iouActionsByTransactionID = getIOUActionsByTransactionID(reportActions?.[reportActionsKey] ?? {});
+            iouActionsByReportActionsKey.set(reportActionsKey, iouActionsByTransactionID);
+        }
+        return iouActionsByTransactionID.get(transactionID);
+    };
+
     for (const transactionID of transactionIDs) {
         const transaction = transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
         if (!transaction) {
@@ -245,7 +256,7 @@ function updateMultipleMoneyRequests({
         const isFromExpenseReport = isExpenseReport(baseIouReport);
 
         const transactionReportActions = reportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transaction.reportID}`] ?? {};
-        let reportAction = getIOUActionForTransactionID(Object.values(transactionReportActions), transactionID);
+        let reportAction = getIOUAction(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transaction.reportID}`, transactionID);
 
         // Track expenses created via self DM are stored with reportID = UNREPORTED_REPORT_ID ('0')
         // because they have never been submitted to a report. As a result, the lookup above returns
@@ -256,8 +267,7 @@ function updateMultipleMoneyRequests({
         if (!reportAction && (!transaction.reportID || transaction.reportID === CONST.REPORT.UNREPORTED_REPORT_ID)) {
             const selfDMReportID = findSelfDMReportID(reports);
             if (selfDMReportID) {
-                const selfDMReportActions = reportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${selfDMReportID}`] ?? {};
-                reportAction = getIOUActionForTransactionID(Object.values(selfDMReportActions), transactionID);
+                reportAction = getIOUAction(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${selfDMReportID}`, transactionID);
             }
         }
 

@@ -2603,7 +2603,7 @@ const isIOUActionTypeExcludedFromFiltering = (type: OriginalMessageIOU['type'] |
  */
 const isIOUActionMatchingTransactionList = (
     action: ReportAction,
-    reportTransactionIDs?: string[],
+    reportTransactionIDs?: string[] | ReadonlySet<string>,
     defaultToFalseForNonIOU = false,
 ): action is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> => {
     if (!isMoneyRequestAction(action)) {
@@ -2615,7 +2615,10 @@ const isIOUActionMatchingTransactionList = (
     }
 
     const {IOUTransactionID} = getOriginalMessage(action) ?? {};
-    return !!IOUTransactionID && reportTransactionIDs.includes(IOUTransactionID);
+    if (!IOUTransactionID) {
+        return false;
+    }
+    return Array.isArray(reportTransactionIDs) ? reportTransactionIDs.includes(IOUTransactionID) : reportTransactionIDs.has(IOUTransactionID);
 };
 
 /**
@@ -2655,6 +2658,13 @@ function getOneTransactionThreadReportAction(
         return sendMoneyFlow;
     }
 
+    // If there are multiple visible transactions, this is not a one-transaction report even if only one IOU action exists.
+    // This handles edge cases like importing legacy transactions where the transactions exist but their IOU actions haven't
+    // been created yet. Checking it before the loop skips scanning the actions when the answer is already known.
+    if (reportTransactionIDs && reportTransactionIDs.length > 1) {
+        return;
+    }
+
     let iouRequestAction = null;
     for (const action of reportActionsArray) {
         // If the original message is a 'pay' IOU without IOUDetails, it shouldn't be added to the transaction count.
@@ -2685,13 +2695,6 @@ function getOneTransactionThreadReportAction(
 
     // If we don't have any IOU request actions, or we have more than one IOU request actions, this isn't a oneTransaction report
     if (iouRequestAction === null) {
-        return;
-    }
-
-    // If there are multiple visible transactions, return undefined to indicate this is not a one-transaction report,
-    // even if we only found one IOU action. This handles edge cases like importing legacy transactions
-    // where the transactions exist but their corresponding IOU actions haven't been created yet.
-    if (reportTransactionIDs && reportTransactionIDs.length > 1) {
         return;
     }
 
@@ -3502,6 +3505,57 @@ function getIOUActionForTransactionID(reportActions: ReportAction[], transaction
     // Deleting blanks the message, so a missing message doesn't mean the action is deleted
     const isLive = (reportAction: ReportAction) => reportAction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && (!reportAction.message || !isDeletedAction(reportAction));
     return reportActions.find((reportAction) => isMatch(reportAction) && isLive(reportAction)) ?? firstMatch;
+}
+
+/**
+ * Index the money request actions of a report by their IOUTransactionID, so callers that look up many transactions
+ * don't scan every action once per transaction. Each entry is what getIOUActionForTransactionID returns for that
+ * transaction: the first matching action, or with `shouldPreferLiveAction` the first live one, falling back to the first match.
+ */
+function getIOUActionsByTransactionID(reportActions: OnyxEntry<ReportActions> | ReportAction[], shouldPreferLiveAction = false): Map<string, ReportAction> {
+    const actionsByTransactionID = new Map<string, ReportAction>();
+    const reportActionsArray = Array.isArray(reportActions) ? reportActions : Object.values(reportActions ?? {});
+    // Transactions whose stored action is live, so later live actions don't replace it
+    const transactionIDsWithLiveAction = new Set<string>();
+    for (const reportAction of reportActionsArray) {
+        const transactionID = isMoneyRequestAction(reportAction) ? getOriginalMessage(reportAction)?.IOUTransactionID : undefined;
+        if (!transactionID) {
+            continue;
+        }
+        if (!actionsByTransactionID.has(transactionID)) {
+            actionsByTransactionID.set(transactionID, reportAction);
+        }
+        if (!shouldPreferLiveAction || transactionIDsWithLiveAction.has(transactionID)) {
+            continue;
+        }
+        // Deleting blanks the message, so a missing message doesn't mean the action is deleted
+        const isLive = reportAction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && (!reportAction.message || !isDeletedAction(reportAction));
+        if (isLive) {
+            actionsByTransactionID.set(transactionID, reportAction);
+            transactionIDsWithLiveAction.add(transactionID);
+        }
+    }
+    return actionsByTransactionID;
+}
+
+/**
+ * Returns a lookup with the same result as getIOUActionForReportID, for callers that look up many transactions. Each report's
+ * actions are indexed once, on first use, instead of scanned per transaction. The lookup reads the actions as they are when a
+ * report is first indexed, so use it within one synchronous pass.
+ */
+function createIOUActionForReportIDLookup(shouldPreferLiveAction = false): (reportID: string | undefined, transactionID: string | undefined) => OnyxEntry<ReportAction> {
+    const iouActionsByReportID = new Map<string, Map<string, ReportAction>>();
+    return (reportID, transactionID) => {
+        if (!reportID || !transactionID) {
+            return undefined;
+        }
+        let iouActionsByTransactionID = iouActionsByReportID.get(reportID);
+        if (!iouActionsByTransactionID) {
+            iouActionsByTransactionID = getIOUActionsByTransactionID(getAllReportActions(reportID), shouldPreferLiveAction);
+            iouActionsByReportID.set(reportID, iouActionsByTransactionID);
+        }
+        return iouActionsByTransactionID.get(transactionID);
+    };
 }
 
 /** IOU action types that reference a transaction without being the action that created the expense. */
@@ -6377,6 +6431,8 @@ export {
     getLatestConciergeFeedbackActionIDFromReportActions,
     getIOUActionForReportID,
     getIOUActionForTransactionID,
+    getIOUActionsByTransactionID,
+    createIOUActionForReportIDLookup,
     getExpenseCreationIOUActionForTransactionID,
     getExpenseCreationTransactionID,
     getIOUReportIDFromReportActionPreview,

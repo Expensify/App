@@ -25,7 +25,14 @@ import {buildOptimisticNextStep} from '@libs/NextStepUtils';
 import * as NumberUtils from '@libs/NumberUtils';
 import {rand64, roundToTwoDecimalPlaces} from '@libs/NumberUtils';
 import {getDistanceRateCustomUnitRate, hasDependentTags, isGroupPolicy} from '@libs/PolicyUtils';
-import {getAllReportActions, getIOUActionForReportID, getOriginalMessage, getTrackExpenseActionableWhisper, isModifiedExpenseAction} from '@libs/ReportActionsUtils';
+import {
+    createIOUActionForReportIDLookup,
+    getAllReportActions,
+    getIOUActionForReportID,
+    getOriginalMessage,
+    isActionableTrackExpense,
+    isModifiedExpenseAction,
+} from '@libs/ReportActionsUtils';
 import {
     buildOptimisticCreatedReportAction,
     buildOptimisticDismissedViolationReportAction,
@@ -1145,6 +1152,26 @@ function getChangeTransactionsReportOnyxData({
         return targetReportCurrenciesByReport[targetReportID];
     };
 
+    // Many moved expenses share a source report, so index each report's IOU actions once instead of scanning them per expense
+    const getIOUActionForMovedTransaction = createIOUActionForReportIDLookup(true);
+    let trackExpenseWhispersByTransactionID: Map<string, ReportAction> | undefined;
+    const getTrackExpenseWhisperForMovedTransaction = (transactionID: string, selfDMReportID: string | undefined) => {
+        if (!transactionID || !selfDMReportID) {
+            return undefined;
+        }
+        if (!trackExpenseWhispersByTransactionID) {
+            // Keep the first whisper per transaction, like getTrackExpenseActionableWhisper does
+            trackExpenseWhispersByTransactionID = new Map();
+            for (const action of Object.values(selfDMReportActions ?? {})) {
+                const whisperTransactionID = isActionableTrackExpense(action) ? getOriginalMessage(action)?.transactionID : undefined;
+                if (whisperTransactionID && !trackExpenseWhispersByTransactionID.has(whisperTransactionID)) {
+                    trackExpenseWhispersByTransactionID.set(whisperTransactionID, action);
+                }
+            }
+        }
+        return trackExpenseWhispersByTransactionID.get(transactionID);
+    };
+
     for (const transaction of transactions) {
         const isDeletedExpense = isDeletedTransaction(transaction);
         const isUnreportedExpense = !transaction.reportID || transaction.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
@@ -1153,7 +1180,7 @@ function getChangeTransactionsReportOnyxData({
         // Skip lookup for deleted transactions: the old IOU action is already cleaned up
         // during deletion and its transaction thread is deleted, so reusing it is harmful.
         // Prefer the live action over the blanked one an undelete leaves behind. Keep in sync with useChangeTransactionsReportReports.
-        const oldIOUAction = isDeletedExpense ? undefined : getIOUActionForReportID(isUnreportedExpense ? selfDMReportID : transaction.reportID, transaction.transactionID, true);
+        const oldIOUAction = isDeletedExpense ? undefined : getIOUActionForMovedTransaction(isUnreportedExpense ? selfDMReportID : transaction.reportID, transaction.transactionID);
 
         if (!transaction.reportID || transaction.reportID === reportID) {
             continue;
@@ -1574,7 +1601,7 @@ function getChangeTransactionsReportOnyxData({
         }
 
         // 4. Optimistically update the IOU action reportID
-        const trackExpenseActionableWhisper = isUnreportedExpense ? getTrackExpenseActionableWhisper(transaction.transactionID, selfDMReportID, selfDMReportActions) : undefined;
+        const trackExpenseActionableWhisper = isUnreportedExpense ? getTrackExpenseWhisperForMovedTransaction(transaction.transactionID, selfDMReportID) : undefined;
 
         if (targetReportID) {
             optimisticData.push({

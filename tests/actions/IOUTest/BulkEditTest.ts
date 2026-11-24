@@ -2378,6 +2378,80 @@ describe('actions/IOU/BulkEdit', () => {
             canEditFieldSpy.mockRestore();
         });
 
+        it('resolves each expense thread from its first IOU action when several expenses share a report', () => {
+            // Given two expenses on one report, where the first expense has two IOU actions pointing at different threads
+            const iouReportID = 'iou-shared';
+            const policy = createRandomPolicy(31, CONST.POLICY.TYPE.TEAM);
+            const iouReport: Report = {...createRandomReport(31, undefined), reportID: iouReportID, policyID: policy.id, type: CONST.REPORT.TYPE.EXPENSE};
+            const buildThread = (reportID: string, index: number): Report => ({...createRandomReport(index, undefined), reportID, parentReportID: iouReportID, policyID: policy.id});
+            const reports = {
+                [`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`]: iouReport,
+                [`${ONYXKEYS.COLLECTION.REPORT}thread-first`]: buildThread('thread-first', 32),
+                [`${ONYXKEYS.COLLECTION.REPORT}thread-second`]: buildThread('thread-second', 33),
+                [`${ONYXKEYS.COLLECTION.REPORT}thread-other`]: buildThread('thread-other', 34),
+            };
+            const buildTransaction = (transactionID: string, index: number): Transaction => ({
+                ...createRandomTransaction(index),
+                transactionID,
+                reportID: iouReportID,
+                transactionThreadReportID: undefined,
+                amount: 500,
+                currency: CONST.CURRENCY.USD,
+            });
+            const transactions = {
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}txn-shared-1`]: buildTransaction('txn-shared-1', 31),
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}txn-shared-2`]: buildTransaction('txn-shared-2', 32),
+            };
+            const buildIOUAction = (reportActionID: string, transactionID: string, childReportID: string) => ({
+                reportActionID,
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                originalMessage: {type: CONST.IOU.REPORT_ACTION_TYPE.CREATE, IOUTransactionID: transactionID},
+                childReportID,
+                created: '2026-01-01 00:00:00',
+            });
+            const reportActions = createMock<OnyxCollection<ReportActions>>({
+                [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReportID}`]: {
+                    actionFirst: buildIOUAction('actionFirst', 'txn-shared-1', 'thread-first'),
+                    actionSecond: buildIOUAction('actionSecond', 'txn-shared-1', 'thread-second'),
+                    actionOther: buildIOUAction('actionOther', 'txn-shared-2', 'thread-other'),
+                },
+            });
+            const canEditFieldSpy = jest.spyOn(require('@libs/ReportUtils'), 'canEditFieldOfMoneyRequest').mockReturnValue(true);
+            // eslint-disable-next-line rulesdir/no-multiple-api-calls
+            const writeSpy = jest.spyOn(API, 'write').mockImplementation(jest.fn());
+
+            // When both expenses are edited in bulk
+            updateMultipleMoneyRequests({
+                isVendorMatchingBetaEnabled: false,
+                personalDetailsList: undefined,
+                transactionIDs: ['txn-shared-1', 'txn-shared-2'],
+                changes: {merchant: 'Shared Report Test'},
+                policy,
+                reports,
+                transactions,
+                reportActions,
+                policyCategories: undefined,
+                policyTags: {},
+                violations: undefined,
+                hash: undefined,
+                currentUserAccountID: RORY_ACCOUNT_ID,
+                delegateAccountID: undefined,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                getCurrencySymbol: getCurrencySymbolLocal,
+                rules: undefined,
+            });
+
+            // Then the first expense uses the thread of its first IOU action, like the single-transaction lookup, and the second uses its own thread
+            const threadReportIDs = writeSpy.mock.calls.map((_, callIndex) => {
+                const [, , onyxData] = getRequiredWriteCall(writeSpy.mock.calls, callIndex);
+                return isObject(onyxData.bulkEditActionContext) ? onyxData.bulkEditActionContext.threadReportID : undefined;
+            });
+            expect(threadReportIDs).toEqual(['thread-first', 'thread-other']);
+
+            writeSpy.mockRestore();
+            canEditFieldSpy.mockRestore();
+        });
+
         it('compounds optimistic dates across iterations so trip auto-reporting title reflects all bulk-edited transactions', async () => {
             const iouReportID = 'iou-trip-bulk';
             const policyID = 'policy-trip-bulk';

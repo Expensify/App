@@ -214,7 +214,8 @@ function useSelectionModeReportActions({
 
     const allExpensesSelected = isEveryReportTransactionSelected(transactions, selectedTransactionIDs);
 
-    const selectedTransactions = transactions.filter((transaction) => selectedTransactionIDs.includes(transaction.transactionID));
+    const selectedTransactionIDSet = new Set(selectedTransactionIDs);
+    const selectedTransactions = transactions.filter((transaction) => selectedTransactionIDSet.has(transaction.transactionID));
     const hasSelectedTransactionsOnSubmitPolicy = isSubmitPolicy(policy) && selectedTransactions.length > 0;
     const isBlockSubmitDueToSelectedTransactionsOnSubmitPolicy = hasSelectedTransactionsOnSubmitPolicy && selectedTransactions.length > 1;
     const effectiveShouldBlockSubmit = shouldBlockSubmit || isBlockSubmitDueToSelectedTransactionsOnSubmitPolicy;

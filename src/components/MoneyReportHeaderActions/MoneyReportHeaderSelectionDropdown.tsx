@@ -233,7 +233,8 @@ function MoneyReportHeaderSelectionDropdown({reportID, primaryAction, isReportIn
 
     const showDeleteModal = () => {
         const singleSelectedTransaction = selectedTransactionIDs.length === 1 ? transactions.find((t) => t.transactionID === selectedTransactionIDs.at(0)) : undefined;
-        const selectedTransactions = transactions.filter((t) => selectedTransactionIDs.includes(t.transactionID));
+        const selectedTransactionIDSet = new Set(selectedTransactionIDs);
+        const selectedTransactions = transactions.filter((t) => selectedTransactionIDSet.has(t.transactionID));
         const hasSomePending = selectedTransactionIDs.length > 1 && selectedTransactions.some((t) => isPending(t));
         const deletePrompt = getDeleteConfirmationPrompt(translate, singleSelectedTransaction, selectedTransactionIDs.length, hasSomePending);
         showConfirmModal({

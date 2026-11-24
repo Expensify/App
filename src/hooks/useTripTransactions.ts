@@ -24,13 +24,14 @@ function useTripTransactions(reportID: string | undefined): Transaction[] {
                 .map((report) => report?.reportID),
     });
 
+    const tripTransactionReportIDsSet = new Set(tripTransactionReportIDs);
     const [tripTransactions = getEmptyArray<Transaction>()] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {
         selector: (transactions: OnyxCollection<Transaction>) => {
-            if (!tripTransactionReportIDs.length) {
+            if (!tripTransactionReportIDsSet.size) {
                 return [];
             }
 
-            return Object.values(transactions ?? {}).filter((transaction): transaction is Transaction => !!transaction && tripTransactionReportIDs.includes(transaction.reportID));
+            return Object.values(transactions ?? {}).filter((transaction): transaction is Transaction => !!transaction && tripTransactionReportIDsSet.has(transaction.reportID));
         },
     });
     return tripTransactions;

@@ -1,4 +1,4 @@
-import {getIOUActionForReportID} from '@libs/ReportActionsUtils';
+import {createIOUActionForReportIDLookup} from '@libs/ReportActionsUtils';
 import {findSelfDMReportID} from '@libs/ReportUtils';
 import {isDeletedTransaction} from '@libs/TransactionUtils';
 
@@ -10,16 +10,8 @@ import type {OnyxCollection} from 'react-native-onyx';
 
 import useOnyx from './useOnyx';
 
-/**
- * Resolve the REPORT subset that `changeTransactionsReport` looks up — keyed like the full collection so the action
- * can do `reports?.[\`${KEY}${id}\`]`. Includes:
- * - the unreported-report sentinel, looked up for transactions moving out of personal space
- * - the self-DM report, if one exists
- * - the destination report (`newReportID`)
- * - each transaction's current report
- * - for non-deleted transactions, the old IOU action's transaction-thread report (`childReportID`)
- */
-function useChangeTransactionsReportReports(transactions: Transaction[], newReportID: string | undefined): OnyxCollection<Report> {
+/** IDs of the reports `changeTransactionsReport` looks up, see useChangeTransactionsReportReports. */
+function getChangeTransactionsReportIDs(transactions: Transaction[], newReportID: string | undefined): Set<string> {
     const ids = new Set<string>();
     ids.add(CONST.REPORT.UNREPORTED_REPORT_ID);
     const selfDMReportID = findSelfDMReportID();
@@ -29,6 +21,8 @@ function useChangeTransactionsReportReports(transactions: Transaction[], newRepo
     if (newReportID) {
         ids.add(newReportID);
     }
+    // Many selected expenses share a report, so each report's IOU actions are indexed once instead of scanned per expense
+    const getIOUActionForSourceReport = createIOUActionForReportIDLookup(true);
     for (const transaction of transactions) {
         if (transaction.reportID) {
             ids.add(transaction.reportID);
@@ -42,11 +36,25 @@ function useChangeTransactionsReportReports(transactions: Transaction[], newRepo
             continue;
         }
         // Must match the IOU action getChangeTransactionsReportOnyxData resolves, or the live thread isn't re-parented
-        const iouAction = getIOUActionForReportID(source, transaction.transactionID, true);
+        const iouAction = getIOUActionForSourceReport(source, transaction.transactionID);
         if (iouAction?.childReportID) {
             ids.add(iouAction.childReportID);
         }
     }
+    return ids;
+}
+
+/**
+ * Resolve the REPORT subset that `changeTransactionsReport` looks up — keyed like the full collection so the action
+ * can do `reports?.[\`${KEY}${id}\`]`. Includes:
+ * - the unreported-report sentinel, looked up for transactions moving out of personal space
+ * - the self-DM report, if one exists
+ * - the destination report (`newReportID`)
+ * - each transaction's current report
+ * - for non-deleted transactions, the old IOU action's transaction-thread report (`childReportID`)
+ */
+function useChangeTransactionsReportReports(transactions: Transaction[], newReportID: string | undefined): OnyxCollection<Report> {
+    const ids = getChangeTransactionsReportIDs(transactions, newReportID);
     const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {
         selector: (allReports) => {
             const result: Record<string, Report | undefined> = {};

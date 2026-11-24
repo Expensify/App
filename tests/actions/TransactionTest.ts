@@ -14,7 +14,7 @@ import {createNewReport} from '@libs/actions/Report';
 import '@libs/actions/IOU/MoneyRequest';
 import type * as PolicyUtils from '@libs/PolicyUtils';
 import {getOriginalMessage, isDeletedAction, isMoneyRequestAction, shouldReportActionBeVisible} from '@libs/ReportActionsUtils';
-import {buildOptimisticIOUReportAction, getReportOrDraftReport} from '@libs/ReportUtils';
+import {buildOptimisticActionableTrackExpenseWhisper, buildOptimisticIOUReportAction, getReportOrDraftReport} from '@libs/ReportUtils';
 
 import updateSplitTransactionsFromSplitExpensesFlow from '@pages/iou/updateSplitTransactionsFromSplitExpensesFlow';
 
@@ -607,6 +607,107 @@ describe('actions/Transaction', () => {
             const updatedThread = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${liveTransactionThread.reportID}`);
             expect(updatedThread?.parentReportID).toBe(destinationReport.reportID);
             expect(updatedThread?.parentReportActionID).toBe(newIOUAction?.reportActionID);
+        });
+
+        it('moves several self-DM expenses together, each using its own live IOU action and removing its first whisper', async () => {
+            // Given two unreported expenses in the self-DM: the first was undeleted, so it has a blanked IOU action before its live one,
+            // and the second has two track expense whispers
+            const selfDMReport: Report = {...createRandomReport(91, CONST.REPORT.CHAT_TYPE.SELF_DM), reportID: '91'};
+            const movePolicy: Policy = {...createRandomPolicy(92, CONST.POLICY.TYPE.TEAM, 'Move Workspace'), id: 'policy-for-bulk-move'};
+            const workspaceChat: Report = {...createRandomReport(93, CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT), reportID: '93', policyID: movePolicy.id};
+            const destinationReport: Report = {
+                ...createRandomReport(94),
+                reportID: '94',
+                type: CONST.REPORT.TYPE.EXPENSE,
+                policyID: movePolicy.id,
+                chatReportID: workspaceChat.reportID,
+                ownerAccountID: CARLOS_ACCOUNT_ID,
+            };
+            const buildTransaction = (transactionID: string): Transaction => ({
+                transactionID,
+                amount: -5000,
+                currency: CONST.CURRENCY.USD,
+                merchant: 'merchant',
+                created: format(new Date(), CONST.DATE.FNS_FORMAT_STRING),
+                comment: {comment: ''},
+                reportID: CONST.REPORT.UNREPORTED_REPORT_ID,
+            });
+            const undeletedTransaction = buildTransaction('bulk-move-undeleted');
+            const otherTransaction = buildTransaction('bulk-move-other');
+            const buildTrackAction = (transactionID: string, reportActionID: string, childReportID: string) => {
+                const action = buildOptimisticIOUReportAction({
+                    type: CONST.IOU.REPORT_ACTION_TYPE.TRACK,
+                    amount: 5000,
+                    currency: CONST.CURRENCY.USD,
+                    comment: '',
+                    participants: [{accountID: CARLOS_ACCOUNT_ID, login: CARLOS_EMAIL}],
+                    transactionID,
+                    isPersonalTrackingExpense: true,
+                    getCurrencyDecimals: getCurrencyDecimalsLocal,
+                });
+                return {...action, reportActionID, reportID: selfDMReport.reportID, childReportID, pendingAction: null};
+            };
+            const blankedAction: ReportAction = {
+                ...buildTrackAction(undeletedTransaction.transactionID, '3000', 'deleted-thread'),
+                message: [{type: CONST.REPORT.MESSAGE.TYPE.COMMENT, html: '', text: '', isEdited: true, isDeletedParentAction: true}],
+            };
+            const liveAction = buildTrackAction(undeletedTransaction.transactionID, '4000', 'live-thread');
+            const otherAction = buildTrackAction(otherTransaction.transactionID, '5000', 'other-thread');
+            const undeletedWhisper = buildOptimisticActionableTrackExpenseWhisper(liveAction, undeletedTransaction.transactionID, '6000');
+            const otherFirstWhisper = buildOptimisticActionableTrackExpenseWhisper(otherAction, otherTransaction.transactionID, '7000');
+            const otherSecondWhisper = buildOptimisticActionableTrackExpenseWhisper(otherAction, otherTransaction.transactionID, '8000');
+            const selfDMReportActions: ReportActions = Object.fromEntries(
+                [blankedAction, liveAction, otherAction, undeletedWhisper, otherFirstWhisper, otherSecondWhisper].map((action) => [action.reportActionID, action]),
+            );
+
+            await Onyx.merge(ONYXKEYS.SESSION, {email: CARLOS_EMAIL, accountID: CARLOS_ACCOUNT_ID});
+            await Onyx.merge(ONYXKEYS.SELF_DM_REPORT_ID, selfDMReport.reportID);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${movePolicy.id}`, movePolicy);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${selfDMReport.reportID}`, selfDMReport);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${workspaceChat.reportID}`, workspaceChat);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${destinationReport.reportID}`, destinationReport);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${undeletedTransaction.transactionID}`, undeletedTransaction);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${otherTransaction.transactionID}`, otherTransaction);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${selfDMReport.reportID}`, selfDMReportActions);
+            await waitForBatchedUpdates();
+
+            let allTransactions: OnyxCollection<Transaction>;
+            let allReports: OnyxCollection<Report>;
+            await getOnyxData({key: ONYXKEYS.COLLECTION.TRANSACTION, callback: (value) => (allTransactions = value)});
+            await getOnyxData({key: ONYXKEYS.COLLECTION.REPORT, callback: (value) => (allReports = value)});
+
+            // When both expenses are moved to a workspace report at once
+            changeTransactionsReport({
+                isVendorMatchingBetaEnabled: false,
+                transactionIDs: [undeletedTransaction.transactionID, otherTransaction.transactionID],
+                isASAPSubmitBetaEnabled: false,
+                accountID: CARLOS_ACCOUNT_ID,
+                email: CARLOS_EMAIL,
+                currentUserPersonalDetails: createCurrentUserPersonalDetails(CARLOS_EMAIL, CARLOS_ACCOUNT_ID),
+                newReport: destinationReport,
+                policy: movePolicy,
+                allTransactions,
+                policyTagList: {},
+                transactionViolations: {},
+                reports: allReports,
+                selfDMReportActions,
+                isTrackIntentUser: false,
+                cardList: undefined,
+            });
+            await waitForBatchedUpdates();
+
+            // Then each new action copies the live IOU action of its own expense
+            const destinationActions = Object.values((await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${destinationReport.reportID}`)) ?? {});
+            const getNewIOUAction = (transactionID: string) =>
+                destinationActions.find((action) => isMoneyRequestAction(action) && getOriginalMessage(action)?.IOUTransactionID === transactionID);
+            expect(getNewIOUAction(undeletedTransaction.transactionID)?.childReportID).toBe('live-thread');
+            expect(getNewIOUAction(otherTransaction.transactionID)?.childReportID).toBe('other-thread');
+
+            // And only the first whisper of each expense is removed, like getTrackExpenseActionableWhisper picks
+            const updatedSelfDMActions = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${selfDMReport.reportID}`);
+            expect(updatedSelfDMActions?.[undeletedWhisper.reportActionID]).toBeUndefined();
+            expect(updatedSelfDMActions?.[otherFirstWhisper.reportActionID]).toBeUndefined();
+            expect(updatedSelfDMActions?.[otherSecondWhisper.reportActionID]).toBeDefined();
         });
 
         describe('carousel cleanup', () => {

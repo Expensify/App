@@ -10,7 +10,7 @@ import initSplitExpense from '@libs/actions/SplitExpenses';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {calculateAmount as calculateIOUAmount} from '@libs/IOUUtils';
 import Log from '@libs/Log';
-import {getIOUActionForTransactionID, isActionableTrackExpense, isMoneyRequestAction, isTrackExpenseAction} from '@libs/ReportActionsUtils';
+import {getIOUActionsByTransactionID, isActionableTrackExpense, isMoneyRequestAction, isTrackExpenseAction} from '@libs/ReportActionsUtils';
 import {isArchivedReport, isExpenseReport, isInvoiceReport, isIOUReport, isSelfDM} from '@libs/ReportUtils';
 import type {SearchGroupKey} from '@libs/SearchUIUtils';
 import {getActiveGroupSearchHashes} from '@libs/SearchUIUtils';
@@ -200,14 +200,21 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
 
         const iouActions = reportActions.filter((action) => isMoneyRequestAction(action));
 
+        // Selected expenses usually share a few reports, so index each report's actions once instead of scanning them per expense
+        const iouActionsByReportID = new Map<string | undefined, Map<string, ReportAction>>();
         const transactionsWithActions = transactionIDs.map((transactionID) => {
             const transaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
             // Unreported expenses keep their IOU action under the self-DM report rather than under `transaction.reportID`
             const transactionReportID = !transaction?.reportID || transaction.reportID === CONST.REPORT.UNREPORTED_REPORT_ID ? selfDMReportID : transaction.reportID;
-            // The actions passed in can be a paginated subset of the collection, so also search the collection. The passed actions still cover gaps, e.g. Search snapshot actions missing from the collection.
-            // Both sources are searched together, so a live action in either one wins over a deleted action in the collection.
-            const collectionActions = Object.values(allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionReportID}`] ?? {});
-            const action = getIOUActionForTransactionID([...collectionActions, ...iouActions], transactionID, true);
+            let iouActionsByTransactionID = iouActionsByReportID.get(transactionReportID);
+            if (!iouActionsByTransactionID) {
+                // The actions passed in can be a paginated subset of the collection, so also search the collection. The passed actions still cover gaps, e.g. Search snapshot actions missing from the collection.
+                // Both sources are searched together, so a live action in either one wins over a deleted action in the collection.
+                const collectionActions = Object.values(allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionReportID}`] ?? {});
+                iouActionsByTransactionID = getIOUActionsByTransactionID([...collectionActions, ...iouActions], true);
+                iouActionsByReportID.set(transactionReportID, iouActionsByTransactionID);
+            }
+            const action = iouActionsByTransactionID.get(transactionID);
             return {transactionID, transaction, action};
         });
         const deletedTransactionIDs: string[] = [];
@@ -240,9 +247,24 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
             },
         );
 
-        for (const transactionID of Object.keys(splitTransactionsByOriginalTransactionID)) {
+        const originalTransactionIDs = Object.keys(splitTransactionsByOriginalTransactionID);
+        // Group transactions by their original transaction once, so getChildTransactions only scans each group instead of every transaction
+        const transactionsByOriginalTransactionID = new Map<string, Record<string, Transaction>>();
+        if (originalTransactionIDs.length > 0) {
+            for (const [key, transaction] of Object.entries(allTransactions ?? {})) {
+                const originalTransactionID = transaction?.comment?.originalTransactionID;
+                if (!transaction || !originalTransactionID) {
+                    continue;
+                }
+                const group = transactionsByOriginalTransactionID.get(originalTransactionID) ?? {};
+                group[key] = transaction;
+                transactionsByOriginalTransactionID.set(originalTransactionID, group);
+            }
+        }
+
+        for (const transactionID of originalTransactionIDs) {
             const splitIDs = new Set((splitTransactionsByOriginalTransactionID[transactionID] ?? []).map((transaction) => transaction.transactionID));
-            const allChildTransactions = getChildTransactions(allTransactions, transactionID);
+            const allChildTransactions = getChildTransactions(transactionsByOriginalTransactionID.get(transactionID), transactionID);
             const childTransactions = allChildTransactions.filter((transaction) => !splitIDs.has(transaction?.transactionID ?? String(CONST.DEFAULT_NUMBER_ID)));
 
             if (childTransactions.length === 0) {
