@@ -1933,6 +1933,12 @@ const translations: TranslationDeepObject<typeof en> = {
             debitedAmount: 'Montant débité',
             employeeReceived: "L'employé a reçu",
             payAll: 'Tout payer',
+            fxRateExpiredTitle: 'Taux de change expiré',
+            fxRatesExpiredTitle: 'Taux de change expirés',
+            fxRateExpiredPrompt: 'Vérifiez le taux le plus récent avant de payer.',
+            fxRatesExpiredPrompt: 'Vérifiez les taux les plus récents avant de payer.',
+            getLatestRate: 'Obtenir le dernier taux',
+            getLatestRates: 'Obtenir les derniers taux',
             reportCount: ({count}: {count: number}) => ({
                 one: '1 note de frais',
                 other: `${count} notes de frais`,
@@ -2356,6 +2362,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 }
                 return `En attente de la fin du traitement du paiement annulé${formattedETA}.`;
             },
+            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_PAYMENT_REVIEW]: (params: ReportNextStepMessageParams) => `Paiement en attente, attendez une autre mise à jour.`,
             [CONST.NEXT_STEP.MESSAGE_KEY.SUBMITTING_TO_SELF]: (params: ReportNextStepMessageParams) =>
                 `Oups ! Il semble que vous soumettiez cette note de frais à <strong>vous-même</strong>. L’approbation de vos propres notes de frais est <strong>interdite</strong> par votre espace de travail. Veuillez soumettre cette note de frais à une autre personne ou contacter votre administrateur pour changer la personne à qui vous soumettez.`,
             [CONST.NEXT_STEP.MESSAGE_KEY.REJECTED_REPORT]: ({actor, actorType}: ReportNextStepMessageParams) => {
@@ -2588,6 +2595,8 @@ const translations: TranslationDeepObject<typeof en> = {
             leftHandNavCache: 'Cache de la navigation de gauche',
             clearleftHandNavCache: 'Effacer',
             softKillTheApp: 'Arrêter l’application en douceur',
+            testBusinessBankAccount: 'Tester le compte bancaire professionnel en USD',
+            testPersonalBankAccount: 'Tester le compte bancaire personnel en USD',
             kill: 'Tuer',
             sentryDebug: 'Débogage Sentry',
             sentrySendDescription: 'Envoyer les données à Sentry',
@@ -2595,6 +2604,7 @@ const translations: TranslationDeepObject<typeof en> = {
             sentryHighlightedSpanOps: 'Noms de segments surlignés',
             sentryHighlightedSpanOpsPlaceholder: 'ui.interaction.clic, navigation, ui.chargement',
             showBranchNameInTitle: 'Afficher le nom de la branche dans le titre du navigateur',
+            hideEnvironmentBadge: 'Masquer le badge d’environnement',
             betaOverrides: 'Remplacements de bêtas',
             betaOverridesDescription:
                 "Les remplacements ne s'appliquent qu'à cet appareil et n'affectent que les vérifications côté frontend. Une bêta ne conserve un remplacement que tant qu'il diffère des bêtas de votre compte ; la rebasculer supprime donc le remplacement. « Réinitialiser tous les remplacements » rétablit les valeurs de votre compte. Certaines bêtas sont aussi contrôlées par le backend et peuvent donc échouer au niveau de la requête.",
@@ -3055,16 +3065,6 @@ const translations: TranslationDeepObject<typeof en> = {
             business: {
                 title: 'Saisissez les informations de votre entreprise',
                 legalName: 'Raison sociale',
-                companyType: 'Type d’entreprise',
-                companyTypeLimitedLiabilityCompany: 'Société à responsabilité limitée (LLC)',
-                companyTypeForProfitCorporation: 'Société à but lucratif',
-                companyTypeNonProfitCorporation: 'Société à but non lucratif',
-                companyTypeSoleProprietorship: 'Entreprise individuelle',
-                companyTypeGeneralPartnership: 'Société en nom collectif',
-                companyTypeLimitedPartnership: 'Société en commandite',
-                companyTypeLimitedLiabilityPartnership: 'Société de personnes à responsabilité limitée (LLP)',
-                companyTypeTrust: 'Fiducie',
-                companyTypeOther: 'Autre',
                 companyRole: 'Votre rôle dans l’entreprise',
                 companyRoleOwner: 'Propriétaire',
                 companyRoleDirector: 'Directeur',
@@ -3317,8 +3317,9 @@ const translations: TranslationDeepObject<typeof en> = {
                 certify: 'Je certifie que les informations fournies sont exactes et véridiques.',
                 expensifyTerms: `J’accepte les <a href="${CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}">conditions générales</a> et la <a href="${CONST.OLD_DOT_PUBLIC_URLS.PRIVACY_URL}">politique de confidentialité</a> d’Expensify.`,
                 expensifyTermsAccessibilityLabel: 'J’accepte les conditions générales et la politique de confidentialité d’Expensify.',
-                wiseTerms: `J’accepte les <a href="${CONST.WISE.TERMS_URL}">conditions générales</a> et la <a href="${CONST.WISE.PRIVACY_URL}">politique de confidentialité</a> de Wise.`,
-                wiseTermsAccessibilityLabel: 'J’accepte les conditions générales et la politique de confidentialité de Wise.',
+                wiseTerms: `En cliquant sur Confirmer, j’accepte les <a href="${CONST.WISE.TERMS_URL}">Conditions d’utilisation</a> de Wise, je consens à recevoir des documents électroniques comme indiqué dans la <a href="${CONST.WISE.ELECTRONIC_COMMUNICATIONS_POLICY_URL}">Politique de communications électroniques</a> de Wise, ainsi que sa <a href="${CONST.WISE.PRIVACY_URL}">Politique de confidentialité</a>.`,
+                wiseTermsAccessibilityLabel:
+                    'En cliquant sur Confirmer, j’accepte les Conditions d’utilisation de Wise, je consens à recevoir des documents électroniques comme indiqué dans la Politique de communications électroniques de Wise, ainsi que sa Politique de confidentialité.',
                 error: 'Veuillez accepter toutes les conditions pour continuer.',
             },
             moreInfoNeeded: {
@@ -3335,7 +3336,10 @@ const translations: TranslationDeepObject<typeof en> = {
             approved: {title: 'Compte approuvé', heading: 'Approuvé pour être payé dans le monde entier', description: "Payez les membres où qu'ils soient."},
             rejected: {title: 'Compte bancaire rejeté', heading: 'Notre partenaire a rejeté votre compte bancaire', description: "Discutez avec Concierge pour plus d'informations."},
         },
-        wiseSetupInProgress: {message: 'Configuration des remboursements globaux en cours.', continue: 'Continuer.'},
+        wiseSetupRow: {
+            inProgress: {message: 'Configuration des remboursements globaux en cours.'},
+            inReview: {message: 'Configuration des remboursements globaux en cours d’examen.', action: 'Vérifier le statut'},
+        },
         wiseGlobalReimbursementsIntro: {
             title: 'Configurer les remboursements globaux ?',
             subtitle: 'Payez des membres partout dans le monde dans leur devise locale.',
@@ -5393,6 +5397,10 @@ ${amount} pour ${merchant} - ${date}`,
             railTicketExchange: (origin: string, destination: string, startDate: string) => `Votre billet de train pour ${origin} → ${destination} le ${startDate} a été échangé.`,
             railTicketUpdate: (origin: string, destination: string, startDate: string) => `Votre billet de train pour ${origin} → ${destination} le ${startDate} a été mis à jour.`,
             defaultUpdate: (type: string) => `Votre réservation de ${type} a été mise à jour.`,
+            hotelBooked: (hotelName: string, startDate: string) => `Votre réservation d'hôtel à ${hotelName} (arrivée le ${startDate}) a été effectuée.`,
+            carBooked: (vendor: string, startDate: string) => `Votre location de voiture ${vendor} (prise en charge le ${startDate}) a été réservée.`,
+            railTicketBooked: (origin: string, destination: string, startDate: string) => `Votre billet de train pour ${origin} → ${destination} le ${startDate} a été réservé.`,
+            defaultBooked: (type: string) => `Votre réservation de ${type} a été effectuée.`,
         },
         flightTo: 'Vol à destination de',
         trainTo: 'Train pour',
@@ -5656,6 +5664,9 @@ ${amount} pour ${merchant} - ${date}`,
             },
             chatgpt: {
                 title: 'ChatGPT',
+            },
+            grok: {
+                title: 'Grok',
             },
         },
         connections: {
@@ -11694,7 +11705,9 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                     mentionedAccountID?: number;
                 }) => {
                     let warningTime = 'bientôt';
-                    if (warningDaysBeforeExpiry === CONST.COMPANY_CARDS.CONSENT_EXPIRY_WARNING_DAYS.TWO_WEEKS) {
+                    if (warningDaysBeforeExpiry === CONST.COMPANY_CARDS.CONSENT_EXPIRY_WARNING_DAYS.ONE_MONTH) {
+                        warningTime = 'dans un mois';
+                    } else if (warningDaysBeforeExpiry === CONST.COMPANY_CARDS.CONSENT_EXPIRY_WARNING_DAYS.TWO_WEEKS) {
                         warningTime = 'dans deux semaines';
                     } else if (warningDaysBeforeExpiry === CONST.COMPANY_CARDS.CONSENT_EXPIRY_WARNING_DAYS.ONE_WEEK) {
                         warningTime = 'dans une semaine';
@@ -11790,7 +11803,8 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                 reimbursementRefundedWithoutBankAccount: 'Les fonds ont été renvoyés. Vous pouvez réessayer le paiement.',
                 reimbursementHeld:
                     'Paiement en attente pendant que notre partenaire termine un examen. Attendez une autre mise à jour. Discutez avec <concierge-link>Concierge</concierge-link>.',
-                reimbursementReleased: 'L’examen est terminé et votre paiement est en cours d’acheminement. Le taux de change final peut modifier le montant.',
+                reimbursementReleased: ({expectedDate}: {expectedDate: string}) => `Paiement effectué, les fonds devraient arriver d’ici le ${expectedDate}.`,
+                reimbursementReleasedWithoutDate: 'Paiement effectué.',
             },
             error: {
                 invalidCredentials: 'Identifiants invalides, veuillez vérifier la configuration de votre connexion.',

@@ -291,6 +291,7 @@ describe('actions/Transaction', () => {
                 },
                 isASAPSubmitBetaEnabled: false,
                 currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
+                currentUserPersonalDetails: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL},
                 introSelected: undefined,
                 quickAction: undefined,
                 recentWaypoints,

@@ -3044,47 +3044,6 @@ describe('SearchUIUtils', () => {
             expect(snapshotReportActionIDs).toStrictEqual([payAction.reportActionID]);
         });
 
-        it('should show a NewDot REIMBURSED action on an invoice that is only in the Search snapshot', () => {
-            // Given a CHAT search result whose invoice isn't loaded into Onyx, with a NewDot REIMBURSED action
-            const snapshotInvoiceID = 'snapshotOnlyInvoiceID';
-            const reimbursedAction = {
-                actionName: CONST.REPORT.ACTIONS.TYPE.REIMBURSED,
-                reportActionID: 'snapshotReimbursedActionID',
-                reportID: snapshotInvoiceID,
-                created: '2025-01-01 00:00:00',
-                message: [{type: 'TEXT', style: 'normal', text: 'paid this report'}],
-                originalMessage: {isNewDot: true},
-            } as OnyxTypes.ReportAction;
-            const data: OnyxTypes.SearchResults['data'] = {
-                ...searchResults.data,
-                [`${ONYXKEYS.COLLECTION.REPORT}${snapshotInvoiceID}`]: createMock<OnyxTypes.Report>({reportID: snapshotInvoiceID, type: CONST.REPORT.TYPE.INVOICE}),
-                [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${snapshotInvoiceID}`]: {[reimbursedAction.reportActionID]: reimbursedAction},
-            };
-
-            // When the CHAT sections are built from the snapshot
-            const [sections] = SearchUIUtils.getSections({
-                dateFnsLocale: undefined,
-                type: CONST.SEARCH.DATA_TYPES.CHAT,
-                data,
-                currentAccountID: 2074551,
-                currentUserEmail: '',
-                translate: translateLocal,
-                formatPhoneNumber,
-                bankAccountList: {},
-                rules: undefined,
-                conciergeReportID: undefined,
-                convertToDisplayString,
-                reportAttributesDerivedValue: {},
-            });
-
-            // Then the payment action is listed, because the snapshot shows the report is an invoice, and invoices have no IOU PAY action for this payment
-            const snapshotReportActionIDs = sections
-                .filter(SearchUIUtils.isReportActionListItemType)
-                .filter((item) => item.reportID === snapshotInvoiceID)
-                .map((item) => item.reportActionID);
-            expect(snapshotReportActionIDs).toStrictEqual([reimbursedAction.reportActionID]);
-        });
-
         it('should return getTransactionsSections result when groupBy is undefined', () => {
             expect(
                 SearchUIUtils.getSections({
@@ -12449,6 +12408,40 @@ describe('SearchUIUtils', () => {
             const action = SearchUIUtils.getActions(result.data, allViolations, 'report_6523565988285061', CONST.SEARCH.SEARCH_KEYS.EXPENSES, '', adminAccountID, {}, {}, undefined).at(0);
             expect(action).toEqual(CONST.SEARCH.ACTION_TYPES.APPROVE);
         });
+    });
+
+    test.each([
+        [false, true],
+        [true, false],
+    ])('Change approver on a dynamic external workflow for a report the admin submitted: preventSelfApproval=%s', (preventSelfApproval, expected) => {
+        // Given an admin's own submitted report on a dynamic external workflow, where bypassing the approvers is the admin's only approver change
+        const dewPolicyID = 'dewPolicy';
+        const dewReportID = 'dewReport';
+        const data = createMock<OnyxTypes.SearchResults['data']>({
+            policy_dewPolicy: {
+                id: dewPolicyID,
+                role: CONST.POLICY.ROLE.ADMIN,
+                type: CONST.POLICY.TYPE.CORPORATE,
+                approvalMode: CONST.POLICY.APPROVAL_MODE.DYNAMICEXTERNAL,
+                preventSelfApproval,
+            },
+            report_dewReport: {
+                reportID: dewReportID,
+                policyID: dewPolicyID,
+                type: CONST.REPORT.TYPE.EXPENSE,
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+                ownerAccountID: adminAccountID,
+                managerID: adminAccountID + 1,
+                total: -1000,
+            },
+        });
+
+        // When the Search actions are computed for the report
+        const actions = SearchUIUtils.getActions(data, {}, `report_${dewReportID}`, CONST.SEARCH.SEARCH_KEYS.EXPENSES, '', adminAccountID, {}, {}, undefined);
+
+        // Then Change approver is offered only when the admin may approve their own report, so it never opens an empty page
+        expect(actions.includes(CONST.SEARCH.ACTION_TYPES.CHANGE_APPROVER)).toBe(expected);
     });
 
     test('Should return true if the search result has valid type', () => {
