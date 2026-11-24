@@ -1052,10 +1052,43 @@ const ANZ_NZ_COMMERCIAL_FEED_DISPLAY_NAME = 'ANZ NZ';
 const COMMERCIAL_FEED_DISPLAY_BASES = [
     {base: ANZ_NZ_COMMERCIAL_FEED_BASE, displayName: ANZ_NZ_COMMERCIAL_FEED_DISPLAY_NAME, shouldHideOne: false},
     {base: CONST.COMPANY_CARD.FEED_BANK_NAME.VCF_MOCK, displayName: getBankName(CONST.COMPANY_CARD.FEED_BANK_NAME.VCF_MOCK), shouldHideOne: true},
-    {base: CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX, displayName: getBankName(CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX), shouldHideOne: true},
-    {base: CONST.COMPANY_CARD.FEED_BANK_NAME.VISA, displayName: getBankName(CONST.COMPANY_CARD.FEED_BANK_NAME.VISA), shouldHideOne: true},
-    {base: CONST.COMPANY_CARD.FEED_BANK_NAME.MASTER_CARD, displayName: getBankName(CONST.COMPANY_CARD.FEED_BANK_NAME.MASTER_CARD), shouldHideOne: true},
-] as const;
+    {base: CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX, displayName: getBankName(CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX), shouldHideOne: false},
+    {base: CONST.COMPANY_CARD.FEED_BANK_NAME.VISA, displayName: getBankName(CONST.COMPANY_CARD.FEED_BANK_NAME.VISA), shouldHideOne: false},
+    {base: CONST.COMPANY_CARD.FEED_BANK_NAME.MASTER_CARD, displayName: getBankName(CONST.COMPANY_CARD.FEED_BANK_NAME.MASTER_CARD), shouldHideOne: false},
+    {base: CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX_1205, displayName: 'American Express Hierarchy', shouldHideOne: false},
+    {base: 'anzfav', displayName: ANZ_NZ_COMMERCIAL_FEED_DISPLAY_NAME, shouldHideOne: false},
+    {base: 'vcfanz', displayName: 'ANZ', shouldHideOne: false},
+    {base: 'cdfaoc', displayName: 'AOC Solutions / Key Bank - Key2Purchase', shouldHideOne: false},
+    {base: 'cdfkey', displayName: 'Key Bank - Key2Business', shouldHideOne: false},
+    {base: 'cdfairplus', displayName: 'AirPlus', shouldHideOne: false},
+    {base: 'cdfbmo', displayName: 'BMO', shouldHideOne: false},
+    {base: 'cdfbrex', displayName: 'Brex', shouldHideOne: false},
+    {base: 'cdfcitibank', displayName: 'Citi Mastercard', shouldHideOne: false},
+    {base: 'vcfcitibank', displayName: 'Citi Visa', shouldHideOne: false},
+    {base: 'vcfccf', displayName: 'Citi CCF', shouldHideOne: false},
+    {base: 'vcfcgi', displayName: 'Citi CGI', shouldHideOne: false},
+    {base: 'cdfcsi', displayName: 'CSI Global', shouldHideOne: false},
+    {base: 'cdfsdf', displayName: 'Diners Club SDF', shouldHideOne: false},
+    {base: 'cdfdcf', displayName: 'Diners Club DCF', shouldHideOne: false},
+    {base: 'cdfhsbc', displayName: 'HSBC Mastercard', shouldHideOne: false},
+    {base: 'vcfhsbc', displayName: 'HSBC Visa', shouldHideOne: false},
+    {base: 'vcfext', displayName: 'HSBC Visa External', shouldHideOne: false},
+    {base: 'cdfvirt', displayName: 'Mastercard Virtual', shouldHideOne: false},
+    {base: 'cdfseb', displayName: 'SEB Kort EuroCard', shouldHideOne: false},
+    {base: 'cdfubt', displayName: 'UBT', shouldHideOne: false},
+    {base: 'cdfwex', displayName: 'WEX', shouldHideOne: false},
+    {base: 'vcfubs', displayName: 'UBS', shouldHideOne: false},
+    {base: 'vcfintecoms', displayName: 'NBSA', shouldHideOne: false},
+    {base: 'vcfbbva', displayName: 'BBVA', shouldHideOne: false},
+    {base: 'vcffpcu', displayName: 'FPCU', shouldHideOne: false},
+    {base: 'cdfhierarchy', displayName: 'Mastercard Hierarchy', shouldHideOne: false},
+    {base: 'vcfhierarchy', displayName: 'Visa Hierarchy', shouldHideOne: false},
+    {base: 'cdfvirthierarchy', displayName: 'Mastercard Virtual Hierarchy', shouldHideOne: false},
+    {base: 'cdfcitihierarchy', displayName: 'Citi Mastercard Hierarchy', shouldHideOne: false},
+    {base: 'vcfcgihierarchy', displayName: 'Citi CGI Hierarchy', shouldHideOne: false},
+    {base: 'vcfccfhierarchy', displayName: 'Citi CCF Hierarchy', shouldHideOne: false},
+    {base: 'vcfhsbchierarchy', displayName: 'HSBC Visa Hierarchy', shouldHideOne: false},
+].sort((a, b) => b.base.length - a.base.length);
 
 function getDefaultCommercialFeedDisplayName(feed: CardFeedWithNumber | CardFeedWithDomainID | undefined): string | undefined {
     const feedName = getCompanyCardFeed(feed);
@@ -1065,11 +1098,12 @@ function getDefaultCommercialFeedDisplayName(feed: CardFeedWithNumber | CardFeed
     }
 
     const suffix = feedName.slice(displayBase.base.length);
-    if (!suffix || !/^\d+$/.test(suffix) || (displayBase.shouldHideOne && suffix === '1')) {
+    if (!suffix || (displayBase.shouldHideOne && suffix === '1')) {
         return displayBase.displayName;
     }
 
-    return `${displayBase.displayName} ${suffix}`;
+    // Preserve unknown variants so they cannot be mistaken for the base feed.
+    return `${displayBase.displayName} ${/^\d+$/.test(suffix) ? suffix : suffix.toUpperCase()}`;
 }
 
 const getBankCardDetailsImage = (bank: BankName, illustrations: IllustrationsType, companyCardIllustrations: CompanyCardBankIcons): IconAsset => {
@@ -1977,7 +2011,8 @@ function getSettlementAccountErrors(cardSettings: OnyxEntry<ExpensifyCardSetting
 }
 
 /** Backend may nest linkedPolicyIDs under each program block (not only on the settings root). */
-const NESTED_EXPENSIFY_CARD_PROGRAM_KEYS: readonly CardProgramKey[] = [CONST.COUNTRY.US, CONST.EXPENSIFY_CARD.CARD_PROGRAM.CURRENT, CONST.COUNTRY.GB, CONST.TRAVEL.PROGRAM_TRAVEL_US];
+const CARD_PROGRAM_KEYS: readonly CardProgramKey[] = [CONST.COUNTRY.US, CONST.EXPENSIFY_CARD.CARD_PROGRAM.CURRENT, CONST.COUNTRY.GB];
+const NESTED_EXPENSIFY_CARD_PROGRAM_KEYS: readonly CardProgramKey[] = [...CARD_PROGRAM_KEYS, CONST.TRAVEL.PROGRAM_TRAVEL_US];
 
 function getNestedExpensifyCardProgramSettings(settings: ExpensifyCardSettings, key: CardProgramKey): ExpensifyCardSettingsBase | undefined {
     const nested = settings[key];
@@ -2028,6 +2063,34 @@ function getLinkedPolicyIDsFromExpensifyCardSettings(settings: ExpensifyCardSett
 /** True if `policyID` is in the linked list (case-insensitive). */
 function isPolicyIDInLinkedExpensifyCardPolicyList(linkedPolicyIDs: string[] | undefined, policyID: string): boolean {
     return !!linkedPolicyIDs?.some((id) => id.toUpperCase() === policyID.toUpperCase());
+}
+
+/** A fund's Expensify Card feed and its Travel Billing feed, which the cards are stored under separately. */
+function getExpensifyCardFeedIDs(fundID: string | number): [string, string] {
+    return [`${fundID}_${CONST.EXPENSIFY_CARD.BANK}`, `${fundID}_${CONST.EXPENSIFY_CARD.BANK}_${CONST.TRAVEL.PROGRAM_TRAVEL_US}`];
+}
+
+/**
+ * The feed IDs of one fund's programs that `policyID` is linked to.
+ *
+ * A fund keeps its card programs and its Travel Billing program side by side under separate feed IDs, and a
+ * workspace is linked to each program on its own. A fund that reaches the workspace through Travel Billing alone
+ * therefore holds no cards the workspace can use from its regular feed.
+ */
+function getPolicyLinkedExpensifyCardFeedIDs(settings: ExpensifyCardSettings, fundID: string, policyID: string): string[] {
+    const isLinkedToPolicy = (base: ExpensifyCardSettingsBase | undefined) =>
+        !!base && (isPolicyIDInLinkedExpensifyCardPolicyList(base.linkedPolicyIDs, policyID) || base.preferredPolicy?.toUpperCase() === policyID.toUpperCase());
+
+    const [cardFeedID, travelFeedID] = getExpensifyCardFeedIDs(fundID);
+    const feedIDs: string[] = [];
+    const isLinkedToCardProgram = isLinkedToPolicy(settings) || CARD_PROGRAM_KEYS.some((key) => isLinkedToPolicy(getNestedExpensifyCardProgramSettings(settings, key)));
+    if (isLinkedToCardProgram) {
+        feedIDs.push(cardFeedID);
+    }
+    if (isLinkedToPolicy(getNestedExpensifyCardProgramSettings(settings, CONST.TRAVEL.PROGRAM_TRAVEL_US))) {
+        feedIDs.push(travelFeedID);
+    }
+    return feedIDs;
 }
 
 /** Resolves preferredPolicy from the settings root or the first nested program block that defines it. */
@@ -2701,7 +2764,9 @@ export {
     getCardSettings,
     getSettlementAccountErrors,
     getCardProgramKey,
+    getExpensifyCardFeedIDs,
     getLinkedPolicyIDsFromExpensifyCardSettings,
+    getPolicyLinkedExpensifyCardFeedIDs,
     getPreferredPolicyFromExpensifyCardSettings,
     getDomainNameFromExpensifyCardSettings,
     getDomainByFundID,

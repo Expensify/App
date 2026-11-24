@@ -591,6 +591,7 @@ const translations: TranslationDeepObject<typeof en> = {
             other: (count: number) => `${formattedCount ?? count} minuten`,
         }),
         amount: 'Bedrag',
+        submitter: 'Indiener',
     },
     socials: {
         podcast: 'Volg ons op Podcast',
@@ -697,6 +698,15 @@ const translations: TranslationDeepObject<typeof en> = {
         launching: 'Expensify wordt gestart',
         expired: 'Je sessie is verlopen.',
         signIn: 'Meld je opnieuw aan.',
+        notValid: 'Ongeldige link.',
+        sessionMismatch: 'De link waarop je hebt geklikt is niet geldig voor je huidige sessie.',
+        switchAccount: {
+            title: 'Van account wisselen?',
+            prompt: ({newEmail, currentEmail}: {newEmail: string; currentEmail: string}) =>
+                `Je bent aangemeld als ${currentEmail}. Deze actie meldt je in plaats daarvan aan als ${newEmail}.`,
+            confirm: 'Van account wisselen',
+            staySignedIn: 'Niet van account wisselen',
+        },
     },
     multifactorAuthentication: {
         reviewTransaction: {
@@ -1017,6 +1027,7 @@ const translations: TranslationDeepObject<typeof en> = {
     },
     supportalSwitcher: {
         title: 'Supportal naar een ander account',
+        navigationLabel: 'Supportal',
         emailLabel: 'E-mailadres',
         reasonLabel: 'Reden voor ondersteuning-login',
         reasonHint: 'Geen recente tickets gevonden voor dit account.',
@@ -1239,6 +1250,8 @@ const translations: TranslationDeepObject<typeof en> = {
     },
     insightsPage: {
         tagLevel: (level: string) => `Tagniveau ${level}`,
+        noTaggedExpenses: 'Geen uitgaven met tags',
+        noExpensesForTagLevel: (tagLevelName: string) => `Geen uitgaven voor ${tagLevelName} in dit datumbereik.`,
         tagLevelLabel: 'Tagniveau',
         parent: 'Ouder',
         shareOfTotal: 'Aandeel van totaal (%)',
@@ -1907,6 +1920,12 @@ const translations: TranslationDeepObject<typeof en> = {
             debitedAmount: 'Afgeschreven bedrag',
             employeeReceived: 'Medewerker ontving',
             payAll: 'Alles betalen',
+            fxRateExpiredTitle: 'Wisselkoers verlopen',
+            fxRatesExpiredTitle: 'Wisselkoersen verlopen',
+            fxRateExpiredPrompt: 'Controleer de nieuwste koers voordat je betaalt.',
+            fxRatesExpiredPrompt: 'Controleer de nieuwste koersen voordat je betaalt.',
+            getLatestRate: 'Nieuwste koers ophalen',
+            getLatestRates: 'Nieuwste koersen ophalen',
             reportCount: ({count}: {count: number}) => ({
                 one: '1 rapport',
                 other: `${count} rapporten`,
@@ -2327,6 +2346,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 }
                 return `Wachten tot de geannuleerde betaling is verwerkt${formattedETA}.`;
             },
+            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_PAYMENT_REVIEW]: (params: ReportNextStepMessageParams) => `Betaling in de wacht, wacht op een volgende update.`,
             [CONST.NEXT_STEP.MESSAGE_KEY.SUBMITTING_TO_SELF]: (params: ReportNextStepMessageParams) =>
                 `Oeps! Het lijkt erop dat je deze indient bij <strong>jezelf</strong>. Het goedkeuren van je eigen rapporten is door je werkruimte <strong>verboden</strong>. Dien dit rapport in bij iemand anders of neem contact op met je beheerder om de persoon te wijzigen bij wie je indient.`,
             [CONST.NEXT_STEP.MESSAGE_KEY.REJECTED_REPORT]: ({actor, actorType}: ReportNextStepMessageParams) => {
@@ -2558,6 +2578,8 @@ const translations: TranslationDeepObject<typeof en> = {
             leftHandNavCache: 'Cache linkernavigatie',
             clearleftHandNavCache: 'Wissen',
             softKillTheApp: 'App zacht afsluiten',
+            testBusinessBankAccount: 'Test zakelijke USD-bankrekening',
+            testPersonalBankAccount: 'USD persoonlijke bankrekening testen',
             kill: 'Doden',
             sentryDebug: 'Sentry-debug',
             sentrySendDescription: 'Gegevens naar Sentry verzenden',
@@ -2565,6 +2587,7 @@ const translations: TranslationDeepObject<typeof en> = {
             sentryHighlightedSpanOps: 'Gemarkeerde span-namen',
             sentryHighlightedSpanOpsPlaceholder: 'ui.interactie.klik, navigatie, ui.laden',
             showBranchNameInTitle: 'Toon branchnaam in titel van browser',
+            hideEnvironmentBadge: 'Omgevingsbadge verbergen',
             betaOverrides: 'Bèta-overrides',
             betaOverridesDescription:
                 "Overrides gelden alleen voor dit apparaat en zijn alleen van invloed op frontendcontroles. Een bèta houdt een override alleen zolang die afwijkt van de bèta's van je account, dus door hem terug te zetten wordt de override verwijderd. 'Alle overrides resetten' herstelt de waarden van je account. Sommige bèta's worden ook door de backend bepaald en kunnen dus alsnog mislukken op verzoekniveau.",
@@ -3026,16 +3049,6 @@ const translations: TranslationDeepObject<typeof en> = {
             business: {
                 title: 'Voer je bedrijfsgegevens in',
                 legalName: 'Wettelijke bedrijfsnaam',
-                companyType: 'Bedrijfstype',
-                companyTypeLimitedLiabilityCompany: 'Vennootschap met beperkte aansprakelijkheid (LLC)',
-                companyTypeForProfitCorporation: 'Vennootschap met winstoogmerk',
-                companyTypeNonProfitCorporation: 'Vennootschap zonder winstoogmerk',
-                companyTypeSoleProprietorship: 'Eenmanszaak',
-                companyTypeGeneralPartnership: 'Vennootschap onder firma',
-                companyTypeLimitedPartnership: 'Commanditaire vennootschap',
-                companyTypeLimitedLiabilityPartnership: 'Personenvennootschap met beperkte aansprakelijkheid (LLP)',
-                companyTypeTrust: 'Trust',
-                companyTypeOther: 'Overig',
                 companyRole: 'Je rol in het bedrijf',
                 companyRoleOwner: 'Eigenaar',
                 companyRoleDirector: 'Directeur',
@@ -3288,8 +3301,9 @@ const translations: TranslationDeepObject<typeof en> = {
                 certify: 'Ik verklaar dat de door mij verstrekte informatie waar en juist is.',
                 expensifyTerms: `Ik ga akkoord met de <a href="${CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}">algemene voorwaarden</a> en het <a href="${CONST.OLD_DOT_PUBLIC_URLS.PRIVACY_URL}">privacybeleid</a> van Expensify.`,
                 expensifyTermsAccessibilityLabel: 'Ik ga akkoord met de algemene voorwaarden en het privacybeleid van Expensify.',
-                wiseTerms: `Ik ga akkoord met de <a href="${CONST.WISE.TERMS_URL}">algemene voorwaarden</a> en het <a href="${CONST.WISE.PRIVACY_URL}">privacybeleid</a> van Wise.`,
-                wiseTermsAccessibilityLabel: 'Ik ga akkoord met de algemene voorwaarden en het privacybeleid van Wise.',
+                wiseTerms: `Door op Bevestigen te klikken, accepteer ik de <a href="${CONST.WISE.TERMS_URL}">Gebruiksvoorwaarden</a> van Wise, ga ik akkoord met het ontvangen van elektronische documenten zoals beschreven in het <a href="${CONST.WISE.ELECTRONIC_COMMUNICATIONS_POLICY_URL}">Beleid voor elektronische communicatie</a> van Wise, en accepteer ik het <a href="${CONST.WISE.PRIVACY_URL}">Privacybeleid</a>.`,
+                wiseTermsAccessibilityLabel:
+                    'Door op Bevestigen te klikken, accepteer ik de Gebruiksvoorwaarden van Wise, ga ik akkoord met het ontvangen van elektronische documenten zoals beschreven in het Beleid voor elektronische communicatie van Wise, en accepteer ik het Privacybeleid.',
                 error: 'Accepteer alle voorwaarden om door te gaan.',
             },
             moreInfoNeeded: {
@@ -3306,7 +3320,10 @@ const translations: TranslationDeepObject<typeof en> = {
             approved: {title: 'Account goedgekeurd', heading: 'Goedgekeurd om wereldwijd te betalen', description: 'Betaal leden, waar ze ook zijn.'},
             rejected: {title: 'Bankrekening afgewezen', heading: 'Onze partner heeft je bankrekening afgewezen', description: 'Chat met Concierge voor meer informatie.'},
         },
-        wiseSetupInProgress: {message: 'Instellen van wereldwijde terugbetalingen bezig.', continue: 'Doorgaan.'},
+        wiseSetupRow: {
+            inProgress: {message: 'Instellen van wereldwijde terugbetalingen bezig.'},
+            inReview: {message: 'Instellen van wereldwijde terugbetalingen wordt beoordeeld.', action: 'Status bekijken'},
+        },
         wiseGlobalReimbursementsIntro: {
             title: 'Wereldwijde terugbetalingen instellen?',
             subtitle: 'Betaal leden wereldwijd in hun eigen lokale valuta.',
@@ -5339,6 +5356,10 @@ ${amount} voor ${merchant} - ${date}`,
             railTicketExchange: (origin: string, destination: string, startDate: string) => `Uw treinticket voor ${origin} → ${destination} op ${startDate} is omgewisseld.`,
             railTicketUpdate: (origin: string, destination: string, startDate: string) => `Je treinkaartje voor ${origin} → ${destination} op ${startDate} is bijgewerkt.`,
             defaultUpdate: (type: string) => `Je ${type}reservering is bijgewerkt.`,
+            hotelBooked: (hotelName: string, startDate: string) => `Je hotelreservering bij ${hotelName} (inchecken ${startDate}) is geboekt.`,
+            carBooked: (vendor: string, startDate: string) => `Je ${vendor}-autoverhuur (ophalen op ${startDate}) is geboekt.`,
+            railTicketBooked: (origin: string, destination: string, startDate: string) => `Je treinkaartje voor ${origin} → ${destination} op ${startDate} is geboekt.`,
+            defaultBooked: (type: string) => `Je ${type}-reservering is geboekt.`,
         },
         flightTo: 'Vlucht naar',
         trainTo: 'Trein naar',
@@ -5603,6 +5624,9 @@ ${amount} voor ${merchant} - ${date}`,
             },
             chatgpt: {
                 title: 'ChatGPT',
+            },
+            grok: {
+                title: 'Grok',
             },
         },
         connections: {
@@ -8004,6 +8028,7 @@ Het Control-abonnement begint bij $9 per actieve deelnemer per maand.`,
                 willBeReadyToUse: 'Deze kaart is direct klaar voor gebruik.',
                 willBeReadyToShip: 'Deze kaart is meteen klaar om verzonden te worden.',
                 cardholder: 'Kaarthouder',
+                cardholderEmail: 'E-mailadres van de kaarthouder',
                 cardType: 'Kaarttype',
                 limit: 'Limiet',
                 limitType: 'Limiettype',
@@ -8518,6 +8543,7 @@ Het Control-abonnement begint bij $9 per actieve deelnemer per maand.`,
             startDate: 'Startdatum',
             endDate: 'Einddatum',
             autoGeneratedRateTooltip: 'Dit tarief is automatisch gegenereerd.',
+            taxReclaimableOnAmount: (amount: string) => `Terugvorderbare belasting op ${amount}`,
             automaticRates: 'Automatische tarieven',
             autoUpdateGovernmentRate: 'Overheidspercentages automatisch bijwerken',
             autoUpdateGovernmentRateDescription: (countryPhrase: string) =>
@@ -9225,6 +9251,36 @@ Vereis onkostendetails zoals bonnen en beschrijvingen, stel limieten en standaar
                 confirmErrorConditionAndDefault: 'Voeg minstens één voorwaarde toe en pas minstens één standaardinstelling toe',
                 createRuleFromExpenseAction: 'Maak een regel',
                 createRuleFromExpensePrompt: 'om je wijzigingen toe te passen op alle onkosten die aan je criteria voldoen.',
+                merchantTypes: {
+                    [CONST.RULES.MERCHANT_TYPE.AIRLINES]: 'Luchtvaartmaatschappijen',
+                    [CONST.RULES.MERCHANT_TYPE.ALCOHOL_AND_BARS]: 'Alcohol en bars',
+                    [CONST.RULES.MERCHANT_TYPE.AMAZON_AND_BOOKSTORES]: 'Amazon en boekhandels',
+                    [CONST.RULES.MERCHANT_TYPE.AUTOMOTIVE]: 'Auto-industrie',
+                    [CONST.RULES.MERCHANT_TYPE.CAR_RENTALS]: 'Autoverhuur',
+                    [CONST.RULES.MERCHANT_TYPE.DINING]: 'Uit eten',
+                    [CONST.RULES.MERCHANT_TYPE.FUEL_AND_GAS]: 'Brandstof en gas',
+                    [CONST.RULES.MERCHANT_TYPE.GOVERNMENT_AND_NON_PROFITS]: 'Overheid en non-profitorganisaties',
+                    [CONST.RULES.MERCHANT_TYPE.GROCERIES]: 'Boodschappen',
+                    [CONST.RULES.MERCHANT_TYPE.GYMS_AND_FITNESS]: 'Sportscholen en fitness',
+                    [CONST.RULES.MERCHANT_TYPE.HEALTHCARE]: 'Gezondheidszorg',
+                    [CONST.RULES.MERCHANT_TYPE.HOTELS]: 'Hotels',
+                    [CONST.RULES.MERCHANT_TYPE.INTERNET_AND_PHONE]: 'Internet en telefoon',
+                    [CONST.RULES.MERCHANT_TYPE.OFFICE_SUPPLIES]: 'Kantoorbenodigdheden',
+                    [CONST.RULES.MERCHANT_TYPE.PARKING_AND_TOLLS]: 'Parkeren en tol',
+                    [CONST.RULES.MERCHANT_TYPE.PROFESSIONAL_SERVICES]: 'Professionele diensten',
+                    [CONST.RULES.MERCHANT_TYPE.RETAIL]: 'Detailhandel',
+                    [CONST.RULES.MERCHANT_TYPE.SHIPPING_AND_DELIVERY]: 'Verzending en bezorging',
+                    [CONST.RULES.MERCHANT_TYPE.SOFTWARE]: 'Software',
+                    [CONST.RULES.MERCHANT_TYPE.TRANSIT_AND_RIDESHARE]: 'Openbaar vervoer en ritdiensten',
+                    [CONST.RULES.MERCHANT_TYPE.TRAVEL_AGENCIES]: 'Reisbureaus',
+                },
+                dateMatchTypeOn: 'Aan',
+                dateMatchTypeBefore: 'Vooraf',
+                dateMatchTypeAfter: 'Na',
+                hasOrDoesNotHave: 'Heeft/Heeft niet',
+                amountMatchTypeEqualTo: 'Gelijk aan',
+                amountMatchTypeGreaterThan: 'Groter dan',
+                amountMatchTypeLessThan: 'Minder dan',
             },
             categoryRules: {
                 title: 'Categorisatieregels',
@@ -9562,6 +9618,16 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
                 tagIs: (tag: string) => `Tag is "${tag}"`,
                 merchantContains: (merchant: string) => `Handelaar bevat "${merchant}"`,
                 merchantExactlyMatches: (merchant: string) => `Handelaar komt exact overeen met "${merchant}"`,
+                currencyIs: (currency: string) => `Valuta is "${currency}"`,
+                cardIs: (card: string) => `Kaart is "${card}"`,
+                taxRateIs: (taxRate: string) => `Belastingtarief is "${taxRate}"`,
+                submitterIs: (submitter: string) => `Indiener is "${submitter}"`,
+                reimbursableIs: (reimbursable: string) => `Vergoedbaar is "${reimbursable}"`,
+                billableIs: (billable: string) => `Declarabel is "${billable}"`,
+                dateIs: (comparison: string) => `Datum is ${comparison}`,
+                amountIs: (comparison: string) => `Bedrag is ${comparison}`,
+                hasValue: (value: string) => `Heeft "${value}"`,
+                doesNotHaveValue: (value: string) => `Bevat geen "${value}"`,
             },
             merchantTypeRule: {merchantType: 'Type handelaar', saveRule: 'Regel opslaan', confirmErrorCategory: 'Selecteer een categorie.'},
             requireFieldsTable: {
@@ -11068,6 +11134,9 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
             openMenu: ({columnName}: {columnName: string}) => `Kolomopties voor ${columnName}`,
             sortAscending: 'Oplopend sorteren',
             sortDescending: 'Aflopend sorteren',
+            pinLeft: 'Links vastzetten',
+            pinRight: 'Rechts vastzetten',
+            unpin: 'Losmaken',
             hideColumn: 'Kolom verbergen',
             resetColumnSizes: 'Kolombreedtes opnieuw instellen',
         },
@@ -11528,7 +11597,9 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
                     mentionedAccountID?: number;
                 }) => {
                     let warningTime = 'binnenkort';
-                    if (warningDaysBeforeExpiry === CONST.COMPANY_CARDS.CONSENT_EXPIRY_WARNING_DAYS.TWO_WEEKS) {
+                    if (warningDaysBeforeExpiry === CONST.COMPANY_CARDS.CONSENT_EXPIRY_WARNING_DAYS.ONE_MONTH) {
+                        warningTime = 'over een maand';
+                    } else if (warningDaysBeforeExpiry === CONST.COMPANY_CARDS.CONSENT_EXPIRY_WARNING_DAYS.TWO_WEEKS) {
                         warningTime = 'over twee weken';
                     } else if (warningDaysBeforeExpiry === CONST.COMPANY_CARDS.CONSENT_EXPIRY_WARNING_DAYS.ONE_WEEK) {
                         warningTime = 'over een week';
@@ -11623,7 +11694,8 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
                     `De middelen zijn teruggestort op bankrekening ${bankAccountLastFour}. Je kunt de betaling opnieuw proberen.`,
                 reimbursementRefundedWithoutBankAccount: 'Gelden zijn teruggestort. Je kunt de betaling opnieuw proberen.',
                 reimbursementHeld: 'Betaling in de wacht terwijl onze partner een beoordeling afrondt. Wacht op een volgende update. Chat met <concierge-link>Concierge</concierge-link>.',
-                reimbursementReleased: 'De controle is voltooid en je betaling is onderweg. De definitieve wisselkoers kan het bedrag veranderen.',
+                reimbursementReleased: ({expectedDate}: {expectedDate: string}) => `Betaling vrijgegeven, het geld wordt verwacht uiterlijk ${expectedDate}.`,
+                reimbursementReleasedWithoutDate: 'Betaling vrijgegeven.',
             },
             error: {
                 invalidCredentials: 'Ongeldige inloggegevens, controleer de configuratie van je verbinding.',
@@ -13322,6 +13394,7 @@ Hier is een *proefbon* om je te laten zien hoe het werkt:`,
         offlineMessage: 'Je bent offline. Rapportgeschiedenis is mogelijk verouderd.',
         toMarkAsDone: 'markeren als voltooid',
         receivedPayment: 'betaling ontvangen',
+        markedAsManuallyExported: (label: string) => `heeft dit rapport gemarkeerd als handmatig geëxporteerd naar ${label}`,
     },
 };
 export default translations;

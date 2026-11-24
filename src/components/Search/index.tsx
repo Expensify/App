@@ -48,6 +48,7 @@ import {flushPendingSearchWrite, hasPendingSearchWrite} from '@libs/pendingSearc
 import {isCreatedTaskReportAction} from '@libs/ReportActionsUtils';
 import {isOneTransactionReport} from '@libs/ReportUtils';
 import {searchKeyToSavedSearchID} from '@libs/SearchKeyUtils';
+import {getPinnedColumnOrder, getQueryWithPinnedColumns, NO_PINNED_COLUMNS} from '@libs/SearchPinnedColumnsUtils';
 import {buildCannedSearchQuery, buildSearchQueryString, getFilterFromQuery} from '@libs/SearchQueryUtils';
 import {
     canEditSearchColumns,
@@ -122,11 +123,13 @@ import ExpenseFlatSearchView from './ExpenseFlatSearchView';
 import ExpenseGroupedSearchView from './ExpenseGroupedSearchView';
 import ExpenseReportSearchView from './ExpenseReportSearchView';
 import useLiveRowLimit from './hooks/useLiveRowLimit';
+import usePinSearchColumn from './hooks/usePinSearchColumn';
 import useSearchColumnEditing from './hooks/useSearchColumnEditing';
 import useSearchSnapshot from './hooks/useSearchSnapshot';
 import useShouldShowBulkActionBar from './hooks/useShouldShowBulkActionBar';
 import SearchChartView from './SearchChartView';
 import SearchChartWrapper from './SearchChartWrapper';
+import SearchColumnPinItems from './SearchColumnPinItems';
 import {useSearchQueryActions, useSearchQueryContext, useSearchResultsActions, useSearchResultsContext, useSearchSelectionActions, useSearchSelectionContext} from './SearchContext';
 import {useRegisterSearchScrollView, useSearchListScrollLockStyle} from './SearchListScrollLockContext';
 import {SearchScopeProvider} from './SearchScopeProvider';
@@ -178,7 +181,7 @@ function Search({
     const navigation = useNavigation<PlatformStackNavigationProp<SearchFullscreenNavigatorParamList>>();
     const isFocused = useIsFocused();
 
-    const {markReportRHPWidth, unmarkReportRHPWidth} = useWideRHPActions();
+    const {markReportRHPWidth} = useWideRHPActions();
     const {currentSearchHash, currentSearchKey, shouldResetSearchQuery, suggestedSearches} = useSearchQueryContext();
     const {lastSearchType, shouldUseLiveData} = useSearchResultsContext();
 
@@ -468,6 +471,8 @@ function Search({
     const shouldRetrySearchWithTotalsOrGroupedRef = useRef(false);
     const autoSearchedHashRef = useRef<number | undefined>(undefined);
     const isInPreloadedTab = useIsInPreloadedTab();
+    // Pins only reorder the table, so a query that differs by its pins alone must not send the search again.
+    const searchRequestQuery = buildSearchQueryString(getQueryWithPinnedColumns(queryJSON, NO_PINNED_COLUMNS, false));
 
     useEffect(() => {
         // A preloaded tab sends no request while hidden, including from the migrated-modal and reconnect branches below.
@@ -546,9 +551,9 @@ function Search({
             shouldSaveRecentSearch: searchRequestOffset === 0 && !shouldUseLiveData,
         });
 
-        // We don't need to run the effect on change of isFocused.
+        // We don't need to run the effect on change of isFocused, and searchRequestQuery stands in for queryJSON.
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [handleSearch, hasErrors, isDataLoaded, isOffline, offset, queryJSON, shouldCalculateTotals, validGroupBy, searchRequestOffset, isLoadingApp]);
+    }, [handleSearch, hasErrors, isDataLoaded, isOffline, offset, searchRequestQuery, shouldCalculateTotals, validGroupBy, searchRequestOffset, isLoadingApp]);
 
     useEffect(() => {
         if (isLoadingApp || !shouldRetrySearchWithTotalsOrGroupedRef.current || searchResults?.search?.isLoading || (!shouldCalculateTotals && !validGroupBy)) {
@@ -833,12 +838,6 @@ function Search({
                     }
                 }
 
-                if (item.transactions.length > 1) {
-                    markReportRHPWidth(reportID, 'super-wide');
-                } else {
-                    unmarkReportRHPWidth(reportID, 'super-wide');
-                }
-
                 // Persist the current search context so prev/next navigation arrows
                 // in the report RHP can reference the correct result set.
                 saveLastSearchParams({
@@ -853,8 +852,12 @@ function Search({
                     reportID,
                     backTo,
                 });
+                // After the new-tab guard, since a new tab never mounts the screen this width is for.
                 if (openInternalRouteInNewTab(route, event)) {
                     return;
+                }
+                if (item.transactions.length > 1) {
+                    markReportRHPWidth(reportID, 'super-wide');
                 }
                 requestAnimationFrame(() => Navigation.navigate(route));
                 return;
@@ -888,8 +891,6 @@ function Search({
                 return;
             }
 
-            markReportRHPWidth(reportID, 'wide');
-
             if (isTransactionItem && transactionPreviewData) {
                 setOptimisticDataForTransactionThreadPreview(transactionItem, transactionPreviewData, getCurrencyDecimals, delegateAccountID, transactionItem?.reportAction?.childReportID);
             }
@@ -902,6 +903,7 @@ function Search({
             if (openInternalRouteInNewTab(route, event)) {
                 return;
             }
+            markReportRHPWidth(reportID, 'wide');
             if (isTransactionItem) {
                 seedCarouselForOpenedExpense();
             }
@@ -910,7 +912,6 @@ function Search({
         [
             markReportRHPWidth,
             handleSearch,
-            unmarkReportRHPWidth,
             introSelected,
             personalDetails,
             isSelfTourViewed,
@@ -1016,6 +1017,11 @@ function Search({
     const previousColumns = usePrevious(currentColumns);
     const [columnsToShow, setColumnsToShow] = useState<SearchColumnType[]>(getEmptyArray);
     const columnEditing = useSearchColumnEditing(queryJSON, columnsToShow);
+    const pinSearchColumn = usePinSearchColumn(queryJSON, currentSearchKey);
+    // Only a table whose column menu offers pin items honors pins, so grouped tables and tables without the beta keep their own order.
+    const shouldPinColumns = shouldShowColumnMenu && canEditColumns && pinSearchColumn.canPinColumns;
+    // Pinning only moves columns the table already shows, so it reorders them at once instead of fading them like a column change.
+    const orderedColumns = useStableArrayReference(getPinnedColumnOrder(columnsToShow, shouldPinColumns ? pinSearchColumn.pinnedColumns : NO_PINNED_COLUMNS));
 
     // If columns have changed, trigger an animation before settings columnsToShow to prevent
     // new columns appearing before the fade out animation happens
@@ -1619,7 +1625,7 @@ function Search({
         <View style={[searchTablePaddingRightStyle, styles.flex1, styles.alignSelfStretch]}>
             <SearchTableHeader
                 canSelectMultiple={canSelectMultiple}
-                columns={columnsToShow}
+                columns={orderedColumns}
                 type={type}
                 onSortPress={onSortPress}
                 sortOrder={sortOrder}
@@ -1644,7 +1650,14 @@ function Search({
                         columnEditing={canEditColumns ? columnEditing : undefined}
                         sentryLabel={CONST.SENTRY_LABEL.SEARCH.COLUMN_MENU}
                         itemSentryLabels={CONST.SENTRY_LABEL.SEARCH.COLUMN_MENU_ITEM}
-                    />
+                    >
+                        {shouldPinColumns && (
+                            <SearchColumnPinItems
+                                pinnedColumns={pinSearchColumn.pinnedColumns}
+                                pinColumn={pinSearchColumn.pinColumn}
+                            />
+                        )}
+                    </SortableColumnMenu>
                 )}
             </SearchTableHeader>
         </View>
@@ -1664,7 +1677,7 @@ function Search({
     const commonViewProps: CommonSearchViewProps = {
         queryJSON,
         data: stableSortedData,
-        columns: columnsToShow,
+        columns: orderedColumns,
         onSelectRow,
         canSelectMultiple,
         SearchTableHeader: searchTableHeader,

@@ -115,7 +115,7 @@ type InsightsDashboardContentProps = {
     /** Ref on the scrolling dashboard content so the export includes cards below the fold */
     captureRef: InsightsCaptureRef;
 
-    /** Dashboard controls rendered inside the scroller to free vertical space in landscape */
+    /** Dashboard controls rendered inside the scroller to free vertical space on narrow layouts */
     children?: React.ReactNode;
 };
 
@@ -161,14 +161,13 @@ function InsightsDashboardContent({
     const styles = useThemeStyles();
     const {pageGutter} = useLayoutSpacing();
     const theme = useTheme();
-    const {translate} = useLocalize();
-    const {shouldUseNarrowLayout, isInLandscapeMode} = useResponsiveLayout();
-    const shouldScrollDashboardControls = shouldUseNarrowLayout && isInLandscapeMode;
+    const {translate, numberFormat} = useLocalize();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {isBetaEnabled} = usePermissions();
     const icons = useMemoizedLazyExpensifyIcons(['OfflineCloud']);
     const triggerScrollEvent = useScrollEventEmitter();
     const shouldShowStandInView = state === INSIGHTS_DASHBOARD_STATE.NO_EXPENSES || state === INSIGHTS_DASHBOARD_STATE.EMPTY || state === INSIGHTS_DASHBOARD_STATE.UPSELL;
-    const scrollProps = useTabRootScrollProps(shouldShowStandInView ? [styles.flexGrow1, styles.flexShrink0] : [styles.flexGrow1, !shouldScrollDashboardControls && pageGutter, styles.pb5], {
+    const scrollProps = useTabRootScrollProps(shouldShowStandInView ? [styles.flexGrow1, styles.flexShrink0] : [styles.flexGrow1, !shouldUseNarrowLayout && pageGutter, styles.pb5], {
         hasBottomSafeAreaPadding: true,
         hasOfflineIndicatorPadding: true,
         fillsVisibleArea: shouldShowStandInView,
@@ -268,6 +267,9 @@ function InsightsDashboardContent({
         );
     }
 
+    const tagLevel = filters.tagLevel ?? CONST.INSIGHTS.DEFAULT_TAG_LEVEL;
+    const tagLevelName = tagLevelOptions.find(({value}) => value === tagLevel)?.label ?? translate('insightsPage.tagLevel', numberFormat(tagLevel));
+
     const renderChart = (
         {chart, queryJSON, snapshot, previousPeriodQueryJSON, previousPeriodSnapshot, averageQueryJSON, averageSnapshot, average, isDashboardLoaded, stages}: InsightsDashboardChart,
         isHeadline = false,
@@ -294,11 +296,13 @@ function InsightsDashboardContent({
             violationStage={getViolationStage(chart, violationStages)}
             onViolationStageChange={(stage) => onViolationStageChange(chart.graphKey, stage)}
             asOfDate={asOfDate}
+            tagLevelName={chart.graphKey === CONST.INSIGHTS.GRAPH.TOP_TAGS ? tagLevelName : undefined}
         >
             {chart.graphKey === CONST.INSIGHTS.GRAPH.TOP_TAGS && tagLevelOptions.length > 1 && (
                 <InsightsChartWidget.Controls>
                     <InsightsTagLevelControl
-                        tagLevel={filters.tagLevel ?? CONST.INSIGHTS.DEFAULT_TAG_LEVEL}
+                        tagLevel={tagLevel}
+                        label={tagLevelName}
                         options={tagLevelOptions}
                         onChange={onGroupByChange}
                     />
@@ -349,7 +353,7 @@ function InsightsDashboardContent({
                 <View
                     ref={viewRef(captureRef)}
                     collapsable={false}
-                    style={[styles.insightsDashboardLayout(shouldUseNarrowLayout), shouldScrollDashboardControls && pageGutter]}
+                    style={[styles.insightsDashboardLayout(shouldUseNarrowLayout), shouldUseNarrowLayout && pageGutter]}
                 >
                     {isBetaEnabled(CONST.BETAS.INSIGHTS_AI) && (
                         <InsightsAICardRow
@@ -374,10 +378,9 @@ function hasStoredDashboardResponse(dashboards: OnyxCollection<InsightsDashboard
 function InsightsDashboard({dashboardID, accessibleDashboards}: {dashboardID: InsightsDashboardID; accessibleDashboards: InsightsDashboardID[]}) {
     const styles = useThemeStyles();
     const {pageGutter} = useLayoutSpacing();
-    const {shouldUseNarrowLayout, isInLandscapeMode} = useResponsiveLayout();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {translate} = useLocalize();
     const tabRootScreenWrapperProps = useTabRootScreenWrapperProps(NAVIGATION_TABS.INSIGHTS);
-    const shouldScrollDashboardControls = shouldUseNarrowLayout && isInLandscapeMode;
     const {isOffline} = useNetwork();
     const isFocused = useIsFocused();
     const isDashboardVisible = useIsTabVisible(SCREENS.INSIGHTS);
@@ -537,7 +540,7 @@ function InsightsDashboard({dashboardID, accessibleDashboards}: {dashboardID: In
                         shouldDisplayHelpButton
                     />
                 </View>
-                {!shouldScrollDashboardControls && dashboardControls}
+                {!shouldUseNarrowLayout && dashboardControls}
                 <View style={styles.flex1}>
                     <Animated.View
                         key={state}
@@ -570,7 +573,7 @@ function InsightsDashboard({dashboardID, accessibleDashboards}: {dashboardID: In
                             tagLevelOptions={tagLevelOptions}
                             captureRef={contentRef}
                         >
-                            {shouldScrollDashboardControls && dashboardControls}
+                            {shouldUseNarrowLayout && dashboardControls}
                         </InsightsDashboardContent>
                     </Animated.View>
                 </View>

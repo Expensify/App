@@ -1,4 +1,5 @@
 import LinkButton from '@components/Button/composed/LinkButton';
+import type {ViewableItemsChangedHandler} from '@components/FlashList/types';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import SortableColumnMenu from '@components/Search/SortableColumnMenu';
 
@@ -29,7 +30,6 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {StableReport} from '@src/selectors/Report';
 import type * as OnyxTypes from '@src/types/onyx';
-import type {ViewableItemsChanged} from '@src/types/utils/ReactNativeCompat';
 
 import type {LayoutChangeEvent, NativeScrollEvent, NativeSyntheticEvent, StyleProp, ViewStyle} from 'react-native';
 
@@ -103,9 +103,6 @@ type MoneyRequestReportTransactionListProps = {
     /** List of transactions that arrived when the report was open */
     newTransactions: OnyxTypes.Transaction[];
 
-    /** Whether the report table is visible — gates the new-row highlight (background on wide, on-close on narrow) */
-    isReportVisible?: boolean;
-
     /** Array of report actions for the report that these transactions belong to */
     reportActions: OnyxTypes.ReportAction[];
 
@@ -157,7 +154,7 @@ type MoneyRequestReportTransactionListProps = {
     onContentSizeChange: (width: number, height: number) => void;
 
     /** FlashList onViewableItemsChanged callback. */
-    onViewableItemsChanged: ViewableItemsChanged;
+    onViewableItemsChanged: ViewableItemsChangedHandler;
 
     /** FlashList onEndReached callback. */
     onEndReached: () => void;
@@ -182,7 +179,6 @@ function MoneyRequestReportTransactionList({
     report,
     transactions,
     newTransactions,
-    isReportVisible = true,
     reportActions,
     hasPendingDeletionTransaction = false,
     policy,
@@ -378,7 +374,7 @@ function MoneyRequestReportTransactionList({
                     <MoneyRequestReportTransactionItem
                         transactionID={transaction.transactionID}
                         reportOwnerLogin={ownerLogin}
-                        shouldBeHighlighted={isReportVisible && highlightedTransactionIDs.has(transaction.transactionID)}
+                        shouldBeHighlighted={highlightedTransactionIDs.has(transaction.transactionID)}
                         columns={columnsToShow}
                         policyID={report.policyID}
                         report={rowReport}
@@ -506,7 +502,7 @@ function MoneyRequestReportTransactionList({
             reportActionsExtraData={reportActionsExtraData}
             linkedReportActionID={linkedReportActionID}
             focusRequestedReportActionID={focusRequestedReportActionID}
-            newTransactionID={isReportVisible ? newTransactions.at(0)?.transactionID : undefined}
+            newTransactionID={newTransactions.at(0)?.transactionID}
             listRef={listRef}
             onLastItemIndexChange={onLastItemIndexChange}
             accessibilityLabel={accessibilityLabel}

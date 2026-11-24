@@ -33,19 +33,29 @@ const KeyboardStateContext = createContext<KeyboardStateContextValue>({
     isKeyboardAnimatingRef: {current: false},
 });
 
+/**
+ * Whether the keyboard is shown, kept in a ref whose identity never changes. The value of KeyboardStateContext changes on
+ * every keyboard event and re-renders all of its consumers, so code that only reads the value in callbacks uses this instead.
+ */
+const KeyboardShownRefContext = createContext<RefObject<boolean>>({current: false});
+
 function KeyboardStateProvider({children}: ChildrenProps): ReactElement | null {
     const {bottom} = useSafeAreaInsets();
     const [keyboardHeight, setKeyboardHeight] = useState(0);
     const [keyboardActiveHeight, setKeyboardActiveHeight] = useState(0);
     const isKeyboardAnimatingRef = useRef(false);
+    const isKeyboardShownRef = useRef(false);
     const [isKeyboardActive, setIsKeyboardActive] = useState(false);
 
     useEffect(() => {
         const keyboardDidShowListener = KeyboardEvents.addListener('keyboardDidShow', (e) => {
-            setKeyboardHeight(getKeyboardHeight(e.height, bottom));
+            const height = getKeyboardHeight(e.height, bottom);
+            isKeyboardShownRef.current = height !== 0;
+            setKeyboardHeight(height);
             setIsKeyboardActive(true);
         });
         const keyboardDidHideListener = KeyboardEvents.addListener('keyboardDidHide', () => {
+            isKeyboardShownRef.current = false;
             setKeyboardHeight(0);
             setIsKeyboardActive(false);
             // Sometimes 'keyboardWillHide' is not called (popover closed when keyboard is open), in this case we don't want stale keyboardActiveHeight value
@@ -95,8 +105,12 @@ function KeyboardStateProvider({children}: ChildrenProps): ReactElement | null {
         isKeyboardAnimatingRef,
         isKeyboardActive,
     };
-    return <KeyboardStateContext.Provider value={contextValue}>{children}</KeyboardStateContext.Provider>;
+    return (
+        <KeyboardShownRefContext.Provider value={isKeyboardShownRef}>
+            <KeyboardStateContext.Provider value={contextValue}>{children}</KeyboardStateContext.Provider>
+        </KeyboardShownRefContext.Provider>
+    );
 }
 
 export type {KeyboardStateContextValue};
-export {KeyboardStateProvider, KeyboardStateContext};
+export {KeyboardStateProvider, KeyboardStateContext, KeyboardShownRefContext};

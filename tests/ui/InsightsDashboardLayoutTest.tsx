@@ -1,4 +1,4 @@
-/** Keeps Insights navigation accessible while dashboard controls scroll away in phone landscape. */
+/** Keeps Insights navigation accessible while dashboard controls scroll away in either phone orientation. */
 import {render, screen, within} from '@testing-library/react-native';
 
 import ScrollView from '@components/ScrollView';
@@ -26,7 +26,7 @@ jest.mock('@components/Navigation/TabBarBottomContent/useTabRootScreenWrapperPro
 jest.mock('@components/Navigation/TabBarBottomContent/useTabRootScrollProps', () => (contentContainerStyle: unknown) => ({contentContainerStyle}));
 jest.mock('@hooks/useCurrentUserPersonalDetails', () => () => ({}));
 jest.mock('@hooks/useIsTabVisible', () => () => false);
-jest.mock('@hooks/useLocalize', () => () => ({translate: (key: string) => key}));
+jest.mock('@hooks/useLocalize', () => () => ({translate: (key: string) => key, numberFormat: String}));
 jest.mock('@hooks/useMultipleSnapshots', () => () => ({}));
 jest.mock('@hooks/useNetwork', () => () => ({isOffline: false}));
 jest.mock('@hooks/useOnyx', () => () => [undefined]);
@@ -78,13 +78,13 @@ describe('Insights dashboard header layout', () => {
     afterEach(() => jest.restoreAllMocks());
 
     it.each([dashboardState.INSIGHTS_DASHBOARD_STATE.READY, dashboardState.INSIGHTS_DASHBOARD_STATE.EMPTY, dashboardState.INSIGHTS_DASHBOARD_STATE.UPSELL])(
-        'scrolls only dashboard controls in the %s state in landscape and restores them in portrait',
+        'scrolls only dashboard controls in the %s state in both phone orientations',
         (state) => {
-            // Given a phone in portrait, with the main header fixed above the content
+            // Given a phone in portrait, where tabs and filters must not reduce chart space
             mockLayout(false);
             jest.spyOn(dashboardState, 'getDashboardState').mockReturnValue(state);
             const {rerender} = render(getDashboard());
-            expectHeaderPlacement(false);
+            expectHeaderPlacement(true);
 
             // When the phone rotates to landscape
             mockLayout(true);
@@ -97,14 +97,14 @@ describe('Insights dashboard header layout', () => {
             mockLayout(false);
             rerender(getDashboard());
 
-            // Then the original fixed header is restored
-            expectHeaderPlacement(false);
+            // Then only the main navigation remains fixed, just as in landscape
+            expectHeaderPlacement(true);
         },
     );
 
-    it('keeps the header fixed on a wide layout', () => {
+    it.each([false, true])('keeps the header and controls fixed on a wide layout with landscape=%s', (isInLandscapeMode) => {
         // Given a wide dashboard, which must not gain the phone-only scroll-away treatment
-        mockLayout(true, false);
+        mockLayout(isInLandscapeMode, false);
         jest.spyOn(dashboardState, 'getDashboardState').mockReturnValue(dashboardState.INSIGHTS_DASHBOARD_STATE.READY);
 
         // When the dashboard renders
