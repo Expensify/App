@@ -1,23 +1,16 @@
 # https://docs.codecov.com/docs/codecovyml-reference
 coverage:
   status:
-    project:
-      default:
-        informational: true
-        target: auto
+    # PRs run only the tests for the files they change, so project coverage is only meaningful on main.
+    project: off
     patch:
       default:
         informational: true
         target: auto
         threshold: 1%
 
-codecov:
-  notify:
-    # We shard our tests into 8 chunks, so we want CodeCov to wait for 8 builds before commenting
-    after_n_builds: 8
-
 comment:
-  require_changes: 'coverage_drop OR uncovered_patch'
+  require_changes: 'uncovered_patch'
   layout: 'condensed_header, files'
   hide_project_coverage: true
   hide_comment_details: false

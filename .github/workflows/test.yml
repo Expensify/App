@@ -59,14 +59,46 @@ jobs:
         if: ${{ github.event_name == 'pull_request' && steps.fullRun.outputs.any != 'true' && matrix.chunk == 1 }}
         run: git grep -lE "['\"](node:)?(fs|fs/promises|child_process)['\"]" -- tests/unit tests/ui tests/actions tests/navigation | xargs -r npm test -- --silent
 
+      - name: Save coverage for the Codecov upload
+        # v6
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f
+        with:
+          name: coverage-${{ matrix.chunk }}
+          path: |
+            coverage/shard-${{ matrix.chunk }}/coverage-final.json
+            coverage/shard-${{ matrix.chunk }}/lcov.info
+          # A shard with no selected tests has no coverage.
+          if-no-files-found: ignore
+          retention-days: 1
+
+  # One upload with every shard's coverage: Codecov comments once, after all shards, however many ran tests.
+  codecov:
+    needs: jest
+    if: ${{ !cancelled() && needs.jest.result != 'skipped' }}
+    runs-on: blacksmith-4vcpu-ubuntu-2404
+    steps:
+      - name: Checkout
+        uses: useblacksmith/checkout@0647fdbab2614a5eb86d2971070e325060d91056 # v1.7.0
+
+      - name: Download coverage
+        # v7
+        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131
+        with:
+          pattern: coverage-*
+          path: coverage
+
+      - name: List coverage files
+        id: files
+        run: echo "list=$(find coverage -name coverage-final.json -o -name lcov.info | paste -sd, -)" >> "$GITHUB_OUTPUT"
+
       - name: Upload coverage to Codecov (PRs - tokenless)
-        if: ${{ github.event_name == 'pull_request' }}
+        if: ${{ github.event_name == 'pull_request' && steps.files.outputs.list != '' }}
         # v7
         uses: codecov/codecov-action@fb8b3582c8e4def4969c97caa2f19720cb33a72f
         with:
-          files: coverage/shard-${{ matrix.chunk }}/coverage-final.json,coverage/shard-${{ matrix.chunk }}/lcov.info
+          files: ${{ steps.files.outputs.list }}
           flags: unit
-          name: jest-${{ matrix.chunk }}
+          name: jest
           disable_search: true
           # TODO: Re-enable (https://github.com/Expensify/App/issues/82201)
           fail_ci_if_error: false
@@ -84,14 +116,14 @@ jobs:
           CODECOV_TOKEN: op://${{ vars.OP_VAULT }}//CodeCov-API/key
 
       - name: Upload coverage to Codecov (token required)
-        if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
+        if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' && steps.files.outputs.list != '' }}
         # v7
         uses: codecov/codecov-action@fb8b3582c8e4def4969c97caa2f19720cb33a72f
         with:
           token: ${{ steps.load-codecov-token.outputs.CODECOV_TOKEN }}
-          files: coverage/shard-${{ matrix.chunk }}/coverage-final.json,coverage/shard-${{ matrix.chunk }}/lcov.info
+          files: ${{ steps.files.outputs.list }}
           flags: unit
-          name: jest-${{ matrix.chunk }}
+          name: jest
           disable_search: true
           # TODO: Re-enable (https://github.com/Expensify/App/issues/82201)
           fail_ci_if_error: false
