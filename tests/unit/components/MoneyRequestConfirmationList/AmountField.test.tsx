@@ -56,6 +56,18 @@ jest.mock('@components/NumberWithSymbolForm', () => {
                 >
                     <Text>Enter one</Text>
                 </Pressable>
+                <Pressable
+                    accessibilityRole="button"
+                    onPress={() => onInputChange('-')}
+                >
+                    <Text>Enter sign</Text>
+                </Pressable>
+                <Pressable
+                    accessibilityRole="button"
+                    onPress={() => onInputChange('')}
+                >
+                    <Text>Clear amount</Text>
+                </Pressable>
             </>
         );
     };
@@ -66,12 +78,20 @@ jest.mock('@pages/iou/request/step/IOURequestStepCurrencyModal', () => {
     return ({onInputChange, launcherRef}: {onInputChange: (currency: string) => void; launcherRef?: React.ComponentProps<typeof IOURequestStepCurrencyModal>['launcherRef']}) => {
         mockLauncherRef = launcherRef;
         return (
-            <Pressable
-                accessibilityRole="button"
-                onPress={() => onInputChange('EUR')}
-            >
-                <Text>Pick EUR</Text>
-            </Pressable>
+            <>
+                <Pressable
+                    accessibilityRole="button"
+                    onPress={() => onInputChange('EUR')}
+                >
+                    <Text>Pick EUR</Text>
+                </Pressable>
+                <Pressable
+                    accessibilityRole="button"
+                    onPress={() => onInputChange('USD')}
+                >
+                    <Text>Pick USD</Text>
+                </Pressable>
+            </>
         );
     };
 });
@@ -106,7 +126,7 @@ jest.mock('@components/DropdownFieldRow', () => {
         </>
     );
 });
-let mockTransactionSlice: {transactionID: string; amount: number; currency: string; isAmountMissing: boolean; isAmountSet?: boolean; isScanning?: boolean} = {
+let mockTransactionSlice: {transactionID: string; amount: number; currency: string; isAmountMissing: boolean; isAmountSet?: boolean; isScanning?: boolean; iouRequestType?: string} = {
     transactionID: '1',
     amount: 0,
     currency: 'USD',
@@ -500,5 +520,84 @@ describe('AmountField while the receipt is scanning', () => {
         // Then the editable amount input stays, so the user can still type an amount inline
         expect(screen.getByText('Enter zero')).toBeOnTheScreen();
         expect(screen.queryByText('Read-only amount: Scanning…')).not.toBeOnTheScreen();
+    });
+});
+
+describe('AmountField unsaved input reporting', () => {
+    const onUnsavedAmountInputChange = jest.fn();
+
+    beforeEach(() => {
+        jest.clearAllMocks();
+        mockOnyxValues = {};
+        mockTransactionSlice = {transactionID: '1', amount: 0, currency: 'USD', isAmountMissing: false, iouRequestType: CONST.IOU.REQUEST_TYPE.MANUAL};
+    });
+
+    function renderManualAmountField(amount = 0) {
+        render(
+            <ConfirmationFieldsProvider
+                transactionID="1"
+                reportID="2"
+                action={CONST.IOU.ACTION.CREATE}
+                iouType={CONST.IOU.TYPE.SUBMIT}
+                onUnsavedAmountInputChange={onUnsavedAmountInputChange}
+            >
+                <AmountField
+                    {...amountFieldProps}
+                    amount={amount}
+                />
+            </ConfirmationFieldsProvider>,
+        );
+    }
+
+    it('reports a sign typed into an empty amount, which the draft does not keep', () => {
+        // Given a new manual expense, whose amount field is empty
+        renderManualAmountField();
+
+        // When the user enters only the minus sign
+        fireEvent.press(screen.getByText('Enter sign'));
+
+        // Then the field reports unsaved input, because a sign without digits leaves no amount in the draft
+        expect(onUnsavedAmountInputChange).toHaveBeenLastCalledWith(true);
+    });
+
+    it('stops reporting unsaved input once the sign is removed', () => {
+        // Given a new manual expense where the user entered only the minus sign
+        renderManualAmountField();
+        fireEvent.press(screen.getByText('Enter sign'));
+
+        // When the user removes the sign again
+        fireEvent.press(screen.getByText('Clear amount'));
+
+        // Then nothing is left to discard, so leaving the form shouldn't ask
+        expect(onUnsavedAmountInputChange).toHaveBeenLastCalledWith(false);
+    });
+
+    it('does not report the sign left after deleting the digits of an entered amount', () => {
+        // Given a manual expense where the user entered a negative amount
+        mockTransactionSlice = {transactionID: '1', amount: -100, currency: 'USD', isAmountMissing: false, isAmountSet: true, iouRequestType: CONST.IOU.REQUEST_TYPE.MANUAL};
+        renderManualAmountField(-100);
+
+        // When the user deletes the digits and only the sign is left
+        fireEvent.press(screen.getByText('Enter sign'));
+
+        // Then nothing is reported, because clearing the amount empties the field and the sign goes with it
+        expect(onUnsavedAmountInputChange).toHaveBeenLastCalledWith(false);
+    });
+
+    it('reports a currency the user picked until they pick the original one back', () => {
+        // Given a new manual expense in USD with an empty amount
+        renderManualAmountField();
+
+        // When the user picks another currency
+        fireEvent.press(screen.getByText('Pick EUR'));
+
+        // Then the field reports unsaved input, because the draft can't tell the user's pick from the currency the flow set
+        expect(onUnsavedAmountInputChange).toHaveBeenLastCalledWith(true);
+
+        // When the user picks the original currency back
+        fireEvent.press(screen.getByText('Pick USD'));
+
+        // Then nothing is left to discard
+        expect(onUnsavedAmountInputChange).toHaveBeenLastCalledWith(false);
     });
 });

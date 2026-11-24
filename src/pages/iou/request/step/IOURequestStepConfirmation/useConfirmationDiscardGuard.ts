@@ -1,0 +1,38 @@
+/**
+ * Asks before the user leaves the money request confirmation with an amount entered in it, when the confirmation opens
+ * the flow. Going back from a confirmation reached from an earlier step keeps the draft, so that one doesn't ask.
+ */
+import useDiscardChangesConfirmation from '@hooks/useDiscardChangesConfirmation';
+
+import {useState} from 'react';
+
+type UseConfirmationDiscardGuardParams = {
+    /** Whether this confirmation opens the flow, so leaving it discards the draft */
+    shouldConfirmDiscardingChanges: boolean;
+
+    /** The draft's `isAmountSet`, which the inline amount field sets once the user types a number */
+    isAmountSet: boolean;
+
+    /** Whether the expense is being submitted, which leaves the confirmation on purpose */
+    isSubmitting: boolean;
+};
+
+type UseConfirmationDiscardGuardResult = {
+    /** Takes what the amount field reports about input the draft doesn't hold */
+    setHasUnsavedAmountInput: (hasUnsavedInput: boolean) => void;
+
+    /** Lets a submit leave without asking. A submit can dismiss the confirmation before `isSubmitting` renders, so call it as the submit starts. */
+    suppressDiscardPrompt: () => void;
+};
+
+function useConfirmationDiscardGuard({shouldConfirmDiscardingChanges, isAmountSet, isSubmitting}: UseConfirmationDiscardGuardParams): UseConfirmationDiscardGuardResult {
+    const [hasUnsavedAmountInput, setHasUnsavedAmountInput] = useState(false);
+
+    const {suppressDiscardPrompt} = useDiscardChangesConfirmation({
+        getHasUnsavedChanges: () => shouldConfirmDiscardingChanges && !isSubmitting && (isAmountSet || hasUnsavedAmountInput),
+    });
+
+    return {setHasUnsavedAmountInput, suppressDiscardPrompt};
+}
+
+export default useConfirmationDiscardGuard;
