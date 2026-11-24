@@ -3390,8 +3390,7 @@ function isMoneyRequestReportEligibleForMerge(
 ): boolean {
     const report = typeof reportOrReportID === 'string' ? getReportOrDraftReport({reportID: reportOrReportID}) : reportOrReportID;
 
-    // Auth can't merge expenses on a bill, because the bill must keep the expenses of the vendor's invoice.
-    if (!isMoneyRequestReport(report) || isIOUReport(report) || isBillReport(report)) {
+    if (!isExpenseReport(report)) {
         return false;
     }
 
