@@ -115,13 +115,13 @@ function ChartSkiaLoading() {
  * They are thrown while the renderer is created, in a layout effect, where the boundary catches them. A surface
  * that cannot be created for a later draw does not throw: the view skips that frame.
  */
-const SURFACE_UNAVAILABLE_ERROR_PATTERN = /webgl context|graphics context|2D context/i;
+const SURFACE_UNAVAILABLE_ERROR_PATTERN = /^Could not create a (?:WebGL|graphics|2D) context$/;
 
 function isSurfaceUnavailableError(error: unknown): boolean {
     return error instanceof Error && SURFACE_UNAVAILABLE_ERROR_PATTERN.test(error.message);
 }
 
-/** Explains a chart that could not render: the WebGL message when there is no drawing surface, the load failure otherwise. */
+/** A refused drawing surface means WebGL is unavailable, so telling the user the chart failed to load would be misleading. */
 function ChartErrorFallback({error}: FallbackProps) {
     return <ChartUnavailable description={isSurfaceUnavailableError(error) ? 'common.webGLNotSupported' : 'common.chartFailedToLoad'} />;
 }
