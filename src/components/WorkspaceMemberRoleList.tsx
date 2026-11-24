@@ -8,7 +8,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import {navigateToConciergeChat} from '@libs/actions/Report';
 import Navigation from '@libs/Navigation/Navigation';
-import {getSelectableRoles} from '@libs/PolicyUtils';
+import {canMemberAssignRole, getSelectableRoles} from '@libs/PolicyUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -75,13 +75,15 @@ const NEW_ROLES = new Set<ValueOf<typeof CONST.POLICY.ROLE>>([CONST.POLICY.ROLE.
 
 /**
  * Roles a member can be assigned, in the same order as the role-selection page.
- * Filters by what the current user may assign and any extra restriction (for example an Authorized Payer).
+ * Filters by what the current user may assign and any extra restriction (for example an Authorized Payer). A member who
+ * already holds the travel admin role still sees it selected after the beta or travel is turned off.
  */
 function getAssignableWorkspaceMemberRoleItems(
     translate: LocalizedTranslate,
     currentRole: string | undefined,
     policy: OnyxEntry<Policy>,
     currentUserLogin: string,
+    isTravelMemberAccessBetaEnabled: boolean,
     allowedRoles?: Array<ValueOf<typeof CONST.POLICY.ROLE>>,
 ): ListItemType[] {
     const newRoleBadge = (
@@ -158,9 +160,10 @@ function getAssignableWorkspaceMemberRoleItems(
     ];
     const roleItems = workspaceRoles.map((item) => (NEW_ROLES.has(item.value) ? {...item, titleRightElement: newRoleBadge} : item));
 
-    const selectableRoles = getSelectableRoles(policy, currentUserLogin, allowedRoles);
+    const selectableRoles = getSelectableRoles(policy, currentUserLogin, isTravelMemberAccessBetaEnabled, allowedRoles);
+    const isCurrentTravelAdmin = currentRole === CONST.POLICY.ROLE.TRAVEL_ADMIN && canMemberAssignRole(policy, currentUserLogin, CONST.POLICY.ROLE.TRAVEL_ADMIN);
 
-    return roleItems.filter((item) => selectableRoles.includes(item.value));
+    return roleItems.filter((item) => selectableRoles.includes(item.value) || (isCurrentTravelAdmin && item.value === CONST.POLICY.ROLE.TRAVEL_ADMIN));
 }
 
 function WorkspaceMemberRoleList({
@@ -184,11 +187,7 @@ function WorkspaceMemberRoleList({
 
     const {isBetaEnabled} = usePermissions();
 
-    // Travel admins choose who can book travel, so the role comes with the travel member access beta
-    const isTravelMemberAccessBetaEnabled = isBetaEnabled(CONST.BETAS.TRAVEL_MEMBER_ACCESS);
-    const availableRoleItems = getAssignableWorkspaceMemberRoleItems(translate, role, policy, currentUserLogin, allowedRoles).filter(
-        (item) => isTravelMemberAccessBetaEnabled || item.value !== CONST.POLICY.ROLE.TRAVEL_ADMIN,
-    );
+    const availableRoleItems = getAssignableWorkspaceMemberRoleItems(translate, role, policy, currentUserLogin, isBetaEnabled(CONST.BETAS.TRAVEL_MEMBER_ACCESS), allowedRoles);
     const roleGroups = [
         {
             title: translate('workspace.common.adminRoles'),

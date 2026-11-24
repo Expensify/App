@@ -28,10 +28,10 @@ type TravelProvisioning = {
     /** Booking domain selected during the enable-travel flow when the admin belongs to multiple private domains */
     domain?: string;
 
-    /** Whether every workspace member gets travel when it's enabled, chosen during the enable-travel flow */
+    /** Whether every workspace member can book travel when it's enabled, chosen during the enable-travel flow */
     shouldEnableAllTravelMembers?: boolean;
 
-    /** The members chosen to get travel when not every member gets it. The admin enabling travel always gets it too. */
+    /** The members chosen to book travel when not every member can. The admin enabling travel always can too. */
     travelMemberAccountIDs?: number[];
 
     /** The workspace the member choice was made for, so it isn't reused when enabling travel on another workspace */

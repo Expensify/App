@@ -55,8 +55,8 @@ import {
     areApprovalsEnabled,
     arePaymentsEnabled,
     canMemberAssignRole,
-    canMemberChangeTravelAccess,
     canMemberManageMemberWithRole,
+    canChangeMemberTravelAccess,
     canMemberUseTravel,
     canMemberWrite,
     hasActiveExpensifyCard,
@@ -182,8 +182,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
     const {canWrite: canWriteCategories} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.CATEGORIES);
     const canChangeOfficeLocation = shouldShowOfficeLocation && canWriteMembers;
     const shouldShowTravelSettings = isWorkspaceProvisionedForTravel(policy?.travelSettings) && isBetaEnabled(CONST.BETAS.TRAVEL_MEMBER_ACCESS);
-
-    const canChangeTravelSettings = shouldShowTravelSettings && canMemberChangeTravelAccess(policy, currentUserLogin, memberLogin);
+    const canChangeTravelSettings = canChangeMemberTravelAccess(policy, currentUserLogin, memberLogin, isBetaEnabled(CONST.BETAS.TRAVEL_MEMBER_ACCESS));
     const canManageSelectedMemberRole = canMemberAssignRole(policy, currentUserLogin, member?.role);
     const canRemoveSelectedMember = canWriteMembers && !isSelectedMemberOwner && !isSelectedMemberCurrentUser && canMemberManageMemberWithRole(policy, currentUserLogin, member?.role);
     const ownerDetails = personalDetails?.[policy?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID];
@@ -655,11 +654,11 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
                             {shouldShowTravelSettings && (
                                 <OfflineWithFeedback pendingAction={member?.pendingFields?.canUseTravel}>
                                     <MenuItemField
+                                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.MEMBERS.DETAILS_TRAVEL_ACCESS}
                                         name={translate('workspace.moreFeatures.travel.members.travelAccess')}
                                         onPress={canChangeTravelSettings ? () => Navigation.navigate(ROUTES.WORKSPACE_MEMBER_TRAVEL_ACCESS.getRoute(policyID, accountID)) : undefined}
                                         testID="member-travel-access-menu-item"
                                         value={getTravelMemberAccessName(translate, canMemberUseTravel(policy, memberLogin))}
-                                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.MEMBERS.TRAVEL_ACCESS}
                                     />
                                 </OfflineWithFeedback>
                             )}
