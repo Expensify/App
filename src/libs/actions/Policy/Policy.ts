@@ -88,7 +88,8 @@ import type {
 import type SetPolicyCashExpenseModeParams from '@libs/API/parameters/SetPolicyCashExpenseModeParams';
 import type UpdatePolicyMembersCustomFieldsParams from '@libs/API/parameters/UpdatePolicyMembersCustomFieldsParams';
 import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
-import buildDuplicateSettingSnapshot from '@libs/buildDuplicateSettingSnapshot';
+import buildCopyPolicySettingsSource from '@libs/buildCopyPolicySettingsSource';
+import {buildDuplicateSettingCollection} from '@libs/buildDuplicateSettingSnapshot';
 import type {CustomRNImageManipulatorResult} from '@libs/cropOrRotateImage/types';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import DateUtils from '@libs/DateUtils';
@@ -320,7 +321,6 @@ type DuplicatePolicyDataOptions = {
     policyName: string;
     policyID?: string;
     targetPolicyID?: string;
-    welcomeNote?: string;
     parts: Part[];
     file?: File | CustomRNImageManipulatorResult;
     policyCategories?: PolicyCategories;
@@ -3767,14 +3767,6 @@ function buildOptimisticDuplicatePolicy(
     };
 }
 
-function filterPendingDeletes<T>(data: Record<string, T> | undefined): Record<string, T> {
-    return Object.fromEntries(
-        Object.entries(data ?? {}).filter(
-            ([, value]) => !!value && (typeof value !== 'object' || !('pendingAction' in value) || value.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE),
-        ),
-    );
-}
-
 function buildDuplicatePolicyData(sourcePolicy: Policy, options: DuplicatePolicyDataOptions) {
     const {
         policyName = '',
@@ -3791,32 +3783,21 @@ function buildDuplicatePolicyData(sourcePolicy: Policy, options: DuplicatePolicy
     } = options;
 
     // Queued deletions belong to the source and must not appear in the duplicate.
+    const cleanSourcePolicy = buildCopyPolicySettingsSource(sourcePolicy);
     const policy = {
-        ...sourcePolicy,
+        ...cleanSourcePolicy,
         employeeList: Object.fromEntries(
-            Object.entries(filterPendingDeletes(sourcePolicy.employeeList))
-                .filter(([email]) => personalDetailsByLogins?.[email]?.accountID !== sourcePolicy.ruleBotAccountID || !sourcePolicy.ruleBotAccountID)
-                .map(([email, employee]) => [email, buildDuplicateSettingSnapshot(employee)]),
+            Object.entries(cleanSourcePolicy.employeeList ?? {}).filter(([email]) => {
+                if (!sourcePolicy.ruleBotAccountID) {
+                    return true;
+                }
+                // Unresolved members could be the source RuleBot; Auth supplies their authoritative identities.
+                const accountID = personalDetailsByLogins[email]?.accountID;
+                return !!accountID && accountID !== sourcePolicy.ruleBotAccountID;
+            }),
         ),
-        fieldList: Object.fromEntries(Object.entries(filterPendingDeletes(sourcePolicy.fieldList)).map(([id, field]) => [id, buildDuplicateSettingSnapshot(field)])),
-        connections: Object.fromEntries(Object.entries(filterPendingDeletes(sourcePolicy.connections)).map(([name, connection]) => [name, buildDuplicateSettingSnapshot(connection)])),
-        taxRates: sourcePolicy.taxRates
-            ? {
-                  ...sourcePolicy.taxRates,
-                  taxes: Object.fromEntries(Object.entries(filterPendingDeletes(sourcePolicy.taxRates.taxes)).map(([id, tax]) => [id, buildDuplicateSettingSnapshot(tax)])),
-              }
-            : undefined,
     };
-    const policyCategories = Object.fromEntries(Object.entries(filterPendingDeletes(sourceCategories)).map(([name, category]) => [name, buildDuplicateSettingSnapshot(category)]));
-    const policyTags = Object.fromEntries(
-        Object.entries(filterPendingDeletes(sourceTags)).map(([name, tagList]) => [
-            name,
-            {
-                ...buildDuplicateSettingSnapshot(tagList),
-                tags: Object.fromEntries(Object.entries(filterPendingDeletes(tagList.tags)).map(([tagName, tag]) => [tagName, buildDuplicateSettingSnapshot(tag)])),
-            },
-        ]),
-    );
+    const policyCategories = buildDuplicateSettingCollection(sourceCategories);
 
     const {
         adminsChatReportID,
@@ -3874,7 +3855,7 @@ function buildDuplicatePolicyData(sourcePolicy: Policy, options: DuplicatePolicy
             [`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policy.id}`]: policyCategories,
             ...(!parts.includes('categories') ? {[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${targetPolicyID}`]: defaultOptimisticCategoriesData.categories} : {}),
         },
-        {[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policy.id}`]: policyTags},
+        {[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policy.id}`]: sourceTags},
         rules,
         false,
         true,
@@ -4109,7 +4090,7 @@ function buildDuplicatePolicyData(sourcePolicy: Policy, options: DuplicatePolicy
 
     const defaultDistanceRate = Object.values(PolicyUtils.getDistanceRateCustomUnit(newPolicy)?.rates ?? {})
         .filter((rate) => rate.enabled !== false)
-        .sort((a, b) => (a.index ?? 0) - (b.index ?? 0))
+        .sort((a, b) => (a.index ?? CONST.DEFAULT_NUMBER_ID) - (b.index ?? CONST.DEFAULT_NUMBER_ID))
         .at(0);
 
     const params: DuplicateWorkspaceParams = {

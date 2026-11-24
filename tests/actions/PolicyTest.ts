@@ -429,7 +429,6 @@ describe('actions/Policy', () => {
                 policyName: POLICY_NAME,
                 policyID: fakePolicy.id,
                 targetPolicyID: policyID,
-                welcomeNote: 'Join my policy',
                 parts: ['members', 'reports', 'accounting', 'categories', 'tags', 'taxes', 'perDiem', 'rules', 'distanceRates', 'invoices', 'workflows'] satisfies Part[],
                 localCurrency: 'USD',
                 personalDetailsByLogins: {},
@@ -618,7 +617,6 @@ describe('actions/Policy', () => {
                 policyID: source.id,
                 targetPolicyID,
                 policyName: 'Copied categories',
-                welcomeNote: '',
                 localCurrency: 'USD',
                 parts: ['categories'],
                 policyCategories: categories,
@@ -652,7 +650,6 @@ describe('actions/Policy', () => {
                 policyID: source.id,
                 targetPolicyID,
                 policyName: 'Copied category rules',
-                welcomeNote: '',
                 localCurrency: 'USD',
                 parts: ['rules'],
                 policyCategories: {
@@ -710,7 +707,6 @@ describe('actions/Policy', () => {
                 policyID: source.id,
                 targetPolicyID,
                 policyName: 'Filtered settings',
-                welcomeNote: '',
                 localCurrency: 'USD',
                 parts: ['members', 'reports', 'accounting', 'taxes', 'categories', 'tags'],
                 policyCategories: {Deleted: {name: 'Deleted', enabled: true, pendingAction}, Kept: {name: 'Kept', enabled: true}},
@@ -754,7 +750,7 @@ describe('actions/Policy', () => {
             expect(source.employeeList?.[EMPLOYEE_EMAIL]?.pendingAction).toBe(pendingAction);
         });
 
-        it('duplicate workspace omits null categories and the source RuleBot while keeping clean members', async () => {
+        it.each([true, false])('duplicate workspace omits the source RuleBot with personal details loaded: %s', async (hasBotDetails) => {
             // Given a source with a RuleBot and failed member edits, plus an Onyx category tombstone.
             const sourceBotEmail = 'source-bot@example.com';
             const source: PolicyType = {
@@ -780,7 +776,10 @@ describe('actions/Policy', () => {
                 localCurrency: 'USD',
                 parts: ['members', 'categories'],
                 policyCategories: categories,
-                personalDetailsByLogins: {[sourceBotEmail]: {accountID: 999, login: sourceBotEmail}},
+                personalDetailsByLogins: {
+                    ...(hasBotDetails ? {[sourceBotEmail]: {accountID: 999, login: sourceBotEmail}} : {}),
+                    [EMPLOYEE_EMAIL]: {accountID: 123, login: EMPLOYEE_EMAIL},
+                },
             });
             await waitForBatchedUpdates();
 
@@ -832,7 +831,6 @@ describe('actions/Policy', () => {
                 policyID: source.id,
                 targetPolicyID,
                 policyName: 'Default workspace',
-                welcomeNote: '',
                 localCurrency: 'USD',
                 parts: [],
                 personalDetailsByLogins: {},
@@ -874,7 +872,6 @@ describe('actions/Policy', () => {
                 policyID: source.id,
                 targetPolicyID,
                 policyName: 'Pending duplicate',
-                welcomeNote: '',
                 localCurrency: 'USD',
                 parts: shouldCopyOverview ? ['overview'] : [],
                 personalDetailsByLogins: {},
@@ -915,7 +912,6 @@ describe('actions/Policy', () => {
                 policyID: source.id,
                 targetPolicyID,
                 policyName: 'Approval chain',
-                welcomeNote: '',
                 localCurrency: 'USD',
                 parts: ['members', 'workflows'],
                 personalDetailsByLogins: {},
@@ -950,7 +946,6 @@ describe('actions/Policy', () => {
                 policyName: 'Distance Disabled Workspace',
                 policyID: fakePolicy.id,
                 targetPolicyID: policyID,
-                welcomeNote: 'Join my policy',
                 parts: ['members'] satisfies Part[],
                 localCurrency: 'USD',
                 personalDetailsByLogins: {},
@@ -1017,7 +1012,6 @@ describe('actions/Policy', () => {
                 policyName: 'Overview Travel CodingRules Workspace',
                 policyID: fakePolicy.id,
                 targetPolicyID: policyID,
-                welcomeNote: 'Join my policy',
                 parts: ['taxes', 'overview', 'currency', 'travel', 'codingRules', 'timeTracking', 'receiptPartners', 'invoices'] satisfies Part[],
                 localCurrency: 'USD',
                 rules: {[`${ONYXKEYS.COLLECTION.RULE}sourceRule`]: sourceRule},
@@ -1089,7 +1083,6 @@ describe('actions/Policy', () => {
                 policyName: 'No Rules Workspace',
                 policyID: fakePolicy.id,
                 targetPolicyID: policyID,
-                welcomeNote: 'Join my policy',
                 personalDetailsByLogins: {},
                 parts: [] satisfies Part[],
                 localCurrency: 'USD',
@@ -1172,7 +1165,6 @@ describe('actions/Policy', () => {
                 policyName: 'Workspace With Members',
                 policyID: fakePolicy.id,
                 targetPolicyID: policyID,
-                welcomeNote: 'Welcome to the workspace',
                 parts: ['members'] satisfies Part[],
                 localCurrency: 'USD',
                 personalDetailsByLogins,
@@ -1228,7 +1220,6 @@ describe('actions/Policy', () => {
                 policyName: 'Workspace With Avatar',
                 policyID: fakePolicy.id,
                 targetPolicyID: policyID,
-                welcomeNote: 'Join my policy',
                 file,
                 parts: [] satisfies Part[],
                 localCurrency: 'USD',
@@ -1267,7 +1258,6 @@ describe('actions/Policy', () => {
                 policyName: 'Workspace Without Workflows',
                 policyID: fakePolicy.id,
                 targetPolicyID: policyID,
-                welcomeNote: 'Join my policy',
                 parts: [] satisfies Part[],
                 localCurrency: 'USD',
                 personalDetailsByLogins: {},
@@ -1306,7 +1296,6 @@ describe('actions/Policy', () => {
                 policyName: 'Workspace Propagating Caller Email',
                 policyID: fakePolicy.id,
                 targetPolicyID: policyID,
-                welcomeNote: 'Join my policy',
                 parts: [] satisfies Part[],
                 localCurrency: 'USD',
                 personalDetailsByLogins: {},
@@ -1391,7 +1380,6 @@ describe('actions/Policy', () => {
                 policyName: 'Distance Rates Duplicate',
                 policyID: fakePolicy.id,
                 targetPolicyID: policyID,
-                welcomeNote: 'Join my policy',
                 parts: ['distanceRates'] satisfies Part[],
                 localCurrency: 'USD',
                 personalDetailsByLogins: {},
