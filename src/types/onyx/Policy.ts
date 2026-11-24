@@ -47,7 +47,7 @@ type RateAttributes = {
 };
 
 /** Model of policy subrate */
-type Subrate = {
+type Subrate = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** Generated ID to identify the subrate */
     id: string;
 
@@ -56,7 +56,7 @@ type Subrate = {
 
     /** Amount to be reimbursed per unit */
     rate: number;
-};
+}>;
 
 /** Model of policy rate */
 type Rate = OnyxCommon.OnyxValueWithOfflineFeedback<

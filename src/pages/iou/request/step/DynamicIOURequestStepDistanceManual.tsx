@@ -266,6 +266,7 @@ function DynamicIOURequestStepDistanceManual({
                     ONYXKEYS.NVP_RECENT_WAYPOINTS,
                 ]);
                 updateMoneyRequestDistance({
+                    translate,
                     isVendorMatchingBetaEnabled,
                     transaction,
                     transactionThreadReport: report,

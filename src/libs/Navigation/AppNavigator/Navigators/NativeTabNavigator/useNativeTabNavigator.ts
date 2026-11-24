@@ -23,6 +23,7 @@ import {useEffect} from 'react';
 import getActiveTabRoute from './getActiveTabRoute';
 import {isNavigationToNativeTabItem} from './nativeTabItemUtils';
 import {isInboxTabAtChatList, isNativeTabSelectionEnabled} from './tabScreenListeners';
+import useIsTabRootRevealing from './useIsTabRootRevealing';
 import useIsWorkspacesTabRestored from './useIsWorkspacesTabRestored';
 
 /** stale === false distinguishes a fully realized NavigationState from a PartialState. */
@@ -48,7 +49,9 @@ function useNativeTabNavigator({isFlatNavTabBarEnabled = false}: NativeTabNaviga
     // mounts, so the nearest navigation listener context is still the parent stack's.
     const tabState = useNavigationState((parentState) => parentState.routes.find((parentRoute) => parentRoute.key === route.key)?.state);
     const activeTabRoute = getActiveTabRoute(tabState);
-    const shouldShowNativeTabBar = shouldUseNarrowLayout && isTabRouteAtRoot(activeTabRoute) && !isBlockingViewVisible;
+    const isAtTabRoot = isTabRouteAtRoot(activeTabRoute);
+    const [isTabRootRevealing, setIsTabRootRevealing] = useIsTabRootRevealing(isAtTabRoot, activeTabRoute?.key);
+    const shouldShowNativeTabBar = shouldUseNarrowLayout && (isAtTabRoot || isTabRootRevealing) && !isBlockingViewVisible;
     const getTabRoute = (tabName: string) => (isRealizedNavigationState(tabState) ? tabState.routes.find((tabRoute) => tabRoute.name === tabName) : undefined);
     const isInboxAtChatList = isInboxTabAtChatList(getTabRoute(NAVIGATORS.REPORTS_SPLIT_NAVIGATOR));
     const isWorkspacesTabRestored = useIsWorkspacesTabRestored(getTabRoute(NAVIGATORS.WORKSPACE_NAVIGATOR));
@@ -101,7 +104,7 @@ function useNativeTabNavigator({isFlatNavTabBarEnabled = false}: NativeTabNaviga
 
     const isTabSelectionEnabled = (routeName: string) => isNativeTabSelectionEnabled(routeName, {isAnonymousUser, isInboxAtChatList, isWorkspacesTabRestored});
 
-    return {shouldShowNativeTabBar, dotColors, tabLabels, tabRouterOverride, isTabSelectionEnabled};
+    return {shouldShowNativeTabBar, dotColors, tabLabels, tabRouterOverride, isTabSelectionEnabled, setIsTabRootRevealing};
 }
 
 export default useNativeTabNavigator;
