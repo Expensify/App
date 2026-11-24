@@ -284,7 +284,7 @@ function getLatestStringErrorMessage(errors: unknown): string | undefined {
     }
 
     const error = errors[latestKey];
-    return isNonEmptyStringError(error) ? error.trim() : undefined;
+    return isNonEmptyStringError(error) ? error : undefined;
 }
 
 export {
