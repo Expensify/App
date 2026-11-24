@@ -539,7 +539,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
             canUseTravel: shouldShowTravelColumn ? canMemberUseTravel(policy, login) : undefined,
             // A member without a loaded accountID would be sent to the server under an accountID it doesn't know
             canEditTravelAccess:
-                canChangeMemberTravelAccess(policy, policyEmployee, isBetaEnabled(CONST.BETAS.TRAVEL_MEMBER_ACCESS)) &&
+                canChangeMemberTravelAccess(policy, currentUserLogin ?? '', login, isBetaEnabled(CONST.BETAS.TRAVEL_MEMBER_ACCESS)) &&
                 !isSelectionModeActive &&
                 !isPendingDeleteOrError &&
                 hasKnownAccountID,
@@ -625,7 +625,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
         // The Authorized Payer (reimburser) must stay a valid payer, so a selection holding them may only be moved to a role that can pay.
         const reimburserEmail = getReimburserEmail(policy);
         const hasAtLeastOnePayer = !!reimburserEmail && selectedEmployees.includes(reimburserEmail);
-        const selectableRoles = getSelectableRoles(policy, currentUserLogin ?? '', hasAtLeastOnePayer ? [...PAYER_ROLES] : undefined);
+        const selectableRoles = getSelectableRoles(policy, currentUserLogin ?? '', isBetaEnabled(CONST.BETAS.TRAVEL_MEMBER_ACCESS), hasAtLeastOnePayer ? [...PAYER_ROLES] : undefined);
 
         if (isPaidGroupPolicy(policy) && canManageSelectedEmployees && selectableRoles.length > 0) {
             options.push({

@@ -6,6 +6,7 @@ import compareOptionalValues from '@components/Table/compareOptionalValues';
 
 import useCopySelectionEvent from '@hooks/useCopySelectionEvent';
 import useLocalize from '@hooks/useLocalize';
+import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -95,6 +96,7 @@ const WORKSPACE_MEMBER_FILTER_VALUES = {
     GUESTS: 'guests',
     MEMBERS: 'members',
     PAYMENTS_ADMINS: 'paymentsAdmins',
+    TRAVEL_ADMINS: 'travelAdmins',
     PEOPLE_ADMINS: 'peopleAdmins',
 } as const;
 
@@ -117,6 +119,7 @@ export default function WorkspaceMembersTable({
 }: WorkspaceMembersTableProps) {
     const styles = useThemeStyles();
     const {translate, localeCompare, toLocaleOrdinalWithWords} = useLocalize();
+    const {isBetaEnabled} = usePermissions();
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
     useCopySelectionEvent();
     const shouldUseNarrowTableLayout = shouldUseNarrowLayout || isMediumScreenWidth;
@@ -327,6 +330,11 @@ export default function WorkspaceMembersTable({
             return true;
         }
 
+        const isTravelAdmin = item.role === CONST.POLICY.ROLE.TRAVEL_ADMIN;
+        if (filterValues.includes(WORKSPACE_MEMBER_FILTER_VALUES.TRAVEL_ADMINS) && isTravelAdmin) {
+            return true;
+        }
+
         const isGuest = item.role === CONST.POLICY.ROLE.GUEST;
         if (filterValues.includes(WORKSPACE_MEMBER_FILTER_VALUES.GUESTS) && isGuest) {
             return true;
@@ -382,6 +390,14 @@ export default function WorkspaceMembersTable({
             label: translate('workspace.people.paymentsAdmins'),
             value: WORKSPACE_MEMBER_FILTER_VALUES.PAYMENTS_ADMINS,
         });
+
+        // Travel admins can only be assigned with the travel member access beta
+        if (isBetaEnabled(CONST.BETAS.TRAVEL_MEMBER_ACCESS)) {
+            filterConfig.role.options.push({
+                label: translate('workspace.people.travelAdmins'),
+                value: WORKSPACE_MEMBER_FILTER_VALUES.TRAVEL_ADMINS,
+            });
+        }
 
         filterConfig.role.options.push({
             label: translate('workspace.people.auditors'),

@@ -2,12 +2,13 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
 import {usePersonalDetailsByIDs} from '@hooks/usePersonalDetails';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {navigateToConciergeChat} from '@libs/actions/Report';
 import Navigation from '@libs/Navigation/Navigation';
-import {getSelectableRoles} from '@libs/PolicyUtils';
+import {canMemberAssignRole, getSelectableRoles} from '@libs/PolicyUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -61,20 +62,28 @@ type WorkspaceMemberRoleListProps = {
     errorAnnouncementKey?: number;
 };
 
-const ADMIN_ROLES = new Set<ValueOf<typeof CONST.POLICY.ROLE>>([CONST.POLICY.ROLE.CARD_ADMIN, CONST.POLICY.ROLE.PAYMENTS_ADMIN, CONST.POLICY.ROLE.PEOPLE_ADMIN, CONST.POLICY.ROLE.ADMIN]);
+const ADMIN_ROLES = new Set<ValueOf<typeof CONST.POLICY.ROLE>>([
+    CONST.POLICY.ROLE.CARD_ADMIN,
+    CONST.POLICY.ROLE.PAYMENTS_ADMIN,
+    CONST.POLICY.ROLE.PEOPLE_ADMIN,
+    CONST.POLICY.ROLE.TRAVEL_ADMIN,
+    CONST.POLICY.ROLE.ADMIN,
+]);
 
 /** Roles we announce to admins as new. They carry a "New" badge until the announcement ends. */
 const NEW_ROLES = new Set<ValueOf<typeof CONST.POLICY.ROLE>>([CONST.POLICY.ROLE.APPROVE_ONLY, CONST.POLICY.ROLE.GUEST]);
 
 /**
  * Roles a member can be assigned, in the same order as the role-selection page.
- * Filters by what the current user may assign and any extra restriction (for example an Authorized Payer).
+ * Filters by what the current user may assign and any extra restriction (for example an Authorized Payer). A member who
+ * already holds the travel admin role still sees it selected after the beta or travel is turned off.
  */
 function getAssignableWorkspaceMemberRoleItems(
     translate: LocalizedTranslate,
     currentRole: string | undefined,
     policy: OnyxEntry<Policy>,
     currentUserLogin: string,
+    isTravelMemberAccessBetaEnabled: boolean,
     allowedRoles?: Array<ValueOf<typeof CONST.POLICY.ROLE>>,
 ): ListItemType[] {
     const newRoleBadge = (
@@ -105,6 +114,13 @@ function getAssignableWorkspaceMemberRoleItems(
             alternateText: translate('workspace.common.peopleAdminAlternateText'),
             isSelected: currentRole === CONST.POLICY.ROLE.PEOPLE_ADMIN,
             keyForList: CONST.POLICY.ROLE.PEOPLE_ADMIN,
+        },
+        {
+            value: CONST.POLICY.ROLE.TRAVEL_ADMIN,
+            text: translate('workspace.common.roleName', CONST.POLICY.ROLE.TRAVEL_ADMIN),
+            alternateText: translate('workspace.common.travelAdminAlternateText'),
+            isSelected: currentRole === CONST.POLICY.ROLE.TRAVEL_ADMIN,
+            keyForList: CONST.POLICY.ROLE.TRAVEL_ADMIN,
         },
         {
             value: CONST.POLICY.ROLE.ADMIN,
@@ -144,9 +160,10 @@ function getAssignableWorkspaceMemberRoleItems(
     ];
     const roleItems = workspaceRoles.map((item) => (NEW_ROLES.has(item.value) ? {...item, titleRightElement: newRoleBadge} : item));
 
-    const selectableRoles = getSelectableRoles(policy, currentUserLogin, allowedRoles);
+    const selectableRoles = getSelectableRoles(policy, currentUserLogin, isTravelMemberAccessBetaEnabled, allowedRoles);
+    const isCurrentTravelAdmin = currentRole === CONST.POLICY.ROLE.TRAVEL_ADMIN && canMemberAssignRole(policy, currentUserLogin, CONST.POLICY.ROLE.TRAVEL_ADMIN);
 
-    return roleItems.filter((item) => selectableRoles.includes(item.value));
+    return roleItems.filter((item) => selectableRoles.includes(item.value) || (isCurrentTravelAdmin && item.value === CONST.POLICY.ROLE.TRAVEL_ADMIN));
 }
 
 function WorkspaceMemberRoleList({
@@ -168,7 +185,9 @@ function WorkspaceMemberRoleList({
     const [conciergePersonalDetails] = usePersonalDetailsByIDs([CONST.ACCOUNT_ID.CONCIERGE]);
     const delegateAccountID = useDelegateAccountID();
 
-    const availableRoleItems = getAssignableWorkspaceMemberRoleItems(translate, role, policy, currentUserLogin, allowedRoles);
+    const {isBetaEnabled} = usePermissions();
+
+    const availableRoleItems = getAssignableWorkspaceMemberRoleItems(translate, role, policy, currentUserLogin, isBetaEnabled(CONST.BETAS.TRAVEL_MEMBER_ACCESS), allowedRoles);
     const roleGroups = [
         {
             title: translate('workspace.common.adminRoles'),

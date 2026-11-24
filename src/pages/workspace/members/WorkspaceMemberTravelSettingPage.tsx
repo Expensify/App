@@ -6,6 +6,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
 
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -43,11 +44,12 @@ function WorkspaceMemberTravelSettingPage({policy, personalDetails, route}: Work
     const accountID = Number(route.params.accountID);
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const {login: currentUserLogin = ''} = useCurrentUserPersonalDetails();
     const {isBetaEnabled} = usePermissions();
 
     const memberLogin = personalDetails?.[accountID]?.login ?? getMemberLoginByAccountID(policy, accountID);
     const member = {email: memberLogin, accountID};
-    const canChangeTravelSetting = canChangeMemberTravelAccess(policy, policy?.employeeList?.[memberLogin], isBetaEnabled(CONST.BETAS.TRAVEL_MEMBER_ACCESS));
+    const canChangeTravelSetting = canChangeMemberTravelAccess(policy, currentUserLogin, memberLogin, isBetaEnabled(CONST.BETAS.TRAVEL_MEMBER_ACCESS));
     const canUseTravel = canMemberUseTravel(policy, memberLogin);
 
     const navigateBackToDetails = () => {
@@ -64,7 +66,7 @@ function WorkspaceMemberTravelSettingPage({policy, personalDetails, route}: Work
     return (
         <AccessOrNotFoundWrapper
             policyID={policyID}
-            policyFeature={CONST.POLICY.POLICY_FEATURE.MEMBERS}
+            policyFeature={CONST.POLICY.POLICY_FEATURE.TRAVEL}
             policyFeatureAccess={CONST.POLICY.POLICY_FEATURE_ACCESS.WRITE}
             shouldBeBlocked={!canChangeTravelSetting}
         >

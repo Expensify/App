@@ -140,6 +140,15 @@ const ROLE_PERMISSION_BUNDLES: Record<string, Partial<Record<PolicyFeature, Poli
         [CONST.POLICY.POLICY_FEATURE.CREATE_EXPENSES]: CONST.POLICY.POLICY_FEATURE_ACCESS.WRITE,
         [CONST.POLICY.POLICY_FEATURE.ALL_REPORTS]: CONST.POLICY.POLICY_FEATURE_ACCESS.READ,
     },
+    // Travel admins are members who also choose who can book travel, and are admins in Expensify Travel.
+    [CONST.POLICY.ROLE.TRAVEL_ADMIN]: {
+        [CONST.POLICY.POLICY_FEATURE.OVERVIEW]: CONST.POLICY.POLICY_FEATURE_ACCESS.READ,
+        [CONST.POLICY.POLICY_FEATURE.MEMBERS]: CONST.POLICY.POLICY_FEATURE_ACCESS.READ,
+        [CONST.POLICY.POLICY_FEATURE.AGENTS]: CONST.POLICY.POLICY_FEATURE_ACCESS.READ,
+        [CONST.POLICY.POLICY_FEATURE.ROOMS]: CONST.POLICY.POLICY_FEATURE_ACCESS.WRITE,
+        [CONST.POLICY.POLICY_FEATURE.CREATE_EXPENSES]: CONST.POLICY.POLICY_FEATURE_ACCESS.WRITE,
+        [CONST.POLICY.POLICY_FEATURE.TRAVEL]: CONST.POLICY.POLICY_FEATURE_ACCESS.WRITE,
+    },
 };
 
 const CONTROL_POLICY_ONLY_ROLES = [
@@ -149,6 +158,7 @@ const CONTROL_POLICY_ONLY_ROLES = [
     CONST.POLICY.ROLE.PEOPLE_ADMIN,
     CONST.POLICY.ROLE.PAYMENTS_ADMIN,
     CONST.POLICY.ROLE.APPROVE_ONLY,
+    CONST.POLICY.ROLE.TRAVEL_ADMIN,
 ];
 
 function isControlPolicyOnlyRole(role: string | undefined): boolean {
@@ -231,6 +241,7 @@ const SELECTABLE_ROLES = [
     CONST.POLICY.ROLE.CARD_ADMIN,
     CONST.POLICY.ROLE.PAYMENTS_ADMIN,
     CONST.POLICY.ROLE.PEOPLE_ADMIN,
+    CONST.POLICY.ROLE.TRAVEL_ADMIN,
     CONST.POLICY.ROLE.ADMIN,
     CONST.POLICY.ROLE.APPROVE_ONLY,
     CONST.POLICY.ROLE.AUDITOR,
@@ -240,10 +251,19 @@ const SELECTABLE_ROLES = [
 
 /**
  * The roles the given member may assign on this policy, optionally narrowed to a permitted set (for example an
- * Authorized Payer may only hold a role that can pay).
+ * Authorized Payer may only hold a role that can pay). Travel admin is only offered with the travel member access beta once
+ * the workspace has travel turned on, while members who already hold it can still be moved to another role.
  */
-function getSelectableRoles(policy: OnyxInputOrEntry<Policy>, login: string, allowedRoles?: Array<ValueOf<typeof CONST.POLICY.ROLE>>): Array<ValueOf<typeof CONST.POLICY.ROLE>> {
-    return SELECTABLE_ROLES.filter((role) => canMemberAssignRole(policy, login, role) && (!allowedRoles || allowedRoles.includes(role)));
+function getSelectableRoles(
+    policy: OnyxInputOrEntry<Policy>,
+    login: string,
+    isTravelMemberAccessBetaEnabled: boolean,
+    allowedRoles?: Array<ValueOf<typeof CONST.POLICY.ROLE>>,
+): Array<ValueOf<typeof CONST.POLICY.ROLE>> {
+    const canOfferTravelAdmin = isTravelMemberAccessBetaEnabled && !!policy?.isTravelEnabled;
+    return SELECTABLE_ROLES.filter(
+        (role) => canMemberAssignRole(policy, login, role) && (!allowedRoles || allowedRoles.includes(role)) && (role !== CONST.POLICY.ROLE.TRAVEL_ADMIN || canOfferTravelAdmin),
+    );
 }
 
 // Whether the member can assign any elevated role: admins (via assignElevatedRoles) on any policy, or People Admins (up to auditor) on Control.
@@ -285,6 +305,7 @@ const POLICY_ROLE_RANKING = [
     CONST.POLICY.ROLE.PAYMENTS_ADMIN,
     CONST.POLICY.ROLE.CARD_ADMIN,
     CONST.POLICY.ROLE.PEOPLE_ADMIN,
+    CONST.POLICY.ROLE.TRAVEL_ADMIN,
     CONST.POLICY.ROLE.AUDITOR,
     CONST.POLICY.ROLE.EDITOR,
     CONST.POLICY.ROLE.USER,

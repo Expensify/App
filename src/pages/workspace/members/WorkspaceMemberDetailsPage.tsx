@@ -182,7 +182,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
     const {canWrite: canWriteCategories} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.CATEGORIES);
     const canChangeOfficeLocation = shouldShowOfficeLocation && canWriteMembers;
     const shouldShowTravelSettings = isWorkspaceProvisionedForTravel(policy?.travelSettings) && isBetaEnabled(CONST.BETAS.TRAVEL_MEMBER_ACCESS);
-    const canChangeTravelSettings = canChangeMemberTravelAccess(policy, member, isBetaEnabled(CONST.BETAS.TRAVEL_MEMBER_ACCESS));
+    const canChangeTravelSettings = canChangeMemberTravelAccess(policy, currentUserLogin, memberLogin, isBetaEnabled(CONST.BETAS.TRAVEL_MEMBER_ACCESS));
     const canManageSelectedMemberRole = canMemberAssignRole(policy, currentUserLogin, member?.role);
     const canRemoveSelectedMember = canWriteMembers && !isSelectedMemberOwner && !isSelectedMemberCurrentUser && canMemberManageMemberWithRole(policy, currentUserLogin, member?.role);
     const ownerDetails = personalDetails?.[policy?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID];

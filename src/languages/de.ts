@@ -5625,6 +5625,8 @@ ${amount} für ${merchant} – ${date}`,
                         return 'Personenverwaltung';
                     case CONST.POLICY.ROLE.PAYMENTS_ADMIN:
                         return 'Zahlungsadministrator';
+                    case CONST.POLICY.ROLE.TRAVEL_ADMIN:
+                        return 'Reiseadministrator';
                     case CONST.POLICY.ROLE.APPROVE_ONLY:
                         return 'Nur Genehmigung';
                     case CONST.POLICY.ROLE.USER:
@@ -5667,6 +5669,7 @@ ${amount} für ${merchant} – ${date}`,
             cardAdminAlternateText: 'Arbeitsbereichskarten verwalten.',
             peopleAdminAlternateText: 'Mitglieder und Genehmigungsabläufe verwalten.',
             paymentsAdminAlternateText: 'Workflow-Zahlungen verwalten.',
+            travelAdminAlternateText: 'Verwalten, wer Reisen buchen kann, und die Einstellungen von Expensify Travel.',
             approveOnlyAlternateText: 'Nur Berichte genehmigen.',
             readOnlyActionTitle: 'Nicht so schnell …',
             readOnlyActionPrompt: 'Ihre Arbeitsbereichsrolle kann diese Einstellungen anzeigen, aber nicht bearbeiten.',
@@ -8070,6 +8073,7 @@ Der Control-Tarif beginnt bei 9 $ pro aktivem Mitglied und Monat.`,
             cardAdmins: 'Karten-Admins',
             peopleAdmins: 'Personaladministratoren',
             paymentsAdmins: 'Zahlungsadmins',
+            travelAdmins: 'Reiseadmins',
             members: 'Mitglieder',
             workArrangement: 'Arbeitsvereinbarung',
             officeBased: 'Bürobasiert',
