@@ -462,11 +462,14 @@ function SearchSelectionFooter({searchResults, style}: SearchSelectionFooterProp
     const canConvertExcludedReports = !hasExcludedReports || footerTotalBreakdown === CONST.SEARCH.FOOTER_TOTAL.TOTAL;
     // A group's converted figure is a conversion of its plain total, so under a breakdown it would convert the wrong
     // amount. The breakdown stays in the default currency instead, and is labelled as such, as a Reports search does.
-    const hasGroupUnderBreakdown = (selectedGroupKeys.length > 0 || excludedGroupKeys.length > 0) && footerTotalBreakdown !== CONST.SEARCH.FOOTER_TOTAL.TOTAL;
+    // Which groups matter depends on where the figure comes from: a client sum reads the selected groups' conversions,
+    // while the server's whole-search total only has the excluded ones taken off it, and it is converted as a whole.
+    const isBreakdownApplied = footerTotalBreakdown !== CONST.SEARCH.FOOTER_TOTAL.TOTAL;
+    const hasGroupUnderBreakdown = isBreakdownApplied && (shouldUseClientTotal ? selectedGroupKeys.length > 0 : excludedGroupKeys.length > 0);
     // A group answered before the server returned its breakdowns carries only a plain total, and that total counts rows
     // the breakdown leaves out. No figure is shown rather than one that still counts them.
     const hasGroupWithUnknownBreakdownTotal =
-        footerTotalBreakdown !== CONST.SEARCH.FOOTER_TOTAL.TOTAL &&
+        isBreakdownApplied &&
         [...selectedGroupKeys.map((key) => selectedTransactions[key]), ...excludedGroupKeys.map((key) => excludedTransactions[key])].some(
             (entry) => entry?.groupTotalsByBreakdown?.[footerTotalBreakdown] === undefined,
         );

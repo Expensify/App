@@ -159,6 +159,27 @@ describe('selectionBuilders', () => {
             expect(merged.txn3).toBe(selection.txn3);
         });
 
+        it("carries the group's totals for every breakdown onto the entry that replaces its rows", () => {
+            // Given a partly loaded group the server answered with a figure for each breakdown
+            const searchData = buildDayGroupData([[groupKey, {count: 692, total: 12990, reimbursableTotal: 9000, nonReimbursableTotal: 3990, billableTotal: 500, nonBillableTotal: 12490}]]);
+            const selection = buildSelection({
+                txn1: {isSelectedViaGroup: true, groupKey, displayAmount: 10},
+                txn2: {isSelectedViaGroup: true, groupKey, displayAmount: 10},
+            });
+
+            // When the rows are merged into the group they stand for
+            const merged = mergeRowsIntoPartlyLoadedGroups(selection, searchData, false);
+
+            // Then the entry keeps them, so the footer can show the breakdown on display instead of no figure at all
+            expect(merged[groupKey]?.groupTotalsByBreakdown).toEqual({
+                [CONST.SEARCH.FOOTER_TOTAL.TOTAL]: 12990,
+                [CONST.SEARCH.FOOTER_TOTAL.REIMBURSABLE]: 9000,
+                [CONST.SEARCH.FOOTER_TOTAL.NON_REIMBURSABLE]: 3990,
+                [CONST.SEARCH.FOOTER_TOTAL.BILLABLE]: 500,
+                [CONST.SEARCH.FOOTER_TOTAL.NON_BILLABLE]: 12490,
+            });
+        });
+
         it('keeps the workspace of the rows it replaces, and whether they all come from one-expense reports', () => {
             // Given two loaded rows of a 692-expense group on one workspace, each from a one-expense report
             const searchData = buildDayGroupData([[groupKey, {count: 692, total: 12990}]]);

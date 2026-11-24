@@ -445,6 +445,7 @@ function mergeRowsIntoPartlyLoadedGroups(
                 policyID: rows.every((row) => row.policyID === firstRowPolicyID) ? firstRowPolicyID : undefined,
             }),
             isFromOneTransactionReport: rows.every((row) => row.isFromOneTransactionReport),
+            groupTotalsByBreakdown: getGroupTotalsByBreakdown(group),
         };
     }
     return merged;

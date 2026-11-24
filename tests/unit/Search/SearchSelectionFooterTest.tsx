@@ -571,6 +571,32 @@ describe('SearchSelectionFooter', () => {
             expect(mockCapturedFooterProps.current).toEqual(expect.objectContaining({count: 171, total: 63000}));
         });
 
+        it('keeps the converted whole-search total when the groups are selected rather than excluded', async () => {
+            // Given every expense selected through its group, on the reimbursable breakdown in EUR, so the figure is
+            // the server's whole-search total and no group conversion takes part in it
+            setSearchQuery(`type:expense group-by:category footerTotal:${CONST.SEARCH.FOOTER_TOTAL.REIMBURSABLE} footerCurrency:${CONST.CURRENCY.EUR}`);
+            mockExcludedTransactions.current = {};
+            mockAreAllMatchingItemsSelected.current = false;
+            mockSelectedTransactions.current = {
+                [GROUP_KEY]: buildSelectedGroup(-50000, {[CONST.SEARCH.FOOTER_TOTAL.TOTAL]: 50000, [CONST.SEARCH.FOOTER_TOTAL.REIMBURSABLE]: 20000}),
+            };
+            const searchHash = mockSearchQueryContext.current.currentSearchHash;
+            await Onyx.merge(ONYXKEYS.SEARCH_FOOTER_CONVERSION, {
+                searchTotals: {[searchHash]: {[CONST.CURRENCY.EUR]: {count: 3, total: 18000}}},
+                sources: {searchTotals: {[searchHash]: {[CONST.CURRENCY.EUR]: 20000}}},
+            });
+            const searchResults = buildSearchResults(CONST.CURRENCY.USD, 3, 20000, CONST.SEARCH.DATA_TYPES.EXPENSE);
+            mockCurrentSearchResults.current = {...searchResults, data: {[GROUP_KEY]: makeSettlementGroup({count: 3, total: 50000})}};
+
+            // When the footer renders
+            render(<SearchSelectionFooter searchResults={searchResults} />);
+            await waitForBatchedUpdates();
+
+            // Then it stays on the converted figure: a selected group is never converted on its own here, so there is
+            // nothing a plain-total conversion could spoil
+            expect(mockCapturedFooterProps.current).toEqual(expect.objectContaining({total: 18000, currency: CONST.CURRENCY.EUR}));
+        });
+
         it('keeps an excluded group under a breakdown in the default currency rather than converting its plain total', async () => {
             // Given a select-all on the reimbursable breakdown in EUR, with the search's own converted total fresh
             setSearchQuery(`type:expense group-by:category footerTotal:${CONST.SEARCH.FOOTER_TOTAL.REIMBURSABLE} footerCurrency:${CONST.CURRENCY.EUR}`);
