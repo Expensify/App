@@ -1092,18 +1092,18 @@ const COMMERCIAL_FEED_DISPLAY_BASES = [
 
 function getDefaultCommercialFeedDisplayName(feed: CardFeedWithNumber | CardFeedWithDomainID | undefined): string | undefined {
     const feedName = getCompanyCardFeed(feed);
-    const displayBase = COMMERCIAL_FEED_DISPLAY_BASES.find(({base}) => feedName.startsWith(base));
-    if (!displayBase) {
+    const feedDisplayBase = COMMERCIAL_FEED_DISPLAY_BASES.find(({base}) => feedName.startsWith(base));
+    if (!feedDisplayBase) {
         return;
     }
 
-    const feedSuffix = feedName.slice(displayBase.base.length);
-    if (!feedSuffix || (displayBase.shouldHideOne && feedSuffix === '1')) {
-        return displayBase.displayName;
+    const feedSuffix = feedName.slice(feedDisplayBase.base.length);
+    if (!feedSuffix || (feedDisplayBase.shouldHideOne && feedSuffix === '1')) {
+        return feedDisplayBase.displayName;
     }
 
     // Preserve unknown variants so they cannot be mistaken for the base feed.
-    return `${displayBase.displayName} ${/^\d+$/.test(feedSuffix) ? feedSuffix : feedSuffix.toUpperCase()}`;
+    return `${feedDisplayBase.displayName} ${/^\d+$/.test(feedSuffix) ? feedSuffix : feedSuffix.toUpperCase()}`;
 }
 
 const getBankCardDetailsImage = (bank: BankName, illustrations: IllustrationsType, companyCardIllustrations: CompanyCardBankIcons): IconAsset => {
