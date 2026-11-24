@@ -5440,6 +5440,11 @@ ${amount} pour ${merchant} - ${date}`,
             inputLabel: 'Identifiant fiscal de l’entité juridique',
             error: {required: 'Veuillez saisir l’identifiant fiscal de votre entité légale.'},
         },
+        travelMembers: {
+            headline: 'Qui peut réserver des voyages ?',
+            subtitle: 'Choisissez qui, dans cet espace de travail, peut réserver des voyages. Vous pouvez le modifier à tout moment depuis la page Membres.',
+            everyone: 'Tout le monde dans cet espace de travail',
+        },
         nudge: {
             airfareManual:
                 'Saviez-vous que vous pouvez réserver vos vols directement dans Expensify tout en continuant à cumuler des miles avec vos programmes de fidélité ? La prochaine fois, évitez la corvée de créer votre dépense manuellement et réservez simplement via <a href="https://travel.expensify.com">Expensify Travel</a> ✈️',
@@ -11140,6 +11145,11 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             `a modifié le circuit d’approbation pour ${member} afin de transférer les notes de frais supérieures à ${limit} (auparavant ${previousLimit})`,
         updatedMemberTravelAccess: ({displayName, canUseTravel}: {displayName: string; canUseTravel: boolean}) =>
             canUseTravel ? `a activé la réservation de voyages pour ${displayName}` : `a désactivé la réservation de voyages pour ${displayName}`,
+        setUpTravelMemberAccess: ({memberNames}: {memberNames: string}) => `a désactivé la réservation de voyages pour ${memberNames}`,
+        travelSetupOtherMembers: ({count}: {count: number}) => ({
+            one: `${count} autre personne`,
+            other: `${count} autres personnes`,
+        }),
         updatedMemberWorkArrangement: ({displayName, newArrangement, oldArrangement}: {displayName: string; newArrangement: string; oldArrangement: string}) =>
             `a modifié l’organisation du travail de ${displayName} en ${newArrangement} (auparavant ${oldArrangement})`,
         updatedDefaultWorkArrangement: ({newArrangement, oldArrangement}: {newArrangement: string; oldArrangement: string}) =>

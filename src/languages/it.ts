@@ -5400,6 +5400,11 @@ ${amount} per ${merchant} - ${date}`,
             inputLabel: 'Partita IVA dell’entità legale',
             error: {required: 'Inserisci il codice fiscale/partita IVA della tua entità legale.'},
         },
+        travelMembers: {
+            headline: 'Chi può prenotare viaggi?',
+            subtitle: 'Scegli chi in questo spazio di lavoro può prenotare viaggi. Puoi cambiarlo in qualsiasi momento dalla pagina Membri.',
+            everyone: 'Tutti in questo spazio di lavoro',
+        },
         nudge: {
             airfareManual:
                 'Sapevi che puoi prenotare i voli direttamente in Expensify e continuare ad accumulare miglia con i tuoi programmi frequent flyer? La prossima volta evita la seccatura di creare la spesa manualmente e prenota semplicemente tramite <a href="https://travel.expensify.com">Expensify Travel</a> ✈️',
@@ -11058,6 +11063,11 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
             `ha modificato il flusso di approvazione per ${member} per inoltrare i report superiori a ${limit} (in precedenza ${previousLimit})`,
         updatedMemberTravelAccess: ({displayName, canUseTravel}: {displayName: string; canUseTravel: boolean}) =>
             canUseTravel ? `ha attivato la prenotazione dei viaggi per ${displayName}` : `ha disattivato la prenotazione dei viaggi per ${displayName}`,
+        setUpTravelMemberAccess: ({memberNames}: {memberNames: string}) => `ha disattivato la prenotazione dei viaggi per ${memberNames}`,
+        travelSetupOtherMembers: ({count}: {count: number}) => ({
+            one: '1 altra persona',
+            other: `altre ${count} persone`,
+        }),
         updatedMemberWorkArrangement: ({displayName, newArrangement, oldArrangement}: {displayName: string; newArrangement: string; oldArrangement: string}) =>
             `ha modificato l'accordo di lavoro di ${displayName} in ${newArrangement} (in precedenza ${oldArrangement})`,
         updatedDefaultWorkArrangement: ({newArrangement, oldArrangement}: {newArrangement: string; oldArrangement: string}) =>

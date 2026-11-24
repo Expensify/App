@@ -3,6 +3,7 @@ import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 import {isChronosStartOrStopMessage, isConsecutiveChronosAutomaticTimerAction} from '@libs/ChronosUtils';
 import {getEnvironmentURL} from '@libs/Environment/Environment';
 import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
+import {formatList} from '@libs/Localize';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import getReportURLForCurrentContext from '@libs/Navigation/helpers/getReportURLForCurrentContext';
 import {setHasRadio} from '@libs/NetworkState';
@@ -78,6 +79,7 @@ import {
     getPolicyWorkArrangementMessage,
     getUpdatedCommuterExclusionsMessage,
     getUpdatedMemberWorkArrangementMessage,
+    getTravelSetupMemberAccessMessage,
     getUpdatedMemberTravelAccessMessage,
     getUpdatedCardFeedLiabilityMessage,
     getUpdatedCardFeedReimbursableMessage,
@@ -6306,6 +6308,43 @@ describe('ReportActionsUtils', () => {
             expect(getUpdatedMemberTravelAccessMessage(translateLocal, turnedOn)).toBe(
                 translateLocal('workspaceActions.updatedMemberTravelAccess', {displayName: formatPhoneNumber(email), canUseTravel: true}),
             );
+        });
+    });
+
+    describe('getTravelSetupMemberAccessMessage', () => {
+        const buildAction = (originalMessage: Record<string, unknown>) =>
+            ({
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.SET_UP_TRAVEL_MEMBER_ACCESS,
+                reportActionID: '1',
+                created: '',
+                originalMessage,
+                message: [{type: CONST.REPORT.MESSAGE.TYPE.COMMENT, text: 'fallback message', html: 'fallback message'}],
+            }) as ReportAction;
+
+        it('names the members turned off and counts the rest', () => {
+            // Given an admin who turned off two named members, and another who turned off seven but only two are named
+            const twoMembers = buildAction({members: [{name: 'Member One'}, {email: 'two@example.com'}], count: 2});
+            const sevenMembers = buildAction({members: [{name: 'Member One'}, {email: 'two@example.com'}], count: 7});
+
+            // When the messages are built
+            // Then the first lists both names, and the second counts the five members it doesn't name
+            expect(getTravelSetupMemberAccessMessage(translateLocal, twoMembers)).toBe(
+                translateLocal('workspaceActions.setUpTravelMemberAccess', {memberNames: formatList(['Member One', formatPhoneNumber('two@example.com')])}),
+            );
+            expect(getTravelSetupMemberAccessMessage(translateLocal, sevenMembers)).toBe(
+                translateLocal('workspaceActions.setUpTravelMemberAccess', {
+                    memberNames: formatList(['Member One', formatPhoneNumber('two@example.com'), translateLocal('workspaceActions.travelSetupOtherMembers', {count: 5})]),
+                }),
+            );
+        });
+
+        it('falls back to the report action text when no member is named', () => {
+            // Given a malformed log without members
+            const action = buildAction({count: 3});
+
+            // When the message is built
+            // Then it falls back to the text the server sent
+            expect(getTravelSetupMemberAccessMessage(translateLocal, action)).toBe(ReportActionsUtils.getReportActionText(action));
         });
     });
 

@@ -5601,6 +5601,11 @@ const translations = {
                 required: 'Please enter your legal entity tax ID.',
             },
         },
+        travelMembers: {
+            headline: 'Who can book travel?',
+            subtitle: 'Choose who on this workspace can book travel. You can change this anytime from the Members page.',
+            everyone: 'Everyone on this workspace',
+        },
         domainPermissionInfo: {
             title: 'Domain',
             restriction: (domain: string) =>
@@ -11178,6 +11183,11 @@ const translations = {
         },
         updatedMemberTravelAccess: ({displayName, canUseTravel}: {displayName: string; canUseTravel: boolean}) =>
             canUseTravel ? `turned on travel booking for ${displayName}` : `turned off travel booking for ${displayName}`,
+        setUpTravelMemberAccess: ({memberNames}: {memberNames: string}) => `turned off travel booking for ${memberNames}`,
+        travelSetupOtherMembers: ({count}: {count: number}) => ({
+            one: '1 other',
+            other: `${count} others`,
+        }),
         updatedMemberWorkArrangement: ({displayName, newArrangement, oldArrangement}: {displayName: string; newArrangement: string; oldArrangement: string}) =>
             `changed ${displayName}'s work arrangement to ${newArrangement} (previously ${oldArrangement})`,
         updatedDefaultWorkArrangement: ({newArrangement, oldArrangement}: {newArrangement: string; oldArrangement: string}) =>

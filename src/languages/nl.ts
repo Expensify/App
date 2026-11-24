@@ -5397,6 +5397,11 @@ ${amount} voor ${merchant} - ${date}`,
             inputLabel: 'Belastingnummer rechtspersoon',
             error: {required: 'Vul het fiscale identificatienummer van je rechtspersoon in.'},
         },
+        travelMembers: {
+            headline: 'Wie kan reizen boeken?',
+            subtitle: 'Kies wie in deze workspace reizen kan boeken. Je kunt dit altijd wijzigen op de pagina Leden.',
+            everyone: 'Iedereen in deze workspace',
+        },
         nudge: {
             airfareManual:
                 'Wist je dat je rechtstreeks in Expensify vluchten kunt boeken en nog steeds miles spaart met je frequent flyer-programma’s? Vermijd de volgende keer het gedoe van het handmatig aanmaken van je uitgave en boek gewoon via <a href="https://travel.expensify.com">Expensify Travel</a> ✈️',
@@ -11026,6 +11031,11 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
             `heeft de goedkeuringsworkflow voor ${member} gewijzigd om rapporten boven ${limit} door te sturen (voorheen ${previousLimit})`,
         updatedMemberTravelAccess: ({displayName, canUseTravel}: {displayName: string; canUseTravel: boolean}) =>
             canUseTravel ? `heeft reizen boeken ingeschakeld voor ${displayName}` : `heeft reizen boeken uitgeschakeld voor ${displayName}`,
+        setUpTravelMemberAccess: ({memberNames}: {memberNames: string}) => `heeft reizen boeken uitgeschakeld voor ${memberNames}`,
+        travelSetupOtherMembers: ({count}: {count: number}) => ({
+            one: '1 andere persoon',
+            other: `${count} andere personen`,
+        }),
         updatedMemberWorkArrangement: ({displayName, newArrangement, oldArrangement}: {displayName: string; newArrangement: string; oldArrangement: string}) =>
             `heeft de werkregeling van ${displayName} gewijzigd naar ${newArrangement} (voorheen ${oldArrangement})`,
         updatedDefaultWorkArrangement: ({newArrangement, oldArrangement}: {newArrangement: string; oldArrangement: string}) =>

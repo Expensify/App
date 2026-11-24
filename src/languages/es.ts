@@ -5348,6 +5348,11 @@ ${amount} para ${merchant} - ${date}`,
             inputLabel: 'ID fiscal de la entidad jurídica',
             error: {required: 'Introduce el NIF fiscal de tu entidad legal.'},
         },
+        travelMembers: {
+            headline: '¿Quién puede reservar viajes?',
+            subtitle: 'Elige quién de este espacio de trabajo puede reservar viajes. Puedes cambiarlo en cualquier momento desde la página de Miembros.',
+            everyone: 'Todos en este espacio de trabajo',
+        },
         domainPermissionInfo: {
             title: 'Dominio',
             restriction: (domain) =>
@@ -11000,6 +11005,11 @@ ${reportName}`,
             `cambió el flujo de aprobación para ${member} para reenviar los informes superiores a ${limit} (previamente ${previousLimit})`,
         updatedMemberTravelAccess: ({displayName, canUseTravel}: {displayName: string; canUseTravel: boolean}) =>
             canUseTravel ? `activó la reserva de viajes para ${displayName}` : `desactivó la reserva de viajes para ${displayName}`,
+        setUpTravelMemberAccess: ({memberNames}: {memberNames: string}) => `desactivó la reserva de viajes para ${memberNames}`,
+        travelSetupOtherMembers: ({count}: {count: number}) => ({
+            one: '1 persona más',
+            other: `${count} personas más`,
+        }),
         updatedMemberWorkArrangement: ({displayName, newArrangement, oldArrangement}: {displayName: string; newArrangement: string; oldArrangement: string}) =>
             `cambió el acuerdo de trabajo de ${displayName} a ${newArrangement} (previamente ${oldArrangement})`,
         updatedDefaultWorkArrangement: ({newArrangement, oldArrangement}: {newArrangement: string; oldArrangement: string}) =>

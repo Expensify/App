@@ -5235,6 +5235,11 @@ ${amount}，商户：${merchant} - 日期：${date}`,
             inputLabel: '法人税号',
             error: {required: '请输入您的法人税号。'},
         },
+        travelMembers: {
+            headline: '谁可以预订差旅？',
+            subtitle: '选择此工作区中可以预订差旅的人员。你可以随时在“成员”页面更改。',
+            everyone: '此工作区中的所有人',
+        },
         nudge: {
             airfareManual:
                 '你知道吗？你可以直接在 Expensify 预订机票，同时照常累积常旅客计划的里程！下次无需手动创建报销，只需通过 <a href="https://travel.expensify.com">Expensify Travel</a> 预订即可 ✈️',
@@ -10603,6 +10608,11 @@ ${reportName}`,
             `已将 ${member} 的审批流程更改为：转交超过 ${limit} 的报销单（之前为 ${previousLimit}）`,
         updatedMemberTravelAccess: ({displayName, canUseTravel}: {displayName: string; canUseTravel: boolean}) =>
             canUseTravel ? `已为 ${displayName} 开启差旅预订` : `已为 ${displayName} 关闭差旅预订`,
+        setUpTravelMemberAccess: ({memberNames}: {memberNames: string}) => `已为 ${memberNames} 关闭差旅预订`,
+        travelSetupOtherMembers: ({count}: {count: number}) => ({
+            one: `其他 ${count} 人`,
+            other: `其他 ${count} 人`,
+        }),
         updatedMemberWorkArrangement: ({displayName, newArrangement, oldArrangement}: {displayName: string; newArrangement: string; oldArrangement: string}) =>
             `已将 ${displayName} 的工作安排更改为 ${newArrangement}（之前为 ${oldArrangement}）`,
         updatedDefaultWorkArrangement: ({newArrangement, oldArrangement}: {newArrangement: string; oldArrangement: string}) =>

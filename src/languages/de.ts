@@ -5432,6 +5432,11 @@ ${amount} für ${merchant} – ${date}`,
             inputLabel: 'Steuer-ID der juristischen Person',
             error: {required: 'Bitte geben Sie die Steuernummer Ihrer juristischen Person ein.'},
         },
+        travelMembers: {
+            headline: 'Wer kann Reisen buchen?',
+            subtitle: 'Wähle aus, wer in diesem Workspace Reisen buchen kann. Du kannst das jederzeit auf der Seite „Mitglieder“ ändern.',
+            everyone: 'Alle in diesem Workspace',
+        },
         nudge: {
             airfareManual:
                 'Wussten Sie, dass Sie Flüge direkt in Expensify buchen und trotzdem Meilen mit Ihren Vielfliegerprogrammen sammeln können? Sparen Sie sich beim nächsten Mal den Aufwand, Ihre Ausgabe manuell zu erstellen, und buchen Sie einfach über <a href="https://travel.expensify.com">Expensify Travel</a> ✈️',
@@ -11109,6 +11114,11 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
             `hat den Genehmigungsworkflow für ${member} geändert, um Berichte über ${limit} weiterzuleiten (zuvor ${previousLimit})`,
         updatedMemberTravelAccess: ({displayName, canUseTravel}: {displayName: string; canUseTravel: boolean}) =>
             canUseTravel ? `hat Reisebuchungen für ${displayName} aktiviert` : `hat Reisebuchungen für ${displayName} deaktiviert`,
+        setUpTravelMemberAccess: ({memberNames}: {memberNames: string}) => `hat Reisebuchungen für ${memberNames} deaktiviert`,
+        travelSetupOtherMembers: ({count}: {count: number}) => ({
+            one: '1 weitere Person',
+            other: `${count} weitere Personen`,
+        }),
         updatedMemberWorkArrangement: ({displayName, newArrangement, oldArrangement}: {displayName: string; newArrangement: string; oldArrangement: string}) =>
             `hat die Arbeitsregelung von ${displayName} auf ${newArrangement} geändert (zuvor ${oldArrangement})`,
         updatedDefaultWorkArrangement: ({newArrangement, oldArrangement}: {newArrangement: string; oldArrangement: string}) =>

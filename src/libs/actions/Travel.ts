@@ -10,10 +10,19 @@ import type {OnyxUpdate} from 'react-native-onyx';
 
 import Onyx from 'react-native-onyx';
 
+type TravelMembersSelection = {
+    /** Whether every workspace member can book travel */
+    shouldEnableAllTravelMembers: boolean;
+
+    /** The members who can book travel when not every member can */
+    travelMemberAccountIDs: number[];
+};
+
 /**
- * Accept Spotnana terms and conditions to receive a proper token used for authenticating further actions
+ * Accept Spotnana terms and conditions to receive a proper token used for authenticating further actions. When travel
+ * is being enabled for the workspace, travelMembers says who can book it, and every member can when it's omitted.
  */
-function acceptSpotnanaTerms(domain?: string, policyID?: string, taxID?: string) {
+function acceptSpotnanaTerms(domain?: string, policyID?: string, taxID?: string, travelMembers?: TravelMembersSelection) {
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.NVP_TRAVEL_SETTINGS | typeof ONYXKEYS.TRAVEL_PROVISIONING>> = [
         {
             onyxMethod: 'merge',
@@ -69,7 +78,17 @@ function acceptSpotnanaTerms(domain?: string, policyID?: string, taxID?: string)
         },
     ];
 
-    const params: AcceptSpotnanaTermsParams = {domainName: domain, policyID, taxID};
+    const params: AcceptSpotnanaTermsParams = {
+        domainName: domain,
+        policyID,
+        taxID,
+        ...(travelMembers
+            ? {
+                  shouldEnableAllTravelMembers: travelMembers.shouldEnableAllTravelMembers,
+                  ...(travelMembers.shouldEnableAllTravelMembers ? {} : {travelMemberAccountIDList: travelMembers.travelMemberAccountIDs.join(',')}),
+              }
+            : {}),
+    };
 
     // We need to call this API immediately to get the response and open the travel page.
     // See https://github.com/Expensify/App/pull/69769#discussion_r2368967354 for more info.
@@ -110,6 +129,16 @@ function setTravelProvisioningNextStep(nextStepRoute?: Route) {
     Onyx.merge(ONYXKEYS.TRAVEL_PROVISIONING, {nextStepRoute});
 }
 
+/** Save who can book travel for the workspace being set up, so the choice only applies to that workspace. */
+function setTravelProvisioningMembers(policyID: string, {shouldEnableAllTravelMembers, travelMemberAccountIDs}: TravelMembersSelection) {
+    Onyx.merge(ONYXKEYS.TRAVEL_PROVISIONING, {shouldEnableAllTravelMembers, travelMemberAccountIDs, travelMembersPolicyID: policyID});
+}
+
+/** Forget the members chosen in an earlier travel setup, so they aren't offered again on another workspace. */
+function clearTravelProvisioningMembers() {
+    Onyx.merge(ONYXKEYS.TRAVEL_PROVISIONING, {shouldEnableAllTravelMembers: null, travelMemberAccountIDs: null, travelMembersPolicyID: null});
+}
+
 function setTravelProvisioningEnabledSteps(enabledSteps: string[]) {
     Onyx.merge(ONYXKEYS.TRAVEL_PROVISIONING, {enabledSteps});
 }
@@ -121,9 +150,12 @@ function cleanupTravelProvisioningSession() {
 export {
     acceptSpotnanaTerms,
     cleanupTravelProvisioningSession,
+    clearTravelProvisioningMembers,
     requestTravelAccess,
     setTravelProvisioningDomain,
     setTravelProvisioningEnabledSteps,
+    setTravelProvisioningMembers,
     setTravelProvisioningNextStep,
     setTravelProvisioningTaxID,
 };
+export type {TravelMembersSelection};

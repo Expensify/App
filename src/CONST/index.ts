@@ -2514,6 +2514,7 @@ const CONST = {
                     UPDATE_POLICY_WORK_ARRANGEMENT: 'POLICYCHANGELOG_UPDATE_POLICY_WORK_ARRANGEMENT',
                     UPDATE_MEMBER_WORK_ARRANGEMENT: 'POLICYCHANGELOG_UPDATE_MEMBER_WORK_ARRANGEMENT',
                     UPDATE_MEMBER_TRAVEL_ACCESS: 'POLICYCHANGELOG_UPDATE_MEMBER_TRAVEL_ACCESS',
+                    SET_UP_TRAVEL_MEMBER_ACCESS: 'POLICYCHANGELOG_SET_UP_TRAVEL_MEMBER_ACCESS',
                     UPDATE_REIMBURSEMENT_CHOICE: 'POLICYCHANGELOG_UPDATE_REIMBURSEMENT_CHOICE',
                     UPDATE_REIMBURSEMENT_ENABLED: 'POLICYCHANGELOG_UPDATE_REIMBURSEMENT_ENABLED',
                     UPDATE_REPORT_FIELD: 'POLICYCHANGELOG_UPDATE_REPORT_FIELD',
@@ -10439,6 +10440,8 @@ const CONST = {
             ERROR_PERMISSION_DENIED: 'permissionDenied',
             ERROR_ADDITIONAL_VERIFICATION_REQUIRED: 'additionalVerificationRequired',
         },
+        // Members named in the change log posted when an admin sets up travel for chosen members. The rest are counted.
+        MAX_SETUP_CHANGE_LOG_NAMES_SHOWN: 3,
         ENABLE_FLOW: {
             PAGE_NAME: {
                 LEGAL_NAME: 'legal-name',
@@ -10446,6 +10449,7 @@ const CONST = {
                 DOMAIN_SELECTOR: 'domain-selector',
                 WORKSPACE_ADDRESS: 'workspace-address',
                 LEGAL_ENTITY_TAX_ID: 'legal-entity-tax-id',
+                TRAVEL_MEMBERS: 'travel-members',
                 TERMS: 'terms',
             },
         },
