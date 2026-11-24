@@ -55,15 +55,31 @@ describe('AddToDigitalWallet scenario', () => {
 
     it('maps server failures to the wallet reason and keeps status and backend details', async () => {
         // Given provisioning failed before the native bridge rejected.
-        const failure = {httpStatusCode: 403, reason: CONST.MULTIFACTOR_AUTHENTICATION.REASON.CLIENT_ERRORS.UNRECOGNIZED, message: 'Rejected'};
+        const message = '404 Could not find an active card for user trying to create a digital wallet';
+        const failure = {httpStatusCode: 404, reason: CONST.MULTIFACTOR_AUTHENTICATION.REASON.CLIENT_ERRORS.UNRECOGNIZED, message};
         jest.mocked(handleAddCardToWallet).mockRejectedValue(new WalletProvisioningError(failure));
 
         // When the scenario catches that failure.
         const response = await AddToDigitalWallet.action(params, undefined);
 
         // Then the wallet reason replaces the backend one and the message keeps the backend detail.
-        expect(response).toEqual({...failure, reason: CONST.MULTIFACTOR_AUTHENTICATION.REASON.LOCAL_ERRORS.WALLET_PROVISIONING_FAILED, message: `${failure.reason} - Rejected`});
+        expect(response).toEqual({...failure, reason: CONST.MULTIFACTOR_AUTHENTICATION.REASON.LOCAL_ERRORS.WALLET_PROVISIONING_FAILED, message: `${failure.reason} - ${message}`});
     });
+
+    it.each(['401 Authentication required', '401 Unauthorized', '401 Registration required', '401 Invalid signed challenge', '400 Invalid authentication method'])(
+        'keeps a rejected signed challenge (%s) as an MFA failure',
+        async (message) => {
+            // Given the backend rejected the signed challenge before looking at the card.
+            const failure = {httpStatusCode: Number(message.slice(0, 3)), reason: CONST.MULTIFACTOR_AUTHENTICATION.REASON.CLIENT_ERRORS.UNRECOGNIZED, message};
+            jest.mocked(handleAddCardToWallet).mockRejectedValue(new WalletProvisioningError(failure));
+
+            // When the scenario catches that failure.
+            const response = await AddToDigitalWallet.action(params, undefined);
+
+            // Then the response is kept as is, so the default MFA failure screen shows instead of the wallet one.
+            expect(response).toEqual(failure);
+        },
+    );
 
     it('sanitizes native exceptions instead of exposing card data', async () => {
         // Given native code rejected with a potentially sensitive error.

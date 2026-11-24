@@ -5,6 +5,7 @@ import type {MultifactorAuthenticationScenarioCustomConfig} from '@components/Mu
 
 import {getPaymentMethods} from '@libs/actions/PaymentMethods';
 import getPlatform from '@libs/getPlatform';
+import {isSignedChallengeFailure} from '@libs/MultifactorAuthentication/shared/helpers';
 import Navigation from '@libs/Navigation/Navigation';
 import {handleAddCardToWallet} from '@libs/Wallet';
 import WalletProvisioningError from '@libs/Wallet/WalletProvisioningError';
@@ -63,6 +64,11 @@ export default {
             };
         } catch (error) {
             if (error instanceof WalletProvisioningError) {
+                // A rejected challenge is an MFA failure, not a wallet one, so it keeps the default failure screens
+                if (isSignedChallengeFailure(error.response.httpStatusCode, error.response.message)) {
+                    return error.response;
+                }
+
                 // The backend reason is prefixed to message so telemetry still sees it.
                 return {
                     ...error.response,

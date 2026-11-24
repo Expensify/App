@@ -14,7 +14,20 @@ const BACKEND_MESSAGE = {
     TRANSACTION_ALREADY_APPROVED: 'Transaction already approved',
     TRANSACTION_ALREADY_DENIED: 'Transaction already denied',
     TRANSACTION_ALREADY_REVIEWED: 'Transaction already reviewed',
+    AUTHENTICATION_REQUIRED: 'Authentication required',
+    UNAUTHORIZED: 'Unauthorized',
+    INVALID_SIGNED_CHALLENGE: 'Invalid signed challenge',
+    INVALID_AUTHENTICATION_METHOD: 'Invalid authentication method',
 } as const;
+
+/** Returned by every MFA command when the signed challenge is rejected, before the command does its own work */
+const SIGNED_CHALLENGE_FAILURE_MESSAGES = [
+    BACKEND_MESSAGE.REGISTRATION_REQUIRED,
+    BACKEND_MESSAGE.AUTHENTICATION_REQUIRED,
+    BACKEND_MESSAGE.UNAUTHORIZED,
+    BACKEND_MESSAGE.INVALID_SIGNED_CHALLENGE,
+    BACKEND_MESSAGE.INVALID_AUTHENTICATION_METHOD,
+] as const;
 
 const REASON = {
     SERVER_ERRORS: {
@@ -278,6 +291,7 @@ const SHARED_VALUES = {
     },
     API_RESPONSE_MAP,
     BACKEND_MESSAGE,
+    SIGNED_CHALLENGE_FAILURE_MESSAGES,
     REASON,
     HTTP_STATUS,
     ROUTINE_FAILURES,
