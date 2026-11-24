@@ -1,3 +1,5 @@
+import type {PersonalDetailsByLogin} from '@components/PersonalDetailsByLoginProvider';
+
 import * as ClearReportActionErrorsActions from '@libs/actions/ClearReportActionErrors';
 import {cleanUpMoneyRequest, deleteMoneyRequest, getCleanUpTransactionThreadReportOnyxData, getNavigationUrlOnMoneyRequestDelete} from '@libs/actions/IOU/DeleteMoneyRequest';
 import {getReportPreviewReportAction} from '@libs/actions/IOU/MoneyRequestBuilder';
@@ -6,6 +8,7 @@ import {updateMoneyRequestAmountAndCurrency} from '@libs/actions/IOU/UpdateMoney
 import initOnyxDerivedValues from '@libs/actions/OnyxDerived';
 import {addComment, openReport} from '@libs/actions/Report';
 import {subscribeToUserEvents} from '@libs/actions/User';
+import {WRITE_COMMANDS} from '@libs/API/types';
 import {getOriginalMessage, getReportActionMessage, getReportActionText, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import type {OptimisticChatReport} from '@libs/ReportUtils';
 import {buildTransactionThread, isIOUReport} from '@libs/ReportUtils';
@@ -33,7 +36,16 @@ import {createRandomReport} from '../../utils/collections/reports';
 import createRandomTransaction from '../../utils/collections/transaction';
 import getOnyxValue from '../../utils/getOnyxValue';
 import PusherHelper from '../../utils/PusherHelper';
-import {createGlobalFetchMock, formatPhoneNumber, getCurrencyDecimalsLocal, getCurrencySymbolLocal, getOnyxData, setPersonalDetails, signInWithTestUser} from '../../utils/TestHelper';
+import {
+    createGlobalFetchMock,
+    formatPhoneNumber,
+    getCurrencyDecimalsLocal,
+    getCurrencySymbolLocal,
+    getOnyxData,
+    setPersonalDetails,
+    signInWithTestUser,
+    translateLocal,
+} from '../../utils/TestHelper';
 import {isObject} from '../../utils/typeGuards';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
@@ -72,6 +84,9 @@ const TEST_INTRO_SELECTED: IntroSelected = {
 
 const RORY_EMAIL = 'rory@expensifail.com';
 const RORY_ACCOUNT_ID = 3;
+const RORY_PERSONAL_DETAILS_BY_LOGINS: PersonalDetailsByLogin = {
+    [RORY_EMAIL]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL},
+};
 const CARLOS_ACCOUNT_ID = 1;
 
 OnyxUpdateManager();
@@ -149,6 +164,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
 
             // When a submit IOU expense is made
             requestMoney({
+                personalDetailsByLogins: RORY_PERSONAL_DETAILS_BY_LOGINS,
                 isVendorMatchingBetaEnabled: false,
                 conciergeChat: undefined,
                 report: chatReport,
@@ -352,6 +368,75 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
             expect(tr).toBeFalsy();
         });
 
+        it('does not leave the expense stuck as pending when the delete fails after an earlier edit succeeded', async () => {
+            if (!transaction || !createIOUAction) {
+                throw new Error('Expected the expense and its IOU action to exist');
+            }
+
+            // Given an amount edit that is still pending when the expense is deleted
+            mockFetch.mockAPICommand(WRITE_COMMANDS.DELETE_MONEY_REQUEST, () => ({jsonCode: 400}));
+            mockFetch.pause();
+            updateMoneyRequestAmountAndCurrency({
+                translate: translateLocal,
+                isVendorMatchingBetaEnabled: false,
+                rules: undefined,
+                transactionID: transaction.transactionID,
+                transaction,
+                transactions: {},
+                transactionThreadReport: thread,
+                parentReport: iouReport,
+                iouReportOwnerLogin: undefined,
+                transactionViolations: {},
+                reportPolicyTags: undefined,
+                amount: 20000,
+                currency: CONST.CURRENCY.USD,
+                taxAmount: 0,
+                taxCode: '',
+                taxValue: '',
+                policy: undefined,
+                policyTagList: {},
+                policyCategories: {},
+                currentUserAccountIDParam: TEST_USER_ACCOUNT_ID,
+                currentUserEmailParam: TEST_USER_LOGIN,
+                delegateAccountID: undefined,
+                isASAPSubmitBetaEnabled: false,
+                policyRecentlyUsedCurrencies: [],
+                isTrackIntentUser: false,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                getCurrencySymbol: getCurrencySymbolLocal,
+            });
+            await waitForBatchedUpdates();
+            const editedTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`);
+            expect(editedTransaction?.pendingFields?.amount).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
+
+            // When the expense is deleted, the edit succeeds and the delete fails
+            deleteMoneyRequest({
+                transactionThreadReportActions: undefined,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                transactionID: transaction.transactionID,
+                reportAction: createIOUAction,
+                transactions: {},
+                violations: {},
+                iouReport,
+                iouReportTransactions: editedTransaction ? [editedTransaction] : [],
+                chatReport,
+                transactionThreadReport: thread,
+                isChatIOUReportArchived: false,
+                allTransactionViolationsParam: {},
+                currentUserAccountID: TEST_USER_ACCOUNT_ID,
+                currentUserEmail: TEST_USER_LOGIN,
+            });
+            await waitForBatchedUpdates();
+            await mockFetch.resume();
+            await waitForBatchedUpdates();
+
+            // Then the expense is restored with the edited amount and nothing pending
+            const restoredTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`);
+            expect(restoredTransaction?.pendingAction).toBeFalsy();
+            expect(restoredTransaction?.pendingFields?.amount).toBeFalsy();
+            expect(restoredTransaction?.modifiedAmount).toBe(editedTransaction?.modifiedAmount);
+        });
+
         it('delete the IOU report when there are no expenses left in the IOU report', async () => {
             // Given an IOU report and a paused fetch state
             mockFetch?.pause?.();
@@ -411,6 +496,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
         it('does not delete the IOU report when there are expenses left in the IOU report', async () => {
             // Given multiple expenses on an IOU report
             requestMoney({
+                personalDetailsByLogins: RORY_PERSONAL_DETAILS_BY_LOGINS,
                 isVendorMatchingBetaEnabled: false,
                 conciergeChat: undefined,
                 report: chatReport,
@@ -508,6 +594,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
             // Given a second expense on the IOU report, so the report is not deleted and the error
             // clearing runs synchronously instead of inside the navigation transition callback
             requestMoney({
+                personalDetailsByLogins: RORY_PERSONAL_DETAILS_BY_LOGINS,
                 isVendorMatchingBetaEnabled: false,
                 conciergeChat: undefined,
                 report: chatReport,
@@ -745,6 +832,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
             jest.advanceTimersByTime(10);
             if (transaction && createIOUAction) {
                 updateMoneyRequestAmountAndCurrency({
+                    translate: translateLocal,
                     isVendorMatchingBetaEnabled: false,
                     transactionID: transaction.transactionID,
                     transaction,
@@ -1193,6 +1281,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
             const comment2 = 'Send me money please 2';
             if (chatReport) {
                 requestMoney({
+                    personalDetailsByLogins: RORY_PERSONAL_DETAILS_BY_LOGINS,
                     isVendorMatchingBetaEnabled: false,
                     conciergeChat: undefined,
                     report: chatReport,
@@ -1283,6 +1372,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
         it('navigate the user correctly to the iou Report when appropriate', async () => {
             // Given multiple expenses on an IOU report
             requestMoney({
+                personalDetailsByLogins: RORY_PERSONAL_DETAILS_BY_LOGINS,
                 isVendorMatchingBetaEnabled: false,
                 conciergeChat: undefined,
                 report: chatReport,
@@ -1464,6 +1554,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
             const comment2 = 'Send me money please 2';
             if (chatReport) {
                 requestMoney({
+                    personalDetailsByLogins: RORY_PERSONAL_DETAILS_BY_LOGINS,
                     isVendorMatchingBetaEnabled: false,
                     conciergeChat: undefined,
                     report: chatReport,
@@ -2565,6 +2656,8 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
             const CHAT_REPORT_ID = '70001';
             const IOU_REPORT_ID = '70002';
             const WHISPER_TARGET_ACCOUNT_ID = 808;
+            const ACTIONABLE_WHISPER_TARGET_ACCOUNT_ID = WHISPER_TARGET_ACCOUNT_ID + 1;
+            const UNRELATED_ACCOUNT_ID = WHISPER_TARGET_ACCOUNT_ID + 2;
 
             const olderIOUAction: ReportAction = {
                 ...createRandomReportAction(10),
@@ -2584,6 +2677,16 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
                 created: '2026-10-01 12:00:00.000',
                 message: [{type: 'COMMENT', html: 'changed the amount', text: 'changed the amount', whisperedTo: [WHISPER_TARGET_ACCOUNT_ID]}],
                 originalMessage: {whisperedTo: [WHISPER_TARGET_ACCOUNT_ID]},
+            };
+            /** Newer than `olderIOUAction`, and only visible to the whispered-to account while they can write. */
+            const actionableWhisper: ReportAction = {
+                ...createRandomReportAction(14),
+                reportActionID: 'deleteActionableWhisper',
+                reportID: IOU_REPORT_ID,
+                actionName: CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_MENTION_WHISPER,
+                created: '2026-10-01 13:00:00.000',
+                message: [{type: 'COMMENT', html: 'mentioned you', text: 'mentioned you', whisperedTo: [ACTIONABLE_WHISPER_TARGET_ACCOUNT_ID]}],
+                originalMessage: {whisperedTo: [ACTIONABLE_WHISPER_TARGET_ACCOUNT_ID]},
             };
             const previewAction: ReportAction = {
                 ...createRandomReportAction(12),
@@ -2617,17 +2720,19 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${IOU_REPORT_ID}`, {
                 [olderIOUAction.reportActionID]: olderIOUAction,
                 [whisper.reportActionID]: whisper,
+                [actionableWhisper.reportActionID]: actionableWhisper,
                 [deletedIOUAction.reportActionID]: deletedIOUAction,
             });
             await waitForBatchedUpdates();
 
-            const getPreviewCreated = (currentUserAccountID: number) => {
+            const getPreviewCreated = (currentUserAccountID: number, isArchivedIOUReport = false) => {
                 const result = getCleanUpTransactionThreadReportOnyxData({
                     shouldDeleteTransactionThread: false,
                     reportAction: deletedIOUAction,
                     iouReport,
                     chatReport,
                     currentUserAccountID,
+                    isArchivedIOUReport,
                 });
                 const entry = result.optimisticData.find((update) => update.key === `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${CHAT_REPORT_ID}`);
                 const value: unknown = entry && 'value' in entry ? entry.value : undefined;
@@ -2644,8 +2749,14 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
             // Given the whisper targets the deleting user, it is the newest action they can see
             expect(getPreviewCreated(WHISPER_TARGET_ACCOUNT_ID)).toBe(whisper.created);
 
-            // Given the whisper targets somebody else, it is invisible and the older comment wins
-            expect(getPreviewCreated(WHISPER_TARGET_ACCOUNT_ID + 1)).toBe(olderIOUAction.created);
+            // Given the actionable whisper targets the deleting user, it is the newest action they can see while they can write
+            expect(getPreviewCreated(ACTIONABLE_WHISPER_TARGET_ACCOUNT_ID)).toBe(actionableWhisper.created);
+
+            // Given the whispers target somebody else, they are invisible and the older comment wins
+            expect(getPreviewCreated(UNRELATED_ACCOUNT_ID)).toBe(olderIOUAction.created);
+
+            // Given the IOU report is archived, the user can't write, so the actionable whisper is hidden
+            expect(getPreviewCreated(ACTIONABLE_WHISPER_TARGET_ACCOUNT_ID, true)).toBe(olderIOUAction.created);
         });
     });
 

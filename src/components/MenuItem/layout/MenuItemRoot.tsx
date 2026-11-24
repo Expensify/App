@@ -22,7 +22,7 @@ import mergeRefs from '@libs/mergeRefs';
 import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
-import type WithSentryLabel from '@src/types/utils/SentryLabel';
+import type {WithSentryLabelWhenPressable} from '@src/types/utils/SentryLabel';
 import type WithTestID from '@src/types/utils/TestID';
 
 import type {ComponentRef, PropsWithChildren, Ref} from 'react';
@@ -32,13 +32,15 @@ import React, {useRef} from 'react';
 import {View} from 'react-native';
 
 type MenuItemRootProps = PropsWithChildren &
-    WithSentryLabel &
+    WithSentryLabelWhenPressable &
     WithTestID &
     ForwardedFSClassProps & {
         /** Function to fire when the row is pressed */
         onPress?: (event: GestureResponderEvent | KeyboardEvent) => void | Promise<void>;
 
         isDisabled?: boolean;
+
+        isCompact?: boolean;
 
         /**
          * Pre-computed accessibility label. When provided, `Root` uses it instead of deriving the label
@@ -73,6 +75,7 @@ function MenuItemRoot({
     children,
     onPress,
     isDisabled = false,
+    isCompact = false,
     sentryLabel,
     testID,
     accessibilityLabel,
@@ -101,7 +104,8 @@ function MenuItemRoot({
     } = useCopyableTextRowPress({shouldTrackTouchStart: true});
 
     const {accessibilityLabel: rowAccessibilityLabel, accessibilityHint, fsClass: rowFSClass, registries: accessibilityRegistries} = useMenuItemAccessibility(accessibilityLabel);
-    const {handler: registeredSecondaryInteraction, register: registerSecondaryInteraction} = useMenuItemSecondaryInteractionRegistry();
+    const {interaction: secondaryInteraction, register: registerSecondaryInteraction} = useMenuItemSecondaryInteractionRegistry();
+    const registeredSecondaryInteraction = secondaryInteraction?.handler;
 
     useRemoveNonInteractiveClickHandler(pressableRef, isInteractive);
 
@@ -135,12 +139,23 @@ function MenuItemRoot({
           }
         : undefined;
 
+    // A read-only row has no label of its own, so it takes the label of the sub-component that handles its long press,
+    // e.g. `MenuItem.Copy`.
+    const secondaryProps = secondaryInteraction
+        ? {
+              // RN Web prevents the native context menu whenever an onLongPress handler is attached.
+              // Reset on the next pointer start, since press-out can precede the browser's selection menu.
+              onSecondaryInteraction: shouldEnableTextSelection && didTouchStartOnCopyableText ? undefined : onSecondaryInteractionAction,
+              sentryLabel: sentryLabel ?? secondaryInteraction.sentryLabel,
+          }
+        : {};
+    const pressProps = onPress ? {onPress: onPressAction, sentryLabel} : {};
+
     return (
-        <MenuItemConfigContext.Provider value={{isDisabled, isInteractive, shouldAllowTextSelection: shouldEnableTextSelection}}>
+        <MenuItemConfigContext.Provider value={{isDisabled, isInteractive, isCompact, shouldAllowTextSelection: shouldEnableTextSelection}}>
             <Hoverable>
                 {(isHovered) => (
                     <PressableWithSecondaryInteraction
-                        onPress={onPressAction}
                         onMouseDown={(event) => {
                             markMouseDownOnCopyableText(event?.target, shouldEnableTextSelection);
                         }}
@@ -156,15 +171,16 @@ function MenuItemRoot({
                             })
                         }
                         onPressOut={ControlSelection.unblock}
-                        // RN Web prevents the native context menu whenever an onLongPress handler is attached.
-                        // Reset on the next pointer start, since press-out can precede the browser's selection menu.
-                        onSecondaryInteraction={shouldEnableTextSelection && didTouchStartOnCopyableText ? undefined : onSecondaryInteractionAction}
+                        {...secondaryProps}
+                        {...pressProps}
                         activeOpacity={!isInteractive ? 1 : variables.pressDimValue}
                         opacityAnimationDuration={variables.instantAnimationDuration}
                         style={({pressed}) =>
                             [
                                 styles.popoverMenuItem,
                                 !isInteractive && styles.cursorDefault,
+                                isCompact && styles.alignItemsCenter,
+                                isCompact && styles.optionRowCompact,
                                 isCompactPopover && styles.compactPopoverMenuItemBase,
                                 style,
                                 StyleUtils.getButtonBackgroundColorStyle(getButtonState({isActive: isHovered, isPressed: pressed, isDisabled, isInteractive}), true),
@@ -182,7 +198,6 @@ function MenuItemRoot({
                         forwardedFSClass={forwardedFSClass === CONST.FULLSTORY.CLASS.MASK ? forwardedFSClass : rowFSClass}
                         accessible={shouldBeAccessible}
                         tabIndex={isInteractive ? 0 : -1}
-                        sentryLabel={sentryLabel}
                         testID={testID}
                     >
                         {({pressed}) => (

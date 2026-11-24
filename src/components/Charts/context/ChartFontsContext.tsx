@@ -1,7 +1,7 @@
 import type ChartFontsValue from '@components/Charts/types/chartFontsTypes';
 import type {ChartDefaultTypeface} from '@components/Charts/types/chartSkiaTypefaceTypes';
 
-import type {SkTypefaceFontProvider} from '@shopify/react-native-skia';
+import type {SkTypefaceFontProvider} from 'react-native-skia';
 
 import {createContext, useContext} from 'react';
 

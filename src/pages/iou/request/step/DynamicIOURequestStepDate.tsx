@@ -26,7 +26,7 @@ import {shouldUseTransactionDraft} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getDistanceRateCustomUnitRate} from '@libs/PolicyUtils';
 import {isPolicyExpenseChat as isPolicyExpenseChatReportUtil} from '@libs/ReportUtils';
-import {getFormattedCreated, hasReceipt, isDistanceRequest} from '@libs/TransactionUtils';
+import {getCreated, getFormattedCreated, hasReceipt, isDistanceRequest} from '@libs/TransactionUtils';
 
 import {setMoneyRequestCreated, updateDistanceRateOnExpenseDateChange} from '@userActions/IOU/MoneyRequest';
 import {setDraftSplitTransaction} from '@userActions/IOU/Split';
@@ -45,6 +45,7 @@ import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 import {loginSelector} from '@selectors/PersonalDetails';
 import lodashIsEmpty from 'lodash/isEmpty';
 import React from 'react';
+import Onyx from 'react-native-onyx';
 
 import type {WithWritableReportOrNotFoundProps} from './withWritableReportOrNotFound';
 
@@ -81,28 +82,23 @@ function DynamicIOURequestStepDate({
     const shouldLookupDistancePolicy = !!customUnitRateID && !getDistanceRateCustomUnitRate(effectivePolicy, customUnitRateID);
     const distanceOriginalPolicy = useDistanceRateOriginalPolicy(customUnitRateID, shouldLookupDistancePolicy);
     const {duplicateTransactions, duplicateTransactionViolations} = useDuplicateTransactionsAndViolations(transactionID ? [transactionID] : []);
-    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${report?.policyID}`);
-    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${report?.policyID}`);
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.parentReportID)}`);
     const [iouReportOwnerLogin] = usePersonalDetail(parentReport?.ownerAccountID, loginSelector);
-    const [reportPolicyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${getNonEmptyStringOnyxID(parentReport?.policyID)}`);
 
     const [splitDraftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
-    const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
-    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
     const delegateAccountID = useDelegateAccountID();
     const {isBetaEnabled, isBetaEnabledOrUnknown} = usePermissions();
     const isVendorMatchingBetaEnabled = isBetaEnabledOrUnknown(CONST.BETAS.VENDOR_MATCHING);
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const {isOffline} = useNetwork();
-    const [lastSelectedDistanceRates] = useOnyx(ONYXKEYS.NVP_LAST_SELECTED_DISTANCE_RATES);
     const isEditing = action === CONST.IOU.ACTION.EDIT;
     const isSplitBill = iouType === CONST.IOU.TYPE.SPLIT;
     const isSplitExpense = iouType === CONST.IOU.TYPE.SPLIT_EXPENSE;
     // In the split flow, when editing we use SPLIT_TRANSACTION_DRAFT to save draft value
     const isEditingSplit = (isSplitBill || isSplitExpense) && isEditing;
-    const currentCreated = isEditingSplit && !lodashIsEmpty(splitDraftTransaction) ? getFormattedCreated(splitDraftTransaction) : getFormattedCreated(transaction);
+    const currentTransaction = isEditingSplit && !lodashIsEmpty(splitDraftTransaction) ? splitDraftTransaction : transaction;
+    const currentCreated = getFormattedCreated(currentTransaction);
     useRestartOnReceiptFailure(transaction, reportID, iouType, action);
 
     const shouldShowNotFound = useShowNotFoundPageInIOUStep(action, iouType, reportActionID, report, transaction);
@@ -115,11 +111,12 @@ function DynamicIOURequestStepDate({
         Navigation.goBack(backPath, {shouldSkipFocusRestore: true});
     };
 
-    const updateDate = (value: FormOnyxValues<typeof ONYXKEYS.FORMS.MONEY_REQUEST_DATE_FORM>) => {
+    const updateDate = async (value: FormOnyxValues<typeof ONYXKEYS.FORMS.MONEY_REQUEST_DATE_FORM>) => {
         const newCreated = value.moneyRequestCreated;
 
-        // Only update created if it has changed
-        if (newCreated === currentCreated) {
+        // Only update created if it has changed. The stored value can include a time from SmartScan, so picking the day
+        // that is already shown still saves the date without that time, which can clear a futureDate violation.
+        if (newCreated === getCreated(currentTransaction)) {
             saveAndNavigateBack();
             return;
         }
@@ -131,10 +128,19 @@ function DynamicIOURequestStepDate({
             return;
         }
 
+        const [rules, lastSelectedDistanceRates, policyCategories, policyTags, reportPolicyTags, introSelected] = await Onyx.multiGet([
+            ONYXKEYS.COLLECTION.RULE,
+            ONYXKEYS.NVP_LAST_SELECTED_DISTANCE_RATES,
+            `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${report?.policyID}`,
+            `${ONYXKEYS.COLLECTION.POLICY_TAGS}${report?.policyID}`,
+            `${ONYXKEYS.COLLECTION.POLICY_TAGS}${getNonEmptyStringOnyxID(parentReport?.policyID)}`,
+            ONYXKEYS.NVP_INTRO_SELECTED,
+        ]);
         const isTransactionDraft = shouldUseTransactionDraft(action);
 
         if (isEditing) {
             updateMoneyRequestDate({
+                translate,
                 isVendorMatchingBetaEnabled,
                 transactionID,
                 transaction,
@@ -155,7 +161,7 @@ function DynamicIOURequestStepDate({
                 isOffline,
                 delegateAccountID,
                 distanceOriginalPolicy,
-                isTrackIntentUser,
+                isTrackIntentUser: isTrackIntentUserSelector(introSelected),
                 personalPolicyOutputCurrency: personalPolicy?.outputCurrency,
                 getCurrencyDecimals,
                 getCurrencySymbol,
@@ -177,6 +183,7 @@ function DynamicIOURequestStepDate({
                 isDraft: isTransactionDraft,
                 personalPolicyOutputCurrency: personalPolicy?.outputCurrency,
                 getCurrencyDecimals,
+                rules,
             });
         }
 

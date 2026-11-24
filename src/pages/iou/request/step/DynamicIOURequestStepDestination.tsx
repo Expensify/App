@@ -8,7 +8,6 @@ import type {ListItem, SelectionListWithSectionsHandle} from '@components/Select
 import WorkspaceEmptyStateSection from '@components/WorkspaceEmptyStateSection';
 
 import useContentHeaderHeight from '@hooks/useContentHeaderHeight';
-import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDefaultExpensePolicy from '@hooks/useDefaultExpensePolicy';
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
@@ -25,6 +24,7 @@ import {setTransactionReport} from '@libs/actions/Transaction';
 import {getInitialPerDiemTargetReport} from '@libs/IOUUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
+import {getAvailablePerDiemRate} from '@libs/PolicyPerDiemUtils';
 import {getPerDiemCustomUnit, getPolicyByCustomUnitID, isPolicyAdmin} from '@libs/PolicyUtils';
 import {findSelfDMReportID, getPolicyExpenseChat} from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
@@ -54,6 +54,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 
 import React, {useEffect, useImperativeHandle, useRef} from 'react';
 import {View} from 'react-native';
+import Onyx from 'react-native-onyx';
 
 import type {WithFullTransactionOrNotFoundProps} from './withFullTransactionOrNotFound';
 import type {WithWritableReportOrNotFoundProps} from './withWritableReportOrNotFound';
@@ -88,13 +89,9 @@ function DynamicIOURequestStepDestination({
     explicitPolicyID,
     ref,
 }: DynamicIOURequestStepDestinationProps) {
-    const {getCurrencyDecimals} = useCurrencyListActions();
     const isEditPage = name === SCREENS.MONEY_REQUEST.DYNAMIC_STEP_DESTINATION_EDIT;
     const editBackPath = useDynamicBackPath(DYNAMIC_ROUTES.MONEY_REQUEST_STEP_DESTINATION_EDIT.path);
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
-    const [userBillingGracePeriodEnds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
-    const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
-    const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
     const reportPolicyID = getIOURequestPolicyID(transaction, report);
     const policyID = reportPolicyID === CONST.POLICY.ID_FAKE ? getPolicyByCustomUnitID(transaction, allPolicies)?.id : reportPolicyID;
     const [policy, policyMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${explicitPolicyID ?? policyID}`);
@@ -122,8 +119,9 @@ function DynamicIOURequestStepDestination({
 
     const {isOffline} = useNetwork();
     const isLoading = !isOffline && (!customUnit?.rates || isLoadingOnyxValue(policyMetadata));
-    const shouldShowEmptyState = isEmptyObject(customUnit?.rates) && !isOffline && !isLoading;
-    const shouldShowOfflineView = isEmptyObject(customUnit?.rates) && isOffline;
+    const hasAvailableRates = Object.values(customUnit?.rates ?? {}).some((rate) => getAvailablePerDiemRate(rate) !== undefined);
+    const shouldShowEmptyState = !hasAvailableRates && !isOffline && !isLoading;
+    const shouldShowOfflineView = !hasAvailableRates && isOffline;
 
     const navigateBack = () => {
         if (isEditPage) {
@@ -133,10 +131,17 @@ function DynamicIOURequestStepDestination({
         Navigation.goBack();
     };
 
-    const updateDestination = (destination: ListItem & {currency: string}) => {
-        if (openedFromStartPage && policy && shouldRestrictUserBillableActions(policy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, accountID)) {
-            Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy.id));
-            return;
+    const updateDestination = async (destination: ListItem & {currency: string}) => {
+        if (openedFromStartPage && policy) {
+            const [userBillingGracePeriodEnds, ownerBillingGracePeriodEnd, amountOwed] = await Onyx.multiGet([
+                ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END,
+                ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END,
+                ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED,
+            ]);
+            if (shouldRestrictUserBillableActions(policy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, accountID)) {
+                Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy.id));
+                return;
+            }
         }
 
         if (isEmptyObject(customUnit)) {
@@ -158,7 +163,7 @@ function DynamicIOURequestStepDestination({
                 setTransactionReport(transactionID, {reportID: transactionReportID}, true);
                 setMoneyRequestParticipantsFromReport(transactionID, targetReport, accountID, targetIouType !== CONST.IOU.TYPE.TRACK);
                 setCustomUnitID(transactionID, customUnit.customUnitID);
-                setMoneyRequestCategory(transactionID, customUnit?.defaultCategory ?? '', undefined, getCurrencyDecimals);
+                setMoneyRequestCategory(transactionID, customUnit?.defaultCategory ?? '', undefined);
             }
             setCustomUnitRateID(transactionID, destination.keyForList ?? '', transaction, policy, false, personalPolicy?.outputCurrency);
             setMoneyRequestCurrency(transactionID, destination.currency);
@@ -220,7 +225,7 @@ function DynamicIOURequestStepDestination({
             return;
         }
         setCustomUnitID(transactionID, perDiemUnit?.customUnitID ?? CONST.CUSTOM_UNITS.FAKE_P2P_ID);
-        setMoneyRequestCategory(transactionID, perDiemUnit?.defaultCategory ?? '', undefined, getCurrencyDecimals);
+        setMoneyRequestCategory(transactionID, perDiemUnit?.defaultCategory ?? '', undefined);
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [transactionID, policy?.customUnits, transaction?.iouRequestType]);
 

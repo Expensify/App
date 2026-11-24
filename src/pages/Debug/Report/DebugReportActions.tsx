@@ -3,6 +3,7 @@ import ScrollView from '@components/ScrollView';
 import SelectionList from '@components/SelectionList';
 import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
 
+import useAccountIDToNameMap from '@hooks/useAccountIDToNameMap';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -35,6 +36,7 @@ type DebugReportActionsProps = {
 function DebugReportActions({reportID}: DebugReportActionsProps) {
     const {translate, datetimeToCalendarTime, localeCompare, formatPhoneNumber} = useLocalize();
     const styles = useThemeStyles();
+    const accountIDToName = useAccountIDToNameMap();
     const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('');
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`);
@@ -82,7 +84,7 @@ function DebugReportActions({reportID}: DebugReportActionsProps) {
         }
 
         if (reportActionMessage.html) {
-            return Parser.htmlToText(reportActionMessage.html.replaceAll(/<mention-user accountID=(\d+)>\s*<\/mention-user>/gi, '<mention-user accountID="$1"/>'));
+            return Parser.htmlToText(reportActionMessage.html.replaceAll(/<mention-user accountID=(\d+)>\s*<\/mention-user>/gi, '<mention-user accountID="$1"/>'), {accountIDToName});
         }
 
         return getReportActionMessageText(reportAction);

@@ -40,7 +40,7 @@ function MergeTransactionItem<TItem extends MergeTransactionListItemType>({
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transactionItem.reportID}`);
     const policy = usePolicy(report?.policyID);
 
-    const animatedHighlightStyle = useRowHighlightAnimation({shouldHighlight: item?.shouldAnimateInHighlight ?? false, borderRadius: 0});
+    const animatedHighlightStyle = useRowHighlightAnimation({shouldHighlight: item?.shouldAnimateInHighlight ?? false, highlightKey: item?.keyForList, borderRadius: 0});
     const StyleUtils = useStyleUtils();
     const pressableRef = useRef<ComponentRef<typeof View>>(null);
 
@@ -54,7 +54,7 @@ function MergeTransactionItem<TItem extends MergeTransactionListItemType>({
                 onPress={() => {
                     onSelectRow(item);
                 }}
-                disabled={isDisabled && !item.isSelected}
+                disabled={!!isDisabled && !item.isSelected}
                 accessibilityLabel={item.text ?? ''}
                 role={CONST.ROLE.BUTTON}
                 isNested
