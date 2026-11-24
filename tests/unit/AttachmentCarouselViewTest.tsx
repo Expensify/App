@@ -47,7 +47,7 @@ jest.mock('react-native-reanimated', () => {
     };
 });
 
-function renderCarousel() {
+function renderCarousel(overrides: Partial<AttachmentCarouselViewProps> = {}) {
     const props: AttachmentCarouselViewProps = {
         page: 1,
         attachments: [{source: 'first.png'}, {source: 'protected.pdf'}, {source: 'last.png'}],
@@ -58,6 +58,7 @@ function renderCarousel() {
         setShouldShowArrows: jest.fn(),
         setPage: jest.fn(),
         onNavigate: jest.fn(),
+        ...overrides,
     };
     const view = render(<AttachmentCarouselView {...props} />);
     return {props, ...view};
@@ -124,6 +125,54 @@ describe('AttachmentCarouselView viewability guards', () => {
         expect(props.onNavigate).toHaveBeenCalledWith(props.attachments[2]);
         expect(screen.getByText('last.png:true')).toBeOnTheScreen();
         expect(screen.getByText('protected.pdf:false')).toBeOnTheScreen();
+    });
+
+    it.each<{name: string; attachments: Attachment[]}>([
+        {name: 'source', attachments: [{source: 'first.png'}, {source: 'protected.pdf'}, {source: 'replacement.pdf'}]},
+        {
+            name: 'attachment ID with a shared source',
+            attachments: [
+                {source: 'first.png', attachmentID: 'A'},
+                {source: 'protected.pdf', attachmentID: 'B'},
+                {source: 'protected.pdf', attachmentID: 'C'},
+            ],
+        },
+    ])('focuses a replacement PDF at the same index using its $name', ({attachments}) => {
+        // Given B selected between A and C, with identity supplied by either source or attachment ID
+        const selected = attachments[1];
+        const replacement = attachments[2];
+        const replacementLabel = typeof replacement.source === 'object' ? JSON.stringify(replacement.source) : String(replacement.source);
+        const {props, rerender} = renderCarousel({attachments, source: selected.source, attachmentID: selected.attachmentID});
+        const dismiss = jest.spyOn(Keyboard, 'dismiss');
+        const viewability = mockFlatList.mock.calls.at(-1)?.[0].onViewableItemsChanged;
+        if (!viewability) {
+            throw new Error('Expected viewability callback');
+        }
+
+        // When deletion removes B, the parent selects C at the same index without remounting the carousel
+        rerender(
+            <AttachmentCarouselView
+                {...props}
+                attachments={[attachments[0], replacement]}
+                source={replacement.source}
+                attachmentID={replacement.attachmentID}
+            />,
+        );
+        expect(mockFlatList.mock.calls.at(-1)?.[0].onViewableItemsChanged).toBe(viewability);
+        const sample = {viewableItems: [{item: replacement, key: 'replacement', index: 1, isViewable: true}], changed: []};
+        act(() => viewability(sample));
+
+        // Then the original callback focuses C instead of leaving its PDF loading as an unfocused attachment
+        expect(screen.getByText(`${replacementLabel}:true`)).toBeOnTheScreen();
+        expect(props.setPage).toHaveBeenCalledWith(1);
+        expect(props.onNavigate).toHaveBeenCalledWith(replacement);
+        expect(dismiss).toHaveBeenCalledTimes(1);
+
+        // When C is reported again, the unchanged attachment must not dismiss the keyboard or navigate again
+        act(() => viewability(sample));
+        expect(props.setPage).toHaveBeenCalledTimes(1);
+        expect(props.onNavigate).toHaveBeenCalledTimes(1);
+        expect(dismiss).toHaveBeenCalledTimes(1);
     });
 
     it('ignores viewability while the fullscreen ref is set', () => {

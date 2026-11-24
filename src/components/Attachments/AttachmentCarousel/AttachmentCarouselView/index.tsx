@@ -76,6 +76,8 @@ function AttachmentCarouselView({
     const {handleTap, handleScaleChange, isScrollEnabled} = useCarouselContextEvents(setShouldShowArrows);
 
     const [activeAttachmentID, setActiveAttachmentID] = useState<AttachmentSource | null>(attachmentID ?? source);
+    // Track focused state rather than incoming props: deletion can replace the attachment at the same index.
+    const activeAttachmentIDRef = useRef(activeAttachmentID);
 
     const scrollRef = useAnimatedRef<Animated.FlatList<Attachment>>();
 
@@ -106,17 +108,22 @@ function AttachmentCarouselView({
 
         const entry = viewableItems.at(0);
         const item = entry?.item;
-        if (!entry || !item || entry.index === currentPageRef.current) {
+        if (!entry || !item) {
+            return;
+        }
+        const itemID = item.attachmentID ?? item.source;
+        if (entry.index === currentPageRef.current && itemID === activeAttachmentIDRef.current) {
             return;
         }
 
-        // Only a real change of page dismisses the keyboard, otherwise rotating the device would close the
+        // Only a real change of selection dismisses the keyboard, otherwise rotating the device would close the
         // password field of a protected PDF.
         Keyboard.dismiss();
 
         if (entry.index != null) {
             setPage(entry.index);
-            setActiveAttachmentID(item.attachmentID ?? item.source);
+            activeAttachmentIDRef.current = itemID;
+            setActiveAttachmentID(itemID);
         }
 
         if (onNavigate) {
