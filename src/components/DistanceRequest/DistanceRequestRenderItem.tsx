@@ -1,16 +1,46 @@
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import Icon from '@components/Icon';
+import MenuItem from '@components/MenuItem';
+import {useMenuItemSecondaryInteraction} from '@components/MenuItem/MenuItemSecondaryInteractionContext';
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
+import {useSession} from '@components/OnyxListItemProvider';
 
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
+import useThemeStyles from '@hooks/useThemeStyles';
 
 import {isWaypointNullIsland} from '@libs/TransactionUtils';
+
+import {callIfAuthenticated} from '@userActions/Session';
 
 import CONST from '@src/CONST';
 import type {WaypointCollection} from '@src/types/onyx/Transaction';
 import type {SentryLabel} from '@src/types/utils/SentryLabel';
 
 import React from 'react';
+import {View} from 'react-native';
+
+type DistanceRequestDragHandleProps = {
+    onDrag?: () => void;
+    sentryLabel: SentryLabel;
+};
+
+function DistanceRequestDragHandle({onDrag, sentryLabel}: DistanceRequestDragHandleProps) {
+    const icons = useMemoizedLazyExpensifyIcons(['DragHandles']);
+    const theme = useTheme();
+    const styles = useThemeStyles();
+    useMenuItemSecondaryInteraction(onDrag, sentryLabel);
+
+    return (
+        <View style={styles.popoverMenuIcon}>
+            <Icon
+                src={icons.DragHandles}
+                fill={theme.icon}
+            />
+        </View>
+    );
+}
 
 type DistanceRequestProps = {
     /** The waypoints for the distance expense */
@@ -28,7 +58,10 @@ type DistanceRequestProps = {
 
 function DistanceRequestRenderItem({waypoints, item = '', onSecondaryInteraction, getIndex, isActive = false, onPress = () => {}, disabled = false}: DistanceRequestProps) {
     const theme = useTheme();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Location', 'DotIndicatorUnfilled', 'DotIndicator', 'DragHandles']);
+    const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
+    const session = useSession();
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Location', 'DotIndicatorUnfilled', 'DotIndicator']);
     const {translate} = useLocalize();
     const numberOfWaypoints = Object.keys(waypoints ?? {}).length;
     const lastWaypointIndex = numberOfWaypoints - 1;
@@ -54,23 +87,41 @@ function DistanceRequestRenderItem({waypoints, item = '', onSecondaryInteraction
     const errorText = isWaypointNullIsland(waypoint) ? translate('violations.noRoute') : undefined;
 
     return (
-        <MenuItemWithTopDescription
-            description={translate(descriptionKey)}
-            title={title}
-            icon={expensifyIcons.DragHandles}
-            iconFill={theme.icon}
-            secondaryIcon={waypointIcon}
-            secondaryIconFill={theme.icon}
-            shouldShowRightIcon
-            onPress={() => onPress(index)}
-            onSecondaryInteraction={onSecondaryInteraction}
-            focused={isActive}
+        <MenuItem.Root
+            onPress={callIfAuthenticated(() => onPress(index), session)}
+            isFocused={isActive}
             key={item}
-            disabled={disabled}
-            errorText={errorText}
-            brickRoadIndicator={errorText ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
+            isDisabled={disabled}
             sentryLabel={sentryLabel}
-        />
+        >
+            <View style={[styles.flexRow, StyleUtils.getMenuItemTextContainerStyle(false), disabled && styles.cursorDisabled]}>
+                <MenuItem.Leading>
+                    <View style={[styles.flexRow, styles.mr3]}>
+                        <DistanceRequestDragHandle
+                            onDrag={disabled ? undefined : onSecondaryInteraction}
+                            sentryLabel={sentryLabel}
+                        />
+                        <View style={styles.popoverMenuIcon}>
+                            <Icon
+                                src={waypointIcon}
+                                fill={theme.icon}
+                            />
+                        </View>
+                    </View>
+                </MenuItem.Leading>
+                <MenuItemField.Content name={translate(descriptionKey)}>{!!title && <MenuItem.FieldValue>{title}</MenuItem.FieldValue>}</MenuItemField.Content>
+                <MenuItem.Trailing>
+                    {!!errorText && <MenuItem.BrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />}
+                    <MenuItem.Chevron />
+                </MenuItem.Trailing>
+            </View>
+            {!!errorText && (
+                <MenuItem.HelpText
+                    isError
+                    message={errorText}
+                />
+            )}
+        </MenuItem.Root>
     );
 }
 
