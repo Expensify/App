@@ -3235,7 +3235,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
             mockPayViaABAResponse({
                 ok: true,
                 headers: new Headers([['content-type', 'application/json']]),
-                json: () => Promise.resolve({jsonCode: CONST.JSON_CODE.SUCCESS, ABA: 'ABA file\r\n'}),
+                json: () => Promise.resolve({jsonCode: CONST.JSON_CODE.SUCCESS, aba: 'ABA file\r\n'}),
             });
             const onPaid = jest.fn();
 

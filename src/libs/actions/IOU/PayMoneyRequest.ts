@@ -1105,12 +1105,12 @@ type ABAFile = {
 type PayViaABAResponse = {
     jsonCode?: number;
     message?: string;
-    ABA?: string;
+    aba?: string;
 };
 
 /**
  * Reads the ABA file's text from the PayViaABA response. The API currently sends the file itself, but soon will send a
- * JSON response with the file's text in `ABA`.
+ * JSON response with the file's text in `aba`.
  */
 async function getABAFileContent(response: Response): Promise<string> {
     if (response.headers.get('content-type') !== 'application/json') {
@@ -1120,10 +1120,10 @@ async function getABAFileContent(response: Response): Promise<string> {
         return response.text();
     }
     return response.json().then((data: PayViaABAResponse) => {
-        if (data.jsonCode !== CONST.JSON_CODE.SUCCESS || data.ABA === undefined) {
+        if (data.jsonCode !== CONST.JSON_CODE.SUCCESS || data.aba === undefined) {
             throw new HttpsError({message: data.message ?? '', status: String(data.jsonCode ?? '')});
         }
-        return data.ABA;
+        return data.aba;
     });
 }
 
