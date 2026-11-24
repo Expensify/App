@@ -1,15 +1,12 @@
 import type {DynamicFormValues} from '@components/DynamicForm/types';
 
-import type AddressFormFields from '@pages/ReimbursementAccount/AddressFormFields';
+import type {AddressInputKeys} from '@pages/ReimbursementAccount/AddressFormFields';
 
 import CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
-
-import type {ComponentProps} from 'react';
+import STATES_BY_COUNTRY from '@src/CONST/STATES_BY_COUNTRY';
 
 import isCountryCode from './isCountryCode';
-
-type AddressInputKeys = ComponentProps<typeof AddressFormFields>['inputKeys'];
 
 /**
  * Draft keys for AddressFormFields. The street is the field's own value, and an empty key tells AddressSearch to drop that part, such as the place `name`.
@@ -35,10 +32,15 @@ function getAddressCountry(fieldKey: string, values: DynamicFormValues): Country
     return typeof country === 'string' && isCountryCode(country) ? country : '';
 }
 
-/** AddressFormFields lists US states, or Canadian provinces, and assumes the US until a country is picked */
+/** The states the picker lists, which are the US states until a country is picked */
+function getStateOptions(country: Country | ''): Record<string, string> | undefined {
+    return STATES_BY_COUNTRY[country || CONST.COUNTRY.US];
+}
+
+/** The state is asked only where the picker can list the country's states */
 function isStateAsked(country: Country | ''): boolean {
-    return !country || country === CONST.COUNTRY.US || country === CONST.COUNTRY.CA;
+    return !!getStateOptions(country);
 }
 
 export default getAddressInputKeys;
-export {getAddressCountry, isStateAsked};
+export {getAddressCountry, getStateOptions, isStateAsked};

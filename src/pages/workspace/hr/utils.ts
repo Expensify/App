@@ -193,7 +193,7 @@ type GetHRCardsParams = {
     trinetIcon: IconAsset;
 };
 
-/** Builds the full list of HR provider card descriptors for the workspace HR page, including static providers (Gusto, Zenefits) and dynamic Merge HR sub-providers. */
+/** Builds the full list of HR provider card descriptors for the HR tab on Connections, including static providers (Gusto, Zenefits) and dynamic Merge HR sub-providers. */
 function getHRCards({
     policy,
     policyEmployeePersonalDetails,

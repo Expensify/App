@@ -1,5 +1,7 @@
 import {act, renderHook} from '@testing-library/react-native';
 
+import type {PersonalDetailsByLogin} from '@components/PersonalDetailsByLoginProvider';
+import {PersonalDetailsByLoginContext} from '@components/PersonalDetailsByLoginProvider';
 import useCreateNavigationSuggestions from '@components/Search/SearchRouter/useCreateNavigationSuggestions';
 
 import {startDistanceRequest, startMoneyRequest} from '@libs/actions/IOU/MoneyRequest';
@@ -16,6 +18,10 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 
+import type {ReactNode} from 'react';
+
+import React from 'react';
+
 type MockUseCreateReportParams = {
     onCreateReport: (policy: unknown, shouldDismissEmptyReportsConfirmation?: boolean) => void;
     onNavigateToWorkspaceSelection: () => void;
@@ -26,6 +32,8 @@ type MockUseCreateReportParams = {
 type MockOnyxOptions = {
     selector?: (value: unknown) => unknown;
 };
+
+const APPROVER_EMAIL = 'approver@test.com';
 
 const mockCreateReport = jest.fn();
 const mockBlockIfDefaultWorkspaceLacksTravel = jest.fn(() => false);
@@ -77,11 +85,12 @@ const mockIcons = {
     NewWorkspace: mockIcon,
 };
 const mockTranslations = new Map([
-    ['homePage.gettingStartedSection.createExpense', 'Create an expense'],
+    ['homePage.gettingStartedSection.addFirstReceipt', 'Add your first receipt'],
     ['homePage.gettingStartedSection.createWorkspace', 'Create a workspace'],
     ['common.chat', 'Chat'],
     ['common.new', 'New'],
     ['iou.addExpense', 'Add expense'],
+    ['iou.createAnExpense', 'Create an expense'],
     ['iou.createExpense', 'Create expense'],
     ['iou.trackDistance', 'Track distance'],
     ['onboarding.workspace.createWorkspace', 'Create workspace'],
@@ -293,7 +302,7 @@ describe('useCreateNavigationSuggestions', () => {
         mockShouldShowPolicy.mockReturnValue(false);
         const {result} = renderHook(() => useCreateNavigationSuggestions());
 
-        expect(result.current.find((item) => item.keyForList === 'create_expense')?.matchTerms).toEqual(['Create expense', 'Add expense', 'Create an expense']);
+        expect(result.current.find((item) => item.keyForList === 'create_expense')?.matchTerms).toEqual(['Create expense', 'Add expense', 'Create an expense', 'Add your first receipt']);
         expect(result.current.find((item) => item.keyForList === 'create_chat')).toMatchObject({
             text: 'Start chat',
             matchTerms: ['Start chat', 'New Chat'],
@@ -488,15 +497,29 @@ describe('useCreateNavigationSuggestions', () => {
     });
 
     it('creates a report and navigates through the Reports root', () => {
-        // Given the Search router has handed its create callback to useCreateReport
-        renderHook(() => useCreateNavigationSuggestions());
+        // Given the Search router has handed its create callback to useCreateReport, with one approver's personal details available by login
+        const personalDetailsByLogins: PersonalDetailsByLogin = {[APPROVER_EMAIL]: {accountID: 2, login: APPROVER_EMAIL}};
+        const wrapper = ({children}: {children: ReactNode}) =>
+            React.createElement(PersonalDetailsByLoginContext.Provider, {value: {subscribe: () => () => {}, getSnapshot: () => personalDetailsByLogins}}, children);
+        renderHook(() => useCreateNavigationSuggestions(), {wrapper});
         const onCreateReport = mockUseCreateReport.mock.calls.at(0)?.at(0)?.onCreateReport;
 
         // When the hook resolves a workspace and calls back with it
         act(() => onCreateReport?.(submitPolicy, true));
 
-        // Then the report is created on that workspace, and the Reports root is pushed first so back returns to the list
-        expect(createNewReport).toHaveBeenCalledWith(expect.anything(), false, true, submitPolicy, false, mockGetCurrencyDecimals, undefined, false, true);
+        // Then the report is created on that workspace with the personal details from the context, and the Reports root is pushed first so back returns to the list
+        expect(createNewReport).toHaveBeenCalledWith(
+            expect.objectContaining({
+                hasViolations: false,
+                isASAPSubmitBetaEnabled: true,
+                policy: submitPolicy,
+                isTrackIntentUser: false,
+                getCurrencyDecimals: mockGetCurrencyDecimals,
+                rules: undefined,
+                personalDetailsByLogins,
+                shouldDismissEmptyReportsConfirmation: true,
+            }),
+        );
         expect(clearLastSearchParams).not.toHaveBeenCalled();
         expect(Navigation.navigate).toHaveBeenNthCalledWith(1, 'reports', {forceReplace: false});
         expect(Navigation.navigate).toHaveBeenNthCalledWith(2, 'report/created-report', {forceReplace: false});

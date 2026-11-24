@@ -22,6 +22,7 @@ import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {
     getChangedApproverActionMessage,
     getCompanyCardConnectionBroken30DaysMessage,
+    getCompanyCardConsentExpiringMessage,
     getCommuterExclusionMessage,
     getCompanyCardConnectionBrokenMessage,
     getConciergeAutoSelectDistanceRateMessage,
@@ -149,6 +150,9 @@ type ActionContentRouterProps = {
     setIsPaymentMethodPopoverActive: (value: boolean) => void;
     isTrackIntentUser?: boolean;
     paymentExpectedDate?: string;
+
+    /** Whether the action is shown at the top of its thread */
+    isThreadReportParentAction?: boolean;
 };
 
 function ActionContentRouter({
@@ -172,6 +176,7 @@ function ActionContentRouter({
     isTrackIntentUser,
     isLatestConciergeFeedbackAction,
     paymentExpectedDate,
+    isThreadReportParentAction = false,
 }: ActionContentRouterProps): React.JSX.Element | null {
     const {translate, formatTravelDate} = useLocalize();
     const styles = useThemeStyles();
@@ -400,13 +405,14 @@ function ActionContentRouter({
             <PolicyChangeLogContent
                 action={action}
                 policyID={policyID}
+                isThreadReportParentAction={isThreadReportParentAction}
             />
         );
     }
-    if (action.actionName === CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION) {
+    if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION)) {
         return (
             <MovedTransactionAction
-                action={action as OnyxTypes.ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION>}
+                action={action}
                 originalReport={originalReport}
             />
         );
@@ -440,10 +446,10 @@ function ActionContentRouter({
             </ReportActionItemBasicMessage>
         );
     }
-    if (action.actionName === CONST.REPORT.ACTIONS.TYPE.UNREPORTED_TRANSACTION) {
+    if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.UNREPORTED_TRANSACTION)) {
         return (
             <UnreportedTransactionAction
-                action={action as OnyxTypes.ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.UNREPORTED_TRANSACTION>}
+                action={action}
                 originalReport={originalReport}
             />
         );
@@ -554,6 +560,13 @@ function ActionContentRouter({
         return (
             <ReportActionItemBasicMessage message="">
                 <RenderHTML html={`<comment><muted-text>${getCompanyCardConnectionBroken30DaysMessage(translate, action)}</muted-text></comment>`} />
+            </ReportActionItemBasicMessage>
+        );
+    }
+    if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.COMPANY_CARD_CONSENT_EXPIRING)) {
+        return (
+            <ReportActionItemBasicMessage message="">
+                <RenderHTML html={`<comment><muted-text>${getCompanyCardConsentExpiringMessage(translate, action)}</muted-text></comment>`} />
             </ReportActionItemBasicMessage>
         );
     }

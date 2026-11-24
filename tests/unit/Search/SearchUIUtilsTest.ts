@@ -1,4 +1,4 @@
-import * as defaultWorkspaceAvatars from '@components/Icon/WorkspaceDefaultAvatars';
+import defaultWorkspaceAvatars from '@components/Icon/WorkspaceDefaultAvatars';
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 import type {
     ReportActionListItemType,
@@ -37,6 +37,7 @@ import {getCardDescriptionForSearchTable} from '@src/libs/CardUtils';
 import DateUtils from '@src/libs/DateUtils';
 import getTransactionFromTransactionListItem, {SEARCH_TRANSACTION_ROW_ONLY_FIELD_NAMES} from '@src/libs/getTransactionFromTransactionListItem';
 import {findSelfDMReportID} from '@src/libs/ReportUtils';
+import {getCustomColumns} from '@src/libs/SearchColumnsUtils';
 import {savedSearchIDToSearchKey, TODO_SEARCH_KEYS} from '@src/libs/SearchKeyUtils';
 import {buildSearchQueryJSON, getDateRangeForPreset, getQueryHashes, getUserFriendlyValue} from '@src/libs/SearchQueryUtils';
 import * as SearchQueryUtils from '@src/libs/SearchQueryUtils';
@@ -3299,6 +3300,76 @@ describe('SearchUIUtils', () => {
             expect(exportedTransaction?.exportedTo).toBe(`${CONST.REPORT.EXPORT_OPTION_LABELS.DEFAULT_CSV}, ${CONST.EXPORT_LABELS.XERO}`);
         });
 
+        it('should fill formattedViolations from the positive has filter only, ignoring a negated one', () => {
+            // Given an expense whose report has a submit snapshot and an approve snapshot with different violations,
+            // and a query that includes approved violations but excludes submitted ones
+            const violationsReportID = 'formatted-violations-report';
+            const violationsTransactionID = 'formatted-violations-transaction';
+            const data = {
+                ...searchResults.data,
+                [`${ONYXKEYS.COLLECTION.REPORT}${violationsReportID}`]: {...report1, reportID: violationsReportID},
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}${violationsTransactionID}`]: {
+                    ...searchResults.data[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID2}`],
+                    transactionID: violationsTransactionID,
+                    reportID: violationsReportID,
+                },
+                [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${violationsReportID}`]: {
+                    submitted: {
+                        accountID: adminAccountID,
+                        actionName: CONST.REPORT.ACTIONS.TYPE.SUBMITTED,
+                        created: '2024-12-21 13:05:20',
+                        message: [],
+                        reportActionID: 'submitted',
+                        reportID: violationsReportID,
+                        originalMessage: {
+                            amount: 1000,
+                            currency: CONST.CURRENCY.USD,
+                            violations: {transactions: {[violationsTransactionID]: [{name: CONST.VIOLATIONS.MISSING_CATEGORY}]}},
+                        },
+                    },
+                    approved: {
+                        accountID: adminAccountID,
+                        actionName: CONST.REPORT.ACTIONS.TYPE.APPROVED,
+                        created: '2024-12-22 13:05:20',
+                        message: [],
+                        reportActionID: 'approved',
+                        reportID: violationsReportID,
+                        originalMessage: {
+                            amount: 1000,
+                            currency: CONST.CURRENCY.USD,
+                            expenseReportID: violationsReportID,
+                            violations: {transactions: {[violationsTransactionID]: [{name: CONST.VIOLATIONS.OVER_LIMIT}, {name: CONST.VIOLATIONS.MISSING_COMMENT}]}},
+                        },
+                    },
+                },
+            } as OnyxTypes.SearchResults['data'];
+            const queryJSON = buildSearchQueryJSON(`type:expense has:${CONST.SEARCH.HAS_VALUES.APPROVED_VIOLATION} -has:${CONST.SEARCH.HAS_VALUES.SUBMITTED_VIOLATION}`);
+
+            // When the expense rows are built for that query
+            const result = getSectionsByType(
+                SearchUIUtils.getSections({
+                    dateFnsLocale: undefined,
+                    type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+                    data,
+                    currentAccountID: adminAccountID,
+                    currentUserEmail: adminEmail,
+                    translate: translateLocal,
+                    formatPhoneNumber,
+                    bankAccountList: {},
+                    rules: undefined,
+                    queryJSON,
+                    conciergeReportID: undefined,
+                    convertToDisplayString,
+                    reportAttributesDerivedValue: {},
+                }),
+                SearchUIUtils.isTransactionListItemType,
+            )[0];
+            const violationsTransaction = result.find((item) => item.transactionID === violationsTransactionID);
+
+            // Then only the approve-stage labels are listed alphabetically, so the sort key matches the cell for this query
+            expect(violationsTransaction?.formattedViolations).toBe(`${translateLocal('violations.shortName.missingComment')}, ${translateLocal('violations.shortName.overLimit')}`);
+        });
+
         it('should return getReportSections result when type is EXPENSE REPORT', async () => {
             // canApproveIOU reads the Onyx session accountID, not getSections' currentAccountID; merge admin so
             // this test matches the fixture when run in isolation (without earlier getAction tests that set session).
@@ -4516,7 +4587,7 @@ describe('SearchUIUtils', () => {
                 currency: 'USD',
                 total: 250,
                 groupedBy: CONST.SEARCH.GROUP_BY.WEEK,
-                formattedWeek: 'Jan 25 - Jan 31, 2026',
+                formattedWeek: 'Jan 25\u2009–\u200931, 2026',
                 shortFormattedWeek: 'Jan 25 - 31, ’26',
                 lineChartFormattedWeek: DateUtils.getShortFormattedDayForSearch('2026-01-25', undefined, new Date().getFullYear() !== 2026),
                 transactions: [],
@@ -5020,7 +5091,7 @@ describe('SearchUIUtils', () => {
                     currency: 'USD',
                     total: 250,
                     groupedBy: CONST.SEARCH.GROUP_BY.QUARTER,
-                    formattedQuarter: 'Q1 2026 (Jan 1 - Mar 31)',
+                    formattedQuarter: 'Q1 2026 (Jan 1\u2009–\u2009Mar 31)',
                     shortFormattedQuarter: 'Q1 ’26',
                     sortKey: 20261,
                     transactions: [],
@@ -5034,7 +5105,7 @@ describe('SearchUIUtils', () => {
                     currency: 'USD',
                     total: 75,
                     groupedBy: CONST.SEARCH.GROUP_BY.QUARTER,
-                    formattedQuarter: 'Q4 2025 (Oct 1 - Dec 31)',
+                    formattedQuarter: 'Q4 2025 (Oct 1\u2009–\u2009Dec 31)',
                     shortFormattedQuarter: 'Q4 ’25',
                     sortKey: 20254,
                     transactions: [],
@@ -5101,8 +5172,8 @@ describe('SearchUIUtils', () => {
             );
 
             expect(result).toHaveLength(2);
-            expect(result.some((item) => item.formattedQuarter === 'Q1 2026 (Jan 1 - Mar 31)')).toBe(true);
-            expect(result.some((item) => item.formattedQuarter === 'Q3 2026 (Jul 1 - Sep 30)')).toBe(true);
+            expect(result.some((item) => item.formattedQuarter === 'Q1 2026 (Jan 1\u2009–\u2009Mar 31)')).toBe(true);
+            expect(result.some((item) => item.formattedQuarter === 'Q3 2026 (Jul 1\u2009–\u2009Sep 30)')).toBe(true);
         });
 
         it('should calculate sortKey correctly for quarter groups', () => {
@@ -5138,7 +5209,7 @@ describe('SearchUIUtils', () => {
                 currency: 'USD',
                 total: 250,
                 groupedBy: CONST.SEARCH.GROUP_BY.QUARTER,
-                formattedQuarter: 'Q1 2026 (Jan 1 - Mar 31)',
+                formattedQuarter: 'Q1 2026 (Jan 1\u2009–\u2009Mar 31)',
                 shortFormattedQuarter: 'Q1 ’26',
                 sortKey: 20261,
                 transactions: [],
@@ -5156,7 +5227,7 @@ describe('SearchUIUtils', () => {
                     currency: 'USD',
                     total: 250,
                     groupedBy: CONST.SEARCH.GROUP_BY.WEEK,
-                    formattedWeek: 'Jan 25 - Jan 31, 2026',
+                    formattedWeek: 'Jan 25\u2009–\u200931, 2026',
                     shortFormattedWeek: 'Jan 25 - 31, ’26',
                     lineChartFormattedWeek: DateUtils.getShortFormattedDayForSearch('2026-01-25', undefined, new Date().getFullYear() !== 2026),
                     transactions: [],
@@ -5169,7 +5240,7 @@ describe('SearchUIUtils', () => {
                     currency: 'USD',
                     total: 75,
                     groupedBy: CONST.SEARCH.GROUP_BY.WEEK,
-                    formattedWeek: 'Dec 21 - Dec 27, 2025',
+                    formattedWeek: 'Dec 21\u2009–\u200927, 2025',
                     shortFormattedWeek: 'Dec 21 - 27, ’25',
                     lineChartFormattedWeek: DateUtils.getShortFormattedDayForSearch('2025-12-21', undefined, new Date().getFullYear() !== 2025),
                     transactions: [],
@@ -5953,6 +6024,44 @@ describe('SearchUIUtils', () => {
                     reportAttributesDerivedValue: {},
                 })[0],
             ).toStrictEqual(transactionTagGroupListItems);
+        });
+
+        it('keeps selected-level leaves literal and separates identical names by dependent parent', () => {
+            // Given identical decoded leaves under two encoded ancestor paths
+            const leaf = 'R&amp;D: Path\\name';
+            const queryJSON = buildSearchQueryJSON('groupBy:tag tagLevel:2 limit:5');
+            const data: OnyxTypes.SearchResults['data'] = {
+                group_us: {tag: leaf, tagLevel: 2, parentTagPath: 'US', count: 1, total: 100, currency: 'USD'},
+                group_eu: {tag: leaf, tagLevel: 2, parentTagPath: 'EU', count: 1, total: 200, currency: 'USD'},
+            };
+
+            // When Search prepares chart labels and the expanded groups' expense queries
+            const [rows] = getSectionsByType(
+                SearchUIUtils.getSections({
+                    type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+                    data,
+                    queryJSON,
+                    groupBy: CONST.SEARCH.GROUP_BY.TAG,
+                    currentAccountID: 2074551,
+                    currentUserEmail: '',
+                    translate: translateLocal,
+                    formatPhoneNumber,
+                    bankAccountList: {},
+                    rules: undefined,
+                    conciergeReportID: undefined,
+                    convertToDisplayString,
+                    reportAttributesDerivedValue: {},
+                    dateFnsLocale: undefined,
+                }),
+                SearchUIUtils.isTransactionTagGroupListItemType,
+            );
+
+            // Then labels decode HTML without treating literal colons or backslashes as stored separators
+            expect(rows.map((row) => row.formattedTagName)).toEqual(['R&D: Path\\name', 'R&D: Path\\name']);
+            expect(rows.map((row) => row.formattedTag)).toEqual(['R&D: Path\\name (US)', 'R&D: Path\\name (EU)']);
+            expect(rows.map((row) => row.transactionsQueryJSON?.tagParent)).toEqual(['US', 'EU']);
+            expect(new Set(rows.map((row) => row.transactionsQueryJSON?.hash)).size).toBe(2);
+            expect(SearchUIUtils.getActiveGroupSearchHashes(data, queryJSON)).toEqual(rows.map((row) => row.transactionsQueryJSON?.hash));
         });
 
         it('should unescape colons in tag names when grouping by tag', () => {
@@ -7489,6 +7598,27 @@ describe('SearchUIUtils', () => {
                 const item = sections.find((s) => s.transactionID === filterTestTxID);
                 expect(item?.submitted).toBe(submittedAt);
                 expect(item?.approved).toBe(approvedAt);
+            });
+
+            it('should keep the snapshot approved date on a paid report when the live report from OpenReport lacks it', async () => {
+                // Given a paid report whose Search snapshot has an approved date
+                const approvedAt = '2024-12-22 09:30:00';
+                const reportFields = {...report1, reportID: filterTestReportID, type: CONST.REPORT.TYPE.EXPENSE, statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED};
+                const data = makeFilterTestData({...reportFields, approved: approvedAt});
+
+                // And the same report is already in Onyx without the approved date, as happens after opening it in Inbox first
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${filterTestReportID}`, {...reportFields, approved: undefined});
+                await waitForBatchedUpdates();
+
+                // When the expense rows are built
+                const [sections] = callGetTransactionsSections(data);
+                const item = sections.find((s) => s.transactionID === filterTestTxID);
+
+                // Then the live report is layered over the snapshot report, so the approved date is not lost
+                expect(item?.approved).toBe(approvedAt);
+
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${filterTestReportID}`, null);
+                await waitForBatchedUpdates();
             });
 
             it('should keep submitted/approved blank for a still-Open (never submitted) report even if unrelated live actions exist', () => {
@@ -9040,8 +9170,8 @@ describe('SearchUIUtils', () => {
             // Then each entry filters on merchant with the group's own value, and the empty merchant maps to `none`,
             // so the export can match each group exactly. The hook test checks that the backend gets `eq`.
             expect(selectedGroupEntries).toEqual([
-                {key: CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT, value: 'Amazon'},
-                {key: CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT, value: CONST.SEARCH.MERCHANT_EMPTY_VALUE},
+                {kind: 'value', key: CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT, value: 'Amazon'},
+                {kind: 'value', key: CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT, value: CONST.SEARCH.MERCHANT_EMPTY_VALUE},
             ]);
         });
     });
@@ -9303,6 +9433,53 @@ describe('SearchUIUtils', () => {
             expect(descendingResult.map((item) => ('transactionID' in item ? item.transactionID : undefined))).toEqual(['held', 'never-held', 'unheld']);
         });
 
+        it('should sort the vendor column by the vendor name the column shows, with expenses without a vendor first when ascending', () => {
+            // Given a workspace whose synced vendor list renamed "Zeta" to "Acme", and expenses holding that vendor, a vendor no longer synced, and no vendor
+            const baseTransaction = transactionsListItems.at(0);
+            if (!baseTransaction) {
+                throw new Error('Missing base transaction fixture');
+            }
+            const policyWithVendors = createMock<OnyxTypes.Policy>({
+                ...baseTransaction.policy,
+                connections: {[CONST.POLICY.CONNECTIONS.NAME.QBO]: {data: {vendors: [{id: 'v-1', name: 'Acme', currency: 'USD', email: ''}]}}},
+            });
+            const transactions: TransactionListItemType[] = [
+                {
+                    ...baseTransaction,
+                    policy: policyWithVendors,
+                    transactionID: 'unsynced',
+                    keyForList: 'unsynced',
+                    comment: {vendor: {externalID: 'gone', name: 'Midway', wasManuallySet: true}},
+                },
+                {...baseTransaction, policy: policyWithVendors, transactionID: 'renamed', keyForList: 'renamed', comment: {vendor: {externalID: 'v-1', name: 'Zeta', wasManuallySet: true}}},
+                {...baseTransaction, policy: policyWithVendors, transactionID: 'no-vendor', keyForList: 'no-vendor', comment: {}},
+            ];
+
+            // When the expenses are sorted by the vendor column in both directions
+            const ascendingResult = SearchUIUtils.getSortedSections(
+                CONST.SEARCH.DATA_TYPES.EXPENSE,
+                [...transactions],
+                localeCompare,
+                translateLocal,
+                CONST.SEARCH.TABLE_COLUMNS.VENDOR,
+                CONST.SEARCH.SORT_ORDER.ASC,
+                undefined,
+            );
+            const descendingResult = SearchUIUtils.getSortedSections(
+                CONST.SEARCH.DATA_TYPES.EXPENSE,
+                [...transactions],
+                localeCompare,
+                translateLocal,
+                CONST.SEARCH.TABLE_COLUMNS.VENDOR,
+                CONST.SEARCH.SORT_ORDER.DESC,
+                undefined,
+            );
+
+            // Then the renamed vendor sorts by its synced name "Acme", the unsynced one by its stored name, and the expense without a vendor comes first ascending
+            expect(ascendingResult.map((item) => ('transactionID' in item ? item.transactionID : undefined))).toEqual(['no-vendor', 'renamed', 'unsynced']);
+            expect(descendingResult.map((item) => ('transactionID' in item ? item.transactionID : undefined))).toEqual(['unsynced', 'renamed', 'no-vendor']);
+        });
+
         it('should sort the exported-to column by export name, with never exported rows first when ascending', () => {
             // The backend sorts this column by the name of the export, so the local sort has to do the same instead of
             // only sorting on whether the report was exported. Rows that were never exported have no name, so they end
@@ -9349,6 +9526,61 @@ describe('SearchUIUtils', () => {
                 'exported-netsuite',
                 'exported-csv',
                 'not-exported',
+            ]);
+        });
+
+        it('should sort the violations column by its labels, with expenses without violations first when ascending', () => {
+            // Given expenses whose violation labels are already joined alphabetically, as the Violations cell lists them, and one
+            // expense without violations
+            const baseTransaction = transactionsListItems.at(0);
+            if (!baseTransaction) {
+                throw new Error('Missing base transaction fixture');
+            }
+            const transactions: TransactionListItemType[] = [
+                {...baseTransaction, transactionID: 'missing-category', keyForList: 'missing-category', formattedViolations: translateLocal('violations.shortName.missingCategory')},
+                {...baseTransaction, transactionID: 'no-violations', keyForList: 'no-violations', formattedViolations: undefined},
+                {
+                    ...baseTransaction,
+                    transactionID: 'card-match-and-tag',
+                    keyForList: 'card-match-and-tag',
+                    formattedViolations: `${translateLocal('violations.shortName.rter')}, ${translateLocal('violations.shortName.missingTag')}`,
+                },
+                {...baseTransaction, transactionID: 'description', keyForList: 'description', formattedViolations: translateLocal('violations.shortName.missingComment')},
+            ];
+
+            // When the expenses are sorted by the Violations column in both directions
+            const ascendingResult = SearchUIUtils.getSortedSections(
+                CONST.SEARCH.DATA_TYPES.EXPENSE,
+                [...transactions],
+                localeCompare,
+                translateLocal,
+                CONST.SEARCH.TABLE_COLUMNS.VIOLATIONS,
+                CONST.SEARCH.SORT_ORDER.ASC,
+                undefined,
+            );
+            const descendingResult = SearchUIUtils.getSortedSections(
+                CONST.SEARCH.DATA_TYPES.EXPENSE,
+                [...transactions],
+                localeCompare,
+                translateLocal,
+                CONST.SEARCH.TABLE_COLUMNS.VIOLATIONS,
+                CONST.SEARCH.SORT_ORDER.DESC,
+                undefined,
+            );
+
+            // Then the rows follow the labels the column shows, not the raw violation names, and the expense without
+            // violations comes first ascending and last descending, as the backend orders it
+            expect(ascendingResult.map((item) => ('transactionID' in item ? item.transactionID : undefined))).toEqual([
+                'no-violations',
+                'card-match-and-tag',
+                'description',
+                'missing-category',
+            ]);
+            expect(descendingResult.map((item) => ('transactionID' in item ? item.transactionID : undefined))).toEqual([
+                'missing-category',
+                'description',
+                'card-match-and-tag',
+                'no-violations',
             ]);
         });
 
@@ -12122,6 +12354,40 @@ describe('SearchUIUtils', () => {
         });
     });
 
+    test.each([
+        [false, true],
+        [true, false],
+    ])('Change approver on a dynamic external workflow for a report the admin submitted: preventSelfApproval=%s', (preventSelfApproval, expected) => {
+        // Given an admin's own submitted report on a dynamic external workflow, where bypassing the approvers is the admin's only approver change
+        const dewPolicyID = 'dewPolicy';
+        const dewReportID = 'dewReport';
+        const data = createMock<OnyxTypes.SearchResults['data']>({
+            policy_dewPolicy: {
+                id: dewPolicyID,
+                role: CONST.POLICY.ROLE.ADMIN,
+                type: CONST.POLICY.TYPE.CORPORATE,
+                approvalMode: CONST.POLICY.APPROVAL_MODE.DYNAMICEXTERNAL,
+                preventSelfApproval,
+            },
+            report_dewReport: {
+                reportID: dewReportID,
+                policyID: dewPolicyID,
+                type: CONST.REPORT.TYPE.EXPENSE,
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+                ownerAccountID: adminAccountID,
+                managerID: adminAccountID + 1,
+                total: -1000,
+            },
+        });
+
+        // When the Search actions are computed for the report
+        const actions = SearchUIUtils.getActions(data, {}, `report_${dewReportID}`, CONST.SEARCH.SEARCH_KEYS.EXPENSES, '', adminAccountID, {}, {}, undefined);
+
+        // Then Change approver is offered only when the admin may approve their own report, so it never opens an empty page
+        expect(actions.includes(CONST.SEARCH.ACTION_TYPES.CHANGE_APPROVER)).toBe(expected);
+    });
+
     test('Should return true if the search result has valid type', () => {
         expect(SearchUIUtils.shouldShowEmptyState(false, transactionReportGroupListItems.length, searchResults.search.type)).toBe(true);
         expect(SearchUIUtils.shouldShowEmptyState(true, 0, searchResults.search.type)).toBe(true);
@@ -13227,7 +13493,7 @@ describe('SearchUIUtils', () => {
 
             // Then Rejected is offered in the Search column picker but only shown once picked, and it is not offered in the
             // single-report view because the report view's transactions never carry the field
-            expect(SearchUIUtils.getCustomColumns(CONST.SEARCH.DATA_TYPES.EXPENSE)).toContain(CONST.SEARCH.TABLE_COLUMNS.DECLINED);
+            expect(getCustomColumns(CONST.SEARCH.DATA_TYPES.EXPENSE)).toContain(CONST.SEARCH.TABLE_COLUMNS.DECLINED);
             expect(SearchUIUtils.getCustomColumnDefault(CONST.SEARCH.DATA_TYPES.EXPENSE)).not.toContain(CONST.SEARCH.TABLE_COLUMNS.DECLINED);
             expect(Object.values(CONST.SEARCH.REPORT_DETAILS_CUSTOM_COLUMNS)).not.toContain(CONST.SEARCH.TABLE_COLUMNS.DECLINED);
             expect(defaultColumns).not.toContain(CONST.SEARCH.TABLE_COLUMNS.DECLINED);
@@ -13244,7 +13510,7 @@ describe('SearchUIUtils', () => {
 
             // Then Rejected is offered in the expense report column picker, stays out of the defaults, and is shown in the
             // picked position once chosen, so it is sent in the query columns the backend reads to return the field
-            expect(SearchUIUtils.getCustomColumns(CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT)).toContain(CONST.SEARCH.TABLE_COLUMNS.DECLINED);
+            expect(getCustomColumns(CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT)).toContain(CONST.SEARCH.TABLE_COLUMNS.DECLINED);
             expect(SearchUIUtils.getCustomColumnDefault(CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT)).not.toContain(CONST.SEARCH.TABLE_COLUMNS.DECLINED);
             expect(defaultColumns).not.toContain(CONST.SEARCH.TABLE_COLUMNS.DECLINED);
             expect(pickedResult).toEqual(visibleColumns);
@@ -13766,10 +14032,30 @@ describe('SearchUIUtils', () => {
             expect(tagGLCodeHeader?.sortColumnName).toBe(CONST.SEARCH.SORT_BY_COLUMNS.TAG_GL_CODE);
         });
 
-        test('Should exclude Violations from sort options', () => {
-            expect(SearchUIUtils.getSortByOptions([CONST.SEARCH.TABLE_COLUMNS.VIOLATIONS, CONST.SEARCH.TABLE_COLUMNS.CATEGORY_GL_CODE], translateLocal)).toEqual([
+        test('Should include Violations in sort options', () => {
+            // Given the Violations column is shown next to another sortable column
+            const columns = [CONST.SEARCH.TABLE_COLUMNS.VIOLATIONS, CONST.SEARCH.TABLE_COLUMNS.CATEGORY_GL_CODE];
+
+            // When the Sort by options are built for those columns
+            const sortByOptions = SearchUIUtils.getSortByOptions(columns, translateLocal);
+
+            // Then Violations can be picked, since the rows sort by the violation labels the column shows
+            expect(sortByOptions).toEqual([
+                {text: translateLocal('common.violations'), value: CONST.SEARCH.TABLE_COLUMNS.VIOLATIONS},
                 {text: translateLocal('common.categoryGLCode'), value: CONST.SEARCH.SORT_BY_COLUMNS.CATEGORY_GL_CODE},
             ]);
+        });
+
+        test('Should make the Violations header sortable', () => {
+            // Given the expense table headers
+            const headers = getExpenseHeaders();
+
+            // When the Violations header is looked up
+            const violationsHeader = headers.find(({columnName}) => columnName === CONST.SEARCH.TABLE_COLUMNS.VIOLATIONS);
+
+            // Then it isn't marked unsortable, so clicking it sorts the rows like the other column headers
+            expect(violationsHeader).toBeDefined();
+            expect(violationsHeader?.isColumnSortable).not.toBe(false);
         });
 
         test('Should show MCC whenever that column is selected, even with no displayable MCC', () => {
@@ -14579,12 +14865,12 @@ describe('SearchUIUtils', () => {
 
     describe('Test getCustomColumns', () => {
         it('should return custom columns for EXPENSE type', () => {
-            const columns = SearchUIUtils.getCustomColumns(CONST.SEARCH.DATA_TYPES.EXPENSE);
+            const columns = getCustomColumns(CONST.SEARCH.DATA_TYPES.EXPENSE);
             expect(columns).toEqual(Object.values(CONST.SEARCH.TYPE_CUSTOM_COLUMNS.EXPENSE));
         });
 
         it('should return custom columns for CATEGORY groupBy', () => {
-            const columns = SearchUIUtils.getCustomColumns(CONST.SEARCH.GROUP_BY.CATEGORY);
+            const columns = getCustomColumns(CONST.SEARCH.GROUP_BY.CATEGORY);
             expect(columns).toEqual(Object.values(CONST.SEARCH.GROUP_CUSTOM_COLUMNS.CATEGORY));
             expect(columns).toContain(CONST.SEARCH.TABLE_COLUMNS.GROUP_CATEGORY);
             expect(columns).toContain(CONST.SEARCH.TABLE_COLUMNS.GROUP_EXPENSES);
@@ -14592,7 +14878,7 @@ describe('SearchUIUtils', () => {
         });
 
         it('should return custom columns for MERCHANT groupBy', () => {
-            const columns = SearchUIUtils.getCustomColumns(CONST.SEARCH.GROUP_BY.MERCHANT);
+            const columns = getCustomColumns(CONST.SEARCH.GROUP_BY.MERCHANT);
             expect(columns).toEqual(Object.values(CONST.SEARCH.GROUP_CUSTOM_COLUMNS.MERCHANT));
             expect(columns).toContain(CONST.SEARCH.TABLE_COLUMNS.GROUP_MERCHANT);
             expect(columns).toContain(CONST.SEARCH.TABLE_COLUMNS.GROUP_EXPENSES);
@@ -14600,7 +14886,7 @@ describe('SearchUIUtils', () => {
         });
 
         it('should return empty array for undefined value', () => {
-            const columns = SearchUIUtils.getCustomColumns(undefined);
+            const columns = getCustomColumns(undefined);
             expect(columns).toEqual([]);
         });
     });
@@ -14738,6 +15024,7 @@ describe('SearchUIUtils', () => {
                 personalDetails,
                 isSelfTourViewed: false,
                 hasCompletedGuidedSetupFlow: true,
+                isOwnedByCurrentUser: false,
             });
         });
 
@@ -14893,6 +15180,79 @@ describe('SearchUIUtils', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${selfDMReportID}`, null);
             await Onyx.set(ONYXKEYS.SELF_DM_REPORT_ID, null);
             await waitForBatchedUpdates();
+        });
+
+        describe('legacy unreported expense with no IOU action anywhere', () => {
+            const selfDMReportID = 'own-self-dm-legacy';
+
+            /** An unreported Search row with no IOU action, whose `from` is the card holder when the card is known. */
+            function buildLegacyUnreportedItem(managedCard: boolean, fromAccountID: number) {
+                return {
+                    ...transactionListItem,
+                    reportID: CONST.REPORT.UNREPORTED_REPORT_ID,
+                    report: undefined,
+                    reportAction: undefined,
+                    managedCard,
+                    from: {accountID: fromAccountID},
+                };
+            }
+
+            beforeEach(async () => {
+                // The current user's self DM is loaded but holds no IOU action for the expense
+                jest.mocked(createTransactionThreadReport).mockReturnValue(threadReport);
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${selfDMReportID}`, {reportID: selfDMReportID, type: CONST.REPORT.TYPE.CHAT, chatType: CONST.REPORT.CHAT_TYPE.SELF_DM});
+                await Onyx.set(ONYXKEYS.SELF_DM_REPORT_ID, selfDMReportID);
+                await waitForBatchedUpdates();
+            });
+
+            afterEach(async () => {
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${selfDMReportID}`, null);
+                await Onyx.set(ONYXKEYS.SELF_DM_REPORT_ID, null);
+                await waitForBatchedUpdates();
+            });
+
+            test("Should create the thread in the current user's self DM for an expense that is not on a managed card", () => {
+                // Given an expense that is not on a managed card, which only its owner can see, so `from` is empty
+                const item = buildLegacyUnreportedItem(false, CONST.REPORT.OWNER_ACCOUNT_ID_FAKE);
+
+                // When the current user opens it from Search
+                const targetReportID = SearchUIUtils.createAndOpenSearchTransactionThread({...baseParams, item, shouldNavigate: false});
+
+                // Then the thread is created in their self DM as their own expense, with the transaction passed so the legacy fallback builds the missing action
+                expect(targetReportID).toBe(threadReportID);
+                expect(createTransactionThreadReport).toHaveBeenCalledWith(
+                    expect.objectContaining({
+                        selfDMReportID,
+                        isOwnedByCurrentUser: true,
+                        transaction: expect.objectContaining({reportID: CONST.REPORT.UNREPORTED_REPORT_ID}),
+                    }),
+                );
+            });
+
+            test("Should create the thread in the current user's self DM for an expense on their own managed card", () => {
+                // Given an expense on a managed card that the current user holds
+                const item = buildLegacyUnreportedItem(true, currentUserAccountID);
+
+                // When the current user opens it from Search
+                const targetReportID = SearchUIUtils.createAndOpenSearchTransactionThread({...baseParams, item, shouldNavigate: false});
+
+                // Then the thread is created in their self DM as their own expense
+                expect(targetReportID).toBe(threadReportID);
+                expect(createTransactionThreadReport).toHaveBeenCalledWith(expect.objectContaining({selfDMReportID, isOwnedByCurrentUser: true}));
+            });
+
+            test("Should not open an expense on another member's managed card", () => {
+                // Given an expense on another member's managed card, which an admin sees on their card feed
+                const item = buildLegacyUnreportedItem(true, currentUserAccountID + 1);
+
+                // When the admin opens it from Search
+                const targetReportID = SearchUIUtils.createAndOpenSearchTransactionThread({...baseParams, item});
+
+                // Then nothing is created, because without an action the member's self DM is unknown and the admin's own self DM is the wrong place
+                expect(targetReportID).toBeUndefined();
+                expect(createTransactionThreadReport).not.toHaveBeenCalled();
+                expect(Navigation.navigate).not.toHaveBeenCalled();
+            });
         });
 
         test("Should reuse the thread already created under another user's self DM instead of creating a new one", async () => {
@@ -16182,7 +16542,7 @@ describe('SearchUIUtils', () => {
             });
 
             expect(SearchUIUtils.getSubmittedViolationsForTransaction([submitAction], transactionIDForViolations, translateLocal)).toBe(
-                `${translateLocal('violations.shortName.missingCategory')}, ${translateLocal('violations.shortName.missingComment')}`,
+                `${translateLocal('violations.shortName.missingComment')}, ${translateLocal('violations.shortName.missingCategory')}`,
             );
         });
 
@@ -16246,6 +16606,34 @@ describe('SearchUIUtils', () => {
             );
         });
 
+        test('keeps receiptRequired from an earlier submit action that had no itemizedReceiptRequired', () => {
+            // Given a report submitted with only receiptRequired, then resubmitted with both receipt violations
+            const firstSubmit = createSubmittedAction(
+                CONST.REPORT.ACTIONS.TYPE.SUBMITTED,
+                {
+                    transactions: {
+                        [transactionIDForViolations]: [{name: CONST.VIOLATIONS.RECEIPT_REQUIRED}],
+                    },
+                },
+                'submit-1',
+            );
+            const secondSubmit = createSubmittedAction(
+                CONST.REPORT.ACTIONS.TYPE.SUBMITTED,
+                {
+                    transactions: {
+                        [transactionIDForViolations]: [{name: CONST.VIOLATIONS.RECEIPT_REQUIRED}, {name: CONST.VIOLATIONS.ITEMIZED_RECEIPT_REQUIRED}],
+                    },
+                },
+                'submit-2',
+            );
+
+            // When the submitted violations column is built for the expense
+            const violations = SearchUIUtils.getSubmittedViolationsForTransaction([firstSubmit, secondSubmit], transactionIDForViolations, translateLocal);
+
+            // Then both are listed, because the first submission still matches violation:receiptRequired in Search and Insights
+            expect(violations).toBe(`${translateLocal('violations.shortName.itemizedReceiptRequired')}, ${translateLocal('violations.shortName.receiptRequired')}`);
+        });
+
         test('keeps receiptRequired when itemizedReceiptRequired is not present', () => {
             const submitAction = createSubmittedAction(CONST.REPORT.ACTIONS.TYPE.SUBMITTED, {
                 transactions: {
@@ -16254,7 +16642,7 @@ describe('SearchUIUtils', () => {
             });
 
             expect(SearchUIUtils.getSubmittedViolationsForTransaction([submitAction], transactionIDForViolations, translateLocal)).toBe(
-                `${translateLocal('violations.shortName.receiptRequired')}, ${translateLocal('violations.shortName.missingCategory')}`,
+                `${translateLocal('violations.shortName.missingCategory')}, ${translateLocal('violations.shortName.receiptRequired')}`,
             );
         });
 
@@ -16382,7 +16770,7 @@ describe('SearchUIUtils', () => {
             });
 
             expect(SearchUIUtils.getApprovedViolationsForTransaction([forwardedAction], transactionIDForViolations, translateLocal)).toBe(
-                `${translateLocal('violations.shortName.missingCategory')}, ${translateLocal('violations.shortName.missingComment')}`,
+                `${translateLocal('violations.shortName.missingComment')}, ${translateLocal('violations.shortName.missingCategory')}`,
             );
         });
 
@@ -16433,6 +16821,34 @@ describe('SearchUIUtils', () => {
             expect(SearchUIUtils.getApprovedViolationsForTransaction([forwardedAction], transactionIDForViolations, translateLocal)).toBe(
                 translateLocal('violations.shortName.itemizedReceiptRequired'),
             );
+        });
+
+        test('keeps receiptRequired from an earlier approval action that had no itemizedReceiptRequired', () => {
+            // Given a report forwarded with only receiptRequired, then approved with both receipt violations
+            const forwardedAction = createApprovalAction(
+                CONST.REPORT.ACTIONS.TYPE.FORWARDED,
+                {
+                    transactions: {
+                        [transactionIDForViolations]: [{name: CONST.VIOLATIONS.RECEIPT_REQUIRED}],
+                    },
+                },
+                'forward-1',
+            );
+            const approvedAction = createApprovalAction(
+                CONST.REPORT.ACTIONS.TYPE.APPROVED,
+                {
+                    transactions: {
+                        [transactionIDForViolations]: [{name: CONST.VIOLATIONS.RECEIPT_REQUIRED}, {name: CONST.VIOLATIONS.ITEMIZED_RECEIPT_REQUIRED}],
+                    },
+                },
+                'approved-1',
+            );
+
+            // When the approved violations column is built for the expense
+            const violations = SearchUIUtils.getApprovedViolationsForTransaction([forwardedAction, approvedAction], transactionIDForViolations, translateLocal);
+
+            // Then both are listed, because the forwarded snapshot still matches violation:receiptRequired in Search and Insights
+            expect(violations).toBe(`${translateLocal('violations.shortName.itemizedReceiptRequired')}, ${translateLocal('violations.shortName.receiptRequired')}`);
         });
 
         test('falls back to the raw identifier when no short-name translation exists', () => {
@@ -16570,6 +16986,25 @@ describe('SearchUIUtils', () => {
                     translateLocal,
                 ),
             ).toBe(`${translateLocal('violations.shortName.missingCategory')}, ${translateLocal('violations.shortName.missingTag')}, ${translateLocal('violations.shortName.overLimit')}`);
+        });
+
+        test('lists the labels alphabetically, whatever order the snapshot holds the names in', () => {
+            // Given a submit snapshot whose names are out of label order
+            const reportActions = [
+                createSubmittedAction({
+                    transactions: {
+                        [transactionIDForViolations]: [{name: CONST.VIOLATIONS.RULE_VIOLATION}, {name: CONST.VIOLATIONS.MISSING_CATEGORY}, {name: CONST.VIOLATIONS.CUSTOM_RULES}],
+                    },
+                }),
+            ];
+
+            // When the violations are read for a submitted-violation search
+            const violations = SearchUIUtils.getViolationsForTransaction(reportActions, transactionIDForViolations, [CONST.SEARCH.HAS_VALUES.SUBMITTED_VIOLATION], translateLocal);
+
+            // Then the labels read alphabetically, matching the key the Violations column sorts by
+            expect(violations).toBe(
+                `${translateLocal('violations.shortName.customRules')}, ${translateLocal('violations.shortName.missingCategory')}, ${translateLocal('violations.shortName.ruleViolation')}`,
+            );
         });
     });
 
@@ -16953,6 +17388,23 @@ describe('SearchUIUtils', () => {
     describe('mapFiltersFormToLabelValueList', () => {
         const convertToDisplayStringWithoutCurrency = jest.fn((amount = 0) => `${amount}`);
 
+        it.each([
+            {form: {amountGreaterThan: '6000', amountGreaterThanOrEqualTo: '5000'}, expected: 'Greater than 60.00, Greater than or equal to 50.00'},
+            {form: {amountGreaterThanOrEqualTo: '50.00 AUD', amountLessThanOrEqualTo: '100.00 AUD'}, expected: 'Between 50.00 AUD and 100.00 AUD'},
+            {form: {amountGreaterThanOrEqualTo: '50.00 AUD'}, expected: 'Greater than or equal to 50.00 AUD'},
+            {form: {amountLessThanOrEqualTo: '100.00 AUD'}, expected: 'Less than or equal to 100.00 AUD'},
+        ])('shows inclusive amount bounds in one chip: $expected', ({form, expected}) => {
+            // Given inclusive operands must appear in the filter bar, not only in the search AST.
+            const formatAmount = (amount: number) => (amount / 100).toFixed(2);
+
+            // When the hydrated form is mapped to visible chips.
+            const chips = SearchUIUtils.mapFiltersFormToLabelValueList(form, new Set(), new Set(), translateLocal, undefined, localeCompare, formatAmount);
+
+            // Then bounds share the Amount chip and keep their comparison currency.
+            expect(chips).toHaveLength(1);
+            expect(chips.at(0)).toMatchObject({key: CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT, value: expected});
+        });
+
         it('places default filters before non-default filters', () => {
             const form = {
                 [CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD]: 'hotel',
@@ -16990,6 +17442,22 @@ describe('SearchUIUtils', () => {
 
             // Then both chips share the base key (used to pick the chip's popover), while their ids stay unique so they can be used as React keys
             expect(statusFilters.map((filter) => filter.id)).toEqual([FILTER_KEYS.STATUS, FILTER_KEYS.STATUS_NOT]);
+        });
+
+        it('shows translated names for both the violation filter and its negation', () => {
+            // Given a query that includes one violation and excludes another, e.g. `violation:overLimit -violation:missingCategory`
+            const form = {
+                [FILTER_KEYS.TYPE]: CONST.SEARCH.DATA_TYPES.EXPENSE,
+                [FILTER_KEYS.VIOLATION]: [CONST.VIOLATIONS.OVER_LIMIT],
+                [FILTER_KEYS.VIOLATION_NOT]: [CONST.VIOLATIONS.MISSING_CATEGORY],
+            };
+
+            // When the form is mapped to filter chips
+            const result = SearchUIUtils.mapFiltersFormToLabelValueList(form, new Set(), new Set(), translateLocal, undefined, localeCompare, convertToDisplayStringWithoutCurrency);
+            const violationFilters = result.filter((filter) => filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.VIOLATION);
+
+            // Then both chips show the readable label instead of the raw identifier the backend uses
+            expect(violationFilters.map((filter) => filter.value)).toEqual([translateLocal('violations.shortName.overLimit'), translateLocal('violations.shortName.missingCategory')]);
         });
     });
 });
@@ -17071,6 +17539,33 @@ describe('getMultiSelectFilterOptions', () => {
             {value: CONST.SEARCH.RECEIPT_TYPE.ITEMIZED, text: 'Itemized'},
         ]);
         expect(options).not.toContainEqual(expect.objectContaining({value: CONST.SEARCH.RECEIPT_TYPE.HOTEL}));
+    });
+});
+
+describe('getViolationFilterOptions', () => {
+    beforeAll(async () => {
+        await IntlStore.load('en');
+    });
+
+    it('sorts the options by translated label', () => {
+        // Given the violation names, whose CONST order doesn't follow their labels
+        // When building the violation picker options
+        const labels = SearchUIUtils.getViolationFilterOptions(translateLocal, localeCompare).map((option) => option.text);
+
+        // Then they're in alphabetical order, matching the autocomplete suggestions
+        expect(labels).toEqual([...labels].sort(localeCompare));
+        expect(labels.length).toBeGreaterThanOrEqual(CONST.STANDARD_LIST_ITEM_LIMIT);
+    });
+
+    it('leaves out the Classic-only and new rules engine violations', () => {
+        // Given the Classic-only cash expense notice and the new rules engine violations, which have no clear filter names yet
+        // When building the violation picker options
+        const values = SearchUIUtils.getViolationFilterOptions(translateLocal, localeCompare).map((option) => option.value);
+
+        // Then none of them is offered
+        expect(values).not.toContain(CONST.VIOLATIONS.CASH_EXPENSE_WITH_NO_RECEIPT);
+        expect(values).not.toContain(CONST.VIOLATIONS.CUSTOM_RULES);
+        expect(values).not.toContain(CONST.VIOLATIONS.RULE_VIOLATION);
     });
 });
 
@@ -17480,11 +17975,11 @@ describe('Trip search', () => {
         report_3: buildTrip('3', {reportName: 'Oslo React Meetup', startDate: '2026-11-04T00:00:00'}),
     };
 
-    const getTripSections = (shouldReturnTripRooms: boolean) =>
+    const getTripSections = (shouldReturnTripRooms: boolean, data: OnyxTypes.SearchResults['data'] = tripData) =>
         SearchUIUtils.getSections({
             dateFnsLocale: undefined,
             type: CONST.SEARCH.DATA_TYPES.TRIP,
-            data: tripData,
+            data,
             currentAccountID: 628,
             currentUserEmail: 'travel-admin@cplustest.com',
             translate: translateLocal,
@@ -17509,6 +18004,30 @@ describe('Trip search', () => {
             expect.objectContaining({keyForList: '1', tripName: 'Tokyo Sales Conference', formattedTraveler: 'Travel Employee', status: CONST.SEARCH.TRIP_STATUS.UPCOMING}),
         );
         expect(rows.find((row) => row.reportID === '2')?.formattedTraveler).toBe('Travel Admin');
+    });
+
+    it('shows and sorts by the trip fare instead of the room total', () => {
+        // Given a trip whose room total was overwritten to 0 when the room was opened, while its fare is still in the trip payload
+        const data = createMock<OnyxTypes.SearchResults['data']>({
+            ...tripData,
+            report_1: buildTrip('1', {total: 0}),
+            reportNameValuePairs_1: {tripData: {payload: {tripPaymentInfo: {totalFare: {amount: 2956.71, currencyCode: 'EUR'}}}}},
+        });
+
+        // When the search results are turned into rows and sorted by total
+        const [rows] = getSectionsByType(getTripSections(true, data), SearchUIUtils.isTripListItemType);
+        const sorted = getSortedSectionsByType(
+            SearchUIUtils.getSortedSections(CONST.SEARCH.DATA_TYPES.TRIP, rows, localeCompare, translateLocal, CONST.SEARCH.TABLE_COLUMNS.TOTAL, CONST.SEARCH.SORT_ORDER.DESC, undefined, {
+                shouldReturnTripRooms: true,
+            }),
+            SearchUIUtils.isTripListItemType,
+        );
+
+        // Then the row shows the fare in cents, rounded since the fare is a float, and sorts by it like the backend does
+        expect(sorted.at(0)).toEqual(expect.objectContaining({reportID: '1', total: 295671, currency: 'EUR'}));
+
+        // And trips without a payload keep the room total
+        expect(sorted.find((row) => row.reportID === '2')?.total).toBe(159732);
     });
 
     it('keeps the expense rows for a trip search without the beta', () => {
@@ -17742,5 +18261,37 @@ describe('getMatchingFilters', () => {
 
         // Then nothing is left, so the list shows its no results message
         expect(matchingFilters).toEqual([]);
+    });
+});
+
+describe('canEditSearchColumns', () => {
+    it('lets users pick the columns of expense and expense report searches', () => {
+        // Given the search types whose tables have customizable columns
+        // When asked whether users can edit their columns
+        // Then both allow it, regardless of trip rooms
+        expect(SearchUIUtils.canEditSearchColumns(CONST.SEARCH.DATA_TYPES.EXPENSE, false)).toBe(true);
+        expect(SearchUIUtils.canEditSearchColumns(CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT, false)).toBe(true);
+    });
+
+    it('does not let users pick the columns of a task or invoice search', () => {
+        // Given task and invoice searches, whose tables have no customizable columns
+        // When asked whether users can edit their columns
+        // Then neither allows it, so the headings get no column menus
+        expect(SearchUIUtils.canEditSearchColumns(CONST.SEARCH.DATA_TYPES.TASK, false)).toBe(false);
+        expect(SearchUIUtils.canEditSearchColumns(CONST.SEARCH.DATA_TYPES.INVOICE, false)).toBe(false);
+    });
+
+    it('does not let users pick the columns of a trip search that shows expenses', () => {
+        // Given a trip search that doesn't return trip rooms, so its table is the expense table
+        // When asked whether users can edit its columns
+        // Then it doesn't allow it, since the trip columns only apply to the rooms table
+        expect(SearchUIUtils.canEditSearchColumns(CONST.SEARCH.DATA_TYPES.TRIP, false)).toBe(false);
+    });
+
+    it('lets users pick the columns of a search that returns trip rooms', () => {
+        // Given a trip search that returns trip rooms
+        // When asked whether users can edit its columns
+        // Then it allows it
+        expect(SearchUIUtils.canEditSearchColumns(CONST.SEARCH.DATA_TYPES.TRIP, true)).toBe(true);
     });
 });

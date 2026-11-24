@@ -1,4 +1,5 @@
 import DatePicker from '@components/DatePicker';
+import DropdownFieldRow from '@components/DropdownFieldRow';
 import MenuItem from '@components/MenuItem';
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import {useConfirmationFields} from '@components/MoneyRequestConfirmationFields/context';
@@ -16,12 +17,13 @@ import {shouldUseTransactionDraft} from '@libs/IOUUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {isPolicyExpenseChat as isPolicyExpenseChatReportUtil} from '@libs/ReportUtils';
-import {hasAnyManuallyEnteredScanField, isPartiallyEnteredScanExpense} from '@libs/TransactionUtils';
+import {hasAnyManuallyEnteredScanField} from '@libs/TransactionUtils';
 
 import {setDraftSplitTransaction} from '@userActions/IOU/Split';
 
 import CONST from '@src/CONST';
 import type {IOUAction, IOUType} from '@src/CONST';
+import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/MoneyRequestDateForm';
@@ -31,7 +33,7 @@ import React, {useState} from 'react';
 import {View} from 'react-native';
 
 import AutomaticFieldHint from './AutomaticFieldHint';
-import ExpenseFieldRow from './ExpenseFieldRow';
+import ExpenseFieldContainer from './ExpenseFieldContainer';
 import {useExpenseFormLayout} from './ExpenseFormLayoutContext';
 import {dateStateSelector} from './selectors';
 import useSplitDraftBaseTransaction from './useSplitDraftBaseTransaction';
@@ -41,7 +43,10 @@ type DateFieldProps = {
     shouldDisplayFieldError: boolean;
     didConfirm: boolean;
     isReadOnly: boolean;
-    formError: string;
+
+    /** The date entry of the errors a blocked confirm revealed, from `getConfirmationFieldErrors` */
+    fieldError: TranslationPaths | undefined;
+
     transactionID: string | undefined;
     action: IOUAction;
     iouType: Exclude<IOUType, typeof CONST.IOU.TYPE.REQUEST | typeof CONST.IOU.TYPE.SEND>;
@@ -49,9 +54,9 @@ type DateFieldProps = {
     reportActionID: string | undefined;
 };
 
-function DateField({shouldDisplayFieldError, didConfirm, isReadOnly, formError, transactionID, action, iouType, reportID, reportActionID}: DateFieldProps) {
+function DateField({shouldDisplayFieldError, didConfirm, isReadOnly, fieldError, transactionID, action, iouType, reportID, reportActionID}: DateFieldProps) {
     const {getCurrencyDecimals, getCurrencySymbol} = useCurrencyListActions();
-    const {isEditingSplitBill, canEnterScanFieldsManually, isPolicyExpenseChat} = useConfirmationFields();
+    const {isEditingSplitBill, canEnterScanFieldsManually, fieldViewRefs} = useConfirmationFields();
     const {shouldUseDropdownRows} = useExpenseFormLayout();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -61,6 +66,7 @@ function DateField({shouldDisplayFieldError, didConfirm, isReadOnly, formError, 
 
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
     const [lastSelectedDistanceRates] = useOnyx(ONYXKEYS.NVP_LAST_SELECTED_DISTANCE_RATES);
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
     const policy = usePolicy(report?.policyID);
     const personalPolicy = usePersonalPolicy();
 
@@ -82,10 +88,7 @@ function DateField({shouldDisplayFieldError, didConfirm, isReadOnly, formError, 
     const shouldShowAutomaticHint = shouldShowEmptyDate && !isDatePickerOpen && !hasAnyManuallyEnteredScanField(dateState);
 
     const dateErrorText = shouldDisplayFieldError && createdMissing ? translate('common.error.enterDate') : '';
-
-    // A draft always carries a date, so on a partially filled Scan the all-or-nothing rule stands in for `createdMissing`.
-    const isDateRequiredMissing = isPartiallyEnteredScanExpense(dateState, canEnterScanFieldsManually, isPolicyExpenseChat) ? !dateState?.isCreatedSet : createdMissing;
-    const inlineDateErrorText = formError === 'common.error.fieldRequired' && isDateRequiredMissing ? translate('common.error.fieldRequired') : '';
+    const inlineDateErrorText = fieldError ? translate(fieldError) : '';
 
     const handleDateChange = (newDate: string) => {
         if (!transactionID) {
@@ -126,6 +129,7 @@ function DateField({shouldDisplayFieldError, didConfirm, isReadOnly, formError, 
                 isDraft: shouldUseTransactionDraft(action),
                 personalPolicyOutputCurrency: personalPolicy?.outputCurrency,
                 getCurrencyDecimals,
+                rules,
             });
         }
     };
@@ -133,7 +137,10 @@ function DateField({shouldDisplayFieldError, didConfirm, isReadOnly, formError, 
     if (!isReadOnly) {
         return (
             // The bordered rows carry their own vertical margin, so an extra bottom margin here would stack with it.
-            <View style={[styles.mh4, !shouldUseDropdownRows && styles.mb2]}>
+            <View
+                ref={fieldViewRefs?.date}
+                style={[styles.mh4, !shouldUseDropdownRows && styles.mb2]}
+            >
                 <DatePicker
                     inputID={INPUT_IDS.MONEY_REQUEST_CREATED}
                     value={shouldShowEmptyDate ? '' : iouCreated}
@@ -172,15 +179,17 @@ function DateField({shouldDisplayFieldError, didConfirm, isReadOnly, formError, 
     // rather than as a push row, or the same screen answers "this field can't be changed" two different ways.
     if (shouldUseDropdownRows) {
         return (
-            <ExpenseFieldRow
-                name={translate('common.date')}
-                value={readOnlyDate}
-                errorText={dateErrorText}
-                onPress={openDatePage}
-                isDisabled={didConfirm}
-                isInteractive={false}
-                sentryLabel={CONST.SENTRY_LABEL.REQUEST_CONFIRMATION_LIST.DATE_FIELD}
-            />
+            <ExpenseFieldContainer>
+                <DropdownFieldRow
+                    name={translate('common.date')}
+                    value={readOnlyDate}
+                    errorText={dateErrorText}
+                    onPress={openDatePage}
+                    isDisabled={didConfirm}
+                    isInteractive={false}
+                    sentryLabel={CONST.SENTRY_LABEL.REQUEST_CONFIRMATION_LIST.DATE_FIELD}
+                />
+            </ExpenseFieldContainer>
         );
     }
 
