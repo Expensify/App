@@ -1207,6 +1207,7 @@ function completeSplitBill({
             successData: oneOnOneSuccessData = [],
             failureData: oneOnOneFailureData = [],
         } = buildOnyxDataForMoneyRequest({
+            shouldFlagNewTransactionForReportTable: true,
             isNewChatReport: isNewOneOnOneChatReport,
             isOneOnOneSplit: true,
             shouldCreateNewMoneyRequestReport: shouldCreateNewOneOnOneIOUReport,
@@ -2012,6 +2013,7 @@ function createSplitsAndOnyxData({
             successData: oneOnOneSuccessData,
             failureData: oneOnOneFailureData,
         } = buildOnyxDataForMoneyRequest({
+            shouldFlagNewTransactionForReportTable: true,
             isNewChatReport: isNewOneOnOneChatReport,
             shouldCreateNewMoneyRequestReport: shouldCreateNewOneOnOneIOUReport,
             isOneOnOneSplit: true,
@@ -2279,6 +2281,7 @@ function planDistanceRequest(distanceRequestInformation: CreateDistanceRequestIn
             payerEmail,
             onyxData: moneyRequestOnyxData,
         } = getMoneyRequestInformation({
+            shouldFlagNewTransactionForReportTable: true,
             isVendorMatchingBetaEnabled,
             parentChatReport: currentChatReport,
             existingIOUReport,
