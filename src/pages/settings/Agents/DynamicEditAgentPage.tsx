@@ -47,9 +47,9 @@ function DynamicEditAgentPage({route, navigation}: DynamicEditAgentPageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const icons = useMemoizedLazyExpensifyIcons(['Trashcan', 'ChatBubble', 'MagnifyingGlass', 'Users']);
-    const [accountID, accountIDMetadata] = useAgentAccountID(route.params.accountID, navigation);
+    const [accountID, accountIDMetadata, personalDetailsAccountID] = useAgentAccountID(route.params.accountID, navigation);
     const [agent, agentMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.AGENT}${accountID}`);
-    const [personalDetails, personalDetailsMetadata] = usePersonalDetail(accountID);
+    const [personalDetails, personalDetailsMetadata] = usePersonalDetail(personalDetailsAccountID);
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const {showConfirmModal} = useConfirmModal();
     const showRuleBotGuardModal = useRuleBotGuardModal();
@@ -85,7 +85,9 @@ function DynamicEditAgentPage({route, navigation}: DynamicEditAgentPageProps) {
         deleteAgent(accountID, agentLogin, allPolicies, true, backPath);
     };
     const isPendingAddOrDelete = agent?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD || agent?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
-    const areActionsDisabled = isPendingAddOrDelete || accountID <= 0 || !agentLogin;
+    // The real agent's details can show while the screen still uses the temporary agent's ID, which chat and search
+    // cannot use yet.
+    const areActionsDisabled = isPendingAddOrDelete || accountID <= 0 || !agentLogin || personalDetailsAccountID !== accountID;
     const agentPrompt = Str.htmlDecode(agent?.prompt?.trim() ?? '');
     const handleChatPress = () => {
         chatWithAgent(accountID);

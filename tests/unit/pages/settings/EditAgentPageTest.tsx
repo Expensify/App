@@ -462,10 +462,12 @@ describe('DynamicEditAgentPage', () => {
                 await waitForBatchedUpdates();
             });
 
-            // Then the screen stays on the temporary agent and shows its record's instructions, waiting for the real agent's
-            // record before it moves
+            // Then the screen stays on the temporary agent's record and shows its instructions, waiting for the real agent's
+            // record before it moves, but already shows the real agent's name, because the temporary details left in the same
+            // write that brought the real ones
             expect(mockSetParams).not.toHaveBeenCalled();
             expect(JSON.stringify(toJSON())).toContain('Pending instructions');
+            expect(JSON.stringify(toJSON())).toContain('Created agent');
             expect(JSON.stringify(toJSON())).not.toContain('notFound.notHere');
 
             // When the real agent's record arrives

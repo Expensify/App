@@ -55,19 +55,21 @@ type OnSaveParams = {file: File | CustomRNImageManipulatorResult; uri: string} |
 
 type EditAgentAvatarContentProps = {
     accountID: number;
+    /** The accountID whose personal details (current avatar) to show, when it differs from accountID */
+    personalDetailsAccountID?: number;
     fallbackRoute?: Route;
     onSave?: (params: OnSaveParams) => void;
     initialPresetID?: string;
 };
 
-function EditAgentAvatarContent({accountID, fallbackRoute, onSave, initialPresetID}: EditAgentAvatarContentProps) {
+function EditAgentAvatarContent({accountID, personalDetailsAccountID = accountID, fallbackRoute, onSave, initialPresetID}: EditAgentAvatarContentProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const icons = useMemoizedLazyExpensifyIcons(['Upload']);
     const presetAvatarSize = StyleUtils.getAvatarSize(CONST.AVATAR_SIZE.X_LARGE);
 
-    const [personalDetails] = usePersonalDetail(accountID);
+    const [personalDetails] = usePersonalDetail(personalDetailsAccountID);
 
     const initialBotAvatar: AgentAvatarID | null = !initialPresetID || !AGENT_AVATARS.isAvatarID(initialPresetID) ? null : initialPresetID;
 
@@ -230,11 +232,12 @@ function EditAgentAvatarContent({accountID, fallbackRoute, onSave, initialPreset
 EditAgentAvatarContent.displayName = 'EditAgentAvatarContent';
 
 function DynamicEditAgentAvatarPage({route, navigation}: DynamicEditAgentAvatarPageProps) {
-    const [accountID] = useAgentAccountID(route.params.accountID, navigation);
+    const [accountID, , personalDetailsAccountID] = useAgentAccountID(route.params.accountID, navigation);
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.AGENT_EDIT_AVATAR.path);
     return (
         <EditAgentAvatarContent
             accountID={accountID}
+            personalDetailsAccountID={personalDetailsAccountID}
             fallbackRoute={backPath}
         />
     );

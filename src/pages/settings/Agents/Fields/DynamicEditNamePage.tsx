@@ -30,8 +30,8 @@ type DynamicEditNamePageProps = PlatformStackScreenProps<SettingsNavigatorParamL
 function DynamicEditNamePage({route, navigation}: DynamicEditNamePageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const [accountID] = useAgentAccountID(route.params.accountID, navigation);
-    const [personalDetails] = usePersonalDetail(accountID);
+    const [accountID, , personalDetailsAccountID] = useAgentAccountID(route.params.accountID, navigation);
+    const [personalDetails] = usePersonalDetail(personalDetailsAccountID);
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.AGENT_EDIT_NAME.path);
 
     const {inputCallbackRef} = useAutoFocusInput();

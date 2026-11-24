@@ -1,4 +1,4 @@
-import {resolveAgentAccountID} from '@libs/AgentAccountIDMapping';
+import {hasAgentRecord, resolveAgentAccountID} from '@libs/AgentAccountIDMapping';
 import {read, write} from '@libs/API';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import {buildAvatarCropResult} from '@libs/AvatarCropUtils';
@@ -7,6 +7,7 @@ import type {CustomRNImageManipulatorResult} from '@libs/cropOrRotateImage/types
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {rand64} from '@libs/NumberUtils';
+import {getPersonalDetail} from '@libs/PersonalDetailsStore';
 import {buildPersonalDetailsUpdate} from '@libs/PersonalDetailsUtils';
 import {buildOptimisticChatReport, buildOptimisticCreatedReportAction, generateReportID} from '@libs/ReportUtils';
 import type {AvatarSource} from '@libs/UserAvatarUtils';
@@ -253,17 +254,38 @@ function clearAgentDeleteError(accountID: number) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.AGENT}${accountID}`, {pendingAction: null, errors: null});
 }
 
+/**
+ * Another tab's writes reach this tab key by key, so this tab can already resolve an agent's real accountID while its
+ * cache does not hold the real agent's personal details or record yet. A write saves the whole value of its key from this
+ * tab's cache, so an optimistic write then would replace the real data in every tab: the whole personal details list
+ * without the real agent's login, or an agent record without its prompt. Callers still send their request and keep their
+ * success and failure data, which the tab running the request queue applies; that tab applied CreateAgent's response, so
+ * it holds the real data. They only skip the optimistic writes this tab cannot make yet. That tab also skips them until
+ * its request queue drains and CreateAgent's response is written, so a save there shows once the server answers.
+ */
+function getAllowedOptimisticAgentWrites(accountID: number, agentAccountID: number) {
+    const isSameAgent = agentAccountID === accountID;
+    return {
+        canWritePersonalDetails: isSameAgent || !!getPersonalDetail(agentAccountID)?.login,
+        canWriteAgentRecord: isSameAgent || hasAgentRecord(agentAccountID),
+    };
+}
+
 function updateAgentName(accountID: number, firstName: string, originalFirstName: string) {
     // The caller may still hold an optimistic accountID that was already reconciled while its screen was open.
     const agentAccountID = resolveAgentAccountID(accountID);
-    const optimisticData: AnyOnyxUpdate[] = [
-        buildPersonalDetailsUpdate({[agentAccountID]: {displayName: firstName}}),
-        {
+    const {canWritePersonalDetails, canWriteAgentRecord} = getAllowedOptimisticAgentWrites(accountID, agentAccountID);
+    const optimisticData: AnyOnyxUpdate[] = [];
+    if (canWritePersonalDetails) {
+        optimisticData.push(buildPersonalDetailsUpdate({[agentAccountID]: {displayName: firstName}}));
+    }
+    if (canWriteAgentRecord) {
+        optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.AGENT}${agentAccountID}`,
             value: {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE, errors: null, nameErrors: null},
-        },
-    ];
+        });
+    }
 
     const successData: AnyOnyxUpdate[] = [
         {
@@ -274,7 +296,8 @@ function updateAgentName(accountID: number, firstName: string, originalFirstName
     ];
 
     const failureData: AnyOnyxUpdate[] = [
-        buildPersonalDetailsUpdate({[agentAccountID]: {displayName: originalFirstName}}),
+        // Only an optimistic change of the name needs reverting.
+        ...(canWritePersonalDetails ? [buildPersonalDetailsUpdate({[agentAccountID]: {displayName: originalFirstName}})] : []),
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.AGENT}${agentAccountID}`,
@@ -289,19 +312,23 @@ function updateAgentPrompt(accountID: number, prompt: string, originalPrompt: st
     // The caller may still hold an optimistic accountID that was already reconciled while its screen was open.
     const agentAccountID = resolveAgentAccountID(accountID);
     const onyxKey = `${ONYXKEYS.COLLECTION.AGENT}${agentAccountID}`;
-    const optimisticData: AnyOnyxUpdate[] = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: onyxKey,
-            value: {prompt, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE, errors: null},
-        },
-    ];
+    const {canWriteAgentRecord} = getAllowedOptimisticAgentWrites(accountID, agentAccountID);
+    const optimisticData: AnyOnyxUpdate[] = canWriteAgentRecord
+        ? [
+              {
+                  onyxMethod: Onyx.METHOD.MERGE,
+                  key: onyxKey,
+                  value: {prompt, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE, errors: null},
+              },
+          ]
+        : [];
 
     const successData: AnyOnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: onyxKey,
-            value: {pendingAction: null, promptErrors: null},
+            // Without the optimistic write, the new prompt is saved by the tab that runs the request, which holds the record.
+            value: {...(canWriteAgentRecord ? {} : {prompt}), pendingAction: null, promptErrors: null},
         },
     ];
 
@@ -309,7 +336,12 @@ function updateAgentPrompt(accountID: number, prompt: string, originalPrompt: st
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: onyxKey,
-            value: {prompt: originalPrompt, pendingAction: null, promptErrors: getMicroSecondOnyxErrorWithTranslationKey('agentsPage.error.updatePrompt')},
+            // Only an optimistic change of the prompt needs reverting.
+            value: {
+                ...(canWriteAgentRecord ? {prompt: originalPrompt} : {}),
+                pendingAction: null,
+                promptErrors: getMicroSecondOnyxErrorWithTranslationKey('agentsPage.error.updatePrompt'),
+            },
         },
     ];
 
@@ -329,21 +361,27 @@ function updateAgentAvatar(
 
     // The caller may still hold an optimistic accountID that was already reconciled while its screen was open.
     const agentAccountID = resolveAgentAccountID(accountID);
-    const optimisticData: AnyOnyxUpdate[] = [
-        buildPersonalDetailsUpdate({
-            [agentAccountID]: {
-                avatar: update.uri,
-                avatarThumbnail: update.uri,
-                pendingFields: {avatar: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
-                errorFields: {avatar: null},
-            },
-        }),
-        {
+    const {canWritePersonalDetails, canWriteAgentRecord} = getAllowedOptimisticAgentWrites(accountID, agentAccountID);
+    const optimisticData: AnyOnyxUpdate[] = [];
+    if (canWritePersonalDetails) {
+        optimisticData.push(
+            buildPersonalDetailsUpdate({
+                [agentAccountID]: {
+                    avatar: update.uri,
+                    avatarThumbnail: update.uri,
+                    pendingFields: {avatar: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
+                    errorFields: {avatar: null},
+                },
+            }),
+        );
+    }
+    if (canWriteAgentRecord) {
+        optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.AGENT}${agentAccountID}`,
             value: {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE, errors: null, avatarErrors: null},
-        },
-    ];
+        });
+    }
 
     const successData: AnyOnyxUpdate[] = [
         buildPersonalDetailsUpdate({
@@ -360,14 +398,19 @@ function updateAgentAvatar(
     ];
 
     const failureData: AnyOnyxUpdate[] = [
-        buildPersonalDetailsUpdate({
-            [agentAccountID]: {
-                avatar: currentAvatar,
-                avatarThumbnail: typeof currentAvatar === 'string' ? currentAvatar : undefined,
-                pendingFields: {avatar: null},
-                errorFields: {avatar: null},
-            },
-        }),
+        // Only an optimistic change of the avatar needs reverting.
+        ...(canWritePersonalDetails
+            ? [
+                  buildPersonalDetailsUpdate({
+                      [agentAccountID]: {
+                          avatar: currentAvatar,
+                          avatarThumbnail: typeof currentAvatar === 'string' ? currentAvatar : undefined,
+                          pendingFields: {avatar: null},
+                          errorFields: {avatar: null},
+                      },
+                  }),
+              ]
+            : []),
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.AGENT}${agentAccountID}`,
@@ -383,16 +426,19 @@ function updateAgentAvatar(
 function deleteAgent(accountID: number, agentLogin?: string, allPolicies?: OnyxCollection<Policy>, shouldNavigateBack = true, backPath?: Route) {
     // The caller may still hold an optimistic accountID that was already reconciled while its screen was open.
     const agentAccountID = resolveAgentAccountID(accountID);
-    const optimisticData: AnyOnyxUpdate[] = [
-        {
+    const {canWritePersonalDetails, canWriteAgentRecord} = getAllowedOptimisticAgentWrites(accountID, agentAccountID);
+    const optimisticData: AnyOnyxUpdate[] = [];
+    if (canWriteAgentRecord) {
+        optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.AGENT}${agentAccountID}`,
             value: {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE},
-        },
-
+        });
+    }
+    if (canWritePersonalDetails) {
         // Set accountID to 0 so the agent is not included in personal details list (e.g. so you can't invite an agent that you are deleting)
-        buildPersonalDetailsUpdate({[agentAccountID]: {accountID: CONST.DEFAULT_NUMBER_ID}}),
-    ];
+        optimisticData.push(buildPersonalDetailsUpdate({[agentAccountID]: {accountID: CONST.DEFAULT_NUMBER_ID}}));
+    }
 
     const successData: AnyOnyxUpdate[] = [
         {

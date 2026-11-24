@@ -1,4 +1,4 @@
-import {isValidAgentAccountID, registerAgentAccountIDMapping} from '@libs/AgentAccountIDMapping';
+import {isValidAgentAccountID, registerAgentAccountIDMapping, setHeldAgentRecords} from '@libs/AgentAccountIDMapping';
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import {getPersonalDetail, personalDetailsHydrationPromise, subscribeToPersonalDetails} from '@libs/PersonalDetailsStore';
@@ -75,6 +75,7 @@ const agentsHydrationPromise = new Promise<void>((resolve) => {
         key: ONYXKEYS.COLLECTION.AGENT,
         callback: (value) => {
             agents = value;
+            setHeldAgentRecords(value);
             resolve();
             // The real agent's record can reach this tab after its personal details.
             retrySkippedAccountIDs();

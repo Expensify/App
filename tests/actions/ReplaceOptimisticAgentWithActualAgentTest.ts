@@ -842,10 +842,9 @@ describe('replaceOptimisticAgentWithActualAgent', () => {
         {deletionState: 'in flight', optimisticAccountID: 2864019375286403, realAccountID: 7392018465739203, hasFailed: false},
         {deletionState: 'failed', optimisticAccountID: 2864019375286404, realAccountID: 7392018465739204, hasFailed: true},
     ])('writes nothing while only deleteAgent placeholders stand for the real agent and the deletion is $deletionState', async ({optimisticAccountID, realAccountID, hasFailed}) => {
-        // Given a tab whose cache lags behind another tab's. It received the DELETE marker and deleteAgent's placeholder
-        // personal detail for the real agent, but not yet the real agent's details from CreateAgent's response. The failed
-        // case checks that the placeholder deleteAgent's failure data writes does not open the gate either. Neither
-        // placeholder has a login.
+        // Given a tab whose cache lags behind another tab's: it deleted the agent before the real agent's details from
+        // CreateAgent's response reached it, so deleteAgent wrote nothing optimistic for the real agent. The failed case
+        // checks that the placeholder deleteAgent's failure data writes, which has no login, does not open the gate.
         await addOptimisticAgent(optimisticAccountID);
         registerAgentAccountIDMapping(optimisticAccountID, realAccountID);
         deleteAgent(optimisticAccountID, undefined, undefined, false);
@@ -856,7 +855,7 @@ describe('replaceOptimisticAgentWithActualAgent', () => {
         }
         await waitForBatchedUpdates();
         const personalDetailsBefore = await getOnyxValue(ONYXKEYS.PERSONAL_DETAILS_LIST);
-        expect(personalDetailsBefore?.[realAccountID]).toStrictEqual({accountID: hasFailed ? realAccountID : CONST.DEFAULT_NUMBER_ID});
+        expect(personalDetailsBefore?.[realAccountID]).toStrictEqual(hasFailed ? {accountID: realAccountID} : undefined);
         const mergeSpy = jest.spyOn(Onyx, 'merge');
         const updateSpy = jest.spyOn(Onyx, 'update');
 
