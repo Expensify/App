@@ -1124,6 +1124,7 @@ const translations = {
     },
     supportalSwitcher: {
         title: 'Supportal into another account',
+        navigationLabel: 'Supportal',
         emailLabel: 'Email address',
         reasonLabel: 'Support login reason',
         reasonHint: 'No recent tickets found for this account.',
@@ -1399,6 +1400,9 @@ const translations = {
         writingYourInsights: 'Writing your insights',
         tagLevel: (level: string) => `Tag level ${level}`,
         tagLevelLabel: 'Tag level',
+        noTaggedExpenses: 'No tagged expenses',
+        // @context The selected tag list name can be a custom name like Department or a fallback like Tag level 2.
+        noExpensesForTagLevel: (tagLevelName: string) => `No expenses for ${tagLevelName} in this date range.`,
         parent: 'Parent',
         shareOfTotal: 'Share of total (%)',
         viewOnSpend: 'View on Spend',
@@ -1407,9 +1411,31 @@ const translations = {
         viewDetails: 'View details',
         viewAll: 'View all',
         topExpenses: 'Top expenses',
-        noExpensesInRange: 'No expenses in this range',
         flaggedExpenses: 'Flagged expenses',
         noFlaggedExpensesInRange: 'No flagged expenses in this range',
+        summary: {
+            title: 'Summary',
+            over: (percentage: string) => `${percentage} over`,
+            under: (percentage: string) => `${percentage} under`,
+            versusMerchantAverage: (amount: string) => `${amount} vs this merchant's average`,
+            versusMemberAverage: (amount: string) => `${amount} vs this member's average`,
+            versusCategoryAverage: (amount: string) => `${amount} vs this category's average`,
+            versusAverageDay: (amount: string) => `${amount} vs average day`,
+            versusAverageWeek: (amount: string) => `${amount} vs average week`,
+            versusAverageMonth: (amount: string) => `${amount} vs average month`,
+            versusAverageQuarter: (amount: string) => `${amount} vs average quarter`,
+            moreHistoryNeeded: 'More history needed:',
+            daysOfHistoryNeeded: (count: number) => `Average comparison will show after ${count} complete days of history`,
+            weeksOfHistoryNeeded: (count: number) => `Average comparison will show after ${count} complete weeks of history`,
+            monthsOfHistoryNeeded: (count: number) => `Average comparison will show after ${count} complete months of history`,
+            quartersOfHistoryNeeded: (count: number) => `Average comparison will show after ${count} complete quarters of history`,
+            periodSpend: (period: string) => `${period} spend`,
+            dayAverage: (count: number) => `${count} day average`,
+            weekAverage: (count: number) => `${count} week average`,
+            monthAverage: (count: number) => `${count} month average`,
+            quarterAverage: (count: number) => `${count} quarter average`,
+            shareOfTotal: 'Share of total',
+        },
         compliance: 'Compliance',
         violationsOverTime: 'Violations over time',
         topViolations: 'Top violations',
@@ -2080,6 +2106,12 @@ const translations = {
             debitedAmount: 'Debited amount',
             employeeReceived: 'Employee received',
             payAll: 'Pay all',
+            fxRateExpiredTitle: 'FX rate expired',
+            fxRatesExpiredTitle: 'FX rates expired',
+            fxRateExpiredPrompt: 'Review the latest rate before you pay.',
+            fxRatesExpiredPrompt: 'Review the latest rates before you pay.',
+            getLatestRate: 'Get latest rate',
+            getLatestRates: 'Get latest rates',
             reportCount: ({count}: {count: number}) => ({
                 one: '1 report',
                 other: `${count} reports`,
@@ -2486,6 +2518,9 @@ const translations = {
                 }
                 return `Waiting for the cancelled payment to finish processing${formattedETA}.`;
             },
+            // Every next step message takes the same params, and this one shows none of them
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
+            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_PAYMENT_REVIEW]: (params: ReportNextStepMessageParams) => `Payment on hold, look for another update.`,
             // eslint-disable-next-line @typescript-eslint/no-unused-vars
             [CONST.NEXT_STEP.MESSAGE_KEY.SUBMITTING_TO_SELF]: (params: ReportNextStepMessageParams) =>
                 `Oops! Looks like you're submitting to <strong>yourself</strong>. Approving your own reports is <strong>forbidden</strong> by your workspace. Please submit this report to someone else or contact your admin to change the person you submit to.`,
@@ -2738,6 +2773,7 @@ const translations = {
             usingImportedState: 'You are using imported state. Press here to clear it.',
             debugMode: 'Debug mode',
             showBranchNameInTitle: 'Show branch name in browser title',
+            hideEnvironmentBadge: 'Hide environment badge',
             betaOverrides: 'Beta overrides',
             betaOverridesDescription:
                 'Overrides are local to this device and only affect frontend checks. A beta keeps an override only while it differs from your account betas, so toggling it back removes the override. “Reset all overrides” restores the values from your account. Some betas are gated on the backend too, so those can still fail at the request level.',
@@ -2749,6 +2785,8 @@ const translations = {
             leftHandNavCache: 'Left Hand Nav cache',
             clearleftHandNavCache: 'Clear',
             softKillTheApp: 'Soft kill the app',
+            testBusinessBankAccount: 'Test USD business bank account',
+            testPersonalBankAccount: 'Test USD personal bank account',
             kill: 'Kill',
             sentryDebug: 'Sentry debug',
             sentrySendDescription: 'Send data to Sentry',
@@ -3391,8 +3429,8 @@ const translations = {
             },
         },
         wiseSetupRow: {
-            inProgress: {message: 'Global reimbursements setup in progress.', link: 'Continue.'},
-            inReview: {message: 'Global reimbursements setup in review.', link: 'Check status.'},
+            inProgress: {message: 'Global reimbursements setup in progress.'},
+            inReview: {message: 'Global reimbursements setup in review.', action: 'Check status'},
         },
         wiseGlobalReimbursementsIntro: {
             headerTitle: 'Global reimbursements',
@@ -5616,6 +5654,10 @@ const translations = {
             railTicketExchange: (origin: string, destination: string, startDate: string) => `Your rail ticket for ${origin} → ${destination} on ${startDate} has been exchanged.`,
             railTicketUpdate: (origin: string, destination: string, startDate: string) => `Your rail ticket for ${origin} → ${destination} on ${startDate} has been updated.`,
             defaultUpdate: (type: string) => `Your ${type} reservation was updated.`,
+            hotelBooked: (hotelName: string, startDate: string) => `Your hotel reservation at ${hotelName} (check-in ${startDate}) has been booked.`,
+            carBooked: (vendor: string, startDate: string) => `Your ${vendor} car rental (pick-up ${startDate}) has been booked.`,
+            railTicketBooked: (origin: string, destination: string, startDate: string) => `Your rail ticket for ${origin} → ${destination} on ${startDate} has been booked.`,
+            defaultBooked: (type: string) => `Your ${type} reservation has been booked.`,
         },
         nudge: {
             airfareManual:
@@ -5883,6 +5925,9 @@ const translations = {
             },
             chatgpt: {
                 title: 'ChatGPT',
+            },
+            grok: {
+                title: 'Grok',
             },
         },
         connections: {
@@ -8718,6 +8763,7 @@ const translations = {
                 willBeReadyToUse: 'This card will be ready to use immediately.',
                 willBeReadyToShip: 'This card will be ready to ship immediately.',
                 cardholder: 'Cardholder',
+                cardholderEmail: 'Cardholder email',
                 cardType: 'Card type',
                 limit: 'Limit',
                 limitType: 'Limit type',
@@ -12010,7 +12056,8 @@ const translations = {
                 reimbursementRefunded: ({bankAccountLastFour}: {bankAccountLastFour: string}) => `Funds were returned to bank account ${bankAccountLastFour}. You can retry the payment.`,
                 reimbursementRefundedWithoutBankAccount: 'Funds were returned. You can retry the payment.',
                 reimbursementHeld: 'Payment on hold while our partner completes a review. Look for another update. Chat with <concierge-link>Concierge</concierge-link>.',
-                reimbursementReleased: 'The review is complete and your payment is on its way. The final FX rate may change the amount.',
+                reimbursementReleased: ({expectedDate}: {expectedDate: string}) => `Payment released, funds are expected to arrive by ${expectedDate}.`,
+                reimbursementReleasedWithoutDate: 'Payment released.',
                 selectedForRandomAudit: `randomly selected for review`,
                 selectedForRandomAuditMarkdown: `[randomly selected](https://help.expensify.com/articles/expensify-classic/reports/Set-a-random-report-audit-schedule) for review`,
                 share: (to: string) => `invited member ${to}`,
@@ -12048,7 +12095,9 @@ const translations = {
                     mentionedAccountID?: number;
                 }) => {
                     let warningTime = 'soon';
-                    if (warningDaysBeforeExpiry === CONST.COMPANY_CARDS.CONSENT_EXPIRY_WARNING_DAYS.TWO_WEEKS) {
+                    if (warningDaysBeforeExpiry === CONST.COMPANY_CARDS.CONSENT_EXPIRY_WARNING_DAYS.ONE_MONTH) {
+                        warningTime = 'in one month';
+                    } else if (warningDaysBeforeExpiry === CONST.COMPANY_CARDS.CONSENT_EXPIRY_WARNING_DAYS.TWO_WEEKS) {
                         warningTime = 'in two weeks';
                     } else if (warningDaysBeforeExpiry === CONST.COMPANY_CARDS.CONSENT_EXPIRY_WARNING_DAYS.ONE_WEEK) {
                         warningTime = 'in one week';

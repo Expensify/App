@@ -153,4 +153,4 @@ function resolveInsightsDetailsItem({
     }
 }
 
-export {getInsightsDetailsItemParams, resolveInsightsDetailsItem};
+export {getInsightsDetailsItemParams, getPeriodTitle, resolveInsightsDetailsItem};

@@ -7,7 +7,6 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 
-import {search} from '@libs/actions/Search';
 import {getPositiveHasFilterValues, getViolationDisplayName, hasValuesIncludeViolationFilter} from '@libs/SearchQueryUtils';
 import {getSections, getSortedSections, getViolationNamesForTransaction, isSearchDataLoaded} from '@libs/SearchUIUtils';
 
@@ -15,21 +14,11 @@ import {buildTopExpensesQueryJSON} from '@pages/Insights/insightsQueries';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
-import type {ValueOf} from 'type-fest';
+import type {InsightsDetailsSectionState} from './insightsDetailsSectionState';
 
-import {useIsFocused} from '@react-navigation/native';
-import {useEffect, useEffectEvent, useRef} from 'react';
-
-const TOP_EXPENSES_STATE = {
-    READY: 'ready',
-    LOADING: 'loading',
-    STALE: 'stale',
-    ERROR: 'error',
-    OFFLINE: 'offline',
-} as const;
-
-type TopExpensesState = ValueOf<typeof TOP_EXPENSES_STATE>;
+import {getInsightsDetailsSectionState, INSIGHTS_DETAILS_SECTION_STATE} from './insightsDetailsSectionState';
 
 type TopExpenses = {
     expenses: TransactionListItemType[];
@@ -38,58 +27,27 @@ type TopExpenses = {
     violationsByTransactionID: Record<string, string[]> | undefined;
 
     queryJSON: Readonly<SearchQueryJSON> | undefined;
-    state: TopExpensesState;
-    retry: () => void;
+    state: InsightsDetailsSectionState;
 };
 
-/** Requests the largest expenses in a Spend table query and returns them as Spend rows, sorted by amount, with their violations when the query is narrowed to expenses with violations. */
-function useInsightsTopExpenses(query: SearchQueryString | undefined): TopExpenses {
+/** Returns the largest expenses stored for a Spend table query, as Spend rows sorted by amount, with their violations when the query is narrowed to expenses with violations. */
+function useInsightsTopExpenses(query: SearchQueryString, snapshotHash: number): TopExpenses {
     const {translate, localeCompare, formatPhoneNumber, dateFnsLocale} = useLocalize();
     const {convertToDisplayString} = useCurrencyListActions();
     const {isOffline} = useNetwork();
-    const isFocused = useIsFocused();
     const session = useSession();
-    const queryJSON = query ? buildTopExpensesQueryJSON(query) : undefined;
-    const [snapshot] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${queryJSON?.hash}`);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
-    const [spendDataSignature] = useOnyx(ONYXKEYS.DERIVED.SPEND_DATA_SIGNATURE);
-
-    const retry = () => {
-        if (!queryJSON || isOffline) {
-            return;
-        }
-        search({queryJSON, searchKey: undefined, offset: 0, isLoading: false});
-    };
-
-    const onRefreshKeyChange = useEffectEvent(retry);
-
-    // An expense edit moves the spend signature and can change which expenses match, so the list is fetched again.
-    // A change made while an expense is open on top waits until the user is back on the list.
-    const refreshKey = [queryJSON?.hash, isOffline, spendDataSignature?.expenses ?? 0].join('|');
-    const lastRefreshKeyRef = useRef<string | undefined>(undefined);
-    useEffect(() => {
-        if (!isFocused || refreshKey === lastRefreshKeyRef.current) {
-            return;
-        }
-        lastRefreshKeyRef.current = refreshKey;
-        onRefreshKeyChange();
-    }, [refreshKey, isFocused]);
+    const [snapshot] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${snapshotHash}`);
+    const queryJSON = buildTopExpensesQueryJSON(query);
 
     const isLoaded = isSearchDataLoaded(snapshot, queryJSON);
-    const hasErrors = Object.keys(snapshot?.errors ?? {}).length > 0;
+    const hasErrors = !isEmptyObject(snapshot?.errors);
 
-    let state: TopExpensesState = TOP_EXPENSES_STATE.READY;
-    if (isOffline && (!isLoaded || hasErrors)) {
-        state = TOP_EXPENSES_STATE.OFFLINE;
-    } else if (hasErrors) {
-        state = snapshot?.search?.responseJsonCode === CONST.JSON_CODE.NO_RESPONSE ? TOP_EXPENSES_STATE.STALE : TOP_EXPENSES_STATE.ERROR;
-    } else if (!isLoaded) {
-        state = TOP_EXPENSES_STATE.LOADING;
-    }
+    const state = getInsightsDetailsSectionState({isOffline, isLoaded, hasErrors, responseJsonCode: snapshot?.search?.responseJsonCode});
 
-    if (!queryJSON || !snapshot?.data || state !== TOP_EXPENSES_STATE.READY) {
-        return {expenses: [], violationsByTransactionID: undefined, queryJSON, state, retry};
+    if (!queryJSON || !snapshot?.data || state !== INSIGHTS_DETAILS_SECTION_STATE.READY) {
+        return {expenses: [], violationsByTransactionID: undefined, queryJSON, state};
     }
 
     const [sections] = getSections({
@@ -107,13 +65,17 @@ function useInsightsTopExpenses(query: SearchQueryString | undefined): TopExpens
         reportAttributesDerivedValue: undefined,
         queryJSON,
     });
-    const expenses = getSortedSections(queryJSON.type, sections, localeCompare, translate, queryJSON.sortBy, queryJSON.sortOrder)
-        .filter((item): item is TransactionListItemType => 'transactionID' in item && item.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE)
+    // The server sorts by the converted amount, while the client can only sort by each expense's own currency
+    const sortedItems = snapshot.orderedKeys
+        ? snapshot.orderedKeys.map((key) => sections.find((item) => 'transactionID' in item && `${ONYXKEYS.COLLECTION.TRANSACTION}${item.transactionID}` === key))
+        : getSortedSections(queryJSON.type, sections, localeCompare, translate, queryJSON.sortBy, queryJSON.sortOrder);
+    const expenses = sortedItems
+        .filter((item): item is TransactionListItemType => !!item && 'transactionID' in item && item.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE)
         .slice(0, queryJSON.limit);
 
     const hasFilterValues = getPositiveHasFilterValues(queryJSON);
     if (!hasValuesIncludeViolationFilter(hasFilterValues)) {
-        return {expenses, violationsByTransactionID: undefined, queryJSON, state, retry};
+        return {expenses, violationsByTransactionID: undefined, queryJSON, state};
     }
 
     // On a violation's panel, that violation leads each expense's list
@@ -130,8 +92,7 @@ function useInsightsTopExpenses(query: SearchQueryString | undefined): TopExpens
         }),
     );
 
-    return {expenses, violationsByTransactionID, queryJSON, state, retry};
+    return {expenses, violationsByTransactionID, queryJSON, state};
 }
 
-export {TOP_EXPENSES_STATE};
 export default useInsightsTopExpenses;

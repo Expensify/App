@@ -403,6 +403,9 @@ type SearchResults = {
     search: SearchResultsInfo;
     data: SearchResultDataType;
 
+    /** Keys of the results in `data`, in the order the server sorted them */
+    orderedKeys?: string[];
+
     /** Whether search data is being fetched from server */
     isLoading?: boolean;
 

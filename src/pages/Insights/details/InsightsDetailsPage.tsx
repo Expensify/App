@@ -6,6 +6,7 @@ import {buildChartDrillDownQuery} from '@components/Search/chartDrillDown';
 import Text from '@components/Text';
 
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import {usePersonalDetail} from '@hooks/usePersonalDetails';
@@ -18,18 +19,24 @@ import {buildSearchQueryJSON} from '@libs/SearchQueryUtils';
 import INSIGHTS_DASHBOARD_SPECS, {getChartSpec} from '@pages/Insights/dashboardSpecs';
 import getInsightsLastDay from '@pages/Insights/getInsightsLastDay';
 import {getQueryGroupBy} from '@pages/Insights/insightsGroupByUtils';
-import {applyInsightsFilters} from '@pages/Insights/insightsQueries';
+import {applyInsightsFilters, buildTopExpensesQueryJSON} from '@pages/Insights/insightsQueries';
 import useInsightsFilters from '@pages/Insights/useInsightsFilters';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import React from 'react';
 import {View} from 'react-native';
 
+import buildInsightsDetailsQuery from './buildInsightsDetailsQuery';
 import {resolveInsightsDetailsItem} from './insightsDetailsItem';
+import InsightsDetailsSectionError from './InsightsDetailsSectionError';
+import {getInsightsDetailsSectionState, INSIGHTS_DETAILS_SECTION_STATE} from './insightsDetailsSectionState';
+import InsightsSummary from './InsightsSummary';
 import InsightsTopExpenses from './InsightsTopExpenses';
+import useRequestInsightsDetails from './useRequestInsightsDetails';
 
 type InsightsDetailsPageProps = PlatformStackScreenProps<InsightsDetailsParamList, typeof SCREENS.INSIGHTS_DETAILS>;
 
@@ -72,6 +79,31 @@ function InsightsDetailsPage({route}: InsightsDetailsPageProps) {
             : undefined;
     const queryJSONThroughToday = chartSpec && isResolved ? buildSearchQueryJSON(applyInsightsFilters(chartSpec, filters, undefined, getInsightsLastDay(asOf))) : undefined;
     const drillDownQuery = queryJSONThroughToday && item ? buildChartDrillDownQuery(queryJSONThroughToday, item.filterQuery) : undefined;
+    const topExpensesQueryJSON = drillDownQuery ? buildTopExpensesQueryJSON(drillDownQuery) : undefined;
+    const topExpensesSnapshotHash = topExpensesQueryJSON?.hash;
+    const detailsQuery =
+        chartSpec && topExpensesSnapshotHash !== undefined
+            ? buildInsightsDetailsQuery({
+                  graphKey: chartSpec.graphKey,
+                  filters,
+                  itemGroupBy: chartSpec.groupBy,
+                  itemKey,
+                  periodEnd,
+                  topExpensesSnapshotHash,
+                  lastDay: getInsightsLastDay(asOf),
+              })
+            : undefined;
+    const requestDetails = useRequestInsightsDetails(detailsQuery, topExpensesQueryJSON);
+    const {isOffline} = useNetwork();
+    const [details] = useOnyx(`${ONYXKEYS.COLLECTION.INSIGHTS_DETAILS}${detailsQuery?.hash}`);
+    const summary = details?.summary;
+    const detailsState = getInsightsDetailsSectionState({
+        isOffline,
+        isLoaded: !!summary,
+        hasErrors: !isEmptyObject(details?.errors),
+        responseJsonCode: details?.responseJsonCode,
+    });
+    const hasDetailsFailed = !!detailsQuery && (detailsState === INSIGHTS_DETAILS_SECTION_STATE.STALE || detailsState === INSIGHTS_DETAILS_SECTION_STATE.ERROR);
 
     const chartTitle = chartSpec?.hasViolationStageControl
         ? translate(
@@ -113,11 +145,33 @@ function InsightsDetailsPage({route}: InsightsDetailsPageProps) {
                         </Text>
                         <Text variant="h1">{item.title}</Text>
                     </View>
-                    <InsightsTopExpenses
-                        query={drillDownQuery}
-                        title={translate(isCompliance ? 'insightsPage.flaggedExpenses' : 'insightsPage.topExpenses')}
-                        emptyText={translate(isCompliance ? 'insightsPage.noFlaggedExpensesInRange' : 'insightsPage.noExpensesInRange')}
-                    />
+                    {hasDetailsFailed ? (
+                        <InsightsDetailsSectionError
+                            isStale={detailsState === INSIGHTS_DETAILS_SECTION_STATE.STALE}
+                            onRetry={requestDetails}
+                        />
+                    ) : (
+                        <>
+                            {!!detailsQuery && (
+                                <InsightsSummary
+                                    query={detailsQuery}
+                                    graphKey={chartSpec.graphKey}
+                                    currency={filters.groupCurrency}
+                                    summary={summary}
+                                    state={detailsState}
+                                />
+                            )}
+                            {topExpensesSnapshotHash !== undefined && (
+                                <InsightsTopExpenses
+                                    query={drillDownQuery}
+                                    title={translate(isCompliance ? 'insightsPage.flaggedExpenses' : 'insightsPage.topExpenses')}
+                                    emptyText={isCompliance ? translate('insightsPage.noFlaggedExpensesInRange') : undefined}
+                                    snapshotHash={topExpensesSnapshotHash}
+                                    onRetry={requestDetails}
+                                />
+                            )}
+                        </>
+                    )}
                 </ScrollView>
             )}
         </ScreenWrapper>
