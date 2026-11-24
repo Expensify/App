@@ -377,13 +377,11 @@ function getGroupKeysSelectedViaGroup(selectedTransactions: SelectedTransactions
  */
 function addSelectedDateRangesFilter(queryJSON: SearchQueryJSON, dateRanges: SearchDateRange[]): SearchQueryJSON {
     const dateFilterKey = getSearchTimeGroupingDateKey(queryJSON);
-    const [firstRangeNode, ...otherRangeNodes] = dateRanges.map(
-        (range): ASTNode => ({
-            operator: CONST.SEARCH.SYNTAX_OPERATORS.AND,
-            left: {operator: CONST.SEARCH.SYNTAX_OPERATORS.GREATER_THAN_OR_EQUAL_TO, left: dateFilterKey, right: range.start},
-            right: {operator: CONST.SEARCH.SYNTAX_OPERATORS.LOWER_THAN_OR_EQUAL_TO, left: dateFilterKey, right: range.end},
-        }),
-    );
+    const [firstRangeNode, ...otherRangeNodes] = dateRanges.map((range): ASTNode => ({
+        operator: CONST.SEARCH.SYNTAX_OPERATORS.AND,
+        left: {operator: CONST.SEARCH.SYNTAX_OPERATORS.GREATER_THAN_OR_EQUAL_TO, left: dateFilterKey, right: range.start},
+        right: {operator: CONST.SEARCH.SYNTAX_OPERATORS.LOWER_THAN_OR_EQUAL_TO, left: dateFilterKey, right: range.end},
+    }));
     if (!firstRangeNode) {
         return queryJSON;
     }
