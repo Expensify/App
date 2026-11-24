@@ -266,8 +266,7 @@ function AttachmentCarouselView({
                                     ref={scrollRef}
                                     initialScrollIndex={page}
                                     initialNumToRender={3}
-                                    // A wider buffer reduces selected-cell unmounts during resize without disabling virtualization.
-                                    windowSize={9}
+                                    windowSize={5}
                                     maxToRenderPerBatch={CONST.MAX_TO_RENDER_PER_BATCH.CAROUSEL}
                                     data={attachments}
                                     renderItem={renderItem}
