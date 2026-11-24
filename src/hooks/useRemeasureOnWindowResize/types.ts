@@ -9,4 +9,4 @@ type UseRemeasureOnWindowResizeCallback = (isStale: () => boolean) => void;
  */
 type UseRemeasureOnWindowResize = (isActive: boolean, remeasure: UseRemeasureOnWindowResizeCallback) => void;
 
-export type {UseRemeasureOnWindowResizeCallback, UseRemeasureOnWindowResize};
+export default UseRemeasureOnWindowResize;

@@ -4,7 +4,7 @@ import CONST from '@src/CONST';
 
 import {useEffect, useEffectEvent} from 'react';
 
-import type {UseRemeasureOnWindowResize} from './types';
+import type UseRemeasureOnWindowResize from './types';
 
 /**
  * Keeps something anchored to an element in place while the browser window is resized, e.g. a pop-over under a row in

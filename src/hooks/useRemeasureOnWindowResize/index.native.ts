@@ -1,4 +1,4 @@
-import type {UseRemeasureOnWindowResize} from './types';
+import type UseRemeasureOnWindowResize from './types';
 
 /**
  * A native window can't be dragged to a new size. It only changes size on rotation, split view or, on Android, when the
