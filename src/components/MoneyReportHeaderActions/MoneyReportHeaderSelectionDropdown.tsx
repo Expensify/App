@@ -116,22 +116,30 @@ function MoneyReportHeaderSelectionDropdown({reportID, primaryAction, isReportIn
     const [originalTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(singleTransaction?.comment?.originalTransactionID)}`);
 
     // Submit/approve via shared lifecycle actions
-    const {confirmApproval, handleSubmitReport, shouldBlockSubmit, isBlockSubmitDueToPreventSelfApproval, approveSubMenuItems, approveSubMenuHeaderText, shouldShowApproveSubMenu} =
-        useLifecycleActions({
-            reportID,
-            startApprovedAnimation,
-            startAnimation,
-            startSubmittingAnimation,
-            onHoldMenuOpen: (requestType, onConfirm, paymentType) =>
-                openHoldMenu({
-                    requestType,
-                    onConfirm: () => {
-                        onConfirm?.();
-                        clearSelectedTransactions(true);
-                    },
-                    paymentType,
-                }),
-        });
+    const {
+        actions: lifecycleActions,
+        confirmApproval,
+        handleSubmitReport,
+        shouldBlockSubmit,
+        isBlockSubmitDueToPreventSelfApproval,
+        approveSubMenuItems,
+        approveSubMenuHeaderText,
+        shouldShowApproveSubMenu,
+    } = useLifecycleActions({
+        reportID,
+        startApprovedAnimation,
+        startAnimation,
+        startSubmittingAnimation,
+        onHoldMenuOpen: (requestType, onConfirm, paymentType) =>
+            openHoldMenu({
+                requestType,
+                onConfirm: () => {
+                    onConfirm?.();
+                    clearSelectedTransactions(true);
+                },
+                paymentType,
+            }),
+    });
 
     const {
         options: originalSelectedTransactionsOptions,
@@ -182,6 +190,7 @@ function MoneyReportHeaderSelectionDropdown({reportID, primaryAction, isReportIn
     const hasSubmitAction = primaryAction === CONST.REPORT.PRIMARY_ACTIONS.SUBMIT || computedSecondaryActions.includes(CONST.REPORT.SECONDARY_ACTIONS.SUBMIT);
     const hasApproveAction = primaryAction === CONST.REPORT.PRIMARY_ACTIONS.APPROVE || computedSecondaryActions.includes(CONST.REPORT.SECONDARY_ACTIONS.APPROVE);
     const hasPayAction = primaryAction === CONST.REPORT.PRIMARY_ACTIONS.PAY || computedSecondaryActions.includes(CONST.REPORT.SECONDARY_ACTIONS.PAY);
+    const hasUnapproveAction = computedSecondaryActions.includes(CONST.REPORT.SECONDARY_ACTIONS.UNAPPROVE);
 
     const canAllowSettlement = hasUpdatedTotal(moneyRequestReport, policy);
     const canIOUBePaid = canIOUBePaidAction(
@@ -308,6 +317,7 @@ function MoneyReportHeaderSelectionDropdown({reportID, primaryAction, isReportIn
                   },
               ]
             : []),
+        ...(hasUnapproveAction ? [lifecycleActions[CONST.REPORT.SECONDARY_ACTIONS.UNAPPROVE]] : []),
     ];
 
     const mappedOptions = originalSelectedTransactionsOptions.map((option) => {
