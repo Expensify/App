@@ -145,8 +145,13 @@ function useSearchAutoRefetch({
         if (!isSearchStillActive || isOffline) {
             // Skip the full diff while inactive and compare once on return. Empty (still loading) collections aren't saved,
             // or every later change would look like the initial load.
-            if (!baseline && hasCollectionData(previousTransactions, previousReportActions)) {
-                deferredRefetchBaselineRef.current = previous;
+            if (!baseline) {
+                if (hasCollectionData(previousTransactions, previousReportActions)) {
+                    deferredRefetchBaselineRef.current = previous;
+                }
+            } else if (previousMemberCustomFields && Object.keys(previousMemberCustomFields).some((policyID) => !baseline.memberCustomFields?.[policyID])) {
+                // Policies that first show up in the results while inactive start their baseline here, so their later edits still refetch.
+                baseline.memberCustomFields = {...previousMemberCustomFields, ...baseline.memberCustomFields};
             }
             return;
         }

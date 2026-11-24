@@ -869,6 +869,28 @@ describe('useSearchAutoRefetch', () => {
             expect(search).toHaveBeenCalledTimes(1);
         });
 
+        it('should refetch on refocus for a member custom field change on a policy that first showed up in the results while Search was hidden', () => {
+            // Given a hidden Search whose results haven't loaded any policy yet
+            const oldFields = memberWithUserID('OLD');
+            const newFields = memberWithUserID('NEW');
+            mockUseIsFocused.mockReturnValue(false);
+            const {rerender} = renderHook((props: UseSearchAutoRefetch) => useSearchAutoRefetch(props), {
+                initialProps: buildProps({}, {}),
+            });
+
+            // When the response brings in the policy while hidden, and its member's custom field then changes
+            rerender(buildProps(oldFields, {}));
+            rerender(buildProps(oldFields, oldFields));
+            rerender(buildProps(newFields, oldFields));
+            rerender(buildProps(newFields, newFields));
+            expect(search).not.toHaveBeenCalled();
+
+            // Then the search fires once Search regains focus, since the policy's fields from before the edit became its baseline
+            mockUseIsFocused.mockReturnValue(true);
+            rerender(buildProps(newFields, newFields));
+            expect(search).toHaveBeenCalledTimes(1);
+        });
+
         it('should not trigger search when the custom fields are rewritten with the same values', () => {
             // Given a member whose custom fields have loaded
             const oldFields = memberWithUserID('OLD');
