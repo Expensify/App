@@ -34,13 +34,25 @@ function SignUpWelcomeForm() {
     const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeAndAccountIDSelector});
     const serverErrorText = account ? getLatestErrorMessage(account) : '';
     const isPhoneSignup = Str.isSMSLogin(login ?? '');
+    const [hasSMSAlertsConsent, setHasSMSAlertsConsent] = useState(false);
     const [hasSMSMarketingConsent, setHasSMSMarketingConsent] = useState(false);
+    const alertsSMSConsentLabel = translate('welcomeSignUpForm.alertsSMSConsent');
     const marketingSMSConsentLabel = translate('welcomeSignUpForm.marketingSMSConsent');
+
+    // Alert texts are a condition of signing up with a phone number, so Join stays disabled until the user agrees to them
+    const isMissingRequiredSMSConsent = isPhoneSignup && !hasSMSAlertsConsent;
 
     return (
         <>
             {isPhoneSignup && (
                 <View style={[styles.mt3, styles.mb2]}>
+                    <CheckboxWithLabel
+                        label={alertsSMSConsentLabel}
+                        isChecked={hasSMSAlertsConsent}
+                        onInputChange={(value) => setHasSMSAlertsConsent(value ?? false)}
+                        accessibilityLabel={alertsSMSConsentLabel}
+                        style={styles.mb3}
+                    />
                     <CheckboxWithLabel
                         label={marketingSMSConsentLabel}
                         isChecked={hasSMSMarketingConsent}
@@ -51,12 +63,12 @@ function SignUpWelcomeForm() {
             )}
             <View style={[styles.mt3, styles.mb2]}>
                 <Button
-                    isDisabled={network.isOffline || !!account?.message}
+                    isDisabled={network.isOffline || !!account?.message || isMissingRequiredSMSConsent}
                     variant={CONST.BUTTON_VARIANT.SUCCESS}
                     size={CONST.BUTTON_SIZE.LARGE}
                     isLoading={account?.isLoading}
                     onPress={() => {
-                        signUpUser(login, preferredLocale, isPhoneSignup ? hasSMSMarketingConsent : undefined, marketingAttribution, session);
+                        signUpUser(login, preferredLocale, isPhoneSignup ? {hasSMSAlertsConsent, hasSMSMarketingConsent} : undefined, marketingAttribution, session);
                         setReadyToShowAuthScreens(true);
                     }}
                     style={[styles.mb2]}

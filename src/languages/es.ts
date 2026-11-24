@@ -4468,6 +4468,8 @@ ${amount} para ${merchant} - ${date}`,
     },
     welcomeSignUpForm: {
         join: 'Unirse',
+        alertsSMSConsent:
+            'Al proporcionar mi número de teléfono, acepto recibir alertas transaccionales de mi cuenta de Expensify. Pueden aplicarse tarifas estándar de mensajes y datos. Responde HELP para obtener ayuda. Responde STOP para darte de baja.',
         marketingSMSConsent: 'Acepto recibir mensajes de texto de marketing de Expensify',
     },
     detailsPage: {
