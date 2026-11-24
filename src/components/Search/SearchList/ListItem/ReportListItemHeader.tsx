@@ -222,6 +222,7 @@ function HeaderFirstRow<TItem extends ListItem>({
                         action={reportItem.action}
                         onButtonPress={handleOnButtonPress}
                         isSelected={isSelected}
+                        // Queued actions cannot complete offline, so hide their spinner but keep the Onyx flag for Search row retention.
                         isLoading={!isOffline && isActionLoading}
                         shouldShowMarkAsDoneCopy={shouldShowMarkAsDoneCopy}
                         policyID={reportItem.policyID}

@@ -310,6 +310,7 @@ function TransactionListItemInner<TItem extends ListItem>({
         shouldSyncFocus,
         columns,
         isLoading,
+        // Queued actions cannot complete offline, so hide their spinner but keep the Onyx flag for Search row retention.
         isActionLoading: !isOffline && isActionLoading,
         transactionViolations,
         handleActionButtonPress,

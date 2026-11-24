@@ -462,6 +462,8 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
                         item={liveReportItem}
                         columns={columns}
                         reportActions={reportActions}
+                        // Queued actions cannot complete offline, so hide their spinner but keep the Onyx flag for Search row retention.
+                        // Preserve the existing loading fallback when no action loading state is available.
                         isActionLoading={isActionLoading == null ? isLoading : !isOffline && isActionLoading}
                         canSelectMultiple={canSelectMultiple}
                         onCheckboxPress={handleSelectionButtonPress}
