@@ -55,8 +55,11 @@ type TabIconParams = {
 /** Side of an accessory glyph's box, relative to the main glyph. */
 const ACCESSORY_GLYPH_SCALE = 0.5;
 
-/** Upper bound on cached icons, enough for every tab in both selection states across a few status and theme changes. */
-const MAX_CACHED_ICONS = 64;
+/**
+ * Upper bound on cached icons, enough for every tab and every glyph of the More item in both selection states, in both
+ * orientations, across a few status and theme changes. Reaching it clears the cache, so every icon is drawn again.
+ */
+const MAX_CACHED_ICONS = 128;
 
 const iconCache = new Map<string, NativeBottomTabIcon | undefined>();
 const glyphPathCache = new Map<NativeTabGlyphName, SkPath[]>();
@@ -170,7 +173,7 @@ function getTabIconFrame(
 
     if (layout.direction === 'inline') {
         const canvasHeight = Math.ceil(Math.max(boxSize, labelHeight));
-        // The accessory sits between the glyph's box and the label, which moves over to make room for it.
+        // The label of every tab starts after the glyph's box, so the accessory pushes only its own label further.
         const labelLeft = boxSize + accessoryWidth + labelGap;
         return {
             canvasWidth: Math.ceil(hasLabel ? labelLeft + labelWidth + (layout.trailingInset ?? 0) * scale : boxSize + accessoryWidth),
@@ -286,4 +289,5 @@ function getTabBarIcon(layout: TabIconLayout, getParams: (isSelected: boolean) =
 }
 
 export default getTabBarIcon;
+export {getTabIconFrame};
 export type {TabIconLayout};

@@ -10,10 +10,10 @@ import type FlatNavTabBarFocus from '@libs/Navigation/FlatNavTabBar/FlatNavTabBa
 
 import type {TranslationPaths} from '@src/languages/types';
 
+import type {MoreMenuSectionItemID} from './MORE_MENU';
+
 import getMoreTabItemID from './getMoreTabItemID';
 import MORE_MENU from './MORE_MENU';
-
-type MoreMenuSectionItemID = typeof MORE_MENU.ITEM.ACCOUNTING | typeof MORE_MENU.ITEM.SAVED;
 
 type MoreMenuItemBase = {
     translationPath: TranslationPaths;

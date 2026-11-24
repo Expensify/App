@@ -180,7 +180,7 @@ describe('iOS useNativeTabBarOptions labels', () => {
     });
 
     it.each([
-        ['26.0', undefined],
+        ['26.0', 'beside'],
         ['16.7', 'corner'],
     ])('places the More chevron for iOS %s', (version, expectedPlacement) => {
         // Given the flat nav bar on an iOS version with or without the liquid glass bar

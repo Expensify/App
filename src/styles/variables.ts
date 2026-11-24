@@ -140,7 +140,7 @@ export default {
     nativeTabIconBoxIOSLandscape: 21,
     /** Radius of the status dot drawn into a native tab bar icon. */
     nativeTabIconDotRadius: 4,
-    /** Width of the ring cut out of a native tab bar icon around its status dot, as the JS tab bar's dot border does. */
+    /** Width of the ring cut out of a native tab bar icon around its status dot, as the JS tab bar's dot border does, and around a glyph drawn over its corner. */
     nativeTabIconDotCutout: 2,
     /** Gap between the glyph and the smaller glyph drawn beside it in a native tab bar icon, such as the chevron of the More item. */
     nativeTabIconAccessoryGap: 4,

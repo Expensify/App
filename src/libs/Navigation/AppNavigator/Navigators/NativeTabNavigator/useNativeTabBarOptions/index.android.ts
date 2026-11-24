@@ -5,7 +5,7 @@ import getNativeTabIconGlyphs from '@libs/Navigation/AppNavigator/Navigators/Nat
 import type {NativeTabRouteName} from '@libs/Navigation/AppNavigator/Navigators/NativeTabNavigator/nativeTabItemUtils';
 import getTabBarIcon from '@libs/Navigation/AppNavigator/Navigators/NativeTabNavigator/tabIconRasterizer';
 import type {TabIconLayout} from '@libs/Navigation/AppNavigator/Navigators/NativeTabNavigator/tabIconRasterizer';
-import type {MoreMenuItemID} from '@libs/Navigation/MoreMenu/getMoreTabItemID';
+import type {MoreMenuItemID} from '@libs/Navigation/MoreMenu/MORE_MENU';
 
 import variables from '@styles/variables';
 

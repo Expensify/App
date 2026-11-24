@@ -1,5 +1,5 @@
 import type {NativeTabRouteName} from '@libs/Navigation/AppNavigator/Navigators/NativeTabNavigator/nativeTabItemUtils';
-import type {MoreMenuItemID} from '@libs/Navigation/MoreMenu/getMoreTabItemID';
+import type {MoreMenuItemID} from '@libs/Navigation/MoreMenu/MORE_MENU';
 
 import type {NativeBottomTabNavigationOptions} from '@react-navigation/bottom-tabs/unstable';
 

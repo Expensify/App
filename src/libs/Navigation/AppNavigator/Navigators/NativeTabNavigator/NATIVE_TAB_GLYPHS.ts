@@ -1,6 +1,7 @@
 import type {FlatNavTabBarSlot} from '@libs/Navigation/FlatNavTabBar/FLAT_NAV_TAB_BAR_SLOT';
 import FLAT_NAV_TAB_BAR_SLOT from '@libs/Navigation/FlatNavTabBar/FLAT_NAV_TAB_BAR_SLOT';
 import MORE_MENU from '@libs/Navigation/MoreMenu/MORE_MENU';
+import type {MoreMenuSectionItemID} from '@libs/Navigation/MoreMenu/MORE_MENU';
 
 import NAVIGATORS from '@src/NAVIGATORS';
 import SCREENS from '@src/SCREENS';
@@ -126,7 +127,7 @@ const NATIVE_TAB_GLYPHS = {
 type NativeTabGlyphName = keyof typeof NATIVE_TAB_GLYPHS;
 
 /** A tab of the native tab bar, by its route name. */
-type NativeTabName = Exclude<NativeTabGlyphName, FlatNavTabBarSlot | typeof MORE_MENU.ITEM.ACCOUNTING | typeof MORE_MENU.ITEM.SAVED>;
+type NativeTabName = Exclude<NativeTabGlyphName, FlatNavTabBarSlot | MoreMenuSectionItemID>;
 
 export default NATIVE_TAB_GLYPHS;
 export type {NativeTabGlyph, NativeTabGlyphName, NativeTabName};

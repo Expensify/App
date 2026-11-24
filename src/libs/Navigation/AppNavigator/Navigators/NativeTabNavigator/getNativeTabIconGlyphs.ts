@@ -3,7 +3,7 @@
  * user is on, with the More chevron beside it, and its own chevron alone otherwise.
  */
 import FLAT_NAV_TAB_BAR_SLOT from '@libs/Navigation/FlatNavTabBar/FLAT_NAV_TAB_BAR_SLOT';
-import type {MoreMenuItemID} from '@libs/Navigation/MoreMenu/getMoreTabItemID';
+import type {MoreMenuItemID} from '@libs/Navigation/MoreMenu/MORE_MENU';
 import MORE_MENU from '@libs/Navigation/MoreMenu/MORE_MENU';
 
 import NAVIGATORS from '@src/NAVIGATORS';

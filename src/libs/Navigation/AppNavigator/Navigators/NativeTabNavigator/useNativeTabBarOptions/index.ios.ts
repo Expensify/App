@@ -7,7 +7,7 @@ import getNativeTabIconGlyphs from '@libs/Navigation/AppNavigator/Navigators/Nat
 import type {NativeTabRouteName} from '@libs/Navigation/AppNavigator/Navigators/NativeTabNavigator/nativeTabItemUtils';
 import getTabBarIcon from '@libs/Navigation/AppNavigator/Navigators/NativeTabNavigator/tabIconRasterizer';
 import type {TabIconLayout} from '@libs/Navigation/AppNavigator/Navigators/NativeTabNavigator/tabIconRasterizer';
-import type {MoreMenuItemID} from '@libs/Navigation/MoreMenu/getMoreTabItemID';
+import type {MoreMenuItemID} from '@libs/Navigation/MoreMenu/MORE_MENU';
 
 import {fontScale} from '@styles/typography';
 import variables from '@styles/variables';
@@ -56,7 +56,8 @@ function useNativeTabBarOptions({shouldShowNativeTabBar, isTabBarVertical, dotCo
     // A column has the height for a stacked tab whatever the orientation.
     const isInline = isInLandscapeMode && !isTabBarVertical;
     // The classic bar would squeeze an icon widened by the More chevron, so the chevron goes over the glyph's corner there.
-    const tabIconLayout: TabIconLayout = {...(isInline ? LANDSCAPE_TAB_ICON_LAYOUT : TAB_ICON_LAYOUT), ...(!shouldDrawLabels && {accessoryPlacement: 'corner'})};
+    const accessoryPlacement = shouldDrawLabels ? 'beside' : 'corner';
+    const tabIconLayout: TabIconLayout = {...(isInline ? LANDSCAPE_TAB_ICON_LAYOUT : TAB_ICON_LAYOUT), accessoryPlacement};
     const barItemCount = Object.keys(tabLabels).length;
     const itemWidth = (windowWidth - 2 * variables.iosNativeTabBarHorizontalInset) / barItemCount - variables.iosNativeTabBarLabelInset;
     // In landscape the label shares the item's width with the glyph's box beside it and the space after it.
