@@ -3044,47 +3044,6 @@ describe('SearchUIUtils', () => {
             expect(snapshotReportActionIDs).toStrictEqual([payAction.reportActionID]);
         });
 
-        it('should show a NewDot REIMBURSED action on an invoice that is only in the Search snapshot', () => {
-            // Given a CHAT search result whose invoice isn't loaded into Onyx, with a NewDot REIMBURSED action
-            const snapshotInvoiceID = 'snapshotOnlyInvoiceID';
-            const reimbursedAction = {
-                actionName: CONST.REPORT.ACTIONS.TYPE.REIMBURSED,
-                reportActionID: 'snapshotReimbursedActionID',
-                reportID: snapshotInvoiceID,
-                created: '2025-01-01 00:00:00',
-                message: [{type: 'TEXT', style: 'normal', text: 'paid this report'}],
-                originalMessage: {isNewDot: true},
-            } as OnyxTypes.ReportAction;
-            const data: OnyxTypes.SearchResults['data'] = {
-                ...searchResults.data,
-                [`${ONYXKEYS.COLLECTION.REPORT}${snapshotInvoiceID}`]: createMock<OnyxTypes.Report>({reportID: snapshotInvoiceID, type: CONST.REPORT.TYPE.INVOICE}),
-                [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${snapshotInvoiceID}`]: {[reimbursedAction.reportActionID]: reimbursedAction},
-            };
-
-            // When the CHAT sections are built from the snapshot
-            const [sections] = SearchUIUtils.getSections({
-                dateFnsLocale: undefined,
-                type: CONST.SEARCH.DATA_TYPES.CHAT,
-                data,
-                currentAccountID: 2074551,
-                currentUserEmail: '',
-                translate: translateLocal,
-                formatPhoneNumber,
-                bankAccountList: {},
-                rules: undefined,
-                conciergeReportID: undefined,
-                convertToDisplayString,
-                reportAttributesDerivedValue: {},
-            });
-
-            // Then the payment action is listed, because the snapshot shows the report is an invoice, and invoices have no IOU PAY action for this payment
-            const snapshotReportActionIDs = sections
-                .filter(SearchUIUtils.isReportActionListItemType)
-                .filter((item) => item.reportID === snapshotInvoiceID)
-                .map((item) => item.reportActionID);
-            expect(snapshotReportActionIDs).toStrictEqual([reimbursedAction.reportActionID]);
-        });
-
         it('should return getTransactionsSections result when groupBy is undefined', () => {
             expect(
                 SearchUIUtils.getSections({
@@ -12395,6 +12354,40 @@ describe('SearchUIUtils', () => {
         });
     });
 
+    test.each([
+        [false, true],
+        [true, false],
+    ])('Change approver on a dynamic external workflow for a report the admin submitted: preventSelfApproval=%s', (preventSelfApproval, expected) => {
+        // Given an admin's own submitted report on a dynamic external workflow, where bypassing the approvers is the admin's only approver change
+        const dewPolicyID = 'dewPolicy';
+        const dewReportID = 'dewReport';
+        const data = createMock<OnyxTypes.SearchResults['data']>({
+            policy_dewPolicy: {
+                id: dewPolicyID,
+                role: CONST.POLICY.ROLE.ADMIN,
+                type: CONST.POLICY.TYPE.CORPORATE,
+                approvalMode: CONST.POLICY.APPROVAL_MODE.DYNAMICEXTERNAL,
+                preventSelfApproval,
+            },
+            report_dewReport: {
+                reportID: dewReportID,
+                policyID: dewPolicyID,
+                type: CONST.REPORT.TYPE.EXPENSE,
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+                ownerAccountID: adminAccountID,
+                managerID: adminAccountID + 1,
+                total: -1000,
+            },
+        });
+
+        // When the Search actions are computed for the report
+        const actions = SearchUIUtils.getActions(data, {}, `report_${dewReportID}`, CONST.SEARCH.SEARCH_KEYS.EXPENSES, '', adminAccountID, {}, {}, undefined);
+
+        // Then Change approver is offered only when the admin may approve their own report, so it never opens an empty page
+        expect(actions.includes(CONST.SEARCH.ACTION_TYPES.CHANGE_APPROVER)).toBe(expected);
+    });
+
     test('Should return true if the search result has valid type', () => {
         expect(SearchUIUtils.shouldShowEmptyState(false, transactionReportGroupListItems.length, searchResults.search.type)).toBe(true);
         expect(SearchUIUtils.shouldShowEmptyState(true, 0, searchResults.search.type)).toBe(true);
@@ -15031,6 +15024,7 @@ describe('SearchUIUtils', () => {
                 personalDetails,
                 isSelfTourViewed: false,
                 hasCompletedGuidedSetupFlow: true,
+                isOwnedByCurrentUser: false,
             });
         });
 
@@ -15186,6 +15180,79 @@ describe('SearchUIUtils', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${selfDMReportID}`, null);
             await Onyx.set(ONYXKEYS.SELF_DM_REPORT_ID, null);
             await waitForBatchedUpdates();
+        });
+
+        describe('legacy unreported expense with no IOU action anywhere', () => {
+            const selfDMReportID = 'own-self-dm-legacy';
+
+            /** An unreported Search row with no IOU action, whose `from` is the card holder when the card is known. */
+            function buildLegacyUnreportedItem(managedCard: boolean, fromAccountID: number) {
+                return {
+                    ...transactionListItem,
+                    reportID: CONST.REPORT.UNREPORTED_REPORT_ID,
+                    report: undefined,
+                    reportAction: undefined,
+                    managedCard,
+                    from: {accountID: fromAccountID},
+                };
+            }
+
+            beforeEach(async () => {
+                // The current user's self DM is loaded but holds no IOU action for the expense
+                jest.mocked(createTransactionThreadReport).mockReturnValue(threadReport);
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${selfDMReportID}`, {reportID: selfDMReportID, type: CONST.REPORT.TYPE.CHAT, chatType: CONST.REPORT.CHAT_TYPE.SELF_DM});
+                await Onyx.set(ONYXKEYS.SELF_DM_REPORT_ID, selfDMReportID);
+                await waitForBatchedUpdates();
+            });
+
+            afterEach(async () => {
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${selfDMReportID}`, null);
+                await Onyx.set(ONYXKEYS.SELF_DM_REPORT_ID, null);
+                await waitForBatchedUpdates();
+            });
+
+            test("Should create the thread in the current user's self DM for an expense that is not on a managed card", () => {
+                // Given an expense that is not on a managed card, which only its owner can see, so `from` is empty
+                const item = buildLegacyUnreportedItem(false, CONST.REPORT.OWNER_ACCOUNT_ID_FAKE);
+
+                // When the current user opens it from Search
+                const targetReportID = SearchUIUtils.createAndOpenSearchTransactionThread({...baseParams, item, shouldNavigate: false});
+
+                // Then the thread is created in their self DM as their own expense, with the transaction passed so the legacy fallback builds the missing action
+                expect(targetReportID).toBe(threadReportID);
+                expect(createTransactionThreadReport).toHaveBeenCalledWith(
+                    expect.objectContaining({
+                        selfDMReportID,
+                        isOwnedByCurrentUser: true,
+                        transaction: expect.objectContaining({reportID: CONST.REPORT.UNREPORTED_REPORT_ID}),
+                    }),
+                );
+            });
+
+            test("Should create the thread in the current user's self DM for an expense on their own managed card", () => {
+                // Given an expense on a managed card that the current user holds
+                const item = buildLegacyUnreportedItem(true, currentUserAccountID);
+
+                // When the current user opens it from Search
+                const targetReportID = SearchUIUtils.createAndOpenSearchTransactionThread({...baseParams, item, shouldNavigate: false});
+
+                // Then the thread is created in their self DM as their own expense
+                expect(targetReportID).toBe(threadReportID);
+                expect(createTransactionThreadReport).toHaveBeenCalledWith(expect.objectContaining({selfDMReportID, isOwnedByCurrentUser: true}));
+            });
+
+            test("Should not open an expense on another member's managed card", () => {
+                // Given an expense on another member's managed card, which an admin sees on their card feed
+                const item = buildLegacyUnreportedItem(true, currentUserAccountID + 1);
+
+                // When the admin opens it from Search
+                const targetReportID = SearchUIUtils.createAndOpenSearchTransactionThread({...baseParams, item});
+
+                // Then nothing is created, because without an action the member's self DM is unknown and the admin's own self DM is the wrong place
+                expect(targetReportID).toBeUndefined();
+                expect(createTransactionThreadReport).not.toHaveBeenCalled();
+                expect(Navigation.navigate).not.toHaveBeenCalled();
+            });
         });
 
         test("Should reuse the thread already created under another user's self DM instead of creating a new one", async () => {

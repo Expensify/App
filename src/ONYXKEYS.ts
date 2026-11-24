@@ -702,6 +702,9 @@ const ONYXKEYS = {
     /** Indicates whether the git branch name should be shown in the browser tab title */
     SHOULD_SHOW_BRANCH_NAME_IN_TITLE: 'shouldShowBranchNameInTitle',
 
+    /** Indicates whether the environment badge (DEV, STG, etc.) should be hidden, for example to take screenshots */
+    SHOULD_HIDE_ENVIRONMENT_BADGE: 'shouldHideEnvironmentBadge',
+
     /** Indicates whether Sentry debug mode is enabled - logs Sentry requests to console */
     IS_SENTRY_DEBUG_ENABLED: 'isSentryDebugEnabled',
 
@@ -2040,6 +2043,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.IS_DEBUG_MODE_ENABLED]: boolean;
     [ONYXKEYS.BETA_OVERRIDES]: OnyxTypes.BetaOverrides;
     [ONYXKEYS.SHOULD_SHOW_BRANCH_NAME_IN_TITLE]: boolean;
+    [ONYXKEYS.SHOULD_HIDE_ENVIRONMENT_BADGE]: boolean;
     [ONYXKEYS.IS_SENTRY_DEBUG_ENABLED]: boolean;
     [ONYXKEYS.IS_SENTRY_SEND_ENABLED]: boolean;
     [ONYXKEYS.SENTRY_DEBUG_HIGHLIGHTED_SPAN_OPS]: string[];
