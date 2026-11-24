@@ -65,9 +65,9 @@ function SavedSearchItemThreeDotMenu({menuItems, isDisabledItem, isCopied, colla
                 iconStyles={styles.wAuto}
                 sentryLabel={CONST.SENTRY_LABEL.SEARCH.SAVED_SEARCH_THREE_DOT_MENU}
                 threeDotsMenuRef={threeDotsMenuRef}
-                // The menu opens partly outside the sidebar. Its backdrop belongs to the sidebar's React tree, so moving the pointer past the menu's edge sends the sidebar no hover-out.
+                // Like other row menus, a click outside only closes the menu and Tab stays in it.
                 shouldOverlay
-                // The pointer leaving the window from the backdrop still sends the sidebar a hover-out, so the sidebar keeps its peek until the menu is gone.
+                // The menu opens partly outside the sidebar, and the pointer leaving it sends the sidebar a hover-out, so the sidebar keeps its peek until the menu is gone.
                 onIconPress={holdPeekUntilMenuCloses}
                 // Share closes the menu later by itself, and Escape or a click outside close it without picking an item at all.
                 // The peek is settled once the menu is gone, however it closed, because the pointer may have left the sidebar meanwhile.

@@ -1,4 +1,4 @@
-import {act, fireEvent, render, renderHook, screen} from '@testing-library/react-native';
+import {act, render, renderHook} from '@testing-library/react-native';
 
 import type {PeekSurfaceContextValue} from '@components/Navigation/PeekSurfaceContext';
 import SearchSidebar from '@components/Navigation/SearchSidebar';
@@ -16,17 +16,15 @@ import Onyx from 'react-native-onyx';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
 let mockPeekSurface: PeekSurfaceContextValue | undefined;
-const MOCK_ROW_TEST_ID = 'savedSearchRow';
 // Reads the peek surface from the same context a saved search's menu does.
 jest.mock('@pages/Search/SearchTypeMenuWide', () => () => {
     // The factory is hoisted above the imports, so it loads what it needs itself.
     /* eslint-disable @typescript-eslint/no-require-imports, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access */
     const {useContext} = require('react');
     const PeekSurfaceContext = require('@components/Navigation/PeekSurfaceContext').default;
-    const {View: MockView} = require('react-native');
     mockPeekSurface = useContext(PeekSurfaceContext);
     /* eslint-enable */
-    return <MockView testID={MOCK_ROW_TEST_ID} />;
+    return null;
 });
 jest.mock(
     '@components/Navigation/TopBar',
@@ -55,18 +53,13 @@ jest.mock('@libs/isHTMLElement', () => ({
     __esModule: true,
     default: (val: unknown): val is HTMLElement => typeof val === 'object' && val !== null && 'matches' in val,
 }));
-// A button in the sidebar, a menu item that the menu's portal places outside the sidebar's DOM although it belongs to the sidebar, and a node on the page.
-const buttonNode = document.createElement('button');
+// A button in the sidebar, a menu item that the menu's portal places outside the sidebar's DOM, and a node on the page.
+const mockSidebarButtonNode = document.createElement('button');
 const menuItemNode = document.createElement('button');
 const pageNode = document.createElement('div');
-document.body.append(buttonNode, menuItemNode, pageNode);
+document.body.append(mockSidebarButtonNode, menuItemNode, pageNode);
 
-// Focuses the node the way the browser does: React sends the focus event up through the sidebar's tree first, if the node belongs to it,
-// and then the focusin reaches the document.
-function focus(node: Element, {isInsideSidebarTree}: {isInsideSidebarTree: boolean}) {
-    if (isInsideSidebarTree) {
-        fireEvent(screen.getByTestId(MOCK_ROW_TEST_ID), 'focus', {nativeEvent: {target: node}});
-    }
+function focus(node: Element) {
     node.dispatchEvent(new FocusEvent('focusin', {bubbles: true}));
 }
 
@@ -79,6 +72,7 @@ jest.mock('@components/Hoverable', () => {
         useImperativeHandle(ref, () => ({
             matches: (selector: string) => mockIsElementHovered && selector === ':hover',
             querySelector: (selector: string) => (mockHasKeyboardFocusInside && selector === ':focus-visible' ? {} : null),
+            contains: (node: unknown) => node === mockSidebarButtonNode,
         }));
         if (onHoverOut) {
             mockOuterHoverOut = onHoverOut;
@@ -94,7 +88,6 @@ const NAVIGATION_STATE: PlatformStackNavigationState<ParamListBase> = {key: 'Sea
 
 async function renderPeekingSidebar() {
     const collapse = renderHook(() => useSearchSidebarCollapse());
-    // Rendered last, so `screen` queries the sidebar.
     render(<SearchSidebar state={NAVIGATION_STATE} />);
     await waitForBatchedUpdatesWithAct();
     act(() => {
@@ -163,7 +156,7 @@ describe('SearchSidebar peek', () => {
         // Given a peeking sidebar held open by keyboard focus on a menu's button, after the menu closed with the pointer off the sidebar
         const collapse = await renderPeekingSidebar();
         act(() => {
-            focus(buttonNode, {isInsideSidebarTree: true});
+            focus(mockSidebarButtonNode);
         });
         mockHasKeyboardFocusInside = true;
         act(() => {
@@ -173,7 +166,7 @@ describe('SearchSidebar peek', () => {
 
         // When the user tabs out of the sidebar, or clicks the page, which focuses the page's container
         act(() => {
-            focus(pageNode, {isInsideSidebarTree: false});
+            focus(pageNode);
         });
 
         // Then the sidebar collapses, because neither the pointer nor focus is in it and no hover-out will ever come
@@ -181,15 +174,18 @@ describe('SearchSidebar peek', () => {
     });
 
     it('keeps peeking when focus moves into a menu the sidebar opened', async () => {
-        // Given a peeking sidebar with the pointer resting on a menu's part outside the sidebar
+        // Given a peeking sidebar with a saved search's menu open and the pointer resting on the menu's part outside the sidebar
         const collapse = await renderPeekingSidebar();
+        act(() => {
+            mockPeekSurface?.holdPeekUntilMenuCloses();
+        });
 
         // When focus moves into the menu, whose portal places it outside the sidebar's DOM
         act(() => {
-            focus(menuItemNode, {isInsideSidebarTree: true});
+            focus(menuItemNode);
         });
 
-        // Then the sidebar keeps peeking, because collapsing it would unmount the menu the user is in
+        // Then the sidebar keeps peeking, because the open menu holds it and collapsing would unmount the menu the user is in
         expect(collapse.result.current.isPeeking).toBe(true);
     });
 
@@ -200,7 +196,7 @@ describe('SearchSidebar peek', () => {
 
         // When focus lands on the page, as when a clicked row opens a page that takes focus
         act(() => {
-            focus(pageNode, {isInsideSidebarTree: false});
+            focus(pageNode);
         });
 
         // Then the sidebar keeps peeking, because the pointer is still on it and leaving it will send a hover-out

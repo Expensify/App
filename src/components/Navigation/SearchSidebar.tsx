@@ -110,7 +110,9 @@ function SearchSidebar({state}: SearchSidebarProps) {
         endPeek();
     };
 
-    const saveFocusInside = useEndPeekOnFocusLeave(sidebarRef, isPeeking, endPeek);
+    const isMenuOpen = () => isMenuOpenRef.current;
+
+    useEndPeekOnFocusLeave(sidebarRef, isPeeking, endPeek, isMenuOpen);
 
     const shouldShowLoadingState = route?.name === SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT ? false : !isOffline && !!isSearchLoading;
 
@@ -147,10 +149,7 @@ function SearchSidebar({state}: SearchSidebarProps) {
                     onHoverOut={endPeekUnlessMenuOpen}
                 >
                     <Animated.View style={[styles.searchSidebar, styles.stickToLeft, styles.zIndex1, visualSidebarWidthStyle]}>
-                        <View
-                            style={styles.flex1}
-                            onFocus={saveFocusInside}
-                        >
+                        <View style={styles.flex1}>
                             <TopBar
                                 shouldShowLoadingBar={shouldShowLoadingState || shouldShowLoadingBarForReports}
                                 breadcrumbLabel={translate('common.spend')}
