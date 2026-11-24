@@ -120,13 +120,14 @@ function getCustomUnitsForDuplication(
     }
 
     const getUnitWithoutPendingDeleteRates = (customUnit: CustomUnit | undefined, customUnitID: string) => {
-        if (!customUnit) {
+        if (!customUnit || customUnit.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
             return undefined;
         }
+        const snapshot = buildDuplicateSettingSnapshot(customUnit);
         return {
-            ...customUnit,
+            ...snapshot,
             customUnitID,
-            rates: Object.fromEntries(Object.entries(customUnit.rates).filter(([, rate]) => !!rate && rate.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE)),
+            rates: Object.fromEntries(Object.entries(snapshot.rates ?? {}).filter(([, rate]) => !!rate && rate.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE)),
         };
     };
 
@@ -139,32 +140,14 @@ function getCustomUnitsForDuplication(
         perDiemCustomUnitID,
     );
 
-    if (isDistanceRatesOptionSelected && isPerDiemOptionSelected) {
-        if (!perDiemUnit || !distanceCustomUnit || !perDiemCustomUnitID || !distanceCustomUnitID) {
-            return undefined;
-        }
-
-        return {
-            [distanceCustomUnitID]: cloneCustomUnitWithNewIDs(distanceCustomUnit, distanceCustomUnitID, rateIDsBySourceRateID),
-            [perDiemCustomUnitID]: cloneCustomUnitWithNewIDs(perDiemUnit, perDiemCustomUnitID, rateIDsBySourceRateID),
-        };
+    const copiedUnits: Record<string, CustomUnit> = {};
+    if (isDistanceRatesOptionSelected && distanceCustomUnit && distanceCustomUnitID) {
+        copiedUnits[distanceCustomUnitID] = cloneCustomUnitWithNewIDs(distanceCustomUnit, distanceCustomUnitID, rateIDsBySourceRateID);
     }
-
-    if (isDistanceRatesOptionSelected && distanceCustomUnitID) {
-        if (!distanceCustomUnit) {
-            return undefined;
-        }
-        return {
-            [distanceCustomUnitID]: cloneCustomUnitWithNewIDs(distanceCustomUnit, distanceCustomUnitID, rateIDsBySourceRateID),
-        };
+    if (isPerDiemOptionSelected && perDiemUnit && perDiemCustomUnitID) {
+        copiedUnits[perDiemCustomUnitID] = cloneCustomUnitWithNewIDs(perDiemUnit, perDiemCustomUnitID, rateIDsBySourceRateID);
     }
-
-    if (!perDiemUnit || !perDiemCustomUnitID) {
-        return undefined;
-    }
-    return {
-        [perDiemCustomUnitID]: cloneCustomUnitWithNewIDs(perDiemUnit, perDiemCustomUnitID, rateIDsBySourceRateID),
-    };
+    return Object.keys(copiedUnits).length > 0 ? copiedUnits : undefined;
 }
 
 /**

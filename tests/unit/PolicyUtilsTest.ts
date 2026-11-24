@@ -2282,6 +2282,20 @@ describe('PolicyUtils', () => {
                 });
                 expect(result).toEqual(policy.customUnits);
             });
+            it.each([perDiemUnit, otherUnit])('keeps $name when the other selected custom unit is missing', (unit) => {
+                // Given a workspace with only one of the two custom units.
+                const source = {...policy, customUnits: {[unit.customUnitID]: unit}};
+
+                // When both units are selected for duplication.
+                const result = getCustomUnitsForDuplication(source, true, true, {
+                    distanceCustomUnitID: otherUnit.customUnitID,
+                    perDiemCustomUnitID: perDiemUnit.customUnitID,
+                    rateIDsBySourceRateID: {},
+                });
+
+                // Then the available unit survives independently of the missing unit.
+                expect(result).toEqual(source.customUnits);
+            });
             it('returns only non-per-diem units if only custom units option is selected', () => {
                 const result = getCustomUnitsForDuplication(policy, true, false, {
                     distanceCustomUnitID: otherUnit.customUnitID,
