@@ -1,4 +1,4 @@
-import {SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
+import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import PusherUtils from '@libs/PusherUtils';
 
 import CONST from '@src/CONST';
@@ -187,6 +187,133 @@ describe('OnyxUpdatesTest', () => {
             expect(await getOnyxValue(actionsKey)).toBeUndefined();
             expect(await getOnyxValue(pagesKey)).toBeUndefined();
             expect(await getOnyxValue(loadingKey)).toStrictEqual({isLoadingNewerReportActions: false});
+        });
+    });
+
+    describe('request data', () => {
+        const loadingKey = `${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}1` as const;
+
+        const readResponse = (jsonCode: number): OnyxUpdatesFromServer<OnyxKey> => ({
+            type: CONST.ONYX_UPDATE_TYPES.HTTPS,
+            previousUpdateID: 0,
+            lastUpdateID: 0,
+            request: {
+                command: READ_COMMANDS.GET_NEWER_ACTIONS,
+                data: {apiRequestType: CONST.API_REQUEST_TYPE.READ},
+                successData: [{onyxMethod: 'merge', key: loadingKey, value: {hasOnceLoadedReportActions: true}}],
+                failureData: [{onyxMethod: 'merge', key: loadingKey, value: {hasOnceLoadedReportActions: false}}],
+                finallyData: [{onyxMethod: 'merge', key: loadingKey, value: {isLoadingInitialReportActions: false}}],
+            },
+            response: {jsonCode},
+        });
+
+        /** Applies the response and returns how often the loading state changed */
+        async function countLoadingStateChanges(update: OnyxUpdatesFromServer<OnyxKey>) {
+            let changes = 0;
+            const connection = Onyx.connectWithoutView({
+                key: loadingKey,
+                callback: () => {
+                    changes++;
+                },
+            });
+            await waitForBatchedUpdates();
+            changes = 0;
+            await OnyxUpdates.apply(update);
+            await waitForBatchedUpdates();
+            connection.unsubscribe();
+            return changes;
+        }
+
+        it('applies the success and finally data of a request in one update', async () => {
+            // Given a request whose success and finally data both change its loading state
+            // When it succeeds
+            const changes = await countLoadingStateChanges(readResponse(CONST.JSON_CODE.SUCCESS));
+
+            // Then the loading state changes once, because both run after the request and every extra change renders its subscribers again
+            expect(changes).toBe(1);
+            expect(await getOnyxValue(loadingKey)).toStrictEqual({hasOnceLoadedReportActions: true, isLoadingInitialReportActions: false});
+        });
+
+        it('applies the failure and finally data of a failed request in one update', async () => {
+            // Given the same request
+            // When the server answers it with an error
+            const changes = await countLoadingStateChanges(readResponse(CONST.JSON_CODE.EXP_ERROR));
+
+            // Then its failure and finally data land together, not its success data
+            expect(changes).toBe(1);
+            expect(await getOnyxValue(loadingKey)).toStrictEqual({hasOnceLoadedReportActions: false, isLoadingInitialReportActions: false});
+        });
+
+        it('applies only the finally data when an admin is required', async () => {
+            // Given the same request
+            // When the server answers that an admin is required
+            await OnyxUpdates.apply(readResponse(CONST.JSON_CODE.ADMIN_REQUIRED));
+            await waitForBatchedUpdates();
+
+            // Then the failure data is skipped, because it would show an error the user can't dismiss, while the loading state still clears
+            expect(await getOnyxValue(loadingKey)).toStrictEqual({isLoadingInitialReportActions: false});
+        });
+    });
+
+    describe('Search responses', () => {
+        const snapshotKey = `${ONYXKEYS.COLLECTION.SNAPSHOT}1` as const;
+        const transactionKey = `${ONYXKEYS.COLLECTION.TRANSACTION}2` as const;
+        const failureErrorKey = '3';
+
+        const searchResponse = (jsonCode: number): OnyxUpdatesFromServer<OnyxKey> => ({
+            type: CONST.ONYX_UPDATE_TYPES.HTTPS,
+            previousUpdateID: 0,
+            lastUpdateID: 0,
+            request: {
+                command: READ_COMMANDS.SEARCH,
+                data: {apiRequestType: CONST.API_REQUEST_TYPE.MAKE_REQUEST_WITH_SIDE_EFFECTS},
+                successData: [{onyxMethod: 'merge', key: snapshotKey, value: {search: {footerTotal: CONST.SEARCH.FOOTER_TOTAL.TOTAL}}}],
+                failureData: [{onyxMethod: 'merge', key: snapshotKey, value: {errors: {[failureErrorKey]: 'error'}}}],
+                finallyData: [{onyxMethod: 'merge', key: snapshotKey, value: {search: {isLoading: false}}}],
+            },
+            response: {
+                jsonCode,
+                onyxData: [{onyxMethod: 'set', key: snapshotKey, value: {search: {offset: 0}, data: {[transactionKey]: {transactionID: '2'}}}}],
+            },
+        });
+
+        it('writes the results, total and loading state of a successful Search in one update', async () => {
+            // Given a subscriber that counts how often the Search snapshot changes
+            let snapshotChanges = 0;
+            const connection = Onyx.connectWithoutView({
+                key: snapshotKey,
+                callback: () => {
+                    snapshotChanges++;
+                },
+            });
+            await waitForBatchedUpdates();
+            snapshotChanges = 0;
+
+            // When a successful Search response is applied
+            await OnyxUpdates.apply(searchResponse(CONST.JSON_CODE.SUCCESS));
+            await waitForBatchedUpdates();
+            connection.unsubscribe();
+
+            // Then the list is notified once, because every extra snapshot change renders the results again
+            expect(snapshotChanges).toBe(1);
+            expect(await getOnyxValue(snapshotKey)).toStrictEqual({
+                search: {offset: 0, footerTotal: CONST.SEARCH.FOOTER_TOTAL.TOTAL, isLoading: false},
+                data: {[transactionKey]: {transactionID: '2'}},
+            });
+        });
+
+        it('still applies the failure data of a failed Search', async () => {
+            // Given a Search whose request carries success, failure and finally data
+            // When the server answers it with an error
+            await OnyxUpdates.apply(searchResponse(CONST.JSON_CODE.EXP_ERROR));
+            await waitForBatchedUpdates();
+
+            // Then the snapshot gets the request's failure and finally data, not its success data
+            expect(await getOnyxValue(snapshotKey)).toStrictEqual({
+                search: {offset: 0, isLoading: false},
+                data: {[transactionKey]: {transactionID: '2'}},
+                errors: {[failureErrorKey]: 'error'},
+            });
         });
     });
 
