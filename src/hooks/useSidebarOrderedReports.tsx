@@ -268,6 +268,15 @@ function SidebarOrderedReportsContextProvider({
             reportsToUpdate.add(`${ONYXKEYS.COLLECTION.REPORT}${parentReportID}`);
         }
 
+        // An expense report's violations and to-dos also show on its workspace chat, so recheck the chat too
+        for (const key of Array.from(reportsToUpdate)) {
+            const chatReportID = chatReports?.[key]?.chatReportID;
+            if (!chatReportID) {
+                continue;
+            }
+            reportsToUpdate.add(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`);
+        }
+
         return Array.from(reportsToUpdate);
     }, [
         reportUpdates,
