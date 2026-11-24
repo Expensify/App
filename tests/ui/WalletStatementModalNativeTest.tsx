@@ -7,22 +7,25 @@ import handleWalletStatementNavigation from '@components/WalletStatementModal/wa
 import CONST from '@src/CONST';
 
 import type {WebViewProps} from 'react-native-webview';
-import type {ShouldStartLoadRequestEvent} from 'react-native-webview/lib/WebViewTypes';
+import type {ShouldStartLoadRequestEvent, WebViewOpenWindowEvent} from 'react-native-webview/lib/WebViewTypes';
 import type * as WebViewShared from 'react-native-webview/src/WebViewShared';
 
 import React from 'react';
 import {Linking, View as MockView} from 'react-native';
+import {WebView} from 'react-native-webview';
+
+import createMock from '../utils/createMock';
 
 const {default: WalletStatementModal} = jest.requireActual<typeof NativeWalletStatementModal>('../../src/components/WalletStatementModal/index.native');
 const {createOnShouldStartLoadWithRequest} = jest.requireActual<typeof WebViewShared>('react-native-webview/src/WebViewShared');
 
 jest.mock('react-native-webview', () => ({
-    WebView: (props: WebViewProps) => (
+    WebView: jest.fn((props: WebViewProps) => (
         <MockView
             {...props}
             testID="wallet-statement-webview"
         />
-    ),
+    )),
 }));
 jest.mock('@components/WalletStatementModal/walletNavigationUtils', () => jest.fn());
 jest.mock('@components/ActivityIndicator', () => () => null);
@@ -42,6 +45,7 @@ const UNTRUSTED_URLS = [
     'http://www.expensify.com/',
     'blob:https://www.expensify.com/statement',
     'data:text/html,statement',
+    // eslint-disable-next-line no-script-url -- Verify that the statement rejects script URLs.
     'javascript:void(0)',
     'mailto:concierge@expensify.com',
     'about:blank',
@@ -52,9 +56,18 @@ const UNTRUSTED_URLS = [
 function renderModal(statementPageURL = STATEMENT_PAGE_URL) {
     const screen = render(<WalletStatementModal statementPageURL={statementPageURL} />, {createNodeMock: () => ({})});
     const webView = screen.queryByTestId('wallet-statement-webview');
+    const props = jest.mocked(WebView).mock.lastCall?.[0];
+
+    const getWebViewProps = () => {
+        if (!webView || !props) {
+            throw new Error('Statement WebView did not mount');
+        }
+        return props;
+    };
 
     return {
         webView,
+        getWebViewProps,
         postMessage: (data: string, url = statementPageURL) => {
             if (!webView) {
                 throw new Error('Statement WebView did not mount');
@@ -62,11 +75,11 @@ function renderModal(statementPageURL = STATEMENT_PAGE_URL) {
             fireEvent(webView, 'message', {nativeEvent: {url, data}});
         },
         shouldLoad: (url: string) => {
-            const props = webView?.props as WebViewProps;
-            const decide = jest.fn();
-            const checkNavigation = createOnShouldStartLoadWithRequest(decide, props.originWhitelist ?? [], props.onShouldStartLoadWithRequest);
-            checkNavigation({nativeEvent: {url, lockIdentifier: 1}} as ShouldStartLoadRequestEvent);
-            return decide.mock.calls.at(0)?.[0] as boolean;
+            const {originWhitelist, onShouldStartLoadWithRequest} = getWebViewProps();
+            const decide = jest.fn<void, [boolean, string, number]>();
+            const checkNavigation = createOnShouldStartLoadWithRequest(decide, originWhitelist ?? [], onShouldStartLoadWithRequest);
+            checkNavigation(createMock<ShouldStartLoadRequestEvent>({nativeEvent: {url, lockIdentifier: 1}}));
+            return decide.mock.calls.at(0)?.[0];
         },
     };
 }
@@ -192,11 +205,11 @@ describe('WalletStatementModal on native', () => {
 
     it('ignores new-window requests and preserves statement loading and authentication', () => {
         // Given the statement's links work through messages rather than popup windows
-        const {webView} = renderModal();
-        const props = webView?.props as WebViewProps;
+        const {getWebViewProps} = renderModal();
+        const props = getWebViewProps();
 
         // When content asks for another window
-        props.onOpenWindow?.({nativeEvent: {targetUrl: 'https://attacker.example/'}} as Parameters<NonNullable<WebViewProps['onOpenWindow']>>[0]);
+        props.onOpenWindow?.(createMock<WebViewOpenWindowEvent>({nativeEvent: {targetUrl: 'https://attacker.example/'}}));
 
         // Then a no-op callback prevents WebView's default popup handling, without changing its source or loading behavior
         expect(props.onOpenWindow).toEqual(expect.any(Function));
