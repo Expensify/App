@@ -1,9 +1,10 @@
+import type {AmountTextInputKeyPressEvent} from '@components/AmountTextInput';
 import type {TextSelection} from '@components/Composer/types';
 import type {BaseTextInputProps} from '@components/TextInput/BaseTextInput/types';
 
 import type CONST from '@src/CONST';
 
-import type {KeyboardTypeOptions, NativeSyntheticEvent, StyleProp, TextInputSelectionChangeEvent, TextStyle, ViewStyle} from 'react-native';
+import type {KeyboardTypeOptions, StyleProp, TextInputSelectionChangeEvent, TextStyle, ViewStyle} from 'react-native';
 import type {ValueOf} from 'type-fest';
 
 /** @deprecated Use AmountFormFieldProps or KeypadAmountEditorProps instead. See contributingGuides/NUMBER_WITH_SYMBOL_FORM_MIGRATION.md. */
@@ -26,7 +27,7 @@ type BaseTextInputWithSymbolProps = {
     onSelectionChange?: (event: TextInputSelectionChangeEvent) => void;
 
     /** Function to call to handle key presses in the text input */
-    onKeyPress?: (event: NativeSyntheticEvent<KeyboardEvent>) => void;
+    onKeyPress?: (event: AmountTextInputKeyPressEvent) => void;
 
     /**
      * Callback that is called when the text input is pressed down
