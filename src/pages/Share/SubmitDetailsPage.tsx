@@ -290,11 +290,12 @@ function SubmitDetailsPage({
 
     // Seed the draft so isScanRequest() returns true (enables compact mode + receipt rendering).
     useEffect(() => {
-        if (!sharedFileSource || transaction?.receipt?.source) {
+        // Seeding a missing draft would recreate it with only the receipt, so wait for the draft to exist
+        if (!sharedFileSource || !transaction?.transactionID || transaction.receipt?.source) {
             return;
         }
         setMoneyRequestReceipt(CONST.IOU.OPTIMISTIC_TRANSACTION_ID, sharedFileSource, sharedFileName, true, sharedFileType);
-    }, [sharedFileSource, sharedFileName, sharedFileType, transaction?.receipt?.source]);
+    }, [sharedFileSource, sharedFileName, sharedFileType, transaction?.transactionID, transaction?.receipt?.source]);
 
     // Prefer the draft receipt (reflects Replace/Crop) for both display and upload — keeps them in sync.
     const currentReceiptSource = typeof transaction?.receipt?.source === 'string' ? transaction.receipt.source : sharedFileSource;
@@ -340,7 +341,14 @@ function SubmitDetailsPage({
     useEffect(() => {
         const shouldInitializeUnsetDefaults = transaction?.billable === undefined || transaction?.reimbursable === undefined;
         const isNewDestination = lastHandledDestinationKeyRef.current !== destinationKey;
-        if (!hasCapturedInitialDestinationRef.current || !destinationKey || (!isNewDestination && !shouldInitializeUnsetDefaults) || !report?.reportID || !isDestinationPolicyReady) {
+        if (
+            !transaction?.transactionID ||
+            !hasCapturedInitialDestinationRef.current ||
+            !destinationKey ||
+            (!isNewDestination && !shouldInitializeUnsetDefaults) ||
+            !report?.reportID ||
+            !isDestinationPolicyReady
+        ) {
             return;
         }
         lastHandledDestinationKeyRef.current = destinationKey;
