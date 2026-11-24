@@ -68,7 +68,6 @@ On pull requests, Jest (`test.yml`) and Reassure (`reassurePerformanceTests.yml`
 - Jest picks the tests with `--changedSince=HEAD^1`, the base the PR merges into.
 - A change to a file every test loads without importing it (dependencies, Jest and Babel config, setup files, mocks) runs every test. Those paths are in `.github/fullTestRunPaths.yml`.
 - Tests that use `fs` or `child_process` always run on PRs, because Jest can't trace the files they read or run.
-- Reassure compares only scenarios measured on both sides. A scenario shows as removed only when the PR deleted it.
 
 If you add a file every test loads without importing it, add it to `.github/fullTestRunPaths.yml`.
 
