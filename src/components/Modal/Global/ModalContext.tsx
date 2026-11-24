@@ -5,6 +5,8 @@ import CONST from '@src/CONST';
 import noop from 'lodash/noop';
 import React, {useContext, useEffect, useRef, useState} from 'react';
 
+import useDismissModalsOnSessionChange from './useDismissModalsOnSessionChange';
+
 const ModalActions = {
     CONFIRM: 'CONFIRM',
     CLOSE: 'CLOSE',
@@ -61,6 +63,20 @@ function ModalProvider({children}: {children: React.ReactNode}) {
     useEffect(() => {
         modalStackRef.current = modalStack;
     }, [modalStack]);
+
+    const dismissModals = () => {
+        const pendingPromises = modalPromisesStack.current;
+        modalPromisesStack.current = {};
+        modalStackRef.current = {modals: []};
+        setModalStack({modals: []});
+
+        // Session teardown must not run the user-cancellation handlers for the previous account.
+        for (const modalPromise of Object.values(pendingPromises)) {
+            modalPromise.resolve({action: ModalActions.DISMISS});
+        }
+    };
+
+    useDismissModalsOnSessionChange(dismissModals);
 
     const showModal: ModalContextType['showModal'] = ({component, props, id, isCloseable = true}) => {
         // This is a promise that will resolve when the modal is closed
