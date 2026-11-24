@@ -1613,6 +1613,56 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         convertToDisplayString,
     ]);
 
+    const handleUnapproveWithDEWCheck = useCallback(async () => {
+        if (isDelegateAccessRestricted) {
+            showDelegateNoAccessModal();
+            return;
+        }
+
+        if (isAccountLocked) {
+            showLockedAccountModal();
+            return;
+        }
+
+        if (isOffline) {
+            showOfflineModal();
+            return;
+        }
+
+        if (!hash) {
+            return;
+        }
+
+        const selectedItems = selectedReports.length ? selectedReports : Object.values(selectedTransactions);
+
+        const restrictedPolicyID = getRestrictedPolicyID(selectedItems, userBillingGracePeriodEnds, ownerBillingGracePeriodEnd, amountOwed, policies, accountID);
+        if (restrictedPolicyID) {
+            Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(restrictedPolicyID));
+            return;
+        }
+
+        const reportIDList = !selectedReports.length ? Object.values(selectedTransactions).map((transaction) => transaction.reportID) : selectedReports.map((report) => report.reportID);
+        const uniqueReportIDs = [...new Set(reportIDList.filter((reportID): reportID is string => reportID !== undefined))];
+        const searchData = searchResults?.data;
+        const snapshotTransactionsByReportID = getTransactionsByReportID(searchData ?? {});
+    }, [
+        isDelegateAccessRestricted,
+        showDelegateNoAccessModal,
+        isAccountLocked,
+        showLockedAccountModal,
+        isOffline,
+        showOfflineModal,
+        hash,
+        selectedReports,
+        selectedTransactions,
+        userBillingGracePeriodEnds,
+        ownerBillingGracePeriodEnd,
+        amountOwed,
+        policies,
+        accountID,
+        searchResults?.data,
+    ]);
+
     const {expenseCount, uniqueReportCount} = useMemo(() => {
         let expenses = 0;
         const reportIDs = new Set<string>();
@@ -2913,6 +2963,17 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             shouldCloseModalOnSelect: true,
             onSelected: () => {
                 handleApproveWithDEWCheck();
+            },
+        };
+
+        const unapproveButtonOption: DropdownOption<SearchHeaderOptionValue> = {
+            icon: expensifyIcons.ThumbsDown,
+            text: translate('search.bulkActions.unapprove'),
+            value: CONST.SEARCH.BULK_ACTION_TYPES.UNAPPROVE,
+            sentryLabel: CONST.SENTRY_LABEL.SEARCH.BULK_ACTIONS_UNAPPROVE,
+            shouldCloseModalOnSelect: true,
+            onSelected: () => {
+                handleUnapproveWithDEWCheck();
             },
         };
 

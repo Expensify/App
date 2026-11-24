@@ -11601,6 +11601,7 @@ const translations = {
             // cspell:disable
             editMultipleDescription: 'Changes will be set for all selected expenses and will override any previously set values.',
             approve: 'Approve',
+            unApprove: 'Unapprove',
             pay: 'Pay',
             delete: 'Delete',
             hold: 'Hold',

@@ -8540,6 +8540,7 @@ const CONST = {
             DOWNLOAD_RECEIPTS: 'downloadReceipts',
             DOWNLOAD_STATEMENT_PDF: 'downloadStatementPDF',
             APPROVE: 'approve',
+            UNAPPROVE: 'unapprove',
             CHANGE_APPROVER: 'changeApprover',
             PAY: 'pay',
             SUBMIT: 'submit',
