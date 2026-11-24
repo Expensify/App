@@ -852,7 +852,6 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
     const hasOnlyEmptyReports = selectedReports.length > 0 && emptyReports.length === selectedReports.length;
 
     const payableSelectedReports = useMemo(() => selectedReports.filter((report) => report.canPay), [selectedReports]);
-    const payableSelectedReportIDs = useMemo(() => payableSelectedReports.map((report) => report.reportID).filter((reportID) => reportID !== undefined), [payableSelectedReports]);
     const payScopedReports = useMemo(() => (payableSelectedReports.length > 0 ? payableSelectedReports : selectedReports), [payableSelectedReports, selectedReports]);
     const payScopedReportIDs = useMemo(() => payScopedReports.map((report) => report.reportID).filter((reportID) => reportID !== undefined), [payScopedReports]);
 
@@ -1789,10 +1788,18 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                 return;
             }
 
-            const selectedOptions = selectedReports.length ? payableSelectedReports : Object.values(selectedTransactions);
+            const selectedOptions = selectedReports.length ? selectedReports : Object.values(selectedTransactions);
             const expenseReportBankAccountID = additionalData?.bankAccountID;
 
-            const restrictedPolicyID = getRestrictedPolicyID(selectedOptions, userBillingGracePeriodEnds, ownerBillingGracePeriodEnd, amountOwed, policies, accountID);
+            // Only Select all can include reports that can't be paid, and those aren't paid.
+            const restrictedPolicyID = getRestrictedPolicyID(
+                selectedReports.length ? payableSelectedReports : Object.values(selectedTransactions),
+                userBillingGracePeriodEnds,
+                ownerBillingGracePeriodEnd,
+                amountOwed,
+                policies,
+                accountID,
+            );
             if (restrictedPolicyID) {
                 Log.info('[BulkPay] Blocking bulk pay: billable actions are restricted', false, {policyID: restrictedPolicyID});
                 Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(restrictedPolicyID));
@@ -1898,7 +1905,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             }
             const itemsToPay =
                 selectedReports.length > 0
-                    ? payableSelectedReports.map((report) => ({
+                    ? selectedReports.map((report) => ({
                           reportID: report.reportID,
                           amount: report.total,
                           policyID: report.policyID,
@@ -2179,7 +2186,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             isOffline,
             isBetaEnabled,
             isDelegateAccessRestricted,
-            selectedReports.length,
+            selectedReports,
             payableSelectedReports,
             selectedTransactions,
             userBillingGracePeriodEnds,
@@ -2400,10 +2407,6 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
 
         const options: Array<DropdownOption<SearchHeaderOptionValue>> = [];
         const isAnyTransactionOnHold = Object.values(selectedTransactions).some((transaction) => transaction.isHeld);
-        const isAnyPayableTransactionOnHold =
-            payableSelectedReports.length > 0
-                ? Object.values(selectedTransactions).some((transaction) => transaction.isHeld && !!transaction.reportID && payableSelectedReportIDs.includes(transaction.reportID))
-                : isAnyTransactionOnHold;
         const allMatchingReportActionQuery = areAllMatchingItemsSelected && queryJSON ? getAllMatchingReportActionQuery(queryJSON, excludedTransactions, isExpenseReportType) : undefined;
 
         const getExportOptions = () => {
@@ -2891,9 +2894,10 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
 
         const {shouldEnableBulkPayOption} = getPayOption(selectedReports, selectedTransactions, lastPaymentMethods, selectedReportIDs, personalPolicyID);
         const hasLoadedPayableReport = payableSelectedReports.length > 0 || selectedReports.length === 0;
+        // Select all can cover reports that aren't loaded, so the server picks which matching reports it can pay.
         const shouldShowPayOption = areAllMatchingItemsSelected
             ? hasLoadedPayableReport && !!bulkPayButtonOptions?.length && !!allMatchingReportActionQuery
-            : !isAnyPayableTransactionOnHold && shouldEnableBulkPayOption && !!bulkPayButtonOptions?.length;
+            : !isAnyTransactionOnHold && shouldEnableBulkPayOption && !!bulkPayButtonOptions?.length;
         const payButtonOption: DropdownOption<SearchHeaderOptionValue> & Pick<PopoverMenuItem, 'rightIcon'> = {
             icon: expensifyIcons.MoneyBag,
             text: translate('search.bulkActions.pay'),
@@ -3811,7 +3815,6 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         isOffline,
         selectedReports,
         payableSelectedReports.length,
-        payableSelectedReportIDs,
         lastPaymentMethods,
         selectedReportIDs,
         personalPolicyID,
