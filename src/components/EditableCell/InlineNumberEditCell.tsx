@@ -58,7 +58,10 @@ type InlineNumberEditCellProps = {
 
     /**
      * Rendered right after the display text (like an icon), so it stays next to the value instead of at the cell's edge.
-     * Never covered by the edit button, since the text truncates first. Hidden while editing.
+     * Hidden while editing. With a left-aligned value and the clearance reserved, the text truncates before this content
+     * reaches the edit button, as long as the column keeps room for the cell's padding, this content and the clearance.
+     * A table sized from its content keeps that room through the column's `trailingWidth` and `dragMinWidth`, like
+     * WorkspaceDistanceRatesTable does.
      */
     children?: ReactNode;
 

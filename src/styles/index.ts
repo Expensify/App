@@ -1588,7 +1588,8 @@ const staticStyles = (theme: ThemeColors) =>
 
         /**
          * Keeps content that follows a cell's text, like an icon, out from under the edit button at the trailing edge.
-         * The text truncates first, so the content stays beside the button however narrow the column gets.
+         * The text truncates first, so the content stays beside the button while the column has room for the content
+         * and this clearance.
          */
         editableCellEditButtonClearance: {
             paddingRight: variables.spacing2 + variables.editableCellEditButtonSize,
