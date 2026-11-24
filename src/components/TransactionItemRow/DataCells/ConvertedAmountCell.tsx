@@ -1,3 +1,7 @@
+/**
+ * Search table cell for the Converted column. It shows an expense in its workspace's output currency, using the workspace amount from Search.
+ * Until Search returns that amount, it shows the expense's own amount and currency.
+ */
 import AmountCell from '@components/Search/SearchList/ListItem/TotalCell';
 import type {TransactionWithOptionalSearchFields} from '@components/TransactionItemRow/types';
 
