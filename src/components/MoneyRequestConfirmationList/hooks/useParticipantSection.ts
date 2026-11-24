@@ -23,6 +23,7 @@ function useParticipantSection({
     isTypeInvoice,
     isPerDiemRequest,
     isTimeRequest,
+    shouldAllowParticipantEdit = false,
     shouldHideToSection,
     shouldShowReadOnlySplits,
     selectedParticipantsProp,
@@ -72,8 +73,8 @@ function useParticipantSection({
         currentUserAccountID: currentUserPersonalDetails.accountID,
     });
 
-    const isFromGlobalCreateAndCanEditParticipant = !!transaction?.isFromGlobalCreate && !isPerDiemRequest && !isTimeRequest;
-    const canEditParticipant = isFromGlobalCreateAndCanEditParticipant && !isTestReceipt && (!isRestrictedToPreferredPolicy || isTypeInvoice);
+    const isAllowedToEditParticipant = (!!transaction?.isFromGlobalCreate || shouldAllowParticipantEdit) && !isPerDiemRequest && !isTimeRequest;
+    const canEditParticipant = isAllowedToEditParticipant && !isTestReceipt && (!isRestrictedToPreferredPolicy || isTypeInvoice);
     const isManualRequest = transaction?.iouRequestType === CONST.IOU.REQUEST_TYPE.MANUAL;
     const shouldForceTopEmptySections = iouType === CONST.IOU.TYPE.CREATE || isManualRequest || isScanRequest;
 
