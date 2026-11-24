@@ -4,6 +4,7 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useNextStep from '@hooks/useNextStep';
 import useOnyx from '@hooks/useOnyx';
+import useThemeStyles from '@hooks/useThemeStyles';
 
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {buildNextStepMessage} from '@libs/NextStepUtils';
@@ -14,6 +15,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 
 import {getReportType} from '@selectors/Report';
 import React from 'react';
+import {View} from 'react-native';
 
 import MoneyReportHeaderHistoryButton from './MoneyReportHeaderHistoryButton';
 import MoneyReportHeaderStatusBar from './MoneyReportHeaderStatusBar';
@@ -27,6 +29,7 @@ type MoneyReportHeaderNextStepProps = {
  * Renders the next step status bar or a skeleton loader.
  */
 function MoneyReportHeaderNextStep({reportID}: MoneyReportHeaderNextStepProps) {
+    const styles = useThemeStyles();
     const {isOffline} = useNetwork();
     const isLoadingInitialReportActions = useIsReportLoadPending(reportID);
     const nextStep = useNextStep(reportID);
@@ -36,6 +39,19 @@ function MoneyReportHeaderNextStep({reportID}: MoneyReportHeaderNextStepProps) {
 
     const showNextStepBar = !!nextStep;
     const showNextStepSkeleton = !nextStep && !!isLoadingInitialReportActions && !isOffline;
+
+    // The report history page doesn't support bills, so a bill's next step doesn't open it.
+    if (showNextStepBar && reportType === CONST.REPORT.TYPE.BILL) {
+        return (
+            <View style={[styles.w100, styles.justifyContentCenter, styles.headerStatusBarContainer]}>
+                <MoneyReportHeaderStatusBar
+                    nextStep={nextStep}
+                    reportType={reportType}
+                    shouldShowCaret={false}
+                />
+            </View>
+        );
+    }
 
     if (showNextStepBar) {
         return (
