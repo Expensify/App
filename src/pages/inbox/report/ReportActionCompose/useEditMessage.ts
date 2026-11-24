@@ -16,7 +16,7 @@ import {useReportActionActiveEditActions} from '@pages/inbox/report/ReportAction
 import {draftMessageVideoAttributeCache} from '@pages/inbox/report/useDraftMessageVideoAttributeCache';
 
 import ONYXKEYS from '@src/ONYXKEYS';
-import {allPersonalDetailLoginsSelector} from '@src/selectors/PersonalDetails';
+import {shortMentionLoginsSelector} from '@src/selectors/PersonalDetails';
 import type * as OnyxTypes from '@src/types/onyx';
 
 // eslint-disable-next-line lodash/import-scope
@@ -55,7 +55,7 @@ function useEditMessage({
     const originalHtml = getReportActionHtml(reportAction);
     const reportIDToName = useMentionedReportIDToNameMap(originalHtml);
     const accountIDToName = useMentionedAccountIDToNameMap(originalHtml);
-    const [availableMentionLogins] = useAllPersonalDetails(allPersonalDetailLoginsSelector);
+    const [availableMentionLogins] = useAllPersonalDetails(shortMentionLoginsSelector(email ?? ''));
 
     const {stopEditing, submitEdit} = useReportActionActiveEditActions();
 

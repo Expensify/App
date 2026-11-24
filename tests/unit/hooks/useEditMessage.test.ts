@@ -193,7 +193,7 @@ describe('useEditMessage', () => {
         expect(mockScrollToBottom).toHaveBeenCalledTimes(1);
     });
 
-    it('saves with every login for short mentions and the names of only the rooms and users the original message mentions', async () => {
+    it('saves with the teammate logins short mentions resolve to and the names of only the rooms and users the original message mentions', async () => {
         // Given an original message that mentions one room and Alice by ID, plus another room and Bob that it does not mention
         const mentionedReportID = '111';
         const aliceAccountID = 1001;
@@ -215,7 +215,7 @@ describe('useEditMessage', () => {
         // When the edit is saved
         act(() => hook.result.current.publishDraft('Updated message'));
 
-        // Then short mentions can resolve to any stored login, while the unchanged check gets only the mentioned room and user,
+        // Then short mentions can resolve to the stored teammate logins, while the unchanged check gets only the mentioned room and user,
         // which is all it needs to turn the original HTML back into markdown
         const [, , , , , availableMentionLogins, , , reportIDToName, accountIDToName] = mockEditReportComment.mock.calls.at(0) ?? [];
         expect(availableMentionLogins).toEqual(['alice@test.com', 'bob@test.com']);

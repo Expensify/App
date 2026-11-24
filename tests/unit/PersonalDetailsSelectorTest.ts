@@ -1,14 +1,18 @@
+import {isEmailPublicDomain} from '@libs/LoginUtils';
+import {getParsedMessageWithShortMentions} from '@libs/ParsingUtils';
+
 import type {PersonalDetails, PersonalDetailsList} from '@src/types/onyx';
 
 import {
-    allPersonalDetailLoginsSelector,
     createDisplayDetailsByAccountIDsSelector,
     multiPersonalDetailsSelector,
     personalDetailsListSelector,
     personalDetailsLoginSelector,
     personalDetailsLoginsSelector,
     personalDetailsSelector,
+    shortMentionLoginsSelector,
 } from '@selectors/PersonalDetails';
+import {Str} from 'expensify-common';
 
 import createMock from '../utils/createMock';
 
@@ -89,29 +93,52 @@ describe('PersonalDetailsSelector', () => {
         });
     });
 
-    describe('allPersonalDetailLoginsSelector', () => {
-        it('returns every login and skips people without one', () => {
-            // Given a list with two people who have a login and one who does not
-            const secondAccountID = 456;
-            const noLoginAccountID = 789;
-            const list = createMock<PersonalDetailsList>({
-                [accountID]: personalDetails,
-                [secondAccountID]: {accountID: secondAccountID, login: 'second@user.com'},
-                [noLoginAccountID]: {accountID: noLoginAccountID, displayName: 'No Login'},
-            });
+    describe('shortMentionLoginsSelector', () => {
+        const teammateAccountID = 1;
+        const outsiderAccountID = 2;
+        const phoneAccountID = 3;
+        const noLoginAccountID = 4;
+        const loginsList = createMock<PersonalDetailsList>({
+            [teammateAccountID]: {accountID: teammateAccountID, login: 'john@acme.com'},
+            [outsiderAccountID]: {accountID: outsiderAccountID, login: 'jane@other.com'},
+            [phoneAccountID]: {accountID: phoneAccountID, login: '+15005550006@expensify.sms'},
+            [noLoginAccountID]: {accountID: noLoginAccountID, displayName: 'No Login'},
+        });
+        const allLogins = ['john@acme.com', 'jane@other.com', '+15005550006@expensify.sms'];
 
+        it('keeps teammates on the private domain and phone logins', () => {
+            // Given a user on a private domain
             // When the logins are selected
-            const result = allPersonalDetailLoginsSelector(list);
+            const result = shortMentionLoginsSelector('me@acme.com')(loginsList);
 
-            // Then only real logins are returned, which is all short mentions can resolve to
-            expect(result).toEqual([personalDetails.login, 'second@user.com']);
+            // Then only logins a short mention can resolve to are kept
+            expect(result).toEqual(['john@acme.com', '+15005550006@expensify.sms']);
+        });
+
+        it('keeps only phone logins for a user on a public domain or without a login', () => {
+            // Given a user on a public domain, and a user whose login is not loaded
+            // When the logins are selected
+            // Then no email login can match a short mention, so only phone logins are kept
+            expect(shortMentionLoginsSelector('me@gmail.com')(loginsList)).toEqual(['+15005550006@expensify.sms']);
+            expect(shortMentionLoginsSelector('')(loginsList)).toEqual(['+15005550006@expensify.sms']);
         });
 
         it('returns an empty list before personal details load', () => {
             // Given no personal details yet
             // When the logins are selected
             // Then there is nothing to resolve short mentions against
-            expect(allPersonalDetailLoginsSelector(undefined)).toEqual([]);
+            expect(shortMentionLoginsSelector('me@acme.com')(undefined)).toEqual([]);
+        });
+
+        it.each(['me@acme.com', 'me@gmail.com', ''])('resolves short mentions the same as the full list for %s', (currentUserLogin) => {
+            // Given a message that mentions a teammate, an outsider, a phone number with and without a plus, and unknown names
+            const text = 'hi @john @jane @15005550006 @+15005550006 @nobody @John';
+            const userEmailDomain = isEmailPublicDomain(currentUserLogin) ? '' : Str.extractEmailDomain(currentUserLogin);
+            const parse = (availableMentionLogins: string[]) => getParsedMessageWithShortMentions({text, userEmailDomain, availableMentionLogins, parserOptions: {}});
+
+            // When it is parsed with the selected logins and with every login
+            // Then the HTML is the same, so the narrower list never changes what a short mention resolves to
+            expect(parse(shortMentionLoginsSelector(currentUserLogin)(loginsList))).toBe(parse(allLogins));
         });
     });
 

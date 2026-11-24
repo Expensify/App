@@ -33,7 +33,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import {allPersonalDetailLoginsSelector} from '@src/selectors/PersonalDetails';
+import {shortMentionLoginsSelector} from '@src/selectors/PersonalDetails';
 import INPUT_IDS from '@src/types/form/PrivateNotesForm';
 import type {Report} from '@src/types/onyx';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
@@ -102,7 +102,7 @@ function PrivateNotesEditPageInternal({route, report, accountID, privateNoteDraf
                 privateNote.trim(),
                 Parser.htmlToMarkdown(originalNote, {accountIDToName}).trim(),
                 login ?? '',
-                allPersonalDetailLoginsSelector(personalDetailsList),
+                shortMentionLoginsSelector(login ?? '')(personalDetailsList),
             );
             updatePrivateNotes(report.reportID, Number(route.params.accountID), editedNote);
         }

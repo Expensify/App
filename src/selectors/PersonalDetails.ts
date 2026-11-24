@@ -1,5 +1,6 @@
 import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleContextProvider';
 
+import {isEmailPublicDomain} from '@libs/LoginUtils';
 import {
     getLoginByAccountID,
     getLoginsByAccountIDs,
@@ -16,6 +17,8 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
+import {Str} from 'expensify-common';
+
 const personalDetailsSelector = (accountID: number | undefined) => (personalDetailsList: OnyxEntry<PersonalDetailsList>) => getPersonalDetailsByID(accountID, personalDetailsList);
 
 const multiPersonalDetailsSelector = (accountIDs: number[] | undefined) => (personalDetails: OnyxEntry<PersonalDetailsList>) => getPersonalDetailsByIDs(accountIDs, personalDetails);
@@ -25,16 +28,28 @@ const personalDetailsListSelector = (accountIDs: Array<number | undefined> | und
 
 const personalDetailsLoginSelector = (accountID: number | undefined) => (personalDetailsList: OnyxEntry<PersonalDetailsList>) => getLoginByAccountID(accountID, personalDetailsList);
 
-/** Logins of everyone in the list, which short mentions resolve against, so a subscriber skips writes that keep the logins */
-const allPersonalDetailLoginsSelector = (personalDetailsList: OnyxEntry<PersonalDetailsList>): string[] => {
-    const logins: string[] = [];
-    for (const personalDetail of Object.values(personalDetailsList ?? {})) {
-        if (personalDetail?.login) {
-            logins.push(personalDetail.login);
+/**
+ * Logins a short mention can resolve to: `@name` only matches `name@<current user's private domain>`. Phone logins are kept for
+ * addDomainToShortMention's phone branch. A subscriber then skips writes that add or change anyone else.
+ */
+const shortMentionLoginsSelector =
+    (currentUserLogin: string) =>
+    (personalDetailsList: OnyxEntry<PersonalDetailsList>): string[] => {
+        const userEmailDomain = isEmailPublicDomain(currentUserLogin) ? '' : Str.extractEmailDomain(currentUserLogin);
+        const logins: string[] = [];
+        for (const personalDetail of Object.values(personalDetailsList ?? {})) {
+            const login = personalDetail?.login;
+            if (!login) {
+                continue;
+            }
+            const isOnUserDomain = !!userEmailDomain && login.endsWith(`@${userEmailDomain}`);
+            const isPhoneLogin = login.endsWith(CONST.SMS.DOMAIN) || (!login.includes('@') && Str.isValidE164Phone(login));
+            if (isOnUserDomain || isPhoneLogin) {
+                logins.push(login);
+            }
         }
-    }
-    return logins;
-};
+        return logins;
+    };
 
 const personalDetailsLoginsSelector = (accountIDs: number[] | undefined) => (personalDetailsList: OnyxEntry<PersonalDetailsList>) => getLoginsByAccountIDs(accountIDs, personalDetailsList);
 
@@ -123,7 +138,7 @@ export {
     personalDetailsListSelector,
     personalDetailsLoginSelector,
     personalDetailsLoginsSelector,
-    allPersonalDetailLoginsSelector,
+    shortMentionLoginsSelector,
     doesPersonalDetailExistSelector,
     accountIDToLoginSelector,
     isPersonalDetailOptimistic,
