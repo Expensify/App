@@ -61,6 +61,7 @@ const UBER_REVOKE_URL = 'https://business.uber.com/revoke';
 const CHATGPT_CONNECT_URL = 'https://chatgpt.com/plugins/plugin_asdk_app_6a56a498be548191bdf3743878810456?q=expensify';
 const MCP_HELP_URL = 'https://help.expensify.com/articles/new-expensify/connections/connect-ai-assistants/Use-the-Expensify-MCP-Server-With-AI-Assistants';
 const CLAUDE_CONNECT_URL = 'https://claude.ai/directory/connectors/expensify';
+const GROK_CONNECT_URL = 'https://grok.com/connectors';
 const CLAUDE_MCP_HELP_URL = 'https://help.expensify.com/articles/new-expensify/connections/connect-ai-assistants/Connect-Claude-to-Expensify-Using-MCP';
 const CURSOR_MCP_HELP_URL = 'https://help.expensify.com/articles/new-expensify/connections/connect-ai-assistants/Connect-Cursor-to-Expensify-Using-MCP';
 const DISTANCE_EXPENSES_FREQUENT_TRIPS_HELP_URL = 'https://help.expensify.com/articles/new-expensify/reports-and-expenses/Distance-Expenses#how-to-reuse-a-route-from-a-frequent-trip';
@@ -816,6 +817,7 @@ const CONST = {
     CHATGPT_CONNECT_URL,
     MCP_HELP_URL,
     CLAUDE_CONNECT_URL,
+    GROK_CONNECT_URL,
     CLAUDE_MCP_HELP_URL,
     CURSOR_MCP_HELP_URL,
     DISTANCE_EXPENSES_FREQUENT_TRIPS_HELP_URL,

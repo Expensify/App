@@ -40,17 +40,17 @@ describe('useMCPConnectionListings', () => {
         expect(openExternalLink).toHaveBeenCalledWith(CONST.CLAUDE_CONNECT_URL);
     });
 
-    it('should open the general MCP guide when an admin connects Grok', () => {
-        // Given an admin and Grok, which has no dedicated setup guide
+    it('should open the Grok connector directory when an admin connects Grok', () => {
+        // Given an admin who can connect Grok from the workspace
         const {result} = renderHook(() => useMCPConnectionListings(policy));
         const grok = result.current.find((listing) => listing.key === 'grok');
 
         // When the admin connects Grok
         grok?.onConnect?.();
 
-        // Then MCP is enabled and the general AI assistants guide opens
+        // Then MCP is enabled and the Grok connector directory opens instead of the help guide
         expect(enablePolicyFeatureForConnection).toHaveBeenCalledWith(policy, CONST.POLICY.MORE_FEATURES.IS_MCP_ENABLED);
-        expect(openExternalLink).toHaveBeenCalledWith(CONST.MCP_HELP_URL);
+        expect(openExternalLink).toHaveBeenCalledWith('https://grok.com/connectors');
     });
 
     it('should open the MCP guide from the MCP card without turning anything on', () => {
