@@ -48,6 +48,7 @@ function useAccountingConnectionListings(policy: OnyxEntry<Policy>): ConnectionL
         'NetSuiteSquare',
         'QBDSquare',
         'CertiniaSquare',
+        'AcumaticaSquare',
         'RilletSquare',
         'DualEntrySquare',
         'CampfireSquare',
@@ -189,6 +190,7 @@ function useAccountingConnectionListings(policy: OnyxEntry<Policy>): ConnectionL
                     key: CONST.POLICY.CONNECTIONS.NAME.ACUMATICA,
                     category: CONST.TAB.CONNECTIONS.ACCOUNTING,
                     title: CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY.acumatica,
+                    icon: accountingIcons.AcumaticaSquare,
                 },
             ];
         }
