@@ -1517,4 +1517,4 @@ function savePreferredPaymentMethod(
 }
 
 export {cancelPayment, completePaymentOnboarding, getBankAccountToSetUpBeforePaying, markReportPaymentReceived, payInvoice, payMoneyRequest, payViaABA, savePreferredPaymentMethod};
-export type {ABAFile, PayMoneyRequestFunctionParams, PayViaABAResult, SkippedABAReportIDs};
+export type {ABAFile, PayMoneyRequestFunctionParams, PayViaABAResult};
