@@ -84,9 +84,25 @@ function SearchSidebar({state}: SearchSidebarProps) {
         return endPeek;
     }, [endPeek, shouldUseNarrowLayout]);
 
+    // React sends the hover-out through the menu's portal when the pointer leaves the window from its backdrop, and collapsing would unmount the open menu.
+    // One flag is enough, because the backdrop keeps a second menu from opening before the first one is gone.
+    const isMenuOpenRef = useRef(false);
+
+    const endPeekUnlessMenuOpen = () => {
+        if (isMenuOpenRef.current) {
+            return;
+        }
+        endPeek();
+    };
+
+    const holdPeekUntilMenuCloses = () => {
+        isMenuOpenRef.current = true;
+    };
+
     // A saved search's menu is portaled, so its closing sends the sidebar no hover-out and the pointer is read instead.
     // Keyboard focus keeps the peek, because Escape returns it to the menu's button, but mouse focus does not, so a clicked row cannot hold the peek.
     const endPeekIfPointerLeft = () => {
+        isMenuOpenRef.current = false;
         const element = sidebarRef.current;
         if (isHTMLElement(element) && (element.matches(':hover') || !!element.querySelector(':focus-visible'))) {
             return;
@@ -124,11 +140,11 @@ function SearchSidebar({state}: SearchSidebarProps) {
     );
 
     return (
-        <PeekSurfaceContext.Provider value={{endPeekIfPointerLeft}}>
+        <PeekSurfaceContext.Provider value={{holdPeekUntilMenuCloses, endPeekIfPointerLeft}}>
             <Animated.View style={[styles.stickToLeft, dockedWidthStyle]}>
                 <Hoverable
                     ref={sidebarRef}
-                    onHoverOut={endPeek}
+                    onHoverOut={endPeekUnlessMenuOpen}
                 >
                     <Animated.View style={[styles.searchSidebar, styles.stickToLeft, styles.zIndex1, visualSidebarWidthStyle]}>
                         <View

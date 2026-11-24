@@ -27,7 +27,7 @@ function SavedSearchItemThreeDotMenu({menuItems, isDisabledItem, isCopied, colla
     const styles = useThemeStyles();
     const {endPeek} = useSearchSidebarCollapse(collapseSurface);
     const threeDotsMenuRef = useRef<ThreeDotsMenuHandle | null>(null);
-    const {endPeekIfPointerLeft} = useContext(PeekSurfaceContext);
+    const {holdPeekUntilMenuCloses, endPeekIfPointerLeft} = useContext(PeekSurfaceContext);
 
     const menuItemsWithPeekCleanup = menuItems.map((item) => {
         if (item.shouldCloseModalOnSelect === false) {
@@ -67,6 +67,8 @@ function SavedSearchItemThreeDotMenu({menuItems, isDisabledItem, isCopied, colla
                 threeDotsMenuRef={threeDotsMenuRef}
                 // The menu opens partly outside the sidebar. Its backdrop belongs to the sidebar's React tree, so moving the pointer past the menu's edge sends the sidebar no hover-out.
                 shouldOverlay
+                // The pointer leaving the window from the backdrop still sends the sidebar a hover-out, so the sidebar keeps its peek until the menu is gone.
+                onIconPress={holdPeekUntilMenuCloses}
                 // Share closes the menu later by itself, and Escape or a click outside close it without picking an item at all.
                 // The peek is settled once the menu is gone, however it closed, because the pointer may have left the sidebar meanwhile.
                 onModalHide={endPeekIfPointerLeft}

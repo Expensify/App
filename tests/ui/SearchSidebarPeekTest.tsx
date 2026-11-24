@@ -219,4 +219,37 @@ describe('SearchSidebar peek', () => {
         // Then the sidebar collapses, as before menus could settle the peek
         expect(collapse.result.current.isPeeking).toBe(false);
     });
+
+    it('keeps peeking when the pointer leaves the window while a menu is open', async () => {
+        // Given a peeking sidebar with a saved search's menu open
+        const collapse = await renderPeekingSidebar();
+        act(() => {
+            mockPeekSurface?.holdPeekUntilMenuCloses();
+        });
+
+        // When the pointer leaves the window from the menu's backdrop, which React reports to the sidebar as a hover-out through the menu's portal
+        act(() => {
+            mockOuterHoverOut?.();
+        });
+
+        // Then the sidebar keeps peeking, because collapsing it would unmount the open menu
+        expect(collapse.result.current.isPeeking).toBe(true);
+    });
+
+    it('ends the peek once a held menu is gone with the pointer off the sidebar', async () => {
+        // Given a peeking sidebar whose open menu held the peek through a hover-out
+        const collapse = await renderPeekingSidebar();
+        act(() => {
+            mockPeekSurface?.holdPeekUntilMenuCloses();
+            mockOuterHoverOut?.();
+        });
+
+        // When the menu's modal is gone
+        act(() => {
+            mockPeekSurface?.endPeekIfPointerLeft();
+        });
+
+        // Then the sidebar collapses, and the next hover-out is no longer held
+        expect(collapse.result.current.isPeeking).toBe(false);
+    });
 });
