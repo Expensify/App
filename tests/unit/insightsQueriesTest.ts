@@ -7,7 +7,13 @@ import INSIGHTS_DASHBOARD_SPECS from '@pages/Insights/dashboardSpecs';
 import type {InsightsFilters} from '@pages/Insights/insightsFilters';
 import {INSIGHTS_RUNNING_TOTAL_GROUP_BY} from '@pages/Insights/insightsFilters';
 import type {InsightsQuery} from '@pages/Insights/insightsQueries';
-import buildInsightsJsonQuery, {applyInsightsFilters, buildFutureExpensesQueryString, buildInsightsQueryString, buildTopExpensesQueryJSON} from '@pages/Insights/insightsQueries';
+import buildInsightsJsonQuery, {
+    applyInsightsFilters,
+    buildFutureExpensesQueryString,
+    buildInsightsQueryString,
+    buildRecentHistoryQueryString,
+    buildTopExpensesQueryJSON,
+} from '@pages/Insights/insightsQueries';
 
 import CONST from '@src/CONST';
 import type SearchResults from '@src/types/onyx/SearchResults';
@@ -638,6 +644,28 @@ describe('insightsQueries', () => {
 
             // Then the query is the same as one that doesn't stop at today, since expense dates don't bound that chart
             expect(chartQuery).toBe(applyInsightsFilters(chart, filters));
+        });
+    });
+
+    describe('buildRecentHistoryQueryString', () => {
+        it("lists the item's expenses from a year before the period through it, grouped by the panel's period", () => {
+            // Given a This month dashboard in one workspace, summarizing November so far
+            const filters: InsightsFilters = {...FILTERS, date: {preset: CONST.SEARCH.DATE_PRESETS.THIS_MONTH}, policyIDs: ['policyA']};
+
+            // When the query behind Recent history's View all is built for a merchant
+            const query = buildRecentHistoryQueryString(filters, CONST.SEARCH.GROUP_BY.MONTH, '2026-11-24', 'merchant="Uber"');
+
+            // Then it covers November 2025 through November 24, the months the average covers and the summarized one, regardless of the dashboard's Date range
+            const queryJSON = buildSearchQueryJSON(query);
+            expect(query).toContain(`${CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE}>=2025-11-01`);
+            expect(query).toContain(`${CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE}<=2026-11-24`);
+            expect(query).not.toContain(CONST.SEARCH.DATE_PRESETS.THIS_MONTH);
+
+            // And it keeps the workspace and the item, and lists them as a table grouped by month
+            expect(query).toContain('policyA');
+            expect(query).toContain('merchant="Uber"');
+            expect(queryJSON?.groupBy).toBe(CONST.SEARCH.GROUP_BY.MONTH);
+            expect(queryJSON?.view).toBe(CONST.SEARCH.VIEW.TABLE);
         });
     });
 

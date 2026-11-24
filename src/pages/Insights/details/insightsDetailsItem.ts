@@ -47,15 +47,35 @@ type ResolveInsightsDetailsItemParams = InsightsDetailsItemParams & {
     translate: LocalizedTranslate;
 };
 
+/** Fields a ranking graph's group is named by, as the chart's snapshot and its grouped rows both hold them */
+type RankingGroup = {
+    accountID?: number | null;
+    merchant?: string;
+    category?: string;
+};
+
+/** Returns the key the Details panel's URL names a ranking graph's group by, or undefined for a group that isn't ranked by a single value. */
+function getRankingItemKey(groupBy: SearchGroupBy, group: RankingGroup): string | undefined {
+    switch (groupBy) {
+        case CONST.SEARCH.GROUP_BY.FROM:
+            return group.accountID === undefined || group.accountID === null ? undefined : String(group.accountID);
+        case CONST.SEARCH.GROUP_BY.MERCHANT:
+            return group.merchant;
+        case CONST.SEARCH.GROUP_BY.CATEGORY:
+            return group.category;
+        default:
+            return undefined;
+    }
+}
+
 /** Returns the URL params the Details panel names a clicked group by. A period is trimmed to the chart's date range, as the chart labels it. */
 function getInsightsDetailsItemParams(item: GroupedItem, queryJSON: Readonly<SearchQueryJSON>): InsightsDetailsItemParams | undefined {
+    const rankingItemKey = getRankingItemKey(item.groupedBy, item);
+    if (rankingItemKey !== undefined) {
+        return {itemKey: rankingItemKey};
+    }
+
     switch (item.groupedBy) {
-        case CONST.SEARCH.GROUP_BY.FROM:
-            return {itemKey: String(item.accountID)};
-        case CONST.SEARCH.GROUP_BY.MERCHANT:
-            return {itemKey: item.merchant};
-        case CONST.SEARCH.GROUP_BY.CATEGORY:
-            return {itemKey: item.category};
         case CONST.SEARCH.GROUP_BY.TAG:
             return {itemKey: item.tag, tagLevel: item.tagLevel, parentTagPath: item.parentTagPath};
         default:
@@ -135,4 +155,5 @@ function resolveInsightsDetailsItem({
     }
 }
 
-export {getInsightsDetailsItemParams, getPeriodTitle, resolveInsightsDetailsItem};
+export {getInsightsDetailsItemParams, getPeriodTitle, getRankingItemKey, resolveInsightsDetailsItem};
+export type {RankingGroup};

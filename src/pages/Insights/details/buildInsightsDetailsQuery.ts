@@ -17,7 +17,11 @@ import {format, getMonth, getQuarter, getYear, parseISO, startOfWeek} from 'date
 
 import getInsightsDetailsPeriod from './getInsightsDetailsPeriod';
 
-const INSIGHTS_DETAILS_SECTIONS = ['summary', 'topExpenses'];
+/** Sections of a panel opened from a time graph, like Spend over time */
+const TIME_GRAPH_DETAILS_SECTIONS = ['summary', 'topExpenses'];
+
+/** Sections of a panel opened from a ranking graph */
+const RANKING_GRAPH_DETAILS_SECTIONS = ['summary', 'recentHistory', 'topExpenses'];
 
 /** Graphs supported by GetInsightsDetails, the backend rejects requests for the other ones */
 const SUPPORTED_GRAPH_KEYS = new Set<InsightsGraphKey>([
@@ -136,7 +140,12 @@ function buildInsightsDetailsQuery({
     const hash = hashText(JSON.stringify(hashedFields), 2 ** 32);
 
     return {
-        jsonQuery: JSON.stringify({...hashedFields, sections: INSIGHTS_DETAILS_SECTIONS, topExpensesSnapshotHash, hash}),
+        jsonQuery: JSON.stringify({
+            ...hashedFields,
+            sections: itemGroupBy ? RANKING_GRAPH_DETAILS_SECTIONS : TIME_GRAPH_DETAILS_SECTIONS,
+            topExpensesSnapshotHash,
+            hash,
+        }),
         hash,
         topExpensesSnapshotHash,
         period,

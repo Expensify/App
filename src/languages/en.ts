@@ -1421,6 +1421,13 @@ const translations = {
             quarterAverage: (count: number) => `${count} quarter average`,
             shareOfTotal: 'Share of total',
         },
+        recentHistory: {
+            title: 'Recent history',
+            dayAverageFor: (count: number, item: string) => `${count}-day average for ${item}`,
+            weekAverageFor: (count: number, item: string) => `${count}-week average for ${item}`,
+            monthAverageFor: (count: number, item: string) => `${count}-month average for ${item}`,
+            quarterAverageFor: (count: number, item: string) => `${count}-quarter average for ${item}`,
+        },
         compliance: 'Compliance',
         violationsOverTime: 'Violations over time',
         topViolations: 'Top violations',

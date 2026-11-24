@@ -8,7 +8,7 @@ import type {SearchAdvancedFiltersForm} from '@src/types/form';
 import FILTER_KEYS from '@src/types/form/SearchAdvancedFiltersForm';
 import type {InsightsDashboard, InsightsDashboardID, InsightsGraphKey} from '@src/types/onyx';
 
-import {addDays, format, parseISO} from 'date-fns';
+import {addDays, format, parseISO, startOfMonth, subMonths} from 'date-fns';
 
 import type {InsightsChartSpec, InsightsDateFilterKey, InsightsViolationStages} from './dashboardSpecs';
 import type {InsightsFilters} from './insightsFilters';
@@ -23,6 +23,9 @@ const COMPARE_AVERAGE_PERIOD_COUNT = 1;
 
 /** How many expenses the Details panel lists under Top expenses */
 const TOP_EXPENSES_LIMIT = 10;
+
+/** How many months Recent history's View all lists: the summarized period's month and the 12 the average covers before it */
+const RECENT_HISTORY_MONTH_COUNT = 13;
 
 /** Range of the numbers Search hashes its queries into, which the dashboard's hash shares */
 const INSIGHTS_HASH_RANGE = 2 ** 32;
@@ -157,6 +160,22 @@ function buildFutureExpensesQueryString(filters: InsightsFilters, asOfDate: stri
     );
 }
 
+/** Builds the Spend page query behind Recent history's View all: the item's expenses from a year before the summarized period's month through the period, grouped by the panel's period. */
+function buildRecentHistoryQueryString(filters: InsightsFilters, periodGroupBy: SearchGroupBy, periodEnd: string, itemFilterQuery: string): SearchQueryString {
+    const start = format(startOfMonth(subMonths(parseISO(periodEnd), RECENT_HISTORY_MONTH_COUNT - 1)), CONST.DATE.FNS_FORMAT_STRING);
+    const query = buildQueryStringFromFilterFormValues(
+        {
+            ...buildFilterFormValues(filters, false),
+            type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+            [FILTER_KEYS.DATE_RANGE]: getRangeQueryValue(start, periodEnd),
+            groupBy: periodGroupBy,
+            view: CONST.SEARCH.VIEW.TABLE,
+        },
+        {sortOrder: CONST.SEARCH.SORT_ORDER.DESC},
+    );
+    return `${query} ${itemFilterQuery}`;
+}
+
 /** Builds the dashboard-wide query at the bucket the charts are drawn with, without a comparison. */
 function buildDashboardQueryJSON(dashboard: InsightsDashboardID, filters: InsightsFilters): Readonly<SearchQueryJSON> | undefined {
     return buildDashboardQuery(buildInsightsQueryString({...filters, groupBy: getQueryGroupBy(filters), compare: undefined}), dashboard);
@@ -286,6 +305,15 @@ function buildTopExpensesQueryJSON(query: SearchQueryString): Readonly<SearchQue
     return buildSearchQueryJSON(buildSearchQueryString({...queryJSON, sortBy: CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT, sortOrder: CONST.SEARCH.SORT_ORDER.DESC, limit: TOP_EXPENSES_LIMIT}));
 }
 
-export {applyInsightsFilters, buildDateFormValues, buildDetailsFiltersQueryJSON, buildFutureExpensesQueryString, buildInsightsQueryString, buildTopExpensesQueryJSON, TOP_EXPENSES_LIMIT};
+export {
+    applyInsightsFilters,
+    buildDateFormValues,
+    buildDetailsFiltersQueryJSON,
+    buildFutureExpensesQueryString,
+    buildInsightsQueryString,
+    buildRecentHistoryQueryString,
+    buildTopExpensesQueryJSON,
+    TOP_EXPENSES_LIMIT,
+};
 export type {InsightsChartQuery, InsightsQuery};
 export default buildInsightsJsonQuery;

@@ -1,4 +1,5 @@
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
+import VictoryTheme from '@components/Charts/VictoryTheme';
 import Header from '@components/Header';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
@@ -19,7 +20,7 @@ import {buildSearchQueryJSON} from '@libs/SearchQueryUtils';
 import INSIGHTS_DASHBOARD_SPECS from '@pages/Insights/dashboardSpecs';
 import getInsightsLastDay from '@pages/Insights/getInsightsLastDay';
 import {getQueryGroupBy} from '@pages/Insights/insightsGroupByUtils';
-import {applyInsightsFilters, buildTopExpensesQueryJSON} from '@pages/Insights/insightsQueries';
+import {applyInsightsFilters, buildRecentHistoryQueryString, buildTopExpensesQueryJSON} from '@pages/Insights/insightsQueries';
 import useInsightsFilters from '@pages/Insights/useInsightsFilters';
 
 import CONST from '@src/CONST';
@@ -27,13 +28,16 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
+import {getYear, parseISO} from 'date-fns';
 import React from 'react';
 import {View} from 'react-native';
 
 import buildInsightsDetailsQuery from './buildInsightsDetailsQuery';
+import getInsightsItemColor from './getInsightsItemColor';
 import {resolveInsightsDetailsItem} from './insightsDetailsItem';
 import InsightsDetailsSectionError from './InsightsDetailsSectionError';
 import {getInsightsDetailsSectionState, INSIGHTS_DETAILS_SECTION_STATE} from './insightsDetailsSectionState';
+import InsightsRecentHistory from './InsightsRecentHistory';
 import InsightsSummary from './InsightsSummary';
 import InsightsTopExpenses from './InsightsTopExpenses';
 import useRequestInsightsDetails from './useRequestInsightsDetails';
@@ -58,6 +62,9 @@ function InsightsDetailsPage({route}: InsightsDetailsPageProps) {
         selector: (snapshot) => (memberAccountID === undefined ? undefined : snapshot?.data?.personalDetailsList?.[memberAccountID]),
     });
     const member = chartMember ?? storedMember;
+    const [itemColor = VictoryTheme.colors.default] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${chartQueryJSON?.hash}`, {
+        selector: (snapshot) => getInsightsItemColor(snapshot?.data, chartSpec?.groupBy, chartSpec?.view, itemKey),
+    });
     // A period's title depends on the saved Group by, so nothing resolves until the saved filters load
     const item =
         chartSpec && isResolved
@@ -146,6 +153,19 @@ function InsightsDetailsPage({route}: InsightsDetailsPageProps) {
                                     currency={filters.groupCurrency}
                                     summary={summary}
                                     state={detailsState}
+                                />
+                            )}
+                            {!!detailsQuery && !!chartSpec.groupBy && (
+                                <InsightsRecentHistory
+                                    query={detailsQuery}
+                                    history={details?.recentHistory}
+                                    summary={summary}
+                                    state={detailsState}
+                                    currency={filters.groupCurrency}
+                                    color={itemColor}
+                                    itemTitle={item.title}
+                                    viewAllQuery={buildRecentHistoryQueryString(filters, detailsQuery.periodGroupBy, detailsQuery.period.end, item.filterQuery)}
+                                    currentYear={getYear(parseISO(getInsightsLastDay(asOf)))}
                                 />
                             )}
                             {topExpensesSnapshotHash !== undefined && (
