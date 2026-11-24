@@ -8,6 +8,7 @@ import CONST from '@src/CONST';
 import getEmptyArray from '@src/types/utils/getEmptyArray';
 
 import type {FlashListRef, ListRenderItem, ListRenderItemInfo} from '@shopify/flash-list';
+import type {ComponentRef} from 'react';
 
 import {useIsFocused} from '@react-navigation/native';
 import {FlashList} from '@shopify/flash-list';
@@ -110,6 +111,7 @@ function BaseSelectionListImpl({
     const shouldShowTextInput = shouldShowTextInputProp ?? !!textInputOptions?.label;
 
     const listRef = useRef<FlashListRef<ListItem> | null>(null);
+    const containerRef = useRef<ComponentRef<typeof View>>(null);
     const {scrollToIndex, debouncedScrollToIndex} = useSelectionListScroll(listRef, data);
     const itemFocusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
     const keyboardListenerRef = useRef<ReturnType<typeof Keyboard.addListener> | null>(null);
@@ -184,6 +186,7 @@ function BaseSelectionListImpl({
         debouncedScrollToIndex,
         announceProgrammaticScroll: () => listRef.current?.announceProgrammaticScroll(),
         setShouldDisableHoverStyle,
+        containerRef,
     });
 
     const {innerTextInputRef, isTextInputFocusedRef, focusTextInput, textInputKeyPress} = useSelectionListTextInput(setHasKeyBeenPressed);
@@ -485,7 +488,10 @@ function BaseSelectionListImpl({
     const isFooterInsideList = shouldFooterBeInsideList && !shouldShowEmptyState;
 
     return (
-        <View style={[styles.flex1, addBottomSafeAreaPadding && !hasFooter && paddingBottomStyle, style?.containerStyle]}>
+        <View
+            ref={containerRef}
+            style={[styles.flex1, addBottomSafeAreaPadding && !hasFooter && paddingBottomStyle, style?.containerStyle]}
+        >
             {textInputComponent({shouldBeInsideList: false})}
             {shouldShowEmptyState ? (
                 <SelectionListEmptyState

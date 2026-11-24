@@ -3,15 +3,18 @@ import {act, renderHook} from '@testing-library/react-native';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 
 import usePolicyData from '@hooks/usePolicyData';
+import type PolicyData from '@hooks/usePolicyData/types';
 
 import {
+    clearPolicyMemberCategoryVisibilityError,
     createPolicyCategory,
     deleteWorkspaceCategories,
     enablePolicyCategories,
     importPolicyCategories,
     renamePolicyCategory,
     setPolicyCategoryReceiptsAndItemizedReceiptRequired,
-    setPolicyCategoryTax,
+    setPolicyCategoryMemberVisibility,
+    setPolicyMemberCategoryVisibility,
     setWorkspaceCategoryEnabled,
     setWorkspaceRequiresCategory,
 } from '@libs/actions/Policy/Category';
@@ -27,7 +30,7 @@ import {SIDE_EFFECT_REQUEST_COMMANDS} from '@libs/API/types';
 import CONST from '@src/CONST';
 import OnyxUpdateManager from '@src/libs/actions/OnyxUpdateManager';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Policy, PolicyCategories, PolicyCategory} from '@src/types/onyx';
+import type {Policy, PolicyCategories, PolicyCategory, Report} from '@src/types/onyx';
 
 import Onyx from 'react-native-onyx';
 import OnyxUtils from 'react-native-onyx/dist/OnyxUtils';
@@ -37,8 +40,13 @@ import type {MockFetch} from '../utils/TestHelper';
 import createRandomPolicy from '../utils/collections/policies';
 import createRandomPolicyCategories from '../utils/collections/policyCategory';
 import createRandomPolicyTags from '../utils/collections/policyTags';
+import {createExpenseReport} from '../utils/collections/reports';
+import createRandomTransaction from '../utils/collections/transaction';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
+
+/** Builds a visibleTo map, keyed by accountID like the server sends it */
+const buildVisibleTo = (...accountIDs: number[]): Record<string, boolean> => Object.fromEntries(accountIDs.map((accountID) => [accountID, true]));
 
 OnyxUpdateManager();
 describe('actions/PolicyCategory', () => {
@@ -92,6 +100,239 @@ describe('actions/PolicyCategory', () => {
                     },
                 });
             });
+        });
+    });
+    describe('setPolicyMemberCategoryVisibility', () => {
+        const policyID = 'policyID';
+        const policyMemberAccountIDs = [1, 2, 3];
+        const policyCategories: PolicyCategories = {
+            Travel: {name: 'Travel', enabled: true, visibleTo: null},
+            Meals: {name: 'Meals', enabled: true, visibleTo: null},
+            Software: {name: 'Software', enabled: true, visibleTo: buildVisibleTo(2)},
+            Office: {name: 'Office', enabled: false},
+        };
+
+        it('optimistically restricts the member and clears the pending fields on success', async () => {
+            // Given a member who can use every category but Software
+            mockFetch?.pause?.();
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`, policyCategories);
+
+            // When the admin limits them to Travel and Software
+            setPolicyMemberCategoryVisibility(policyID, [1], ['Travel', 'Software'], policyCategories, policyMemberAccountIDs, ['alice@example.com']);
+            await waitForBatchedUpdates();
+
+            // Then Meals, open to everyone, is restricted to every other member, Software gains the member, and the
+            // unchanged and disabled categories are left alone
+            let updatedCategories = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
+            expect(updatedCategories?.Meals?.visibleTo).toEqual(buildVisibleTo(2, 3));
+            expect(updatedCategories?.Meals?.pendingFields?.visibleTo).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
+            expect(updatedCategories?.Software?.visibleTo).toEqual(buildVisibleTo(1, 2));
+            // Onyx drops null values, so a category open to everyone has no visibleTo at all
+            expect(updatedCategories?.Travel?.visibleTo).toBeUndefined();
+            expect(updatedCategories?.Travel?.pendingFields?.visibleTo).toBeUndefined();
+            expect(updatedCategories?.Office?.visibleTo).toBeUndefined();
+
+            // And the change shows as pending on the member who was changed, not on the categories it touched
+            let updatedPolicy = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
+            expect(updatedPolicy?.employeeList?.['alice@example.com']?.pendingFields?.categoryVisibility).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
+
+            // When the request succeeds
+            await mockFetch?.resume?.();
+            await waitForBatchedUpdates();
+
+            // Then the change is no longer pending
+            updatedCategories = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
+            expect(updatedCategories?.Meals?.pendingFields?.visibleTo).toBeFalsy();
+            expect(updatedCategories?.Software?.pendingFields?.visibleTo).toBeFalsy();
+            updatedPolicy = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
+            expect(updatedPolicy?.employeeList?.['alice@example.com']?.pendingFields?.categoryVisibility).toBeFalsy();
+        });
+
+        it('restores the previous visibility and sets the error on the member on failure', async () => {
+            // Given a request that will fail
+            mockFetch?.fail?.();
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`, policyCategories);
+
+            // When the admin removes Software from the only member who can use it
+            setPolicyMemberCategoryVisibility(policyID, [2], ['Travel', 'Meals'], policyCategories, policyMemberAccountIDs, ['bob@example.com']);
+            await waitForBatchedUpdates();
+
+            // Then Software goes back to its previous members without an error of its own, so the Categories page stays clean
+            const updatedCategories = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
+            expect(updatedCategories?.Software?.visibleTo).toEqual(buildVisibleTo(2));
+            expect(updatedCategories?.Software?.pendingFields?.visibleTo).toBeFalsy();
+            expect(updatedCategories?.Software?.errors).toBeFalsy();
+
+            // And the error shows on the member instead, where the admin made the change
+            let updatedPolicy = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
+            expect(updatedPolicy?.employeeList?.['bob@example.com']?.errorFields?.categoryVisibility).toBeTruthy();
+            expect(updatedPolicy?.employeeList?.['bob@example.com']?.pendingFields?.categoryVisibility).toBeFalsy();
+
+            // When the admin dismisses it
+            clearPolicyMemberCategoryVisibilityError(policyID, 'bob@example.com');
+            await waitForBatchedUpdates();
+
+            // Then the error is gone
+            updatedPolicy = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
+            expect(updatedPolicy?.employeeList?.['bob@example.com']?.errorFields?.categoryVisibility).toBeFalsy();
+        });
+
+        it('removes the member from a restricted category without touching the other members', async () => {
+            // Given a category restricted to two members
+            mockFetch?.pause?.();
+            const restrictedCategories: PolicyCategories = {
+                Travel: {name: 'Travel', enabled: true, visibleTo: null},
+                Software: {name: 'Software', enabled: true, visibleTo: buildVisibleTo(1, 2)},
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`, restrictedCategories);
+
+            // When the admin takes Software away from one of them
+            setPolicyMemberCategoryVisibility(policyID, [1], ['Travel'], restrictedCategories, policyMemberAccountIDs, ['alice@example.com']);
+            await waitForBatchedUpdates();
+
+            // Then visibleTo is merged rather than replaced, so the member's key has to be deleted for them to lose access
+            const updatedCategories = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
+            expect(updatedCategories?.Software?.visibleTo).toEqual(buildVisibleTo(2));
+            await mockFetch?.resume?.();
+        });
+    });
+    describe('setPolicyCategoryMemberVisibility', () => {
+        const policyID = 'policyID';
+
+        /** Builds the policy data the page passes in, with expenses only when a test needs them */
+        const buildPolicyData = (categories: PolicyCategories, reports: Report[] = [], transactionsAndViolations: PolicyData['transactionsAndViolations'] = {}): PolicyData => ({
+            policy: {...createRandomPolicy(0), id: policyID, type: CONST.POLICY.TYPE.CORPORATE, areCategoriesEnabled: true},
+            categories,
+            tags: {},
+            reports,
+            transactionsAndViolations,
+        });
+
+        it('restricts a category open to everyone to the selected members and clears the pending field on success', async () => {
+            // Given a category every member can use
+            mockFetch?.pause?.();
+            const policyCategories: PolicyCategories = {
+                Fees: {name: 'Fees', enabled: true, visibleTo: null},
+                Travel: {name: 'Travel', enabled: true, visibleTo: null},
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`, policyCategories);
+
+            // When the admin unchecks member 3 on the Fees "Visible to" page
+            setPolicyCategoryMemberVisibility(policyID, ['Fees'], [1, 2], [3], buildPolicyData(policyCategories), false);
+            await waitForBatchedUpdates();
+
+            // Then only the checked members can use Fees, the change is pending, and Travel is left for the server's MERGE
+            let updatedCategories = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
+            expect(updatedCategories?.Fees?.visibleTo).toEqual(buildVisibleTo(1, 2));
+            expect(updatedCategories?.Fees?.pendingFields?.visibleTo).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
+            expect(updatedCategories?.Travel?.visibleTo).toBeUndefined();
+
+            // When the request succeeds
+            await mockFetch?.resume?.();
+            await waitForBatchedUpdates();
+
+            // Then the change is no longer pending
+            updatedCategories = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
+            expect(updatedCategories?.Fees?.pendingFields?.visibleTo).toBeFalsy();
+        });
+
+        it('patches only the members that change on a category that is already restricted', async () => {
+            // Given Fees restricted to members 1 and 2
+            mockFetch?.pause?.();
+            const policyCategories: PolicyCategories = {
+                Fees: {name: 'Fees', enabled: true, visibleTo: buildVisibleTo(1, 2)},
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`, policyCategories);
+
+            // When the admin swaps member 2 for member 3
+            setPolicyCategoryMemberVisibility(policyID, ['Fees'], [1, 3], [2], buildPolicyData(policyCategories), false);
+            await waitForBatchedUpdates();
+
+            // Then visibleTo is merged rather than replaced, so member 2's key has to be deleted for them to lose access
+            const updatedCategories = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
+            expect(updatedCategories?.Fees?.visibleTo).toEqual(buildVisibleTo(1, 3));
+            await mockFetch?.resume?.();
+        });
+
+        it('opens the category to everyone when every member is checked', async () => {
+            // Given Fees restricted to member 1
+            mockFetch?.pause?.();
+            const policyCategories: PolicyCategories = {
+                Fees: {name: 'Fees', enabled: true, visibleTo: buildVisibleTo(1)},
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`, policyCategories);
+
+            // When the admin checks every member
+            setPolicyCategoryMemberVisibility(policyID, ['Fees'], [1, 2, 3], [], buildPolicyData(policyCategories), false);
+            await waitForBatchedUpdates();
+
+            // Then visibleTo is cleared, which means everyone, rather than listing every member
+            const updatedCategories = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
+            expect(updatedCategories?.Fees?.visibleTo).toBeUndefined();
+            await mockFetch?.resume?.();
+        });
+
+        it('disables the category when every member is unchecked', async () => {
+            // Given an enabled category every member can use
+            mockFetch?.pause?.();
+            const policyCategories: PolicyCategories = {
+                Fees: {name: 'Fees', enabled: true, visibleTo: null},
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`, policyCategories);
+
+            // When the admin unchecks every member
+            setPolicyCategoryMemberVisibility(policyID, ['Fees'], [], [1, 2, 3], buildPolicyData(policyCategories), false);
+            await waitForBatchedUpdates();
+
+            // Then the category is disabled instead of left enabled for nobody, matching what the server does
+            const updatedCategories = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
+            expect(updatedCategories?.Fees?.enabled).toBe(false);
+            expect(updatedCategories?.Fees?.pendingFields?.enabled).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
+            await mockFetch?.resume?.();
+        });
+
+        it('puts the previous members back and shows an error on the category on failure', async () => {
+            // Given Fees restricted to members 1 and 2, and a request that will fail
+            mockFetch?.fail?.();
+            const policyCategories: PolicyCategories = {
+                Fees: {name: 'Fees', enabled: true, visibleTo: buildVisibleTo(1, 2)},
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`, policyCategories);
+
+            // When the admin swaps member 2 for member 3
+            setPolicyCategoryMemberVisibility(policyID, ['Fees'], [1, 3], [2], buildPolicyData(policyCategories), false);
+            await waitForBatchedUpdates();
+
+            // Then member 3 is removed again, member 2 is back, and the category shows the error
+            const updatedCategories = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
+            expect(updatedCategories?.Fees?.visibleTo).toEqual(buildVisibleTo(1, 2));
+            expect(updatedCategories?.Fees?.pendingFields?.visibleTo).toBeFalsy();
+            expect(updatedCategories?.Fees?.errors).toBeTruthy();
+            mockFetch?.succeed?.();
+        });
+
+        it('flags expenses on the category when unchecking every member disables it, like the Enable toggle does', async () => {
+            // Given an expense categorized as Fees on a report in the workspace
+            mockFetch?.pause?.();
+            const policyCategories: PolicyCategories = {
+                Fees: {name: 'Fees', enabled: true, visibleTo: null},
+                Travel: {name: 'Travel', enabled: true, visibleTo: null},
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`, policyCategories);
+            const report: Report = {...createExpenseReport(1), policyID};
+            const transaction = {...createRandomTransaction(1), reportID: report.reportID, category: 'Fees'};
+            const policyData = buildPolicyData(policyCategories, [report], {
+                [report.reportID]: {transactions: {[transaction.transactionID]: transaction}, violations: {}},
+            });
+
+            // When the admin unchecks every member on the Fees "Visible to" page
+            setPolicyCategoryMemberVisibility(policyID, ['Fees'], [], [1, 2, 3], policyData, false);
+            await waitForBatchedUpdates();
+
+            // Then the expense is flagged right away, since Fees is now disabled, without waiting for the server
+            const violations = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`);
+            expect(violations).toEqual(expect.arrayContaining([expect.objectContaining({name: CONST.VIOLATIONS.CATEGORY_OUT_OF_POLICY})]));
+            await mockFetch?.resume?.();
         });
     });
     describe('createWorkspaceCategories', () => {
@@ -418,107 +659,6 @@ describe('actions/PolicyCategory', () => {
                     },
                 });
             });
-        });
-    });
-
-    describe('SetPolicyCategoryTax', () => {
-        it('should set expense rule when category expense rule is not present', async () => {
-            // Given a policy
-            const fakePolicy = createRandomPolicy(0);
-            fakePolicy.areCategoriesEnabled = true;
-            const categoryName = 'Fake category';
-            const fakePolicyCategories = {
-                [categoryName]: {
-                    name: categoryName,
-                    enabled: false,
-                    // eslint-disable-next-line @typescript-eslint/naming-convention
-                    'GL Code': '',
-                    unencodedName: categoryName,
-                    externalID: '',
-                    areCommentsRequired: false,
-                    origin: '',
-                },
-            };
-
-            mockFetch.pause();
-
-            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
-            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${fakePolicy.id}`, fakePolicyCategories);
-
-            setPolicyCategoryTax(fakePolicy, categoryName, 'VAT');
-            await waitForBatchedUpdates();
-
-            // Then the approval rule should be created with the tag name
-            const updatedPolicy = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`);
-
-            expect(updatedPolicy?.rules?.expenseRules).toHaveLength(1);
-            expect(updatedPolicy?.rules?.expenseRules?.[0]?.applyWhen?.[0]?.value).toBe(categoryName);
-            expect(updatedPolicy?.rules?.expenseRules?.[0]?.applyWhen?.[0]?.condition).toBe(CONST.POLICY.RULE_CONDITIONS.MATCHES);
-            expect(updatedPolicy?.rules?.expenseRules?.[0]?.applyWhen?.[0]?.field).toBe(CONST.POLICY.FIELDS.CATEGORY);
-            expect(updatedPolicy?.rules?.expenseRules?.[0].tax.field_id_TAX.externalID).toBe('VAT');
-
-            mockFetch.resume();
-            await waitForBatchedUpdates();
-        });
-
-        it('should update expense rule when category expense rule is present', async () => {
-            // Given a policy with approval rules that reference a tag
-            const fakePolicy = createRandomPolicy(0);
-            fakePolicy.areCategoriesEnabled = true;
-            const categoryName = 'Fake category';
-            const fakePolicyCategories = {
-                [categoryName]: {
-                    name: categoryName,
-                    enabled: false,
-                    // eslint-disable-next-line @typescript-eslint/naming-convention
-                    'GL Code': '',
-                    unencodedName: categoryName,
-                    externalID: '',
-                    areCommentsRequired: false,
-                    origin: '',
-                },
-            };
-
-            // Create expense rule that uses the tag
-            fakePolicy.rules = {
-                expenseRules: [
-                    {
-                        tax: {
-                            // eslint-disable-next-line @typescript-eslint/naming-convention
-                            field_id_TAX: {
-                                externalID: 'GST',
-                            },
-                        },
-                        applyWhen: [
-                            {
-                                condition: CONST.POLICY.RULE_CONDITIONS.MATCHES,
-                                field: CONST.POLICY.FIELDS.CATEGORY,
-                                value: categoryName,
-                            },
-                        ],
-                    },
-                ],
-            };
-
-            mockFetch.pause();
-
-            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
-            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${fakePolicy.id}`, fakePolicyCategories);
-
-            setPolicyCategoryTax(fakePolicy, categoryName, 'VAT');
-            await waitForBatchedUpdates();
-
-            // Then the approval rule should be created with the tag name
-            const updatedPolicy = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`);
-
-            expect(updatedPolicy?.rules?.expenseRules).toHaveLength(1);
-            expect(updatedPolicy?.rules?.expenseRules?.[0]?.applyWhen?.[0]?.value).toBe(categoryName);
-            expect(updatedPolicy?.rules?.expenseRules?.[0]?.applyWhen?.[0]?.condition).toBe(CONST.POLICY.RULE_CONDITIONS.MATCHES);
-            expect(updatedPolicy?.rules?.expenseRules?.[0]?.applyWhen?.[0]?.field).toBe(CONST.POLICY.FIELDS.CATEGORY);
-            expect(updatedPolicy?.rules?.expenseRules?.[0].tax.field_id_TAX.externalID).toBe('VAT');
-
-            mockFetch.resume();
-            await waitForBatchedUpdates();
         });
     });
 

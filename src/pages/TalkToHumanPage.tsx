@@ -3,15 +3,18 @@ import ReportHeaderSkeletonView from '@components/ReportHeaderSkeletonView';
 import ScreenWrapper from '@components/ScreenWrapper';
 
 import useNetwork from '@hooks/useNetwork';
+import useOnyx from '@hooks/useOnyx';
 import useOpenSupportTicket from '@hooks/useOpenSupportTicket';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import Navigation from '@libs/Navigation/Navigation';
 
+import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 
 import {useFocusEffect} from '@react-navigation/native';
+import {authTokenTypeSelector} from '@selectors/Session';
 import React, {useRef} from 'react';
 import {View} from 'react-native';
 
@@ -20,6 +23,7 @@ import {View} from 'react-native';
 function TalkToHumanPage() {
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
+    const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
     const {openSupportTicketOrConcierge} = useOpenSupportTicket();
     const hasHandledLink = useRef(false);
 
@@ -48,7 +52,7 @@ function TalkToHumanPage() {
                 }
                 openSupportTicketOrConcierge();
             });
-        });
+        }, session);
 
         return () => {
             isCancelled = true;

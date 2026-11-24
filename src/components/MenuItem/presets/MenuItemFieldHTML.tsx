@@ -9,18 +9,19 @@ import useOnyx from '@hooks/useOnyx';
 
 import hasRenderableChildren from '@libs/hasRenderableChildren';
 
-import {callFunctionIfActionIsAllowed} from '@userActions/Session';
+import {callIfAuthenticated} from '@userActions/Session';
 
 import ONYXKEYS from '@src/ONYXKEYS';
 
 import type {PropsWithChildren} from 'react';
+import type {DistributedOmit} from 'type-fest';
 
 import {authTokenTypeSelector} from '@selectors/Session';
 import React from 'react';
 
 import MenuItemField from './MenuItemField';
 
-type MenuItemFieldHTMLProps = Omit<MenuItemRootProps, 'accessibilityLabel'> &
+type MenuItemFieldHTMLProps = DistributedOmit<MenuItemRootProps, 'accessibilityLabel'> &
     PropsWithChildren<{
         /** Name of the field */
         name: string;
@@ -38,11 +39,12 @@ type MenuItemFieldHTMLProps = Omit<MenuItemRootProps, 'accessibilityLabel'> &
  */
 function MenuItemFieldHTML({name, value, characterLimit, children, onPress, isDisabled = false, sentryLabel, testID}: MenuItemFieldHTMLProps) {
     const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
+    // Built in one object so TypeScript keeps sentryLabel tied to onPress, which MenuItemRoot requires together.
+    const pressProps = onPress ? {onPress: callIfAuthenticated(onPress, session), sentryLabel} : {sentryLabel};
     return (
         <MenuItemRoot
-            onPress={onPress ? callFunctionIfActionIsAllowed(onPress, false, session) : undefined}
+            {...pressProps}
             isDisabled={isDisabled}
-            sentryLabel={sentryLabel}
             testID={testID}
         >
             <MenuItemRow>

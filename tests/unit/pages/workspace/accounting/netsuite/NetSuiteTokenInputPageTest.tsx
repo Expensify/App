@@ -1,7 +1,5 @@
 import {render, screen} from '@testing-library/react-native';
 
-import useEnvironment from '@hooks/useEnvironment';
-
 import {isAuthenticationError} from '@libs/actions/connections';
 import Navigation from '@libs/Navigation/Navigation';
 
@@ -55,7 +53,6 @@ jest.mock('@hooks/useThemeStyles', () =>
             ),
     ),
 );
-jest.mock('@hooks/useEnvironment');
 jest.mock('@libs/actions/connections', () => ({
     isAuthenticationError: jest.fn(() => false),
 }));
@@ -93,19 +90,9 @@ jest.mock('@pages/workspace/accounting/netsuite/NetSuiteTokenInput/subPages/NetS
     return null;
 });
 
-const mockedUseEnvironment = jest.mocked(useEnvironment);
 const mockedIsAuthenticationError = jest.mocked(isAuthenticationError);
 
-function setEnvironment(environment: ValueOf<typeof CONST.ENVIRONMENT>) {
-    mockedUseEnvironment.mockReturnValue({
-        environment,
-        environmentURL: 'https://new.expensify.com',
-        isProduction: environment === CONST.ENVIRONMENT.PRODUCTION,
-        isDevelopment: environment === CONST.ENVIRONMENT.DEV,
-    });
-}
-
-function buildNetsuitePolicy(tokenID: string): Policy {
+function buildNetsuitePolicy(tokenID: string, authType?: ValueOf<typeof CONST.NETSUITE_CONFIG.TOKEN_INPUT.AUTH_TYPE>): Policy {
     return {
         id: POLICY_ID,
         name: '',
@@ -149,7 +136,7 @@ function buildNetsuitePolicy(tokenID: string): Policy {
                         },
                     },
                 },
-                config: {autoSync: {enabled: false, jobID: ''}},
+                config: {autoSync: {enabled: false, jobID: ''}, authType},
             },
         },
     };
@@ -177,86 +164,70 @@ describe('NetSuiteTokenInputPage', () => {
         mockedIsAuthenticationError.mockReturnValue(false);
     });
 
-    it('runs the OAuth flow by default for fresh connections in production', () => {
-        // Given a fresh connection (no auth error) in production
-        setEnvironment(CONST.ENVIRONMENT.PRODUCTION);
-
+    it('runs the OAuth flow by default and offers the TBA link for a fresh connection', () => {
+        // Given a workspace with no NetSuite connection
         // When the credentials page is rendered
         renderPage(PAGE_NAME.CREDENTIALS);
 
-        // Then the OAuth form and OAuth step names are shown, with no TBA fallback link
+        // Then the OAuth form and OAuth step names are shown, and the admin can switch to TBA
         expect(screen.getByTestId('oauth-form')).toBeOnTheScreen();
-        expect(screen.queryByTestId('token-authentication-link')).toBeNull();
+        expect(screen.getByTestId('token-authentication-link')).toBeOnTheScreen();
         expect(mockStepNames.current).toBe(CONST.NETSUITE_CONFIG.TOKEN_INPUT.OAUTH_STEP_INDEX_LIST);
     });
 
-    it('ignores the TBA route param in production and keeps OAuth', () => {
-        // Given a fresh connection in production with a TBA auth type in the route
-        setEnvironment(CONST.ENVIRONMENT.PRODUCTION);
-
+    it('runs the TBA flow for a fresh connection when the route asks for it', () => {
+        // Given a workspace with no NetSuite connection and a TBA auth type in the route
         // When the credentials page is rendered with the TBA param
         renderPage(PAGE_NAME.CREDENTIALS, CONST.NETSUITE_CONFIG.TOKEN_INPUT.AUTH_TYPE.TBA);
 
-        // Then production ignores the param and still shows the OAuth form
-        expect(screen.getByTestId('oauth-form')).toBeOnTheScreen();
-    });
-
-    it('offers the TBA fallback link on staging when using OAuth', () => {
-        // Given a fresh connection on staging (non-production)
-        setEnvironment(CONST.ENVIRONMENT.STAGING);
-
-        // When the credentials page is rendered
-        renderPage(PAGE_NAME.CREDENTIALS);
-
-        // Then the OAuth form is shown along with the TBA fallback link
-        expect(screen.getByTestId('oauth-form')).toBeOnTheScreen();
-        expect(screen.getByTestId('token-authentication-link')).toBeOnTheScreen();
-    });
-
-    it('runs the TBA flow on dev when the route asks for it', () => {
-        // Given a fresh connection on dev with TBA auth type in the route
-        setEnvironment(CONST.ENVIRONMENT.DEV);
-
-        // When the credentials page is rendered with the TBA param
-        renderPage(PAGE_NAME.CREDENTIALS, CONST.NETSUITE_CONFIG.TOKEN_INPUT.AUTH_TYPE.TBA);
-
-        // Then the TBA form and TBA step names are shown, with no TBA fallback link
+        // Then the TBA form and TBA step names are shown, with no TBA link
         expect(screen.getByTestId('token-form')).toBeOnTheScreen();
         expect(screen.queryByTestId('token-authentication-link')).toBeNull();
         expect(mockStepNames.current).toBe(CONST.NETSUITE_CONFIG.TOKEN_INPUT.STEP_INDEX_LIST);
     });
 
-    it('shows the OAuth credentials form when reconnecting after an auth error on a TBA connection (migration)', () => {
+    it('offers the TBA link when reconnecting a TBA connection after an auth error', () => {
         // Given an existing TBA connection (tokenID present) that has an auth error
-        setEnvironment(CONST.ENVIRONMENT.PRODUCTION);
         mockedIsAuthenticationError.mockReturnValue(true);
         const policy = buildNetsuitePolicy('encrypted-token-id');
 
         // When the credentials page is rendered for reconnection
         renderPage(PAGE_NAME.CREDENTIALS, undefined, policy);
 
-        // Then the OAuth form is shown. TBA auth errors now migrate through OAuth.
+        // Then the OAuth form is shown, and the admin can enter new TBA tokens instead
         expect(screen.getByTestId('oauth-form')).toBeOnTheScreen();
+        expect(screen.getByTestId('token-authentication-link')).toBeOnTheScreen();
         expect(mockStepNames.current).toBe(CONST.NETSUITE_CONFIG.TOKEN_INPUT.OAUTH_STEP_INDEX_LIST);
     });
 
-    it('shows the OAuth credentials form when reconnecting after an auth error on an OAuth connection', () => {
-        // Given an existing OAuth connection (no tokenID) that has an auth error
-        setEnvironment(CONST.ENVIRONMENT.PRODUCTION);
+    it('hides the TBA link and ignores the TBA route param for a working TBA connection', () => {
+        // Given a working TBA connection opened from the OAuth upgrade prompt, because a TBA submit would reset its settings
+        const policy = buildNetsuitePolicy('encrypted-token-id');
+
+        // When the credentials page is rendered with the TBA param
+        renderPage(PAGE_NAME.CREDENTIALS, CONST.NETSUITE_CONFIG.TOKEN_INPUT.AUTH_TYPE.TBA, policy, true);
+
+        // Then only the OAuth form is shown
+        expect(screen.getByTestId('oauth-form')).toBeOnTheScreen();
+        expect(screen.queryByTestId('token-authentication-link')).toBeNull();
+    });
+
+    it('hides the TBA link when reconnecting an OAuth connection after an auth error', () => {
+        // Given an existing OAuth connection that has an auth error, because new TBA tokens would not move it off OAuth
         mockedIsAuthenticationError.mockReturnValue(true);
-        const policy = buildNetsuitePolicy('');
+        const policy = buildNetsuitePolicy('', CONST.NETSUITE_CONFIG.TOKEN_INPUT.AUTH_TYPE.OAUTH2);
 
         // When the credentials page is rendered for reconnection
         renderPage(PAGE_NAME.CREDENTIALS, undefined, policy);
 
-        // Then the OAuth credentials form is shown
+        // Then the OAuth credentials form is shown without the TBA link
         expect(screen.getByTestId('oauth-form')).toBeOnTheScreen();
+        expect(screen.queryByTestId('token-authentication-link')).toBeNull();
         expect(mockStepNames.current).toBe(CONST.NETSUITE_CONFIG.TOKEN_INPUT.OAUTH_STEP_INDEX_LIST);
     });
 
     it('preserves the isMigration param when navigating to the next step', () => {
         // Given the wizard is opened with isMigration=true in the route (e.g. from a migration nudge)
-        setEnvironment(CONST.ENVIRONMENT.PRODUCTION);
         renderPage(PAGE_NAME.INSTALL, undefined, undefined, true);
 
         // When the user advances to the next step
@@ -268,7 +239,6 @@ describe('NetSuiteTokenInputPage', () => {
 
     it('blocks the wizard for a healthy OAuth connection even when isMigration=true is in the URL', () => {
         // Given a healthy OAuth connection (no tokenID, no auth error)
-        setEnvironment(CONST.ENVIRONMENT.PRODUCTION);
         mockedIsAuthenticationError.mockReturnValue(false);
         const policy = buildNetsuitePolicy('');
 

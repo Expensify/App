@@ -1,7 +1,7 @@
 import {render, waitFor} from '@testing-library/react-native';
 
+import type {DropdownFieldRenderProps} from '@components/DropdownField';
 import ConfirmationFieldsProvider from '@components/MoneyRequestConfirmationFields/Provider';
-import type {ExpenseFieldDropdownRenderProps} from '@components/MoneyRequestConfirmationList/sections/ExpenseFieldDropdown';
 import ExpenseFormLayoutContext, {dropdownRowsExpenseFormLayout} from '@components/MoneyRequestConfirmationList/sections/ExpenseFormLayoutContext';
 import TaxFields from '@components/MoneyRequestConfirmationList/sections/TaxFields';
 
@@ -30,15 +30,10 @@ jest.mock('@hooks/useCurrencyList', () => ({
 // The tax amount input beside the row is its own component with its own tests.
 jest.mock('@components/NumberWithSymbolForm', () => () => null);
 
-let mockIsAnchoredDropdownsBetaEnabled = true;
-jest.mock('@hooks/usePermissions', () => () => ({
-    isBetaEnabled: (beta: string) => mockIsAnchoredDropdownsBetaEnabled && beta === jest.requireActual<{default: typeof CONST}>('@src/CONST').default.BETAS.ANCHORED_FIELD_DROPDOWNS,
-}));
-
 // Records what the row decided and renders its list straight away, so each test can read both without pressing anything.
 let mockShouldOpenInDropdown: boolean | undefined;
-jest.mock('@components/MoneyRequestConfirmationList/sections/ExpenseFieldDropdown', () => {
-    return ({shouldOpenInDropdown, renderDropdown}: {shouldOpenInDropdown: boolean; renderDropdown: (props: ExpenseFieldDropdownRenderProps) => ReactNode}) => {
+jest.mock('@components/DropdownField', () => {
+    return ({shouldOpenInDropdown, renderDropdown}: {shouldOpenInDropdown: boolean; renderDropdown: (props: DropdownFieldRenderProps) => ReactNode}) => {
         mockShouldOpenInDropdown = shouldOpenInDropdown;
         return renderDropdown({
             isVisible: true,
@@ -116,7 +111,6 @@ describe('TaxFields', () => {
     });
 
     beforeEach(async () => {
-        mockIsAnchoredDropdownsBetaEnabled = true;
         mockShouldOpenInDropdown = undefined;
         mockDropdownPolicyID = undefined;
         jest.mocked(Navigation.navigate).mockClear();
@@ -126,7 +120,7 @@ describe('TaxFields', () => {
     });
 
     it('opens the tax rate list in place while creating an expense', async () => {
-        // Given a workspace with a tax rate and the anchored dropdowns beta on
+        // Given a workspace with a tax rate
         // When the expense form renders the tax rate row
         renderTaxRateRow();
 
@@ -167,19 +161,6 @@ describe('TaxFields', () => {
         renderTaxRateRow({taxPolicy: policyWithoutRates});
 
         // Then the row keeps opening the full-page selector
-        await waitFor(() => {
-            expect(mockShouldOpenInDropdown).toBe(false);
-        });
-    });
-
-    it('keeps the full-page selector when the beta is off', async () => {
-        // Given a workspace with a tax rate, for a user without the anchored dropdowns beta
-        mockIsAnchoredDropdownsBetaEnabled = false;
-
-        // When the form renders the tax rate row
-        renderTaxRateRow();
-
-        // Then the row opens the full-page selector as before
         await waitFor(() => {
             expect(mockShouldOpenInDropdown).toBe(false);
         });

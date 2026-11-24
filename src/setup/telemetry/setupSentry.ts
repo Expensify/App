@@ -1,7 +1,9 @@
 import {isDevelopment} from '@libs/Environment/Environment';
+import {BROWSER_EXTENSION_URL_PATTERNS} from '@libs/isBrowserExtensionError';
 import {
     breadcrumbsIntegration,
     browserProfilingIntegration,
+    canvasKitNoiseFilterIntegration,
     classCallCheckNoiseFilterIntegration,
     consoleIntegration,
     googleTranslateRecursionNoiseFilterIntegration,
@@ -22,18 +24,17 @@ import pkg from '../../../package.json';
 import makeDebugTransport from './debugTransport';
 
 /**
- * Schemes browser extensions inject code under. An error whose top stack frame lives at one of these
- * URLs was thrown inside extension code, not ours, so there is nothing for us to act on.
- */
-const EXTENSION_DENY_URLS = [/^chrome-extension:\/\//i, /^moz-extension:\/\//i, /^safari-extension:\/\//i, /^safari-web-extension:\/\//i];
-
-/**
  * Ordered list, not independent entries: Sentry runs each integration's `processEvent` in list order, and the
  * noise filters read the `third_party_code` tag `thirdPartyErrorFilterIntegration` writes. Moved ahead of it, a
  * filter goes inert with no type error to catch it - hence one constant that reorders as a unit, with the order
  * pinned by `tests/unit/setupSentryIntegrationOrderTest.ts`.
  */
-const THIRD_PARTY_NOISE_INTEGRATIONS = [thirdPartyErrorFilterIntegration, classCallCheckNoiseFilterIntegration, googleTranslateRecursionNoiseFilterIntegration];
+const THIRD_PARTY_NOISE_INTEGRATIONS = [
+    thirdPartyErrorFilterIntegration,
+    classCallCheckNoiseFilterIntegration,
+    googleTranslateRecursionNoiseFilterIntegration,
+    canvasKitNoiseFilterIntegration,
+];
 
 function setupSentry(): void {
     const {semanticVersion, buildNumber} = getAppVersion(pkg.version);
@@ -81,7 +82,8 @@ function setupSentry(): void {
             // that merely names the bridge in prose still reports.
             /webkit\.messageHandlers\./,
         ],
-        denyUrls: EXTENSION_DENY_URLS,
+        // An error whose top stack frame lives in extension code was not thrown by us, so there is nothing for us to act on
+        denyUrls: BROWSER_EXTENSION_URL_PATTERNS,
         beforeSendTransaction: processBeforeSendTransactions,
         beforeSendSpan: processBeforeSendSpan,
         enableLogs: true,

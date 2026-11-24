@@ -48,6 +48,7 @@ function XeroChartOfAccountsPage({policy}: WithPolicyProps) {
                 <View style={[styles.flex1, styles.alignItemsEnd, styles.pl3]}>
                     <Switch
                         accessibilityLabel={translate('workspace.accounting.accounts')}
+                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.XERO.CHART_OF_ACCOUNTS_SWITCH}
                         isOn
                         disabled
                         onToggle={() => {}}
@@ -65,6 +66,7 @@ function XeroChartOfAccountsPage({policy}: WithPolicyProps) {
                 title={translate('workspace.common.enabled')}
                 subtitle={translate('workspace.xero.accountsSwitchDescription')}
                 switchAccessibilityLabel={translate('workspace.xero.accountsSwitchDescription')}
+                switchSentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.XERO.ENABLE_NEW_CATEGORIES_SWITCH}
                 shouldPlaceSubtitleBelowSwitch
                 isActive={!!xeroConfig?.enableNewCategories}
                 onToggle={() => updateXeroEnableNewCategories(policyID, !xeroConfig?.enableNewCategories, xeroConfig?.enableNewCategories)}

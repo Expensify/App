@@ -8,11 +8,13 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import {getParticipantsInvoiceReport} from '@hooks/useParticipantsInvoiceReport';
 import {useReportPaymentContext} from '@hooks/usePaymentContext';
+import usePayViaABA from '@hooks/usePayViaABA';
+import usePayWithWiseQuote from '@hooks/usePayWithWiseQuote';
 import usePolicy from '@hooks/usePolicy';
 import useReportWithTransactionsAndViolations from '@hooks/useReportWithTransactionsAndViolations';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {payInvoice, payMoneyRequest} from '@libs/actions/IOU/PayMoneyRequest';
+import {payInvoice} from '@libs/actions/IOU/PayMoneyRequest';
 import {getChatReportWithFallback, getSearchPayOnyxData} from '@libs/actions/Search';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Log from '@libs/Log';
@@ -43,10 +45,12 @@ function PayActionCell({isLoading, policyID, reportID, hash, amount, shouldDisab
     const styles = useThemeStyles();
     const {getCurrencyDecimals, convertToDisplayString} = useCurrencyListActions();
     const {isOffline} = useNetwork();
+    const {payWithWiseQuote} = usePayWithWiseQuote();
     const {isDelegateAccessRestricted} = useDelegateNoAccessState();
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
     const [iouReport, transactions] = useReportWithTransactionsAndViolations(reportID);
     const policy = usePolicy(policyID);
+    const {payReportsViaABA, isDownloadingABAFile} = usePayViaABA();
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const [allReportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS);
@@ -181,6 +185,11 @@ function PayActionCell({isLoading, policyID, reportID, hash, amount, shouldDisab
             return;
         }
 
+        if (paymentMethod === CONST.PAYMENT_METHODS.ABA) {
+            payReportsViaABA([{reportID, ownerAccountID: iouReport?.ownerAccountID}], policy);
+            return;
+        }
+
         // The chat report is only needed for optimistic chat updates, so when it isn't loaded, pay with a fallback
         // built from the known IDs and let the server fill in the chat data.
         const fallbackChatReportID = iouReport?.chatReportID ?? iouReport?.parentReportID;
@@ -192,7 +201,7 @@ function PayActionCell({isLoading, policyID, reportID, hash, amount, shouldDisab
         }
 
         const {conciergeChat, rules, introSelected, userBillingGracePeriodEnds, amountOwed, ownerBillingGracePeriodEnd, isTrackIntentUser, isSelfTourViewed} = await readPaymentInputs();
-        payMoneyRequest({
+        payWithWiseQuote({
             bankAccountList,
             isASAPSubmitBetaEnabled,
             getCurrencyDecimals,
@@ -239,7 +248,7 @@ function PayActionCell({isLoading, policyID, reportID, hash, amount, shouldDisab
                 shouldShowPersonalBankAccountOption={!policyID && !iouReport?.policyID}
                 isDisabled={isOffline || shouldDisablePointerEvents}
                 stayNormalOnDisable={shouldDisablePointerEvents}
-                isLoading={isLoading}
+                isLoading={isLoading || isDownloadingABAFile}
                 onlyShowPayElsewhere={shouldOnlyShowElsewhere}
                 sentryLabel={CONST.SENTRY_LABEL.SEARCH.ACTION_CELL_ACTION.PAY}
             />

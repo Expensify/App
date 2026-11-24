@@ -15,6 +15,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import {getLastFourDigits} from '@libs/BankAccountUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import {getWalletTransferBankAccounts} from '@libs/PaymentUtils';
 
 import {openPersonalBankAccountSetupView} from '@userActions/BankAccounts';
 import {saveWalletTransferAccountTypeAndID} from '@userActions/PaymentMethods';
@@ -68,7 +69,7 @@ function ChooseTransferAccountPage() {
     const [draftAccountID, setDraftAccountID] = useState<string>();
     const currentSelectedAccountID = draftAccountID ?? selectedAccountID;
 
-    const options = Object.values(bankAccountsList ?? {}).map((bankAccount, index): BankAccountListItem => {
+    const options = Object.values(getWalletTransferBankAccounts(bankAccountsList ?? {})).map((bankAccount, index): BankAccountListItem => {
         const bankName = (bankAccount.accountData?.additionalData?.bankName ?? '') as BankName;
         const bankAccountNumber = bankAccount.accountData?.accountNumber ?? '';
         const bankAccountID = bankAccount.accountData?.bankAccountID ?? bankAccount.methodID;
@@ -142,6 +143,11 @@ function ChooseTransferAccountPage() {
                 addBottomSafeAreaPadding
                 listFooterContent={
                     <MenuItemAction
+                        sentryLabel={
+                            walletTransfer?.filterPaymentMethodType === CONST.PAYMENT_METHODS.DEBIT_CARD
+                                ? CONST.SENTRY_LABEL.SETTINGS_WALLET.ADD_TRANSFER_DEBIT_CARD
+                                : CONST.SENTRY_LABEL.SETTINGS_WALLET.ADD_TRANSFER_BANK_ACCOUNT
+                        }
                         onPress={navigateToAddPaymentMethodPage}
                         title={
                             walletTransfer?.filterPaymentMethodType === CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT

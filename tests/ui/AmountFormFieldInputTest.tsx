@@ -8,6 +8,8 @@ import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import {PressableWithoutFeedback} from '@components/Pressable';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 
+import CONST from '@src/CONST';
+
 import * as NativeNavigation from '@react-navigation/native';
 import React from 'react';
 
@@ -53,6 +55,7 @@ function ToggleSignButton() {
             role="button"
             testID="toggle-sign-button"
             onPress={toggleSign}
+            sentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}
         />
     );
 }
@@ -417,6 +420,15 @@ describe('AmountFormField.Input', () => {
         expect(screen.getByTestId(INPUT_TEST_ID).props.submitBehavior).toBe('submit');
     });
 
+    it('uses the submit behavior its caller passes', async () => {
+        // Given an AmountFormField.Input on a page with no form to submit, which passes blurAndSubmit
+        renderAmountFormFieldInput({testID: INPUT_TEST_ID, submitBehavior: 'blurAndSubmit'}, {value: '10'});
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the keyboard's Done key blurs the input, which closes the keyboard
+        expect(screen.getByTestId(INPUT_TEST_ID).props.submitBehavior).toBe('blurAndSubmit');
+    });
+
     it('collapses the selection onto its end when clearSelection is called', async () => {
         const ref = React.createRef<AmountFormFieldRef>();
 
@@ -611,6 +623,65 @@ describe('AmountFormField.Input', () => {
         // Then the caret follows the shorter text and stays after the digit
         expect(onInputChange).toHaveBeenLastCalledWith('5');
         expect(screen.getByTestId(INPUT_TEST_ID).props.selection).toEqual({start: 1, end: 1});
+    });
+
+    it('renders trailing children in composition order without touching the value', async () => {
+        const onCurrencyPress = jest.fn();
+
+        // Given an AmountFormField.Input composed with an accessory and a currency picker
+        renderAmountFormFieldInput(
+            {
+                testID: INPUT_TEST_ID,
+                children: (
+                    <>
+                        <PressableWithoutFeedback
+                            accessibilityLabel="custom accessory"
+                            role="button"
+                            onPress={() => {}}
+                            sentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}
+                        />
+                        <AmountFormField.CurrencyPickerButton
+                            currency="EUR"
+                            accessibilityLabel="pick currency"
+                            onPress={onCurrencyPress}
+                        />
+                    </>
+                ),
+            },
+            {value: '5'},
+        );
+        await waitForBatchedUpdatesWithAct();
+
+        // Then accessories render in composition order next to the value
+        const buttons = screen.getAllByRole('button');
+        const customAccessoryIndex = buttons.indexOf(screen.getByLabelText('custom accessory'));
+        expect(customAccessoryIndex).toBeGreaterThanOrEqual(0);
+        expect(customAccessoryIndex).toBeLessThan(buttons.indexOf(screen.getByLabelText('pick currency')));
+        expect(screen.getByText('EUR')).toBeOnTheScreen();
+        expect(screen.getByTestId(INPUT_TEST_ID)).toHaveDisplayValue('5');
+
+        // When the currency picker is pressed
+        fireEvent.press(screen.getByLabelText('pick currency'));
+
+        // Then its own handler runs and the value is left untouched
+        expect(onCurrencyPress).toHaveBeenCalledTimes(1);
+        expect(screen.getByTestId(INPUT_TEST_ID)).toHaveDisplayValue('5');
+    });
+
+    it('lets trailing children read the root context from inside the text input', async () => {
+        const onInputChange = jest.fn();
+
+        // Given a negative-capable field whose sign toggle is composed inside the input, where BaseTextInput renders it
+        renderAmountFormFieldInput({testID: INPUT_TEST_ID, children: <ToggleSignButton />}, {value: '5', decimals: 2, allowNegative: true, onInputChange});
+        await waitForBatchedUpdatesWithAct();
+
+        // When the toggle is pressed
+        fireEvent.press(screen.getByTestId('toggle-sign-button'));
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the root receives the flipped value, so the child reached the AmountFormField actions through the input
+        expect(onInputChange).toHaveBeenLastCalledWith('-5');
+        expect(screen.getByTestId(INPUT_TEST_ID)).toHaveDisplayValue('-5');
     });
 
     it('moves the caret after a digit inserted in the middle of the value', async () => {

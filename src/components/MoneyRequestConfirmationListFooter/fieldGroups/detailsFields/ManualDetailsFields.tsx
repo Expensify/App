@@ -22,15 +22,12 @@ type ManualDetailsFieldsProps = {
 
     /** Error state */
     errorState: ErrorState;
-
-    /** Whether the parent-owned participant picker modal is currently open (new manual expense flow) */
-    isParticipantPickerVisible?: boolean;
 };
 
 /**
  * The expense-type-driven fields for a manual, scanned or invoice confirmation: Amount, Merchant and Description.
  */
-function ManualDetailsFields({policy, amountDisplay, requiredFlags, errorState, isParticipantPickerVisible = false}: ManualDetailsFieldsProps) {
+function ManualDetailsFields({policy, amountDisplay, requiredFlags, errorState}: ManualDetailsFieldsProps) {
     const {fieldVisibility, isCompactMode, iouCurrencyCode} = useDetailsFields();
 
     return (
@@ -43,8 +40,11 @@ function ManualDetailsFields({policy, amountDisplay, requiredFlags, errorState, 
                     isDistanceRequest={false}
                     shouldShowTimeRequestFields={false}
                     policy={policy}
-                    isParticipantPickerVisible={isParticipantPickerVisible}
-                    {...errorState}
+                    shouldDisplayFieldError={errorState.shouldDisplayFieldError}
+                    formError={errorState.formError}
+                    fieldError={errorState.fieldErrors.amount}
+                    clearFormErrors={errorState.clearFormErrors}
+                    setFormError={errorState.setFormError}
                 />
             )}
 
@@ -52,7 +52,7 @@ function ManualDetailsFields({policy, amountDisplay, requiredFlags, errorState, 
                 <MerchantField
                     isMerchantRequired={requiredFlags.isMerchantRequired}
                     shouldDisplayFieldError={errorState.shouldDisplayFieldError}
-                    formError={errorState.formError}
+                    fieldError={errorState.fieldErrors.merchant}
                 />
             )}
 

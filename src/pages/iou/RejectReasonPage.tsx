@@ -10,7 +10,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
-import useReportTransactionsCollection from '@hooks/useReportTransactionsCollection';
+import useReportIsArchived from '@hooks/useReportIsArchived';
 
 import getIsSmallScreenWidth from '@libs/getIsSmallScreenWidth';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
@@ -27,8 +27,9 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/MoneyRequestRejectReasonForm';
 
-import {getReportPolicyID} from '@selectors/Report';
+import {reportPolicyAndChatReportIDsSelector} from '@selectors/Report';
 import React, {useEffect} from 'react';
+import Onyx from 'react-native-onyx';
 
 import RejectReasonFormView from './RejectReasonFormView';
 
@@ -42,22 +43,23 @@ function RejectReasonPage({route}: RejectReasonPageProps) {
 
     const {transactionID, reportID, backTo} = route.params;
     const {removeTransaction} = useSearchSelectionActions();
-    const [reportPolicyID] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(reportID)}`, {selector: getReportPolicyID});
-    const policy = usePolicy(reportPolicyID);
+    const [reportIDs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(reportID)}`, {selector: reportPolicyAndChatReportIDsSelector});
+    const isChatReportArchived = useReportIsArchived(reportIDs?.chatReportID);
+    const policy = usePolicy(reportIDs?.policyID);
     const {superWideRHPRouteKeys} = useWideRHPState();
     const {accountID: currentUserAccountID, login: currentUserLogin} = useCurrentUserPersonalDetails();
     const {isBetaEnabled} = usePermissions();
-    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
-    const reportTransactionsCollection = useReportTransactionsCollection(reportID);
     const delegateAccountID = useDelegateAccountID();
     const {isDelegateAccessRestricted} = useDelegateNoAccessState();
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
-    const onSubmit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.MONEY_REQUEST_REJECT_FORM>) => {
+    const submitRejection = async (values: FormOnyxValues<typeof ONYXKEYS.FORMS.MONEY_REQUEST_REJECT_FORM>) => {
         if (isDelegateAccessRestricted) {
             showDelegateNoAccessModal();
             return;
         }
 
+        const [rules, reportTransactionsAndViolations] = await Onyx.multiGet([ONYXKEYS.COLLECTION.RULE, ONYXKEYS.DERIVED.REPORT_TRANSACTIONS_AND_VIOLATIONS]);
+        const reportTransactionsCollection = reportTransactionsAndViolations?.[reportID]?.transactions ?? {};
         const urlToNavigateBack = rejectMoneyRequest({
             transactionID,
             reportID,
@@ -70,8 +72,9 @@ function RejectReasonPage({route}: RejectReasonPageProps) {
             getCurrencyDecimals,
             rules,
             reportTransactionsCollection,
+            isChatReportArchived,
         });
-        removeTransaction(transactionID);
+        removeTransaction(transactionID, {isDeleted: false});
         // If the super wide rhp is not opened, dismiss the entire modal.
         if (superWideRHPRouteKeys.length > 0) {
             Navigation.dismissToSuperWideRHP();
@@ -99,7 +102,7 @@ function RejectReasonPage({route}: RejectReasonPageProps) {
 
     return (
         <RejectReasonFormView
-            onSubmit={onSubmit}
+            onSubmit={submitRejection}
             validate={validate}
             backTo={backTo}
         />

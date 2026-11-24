@@ -5,8 +5,12 @@
  */
 import CONST from '@src/CONST';
 
+import type {HostInstance} from 'react-native';
+
 import DomUtils from './DomUtils';
 import getHadTabNavigation from './hadTabNavigation';
+
+type KeyDownEventTarget = EventTarget | HostInstance | number;
 
 type ToolbarKeyModifiers = {
     altKey?: boolean;
@@ -18,7 +22,7 @@ type ToolbarKeyModifiers = {
 type ToolbarKeyDownEvent = ToolbarKeyModifiers & {
     key?: string;
     nativeEvent?: ToolbarKeyModifiers & {key?: string};
-    currentTarget?: EventTarget | null;
+    currentTarget?: KeyDownEventTarget | null;
     preventDefault: () => void;
 };
 
@@ -52,8 +56,8 @@ function getAdjacentHorizontalIndex(currentIndex: number, key: string, lastIndex
     return currentIndex;
 }
 
-function canQueryToolbarButtons(node: EventTarget | null | undefined): node is Node & ParentNode {
-    return !!node && 'querySelectorAll' in node && typeof node.querySelectorAll === 'function';
+function canQueryToolbarButtons(node: KeyDownEventTarget | null | undefined): node is Node & ParentNode {
+    return typeof node === 'object' && !!node && 'querySelectorAll' in node && typeof node.querySelectorAll === 'function';
 }
 
 function hasModifierKey(event: ToolbarKeyDownEvent): boolean {
@@ -74,7 +78,7 @@ function isActiveToolbarButton(button: Element, activeElement: Element | null): 
     return button === activeElement || button.contains(activeElement);
 }
 
-function getReactionRow(root: EventTarget | null | undefined, activeElement: Element): (Node & ParentNode) | null {
+function getReactionRow(root: KeyDownEventTarget | null | undefined, activeElement: Element): (Node & ParentNode) | null {
     if (!canQueryToolbarButtons(root) || !root.contains(activeElement)) {
         return null;
     }
@@ -90,7 +94,7 @@ function getReactionRow(root: EventTarget | null | undefined, activeElement: Ele
     return null;
 }
 
-function moveToolbarFocusWithArrowKey(event: ToolbarKeyDownEvent, toolbar: EventTarget | null | undefined): void {
+function moveToolbarFocusWithArrowKey(event: ToolbarKeyDownEvent, toolbar: KeyDownEventTarget | null | undefined): void {
     const key = getPressedKey(event);
     // Arrow shortcuts have empty modifier lists. Alt+Arrow is browser history, so do not steal it.
     if (!isHorizontalArrowKey(key) || hasModifierKey(event)) {

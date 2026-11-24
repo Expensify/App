@@ -1,9 +1,11 @@
 import CategoryPickerModal from '@components/CategoryPicker/CategoryPickerModal';
+import type {DropdownFieldRenderProps} from '@components/DropdownField';
 import {useConfirmationFields} from '@components/MoneyRequestConfirmationFields/context';
 import usePolicyCategoriesForConfirmation from '@components/MoneyRequestConfirmationList/hooks/usePolicyCategoriesForConfirmation';
 import type {ListItem} from '@components/SelectionList/types';
 
 import useCreateAndApplyCategory from '@hooks/useCreateAndApplyCategory';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useOnyx from '@hooks/useOnyx';
 import usePolicyData from '@hooks/usePolicyData';
 import useUpdateTransactionCategory from '@hooks/useUpdateTransactionCategory';
@@ -21,9 +23,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 
 import React from 'react';
 
-import type {ExpenseFieldDropdownRenderProps} from './ExpenseFieldDropdown';
-
-type CategoryFieldDropdownProps = ExpenseFieldDropdownRenderProps & {
+type CategoryFieldDropdownProps = DropdownFieldRenderProps & {
     /** ID of the expense the picked category is written to */
     transactionID: string;
 
@@ -44,6 +44,8 @@ type CategoryFieldDropdownProps = ExpenseFieldDropdownRenderProps & {
  */
 function CategoryFieldDropdown({transactionID, policy, selectedCategory, canAddCategory, onClose, ...popoverProps}: CategoryFieldDropdownProps) {
     const {reportID, isEditingSplitBill, action, iouType} = useConfirmationFields();
+    // The confirmation form only ever holds the current user's own expense.
+    const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
 
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`);
@@ -90,6 +92,7 @@ function CategoryFieldDropdown({transactionID, policy, selectedCategory, canAddC
             onAddCategory={canAddCategory ? openAddCategory : undefined}
             addCategorySentryLabel={CONST.SENTRY_LABEL.REQUEST_CONFIRMATION_LIST.ADD_CATEGORY_BUTTON}
             onCreateCategory={canCreateSearchedCategory ? createAndApplyCategory : undefined}
+            ownerAccountID={currentUserAccountID}
         />
     );
 }

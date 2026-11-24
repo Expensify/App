@@ -47,7 +47,7 @@ type RateAttributes = {
 };
 
 /** Model of policy subrate */
-type Subrate = {
+type Subrate = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** Generated ID to identify the subrate */
     id: string;
 
@@ -56,7 +56,7 @@ type Subrate = {
 
     /** Amount to be reimbursed per unit */
     rate: number;
-};
+}>;
 
 /** Model of policy rate */
 type Rate = OnyxCommon.OnyxValueWithOfflineFeedback<
@@ -106,6 +106,9 @@ type Attributes = {
     unit: Unit;
 
     taxEnabled?: boolean;
+
+    /** Workspace-wide dismissal, including future UK advisory fuel rates. */
+    isUKFuelRateTaxErrorDismissed?: boolean;
 };
 
 /** Policy custom unit */
@@ -163,6 +166,10 @@ type UberReceiptPartner = {
      * form data for uber partner
      */
     connectFormData?: string;
+
+    /** Query string for Uber's revoke page, without the organization. The client adds `organizationID` as `org_uuid` */
+    revokeFormData?: string;
+
     /**
      * auto invite for uber connection
      */
@@ -2793,7 +2800,7 @@ type ZohoBooksAccount = {
 };
 
 /**
- * Bank or credit card account retrieved from Zoho Books. The backend syncs only active ones, for the company card account picker.
+ * Bank, cash or credit card account retrieved from Zoho Books, for the company card, bill payment and settlement account pickers.
  */
 type ZohoBooksBankAccount = {
     /** Unique identifier of the account. */
@@ -2802,8 +2809,14 @@ type ZohoBooksBankAccount = {
     /** Name of the account. */
     name: string;
 
+    /** Zoho Books account type. */
+    accountType: ZohoBooksAccountType;
+
     /** Currency associated with the account. */
     currency?: string;
+
+    /** Whether the account is active. */
+    isActive: boolean;
 };
 
 /**
@@ -3715,6 +3728,22 @@ type ACHAccount = {
     sharees?: string[];
 };
 
+/** Reimbursement info for a specific country in a policy */
+type ReimbursementCountryInfo = OnyxCommon.OnyxValueWithOfflineFeedback<{
+    /** ID of the withdrawal account the policy reimburses from in this country, when one is connected */
+    bankAccountID?: number;
+
+    /** One of `CONST.BANK_ACCOUNT.STATE` */
+    state?: string;
+
+    additionalData?: {
+        verifications?: {
+            /** Only set on accounts set up through Corpay */
+            corpay?: Record<string, unknown>;
+        };
+    };
+}>;
+
 /** Commuter exclusion configuration for a policy */
 type CommuterExclusions = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** How commuter mileage is excluded */
@@ -4098,7 +4127,7 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
             enabled?: boolean;
 
             /** Countries (keyed by ISO code) where the company has a withdrawal account it can reimburse from */
-            countries?: Record<string, unknown>;
+            countries?: Record<string, ReimbursementCountryInfo>;
         };
 
         /** The set reimburser for the policy */
@@ -4256,6 +4285,9 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
 
         /** All the integration connections attached to the policy */
         connections?: Partial<Connections>;
+
+        /** Why a connect flow that left the app (e.g. an OAuth window) failed, keyed by the integration that failed to connect */
+        connectErrors?: Partial<Record<ConnectionName, string | null>>;
 
         /** Report fields attached to the policy */
         fieldList?: Record<string, OnyxCommon.OnyxValueWithOfflineFeedback<PolicyReportField, 'defaultValue' | 'deletable'>>;
@@ -4420,6 +4452,7 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
     | 'isRecruitingEnabled'
     | 'isTimeTrackingEnabled'
     | 'timeTrackingDefaultRate'
+    | 'reimbursementCountries'
 >;
 
 /** Stages of policy connection sync */
@@ -4506,7 +4539,6 @@ export type {
     ApprovalRule,
     ExpenseRule,
     CodingRule,
-    CodingRuleFilter,
     NetSuiteConnectionConfig,
     MccGroup,
     Subrate,

@@ -491,6 +491,7 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
                     hasMoreThanLimit && !showAll ? (
                         <View style={[wrapperPadding, styles.alignItemsStart]}>
                             <LinkButton
+                                sentryLabel={CONST.SENTRY_LABEL.ONBOARDING.WORKSPACES_SHOW_MORE}
                                 onPress={() => setShowAll(true)}
                                 innerStyles={styles.ph0}
                             >
@@ -508,6 +509,7 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
                     <>
                         {joinablePoliciesErrors ? (
                             <Button
+                                sentryLabel={CONST.SENTRY_LABEL.ONBOARDING.WORKSPACES_TRY_AGAIN}
                                 size={CONST.BUTTON_SIZE.LARGE}
                                 onPress={retryAccessiblePoliciesLookup}
                                 style={[styles.mt5]}

@@ -2,18 +2,21 @@ import {act, fireEvent, render, screen, waitFor, within} from '@testing-library/
 
 import ComposeProviders from '@components/ComposeProviders';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
-import {ModalProvider} from '@components/Modal/Global/ModalContext';
+import {ModalActions, ModalProvider} from '@components/Modal/Global/ModalContext';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import ScreenWrapperStatusContext from '@components/ScreenWrapper/ScreenWrapperStatusContext';
 import Table, {composeTableListHeader} from '@components/Table';
-import type {CompareItemsCallback, FilterConfig, IsItemInFilterCallback, IsItemInSearchCallback, TableColumn, TableHandle} from '@components/Table';
+import type {ActiveSorting, CompareItemsCallback, FilterConfig, IsItemInFilterCallback, IsItemInSearchCallback, TableColumn, TableHandle} from '@components/Table';
 import dismissKeyboardOnDrag from '@components/Table/dismissKeyboardOnDrag';
 import Text from '@components/Text';
 
 import {CurrentReportIDContextProvider} from '@hooks/useCurrentReportID';
+import useMobileSelectionMenuModal from '@hooks/useMobileSelectionMenuModal';
+import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import type ResponsiveLayoutResult from '@hooks/useResponsiveLayout/types';
 
+import {turnOnMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import {acquireBackgroundInputFocusSuppression} from '@libs/ModalFocusManager';
 import type Navigation from '@libs/Navigation/Navigation';
 
@@ -92,6 +95,10 @@ let mockNextTextInputInstanceID = 0;
 let mockFlashListProps: Array<MockFlashListProps<unknown>> = [];
 let mockFlashListMeasurementTargetIndexes: number[] = [];
 let mockShouldUseNarrowLayout = false;
+
+jest.mock('@hooks/useMobileSelectionMenuModal', () => ({__esModule: true, default: jest.fn()}));
+jest.mock('@hooks/useMobileSelectionMode', () => ({__esModule: true, default: jest.fn(() => false)}));
+jest.mock('@libs/actions/MobileSelectionMode', () => ({turnOnMobileSelectionMode: jest.fn(), turnOffMobileSelectionMode: jest.fn()}));
 
 jest.mock('@components/Table/dismissKeyboardOnDrag', () => ({
     __esModule: true,
@@ -190,7 +197,7 @@ jest.mock('@components/ActivityIndicator', () => {
 jest.mock('@components/withNavigationFallback', () => (Component: React.ComponentType) => Component);
 
 jest.mock('@userActions/Session', () => ({
-    callFunctionIfActionIsAllowed: <TCallback extends ((...args: never[]) => unknown) | undefined>(callback: TCallback) => callback,
+    callIfAuthenticated: <TCallback extends ((...args: never[]) => unknown) | undefined>(callback: TCallback) => callback,
 }));
 
 jest.mock('@shopify/flash-list', () => {
@@ -348,6 +355,7 @@ jest.mock('@hooks/useThemeStyles', () =>
         textAlignRight: {},
         pr1: {},
         ml1: {marginLeft: 4},
+        mr1: {marginRight: 4},
         lh16: {},
         ph5: {},
         pt3: {},
@@ -632,6 +640,16 @@ function getHostTableRows(): TestInstance[] {
     return screen.UNSAFE_getAllByProps({role: CONST.ROLE.ROW}).filter((row) => typeof row.type === 'string');
 }
 
+// A row's cells sit in one host view, whose style decides how the row lays them out.
+function getRowCellContainerStyle(cellTestID: string): unknown {
+    let cellContainer = screen.getByTestId(cellTestID).parent;
+    while (cellContainer && (typeof cellContainer.type !== 'string' || cellContainer.props.testID === cellTestID)) {
+        cellContainer = cellContainer.parent;
+    }
+    const cellContainerStyle: unknown = StyleSheet.flatten(cellContainer?.props.style);
+    return cellContainerStyle;
+}
+
 function getHostTableRowsWithin(container: TestInstance): TestInstance[] {
     return within(container)
         .UNSAFE_getAllByProps({role: CONST.ROLE.ROW})
@@ -644,6 +662,130 @@ describe('Table', () => {
         mockFlashListProps = [];
         mockFlashListMeasurementTargetIndexes = [];
         mockShouldUseNarrowLayout = false;
+        jest.mocked(useMobileSelectionMenuModal).mockReturnValue({showMobileSelectionMenuModal: jest.fn().mockResolvedValue({action: ModalActions.CLOSE})});
+        jest.mocked(useMobileSelectionMode).mockReturnValue(false);
+    });
+
+    describe('mobile long-press selection', () => {
+        const showMenu = jest.fn();
+        const onRowSelectionChange = jest.fn();
+        const defaultResponsiveLayoutImplementation = jest.mocked(useResponsiveLayout).getMockImplementation();
+
+        function renderSelectionTable({disabled = false, isSelectionDisabled = false, interactive = true, selectionEnabled = true, shouldEnableSelectionInNarrowPaneModal = false} = {}) {
+            const props = createDefaultProps();
+            const renderItem = ({item, index}: ListRenderItemInfo<TestItem>) => (
+                <Table.Row
+                    rowIndex={index}
+                    interactive={interactive}
+                    accessibilityLabel={item.name}
+                    sentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}
+                    testID={`selectable-row-${item.id}`}
+                >
+                    <Text>{item.name}</Text>
+                </Table.Row>
+            );
+
+            return render(
+                <Table
+                    {...props}
+                    data={props.data.map((item) => ({...item, disabled, isSelectionDisabled}))}
+                    renderItem={renderItem}
+                    selectionEnabled={selectionEnabled}
+                    shouldEnableSelectionInNarrowPaneModal={shouldEnableSelectionInNarrowPaneModal}
+                    onRowSelectionChange={onRowSelectionChange}
+                >
+                    <Table.Body />
+                </Table>,
+            );
+        }
+
+        beforeEach(() => {
+            jest.mocked(useMobileSelectionMenuModal).mockReturnValue({showMobileSelectionMenuModal: showMenu});
+            showMenu.mockReset().mockResolvedValue({action: ModalActions.CLOSE});
+            jest.mocked(useResponsiveLayout).mockReturnValue(createMock<ResponsiveLayoutResult>({shouldUseNarrowLayout: true, isSmallScreenWidth: true, isInNarrowPaneModal: false}));
+        });
+
+        afterEach(() => {
+            if (!defaultResponsiveLayoutImplementation) {
+                return;
+            }
+            jest.mocked(useResponsiveLayout).mockImplementation(defaultResponsiveLayoutImplementation);
+        });
+
+        it('opens the global menu and selects the pressed row on CONFIRM', async () => {
+            // Given an eligible table row and a confirmed menu action.
+            showMenu.mockResolvedValue({action: ModalActions.CONFIRM});
+            renderSelectionTable();
+            onRowSelectionChange.mockClear();
+
+            // When that row is long-pressed.
+            fireEvent(screen.getByTestId('selectable-row-2'), 'longPress');
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the table preserves its selector and label, enables selection, and selects that exact key.
+            expect(showMenu).toHaveBeenCalledWith({
+                sentryLabel: CONST.SENTRY_LABEL.TABLE.SELECTION_MODE_MENU_ITEM,
+                testID: CONST.SELECTION_LIST_WITH_MODAL_TEST_ID,
+                shouldSkipFocusRestoreOnSelect: true,
+            });
+            expect(turnOnMobileSelectionMode).toHaveBeenCalledTimes(1);
+            expect(onRowSelectionChange).toHaveBeenCalledWith(['2']);
+        });
+
+        it('leaves selection untouched when the menu is dismissed', async () => {
+            // Given an eligible row whose menu will be dismissed.
+            renderSelectionTable();
+            onRowSelectionChange.mockClear();
+
+            // When the user long-presses and dismisses.
+            fireEvent(screen.getByTestId('selectable-row-1'), 'longPress');
+            await waitForBatchedUpdatesWithAct();
+
+            // Then neither selection mode nor the selected keys change.
+            expect(showMenu).toHaveBeenCalledTimes(1);
+            expect(turnOnMobileSelectionMode).not.toHaveBeenCalled();
+            expect(onRowSelectionChange).not.toHaveBeenCalled();
+        });
+
+        it.each([{disabled: true}, {isSelectionDisabled: true}, {interactive: false}, {selectionEnabled: false}])('does not open a menu for an ineligible row: %j', (options) => {
+            // Given a row that must not enter selection mode.
+            renderSelectionTable(options);
+
+            // When it receives a long press.
+            fireEvent(screen.getByTestId('selectable-row-1'), 'longPress');
+
+            // Then no modal is opened.
+            expect(showMenu).not.toHaveBeenCalled();
+        });
+
+        it.each([
+            {isSmallScreenWidth: false, isInNarrowPaneModal: false, isSelectionModeEnabled: false},
+            {isSmallScreenWidth: true, isInNarrowPaneModal: true, isSelectionModeEnabled: false},
+            {isSmallScreenWidth: true, isInNarrowPaneModal: false, isSelectionModeEnabled: true},
+        ])('preserves the layout and selection-mode guards: %j', ({isSmallScreenWidth, isInNarrowPaneModal, isSelectionModeEnabled}) => {
+            // Given a wide layout, a non-opted-in narrow pane, or a table already in selection mode.
+            jest.mocked(useResponsiveLayout).mockReturnValue(createMock<ResponsiveLayoutResult>({shouldUseNarrowLayout: true, isSmallScreenWidth, isInNarrowPaneModal}));
+            jest.mocked(useMobileSelectionMode).mockReturnValue(isSelectionModeEnabled);
+            renderSelectionTable();
+
+            // When a row is long-pressed.
+            fireEvent(screen.getByTestId('selectable-row-1'), 'longPress');
+
+            // Then the long press still opens no menu.
+            expect(showMenu).not.toHaveBeenCalled();
+        });
+
+        it('allows opted-in narrow-pane tables to open the menu on small screens', () => {
+            // Given a small-screen narrow pane whose table allows selection.
+            jest.mocked(useResponsiveLayout).mockReturnValue(createMock<ResponsiveLayoutResult>({shouldUseNarrowLayout: true, isSmallScreenWidth: true, isInNarrowPaneModal: true}));
+            renderSelectionTable({shouldEnableSelectionInNarrowPaneModal: true});
+
+            // When an eligible row is long-pressed.
+            fireEvent(screen.getByTestId('selectable-row-1'), 'longPress');
+
+            // Then the global menu opens as it does in the central pane.
+            expect(showMenu).toHaveBeenCalledTimes(1);
+        });
     });
 
     describe('rendering', () => {
@@ -675,6 +817,7 @@ describe('Table', () => {
                     rowIndex={index}
                     interactive
                     accessibilityLabel={item.name}
+                    sentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}
                     shouldAllowTextSelection
                     dataSet={{customMarker: true}}
                 >
@@ -703,6 +846,73 @@ describe('Table', () => {
                 tableRow: true,
                 [CONST.COPYABLE_ROW_ELEMENT]: true,
             });
+        });
+
+        it('should not let the grid of a wide row grow', () => {
+            const props = createDefaultProps();
+            const renderItem = ({item, index}: ListRenderItemInfo<TestItem>) => (
+                <Table.Row
+                    rowIndex={index}
+                    interactive
+                    accessibilityLabel={item.name}
+                    sentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}
+                >
+                    <View testID={`cell-${item.id}`} />
+                </Table.Row>
+            );
+
+            // Given a wide table, where every row lays out its cells in a grid
+            render(
+                <Table<TestItem, TestColumnKey>
+                    data={props.data.slice(0, 2)}
+                    columns={props.columns}
+                    renderItem={renderItem}
+                    keyExtractor={props.keyExtractor}
+                >
+                    <Table.Body />
+                </Table>,
+            );
+
+            // When the style that lays out the first row's cells is read
+            const firstRowCellContainerStyle = getRowCellContainerStyle('cell-1');
+
+            // Then the grid doesn't grow: in older Safari a growing grid centers the first row's cells against the whole list's height, behind the next row
+            expect(firstRowCellContainerStyle).toEqual(expect.objectContaining({gridTemplateColumns: '1fr 1fr 1fr', flexGrow: 0}));
+        });
+
+        it('should keep the flex layout of a narrow row unchanged', () => {
+            const props = createDefaultProps();
+            mockShouldUseNarrowLayout = true;
+            const renderItem = ({item, index}: ListRenderItemInfo<TestItem>) => (
+                <Table.Row
+                    rowIndex={index}
+                    interactive
+                    accessibilityLabel={item.name}
+                    sentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}
+                >
+                    <View testID={`cell-${item.id}`} />
+                </Table.Row>
+            );
+
+            // Given a narrow table, where rows lay out their cells with flex instead of a grid
+            render(
+                <Table<TestItem, TestColumnKey>
+                    data={props.data.slice(0, 2)}
+                    columns={props.columns}
+                    renderItem={renderItem}
+                    keyExtractor={props.keyExtractor}
+                >
+                    <Table.Body />
+                </Table>,
+            );
+
+            // When the style that lays out the first row's cells is read
+            const firstRowCellContainerStyle = getRowCellContainerStyle('cell-1');
+
+            // Then the narrow row still fills its row, since the grid fix only applies to the wide layout
+            expect(firstRowCellContainerStyle).toEqual(expect.objectContaining({flex: 1}));
+            expect(firstRowCellContainerStyle).not.toHaveProperty('gridTemplateColumns');
+            expect(firstRowCellContainerStyle).not.toHaveProperty('flexGrow');
         });
 
         it('should render column headers when Header component is used', () => {
@@ -1167,6 +1377,7 @@ describe('Table', () => {
                     rowIndex={index}
                     interactive
                     accessibilityLabel={item.name}
+                    sentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}
                 >
                     <View role={CONST.ROLE.CELL}>
                         <Text>{item.name}</Text>
@@ -2849,6 +3060,141 @@ describe('Table', () => {
         });
     });
 
+    describe('column menu', () => {
+        const SCREEN_WRAPPER_STATUS = {didScreenTransitionEnd: true, isSafeAreaTopPaddingApplied: true, isSafeAreaBottomPaddingApplied: true};
+
+        // The menu's popover needs the real modal, navigation and portal providers.
+        function ColumnMenuTable({
+            tableRef,
+            initialSortColumn,
+            onSortingChange,
+        }: {
+            tableRef: React.RefObject<TableHandle<TestItem, TestColumnKey> | null>;
+            initialSortColumn?: TestColumnKey;
+            onSortingChange?: (sorting: ActiveSorting<TestColumnKey>) => void;
+        }) {
+            const props = createDefaultProps();
+            return (
+                <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, CurrentReportIDContextProvider]}>
+                    <PortalProvider>
+                        <ModalProvider>
+                            <NavigationContainer>
+                                <ScreenWrapperStatusContext.Provider value={SCREEN_WRAPPER_STATUS}>
+                                    <Table<TestItem, TestColumnKey>
+                                        ref={tableRef}
+                                        data={props.data}
+                                        columns={props.columns}
+                                        renderItem={props.renderItem}
+                                        keyExtractor={props.keyExtractor}
+                                        compareItems={props.compareItems}
+                                        initialSortColumn={initialSortColumn}
+                                        onSortingChange={onSortingChange}
+                                    >
+                                        <Table.Header />
+                                        <Table.Body />
+                                    </Table>
+                                </ScreenWrapperStatusContext.Provider>
+                            </NavigationContainer>
+                        </ModalProvider>
+                    </PortalProvider>
+                </ComposeProviders>
+            );
+        }
+
+        // The menu's rows render through `MenuItem`, which jest renders without its text, so they're found by their title.
+        const pressMenuItem = async (title: string) => {
+            fireEvent.press(screen.UNSAFE_getByProps({role: CONST.ROLE.MENUITEM, title}));
+            await waitForBatchedUpdatesWithAct();
+        };
+
+        const openNameColumnMenu = async () => {
+            const [nameColumnMenu] = screen.getAllByLabelText('search.columnMenu.openMenu');
+            fireEvent.press(nameColumnMenu);
+            await waitForBatchedUpdatesWithAct();
+        };
+
+        beforeAll(() => {
+            Onyx.init({keys: ONYXKEYS});
+            // Opening the menu measures its trigger, which jest's View doesn't support.
+            View.prototype.getBoundingClientRect = () => ({x: 0, y: 0, width: 0, height: 0, top: 0, left: 0, right: 0, bottom: 0, toJSON: () => ({})});
+        });
+
+        afterAll(() => {
+            Reflect.deleteProperty(View.prototype, 'getBoundingClientRect');
+        });
+
+        afterEach(async () => {
+            await act(async () => {
+                await Onyx.clear();
+            });
+        });
+
+        it('sorts by the chosen order when the beta is on', async () => {
+            // Given the column menu beta is on
+            await act(async () => {
+                await Onyx.set(ONYXKEYS.BETAS, [CONST.BETAS.PINNABLE_TABLE_COLUMNS]);
+            });
+            const tableRef = React.createRef<TableHandle<TestItem, TestColumnKey>>();
+            render(<ColumnMenuTable tableRef={tableRef} />);
+            await waitForBatchedUpdatesWithAct();
+
+            // When the user picks Sort descending from the Name column's menu
+            await openNameColumnMenu();
+            await pressMenuItem('search.columnMenu.sortDescending');
+
+            // Then the table sorts by that column in that order, rather than cycling the sort as a plain press does
+            expect(tableRef.current?.getActiveSorting()).toEqual({columnKey: 'name', order: 'desc'});
+            expect(tableRef.current?.getProcessedData().map((item) => item.name)).toEqual(['Eggplant', 'Date', 'Carrot', 'Banana', 'Apple']);
+        });
+
+        it('keeps the sort when the checked order is picked again', async () => {
+            // Given the column menu beta is on, and a table that starts sorted by Name is sorted by Category descending
+            await act(async () => {
+                await Onyx.set(ONYXKEYS.BETAS, [CONST.BETAS.PINNABLE_TABLE_COLUMNS]);
+            });
+            const onSortingChange = jest.fn();
+            const tableRef = React.createRef<TableHandle<TestItem, TestColumnKey>>();
+            render(
+                <ColumnMenuTable
+                    tableRef={tableRef}
+                    initialSortColumn="name"
+                    onSortingChange={onSortingChange}
+                />,
+            );
+            await waitForBatchedUpdatesWithAct();
+            act(() => tableRef.current?.updateSorting({columnKey: 'category', order: 'desc'}));
+            await waitForBatchedUpdatesWithAct();
+            onSortingChange.mockClear();
+
+            // When the user picks the checked Sort descending from the Category column's menu
+            const categoryColumnMenu = screen.getAllByLabelText('search.columnMenu.openMenu').at(1);
+            if (!categoryColumnMenu) {
+                throw new Error('Category column menu not found');
+            }
+            fireEvent.press(categoryColumnMenu);
+            await waitForBatchedUpdatesWithAct();
+            await pressMenuItem('search.columnMenu.sortDescending');
+
+            // Then nothing changes, the same as in Spend, and a server-sorted table isn't asked to refetch the sort it already shows
+            expect(tableRef.current?.getActiveSorting()).toEqual({columnKey: 'category', order: 'desc'});
+            expect(onSortingChange).not.toHaveBeenCalled();
+        });
+
+        it('keeps pressing a heading to cycle the sort when the beta is off', async () => {
+            // Given the column menu beta is off
+            const tableRef = React.createRef<TableHandle<TestItem, TestColumnKey>>();
+            render(<ColumnMenuTable tableRef={tableRef} />);
+            await waitForBatchedUpdatesWithAct();
+
+            // When the user presses the Name heading
+            fireEvent.press(screen.getByLabelText('Name'));
+
+            // Then no menu opens, and the press sorts the column as before
+            expect(screen.queryByLabelText('search.columnMenu.openMenu')).toBeNull();
+            expect(tableRef.current?.getActiveSorting()).toEqual({columnKey: 'name', order: 'desc'});
+        });
+    });
+
     describe('sorting functionality', () => {
         it('should render sortable column headers', () => {
             const props = createDefaultProps();
@@ -3229,6 +3575,7 @@ describe('Table', () => {
                 rowIndex={index}
                 disabled={item.disabled}
                 accessibilityLabel={item.name}
+                sentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}
             >
                 <Text testID={`name-${item.id}`}>{item.name}</Text>
             </Table.Row>
@@ -3245,6 +3592,7 @@ describe('Table', () => {
                         columns={props.columns}
                         renderItem={renderSelectableRow}
                         keyExtractor={props.keyExtractor}
+                        compareItems={props.compareItems}
                         selectionEnabled
                         selectedKeys={selectedKeys}
                         isItemInSearch={props.isItemInSearch}
@@ -3313,6 +3661,21 @@ describe('Table', () => {
             pressRow(2, true);
 
             expect(screen.getByTestId('selected-keys')).toHaveTextContent(/^1,2,3$/);
+        });
+
+        it('should range over the rows in their new order when the table is re-sorted mid-range', () => {
+            render(<ControlledSelectableTable />);
+
+            // Given Apple clicked and a range shift+clicked to Carrot, in the order Apple, Banana, Carrot, Date, Eggplant
+            pressRow(0);
+            pressRow(2, true);
+
+            // When the table is sorted by value (Banana, Date, Apple, Eggplant, Carrot) and the range is shift+clicked to Eggplant
+            fireEvent.press(screen.getByLabelText('Value'));
+            pressRow(3, true);
+
+            // Then the range runs from Apple to Eggplant as they now sit, so Date stays unchecked, Carrot is given back and Banana stays checked
+            expect(screen.getByTestId('selected-keys')).toHaveTextContent(/^1,2,5$/);
         });
 
         it('should exclude disabled rows from the range', () => {

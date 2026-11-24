@@ -9,7 +9,8 @@ type TravelSettings = {
     /** Whether the user is setup for staging travelDot */
     testAccount?: boolean;
 
-    lastTravelSignupRequestTime?: string;
+    /** When the user last requested travel access that is waiting on a guide review, or null once the request no longer needs one */
+    lastTravelSignupRequestTime?: string | null;
 };
 
 /** Model of workspace travel information to connect with Spotnana */

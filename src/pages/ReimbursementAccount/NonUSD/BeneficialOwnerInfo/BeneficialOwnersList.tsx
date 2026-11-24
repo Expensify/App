@@ -46,10 +46,12 @@ function BeneficialOwnersList({handleConfirmation, ownerKeys, handleOwnerEdit}: 
 
             return (
                 <MenuItemAvatarNavigation
+                    sentryLabel={CONST.SENTRY_LABEL.REIMBURSEMENT_ACCOUNT.BENEFICIAL_OWNER_ROW}
                     key={ownerKey}
                     title={`${ownerData.firstName} ${ownerData.lastName}`}
                     description={`${ownerData.street}, ${ownerData.city}, ${ownerData.state} ${ownerData.zipCode}`}
                     accountID={CONST.DEFAULT_NUMBER_ID}
+                    forwardedFSClass={CONST.FULLSTORY.CLASS.MASK}
                     onPress={() => {
                         handleOwnerEdit(ownerKey);
                     }}
@@ -81,6 +83,7 @@ function BeneficialOwnersList({handleConfirmation, ownerKeys, handleOwnerEdit}: 
                     />
                 )}
                 <ButtonDisabledWhenOffline
+                    sentryLabel={CONST.SENTRY_LABEL.REIMBURSEMENT_ACCOUNT.BENEFICIAL_OWNERS_CONFIRM}
                     variant={CONST.BUTTON_VARIANT.SUCCESS}
                     size={CONST.BUTTON_SIZE.LARGE}
                     isLoading={reimbursementAccount?.isSavingCorpayOnboardingBeneficialOwnersFields}

@@ -4,11 +4,12 @@ import useColumnResize from '@components/Table/columnResize/useColumnResize';
 import useStoredColumnWidths from '@components/Table/columnResize/useStoredColumnWidths';
 
 import usePermissions from '@hooks/usePermissions';
+import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {canMeasureText} from '@libs/measureTextWidth';
-import {getSearchColumnResizingID} from '@libs/SearchUIUtils';
+import {getSearchColumnResizingID} from '@libs/SearchKeyUtils';
 
 import type {GetReportTableColumnStylesParams} from '@styles/utils';
 import variables from '@styles/variables';
@@ -30,6 +31,7 @@ import useSearchColumnWidths from './hooks/useSearchColumnWidths';
 import useSearchTableWidth from './hooks/useSearchTableWidth';
 import HorizontalTableScroll from './primitives/HorizontalTableScroll';
 import {SearchColumnWidthsProvider} from './SearchColumnWidthsContext';
+import {useSearchQueryContext} from './SearchContext';
 
 type SearchListViewLayoutProps = {
     /** Columns rendered in the table (drives the min-width for horizontal scroll). */
@@ -102,6 +104,7 @@ function SearchListViewLayoutContent({
 }: SearchListViewLayoutContentProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
+    const {policyForMovingExpensesID} = usePolicyForMovingExpenses();
 
     const {tableWidthRef, tableWidth, onTableLayout} = useSearchTableWidth();
 
@@ -112,7 +115,7 @@ function SearchListViewLayoutContent({
         // A header is only rendered in the table layout. Narrow layouts render rows as cards with no columns to size.
         isEnabled: isHeaderVisible && !!data,
         columnSizeOptions,
-        measurementContext: {nonPersonalAndWorkspaceCards, policyCategories, policyTags},
+        measurementContext: {nonPersonalAndWorkspaceCards, policyCategories, policyTags, fallbackPolicyID: policyForMovingExpensesID},
         isColumnResizingEnabled: !!columnResizingID,
         storedTableColumnWidths,
     });
@@ -123,6 +126,7 @@ function SearchListViewLayoutContent({
         columnResizingID,
         ...resizableLayout,
         columnGap: variables.searchTableColumnGap,
+        hasStoredColumnWidths: !!storedTableColumnWidths,
     });
 
     const resizableColumnWidths: Partial<Record<SearchColumnType, number>> = {};
@@ -227,6 +231,7 @@ function SearchListViewLayoutWithStoredColumnWidths(props: Omit<SearchListViewLa
  */
 function SearchListViewLayout(props: SearchListViewLayoutProps) {
     const {isBetaEnabled} = usePermissions();
+    const {currentSearchKey} = useSearchQueryContext();
 
     // Saved widths are replayed by content sizing, so only tables that size from their rows can resize.
     // The header is left out so crossing the wide breakpoint doesn't remount the list.
@@ -246,7 +251,7 @@ function SearchListViewLayout(props: SearchListViewLayoutProps) {
     return (
         <SearchListViewLayoutWithStoredColumnWidths
             {...props}
-            columnResizingID={getSearchColumnResizingID(props.type)}
+            columnResizingID={getSearchColumnResizingID(props.type, currentSearchKey)}
         />
     );
 }

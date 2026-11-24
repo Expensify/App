@@ -1,8 +1,8 @@
 import {fireEvent, render, screen, waitFor} from '@testing-library/react-native';
 
+import type {DropdownFieldHandle} from '@components/DropdownField';
 import ConfirmationFieldsProvider from '@components/MoneyRequestConfirmationFields/Provider';
 import CategoryField from '@components/MoneyRequestConfirmationList/sections/CategoryField';
-import type {ExpenseFieldDropdownHandle} from '@components/MoneyRequestConfirmationList/sections/ExpenseFieldDropdown';
 import ExpenseFormLayoutContext, {dropdownRowsExpenseFormLayout} from '@components/MoneyRequestConfirmationList/sections/ExpenseFormLayoutContext';
 
 import Navigation from '@libs/Navigation/Navigation';
@@ -33,10 +33,6 @@ jest.mock('@components/MenuItemWithTopDescription', () => {
 
 jest.mock('@hooks/useLocalize', () => () => ({translate: (key: string) => key}));
 jest.mock('@hooks/useThemeStyles', () => () => ({}));
-// Only the anchored dropdowns beta, so the tests that render the plain menu row keep every other beta off.
-jest.mock('@hooks/usePermissions', () => () => ({
-    isBetaEnabled: (beta: string) => beta === jest.requireActual<{default: typeof CONST}>('@src/CONST').default.BETAS.ANCHORED_FIELD_DROPDOWNS,
-}));
 
 let mockIsFocused = true;
 // Mirrors `useFocusEffect`: runs the effect while the screen is focused, and again whenever the effect changes.
@@ -64,10 +60,10 @@ jest.mock('@libs/Navigation/TransitionTracker', () => ({
 
 const mockOpenDropdown = jest.fn();
 let mockShouldOpenInDropdown: boolean | undefined;
-jest.mock('@components/MoneyRequestConfirmationList/sections/ExpenseFieldDropdown', () => {
+jest.mock('@components/DropdownField', () => {
     const {useImperativeHandle} = jest.requireActual<typeof React>('react');
     const {Pressable, Text} = jest.requireActual<Record<'Pressable' | 'Text', React.ComponentType<{children?: React.ReactNode; onPress?: () => void; role?: string}>>>('react-native');
-    return ({name, onPress, shouldOpenInDropdown, ref}: {name: string; onPress: () => void; shouldOpenInDropdown: boolean; ref?: React.Ref<ExpenseFieldDropdownHandle>}) => {
+    return ({name, onPress, shouldOpenInDropdown, ref}: {name: string; onPress: () => void; shouldOpenInDropdown: boolean; ref?: React.Ref<DropdownFieldHandle>}) => {
         mockShouldOpenInDropdown = shouldOpenInDropdown;
         useImperativeHandle(ref, () => ({open: mockOpenDropdown}));
         return (
@@ -89,13 +85,14 @@ const enabledPolicy: Policy = {...createRandomPolicy(1), autoCategorizeNewExpens
 
 type ConfirmationIOUType = Exclude<IOUType, typeof CONST.IOU.TYPE.REQUEST | typeof CONST.IOU.TYPE.SEND>;
 
-const renderCategoryField = (isCategoryRequired: boolean, policy: Policy | undefined, iouType: ConfirmationIOUType = CONST.IOU.TYPE.SUBMIT) =>
+const renderCategoryField = (isCategoryRequired: boolean, policy: Policy | undefined, iouType: ConfirmationIOUType = CONST.IOU.TYPE.SUBMIT, isScanRequest = false) =>
     render(
         <ConfirmationFieldsProvider
             transactionID={TRANSACTION_ID}
             reportID={REPORT_ID}
             action={CONST.IOU.ACTION.CREATE}
             iouType={iouType}
+            isScanRequest={isScanRequest}
         >
             <CategoryField
                 isCategoryRequired={isCategoryRequired}
@@ -199,14 +196,27 @@ describe('CategoryField', () => {
         // Given a scan whose workspace will not categorize the receipt
         await givenScanExpense();
 
-        // When the confirmation form renders the category row
-        renderCategoryField(false, disabledPolicy);
+        // When the scan confirmation form renders the category row
+        renderCategoryField(false, disabledPolicy, CONST.IOU.TYPE.SUBMIT, true);
 
         // Then the row must not say Automatic, because a turned-off workspace never categorizes the receipt
         await waitFor(() => {
             expect(screen.getByText('Travel')).toBeOnTheScreen();
         });
         expect(screen.queryByText('common.automatic')).toBeNull();
+    });
+
+    it('promises an automatic category on a required scan row before the draft is initialized as a scan', async () => {
+        // Given a draft the share flow has not marked as a scan yet, on a workspace that categorizes receipts
+        await givenManualExpense();
+
+        // When the scan confirmation form renders a required category row
+        renderCategoryField(true, enabledPolicy, CONST.IOU.TYPE.SUBMIT, true);
+
+        // Then the row already promises the category read off the receipt, so it does not change once the draft catches up
+        await waitFor(() => {
+            expect(screen.getByText('common.automatic')).toBeOnTheScreen();
+        });
     });
 
     describe('after an upgrade started from the category row', () => {

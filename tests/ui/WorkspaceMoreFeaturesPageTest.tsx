@@ -568,6 +568,48 @@ describe('WorkspaceMoreFeaturesPage', () => {
             }
         });
 
+        it.each([
+            {isConfigured: true, isBetaEnabled: false, isVendorsActive: true},
+            {isConfigured: true, isBetaEnabled: true, isVendorsActive: true},
+            {isConfigured: false, isBetaEnabled: false, isVendorsActive: false},
+            {isConfigured: false, isBetaEnabled: true, isVendorsActive: false},
+        ])('shows the Zoho Books Vendors row with active=$isVendorsActive for configured=$isConfigured and beta=$isBetaEnabled', async ({isConfigured, isBetaEnabled, isVendorsActive}) => {
+            // Given a Zoho Books connection whose configuration determines whether vendor matching is active
+            const connections = {[CONST.POLICY.CONNECTIONS.NAME.ZOHO_BOOKS]: {config: {isConfigured}}};
+
+            // When the More features page renders with the selected beta state
+            await renderWithVendorMatching(connections, isBetaEnabled);
+
+            // Then the locked row shows without the beta, because Zoho Books vendor matching is GA, and is only on once Zoho Books is configured
+            const vendorsSwitch = await findLockedSwitch('workspace.moreFeatures.vendors.subtitle');
+            if (isVendorsActive) {
+                expect(vendorsSwitch).toBeChecked();
+            } else {
+                expect(vendorsSwitch).not.toBeChecked();
+            }
+        });
+
+        it.each([
+            {isConfigured: true, isBetaEnabled: false, isVendorsActive: true},
+            {isConfigured: true, isBetaEnabled: true, isVendorsActive: true},
+            {isConfigured: false, isBetaEnabled: false, isVendorsActive: false},
+            {isConfigured: false, isBetaEnabled: true, isVendorsActive: false},
+        ])('shows the Digits Vendors row with active=$isVendorsActive for configured=$isConfigured and beta=$isBetaEnabled', async ({isConfigured, isBetaEnabled, isVendorsActive}) => {
+            // Given a Digits connection whose configuration determines whether vendor matching is active
+            const connections = {[CONST.POLICY.CONNECTIONS.NAME.DIGITS]: {config: {isConfigured}}};
+
+            // When the More features page renders with the selected beta state
+            await renderWithVendorMatching(connections, isBetaEnabled);
+
+            // Then the locked row shows without the beta, because Digits vendor matching is GA, and is only on once Digits is configured
+            const vendorsSwitch = await findLockedSwitch('workspace.moreFeatures.vendors.subtitle');
+            if (isVendorsActive) {
+                expect(vendorsSwitch).toBeChecked();
+            } else {
+                expect(vendorsSwitch).not.toBeChecked();
+            }
+        });
+
         // Business Central is still beta-gated, so it stays hidden when the beta is off.
         it('hides the Vendors row for a beta-gated integration (Business Central) when the beta is disabled', async () => {
             // Given a configured Business Central connection
@@ -611,6 +653,92 @@ describe('WorkspaceMoreFeaturesPage', () => {
             await renderWithVendorMatching(connections, true);
 
             // Then the Vendors row should be hidden because PSA does not support vendor matching
+            expect(vendorsSwitchQuery()).toBeNull();
+        });
+
+        // QBD is beta-gated and has no discovery state: the row is absent unless beta + Codat + CREDIT_CARD_CHARGE are all true.
+        it('shows the Vendors row for a QBD Codat + CREDIT_CARD_CHARGE connection when the beta is enabled', async () => {
+            // Given a QBD connection with apiProvider=codat and CREDIT_CARD_CHARGE export, and the vendorMatching beta enabled
+            const connections = {
+                [CONST.POLICY.CONNECTIONS.NAME.QBD]: {
+                    config: {
+                        apiProvider: CONST.QUICKBOOKS_DESKTOP_CONFIG.API_PROVIDER.CODAT,
+                        export: {nonReimbursable: CONST.QUICKBOOKS_DESKTOP_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD},
+                    },
+                },
+            };
+
+            // When the More features page renders with the beta enabled
+            await renderWithVendorMatching(connections, true);
+
+            // Then the Vendors row is visible and active
+            const vendorsSwitch = await findLockedSwitch('workspace.moreFeatures.vendors.subtitle');
+            expect(vendorsSwitch).toBeChecked();
+        });
+
+        it('hides the Vendors row for a QBD Codat + CREDIT_CARD_CHARGE connection when the beta is disabled', async () => {
+            // Given a QBD connection with apiProvider=codat and CREDIT_CARD_CHARGE export, but the vendorMatching beta disabled
+            const connections = {
+                [CONST.POLICY.CONNECTIONS.NAME.QBD]: {
+                    config: {
+                        apiProvider: CONST.QUICKBOOKS_DESKTOP_CONFIG.API_PROVIDER.CODAT,
+                        export: {nonReimbursable: CONST.QUICKBOOKS_DESKTOP_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD},
+                    },
+                },
+            };
+
+            // When the More features page renders without the beta
+            await renderWithVendorMatching(connections, false);
+
+            // Then the Vendors row is hidden — QBD has no discovery state, so it never shows without the beta
+            expect(vendorsSwitchQuery()).toBeNull();
+        });
+
+        it('hides the Vendors row for a QBD connection with a CHECK export type even when the beta is enabled', async () => {
+            // Given a QBD Codat connection whose export is CHECK, not CREDIT_CARD_CHARGE
+            const connections = {
+                [CONST.POLICY.CONNECTIONS.NAME.QBD]: {
+                    config: {apiProvider: CONST.QUICKBOOKS_DESKTOP_CONFIG.API_PROVIDER.CODAT, export: {nonReimbursable: CONST.QUICKBOOKS_DESKTOP_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CHECK}},
+                },
+            };
+
+            // When the More features page renders with the beta enabled
+            await renderWithVendorMatching(connections, true);
+
+            // Then the Vendors row is hidden because the export type does not scope vendor matching
+            expect(vendorsSwitchQuery()).toBeNull();
+        });
+
+        it('hides the Vendors row for a QBD connection with a VENDOR_BILL export type even when the beta is enabled', async () => {
+            // Given a QBD Codat connection whose export is VENDOR_BILL, not CREDIT_CARD_CHARGE
+            const connections = {
+                [CONST.POLICY.CONNECTIONS.NAME.QBD]: {
+                    config: {
+                        apiProvider: CONST.QUICKBOOKS_DESKTOP_CONFIG.API_PROVIDER.CODAT,
+                        export: {nonReimbursable: CONST.QUICKBOOKS_DESKTOP_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.VENDOR_BILL},
+                    },
+                },
+            };
+
+            // When the More features page renders with the beta enabled
+            await renderWithVendorMatching(connections, true);
+
+            // Then the Vendors row is hidden because the export type does not scope vendor matching
+            expect(vendorsSwitchQuery()).toBeNull();
+        });
+
+        it('hides the Vendors row for a legacy (non-Codat) QBD connection even when the beta is enabled', async () => {
+            // Given a QBD connection without an apiProvider (legacy pre-Codat connection)
+            const connections = {
+                [CONST.POLICY.CONNECTIONS.NAME.QBD]: {
+                    config: {export: {nonReimbursable: CONST.QUICKBOOKS_DESKTOP_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD}},
+                },
+            };
+
+            // When the More features page renders with the beta enabled
+            await renderWithVendorMatching(connections, true);
+
+            // Then the Vendors row is hidden because legacy QBD connections lack the Codat apiProvider
             expect(vendorsSwitchQuery()).toBeNull();
         });
     });

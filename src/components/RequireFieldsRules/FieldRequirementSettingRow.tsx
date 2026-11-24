@@ -145,6 +145,7 @@ function FieldRequirementSettingRow({
                     isOn={setting === CONST.FIELD_REQUIREMENTS_DIRECTION.REQUIRE}
                     disabled={isDisabled}
                     accessibilityLabel={label}
+                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.REQUIRE_FIELDS_RULE_FIELD_TOGGLE}
                     onToggle={(isOn) => handleSelectSetting(isOn ? CONST.FIELD_REQUIREMENTS_DIRECTION.REQUIRE : CONST.FIELD_REQUIREMENTS_DIRECTION.DO_NOT_REQUIRE)}
                 />
             )}

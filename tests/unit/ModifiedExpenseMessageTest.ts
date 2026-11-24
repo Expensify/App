@@ -1,7 +1,6 @@
 import {getEnvironmentURL} from '@libs/Environment/Environment';
 import {getForReportAction, getMovedFromOrToReportMessage, getMovedReportID} from '@libs/ModifiedExpenseMessage';
 import {escapeTagName, isPolicyAdmin} from '@libs/PolicyUtils';
-// eslint-disable-next-line no-restricted-imports -- this is required to allow mocking
 import * as ReportNameUtils from '@libs/ReportNameUtils';
 
 import CONST from '@src/CONST';
@@ -1745,6 +1744,71 @@ describe('ModifiedExpenseMessage', () => {
                 });
 
                 const expectedResult = `marked the expense as "billable", marked the expense as "reimbursable", set the category to "Travel", and merchant to "McDonald's" via <a href="${environmentURL}/workspaces/1234/rules">workspace rules</a>`;
+
+                expect(result).toEqual(expectedResult);
+            });
+
+            it('returns the correct text message when a rule set the amount', () => {
+                // Given a modified expense action for a rule that set the amount, which the backend sends already formatted
+                const reportAction = {
+                    ...createRandomReportAction(1),
+                    actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
+                    originalMessage: {
+                        policyID: '1234',
+                        policyRulesModifiedFields: {
+                            amount: '$10.00',
+                        },
+                    } as OriginalMessageModifiedExpense,
+                };
+
+                // When the message is built
+                const result = getForReportAction({
+                    convertToDisplayString,
+                    translate: translateLocal,
+                    reportAction,
+                    policy: policyRulesPolicy,
+                    policyTags: undefined,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                    currentUserLogin: CURRENT_USER_LOGIN,
+                    formatPhoneNumber,
+                    movedFromReportName: undefined,
+                });
+
+                // Then the amount reads like any other field the rule set, rather than crashing on a missing label
+                const expectedResult = `set the amount to "$10.00" via <a href="${environmentURL}/workspaces/1234/rules">workspace rules</a>`;
+
+                expect(result).toEqual(expectedResult);
+            });
+
+            it('drops a field it has no label for instead of throwing', () => {
+                // Given a rule that set a field this version has no label for, such as the vendor
+                const reportAction = {
+                    ...createRandomReportAction(1),
+                    actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
+                    originalMessage: {
+                        policyID: '1234',
+                        policyRulesModifiedFields: {
+                            merchant: "McDonald's",
+                            vendorID: '42',
+                        },
+                    } as OriginalMessageModifiedExpense,
+                };
+
+                // When the message is built
+                const result = getForReportAction({
+                    convertToDisplayString,
+                    translate: translateLocal,
+                    reportAction,
+                    policy: policyRulesPolicy,
+                    policyTags: undefined,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                    currentUserLogin: CURRENT_USER_LOGIN,
+                    formatPhoneNumber,
+                    movedFromReportName: undefined,
+                });
+
+                // Then only the fields with a label are listed, because an unlabelled one used to crash the report
+                const expectedResult = `set the merchant to "McDonald's" via <a href="${environmentURL}/workspaces/1234/rules">workspace rules</a>`;
 
                 expect(result).toEqual(expectedResult);
             });

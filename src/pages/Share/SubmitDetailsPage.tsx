@@ -1,7 +1,7 @@
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import LocationPermissionModal from '@components/LocationPermissionModal';
-import MoneyRequestConfirmationList from '@components/MoneyRequestConfirmationList';
+import ScanConfirmationList from '@components/MoneyRequestConfirmationList/variants/ScanConfirmationList';
 import ScreenWrapper from '@components/ScreenWrapper';
 
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
@@ -12,6 +12,7 @@ import useMoneyRequestPolicyTags from '@hooks/useMoneyRequestPolicyTags';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
+import {useGetPersonalDetailsByLogin} from '@hooks/usePersonalDetailByLogin';
 import {useAllPersonalDetails} from '@hooks/usePersonalDetails';
 import usePersonalPolicy from '@hooks/usePersonalPolicy';
 import usePolicyForTransaction from '@hooks/usePolicyForTransaction';
@@ -115,6 +116,7 @@ function SubmitDetailsPage({
     const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
     const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE);
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
+    const getPersonalDetailsByLogin = useGetPersonalDetailsByLogin();
     const reportAttributesDerived = useReportAttributes();
     const privateIsArchivedMap = usePrivateIsArchivedMap();
     const [currentDate] = useOnyx(ONYXKEYS.CURRENT_DATE);
@@ -397,6 +399,8 @@ function SubmitDetailsPage({
 
     const finishRequestAndNavigate = (receipt: Receipt, gpsPoint?: GpsPoint) => {
         if (!transaction || !participant) {
+            formHasBeenSubmitted.current = false;
+            setIsConfirming(false);
             return;
         }
 
@@ -446,6 +450,7 @@ function SubmitDetailsPage({
                     existingTransaction: transaction,
                     isASAPSubmitBetaEnabled,
                     currentUser: {accountID: currentUserPersonalDetails.accountID, email: currentUserPersonalDetails.login ?? ''},
+                    currentUserPersonalDetails,
                     introSelected,
                     conciergeChat,
                     quickAction,
@@ -508,6 +513,7 @@ function SubmitDetailsPage({
                     formatPhoneNumber,
                     optimisticChatReportID: routeReportID,
                     rules,
+                    personalDetailsByLogins: getPersonalDetailsByLogin(),
                 });
             }
 
@@ -696,13 +702,12 @@ function SubmitDetailsPage({
                         }
                         performUpload(false);
                     }}
-                    onInitialGetLocationCompleted={() => setIsConfirming(false)}
                 />
                 <View
                     style={[styles.containerWithSpaceBetween, styles.pointerEventsBoxNone]}
                     onLayout={endOpenSubmitFlowSpan}
                 >
-                    <MoneyRequestConfirmationList
+                    <ScanConfirmationList
                         transaction={transaction}
                         selectedParticipants={participants}
                         // The Share flow never renders an editable participant row (the transaction is not from global create), so there is nothing to open.
