@@ -8,7 +8,6 @@ import {getTabNavigatorState, isTabPreloaded} from '@libs/Navigation/helpers/tab
 import navigationRef from '@libs/Navigation/navigationRef';
 import {Scheduler} from '@libs/Scheduler';
 import {startSpan} from '@libs/telemetry/activeSpans';
-import {getPendingSubmitFollowUpAction} from '@libs/telemetry/submitFollowUpAction';
 
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
@@ -40,10 +39,6 @@ function SearchTabPreload({isLoadingApp, tabNavigatorStateKey}: SearchTabPreload
 
     // Reads the saved query when the idle task runs, so a Spend search does not reschedule the preload.
     const preloadSearchTab = useEffectEvent(() => {
-        // A submit that ends on Spend opens the tab itself, pre-inserted under the RHP, so a preload would only compete with it.
-        if (getPendingSubmitFollowUpAction()?.followUpAction === CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.NAVIGATE_TO_SEARCH) {
-            return;
-        }
         const rootState = navigationRef.getRootState();
         const target = getSearchTabPreloadTarget(rootState);
         // Already preloaded, but its screens are not mounted yet, so the target check alone would let a rescheduled task preload it again.

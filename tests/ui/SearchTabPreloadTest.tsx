@@ -8,7 +8,6 @@ import {clearIdlePreloadedSearchTabRouteKey, isIdlePreloadedSearchTabRoute} from
 import {Scheduler} from '@libs/Scheduler';
 import {buildCannedSearchQuery, buildSearchQueryJSON, buildSearchQueryString} from '@libs/SearchQueryUtils';
 import {startSpan} from '@libs/telemetry/activeSpans';
-import {getPendingSubmitFollowUpAction} from '@libs/telemetry/submitFollowUpAction';
 
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
@@ -53,10 +52,6 @@ jest.mock('@libs/Navigation/helpers/getSearchTabPreloadTarget', () =>
 
 jest.mock('@libs/telemetry/activeSpans', () => ({
     startSpan: jest.fn(),
-}));
-
-jest.mock('@libs/telemetry/submitFollowUpAction', () => ({
-    getPendingSubmitFollowUpAction: jest.fn(() => null),
 }));
 
 function buildRootState(focusedTabIndex = 0, preloadedRouteKeys: string[] = []): NavigationState {
@@ -117,7 +112,6 @@ describe('SearchTabPreload', () => {
         jest.restoreAllMocks();
         jest.mocked(getPlatform).mockReturnValue(CONST.PLATFORM.WEB);
         jest.mocked(getIsNarrowLayout).mockReturnValue(false);
-        jest.mocked(getPendingSubmitFollowUpAction).mockReturnValue(null);
     });
 
     const savedQueryJSON = buildSearchQueryJSON('type:expense status:drafts');
@@ -199,19 +193,5 @@ describe('SearchTabPreload', () => {
 
         // Then the Spend tab is not preloaded
         expectNoSpendPreload();
-    });
-
-    it.each([
-        ['leaves the Spend tab to a submit that ends on Spend', CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.NAVIGATE_TO_SEARCH, false],
-        ['still preloads the Spend tab while a submit ends on a report', CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_AND_OPEN_REPORT, true],
-    ])('%s', async (_description, followUpAction, shouldPreload) => {
-        // Given an expense submit in flight, which pre-inserts the Spend tab under the RHP only when it ends on Spend
-        jest.mocked(getPendingSubmitFollowUpAction).mockReturnValue({followUpAction});
-
-        // When the app goes idle on Home
-        await renderAtIdle();
-
-        // Then the preload only steps aside for the submit that opens Spend itself
-        expect(jest.mocked(startSpan).mock.calls.length > 0).toBe(shouldPreload);
     });
 });

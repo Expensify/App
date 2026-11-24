@@ -17,6 +17,7 @@ import type * as PlaybackContextModule from '@components/VideoPlayerContexts/Pla
 import type * as WideRHPContextProviderModule from '@components/WideRHPContextProvider';
 
 import {IsInPreloadedTabContext} from '@hooks/useIsInPreloadedTab';
+import {PreloadedTabContentReadyContext} from '@hooks/useMarkPreloadedTabContentReady';
 import useNetwork from '@hooks/useNetwork';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 
@@ -323,31 +324,33 @@ function TestNavigationContainer({initialState}: TestNavigationContainerProps) {
     );
 }
 
-function getSearchPage(query = SearchQueryUtils.buildSearchQueryString(failedQueryJSON), isInPreloadedTab = false) {
+function getSearchPage(query = SearchQueryUtils.buildSearchQueryString(failedQueryJSON), isInPreloadedTab = false, markPreloadedContentReady = () => {}) {
     return (
         <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, PlaybackContextProvider, FullScreenBlockingViewContextProvider]}>
             <PortalProvider>
                 <SearchContextProvider>
                     <IsInPreloadedTabContext.Provider value={isInPreloadedTab}>
-                        <TestNavigationContainer
-                            initialState={{
-                                index: 0,
-                                routes: [
-                                    {
-                                        name: NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR,
-                                        state: {
-                                            index: 0,
-                                            routes: [
-                                                {
-                                                    name: SCREENS.SEARCH.ROOT,
-                                                    params: {q: query},
-                                                },
-                                            ],
+                        <PreloadedTabContentReadyContext.Provider value={markPreloadedContentReady}>
+                            <TestNavigationContainer
+                                initialState={{
+                                    index: 0,
+                                    routes: [
+                                        {
+                                            name: NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR,
+                                            state: {
+                                                index: 0,
+                                                routes: [
+                                                    {
+                                                        name: SCREENS.SEARCH.ROOT,
+                                                        params: {q: query},
+                                                    },
+                                                ],
+                                            },
                                         },
-                                    },
-                                ],
-                            }}
-                        />
+                                    ],
+                                }}
+                            />
+                        </PreloadedTabContentReadyContext.Provider>
                     </IsInPreloadedTabContext.Provider>
                 </SearchContextProvider>
             </PortalProvider>
@@ -355,7 +358,8 @@ function getSearchPage(query = SearchQueryUtils.buildSearchQueryString(failedQue
     );
 }
 
-const renderPage = (query = SearchQueryUtils.buildSearchQueryString(failedQueryJSON), isInPreloadedTab = false) => render(getSearchPage(query, isInPreloadedTab));
+const renderPage = (query = SearchQueryUtils.buildSearchQueryString(failedQueryJSON), isInPreloadedTab = false, markPreloadedContentReady = () => {}) =>
+    render(getSearchPage(query, isInPreloadedTab, markPreloadedContentReady));
 
 describe('SearchPageNarrow', () => {
     beforeAll(() => {
@@ -746,6 +750,25 @@ describe('SearchPageNarrow', () => {
 
         // And the hidden page sends no request, as the preloaded tab requests fresh results when it is first opened
         expect(mockSearch).not.toHaveBeenCalled();
+    });
+
+    it('counts the still placeholder as the first content of a preloaded tab with no cached results', async () => {
+        // Given a page mounted unfocused in a tab the idle preload marked, with no cached Spend results to build a list from
+        mockSearchQueryParam.mockReturnValue(EXPENSE_QUERY);
+        mockIsFocused.mockReturnValue(false);
+        mockIsNavigationFocused.mockReturnValue(false);
+        mockShouldRunFocusEffects.mockReturnValue(false);
+        const markPreloadedContentReady = jest.fn();
+
+        // When the page renders while its tab stays hidden
+        renderPage(EXPENSE_QUERY, true, markPreloadedContentReady);
+        await act(async () => {
+            jest.runAllTimers();
+        });
+
+        // Then the tab learns its first content is on screen, so it holds the hidden page on its contexts instead of
+        // re-rendering it on every expense update until the user opens it
+        expect(markPreloadedContentReady).toHaveBeenCalled();
     });
 
     it('does not repeat the first page the page-level setup already requested', async () => {

@@ -26,6 +26,7 @@ import useIsInPreloadedTab from '@hooks/useIsInPreloadedTab';
 import useIsMobileWebLandscape from '@hooks/useIsMobileWebLandscape';
 import useLayoutSpacing from '@hooks/useLayoutSpacing';
 import useLocalize from '@hooks/useLocalize';
+import useMarkPreloadedTabContentReady from '@hooks/useMarkPreloadedTabContentReady';
 import useNetwork from '@hooks/useNetwork';
 import usePermissions from '@hooks/usePermissions';
 import usePrevious from '@hooks/usePrevious';
@@ -255,17 +256,23 @@ function SearchPageNarrow({
 
     // A Spend tab preloaded at idle builds its list from cached results while hidden, so the first tap only reveals it.
     // Hidden, the list sends no request and ends no span, as `Search` reads the same preloaded state. Without cached
-    // results there is no list to build, only an animated loading skeleton, so the still placeholder stays.
+    // results there is no list to build, only an animated loading skeleton, so the still placeholder stays and counts as
+    // the tab's first content.
     const isInPreloadedTab = useIsInPreloadedTab();
+    const markPreloadedTabContentReady = useMarkPreloadedTabContentReady();
     useEffect(() => {
-        if (!isInPreloadedTab || isInteractive || shouldShowLoadingSkeleton) {
+        if (!isInPreloadedTab || isInteractive) {
+            return;
+        }
+        if (shouldShowLoadingSkeleton) {
+            markPreloadedTabContentReady();
             return;
         }
         startTransition(() => {
             setIsHeaderInteractive(true);
             setIsInteractive(true);
         });
-    }, [isInPreloadedTab, isInteractive, shouldShowLoadingSkeleton, startTransition]);
+    }, [isInPreloadedTab, isInteractive, shouldShowLoadingSkeleton, markPreloadedTabContentReady, startTransition]);
 
     // contentQueryJSON falls back to queryJSON upstream, so the two are always absent together.
     if (!queryJSON || !contentQueryJSON) {

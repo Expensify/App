@@ -2,7 +2,7 @@ import {renderHook, waitFor} from '@testing-library/react-native';
 
 import SubmitViolationsList from '@components/SubmitViolationsList';
 
-import useConfirmSubmitReportViolations from '@hooks/useConfirmSubmitReportViolations';
+import useConfirmSubmitViolations from '@hooks/useConfirmSubmitViolations';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -48,13 +48,6 @@ jest.mock('@libs/Navigation/TransitionTracker', () => ({
     },
 }));
 
-// Every test passes transactions/violationsCollection explicitly (the hook's override path), so the internal
-// useTransactionsAndViolationsForReport call never needs real data - just a safe default so its
-// useAllReportsTransactionsAndViolations() call (which throws outside a real OnyxListItemProvider) doesn't blow up.
-jest.mock('@components/OnyxListItemProvider', () => ({
-    useAllReportsTransactionsAndViolations: jest.fn(() => undefined),
-}));
-
 function violationsKey(transactionID: string) {
     return `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`;
 }
@@ -64,8 +57,6 @@ function violation(name: TransactionViolation['name'], data?: TransactionViolati
 }
 
 const transaction1 = createMock<Transaction>({transactionID: '1'});
-// A reportID with no corresponding report in Onyx, used by every test below that doesn't need real report data.
-const NO_REPORT_ID = '1';
 
 /** The hook passes a <SubmitViolationsList violations={...} /> element as `prompt`; this reads its violations prop back out. */
 function getPromptViolations(): string[] {
@@ -74,16 +65,14 @@ function getPromptViolations(): string[] {
     return prompt.props.violations;
 }
 
-describe('useConfirmSubmitReportViolations', () => {
+describe('useConfirmSubmitViolations', () => {
     beforeEach(() => {
         resetMockConfirmModal();
     });
 
     it('calls onProceed immediately with no flag when there are no violations', () => {
         // Given a report with no transaction violations at all
-        const {result} = renderHook(() =>
-            useConfirmSubmitReportViolations({reportID: NO_REPORT_ID, report: undefined, policy: undefined, transactions: [transaction1], violationsCollection: {}}),
-        );
+        const {result} = renderHook(() => useConfirmSubmitViolations({report: undefined, policy: undefined, transactions: [transaction1], violationsCollection: {}}));
         const onProceed = jest.fn();
 
         // When the caller tries to submit
@@ -97,9 +86,7 @@ describe('useConfirmSubmitReportViolations', () => {
     it('shows the confirm modal with the rejected-expense bullet and does not call onProceed until confirmed', () => {
         // Given a report whose only transaction has a rejected-expense violation
         const violationsCollection = {[violationsKey('1')]: [violation(CONST.VIOLATIONS.AUTO_REPORTED_REJECTED_EXPENSE)]};
-        const {result} = renderHook(() =>
-            useConfirmSubmitReportViolations({reportID: NO_REPORT_ID, report: undefined, policy: undefined, transactions: [transaction1], violationsCollection}),
-        );
+        const {result} = renderHook(() => useConfirmSubmitViolations({report: undefined, policy: undefined, transactions: [transaction1], violationsCollection}));
         const onProceed = jest.fn();
 
         // When the caller tries to submit
@@ -115,9 +102,7 @@ describe('useConfirmSubmitReportViolations', () => {
     it('does not call onProceed when the user cancels a rejected-expense violation', async () => {
         // Given a report whose only transaction has a rejected-expense violation
         const violationsCollection = {[violationsKey('1')]: [violation(CONST.VIOLATIONS.AUTO_REPORTED_REJECTED_EXPENSE)]};
-        const {result} = renderHook(() =>
-            useConfirmSubmitReportViolations({reportID: NO_REPORT_ID, report: undefined, policy: undefined, transactions: [transaction1], violationsCollection}),
-        );
+        const {result} = renderHook(() => useConfirmSubmitViolations({report: undefined, policy: undefined, transactions: [transaction1], violationsCollection}));
         const onProceed = jest.fn();
 
         // When the user cancels the confirmation modal
@@ -136,9 +121,7 @@ describe('useConfirmSubmitReportViolations', () => {
         // report so they can resolve it manually (e.g. via the separate explicit "Mark as cash" action) - there is
         // no exception that lets a pending-card-match-only summary proceed on cancel
         const violationsCollection = {[violationsKey('1')]: [violation(CONST.VIOLATIONS.RTER, {pendingPattern: true})]};
-        const {result} = renderHook(() =>
-            useConfirmSubmitReportViolations({reportID: NO_REPORT_ID, report: undefined, policy: undefined, transactions: [transaction1], violationsCollection}),
-        );
+        const {result} = renderHook(() => useConfirmSubmitViolations({report: undefined, policy: undefined, transactions: [transaction1], violationsCollection}));
         const onProceed = jest.fn();
 
         // When the user cancels the confirmation modal
@@ -154,9 +137,7 @@ describe('useConfirmSubmitReportViolations', () => {
     it('calls onProceed(false) without resolving when the user confirms and a pending card match is the only violation', async () => {
         // Given a report whose only violation is a pending card match
         const violationsCollection = {[violationsKey('1')]: [violation(CONST.VIOLATIONS.RTER, {pendingPattern: true})]};
-        const {result} = renderHook(() =>
-            useConfirmSubmitReportViolations({reportID: NO_REPORT_ID, report: undefined, policy: undefined, transactions: [transaction1], violationsCollection}),
-        );
+        const {result} = renderHook(() => useConfirmSubmitViolations({report: undefined, policy: undefined, transactions: [transaction1], violationsCollection}));
         const onProceed = jest.fn();
 
         // When the user confirms "Submit anyway"
@@ -176,9 +157,7 @@ describe('useConfirmSubmitReportViolations', () => {
     it('calls onProceed(true) when the user confirms a rejected-expense violation', async () => {
         // Given a report whose only transaction has a rejected-expense violation
         const violationsCollection = {[violationsKey('1')]: [violation(CONST.VIOLATIONS.AUTO_REPORTED_REJECTED_EXPENSE)]};
-        const {result} = renderHook(() =>
-            useConfirmSubmitReportViolations({reportID: NO_REPORT_ID, report: undefined, policy: undefined, transactions: [transaction1], violationsCollection}),
-        );
+        const {result} = renderHook(() => useConfirmSubmitViolations({report: undefined, policy: undefined, transactions: [transaction1], violationsCollection}));
         const onProceed = jest.fn();
 
         // When the user confirms "Submit anyway"
@@ -196,9 +175,7 @@ describe('useConfirmSubmitReportViolations', () => {
         // Given a report whose only violation is an "other" one (e.g. over category limit), which is informational only
         // and has nothing for the backend to resolve, unlike a rejected expense
         const violationsCollection = {[violationsKey('1')]: [violation(CONST.VIOLATIONS.OVER_CATEGORY_LIMIT)]};
-        const {result} = renderHook(() =>
-            useConfirmSubmitReportViolations({reportID: NO_REPORT_ID, report: undefined, policy: undefined, transactions: [transaction1], violationsCollection}),
-        );
+        const {result} = renderHook(() => useConfirmSubmitViolations({report: undefined, policy: undefined, transactions: [transaction1], violationsCollection}));
         const onProceed = jest.fn();
 
         // When the user confirms "Submit anyway"
@@ -215,9 +192,7 @@ describe('useConfirmSubmitReportViolations', () => {
     it('renders the violations with SubmitViolationsList (dot icon, not a unicode bullet) and keeps the danger button variant', () => {
         // Given a report whose only transaction has a rejected-expense violation
         const violationsCollection = {[violationsKey('1')]: [violation(CONST.VIOLATIONS.AUTO_REPORTED_REJECTED_EXPENSE)]};
-        const {result} = renderHook(() =>
-            useConfirmSubmitReportViolations({reportID: NO_REPORT_ID, report: undefined, policy: undefined, transactions: [transaction1], violationsCollection}),
-        );
+        const {result} = renderHook(() => useConfirmSubmitViolations({report: undefined, policy: undefined, transactions: [transaction1], violationsCollection}));
         const onProceed = jest.fn();
 
         // When the caller tries to submit
@@ -239,8 +214,7 @@ describe('useConfirmSubmitReportViolations', () => {
         it('opens the modal with the missing merchant bullet instead of submitting immediately', () => {
             // Given an expense report with no violations and one expense without a merchant
             const {result} = renderHook(() =>
-                useConfirmSubmitReportViolations({
-                    reportID: expenseReport.reportID,
+                useConfirmSubmitViolations({
                     report: expenseReport,
                     policy: undefined,
                     transactions: [transactionWithoutMerchant],
@@ -261,8 +235,7 @@ describe('useConfirmSubmitReportViolations', () => {
         it('calls onProceed(false) when the user confirms', async () => {
             // Given the same report, where the warning is only informational
             const {result} = renderHook(() =>
-                useConfirmSubmitReportViolations({
-                    reportID: expenseReport.reportID,
+                useConfirmSubmitViolations({
                     report: expenseReport,
                     policy: undefined,
                     transactions: [transactionWithoutMerchant],
@@ -290,8 +263,7 @@ describe('useConfirmSubmitReportViolations', () => {
             nextStep: {icon: CONST.NEXT_STEP.ICONS.HOURGLASS, messageKey: CONST.NEXT_STEP.MESSAGE_KEY.REJECTED_REPORT},
         });
         const {result} = renderHook(() =>
-            useConfirmSubmitReportViolations({
-                reportID: rejectedReport.reportID,
+            useConfirmSubmitViolations({
                 report: rejectedReport,
                 policy: undefined,
                 transactions: [transaction1],

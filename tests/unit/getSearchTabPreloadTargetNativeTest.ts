@@ -1,12 +1,18 @@
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import getSearchTabPreloadTarget from '@libs/Navigation/helpers/getSearchTabPreloadTarget/index.native';
+import {getPendingSubmitFollowUpAction} from '@libs/telemetry/submitFollowUpAction';
 
+import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import SCREENS from '@src/SCREENS';
 
 jest.mock('@libs/getIsNarrowLayout', () => ({
     __esModule: true,
     default: jest.fn(() => true),
+}));
+
+jest.mock('@libs/telemetry/submitFollowUpAction', () => ({
+    getPendingSubmitFollowUpAction: jest.fn(() => null),
 }));
 
 // The native tab bar mounts Spend at startup, so its route carries a mounted stack while only Home was shown.
@@ -28,6 +34,25 @@ const rootState = {
 };
 
 describe('getSearchTabPreloadTarget on native', () => {
+    beforeEach(() => {
+        jest.mocked(getIsNarrowLayout).mockReturnValue(true);
+        jest.mocked(getPendingSubmitFollowUpAction).mockReturnValue(null);
+    });
+
+    it.each([
+        ['leaves the Spend tab to a submit that ends on Spend', CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.NAVIGATE_TO_SEARCH, undefined],
+        ['still preloads the Spend tab while a submit ends on a report', CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_AND_OPEN_REPORT, 'tab-1'],
+    ])('%s', (_description, followUpAction, expected) => {
+        // Given an expense submit in flight, which pre-inserts the Spend tab under the RHP only when it ends on Spend
+        jest.mocked(getPendingSubmitFollowUpAction).mockReturnValue({followUpAction});
+
+        // When the idle preload asks where to dispatch the Spend tab preload
+        const target = getSearchTabPreloadTarget(rootState);
+
+        // Then the preload only steps aside for the submit that opens Spend itself
+        expect(target).toBe(expected);
+    });
+
     it.each([
         ['targets the tab navigator on a narrow layout', true, 'tab-1'],
         ['skips a wide layout, which keeps the JS tab bar', false, undefined],
