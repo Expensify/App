@@ -7,6 +7,8 @@ import type {ListItem} from '@components/SelectionList/types';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
+import useRedirectToWorkspaceMembersWithoutSelection from '@hooks/useRedirectToWorkspaceMembersWithoutSelection';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {clearWorkspaceMembersSelectedForBulkEdit} from '@libs/actions/Policy/Member';
@@ -15,7 +17,7 @@ import type {TravelMemberAccessTarget} from '@libs/actions/Policy/Travel';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
-import {canMemberChangeTravelAccess, canMemberWrite, isWorkspaceProvisionedForTravel} from '@libs/PolicyUtils';
+import {canChangeMemberTravelAccess, canMemberWrite, isWorkspaceProvisionedForTravel} from '@libs/PolicyUtils';
 import {getMemberLoginByAccountID} from '@libs/WorkArrangementUtils';
 
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
@@ -54,19 +56,25 @@ function WorkspaceMembersChangeTravelAccessPage({policy, personalDetails, route}
     const {translate} = useLocalize();
     const {login: currentUserLogin = ''} = useCurrentUserPersonalDetails();
     const [selection] = useOnyx(ONYXKEYS.RAM_ONLY_WORKSPACE_MEMBERS_SELECTED_FOR_BULK_EDIT);
+    const {isBetaEnabled} = usePermissions();
+    const isTravelMemberAccessBetaEnabled = isBetaEnabled(CONST.BETAS.TRAVEL_MEMBER_ACCESS);
 
     // Members picked on another workspace's member list are left out, even when they also belong to this one
     const selectedAccountIDs = selection?.policyID === policyID ? selection.accountIDs : undefined;
 
-    // The selection only lives in memory, so it is gone when the page is opened from a link or after a refresh
-    const hasSelectedMembers = !!selectedAccountIDs?.length;
-    const canChangeTravelAccess = canMemberWrite(policy, currentUserLogin, CONST.POLICY.POLICY_FEATURE.TRAVEL) && isWorkspaceProvisionedForTravel(policy?.travelSettings);
+    useRedirectToWorkspaceMembersWithoutSelection({
+        policyID,
+        selectedMemberCount: selectedAccountIDs?.length ?? 0,
+    });
 
-    // Members still being added have an optimistic accountID the server doesn't know yet, so they are left out, along
-    // with anyone whose travel access this member can't change. Members without a loaded accountID never reach the selection.
+    const canChangeTravelAccess =
+        isTravelMemberAccessBetaEnabled && canMemberWrite(policy, currentUserLogin, CONST.POLICY.POLICY_FEATURE.TRAVEL) && isWorkspaceProvisionedForTravel(policy?.travelSettings);
+
+    // Anyone whose travel access this member can't change is left out, including members still being added, whose optimistic
+    // accountID the server doesn't know yet. Members without a loaded accountID never reach the selection.
     const selectedMembers: TravelMemberAccessTarget[] = (selectedAccountIDs ?? []).flatMap((accountID) => {
         const email = personalDetails?.[accountID]?.login ?? getMemberLoginByAccountID(policy, accountID);
-        if (!email || policy?.employeeList?.[email]?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD || !canMemberChangeTravelAccess(policy, currentUserLogin, email)) {
+        if (!email || !canChangeMemberTravelAccess(policy, currentUserLogin, email, isTravelMemberAccessBetaEnabled)) {
             return [];
         }
         return [{email, accountID}];
@@ -111,7 +119,7 @@ function WorkspaceMembersChangeTravelAccessPage({policy, personalDetails, route}
             policyID={policyID}
             policyFeature={CONST.POLICY.POLICY_FEATURE.TRAVEL}
             policyFeatureAccess={CONST.POLICY.POLICY_FEATURE_ACCESS.WRITE}
-            shouldBeBlocked={!canChangeTravelAccess || !hasSelectedMembers}
+            shouldBeBlocked={!canChangeTravelAccess}
         >
             <ScreenWrapper
                 testID="WorkspaceMembersChangeTravelAccessPage"

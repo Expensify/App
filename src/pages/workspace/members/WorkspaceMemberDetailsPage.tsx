@@ -659,7 +659,6 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
                                         onPress={canChangeTravelSettings ? () => Navigation.navigate(ROUTES.WORKSPACE_MEMBER_TRAVEL_ACCESS.getRoute(policyID, accountID)) : undefined}
                                         testID="member-travel-access-menu-item"
                                         value={getTravelMemberAccessName(translate, canMemberUseTravel(policy, memberLogin))}
-                                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.MEMBERS.TRAVEL_ACCESS}
                                     />
                                 </OfflineWithFeedback>
                             )}

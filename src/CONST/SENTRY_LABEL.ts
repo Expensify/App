@@ -1962,7 +1962,6 @@ const SENTRY_LABEL = {
             LIST_ROW: 'WorkspaceMembers-ListRow',
             ROLE_SAVE_BUTTON: 'WorkspaceMembers-RoleSaveButton',
             CATEGORY_VISIBILITY: 'WorkspaceMemberDetails-CategoryVisibility',
-            TRAVEL_ACCESS: 'WorkspaceMemberDetails-TravelAccess',
             ROLE_FEEDBACK_CONCIERGE_LINK: 'WorkspaceMembers-RoleFeedbackConciergeLink',
             CONFIGURE_HR_SYNC_LINK: 'WorkspaceMembers-ConfigureHRSyncLink',
         },
