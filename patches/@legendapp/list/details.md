@@ -64,3 +64,12 @@ Each patch is the build output of its upstream PR, so it changes exactly what th
 - E/App issue: 🛑
 - PR introducing patch: https://github.com/Expensify/App/pull/100733
 - Reproduction: On iOS or Android, open a chat with more history than the first page. Turn off the network connection. Turn the network connection back on. The messages on screen should not move when the placeholder above them disappears.
+
+### [@legendapp+list+3.7.2+008+ignore-hidden-container-measurements.patch](@legendapp+list+3.7.2+008+ignore-hidden-container-measurements.patch)
+
+- Reason: On web, a covered screen stays mounted inside a `display: none` container. When the hidden chat renders again, LegendList measures its row containers in a layout effect, reads an empty rect for each one and stores zero as its size. It then moves the scroll offset to compensate, and moves it again when the real sizes return, so the chat was at the newest message after coming back from a thread. LegendList's resize observer already ignores empty rects. This patch makes the layout effect ignore them too.
+- Scope: Web bundles only, and only row containers that have no layout box. The native bundles measure rows differently and are unchanged.
+- Upstream PR/issue: 🛑
+- E/App issue: https://github.com/Expensify/App/pull/100733#issuecomment-7097005137
+- PR introducing patch: https://github.com/Expensify/App/pull/100733
+- Reproduction: On mobile web, open an expense chat, scroll up to an expense with replies and tap its "Replies" link. Go back with the back button in the header. The chat should be at the same position as before.

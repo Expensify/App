@@ -1,0 +1,52 @@
+diff --git a/node_modules/@legendapp/list/react-native.web.js b/node_modules/@legendapp/list/react-native.web.js
+index 684b301..183f44b 100644
+--- a/node_modules/@legendapp/list/react-native.web.js
++++ b/node_modules/@legendapp/list/react-native.web.js
+@@ -5685,6 +5685,8 @@ function measureContainersInLayoutEffect(ctx, targetContainerIds = null) {
+     if (itemKey !== void 0 && element && isContainerItemCurrent(ctx, containerId, itemKey)) {
+       const generation = (_b = ctx.state.containerItemGenerations[containerId]) != null ? _b : 0;
+       const rect = element.getBoundingClientRect();
++      // A container in a display: none subtree has no box, so its empty rect is not a measurement.
++      if (rect.width === 0 && rect.height === 0) continue;
+       setContainerLayoutBaseline(element, rect);
+       measurements.push({
+         containerId,
+diff --git a/node_modules/@legendapp/list/react-native.web.mjs b/node_modules/@legendapp/list/react-native.web.mjs
+index 5c99c97..0c26254 100644
+--- a/node_modules/@legendapp/list/react-native.web.mjs
++++ b/node_modules/@legendapp/list/react-native.web.mjs
+@@ -5664,6 +5664,8 @@ function measureContainersInLayoutEffect(ctx, targetContainerIds = null) {
+     if (itemKey !== void 0 && element && isContainerItemCurrent(ctx, containerId, itemKey)) {
+       const generation = (_b = ctx.state.containerItemGenerations[containerId]) != null ? _b : 0;
+       const rect = element.getBoundingClientRect();
++      // A container in a display: none subtree has no box, so its empty rect is not a measurement.
++      if (rect.width === 0 && rect.height === 0) continue;
+       setContainerLayoutBaseline(element, rect);
+       measurements.push({
+         containerId,
+diff --git a/node_modules/@legendapp/list/react.js b/node_modules/@legendapp/list/react.js
+index 684b301..183f44b 100644
+--- a/node_modules/@legendapp/list/react.js
++++ b/node_modules/@legendapp/list/react.js
+@@ -5685,6 +5685,8 @@ function measureContainersInLayoutEffect(ctx, targetContainerIds = null) {
+     if (itemKey !== void 0 && element && isContainerItemCurrent(ctx, containerId, itemKey)) {
+       const generation = (_b = ctx.state.containerItemGenerations[containerId]) != null ? _b : 0;
+       const rect = element.getBoundingClientRect();
++      // A container in a display: none subtree has no box, so its empty rect is not a measurement.
++      if (rect.width === 0 && rect.height === 0) continue;
+       setContainerLayoutBaseline(element, rect);
+       measurements.push({
+         containerId,
+diff --git a/node_modules/@legendapp/list/react.mjs b/node_modules/@legendapp/list/react.mjs
+index 5c99c97..0c26254 100644
+--- a/node_modules/@legendapp/list/react.mjs
++++ b/node_modules/@legendapp/list/react.mjs
+@@ -5664,6 +5664,8 @@ function measureContainersInLayoutEffect(ctx, targetContainerIds = null) {
+     if (itemKey !== void 0 && element && isContainerItemCurrent(ctx, containerId, itemKey)) {
+       const generation = (_b = ctx.state.containerItemGenerations[containerId]) != null ? _b : 0;
+       const rect = element.getBoundingClientRect();
++      // A container in a display: none subtree has no box, so its empty rect is not a measurement.
++      if (rect.width === 0 && rect.height === 0) continue;
+       setContainerLayoutBaseline(element, rect);
+       measurements.push({
+         containerId,
