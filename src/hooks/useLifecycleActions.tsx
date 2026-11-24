@@ -476,18 +476,18 @@ function useLifecycleActions({reportID, startApprovedAnimation, startAnimation, 
                     }
                 }
 
-                unapproveExpenseReport(
-                    moneyRequestReport,
+                unapproveExpenseReport({
+                    expenseReport: moneyRequestReport,
                     policy,
-                    accountID,
-                    email ?? '',
+                    currentUserAccountIDParam: accountID,
+                    currentUserEmailParam: email ?? '',
                     hasViolations,
                     isASAPSubmitBetaEnabled,
                     delegateEmail,
                     isTrackIntentUser,
                     getCurrencyDecimals,
                     rules,
-                );
+                });
             },
         },
         [CONST.REPORT.SECONDARY_ACTIONS.CANCEL_PAYMENT]: {
