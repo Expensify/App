@@ -11,6 +11,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import usePersonalDetailByLogin from '@hooks/usePersonalDetailByLogin';
+import {usePersonalDetail, usePersonalDetailsByIDs} from '@hooks/usePersonalDetails';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {setEmployeeWorkArrangement} from '@libs/actions/Policy/DistanceRate';
@@ -29,9 +30,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
-import type {PersonalDetailsList} from '@src/types/onyx';
-
-import type {OnyxEntry} from 'react-native-onyx';
+import {loginSelector} from '@src/selectors/PersonalDetails';
 
 import React from 'react';
 import {View} from 'react-native';
@@ -51,11 +50,9 @@ type WorkArrangementPageProps = Omit<WithPolicyAndFullscreenLoadingProps, 'route
     (
         | PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.MEMBER_WORK_ARRANGEMENT>
         | PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.INVITE_WORK_ARRANGEMENT>
-    ) & {
-        personalDetails: OnyxEntry<PersonalDetailsList>;
-    };
+    );
 
-function WorkArrangementPage({policy, personalDetails, route}: WorkArrangementPageProps) {
+function WorkArrangementPage({policy, route}: WorkArrangementPageProps) {
     const isInviteFlow = route.name === SCREENS.WORKSPACE.INVITE_WORK_ARRANGEMENT;
     const inviteBackPath = useDynamicBackPath(DYNAMIC_ROUTES.WORKSPACE_INVITE_WORK_ARRANGEMENT.path, isInviteFlow);
     const policyID = route.params.policyID;
@@ -68,10 +65,12 @@ function WorkArrangementPage({policy, personalDetails, route}: WorkArrangementPa
     const [inviteWorkArrangementDraft] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_WORK_ARRANGEMENT_DRAFT}${policyID}`);
     // Only an existing member has an account ID here. The invite flow reads its own arrangement draft and never looks up a member.
     const accountID = route.name === SCREENS.WORKSPACE.MEMBER_WORK_ARRANGEMENT ? Number(route.params.accountID) : CONST.DEFAULT_NUMBER_ID;
-    const memberLogin = personalDetails?.[accountID]?.login ?? getMemberLoginByAccountID(policy, accountID);
+    const [memberLoginFromDetails] = usePersonalDetail(accountID, loginSelector);
+    const memberLogin = memberLoginFromDetails ?? getMemberLoginByAccountID(policy, accountID);
     const member = policy?.employeeList?.[memberLogin];
     const memberPersonalDetails = usePersonalDetailByLogin(memberLogin);
     const memberAccountID = memberPersonalDetails?.accountID ?? accountID;
+    const [personalDetails] = usePersonalDetailsByIDs([memberAccountID]);
     const canWriteMembers = canMemberWrite(policy, currentUserLogin, CONST.POLICY.POLICY_FEATURE.MEMBERS);
     const isHomeAndOfficeWorkspace = policy?.commuterExclusions?.method === CONST.POLICY.COMMUTER_EXCLUSION_METHOD.HOME_AND_OFFICE;
     const canAccessWorkArrangementPage =
