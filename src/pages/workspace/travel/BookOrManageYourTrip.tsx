@@ -12,24 +12,22 @@ import usePolicy from '@hooks/usePolicy';
 import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWorkspaceMembers from '@hooks/useWorkspaceMembers';
 
 import {clearPolicyErrorField} from '@libs/actions/Policy/Policy';
 import {setPolicyTravelAutoEnableNewMembers, setPolicyTravelSettings} from '@libs/actions/Policy/Travel';
-import Navigation from '@libs/Navigation/Navigation';
 import {openTravelDotLink} from '@libs/openTravelDotLink';
-import {canMemberRead, canMemberUseTravel} from '@libs/PolicyUtils';
+import {canMemberRead} from '@libs/PolicyUtils';
 
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
 
 import colors from '@styles/theme/colors';
 
 import CONST from '@src/CONST';
-import ROUTES from '@src/ROUTES';
 
 import React from 'react';
 import {View} from 'react-native';
 
+import TravelManageMembersRow from './TravelManageMembersRow';
 import WorkspaceTravelBillingSection from './WorkspaceTravelBillingSection';
 
 type BookOrManageYourTripProps = {
@@ -43,11 +41,10 @@ function BookOrManageYourTrip({policyID}: BookOrManageYourTripProps) {
     const policy = usePolicy(policyID);
     const {canWrite: canWriteMoreFeatures, withReadOnlyFallback} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.MORE_FEATURES);
     const {canWrite: canWriteTravel, withReadOnlyFallback: withTravelReadOnlyFallback} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.TRAVEL);
-    const icons = useMemoizedLazyExpensifyIcons(['LuggageWithLines', 'Users']);
+    const icons = useMemoizedLazyExpensifyIcons(['LuggageWithLines']);
     const illustrations = useMemoizedLazyIllustrations(['RocketDude']);
     const {isBetaEnabled} = usePermissions();
     const {showConfirmModal} = useConfirmModal();
-    const workspaceMembers = useWorkspaceMembers(policy);
     const {login: currentUserLogin = ''} = useCurrentUserPersonalDetails();
 
     // Travel admins only see who can book travel, so the workspace settings stay with the members who can read them
@@ -76,8 +73,6 @@ function BookOrManageYourTrip({policyID}: BookOrManageYourTripProps) {
     const toggleAutoEnableNewMembers = (enabled: boolean) => {
         setPolicyTravelAutoEnableNewMembers(policy, enabled);
     };
-
-    const membersWithTravelCount = workspaceMembers.filter(({email}) => canMemberUseTravel(policy, email)).length;
 
     const handleManageTravel = () => {
         if (isPreventSpotnanaTravelEnabled) {
@@ -184,26 +179,10 @@ function BookOrManageYourTrip({policyID}: BookOrManageYourTripProps) {
                             wrapperStyle={styles.mt3}
                         />
                         <View style={styles.mt3}>
-                            <MenuItemSectionRoot
-                                onPress={() => Navigation.navigate(ROUTES.WORKSPACE_MEMBERS.getRoute(policyID))}
-                                sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.TRAVEL.MANAGE_MEMBERS_BUTTON}
-                            >
-                                <MenuItem.Row>
-                                    <MenuItem.Icon src={icons.Users} />
-                                    <MenuItem.Content>
-                                        <MenuItem.Title>{translate('workspace.moreFeatures.travel.members.manageMembers')}</MenuItem.Title>
-                                        <MenuItem.Description>
-                                            {translate('workspace.moreFeatures.travel.members.membersWithTravelAccess', {
-                                                enabledCount: membersWithTravelCount,
-                                                totalCount: workspaceMembers.length,
-                                            })}
-                                        </MenuItem.Description>
-                                    </MenuItem.Content>
-                                    <MenuItem.Trailing>
-                                        <MenuItem.Chevron />
-                                    </MenuItem.Trailing>
-                                </MenuItem.Row>
-                            </MenuItemSectionRoot>
+                            <TravelManageMembersRow
+                                policy={policy}
+                                policyID={policyID}
+                            />
                         </View>
                     </>
                 )}
