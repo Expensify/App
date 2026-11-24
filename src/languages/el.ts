@@ -295,6 +295,9 @@ const translations: TranslationDeepObject<typeof en> = {
         your: 'σας',
         conciergeHelp: 'Παρακαλούμε επικοινωνήστε με το Concierge για βοήθεια.',
         youAppearToBeOffline: 'Φαίνεται ότι είστε εκτός σύνδεσης.',
+        cantConnectSecurely: 'Το Expensify δεν μπορεί να συνδεθεί με ασφάλεια.',
+        cantConnectSecurelyPrompt:
+            'Ένας διακομιστής μεσολάβησης ασφαλείας, ένα VPN ή μια εφαρμογή φιλτραρίσματος μπορεί να παρεμβαίνει στη σύνδεσή σας. Δοκιμάστε ένα άλλο δίκτυο ή ζητήστε από την ομάδα IT σας να εξαιρέσει το expensify.com από τον έλεγχο TLS.',
         thisFeatureRequiresInternet: 'Αυτή η δυνατότητα απαιτεί ενεργή σύνδεση στο διαδίκτυο.',
         attachmentWillBeAvailableOnceBackOnline: 'Το συνημμένο θα είναι διαθέσιμο μόλις επανέλθετε σε σύνδεση.',
         errorOccurredWhileTryingToPlayVideo: 'Παρουσιάστηκε σφάλμα κατά την προσπάθεια αναπαραγωγής αυτού του βίντεο.',

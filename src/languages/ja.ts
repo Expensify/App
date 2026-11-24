@@ -290,6 +290,9 @@ const translations: TranslationDeepObject<typeof en> = {
         your: 'あなたの',
         conciergeHelp: 'サポートが必要な場合はConciergeにお問い合わせください。',
         youAppearToBeOffline: 'オフラインのようです。',
+        cantConnectSecurely: 'Expensify は安全に接続できません。',
+        cantConnectSecurelyPrompt:
+            'セキュリティプロキシ、VPN、またはフィルタリングアプリが接続を妨げている可能性があります。別のネットワークを試すか、IT チームに expensify.com を TLS インスペクションの対象から除外するよう依頼してください。',
         thisFeatureRequiresInternet: 'この機能を利用するには、インターネットに接続している必要があります。',
         attachmentWillBeAvailableOnceBackOnline: '添付ファイルは、オンラインに戻ると利用できるようになります。',
         errorOccurredWhileTryingToPlayVideo: 'この動画の再生中にエラーが発生しました。',

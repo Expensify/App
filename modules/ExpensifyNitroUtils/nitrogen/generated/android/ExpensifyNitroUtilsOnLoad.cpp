@@ -16,6 +16,8 @@
 #include <NitroModules/HybridObjectRegistry.hpp>
 
 #include "JHybridAppStartTimeModuleSpec.hpp"
+#include "JHybridCertificatePinningModuleSpec.hpp"
+#include "JFunc_void_BlockedConnection.hpp"
 #include "JHybridContactsModuleSpec.hpp"
 #include "JHybridShareActionHandlerSpec.hpp"
 #include "JHybridVerticalBarModuleSpec.hpp"
@@ -63,6 +65,14 @@ struct JHybridShareActionHandlerSpecImpl: public jni::JavaClass<JHybridShareActi
     return javaPart->getJHybridShareActionHandlerSpec();
   }
 };
+struct JHybridCertificatePinningModuleSpecImpl: public jni::JavaClass<JHybridCertificatePinningModuleSpecImpl, JHybridCertificatePinningModuleSpec::JavaPart> {
+  static constexpr auto kJavaDescriptor = "Lcom/margelo/nitro/utils/HybridCertificatePinningModule;";
+  static std::shared_ptr<JHybridCertificatePinningModuleSpec> create() {
+    static const auto constructorFn = javaClassStatic()->getConstructor<JHybridCertificatePinningModuleSpecImpl::javaobject()>();
+    jni::local_ref<JHybridCertificatePinningModuleSpec::JavaPart> javaPart = javaClassStatic()->newObject(constructorFn);
+    return javaPart->getJHybridCertificatePinningModuleSpec();
+  }
+};
 
 void registerAllNatives() {
   using namespace margelo::nitro;
@@ -70,6 +80,8 @@ void registerAllNatives() {
 
   // Register native JNI methods
   margelo::nitro::utils::JHybridAppStartTimeModuleSpec::CxxPart::registerNatives();
+  margelo::nitro::utils::JHybridCertificatePinningModuleSpec::CxxPart::registerNatives();
+  margelo::nitro::utils::JFunc_void_BlockedConnection_cxx::registerNatives();
   margelo::nitro::utils::JHybridContactsModuleSpec::CxxPart::registerNatives();
   margelo::nitro::utils::JHybridShareActionHandlerSpec::CxxPart::registerNatives();
   margelo::nitro::utils::JHybridVerticalBarModuleSpec::CxxPart::registerNatives();
@@ -99,6 +111,12 @@ void registerAllNatives() {
     "ShareActionHandler",
     []() -> std::shared_ptr<HybridObject> {
       return JHybridShareActionHandlerSpecImpl::create();
+    }
+  );
+  HybridObjectRegistry::registerHybridObjectConstructor(
+    "CertificatePinningModule",
+    []() -> std::shared_ptr<HybridObject> {
+      return JHybridCertificatePinningModuleSpecImpl::create();
     }
   );
 }

@@ -10,6 +10,7 @@
 // Include C++ implementation defined types
 #include "ExpensifyNitroUtils-Swift-Cxx-Umbrella.hpp"
 #include "HybridAppStartTimeModuleSpecSwift.hpp"
+#include "HybridCertificatePinningModuleSpecSwift.hpp"
 #include "HybridContactsModuleSpecSwift.hpp"
 #include "HybridShareActionHandlerSpecSwift.hpp"
 #include "HybridVerticalBarModuleSpecSwift.hpp"
@@ -30,6 +31,30 @@ namespace margelo::nitro::utils::bridge::swift {
     }
     #endif
     ExpensifyNitroUtils::HybridAppStartTimeModuleSpec_cxx& swiftPart = swiftWrapper->getSwiftPart();
+    return swiftPart.toUnsafe();
+  }
+  
+  // pragma MARK: std::function<void(const BlockedConnection& /* connection */)>
+  Func_void_BlockedConnection create_Func_void_BlockedConnection(void* NON_NULL swiftClosureWrapper) noexcept {
+    auto swiftClosure = ExpensifyNitroUtils::Func_void_BlockedConnection::fromUnsafe(swiftClosureWrapper);
+    return [swiftClosure = std::move(swiftClosure)](const BlockedConnection& connection) mutable -> void {
+      swiftClosure.call(connection);
+    };
+  }
+  
+  // pragma MARK: std::shared_ptr<HybridCertificatePinningModuleSpec>
+  std::shared_ptr<HybridCertificatePinningModuleSpec> create_std__shared_ptr_HybridCertificatePinningModuleSpec_(void* NON_NULL swiftUnsafePointer) noexcept {
+    ExpensifyNitroUtils::HybridCertificatePinningModuleSpec_cxx swiftPart = ExpensifyNitroUtils::HybridCertificatePinningModuleSpec_cxx::fromUnsafe(swiftUnsafePointer);
+    return std::make_shared<margelo::nitro::utils::HybridCertificatePinningModuleSpecSwift>(swiftPart);
+  }
+  void* NON_NULL get_std__shared_ptr_HybridCertificatePinningModuleSpec_(std__shared_ptr_HybridCertificatePinningModuleSpec_ cppType) {
+    std::shared_ptr<margelo::nitro::utils::HybridCertificatePinningModuleSpecSwift> swiftWrapper = std::dynamic_pointer_cast<margelo::nitro::utils::HybridCertificatePinningModuleSpecSwift>(cppType);
+    #ifdef NITRO_DEBUG
+    if (swiftWrapper == nullptr) [[unlikely]] {
+      throw std::runtime_error("Class \"HybridCertificatePinningModuleSpec\" is not implemented in Swift!");
+    }
+    #endif
+    ExpensifyNitroUtils::HybridCertificatePinningModuleSpec_cxx& swiftPart = swiftWrapper->getSwiftPart();
     return swiftPart.toUnsafe();
   }
   

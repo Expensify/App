@@ -36,6 +36,11 @@ enum CertificatePinning {
     private static let pinSetVersion = "2026-09-14"
 
     private static let certificatePinningHostTag = "certificate_pinning_host"
+
+    /// Tells JS that pinning blocked a connection, so the app can explain it instead of only appearing offline.
+    /// HybridCertificatePinningModule in modules/ExpensifyNitroUtils listens for it. The name and userInfo keys are
+    /// documented in config/certificatePinning/README.md and must match that listener and Mobile-Expensify's sender.
+    private static let connectionBlockedNotification = Notification.Name("ExpensifyCertificatePinningConnectionBlocked")
     private static let certificatePinningModeTag = "certificate_pinning_mode"
 
     /// Initialize TrustKit pinning. Must be called before any networking in `didFinishLaunchingWithOptions`.
@@ -124,6 +129,7 @@ enum CertificatePinning {
                 guard result.evaluationResult != .success else {
                     return
                 }
+                announceBlockedConnectionIfNeeded(result: result, hostname: hostname)
                 reportPinningFailure(result: result, hostname: hostname)
             }
         #endif
@@ -171,6 +177,20 @@ enum CertificatePinning {
         monitor.start(queue: reportingQueue)
         return monitor
     }()
+
+    /// Only a pin mismatch that TrustKit really blocked is announced. In monitor mode the connection goes through, and
+    /// a chain the device itself rejects fails with or without pinning, so neither is the network intercepting TLS
+    /// with a certificate the device trusts.
+    private static func announceBlockedConnectionIfNeeded(result: TSKPinningValidatorResult, hostname: String) {
+        guard result.evaluationResult == .failedNoMatchingPin, result.finalTrustDecision == .shouldBlockConnection else {
+            return
+        }
+        var userInfo: [String: Any] = ["host": hostname]
+        if let anchor = certificates(fromPEMChain: result.certificateChain).last {
+            userInfo["rootCertificateName"] = subjectSummary(anchor)
+        }
+        NotificationCenter.default.post(name: connectionBlockedNotification, object: nil, userInfo: userInfo)
+    }
 
     private static func reportPinningFailure(result: TSKPinningValidatorResult, hostname: String) {
         let chain = certificates(fromPEMChain: result.certificateChain)

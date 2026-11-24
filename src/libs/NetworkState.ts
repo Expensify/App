@@ -2,11 +2,15 @@ import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
+import type {BlockedConnection} from '@expensify/nitro-utils';
+import type {NetInfoStateType} from '@react-native-community/netinfo';
+
 import NetInfo from '@react-native-community/netinfo';
 import {toDate} from 'date-fns-tz';
 import Onyx from 'react-native-onyx';
 
 import {getCommandURL, isQAServerActive} from './ApiUtils';
+import subscribeToBlockedConnections from './CertificatePinning';
 import getEnvironment from './Environment/getEnvironment';
 import {onSuccess as onRequestSuccess, onSustainedFailureChange, reset as resetFailureCounters} from './FailureTracker';
 import Log from './Log';
@@ -18,6 +22,12 @@ let failAllRequests = false;
 let internetUnreachable = false;
 let simulatedOffline = false;
 let lastOfflineAt: string | undefined;
+
+// Host whose connection native certificate pinning refused on the current network. It is kept apart from the
+// offline flags because the network works: something on it intercepts TLS, and the user has to change networks
+// or ask their IT team to fix it.
+let certificatePinningBlockedHost: string | undefined;
+let networkType: NetInfoStateType | undefined;
 
 // NetInfo state
 let accountID: number | undefined;
@@ -42,6 +52,9 @@ onSustainedFailureChange((active) => setSustainedFailures(active));
 // false does not re-set the hard stop. When the Ping finally passes, the NetInfo listener
 // sees the app is already online and does nothing.
 onRequestSuccess(() => {
+    // The request reached our server, so its pinned certificate chain was accepted.
+    clearCertificatePinningBlockedConnection('a request succeeded');
+
     if (!internetUnreachable) {
         return;
     }
@@ -60,6 +73,11 @@ function getShouldFailAllRequests(): boolean {
 
 function getLastOfflineAt(): string | undefined {
     return lastOfflineAt;
+}
+
+/** Returns the host that certificate pinning blocked on the current network, or undefined when nothing is blocked. */
+function getCertificatePinningBlockedHost(): string | undefined {
+    return certificatePinningBlockedHost;
 }
 
 /**
@@ -94,6 +112,31 @@ function notifyReconnectListeners() {
     for (const cb of reconnectListeners) {
         cb();
     }
+}
+
+/**
+ * Called by native certificate pinning (enforce mode only) when it refuses a connection to one of our hosts.
+ * Every pinned request on an intercepting network fails the same way, so only the first report notifies listeners.
+ */
+function setCertificatePinningBlockedConnection(connection: BlockedConnection) {
+    if (certificatePinningBlockedHost === connection.host) {
+        return;
+    }
+    Log.info('[NetworkState] Certificate pinning blocked a connection — the network intercepts TLS', false, {
+        host: connection.host,
+        rootCertificateName: connection.rootCertificateName,
+    });
+    certificatePinningBlockedHost = connection.host;
+    notifyListeners();
+}
+
+function clearCertificatePinningBlockedConnection(reason: string) {
+    if (!certificatePinningBlockedHost) {
+        return;
+    }
+    Log.info(`[NetworkState] Certificate pinning block cleared — ${reason}`);
+    certificatePinningBlockedHost = undefined;
+    notifyListeners();
 }
 
 function updateState() {
@@ -236,6 +279,8 @@ function setFailAllRequests(failAll: boolean) {
 function onReachabilityRestored() {
     Log.info('[NetworkState] Internet reachability restored — clearing hard stops');
     hasRadio = true;
+    // The Ping goes to a pinned host, so a passing Ping proves the certificate chain is accepted again.
+    clearCertificatePinningBlockedConnection('internet reachability restored');
     clearHardStops();
 
     // Notify reconnect listeners (Reconnect.ts will handle app data sync)
@@ -367,6 +412,14 @@ function configureAndSubscribe() {
         const radio = state.isConnected !== false;
         Log.info(`[NetworkState] NetInfo state change: isConnected=${state.isConnected}, isInternetReachable=${state.isInternetReachable}, type=${state.type}`);
 
+        // Another network may not intercept TLS, so it has to fail pinning again before the user is told it does.
+        // The first event only describes the network the app started on, which may have blocked a request already.
+        const previousNetworkType = networkType;
+        networkType = state.type;
+        if (previousNetworkType !== undefined && previousNetworkType !== state.type) {
+            clearCertificatePinningBlockedConnection(`network type changed to ${state.type}`);
+        }
+
         // Always track real radio/reachability state so values are never stale
         // when shouldForceOffline is turned off. Only gate the reconnect side effect.
         setHasRadio(radio);
@@ -401,6 +454,8 @@ function configureAndSubscribe() {
 getEnvironment().then(() => {
     queueMicrotask(configureAndSubscribe);
 });
+
+subscribeToBlockedConnections(setCertificatePinningBlockedConnection);
 
 // --- Onyx subscriptions (inputs for state computation) ---
 
@@ -475,6 +530,8 @@ export {
     getIsOffline,
     getShouldFailAllRequests,
     getLastOfflineAt,
+    getCertificatePinningBlockedHost,
+    setCertificatePinningBlockedConnection,
     subscribe,
     onReachabilityConfirmed,
     setHasRadio,

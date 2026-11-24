@@ -8,12 +8,16 @@
 #pragma once
 
 // Forward declarations of C++ defined types
+// Forward declaration of `BlockedConnection` to properly resolve imports.
+namespace margelo::nitro::utils { struct BlockedConnection; }
 // Forward declaration of `ContactFields` to properly resolve imports.
 namespace margelo::nitro::utils { enum class ContactFields; }
 // Forward declaration of `Contact` to properly resolve imports.
 namespace margelo::nitro::utils { struct Contact; }
 // Forward declaration of `HybridAppStartTimeModuleSpec` to properly resolve imports.
 namespace margelo::nitro::utils { class HybridAppStartTimeModuleSpec; }
+// Forward declaration of `HybridCertificatePinningModuleSpec` to properly resolve imports.
+namespace margelo::nitro::utils { class HybridCertificatePinningModuleSpec; }
 // Forward declaration of `HybridContactsModuleSpec` to properly resolve imports.
 namespace margelo::nitro::utils { class HybridContactsModuleSpec; }
 // Forward declaration of `HybridShareActionHandlerSpec` to properly resolve imports.
@@ -28,9 +32,11 @@ namespace margelo::nitro::utils { struct StringHolder; }
 namespace margelo::nitro::utils { enum class VerticalBarEdge; }
 
 // Include C++ defined types
+#include "BlockedConnection.hpp"
 #include "Contact.hpp"
 #include "ContactFields.hpp"
 #include "HybridAppStartTimeModuleSpec.hpp"
+#include "HybridCertificatePinningModuleSpec.hpp"
 #include "HybridContactsModuleSpec.hpp"
 #include "HybridShareActionHandlerSpec.hpp"
 #include "HybridVerticalBarModuleSpec.hpp"
@@ -59,6 +65,8 @@ namespace margelo::nitro::utils { enum class VerticalBarEdge; }
 // Forward declarations of Swift defined types
 // Forward declaration of `HybridAppStartTimeModuleSpec_cxx` to properly resolve imports.
 namespace ExpensifyNitroUtils { class HybridAppStartTimeModuleSpec_cxx; }
+// Forward declaration of `HybridCertificatePinningModuleSpec_cxx` to properly resolve imports.
+namespace ExpensifyNitroUtils { class HybridCertificatePinningModuleSpec_cxx; }
 // Forward declaration of `HybridContactsModuleSpec_cxx` to properly resolve imports.
 namespace ExpensifyNitroUtils { class HybridContactsModuleSpec_cxx; }
 // Forward declaration of `HybridShareActionHandlerSpec_cxx` to properly resolve imports.

@@ -59,4 +59,16 @@ public final class ExpensifyNitroUtilsAutolinking {
   public static func isShareActionHandlerRecyclable() -> Bool {
     return HybridShareActionHandler.self is any RecyclableView.Type
   }
+  
+  public static func createCertificatePinningModule() -> bridge.std__shared_ptr_HybridCertificatePinningModuleSpec_ {
+    let hybridObject = HybridCertificatePinningModule()
+    return { () -> bridge.std__shared_ptr_HybridCertificatePinningModuleSpec_ in
+      let __cxxWrapped = hybridObject.getCxxWrapper()
+      return __cxxWrapped.getCxxPart()
+    }()
+  }
+  
+  public static func isCertificatePinningModuleRecyclable() -> Bool {
+    return HybridCertificatePinningModule.self is any RecyclableView.Type
+  }
 }

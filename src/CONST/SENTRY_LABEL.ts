@@ -139,6 +139,9 @@ const SENTRY_LABEL = {
     BANNER: {
         CLOSE: 'Banner-Close',
     },
+    OFFLINE_INDICATOR: {
+        CERTIFICATE_PINNING_LEARN_MORE: 'OfflineIndicator-CertificatePinningLearnMore',
+    },
     RADIO_BUTTON_WITH_LABEL: {
         LABEL: 'RadioButtonWithLabel-Label',
     },
