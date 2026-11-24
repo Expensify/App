@@ -24,7 +24,9 @@ function rejectPaymentCredentials(): Promise<AndroidPaymentCredentialsResponse> 
 
 /** Answers Google's request for the Google OPC with a second CreateDigitalWallet call tied to Google's server session */
 function createPaymentCredentialsHandler(card: Card, walletData: AndroidWalletData, signal?: AbortSignal) {
-    return async ({serverSessionId, walletId, tokenRequestorId}: onPaymentCredentialsRequestPayload): Promise<AndroidPaymentCredentialsResponse> => {
+    // Hermes resolves the first await in an async arrow with destructured params as undefined, so destructure in the body
+    return async (request: onPaymentCredentialsRequestPayload): Promise<AndroidPaymentCredentialsResponse> => {
+        const {serverSessionId, walletId, tokenRequestorId} = request;
         try {
             if (signal?.aborted) {
                 throw new Error('Wallet attempt canceled');
