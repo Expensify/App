@@ -1042,6 +1042,7 @@ const translations: TranslationDeepObject<typeof en> = {
     },
     supportalSwitcher: {
         title: 'Supportal na inne konto',
+        navigationLabel: 'Supportal',
         emailLabel: 'Adres e-mail',
         reasonLabel: 'Powód logowania do pomocy',
         reasonHint: 'Nie znaleziono ostatnich zgłoszeń dla tego konta.',
@@ -1290,6 +1291,8 @@ const translations: TranslationDeepObject<typeof en> = {
     },
     insightsPage: {
         tagLevel: (level: string) => `Poziom tagu ${level}`,
+        noTaggedExpenses: 'Brak wydatków z tagami',
+        noExpensesForTagLevel: (tagLevelName: string) => `Brak wydatków dla ${tagLevelName} w tym zakresie dat.`,
         tagLevelLabel: 'Poziom tagu',
         parent: 'Rodzic',
         shareOfTotal: 'Udział w całości (%)',
@@ -2632,6 +2635,8 @@ const translations: TranslationDeepObject<typeof en> = {
             leftHandNavCache: 'Pamięć podręczna lewego panelu nawigacji',
             clearleftHandNavCache: 'Wyczyść',
             softKillTheApp: 'Miękko zamknij aplikację',
+            testBusinessBankAccount: 'Przetestuj firmowe konto bankowe w USD',
+            testPersonalBankAccount: 'Testowe osobiste konto bankowe w USD',
             kill: 'Zabij',
             sentryDebug: 'Debugowanie Sentry',
             sentrySendDescription: 'Wysyłaj dane do Sentry',
@@ -2639,6 +2644,7 @@ const translations: TranslationDeepObject<typeof en> = {
             sentryHighlightedSpanOps: 'Wyróżnione nazwy zakresów',
             sentryHighlightedSpanOpsPlaceholder: 'kliknięcie interfejsu, nawigacja, ładowanie interfejsu',
             showBranchNameInTitle: 'Pokaż nazwę gałęzi w tytule przeglądarki',
+            hideEnvironmentBadge: 'Ukryj znaczek środowiska',
             betaOverrides: 'Nadpisywanie bet',
             betaOverridesDescription:
                 'Nadpisywanie działa tylko na tym urządzeniu i tylko po stronie frontendu. Beta zachowuje nadpisanie tylko wtedy, gdy różni się od bet z Twojego konta, więc przełączenie jej z powrotem usuwa nadpisanie. „Zresetuj wszystkie nadpisania” przywraca wartości z Twojego konta. Niektóre bety są też kontrolowane przez backend, więc mogą w pełni nie działać zwłaszcza przy żądaniach wysyłanych do backendu.',
@@ -5405,6 +5411,10 @@ ${amount} dla ${merchant} - ${date}`,
             railTicketExchange: (origin: string, destination: string, startDate: string) => `Twój bilet kolejowy z ${origin} → ${destination} na ${startDate} został wymieniony.`,
             railTicketUpdate: (origin: string, destination: string, startDate: string) => `Twój bilet kolejowy z ${origin} → ${destination} na ${startDate} został zaktualizowany.`,
             defaultUpdate: (type: string) => `Twoja rezerwacja (${type}) została zaktualizowana.`,
+            hotelBooked: (hotelName: string, startDate: string) => `Twoja rezerwacja hotelu w ${hotelName} (zameldowanie ${startDate}) została dokonana.`,
+            carBooked: (vendor: string, startDate: string) => `Twój wynajem samochodu w ${vendor} (odbiór ${startDate}) został zarezerwowany.`,
+            railTicketBooked: (origin: string, destination: string, startDate: string) => `Twój bilet kolejowy z ${origin} do ${destination} na ${startDate} został zarezerwowany.`,
+            defaultBooked: (type: string) => `Twoja rezerwacja typu ${type} została dokonana.`,
         },
         flightTo: 'Lot do',
         trainTo: 'Pociąg do',
@@ -5670,6 +5680,9 @@ ${amount} dla ${merchant} - ${date}`,
             },
             chatgpt: {
                 title: 'ChatGPT',
+            },
+            grok: {
+                title: 'Grok',
             },
         },
         connections: {
@@ -8069,6 +8082,7 @@ Plan Control zaczyna się od 9 USD za aktywnego członka miesięcznie.`,
                 willBeReadyToUse: 'Ta karta będzie gotowa do użycia od razu.',
                 willBeReadyToShip: 'Ta karta będzie gotowa do natychmiastowej wysyłki.',
                 cardholder: 'Posiadacz karty',
+                cardholderEmail: 'Adres e-mail posiadacza karty',
                 cardType: 'Typ karty',
                 limit: 'Limit',
                 limitType: 'Typ limitu',
@@ -11636,7 +11650,9 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
                     mentionedAccountID?: number;
                 }) => {
                     let warningTime = 'wkrótce';
-                    if (warningDaysBeforeExpiry === CONST.COMPANY_CARDS.CONSENT_EXPIRY_WARNING_DAYS.TWO_WEEKS) {
+                    if (warningDaysBeforeExpiry === CONST.COMPANY_CARDS.CONSENT_EXPIRY_WARNING_DAYS.ONE_MONTH) {
+                        warningTime = 'za miesiąc';
+                    } else if (warningDaysBeforeExpiry === CONST.COMPANY_CARDS.CONSENT_EXPIRY_WARNING_DAYS.TWO_WEEKS) {
                         warningTime = 'za dwa tygodnie';
                     } else if (warningDaysBeforeExpiry === CONST.COMPANY_CARDS.CONSENT_EXPIRY_WARNING_DAYS.ONE_WEEK) {
                         warningTime = 'za tydzień';

@@ -996,7 +996,14 @@ const translations: TranslationDeepObject<typeof en> = {
             admins: '仅限管理员',
         },
     },
-    supportalSwitcher: {title: '切换 Supportal 到其他账户', emailLabel: '电子邮箱地址', reasonLabel: '支持登录原因', reasonHint: '未找到此账户的近期工单。', login: '登录'},
+    supportalSwitcher: {
+        title: '切换 Supportal 到其他账户',
+        navigationLabel: 'Supportal',
+        emailLabel: '电子邮箱地址',
+        reasonLabel: '支持登录原因',
+        reasonHint: '未找到此账户的近期工单。',
+        login: '登录',
+    },
     sidebarScreen: {
         buttonFind: '查找内容…',
         buttonMySettings: '我的设置',
@@ -1211,6 +1218,8 @@ const translations: TranslationDeepObject<typeof en> = {
     },
     insightsPage: {
         tagLevel: (level: string) => `标签级别 ${level}`,
+        noTaggedExpenses: '没有带标签的费用',
+        noExpensesForTagLevel: (tagLevelName: string) => `此日期范围内没有 ${tagLevelName} 的费用。`,
         tagLevelLabel: '标签级别',
         parent: '父级',
         shareOfTotal: '占总计的比例（%）',
@@ -2494,6 +2503,8 @@ const translations: TranslationDeepObject<typeof en> = {
             leftHandNavCache: '左侧导航缓存',
             clearleftHandNavCache: '清除',
             softKillTheApp: '软关闭应用程序',
+            testBusinessBankAccount: '测试美元企业银行账户',
+            testPersonalBankAccount: '测试美元个人银行账户',
             kill: '终止',
             sentryDebug: 'Sentry 调试',
             sentrySendDescription: '向 Sentry 发送数据',
@@ -2501,6 +2512,7 @@ const translations: TranslationDeepObject<typeof en> = {
             sentryHighlightedSpanOps: '高亮的跨度名称',
             sentryHighlightedSpanOpsPlaceholder: 'ui.interaction.click，navigation，ui.load',
             showBranchNameInTitle: '在浏览器标题中显示分支名称',
+            hideEnvironmentBadge: '隐藏环境徽章',
             betaOverrides: 'Beta 覆盖',
             betaOverridesDescription:
                 '覆盖仅适用于此设备，且仅影响前端检查。仅当 Beta 与你账户中的 Beta 不同时，才会保留覆盖，因此切换回原值会移除该覆盖。“重置所有覆盖”会恢复你账户中的值。部分 Beta 同时受后端控制，因此仍可能在请求层面失败。',
@@ -5191,6 +5203,10 @@ ${amount}，商户：${merchant} - 日期：${date}`,
             railTicketExchange: (origin: string, destination: string, startDate: string) => `您从 ${origin} 到 ${destination} 的 ${startDate} 火车票已成功改签。`,
             railTicketUpdate: (origin: string, destination: string, startDate: string) => `您在 ${startDate} 从 ${origin} 前往 ${destination} 的火车票已更新。`,
             defaultUpdate: (type: string) => `您的${type}预订已更新。`,
+            hotelBooked: (hotelName: string, startDate: string) => `您在 ${hotelName} 的酒店预订（入住日期：${startDate}）已成功预订。`,
+            carBooked: (vendor: string, startDate: string) => `您的 ${vendor} 租车（取车日期：${startDate}）已预订。`,
+            railTicketBooked: (origin: string, destination: string, startDate: string) => `您从 ${origin} 到 ${destination} 的 ${startDate} 火车票已预订。`,
+            defaultBooked: (type: string) => `您的${type}预订已成功完成。`,
         },
         flightTo: '飞往',
         trainTo: '火车前往',
@@ -5444,6 +5460,9 @@ ${amount}，商户：${merchant} - 日期：${date}`,
             },
             chatgpt: {
                 title: 'ChatGPT',
+            },
+            grok: {
+                title: 'Grok',
             },
         },
         connections: {
@@ -7728,6 +7747,7 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                 willBeReadyToUse: '此卡将立即可用。',
                 willBeReadyToShip: '此卡将立即准备发货。',
                 cardholder: '持卡人',
+                cardholderEmail: '持卡人电子邮箱',
                 cardType: '卡类型',
                 limit: '限额',
                 limitType: '限额类型',
@@ -11134,7 +11154,9 @@ ${reportName}`,
                     mentionedAccountID?: number;
                 }) => {
                     let warningTime = '即将';
-                    if (warningDaysBeforeExpiry === CONST.COMPANY_CARDS.CONSENT_EXPIRY_WARNING_DAYS.TWO_WEEKS) {
+                    if (warningDaysBeforeExpiry === CONST.COMPANY_CARDS.CONSENT_EXPIRY_WARNING_DAYS.ONE_MONTH) {
+                        warningTime = '一个月后';
+                    } else if (warningDaysBeforeExpiry === CONST.COMPANY_CARDS.CONSENT_EXPIRY_WARNING_DAYS.TWO_WEEKS) {
                         warningTime = '两周后';
                     } else if (warningDaysBeforeExpiry === CONST.COMPANY_CARDS.CONSENT_EXPIRY_WARNING_DAYS.ONE_WEEK) {
                         warningTime = '一周后';
