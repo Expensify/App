@@ -1,7 +1,9 @@
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import type {RenderAPI} from '@testing-library/react-native';
 
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+import type {PersonalDetailsByLogin} from '@components/PersonalDetailsByLoginProvider';
+import {buildPersonalDetailsByLogin} from '@components/PersonalDetailsByLoginProvider';
 import type {SearchGroupBy} from '@components/Search/types';
 
 import {putOnHold} from '@libs/actions/IOU/Hold';
@@ -19,20 +21,22 @@ import {createTransitionBarrier, writeWhenReady} from '@libs/API/writeWhenReady'
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import {rand64} from '@libs/NumberUtils';
 import {getIOUActionForReportID, getIOUActionForTransactionID, getOriginalMessage, isActionOfType, isAddCommentAction, isDeletedAction, isMoneyRequestAction} from '@libs/ReportActionsUtils';
-import {buildOptimisticIOUReportAction, getAncestors, getReportOrDraftReport} from '@libs/ReportUtils';
+import {buildOptimisticIOUReportAction, getAncestors, getParsedComment, getReportOrDraftReport} from '@libs/ReportUtils';
 import {buildSearchQueryJSON} from '@libs/SearchQueryUtils';
 
 import updateSplitTransactionsFromSplitExpensesFlow from '@pages/iou/updateSplitTransactionsFromSplitExpensesFlow';
 
 import {
+    commitDistanceRequest,
     completeSplitBill,
-    createDistanceRequest,
+    planDistanceRequest,
     resolveOptimisticSplitChatReportID,
     setDraftSplitTransaction,
     splitBill,
     splitBillAndOpenReport,
     startSplitBill,
 } from '@userActions/IOU/Split';
+import type {CreateDistanceRequestInformation} from '@userActions/IOU/Split';
 import {
     addSplitExpenseField,
     evenlyDistributeSplitExpenseAmounts,
@@ -45,6 +49,7 @@ import {
 } from '@userActions/IOU/SplitExpenseItems';
 import type {UpdateSplitTransactionsData} from '@userActions/IOU/SplitTransactionUpdate';
 import {getExpenseReportIDsEmptiedBySplitUpdate, updateSplitTransactions, willSplitUpdateEmptyExpenseReport} from '@userActions/IOU/SplitTransactionUpdate';
+import {CAROUSEL_SOURCE, clearActiveTransactionIDs, getActiveTransactionIDs, setActiveTransactionIDs} from '@userActions/TransactionThreadNavigation';
 
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
@@ -69,13 +74,14 @@ import Onyx from 'react-native-onyx';
 import type {MockFetch} from '../../utils/TestHelper';
 
 import createPersonalDetails from '../../utils/collections/personalDetails';
-import createRandomPolicy, {createCategoryTaxExpenseRules} from '../../utils/collections/policies';
+import createRandomPolicy, {createCategoryTaxRulesCollection} from '../../utils/collections/policies';
 import createRandomReportAction from '../../utils/collections/reportActions';
 import {createRandomReport, createSelfDM} from '../../utils/collections/reports';
 import createRandomTransaction from '../../utils/collections/transaction';
 import createMock from '../../utils/createMock';
 import getOnyxValue from '../../utils/getOnyxValue';
 import initCurrencyListContext from '../../utils/initCurrencyListContext';
+import getFlaggedTransactionIDs from '../../utils/pendingNewTransactionFlags';
 import {
     createGlobalFetchMock,
     formatPhoneNumber,
@@ -169,6 +175,9 @@ const JULES_ACCOUNT_ID = 2;
 const JULES_PARTICIPANT: Participant = {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS, role: 'member'};
 const RORY_EMAIL = 'rory@expensifail.com';
 const RORY_ACCOUNT_ID = 3;
+const RORY_PERSONAL_DETAILS_BY_LOGINS: PersonalDetailsByLogin = {
+    [RORY_EMAIL]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL},
+};
 const RORY_PARTICIPANT: Participant = {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS, role: 'admin'};
 const VIT_EMAIL = 'vit@expensifail.com';
 const VIT_ACCOUNT_ID = 4;
@@ -204,6 +213,7 @@ const mockPersonalDetails: PersonalDetailsList = {
         displayName: VIT_EMAIL,
     },
 };
+const mockPersonalDetailsByLogins = buildPersonalDetailsByLogin(mockPersonalDetails);
 
 const getAllPolicyTags = async (): Promise<OnyxCollection<PolicyTagLists>> => {
     let allPolicyTags: OnyxCollection<PolicyTagLists>;
@@ -263,9 +273,6 @@ beforeEach(async () => {
         keys: ONYXKEYS,
         initialKeyStates: {
             [ONYXKEYS.SESSION]: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
-            [ONYXKEYS.PERSONAL_DETAILS_LIST]: {
-                [RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL},
-            },
         },
     });
 });
@@ -407,6 +414,7 @@ describe('split expense', () => {
                 splitBill(
                     // TODO: Migrate after the backend accepts accountIDs
                     {
+                        personalDetailsByLogins: mockPersonalDetailsByLogins,
                         isVendorMatchingBetaEnabled: false,
                         getCurrencyDecimals: getCurrencyDecimalsLocal,
                         participants: [
@@ -746,6 +754,7 @@ describe('split expense', () => {
 
         // When the user split bill on the workspace
         splitBill({
+            personalDetailsByLogins: mockPersonalDetailsByLogins,
             isVendorMatchingBetaEnabled: false,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
             participants: [{reportID: workspaceReportID}],
@@ -801,6 +810,7 @@ describe('split expense', () => {
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${workspaceReportID}`, {reportID: workspaceReportID, isOwnPolicyExpenseChat: true});
 
         splitBill({
+            personalDetailsByLogins: mockPersonalDetailsByLogins,
             isVendorMatchingBetaEnabled: false,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
             participants: [{reportID: workspaceReportID}],
@@ -830,6 +840,7 @@ describe('split expense', () => {
         expect(await getOnyxValue(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE)).toHaveProperty('isFirstQuickAction', true);
 
         splitBill({
+            personalDetailsByLogins: mockPersonalDetailsByLogins,
             isVendorMatchingBetaEnabled: false,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
             participants: [{reportID: workspaceReportID}],
@@ -866,6 +877,7 @@ describe('split expense', () => {
         await Onyx.set(ONYXKEYS.RECENTLY_USED_CURRENCIES, initialCurrencies);
 
         splitBill({
+            personalDetailsByLogins: mockPersonalDetailsByLogins,
             isVendorMatchingBetaEnabled: false,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
             participants: [{accountID: CARLOS_ACCOUNT_ID, login: CARLOS_EMAIL}],
@@ -907,6 +919,7 @@ describe('split expense', () => {
 
         // When the user split bill twice on the DM
         splitBill({
+            personalDetailsByLogins: mockPersonalDetailsByLogins,
             isVendorMatchingBetaEnabled: false,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
             participants: [{accountID: CARLOS_ACCOUNT_ID, login: CARLOS_EMAIL}],
@@ -934,6 +947,7 @@ describe('split expense', () => {
         await waitForBatchedUpdates();
 
         splitBill({
+            personalDetailsByLogins: mockPersonalDetailsByLogins,
             isVendorMatchingBetaEnabled: false,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
             participants: [{accountID: CARLOS_ACCOUNT_ID, login: CARLOS_EMAIL}],
@@ -1008,6 +1022,7 @@ describe('split expense', () => {
 
         // When doing a distance split expense
         splitBill({
+            personalDetailsByLogins: mockPersonalDetailsByLogins,
             isVendorMatchingBetaEnabled: false,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
             participants: [{reportID: workspaceReportID}],
@@ -1060,6 +1075,7 @@ describe('split expense', () => {
 
         // When the user split bill on the group chat
         splitBill({
+            personalDetailsByLogins: mockPersonalDetailsByLogins,
             isVendorMatchingBetaEnabled: false,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
             participants: [{accountID: CARLOS_ACCOUNT_ID, login: CARLOS_EMAIL}],
@@ -1123,6 +1139,7 @@ describe('split expense', () => {
 
         // When doing a split bill
         splitBill({
+            personalDetailsByLogins: mockPersonalDetailsByLogins,
             isVendorMatchingBetaEnabled: false,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
             participants: [{isPolicyExpenseChat: true, policyID}],
@@ -1236,6 +1253,7 @@ describe('split expense', () => {
 
         // Complete this split bill without changing the description
         completeSplitBill({
+            personalDetailsByLogins: mockPersonalDetailsByLogins,
             isVendorMatchingBetaEnabled: false,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
             chatReportID: reportID,
@@ -1305,6 +1323,7 @@ describe('split expense', () => {
 
         let splitTransaction = await getScanSplitTransaction();
         const splitTransactionID = splitTransaction?.transactionID;
+        const transactionBeforeCompleting = splitTransaction;
         expect(splitTransaction?.iouRequestType).toBe(CONST.IOU.REQUEST_TYPE.SCAN);
 
         const reportActions = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`);
@@ -1312,11 +1331,12 @@ describe('split expense', () => {
 
         // When the user fills the fields in by hand and completes the split while still offline
         completeSplitBill({
+            personalDetailsByLogins: mockPersonalDetailsByLogins,
             isVendorMatchingBetaEnabled: false,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
             chatReportID: reportID,
             reportAction: iouAction,
-            updatedTransaction: splitTransaction ? {...splitTransaction, amount: 100, modifiedAmount: 100, modifiedCurrency: CONST.CURRENCY.USD} : undefined,
+            updatedTransaction: splitTransaction ? {...splitTransaction, amount: 100, modifiedAmount: 100, modifiedCurrency: CONST.CURRENCY.USD, isMerchantSet: true} : undefined,
             sessionAccountID: RORY_ACCOUNT_ID,
             isASAPSubmitBetaEnabled: false,
             quickAction: undefined,
@@ -1341,10 +1361,14 @@ describe('split expense', () => {
         await mockFetch?.resume?.();
         await waitForBatchedUpdates();
 
-        // Then the split goes back to being a scan request so the user can retry from the original state
+        // Then the split goes back to being a scan request so the user can retry from the original state, without the draft's typed-merchant flag, which a scan would read as an unconfirmed amount
         splitTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${splitTransactionID}`);
         expect(splitTransaction?.iouRequestType).toBe(CONST.IOU.REQUEST_TYPE.SCAN);
+        expect(splitTransaction?.isMerchantSet).toBeUndefined();
         expect(splitTransaction?.errors).toBeTruthy();
+        expect(splitTransaction?.modifiedAmount).toBe(transactionBeforeCompleting?.modifiedAmount);
+        expect(splitTransaction?.modifiedCurrency).toBe(transactionBeforeCompleting?.modifiedCurrency);
+        expect(splitTransaction?.receipt?.state).toBe(CONST.IOU.RECEIPT_STATE.SCAN_READY);
     });
 
     it('should calculate proportional convertedAmount for split transactions with foreign currency', async () => {
@@ -1530,9 +1554,11 @@ describe('split expense', () => {
                 displayName: 'Carlos Test',
             },
         };
+        const testPersonalDetailsByLogins = buildPersonalDetailsByLogin(testPersonalDetails);
 
         // When splitting a bill with explicit personalDetails
         splitBill({
+            personalDetailsByLogins: testPersonalDetailsByLogins,
             isVendorMatchingBetaEnabled: false,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
             participants: [{accountID: CARLOS_ACCOUNT_ID, login: CARLOS_EMAIL}],
@@ -1593,9 +1619,11 @@ describe('split expense', () => {
                 displayName: 'Jules',
             },
         };
+        const participantPersonalDetailsByLogins = buildPersonalDetailsByLogin(participantPersonalDetails);
 
         // When splitting a bill among multiple participants with explicit personalDetails
         splitBill({
+            personalDetailsByLogins: participantPersonalDetailsByLogins,
             isVendorMatchingBetaEnabled: false,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
             participants: [
@@ -1747,8 +1775,10 @@ describe('split expense', () => {
                 displayName: 'Carlos Complete',
             },
         };
+        const completeSplitPersonalDetailsByLogins = buildPersonalDetailsByLogin(completeSplitPersonalDetails);
 
         completeSplitBill({
+            personalDetailsByLogins: completeSplitPersonalDetailsByLogins,
             isVendorMatchingBetaEnabled: false,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
             chatReportID: reportID,
@@ -2775,6 +2805,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
         });
 
         requestMoney({
+            personalDetailsByLogins: RORY_PERSONAL_DETAILS_BY_LOGINS,
             isVendorMatchingBetaEnabled: false,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
             conciergeChat: undefined,
@@ -3014,6 +3045,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
         });
 
         requestMoney({
+            personalDetailsByLogins: RORY_PERSONAL_DETAILS_BY_LOGINS,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
             conciergeChat: undefined,
             report: chatReport,
@@ -3163,6 +3195,219 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
         await mockFetch?.resume?.();
     });
 
+    it('should keep the report transaction count equal to the rows it holds when splits are added and removed while offline', async () => {
+        // Given a workspace expense report that holds one expense
+        let expenseReport: OnyxEntry<Report>;
+        let chatReport: OnyxEntry<Report>;
+        let originalTransactionID: string | undefined;
+
+        const policyID = generatePolicyID();
+        createWorkspace({
+            conciergeChat: undefined,
+            policyOwner: {email: CARLOS_EMAIL, accountID: CARLOS_ACCOUNT_ID},
+            makeMeAdmin: true,
+            policyName: "Carlos's Workspace",
+            policyID,
+            introSelected: {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
+            currentUserAccountIDParam: CARLOS_ACCOUNT_ID,
+            currentUserEmailParam: CARLOS_EMAIL,
+            currency: undefined,
+            isSelfTourViewed: false,
+            hasActiveAdminPolicies: false,
+            hasOwnedPaidPolicy: false,
+            activePolicy: undefined,
+            delegateAccountID: undefined,
+        });
+        const policy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
+        setWorkspaceApprovalMode(policy, CARLOS_EMAIL, CONST.POLICY.APPROVAL_MODE.BASIC, RORY_ACCOUNT_ID, RORY_EMAIL, false, undefined);
+        await waitForBatchedUpdates();
+
+        await getOnyxData({
+            key: ONYXKEYS.COLLECTION.REPORT,
+            callback: (allReports) => {
+                chatReport = Object.values(allReports ?? {}).find((report) => report?.chatType === CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT);
+            },
+        });
+
+        requestMoney({
+            personalDetailsByLogins: RORY_PERSONAL_DETAILS_BY_LOGINS,
+            getCurrencyDecimals: getCurrencyDecimalsLocal,
+            conciergeChat: undefined,
+            report: chatReport,
+            participantParams: {
+                payeeEmail: RORY_EMAIL,
+                payeeAccountID: RORY_ACCOUNT_ID,
+                participant: {login: CARLOS_EMAIL, accountID: CARLOS_ACCOUNT_ID, isPolicyExpenseChat: true, reportID: chatReport?.reportID},
+            },
+            transactionParams: {
+                amount: 9000,
+                attendees: [],
+                currency: CONST.CURRENCY.USD,
+                created: '',
+                merchant: 'TestMerchant',
+                comment: '',
+            },
+            shouldGenerateTransactionThreadReport: true,
+            isASAPSubmitBetaEnabled: false,
+            isVendorMatchingBetaEnabled: false,
+            currentUserAccountIDParam: RORY_ACCOUNT_ID,
+            currentUserEmailParam: RORY_EMAIL,
+            transactionViolations: {},
+            policyRecentlyUsedCurrencies: [],
+            quickAction: undefined,
+            isSelfTourViewed: false,
+            existingTransactionDraft: undefined,
+            personalDetails: {},
+            delegateAccountID: undefined,
+            isTrackIntentUser: false,
+            formatPhoneNumber,
+            rules: undefined,
+        });
+        await waitForBatchedUpdates();
+
+        await getOnyxData({
+            key: ONYXKEYS.COLLECTION.REPORT,
+            callback: (allReports) => {
+                expenseReport = Object.values(allReports ?? {}).find((report) => report?.type === CONST.REPORT.TYPE.EXPENSE);
+            },
+        });
+        await getOnyxData({
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport?.reportID}`,
+            callback: (allReportActions) => {
+                const iouAction = Object.values(allReportActions ?? {}).find((reportAction): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> =>
+                    isMoneyRequestAction(reportAction),
+                );
+                originalTransactionID = iouAction ? getOriginalMessage(iouAction)?.IOUTransactionID : undefined;
+            },
+        });
+
+        const expenseReportKey = `${ONYXKEYS.COLLECTION.REPORT}${expenseReport?.reportID}` as const;
+        const draftKey = `${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${originalTransactionID}` as const;
+        const getTransactionCount = async () => (await getOnyxValue(expenseReportKey))?.transactionCount;
+        const getReportRowCounts = async () => {
+            let reportRows: Array<OnyxEntry<Transaction>> = [];
+            await getOnyxData({
+                key: ONYXKEYS.COLLECTION.TRANSACTION,
+                callback: (allTransactions) => {
+                    reportRows = Object.values(allTransactions ?? {}).filter((transaction) => transaction?.reportID === expenseReport?.reportID);
+                },
+            });
+            return {
+                rowCount: reportRows.length,
+                pendingDeleteRowCount: reportRows.filter((transaction) => transaction?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE).length,
+            };
+        };
+        const getActiveSplits = async () => {
+            let activeSplits: Array<OnyxEntry<Transaction>> = [];
+            await getOnyxData({
+                key: ONYXKEYS.COLLECTION.TRANSACTION,
+                callback: (allTransactions) => {
+                    activeSplits = Object.values(allTransactions ?? {}).filter(
+                        (transaction) => transaction?.comment?.originalTransactionID === originalTransactionID && transaction?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                    );
+                },
+            });
+            return activeSplits;
+        };
+        const saveSplitExpenses = async () => {
+            const draftTransaction = await getOnyxValue(draftKey);
+            const splitExpenses = draftTransaction?.comment?.splitExpenses ?? [];
+            let allTransactions: OnyxCollection<Transaction>;
+            let allReports: OnyxCollection<Report>;
+            let allReportActions: OnyxCollection<ReportActions>;
+            let allReportNameValuePairs: OnyxCollection<ReportNameValuePairs>;
+            await getOnyxData({key: ONYXKEYS.COLLECTION.TRANSACTION, callback: (value) => (allTransactions = value)});
+            await getOnyxData({key: ONYXKEYS.COLLECTION.REPORT, callback: (value) => (allReports = value)});
+            await getOnyxData({key: ONYXKEYS.COLLECTION.REPORT_ACTIONS, callback: (value) => (allReportActions = value)});
+            await getOnyxData({key: ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, callback: (value) => (allReportNameValuePairs = value)});
+            const allPolicyTags = await getAllPolicyTags();
+            const currentExpenseReport = await getOnyxValue(expenseReportKey);
+            const {transactionReport} = getTransactionAndExpenseReports(splitExpenses.at(0)?.reportID ?? String(CONST.DEFAULT_NUMBER_ID));
+
+            updateSplitTransactionsFromSplitExpensesFlow({
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                getCurrencySymbol: getCurrencySymbolLocal,
+                isVendorMatchingBetaEnabled: false,
+                allTransactionsList: allTransactions,
+                allReportsList: allReports,
+                reportDrafts: {},
+                allReportActionsList: allReportActions,
+                allReportNameValuePairsList: allReportNameValuePairs,
+                transactionData: {
+                    reportID: expenseReport?.reportID ?? String(CONST.DEFAULT_NUMBER_ID),
+                    originalTransactionID: originalTransactionID ?? String(CONST.DEFAULT_NUMBER_ID),
+                    splitExpenses,
+                    splitExpensesTotal: draftTransaction?.comment?.splitExpensesTotal ?? 0,
+                },
+                policyCategories: undefined,
+                policy,
+                policyRecentlyUsedCategories: [],
+                iouReport: currentExpenseReport,
+                firstIOU: undefined,
+                isASAPSubmitBetaEnabled: false,
+                currentUserPersonalDetails,
+                transactionViolations: {},
+                policyRecentlyUsedCurrencies: [],
+                quickAction: undefined,
+                allPolicyTags,
+                personalDetails: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
+                transactionReport,
+                expenseReport: currentExpenseReport,
+                isOffline: true,
+                delegateAccountID: undefined,
+                isTrackIntentUser: false,
+                formatPhoneNumber,
+                rules: undefined,
+            });
+            await waitForBatchedUpdates();
+        };
+        const removeOneSplitAndSave = async () => {
+            const activeSplits = await getActiveSplits();
+            initSplitExpense(activeSplits.at(0), expenseReport, policy, undefined, undefined, undefined, getCurrencyDecimalsLocal, getCurrencySymbolLocal);
+            await waitForBatchedUpdates();
+            removeSplitExpenseField(await getOnyxValue(draftKey), activeSplits.at(-1)?.transactionID ?? CONST.DEFAULT_NUMBER_ID.toString(), getCurrencyDecimalsLocal);
+            await waitForBatchedUpdates();
+            await saveSplitExpenses();
+        };
+        expect(await getTransactionCount()).toBe(1);
+
+        mockFetch?.pause?.();
+        try {
+            // When the expense is split three ways while offline
+            const originalTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${originalTransactionID}`);
+            initSplitExpense(originalTransaction, expenseReport, policy, undefined, undefined, undefined, getCurrencyDecimalsLocal, getCurrencySymbolLocal);
+            await waitForBatchedUpdates();
+            addSplitExpenseField(originalTransaction, await getOnyxValue(draftKey), expenseReport, policy, false, undefined, getCurrencySymbolLocal, getCurrencyDecimalsLocal);
+            await waitForBatchedUpdates();
+            await saveSplitExpenses();
+
+            // Then the report counts the three splits in place of the expense
+            expect(await getActiveSplits()).toHaveLength(3);
+            expect(await getReportRowCounts()).toEqual({rowCount: 3, pendingDeleteRowCount: 0});
+            expect(await getTransactionCount()).toBe(3);
+
+            // When one split is removed
+            await removeOneSplitAndSave();
+
+            // Then the removed split stays counted as a row pending deletion, as any offline delete does, so the count less pending deletions is the two splits left
+            expect(await getActiveSplits()).toHaveLength(2);
+            expect(await getReportRowCounts()).toEqual({rowCount: 3, pendingDeleteRowCount: 1});
+            expect(await getTransactionCount()).toBe(3);
+
+            // When another split is removed, which puts the original expense back
+            await removeOneSplitAndSave();
+
+            // Then the count matches the rows the report holds: the original and the two splits pending deletion.
+            // A count above those rows would keep a reopened report table from ever seeing all of its expenses, so it would miss the next one added.
+            expect(await getReportRowCounts()).toEqual({rowCount: 3, pendingDeleteRowCount: 2});
+            expect(await getTransactionCount()).toBe(3);
+        } finally {
+            // Resume the paused requests even when an assertion fails, so they don't block the request queue for later tests
+            await mockFetch?.resume?.();
+            await waitForBatchedUpdates();
+        }
+    });
+
     it('should not count held expenses in the unheld totals when an expense is split while offline', async () => {
         const amount = 20000;
         const heldAmount = 10000;
@@ -3199,6 +3444,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
         });
 
         requestMoney({
+            personalDetailsByLogins: RORY_PERSONAL_DETAILS_BY_LOGINS,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
             conciergeChat: undefined,
             report: chatReport,
@@ -3365,6 +3611,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
         });
 
         requestMoney({
+            personalDetailsByLogins: RORY_PERSONAL_DETAILS_BY_LOGINS,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
             conciergeChat: undefined,
             report: chatReport,
@@ -3530,6 +3777,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
         });
 
         requestMoney({
+            personalDetailsByLogins: RORY_PERSONAL_DETAILS_BY_LOGINS,
             isVendorMatchingBetaEnabled: false,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
             conciergeChat: undefined,
@@ -5151,6 +5399,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
         });
 
         requestMoney({
+            personalDetailsByLogins: RORY_PERSONAL_DETAILS_BY_LOGINS,
             isVendorMatchingBetaEnabled: false,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
             conciergeChat: undefined,
@@ -5767,6 +6016,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             },
         });
         requestMoney({
+            personalDetailsByLogins: RORY_PERSONAL_DETAILS_BY_LOGINS,
             isVendorMatchingBetaEnabled: false,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
             conciergeChat: undefined,
@@ -5954,6 +6204,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             },
         });
         requestMoney({
+            personalDetailsByLogins: RORY_PERSONAL_DETAILS_BY_LOGINS,
             isVendorMatchingBetaEnabled: false,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
             conciergeChat: undefined,
@@ -6146,6 +6397,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
         });
 
         requestMoney({
+            personalDetailsByLogins: RORY_PERSONAL_DETAILS_BY_LOGINS,
             isVendorMatchingBetaEnabled: false,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
             conciergeChat: undefined,
@@ -6348,6 +6600,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
 
         // Create the initial expense
         requestMoney({
+            personalDetailsByLogins: RORY_PERSONAL_DETAILS_BY_LOGINS,
             isVendorMatchingBetaEnabled: false,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
             conciergeChat: undefined,
@@ -6646,6 +6899,7 @@ describe('updateSplitTransactions', () => {
         });
 
         requestMoney({
+            personalDetailsByLogins: RORY_PERSONAL_DETAILS_BY_LOGINS,
             isVendorMatchingBetaEnabled: false,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
             conciergeChat: undefined,
@@ -6706,6 +6960,7 @@ describe('updateSplitTransactions', () => {
 
         updateSplitTransactions({
             isVendorMatchingBetaEnabled: false,
+            shouldFlagNewSplitsForReportTable: true,
             rules: undefined,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
             getCurrencySymbol: getCurrencySymbolLocal,
@@ -6754,6 +7009,166 @@ describe('updateSplitTransactions', () => {
         expect(split2).toBeDefined();
     });
 
+    it('flags new splits for the report table, but not the original expense that a reverse split brings back', async () => {
+        // Given a workspace expense report that holds one expense
+        const amount = 10000;
+        let expenseReport: OnyxEntry<Report>;
+        let chatReport: OnyxEntry<Report>;
+        let originalTransactionID: string | undefined;
+        let firstIOU: ReportAction | undefined;
+
+        const policyID = generatePolicyID();
+        createWorkspace({
+            conciergeChat: undefined,
+            policyOwner: {email: CARLOS_EMAIL, accountID: CARLOS_ACCOUNT_ID},
+            makeMeAdmin: true,
+            policyName: "Carlos's Workspace",
+            policyID,
+            introSelected: {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
+            currentUserAccountIDParam: CARLOS_ACCOUNT_ID,
+            currentUserEmailParam: CARLOS_EMAIL,
+            currency: undefined,
+            isSelfTourViewed: false,
+            hasActiveAdminPolicies: false,
+            hasOwnedPaidPolicy: false,
+            activePolicy: undefined,
+            delegateAccountID: undefined,
+        });
+        const policy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
+        setWorkspaceApprovalMode(policy, CARLOS_EMAIL, CONST.POLICY.APPROVAL_MODE.BASIC, RORY_ACCOUNT_ID, RORY_EMAIL, false, undefined);
+        await waitForBatchedUpdates();
+
+        await getOnyxData({
+            key: ONYXKEYS.COLLECTION.REPORT,
+            callback: (allReports) => {
+                chatReport = Object.values(allReports ?? {}).find((report) => report?.chatType === CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT);
+            },
+        });
+
+        requestMoney({
+            personalDetailsByLogins: RORY_PERSONAL_DETAILS_BY_LOGINS,
+            isVendorMatchingBetaEnabled: false,
+            getCurrencyDecimals: getCurrencyDecimalsLocal,
+            conciergeChat: undefined,
+            report: chatReport,
+            participantParams: {
+                payeeEmail: RORY_EMAIL,
+                payeeAccountID: RORY_ACCOUNT_ID,
+                participant: {login: CARLOS_EMAIL, accountID: CARLOS_ACCOUNT_ID, isPolicyExpenseChat: true, reportID: chatReport?.reportID},
+            },
+            transactionParams: {amount, attendees: [], currency: CONST.CURRENCY.USD, created: '', merchant: 'Test'},
+            shouldGenerateTransactionThreadReport: true,
+            isASAPSubmitBetaEnabled: false,
+            currentUserAccountIDParam: RORY_ACCOUNT_ID,
+            currentUserEmailParam: RORY_EMAIL,
+            transactionViolations: {},
+            policyRecentlyUsedCurrencies: [],
+            quickAction: undefined,
+            isSelfTourViewed: false,
+            personalDetails: {},
+            existingTransactionDraft: undefined,
+            delegateAccountID: undefined,
+            isTrackIntentUser: false,
+            formatPhoneNumber,
+            rules: undefined,
+        });
+        await waitForBatchedUpdates();
+
+        await getOnyxData({
+            key: ONYXKEYS.COLLECTION.REPORT,
+            callback: (allReports) => {
+                expenseReport = Object.values(allReports ?? {}).find((report) => report?.type === CONST.REPORT.TYPE.EXPENSE);
+            },
+        });
+        await getOnyxData({
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport?.reportID}`,
+            callback: (allReportsAction) => {
+                const iouActions = Object.values(allReportsAction ?? {}).filter((reportAction): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> =>
+                    isMoneyRequestAction(reportAction),
+                );
+                firstIOU = iouActions?.at(0);
+                originalTransactionID = isMoneyRequestAction(firstIOU) ? getOriginalMessage(firstIOU)?.IOUTransactionID : undefined;
+            },
+        });
+
+        const reportID = expenseReport?.reportID ?? String(CONST.DEFAULT_NUMBER_ID);
+        const originalTransactionKey = `${ONYXKEYS.COLLECTION.TRANSACTION}${originalTransactionID}` as const;
+        const getFlaggedIDs = async () => getFlaggedTransactionIDs((await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`))?.pendingNewTransactionIDs);
+        const getActiveReportTransactionIDs = async () => {
+            let activeTransactionIDs: string[] = [];
+            await getOnyxData({
+                key: ONYXKEYS.COLLECTION.TRANSACTION,
+                callback: (allTransactions) => {
+                    activeTransactionIDs = Object.values(allTransactions ?? {}).flatMap((transaction) =>
+                        transaction?.reportID === reportID && transaction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE ? [transaction.transactionID] : [],
+                    );
+                },
+            });
+            return activeTransactionIDs;
+        };
+        const saveSplits = async (splitExpenses: Parameters<typeof updateSplitTransactions>[0]['transactionData']['splitExpenses']) => {
+            let allTransactions: OnyxCollection<Transaction>;
+            let allReports: OnyxCollection<Report>;
+            let allReportActions: OnyxCollection<ReportActions>;
+            let allReportNameValuePairs: OnyxCollection<ReportNameValuePairs>;
+            await getOnyxData({key: ONYXKEYS.COLLECTION.TRANSACTION, callback: (value) => (allTransactions = value)});
+            await getOnyxData({key: ONYXKEYS.COLLECTION.REPORT, callback: (value) => (allReports = value)});
+            await getOnyxData({key: ONYXKEYS.COLLECTION.REPORT_ACTIONS, callback: (value) => (allReportActions = value)});
+            await getOnyxData({key: ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, callback: (value) => (allReportNameValuePairs = value)});
+            const reports = getTransactionAndExpenseReports(reportID);
+            updateSplitTransactions({
+                isVendorMatchingBetaEnabled: false,
+                shouldFlagNewSplitsForReportTable: true,
+                rules: undefined,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                getCurrencySymbol: getCurrencySymbolLocal,
+                allTransactionsList: allTransactions,
+                allReportsList: allReports,
+                reportDrafts: {},
+                allReportActionsList: allReportActions,
+                allReportNameValuePairsList: allReportNameValuePairs,
+                transactionData: {reportID, originalTransactionID: originalTransactionID ?? String(CONST.DEFAULT_NUMBER_ID), splitExpenses, splitExpensesTotal: undefined},
+                searchContext: {currentSearchHash: -2},
+                policyCategories: undefined,
+                policy: undefined,
+                policyRecentlyUsedCategories: [],
+                iouReport: await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`),
+                firstIOU,
+                isASAPSubmitBetaEnabled: false,
+                currentUserPersonalDetails,
+                transactionViolations: {},
+                policyRecentlyUsedCurrencies: [],
+                quickAction: undefined,
+                allPolicyTags: await getAllPolicyTags(),
+                personalDetails: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
+                transactionReport: reports.transactionReport,
+                expenseReport: reports.expenseReport,
+                isOffline: false,
+                delegateAccountID: undefined,
+                isTrackIntentUser: false,
+                formatPhoneNumber,
+            });
+            await waitForBatchedUpdates();
+        };
+
+        // When the expense is split in two
+        await saveSplits([
+            {transactionID: 'split-1', amount: amount / 2, description: 'Split 1', created: DateUtils.getDBTime()},
+            {transactionID: 'split-2', amount: amount / 2, description: 'Split 2', created: DateUtils.getDBTime()},
+        ]);
+
+        // Then both splits are flagged, since they are new rows in a report that already showed one
+        expect(await getFlaggedIDs()).toEqual(expect.arrayContaining(['split-1', 'split-2']));
+
+        // When one split is removed, so the other is merged back into the original expense, from a flow that flags new splits
+        await saveSplits([{transactionID: 'split-2', amount, description: 'Split 2', created: DateUtils.getDBTime()}]);
+
+        // Then the original expense is the report's only active expense again and isn't flagged, since the report held it before it was split and nothing was added
+        expect((await getOnyxValue(originalTransactionKey))?.reportID).toBe(reportID);
+        expect(await getActiveReportTransactionIDs()).toEqual([originalTransactionID]);
+        expect(await getFlaggedIDs()).not.toContain(originalTransactionID);
+    });
+
     it('should create split transactions when called with isOffline=true', async () => {
         const amount = 10000;
         let expenseReport: OnyxEntry<Report>;
@@ -6790,6 +7205,7 @@ describe('updateSplitTransactions', () => {
         });
 
         requestMoney({
+            personalDetailsByLogins: RORY_PERSONAL_DETAILS_BY_LOGINS,
             isVendorMatchingBetaEnabled: false,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
             conciergeChat: undefined,
@@ -6851,6 +7267,7 @@ describe('updateSplitTransactions', () => {
 
         updateSplitTransactions({
             isVendorMatchingBetaEnabled: false,
+            shouldFlagNewSplitsForReportTable: true,
             rules: undefined,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
             getCurrencySymbol: getCurrencySymbolLocal,
@@ -6936,6 +7353,7 @@ describe('updateSplitTransactions', () => {
         });
 
         requestMoney({
+            personalDetailsByLogins: RORY_PERSONAL_DETAILS_BY_LOGINS,
             isVendorMatchingBetaEnabled: false,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
             conciergeChat: undefined,
@@ -6994,6 +7412,7 @@ describe('updateSplitTransactions', () => {
 
         updateSplitTransactions({
             isVendorMatchingBetaEnabled: false,
+            shouldFlagNewSplitsForReportTable: true,
             rules: undefined,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
             getCurrencySymbol: getCurrencySymbolLocal,
@@ -7092,6 +7511,7 @@ describe('updateSplitTransactions', () => {
         });
 
         requestMoney({
+            personalDetailsByLogins: RORY_PERSONAL_DETAILS_BY_LOGINS,
             isVendorMatchingBetaEnabled: false,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
             conciergeChat: undefined,
@@ -7182,6 +7602,7 @@ describe('updateSplitTransactions', () => {
 
         updateSplitTransactions({
             isVendorMatchingBetaEnabled: false,
+            shouldFlagNewSplitsForReportTable: true,
             rules: undefined,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
             getCurrencySymbol: getCurrencySymbolLocal,
@@ -7234,6 +7655,68 @@ describe('updateSplitTransactions', () => {
         return {splitTransactionID1, splitTransactionID2, splitTransactionID3};
     };
 
+    describe('prev/next carousel', () => {
+        afterEach(() => clearActiveTransactionIDs());
+
+        it('should remove the original expense from a carousel seeded from its report', async () => {
+            // Given an expense opened from its report's transaction list, next to one sibling expense
+            const {expenseReport, originalTransactionID} = await createBaseExpense();
+            if (!originalTransactionID || !expenseReport?.reportID) {
+                throw new Error('Missing original transaction data');
+            }
+            await setActiveTransactionIDs(['carousel-sibling', originalTransactionID], {source: CAROUSEL_SOURCE.reportRow(expenseReport.reportID)});
+
+            // When the expense is split, which moves the original to the hidden split report
+            const iouAction = getIOUActionForReportID(expenseReport.reportID, originalTransactionID);
+            await splitToTwo(expenseReport, originalTransactionID, iouAction);
+
+            // Then the carousel is cleared, because one expense left is nothing to page through and the original can't be opened
+            expect(getActiveTransactionIDs().ids).toBeNull();
+            expect(await getOnyxValue(ONYXKEYS.TRANSACTION_THREAD_NAVIGATION_TRANSACTION_IDS)).toBeFalsy();
+        });
+
+        it('should keep the original expense out of the carousel when the split fails', async () => {
+            // Given an expense opened from its report's transaction list, between two sibling expenses
+            const {expenseReport, originalTransactionID} = await createBaseExpense();
+            if (!originalTransactionID || !expenseReport?.reportID) {
+                throw new Error('Missing original transaction data');
+            }
+            await setActiveTransactionIDs(['carousel-sibling-1', originalTransactionID, 'carousel-sibling-2'], {source: CAROUSEL_SOURCE.reportRow(expenseReport.reportID)});
+
+            // When the expense is split and the server then rejects the request
+            const iouAction = getIOUActionForReportID(expenseReport.reportID, originalTransactionID);
+            mockFetch?.pause?.();
+            await splitToTwo(expenseReport, originalTransactionID, iouAction);
+            mockFetch?.fail?.();
+            await mockFetch?.resume?.();
+            await waitForBatchedUpdates();
+
+            // Then the original is back on its report, but the carousel isn't written back, like a failed move. The screen that
+            // owned it may be gone by then, so restoring it could leave a list nothing clears. The next seed brings it back.
+            const originalTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${originalTransactionID}`);
+            expect(originalTransaction?.reportID).toBe(expenseReport.reportID);
+            expect(getActiveTransactionIDs().ids).toEqual(['carousel-sibling-1', 'carousel-sibling-2']);
+            expect(await getOnyxValue(ONYXKEYS.TRANSACTION_THREAD_NAVIGATION_TRANSACTION_IDS)).toEqual(['carousel-sibling-1', 'carousel-sibling-2']);
+        });
+
+        it('should leave a carousel seeded from search results alone', async () => {
+            // Given an expense opened from search results, which span several reports
+            const {expenseReport, originalTransactionID} = await createBaseExpense();
+            if (!originalTransactionID || !expenseReport?.reportID) {
+                throw new Error('Missing original transaction data');
+            }
+            await setActiveTransactionIDs(['carousel-sibling', originalTransactionID], {source: CAROUSEL_SOURCE.search(unapprovedCashHash)});
+
+            // When the expense is split
+            const iouAction = getIOUActionForReportID(expenseReport.reportID, originalTransactionID);
+            await splitToTwo(expenseReport, originalTransactionID, iouAction);
+
+            // Then the carousel is unchanged, because search refreshes the carousel it owns from its own results
+            expect(getActiveTransactionIDs().ids).toEqual(['carousel-sibling', originalTransactionID]);
+            expect(await getOnyxValue(ONYXKEYS.TRANSACTION_THREAD_NAVIGATION_TRANSACTION_IDS)).toEqual(['carousel-sibling', originalTransactionID]);
+        });
+    });
+
     it('should send reportID and localized failure fallback when updating existing split transactions', async () => {
         const {expenseReport, originalTransactionID} = await createBaseExpense();
 
@@ -7253,6 +7736,7 @@ describe('updateSplitTransactions', () => {
 
         updateSplitTransactions({
             isVendorMatchingBetaEnabled: false,
+            shouldFlagNewSplitsForReportTable: true,
             rules: undefined,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
             getCurrencySymbol: getCurrencySymbolLocal,
@@ -7434,6 +7918,7 @@ describe('updateSplitTransactions', () => {
         mockFetch?.pause?.();
         updateSplitTransactions({
             isVendorMatchingBetaEnabled: false,
+            shouldFlagNewSplitsForReportTable: true,
             rules: undefined,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
             getCurrencySymbol: getCurrencySymbolLocal,
@@ -7738,6 +8223,7 @@ describe('updateSplitTransactions', () => {
 
         updateSplitTransactions({
             isVendorMatchingBetaEnabled: false,
+            shouldFlagNewSplitsForReportTable: true,
             rules: undefined,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
             getCurrencySymbol: getCurrencySymbolLocal,
@@ -7863,6 +8349,7 @@ describe('updateSplitTransactions', () => {
 
         updateSplitTransactions({
             isVendorMatchingBetaEnabled: false,
+            shouldFlagNewSplitsForReportTable: true,
             rules: undefined,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
             getCurrencySymbol: getCurrencySymbolLocal,
@@ -7942,6 +8429,7 @@ describe('updateSplitTransactions', () => {
 
         updateSplitTransactions({
             isVendorMatchingBetaEnabled: false,
+            shouldFlagNewSplitsForReportTable: true,
             rules: undefined,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
             getCurrencySymbol: getCurrencySymbolLocal,
@@ -8017,6 +8505,7 @@ describe('updateSplitTransactions', () => {
         // The preview action lives in the chat report's actions, supplied via the new allReportActionsList param.
         updateSplitTransactions({
             isVendorMatchingBetaEnabled: false,
+            shouldFlagNewSplitsForReportTable: true,
             rules: undefined,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
             getCurrencySymbol: getCurrencySymbolLocal,
@@ -8097,6 +8586,7 @@ describe('updateSplitTransactions', () => {
 
         updateSplitTransactions({
             isVendorMatchingBetaEnabled: false,
+            shouldFlagNewSplitsForReportTable: true,
             rules: undefined,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
             getCurrencySymbol: getCurrencySymbolLocal,
@@ -8171,6 +8661,7 @@ describe('updateSplitTransactions', () => {
 
         updateSplitTransactions({
             isVendorMatchingBetaEnabled: false,
+            shouldFlagNewSplitsForReportTable: true,
             rules: undefined,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
             getCurrencySymbol: getCurrencySymbolLocal,
@@ -8289,6 +8780,7 @@ describe('updateSplitTransactions', () => {
         // `extraIOUActions` (matching `iouActions.slice(1)`).
         updateSplitTransactions({
             isVendorMatchingBetaEnabled: false,
+            shouldFlagNewSplitsForReportTable: true,
             rules: undefined,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
             getCurrencySymbol: getCurrencySymbolLocal,
@@ -10528,118 +11020,6 @@ describe('updateSplitExpenseAmountField', () => {
     });
 });
 
-describe('setDraftSplitTransaction', () => {
-    it('should set the associated tax for the category based on the tax expense rules', async () => {
-        // Given a policy with tax expense rules associated with category
-        const transactionID = '1';
-        const category = 'Advertising';
-        const policyID = '2';
-        const taxCode = 'id_TAX_EXEMPT';
-        const ruleTaxCode = 'id_TAX_RATE_1';
-        const fakePolicy: Policy = {
-            ...createRandomPolicy(Number(policyID)),
-            taxRates: CONST.DEFAULT_TAX,
-            rules: {expenseRules: createCategoryTaxExpenseRules(category, ruleTaxCode)},
-        };
-        const draftTransaction: Transaction = {
-            ...createRandomTransaction(1),
-            taxCode,
-            taxAmount: 0,
-            amount: 100,
-        };
-        await Onyx.merge(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`, draftTransaction);
-        await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, fakePolicy);
-
-        // When setting a category of a draft split transaction
-        setDraftSplitTransaction(transactionID, draftTransaction, {category}, getCurrencyDecimalsLocal, getCurrencySymbolLocal, fakePolicy);
-
-        await waitForBatchedUpdates();
-
-        // Then the transaction tax rate and amount should be updated based on the expense rules
-        const transaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`);
-        expect(transaction?.taxCode).toBe(ruleTaxCode);
-        expect(transaction?.taxAmount).toBe(5);
-    });
-
-    describe('should not change the tax', () => {
-        it('if there are no tax expense rules', async () => {
-            // Given a policy without tax expense rules
-            const transactionID = '1';
-            const category = 'Advertising';
-            const policyID = '2';
-            const taxCode = 'id_TAX_EXEMPT';
-            const taxAmount = 0;
-            const fakePolicy: Policy = {
-                ...createRandomPolicy(Number(policyID)),
-                taxRates: CONST.DEFAULT_TAX,
-                rules: {},
-            };
-            const draftTransaction: Transaction = {
-                ...createRandomTransaction(1),
-                taxCode,
-                taxAmount,
-                amount: 100,
-            };
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`, draftTransaction);
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, fakePolicy);
-
-            // When setting a category of a draft split transaction
-            setDraftSplitTransaction(transactionID, draftTransaction, {category}, getCurrencyDecimalsLocal, getCurrencySymbolLocal, fakePolicy);
-
-            await waitForBatchedUpdates();
-
-            // Then the transaction tax rate and amount shouldn't be updated
-            const transaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`);
-            expect(transaction?.taxCode).toBe(taxCode);
-            expect(transaction?.taxAmount).toBe(taxAmount);
-        });
-
-        it('if we are not updating category', async () => {
-            // Given a policy with tax expense rules associated with category
-            const transactionID = '1';
-            const category = 'Advertising';
-            const policyID = '2';
-            const ruleTaxCode = 'id_TAX_RATE_1';
-            const fakePolicy: Policy = {
-                ...createRandomPolicy(Number(policyID)),
-                taxRates: CONST.DEFAULT_TAX,
-                rules: {expenseRules: createCategoryTaxExpenseRules(category, ruleTaxCode)},
-            };
-            const draftTransaction: Transaction = {
-                ...createRandomTransaction(1),
-                amount: 100,
-            };
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`, draftTransaction);
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, fakePolicy);
-
-            // When setting a draft split transaction without category update
-            setDraftSplitTransaction(transactionID, draftTransaction, {}, getCurrencyDecimalsLocal, getCurrencySymbolLocal, fakePolicy);
-
-            await waitForBatchedUpdates();
-
-            // Then the transaction tax rate and amount shouldn't be updated
-            const transaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`);
-            expect(transaction?.taxCode).toBeUndefined();
-            expect(transaction?.taxAmount).toBeUndefined();
-        });
-    });
-
-    it('clears the draft when there is no split draft to start from', async () => {
-        // Given a split draft that already exists for the transaction
-        const transactionID = 'no-draft-base';
-        await Onyx.merge(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`, createRandomTransaction(1));
-        await waitForBatchedUpdates();
-
-        // When a caller passes no transaction to start from
-        setDraftSplitTransaction(transactionID, undefined, {category: 'Advertising'}, getCurrencyDecimalsLocal, getCurrencySymbolLocal);
-
-        await waitForBatchedUpdates();
-
-        // Then the action no longer falls back by itself, so the null merge clears the draft
-        expect(await getOnyxValue(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`)).toBeFalsy();
-    });
-});
-
 describe('initSplitExpenseItemData', () => {
     it('should create split expense item data from transaction', () => {
         const transaction: Transaction = {
@@ -11786,7 +12166,7 @@ describe('updateSplitExpenseField', () => {
     });
 });
 
-describe('createDistanceRequest', () => {
+describe('planDistanceRequest and commitDistanceRequest', () => {
     const distanceMockPersonalDetails: PersonalDetailsList = {
         [RORY_ACCOUNT_ID]: {
             accountID: RORY_ACCOUNT_ID,
@@ -11799,17 +12179,18 @@ describe('createDistanceRequest', () => {
             displayName: 'Carlos',
         },
     };
+    const distanceMockPersonalDetailsByLogins = buildPersonalDetailsByLogin(distanceMockPersonalDetails);
 
     function getDefaultDistanceRequestParams(
         report: Report | undefined,
-        transactionOverrides: Partial<Parameters<typeof createDistanceRequest>[0]['transactionParams']> = {},
+        transactionOverrides: Partial<CreateDistanceRequestInformation['transactionParams']> = {},
         recentWaypoints: Awaited<ReturnType<typeof getOnyxValue<typeof ONYXKEYS.NVP_RECENT_WAYPOINTS>>> = [],
-    ): Parameters<typeof createDistanceRequest>[0] {
+    ): CreateDistanceRequestInformation {
         return {
+            personalDetailsByLogins: distanceMockPersonalDetailsByLogins,
             isVendorMatchingBetaEnabled: false,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
             report,
-            moneyRequestReportTransactions: [],
             participants: [{accountID: CARLOS_ACCOUNT_ID, login: CARLOS_EMAIL}],
             currentUserLogin: RORY_EMAIL,
             currentUserAccountID: RORY_ACCOUNT_ID,
@@ -11837,16 +12218,93 @@ describe('createDistanceRequest', () => {
         };
     }
 
+    /** Plans and writes a distance request the way its callers do, and returns the plan so a test can read its IDs. */
+    function planAndCommitDistanceRequest(distanceRequestInformation: CreateDistanceRequestInformation) {
+        const plan = planDistanceRequest(distanceRequestInformation);
+        commitDistanceRequest(plan);
+        return plan;
+    }
+
+    it('writes nothing while planning, and writes the transaction at the planned ID once the plan is committed', async () => {
+        // Given a distance request for a chat
+        const recentWaypoints = (await getOnyxValue(ONYXKEYS.NVP_RECENT_WAYPOINTS)) ?? [];
+        const distanceRequestInformation = {...getDefaultDistanceRequestParams({reportID: '123'}, {amount: 1}, recentWaypoints), participants: []};
+        jest.mocked(notifyNewAction).mockClear();
+        const writeWhenReadySpy = jest.spyOn(APIlib, 'writeWhenReady');
+
+        try {
+            // When it is only planned
+            const plan = planDistanceRequest(distanceRequestInformation);
+            await waitForBatchedUpdates();
+
+            // Then no request is queued and nothing is in Onyx yet, so planning has no effect a caller could depend on
+            expect(writeWhenReadySpy).not.toHaveBeenCalled();
+            expect(await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${plan.transactionID}`)).toBeUndefined();
+            expect(notifyNewAction).not.toHaveBeenCalled();
+
+            // When the plan is committed
+            commitDistanceRequest(plan);
+            await waitForBatchedUpdates();
+
+            // Then exactly one request goes out with the planned parameters, and the optimistic transaction lands at the planned ID
+            expect(writeWhenReadySpy).toHaveBeenCalledTimes(1);
+            expect(writeWhenReadySpy.mock.calls.at(0)?.at(1)).toBe(plan.parameters);
+            expect((await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${plan.transactionID}`))?.transactionID).toBe(plan.transactionID);
+        } finally {
+            writeWhenReadySpy.mockRestore();
+        }
+    });
+
+    it('waits for the commit to flag the "Expense added" message', async () => {
+        // Given a global-create distance request for an expense report, which takes the message branch
+        const recentWaypoints = (await getOnyxValue(ONYXKEYS.NVP_RECENT_WAYPOINTS)) ?? [];
+        const distanceRequestInformation = {
+            ...getDefaultDistanceRequestParams({reportID: '123', type: CONST.REPORT.TYPE.EXPENSE}, {amount: 1, isFromGlobalCreate: true}, recentWaypoints),
+            participants: [],
+        };
+
+        // When it is only planned
+        const plan = planDistanceRequest(distanceRequestInformation);
+        await waitForBatchedUpdates();
+
+        // Then the message is not flagged yet, so a caller that plans without committing leaves no trace
+        expect((await getOnyxValue(ONYXKEYS.RAM_ONLY_EXPENSE_ADDED_GROWL_TRANSACTION_IDS))?.[plan.transactionID]).toBeUndefined();
+
+        // When the plan is committed
+        commitDistanceRequest(plan);
+        await waitForBatchedUpdates();
+
+        // Then the new expense is flagged for the message
+        expect((await getOnyxValue(ONYXKEYS.RAM_ONLY_EXPENSE_ADDED_GROWL_TRANSACTION_IDS))?.[plan.transactionID]).toBe(CONST.SEARCH.DATA_TYPES.EXPENSE);
+    });
+
+    it('parses the comment into the plan without changing the information it was given', async () => {
+        // Given distance request information whose comment has markdown in it
+        const recentWaypoints = (await getOnyxValue(ONYXKEYS.NVP_RECENT_WAYPOINTS)) ?? [];
+        const distanceRequestInformation = getDefaultDistanceRequestParams({reportID: '123'}, {amount: 1, comment: '**Client visit**'}, recentWaypoints);
+
+        // When it is planned, which parses the comment for the request
+        const plan = planDistanceRequest(distanceRequestInformation);
+
+        // Then the request carries the parsed comment while the caller keeps what the user typed, so the same information can be planned again
+        expect(plan.parameters.comment).toBe(getParsedComment('**Client visit**'));
+        expect(distanceRequestInformation.transactionParams.comment).toBe('**Client visit**');
+    });
+
     it('does not trigger notifyNewAction when creating distance request in an expense report', async () => {
+        // Given a distance request for an expense report
         const recentWaypoints = (await getOnyxValue(ONYXKEYS.NVP_RECENT_WAYPOINTS)) ?? [];
         jest.mocked(notifyNewAction).mockClear();
 
-        createDistanceRequest({
+        // When it is planned and committed, and the write has started
+        planAndCommitDistanceRequest({
             ...getDefaultDistanceRequestParams({reportID: '123', type: CONST.REPORT.TYPE.EXPENSE}, {amount: 1}, recentWaypoints),
             participants: [],
             delegateAccountID: undefined,
         });
+        await waitForBatchedUpdates();
 
+        // Then no new-action notification goes out. It would only fire once the write starts, so checking before that would pass either way.
         expect(notifyNewAction).toHaveBeenCalledTimes(0);
     });
 
@@ -11854,7 +12312,7 @@ describe('createDistanceRequest', () => {
         const recentWaypoints = (await getOnyxValue(ONYXKEYS.NVP_RECENT_WAYPOINTS)) ?? [];
         jest.mocked(notifyNewAction).mockClear();
 
-        createDistanceRequest({
+        planAndCommitDistanceRequest({
             ...getDefaultDistanceRequestParams({reportID: '123'}, {amount: 1}, recentWaypoints),
             participants: [],
             delegateAccountID: undefined,
@@ -11865,14 +12323,17 @@ describe('createDistanceRequest', () => {
         expect(notifyNewAction).toHaveBeenCalledTimes(1);
     });
 
-    it('returns the iou report and the written chatReportID for a non-split distance request', async () => {
+    it('plans the iou report and the chatReportID it writes to for a non-split distance request', async () => {
+        // Given a distance request for an existing chat, which is not a split
         const recentWaypoints = (await getOnyxValue(ONYXKEYS.NVP_RECENT_WAYPOINTS)) ?? [];
 
-        const result = createDistanceRequest({
+        // When it is planned and committed
+        const result = planAndCommitDistanceRequest({
             ...getDefaultDistanceRequestParams({reportID: '123'}, {amount: 1}, recentWaypoints),
             participants: [],
         });
 
+        // Then the plan carries the expense report and the chat that report belongs to, which the duplicate loops and the cleanup read
         expect(result.iouReport).toBeTruthy();
         expect(result.chatReportID).toBeTruthy();
         expect(result.iouReport?.chatReportID).toBe(result.chatReportID);
@@ -11882,7 +12343,7 @@ describe('createDistanceRequest', () => {
     it('does not optimistically create a transaction thread — only the chat and iou reports are written to Onyx', async () => {
         const recentWaypoints = (await getOnyxValue(ONYXKEYS.NVP_RECENT_WAYPOINTS)) ?? [];
 
-        const result = createDistanceRequest({
+        const result = planAndCommitDistanceRequest({
             ...getDefaultDistanceRequestParams({reportID: '123'}, {amount: 1000}, recentWaypoints),
             participants: [{accountID: CARLOS_ACCOUNT_ID, login: CARLOS_EMAIL}],
         });
@@ -11904,7 +12365,7 @@ describe('createDistanceRequest', () => {
         // create the optimistic chat at the same id, otherwise the screen hangs waiting on a report that never exists.
         const optimisticChatReportID = '987654321';
 
-        const result = createDistanceRequest({
+        const result = planAndCommitDistanceRequest({
             ...getDefaultDistanceRequestParams(undefined, {amount: 1000}, recentWaypoints),
             participants: [{accountID: CARLOS_ACCOUNT_ID, login: CARLOS_EMAIL}],
             optimisticChatReportID,
@@ -11925,7 +12386,7 @@ describe('createDistanceRequest', () => {
         await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${existingChatReportID}`, existingChat);
 
         // When the distance request is submitted with an unrelated optimistic chat id supplied
-        const result = createDistanceRequest({
+        const result = planAndCommitDistanceRequest({
             ...getDefaultDistanceRequestParams(existingChat, {amount: 1000}, recentWaypoints),
             participants: [{accountID: CARLOS_ACCOUNT_ID, login: CARLOS_EMAIL}],
             optimisticChatReportID: 'unused-optimistic-id',
@@ -11935,14 +12396,17 @@ describe('createDistanceRequest', () => {
         expect(result.chatReportID).toBe(existingChatReportID);
     });
 
-    it('returns chatReportID with a null iouReport for a split distance request — the UI can only navigate via chatReportID', async () => {
+    it('plans chatReportID with a null iouReport for a split distance request — the UI can only navigate via chatReportID', async () => {
+        // Given a split distance request with no existing chat
         const recentWaypoints = (await getOnyxValue(ONYXKEYS.NVP_RECENT_WAYPOINTS)) ?? [];
 
-        const result = createDistanceRequest({
+        // When it is planned and committed
+        const result = planAndCommitDistanceRequest({
             ...getDefaultDistanceRequestParams(undefined, {amount: 1000}, recentWaypoints),
             iouType: CONST.IOU.TYPE.SPLIT,
         });
 
+        // Then the plan has a chat but no expense report, since a split builds none
         expect(result.iouReport).toBeFalsy();
         expect(result.chatReportID).toBeTruthy();
         expect(result.transactionID).toBeTruthy();
@@ -11951,7 +12415,7 @@ describe('createDistanceRequest', () => {
     it('flags the created transaction for the "Expense added" growl on a global-create distance request', async () => {
         const recentWaypoints = (await getOnyxValue(ONYXKEYS.NVP_RECENT_WAYPOINTS)) ?? [];
 
-        const result = createDistanceRequest({
+        const result = planAndCommitDistanceRequest({
             ...getDefaultDistanceRequestParams({reportID: '123'}, {amount: 1, isFromGlobalCreate: true}, recentWaypoints),
             participants: [],
         });
@@ -11965,25 +12429,86 @@ describe('createDistanceRequest', () => {
     it('flags the new transaction for the 1→2 highlight fallback when added to an expense report that already has one transaction', async () => {
         const recentWaypoints = (await getOnyxValue(ONYXKEYS.NVP_RECENT_WAYPOINTS)) ?? [];
         const existingTransactionID = 'existing-txn-one-to-two';
-        const existingTransaction = {...createRandomTransaction(1), transactionID: existingTransactionID, reportID: '123'};
-        await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${existingTransactionID}`, existingTransaction);
+        const chatReportID = 'chat-one-to-two';
+        const policyID = 'policy-one-to-two';
+        // A report the expense can be added to, or the builder creates its own and this is a first add.
+        const expenseReport: Report = {
+            reportID: '123',
+            type: CONST.REPORT.TYPE.EXPENSE,
+            chatReportID,
+            policyID,
+            ownerAccountID: RORY_ACCOUNT_ID,
+            managerID: RORY_ACCOUNT_ID,
+            currency: 'USD',
+            total: 0,
+            stateNum: CONST.REPORT.STATE_NUM.OPEN,
+            statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+        };
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {id: policyID, type: CONST.POLICY.TYPE.CORPORATE, name: 'One To Two', role: CONST.POLICY.ROLE.ADMIN});
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`, {
+            reportID: chatReportID,
+            chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+            policyID,
+            isOwnPolicyExpenseChat: true,
+            type: CONST.REPORT.TYPE.CHAT,
+            iouReportID: '123',
+        });
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}123`, expenseReport);
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${existingTransactionID}`, {transactionID: existingTransactionID, reportID: '123'});
         await waitForBatchedUpdates();
 
-        const result = createDistanceRequest({
-            ...getDefaultDistanceRequestParams({reportID: '123', type: CONST.REPORT.TYPE.EXPENSE}, {amount: 1}, recentWaypoints),
-            moneyRequestReportTransactions: [existingTransaction],
+        const result = planAndCommitDistanceRequest({
+            ...getDefaultDistanceRequestParams(expenseReport, {amount: 1}, recentWaypoints),
             participants: [],
         });
         await waitForBatchedUpdates();
 
         const reportMetadata = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_METADATA}123`);
-        expect(Object.keys(reportMetadata?.pendingNewTransactionIDs ?? {})).toContain(result.transactionID);
+        expect(getFlaggedTransactionIDs(reportMetadata?.pendingNewTransactionIDs)).toContain(result.transactionID);
+    });
+
+    it('does not flag any report when the add forks a new expense report, since the transaction joins that one at 0→1', async () => {
+        // Given a report that cannot take another expense, since its policy is not loaded, so an add forks a new report
+        const recentWaypoints = (await getOnyxValue(ONYXKEYS.NVP_RECENT_WAYPOINTS)) ?? [];
+        const existingTransactionID = 'existing-txn-forked';
+        const chatReportID = 'chat-forked';
+        const reportClosedToNewExpenses: Report = {
+            reportID: '789',
+            type: CONST.REPORT.TYPE.EXPENSE,
+            chatReportID,
+            policyID: 'policy-absent',
+            ownerAccountID: RORY_ACCOUNT_ID,
+            currency: 'USD',
+            total: 0,
+        };
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`, {
+            reportID: chatReportID,
+            chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+            policyID: 'policy-absent',
+            isOwnPolicyExpenseChat: true,
+            type: CONST.REPORT.TYPE.CHAT,
+            iouReportID: '789',
+        });
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}789`, reportClosedToNewExpenses);
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${existingTransactionID}`, {transactionID: existingTransactionID, reportID: '789'});
+        await waitForBatchedUpdates();
+
+        // When a distance expense is added from that report
+        planAndCommitDistanceRequest({
+            ...getDefaultDistanceRequestParams(reportClosedToNewExpenses, {amount: 1}, recentWaypoints),
+            participants: [],
+        });
+        await waitForBatchedUpdates();
+
+        // Then the original report carries no flag: the expense landed on the new report, so no row here could claim it
+        const callerReportMetadata = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_METADATA}789`);
+        expect(getFlaggedTransactionIDs(callerReportMetadata?.pendingNewTransactionIDs)).toEqual([]);
     });
 
     it('correctly sets quickAction', async () => {
         const recentWaypoints = (await getOnyxValue(ONYXKEYS.NVP_RECENT_WAYPOINTS)) ?? [];
 
-        createDistanceRequest({
+        planAndCommitDistanceRequest({
             ...getDefaultDistanceRequestParams({reportID: '123', type: CONST.REPORT.TYPE.EXPENSE}, {amount: 1}, recentWaypoints),
             iouType: CONST.IOU.TYPE.SPLIT,
             participants: [],
@@ -11993,7 +12518,7 @@ describe('createDistanceRequest', () => {
 
         expect(await getOnyxValue(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE)).toHaveProperty('isFirstQuickAction', true);
 
-        createDistanceRequest({
+        planAndCommitDistanceRequest({
             ...getDefaultDistanceRequestParams({reportID: '123', type: CONST.REPORT.TYPE.EXPENSE}, {amount: 1}, recentWaypoints),
             iouType: CONST.IOU.TYPE.SPLIT,
             participants: [],
@@ -12013,7 +12538,7 @@ describe('createDistanceRequest', () => {
         await Onyx.set(ONYXKEYS.RECENTLY_USED_CURRENCIES, initialCurrencies);
         const recentWaypoints = (await getOnyxValue(ONYXKEYS.NVP_RECENT_WAYPOINTS)) ?? [];
 
-        createDistanceRequest({
+        planAndCommitDistanceRequest({
             ...getDefaultDistanceRequestParams({reportID: '123', type: CONST.REPORT.TYPE.EXPENSE}, {amount: 1, currency: CONST.CURRENCY.GBP}, recentWaypoints),
             iouType: CONST.IOU.TYPE.SPLIT,
             policyRecentlyUsedCurrencies: initialCurrencies,
@@ -12035,7 +12560,7 @@ describe('createDistanceRequest', () => {
         await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${testReport.reportID}`, testReport);
         const recentWaypoints = (await getOnyxValue(ONYXKEYS.NVP_RECENT_WAYPOINTS)) ?? [];
 
-        createDistanceRequest(
+        planAndCommitDistanceRequest(
             getDefaultDistanceRequestParams(
                 testReport,
                 {merchant: CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT, comment: 'Distance request test', validWaypoints, distance: 15000},
@@ -12061,7 +12586,7 @@ describe('createDistanceRequest', () => {
         await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${testReport.reportID}`, testReport);
         const recentWaypoints = (await getOnyxValue(ONYXKEYS.NVP_RECENT_WAYPOINTS)) ?? [];
 
-        createDistanceRequest(getDefaultDistanceRequestParams(testReport, {amount: 0, distance: 0}, recentWaypoints));
+        planAndCommitDistanceRequest(getDefaultDistanceRequestParams(testReport, {amount: 0, distance: 0}, recentWaypoints));
         await waitForBatchedUpdates();
 
         let allTransactions: OnyxCollection<Transaction>;
@@ -12085,7 +12610,7 @@ describe('createDistanceRequest', () => {
         await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${testReport.reportID}`, testReport);
         const recentWaypoints = (await getOnyxValue(ONYXKEYS.NVP_RECENT_WAYPOINTS)) ?? [];
 
-        createDistanceRequest({
+        planAndCommitDistanceRequest({
             ...getDefaultDistanceRequestParams(testReport, {amount: 3000, merchant: 'Distance Split', comment: 'Split distance test', validWaypoints, distance: 30000}, recentWaypoints),
             iouType: CONST.IOU.TYPE.SPLIT,
             participants: [
@@ -12123,7 +12648,7 @@ describe('createDistanceRequest', () => {
             comment: {customUnit: {customUnitRateID, quantity: 10, name: CONST.CUSTOM_UNITS.NAME_DISTANCE}},
         };
 
-        const result = createDistanceRequest({
+        const result = planAndCommitDistanceRequest({
             ...getDefaultDistanceRequestParams(testReport, {amount: 1000, distance: 10, customUnitRateID}, recentWaypoints),
             existingTransaction: draftTransaction,
         });
@@ -12150,7 +12675,7 @@ describe('createDistanceRequest', () => {
         await waitForBatchedUpdates();
         const recentWaypoints = (await getOnyxValue(ONYXKEYS.NVP_RECENT_WAYPOINTS)) ?? [];
 
-        const result = createDistanceRequest({
+        const result = planAndCommitDistanceRequest({
             ...getDefaultDistanceRequestParams(undefined, {amount: 3000, distance: 30, customUnitRateID}, recentWaypoints),
             iouType: CONST.IOU.TYPE.SPLIT,
             participants: [
@@ -12169,7 +12694,7 @@ describe('createDistanceRequest', () => {
         await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${testReport.reportID}`, testReport);
         const recentWaypoints = (await getOnyxValue(ONYXKEYS.NVP_RECENT_WAYPOINTS)) ?? [];
 
-        createDistanceRequest(getDefaultDistanceRequestParams(testReport, {amount: 500, comment: 'Odometer test', odometerStart: 10000, odometerEnd: 10050}, recentWaypoints));
+        planAndCommitDistanceRequest(getDefaultDistanceRequestParams(testReport, {amount: 500, comment: 'Odometer test', odometerStart: 10000, odometerEnd: 10050}, recentWaypoints));
         await waitForBatchedUpdates();
 
         let allTransactions: OnyxCollection<Transaction>;
@@ -12203,7 +12728,7 @@ describe('createDistanceRequest', () => {
         await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${policyExpenseChat.reportID}`, policyExpenseChat);
         const recentWaypoints = (await getOnyxValue(ONYXKEYS.NVP_RECENT_WAYPOINTS)) ?? [];
 
-        createDistanceRequest({
+        planAndCommitDistanceRequest({
             ...getDefaultDistanceRequestParams(policyExpenseChat, {amount: 2500, merchant: 'Work Trip', comment: 'Business travel', category: testCategory}, recentWaypoints),
             policyParams: {policy: fakePolicy, policyCategories: fakeCategories},
             delegateAccountID: undefined,
@@ -12232,7 +12757,7 @@ describe('createDistanceRequest', () => {
         await Onyx.set(ONYXKEYS.NVP_RECENT_WAYPOINTS, []);
         const recentWaypoints = (await getOnyxValue(ONYXKEYS.NVP_RECENT_WAYPOINTS)) ?? [];
 
-        createDistanceRequest(getDefaultDistanceRequestParams(testReport, {amount: 1500, validWaypoints}, recentWaypoints));
+        planAndCommitDistanceRequest(getDefaultDistanceRequestParams(testReport, {amount: 1500, validWaypoints}, recentWaypoints));
         await waitForBatchedUpdates();
 
         let allTransactions: OnyxCollection<Transaction>;
@@ -12250,7 +12775,9 @@ describe('createDistanceRequest', () => {
         await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${testReport.reportID}`, testReport);
         const recentWaypoints = (await getOnyxValue(ONYXKEYS.NVP_RECENT_WAYPOINTS)) ?? [];
 
-        createDistanceRequest(getDefaultDistanceRequestParams(testReport, {amount: 5000, currency: CONST.CURRENCY.EUR, merchant: 'Euro Trip', comment: 'European travel'}, recentWaypoints));
+        planAndCommitDistanceRequest(
+            getDefaultDistanceRequestParams(testReport, {amount: 5000, currency: CONST.CURRENCY.EUR, merchant: 'Euro Trip', comment: 'European travel'}, recentWaypoints),
+        );
         await waitForBatchedUpdates();
 
         let allTransactions: OnyxCollection<Transaction>;
@@ -12271,7 +12798,7 @@ describe('createDistanceRequest', () => {
         const recentWaypoints = (await getOnyxValue(ONYXKEYS.NVP_RECENT_WAYPOINTS)) ?? [];
         const largeAmount = 999999999;
 
-        createDistanceRequest(getDefaultDistanceRequestParams(testReport, {amount: largeAmount, merchant: 'Long Trip', comment: 'Very long distance'}, recentWaypoints));
+        planAndCommitDistanceRequest(getDefaultDistanceRequestParams(testReport, {amount: largeAmount, merchant: 'Long Trip', comment: 'Very long distance'}, recentWaypoints));
         await waitForBatchedUpdates();
 
         let allTransactions: OnyxCollection<Transaction>;
@@ -12292,7 +12819,7 @@ describe('createDistanceRequest', () => {
         const recentWaypoints = (await getOnyxValue(ONYXKEYS.NVP_RECENT_WAYPOINTS)) ?? [];
         const specialComment = 'Trip with special chars: <>&"\'äöü中文🚗';
 
-        createDistanceRequest(getDefaultDistanceRequestParams(testReport, {comment: specialComment}, recentWaypoints));
+        planAndCommitDistanceRequest(getDefaultDistanceRequestParams(testReport, {comment: specialComment}, recentWaypoints));
         await waitForBatchedUpdates();
 
         let allTransactions: OnyxCollection<Transaction>;
@@ -12315,7 +12842,7 @@ describe('createDistanceRequest', () => {
         const recentWaypoints = (await getOnyxValue(ONYXKEYS.NVP_RECENT_WAYPOINTS)) ?? [];
 
         mockFetch?.pause?.();
-        createDistanceRequest(getDefaultDistanceRequestParams(testReport, {comment: 'API failure test'}, recentWaypoints));
+        planAndCommitDistanceRequest(getDefaultDistanceRequestParams(testReport, {comment: 'API failure test'}, recentWaypoints));
         await waitForBatchedUpdates();
 
         let allTransactions: OnyxCollection<Transaction>;
@@ -12347,7 +12874,7 @@ describe('createDistanceRequest', () => {
         await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${testReport.reportID}`, testReport);
         const recentWaypoints = (await getOnyxValue(ONYXKEYS.NVP_RECENT_WAYPOINTS)) ?? [];
 
-        createDistanceRequest({
+        planAndCommitDistanceRequest({
             ...getDefaultDistanceRequestParams(testReport, {amount: 1500, comment: 'Billable distance', billable: true}, recentWaypoints),
             policyParams: {policy: fakePolicy},
             delegateAccountID: undefined,
@@ -12381,7 +12908,7 @@ describe('createDistanceRequest', () => {
         await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${testReport.reportID}`, testReport);
         const recentWaypoints = (await getOnyxValue(ONYXKEYS.NVP_RECENT_WAYPOINTS)) ?? [];
 
-        createDistanceRequest({
+        planAndCommitDistanceRequest({
             ...getDefaultDistanceRequestParams(testReport, {comment: 'Tax distance', taxCode: testTaxCode, taxAmount: testTaxAmount}, recentWaypoints),
             policyParams: {policy: fakePolicy},
             delegateAccountID: undefined,
@@ -12409,7 +12936,7 @@ describe('createDistanceRequest', () => {
         await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${testReport.reportID}`, testReport);
         const recentWaypoints = (await getOnyxValue(ONYXKEYS.NVP_RECENT_WAYPOINTS)) ?? [];
 
-        createDistanceRequest(getDefaultDistanceRequestParams(testReport, {amount: 2000, attendees: testAttendees, merchant: 'Group Trip', comment: 'Team travel'}, recentWaypoints));
+        planAndCommitDistanceRequest(getDefaultDistanceRequestParams(testReport, {amount: 2000, attendees: testAttendees, merchant: 'Group Trip', comment: 'Team travel'}, recentWaypoints));
         await waitForBatchedUpdates();
 
         let allTransactions: OnyxCollection<Transaction>;
@@ -12429,7 +12956,7 @@ describe('createDistanceRequest', () => {
         const initialReportsCount = Object.keys(initialReports ?? {}).length;
         const recentWaypoints = (await getOnyxValue(ONYXKEYS.NVP_RECENT_WAYPOINTS)) ?? [];
 
-        createDistanceRequest(getDefaultDistanceRequestParams(undefined, {}, recentWaypoints));
+        planAndCommitDistanceRequest(getDefaultDistanceRequestParams(undefined, {}, recentWaypoints));
         await waitForBatchedUpdates();
 
         const allReports = await getOnyxValue(ONYXKEYS.COLLECTION.REPORT);
@@ -12703,7 +13230,7 @@ describe('split save deferred write', () => {
 
         try {
             // When the action runs
-            updateSplitTransactions(params);
+            updateSplitTransactions({...params, shouldFlagNewSplitsForReportTable: false});
             await waitForBatchedUpdates();
 
             // Then it writes straight away instead of waiting on a transition
@@ -12744,6 +13271,7 @@ describe('resolveOptimisticSplitChatReportID', () => {
         expect(chatReportID).toBe(optimisticSplitChatReportID);
 
         splitBillAndOpenReport({
+            personalDetailsByLogins: mockPersonalDetailsByLogins,
             isVendorMatchingBetaEnabled: false,
             participants,
             currentUserLogin: RORY_EMAIL,
@@ -12973,6 +13501,7 @@ describe('updateSplitTransactions - emptied expense report', () => {
         // When the draft split is removed offline and only the frozen approved split is saved
         updateSplitTransactions({
             isVendorMatchingBetaEnabled: false,
+            shouldFlagNewSplitsForReportTable: true,
             rules: undefined,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
             getCurrencySymbol: getCurrencySymbolLocal,
@@ -13194,6 +13723,7 @@ describe('updateSplitTransactions - emptied expense reports', () => {
     const saveSplits = async (openedFromReport: Report, splitExpenses: SplitExpense[]) => {
         updateSplitTransactions({
             isVendorMatchingBetaEnabled: false,
+            shouldFlagNewSplitsForReportTable: true,
             rules: undefined,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
             getCurrencySymbol: getCurrencySymbolLocal,
@@ -13334,5 +13864,136 @@ describe('updateSplitTransactions - emptied expense reports', () => {
         expect(reportBAfter?.total).toBe(-7500);
         const reportCAfter = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${reportC.reportID}`);
         expect(reportCAfter?.total).toBe(-7500);
+    });
+});
+
+describe('setDraftSplitTransaction', () => {
+    const splitTransactionID = '1';
+    const splitPolicyID = '2';
+    const category = 'Advertising';
+    const ruleTaxCode = 'id_TAX_RATE_1';
+
+    const buildSplitPolicy = (): Policy => ({...createRandomPolicy(Number(splitPolicyID)), taxRates: CONST.DEFAULT_TAX});
+
+    const buildSplitDraft = (): Transaction => ({...createRandomTransaction(1), taxCode: 'id_TAX_EXEMPT', taxAmount: 0, amount: 100});
+
+    it('writes the tax the category rule asks for', async () => {
+        // Given a split draft on a policy whose expense default puts a tax rate on the category
+        const policy = buildSplitPolicy();
+        const draftTransaction = buildSplitDraft();
+        const rules = createCategoryTaxRulesCollection(splitPolicyID, category, ruleTaxCode);
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${splitTransactionID}`, draftTransaction);
+
+        // When that category is written to the split
+        setDraftSplitTransaction(splitTransactionID, draftTransaction, {category}, getCurrencyDecimalsLocal, getCurrencySymbolLocal, policy, undefined, undefined, rules);
+        await waitForBatchedUpdates();
+
+        // Then the rule's rate is on the draft, because a split is sent with whatever tax it holds
+        const updatedTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${splitTransactionID}`);
+        expect(updatedTransaction?.taxCode).toBe(ruleTaxCode);
+        expect(updatedTransaction?.taxAmount).toBe(5);
+    });
+
+    it('falls back to the workspace default when the new category has no rule', async () => {
+        // Given a split draft carrying a rate an expense default put there, moved to a category no rule names
+        const policy = buildSplitPolicy();
+        const draftTransaction = {...buildSplitDraft(), taxCode: ruleTaxCode, taxAmount: 5};
+        const rules = createCategoryTaxRulesCollection(splitPolicyID, category, ruleTaxCode);
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${splitTransactionID}`, draftTransaction);
+
+        // When the other category is written to the split
+        setDraftSplitTransaction(splitTransactionID, draftTransaction, {category: 'Benefits'}, getCurrencyDecimalsLocal, getCurrencySymbolLocal, policy, undefined, undefined, rules);
+        await waitForBatchedUpdates();
+
+        // Then the workspace default replaces it, so the split does not keep the rate the previous category asked for
+        const updatedTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${splitTransactionID}`);
+        expect(updatedTransaction?.taxCode).toBe('id_TAX_EXEMPT');
+        expect(updatedTransaction?.taxAmount).toBe(0);
+    });
+
+    it('leaves the tax alone when the only tax rule matches on more than the category', async () => {
+        // Given a split draft on a policy whose only tax rule also matches on a merchant, so no category owns a rate
+        const policy = buildSplitPolicy();
+        const draftTransaction = {...buildSplitDraft(), taxCode: ruleTaxCode, taxAmount: 5};
+        const rules = createCategoryTaxRulesCollection(splitPolicyID, category, ruleTaxCode, 'Uber');
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${splitTransactionID}`, draftTransaction);
+
+        // When another category is written to the split
+        setDraftSplitTransaction(splitTransactionID, draftTransaction, {category: 'Benefits'}, getCurrencyDecimalsLocal, getCurrencySymbolLocal, policy, undefined, undefined, rules);
+        await waitForBatchedUpdates();
+
+        // Then the rate is kept, because a category change says nothing about a rule the category does not own
+        const updatedTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${splitTransactionID}`);
+        expect(updatedTransaction?.taxCode).toBe(ruleTaxCode);
+        expect(updatedTransaction?.taxAmount).toBe(5);
+    });
+
+    it('leaves the tax alone when the policy has no expense default', async () => {
+        // Given a split draft on a policy with no expense defaults at all
+        const policy = buildSplitPolicy();
+        const draftTransaction = buildSplitDraft();
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${splitTransactionID}`, draftTransaction);
+
+        // When a category is written to the split
+        setDraftSplitTransaction(splitTransactionID, draftTransaction, {category}, getCurrencyDecimalsLocal, getCurrencySymbolLocal, policy, undefined, undefined, {});
+        await waitForBatchedUpdates();
+
+        // Then the tax it already carried is kept, since no rule asked for a different one
+        const updatedTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${splitTransactionID}`);
+        expect(updatedTransaction?.taxCode).toBe('id_TAX_EXEMPT');
+        expect(updatedTransaction?.taxAmount).toBe(0);
+    });
+
+    it('leaves the tax alone when the category is not the field being changed', async () => {
+        // Given a split draft on a policy whose expense default puts a tax rate on a category
+        const policy = buildSplitPolicy();
+        const draftTransaction = buildSplitDraft();
+        const rules = createCategoryTaxRulesCollection(splitPolicyID, category, ruleTaxCode);
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${splitTransactionID}`, draftTransaction);
+
+        // When a field other than the category is written
+        setDraftSplitTransaction(splitTransactionID, draftTransaction, {comment: 'Updated'}, getCurrencyDecimalsLocal, getCurrencySymbolLocal, policy, undefined, undefined, rules);
+        await waitForBatchedUpdates();
+
+        // Then the rate is left as it was, because no category change can have brought a different rule into play
+        const updatedTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${splitTransactionID}`);
+        expect(updatedTransaction?.taxCode).toBe('id_TAX_EXEMPT');
+        expect(updatedTransaction?.taxAmount).toBe(0);
+    });
+
+    it('clears the draft when there is no split draft to start from', async () => {
+        // Given a split draft that already exists for the transaction
+        const transactionID = 'no-draft-base';
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`, createRandomTransaction(1));
+        await waitForBatchedUpdates();
+
+        // When a caller passes no transaction to start from
+        setDraftSplitTransaction(transactionID, undefined, {category: 'Advertising'}, getCurrencyDecimalsLocal, getCurrencySymbolLocal);
+
+        await waitForBatchedUpdates();
+
+        // Then the action no longer falls back by itself, so the null merge clears the draft
+        expect(await getOnyxValue(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`)).toBeFalsy();
+    });
+
+    it('remembers whether the merchant was typed, which the expense edit itself does not carry', async () => {
+        // Given a split draft whose merchant the user never typed
+        const transactionID = 'typed-merchant';
+        const draftTransaction = createRandomTransaction(1);
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`, draftTransaction);
+        await waitForBatchedUpdates();
+
+        // When the user types a merchant, and later clears it again
+        setDraftSplitTransaction(transactionID, draftTransaction, {merchant: '(none)', isMerchantSet: true}, getCurrencyDecimalsLocal, getCurrencySymbolLocal);
+        await waitForBatchedUpdates();
+        const typedDraft = await getOnyxValue(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`);
+        setDraftSplitTransaction(transactionID, typedDraft, {merchant: '', isMerchantSet: false}, getCurrencyDecimalsLocal, getCurrencySymbolLocal);
+        await waitForBatchedUpdates();
+        const clearedDraft = await getOnyxValue(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`);
+
+        // Then the draft records each state, so a placeholder the user typed can be told apart from one the split was seeded with
+        expect(typedDraft?.modifiedMerchant).toBe('(none)');
+        expect(typedDraft?.isMerchantSet).toBe(true);
+        expect(clearedDraft?.isMerchantSet).toBe(false);
     });
 });

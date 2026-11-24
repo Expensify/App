@@ -4,17 +4,21 @@ import FLAT_NAV from '@libs/Navigation/FlatNav/FLAT_NAV';
 import type {BuildFlatNavSectionsParams} from '@libs/Navigation/FlatNav/FlatNavUtils';
 import {
     buildFlatNavSections,
+    buildFlatNavSubnavGroups,
     FLAT_NAV_SECTION_DEFINITIONS,
     getActiveFlatNavItem,
     getFlatNavSectionBadgeText,
     getFlatNavSectionDefaultItem,
     getFlatNavSectionIDForSearchKey,
+    getFlatNavSubnavMarkerTop,
 } from '@libs/Navigation/FlatNav/FlatNavUtils';
 import type {FlatNavSavedSearchItem, FlatNavSection} from '@libs/Navigation/FlatNav/types';
 import type {SearchKey} from '@libs/SearchKeyUtils';
 import {savedSearchIDToSearchKey} from '@libs/SearchKeyUtils';
 import {getSuggestedSearches} from '@libs/SearchSuggestionUtils';
 import type {SearchTypeMenuSection} from '@libs/SearchUIUtils';
+
+import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
 
@@ -99,6 +103,7 @@ describe('FlatNavUtils', () => {
             expect(allKeys).not.toContain(SEARCH_KEYS.TOP_SPENDERS);
             expect(allKeys).not.toContain(SEARCH_KEYS.TOP_CATEGORIES);
             expect(allKeys).not.toContain(SEARCH_KEYS.TOP_MERCHANTS);
+            expect(allKeys).not.toContain(SEARCH_KEYS.TOP_TAGS);
             expect(allKeys).not.toContain(SEARCH_KEYS.VIOLATIONS_BY_SUBMITTER);
         });
 
@@ -110,6 +115,7 @@ describe('FlatNavUtils', () => {
                 SEARCH_KEYS.TOP_SPENDERS,
                 SEARCH_KEYS.TOP_CATEGORIES,
                 SEARCH_KEYS.TOP_MERCHANTS,
+                SEARCH_KEYS.TOP_TAGS,
                 SEARCH_KEYS.VIOLATIONS_BY_SUBMITTER,
             ]);
             const expectedKeys = allCannedKeys.filter((key) => !insightKeys.has(key)).sort();
@@ -323,6 +329,7 @@ describe('FlatNavUtils', () => {
                 sectionID: FLAT_NAV.SECTION.EXPENSES,
                 searchQuery: suggestedSearches[SEARCH_KEYS.EXPENSES].searchQuery,
                 iconName: suggestedSearches[SEARCH_KEYS.EXPENSES].icon,
+                spendColumnTranslationPath: suggestedSearches[SEARCH_KEYS.EXPENSES].translationPath,
             });
         });
     });
@@ -518,6 +525,117 @@ describe('FlatNavUtils', () => {
             // When we resolve what the section opens
             // Then there is nothing to open because pending delete items cannot be opened
             expect(getFlatNavSectionDefaultItem(section)).toBeUndefined();
+        });
+    });
+
+    describe('buildFlatNavSubnavGroups', () => {
+        const rowHeights = {
+            header: variables.flatNavigationBarSubnavHeaderHeight,
+            item: variables.flatNavigationBarSubnavItemHeight,
+            marker: variables.flatNavigationBarSubnavMarkerHeight,
+        };
+
+        function buildSections(isSavedPendingDelete = false) {
+            return buildFlatNavSections({
+                typeMenuSections: createTypeMenuSections([SEARCH_KEYS.EXPENSES, SEARCH_KEYS.REPORTS, SEARCH_KEYS.SUBMIT, SEARCH_KEYS.EXPORT], {hasSavedSearchesSection: true}),
+                savedSearchItems: [createSavedSearchItem('1', {isDisabled: isSavedPendingDelete}), createSavedSearchItem('2')],
+                todoCounts: createTodoCounts(),
+            });
+        }
+
+        it('should list Expenses and Reports under the one header the Spend column uses', () => {
+            // Given the visible sections, where Expenses and Reports are separate
+            // When they are arranged under the subnav headers
+            const groups = buildFlatNavSubnavGroups({sections: buildSections(), isOffline: false});
+
+            // Then Expenses and Reports share the Expense reports header, in order, and the other sections keep their own
+            expect(groups.map((group) => group.id)).toEqual([FLAT_NAV.SUBNAV_GROUP.EXPENSE_REPORTS, FLAT_NAV.SUBNAV_GROUP.ACCOUNTING, FLAT_NAV.SUBNAV_GROUP.SAVED]);
+            expect(groups.at(0)?.translationPath).toBe('search.tabs.expenseReports');
+            expect(groups.at(0)?.items.map((item) => item.key)).toEqual([SEARCH_KEYS.EXPENSES, SEARCH_KEYS.REPORTS, SEARCH_KEYS.SUBMIT]);
+        });
+
+        it('should list the sections in the order their header names them', () => {
+            // Given the visible sections in reverse, so Reports comes before Expenses
+            const sections = buildSections().reverse();
+
+            // When they are arranged under the subnav headers
+            const groups = buildFlatNavSubnavGroups({sections, isOffline: false});
+
+            // Then Expenses still comes first, because the header decides the order and not the caller
+            expect(groups.at(0)?.items.map((item) => item.key)).toEqual([SEARCH_KEYS.EXPENSES, SEARCH_KEYS.REPORTS, SEARCH_KEYS.SUBMIT]);
+        });
+
+        it('should label the reports search as the list of reports next to Expenses', () => {
+            // Given Reports, whose section labels it "My reports"
+            const sections = buildSections();
+            expect(getRequiredSection(sections, FLAT_NAV.SECTION.REPORTS).items.at(0)?.type === FLAT_NAV.ITEM_TYPE.CANNED_SEARCH).toBe(true);
+
+            // When it is listed under the shared header
+            const groups = buildFlatNavSubnavGroups({sections, isOffline: false});
+            const reportsItem = groups.at(0)?.items.find((item) => item.key === SEARCH_KEYS.REPORTS);
+
+            // Then it reads as the whole list of reports, as in the Spend column, and the model's own label is untouched
+            expect(reportsItem?.type === FLAT_NAV.ITEM_TYPE.CANNED_SEARCH && reportsItem.translationPath).toBe('search.tabs.reports');
+            expect(getRequiredSection(sections, FLAT_NAV.SECTION.REPORTS).items.at(0)).toMatchObject({translationPath: 'search.tabs.myReports'});
+        });
+
+        it('should leave out a header with nothing under it', () => {
+            // Given only Accounting is visible
+            const sections = buildFlatNavSections({
+                typeMenuSections: createTypeMenuSections([SEARCH_KEYS.EXPORT]),
+                savedSearchItems: [],
+                todoCounts: createTodoCounts(),
+            });
+
+            // When the sections are arranged
+            const groups = buildFlatNavSubnavGroups({sections, isOffline: false});
+
+            // Then no empty Expense reports or Saved header is drawn
+            expect(groups.map((group) => group.id)).toEqual([FLAT_NAV.SUBNAV_GROUP.ACCOUNTING]);
+        });
+
+        it('should drop a saved search that is pending delete while online', () => {
+            // Given a saved search that is pending delete
+            // When the user is online
+            const groups = buildFlatNavSubnavGroups({sections: buildSections(true), isOffline: false});
+
+            // Then it is gone, as in the Spend column, so every row left has the height the marker is placed by
+            expect(groups.at(-1)?.items.map((item) => item.key)).toEqual([savedSearchIDToSearchKey('2')]);
+        });
+
+        it('should keep a saved search that is pending delete while offline', () => {
+            // Given a saved search that is pending delete
+            // When the user is offline, so the deletion has not reached the server
+            const groups = buildFlatNavSubnavGroups({sections: buildSections(true), isOffline: true});
+
+            // Then it stays listed, so the user sees it struck through
+            expect(groups.at(-1)?.items.map((item) => item.key)).toEqual([savedSearchIDToSearchKey('1'), savedSearchIDToSearchKey('2')]);
+        });
+
+        it('should place the marker on the active row by the heights of the rows above it', () => {
+            // Given the groups Expense reports (Expenses, Reports, Drafts), Accounting (Awaiting export) and Saved
+            const groups = buildFlatNavSubnavGroups({sections: buildSections(), isOffline: false});
+
+            // When the marker is placed for the first row, a row of the second group and a saved search
+            const firstRowTop = getFlatNavSubnavMarkerTop(groups, SEARCH_KEYS.EXPENSES, rowHeights);
+            const accountingRowTop = getFlatNavSubnavMarkerTop(groups, SEARCH_KEYS.EXPORT, rowHeights);
+            const savedRowTop = getFlatNavSubnavMarkerTop(groups, savedSearchIDToSearchKey('2'), rowHeights);
+
+            // Then each is the header heights and the rows above it, plus the inset that centres the marker in its row
+            const centring = (rowHeights.item - rowHeights.marker) / 2;
+            expect(firstRowTop).toBe(rowHeights.header + centring);
+            expect(accountingRowTop).toBe(rowHeights.header + 3 * rowHeights.item + rowHeights.header + centring);
+            expect(savedRowTop).toBe(rowHeights.header + 3 * rowHeights.item + rowHeights.header + rowHeights.item + rowHeights.header + rowHeights.item + centring);
+        });
+
+        it('should place no marker when no listed row is active', () => {
+            // Given the listed groups
+            const groups = buildFlatNavSubnavGroups({sections: buildSections(), isOffline: false});
+
+            // When there is no active search, or the active one has no row, such as a deleted saved search
+            // Then there is nothing to mark
+            expect(getFlatNavSubnavMarkerTop(groups, undefined, rowHeights)).toBeUndefined();
+            expect(getFlatNavSubnavMarkerTop(groups, savedSearchIDToSearchKey('404'), rowHeights)).toBeUndefined();
         });
     });
 });

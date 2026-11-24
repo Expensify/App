@@ -24,12 +24,13 @@ import shouldIgnoreSelectionWhenUpdatedManually from '@libs/shouldIgnoreSelectio
 import CONST from '@src/CONST';
 
 import type {ComponentRef, ForwardedRef} from 'react';
-import type {KeyboardTypeOptions, NativeSyntheticEvent, StyleProp, TextStyle, ViewStyle} from 'react-native';
+import type {KeyboardTypeOptions, StyleProp, TextStyle, ViewStyle} from 'react-native';
 
 import {useIsFocused} from '@react-navigation/native';
 import React, {useEffect, useImperativeHandle, useRef, useState} from 'react';
 import {View} from 'react-native';
 
+import type {AmountTextInputKeyPressEvent} from './AmountTextInput';
 import type {BaseTextInputRef} from './TextInput/BaseTextInput/types';
 import type {TextInputWithSymbolProps} from './TextInputWithSymbol/types';
 
@@ -41,6 +42,7 @@ import TextInput from './TextInput';
 import isTextInputFocused from './TextInput/BaseTextInput/isTextInputFocused';
 import TextInputWithCurrencySymbol from './TextInputWithSymbol';
 
+/** @deprecated Use AmountFormFieldProps or KeypadAmountEditorProps instead. See contributingGuides/NUMBER_WITH_SYMBOL_FORM_MIGRATION.md. */
 type NumberWithSymbolFormProps = {
     /** Value to display, should already be formatted */
     value?: string;
@@ -134,6 +136,7 @@ type NumberWithSymbolFormProps = {
     shouldUseBorderlessButtons?: boolean;
 } & Omit<TextInputWithSymbolProps, 'formattedAmount' | 'onAmountChange' | 'placeholder' | 'onSelectionChange' | 'onKeyPress' | 'onMouseDown' | 'onMouseUp' | 'containerStyles'>;
 
+/** @deprecated Use AmountFormFieldRef (AmountFormField) or AmountEditingRef (KeypadAmountEditor) instead. See contributingGuides/NUMBER_WITH_SYMBOL_FORM_MIGRATION.md. */
 type NumberWithSymbolFormRef = {
     clearSelection: () => void;
     updateNumber: (newNumber: string) => void;
@@ -155,6 +158,9 @@ const NUM_PAD_CONTAINER_VIEW_ID = 'numPadContainerView';
 const NUM_PAD_VIEW_ID = 'numPadView';
 
 /**
+ * @deprecated Use AmountFormField (for inline fields) or KeypadAmountEditor (for full-screen forms) instead.
+ * See contributingGuides/NUMBER_WITH_SYMBOL_FORM_MIGRATION.md.
+ *
  * Generic number input form with symbol (currency or unit).
  *
  * Can render either a standard TextInput or a number input with BigNumberPad and symbol interaction.
@@ -408,7 +414,7 @@ function NumberWithSymbolForm({
     /**
      * Input handler to check for a forward-delete key (or keyboard shortcut) press.
      */
-    const textInputKeyPress = (event: NativeSyntheticEvent<KeyboardEvent>) => {
+    const textInputKeyPress = (event: AmountTextInputKeyPressEvent) => {
         const key = event.nativeEvent.key.toLowerCase();
 
         if (!textInput.current?.value && key === 'backspace' && isNegative) {
@@ -425,7 +431,7 @@ function NumberWithSymbolForm({
         // Also check for the keyboard shortcut on iOS in cases where a hardware keyboard may be connected to the device.
         const operatingSystem = getOperatingSystem() as string | null;
         const allowedOS: string[] = [CONST.OS.MAC_OS, CONST.OS.IOS];
-        forwardDeletePressedRef.current = key === 'delete' || (allowedOS.includes(operatingSystem ?? '') && event.nativeEvent.ctrlKey && key === 'd');
+        forwardDeletePressedRef.current = key === 'delete' || (allowedOS.includes(operatingSystem ?? '') && !!event.nativeEvent.ctrlKey && key === 'd');
     };
 
     useImperativeHandle(numberFormRef, () => ({
@@ -502,6 +508,7 @@ function NumberWithSymbolForm({
             {leadingRightHandSideComponent}
             {shouldShowFlipButton && allowNegativeInput && canUseTouchScreen && (
                 <Button
+                    sentryLabel={CONST.SENTRY_LABEL.NUMBER_WITH_SYMBOL_FORM.FLIP_BUTTON}
                     size={CONST.BUTTON_SIZE.SMALL}
                     innerStyles={shouldUseBorderlessButtons ? styles.bgTransparent : undefined}
                     // `innerStyles` never reaches the hover style `Button` layers on top, so the pill the
@@ -522,6 +529,7 @@ function NumberWithSymbolForm({
             )}
             {shouldShowCurrencyButton && !!currencyOrUnitButtonText && (
                 <Button
+                    sentryLabel={CONST.SENTRY_LABEL.NUMBER_WITH_SYMBOL_FORM.CURRENCY_BUTTON}
                     ref={currencyButtonRef}
                     size={CONST.BUTTON_SIZE.SMALL}
                     innerStyles={shouldUseBorderlessButtons ? styles.bgTransparent : undefined}
@@ -656,6 +664,7 @@ function NumberWithSymbolForm({
                         <View style={[styles.flexRow, styles.justifyContentCenter, styles.gap2]}>
                             {isSymbolPressable && (
                                 <Button
+                                    sentryLabel={CONST.SENTRY_LABEL.NUMBER_WITH_SYMBOL_FORM.CURRENCY_BUTTON}
                                     size={CONST.BUTTON_SIZE.SMALL}
                                     onPress={onSymbolButtonPress}
                                     style={styles.minWidth18}
@@ -671,6 +680,7 @@ function NumberWithSymbolForm({
                             )}
                             {allowFlippingAmount && (
                                 <Button
+                                    sentryLabel={CONST.SENTRY_LABEL.NUMBER_WITH_SYMBOL_FORM.FLIP_BUTTON}
                                     size={CONST.BUTTON_SIZE.SMALL}
                                     onPress={toggleNegative}
                                     style={styles.minWidth18}
@@ -742,6 +752,7 @@ function NumberWithSymbolForm({
                         <View style={[styles.flexRow, styles.moneyRequestAmountContainer, styles.alignItemsCenter, styles.justifyContentCenter]}>{textInputComponent}</View>
                         {isSymbolPressable && !!currency && !canUseTouchScreen && (
                             <Button
+                                sentryLabel={CONST.SENTRY_LABEL.NUMBER_WITH_SYMBOL_FORM.CURRENCY_BUTTON}
                                 size={CONST.BUTTON_SIZE.SMALL}
                                 onPress={onSymbolButtonPress}
                                 style={styles.minWidth18}
@@ -771,6 +782,7 @@ function NumberWithSymbolForm({
             <View style={[styles.flexRow, styles.justifyContentCenter, shouldShowBigNumberPad ? styles.mb2 : styles.mb0, styles.gap2]}>
                 {isSymbolPressable && canUseTouchScreen && (
                     <Button
+                        sentryLabel={CONST.SENTRY_LABEL.NUMBER_WITH_SYMBOL_FORM.CURRENCY_BUTTON}
                         size={CONST.BUTTON_SIZE.SMALL}
                         onPress={onSymbolButtonPress}
                         style={styles.minWidth18}
@@ -786,6 +798,7 @@ function NumberWithSymbolForm({
                 )}
                 {allowFlippingAmount && canUseTouchScreen && (
                     <Button
+                        sentryLabel={CONST.SENTRY_LABEL.NUMBER_WITH_SYMBOL_FORM.FLIP_BUTTON}
                         size={CONST.BUTTON_SIZE.SMALL}
                         onPress={toggleNegative}
                         style={styles.minWidth18}

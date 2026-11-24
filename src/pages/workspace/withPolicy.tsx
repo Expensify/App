@@ -9,7 +9,6 @@ import {updateLastAccessedWorkspace} from '@userActions/Policy/Policy';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
-import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 import type {ComponentType} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -40,13 +39,13 @@ type PolicyRouteName =
     | typeof SCREENS.WORKSPACE.WORKFLOWS_APPROVALS_APPROVER
     | typeof SCREENS.WORKSPACE.WORKFLOWS_APPROVALS_APPROVER_CHANGE
     | typeof SCREENS.WORKSPACE.WORKFLOWS_APPROVALS_APPROVAL_LIMIT
-    | typeof SCREENS.WORKSPACE.WORKFLOWS_APPROVALS_OVER_LIMIT_APPROVER
     | typeof SCREENS.WORKSPACE.WORKFLOWS_AUTO_REPORTING_MONTHLY_OFFSET
     | typeof SCREENS.WORKSPACE.WORKFLOWS_AUTO_REPORTING_WEEKLY_OFFSET
     | typeof SCREENS.WORKSPACE.WORKFLOWS_AUTO_REPORTING_SEMI_MONTHLY_OFFSET
     | typeof SCREENS.WORKSPACE.TIMEZONE
     | typeof SCREENS.WORKSPACE.WORKFLOWS_AUTO_REPORTING_FREQUENCY
     | typeof SCREENS.WORKSPACE.WORKFLOWS_CURRENCY_CONVERSION_FEES
+    | typeof SCREENS.WORKSPACE.WORKFLOWS_REIMBURSEMENT_COUNTRIES
     | typeof SCREENS.WORKSPACE.MEMBER_DETAILS
     | typeof SCREENS.WORKSPACE.MEMBER_DETAILS_ROLE
     | typeof SCREENS.WORKSPACE.MEMBER_DETAILS_CATEGORY_VISIBILITY
@@ -127,10 +126,10 @@ type WithPolicyImplProps<TProps extends WithPolicyProps> = {
 function WithPolicyImpl<TProps extends WithPolicyProps>({WrappedComponent, ...props}: WithPolicyImplProps<TProps>) {
     const policyID = getPolicyIDFromRoute(props.route as PolicyRoute);
     const [hasLoadedApp] = useOnyx(ONYXKEYS.HAS_LOADED_APP);
-    const [policy, policyResults] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
-    const [policyDraft, policyDraftResults] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_DRAFTS}${policyID}`);
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
+    const [policyDraft] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_DRAFTS}${policyID}`);
 
-    const isLoadingPolicy = !hasLoadedApp || (!!policyID && isLoadingOnyxValue(policyResults, policyDraftResults));
+    const isLoadingPolicy = !hasLoadedApp;
 
     useEffect(() => {
         if (!policyID) {

@@ -32,6 +32,7 @@ import navigateToCardTransactions from '@libs/CardNavigationUtils';
 import {
     getCardFeedIcon,
     getCardFeedTextColor,
+    getCardLastUpdated,
     getCompanyCardCustomName,
     getCompanyCardFeed,
     getCompanyFeeds,
@@ -64,7 +65,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {CompanyCardFeedWithDomainID} from '@src/types/onyx';
-import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 import {companyCardCustomNamesSelector} from '@selectors/Card';
 import {format, parseISO} from 'date-fns';
@@ -100,6 +100,7 @@ function DynamicWorkspaceCompanyCardDetailsPage({route}: DynamicWorkspaceCompany
         'RilletSquare',
         'DualEntrySquare',
         'CampfireSquare',
+        'DigitsSquare',
         'ZohoBooksSquare',
         'BusinessCentralSquare',
         'GustoSquare',
@@ -112,8 +113,8 @@ function DynamicWorkspaceCompanyCardDetailsPage({route}: DynamicWorkspaceCompany
     const [connectionSyncProgress] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${policyID}`);
     const [customCardNames] = useOnyx(ONYXKEYS.NVP_EXPENSIFY_COMPANY_CARDS_CUSTOM_NAMES);
     const [activeServer = getActiveServer()] = useOnyx(ONYXKEYS.ACTIVE_SERVER);
-    const [allBankCards, allBankCardsMetadata] = useCardsList(feedName);
-    const [cardList, cardListMetadata] = useOnyx(ONYXKEYS.CARD_LIST);
+    const [allBankCards] = useCardsList(feedName);
+    const [cardList] = useOnyx(ONYXKEYS.CARD_LIST);
     const [cardFeeds] = useCardFeeds(policyID);
 
     const [isUnassigning, setIsUnassigning] = useState(false);
@@ -145,9 +146,7 @@ function DynamicWorkspaceCompanyCardDetailsPage({route}: DynamicWorkspaceCompany
     const isUsingNonProductionAPI = activeServer !== CONST.SERVER.PRODUCTION || CONFIG.IS_USING_LOCAL_WEB;
     const shouldShowBreakConnection = isMockBank && isUsingNonProductionAPI;
 
-    const lastScrape = card?.lastScrape
-        ? format(getLocalDateFromDatetime(card.lastScrape), CONST.DATE.FNS_DATE_TIME_FORMAT_STRING)
-        : translate('workspace.moreFeatures.companyCards.neverUpdated');
+    const lastUpdatedText = card ? getCardLastUpdated(card, translate, getLocalDateFromDatetime).text : translate('workspace.moreFeatures.companyCards.neverUpdated');
 
     const errorRowStyles = [styles.ph5, styles.mb3];
 
@@ -195,8 +194,8 @@ function DynamicWorkspaceCompanyCardDetailsPage({route}: DynamicWorkspaceCompany
 
     const navigateToTransactions = () => navigateToCardTransactions(cardID);
 
-    // Don't show NotFoundPage if the card is being unassigned or data is still loading.
-    if ((!card && !isUnassigning && !isLoadingOnyxValue(allBankCardsMetadata) && !isLoadingOnyxValue(cardListMetadata)) || (isCardBeingUnassigned && !isUnassigning)) {
+    // Don't show NotFoundPage while this page is unassigning the card.
+    if (!isUnassigning && (!card || isCardBeingUnassigned)) {
         return <NotFoundPage />;
     }
 
@@ -239,7 +238,7 @@ function DynamicWorkspaceCompanyCardDetailsPage({route}: DynamicWorkspaceCompany
                         </Text>
                     </View>
                     <Text style={[styles.textLabelSupporting, styles.textAlignCenter, styles.ph5, styles.mb3]}>
-                        {`${translate('workspace.moreFeatures.companyCards.lastUpdated')}: ${card?.isLoadingLastUpdated ? translate('workspace.moreFeatures.companyCards.updating') : lastScrape}`}
+                        {`${translate('workspace.moreFeatures.companyCards.lastUpdated')}: ${lastUpdatedText}`}
                     </Text>
                     <OfflineWithFeedback
                         pendingAction={card?.pendingFields?.lastScrape}
@@ -250,6 +249,7 @@ function DynamicWorkspaceCompanyCardDetailsPage({route}: DynamicWorkspaceCompany
                         <CardDetailsActionButtons>
                             {canWriteCompanyCards && (
                                 <CardDetailsActionButton
+                                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.COMPANY_CARDS.UPDATE_CARD}
                                     onPress={updateCard}
                                     isDisabled={isOffline || card?.isLoadingLastUpdated}
                                     isLoading={card?.isLoadingLastUpdated}
@@ -260,6 +260,7 @@ function DynamicWorkspaceCompanyCardDetailsPage({route}: DynamicWorkspaceCompany
                                 </CardDetailsActionButton>
                             )}
                             <CardDetailsActionButton
+                                sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.COMPANY_CARDS.VIEW_TRANSACTIONS}
                                 onPress={navigateToTransactions}
                                 style={styles.flexShrink0}
                             >
@@ -307,6 +308,7 @@ function DynamicWorkspaceCompanyCardDetailsPage({route}: DynamicWorkspaceCompany
                     </OfflineWithFeedback>
                     {canWriteCompanyCards && shouldShowBreakConnection && (
                         <MenuItemAction
+                            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.COMPANY_CARDS.BREAK_CONNECTION}
                             icon={expensifyIcons.Trashcan}
                             isDisabled={isOffline || card?.isLoadingLastUpdated}
                             title="Break connection (Testing)"

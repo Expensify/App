@@ -10,7 +10,7 @@ type MobileSelectionMenuModalOptions = Omit<MobileSelectionMenuModalWrapperProps
 const useMobileSelectionMenuModal = () => {
     const context = useModal();
 
-    const showMobileSelectionMenuModal = ({id, ...options}: MobileSelectionMenuModalOptions = {}) => {
+    const showMobileSelectionMenuModal = ({id, ...options}: MobileSelectionMenuModalOptions) => {
         return context.showModal({
             component: MobileSelectionMenuModalWrapper,
             id,

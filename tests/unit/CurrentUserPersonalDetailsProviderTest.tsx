@@ -3,35 +3,37 @@ import {renderHook} from '@testing-library/react-native';
 import {CurrentUserPersonalDetailsContext, CurrentUserPersonalDetailsProvider} from '@components/CurrentUserPersonalDetailsProvider';
 import {useSession} from '@components/OnyxListItemProvider';
 
-import useOnyx from '@hooks/useOnyx';
+import {usePersonalDetail} from '@hooks/usePersonalDetails';
 
-import ONYXKEYS from '@src/ONYXKEYS';
-import type {PersonalDetailsList} from '@src/types/onyx';
+import type {PersonalDetails, PersonalDetailsList} from '@src/types/onyx';
 import type {CurrentUserPersonalDetails} from '@src/types/onyx/PersonalDetails';
 
 import React, {useContext} from 'react';
 
-jest.mock('@hooks/useOnyx', () => jest.fn());
+jest.mock('@hooks/usePersonalDetails', () => ({
+    usePersonalDetail: jest.fn(),
+}));
 jest.mock('@components/OnyxListItemProvider', () => ({
     useSession: jest.fn(),
 }));
 
-const mockUseOnyx = jest.mocked(useOnyx);
+const mockUsePersonalDetail = jest.mocked(usePersonalDetail);
 const mockUseSession = jest.mocked(useSession);
 
 type PersonalDetailsSelector = (allPersonalDetails: PersonalDetailsList | undefined) => CurrentUserPersonalDetails;
 
 /**
- * Render the provider and capture the `selector` it passes to `useOnyx` for PERSONAL_DETAILS_LIST.
+ * Render the provider and capture the `selector` it passes to `usePersonalDetail` for the current account.
  * The fix made this selector pure, so we exercise it directly here.
  */
 function getSelector(): PersonalDetailsSelector {
     let capturedSelector: PersonalDetailsSelector | undefined;
-    mockUseOnyx.mockImplementation((key, options) => {
-        if (key === ONYXKEYS.PERSONAL_DETAILS_LIST && options?.selector) {
+    mockUsePersonalDetail.mockImplementation((accountID, selector) => {
+        if (selector) {
             // jest erases the generic type info, so the captured selector needs a narrowing assertion back to its real signature.
             // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
-            capturedSelector = options.selector as PersonalDetailsSelector;
+            const personalDetailSelector = selector as (personalDetail: PersonalDetails | undefined) => CurrentUserPersonalDetails;
+            capturedSelector = (allPersonalDetails) => personalDetailSelector(accountID ? (allPersonalDetails?.[accountID] ?? undefined) : undefined);
         }
         return [undefined, {status: 'loaded'}];
     });
@@ -49,7 +51,7 @@ function getSelector(): PersonalDetailsSelector {
 describe('CurrentUserPersonalDetailsProvider', () => {
     beforeEach(() => {
         jest.clearAllMocks();
-        mockUseOnyx.mockReturnValue([undefined, {status: 'loaded'}]);
+        mockUsePersonalDetail.mockReturnValue([undefined, {status: 'loaded'}]);
     });
 
     it('returns the current account details from the selector', () => {

@@ -3,13 +3,14 @@ import {act, render, screen} from '@testing-library/react-native';
 import AddressSearch from '@components/AddressSearch';
 import AmountForm from '@components/AmountForm';
 import CheckboxWithLabel from '@components/CheckboxWithLabel';
-import CountryPicker from '@components/CountryPicker';
-import CurrencyPicker from '@components/CurrencyPicker';
 import DatePicker from '@components/DatePicker';
+import CurrencyDropdownAdapter from '@components/DynamicForm/adapters/CurrencyDropdownAdapter';
 import CurrencyInlineListAdapter from '@components/DynamicForm/adapters/CurrencyInlineListAdapter';
+import DropdownChoiceAdapter from '@components/DynamicForm/adapters/DropdownChoiceAdapter';
 import FileUploadAdapter from '@components/DynamicForm/adapters/FileUploadAdapter';
 import InlineSelectionListAdapter from '@components/DynamicForm/adapters/InlineSelectionListAdapter';
 import ListFieldAdapter from '@components/DynamicForm/adapters/ListFieldAdapter';
+import MultiChoiceDropdownAdapter from '@components/DynamicForm/adapters/MultiChoiceDropdownAdapter';
 import TabsAdapter from '@components/DynamicForm/adapters/TabsAdapter';
 import ToggleLinkAdapter from '@components/DynamicForm/adapters/ToggleLinkAdapter';
 import YesNoAdapter from '@components/DynamicForm/adapters/YesNoAdapter';
@@ -19,10 +20,8 @@ import getAddressInputKeys from '@components/DynamicForm/utils/getAddressInputKe
 import type {FormValue} from '@components/Form/types';
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import PercentageForm from '@components/PercentageForm';
-import PushRowWithModal from '@components/PushRowWithModal';
 import RadioButtons from '@components/RadioButtons';
 import TextInput from '@components/TextInput';
-import ValuePicker from '@components/ValuePicker';
 
 import variables from '@styles/variables';
 
@@ -41,7 +40,7 @@ type CapturedInputProps = {
     hint?: string;
     inputMode?: string;
     maxAutoGrowHeight?: number;
-    items?: Array<{value: string; label: string}>;
+    items?: Array<{value: string; label: string; searchValue?: string}>;
     optionsList?: Record<string, string>;
     renamedInputKeys?: Record<string, string>;
     canSelectMultiple?: boolean;
@@ -56,6 +55,7 @@ type CapturedInputProps = {
     onBlur?: () => void;
     disabled?: boolean;
     shouldAllowChange?: boolean;
+    stateInputIDToReset?: string;
 };
 
 const mockNetwork = {isOffline: false};
@@ -138,15 +138,15 @@ const otherQuestion: DynamicFormField = {key: 'otherQuestion', type: 'text', req
 const EXPECTED_INPUT_BY_TYPE: Record<DynamicFormFieldType, ComponentType<never>> = {
     text: TextInput,
     number: TextInput,
-    select: ValuePicker,
+    select: DropdownChoiceAdapter,
     radio: RadioButtons,
     date: DatePicker,
     boolean: YesNoAdapter,
-    country: CountryPicker,
-    currency: CurrencyPicker,
+    country: DropdownChoiceAdapter,
+    currency: CurrencyDropdownAdapter,
     address: AddressSearch,
-    multiselect: PushRowWithModal,
-    countryMultiselect: PushRowWithModal,
+    multiselect: MultiChoiceDropdownAdapter,
+    countryMultiselect: MultiChoiceDropdownAdapter,
     file: FileUploadAdapter,
     amount: AmountForm,
     percent: PercentageForm,
@@ -296,35 +296,18 @@ describe('DynamicFormFields', () => {
         expect(rendered.get('accountType')?.items).toEqual([{value: 'CHECKING', label: 'Checking'}]);
     });
 
-    it('opens a searchable list for a select with more options than fit in a picker', () => {
-        // Given a select with one option more than the standard list limit, next to another question
-        const options = Array.from({length: CONST.STANDARD_LIST_ITEM_LIMIT + 1}, (_, index) => ({key: `option${index}`, label: `Option ${index}`}));
-        const longSelect: DynamicFormField = {
-            key: 'industry',
-            label: 'Industry',
-            type: 'select',
-            required: true,
-            values: options,
-        };
-
-        // When the fields render
-        const rendered = renderFields([longSelect, otherQuestion]);
-
-        // Then it uses the push row with a searchable modal
-        expect(rendered.get('industry')?.InputComponent).toBe(PushRowWithModal);
-        expect(Object.keys(rendered.get('industry')?.optionsList ?? {})).toHaveLength(options.length);
-    });
-
-    it('keeps a select as a picker up to the number of options a shared page takes', () => {
-        // Given a select with as many options as pagination still lets share a page, next to another question
-        const options = Array.from({length: CONST.DYNAMIC_FORM.LARGE_SELECT_MIN_OPTIONS}, (_, index) => ({key: `option${index}`, label: `Option ${index}`}));
+    it.each([2, CONST.DYNAMIC_FORM.LARGE_SELECT_MIN_OPTIONS, CONST.STANDARD_LIST_ITEM_LIMIT + 1])('draws a select with %i options as a dropdown row', (optionCount) => {
+        // Given a select next to another question, short or long, since every choice field on a shared page uses the
+        // same dropdown the expense form uses for its category, tag and tax
+        const options = Array.from({length: optionCount}, (_, index) => ({key: `option${index}`, label: `Option ${index}`}));
         const accountType: DynamicFormField = {key: 'accountType', label: 'Account type', type: 'select', required: true, values: options};
 
         // When the fields render
         const rendered = renderFields([accountType, otherQuestion]);
 
-        // Then it stays a picker, since a searchable list is kept for selects that pagination puts on their own page
-        expect(rendered.get('accountType')?.InputComponent).toBe(ValuePicker);
+        // Then it is the dropdown row, offering every option
+        expect(rendered.get('accountType')?.InputComponent).toBe(DropdownChoiceAdapter);
+        expect(rendered.get('accountType')?.items).toHaveLength(optionCount);
     });
 
     it('hints a text field with its example when it has no description', () => {
@@ -468,8 +451,8 @@ describe('DynamicFormFields', () => {
         // When it renders
         const rendered = renderFields([industries, otherQuestion]);
 
-        // Then the push row allows several choices, and the answer is a list of option keys
-        expect(rendered.get('industries')).toMatchObject({canSelectMultiple: true, valueType: 'stringList', optionsList: {RETAIL: 'Retail'}});
+        // Then the dropdown row allows several choices, and the answer is a list of option keys
+        expect(rendered.get('industries')).toMatchObject({InputComponent: MultiChoiceDropdownAdapter, valueType: 'stringList', items: [{value: 'RETAIL', label: 'Retail'}]});
     });
 
     it('keeps the label above an input readable in session recordings while masking the input', () => {
@@ -530,7 +513,7 @@ describe('DynamicFormFields', () => {
         const afterPick = renderFields([expectedVolume], {expectedVolumeCurrency: CONST.CURRENCY.EUR}, {currency: CONST.CURRENCY.GBP});
 
         // Then the currency picker starts on the screen currency, so the form submits a currency even if the user never opens it, and the amount follows the pick
-        expect(beforePick.get('expectedVolumeCurrency')).toMatchObject({InputComponent: CurrencyPicker, defaultValue: CONST.CURRENCY.GBP});
+        expect(beforePick.get('expectedVolumeCurrency')).toMatchObject({InputComponent: CurrencyDropdownAdapter, defaultValue: CONST.CURRENCY.GBP});
         expect(beforePick.get('expectedVolume')).toMatchObject({InputComponent: AmountForm, currency: CONST.CURRENCY.GBP});
         expect(afterPick.get('expectedVolume')?.currency).toBe(CONST.CURRENCY.EUR);
     });
@@ -556,6 +539,32 @@ describe('DynamicFormFields', () => {
         // Then the user sees and can correct every part, each stored under the field key, with no extra heading since every part is labeled
         expect([...rendered.keys()]).toEqual(['homeAddress', 'homeAddress.city', 'homeAddress.state', 'homeAddress.zipCode', 'homeAddress.country']);
         expect(screen.queryByText('Home address')).not.toBeOnTheScreen();
+    });
+
+    it('draws the state and country of an address as dropdown rows', () => {
+        // Given an address field
+        const homeAddress: DynamicFormField = {key: 'homeAddress', type: 'address', required: true};
+        const addressKeys = getAddressInputKeys(homeAddress.key);
+
+        // When it renders
+        const rendered = renderFields([homeAddress]);
+
+        // Then the state and country open like every other choice field of the form, and a new country clears the state, since the old one is not in its list
+        expect(rendered.get(addressKeys.state)?.InputComponent).toBe(DropdownChoiceAdapter);
+        expect(rendered.get(addressKeys.country)?.InputComponent).toBe(DropdownChoiceAdapter);
+        expect(rendered.get(addressKeys.country)?.stateInputIDToReset).toBe(addressKeys.state);
+    });
+
+    it('searches the address countries by their code', () => {
+        // Given an address field
+        const homeAddress: DynamicFormField = {key: 'homeAddress', type: 'address', required: true};
+        const addressKeys = getAddressInputKeys(homeAddress.key);
+
+        // When it renders
+        const rendered = renderFields([homeAddress]);
+
+        // Then its country list searches by code as well as name, the way the country field next to it does
+        expect(rendered.get(addressKeys.country)?.items?.find((item) => item.value === 'GB')?.searchValue).toMatch(/^gb/);
     });
 
     it('opens the numeric keyboard for a text field whose regex takes digits only', () => {
@@ -658,7 +667,7 @@ describe('DynamicFormFields', () => {
             const rendered = renderFields([homeAddress]);
 
             // Then the country is locked, while the street and city stay editable since typing them sends nothing to the server
-            expect(rendered.get('homeAddress.country')?.shouldAllowChange).toBe(false);
+            expect(rendered.get('homeAddress.country')?.disabled).toBe(true);
             expect(rendered.get('homeAddress')?.disabled).toBeFalsy();
             expect(rendered.get('homeAddress.city')?.disabled).toBeFalsy();
         });
@@ -901,8 +910,20 @@ describe('DynamicFormFields', () => {
         // When it renders
         const rendered = renderFields([homeAddress], {[addressKeys.country]: 'GB'});
 
-        // Then there is no state input, since the picker only lists US states and Canadian provinces
+        // Then there is no state input, since the picker only lists states for the US, Canada, Australia and Brazil
         expect(rendered.has(addressKeys.state)).toBe(false);
+    });
+
+    it('lists Australian states for an address in Australia', () => {
+        // Given an address whose draft holds a country the state picker has its own list for
+        const homeAddress: DynamicFormField = {key: 'homeAddress', type: 'address', required: true};
+        const addressKeys = getAddressInputKeys(homeAddress.key);
+
+        // When it renders
+        const rendered = renderFields([homeAddress], {[addressKeys.country]: 'AU'});
+
+        // Then the state is asked from the Australian list, not from US states
+        expect(rendered.get(addressKeys.state)?.items).toContainEqual(expect.objectContaining({value: 'NSW'}));
     });
 
     it('lists Canadian provinces for an address restored with Canada as its country', () => {
@@ -914,7 +935,7 @@ describe('DynamicFormFields', () => {
         const rendered = renderFields([homeAddress], {[addressKeys.country]: 'CA'});
 
         // Then the state picker offers provinces such as Ontario, not US states
-        expect(rendered.get(addressKeys.state)?.optionsList).toHaveProperty('ON');
+        expect(rendered.get(addressKeys.state)?.items).toContainEqual(expect.objectContaining({value: 'ON'}));
     });
 
     it('asks for new requirements once when the user picks the country of a refreshing address', () => {

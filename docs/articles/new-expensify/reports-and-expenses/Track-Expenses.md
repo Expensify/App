@@ -44,6 +44,8 @@ Other ways to SmartScan receipts include:
 
 ## How to manually add an expense
 
+When manually creating an expense from a workspace chat, select **Report > None**, then **Create expense**, to save it in your personal space without a report.
+
 **On mobile:**
 1. Tap the green camera button.
 2. Select **Manual**.

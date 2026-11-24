@@ -420,4 +420,111 @@ describe('getReportHistorySteps', () => {
         // Then the history credits Concierge, like the report conversation does
         expect(steps).toEqual([[translateLocal('reportHistoryPage.submitted'), CONST.ACCOUNT_ID.CONCIERGE]]);
     });
+
+    it('shows the integration a report was exported to', () => {
+        // Given an approved report exported to QuickBooks Online, which created a record for its out-of-pocket expenses
+        const exportedAction: ReportAction = {
+            ...buildAction('2', CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION, FIRST_APPROVER_ACCOUNT_ID, '2026-01-01 10:00:00.000'),
+            message: {
+                type: 'COMMENT',
+                html: 'exported',
+                text: 'exported',
+                label: CONST.EXPORT_LABELS.QBO,
+                reimbursableUrls: ['https://qbo.intuit.com/app/bill?txnId=1'],
+                lastModified: '2026-01-01 10:00:00.000',
+            },
+        };
+
+        // When the steps are built
+        const steps = getCompletedSteps([exportedAction]);
+
+        // Then the history only names the integration, since the record links belong in the report conversation
+        expect(steps).toEqual([[translateLocal('report.actions.type.exportedToIntegration.automatic', CONST.EXPORT_LABELS.QBO), FIRST_APPROVER_ACCOUNT_ID]]);
+    });
+
+    it.each([
+        ['a built-in template', CONST.REPORT.EXPORT_OPTION_LABELS.REPORT_LEVEL_EXPORT, 'COMMENT'],
+        ['a custom template', 'All Transaction Data Report', CONST.EXPORT_TEMPLATE],
+    ])('leaves out an export to %s', (_, label, type) => {
+        // Given a report exported to a CSV template, which the backend logs as an integration export named after the template
+        const templateAction: ReportAction = {
+            ...buildAction('2', CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION, FIRST_APPROVER_ACCOUNT_ID, '2026-01-01 10:00:00.000'),
+            message: {type, html: 'exported', text: 'exported', label, lastModified: '2026-01-01 10:00:00.000'},
+        };
+
+        // When the steps are built
+        const steps = getCompletedSteps([templateAction]);
+
+        // Then history skips it, since CSV exports only belong in the report conversation
+        expect(steps).toEqual([]);
+    });
+
+    it('shows a report marked as exported as a manual export', () => {
+        // Given an approved report an admin marked as exported to QuickBooks Online
+        const exportedAction: ReportAction = {
+            ...buildAction('2', CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION, FIRST_APPROVER_ACCOUNT_ID, '2026-01-01 10:00:00.000'),
+            message: {type: 'COMMENT', html: 'exported', text: 'exported', label: CONST.EXPORT_LABELS.QBO, markedManually: true, lastModified: '2026-01-01 10:00:00.000'},
+        };
+
+        // When the steps are built
+        const steps = getCompletedSteps([exportedAction]);
+
+        // Then the history says it was marked manually, like the report conversation does, rather than claiming the integration exported it
+        expect(steps).toEqual([[translateLocal('reportHistoryPage.markedAsManuallyExported', CONST.EXPORT_LABELS.QBO), FIRST_APPROVER_ACCOUNT_ID]]);
+    });
+
+    it('leaves out an export that has only started', () => {
+        // Given an export this client started, which stays pending if the integration rejects it
+        const startedAction: ReportAction = {
+            ...buildAction('2', CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION, FIRST_APPROVER_ACCOUNT_ID, '2026-01-01 10:00:00.000'),
+            message: {type: 'COMMENT', html: 'exported', text: 'exported', label: CONST.EXPORT_LABELS.XERO, lastModified: '2026-01-01 10:00:00.000'},
+            pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+        };
+
+        // When the steps are built
+        const steps = getCompletedSteps([startedAction]);
+
+        // Then history waits for the server's outcome instead of listing every attempt
+        expect(steps).toEqual([]);
+    });
+
+    it('shows a pending manual export as a manual export', () => {
+        // Given a report an admin just marked as exported to Xero, which the server hasn't confirmed yet
+        const markedAction: ReportAction = {
+            ...buildAction('2', CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION, FIRST_APPROVER_ACCOUNT_ID, '2026-01-01 10:00:00.000'),
+            message: {type: 'COMMENT', html: 'exported', text: 'exported', label: CONST.EXPORT_LABELS.XERO, markedManually: true, lastModified: '2026-01-01 10:00:00.000'},
+            pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+        };
+
+        // When the steps are built
+        const steps = getCompletedSteps([markedAction]);
+
+        // Then history says it was marked manually, since nothing is left to run, rather than claiming an export is in progress
+        expect(steps).toEqual([[translateLocal('reportHistoryPage.markedAsManuallyExported', CONST.EXPORT_LABELS.XERO), FIRST_APPROVER_ACCOUNT_ID]]);
+    });
+
+    it.each([
+        [true, 'reportHistoryPage.receivedPayment'],
+        [false, 'reportHistoryPage.paid'],
+    ] as const)('labels a pay action with isSubmitterMarkedPaymentReceived %s as %s', (isSubmitterMarkedPaymentReceived, translationKey) => {
+        // Given a pay action from the submitter confirming they received payment, or from the payer marking the report paid
+        const payAction: ReportAction = {
+            ...buildAction('2', CONST.REPORT.ACTIONS.TYPE.IOU, OWNER_ACCOUNT_ID, '2026-01-01 10:00:00.000'),
+            message: {
+                type: CONST.IOU.REPORT_ACTION_TYPE.PAY,
+                html: 'paid',
+                text: 'paid',
+                paymentType: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
+                amount: 100,
+                currency: CONST.CURRENCY.USD,
+                isSubmitterMarkedPaymentReceived,
+            },
+        };
+
+        // When the steps are built
+        const steps = getCompletedSteps([payAction]);
+
+        // Then the history uses the same wording as the report conversation
+        expect(steps).toEqual([[translateLocal(translationKey), OWNER_ACCOUNT_ID]]);
+    });
 });

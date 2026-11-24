@@ -7,14 +7,14 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import CONST from '@src/CONST';
-import type {SentryLabel} from '@src/types/utils/SentryLabel';
+import type {WithSentryLabelWhenPressable} from '@src/types/utils/SentryLabel';
 
 import type {StyleProp, ViewStyle} from 'react-native';
 
 import React from 'react';
 import {View} from 'react-native';
 
-type WalletPromptRowProps = {
+type WalletPromptRowProps = WithSentryLabelWhenPressable<'onButtonPress', 'buttonSentryLabel'> & {
     /** What the user needs to do, shown next to the green dot */
     message: string;
 
@@ -25,8 +25,6 @@ type WalletPromptRowProps = {
     buttonText?: string;
 
     onButtonPress?: () => void;
-
-    buttonSentryLabel?: SentryLabel;
 
     /** Spacing for the row, which follows the surface it sits in */
     style?: StyleProp<ViewStyle>;

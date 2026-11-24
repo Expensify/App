@@ -53,6 +53,7 @@ function SageIntacctReimbursableExpensesPage({policy}: WithPolicyConnectionsProp
                 pendingAction={settingsPendingAction(item.subscribedSettings, config?.pendingFields)}
             >
                 <MenuItemField
+                    sentryLabel={item.sentryLabel}
                     name={item.description ?? ''}
                     onPress={item?.onPress}
                     value={item.title}
@@ -67,6 +68,7 @@ function SageIntacctReimbursableExpensesPage({policy}: WithPolicyConnectionsProp
             type: 'menuitem',
             title: reimbursable ? translate(`workspace.sageIntacct.reimbursableExpenses.values.${reimbursable}`) : undefined,
             description: translate('workspace.accounting.exportAs'),
+            sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.SAGE_INTACCT.REIMBURSABLE_ROW.EXPORT_AS,
             onPress: () => {
                 if (!policyID) {
                     return;
@@ -105,6 +107,7 @@ function SageIntacctReimbursableExpensesPage({policy}: WithPolicyConnectionsProp
                     type: 'menuitem',
                     title: defaultVendorName && defaultVendorName !== '' ? defaultVendorName : undefined,
                     description: translate('workspace.sageIntacct.defaultVendor'),
+                    sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.SAGE_INTACCT.REIMBURSABLE_ROW.DEFAULT_VENDOR,
                     onPress: () => {
                         if (!policyID) {
                             return;

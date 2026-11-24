@@ -112,6 +112,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
 
     const [cardFeeds] = useCardFeeds(policyID);
     const policyData = usePolicyData(policyID);
+    const [governmentMileageRates] = useOnyx(ONYXKEYS.GOVERNMENT_MILEAGE_RATES);
     const {categories: policyCategories} = policyData;
     const defaultFundID = useDefaultFundID(policyID);
 
@@ -157,9 +158,11 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
     //
     // Use the active vendor source so a stale GA connection cannot bypass the beta for another
     // integration. When no source is active, keep the connected integration's discovery row.
-    // QBO (R1), Sage Intacct (R2), Xero (R3), Rillet, DualEntry, and Campfire are GA. Business Central and Certinia require the vendorMatching beta.
+    // QBO (R1), Sage Intacct (R2), Xero (R3), Rillet, DualEntry, Campfire, Zoho Books, and Digits are GA. Business Central and Certinia require the vendorMatching beta.
     // Certinia is deliberately not in the discovery list. It reaches the row only through
     // getActiveVendorMatchingIntegration's strict FFA gate, so PSA connections never see it.
+    // QBD is also not in the discovery list. It reaches the row only through
+    // getActiveVendorMatchingIntegration when beta + Codat + CREDIT_CARD_CHARGE are all true.
     const vendorMatchingConnection =
         getActiveVendorMatchingIntegration(policy) ??
         getConnectedIntegration(policy, [
@@ -169,6 +172,8 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
             CONST.POLICY.CONNECTIONS.NAME.RILLET,
             CONST.POLICY.CONNECTIONS.NAME.DUALENTRY,
             CONST.POLICY.CONNECTIONS.NAME.CAMPFIRE,
+            CONST.POLICY.CONNECTIONS.NAME.ZOHO_BOOKS,
+            CONST.POLICY.CONNECTIONS.NAME.DIGITS,
             CONST.POLICY.CONNECTIONS.NAME.BUSINESS_CENTRAL,
         ]);
     const isGenerallyAvailableVendorConnection =
@@ -177,7 +182,9 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
         vendorMatchingConnection === CONST.POLICY.CONNECTIONS.NAME.XERO ||
         vendorMatchingConnection === CONST.POLICY.CONNECTIONS.NAME.RILLET ||
         vendorMatchingConnection === CONST.POLICY.CONNECTIONS.NAME.DUALENTRY ||
-        vendorMatchingConnection === CONST.POLICY.CONNECTIONS.NAME.CAMPFIRE;
+        vendorMatchingConnection === CONST.POLICY.CONNECTIONS.NAME.CAMPFIRE ||
+        vendorMatchingConnection === CONST.POLICY.CONNECTIONS.NAME.ZOHO_BOOKS ||
+        vendorMatchingConnection === CONST.POLICY.CONNECTIONS.NAME.DIGITS;
     const shouldShowVendorsFeature = isGenerallyAvailableVendorConnection || (!!isVendorMatchingBetaEnabled && !!vendorMatchingConnection);
 
     const warnAccountingManagesOrganizeFeature = async () => {
@@ -354,10 +361,10 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                                     return;
                                 }
                                 if (isEnabled) {
-                                    enablePolicyTaxes(policyID, true, isVendorMatchingBetaEnabled, policy?.taxRates, policyData);
+                                    enablePolicyTaxes(policyID, true, isVendorMatchingBetaEnabled, {policy, governmentMileageRates, policyData});
                                     return;
                                 }
-                                enablePolicyTaxes(policyID, false, isVendorMatchingBetaEnabled, undefined, policyData);
+                                enablePolicyTaxes(policyID, false, isVendorMatchingBetaEnabled, {policy, governmentMileageRates, policyData});
                             }}
                             onPress={() => {
                                 if (!policyID) {

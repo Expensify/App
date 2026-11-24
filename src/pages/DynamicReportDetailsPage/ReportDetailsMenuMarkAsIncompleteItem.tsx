@@ -13,6 +13,7 @@ import {isCanceledTaskReport as isCanceledTaskReportUtil, isCompletedTaskReport,
 
 import {canActionTask, reopenTask} from '@userActions/Task';
 
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 
@@ -47,6 +48,7 @@ function ReportDetailsMenuMarkAsIncompleteItem({reportID}: ReportDetailsMenuMark
 
     return (
         <MenuItemAction
+            sentryLabel={CONST.SENTRY_LABEL.REPORT_DETAILS.MARK_AS_INCOMPLETE}
             title={translate('task.markAsIncomplete')}
             icon={expensifyIcons.Checkmark}
             onPress={() => {

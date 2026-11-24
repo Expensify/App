@@ -49,8 +49,8 @@
 -dontwarn org.spongycastle.jce.provider.BouncyCastleProvider
 -dontwarn org.slf4j.impl.StaticLoggerBinder
 
-# https://shopify.github.io/react-native-skia/docs/getting-started/installation/#proguard
--keep class com.shopify.reactnative.skia.** { *; }
+# https://wcandillon.github.io/react-native-skia/v2/docs/getting-started/installation/#proguard
+-keep class com.reactnative.skia.** { *; }
 
 # Strip verbose and debug log calls from release builds
 -assumenosideeffects class android.util.Log {

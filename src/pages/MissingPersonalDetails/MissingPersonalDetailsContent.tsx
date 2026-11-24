@@ -83,7 +83,7 @@ function MissingPersonalDetailsContent({privatePersonalDetails, draftValues, hea
 
     const stepIndexList = shouldCollectPIN ? CONST.MISSING_PERSONAL_DETAILS.STEP_INDEX_LIST_WITH_PIN : CONST.MISSING_PERSONAL_DETAILS.STEP_INDEX_LIST;
 
-    const values = normalizeCountryCode(getSubPageValues(privatePersonalDetails, draftValues)) as PersonalDetailsForm;
+    const values = normalizeCountryCode(getSubPageValues(privatePersonalDetails, draftValues));
 
     const initialPage = getInitialSubPage(values, shouldCollectPIN, PIN);
     const startFrom = findPageIndex<CustomSubPageProps>(formPages, initialPage);

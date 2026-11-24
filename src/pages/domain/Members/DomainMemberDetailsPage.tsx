@@ -2,12 +2,11 @@ import Button from '@components/Button';
 import MenuItem from '@components/MenuItem';
 import MenuItemAction from '@components/MenuItem/presets/MenuItemAction';
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
-import {ModalActions} from '@components/Modal/Global/ModalContext';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import VacationDelegateMenuItem from '@components/VacationDelegateMenuItem';
 
+import useCloseDomainAccountModal from '@hooks/useCloseDomainAccountModal';
 import useConfirmModal from '@hooks/useConfirmModal';
-import useDecisionModal from '@hooks/useDecisionModal';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -33,7 +32,7 @@ import BaseDomainMemberDetailsComponent from '@pages/domain/BaseDomainMemberDeta
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
 
 import {clearVacationDelegateError} from '@userActions/Domain';
-import {callFunctionIfActionIsAllowed} from '@userActions/Session';
+import {callIfAuthenticated} from '@userActions/Session';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -58,7 +57,7 @@ function DomainMemberDetailsPage({route}: DomainMemberDetailsPageProps) {
     const {translate} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['RemoveMembers', 'Flag', 'Unlock', 'CircularArrowBackwards']);
     const {showConfirmModal} = useConfirmModal();
-    const {showDecisionModal} = useDecisionModal();
+    const {showCloseAccountModal: showCloseDomainAccountModal} = useCloseDomainAccountModal();
 
     const securityGroupSelector = (domain: OnyxEntry<Domain>) => selectSecurityGroupForAccount(accountID)(domain);
     const [userSecurityGroup] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {
@@ -89,32 +88,8 @@ function DomainMemberDetailsPage({route}: DomainMemberDetailsPageProps) {
     const lockDomainErrorMessage = Object.values(lockDomainError).at(0);
 
     const showCloseAccountModal = async () => {
-        const decision = await showDecisionModal({
-            title: translate('domain.members.closeAccount', {count: 1}),
-            prompt: translate('domain.members.closeAccountInfo', {count: 1}),
-            secondOptionText: translate('domain.members.safeCloseAccount', {count: 1}),
-            firstOptionText: translate('domain.members.forceCloseAccount', {count: 1}),
-            isFirstOptionDanger: true,
-            isSecondOptionSuccess: true,
-            shouldReportDismiss: true,
-        });
-
-        if (decision.action === ModalActions.DISMISS || !userSecurityGroup) {
-            return;
-        }
-
-        const shouldForceCloseAccount = decision.action === ModalActions.CONFIRM;
-        const result = await showConfirmModal({
-            title: translate('domain.members.closeAccount', {count: 1}),
-            prompt: translate('domain.members.closeAccountPrompt'),
-            confirmText: translate('domain.members.closeAccount', {count: 1}),
-            cancelText: translate('common.cancel'),
-            buttonVariant: CONST.BUTTON_VARIANT.DANGER,
-            shouldShowCancelButton: true,
-        });
-
-        if (result.action !== ModalActions.CONFIRM) {
-            showCloseAccountModal();
+        const shouldForceCloseAccount = await showCloseDomainAccountModal(1);
+        if (shouldForceCloseAccount === undefined || !userSecurityGroup) {
             return;
         }
         closeUserAccount(domainAccountID, domainName ?? '', memberLogin, accountID, userSecurityGroup, shouldForceCloseAccount);
@@ -123,6 +98,7 @@ function DomainMemberDetailsPage({route}: DomainMemberDetailsPageProps) {
 
     const avatarButton = (
         <Button
+            sentryLabel={CONST.SENTRY_LABEL.DOMAIN.MEMBERS.CLOSE_ACCOUNT}
             onPress={() => {
                 showCloseAccountModal();
             }}
@@ -156,6 +132,7 @@ function DomainMemberDetailsPage({route}: DomainMemberDetailsPageProps) {
                 onClose={() => clearChangeDomainSecurityGroupError(domainAccountID, memberLogin)}
             >
                 <MenuItemField
+                    sentryLabel={CONST.SENTRY_LABEL.DOMAIN.MEMBERS.DOMAIN_GROUP}
                     name={translate('domain.members.domainGroup')}
                     onPress={() => Navigation.navigate(ROUTES.DOMAIN_MEMBER_MOVE_TO_GROUP.getRoute(domainAccountID, accountID))}
                     value={userSecurityGroup?.securityGroup?.name}
@@ -164,6 +141,7 @@ function DomainMemberDetailsPage({route}: DomainMemberDetailsPageProps) {
             <VacationDelegateMenuItem
                 vacationDelegate={vacationDelegate}
                 timezone={personalDetails?.timezone?.selected}
+                sentryLabel={CONST.SENTRY_LABEL.DOMAIN.MEMBERS.VACATION_DELEGATE}
                 onPress={() => {
                     clearDraftValues(ONYXKEYS.FORMS.VACATION_DELEGATE_FORM);
                     Navigation.navigate(ROUTES.DOMAIN_VACATION_DELEGATE.getRoute(domainAccountID, accountID));
@@ -199,6 +177,7 @@ function DomainMemberDetailsPage({route}: DomainMemberDetailsPageProps) {
             <View style={styles.mt6} />
             {!!accountRequiresTwoFactorAuth && (
                 <MenuItemAction
+                    sentryLabel={CONST.SENTRY_LABEL.DOMAIN.MEMBERS.RESET_TWO_FACTOR_AUTH}
                     title={translate('domain.common.resetTwoFactorAuth')}
                     icon={icons.CircularArrowBackwards}
                     onPress={() => {
@@ -210,6 +189,7 @@ function DomainMemberDetailsPage({route}: DomainMemberDetailsPageProps) {
 
             {isAccountLocked ? (
                 <MenuItemAction
+                    sentryLabel={CONST.SENTRY_LABEL.DOMAIN.MEMBERS.UNLOCK_ACCOUNT}
                     key="UnlockAccount"
                     title={translate('lockAccountPage.unlockAccount')}
                     icon={icons.Unlock}
@@ -217,8 +197,9 @@ function DomainMemberDetailsPage({route}: DomainMemberDetailsPageProps) {
                 />
             ) : (
                 <MenuItem.Root
+                    sentryLabel={CONST.SENTRY_LABEL.DOMAIN.MEMBERS.REPORT_SUSPICIOUS_ACTIVITY}
                     key="ReportSuspiciousActivity"
-                    onPress={callFunctionIfActionIsAllowed(() => Navigation.navigate(ROUTES.DOMAIN_LOCK_ACCOUNT.getRoute(domainAccountID, accountID)), false, session)}
+                    onPress={callIfAuthenticated(() => Navigation.navigate(ROUTES.DOMAIN_LOCK_ACCOUNT.getRoute(domainAccountID, accountID)), session)}
                 >
                     <MenuItem.Row>
                         <MenuItem.Leading>

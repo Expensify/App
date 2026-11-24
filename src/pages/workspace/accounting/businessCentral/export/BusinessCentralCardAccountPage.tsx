@@ -17,7 +17,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 
-import {callFunctionIfActionIsAllowed} from '@userActions/Session';
+import {callIfAuthenticated} from '@userActions/Session';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -81,9 +81,9 @@ function BusinessCentralCardAccountPage({policy}: WithPolicyConnectionsProps) {
                             )}
                         >
                             <MenuItem.Root
-                                onPress={callFunctionIfActionIsAllowed(
+                                sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.BUSINESS_CENTRAL.CARD_ACCOUNT_FEED_ROW}
+                                onPress={callIfAuthenticated(
                                     () => (policyID ? Navigation.navigate(ROUTES.POLICY_ACCOUNTING_BUSINESS_CENTRAL_CARD_ACCOUNT_CARD_LIST.getRoute(policyID, feedWithDomainID)) : undefined),
-                                    false,
                                     session,
                                 )}
                             >

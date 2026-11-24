@@ -1,3 +1,5 @@
+import type {DropdownFieldHandle} from '@components/DropdownField';
+import DropdownField from '@components/DropdownField';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import {useConfirmationFields} from '@components/MoneyRequestConfirmationFields/context';
 import usePolicyCategoriesForConfirmation from '@components/MoneyRequestConfirmationList/hooks/usePolicyCategoriesForConfirmation';
@@ -6,7 +8,6 @@ import {SELECTION_LIST_POPOVER_HEADER_HEIGHT} from '@components/SelectionListPop
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
-import usePermissions from '@hooks/usePermissions';
 import useReopenAfterReturn from '@hooks/useReopenAfterReturn';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -27,10 +28,8 @@ import type {OnyxEntry} from 'react-native-onyx';
 
 import React, {useRef} from 'react';
 
-import type {ExpenseFieldDropdownHandle} from './ExpenseFieldDropdown';
-
 import CategoryFieldDropdown from './CategoryFieldDropdown';
-import ExpenseFieldDropdown from './ExpenseFieldDropdown';
+import ExpenseFieldContainer from './ExpenseFieldContainer';
 import {useExpenseFormLayout} from './ExpenseFormLayoutContext';
 import {categoryStateSelector} from './selectors';
 import useTransactionSelector from './useTransactionSelector';
@@ -65,13 +64,12 @@ function CategoryField({
     shouldSelectPolicy,
 }: CategoryFieldProps) {
     const {shouldUseDropdownRows} = useExpenseFormLayout();
-    const {isEditingSplitBill} = useConfirmationFields();
-    const {isBetaEnabled} = usePermissions();
+    const {isEditingSplitBill, isScanRequest} = useConfirmationFields();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['Sparkles']);
     const currentUserLogin = useCurrentUserPersonalDetails().login;
-    const dropdownRef = useRef<ExpenseFieldDropdownHandle>(null);
+    const dropdownRef = useRef<DropdownFieldHandle>(null);
 
     const categoryState = useTransactionSelector(transactionID, categoryStateSelector);
     const policyCategories = usePolicyCategoriesForConfirmation(policy?.id);
@@ -80,7 +78,8 @@ function CategoryField({
     const shouldDisplayCategoryError = formError === 'violations.categoryOutOfPolicy';
     const iouCategory = categoryState?.category ?? '';
     const willAutoFill = categoryState?.willAutoFill ?? false;
-    const isAutoFillFromReceipt = categoryState?.isAutoFillFromReceipt ?? false;
+    // Scans extract categories from receipts, whereas manual expense categorization runs after creation.
+    const isAutoFillFromReceipt = isScanRequest;
     const decodedCategoryName = getDecodedLeafCategoryName(iouCategory);
     // The list marks and clears by the stored category name, not by the leaf name the row shows.
     const selectedCategory = isCategoryMissing(iouCategory) ? '' : iouCategory;
@@ -103,17 +102,15 @@ function CategoryField({
     };
 
     const canSaveFromThisForm = action !== CONST.IOU.ACTION.EDIT || isEditingSplitBill;
-    const canUseAnchoredFieldDropdowns = isBetaEnabled(CONST.BETAS.ANCHORED_FIELD_DROPDOWNS);
     const isCreatingExpense = action === CONST.IOU.ACTION.CREATE;
     // While creating, the list loads the categories itself and shows its own empty state, so it never needs the full page.
     const canShowCategories = isCreatingExpense || hasEnabledCategories;
-    const shouldOpenInDropdown =
-        canUseAnchoredFieldDropdowns && !!transactionID && !!policy && !shouldNavigateToUpgradePath && !shouldSelectPolicy && canShowCategories && canSaveFromThisForm;
+    const shouldOpenInDropdown = !!transactionID && !!policy && !shouldNavigateToUpgradePath && !shouldSelectPolicy && canShowCategories && canSaveFromThisForm;
     // The one condition both the row and the effect below open on, so the effect never asks the row to open a
     // list it would refuse and fall back to the full page for.
     const canOpenListInPlace = shouldOpenInDropdown && !isReadOnly && !didConfirm;
     const canAddCategory = canCreateCategoryInSitu(policy, currentUserLogin);
-    const canOpenInDropdownAfterWorkspaceStep = canUseAnchoredFieldDropdowns && shouldUseDropdownRows && isCreatingExpense;
+    const canOpenInDropdownAfterWorkspaceStep = shouldUseDropdownRows && isCreatingExpense;
 
     // The row sent the user to create or pick a workspace, and the upgrade step was told to only go back (`shouldReturnToConfirmation`).
     // Once the form is focused again with a workspace, open the list in place. Backing out without one leaves nothing to list.
@@ -158,36 +155,38 @@ function CategoryField({
 
     if (shouldUseDropdownRows) {
         return (
-            <ExpenseFieldDropdown
-                ref={dropdownRef}
-                name={translate('common.category')}
-                value={decodedCategoryName}
-                numberOfLinesValue={2}
-                rightLabel={getCategoryRightLabel()}
-                rightLabelIcon={getCategoryRightLabelIcon()}
-                // On a scan, `Automatic` describes the category Concierge picked, so it has to outlive the field
-                // being filled in. On a manual expense it only promises a category for a field that is still
-                // empty, so there it goes the moment the field holds one, the same way `Required` does.
-                shouldKeepRightLabelWhenFilled={shouldPromiseAutomaticCategory && isAutoFillFromReceipt}
-                errorText={shouldDisplayCategoryError ? translate(formError as TranslationPaths) : ''}
-                onPress={openCategoryPage}
-                shouldOpenInDropdown={canOpenListInPlace}
-                listHeaderHeight={canAddCategory ? SELECTION_LIST_POPOVER_HEADER_HEIGHT : 0}
-                renderDropdown={(dropdownProps) =>
-                    !!transactionID && (
-                        <CategoryFieldDropdown
-                            {...dropdownProps}
-                            transactionID={transactionID}
-                            policy={policy}
-                            selectedCategory={selectedCategory}
-                            canAddCategory={canAddCategory}
-                        />
-                    )
-                }
-                isDisabled={didConfirm}
-                isInteractive={!isReadOnly}
-                sentryLabel={CONST.SENTRY_LABEL.REQUEST_CONFIRMATION_LIST.CATEGORY_FIELD}
-            />
+            <ExpenseFieldContainer>
+                <DropdownField
+                    ref={dropdownRef}
+                    name={translate('common.category')}
+                    value={decodedCategoryName}
+                    numberOfLinesValue={2}
+                    rightLabel={getCategoryRightLabel()}
+                    rightLabelIcon={getCategoryRightLabelIcon()}
+                    // On a scan, `Automatic` describes the category Concierge picked, so it has to outlive the field
+                    // being filled in. On a manual expense it only promises a category for a field that is still
+                    // empty, so there it goes the moment the field holds one, the same way `Required` does.
+                    shouldKeepRightLabelWhenFilled={shouldPromiseAutomaticCategory && isAutoFillFromReceipt}
+                    errorText={shouldDisplayCategoryError ? translate(formError as TranslationPaths) : ''}
+                    onPress={openCategoryPage}
+                    shouldOpenInDropdown={canOpenListInPlace}
+                    listHeaderHeight={canAddCategory ? SELECTION_LIST_POPOVER_HEADER_HEIGHT : 0}
+                    renderDropdown={(dropdownProps) =>
+                        !!transactionID && (
+                            <CategoryFieldDropdown
+                                {...dropdownProps}
+                                transactionID={transactionID}
+                                policy={policy}
+                                selectedCategory={selectedCategory}
+                                canAddCategory={canAddCategory}
+                            />
+                        )
+                    }
+                    isDisabled={didConfirm}
+                    isInteractive={!isReadOnly}
+                    sentryLabel={CONST.SENTRY_LABEL.REQUEST_CONFIRMATION_LIST.CATEGORY_FIELD}
+                />
+            </ExpenseFieldContainer>
         );
     }
 
