@@ -12,6 +12,9 @@ import useCanReadPolicyFeature from './useCanReadPolicyFeature';
 import useNetwork from './useNetwork';
 import useOnyx from './useOnyx';
 
+/** Policies whose tags read was sent before its optimistic `isLoading` reached Onyx, mapped to the picker that sent it */
+const pendingReadOwners = new Map<string, RefObject<string | undefined>>();
+
 /**
  * Fetches a policy's tags on demand when a tag picker mounts, so a lazy-loaded account does not show only the tag
  * already on the expense. `OpenPolicyTagsPage` is the only tag read available to the client today.
@@ -28,9 +31,6 @@ import useOnyx from './useOnyx';
  * Only roles that can read the workspace's tags send the read, since Auth rejects it for every other role. Those
  * members get the tags with the report through `OpenReport` instead.
  */
-/** Policies whose tags read was sent before its optimistic `isLoading` reached Onyx, mapped to the picker that sent it */
-const pendingReadOwners = new Map<string, RefObject<string | undefined>>();
-
 function useLoadPolicyTags(policyID: string | undefined) {
     const [loadingState] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_POLICY_TAGS_LOADING_STATE}${getNonEmptyStringOnyxID(policyID)}`);
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${getNonEmptyStringOnyxID(policyID)}`);
@@ -69,6 +69,8 @@ function useLoadPolicyTags(policyID: string | undefined) {
         if (isOffline || !canReadTags || requestedPolicyIDRef.current === policyID || pendingReadOwners.has(policyID)) {
             return;
         }
+        // This picker is switching to another policy, so it releases the entry it holds for the previous one. Only the
+        // owner releases it, since another picker may have sent that read.
         if (requestedPolicyIDRef.current && pendingReadOwners.get(requestedPolicyIDRef.current) === requestedPolicyIDRef) {
             pendingReadOwners.delete(requestedPolicyIDRef.current);
         }
