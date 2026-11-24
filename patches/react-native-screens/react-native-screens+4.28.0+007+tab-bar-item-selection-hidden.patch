@@ -139,7 +139,7 @@ diff --git a/node_modules/react-native-screens/ios/tabs/host/RNSTabBarController
 index 06c1957..2be6a93 100644
 --- a/node_modules/react-native-screens/ios/tabs/host/RNSTabBarController.mm
 +++ b/node_modules/react-native-screens/ios/tabs/host/RNSTabBarController.mm
-@@ -86,6 +86,9 @@ static void rns_pushViewController(__unsafe_unretained id self,
+@@ -86,6 +86,9 @@ @implementation RNSTabBarController {
    /// delegate handling). Setter overrides skip reconciliation while this flag is set.
    BOOL _isHandlingExplicitSelectionUpdate;
  
@@ -149,7 +149,7 @@ index 06c1957..2be6a93 100644
    RNSTabsNavigationStateObserverRegistry *_observerRegistry;
  
    RNSParentContainerItemRegistry *_Nonnull _parentContainerRegistry;
-@@ -177,6 +180,46 @@ static void rns_pushViewController(__unsafe_unretained id self,
+@@ -177,6 +180,46 @@ - (void)detachFromParentContainerItem
  
  #pragma mark - UIKit callbacks
  
@@ -196,7 +196,7 @@ index 06c1957..2be6a93 100644
  - (void)didMoveToParentViewController:(UIViewController *)parent
  {
    [super didMoveToParentViewController:parent];
-@@ -276,7 +319,16 @@ static void rns_pushViewController(__unsafe_unretained id self,
+@@ -276,7 +319,16 @@ - (void)performContainerUpdate
  {
    _isHandlingExplicitSelectionUpdate = YES;
    [self updateChildViewControllersIfNeeded];
@@ -214,7 +214,7 @@ index 06c1957..2be6a93 100644
    _isHandlingExplicitSelectionUpdate = NO;
  
    [self updateTabBarAppearanceIfNeeded];
-@@ -353,6 +405,11 @@ static void rns_pushViewController(__unsafe_unretained id self,
+@@ -353,6 +405,11 @@ - (void)userDidRepeatViewControllerSelection:(nonnull UIViewController *)viewCon
  
  - (void)userDidSelectViewController:(nonnull UIViewController *)viewController
  {
@@ -227,10 +227,10 @@ index 06c1957..2be6a93 100644
    RCTAssert(self.selectedViewController == viewController,
              @"[RNScreens] Expected UIKit to update selectedViewController");
 diff --git a/node_modules/react-native-screens/ios/tabs/host/RNSTabsHostComponentView.mm b/node_modules/react-native-screens/ios/tabs/host/RNSTabsHostComponentView.mm
-index 44567be..2b5b857 100644
+index d32c921..e63ef09 100644
 --- a/node_modules/react-native-screens/ios/tabs/host/RNSTabsHostComponentView.mm
 +++ b/node_modules/react-native-screens/ios/tabs/host/RNSTabsHostComponentView.mm
-@@ -603,6 +603,10 @@ - (void)updateProps:(const facebook::react::Props::Shared &)props
+@@ -725,6 +725,10 @@ - (void)updateProps:(const facebook::react::Props::Shared &)props
      }
    }
  
