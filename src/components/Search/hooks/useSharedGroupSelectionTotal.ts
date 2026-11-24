@@ -159,4 +159,3 @@ function useSharedGroupSelectionTotal(
 
 export default useSharedGroupSelectionTotal;
 export {getSharedGroupSelection, resetPendingSharedGroupRequestsForTesting};
-export type {SharedGroupSelection};

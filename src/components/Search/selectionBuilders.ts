@@ -1040,7 +1040,6 @@ export {
     getSearchGroupCountByKey,
     getGroupByCount,
     resolveGroupCount,
-    getClaimedGroupKey,
     getClaimedGroupKeys,
     getOtherClaimedGroupKeysField,
     withoutOtherGroupClaims,
