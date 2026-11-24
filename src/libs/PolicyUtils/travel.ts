@@ -3,13 +3,14 @@
  * Extracted from PolicyUtils/index.ts to keep that file smaller.
  */
 import CONST from '@src/CONST';
-import type {Policy, TravelSettings} from '@src/types/onyx';
+import type {Policy, PolicyEmployee, TravelSettings} from '@src/types/onyx';
 import type {WorkspaceTravelSettings} from '@src/types/onyx/TravelSettings';
 
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 
 import {getAdminsPrivateEmailDomains} from './domains';
+import {isPolicyAdmin} from './permissions';
 import {getActivePolicies} from './policy';
 import {isPaidGroupPolicy} from './policyType';
 
@@ -43,6 +44,20 @@ function canMemberUseTravel(policy: OnyxEntry<Policy>, login: string | undefined
     return !isMemberTravelAccessTurnedOff(policy, login);
 }
 
+/**
+ * Whether the current user can change a member's travel access. Only full workspace admins can call the command, and a
+ * member still being added has an optimistic accountID the server doesn't know yet.
+ */
+function canChangeMemberTravelAccess(policy: OnyxEntry<Policy>, employee: PolicyEmployee | undefined, isTravelMemberAccessBetaEnabled: boolean): boolean {
+    return (
+        isTravelMemberAccessBetaEnabled &&
+        isPolicyAdmin(policy) &&
+        isWorkspaceProvisionedForTravel(policy?.travelSettings) &&
+        !!employee &&
+        employee.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD
+    );
+}
+
 function isNonUSDPolicy(policy: OnyxEntry<Policy>): boolean {
     return !!policy?.outputCurrency && policy.outputCurrency !== CONST.CURRENCY.USD;
 }
@@ -73,4 +88,13 @@ function getTravelStep(
     return CONST.TRAVEL.STEPS.GET_STARTED_TRAVEL;
 }
 
-export {isWorkspaceProvisionedForTravel, isPolicyProvisionedForTravel, hasAcceptedTravelTerms, canMemberUseTravel, isMemberTravelAccessTurnedOff, isNonUSDPolicy, getTravelStep};
+export {
+    isWorkspaceProvisionedForTravel,
+    isPolicyProvisionedForTravel,
+    hasAcceptedTravelTerms,
+    canMemberUseTravel,
+    canChangeMemberTravelAccess,
+    isMemberTravelAccessTurnedOff,
+    isNonUSDPolicy,
+    getTravelStep,
+};

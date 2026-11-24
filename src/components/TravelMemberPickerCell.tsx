@@ -1,5 +1,10 @@
+/**
+ * Inline editable cell for a workspace member's travel access in the workspace members table.
+ */
+import useLocalize from '@hooks/useLocalize';
+
 import {COPYABLE_TEXT_DATA_SET} from '@libs/SelectionScraper';
-import type {TravelMemberOption} from '@libs/TravelMemberOptionUtils';
+import {getTravelMemberAccessName, getTravelMemberAccessOptions} from '@libs/TravelMemberOptionUtils';
 
 import React from 'react';
 
@@ -11,18 +16,16 @@ type TravelMemberPickerCellProps = {
     /** Whether the member can book travel */
     value: boolean;
 
-    /** The label shown for the current value */
-    label: string;
-
-    options: TravelMemberOption[];
-
     /** Whether the current user can change the member's travel setting */
     canEdit: boolean;
 
     onSave: (value: boolean) => void;
 };
 
-function TravelMemberPickerCell({value, label, options, canEdit, onSave}: TravelMemberPickerCellProps) {
+function TravelMemberPickerCell({value, canEdit, onSave}: TravelMemberPickerCellProps) {
+    const {translate} = useLocalize();
+    const label = getTravelMemberAccessName(translate, value);
+    const options = getTravelMemberAccessOptions(translate, value);
     const preferredPopoverHeight = useTravelMemberPickerPopoverHeight(options.length);
 
     const {isEditing, anchorRef, isPopoverVisible, popoverPosition, popoverHeight, anchorAlignment, shouldOpenAbove, startEditing, cancelEditing, handleSave} = usePopoverEditState({

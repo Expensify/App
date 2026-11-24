@@ -75,6 +75,7 @@ import {
     getConnectionExporters,
     getMemberAccountIDsForWorkspace,
     getReimburserEmail,
+    canChangeMemberTravelAccess,
     canMemberUseTravel,
     getSelectableRoles,
     hasActiveExpensifyCard,
@@ -261,8 +262,6 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
     const ownerDetails = personalDetails?.[policy?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID];
 
     const isProvisionedForTravel = isWorkspaceProvisionedForTravel(policy?.travelSettings);
-    // Travel access is changed through a command that only full workspace admins can call
-    const canChangeTravelAccess = isPolicyAdmin(policy);
     const canSelectMultiple = canWriteMembers && (shouldUseNarrowLayout ? isMobileSelectionModeEnabled : true);
 
     let confirmModalPrompt;
@@ -538,10 +537,12 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
             canEditRole,
             onChangeRole: (newRole) => changeMemberRole(login, accountID, policyEmployee.role, newRole),
             canUseTravel: shouldShowTravelColumn ? canMemberUseTravel(policy, login) : undefined,
-            // A member still being added or without a loaded accountID would be sent to the server under an accountID it
-            // doesn't know
+            // A member without a loaded accountID would be sent to the server under an accountID it doesn't know
             canEditTravelAccess:
-                canChangeTravelAccess && !isSelectionModeActive && !isPendingDeleteOrError && policyEmployee.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD && hasKnownAccountID,
+                canChangeMemberTravelAccess(policy, policyEmployee, isBetaEnabled(CONST.BETAS.TRAVEL_MEMBER_ACCESS)) &&
+                !isSelectionModeActive &&
+                !isPendingDeleteOrError &&
+                hasKnownAccountID,
             onChangeTravelAccess: (canUseTravel) => setPolicyTravelMemberAccess(policy, [{email: login, accountID}], canUseTravel),
             // Note which secondary login was used to invite this primary login
             invitedSecondaryLogin: details?.login ? (invitedPrimaryToSecondaryLogins[details.login] ?? '') : '',
