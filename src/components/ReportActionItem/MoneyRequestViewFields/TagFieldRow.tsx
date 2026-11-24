@@ -2,7 +2,8 @@
  * One tag list of a saved expense on the expense view, as a bordered field whose list opens anchored to it. It is a
  * component of its own because the highlight of a tag list that just appeared is a hook, which runs once per list.
  */
-import ExpenseFieldDropdown from '@components/MoneyRequestConfirmationList/sections/ExpenseFieldDropdown';
+import DropdownField from '@components/DropdownField';
+import ExpenseFieldContainer from '@components/MoneyRequestConfirmationList/sections/ExpenseFieldContainer';
 import TagFieldDropdown from '@components/MoneyRequestConfirmationList/sections/TagFieldDropdown';
 import useFieldRowHighlightStyle from '@components/MoneyRequestConfirmationList/sections/useFieldRowHighlightStyle';
 import {SELECTION_LIST_POPOVER_HEADER_HEIGHT} from '@components/SelectionListPopoverHeader';
@@ -50,27 +51,29 @@ function TagFieldRow({transactionID, policy, tagListIndex, name, value, errorTex
     const highlightStyle = useFieldRowHighlightStyle(shouldHighlight);
 
     return (
-        <ExpenseFieldDropdown
-            name={name}
-            value={value}
-            numberOfLinesValue={2}
-            copyValue={value || undefined}
-            errorText={errorText}
-            backgroundStyle={highlightStyle}
-            isInteractive={isInteractive}
-            onPress={onPress}
-            shouldOpenInDropdown={shouldOpenInDropdown}
-            listHeaderHeight={SELECTION_LIST_POPOVER_HEADER_HEIGHT}
-            renderDropdown={(dropdownProps) => (
-                <TagFieldDropdown
-                    {...dropdownProps}
-                    transactionID={transactionID}
-                    policy={policy}
-                    tagListIndex={tagListIndex}
-                />
-            )}
-            sentryLabel={CONST.SENTRY_LABEL.MONEY_REQUEST_VIEW.TAG_FIELD}
-        />
+        <ExpenseFieldContainer>
+            <DropdownField
+                name={name}
+                value={value}
+                numberOfLinesValue={2}
+                copyValue={value || undefined}
+                errorText={errorText}
+                backgroundStyle={highlightStyle}
+                isInteractive={isInteractive}
+                onPress={onPress}
+                shouldOpenInDropdown={shouldOpenInDropdown}
+                listHeaderHeight={SELECTION_LIST_POPOVER_HEADER_HEIGHT}
+                renderDropdown={(dropdownProps) => (
+                    <TagFieldDropdown
+                        {...dropdownProps}
+                        transactionID={transactionID}
+                        policy={policy}
+                        tagListIndex={tagListIndex}
+                    />
+                )}
+                sentryLabel={CONST.SENTRY_LABEL.MONEY_REQUEST_VIEW.TAG_FIELD}
+            />
+        </ExpenseFieldContainer>
     );
 }
 

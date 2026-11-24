@@ -920,6 +920,15 @@ function isUntypedPlaceholderMerchant(isMerchantSet: boolean | undefined, mercha
 }
 
 /**
+ * Checks if the merchant field is empty from the user's point of view: nothing but whitespace, or a placeholder the
+ * flow seeded and the user never typed.
+ */
+function isMerchantBlank(isMerchantSet: boolean | undefined, merchant?: string): boolean {
+    const trimmedMerchant = merchant?.trim() ?? '';
+    return !trimmedMerchant || isUntypedPlaceholderMerchant(isMerchantSet, trimmedMerchant);
+}
+
+/**
  * Validates a 4-digit PIN for UK/EU Expensify Card.
  * PIN must be exactly 4 digits and not in the list of invalid/weak PINs.
  */
@@ -994,6 +1003,7 @@ export {
     getInlineMerchantErrorMessage,
     getInlineDescriptionErrorMessage,
     isUntypedPlaceholderMerchant,
+    isMerchantBlank,
     isValidPIN,
     containsHtmlTag,
 };

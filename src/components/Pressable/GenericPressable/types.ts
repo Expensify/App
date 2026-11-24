@@ -3,11 +3,12 @@ import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
 import type {Shortcut} from '@libs/KeyboardShortcut';
 
 import type CONST from '@src/CONST';
+import type {Route} from '@src/ROUTES';
 import type {WithSentryLabelWhenPressable} from '@src/types/utils/SentryLabel';
 
 import type {ComponentRef, ForwardedRef} from 'react';
 // eslint-disable-next-line no-restricted-imports
-import type {GestureResponderEvent, PressableStateCallbackType, PressableProps as RNPressableProps, Text as RNText, StyleProp, View, ViewStyle} from 'react-native';
+import type {GestureResponderEvent, PressableStateCallbackType, PressableProps as RNPressableProps, Text as RNText, StyleProp, View, ViewProps, ViewStyle} from 'react-native';
 import type {ValueOf} from 'type-fest';
 
 type StylePropWithFunction = StyleProp<ViewStyle> | ((state: PressableStateCallbackType) => StyleProp<ViewStyle>);
@@ -48,6 +49,8 @@ type RequiredAccessibilityLabel =
 type PressHandlerProp = 'onPress' | 'onLongPress';
 
 type PressableProps = RNPressableProps &
+    // React Native 0.88 drops these from Pressable, but list rows still use them for hover state on web.
+    Pick<ViewProps, 'onMouseEnter' | 'onMouseLeave'> &
     RequiredAccessibilityLabel &
     ForwardedFSClassProps &
     WithSentryLabelWhenPressable<PressHandlerProp> & {
@@ -171,6 +174,9 @@ type PressableProps = RNPressableProps &
          * @default false
          */
         shouldAllowTextSelection?: boolean;
+
+        /** Renders the pressable as a link to this route on web, so it can be opened in a new tab */
+        linkRoute?: Route;
 
         ref?: PressableRef;
     };

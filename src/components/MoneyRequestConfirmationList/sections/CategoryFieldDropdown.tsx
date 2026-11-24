@@ -1,4 +1,5 @@
 import CategoryPickerModal from '@components/CategoryPicker/CategoryPickerModal';
+import type {DropdownFieldRenderProps} from '@components/DropdownField';
 import {useConfirmationFields} from '@components/MoneyRequestConfirmationFields/context';
 import usePolicyCategoriesForConfirmation from '@components/MoneyRequestConfirmationList/hooks/usePolicyCategoriesForConfirmation';
 import type {ListItem} from '@components/SelectionList/types';
@@ -23,9 +24,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 
 import React from 'react';
 
-import type {ExpenseFieldDropdownRenderProps} from './ExpenseFieldDropdown';
-
-type CategoryFieldDropdownProps = ExpenseFieldDropdownRenderProps & {
+type CategoryFieldDropdownProps = DropdownFieldRenderProps & {
     /** ID of the expense the picked category is written to */
     transactionID: string;
 

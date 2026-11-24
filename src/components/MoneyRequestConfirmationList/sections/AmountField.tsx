@@ -1,3 +1,4 @@
+import DropdownFieldRow from '@components/DropdownFieldRow';
 import MenuItem from '@components/MenuItem';
 import {useConfirmationFields} from '@components/MoneyRequestConfirmationFields/context';
 import NumberWithSymbolForm from '@components/NumberWithSymbolForm';
@@ -20,7 +21,7 @@ import {
 import {convertToBackendAmount, convertToFrontendAmountAsString, getLocalizedCurrencySymbol} from '@libs/CurrencyUtils';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import {calculateAmount, isMovingTransactionFromTrackExpense, isP2PRecipient, isParticipantP2P} from '@libs/IOUUtils';
-import {getBackendAmountFromInput, isConfirmationAmountMissing} from '@libs/MoneyRequestUtils';
+import {getBackendAmountFromInput} from '@libs/MoneyRequestUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import navigationRef from '@libs/Navigation/navigationRef';
 import {shouldEnableNegative} from '@libs/ReportUtils';
@@ -47,7 +48,7 @@ import React, {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 
 import AutomaticFieldHint from './AutomaticFieldHint';
-import ExpenseFieldRow from './ExpenseFieldRow';
+import ExpenseFieldContainer from './ExpenseFieldContainer';
 import {useExpenseFormLayout} from './ExpenseFormLayoutContext';
 import {amountSliceSelector} from './selectors';
 import useSplitDraftBaseTransaction from './useSplitDraftBaseTransaction';
@@ -62,6 +63,10 @@ type AmountFieldProps = {
     shouldShowTimeRequestFields: boolean;
     shouldDisplayFieldError: boolean;
     formError: string;
+
+    /** The amount entry of the errors a blocked confirm revealed, from `getConfirmationFieldErrors`. Distance and time leave it out, since their amount is computed. */
+    fieldError?: TranslationPaths;
+
     policy: OnyxEntry<OnyxTypes.Policy>;
     clearFormErrors: (errors: string[]) => void;
     setFormError: (error: TranslationPaths | '') => void;
@@ -76,13 +81,14 @@ function AmountField({
     shouldShowTimeRequestFields,
     shouldDisplayFieldError,
     formError,
+    fieldError,
     policy,
     clearFormErrors,
     setFormError,
 }: AmountFieldProps) {
     const isScreenFocused = useIsFocused();
     const navigation = useNavigation();
-    const {isEditingSplitBill, canEnterScanFieldsManually, isPolicyExpenseChat, isReadOnly, didConfirm, transactionID, action, iouType, reportID, reportActionID} = useConfirmationFields();
+    const {isEditingSplitBill, canEnterScanFieldsManually, isReadOnly, didConfirm, transactionID, action, iouType, reportID, reportActionID, fieldViewRefs} = useConfirmationFields();
     // Filled by the forms that offer a receipt from beside the amount field rather than from a full-width empty
     // state, with their compact add-receipt button.
     const {amountTrailingAction, shouldUseDropdownRows} = useExpenseFormLayout();
@@ -118,19 +124,13 @@ function AmountField({
     // so its row is locked the same way until the scan finishes.
     const canOpenAmountPage = !isReadOnly && !isDistanceRequest && !shouldShowTimeRequestFields && !isScanningReceipt;
     const isP2P = isParticipantP2P(getMoneyRequestParticipantsFromReport(report, currentUserPersonalDetails.accountID).at(0));
-    // `common.error.fieldRequired` is shared with the date field, so only surface it on the amount input when the
-    // amount itself is the missing value. `isConfirmationAmountMissing` is the same predicate validation raises the
-    // error from, so a scan expense (where the amount is read off the receipt whenever the user leaves the field
-    // blank) can't show a phantom required error under a field that is deliberately empty.
-    const shouldShowAmountRequiredError = formError === 'common.error.fieldRequired' && isConfirmationAmountMissing(transactionSlice, canEnterScanFieldsManually, isPolicyExpenseChat);
-    const shouldShowAmountInvalidError = formError === 'common.error.invalidAmount';
+    // Editing a split bill flags an invalid amount as the user types, through the form error rather than the field errors.
+    const amountErrorKey = formError === 'common.error.invalidAmount' ? 'common.error.invalidAmount' : fieldError;
     const shouldShowAmountMissingError = shouldDisplayFieldError && amountIsMissing;
 
     let amountFieldErrorText = '';
-    if (shouldShowAmountInvalidError) {
-        amountFieldErrorText = translate('common.error.invalidAmount');
-    } else if (shouldShowAmountRequiredError) {
-        amountFieldErrorText = translate('common.error.fieldRequired');
+    if (amountErrorKey) {
+        amountFieldErrorText = translate(amountErrorKey);
     } else if (shouldShowAmountMissingError) {
         amountFieldErrorText = translate('common.error.enterAmount');
     }
@@ -351,7 +351,10 @@ function AmountField({
                 launcherRef={currencyButtonRef}
             />
             {!isAmountFieldDisabled ? (
-                <View style={[styles.mh4, styles.mv2, styles.flexRow, styles.gap2]}>
+                <View
+                    ref={fieldViewRefs?.amount}
+                    style={[styles.mh4, styles.mv2, styles.flexRow, styles.gap2]}
+                >
                     <View style={styles.flex1}>
                         <NumberWithSymbolForm
                             key={transactionID}
@@ -394,15 +397,17 @@ function AmountField({
                             // On the bordered form the editable amount is a text input, so a locked one reads as a
                             // disabled input too rather than as a push row, or a form whose amount is computed
                             // answers "this field can't be changed" differently from the fields under it.
-                            <ExpenseFieldRow
-                                name={translate('iou.amount')}
-                                value={formattedAmount}
-                                onPress={openAmountPage}
-                                isDisabled={didConfirm}
-                                isInteractive={canOpenAmountPage}
-                                errorText={shouldShowAmountMissingError ? translate('common.error.enterAmount') : ''}
-                                sentryLabel={CONST.SENTRY_LABEL.REQUEST_CONFIRMATION_LIST.AMOUNT_FIELD}
-                            />
+                            <ExpenseFieldContainer>
+                                <DropdownFieldRow
+                                    name={translate('iou.amount')}
+                                    value={formattedAmount}
+                                    onPress={openAmountPage}
+                                    isDisabled={didConfirm}
+                                    isInteractive={canOpenAmountPage}
+                                    errorText={shouldShowAmountMissingError ? translate('common.error.enterAmount') : ''}
+                                    sentryLabel={CONST.SENTRY_LABEL.REQUEST_CONFIRMATION_LIST.AMOUNT_FIELD}
+                                />
+                            </ExpenseFieldContainer>
                         ) : (
                             <MenuItem.Root
                                 onPress={canOpenAmountPage ? callIfAuthenticated(openAmountPage, session) : undefined}

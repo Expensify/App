@@ -1,4 +1,6 @@
 import DotIndicatorMessage from '@components/DotIndicatorMessage';
+import DropdownField from '@components/DropdownField';
+import DropdownFieldRow from '@components/DropdownFieldRow';
 import Icon from '@components/Icon';
 import MenuItem from '@components/MenuItem';
 import MenuItemAction from '@components/MenuItem/presets/MenuItemAction';
@@ -7,8 +9,7 @@ import {ModalActions} from '@components/Modal/Global/ModalContext';
 import ConfirmationFieldsProvider from '@components/MoneyRequestConfirmationFields/Provider';
 import AttendeeFieldDropdown from '@components/MoneyRequestConfirmationList/sections/AttendeeFieldDropdown';
 import CategoryFieldDropdown from '@components/MoneyRequestConfirmationList/sections/CategoryFieldDropdown';
-import ExpenseFieldDropdown from '@components/MoneyRequestConfirmationList/sections/ExpenseFieldDropdown';
-import ExpenseFieldRow from '@components/MoneyRequestConfirmationList/sections/ExpenseFieldRow';
+import ExpenseFieldContainer from '@components/MoneyRequestConfirmationList/sections/ExpenseFieldContainer';
 import ReportFieldDropdown from '@components/MoneyRequestConfirmationList/sections/ReportFieldDropdown';
 import TaxFieldDropdown from '@components/MoneyRequestConfirmationList/sections/TaxFieldDropdown';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -1276,29 +1277,33 @@ function MoneyRequestView({
     const distanceRequestFields = (
         <>
             <OfflineWithFeedback pendingAction={getPendingFieldAction('waypoints') ?? getPendingFieldAction('merchant')}>
-                <ExpenseFieldRow
-                    name={distanceToDisplayDescription}
-                    value={distanceToDisplay}
-                    numberOfLinesValue={2}
-                    errorText={getErrorForField('waypoints')}
-                    hintText={distanceToDisplayHintText}
-                    onPress={openDistancePage}
-                    copyValue={distanceCopyValue}
-                    isInteractive={canEditDistance}
-                    sentryLabel={CONST.SENTRY_LABEL.MONEY_REQUEST_VIEW.DISTANCE_FIELD}
-                />
+                <ExpenseFieldContainer>
+                    <DropdownFieldRow
+                        name={distanceToDisplayDescription}
+                        value={distanceToDisplay}
+                        numberOfLinesValue={2}
+                        errorText={getErrorForField('waypoints')}
+                        hintText={distanceToDisplayHintText}
+                        onPress={openDistancePage}
+                        copyValue={distanceCopyValue}
+                        isInteractive={canEditDistance}
+                        sentryLabel={CONST.SENTRY_LABEL.MONEY_REQUEST_VIEW.DISTANCE_FIELD}
+                    />
+                </ExpenseFieldContainer>
             </OfflineWithFeedback>
             <OfflineWithFeedback pendingAction={getPendingFieldAction('customUnitRateID')}>
-                <ExpenseFieldRow
-                    name={translate('common.rate')}
-                    value={rateToDisplay}
-                    numberOfLinesValue={2}
-                    errorText={getErrorForField('customUnitRateID')}
-                    onPress={openDistanceRatePage}
-                    copyValue={distanceRateCopyValue}
-                    isInteractive={canEditDistanceRate}
-                    sentryLabel={CONST.SENTRY_LABEL.MONEY_REQUEST_VIEW.RATE_FIELD}
-                />
+                <ExpenseFieldContainer>
+                    <DropdownFieldRow
+                        name={translate('common.rate')}
+                        value={rateToDisplay}
+                        numberOfLinesValue={2}
+                        errorText={getErrorForField('customUnitRateID')}
+                        onPress={openDistanceRatePage}
+                        copyValue={distanceRateCopyValue}
+                        isInteractive={canEditDistanceRate}
+                        sentryLabel={CONST.SENTRY_LABEL.MONEY_REQUEST_VIEW.RATE_FIELD}
+                    />
+                </ExpenseFieldContainer>
             </OfflineWithFeedback>
         </>
     );
@@ -1521,17 +1526,19 @@ function MoneyRequestView({
                         errorText={getErrorForField('amount')}
                     />
                 ) : (
-                    <ExpenseFieldRow
-                        name={amountDescription}
-                        value={amountTitle}
-                        numberOfLinesValue={2}
-                        hintText={amountHintText}
-                        errorText={getErrorForField('amount')}
-                        onPress={openAmountPage}
-                        copyValue={amountCopyValue}
-                        isInteractive={canEditAmount}
-                        sentryLabel={CONST.SENTRY_LABEL.MONEY_REQUEST_VIEW.AMOUNT_FIELD}
-                    />
+                    <ExpenseFieldContainer>
+                        <DropdownFieldRow
+                            name={amountDescription}
+                            value={amountTitle}
+                            numberOfLinesValue={2}
+                            hintText={amountHintText}
+                            errorText={getErrorForField('amount')}
+                            onPress={openAmountPage}
+                            copyValue={amountCopyValue}
+                            isInteractive={canEditAmount}
+                            sentryLabel={CONST.SENTRY_LABEL.MONEY_REQUEST_VIEW.AMOUNT_FIELD}
+                        />
+                    </ExpenseFieldContainer>
                 )}
             </OfflineWithFeedback>
             {!shouldHideEmptyDescription && (
@@ -1545,16 +1552,18 @@ function MoneyRequestView({
                             errorText={getErrorForField('comment')}
                         />
                     ) : (
-                        <ExpenseFieldRow
-                            name={translate('common.description')}
-                            valueComponent={descriptionHTML ? <MenuItem.FieldValueHTML>{descriptionHTML}</MenuItem.FieldValueHTML> : undefined}
-                            hasValueComponent={!!descriptionHTML}
-                            accessibilityLabel={[translate('common.description'), descriptionCopyValue].filter(Boolean).join(', ')}
-                            copyValue={descriptionCopyValue}
-                            errorText={getErrorForField('comment')}
-                            isInteractive={false}
-                            sentryLabel={CONST.SENTRY_LABEL.MONEY_REQUEST_VIEW.DESCRIPTION_FIELD}
-                        />
+                        <ExpenseFieldContainer>
+                            <DropdownFieldRow
+                                name={translate('common.description')}
+                                valueComponent={descriptionHTML ? <MenuItem.FieldValueHTML>{descriptionHTML}</MenuItem.FieldValueHTML> : undefined}
+                                hasValueComponent={!!descriptionHTML}
+                                accessibilityLabel={[translate('common.description'), descriptionCopyValue].filter(Boolean).join(', ')}
+                                copyValue={descriptionCopyValue}
+                                errorText={getErrorForField('comment')}
+                                isInteractive={false}
+                                sentryLabel={CONST.SENTRY_LABEL.MONEY_REQUEST_VIEW.DESCRIPTION_FIELD}
+                            />
+                        </ExpenseFieldContainer>
                     )}
                 </OfflineWithFeedback>
             )}
@@ -1572,17 +1581,19 @@ function MoneyRequestView({
                         </MerchantInputField>
                     ) : (
                         <>
-                            <ExpenseFieldRow
-                                name={translate('common.merchant')}
-                                value={updatedMerchantTitle}
-                                numberOfLinesValue={0}
-                                // A merchant still being scanned can't be typed over in place, so it keeps its page.
-                                onPress={openMerchantPage}
-                                copyValue={merchantCopyValue}
-                                errorText={getErrorForField('merchant')}
-                                isInteractive={canEditMerchant}
-                                sentryLabel={CONST.SENTRY_LABEL.MONEY_REQUEST_VIEW.MERCHANT_FIELD}
-                            />
+                            <ExpenseFieldContainer>
+                                <DropdownFieldRow
+                                    name={translate('common.merchant')}
+                                    value={updatedMerchantTitle}
+                                    numberOfLinesValue={0}
+                                    // A merchant still being scanned can't be typed over in place, so it keeps its page.
+                                    onPress={openMerchantPage}
+                                    copyValue={merchantCopyValue}
+                                    errorText={getErrorForField('merchant')}
+                                    isInteractive={canEditMerchant}
+                                    sentryLabel={CONST.SENTRY_LABEL.MONEY_REQUEST_VIEW.MERCHANT_FIELD}
+                                />
+                            </ExpenseFieldContainer>
                             {shouldShowGoogleMerchantSearchLink && <View style={[styles.mh4, styles.mb2]}>{renderGoogleMerchantSearchLink()}</View>}
                         </>
                     )}
@@ -1599,94 +1610,104 @@ function MoneyRequestView({
                         errorText={dateError}
                     />
                 ) : (
-                    <ExpenseFieldRow
-                        name={dateDescription}
-                        value={actualTransactionDate}
-                        copyValue={dateCopyValue || undefined}
-                        errorText={dateError}
-                        isInteractive={false}
-                        sentryLabel={CONST.SENTRY_LABEL.MONEY_REQUEST_VIEW.DATE_FIELD}
-                    />
+                    <ExpenseFieldContainer>
+                        <DropdownFieldRow
+                            name={dateDescription}
+                            value={actualTransactionDate}
+                            copyValue={dateCopyValue || undefined}
+                            errorText={dateError}
+                            isInteractive={false}
+                            sentryLabel={CONST.SENTRY_LABEL.MONEY_REQUEST_VIEW.DATE_FIELD}
+                        />
+                    </ExpenseFieldContainer>
                 )}
             </OfflineWithFeedback>
             {!!shouldShowCategory && (
                 <OfflineWithFeedback pendingAction={getPendingFieldAction('category')}>
-                    <ExpenseFieldDropdown
-                        name={translate('common.category')}
-                        value={shouldShowCategoryAnalyzing ? translate('common.analyzing') : decodedCategoryName}
-                        numberOfLinesValue={2}
-                        errorText={getErrorForField('category')}
-                        hintText={reservationNightsHintText}
-                        onPress={openCategoryPage}
-                        copyValue={categoryCopyValue}
-                        isInteractive={canEdit}
-                        // A category that can no longer be picked asks to be cleared first, and an expense
-                        // without a workspace has to get one. The full-page flow handles both.
-                        shouldOpenInDropdown={!!policy && !shouldShowCategoryDisabledAlert && !shouldNavigateToUpgradePath && hasEnabledOptions(policyCategories ?? {})}
-                        listHeaderHeight={canAddCategory ? SELECTION_LIST_POPOVER_HEADER_HEIGHT : 0}
-                        renderDropdown={(dropdownProps) => (
-                            <CategoryFieldDropdown
-                                {...dropdownProps}
-                                transactionID={transaction.transactionID}
-                                policy={policy}
-                                selectedCategory={categoryValue}
-                                canAddCategory={canAddCategory}
-                            />
-                        )}
-                        sentryLabel={CONST.SENTRY_LABEL.MONEY_REQUEST_VIEW.CATEGORY_FIELD}
-                    />
+                    <ExpenseFieldContainer>
+                        <DropdownField
+                            name={translate('common.category')}
+                            value={shouldShowCategoryAnalyzing ? translate('common.analyzing') : decodedCategoryName}
+                            numberOfLinesValue={2}
+                            errorText={getErrorForField('category')}
+                            hintText={reservationNightsHintText}
+                            onPress={openCategoryPage}
+                            copyValue={categoryCopyValue}
+                            isInteractive={canEdit}
+                            // A category that can no longer be picked asks to be cleared first, and an expense
+                            // without a workspace has to get one. The full-page flow handles both.
+                            shouldOpenInDropdown={!!policy && !shouldShowCategoryDisabledAlert && !shouldNavigateToUpgradePath && hasEnabledOptions(policyCategories ?? {})}
+                            listHeaderHeight={canAddCategory ? SELECTION_LIST_POPOVER_HEADER_HEIGHT : 0}
+                            renderDropdown={(dropdownProps) => (
+                                <CategoryFieldDropdown
+                                    {...dropdownProps}
+                                    transactionID={transaction.transactionID}
+                                    policy={policy}
+                                    selectedCategory={categoryValue}
+                                    canAddCategory={canAddCategory}
+                                />
+                            )}
+                            sentryLabel={CONST.SENTRY_LABEL.MONEY_REQUEST_VIEW.CATEGORY_FIELD}
+                        />
+                    </ExpenseFieldContainer>
                 </OfflineWithFeedback>
             )}
             {shouldShowVendor && (
                 <OfflineWithFeedback pendingAction={getPendingFieldAction('vendor')}>
-                    <ExpenseFieldRow
-                        name={translate('common.vendor')}
-                        value={transactionVendorName}
-                        numberOfLinesValue={2}
-                        errorText={getErrorForField('vendor')}
-                        onPress={openVendorPage}
-                        copyValue={vendorCopyValue}
-                        isInteractive={canEdit}
-                        sentryLabel={CONST.SENTRY_LABEL.MONEY_REQUEST_VIEW.VENDOR_FIELD}
-                    />
+                    <ExpenseFieldContainer>
+                        <DropdownFieldRow
+                            name={translate('common.vendor')}
+                            value={transactionVendorName}
+                            numberOfLinesValue={2}
+                            errorText={getErrorForField('vendor')}
+                            onPress={openVendorPage}
+                            copyValue={vendorCopyValue}
+                            isInteractive={canEdit}
+                            sentryLabel={CONST.SENTRY_LABEL.MONEY_REQUEST_VIEW.VENDOR_FIELD}
+                        />
+                    </ExpenseFieldContainer>
                 </OfflineWithFeedback>
             )}
             {shouldShowTag && tagList}
             {!!shouldShowCard && (
                 <OfflineWithFeedback pendingAction={getPendingFieldAction('cardID')}>
-                    <ExpenseFieldRow
-                        name={translate('iou.card')}
-                        value={cardCopyValue}
-                        numberOfLinesValue={2}
-                        copyValue={cardCopyValue}
-                        isInteractive={false}
-                        sentryLabel={CONST.SENTRY_LABEL.MONEY_REQUEST_VIEW.CARD_FIELD}
-                    />
+                    <ExpenseFieldContainer>
+                        <DropdownFieldRow
+                            name={translate('iou.card')}
+                            value={cardCopyValue}
+                            numberOfLinesValue={2}
+                            copyValue={cardCopyValue}
+                            isInteractive={false}
+                            sentryLabel={CONST.SENTRY_LABEL.MONEY_REQUEST_VIEW.CARD_FIELD}
+                        />
+                    </ExpenseFieldContainer>
                 </OfflineWithFeedback>
             )}
             {shouldShowTax && (
                 <OfflineWithFeedback pendingAction={getPendingFieldAction('taxCode')}>
-                    <ExpenseFieldDropdown
-                        name={taxRatesDescription ?? translate('common.tax')}
-                        value={taxRateValue}
-                        numberOfLinesValue={2}
-                        errorText={getErrorForField('tax')}
-                        onPress={openTaxRatePage}
-                        copyValue={taxRateCopyValue || undefined}
-                        isInteractive={canEditTaxFields}
-                        // A tax that can no longer be picked asks to be cleared first, which the full-page flow handles.
-                        shouldOpenInDropdown={!!policy && !shouldShowTaxDisabledAlert && getEnabledTaxRateCount(taxRates?.taxes ?? {}) > 0}
-                        listHeaderHeight={SELECTION_LIST_POPOVER_HEADER_HEIGHT}
-                        renderDropdown={(dropdownProps) => (
-                            <TaxFieldDropdown
-                                {...dropdownProps}
-                                transactionID={transaction.transactionID}
-                                policy={policy}
-                                selectedTaxRate={getTaxRateTitle(translate, policy, transaction, false)}
-                            />
-                        )}
-                        sentryLabel={CONST.SENTRY_LABEL.MONEY_REQUEST_VIEW.TAX_RATE_FIELD}
-                    />
+                    <ExpenseFieldContainer>
+                        <DropdownField
+                            name={taxRatesDescription ?? translate('common.tax')}
+                            value={taxRateValue}
+                            numberOfLinesValue={2}
+                            errorText={getErrorForField('tax')}
+                            onPress={openTaxRatePage}
+                            copyValue={taxRateCopyValue || undefined}
+                            isInteractive={canEditTaxFields}
+                            // A tax that can no longer be picked asks to be cleared first, which the full-page flow handles.
+                            shouldOpenInDropdown={!!policy && !shouldShowTaxDisabledAlert && getEnabledTaxRateCount(taxRates?.taxes ?? {}) > 0}
+                            listHeaderHeight={SELECTION_LIST_POPOVER_HEADER_HEIGHT}
+                            renderDropdown={(dropdownProps) => (
+                                <TaxFieldDropdown
+                                    {...dropdownProps}
+                                    transactionID={transaction.transactionID}
+                                    policy={policy}
+                                    selectedTaxRate={getTaxRateTitle(translate, policy, transaction, false)}
+                                />
+                            )}
+                            sentryLabel={CONST.SENTRY_LABEL.MONEY_REQUEST_VIEW.TAX_RATE_FIELD}
+                        />
+                    </ExpenseFieldContainer>
                 </OfflineWithFeedback>
             )}
             {shouldShowTax && (
@@ -1701,63 +1722,69 @@ function MoneyRequestView({
                             label={taxAmountDescription}
                         />
                     ) : (
-                        <ExpenseFieldRow
-                            name={taxAmountDescription}
-                            value={taxAmountTitle}
-                            numberOfLinesValue={2}
-                            onPress={openTaxAmountPage}
-                            copyValue={taxAmountCopyValue}
-                            isInteractive={canEditTaxFields}
-                            sentryLabel={CONST.SENTRY_LABEL.MONEY_REQUEST_VIEW.TAX_AMOUNT_FIELD}
-                        />
+                        <ExpenseFieldContainer>
+                            <DropdownFieldRow
+                                name={taxAmountDescription}
+                                value={taxAmountTitle}
+                                numberOfLinesValue={2}
+                                onPress={openTaxAmountPage}
+                                copyValue={taxAmountCopyValue}
+                                isInteractive={canEditTaxFields}
+                                sentryLabel={CONST.SENTRY_LABEL.MONEY_REQUEST_VIEW.TAX_AMOUNT_FIELD}
+                            />
+                        </ExpenseFieldContainer>
                     )}
                 </OfflineWithFeedback>
             )}
             {shouldShowAttendees && (
                 <OfflineWithFeedback pendingAction={getPendingFieldAction('attendees')}>
-                    <ExpenseFieldDropdown
-                        name={[translate('iou.attendees'), attendeesPerPersonText].filter(Boolean).join(' ')}
-                        valueComponent={hasAttendees ? attendeePills : undefined}
-                        hasValueComponent={hasAttendees}
-                        accessibilityLabel={`${translate('iou.attendees')}, ${getAttendeesTitle}`}
-                        errorText={getErrorForField('attendees')}
-                        onPress={openAttendeesPage}
-                        copyValue={attendeesCopyValue}
-                        isInteractive={canEdit}
-                        shouldOpenInDropdown
-                        listHeaderHeight={SELECTION_LIST_POPOVER_HEADER_HEIGHT}
-                        renderDropdown={(dropdownProps) => (
-                            <AttendeeFieldDropdown
-                                {...dropdownProps}
-                                transactionID={transaction.transactionID}
-                                iouType={iouType}
-                            />
-                        )}
-                        sentryLabel={CONST.SENTRY_LABEL.MONEY_REQUEST_VIEW.ATTENDEES_FIELD}
-                    />
+                    <ExpenseFieldContainer>
+                        <DropdownField
+                            name={[translate('iou.attendees'), attendeesPerPersonText].filter(Boolean).join(' ')}
+                            valueComponent={hasAttendees ? attendeePills : undefined}
+                            hasValueComponent={hasAttendees}
+                            accessibilityLabel={`${translate('iou.attendees')}, ${getAttendeesTitle}`}
+                            errorText={getErrorForField('attendees')}
+                            onPress={openAttendeesPage}
+                            copyValue={attendeesCopyValue}
+                            isInteractive={canEdit}
+                            shouldOpenInDropdown
+                            listHeaderHeight={SELECTION_LIST_POPOVER_HEADER_HEIGHT}
+                            renderDropdown={(dropdownProps) => (
+                                <AttendeeFieldDropdown
+                                    {...dropdownProps}
+                                    transactionID={transaction.transactionID}
+                                    iouType={iouType}
+                                />
+                            )}
+                            sentryLabel={CONST.SENTRY_LABEL.MONEY_REQUEST_VIEW.ATTENDEES_FIELD}
+                        />
+                    </ExpenseFieldContainer>
                 </OfflineWithFeedback>
             )}
             {toggleFields}
             {shouldShowReport && (
                 <OfflineWithFeedback pendingAction={getPendingFieldAction('reportID')}>
-                    <ExpenseFieldDropdown
-                        name={translate('common.report')}
-                        // The field renders plain text, so a report name with markup is flattened first.
-                        value={Parser.htmlToText(reportNameToDisplay)}
-                        onPress={openReportPage}
-                        copyValue={reportCopyValue ? Parser.htmlToText(reportCopyValue) : undefined}
-                        isInteractive={canEditReport}
-                        // An upgrade, and a per diem expense moving to a workspace with other rates, each go on to a page of their own.
-                        shouldOpenInDropdown={!shouldNavigateToUpgradePath && !isPerDiemRequest}
-                        listHeaderHeight={SELECTION_LIST_POPOVER_HEADER_HEIGHT}
-                        renderDropdown={(dropdownProps) => (
-                            <ReportFieldDropdown
-                                {...dropdownProps}
-                                transactionID={transaction.transactionID}
-                            />
-                        )}
-                        sentryLabel={CONST.SENTRY_LABEL.MONEY_REQUEST_VIEW.REPORT_FIELD}
-                    />
+                    <ExpenseFieldContainer>
+                        <DropdownField
+                            name={translate('common.report')}
+                            // The field renders plain text, so a report name with markup is flattened first.
+                            value={Parser.htmlToText(reportNameToDisplay)}
+                            onPress={openReportPage}
+                            copyValue={reportCopyValue ? Parser.htmlToText(reportCopyValue) : undefined}
+                            isInteractive={canEditReport}
+                            // An upgrade, and a per diem expense moving to a workspace with other rates, each go on to a page of their own.
+                            shouldOpenInDropdown={!shouldNavigateToUpgradePath && !isPerDiemRequest}
+                            listHeaderHeight={SELECTION_LIST_POPOVER_HEADER_HEIGHT}
+                            renderDropdown={(dropdownProps) => (
+                                <ReportFieldDropdown
+                                    {...dropdownProps}
+                                    transactionID={transaction.transactionID}
+                                />
+                            )}
+                            sentryLabel={CONST.SENTRY_LABEL.MONEY_REQUEST_VIEW.REPORT_FIELD}
+                        />
+                    </ExpenseFieldContainer>
                 </OfflineWithFeedback>
             )}
         </View>

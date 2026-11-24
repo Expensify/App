@@ -1,3 +1,4 @@
+import type {DropdownFieldRenderProps} from '@components/DropdownField';
 import {useConfirmationFields} from '@components/MoneyRequestConfirmationFields/context';
 import usePolicyTagsForConfirmation from '@components/MoneyRequestConfirmationList/hooks/usePolicyTagsForConfirmation';
 import TagPickerModal from '@components/TagPicker/TagPickerModal';
@@ -16,12 +17,10 @@ import type {OnyxEntry} from 'react-native-onyx';
 
 import React from 'react';
 
-import type {ExpenseFieldDropdownRenderProps} from './ExpenseFieldDropdown';
-
 import {transactionTagSelector} from './selectors';
 import useTransactionSelector from './useTransactionSelector';
 
-type TagFieldDropdownProps = ExpenseFieldDropdownRenderProps & {
+type TagFieldDropdownProps = DropdownFieldRenderProps & {
     /** ID of the expense the picked tag is written to */
     transactionID: string;
 

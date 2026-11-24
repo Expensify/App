@@ -3,6 +3,7 @@
  * the user applies it to the expense.
  */
 import AttendeePickerModal from '@components/AttendeePicker/AttendeePickerModal';
+import type {DropdownFieldRenderProps} from '@components/DropdownField';
 import {useConfirmationFields} from '@components/MoneyRequestConfirmationFields/context';
 
 import useMoneyRequestUpdateParams from '@hooks/useMoneyRequestUpdateParams';
@@ -20,9 +21,7 @@ import type {Attendee} from '@src/types/onyx/IOU';
 import {deepEqual} from 'fast-equals';
 import React, {useState} from 'react';
 
-import type {ExpenseFieldDropdownRenderProps} from './ExpenseFieldDropdown';
-
-type AttendeeFieldDropdownProps = ExpenseFieldDropdownRenderProps & {
+type AttendeeFieldDropdownProps = DropdownFieldRenderProps & {
     /** ID of the expense the attendees are written to */
     transactionID: string;
 
