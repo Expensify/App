@@ -30,6 +30,18 @@ describe('useLocalReceiptThumbnail', () => {
         mockGenerateThumbnail.mockResolvedValue(null);
     });
 
+    it('skips thumbnail generation when the preview already displays the original blob', () => {
+        // Given a dropped receipt without a cached thumbnail
+        const uri = 'blob:receipt-without-thumbnail';
+
+        // When the preview only needs a thumbnail if one is already available
+        const {result} = renderHook(() => useLocalReceiptThumbnail(uri, true, {generateIfMissing: false}));
+
+        // Then the preview can use the original without scheduling any image processing
+        expect(result.current).toEqual({thumbnailUri: undefined, isGenerating: false});
+        expect(mockGenerateThumbnail).not.toHaveBeenCalled();
+    });
+
     it('hands back the seeded receipt untouched while nothing has replaced it', () => {
         const {uri} = buildReceipt('receipt_untouched.jpg');
         precacheReceiptImage(uri);

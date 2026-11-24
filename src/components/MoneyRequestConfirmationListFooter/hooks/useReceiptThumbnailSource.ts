@@ -34,7 +34,10 @@ function useReceiptThumbnailSource({transaction, receiptPath, receiptFilename}: 
     const resolvedThumbnail = isLocalFile ? receiptThumbnail : tryResolveUrlFromApiRoot(receiptThumbnail ?? '');
     const resolvedReceiptImage = isLocalFile ? receiptImage : tryResolveUrlFromApiRoot(receiptImage ?? '');
 
-    const {thumbnailUri} = useLocalReceiptThumbnail(resolvedReceiptImage as string, !!isLocalFile);
+    // Confirmation keeps the first source it displays, so generating a thumbnail later can't replace a blob preview.
+    const {thumbnailUri} = useLocalReceiptThumbnail(resolvedReceiptImage as string, !!isLocalFile, {
+        generateIfMissing: !(typeof resolvedReceiptImage === 'string' && resolvedReceiptImage.startsWith('blob:')),
+    });
 
     // Capture the thumbnail source on first render (or when the underlying image changes) to
     // avoid a visible source swap (flash) when the thumbnail arrives late for local files.
