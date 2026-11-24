@@ -28,6 +28,7 @@ type WorkspaceCategoriesTableRowProps = {
     /** Whether the GL Code column is visible on web screens or not */
     shouldShowGLCodeColumn: boolean;
 
+    /** Whether the Payroll Code column is visible on web screens or not */
     shouldShowPayrollCodeColumn: boolean;
 
     /** Whether the approver column is visible on web screens or not */
