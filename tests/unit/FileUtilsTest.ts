@@ -157,8 +157,8 @@ describe('FileUtils', () => {
     });
 
     describe('isErrorResponseForFileDownload', () => {
-        it.each(['report.csv', 'ABA_Report_123.aba'])('treats a JSON response to a %s download as an error', (fileName) => {
-            // Given the API responded to a CSV or ABA file download with JSON
+        it.each(['report.csv', 'ABA_Report_123.aba', 'Wise_Receipt_123.pdf'])('treats a JSON response to a %s download as an error', (fileName) => {
+            // Given the API responded to a CSV, ABA or PDF file download with JSON
             const contentType = 'application/json';
 
             // When checking whether the response is an error

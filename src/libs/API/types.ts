@@ -1825,6 +1825,7 @@ const READ_COMMANDS = {
     GET_CORPAY_ONBOARDING_FIELDS: 'GetCorpayOnboardingFields',
     GET_WISE_KYC_REVIEW_EMBEDDED_LINK: 'GetWiseKYCReviewEmbeddedLink',
     GET_WISE_QUOTE: 'GetWiseQuote',
+    GET_WISE_TRANSFER_RECEIPT: 'GetWiseTransferReceipt',
     OPEN_WORKSPACE_PLAN_PAGE: 'OpenWorkspacePlanPage',
     OPEN_SECURITY_SETTINGS_PAGE: 'OpenSecuritySettingsPage',
     OPEN_MULTIFACTOR_AUTHENTICATION_REVOKE_PAGE: 'OpenMultifactorAuthenticationRevokePage',
@@ -1958,6 +1959,7 @@ type ReadCommandParameters = {
     [READ_COMMANDS.GET_CORPAY_ONBOARDING_FIELDS]: Parameters.GetCorpayOnboardingFieldsParams;
     [READ_COMMANDS.GET_WISE_KYC_REVIEW_EMBEDDED_LINK]: Parameters.GetWiseKYCReviewEmbeddedLinkParams;
     [READ_COMMANDS.GET_WISE_QUOTE]: Parameters.GetWiseQuoteParams;
+    [READ_COMMANDS.GET_WISE_TRANSFER_RECEIPT]: Parameters.GetWiseTransferReceiptParams;
     [READ_COMMANDS.OPEN_WORKSPACE_PLAN_PAGE]: Parameters.OpenWorkspacePlanPageParams;
     [READ_COMMANDS.OPEN_SECURITY_SETTINGS_PAGE]: null;
     [READ_COMMANDS.OPEN_MULTIFACTOR_AUTHENTICATION_REVOKE_PAGE]: null;
@@ -2023,7 +2025,6 @@ const SIDE_EFFECT_REQUEST_COMMANDS = {
 
     GET_STATEMENT_PDF: 'GetStatementPDF',
     GET_EXPENSIFY_CARD_STATEMENT_PDF: 'GetExpensifyCardStatementPDF',
-    GET_WISE_TRANSFER_RECEIPT: 'GetWiseTransferReceipt',
     REGISTER_AUTHENTICATION_KEY: 'RegisterAuthenticationKey',
     TROUBLESHOOT_MULTIFACTOR_AUTHENTICATION: 'TroubleshootMultifactorAuthentication',
     REQUEST_AUTHENTICATION_CHALLENGE: 'RequestAuthenticationChallenge',
@@ -2083,7 +2084,6 @@ type SideEffectRequestCommandParameters = {
     [SIDE_EFFECT_REQUEST_COMMANDS.COMPLETE_GUIDED_SETUP]: Parameters.CompleteGuidedSetupParams;
     [SIDE_EFFECT_REQUEST_COMMANDS.GET_STATEMENT_PDF]: Parameters.GetStatementPDFParams;
     [SIDE_EFFECT_REQUEST_COMMANDS.GET_EXPENSIFY_CARD_STATEMENT_PDF]: Parameters.GetExpensifyCardStatementPDFParams;
-    [SIDE_EFFECT_REQUEST_COMMANDS.GET_WISE_TRANSFER_RECEIPT]: Parameters.GetWiseTransferReceiptParams;
     [SIDE_EFFECT_REQUEST_COMMANDS.REGISTER_AUTHENTICATION_KEY]: Parameters.RegisterAuthenticationKeyParams;
     [SIDE_EFFECT_REQUEST_COMMANDS.TROUBLESHOOT_MULTIFACTOR_AUTHENTICATION]: Parameters.TroubleshootMultifactorAuthenticationParams;
     [SIDE_EFFECT_REQUEST_COMMANDS.REQUEST_AUTHENTICATION_CHALLENGE]: Parameters.RequestAuthenticationChallengeParams;

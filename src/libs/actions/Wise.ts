@@ -1,6 +1,11 @@
-import {makeRequestWithSideEffects, read} from '@libs/API';
-import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS} from '@libs/API/types';
+import type {LocalizedTranslate} from '@components/LocaleContextProvider';
+
+import {read} from '@libs/API';
+import {READ_COMMANDS} from '@libs/API/types';
+import {getCommandURL} from '@libs/ApiUtils';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
+import fileDownload from '@libs/fileDownload';
+import enhanceParameters from '@libs/Network/enhanceParameters';
 import {canReuseWiseQuote, getWiseQuoteRequest} from '@libs/WiseQuoteUtils';
 
 import CONST from '@src/CONST';
@@ -70,11 +75,26 @@ function getWiseQuote(report: Report, full: boolean) {
 }
 
 /**
- * Has the server save the receipt of the report's Wise transfer as a PDF and resolves with its file name, or undefined when there is none.
- * Nothing is shown while it runs or kept after it, so it skips Onyx and hands the name straight to the download.
+ * Downloads the receipt of the report's Wise transfer. The server fetches it from Wise and responds with the PDF itself, so the
+ * request bypasses the API queue and nothing goes to Onyx. The server responds with JSON when Wise has no receipt for the transfer.
  */
-function getWiseTransferReceiptFileName(reportID: string): Promise<string | undefined> {
-    return makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.GET_WISE_TRANSFER_RECEIPT, {reportID}).then((response) => response?.fileName);
+function downloadWiseTransferReceipt(reportID: string, translate: LocalizedTranslate, onDownloadFailed: () => void): Promise<void> {
+    const finalParameters = enhanceParameters(READ_COMMANDS.GET_WISE_TRANSFER_RECEIPT, {reportID});
+    const formData = new FormData();
+    for (const [key, value] of Object.entries(finalParameters)) {
+        formData.append(key, String(value));
+    }
+
+    return fileDownload(
+        translate,
+        getCommandURL({command: READ_COMMANDS.GET_WISE_TRANSFER_RECEIPT}),
+        `Wise_Receipt_${reportID}.pdf`,
+        '',
+        false,
+        formData,
+        CONST.NETWORK.METHOD.POST,
+        onDownloadFailed,
+    );
 }
 
 /** Drops the link, which carries a token */
@@ -90,4 +110,4 @@ function setOptimisticWiseOnboardingInReview(bankAccountID: number) {
     Onyx.merge(ONYXKEYS.BANK_ACCOUNT_LIST, {[bankAccountID]: {accountData: {additionalData: {wise: {status: CONST.WISE.ONBOARDING_STATUS.IN_REVIEW}}}}});
 }
 
-export {clearWiseKYCReviewEmbeddedLink, getWiseKYCReviewEmbeddedLink, getWiseQuote, getWiseTransferReceiptFileName, setOptimisticWiseOnboardingInReview};
+export {clearWiseKYCReviewEmbeddedLink, downloadWiseTransferReceipt, getWiseKYCReviewEmbeddedLink, getWiseQuote, setOptimisticWiseOnboardingInReview};

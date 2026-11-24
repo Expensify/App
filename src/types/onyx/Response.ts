@@ -151,9 +151,6 @@ type Response<TKey extends OnyxKey> = {
     /** Cache key returned from GetExpensifyCardStatementPDF */
     statementKey?: string;
 
-    /** Name of the Wise transfer receipt PDF that GetWiseTransferReceipt saved, to download through the secure PDF link */
-    fileName?: string;
-
     /** Whether the ParseExpenseFilters command successfully parsed the natural-language query */
     success?: boolean;
 

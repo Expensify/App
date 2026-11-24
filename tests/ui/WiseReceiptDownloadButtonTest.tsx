@@ -10,8 +10,6 @@ import useNetwork from '@hooks/useNetwork';
 import fileDownload from '@libs/fileDownload';
 import {showGeneralErrorAlert} from '@libs/fileDownload/FileUtils';
 
-import {getWiseTransferReceiptFileName} from '@userActions/Wise';
-
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReportAction} from '@src/types/onyx';
@@ -22,16 +20,11 @@ import Onyx from 'react-native-onyx';
 import createMock from '../utils/createMock';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
-jest.mock('@userActions/Wise', () => ({
-    getWiseTransferReceiptFileName: jest.fn(() => Promise.resolve('wise-receipt-123.pdf')),
-}));
 jest.mock('@libs/fileDownload', () => jest.fn(() => Promise.resolve()));
 jest.mock('@hooks/useNetwork', () => jest.fn(() => ({isOffline: false})));
 jest.mock('@libs/fileDownload/FileUtils', () => ({showGeneralErrorAlert: jest.fn()}));
 
 const REPORT_ID = '1';
-const ACCOUNT_ID = 1;
-const LOGIN = 'admin@company.com';
 
 function buildPayAction(isWiseReceiptAvailable: boolean): ReportAction {
     return createMock<ReportAction>({
@@ -68,10 +61,6 @@ describe('WiseReceiptDownloadButton', () => {
         Onyx.init({keys: ONYXKEYS});
     });
 
-    beforeEach(async () => {
-        await Onyx.set(ONYXKEYS.SESSION, {accountID: ACCOUNT_ID, email: LOGIN, encryptedAuthToken: 'token'});
-    });
-
     afterEach(async () => {
         jest.clearAllMocks();
         await Onyx.clear();
@@ -85,7 +74,7 @@ describe('WiseReceiptDownloadButton', () => {
         expect(screen.queryByText('Download receipt')).toBeNull();
     });
 
-    it('downloads the receipt the server saved once Wise provides it', async () => {
+    it('downloads the receipt PDF the server responds with once Wise provides it', async () => {
         // Given a Wise payment whose transfer has left Wise, so the backend flagged its receipt as available
         await renderButton(true);
 
@@ -93,23 +82,35 @@ describe('WiseReceiptDownloadButton', () => {
         fireEvent.press(screen.getByText('Download receipt'));
         await waitForBatchedUpdatesWithAct();
 
-        // Then the server is asked for the receipt of this report, and the PDF it saved is downloaded through the secure PDF link
-        expect(getWiseTransferReceiptFileName).toHaveBeenCalledWith(REPORT_ID);
-        expect(fileDownload).toHaveBeenCalledWith(expect.anything(), expect.stringContaining('filename=wise-receipt-123.pdf'), `Wise_Receipt_${REPORT_ID}.pdf`, '', expect.anything());
+        // Then the receipt of this report is posted for, and the PDF in the response is saved, since the server keeps no copy to link to
+        expect(fileDownload).toHaveBeenCalledWith(
+            expect.anything(),
+            expect.stringContaining('GetWiseTransferReceipt'),
+            `Wise_Receipt_${REPORT_ID}.pdf`,
+            '',
+            false,
+            expect.any(FormData),
+            CONST.NETWORK.METHOD.POST,
+            expect.any(Function),
+        );
+        const [, , , , , formData] = jest.mocked(fileDownload).mock.calls.at(0) ?? [];
+        expect(formData?.get('reportID')).toBe(REPORT_ID);
     });
 
-    it('shows an error instead of downloading when the server saved no receipt', async () => {
-        // Given a receipt flagged as available, but the server comes back without a file for it
-        jest.mocked(getWiseTransferReceiptFileName).mockResolvedValueOnce(undefined);
+    it('shows an error when the server has no receipt to download', async () => {
+        // Given a receipt flagged as available, but the server responds with an error because Wise has no receipt for the transfer
+        jest.mocked(fileDownload).mockImplementationOnce((translate, url, fileName, successMessage, shouldOpenExternalLink, formData, requestType, onDownloadFailed) => {
+            onDownloadFailed?.();
+            return Promise.resolve();
+        });
         await renderButton(true);
 
         // When the admin taps Download receipt
         fireEvent.press(screen.getByText('Download receipt'));
         await waitForBatchedUpdatesWithAct();
 
-        // Then the admin is told the download failed, and nothing is downloaded
+        // Then the admin is told the download failed, instead of the web download opening the command URL in a new tab
         expect(showGeneralErrorAlert).toHaveBeenCalled();
-        expect(fileDownload).not.toHaveBeenCalled();
     });
 
     it('hides while offline, because the server has to fetch the receipt from Wise', async () => {
