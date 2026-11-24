@@ -286,6 +286,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
             keyForList: value.name,
             name: getDecodedCategoryName(value.name),
             glCode: value['GL Code'],
+            payrollCode: value['Payroll Code'],
             disabled: isDisabled,
             approverAvatar,
             approverAccountID,
@@ -304,6 +305,8 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
 
         return acc;
     }, []);
+
+    const shouldShowPayrollCodeColumn = isControlPolicyWithWideLayout && categoryRows.some((category) => !!category.payrollCode);
 
     const navigateToCreateCategoryPage = () => {
         Navigation.navigate(buildDynamicRoute(isQuickSettingsFlow ? DYNAMIC_ROUTES.SETTINGS_CATEGORY_CREATE.path : DYNAMIC_ROUTES.WORKSPACE_CATEGORY_CREATE.path));
@@ -729,6 +732,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                         emptyStateSubtitleText={subtitleText}
                         emptyStateButtons={emptyStateButtons}
                         shouldShowGLCodeColumn={shouldShowGLCodeColumn}
+                        shouldShowPayrollCodeColumn={shouldShowPayrollCodeColumn}
                         shouldShowApproverColumn={shouldShowApproverColumn}
                         onRowSelectionChange={setSelectedCategoryKeys}
                         headerComponent={hasVisibleCategories ? headerContent : undefined}
