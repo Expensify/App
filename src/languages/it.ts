@@ -1028,6 +1028,7 @@ const translations: TranslationDeepObject<typeof en> = {
     },
     supportalSwitcher: {
         title: 'Supportal in un altro account',
+        navigationLabel: 'Supportal',
         emailLabel: 'Indirizzo email',
         reasonLabel: 'Motivo accesso assistenza',
         reasonHint: 'Nessun ticket recente trovato per questo account.',
@@ -1921,6 +1922,12 @@ const translations: TranslationDeepObject<typeof en> = {
             debitedAmount: 'Importo addebitato',
             employeeReceived: 'Il dipendente ha ricevuto',
             payAll: 'Paga tutto',
+            fxRateExpiredTitle: 'Tasso di cambio scaduto',
+            fxRatesExpiredTitle: 'Tassi di cambio scaduti',
+            fxRateExpiredPrompt: 'Controlla il tasso più recente prima di pagare.',
+            fxRatesExpiredPrompt: 'Controlla i tassi più recenti prima di pagare.',
+            getLatestRate: 'Ottieni il tasso più recente',
+            getLatestRates: 'Ottieni i tassi più recenti',
             reportCount: ({count}: {count: number}) => ({
                 one: '1 resoconto',
                 other: `${count} resoconti`,
@@ -2342,6 +2349,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 }
                 return `In attesa che il pagamento annullato completi l'elaborazione${formattedETA}.`;
             },
+            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_PAYMENT_REVIEW]: (params: ReportNextStepMessageParams) => `Pagamento in sospeso, attendi un altro aggiornamento.`,
             [CONST.NEXT_STEP.MESSAGE_KEY.SUBMITTING_TO_SELF]: (params: ReportNextStepMessageParams) =>
                 `Ops! Sembra che tu stia inviando a <strong>te stesso</strong>. L’approvazione dei tuoi stessi report è <strong>vietata</strong> dal tuo workspace. Invia questo report a qualcun altro oppure contatta il tuo amministratore per cambiare la persona a cui lo invii.`,
             [CONST.NEXT_STEP.MESSAGE_KEY.REJECTED_REPORT]: ({actor, actorType}: ReportNextStepMessageParams) => {
@@ -2573,6 +2581,8 @@ const translations: TranslationDeepObject<typeof en> = {
             leftHandNavCache: 'Cache di navigazione sinistra',
             clearleftHandNavCache: 'Pulisci',
             softKillTheApp: "Termina dolcemente l'app",
+            testBusinessBankAccount: 'Verifica conto bancario aziendale in USD',
+            testPersonalBankAccount: 'Verifica conto bancario personale in USD',
             kill: 'Termina',
             sentryDebug: 'Debug Sentry',
             sentrySendDescription: 'Invia dati a Sentry',
@@ -2580,6 +2590,7 @@ const translations: TranslationDeepObject<typeof en> = {
             sentryHighlightedSpanOps: 'Nomi degli intervalli evidenziati',
             sentryHighlightedSpanOpsPlaceholder: 'ui.interaction.click, navigazione, ui.load',
             showBranchNameInTitle: 'Mostra nome del ramo nel titolo del browser',
+            hideEnvironmentBadge: 'Nascondi badge dell’ambiente',
             betaOverrides: 'Sostituzioni delle beta',
             betaOverridesDescription:
                 'Le sostituzioni si applicano solo a questo dispositivo e influiscono solo sui controlli del frontend. Una beta mantiene una sostituzione solo finché differisce dalle beta del tuo account, quindi riportandola indietro la sostituzione viene rimossa. «Reimposta tutte le sostituzioni» ripristina i valori del tuo account. Alcune beta sono controllate anche dal backend, quindi possono comunque fallire a livello di richiesta.',
@@ -3308,8 +3319,8 @@ const translations: TranslationDeepObject<typeof en> = {
             rejected: {title: 'Conto bancario rifiutato', heading: 'Il nostro partner ha rifiutato il tuo conto bancario', description: 'Chatta con Concierge per maggiori informazioni.'},
         },
         wiseSetupRow: {
-            inProgress: {message: 'Configurazione dei rimborsi globali in corso.', link: 'Continua.'},
-            inReview: {message: 'Configurazione dei rimborsi globali in revisione.', link: 'Controlla lo stato.'},
+            inProgress: {message: 'Configurazione dei rimborsi globali in corso.'},
+            inReview: {message: 'Configurazione dei rimborsi globali in revisione.', action: 'Controlla lo stato'},
         },
         wiseGlobalReimbursementsIntro: {
             title: 'Configurare i rimborsi globali?',
@@ -5346,6 +5357,10 @@ ${amount} per ${merchant} - ${date}`,
             railTicketExchange: (origin: string, destination: string, startDate: string) => `Il tuo biglietto ferroviario per ${origin} → ${destination} del ${startDate} è stato cambiato.`,
             railTicketUpdate: (origin: string, destination: string, startDate: string) => `Il tuo biglietto del treno per ${origin} → ${destination} del ${startDate} è stato aggiornato.`,
             defaultUpdate: (type: string) => `La tua prenotazione ${type} è stata aggiornata.`,
+            hotelBooked: (hotelName: string, startDate: string) => `La tua prenotazione in hotel presso ${hotelName} (check-in ${startDate}) è stata effettuata.`,
+            carBooked: (vendor: string, startDate: string) => `La tua auto a noleggio con ${vendor} (ritiro il ${startDate}) è stata prenotata.`,
+            railTicketBooked: (origin: string, destination: string, startDate: string) => `Il tuo biglietto del treno per ${origin} → ${destination} del ${startDate} è stato prenotato.`,
+            defaultBooked: (type: string) => `La tua prenotazione ${type} è stata confermata.`,
         },
         flightTo: 'Volo per',
         trainTo: 'Treno per',
@@ -5609,6 +5624,9 @@ ${amount} per ${merchant} - ${date}`,
             },
             chatgpt: {
                 title: 'ChatGPT',
+            },
+            grok: {
+                title: 'Grok',
             },
         },
         connections: {
@@ -8026,6 +8044,7 @@ Il piano Control parte da 9 $ al mese per ogni membro attivo.`,
                 willBeReadyToUse: 'Questa carta sarà pronta all’uso immediatamente.',
                 willBeReadyToShip: 'Questa carta sarà pronta per la spedizione immediatamente.',
                 cardholder: 'Titolare della carta',
+                cardholderEmail: 'Email del titolare della carta',
                 cardType: 'Tipo di carta',
                 limit: 'Limite',
                 limitType: 'Tipo di limite',
@@ -11603,7 +11622,9 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
                     mentionedAccountID?: number;
                 }) => {
                     let warningTime = 'presto';
-                    if (warningDaysBeforeExpiry === CONST.COMPANY_CARDS.CONSENT_EXPIRY_WARNING_DAYS.TWO_WEEKS) {
+                    if (warningDaysBeforeExpiry === CONST.COMPANY_CARDS.CONSENT_EXPIRY_WARNING_DAYS.ONE_MONTH) {
+                        warningTime = 'tra un mese';
+                    } else if (warningDaysBeforeExpiry === CONST.COMPANY_CARDS.CONSENT_EXPIRY_WARNING_DAYS.TWO_WEEKS) {
                         warningTime = 'tra due settimane';
                     } else if (warningDaysBeforeExpiry === CONST.COMPANY_CARDS.CONSENT_EXPIRY_WARNING_DAYS.ONE_WEEK) {
                         warningTime = 'tra una settimana';
@@ -11699,7 +11720,8 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
                 reimbursementRefundedWithoutBankAccount: 'I fondi sono stati restituiti. Puoi riprovare a effettuare il pagamento.',
                 reimbursementHeld:
                     'Pagamento in sospeso mentre il nostro partner completa una verifica. Aspetta un altro aggiornamento. Chatta con <concierge-link>Concierge</concierge-link>.',
-                reimbursementReleased: 'La revisione è stata completata e il tuo pagamento è in arrivo. Il tasso di cambio finale potrebbe modificarne l’importo.',
+                reimbursementReleased: ({expectedDate}: {expectedDate: string}) => `Pagamento effettuato, i fondi dovrebbero arrivare entro il ${expectedDate}.`,
+                reimbursementReleasedWithoutDate: 'Pagamento effettuato.',
             },
             error: {
                 invalidCredentials: 'Credenziali non valide, controlla la configurazione della tua connessione.',

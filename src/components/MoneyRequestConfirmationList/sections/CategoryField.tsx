@@ -1,3 +1,5 @@
+import type {DropdownFieldHandle} from '@components/DropdownField';
+import DropdownField from '@components/DropdownField';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import {useConfirmationFields} from '@components/MoneyRequestConfirmationFields/context';
 import usePolicyCategoriesForConfirmation from '@components/MoneyRequestConfirmationList/hooks/usePolicyCategoriesForConfirmation';
@@ -26,10 +28,8 @@ import type {OnyxEntry} from 'react-native-onyx';
 
 import React, {useRef} from 'react';
 
-import type {ExpenseFieldDropdownHandle} from './ExpenseFieldDropdown';
-
 import CategoryFieldDropdown from './CategoryFieldDropdown';
-import ExpenseFieldDropdown from './ExpenseFieldDropdown';
+import ExpenseFieldContainer from './ExpenseFieldContainer';
 import {useExpenseFormLayout} from './ExpenseFormLayoutContext';
 import {categoryStateSelector} from './selectors';
 import useTransactionSelector from './useTransactionSelector';
@@ -69,7 +69,7 @@ function CategoryField({
     const {translate} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['Sparkles']);
     const currentUserLogin = useCurrentUserPersonalDetails().login;
-    const dropdownRef = useRef<ExpenseFieldDropdownHandle>(null);
+    const dropdownRef = useRef<DropdownFieldHandle>(null);
 
     const categoryState = useTransactionSelector(transactionID, categoryStateSelector);
     const policyCategories = usePolicyCategoriesForConfirmation(policy?.id);
@@ -155,36 +155,38 @@ function CategoryField({
 
     if (shouldUseDropdownRows) {
         return (
-            <ExpenseFieldDropdown
-                ref={dropdownRef}
-                name={translate('common.category')}
-                value={decodedCategoryName}
-                numberOfLinesValue={2}
-                rightLabel={getCategoryRightLabel()}
-                rightLabelIcon={getCategoryRightLabelIcon()}
-                // On a scan, `Automatic` describes the category Concierge picked, so it has to outlive the field
-                // being filled in. On a manual expense it only promises a category for a field that is still
-                // empty, so there it goes the moment the field holds one, the same way `Required` does.
-                shouldKeepRightLabelWhenFilled={shouldPromiseAutomaticCategory && isAutoFillFromReceipt}
-                errorText={shouldDisplayCategoryError ? translate(formError as TranslationPaths) : ''}
-                onPress={openCategoryPage}
-                shouldOpenInDropdown={canOpenListInPlace}
-                listHeaderHeight={canAddCategory ? SELECTION_LIST_POPOVER_HEADER_HEIGHT : 0}
-                renderDropdown={(dropdownProps) =>
-                    !!transactionID && (
-                        <CategoryFieldDropdown
-                            {...dropdownProps}
-                            transactionID={transactionID}
-                            policy={policy}
-                            selectedCategory={selectedCategory}
-                            canAddCategory={canAddCategory}
-                        />
-                    )
-                }
-                isDisabled={didConfirm}
-                isInteractive={!isReadOnly}
-                sentryLabel={CONST.SENTRY_LABEL.REQUEST_CONFIRMATION_LIST.CATEGORY_FIELD}
-            />
+            <ExpenseFieldContainer>
+                <DropdownField
+                    ref={dropdownRef}
+                    name={translate('common.category')}
+                    value={decodedCategoryName}
+                    numberOfLinesValue={2}
+                    rightLabel={getCategoryRightLabel()}
+                    rightLabelIcon={getCategoryRightLabelIcon()}
+                    // On a scan, `Automatic` describes the category Concierge picked, so it has to outlive the field
+                    // being filled in. On a manual expense it only promises a category for a field that is still
+                    // empty, so there it goes the moment the field holds one, the same way `Required` does.
+                    shouldKeepRightLabelWhenFilled={shouldPromiseAutomaticCategory && isAutoFillFromReceipt}
+                    errorText={shouldDisplayCategoryError ? translate(formError as TranslationPaths) : ''}
+                    onPress={openCategoryPage}
+                    shouldOpenInDropdown={canOpenListInPlace}
+                    listHeaderHeight={canAddCategory ? SELECTION_LIST_POPOVER_HEADER_HEIGHT : 0}
+                    renderDropdown={(dropdownProps) =>
+                        !!transactionID && (
+                            <CategoryFieldDropdown
+                                {...dropdownProps}
+                                transactionID={transactionID}
+                                policy={policy}
+                                selectedCategory={selectedCategory}
+                                canAddCategory={canAddCategory}
+                            />
+                        )
+                    }
+                    isDisabled={didConfirm}
+                    isInteractive={!isReadOnly}
+                    sentryLabel={CONST.SENTRY_LABEL.REQUEST_CONFIRMATION_LIST.CATEGORY_FIELD}
+                />
+            </ExpenseFieldContainer>
         );
     }
 

@@ -1005,6 +1005,7 @@ const translations: TranslationDeepObject<typeof en> = {
     },
     supportalSwitcher: {
         title: 'Supportal en otra cuenta',
+        navigationLabel: 'Supportal',
         emailLabel: 'Dirección de correo electrónico',
         reasonLabel: 'Motivo de inicio de sesión en soporte',
         reasonHint: 'No se han encontrado tickets recientes para esta cuenta.',
@@ -1911,6 +1912,12 @@ const translations: TranslationDeepObject<typeof en> = {
             debitedAmount: 'Importe cargado',
             employeeReceived: 'El empleado recibió',
             payAll: 'Pagar todo',
+            fxRateExpiredTitle: 'Tipo de cambio caducado',
+            fxRatesExpiredTitle: 'Tipos de cambio caducados',
+            fxRateExpiredPrompt: 'Revisa el tipo de cambio más reciente antes de pagar.',
+            fxRatesExpiredPrompt: 'Revisa los tipos de cambio más recientes antes de pagar.',
+            getLatestRate: 'Obtener el tipo de cambio más reciente',
+            getLatestRates: 'Obtener los tipos de cambio más recientes',
             reportCount: ({count}: {count: number}) => ({
                 one: '1 informe',
                 other: `${count} informes`,
@@ -2328,6 +2335,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 }
                 return `Esperando a que el pago cancelado termine de procesarse${formattedETA}.`;
             },
+            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_PAYMENT_REVIEW]: (params: ReportNextStepMessageParams) => `Pago en espera, recibirás otra actualización.`,
             [CONST.NEXT_STEP.MESSAGE_KEY.SUBMITTING_TO_SELF]: (params: ReportNextStepMessageParams) =>
                 `¡Ups! Parece que estás enviando este informe a <strong>ti mismo</strong>. Aprobar tus propios informes está <strong>prohibido</strong> por tu espacio de trabajo. Envía este informe a otra persona o contacta con tu administrador para cambiar la persona a la que lo envías.`,
             [CONST.NEXT_STEP.MESSAGE_KEY.REJECTED_REPORT]: ({actor, actorType}: ReportNextStepMessageParams) => {
@@ -2560,6 +2568,8 @@ const translations: TranslationDeepObject<typeof en> = {
             leftHandNavCache: 'Caché del menú de navegación izquierdo',
             clearleftHandNavCache: 'borrar',
             softKillTheApp: 'Desactivar la aplicación',
+            testBusinessBankAccount: 'Probar cuenta bancaria empresarial en USD',
+            testPersonalBankAccount: 'Probar cuenta bancaria personal en USD',
             kill: 'Matar',
             sentryDebug: 'Depuración de Sentry',
             sentrySendDescription: 'Enviar datos a Sentry',
@@ -2567,6 +2577,7 @@ const translations: TranslationDeepObject<typeof en> = {
             sentryHighlightedSpanOps: 'Nombres de spans resaltados',
             sentryHighlightedSpanOpsPlaceholder: 'ui.interaction.click, navigation, ui.load',
             showBranchNameInTitle: 'Mostrar nombre de rama en el título del navegador',
+            hideEnvironmentBadge: 'Ocultar insignia de entorno',
             betaOverrides: 'Anulaciones de betas',
             betaOverridesDescription:
                 'Las anulaciones solo se aplican a este dispositivo y solo afectan a las comprobaciones del frontend. Una beta conserva una anulación solo mientras difiere de las betas de tu cuenta, por lo que al volver a cambiarla se elimina la anulación. «Restablecer todas las anulaciones» recupera los valores de tu cuenta. Algunas betas también están controladas por el backend, así que pueden fallar a nivel de solicitud.',
@@ -3298,8 +3309,8 @@ const translations: TranslationDeepObject<typeof en> = {
             rejected: {title: 'Cuenta bancaria rechazada', heading: 'Nuestro socio rechazó tu cuenta bancaria', description: 'Chatea con Concierge para más información.'},
         },
         wiseSetupRow: {
-            inProgress: {message: 'Configuración de reembolsos globales en curso.', link: 'Continuar.'},
-            inReview: {message: 'Configuración de reembolsos globales en revisión.', link: 'Ver estado.'},
+            inProgress: {message: 'Configuración de reembolsos globales en curso.'},
+            inReview: {message: 'Configuración de reembolsos globales en revisión.', action: 'Ver estado'},
         },
         wiseGlobalReimbursementsIntro: {
             title: '¿Configurar reembolsos globales?',
@@ -5354,6 +5365,10 @@ ${amount} para ${merchant} - ${date}`,
             railTicketExchange: (origin, destination, startDate) => `Tu billete de tren de ${origin} a ${destination} para el ${startDate} ha sido cambiado.`,
             railTicketUpdate: (origin, destination, startDate) => `Tu billete de tren de ${origin} a ${destination} para el ${startDate} ha sido actualizado.`,
             defaultUpdate: (type) => `Tu reserva de ${type} fue actualizada.`,
+            hotelBooked: (hotelName, startDate) => `Se ha reservado tu hotel ${hotelName} (entrada: ${startDate}).`,
+            carBooked: (vendor, startDate) => `Se ha reservado tu coche de alquiler de ${vendor} (recogida: ${startDate}).`,
+            railTicketBooked: (origin, destination, startDate) => `Tu billete de tren de ${origin} a ${destination} para el ${startDate} ha sido reservado.`,
+            defaultBooked: (type) => `Tu reserva de ${type} ha sido confirmada.`,
         },
         flightTo: 'Vuelo a',
         trainTo: 'Tren a',
@@ -5636,6 +5651,9 @@ ${amount} para ${merchant} - ${date}`,
             },
             chatgpt: {
                 title: 'ChatGPT',
+            },
+            grok: {
+                title: 'Grok',
             },
         },
         connections: {
@@ -8359,6 +8377,7 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
                 willBeReadyToUse: 'Esta tarjeta estará lista para su uso inmediato.',
                 willBeReadyToShip: 'Esta tarjeta estará lista para enviarse de inmediato.',
                 cardholder: 'Titular de la tarjeta',
+                cardholderEmail: 'Correo electrónico del titular de la tarjeta',
                 cardType: 'Tipo de tarjeta',
                 limit: 'Limite',
                 limitType: 'Tipo de limite',
@@ -11543,7 +11562,9 @@ ${reportName}`,
                     mentionedAccountID?: number;
                 }) => {
                     let warningTime = 'pronto';
-                    if (warningDaysBeforeExpiry === CONST.COMPANY_CARDS.CONSENT_EXPIRY_WARNING_DAYS.TWO_WEEKS) {
+                    if (warningDaysBeforeExpiry === CONST.COMPANY_CARDS.CONSENT_EXPIRY_WARNING_DAYS.ONE_MONTH) {
+                        warningTime = 'en un mes';
+                    } else if (warningDaysBeforeExpiry === CONST.COMPANY_CARDS.CONSENT_EXPIRY_WARNING_DAYS.TWO_WEEKS) {
                         warningTime = 'en dos semanas';
                     } else if (warningDaysBeforeExpiry === CONST.COMPANY_CARDS.CONSENT_EXPIRY_WARNING_DAYS.ONE_WEEK) {
                         warningTime = 'en una semana';
@@ -11634,7 +11655,8 @@ ${reportName}`,
                     `Los fondos se devolvieron a la cuenta bancaria ${bankAccountLastFour}. Puedes volver a intentar el pago.`,
                 reimbursementRefundedWithoutBankAccount: 'Los fondos fueron devueltos. Puedes volver a intentar el pago.',
                 reimbursementHeld: 'Pago en espera mientras nuestro socio completa una revisión. Espera otra actualización. Chatea con <concierge-link>Concierge</concierge-link>.',
-                reimbursementReleased: 'La revisión se ha completado y tu pago está en camino. La tasa de cambio final puede modificar el importe.',
+                reimbursementReleased: ({expectedDate}: {expectedDate: string}) => `Pago liberado, se espera que los fondos lleguen para el ${expectedDate}.`,
+                reimbursementReleasedWithoutDate: 'Pago liberado.',
             },
             error: {
                 invalidCredentials: 'Credenciales no válidas, por favor verifica la configuración de tu conexión.',

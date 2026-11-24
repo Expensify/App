@@ -179,7 +179,7 @@ function PaymentMethodListItem({item, shouldShowDefaultBadge, threeDotsMenuItems
     const isNeedingAction = isAccountNeedingAction(item);
     const digitalWalletApprovalCardID = item.digitalWalletApprovalCardID;
     const connectionStatus = item.connectionStatus;
-    const hasStatusMessages = !!connectionStatus || !!item.wiseMoreInfoNeeded;
+    const hasStatusMessages = !!connectionStatus || !!item.wiseMoreInfoNeeded || !!item.wiseSetupInProgress;
 
     // Check if this is a Chase personal bank account connected via Plaid
     const isChaseAccountConnectedViaPlaid =
@@ -316,7 +316,8 @@ function PaymentMethodListItem({item, shouldShowDefaultBadge, threeDotsMenuItems
     };
     const menuItem = <MenuItem {...menuItemProps} />;
 
-    const actionAccessibilityLabel = connectionStatus?.actionText ? `${connectionStatus.actionText} ${item.title ?? ''}, ${item.description}` : undefined;
+    const bankAccountLabel = `${item.title ?? ''}, ${item.description}`;
+    const actionAccessibilityLabel = connectionStatus?.actionText ? `${connectionStatus.actionText} ${bankAccountLabel}` : undefined;
 
     return (
         <OfflineWithFeedback
@@ -350,6 +351,16 @@ function PaymentMethodListItem({item, shouldShowDefaultBadge, threeDotsMenuItems
                                     <WiseMoreInfoNeededRow bankAccountID={item.wiseMoreInfoNeeded.bankAccountID} />
                                 </View>
                             )}
+                            {!!item.wiseSetupInProgress && (
+                                <View style={styles.mb2}>
+                                    <WiseSetupInProgressRow
+                                        bankAccountID={item.wiseSetupInProgress.bankAccountID}
+                                        isInReview={item.wiseSetupInProgress.isInReview}
+                                        isOnboardingSubmitted={item.wiseSetupInProgress.isOnboardingSubmitted}
+                                        bankAccountLabel={bankAccountLabel}
+                                    />
+                                </View>
+                            )}
                         </View>
                     )}
                 </Hoverable>
@@ -371,14 +382,6 @@ function PaymentMethodListItem({item, shouldShowDefaultBadge, threeDotsMenuItems
                     cardID={digitalWalletApprovalCardID}
                     walletProvider={item.digitalWalletProvider}
                     style={[styles.pv3, cardPaddingHorizontal]}
-                />
-            )}
-            {!!item.wiseSetupInProgress && (
-                <WiseSetupInProgressRow
-                    bankAccountID={item.wiseSetupInProgress.bankAccountID}
-                    isInReview={item.wiseSetupInProgress.isInReview}
-                    isOnboardingSubmitted={item.wiseSetupInProgress.isOnboardingSubmitted}
-                    style={[styles.pt4, styles.pb3, cardPaddingHorizontal]}
                 />
             )}
             {isChaseAccountConnectedViaPlaid && (

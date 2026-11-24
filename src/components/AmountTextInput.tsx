@@ -2,7 +2,7 @@ import useLocalize from '@hooks/useLocalize';
 
 import CONST from '@src/CONST';
 
-import type {KeyboardTypeOptions, NativeSyntheticEvent, StyleProp, TextInputKeyPressEvent, TextInputSelectionChangeEvent, TextStyle, ViewStyle} from 'react-native';
+import type {KeyboardTypeOptions, StyleProp, TextInputKeyPressEvent, TextInputSelectionChangeEvent, TextStyle, ViewStyle} from 'react-native';
 
 import {useNavigation} from '@react-navigation/native';
 import React from 'react';
@@ -12,8 +12,14 @@ import type {BaseTextInputProps} from './TextInput/BaseTextInput/types';
 
 import TextInput from './TextInput';
 
-/** Key press event of the amount input. `ctrlKey` is only set on web, where the native event is a DOM KeyboardEvent */
-type AmountTextInputKeyPressEvent = NativeSyntheticEvent<TextInputKeyPressEvent['nativeEvent'] & Partial<Pick<KeyboardEvent, 'ctrlKey'>>>;
+/**
+ * React Native's key press event has no `ctrlKey`. Only web key events carry it, so it is optional here and the
+ * Ctrl+D forward-delete check has to handle it being missing.
+ */
+type AmountTextInputKeyPressEvent = {
+    nativeEvent: Pick<TextInputKeyPressEvent['nativeEvent'], 'key'> & {ctrlKey?: boolean};
+    preventDefault: () => void;
+};
 
 type AmountTextInputProps = {
     /** Formatted amount in local currency  */
