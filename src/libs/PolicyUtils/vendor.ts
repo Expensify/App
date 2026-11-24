@@ -220,11 +220,11 @@ function getActiveVendorMatchingIntegration(policy: OnyxEntry<Policy>): Connecti
     if (isDigitsVendorMatchingActive(policy)) {
         return CONST.POLICY.CONNECTIONS.NAME.DIGITS;
     }
-    if (isCertiniaVendorMatchingActive(policy)) {
-        return CONST.POLICY.CONNECTIONS.NAME.CERTINIA;
-    }
     if (isBusinessCentralVendorMatchingActive(policy)) {
         return CONST.POLICY.CONNECTIONS.NAME.BUSINESS_CENTRAL;
+    }
+    if (isCertiniaVendorMatchingActive(policy)) {
+        return CONST.POLICY.CONNECTIONS.NAME.CERTINIA;
     }
     if (isQuickbooksDesktopVendorMatchingActive(policy)) {
         return CONST.POLICY.CONNECTIONS.NAME.QBD;
