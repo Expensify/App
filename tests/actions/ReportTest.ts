@@ -13642,6 +13642,7 @@ describe('actions/Report', () => {
                 policyTagList: {},
                 allReports: {...allReports, [`${ONYXKEYS.COLLECTION.REPORT}${DESTINATION_REPORT_ID}`]: submittedDestinationReport},
                 allReportActions,
+                allReportsTransactions,
                 bankAccountList: undefined,
                 isTrackIntentUser: false,
                 personalPolicyOutputCurrency: undefined,
