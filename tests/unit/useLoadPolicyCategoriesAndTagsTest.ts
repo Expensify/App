@@ -1,5 +1,8 @@
 import {renderHook, waitFor} from '@testing-library/react-native';
 
+import {SearchQueryContext} from '@components/Search/SearchContextDefinitions';
+import {SearchScopeProvider} from '@components/Search/SearchScopeProvider';
+
 import useLoadPolicyCategories from '@hooks/useLoadPolicyCategories';
 import useLoadPolicyTags from '@hooks/useLoadPolicyTags';
 
@@ -9,8 +12,10 @@ import type * as PolicyTag from '@libs/actions/Policy/Tag';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
+import type {ReactNode} from 'react';
 import type {ValueOf} from 'type-fest';
 
+import React, {useContext} from 'react';
 import Onyx from 'react-native-onyx';
 
 /**
@@ -33,6 +38,15 @@ async function setCurrentUserRole(role: ValueOf<typeof CONST.POLICY.ROLE>) {
         role,
         employeeList: {[CURRENT_USER_EMAIL]: {email: CURRENT_USER_EMAIL, role}},
     });
+}
+
+const SEARCH_HASH = 123;
+const POLICY_KEY = `${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}` as const;
+
+/** Puts the hook on a Search page whose snapshot is SEARCH_HASH, so snapshot-aware Onyx reads resolve from the snapshot */
+function SearchSnapshotWrapper({children}: {children: ReactNode}) {
+    const searchQueryContext = useContext(SearchQueryContext);
+    return React.createElement(SearchScopeProvider, null, React.createElement(SearchQueryContext.Provider, {value: {...searchQueryContext, currentSearchHash: SEARCH_HASH}}, children));
 }
 
 const mockGetPolicyCategories = jest.fn<void, [string]>();
@@ -58,18 +72,20 @@ const hooks = [
     {
         name: 'useLoadPolicyCategories',
         renderPicker: (policyID: string | undefined) => renderHook(() => useLoadPolicyCategories(policyID)),
+        renderPickerOnSearch: (policyID: string) => renderHook(() => useLoadPolicyCategories(policyID), {wrapper: SearchSnapshotWrapper}),
         getIsLoading: (result: {isLoadingPolicyCategories?: boolean; isLoadingPolicyTags?: boolean}) => result.isLoadingPolicyCategories,
         mockRead: mockGetPolicyCategories,
     },
     {
         name: 'useLoadPolicyTags',
         renderPicker: (policyID: string | undefined) => renderHook(() => useLoadPolicyTags(policyID)),
+        renderPickerOnSearch: (policyID: string) => renderHook(() => useLoadPolicyTags(policyID), {wrapper: SearchSnapshotWrapper}),
         getIsLoading: (result: {isLoadingPolicyCategories?: boolean; isLoadingPolicyTags?: boolean}) => result.isLoadingPolicyTags,
         mockRead: mockOpenPolicyTagsPage,
     },
 ] as const;
 
-describe.each(hooks)('$name', ({renderPicker, getIsLoading, mockRead}) => {
+describe.each(hooks)('$name', ({renderPicker, renderPickerOnSearch, getIsLoading, mockRead}) => {
     beforeAll(() => {
         Onyx.init({keys: ONYXKEYS});
     });
@@ -117,6 +133,29 @@ describe.each(hooks)('$name', ({renderPicker, getIsLoading, mockRead}) => {
             expect(getIsLoading(result.current)).toBe(false);
         });
         expect(mockRead).not.toHaveBeenCalled();
+    });
+
+    it('dispatches a read on Search when the live policy grants access but the snapshot still holds a member role', async () => {
+        // Given a user who was promoted to admin after the Search snapshot was taken, so the snapshot still says member
+        await setCurrentUserRole(CONST.POLICY.ROLE.ADMIN);
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.SNAPSHOT}${SEARCH_HASH}`, {
+            data: {
+                [POLICY_KEY]: {
+                    id: POLICY_ID,
+                    type: CONST.POLICY.TYPE.CORPORATE,
+                    role: CONST.POLICY.ROLE.USER,
+                    employeeList: {[CURRENT_USER_EMAIL]: {email: CURRENT_USER_EMAIL, role: CONST.POLICY.ROLE.USER}},
+                },
+            },
+        });
+
+        // When an inline picker for the workspace mounts on that Search page
+        renderPickerOnSearch(POLICY_ID);
+
+        // Then the read is sent, because the permission comes from the live policy rather than the outdated snapshot
+        await waitFor(() => {
+            expect(mockRead).toHaveBeenCalledWith(POLICY_ID);
+        });
     });
 });
 
