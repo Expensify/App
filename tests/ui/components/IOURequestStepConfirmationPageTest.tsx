@@ -188,6 +188,16 @@ jest.mock('@react-navigation/native', () => {
     };
 });
 
+// The page renders outside a navigator screen, so the discard guard, which reads the route, is replaced by one that keeps its dirty check
+let mockGetHasUnsavedChanges: () => boolean = () => false;
+jest.mock('@hooks/useDiscardChangesConfirmation', () => ({
+    __esModule: true,
+    default: ({getHasUnsavedChanges}: {getHasUnsavedChanges: () => boolean}) => {
+        mockGetHasUnsavedChanges = getHasUnsavedChanges;
+        return {suppressDiscardPrompt: jest.fn()};
+    },
+}));
+
 const ACCOUNT_ID = 1;
 const ACCOUNT_LOGIN = 'test@user.com';
 const REPORT_ID = '1';
@@ -3373,6 +3383,51 @@ describe('IOURequestStepConfirmationPageTest', () => {
 
             // Then it still wraps itself, so the standalone screen keeps trapping focus exactly as before
             expect(await screen.findByTestId(CONFIRMATION_SCREEN_TEST_ID)).toBeOnTheScreen();
+        });
+
+        /** Puts the draft in the state the inline amount field leaves it in: empty, or holding an amount the user typed */
+        async function setDraftAmount(amount: number, isAmountSet: boolean) {
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${TRANSACTION_ID}`, {amount, isAmountSet});
+            });
+            await waitForBatchedUpdatesWithAct();
+        }
+
+        it('asks before discarding an amount the user typed when it opens the flow', async () => {
+            // Given the confirmation embedded as the flow's first step, with its amount field still empty
+            await renderConfirmation({isEmbedded: true});
+            await setDraftAmount(0, false);
+            expect(mockGetHasUnsavedChanges()).toBe(false);
+
+            // When the user types an amount into the inline field
+            await setDraftAmount(1000, true);
+
+            // Then leaving would throw the amount away, so going back asks first
+            expect(mockGetHasUnsavedChanges()).toBe(true);
+        });
+
+        it('does not ask before leaving the embedded form the user has not touched', async () => {
+            // Given the confirmation embedded as the flow's first step, before the user entered an amount
+            await renderConfirmation({isEmbedded: true});
+            await setDraftAmount(0, false);
+
+            // When the user goes back
+            const hasUnsavedChanges = mockGetHasUnsavedChanges();
+
+            // Then there is nothing to discard, so the flow closes without asking
+            expect(hasUnsavedChanges).toBe(false);
+        });
+
+        it('does not ask on the standalone route, where going back keeps the draft for the step before', async () => {
+            // Given the standalone confirmation, reached from an earlier step, with an amount the user typed
+            await renderConfirmation({isEmbedded: false});
+            await setDraftAmount(1000, true);
+
+            // When the user goes back
+            const hasUnsavedChanges = mockGetHasUnsavedChanges();
+
+            // Then nothing is lost, so the confirmation doesn't ask
+            expect(hasUnsavedChanges).toBe(false);
         });
     });
 });
