@@ -123,6 +123,9 @@ type InsightsChartWidgetProps = {
     /** Last day GetInsights counted expenses through, as a yyyy-MM-dd string, which the chart and its Details panel treat as today so they stop where the data stops */
     asOfDate?: string;
 
+    /** Selected level's label, set only for Top tags so its empty state can name the level. */
+    tagLevelName?: string;
+
     /** Controls children stay in the header; other children appear below the plot after loading, including empty charts. */
     children?: React.ReactNode;
 };
@@ -156,6 +159,7 @@ function InsightsChartWidget({
     violationStage,
     onViolationStageChange,
     asOfDate,
+    tagLevelName,
     children,
 }: InsightsChartWidgetProps) {
     const styles = useThemeStyles();
@@ -344,7 +348,13 @@ function InsightsChartWidget({
             >
                 {state === INSIGHTS_CHART_STATE.OFFLINE && <ChartOfflineState />}
                 {state === INSIGHTS_CHART_STATE.ERROR && <ChartErrorState onRetry={onRetry} />}
-                {state === INSIGHTS_CHART_STATE.EMPTY && <ChartEmptyState testID={`insightsChartEmptyState-${chart.graphKey}`} />}
+                {state === INSIGHTS_CHART_STATE.EMPTY && (
+                    <ChartEmptyState
+                        testID={`insightsChartEmptyState-${chart.graphKey}`}
+                        title={tagLevelName === undefined ? undefined : translate('insightsPage.noTaggedExpenses')}
+                        description={tagLevelName === undefined ? undefined : translate('insightsPage.noExpensesForTagLevel', tagLevelName)}
+                    />
+                )}
                 {isSummaryLoading && <InsightsChartSummarySkeleton />}
                 {isHeadline && state === INSIGHTS_CHART_STATE.READY && headlineSummary && (
                     <InsightsChartSummary

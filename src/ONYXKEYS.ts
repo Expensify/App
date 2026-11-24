@@ -702,6 +702,9 @@ const ONYXKEYS = {
     /** Indicates whether the git branch name should be shown in the browser tab title */
     SHOULD_SHOW_BRANCH_NAME_IN_TITLE: 'shouldShowBranchNameInTitle',
 
+    /** Indicates whether the environment badge (DEV, STG, etc.) should be hidden, for example to take screenshots */
+    SHOULD_HIDE_ENVIRONMENT_BADGE: 'shouldHideEnvironmentBadge',
+
     /** Indicates whether Sentry debug mode is enabled - logs Sentry requests to console */
     IS_SENTRY_DEBUG_ENABLED: 'isSentryDebugEnabled',
 
@@ -1151,6 +1154,9 @@ const ONYXKEYS = {
 
         /** One entry per Insights dashboard and set of filters, keyed by dashboard ID and query hash, holding everything the backend returns for it */
         INSIGHTS: 'insights_',
+
+        /** Data of the Insights Details panels, keyed by a hash of the graph, filters, period and item */
+        INSIGHTS_DETAILS: 'insightsDetails_',
 
         // Shared NVPs
         /** Collection of agent prompts keyed by agent accountID, representing agents owned by the current user */
@@ -1780,6 +1786,7 @@ type OnyxCollectionValuesMapping = {
     [ONYXKEYS.COLLECTION.DOMAIN_ACCOUNT_MERGE_REQUEST]: OnyxTypes.DomainAccountMergeRequest;
     [ONYXKEYS.COLLECTION.SNAPSHOT]: OnyxTypes.SearchResults;
     [ONYXKEYS.COLLECTION.INSIGHTS]: OnyxTypes.InsightsDashboard;
+    [ONYXKEYS.COLLECTION.INSIGHTS_DETAILS]: OnyxTypes.InsightsDetails;
     [ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT]: OnyxTypes.Agent;
     [ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END]: OnyxTypes.BillingGraceEndPeriod;
     [ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER]: OnyxTypes.CardFeeds;
@@ -2037,6 +2044,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.IS_DEBUG_MODE_ENABLED]: boolean;
     [ONYXKEYS.BETA_OVERRIDES]: OnyxTypes.BetaOverrides;
     [ONYXKEYS.SHOULD_SHOW_BRANCH_NAME_IN_TITLE]: boolean;
+    [ONYXKEYS.SHOULD_HIDE_ENVIRONMENT_BADGE]: boolean;
     [ONYXKEYS.IS_SENTRY_DEBUG_ENABLED]: boolean;
     [ONYXKEYS.IS_SENTRY_SEND_ENABLED]: boolean;
     [ONYXKEYS.SENTRY_DEBUG_HIGHLIGHTED_SPAN_OPS]: string[];
