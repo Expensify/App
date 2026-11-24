@@ -3,13 +3,12 @@ import Button from '@components/Button';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import {usePersonalDetail} from '@hooks/usePersonalDetails';
+import {usePersonalDetail, usePersonalDetailsByIDs} from '@hooks/usePersonalDetails';
 import useTransactionsAndViolationsForReport from '@hooks/useTransactionsAndViolationsForReport';
 
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
-import {getAllPersonalDetails} from '@libs/PersonalDetailsStore';
 import {getIOUActionForReportID} from '@libs/ReportActionsUtils';
 import {getOrCreateTransactionThreadReportID} from '@libs/TransactionThreadNavigationUtils';
 import {isDuplicate} from '@libs/TransactionUtils';
@@ -59,7 +58,9 @@ function ReviewDuplicatesPrimaryAction({reportID, chatReportID, isDisabled}: Sim
     );
     const duplicateIOUAction = getIOUActionForReportID(moneyRequestReport?.reportID, duplicateTransaction?.transactionID);
     const duplicateThreadReportID = duplicateIOUAction?.childReportID;
+    const duplicateActorAccountID = duplicateIOUAction?.actorAccountID;
     const [duplicateThreadReportExists] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(duplicateThreadReportID)}`, {selector: (report) => !!report?.reportID});
+    const [personalDetails] = usePersonalDetailsByIDs([accountID, moneyRequestReport?.ownerAccountID, moneyRequestReport?.managerID, duplicateActorAccountID]);
 
     return (
         <Button
@@ -85,7 +86,7 @@ function ReviewDuplicatesPrimaryAction({reportID, chatReportID, isDisabled}: Sim
                                   hasCompletedGuidedSetupFlow: guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow,
                                   currentUserEmail: email,
                                   currentUserAccountID: accountID,
-                                  personalDetails: getAllPersonalDetails(),
+                                  personalDetails,
                                   fullPolicySnapshotLastModifiedByPolicyID:
                                       moneyRequestReport?.policyID && fullPolicySnapshotLastModified ? {[moneyRequestReport.policyID]: fullPolicySnapshotLastModified} : undefined,
                               },

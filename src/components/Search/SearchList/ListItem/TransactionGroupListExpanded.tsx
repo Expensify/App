@@ -17,6 +17,7 @@ import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useIsVendorColumnAvailable from '@hooks/useIsVendorColumnAvailable';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import {useAllPersonalDetailsWithoutSnapshots} from '@hooks/usePersonalDetails';
 import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -29,7 +30,6 @@ import {getReportIDForTransaction} from '@libs/MoneyRequestReportUtils';
 import openInternalRouteInNewTab, {isModifiedMousePress} from '@libs/Navigation/helpers/openInternalRouteInNewTab';
 import type {ModifiedMouseEvent} from '@libs/Navigation/helpers/openInternalRouteInNewTab';
 import Navigation from '@libs/Navigation/Navigation';
-import {getAllPersonalDetails} from '@libs/PersonalDetailsStore';
 import {getReportAction} from '@libs/ReportActionsUtils';
 import {getReportOrDraftReport} from '@libs/ReportUtils';
 import {queryHasViolationFilter} from '@libs/SearchQueryUtils';
@@ -45,6 +45,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import {columnsSelector} from '@src/selectors/AdvancedSearchFiltersForm';
 import {hasCompletedGuidedSetupFlowSelector, hasSeenTourSelector} from '@src/selectors/Onboarding';
+import {personalDetailsListSelector} from '@src/selectors/PersonalDetails';
 import {fullPolicySnapshotLastModifiedByPolicyIDSelector} from '@src/selectors/Policy';
 import type * as OnyxTypes from '@src/types/onyx';
 
@@ -89,6 +90,9 @@ function TransactionGroupListExpandedImpl({
     const styles = useThemeStyles();
     const {windowWidth} = useWindowDimensions();
     const currentUserDetails = useCurrentUserPersonalDetails();
+    const [personalDetails] = useAllPersonalDetailsWithoutSnapshots(
+        personalDetailsListSelector([currentUserDetails.accountID, ...transactions.flatMap((transaction) => [transaction.reportAction?.actorAccountID, transaction.report?.ownerAccountID])]),
+    );
     const {translate} = useLocalize();
     const {getCurrencyDecimals} = useCurrencyListActions();
     const [isMobileSelectionModeEnabled] = useOnyx(ONYXKEYS.RAM_ONLY_MOBILE_SELECTION_MODE);
@@ -199,7 +203,12 @@ function TransactionGroupListExpandedImpl({
     const {scrollViewRef: horizontalScrollViewRef, syncProps: horizontalSyncProps} = useSyncedHorizontalScroll(syncScrollKey, shouldScrollHorizontally);
 
     const {markReportRHPWidth} = useWideRHPActions();
-    const selectRow = onSelectRow as (item: ListItem, transactionPreviewData?: TransactionPreviewData, event?: ModifiedMouseEvent) => void;
+    const selectRow = onSelectRow as (
+        item: ListItem,
+        transactionPreviewData?: TransactionPreviewData,
+        event?: ModifiedMouseEvent,
+        rowPersonalDetails?: OnyxTypes.PersonalDetailsList,
+    ) => void;
     const getTransactionPreviewData = (transactionItem: TransactionListItemType): TransactionPreviewData => {
         const parentReportAction = getReportAction(transactionItem?.reportID, transactionItem?.reportAction?.reportActionID);
         const parentReport = getReportOrDraftReport({reportID: transactionItem?.reportID, report: allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionItem?.reportID}`]});
@@ -232,7 +241,7 @@ function TransactionGroupListExpandedImpl({
                         backTo,
                         currentUserLogin: currentUserDetails.email ?? '',
                         currentUserAccountID: currentUserDetails.accountID,
-                        personalDetails: getAllPersonalDetails(),
+                        personalDetails,
                         isSelfTourViewed,
                         hasCompletedGuidedSetupFlow,
                         delegateAccountID,
@@ -253,7 +262,7 @@ function TransactionGroupListExpandedImpl({
                     backTo,
                     currentUserLogin: currentUserDetails.email ?? '',
                     currentUserAccountID: currentUserDetails.accountID,
-                    personalDetails: getAllPersonalDetails(),
+                    personalDetails,
                     isSelfTourViewed,
                     hasCompletedGuidedSetupFlow,
                     delegateAccountID,
@@ -272,7 +281,7 @@ function TransactionGroupListExpandedImpl({
 
         // The arrow navigation in RHP is only allowed for group-by:reports
         if (!isExpenseReportType) {
-            selectRow(transactionItem as ListItem, getTransactionPreviewData(transactionItem), event);
+            selectRow(transactionItem as ListItem, getTransactionPreviewData(transactionItem), event, personalDetails);
             return;
         }
 

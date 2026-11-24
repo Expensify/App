@@ -2,8 +2,8 @@ import {useSearchSelectionActions} from '@components/Search/SearchContext';
 import type {SelectedReports} from '@components/Search/types';
 
 import {bulkDuplicateReports} from '@libs/actions/IOU/Duplicate';
+import {getMoneyRequestParticipantsFromReport} from '@libs/actions/IOU/MoneyRequest';
 import Log from '@libs/Log';
-import {getAllPersonalDetails} from '@libs/PersonalDetailsStore';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -22,6 +22,7 @@ import useLocalize from './useLocalize';
 import useOnyx from './useOnyx';
 import usePermissions from './usePermissions';
 import {useGetPersonalDetailsByLogin} from './usePersonalDetailByLogin';
+import {usePersonalDetailsByIDs} from './usePersonalDetails';
 
 type UseBulkDuplicateReportActionParams = {
     selectedReports: SelectedReports[];
@@ -52,6 +53,12 @@ function useBulkDuplicateReportAction({selectedReports, allReports, allTransacti
     const [allPolicyTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS);
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
     const [activePolicyExpenseChat] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: policyExpenseChatSelector(currentUserPersonalDetails.accountID, defaultExpensePolicy?.id)});
+    const [personalDetails] = usePersonalDetailsByIDs(
+        [
+            activePolicyExpenseChat,
+            ...selectedReports.map((selectedReport) => allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${selectedReport.chatReportID ?? selectedReport.parentReportID}`]),
+        ].map((chatReport) => getMoneyRequestParticipantsFromReport(chatReport, currentUserPersonalDetails.accountID).at(0)?.accountID),
+    );
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
@@ -71,7 +78,7 @@ function useBulkDuplicateReportAction({selectedReports, allReports, allTransacti
             activePolicyExpenseChat,
             ownerPersonalDetails: currentUserPersonalDetails,
             isASAPSubmitBetaEnabled,
-            personalDetails: getAllPersonalDetails(),
+            personalDetails,
             quickAction,
             policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
             isSelfTourViewed,
