@@ -6,6 +6,7 @@ import {generateReportID, isSelfDM} from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 
 import type {ReceiptFile} from '@pages/iou/request/step/IOURequestStepScan/types';
+import getFileSource from '@pages/iou/request/step/IOURequestStepScan/utils/getFileSource';
 
 import {initMoneyRequest, setMoneyRequestParticipantsFromReport} from '@userActions/IOU/MoneyRequest';
 import {setMoneyRequestReceipt} from '@userActions/IOU/Receipt';
@@ -78,7 +79,7 @@ function useReceiptScanDrop() {
         const newReceiptFiles: ReceiptFile[] = [];
 
         for (const [index, file] of files.entries()) {
-            const source = URL.createObjectURL(file);
+            const source = getFileSource(file);
             const transaction =
                 index === 0
                     ? initialTransaction

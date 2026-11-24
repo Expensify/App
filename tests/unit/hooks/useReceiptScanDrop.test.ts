@@ -48,12 +48,17 @@ describe('useReceiptScanDrop', () => {
         expect(result.current.isDragDisabled).toBe(false);
     });
     it('keeps one and multiple valid receipts ordered on their intended transactions', async () => {
-        const createObjectURLSpy = jest.spyOn(URL, 'createObjectURL').mockReturnValueOnce('blob:first').mockReturnValueOnce('blob:first').mockReturnValueOnce('blob:second');
+        // Given a validated receipt with a preview URL and another file that needs one
+        const createObjectURLSpy = jest.spyOn(URL, 'createObjectURL').mockReturnValueOnce('blob:second');
         renderHook(() => useReceiptScanDrop());
         await waitForBatchedUpdatesWithAct();
         const [firstFile, secondFile] = [new File(['first'], 'first.png', {type: 'image/png'}), new File(['second'], 'second.png', {type: 'image/png'})];
+        Object.assign(firstFile, {uri: 'blob:first'});
         jest.mocked(initMoneyRequest).mockReturnValue(createMock<NonNullable<ReturnType<typeof initMoneyRequest>>>({}));
+        // When dropping the validated receipt on its own
         mockOnFilesValidated([firstFile], []);
+        // Then the draft reuses the existing URL
+        expect(createObjectURLSpy).not.toHaveBeenCalled();
         expect(jest.mocked(setMoneyRequestReceipt)).toHaveBeenLastCalledWith(CONST.IOU.OPTIMISTIC_TRANSACTION_ID, 'blob:first', 'first.png', true, 'image/png');
         expect(jest.mocked(navigateToParticipantPage)).toHaveBeenCalledWith(CONST.IOU.TYPE.CREATE, CONST.IOU.OPTIMISTIC_TRANSACTION_ID, expect.any(String));
         jest.clearAllMocks();
@@ -62,9 +67,11 @@ describe('useReceiptScanDrop', () => {
         await waitForBatchedUpdatesWithAct();
         jest.mocked(initMoneyRequest).mockReturnValue(createMock<NonNullable<ReturnType<typeof initMoneyRequest>>>({transactionID: CONST.IOU.OPTIMISTIC_TRANSACTION_ID}));
         jest.mocked(buildOptimisticTransactionAndCreateDraft).mockReturnValue(createMock<ReturnType<typeof buildOptimisticTransactionAndCreateDraft>>({transactionID: 'later'}));
+        // When both files are dropped together
         mockOnFilesValidated([firstFile, secondFile], []);
         await waitForBatchedUpdatesWithAct();
-        expect(createObjectURLSpy.mock.calls.slice(-2).map(([file]) => file)).toEqual([firstFile, secondFile]);
+        // Then only the file without a URL needs one, and each receipt stays on its intended draft
+        expect(createObjectURLSpy.mock.calls).toEqual([[secondFile]]);
         expect(jest.mocked(setMoneyRequestReceipt).mock.calls.map(([transactionID]) => transactionID)).toEqual([CONST.IOU.OPTIMISTIC_TRANSACTION_ID, 'later']);
         expect(jest.mocked(buildOptimisticTransactionAndCreateDraft)).toHaveBeenCalledTimes(1);
         expect(jest.mocked(setMoneyRequestParticipantsFromReport).mock.calls.map(([transactionID]) => transactionID)).toEqual([CONST.IOU.OPTIMISTIC_TRANSACTION_ID, 'later']);
