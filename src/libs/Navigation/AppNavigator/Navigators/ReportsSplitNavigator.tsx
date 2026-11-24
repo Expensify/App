@@ -40,13 +40,7 @@ function ReportsSplitNavigator({navigation, route}: PlatformStackScreenProps<Tab
     const currentURL = getCurrentUrl();
     const isTransitioning = currentURL.includes(ROUTES.TRANSITION_BETWEEN_APPS);
     const reportIdFromPath = currentURL ? new URL(currentURL).pathname.match(CONST.REGEX.REPORT_ID_FROM_PATH)?.at(1) : undefined;
-    const shouldResolveReportID = !routeReportID && !reportIdFromPath && !isTransitioning;
-
-    const {lastAccessedReportID} = useFindLastAccessedReport({
-        enabled: shouldResolveReportID,
-    });
-
-    const [initialReportID] = useState(() => {
+    const [initialReportID, setInitialReportID] = useState(() => {
         // Deep links and REPORT_WITH_ID navigation pass the reportID in nested params,
         // which lets us skip the scan over all reports.
         if (routeReportID) {
@@ -63,9 +57,21 @@ function ReportsSplitNavigator({navigation, route}: PlatformStackScreenProps<Tab
             return '';
         }
 
-        // eslint-disable-next-line rulesdir/no-default-id-values
-        return lastAccessedReportID ?? '';
+        return undefined;
     });
+    const shouldResolveInitialReportID = initialReportID === undefined;
+
+    const {lastAccessedReportID} = useFindLastAccessedReport({
+        enabled: shouldResolveInitialReportID,
+    });
+
+    // eslint-disable-next-line rulesdir/no-default-id-values -- an empty reportID is the "no report yet" value ReportScreen expects
+    const resolvedInitialReportID = initialReportID ?? lastAccessedReportID ?? '';
+
+    // The ID is saved on the first render so the hook is disabled from then on and stops scanning reports on every write.
+    if (shouldResolveInitialReportID) {
+        setInitialReportID(resolvedInitialReportID);
+    }
 
     useEffect(() => {
         if (!shouldClearInitialReportActionsDefer) {
@@ -75,7 +81,7 @@ function ReportsSplitNavigator({navigation, route}: PlatformStackScreenProps<Tab
     }, [navigation, shouldClearInitialReportActionsDefer]);
 
     const reportScreenInitialParams = {
-        reportID: initialReportID,
+        reportID: resolvedInitialReportID,
         openOnAdminRoom: isOpenOnAdminRoom ? true : undefined,
     };
 

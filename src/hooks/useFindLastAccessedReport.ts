@@ -3,6 +3,9 @@ import {findLastAccessedReport} from '@libs/ReportUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {ReportNameValuePairs} from '@src/types/onyx';
+
+import type {OnyxCollection} from 'react-native-onyx';
 
 import useIsAnonymousUser from './useIsAnonymousUser';
 import useOnyx from './useOnyx';
@@ -15,6 +18,8 @@ type UseFindLastAccessedReportOptions = {
     enabled?: boolean;
 };
 
+const skippedReportNameValuePairsSelector = (): OnyxCollection<ReportNameValuePairs> => undefined;
+
 // Resolves the last accessed report for navigation fallbacks from a view-scoped subscription.
 function useFindLastAccessedReport({openOnAdminRoom, enabled = true}: UseFindLastAccessedReportOptions = {}) {
     const {isBetaEnabled} = usePermissions();
@@ -22,7 +27,9 @@ function useFindLastAccessedReport({openOnAdminRoom, enabled = true}: UseFindLas
     const shouldPreferAdminRoom = openOnAdminRoom ?? shouldOpenOnAdminRoom();
     const [guideAccountIDs] = useOnyx(ONYXKEYS.DERIVED.GUIDE_ACCOUNT_IDS);
     const isAnonymousUser = useIsAnonymousUser();
-    const [reportNameValuePairs, reportNameValuePairsMetadata] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
+    const [reportNameValuePairs, reportNameValuePairsMetadata] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {
+        selector: enabled ? undefined : skippedReportNameValuePairsSelector,
+    });
     const [lastAccessedReportID, reportsMetadata] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {
         selector: (reports) =>
             enabled ? findLastAccessedReport(ignoreDomainRooms, guideAccountIDs, isAnonymousUser, shouldPreferAdminRoom, undefined, reportNameValuePairs, reports)?.reportID : undefined,
