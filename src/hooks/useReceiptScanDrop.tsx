@@ -1,4 +1,5 @@
 import {setTransactionReport} from '@libs/actions/Transaction';
+import {isValidReceiptExtension} from '@libs/fileDownload/FileUtils';
 import {navigateToParticipantPage} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {hasOnlyPersonalPolicies as hasOnlyPersonalPoliciesUtil, isGroupPolicy} from '@libs/PolicyUtils';
@@ -132,7 +133,10 @@ function useReceiptScanDrop() {
             return;
         }
         for (const file of files) {
-            file.uri = URL.createObjectURL(file);
+            // Validation rejects unsupported extensions before it can release their object URLs.
+            if (isValidReceiptExtension(file)) {
+                file.uri = URL.createObjectURL(file);
+            }
         }
 
         validateFiles(files, Array.from(e.dataTransfer?.items ?? []));
