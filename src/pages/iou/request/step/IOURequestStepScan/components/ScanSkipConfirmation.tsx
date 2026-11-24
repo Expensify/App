@@ -110,6 +110,11 @@ function ScanSkipConfirmation({report, action, iouType, reportID, transactionID,
     const {disableMultiScan} = useMultiScanActions();
     const {setIsLoaderVisible} = useFullScreenLoaderActions();
     const [receiptFiles, setReceiptFiles] = useState<ReceiptFile[]>([]);
+    const [prevIOURequestType, setPrevIOURequestType] = useState(transaction?.iouRequestType);
+    if (transaction?.iouRequestType !== prevIOURequestType) {
+        setPrevIOURequestType(transaction?.iouRequestType);
+        setReceiptFiles([]);
+    }
 
     const participants = getMoneyRequestParticipantOptions({
         currentUserAccountID: currentUserPersonalDetails.accountID,

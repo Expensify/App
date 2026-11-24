@@ -1751,6 +1751,7 @@ const SENTRY_LABEL = {
         SCAN: {
             MULTI_SCAN: 'Scan-MultiScan',
             FLASH: 'Scan-Flash',
+            RECEIPT_ENHANCEMENT: 'Scan-ReceiptEnhancement',
             CHOOSE_FILE: 'Scan-ChooseFile',
             CHOOSE_FILES: 'Scan-ChooseFiles',
             SHUTTER: 'Scan-Shutter',
