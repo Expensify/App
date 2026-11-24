@@ -2008,9 +2008,9 @@ function isValidReport(
         derivedIsEmptyReport,
         transactionViolations,
         requiresAttention: derivedRequiresAttention,
-        // The metadata is only read when `requiresAttention` is missing, which here means reportAttributes has not
-        // computed this report yet. reportAttributes already depends on REPORT_METADATA and applies the same
-        // pending-DEW-approve check, so a subscription here would only cover that moment.
+        // `requiresAttention` comes from reportAttributes, which already applies the pending-DEW-approve check with the
+        // real metadata, so every caller has to pass `reportAttributesDerived` for that check to hold here. The metadata
+        // below is only read before reportAttributes has computed this report.
         pendingExpenseActionMetadata: undefined,
     });
 

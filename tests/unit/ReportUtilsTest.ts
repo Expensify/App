@@ -5194,7 +5194,7 @@ describe('ReportUtils', () => {
                     const policyExpenseChat = await seedHeldSubmittedChild(otherUserAccountID);
 
                     // When the approver's attention is derived without opening the chat
-                    const requiresAttention = requiresAttentionFromCurrentUser(policyExpenseChat, currentUserEmail, currentUserAccountID, undefined);
+                    const requiresAttention = requiresAttentionFromCurrentUser(policyExpenseChat, currentUserEmail, currentUserAccountID, undefined, undefined);
 
                     // Then the held expense is not a to-do, because the empty draft has no expense of its own
                     expect(requiresAttention).toBe(false);
@@ -5215,7 +5215,7 @@ describe('ReportUtils', () => {
                         }) ?? {};
 
                     // Then the row stays, with Approve on the held expense, because the approver can remove their own hold
-                    expect(requiresAttentionFromCurrentUser(policyExpenseChat, currentUserEmail, currentUserAccountID, undefined)).toBe(true);
+                    expect(requiresAttentionFromCurrentUser(policyExpenseChat, currentUserEmail, currentUserAccountID, undefined, undefined)).toBe(true);
                     expect(reportAction?.childReportID).toBe(heldExpenseReportID);
                     expect(actionBadge).toBe(CONST.REPORT.ACTION_BADGE.APPROVE);
                 });
@@ -5225,7 +5225,7 @@ describe('ReportUtils', () => {
                     const policyExpenseChat = await seedHeldSubmittedChild(otherUserAccountID, {includeOpenDraftPreview: false});
 
                     // When attention is derived
-                    const requiresAttention = requiresAttentionFromCurrentUser(policyExpenseChat, currentUserEmail, currentUserAccountID, undefined);
+                    const requiresAttention = requiresAttentionFromCurrentUser(policyExpenseChat, currentUserEmail, currentUserAccountID, undefined, undefined);
 
                     // Then the chat is still not a to-do
                     expect(requiresAttention).toBe(false);
@@ -5236,7 +5236,7 @@ describe('ReportUtils', () => {
                     const policyExpenseChat = await seedHeldSubmittedChild(otherUserAccountID, {unloadedSiblingStatusNum: CONST.REPORT.STATUS_NUM.SUBMITTED});
 
                     // When attention is derived
-                    const requiresAttention = requiresAttentionFromCurrentUser(policyExpenseChat, currentUserEmail, currentUserAccountID, undefined);
+                    const requiresAttention = requiresAttentionFromCurrentUser(policyExpenseChat, currentUserEmail, currentUserAccountID, undefined, undefined);
 
                     // Then the chat stays in to-do, because that sibling may still need approval
                     expect(requiresAttention).toBe(true);
@@ -5247,7 +5247,7 @@ describe('ReportUtils', () => {
                     const policyExpenseChat = await seedHeldSubmittedChild(otherUserAccountID, {unloadedSiblingStatusNum: CONST.REPORT.STATUS_NUM.REIMBURSED});
 
                     // When attention is derived
-                    const requiresAttention = requiresAttentionFromCurrentUser(policyExpenseChat, currentUserEmail, currentUserAccountID, undefined);
+                    const requiresAttention = requiresAttentionFromCurrentUser(policyExpenseChat, currentUserEmail, currentUserAccountID, undefined, undefined);
 
                     // Then that settled preview does not keep the chat in to-do
                     expect(requiresAttention).toBe(false);
@@ -5258,7 +5258,7 @@ describe('ReportUtils', () => {
                     const policyExpenseChat = await seedHeldSubmittedChild(otherUserAccountID, {includeLoadedSiblingWithoutTransactions: true});
 
                     // When attention is derived from the transaction cache, which has no row for that sibling
-                    const requiresAttention = requiresAttentionFromCurrentUser(policyExpenseChat, currentUserEmail, currentUserAccountID, undefined);
+                    const requiresAttention = requiresAttentionFromCurrentUser(policyExpenseChat, currentUserEmail, currentUserAccountID, undefined, undefined);
 
                     // Then the chat stays in to-do, because the missing transactions cannot be treated as a hold
                     expect(requiresAttention).toBe(true);
@@ -5306,7 +5306,7 @@ describe('ReportUtils', () => {
                         }) ?? {};
 
                     // Then the empty report keeps its Add badge, because the submitter can still add an expense
-                    expect(requiresAttentionFromCurrentUser(policyExpenseChat, currentUserEmail, currentUserAccountID, undefined)).toBe(true);
+                    expect(requiresAttentionFromCurrentUser(policyExpenseChat, currentUserEmail, currentUserAccountID, undefined, undefined)).toBe(true);
                     expect(reportAction?.childReportID).toBe(openDraftReportID);
                     expect(actionBadge).toBe(CONST.REPORT.ACTION_BADGE.ADD);
                 });
