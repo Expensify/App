@@ -67,8 +67,8 @@ type BuildInsightsDetailsQueryParams = {
     lastDay: string;
 };
 
-/** Returns the calendar day, week, month, quarter or year that contains the date. */
-function getCalendarPeriod(groupBy: InsightsTimeGroupBy, date: string): ChartPeriod {
+/** Returns the calendar day, week, month, quarter or year that contains the date, or undefined when the date doesn't fall in a real month, quarter or year. */
+function getCalendarPeriod(groupBy: InsightsTimeGroupBy, date: string): ChartPeriod | undefined {
     const day = parseISO(date);
     switch (groupBy) {
         case CONST.SEARCH.GROUP_BY.DAY:
@@ -105,6 +105,9 @@ function getSummarizedPeriod({
         return undefined;
     }
     const period = getCalendarPeriod(periodGroupBy, end);
+    if (!period) {
+        return undefined;
+    }
     return {start: range.start > period.start ? range.start : period.start, end};
 }
 
