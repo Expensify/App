@@ -16,7 +16,7 @@ import {getErrorMessage} from '@libs/ErrorUtils';
 import getPlatform from '@libs/getPlatform';
 import {isHttpSuccess} from '@libs/MultifactorAuthentication/shared/helpers';
 import {createLocalMFAError, createMFAErrorFromApiResponse} from '@libs/MultifactorAuthentication/shared/MFAResult';
-import type {MultifactorAuthenticationCallbackInput} from '@libs/MultifactorAuthentication/shared/types';
+import type {MultifactorAuthenticationCallbackInput, MultifactorAuthenticationCallbackResponse} from '@libs/MultifactorAuthentication/shared/types';
 import Navigation from '@libs/Navigation/Navigation';
 
 import {clearLocalMFAPublicKeyList, getDeviceBiometricsOnyxKey, requestAuthorizationChallenge, requestRegistrationChallenge} from '@userActions/MultifactorAuthentication';
@@ -135,30 +135,39 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
             body: scenarioResponse?.body,
         };
 
-        const callbackResponse = await scenarioConfig.callback?.(isSuccessful, callbackInput, payload);
+        let callbackResponse: MultifactorAuthenticationCallbackResponse | undefined;
+        try {
+            callbackResponse = await scenarioConfig.callback?.(isSuccessful, callbackInput, payload);
 
-        addMFABreadcrumb('Flow completed', {
-            isSuccessful,
-            callbackResponse: callbackResponse ?? 'none',
-            httpStatusCode: scenarioResponse?.httpStatusCode ?? error?.httpStatusCode,
-            reason: scenarioResponse?.reason ?? error?.reason,
-            message: scenarioResponse?.message ?? error?.message,
-        });
+            addMFABreadcrumb('Flow completed', {
+                isSuccessful,
+                callbackResponse: callbackResponse ?? 'none',
+                httpStatusCode: scenarioResponse?.httpStatusCode ?? error?.httpStatusCode,
+                reason: scenarioResponse?.reason ?? error?.reason,
+                message: scenarioResponse?.message ?? error?.message,
+            });
 
-        const endState = await captureCredentialsState();
+            const endState = await captureCredentialsState();
 
-        trackMFAFlowOutcome({
-            isSuccessful,
-            scenario: state.scenarioName,
-            scenarioResponse,
-            error,
-            authenticationMethod: state.authenticationMethod?.name,
-            isRegistrationComplete: state.isRegistrationComplete,
-            isAuthorizationComplete: state.isAuthorizationComplete,
-            softPromptApproved: state.softPromptApproved,
-            startState: startStateRef.current ?? endState,
-            endState,
-        });
+            trackMFAFlowOutcome({
+                isSuccessful,
+                scenario: state.scenarioName,
+                scenarioResponse,
+                error,
+                authenticationMethod: state.authenticationMethod?.name,
+                isRegistrationComplete: state.isRegistrationComplete,
+                isAuthorizationComplete: state.isAuthorizationComplete,
+                softPromptApproved: state.softPromptApproved,
+                startState: startStateRef.current ?? endState,
+                endState,
+            });
+        } catch (finalizationError) {
+            // The finalization lock blocks any retry, so close the flow here or the modal stays open for good
+            addMFABreadcrumb('Flow finalization failed', {isSuccessful, message: getErrorMessage(finalizationError)}, 'error');
+            dispatch({type: 'SET_FLOW_COMPLETE', payload: true});
+            dispatch({type: 'CLOSE_MODAL'});
+            return;
+        }
 
         dispatch({type: 'SET_FLOW_COMPLETE', payload: true});
 

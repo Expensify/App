@@ -229,6 +229,26 @@ describe('Wallet MFA composed providers', () => {
         expect(getPaymentMethods).toHaveBeenCalledTimes(1);
     });
 
+    it('closes the flow when the scenario callback throws so the modal is not stuck', async () => {
+        // Given a scenario callback that throws during finalization.
+        jest.mocked(getPaymentMethods).mockImplementationOnce(() => {
+            throw new Error('callback failed');
+        });
+        render(
+            <MultifactorAuthenticationContextProviders>
+                <Probe />
+            </MultifactorAuthenticationContextProviders>,
+        );
+
+        // When the flow reaches finalization.
+        await startScenario();
+        await waitFor(() => expect(getPaymentMethods).toHaveBeenCalledTimes(1));
+
+        // Then the flow still completes and the modal closes instead of hanging behind the finalization lock.
+        await waitFor(() => expect(state.isFlowComplete).toBe(true));
+        expect(state.isModalOpen).toBe(false);
+    });
+
     it('keeps the modal visible when wallet provisioning is canceled so the outcome screen can show', async () => {
         // Given the wallet sheet is presented over the modal.
         let finishWallet: ((status: TokenizationStatus) => void) | undefined;
