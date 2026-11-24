@@ -84,6 +84,9 @@ type AddMembersToWorkspaceOptions = {
 
     /** The workspace's categories, so the invited members can use every category until the backend sends visibleTo */
     policyCategories?: OnyxEntry<PolicyCategories>;
+
+    /** The inviter's travel choice when it differs from the workspace's new member travel setting. Omit it to follow the setting. */
+    canUseTravel?: boolean;
 };
 
 function hasPolicyAdminsRoomsAccess(role: string | undefined): boolean {
@@ -906,7 +909,7 @@ function buildAddMembersToWorkspaceOnyxData(
     role: string,
     currentUser: CurrentUser,
     reportActionsList: OnyxCollection<ReportActions> | undefined,
-    {approverEmail, policyExpenseChatNotificationPreference, hasOfficeWorkArrangement, policyCategories}: AddMembersToWorkspaceOptions = {},
+    {approverEmail, policyExpenseChatNotificationPreference, hasOfficeWorkArrangement, policyCategories, canUseTravel}: AddMembersToWorkspaceOptions = {},
 ) {
     const policyID = policy.id;
     const logins = Object.keys(invitedEmailsToAccountIDs).map((memberLogin) => PhoneNumber.addSMSDomainIfPhoneNumber(memberLogin));
@@ -951,6 +954,9 @@ function buildAddMembersToWorkspaceOnyxData(
           })
         : {onyxSuccessData: [], onyxOptimisticData: [], onyxFailureData: [], reportCreationData: {}};
 
+    // The inviter's choice wins; without one, the server turns travel off while the workspace's new member travel setting is off
+    const shouldTurnOffTravel = (canUseTravel ?? policy.travelSettings?.autoEnableNewMembers) === false;
+
     const optimisticMembersState: OnyxCollectionInputValue<PolicyEmployee> = {};
     const successMembersState: OnyxCollectionInputValue<PolicyEmployee> = {};
     const failureMembersState: OnyxCollectionInputValue<PolicyEmployee> = {};
@@ -962,8 +968,8 @@ function buildAddMembersToWorkspaceOnyxData(
             submitsTo: approverEmail ?? getDefaultApprover(policy),
             ...(hasOfficeWorkArrangement !== undefined ? {hasOfficeWorkArrangement} : {}),
 
-            // The server turns travel off for members who join while the workspace's new member travel setting is off
-            ...(policy.travelSettings?.autoEnableNewMembers === false ? {canUseTravel: false} : {}),
+            // A missing key means the member can book, so only a turned off invitee gets the key
+            ...(shouldTurnOffTravel ? {canUseTravel: false} : {}),
         };
         successMembersState[email] = {pendingAction: null};
         failureMembersState[email] = {
@@ -1077,7 +1083,7 @@ function addMembersToWorkspace(
     role: string,
     currentUser: CurrentUser,
     reportActionsList: OnyxCollection<ReportActions>,
-    {approverEmail, hasOfficeWorkArrangement, policyCategories}: Omit<AddMembersToWorkspaceOptions, 'policyExpenseChatNotificationPreference'> = {},
+    {approverEmail, hasOfficeWorkArrangement, policyCategories, canUseTravel}: Omit<AddMembersToWorkspaceOptions, 'policyExpenseChatNotificationPreference'> = {},
 ) {
     if (!policy?.id) {
         Log.warn('addMembersToWorkspace: Policy ID is undefined');
@@ -1093,7 +1099,7 @@ function addMembersToWorkspace(
         role,
         currentUser,
         reportActionsList,
-        {approverEmail, hasOfficeWorkArrangement, policyCategories},
+        {approverEmail, hasOfficeWorkArrangement, policyCategories, canUseTravel},
     );
 
     const params: AddMembersToWorkspaceParams = {
@@ -1105,6 +1111,7 @@ function addMembersToWorkspace(
         }),
         policyID: policy.id,
         ...(hasOfficeWorkArrangement !== undefined ? {hasOfficeWorkArrangement} : {}),
+        ...(canUseTravel !== undefined ? {canUseTravel} : {}),
     };
     if (!isEmptyObject(membersChats.reportCreationData)) {
         params.reportCreationData = JSON.stringify(membersChats.reportCreationData);
