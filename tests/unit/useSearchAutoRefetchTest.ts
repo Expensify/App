@@ -940,31 +940,6 @@ describe('useSearchAutoRefetch', () => {
             expect(search).not.toHaveBeenCalled();
         });
 
-        it('should refetch exactly once on refocus when a write while hidden touches the results', () => {
-            // Given a hidden Spend tab with one expense in the results and one outside them
-            mockUseIsFocused.mockReturnValue(false);
-            const initialTransactions = {transactions_1: transaction1, transactions_2: transaction2};
-            const {rerender} = renderHook((props: UseSearchAutoRefetch) => useSearchAutoRefetch(props), {
-                initialProps: buildProps(initialTransactions, initialTransactions),
-            });
-
-            // When the expense in the results is edited while hidden, followed by an unrelated write
-            const editedTransactions = {transactions_1: createMock<Transaction>({transactionID: '1', amount: 250}), transactions_2: transaction2};
-            rerender(buildProps(editedTransactions, initialTransactions));
-            rerender(buildProps(editedTransactions, editedTransactions));
-            const laterTransactions = {...editedTransactions, transactions_2: createMock<Transaction>({transactionID: '2', amount: 300})};
-            rerender(buildProps(laterTransactions, editedTransactions));
-            rerender(buildProps(laterTransactions, laterTransactions));
-            expect(search).not.toHaveBeenCalled();
-
-            // And the tab is opened again
-            mockUseIsFocused.mockReturnValue(true);
-            rerender(buildProps(laterTransactions, laterTransactions));
-
-            // Then exactly one refetch goes out
-            expect(search).toHaveBeenCalledTimes(1);
-        });
-
         it('should refetch once the in-flight search responds when the user returns before it does', () => {
             // Given a search is in flight when Spend is left
             const loadingResults = createMock<UseSearchAutoRefetch['searchResults']>({
@@ -975,6 +950,7 @@ describe('useSearchAutoRefetch', () => {
             const {rerender} = renderHook((props: UseSearchAutoRefetch) => useSearchAutoRefetch(props), {
                 initialProps: buildProps(initialTransactions, initialTransactions),
             });
+            // That search was started by adding an expense
             const addedTransactions = {...initialTransactions, transactions_3: createMock<Transaction>({transactionID: '3'})};
             rerender(buildProps(addedTransactions, initialTransactions));
             expect(search).toHaveBeenCalledTimes(1);

@@ -129,11 +129,10 @@ function useSearchAutoRefetch({
 
         // `usePrevious` keeps advancing while Search is inactive, so a deferred refetch compares against the saved baseline.
         const baseline = deferredRefetchBaselineRef.current;
-        const baseTransactions = baseline ? baseline.transactions : previousTransactions;
-        const baseReportActions = baseline ? baseline.reportActions : previousReportActions;
-        const baseMemberCustomFields = baseline ? baseline.memberCustomFields : previousMemberCustomFields;
+        const previous = {transactions: previousTransactions, reportActions: previousReportActions, memberCustomFields: previousMemberCustomFields};
+        const {transactions: baseTransactions, reportActions: baseReportActions, memberCustomFields: baseMemberCustomFields} = baseline ?? previous;
 
-        // Snapshot and focus updates re-run this effect with unchanged collections, which would diff a collection against itself.
+        // Snapshot and focus updates re-run this effect with collections unchanged since the last comparison.
         if (transactions === baseTransactions && reportActions === baseReportActions && memberCustomFields === baseMemberCustomFields) {
             return;
         }
@@ -147,7 +146,7 @@ function useSearchAutoRefetch({
             // Skip the full diff while inactive and compare once on return. Empty (still loading) collections aren't saved,
             // or every later change would look like the initial load.
             if (!baseline && hasCollectionData(previousTransactions, previousReportActions)) {
-                deferredRefetchBaselineRef.current = {transactions: previousTransactions, reportActions: previousReportActions, memberCustomFields: previousMemberCustomFields};
+                deferredRefetchBaselineRef.current = previous;
             }
             return;
         }
@@ -156,18 +155,16 @@ function useSearchAutoRefetch({
         if (searchTriggeredRef.current) {
             return;
         }
-        const isDeferredComparison = !!baseline;
         deferredRefetchBaselineRef.current = undefined;
-
-        const previousTransactionIDsLocal = Object.keys(baseTransactions ?? {});
-        const transactionsIDs = Object.keys(transactions ?? {});
 
         // Only proceed if we have previous data to compare against
         // This prevents triggering on initial data load
-        const hasPreviousReportActions = Object.values(baseReportActions ?? {}).some((actions) => Object.keys(actions ?? {}).length > 0);
-        if (previousTransactionIDsLocal.length === 0 && !hasPreviousReportActions) {
+        if (!hasCollectionData(baseTransactions, baseReportActions)) {
             return;
         }
+
+        const previousTransactionIDsLocal = Object.keys(baseTransactions ?? {});
+        const transactionsIDs = Object.keys(transactions ?? {});
 
         // Only chat searches are driven by report actions, so the rest skip walking that collection entirely.
         const reportActionsIDs = isChat ? Object.values(reportActions ?? {}).flatMap((actions) => Object.keys(actions ?? {})) : [];
@@ -217,7 +214,7 @@ function useSearchAutoRefetch({
             // This ensures deletions that result in empty data still trigger search
             // A deferred comparison can't see server edits to expenses added while inactive, so it always searches again.
             if (
-                !isDeferredComparison &&
+                !baseline &&
                 !hasAGenuinelyNewID &&
                 !hasChangedResultTransaction &&
                 !hasChangedResultMemberCustomField &&
