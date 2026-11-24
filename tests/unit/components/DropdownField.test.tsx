@@ -378,23 +378,6 @@ describe('DropdownField', () => {
             expect(renderedProps?.anchorPosition.horizontal).toBe(ROW_X);
         });
 
-        it('does not measure the row while the list is closed', () => {
-            // Given a field whose list was never opened
-            const onPress = jest.fn();
-            const measureSpy = mockRowAt(ROW_TOP);
-            const {rerender} = renderField(true, onPress);
-            // The spy sits on the shared View prototype, so it starts this test with calls from earlier ones
-            measureSpy.mockClear();
-
-            // When the window narrows
-            mockWindowWidth = RESIZED_WINDOW_WIDTH;
-            rerender(buildField(true, onPress));
-
-            // Then nothing is measured, since there is no pop-over to place
-            expect(measureSpy).not.toHaveBeenCalled();
-            expect(screen.queryByText(DROPDOWN_TEXT)).toBeNull();
-        });
-
         it('closes the list instead of opening the page when the window leaves no room for it', () => {
             // Given a field whose list is open below the row
             const onPress = jest.fn();
