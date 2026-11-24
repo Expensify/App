@@ -1288,9 +1288,9 @@ function maybeUpdateReportNameForFormulaTitle(
     policy: OnyxEntry<OnyxTypes.Policy>,
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'],
     optimisticTransactions: Record<string, OnyxTypes.Transaction> = {},
+    iouReportNameValuePairs?: OnyxEntry<OnyxTypes.ReportNameValuePairs>,
 ): OnyxTypes.Report {
-    const allReportNameValuePairs = getAllReportNameValuePairs();
-    const reportNameValuePairs = allReportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${iouReport.reportID}`];
+    const reportNameValuePairs = iouReportNameValuePairs ?? getAllReportNameValuePairs()?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${iouReport.reportID}`];
     const titleField = reportNameValuePairs?.expensify_text_title;
 
     // Manual renames null out expensify_text_title in RNVP; if RNVP isn't loaded, skip rather than overwrite.
@@ -1899,6 +1899,7 @@ function getUpdatedMoneyRequestReportData(
     transactionChanges?: TransactionChanges,
     // Overlaid on Onyx in the formula context — search snapshots, prior bulk-edit iterations, etc.
     additionalTransactionsForFormula: Record<string, OnyxTypes.Transaction> = {},
+    iouReportNameValuePairs?: OnyxEntry<OnyxTypes.ReportNameValuePairs>,
 ) {
     const calculatedDiffAmount = calculateDiffAmount(iouReport, updatedTransaction, transaction);
     // Once a prior iteration made the total pending, later ones must not recompute against a stale base.
@@ -1959,7 +1960,7 @@ function getUpdatedMoneyRequestReportData(
             if (updatedTransaction?.transactionID) {
                 optimisticTransactions[updatedTransaction.transactionID] = updatedTransaction;
             }
-            updatedMoneyRequestReport = maybeUpdateReportNameForFormulaTitle(updatedMoneyRequestReport, policy, getCurrencyDecimals, optimisticTransactions);
+            updatedMoneyRequestReport = maybeUpdateReportNameForFormulaTitle(updatedMoneyRequestReport, policy, getCurrencyDecimals, optimisticTransactions, iouReportNameValuePairs);
         }
     } else {
         updatedMoneyRequestReport = updateIOUOwnerAndTotal(iouReport, actorAccountID ?? CONST.DEFAULT_NUMBER_ID, diff, getCurrency(transaction), false, true, isTransactionOnHold);

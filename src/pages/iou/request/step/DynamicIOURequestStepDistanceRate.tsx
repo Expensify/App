@@ -237,12 +237,13 @@ function DynamicIOURequestStepDistanceRate({
             }
 
             if (isEditing && transaction?.transactionID) {
-                const [rules, policyCategories, policyTags, reportPolicyTags, introSelected] = await Onyx.multiGet([
+                const [rules, policyCategories, policyTags, reportPolicyTags, introSelected, parentReportNameValuePairs] = await Onyx.multiGet([
                     ONYXKEYS.COLLECTION.RULE,
                     `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${report?.policyID}`,
                     `${ONYXKEYS.COLLECTION.POLICY_TAGS}${report?.policyID}`,
                     `${ONYXKEYS.COLLECTION.POLICY_TAGS}${getNonEmptyStringOnyxID(parentReport?.policyID)}`,
                     ONYXKEYS.NVP_INTRO_SELECTED,
+                    `${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${getNonEmptyStringOnyxID(parentReport?.reportID)}`,
                 ]);
                 // Persist preference so the default stays in sync across the workspace (the same way as in the setMoneyRequestDistanceRate)
                 setLastSelectedDistanceRate(policy, customUnitRateID);
@@ -271,6 +272,7 @@ function DynamicIOURequestStepDistanceRate({
                     getCurrencyDecimals,
                     getCurrencySymbol,
                     rules,
+                    parentReportNameValuePairs,
                 });
             } else {
                 setMoneyRequestDistanceRate(transaction, customUnitRateID, policy, shouldUseTransactionDraft(action));

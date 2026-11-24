@@ -257,13 +257,14 @@ function DynamicIOURequestStepDistanceManual({
             const shouldUpdateTransaction = isDistanceChanged || isDistanceUnitChanged;
 
             if (shouldUpdateTransaction) {
-                const [rules, policyCategories, policyTags, reportPolicyTags, introSelected, recentWaypoints] = await Onyx.multiGet([
+                const [rules, policyCategories, policyTags, reportPolicyTags, introSelected, recentWaypoints, parentReportNameValuePairs] = await Onyx.multiGet([
                     ONYXKEYS.COLLECTION.RULE,
                     `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policy?.id}`,
                     `${ONYXKEYS.COLLECTION.POLICY_TAGS}${policy?.id}`,
                     `${ONYXKEYS.COLLECTION.POLICY_TAGS}${getNonEmptyStringOnyxID(parentReport?.policyID)}`,
                     ONYXKEYS.NVP_INTRO_SELECTED,
                     ONYXKEYS.NVP_RECENT_WAYPOINTS,
+                    `${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${getNonEmptyStringOnyxID(parentReport?.reportID)}`,
                 ]);
                 updateMoneyRequestDistance({
                     isVendorMatchingBetaEnabled,
@@ -290,6 +291,7 @@ function DynamicIOURequestStepDistanceManual({
                     getCurrencyDecimals,
                     getCurrencySymbol,
                     rules,
+                    parentReportNameValuePairs,
                 });
             }
             Navigation.goBack(backTo);

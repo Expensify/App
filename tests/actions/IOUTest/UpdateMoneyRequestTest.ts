@@ -8,6 +8,7 @@ import {
     updateMoneyRequestDate,
     updateMoneyRequestDescription,
     updateMoneyRequestDistance,
+    updateMoneyRequestDistanceRate,
     updateMoneyRequestMerchant,
     updateMoneyRequestReimbursable,
     updateMoneyRequestTag,
@@ -1226,6 +1227,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
 
             // When updating the money request with distance and waypoints
             updateMoneyRequestDistance({
+                parentReportNameValuePairs: undefined,
                 isVendorMatchingBetaEnabled: false,
                 rules: undefined,
                 personalPolicyOutputCurrency: undefined,
@@ -1326,6 +1328,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
 
             // When updating the money request WITHOUT distance (only waypoints)
             updateMoneyRequestDistance({
+                parentReportNameValuePairs: undefined,
                 isVendorMatchingBetaEnabled: false,
                 rules: undefined,
                 personalPolicyOutputCurrency: undefined,
@@ -1450,6 +1453,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
 
             // First update: Add more waypoints to the expense
             updateMoneyRequestDistance({
+                parentReportNameValuePairs: undefined,
                 isVendorMatchingBetaEnabled: false,
                 rules: undefined,
                 personalPolicyOutputCurrency: undefined,
@@ -1532,6 +1536,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
 
             // Call with empty waypoints - should not crash
             updateMoneyRequestDistance({
+                parentReportNameValuePairs: undefined,
                 isVendorMatchingBetaEnabled: false,
                 rules: undefined,
                 personalPolicyOutputCurrency: undefined,
@@ -1585,6 +1590,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID2}`, fakeTransaction2);
 
             updateMoneyRequestDistance({
+                parentReportNameValuePairs: undefined,
                 isVendorMatchingBetaEnabled: false,
                 rules: undefined,
                 personalPolicyOutputCurrency: undefined,
@@ -1680,6 +1686,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
 
             // When saving the edit without touching the waypoints
             updateMoneyRequestDistance({
+                parentReportNameValuePairs: undefined,
                 isVendorMatchingBetaEnabled: false,
                 rules: undefined,
                 personalPolicyOutputCurrency: undefined,
@@ -3398,6 +3405,277 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
             expect(storedTransaction?.comment?.comment).toBe('New description');
             expect(storedTransaction?.receipt?.source).toBe('new-receipt.jpg');
             expect(storedTransaction?.receipt?.state).not.toBe(CONST.IOU.RECEIPT_STATE.SCAN_COMPLETE);
+        });
+    });
+
+    describe('formula report title from the passed parent report RNVP', () => {
+        const transactionID = 'formulaTitleTransaction';
+        const transactionThreadReportID = 'formulaTitleThread';
+        const parentReportID = 'formulaTitleExpenseReport';
+        const policyID = 'formulaTitlePolicy';
+
+        const titleField = {
+            fieldID: CONST.REPORT_FIELD_TITLE_FIELD_ID,
+            name: 'Title',
+            type: CONST.REPORT_FIELD_TYPES.FORMULA,
+            defaultValue: 'Trip from {report:autoreporting:start:MMM dd} to {report:autoreporting:end:MMM dd, yyyy}',
+            deletable: false,
+            target: CONST.POLICY.DEFAULT_FIELD_LIST_TARGET,
+            values: [],
+            keys: [],
+            externalIDs: [],
+            disabledOptions: [],
+            orderWeight: 1,
+            isTax: false,
+        };
+        const policy: Policy = {
+            ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
+            id: policyID,
+            autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.TRIP,
+            fieldList: {[CONST.POLICY.FIELDS.FIELD_LIST_TITLE]: titleField},
+        };
+        const parentReport: Report = {
+            ...createRandomReport(1, undefined),
+            reportID: parentReportID,
+            reportName: 'Original report name',
+            type: CONST.REPORT.TYPE.EXPENSE,
+            policyID,
+            ownerAccountID: RORY_ACCOUNT_ID,
+            total: -1000,
+            currency: CONST.CURRENCY.USD,
+        };
+        const transactionThreadReport: Report = {
+            ...createRandomReport(2, undefined),
+            reportID: transactionThreadReportID,
+            parentReportID,
+            type: CONST.REPORT.TYPE.CHAT,
+        };
+        const transaction: Transaction = {
+            transactionID,
+            reportID: parentReportID,
+            amount: -1000,
+            currency: CONST.CURRENCY.USD,
+            created: '2025-01-10',
+            merchant: 'Old merchant',
+        };
+        // eslint-disable-next-line @typescript-eslint/naming-convention
+        const parentReportNameValuePairs = {expensify_text_title: titleField};
+
+        const sharedParams = {
+            isVendorMatchingBetaEnabled: false,
+            rules: undefined,
+            transactionID,
+            transaction,
+            transactionThreadReport,
+            parentReport,
+            iouReportOwnerLogin: undefined,
+            policy,
+            policyCategories: {},
+            reportPolicyTags: undefined,
+            currentUserAccountIDParam: RORY_ACCOUNT_ID,
+            currentUserEmailParam: RORY_EMAIL,
+            isASAPSubmitBetaEnabled: false,
+            delegateAccountID: undefined,
+            isTrackIntentUser: false,
+            getCurrencyDecimals: getCurrencyDecimalsLocal,
+            getCurrencySymbol: getCurrencySymbolLocal,
+            parentReportNameValuePairs,
+        };
+
+        beforeEach(async () => {
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${parentReportID}`, parentReport);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`, transactionThreadReport);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, transaction);
+            await waitForBatchedUpdates();
+        });
+
+        it.each([
+            {
+                name: 'updateMoneyRequestDate',
+                command: WRITE_COMMANDS.UPDATE_MONEY_REQUEST_DATE,
+                expectedReportName: 'Trip from Jan 15 to Jan 15, 2025',
+                update: () =>
+                    updateMoneyRequestDate({
+                        ...sharedParams,
+                        transactions: {},
+                        transactionViolations: {},
+                        value: '2025-01-15',
+                        policyTags: {},
+                        isOffline: false,
+                        personalPolicyOutputCurrency: undefined,
+                    }),
+            },
+            {
+                name: 'updateMoneyRequestMerchant',
+                command: WRITE_COMMANDS.UPDATE_MONEY_REQUEST_MERCHANT,
+                expectedReportName: 'Trip from Jan 10 to Jan 10, 2025',
+                update: () =>
+                    updateMoneyRequestMerchant({
+                        ...sharedParams,
+                        value: 'New merchant',
+                        policyTagList: {},
+                        isOffline: false,
+                        violations: undefined,
+                    }),
+            },
+            {
+                name: 'updateMoneyRequestDescription',
+                command: WRITE_COMMANDS.UPDATE_MONEY_REQUEST_DESCRIPTION,
+                expectedReportName: 'Trip from Jan 10 to Jan 10, 2025',
+                update: () =>
+                    updateMoneyRequestDescription({
+                        ...sharedParams,
+                        comment: 'New description',
+                        policyTagList: {},
+                        violations: undefined,
+                    }),
+            },
+        ])('$name recalculates the formula title from the passed parent report RNVP', ({command, expectedReportName, update}) => {
+            // Given the expense report's RNVP marks its title as a formula, but only the caller has it and Onyx doesn't,
+            // so the title can only be recalculated if the wrapper passes the entry on
+            const writeSpy = jest.spyOn(API, 'write').mockImplementation(jest.fn());
+
+            // When the expense is edited
+            update();
+
+            // Then the optimistic report update carries the recalculated title
+            expect(writeSpy).toHaveBeenCalledWith(
+                command,
+                expect.anything(),
+                expect.objectContaining({
+                    optimisticData: expect.arrayContaining([
+                        expect.objectContaining({
+                            key: `${ONYXKEYS.COLLECTION.REPORT}${parentReportID}`,
+                            value: expect.objectContaining({reportName: expectedReportName}),
+                        }),
+                    ]),
+                }),
+            );
+
+            writeSpy.mockRestore();
+        });
+
+        describe('distance expenses', () => {
+            const rate2025 = 'formulaTitleRate2025';
+            const alternateRate2025 = 'formulaTitleAlternateRate2025';
+            const rate2026 = 'formulaTitleRate2026';
+            const mileageRate = (customUnitRateID: string, rate: number, startDate: string, endDate: string) => ({
+                currency: CONST.CURRENCY.USD,
+                customUnitRateID,
+                enabled: true,
+                name: customUnitRateID,
+                rate,
+                startDate,
+                endDate,
+            });
+            const distancePolicy: Policy = {
+                ...policy,
+                customUnits: {
+                    formulaTitleUnit: {
+                        attributes: {unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES},
+                        customUnitID: 'formulaTitleUnit',
+                        enabled: true,
+                        name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+                        rates: {
+                            [rate2025]: mileageRate(rate2025, 65.5, '2025-01-01', '2025-12-31'),
+                            [alternateRate2025]: mileageRate(alternateRate2025, 50, '2025-01-01', '2025-12-31'),
+                            [rate2026]: mileageRate(rate2026, 70, '2026-01-01', '2026-12-31'),
+                        },
+                    },
+                },
+            };
+            const distanceTransaction: Transaction = {
+                ...transaction,
+                iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE,
+                comment: {
+                    type: CONST.TRANSACTION.TYPE.CUSTOM_UNIT,
+                    customUnit: {
+                        name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+                        quantity: 10,
+                        distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                        customUnitRateID: rate2025,
+                    },
+                },
+            };
+            const distanceParams = {
+                ...sharedParams,
+                transaction: distanceTransaction,
+                policy: distancePolicy,
+                isTrackIntentUser: false,
+                personalPolicyOutputCurrency: undefined,
+            };
+
+            beforeEach(async () => {
+                await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, distancePolicy);
+                await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, distanceTransaction);
+                await waitForBatchedUpdates();
+            });
+
+            it.each([
+                {
+                    name: 'updateMoneyRequestDistance',
+                    command: WRITE_COMMANDS.UPDATE_MONEY_REQUEST_DISTANCE,
+                    expectedReportName: 'Trip from Jan 10 to Jan 10, 2025',
+                    update: () =>
+                        updateMoneyRequestDistance({
+                            ...distanceParams,
+                            distance: 20,
+                            recentWaypoints: [],
+                            policyTagList: {},
+                            transactionBackup: undefined,
+                            violations: undefined,
+                        }),
+                },
+                {
+                    name: 'updateMoneyRequestDistanceRate',
+                    command: WRITE_COMMANDS.UPDATE_MONEY_REQUEST_DISTANCE_RATE,
+                    expectedReportName: 'Trip from Jan 10 to Jan 10, 2025',
+                    update: () =>
+                        updateMoneyRequestDistanceRate({
+                            ...distanceParams,
+                            rateID: alternateRate2025,
+                            policyTagList: {},
+                        }),
+                },
+                {
+                    name: 'updateMoneyRequestDate, when the new date selects a different mileage rate,',
+                    command: WRITE_COMMANDS.UPDATE_MONEY_REQUEST_DISTANCE_RATE,
+                    expectedReportName: 'Trip from Jun 15 to Jun 15, 2026',
+                    update: () =>
+                        updateMoneyRequestDate({
+                            ...distanceParams,
+                            transactions: {},
+                            transactionViolations: {},
+                            value: '2026-06-15',
+                            policyTags: {},
+                            isOffline: false,
+                        }),
+                },
+            ])('$name recalculates the formula title from the passed parent report RNVP', ({command, expectedReportName, update}) => {
+                // Given a distance expense on a report whose RNVP marks its title as a formula, but only the caller has the RNVP and Onyx doesn't,
+                // so the title can only be recalculated if the wrapper passes the entry on
+                const writeSpy = jest.spyOn(API, 'write').mockImplementation(jest.fn());
+
+                // When the distance, the rate, or a date that switches the rate is edited
+                update();
+
+                // Then the optimistic report update carries the recalculated title
+                expect(writeSpy).toHaveBeenCalledWith(
+                    command,
+                    expect.anything(),
+                    expect.objectContaining({
+                        optimisticData: expect.arrayContaining([
+                            expect.objectContaining({
+                                key: `${ONYXKEYS.COLLECTION.REPORT}${parentReportID}`,
+                                value: expect.objectContaining({reportName: expectedReportName}),
+                            }),
+                        ]),
+                    }),
+                );
+
+                writeSpy.mockRestore();
+            });
         });
     });
 });
