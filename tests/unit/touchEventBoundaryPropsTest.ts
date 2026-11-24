@@ -148,7 +148,8 @@ describe('touchEventBoundaryProps', () => {
         // When the user taps an element with that label
         const unreportedLabels = LABELS.filter((sentryLabel) => touch({sentryLabel}).label !== sentryLabel);
 
-        // Then every tap is named after its label
+        // Then every tap is named after its label. Mobile skips any string that is not shaped like a label before looking it up,
+        // so a label listed here must get two or three PascalCase parts (see contributingGuides/SENTRY_LABEL.md)
         expect(unreportedLabels).toEqual([]);
     });
 
