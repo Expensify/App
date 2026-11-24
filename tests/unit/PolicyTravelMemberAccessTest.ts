@@ -161,6 +161,25 @@ describe('Policy travel member access', () => {
             expect(canChangeMemberTravelAccess(pendingMemberPolicy, 'admin@example.com', 'member@example.com', true)).toBe(false);
         });
 
+        it('lets a travel admin whose own travel is turned off keep changing other members', () => {
+            // Given a provisioned Control workspace where an admin turned off the travel admin's own travel
+            const travelAdminEmail = 'traveladmin@example.com';
+            const policy: Policy = {
+                ...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE),
+                owner: 'owner@example.com',
+                travelSettings: {spotnanaCompanyID: 'company'},
+                employeeList: {
+                    ...Object.fromEntries(WORKSPACE_MEMBERS.map(([email, role]) => [email, {email, role}])),
+                    [travelAdminEmail]: {email: travelAdminEmail, role: CONST.POLICY.ROLE.TRAVEL_ADMIN, canUseTravel: false},
+                },
+            };
+
+            // When we check whether they can change a member's travel access
+            // Then they still can, since the role decides who manages access and canUseTravel only decides who can book
+            expect(canMemberUseTravel(policy, travelAdminEmail)).toBe(false);
+            expect(canChangeMemberTravelAccess(policy, travelAdminEmail, MEMBER.email, true)).toBe(true);
+        });
+
         it('keeps travel admins from changing the owner even when the owner is not listed as an admin', () => {
             // Given a Control workspace whose owner's employeeList entry doesn't say admin
             const ownerEmail = 'owner@example.com';
