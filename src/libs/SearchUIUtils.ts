@@ -210,6 +210,7 @@ import {
     hasHeldExpenses,
     hasInvoiceReports,
     hasReportBeenRejectedToSubmitter,
+    isAllowedToApproveExpenseReport as isAllowedToApproveExpenseReportUtils,
     isApproverAllowedToApprove,
     isArchivedReport,
     isClosedReport,
