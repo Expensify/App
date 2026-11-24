@@ -327,7 +327,17 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
                 Fuel: {name: 'Fuel', enabled: true, visibleTo: {[OTHER_ACCOUNT_ID]: true}},
             };
 
-            const recode = async (category: string, {currentUserAccountID = ADMIN_ACCOUNT_ID, currentUserEmail = ADMIN_EMAIL} = {}) => {
+            const recode = async (
+                category: string,
+                {
+                    currentUserAccountID = ADMIN_ACCOUNT_ID,
+                    currentUserEmail = ADMIN_EMAIL,
+                    policy = adminPolicy,
+                    parentReport = memberReport,
+                    iouReportOwnerLogin,
+                    hash,
+                }: {currentUserAccountID?: number; currentUserEmail?: string; policy?: Policy; parentReport?: Report; iouReportOwnerLogin?: string; hash?: number} = {},
+            ) => {
                 const transaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`);
                 updateMoneyRequestCategory({
                     isVendorMatchingBetaEnabled: false,
@@ -335,11 +345,12 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
                     transactionID,
                     transaction,
                     transactionThreadReport: {reportID: '3'},
-                    parentReport: memberReport,
-                    iouReportOwnerLogin: undefined,
+                    parentReport,
+                    iouReportOwnerLogin,
+                    hash,
                     reportPolicyTags: undefined,
                     category,
-                    policy: adminPolicy,
+                    policy,
                     policyTagList: undefined,
                     policyCategories,
                     policyRecentlyUsedCategories: [],
@@ -394,6 +405,59 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
                 // Then the optimistic dismissal is rolled back, since the override never reached the server
                 expect(updatedTransaction?.comment?.dismissedViolations?.[CONST.VIOLATIONS.CATEGORY_NOT_ALLOWED]).toBeUndefined();
                 mockFetch.succeed();
+            });
+
+            it('dismisses it when the owner’s workflow approver recodes an open report whose manager is stale', async () => {
+                // Given a non-admin who is the member's workflow approver, on an open report that still lists someone else as manager
+                const approverEmail = 'approver@example.com';
+                const memberEmail = 'member@example.com';
+                const approverPolicy: Policy = {
+                    ...createRandomPolicy(0, CONST.POLICY.TYPE.CORPORATE),
+                    role: CONST.POLICY.ROLE.USER,
+                    approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC,
+                    approver: approverEmail,
+                    employeeList: {[memberEmail]: {email: memberEmail, submitsTo: approverEmail}},
+                };
+                const openReport: Report = {
+                    ...memberReport,
+                    stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                    statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                    managerID: OTHER_ACCOUNT_ID,
+                };
+
+                // When the approver recodes it to Fuel, which the member can't use
+                mockFetch.pause();
+                const updatedTransaction = await recode('Fuel', {
+                    currentUserAccountID: 999,
+                    currentUserEmail: approverEmail,
+                    policy: approverPolicy,
+                    parentReport: openReport,
+                    iouReportOwnerLogin: memberEmail,
+                });
+
+                // Then it's dismissed like an admin's override, since they're allowed to edit the expense too
+                expect(updatedTransaction?.comment?.dismissedViolations?.[CONST.VIOLATIONS.CATEGORY_NOT_ALLOWED]?.[approverEmail]).toBeTruthy();
+                await mockFetch.resume();
+            });
+
+            it('mirrors the dismissal into the Search snapshot', async () => {
+                // Given the admin recoding from Search, whose rows read the transaction from the snapshot
+                const hash = 12345;
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`, {data: {}});
+
+                // When they recode the member's expense to Fuel
+                mockFetch.pause();
+                await recode('Fuel', {hash});
+
+                // Then the snapshot's copy of the transaction has the dismissal too, so the Search row hides the violation
+                const snapshot = await getOnyxValue(`${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`);
+                const snapshotTransaction = snapshot?.data?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
+                expect(
+                    snapshotTransaction && 'comment' in snapshotTransaction
+                        ? snapshotTransaction.comment?.dismissedViolations?.[CONST.VIOLATIONS.CATEGORY_NOT_ALLOWED]?.[ADMIN_EMAIL]
+                        : undefined,
+                ).toBeTruthy();
+                await mockFetch.resume();
             });
 
             it('doesn’t dismiss anything when the member recodes their own expense', async () => {

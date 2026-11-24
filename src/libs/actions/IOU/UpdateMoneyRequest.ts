@@ -11,7 +11,7 @@ import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import {getChangedTagLevels} from '@libs/MerchantRuleSuggestionUtils';
 import {buildOptimisticNextStep} from '@libs/NextStepUtils';
 import {rand64} from '@libs/NumberUtils';
-import {hasDependentTags, isGroupPolicy, isTaxTrackingEnabled} from '@libs/PolicyUtils';
+import {hasDependentTags, isGroupPolicy, isTaxTrackingEnabled, isWorkflowApprover} from '@libs/PolicyUtils';
 import type {TransactionDetails} from '@libs/ReportUtils';
 import {
     buildOptimisticModifiedExpenseReportAction,
@@ -23,6 +23,7 @@ import {
     isExpenseReport,
     isInvoiceReport as isInvoiceReportReportUtils,
     isOneTransactionThread,
+    isOpenReport,
     isPolicyAdmin,
     isReportManager,
     isSelfDM,
@@ -1356,6 +1357,9 @@ function buildCategoryOverrideDismissalOnyxData({
     policyCategories,
     currentUserAccountID,
     currentUserEmail,
+    iouReportOwnerLogin,
+    rules,
+    hash,
 }: {
     transactionID: string;
     transaction: OnyxEntry<OnyxTypes.Transaction>;
@@ -1365,10 +1369,20 @@ function buildCategoryOverrideDismissalOnyxData({
     policyCategories: OnyxEntry<OnyxTypes.PolicyCategories>;
     currentUserAccountID: number;
     currentUserEmail: string;
-}): {optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.TRANSACTION>>; failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.TRANSACTION>>} {
+    iouReportOwnerLogin: string | undefined;
+    rules: OnyxCollection<OnyxTypes.Rule>;
+    hash: number | undefined;
+}): {
+    optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.TRANSACTION | typeof ONYXKEYS.COLLECTION.SNAPSHOT>>;
+    failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.TRANSACTION | typeof ONYXKEYS.COLLECTION.SNAPSHOT>>;
+} {
     const ownerAccountID = iouReport?.ownerAccountID;
     const newPolicyCategory = category ? policyCategories?.[category] : undefined;
-    const isReviewer = isPolicyAdmin(policy) || isReportManager(iouReport, currentUserAccountID);
+    // The same reviewers who can edit the expense: a draft report's managerID can be stale, so the owner's workflow
+    // approver is read from the policy, as canEditMoneyRequest does
+    const isWorkflowApproverEditing =
+        isExpenseReport(iouReport) && isOpenReport(iouReport) && isWorkflowApprover(policy, iouReportOwnerLogin, rules, iouReport?.total ?? 0, currentUserEmail);
+    const isReviewer = isPolicyAdmin(policy) || isReportManager(iouReport, currentUserAccountID) || isWorkflowApproverEditing;
     // A category that isn't loaded is left alone, since whether the member can use it isn't known
     const isOverridingVisibility =
         ownerAccountID !== undefined && ownerAccountID !== currentUserAccountID && isReviewer && !!newPolicyCategory && !isCategoryVisibleToMember(newPolicyCategory, ownerAccountID);
@@ -1386,11 +1400,20 @@ function buildCategoryOverrideDismissalOnyxData({
     // The dismissal is merged, so on failure a key this change added is removed with null, and the old ones come back
     const failureDismissal = previousDismissal ? {...previousDismissal, ...(isOverridingVisibility && !previousDismissal[currentUserEmail] ? {[currentUserEmail]: null} : {})} : null;
 
-    const key = `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}` as const;
-    return {
-        optimisticData: [{onyxMethod: Onyx.METHOD.MERGE, key, value: {comment: {dismissedViolations: {[CONST.VIOLATIONS.CATEGORY_NOT_ALLOWED]: optimisticDismissal}}}}],
-        failureData: [{onyxMethod: Onyx.METHOD.MERGE, key, value: {comment: {dismissedViolations: {[CONST.VIOLATIONS.CATEGORY_NOT_ALLOWED]: failureDismissal}}}}],
+    const transactionKey = `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}` as const;
+    const buildUpdates = (dismissal: Record<string, string | number | null> | null): Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.TRANSACTION | typeof ONYXKEYS.COLLECTION.SNAPSHOT>> => {
+        const transactionUpdate = {comment: {dismissedViolations: {[CONST.VIOLATIONS.CATEGORY_NOT_ALLOWED]: dismissal}}};
+        const updates: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.TRANSACTION | typeof ONYXKEYS.COLLECTION.SNAPSHOT>> = [
+            {onyxMethod: Onyx.METHOD.MERGE, key: transactionKey, value: transactionUpdate},
+        ];
+        if (hash) {
+            const snapshotData: NullishDeep<SearchResultDataType> = {};
+            snapshotData[transactionKey] = transactionUpdate;
+            updates.push({onyxMethod: Onyx.METHOD.MERGE, key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`, value: {data: snapshotData}});
+        }
+        return updates;
     };
+    return {optimisticData: buildUpdates(optimisticDismissal), failureData: buildUpdates(failureDismissal)};
 }
 
 /** Updates the category of an expense */
@@ -1478,6 +1501,9 @@ function updateMoneyRequestCategory({
         policyCategories,
         currentUserAccountID: currentUserAccountIDParam,
         currentUserEmail: currentUserEmailParam,
+        iouReportOwnerLogin,
+        rules,
+        hash,
     });
     onyxData.optimisticData?.push(...categoryOverrideDismissalOnyxData.optimisticData);
     onyxData.failureData?.push(...categoryOverrideDismissalOnyxData.failureData);
