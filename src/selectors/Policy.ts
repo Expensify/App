@@ -445,6 +445,90 @@ const policyMapper = (policy: OnyxEntry<Policy>): PolicySelector | undefined => 
     };
 };
 
+// Report previews and their expense cards read only these fields, so writes to lastModified, avatarURL and the like
+// don't re-render every preview. Their action buttons read the whole policy for the API calls they make.
+type ReportPreviewPolicy = Pick<
+    Policy,
+    | 'id'
+    | 'name'
+    | 'type'
+    | 'role'
+    | 'owner'
+    | 'ownerAccountID'
+    | 'outputCurrency'
+    | 'pendingAction'
+    | 'archivedDate'
+    | 'approvalMode'
+    | 'approver'
+    | 'employeeList'
+    | 'rules'
+    | 'connections'
+    | 'preventSelfApproval'
+    | 'preventPayoutNonReimbursableReports'
+    | 'reimbursementChoice'
+    | 'reimburser'
+    | 'achAccount'
+    | 'autoReimbursement'
+    | 'autoReimbursementLimit'
+    | 'autoReporting'
+    | 'autoReportingFrequency'
+    | 'harvesting'
+    | 'isAttendeeTrackingEnabled'
+    | 'autoCategorizeNewExpenses'
+    | 'requireMapOrGPS'
+    | 'commuterExclusions'
+    | 'dynamicExternalWorkflowHidePeople'
+    | 'areInvoicesEnabled'
+    | 'areWorkflowsEnabled'
+    | 'areCategoriesEnabled'
+    | 'areTagsEnabled'
+    | 'taxRates'
+    | 'customUnits'
+>;
+
+const reportPreviewPolicySelector = (policy: OnyxEntry<Policy>): ReportPreviewPolicy | undefined => {
+    if (!policy) {
+        return undefined;
+    }
+    return {
+        id: policy.id,
+        name: policy.name,
+        type: policy.type,
+        role: policy.role,
+        owner: policy.owner,
+        ownerAccountID: policy.ownerAccountID,
+        outputCurrency: policy.outputCurrency,
+        pendingAction: policy.pendingAction,
+        archivedDate: policy.archivedDate,
+        approvalMode: policy.approvalMode,
+        approver: policy.approver,
+        employeeList: policy.employeeList,
+        rules: policy.rules,
+        connections: policy.connections,
+        preventSelfApproval: policy.preventSelfApproval,
+        preventPayoutNonReimbursableReports: policy.preventPayoutNonReimbursableReports,
+        reimbursementChoice: policy.reimbursementChoice,
+        reimburser: policy.reimburser,
+        achAccount: policy.achAccount,
+        autoReimbursement: policy.autoReimbursement,
+        autoReimbursementLimit: policy.autoReimbursementLimit,
+        autoReporting: policy.autoReporting,
+        autoReportingFrequency: policy.autoReportingFrequency,
+        harvesting: policy.harvesting,
+        isAttendeeTrackingEnabled: policy.isAttendeeTrackingEnabled,
+        autoCategorizeNewExpenses: policy.autoCategorizeNewExpenses,
+        requireMapOrGPS: policy.requireMapOrGPS,
+        commuterExclusions: policy.commuterExclusions,
+        dynamicExternalWorkflowHidePeople: policy.dynamicExternalWorkflowHidePeople,
+        areInvoicesEnabled: policy.areInvoicesEnabled,
+        areWorkflowsEnabled: policy.areWorkflowsEnabled,
+        areCategoriesEnabled: policy.areCategoriesEnabled,
+        areTagsEnabled: policy.areTagsEnabled,
+        taxRates: policy.taxRates,
+        customUnits: policy.customUnits,
+    };
+};
+
 type IOURequestStartPolicies = {
     hasPerDiemPolicy: boolean;
     hasMultiplePerDiemPolicies: boolean;
@@ -722,6 +806,7 @@ const groupByPolicyAccountIDPoliciesSelector = (policies: OnyxCollection<Policy>
 
 export type {MemberCustomFieldsByPolicyID, PolicySelector, TimeSensitiveAdminPolicy};
 export {
+    reportPreviewPolicySelector,
     createAllPolicyReportFieldsSelector,
     ownerPoliciesSelector,
     createOwnedPaidPoliciesCountsSelector,

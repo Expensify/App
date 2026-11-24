@@ -6,6 +6,7 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 
+import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getDistanceExpenseTypeForPolicy} from '@libs/PolicyDistanceRatesUtils';
 
 import {getAddExpenseDropdownOptions} from '@userActions/IOU/StartExpenseFlows';
@@ -20,7 +21,9 @@ import {useReportPreviewData} from './MoneyRequestReportPreviewContext';
 
 function AddExpenseActionButton() {
     const {translate} = useLocalize();
-    const {iouReport, chatReportID, policy} = useReportPreviewData();
+    const {iouReport, chatReportID} = useReportPreviewData();
+    // The preview context holds a narrowed policy, while the add expense flows need the whole one
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(iouReport?.policyID)}`);
     const currentUserDetails = useCurrentUserPersonalDetails();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Location', 'ReceiptPlus', 'Plus']);
 
