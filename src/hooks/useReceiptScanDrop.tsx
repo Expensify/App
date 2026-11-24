@@ -1,5 +1,4 @@
 import {setTransactionReport} from '@libs/actions/Transaction';
-import {isValidReceiptExtension} from '@libs/fileDownload/FileUtils';
 import {navigateToParticipantPage} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {hasOnlyPersonalPolicies as hasOnlyPersonalPoliciesUtil, isGroupPolicy} from '@libs/PolicyUtils';
@@ -7,7 +6,6 @@ import {generateReportID, isSelfDM} from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 
 import type {ReceiptFile} from '@pages/iou/request/step/IOURequestStepScan/types';
-import getFileSource from '@pages/iou/request/step/IOURequestStepScan/utils/getFileSource';
 
 import {initMoneyRequest, setMoneyRequestParticipantsFromReport} from '@userActions/IOU/MoneyRequest';
 import {setMoneyRequestReceipt} from '@userActions/IOU/Receipt';
@@ -80,7 +78,7 @@ function useReceiptScanDrop() {
         const newReceiptFiles: ReceiptFile[] = [];
 
         for (const [index, file] of files.entries()) {
-            const source = getFileSource(file);
+            const source = URL.createObjectURL(file);
             const transaction =
                 index === 0
                     ? initialTransaction
@@ -133,10 +131,7 @@ function useReceiptScanDrop() {
             return;
         }
         for (const file of files) {
-            // Validation rejects unsupported extensions before it can release their object URLs.
-            if (isValidReceiptExtension(file)) {
-                file.uri = URL.createObjectURL(file);
-            }
+            file.uri = URL.createObjectURL(file);
         }
 
         validateFiles(files, Array.from(e.dataTransfer?.items ?? []));
