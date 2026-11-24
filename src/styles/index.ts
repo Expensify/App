@@ -7318,11 +7318,12 @@ const dynamicStyles = (theme: ThemeColors) =>
         },
 
         // Turns the bottom docked sheet into a card above the bar: its width and top radii are set by the sheet, so they are overridden here.
-        moreMenuCard: (bottomOffset: number) =>
+        moreMenuCard: (bottomOffset: number, leftInset: number, rightInset: number) =>
             ({
                 width: 'auto',
                 alignSelf: 'stretch',
-                marginHorizontal: variables.floatingTabBarHorizontalInset,
+                marginLeft: Math.max(variables.floatingTabBarHorizontalInset, leftInset),
+                marginRight: Math.max(variables.floatingTabBarHorizontalInset, rightInset),
                 marginBottom: bottomOffset + variables.moreMenuCardGap,
                 borderRadius: variables.componentBorderRadiusCard,
                 borderTopLeftRadius: variables.componentBorderRadiusCard,

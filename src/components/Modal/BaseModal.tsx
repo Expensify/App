@@ -78,6 +78,7 @@ function BaseModal({
     launcherRef,
     restoreFocusType,
     shouldUseModalPaddingStyle = true,
+    shouldAddSideSafeAreaPadding = true,
     initialFocus = false,
     swipeThreshold = 150,
     swipeDirection,
@@ -315,7 +316,8 @@ function BaseModal({
         modalContainerStyle,
         insets,
     });
-    const modalPaddingStyles = shouldUseModalPaddingStyle ? paddings : {paddingLeft: paddings.paddingLeft, paddingRight: paddings.paddingRight};
+    const sidePaddingStyles = shouldAddSideSafeAreaPadding ? {paddingLeft: paddings.paddingLeft, paddingRight: paddings.paddingRight} : {paddingLeft: 0, paddingRight: 0};
+    const modalPaddingStyles = shouldUseModalPaddingStyle ? {...paddings, ...sidePaddingStyles} : sidePaddingStyles;
 
     const isFullWidthNarrowSheet =
         (type === CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED || type === CONST.MODAL.MODAL_TYPE.CENTERED_SWIPEABLE_TO_RIGHT) && isSmallScreenWidth && !shouldKeepRightDockedBackdropInNarrowPane;

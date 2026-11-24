@@ -69,7 +69,7 @@ function MoreMenuPopover({isVisible, onClose, onModalHide, focusedTabRouteName}:
     const {translate} = useLocalize();
     const theme = useTheme();
     const styles = useThemeStyles();
-    const {bottom: bottomInset} = useSafeAreaInsets();
+    const {bottom: bottomInset, left: leftInset, right: rightInset} = useSafeAreaInsets();
     // A bar laid out as a column sits beside the content, so the card only clears the home indicator then.
     const cardBottomOffset = useIsTabBarVertical() ? bottomInset : getTabBarTop(bottomInset);
     const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
@@ -153,7 +153,9 @@ function MoreMenuPopover({isVisible, onClose, onModalHide, focusedTabRouteName}:
             anchorRef={anchorRef}
             anchorPosition={ANCHOR_POSITION}
             shouldUseModalPaddingStyle={false}
-            innerContainerStyle={styles.moreMenuCard(cardBottomOffset)}
+            // The card's margins clear the notch in landscape, so the modal's own side padding would only narrow its rows.
+            shouldAddSideSafeAreaPadding={false}
+            innerContainerStyle={styles.moreMenuCard(cardBottomOffset, leftInset, rightInset)}
             scrollContainerStyle={[styles.pv2, styles.ph2]}
         />
     );
