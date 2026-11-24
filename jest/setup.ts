@@ -338,7 +338,7 @@ jest.mock('react-native-nitro-fetch', () => ({
     removeAllFromAutoprefetch: jest.fn(() => Promise.resolve()),
 }));
 
-jest.mock('@shopify/react-native-skia', () => ({
+jest.mock('react-native-skia', () => ({
     useFont: jest.fn(() => null),
     matchFont: jest.fn(() => null),
     listFontFamilies: jest.fn(() => []),

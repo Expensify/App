@@ -1,6 +1,6 @@
 import {renderHook} from '@testing-library/react-native';
 
-import type {KeyboardScrollable, UseKeyboardDrivenScroll} from '@hooks/useKeyboardDrivenScroll/types';
+import type {KeyboardScrollable, ScrollWithKeyboardOptions, UseKeyboardDrivenScroll} from '@hooks/useKeyboardDrivenScroll/types';
 
 import CONST from '@src/CONST';
 
@@ -95,7 +95,7 @@ function renderKeyboardDrivenScroll() {
     const {result, unmount} = renderHook(() => useKeyboardDrivenScroll(scrollableRef));
     const handlers = jest.mocked(useKeyboardHandler).mock.lastCall?.[0] ?? {};
     return {
-        scrollWithKeyboard: (offset: number) => result.current(offset),
+        scrollWithKeyboard: (offset: number, options?: ScrollWithKeyboardOptions) => result.current(offset, options),
         startKeyboard: (height: number) => handlers.onStart?.(createKeyboardEvent(height)),
         moveKeyboard: (height: number) => handlers.onMove?.(createKeyboardEvent(height)),
         endKeyboard: (height: number) => handlers.onEnd?.(createKeyboardEvent(height)),
@@ -500,6 +500,26 @@ describe('useKeyboardDrivenScroll', () => {
 
         // Then nothing scrolls against the user's drag or pulls the content back after it
         expect(mockScrollTo).not.toHaveBeenCalled();
+    });
+
+    it('applies a target that ignores earlier drags when the keyboard reopens for an input that kept focus', () => {
+        // Given the user who focused an input, dragged the content and closed the keyboard, while the input kept focus
+        const {scrollWithKeyboard, startKeyboard, endKeyboard, startDrag} = renderKeyboardDrivenScroll();
+        startKeyboard(KEYBOARD_HEIGHT);
+        endKeyboard(KEYBOARD_HEIGHT);
+        setFocusedInput(SECOND_INPUT_TAG);
+        jest.advanceTimersByTime(100);
+        startDrag();
+        startKeyboard(0);
+        endKeyboard(0);
+
+        // When the keyboard opens again, and the reopen scroll comes without a new focus
+        startKeyboard(KEYBOARD_HEIGHT);
+        endKeyboard(KEYBOARD_HEIGHT);
+        scrollWithKeyboard(120, {shouldIgnoreEarlierDrag: true});
+
+        // Then the content slides to the input, as the drag came before the user brought the keyboard back
+        expect(mockScrollTo).toHaveBeenCalledWith(scrollableRef, 0, 120, true);
     });
 
     it('applies the target when the user dragged before the input got focus', () => {

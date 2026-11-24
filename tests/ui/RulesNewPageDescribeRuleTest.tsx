@@ -1,6 +1,7 @@
 import {act, fireEvent, render, screen} from '@testing-library/react-native';
 
 import usePolicy from '@hooks/usePolicy';
+import useScrollOnKeyboardReopen from '@hooks/useScrollOnKeyboardReopen';
 
 import {openPolicyCategoriesPage} from '@libs/actions/Policy/Category';
 import * as API from '@libs/API';
@@ -57,6 +58,7 @@ jest.mock('@hooks/useLocalize', () =>
     })),
 );
 jest.mock('@hooks/usePolicy', () => jest.fn());
+jest.mock('@hooks/useScrollOnKeyboardReopen', () => jest.fn(() => jest.fn()));
 jest.mock('@hooks/useTheme', () => jest.fn(() => ({icon: '#000'})));
 jest.mock('@components/Icon', () => () => null);
 jest.mock('@libs/actions/Policy/Category', () => ({
@@ -271,6 +273,20 @@ describe('New rule describe section', () => {
 
         // Then the box top goes to the keyboard-driven scroll, because iOS and Android do not scroll it above the keyboard
         expect(mockScrollWithKeyboard).toHaveBeenCalledWith(420);
+    });
+
+    it('scrolls to the describe box after a drag when the keyboard reopens without a new focus', async () => {
+        // Given a Describe input below the templates with the reopen callback registered
+        await renderRulesNewPage();
+        const input = screen.getByLabelText('workspace.rules.newRule.describeRuleInputLabel');
+        fireEvent(input, 'layout', {nativeEvent: {layout: {x: 0, y: 420, width: 300, height: 96}}});
+        const scrollToInput = jest.mocked(useScrollOnKeyboardReopen).mock.lastCall?.[1];
+
+        // When the hook reports that Android reopened the keyboard, which sends no focus event
+        act(() => scrollToInput?.(false));
+
+        // Then the box top goes to the keyboard-driven scroll, and a drag since the focus doesn't cancel it
+        expect(mockScrollWithKeyboard).toHaveBeenCalledWith(420, {shouldIgnoreEarlierDrag: true});
     });
 
     it('hides the describe section when New rule opens for a category', async () => {

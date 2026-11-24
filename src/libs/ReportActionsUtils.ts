@@ -74,10 +74,13 @@ import getReportURLForCurrentContext from './Navigation/helpers/getReportURLForC
 import {getIsOffline, subscribe as subscribeNetworkState} from './NetworkState';
 import Parser from './Parser';
 import {arePersonalDetailsMissing, getEffectiveDisplayName, temporaryGetDisplayNameOrDefault} from './PersonalDetailsUtils';
+import {canCreateRoomsOnPolicy} from './PolicyUtils/permissions';
+import {formatTaxRateName} from './PolicyUtils/tax';
 import stripFollowupListFromHtml from './ReportActionFollowupUtils/stripFollowupListFromHtml';
 import {getOriginalMessage, getReportActionHtml, getReportActionMessage, getReportActionText, getTextFromHtml} from './ReportActionMessageUtils';
 import {isActionOfType, isDynamicExternalWorkflowApproveFailedAction, isModifiedExpenseAction, isMoneyRequestAction} from './ReportActionTypeGuards';
 import StringUtils from './StringUtils';
+import {getAutoReportingOffsetDisplayName, parseAutoReportingOffset} from './SubmissionScheduleUtils';
 import {getWorkArrangementLabel} from './WorkArrangementUtils';
 import {getUnitTranslationKey, getWorkspaceAddressStreetLines} from './WorkspaceDisplayUtils';
 import {getReportFieldTypeTranslationKey} from './WorkspaceReportFieldUtils';
@@ -364,6 +367,7 @@ const SYSTEM_MESSAGE_ACTION_TYPES = new Set<ReportActionName>([
     CONST.REPORT.ACTIONS.TYPE.INTEGRATIONS_MESSAGE,
     CONST.REPORT.ACTIONS.TYPE.INTEGRATION_SYNC_FAILED,
     CONST.REPORT.ACTIONS.TYPE.COMPANY_CARD_CONNECTION_BROKEN,
+    CONST.REPORT.ACTIONS.TYPE.COMPANY_CARD_CONSENT_EXPIRING,
     CONST.REPORT.ACTIONS.TYPE.PERSONAL_CARD_CONNECTION_BROKEN,
     CONST.REPORT.ACTIONS.TYPE.PLAID_BALANCE_FAILURE,
     CONST.REPORT.ACTIONS.TYPE.REIMBURSED,
@@ -396,6 +400,7 @@ const NON_COLLAPSIBLE_SYSTEM_MESSAGE_ACTION_TYPES = new Set<ReportActionName>([
     CONST.REPORT.ACTIONS.TYPE.INTEGRATIONS_MESSAGE,
     CONST.REPORT.ACTIONS.TYPE.INTEGRATION_SYNC_FAILED,
     CONST.REPORT.ACTIONS.TYPE.COMPANY_CARD_CONNECTION_BROKEN,
+    CONST.REPORT.ACTIONS.TYPE.COMPANY_CARD_CONSENT_EXPIRING,
     CONST.REPORT.ACTIONS.TYPE.PERSONAL_CARD_CONNECTION_BROKEN,
     CONST.REPORT.ACTIONS.TYPE.PLAID_BALANCE_FAILURE,
     CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_QUEUED,
@@ -740,7 +745,7 @@ function getSystemMessageDisplayState(
         displayReportActions.push(reportAction);
     };
 
-    for (let index = 0; index < chronologicalActions.length; ) {
+    for (let index = 0; index < chronologicalActions.length;) {
         const reportAction = chronologicalActions.at(index);
         if (!reportAction) {
             index++;
@@ -1736,6 +1741,9 @@ function shouldReportActionBeVisible(
     reportID?: string,
     isSupportTicketReport = false,
     reportActions?: OnyxEntry<ReportActions>,
+    isInvoice?: boolean,
+    policy?: OnyxEntry<Policy>,
+    currentUserEmail?: string,
 ): boolean {
     if (!reportAction) {
         return false;
@@ -1800,6 +1808,10 @@ function shouldReportActionBeVisible(
         return false;
     }
 
+    if (isActionableReportMentionWhisper(reportAction) && policy && !canCreateRoomsOnPolicy(policy, currentUserEmail ?? '')) {
+        return false;
+    }
+
     if (isTripPreview(reportAction) || isTravelUpdate(reportAction) || isTravelNudge(reportAction)) {
         return true;
     }
@@ -1809,10 +1821,12 @@ function shouldReportActionBeVisible(
         return false;
     }
 
-    // Hide REIMBURSED and MARKED_REIMBURSED actions created from NewDot since an IOU PAY action is displayed instead
-    if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.REIMBURSED) || isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED)) {
-        const originalMessage = getOriginalMessage(reportAction);
-        if (originalMessage?.isNewDot || reportAction.shouldShow === false) {
+    // Hide REIMBURSED and MARKED_REIMBURSED actions created from NewDot since an IOU PAY action is displayed instead.
+    // ReimburseReport and MarkReimbursed add no IOU PAY action to an invoice, and neither does paying its linked bill, so the payment action stays visible on invoices.
+    // Auth sets shouldShow to false on MARKED_REIMBURSED actions created from NewDot for the same reason, so invoices ignore it too.
+    if (isPaymentRecordedByReimbursedAction(reportAction)) {
+        // Search passes isInvoice because its invoice can exist only in the Search snapshot, not in Onyx.
+        if (isPaymentActionHiddenOutsideInvoices(reportAction) && !(isInvoice ?? isInvoiceReportID(reportAction.reportID ?? reportID))) {
             return false;
         }
 
@@ -1839,6 +1853,16 @@ function shouldReportActionBeVisible(
     return !!reportAction.pendingAction || !isDeletedAction(reportAction) || isDeletedParentAction(reportAction) || isReversedTransaction(reportAction);
 }
 
+/** Whether an action can automatically create an unread divider for this account. */
+function canReportActionTriggerUnreadMarker(reportAction: ReportAction, currentUserAccountID: number): boolean {
+    if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.REIMBURSED)) {
+        const recipients = getOriginalMessage(reportAction)?.actionableForAccountIDs;
+        // Older actions have no recipient metadata, so preserve their existing behavior.
+        return !recipients || recipients.includes(currentUserAccountID);
+    }
+    return !(isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION) && getOriginalMessage(reportAction)?.label === CONST.EXPORT_LABELS.NETSUITE);
+}
+
 /**
  * Checks if the new marker should be hidden for the report action.
  */
@@ -1861,6 +1885,7 @@ function isReportActionVisible(
     // TODO: Remove optional (?) once all callers pass currentUserAccountID. Refactor issue: https://github.com/Expensify/App/issues/66408
     currentUserAccountID?: number,
     reportActions?: OnyxEntry<ReportActions>,
+    isInvoice?: boolean,
 ): boolean {
     if (!reportAction?.reportActionID) {
         return false;
@@ -1872,18 +1897,45 @@ function isReportActionVisible(
     // from what's cached in visibleReportActions (which reflects persisted Onyx data).
     // We must recalculate visibility at runtime to ensure accuracy for these transient states.
     if (reportAction.pendingAction) {
-        return shouldReportActionBeVisible(reportAction, reportAction.reportActionID, canUserPerformWriteAction, currentUserAccountID, reportID, isSupportTicketReport, reportActions);
+        return shouldReportActionBeVisible(
+            reportAction,
+            reportAction.reportActionID,
+            canUserPerformWriteAction,
+            currentUserAccountID,
+            reportID,
+            isSupportTicketReport,
+            reportActions,
+            isInvoice,
+        );
     }
 
     if (visibleReportActions && reportID) {
         const reportCache = visibleReportActions[reportID];
         if (!reportCache) {
-            return shouldReportActionBeVisible(reportAction, reportAction.reportActionID, canUserPerformWriteAction, currentUserAccountID, reportID, isSupportTicketReport, reportActions);
+            return shouldReportActionBeVisible(
+                reportAction,
+                reportAction.reportActionID,
+                canUserPerformWriteAction,
+                currentUserAccountID,
+                reportID,
+                isSupportTicketReport,
+                reportActions,
+                isInvoice,
+            );
         }
         const staticVisibility = reportCache[reportAction.reportActionID];
         // If action is not in derived value cache, fall back to runtime calculation
         if (staticVisibility === undefined) {
-            return shouldReportActionBeVisible(reportAction, reportAction.reportActionID, canUserPerformWriteAction, currentUserAccountID, reportID, isSupportTicketReport, reportActions);
+            return shouldReportActionBeVisible(
+                reportAction,
+                reportAction.reportActionID,
+                canUserPerformWriteAction,
+                currentUserAccountID,
+                reportID,
+                isSupportTicketReport,
+                reportActions,
+                isInvoice,
+            );
         }
         if (!staticVisibility) {
             return false;
@@ -1893,7 +1945,7 @@ function isReportActionVisible(
         }
         return true;
     }
-    return shouldReportActionBeVisible(reportAction, reportAction.reportActionID, canUserPerformWriteAction, currentUserAccountID, reportID, isSupportTicketReport, reportActions);
+    return shouldReportActionBeVisible(reportAction, reportAction.reportActionID, canUserPerformWriteAction, currentUserAccountID, reportID, isSupportTicketReport, reportActions, isInvoice);
 }
 
 /**
@@ -3386,13 +3438,15 @@ function isApprovedOrSubmittedReportAction(action: OnyxEntry<ReportAction>) {
 
 /**
  * Gets the text version of the message in a report action
+ *
+ * @param reportIDToName - names for the rooms the message mentions by reportID, so they aren't shown as #Hidden
  */
-function getReportActionMessageText(reportAction: OnyxEntry<ReportAction>): string {
+function getReportActionMessageText(reportAction: OnyxEntry<ReportAction>, reportIDToName?: Record<string, string>): string {
     if (!Array.isArray(reportAction?.message)) {
-        return getReportActionText(reportAction);
+        return getReportActionText(reportAction, reportIDToName);
     }
     // Sometime html can be an empty string
-    return reportAction?.message?.reduce((acc, curr) => `${acc}${getTextFromHtml(curr?.html || curr?.text, reportAction.reportActionID)}`, '') ?? '';
+    return reportAction?.message?.reduce((acc, curr) => `${acc}${getTextFromHtml(curr?.html || curr?.text, reportAction.reportActionID, reportIDToName)}`, '') ?? '';
 }
 
 function getAgentPromptUpdatedMessage(translate: LocalizedTranslate, reportAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.AGENT_PROMPT_UPDATED>): string {
@@ -3545,6 +3599,27 @@ function isActionableCardFraudAlert(reportAction: OnyxInputOrEntry<ReportAction>
 }
 
 /**
+ * Whether the action records a payment that ReimburseReport or MarkReimbursed made
+ */
+function isPaymentRecordedByReimbursedAction(
+    reportAction: OnyxEntry<ReportAction>,
+): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REIMBURSED | typeof CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED> {
+    return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.REIMBURSED) || isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED);
+}
+
+function isInvoiceReportID(reportID: string | undefined): boolean {
+    return !!reportID && getReportOrDraftReport({reportID})?.type === CONST.REPORT.TYPE.INVOICE;
+}
+
+/**
+ * Returns true for a REIMBURSED or MARKED_REIMBURSED action that was created from NewDot or that Auth marked with
+ * shouldShow false. Such an action is hidden on every report except an invoice.
+ */
+function isPaymentActionHiddenOutsideInvoices(reportAction: OnyxEntry<ReportAction>): boolean {
+    return isPaymentRecordedByReimbursedAction(reportAction) && (!!getOriginalMessage(reportAction)?.isNewDot || reportAction.shouldShow === false);
+}
+
+/**
  * Checks if a report action is an actionable whisper that requires write permission to be visible.
  */
 function isActionableWhisperRequiringWritePermission(reportAction: OnyxEntry<ReportAction>): boolean {
@@ -3685,6 +3760,7 @@ function getExportIntegrationActionFragments(
                     url = nonReimbursableUrls.at(0)?.substring(0, nonReimbursableUrls.at(0)?.lastIndexOf('/')) ?? '';
                     break;
                 case CONST.EXPORT_LABELS.CAMPFIRE:
+                case CONST.EXPORT_LABELS.DIGITS:
                 case CONST.EXPORT_LABELS.ZOHO_BOOKS:
                     url = nonReimbursableUrls.at(0)?.substring(0, nonReimbursableUrls.at(0)?.lastIndexOf('/')) ?? '';
                     break;
@@ -3958,7 +4034,7 @@ function getWorkspaceFrequencyUpdateMessage(translate: LocalizedTranslate, actio
 /**
  * Builds the message for a category visibility change, e.g. "set Bob Sterling to only see the "Meals" and "Fuel" categories".
  * Lists that are too long to read inline show a count, and when shouldShowFullList is true (the action is shown at the top of its thread),
- * those lists are returned in full instead.
+ * those lists are also listed in full below the message.
  * Pass personalDetails from a subscription so member names update when their details load or change.
  */
 function getCategoryVisibilityUpdateMessage(
@@ -3978,19 +4054,6 @@ function getCategoryVisibilityUpdateMessage(
         const hiddenTranslation = translate('common.hidden');
         return accountIDs.map((accountID) => getDisplayNameForParticipant({accountID, personalDetailsData: personalDetails, formatPhoneNumber, hiddenTranslation}));
     };
-
-    if (shouldShowFullList) {
-        const fullLists: string[] = [];
-        if (categoryNames.length >= maxListedItems) {
-            fullLists.push(translate('workspaceActions.categoryVisibilityCategoriesList', formatList(getQuotedCategoryNames())));
-        }
-        if (accountIDs.length >= maxListedItems) {
-            fullLists.push(translate('workspaceActions.categoryVisibilityMembersList', formatList(getMemberNames())));
-        }
-        if (fullLists.length > 0) {
-            return fullLists.join('\n');
-        }
-    }
 
     let members: string;
     if (accountIDs.length === 0) {
@@ -4017,12 +4080,24 @@ function getCategoryVisibilityUpdateMessage(
     }
 
     if (reason === CONST.POLICY.CATEGORY_VISIBILITY.REASON.CATEGORIES_DELETED) {
-        return `${message}${translate('workspaceActions.categoryVisibilityReasonDeleted')}`;
+        message = `${message}${translate('workspaceActions.categoryVisibilityReasonDeleted')}`;
+    } else if (reason === CONST.POLICY.CATEGORY_VISIBILITY.REASON.CATEGORIES_DISABLED) {
+        message = `${message}${translate('workspaceActions.categoryVisibilityReasonDisabled')}`;
     }
-    if (reason === CONST.POLICY.CATEGORY_VISIBILITY.REASON.CATEGORIES_DISABLED) {
-        return `${message}${translate('workspaceActions.categoryVisibilityReasonDisabled')}`;
+
+    if (!shouldShowFullList) {
+        return message;
     }
-    return message;
+
+    // The top of the thread repeats the message, then lists in full whatever it only counted
+    const lines = [message];
+    if (categoryNames.length >= maxListedItems) {
+        lines.push(translate('workspaceActions.categoryVisibilityCategoriesList', formatList(getQuotedCategoryNames())));
+    }
+    if (accountIDs.length >= maxListedItems) {
+        lines.push(translate('workspaceActions.categoryVisibilityMembersList', formatList(getMemberNames())));
+    }
+    return lines.join('\n');
 }
 
 function getWorkspaceCategoryUpdateMessage(
@@ -4380,7 +4455,8 @@ function getWorkspaceCustomUnitRateUpdatedMessage(translate: LocalizedTranslate,
     }
 
     if (customUnitRateName && updatedField === RATE_CHANGELOG_UPDATED_FIELD.TAX_RATE_EXTERNAL_ID && typeof newValue === 'string' && newTaxPercentage) {
-        return translate('workspaceActions.updatedCustomUnitTaxRateExternalID', customUnitRateName, newValue, newTaxPercentage, oldTaxPercentage, oldValue as string | undefined);
+        const oldTaxRate = oldTaxPercentage && typeof oldValue === 'string' && oldValue ? formatTaxRateName(oldValue, oldTaxPercentage) : undefined;
+        return translate('workspaceActions.updatedCustomUnitTaxRateExternalID', customUnitRateName, formatTaxRateName(newValue, newTaxPercentage), oldTaxRate);
     }
 
     if (customUnitRateName && updatedField === RATE_CHANGELOG_UPDATED_FIELD.TAX_CLAIMABLE_PERCENTAGE && typeof newValue === 'number' && customUnitRateName) {
@@ -4545,18 +4621,8 @@ function getWorkspaceUpdateFieldMessage(translate: LocalizedTranslate, action: R
         (typeof oldValue === 'string' || typeof oldValue === 'number') &&
         (typeof newValue === 'string' || typeof newValue === 'number')
     ) {
-        const getAutoReportingOffsetToDisplay = (autoReportingOffset: string | number) => {
-            if (autoReportingOffset === CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_DAY_OF_MONTH) {
-                return translate('workflowsPage.frequencies.lastDayOfMonth');
-            }
-            if (autoReportingOffset === CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_BUSINESS_DAY_OF_MONTH) {
-                return translate('workflowsPage.frequencies.lastBusinessDayOfMonth');
-            }
-            if (typeof autoReportingOffset === 'number') {
-                return toLocaleOrdinal(IntlStore.getCurrentLocale(), autoReportingOffset);
-            }
-            return '';
-        };
+        const getAutoReportingOffsetToDisplay = (autoReportingOffset: string | number) =>
+            getAutoReportingOffsetDisplayName(parseAutoReportingOffset(autoReportingOffset), translate, (day) => toLocaleOrdinal(IntlStore.getCurrentLocale(), day));
         return translate('workspaceActions.updateMonthlyOffset', getAutoReportingOffsetToDisplay(oldValue), getAutoReportingOffsetToDisplay(newValue));
     }
     if (updatedField && updatedField === CONST.POLICY.COLLECTION_KEYS.TIME_ZONE && (typeof oldValue === 'string' || typeof oldValue === 'undefined') && typeof newValue === 'string') {
@@ -4693,7 +4759,7 @@ function formatTax(taxName?: string, taxPercentage?: string): string {
     if (!taxName) {
         return '';
     }
-    return taxPercentage ? `${taxName} (${taxPercentage})` : taxName;
+    return formatTaxRateName(taxName, taxPercentage);
 }
 
 function getCategoryTaxRateMessage(translate: LocalizedTranslate, action: ReportAction): string {
@@ -6234,6 +6300,18 @@ function getCompanyCardConnectionBroken30DaysMessage(translate: LocalizedTransla
     });
 }
 
+function getCompanyCardConsentExpiringMessage(translate: LocalizedTranslate, action: OnyxEntry<ReportAction>): string {
+    const originalMessage = isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.COMPANY_CARD_CONSENT_EXPIRING) ? getOriginalMessage(action) : undefined;
+    const {feedName = 'company', bank, policyID = '', warningDaysBeforeExpiry = 0, mentionedAccountIDs} = originalMessage ?? {};
+    const workspaceCompanyCardRoute = policyID ? `${environmentURL}/${ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyID)}` : '';
+    return translate('report.actions.type.companyCardConsentExpiring', {
+        feedName: getCompanyCardConnectionBrokenFeedName(translate, feedName, bank),
+        warningDaysBeforeExpiry,
+        workspaceCompanyCardRoute,
+        mentionedAccountID: mentionedAccountIDs?.at(0),
+    });
+}
+
 function getPlaidBalanceFailureMessage(translate: LocalizedTranslate, action: OnyxEntry<ReportAction>): string {
     const {maskedAccountNumber} = getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.PLAID_BALANCE_FAILURE>) ?? {maskedAccountNumber: ''};
     const walletRoute = `${environmentURL}/${ROUTES.SETTINGS_WALLET}`;
@@ -6477,6 +6555,7 @@ export {
     isResolvedActionableWhisper,
     isReimbursementDirectionInformationRequiredAction,
     shouldHideNewMarker,
+    canReportActionTriggerUnreadMarker,
     shouldReportActionBeVisible,
     isReportActionVisible,
     wasActionTakenByCurrentUser,
@@ -6485,6 +6564,7 @@ export {
     isActionableAddPaymentCard,
     isActionableCardFraudAlert,
     isActionableWhisperRequiringWritePermission,
+    isPaymentActionHiddenOutsideInvoices,
     getExportIntegrationActionFragments,
     getExportIntegrationLastMessageText,
     getExportIntegrationMessageHTML,
@@ -6597,6 +6677,7 @@ export {
     getCommuterExclusionMessage,
     getCompanyCardConnectionBrokenMessage,
     getCompanyCardConnectionBroken30DaysMessage,
+    getCompanyCardConsentExpiringMessage,
     getPlaidBalanceFailureMessage,
     getPolicyChangeLogDefaultReimbursableMessage,
     getManagerOnVacation,

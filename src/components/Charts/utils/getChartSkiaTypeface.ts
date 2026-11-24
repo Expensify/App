@@ -5,8 +5,8 @@ import singleFontFamily from '@styles/utils/FontUtils/fontFamily/singleFontFamil
 
 import ObjectUtils from '@src/types/utils/ObjectUtils';
 
-import type {SkTypeface} from '@shopify/react-native-skia';
 import type {TextStyle} from 'react-native';
+import type {SkTypeface} from 'react-native-skia';
 
 import type {ChartLabelFontWeight} from './normalizeChartFontWeight';
 

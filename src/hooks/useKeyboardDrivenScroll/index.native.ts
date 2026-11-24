@@ -285,7 +285,7 @@ const useKeyboardDrivenScroll: UseKeyboardDrivenScroll = (scrollableRef) => {
         [],
     );
 
-    const scrollWithKeyboard: ScrollWithKeyboard = (target) => {
+    const scrollWithKeyboard: ScrollWithKeyboard = (target, {shouldIgnoreEarlierDrag = false} = {}) => {
         const scrollView = scrollableRef.current;
         if (!scrollView) {
             return;
@@ -301,7 +301,7 @@ const useKeyboardDrivenScroll: UseKeyboardDrivenScroll = (scrollableRef) => {
             clearTarget();
             // The user dragged after focusing the input
             const focusedTag = getFocusedInputTag();
-            if (focusedTag !== null && dragStartedAt.get() > focusChangedAt.get()) {
+            if (!shouldIgnoreEarlierDrag && focusedTag !== null && dragStartedAt.get() > focusChangedAt.get()) {
                 return;
             }
             pendingTarget.set(target);
