@@ -140,6 +140,7 @@ import TaskSearchView from './TaskSearchView';
 import TripSearchView from './TripSearchView';
 
 type SearchProps = {
+    /** The query whose results are on screen. While a filter change loads, it is still the previous query, so a search the user starts from here builds on `currentSearchQueryJSON` instead. */
     queryJSON: SearchQueryJSON;
     hasFilterBars?: boolean;
     onSearchListScroll?: (event: NativeSyntheticEvent<NativeScrollEvent>) => void;
@@ -182,7 +183,7 @@ function Search({
     const isFocused = useIsFocused();
 
     const {markReportRHPWidth} = useWideRHPActions();
-    const {currentSearchHash, currentSearchKey, shouldResetSearchQuery, suggestedSearches} = useSearchQueryContext();
+    const {currentSearchHash, currentSearchKey, currentSearchQueryJSON, shouldResetSearchQuery, suggestedSearches} = useSearchQueryContext();
     const {lastSearchType, shouldUseLiveData} = useSearchResultsContext();
 
     const {setShouldResetSearchQuery} = useSearchQueryActions();
@@ -1016,8 +1017,17 @@ function Search({
 
     const previousColumns = usePrevious(currentColumns);
     const [columnsToShow, setColumnsToShow] = useState<SearchColumnType[]>(getEmptyArray);
-    const columnEditing = useSearchColumnEditing(queryJSON, columnsToShow);
-    const pinSearchColumn = usePinSearchColumn(queryJSON, currentSearchKey);
+    // While a filter change loads, the table keeps the previous query's results on screen. Sorting and column changes build on the search the
+    // user is on instead, or they would drop the filter that was just applied.
+    const currentQueryJSON = currentSearchQueryJSON ?? queryJSON;
+    // A filter change that switches the type, grouping or view brings a table with other columns and sorts (a line chart resets its sort to
+    // run forward in time), which the table still on screen can't edit.
+    const canEditShownTable = type === currentQueryJSON.type && validGroupBy === getValidGroupBy(currentQueryJSON.groupBy) && view === currentQueryJSON.view;
+    // A chart still plotting the previous search can't be drilled into: the pressed bar's range could contradict the filter that was just
+    // applied, like a March bar under a Last month date filter, and open an empty list.
+    const isShowingCurrentSearch = hash === currentQueryJSON.hash;
+    const columnEditing = useSearchColumnEditing(queryJSON, currentQueryJSON, columnsToShow);
+    const pinSearchColumn = usePinSearchColumn(queryJSON, currentQueryJSON, currentSearchKey);
     // Only a table whose column menu offers pin items honors pins, so grouped tables and tables without the beta keep their own order.
     const shouldPinColumns = shouldShowColumnMenu && canEditColumns && pinSearchColumn.canPinColumns;
     // Pinning only moves columns the table already shows, so it reorders them at once instead of fading them like a column change.
@@ -1418,14 +1428,14 @@ function Search({
         (column: SearchSortBy, order: SortOrder) => {
             clearSelectedTransactions();
             const newQuery = buildSearchQueryString({
-                ...queryJSON,
+                ...currentQueryJSON,
                 sortBy: column,
                 sortOrder: order,
             });
             onSortPressedCallback?.();
             navigation.setParams({q: newQuery, rawQuery: undefined});
         },
-        [clearSelectedTransactions, queryJSON, onSortPressedCallback, navigation],
+        [clearSelectedTransactions, currentQueryJSON, onSortPressedCallback, navigation],
     );
 
     // When heavy work is deferred (e.g. during the RHP dismiss animation after
@@ -1603,6 +1613,7 @@ function Search({
                                 groupBy={validGroupBy}
                                 data={sortedData}
                                 isLoading={shouldShowLoadingState}
+                                shouldDrillDownOnPress={isShowingCurrentSearch}
                             />
                         </SearchChartWrapper>
                     </View>
@@ -1639,13 +1650,13 @@ function Search({
                 shouldShowYearWithdrawn={shouldShowYearWithdrawn}
                 isAmountColumnWide={shouldShowAmountInWideColumn}
                 isTaxAmountColumnWide={shouldShowTaxAmountInWideColumn}
-                shouldShowSorting
+                shouldShowSorting={canEditShownTable}
                 groupBy={validGroupBy}
                 // Trip rows share the expense report layout (Total without flex), so the header aligns the same way
                 isExpenseReportView={isExpenseReportType || shouldReturnTripRooms}
                 isActionColumnWide={isActionColumnWide}
             >
-                {shouldShowColumnMenu && (
+                {shouldShowColumnMenu && canEditShownTable && (
                     <SortableColumnMenu
                         columnEditing={canEditColumns ? columnEditing : undefined}
                         sentryLabel={CONST.SENTRY_LABEL.SEARCH.COLUMN_MENU}

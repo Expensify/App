@@ -6,6 +6,7 @@ import type {PlatformStackNavigationProp} from '@libs/Navigation/PlatformStackNa
 import type {SearchKey} from '@libs/SearchKeyUtils';
 import type {PinnedColumns, PinnedColumnSide} from '@libs/SearchPinnedColumnsUtils';
 import {getPinnedColumns, getQueryWithPinnedColumns, setColumnPin} from '@libs/SearchPinnedColumnsUtils';
+import {isQueryARefinement, markQueryAsRefinement} from '@libs/SearchQueryRefinement';
 import {buildSearchQueryString, queryHasViolationFilter} from '@libs/SearchQueryUtils';
 import {getValidGroupBy} from '@libs/SearchUIUtils';
 
@@ -17,19 +18,30 @@ type PinSearchColumn = {
     /** Whether the table offers pin items. A grouped table's columns describe its groups rather than the expenses its pins would apply to. */
     canPinColumns: boolean;
 
-    /** The query's pins, each edge in the order its columns were pinned. */
+    /** The current search's pins, each edge in the order its columns were pinned. */
     pinnedColumns: PinnedColumns;
 
     /** Pins a column to an edge, or unpins it when no edge is given. */
     pinColumn: (column: SearchColumnType, side: PinnedColumnSide | undefined) => void;
 };
 
-function usePinSearchColumn(queryJSON: SearchQueryJSON, searchKey: SearchKey | undefined): PinSearchColumn {
+/**
+ * @param tableQueryJSON The query whose results the table shows, which decides whether its columns can be pinned
+ * @param currentQueryJSON The search the user is on. While a filter change loads, the table still shows the previous query's results, but the
+ * pins to draw and the query a pin changes are this one's, or the pins would drop back and a pin would drop the new filter.
+ * @param searchKey The search whose saved filters keep the pins
+ */
+function usePinSearchColumn(tableQueryJSON: SearchQueryJSON, currentQueryJSON: SearchQueryJSON, searchKey: SearchKey | undefined): PinSearchColumn {
     const navigation = useNavigation<PlatformStackNavigationProp<SearchFullscreenNavigatorParamList>>();
-    const pinnedColumns = getPinnedColumns(queryJSON);
+    const pinnedColumns = getPinnedColumns(currentQueryJSON);
 
     const pinColumn = (column: SearchColumnType, side: PinnedColumnSide | undefined) => {
-        const query = buildSearchQueryString(getQueryWithPinnedColumns(queryJSON, setColumnPin(pinnedColumns, column, side), queryHasViolationFilter(queryJSON)));
+        const query = buildSearchQueryString(getQueryWithPinnedColumns(currentQueryJSON, setColumnPin(pinnedColumns, column, side), queryHasViolationFilter(currentQueryJSON)));
+        // Pins don't change the results, so a pin made while a filter change loads keeps holding the previous results instead of
+        // swapping them for a skeleton.
+        if (isQueryARefinement(currentQueryJSON.inputQuery)) {
+            markQueryAsRefinement(query);
+        }
         // A new route would remount Search and send the search again, though pins only reorder the columns.
         navigation.setParams({q: query, rawQuery: undefined});
         if (searchKey) {
@@ -37,7 +49,7 @@ function usePinSearchColumn(queryJSON: SearchQueryJSON, searchKey: SearchKey | u
         }
     };
 
-    return {canPinColumns: !getValidGroupBy(queryJSON.groupBy), pinnedColumns, pinColumn};
+    return {canPinColumns: !getValidGroupBy(tableQueryJSON.groupBy), pinnedColumns, pinColumn};
 }
 
 export default usePinSearchColumn;

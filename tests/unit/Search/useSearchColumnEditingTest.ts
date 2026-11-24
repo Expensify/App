@@ -4,7 +4,7 @@ import useSearchColumnEditing from '@components/Search/hooks/useSearchColumnEdit
 import type {SearchColumnType} from '@components/Search/types';
 
 import Navigation from '@libs/Navigation/Navigation';
-import {buildSearchQueryJSON} from '@libs/SearchQueryUtils';
+import {buildSearchQueryJSON, getFilterFromQuery} from '@libs/SearchQueryUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -65,7 +65,8 @@ describe('useSearchColumnEditing', () => {
 
     it('hides a column by saving the shown columns without it, in the same order', () => {
         // Given an expense search showing a few columns
-        const {result} = renderHook(() => useSearchColumnEditing(getQueryJSON('type:expense'), SHOWN_COLUMNS));
+        const queryJSON = getQueryJSON('type:expense');
+        const {result} = renderHook(() => useSearchColumnEditing(queryJSON, queryJSON, SHOWN_COLUMNS));
 
         // When Merchant is hidden from its menu
         act(() => result.current.hideColumn(CONST.SEARCH.TABLE_COLUMNS.MERCHANT));
@@ -82,12 +83,37 @@ describe('useSearchColumnEditing', () => {
         ]);
     });
 
+    it('hides a column from the current search while the table still shows the results from before a filter change', () => {
+        // Given a table still showing an expense search with Merchant pinned, while the same search with a Draft filter loads
+        const tableQueryJSON = getQueryJSON(`type:expense ${CONST.SEARCH.SYNTAX_ROOT_KEYS.LEFT_PINNED_COLUMNS}:${CONST.SEARCH.TABLE_COLUMNS.MERCHANT}`);
+        const currentQueryJSON = getQueryJSON(
+            `type:expense status:${CONST.SEARCH.STATUS.EXPENSE.DRAFTS} ${CONST.SEARCH.SYNTAX_ROOT_KEYS.LEFT_PINNED_COLUMNS}:${CONST.SEARCH.TABLE_COLUMNS.MERCHANT}`,
+        );
+        const {result} = renderHook(() => useSearchColumnEditing(tableQueryJSON, currentQueryJSON, SHOWN_COLUMNS));
+
+        // When Category is hidden from its menu before the filtered results arrive
+        act(() => result.current.hideColumn(CONST.SEARCH.TABLE_COLUMNS.CATEGORY));
+
+        // Then the new search keeps the Draft filter and the pin, because hiding a column must not undo the filter the user just applied
+        const savedQueryJSON = getQueryJSON(getNavigatedRouteParams().get('q') ?? '');
+        expect(getFilterFromQuery(savedQueryJSON, CONST.SEARCH.SYNTAX_FILTER_KEYS.STATUS).value).toEqual([CONST.SEARCH.STATUS.EXPENSE.DRAFTS]);
+        expect([savedQueryJSON.leftPinnedColumns ?? []].flat()).toEqual([CONST.SEARCH.TABLE_COLUMNS.MERCHANT]);
+        expect(savedQueryJSON.columns).toEqual([
+            CONST.SEARCH.TABLE_COLUMNS.RECEIPT,
+            CONST.SEARCH.TABLE_COLUMNS.DATE,
+            CONST.SEARCH.TABLE_COLUMNS.MERCHANT,
+            CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT,
+        ]);
+    });
+
     it('keeps a saved column the table does not show when another column is hidden', () => {
         // Given an expense report search that saved Amount debited, which the table drops when no row has a debited amount
         const queryJSON = getQueryJSON(
             `type:expense-report columns:${CONST.SEARCH.TABLE_COLUMNS.TO},${CONST.SEARCH.TABLE_COLUMNS.POLICY_NAME},${CONST.SEARCH.TABLE_COLUMNS.AMOUNT_DEBITED},${CONST.SEARCH.TABLE_COLUMNS.TOTAL}`,
         );
-        const {result} = renderHook(() => useSearchColumnEditing(queryJSON, [CONST.SEARCH.TABLE_COLUMNS.TO, CONST.SEARCH.TABLE_COLUMNS.POLICY_NAME, CONST.SEARCH.TABLE_COLUMNS.TOTAL]));
+        const {result} = renderHook(() =>
+            useSearchColumnEditing(queryJSON, queryJSON, [CONST.SEARCH.TABLE_COLUMNS.TO, CONST.SEARCH.TABLE_COLUMNS.POLICY_NAME, CONST.SEARCH.TABLE_COLUMNS.TOTAL]),
+        );
 
         // When To is hidden from its menu
         act(() => result.current.hideColumn(CONST.SEARCH.TABLE_COLUMNS.TO));
@@ -98,7 +124,8 @@ describe('useSearchColumnEditing', () => {
 
     it('offers no hide for the total column, which the table needs to lay out', () => {
         // Given an expense search
-        const {result} = renderHook(() => useSearchColumnEditing(getQueryJSON('type:expense'), SHOWN_COLUMNS));
+        const queryJSON = getQueryJSON('type:expense');
+        const {result} = renderHook(() => useSearchColumnEditing(queryJSON, queryJSON, SHOWN_COLUMNS));
 
         // When the column menus are built
         // Then the total column's menu can't hide it, the same as the Columns page, while the other columns' menus can
@@ -108,7 +135,8 @@ describe('useSearchColumnEditing', () => {
 
     it('offers hide for the optional columns of a grouped table, but not for the column it groups by', () => {
         // Given an expense search grouped by member, showing its default group columns
-        const {result} = renderHook(() => useSearchColumnEditing(getQueryJSON('type:expense group-by:from'), GROUP_FROM_SHOWN_COLUMNS));
+        const queryJSON = getQueryJSON('type:expense group-by:from');
+        const {result} = renderHook(() => useSearchColumnEditing(queryJSON, queryJSON, GROUP_FROM_SHOWN_COLUMNS));
 
         // When the column menus are built
         // Then Expenses and Total can be hidden, the same as on the Columns page, while From stays because the groups are named by it
@@ -120,7 +148,7 @@ describe('useSearchColumnEditing', () => {
     it('keeps the saved expense columns when a group column is hidden', () => {
         // Given a grouped search that saved only expense columns, so its groups expand to those
         const queryJSON = getQueryJSON(`type:expense group-by:from columns:${CONST.SEARCH.TABLE_COLUMNS.MERCHANT},${CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT}`);
-        const {result} = renderHook(() => useSearchColumnEditing(queryJSON, GROUP_FROM_SHOWN_COLUMNS));
+        const {result} = renderHook(() => useSearchColumnEditing(queryJSON, queryJSON, GROUP_FROM_SHOWN_COLUMNS));
 
         // When Expenses is hidden from its menu
         act(() => result.current.hideColumn(CONST.SEARCH.TABLE_COLUMNS.GROUP_EXPENSES));
@@ -141,7 +169,7 @@ describe('useSearchColumnEditing', () => {
             `type:expense group-by:from columns:${CONST.SEARCH.TABLE_COLUMNS.GROUP_FROM},${CONST.SEARCH.TABLE_COLUMNS.GROUP_TOTAL},${CONST.SEARCH.TABLE_COLUMNS.GROUP_EXPENSES},${CONST.SEARCH.TABLE_COLUMNS.MERCHANT},${CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT}`,
         );
         const {result} = renderHook(() =>
-            useSearchColumnEditing(queryJSON, [CONST.SEARCH.TABLE_COLUMNS.GROUP_FROM, CONST.SEARCH.TABLE_COLUMNS.GROUP_TOTAL, CONST.SEARCH.TABLE_COLUMNS.GROUP_EXPENSES]),
+            useSearchColumnEditing(queryJSON, queryJSON, [CONST.SEARCH.TABLE_COLUMNS.GROUP_FROM, CONST.SEARCH.TABLE_COLUMNS.GROUP_TOTAL, CONST.SEARCH.TABLE_COLUMNS.GROUP_EXPENSES]),
         );
 
         // When Total is hidden from its menu
@@ -168,7 +196,8 @@ describe('useSearchColumnEditing', () => {
             CONST.SEARCH.TABLE_COLUMNS.GROUP_EXPENSES,
             CONST.SEARCH.TABLE_COLUMNS.GROUP_TOTAL,
         ];
-        const {result} = renderHook(() => useSearchColumnEditing(getQueryJSON('type:expense group-by:withdrawal-id'), shownColumns));
+        const queryJSON = getQueryJSON('type:expense group-by:withdrawal-id');
+        const {result} = renderHook(() => useSearchColumnEditing(queryJSON, queryJSON, shownColumns));
 
         // When Expenses is hidden from its menu
         act(() => result.current.hideColumn(CONST.SEARCH.TABLE_COLUMNS.GROUP_EXPENSES));
@@ -189,7 +218,8 @@ describe('useSearchColumnEditing', () => {
 
     it('saves no expense columns with the group columns when a grouped search has no saved columns', () => {
         // Given a grouped search with no saved columns, so its expanded groups derive their expense columns from the data
-        const {result} = renderHook(() => useSearchColumnEditing(getQueryJSON('type:expense group-by:from'), GROUP_FROM_SHOWN_COLUMNS));
+        const queryJSON = getQueryJSON('type:expense group-by:from');
+        const {result} = renderHook(() => useSearchColumnEditing(queryJSON, queryJSON, GROUP_FROM_SHOWN_COLUMNS));
 
         // When Expenses is hidden from its menu
         act(() => result.current.hideColumn(CONST.SEARCH.TABLE_COLUMNS.GROUP_EXPENSES));
