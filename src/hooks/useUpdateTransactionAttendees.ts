@@ -6,7 +6,10 @@
 import {setMoneyRequestAttendees} from '@libs/actions/IOU/MoneyRequest';
 import {updateMoneyRequestAttendees} from '@libs/actions/IOU/UpdateMoneyRequest';
 
+import type * as OnyxTypes from '@src/types/onyx';
 import type {Attendee} from '@src/types/onyx/IOU';
+
+import type {OnyxEntry} from 'react-native-onyx';
 
 import type {MoneyRequestUpdateParams} from './useMoneyRequestUpdateParams';
 
@@ -15,6 +18,9 @@ import useNetwork from './useNetwork';
 type UseUpdateTransactionAttendeesParams = {
     /** ID of the expense being written to, and of the draft a not-yet-created expense lives in */
     transactionID: string;
+
+    /** The expense as it is stored, which the write builds its report action from and restores if the save fails */
+    transaction: OnyxEntry<OnyxTypes.Transaction>;
 
     /** What a write to a saved expense needs to recompute its violations, read once by the caller */
     updateParams: MoneyRequestUpdateParams;
@@ -28,12 +34,12 @@ type UseUpdateTransactionAttendeesResult = {
     updateAttendees: (attendees: Attendee[]) => void;
 };
 
-function useUpdateTransactionAttendees({transactionID, updateParams, isEditing}: UseUpdateTransactionAttendeesParams): UseUpdateTransactionAttendeesResult {
+function useUpdateTransactionAttendees({transactionID, transaction, updateParams, isEditing}: UseUpdateTransactionAttendeesParams): UseUpdateTransactionAttendeesResult {
     const {isOffline} = useNetwork();
 
     const updateAttendees = (attendees: Attendee[]) => {
         if (isEditing) {
-            updateMoneyRequestAttendees({...updateParams, transactionID, attendees, isOffline});
+            updateMoneyRequestAttendees({...updateParams, transactionID, transaction, attendees, isOffline});
             return;
         }
         setMoneyRequestAttendees(transactionID, attendees, true);

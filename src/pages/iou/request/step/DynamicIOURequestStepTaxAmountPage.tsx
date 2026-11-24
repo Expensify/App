@@ -68,7 +68,7 @@ function DynamicIOURequestStepTaxAmountPage({
 
     const [splitDraftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`);
     const updateParams = useMoneyRequestUpdateParams(transactionID, report);
-    const {updateTaxAmount: updateSavedExpenseTaxAmount} = useUpdateTransactionTaxAmount({transactionID, updateParams, policy});
+    const {updateTaxAmount: updateSavedExpenseTaxAmount} = useUpdateTransactionTaxAmount({transactionID, transaction, updateParams, policy});
 
     const {translate} = useLocalize();
     const {getCurrencyDecimals, getCurrencySymbol} = useCurrencyListActions();

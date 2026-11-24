@@ -39,7 +39,7 @@ function DynamicIOURequestStepAttendees({
     const [transaction] = useOnyx(`${isEditing ? ONYXKEYS.COLLECTION.TRANSACTION : ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID || CONST.DEFAULT_NUMBER_ID}`);
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
     const updateParams = useMoneyRequestUpdateParams(transactionID, report);
-    const {updateAttendees} = useUpdateTransactionAttendees({transactionID, updateParams, isEditing});
+    const {updateAttendees} = useUpdateTransactionAttendees({transactionID, transaction, updateParams, isEditing});
     const reportOwnerAsAttendee = useReportOwnerAsAttendee(transaction);
     const [attendees, setAttendees] = useState<Attendee[]>(() => getOriginalAttendees(transaction, reportOwnerAsAttendee));
     const previousAttendees = usePrevious(attendees);

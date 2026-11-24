@@ -41,7 +41,7 @@ function AttendeeFieldDropdown({transactionID, iouType, isVisible, onClose, ...p
     const [transaction] = useOnyx(`${isEditing ? ONYXKEYS.COLLECTION.TRANSACTION : ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`);
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
     const updateParams = useMoneyRequestUpdateParams(transactionID, report);
-    const {updateAttendees} = useUpdateTransactionAttendees({transactionID, updateParams, isEditing});
+    const {updateAttendees} = useUpdateTransactionAttendees({transactionID, transaction, updateParams, isEditing});
     const reportOwnerAsAttendee = useReportOwnerAsAttendee(transaction);
     const originalAttendees = getOriginalAttendees(transaction, reportOwnerAsAttendee);
 

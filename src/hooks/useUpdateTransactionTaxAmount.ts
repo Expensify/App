@@ -19,6 +19,9 @@ type UseUpdateTransactionTaxAmountParams = {
     /** ID of the saved expense being written to */
     transactionID: string | undefined;
 
+    /** The expense as it is stored, which the write builds its report action from and restores if the save fails */
+    transaction: OnyxEntry<OnyxTypes.Transaction>;
+
     /** What the write needs to recompute the expense's violations, read once by the caller */
     updateParams: MoneyRequestUpdateParams;
 
@@ -31,7 +34,7 @@ type UseUpdateTransactionTaxAmountResult = {
     updateTaxAmount: (taxAmount: number) => void;
 };
 
-function useUpdateTransactionTaxAmount({transactionID, updateParams, policy}: UseUpdateTransactionTaxAmountParams): UseUpdateTransactionTaxAmountResult {
+function useUpdateTransactionTaxAmount({transactionID, transaction, updateParams, policy}: UseUpdateTransactionTaxAmountParams): UseUpdateTransactionTaxAmountResult {
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${getNonEmptyStringOnyxID(policy?.id)}`);
     const [policyTagList] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${getNonEmptyStringOnyxID(policy?.id)}`);
 
@@ -39,7 +42,7 @@ function useUpdateTransactionTaxAmount({transactionID, updateParams, policy}: Us
         if (!transactionID) {
             return;
         }
-        updateMoneyRequestTaxAmount({...updateParams, transactionID, taxAmount, policy, policyCategories, policyTagList});
+        updateMoneyRequestTaxAmount({...updateParams, transactionID, transaction, taxAmount, policy, policyCategories, policyTagList});
     };
 
     return {updateTaxAmount};

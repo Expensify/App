@@ -46,7 +46,7 @@ function TaxAmountInputField({transaction, updateParams, policy, taxAmount, curr
     const styles = useThemeStyles();
     const {translate, preferredLocale} = useLocalize();
     const {getCurrencyDecimals, convertToDisplayString} = useCurrencyListActions();
-    const {updateTaxAmount} = useUpdateTransactionTaxAmount({transactionID: transaction?.transactionID, updateParams, policy});
+    const {updateTaxAmount} = useUpdateTransactionTaxAmount({transactionID: transaction?.transactionID, transaction, updateParams, policy});
 
     const decimals = getCurrencyDecimals(currency);
     // The tax amount page caps the tax at what the expense's tax rate works out to, as the create form does.

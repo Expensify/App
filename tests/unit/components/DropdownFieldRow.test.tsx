@@ -307,7 +307,7 @@ describe('DropdownFieldRow', () => {
         it('stacks the field name right on its value, as a text input does', () => {
             // Given a field holding a value
             render(
-                <ExpenseFieldRow
+                <DropdownFieldRow
                     sentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}
                     name={FIELD_NAME}
                     value={FIELD_VALUE}
