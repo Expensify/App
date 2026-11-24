@@ -14,7 +14,7 @@ import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import type {ReportNextStepMessageParams} from '@src/languages/TranslationTypes';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Policy, Report, ReportAction, Transaction, TransactionViolations} from '@src/types/onyx';
+import type {PersonalDetails, Policy, Report, ReportAction, Transaction, TransactionViolations} from '@src/types/onyx';
 import type {ReportNextStep} from '@src/types/onyx/Report';
 import {toCollectionDataSet} from '@src/types/utils/CollectionDataSet';
 
@@ -923,7 +923,7 @@ describe('libs/NextStepUtils', () => {
     describe('getReportNextStep', () => {
         const currentUserEmail = 'current-user@expensify.com';
         const currentUserAccountID = 37;
-        const currentUserPersonalDetailsByLogin: PersonalDetailsByLogin = {[currentUserEmail]: {accountID: currentUserAccountID, login: currentUserEmail}};
+        const currentUserPersonalDetails: PersonalDetails = {accountID: currentUserAccountID, login: currentUserEmail};
         const policyID = 'policy-1';
 
         beforeAll(() => {
@@ -960,8 +960,7 @@ describe('libs/NextStepUtils', () => {
                     currentUserEmail,
                     currentUserAccountID,
                     report,
-                    reportOwnerLogin: currentUserEmail,
-                    reportOwnerPersonalDetailsByLogin: currentUserPersonalDetailsByLogin,
+                    reportOwnerPersonalDetails: currentUserPersonalDetails,
                     reportMetadata: undefined,
                     reportActions: [],
                     transactions: {},
@@ -1011,8 +1010,7 @@ describe('libs/NextStepUtils', () => {
                 currentUserEmail,
                 currentUserAccountID,
                 report,
-                reportOwnerLogin: currentUserEmail,
-                reportOwnerPersonalDetailsByLogin: currentUserPersonalDetailsByLogin,
+                reportOwnerPersonalDetails: currentUserPersonalDetails,
                 reportMetadata: undefined,
                 reportActions: [],
                 transactions: {},
@@ -1062,8 +1060,7 @@ describe('libs/NextStepUtils', () => {
                 currentUserEmail,
                 currentUserAccountID,
                 report,
-                reportOwnerLogin: currentUserEmail,
-                reportOwnerPersonalDetailsByLogin: currentUserPersonalDetailsByLogin,
+                reportOwnerPersonalDetails: currentUserPersonalDetails,
                 reportMetadata: undefined,
                 reportActions: [],
                 transactions: {},
@@ -1122,8 +1119,7 @@ describe('libs/NextStepUtils', () => {
                 currentUserEmail,
                 currentUserAccountID,
                 report,
-                reportOwnerLogin: currentUserEmail,
-                reportOwnerPersonalDetailsByLogin: currentUserPersonalDetailsByLogin,
+                reportOwnerPersonalDetails: currentUserPersonalDetails,
                 reportMetadata: undefined,
                 reportActions: [],
                 transactions: {},
@@ -1178,8 +1174,7 @@ describe('libs/NextStepUtils', () => {
                 currentUserEmail,
                 currentUserAccountID,
                 report,
-                reportOwnerLogin: currentUserEmail,
-                reportOwnerPersonalDetailsByLogin: currentUserPersonalDetailsByLogin,
+                reportOwnerPersonalDetails: currentUserPersonalDetails,
                 reportMetadata: undefined,
                 reportActions: [],
                 transactions: {},
@@ -1235,8 +1230,7 @@ describe('libs/NextStepUtils', () => {
                 currentUserEmail,
                 currentUserAccountID,
                 report,
-                reportOwnerLogin: ownerLogin,
-                reportOwnerPersonalDetailsByLogin: {[ownerLogin]: {accountID: 99, login: ownerLogin}},
+                reportOwnerPersonalDetails: {accountID: 99, login: ownerLogin},
                 reportMetadata: undefined,
                 reportActions: [],
                 transactions: {},
@@ -1292,8 +1286,7 @@ describe('libs/NextStepUtils', () => {
                 currentUserEmail,
                 currentUserAccountID,
                 report,
-                reportOwnerLogin: currentUserEmail,
-                reportOwnerPersonalDetailsByLogin: currentUserPersonalDetailsByLogin,
+                reportOwnerPersonalDetails: currentUserPersonalDetails,
                 reportMetadata: undefined,
                 reportActions: [],
                 transactions: {[transaction.transactionID]: transaction},
@@ -1360,8 +1353,7 @@ describe('libs/NextStepUtils', () => {
                 currentUserEmail,
                 currentUserAccountID,
                 report,
-                reportOwnerLogin: currentUserEmail,
-                reportOwnerPersonalDetailsByLogin: currentUserPersonalDetailsByLogin,
+                reportOwnerPersonalDetails: currentUserPersonalDetails,
                 reportMetadata: undefined,
                 reportActions: [],
                 transactions: {},
@@ -1439,8 +1431,7 @@ describe('libs/NextStepUtils', () => {
                 currentUserEmail,
                 currentUserAccountID,
                 report,
-                reportOwnerLogin: currentUserEmail,
-                reportOwnerPersonalDetailsByLogin: currentUserPersonalDetailsByLogin,
+                reportOwnerPersonalDetails: currentUserPersonalDetails,
                 reportMetadata: undefined,
                 reportActions: [],
                 transactions: {[transaction.transactionID]: transaction},
@@ -1613,6 +1604,21 @@ describe('libs/NextStepUtils', () => {
 
             // Then nothing is appended to it
             expect(message).toBe('<next-step>No further action required!</next-step>');
+        });
+
+        it('says a payment is on hold without a delivery date', () => {
+            // Given a paid report whose payment Wise is reviewing, with a delivery date still in its next step
+            const nextStep: ReportNextStep = {
+                messageKey: CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_PAYMENT_REVIEW,
+                icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
+                eta: {dateTime: '2026-08-15'},
+            };
+
+            // When the message is built
+            const message = buildNextStepMessage(nextStep, translateLocal, undefined, 999999, formatPhoneNumber);
+
+            // Then it says the payment is on hold and leaves the date out
+            expect(message).toBe('<next-step>Payment on hold, look for another update.</next-step>');
         });
 
         it('renders a monthly automatic-submit eta using the day-of-month it encodes, not one shifted by UTC parsing', () => {

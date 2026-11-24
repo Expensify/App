@@ -1,14 +1,16 @@
 import {fireEvent, render, renderHook, screen} from '@testing-library/react-native';
 
+import DropdownFieldRow from '@components/DropdownFieldRow';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
-import ExpenseFieldRow from '@components/MoneyRequestConfirmationList/sections/ExpenseFieldRow';
 
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
-import React from 'react';
+import type {View} from 'react-native';
+
+import React, {createRef} from 'react';
 import Onyx from 'react-native-onyx';
 
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
@@ -23,7 +25,7 @@ const REVIEW_REQUIRED = 'Your review is required';
 // `MenuItem.Root` drops a press it was handed no event for, so every press here carries one.
 const pressRow = () => fireEvent.press(screen.getByTestId('category-row'), {nativeEvent: {}});
 
-describe('ExpenseFieldRow', () => {
+describe('DropdownFieldRow', () => {
     beforeAll(() => {
         Onyx.init({keys: ONYXKEYS});
     });
@@ -37,7 +39,7 @@ describe('ExpenseFieldRow', () => {
         it('drops the label once the field holds a value', () => {
             // Given a row whose label answers "what goes here" rather than describing the value
             render(
-                <ExpenseFieldRow
+                <DropdownFieldRow
                     sentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}
                     name={FIELD_NAME}
                     value={FIELD_VALUE}
@@ -55,7 +57,7 @@ describe('ExpenseFieldRow', () => {
         it('keeps the label when it describes the value the field holds', () => {
             // Given a row whose label describes the value itself, e.g. a category Concierge picked
             render(
-                <ExpenseFieldRow
+                <DropdownFieldRow
                     sentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}
                     name={FIELD_NAME}
                     value={FIELD_VALUE}
@@ -73,7 +75,7 @@ describe('ExpenseFieldRow', () => {
         it('shows the label while the field is empty', () => {
             // Given a row with no value yet
             render(
-                <ExpenseFieldRow
+                <DropdownFieldRow
                     sentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}
                     name={FIELD_NAME}
                     rightLabel={RIGHT_LABEL}
@@ -92,7 +94,7 @@ describe('ExpenseFieldRow', () => {
             // Given a signed-in session
             const onPress = jest.fn();
             render(
-                <ExpenseFieldRow
+                <DropdownFieldRow
                     sentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}
                     name={FIELD_NAME}
                     value={FIELD_VALUE}
@@ -115,7 +117,7 @@ describe('ExpenseFieldRow', () => {
 
             const onPress = jest.fn();
             render(
-                <ExpenseFieldRow
+                <DropdownFieldRow
                     sentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}
                     name={FIELD_NAME}
                     value={FIELD_VALUE}
@@ -135,7 +137,7 @@ describe('ExpenseFieldRow', () => {
             // Given a field nobody can change
             const onPress = jest.fn();
             render(
-                <ExpenseFieldRow
+                <DropdownFieldRow
                     sentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}
                     name={FIELD_NAME}
                     value={FIELD_VALUE}
@@ -159,7 +161,7 @@ describe('ExpenseFieldRow', () => {
         it('reports expanded on the element a screen reader focuses', () => {
             // Given a row whose list is open
             render(
-                <ExpenseFieldRow
+                <DropdownFieldRow
                     sentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}
                     name={FIELD_NAME}
                     value={FIELD_VALUE}
@@ -180,7 +182,7 @@ describe('ExpenseFieldRow', () => {
         it('reports collapsed while the list is closed', () => {
             // Given a dropdown row whose list is not open
             render(
-                <ExpenseFieldRow
+                <DropdownFieldRow
                     sentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}
                     name={FIELD_NAME}
                     value={FIELD_VALUE}
@@ -198,7 +200,7 @@ describe('ExpenseFieldRow', () => {
         it('says nothing about expansion for a row with no list to open', () => {
             // Given a row that opens a page rather than a list in place
             render(
-                <ExpenseFieldRow
+                <DropdownFieldRow
                     sentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}
                     name={FIELD_NAME}
                     value={FIELD_VALUE}
@@ -220,7 +222,7 @@ describe('ExpenseFieldRow', () => {
             // Given a row in an error state that names itself, the way the Attendees row does
             render(
                 <LocaleContextProvider>
-                    <ExpenseFieldRow
+                    <DropdownFieldRow
                         sentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}
                         name={FIELD_NAME}
                         value={FIELD_VALUE}
@@ -236,11 +238,32 @@ describe('ExpenseFieldRow', () => {
             expect(await screen.findByLabelText(`${ACCESSIBILITY_LABEL}. ${REVIEW_REQUIRED}`)).toBeOnTheScreen();
         });
 
+        it('reads the error message itself when the form asks for it', async () => {
+            // Given a row on a form whose error message is the only way to learn what is wrong with the field
+            render(
+                <LocaleContextProvider>
+                    <DropdownFieldRow
+                        sentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}
+                        name={FIELD_NAME}
+                        value={FIELD_VALUE}
+                        accessibilityLabel={ACCESSIBILITY_LABEL}
+                        errorText={ERROR_TEXT}
+                        shouldReadErrorWithLabel
+                        onPress={jest.fn()}
+                    />
+                </LocaleContextProvider>,
+            );
+
+            // When the row is read out
+            // Then the message follows the review prompt, since it sits outside the focusable row
+            expect(await screen.findByLabelText(`${ACCESSIBILITY_LABEL}. ${REVIEW_REQUIRED}. ${ERROR_TEXT}`)).toBeOnTheScreen();
+        });
+
         it('says nothing about a review while the field has no error', async () => {
             // Given a row with no error
             render(
                 <LocaleContextProvider>
-                    <ExpenseFieldRow
+                    <DropdownFieldRow
                         sentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}
                         name={FIELD_NAME}
                         value={FIELD_VALUE}
@@ -262,7 +285,7 @@ describe('ExpenseFieldRow', () => {
 
             // Given a field nobody can change
             render(
-                <ExpenseFieldRow
+                <DropdownFieldRow
                     sentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}
                     name={FIELD_NAME}
                     value={FIELD_VALUE}
@@ -282,13 +305,34 @@ describe('ExpenseFieldRow', () => {
         });
     });
 
+    describe('row ref', () => {
+        it('hands the pressable row to the caller', () => {
+            // Given a form that scrolls to and focuses its first invalid field through a ref
+            const rowRef = createRef<View>();
+            render(
+                <DropdownFieldRow
+                    sentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}
+                    name={FIELD_NAME}
+                    value={FIELD_VALUE}
+                    onPress={jest.fn()}
+                    rowRef={rowRef}
+                    testID="category-row"
+                />,
+            );
+
+            // When the row mounts
+            // Then the ref points at the row itself, so focus lands on the field rather than on a wrapper
+            expect(rowRef.current).not.toBeNull();
+        });
+    });
+
     describe('layout reporting', () => {
         it('reports the layout of the bordered box to whatever anchors to the row', () => {
             // Given a row wrapped by something that needs its position, e.g. the rate row's educational tooltip,
             // which only shows once its child has reported a layout
             const onLayout = jest.fn();
             render(
-                <ExpenseFieldRow
+                <DropdownFieldRow
                     sentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}
                     name={FIELD_NAME}
                     value={FIELD_VALUE}
