@@ -82,7 +82,12 @@ function ValidateCodeModal({code, accountID}: ValidateCodeModalProps) {
                         </Text>
                     </View>
                     <View style={styles.mt6}>
-                        <Text style={styles.validateCodeDigits}>{code}</Text>
+                        <Text
+                            style={styles.validateCodeDigits}
+                            fsClass={CONST.FULLSTORY.CLASS.MASK}
+                        >
+                            {code}
+                        </Text>
                     </View>
                     <View style={[styles.mt6]}>
                         <Text style={styles.textAlignCenter}>{translate('validateCodeModal.doNotShare')}</Text>

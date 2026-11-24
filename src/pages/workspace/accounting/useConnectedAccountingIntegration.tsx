@@ -517,8 +517,6 @@ function useConnectedAccountingIntegration(policy: OnyxEntry<Policy>, {onDisconn
             connectionMessage = translate('workspace.accounting.lastSync', datetimeToRelative);
         }
 
-        // The Digits Advanced page is added in a later release, so its row stays hidden until then.
-        const shouldShowAdvancedOptions = connectedIntegration !== CONST.POLICY.CONNECTIONS.NAME.DIGITS;
         const configurationOptions = canWriteAccounting
             ? [
                   {
@@ -561,22 +559,18 @@ function useConnectedAccountingIntegration(policy: OnyxEntry<Policy>, {onDisconn
                             },
                         ]
                       : []),
-                  ...(shouldShowAdvancedOptions
-                      ? [
-                            {
-                                icon: icons.Gear,
-                                iconRight: icons.ArrowRight,
-                                shouldShowRightIcon: true,
-                                title: translate('workspace.accounting.advanced'),
-                                sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.CONNECTIONS.ACCOUNTING_CONFIG_ROW.ADVANCED,
-                                onPress: integrationData?.onAdvancedPagePress,
-                                brickRoadIndicator: areSettingsInErrorFields(integrationData?.subscribedAdvancedSettings, integrationData?.errorFields)
-                                    ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR
-                                    : undefined,
-                                pendingAction: settingsPendingAction(integrationData?.subscribedAdvancedSettings, integrationData?.pendingFields),
-                            },
-                        ]
-                      : []),
+                  {
+                      icon: icons.Gear,
+                      iconRight: icons.ArrowRight,
+                      shouldShowRightIcon: true,
+                      title: translate('workspace.accounting.advanced'),
+                      sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.CONNECTIONS.ACCOUNTING_CONFIG_ROW.ADVANCED,
+                      onPress: integrationData?.onAdvancedPagePress,
+                      brickRoadIndicator: areSettingsInErrorFields(integrationData?.subscribedAdvancedSettings, integrationData?.errorFields)
+                          ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR
+                          : undefined,
+                      pendingAction: settingsPendingAction(integrationData?.subscribedAdvancedSettings, integrationData?.pendingFields),
+                  },
               ]
             : [];
 

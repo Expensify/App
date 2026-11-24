@@ -86,7 +86,6 @@ const REIMBURSEMENT_ACCOUNT: BusinessReimbursementAccount = {
     achData: {
         bankAccountID: BANK_ACCOUNT_ID,
         companyName: 'Boulder Development Inc.',
-        incorporationType: CONST.INCORPORATION_TYPES.CORPORATION,
     },
 };
 
@@ -267,14 +266,8 @@ describe('WiseBusinessOnboardingPage', () => {
         await act(() => Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {...REIMBURSEMENT_ACCOUNT, isLoading: false}));
         await waitForBatchedUpdatesWithAct();
 
-        // Then the business rows are prefilled under the bank account's own keys, the corporation starts on its Wise company type, and the flow shows
-        expect(saveDraftAnswers).toHaveBeenCalledWith(
-            ONYXKEYS.FORMS.WISE_BUSINESS_ONBOARDING_FORM,
-            expect.objectContaining({
-                companyName: 'Boulder Development Inc.',
-                companyType: CONST.WISE.COMPANY_TYPE.FOR_PROFIT_CORPORATION,
-            }),
-        );
+        // Then the business rows are prefilled under the bank account's own keys, and the flow shows
+        expect(saveDraftAnswers).toHaveBeenCalledWith(ONYXKEYS.FORMS.WISE_BUSINESS_ONBOARDING_FORM, expect.objectContaining({companyName: 'Boulder Development Inc.'}));
         expect(screen.getByTestId(FLOW_TEST_ID)).toBeOnTheScreen();
         expect(openReimbursementAccountPage).toHaveBeenCalledTimes(1);
     });
@@ -437,7 +430,6 @@ describe('WiseBusinessOnboardingPage', () => {
         const prefill = jest.mocked(saveDraftAnswers).mock.lastCall?.[1];
         expect(prefill).toMatchObject({bankAccountID: String(BANK_ACCOUNT_ID)});
         expect(prefill).not.toHaveProperty('companyName');
-        expect(prefill).not.toHaveProperty('companyType');
         expect(screen.getByTestId(FLOW_TEST_ID)).toBeOnTheScreen();
     });
 
@@ -448,7 +440,6 @@ describe('WiseBusinessOnboardingPage', () => {
             [ONYXKEYS.FORMS.WISE_BUSINESS_ONBOARDING_FORM_DRAFT]: {
                 bankAccountID: '2',
                 companyName: 'Other Business LLC',
-                companyType: CONST.WISE.COMPANY_TYPE.LIMITED_LIABILITY_COMPANY,
                 companyRole: 'OWNER',
                 description: 'Sells furniture',
             },
@@ -463,7 +454,6 @@ describe('WiseBusinessOnboardingPage', () => {
         expect(draft).toMatchObject({
             bankAccountID: String(BANK_ACCOUNT_ID),
             companyName: 'Boulder Development Inc.',
-            companyType: CONST.WISE.COMPANY_TYPE.FOR_PROFIT_CORPORATION,
         });
         expect(draft).not.toHaveProperty('companyRole');
         expect(draft).not.toHaveProperty('description');

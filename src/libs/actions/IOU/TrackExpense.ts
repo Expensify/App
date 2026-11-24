@@ -53,7 +53,6 @@ import {
     getParsedComment,
     getReportOrDraftReport,
     getReportRecipientAccountIDs,
-    getReportTransactions,
     isHiddenForCurrentUser,
     isMoneyRequestReport as isMoneyRequestReportReportUtils,
     isPolicyExpenseChat as isPolicyExpenseChatReportUtil,
@@ -135,7 +134,6 @@ import {
     getReportPreviewReportAction,
     getTransactionWithPreservedLocalReceiptSource,
 } from './MoneyRequestBuilder';
-import {addPendingNewTransactionIDs, isOneToTwoTransactionTransition} from './PendingNewTransactions';
 import resolveWriteBarrier, {IMMEDIATE} from './resolveWriteBarrier';
 import {getSearchOnyxUpdate} from './SearchUpdate';
 import signalExpenseAddedGrowl from './signalExpenseAddedGrowl';
@@ -206,7 +204,7 @@ type GetTrackExpenseInformationParams = {
     isASAPSubmitBetaEnabled: boolean;
     currentUserAccountIDParam: number;
     currentUserEmailParam: string;
-    currentUserPersonalDetails?: CurrentUserPersonalDetails;
+    currentUserPersonalDetails: CurrentUserPersonalDetails;
     introSelected: OnyxEntry<OnyxTypes.IntroSelected>;
     activePolicy?: OnyxEntry<OnyxTypes.Policy>;
     conciergeChat: OnyxEntry<OnyxTypes.Report>;
@@ -237,7 +235,7 @@ type DeleteTrackExpenseParams = {
     violations: OnyxCollection<OnyxTypes.TransactionViolations>;
     isSingleTransactionView: boolean | undefined;
     isChatReportArchived: boolean | undefined;
-    isChatIOUReportArchived: boolean | undefined;
+    isChatIOUReportArchived: boolean;
     allTransactionViolationsParam: OnyxCollection<OnyxTypes.TransactionViolations>;
     currentUserAccountID: number;
     currentUserEmail: string;
@@ -257,7 +255,7 @@ type BuildOnyxDataForTrackExpenseParams = {
     isASAPSubmitBetaEnabled: boolean;
     quickAction: OnyxEntry<OnyxTypes.QuickAction>;
     currentUserAccountID: number;
-    currentUserPersonalDetails?: CurrentUserPersonalDetails;
+    currentUserPersonalDetails: CurrentUserPersonalDetails;
 };
 
 /** Builds the Onyx data for track expense */
@@ -833,7 +831,7 @@ function getDeleteTrackExpenseInformation({
         failureData.push({
             onyxMethod: Onyx.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
-            value: transaction ?? null,
+            value: transaction ? {...transaction, pendingAction: null, pendingFields: null} : null,
         });
     }
     if (!shouldRemoveIOUTransaction) {
@@ -1736,6 +1734,7 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
         getCurrencyDecimals,
         writeBarrier,
         rules,
+        personalDetailsByLogins,
         isVendorMatchingBetaEnabled,
     } = requestMoneyInformation;
     const {payeeAccountID} = participantParams;
@@ -1821,6 +1820,7 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
         createdReportActionIDForThread,
         onyxData,
     } = getMoneyRequestInformation({
+        shouldFlagNewTransactionForReportTable: true,
         isVendorMatchingBetaEnabled,
         parentChatReport: isMovingTransactionFromTrackExpense ? undefined : currentChatReport,
         existingIOUReport,
@@ -1859,6 +1859,7 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
         formatPhoneNumber,
         getCurrencyDecimals,
         rules,
+        personalDetailsByLogins,
         // Refactor this call site to pass real report actions instead of undefined in https://github.com/Expensify/App/issues/66522
         parentChatReportActions: undefined,
         participantChatReportActions: undefined,
@@ -2039,10 +2040,6 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
         }
     }
 
-    if (isOneToTwoTransactionTransition(isMoneyRequestReport, getReportTransactions(moneyRequestReportID))) {
-        addPendingNewTransactionIDs(activeReportID, transaction.transactionID);
-    }
-
     deferredAPIWrite?.();
 
     if (!requestMoneyInformation.isRetry && isFromGlobalCreate) {
@@ -2196,6 +2193,7 @@ function convertBulkTrackedExpensesToIOU({
             transactionThreadReportID: moneyRequestTransactionThreadReportID,
             onyxData,
         } = getMoneyRequestInformation({
+            shouldFlagNewTransactionForReportTable: true,
             isVendorMatchingBetaEnabled,
             parentChatReport: chatReport,
             participantParams,

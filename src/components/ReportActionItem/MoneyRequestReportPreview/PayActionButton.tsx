@@ -19,6 +19,7 @@ import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
 
 import {generateDefaultWorkspaceName} from '@libs/actions/Policy/Policy';
+import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import getHoldMenuAmounts from '@libs/HoldMenuUtils';
 import {getTotalAmountForIOUReportPreviewButton} from '@libs/MoneyRequestReportUtils';
 import {isTrackOnboardingChoice} from '@libs/OnboardingUtils';
@@ -33,6 +34,7 @@ import ROUTES from '@src/ROUTES';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 
 import {hasSeenTourSelector} from '@selectors/Onboarding';
+import {isActionLoadingSelector} from '@selectors/ReportMetaData';
 import React from 'react';
 import Onyx from 'react-native-onyx';
 
@@ -61,6 +63,8 @@ function PayActionButton() {
     const {reportPreviewAction, canIOUBePaid, onlyShowPayElsewhere, shouldShowPayButton} = useReportPreviewActionState();
 
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
+    // The button keeps loading while an action on the report is in flight, such as a payment held until the backend answers, so it can't be paid twice
+    const [isPaymentInFlight] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${getNonEmptyStringOnyxID(iouReportID)}`, {selector: isActionLoadingSelector});
     const activePolicy = usePolicy(activePolicyID);
     const actionButtonData = useReportPreviewActionButtonData(iouReportID);
     const {iouReport, policy, userBillingGracePeriodEnds, amountOwed, ownerBillingGracePeriodEnd} = actionButtonData;
@@ -205,7 +209,7 @@ function PayActionButton() {
                 vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
             }}
             isDisabled={isOffline && !canAllowSettlement}
-            isLoading={(!isOffline && !canAllowSettlement) || isDownloadingABAFile}
+            isLoading={(!isOffline && !canAllowSettlement) || isDownloadingABAFile || !!isPaymentInFlight}
             sentryLabel={CONST.SENTRY_LABEL.REPORT_PREVIEW.PAY_BUTTON}
         />
     );

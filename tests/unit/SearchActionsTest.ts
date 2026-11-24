@@ -14,6 +14,7 @@ import {
     queueExportSearchWithTemplate,
     rejectMoneyRequestsOnSearch,
     saveSearch,
+    saveSearchFilters,
     search,
 } from '@libs/actions/Search';
 import {makeRequestWithSideEffects, waitForWrites, read, write} from '@libs/API';
@@ -21,6 +22,7 @@ import type {OpenSearchTagFiltersPageResponse} from '@libs/API/parameters';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import fileDownload from '@libs/fileDownload';
 import {translate} from '@libs/Localize';
+import enhanceParameters from '@libs/Network/enhanceParameters';
 import {savedSearchIDToSearchKey} from '@libs/SearchKeyUtils';
 import type {SearchKey} from '@libs/SearchKeyUtils';
 import {buildSearchQueryJSON, normalizeDatePresetsInQuery} from '@libs/SearchQueryUtils';
@@ -54,7 +56,7 @@ jest.mock('@expensify/react-native-hybrid-app', () => ({
 }));
 jest.mock('@libs/Network/enhanceParameters', () => ({
     __esModule: true,
-    default: (_: string, params: Record<string, unknown>) => params,
+    default: jest.fn((_: string, params: Record<string, unknown>) => params),
 }));
 jest.mock('@libs/actions/IOU/RejectMoneyRequest', () => ({
     rejectMoneyRequest: jest.fn(),
@@ -213,6 +215,23 @@ describe('SearchActions', () => {
         });
     });
 
+    describe('saveSearchFilters', () => {
+        it('stores the query as the one the Spend tab restores, locally and on the server', () => {
+            // Given a query that differs from the stored one by its pins alone, a change that sends no search
+            const query = 'type:expense left-pinned-columns:category';
+
+            // When it's saved for the Expenses tab
+            saveSearchFilters(CONST.SEARCH.SEARCH_KEYS.EXPENSES, query);
+
+            // Then the tab reads it at once, and the server keeps it for the next session
+            expect(mockWrite).toHaveBeenCalledWith(
+                WRITE_COMMANDS.SAVE_SEARCH_FILTERS,
+                {jsonQuery: JSON.stringify({searchKey: CONST.SEARCH.SEARCH_KEYS.EXPENSES, inputQuery: query})},
+                {optimisticData: [{onyxMethod: Onyx.METHOD.MERGE, key: ONYXKEYS.SEARCH_FILTERS, value: {[CONST.SEARCH.SEARCH_KEYS.EXPENSES]: {query}}}]},
+            );
+        });
+    });
+
     describe('search', () => {
         beforeEach(() => {
             mockWaitForWrites.mockResolvedValue(undefined);
@@ -309,6 +328,22 @@ describe('SearchActions', () => {
             });
 
             expect(mockWrite.mock.calls.at(-1)?.at(1)).not.toHaveProperty('excludedTransactionIDList');
+        });
+
+        it('leaves the session to the queue instead of baking an authToken into the persisted request', () => {
+            // Given a basic CSV export
+            // When it is queued
+            queueExportSearchItemsToCSV({
+                jsonQuery: '{}',
+                reportIDList: [],
+                transactionIDList: [],
+                isBasicExport: true,
+                exportColumnLabels: '{}',
+                exportName: 'Basic export',
+            });
+
+            // Then the parameters are not enhanced up front, so a reauthenticated retry sends the current token instead of a stale one
+            expect(enhanceParameters).not.toHaveBeenCalledWith(WRITE_COMMANDS.QUEUE_EXPORT_SEARCH_ITEMS_TO_CSV, expect.anything());
         });
     });
 
@@ -432,6 +467,7 @@ describe('SearchActions', () => {
                 comment: 'rejecting',
                 allPolicies: {},
                 allReports: {[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]: baseReport},
+                allReportNameValuePairs: {},
                 currentUserAccountIDParam: 1,
                 currentUserLogin: 'test@example.com',
                 isASAPSubmitBetaEnabled: false,
@@ -518,6 +554,23 @@ describe('SearchActions', () => {
 
             const options = mockWrite.mock.calls.at(-1)?.at(2);
             expect(options).toEqual({});
+        });
+
+        it('leaves the session to the queue instead of baking an authToken into the persisted request', () => {
+            // Given a template export
+            // When it is queued
+            queueExportSearchWithTemplate({
+                templateName: 'Test Template',
+                templateType: 'csv',
+                jsonQuery: '{}',
+                reportIDList: [],
+                transactionIDList: [],
+                policyID: 'policy123',
+                exportName: 'Test Template',
+            });
+
+            // Then the parameters are not enhanced up front, so a reauthenticated retry sends the current token instead of a stale one
+            expect(enhanceParameters).not.toHaveBeenCalledWith(WRITE_COMMANDS.QUEUE_EXPORT_SEARCH_WITH_TEMPLATE, expect.anything());
         });
     });
 
@@ -772,15 +825,14 @@ describe('getPayOption', () => {
         expect(getShouldEnableBulkPayOption([makeSelectedReport('1', true), makeSelectedReport('2', true)])).toBe(true);
     });
 
-    it('keeps bulk pay enabled when only some of the selected reports are payable', () => {
-        // Given a selection mixing two payable reports with one the viewer cannot settle (it only offers View)
+    it('disables bulk pay when only some of the selected reports are payable', () => {
+        // Given a selection mixing two payable reports with one the viewer cannot pay (it only offers View)
 
         // When the bulk pay eligibility is computed
         const shouldEnableBulkPayOption = getShouldEnableBulkPayOption([makeSelectedReport('1', true), makeSelectedReport('2', true), makeSelectedReport('3', false)]);
 
-        // Then bulk pay stays available because it degrades to the payable subset instead of dropping the whole Pay
-        // group — the ineligible report is skipped at payment time rather than hiding Pay and Mark as paid for all three
-        expect(shouldEnableBulkPayOption).toBe(true);
+        // Then bulk pay is disabled, the same way Approve needs every selected report to be approvable
+        expect(shouldEnableBulkPayOption).toBe(false);
     });
 
     it('disables bulk pay when no selected report is payable', () => {
@@ -788,8 +840,7 @@ describe('getPayOption', () => {
     });
 
     it('keeps transaction selections all-or-nothing', () => {
-        // Given a transaction-level selection where one transaction cannot be paid. Individual transactions are not
-        // paid one by one, so unlike whole reports there is no payable subset to degrade to.
+        // Given a transaction-level selection where one transaction cannot be paid
         function makeSelectedTransaction(reportID: string, action: SelectedTransactions[string]['action']): SelectedTransactions[string] {
             return {
                 isSelected: true,
@@ -816,7 +867,7 @@ describe('getPayOption', () => {
 
         // When the bulk pay eligibility is computed
 
-        // Then bulk pay is unavailable, as it was before whole-report selections learned to degrade
+        // Then bulk pay is unavailable
         expect(getPayOption([], selectedTransactions, undefined, [], undefined).shouldEnableBulkPayOption).toBe(false);
     });
 
@@ -843,7 +894,7 @@ describe('getPayOption', () => {
     });
 
     it('disables bulk pay when the payable reports are of different types', async () => {
-        // Given a payable subset mixing an expense report with an IOU report. Bulk pay resolves one payment method
+        // Given payable reports mixing an expense report with an IOU report. Bulk pay resolves one payment method
         // for the whole group, so mixed types genuinely cannot be paid together.
         Onyx.init({keys: ONYXKEYS});
         await Onyx.clear();
