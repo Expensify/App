@@ -54,7 +54,7 @@ import {setNameValuePair} from '@libs/actions/User';
 import {getWiseQuote} from '@libs/actions/Wise';
 import {isClientTheLeader} from '@libs/ActiveClientManager';
 import {shouldConfirmWiseQuoteBeforePaying, shouldGetWiseQuote} from '@libs/BankAccountUtils';
-import {getBankPaySkippedReports, isSelectedReportBankPayBlocked} from '@libs/BulkPaySkippedReportsUtils';
+import {isSelectedReportBankPayBlocked} from '@libs/BulkPaySkippedReportsUtils';
 import {canResolveTransactionCard} from '@libs/CardUtils';
 import {getConnectionCompanyID} from '@libs/CopyPolicySettingsUtils';
 import deferModalPresentationAfterPopoverDismiss from '@libs/deferModalPresentationAfterPopoverDismiss';
@@ -178,7 +178,6 @@ import Onyx from 'react-native-onyx';
 import type {RejectModalAction} from './useHoldRejectEducationalModal';
 
 import useAllTransactions from './useAllTransactions';
-import useBankPaySkippedModal from './useBankPaySkippedModal';
 import useBulkPayOptions from './useBulkPayOptions';
 import useConfirmModal from './useConfirmModal';
 import {useCurrencyListActions} from './useCurrencyList';
@@ -207,6 +206,7 @@ import usePersonalPolicy from './usePersonalPolicy';
 import usePolicyForMovingExpenses from './usePolicyForMovingExpenses';
 import useReportPDFDownloadModal from './useReportPDFDownloadModal';
 import useRestrictedActionPolicyID from './useRestrictedActionPolicyID';
+import useSearchBankPaySkippedReports from './useSearchBankPaySkippedReports';
 import useSearchShouldCalculateTotals from './useSearchShouldCalculateTotals';
 import useSelfDMReport from './useSelfDMReport';
 import useShouldReturnTripRooms from './useShouldReturnTripRooms';
@@ -717,7 +717,6 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
 
     const {showConfirmModal} = useConfirmModal();
     const {showWiseQuoteCarouselModal} = useWiseQuoteConfirmModal();
-    const {showBankPaySkippedModal} = useBankPaySkippedModal({bankAccountList});
     const {showDecisionModal} = useDecisionModal();
 
     const showOfflineModal = useCallback(() => {
@@ -985,17 +984,17 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         [selectedReports.length, payableSelectedReports, selectedTransactions],
     );
 
-    // A bank payment of this selection would pay none of it, so it explains why before asking for account validation or bank setup
-    const isBankPayBlockedForSelection = useMemo(() => {
-        // The backend pays a "Select all" selection itself, and only skips the reports with a negative total there
-        if (areAllMatchingItemsSelected) {
-            return false;
-        }
-        return (
-            bulkPaySelectedOptions.length > 0 &&
-            bulkPaySelectedOptions.every((item) => isSelectedReportBankPayBlocked(getReportFromSearchSnapshot(item.reportID, searchResults?.data, allReports), searchResults?.data, policies))
-        );
-    }, [areAllMatchingItemsSelected, bulkPaySelectedOptions, searchResults?.data, allReports, policies]);
+    const {isBankPayBlockedForSelection, getSkippedReportsForPayment} = useSearchBankPaySkippedReports({
+        bulkPaySelectedOptions,
+        areAllMatchingItemsSelected,
+        policyID: payScopedPolicyIDs.at(0),
+        searchData: searchResults?.data,
+        allReports,
+        policies,
+        personalPolicyID,
+        lastPaymentMethods,
+        bankAccountList,
+    });
 
     // Since ABA files pay from one workspace's withdrawal account, we only show it if all the reports are from one workspace.
     // Selecting all items is not supported for now, it will be added in the second release.
@@ -1823,29 +1822,11 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
 
             // A report with nothing owed can only be marked as paid, so a bank payment leaves it out and lists it for the user once the rest are paid
             const isABAPayment = additionalData?.paymentMethod === CONST.PAYMENT_METHODS.ABA;
-            const bankPaySkippedReportsByID = getBankPaySkippedReports({
-                reportIDs: bulkPaySelectedOptions.map((item) => item.reportID),
-                paymentMethod,
-                isABAPayment,
-                searchData: searchResults?.data,
-                allReports,
-                policies,
-                personalPolicyID,
-                lastPaymentMethods,
-            });
-            const showBankPaySkippedReports = (skippedReportNames?: string[]) =>
-                // Bulk pay runs while the pay popover is still dismissing, and iOS can't present a modal until it's gone
-                deferModalPresentationAfterPopoverDismiss(() => {
-                    showBankPaySkippedModal({
-                        bankAccountID: expenseReportBankAccountID,
-                        policy: getPolicyFromSearchSnapshot(payScopedPolicyIDs.at(0), searchResults?.data, policies),
-                        isABAPayment,
-                        skippedReportNames,
-                    });
-                });
-            if (bankPaySkippedReportsByID.size > 0 && bulkPaySelectedOptions.every((item) => !!item.reportID && bankPaySkippedReportsByID.has(item.reportID))) {
+            const bankPaySkippedReports = getSkippedReportsForPayment({paymentMethod, isABAPayment, bankAccountID: expenseReportBankAccountID});
+            const bankPaySkippedReportsByID = bankPaySkippedReports.skippedReportsByID;
+            if (bankPaySkippedReports.isEveryReportSkipped) {
                 Log.info('[BulkPay] Dropping bulk pay: every selected report is non-reimbursable or totals $0 or less');
-                showBankPaySkippedReports();
+                bankPaySkippedReports.showAllReportsSkipped();
                 return;
             }
 
@@ -1855,10 +1836,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                 ONYXKEYS.NVP_ONBOARDING,
                 ONYXKEYS.DERIVED.REPORT_ATTRIBUTES,
             ]);
-            // Lists the skipped reports by the names shown everywhere else
-            const bankPaySkippedReportNames = [...bankPaySkippedReportsByID].map(
-                ([reportID, report]) => getReportName(report, reportAttributes?.reports?.[reportID]?.reportName) || translate('common.report'),
-            );
+            const showBankPaySkippedReports = () => bankPaySkippedReports.showSkippedReports(reportAttributes);
             const conciergeChat = await Onyx.get(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
             const isSelfTourViewed = hasSeenTourSelector(onboarding);
             const activeRoute = Navigation.getActiveRoute();
@@ -1974,7 +1952,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                 payReportsViaABA(
                     reportIDs.map((reportID) => ({reportID, ownerAccountID: getReportFromSearchSnapshot(reportID, searchData, allReports)?.ownerAccountID})),
                     bulkPayPolicy,
-                    bankPaySkippedReportsByID.size > 0 ? {onPaid: () => showBankPaySkippedReports(bankPaySkippedReportNames)} : undefined,
+                    bankPaySkippedReportsByID.size > 0 ? {onPaid: showBankPaySkippedReports} : undefined,
                 );
                 clearSelectedTransactions();
                 return;
@@ -2199,7 +2177,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             if (!shouldConfirmWiseQuotes) {
                 // The global reimbursements flow only names its own reports, so the reports skipped here still need listing when nothing else was paid
                 if (bankPaySkippedReportsByID.size > 0 && (paidReportCount > 0 || reportNamesNeedingGlobalReimbursements.size > 0)) {
-                    showBankPaySkippedReports(bankPaySkippedReportNames);
+                    showBankPaySkippedReports();
                 }
                 return;
             }
@@ -2221,7 +2199,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                         playSound(SOUNDS.SUCCESS);
                         clearSelectedTransactions();
                         if (bankPaySkippedReportsByID.size > 0) {
-                            showBankPaySkippedReports(bankPaySkippedReportNames);
+                            showBankPaySkippedReports();
                         }
                     },
                 });
@@ -2230,8 +2208,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         [
             hash,
             showWiseQuoteCarouselModal,
-            showBankPaySkippedModal,
-            payScopedPolicyIDs,
+            getSkippedReportsForPayment,
             bulkPaySelectedOptions,
             showOfflineModal,
             areAllMatchingItemsSelected,
