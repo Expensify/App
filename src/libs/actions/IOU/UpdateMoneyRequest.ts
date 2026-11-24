@@ -1,3 +1,5 @@
+import type {LocaleContextProps} from '@components/LocaleContextProvider';
+
 import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
 
 import * as API from '@libs/API';
@@ -74,6 +76,7 @@ type UpdateMoneyRequestData<TKey extends OnyxKey> = {
 };
 
 type UpdateMoneyRequestDateParams = {
+    translate: LocaleContextProps['translate'];
     transactionID: string;
     transaction: OnyxEntry<OnyxTypes.Transaction>;
     transactionThreadReport: OnyxEntry<OnyxTypes.Report>;
@@ -231,6 +234,7 @@ function getRecalculatedDistanceRateIDForExpenseDate({
 
 /** Updates the created date of an expense */
 function updateMoneyRequestDate({
+    translate,
     transactionID,
     transaction,
     transactionThreadReport,
@@ -278,6 +282,7 @@ function updateMoneyRequestDate({
                 : undefined;
 
         updateMoneyRequestDistanceRate({
+            translate,
             isVendorMatchingBetaEnabled,
             transaction,
             transactionThreadReport,
@@ -318,6 +323,7 @@ function updateMoneyRequestDate({
 
     if (isTrackExpense) {
         data = getUpdateTrackExpenseParams({
+            translate,
             transactionID,
             transaction,
             transactionThread: transactionThreadReport,
@@ -535,6 +541,7 @@ function updateMoneyRequestReimbursable({
 
 /** Updates the merchant field of an expense */
 function updateMoneyRequestMerchant({
+    translate,
     transactionID,
     transaction,
     transactionThreadReport,
@@ -558,6 +565,7 @@ function updateMoneyRequestMerchant({
     rules,
     isVendorMatchingBetaEnabled,
 }: {
+    translate: LocaleContextProps['translate'];
     isVendorMatchingBetaEnabled: boolean | undefined;
     transactionID: string;
     transaction: OnyxEntry<OnyxTypes.Transaction>;
@@ -588,6 +596,7 @@ function updateMoneyRequestMerchant({
 
     if (isTrackExpenseReport(transactionThreadReport) && isSelfDM(parentReport)) {
         data = getUpdateTrackExpenseParams({
+            translate,
             transactionID,
             transaction,
             transactionThread: transactionThreadReport,
@@ -1147,6 +1156,7 @@ function updateMoneyRequestTaxRate({
 }
 
 type UpdateMoneyRequestDistanceParams = {
+    translate: LocaleContextProps['translate'];
     transaction: OnyxEntry<OnyxTypes.Transaction>;
     transactionThreadReport: OnyxEntry<OnyxTypes.Report>;
     parentReport: OnyxEntry<OnyxTypes.Report>;
@@ -1179,6 +1189,7 @@ type UpdateMoneyRequestDistanceParams = {
 
 /** Updates the waypoints of a distance expense */
 function updateMoneyRequestDistance({
+    translate,
     transaction,
     transactionThreadReport,
     parentReport,
@@ -1225,6 +1236,7 @@ function updateMoneyRequestDistance({
 
     if (isTrackExpenseReport(transactionThreadReport) && isSelfDM(parentReport)) {
         data = getUpdateTrackExpenseParams({
+            translate,
             transactionID: transaction?.transactionID,
             transaction,
             transactionThread: transactionThreadReport,
@@ -1416,6 +1428,7 @@ function updateMoneyRequestCategory({
 
 /** Updates the description of an expense */
 function updateMoneyRequestDescription({
+    translate,
     transactionID,
     transaction,
     transactionThreadReport,
@@ -1439,6 +1452,7 @@ function updateMoneyRequestDescription({
     isVendorMatchingBetaEnabled,
     policyVendors,
 }: {
+    translate: LocaleContextProps['translate'];
     isVendorMatchingBetaEnabled: boolean | undefined;
     transactionID: string;
     transaction: OnyxEntry<OnyxTypes.Transaction>;
@@ -1470,6 +1484,7 @@ function updateMoneyRequestDescription({
 
     if (isTrackExpenseReport(transactionThreadReport) && isSelfDM(parentReport)) {
         data = getUpdateTrackExpenseParams({
+            translate,
             transactionID,
             transaction,
             transactionThread: transactionThreadReport,
@@ -1523,6 +1538,7 @@ function updateMoneyRequestDescription({
 
 /** Updates the distance rate of an expense */
 function updateMoneyRequestDistanceRate({
+    translate,
     transaction,
     transactionThreadReport,
     parentReport,
@@ -1554,6 +1570,7 @@ function updateMoneyRequestDistanceRate({
     rules,
     isVendorMatchingBetaEnabled,
 }: {
+    translate: LocaleContextProps['translate'];
     isVendorMatchingBetaEnabled: boolean | undefined;
     transaction: OnyxEntry<OnyxTypes.Transaction>;
     transactionThreadReport: OnyxEntry<OnyxTypes.Report>;
@@ -1613,6 +1630,7 @@ function updateMoneyRequestDistanceRate({
 
     if (isTrackExpenseReport(transactionThreadReport) && isSelfDM(parentReport)) {
         data = getUpdateTrackExpenseParams({
+            translate,
             transactionID: transaction?.transactionID,
             transaction,
             transactionThread: transactionThreadReport,
@@ -1667,6 +1685,7 @@ function updateMoneyRequestDistanceRate({
 }
 
 type UpdateMoneyRequestAmountAndCurrencyParams = {
+    translate: LocaleContextProps['translate'];
     transactionID: string;
     transaction: OnyxEntry<OnyxTypes.Transaction>;
     transactionThreadReport: OnyxEntry<OnyxTypes.Report>;
@@ -1699,6 +1718,7 @@ type UpdateMoneyRequestAmountAndCurrencyParams = {
 
 /** Updates the amount and currency fields of an expense */
 function updateMoneyRequestAmountAndCurrency({
+    translate,
     transactionID,
     transaction,
     transactionThreadReport,
@@ -1740,6 +1760,7 @@ function updateMoneyRequestAmountAndCurrency({
 
     if (isTrackExpenseReport(transactionThreadReport) && isSelfDM(parentReport)) {
         data = getUpdateTrackExpenseParams({
+            translate,
             transactionID,
             transaction,
             transactionThread: transactionThreadReport,
@@ -2521,6 +2542,7 @@ type TrackExpenseCurrencyContext = {
 };
 
 type GetUpdateTrackExpenseParamsType = {
+    translate: LocaleContextProps['translate'];
     transactionID: string | undefined;
     transaction: OnyxEntry<OnyxTypes.Transaction>;
     transactionThread: OnyxEntry<OnyxTypes.Report>;
@@ -2551,6 +2573,7 @@ function getUpdateTrackExpenseParams(
         transaction,
         transactionThread,
         transactionThreadParentReport: chatReport,
+        translate,
         transactionChanges,
         policy,
         delegateAccountID,
@@ -2593,6 +2616,7 @@ function getUpdateTrackExpenseParams(
     const policyForTransaction = distanceOriginalPolicy ?? policy;
     const updatedTransaction = transaction
         ? getUpdatedTransaction({
+              translate,
               transaction,
               transactionChanges,
               isFromExpenseReport: false,

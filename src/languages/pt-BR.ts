@@ -1027,6 +1027,7 @@ const translations: TranslationDeepObject<typeof en> = {
     },
     supportalSwitcher: {
         title: 'Supportal para outra conta',
+        navigationLabel: 'Supportal',
         emailLabel: 'Endereço de email',
         reasonLabel: 'Motivo de login no suporte',
         reasonHint: 'Nenhum chamado recente encontrado para esta conta.',
@@ -1252,6 +1253,8 @@ const translations: TranslationDeepObject<typeof en> = {
     },
     insightsPage: {
         tagLevel: (level: string) => `Nível de tag ${level}`,
+        noTaggedExpenses: 'Nenhuma despesa com tags',
+        noExpensesForTagLevel: (tagLevelName: string) => `Não há despesas para ${tagLevelName} neste intervalo de datas.`,
         tagLevelLabel: 'Nível de tag',
         parent: 'Responsável',
         shareOfTotal: 'Parcela do total (%)',
@@ -1304,7 +1307,6 @@ const translations: TranslationDeepObject<typeof en> = {
         viewDetails: 'Ver detalhes',
         viewAll: 'Ver tudo',
         topExpenses: 'Maiores despesas',
-        noExpensesInRange: 'Nenhuma despesa nesse intervalo',
         efficiency: 'Eficiência',
         workflowEfficiency: 'Eficiência de fluxo de trabalho',
         averageProcessingTime: 'Tempo médio de processamento',
@@ -1313,6 +1315,29 @@ const translations: TranslationDeepObject<typeof en> = {
         mostTimeToPay: 'Maior prazo para pagar',
         share: 'Participação',
         averageDays: 'Média de dias',
+        summary: {
+            title: 'Resumo',
+            over: (percentage: string) => `${percentage} acima`,
+            under: (percentage: string) => `${percentage} abaixo`,
+            versusMerchantAverage: (amount: string) => `${amount} vs a média deste estabelecimento`,
+            versusMemberAverage: (amount: string) => `${amount} vs a média deste membro`,
+            versusCategoryAverage: (amount: string) => `${amount} vs média desta categoria`,
+            versusAverageDay: (amount: string) => `${amount} vs dia médio`,
+            versusAverageWeek: (amount: string) => `${amount} vs semana média`,
+            versusAverageMonth: (amount: string) => `${amount} vs mês médio`,
+            versusAverageQuarter: (amount: string) => `${amount} vs trimestre médio`,
+            moreHistoryNeeded: 'Mais histórico necessário:',
+            daysOfHistoryNeeded: (count: number) => `A comparação da média será exibida após ${count} dias completos de histórico`,
+            weeksOfHistoryNeeded: (count: number) => `A comparação média será exibida após ${count} semanas completas de histórico`,
+            monthsOfHistoryNeeded: (count: number) => `A comparação de média será exibida após ${count} meses completos de histórico`,
+            quartersOfHistoryNeeded: (count: number) => `A comparação da média será exibida após ${count} trimestres completos de histórico`,
+            periodSpend: (period: string) => `Gasto de ${period}`,
+            dayAverage: (count: number) => `média de ${count} dia(s)`,
+            weekAverage: (count: number) => `média de ${count} semana(s)`,
+            monthAverage: (count: number) => `média de ${count} meses`,
+            quarterAverage: (count: number) => `média de ${count} trimestres`,
+            shareOfTotal: 'Parcela do total',
+        },
         generatingAIInsights: 'Gerando insights de IA...',
         generatingAIInsightsSubtitle: 'Isso não deve levar mais de um minuto',
         readingChart: (chartTitle: string) => `Lendo ${chartTitle}`,
@@ -1469,6 +1494,8 @@ const translations: TranslationDeepObject<typeof en> = {
         flash: 'flash',
         flipCamera: 'inverter câmera',
         multiScan: 'escaneamento múltiplo',
+        receiptEnhancements: 'Melhorias de recibos',
+        receiptEnhancementsEnabled: 'Melhorias de recibos ativadas',
         shutter: 'obturador',
         gallery: 'galeria',
         deleteReceipt: 'Excluir recibo',
@@ -2579,6 +2606,8 @@ const translations: TranslationDeepObject<typeof en> = {
             leftHandNavCache: 'Cache da navegação à esquerda',
             clearleftHandNavCache: 'Limpar',
             softKillTheApp: 'Encerrar o app suavemente',
+            testBusinessBankAccount: 'Testar conta bancária empresarial em USD',
+            testPersonalBankAccount: 'Testar conta bancária pessoal em USD',
             kill: 'Matar',
             sentryDebug: 'Depuração do Sentry',
             sentrySendDescription: 'Enviar dados ao Sentry',
@@ -2586,6 +2615,7 @@ const translations: TranslationDeepObject<typeof en> = {
             sentryHighlightedSpanOps: 'Nomes de trechos destacados',
             sentryHighlightedSpanOpsPlaceholder: 'ui.interaction.click, navegação, ui.carregar',
             showBranchNameInTitle: 'Mostrar nome da branch no título do navegador',
+            hideEnvironmentBadge: 'Ocultar selo de ambiente',
             betaOverrides: 'Substituições de betas',
             betaOverridesDescription:
                 'As substituições se aplicam apenas a este dispositivo e afetam somente as verificações do frontend. Uma beta mantém uma substituição apenas enquanto ela difere das betas da sua conta, então alternar de volta remove a substituição. “Redefinir todas as substituições” restaura os valores da sua conta. Algumas betas também são controladas pelo backend, então podem falhar no nível da solicitação.',
@@ -5356,6 +5386,10 @@ ${amount} para ${merchant} - ${date}`,
             railTicketExchange: (origin: string, destination: string, startDate: string) => `Sua passagem de trem de ${origin} → ${destination} em ${startDate} foi trocada.`,
             railTicketUpdate: (origin: string, destination: string, startDate: string) => `Sua passagem de trem de ${origin} → ${destination} em ${startDate} foi atualizada.`,
             defaultUpdate: (type: string) => `Sua reserva de ${type} foi atualizada.`,
+            hotelBooked: (hotelName: string, startDate: string) => `Sua reserva de hotel em ${hotelName} (check-in em ${startDate}) foi efetuada.`,
+            carBooked: (vendor: string, startDate: string) => `Seu aluguel de carro com a ${vendor} (retirada em ${startDate}) foi reservado.`,
+            railTicketBooked: (origin: string, destination: string, startDate: string) => `Sua passagem de trem de ${origin} → ${destination} em ${startDate} foi reservada.`,
+            defaultBooked: (type: string) => `Sua reserva de ${type} foi realizada.`,
         },
         flightTo: 'Voo para',
         trainTo: 'Trem para',
@@ -5619,6 +5653,9 @@ ${amount} para ${merchant} - ${date}`,
             },
             chatgpt: {
                 title: 'ChatGPT',
+            },
+            grok: {
+                title: 'Grok',
             },
         },
         connections: {
@@ -8030,6 +8067,7 @@ O plano Control começa em US$ 9 por membro ativo por mês.`,
                 willBeReadyToUse: 'Este cartão estará pronto para uso imediatamente.',
                 willBeReadyToShip: 'Este cartão estará pronto para envio imediatamente.',
                 cardholder: 'Titular do cartão',
+                cardholderEmail: 'E-mail do titular do cartão',
                 cardType: 'Tipo de cartão',
                 limit: 'Limite',
                 limitType: 'Tipo de limite',
@@ -11589,7 +11627,9 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
                     mentionedAccountID?: number;
                 }) => {
                     let warningTime = 'em breve';
-                    if (warningDaysBeforeExpiry === CONST.COMPANY_CARDS.CONSENT_EXPIRY_WARNING_DAYS.TWO_WEEKS) {
+                    if (warningDaysBeforeExpiry === CONST.COMPANY_CARDS.CONSENT_EXPIRY_WARNING_DAYS.ONE_MONTH) {
+                        warningTime = 'em um mês';
+                    } else if (warningDaysBeforeExpiry === CONST.COMPANY_CARDS.CONSENT_EXPIRY_WARNING_DAYS.TWO_WEEKS) {
                         warningTime = 'em duas semanas';
                     } else if (warningDaysBeforeExpiry === CONST.COMPANY_CARDS.CONSENT_EXPIRY_WARNING_DAYS.ONE_WEEK) {
                         warningTime = 'em uma semana';

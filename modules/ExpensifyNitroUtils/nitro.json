@@ -16,6 +16,10 @@
             "ios": {"language": "swift", "implementationClassName": "HybridAppStartTimeModule"},
             "android": {"language": "kotlin", "implementationClassName": "HybridAppStartTimeModule"}
         },
+        "DocumentDetectorModule": {
+            "swift": "HybridDocumentDetectorModule",
+            "kotlin": "HybridDocumentDetectorModule"
+        },
         "VerticalBarModule": {
             "ios": {"language": "swift", "implementationClassName": "HybridVerticalBarModule"},
             "android": {"language": "kotlin", "implementationClassName": "HybridVerticalBarModule"}
