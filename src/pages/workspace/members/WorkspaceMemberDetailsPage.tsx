@@ -655,6 +655,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
                             {shouldShowTravelSettings && (
                                 <OfflineWithFeedback pendingAction={member?.pendingFields?.canUseTravel}>
                                     <MenuItemField
+                                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.MEMBERS.DETAILS_TRAVEL_ACCESS}
                                         name={translate('workspace.moreFeatures.travel.members.travelAccess')}
                                         onPress={canChangeTravelSettings ? () => Navigation.navigate(ROUTES.WORKSPACE_MEMBER_TRAVEL_ACCESS.getRoute(policyID, accountID)) : undefined}
                                         testID="member-travel-access-menu-item"

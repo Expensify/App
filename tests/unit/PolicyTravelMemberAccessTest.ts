@@ -33,21 +33,25 @@ describe('Policy travel member access', () => {
     });
 
     describe('setPolicyTravelMemberAccess', () => {
-        it('does nothing when the stored value already matches', () => {
-            // Given a member whose travel access is already stored as on
+        it('does nothing when the member already has the requested access', () => {
+            // Given a member without a stored value, who can book travel
             // When an admin turns travel on for them
-            setPolicyTravelMemberAccess(buildPolicy({canUseTravel: true}), [MEMBER], true);
+            setPolicyTravelMemberAccess(buildPolicy({}), [MEMBER], true);
 
             // Then no request is sent, since nothing would change
             expect(mockWrite).not.toHaveBeenCalled();
+
+            // And turning off a member who is already off sends nothing either
+            setPolicyTravelMemberAccess(buildPolicy({canUseTravel: false}), [MEMBER], false);
+            expect(mockWrite).not.toHaveBeenCalled();
         });
 
-        it('stores off for a member without a stored value', () => {
-            // Given a member without a stored travel access value, who shows as off
+        it('stores false when turning a member off', () => {
+            // Given a member without a stored value, who can book travel
             // When an admin turns travel off for them
             setPolicyTravelMemberAccess(buildPolicy({}), [MEMBER], false);
 
-            // Then off is still sent and stored, so the member is explicitly turned off like the server stores it
+            // Then false is sent and stored optimistically, the only value the server stores
             expect(mockWrite).toHaveBeenCalledWith(
                 WRITE_COMMANDS.SET_POLICY_TRAVEL_MEMBER_ACCESS,
                 {policyID: 'policy-1', employeeAccountIDList: String(MEMBER.accountID), enabled: false},
@@ -55,13 +59,20 @@ describe('Policy travel member access', () => {
             );
         });
 
-        it('restores the stored value and marks the member as a failed update on failure', () => {
-            // Given a member whose travel access is stored as off
+        it('removes the stored false when turning a member on, and restores it on failure', () => {
+            // Given a member whose travel access is turned off
             // When an admin turns travel on for them
             setPolicyTravelMemberAccess(buildPolicy({canUseTravel: false}), [MEMBER], true);
 
-            // Then a failure restores off and marks the member as a failed update, so dismissing the error keeps them in
-            // the list, and a success only clears the pending field
+            // Then the stored false is removed optimistically, since a member without a value can book travel
+            expect(mockWrite).toHaveBeenCalledWith(
+                WRITE_COMMANDS.SET_POLICY_TRAVEL_MEMBER_ACCESS,
+                {policyID: 'policy-1', employeeAccountIDList: String(MEMBER.accountID), enabled: true},
+                withEmployeeUpdate('optimisticData', {canUseTravel: null, pendingFields: {canUseTravel: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}}),
+            );
+
+            // And a failure restores false and marks the member as a failed update, so dismissing the error keeps them in
+            // the list, while a success only clears the pending field
             expect(mockWrite).toHaveBeenCalledWith(
                 WRITE_COMMANDS.SET_POLICY_TRAVEL_MEMBER_ACCESS,
                 expect.anything(),
@@ -82,15 +93,14 @@ describe('Policy travel member access', () => {
 
     describe('travel member helpers', () => {
         it.each([
-            [undefined, false, false],
-            [true, true, false],
+            [undefined, true, false],
             [false, false, true],
         ])('reads canUseTravel %s as can use travel %s and turned off %s', (canUseTravel, expectedCanUseTravel, expectedTurnedOff) => {
             // Given a member with the stored travel access value
             const policy = buildPolicy(canUseTravel === undefined ? {} : {canUseTravel});
 
             // When the app reads it
-            // Then only an explicit true shows them as able to book, and only an explicit false blocks booking
+            // Then only a stored false stops them from booking
             expect(canMemberUseTravel(policy, MEMBER.email)).toBe(expectedCanUseTravel);
             expect(isMemberTravelAccessTurnedOff(policy, MEMBER.email)).toBe(expectedTurnedOff);
         });

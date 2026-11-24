@@ -746,7 +746,7 @@ function getSystemMessageDisplayState(
         displayReportActions.push(reportAction);
     };
 
-    for (let index = 0; index < chronologicalActions.length; ) {
+    for (let index = 0; index < chronologicalActions.length;) {
         const reportAction = chronologicalActions.at(index);
         if (!reportAction) {
             index++;
@@ -5639,6 +5639,18 @@ function getUpdatedMemberWorkArrangementMessage(translate: LocalizedTranslate, r
     return translate('workspaceActions.updatedMemberWorkArrangement', {displayName, newArrangement, oldArrangement});
 }
 
+function getUpdatedMemberTravelAccessMessage(translate: LocalizedTranslate, reportAction: OnyxEntry<ReportAction>): string {
+    if (!isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_MEMBER_TRAVEL_ACCESS)) {
+        return getReportActionText(reportAction);
+    }
+    const {name, email, newValue} = getOriginalMessage(reportAction) ?? {};
+    const displayName = name ?? (email ? formatPhoneNumber(email) : '');
+    if (typeof newValue !== 'boolean' || !displayName) {
+        return getReportActionText(reportAction);
+    }
+    return translate('workspaceActions.updatedMemberTravelAccess', {displayName, canUseTravel: newValue});
+}
+
 function getAddedOfficeLocationMessage(translate: LocalizedTranslate, reportAction: OnyxEntry<ReportAction>): string {
     if (!isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_OFFICE_LOCATION)) {
         return getReportActionText(reportAction);
@@ -6592,6 +6604,7 @@ export {
     getUpdatedCommuterExclusionsMessage,
     getPolicyWorkArrangementMessage,
     getUpdatedMemberWorkArrangementMessage,
+    getUpdatedMemberTravelAccessMessage,
     getAddedOfficeLocationMessage,
     getUpdatedOfficeLocationMessage,
     getDeletedOfficeLocationMessage,

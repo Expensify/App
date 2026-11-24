@@ -538,7 +538,6 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
             canEditRole,
             onChangeRole: (newRole) => changeMemberRole(login, accountID, policyEmployee.role, newRole),
             canUseTravel: shouldShowTravelColumn ? canMemberUseTravel(policy, login) : undefined,
-            isTravelAccessStored: typeof policyEmployee.canUseTravel === 'boolean',
             // A member still being added or without a loaded accountID would be sent to the server under an accountID it
             // doesn't know
             canEditTravelAccess:
