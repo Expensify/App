@@ -1245,6 +1245,8 @@ const translations: TranslationDeepObject<typeof en> = {
     },
     insightsPage: {
         tagLevel: (level: string) => `Nivel de etiqueta ${level}`,
+        noTaggedExpenses: 'No hay gastos con etiquetas',
+        noExpensesForTagLevel: (tagLevelName: string) => `No hay gastos para ${tagLevelName} en este intervalo de fechas.`,
         tagLevelLabel: 'Nivel de etiqueta',
         parent: 'Principal',
         shareOfTotal: 'Porcentaje del total (%)',

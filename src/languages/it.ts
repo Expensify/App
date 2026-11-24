@@ -1254,6 +1254,8 @@ const translations: TranslationDeepObject<typeof en> = {
     },
     insightsPage: {
         tagLevel: (level: string) => `Livello tag ${level}`,
+        noTaggedExpenses: 'Nessuna spesa con tag',
+        noExpensesForTagLevel: (tagLevelName: string) => `Non ci sono spese per ${tagLevelName} in questo intervallo di date.`,
         tagLevelLabel: 'Livello tag',
         parent: 'Genitore',
         shareOfTotal: 'Quota del totale (%)',
