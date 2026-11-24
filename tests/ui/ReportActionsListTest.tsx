@@ -206,6 +206,7 @@ type MockInvertedFlashListProps = {
     extraData?: unknown;
     renderItem?: (info: {item: OnyxTypes.ReportAction; index: number}) => React.ReactElement | null;
     onContentSizeChange?: () => void;
+    onStartReached?: () => void;
     ListFooterComponent?: React.ReactNode;
 };
 
@@ -1573,6 +1574,31 @@ describe('ReportActionsList (body)', () => {
             // Then the pending scroll-to-bottom is flushed, so the list lands on the new comment
             const scrollHookResult = mockUseReportActionsScroll.mock.results.at(-1)?.value as {flushPendingScrollToBottom: jest.Mock};
             expect(scrollHookResult.flushPendingScrollToBottom).toHaveBeenCalledTimes(1);
+        });
+    });
+
+    describe('Loading newer messages', () => {
+        it('gives the list onStartReached only once there are newer actions to load', () => {
+            // Given a chat whose loaded messages still look complete, as when a page saved on an earlier visit claims the newest end
+            let hasNewerActions = false;
+            mockUseNetwork.mockReturnValue({isOffline: false});
+            mockUsePaginatedReportActions.mockImplementation(() => ({...defaultPaginatedReportActionsResult, reportActions: mockReportActions, hasNewerActions}));
+            const renderList = () => (
+                <ReportActionsSkeletonGuard reportID={mockReport.reportID}>
+                    <ReportActionsListContent reportID={mockReport.reportID} />
+                </ReportActionsSkeletonGuard>
+            );
+            const view = render(renderList());
+            const onStartReachedBeforeOpenReport = getCapturedListProps()?.onStartReached;
+
+            // When OpenReport reports that newer messages exist
+            hasNewerActions = true;
+            view.rerender(renderList());
+
+            // Then the list only gets onStartReached now. FlashList calls it once each time the list enters the start zone, so a call made
+            // while nothing newer could load would be used up, and a user already at the bottom would never get the newer messages.
+            expect(onStartReachedBeforeOpenReport).toBeUndefined();
+            expect(getCapturedListProps()?.onStartReached).toEqual(expect.any(Function));
         });
     });
 
