@@ -1177,7 +1177,7 @@ describe('actions/Report', () => {
         // We should generate link
         let originalCommentMarkdown = 'Original Comment';
         let afterEditCommentText = 'Original Comment www.google.com';
-        let newCommentHTML = Report.handleUserDeletedLinksInHtml(afterEditCommentText, originalCommentMarkdown, TEST_USER_LOGIN, {});
+        let newCommentHTML = Report.handleUserDeletedLinksInHtml(afterEditCommentText, originalCommentMarkdown, TEST_USER_LOGIN, []);
         let expectedOutput = 'Original Comment <a href="https://www.google.com" target="_blank" rel="noreferrer noopener">www.google.com</a>';
         expect(newCommentHTML).toBe(expectedOutput);
 
@@ -1185,7 +1185,7 @@ describe('actions/Report', () => {
         // We should not generate link
         originalCommentMarkdown = 'Comment [www.google.com](https://www.google.com)';
         afterEditCommentText = 'Comment www.google.com';
-        newCommentHTML = Report.handleUserDeletedLinksInHtml(afterEditCommentText, originalCommentMarkdown, TEST_USER_LOGIN, {});
+        newCommentHTML = Report.handleUserDeletedLinksInHtml(afterEditCommentText, originalCommentMarkdown, TEST_USER_LOGIN, []);
         expectedOutput = 'Comment www.google.com';
         expect(newCommentHTML).toBe(expectedOutput);
 
@@ -1193,7 +1193,7 @@ describe('actions/Report', () => {
         // We should not generate link
         originalCommentMarkdown = 'Comment [www.google.com](https://www.google.com)';
         afterEditCommentText = 'Comment [www.google.com]';
-        newCommentHTML = Report.handleUserDeletedLinksInHtml(afterEditCommentText, originalCommentMarkdown, TEST_USER_LOGIN, {});
+        newCommentHTML = Report.handleUserDeletedLinksInHtml(afterEditCommentText, originalCommentMarkdown, TEST_USER_LOGIN, []);
         expectedOutput = 'Comment [www.google.com]';
         expect(newCommentHTML).toBe(expectedOutput);
 
@@ -1201,7 +1201,7 @@ describe('actions/Report', () => {
         // We should generate both links
         originalCommentMarkdown = 'Comment';
         afterEditCommentText = 'Comment www.google.com www.facebook.com';
-        newCommentHTML = Report.handleUserDeletedLinksInHtml(afterEditCommentText, originalCommentMarkdown, TEST_USER_LOGIN, {});
+        newCommentHTML = Report.handleUserDeletedLinksInHtml(afterEditCommentText, originalCommentMarkdown, TEST_USER_LOGIN, []);
         expectedOutput =
             'Comment <a href="https://www.google.com" target="_blank" rel="noreferrer noopener">www.google.com</a> ' +
             '<a href="https://www.facebook.com" target="_blank" rel="noreferrer noopener">www.facebook.com</a>';
@@ -1211,7 +1211,7 @@ describe('actions/Report', () => {
         // Should not generate link again for the deleted one
         originalCommentMarkdown = 'Comment [www.google.com](https://www.google.com)  [www.facebook.com](https://www.facebook.com)';
         afterEditCommentText = 'Comment www.google.com  [www.facebook.com](https://www.facebook.com)';
-        newCommentHTML = Report.handleUserDeletedLinksInHtml(afterEditCommentText, originalCommentMarkdown, TEST_USER_LOGIN, {});
+        newCommentHTML = Report.handleUserDeletedLinksInHtml(afterEditCommentText, originalCommentMarkdown, TEST_USER_LOGIN, []);
         expectedOutput = 'Comment www.google.com  <a href="https://www.facebook.com" target="_blank" rel="noreferrer noopener">www.facebook.com</a>';
         expect(newCommentHTML).toBe(expectedOutput);
 
@@ -1219,7 +1219,7 @@ describe('actions/Report', () => {
         // We should generate link
         originalCommentMarkdown = 'Comment';
         afterEditCommentText = 'https://www.facebook.com/hashtag/__main/?__eep__=6';
-        newCommentHTML = Report.handleUserDeletedLinksInHtml(afterEditCommentText, originalCommentMarkdown, TEST_USER_LOGIN, {});
+        newCommentHTML = Report.handleUserDeletedLinksInHtml(afterEditCommentText, originalCommentMarkdown, TEST_USER_LOGIN, []);
         expectedOutput = '<a href="https://www.facebook.com/hashtag/__main/?__eep__=6" target="_blank" rel="noreferrer noopener">https://www.facebook.com/hashtag/__main/?__eep__=6</a>';
         expect(newCommentHTML).toBe(expectedOutput);
 
@@ -1227,7 +1227,7 @@ describe('actions/Report', () => {
         // We should not generate link
         originalCommentMarkdown = '[https://www.facebook.com/hashtag/__main/?__eep__=6](https://www.facebook.com/hashtag/__main/?__eep__=6)';
         afterEditCommentText = 'https://www.facebook.com/hashtag/__main/?__eep__=6';
-        newCommentHTML = Report.handleUserDeletedLinksInHtml(afterEditCommentText, originalCommentMarkdown, TEST_USER_LOGIN, {});
+        newCommentHTML = Report.handleUserDeletedLinksInHtml(afterEditCommentText, originalCommentMarkdown, TEST_USER_LOGIN, []);
         expectedOutput = 'https://www.facebook.com/hashtag/__main/?__eep__=6';
         expect(newCommentHTML).toBe(expectedOutput);
 
@@ -1235,7 +1235,7 @@ describe('actions/Report', () => {
         // We should generate link
         originalCommentMarkdown = 'Comment';
         afterEditCommentText = 'http://example.com/foo/*/bar/*/test.txt';
-        newCommentHTML = Report.handleUserDeletedLinksInHtml(afterEditCommentText, originalCommentMarkdown, TEST_USER_LOGIN, {});
+        newCommentHTML = Report.handleUserDeletedLinksInHtml(afterEditCommentText, originalCommentMarkdown, TEST_USER_LOGIN, []);
         expectedOutput = '<a href="http://example.com/foo/*/bar/*/test.txt" target="_blank" rel="noreferrer noopener">http://example.com/foo/*/bar/*/test.txt</a>';
         expect(newCommentHTML).toBe(expectedOutput);
 
@@ -1243,7 +1243,7 @@ describe('actions/Report', () => {
         // We should not generate link
         originalCommentMarkdown = '[http://example.com/foo/*/bar/*/test.txt](http://example.com/foo/*/bar/*/test.txt)';
         afterEditCommentText = 'http://example.com/foo/*/bar/*/test.txt';
-        newCommentHTML = Report.handleUserDeletedLinksInHtml(afterEditCommentText, originalCommentMarkdown, TEST_USER_LOGIN, {});
+        newCommentHTML = Report.handleUserDeletedLinksInHtml(afterEditCommentText, originalCommentMarkdown, TEST_USER_LOGIN, []);
         expectedOutput = 'http://example.com/foo/*/bar/*/test.txt';
         expect(newCommentHTML).toBe(expectedOutput);
 
@@ -1259,9 +1259,7 @@ describe('actions/Report', () => {
         });
         originalCommentMarkdown = 'Comment';
         afterEditCommentText = 'Comment @user';
-        newCommentHTML = Report.handleUserDeletedLinksInHtml(afterEditCommentText, originalCommentMarkdown, TEST_USER_LOGIN, {
-            [privateDomainAccount.accountID]: privateDomainAccount,
-        });
+        newCommentHTML = Report.handleUserDeletedLinksInHtml(afterEditCommentText, originalCommentMarkdown, TEST_USER_LOGIN, [privateDomainAccount.login]);
         expectedOutput = 'Comment <mention-user>@user@expensify.com</mention-user>';
         expect(newCommentHTML).toBe(expectedOutput);
     });
@@ -1873,7 +1871,7 @@ describe('actions/Report', () => {
         };
 
         const {result: ancestors, rerender} = renderHook(() => useAncestors(originalReport));
-        Report.editReportComment(originalReport, newReportAction, 'Testing an edited comment', undefined, '', TEST_USER_ACCOUNT_ID);
+        Report.editReportComment(originalReport, newReportAction, 'Testing an edited comment', undefined, '', undefined, TEST_USER_ACCOUNT_ID);
 
         await waitForBatchedUpdates();
 
@@ -1968,7 +1966,7 @@ describe('actions/Report', () => {
         const {result: ancestors, rerender} = renderHook(() => useAncestors(originalReport));
 
         const currentUserEmail = 'test@test.com';
-        Report.editReportComment(originalReport, newReportAction, 'Testing an edited comment', undefined, currentUserEmail, TEST_USER_ACCOUNT_ID);
+        Report.editReportComment(originalReport, newReportAction, 'Testing an edited comment', undefined, currentUserEmail, undefined, TEST_USER_ACCOUNT_ID);
         await waitForBatchedUpdates();
 
         const persistedRequests = await getOnyxValue(ONYXKEYS.PERSISTED_REQUESTS);
@@ -2040,7 +2038,7 @@ describe('actions/Report', () => {
         };
         const {result: ancestors, rerender} = renderHook(() => useAncestors(originalReport));
 
-        Report.editReportComment(originalReport, reportAction, 'Testing an edited comment', undefined, '', TEST_USER_ACCOUNT_ID);
+        Report.editReportComment(originalReport, reportAction, 'Testing an edited comment', undefined, '', undefined, TEST_USER_ACCOUNT_ID);
 
         await waitForBatchedUpdates();
 
@@ -3101,7 +3099,7 @@ describe('actions/Report', () => {
         const originalReport = {
             reportID: REPORT_ID,
         };
-        Report.editReportComment(originalReport, reportAction, 'Testing an edited comment', undefined, '', TEST_USER_ACCOUNT_ID);
+        Report.editReportComment(originalReport, reportAction, 'Testing an edited comment', undefined, '', undefined, TEST_USER_ACCOUNT_ID);
 
         await waitForBatchedUpdates();
 
@@ -3162,7 +3160,7 @@ describe('actions/Report', () => {
             setHasRadio(false);
             await seedUploadingComment();
 
-            Report.editReportComment({reportID}, await getAction(), editKeepingAttachment, undefined, '', 1);
+            Report.editReportComment({reportID}, await getAction(), editKeepingAttachment, undefined, '', undefined, 1);
             await waitForBatchedUpdates();
 
             // Then that edit is parked until the upload lands instead of being sent
@@ -3170,7 +3168,7 @@ describe('actions/Report', () => {
             expect((await OnyxUtils.get(ONYXKEYS.DEFERRED_ATTACHMENT_EDITS))?.[reportActionID]?.textForNewComment).toBe(editKeepingAttachment);
 
             // When a second edit removes the attachment
-            Report.editReportComment({reportID}, await getAction(), 'hello removed', undefined, '', 1);
+            Report.editReportComment({reportID}, await getAction(), 'hello removed', undefined, '', undefined, 1);
             await waitForBatchedUpdates();
 
             // Then the parked edit is dropped
@@ -3197,7 +3195,7 @@ describe('actions/Report', () => {
 
             // When an edit that mentions Alice as @login, the only form a draft has, is parked on the upload
             const editMentioningAlice = `hello @alice@expensify.com\n\n[file.csv](${localSource})`;
-            Report.editReportComment({reportID}, await getAction(), editMentioningAlice, undefined, '', 1);
+            Report.editReportComment({reportID}, await getAction(), editMentioningAlice, undefined, '', undefined, 1);
             await waitForBatchedUpdates();
 
             // Then only Alice's name is saved with it, so the replay can read her accountID mention in the synced copy back as @login
@@ -3210,7 +3208,7 @@ describe('actions/Report', () => {
             setHasRadio(false);
             await seedUploadingComment();
 
-            Report.editReportComment({reportID}, await getAction(), editKeepingAttachment, undefined, '', 1);
+            Report.editReportComment({reportID}, await getAction(), editKeepingAttachment, undefined, '', undefined, 1);
             await waitForBatchedUpdates();
             expect((await OnyxUtils.get(ONYXKEYS.DEFERRED_ATTACHMENT_EDITS))?.[reportActionID]).toBeDefined();
 
@@ -3238,8 +3236,8 @@ describe('actions/Report', () => {
             // Given a comment whose attachment is still uploading
             // When an edit is deferred on the upload and a second edit removes the attachment before Onyx echoes
             // the deferral back, which is the only thing the clear is allowed to read
-            Report.editReportComment({reportID}, action, editKeepingAttachment, undefined, '', 1);
-            Report.editReportComment({reportID}, action, 'hello removed', undefined, '', 1);
+            Report.editReportComment({reportID}, action, editKeepingAttachment, undefined, '', undefined, 1);
+            Report.editReportComment({reportID}, action, 'hello removed', undefined, '', undefined, 1);
             await waitForBatchedUpdates();
 
             // Then the superseded edit is not left armed
@@ -3328,9 +3326,9 @@ describe('actions/Report', () => {
 
             // When the user changes the caption and then changes it back, so the restoring edit is the one parked on the upload.
             // The composer passes an empty map, since the original HTML mentions the room by name and not by reportID.
-            Report.editReportComment({reportID}, await getAction(), `hello #admins changed\n\n[file.csv](${localSource})`, undefined, '', 1, undefined, {});
+            Report.editReportComment({reportID}, await getAction(), `hello #admins changed\n\n[file.csv](${localSource})`, undefined, '', undefined, 1, undefined, {});
             await waitForBatchedUpdates();
-            Report.editReportComment({reportID}, await getAction(), `hello #admins\n\n[file.csv](${localSource})`, undefined, '', 1, undefined, {});
+            Report.editReportComment({reportID}, await getAction(), `hello #admins\n\n[file.csv](${localSource})`, undefined, '', undefined, 1, undefined, {});
             await waitForBatchedUpdates();
             expect((await OnyxUtils.get(ONYXKEYS.DEFERRED_ATTACHMENT_EDITS))?.[reportActionID]?.reportIDToName).toEqual(reportIDToName);
 
@@ -3389,13 +3387,13 @@ describe('actions/Report', () => {
         const getAction = async () => (await OnyxUtils.get(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`))?.[reportActionID];
 
         // When it is renamed while still offline
-        Report.editReportComment({reportID: REPORT_ID}, await getAction(), `hello\n\n[renamed.csv](${localUri})`, undefined, '', 1);
+        Report.editReportComment({reportID: REPORT_ID}, await getAction(), `hello\n\n[renamed.csv](${localUri})`, undefined, '', undefined, 1);
         await waitForBatchedUpdates();
 
         expect(queuedFileName()).toBe('renamed.csv');
 
         // And then renamed back to the name the picker gave it
-        Report.editReportComment({reportID: REPORT_ID}, await getAction(), `hello\n\n[original.csv](${localUri})`, undefined, '', 1);
+        Report.editReportComment({reportID: REPORT_ID}, await getAction(), `hello\n\n[original.csv](${localUri})`, undefined, '', undefined, 1);
         await waitForBatchedUpdates();
 
         // Then the file that uploads carries the name the comment now shows
@@ -3420,7 +3418,7 @@ describe('actions/Report', () => {
         };
 
         // When it is renamed to a label whose underscores the parser would read as emphasis
-        Report.editReportComment({reportID}, action, `[_my_report_.csv](${attachmentURL})`, undefined, '', 1);
+        Report.editReportComment({reportID}, action, `[_my_report_.csv](${attachmentURL})`, undefined, '', undefined, 1);
 
         // Then the queued edit carries the label as plain text inside the anchor
         const request = PersistedRequests.getAll().at(0);
@@ -3451,9 +3449,9 @@ describe('actions/Report', () => {
             reportID,
         };
 
-        Report.editReportComment(originalReport, action, 'value1', undefined, '', 1);
-        Report.editReportComment(originalReport, action, 'value2', undefined, '', 1);
-        Report.editReportComment(originalReport, action, 'value3', undefined, '', 1);
+        Report.editReportComment(originalReport, action, 'value1', undefined, '', undefined, 1);
+        Report.editReportComment(originalReport, action, 'value2', undefined, '', undefined, 1);
+        Report.editReportComment(originalReport, action, 'value3', undefined, '', undefined, 1);
 
         const requests = PersistedRequests?.getAll();
 
@@ -3473,7 +3471,6 @@ describe('actions/Report', () => {
 
         const TEST_USER_LOGIN = 'alice@expensify.com';
         const TEST_USER_ACCOUNT_ID = 1;
-        const MENTIONED_USER_ACCOUNT_ID = 2;
         const MENTIONED_USER_LOGIN = 'bob@expensify.com';
         const REPORT_ID = '1';
         const REPORT: OnyxTypes.Report = createRandomReport(1, undefined);
@@ -3481,16 +3478,7 @@ describe('actions/Report', () => {
         const TEN_MINUTES_AGO = subMinutes(new Date(), 10);
         const created = format(addSeconds(TEN_MINUTES_AGO, 10), CONST.DATE.FNS_DB_FORMAT_STRING);
 
-        // Given stored personal details for a teammate on the same private domain
-        await TestHelper.setPersonalDetails(TEST_USER_LOGIN, TEST_USER_ACCOUNT_ID);
-        await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
-            [MENTIONED_USER_ACCOUNT_ID]: {
-                accountID: MENTIONED_USER_ACCOUNT_ID,
-                login: MENTIONED_USER_LOGIN,
-                displayName: 'Bob',
-            },
-        });
-
+        // Given a teammate on the same private domain, known only through the logins passed to the edit, not through stored personal details
         setHasRadio(false);
         await waitForBatchedUpdates();
 
@@ -3513,12 +3501,12 @@ describe('actions/Report', () => {
             reportID: REPORT_ID,
         };
 
-        // When the comment is edited to add a short mention, with no personal details passed in
-        Report.editReportComment(originalReport, newReportAction, 'Initial comment with @bob', undefined, TEST_USER_LOGIN, TEST_USER_ACCOUNT_ID);
+        // When the comment is edited to add a short mention
+        Report.editReportComment(originalReport, newReportAction, 'Initial comment with @bob', undefined, TEST_USER_LOGIN, [TEST_USER_LOGIN, MENTIONED_USER_LOGIN], TEST_USER_ACCOUNT_ID);
 
         await waitForBatchedUpdates();
 
-        // Then the short mention is completed from the stored personal details
+        // Then the short mention is completed from the logins passed in
         await new Promise<void>((resolve) => {
             const connection = Onyx.connect({
                 key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`,
@@ -3556,7 +3544,7 @@ describe('actions/Report', () => {
         const accountIDToName = buildAccountIDToNameMap({[bobAccountID]: {accountID: bobAccountID, login: 'bob@expensify.com'}}, getMentionedAccountIDs(html));
 
         // When the edit is saved with the text the editor showed, unchanged
-        Report.editReportComment({reportID: '1'}, reportAction, 'hello @bob@expensify.com in #room', undefined, '', 1, undefined, reportIDToName, accountIDToName);
+        Report.editReportComment({reportID: '1'}, reportAction, 'hello @bob@expensify.com in #room', undefined, '', undefined, 1, undefined, reportIDToName, accountIDToName);
         await waitForBatchedUpdates();
 
         // Then the scoped maps turn the mentions back into the same markdown, so no edit is sent
@@ -3579,9 +3567,9 @@ describe('actions/Report', () => {
         const originalReport = {reportID: '123'};
         const currentUserEmail = 'user@test.com';
 
-        Report.editReportComment(originalReport, action, 'value1', undefined, currentUserEmail, 1);
-        Report.editReportComment(originalReport, action, 'value2', undefined, currentUserEmail, 1);
-        Report.editReportComment(originalReport, action, 'value3', undefined, currentUserEmail, 1);
+        Report.editReportComment(originalReport, action, 'value1', undefined, currentUserEmail, undefined, 1);
+        Report.editReportComment(originalReport, action, 'value2', undefined, currentUserEmail, undefined, 1);
+        Report.editReportComment(originalReport, action, 'value3', undefined, currentUserEmail, undefined, 1);
 
         const requests = PersistedRequests?.getAll();
         expect(requests.length).toBe(1);
@@ -3630,7 +3618,7 @@ describe('actions/Report', () => {
         // Given a whisper aimed at the user, which is newer than the comment being edited
         const visibleWhisperReportID = '77001';
         const commentUnderVisibleWhisper = await setUpReport(visibleWhisperReportID, CURRENT_USER_ACCOUNT_ID);
-        Report.editReportComment({reportID: visibleWhisperReportID}, commentUnderVisibleWhisper, 'after edit', undefined, '', CURRENT_USER_ACCOUNT_ID);
+        Report.editReportComment({reportID: visibleWhisperReportID}, commentUnderVisibleWhisper, 'after edit', undefined, '', undefined, CURRENT_USER_ACCOUNT_ID);
         await waitForBatchedUpdates();
 
         // Then editing the older comment leaves the report's last message alone
@@ -3639,7 +3627,7 @@ describe('actions/Report', () => {
         // Given a whisper aimed at somebody else, which the user cannot see
         const hiddenWhisperReportID = '77002';
         const commentUnderHiddenWhisper = await setUpReport(hiddenWhisperReportID, OTHER_ACCOUNT_ID);
-        Report.editReportComment({reportID: hiddenWhisperReportID}, commentUnderHiddenWhisper, 'after edit', undefined, '', CURRENT_USER_ACCOUNT_ID);
+        Report.editReportComment({reportID: hiddenWhisperReportID}, commentUnderHiddenWhisper, 'after edit', undefined, '', undefined, CURRENT_USER_ACCOUNT_ID);
         await waitForBatchedUpdates();
 
         // Then the edited comment is the last visible action, so the report's last message follows it

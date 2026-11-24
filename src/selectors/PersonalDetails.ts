@@ -25,6 +25,17 @@ const personalDetailsListSelector = (accountIDs: Array<number | undefined> | und
 
 const personalDetailsLoginSelector = (accountID: number | undefined) => (personalDetailsList: OnyxEntry<PersonalDetailsList>) => getLoginByAccountID(accountID, personalDetailsList);
 
+/** Logins of everyone in the list, which short mentions resolve against, so a subscriber skips writes that keep the logins */
+const allPersonalDetailLoginsSelector = (personalDetailsList: OnyxEntry<PersonalDetailsList>): string[] => {
+    const logins: string[] = [];
+    for (const personalDetail of Object.values(personalDetailsList ?? {})) {
+        if (personalDetail?.login) {
+            logins.push(personalDetail.login);
+        }
+    }
+    return logins;
+};
+
 const personalDetailsLoginsSelector = (accountIDs: number[] | undefined) => (personalDetailsList: OnyxEntry<PersonalDetailsList>) => getLoginsByAccountIDs(accountIDs, personalDetailsList);
 
 type DisplayDetails = Pick<PersonalDetails, 'accountID' | 'displayName' | 'login' | 'avatar'>;
@@ -112,6 +123,7 @@ export {
     personalDetailsListSelector,
     personalDetailsLoginSelector,
     personalDetailsLoginsSelector,
+    allPersonalDetailLoginsSelector,
     doesPersonalDetailExistSelector,
     accountIDToLoginSelector,
     isPersonalDetailOptimistic,

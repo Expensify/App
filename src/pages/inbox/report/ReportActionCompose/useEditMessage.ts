@@ -3,6 +3,7 @@ import type {ComposerRef} from '@components/Composer/types';
 import {useMentionedAccountIDToNameMap} from '@hooks/useAccountIDToNameMap';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useOnyx from '@hooks/useOnyx';
+import {useAllPersonalDetails} from '@hooks/usePersonalDetails';
 import {useMentionedReportIDToNameMap} from '@hooks/useReportIDToNameMap';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useReportScrollManager from '@hooks/useReportScrollManager';
@@ -15,6 +16,7 @@ import {useReportActionActiveEditActions} from '@pages/inbox/report/ReportAction
 import {draftMessageVideoAttributeCache} from '@pages/inbox/report/useDraftMessageVideoAttributeCache';
 
 import ONYXKEYS from '@src/ONYXKEYS';
+import {allPersonalDetailLoginsSelector} from '@src/selectors/PersonalDetails';
 import type * as OnyxTypes from '@src/types/onyx';
 
 // eslint-disable-next-line lodash/import-scope
@@ -53,6 +55,7 @@ function useEditMessage({
     const originalHtml = getReportActionHtml(reportAction);
     const reportIDToName = useMentionedReportIDToNameMap(originalHtml);
     const accountIDToName = useMentionedAccountIDToNameMap(originalHtml);
+    const [availableMentionLogins] = useAllPersonalDetails(allPersonalDetailLoginsSelector);
 
     const {stopEditing, submitEdit} = useReportActionActiveEditActions();
 
@@ -108,6 +111,7 @@ function useEditMessage({
             trimmedNewDraft,
             isOriginalReportArchived,
             email ?? '',
+            availableMentionLogins,
             currentUserAccountID,
             Object.fromEntries(draftMessageVideoAttributeCache),
             reportIDToName,
