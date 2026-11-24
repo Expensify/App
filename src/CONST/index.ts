@@ -1620,10 +1620,6 @@ const CONST = {
         DEFAULT_LETTER_AVATARS: 'defaultLetterAvatars',
         ARCHIVE_POLICIES: 'archivePolicies',
         MERGE_ATS: 'mergeATSConnections',
-        REPORT_MERGE: 'reportMerge',
-        INSIGHTS_AI: 'insightsAI',
-        INSIGHTS_COMPLIANCE: 'insightsCompliance',
-        INSIGHTS_EFFICIENCY: 'insightsEfficiency',
         NL_FILTERS: 'nlFilters',
         SUPPORT_TICKET: 'supportTicket',
         RESIZABLE_TABLE_COLUMNS: 'resizableTableColumns',
@@ -1633,6 +1629,7 @@ const CONST = {
         TRAVEL_APPROVAL: 'travelApproval',
         FLAT_NAV: 'flatNav',
         RECEIPT_TRANSLATION: 'receiptTranslation',
+        RECEIPT_ENHANCEMENT: 'receiptEnhancement',
         SCAN_FLASH_TORCH: 'scanFlashTorch',
         NEW_DOT_BILL_PAY: 'newDotBillPay',
         HYBRID_WEB: 'hybridWeb',
@@ -10723,6 +10720,9 @@ const CONST = {
             DISTANCE: 'QuickCreationActionsBar-Distance',
             BOOK_TRAVEL: 'QuickCreationActionsBar-BookTravel',
         },
+        REPORT_ACTIONS_LIST: 'report-actions-list',
+        MONEY_REQUEST_REPORT_ACTIONS_LIST: 'money-request-report-actions-list',
+        BASE_SIDEBAR_SCREEN: 'BaseSidebarScreen',
     },
 
     AGENTS: {
