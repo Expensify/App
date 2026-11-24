@@ -1,3 +1,6 @@
+/**
+ * Turns travel on or off for every member selected on the workspace members page.
+ */
 import Header from '@components/Header';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
@@ -47,9 +50,6 @@ type WorkspaceMembersChangeTravelAccessPageProps = Omit<WithPolicyAndFullscreenL
         personalDetails: OnyxEntry<PersonalDetailsList>;
     };
 
-/**
- * Turns travel on or off for every member selected on the workspace members page.
- */
 function WorkspaceMembersChangeTravelAccessPage({policy, personalDetails, route}: WorkspaceMembersChangeTravelAccessPageProps) {
     const policyID = route.params.policyID;
     const styles = useThemeStyles();

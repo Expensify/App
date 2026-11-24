@@ -500,6 +500,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
         const isCurrentUser = accountID === session?.accountID;
         const isReimburser = isPolicyReimburser(policy, login);
         const canReimburserChangeRole = assignablePayerRoles.some((payerRole) => payerRole !== policyEmployee.role);
+        const canChangeTravelAccess = canChangeMemberTravelAccess(policy, currentUserLogin ?? '', login, isTravelMemberAccessBetaEnabled);
         const canEditRole =
             canAssignMemberRole &&
             !isSelectionModeActive &&
@@ -532,10 +533,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
             isSelectionDisabled:
                 accountID === policy?.ownerAccountID ||
                 accountID === session?.accountID ||
-                !(
-                    (canWriteMembers && canMemberManageMemberWithRole(policy, currentUserLogin ?? '', policyEmployee.role)) ||
-                    canChangeMemberTravelAccess(policy, currentUserLogin ?? '', login, isTravelMemberAccessBetaEnabled)
-                ),
+                !((canWriteMembers && canMemberManageMemberWithRole(policy, currentUserLogin ?? '', policyEmployee.role)) || canChangeTravelAccess),
             shouldShowEmployeeUserID: shouldShowCustomField1Column,
             shouldShowEmployeePayrollID: shouldShowCustomField2Column,
             errors: getLatestErrorMessageField(policyEmployee),
@@ -545,8 +543,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
             onChangeRole: (newRole) => changeMemberRole(login, accountID, policyEmployee.role, newRole),
             canUseTravel: shouldShowTravelColumn ? canMemberUseTravel(policy, login) : undefined,
             // A member without a loaded accountID would be sent to the server under an accountID it doesn't know
-            canEditTravelAccess:
-                canChangeMemberTravelAccess(policy, currentUserLogin ?? '', login, isTravelMemberAccessBetaEnabled) && !isSelectionModeActive && !isPendingDeleteOrError && hasKnownAccountID,
+            canEditTravelAccess: canChangeTravelAccess && !isSelectionModeActive && !isPendingDeleteOrError && hasKnownAccountID,
             onChangeTravelAccess: (canUseTravel) => setPolicyTravelMemberAccess(policy, [{email: login, accountID}], canUseTravel),
             // Note which secondary login was used to invite this primary login
             invitedSecondaryLogin: details?.login ? (invitedPrimaryToSecondaryLogins[details.login] ?? '') : '',
@@ -624,7 +621,8 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
             return policy?.employeeList?.[email]?.role;
         });
         const canManageSelectedEmployees = canWriteMembers && selectedEmployeesRoles.every((role) => canMemberManageMemberWithRole(policy, currentUserLogin ?? '', role));
-        const canChangeSelectedTravelAccess = selectedEmployees.every((email) => canChangeMemberTravelAccess(policy, currentUserLogin ?? '', email, isTravelMemberAccessBetaEnabled));
+        const canChangeSelectedTravelAccess =
+            canWriteTravel && selectedEmployees.every((email) => canChangeMemberTravelAccess(policy, currentUserLogin ?? '', email, isTravelMemberAccessBetaEnabled));
         const options: Array<DropdownOption<WorkspaceMemberBulkActionType>> = [];
 
         // The Authorized Payer (reimburser) must stay a valid payer, so a selection holding them may only be moved to a role that can pay.
