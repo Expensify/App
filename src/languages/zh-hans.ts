@@ -3896,9 +3896,6 @@ ${amount}，商户：${merchant} - 日期：${date}`,
         accounting: {
             title: '你是否使用任何会计软件？',
             otherAccountingSoftware: '软件名称',
-            unsupportedTitle: (software: string) => `We don’t support “${software}” yet`,
-            unsupportedSubtitle: 'Use the button below and we’ll look into supporting it in the future',
-            confirmSoftware: (software: string) => `Yes, “${software}” is what I use`,
         },
         interestedFeatures: {
             title: '选择你想要的功能',
