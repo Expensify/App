@@ -5419,6 +5419,10 @@ ${amount} voor ${merchant} - ${date}`,
             hotelBlockCard:
                 'Wist je dat je groepsreizen zoals deze direct in Expensify kunt boeken en beheren? Bespaar jezelf de moeite de volgende keer en probeer onze tool <a href="https://help.expensify.com/travel/hubs/event-management/">Reisevenementen</a> eens uit.',
         },
+        memberAccessDisabledModal: {
+            title: 'Reizen is nog niet voor je ingeschakeld',
+            message: 'Je workspacebeheerder heeft Expensify Travel nog niet voor je ingeschakeld. Neem contact op met je beheerder voor toegang.',
+        },
         defaultWorkspaceTravelDisabled: {
             title: 'Je kunt nog geen reizen boeken',
             message:

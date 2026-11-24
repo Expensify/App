@@ -5465,6 +5465,10 @@ ${amount} dla ${merchant} - ${date}`,
             hotelBlockCard:
                 'Wiesz, że możesz rezerwować i zarządzać takimi wyjazdami grupowymi bezpośrednio w Expensify? Oszczędź sobie zachodu następnym razem i wypróbuj nasze narzędzie <a href="https://help.expensify.com/travel/hubs/event-management/">Travel Events</a>.',
         },
+        memberAccessDisabledModal: {
+            title: 'Podróże nie są jeszcze dla Ciebie włączone',
+            message: 'Administrator Twojego obszaru roboczego nie włączył jeszcze dla Ciebie Expensify Travel. Skontaktuj się z administratorem, aby uzyskać dostęp.',
+        },
         defaultWorkspaceTravelDisabled: {
             title: 'Nie możesz jeszcze rezerwować podróży',
             message:

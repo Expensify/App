@@ -5462,6 +5462,10 @@ ${amount} pour ${merchant} - ${date}`,
             hotelBlockCard:
                 'Saviez-vous que vous pouvez réserver et gérer des voyages de groupe comme celui-ci directement dans Expensify ? Évitez-vous des ennuis la prochaine fois et essayez notre outil <a href="https://help.expensify.com/travel/hubs/event-management/">Événements de voyage</a>.',
         },
+        memberAccessDisabledModal: {
+            title: 'Les voyages ne sont pas encore activés pour vous',
+            message: 'L’administrateur de votre espace de travail n’a pas encore activé Expensify Travel pour vous. Contactez votre administrateur pour obtenir l’accès.',
+        },
         defaultWorkspaceTravelDisabled: {
             title: 'Vous ne pouvez pas encore réserver de voyage',
             message:

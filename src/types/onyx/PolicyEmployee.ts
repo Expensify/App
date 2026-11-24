@@ -37,6 +37,9 @@ type PolicyEmployee = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** Whether the member is based in an office. When absent, the workspace default applies. */
         hasOfficeWorkArrangement?: boolean;
 
+        /** Set to false when an admin turned off the member's travel access. Missing means the member can book travel. */
+        canUseTravel?: boolean;
+
         /**
          * The office the member is assigned to, keyed in the workspace's officeLocations, or CONST.POLICY.COMPANY_ADDRESS_OFFICE_ID
          * for the company address. When absent, or when its office was deleted, the workspace's primary office applies.
