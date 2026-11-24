@@ -32,6 +32,7 @@ function getCachedOneTransactionThreadReportID(report: Report | undefined, chatR
         return getOneTransactionThreadReportID(report, chatReport, actions, isOffline);
     }
     const hit = threadReportIDCache.get(actions);
+    // Onyx gives changed actions a new object, and besides the actions only these inputs change the result of getOneTransactionThreadReportID, so keep them in sync with it
     if (hit && hit.type === report?.type && hit.transactionCount === report?.transactionCount && hit.chatReport === chatReport && hit.isOffline === isOffline) {
         return hit.threadReportID;
     }
@@ -58,6 +59,7 @@ function getUnreadReportIDsForUnreadIndicator(
     const reportActionsKey = ONYXKEYS.COLLECTION.REPORT_ACTIONS;
     const unreadReports = Object.values(reports ?? {}).filter((report) => {
         const lastReadTime = report?.lastReadTime;
+        // Fast path: a report read past its last message and last mention is not unread, unless its one-transaction thread has a newer message
         if (lastReadTime && lastReadTime >= (report?.lastVisibleActionCreated ?? '') && lastReadTime >= (report?.lastMentionedTime ?? '')) {
             if (!canHaveOneTransactionThread(report?.type)) {
                 return false;
