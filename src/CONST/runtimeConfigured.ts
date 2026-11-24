@@ -33,7 +33,6 @@ const CONST_RUNTIME: ConstRuntime = {
     },
     STYLE_VARIABLES: {
         componentSizeNormal: variables.componentSizeNormal,
-        navigationTabBarSize: variables.navigationTabBarSize,
         receiptPreviewMaxWidth: variables.receiptPreviewMaxWidth,
     },
     EXPENSIFY_ACCOUNT_IDS: {

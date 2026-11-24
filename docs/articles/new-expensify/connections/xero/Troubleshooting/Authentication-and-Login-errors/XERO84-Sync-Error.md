@@ -43,7 +43,7 @@ On web:
 
 1. Go to **Settings > Workspaces**.
 2. Select your Workspace.
-3. Click **Accounting**.
+3. Select **Connections**, then select **Configure** next to Xero.
 4. Click **Export**.
 5. At the top of the page, select the correct **Xero organization** from the dropdown.
 6. Click **Save**.
@@ -53,7 +53,7 @@ On mobile:
 1. Tap the navigation tabs on the bottom.
 2. Tap **Workspaces**.
 3. Select your Workspace.
-4. Tap **Accounting**.
+4. Select **Connections**, then select **Configure** next to Xero.
 5. Tap **Export**.
 6. Select the appropriate **Xero organization**.
 7. Tap **Save**.
@@ -64,9 +64,9 @@ On mobile:
 
 After saving:
 
-1. Go to **Settings > Workspaces > [Workspace Name] > Accounting**.
-2. Click the three-dot icon next to the Xero connection.
-3. Click **Sync now**.
+1. Select **Workspaces > [workspace name] > Connections**, then select **Configure** next to Xero.
+2. Select **More (⋮)**.
+3. Select **Sync now**.
 
 If the correct organization is selected, the sync should complete successfully.
 

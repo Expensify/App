@@ -140,6 +140,7 @@ function BookOrManageYourTrip({policyID}: BookOrManageYourTripProps) {
                         subtitle={translate('workspace.moreFeatures.travel.settings.autoAddTripName.subtitle')}
                         shouldPlaceSubtitleBelowSwitch
                         switchAccessibilityLabel={translate('workspace.moreFeatures.travel.settings.autoAddTripName.title')}
+                        switchSentryLabel={CONST.SENTRY_LABEL.WORKSPACE.TRAVEL.AUTO_ADD_TRIP_NAME_SWITCH}
                         isActive={autoAddTripName}
                         onToggle={toggleAutoAddTripName}
                         disabled={!canWriteMoreFeatures}
@@ -157,6 +158,7 @@ function BookOrManageYourTrip({policyID}: BookOrManageYourTripProps) {
                         subtitle={translate('workspace.moreFeatures.travel.settings.codingSync.subtitle')}
                         shouldPlaceSubtitleBelowSwitch
                         switchAccessibilityLabel={translate('workspace.moreFeatures.travel.settings.codingSync.title')}
+                        switchSentryLabel={CONST.SENTRY_LABEL.WORKSPACE.TRAVEL.CODING_SYNC_SWITCH}
                         isActive={isCodingSyncEnabled}
                         onToggle={toggleCodingSync}
                         disabled={!canWriteMoreFeatures}
@@ -175,6 +177,7 @@ function BookOrManageYourTrip({policyID}: BookOrManageYourTripProps) {
                             subtitle={translate('workspace.moreFeatures.travel.settings.autoEnableNewMembers.subtitle')}
                             shouldPlaceSubtitleBelowSwitch
                             switchAccessibilityLabel={translate('workspace.moreFeatures.travel.settings.autoEnableNewMembers.title')}
+                            switchSentryLabel={CONST.SENTRY_LABEL.WORKSPACE.TRAVEL.AUTO_ENABLE_NEW_MEMBERS_SWITCH}
                             isActive={autoEnableNewMembers}
                             onToggle={toggleAutoEnableNewMembers}
                             disabled={!canWriteTravel}

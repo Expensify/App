@@ -28,11 +28,21 @@ type WorkspaceCategoriesTableRowProps = {
     /** Whether the GL Code column is visible on web screens or not */
     shouldShowGLCodeColumn: boolean;
 
+    /** Whether the Payroll Code column is visible on web screens or not */
+    shouldShowPayrollCodeColumn: boolean;
+
     /** Whether the approver column is visible on web screens or not */
     shouldShowApproverColumn: boolean;
 };
 
-export default function WorkspaceCategoriesTableRow({rowIndex, shouldUseNarrowTableLayout, shouldShowGLCodeColumn, shouldShowApproverColumn, item}: WorkspaceCategoriesTableRowProps) {
+export default function WorkspaceCategoriesTableRow({
+    rowIndex,
+    shouldUseNarrowTableLayout,
+    shouldShowGLCodeColumn,
+    shouldShowPayrollCodeColumn,
+    shouldShowApproverColumn,
+    item,
+}: WorkspaceCategoriesTableRowProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -43,6 +53,7 @@ export default function WorkspaceCategoriesTableRow({rowIndex, shouldUseNarrowTa
         item.name,
         item.enabled ? translate('common.enabled') : translate('common.disabled'),
         shouldShowGLCodeColumn && item.glCode ? `${translate('workspace.categories.glCode')}: ${item.glCode}` : null,
+        shouldShowPayrollCodeColumn && item.payrollCode ? `${translate('workspace.categories.payrollCode')}: ${item.payrollCode}` : null,
         shouldShowApproverColumn && item.approverDisplayName ? `${translate('common.approver')}: ${item.approverDisplayName}` : null,
     ]
         .filter(Boolean)
@@ -90,6 +101,19 @@ export default function WorkspaceCategoriesTableRow({rowIndex, shouldUseNarrowTa
                         </View>
                     )}
 
+                    {!shouldUseNarrowTableLayout && shouldShowPayrollCodeColumn && (
+                        <View
+                            style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}
+                            {...getCellAccessibilityProps(isTableSemanticsEnabled)}
+                        >
+                            <TextWithTooltip
+                                shouldShowTooltip
+                                numberOfLines={1}
+                                text={item.payrollCode ?? ''}
+                            />
+                        </View>
+                    )}
+
                     {!shouldUseNarrowTableLayout && shouldShowApproverColumn && (
                         <View
                             style={[styles.flex1, styles.flexRow, styles.gap2, styles.alignItemsCenter]}
@@ -121,6 +145,7 @@ export default function WorkspaceCategoriesTableRow({rowIndex, shouldUseNarrowTa
                             showLockIcon={item.isLocked}
                             disabled={item.disabled}
                             accessibilityLabel={`${translate('workspace.categories.enableCategory')}: ${item.name}`}
+                            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.CATEGORIES.ROW_ENABLE_SWITCH}
                             onToggle={item.onToggleEnabled}
                         />
                     </View>

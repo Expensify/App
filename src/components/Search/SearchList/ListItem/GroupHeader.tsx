@@ -4,6 +4,7 @@ import {PressableWithFeedback} from '@components/Pressable';
 import useIsSearchRowFocused from '@components/Search/hooks/useIsSearchRowFocused';
 import {useHorizontalScrollFollower} from '@components/Search/hooks/useSyncedHorizontalScroll';
 import SearchTableHeader from '@components/Search/SearchTableHeader';
+import {resolveGroupCount} from '@components/Search/selectionBuilders';
 import type {SearchColumnType, SearchCustomColumnIds, SearchGroupBy} from '@components/Search/types';
 import type {ExtendedTargetedEvent} from '@components/SelectionList/ListItem/types';
 
@@ -57,6 +58,7 @@ import QuarterListItemHeader from './QuarterListItemHeader';
 import ReportListItemHeader from './ReportListItemHeader';
 import TagListItemHeader from './TagListItemHeader';
 import {useGroupCheckboxState} from './useGroupChildren';
+import ViolationListItemHeader from './ViolationListItemHeader';
 import WeekListItemHeader from './WeekListItemHeader';
 import WithdrawalIDListItemHeader from './WithdrawalIDListItemHeader';
 import YearListItemHeader from './YearListItemHeader';
@@ -188,7 +190,11 @@ function GroupHeader({
     const isCashBackWithdrawal = isCashBackWithdrawalGroup(groupItem);
 
     // The same derivation the narrow layout reads, so the two cannot disagree about what a group's checkbox shows.
-    const {isSelectAllChecked, isIndeterminate} = useGroupCheckboxState({groupKey: item.groupKeyForList, groupTransactions: groupItem.transactions});
+    const {isSelectAllChecked, isIndeterminate} = useGroupCheckboxState({
+        groupKey: item.groupKeyForList,
+        groupTransactions: groupItem.transactions,
+        groupCount: resolveGroupCount(groupItem),
+    });
 
     const isItemSelected = isSelectAllChecked || item?.isSelected;
 
@@ -332,6 +338,13 @@ function GroupHeader({
                         nameColumn={CONST.SEARCH.TABLE_COLUMNS.GROUP_APPROVER}
                         {...commonProps}
                         isLargeScreenWidth={isLargeScreenWidth}
+                    />
+                );
+            case CONST.SEARCH.GROUP_BY.VIOLATION:
+                return (
+                    <ViolationListItemHeader
+                        violation={groupItem}
+                        {...commonProps}
                     />
                 );
             default:

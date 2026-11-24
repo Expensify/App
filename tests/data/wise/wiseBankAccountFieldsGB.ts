@@ -1,11 +1,6 @@
-import type {DynamicFormSchema} from '@src/types/onyx';
+import type {WiseBankAccountFields} from '@src/types/onyx';
 
-type WiseBankAccountFieldsFixture = {
-    country: string;
-    currency: string;
-    payoutType: string;
-    schema: DynamicFormSchema;
-};
+type WiseBankAccountFieldsFixture = Required<Pick<WiseBankAccountFields, 'country' | 'currency' | 'payoutType' | 'schema'>>;
 
 /** What GetWiseBankAccountFields writes to Onyx for a GBP account held in the UK */
 const wiseBankAccountFieldsGB: WiseBankAccountFieldsFixture = {

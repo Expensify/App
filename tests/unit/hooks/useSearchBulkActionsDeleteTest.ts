@@ -38,6 +38,11 @@ jest.mock('@libs/actions/SplitExpenses.ts', () => ({
     default: jest.fn(),
 }));
 
+jest.mock('@libs/actions/PaymentMethods', () => ({
+    ...jest.requireActual<Record<string, unknown>>('@libs/actions/PaymentMethods'),
+    openPaymentMethods: jest.fn(),
+}));
+
 jest.mock('@libs/actions/Report', () => ({
     deleteAppReport: jest.fn(),
     moveIOUReportToPolicy: jest.fn(),
@@ -47,6 +52,7 @@ jest.mock('@libs/actions/Report', () => ({
 }));
 
 jest.mock('@libs/actions/Search', () => ({
+    getPolicyFromSearchSnapshot: jest.requireActual<typeof SearchActions>('@libs/actions/Search').getPolicyFromSearchSnapshot,
     openSearchCardFiltersPage: jest.fn(),
     getReportFromSearchSnapshot: jest.requireActual<typeof SearchActions>('@libs/actions/Search').getReportFromSearchSnapshot,
     getReportActionsFromSearchSnapshot: jest.requireActual<typeof SearchActions>('@libs/actions/Search').getReportActionsFromSearchSnapshot,
@@ -169,6 +175,7 @@ jest.mock('@hooks/useUndeleteTransactions', () => ({
 let mockShouldShowDeleteOption = false;
 jest.mock('@libs/SearchUIUtils', () => ({
     shouldShowDeleteOption: () => mockShouldShowDeleteOption,
+    isGroupEntry: jest.requireActual<typeof SearchUIUtilsModule>('@libs/SearchUIUtils').isGroupEntry,
     getSelectedGroupFilterEntry: jest.fn(),
     navigateToSearchRHP: jest.fn(),
     getValidGroupBy: jest.fn(),

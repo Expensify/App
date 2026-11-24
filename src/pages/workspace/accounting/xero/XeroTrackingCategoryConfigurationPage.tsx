@@ -72,6 +72,7 @@ function XeroTrackingCategoryConfigurationPage({policy}: WithPolicyProps) {
             <ToggleSettingOptionRow
                 title={translate('workspace.accounting.import')}
                 switchAccessibilityLabel={translate('workspace.xero.trackingCategories')}
+                switchSentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.XERO.IMPORT_TRACKING_CATEGORIES_SWITCH}
                 isActive={isSwitchOn}
                 wrapperStyle={styles.mv3}
                 onToggle={() => updateXeroImportTrackingCategories(policyID, !xeroConfig?.importTrackingCategories, xeroConfig?.importTrackingCategories)}
@@ -89,7 +90,10 @@ function XeroTrackingCategoryConfigurationPage({policy}: WithPolicyProps) {
                             key={menuItem.id}
                             pendingAction={settingsPendingAction([`${CONST.XERO_CONFIG.TRACKING_CATEGORY_PREFIX}${menuItem.id}`], xeroConfig?.pendingFields)}
                         >
-                            <MenuItemSectionRoot onPress={menuItem.onPress}>
+                            <MenuItemSectionRoot
+                                onPress={menuItem.onPress}
+                                sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.XERO.TRACKING_CATEGORY_ROW}
+                            >
                                 <MenuItemField.Row
                                     name={menuItem.description}
                                     value={menuItem.title}

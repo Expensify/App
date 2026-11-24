@@ -52,6 +52,7 @@ jest.mock('@libs/cameraCapture/platformConfig', () => ({
 jest.mock('@react-navigation/native', () => ({
     ...jest.requireActual<Record<string, unknown>>('@react-navigation/native'),
     useNavigation: () => ({isFocused: () => true}),
+    useFocusEffect: () => {},
 }));
 
 jest.mock('@pages/iou/request/step/IOURequestStepScan/captureReceipt', () => ({
@@ -77,7 +78,6 @@ jest.mock('@pages/iou/request/step/IOURequestStepScan/components/CameraViewport'
 }));
 jest.mock('@pages/iou/request/step/IOURequestStepScan/components/CameraPermissionPrompt', () => () => null);
 jest.mock('@pages/iou/request/step/IOURequestStepScan/components/ReceiptPreviews', () => () => null);
-jest.mock('@pages/iou/request/step/IOURequestStepScan/components/MultiScanEducationalModal', () => () => null);
 
 jest.mock('@pages/iou/request/step/IOURequestStepScan/components/MultiScanContext', () => ({
     useMultiScanState: () => ({isMultiScanEnabled: false, canUseMultiScan: false}),

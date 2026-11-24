@@ -3,7 +3,6 @@ import usePaymentAnimations from '@hooks/usePaymentAnimations';
 import useReportTransactionViolations from '@hooks/useReportTransactionViolations';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 
-import Navigation from '@libs/Navigation/Navigation';
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import {
     getMoneyRequestSpendBreakdown,
@@ -13,13 +12,11 @@ import {
     isSettled,
     isTripRoom as isTripRoomReportUtils,
 } from '@libs/ReportUtils';
-import {startSpan} from '@libs/telemetry/activeSpans';
 import {getPendingSubmitFollowUpAction} from '@libs/telemetry/submitFollowUpAction';
 import {hasPendingUI, isPending} from '@libs/TransactionUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
 import {reportActionsLoadingStateSelector, isOptimisticReportSelector} from '@src/selectors/ReportMetaData';
 import type {PersonalDetails, Policy, Report, ReportAction, Transaction, TransactionViolations} from '@src/types/onyx';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
@@ -43,7 +40,6 @@ import {
     ReportPreviewTransactionViolationsContext,
     ReportPreviewUIStateContext,
 } from './MoneyRequestReportPreviewContext';
-import resolvePressOrigin from './resolvePressOrigin';
 import usePreviewMessageAnimation from './usePreviewMessageAnimation';
 import useReportPreviewActionDecision from './useReportPreviewActionDecision';
 import useReportPreviewCarousel from './useReportPreviewCarousel';
@@ -66,7 +62,9 @@ type MoneyRequestReportPreviewProviderProps = ChildrenProps & {
     onPaymentOptionsHide?: () => void;
     renderTransactionItem: ListRenderItem<Transaction>;
     onOrderedTransactionsChange?: (orderedTransactions: Transaction[]) => void;
-    onCancelPendingPress?: () => void;
+
+    /** Opens the report. Shared with the preview's own press so the View button seeds the carousel the same way */
+    openReportFromPreview: () => void;
     currentWidth: number;
     reportPreviewStyles: MoneyRequestReportPreviewStyleType;
     newTransactionIDs?: Set<string>;
@@ -96,15 +94,14 @@ function MoneyRequestReportPreviewProvider({
     onPaymentOptionsHide,
     renderTransactionItem,
     onOrderedTransactionsChange,
-    onCancelPendingPress,
+    openReportFromPreview,
     currentWidth,
     reportPreviewStyles,
     newTransactionIDs,
 }: MoneyRequestReportPreviewProviderProps) {
     const [isOptimisticChatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${chatReportID}`, {selector: isOptimisticReportSelector});
     const [chatReportLoadingState] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${chatReportID}`, {selector: reportActionsLoadingStateSelector});
-    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
-    const {shouldUseNarrowLayout, isSmallScreenWidth} = useResponsiveLayout();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     const [isTransitionPending, setIsTransitionPending] = useState(() => {
         const pending = getPendingSubmitFollowUpAction();
@@ -199,33 +196,6 @@ function MoneyRequestReportPreviewProvider({
         renderTransactionItem,
         onOrderedTransactionsChange,
     });
-
-    const openReportFromPreview = () => {
-        if (!iouReportID) {
-            return;
-        }
-        const routeAtPress = Navigation.getActiveRoute();
-        onCancelPendingPress?.();
-
-        // "View" pressed inside the cascade window lands on a report a card press already opened, so there is
-        // nothing left to push; pushing it again would nest the report under itself.
-        const {wasPressedFromReport, backTo} = resolvePressOrigin(routeAtPress, isSmallScreenWidth ? `r/${iouReportID}` : `e/${iouReportID}`);
-        if (wasPressedFromReport) {
-            return;
-        }
-
-        startSpan(`${CONST.TELEMETRY.SPAN_OPEN_REPORT}_${iouReportID}`, {
-            name: 'MoneyRequestReportPreviewContent',
-            op: CONST.TELEMETRY.SPAN_OPEN_REPORT,
-        });
-        // Small screens navigate to full report view since super wide RHP
-        // is not available on narrow layouts and would break the navigation logic.
-        if (isSmallScreenWidth) {
-            Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(iouReportID, undefined, undefined, backTo));
-        } else {
-            Navigation.navigate(ROUTES.EXPENSE_REPORT_RHP.getRoute({reportID: iouReportID, backTo}));
-        }
-    };
 
     const shouldShowCarouselArrows = !shouldUseNarrowLayout && !shouldShowAccessPlaceHolder && transactions.length > 2 && reportPreviewStyles.expenseCountVisible;
     const buttonMaxWidth =

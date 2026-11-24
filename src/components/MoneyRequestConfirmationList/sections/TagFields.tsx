@@ -1,9 +1,9 @@
+import DropdownField from '@components/DropdownField';
 import HighlightableMenuItemWithTopDescription from '@components/HighlightableMenuItemWithTopDescription';
 import {useConfirmationFields} from '@components/MoneyRequestConfirmationFields/context';
 import {SELECTION_LIST_POPOVER_HEADER_HEIGHT} from '@components/SelectionListPopoverHeader';
 
 import useLocalize from '@hooks/useLocalize';
-import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
@@ -21,7 +21,7 @@ import type {ValueOf} from 'type-fest';
 
 import React from 'react';
 
-import ExpenseFieldDropdown from './ExpenseFieldDropdown';
+import ExpenseFieldContainer from './ExpenseFieldContainer';
 import {useExpenseFormLayout} from './ExpenseFormLayoutContext';
 import {createTagDisplaySelector} from './selectors';
 import TagFieldDropdown from './TagFieldDropdown';
@@ -69,7 +69,6 @@ function TagFields({
 }: TagFieldsProps) {
     const {shouldUseDropdownRows} = useExpenseFormLayout();
     const {isEditingSplitBill} = useConfirmationFields();
-    const {isBetaEnabled} = usePermissions();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const shouldDisplayTagError = formError === 'violations.tagOutOfPolicy';
@@ -84,7 +83,7 @@ function TagFields({
     const canSaveFromThisForm = action !== CONST.IOU.ACTION.EDIT || isEditingSplitBill;
     const isCreatingExpense = action === CONST.IOU.ACTION.CREATE;
     const canShowTags = isCreatingExpense || getCountOfEnabledTagsOfList(policyTagList.tags) > 0;
-    const shouldOpenInDropdown = isBetaEnabled(CONST.BETAS.ANCHORED_FIELD_DROPDOWNS) && !!transactionID && !!policy && canSaveFromThisForm && !hasDependentTags && canShowTags;
+    const shouldOpenInDropdown = !!transactionID && !!policy && canSaveFromThisForm && !hasDependentTags && canShowTags;
 
     const openTagPage = () => {
         if (!transactionID) {
@@ -96,30 +95,32 @@ function TagFields({
 
     if (shouldUseDropdownRows) {
         return (
-            <ExpenseFieldDropdown
-                backgroundStyle={highlightStyle}
-                name={policyTagList.name}
-                value={displayedTag}
-                numberOfLinesValue={2}
-                rightLabel={isTagRequired ? translate('common.required') : ''}
-                errorText={shouldDisplayTagError && !!displayedTag ? translate(formError as TranslationPaths) : ''}
-                onPress={openTagPage}
-                shouldOpenInDropdown={shouldOpenInDropdown && !isReadOnly && !didConfirm}
-                listHeaderHeight={SELECTION_LIST_POPOVER_HEADER_HEIGHT}
-                renderDropdown={(dropdownProps) =>
-                    !!transactionID && (
-                        <TagFieldDropdown
-                            {...dropdownProps}
-                            transactionID={transactionID}
-                            policy={policy}
-                            tagListIndex={tagIndex}
-                        />
-                    )
-                }
-                isDisabled={didConfirm}
-                isInteractive={!isReadOnly}
-                sentryLabel={CONST.SENTRY_LABEL.REQUEST_CONFIRMATION_LIST.TAG_FIELD}
-            />
+            <ExpenseFieldContainer>
+                <DropdownField
+                    backgroundStyle={highlightStyle}
+                    name={policyTagList.name}
+                    value={displayedTag}
+                    numberOfLinesValue={2}
+                    rightLabel={isTagRequired ? translate('common.required') : ''}
+                    errorText={shouldDisplayTagError && !!displayedTag ? translate(formError as TranslationPaths) : ''}
+                    onPress={openTagPage}
+                    shouldOpenInDropdown={shouldOpenInDropdown && !isReadOnly && !didConfirm}
+                    listHeaderHeight={SELECTION_LIST_POPOVER_HEADER_HEIGHT}
+                    renderDropdown={(dropdownProps) =>
+                        !!transactionID && (
+                            <TagFieldDropdown
+                                {...dropdownProps}
+                                transactionID={transactionID}
+                                policy={policy}
+                                tagListIndex={tagIndex}
+                            />
+                        )
+                    }
+                    isDisabled={didConfirm}
+                    isInteractive={!isReadOnly}
+                    sentryLabel={CONST.SENTRY_LABEL.REQUEST_CONFIRMATION_LIST.TAG_FIELD}
+                />
+            </ExpenseFieldContainer>
         );
     }
 

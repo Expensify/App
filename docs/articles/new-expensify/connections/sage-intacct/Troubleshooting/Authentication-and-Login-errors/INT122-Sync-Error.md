@@ -79,8 +79,8 @@ If **expensify** is already listed and the error continues:
 
 After confirming credentials and Sender ID settings:
 
-1. Go to **Workspaces > [Workspace Name] > Accounting**.
-2. Select **Sync Now**.
+1. Select **Workspaces > [workspace name] > Connections**, then select **Configure** next to Sage Intacct.
+2. Select **More (⋮)**, then select **Sync now**.
 3. Confirm the sync completes successfully.
 
 If authentication is configured correctly, the sync should complete without errors.

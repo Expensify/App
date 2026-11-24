@@ -119,6 +119,7 @@ function WorkspaceEditTaxPage({
                                 <Switch
                                     isOn={!currentTaxRate?.isDisabled}
                                     accessibilityLabel={translate('workspace.taxes.actions.enable')}
+                                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.TAXES.EDIT_ENABLE_SWITCH}
                                     onToggle={toggleTaxRate}
                                     disabled={!canDisableOrDeleteTaxRate}
                                     disabledAction={withReadOnlyFallback()}
@@ -134,6 +135,7 @@ function WorkspaceEditTaxPage({
                         onClose={() => clearTaxRateFieldError(policyID, taxID, 'name')}
                     >
                         <MenuItemField
+                            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.TAXES.EDIT_NAME}
                             value={currentTaxRate?.name}
                             name={translate('common.name')}
                             onPress={canEditTaxFields ? () => Navigation.navigate(ROUTES.WORKSPACE_TAX_NAME.getRoute(`${policyID}`, taxID)) : undefined}
@@ -146,6 +148,7 @@ function WorkspaceEditTaxPage({
                         onClose={() => clearTaxRateFieldError(policyID, taxID, 'value')}
                     >
                         <MenuItemField
+                            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.TAXES.EDIT_VALUE}
                             value={currentTaxRate?.value}
                             name={translate('workspace.taxes.value')}
                             onPress={canEditTaxFields ? () => Navigation.navigate(ROUTES.WORKSPACE_TAX_VALUE.getRoute(`${policyID}`, taxID)) : undefined}
@@ -158,6 +161,7 @@ function WorkspaceEditTaxPage({
                         onClose={() => clearTaxRateFieldError(policyID, taxID, 'code')}
                     >
                         <MenuItemField
+                            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.TAXES.EDIT_TAX_CODE}
                             value={taxCodeToShow}
                             name={translate('workspace.taxes.taxCode')}
                             onPress={
@@ -181,6 +185,7 @@ function WorkspaceEditTaxPage({
                     </OfflineWithFeedback>
                     {!!shouldShowDeleteMenuItem && (
                         <MenuItemAction
+                            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.TAXES.EDIT_DELETE}
                             icon={icons.Trashcan}
                             title={translate('common.delete')}
                             onPress={async () => {

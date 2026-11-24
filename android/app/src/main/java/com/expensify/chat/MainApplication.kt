@@ -13,7 +13,6 @@ import android.os.Bundle
 import android.os.Process
 import androidx.multidex.MultiDexApplication
 import com.expensify.chat.bootsplash.BootSplashPackage
-import com.expensify.chat.bootsplash.PrivacyCover
 import com.expensify.chat.navbar.NavBarManagerPackage
 import com.expensify.chat.shortcutManagerModule.ShortcutManagerPackage
 import com.margelo.nitro.nitrofetch.AutoPrefetcher
@@ -28,9 +27,12 @@ import com.facebook.react.modules.i18nmanager.I18nUtil
 import com.facebook.react.soloader.OpenSourceMergedSoMapping
 import com.facebook.soloader.SoLoader
 import expo.modules.ApplicationLifecycleDispatcher
+import java.lang.ref.WeakReference
 import com.facebook.react.ReactNativeApplicationEntryPoint.loadReactNative
 
 class MainApplication : MultiDexApplication(), ReactApplication {
+    private var plaidLinkActivity: WeakReference<Activity>? = null
+
     override val reactHost: ReactHost by lazy {
         getDefaultReactHost(
             context = applicationContext,
@@ -52,19 +54,13 @@ class MainApplication : MultiDexApplication(), ReactApplication {
 
         // Plaid's LinkActivity calls setRequestedOrientation(PORTRAIT) in its own onCreate(),
         // which forces the UI to portrait even when the device is in landscape. We override it
-        // here so Plaid can render in whichever orientation the device is actually in.
+        // on tablets only, because on phones the landscape keyboard leaves Plaid's WebView too short
+        // to show its inputs.
         registerActivityLifecycleCallbacks(object : Application.ActivityLifecycleCallbacks {
             override fun onActivityCreated(activity: Activity, savedInstanceState: Bundle?) {
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                    activity.setRecentsScreenshotEnabled(false)
-                    // Third-party activities (e.g. Plaid) don't set our TaskDescription, so their recents fallback card would be black.
-                    // They don't get the cover dialog: their focus loss can't be told apart from their own popups or translucent activities.
-                    if (!activity.javaClass.name.startsWith("com.expensify.")) {
-                        PrivacyCover.applyTaskDescription(activity)
-                    }
-                }
                 if (activity.javaClass.name == "com.plaid.internal.link.LinkActivity") {
-                    activity.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
+                    plaidLinkActivity = WeakReference(activity)
+                    applyPlaidOrientation(activity, activity.resources.configuration)
                 }
             }
             override fun onActivityStarted(activity: Activity) {}
@@ -72,7 +68,11 @@ class MainApplication : MultiDexApplication(), ReactApplication {
             override fun onActivityPaused(activity: Activity) {}
             override fun onActivityStopped(activity: Activity) {}
             override fun onActivitySaveInstanceState(activity: Activity, outState: Bundle) {}
-            override fun onActivityDestroyed(activity: Activity) {}
+            override fun onActivityDestroyed(activity: Activity) {
+                if (plaidLinkActivity?.get() === activity) {
+                    plaidLinkActivity = null
+                }
+            }
         })
 
         ReactFontManager.getInstance().addCustomFont(this, "Custom Emoji Font", R.font.custom_emoji_font)
@@ -117,6 +117,19 @@ class MainApplication : MultiDexApplication(), ReactApplication {
     override fun onConfigurationChanged(newConfig: Configuration) {
         super.onConfigurationChanged(newConfig)
         ApplicationLifecycleDispatcher.onConfigurationChanged(this, newConfig)
+        // LinkActivity handles smallestScreenSize itself, so folding or unfolding does not recreate it.
+        plaidLinkActivity?.get()?.let { applyPlaidOrientation(it, newConfig) }
+    }
+
+    private fun applyPlaidOrientation(activity: Activity, config: Configuration) {
+        if (config.smallestScreenWidthDp >= 600) {
+            activity.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
+            return
+        }
+        // Android 8.0 throws when a translucent activity requests a fixed orientation; Plaid skips it there too.
+        if (Build.VERSION.SDK_INT != Build.VERSION_CODES.O) {
+            activity.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
+        }
     }
 
     private fun isOnfidoProcess(): Boolean {

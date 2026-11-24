@@ -21,4 +21,5 @@ function MockReanimatedModal({isVisible, onModalHide, children}: MockReanimatedM
     return children;
 }
 
+/** @public Read only through `jest.requireActual` in tests, which knip cannot see. Remove this tag together with the last such call. */
 export default MockReanimatedModal;

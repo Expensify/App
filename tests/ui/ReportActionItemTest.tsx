@@ -1784,6 +1784,48 @@ describe('ReportActionItem', () => {
 
             expect(screen.getByText(/paid with Expensify/i)).toBeOnTheScreen();
         });
+
+        it('IOU PAY through Wise links to the payment details', async () => {
+            // Given a bank account payment that Wise has created the transfer for, so the backend added its final amounts
+            const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.IOU, {
+                type: CONST.IOU.REPORT_ACTION_TYPE.PAY,
+                paymentType: CONST.IOU.PAYMENT_TYPE.VBBA,
+                amount: 10000,
+                currency: CONST.CURRENCY.USD,
+                creditedAmount: 7743,
+                creditedCurrency: CONST.CURRENCY.GBP,
+                fee: 129,
+                rate: 0.7743,
+                debitedAmount: 10129,
+            });
+
+            // When the paid message is rendered in its report
+            renderItemWithAction(action, false, createMock<Report>({reportID: '1'}));
+            await waitForBatchedUpdatesWithAct();
+
+            // Then View details follows it, since the payment details have every amount to show
+            expect(screen.getByText(translateLocal('iou.viewDetails'))).toBeOnTheScreen();
+        });
+
+        it('IOU PAY through Corpay has no link to the payment details', async () => {
+            // Given a cross-border payment with only the employee's amount and currency, as Corpay records it
+            const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.IOU, {
+                type: CONST.IOU.REPORT_ACTION_TYPE.PAY,
+                paymentType: CONST.IOU.PAYMENT_TYPE.VBBA,
+                amount: 10000,
+                currency: CONST.CURRENCY.USD,
+                creditedAmount: 7743,
+                creditedCurrency: CONST.CURRENCY.GBP,
+            });
+
+            // When the paid message is rendered in its report
+            renderItemWithAction(action, false, createMock<Report>({reportID: '1'}));
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the message shows without View details, since there are no fees or rate to show behind it
+            expect(screen.getByText(/paid £77.43/i)).toBeOnTheScreen();
+            expect(screen.queryByText(translateLocal('iou.viewDetails'))).toBeNull();
+        });
     });
 
     describe('Reimbursement actions', () => {
@@ -2133,6 +2175,43 @@ describe('ReportActionItem', () => {
             await waitForBatchedUpdatesWithAct();
 
             expect(screen.getByText(/Chase Visa connection has been broken for 30 days/)).toBeOnTheScreen();
+        });
+
+        it('COMPANY_CARD_CONNECTION_BROKEN_30_DAYS action shows the bank name when the feed has no custom name', async () => {
+            // Given a reminder for a feed that had no custom name, so the saved feed name is the bank itself
+            const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.COMPANY_CARD_CONNECTION_BROKEN_30_DAYS, {
+                feedName: CONST.COMPANY_CARD.FEED_BANK_NAME.CHASE,
+                bank: CONST.COMPANY_CARD.FEED_BANK_NAME.CHASE,
+                policyID: 'pol123',
+            });
+
+            // When the reminder is shown
+            renderItemWithAction(action);
+            await waitForBatchedUpdatesWithAct();
+
+            // Then it names the feed the way the company cards page does, not by the bank
+            expect(screen.getByText(/The Chase connection has been broken for 30 days/)).toBeOnTheScreen();
+            expect(screen.queryByText(/oauth\.chase\.com/)).not.toBeOnTheScreen();
+        });
+
+        it('COMPANY_CARD_CONSENT_EXPIRING action', async () => {
+            // Given an upcoming consent-expiry warning for an Amex company card feed
+            const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.COMPANY_CARD_CONSENT_EXPIRING, {
+                policyID: 'pol123',
+                bank: 'oauth.americanexpressfdx.com 1001',
+                feedName: 'American Express Business',
+                consentGrantedAt: 1790000000,
+                consentExpiresAt: 1797776000,
+                warningDaysBeforeExpiry: 14,
+            });
+
+            // When the warning is displayed in the admins room
+            renderItemWithAction(action);
+            await waitForBatchedUpdatesWithAct();
+
+            // Then it explains the upcoming expiry and offers the workspace connection link
+            expect(screen.getByText(/American Express Business card connection will need renewed consent in two weeks/)).toBeOnTheScreen();
+            expect(screen.getByText(/Reconnect the card connection before consent expires/)).toBeOnTheScreen();
         });
 
         it('PLAID_BALANCE_FAILURE action', async () => {
@@ -2679,6 +2758,7 @@ describe('ReportActionItem', () => {
                 <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, HTMLEngineProvider]}>
                     <PaymentContent
                         action={action}
+                        reportID={undefined}
                         expectedDate={undefined}
                         policyID={undefined}
                     />
@@ -3321,6 +3401,62 @@ describe('ReportActionItem', () => {
     });
 
     describe('Actionable alerts, previews, and remaining action types', () => {
+        it.each([CONST.REPORT.TYPE.CHAT, CONST.REPORT.TYPE.SUPPORT_TICKET])('shows the appropriate mention invite options for %s', async (type) => {
+            // Given a workspace admin mentioning someone outside their workspace
+            const policyID = 'mention-invite-policy';
+            const report = createMock<Report>({
+                reportID: '123',
+                policyID,
+                type,
+                ownerAccountID: ACTOR_ACCOUNT_ID,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+            });
+            await act(async () => {
+                await Onyx.merge(ONYXKEYS.SESSION, {accountID: ACTOR_ACCOUNT_ID, email: actorEmail});
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {id: policyID, role: CONST.POLICY.ROLE.ADMIN});
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
+            });
+            const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_MENTION_WHISPER, {inviteeAccountIDs: [999], inviteeEmails: ['stranger@test.com']});
+
+            // When the mention invite prompt appears
+            renderItemWithAction(action, false, report);
+            await waitForBatchedUpdatesWithAct();
+
+            // Then tickets offer only chat invitations and dismissal
+            expect(screen.getByText(translateLocal('actionableMentionWhisperOptions.inviteToChat'))).toBeOnTheScreen();
+            expect(screen.getByText(translateLocal('actionableMentionWhisperOptions.nothing'))).toBeOnTheScreen();
+            expect(!!screen.queryByText(translateLocal('actionableMentionWhisperOptions.inviteToSubmitExpense'))).toBe(type !== CONST.REPORT.TYPE.SUPPORT_TICKET);
+        });
+
+        it('hides an unanswered mention invitation when the support ticket is resolved', async () => {
+            // Given a customer who has not answered a mention invitation on an open ticket
+            const report = createMock<Report>({
+                reportID: '123',
+                type: CONST.REPORT.TYPE.SUPPORT_TICKET,
+                ownerAccountID: ACTOR_ACCOUNT_ID,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+            });
+            await act(async () => {
+                await Onyx.merge(ONYXKEYS.SESSION, {accountID: ACTOR_ACCOUNT_ID, email: actorEmail});
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
+            });
+            const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_MENTION_WHISPER, {inviteeAccountIDs: [999], inviteeEmails: ['stranger@test.com']});
+            renderItemWithAction(action, false, report);
+            await waitForBatchedUpdatesWithAct();
+            expect(screen.getByText(translateLocal('actionableMentionWhisperOptions.inviteToChat'))).toBeOnTheScreen();
+
+            // When the rep resolves the ticket before the customer accepts the invitation
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, {stateNum: CONST.REPORT.STATE_NUM.APPROVED, statusNum: CONST.REPORT.STATUS_NUM.CLOSED});
+            });
+
+            // Then the customer can dismiss the prompt but cannot invite anyone
+            expect(screen.queryByText(translateLocal('actionableMentionWhisperOptions.inviteToChat'))).not.toBeOnTheScreen();
+            expect(screen.getByText(translateLocal('actionableMentionWhisperOptions.nothing'))).toBeOnTheScreen();
+        });
+
         it('CHANGE_POLICY renders changed workspace message', async () => {
             const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.CHANGE_POLICY, {fromPolicy: 'pA', toPolicy: 'pB'});
             renderItemWithAction(action);
@@ -3798,7 +3934,9 @@ describe('ReportActionItem', () => {
             renderItemWithAction(action);
             await waitForBatchedUpdatesWithAct();
 
-            expect(screen.getByText(/Jan 1-3/)).toBeOnTheScreen();
+            // A same-month range is joined the way the language writes it, which in English is an en dash. `\s` also
+            // matches the thin spaces `Intl` puts around it.
+            expect(screen.getByText(/Jan 1\s–\s3/)).toBeOnTheScreen();
         });
 
         it('isCreatedTaskReportAction renders TaskPreview', async () => {

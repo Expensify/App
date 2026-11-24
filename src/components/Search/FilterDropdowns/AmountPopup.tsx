@@ -3,17 +3,23 @@ import AmountFilterInput from '@components/Search/FilterComponents/AmountFilterI
 import type {SearchAmountFilterKeys, SearchAmountValues} from '@components/Search/types';
 
 import useAmountFilterCurrency from '@hooks/useAmountFilterCurrency';
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {convertToFrontendAmountAsString} from '@libs/CurrencyUtils';
-import {formatAmountFilterValue, getAmountFilterDisplayValue, getAmountFilterInputValue} from '@libs/SearchAmountFilterUtils';
+import {formatAmountFilterValue, getAmountFilterDisplayValue, getAmountFilterFormValues, getAmountFilterInputValue} from '@libs/SearchAmountFilterUtils';
+import {FILTER_VIEW_MAP} from '@libs/SearchUIUtils';
+
+import {callIfAuthenticated} from '@userActions/Session';
 
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import type {SearchAdvancedFiltersForm} from '@src/types/form';
 
 import type {ValueOf} from 'type-fest';
 
+import {authTokenTypeSelector} from '@selectors/Session';
 import React, {useState} from 'react';
 
 import BasePopup from './BasePopup';
@@ -45,7 +51,7 @@ function AmountInput({title, value, name, baseFilterKey, onSave, onBackButtonPre
         <BasePopup
             label={title}
             onApply={() => onSave(formatAmountFilterValue(amount, currency))}
-            applySentryLabel={CONST.SENTRY_LABEL.SEARCH.FILTER_POPUP_APPLY_AMOUNT}
+            applySentryLabel={CONST.SENTRY_LABEL.SEARCH.FILTER_POPUP_APPLY_VALUE.AMOUNT}
             onBackButtonPress={onBackButtonPress}
             shouldSubmitOnEnter
         >
@@ -66,6 +72,8 @@ function AmountInput({title, value, name, baseFilterKey, onSave, onBackButtonPre
 
 function AmountPopup({baseFilterKey, label, value, closeOverlay, updateFilterForm}: AmountPopupProps) {
     const {translate} = useLocalize();
+    const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
+    const {convertToDisplayStringWithoutCurrency} = useCurrencyListActions();
     const [selectedModifier, setSelectedModifier] = useState<ValueOf<typeof CONST.SEARCH.AMOUNT_MODIFIERS> | null>(null);
     const [amountValues, setAmountValues] = useState(value);
 
@@ -73,12 +81,20 @@ function AmountPopup({baseFilterKey, label, value, closeOverlay, updateFilterFor
         [CONST.SEARCH.AMOUNT_MODIFIERS.EQUAL_TO]: translate('search.filters.amount.equalTo'),
         [CONST.SEARCH.AMOUNT_MODIFIERS.GREATER_THAN]: translate('search.filters.amount.greaterThan'),
         [CONST.SEARCH.AMOUNT_MODIFIERS.LESS_THAN]: translate('search.filters.amount.lessThan'),
+        [CONST.SEARCH.AMOUNT_MODIFIERS.GREATER_THAN_OR_EQUAL_TO]: translate('search.filters.amount.greaterThanOrEqualTo'),
+        [CONST.SEARCH.AMOUNT_MODIFIERS.LESS_THAN_OR_EQUAL_TO]: translate('search.filters.amount.lessThanOrEqualTo'),
     };
 
-    const modifierConfig = [CONST.SEARCH.AMOUNT_MODIFIERS.EQUAL_TO, CONST.SEARCH.AMOUNT_MODIFIERS.GREATER_THAN, CONST.SEARCH.AMOUNT_MODIFIERS.LESS_THAN];
+    const modifierConfig = [
+        CONST.SEARCH.AMOUNT_MODIFIERS.EQUAL_TO,
+        CONST.SEARCH.AMOUNT_MODIFIERS.GREATER_THAN,
+        CONST.SEARCH.AMOUNT_MODIFIERS.LESS_THAN,
+        CONST.SEARCH.AMOUNT_MODIFIERS.GREATER_THAN_OR_EQUAL_TO,
+        CONST.SEARCH.AMOUNT_MODIFIERS.LESS_THAN_OR_EQUAL_TO,
+    ];
 
     const formatAmount = (amount: string | undefined) => {
-        return getAmountFilterDisplayValue(amount, (backendAmount) => convertToFrontendAmountAsString(backendAmount, CONST.DEFAULT_CURRENCY_DECIMALS));
+        return getAmountFilterDisplayValue(amount, convertToDisplayStringWithoutCurrency);
     };
 
     if (selectedModifier) {
@@ -95,12 +111,29 @@ function AmountPopup({baseFilterKey, label, value, closeOverlay, updateFilterFor
 
             // When setting an Equal To value, clear Greater Than and Less Than to avoid conflicting filters.
             if (selectedModifier === CONST.SEARCH.AMOUNT_MODIFIERS.EQUAL_TO) {
-                setAmountValues({[CONST.SEARCH.AMOUNT_MODIFIERS.GREATER_THAN]: '', [CONST.SEARCH.AMOUNT_MODIFIERS.LESS_THAN]: '', [selectedModifier]: newAmount});
+                setAmountValues({
+                    [CONST.SEARCH.AMOUNT_MODIFIERS.GREATER_THAN]: '',
+                    [CONST.SEARCH.AMOUNT_MODIFIERS.LESS_THAN]: '',
+                    [CONST.SEARCH.AMOUNT_MODIFIERS.GREATER_THAN_OR_EQUAL_TO]: undefined,
+                    [CONST.SEARCH.AMOUNT_MODIFIERS.LESS_THAN_OR_EQUAL_TO]: undefined,
+                    [selectedModifier]: newAmount,
+                });
             }
 
-            // When setting Greater Than or Less Than, clear Equal To to avoid conflicting filters.
-            if (selectedModifier === CONST.SEARCH.AMOUNT_MODIFIERS.GREATER_THAN || selectedModifier === CONST.SEARCH.AMOUNT_MODIFIERS.LESS_THAN) {
-                setAmountValues((prevAmountValues) => ({...prevAmountValues, [CONST.SEARCH.AMOUNT_MODIFIERS.EQUAL_TO]: '', [selectedModifier]: newAmount}));
+            // Editing an active comparison keeps other raw-query constraints; a new operator replaces its counterpart.
+            if (selectedModifier !== CONST.SEARCH.AMOUNT_MODIFIERS.EQUAL_TO) {
+                const oppositeModifier = {
+                    [CONST.SEARCH.AMOUNT_MODIFIERS.GREATER_THAN]: CONST.SEARCH.AMOUNT_MODIFIERS.GREATER_THAN_OR_EQUAL_TO,
+                    [CONST.SEARCH.AMOUNT_MODIFIERS.GREATER_THAN_OR_EQUAL_TO]: CONST.SEARCH.AMOUNT_MODIFIERS.GREATER_THAN,
+                    [CONST.SEARCH.AMOUNT_MODIFIERS.LESS_THAN]: CONST.SEARCH.AMOUNT_MODIFIERS.LESS_THAN_OR_EQUAL_TO,
+                    [CONST.SEARCH.AMOUNT_MODIFIERS.LESS_THAN_OR_EQUAL_TO]: CONST.SEARCH.AMOUNT_MODIFIERS.LESS_THAN,
+                }[selectedModifier];
+                setAmountValues((prevAmountValues) => ({
+                    ...prevAmountValues,
+                    [CONST.SEARCH.AMOUNT_MODIFIERS.EQUAL_TO]: '',
+                    [oppositeModifier]: prevAmountValues[selectedModifier] ? prevAmountValues[oppositeModifier] : undefined,
+                    [selectedModifier]: newAmount,
+                }));
             }
             goBack();
         };
@@ -117,33 +150,39 @@ function AmountPopup({baseFilterKey, label, value, closeOverlay, updateFilterFor
         );
     }
 
-    const onChange = (values: SearchAmountValues) => {
-        const formValues: Record<string, string | undefined> = {};
-        formValues[`${baseFilterKey}${CONST.SEARCH.AMOUNT_MODIFIERS.EQUAL_TO}`] = values[CONST.SEARCH.AMOUNT_MODIFIERS.EQUAL_TO];
-        formValues[`${baseFilterKey}${CONST.SEARCH.AMOUNT_MODIFIERS.GREATER_THAN}`] = values[CONST.SEARCH.AMOUNT_MODIFIERS.GREATER_THAN];
-        formValues[`${baseFilterKey}${CONST.SEARCH.AMOUNT_MODIFIERS.LESS_THAN}`] = values[CONST.SEARCH.AMOUNT_MODIFIERS.LESS_THAN];
-        updateFilterForm(formValues);
+    const applyChanges = () => {
+        updateFilterForm(getAmountFilterFormValues(baseFilterKey, amountValues));
         closeOverlay();
     };
-
-    const applyChanges = () => onChange(amountValues);
 
     return (
         <BasePopup
             label={label}
             onApply={applyChanges}
-            applySentryLabel={CONST.SENTRY_LABEL.SEARCH.FILTER_POPUP_APPLY_AMOUNT}
+            applySentryLabel={FILTER_VIEW_MAP[baseFilterKey].applySentryLabel}
         >
-            {modifierConfig.map((modifier) => (
-                <MenuItem
-                    key={modifier}
-                    title={title[modifier]}
-                    description={formatAmount(amountValues[modifier])}
-                    onPress={() => setSelectedModifier(modifier)}
-                    shouldShowRightIcon
-                    viewMode={CONST.OPTION_MODE.COMPACT}
-                />
-            ))}
+            {modifierConfig.map((modifier) => {
+                const formattedAmount = formatAmount(amountValues[modifier]);
+
+                return (
+                    <MenuItem.Root
+                        sentryLabel={CONST.SENTRY_LABEL.SEARCH.AMOUNT_MODIFIER_ITEM}
+                        key={modifier}
+                        onPress={callIfAuthenticated(() => setSelectedModifier(modifier), session)}
+                        isCompact
+                    >
+                        <MenuItem.Row>
+                            <MenuItem.Content>
+                                <MenuItem.Title>{title[modifier]}</MenuItem.Title>
+                                {!!formattedAmount && <MenuItem.Description>{formattedAmount}</MenuItem.Description>}
+                            </MenuItem.Content>
+                            <MenuItem.Trailing>
+                                <MenuItem.Chevron />
+                            </MenuItem.Trailing>
+                        </MenuItem.Row>
+                    </MenuItem.Root>
+                );
+            })}
         </BasePopup>
     );
 }

@@ -20,6 +20,7 @@ import {
     getReportNotificationPreferenceForSettings,
     isAdminRoom,
     isArchivedNonExpenseReport as isArchivedNonExpenseReportUtils,
+    isHiddenForCurrentUser,
     isMoneyRequestReport as isMoneyRequestReportUtils,
     isSelfDM,
 } from '@libs/ReportUtils';
@@ -46,7 +47,6 @@ function DynamicReportSettingsPage({report, policy}: DynamicReportSettingsPagePr
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.REPORT_SETTINGS.path);
     const isReportArchived = useReportIsArchived(reportID);
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
-    const currentUserParticipant = currentUserAccountID ? report?.participants?.[currentUserAccountID] : undefined;
     const isArchivedNonExpenseReport = isArchivedNonExpenseReportUtils(report, isReportArchived);
     // The workspace the report is on, null if the user isn't a member of the workspace
     const linkedWorkspace = report?.policyID && policy?.id === report?.policyID ? policy : undefined;
@@ -59,7 +59,7 @@ function DynamicReportSettingsPage({report, policy}: DynamicReportSettingsPagePr
     const shouldAllowWriteCapabilityEditing = canEditWriteCapability(report, linkedWorkspace, isReportArchived);
     const shouldAllowChangeVisibility = canEditRoomVisibility(linkedWorkspace, isArchivedNonExpenseReport);
 
-    const shouldShowNotificationPref = !isMoneyRequestReport && !!currentUserParticipant;
+    const shouldShowNotificationPref = !isMoneyRequestReport && !isHiddenForCurrentUser(notificationPreferenceValue);
 
     const shouldShowWriteCapability = !isMoneyRequestReport;
 
@@ -73,6 +73,7 @@ function DynamicReportSettingsPage({report, policy}: DynamicReportSettingsPagePr
                 <ScrollView style={[styles.flex1]}>
                     {shouldShowNotificationPref && (
                         <MenuItemField
+                            sentryLabel={CONST.SENTRY_LABEL.REPORT_SETTINGS.NOTIFICATION_PREFERENCE}
                             name={translate('notificationPreferencesPage.label')}
                             onPress={() => {
                                 if (!reportID) {
@@ -85,6 +86,7 @@ function DynamicReportSettingsPage({report, policy}: DynamicReportSettingsPagePr
                     )}
                     {shouldShowWriteCapability && shouldAllowWriteCapabilityEditing && (
                         <MenuItemField
+                            sentryLabel={CONST.SENTRY_LABEL.REPORT_SETTINGS.WRITE_CAPABILITY}
                             name={translate('writeCapabilityPage.label')}
                             onPress={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.REPORT_SETTINGS_WRITE_CAPABILITY.path))}
                             value={writeCapabilityText}
@@ -110,6 +112,7 @@ function DynamicReportSettingsPage({report, policy}: DynamicReportSettingsPagePr
                         report.chatType !== CONST.REPORT.CHAT_TYPE.INVOICE &&
                         (shouldAllowChangeVisibility ? (
                             <MenuItemField
+                                sentryLabel={CONST.SENTRY_LABEL.REPORT_SETTINGS.VISIBILITY}
                                 name={translate('newRoomPage.visibility')}
                                 onPress={() => {
                                     Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.REPORT_SETTINGS_VISIBILITY.path));

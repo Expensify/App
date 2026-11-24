@@ -1,0 +1,127 @@
+import {WRITE_COMMANDS} from '@libs/API/types';
+import membersNeedCategoryError from '@libs/Middleware/MembersNeedCategoryError';
+
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import type Request from '@src/types/onyx/Request';
+import type Response from '@src/types/onyx/Response';
+
+import type {OnyxKey} from 'react-native-onyx';
+
+import Onyx from 'react-native-onyx';
+
+import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
+
+const POLICY_ID = 'ABC123';
+
+function buildDisableRequest(overrides: Partial<Request<OnyxKey>> = {}): Request<OnyxKey> {
+    return {
+        command: WRITE_COMMANDS.SET_WORKSPACE_CATEGORIES_ENABLED,
+        data: {
+            policyID: POLICY_ID,
+            categories: JSON.stringify([
+                {name: 'Fuel', enabled: false},
+                {name: 'Meals', enabled: false},
+            ]),
+        },
+        ...overrides,
+    };
+}
+
+function buildResponse(overrides: Partial<Response<OnyxKey>> = {}): Response<OnyxKey> {
+    return {
+        jsonCode: CONST.JSON_CODE.EXP_ERROR,
+        additionalData: {accountIDs: [2, 3]},
+        ...overrides,
+    };
+}
+
+async function getModalSignal() {
+    await waitForBatchedUpdates();
+    return Onyx.get(ONYXKEYS.RAM_ONLY_MEMBERS_NEED_CATEGORY_MODAL);
+}
+
+describe('MembersNeedCategoryError', () => {
+    beforeAll(() => {
+        Onyx.init({keys: ONYXKEYS});
+    });
+
+    beforeEach(() => Onyx.clear().then(waitForBatchedUpdates));
+
+    it('signals the modal with the members the backend refused to leave without a category', async () => {
+        // Given the backend rejected disabling two categories because of two members
+        const response = buildResponse();
+
+        // When the response passes through the middleware
+        const result = await membersNeedCategoryError(Promise.resolve(response), buildDisableRequest(), true);
+
+        // Then the modal is signalled for that workspace, those members and both categories, and the response is untouched
+        expect(await getModalSignal()).toEqual({policyID: POLICY_ID, accountIDs: [2, 3], categoryNames: ['Fuel', 'Meals'], isRemovingAccess: false});
+        expect(result).toBe(response);
+    });
+
+    it('signals the remove-access modal when the backend rejects a change to who can use a category', async () => {
+        // Given the backend rejected removing two members from Fees, since it's the only category they can use
+        const request: Request<OnyxKey> = {
+            command: WRITE_COMMANDS.SET_POLICY_CATEGORY_MEMBER_VISIBILITY,
+            data: {
+                policyID: POLICY_ID,
+                categoryNames: JSON.stringify(['Fees']),
+                selectedAccountIDList: JSON.stringify([1]),
+                deselectedAccountIDList: JSON.stringify([2, 3]),
+            },
+        };
+
+        // When the response passes through the middleware
+        await membersNeedCategoryError(Promise.resolve(buildResponse()), request, true);
+
+        // Then the modal is signalled with the category's plain name and the remove-access title, since Fees stays enabled
+        expect(await getModalSignal()).toEqual({policyID: POLICY_ID, accountIDs: [2, 3], categoryNames: ['Fees'], isRemovingAccess: true});
+    });
+
+    it('keeps the disable title when the rejected visibility change unchecked every member', async () => {
+        // Given the backend rejected unchecking every member on Fees, which would have disabled it
+        const request: Request<OnyxKey> = {
+            command: WRITE_COMMANDS.SET_POLICY_CATEGORY_MEMBER_VISIBILITY,
+            data: {
+                policyID: POLICY_ID,
+                categoryNames: JSON.stringify(['Fees']),
+                selectedAccountIDList: JSON.stringify([]),
+                deselectedAccountIDList: JSON.stringify([1, 2, 3]),
+            },
+        };
+
+        // When the response passes through the middleware
+        await membersNeedCategoryError(Promise.resolve(buildResponse()), request, true);
+
+        // Then the modal uses the disable title, matching the check the page runs before saving
+        expect(await getModalSignal()).toEqual({policyID: POLICY_ID, accountIDs: [2, 3], categoryNames: ['Fees'], isRemovingAccess: false});
+    });
+
+    it('does nothing when the disable succeeded', async () => {
+        // Given the backend accepted the disable
+        // When the response passes through the middleware
+        await membersNeedCategoryError(Promise.resolve(buildResponse({jsonCode: CONST.JSON_CODE.SUCCESS})), buildDisableRequest(), true);
+
+        // Then no modal is signalled
+        expect(await getModalSignal()).toBeFalsy();
+    });
+
+    it('does nothing when the failure has no members, such as a generic error', async () => {
+        // Given the backend failed for another reason, so it sent no accountIDs
+        // When the response passes through the middleware
+        await membersNeedCategoryError(Promise.resolve(buildResponse({additionalData: undefined})), buildDisableRequest(), true);
+
+        // Then no modal is signalled, and the category row's own error covers it
+        expect(await getModalSignal()).toBeFalsy();
+    });
+
+    it('ignores other commands', async () => {
+        // Given another command failed with accountIDs
+        // When the response passes through the middleware
+        await membersNeedCategoryError(Promise.resolve(buildResponse()), buildDisableRequest({command: WRITE_COMMANDS.SET_WORKSPACE_REQUIRES_CATEGORY}), true);
+
+        // Then no modal is signalled, since only disabling categories can leave members without one
+        expect(await getModalSignal()).toBeFalsy();
+    });
+});

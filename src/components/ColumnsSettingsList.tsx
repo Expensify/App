@@ -72,6 +72,12 @@ type ColumnsSettingsListProps = {
     /** Callback fired with the updated column list when the user saves changes */
     onSave: (columns: SearchCustomColumnIds[]) => void;
 
+    /** Callback fired when the user resets the columns. When provided, it replaces resetting the selection in place */
+    onReset?: () => void;
+
+    /** Whether to show the reset columns link */
+    shouldShowResetColumns?: boolean;
+
     /** The active Search type, used to resolve type-specific column labels */
     type?: SearchDataTypes;
 };
@@ -85,6 +91,8 @@ function ColumnsSettingsList({
     groupColumns = [],
     defaultGroupColumns = [],
     onSave,
+    onReset,
+    shouldShowResetColumns,
     type,
 }: ColumnsSettingsListProps) {
     const theme = useTheme();
@@ -117,12 +125,18 @@ function ColumnsSettingsList({
     }));
 
     const [columns, setColumns] = useState(() => {
-        const selectedColumnIds = currentColumns.filter((columnId) => allCustomColumns.includes(columnId));
+        const currentGroupColumns = currentColumns.filter((columnId) => groupColumns.includes(columnId));
+        const currentTypeColumns = currentColumns.filter((columnId) => allColumns.includes(columnId));
 
-        if (!selectedColumnIds.length) {
+        if (!currentGroupColumns.length && !currentTypeColumns.length) {
             return defaultColumns;
         }
 
+        // A search can save columns for only one of the sections, and the table shows the other section's defaults then.
+        const selectedColumnIds = [
+            ...(currentGroupColumns.length ? currentGroupColumns : defaultGroupColumns),
+            ...(currentTypeColumns.length ? currentTypeColumns : defaultSelectedColumns.filter((columnId) => allColumns.includes(columnId))),
+        ];
         const selected = selectedColumnIds.map((columnId) => ({columnId, isSelected: true}));
         const unselected = allCustomColumns.filter((columnId) => !selectedColumnIds.includes(columnId)).map((columnId) => ({columnId, isSelected: false}));
 
@@ -231,6 +245,10 @@ function ColumnsSettingsList({
     };
 
     const resetColumns = () => {
+        if (onReset) {
+            onReset();
+            return;
+        }
         setColumns(defaultColumns);
         setSearchValue('');
     };
@@ -238,6 +256,8 @@ function ColumnsSettingsList({
     const handleSave = () => {
         onSave(selectedColumnIds);
     };
+
+    const isResetColumnsVisible = shouldShowResetColumns ?? !isDefaultState;
 
     const renderItem = ({item, isFocused}: {item: ListItem; isFocused?: boolean}) => {
         return (
@@ -259,7 +279,14 @@ function ColumnsSettingsList({
             includeSafeAreaPaddingBottom
         >
             <HeaderWithBackButton title={translate('search.columns')}>
-                {!isDefaultState && <TextLink onPress={resetColumns}>{translate('search.resetColumns')}</TextLink>}
+                {isResetColumnsVisible && (
+                    <TextLink
+                        onPress={resetColumns}
+                        sentryLabel={CONST.SENTRY_LABEL.COLUMNS_SETTINGS_LIST.RESET_COLUMNS_LINK}
+                    >
+                        {translate('search.resetColumns')}
+                    </TextLink>
+                )}
             </HeaderWithBackButton>
             <ListSearchBar
                 label={translate('common.search')}
@@ -334,6 +361,7 @@ function ColumnsSettingsList({
             </View>
             <View style={[styles.ph5, styles.pb5]}>
                 <Button
+                    sentryLabel={CONST.SENTRY_LABEL.COLUMNS_SETTINGS_LIST.SAVE_BUTTON}
                     size={CONST.BUTTON_SIZE.LARGE}
                     variant={CONST.BUTTON_VARIANT.SUCCESS}
                     onPress={handleSave}

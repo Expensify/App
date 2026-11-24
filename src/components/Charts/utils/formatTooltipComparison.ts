@@ -3,14 +3,15 @@ import VictoryTheme from '@components/Charts/VictoryTheme';
 
 import {formatPercentOfTotal} from '@libs/PercentageUtils';
 
+import CONST from '@src/CONST';
 import type Locale from '@src/types/onyx/Locale';
 
 import type {NonEmptyTuple} from 'type-fest';
 
-import getTooltipNote from './getTooltipNote';
+import type {TooltipValue} from './formatTooltipValue';
 
 /** One compared series' value at the active point */
-type TooltipRow = {
+type TooltipRow = TooltipValue & {
     key: string;
 
     /** The series' color, shown as a dot before the row */
@@ -21,11 +22,6 @@ type TooltipRow = {
 
     /** Names the series, like "Average", or the dates the point covers in its period */
     label?: string;
-
-    value: string;
-
-    /** Shown in parentheses after the value */
-    note?: string;
 };
 
 /** How the primary series changed against the one it is compared with */
@@ -49,16 +45,16 @@ type TooltipComparison = {
 /** Formats how much the primary value rose or fell relative to the compared one, as a percentage */
 function formatChangePercentage(primaryValue: number, comparedValue: number, locale: Locale | undefined): string {
     if (comparedValue === 0) {
-        return '—';
+        return CONST.INSIGHTS.NO_CHANGE_PLACEHOLDER;
     }
 
     const difference = primaryValue - comparedValue;
     return formatPercentOfTotal((Math.abs(difference) / Math.abs(comparedValue)) * 100, difference, locale);
 }
 
-/** Formats how much the primary value rose or fell against the compared one. */
+/** Formats how much the primary value rose or fell against the compared one, or nothing when it is unchanged or the compared value is zero. */
 function formatChange(primaryValue: number, comparedValue: number, formatAmount: (value: number) => string, locale: Locale | undefined): TooltipChange | undefined {
-    if (primaryValue === comparedValue) {
+    if (primaryValue === comparedValue || comparedValue === 0) {
         return undefined;
     }
 
@@ -89,13 +85,15 @@ function formatTooltipComparison(
         if (value === undefined) {
             return [];
         }
+        const percentOfTotal = dataPoint.seriesPercentOfTotal?.[key];
         return {
             key,
             color: dataPoint.seriesColors?.[key] ?? color,
             isAverage,
             label: dataPoint.seriesLabels?.[key] ?? label,
             value: formatAmount(value),
-            note: getTooltipNote(value, dataPoint.seriesPercentOfTotal?.[key], dataPoint.seriesTotals?.[key], locale),
+            percentage: percentOfTotal === undefined ? undefined : formatPercentOfTotal(percentOfTotal, value, locale),
+            secondaryValue: dataPoint.seriesTotals?.[key],
         };
     });
 
