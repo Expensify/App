@@ -9,6 +9,7 @@ import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import useTheme from '@hooks/useTheme';
 
 import type * as NativeNavigation from '@react-navigation/native';
+import type {ComponentRef} from 'react';
 import type {View} from 'react-native';
 
 import React from 'react';
@@ -275,7 +276,7 @@ describe('Amount action buttons', () => {
     });
 
     describe('borderless style', () => {
-        const renderButtons = (shouldUseBorderlessStyle?: boolean, currencyButtonRef?: React.RefObject<View | null>) =>
+        const renderButtons = (shouldUseBorderlessStyle?: boolean, currencyButtonRef?: React.RefObject<ComponentRef<typeof View> | null>) =>
             renderWithProviders(
                 <AmountFormField
                     value="12"
@@ -318,7 +319,7 @@ describe('Amount action buttons', () => {
 
         it('hands the currency button to its ref, so focus can return to it once the picker closes', async () => {
             // Given a ref for the currency button
-            const currencyButtonRef = React.createRef<View>();
+            const currencyButtonRef = React.createRef<ComponentRef<typeof View>>();
 
             // When the button renders
             renderButtons(true, currencyButtonRef);

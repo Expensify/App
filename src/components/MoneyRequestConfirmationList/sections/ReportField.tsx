@@ -1,3 +1,4 @@
+import DropdownField from '@components/DropdownField';
 import MenuItemFieldHTML from '@components/MenuItem/presets/MenuItemFieldHTML';
 import {SELECTION_LIST_POPOVER_HEADER_HEIGHT} from '@components/SelectionListPopoverHeader';
 
@@ -38,7 +39,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import {createOutstandingReportsForPolicySelector} from '@selectors/Report';
 import React from 'react';
 
-import ExpenseFieldDropdown from './ExpenseFieldDropdown';
+import ExpenseFieldContainer from './ExpenseFieldContainer';
 import {useExpenseFormLayout} from './ExpenseFormLayoutContext';
 import ReportFieldDropdown from './ReportFieldDropdown';
 import {reportFieldTransactionStateSelector, shouldReportFieldBeEditable} from './selectors';
@@ -161,27 +162,29 @@ function ReportField({selectedParticipants, iouType, reportID, reportActionID, a
 
     if (shouldUseDropdownRows) {
         return (
-            <ExpenseFieldDropdown
-                name={translate('common.report')}
-                // The field row renders plain text, so an HTML report name (e.g. a room with a markup name) is
-                // flattened first. Plain names pass through unchanged, with their entities decoded.
-                value={Parser.htmlToText(reportName)}
-                onPress={openReportPage}
-                shouldOpenInDropdown={shouldOpenInDropdown}
-                listHeaderHeight={SELECTION_LIST_POPOVER_HEADER_HEIGHT}
-                renderDropdown={(dropdownProps) =>
-                    !!transactionID && (
-                        <ReportFieldDropdown
-                            {...dropdownProps}
-                            transactionID={transactionID}
-                        />
-                    )
-                }
-                // A report the user cannot change reads as a disabled field, the same as every other locked field
-                // on this form: the row itself owns that rule.
-                isInteractive={shouldReportBeEditable}
-                sentryLabel={CONST.SENTRY_LABEL.REQUEST_CONFIRMATION_LIST.REPORT_FIELD}
-            />
+            <ExpenseFieldContainer>
+                <DropdownField
+                    name={translate('common.report')}
+                    // The field row renders plain text, so an HTML report name (e.g. a room with a markup name) is
+                    // flattened first. Plain names pass through unchanged, with their entities decoded.
+                    value={Parser.htmlToText(reportName)}
+                    onPress={openReportPage}
+                    shouldOpenInDropdown={shouldOpenInDropdown}
+                    listHeaderHeight={SELECTION_LIST_POPOVER_HEADER_HEIGHT}
+                    renderDropdown={(dropdownProps) =>
+                        !!transactionID && (
+                            <ReportFieldDropdown
+                                {...dropdownProps}
+                                transactionID={transactionID}
+                            />
+                        )
+                    }
+                    // A report the user cannot change reads as a disabled field, the same as every other locked field
+                    // on this form: the row itself owns that rule.
+                    isInteractive={shouldReportBeEditable}
+                    sentryLabel={CONST.SENTRY_LABEL.REQUEST_CONFIRMATION_LIST.REPORT_FIELD}
+                />
+            </ExpenseFieldContainer>
         );
     }
 

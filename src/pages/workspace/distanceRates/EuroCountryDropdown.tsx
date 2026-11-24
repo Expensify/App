@@ -2,7 +2,7 @@
  * The euro country field on Add rate. Its list opens anchored to the row, the same way the expense form's category field does.
  */
 import AnchoredSelectionListPopover from '@components/AnchoredSelectionListPopover';
-import ExpenseFieldDropdown from '@components/MoneyRequestConfirmationList/sections/ExpenseFieldDropdown';
+import DropdownField from '@components/DropdownField';
 import type {ValuePickerItem} from '@components/ValuePicker/types';
 import ValueSelectionList from '@components/ValuePicker/ValueSelectionList';
 
@@ -26,7 +26,7 @@ function EuroCountryDropdown({label, selectedCountry, countries, onSelectCountry
     const selectedItem = countries.find((country) => country.value === selectedCountry);
 
     return (
-        <ExpenseFieldDropdown
+        <DropdownField
             name={label}
             value={selectedItem?.label}
             shouldOpenInDropdown

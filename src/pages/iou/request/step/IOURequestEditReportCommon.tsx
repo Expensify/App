@@ -42,6 +42,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 
 import {authTokenTypeSelector} from '@selectors/Session';
 import React, {useEffect, useRef} from 'react';
+import Onyx from 'react-native-onyx';
 
 import navigateAwayFromReportPicker from './IOURequestStepReport/navigateAwayFromReportPicker';
 import StepScreenWrapper from './StepScreenWrapper';
@@ -70,14 +71,14 @@ type IOURequestEditReportCommonProps = {
     selectedPolicyID?: string;
     transactionPolicyID?: string;
     targetOwnerAccountID?: number;
-    selectReport: (item: TransactionGroupListItem, report?: OnyxEntry<Report>) => void;
+    selectReport: (item: TransactionGroupListItem, report?: OnyxEntry<Report>) => void | Promise<void>;
     removeFromReport?: () => void | Promise<void>;
     isEditing?: boolean;
     /** Uses creation eligibility instead of the admin/manager exceptions for moving saved expenses. Defaults to false. */
     isCreatingExpense?: boolean;
     isUnreported?: boolean;
     shouldShowNotFoundPage?: boolean;
-    createReport?: () => void;
+    createReport?: () => void | Promise<void>;
     isPerDiemRequest: boolean;
     isTimeRequest?: boolean;
     isUnreportedManagedCardTransaction?: boolean;
@@ -150,9 +151,6 @@ function IOURequestEditReportCommon({
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
     const [allTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
-    const [userBillingGracePeriodEnds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
-    const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
-    const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
     const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const [selectedReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${selectedReportID}`);
@@ -199,6 +197,7 @@ function IOURequestEditReportCommon({
         outstandingReportsOffset.current += CONST.OUTSTANDING_REPORTS_PAGE_SIZE;
         fetchOutstandingReports(resolvedReportOwnerAccountID, outstandingReportsPolicyID, outstandingReportsOffset.current);
     };
+
     const blockDistanceRequestIfNeeded = useBlockDistanceRequest({
         isManualDistanceRequest,
         isOdometerDistanceRequest,
@@ -325,7 +324,7 @@ function IOURequestEditReportCommon({
         return true;
     };
 
-    const handleSelectReport = (item: TransactionGroupListItem) => {
+    const moveExpenseToSelectedReport = async (item: TransactionGroupListItem) => {
         if (item.value === selectedReportID) {
             dismiss();
             return;
@@ -336,13 +335,16 @@ function IOURequestEditReportCommon({
             return;
         }
         const itemPolicy = item.policyID ? allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${item.policyID}`] : undefined;
-        if (
-            item?.policyID &&
-            itemPolicy &&
-            shouldRestrictUserBillableActions(itemPolicy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, currentUserPersonalDetails.accountID)
-        ) {
-            navigateAwayFromReportPicker(ROUTES.RESTRICTED_ACTION.getRoute(item.policyID), onNavigateAway);
-            return;
+        if (item.policyID && itemPolicy) {
+            const [userBillingGracePeriodEnds, ownerBillingGracePeriodEnd, amountOwed] = await Onyx.multiGet([
+                ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END,
+                ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END,
+                ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED,
+            ]);
+            if (shouldRestrictUserBillableActions(itemPolicy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, currentUserPersonalDetails.accountID)) {
+                navigateAwayFromReportPicker(ROUTES.RESTRICTED_ACTION.getRoute(item.policyID), onNavigateAway);
+                return;
+            }
         }
 
         // Reports can only hold up to CONST.REPORT.MAX_TRANSACTIONS transactions. The backend rejects a move that would push
@@ -471,7 +473,7 @@ function IOURequestEditReportCommon({
     const list = (
         <SelectionList
             data={reportOptions}
-            onSelectRow={handleSelectReport}
+            onSelectRow={moveExpenseToSelectedReport}
             titleNumberOfLines={2}
             shouldShowTextInput={isSearchable}
             textInputOptions={{

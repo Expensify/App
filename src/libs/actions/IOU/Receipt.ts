@@ -132,7 +132,7 @@ function detachReceipt({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
             value: {
-                ...(transaction ?? null),
+                receipt: transaction?.receipt ?? null,
                 errors: getMicroSecondOnyxErrorWithTranslationKey('iou.error.receiptDeleteFailureError'),
                 pendingFields: {
                     receipt: null,
@@ -287,7 +287,7 @@ function inheritReportTimestamps(update: AnyOnyxUpdate, supersededRequests: AnyR
     const value = {...update.value};
     const actionsKey = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${key.slice(ONYXKEYS.COLLECTION.REPORT.length)}`;
     // A newer discarded upload may itself have inherited a rollback that preserves an intervening comment.
-    for (const request of supersededRequests.toReversed()) {
+    for (const request of [...supersededRequests].reverse()) {
         // Optimistic updates are not persisted, but the failed receipt-added action retains the timestamp they wrote.
         const addedActionID = getStringField(request, 'reportActionID');
         const actionsValue: unknown = request.failureData?.find((entry) => entry.key === actionsKey)?.value;

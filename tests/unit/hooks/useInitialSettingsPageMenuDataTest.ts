@@ -50,17 +50,15 @@ jest.mock('@userActions/Session', () => ({hasStashedSession: jest.fn(), isSuppor
 describe('Account settings Classic eligibility', () => {
     let tryNewDot: TryNewDot | undefined;
     let isLoadingApp: boolean;
-    let storageStatus: 'loading' | 'loaded';
 
     beforeEach(() => {
         jest.replaceProperty(CONFIG, 'IS_HYBRID_APP', true);
         tryNewDot = undefined;
         isLoadingApp = true;
-        storageStatus = 'loaded';
         jest.mocked(useOnyx).mockImplementation((key) => {
             switch (key) {
                 case ONYXKEYS.NVP_TRY_NEW_DOT:
-                    return [tryNewDot, {status: storageStatus}];
+                    return [tryNewDot, {status: 'loaded'}];
                 case ONYXKEYS.IS_LOADING_APP:
                     return [isLoadingApp, {status: 'loaded'}];
                 default:
@@ -82,8 +80,8 @@ describe('Account settings Classic eligibility', () => {
         return menu.generalMenuItemsData.items.find((item) => item.translationKey === 'exitSurvey.goToExpensifyClassic');
     }
 
-    it('passes unresolved OpenApp loading to the shared check even after storage loads', () => {
-        // Given a missing NVP with storage already loaded while OpenApp is still pending
+    it('passes unresolved OpenApp loading to the shared check', () => {
+        // Given a missing NVP while OpenApp is still pending
         // When Account settings builds its Classic item
         const {result} = renderMenu();
 
@@ -113,17 +111,13 @@ describe('Account settings Classic eligibility', () => {
         expect(closeReactNativeApp).not.toHaveBeenCalled();
     });
 
-    it('shows the eligible nudged item after storage loads and preserves its exit action', () => {
-        // Given an eligible nudged account whose storage subscription is still loading
+    it('shows the eligible nudged item and preserves its exit action', () => {
+        // Given an eligible nudged account after OpenApp has finished loading
         tryNewDot = createMock<TryNewDot>({nudgeMigration: {timestamp: new Date()}});
-        storageStatus = 'loading';
         isLoadingApp = false;
-        const {result, rerender} = renderMenu();
-        expect(findClassicItem(result.current)).toBeUndefined();
+        const {result} = renderMenu();
 
-        // When storage finishes loading and the user selects Classic
-        storageStatus = 'loaded';
-        rerender({});
+        // When the user selects Classic
         const classicItem = findClassicItem(result.current);
         expect(classicItem).toBeDefined();
         classicItem?.action();
@@ -146,10 +140,9 @@ describe('Account settings Classic eligibility', () => {
     });
 
     it('preserves web availability and the existing exit survey action', () => {
-        // Given a nudged web account with a mobile-only lock and loading storage
+        // Given a nudged web account with a mobile-only lock while OpenApp is still loading
         jest.replaceProperty(CONFIG, 'IS_HYBRID_APP', false);
         tryNewDot = createMock<TryNewDot>({nudgeMigration: {timestamp: new Date()}, isLockedToNewApp: true});
-        storageStatus = 'loading';
 
         // When the user selects the web Classic item
         const {result} = renderMenu();
