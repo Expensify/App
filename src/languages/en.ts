@@ -1395,7 +1395,7 @@ const translations = {
         headline: {
             averageExpense: (amount: string) => `${amount} average expense`,
             flaggedExpenses: ({formattedCount}: {count: number; formattedCount: string}) => ({one: `On ${formattedCount} expense`, other: `On ${formattedCount} expenses`}),
-            shareOfExpenses: (percentage: string) => `${percentage} of all expenses`,
+            shareOfExpenses: (percentage: string) => `${percentage} of expenses`,
             timeToSubmit: (time: string) => `${time} to submit`,
             timeToApprove: (time: string) => `${time} to approve`,
             timeToPay: (time: string) => `${time} to pay`,

@@ -1241,7 +1241,7 @@ const translations: TranslationDeepObject<typeof en> = {
         headline: {
             averageExpense: (amount) => `経費1件あたり平均${amount}`,
             flaggedExpenses: ({formattedCount}) => ({one: `${formattedCount}件の経費`, other: `${formattedCount}件の経費`}),
-            shareOfExpenses: (percentage) => `全経費の${percentage}`,
+            shareOfExpenses: (percentage) => `経費の${percentage}`,
             timeToSubmit: (time) => `提出まで${time}`,
             timeToApprove: (time) => `承認まで${time}`,
             timeToPay: (time) => `支払いまで${time}`,

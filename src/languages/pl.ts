@@ -1289,7 +1289,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 many: `W ${formattedCount} wydatkach`,
                 other: `W ${formattedCount} wydatku`,
             }),
-            shareOfExpenses: (percentage) => `${percentage} wszystkich wydatków`,
+            shareOfExpenses: (percentage) => `${percentage} wydatków`,
             timeToSubmit: (time) => `${time} do przesłania`,
             timeToApprove: (time) => `${time} do zatwierdzenia`,
             timeToPay: (time) => `${time} do zapłaty`,

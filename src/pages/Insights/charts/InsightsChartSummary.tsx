@@ -1,10 +1,13 @@
 /** Displays the headline chart's whole-range values and previous-period change. */
+import Icon from '@components/Icon';
 import SkeletonTextLine from '@components/Skeletons/SkeletonTextLine';
 import Text from '@components/Text';
 
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useLayoutSpacing from '@hooks/useLayoutSpacing';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {sanitizeCurrencyCode} from '@libs/CurrencyUtils';
@@ -13,6 +16,7 @@ import DateUtils from '@libs/DateUtils';
 import type {InsightsChartStage} from '@pages/Insights/dashboardSpecs';
 
 import {lineHeightScale} from '@styles/typography';
+import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
 import type {InsightsHeadlineSummary} from '@src/types/onyx/InsightsDashboard';
@@ -42,6 +46,8 @@ function InsightsChartSummary({summary, stages, currency, shouldShowChange}: Ins
     const {translate, numberFormat} = useLocalize();
     const {convertToDisplayString, getCurrencyDecimals} = useCurrencyListActions();
     const styles = useThemeStyles();
+    const theme = useTheme();
+    const icons = useMemoizedLazyExpensifyIcons(['ArrowUpLong', 'ArrowDownLong']);
     const {cardPaddingHorizontal} = useLayoutSpacing();
     const {current, previous} = summary;
     const formatPercent = (value: number, maximumFractionDigits = 0) => numberFormat(value, {style: 'percent', maximumFractionDigits});
@@ -55,21 +61,23 @@ function InsightsChartSummary({summary, stages, currency, shouldShowChange}: Ins
         value = current.total;
         previousValue = previous && 'total' in previous ? previous.total : undefined;
         headline = convertToDisplayString(value, currency);
-        const currencyCode = sanitizeCurrencyCode(currency);
-        const decimals = getCurrencyDecimals(currencyCode);
-        const averageExpense = numberFormat(current.total / current.expenseCount / 100, {
-            style: 'currency',
-            currency: currencyCode,
-            minimumFractionDigits: decimals,
-            maximumFractionDigits: decimals,
-        });
         breakdown = [
             translate('iou.expenseCount', {
                 count: current.expenseCount,
                 formattedCount: numberFormat(current.expenseCount),
             }),
-            translate('insightsPage.headline.averageExpense', averageExpense),
         ];
+        if (current.expenseCount > 0) {
+            const currencyCode = sanitizeCurrencyCode(currency);
+            const decimals = getCurrencyDecimals(currencyCode);
+            const averageExpense = numberFormat(current.total / current.expenseCount / 100, {
+                style: 'currency',
+                currency: currencyCode,
+                minimumFractionDigits: decimals,
+                maximumFractionDigits: decimals,
+            });
+            breakdown.push(translate('insightsPage.headline.averageExpense', averageExpense));
+        }
     } else if ('violations' in current) {
         value = current.violations;
         previousValue = previous && 'violations' in previous ? previous.violations : undefined;
@@ -113,28 +121,44 @@ function InsightsChartSummary({summary, stages, currency, shouldShowChange}: Ins
         }
     }
 
+    const isIncrease = difference > 0;
+    const changeColor = isIncrease ? theme.textError : theme.textSuccess;
     return (
         <View style={[cardPaddingHorizontal, styles.mb3]}>
             <View style={[styles.flexRow, styles.flexWrap, styles.alignItemsCenter, styles.gap2]}>
                 <Text variant="h1">{headline}</Text>
                 {!!change && (
-                    <Text
-                        variant="label"
-                        style={difference > 0 ? styles.textLabelError : styles.textSuccess}
+                    <View
+                        style={[styles.flexRow, styles.alignItemsCenter, styles.gap1, styles.flexShrink1]}
+                        role="group"
+                        accessible
                         accessibilityLabel={translate(
                             'insightsPage.headline.vsPreviousPeriod',
-                            translate(difference > 0 ? 'insightsPage.compare.increase' : 'insightsPage.compare.decrease', change),
+                            translate(isIncrease ? 'insightsPage.compare.increase' : 'insightsPage.compare.decrease', change),
                         )}
                     >
-                        {translate('insightsPage.headline.vsPreviousPeriod', `${difference > 0 ? '↑' : '↓'} ${change}`)}
-                    </Text>
+                        <Icon
+                            src={isIncrease ? icons.ArrowUpLong : icons.ArrowDownLong}
+                            fill={changeColor}
+                            width={variables.iconSizeXXSmall}
+                            height={variables.iconSizeXXSmall}
+                        />
+                        <Text
+                            variant="label"
+                            color={changeColor}
+                            style={styles.flexShrink1}
+                            aria-hidden
+                        >
+                            {translate('insightsPage.headline.vsPreviousPeriod', change)}
+                        </Text>
+                    </View>
                 )}
             </View>
             <Text
                 variant="label"
                 style={styles.textSupporting}
             >
-                {breakdown.join(' · ')}
+                {breakdown.join(' • ')}
             </Text>
         </View>
     );

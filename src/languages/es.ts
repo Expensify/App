@@ -1247,7 +1247,7 @@ const translations: TranslationDeepObject<typeof en> = {
         headline: {
             averageExpense: (amount) => `${amount} de media por gasto`,
             flaggedExpenses: ({formattedCount}) => ({one: `En ${formattedCount} gasto`, other: `En ${formattedCount} gastos`}),
-            shareOfExpenses: (percentage) => `${percentage} de todos los gastos`,
+            shareOfExpenses: (percentage) => `${percentage} de los gastos`,
             timeToSubmit: (time) => `${time} para enviar`,
             timeToApprove: (time) => `${time} para aprobar`,
             timeToPay: (time) => `${time} para pagar`,

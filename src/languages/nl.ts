@@ -1252,7 +1252,7 @@ const translations: TranslationDeepObject<typeof en> = {
         headline: {
             averageExpense: (amount) => `Gemiddeld ${amount} per uitgave`,
             flaggedExpenses: ({formattedCount}) => ({one: `Bij ${formattedCount} uitgave`, other: `Bij ${formattedCount} uitgaven`}),
-            shareOfExpenses: (percentage) => `${percentage} van alle uitgaven`,
+            shareOfExpenses: (percentage) => `${percentage} van de uitgaven`,
             timeToSubmit: (time) => `${time} tot indiening`,
             timeToApprove: (time) => `${time} tot goedkeuring`,
             timeToPay: (time) => `${time} tot betaling`,

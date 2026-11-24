@@ -1211,7 +1211,7 @@ const translations: TranslationDeepObject<typeof en> = {
         headline: {
             averageExpense: (amount) => `每笔费用平均 ${amount}`,
             flaggedExpenses: ({formattedCount}) => ({one: `涉及 ${formattedCount} 笔费用`, other: `涉及 ${formattedCount} 笔费用`}),
-            shareOfExpenses: (percentage) => `占所有费用的 ${percentage}`,
+            shareOfExpenses: (percentage) => `占费用的 ${percentage}`,
             timeToSubmit: (time) => `提交用时 ${time}`,
             timeToApprove: (time) => `审批用时 ${time}`,
             timeToPay: (time) => `付款用时 ${time}`,
