@@ -14,7 +14,7 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {clearPolicyErrorField} from '@libs/actions/Policy/Policy';
-import {setPolicyTravelSettings} from '@libs/actions/Policy/Travel';
+import {setPolicyTravelAutoEnableNewMembers, setPolicyTravelSettings} from '@libs/actions/Policy/Travel';
 import {openTravelDotLink} from '@libs/openTravelDotLink';
 import {canMemberRead} from '@libs/PolicyUtils';
 
@@ -27,6 +27,7 @@ import CONST from '@src/CONST';
 import React from 'react';
 import {View} from 'react-native';
 
+import TravelManageMembersRow from './TravelManageMembersRow';
 import WorkspaceTravelBillingSection from './WorkspaceTravelBillingSection';
 
 type BookOrManageYourTripProps = {
@@ -50,6 +51,7 @@ function BookOrManageYourTrip({policyID}: BookOrManageYourTripProps) {
     const canReadMoreFeatures = canMemberRead(policy, currentUserLogin, CONST.POLICY.POLICY_FEATURE.MORE_FEATURES);
     const blockIfDefaultWorkspaceLacksTravel = useDefaultWorkspaceTravelGuard();
     const isPreventSpotnanaTravelEnabled = isBetaEnabled(CONST.BETAS.PREVENT_SPOTNANA_TRAVEL);
+    const isTravelMemberAccessBetaEnabled = isBetaEnabled(CONST.BETAS.TRAVEL_MEMBER_ACCESS);
 
     const autoAddTripName = policy?.travelSettings?.autoAddTripName !== false;
 
@@ -63,6 +65,13 @@ function BookOrManageYourTrip({policyID}: BookOrManageYourTripProps) {
 
     const toggleCodingSync = (enabled: boolean) => {
         setPolicyTravelSettings(policy, {isCodingSyncEnabled: enabled});
+    };
+
+    // Members join able to book travel unless an admin turned this off, so a missing setting reads as on
+    const autoEnableNewMembers = policy?.travelSettings?.autoEnableNewMembers ?? true;
+
+    const toggleAutoEnableNewMembers = (enabled: boolean) => {
+        setPolicyTravelAutoEnableNewMembers(policy, enabled);
     };
 
     const handleManageTravel = () => {
@@ -150,6 +159,32 @@ function BookOrManageYourTrip({policyID}: BookOrManageYourTripProps) {
                         onCloseError={() => clearPolicyErrorField(policyID, 'isCodingSyncEnabled')}
                         wrapperStyle={styles.mt3}
                     />
+                )}
+                {isTravelMemberAccessBetaEnabled && (
+                    <>
+                        <ToggleSettingOptionRow
+                            title={translate('workspace.moreFeatures.travel.settings.autoEnableNewMembers.title')}
+                            subtitle={translate('workspace.moreFeatures.travel.settings.autoEnableNewMembers.subtitle')}
+                            shouldPlaceSubtitleBelowSwitch
+                            switchAccessibilityLabel={translate('workspace.moreFeatures.travel.settings.autoEnableNewMembers.title')}
+                            switchSentryLabel={CONST.SENTRY_LABEL.WORKSPACE.TRAVEL.AUTO_ENABLE_NEW_MEMBERS_SWITCH}
+                            isActive={autoEnableNewMembers}
+                            onToggle={toggleAutoEnableNewMembers}
+                            disabled={!canWriteTravel}
+                            disabledAction={withTravelReadOnlyFallback()}
+                            showLockIcon={!canWriteTravel}
+                            pendingAction={policy?.pendingFields?.autoEnableNewMembers}
+                            errors={policy?.errorFields?.autoEnableNewMembers ?? undefined}
+                            onCloseError={() => clearPolicyErrorField(policyID, 'autoEnableNewMembers')}
+                            wrapperStyle={styles.mt3}
+                        />
+                        <View style={styles.mt3}>
+                            <TravelManageMembersRow
+                                policy={policy}
+                                policyID={policyID}
+                            />
+                        </View>
+                    </>
                 )}
             </Section>
             {canReadMoreFeatures && <WorkspaceTravelBillingSection policyID={policyID} />}

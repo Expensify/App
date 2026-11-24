@@ -7267,6 +7267,10 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
                         title: 'コーディングを Expensify Travel と同期する',
                         subtitle: 'このワークスペースのカテゴリ、タグ、レポートフィールドを Expensify Travel にプッシュして、出張者が予約時にそれらに回答できるようにします。',
                     },
+                    autoEnableNewMembers: {
+                        title: '新しいメンバーの出張を自動でオンにする',
+                        subtitle: 'このワークスペースに参加したメンバーはすぐに出張を予約できます。',
+                    },
                 },
                 members: {
                     offDescription: '出張を予約できません',
@@ -7275,6 +7279,8 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
                     changeTravelAccess: '出張へのアクセスを変更',
                     turnOnTravel: '出張をオンにする',
                     turnOffTravel: '出張をオフにする',
+                    manageMembers: 'メンバーを管理',
+                    membersWithTravelAccess: ({enabledCount, totalCount}: {enabledCount: number; totalCount: number}) => `出張を予約できるメンバー: ${totalCount}人中${enabledCount}人`,
                 },
                 travelBilling: {
                     travelBookingSection: {
@@ -10885,6 +10891,7 @@ ${reportName}`,
                 : `${member} さんの承認ワークフローを変更し、${previousLimit} を超えるレポートを転送しないようにしました`,
         changedApprovalLimit: ({member, limit, previousLimit}: {member: string; limit: string; previousLimit: string}) =>
             `${member} さんの承認ワークフローを、${limit} を超えるレポートを転送するように変更しました（以前は ${previousLimit}）。`,
+        updatedTravelAutoEnableNewMembers: ({enabled}: {enabled: boolean}) => (enabled ? '新しいメンバーの出張予約をオンにしました' : '新しいメンバーの出張予約をオフにしました'),
         updatedMemberTravelAccess: ({displayName, canUseTravel}: {displayName: string; canUseTravel: boolean}) =>
             canUseTravel ? `${displayName}さんの出張予約をオンにしました` : `${displayName}さんの出張予約をオフにしました`,
         setUpTravelMemberAccess: ({memberNames}: {memberNames: string}) => `${memberNames}の出張予約をオフにしました`,

@@ -7532,6 +7532,10 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
                         subtitle:
                             'Σπρώξτε τις κατηγορίες, τις ετικέτες και τα πεδία αναφοράς αυτού του χώρου εργασίας στο Expensify Travel, ώστε οι ταξιδιώτες να τα απαντούν κατά την ώρα της κράτησης.',
                     },
+                    autoEnableNewMembers: {
+                        title: 'Αυτόματη ενεργοποίηση ταξιδιών για νέα μέλη',
+                        subtitle: 'Όποιος συμμετέχει σε αυτόν τον χώρο εργασίας μπορεί να κλείνει ταξίδια αμέσως.',
+                    },
                 },
                 members: {
                     offDescription: 'Δεν μπορεί να κάνει κρατήσεις ταξιδιών',
@@ -7540,6 +7544,8 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
                     changeTravelAccess: 'Αλλαγή πρόσβασης σε ταξίδια',
                     turnOnTravel: 'Ενεργοποίηση ταξιδιών',
                     turnOffTravel: 'Απενεργοποίηση ταξιδιών',
+                    manageMembers: 'Διαχείριση μελών',
+                    membersWithTravelAccess: ({enabledCount, totalCount}: {enabledCount: number; totalCount: number}) => `Μπορούν να κλείνουν ταξίδια: ${enabledCount} από ${totalCount}`,
                 },
                 travelBilling: {
                     travelBookingSection: {
@@ -11297,6 +11303,8 @@ ${reportName}`,
                 : `άλλαξε τη ροή έγκρισης για τον/την ${member} ώστε να σταματήσει η προώθηση αναφορών πάνω από ${previousLimit}`,
         changedApprovalLimit: ({member, limit, previousLimit}: {member: string; limit: string; previousLimit: string}) =>
             `άλλαξε τη ροή έγκρισης για τον/την ${member} ώστε να προωθεί αναφορές πάνω από ${limit} (προηγουμένως ${previousLimit})`,
+        updatedTravelAutoEnableNewMembers: ({enabled}: {enabled: boolean}) =>
+            enabled ? 'ενεργοποίησε τις κρατήσεις ταξιδιών για νέα μέλη' : 'απενεργοποίησε τις κρατήσεις ταξιδιών για νέα μέλη',
         updatedMemberTravelAccess: ({displayName, canUseTravel}: {displayName: string; canUseTravel: boolean}) =>
             canUseTravel ? `ενεργοποίησε τις κρατήσεις ταξιδιών για τον/την ${displayName}` : `απενεργοποίησε τις κρατήσεις ταξιδιών για τον/την ${displayName}`,
         setUpTravelMemberAccess: ({memberNames}: {memberNames: string}) => `απενεργοποίησε τις κρατήσεις ταξιδιών για ${memberNames}`,

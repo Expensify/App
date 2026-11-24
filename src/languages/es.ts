@@ -7352,6 +7352,10 @@ ${amount} para ${merchant} - ${date}`,
                         subtitle:
                             'Envía las categorías, etiquetas y campos de informe de este espacio de trabajo a Expensify Travel para que los viajeros los completen en el momento de la reserva.',
                     },
+                    autoEnableNewMembers: {
+                        title: 'Activar los viajes automáticamente para los nuevos miembros',
+                        subtitle: 'Cualquier persona que se una a este espacio de trabajo puede reservar viajes de inmediato.',
+                    },
                 },
                 members: {
                     offDescription: 'No puede reservar viajes',
@@ -7360,6 +7364,8 @@ ${amount} para ${merchant} - ${date}`,
                     changeTravelAccess: 'Cambiar acceso a viajes',
                     turnOnTravel: 'Activar viajes',
                     turnOffTravel: 'Desactivar viajes',
+                    manageMembers: 'Gestionar miembros',
+                    membersWithTravelAccess: ({enabledCount, totalCount}: {enabledCount: number; totalCount: number}) => `Pueden reservar viajes: ${enabledCount} de ${totalCount}`,
                 },
                 travelBilling: {
                     travelBookingSection: {
@@ -11010,6 +11016,8 @@ ${reportName}`,
                 : `cambió el flujo de aprobación para ${member} para dejar de reenviar informes por encima de ${previousLimit}`,
         changedApprovalLimit: ({member, limit, previousLimit}: {member: string; limit: string; previousLimit: string}) =>
             `cambió el flujo de aprobación para ${member} para reenviar los informes superiores a ${limit} (previamente ${previousLimit})`,
+        updatedTravelAutoEnableNewMembers: ({enabled}: {enabled: boolean}) =>
+            enabled ? 'activó la reserva de viajes para los nuevos miembros' : 'desactivó la reserva de viajes para los nuevos miembros',
         updatedMemberTravelAccess: ({displayName, canUseTravel}: {displayName: string; canUseTravel: boolean}) =>
             canUseTravel ? `activó la reserva de viajes para ${displayName}` : `desactivó la reserva de viajes para ${displayName}`,
         setUpTravelMemberAccess: ({memberNames}: {memberNames: string}) => `desactivó la reserva de viajes para ${memberNames}`,

@@ -2950,6 +2950,8 @@ const SENTRY_LABEL = {
             GET_STARTED_BUTTON: 'WorkspaceTravel-GetStartedButton',
             AUTO_ADD_TRIP_NAME_SWITCH: 'WorkspaceTravel-AutoAddTripNameSwitch',
             CODING_SYNC_SWITCH: 'WorkspaceTravel-CodingSyncSwitch',
+            AUTO_ENABLE_NEW_MEMBERS_SWITCH: 'WorkspaceTravel-AutoEnableNewMembersSwitch',
+            MANAGE_MEMBERS_BUTTON: 'WorkspaceTravel-ManageMembersButton',
             TRAVEL_BILLING_SWITCH: 'WorkspaceTravel-TravelBillingSwitch',
             BILLING_LEARN_HOW_LINK: 'WorkspaceTravel-BillingLearnHowLink',
         },

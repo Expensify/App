@@ -32,6 +32,9 @@ type WorkspaceTravelSettings = {
 
     /** Legal entity tax ID, collected during Travel enablement on non-USD workspaces so Solutions can provision a DK number */
     taxID?: string;
+
+    /** False when members who join the workspace start with travel turned off. Absent means they can book travel. */
+    autoEnableNewMembers?: boolean;
 };
 
 export type {TravelSettings, WorkspaceTravelSettings};

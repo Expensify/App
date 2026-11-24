@@ -80,6 +80,7 @@ import {
     getUpdatedCommuterExclusionsMessage,
     getUpdatedMemberWorkArrangementMessage,
     getTravelSetupMemberAccessMessage,
+    getUpdatedTravelAutoEnableNewMembersMessage,
     getUpdatedMemberTravelAccessMessage,
     getUpdatedCardFeedLiabilityMessage,
     getUpdatedCardFeedReimbursableMessage,
@@ -6345,6 +6346,30 @@ describe('ReportActionsUtils', () => {
             // When the message is built
             // Then it falls back to the text the server sent
             expect(getTravelSetupMemberAccessMessage(translateLocal, action)).toBe(ReportActionsUtils.getReportActionText(action));
+        });
+    });
+
+    describe('getUpdatedTravelAutoEnableNewMembersMessage', () => {
+        const buildAction = (originalMessage: Record<string, unknown>) =>
+            ({
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_TRAVEL_AUTO_ENABLE_NEW_MEMBERS,
+                reportActionID: '1',
+                created: '',
+                originalMessage,
+                message: [{type: CONST.REPORT.MESSAGE.TYPE.COMMENT, text: 'fallback message', html: 'fallback message'}],
+            }) as ReportAction;
+
+        it('says whether new members can book travel, and falls back to the server text for a malformed message', () => {
+            // Given the setting turned off, turned back on, and a log whose new value isn't a boolean
+            const turnedOff = buildAction({newValue: false, oldValue: true});
+            const turnedOn = buildAction({newValue: true, oldValue: false});
+            const malformed = buildAction({newValue: 'on'});
+
+            // When the messages are built
+            // Then each says whether travel booking is on for new members, and the malformed one keeps the text the server sent
+            expect(getUpdatedTravelAutoEnableNewMembersMessage(translateLocal, turnedOff)).toBe(translateLocal('workspaceActions.updatedTravelAutoEnableNewMembers', {enabled: false}));
+            expect(getUpdatedTravelAutoEnableNewMembersMessage(translateLocal, turnedOn)).toBe(translateLocal('workspaceActions.updatedTravelAutoEnableNewMembers', {enabled: true}));
+            expect(getUpdatedTravelAutoEnableNewMembersMessage(translateLocal, malformed)).toBe(ReportActionsUtils.getReportActionText(malformed));
         });
     });
 

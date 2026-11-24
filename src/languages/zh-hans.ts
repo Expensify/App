@@ -7101,6 +7101,10 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                 settings: {
                     autoAddTripName: {title: '将行程名称添加到报销单', subtitle: '为在 Expensify 中预订的行程，自动将行程名称添加到报销事由描述中。'},
                     codingSync: {title: '将编码同步到 Expensify Travel', subtitle: '将此工作区的类别、标签和报表字段推送到 Expensify Travel，以便出行人能在预订时填写。'},
+                    autoEnableNewMembers: {
+                        title: '自动为新成员开启差旅',
+                        subtitle: '加入此工作区的任何人都可以立即预订差旅。',
+                    },
                 },
                 members: {
                     offDescription: '无法预订差旅',
@@ -7109,6 +7113,8 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                     changeTravelAccess: '更改差旅权限',
                     turnOnTravel: '开启差旅',
                     turnOffTravel: '关闭差旅',
+                    manageMembers: '管理成员',
+                    membersWithTravelAccess: ({enabledCount, totalCount}: {enabledCount: number; totalCount: number}) => `可预订差旅：${enabledCount}/${totalCount}`,
                 },
                 travelBilling: {
                     travelBookingSection: {
@@ -10613,6 +10619,7 @@ ${reportName}`,
                 : `已更改 ${member} 的审批流程，停止转发超过 ${previousLimit} 的报销报告`,
         changedApprovalLimit: ({member, limit, previousLimit}: {member: string; limit: string; previousLimit: string}) =>
             `已将 ${member} 的审批流程更改为：转交超过 ${limit} 的报销单（之前为 ${previousLimit}）`,
+        updatedTravelAutoEnableNewMembers: ({enabled}: {enabled: boolean}) => (enabled ? '已为新成员开启差旅预订' : '已为新成员关闭差旅预订'),
         updatedMemberTravelAccess: ({displayName, canUseTravel}: {displayName: string; canUseTravel: boolean}) =>
             canUseTravel ? `已为 ${displayName} 开启差旅预订` : `已为 ${displayName} 关闭差旅预订`,
         setUpTravelMemberAccess: ({memberNames}: {memberNames: string}) => `已为 ${memberNames} 关闭差旅预订`,

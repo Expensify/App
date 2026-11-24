@@ -7436,6 +7436,10 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
                         subtitle:
                             'Envoyez les catégories, tags et champs de note de frais de cet espace de travail vers Expensify Travel pour que les voyageurs y répondent au moment de la réservation.',
                     },
+                    autoEnableNewMembers: {
+                        title: 'Activer automatiquement les voyages pour les nouveaux membres',
+                        subtitle: 'Toute personne qui rejoint cet espace de travail peut réserver des voyages immédiatement.',
+                    },
                 },
                 members: {
                     offDescription: 'Ne peut pas réserver de voyages',
@@ -7444,6 +7448,8 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
                     changeTravelAccess: "Modifier l'accès aux voyages",
                     turnOnTravel: 'Activer les voyages',
                     turnOffTravel: 'Désactiver les voyages',
+                    manageMembers: 'Gérer les membres',
+                    membersWithTravelAccess: ({enabledCount, totalCount}: {enabledCount: number; totalCount: number}) => `Peuvent réserver des voyages : ${enabledCount} sur ${totalCount}`,
                 },
                 travelBilling: {
                     travelBookingSection: {
@@ -11150,6 +11156,8 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                 : `a modifié le flux d'approbation pour ${member} afin d'arrêter de transférer les notes de frais au-delà de ${previousLimit}`,
         changedApprovalLimit: ({member, limit, previousLimit}: {member: string; limit: string; previousLimit: string}) =>
             `a modifié le circuit d’approbation pour ${member} afin de transférer les notes de frais supérieures à ${limit} (auparavant ${previousLimit})`,
+        updatedTravelAutoEnableNewMembers: ({enabled}: {enabled: boolean}) =>
+            enabled ? 'a activé la réservation de voyages pour les nouveaux membres' : 'a désactivé la réservation de voyages pour les nouveaux membres',
         updatedMemberTravelAccess: ({displayName, canUseTravel}: {displayName: string; canUseTravel: boolean}) =>
             canUseTravel ? `a activé la réservation de voyages pour ${displayName}` : `a désactivé la réservation de voyages pour ${displayName}`,
         setUpTravelMemberAccess: ({memberNames}: {memberNames: string}) => `a désactivé la réservation de voyages pour ${memberNames}`,

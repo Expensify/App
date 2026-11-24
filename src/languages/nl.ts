@@ -7360,6 +7360,10 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
                         title: 'Synchroniseer codering met Expensify Travel',
                         subtitle: 'Push de categorieën, tags en rapportvelden van deze workspace naar Expensify Travel zodat reizigers ze bij het boeken invullen.',
                     },
+                    autoEnableNewMembers: {
+                        title: 'Reizen automatisch aanzetten voor nieuwe leden',
+                        subtitle: 'Iedereen die lid wordt van deze workspace kan meteen reizen boeken.',
+                    },
                 },
                 members: {
                     offDescription: 'Kan geen reizen boeken',
@@ -7368,6 +7372,8 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
                     changeTravelAccess: 'Reistoegang wijzigen',
                     turnOnTravel: 'Reizen inschakelen',
                     turnOffTravel: 'Reizen uitschakelen',
+                    manageMembers: 'Leden beheren',
+                    membersWithTravelAccess: ({enabledCount, totalCount}: {enabledCount: number; totalCount: number}) => `Kunnen reizen boeken: ${enabledCount} van ${totalCount}`,
                 },
                 travelBilling: {
                     travelBookingSection: {
@@ -11036,6 +11042,8 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
                 : `heeft de goedkeuringsworkflow voor ${member} gewijzigd zodat rapporten boven ${previousLimit} niet meer worden doorgestuurd`,
         changedApprovalLimit: ({member, limit, previousLimit}: {member: string; limit: string; previousLimit: string}) =>
             `heeft de goedkeuringsworkflow voor ${member} gewijzigd om rapporten boven ${limit} door te sturen (voorheen ${previousLimit})`,
+        updatedTravelAutoEnableNewMembers: ({enabled}: {enabled: boolean}) =>
+            enabled ? 'heeft reizen boeken ingeschakeld voor nieuwe leden' : 'heeft reizen boeken uitgeschakeld voor nieuwe leden',
         updatedMemberTravelAccess: ({displayName, canUseTravel}: {displayName: string; canUseTravel: boolean}) =>
             canUseTravel ? `heeft reizen boeken ingeschakeld voor ${displayName}` : `heeft reizen boeken uitgeschakeld voor ${displayName}`,
         setUpTravelMemberAccess: ({memberNames}: {memberNames: string}) => `heeft reizen boeken uitgeschakeld voor ${memberNames}`,
