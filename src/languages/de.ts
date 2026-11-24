@@ -2353,6 +2353,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 }
                 return `Warten, bis die stornierte Zahlung vollständig verarbeitet ist${formattedETA}.`;
             },
+            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_PAYMENT_REVIEW]: (params: ReportNextStepMessageParams) => `Zahlung ausgesetzt, warten Sie auf eine weitere Aktualisierung.`,
             [CONST.NEXT_STEP.MESSAGE_KEY.SUBMITTING_TO_SELF]: (params: ReportNextStepMessageParams) =>
                 `Ups! Sie scheinen diesen Bericht bei <strong>sich selbst</strong> einzureichen. Die Genehmigung eigener Berichte ist in Ihrem Arbeitsbereich <strong>verboten</strong>. Bitte reichen Sie diesen Bericht bei einer anderen Person ein oder kontaktieren Sie Ihre Admin, um die Person zu ändern, an die Sie Berichte einreichen.`,
             [CONST.NEXT_STEP.MESSAGE_KEY.REJECTED_REPORT]: ({actor, actorType}: ReportNextStepMessageParams) => {
@@ -2585,6 +2586,8 @@ const translations: TranslationDeepObject<typeof en> = {
             leftHandNavCache: 'Cache der linken Navigation',
             clearleftHandNavCache: 'Löschen',
             softKillTheApp: 'App sanft beenden',
+            testBusinessBankAccount: 'USD-Geschäftsbankkonto testen',
+            testPersonalBankAccount: 'USD-Privatbankkonto testen',
             kill: 'Töten',
             sentryDebug: 'Sentry-Debug',
             sentrySendDescription: 'Daten an Sentry senden',
@@ -2592,6 +2595,7 @@ const translations: TranslationDeepObject<typeof en> = {
             sentryHighlightedSpanOps: 'Hervorgehobene Spannen-Namen',
             sentryHighlightedSpanOpsPlaceholder: 'ui.interaktion.klick, navigation, ui.laden',
             showBranchNameInTitle: 'Branch-Namen im Browser-Titel anzeigen',
+            hideEnvironmentBadge: 'Umgebungsabzeichen ausblenden',
             betaOverrides: 'Beta-Überschreibungen',
             betaOverridesDescription:
                 'Überschreibungen gelten nur für dieses Gerät und wirken sich nur auf Frontend-Prüfungen aus. Eine Beta behält eine Überschreibung nur so lange, wie sie von den Betas Ihres Kontos abweicht; schalten Sie sie zurück, wird die Überschreibung entfernt. „Alle Überschreibungen zurücksetzen“ stellt die Werte Ihres Kontos wieder her. Einige Betas werden zusätzlich vom Backend gesteuert und können daher weiterhin auf Anfrageebene fehlschlagen.',
@@ -5384,6 +5388,10 @@ ${amount} für ${merchant} – ${date}`,
             railTicketExchange: (origin: string, destination: string, startDate: string) => `Ihr Bahnticket für ${origin} → ${destination} am ${startDate} wurde umgetauscht.`,
             railTicketUpdate: (origin: string, destination: string, startDate: string) => `Dein Zugticket von ${origin} nach ${destination} am ${startDate} wurde aktualisiert.`,
             defaultUpdate: (type: string) => `Ihre ${type}-Reservierung wurde aktualisiert.`,
+            hotelBooked: (hotelName: string, startDate: string) => `Ihre Hotelreservierung im ${hotelName} (Check-in ${startDate}) wurde gebucht.`,
+            carBooked: (vendor: string, startDate: string) => `Ihre ${vendor} Mietwagenbuchung (Abholung am ${startDate}) wurde vorgenommen.`,
+            railTicketBooked: (origin: string, destination: string, startDate: string) => `Ihr Bahnticket für ${origin} → ${destination} am ${startDate} wurde gebucht.`,
+            defaultBooked: (type: string) => `Ihre ${type}-Reservierung wurde gebucht.`,
         },
         flightTo: 'Flug nach',
         trainTo: 'Zug nach',
@@ -5648,6 +5656,9 @@ ${amount} für ${merchant} – ${date}`,
             },
             chatgpt: {
                 title: 'ChatGPT',
+            },
+            grok: {
+                title: 'Grok',
             },
         },
         connections: {
@@ -11663,7 +11674,9 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
                     mentionedAccountID?: number;
                 }) => {
                     let warningTime = 'bald';
-                    if (warningDaysBeforeExpiry === CONST.COMPANY_CARDS.CONSENT_EXPIRY_WARNING_DAYS.TWO_WEEKS) {
+                    if (warningDaysBeforeExpiry === CONST.COMPANY_CARDS.CONSENT_EXPIRY_WARNING_DAYS.ONE_MONTH) {
+                        warningTime = 'in einem Monat';
+                    } else if (warningDaysBeforeExpiry === CONST.COMPANY_CARDS.CONSENT_EXPIRY_WARNING_DAYS.TWO_WEEKS) {
                         warningTime = 'in zwei Wochen';
                     } else if (warningDaysBeforeExpiry === CONST.COMPANY_CARDS.CONSENT_EXPIRY_WARNING_DAYS.ONE_WEEK) {
                         warningTime = 'in einer Woche';
@@ -11759,7 +11772,8 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
                 reimbursementRefundedWithoutBankAccount: 'Gelder wurden zurückgebucht. Sie können die Zahlung erneut versuchen.',
                 reimbursementHeld:
                     'Zahlung zurückgestellt, während unser Partner eine Prüfung abschließt. Warten Sie auf ein weiteres Update. Chatten Sie mit <concierge-link>Concierge</concierge-link>.',
-                reimbursementReleased: 'Die Prüfung ist abgeschlossen und Ihre Zahlung ist unterwegs. Der endgültige FX-Kurs kann den Betrag noch ändern.',
+                reimbursementReleased: ({expectedDate}: {expectedDate: string}) => `Zahlung freigegeben, die Gelder werden voraussichtlich bis zum ${expectedDate} eingehen.`,
+                reimbursementReleasedWithoutDate: 'Zahlung freigegeben.',
             },
             error: {
                 invalidCredentials: 'Ungültige Anmeldedaten, bitte überprüfen Sie die Konfiguration Ihrer Verbindung.',

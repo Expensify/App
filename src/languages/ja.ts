@@ -2327,6 +2327,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 }
                 return `キャンセルされた支払いの処理が完了するまでお待ちください${formattedETA}。`;
             },
+            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_PAYMENT_REVIEW]: (params: ReportNextStepMessageParams) => `支払いを保留しています。続報をお待ちください。`,
             [CONST.NEXT_STEP.MESSAGE_KEY.SUBMITTING_TO_SELF]: (params: ReportNextStepMessageParams) =>
                 `おっと！ <strong>ご自身</strong>に提出しようとしているようです。ご自身のレポートを承認することは、ワークスペースによって<strong>禁止</strong>されています。別の相手にこのレポートを提出するか、提出先を変更してもらうよう管理者に連絡してください。`,
             [CONST.NEXT_STEP.MESSAGE_KEY.REJECTED_REPORT]: ({actor, actorType}: ReportNextStepMessageParams) => {
@@ -2558,6 +2559,8 @@ const translations: TranslationDeepObject<typeof en> = {
             leftHandNavCache: '左側ナビキャッシュ',
             clearleftHandNavCache: 'クリア',
             softKillTheApp: 'アプリをソフトキルする',
+            testBusinessBankAccount: 'USD ビジネス銀行口座をテスト',
+            testPersonalBankAccount: 'テスト用 USD 個人口座',
             kill: '終了',
             sentryDebug: 'Sentry デバッグ',
             sentrySendDescription: 'Sentry にデータを送信',
@@ -2565,6 +2568,7 @@ const translations: TranslationDeepObject<typeof en> = {
             sentryHighlightedSpanOps: '強調表示されたスパン名',
             sentryHighlightedSpanOpsPlaceholder: 'ui.interaction.click、ナビゲーション、ui.load',
             showBranchNameInTitle: 'ブラウザのタイトルにブランチ名を表示',
+            hideEnvironmentBadge: '環境バッジを非表示',
             betaOverrides: 'ベータのオーバーライド',
             betaOverridesDescription:
                 'オーバーライドはこの端末にのみ適用され、フロントエンドのチェックにのみ影響します。ベータはアカウントのベータと異なる間だけオーバーライドを保持するため、元に戻すとオーバーライドは削除されます。「すべてのオーバーライドをリセット」はアカウントの値に戻します。一部のベータはバックエンドでも制御されているため、リクエストレベルで失敗する場合があります。',
@@ -5304,6 +5308,10 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
             railTicketExchange: (origin: string, destination: string, startDate: string) => `${startDate}の${origin}発${destination}行きの鉄道チケットは交換されました。`,
             railTicketUpdate: (origin: string, destination: string, startDate: string) => `${startDate} の ${origin} → ${destination} 行きの鉄道チケットが更新されました。`,
             defaultUpdate: (type: string) => `${type}の予約が更新されました。`,
+            hotelBooked: (hotelName: string, startDate: string) => `${hotelName} のホテル予約（チェックイン ${startDate}）が完了しました。`,
+            carBooked: (vendor: string, startDate: string) => `${vendor}のレンタカー（${startDate}の受け取り）が予約されました。`,
+            railTicketBooked: (origin: string, destination: string, startDate: string) => `${startDate} の ${origin} → ${destination} 行きの鉄道チケットが予約されました。`,
+            defaultBooked: (type: string) => `${type}の予約が完了しました。`,
         },
         flightTo: '行きのフライト',
         trainTo: '方面行き',
@@ -5567,6 +5575,9 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
             },
             chatgpt: {
                 title: 'ChatGPT',
+            },
+            grok: {
+                title: 'Grok',
             },
         },
         connections: {
@@ -11419,7 +11430,9 @@ ${reportName}`,
                     mentionedAccountID?: number;
                 }) => {
                     let warningTime = 'まもなく';
-                    if (warningDaysBeforeExpiry === CONST.COMPANY_CARDS.CONSENT_EXPIRY_WARNING_DAYS.TWO_WEEKS) {
+                    if (warningDaysBeforeExpiry === CONST.COMPANY_CARDS.CONSENT_EXPIRY_WARNING_DAYS.ONE_MONTH) {
+                        warningTime = '1か月後';
+                    } else if (warningDaysBeforeExpiry === CONST.COMPANY_CARDS.CONSENT_EXPIRY_WARNING_DAYS.TWO_WEEKS) {
                         warningTime = '2週間後';
                     } else if (warningDaysBeforeExpiry === CONST.COMPANY_CARDS.CONSENT_EXPIRY_WARNING_DAYS.ONE_WEEK) {
                         warningTime = '1週間後';
@@ -11514,7 +11527,8 @@ ${reportName}`,
                 reimbursementRefundedWithoutBankAccount: '資金は返金されました。支払いを再試行できます。',
                 reimbursementHeld:
                     'パートナーによる審査が完了するまで支払いを保留しています。続報をお待ちください。<concierge-link>Concierge</concierge-link>にチャットでお問い合わせください。',
-                reimbursementReleased: '審査が完了し、お支払いは送金手続き中です。最終的な為替レートにより金額が変わる場合があります。',
+                reimbursementReleased: ({expectedDate}: {expectedDate: string}) => `支払いは送金されました。資金は${expectedDate}までに到着する見込みです。`,
+                reimbursementReleasedWithoutDate: '支払いが実行されました。',
             },
             error: {
                 invalidCredentials: '認証情報が無効です。接続の設定を確認してください。',
