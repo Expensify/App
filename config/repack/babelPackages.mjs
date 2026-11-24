@@ -28,7 +28,7 @@ const BABEL_PACKAGES = [
     '@fullstory/react-native',
     '@rnmapbox/maps',
     '@sentry/react-native',
-    '@shopify/react-native-skia',
+    'react-native-skia',
     '@ua/react-native-airship',
     'lottie-react-native',
     'react-native-advanced-input-mask',

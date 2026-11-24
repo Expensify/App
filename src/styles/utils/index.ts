@@ -875,9 +875,23 @@ function getVerticalPaddingDiffFromStyle(textInputContainerStyles: ViewStyle): n
         return typeof paddingValue === 'number' ? paddingValue : 0;
     };
 
-    const paddingTop = getNumericPadding(flatStyle?.paddingTop ?? flatStyle.padding);
-    const paddingBottom = getNumericPadding(flatStyle?.paddingBottom ?? flatStyle.padding);
+    const paddingTop = getNumericPadding(flatStyle?.paddingTop ?? flatStyle?.padding);
+    const paddingBottom = getNumericPadding(flatStyle?.paddingBottom ?? flatStyle?.padding);
     return paddingTop - paddingBottom;
+}
+
+/**
+ * Get the padding and border a style puts on each side of its content horizontally
+ */
+function getHorizontalInsetsFromStyle(style: StyleProp<ViewStyle>): {left: number; right: number} {
+    const {padding, paddingHorizontal, paddingLeft, paddingRight, paddingStart, paddingEnd, borderWidth, borderLeftWidth, borderRightWidth, borderStartWidth, borderEndWidth} =
+        StyleSheet.flatten(style) ?? {};
+    const getNumericValue = (value: string | number | Animated.AnimatedNode | null | undefined): number => (typeof value === 'number' ? value : 0);
+
+    return {
+        left: getNumericValue(paddingLeft ?? paddingStart ?? paddingHorizontal ?? padding) + getNumericValue(borderLeftWidth ?? borderStartWidth ?? borderWidth),
+        right: getNumericValue(paddingRight ?? paddingEnd ?? paddingHorizontal ?? padding) + getNumericValue(borderRightWidth ?? borderEndWidth ?? borderWidth),
+    };
 }
 
 /**
@@ -1493,6 +1507,7 @@ const staticStyleUtils = {
     getPaddingRight,
     getPaddingBottom,
     getVerticalPaddingDiffFromStyle,
+    getHorizontalInsetsFromStyle,
     getAutoGrowHeightInputVerticalInset,
     hasSafeAreas,
     getHeight,

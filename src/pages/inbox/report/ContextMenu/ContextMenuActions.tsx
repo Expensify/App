@@ -214,6 +214,7 @@ import {
     getWorkspaceNameUpdatedMessage,
     isChatThread,
     isExpenseReport,
+    isResolvedSupportTicket,
     isSelfDM,
     isSupportTicket,
     shouldDisableThread,
@@ -695,10 +696,11 @@ const ContextMenuActions: ContextMenuAction[] = [
         isAnonymousAction: false,
         textTranslateKey: 'reportActionContextMenu.editAction',
         icon: 'Pencil',
-        shouldShow: ({type, reportAction, originalReportActions, isArchivedRoom, isChronosReport, moneyRequestAction, moneyRequestReportActions, iouTransaction, rules}) =>
+        shouldShow: ({type, report, reportAction, originalReportActions, isArchivedRoom, isChronosReport, moneyRequestAction, moneyRequestReportActions, iouTransaction, rules}) =>
             type === CONST.CONTEXT_MENU_TYPES.REPORT_ACTION &&
             (canEditReportAction(reportAction, iouTransaction, rules, originalReportActions) || canEditReportAction(moneyRequestAction, iouTransaction, rules, moneyRequestReportActions)) &&
             !isArchivedRoom &&
+            !isResolvedSupportTicket(report) &&
             !isChronosReport,
         onPress: (
             closePopover,
