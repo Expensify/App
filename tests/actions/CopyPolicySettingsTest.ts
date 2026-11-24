@@ -15,6 +15,7 @@ import type {OnyxCollection} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 
 import createRandomPolicy from '../utils/collections/policies';
+import createMock from '../utils/createMock';
 
 jest.mock('@libs/API', () => ({
     write: jest.fn(),
@@ -161,6 +162,86 @@ function getCopyPolicySettingsStep(update: {value?: unknown} | undefined): Pick<
 describe('actions/Policy/CopyPolicySettings', () => {
     describe('buildCopyPolicySettingsData', () => {
         describe('per-part field patches and pendingFields', () => {
+            it('copies clean member, tax, connection, report-field and export-layout values', () => {
+                // Given source objects with source-only feedback, nested connection feedback and deleted MCC rules.
+                const feedback = {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE, errors: {old: 'Source failed'}};
+                const connection = {config: {companyID: 'sourceCompany', ...feedback}};
+                const approvalRule = {approver: '', applyWhen: [], ...feedback};
+                const deletedApprovalRule = {...approvalRule, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE};
+                const expenseRule = {tax: {[TAX_FIELD_ID]: {externalID: 'VAT'}}, applyWhen: [], ...feedback};
+                const source = makeSourcePolicy(
+                    createMock<Partial<Policy>>({
+                        employeeList: {member: {email: 'member', ...feedback}},
+                        fieldList: {field: {fieldID: 'field', name: 'Field', ...feedback}},
+                        exportLayouts: {layout: {name: 'CSV', templateName: 'layout', ...feedback}},
+                        connections: {[CONST.POLICY.CONNECTIONS.NAME.QBO]: connection},
+                        taxRates: {name: 'Tax', defaultExternalID: 'VAT', ...feedback, taxes: {VAT: {name: 'VAT', value: '10%', ...feedback}}},
+                        mccGroup: {deleted: {category: 'Meals', groupID: 'deleted', pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}},
+                        rules: {approvalRules: [approvalRule, deletedApprovalRule], expenseRules: [expenseRule]},
+                    }),
+                );
+                const target = makeTargetPolicy();
+
+                // When these parts are copied over an existing workspace.
+                const {optimisticData, failureData} = buildCopyPolicySettingsData(source, [target], ['members', 'taxes', 'accounting', 'reports', 'categories', 'codingRules'], {}, {}, {});
+                const copied = getOptimisticPolicy(optimisticData);
+
+                // Then nested feedback and queued deletions cannot follow the settings, and rollback retains target state.
+                expect(copied?.employeeList).toEqual({member: {email: 'member'}});
+                expect(copied?.taxRates).toEqual({name: 'Tax', defaultExternalID: 'VAT', taxes: {VAT: {name: 'VAT', value: '10%'}}});
+                expect(copied?.connections).toEqual({[CONST.POLICY.CONNECTIONS.NAME.QBO]: {config: {companyID: 'sourceCompany'}}});
+                expect(copied?.fieldList?.field).toEqual({fieldID: 'field', name: 'Field'});
+                expect(copied?.exportLayouts).toEqual({layout: {name: 'CSV', templateName: 'layout'}});
+                expect(copied?.mccGroup).toEqual({});
+                expect(copied?.rules?.approvalRules).toEqual([{approver: '', applyWhen: []}]);
+                expect(copied?.rules?.expenseRules).toEqual([{tax: {[TAX_FIELD_ID]: {externalID: 'VAT'}}, applyWhen: []}]);
+                expect(getFailurePolicy(failureData)?.employeeList).toEqual(target.employeeList);
+                expect(connection.config.errors).toEqual(feedback.errors);
+            });
+
+            it('does not restore tax or tag contents queued for deletion on their parent', () => {
+                // Given source containers whose contents have been removed locally while deletion is queued.
+                const source = makeSourcePolicy({
+                    taxRates: {
+                        name: 'Tax',
+                        defaultExternalID: '',
+                        defaultValue: '',
+                        foreignTaxDefault: '',
+                        taxes: {VAT: {name: 'VAT', value: '10%'}},
+                        pendingFields: {taxes: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE},
+                    },
+                });
+                const sourceTags: PolicyTagLists = {
+                    Department: {
+                        name: 'Department',
+                        required: false,
+                        orderWeight: 0,
+                        tags: {Old: {name: 'Old', enabled: true}},
+                        pendingFields: {tags: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE},
+                    },
+                };
+
+                // When those settings are copied.
+                const {optimisticData} = buildCopyPolicySettingsData(source, [makeTargetPolicy()], ['taxes', 'tags'], {}, {[SOURCE_TAGS_KEY]: sourceTags}, {});
+
+                // Then rebuilding children cannot resurrect the deleted tax or tag contents.
+                expect(getOptimisticPolicy(optimisticData)?.taxRates?.taxes).toEqual({});
+                expect(optimisticData.find((update) => update.key === TARGET_TAGS_KEY)?.value).toEqual({Department: {name: 'Department', required: false, orderWeight: 0, tags: {}}});
+                expect(sourceTags.Department.tags.Old).toBeDefined();
+            });
+
+            it('does not restore a target title queued for deletion when the source has no title', () => {
+                // Given no source title and a target title that was removed locally.
+                const target = makeTargetPolicy(
+                    createMock<Partial<Policy>>({fieldList: {title: {fieldID: CONST.REPORT_FIELD_TITLE_FIELD_ID, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}}}),
+                );
+
+                // When report settings are copied.
+                const {optimisticData} = buildCopyPolicySettingsData(makeSourcePolicy({fieldList: {}}), [target], ['reports'], {}, {}, {});
+
+                // Then the target deletion remains effective.
+                expect(getOptimisticPolicy(optimisticData)?.fieldList).toEqual({});
+            });
             it.each<[Part, ReadonlyArray<keyof Policy>]>([
                 ['overview', ['address', 'description']],
                 ['currency', ['outputCurrency']],
@@ -777,6 +858,33 @@ describe('actions/Policy/CopyPolicySettings', () => {
         });
 
         describe('customUnits preservation', () => {
+            it('ignores null and deleted rates and strips source feedback when reusing a target rate', () => {
+                // Given source and target rate tombstones alongside a matching rate with a failed source edit.
+                const rate = {customUnitRateID: 'sourceRate', name: 'Default', rate: 67, currency: 'USD', pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE, errors: {old: 'Failed'}};
+                const sourceUnit = {
+                    customUnitID: 'sourceUnit',
+                    name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+                    rates: {kept: rate, deleted: {...rate, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}},
+                    errors: {old: 'Failed'},
+                };
+                const targetUnit = {customUnitID: 'targetUnit', name: CONST.CUSTOM_UNITS.NAME_DISTANCE, rates: {targetRate: {...rate, customUnitRateID: 'targetRate'}}};
+                Object.defineProperty(sourceUnit.rates, 'missing', {value: null, enumerable: true});
+                Object.defineProperty(targetUnit.rates, 'missing', {value: null, enumerable: true});
+                const source = makeSourcePolicy({customUnits: {sourceUnit}});
+                const target = makeTargetPolicy({customUnits: {targetUnit}});
+
+                // When distance rates are copied over an existing matching rate.
+                const {optimisticData, failureData} = buildCopyPolicySettingsData(source, [target], ['distanceRates'], {}, {}, {});
+
+                // Then the destination gets only live values under its own IDs and rollback preserves its original state.
+                expect(getOptimisticPolicy(optimisticData)?.customUnits?.targetUnit).toEqual({
+                    customUnitID: 'targetUnit',
+                    name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+                    rates: {targetRate: {customUnitRateID: 'targetRate', name: 'Default', rate: 67, currency: 'USD'}},
+                });
+                expect(getFailurePolicy(failureData)?.customUnits).toEqual(target.customUnits);
+                expect(rate.errors).toEqual({old: 'Failed'});
+            });
             const sourceDistanceUnit: CustomUnit = {
                 customUnitID: '1000000000001',
                 name: CONST.CUSTOM_UNITS.NAME_DISTANCE,

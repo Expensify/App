@@ -17,3 +17,14 @@ function buildDuplicateSettingSnapshot<T>(setting: T & {pendingFields?: Partial<
 }
 
 export default buildDuplicateSettingSnapshot;
+
+/** Omits queued deletions and source feedback from a collection copied to another workspace. */
+function buildDuplicateSettingCollection<T>(settings: Record<string, T & {pendingAction?: PendingAction}> | undefined): Record<string, T> {
+    return Object.fromEntries(
+        Object.entries(settings ?? {})
+            .filter(([, setting]) => !!setting && setting.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE)
+            .map(([key, setting]) => [key, buildDuplicateSettingSnapshot(setting)]),
+    );
+}
+
+export {buildDuplicateSettingCollection};

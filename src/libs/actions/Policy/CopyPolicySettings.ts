@@ -1,7 +1,8 @@
 import {write} from '@libs/API';
 import type {CopyPolicySettingsParams} from '@libs/API/parameters';
 import {WRITE_COMMANDS} from '@libs/API/types';
-import buildDuplicateSettingSnapshot from '@libs/buildDuplicateSettingSnapshot';
+import buildCopyPolicySettingsSource from '@libs/buildCopyPolicySettingsSource';
+import buildDuplicateSettingSnapshot, {buildDuplicateSettingCollection} from '@libs/buildDuplicateSettingSnapshot';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import {buildCopiedExpenseDefaultRules} from '@libs/ExpenseDefaultRuleUtils';
 import {categoryHasAnyRequireFieldsRule, hasExplicitAmountLimit} from '@libs/PolicyRulesUtils';
@@ -80,8 +81,7 @@ const PARTS_TO_POLICY_FIELDS = {
         'customRules',
         'isReceiptVisibilityPublic',
     ],
-    // Merchant rules are copied into the `rules_` collection rather than onto the policy, so this part patches
-    // no policy field. It stays listed because the map has to cover every part.
+    // Merchant rules also patch policy.rules and areRulesEnabled separately below.
     codingRules: [],
     // Auth resolves government-rate eligibility for each target; use its push for those flags.
     distanceRates: ['areDistanceRatesEnabled', 'customUnits', 'commuterExclusions', 'requireMapOrGPS'],
@@ -103,8 +103,7 @@ type PolicyFieldsForPart = (typeof PARTS_TO_POLICY_FIELDS)[Part][number];
  * given target can't access. Parts with no plan/feature gate (e.g. overview, members) are omitted.
  *
  * This is intentionally separate from `PARTS_TO_POLICY_FIELDS`: that map lists every Onyx field a
- * part copies, and several parts copy no policy field at all (`codingRules` copies into the `rules_`
- * collection, `timeTracking`/`receiptPartners` are patched separately).
+ * part copies, while `codingRules`, `timeTracking` and `receiptPartners` also have separate patches.
  */
 const PART_TO_POLICY_FEATURE: Partial<Record<Part, PolicyFeatureName>> = {
     reports: CONST.POLICY.MORE_FEATURES.ARE_REPORT_FIELDS_ENABLED,
@@ -148,15 +147,16 @@ function buildCustomUnitsPatch(sourcePolicy: Policy, targetPolicy: Policy, isDis
     const patch: Record<string, CustomUnit> = {};
 
     for (const unitName of unitNames) {
-        const sourceUnit = findCustomUnitByName(sourcePolicy, unitName);
+        const rawSourceUnit = findCustomUnitByName(sourcePolicy, unitName);
         const targetUnit = findCustomUnitByName(targetPolicy, unitName);
-        if (!sourceUnit || !targetUnit) {
+        if (!rawSourceUnit || rawSourceUnit.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || !targetUnit) {
             continue;
         }
+        const sourceUnit = buildDuplicateSettingSnapshot(rawSourceUnit);
 
         const targetRateIDByName = new Map<string, string>();
         for (const targetRate of Object.values(targetUnit.rates ?? {})) {
-            if (!targetRate.name || !targetRate.customUnitRateID || targetRateIDByName.has(targetRate.name)) {
+            if (!targetRate?.name || targetRate.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || !targetRate.customUnitRateID || targetRateIDByName.has(targetRate.name)) {
                 continue;
             }
             targetRateIDByName.set(targetRate.name, targetRate.customUnitRateID);
@@ -164,6 +164,9 @@ function buildCustomUnitsPatch(sourcePolicy: Policy, targetPolicy: Policy, isDis
 
         const rates: Record<string, Rate> = {};
         for (const sourceRate of Object.values(sourceUnit.rates ?? {})) {
+            if (!sourceRate || sourceRate.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
+                continue;
+            }
             const sourceRateName = sourceRate.name;
             const targetRateID = sourceRateName ? targetRateIDByName.get(sourceRateName) : undefined;
             if (!sourceRateName || !targetRateID) {
@@ -173,7 +176,7 @@ function buildCustomUnitsPatch(sourcePolicy: Policy, targetPolicy: Policy, isDis
             // Each target rate ID can only stand in for one source rate, so a second source rate of the
             // same name falls through to the server push like any other rate the target doesn't have.
             targetRateIDByName.delete(sourceRateName);
-            rates[targetRateID] = {...sourceRate, customUnitRateID: targetRateID};
+            rates[targetRateID] = {...buildDuplicateSettingSnapshot(sourceRate), customUnitRateID: targetRateID};
         }
 
         patch[targetUnit.customUnitID] = {...sourceUnit, customUnitID: targetUnit.customUnitID, rates};
@@ -314,10 +317,6 @@ function buildPolicyFieldPatch(sourcePolicy: Policy, targetPolicy: Policy, parts
             if (field === 'fieldList') {
                 continue;
             }
-            if (field === 'mccGroup' && sourcePolicy.mccGroup) {
-                patch.mccGroup = Object.fromEntries(Object.entries(sourcePolicy.mccGroup).map(([id, group]) => [id, buildDuplicateSettingSnapshot(group)]));
-                continue;
-            }
             // The PARTS_TO_POLICY_FIELDS values are typed as keyof Policy, so this assignment is safe.
             (patch as Record<string, unknown>)[field] = sourcePolicy[field as keyof Policy];
         }
@@ -360,11 +359,17 @@ function buildPolicyFieldPatch(sourcePolicy: Policy, targetPolicy: Policy, parts
                     .filter(([, rule]) => !!rule && rule.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE)
                     .map(([id, rule]) => [id, buildDuplicateSettingSnapshot(rule)]),
             ),
-            approvalRules: (sourcePolicy.rules?.approvalRules ?? []).filter((rule) => !!rule && (!rule.approver || approverEmails.has(rule.approver.toLowerCase()))),
-            expenseRules: (sourcePolicy.rules?.expenseRules ?? []).filter((rule) => {
-                const taxCode = rule?.tax?.field_id_TAX?.externalID;
-                return !!rule && (!taxCode || taxCodes.has(taxCode));
-            }),
+            approvalRules: (sourcePolicy.rules?.approvalRules ?? [])
+                .filter((rule) => !!rule && (!('pendingAction' in rule) || rule.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE))
+                .filter((rule) => !rule.approver || approverEmails.has(rule.approver.toLowerCase()))
+                .map((rule) => buildDuplicateSettingSnapshot(rule)),
+            expenseRules: (sourcePolicy.rules?.expenseRules ?? [])
+                .filter((rule) => !!rule && (!('pendingAction' in rule) || rule.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE))
+                .filter((rule) => {
+                    const taxCode = rule.tax?.field_id_TAX?.externalID;
+                    return !taxCode || taxCodes.has(taxCode);
+                })
+                .map((rule) => buildDuplicateSettingSnapshot(rule)),
         };
     }
 
@@ -384,7 +389,9 @@ function buildPolicyFieldPatch(sourcePolicy: Policy, targetPolicy: Policy, parts
         const mergedFields = [...retainedTargetFields, ...copiedSourceFields];
         patch.fieldList = Object.fromEntries(mergedFields);
         if (shouldCopyReportFields && !copiedSourceFields.some(([, field]) => field.fieldID === CONST.REPORT_FIELD_TITLE_FIELD_ID)) {
-            const titleField = Object.entries(targetPolicy.fieldList ?? {}).find(([, field]) => field?.fieldID === CONST.REPORT_FIELD_TITLE_FIELD_ID);
+            const titleField = Object.entries(targetPolicy.fieldList ?? {}).find(
+                ([, field]) => field?.fieldID === CONST.REPORT_FIELD_TITLE_FIELD_ID && field.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+            );
             if (titleField) {
                 patch.fieldList[titleField[0]] = titleField[1];
             }
@@ -426,7 +433,7 @@ type CopyPolicySettingsOnyxKeys =
     | typeof ONYXKEYS.NVP_BULK_POLICY_COPY_SETTINGS;
 
 function buildCopyPolicySettingsData(
-    sourcePolicy: Policy,
+    sourcePolicyData: Policy,
     targetPolicies: Policy[],
     parts: Part[],
     allPolicyCategories: OnyxCollection<PolicyCategories>,
@@ -439,6 +446,7 @@ function buildCopyPolicySettingsData(
     successData: Array<OnyxUpdate<CopyPolicySettingsOnyxKeys>>;
     failureData: Array<OnyxUpdate<CopyPolicySettingsOnyxKeys>>;
 } {
+    const sourcePolicy = buildCopyPolicySettingsSource(sourcePolicyData);
     const optimisticData: Array<OnyxUpdate<CopyPolicySettingsOnyxKeys>> = [];
     const successData: Array<OnyxUpdate<CopyPolicySettingsOnyxKeys>> = [];
     const failureData: Array<OnyxUpdate<CopyPolicySettingsOnyxKeys>> = [];
@@ -467,8 +475,13 @@ function buildCopyPolicySettingsData(
 
     const sourceCategoriesKey = `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${sourcePolicy.id}` as const;
     const sourceTagsKey = `${ONYXKEYS.COLLECTION.POLICY_TAGS}${sourcePolicy.id}` as const;
-    const sourceCategories = allPolicyCategories?.[sourceCategoriesKey] ?? {};
-    const sourceTags = allPolicyTags?.[sourceTagsKey] ?? {};
+    const sourceCategories = buildDuplicateSettingCollection(allPolicyCategories?.[sourceCategoriesKey] ?? undefined);
+    const sourceTags = Object.fromEntries(
+        Object.entries(buildDuplicateSettingCollection(allPolicyTags?.[sourceTagsKey] ?? undefined)).map(([name, tagList]) => [
+            name,
+            {...tagList, tags: buildDuplicateSettingCollection(tagList.tags)},
+        ]),
+    );
 
     for (const targetPolicy of targetPolicies) {
         const policyKey = `${ONYXKEYS.COLLECTION.POLICY}${targetPolicy.id}` as const;
