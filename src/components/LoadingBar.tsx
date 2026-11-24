@@ -1,79 +1,45 @@
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import Accessibility from '@libs/Accessibility';
+import {CUBIC_IN_OUT} from '@libs/Animation/cssEasing';
+
 import CONST from '@src/CONST';
 
-import React, {useEffect} from 'react';
-import Animated, {cancelAnimation, Easing, useAnimatedStyle, useSharedValue, withDelay, withRepeat, withSequence, withTiming} from 'react-native-reanimated';
+import React from 'react';
+import Animated, {css, FadeIn, FadeOut} from 'react-native-reanimated';
 
-type LoadingBarProps = {
-    shouldShow: boolean;
-};
+const INDICATOR_MIDPOINT = '50%';
 
-function LoadingBar({shouldShow}: LoadingBarProps) {
-    const left = useSharedValue(0);
-    const width = useSharedValue(0);
-    const opacity = useSharedValue(0);
+const FADE_IN = FadeIn.duration(CONST.ANIMATED_PROGRESS_BAR_OPACITY_DURATION);
+const FADE_OUT = FadeOut.duration(CONST.ANIMATED_PROGRESS_BAR_OPACITY_DURATION);
+
+const animations = css.create({
+    indicator: {
+        animationName: css.keyframes({
+            from: {left: '0%', width: '0%', animationTimingFunction: CUBIC_IN_OUT},
+            [INDICATOR_MIDPOINT]: {left: '0%', width: '100%', animationTimingFunction: CUBIC_IN_OUT},
+            to: {left: '100%', width: '0%'},
+        }),
+        animationDuration: `${CONST.ANIMATED_PROGRESS_BAR_DURATION * 2}ms`,
+        animationDelay: `${CONST.ANIMATED_PROGRESS_BAR_DELAY}ms`,
+        // Apply the first keyframe during the initial delay so the bar doesn't flash at full width before the animation starts
+        animationFillMode: 'backwards',
+        animationIterationCount: 'infinite',
+    },
+    indicatorIdle: {width: '0%'},
+});
+
+function LoadingBar() {
     const styles = useThemeStyles();
-
-    useEffect(() => {
-        if (shouldShow) {
-            left.set(0);
-            width.set(0);
-            opacity.set(withTiming(1, {duration: CONST.ANIMATED_PROGRESS_BAR_OPACITY_DURATION}));
-
-            left.set(
-                withDelay(
-                    CONST.ANIMATED_PROGRESS_BAR_DELAY,
-                    withRepeat(
-                        withSequence(
-                            withTiming(0, {duration: 0}),
-                            withTiming(0, {duration: CONST.ANIMATED_PROGRESS_BAR_DURATION, easing: Easing.bezier(0.65, 0, 0.35, 1)}),
-                            withTiming(100, {duration: CONST.ANIMATED_PROGRESS_BAR_DURATION, easing: Easing.bezier(0.65, 0, 0.35, 1)}),
-                        ),
-                        -1,
-                        false,
-                    ),
-                ),
-            );
-
-            width.set(
-                withDelay(
-                    CONST.ANIMATED_PROGRESS_BAR_DELAY,
-                    withRepeat(
-                        withSequence(
-                            withTiming(0, {duration: 0}),
-                            withTiming(100, {duration: CONST.ANIMATED_PROGRESS_BAR_DURATION, easing: Easing.bezier(0.65, 0, 0.35, 1)}),
-                            withTiming(0, {duration: CONST.ANIMATED_PROGRESS_BAR_DURATION, easing: Easing.bezier(0.65, 0, 0.35, 1)}),
-                        ),
-                        -1,
-                        false,
-                    ),
-                ),
-            );
-        } else {
-            opacity.set(
-                withTiming(0, {duration: CONST.ANIMATED_PROGRESS_BAR_OPACITY_DURATION}, () => {
-                    cancelAnimation(left);
-                    cancelAnimation(width);
-                }),
-            );
-        }
-        // we want to update only when shouldShow changes
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [shouldShow]);
-
-    const animatedIndicatorStyle = useAnimatedStyle(() => ({
-        left: `${left.get()}%`,
-        width: `${width.get()}%`,
-    }));
-
-    const animatedContainerStyle = useAnimatedStyle(() => ({
-        opacity: opacity.get(),
-    }));
+    const isReducedMotionEnabled = Accessibility.useReducedMotion();
 
     return (
-        <Animated.View style={[styles.progressBarWrapper, animatedContainerStyle]}>
-            <Animated.View style={[styles.progressBar, animatedIndicatorStyle]} />
+        <Animated.View
+            entering={FADE_IN}
+            exiting={FADE_OUT}
+            style={styles.progressBarWrapper}
+        >
+            <Animated.View style={[styles.progressBar, isReducedMotionEnabled ? animations.indicatorIdle : animations.indicator]} />
         </Animated.View>
     );
 }

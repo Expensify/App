@@ -9,7 +9,7 @@ function HeaderLoadingBar() {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const shouldShowLoadingBar = useLoadingBarVisibility();
 
-    return <LoadingBar shouldShow={shouldShowLoadingBar && shouldUseNarrowLayout} />;
+    return shouldShowLoadingBar && shouldUseNarrowLayout ? <LoadingBar /> : null;
 }
 
 export default HeaderLoadingBar;
