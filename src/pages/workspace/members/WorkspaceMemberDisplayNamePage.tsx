@@ -42,6 +42,7 @@ function WorkspaceMemberDisplayNamePage({route}: WorkspaceMemberDisplayNamePageP
     const policyID = route.params.policyID;
     const [routeLogin] = usePersonalDetail(routeAccountID, loginSelector);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
+
     // The route can carry an ID generated from the login instead of the member's real one, so resolve the member by login like Member details does.
     const memberLogin = routeLogin ?? getMemberLoginByAccountID(policy, routeAccountID);
     const memberPersonalDetails = usePersonalDetailByLogin(memberLogin);
