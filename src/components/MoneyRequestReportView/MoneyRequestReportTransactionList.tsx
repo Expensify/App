@@ -18,6 +18,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import {turnOnMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import {CAROUSEL_SOURCE} from '@libs/actions/TransactionThreadNavigation';
+import {isBillReport} from '@libs/BillUtils';
 import {getReportRowPolicy, getReportRowReport} from '@libs/MoneyRequestReportUtils';
 import {getMoneyRequestSpendBreakdown, getReportOfflinePendingActionAndErrors, isExpenseReport, isIOUReport} from '@libs/ReportUtils';
 import {getTransactionPendingAction} from '@libs/TransactionUtils';
@@ -238,7 +239,7 @@ function MoneyRequestReportTransactionList({
             policyTagLists,
         });
 
-    const shouldShowGroupedTransactions = isExpenseReport(report) && !isIOUReport(report);
+    const shouldShowGroupedTransactions = (isExpenseReport(report) || isBillReport(report)) && !isIOUReport(report);
     const {currentSelection, currentGroupBy, shouldGroupTransactions, selectLayout} = useMoneyRequestReportLayout(shouldShowGroupedTransactions);
 
     const {groupedTransactions, listItems, visualOrderTransactions, visualOrderTransactionIDs, lastTransactionID} = useMoneyRequestReportGroupedTransactions({

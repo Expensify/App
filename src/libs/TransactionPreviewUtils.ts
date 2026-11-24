@@ -15,6 +15,7 @@ import truncate from 'lodash/truncate';
 import type {ActionErrorsByTransaction, TransactionDetails} from './ReportUtils';
 
 import {setReviewDuplicatesKey} from './actions/Transaction';
+import {isBillReport} from './BillUtils';
 import {isCategoryMissing} from './CategoryUtils';
 import DateUtils from './DateUtils';
 import createDynamicRoute from './Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
@@ -251,7 +252,7 @@ function getTransactionPreviewTextAndTranslationPaths({
     }
 
     if (hasFieldErrors && RBRMessage === undefined) {
-        const isFromExpenseReport = isExpenseReport(iouReport);
+        const isFromExpenseReport = isExpenseReport(iouReport) || isBillReport(iouReport);
         const amountMissing = isAmountMissing(transaction, isFromExpenseReport);
         const merchantMissing = isFromExpenseReport && isMerchantMissing(transaction);
         if (amountMissing && merchantMissing) {

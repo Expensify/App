@@ -1512,11 +1512,11 @@ function isNewDotInvoice(invoiceRoomID: string | undefined): boolean {
 }
 
 /**
- * Checks if a report is an Expense report. Bills count as expense reports, so the expense report view opens them.
+ * Checks if a report is an Expense report.
  */
 function isExpenseReport(reportOrID: OnyxInputOrEntry<Report> | string): boolean {
     const report = typeof reportOrID === 'string' ? (getReport(reportOrID, deprecatedAllReports) ?? null) : reportOrID;
-    return report?.type === CONST.REPORT.TYPE.EXPENSE || isBillReport(report);
+    return report?.type === CONST.REPORT.TYPE.EXPENSE;
 }
 
 /**
@@ -2971,11 +2971,11 @@ function isMoneyRequest(reportOrID: OnyxEntry<Report> | string): boolean {
 }
 
 /**
- * Checks if a report is an IOU or expense report.
+ * Checks if a report is an IOU, expense, or bill report.
  */
 function isMoneyRequestReport(reportOrID: OnyxInputOrEntry<Report> | string, reports?: Report[] | OnyxCollection<Report>): boolean {
     const report = typeof reportOrID === 'string' ? (getReport(reportOrID, reports ?? deprecatedAllReports) ?? null) : reportOrID;
-    return isIOUReport(report) || isExpenseReport(report);
+    return isIOUReport(report) || isExpenseReport(report) || isBillReport(report);
 }
 
 /**
@@ -3521,7 +3521,7 @@ function canApproveExpenseReport(
     // Cheap report-level checks first so the transaction scans below only run for reports the user can approve
     const managerID = report?.managerID ?? CONST.DEFAULT_NUMBER_ID;
     const isCurrentUserManager = managerID === currentUserAccountID;
-    if (!report || !isCurrentUserManager || !isExpenseReport(report) || !isProcessingReport(report) || reportTransactions.length === 0) {
+    if (!report || !isCurrentUserManager || (!isExpenseReport(report) && !isBillReport(report)) || !isProcessingReport(report) || reportTransactions.length === 0) {
         return false;
     }
 
@@ -5725,8 +5725,9 @@ function getMoneyRequestSpendBreakdown(report: OnyxInputOrEntry<Report>, searchR
             // There is a possibility that if the Expense report has a negative total.
             // This is because there are instances where you can get a credit back on your card,
             // or you enter a negative expense to "offset" future expenses
-            nonReimbursableSpend = isExpenseReport(moneyRequestReport) ? nonReimbursableSpend * -1 : Math.abs(nonReimbursableSpend);
-            totalSpend = isExpenseReport(moneyRequestReport) ? totalSpend * -1 : Math.abs(totalSpend);
+            const isStoredNegative = isExpenseReport(moneyRequestReport) || isBillReport(moneyRequestReport);
+            nonReimbursableSpend = isStoredNegative ? nonReimbursableSpend * -1 : Math.abs(nonReimbursableSpend);
+            totalSpend = isStoredNegative ? totalSpend * -1 : Math.abs(totalSpend);
 
             const totalDisplaySpend = totalSpend;
             const reimbursableSpend = totalDisplaySpend - nonReimbursableSpend;
@@ -6089,7 +6090,7 @@ function getAvailableReportFields(report: OnyxEntry<Report>, policyReportFields:
 }
 
 function isTransactionFromExpenseReport(report: OnyxInputOrEntry<Report>, policy: OnyxInputOrEntry<Policy>): boolean {
-    return isEmptyObject(report) ? isGroupPolicyPolicyUtils(policy) : isExpenseReport(report);
+    return isEmptyObject(report) ? isGroupPolicyPolicyUtils(policy) : isExpenseReport(report) || isBillReport(report);
 }
 
 /**
@@ -6943,7 +6944,7 @@ function getTransactionReportName({
         return translate('violations.noRoute');
     }
 
-    const isFromExpenseReport = !isEmptyObject(report) && isExpenseReport(report);
+    const isFromExpenseReport = !isEmptyObject(report) && (isExpenseReport(report) || isBillReport(report));
 
     if (isSentMoneyReportAction(reportAction)) {
         return getIOUReportActionDisplayMessage(translate, reportAction as ReportAction, convertToDisplayString, undefined, linkedTransaction);

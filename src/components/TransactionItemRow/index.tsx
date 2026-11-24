@@ -3,6 +3,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import {isBillReport} from '@libs/BillUtils';
 import {getCompanyCardDescription} from '@libs/CardUtils';
 import {getDecodedCategoryName, isCategoryMissing} from '@libs/CategoryUtils';
 import {getIOUActionForTransactionID} from '@libs/ReportActionsUtils';
@@ -258,7 +259,7 @@ function TransactionItemRow({
     const shouldShowAttendees = (isUnreported ? !!isAttendeesEnabledForMovingPolicy : shouldShowAttendeesUtils(CONST.IOU.TYPE.SUBMIT, policy)) && transactionAttendees.length > 0;
 
     const attendeesCount = transactionAttendees.length ?? 0;
-    const totalAmount = getAmount(transactionItem, isExpenseReport(report));
+    const totalAmount = getAmount(transactionItem, isExpenseReport(report) || isBillReport(report));
 
     return (
         <TransactionItemRowWide

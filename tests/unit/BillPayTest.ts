@@ -13,6 +13,7 @@ import {
     canIOUBePaid,
     canRejectReportAction,
     isExpenseReport,
+    isMoneyRequestReport,
     isReportOutstanding,
 } from '@libs/ReportUtils';
 
@@ -162,9 +163,10 @@ describe('Bill Pay', () => {
     it('opens bills in the expense report view', () => {
         // Given a bill
         // When the app checks its type
-        // Then it treats the bill as an expense report, so the expense report view opens it
+        // Then it treats the bill as a money request report, so the expense report view opens it
         expect(isBillReport(bill)).toBe(true);
-        expect(isExpenseReport(bill)).toBe(true);
+        expect(isMoneyRequestReport(bill)).toBe(true);
+        expect(isExpenseReport(bill)).toBe(false);
         expect(isBillReport(expenseReport)).toBe(false);
     });
 

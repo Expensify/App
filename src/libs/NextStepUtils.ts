@@ -222,7 +222,7 @@ function buildOptimisticNextStep(params: BuildOptimisticNextStepParams): ReportN
         personalDetailsByLogins,
     } = params;
 
-    if (!isExpenseReport(report)) {
+    if (!isExpenseReport(report) && !isBillReport(report)) {
         return null;
     }
 

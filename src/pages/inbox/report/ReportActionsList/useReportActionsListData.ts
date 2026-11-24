@@ -1,3 +1,4 @@
+import {isBillReport} from '@libs/BillUtils';
 import {getReportActionMessage, isTransactionThread} from '@libs/ReportActionsUtils';
 import {isExpenseReport, isIOUReport, isInvoiceReport} from '@libs/ReportUtils';
 
@@ -35,7 +36,7 @@ function useReportActionsListData({sortedVisibleReportActions, sessionStartTime,
         shouldHideDraft,
     });
 
-    const shouldCollapseSystemMessages = isExpenseReport(report) || isIOUReport(report) || isInvoiceReport(report) || isTransactionThread(parentReportAction);
+    const shouldCollapseSystemMessages = isExpenseReport(report) || isBillReport(report) || isIOUReport(report) || isInvoiceReport(report) || isTransactionThread(parentReportAction);
     const {
         displayReportActions,
         runsByAnchorReportActionID,

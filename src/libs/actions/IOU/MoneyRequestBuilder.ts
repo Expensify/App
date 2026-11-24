@@ -4,6 +4,7 @@ import type {PersonalDetailsByLogin} from '@components/PersonalDetailsByLoginPro
 import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
 
 import type {WriteReadyBarrier} from '@libs/API';
+import {isBillReport} from '@libs/BillUtils';
 import DateUtils from '@libs/DateUtils';
 import {getMicroSecondOnyxErrorObject, getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import {isLocalFile} from '@libs/fileDownload/FileUtils';
@@ -1874,7 +1875,7 @@ function calculateDiffAmount(
     if (!iouReport) {
         return 0;
     }
-    const isExpenseReportLocal = isExpenseReport(iouReport) || isInvoiceReportReportUtils(iouReport);
+    const isExpenseReportLocal = isExpenseReport(iouReport) || isBillReport(iouReport) || isInvoiceReportReportUtils(iouReport);
     const updatedCurrency = getCurrency(updatedTransaction);
     const currentCurrency = getCurrency(transaction);
 
@@ -1913,7 +1914,7 @@ function getUpdatedMoneyRequestReportData(
     let updatedMoneyRequestReport: OnyxTypes.OnyxInputOrEntry<OnyxTypes.Report>;
     if (!iouReport) {
         updatedMoneyRequestReport = null;
-    } else if ((isExpenseReport(iouReport) || isInvoiceReportReportUtils(iouReport)) && !Number.isNaN(iouReport.total) && iouReport.total !== undefined) {
+    } else if ((isExpenseReport(iouReport) || isBillReport(iouReport) || isInvoiceReportReportUtils(iouReport)) && !Number.isNaN(iouReport.total) && iouReport.total !== undefined) {
         // Capture previous fresh reimbursable totals before mutating, so the diff applies whether or
         // not the iouReport already had reimbursableTotal/unheldReimbursableTotal populated locally.
         const previousReimbursableTotal = getReimbursableTotal(iouReport);
