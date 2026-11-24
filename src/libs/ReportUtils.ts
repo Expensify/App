@@ -1927,10 +1927,14 @@ function isGroupChat(report: OnyxEntry<Report> | Partial<Report>): boolean {
  *
  * Any member of a group chat can invite. On an expense report an invited member gains visibility of every expense on it,
  * so inviting is limited to the submitter and policy admins, and only while the report is still open.
+ * On an open support ticket, only the customer and assigned support rep can invite.
  */
 function canInviteMembersToReport(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>, isReportArchived: boolean, currentUserAccountID?: number): boolean {
-    if (isReportArchived || isSupportTicket(report)) {
+    if (isReportArchived) {
         return false;
+    }
+    if (isSupportTicket(report)) {
+        return isOpenReport(report) && !!currentUserAccountID && (report?.ownerAccountID === currentUserAccountID || report?.managerID === currentUserAccountID);
     }
     if (isGroupChat(report)) {
         return true;
@@ -1939,6 +1943,19 @@ function canInviteMembersToReport(report: OnyxEntry<Report>, policy: OnyxEntry<P
         return false;
     }
     return isCurrentUserSubmitter(report, currentUserAccountID) || isPolicyAdminPolicyUtils(policy);
+}
+
+/** Whether the assigned support rep can remove a participant from an open ticket. */
+function canRemoveSupportTicketParticipant(report: OnyxEntry<Report>, isReportArchived: boolean, currentUserAccountID: number | undefined, targetAccountID: number): boolean {
+    return (
+        isSupportTicket(report) &&
+        !isReportArchived &&
+        isOpenReport(report) &&
+        !!currentUserAccountID &&
+        report?.managerID === currentUserAccountID &&
+        targetAccountID !== report.ownerAccountID &&
+        targetAccountID !== report.managerID
+    );
 }
 
 /**
@@ -2660,20 +2677,19 @@ function toLastAccessedReport(report: OnyxEntry<Report>): LastAccessedReport | u
 
 /**
  * Finds the last accessed report for navigation fallbacks using the module-scoped
- * Onyx subscriptions (non-UI, no view-based re-renders). `reportNameValuePairs` and
- * `reports` let a caller pass its own subscribed collections and fall back to the
- * module-scoped copies when omitted. Returns a minimal slice, not the full Report.
+ * Onyx subscriptions (non-UI, no view-based re-renders). `reports` lets a caller pass
+ * its own subscribed collection and fall back to the module-scoped copy when omitted.
+ * Returns a minimal slice, not the full Report.
  */
 function findLastAccessedReport(
     ignoreDomainRooms: boolean,
     guideAccountIDs: GuideAccountIDsDerivedValue | undefined,
     isAnonymousUser: boolean,
-    openOnAdminRoom = false,
-    excludeReportID?: string,
-    reportNameValuePairs?: OnyxCollection<ReportNameValuePairs>,
+    openOnAdminRoom: boolean | undefined,
+    excludeReportID: string | undefined,
+    reportNameValuePairs: OnyxCollection<ReportNameValuePairs>,
     reports?: OnyxCollection<Report>,
 ): LastAccessedReport | undefined {
-    const reportNameValuePairsCollection = reportNameValuePairs ?? allReportNameValuePair;
     const reportsCollection = reports ?? deprecatedAllReports ?? {};
 
     if (openOnAdminRoom) {
@@ -2697,7 +2713,7 @@ function findLastAccessedReport(
 
         // Filter out the system chat (Expensify chat) because the composer is disabled in it,
         // and it prompts the user to use the Concierge chat instead.
-        return !isSystemChat(report) && !isArchivedReport(reportNameValuePairsCollection?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`]);
+        return !isSystemChat(report) && !isArchivedReport(reportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`]);
     };
     const isVisible = (report: OnyxEntry<Report>) => !!report?.isPinned || !isHiddenForCurrentUser(report) || (isPublicRoom(report) && isAnonymousUser);
 
@@ -3848,6 +3864,7 @@ function hasOutstandingChildRequest(
     currentUserAccountIDParam: number,
     allTransactionViolations: OnyxCollection<TransactionViolations>,
     bankAccountList: OnyxEntry<BankAccountList>,
+    isChatReportArchivedParam?: boolean,
 ) {
     const reportActions = getAllReportActions(chatReport.reportID);
     // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
@@ -3856,7 +3873,7 @@ function hasOutstandingChildRequest(
     // Tech debt: reading from the module-level allReportNameValuePair cache is deprecated — the chat report's archived
     // state should be threaded down from this function's callers (useReportIsArchived in components) instead.
     // TODO: https://github.com/Expensify/App/issues/66422
-    const isChatReportArchived = isArchivedReport(allReportNameValuePair?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${chatReport.reportID}`]);
+    const isChatReportArchived = isChatReportArchivedParam ?? isArchivedReport(allReportNameValuePair?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${chatReport.reportID}`]);
 
     const excludedReportIDSet = new Set<string>();
     if (typeof iouReportOrIDorArray === 'string') {
@@ -5364,7 +5381,7 @@ function getReasonAndReportActionThatRequiresAttention({
     allReportActions: allReportActionsParam,
     reports,
     policies: policiesParam,
-    reportMetadata: reportMetadataParam,
+    reportMetadata,
     cardList,
     reportsTransactions,
 }: GetReasonAndReportActionThatRequiresAttentionParams): ReasonAndReportActionThatRequiresAttention | null {
@@ -5418,9 +5435,6 @@ function getReasonAndReportActionThatRequiresAttention({
             reportAction: getActionableJoinRequestPendingReportAction(optionOrReport.reportID),
         };
     }
-
-    // TODO: Remove this fallback once every caller threads the metadata, so this stops reading the module-level Onyx.connect. See https://github.com/Expensify/App/issues/66421
-    const reportMetadata = reportMetadataParam ?? allReportMetadata?.[`${ONYXKEYS.COLLECTION.REPORT_METADATA}${optionOrReport.reportID}`];
 
     // Prefer the policies collection callers already have on hand (e.g. reportAttributes.ts's own OnyxDerived
     // dependency) over the deprecated allPolicies module cache, which is populated by its own independently-timed
@@ -5570,6 +5584,7 @@ function requiresAttentionFromCurrentUser(
     currentUserLogin: string,
     currentUserAccountID: number,
     transactionViolations: OnyxCollection<TransactionViolations> | undefined,
+    pendingExpenseActionMetadata: OnyxEntry<ReportMetadata>,
     parentReportAction?: OnyxEntry<ReportAction>,
     isReportArchived = false,
 ) {
@@ -5578,10 +5593,9 @@ function requiresAttentionFromCurrentUser(
         currentUserLogin,
         currentUserAccountID,
         transactionViolations,
+        reportMetadata: pendingExpenseActionMetadata,
         parentReportAction,
         isReportArchived,
-        // TODO: Pass the real reportMetadata in the next PR. See https://github.com/Expensify/App/issues/66421
-        reportMetadata: undefined,
     });
 }
 
@@ -5987,7 +6001,16 @@ function getAvailableReportFields(report: OnyxEntry<Report>, policyReportFields:
     return fields.filter(Boolean) as PolicyReportField[];
 }
 
-function isTransactionFromExpenseReport(report: OnyxInputOrEntry<Report>, policy: OnyxInputOrEntry<Policy>): boolean {
+function isTransactionFromExpenseReport(
+    report: OnyxInputOrEntry<Report>,
+    policy: OnyxInputOrEntry<Policy>,
+    transaction: OnyxInputOrEntry<Transaction> | TransactionWithOptionalSearchFields,
+): boolean {
+    // A deleted transaction is moved to the trash report, so neither its report nor its policy can be resolved anymore.
+    // It keeps the sign convention it was stored with, which is the expense report one.
+    if (!!transaction && isDeletedTransaction(transaction)) {
+        return true;
+    }
     return isEmptyObject(report) ? isGroupPolicyPolicyUtils(policy) : isExpenseReport(report);
 }
 
@@ -5998,7 +6021,7 @@ function isTransactionFromExpenseReport(report: OnyxInputOrEntry<Report>, policy
  */
 function getTransactionDisplayAmount(transaction: OnyxInputOrEntry<Transaction>, report: OnyxInputOrEntry<Report>, policy: OnyxInputOrEntry<Policy>): number {
     const isFromTrackedExpense = transaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
-    return getTransactionAmount(transaction, isTransactionFromExpenseReport(report, policy), isFromTrackedExpense, !!transaction && isDeletedTransaction(transaction));
+    return getTransactionAmount(transaction, isTransactionFromExpenseReport(report, policy, transaction), isFromTrackedExpense, !!transaction && isDeletedTransaction(transaction));
 }
 
 /**
@@ -6018,7 +6041,7 @@ function getTransactionDetails(
     }
 
     const report = getReportOrDraftReport({reportID: transaction?.reportID, fallbackReport: 'report' in transaction ? transaction.report : undefined});
-    const isFromExpenseReport = isTransactionFromExpenseReport(report, policy);
+    const isFromExpenseReport = isTransactionFromExpenseReport(report, policy, transaction);
 
     return {
         created: getFormattedCreated(transaction),
@@ -11602,6 +11625,8 @@ type ShouldReportBeInOptionListParams = {
     requiresAttention?: boolean;
     /** Needed when `requiresAttention` is not pre-computed: the SUBMIT badge is suppressed when every expense was auto-rejected, which is only knowable from the violations. */
     transactionViolations?: OnyxCollection<TransactionViolations>;
+    /** Needed when `requiresAttention` is not pre-computed: an approve already pending in a dynamic external workflow suppresses the green dot. */
+    pendingExpenseActionMetadata: OnyxEntry<ReportMetadata>;
     /** Pre-computed isEmpty flag from reportAttributes derived value. When provided, skips the module-level reportAttributesDerivedValue read inside isEmptyReport. */
     derivedIsEmptyReport: boolean | undefined;
     hasGuidesEmails: boolean;
@@ -11626,6 +11651,7 @@ function reasonForReportToBeInOptionList({
     conciergeReportID,
     requiresAttention,
     transactionViolations,
+    pendingExpenseActionMetadata,
     derivedIsEmptyReport,
     hasGuidesEmails,
 }: ShouldReportBeInOptionListParams): ValueOf<typeof CONST.REPORT_IN_LHN_REASONS> | null {
@@ -11704,7 +11730,15 @@ function reasonForReportToBeInOptionList({
 
     if (
         requiresAttention ??
-        requiresAttentionFromCurrentUser(report, currentUserLogin ?? '', currentUserAccountID ?? CONST.DEFAULT_NUMBER_ID, transactionViolations, undefined, isReportArchived)
+        requiresAttentionFromCurrentUser(
+            report,
+            currentUserLogin ?? '',
+            currentUserAccountID ?? CONST.DEFAULT_NUMBER_ID,
+            transactionViolations,
+            pendingExpenseActionMetadata,
+            undefined,
+            isReportArchived,
+        )
     ) {
         return CONST.REPORT_IN_LHN_REASONS.HAS_GBR;
     }
@@ -13563,6 +13597,18 @@ function canLeaveChat(
     isReportArchived = false,
     parentReportAction?: ReportAction,
 ): boolean {
+    if (isSupportTicket(report)) {
+        // The customer and assigned support rep must stay on the ticket. Other invited participants can leave.
+        return (
+            !isReportArchived &&
+            !isAnonymousUser &&
+            !!currentUserAccountID &&
+            !isHiddenForCurrentUser(getReportNotificationPreference(report, currentUserAccountID)) &&
+            report?.ownerAccountID !== currentUserAccountID &&
+            report?.managerID !== currentUserAccountID
+        );
+    }
+
     if (isRootGroupChat(report, isReportArchived)) {
         return true;
     }
@@ -16462,6 +16508,7 @@ export {
     pushTransactionAutoSelectionsOnyxData,
     navigateOnDeleteExpense,
     canRejectReportAction,
+    canRemoveSupportTicketParticipant,
     isPayBlocked,
     hasReportBeenRejectedToSubmitter,
     hasReportBeenReopened,
