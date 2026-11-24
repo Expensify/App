@@ -148,7 +148,8 @@ function WorkspaceInviteMessageComponent({
     const shouldShowTravelCheckbox = isBetaEnabled(CONST.BETAS.TRAVEL_MEMBER_ACCESS) && isWorkspaceProvisionedForTravel(policy?.travelSettings) && isPolicyAdmin(policy, currentUserLogin);
     // Invitees follow the workspace's new member travel setting, which counts as on until an admin turns it off
     const shouldTurnOnTravelByDefault = policy?.travelSettings?.autoEnableNewMembers !== false;
-    const [shouldTurnOnTravel, setShouldTurnOnTravel] = useState(shouldTurnOnTravelByDefault);
+    const [travelChoice, setTravelChoice] = useState<boolean>();
+    const shouldTurnOnTravel = travelChoice ?? shouldTurnOnTravelByDefault;
 
     const isApproverValid = !!workspaceInviteApproverDraft && workspaceInviteApproverDraft in (policy?.employeeList ?? {});
     const validatedApprover = isApproverValid ? workspaceInviteApproverDraft : undefined;
@@ -422,7 +423,7 @@ function WorkspaceInviteMessageComponent({
                                 label={translate('workspace.inviteMessage.turnOnTravel')}
                                 accessibilityLabel={translate('workspace.inviteMessage.turnOnTravel')}
                                 value={shouldTurnOnTravel}
-                                onInputChange={(isChecked) => setShouldTurnOnTravel(!!isChecked)}
+                                onInputChange={(isChecked) => setTravelChoice(!!isChecked)}
                             />
                         )}
                         <View style={[styles.mb3]}>
