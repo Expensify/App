@@ -105,6 +105,36 @@ function signOutFromOldDotAfterServerClear(source: string) {
     }
 }
 
+/** The request's success or failure data for this response, then its finally data. All of it runs after the request, so it is applied together. */
+function getRequestUpdates<TKey extends OnyxKey>(request: Request<TKey>, response: Response<TKey>): Array<OnyxUpdate<TKey>> {
+    const finallyData = request.finallyData ?? [];
+    if (response.jsonCode === CONST.JSON_CODE.SUCCESS) {
+        return [...(request.successData ?? []), ...finallyData];
+    }
+    if (!request.failureData) {
+        return finallyData;
+    }
+
+    // 460 jsonCode in Expensify world means "admin required".
+    // Typically, this would only happen if a user attempts an API command that requires policy admin access when they aren't an admin.
+    // In this case, we don't want to apply failureData because it will likely result in a RedBrickRoad error on a policy field which is not accessible.
+    // Meaning that there's a red dot you can't dismiss.
+    if (response.jsonCode === CONST.JSON_CODE.ADMIN_REQUIRED) {
+        Log.info('[OnyxUpdateManager] Received 460 status code, not applying failure data');
+        return finallyData;
+    }
+
+    trackExpenseApiError({
+        command: request.command,
+        jsonCode: response.jsonCode ?? 0,
+        message: response.message,
+        requestData: request.data,
+    });
+    logReceiptRolledBack({command: request.command, data: request.data, failureData: request.failureData, trigger: 'serverError'});
+
+    return [...request.failureData, ...finallyData];
+}
+
 function applyHTTPSOnyxUpdates<TKey extends OnyxKey>(
     request: Request<TKey>,
     response: Response<TKey>,
@@ -123,7 +153,7 @@ function applyHTTPSOnyxUpdates<TKey extends OnyxKey>(
 
     // Search writes its snapshot in the response, success and finally data, so one update renders and stores it once
     if (request.command === READ_COMMANDS.SEARCH && response.jsonCode === CONST.JSON_CODE.SUCCESS && !response.paginationOnyxData) {
-        return updateHandler([...(response.onyxData ?? []), ...(request.successData ?? []), ...(request.finallyData ?? [])]).then(finishApplying);
+        return updateHandler([...(response.onyxData ?? []), ...getRequestUpdates(request, response)]).then(finishApplying);
     }
 
     // First apply any onyx data updates that are being sent back from the API. We wait for this to complete and then
@@ -131,6 +161,7 @@ function applyHTTPSOnyxUpdates<TKey extends OnyxKey>(
     // in successData/failureData until after the component has received and API data.
     const onyxDataWithSignInFlowReset = getUpdatesWithSignInFlowReset(response.onyxData);
     const onyxData: AnyOnyxUpdate[] | undefined = onyxDataWithSignInFlowReset ?? response.onyxData;
+
     const onyxDataUpdatePromise = onyxData ? updateHandler(onyxData) : Promise.resolve();
 
     if (onyxDataWithSignInFlowReset) {
@@ -150,37 +181,8 @@ function applyHTTPSOnyxUpdates<TKey extends OnyxKey>(
             return Promise.resolve();
         })
         .then(() => {
-            // Handle the request's success/failure data (client-side data)
-            if (response.jsonCode === 200 && request.successData) {
-                return updateHandler(request.successData);
-            }
-            if (response.jsonCode !== 200 && request.failureData) {
-                // 460 jsonCode in Expensify world means "admin required".
-                // Typically, this would only happen if a user attempts an API command that requires policy admin access when they aren't an admin.
-                // In this case, we don't want to apply failureData because it will likely result in a RedBrickRoad error on a policy field which is not accessible.
-                // Meaning that there's a red dot you can't dismiss.
-                if (response.jsonCode === CONST.JSON_CODE.ADMIN_REQUIRED) {
-                    Log.info('[OnyxUpdateManager] Received 460 status code, not applying failure data');
-                    return Promise.resolve();
-                }
-
-                trackExpenseApiError({
-                    command: request.command,
-                    jsonCode: response.jsonCode ?? 0,
-                    message: response.message,
-                    requestData: request.data,
-                });
-                logReceiptRolledBack({command: request.command, data: request.data, failureData: request.failureData, trigger: 'serverError'});
-
-                return updateHandler(request.failureData);
-            }
-            return Promise.resolve();
-        })
-        .then(() => {
-            if (request.finallyData) {
-                return updateHandler(request.finallyData);
-            }
-            return Promise.resolve();
+            const requestUpdates = getRequestUpdates(request, response);
+            return requestUpdates.length > 0 ? updateHandler(requestUpdates) : Promise.resolve();
         })
         .then(finishApplying);
 }
