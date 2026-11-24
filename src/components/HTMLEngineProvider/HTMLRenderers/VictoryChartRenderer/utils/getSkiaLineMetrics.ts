@@ -1,4 +1,4 @@
-import type {SkFont} from '@shopify/react-native-skia';
+import type {SkFont} from 'react-native-skia';
 
 type SkiaLineMetrics = {
     /** Distance from the baseline up to the glyph tops, as a positive value. */

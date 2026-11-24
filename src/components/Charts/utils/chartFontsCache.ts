@@ -5,10 +5,10 @@ import Log from '@libs/Log';
 
 import ObjectUtils from '@src/types/utils/ObjectUtils';
 
-import type {DataModule, SkTypeface} from '@shopify/react-native-skia';
+import type {DataModule, SkTypeface} from 'react-native-skia';
 
-import {Skia, unwrapModule} from '@shopify/react-native-skia';
 import {Image} from 'react-native';
+import {Skia, unwrapModule} from 'react-native-skia';
 
 import buildSkiaFontManager from './buildSkiaFontManager';
 import {CHART_FONT_MGR_SUPPLEMENTAL_ASSETS, CHART_SKIA_TYPEFACE_ASSETS} from './chartFontAssets';

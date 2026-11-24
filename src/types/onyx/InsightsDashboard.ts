@@ -29,6 +29,9 @@ type InsightsGraph = {
 
     /** Average number of expenses per group over the selected period, which the "Average" compare mode draws on count charts */
     averageCount?: number;
+
+    /** Average group duration over the selected period, in seconds, which the "Average" compare mode draws on duration charts */
+    averageDuration?: number;
 };
 
 /** Kind of signal an AI insight was detected from */
@@ -84,6 +87,12 @@ type AIInsight = {
 
     /** Message sent to Concierge when the user asks it to explain the card */
     explainPrompt: string;
+
+    /** 1-based tag level paired with parentTagPath; absent on older cached cards */
+    tagLevel?: number;
+
+    /** Encoded ancestors for this tag; an empty string selects independent tags */
+    parentTagPath?: string;
 };
 
 /** Expenses dated after the day the dashboard counts through, which every graph leaves out */
