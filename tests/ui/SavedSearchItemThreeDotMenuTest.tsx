@@ -166,9 +166,12 @@ describe('SavedSearchItemThreeDotMenu', () => {
             // Given a menu rendered without a surface around it
             renderMenu();
 
-            // When the menu's modal is gone
-            // Then nothing throws, as there is no peek to settle
-            expect(() => fireEvent.press(screen.getByText('Menu gone'))).not.toThrow();
+            // When the menu opens and its modal is then gone
+            // Then nothing throws, as there is no peek to hold or to settle
+            expect(() => {
+                fireEvent.press(screen.getByText('Menu icon'));
+                fireEvent.press(screen.getByText('Menu gone'));
+            }).not.toThrow();
         });
     });
 
