@@ -44,6 +44,7 @@ type SingleSelectPopupProps<T> = {
     /** Whether the popover should keep a fixed height while filtering results. */
     shouldUseFixedPopoverHeight?: boolean;
 
+    allowDeselect?: boolean;
     applySentryLabel: SentryLabel;
     resetSentryLabel: SentryLabel;
 };
@@ -64,6 +65,7 @@ function SingleSelectPopup<T extends string>({
     showLabel,
     shouldShowList = true,
     shouldUseFixedPopoverHeight,
+    allowDeselect,
     applySentryLabel,
     resetSentryLabel,
 }: SingleSelectPopupProps<T>) {
@@ -103,6 +105,7 @@ function SingleSelectPopup<T extends string>({
                     shouldShowList={shouldShowList}
                     itemHeight={itemHeight}
                     shouldUseFixedPopoverHeight={shouldUseFixedPopoverHeight}
+                    allowDeselect={allowDeselect}
                 />
             </ListFilterHeightContextProvider>
         </BasePopup>

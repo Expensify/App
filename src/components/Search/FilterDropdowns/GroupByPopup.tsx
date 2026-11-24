@@ -54,6 +54,10 @@ function GroupByPopup({value, defaultValue, sections, onBackButtonPress, closeOv
     const itemCount = Math.max(1, sectionItemCount);
 
     const updateSelectedItem = (item: ListItem) => {
+        if (item.keyForList === selectedItem?.value) {
+            setSelectedItem(null);
+            return;
+        }
         const newItem = allSelectableItems.find((option) => option.value === item.keyForList) ?? null;
         setSelectedItem(newItem);
     };

@@ -248,6 +248,7 @@ function DisplayPopup({queryJSON, searchResults, closeOverlay, onSort}: DisplayP
                     onBackButtonPress={goBack}
                     closeOverlay={closeOverlay}
                     searchPlaceholder={translate('common.groupCurrency')}
+                    allowDeselect
                     applySentryLabel={CONST.SENTRY_LABEL.SEARCH.DISPLAY_POPUP_APPLY.GROUP_CURRENCY}
                     resetSentryLabel={CONST.SENTRY_LABEL.SEARCH.DISPLAY_POPUP_RESET.GROUP_CURRENCY}
                 />
