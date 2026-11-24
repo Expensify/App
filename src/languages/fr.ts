@@ -4696,6 +4696,15 @@ ${amount} pour ${merchant} - ${date}`,
         updateSuccessMessage: 'Félicitations, votre compte bancaire est configuré et prêt à recevoir des remboursements.',
         bankDetails: 'Coordonnées bancaires',
         accountHolderDetails: 'Détails du titulaire du compte',
+        notices: {
+            katakanaName:
+                'Saisissez votre nom exactement tel qu’il apparaît sur votre compte bancaire japonais. Il est généralement écrit en カタカナ (katakana). Toute différence peut retarder ou entraîner le rejet de votre paiement.',
+            alipayRecipients: 'Seuls les destinataires résidant en Chine continentale, à Hong Kong ou à Macao peuvent être payés via Alipay.',
+            alipayLimits:
+                'Alipay peut recevoir jusqu’à 50 000 CNY par paiement et entre 300 000 et 600 000 CNY par an. Des limites mensuelles sur le nombre de paiements peuvent également s’appliquer, selon l’objectif du paiement.',
+            malaysianNonResidentLimit:
+                'Les non-résidents disposant d’un compte bancaire en Malaisie ne peuvent recevoir que 10 000 ringgits malaisiens par jour. Un paiement dépassant cette limite peut conduire votre banque à fermer votre compte.',
+        },
     },
     addPersonalBankAccountPage: {
         enterPassword: 'Saisissez le mot de passe Expensify',

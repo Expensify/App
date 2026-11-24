@@ -4516,6 +4516,12 @@ ${amount}，商户：${merchant} - 日期：${date}`,
         updateSuccessMessage: '恭喜,您的银行账户已设置完成,可以开始接收报销款了。',
         bankDetails: '银行账户信息',
         accountHolderDetails: '账户持有人详情',
+        notices: {
+            katakanaName: '请输入与您日本银行账户上完全一致的姓名。该姓名通常以カタカナ（片假名）书写。如不一致，可能会导致付款延迟或被拒。',
+            alipayRecipients: '只有中国大陆、香港或澳门的收款人可以通过支付宝收款。',
+            alipayLimits: '支付宝每笔付款最高可接收 50,000 元人民币，每年累计限额为 300,000 至 600,000 元人民币。根据付款用途的不同，每月可进行付款的笔数也可能受到限制。',
+            malaysianNonResidentLimit: '在马来西亚拥有银行账户的非居民每天最多只能接收 10,000 马来西亚林吉特。超过此限额的付款可能会导致您的银行关闭您的账户。',
+        },
     },
     addPersonalBankAccountPage: {
         enterPassword: '输入 Expensify 密码',

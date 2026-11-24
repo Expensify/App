@@ -4620,6 +4620,15 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
         updateSuccessMessage: 'おめでとうございます。銀行口座の設定が完了し、精算の受け取りができるようになりました。',
         bankDetails: '銀行口座情報',
         accountHolderDetails: '口座名義人の詳細',
+        notices: {
+            katakanaName:
+                '日本の銀行口座に記載されている名前を、まったく同じように入力してください。通常はカタカナで記載されています。一致しない場合、お支払いが遅れたり、拒否されたりすることがあります。',
+            alipayRecipients: 'Alipay で支払いできるのは、中国本土、香港、またはマカオの受取人のみです。',
+            alipayLimits:
+                'Alipay では、1 回の支払いにつき最大 50,000 CNY、年間合計で 300,000～600,000 CNY まで受け取ることができます。支払い目的によっては、月ごとの支払い回数にも上限が適用される場合があります。',
+            malaysianNonResidentLimit:
+                'マレーシアに銀行口座をお持ちの非居住者は、1日に受け取れるマレーシアリンギットは10,000リンギットまでです。この上限を超える支払いを受け取ると、銀行口座が閉鎖される可能性があります。',
+        },
     },
     addPersonalBankAccountPage: {
         enterPassword: 'Expensify のパスワードを入力',
