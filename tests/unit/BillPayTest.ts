@@ -12,6 +12,7 @@ import {
     canHoldUnholdReportAction,
     canIOUBePaid,
     canRejectReportAction,
+    isExpenseOrBillReport,
     isExpenseReport,
     isMoneyRequestReport,
     isReportOutstanding,
@@ -167,6 +168,7 @@ describe('Bill Pay', () => {
         expect(isBillReport(bill)).toBe(true);
         expect(isMoneyRequestReport(bill)).toBe(true);
         expect(isExpenseReport(bill)).toBe(false);
+        expect(isExpenseOrBillReport(bill)).toBe(true);
         expect(isBillReport(expenseReport)).toBe(false);
     });
 

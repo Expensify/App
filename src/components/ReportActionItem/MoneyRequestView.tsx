@@ -54,7 +54,6 @@ import {updateMoneyRequestBillable, updateMoneyRequestCategory, updateMoneyReque
 import {openExternalLink} from '@libs/actions/Link';
 import initSplitExpense from '@libs/actions/SplitExpenses';
 import {enrichAndSortAttendees, getIsMissingAttendeesViolation} from '@libs/AttendeeUtils';
-import {isBillReport} from '@libs/BillUtils';
 import {getBrokenConnectionUrlToFixPersonalCard, getCommercialFeedCardDescription, getCompanyCardDescription} from '@libs/CardUtils';
 import {getDecodedLeafCategoryName, isCategoryMissing} from '@libs/CategoryUtils';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
@@ -93,6 +92,7 @@ import {
     canUserPerformWriteAction as canUserPerformWriteActionReportUtils,
     getTransactionDetails,
     isActionCreator,
+    isExpenseOrBillReport,
     isExpenseReport,
     isInvoiceReport,
     isOpenReport,
@@ -378,7 +378,7 @@ function MoneyRequestView({
             ? translate('common.reservationNightsWithNightlyRate', {count: reservationNights, nightlyRate: convertToDisplayString(actualAmount / reservationNights, actualCurrency)})
             : '';
 
-    const transactionOriginalAmount = transaction && getOriginalAmountForDisplay(transaction, isExpenseReport(moneyRequestReport) || isBillReport(moneyRequestReport));
+    const transactionOriginalAmount = transaction && getOriginalAmountForDisplay(transaction, isExpenseOrBillReport(moneyRequestReport));
     const formattedOriginalAmount = transactionOriginalAmount && transactionOriginalCurrency && convertToDisplayString(transactionOriginalAmount, transactionOriginalCurrency);
     const isFromCardImport = isCardTransactionTransactionUtils(transaction);
     const cardProgramName =

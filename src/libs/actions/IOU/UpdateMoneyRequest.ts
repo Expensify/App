@@ -3,7 +3,6 @@ import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
 import * as API from '@libs/API';
 import type {UpdateMoneyRequestParams} from '@libs/API/parameters';
 import {WRITE_COMMANDS} from '@libs/API/types';
-import {isBillReport} from '@libs/BillUtils';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import {getChangedTagLevels} from '@libs/MerchantRuleSuggestionUtils';
@@ -18,6 +17,7 @@ import {
     getReportTransactions,
     getTransactionDetails,
     hasViolations as hasViolationsReportUtils,
+    isExpenseOrBillReport,
     isExpenseReport,
     isInvoiceReport as isInvoiceReportReportUtils,
     isOneTransactionThread,
@@ -1944,7 +1944,7 @@ function getUpdateMoneyRequestParams(params: GetUpdateMoneyRequestParamsType): U
     const errorFields = Object.fromEntries(Object.keys(pendingFields).map((key) => [key, getMicroSecondOnyxErrorWithTranslationKey('iou.error.genericEditFailureMessage')]));
 
     const isTransactionOnHold = isOnHold(transaction);
-    const isFromExpenseReport = isExpenseReport(iouReport) || isBillReport(iouReport) || isInvoiceReportReportUtils(iouReport);
+    const isFromExpenseReport = isExpenseOrBillReport(iouReport) || isInvoiceReportReportUtils(iouReport);
     // Drop the waypoints from the changes fed to getUpdatedTransaction when they didn't actually change,
     // so we skip the waypoints branch that flips isLoading and clobbers amount/merchant before being
     // re-overridden by the distance branch.

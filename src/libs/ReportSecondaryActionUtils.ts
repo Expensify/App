@@ -79,6 +79,7 @@ import {
     isAwaitingFirstLevelApproval,
     isClosedReport as isClosedReportUtils,
     isCurrentUserSubmitter,
+    isExpenseOrBillReport as isExpenseOrBillReportUtils,
     isExpenseReport as isExpenseReportUtils,
     isExportInProgress,
     isExported as isExportedUtils,
@@ -401,7 +402,6 @@ function isUnapproveAction(currentUserLogin: string, currentUserAccountID: numbe
         return false;
     }
 
-    const isExpenseReport = isExpenseReportUtils(report);
     const isReportApprover = isPolicyApprover(policy, currentUserLogin);
     const isReportApproved = isReportApprovedUtils({report});
     const isReportSettled = isSettled(report);
@@ -409,7 +409,7 @@ function isUnapproveAction(currentUserLogin: string, currentUserAccountID: numbe
     const isAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;
     const isManager = report.managerID === currentUserAccountID;
 
-    if (isReportSettled || (!isExpenseReport && !isBillReport(report)) || !isReportApproved || isPaymentProcessing || report.isWaitingForCancelledReimbursement) {
+    if (isReportSettled || !isExpenseOrBillReportUtils(report) || !isReportApproved || isPaymentProcessing || report.isWaitingForCancelledReimbursement) {
         return false;
     }
 

@@ -11,7 +11,6 @@ import type {SelectedParticipant} from '@src/types/onyx/NewGroupChatDraft';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
-import {isBillReport} from './BillUtils';
 import getCollator from './CollatorUtils';
 import {temporaryGetDisplayNameOrDefault} from './PersonalDetailsUtils';
 import {isPolicyAdmin, isPolicyFieldListEmpty} from './PolicyUtils';
@@ -23,6 +22,7 @@ import {
     getParentReport,
     getPolicyName,
     getReportOrDraftReport,
+    isExpenseOrBillReport,
     isExpenseReport,
     isInvoiceReport,
     isNewDotInvoice,
@@ -295,7 +295,7 @@ function getMoneyRequestReportName({
         }
     }
 
-    if (report?.reportName && (isExpenseReport(report) || isBillReport(report))) {
+    if (report?.reportName && isExpenseOrBillReport(report)) {
         return report.reportName;
     }
 

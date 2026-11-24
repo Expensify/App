@@ -38,7 +38,7 @@ import {
     getMoneyRequestSpendBreakdown,
     getNextApproverAccountID,
     getReasonAndReportActionThatRequiresAttention,
-    isExpenseReport,
+    isExpenseOrBillReport,
     isInvoiceReport,
     isOpenExpenseReport,
     isPayer,
@@ -222,7 +222,7 @@ function buildOptimisticNextStep(params: BuildOptimisticNextStepParams): ReportN
         personalDetailsByLogins,
     } = params;
 
-    if (!isExpenseReport(report) && !isBillReport(report)) {
+    if (!isExpenseOrBillReport(report)) {
         return null;
     }
 

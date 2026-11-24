@@ -4,7 +4,6 @@ import useReportsParentHierarchy from '@hooks/useReportsParentHierarchy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 
 import {shouldKeepBillPayActorHeader} from '@libs/BillPayReportActionUtils';
-import {isBillReport} from '@libs/BillUtils';
 import {isConsecutiveChronosAutomaticTimerAction} from '@libs/ChronosUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {
@@ -19,7 +18,7 @@ import {
     chatIncludesChronosWithID,
     isArchivedNonExpenseReport,
     isCanceledTaskReport,
-    isExpenseReport,
+    isExpenseOrBillReport,
     isHarvestCreatedExpenseReport,
     isInvoiceReport,
     isIOUReport,
@@ -127,7 +126,7 @@ function useReportActionsListRenderItem({
             return true;
         }
 
-        return isExpenseReport(report) || isBillReport(report) || isIOUReport(report) || isInvoiceReport(report);
+        return isExpenseOrBillReport(report) || isIOUReport(report) || isInvoiceReport(report);
     })();
 
     const renderItem = ({item: reportAction, index}: ListRenderItemInfo<OnyxTypes.ReportAction>) => {
