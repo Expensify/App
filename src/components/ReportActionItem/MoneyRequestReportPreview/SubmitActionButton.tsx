@@ -23,7 +23,14 @@ import {
     shouldBlockSubmitDueToStrictPolicyRules,
     shouldShowMarkAsDone,
 } from '@libs/ReportUtils';
-import {getTransactionViolations, hasOnlyPendingCardTransactions, showHeldExpensesBlockModal, showPendingCardTransactionsBlockModal} from '@libs/TransactionUtils';
+import {
+    getTransactionViolations,
+    hasHeldCorporateCardExpenses,
+    hasOnlyPendingCardTransactions,
+    showHeldCorporateCardExpensesBlockModal,
+    showHeldExpensesBlockModal,
+    showPendingCardTransactionsBlockModal,
+} from '@libs/TransactionUtils';
 
 import {submitReport} from '@userActions/IOU/ReportWorkflow';
 
@@ -86,6 +93,9 @@ function SubmitActionButtonContent() {
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
     const isChatReportArchived = useReportIsArchived(iouReport?.chatReportID);
     const [chatArchiveReason] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(iouReport?.chatReportID)}`, {selector: getArchiveReason});
+    const [isCardStatementReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${getNonEmptyStringOnyxID(iouReportID)}`, {
+        selector: (reportNameValuePairs) => !!reportNameValuePairs?.expensify_statementCardID,
+    });
     const getPersonalDetailsByLogin = useGetPersonalDetailsByLogin();
     const [submitterPersonalDetails] = usePersonalDetail(iouReport?.ownerAccountID);
 
@@ -154,6 +164,11 @@ function SubmitActionButtonContent() {
 
         if (hasOnlyHeldExpenses(transactions)) {
             showHeldExpensesBlockModal(showConfirmModal, translate, shouldShowMarkAsDoneCopy);
+            return;
+        }
+
+        if (isCardStatementReport && hasHeldCorporateCardExpenses(transactions)) {
+            showHeldCorporateCardExpensesBlockModal(showConfirmModal, translate, shouldShowMarkAsDoneCopy);
             return;
         }
 
