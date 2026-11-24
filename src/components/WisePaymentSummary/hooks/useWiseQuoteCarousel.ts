@@ -7,8 +7,8 @@ import type {LayoutChangeEvent, NativeScrollEvent, NativeSyntheticEvent} from 'r
 
 import {useRef, useState} from 'react';
 
-/** How much of the next card shows at the edge, so the admin sees there is more to review */
-const NEXT_CARD_PEEK = 32;
+/** How much narrower than the modal content a card is, so the next card shows at the edge and the admin sees there is more to review */
+const NEXT_CARD_PEEK = 20;
 
 type WiseQuoteCarouselState = {
     scrollViewRef: RefObject<ComponentRef<typeof ScrollView> | null>;
