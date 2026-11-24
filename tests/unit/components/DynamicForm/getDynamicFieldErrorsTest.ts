@@ -354,6 +354,25 @@ describe('getDynamicFieldErrors', () => {
         expect(unlistedCountryErrors).toEqual({[addressKeys.country]: required});
     });
 
+    it('requires the zip only where the schema asks for one', () => {
+        // Given an address in El Salvador, where the App does not require a zip, and one in Great Britain, where it does
+        const addressKeys = getAddressInputKeys('homeAddress');
+        const withZip: DynamicFormField = {key: 'homeAddress', type: 'address', required: true, rule: 'zipCode', isZipCodeAsked: true};
+        const withoutZip: DynamicFormField = {key: 'homeAddress', type: 'address', required: true, rule: 'zipCode', isZipCodeAsked: false};
+        const salvadoranAddress = {homeAddress: '1 Main Street', [addressKeys.city]: 'San Salvador', [addressKeys.country]: 'SV'};
+        const britishAddress = {homeAddress: '1 High Street', [addressKeys.city]: 'London', [addressKeys.country]: CONST.COUNTRY.GB};
+
+        // When each is validated under a schema that asks for the zip and under one that does not
+        const askedErrors = getDynamicFieldErrors([withZip], salvadoranAddress, translateLocal);
+        const skippedZipErrors = getDynamicFieldErrors([withoutZip], britishAddress, translateLocal);
+        const hiddenZipErrors = getDynamicFieldErrors([withoutZip], {...britishAddress, [addressKeys.zipCode]: '10001'}, translateLocal);
+
+        // Then the schema decides, and a zip left in the draft of a hidden input is not checked, since the user cannot fix it
+        expect(askedErrors).toEqual({[addressKeys.zipCode]: translateLocal('common.error.fieldRequired')});
+        expect(skippedZipErrors).toEqual({});
+        expect(hiddenZipErrors).toEqual({});
+    });
+
     it('asks for no state when the schema lists none, even in a country the App has states for', () => {
         // Given a US address whose schema sends an empty state list
         const homeAddress: DynamicFormField = {key: 'homeAddress', type: 'address', required: true, states: []};

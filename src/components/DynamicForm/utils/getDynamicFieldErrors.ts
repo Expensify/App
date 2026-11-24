@@ -28,7 +28,7 @@ import type {
     DynamicFormTextField,
 } from '@src/types/onyx';
 
-import getAddressInputKeys, {getAddressCountry, getStateOptions, isCountryAllowed, isStateAsked} from './getAddressInputKeys';
+import getAddressInputKeys, {getAddressCountry, getStateOptions, isCountryAllowed, isStateAsked, isZipCodeRequired, isZipCodeShown} from './getAddressInputKeys';
 import getAnswerKeys from './getAnswerKeys';
 import getFieldOptions from './getFieldOptions';
 import {getFieldLabel} from './getLocalizedText';
@@ -240,11 +240,14 @@ function isAddressPartAnswered(field: DynamicFormAddressField, partKey: string, 
 function getAddressPartErrors(field: DynamicFormAddressField, values: DynamicFormValues, translate: LocalizedTranslate): Array<[inputID: string, message: string]> {
     const addressKeys = getAddressInputKeys(field.key);
     const country = getAddressCountry(field.key, values);
-    // A country whose zip format accepts an empty zip does not require one
-    const isZipAsked = !country || !isValidZipCodeForCountry('', country);
     const partErrors: Array<[string, string]> = [];
     if (isAddressRequired(field, values)) {
-        const requiredPartKeys = [addressKeys.city, addressKeys.country, ...(isZipAsked ? [addressKeys.zipCode] : []), ...(isStateAsked(field, country) ? [addressKeys.state] : [])];
+        const requiredPartKeys = [
+            addressKeys.city,
+            addressKeys.country,
+            ...(isZipCodeRequired(field, country) ? [addressKeys.zipCode] : []),
+            ...(isStateAsked(field, country) ? [addressKeys.state] : []),
+        ];
         for (const partKey of requiredPartKeys) {
             if (!isAddressPartAnswered(field, partKey, values)) {
                 partErrors.push([partKey, translate('common.error.fieldRequired')]);
@@ -252,7 +255,7 @@ function getAddressPartErrors(field: DynamicFormAddressField, values: DynamicFor
         }
     }
     const zipCode = values[addressKeys.zipCode];
-    if (field.rule !== 'zipCode' || typeof zipCode !== 'string' || zipCode.trim() === '') {
+    if (field.rule !== 'zipCode' || !isZipCodeShown(field) || typeof zipCode !== 'string' || zipCode.trim() === '') {
         return partErrors;
     }
     if (!isValidZipCodeForCountry(zipCode, country)) {

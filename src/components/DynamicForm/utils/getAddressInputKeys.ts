@@ -1,5 +1,7 @@
 import type {DynamicFormValues} from '@components/DynamicForm/types';
 
+import {isValidZipCodeForCountry} from '@libs/ValidationUtils';
+
 import type AddressFormFields from '@pages/ReimbursementAccount/AddressFormFields';
 
 import CONST from '@src/CONST';
@@ -66,5 +68,15 @@ function isStateAsked(field: DynamicFormAddressField, country: Country | ''): bo
     return !!getStateOptions(field, country);
 }
 
+/** The zip input shows unless the field says no zip is asked */
+function isZipCodeShown(field: DynamicFormAddressField): boolean {
+    return field.isZipCodeAsked !== false;
+}
+
+/** The field decides when it says whether the zip is asked. Otherwise a country whose zip format accepts an empty zip does not require one. */
+function isZipCodeRequired(field: DynamicFormAddressField, country: Country | ''): boolean {
+    return field.isZipCodeAsked ?? (!country || !isValidZipCodeForCountry('', country));
+}
+
 export default getAddressInputKeys;
-export {getAddressCountry, getCountryOptions, getStateOptions, isCountryAllowed, isStateAsked};
+export {getAddressCountry, getCountryOptions, getStateOptions, isCountryAllowed, isStateAsked, isZipCodeRequired, isZipCodeShown};

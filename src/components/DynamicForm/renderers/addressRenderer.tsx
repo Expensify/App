@@ -1,4 +1,4 @@
-import getAddressInputKeys, {getAddressCountry, getCountryOptions, getStateOptions, isStateAsked} from '@components/DynamicForm/utils/getAddressInputKeys';
+import getAddressInputKeys, {getAddressCountry, getCountryOptions, getStateOptions, isStateAsked, isZipCodeShown} from '@components/DynamicForm/utils/getAddressInputKeys';
 import isSensitiveField from '@components/DynamicForm/utils/isSensitiveField';
 
 import AddressFormFields from '@pages/ReimbursementAccount/AddressFormFields';
@@ -39,6 +39,7 @@ const renderAddress: DynamicFieldRenderer<'address'> = (field, {values, styles},
                 countryOptions={getCountryOptions(field)}
                 shouldDisplayStateSelector={isStateAsked(field, country)}
                 stateOptions={getStateOptions(field, country)}
+                shouldDisplayZipCode={isZipCodeShown(field)}
                 // The pick can switch to any country with a state list, so the code is kept even while the current country has none
                 shouldKeepStateCode
                 forwardedFSClass={forwardedFSClass}

@@ -183,6 +183,9 @@ type DynamicFormAddressField = DynamicFormFieldBase & {
 
     /** The states of the picked country, in place of the App's own lists. An empty list asks for no state. */
     states?: DynamicFormFieldOption[];
+
+    /** True shows the zip input and requires it, false hides it. When not set the input shows, and is required unless the country's zip format allows an empty zip. */
+    isZipCodeAsked?: boolean;
 };
 
 /** Uploaded documents */

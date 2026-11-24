@@ -71,4 +71,23 @@ describe('AddressFormFields', () => {
         const street = wrapper.mock.calls.findLast(([props]) => props.inputID === 'street')?.[0];
         expect(street && 'allowedCountries' in street ? street.allowedCountries : undefined).toEqual([CONST.COUNTRY.GB, CONST.COUNTRY.CA]);
     });
+
+    it('draws no zip input when the caller asks for no zip', () => {
+        // Given an address in a country without zip codes.
+        // When the fields render without the zip.
+        render(
+            <AddressFormFields
+                streetTranslationKey="common.city"
+                inputKeys={inputs}
+                shouldDisplayCountrySelector
+                shouldDisplayZipCode={false}
+                defaultValues={{street: '', city: '', state: '', zipCode: '', country: 'HK'}}
+            />,
+        );
+
+        // Then the city is drawn and the zip is not.
+        const inputIDs = wrapper.mock.calls.map(([props]) => props.inputID);
+        expect(inputIDs).toContain('cityInput');
+        expect(inputIDs).not.toContain('zipCodeInput');
+    });
 });

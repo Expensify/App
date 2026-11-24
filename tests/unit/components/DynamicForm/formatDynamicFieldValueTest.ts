@@ -51,4 +51,16 @@ describe('formatDynamicFieldValue', () => {
         // Then a state the form does not ask for is left out, since it is not submitted either
         expect(shown).toBe(expected);
     });
+
+    it('leaves out a zip the form does not ask for', () => {
+        // Given an address whose draft holds a zip from an earlier pick, under a schema that asks for no zip
+        const addressWithoutZip: DynamicFormField = {key: 'address', type: 'address', required: true, isZipCodeAsked: false};
+        const values = {[addressKeys.street]: "1 Queen's Road Central", [addressKeys.city]: 'Hong Kong', [addressKeys.zipCode]: 'SW1W 9SR', [addressKeys.country]: 'HK'};
+
+        // When it is shown on a confirmation row
+        const shown = formatDynamicFieldValue(addressWithoutZip, values, translateLocal);
+
+        // Then the zip is left out, since it is not submitted either
+        expect(shown).toBe(`1 Queen's Road Central, Hong Kong, ${translateLocal('allCountries.HK')}`);
+    });
 });

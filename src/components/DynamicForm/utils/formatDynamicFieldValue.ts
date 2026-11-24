@@ -3,7 +3,7 @@ import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 
 import type {DynamicFormAddressField, DynamicFormField} from '@src/types/onyx';
 
-import getAddressInputKeys, {getAddressCountry, isStateAsked} from './getAddressInputKeys';
+import getAddressInputKeys, {getAddressCountry, isStateAsked, isZipCodeShown} from './getAddressInputKeys';
 import getFieldOptions, {getOptionLabel} from './getFieldOptions';
 import isCountryCode from './isCountryCode';
 import {getListItemFiles, getListItems} from './listItems';
@@ -16,8 +16,8 @@ function formatAddress(field: DynamicFormAddressField, values: DynamicFormValues
         return typeof part === 'string' ? part : '';
     };
     const country = getAddressCountry(field.key, values);
-    // A state the form does not ask for is not submitted, so it is not shown either
-    const stateAndZip = [isStateAsked(field, country) ? getPart(addressKeys.state) : '', getPart(addressKeys.zipCode)].filter(Boolean).join(' ');
+    // A state or zip the form does not ask for is not submitted, so it is not shown either
+    const stateAndZip = [isStateAsked(field, country) ? getPart(addressKeys.state) : '', isZipCodeShown(field) ? getPart(addressKeys.zipCode) : ''].filter(Boolean).join(' ');
     const countryName = country ? translate(`allCountries.${country}`) : '';
     return [getPart(addressKeys.street), getPart(addressKeys.city), stateAndZip, countryName].filter(Boolean).join(', ');
 }
