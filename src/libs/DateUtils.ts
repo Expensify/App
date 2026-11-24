@@ -130,7 +130,7 @@ function getLocalDateFromDatetime(locale: Locale | undefined, currentSelectedTim
             // know, but throws for some, such as `constructor`, so both get the current date below.
         }
         if (!res || Number.isNaN(res.getTime())) {
-            Log.warn('DateUtils.getLocalDateFromDatetime: toZonedTime returned an invalid date. Returning current date.', {
+            Log.warn('DateUtils.getLocalDateFromDatetime: toZonedTime returned an invalid date or threw. Returning current date.', {
                 locale,
                 datetime,
                 currentSelectedTimezone,
@@ -195,16 +195,19 @@ function isYesterday(date: Date, timeZone: SelectedTimezone): boolean {
 /**
  * We have to fall back to older timezone names for native platforms that do not ship with newer timezone names to avoid a crash.
  * Memoize to prevent unnecessary calculation as timezone support will not change on runtime on a platform.
+ *
+ * @returns the timezone, its older name, or undefined when the platform knows neither
  */
 // eslint-disable-next-line @typescript-eslint/no-redundant-type-constituents
-const fallbackToSupportedTimezone = memoize((timezoneInput: SelectedTimezone): SelectedTimezone | string => {
+const fallbackToSupportedTimezone = memoize((timezoneInput: SelectedTimezone): SelectedTimezone | string | undefined => {
     try {
         const date = new Date();
         const testDate = toZonedTime(date, timezoneInput);
         format(testDate, CONST.DATE.FNS_FORMAT_STRING);
         return timezoneInput;
     } catch (error) {
-        return timezoneNewToBackwardMap[timezoneInput];
+        // Other users' timezones can be any text, such as `constructor`, which would otherwise find a built-in object member
+        return Object.hasOwn(timezoneNewToBackwardMap, timezoneInput) ? timezoneNewToBackwardMap[timezoneInput] : undefined;
     }
 });
 
@@ -217,7 +220,8 @@ const fallbackToSupportedTimezone = memoize((timezoneInput: SelectedTimezone): S
  * Jan 20, 2019 at 5:30 PM    anything over 1 year ago
  */
 function datetimeToCalendarTime(locale: Locale | undefined, datetime: string, currentSelectedTimezone: SelectedTimezone, includeTimeZone = false, isLowercase = false): string {
-    const date = getLocalDateFromDatetime(locale, fallbackToSupportedTimezone(currentSelectedTimezone), datetime);
+    // A timezone the platform doesn't know under any name has no offset to apply, so the time is shown in UTC
+    const date = getLocalDateFromDatetime(locale, fallbackToSupportedTimezone(currentSelectedTimezone) ?? 'UTC', datetime);
     const dateFnsLocale = IntlStore.getDateFnsLocale(locale);
     const tz = includeTimeZone ? ' [UTC]Z' : '';
     let todayAt = translateLocalize(locale, 'common.todayAt');
@@ -284,7 +288,11 @@ function datetimeToRelative(locale: Locale | undefined, datetime: string, curren
  * @returns
  */
 function getZoneAbbreviation(datetime: string | Date, selectedTimezone: SelectedTimezone, dateFnsLocale: DateFnsLocale | undefined): string {
+    // A timezone the platform doesn't know has no abbreviation, and showing the device's own would mislabel another user's time
     const supportedTimezone = fallbackToSupportedTimezone(selectedTimezone);
+    if (!supportedTimezone) {
+        return '';
+    }
     try {
         // The zone name comes from `Intl`, so passing the language gives its own name for the zone, such as the German
         // abbreviation for Central European Summer Time, instead of always the English one.
@@ -659,9 +667,15 @@ function getStatusUntilDate(
     }
 
     // Some native platforms only know older timezone names. Another user's timezone can also be text that is not a
-    // timezone this platform knows under any name, and that is read in the device's timezone.
+    // timezone this platform knows under any name, and there is no reliable time to show then. An empty timezone is
+    // excluded too, because date-fns-tz reads it as the device's timezone when parsing but as UTC when converting.
+    const supportedInputTimezone = fallbackToSupportedTimezone(inputDateTimeZone);
     const supportedCurrentTimezone = fallbackToSupportedTimezone(currentSelectedTimezone);
-    const date = fromZonedTime(inputDate, fallbackToSupportedTimezone(inputDateTimeZone));
+    if (!supportedInputTimezone || !supportedCurrentTimezone) {
+        return '';
+    }
+
+    const date = fromZonedTime(inputDate, supportedInputTimezone);
     const input = toZonedTime(date, supportedCurrentTimezone);
     const now = toZonedTime(new Date(), supportedCurrentTimezone);
 

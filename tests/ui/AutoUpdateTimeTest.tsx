@@ -16,7 +16,7 @@ import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct'
 describe('AutoUpdateTime', () => {
     beforeAll(() => Onyx.init({keys: ONYXKEYS}));
 
-    it.each(['Not/AZone', 'Z', 'constructor'])('renders the local time for the timezone %p', async (timezone) => {
+    it.each(['Not/AZone', 'Z', 'constructor'])('renders the time without a zone abbreviation for the timezone %p', async (timezone) => {
         // Given another user's personal details with a timezone `Intl` doesn't know, which the server can store
         // When their profile renders their local time
         render(
@@ -27,7 +27,9 @@ describe('AutoUpdateTime', () => {
         );
         await waitForBatchedUpdatesWithAct();
 
-        // Then the local time row is shown instead of the zone formatting error crashing the page
+        // Then the local time row shows the time with no zone abbreviation, since the device's own abbreviation
+        // would mislabel it, instead of the zone formatting error crashing the page
         expect(screen.getByText('Local time')).toBeOnTheScreen();
+        expect(screen.getByText(/^\d{1,2}:\d{2} [AP]M\s*$/)).toBeOnTheScreen();
     });
 });

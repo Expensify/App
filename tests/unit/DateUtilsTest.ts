@@ -680,17 +680,28 @@ describe('DateUtils', () => {
             expect(DateUtils.getStatusUntilDate(translateLocal, undefined, clearAfter, inputTimeZoneNY, currentTimeZone)).toBe('');
         });
 
-        it.each(['Not/AZone', 'Z', '', 'constructor'])('returns a string without throwing for the timezone %p', (unknownTimezone) => {
-            // Given a valid clear-after date and a timezone this platform doesn't know, which another user's personal
-            // details can hold
+        it.each(['Not/AZone', '', 'constructor'])('returns empty string for the timezone %p', (unknownTimezone) => {
+            // Given a valid clear-after date and a timezone this platform doesn't know under any name, which another
+            // user's personal details can hold
             const clearAfter = '2025-10-19 15:34:00';
             // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- other users' personal details can hold a timezone that isn't in the app's list
             const statusTimezone = unknownTimezone as SelectedTimezone;
 
             // When the status is shown with that timezone as the status owner's or the viewer's timezone
-            // Then a string is returned instead of the error crashing the chat list
-            expect(typeof DateUtils.getStatusUntilDate(translateLocal, undefined, clearAfter, statusTimezone, currentTimeZone)).toBe('string');
-            expect(typeof DateUtils.getStatusUntilDate(translateLocal, undefined, clearAfter, inputTimeZoneNY, statusTimezone)).toBe('string');
+            // Then no expiry is shown, since there is no reliable time to show, instead of the error crashing the chat list
+            expect(DateUtils.getStatusUntilDate(translateLocal, undefined, clearAfter, statusTimezone, currentTimeZone)).toBe('');
+            expect(DateUtils.getStatusUntilDate(translateLocal, undefined, clearAfter, inputTimeZoneNY, statusTimezone)).toBe('');
+        });
+
+        it('reads the UTC offset timezone "Z" as UTC', () => {
+            // Given a timezone that isn't in the app's list but that date-fns-tz reads as a UTC offset
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- other users' personal details can hold a timezone that isn't in the app's list
+            const utcOffsetTimezone = 'Z' as SelectedTimezone;
+
+            // When the status is shown with it as the status owner's or the viewer's timezone
+            // Then the expiry is converted from or to UTC, such as 15:34 UTC being 8:34 AM in Los Angeles in October
+            expect(DateUtils.getStatusUntilDate(translateLocal, undefined, '2025-10-19 15:34:00', utcOffsetTimezone, currentTimeZone)).toBe('Until 8:34 AM');
+            expect(DateUtils.getStatusUntilDate(translateLocal, undefined, '2025-10-19 15:34:00', inputTimeZoneNY, utcOffsetTimezone)).toBe('Until 7:34 PM');
         });
 
         it('returns "Until h:mm a" when input and current timezone are same', () => {
@@ -1655,12 +1666,12 @@ describe('DateUtils', () => {
             expect(DateUtils.getZoneAbbreviation(SUMMER_INSTANT, TOKYO, ja)).toBe('JST');
         });
 
-        it.each(['Not/AZone', 'Z', '', 'constructor'])('returns a string without throwing for the timezone %p', (unknownTimezone) => {
+        it.each(['Not/AZone', 'Z', '', 'constructor'])('returns empty string for the timezone %p', (unknownTimezone) => {
             // Given a timezone `Intl` doesn't know, which another user's personal details can hold
             // When its abbreviation is shown on that user's profile
-            // Then a string is returned instead of the RangeError crashing the page
+            // Then nothing is shown, rather than the viewer's own abbreviation or a RangeError crashing the page
             // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- other users' personal details can hold a timezone that isn't in the app's list
-            expect(typeof DateUtils.getZoneAbbreviation(SUMMER_INSTANT, unknownTimezone as SelectedTimezone, enUS)).toBe('string');
+            expect(DateUtils.getZoneAbbreviation(SUMMER_INSTANT, unknownTimezone as SelectedTimezone, enUS)).toBe('');
         });
 
         it('returns empty string for a datetime that is not a date', () => {
