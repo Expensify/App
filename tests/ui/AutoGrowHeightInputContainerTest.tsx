@@ -496,7 +496,7 @@ describe('AutoGrowHeightInputContainer', () => {
         let keyboardHeight = 0;
         let renderedMaxAutoGrowHeight: number = variables.textInputAutoGrowMaxHeight;
         const renderedCaps: number[] = [];
-        mockUseSafeAreaInsets.mockReturnValue({top: 0, right: 0, bottom: 24, left: 0});
+        mockUseSafeAreaInsets.mockReturnValue({top: 0, right: 0, bottom: 40, left: 0});
         mockUseKeyboardState.mockImplementation(() => ({
             isKeyboardShown: keyboardHeight !== 0,
             isKeyboardActive,
@@ -522,7 +522,7 @@ describe('AutoGrowHeightInputContainer', () => {
             </AutoGrowHeightInputContainer>
         );
 
-        // Given an input whose slot measured 800px before the keyboard opened, on a device with a 24px bottom safe area that the form already reserves
+        // Given an input whose slot measured 800px before the keyboard opened, on an iOS device with a 40px bottom safe area, of which the form already reserves 70% (28px)
         const {rerender} = render(renderInput());
         const container = screen.UNSAFE_getByType(ScrollView);
         const nativeScrollViewElement = container.children.at(0);
@@ -535,18 +535,18 @@ describe('AutoGrowHeightInputContainer', () => {
         fireEvent(container, 'layout', {nativeEvent: {layout: {height: 800, width: 300}}});
         await waitFor(() => expect(screen.getByTestId('inset-keyboard-height').props.accessibilityLabel).toBe('776'));
 
-        // When a 335px keyboard starts opening, which covers that safe area and so only takes 311px from the slot
+        // When a 335px keyboard starts opening, which covers that reserved padding and so only takes 307px from the slot
         isKeyboardActive = true;
         keyboardActiveHeight = 335;
         rerender(renderInput());
 
-        // Then the cap already matches the 489px slot during the animation, so it does not grow again once the keyboard settles
-        await waitFor(() => expect(screen.getByTestId('inset-keyboard-height').props.accessibilityLabel).toBe('465'));
+        // Then the cap already matches the 493px slot during the animation, so it does not change again once the keyboard settles
+        await waitFor(() => expect(screen.getByTestId('inset-keyboard-height').props.accessibilityLabel).toBe('469'));
         // The mocked native method is shared by every scroll view, so each settled measurement is mocked only once
-        nativeScrollView.getNativeScrollRef.mockReturnValueOnce(mockNativeSlot(489));
+        nativeScrollView.getNativeScrollRef.mockReturnValueOnce(mockNativeSlot(493));
         keyboardHeight = 335;
         rerender(renderInput());
-        expect(screen.getByTestId('inset-keyboard-height').props.accessibilityLabel).toBe('465');
+        expect(screen.getByTestId('inset-keyboard-height').props.accessibilityLabel).toBe('469');
 
         // When the keyboard closes and the slot returns to 800px
         renderedCaps.length = 0;

@@ -3,6 +3,7 @@
  */
 import useKeyboardState from '@hooks/useKeyboardState';
 import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
+import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 
@@ -50,13 +51,19 @@ function AutoGrowHeightInputContainer({children, style, shouldKeepMinimumHeight 
     const {windowHeight} = useWindowDimensions();
     const {isKeyboardActive, isKeyboardShown, isKeyboardAnimatingRef, keyboardActiveHeight, keyboardHeight} = useKeyboardState();
     const {bottom} = useSafeAreaInsets();
+    // The same bottom padding that forms reserve for the safe area. On iOS it is only part of the inset.
+    const {paddingBottom: reservedBottomSafeArea} = useSafeAreaPaddings(true);
     const isNativePlatform = Platform.OS !== 'web';
     // Android resizes the screen for the keyboard, so its exact layout already includes the keyboard. Subtracting it again would double-count it when the layout arrives first.
     const isIOS = Platform.OS === 'ios';
-    // The form already reserves the bottom safe area, and the keyboard covers it, so the slot only loses the part of the keyboard above that area.
+    // The form already reserves the bottom safe area padding, and the keyboard covers it, so the slot only loses the part of the keyboard above that padding.
     // Subtracting the full keyboard left the slot that much shorter while the keyboard opened, and that much taller while it closed, until keyboardDidShow or keyboardDidHide measured it.
+    // Subtracting the whole inset instead of the reserved padding left the slot too tall by the rest of the inset, so the input shrank again after the keyboard
+    // settled. iOS keeps a text view's scroll position when it shrinks, so that hid the line with the caret.
     const nativeKeyboardHeight =
-        isIOS && (isKeyboardActive || isKeyboardShown) ? Math.max((keyboardActiveHeight > 0 ? getKeyboardHeight(keyboardActiveHeight, bottom) : keyboardHeight) - bottom, 0) : 0;
+        isIOS && (isKeyboardActive || isKeyboardShown)
+            ? Math.max((keyboardActiveHeight > 0 ? getKeyboardHeight(keyboardActiveHeight, bottom) : keyboardHeight) - reservedBottomSafeArea, 0)
+            : 0;
     const availableHeightRef = useRef<number>(variables.textInputAutoGrowMaxHeight);
     const viewportHeightRef = useRef(windowHeight);
     const keyboardHeightRef = useRef(nativeKeyboardHeight);
