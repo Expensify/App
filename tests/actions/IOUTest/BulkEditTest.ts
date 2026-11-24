@@ -1975,6 +1975,89 @@ describe('actions/IOU/BulkEdit', () => {
             canEditFieldSpy.mockRestore();
         });
 
+        it.each([
+            {
+                scenario: 'sends the picked rate with a new currency, even when the expense already has it',
+                currency: CONST.CURRENCY.EUR,
+                isTaxRatePicked: true,
+                canEditTaxRate: true,
+                shouldSendTaxRate: true,
+            },
+            {scenario: 'leaves out an unchanged rate when the currency stays the same', currency: CONST.CURRENCY.USD, isTaxRatePicked: true, canEditTaxRate: true, shouldSendTaxRate: false},
+            {scenario: 'sends no rate with a new currency when no rate was picked', currency: CONST.CURRENCY.EUR, isTaxRatePicked: false, canEditTaxRate: true, shouldSendTaxRate: false},
+            {
+                scenario: 'sends no rate with a new currency when the rate cannot be edited',
+                currency: CONST.CURRENCY.EUR,
+                isTaxRatePicked: true,
+                canEditTaxRate: false,
+                shouldSendTaxRate: false,
+            },
+        ])('$scenario', ({currency, isTaxRatePicked, canEditTaxRate, shouldSendTaxRate}) => {
+            // Given a USD expense that is already tax exempt, in a workspace whose new-currency default rate is another rate,
+            // so the server would replace the exemption if a currency change reached it without a rate
+            const transactionID = 'transaction-tax-with-currency';
+            const iouReportID = 'iou-tax-with-currency';
+            const taxCode = 'id_TAX_EXEMPT';
+            const policy: Policy = {
+                ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
+                taxRates: {...CONST.DEFAULT_TAX, foreignTaxDefault: 'id_TAX_RATE_1'},
+            };
+            const iouReport: Report = {
+                ...createRandomReport(2, undefined),
+                reportID: iouReportID,
+                policyID: policy.id,
+                type: CONST.REPORT.TYPE.EXPENSE,
+            };
+            const transaction: Transaction = {
+                ...createRandomTransaction(1),
+                transactionID,
+                reportID: iouReportID,
+                amount: -1000,
+                currency: CONST.CURRENCY.USD,
+                taxCode,
+                taxAmount: 0,
+            };
+            const canEditFieldSpy = jest.spyOn(require('@libs/ReportUtils'), 'canEditFieldOfMoneyRequest').mockImplementation((...args: unknown[]) => {
+                const [options] = args;
+                return canEditTaxRate || !isObject(options) || options.fieldToEdit !== CONST.EDIT_REQUEST_FIELD.TAX_RATE;
+            });
+            // eslint-disable-next-line rulesdir/no-multiple-api-calls
+            const writeSpy = jest.spyOn(API, 'write').mockImplementation(jest.fn());
+
+            // When the expense is bulk edited with a currency and, in some cases, the exempt rate it already has
+            updateMultipleMoneyRequests({
+                isVendorMatchingBetaEnabled: false,
+                personalDetailsList: undefined,
+                transactionIDs: [transactionID],
+                changes: {merchant: 'Updated merchant', currency, ...(isTaxRatePicked ? {taxCode} : {})},
+                policy,
+                reports: {[`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`]: iouReport},
+                transactions: {[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]: transaction},
+                reportActions: {},
+                policyCategories: undefined,
+                policyTags: {},
+                violations: undefined,
+                hash: undefined,
+                currentUserAccountID: RORY_ACCOUNT_ID,
+                delegateAccountID: undefined,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                getCurrencySymbol: getCurrencySymbolLocal,
+                rules: undefined,
+            });
+
+            // Then the whole picked rate, zero amount included, goes with the currency only when the currency changes and
+            // the rate was picked and can be edited, so the server keeps it instead of applying its default
+            const updates = getBulkEditUpdates(writeSpy);
+            writeSpy.mockRestore();
+            canEditFieldSpy.mockRestore();
+            expect(updates.currency).toBe(currency === CONST.CURRENCY.USD ? undefined : currency);
+            expect(updates.taxCode).toBe(shouldSendTaxRate ? taxCode : undefined);
+            expect(updates.taxAmount).toBe(shouldSendTaxRate ? 0 : undefined);
+            if (shouldSendTaxRate) {
+                expect(updates.taxValue).toBe('0%');
+            }
+        });
+
         it('recalculates taxAmount when bulk-editing only amount on a taxed expense', () => {
             const transactionID = 'transaction-tax-amount-only';
             const iouReportID = 'iou-tax-amount-only';
