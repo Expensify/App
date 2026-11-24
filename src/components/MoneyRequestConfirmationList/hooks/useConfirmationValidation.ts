@@ -27,7 +27,10 @@ type ValidationResult =
           errorKey: TranslationPaths;
           shouldSetDidConfirmSplit?: boolean;
       }
-    | {isFieldError: true}
+    | {
+          isFieldError: true;
+          shouldSetDidConfirmSplit?: boolean;
+      }
     | {errorKey: null};
 
 type UseConfirmationValidationResult = {
@@ -213,6 +216,10 @@ function useConfirmationValidation({
         }
 
         if (hasFieldErrors(fieldErrors)) {
+            // A field error returns before the edited split's required-fields check below, so the split is marked as confirmed here too, or its missing-field errors only show on a second Save.
+            if (isEditingSplitBill && areRequiredFieldsEmpty(transaction, transactionReport)) {
+                return {isFieldError: true, shouldSetDidConfirmSplit: true};
+            }
             return {isFieldError: true};
         }
 

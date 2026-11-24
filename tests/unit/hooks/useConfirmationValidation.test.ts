@@ -365,6 +365,24 @@ describe('useConfirmationValidation', () => {
         expect(result.current.fieldErrors).toEqual({amount: 'common.error.enterAmount'});
     });
 
+    it('marks an edited split as confirmed when its amount field blocks while its saved amount is still missing', () => {
+        // Given a split being edited whose receipt left the amount at $0, so its required fields are still empty
+        const {result} = renderHook(() =>
+            useConfirmationValidation({
+                ...baseParams,
+                isEditingSplitBill: true,
+                iouAmount: 0,
+                transaction: createTransactionBase({amount: 0, merchant: 'Coffee'}),
+                transactionReport: createMock<OnyxTypes.Report>({type: CONST.REPORT.TYPE.IOU}),
+            }),
+        );
+
+        // When the user saves the split
+        // Then the amount field blocks it and the split is marked as confirmed, so its missing-fields message shows on this same Save
+        expect(result.current.validate()).toEqual({isFieldError: true, shouldSetDidConfirmSplit: true});
+        expect(result.current.fieldErrors).toEqual({amount: 'common.error.enterAmount'});
+    });
+
     it('returns errorKey: null on successful non-PAY validation', () => {
         const {result} = renderHook(() => useConfirmationValidation(baseParams));
         expect(result.current.validate()).toEqual({errorKey: null});

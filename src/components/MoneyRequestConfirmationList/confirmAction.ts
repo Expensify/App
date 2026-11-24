@@ -91,6 +91,10 @@ function buildConfirmAction({
             return;
         }
 
+        if ('shouldSetDidConfirmSplit' in result && result.shouldSetDidConfirmSplit) {
+            setDidConfirmSplit(true);
+        }
+
         if ('isFieldError' in result) {
             clearConfirmError();
             revealFieldErrors();
@@ -98,9 +102,6 @@ function buildConfirmAction({
         }
 
         if (result.errorKey) {
-            if (result.shouldSetDidConfirmSplit) {
-                setDidConfirmSplit(true);
-            }
             setConfirmError(result.errorKey);
             return;
         }

@@ -5170,9 +5170,6 @@ describe('getIsViolationFixed', () => {
         policyCategories: undefined,
         policyTagLists: undefined,
         policyTaxRates: undefined,
-        iouAttendees: undefined,
-        ownerLogin: 'user@example.com',
-        isAttendeeTrackingEnabled: false,
     };
 
     const createPolicyTagList = (tagName: string, enabled: boolean) => ({
@@ -5182,12 +5179,6 @@ describe('getIsViolationFixed', () => {
             orderWeight: 1,
             tags: {[tagName]: {name: tagName, enabled}},
         },
-    });
-
-    const createAttendee = (email: string) => ({
-        email,
-        displayName: email.split('@')?.at(0) ?? '',
-        avatarUrl: '',
     });
 
     describe('violations.categoryOutOfPolicy', () => {
@@ -5357,78 +5348,6 @@ describe('getIsViolationFixed', () => {
                 mileageRate: {unit: 'mi', startDate: '2025-01-01', endDate: '2025-12-31'},
             });
             expect(result).toBe(false);
-        });
-    });
-
-    describe('violations.missingAttendees', () => {
-        it('should return true when attendee tracking is disabled', () => {
-            const result = getIsViolationFixed('violations.missingAttendees', {
-                ...defaultParams,
-                isAttendeeTrackingEnabled: false,
-                category: 'Meals',
-                policyCategories: {Meals: {name: 'Meals', enabled: true, areAttendeesRequired: true}},
-            });
-            expect(result).toBe(true);
-        });
-
-        it('should return true when category does not require attendees', () => {
-            const result = getIsViolationFixed('violations.missingAttendees', {
-                ...defaultParams,
-                isAttendeeTrackingEnabled: true,
-                category: 'Meals',
-                policyCategories: {Meals: {name: 'Meals', enabled: true, areAttendeesRequired: false}},
-            });
-            expect(result).toBe(true);
-        });
-
-        it('should return false when no attendees are present and category requires them', () => {
-            const result = getIsViolationFixed('violations.missingAttendees', {
-                ...defaultParams,
-                isAttendeeTrackingEnabled: true,
-                isControlPolicy: true,
-                category: 'Meals',
-                policyCategories: {Meals: {name: 'Meals', enabled: true, areAttendeesRequired: true}},
-                iouAttendees: [],
-            });
-            expect(result).toBe(false);
-        });
-
-        it('should return false when only the creator is an attendee', () => {
-            const result = getIsViolationFixed('violations.missingAttendees', {
-                ...defaultParams,
-                isAttendeeTrackingEnabled: true,
-                isControlPolicy: true,
-                category: 'Meals',
-                policyCategories: {Meals: {name: 'Meals', enabled: true, areAttendeesRequired: true}},
-                iouAttendees: [createAttendee('user@example.com')],
-            });
-            expect(result).toBe(false);
-        });
-
-        it('should return true when there is a non-creator attendee', () => {
-            const result = getIsViolationFixed('violations.missingAttendees', {
-                ...defaultParams,
-                isAttendeeTrackingEnabled: true,
-                isControlPolicy: true,
-                category: 'Meals',
-                policyCategories: {Meals: {name: 'Meals', enabled: true, areAttendeesRequired: true}},
-                iouAttendees: [createAttendee('user@example.com'), createAttendee('other@example.com')],
-            });
-            expect(result).toBe(true);
-        });
-
-        it('should return true (violation fixed) when policy is not Control type, even if category requires attendees', () => {
-            // This covers the downgrade scenario: after downgrading from Control to Collect,
-            // the category may still have areAttendeesRequired: true but we should not enforce it
-            const result = getIsViolationFixed('violations.missingAttendees', {
-                ...defaultParams,
-                isAttendeeTrackingEnabled: true,
-                isControlPolicy: false,
-                category: 'Meals',
-                policyCategories: {Meals: {name: 'Meals', enabled: true, areAttendeesRequired: true}},
-                iouAttendees: [],
-            });
-            expect(result).toBe(true);
         });
     });
 

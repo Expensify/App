@@ -152,15 +152,17 @@ const amountFieldProps: React.ComponentProps<typeof AmountField> = {
     policy: undefined,
 };
 
-describe('AmountField split-bill error clearing', () => {
+describe('AmountField split-bill amount errors', () => {
     beforeEach(() => {
         mockTransactionSlice = {transactionID: '1', amount: 0, currency: 'USD', isAmountMissing: false};
         mockOnyxValues = {};
     });
 
     it('shows the missing amount error for a failed split scan', () => {
+        // Given a split being edited whose failed scan left the amount missing, with the split's missing-field errors shown
         mockTransactionSlice = {transactionID: '1', amount: 0, currency: 'USD', isAmountMissing: true};
 
+        // When the field renders
         render(
             <ConfirmationFieldsProvider
                 transactionID="1"
@@ -176,10 +178,13 @@ describe('AmountField split-bill error clearing', () => {
             </ConfirmationFieldsProvider>,
         );
 
+        // Then it asks for the amount, since the scan didn't fill it in
         expect(screen.getByText('common.error.enterAmount')).toBeOnTheScreen();
     });
 
     it('does not show a missing amount error when the split amount is valid', () => {
+        // Given a split being edited whose amount is set, with the split's missing-field errors shown
+        // When the field renders
         render(
             <ConfirmationFieldsProvider
                 transactionID="1"
@@ -195,12 +200,15 @@ describe('AmountField split-bill error clearing', () => {
             </ConfirmationFieldsProvider>,
         );
 
+        // Then it asks for nothing, because only a missing amount gets that error
         expect(screen.queryByText('common.error.enterAmount')).not.toBeOnTheScreen();
     });
 
     it('does not show the split missing amount error outside the field-error state', () => {
+        // Given a new expense with no amount, which isn't a split being edited, so the split's missing-field errors are off
         mockTransactionSlice = {transactionID: '1', amount: 0, currency: 'USD', isAmountMissing: true};
 
+        // When the field renders
         render(
             <ConfirmationFieldsProvider
                 transactionID="1"
@@ -212,6 +220,7 @@ describe('AmountField split-bill error clearing', () => {
             </ConfirmationFieldsProvider>,
         );
 
+        // Then it asks for nothing yet, since a new expense's missing amount only shows once a confirm is blocked
         expect(screen.queryByText('common.error.enterAmount')).not.toBeOnTheScreen();
     });
 

@@ -137,7 +137,6 @@ function useFormErrorManagement({
         !!isEditingSplitBill &&
         ((!!hasSmartScanFailed && hasMissingSmartscanFields(transaction, transactionReport)) || (didConfirmSplit && areRequiredFieldsEmpty(transaction, transactionReport)));
 
-    // Missing attendees is a field error and never becomes the form error, so the attendees aren't passed.
     const isViolationFixed = getIsViolationFixed(formError, {
         category: iouCategory,
         tag: getTag(transaction),
