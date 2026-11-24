@@ -41,7 +41,6 @@ const baseParams: Params = {
     routeError: undefined,
     isTypeSplit: false,
     shouldShowReadOnlySplits: false,
-    isDistanceRequest: false,
 };
 
 function Wrapper({children}: {children: React.ReactNode}) {
@@ -90,10 +89,10 @@ describe('useFormErrorManagement', () => {
     });
 
     it('drops the error a confirm set once a later confirm asks for it to be cleared', () => {
-        // Given a confirm that was blocked by an empty tax amount
+        // Given a confirm that was blocked by a category the workspace turned off
         const {result} = renderHook(() => useFormErrorManagement(baseParams), {wrapper: Wrapper});
-        act(() => result.current.setConfirmError('iou.error.invalidAmount'));
-        expect(result.current.formError).toBe('iou.error.invalidAmount');
+        act(() => result.current.setConfirmError('violations.categoryOutOfPolicy'));
+        expect(result.current.formError).toBe('violations.categoryOutOfPolicy');
 
         // When a later confirm is blocked by a field error instead
         act(() => result.current.clearConfirmError());
@@ -115,9 +114,9 @@ describe('useFormErrorManagement', () => {
     });
 
     it('keeps an error that replaced the one a confirm set', () => {
-        // Given a confirm blocked by an empty tax amount, after which the distance rate check raised its own error
+        // Given a confirm blocked by a category the workspace turned off, after which the distance rate check raised its own error
         const {result} = renderHook(() => useFormErrorManagement(baseParams), {wrapper: Wrapper});
-        act(() => result.current.setConfirmError('iou.error.invalidAmount'));
+        act(() => result.current.setConfirmError('violations.categoryOutOfPolicy'));
         act(() => result.current.setFormError('iou.error.invalidRate'));
 
         // When a confirm blocked by a field error asks to clear its own error
@@ -132,77 +131,30 @@ describe('useFormErrorManagement', () => {
         expect(result.current.errorMessage).toBe('route.error.unreachable');
     });
 
-    it('errorMessage returns undefined for violations.missingAttendees on non-split flows', async () => {
-        const {result} = renderHook(() => useFormErrorManagement(baseParams), {wrapper: Wrapper});
-        act(() => result.current.setFormError('violations.missingAttendees'));
-        expect(result.current.errorMessage).toBeUndefined();
-    });
-
-    it('errorMessage leaves out the invalid amount error the amount input already shows', () => {
-        // Given an edited split, whose amount input flags an invalid amount through the form error as the user types
+    it('errorMessage shows the form error, since the errors a field shows on itself never reach it', () => {
+        // Given a distance amount too large to submit, which has no input to show it on
         const {result} = renderHook(() => useFormErrorManagement(baseParams), {wrapper: Wrapper});
 
-        // When that error is set
-        act(() => result.current.setFormError('common.error.invalidAmount'));
+        // When the form error is set
+        act(() => result.current.setFormError('iou.error.distanceAmountTooLarge'));
 
-        // Then the footer doesn't repeat it under the button
-        expect(result.current.errorMessage).toBeUndefined();
-    });
-
-    it('errorMessage still shows the invalid amount error for a distance request (no inline surface)', () => {
-        const {result} = renderHook(() => useFormErrorManagement({...baseParams, isDistanceRequest: true}), {wrapper: Wrapper});
-        act(() => result.current.setFormError('common.error.invalidAmount'));
+        // Then the footer shows it under the button
         expect(result.current.errorMessage).toBeDefined();
     });
 
     const splitParams: Params = {...baseParams, isTypeSplit: true, shouldShowReadOnlySplits: false};
 
-    it('suppresses the duplicate footer invalid amount error on an editable split (#96565)', () => {
+    it('shows the footer errors of an editable split once the debounce settles', () => {
         jest.useFakeTimers();
         try {
-            const {result} = renderHook(() => useFormErrorManagement(splitParams), {wrapper: Wrapper});
-            act(() => result.current.setFormError('common.error.invalidAmount'));
-            act(() => jest.advanceTimersByTime(CONST.TIMING.USE_DEBOUNCED_STATE_DELAY + 1));
-
-            // The debounce has settled, so an undefined message is real suppression rather than lag.
-            expect(result.current.debouncedFormError).toBe('common.error.invalidAmount');
-            expect(result.current.errorMessage).toBeUndefined();
-        } finally {
-            jest.useRealTimers();
-        }
-    });
-
-    it('keeps a corrected split error hidden while the debounce is still holding the old value (#96565)', () => {
-        jest.useFakeTimers();
-        try {
+            // Given an editable split, whose footer reads the debounced form error
             const {result} = renderHook(() => useFormErrorManagement(splitParams), {wrapper: Wrapper});
 
-            // Given an editable split that failed confirmation with an invalid amount
-            act(() => result.current.setFormError('common.error.invalidAmount'));
-            act(() => jest.advanceTimersByTime(CONST.TIMING.USE_DEBOUNCED_STATE_DELAY + 1));
-            expect(result.current.errorMessage).toBeUndefined();
-
-            // When the user types a valid amount, clearing the live error while the debounced one still lags
-            act(() => result.current.setFormError(''));
-            expect(result.current.formError).toBe('');
-            expect(result.current.debouncedFormError).toBe('common.error.invalidAmount');
-
-            // Then the footer error must not pop back in for the length of the debounce
-            expect(result.current.errorMessage).toBeUndefined();
-            act(() => jest.advanceTimersByTime(CONST.TIMING.USE_DEBOUNCED_STATE_DELAY + 1));
-            expect(result.current.errorMessage).toBeUndefined();
-        } finally {
-            jest.useRealTimers();
-        }
-    });
-
-    it('still shows footer errors that have no inline surface on an editable split', () => {
-        jest.useFakeTimers();
-        try {
-            const {result} = renderHook(() => useFormErrorManagement(splitParams), {wrapper: Wrapper});
+            // When a form error is set and the debounce delay passes
             act(() => result.current.setFormError('iou.error.noParticipantSelected'));
             act(() => jest.advanceTimersByTime(CONST.TIMING.USE_DEBOUNCED_STATE_DELAY + 1));
 
+            // Then the footer shows it
             expect(result.current.errorMessage).toBeDefined();
         } finally {
             jest.useRealTimers();

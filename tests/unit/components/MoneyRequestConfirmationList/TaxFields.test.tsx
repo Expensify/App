@@ -99,7 +99,7 @@ const renderTaxRateRow = ({action = CONST.IOU.ACTION.CREATE, canModifyTaxFields 
                     iouType={CONST.IOU.TYPE.SUBMIT}
                     reportID={REPORT_ID}
                     formError=""
-                    clearFormErrors={jest.fn()}
+                    taxAmountError={undefined}
                 />
             </ExpenseFormLayoutContext.Provider>
         </ConfirmationFieldsProvider>,

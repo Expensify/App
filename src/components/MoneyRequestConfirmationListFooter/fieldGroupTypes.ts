@@ -57,11 +57,8 @@ type ErrorState = {
     shouldDisplayFieldError: boolean;
     formError: TranslationPaths | '';
 
-    /** The amount, date and merchant errors to show under those inputs. Empty until a confirm is blocked by one of them. */
+    /** The errors each field shows on itself. Empty until a confirm is blocked by one of them. */
     fieldErrors: ConfirmationFieldErrors;
-
-    clearFormErrors: (errors: string[]) => void;
-    setFormError: (error: TranslationPaths | '') => void;
 };
 
 /** Shared toggle handlers + flags */

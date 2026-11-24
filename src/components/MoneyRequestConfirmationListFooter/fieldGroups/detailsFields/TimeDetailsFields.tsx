@@ -41,9 +41,6 @@ function TimeDetailsFields({policy, amountDisplay, isDescriptionRequired, descri
                     shouldShowTimeRequestFields
                     policy={policy}
                     shouldDisplayFieldError={errorState.shouldDisplayFieldError}
-                    formError={errorState.formError}
-                    clearFormErrors={errorState.clearFormErrors}
-                    setFormError={errorState.setFormError}
                 />
             )}
 

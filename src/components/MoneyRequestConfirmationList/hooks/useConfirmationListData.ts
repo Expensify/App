@@ -3,16 +3,16 @@ import buildConfirmAction from '@components/MoneyRequestConfirmationList/confirm
 import type {MoneyRequestConfirmationListProps} from '@components/MoneyRequestConfirmationList/types';
 import type {MeasurableInput, SelectionListWithSectionsHandle} from '@components/SelectionList/SelectionListWithSections/types';
 
-import useAttendees from '@hooks/useAttendees';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import usePrevious from '@hooks/usePrevious';
+import useReportOwnerAsAttendee from '@hooks/useReportOwnerAsAttendee';
 
 import {getCategoryDescriptionHint, isCategoryDescriptionRequired} from '@libs/CategoryUtils';
 import {isMovingTransactionFromTrackExpense as isMovingTransactionFromTrackExpenseUtil} from '@libs/IOUUtils';
 import {getConfirmationAmount, isConfirmationMerchantRequired, shouldShowConfirmationDate} from '@libs/MoneyRequestUtils';
 import {hasEnabledOptions} from '@libs/OptionsListUtils';
 import {arePolicyRulesEnabled, isTaxTrackingEnabled} from '@libs/PolicyUtils';
-import {getCategory, getCurrency, getMerchant, getRateID, isScanRequest as isScanRequestUtil} from '@libs/TransactionUtils';
+import {getAttendees, getCategory, getCurrency, getMerchant, getRateID, isScanRequest as isScanRequestUtil} from '@libs/TransactionUtils';
 
 import CONST from '@src/CONST';
 
@@ -103,7 +103,8 @@ function useConfirmationListDataWithPolicy({
     const iouCurrencyCode = getCurrency(transaction);
     const iouMerchant = getMerchant(transaction);
     const iouCategory = getCategory(transaction);
-    const iouAttendees = useAttendees(transaction);
+    const reportOwnerAsAttendee = useReportOwnerAsAttendee(transaction);
+    const iouAttendees = getAttendees(transaction, reportOwnerAsAttendee);
 
     const isTypeSend = iouType === CONST.IOU.TYPE.PAY;
     const isTypeInvoice = iouType === CONST.IOU.TYPE.INVOICE;
@@ -145,12 +146,10 @@ function useConfirmationListDataWithPolicy({
 
     const [didConfirm, setDidConfirm] = useState(isConfirmed);
     const [didConfirmSplit, setDidConfirmSplit] = useState(false);
-    const [isTaxAmountEmpty, setIsTaxAmountEmpty] = useState(false);
-
-    useEffect(() => {
-        // eslint-disable-next-line react-hooks/set-state-in-effect -- reset the tax-empty flag whenever the transaction changes
-        setIsTaxAmountEmpty(false);
-    }, [transactionID]);
+    // A multi-scan swaps the receipt on the same list, so the flag holds the receipt whose tax amount was emptied, and the next receipt never renders with it.
+    const [emptyTaxAmountTransactionID, setEmptyTaxAmountTransactionID] = useState<string | undefined>();
+    const isTaxAmountEmpty = !!transactionID && emptyTaxAmountTransactionID === transactionID;
+    const setIsTaxAmountEmpty = (isEmpty: boolean) => setEmptyTaxAmountTransactionID(isEmpty ? transactionID : undefined);
 
     const routeError = Object.values(transaction?.errorFields?.route ?? {}).at(0);
     const isTypeSplit = iouType === CONST.IOU.TYPE.SPLIT;
@@ -174,7 +173,6 @@ function useConfirmationListDataWithPolicy({
         routeError,
         isTypeSplit,
         shouldShowReadOnlySplits,
-        isDistanceRequest,
     });
 
     const isCategoryRequired = !!policy?.requiresCategory && !isTypeInvoice;
@@ -224,7 +222,7 @@ function useConfirmationListDataWithPolicy({
         iouMerchant,
         iouCategory,
         iouCurrencyCode,
-        iouAttendees,
+        reportOwnerAsAttendee,
         policy,
         policyTags,
         policyTagLists,
@@ -283,7 +281,7 @@ function useConfirmationListDataWithPolicy({
         shouldShowTax,
         hasParticipantSection: sections.length > 0,
     };
-    const errorState = {shouldDisplayFieldError, formError, fieldErrors: visibleFieldErrors, clearFormErrors, setFormError};
+    const errorState = {shouldDisplayFieldError, formError, fieldErrors: visibleFieldErrors};
 
     return {
         /** Handed straight to `ConfirmationListLayout`. The variant adds its `listFooterContent`, its `fieldFlags`, and its controllers as children. */

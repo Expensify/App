@@ -71,7 +71,7 @@ type ProviderProps = {
     /** Scrolls the surface so an inline field's input is not hidden behind the keyboard when focused (new manual expense flow) */
     scrollFocusedInputIntoView?: (input: MeasurableInput) => void;
 
-    /** The refs the amount, merchant and date fields attach their outer view to, so a blocked confirm can scroll to them */
+    /** The refs the fields that show their own errors attach their outer view to, so a blocked confirm can scroll to them */
     fieldViewRefs?: ConfirmationFieldViewRefs;
 
     /** Submits the whole expense (used by inline inputs to keep Enter-to-confirm on hardware-keyboard setups) */

@@ -45,7 +45,7 @@ type BuildConfirmActionParams = {
     /** Drops the form error the last confirm set, since validation checks it again on the next confirm */
     clearConfirmError: () => void;
 
-    /** Shows the errors of the amount, date and merchant fields, which render on the fields rather than in the form error */
+    /** Shows the errors that render on their own fields rather than in the form error */
     revealFieldErrors: () => void;
 
     /** Setter for the "user already confirmed split" flag */

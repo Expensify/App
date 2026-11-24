@@ -74,7 +74,7 @@ const renderAttendeesRow = ({action = CONST.IOU.ACTION.CREATE, isReadOnly = fals
                         action={action}
                         iouType={CONST.IOU.TYPE.SUBMIT}
                         reportID={REPORT_ID}
-                        formError=""
+                        fieldError={undefined}
                     />
                 </ExpenseFormLayoutContext.Provider>
             </ConfirmationFieldsProvider>

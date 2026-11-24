@@ -4,15 +4,13 @@ import getConfirmationFieldErrors, {getSiblingFieldErrors, hasFieldErrors} from 
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 
 import {isValidPerDiemExpenseAmount} from '@libs/actions/IOU/PerDiem';
-import {getIsMissingAttendeesViolation} from '@libs/AttendeeUtils';
 import {isCategoryMissing} from '@libs/CategoryUtils';
-import {convertToFrontendAmountAsString} from '@libs/CurrencyUtils';
-import {isTaxAmountInvalid, validateAmount} from '@libs/MoneyRequestUtils';
+import {validateAmount} from '@libs/MoneyRequestUtils';
 import type {getTagLists as getTagListsFn} from '@libs/PolicyUtils';
-import {canSubmitPerDiemExpenseFromWorkspace, isAttendeeTrackingEnabled} from '@libs/PolicyUtils';
+import {canSubmitPerDiemExpenseFromWorkspace} from '@libs/PolicyUtils';
 import {hasEnabledTags, hasMatchingTag} from '@libs/TagsOptionsListUtils';
 import {isValidTimeExpenseAmount} from '@libs/TimeTrackingUtils';
-import {areRequiredFieldsEmpty, getCalculatedTaxAmount, getTag, getTaxAmount, hasTaxRateWithMatchingValue} from '@libs/TransactionUtils';
+import {areRequiredFieldsEmpty, getTag, hasTaxRateWithMatchingValue} from '@libs/TransactionUtils';
 
 import type {IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
@@ -36,7 +34,7 @@ type UseConfirmationValidationResult = {
     /** Returns the first check that blocks confirmation, `{errorKey: null}` when none does, or null when validation can't run yet */
     validate: (paymentType?: PaymentMethodType) => ValidationResult | null;
 
-    /** The errors the amount, date and merchant fields would show now. `validate` blocks on the same map. */
+    /** The errors the amount, merchant, date, tax amount and attendees fields would show now. `validate` blocks on the same map. */
     fieldErrors: ConfirmationFieldErrors;
 
     /** The first other receipt of a multi-scan with a field error. It is only looked for once the receipt on screen has none, since that one is fixed first. */
@@ -68,8 +66,8 @@ type UseConfirmationValidationParams = {
     /** Currency the IOU is being created in */
     iouCurrencyCode: string;
 
-    /** Currently selected attendees */
-    iouAttendees: Attendee[];
+    /** The report owner, who counts as the attendee while none were picked */
+    reportOwnerAsAttendee: Attendee | undefined;
 
     /** Policy the IOU belongs to */
     policy: OnyxEntry<OnyxTypes.Policy>;
@@ -137,8 +135,8 @@ type UseConfirmationValidationParams = {
 /**
  * Runs the set of pure validation checks for the Money Request confirmation
  * flow and returns a translation key describing the first failure, a field
- * error signal when the amount, date or merchant field blocks, or a success
- * signal. The amount, date and merchant checks come from
+ * error signal when a field that shows its own error blocks, or a success
+ * signal. The amount, merchant, date, tax amount and attendees checks come from
  * `getConfirmationFieldErrors`, whose map is returned too so those fields render
  * exactly the errors that block confirmation.
  *
@@ -160,7 +158,7 @@ function useConfirmationValidation({
     iouMerchant,
     iouCategory,
     iouCurrencyCode,
-    iouAttendees,
+    reportOwnerAsAttendee,
     policy,
     policyTags,
     policyTagLists,
@@ -196,8 +194,14 @@ function useConfirmationValidation({
         isDistanceRequest,
         isTimeRequest,
         currentUserAccountID: currentUserPersonalDetails.accountID,
+        policy,
+        policyCategories,
+        shouldShowTax,
+        reportOwnerAsAttendee,
+        currentUserLogin: currentUserPersonalDetails.email ?? currentUserPersonalDetails.login,
+        getCurrencyDecimals,
     };
-    const fieldErrors = getConfirmationFieldErrors(transaction, {...fieldErrorParams, iouAmount, iouMerchant});
+    const fieldErrors = getConfirmationFieldErrors(transaction, {...fieldErrorParams, iouAmount, iouMerchant, isTaxAmountEmpty});
     const siblingFieldErrors = !hasFieldErrors(fieldErrors) ? getSiblingFieldErrors(siblingTransactions, {...fieldErrorParams, participants: transaction?.participants}) : undefined;
     const validateReceiptOnScreen = (paymentType?: PaymentMethodType): ValidationResult | null => {
         if (!!routeError || !transactionID) {
@@ -233,39 +237,8 @@ function useConfirmationValidation({
             return {errorKey: 'violations.tagOutOfPolicy'};
         }
 
-        // Since invoices are not expense reports that need attendee tracking, this validation should not apply to invoices
-        const isMissingAttendeesViolation =
-            iouType !== CONST.IOU.TYPE.INVOICE &&
-            getIsMissingAttendeesViolation(
-                policyCategories,
-                iouCategory,
-                iouAttendees,
-                currentUserPersonalDetails.email ?? currentUserPersonalDetails.login,
-                isAttendeeTrackingEnabled(policy),
-                policy?.type === CONST.POLICY.TYPE.CORPORATE,
-            );
-        if (isMissingAttendeesViolation) {
-            return {errorKey: 'violations.missingAttendees'};
-        }
-
         if (shouldShowTax && !!transaction?.taxCode && !hasTaxRateWithMatchingValue(policy, transaction)) {
             return {errorKey: 'violations.taxOutOfPolicy'};
-        }
-
-        if (shouldShowTax && !isDistanceRequest && isTaxAmountEmpty) {
-            return {errorKey: 'iou.error.invalidAmount'};
-        }
-
-        // In the manual expense flow the tax amount is edited inline, so the standalone tax amount step's
-        // guard (tax amount can't exceed the tax computed from the rate and the expense amount) runs here.
-        // This also blocks creation when an invalid tax amount was persisted to the draft and then reloaded.
-        if (shouldShowTax && !isDistanceRequest) {
-            const decimals = getCurrencyDecimals(iouCurrencyCode);
-            const maxTaxAmount = getCalculatedTaxAmount(policy, transaction, iouCurrencyCode, decimals);
-            const currentTaxAmount = convertToFrontendAmountAsString(Math.abs(getTaxAmount(transaction, false)), decimals);
-            if (isTaxAmountInvalid(currentTaxAmount, maxTaxAmount, decimals)) {
-                return {errorKey: 'iou.error.invalidTaxAmount'};
-            }
         }
 
         if (isPerDiemRequest && (transaction?.comment?.customUnit?.subRates ?? []).length === 0) {
@@ -299,12 +272,6 @@ function useConfirmationValidation({
 
             if (isEditingSplitBill && areRequiredFieldsEmpty(transaction, transactionReport)) {
                 return {errorKey: 'iou.error.genericSmartscanFailureMessage', shouldSetDidConfirmSplit: true};
-            }
-
-            const isFullyCoveredByCommuterExclusion =
-                isDistanceRequest && (transaction?.comment?.customUnit?.commuterExclusion ?? 0) > 0 && transaction?.comment?.customUnit?.reimbursableDistance === 0;
-            if (isEditingSplitBill && iouAmount === 0 && !isFullyCoveredByCommuterExclusion) {
-                return {errorKey: 'iou.error.invalidAmount'};
             }
 
             return {errorKey: null};

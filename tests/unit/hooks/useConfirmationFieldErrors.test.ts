@@ -38,6 +38,14 @@ describe('useConfirmationFieldErrors', () => {
         ['the merchant when the date is flagged too', {date: 'common.error.fieldRequired', merchant: 'iou.error.invalidMerchant'}, undefined, 'merchant', ON_SCREEN_TRANSACTION_ID],
         ['the date when it is the only one flagged', {date: 'common.error.fieldRequired'}, undefined, 'date', ON_SCREEN_TRANSACTION_ID],
         [
+            'the tax amount when the attendees are flagged too',
+            {taxAmount: 'iou.error.invalidTaxAmount', attendees: 'violations.missingAttendees'},
+            undefined,
+            'taxAmount',
+            ON_SCREEN_TRANSACTION_ID,
+        ],
+        ['the attendees when they are the only ones flagged', {attendees: 'violations.missingAttendees'}, undefined, 'attendees', ON_SCREEN_TRANSACTION_ID],
+        [
             'the flagged field of another receipt when the one on screen has none',
             NO_FIELD_ERRORS,
             {transactionID: 'txn2', fieldErrors: {merchant: 'iou.error.invalidMerchant'}},
