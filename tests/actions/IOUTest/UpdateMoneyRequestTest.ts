@@ -1859,6 +1859,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
                 violations: undefined,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 getCurrencySymbol: getCurrencySymbolLocal,
+                translate: translateLocal,
             });
             await waitForBatchedUpdates();
 
