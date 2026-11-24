@@ -274,6 +274,7 @@ function useMarkAsRead({
         const shouldReadOnReportChange = ((isVisible && Visibility.hasFocus()) || isFromNotification) && !hasNewerActions && isScrolledToEnd;
 
         if (shouldReadOnReportChange) {
+            readActionSkippedRef.current = false;
             markRead(isReportActionsLoaded);
             if (isFromNotification) {
                 Navigation.setParams({referrer: undefined});
@@ -350,7 +351,7 @@ function useMarkAsRead({
     };
 
     const completeSkippedMarkAsRead = () => {
-        if (!readActionSkippedRef.current || !Visibility.hasFocus()) {
+        if (!readActionSkippedRef.current || hasNewerActions || !Visibility.hasFocus()) {
             return;
         }
         markNewestActionAsRead();

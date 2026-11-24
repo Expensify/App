@@ -595,6 +595,61 @@ describe('useMarkAsRead', () => {
         expect(readNewestAction).not.toHaveBeenCalled();
     });
 
+    it('does not complete a skipped mark-as-read while newer actions are unloaded, and completes it once they load', () => {
+        // Given a chat that opened at its unread divider with newer pages still on the server, so the read was skipped
+        const {result, rerender} = renderHook(
+            (props: {hasNewerActions: boolean}) =>
+                useMarkAsRead({
+                    reportID: REPORT_ID,
+                    report: REPORT as OnyxEntry<OnyxTypes.Report>,
+                    transactionThreadReport: undefined,
+                    sortedVisibleReportActions: [],
+                    isScrolledToEnd: true,
+                    hasNewerActions: props.hasNewerActions,
+                }),
+            {initialProps: {hasNewerActions: true}},
+        );
+
+        // When the divider is seen while the newer pages are not loaded
+        act(() => result.current.completeSkippedMarkAsRead());
+
+        // Then the read waits, because it would also mark the unloaded messages as read
+        expect(readNewestAction).not.toHaveBeenCalled();
+
+        // When the last newer page loads and the divider is seen again
+        rerender({hasNewerActions: false});
+        act(() => result.current.completeSkippedMarkAsRead());
+
+        // Then the skipped read completes
+        expect(readNewestAction).toHaveBeenCalledWith(REPORT_ID, true);
+    });
+
+    it('does not complete an earlier skipped read after a new message already marked the chat as read', () => {
+        // Given a read skipped while newer pages were on the server
+        const {result, rerender} = renderHook(
+            (props: {hasNewerActions: boolean; report: OnyxTypes.Report}) =>
+                useMarkAsRead({
+                    reportID: REPORT_ID,
+                    report: props.report as OnyxEntry<OnyxTypes.Report>,
+                    transactionThreadReport: undefined,
+                    sortedVisibleReportActions: [],
+                    isScrolledToEnd: true,
+                    hasNewerActions: props.hasNewerActions,
+                }),
+            {initialProps: {hasNewerActions: true, report: REPORT}},
+        );
+
+        // When the last page loads and a new message arrives while the user is at the bottom, which reads the chat
+        rerender({hasNewerActions: false, report: {...REPORT, lastVisibleActionCreated: '2099-01-01 00:00:00.000'}});
+        expect(readNewestAction).toHaveBeenCalledTimes(1);
+
+        // When the user later marks a message as unread and the list shows its divider
+        act(() => result.current.completeSkippedMarkAsRead());
+
+        // Then the chat stays unread, because the skipped read was already covered by the read above
+        expect(readNewestAction).toHaveBeenCalledTimes(1);
+    });
+
     it('should not mark the report as read on mount when the list is not scrolled to the end', () => {
         renderMarkAsRead({isScrolledToEnd: false});
 
