@@ -112,7 +112,7 @@ function useSearchSidebarCollapse(surface: CollapseSurface = COLLAPSE_SURFACE.SE
     };
 }
 
-function useSearchSidebarLayoutWidthStyle(): ViewStyle {
+function useSearchSidebarDockedWidthStyle(): ViewStyle {
     const {isCollapsed: collapsed} = useSearchSidebarCollapse();
 
     return {...layoutTransitionStyle, height: '100%', width: getSearchSidebarWidth(collapsed ? 1 : 0)};
@@ -193,7 +193,7 @@ export {
     getFlatNavigationBarPeekShadowStyle,
     getFlatNavigationBarVisualWidthStyle,
     useSearchSidebarCollapse,
-    useSearchSidebarLayoutWidthStyle,
+    useSearchSidebarDockedWidthStyle,
     useSearchSidebarVisualWidthStyle,
     useSearchSidebarContentOffsetStyle,
     useSearchSidebarCollapseFadeStyle,

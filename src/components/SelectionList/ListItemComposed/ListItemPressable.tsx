@@ -19,7 +19,7 @@ import {COPYABLE_ROW_DATA_SET} from '@libs/SelectionScraper';
 import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
-import type {ViewKeyDownEvent} from '@src/types/utils/ReactNativeCompat';
+import type {ViewKeyDownEvent, ViewMouseLeaveEvent} from '@src/types/utils/ReactNativeCompat';
 
 import type {ComponentRef} from 'react';
 import type {View} from 'react-native';
@@ -95,7 +95,7 @@ function ListItemPressable<TItem extends ListItem>({
         onSelectRow(item);
     };
 
-    const clearHoverAndMouseDownState = (e: React.MouseEvent<Element, MouseEvent>) => {
+    const clearHoverAndMouseDownState = (e: ViewMouseLeaveEvent) => {
         onMouseLeave();
         e.stopPropagation();
         setMouseUp();

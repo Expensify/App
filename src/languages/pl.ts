@@ -1042,6 +1042,7 @@ const translations: TranslationDeepObject<typeof en> = {
     },
     supportalSwitcher: {
         title: 'Supportal na inne konto',
+        navigationLabel: 'Supportal',
         emailLabel: 'Adres e-mail',
         reasonLabel: 'Powód logowania do pomocy',
         reasonHint: 'Nie znaleziono ostatnich zgłoszeń dla tego konta.',
@@ -1960,6 +1961,12 @@ const translations: TranslationDeepObject<typeof en> = {
             debitedAmount: 'Pobrana kwota',
             employeeReceived: 'Pracownik otrzymał',
             payAll: 'Zapłać wszystko',
+            fxRateExpiredTitle: 'Kurs wymiany wygasł',
+            fxRatesExpiredTitle: 'Kursy wymiany wygasły',
+            fxRateExpiredPrompt: 'Sprawdź najnowszy kurs przed zapłatą.',
+            fxRatesExpiredPrompt: 'Sprawdź najnowsze kursy przed zapłatą.',
+            getLatestRate: 'Pobierz najnowszy kurs',
+            getLatestRates: 'Pobierz najnowsze kursy',
             reportCount: ({count}: {count: number}) => ({
                 one: '1 raport',
                 few: `${count} raporty`,
@@ -2386,6 +2393,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 }
                 return `Oczekiwanie na zakończenie przetwarzania anulowanej płatności${formattedETA}.`;
             },
+            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_PAYMENT_REVIEW]: (params: ReportNextStepMessageParams) => `Płatność wstrzymana, poczekaj na kolejną aktualizację.`,
             [CONST.NEXT_STEP.MESSAGE_KEY.SUBMITTING_TO_SELF]: (params: ReportNextStepMessageParams) =>
                 `Ups! Wygląda na to, że wysyłasz zgłoszenie <strong>do siebie</strong>. Zatwierdzanie własnych raportów jest <strong>zabronione</strong> w twoim workspace. Wyślij ten raport do kogoś innego albo skontaktuj się z administratorem, żeby zmienić osobę, do której wysyłasz.`,
             [CONST.NEXT_STEP.MESSAGE_KEY.REJECTED_REPORT]: ({actor, actorType}: ReportNextStepMessageParams) => {
@@ -2616,6 +2624,8 @@ const translations: TranslationDeepObject<typeof en> = {
             leftHandNavCache: 'Pamięć podręczna lewego panelu nawigacji',
             clearleftHandNavCache: 'Wyczyść',
             softKillTheApp: 'Miękko zamknij aplikację',
+            testBusinessBankAccount: 'Przetestuj firmowe konto bankowe w USD',
+            testPersonalBankAccount: 'Testowe osobiste konto bankowe w USD',
             kill: 'Zabij',
             sentryDebug: 'Debugowanie Sentry',
             sentrySendDescription: 'Wysyłaj dane do Sentry',
@@ -2623,6 +2633,7 @@ const translations: TranslationDeepObject<typeof en> = {
             sentryHighlightedSpanOps: 'Wyróżnione nazwy zakresów',
             sentryHighlightedSpanOpsPlaceholder: 'kliknięcie interfejsu, nawigacja, ładowanie interfejsu',
             showBranchNameInTitle: 'Pokaż nazwę gałęzi w tytule przeglądarki',
+            hideEnvironmentBadge: 'Ukryj znaczek środowiska',
             betaOverrides: 'Nadpisywanie bet',
             betaOverridesDescription:
                 'Nadpisywanie działa tylko na tym urządzeniu i tylko po stronie frontendu. Beta zachowuje nadpisanie tylko wtedy, gdy różni się od bet z Twojego konta, więc przełączenie jej z powrotem usuwa nadpisanie. „Zresetuj wszystkie nadpisania” przywraca wartości z Twojego konta. Niektóre bety są też kontrolowane przez backend, więc mogą w pełni nie działać zwłaszcza przy żądaniach wysyłanych do backendu.',
@@ -3083,16 +3094,6 @@ const translations: TranslationDeepObject<typeof en> = {
             business: {
                 title: 'Wpisz dane firmy',
                 legalName: 'Prawna nazwa firmy',
-                companyType: 'Typ firmy',
-                companyTypeLimitedLiabilityCompany: 'Spółka z ograniczoną odpowiedzialnością (LLC)',
-                companyTypeForProfitCorporation: 'Korporacja nastawiona na zysk',
-                companyTypeNonProfitCorporation: 'Korporacja non-profit',
-                companyTypeSoleProprietorship: 'Jednoosobowa działalność gospodarcza',
-                companyTypeGeneralPartnership: 'Spółka jawna',
-                companyTypeLimitedPartnership: 'Spółka komandytowa',
-                companyTypeLimitedLiabilityPartnership: 'Spółka partnerska z ograniczoną odpowiedzialnością (LLP)',
-                companyTypeTrust: 'Trust',
-                companyTypeOther: 'Inny',
                 companyRole: 'Twoja rola w firmie',
                 companyRoleOwner: 'Właściciel',
                 companyRoleDirector: 'Członek zarządu',
@@ -3345,8 +3346,9 @@ const translations: TranslationDeepObject<typeof en> = {
                 certify: 'Oświadczam, że podane przeze mnie informacje są prawdziwe i dokładne.',
                 expensifyTerms: `Akceptuję <a href="${CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}">regulamin</a> i <a href="${CONST.OLD_DOT_PUBLIC_URLS.PRIVACY_URL}">politykę prywatności</a> Expensify.`,
                 expensifyTermsAccessibilityLabel: 'Akceptuję regulamin i politykę prywatności Expensify.',
-                wiseTerms: `Akceptuję <a href="${CONST.WISE.TERMS_URL}">regulamin</a> i <a href="${CONST.WISE.PRIVACY_URL}">politykę prywatności</a> Wise.`,
-                wiseTermsAccessibilityLabel: 'Akceptuję regulamin i politykę prywatności Wise.',
+                wiseTerms: `Klikając Potwierdź, akceptuję <a href="${CONST.WISE.TERMS_URL}">Warunki korzystania</a> z Wise, wyrażam zgodę na otrzymywanie dokumentów w formie elektronicznej zgodnie z <a href="${CONST.WISE.ELECTRONIC_COMMUNICATIONS_POLICY_URL}">Polityką komunikacji elektronicznej</a> Wise oraz akceptuję <a href="${CONST.WISE.PRIVACY_URL}">Politykę prywatności</a>.`,
+                wiseTermsAccessibilityLabel:
+                    'Klikając Potwierdź, akceptuję Warunki korzystania z Wise, wyrażam zgodę na otrzymywanie dokumentów w formie elektronicznej zgodnie z Polityką komunikacji elektronicznej Wise oraz akceptuję Politykę prywatności.',
                 error: 'Zaakceptuj wszystkie warunki, aby kontynuować.',
             },
             moreInfoNeeded: {
@@ -3363,7 +3365,10 @@ const translations: TranslationDeepObject<typeof en> = {
             approved: {title: 'Konto zatwierdzone', heading: 'Zatwierdzone do płatności na całym świecie', description: 'Wypłacaj członkom wynagrodzenie, gdziekolwiek są.'},
             rejected: {title: 'Odrzucono konto bankowe', heading: 'Nasz partner odrzucił twoje konto bankowe', description: 'Porozmawiaj z Concierge, żeby dowiedzieć się więcej.'},
         },
-        wiseSetupInProgress: {message: 'Konfiguracja globalnych zwrotów kosztów w toku.', continue: 'Kontynuuj.'},
+        wiseSetupRow: {
+            inProgress: {message: 'Konfiguracja globalnych zwrotów kosztów w toku.'},
+            inReview: {message: 'Konfiguracja globalnych zwrotów kosztów w trakcie weryfikacji.', action: 'Sprawdź status'},
+        },
         wiseGlobalReimbursementsIntro: {
             title: 'Skonfigurować globalne zwroty kosztów?',
             subtitle: 'Płać członkom na całym świecie w ich lokalnej walucie.',
@@ -5395,6 +5400,10 @@ ${amount} dla ${merchant} - ${date}`,
             railTicketExchange: (origin: string, destination: string, startDate: string) => `Twój bilet kolejowy z ${origin} → ${destination} na ${startDate} został wymieniony.`,
             railTicketUpdate: (origin: string, destination: string, startDate: string) => `Twój bilet kolejowy z ${origin} → ${destination} na ${startDate} został zaktualizowany.`,
             defaultUpdate: (type: string) => `Twoja rezerwacja (${type}) została zaktualizowana.`,
+            hotelBooked: (hotelName: string, startDate: string) => `Twoja rezerwacja hotelu w ${hotelName} (zameldowanie ${startDate}) została dokonana.`,
+            carBooked: (vendor: string, startDate: string) => `Twój wynajem samochodu w ${vendor} (odbiór ${startDate}) został zarezerwowany.`,
+            railTicketBooked: (origin: string, destination: string, startDate: string) => `Twój bilet kolejowy z ${origin} do ${destination} na ${startDate} został zarezerwowany.`,
+            defaultBooked: (type: string) => `Twoja rezerwacja typu ${type} została dokonana.`,
         },
         flightTo: 'Lot do',
         trainTo: 'Pociąg do',
@@ -5660,6 +5669,9 @@ ${amount} dla ${merchant} - ${date}`,
             },
             chatgpt: {
                 title: 'ChatGPT',
+            },
+            grok: {
+                title: 'Grok',
             },
         },
         connections: {
@@ -11626,7 +11638,9 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
                     mentionedAccountID?: number;
                 }) => {
                     let warningTime = 'wkrótce';
-                    if (warningDaysBeforeExpiry === CONST.COMPANY_CARDS.CONSENT_EXPIRY_WARNING_DAYS.TWO_WEEKS) {
+                    if (warningDaysBeforeExpiry === CONST.COMPANY_CARDS.CONSENT_EXPIRY_WARNING_DAYS.ONE_MONTH) {
+                        warningTime = 'za miesiąc';
+                    } else if (warningDaysBeforeExpiry === CONST.COMPANY_CARDS.CONSENT_EXPIRY_WARNING_DAYS.TWO_WEEKS) {
                         warningTime = 'za dwa tygodnie';
                     } else if (warningDaysBeforeExpiry === CONST.COMPANY_CARDS.CONSENT_EXPIRY_WARNING_DAYS.ONE_WEEK) {
                         warningTime = 'za tydzień';
@@ -11721,7 +11735,8 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
                 reimbursementRefundedWithoutBankAccount: 'Środki zostały zwrócone. Możesz ponowić płatność.',
                 reimbursementHeld:
                     'Płatność wstrzymana, dopóki nasz partner nie zakończy weryfikacji. Poczekaj na kolejną aktualizację. Porozmawiaj z <concierge-link>Concierge</concierge-link>.',
-                reimbursementReleased: 'Weryfikacja została zakończona i twoja płatność jest w drodze. Ostateczny kurs walutowy może zmienić kwotę.',
+                reimbursementReleased: ({expectedDate}: {expectedDate: string}) => `Płatność została zwolniona, środki powinny dotrzeć do ${expectedDate}.`,
+                reimbursementReleasedWithoutDate: 'Płatność została zwolniona.',
             },
             error: {
                 invalidCredentials: 'Nieprawidłowe dane logowania, sprawdź konfigurację swojego połączenia.',

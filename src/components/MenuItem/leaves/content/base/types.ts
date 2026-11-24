@@ -3,7 +3,7 @@ import type {MenuItemLabelSlot} from '@components/MenuItem/MenuItemAccessibility
 import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
 
 import type {ReactElement} from 'react';
-import type {StyleProp, TextStyle} from 'react-native';
+import type {AccessibilityRole, StyleProp, TextStyle} from 'react-native';
 
 /** Props of the full-contrast leaves */
 type MenuItemPrimaryTextProps = (
@@ -27,6 +27,9 @@ type MenuItemPrimaryTextProps = (
 
         /** Whether this text can start native browser text selection inside an interactive row */
         isSelectable?: boolean;
+
+        /** Semantic role of the value text, e.g. a workspace name that is also a heading */
+        accessibilityRole?: AccessibilityRole;
     };
 
 /** Props of the muted leaves */

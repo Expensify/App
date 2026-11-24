@@ -24,6 +24,7 @@ import type {OriginalMessageExportIntegration} from '../../src/types/onyx/Origin
 import type {CompanyAddress} from '../../src/types/onyx/Policy';
 import type {ReportCollectionDataSet} from '../../src/types/onyx/Report';
 import type {ReportActionsCollectionDataSet} from '../../src/types/onyx/ReportAction';
+import type {Reservation} from '../../src/types/onyx/Transaction';
 
 import {actionR14932 as mockIOUAction, originalMessageR14932 as mockOriginalMessage} from '../../__mocks__/reportData/actions';
 import {chatReportR14932 as mockChatReport, iouReportR14932 as mockIOUReport} from '../../__mocks__/reportData/reports';
@@ -2392,18 +2393,12 @@ describe('ReportActionsUtils', () => {
             expect(message).toBe('Funds were returned. You can retry the payment.');
         });
 
-        it.each([
-            [
-                CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_HELD,
-                'Payment on hold while our partner completes a review. Look for another update. Chat with <concierge-link>Concierge</concierge-link>.',
-            ],
-            [CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_RELEASED, 'The review is complete and your payment is on its way. The final FX rate may change the amount.'],
-        ] as const)('should show the App copy for %s', (actionName, expectedMessage) => {
-            // Given a Wise hold or release action, which carries no fields
+        it('should show the App copy for a held payment', () => {
+            // Given a Wise hold action, which carries no fields
             const action: Parameters<typeof ReportActionsUtils.getMessageOfOldDotReportAction>[1] = {
                 reportActionID: '1',
                 created: '2026-08-10 00:00:00.000',
-                actionName,
+                actionName: CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_HELD,
                 originalMessage: {},
             };
 
@@ -2411,7 +2406,42 @@ describe('ReportActionsUtils', () => {
             const message = ReportActionsUtils.getMessageOfOldDotReportAction(translateLocal, action);
 
             // Then it uses the approved App copy instead of Auth's English fallback
-            expect(message).toBe(expectedMessage);
+            expect(message).toBe('Payment on hold while our partner completes a review. Look for another update. Chat with <concierge-link>Concierge</concierge-link>.');
+        });
+
+        it('should give the delivery estimate when a held payment is released', () => {
+            // Given a Wise release action with the estimate Wise gave once the hold cleared
+            const action: Parameters<typeof ReportActionsUtils.getMessageOfOldDotReportAction>[1] = {
+                reportActionID: '1',
+                created: '2026-08-10 00:00:00.000',
+                actionName: CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_RELEASED,
+                originalMessage: {expectedDate: '2026-08-20'},
+            };
+
+            // When the message is built
+            const message = ReportActionsUtils.getMessageOfOldDotReportAction(translateLocal, action);
+
+            // Then the employee learns when the funds arrive, and nothing about the exchange rate, which Wise locked when we created the transfer
+            expect(message).toBe('Payment released, funds are expected to arrive by August 20, 2026.');
+        });
+
+        it.each([
+            ['carries no date', {}],
+            ['carries a date that cannot be read', {expectedDate: 'not a date'}],
+        ])('should say a held payment was released when the action %s', (_, originalMessage) => {
+            // Given a Wise release action without a usable delivery estimate
+            const action: Parameters<typeof ReportActionsUtils.getMessageOfOldDotReportAction>[1] = {
+                reportActionID: '1',
+                created: '2026-08-10 00:00:00.000',
+                actionName: CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_RELEASED,
+                originalMessage,
+            };
+
+            // When the message is built
+            const message = ReportActionsUtils.getMessageOfOldDotReportAction(translateLocal, action);
+
+            // Then it still says the payment was released, without an empty date
+            expect(message).toBe('Payment released.');
         });
 
         it.each([
@@ -3498,8 +3528,8 @@ describe('ReportActionsUtils', () => {
             expect(actual).toBe(true);
         });
 
-        it('should return false for REIMBURSED action from NewDot', () => {
-            // Given a REIMBURSED action created from NewDot (isNewDot=true)
+        it('should return false for REIMBURSED action that Auth hides', () => {
+            // Given a REIMBURSED action created from NewDot, which Auth sends with shouldShow false
             const reportAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REIMBURSED> = {
                 actionName: CONST.REPORT.ACTIONS.TYPE.REIMBURSED,
                 reportActionID: '1',
@@ -3512,6 +3542,7 @@ describe('ReportActionsUtils', () => {
                     },
                 ],
                 originalMessage: {isNewDot: true},
+                shouldShow: false,
             };
 
             // Then the action should NOT be visible (IOU PAY action is shown instead)
@@ -3565,8 +3596,8 @@ describe('ReportActionsUtils', () => {
             expect(actual).toBe(true);
         });
 
-        it('should return false for MARKED_REIMBURSED action from NewDot', () => {
-            // Given a MARKED_REIMBURSED action created from NewDot (isNewDot=true)
+        it('should return false for MARKED_REIMBURSED action that Auth hides', () => {
+            // Given a MARKED_REIMBURSED action created from NewDot, which Auth sends with shouldShow false
             const reportAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED> = {
                 actionName: CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED,
                 reportActionID: '1',
@@ -3579,6 +3610,7 @@ describe('ReportActionsUtils', () => {
                     },
                 ],
                 originalMessage: {isNewDot: true},
+                shouldShow: false,
             };
 
             // Then the action should NOT be visible (IOU PAY action is shown instead)
@@ -3586,67 +3618,26 @@ describe('ReportActionsUtils', () => {
             expect(actual).toBe(false);
         });
 
-        it.each([
-            [CONST.REPORT.TYPE.INVOICE, true],
-            [CONST.REPORT.TYPE.EXPENSE, false],
-            [CONST.REPORT.TYPE.IOU, false],
-        ] as const)('shows a NewDot REIMBURSED action on a %s report: %s', async (reportType, isVisible) => {
-            // Given a NewDot payment action on a report. Paying a bill adds no IOU PAY action to its invoice.
-            const reportID = `newDotReimbursed-${reportType}`;
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {
-                reportID,
-                type: reportType,
-            });
-            const reportAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REIMBURSED> = {
-                actionName: CONST.REPORT.ACTIONS.TYPE.REIMBURSED,
+        it.each([CONST.REPORT.ACTIONS.TYPE.REIMBURSED, CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED] as const)('shows a NewDot %s action that Auth shows', (actionName) => {
+            // Given a NewDot payment action on an invoice. Auth sends it with shouldShow true, because paying a bill adds no IOU PAY action to its invoice.
+            const reportAction = {
+                actionName,
                 reportActionID: '1',
                 created: '2025-01-01',
                 message: [{type: 'TEXT', style: 'normal', text: 'paid this report'}],
                 originalMessage: {isNewDot: true},
-            };
+                shouldShow: true,
+            } as ReportAction;
 
-            // When the action's visibility is checked for its report
-            const actual = ReportActionsUtils.shouldReportActionBeVisible(reportAction, reportAction.reportActionID, true, undefined, reportID);
+            // When the action's visibility is checked
+            const actual = ReportActionsUtils.shouldReportActionBeVisible(reportAction, reportAction.reportActionID, true);
 
-            // Then only invoices show it, because other reports show their IOU PAY action instead
-            expect(actual).toBe(isVisible);
-        });
-
-        it.each([
-            [CONST.REPORT.TYPE.INVOICE, true],
-            [CONST.REPORT.TYPE.EXPENSE, false],
-            [CONST.REPORT.TYPE.IOU, false],
-        ] as const)('shows a NewDot MARKED_REIMBURSED action that Auth hides on a %s report: %s', async (reportType, isVisible) => {
-            // Given a report marked as paid from NewDot. Auth sets shouldShow to false on it, because expense reports show an IOU PAY action instead.
-            const reportID = `newDotMarkedReimbursed-${reportType}`;
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {
-                reportID,
-                type: reportType,
-            });
-            const reportAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED> = {
-                actionName: CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED,
-                reportActionID: '2',
-                created: '2026-10-30 21:11:55.001',
-                message: [
-                    {
-                        type: 'TEXT',
-                        style: 'normal',
-                        text: 'marked this report as reimbursed',
-                    },
-                ],
-                originalMessage: {isNewDot: true, message: ''},
-                shouldShow: false,
-            };
-
-            // When the action's visibility is checked for its report
-            const actual = ReportActionsUtils.shouldReportActionBeVisible(reportAction, reportAction.reportActionID, true, undefined, reportID);
-
-            // Then only invoices show it, because marking a bill as paid adds no IOU PAY action to its invoice
-            expect(actual).toBe(isVisible);
+            // Then it shows, because App follows shouldShow instead of isNewDot
+            expect(actual).toBe(true);
         });
 
         it('hides a NewDot MARKED_REIMBURSED action on an invoice that has an IOU PAY action', async () => {
-            // Given an invoice paid in NewDot. PayInvoice adds a MARKED_REIMBURSED action and an IOU PAY action for the same payment.
+            // Given an invoice paid in NewDot. PayInvoice adds a MARKED_REIMBURSED action and an IOU PAY action for the same payment, and Auth shows payment actions on invoices.
             const reportID = 'paidInvoiceWithPaySibling';
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {
                 reportID,
@@ -3665,7 +3656,7 @@ describe('ReportActionsUtils', () => {
                     },
                 ],
                 originalMessage: {isNewDot: true, message: ''},
-                shouldShow: false,
+                shouldShow: true,
             };
             const payAction = {
                 actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
@@ -3690,26 +3681,6 @@ describe('ReportActionsUtils', () => {
 
             // Then it stays hidden, because the IOU PAY action already shows the payment
             expect(actual).toBe(false);
-        });
-
-        it("uses the action's reportID to find the invoice when no reportID is passed", async () => {
-            // Given a NewDot REIMBURSED action whose own reportID points to an invoice
-            const reportID = 'invoiceFromActionReportID';
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {reportID, type: CONST.REPORT.TYPE.INVOICE});
-            const reimbursedAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REIMBURSED> = {
-                actionName: CONST.REPORT.ACTIONS.TYPE.REIMBURSED,
-                reportActionID: '1',
-                reportID,
-                created: '2025-01-01 00:00:00',
-                message: [{type: 'TEXT', style: 'normal', text: 'paid this report'}],
-                originalMessage: {isNewDot: true},
-            };
-
-            // When the action's visibility is checked without a reportID
-            const actual = ReportActionsUtils.shouldReportActionBeVisible(reimbursedAction, reimbursedAction.reportActionID, true);
-
-            // Then it shows, because the action's own reportID tells that it belongs to an invoice
-            expect(actual).toBe(true);
         });
 
         it('should return false for MARKED_REIMBURSED with stale flags when the report has a sibling IOU PAY action', async () => {
@@ -3974,18 +3945,7 @@ describe('ReportActionsUtils', () => {
             } as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_REPORT_MENTION_WHISPER>;
 
             // When checking visibility of the room creation whisper
-            const actual = ReportActionsUtils.shouldReportActionBeVisible(
-                reportAction,
-                reportAction.reportActionID,
-                true,
-                undefined,
-                reportID,
-                false,
-                undefined,
-                undefined,
-                policy,
-                'member@test.com',
-            );
+            const actual = ReportActionsUtils.shouldReportActionBeVisible(reportAction, reportAction.reportActionID, true, undefined, reportID, false, undefined, policy, 'member@test.com');
 
             // Then it is hidden because approve-only members cannot create policy rooms
             expect(actual).toBe(false);
@@ -4014,18 +3974,7 @@ describe('ReportActionsUtils', () => {
             } as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_REPORT_MENTION_WHISPER>;
 
             // When checking visibility of the room creation whisper
-            const actual = ReportActionsUtils.shouldReportActionBeVisible(
-                reportAction,
-                reportAction.reportActionID,
-                true,
-                undefined,
-                reportID,
-                false,
-                undefined,
-                undefined,
-                policy,
-                'member@test.com',
-            );
+            const actual = ReportActionsUtils.shouldReportActionBeVisible(reportAction, reportAction.reportActionID, true, undefined, reportID, false, undefined, policy, 'member@test.com');
 
             // Then it is visible because regular members can create policy rooms
             expect(actual).toBe(true);
@@ -9083,6 +9032,18 @@ describe('ReportActionsUtils', () => {
             expect(result).not.toContain(CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX_DIRECT);
         });
 
+        it('warns one month ahead for a Capital One feed without a custom name', () => {
+            // Given a one-month warning for a Capital One feed without a custom name, so Auth sends the internal feed name as the feed name
+            const capitalOneFeed = CONST.COMPANY_CARD.FEED_BANK_NAME.CAPITAL_ONE;
+            const action = buildConsentExpiringAction({policyID: 'pol123', bank: capitalOneFeed, feedName: capitalOneFeed, warningDaysBeforeExpiry: 30});
+
+            // When the warning message is built
+            const result = ReportActionsUtils.getCompanyCardConsentExpiringMessage(translateLocal, action);
+
+            // Then it names the bank and says consent is needed in one month
+            expect(result).toContain('<strong>Capital One</strong> card connection will need renewed consent in one month');
+        });
+
         it('keeps the custom feed name', () => {
             // Given a warning for a feed the admin renamed
             const action = buildConsentExpiringAction({policyID: 'pol123', bank: amexFeed, feedName: 'Travel cards', warningDaysBeforeExpiry: 14});
@@ -10239,6 +10200,79 @@ describe('ReportActionsUtils', () => {
             expect(ReportActionsUtils.isCurrentActionUnread(report, secondAction, sortedActions)).toBe(true);
             expect(ReportActionsUtils.isCurrentActionUnread(report, thirdAction, sortedActions)).toBe(false);
             expect(ReportActionsUtils.isCurrentActionUnread(report, buildAction('missing', '2026-01-01 00:00:04.000'), sortedActions)).toBe(false);
+        });
+    });
+
+    describe('getTravelUpdateMessage', () => {
+        const formatDate = (datetime: string) => datetime;
+
+        function buildTravelUpdateAction(reservation: Partial<Reservation>): ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.TRAVEL_UPDATE> {
+            return {
+                reportActionID: '1',
+                actionName: CONST.REPORT.ACTIONS.TYPE.TRAVEL_UPDATE,
+                created: '2026-11-20 10:00:00.000',
+                originalMessage: {
+                    operation: CONST.TRAVEL.UPDATE_OPERATION_TYPE.BOOKING_CREATED,
+                    type: CONST.RESERVATION_TYPE.HOTEL,
+                    start: {date: '2026-12-01'},
+                    end: {date: '2026-12-03'},
+                    pnrID: '1234567890',
+                    tripID: '9876543210',
+                    ...reservation,
+                },
+            };
+        }
+
+        it('describes a new hotel booking with the hotel name and check-in date', () => {
+            // Given a new hotel booking whose name Spotnana sent in all caps
+            const action = buildTravelUpdateAction({start: {date: '2026-12-01', longName: 'HILTON GARDEN INN'}, end: {date: '2026-12-03', longName: 'HILTON GARDEN INN'}});
+            // When the trip room message is built
+            // Then it names the hotel in normal capitalization with the check-in date, so the traveler can tell which stay was booked
+            expect(ReportActionsUtils.getTravelUpdateMessage(translateLocal, action, formatDate)).toBe('Your hotel reservation at Hilton Garden Inn (check-in 2026-12-01) has been booked.');
+        });
+
+        it('describes a new car booking with the vendor and pick-up date', () => {
+            // Given a new car rental booking with its vendor
+            const action = buildTravelUpdateAction({type: CONST.RESERVATION_TYPE.CAR, vendor: 'Hertz'});
+            // When the trip room message is built
+            // Then it names the vendor and pick-up date, so the traveler can tell which rental was booked
+            expect(ReportActionsUtils.getTravelUpdateMessage(translateLocal, action, formatDate)).toBe('Your Hertz car rental (pick-up 2026-12-01) has been booked.');
+        });
+
+        it('describes a new rail booking with the route and date', () => {
+            // Given a new rail booking that has both station cities
+            const action = buildTravelUpdateAction({
+                type: CONST.RESERVATION_TYPE.TRAIN,
+                start: {date: '2026-12-01', cityName: 'London', shortName: 'STP'},
+                end: {date: '2026-12-01', cityName: 'Paris', shortName: 'PNO'},
+            });
+            // When the trip room message is built
+            // Then it shows the route and date instead of the generic "was updated" copy
+            expect(ReportActionsUtils.getTravelUpdateMessage(translateLocal, action, formatDate)).toBe('Your rail ticket for London → Paris on 2026-12-01 has been booked.');
+        });
+
+        it('falls back to a generic booked message when the hotel has no name', () => {
+            // Given a new hotel booking that arrived without a hotel name
+            const action = buildTravelUpdateAction({});
+            // When the trip room message is built
+            // Then it falls back to the generic booked copy rather than showing an empty hotel name
+            expect(ReportActionsUtils.getTravelUpdateMessage(translateLocal, action, formatDate)).toBe('Your hotel reservation has been booked.');
+        });
+
+        it('falls back to a generic booked message when the rail stations are missing', () => {
+            // Given a new rail booking that arrived without station names
+            const action = buildTravelUpdateAction({type: CONST.RESERVATION_TYPE.TRAIN});
+            // When the trip room message is built
+            // Then it falls back to the generic booked copy rather than showing an empty route
+            expect(ReportActionsUtils.getTravelUpdateMessage(translateLocal, action, formatDate)).toBe('Your train reservation has been booked.');
+        });
+
+        it('falls back to a generic booked message for other reservation types', () => {
+            // Given a new booking for a type without its own booked copy
+            const action = buildTravelUpdateAction({type: CONST.RESERVATION_TYPE.FLIGHT});
+            // When the trip room message is built
+            // Then it still reads as a booking instead of falling through to the generic "was updated" copy
+            expect(ReportActionsUtils.getTravelUpdateMessage(translateLocal, action, formatDate)).toBe('Your flight reservation has been booked.');
         });
     });
 });

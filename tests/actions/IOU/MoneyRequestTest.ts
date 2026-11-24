@@ -145,6 +145,7 @@ describe('MoneyRequest', () => {
             report: fakeReport,
             currentUserAccountID,
             currentUserEmail: CURRENT_USER_EMAIL,
+            currentUserPersonalDetails: {accountID: currentUserAccountID, login: CURRENT_USER_EMAIL},
             shouldGenerateTransactionThreadReport: false,
             isASAPSubmitBetaEnabled: false,
             transactionViolations: {},

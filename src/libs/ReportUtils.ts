@@ -1927,10 +1927,14 @@ function isGroupChat(report: OnyxEntry<Report> | Partial<Report>): boolean {
  *
  * Any member of a group chat can invite. On an expense report an invited member gains visibility of every expense on it,
  * so inviting is limited to the submitter and policy admins, and only while the report is still open.
+ * On an open support ticket, only the customer and assigned support rep can invite.
  */
 function canInviteMembersToReport(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>, isReportArchived: boolean, currentUserAccountID?: number): boolean {
-    if (isReportArchived || isSupportTicket(report)) {
+    if (isReportArchived) {
         return false;
+    }
+    if (isSupportTicket(report)) {
+        return isOpenReport(report) && !!currentUserAccountID && (report?.ownerAccountID === currentUserAccountID || report?.managerID === currentUserAccountID);
     }
     if (isGroupChat(report)) {
         return true;
@@ -1939,6 +1943,19 @@ function canInviteMembersToReport(report: OnyxEntry<Report>, policy: OnyxEntry<P
         return false;
     }
     return isCurrentUserSubmitter(report, currentUserAccountID) || isPolicyAdminPolicyUtils(policy);
+}
+
+/** Whether the assigned support rep can remove a participant from an open ticket. */
+function canRemoveSupportTicketParticipant(report: OnyxEntry<Report>, isReportArchived: boolean, currentUserAccountID: number | undefined, targetAccountID: number): boolean {
+    return (
+        isSupportTicket(report) &&
+        !isReportArchived &&
+        isOpenReport(report) &&
+        !!currentUserAccountID &&
+        report?.managerID === currentUserAccountID &&
+        targetAccountID !== report.ownerAccountID &&
+        targetAccountID !== report.managerID
+    );
 }
 
 /**
@@ -5987,7 +6004,16 @@ function getAvailableReportFields(report: OnyxEntry<Report>, policyReportFields:
     return fields.filter(Boolean) as PolicyReportField[];
 }
 
-function isTransactionFromExpenseReport(report: OnyxInputOrEntry<Report>, policy: OnyxInputOrEntry<Policy>): boolean {
+function isTransactionFromExpenseReport(
+    report: OnyxInputOrEntry<Report>,
+    policy: OnyxInputOrEntry<Policy>,
+    transaction: OnyxInputOrEntry<Transaction> | TransactionWithOptionalSearchFields,
+): boolean {
+    // A deleted transaction is moved to the trash report, so neither its report nor its policy can be resolved anymore.
+    // It keeps the sign convention it was stored with, which is the expense report one.
+    if (!!transaction && isDeletedTransaction(transaction)) {
+        return true;
+    }
     return isEmptyObject(report) ? isGroupPolicyPolicyUtils(policy) : isExpenseReport(report);
 }
 
@@ -5998,7 +6024,7 @@ function isTransactionFromExpenseReport(report: OnyxInputOrEntry<Report>, policy
  */
 function getTransactionDisplayAmount(transaction: OnyxInputOrEntry<Transaction>, report: OnyxInputOrEntry<Report>, policy: OnyxInputOrEntry<Policy>): number {
     const isFromTrackedExpense = transaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
-    return getTransactionAmount(transaction, isTransactionFromExpenseReport(report, policy), isFromTrackedExpense, !!transaction && isDeletedTransaction(transaction));
+    return getTransactionAmount(transaction, isTransactionFromExpenseReport(report, policy, transaction), isFromTrackedExpense, !!transaction && isDeletedTransaction(transaction));
 }
 
 /**
@@ -6018,7 +6044,7 @@ function getTransactionDetails(
     }
 
     const report = getReportOrDraftReport({reportID: transaction?.reportID, fallbackReport: 'report' in transaction ? transaction.report : undefined});
-    const isFromExpenseReport = isTransactionFromExpenseReport(report, policy);
+    const isFromExpenseReport = isTransactionFromExpenseReport(report, policy, transaction);
 
     return {
         created: getFormattedCreated(transaction),
@@ -13596,6 +13622,18 @@ function canLeaveChat(
     isReportArchived = false,
     parentReportAction?: ReportAction,
 ): boolean {
+    if (isSupportTicket(report)) {
+        // The customer and assigned support rep must stay on the ticket. Other invited participants can leave.
+        return (
+            !isReportArchived &&
+            !isAnonymousUser &&
+            !!currentUserAccountID &&
+            !isHiddenForCurrentUser(getReportNotificationPreference(report, currentUserAccountID)) &&
+            report?.ownerAccountID !== currentUserAccountID &&
+            report?.managerID !== currentUserAccountID
+        );
+    }
+
     if (isRootGroupChat(report, isReportArchived)) {
         return true;
     }
@@ -16495,6 +16533,7 @@ export {
     pushTransactionAutoSelectionsOnyxData,
     navigateOnDeleteExpense,
     canRejectReportAction,
+    canRemoveSupportTicketParticipant,
     isPayBlocked,
     hasReportBeenRejectedToSubmitter,
     hasReportBeenReopened,
