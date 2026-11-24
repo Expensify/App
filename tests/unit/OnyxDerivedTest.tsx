@@ -824,6 +824,88 @@ describe('OnyxDerived', () => {
                 expect(derivedReportAttributes?.reports[parentReport.reportID].brickRoadStatus).toBe(CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR);
             });
         });
+
+        describe('RBR for report field violations', () => {
+            const POLICY_ID = 'fieldViolationPolicy';
+            const SUBMITTER_ACCOUNT_ID = 31;
+            const SUBMITTER_LOGIN = 'submitter@example.com';
+            const FIRST_APPROVER_ACCOUNT_ID = 32;
+            const FIRST_APPROVER_LOGIN = 'first.approver@example.com';
+            const SECOND_APPROVER_ACCOUNT_ID = 33;
+            const SECOND_APPROVER_LOGIN = 'second.approver@example.com';
+
+            const requiredField = {
+                fieldID: 'requiredField',
+                name: 'Required field',
+                type: CONST.REPORT_FIELD_TYPES.TEXT,
+                defaultValue: '',
+                deletable: true,
+                target: CONST.REPORT.TYPE.EXPENSE,
+                values: [],
+                keys: [],
+                externalIDs: [],
+                disabledOptions: [],
+                orderWeight: 1,
+                isTax: false,
+            };
+
+            const expenseReport: Report = {
+                ...createRandomReport(5, undefined),
+                reportID: 'fieldViolationReport',
+                type: CONST.REPORT.TYPE.EXPENSE,
+                policyID: POLICY_ID,
+                ownerAccountID: SUBMITTER_ACCOUNT_ID,
+                managerID: FIRST_APPROVER_ACCOUNT_ID,
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+                errorFields: undefined,
+            };
+
+            beforeEach(async () => {
+                // The submitter sends reports to the first approver, who forwards them to the second
+                await Onyx.set(ONYXKEYS.SESSION, {accountID: SUBMITTER_ACCOUNT_ID, email: SUBMITTER_LOGIN});
+                await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+                    [SUBMITTER_ACCOUNT_ID]: {accountID: SUBMITTER_ACCOUNT_ID, login: SUBMITTER_LOGIN},
+                    [FIRST_APPROVER_ACCOUNT_ID]: {accountID: FIRST_APPROVER_ACCOUNT_ID, login: FIRST_APPROVER_LOGIN},
+                    [SECOND_APPROVER_ACCOUNT_ID]: {accountID: SECOND_APPROVER_ACCOUNT_ID, login: SECOND_APPROVER_LOGIN},
+                });
+                await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, {
+                    id: POLICY_ID,
+                    name: 'Field violation policy',
+                    type: CONST.POLICY.TYPE.CORPORATE,
+                    role: CONST.POLICY.ROLE.USER,
+                    owner: SECOND_APPROVER_LOGIN,
+                    outputCurrency: CONST.CURRENCY.USD,
+                    approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
+                    approver: SECOND_APPROVER_LOGIN,
+                    areReportFieldsEnabled: true,
+                    employeeList: {
+                        [SUBMITTER_LOGIN]: {email: SUBMITTER_LOGIN, role: CONST.POLICY.ROLE.USER, submitsTo: FIRST_APPROVER_LOGIN},
+                        [FIRST_APPROVER_LOGIN]: {email: FIRST_APPROVER_LOGIN, role: CONST.POLICY.ROLE.USER, submitsTo: SECOND_APPROVER_LOGIN},
+                    },
+                    fieldList: {[`expensify_${requiredField.fieldID}`]: requiredField},
+                });
+                await waitForBatchedUpdates();
+            });
+
+            it('shows the RBR to the submitter while the report waits on its first approver, and hides it once the report is forwarded', async () => {
+                // Given a submitted report with an empty required field, held by the approver the submitter sends reports to
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`, expenseReport);
+                await waitForBatchedUpdates();
+
+                // Then the submitter sees the RBR, since they can still fill the field in
+                let derivedReportAttributes = await OnyxUtils.get(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES);
+                expect(derivedReportAttributes?.reports[expenseReport.reportID]?.brickRoadStatus).toBe(CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR);
+
+                // When the first approver forwards the report to the second approver
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`, {managerID: SECOND_APPROVER_ACCOUNT_ID});
+                await waitForBatchedUpdates();
+
+                // Then the RBR is gone, since the submitter can no longer edit the field to fix it
+                derivedReportAttributes = await OnyxUtils.get(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES);
+                expect(derivedReportAttributes?.reports[expenseReport.reportID]?.brickRoadStatus).toBeUndefined();
+            });
+        });
     });
 
     describe('reportTransactionsAndViolations', () => {
