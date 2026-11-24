@@ -15,7 +15,7 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type {WaypointCollection} from '@src/types/onyx/Transaction';
 
-import type {ViewStyle} from 'react-native';
+import type {ViewProps} from 'react-native';
 
 import React from 'react';
 import {StyleSheet, View} from 'react-native';
@@ -136,5 +136,5 @@ it('retains the legacy minimum height for an empty waypoint', () => {
     const views = screen.UNSAFE_getAllByType(View);
 
     // Then the text line cannot shrink the waypoint's edit/drag target below its previous height.
-    expect(views.some(({props}) => StyleSheet.flatten<ViewStyle>(props.style)?.minHeight === variables.componentSizeNormal)).toBe(true);
+    expect(views.some(({props}: {props: ViewProps}) => StyleSheet.flatten(props.style)?.minHeight === variables.componentSizeNormal)).toBe(true);
 });
