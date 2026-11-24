@@ -12,9 +12,8 @@ import {isMobile} from '@libs/Browser';
 
 import CONST from '@src/CONST';
 
-import type {ComponentRef, ReactElement, ReactNode, RefObject} from 'react';
-// eslint-disable-next-line no-restricted-imports
-import type {ScrollView} from 'react-native';
+import type {ComponentRef, ReactElement, ReactNode} from 'react';
+import type {PickerSelectProps} from 'react-native-picker-select';
 
 import lodashDefer from 'lodash/defer';
 import React, {useEffect, useImperativeHandle, useRef, useState} from 'react';
@@ -259,7 +258,7 @@ function BasePickerImpl({
                             disableHighlight();
                         }),
                     }}
-                    scrollViewRef={context?.scrollViewRef as RefObject<ComponentRef<typeof ScrollView>>}
+                    scrollViewRef={context?.scrollViewRef as PickerSelectProps['scrollViewRef']}
                     scrollViewContentOffsetY={context?.contentOffsetY}
                 />
             </View>

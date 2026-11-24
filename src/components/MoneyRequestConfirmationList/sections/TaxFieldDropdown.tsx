@@ -1,3 +1,4 @@
+import type {DropdownFieldRenderProps} from '@components/DropdownField';
 import {useConfirmationFields} from '@components/MoneyRequestConfirmationFields/context';
 import TaxPickerModal from '@components/TaxPicker/TaxPickerModal';
 
@@ -12,9 +13,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 
 import React from 'react';
 
-import type {ExpenseFieldDropdownRenderProps} from './ExpenseFieldDropdown';
-
-type TaxFieldDropdownProps = ExpenseFieldDropdownRenderProps & {
+type TaxFieldDropdownProps = DropdownFieldRenderProps & {
     /** ID of the expense the picked tax rate is written to */
     transactionID: string;
 
