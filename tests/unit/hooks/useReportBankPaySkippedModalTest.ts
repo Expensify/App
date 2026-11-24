@@ -69,13 +69,13 @@ describe('useReportBankPaySkippedModal', () => {
 
         // When the user picks the bank account
         act(() => {
-            result.current.showReportBankPaySkippedModal(BANK_ACCOUNT_ID);
+            result.current.showReportBankPaySkippedModal({bankAccountID: BANK_ACCOUNT_ID});
         });
 
         // Then the alert names that account and uses the single report copy, since only this report was being paid
         expect(mockShowConfirmModal).toHaveBeenCalledWith(
             expect.objectContaining({
-                title: 'iou.payWithBankAccountTitle(1234)',
+                title: 'walletPage.wiseGlobalReimbursementsBulkPayModal.title(1234)',
                 prompt: 'iou.bankPayReportSkippedDescription',
             }),
         );

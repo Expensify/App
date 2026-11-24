@@ -11,6 +11,13 @@ final class HybridVerticalBarModule: HybridVerticalBarModuleSpec {
     private var listeners: [UUID: (VerticalBarEdge) -> Void] = [:]
     private var isObserving = false
 
+    override init() {
+        super.init()
+        // JS creates this object when the bundle loads, long before the tab bar first reads the edge. Reading the window
+        // now means that read gets the real edge, so the bar doesn't first draw its items for a horizontal bar.
+        DispatchQueue.main.async { MainActor.assumeIsolated { self.startObservingIfNeeded() } }
+    }
+
     var edge: VerticalBarEdge {
         // Never hop to the main thread synchronously from here: the main thread may be waiting on JS. The listeners get the first real value.
         if !isObserving {

@@ -255,8 +255,9 @@ function SettlementButton({
     };
 
     const runPaymentAction = (paymentMethodType: PaymentMethodType | undefined, action: () => void | Promise<void>, paymentMethod?: PaymentMethod, bankAccountID?: number) => {
-        if (isBankPayBlocked && paymentMethodType !== CONST.IOU.PAYMENT_TYPE.ELSEWHERE) {
-            showReportBankPaySkippedModal(bankAccountID);
+        const isABAPayment = paymentMethod === CONST.PAYMENT_METHODS.ABA;
+        if (isBankPayBlocked && (paymentMethodType !== CONST.IOU.PAYMENT_TYPE.ELSEWHERE || isABAPayment)) {
+            showReportBankPaySkippedModal({bankAccountID, isABAPayment});
             return;
         }
         if (checkForNecessaryAction(paymentMethodType, action, paymentMethod)) {

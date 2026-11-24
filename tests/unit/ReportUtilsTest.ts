@@ -109,6 +109,7 @@ import {
     getChatRoomSubtitle,
     getChildReportNotificationPreference,
     getDefaultGroupAvatar,
+    getDefaultMoneyRequestReport,
     getDefaultWorkspaceAvatar,
     getDeletedTransactionMessage,
     getDisplayedReportID,
@@ -124,6 +125,7 @@ import {
     getIOUReportActionDisplayMessage,
     getLinkedIOUTransaction,
     getMissingPaymentMethodForQueuedPayment,
+    getMoneyRequestReportCandidate,
     getMoneyRequestSpendBreakdown,
     getMostRecentlyVisitedReport,
     getMovedActionMessage,
@@ -159,6 +161,7 @@ import {
     getReportNotificationPreference,
     getReportNotificationPreferenceForSettings,
     getReportOrDraftReport,
+    getReportParticipantAccountIDSet,
     getReportPreviewMessage,
     getReportPreviewMessageForCopy,
     getReportPreviewReportActionMessage,
@@ -219,6 +222,7 @@ import {
     isReportFieldDisabledForUser,
     isReportManager,
     isReportOutstanding,
+    isReportParticipant,
     isReportPendingDelete,
     isReportTransactionThreadNew,
     isResolvedSupportTicket,
@@ -311,7 +315,7 @@ import Onyx from 'react-native-onyx';
 import {chatReportR14932 as mockedChatReport, iouReportR14932 as mockIOUReport} from '../../__mocks__/reportData/reports';
 import {transactionR14932 as mockTransaction} from '../../__mocks__/reportData/transactions';
 import * as NumberUtils from '../../src/libs/NumberUtils';
-import {createRandomExpensifyCard} from '../utils/collections/card';
+import {createRandomCompanyCard, createRandomExpensifyCard} from '../utils/collections/card';
 import createRandomPolicy from '../utils/collections/policies';
 import createRandomPolicyCategories from '../utils/collections/policyCategory';
 import createRandomPolicyTags from '../utils/collections/policyTags';
@@ -482,6 +486,10 @@ const participantsPersonalDetails: PersonalDetailsList = {
         pronouns: 'She/her',
     },
 };
+
+const participantsPersonalDetailsByLogins: PersonalDetailsByLogin = Object.fromEntries(
+    Object.values(participantsPersonalDetails).flatMap((personalDetail) => (personalDetail?.login ? [[personalDetail.login, personalDetail]] : [])),
+);
 
 const employeeList: PolicyEmployeeList = {
     'owner@test.com': {
@@ -7716,6 +7724,68 @@ describe('ReportUtils', () => {
                 ).toBe(false);
             });
         });
+
+        describe('legacy unreported expenses without an IOU action', () => {
+            const LEGACY_CARD_ID = 9301;
+
+            /** An unreported expense with no IOU action anywhere, on a company card when managed, which its holder may delete. */
+            function buildLegacyUnreportedTransaction(index: number, managedCard: boolean): Transaction {
+                return {
+                    ...createRandomTransaction(index),
+                    reportID: CONST.REPORT.UNREPORTED_REPORT_ID,
+                    managedCard,
+                    bank: CONST.COMPANY_CARD.FEED_BANK_NAME.VISA,
+                    cardID: LEGACY_CARD_ID,
+                    comment: {liabilityType: CONST.TRANSACTION.LIABILITY_TYPE.ALLOW},
+                };
+            }
+
+            it('should allow deleting an expense that is not on a managed card', () => {
+                // Given a legacy unreported expense that is not on a managed card, which only its owner can see
+                const transaction = buildLegacyUnreportedTransaction(9302, false);
+
+                // When the delete option is checked with no IOU action for it
+                const canDelete = canDeleteMoneyRequestReport(undefined, [transaction], [], currentUserAccountID, undefined, undefined, undefined, {});
+
+                // Then the current user can delete it, instead of the missing action hiding the option
+                expect(canDelete).toBe(true);
+            });
+
+            it("should allow deleting a managed card expense on the current user's card", () => {
+                // Given a legacy unreported expense on a managed card that is in the current user's card list
+                const transaction = buildLegacyUnreportedTransaction(9303, true);
+                const cardList: CardList = {[LEGACY_CARD_ID]: createRandomCompanyCard(LEGACY_CARD_ID, {accountID: currentUserAccountID})};
+
+                // When the delete option is checked with no IOU action for it
+                const canDelete = canDeleteMoneyRequestReport(undefined, [transaction], [], currentUserAccountID, undefined, undefined, undefined, cardList);
+
+                // Then the card holder can delete it
+                expect(canDelete).toBe(true);
+            });
+
+            it("should not allow deleting a managed card expense on another member's card", () => {
+                // Given a legacy unreported expense on a managed card that isn't in the current user's card list, as an admin sees on their card feed
+                const transaction = buildLegacyUnreportedTransaction(9304, true);
+
+                // When the delete option is checked with no IOU action for it
+                const canDelete = canDeleteMoneyRequestReport(undefined, [transaction], [], currentUserAccountID, undefined, undefined, undefined, {});
+
+                // Then the current user can't delete it, because it belongs to the card holder
+                expect(canDelete).toBe(false);
+            });
+
+            it('should still read the owner from the IOU action when there is one', () => {
+                // Given an unreported expense that is not on a managed card, whose IOU action was created by another user
+                const transaction = buildLegacyUnreportedTransaction(9305, false);
+                const iouAction = buildIOUActionForTransaction(CONST.REPORT.UNREPORTED_REPORT_ID, transaction.transactionID, currentUserAccountID + 1);
+
+                // When the delete option is checked with that action
+                const canDelete = canDeleteMoneyRequestReport(undefined, [transaction], [iouAction], currentUserAccountID, undefined, undefined, undefined, {});
+
+                // Then the action decides, so the fallback for expenses without an action doesn't let the current user delete it
+                expect(canDelete).toBe(false);
+            });
+        });
     });
 
     describe('isReportPendingDelete', () => {
@@ -13805,6 +13875,65 @@ describe('ReportUtils', () => {
             const expectedNames = [secondUser?.firstName, fourthUser?.firstName].sort();
             const resultNames = result.split(', ').sort();
             expect(resultNames).toEqual(expect.arrayContaining(expectedNames));
+        });
+    });
+
+    describe('isReportParticipant', () => {
+        const report: Report = {
+            ...createRandomReport(1, undefined),
+            ownerAccountID: 3,
+            managerID: 4,
+            participants: {
+                0: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                1: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                2: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN},
+            },
+        };
+
+        it('returns true for account IDs in the participants list', () => {
+            // Given a report whose participants list holds account IDs 1 and 2
+            // When checking those account IDs
+            // Then both count as participants, whatever their notification preference
+            expect(isReportParticipant(1, report)).toBe(true);
+            expect(isReportParticipant(2, report)).toBe(true);
+        });
+
+        it('returns true for the owner and manager even when they are not in the participants list', () => {
+            // Given a report whose owner (3) and manager (4) are missing from its participants list
+            // When checking the owner and manager
+            // Then they still count as participants
+            expect(isReportParticipant(3, report)).toBe(true);
+            expect(isReportParticipant(4, report)).toBe(true);
+        });
+
+        it('returns false for an account ID that is not a participant, owner or manager', () => {
+            // Given an account ID that has no link to the report
+            // When checking it
+            // Then it is not a participant
+            expect(isReportParticipant(5, report)).toBe(false);
+        });
+
+        it('returns false for a missing or zero account ID even when the participants list has a 0 key', () => {
+            // Given a report whose participants list has a 0 key
+            // When checking a zero or missing account ID
+            // Then neither counts as a participant, because there is no real account behind them
+            expect(isReportParticipant(0, report)).toBe(false);
+            expect(isReportParticipant(undefined, report)).toBe(false);
+        });
+
+        it('returns false when there is no report', () => {
+            // Given no report
+            // When checking any account ID
+            // Then it is not a participant
+            expect(isReportParticipant(1, undefined)).toBe(false);
+        });
+
+        it('builds the participant set from the participants, owner and manager, without a zero account ID', () => {
+            // Given the same report, and no report
+            // When building the participant set that isReportParticipant and the mention suggestions check against
+            // Then it holds the participants, owner and manager but not the 0 key, and is empty without a report
+            expect(getReportParticipantAccountIDSet(report)).toEqual(new Set([1, 2, 3, 4]));
+            expect(getReportParticipantAccountIDSet(undefined)).toEqual(new Set());
         });
     });
 
@@ -21632,6 +21761,70 @@ describe('ReportUtils', () => {
         });
     });
 
+    describe('money request report defaults', () => {
+        const olderReport: Report = {
+            reportID: 'candidate-older',
+            policyID: 'candidate-policy',
+            ownerAccountID: currentUserAccountID,
+            type: CONST.REPORT.TYPE.EXPENSE,
+            stateNum: CONST.REPORT.STATE_NUM.OPEN,
+            statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+            created: '2026-11-18 10:00:00',
+        };
+        const newerReport: Report = {...olderReport, reportID: 'candidate-newer', created: '2026-11-19 10:00:00'};
+        const reports = {
+            [`${ONYXKEYS.COLLECTION.REPORT}${olderReport.reportID}`]: olderReport,
+            [`${ONYXKEYS.COLLECTION.REPORT}${newerReport.reportID}`]: newerReport,
+            [`${ONYXKEYS.COLLECTION.REPORT}other-owner`]: {...newerReport, reportID: 'other-owner', ownerAccountID: currentUserAccountID + 1, created: '2026-11-20 10:00:00'},
+            [`${ONYXKEYS.COLLECTION.REPORT}submitted`]: {...newerReport, reportID: 'submitted', stateNum: CONST.REPORT.STATE_NUM.SUBMITTED, statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED},
+        };
+
+        it.each([CONST.IOU.ACTION.CREATE, CONST.IOU.ACTION.SUBMIT, CONST.IOU.ACTION.CATEGORIZE, CONST.IOU.ACTION.SHARE])(
+            'uses the newest open report for %s when the chat link is cleared',
+            (action) => {
+                // Given a cleared chat link and reports from different owners and workflow states
+                // When the action uses the builder's automatic fallback
+                const candidate = getMoneyRequestReportCandidate(undefined, action, olderReport.policyID, currentUserAccountID, undefined, undefined, reports);
+
+                // Then only the current member's newest open report is selected
+                expect(candidate).toBe(newerReport);
+            },
+        );
+
+        it.each([CONST.IOU.ACTION.CREATE, CONST.IOU.ACTION.SUBMIT, CONST.IOU.ACTION.CATEGORIZE, CONST.IOU.ACTION.SHARE])('rejects a pending-delete default for %s', (action) => {
+            // Given a linked report that the builder cannot reuse
+            const candidate = {...olderReport, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE};
+
+            // When resolving a default for an action saved through the builder
+            const defaultReport = getDefaultMoneyRequestReport(candidate, undefined, false, false, undefined, action);
+
+            // Then confirmation and picker both fall back to creating a new report
+            expect(defaultReport).toBeUndefined();
+        });
+
+        it('preserves a linked candidate rather than replacing it with the newest report', () => {
+            // Given a chat linked to an older report despite a newer report being available
+            // When resolving the automatic candidate
+            const candidate = getMoneyRequestReportCandidate(olderReport, CONST.IOU.ACTION.CREATE, olderReport.policyID, currentUserAccountID, undefined, undefined, reports);
+
+            // Then the linked report takes precedence, matching the builder
+            expect(candidate).toBe(olderReport);
+        });
+
+        it('does not apply builder defaults or checks when editing an expense', () => {
+            // Given an editing action and an explicitly chosen report pending deletion
+            const candidate = {...olderReport, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE};
+
+            // When resolving an absent chat candidate and the explicitly chosen default
+            const absentCandidate = getMoneyRequestReportCandidate(undefined, CONST.IOU.ACTION.EDIT, olderReport.policyID, currentUserAccountID, undefined, undefined, reports);
+            const defaultReport = getDefaultMoneyRequestReport(candidate, undefined, false, false, undefined, CONST.IOU.ACTION.EDIT);
+
+            // Then editing neither automatically selects a fallback nor runs the builder's checks
+            expect(absentCandidate).toBeUndefined();
+            expect(defaultReport).toBe(candidate);
+        });
+    });
+
     describe('canDuplicateExpenseIntoSourceReport', () => {
         const sourcePolicy: Policy = {
             ...createRandomPolicy(30001),
@@ -26925,18 +27118,19 @@ describe('ReportUtils', () => {
             const timeOfCreation = DateUtils.getDBTime();
 
             // Then the report name should be "New Report"
-            const optimisticReport = buildOptimisticEmptyReport(
+            const optimisticReport = buildOptimisticEmptyReport({
                 reportID,
                 accountID,
-                currentUserEmail,
+                login: currentUserEmail,
                 parentReport,
                 parentReportActionID,
-                policyWithEmptyFieldList,
+                policy: policyWithEmptyFieldList,
                 timeOfCreation,
-                true,
-                getCurrencyDecimalsLocal,
-                undefined,
-            );
+                isASAPSubmitBetaEnabled: true,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                rules: undefined,
+                personalDetailsByLogins: participantsPersonalDetailsByLogins,
+            });
             expect(optimisticReport.reportName).toBe(CONST.REPORT.DEFAULT_EXPENSE_REPORT_NAME);
         });
 
@@ -26965,18 +27159,19 @@ describe('ReportUtils', () => {
             const timeOfCreation = DateUtils.getDBTime();
 
             // Then the report name should be "New Report"
-            const optimisticReport = buildOptimisticEmptyReport(
+            const optimisticReport = buildOptimisticEmptyReport({
                 reportID,
                 accountID,
-                currentUserEmail,
+                login: currentUserEmail,
                 parentReport,
                 parentReportActionID,
-                policyWithEmptyFieldList,
+                policy: policyWithEmptyFieldList,
                 timeOfCreation,
-                true,
-                getCurrencyDecimalsLocal,
-                undefined,
-            );
+                isASAPSubmitBetaEnabled: true,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                rules: undefined,
+                personalDetailsByLogins: participantsPersonalDetailsByLogins,
+            });
             expect(optimisticReport.reportName).toBe(CONST.REPORT.DEFAULT_EXPENSE_REPORT_NAME);
         });
 
@@ -26993,18 +27188,19 @@ describe('ReportUtils', () => {
             };
 
             const buildEmptyReportWithBeta = (isASAPSubmitBetaEnabled: boolean) =>
-                buildOptimisticEmptyReport(
-                    'test-report-id-201',
-                    currentUserAccountID,
-                    currentUserEmail,
-                    {...createPolicyExpenseChat(currentUserAccountID), policyID: instantSubmitPolicy.id},
-                    'parent-report-action-id-201',
-                    instantSubmitPolicy,
-                    DateUtils.getDBTime(),
+                buildOptimisticEmptyReport({
+                    reportID: 'test-report-id-201',
+                    accountID: currentUserAccountID,
+                    login: currentUserEmail,
+                    parentReport: {...createPolicyExpenseChat(currentUserAccountID), policyID: instantSubmitPolicy.id},
+                    parentReportActionID: 'parent-report-action-id-201',
+                    policy: instantSubmitPolicy,
+                    timeOfCreation: DateUtils.getDBTime(),
                     isASAPSubmitBetaEnabled,
-                    getCurrencyDecimalsLocal,
-                    undefined,
-                );
+                    getCurrencyDecimals: getCurrencyDecimalsLocal,
+                    rules: undefined,
+                    personalDetailsByLogins: participantsPersonalDetailsByLogins,
+                });
 
             it('opens the report when the beta is enabled', () => {
                 // Given a policy that would otherwise submit the report instantly

@@ -1147,6 +1147,105 @@ describe('useSearchBulkActions - bulk pay Wise quote', () => {
     });
 });
 
+describe('useSearchBulkActions - pay via ABA', () => {
+    const ABAPolicy = {
+        id: 'policy1',
+        role: CONST.POLICY.ROLE.ADMIN,
+        outputCurrency: CONST.CURRENCY.AUD,
+        reimbursement: {countries: {[CONST.COUNTRY.AU]: {bankAccountID: 1, state: CONST.BANK_ACCOUNT.STATE.OPEN}}},
+    };
+
+    beforeAll(() => {
+        Onyx.init({keys: ONYXKEYS});
+    });
+
+    beforeEach(async () => {
+        jest.clearAllMocks();
+        mockIsOffline = false;
+        mockShouldEnableBulkPayOption = true;
+        mockBulkPayButtonOptions = [{text: 'Mark as paid', key: CONST.IOU.PAYMENT_TYPE.ELSEWHERE}];
+        mockAreAllMatchingItemsSelected = false;
+        mockEnabledBetas = new Set([CONST.BETAS.PAY_VIA_ABA]);
+        mockSelectedTransactions = {tx1: makeSelectedTransaction()};
+        mockSelectedReports = [makeSelectedReport({reportID: '1', chatReportID: 'chat1'}), makeSelectedReport({reportID: '3', chatReportID: 'chat3'})];
+        jest.mocked(getLastPolicyPaymentMethod).mockReturnValue(CONST.IOU.PAYMENT_TYPE.ELSEWHERE);
+
+        await Onyx.merge(ONYXKEYS.SESSION, {accountID: CURRENT_USER_ACCOUNT_ID, email: 'test@example.com'});
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}policy1`, ABAPolicy);
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}1`, {reportID: '1', type: CONST.REPORT.TYPE.EXPENSE, chatReportID: 'chat1', policyID: 'policy1'});
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}3`, {reportID: '3', type: CONST.REPORT.TYPE.EXPENSE, chatReportID: 'chat3', policyID: 'policy1'});
+    });
+
+    afterEach(async () => {
+        mockEnabledBetas = new Set();
+        await Onyx.clear();
+    });
+
+    async function renderBulkActions() {
+        const rendered = renderHook(() => useSearchBulkActions({queryJSON: expenseReportQueryJSON}), {wrapper: OnyxListItemProvider});
+        await waitFor(() => {
+            expect(getPayOptionFromResult(rendered.result.current.headerButtonsOptions)).toBeDefined();
+        });
+        return rendered;
+    }
+
+    it('offers paying via ABA and loads the withdrawal account when the reports are from one AUD workspace', async () => {
+        // Given reports selected from an AUD workspace with an open AU withdrawal account (set up in beforeEach)
+
+        // When the bulk actions are shown
+        await renderBulkActions();
+
+        // Then the AU withdrawal account is loaded and paying via ABA is offered
+        expect(openPaymentMethods).toHaveBeenCalled();
+        expect(jest.mocked(useBulkPayOptions).mock.calls.at(-1)?.at(0)?.shouldShowPayViaABAOption).toBe(true);
+    });
+
+    it('tells the pay options when the selected reports are in different currencies', async () => {
+        // Given an AUD report and a USD report selected from the same AUD workspace, e.g. because the USD report's first expense was in USD
+        mockSelectedReports = [
+            makeSelectedReport({reportID: '1', chatReportID: 'chat1', currency: CONST.CURRENCY.AUD}),
+            makeSelectedReport({reportID: '3', chatReportID: 'chat3', currency: CONST.CURRENCY.USD}),
+        ];
+
+        // When the bulk actions are shown
+        await renderBulkActions();
+
+        // Then the pay options know about the mix of currencies, so they can still offer paying via ABA
+        const bulkPayOptionsProps = jest.mocked(useBulkPayOptions).mock.calls.at(-1)?.at(0);
+        expect(bulkPayOptionsProps?.hasMultipleCurrencies).toBe(true);
+        expect(bulkPayOptionsProps?.shouldShowPayViaABAOption).toBe(true);
+    });
+
+    it('does not offer paying via ABA when everything matching the search is selected', async () => {
+        // Given every report matching the search is selected, which only the backend has the list of
+        mockAreAllMatchingItemsSelected = true;
+
+        // When the bulk actions are shown
+        await renderBulkActions();
+
+        // Then paying via ABA isn't offered, since there's no list of reports to put in the file
+        expect(jest.mocked(useBulkPayOptions).mock.calls.at(-1)?.at(0)?.shouldShowPayViaABAOption).toBe(false);
+    });
+
+    it('pays all the selected reports with one ABA file when ABA is picked', async () => {
+        // Given two reports selected for bulk pay
+        const {result} = await renderBulkActions();
+
+        // When "Pay via ABA" is picked
+        await act(async () => {
+            result.current.confirmPayment(CONST.IOU.PAYMENT_TYPE.ELSEWHERE, {paymentMethod: CONST.PAYMENT_METHODS.ABA});
+        });
+
+        // Then one ABA file pays both reports, instead of marking each one as paid elsewhere
+        expect(mockPayReportsViaABA).toHaveBeenCalledWith(
+            [expect.objectContaining({reportID: '1'}), expect.objectContaining({reportID: '3'})],
+            expect.objectContaining({id: 'policy1'}),
+            undefined,
+        );
+        expect(payMoneyRequest).not.toHaveBeenCalled();
+    });
+});
+
 describe('useSearchBulkActions - bank pay with nothing owed', () => {
     const OWED_REPORT_ID = '1';
     const NON_REIMBURSABLE_REPORT_ID = '3';
@@ -1227,9 +1326,7 @@ describe('useSearchBulkActions - bank pay with nothing owed', () => {
 
         // And the skipped report is listed by name so the user knows to mark it as paid manually
         expect(mockShowBankPaySkippedModal).toHaveBeenCalledTimes(1);
-        expect(mockShowBankPaySkippedModal).toHaveBeenCalledWith(
-            expect.objectContaining({bankAccountID: BANK_ACCOUNT_ID, skippedReports: [{reportID: NON_REIMBURSABLE_REPORT_ID, reportName: 'Card lunch'}]}),
-        );
+        expect(mockShowBankPaySkippedModal).toHaveBeenCalledWith(expect.objectContaining({bankAccountID: BANK_ACCOUNT_ID, skippedReportNames: ['Card lunch']}));
         expect(mockClearSelectedTransactions).toHaveBeenCalled();
     });
 
@@ -1247,7 +1344,7 @@ describe('useSearchBulkActions - bank pay with nothing owed', () => {
         // Then the modal explains that none of the reports can be paid through the bank account, without listing them
         await waitFor(() => expect(mockShowBankPaySkippedModal).toHaveBeenCalledTimes(1));
         expect(mockShowBankPaySkippedModal).toHaveBeenCalledWith(expect.objectContaining({bankAccountID: BANK_ACCOUNT_ID}));
-        expect(mockShowBankPaySkippedModal.mock.calls.at(0)?.at(0)?.skippedReports).toBeUndefined();
+        expect(mockShowBankPaySkippedModal.mock.calls.at(0)?.at(0)?.skippedReportNames).toBeUndefined();
 
         // And nothing is paid while the selection stays, so the user can mark the reports as paid right away
         expect(payMoneyRequest).not.toHaveBeenCalled();
@@ -1356,100 +1453,5 @@ describe('useSearchBulkActions - Select all bank pay option', () => {
 
         // Then only Mark as paid is offered, so picking a wallet or workspace can't silently mark the reports as paid
         await waitFor(() => expect(jest.mocked(useBulkPayOptions).mock.calls.at(-1)?.at(0)?.onlyShowPayElsewhere).toBe(true));
-    });
-});
-
-describe('useSearchBulkActions - pay via ABA', () => {
-    const ABAPolicy = {
-        id: 'policy1',
-        role: CONST.POLICY.ROLE.ADMIN,
-        outputCurrency: CONST.CURRENCY.AUD,
-        reimbursement: {countries: {[CONST.COUNTRY.AU]: {bankAccountID: 1, state: CONST.BANK_ACCOUNT.STATE.OPEN}}},
-    };
-
-    beforeAll(() => {
-        Onyx.init({keys: ONYXKEYS});
-    });
-
-    beforeEach(async () => {
-        jest.clearAllMocks();
-        mockIsOffline = false;
-        mockShouldEnableBulkPayOption = true;
-        mockBulkPayButtonOptions = [{text: 'Mark as paid', key: CONST.IOU.PAYMENT_TYPE.ELSEWHERE}];
-        mockAreAllMatchingItemsSelected = false;
-        mockEnabledBetas = new Set([CONST.BETAS.PAY_VIA_ABA]);
-        mockSelectedTransactions = {tx1: makeSelectedTransaction()};
-        mockSelectedReports = [makeSelectedReport({reportID: '1', chatReportID: 'chat1'}), makeSelectedReport({reportID: '3', chatReportID: 'chat3'})];
-        jest.mocked(getLastPolicyPaymentMethod).mockReturnValue(CONST.IOU.PAYMENT_TYPE.ELSEWHERE);
-
-        await Onyx.merge(ONYXKEYS.SESSION, {accountID: CURRENT_USER_ACCOUNT_ID, email: 'test@example.com'});
-        await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}policy1`, ABAPolicy);
-        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}1`, {reportID: '1', type: CONST.REPORT.TYPE.EXPENSE, chatReportID: 'chat1', policyID: 'policy1'});
-        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}3`, {reportID: '3', type: CONST.REPORT.TYPE.EXPENSE, chatReportID: 'chat3', policyID: 'policy1'});
-    });
-
-    afterEach(async () => {
-        mockEnabledBetas = new Set();
-        await Onyx.clear();
-    });
-
-    async function renderBulkActions() {
-        const rendered = renderHook(() => useSearchBulkActions({queryJSON: expenseReportQueryJSON}), {wrapper: OnyxListItemProvider});
-        await waitFor(() => {
-            expect(getPayOptionFromResult(rendered.result.current.headerButtonsOptions)).toBeDefined();
-        });
-        return rendered;
-    }
-
-    it('offers paying via ABA and loads the withdrawal account when the reports are from one AUD workspace', async () => {
-        // Given reports selected from an AUD workspace with an open AU withdrawal account (set up in beforeEach)
-
-        // When the bulk actions are shown
-        await renderBulkActions();
-
-        // Then the AU withdrawal account is loaded and paying via ABA is offered
-        expect(openPaymentMethods).toHaveBeenCalled();
-        expect(jest.mocked(useBulkPayOptions).mock.calls.at(-1)?.at(0)?.shouldShowPayViaABAOption).toBe(true);
-    });
-
-    it('tells the pay options when the selected reports are in different currencies', async () => {
-        // Given an AUD report and a USD report selected from the same AUD workspace, e.g. because the USD report's first expense was in USD
-        mockSelectedReports = [
-            makeSelectedReport({reportID: '1', chatReportID: 'chat1', currency: CONST.CURRENCY.AUD}),
-            makeSelectedReport({reportID: '3', chatReportID: 'chat3', currency: CONST.CURRENCY.USD}),
-        ];
-
-        // When the bulk actions are shown
-        await renderBulkActions();
-
-        // Then the pay options know about the mix of currencies, so they can still offer paying via ABA
-        const bulkPayOptionsProps = jest.mocked(useBulkPayOptions).mock.calls.at(-1)?.at(0);
-        expect(bulkPayOptionsProps?.hasMultipleCurrencies).toBe(true);
-        expect(bulkPayOptionsProps?.shouldShowPayViaABAOption).toBe(true);
-    });
-
-    it('does not offer paying via ABA when everything matching the search is selected', async () => {
-        // Given every report matching the search is selected, which only the backend has the list of
-        mockAreAllMatchingItemsSelected = true;
-
-        // When the bulk actions are shown
-        await renderBulkActions();
-
-        // Then paying via ABA isn't offered, since there's no list of reports to put in the file
-        expect(jest.mocked(useBulkPayOptions).mock.calls.at(-1)?.at(0)?.shouldShowPayViaABAOption).toBe(false);
-    });
-
-    it('pays all the selected reports with one ABA file when ABA is picked', async () => {
-        // Given two reports selected for bulk pay
-        const {result} = await renderBulkActions();
-
-        // When "Pay via ABA" is picked
-        await act(async () => {
-            result.current.confirmPayment(CONST.IOU.PAYMENT_TYPE.ELSEWHERE, {paymentMethod: CONST.PAYMENT_METHODS.ABA});
-        });
-
-        // Then one ABA file pays both reports, instead of marking each one as paid elsewhere
-        expect(mockPayReportsViaABA).toHaveBeenCalledWith([expect.objectContaining({reportID: '1'}), expect.objectContaining({reportID: '3'})], expect.objectContaining({id: 'policy1'}));
-        expect(payMoneyRequest).not.toHaveBeenCalled();
     });
 });

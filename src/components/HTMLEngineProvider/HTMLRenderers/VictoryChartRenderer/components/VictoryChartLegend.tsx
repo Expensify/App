@@ -7,10 +7,10 @@ import resolveChartThemeColor from '@components/HTMLEngineProvider/HTMLRenderers
 
 import useTheme from '@hooks/useTheme';
 
-import type {Color, SkFont} from '@shopify/react-native-skia';
+import type {Color, SkFont} from 'react-native-skia';
 
-import {Circle, Text as SkText} from '@shopify/react-native-skia';
 import React, {Fragment} from 'react';
+import {Circle, Text as SkText} from 'react-native-skia';
 
 type VictoryChartLegendProps = LegendItem & {
     chartWidth?: number;

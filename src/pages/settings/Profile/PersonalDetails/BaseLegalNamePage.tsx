@@ -126,6 +126,7 @@ function BaseLegalNamePage<TFormID extends OnyxFormKey>({
                         onSubmit={onSubmit}
                         submitButtonText={submitButtonText ?? translate('common.save')}
                         enabledWhenOffline
+                        forwardedFSClass={CONST.FULLSTORY.CLASS.MASK}
                     >
                         <View style={[styles.mb4]}>
                             {children}

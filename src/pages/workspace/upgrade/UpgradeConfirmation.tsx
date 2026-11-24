@@ -19,7 +19,7 @@ type Props = {
     policyName: string;
     /** Friendly name of the plan the workspace was upgraded to (e.g. Collect or Control) */
     planName?: string;
-    afterUpgradeAcknowledged: () => void;
+    afterUpgradeAcknowledged: () => void | Promise<void>;
     confirmSentryLabel: SentryLabel;
     /** Whether is categorizing the expense */
     isCategorizing?: boolean;

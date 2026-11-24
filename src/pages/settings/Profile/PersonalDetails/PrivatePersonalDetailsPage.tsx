@@ -239,6 +239,7 @@ function PrivatePersonalDetailsPage() {
                     validate={validate}
                     onSubmit={onSubmit}
                     submitButtonText={translate('common.save')}
+                    forwardedFSClass={CONST.FULLSTORY.CLASS.MASK}
                 >
                     <Text style={[styles.textStrong, styles.mb2]}>{translate('privatePersonalDetails.basicDetails')}</Text>
                     <View style={styles.mb4}>

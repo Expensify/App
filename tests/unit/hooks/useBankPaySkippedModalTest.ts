@@ -57,10 +57,7 @@ describe('useBankPaySkippedModal', () => {
             result.current.showBankPaySkippedModal({
                 bankAccountID: PICKED_BANK_ACCOUNT_ID,
                 policy,
-                skippedReports: [
-                    {reportID: '1', reportName: 'Card lunch'},
-                    {reportID: '2', reportName: 'Credit refund'},
-                ],
+                skippedReportNames: ['Card lunch', 'Credit refund'],
             });
         });
 
@@ -68,26 +65,13 @@ describe('useBankPaySkippedModal', () => {
         // And the names scroll under a fixed description, so a long list can't push Got it off the screen
         expect(mockShowConfirmModal).toHaveBeenCalledWith(
             expect.objectContaining({
-                title: 'iou.payWithBankAccountTitle(1234)',
+                title: 'walletPage.wiseGlobalReimbursementsBulkPayModal.title(1234)',
                 subtitle: 'iou.bankPaySkippedReportsDescription',
                 prompt: [`${CONST.DOT_SEPARATOR} Card lunch`, `${CONST.DOT_SEPARATOR} Credit refund`].join('\n'),
                 shouldShowCancelButton: false,
                 shouldEnablePromptScroll: true,
             }),
         );
-    });
-
-    it('still says some reports were skipped when none of them has a name to list', () => {
-        // Given a bulk payment that paid some reports and skipped others, none of which has a name to show
-        const {result} = renderHook(() => useBankPaySkippedModal({bankAccountList}));
-
-        // When the modal is shown with an empty list
-        act(() => {
-            result.current.showBankPaySkippedModal({policy, skippedReports: []});
-        });
-
-        // Then it keeps the copy for some skipped reports, since saying none of the reports could be paid would be wrong
-        expect(mockShowConfirmModal).toHaveBeenCalledWith(expect.objectContaining({subtitle: 'iou.bankPaySkippedReportsDescription'}));
     });
 
     it('explains that none of the selected reports could be paid', () => {
@@ -102,7 +86,7 @@ describe('useBankPaySkippedModal', () => {
         // Then it names the workspace bank account and explains why nothing was paid
         expect(mockShowConfirmModal).toHaveBeenCalledWith(
             expect.objectContaining({
-                title: 'iou.payWithBankAccountTitle(5678)',
+                title: 'walletPage.wiseGlobalReimbursementsBulkPayModal.title(5678)',
                 prompt: 'iou.bankPayAllReportsSkippedDescription',
             }),
         );
@@ -131,6 +115,6 @@ describe('useBankPaySkippedModal', () => {
         });
 
         // Then the title doesn't show a made-up account number
-        expect(mockShowConfirmModal).toHaveBeenCalledWith(expect.objectContaining({title: 'iou.payWithBankAccountTitle'}));
+        expect(mockShowConfirmModal).toHaveBeenCalledWith(expect.objectContaining({title: 'walletPage.wiseGlobalReimbursementsBulkPayModal.title'}));
     });
 });
