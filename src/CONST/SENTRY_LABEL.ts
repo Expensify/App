@@ -1944,6 +1944,7 @@ const SENTRY_LABEL = {
             DETAILS_ROLE: 'WorkspaceMemberDetails-Role',
             DETAILS_TRANSFER_OWNER: 'WorkspaceMemberDetails-TransferOwner',
             DETAILS_WORK_ARRANGEMENT: 'WorkspaceMemberDetails-WorkArrangement',
+            DETAILS_TRAVEL_ACCESS: 'WorkspaceMemberDetails-TravelAccess',
             IMPORTED_MEMBERS_ROLE: 'ImportedMembersConfirmation-Role',
             IMPORTED_MEMBERS_SUBMIT: 'ImportedMembersConfirmation-Submit',
             INVITE_MESSAGE_APPROVER: 'WorkspaceInviteMessage-Approver',

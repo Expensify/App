@@ -31,31 +31,39 @@ function hasAcceptedTravelTerms(policy: OnyxEntry<Policy>, accountTravelSettings
     return !!(policy?.travelSettings?.hasAcceptedTerms ?? (accountTravelSettings?.hasAcceptedTerms && isPolicyProvisionedForTravel(policy)));
 }
 
-/** Whether a member has travel turned on for a workspace, meaning they can book trips with it. */
-function canMemberUseTravel(policy: OnyxEntry<Policy>, login: string | undefined): boolean {
-    return !!login && policy?.employeeList?.[login]?.canUseTravel === true;
-}
-
 /**
- * Whether an admin turned travel off for a member of a workspace. A member whose access isn't known yet isn't blocked
- * here, since the server decides when they try to book.
+ * Whether an admin turned travel off for a member of a workspace. Only false is ever stored, so a member without a value
+ * can book travel.
  */
 function isMemberTravelAccessTurnedOff(policy: OnyxEntry<Policy>, login: string | undefined): boolean {
     return !!login && policy?.employeeList?.[login]?.canUseTravel === false;
 }
 
+/** Whether a member can book trips with a workspace, which is every member an admin didn't turn travel off for. */
+function canMemberUseTravel(policy: OnyxEntry<Policy>, login: string | undefined): boolean {
+    return !isMemberTravelAccessTurnedOff(policy, login);
+}
+
 /**
- * Whether a member can turn travel on or off for another member. Workspace admins and travel admins can, but only full
- * workspace admins can change it for the workspace owner and other workspace admins, matching Auth.
+ * Whether a member can change another member's travel access. Workspace admins and travel admins can, but only full workspace
+ * admins can change it for the workspace owner and other workspace admins, matching Auth. A member still being added has an
+ * optimistic accountID the server doesn't know yet.
  */
-function canMemberChangeTravelAccess(policy: OnyxEntry<Policy>, login: string, targetLogin: string): boolean {
-    if (!canMemberWrite(policy, login, CONST.POLICY.POLICY_FEATURE.TRAVEL)) {
+function canChangeMemberTravelAccess(policy: OnyxEntry<Policy>, login: string, targetLogin: string, isTravelMemberAccessBetaEnabled: boolean): boolean {
+    const targetEmployee = policy?.employeeList?.[targetLogin];
+    if (
+        !isTravelMemberAccessBetaEnabled ||
+        !isWorkspaceProvisionedForTravel(policy?.travelSettings) ||
+        !targetEmployee ||
+        targetEmployee.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD ||
+        !canMemberWrite(policy, login, CONST.POLICY.POLICY_FEATURE.TRAVEL)
+    ) {
         return false;
     }
     if (canMemberWrite(policy, login, CONST.POLICY.POLICY_FEATURE.ASSIGN_ELEVATED_ROLES)) {
         return true;
     }
-    return policy?.owner !== targetLogin && policy?.employeeList?.[targetLogin]?.role !== CONST.POLICY.ROLE.ADMIN;
+    return policy?.owner !== targetLogin && targetEmployee.role !== CONST.POLICY.ROLE.ADMIN;
 }
 
 function isNonUSDPolicy(policy: OnyxEntry<Policy>): boolean {
@@ -93,8 +101,8 @@ export {
     isPolicyProvisionedForTravel,
     hasAcceptedTravelTerms,
     canMemberUseTravel,
+    canChangeMemberTravelAccess,
     isMemberTravelAccessTurnedOff,
-    canMemberChangeTravelAccess,
     isNonUSDPolicy,
     getTravelStep,
 };

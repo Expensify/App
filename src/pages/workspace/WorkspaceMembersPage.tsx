@@ -68,7 +68,6 @@ import {
     arePaymentsEnabled,
     canEditWorkspaceSettings as canEditWorkspaceSettingsUtil,
     canMemberAssignRole,
-    canMemberChangeTravelAccess,
     canMemberManageMemberWithRole,
     canMemberRead,
     canMemberWrite,
@@ -76,6 +75,7 @@ import {
     getConnectionExporters,
     getMemberAccountIDsForWorkspace,
     getReimburserEmail,
+    canChangeMemberTravelAccess,
     canMemberUseTravel,
     getSelectableRoles,
     hasActiveExpensifyCard,
@@ -480,7 +480,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
 
     const assignablePayerRoles = PAYER_ROLES.filter((payerRole) => canMemberAssignRole(policy, currentUserLogin ?? '', payerRole));
     const policyRoles = Object.values(CONST.POLICY.ROLE);
-    const data: WorkspaceMemberRowData[] = filteredMembers.map(({policyEmployee, accountID, details, isAccountIDGenerated}) => {
+    const data: WorkspaceMemberRowData[] = filteredMembers.map(({policyEmployee, accountID, details, hasKnownAccountID}) => {
         const isPendingDeleteOrError = canEditWorkspaceSettings && (policyEmployee.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || !isEmptyObject(policyEmployee.errors));
         const employeeRole = policyRoles.find((policyRole) => policyRole === policyEmployee.role);
         const login = details.login ?? '';
@@ -537,15 +537,12 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
             canEditRole,
             onChangeRole: (newRole) => changeMemberRole(login, accountID, policyEmployee.role, newRole),
             canUseTravel: shouldShowTravelColumn ? canMemberUseTravel(policy, login) : undefined,
-            isTravelAccessStored: typeof policyEmployee.canUseTravel === 'boolean',
-            // A member still being added or without a loaded accountID would be sent to the server under an accountID it
-            // doesn't know
+            // A member without a loaded accountID would be sent to the server under an accountID it doesn't know
             canEditTravelAccess:
-                canMemberChangeTravelAccess(policy, currentUserLogin ?? '', login) &&
+                canChangeMemberTravelAccess(policy, currentUserLogin ?? '', login, isBetaEnabled(CONST.BETAS.TRAVEL_MEMBER_ACCESS)) &&
                 !isSelectionModeActive &&
                 !isPendingDeleteOrError &&
-                policyEmployee.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD &&
-                !isAccountIDGenerated,
+                hasKnownAccountID,
             onChangeTravelAccess: (canUseTravel) => setPolicyTravelMemberAccess(policy, [{email: login, accountID}], canUseTravel),
             // Note which secondary login was used to invite this primary login
             invitedSecondaryLogin: details?.login ? (invitedPrimaryToSecondaryLogins[details.login] ?? '') : '',

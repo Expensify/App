@@ -50,9 +50,9 @@ function TravelMembersStep({onNext, policy, policyID}: EnableTravelSubPageProps)
     const [selectedAccountIDs, setSelectedAccountIDs] = useState<number[]>(savedSelection.travelMemberAccountIDs ?? []);
 
     const members: TravelMember[] = workspaceMembers
-        .map(({email, accountID, details, isAccountIDGenerated}) => ({
+        .map(({email, accountID, details, hasKnownAccountID}) => ({
             accountID,
-            isAccountIDGenerated,
+            hasKnownAccountID,
             email,
             name: temporaryGetDisplayNameOrDefault({passedPersonalDetails: details, translate, formatPhoneNumber}),
             avatar: [
@@ -84,7 +84,7 @@ function TravelMembersStep({onNext, policy, policyID}: EnableTravelSubPageProps)
 
     const toggleMember = (item: ListItem) => {
         const accountID = item.accountID;
-        if (!accountID || shouldEnableAllTravelMembers || item.login === currentUserLogin || item.isDisabled) {
+        if (!accountID || item.isDisabled) {
             return;
         }
         setSelectedAccountIDs((previousAccountIDs) =>

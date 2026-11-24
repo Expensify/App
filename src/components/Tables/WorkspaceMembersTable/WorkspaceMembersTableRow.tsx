@@ -13,7 +13,7 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {getTravelMemberAccessName, getTravelMemberAccessOptions} from '@libs/TravelMemberOptionUtils';
+import {getTravelMemberAccessName} from '@libs/TravelMemberOptionUtils';
 
 import variables from '@styles/variables';
 
@@ -266,10 +266,7 @@ export default function WorkspaceMembersTableRow({
                             {item.canUseTravel !== undefined && (
                                 <TravelMemberPickerCell
                                     value={item.canUseTravel}
-                                    label={getTravelMemberAccessName(translate, item.canUseTravel)}
-                                    options={getTravelMemberAccessOptions(translate, item.canUseTravel)}
                                     canEdit={!!item.canEditTravelAccess}
-                                    isValueStored={item.isTravelAccessStored ?? true}
                                     onSave={(value) => item.onChangeTravelAccess?.(value)}
                                 />
                             )}

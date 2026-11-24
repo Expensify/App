@@ -13,8 +13,8 @@ const CHOICE_FOR_WORKSPACE_A: TravelProvisioning = {
     travelMembersPolicyID: WORKSPACE_A,
 };
 
-const LOADED_MEMBER = {accountID: 2, email: 'loaded@example.com', isAccountIDGenerated: false};
-const PLACEHOLDER_MEMBER = {accountID: 999, email: 'placeholder@example.com', isAccountIDGenerated: true};
+const LOADED_MEMBER = {accountID: 2, email: 'loaded@example.com', hasKnownAccountID: true};
+const PLACEHOLDER_MEMBER = {accountID: 999, email: 'placeholder@example.com', hasKnownAccountID: false};
 
 describe('TravelMembersSelectionUtils', () => {
     describe('getTravelMembersSelectionToSend', () => {

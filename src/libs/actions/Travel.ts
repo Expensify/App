@@ -11,16 +11,16 @@ import type {OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 
 type TravelMembersSelection = {
-    /** Whether every workspace member gets travel */
+    /** Whether every workspace member can book travel */
     shouldEnableAllTravelMembers: boolean;
 
-    /** The members who get travel when not every member does */
+    /** The members who can book travel when not every member can */
     travelMemberAccountIDs: number[];
 };
 
 /**
  * Accept Spotnana terms and conditions to receive a proper token used for authenticating further actions. When travel
- * is being enabled for the workspace, travelMembers says who gets it, and every member does when it's omitted.
+ * is being enabled for the workspace, travelMembers says who can book it, and every member can when it's omitted.
  */
 function acceptSpotnanaTerms(domain?: string, policyID?: string, taxID?: string, travelMembers?: TravelMembersSelection) {
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.NVP_TRAVEL_SETTINGS | typeof ONYXKEYS.TRAVEL_PROVISIONING>> = [

@@ -1,3 +1,6 @@
+/**
+ * Changes whether one member can book travel, from their member details.
+ */
 import Header from '@components/Header';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
@@ -12,7 +15,7 @@ import {setPolicyTravelMemberAccess} from '@libs/actions/Policy/Travel';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
-import {canMemberChangeTravelAccess, canMemberUseTravel, isWorkspaceProvisionedForTravel} from '@libs/PolicyUtils';
+import {canChangeMemberTravelAccess, canMemberUseTravel} from '@libs/PolicyUtils';
 import {getTravelMemberAccessOptions} from '@libs/TravelMemberOptionUtils';
 import type {TravelMemberOption} from '@libs/TravelMemberOptionUtils';
 import {getMemberLoginByAccountID} from '@libs/WorkArrangementUtils';
@@ -36,9 +39,6 @@ type WorkspaceMemberTravelSettingPageProps = Omit<WithPolicyAndFullscreenLoading
         personalDetails: OnyxEntry<PersonalDetailsList>;
     };
 
-/**
- * Changes whether one member can book travel, from their member details.
- */
 function WorkspaceMemberTravelSettingPage({policy, personalDetails, route}: WorkspaceMemberTravelSettingPageProps) {
     const policyID = route.params.policyID;
     const accountID = Number(route.params.accountID);
@@ -49,13 +49,7 @@ function WorkspaceMemberTravelSettingPage({policy, personalDetails, route}: Work
 
     const memberLogin = personalDetails?.[accountID]?.login ?? getMemberLoginByAccountID(policy, accountID);
     const member = {email: memberLogin, accountID};
-    // A member still being added has an optimistic accountID the server doesn't know yet
-    const canChangeTravelSetting =
-        isBetaEnabled(CONST.BETAS.TRAVEL_MEMBER_ACCESS) &&
-        canMemberChangeTravelAccess(policy, currentUserLogin, memberLogin) &&
-        isWorkspaceProvisionedForTravel(policy?.travelSettings) &&
-        !!policy?.employeeList?.[memberLogin] &&
-        policy.employeeList[memberLogin]?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD;
+    const canChangeTravelSetting = canChangeMemberTravelAccess(policy, currentUserLogin, memberLogin, isBetaEnabled(CONST.BETAS.TRAVEL_MEMBER_ACCESS));
     const canUseTravel = canMemberUseTravel(policy, memberLogin);
 
     const navigateBackToDetails = () => {
