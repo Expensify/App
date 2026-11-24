@@ -47,7 +47,7 @@ type RateAttributes = {
 };
 
 /** Model of policy subrate */
-type Subrate = {
+type Subrate = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** Generated ID to identify the subrate */
     id: string;
 
@@ -56,7 +56,7 @@ type Subrate = {
 
     /** Amount to be reimbursed per unit */
     rate: number;
-};
+}>;
 
 /** Model of policy rate */
 type Rate = OnyxCommon.OnyxValueWithOfflineFeedback<
@@ -106,6 +106,9 @@ type Attributes = {
     unit: Unit;
 
     taxEnabled?: boolean;
+
+    /** Workspace-wide dismissal, including future UK advisory fuel rates. */
+    isUKFuelRateTaxErrorDismissed?: boolean;
 };
 
 /** Policy custom unit */
@@ -163,6 +166,10 @@ type UberReceiptPartner = {
      * form data for uber partner
      */
     connectFormData?: string;
+
+    /** Query string for Uber's revoke page, without the organization. The client adds `organizationID` as `org_uuid` */
+    revokeFormData?: string;
+
     /**
      * auto invite for uber connection
      */
@@ -3725,6 +3732,16 @@ type ACHAccount = {
 type ReimbursementCountryInfo = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** ID of the withdrawal account the policy reimburses from in this country, when one is connected */
     bankAccountID?: number;
+
+    /** One of `CONST.BANK_ACCOUNT.STATE` */
+    state?: string;
+
+    additionalData?: {
+        verifications?: {
+            /** Only set on accounts set up through Corpay */
+            corpay?: Record<string, unknown>;
+        };
+    };
 }>;
 
 /** Commuter exclusion configuration for a policy */
@@ -4522,7 +4539,6 @@ export type {
     ApprovalRule,
     ExpenseRule,
     CodingRule,
-    CodingRuleFilter,
     NetSuiteConnectionConfig,
     MccGroup,
     Subrate,

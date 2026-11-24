@@ -24,7 +24,7 @@ import {openReport} from '@libs/actions/Report';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import {canMemberWrite, isArchivedPolicy, isPolicyAdmin} from '@libs/PolicyUtils';
+import {canCreateRoomsOnPolicy, isArchivedPolicy, isPolicyAdmin} from '@libs/PolicyUtils';
 import {getReportName} from '@libs/ReportNameUtils';
 import {getParticipantsAccountIDsForDisplay} from '@libs/ReportUtils';
 
@@ -159,13 +159,13 @@ function WorkspaceRoomsPage({route}: WorkspaceRoomsPageProps) {
         setPagination({queryKey: roomsQueryKey, pageNumber: pageNumber + 1});
     };
 
-    const canCreateRooms = canMemberWrite(policy, session?.email ?? '', CONST.POLICY.POLICY_FEATURE.ROOMS);
+    const canCreateRooms = canCreateRoomsOnPolicy(policy, session?.email ?? '');
 
     const roomsTableHeader =
         shouldUseNarrowLayout && canCreateRooms ? (
             <View style={[pageGutter, styles.pb3]}>
                 <Button
-                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ROOMS_CREATE}
+                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ROOMS.CREATE}
                     variant={CONST.BUTTON_VARIANT.SUCCESS}
                     onPress={() => Navigation.navigate(ROUTES.WORKSPACE_ROOM_CREATE.getRoute(policyID))}
                     style={styles.w100}
@@ -188,7 +188,7 @@ function WorkspaceRoomsPage({route}: WorkspaceRoomsPageProps) {
                 <HeaderCentralPane title={translate('workspace.common.rooms')}>
                     {!shouldUseNarrowLayout && canCreateRooms && (
                         <Button
-                            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ROOMS_CREATE}
+                            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ROOMS.CREATE}
                             variant={CONST.BUTTON_VARIANT.SUCCESS}
                             onPress={() => Navigation.navigate(ROUTES.WORKSPACE_ROOM_CREATE.getRoute(policyID))}
                         >

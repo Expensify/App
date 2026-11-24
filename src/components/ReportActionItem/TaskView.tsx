@@ -3,7 +3,7 @@ import Checkbox from '@components/Checkbox';
 import Hoverable from '@components/Hoverable';
 import Icon from '@components/Icon';
 import MenuItem from '@components/MenuItem';
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
@@ -109,6 +109,7 @@ function TaskView({report, parentReport, action}: TaskViewProps) {
 
     const disableState = !isTaskModifiable;
     const isDisableInteractive = disableState || !isOpen;
+    const canEditAssignee = !isDisableInteractive;
     const accountID = currentUserPersonalDetails?.accountID ?? CONST.DEFAULT_NUMBER_ID;
     const contextMenuStateValue = {
         anchor: null,
@@ -253,57 +254,57 @@ function TaskView({report, parentReport, action}: TaskViewProps) {
                             )}
                         </Hoverable>
                         <OfflineWithFeedback pendingAction={report?.pendingFields?.description}>
-                            <MenuItemWithTopDescription
-                                shouldRenderAsHTML
-                                description={translate('task.description')}
-                                title={shouldDisableCompletedOnboardingTaskLink ? Parser.htmlToText(report?.description ?? '') : (report?.description ?? '')}
-                                onPress={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.REPORT_DESCRIPTION.path))}
-                                shouldShowRightIcon={!isDisableInteractive}
-                                disabled={disableState}
-                                wrapperStyle={[styles.pv2, styles.taskDescriptionMenuItem]}
-                                shouldGreyOutWhenDisabled={false}
-                                numberOfLinesTitle={0}
-                                interactive={!isDisableInteractive}
-                                shouldUseDefaultCursorWhenDisabled
+                            <MenuItem.Root
+                                onPress={
+                                    !isDisableInteractive ? callIfAuthenticated(() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.REPORT_DESCRIPTION.path)), session) : undefined
+                                }
+                                style={[styles.pv2, styles.taskDescriptionMenuItem]}
                                 sentryLabel={CONST.SENTRY_LABEL.TASK.VIEW_DESCRIPTION}
-                            />
+                            >
+                                <MenuItem.Row>
+                                    <MenuItemField.Content name={translate('task.description')}>
+                                        {!!report?.description && (
+                                            <MenuItem.FieldValueHTML>
+                                                {shouldDisableCompletedOnboardingTaskLink ? Parser.htmlToText(report.description) : report.description}
+                                            </MenuItem.FieldValueHTML>
+                                        )}
+                                    </MenuItemField.Content>
+                                    {!isDisableInteractive && (
+                                        <MenuItem.Trailing>
+                                            <MenuItem.Chevron />
+                                        </MenuItem.Trailing>
+                                    )}
+                                </MenuItem.Row>
+                            </MenuItem.Root>
                         </OfflineWithFeedback>
                         <OfflineWithFeedback pendingAction={report?.pendingFields?.managerID}>
-                            {report?.managerID ? (
-                                <MenuItem
-                                    label={translate('task.assignee')}
-                                    accessibilityLabel={`${translate('task.assignee')}, ${assigneeDisplayName}`}
-                                    titleComponent={
-                                        <UserPill
-                                            avatar={assigneePersonalDetails?.avatar}
-                                            displayName={assigneeDisplayName}
-                                            accountID={report.managerID}
-                                            email={assigneePersonalDetails?.login}
-                                            style={styles.userPillStandalone}
-                                        />
-                                    }
-                                    onPress={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.TASK_ASSIGNEE.path))}
-                                    shouldShowRightIcon={!isDisableInteractive}
-                                    disabled={disableState}
-                                    wrapperStyle={[styles.pv2]}
-                                    shouldGreyOutWhenDisabled={false}
-                                    interactive={!isDisableInteractive}
-                                    shouldUseDefaultCursorWhenDisabled
-                                    sentryLabel={CONST.SENTRY_LABEL.TASK.VIEW_ASSIGNEE}
-                                />
-                            ) : (
-                                <MenuItemWithTopDescription
-                                    description={translate('task.assignee')}
-                                    onPress={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.TASK_ASSIGNEE.path))}
-                                    shouldShowRightIcon={!isDisableInteractive}
-                                    disabled={disableState}
-                                    wrapperStyle={[styles.pv2]}
-                                    shouldGreyOutWhenDisabled={false}
-                                    interactive={!isDisableInteractive}
-                                    shouldUseDefaultCursorWhenDisabled
-                                    sentryLabel={CONST.SENTRY_LABEL.TASK.VIEW_ASSIGNEE}
-                                />
-                            )}
+                            <MenuItem.Root
+                                sentryLabel={CONST.SENTRY_LABEL.TASK.VIEW_ASSIGNEE}
+                                accessibilityLabel={report?.managerID ? `${translate('task.assignee')}, ${assigneeDisplayName}` : undefined}
+                                style={styles.pv2}
+                                onPress={canEditAssignee ? callIfAuthenticated(() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.TASK_ASSIGNEE.path)), session) : undefined}
+                            >
+                                {report?.managerID ? (
+                                    <MenuItem.Row>
+                                        <MenuItemField.Content name={translate('task.assignee')}>
+                                            <UserPill
+                                                avatar={assigneePersonalDetails?.avatar}
+                                                displayName={assigneeDisplayName}
+                                                accountID={report.managerID}
+                                                email={assigneePersonalDetails?.login}
+                                                style={styles.userPillStandalone}
+                                            />
+                                        </MenuItemField.Content>
+                                        {canEditAssignee && (
+                                            <MenuItem.Trailing>
+                                                <MenuItem.Chevron />
+                                            </MenuItem.Trailing>
+                                        )}
+                                    </MenuItem.Row>
+                                ) : (
+                                    <MenuItemField.Row name={translate('task.assignee')}>{canEditAssignee && <MenuItem.Chevron />}</MenuItemField.Row>
+                                )}
+                            </MenuItem.Root>
                         </OfflineWithFeedback>
                     </OfflineWithFeedback>
                 </AttachmentContext.Provider>

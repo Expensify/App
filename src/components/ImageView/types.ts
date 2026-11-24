@@ -7,8 +7,8 @@ type ImageViewProps = Pick<Attachment, 'attachmentID'> & {
     /** Whether source url requires authentication */
     isAuthTokenRequired?: boolean;
 
-    /** URL to full-sized image */
-    url: string;
+    /** URL to full-sized image, or a static image asset on native */
+    url: string | number;
 
     fileName: string;
 

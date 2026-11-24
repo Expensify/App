@@ -62,7 +62,7 @@ jest.mock('@libs/Navigation/Navigation', () => ({
 }));
 
 jest.mock('@hooks/useConfirmModal', () => ({__esModule: true, default: () => ({showConfirmModal: jest.fn()})}));
-jest.mock('@hooks/useDecisionModal', () => ({__esModule: true, default: () => ({showDecisionModal: jest.fn()})}));
+jest.mock('@hooks/useCloseDomainAccountModal', () => ({__esModule: true, default: () => ({showCloseAccountModal: jest.fn()})}));
 jest.mock('@hooks/useDomainDocumentTitle', () => ({__esModule: true, default: jest.fn()}));
 
 // The page chrome and validated-domain table are outside the unverified-domain benefit flow.

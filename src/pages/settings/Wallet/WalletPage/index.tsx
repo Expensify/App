@@ -7,9 +7,9 @@ import type {PaymentMethodType, Source} from '@components/KYCWall/types';
 import {useLockedAccountActions, useLockedAccountState} from '@components/LockedAccountModalProvider';
 import MenuItem from '@components/MenuItem';
 import MenuItemSectionRoot from '@components/MenuItem/presets/MenuItemSectionRoot';
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
+import type {PopoverMenuItem} from '@components/PopoverMenu';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Section from '@components/Section';
@@ -164,6 +164,7 @@ function WalletPage() {
     useRefreshPendingDigitalWalletApproval();
 
     const hasWallet = !isEmpty(userWallet);
+    const formattedWalletBalance = convertToDisplayString(userWallet?.currentBalance ?? 0, CONST.CURRENCY.USD);
     const hasActivatedWallet = ([CONST.WALLET.TIER_NAME.GOLD, CONST.WALLET.TIER_NAME.PLATINUM] as string[]).includes(userWallet?.tierName ?? '');
     const hasAssignedCard = hasDisplayableAssignedCards(cardList);
     const shouldShowGBDisclaimer = countryByIp === CONST.COUNTRY.GB;
@@ -467,7 +468,7 @@ function WalletPage() {
     const alertTextStyle = [styles.inlineSystemMessage, styles.flexShrink1];
     const alertViewStyle = [styles.flexRow, styles.alignItemsCenter, styles.w100];
 
-    const bottomMountItem = {
+    const bottomMountItem: PopoverMenuItem = {
         text: paymentMethod.formattedSelectedPaymentMethod.title,
         icon: paymentMethod.formattedSelectedPaymentMethod.icon?.icon,
         iconHeight: paymentMethod.formattedSelectedPaymentMethod.icon?.iconHeight ?? paymentMethod.formattedSelectedPaymentMethod.icon?.iconSize,
@@ -501,6 +502,7 @@ function WalletPage() {
             ? [
                   {
                       text: translate('walletPage.setDefaultConfirmation'),
+                      sentryLabel: CONST.SENTRY_LABEL.SETTINGS_WALLET.BANK_ACCOUNT_MENU_MAKE_DEFAULT,
                       icon: icons.Star,
                       onSelected: () => {
                           if (isAccountLocked) {
@@ -517,6 +519,9 @@ function WalletPage() {
             ? [
                   {
                       text: translate('common.enableGlobalReimbursements'),
+                      sentryLabel: isWiseGlobalReimbursementsEnabled
+                          ? CONST.SENTRY_LABEL.SETTINGS_WALLET.BANK_ACCOUNT_MENU_ENABLE_WISE_GLOBAL_REIMBURSEMENTS
+                          : CONST.SENTRY_LABEL.SETTINGS_WALLET.BANK_ACCOUNT_MENU_ENABLE_GLOBAL_REIMBURSEMENTS,
                       icon: icons.Globe,
                       onSelected: () => {
                           if (isAccountLocked) {
@@ -551,6 +556,7 @@ function WalletPage() {
             ? [
                   {
                       text: translate('walletPage.editNickname'),
+                      sentryLabel: CONST.SENTRY_LABEL.SETTINGS_WALLET.BANK_ACCOUNT_MENU_EDIT_NICKNAME,
                       icon: icons.Pencil,
                       onSelected: () => {
                           if (isAccountLocked) {
@@ -566,6 +572,7 @@ function WalletPage() {
             ? [
                   {
                       text: translate('common.share'),
+                      sentryLabel: CONST.SENTRY_LABEL.SETTINGS_WALLET.BANK_ACCOUNT_MENU_SHARE,
                       icon: icons.UserPlus,
                       onSelected: () => {
                           if (isAccountLocked) {
@@ -581,6 +588,7 @@ function WalletPage() {
             ? [
                   {
                       text: translate('common.unshare'),
+                      sentryLabel: CONST.SENTRY_LABEL.SETTINGS_WALLET.BANK_ACCOUNT_MENU_UNSHARE,
                       icon: icons.UserMinus,
                       onSelected: () => {
                           if (isAccountLocked) {
@@ -594,6 +602,7 @@ function WalletPage() {
             : []),
         {
             text: translate('common.delete'),
+            sentryLabel: CONST.SENTRY_LABEL.SETTINGS_WALLET.BANK_ACCOUNT_MENU_DELETE,
             icon: icons.Trashcan,
             onSelected: () => {
                 if (isAccountLocked) {
@@ -655,6 +664,7 @@ function WalletPage() {
         ...(shouldUseNarrowLayout ? [bottomMountItem] : []),
         {
             text: translate('workspace.common.viewTransactions'),
+            sentryLabel: CONST.SENTRY_LABEL.SETTINGS_WALLET.CARD_MENU_VIEW_TRANSACTIONS,
             icon: icons.MoneySearch,
             onSelected: () => {
                 closeModal(() => {
@@ -674,6 +684,7 @@ function WalletPage() {
             ? [
                   {
                       text: translate('spreadsheet.importSpreadsheet'),
+                      sentryLabel: CONST.SENTRY_LABEL.SETTINGS_WALLET.CARD_MENU_IMPORT_SPREADSHEET,
                       icon: icons.Table,
                       onSelected: () => {
                           closeModal(() => {
@@ -687,6 +698,7 @@ function WalletPage() {
             ? [
                   {
                       text: translate('common.delete'),
+                      sentryLabel: CONST.SENTRY_LABEL.SETTINGS_WALLET.CARD_MENU_DELETE,
                       icon: icons.Trashcan,
                       onSelected: () => {
                           closeModal(() => {
@@ -852,15 +864,17 @@ function WalletPage() {
                                             errorRowStyles={[styles.ml10, styles.mr2]}
                                             style={[styles.mb2]}
                                         >
-                                            <MenuItemWithTopDescription
-                                                description={translate('walletPage.balance')}
-                                                title={convertToDisplayString(userWallet?.currentBalance ?? 0, CONST.CURRENCY.USD)}
-                                                titleStyle={styles.textHeadlineH2}
-                                                interactive={false}
-                                                wrapperStyle={styles.sectionMenuItemTopDescription}
-                                                copyValue={convertToDisplayString(userWallet?.currentBalance ?? 0, CONST.CURRENCY.USD)}
-                                                copyable
-                                            />
+                                            <MenuItemSectionRoot>
+                                                <MenuItem.Row>
+                                                    <MenuItem.Content>
+                                                        <MenuItem.FieldName>{translate('walletPage.balance')}</MenuItem.FieldName>
+                                                        <MenuItem.FieldValue style={styles.textHeadlineH2}>{formattedWalletBalance}</MenuItem.FieldValue>
+                                                    </MenuItem.Content>
+                                                    <MenuItem.Trailing>
+                                                        <MenuItem.Copy value={formattedWalletBalance} />
+                                                    </MenuItem.Trailing>
+                                                </MenuItem.Row>
+                                            </MenuItemSectionRoot>
                                         </OfflineWithFeedback>
                                     )}
 

@@ -153,11 +153,13 @@ import NetSuiteExport from '@assets/images/integrationicons/export/netsuite-icon
 import QBOExport from '@assets/images/integrationicons/export/qbo-icon.svg';
 import SageIntacctExport from '@assets/images/integrationicons/export/sage-intacct-icon.svg';
 import XeroExport from '@assets/images/integrationicons/export/xero-icon.svg';
+import GrokSquare from '@assets/images/integrationicons/grok-icon-square.svg';
 import GustoSquare from '@assets/images/integrationicons/gusto-icon-square.svg';
 import IntuitSquare from '@assets/images/integrationicons/intuit-icon-square.svg';
 import MCPSquare from '@assets/images/integrationicons/mcp-icon-square.svg';
 import MicrosoftDynamicsSquare from '@assets/images/integrationicons/microsoft-dynamics-icon-square.svg';
 import NetSuiteSquare from '@assets/images/integrationicons/netsuite-icon-square.svg';
+import OdooSquare from '@assets/images/integrationicons/odoo-icon-square.svg';
 import OracleSquare from '@assets/images/integrationicons/oracle-icon-square.svg';
 import QBDSquare from '@assets/images/integrationicons/qbd-icon-square.svg';
 import QBOCircle from '@assets/images/integrationicons/qbo-icon-circle.svg';
@@ -275,6 +277,7 @@ import ThumbsUp from '@assets/images/thumbs-up.svg';
 import TrainCircleSlash from '@assets/images/train-circle-slash.svg';
 import Train from '@assets/images/train.svg';
 import Transfer from '@assets/images/transfer.svg';
+import Translate from '@assets/images/translate.svg';
 import Trashcan from '@assets/images/trashcan.svg';
 import TreasureChestGreenWithSparkle from '@assets/images/treasure-chest-green-with-sparkle.svg';
 import TreasureChest from '@assets/images/treasure-chest.svg';
@@ -513,6 +516,7 @@ const Expensicons = {
     RilletSquare,
     DualEntrySquare,
     ExactOnlineSquare,
+    OdooSquare,
     Rotate,
     RotateLeft,
     Scan,
@@ -528,6 +532,7 @@ const Expensicons = {
     ThumbsUpHourglass,
     ThreeDots,
     Transfer,
+    Translate,
     Trashcan,
     TriNetSquare,
     ZenefitsSquare,
@@ -552,6 +557,7 @@ const Expensicons = {
     ChatGPTSquare,
     ClaudeSquare,
     CursorSquare,
+    GrokSquare,
     MCPSquare,
     IntacctSquare: SageIntacctSquare,
     AdvancedApprovalsSquare,

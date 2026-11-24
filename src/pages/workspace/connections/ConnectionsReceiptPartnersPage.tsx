@@ -55,6 +55,7 @@ function ConnectionsReceiptPartnersPage({route}: ConnectionsReceiptPartnersPageP
     } = useReceiptPartnersSettings(policyID, {
         // These settings have nothing to show once Uber is disconnected
         onDisconnectConfirmed: (disconnect) => Navigation.goBack(ROUTES.WORKSPACE_CONNECTIONS.getRoute(policyID), {afterTransition: disconnect}),
+        onRevokePageOpened: () => Navigation.goBack(ROUTES.WORKSPACE_CONNECTIONS.getRoute(policyID)),
     });
     useWorkspaceDocumentTitle(policy?.name, 'workspace.common.receiptPartners');
     const isLoading = policy?.isLoading;

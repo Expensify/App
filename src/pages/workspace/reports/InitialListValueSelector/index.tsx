@@ -1,13 +1,17 @@
 import type {MenuItemBaseProps} from '@components/MenuItem';
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import MenuItem from '@components/MenuItem';
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 
 import useOnyx from '@hooks/useOnyx';
 
 import Navigation from '@libs/Navigation/Navigation';
 
+import {callIfAuthenticated} from '@userActions/Session';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
+import {authTokenTypeSelector} from '@src/selectors/Session';
 
 import type {ComponentRef, ForwardedRef} from 'react';
 
@@ -29,6 +33,7 @@ type InitialListValueSelectorProps = Pick<MenuItemBaseProps, 'label' | 'rightLab
 
 function InitialListValueSelector({value = '', label = '', rightLabel, errorText = '', onInputChange, route, ref}: InitialListValueSelectorProps) {
     const [formDraft] = useOnyx(ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM_DRAFT);
+    const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
     const draftInitialValue = formDraft?.initialValue ?? '';
 
     useEffect(() => {
@@ -56,17 +61,26 @@ function InitialListValueSelector({value = '', label = '', rightLabel, errorText
 
     return (
         <View>
-            <MenuItemWithTopDescription
+            <MenuItem.Root
                 sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.REPORT_FIELDS.CREATE_INITIAL_VALUE}
                 ref={ref}
-                shouldShowRightIcon
-                title={value}
-                description={label}
-                rightLabel={rightLabel}
-                brickRoadIndicator={errorText ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
-                errorText={errorText}
-                onPress={() => Navigation.navigate(route)}
-            />
+                onPress={callIfAuthenticated(() => Navigation.navigate(route), session)}
+            >
+                <MenuItemField.Row
+                    name={label}
+                    value={value}
+                >
+                    {!value && !errorText && !!rightLabel && <MenuItem.RightLabel>{rightLabel}</MenuItem.RightLabel>}
+                    {!!errorText && <MenuItem.BrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />}
+                    <MenuItem.Chevron />
+                </MenuItemField.Row>
+                {!!errorText && (
+                    <MenuItem.HelpText
+                        isError
+                        message={errorText}
+                    />
+                )}
+            </MenuItem.Root>
         </View>
     );
 }

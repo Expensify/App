@@ -42,6 +42,7 @@ function InsightsUpsellState({upgradeablePolicyIDs}: InsightsUpsellStateProps) {
                     ? [
                           {
                               buttonText: translate('insightsPage.upsellState.button'),
+                              sentryLabel: CONST.SENTRY_LABEL.INSIGHTS.UPSELL_UPGRADE,
                               buttonAction: navigateToUpgrade,
                               buttonVariant: CONST.BUTTON_VARIANT.SUCCESS,
                           },

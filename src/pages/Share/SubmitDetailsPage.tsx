@@ -12,6 +12,7 @@ import useMoneyRequestPolicyTags from '@hooks/useMoneyRequestPolicyTags';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
+import {useGetPersonalDetailsByLogin} from '@hooks/usePersonalDetailByLogin';
 import {useAllPersonalDetails} from '@hooks/usePersonalDetails';
 import usePersonalPolicy from '@hooks/usePersonalPolicy';
 import usePolicyForTransaction from '@hooks/usePolicyForTransaction';
@@ -115,6 +116,7 @@ function SubmitDetailsPage({
     const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
     const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE);
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
+    const getPersonalDetailsByLogin = useGetPersonalDetailsByLogin();
     const reportAttributesDerived = useReportAttributes();
     const privateIsArchivedMap = usePrivateIsArchivedMap();
     const [currentDate] = useOnyx(ONYXKEYS.CURRENT_DATE);
@@ -397,6 +399,8 @@ function SubmitDetailsPage({
 
     const finishRequestAndNavigate = (receipt: Receipt, gpsPoint?: GpsPoint) => {
         if (!transaction || !participant) {
+            formHasBeenSubmitted.current = false;
+            setIsConfirming(false);
             return;
         }
 
@@ -509,6 +513,7 @@ function SubmitDetailsPage({
                     formatPhoneNumber,
                     optimisticChatReportID: routeReportID,
                     rules,
+                    personalDetailsByLogins: getPersonalDetailsByLogin(),
                 });
             }
 
@@ -697,7 +702,6 @@ function SubmitDetailsPage({
                         }
                         performUpload(false);
                     }}
-                    onInitialGetLocationCompleted={() => setIsConfirming(false)}
                 />
                 <View
                     style={[styles.containerWithSpaceBetween, styles.pointerEventsBoxNone]}

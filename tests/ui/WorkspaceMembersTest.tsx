@@ -284,9 +284,10 @@ describe('WorkspaceMembers', () => {
             });
             expect(screen.getByText(TestHelper.translateLocal('workspace.common.otherRoles'))).toBeOnTheScreen();
 
-            // And Guest is badged as new, since admins are still learning that it exists
+            // And both newly promoted roles are badged while admins learn about them
+            expect(screen.getByText(roleName(CONST.POLICY.ROLE.APPROVE_ONLY))).toBeOnTheScreen();
             expect(screen.getByText(roleName(CONST.POLICY.ROLE.GUEST))).toBeOnTheScreen();
-            expect(screen.getByText(TestHelper.translateLocal('common.new'))).toBeOnTheScreen();
+            expect(screen.getAllByText(TestHelper.translateLocal('common.new'))).toHaveLength(2);
 
             unmount();
             await waitForBatchedUpdatesWithAct();
@@ -725,7 +726,8 @@ describe('WorkspaceMembers', () => {
     });
 
     describe('Approver column', () => {
-        const approverHeaderLabel = () => TestHelper.translateLocal('workflowsPage.approver');
+        // The heading opens the column menu, which is named after the column.
+        const approverHeaderLabel = () => TestHelper.translateLocal('search.columnMenu.openMenu', {columnName: TestHelper.translateLocal('workflowsPage.approver')});
 
         it("shows each member's first approver, including the admin who approves themselves", async () => {
             // Given a policy with approvals on and every member (including the admin) submitting to the admin:

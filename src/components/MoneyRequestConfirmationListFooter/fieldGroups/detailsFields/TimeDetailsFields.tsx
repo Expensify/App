@@ -40,7 +40,10 @@ function TimeDetailsFields({policy, amountDisplay, isDescriptionRequired, descri
                     isDistanceRequest={false}
                     shouldShowTimeRequestFields
                     policy={policy}
-                    {...errorState}
+                    shouldDisplayFieldError={errorState.shouldDisplayFieldError}
+                    formError={errorState.formError}
+                    clearFormErrors={errorState.clearFormErrors}
+                    setFormError={errorState.setFormError}
                 />
             )}
 

@@ -73,7 +73,10 @@ function ExpenseRulesPage() {
 
     const canSelectMultiple = !shouldUseNarrowLayout || isMobileSelectionModeEnabled;
     const selectionModeHeader = isMobileSelectionModeEnabled && shouldUseNarrowLayout;
-    const isInSelectionMode = shouldUseNarrowLayout ? canSelectMultiple : selectedRules.length > 0;
+
+    // The wide layout offers the bulk actions in the floating bar over the table instead, so its header keeps the
+    // page's own buttons no matter what is selected.
+    const isInSelectionMode = shouldUseNarrowLayout && canSelectMultiple;
 
     const navigateToNewRulePage = () => {
         clearDraftRule();
@@ -158,6 +161,7 @@ function ExpenseRulesPage() {
                       icon: icons.Pencil,
                       text: translate('expenseRulesPage.editRule.title'),
                       value: CONST.EXPENSE_RULES.BULK_ACTION_TYPES.EDIT,
+                      sentryLabel: CONST.SENTRY_LABEL.SETTINGS_RULES.BULK_ACTIONS_MENU_EDIT,
                       onSelected: () => navigateToEditRulePage(selectedRules.at(0)),
                   },
               ]
@@ -166,6 +170,7 @@ function ExpenseRulesPage() {
             icon: icons.Trashcan,
             text: translate(selectedRules.length === 1 ? 'expenseRulesPage.deleteRule.deleteSingle' : 'expenseRulesPage.deleteRule.deleteMultiple'),
             value: CONST.EXPENSE_RULES.BULK_ACTION_TYPES.DELETE,
+            sentryLabel: CONST.SENTRY_LABEL.SETTINGS_RULES.BULK_ACTIONS_MENU_DELETE,
             shouldSkipFocusRestore: true,
             onSelected: askForConfirmationToDelete,
         },
@@ -247,6 +252,7 @@ function ExpenseRulesPage() {
                     personalExpenseRules={personalExpenseRules}
                     onRowSelectionChange={setSelectedRules}
                     headerComponent={hasRules ? expenseRulesSubtitle : undefined}
+                    bulkActionOptions={headerDropdownOptions}
                 />
             )}
         </ScreenWrapper>

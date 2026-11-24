@@ -8,6 +8,9 @@ type MembersNeedCategoryModal = {
 
     /** The categories the rejected request tried to disable, so a single one can be named in the title */
     categoryNames: string[];
+
+    /** True when the request removed members from the categories rather than disabling them, which changes the title */
+    isRemovingAccess?: boolean;
 };
 
 export default MembersNeedCategoryModal;

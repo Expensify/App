@@ -33,7 +33,7 @@ import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type IconAsset from '@src/types/utils/IconAsset';
-import type WithSentryLabel from '@src/types/utils/SentryLabel';
+import type {WithRequiredSentryLabel} from '@src/types/utils/SentryLabel';
 
 import type {ComponentRef} from 'react';
 import type {GestureResponderEvent, StyleProp, ViewStyle} from 'react-native';
@@ -57,7 +57,7 @@ function getFlavor(): string {
     return '';
 }
 
-type MenuItem = WithSentryLabel & {
+type MenuItem = WithRequiredSentryLabel & {
     translationKey: TranslationPaths;
     icon: IconAsset;
     iconRight?: IconAsset;

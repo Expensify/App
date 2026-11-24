@@ -4,6 +4,7 @@ import useBeforeRemove from '@hooks/useBeforeRemove';
 import useConfirmModal from '@hooks/useConfirmModal';
 import useLocalize from '@hooks/useLocalize';
 
+import getNavigationActionForReplay from '@libs/Navigation/helpers/getNavigationActionForReplay';
 import setNavigationActionToMicrotaskQueue from '@libs/Navigation/helpers/setNavigationActionToMicrotaskQueue';
 import navigationRef from '@libs/Navigation/navigationRef';
 import {useRegisterTabSwitchGuard} from '@libs/Navigation/TabSwitchGuardContext';
@@ -32,6 +33,7 @@ function useDiscardChangesConfirmation({
     onVisibilityChange,
     onConfirm,
     onTabSwitchDiscard,
+    shouldCloseRHPOnDiscard = false,
 }: UseDiscardChangesConfirmationOptions): DiscardChangesConfirmation {
     const route = useRoute();
     const {translate} = useLocalize();
@@ -57,7 +59,8 @@ function useDiscardChangesConfirmation({
             return;
         }
         shouldNavigateBack.current = true;
-        navigationRef.current?.dispatch(blockedNavigationAction.current);
+        const blockedAction = blockedNavigationAction.current;
+        navigationRef.current?.dispatch(shouldCloseRHPOnDiscard ? getNavigationActionForReplay(blockedAction) : blockedAction);
         shouldNavigateBack.current = false;
     };
 
