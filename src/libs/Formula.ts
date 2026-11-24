@@ -859,16 +859,15 @@ function getMonthlyLastBusinessDayPeriod(currentDate: Date): {startDate: Date; e
  * Calculate the start and end dates for auto-reporting based on the frequency and current date
  */
 function getAutoReportingDates(policy: OnyxEntry<Policy>, report: Report, currentDate = new Date(), context?: FormulaContext): {startDate: Date | undefined; endDate: Date | undefined} {
-    const frequency = policy?.autoReportingFrequency;
-    const offset = policy?.autoReportingOffset;
-
     if (!policy) {
         return {startDate: undefined, endDate: undefined};
     }
 
+    const frequency = policy.autoReportingFrequency;
+    const offset = policy.autoReportingOffset;
+
     // Trip reports use the actual first and last expense dates. Workspaces with no reporting period use them too, matching
-    // the backend, so the title never shows a date unrelated to the report. Scheduled submit can still file expenses
-    // into such a workspace from a member's personal workspace.
+    // the backend, so the title never shows a date unrelated to the report.
     const hasAutoReportingPeriod = isDelayedSubmissionEnabled(policy) && frequency !== CONST.POLICY.AUTO_REPORTING_FREQUENCIES.IMMEDIATE;
     if (!hasAutoReportingPeriod || frequency === CONST.POLICY.AUTO_REPORTING_FREQUENCIES.TRIP) {
         // Like the backend, a report without expenses uses the date it was created

@@ -765,7 +765,7 @@ describe('CustomFormula', () => {
                 createMock<Transaction>({transactionID: 'existing1', reportID: '123', created: '2025-01-08T12:00:00Z', merchant: 'Hotel', amount: 5000}),
             ]);
 
-            const policy = createMock<Policy>({autoReporting: true, autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.TRIP});
+            const policy = createMock<Policy>({autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.TRIP});
             const context: FormulaContext = {
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 report: mockReport,
@@ -780,7 +780,7 @@ describe('CustomFormula', () => {
         test('should use allTransactions for trip dates when Onyx is empty (new report optimistic flow)', () => {
             mockReportUtils.getReportTransactions.mockReturnValue([]);
 
-            const policy = createMock<Policy>({autoReporting: true, autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.TRIP});
+            const policy = createMock<Policy>({autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.TRIP});
             const context: FormulaContext = {
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 report: mockReport,
@@ -799,7 +799,7 @@ describe('CustomFormula', () => {
                 createMock<Transaction>({transactionID: 'existing1', reportID: '123', created: '2025-01-08T12:00:00Z', merchant: 'Hotel', amount: 5000}),
             ]);
 
-            const policy = createMock<Policy>({autoReporting: true, autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.TRIP});
+            const policy = createMock<Policy>({autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.TRIP});
             const context: FormulaContext = {
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 report: mockReport,
@@ -832,8 +832,7 @@ describe('CustomFormula', () => {
             {description: 'instant submit', autoReporting: true, autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT},
             {description: 'immediate submit', autoReporting: true, autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.IMMEDIATE},
         ])('workspace without an auto-reporting period because of $description', ({autoReporting, autoReportingFrequency}) => {
-            // Given a report with expenses on two dates, on a workspace with no auto-reporting period. Scheduled submit
-            // can still file expenses into it from a member's personal workspace.
+            // Given a report with expenses on two dates, on a workspace with no auto-reporting period
             mockReportUtils.getReportTransactions.mockReturnValue([
                 createMock<Transaction>({transactionID: 'trans1', created: '2025-01-08T12:00:00Z', merchant: 'Hotel', amount: 5000}),
                 createMock<Transaction>({transactionID: 'trans2', created: '2025-01-14T16:45:00Z', merchant: 'Restaurant', amount: 3000}),
@@ -851,7 +850,7 @@ describe('CustomFormula', () => {
         test('should prefer context.transaction over context.allTransactions when transactionIDs match', () => {
             mockReportUtils.getReportTransactions.mockReturnValue([]);
 
-            const policy = createMock<Policy>({autoReporting: true, autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.TRIP});
+            const policy = createMock<Policy>({autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.TRIP});
             const context: FormulaContext = {
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 report: mockReport,
@@ -870,7 +869,7 @@ describe('CustomFormula', () => {
             // Reject/Hold pass source transactions before their reportID is rewritten to the new report.
             mockReportUtils.getReportTransactions.mockReturnValue([]);
 
-            const policy = createMock<Policy>({autoReporting: true, autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.TRIP});
+            const policy = createMock<Policy>({autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.TRIP});
             const context: FormulaContext = {
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 report: mockReport,
@@ -889,7 +888,7 @@ describe('CustomFormula', () => {
                 createMock<Transaction>({transactionID: 'shared1', reportID: '123', created: '2025-01-08T12:00:00Z', merchant: 'Old Hotel', amount: 5000}),
             ]);
 
-            const policy = createMock<Policy>({autoReporting: true, autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.TRIP});
+            const policy = createMock<Policy>({autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.TRIP});
             const context: FormulaContext = {
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 report: mockReport,
@@ -906,7 +905,7 @@ describe('CustomFormula', () => {
         test('should pass context through to startdate/enddate via allTransactions', () => {
             mockReportUtils.getReportTransactions.mockReturnValue([]);
 
-            const policy = createMock<Policy>({autoReporting: true, autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.TRIP});
+            const policy = createMock<Policy>({autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.TRIP});
             const context: FormulaContext = {
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 report: mockReport,
