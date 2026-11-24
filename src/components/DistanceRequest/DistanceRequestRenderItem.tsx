@@ -1,8 +1,8 @@
 import Icon from '@components/Icon';
 import MenuItem from '@components/MenuItem';
-import {useMenuItemSecondaryInteraction} from '@components/MenuItem/MenuItemSecondaryInteractionContext';
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import {useSession} from '@components/OnyxListItemProvider';
+import PressResponder from '@components/Pressable/PressResponder';
 
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -19,27 +19,6 @@ import type {SentryLabel} from '@src/types/utils/SentryLabel';
 
 import React from 'react';
 import {View} from 'react-native';
-
-type DistanceRequestDragHandleProps = {
-    onDrag?: () => void;
-    sentryLabel: SentryLabel;
-};
-
-function DistanceRequestDragHandle({onDrag, sentryLabel}: DistanceRequestDragHandleProps) {
-    const icons = useMemoizedLazyExpensifyIcons(['DragHandles']);
-    const theme = useTheme();
-    const styles = useThemeStyles();
-    useMenuItemSecondaryInteraction(onDrag, sentryLabel);
-
-    return (
-        <View style={styles.popoverMenuIcon}>
-            <Icon
-                src={icons.DragHandles}
-                fill={theme.icon}
-            />
-        </View>
-    );
-}
 
 type DistanceRequestProps = {
     /** The waypoints for the distance expense */
@@ -59,7 +38,7 @@ function DistanceRequestRenderItem({waypoints, item = '', onSecondaryInteraction
     const theme = useTheme();
     const styles = useThemeStyles();
     const session = useSession();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Location', 'DotIndicatorUnfilled', 'DotIndicator']);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['DragHandles', 'Location', 'DotIndicatorUnfilled', 'DotIndicator']);
     const {translate} = useLocalize();
     const numberOfWaypoints = Object.keys(waypoints ?? {}).length;
     const lastWaypointIndex = numberOfWaypoints - 1;
@@ -85,41 +64,48 @@ function DistanceRequestRenderItem({waypoints, item = '', onSecondaryInteraction
     const errorText = isWaypointNullIsland(waypoint) ? translate('violations.noRoute') : undefined;
 
     return (
-        <MenuItem.Root
-            onPress={callIfAuthenticated(() => onPress(index), session)}
-            isFocused={isActive}
-            key={item}
-            isDisabled={disabled}
+        <PressResponder
+            onSecondaryInteraction={disabled ? undefined : onSecondaryInteraction}
             sentryLabel={sentryLabel}
         >
-            <MenuItem.Row>
-                <MenuItem.Leading>
-                    <View style={styles.flexRow}>
-                        <DistanceRequestDragHandle
-                            onDrag={disabled ? undefined : onSecondaryInteraction}
-                            sentryLabel={sentryLabel}
-                        />
-                        <View style={styles.popoverMenuIcon}>
-                            <Icon
-                                src={waypointIcon}
-                                fill={theme.icon}
-                            />
+            <MenuItem.Root
+                onPress={callIfAuthenticated(() => onPress(index), session)}
+                isFocused={isActive}
+                key={item}
+                isDisabled={disabled}
+                sentryLabel={sentryLabel}
+            >
+                <MenuItem.Row>
+                    <MenuItem.Leading>
+                        <View style={styles.flexRow}>
+                            <View style={styles.popoverMenuIcon}>
+                                <Icon
+                                    src={expensifyIcons.DragHandles}
+                                    fill={theme.icon}
+                                />
+                            </View>
+                            <View style={styles.popoverMenuIcon}>
+                                <Icon
+                                    src={waypointIcon}
+                                    fill={theme.icon}
+                                />
+                            </View>
                         </View>
-                    </View>
-                </MenuItem.Leading>
-                <MenuItemField.Content name={translate(descriptionKey)}>{!!title && <MenuItem.FieldValue>{title}</MenuItem.FieldValue>}</MenuItemField.Content>
-                <MenuItem.Trailing>
-                    {!!errorText && <MenuItem.BrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />}
-                    <MenuItem.Chevron />
-                </MenuItem.Trailing>
-            </MenuItem.Row>
-            {!!errorText && (
-                <MenuItem.HelpText
-                    isError
-                    message={errorText}
-                />
-            )}
-        </MenuItem.Root>
+                    </MenuItem.Leading>
+                    <MenuItemField.Content name={translate(descriptionKey)}>{!!title && <MenuItem.FieldValue>{title}</MenuItem.FieldValue>}</MenuItemField.Content>
+                    <MenuItem.Trailing>
+                        {!!errorText && <MenuItem.BrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />}
+                        <MenuItem.Chevron />
+                    </MenuItem.Trailing>
+                </MenuItem.Row>
+                {!!errorText && (
+                    <MenuItem.HelpText
+                        isError
+                        message={errorText}
+                    />
+                )}
+            </MenuItem.Root>
+        </PressResponder>
     );
 }
 

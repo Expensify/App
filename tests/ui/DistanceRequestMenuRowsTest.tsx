@@ -103,6 +103,59 @@ it('keeps the active-drag background without requiring hover', () => {
     expect(screen.getByTestId('menu-item-chevron')).toHaveStyle(styles.current.opacitySemiTransparent);
 });
 
+it('uses the current drag callback after replacement, disabling and removal', () => {
+    // Given an editable row whose drag callback can change without remounting.
+    const originalDrag = jest.fn();
+    const replacementDrag = jest.fn();
+    const {rerender} = render(
+        <DistanceRequestRenderItem
+            waypoints={waypoints}
+            getIndex={() => 0}
+            onSecondaryInteraction={originalDrag}
+        />,
+        {wrapper: OnyxListItemProvider},
+    );
+
+    // When the callback is replaced, disabled, enabled again and finally removed.
+    fireEvent(screen.getByRole('button', {name: startLabel}), 'longPress', pressEvent);
+    rerender(
+        <DistanceRequestRenderItem
+            waypoints={waypoints}
+            getIndex={() => 0}
+            onSecondaryInteraction={replacementDrag}
+        />,
+    );
+    fireEvent(screen.getByRole('button', {name: startLabel}), 'longPress', pressEvent);
+    rerender(
+        <DistanceRequestRenderItem
+            waypoints={waypoints}
+            getIndex={() => 0}
+            onSecondaryInteraction={replacementDrag}
+            disabled
+        />,
+    );
+    fireEvent(screen.getByRole('button', {name: startLabel}), 'longPress', pressEvent);
+    rerender(
+        <DistanceRequestRenderItem
+            waypoints={waypoints}
+            getIndex={() => 0}
+            onSecondaryInteraction={replacementDrag}
+        />,
+    );
+    fireEvent(screen.getByRole('button', {name: startLabel}), 'longPress', pressEvent);
+    rerender(
+        <DistanceRequestRenderItem
+            waypoints={waypoints}
+            getIndex={() => 0}
+        />,
+    );
+    fireEvent(screen.getByRole('button', {name: startLabel}), 'longPress', pressEvent);
+
+    // Then only the currently enabled callback fires, once per gesture, with no stale calls.
+    expect(originalDrag).toHaveBeenCalledTimes(1);
+    expect(replacementDrag).toHaveBeenCalledTimes(2);
+});
+
 it('retains address fallback and the no-route indicator for null-island stops', () => {
     // Given the last stop has an address but no name and cannot be routed.
     render(
