@@ -1,0 +1,23 @@
+# Files every test loads without importing them, so Jest's --changedSince can't trace them to a test.
+# A PR that changes any of them runs every test. Used by test.yml and reassurePerformanceTests.yml.
+any:
+  # Dependencies and toolchain
+  - 'package.json'
+  - 'package-lock.json'
+  - 'patches/**'
+  - 'modules/**'
+  - '.nvmrc'
+  - 'tsconfig.json'
+  - 'babel.config.js'
+  - 'config/babel/**'
+  # Jest config and setup, loaded through jest.config.js
+  - 'jest.config.js'
+  - 'jest/**'
+  - '**/__mocks__/**'
+  - 'src/polyfills/**'
+  - 'tests/perf-test/setupAfterEnv.ts'
+  # CI itself
+  - '.github/workflows/test.yml'
+  - '.github/workflows/reassurePerformanceTests.yml'
+  - '.github/actions/composite/setupNode/**'
+  - '.github/fullTestRunPaths.yml'

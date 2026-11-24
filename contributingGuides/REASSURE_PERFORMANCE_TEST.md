@@ -35,7 +35,7 @@ We use Reassure for monitoring performance regression. It helps us check if our 
 - Open up the resulting `output1.md` (and possibly consecutive output files) / `output.json` (see console output) to compare the results.
 - With all that information, Reassure can present the render duration times as statistically significant or meaningless.
 
-On pull requests, CI runs only the performance tests that import a changed file, the same way as Jest (see [Selective test runs](../.github/workflows/README.md#selective-test-runs)). Tests that didn't run show up as "Removed scenarios" in the comparison.
+On pull requests, CI runs only the performance tests that import a changed file, the same way as Jest (see [Selective test runs](../.github/workflows/README.md#selective-test-runs)).
 
 ## Metrics for Regression Detection
 

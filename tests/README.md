@@ -6,9 +6,9 @@
 > `bun:test` instead. If your test's import graph reaches `@actions/*` or `@octokit/*`, it belongs there — see
 > [tests/tooling/README.md](tooling/README.md).
 
-> On pull requests, CI runs only the tests that import a changed file. If you add a file that tests depend on
-> without importing it, like a setup file or a mock, add it to the full-run list described in
-> [Selective test runs](../.github/workflows/README.md#selective-test-runs).
+> On pull requests, CI runs only the tests that import a changed file. If you add a file every test loads
+> without importing it, like a setup file or a mock, add it to `.github/fullTestRunPaths.yml` (see
+> [Selective test runs](../.github/workflows/README.md#selective-test-runs)).
 
 ## Asynchronous Testing
 
