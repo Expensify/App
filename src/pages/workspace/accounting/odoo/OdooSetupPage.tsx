@@ -18,6 +18,7 @@ import {addErrorMessage} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
+import {isValidWebsite} from '@libs/ValidationUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -52,6 +53,11 @@ function OdooSetupPage({route}: OdooSetupPageProps) {
                 continue;
             }
             addErrorMessage(errors, inputID, translate('common.error.fieldRequired'));
+        }
+
+        const odooURL = values[INPUT_IDS.ODOO_URL]?.trim();
+        if (odooURL && !isValidWebsite(odooURL)) {
+            addErrorMessage(errors, INPUT_IDS.ODOO_URL, translate('bankAccount.error.website'));
         }
         return errors;
     };

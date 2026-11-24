@@ -76,6 +76,28 @@ describe('OdooSetupPage', () => {
         expect(errors).toEqual({odooURL: 'common.error.fieldRequired', apiKey: 'common.error.fieldRequired'});
     });
 
+    it.each(['acme.odoo.com', 'my odoo'])('rejects %s as the Odoo URL before submitting', (odooURL) => {
+        // Given the setup page for a workspace that isn't connected yet
+        renderOdooSetupPage();
+
+        // When the admin confirms a URL without a protocol or that isn't a URL at all
+        const errors = mockFormProps.current?.validate({odooURL, apiKey: 'api-key-1'});
+
+        // Then the URL shows an inline error, since the server could only reject it after the page has closed
+        expect(errors).toEqual({odooURL: 'bankAccount.error.website'});
+    });
+
+    it('accepts a full Odoo URL', () => {
+        // Given the setup page for a workspace that isn't connected yet
+        renderOdooSetupPage();
+
+        // When the admin confirms a URL with its protocol, pasted with surrounding spaces
+        const errors = mockFormProps.current?.validate({odooURL: ' https://acme.odoo.com ', apiKey: 'api-key-1'});
+
+        // Then there is no error, so the form can submit
+        expect(errors).toEqual({});
+    });
+
     it('connects with the trimmed URL and API key and closes the setup page', () => {
         // Given the setup page for a workspace that isn't connected yet
         renderOdooSetupPage();
