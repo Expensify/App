@@ -26,6 +26,35 @@ PODS:
   - AppAuth/Core (1.7.6)
   - AppAuth/ExternalUserAgent (1.7.6):
     - AppAuth/Core
+  - Appduct (0.16.0):
+    - boost
+    - DoubleConversion
+    - fast_float
+    - fmt
+    - glog
+    - hermes-engine
+    - RCT-Folly
+    - RCT-Folly/Fabric
+    - RCTRequired
+    - RCTTypeSafety
+    - React-bridging
+    - React-Core
+    - React-cxxstableapi
+    - React-debug
+    - React-Fabric
+    - React-featureflags
+    - React-graphics
+    - React-ImageManager
+    - React-jsi
+    - React-NativeModulesApple
+    - React-RCTFabric
+    - React-renderercss
+    - React-rendererdebug
+    - React-utils
+    - ReactCodegen
+    - ReactCommon/turbomodule/core
+    - SocketRocket
+    - Yoga
   - AppLogs (0.1.0)
   - boost (1.84.0)
   - callstack-repack (5.4.1):
@@ -4811,10 +4840,44 @@ PODS:
     - ReactCommon/turbomodule/core
     - SocketRocket
     - Yoga
+  - VisionCameraWorklets (5.2.3):
+    - boost
+    - DoubleConversion
+    - fast_float
+    - fmt
+    - glog
+    - hermes-engine
+    - NitroModules
+    - RCT-Folly
+    - RCT-Folly/Fabric
+    - RCTRequired
+    - RCTTypeSafety
+    - React-bridging
+    - React-callinvoker
+    - React-Core
+    - React-cxxstableapi
+    - React-debug
+    - React-Fabric
+    - React-featureflags
+    - React-graphics
+    - React-ImageManager
+    - React-jsi
+    - React-NativeModulesApple
+    - React-RCTFabric
+    - React-renderercss
+    - React-rendererdebug
+    - React-utils
+    - ReactCodegen
+    - ReactCommon/turbomodule/core
+    - RNWorklets
+    - SocketRocket
+    - VisionCamera
+    - Yoga
   - Yoga (0.0.0)
 
 DEPENDENCIES:
   - AirshipServiceExtension
+  - "Appduct (from `../node_modules/@appduct/react-native`)"
   - AppLogs (from `../node_modules/react-native-app-logs/AppLogsPod`)
   - boost (from `../node_modules/react-native/third-party-podspecs/boost.podspec`)
   - "callstack-repack (from `../node_modules/@callstack/repack`)"
@@ -4980,6 +5043,7 @@ DEPENDENCIES:
   - TrustKit (~> 3.0)
   - UMAppLoader (from `../node_modules/unimodules-app-loader/ios`)
   - VisionCamera (from `../node_modules/react-native-vision-camera`)
+  - VisionCameraWorklets (from `../node_modules/react-native-vision-camera-worklets`)
   - Yoga (from `../node_modules/react-native/ReactCommon/yoga`)
 
 SPEC REPOS:
@@ -5027,6 +5091,8 @@ SPEC REPOS:
     - TweetNacl
 
 EXTERNAL SOURCES:
+  Appduct:
+    :path: "../node_modules/@appduct/react-native"
   AppLogs:
     :path: "../node_modules/react-native-app-logs/AppLogsPod"
   boost:
@@ -5348,6 +5414,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/unimodules-app-loader/ios"
   VisionCamera:
     :path: "../node_modules/react-native-vision-camera"
+  VisionCameraWorklets:
+    :path: "../node_modules/react-native-vision-camera-worklets"
   Yoga:
     :path: "../node_modules/react-native/ReactCommon/yoga"
 
@@ -5360,13 +5428,14 @@ SPEC CHECKSUMS:
   AirshipFrameworkProxy: 64a4bb802af3a344201748907a89641588963feb
   AirshipServiceExtension: 50d11b2f62c4a490d4e81a1c36f70e2ecb70a27e
   AppAuth: d4f13a8fe0baf391b2108511793e4b479691fb73
+  Appduct: 256e2794e53aee8c17e9927833c1eadc65c93ebb
   AppLogs: 3bc4e9b141dbf265b9464409caaa40416a9ee0e0
   boost: 659a89341ea4ab3df8259733813b52f26d8be9a5
   callstack-repack: 8883aaf395ac45d84c368bd3c0618dcf0aa5eb5c
   DoubleConversion: cb417026b2400c8f53ae97020b2be961b59470cb
   EXConstants: ff5c226215048137ea31d39fa460027a6daeeadc
   expensify-react-native-background-task: ea4509ba555095f21485d6a5a5adfdc6bb92accc
-  ExpensifyNitroUtils: fa9208bdf51cd33763d4039407650aa6c650f5c5
+  ExpensifyNitroUtils: cf44565aa364b747a9e870d24365797b7112f7f7
   Expo: f5f4aeb87a0cc2c6f7200fc7c2aea28efc752e85
   ExpoAsset: 7c69bf16ddb143a238c9d6a55b9f699cc60b72cf
   ExpoAudio: 7963cae3818d0a9f9b6ac927b7f5401b2539daa6
@@ -5557,6 +5626,7 @@ SPEC CHECKSUMS:
   TweetNacl: 3abf4d1d2082b0114e7a67410e300892448951e6
   UMAppLoader: 813e4d172a12484f5bb149d9e99b1e7c11ae0b0c
   VisionCamera: bfc51a42f53354ae65c6d9722cdf11568ecb9be6
+  VisionCameraWorklets: 2d6725634054a28b7f0854f5a6113a60a5f4d5fd
   Yoga: cc77b509c6e01e07a4ab976e2afd495c01cc2c1d
 
 PODFILE CHECKSUM: 22066e0768760f4bad500b497f3d1576110fd025

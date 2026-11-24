@@ -10,7 +10,7 @@ import {isNumeric} from '@libs/ValidationUtils';
 
 import CONST from '@src/CONST';
 
-import type {ForwardedRef, KeyboardEvent} from 'react';
+import type {ForwardedRef} from 'react';
 import type {FocusEvent, TextInputKeyPressEvent} from 'react-native';
 import type {ValueOf} from 'type-fest';
 
@@ -390,13 +390,12 @@ function ValidateCodeInput({
 
     /**
      * Handles logic related to certain key presses.
+     * The digit pad calls it with only a key, so the event is typed by the fields it reads.
      *
      * NOTE: when using Android Emulator, this can only be tested using
      * hardware keyboard inputs.
      */
-    const onKeyPress = (
-        event: Omit<Partial<TextInputKeyPressEvent>, 'nativeEvent'> & {nativeEvent?: Pick<TextInputKeyPressEvent['nativeEvent'], 'key'>} & Partial<Pick<KeyboardEvent, 'shiftKey'>>,
-    ) => {
+    const onKeyPress = (event: {nativeEvent?: Pick<TextInputKeyPressEvent['nativeEvent'], 'key'>; preventDefault?: () => void; shiftKey?: boolean}) => {
         const keyValue = event?.nativeEvent?.key;
         if (keyValue === 'Backspace' || keyValue === '<') {
             let numbers = decomposeString(value, maxLength);
