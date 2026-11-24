@@ -5,7 +5,7 @@ import {AttachmentCarouselPagerActionsContext, AttachmentCarouselPagerStateConte
 import type {AttachmentCarouselPagerActionsContextType, AttachmentCarouselPagerStateContextType} from '@components/Attachments/AttachmentCarousel/Pager/types';
 import type {UpdatePageProps} from '@components/Attachments/AttachmentCarousel/types';
 import useCarouselContextEvents from '@components/Attachments/AttachmentCarousel/useCarouselContextEvents';
-import type {Attachment} from '@components/Attachments/types';
+import type {Attachment, AttachmentSource} from '@components/Attachments/types';
 import BlockingView from '@components/BlockingViews/BlockingView';
 import {useFullScreenState} from '@components/VideoPlayerContexts/FullScreenContextProvider';
 
@@ -71,16 +71,11 @@ function AttachmentCarouselView({
     const styles = useThemeStyles();
     const illustrations = useMemoizedLazyIllustrations(['ToddBehindCloud']);
     const canUseTouchScreen = canUseTouchScreenUtil();
-    const {isFullScreen} = useFullScreenState();
+    const {isFullScreen, isFullScreenRef} = useFullScreenState();
     const isPagerScrolling = useSharedValue(false);
     const {handleTap, handleScaleChange, isScrollEnabled} = useCarouselContextEvents(setShouldShowArrows);
 
-    const [activeAttachment, setActiveAttachment] = useState({identity: attachmentID ?? source, source, attachmentID});
-    // External route changes can replace the selected attachment without changing its page index.
-    if (activeAttachment.source !== source || activeAttachment.attachmentID !== attachmentID) {
-        setActiveAttachment({identity: attachmentID ?? source, source, attachmentID});
-    }
-    const activeAttachmentID = activeAttachment.identity;
+    const [activeAttachmentID, setActiveAttachmentID] = useState<AttachmentSource | null>(attachmentID ?? source);
 
     const scrollRef = useAnimatedRef<Animated.FlatList<Attachment>>();
 
@@ -89,39 +84,45 @@ function AttachmentCarouselView({
     const {windowWidth} = useWindowDimensions();
 
     const cellWidth = PixelRatio.roundToNearestPixel(windowWidth - (modalStyles.marginHorizontal + modalStyles.borderWidth) * 2);
-    const currentPageRef = useRef(page);
-    const updatePageRef = useRef<((info: UpdatePageProps) => void) | null>(null);
 
+    // FlatList does not accept a new onViewableItemsChanged after it has mounted, so the current page is read from a
+    // ref instead of making the callback depend on it.
+    const currentPageRef = useRef(page);
+    useInsertionEffect(() => {
+        currentPageRef.current = page;
+    }, [page]);
+
+    /** Updates the page state when the user navigates between attachments */
     const updatePage = ({viewableItems}: UpdatePageProps) => {
-        // Resize can briefly report zero or several cells; neither sample represents navigation.
-        if (isFullScreen || viewableItems.length !== 1) {
+        if (isFullScreenRef.current) {
+            return;
+        }
+
+        // No viewable item, or several of them, means the list sits between two cells while it is being resized.
+        // That is not a navigation, so it must not dismiss the keyboard or change the focused attachment.
+        if (viewableItems.length !== 1) {
             return;
         }
 
         const entry = viewableItems.at(0);
         const item = entry?.item;
-        if (!item || entry.index == null || entry.index < 0 || entry.index === currentPageRef.current) {
+        if (!entry || !item || entry.index === currentPageRef.current) {
             return;
         }
 
-        // Update before notifying the parent so another event in the same frame cannot navigate twice.
-        currentPageRef.current = entry.index;
+        // Only a real change of page dismisses the keyboard, otherwise rotating the device would close the
+        // password field of a protected PDF.
         Keyboard.dismiss();
-        setPage(entry.index);
-        setActiveAttachment({identity: item.attachmentID ?? item.source, source, attachmentID});
-        onNavigate?.(item);
+
+        if (entry.index != null) {
+            setPage(entry.index);
+            setActiveAttachmentID(item.attachmentID ?? item.source);
+        }
+
+        if (onNavigate) {
+            onNavigate(item);
+        }
     };
-
-    useInsertionEffect(() => {
-        // FlatList's retained callback must use the latest committed props, including fullscreen state.
-        updatePageRef.current = updatePage;
-    });
-    useInsertionEffect(() => {
-        currentPageRef.current = page;
-    }, [page]);
-
-    // RNW FlatList requires the same callback for its lifetime; compiler memoization is not that contract.
-    const [onViewableItemsChanged] = useState(() => (info: UpdatePageProps) => updatePageRef.current?.(info));
 
     /** Increments or decrements the index to get another selected item, returning whether the carousel moved */
     const cycleThroughAttachments = (deltaSlide: number) => {
@@ -218,7 +219,7 @@ function AttachmentCarouselView({
 
     // Scroll position is affected when window width is resized, so we readjust it on width changes
     useEffect(() => {
-        if (page < 0 || attachments.length === 0 || scrollRef.current == null) {
+        if (attachments.length === 0 || scrollRef.current == null) {
             return;
         }
 
@@ -273,7 +274,7 @@ function AttachmentCarouselView({
                                     getItemLayout={getItemLayout}
                                     keyExtractor={extractItemKey}
                                     viewabilityConfig={viewabilityConfig}
-                                    onViewableItemsChanged={onViewableItemsChanged}
+                                    onViewableItemsChanged={updatePage}
                                 />
                             </DeviceAwareGestureDetector>
                         </AttachmentCarouselPagerActionsContext.Provider>
