@@ -2,7 +2,7 @@
 title: Workspace Rules
 description: Configure and manage rules for your workspace to enforce expense policies and automate compliance.
 keywords: [New Expensify, workspace rules, rules tabs, general rules, card restrictions, expense defaults, field requirements, flag for review, agent rules, expense rules, receipt requirements, category rules, prohibited expenses, disable Smartscan, automate expenses, non-reimbursable, cash expenses, billable expenses, control expenses, compliance, itemized receipt, merchant rules, spend rules, Expensify Card spend rules, block transactions, public receipt visibility, describe your rule, build a rule with Concierge, AI rules builder]
-internalScope: Audience is workspace admins on the Collect and Control plans. Covers enabling Rules and configuring each tab of the Rules page, including basic rules, Expensify Card restrictions, expense defaults, field requirements, flag for review, and agent rules, plus having Concierge build a rule from a plain-English description. Does not cover personal expense rules, Workspace Merchant Rules setup details, report-level rules in Workflows, or troubleshooting specific rule outcomes.
+internalScope: Audience is workspace admins on the Collect and Control plans. Covers enabling Rules and configuring each tab of the Rules page, including basic rules, Expensify Card restrictions, expense defaults, field requirements, flag for review, and agent rules, plus having Concierge build a rule from a plain-English description. Does not cover personal expense rules, report-level rules in Workflows, or troubleshooting specific rule outcomes.
 ---
 
 # Workspace Rules
@@ -56,7 +56,7 @@ Available rules:
 - **Attendee tracking** – Track the per-person cost for every expense.
 - **Public receipt visibility** – Control who can view receipt images. When enabled, receipts are viewable by anyone with the URL, even people who don't have access to the report. When disabled (the default), receipts are only viewable by Expensify members with access to the report containing the receipt.
 
-**Cash expenses** and **Billable expenses** can also be set per merchant. [Learn how Merchant Rules work](/articles/new-expensify/workspaces/Workspace-Merchant-Rules).
+**Cash expenses** and **Billable expenses** can also be set per merchant. [Learn how expense defaults work](#how-to-apply-expense-defaults-on-the-expense-defaults-tab).
 
 ![The Rules page on the General tab, showing the tab bar and the full Basic rules card.]({{site.url}}/assets/images/Rules_general.png){:width="100%"}
 
@@ -101,8 +101,6 @@ An expense must match every condition you set. For example, a rule with a mercha
 Expense defaults apply to matching new expenses. **Apply to existing unsubmitted expenses** is disabled by default. Saving without this option does not retroactively update existing expenses, and enabling it does not update submitted expenses. **Amount** sets a default amount; it is not an amount-matching condition.
 
 Default categories based on the merchant's MCC (Merchant Category Code) also live on this tab. They appear as rules with a condition of **Merchant type is** and a rule of **Update category to**. You can change the category a merchant type maps to, but you can't edit the merchant type or delete these rules.
-
-[Learn how Merchant Rules work](/articles/new-expensify/workspaces/Workspace-Merchant-Rules).
 
 ---
 
