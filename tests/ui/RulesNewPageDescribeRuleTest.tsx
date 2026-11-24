@@ -1,6 +1,7 @@
 import {act, fireEvent, render, screen} from '@testing-library/react-native';
 
 import usePolicy from '@hooks/usePolicy';
+import useScrollOnKeyboardReopen from '@hooks/useScrollOnKeyboardReopen';
 
 import {openPolicyCategoriesPage} from '@libs/actions/Policy/Category';
 import * as API from '@libs/API';
@@ -55,6 +56,7 @@ jest.mock('@hooks/useLocalize', () =>
     })),
 );
 jest.mock('@hooks/usePolicy', () => jest.fn());
+jest.mock('@hooks/useScrollOnKeyboardReopen', () => jest.fn(() => jest.fn()));
 jest.mock('@hooks/useTheme', () => jest.fn(() => ({icon: '#000'})));
 jest.mock('@components/Icon', () => () => null);
 jest.mock('@libs/actions/Policy/Category', () => ({
@@ -132,7 +134,7 @@ jest.mock('@components/Form/FormProvider', () => {
         children: React.ReactNode;
         onSubmit: (values: {prompt: string}) => void;
         submitButtonText: string;
-        ref: React.Ref<{scrollTo: (y: number) => void; scrollToEnd: () => void}>;
+        ref: React.Ref<{scrollTo: (y: number, shouldDelayScroll?: boolean) => void; scrollToEnd: () => void}>;
     }) {
         ReactModule.useImperativeHandle(ref, () => ({scrollTo: mockScrollTo, scrollToEnd: mockScrollToEnd}));
         return ReactModule.createElement(
@@ -268,7 +270,21 @@ describe('New rule describe section', () => {
         fireEvent(input, 'focus');
 
         // Then the form scrolls to the top of the box, because iOS and Android do not scroll it above the keyboard
-        expect(mockScrollTo).toHaveBeenCalledWith(420);
+        expect(mockScrollTo).toHaveBeenCalledWith(420, true);
+    });
+
+    it('skips the keyboard transition delay when the reopen hook requests an immediate scroll', async () => {
+        // Given a Describe input below the templates with the reopen callback registered
+        await renderRulesNewPage();
+        const input = screen.getByLabelText('workspace.rules.newRule.describeRuleInputLabel');
+        fireEvent(input, 'layout', {nativeEvent: {layout: {x: 0, y: 420, width: 300, height: 96}}});
+        const scrollToInput = jest.mocked(useScrollOnKeyboardReopen).mock.lastCall?.[1];
+
+        // When the hook reports that the keyboard has finished opening
+        act(() => scrollToInput?.(false));
+
+        // Then the form bypasses the extra transition wait
+        expect(mockScrollTo).toHaveBeenCalledWith(420, false);
     });
 
     it('hides the describe section when New rule opens for a category', async () => {

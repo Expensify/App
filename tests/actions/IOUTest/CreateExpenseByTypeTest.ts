@@ -110,6 +110,7 @@ describe('actions/IOU/createExpenseByType', () => {
         const report = buildBaseReport();
 
         const params = {
+            personalDetailsByLogins: OWNER_PERSONAL_DETAILS_BY_LOGINS,
             report,
             participantParams: {
                 payeeEmail: OWNER_EMAIL,
@@ -162,7 +163,6 @@ describe('actions/IOU/createExpenseByType', () => {
             participantsPolicyTags: {},
             policyTags: {},
             rules: undefined,
-            personalDetailsByLogins: OWNER_PERSONAL_DETAILS_BY_LOGINS,
             ...overrides,
         });
     }

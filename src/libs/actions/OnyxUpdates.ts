@@ -2,11 +2,14 @@ import {SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import Log from '@libs/Log';
 import Pusher from '@libs/Pusher';
 import PusherUtils from '@libs/PusherUtils';
+import {logReceiptRolledBack} from '@libs/telemetry/ReceiptObservability';
 import {trackExpenseApiError} from '@libs/telemetry/trackExpenseCreationError';
 
+import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {AnyOnyxUpdatesFromServer, OnyxUpdateEvent, OnyxUpdatesFromServer, Request} from '@src/types/onyx';
+import type {AnyOnyxUpdate} from '@src/types/onyx/Request';
 import type Response from '@src/types/onyx/Response';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
@@ -15,6 +18,7 @@ import type {Merge} from 'type-fest';
 
 import Onyx from 'react-native-onyx';
 
+import {getResetSignInFlowUpdate, signOutFromOldDot} from './HybridApp';
 import notifySearchOfTransactionWrites from './notifySearchOfTransactionWrites';
 import {getCurrentFlushPromise, isEmpty as isQueuedOnyxUpdatesEmpty, queueOnyxUpdates} from './QueuedOnyxUpdates';
 
@@ -64,6 +68,45 @@ let pusherEventsPromise = Promise.resolve();
 
 let airshipEventsPromise = Promise.resolve();
 
+/**
+ * A clear from the server ends the session, so on HybridApp the sign-in flow restarts, the same as after a client sign-out. Onyx runs a batch's clear first and the
+ * rest of the batch only once the clear succeeds, so the reset joins that batch: it lands whenever the clear does, even if a later write fails, and never when the
+ * clear itself fails, because the old session would still be there to sign OldDot back in with. Returns undefined when there is no clear to handle.
+ */
+function getUpdatesWithSignInFlowReset(updates: AnyOnyxUpdate[] | undefined): AnyOnyxUpdate[] | undefined {
+    // Every Pusher and Airship event passes through here before its handler, and handlers like reconnectApp's never read their data, so it isn't always an array.
+    if (!CONFIG.IS_HYBRID_APP || !Array.isArray(updates) || !updates.some((update) => update.onyxMethod === Onyx.METHOD.CLEAR)) {
+        return undefined;
+    }
+    return [...updates, getResetSignInFlowUpdate()];
+}
+
+/** Pusher and Airship deliver updates as events, and any of them can carry the server's clear */
+function addSignInFlowResetToServerClears<TKey extends OnyxKey>(updates: Array<OnyxUpdateEvent<TKey>>) {
+    let hasServerClear = false;
+    const updatesToApply = updates.map((update) => {
+        const dataWithSignInFlowReset = getUpdatesWithSignInFlowReset(update.data);
+        if (dataWithSignInFlowReset) {
+            hasServerClear = true;
+        }
+        const data: AnyOnyxUpdate[] = dataWithSignInFlowReset ?? update.data;
+        return {eventType: update.eventType, data};
+    });
+    return {updatesToApply, hasServerClear};
+}
+
+/**
+ * Call once the batch carrying the server's clear has settled. The server has already ended the session, so OldDot signs out even when that batch failed.
+ */
+function signOutFromOldDotAfterServerClear(source: string) {
+    Log.info('[HybridApp] The server cleared Onyx. Performing sign-out on OldDot side', false, {source});
+    try {
+        signOutFromOldDot();
+    } catch (error) {
+        Log.alert('[HybridApp] Sign-out on OldDot side failed after the server cleared Onyx', {source, error: error instanceof Error ? error.message : String(error)});
+    }
+}
+
 function applyHTTPSOnyxUpdates<TKey extends OnyxKey>(
     request: Request<TKey>,
     response: Response<TKey>,
@@ -73,12 +116,22 @@ function applyHTTPSOnyxUpdates<TKey extends OnyxKey>(
     Log.info('[OnyxUpdateManager] Applying https update', false, {lastUpdateID});
     // For most requests we can immediately update Onyx. For write requests we queue the updates and apply them after the sequential queue has flushed to prevent a replay effect in
     // the UI. See https://github.com/Expensify/App/issues/12775 for more info.
-    const updateHandler: (updates: Array<OnyxUpdate<TKey>>) => Promise<unknown> = shouldQueueUpdates ? queueOnyxUpdates : Onyx.update;
+    const updateHandler: <TUpdateKey extends OnyxKey>(updates: Array<OnyxUpdate<TUpdateKey>>) => Promise<unknown> = shouldQueueUpdates ? queueOnyxUpdates : Onyx.update;
 
     // First apply any onyx data updates that are being sent back from the API. We wait for this to complete and then
     // apply successData or failureData. This ensures that we do not update any pending, loading, or other UI states contained
     // in successData/failureData until after the component has received and API data.
-    const onyxDataUpdatePromise = response.onyxData ? updateHandler(response.onyxData) : Promise.resolve();
+    const onyxDataWithSignInFlowReset = getUpdatesWithSignInFlowReset(response.onyxData);
+    const onyxData: AnyOnyxUpdate[] | undefined = onyxDataWithSignInFlowReset ?? response.onyxData;
+    const onyxDataUpdatePromise = onyxData ? updateHandler(onyxData) : Promise.resolve();
+
+    if (onyxDataWithSignInFlowReset) {
+        // Queued updates land only when the SequentialQueue flushes, and that flush waits for this request, so returning the flush promise would deadlock.
+        (shouldQueueUpdates ? getCurrentFlushPromise() : onyxDataUpdatePromise)
+            // The failure still reaches whoever applied the batch.
+            .catch(() => {})
+            .then(() => signOutFromOldDotAfterServerClear(request.command));
+    }
 
     return onyxDataUpdatePromise
         .then(() => {
@@ -109,6 +162,7 @@ function applyHTTPSOnyxUpdates<TKey extends OnyxKey>(
                     message: response.message,
                     requestData: request.data,
                 });
+                logReceiptRolledBack({command: request.command, data: request.data, failureData: request.failureData, trigger: 'serverError'});
 
                 return updateHandler(request.failureData);
             }
@@ -131,13 +185,15 @@ function applyPusherOnyxUpdates<TKey extends OnyxKey>(updates: Array<OnyxUpdateE
         Log.info('[OnyxUpdateManager] Applying pusher update', false, {lastUpdateID});
     });
 
-    const applyPromise = updates
+    const {updatesToApply, hasServerClear} = addSignInFlowResetToServerClears(updates);
+    const appliedPromise = updatesToApply
         .reduce((promise, update) => promise.then(() => PusherUtils.triggerMultiEventHandler(update.eventType, update.data)), pusherEventsPromise)
         .then(() => {
             Log.info('[OnyxUpdateManager] Done applying Pusher update', false, {lastUpdateID});
             // Changes made elsewhere (another device, SmartScan, a posted card transaction) reach Search through here or through Airship pushes on native.
             notifySearchOfTransactionWrites(updates.flatMap((update) => (update.eventType === Pusher.TYPE.MULTIPLE_EVENT_TYPE.ONYX_API_UPDATE ? update.data : [])));
         });
+    const applyPromise = hasServerClear ? appliedPromise.finally(() => signOutFromOldDotAfterServerClear(CONST.ONYX_UPDATE_TYPES.PUSHER)) : appliedPromise;
 
     pusherEventsPromise = applyPromise.catch(() => {});
 
@@ -149,12 +205,15 @@ function applyAirshipOnyxUpdates<TKey extends OnyxKey>(updates: Array<OnyxUpdate
         Log.info('[OnyxUpdateManager] Applying Airship updates', false, {lastUpdateID});
     });
 
-    const applyPromise = updates
-        .reduce((promise, update) => promise.then(() => Onyx.update(update.data as Array<OnyxUpdate<TKey>>)), airshipEventsPromise)
+    const {updatesToApply, hasServerClear} = addSignInFlowResetToServerClears(updates);
+    const appliedPromise = updatesToApply
+        .reduce((promise, update) => promise.then(() => Onyx.update(update.data)), airshipEventsPromise)
         .then(() => {
             Log.info('[OnyxUpdateManager] Done applying Airship updates', false, {lastUpdateID});
             notifySearchOfTransactionWrites(updates.flatMap((update) => update.data));
         });
+    // A push in the background lets the OS suspend the app once this resolves, so the OldDot sign-out is requested before it does
+    const applyPromise = hasServerClear ? appliedPromise.finally(() => signOutFromOldDotAfterServerClear(CONST.ONYX_UPDATE_TYPES.AIRSHIP)) : appliedPromise;
 
     airshipEventsPromise = applyPromise.catch(() => {});
 

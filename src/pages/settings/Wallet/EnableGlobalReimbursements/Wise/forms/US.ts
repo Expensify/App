@@ -54,23 +54,6 @@ const businessPage: DynamicFormPage = {
         // Shown but never edited here, so it is clear which business is onboarding
         {key: 'companyName', type: 'text', required: true, readonly: true, labelKey: 'walletPage.wiseOnboarding.business.legalName'},
         {
-            key: 'companyType',
-            type: 'select',
-            required: true,
-            labelKey: 'walletPage.wiseOnboarding.business.companyType',
-            values: [
-                {key: CONST.WISE.COMPANY_TYPE.LIMITED_LIABILITY_COMPANY, labelKey: 'walletPage.wiseOnboarding.business.companyTypeLimitedLiabilityCompany'},
-                {key: CONST.WISE.COMPANY_TYPE.FOR_PROFIT_CORPORATION, labelKey: 'walletPage.wiseOnboarding.business.companyTypeForProfitCorporation'},
-                {key: CONST.WISE.COMPANY_TYPE.NON_PROFIT_CORPORATION, labelKey: 'walletPage.wiseOnboarding.business.companyTypeNonProfitCorporation'},
-                {key: CONST.WISE.COMPANY_TYPE.SOLE_PROPRIETORSHIP, labelKey: 'walletPage.wiseOnboarding.business.companyTypeSoleProprietorship'},
-                {key: CONST.WISE.COMPANY_TYPE.GENERAL_PARTNERSHIP, labelKey: 'walletPage.wiseOnboarding.business.companyTypeGeneralPartnership'},
-                {key: CONST.WISE.COMPANY_TYPE.LIMITED_PARTNERSHIP, labelKey: 'walletPage.wiseOnboarding.business.companyTypeLimitedPartnership'},
-                {key: CONST.WISE.COMPANY_TYPE.LIMITED_LIABILITY_PARTNERSHIP, labelKey: 'walletPage.wiseOnboarding.business.companyTypeLimitedLiabilityPartnership'},
-                {key: CONST.WISE.COMPANY_TYPE.TRUST, labelKey: 'walletPage.wiseOnboarding.business.companyTypeTrust'},
-                {key: CONST.WISE.COMPANY_TYPE.OTHER, labelKey: 'walletPage.wiseOnboarding.business.companyTypeOther'},
-            ],
-        },
-        {
             key: 'companyRole',
             type: 'select',
             required: true,

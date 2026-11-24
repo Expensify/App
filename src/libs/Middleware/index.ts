@@ -12,6 +12,7 @@ import Logging from './Logging';
 import MembersNeedCategoryError from './MembersNeedCategoryError';
 import {Pagination} from './Pagination';
 import Reauthentication from './Reauthentication';
+import ReceiptTelemetry from './ReceiptTelemetry';
 import ReconcileBulkEditReportAction from './ReconcileBulkEditReportAction';
 import RecordFullReconnectTime from './RecordFullReconnectTime';
 import ReplaceOptimisticAgentAccountID from './ReplaceOptimisticAgentAccountID';
@@ -27,6 +28,7 @@ export {
     LoadTest,
     Logging,
     Reauthentication,
+    ReceiptTelemetry,
     RecordFullReconnectTime,
     ReconcileBulkEditReportAction,
     FailureTracking,

@@ -6,7 +6,7 @@ import FontUtils from '@styles/utils/FontUtils';
 
 import ObjectUtils from '@src/types/utils/ObjectUtils';
 
-import type {SkTypeface} from '@shopify/react-native-skia';
+import type {SkTypeface} from 'react-native-skia';
 
 import createMock from '../utils/createMock';
 

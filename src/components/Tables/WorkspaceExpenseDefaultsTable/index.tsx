@@ -4,10 +4,10 @@ import type {CompareItemsCallback, IsItemInSearchCallback, TableColumn} from '@c
 
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useThemeStyles from '@hooks/useThemeStyles';
 
 import tokenizedSearch from '@libs/tokenizedSearch';
 
+import {fontScale} from '@styles/typography';
 import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
@@ -45,27 +45,32 @@ type WorkspaceExpenseDefaultsTableProps = {
 
 function WorkspaceExpenseDefaultsTable({rulesData, selectionEnabled, selectedKeys, onRowSelectionChange, headerComponent, bulkActionOptions}: WorkspaceExpenseDefaultsTableProps) {
     const {translate, localeCompare} = useLocalize();
-    const styles = useThemeStyles();
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
     const shouldUseNarrowTableLayout = shouldUseNarrowLayout || isMediumScreenWidth;
 
-    const columns: Array<TableColumn<ExpenseDefaultsTableColumnKey>> = [
+    const columns: Array<TableColumn<ExpenseDefaultsTableColumnKey, ExpenseDefaultTableItem>> = [
         {
             key: 'type',
             label: translate('workspace.rules.expenseDefaultsTable.tableColumnType'),
             sortable: true,
             width: variables.tableTypeColumnWidth,
-            styling: {containerStyles: [styles.justifyContentCenter]},
+            styling: {alignment: CONST.SEARCH.TABLE_COLUMN_ALIGNMENT.CENTER},
         },
         {
             key: 'condition',
             label: translate('workspace.rules.expenseDefaultsTable.tableColumnCondition'),
             sortable: true,
+            dynamicSizing: {
+                getContentToMeasure: (item) => [{text: item.conditionText, fontSize: fontScale.text}],
+            },
         },
         {
             key: 'rule',
             label: translate('workspace.rules.expenseDefaultsTable.tableColumnRule'),
             sortable: true,
+            dynamicSizing: {
+                getContentToMeasure: (item) => [{text: item.ruleDescription, fontSize: fontScale.text}],
+            },
         },
         {
             key: 'actions',
@@ -123,6 +128,8 @@ function WorkspaceExpenseDefaultsTable({rulesData, selectionEnabled, selectedKey
 
     return (
         <Table
+            shouldUseDynamicColumns
+            columnResizingID={CONST.TABLES.COLUMN_RESIZING_IDS.WORKSPACE_EXPENSE_DEFAULTS}
             data={rulesData}
             columns={columns}
             selectionEnabled={selectionEnabled}
