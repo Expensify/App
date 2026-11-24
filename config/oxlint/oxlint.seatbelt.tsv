@@ -115,7 +115,6 @@
 "../../src/components/DecisionModal.tsx"	"@typescript-eslint/no-deprecated/DecisionModal"	1
 "../../src/components/DialogLabelContext.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/components/DisplayNames/DisplayNamesWithTooltip.tsx"	"react-hooks/refs"	6
-"../../src/components/DistanceRequest/DistanceRequestRenderItem.tsx"	"@typescript-eslint/no-deprecated/MenuItemWithTopDescription"	1
 "../../src/components/DotIndicatorMessage.tsx"	"@typescript-eslint/no-unnecessary-type-assertion"	1
 "../../src/components/DragAndDrop/NoDropZone/index.tsx"	"react-hooks/refs"	1
 "../../src/components/DragAndDrop/Provider/index.tsx"	"react-hooks/refs"	4
@@ -207,9 +206,7 @@
 "../../src/components/MoneyRequestConfirmationList/sections/AmountField.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/components/MoneyRequestConfirmationList/sections/AmountField.tsx"	"no-restricted-imports"	1
 "../../src/components/MoneyRequestConfirmationList/sections/AttendeeField.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
-"../../src/components/MoneyRequestConfirmationList/sections/CategoryField.tsx"	"@typescript-eslint/no-deprecated/MenuItemWithTopDescription"	1
 "../../src/components/MoneyRequestConfirmationList/sections/DateField.tsx"	"react-hooks/purity"	2
-"../../src/components/MoneyRequestConfirmationList/sections/RateField.tsx"	"@typescript-eslint/no-deprecated/MenuItemWithTopDescription"	1
 "../../src/components/MoneyRequestConfirmationList/sections/selectors.ts"	"@typescript-eslint/no-unsafe-type-assertion"	3
 "../../src/components/MoneyRequestConfirmationList/sections/TaxFields.tsx"	"@typescript-eslint/no-deprecated/NumberWithSymbolForm"	1
 "../../src/components/MoneyRequestConfirmationList/sections/TaxFields.tsx"	"@typescript-eslint/no-deprecated/NumberWithSymbolFormRef"	1

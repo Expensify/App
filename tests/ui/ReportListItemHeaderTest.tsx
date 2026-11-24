@@ -3,12 +3,16 @@ import {act, render, screen} from '@testing-library/react-native';
 import ComposeProviders from '@components/ComposeProviders';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
+import ActionCell from '@components/Search/SearchList/ListItem/ActionCell';
 import ExpenseReportListItem from '@components/Search/SearchList/ListItem/ExpenseReportListItem';
+import ExpenseReportListItemRow from '@components/Search/SearchList/ListItem/ExpenseReportListItemRow';
 import ReportListItemHeader from '@components/Search/SearchList/ListItem/ReportListItemHeader';
 import type {ExpenseReportListItemType, TransactionReportGroupListItemType} from '@components/Search/SearchList/ListItem/types';
 import type {SearchActionsContextValue, SearchStateContextValue} from '@components/Search/types';
 
 import useConfirmApproveReportViolations from '@hooks/useConfirmApproveReportViolations';
+import useNetwork from '@hooks/useNetwork';
+import * as ResponsiveLayoutModule from '@hooks/useResponsiveLayout';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -29,6 +33,7 @@ import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct'
 jest.mock('@components/ConfirmedRoute.tsx');
 jest.mock('@libs/Navigation/Navigation');
 jest.mock('@components/AvatarWithDisplayName.tsx');
+jest.mock('@hooks/useNetwork', () => ({__esModule: true, default: jest.fn(() => ({isOffline: false}))}));
 jest.mock('@hooks/useConfirmApproveReportViolations', () => ({
     __esModule: true,
     default: jest.fn(jest.requireActual<{default: typeof useConfirmApproveReportViolations}>('@hooks/useConfirmApproveReportViolations').default),
@@ -180,6 +185,30 @@ describe('ReportListItemHeader', () => {
             await Onyx.clear();
         });
         jest.clearAllMocks();
+        jest.restoreAllMocks();
+        jest.mocked(useNetwork).mockReturnValue({isOffline: false});
+    });
+
+    it.each([false, true])('only shows queued action loading online (expense report row: %s)', async (renderExpenseReportRow) => {
+        // Given a payable Search report whose offline payment is still queued after cancellation
+        jest.spyOn(ResponsiveLayoutModule, 'default').mockReturnValue(createMock<ReturnType<typeof ResponsiveLayoutModule.default>>({isLargeScreenWidth: true}));
+        const reportItem = createReportListItem(CONST.REPORT.TYPE.EXPENSE, 'john', 'jane', {action: CONST.SEARCH.ACTION_TYPES.PAY});
+        const loadingKey = `${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${reportItem.reportID}` as const;
+        await Onyx.set(loadingKey, {isActionLoading: true});
+        const view = renderReportListItemHeader(reportItem, mockSearchStateContext, renderExpenseReportRow);
+        await waitForBatchedUpdatesWithAct();
+        const getLoading = () => !!(renderExpenseReportRow ? screen.UNSAFE_getByType(ExpenseReportListItemRow).props.isActionLoading : screen.UNSAFE_getByType(ActionCell).props.isLoading);
+        expect(getLoading()).toBe(true);
+
+        // When the same row renders offline without a response to the pending action
+        jest.mocked(useNetwork).mockReturnValue({isOffline: true});
+        view.unmount();
+        renderReportListItemHeader(reportItem, mockSearchStateContext, renderExpenseReportRow);
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the spinner is hidden without clearing the queued action used by Search filtering
+        expect(getLoading()).toBe(false);
+        expect(await Onyx.get(loadingKey)).toEqual({isActionLoading: true});
     });
 
     it.each([false, true])('passes snapshot-only expenses and violations to approval (expense report row: %s)', async (renderExpenseReportRow) => {
