@@ -1,4 +1,5 @@
 import useContentHeaderHeight from '@hooks/useContentHeaderHeight';
+import useRemeasureOnWindowResize from '@hooks/useRemeasureOnWindowResize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
 import useWindowDimensions from '@hooks/useWindowDimensions';
@@ -12,7 +13,7 @@ import type {ComponentRef, ReactNode, Ref} from 'react';
 import type {View} from 'react-native';
 
 import {shallowEqual} from 'fast-equals';
-import React, {useEffect, useEffectEvent, useImperativeHandle, useRef, useState} from 'react';
+import React, {useImperativeHandle, useRef, useState} from 'react';
 
 import type {DropdownFieldRowProps} from './DropdownFieldRow';
 
@@ -114,7 +115,7 @@ type DropdownFieldHandle = {
  * clipped. Knows nothing about any particular field: each passes its own list in through `renderDropdown`.
  */
 function DropdownField({renderDropdown, shouldOpenInDropdown, onPress, listHeaderHeight = 0, ref, onVisibilityChange, ...rowProps}: DropdownFieldProps) {
-    const {windowWidth, windowHeight} = useWindowDimensions();
+    const {windowHeight} = useWindowDimensions();
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth -- must match PopoverWithMeasuredContent's dock decision, which is on isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
     const {contentHeaderHeight} = useContentHeaderHeight();
@@ -180,7 +181,7 @@ function DropdownField({renderDropdown, shouldOpenInDropdown, onPress, listHeade
         });
     };
 
-    const remeasureOpenDropdown = useEffectEvent((isStale: () => boolean) => {
+    const remeasureOpenDropdown = (isStale: () => boolean) => {
         measureLayout((measuredLayout, hasUsableHeight) => {
             if (isStale()) {
                 return;
@@ -192,20 +193,10 @@ function DropdownField({renderDropdown, shouldOpenInDropdown, onPress, listHeade
             }
             setLayout((currentLayout) => (shallowEqual(currentLayout, measuredLayout) ? currentLayout : measuredLayout));
         });
-    });
+    };
 
-    // The row moves and resizes with the window (a row in an RHP follows the window's right edge), so an open pop-over is placed off it again.
-    // A measurement that lands after the list closed or the window changed again is dropped, so it can't put back an older layout.
-    useEffect(() => {
-        if (!isVisible || isSmallScreenWidth) {
-            return;
-        }
-        let isStale = false;
-        remeasureOpenDropdown(() => isStale);
-        return () => {
-            isStale = true;
-        };
-    }, [isVisible, isSmallScreenWidth, windowWidth, windowHeight]);
+    // The row moves and resizes with the window, so an open pop-over is placed off it again. A bottom sheet doesn't hang off the row.
+    useRemeasureOnWindowResize(isVisible && !isSmallScreenWidth, remeasureOpenDropdown);
 
     const handlePress = () => {
         if (!shouldOpenInDropdown) {
