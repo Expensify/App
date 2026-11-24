@@ -43,7 +43,7 @@ function baselineKeyShape(step: Step): string {
 const perfWorkflow = readWorkflow(PERF_WORKFLOW);
 const seedWorkflow = readWorkflow(SEED_WORKFLOW);
 const allCacheSteps = [...cacheSteps(perfWorkflow, '.jest-cache'), ...cacheSteps(seedWorkflow, '.jest-cache')];
-const allBaselineSteps = [...cacheSteps(perfWorkflow, '.reassure/baseline.*'), ...cacheSteps(seedWorkflow, '.reassure/baseline.*')];
+const allBaselineSteps = [...cacheSteps(perfWorkflow, '.reassure/baseline.perf'), ...cacheSteps(seedWorkflow, '.reassure/baseline.perf')];
 
 describe('Reassure perf caches', () => {
     it('keys every .jest-cache step identically', () => {

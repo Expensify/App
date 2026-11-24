@@ -1,0 +1,49 @@
+diff --git a/node_modules/@callstack/reassure-measure/lib/commonjs/output.js b/node_modules/@callstack/reassure-measure/lib/commonjs/output.js
+index f4f5d0f..d791d2f 100644
+--- a/node_modules/@callstack/reassure-measure/lib/commonjs/output.js
++++ b/node_modules/@callstack/reassure-measure/lib/commonjs/output.js
+@@ -8,14 +8,19 @@ exports.setHasShownFlagsOutput = setHasShownFlagsOutput;
+ exports.showFlagsOutputIfNeeded = showFlagsOutputIfNeeded;
+ exports.writeTestStats = writeTestStats;
+ var fs = _interopRequireWildcard(require("fs/promises"));
++var path = _interopRequireWildcard(require("path"));
+ var logger = _interopRequireWildcard(require("@callstack/reassure-logger"));
+ var _config = require("./config.js");
+ function _interopRequireWildcard(e, t) { if ("function" == typeof WeakMap) var r = new WeakMap(), n = new WeakMap(); return (_interopRequireWildcard = function (e, t) { if (!t && e && e.__esModule) return e; var o, i, f = { __proto__: null, default: e }; if (null === e || "object" != typeof e && "function" != typeof e) return f; if (o = t ? n : r) { if (o.has(e)) return o.get(e); o.set(e, f); } for (const t in e) "default" !== t && {}.hasOwnProperty.call(e, t) && ((i = (o = Object.defineProperty) && Object.getOwnPropertyDescriptor(e, t)) && (i.get || i.set) ? o(f, t, i) : f[t] = e[t]); return f; })(e, t); }
+ async function writeTestStats(stats, type, outputFilePath = _config.config.outputFile) {
+-  const name = expect.getState().currentTestName;
++  const {
++    currentTestName: name,
++    testPath
++  } = expect.getState();
+   const line = JSON.stringify({
+     name,
+     type,
++    testPath: testPath ? path.relative(process.cwd(), testPath) : undefined,
+     ...stats
+   }) + '\n';
+   try {
+diff --git a/node_modules/@callstack/reassure-measure/lib/module/output.js b/node_modules/@callstack/reassure-measure/lib/module/output.js
+index 4cd57b2..5decaa5 100644
+--- a/node_modules/@callstack/reassure-measure/lib/module/output.js
++++ b/node_modules/@callstack/reassure-measure/lib/module/output.js
+@@ -1,13 +1,18 @@
+ "use strict";
+ 
+ import * as fs from 'fs/promises';
++import * as path from 'path';
+ import * as logger from '@callstack/reassure-logger';
+ import { config } from "./config.js";
+ export async function writeTestStats(stats, type, outputFilePath = config.outputFile) {
+-  const name = expect.getState().currentTestName;
++  const {
++    currentTestName: name,
++    testPath
++  } = expect.getState();
+   const line = JSON.stringify({
+     name,
+     type,
++    testPath: testPath ? path.relative(process.cwd(), testPath) : undefined,
+     ...stats
+   }) + '\n';
+   try {

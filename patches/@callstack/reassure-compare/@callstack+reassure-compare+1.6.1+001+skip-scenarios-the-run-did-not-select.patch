@@ -1,0 +1,72 @@
+diff --git a/node_modules/@callstack/reassure-compare/lib/commonjs/compare.js b/node_modules/@callstack/reassure-compare/lib/commonjs/compare.js
+index 9352aaa..ef2d598 100644
+--- a/node_modules/@callstack/reassure-compare/lib/commonjs/compare.js
++++ b/node_modules/@callstack/reassure-compare/lib/commonjs/compare.js
+@@ -108,6 +108,7 @@ function compareResults(current, baseline) {
+   const compared = [];
+   const added = [];
+   const removed = [];
++  const currentTestPaths = new Set(Object.values(current.entries).map(entry => entry.testPath));
+   names.forEach(name => {
+     const currentEntry = current.entries[name];
+     const baselineEntry = baseline?.entries[name];
+@@ -121,6 +122,10 @@ function compareResults(current, baseline) {
+         stability: (0, _stability.calculateEntryStability)(currentEntry)
+       });
+     } else if (baselineEntry) {
++      // The current run didn't run this scenario's test file, which still exists, so the scenario wasn't removed.
++      if (baselineEntry.testPath && !currentTestPaths.has(baselineEntry.testPath) && fsSync.existsSync(baselineEntry.testPath)) {
++        return;
++      }
+       removed.push({
+         name,
+         type: baselineEntry.type,
+diff --git a/node_modules/@callstack/reassure-compare/lib/commonjs/type-schemas.js b/node_modules/@callstack/reassure-compare/lib/commonjs/type-schemas.js
+index 613ed79..3067793 100644
+--- a/node_modules/@callstack/reassure-compare/lib/commonjs/type-schemas.js
++++ b/node_modules/@callstack/reassure-compare/lib/commonjs/type-schemas.js
+@@ -25,6 +25,8 @@ const RenderIssuesScheme = exports.RenderIssuesScheme = _zod.z.object({
+ const MeasureEntryScheme = exports.MeasureEntryScheme = _zod.z.object({
+   /** Name of the test scenario. */
+   name: _zod.z.string(),
++  /** Test file the scenario is in, relative to the working directory. */
++  testPath: _zod.z.string().optional(),
+   /** Type of the measured characteristic (render, function execution, async function execution). */
+   type: _zod.z.enum(['render', 'function', 'async function']).default('render'),
+   /** Number of times the measurement test was run. */
+diff --git a/node_modules/@callstack/reassure-compare/lib/module/compare.js b/node_modules/@callstack/reassure-compare/lib/module/compare.js
+index 4c2b866..52b1d25 100644
+--- a/node_modules/@callstack/reassure-compare/lib/module/compare.js
++++ b/node_modules/@callstack/reassure-compare/lib/module/compare.js
+@@ -103,6 +103,7 @@ function compareResults(current, baseline) {
+   const compared = [];
+   const added = [];
+   const removed = [];
++  const currentTestPaths = new Set(Object.values(current.entries).map(entry => entry.testPath));
+   names.forEach(name => {
+     const currentEntry = current.entries[name];
+     const baselineEntry = baseline?.entries[name];
+@@ -116,6 +117,10 @@ function compareResults(current, baseline) {
+         stability: calculateEntryStability(currentEntry)
+       });
+     } else if (baselineEntry) {
++      // The current run didn't run this scenario's test file, which still exists, so the scenario wasn't removed.
++      if (baselineEntry.testPath && !currentTestPaths.has(baselineEntry.testPath) && fsSync.existsSync(baselineEntry.testPath)) {
++        return;
++      }
+       removed.push({
+         name,
+         type: baselineEntry.type,
+diff --git a/node_modules/@callstack/reassure-compare/lib/module/type-schemas.js b/node_modules/@callstack/reassure-compare/lib/module/type-schemas.js
+index b341df3..85adb02 100644
+--- a/node_modules/@callstack/reassure-compare/lib/module/type-schemas.js
++++ b/node_modules/@callstack/reassure-compare/lib/module/type-schemas.js
+@@ -22,6 +22,8 @@ export const RenderIssuesScheme = z.object({
+ export const MeasureEntryScheme = z.object({
+   /** Name of the test scenario. */
+   name: z.string(),
++  /** Test file the scenario is in, relative to the working directory. */
++  testPath: z.string().optional(),
+   /** Type of the measured characteristic (render, function execution, async function execution). */
+   type: z.enum(['render', 'function', 'async function']).default('render'),
+   /** Number of times the measurement test was run. */

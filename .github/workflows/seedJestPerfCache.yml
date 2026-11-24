@@ -34,7 +34,7 @@ jobs:
         # v5.0.1
         uses: actions/cache/restore@9255dc7a253b0ccc959486e2bca901246202afeb
         with:
-          path: .reassure/baseline.*
+          path: .reassure/baseline.perf
           key: ${{ format('{0}-{1}-reassure-baseline-{2}', runner.os, runner.arch, github.sha) }}
           lookup-only: true
 
@@ -57,14 +57,14 @@ jobs:
         id: measureBaseline
         if: steps.lookupBaseline.outputs.cache-hit != 'true' || steps.restoreJestCache.outputs.cache-hit != 'true'
         shell: bash
-        run: NODE_OPTIONS=--experimental-vm-modules npx reassure --baseline -- --json --outputFile=.reassure/baseline.json
+        run: NODE_OPTIONS=--experimental-vm-modules npx reassure --baseline
 
       - name: Save this commit's baseline
         if: steps.lookupBaseline.outputs.cache-hit != 'true'
         # v5.0.1
         uses: actions/cache/save@9255dc7a253b0ccc959486e2bca901246202afeb
         with:
-          path: .reassure/baseline.*
+          path: .reassure/baseline.perf
           key: ${{ format('{0}-{1}-reassure-baseline-{2}', runner.os, runner.arch, github.sha) }}
 
       - name: Save the Jest transform cache

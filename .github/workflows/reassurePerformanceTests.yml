@@ -51,7 +51,6 @@ on:
       - '.github/workflows/reassurePerformanceTests.yml'
       - '.github/workflows/seedJestPerfCache.yml'
       - '.github/fullTestRunPaths.yml'
-      - '.github/scripts/filterReassureBaseline.ts'
       - '.github/actions/javascript/validateReassureOutput/**'
       - '.github/actions/composite/setupNode/**'
       - '!**.md'
@@ -97,7 +96,7 @@ jobs:
         # v5.0.1
         uses: actions/cache/restore@9255dc7a253b0ccc959486e2bca901246202afeb
         with:
-          path: .reassure/baseline.*
+          path: .reassure/baseline.perf
           key: ${{ format('{0}-{1}-reassure-baseline-{2}', runner.os, runner.arch, steps.baselineCommit.outputs.sha) }}
 
       # A miss is otherwise silent, and reads the same whether nothing was written or the key drifted.
@@ -164,7 +163,7 @@ jobs:
         shell: bash
         env:
           BASELINE_SHA: ${{ steps.baselineCommit.outputs.sha }}
-        run: NODE_OPTIONS=--experimental-vm-modules npx reassure --baseline --commit-hash="$BASELINE_SHA" -- --json --outputFile=.reassure/baseline.json ${{ steps.fullRun.outputs.any != 'true' && '--onlyChanged --passWithNoTests' || '' }}
+        run: NODE_OPTIONS=--experimental-vm-modules npx reassure --baseline --commit-hash="$BASELINE_SHA" -- ${{ steps.fullRun.outputs.any != 'true' && '--onlyChanged --passWithNoTests' || '' }}
 
       # Compare against the seed job's notice on a recent push to main: near zero means the seed
       # stopped running, roughly double means a second transform set is being written.
@@ -182,7 +181,7 @@ jobs:
         uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f
         with:
           name: reassure-baseline-results
-          path: ./.reassure/baseline.*
+          path: ./.reassure/baseline.perf
           include-hidden-files: true
 
   branch-perf-tests:
@@ -229,7 +228,7 @@ jobs:
         env:
           BRANCH: ${{ github.head_ref }}
           COMMIT_HASH: ${{ github.event.pull_request.head.sha }}
-        run: NODE_OPTIONS=--experimental-vm-modules npx reassure --branch="$BRANCH" --commit-hash="$COMMIT_HASH" --no-compare -- --json --outputFile=.reassure/current.json ${{ steps.fullRun.outputs.any != 'true' && '--changedSince=HEAD^1 --passWithNoTests' || '' }}
+        run: NODE_OPTIONS=--experimental-vm-modules npx reassure --branch="$BRANCH" --commit-hash="$COMMIT_HASH" --no-compare -- ${{ steps.fullRun.outputs.any != 'true' && '--changedSince=HEAD^1 --passWithNoTests' || '' }}
 
       # Compare against the seed job's notice on a recent push to main: near zero means the seed
       # stopped running, roughly double means a second transform set is being written.
@@ -247,7 +246,7 @@ jobs:
         uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f
         with:
           name: reassure-branch-results
-          path: ./.reassure/current.*
+          path: ./.reassure/current.perf
           include-hidden-files: true
 
   validate-perf-tests:
@@ -274,9 +273,6 @@ jobs:
         with:
           name: reassure-branch-results
           path: ./.reassure
-
-      - name: Drop baseline scenarios the PR didn't select
-        run: npx bun .github/scripts/filterReassureBaseline.ts .reassure/baseline.perf .reassure/baseline.json .reassure/current.json
 
       - name: Compare performance results
         run: node -e "require('@callstack/reassure-compare').compare().catch((error) => { console.error(error); process.exit(1); })"
