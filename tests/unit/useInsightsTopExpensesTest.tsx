@@ -34,6 +34,8 @@ const QUERY = 'type:expense view:table date>=2026-01-01 date<=2026-03-31';
 const TOP_EXPENSES_QUERY_JSON = buildTopExpensesQueryJSON(QUERY);
 const SNAPSHOT_KEY = `${ONYXKEYS.COLLECTION.SNAPSHOT}${TOP_EXPENSES_QUERY_JSON?.hash}` as const;
 const ACCOUNT_ID = 1;
+const APPROVER_ACCOUNT_ID = 2;
+const OTHER_APPROVER_ACCOUNT_ID = 3;
 
 /** Builds a snapshot with one expense report per expense, the expense with ID `n` costing `n` dollars. */
 function buildSnapshotData(expenseCount: number, pendingDeleteID?: number): SearchResults['data'] {
@@ -86,6 +88,20 @@ function buildSubmittedViolations(reportID: string, transactionID: string, viola
                 message: [],
                 originalMessage: {amount: 100, currency: 'USD', violations: {transactions: {[transactionID]: violationNames.map((name) => ({name}))}}},
             },
+        },
+    };
+}
+
+/** Returns a report's approval by `approverAccountID`, which recorded the expense's violations at approval. */
+function buildApprovedViolations(reportID: string, transactionID: string, approverAccountID: number, violationNames: string[]) {
+    return {
+        [`approved_${approverAccountID}`]: {
+            actionName: CONST.REPORT.ACTIONS.TYPE.APPROVED,
+            reportActionID: `approved_${reportID}_${approverAccountID}`,
+            actorAccountID: approverAccountID,
+            created: '2026-02-03 10:00:00',
+            message: [],
+            originalMessage: {amount: 100, currency: 'USD', violations: {transactions: {[transactionID]: violationNames.map((name) => ({name}))}}},
         },
     };
 }
@@ -216,6 +232,30 @@ describe('useInsightsTopExpenses', () => {
             await waitForBatchedUpdatesWithAct();
 
             // Then the expense still shows the violations it was submitted with, since they stay on the report it was submitted on
+            expect(result.current.violationsByTransactionID?.['1']).toEqual(['Over limit']);
+        });
+
+        it("lists only the selected approver's violations when several approvers approved the expense", async () => {
+            // Given an approver's panel, and an expense two approvers approved with different violations
+            const approverQuery = `${QUERY} has:${CONST.SEARCH.HAS_VALUES.APPROVED_VIOLATION} ${CONST.SEARCH.SYNTAX_FILTER_KEYS.APPROVER}:${APPROVER_ACCOUNT_ID}`;
+            const approverQueryJSON = buildTopExpensesQueryJSON(approverQuery);
+            const data = {
+                ...buildSnapshotData(1),
+                [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}1`]: {
+                    ...buildApprovedViolations('1', '1', APPROVER_ACCOUNT_ID, [CONST.VIOLATIONS.OVER_LIMIT]),
+                    ...buildApprovedViolations('1', '1', OTHER_APPROVER_ACCOUNT_ID, [CONST.VIOLATIONS.MISSING_CATEGORY]),
+                },
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.SNAPSHOT}${approverQueryJSON?.hash}`, {
+                data,
+                search: {...buildSearchMetadata(), hash: approverQueryJSON?.hash},
+            });
+
+            // When the panel renders
+            const {result} = renderTopExpenses(approverQuery);
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the expense shows only the violations the selected approver approved it with
             expect(result.current.violationsByTransactionID?.['1']).toEqual(['Over limit']);
         });
 
