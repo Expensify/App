@@ -4109,6 +4109,9 @@ ${amount} για ${merchant} - ${date}`,
         accounting: {
             title: 'Χρησιμοποιείτε κάποιο λογιστικό λογισμικό;',
             otherAccountingSoftware: 'Όνομα λογισμικού',
+            unsupportedTitle: (software: string) => `We don’t support “${software}” yet`,
+            unsupportedSubtitle: 'Use the button below and we’ll look into supporting it in the future',
+            confirmSoftware: (software: string) => `Yes, “${software}” is what I use`,
         },
         interestedFeatures: {
             title: 'Επιλέξτε τις λειτουργίες που θέλετε',

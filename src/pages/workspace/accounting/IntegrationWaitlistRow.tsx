@@ -8,6 +8,7 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import accountingIntegrationIconNames from '@libs/accountingIntegrationIconNames';
 import getPlatform from '@libs/getPlatform';
 import type {WaitlistIntegration} from '@libs/IntegrationWaitlistUtils';
 
@@ -25,11 +26,6 @@ import {View} from 'react-native';
 import IntegrationWaitlistButton from './IntegrationWaitlistButton';
 import useIntegrationWaitlist from './useIntegrationWaitlist';
 
-const ICON_NAMES = {
-    [CONST.POLICY.CONNECTIONS.NAME.EXACT_ONLINE]: 'ExactOnlineSquare',
-    [CONST.POLICY.CONNECTIONS.NAME.ODOO]: 'OdooSquare',
-} as const satisfies Record<WaitlistIntegration, string>;
-
 type IntegrationWaitlistRowProps = {
     integration: WaitlistIntegration;
     policy: OnyxEntry<Policy>;
@@ -41,7 +37,7 @@ type IntegrationWaitlistRowProps = {
 function IntegrationWaitlistRow({integration, policy, style, titleWrapperStyle, isBadgeCondensed}: IntegrationWaitlistRowProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const iconName = ICON_NAMES[integration];
+    const iconName = accountingIntegrationIconNames[integration];
     const icons = useMemoizedLazyExpensifyIcons([iconName]);
     const {signupTimestamp, pendingAction, errors} = useIntegrationWaitlist(integration);
     const title = CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[integration];

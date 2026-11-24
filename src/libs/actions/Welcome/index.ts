@@ -67,6 +67,10 @@ function setOnboardingUserReportedIntegration(value: OnboardingAccounting | null
     Onyx.set(ONYXKEYS.ONBOARDING_USER_REPORTED_INTEGRATION, value);
 }
 
+function setOnboardingAccountingDraft(value: {integration: OnboardingAccounting; name?: string; isOther?: boolean} | null) {
+    Onyx.set(ONYXKEYS.ONBOARDING_ACCOUNTING_DRAFT, value);
+}
+
 function setOnboardingAccountingEnabled(value: boolean | null) {
     Onyx.set(ONYXKEYS.ONBOARDING_ACCOUNTING_ENABLED, value);
 }
@@ -326,6 +330,7 @@ export {
     updateOnboardingValuesAndNavigation,
     resetOnboardingWorkEmailValidation,
     setOnboardingUserReportedIntegration,
+    setOnboardingAccountingDraft,
     setOnboardingAccountingEnabled,
     setOnboardingInterestedFeaturesMap,
     setOnboardingPersonalTrackGoal,
