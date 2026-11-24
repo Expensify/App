@@ -73,7 +73,7 @@ type WorkspacePageWithSectionsProps = WithPolicyAndFullscreenLoadingProps & {
     /** Whether the page is loading, example any other API call in progress */
     isLoading?: boolean;
 
-    /** Whether to use the taller headline style bar with the larger title font. Screens that swap the title for a "select multiple" prompt in selection mode turn this off while selecting. */
+    /** Uses the larger headline font for the title. Defaults to `true`. Screens that swap the title for "Select multiple" in selection mode turn this off while selecting. */
     shouldUseHeadlineHeader?: boolean;
 
     /**
