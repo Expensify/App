@@ -1367,6 +1367,7 @@ const translations: TranslationDeepObject<typeof en> = {
             label: 'Παραβάσεις των',
             [CONST.INSIGHTS.VIOLATION_STAGE.SUBMITTED]: 'Υποβάλλοντες',
             [CONST.INSIGHTS.VIOLATION_STAGE.APPROVED]: 'Εγκριτές',
+            chartTitle: (title: string, stage: string) => `${title} (${stage})`,
         },
         flaggedExpenses: 'Επισημασμένες δαπάνες',
         noFlaggedExpensesInRange: 'Δεν υπάρχουν επισημασμένες δαπάνες σε αυτό το εύρος',

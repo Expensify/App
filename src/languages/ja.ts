@@ -1309,6 +1309,7 @@ const translations: TranslationDeepObject<typeof en> = {
             label: '違反対象',
             [CONST.INSIGHTS.VIOLATION_STAGE.SUBMITTED]: '提出者',
             [CONST.INSIGHTS.VIOLATION_STAGE.APPROVED]: '承認者',
+            chartTitle: (title: string, stage: string) => `${title}（${stage}）`,
         },
         flaggedExpenses: 'フラグ付き経費',
         noFlaggedExpensesInRange: 'この範囲にはフラグ付き経費はありません',

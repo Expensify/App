@@ -1431,6 +1431,7 @@ const translations = {
             label: 'Violations by',
             [CONST.INSIGHTS.VIOLATION_STAGE.SUBMITTED]: 'Submitters',
             [CONST.INSIGHTS.VIOLATION_STAGE.APPROVED]: 'Approvers',
+            chartTitle: (title: string, stage: string) => `${title} (${stage})`,
         },
         compare: {
             label: 'Compare',

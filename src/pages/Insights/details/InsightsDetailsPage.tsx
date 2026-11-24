@@ -45,7 +45,8 @@ function InsightsDetailsPage({route}: InsightsDetailsPageProps) {
     const {filters, isResolved} = useInsightsFilters(dashboardID ?? CONST.INSIGHTS.DASHBOARD.SPEND);
 
     const dashboardSpec = dashboardID ? INSIGHTS_DASHBOARD_SPECS[dashboardID] : undefined;
-    const chartSpec = dashboardID ? getChartSpec(dashboardID, graphKey, stage) : undefined;
+    const pickedViolationStage = Object.values(CONST.INSIGHTS.VIOLATION_STAGE).find((value) => value === stage);
+    const chartSpec = dashboardID ? getChartSpec(dashboardID, graphKey, pickedViolationStage) : undefined;
     const isMemberItem = chartSpec?.groupBy === CONST.SEARCH.GROUP_BY.FROM || chartSpec?.groupBy === CONST.SEARCH.GROUP_BY.APPROVER;
     const memberAccountID = isMemberItem ? Number(itemKey) : undefined;
     const [storedMember] = usePersonalDetail(memberAccountID);
@@ -71,6 +72,14 @@ function InsightsDetailsPage({route}: InsightsDetailsPageProps) {
             : undefined;
     const queryJSONThroughToday = chartSpec && isResolved ? buildSearchQueryJSON(applyInsightsFilters(chartSpec, filters, undefined, getInsightsLastDay(asOf))) : undefined;
     const drillDownQuery = queryJSONThroughToday && item ? buildChartDrillDownQuery(queryJSONThroughToday, item.filterQuery) : undefined;
+
+    const chartTitle = chartSpec?.hasViolationStageControl
+        ? translate(
+              'insightsPage.violationStage.chartTitle',
+              translate(chartSpec.titleKey),
+              translate(`insightsPage.violationStage.${pickedViolationStage ?? CONST.INSIGHTS.VIOLATION_STAGE.SUBMITTED}`),
+          )
+        : chartSpec && translate(chartSpec.titleKey);
 
     if (!isBetaEnabled(CONST.BETAS.INSIGHTS_AI) || (!!dashboardSpec?.beta && !isBetaEnabled(dashboardSpec.beta)) || !chartSpec || (isResolved && !item)) {
         return (
@@ -100,7 +109,7 @@ function InsightsDetailsPage({route}: InsightsDetailsPageProps) {
                             variant="label"
                             style={styles.textSupporting}
                         >
-                            {translate(chartSpec.titleKey)}
+                            {chartTitle}
                         </Text>
                         <Text variant="h1">{item.title}</Text>
                     </View>

@@ -428,17 +428,14 @@ function applyViolationStage(chart: InsightsChartSpec, stage: InsightsViolationS
     return {...chart, ...VIOLATION_STAGE_FILTERS[stage]};
 }
 
-/** Returns the dashboard's chart with the given graph key, pointed at the given violation stage. An unknown stage keeps the chart as declared. */
-function getChartSpec(dashboardID: InsightsDashboardID, graphKey: string, stage: string | undefined): InsightsChartSpec | undefined {
+/** Returns the dashboard's chart with the given graph key, pointed at the given violation stage. */
+function getChartSpec(dashboardID: InsightsDashboardID, graphKey: string, stage: InsightsViolationStage | undefined): InsightsChartSpec | undefined {
     const {headlineChart, supportingCharts} = INSIGHTS_DASHBOARD_SPECS[dashboardID];
     const chart = [headlineChart, ...supportingCharts].find((spec) => spec.graphKey === graphKey);
     if (!chart) {
         return undefined;
     }
-    return applyViolationStage(
-        chart,
-        Object.values(CONST.INSIGHTS.VIOLATION_STAGE).find((value) => value === stage),
-    );
+    return applyViolationStage(chart, stage);
 }
 
 /** Returns the stage a chart with a violation stage control counts, the submitters' until the user picks one. Other charts have none. */

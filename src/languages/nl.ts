@@ -1320,6 +1320,7 @@ const translations: TranslationDeepObject<typeof en> = {
             label: 'Overtredingen van',
             [CONST.INSIGHTS.VIOLATION_STAGE.SUBMITTED]: 'Indieners',
             [CONST.INSIGHTS.VIOLATION_STAGE.APPROVED]: 'Fiatteurs',
+            chartTitle: (title: string, stage: string) => `${title} (${stage})`,
         },
         flaggedExpenses: 'Gemarkeerde uitgaven',
         noFlaggedExpensesInRange: 'Geen gemarkeerde uitgaven in dit bereik',

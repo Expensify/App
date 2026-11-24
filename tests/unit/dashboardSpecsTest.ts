@@ -54,12 +54,12 @@ describe('getChartSpec', () => {
         expect(chart?.has).toEqual([CONST.SEARCH.HAS_VALUES.APPROVED_VIOLATION]);
     });
 
-    it('keeps the chart as declared for an unknown stage', () => {
+    it('keeps the chart as declared without a stage', () => {
         // Given Top violations as the dashboard declares it
         const declared = INSIGHTS_DASHBOARD_SPECS[CONST.INSIGHTS.DASHBOARD.COMPLIANCE].supportingCharts.find(({graphKey}) => graphKey === CONST.INSIGHTS.GRAPH.TOP_VIOLATIONS);
 
-        // When getting the chart for a stage that doesn't exist, e.g. from an edited URL
-        const chart = getChartSpec(CONST.INSIGHTS.DASHBOARD.COMPLIANCE, CONST.INSIGHTS.GRAPH.TOP_VIOLATIONS, 'unknown');
+        // When getting the chart without a stage picked
+        const chart = getChartSpec(CONST.INSIGHTS.DASHBOARD.COMPLIANCE, CONST.INSIGHTS.GRAPH.TOP_VIOLATIONS, undefined);
 
         // Then it keeps the default, the submitters' stage
         expect(chart).toBe(declared);
