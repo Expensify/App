@@ -78,7 +78,7 @@ function ReportScreenEditMessageProvider({reportID, children}: ReportScreenEditM
 function ReportScreen({route, navigation, shouldDeferReportActions = false}: ReportScreenProps) {
     const styles = useThemeStyles();
     const reportIDFromRoute = getNonEmptyStringOnyxID(route.params?.reportID);
-    useHomeTodoReportTransition(reportIDFromRoute);
+    useHomeTodoReportTransition(route.key, reportIDFromRoute);
     const {shouldCenterWelcomeWithComposer} = useConciergeAskState(reportIDFromRoute);
     const {isInNarrowPaneModal} = useResponsiveLayout();
     const {currentReportID: currentReportIDValue} = useCurrentReportIDState();

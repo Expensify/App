@@ -3,7 +3,6 @@ import {easing} from '@components/Modal/ReanimatedModal/utils';
 import Accessibility from '@libs/Accessibility';
 import {homeTodoPanelOpacity, homeTodoPanelTranslateX, registerHomeTodoReportTransition} from '@libs/HomeTodoReportTransition';
 
-import {useRoute} from '@react-navigation/native';
 import {useEffect, useRef} from 'react';
 import {withDelay, withTiming} from 'react-native-reanimated';
 import {scheduleOnRN} from 'react-native-worklets';
@@ -20,8 +19,7 @@ const ENTER_FALLBACK_DELAY = 1000;
  * Lets a Home to-do review swap the report on this screen with the RHP panel transition. The panel moves in once the
  * screen renders the next report. With reduce motion on, the panel only fades.
  */
-function useHomeTodoReportTransition(reportID: string | undefined) {
-    const route = useRoute();
+function useHomeTodoReportTransition(routeKey: string, reportID: string | undefined) {
     const isReduceMotionEnabled = Accessibility.useReducedMotion();
     const offset = isReduceMotionEnabled ? 0 : PANEL_OFFSET;
     const isEnterPendingRef = useRef(false);
@@ -35,7 +33,7 @@ function useHomeTodoReportTransition(reportID: string | undefined) {
     };
 
     useEffect(() => {
-        const unregister = registerHomeTodoReportTransition(route.key, {
+        const unregister = registerHomeTodoReportTransition(routeKey, {
             playExit: (onFinished, delay) => {
                 homeTodoPanelTranslateX.set(withDelay(delay, withTiming(-offset, {duration: EXIT_DURATION, easing})));
                 // The next report is shown even when the exit is interrupted, so the review never stalls.
@@ -61,7 +59,7 @@ function useHomeTodoReportTransition(reportID: string | undefined) {
         };
         // playEnter only reads refs and shared values, so the handler only changes with the screen and the offset.
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [route.key, offset]);
+    }, [routeKey, offset]);
 
     useEffect(() => {
         if (!isEnterPendingRef.current) {

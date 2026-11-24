@@ -1019,6 +1019,7 @@ const translations: TranslationDeepObject<typeof en> = {
     },
     supportalSwitcher: {
         title: '別のアカウントでサポートポータルを開く',
+        navigationLabel: 'Supportal',
         emailLabel: 'メールアドレス',
         reasonLabel: 'サポートログインの理由',
         reasonHint: 'このアカウントには最近のチケットが見つかりませんでした。',
@@ -1247,6 +1248,8 @@ const translations: TranslationDeepObject<typeof en> = {
     },
     insightsPage: {
         tagLevel: (level: string) => `タグレベル ${level}`,
+        noTaggedExpenses: 'タグが付いた経費がありません',
+        noExpensesForTagLevel: (tagLevelName: string) => `この期間には${tagLevelName}の経費がありません。`,
         tagLevelLabel: 'タグレベル',
         parent: '親',
         shareOfTotal: '全体に占める割合（％）',
@@ -2568,6 +2571,8 @@ const translations: TranslationDeepObject<typeof en> = {
             leftHandNavCache: '左側ナビキャッシュ',
             clearleftHandNavCache: 'クリア',
             softKillTheApp: 'アプリをソフトキルする',
+            testBusinessBankAccount: 'USD ビジネス銀行口座をテスト',
+            testPersonalBankAccount: 'テスト用 USD 個人口座',
             kill: '終了',
             sentryDebug: 'Sentry デバッグ',
             sentrySendDescription: 'Sentry にデータを送信',
@@ -2575,6 +2580,7 @@ const translations: TranslationDeepObject<typeof en> = {
             sentryHighlightedSpanOps: '強調表示されたスパン名',
             sentryHighlightedSpanOpsPlaceholder: 'ui.interaction.click、ナビゲーション、ui.load',
             showBranchNameInTitle: 'ブラウザのタイトルにブランチ名を表示',
+            hideEnvironmentBadge: '環境バッジを非表示',
             betaOverrides: 'ベータのオーバーライド',
             betaOverridesDescription:
                 'オーバーライドはこの端末にのみ適用され、フロントエンドのチェックにのみ影響します。ベータはアカウントのベータと異なる間だけオーバーライドを保持するため、元に戻すとオーバーライドは削除されます。「すべてのオーバーライドをリセット」はアカウントの値に戻します。一部のベータはバックエンドでも制御されているため、リクエストレベルで失敗する場合があります。',
@@ -5314,6 +5320,10 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
             railTicketExchange: (origin: string, destination: string, startDate: string) => `${startDate}の${origin}発${destination}行きの鉄道チケットは交換されました。`,
             railTicketUpdate: (origin: string, destination: string, startDate: string) => `${startDate} の ${origin} → ${destination} 行きの鉄道チケットが更新されました。`,
             defaultUpdate: (type: string) => `${type}の予約が更新されました。`,
+            hotelBooked: (hotelName: string, startDate: string) => `${hotelName} のホテル予約（チェックイン ${startDate}）が完了しました。`,
+            carBooked: (vendor: string, startDate: string) => `${vendor}のレンタカー（${startDate}の受け取り）が予約されました。`,
+            railTicketBooked: (origin: string, destination: string, startDate: string) => `${startDate} の ${origin} → ${destination} 行きの鉄道チケットが予約されました。`,
+            defaultBooked: (type: string) => `${type}の予約が完了しました。`,
         },
         flightTo: '行きのフライト',
         trainTo: '方面行き',
@@ -5577,6 +5587,9 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
             },
             chatgpt: {
                 title: 'ChatGPT',
+            },
+            grok: {
+                title: 'Grok',
             },
         },
         connections: {
@@ -7929,6 +7942,7 @@ Control プランは、アクティブメンバー1人あたり月額 $9 から�
                 willBeReadyToUse: 'このカードはすぐに利用できるようになります。',
                 willBeReadyToShip: 'このカードはすぐに発送できる状態になります。',
                 cardholder: 'カード名義人',
+                cardholderEmail: 'カード名義人のメールアドレス',
                 cardType: 'カードの種類',
                 limit: '上限',
                 limitType: '上限の種類',
@@ -11429,7 +11443,9 @@ ${reportName}`,
                     mentionedAccountID?: number;
                 }) => {
                     let warningTime = 'まもなく';
-                    if (warningDaysBeforeExpiry === CONST.COMPANY_CARDS.CONSENT_EXPIRY_WARNING_DAYS.TWO_WEEKS) {
+                    if (warningDaysBeforeExpiry === CONST.COMPANY_CARDS.CONSENT_EXPIRY_WARNING_DAYS.ONE_MONTH) {
+                        warningTime = '1か月後';
+                    } else if (warningDaysBeforeExpiry === CONST.COMPANY_CARDS.CONSENT_EXPIRY_WARNING_DAYS.TWO_WEEKS) {
                         warningTime = '2週間後';
                     } else if (warningDaysBeforeExpiry === CONST.COMPANY_CARDS.CONSENT_EXPIRY_WARNING_DAYS.ONE_WEEK) {
                         warningTime = '1週間後';
