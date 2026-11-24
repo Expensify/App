@@ -94,7 +94,7 @@ function DomainGroupsPage({route}: DomainGroupsPageProps) {
             sentryLabel={CONST.SENTRY_LABEL.DOMAIN.GROUPS.CREATE_GROUP_BUTTON}
             onPress={() => Navigation.navigate(ROUTES.DOMAIN_GROUP_CREATE.getRoute(domainAccountID))}
             innerStyles={[shouldDisplayButtonsInSeparateLine && styles.alignItemsCenter]}
-            style={shouldDisplayButtonsInSeparateLine ? [styles.flexGrow1, styles.mb3] : styles.pr2}
+            style={shouldDisplayButtonsInSeparateLine && [styles.flexGrow1, styles.mb3]}
             variant={CONST.BUTTON_VARIANT.SUCCESS}
         >
             <Button.Icon src={icons.Plus} />

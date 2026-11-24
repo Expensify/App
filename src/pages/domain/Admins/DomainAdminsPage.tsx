@@ -169,7 +169,7 @@ function DomainAdminsPage({route}: DomainAdminsPageProps) {
     const shouldDisplayButtonsInSeparateLine = useShouldDisplayButtonsInSeparateLine();
 
     const headerContent = isAdmin ? (
-        <View style={[styles.flexRow, styles.gap2, !shouldDisplayButtonsInSeparateLine && styles.pr2]}>
+        <View style={[styles.flexRow, styles.gap2]}>
             <Button
                 sentryLabel={CONST.SENTRY_LABEL.DOMAIN.ADMINS.ADD_ADMIN}
                 variant={CONST.BUTTON_VARIANT.SUCCESS}

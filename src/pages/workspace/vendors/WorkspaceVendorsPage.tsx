@@ -112,7 +112,7 @@ function VendorBulkActions({policyID, selectedVendorKeys, policyVendors, default
             customText={translate('workspace.common.selected', {count: selectedVendorKeys.length})}
             options={options}
             isSplitButton={false}
-            style={shouldDisplayButtonsInSeparateLine ? [styles.flexGrow1, styles.mb3] : styles.pr2}
+            style={shouldDisplayButtonsInSeparateLine && [styles.flexGrow1, styles.mb3]}
             isDisabled={!selectedVendorKeys.length || options.length === 0}
             sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.VENDORS.BULK_ACTIONS_DROPDOWN}
             testID="WorkspaceVendorsPage-header-dropdown-menu-button"

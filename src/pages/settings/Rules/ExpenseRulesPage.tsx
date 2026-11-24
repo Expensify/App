@@ -184,11 +184,11 @@ function ExpenseRulesPage() {
             onPress={() => null}
             options={headerDropdownOptions}
             shouldAlwaysShowDropdownMenu
-            style={shouldDisplayButtonsInSeparateLine ? [styles.flexGrow1, styles.mb3] : styles.pr2}
+            style={shouldDisplayButtonsInSeparateLine && [styles.flexGrow1, styles.mb3]}
             testID="ExpenseRulesPage-header-dropdown-menu-button"
         />
     ) : (
-        <View style={shouldDisplayButtonsInSeparateLine ? styles.mb3 : styles.pr2}>
+        <View style={shouldDisplayButtonsInSeparateLine && styles.mb3}>
             <Button
                 variant={CONST.BUTTON_VARIANT.SUCCESS}
                 onPress={navigateToNewRulePage}

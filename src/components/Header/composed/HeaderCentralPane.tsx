@@ -15,6 +15,8 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 
+import {View} from 'react-native';
+
 type HeaderCentralPaneProps = Partial<ChildrenProps> & {
     title: string;
     onBackButtonPress?: () => void;
@@ -37,7 +39,7 @@ function HeaderCentralPane({title, onBackButtonPress, isHeadline = true, shouldD
                 title={title}
                 titleStyles={isHeadline && styles.textHeadlineH2}
             />
-            {children}
+            {!!children && <View style={[styles.flexRow, styles.alignItemsCenter, styles.pr2]}>{children}</View>}
             {shouldDisplaySearchRouter && <SearchButton />}
             <SidePanelButton />
         </Header>

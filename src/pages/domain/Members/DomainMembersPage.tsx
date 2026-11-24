@@ -222,13 +222,13 @@ function DomainMembersPage({route}: DomainMembersPageProps) {
                 onPress={() => null}
                 options={getBulkActionsButtonOptions()}
                 isSplitButton={false}
-                style={shouldDisplayButtonsInSeparateLine ? [styles.flexGrow1, styles.mb3] : styles.pr2}
+                style={shouldDisplayButtonsInSeparateLine && [styles.flexGrow1, styles.mb3]}
                 isDisabled={!selectedMembers.length}
                 testID="DomainMembersPage-header-dropdown-menu-button"
                 wrapperStyle={shouldDisplayButtonsInSeparateLine && styles.flexGrow1}
             />
         ) : (
-            <View style={[styles.flexRow, styles.gap2, !shouldDisplayButtonsInSeparateLine && styles.pr2]}>
+            <View style={[styles.flexRow, styles.gap2]}>
                 <Button
                     sentryLabel={CONST.SENTRY_LABEL.DOMAIN.MEMBERS.ADD_MEMBER}
                     variant={CONST.BUTTON_VARIANT.SUCCESS}

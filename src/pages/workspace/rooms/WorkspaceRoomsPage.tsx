@@ -191,7 +191,6 @@ function WorkspaceRoomsPage({route}: WorkspaceRoomsPageProps) {
                             sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ROOMS_CREATE}
                             variant={CONST.BUTTON_VARIANT.SUCCESS}
                             onPress={() => Navigation.navigate(ROUTES.WORKSPACE_ROOM_CREATE.getRoute(policyID))}
-                            style={styles.pr2}
                         >
                             <Button.Icon src={headerIcons.Plus} />
                             <Button.Text>{translate('common.create')}</Button.Text>

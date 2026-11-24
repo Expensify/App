@@ -288,7 +288,7 @@ function WorkspaceTaxesPage({
 
         if (!shouldShowBulkActionsButton) {
             return (
-                <View style={[styles.flexRow, styles.gap2, shouldDisplayButtonsInSeparateLine ? [styles.w100, styles.mb3] : styles.pr2]}>
+                <View style={[styles.flexRow, styles.gap2, shouldDisplayButtonsInSeparateLine && [styles.w100, styles.mb3]]}>
                     {!hasAccountingConnections && (
                         <Button
                             variant={CONST.BUTTON_VARIANT.SUCCESS}
@@ -322,7 +322,7 @@ function WorkspaceTaxesPage({
                 customText={translate('workspace.common.selected', {count: selectedTaxesIDs.length})}
                 shouldAlwaysShowDropdownMenu
                 isSplitButton={false}
-                style={shouldDisplayButtonsInSeparateLine ? [styles.flexGrow1, styles.mb3] : styles.pr2}
+                style={shouldDisplayButtonsInSeparateLine && [styles.flexGrow1, styles.mb3]}
                 isDisabled={!selectedTaxesIDs.length}
                 sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.TAXES.BULK_ACTIONS_DROPDOWN}
             />
