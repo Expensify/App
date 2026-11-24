@@ -14,6 +14,7 @@ import {getReportIDForExpense} from '@libs/MergeTransactionUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import ReceiptStorage from '@libs/ReceiptStorage';
 import {getThumbnailAndImageURIs} from '@libs/ReceiptUtils';
+import {logReceiptShown} from '@libs/telemetry/ReceiptObservability';
 import {
     canOverlayReceiptPDF,
     hasEReceipt,
@@ -83,9 +84,6 @@ type ReportActionItemImageProps = {
     /** Merge transaction ID to show in merge transaction flow */
     mergeTransactionID?: string;
 
-    /** Callback to be called on pressing the image */
-    onPress?: () => void;
-
     /** Whether the receipt empty state should extend to the full height of the container. */
     shouldUseFullHeight?: boolean;
 
@@ -134,7 +132,6 @@ function ReportActionItemImage({
     readonly = false,
     shouldMapHaveBorderRadius,
     mergeTransactionID,
-    onPress,
     shouldUseFullHeight,
     report: reportProp,
     shouldUseThumbnailImage,
@@ -226,11 +223,16 @@ function ReportActionItemImage({
             // If the image is full height, use initial position to make sure it will grow properly to fill the container
             shouldUseInitialObjectPosition: isMapDistanceRequest && !shouldUseFullHeight,
             isEmptyReceipt,
-            onPress,
         };
     }
 
     propsObj.isPerDiemRequest = isPerDiemRequest(transaction);
+
+    const logShownAndForwardLoad = (event?: {nativeEvent: {width: number; height: number}}) => {
+        // The retained local file wins over the server URL above, so report the source that is actually on screen
+        logReceiptShown({receiptTraceId: transaction?.receipt?.receiptTraceId, transactionID: transaction?.transactionID, source: localSource ?? transaction?.receipt?.source});
+        onLoad?.(event);
+    };
 
     // A remote PDF is shown as the server's low-resolution JPG thumbnail, which blurs when hover-zoomed.
     // Where zooming is available (web only), render the actual PDF on top of the thumbnail so the magnified
@@ -276,7 +278,7 @@ function ReportActionItemImage({
                 {renderReceiptContent(
                     <ReceiptImage
                         {...propsObj}
-                        onLoad={onLoad}
+                        onLoad={logShownAndForwardLoad}
                         shouldUseFullHeight={shouldUseFullHeight}
                         onLoadFailure={onLoadFailure}
                         previewUri={previewUriSource}
@@ -291,7 +293,7 @@ function ReportActionItemImage({
             {...propsObj}
             shouldUseFullHeight={shouldUseFullHeight}
             thumbnailContainerStyles={styles.thumbnailImageContainerHover}
-            onLoad={onLoad}
+            onLoad={logShownAndForwardLoad}
             onLoadFailure={onLoadFailure}
             previewUri={previewUriSource}
         />,

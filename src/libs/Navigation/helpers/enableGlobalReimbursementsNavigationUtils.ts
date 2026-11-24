@@ -97,9 +97,9 @@ function getEnableGlobalReimbursementsBusinessNavigationRoute(
     return ROUTES.SETTINGS_WALLET_ENABLE_GLOBAL_REIMBURSEMENTS_BUSINESS.getRoute(bankAccountID, subPage, undefined, params);
 }
 
-function getWiseGlobalReimbursementsIntroNavigationRoute(bankAccountID: number, navigationPathAtSignal?: string): Route {
+function getWiseGlobalReimbursementsIntroNavigationRoute(bankAccountID: number, navigationPathAtSignal?: string, isPayingMultipleReports?: boolean): Route {
     const basePath = navigationPathAtSignal ? getDynamicBasePathFromNavigationPath(navigationPathAtSignal) : undefined;
-    const introRoute = DYNAMIC_ROUTES.WISE_GLOBAL_REIMBURSEMENTS_INTRO.getRoute(bankAccountID);
+    const introRoute = DYNAMIC_ROUTES.WISE_GLOBAL_REIMBURSEMENTS_INTRO.getRoute(bankAccountID, isPayingMultipleReports);
 
     if (basePath && shouldUseDynamicEnableGlobalReimbursementsBase(basePath, WISE_GLOBAL_REIMBURSEMENTS_INTRO_ENTRY_SCREENS)) {
         return createDynamicRoute(introRoute, basePath);

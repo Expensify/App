@@ -1,20 +1,25 @@
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 
+import {callIfAuthenticated} from '@userActions/Session';
+
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 
 import type {ComponentRef, ForwardedRef} from 'react';
 import type {View} from 'react-native';
 
 import {useIsFocused} from '@react-navigation/native';
+import {authTokenTypeSelector} from '@selectors/Session';
 import React, {useEffect, useRef} from 'react';
 
-import MenuItemWithTopDescription from './MenuItemWithTopDescription';
+import MenuItem from './MenuItem';
 
 type CurrencySelectorProps = {
     /** Form error text. e.g when no currency is selected */
@@ -58,8 +63,11 @@ function CurrencySelector({
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {getCurrencySymbol} = useCurrencyListActions();
+    const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
 
     const currencyTitleDescStyle = currency && !shouldShowCurrencySymbol ? styles.textNormal : null;
+    const name = label ?? translate('common.currency');
+    const value = shouldShowCurrencySymbol && currency ? `${currency} - ${getCurrencySymbol(currency)}` : currency;
 
     const didOpenCurrencySelector = useRef(false);
     const isFocused = useIsFocused();
@@ -79,24 +87,43 @@ function CurrencySelector({
     }, [currency]);
 
     return (
-        <MenuItemWithTopDescription
+        <MenuItem.Root
             sentryLabel={CONST.SENTRY_LABEL.CURRENCY_SELECTOR.OPEN}
-            shouldShowRightIcon
-            title={shouldShowCurrencySymbol && currency ? `${currency} - ${getCurrencySymbol(currency)}` : currency}
             ref={ref}
-            descriptionTextStyle={currencyTitleDescStyle}
-            brickRoadIndicator={errorText ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
-            description={label ?? translate('common.currency')}
-            errorText={errorText}
             onPress={() => {
-                didOpenCurrencySelector.current = true;
-                if (useWorkspaceConfirmationCurrencySelector) {
-                    Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_CONFIRMATION_CURRENCY.path));
-                    return;
-                }
-                Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.PAYMENT_CARD_CURRENCY_SELECTOR.path));
+                callIfAuthenticated(() => {
+                    didOpenCurrencySelector.current = true;
+                    if (useWorkspaceConfirmationCurrencySelector) {
+                        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_CONFIRMATION_CURRENCY.path));
+                        return;
+                    }
+                    Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.PAYMENT_CARD_CURRENCY_SELECTOR.path));
+                }, session)();
             }}
-        />
+        >
+            <MenuItem.Row>
+                <MenuItem.Content>
+                    {value ? (
+                        <>
+                            <MenuItem.FieldName style={currencyTitleDescStyle}>{name}</MenuItem.FieldName>
+                            <MenuItem.FieldValue>{value}</MenuItem.FieldValue>
+                        </>
+                    ) : (
+                        <MenuItem.FieldNamePlaceholder>{name}</MenuItem.FieldNamePlaceholder>
+                    )}
+                </MenuItem.Content>
+                <MenuItem.Trailing>
+                    {!!errorText && <MenuItem.BrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />}
+                    <MenuItem.Chevron />
+                </MenuItem.Trailing>
+            </MenuItem.Row>
+            {!!errorText && (
+                <MenuItem.HelpText
+                    isError
+                    message={errorText}
+                />
+            )}
+        </MenuItem.Root>
     );
 }
 
