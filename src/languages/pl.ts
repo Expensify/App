@@ -1759,10 +1759,10 @@ const translations: TranslationDeepObject<typeof en> = {
         settleInvoiceBusiness: (amount?: string, last4Digits?: string) => (amount ? `zapłacono ${amount} z firmowego konta ${last4Digits}` : `Zapłacono z konta firmowego`),
         payWithPolicy: (policyName: string, formattedAmount?: string) => (formattedAmount ? `Zapłać ${formattedAmount} przez ${policyName}` : `Zapłać przez ${policyName}`),
         bankPaySkippedReportsDescription:
-            'Te raporty nie zostały opłacone z konta bankowego, ponieważ są albo niepodlegające zwrotowi, albo ich łączna kwota wynosi zero lub mniej. Możesz ręcznie oznaczyć je jako opłacone, jeśli chcesz.',
+            'Te raporty nie zostały opłacone z konta bankowego, ponieważ albo nie podlegają zwrotowi, albo ich łączna kwota wynosi zero lub mniej. Jeśli wolisz, możesz ręcznie oznaczyć je jako opłacone.',
         bankPayAllReportsSkippedDescription:
             'Wybrane raporty są niepodlegające zwrotowi lub mają łączną kwotę równą zero albo mniejszą. Jeśli wolisz, możesz ręcznie oznaczyć te raporty jako opłacone.',
-        bankPayReportSkippedDescription: 'Ten raport nie podlega zwrotowi kosztów lub ma łączną kwotę równą zero albo mniejszą. Jeśli wolisz, możesz ręcznie oznaczyć go jako opłacony.',
+        bankPayReportSkippedDescription: 'Ten raport nie podlega zwrotowi albo ma łączną kwotę równą zero lub mniejszą. Jeśli wolisz, możesz ręcznie oznaczyć go jako opłacony.',
         businessBankAccount: (amount?: string, last4Digits?: string) => (amount ? `zapłacono ${amount} z konta bankowego ${last4Digits}` : `zapłacono z konta bankowego ${last4Digits}`),
         automaticallyPaidWithBusinessBankAccount: (amount?: string, last4Digits?: string) =>
             `zapłacono ${amount ? `${amount} ` : ''} z konta bankowego ${last4Digits} przez <a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">zasady przestrzeni roboczej</a>`,
@@ -13333,7 +13333,7 @@ Oto *paragon testowy*, żeby pokazać Ci, jak to działa:`,
         approvingTitle: 'Zatwierdzanie raportów...',
         submittingTitle: 'Wysyłanie raportów...',
         payingTitle: 'Oznaczanie raportów jako opłacone...',
-        payingWithBankTitle: 'Raporty są opłacane...',
+        payingWithBankTitle: 'Płacenie raportów...',
         holdingTitle: 'Wstrzymywanie wydatków...',
         unholdingTitle: 'Usuwanie blokady wydatków...',
         rejectingTitle: 'Odrzucanie wydatków...',
@@ -13403,7 +13403,7 @@ Oto *paragon testowy*, żeby pokazać Ci, jak to działa:`,
             other: `Nie udało się oznaczyć ${count} raportów jako opłaconych.`,
         }),
         skippedBankPayBody: ({count}: {count: number}) => ({
-            one: '1 raport nie został opłacony przez konto bankowe, ponieważ nie podlega zwrotowi albo jego łączna kwota wynosi zero lub mniej. Jeśli wolisz, możesz ręcznie oznaczyć go jako opłacony.',
+            one: '1 raport nie został opłacony z konta bankowego, ponieważ nie podlega zwrotowi lub jego łączna kwota wynosi zero albo mniej. Jeśli wolisz, możesz oznaczyć go ręcznie jako opłacony.',
             other: `${count} raporty nie zostały opłacone z konta bankowego, ponieważ są albo niepodlegające zwrotowi, albo ich łączna kwota wynosi zero lub mniej. Jeśli wolisz, możesz ręcznie oznaczyć je jako opłacone.`,
         }),
         notHeldBody: ({count}: {count: number}) => ({
@@ -13431,16 +13431,16 @@ Oto *paragon testowy*, żeby pokazać Ci, jak to działa:`,
             other: `Nie udało się przenieść ${count} raportów.`,
         }),
         skippedNeedsGlobalReimbursementsBody: ({count}: {count: number}) => ({
-            one: '1 raport nie został opłacony, ponieważ najpierw trzeba skonfigurować globalne zwroty.',
-            other: `${count} raportów nie zostało opłaconych, ponieważ na koncie bankowym trzeba najpierw skonfigurować globalne zwroty.`,
+            one: '1 raport nie został opłacony, ponieważ najpierw musisz skonfigurować globalne zwroty kosztów dla konta bankowego.',
+            other: `${count} raporty nie zostały opłacone, ponieważ na koncie bankowym trzeba najpierw skonfigurować globalne zwroty.`,
         }),
         skippedDepositAccountNeedsGlobalReimbursementsBody: ({count}: {count: number}) => ({
             one: '1 raport nie został opłacony, ponieważ konto bankowe członka nie jest jeszcze skonfigurowane do globalnych zwrotów.',
-            other: `${count} raportów nie zostało opłaconych, ponieważ konta bankowe członków nie są jeszcze skonfigurowane do globalnych zwrotów.`,
+            other: `${count} raporty nie zostały opłacone, ponieważ konta bankowe członków nie są jeszcze skonfigurowane do globalnych zwrotów.`,
         }),
         skippedNeedsQuoteBody: ({count}: {count: number}) => ({
-            one: '1 raport nie został opłacony, ponieważ wypłata jest w innej walucie. Opłać go z poziomu raportu, żeby potwierdzić kurs wymiany.',
-            other: `${count} raporty nie zostały opłacone, ponieważ są rozliczane w innej walucie. Opłać każdy z nich z poziomu raportu, aby potwierdzić kurs wymiany.`,
+            one: '1 raport nie został opłacony, ponieważ jest wypłacany w innej walucie. Opłać go z poziomu raportu, aby potwierdzić kurs wymiany.',
+            other: `${count} raportów nie zostało opłaconych, ponieważ są wypłacane w innej walucie. Opłać każdy z nich z poziomu raportu, aby potwierdzić kurs wymiany.`,
         }),
     },
     earlyRenewal: {

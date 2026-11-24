@@ -1717,7 +1717,7 @@ const translations: TranslationDeepObject<typeof en> = {
         settleInvoiceBusiness: (amount?: string, last4Digits?: string) => (amount ? `${amount} mit Geschäftskonto ${last4Digits} bezahlt` : `Mit Geschäftskonto bezahlt`),
         payWithPolicy: (policyName: string, formattedAmount?: string) => (formattedAmount ? `Bezahle ${formattedAmount} über ${policyName}` : `Bezahlen über ${policyName}`),
         bankPaySkippedReportsDescription:
-            'Diese Abrechnungen wurden nicht über das Bankkonto bezahlt, da sie entweder nicht erstattungsfähig sind oder einen Gesamtbetrag von null oder weniger haben. Sie können sie bei Bedarf manuell als bezahlt markieren.',
+            'Diese Berichte wurden nicht über das Bankkonto bezahlt, da sie entweder nicht erstattungsfähig sind oder einen Gesamtbetrag von null oder weniger haben. Sie können sie bei Bedarf manuell als bezahlt markieren.',
         bankPayAllReportsSkippedDescription:
             'Die ausgewählten Berichte sind nicht erstattungsfähig oder haben einen Gesamtbetrag von null oder weniger. Sie können diese Berichte bei Bedarf manuell als bezahlt markieren.',
         bankPayReportSkippedDescription:
@@ -13370,7 +13370,7 @@ Hier ist ein *Testbeleg*, um dir zu zeigen, wie es funktioniert:`,
         approvingTitle: 'Berichte werden genehmigt …',
         submittingTitle: 'Berichte werden eingereicht …',
         payingTitle: 'Berichte werden als bezahlt markiert …',
-        payingWithBankTitle: 'Berichte werden bezahlt …',
+        payingWithBankTitle: 'Berichte werden bezahlt ...',
         holdingTitle: 'Ausgaben werden zurückgehalten …',
         unholdingTitle: 'Zurückhalten von Ausgaben wird aufgehoben …',
         rejectingTitle: 'Ausgaben werden abgelehnt …',
@@ -13395,8 +13395,8 @@ Hier ist ein *Testbeleg*, um dir zu zeigen, wie es funktioniert:`,
             other: `${doneCount} von ${count} Berichte als bezahlt markiert`,
         }),
         paidWithBankTitle: ({doneCount, count}: {doneCount: number; count: number}) => ({
-            one: `${doneCount} von ${count} Bericht bezahlt`,
-            other: `${doneCount} von ${count} Abrechnungen bezahlt`,
+            one: `${doneCount} von ${count} Abrechnung bezahlt`,
+            other: `${doneCount} von ${count} Berichten bezahlt`,
         }),
         heldTitle: ({doneCount, count}: {doneCount: number; count: number}) => ({
             one: `Ausgaben in ${doneCount} von ${count} Bericht zurückgehalten`,
@@ -13440,8 +13440,8 @@ Hier ist ein *Testbeleg*, um dir zu zeigen, wie es funktioniert:`,
             other: `${count} Berichte konnten nicht bezahlt werden.`,
         }),
         skippedBankPayBody: ({count}: {count: number}) => ({
-            one: '1 Bericht wurde nicht über das Bankkonto bezahlt, weil er nicht erstattungsfähig ist oder einen Gesamtbetrag von null oder weniger hat. Sie können ihn manuell als bezahlt markieren, wenn Sie möchten.',
-            other: `${count} Reports wurden nicht über das Bankkonto bezahlt, da sie entweder nicht erstattungsfähig sind oder einen Gesamtbetrag von null oder weniger haben. Sie können sie manuell als bezahlt markieren, wenn Sie möchten.`,
+            one: '1 Bericht wurde nicht über das Bankkonto bezahlt, weil er nicht erstattungsfähig ist oder einen Gesamtbetrag von null oder weniger hat. Sie können ihn bei Bedarf manuell als bezahlt markieren.',
+            other: `${count} Berichte wurden nicht über das Bankkonto bezahlt, da sie entweder nicht erstattungsfähig sind oder einen Gesamtbetrag von null oder weniger haben. Sie können sie manuell als bezahlt markieren, wenn Sie dies bevorzugen.`,
         }),
         notHeldBody: ({count}: {count: number}) => ({
             one: 'Ausgaben in 1 Bericht konnten nicht zurückgehalten werden.',
@@ -13468,16 +13468,16 @@ Hier ist ein *Testbeleg*, um dir zu zeigen, wie es funktioniert:`,
             other: `${count} Berichte konnten nicht verschoben werden.`,
         }),
         skippedNeedsGlobalReimbursementsBody: ({count}: {count: number}) => ({
-            one: '1 Bericht wurde nicht bezahlt, weil für das Bankkonto zuerst globale Rückerstattungen eingerichtet werden müssen.',
-            other: `${count} Berichte wurden nicht bezahlt, weil für das Bankkonto zuerst globale Rückerstattungen eingerichtet werden müssen.`,
+            one: '1 Bericht wurde nicht bezahlt, weil das Bankkonto zuerst für globale Rückerstattungen eingerichtet werden muss.',
+            other: `${count} Abrechnungen wurden nicht bezahlt, weil für das Bankkonto zuerst globale Rückerstattungen eingerichtet werden müssen.`,
         }),
         skippedDepositAccountNeedsGlobalReimbursementsBody: ({count}: {count: number}) => ({
-            one: '1 Report wurde nicht bezahlt, weil das Bankkonto des Mitglieds noch nicht für globale Rückerstattungen eingerichtet ist.',
-            other: `${count} Berichte wurden nicht bezahlt, weil die Bankkonten der Mitglieder noch nicht für globale Rückerstattungen eingerichtet sind.`,
+            one: '1 Bericht wurde nicht bezahlt, weil das Bankkonto des Mitglieds noch nicht für globale Rückerstattungen eingerichtet ist.',
+            other: `${count} Abrechnungen wurden nicht bezahlt, weil die Bankkonten der Mitglieder noch nicht für globale Rückerstattungen eingerichtet sind.`,
         }),
         skippedNeedsQuoteBody: ({count}: {count: number}) => ({
-            one: '1 Bericht wurde nicht bezahlt, weil er in einer anderen Währung ausgezahlt wird. Bezahlen Sie ihn direkt aus dem Bericht, um den Wechselkurs zu bestätigen.',
-            other: `${count} Berichte wurden nicht bezahlt, weil sie in einer anderen Währung ausgezahlt werden. Zahlen Sie jeden einzelnen direkt im Bericht, um den Wechselkurs zu bestätigen.`,
+            one: '1 Bericht wurde nicht bezahlt, weil er in einer anderen Währung ausbezahlt wird. Bezahlen Sie ihn direkt aus dem Bericht, um den Wechselkurs zu bestätigen.',
+            other: `${count} Berichte wurden nicht bezahlt, weil sie in einer anderen Währung ausgezahlt werden. Zahlen Sie jeden Bericht einzeln, um den Wechselkurs zu bestätigen.`,
         }),
     },
     earlyRenewal: {
