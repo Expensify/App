@@ -189,7 +189,7 @@ describe('AttachmentCarouselView web', () => {
         expect(onNavigate.mock.calls.at(0)?.at(0)).toBe(second);
     });
 
-    it('clears focus for empty tokens and navigates a null-index token without changing page or focus', () => {
+    it('ignores empty tokens and navigates a null-index token without changing page or focus', () => {
         // Given a real callback installed by the web target
         const {props} = renderCarousel();
         const viewability = mockFlatList.mock.calls.at(-1)?.[0].onViewableItemsChanged;
@@ -199,7 +199,7 @@ describe('AttachmentCarouselView web', () => {
         }
         const attachment: Attachment = {source: 'second.png'};
 
-        // When a token has no index, navigation still receives it, then an empty token set clears focus
+        // When a token has no index, navigation still receives it, then an empty token set arrives while the list is being resized
         const tokenWithoutIndex = Object.assign(createMock<Parameters<typeof viewability>[0]['viewableItems'][number]>({item: attachment, key: 'second', isViewable: true}), {index: null});
         act(() => viewability({viewableItems: [tokenWithoutIndex], changed: []}));
         expect(props.onNavigate).toHaveBeenCalledWith(attachment);
@@ -207,9 +207,78 @@ describe('AttachmentCarouselView web', () => {
         expect(screen.getByText('first.png:true')).toBeOnTheScreen();
         act(() => viewability({viewableItems: [], changed: []}));
 
-        // Then empty input removes active focus without another navigation
-        expect(screen.getByText('first.png:false')).toBeOnTheScreen();
+        // Then empty input is ignored, so focus is kept and there is no other navigation
+        expect(screen.getByText('first.png:true')).toBeOnTheScreen();
         expect(props.onNavigate).toHaveBeenCalledTimes(1);
+    });
+
+    it('ignores viewability reports that do not contain exactly one item while the list is resized', () => {
+        // Given a carousel on its first page with an open keyboard
+        const dismiss = jest.spyOn(Keyboard, 'dismiss');
+        const {props} = renderCarousel();
+        const viewability = mockFlatList.mock.calls.at(-1)?.[0].onViewableItemsChanged;
+        expect(viewability).toBeDefined();
+        if (!viewability) {
+            throw new Error('Expected viewability callback');
+        }
+
+        // When the list reports two cells at once while it sits between them
+        act(() =>
+            viewability({
+                viewableItems: [
+                    {item: {source: 'first.png'}, key: 'first', index: 0, isViewable: true},
+                    {item: {source: 'second.png'}, key: 'second', index: 1, isViewable: true},
+                ],
+                changed: [],
+            }),
+        );
+
+        // Then it is not treated as a navigation
+        expect(dismiss).not.toHaveBeenCalled();
+        expect(props.setPage).not.toHaveBeenCalled();
+        expect(props.onNavigate).not.toHaveBeenCalled();
+        expect(screen.getByText('first.png:true')).toBeOnTheScreen();
+        dismiss.mockRestore();
+    });
+
+    it('ignores a report for the page that is already shown without dismissing the keyboard', () => {
+        // Given a carousel on its second page, such as a protected PDF with a focused password field
+        const dismiss = jest.spyOn(Keyboard, 'dismiss');
+        const {props} = renderCarousel({page: 1, source: 'second.png'});
+        const viewability = mockFlatList.mock.calls.at(-1)?.[0].onViewableItemsChanged;
+        expect(viewability).toBeDefined();
+        if (!viewability) {
+            throw new Error('Expected viewability callback');
+        }
+
+        // When a resize or rotation makes the list report the same page again
+        act(() => viewability({viewableItems: [{item: {source: 'second.png'}, key: 'second', index: 1, isViewable: true}], changed: []}));
+
+        // Then the keyboard stays open and nothing navigates
+        expect(dismiss).not.toHaveBeenCalled();
+        expect(props.setPage).not.toHaveBeenCalled();
+        expect(props.onNavigate).not.toHaveBeenCalled();
+        dismiss.mockRestore();
+    });
+
+    it('dismisses the keyboard only when the page really changes', () => {
+        // Given a carousel on its first page
+        const dismiss = jest.spyOn(Keyboard, 'dismiss');
+        const {props} = renderCarousel();
+        const viewability = mockFlatList.mock.calls.at(-1)?.[0].onViewableItemsChanged;
+        expect(viewability).toBeDefined();
+        if (!viewability) {
+            throw new Error('Expected viewability callback');
+        }
+
+        // When the user swipes to the second attachment
+        act(() => viewability({viewableItems: [{item: {source: 'second.png'}, key: 'second', index: 1, isViewable: true}], changed: []}));
+
+        // Then the keyboard is dismissed once and the page changes
+        expect(dismiss).toHaveBeenCalledTimes(1);
+        expect(props.setPage).toHaveBeenCalledWith(1);
+        expect(props.onNavigate).toHaveBeenCalledTimes(1);
+        dismiss.mockRestore();
     });
 
     it('returns before keyboard, page or navigation effects during fullscreen', () => {
