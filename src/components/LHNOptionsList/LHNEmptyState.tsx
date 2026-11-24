@@ -1,4 +1,3 @@
-import type {BlockingViewProps} from '@components/BlockingViews/BlockingView';
 import BlockingView from '@components/BlockingViews/BlockingView';
 import Icon from '@components/Icon';
 import Text from '@components/Text';
@@ -25,7 +24,7 @@ function LHNEmptyState() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['MagnifyingGlass', 'Plus']);
-    const emptyLHNIllustration = useEmptyLHNIllustration() as BlockingViewProps;
+    const emptyLHNIllustration = useEmptyLHNIllustration();
     const {activeTab} = useSidebarOrderedReportsState();
     const {setActiveTab} = useSidebarOrderedReportsActions();
 

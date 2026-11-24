@@ -100,6 +100,20 @@ describe('TaskView', () => {
             expect(!!assigneeRoot.props.onPress).toBe(isEditable);
             expect(assigneeRoot.findAll((node) => node.type === MenuItem.Chevron)).toHaveLength(isEditable ? 1 : 0);
             expect(Navigation.navigate).toHaveBeenCalledTimes(isEditable ? 1 : 0);
+
+            // When the description row is pressed with the same permissions.
+            jest.mocked(Navigation.navigate).mockClear();
+            const descriptionRoot = screen.UNSAFE_getAllByType(MenuItem.Root).find((root) => root.props.sentryLabel === CONST.SENTRY_LABEL.TASK.VIEW_DESCRIPTION);
+            if (!descriptionRoot) {
+                throw new Error('Missing task description row');
+            }
+            fireEvent.press(descriptionRoot, {nativeEvent: {}});
+
+            // Then read-only descriptions also keep full contrast and cannot open the editor.
+            expect(descriptionRoot.props.isDisabled).toBeUndefined();
+            expect(!!descriptionRoot.props.onPress).toBe(isEditable);
+            expect(descriptionRoot.findAll((node) => node.type === MenuItem.Chevron)).toHaveLength(isEditable ? 1 : 0);
+            expect(Navigation.navigate).toHaveBeenCalledTimes(isEditable ? 1 : 0);
         });
     });
 

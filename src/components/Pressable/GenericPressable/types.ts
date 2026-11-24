@@ -3,11 +3,12 @@ import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
 import type {Shortcut} from '@libs/KeyboardShortcut';
 
 import type CONST from '@src/CONST';
-import type WithSentryLabel from '@src/types/utils/SentryLabel';
+import type {Route} from '@src/ROUTES';
+import type {WithSentryLabelWhenPressable} from '@src/types/utils/SentryLabel';
 
 import type {ComponentRef, ForwardedRef} from 'react';
 // eslint-disable-next-line no-restricted-imports
-import type {GestureResponderEvent, PressableStateCallbackType, PressableProps as RNPressableProps, Text as RNText, StyleProp, View, ViewStyle} from 'react-native';
+import type {GestureResponderEvent, PressableStateCallbackType, PressableProps as RNPressableProps, Text as RNText, StyleProp, View, ViewProps, ViewStyle} from 'react-native';
 import type {ValueOf} from 'type-fest';
 
 type StylePropWithFunction = StyleProp<ViewStyle> | ((state: PressableStateCallbackType) => StyleProp<ViewStyle>);
@@ -18,7 +19,7 @@ type RequiredAccessibilityLabel =
            * When true, indicates that the view is an accessibility element.
            * By default, all the touchable elements are accessible.
            */
-          accessible?: true | undefined;
+          accessible?: boolean;
 
           /**
            * Specifies the accessibility label for the component
@@ -41,10 +42,18 @@ type RequiredAccessibilityLabel =
           accessibilityLabel?: string;
       };
 
+/**
+ * The props that handle a press, so passing any of them requires a label. `onPressIn` and `onPressOut` are left out:
+ * pressables use them for their own feedback, like dimming or blocking text selection, alongside `onPress`.
+ */
+type PressHandlerProp = 'onPress' | 'onLongPress';
+
 type PressableProps = RNPressableProps &
+    // React Native 0.88 drops these from Pressable, but list rows still use them for hover state on web.
+    Pick<ViewProps, 'onMouseEnter' | 'onMouseLeave'> &
     RequiredAccessibilityLabel &
     ForwardedFSClassProps &
-    WithSentryLabel & {
+    WithSentryLabelWhenPressable<PressHandlerProp> & {
         onPress?: (event?: GestureResponderEvent | KeyboardEvent) => void | Promise<void>;
 
         /**
@@ -165,6 +174,9 @@ type PressableProps = RNPressableProps &
          * @default false
          */
         shouldAllowTextSelection?: boolean;
+
+        /** Renders the pressable as a link to this route on web, so it can be opened in a new tab */
+        linkRoute?: Route;
 
         ref?: PressableRef;
     };

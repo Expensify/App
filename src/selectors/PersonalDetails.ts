@@ -27,14 +27,6 @@ const personalDetailsLoginSelector = (accountID: number | undefined) => (persona
 
 const personalDetailsLoginsSelector = (accountIDs: number[] | undefined) => (personalDetailsList: OnyxEntry<PersonalDetailsList>) => getLoginsByAccountIDs(accountIDs, personalDetailsList);
 
-const personalDetailsDisplayNameSelector =
-    (accountID: number, translate: LocalizedTranslate, formatPhoneNumber: LocaleContextProps['formatPhoneNumber']) => (personalDetails: OnyxEntry<PersonalDetailsList>) =>
-        temporaryGetDisplayNameOrDefault({
-            passedPersonalDetails: personalDetails?.[accountID],
-            translate,
-            formatPhoneNumber,
-        });
-
 type DisplayDetails = Pick<PersonalDetails, 'accountID' | 'displayName' | 'login' | 'avatar'>;
 
 /**
@@ -118,7 +110,6 @@ export {
     personalDetailsSelector,
     multiPersonalDetailsSelector,
     personalDetailsListSelector,
-    personalDetailsDisplayNameSelector,
     personalDetailsLoginSelector,
     personalDetailsLoginsSelector,
     doesPersonalDetailExistSelector,

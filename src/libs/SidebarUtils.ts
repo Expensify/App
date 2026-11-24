@@ -252,6 +252,9 @@ function shouldDisplayReportInLHN({
         includeSelfDM: true,
         isReportArchived,
         requiresAttention,
+        // `requiresAttention` comes from reportAttributes, which already applies the pending-DEW-approve check with the
+        // real metadata. The metadata below is only read before reportAttributes has computed this report.
+        pendingExpenseActionMetadata: undefined,
         derivedIsEmptyReport: reportAttributes?.[report?.reportID]?.isEmpty,
         currentUserLogin,
         currentUserAccountID,
@@ -811,6 +814,7 @@ function getOptionData({
     lastMessageTextFromReport: lastMessageTextFromReportProp,
     card,
     lastAction,
+    lastOriginalAction,
     translate,
     dateFnsLocale,
     convertToDisplayString,
@@ -845,6 +849,7 @@ function getOptionData({
     reportAttributes: OnyxEntry<ReportAttributes>;
     card: Card | undefined;
     lastAction: ReportAction | undefined;
+    lastOriginalAction: OnyxEntry<ReportAction>;
     translate: LocalizedTranslate;
     dateFnsLocale: DateFnsLocale | undefined;
     convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'];
@@ -1016,6 +1021,7 @@ function getOptionData({
         reportAttributesDerived,
         visibleReportActionsData,
         oneTransactionThreadReportID: reportAttributes?.oneTransactionThreadReportID,
+        lastOriginalAction,
         currentUserAccountID,
         currentUserLogin,
         isTrackIntentUser,

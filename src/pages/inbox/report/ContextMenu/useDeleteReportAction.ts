@@ -140,6 +140,7 @@ function useDeleteReportAction({reportID, reportAction, onConfirm, onClose, dele
                 bankAccountList,
                 delegateAccountID,
                 hash: currentSearchHash,
+                isChatReportArchived: isReportArchived,
             });
         } else if (reportAction) {
             deleteAfterModalHide(() => {

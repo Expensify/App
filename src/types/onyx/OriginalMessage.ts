@@ -1198,6 +1198,24 @@ type OriginalMessageTravelUpdate = Reservation & UpdateOperationType;
 /** Travel update operation type */
 type UpdateOperationType = {
     operation: ValueOf<typeof CONST.TRAVEL.UPDATE_OPERATION_TYPE>;
+
+    /** Spotnana PNR ID of the booking the update is about */
+    pnrID?: string;
+
+    /** Spotnana trip ID the booking belongs to */
+    tripID?: string;
+
+    /** In flight updates, the airline ticket number */
+    ticketNumber?: string;
+
+    /** In flight exchanges, the ticket number the new ticket replaced */
+    previousTicketNumber?: string;
+
+    /** In flight ticket charges and refunds, the signed amount of the ticket in cents */
+    amount?: number;
+
+    /** ISO 4217 currency code of `amount` */
+    currency?: string;
 };
 
 /** Model of the `deleted transaction` report action */
@@ -1347,6 +1365,9 @@ type OriginalMessageMarkedReimbursed = {
 
 /** Model of `reimbursed` report action */
 type OriginalMessageReimbursed = {
+    /** Accounts the payment message is actionable for, supplied by Auth. */
+    actionableForAccountIDs?: number[];
+
     /** Whether this action was created from NewDot */
     isNewDot?: boolean;
 
@@ -1566,6 +1587,32 @@ type OriginalMessageCompanyCardConnectionBroken = {
 
     /** The feed's bank, used as the feed name when the feed has no custom name */
     bank?: CompanyCardFeedWithNumber;
+};
+
+/**
+ * Original message for an upcoming company card consent expiration
+ */
+type OriginalMessageCompanyCardConsentExpiring = {
+    /** The policy ID that owns the card feed */
+    policyID?: string;
+
+    /** The feed's internal name */
+    bank?: CompanyCardFeedWithNumber;
+
+    /** The feed's custom name, or its internal name when the feed has no custom name */
+    feedName?: string;
+
+    /** The admin who can renew consent, mentioned at the start of the warning */
+    mentionedAccountIDs?: number[];
+
+    /** Unix timestamp for the consent period that created this warning */
+    consentGrantedAt?: number;
+
+    /** Unix timestamp for the expected consent expiration */
+    consentExpiresAt?: number;
+
+    /** Number of days before expiry when this warning was delivered */
+    warningDaysBeforeExpiry?: number;
 };
 
 /**
@@ -1917,6 +1964,7 @@ type OriginalMessageMap = {
     [CONST.REPORT.ACTIONS.TYPE.CONCIERGE_AUTO_MAP_MCC_GROUPS]: OriginalMessageConciergeAutoMapMccGroups;
     [CONST.REPORT.ACTIONS.TYPE.COMPANY_CARD_CONNECTION_BROKEN]: OriginalMessageCompanyCardConnectionBroken;
     [CONST.REPORT.ACTIONS.TYPE.COMPANY_CARD_CONNECTION_BROKEN_30_DAYS]: OriginalMessageCompanyCardConnectionBroken;
+    [CONST.REPORT.ACTIONS.TYPE.COMPANY_CARD_CONSENT_EXPIRING]: OriginalMessageCompanyCardConsentExpiring;
     [CONST.REPORT.ACTIONS.TYPE.COMMUTER_EXCLUSION]: OriginalMessageCommuterExclusion;
     [CONST.REPORT.ACTIONS.TYPE.PLAID_BALANCE_FAILURE]: OriginalMessagePlaidBalanceFailure;
     [CONST.REPORT.ACTIONS.TYPE.RETRACTED]: never;
