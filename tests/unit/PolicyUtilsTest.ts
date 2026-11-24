@@ -7855,13 +7855,15 @@ describe('PolicyUtils', () => {
                     authType = CONST.NETSUITE_CONFIG.AUTH_TYPE.OAUTH2,
                     shouldPlaceAuthTypeAtRoot = false,
                     defaultVendor,
-                }: {authType?: 'tba' | 'oauth2' | null; shouldPlaceAuthTypeAtRoot?: boolean; defaultVendor?: string} = {},
+                    verified = true,
+                }: {authType?: 'tba' | 'oauth2' | null; shouldPlaceAuthTypeAtRoot?: boolean; defaultVendor?: string; verified?: boolean} = {},
             ): Policy => {
                 const resolvedAuthType = authType ?? undefined;
                 return createMock<Policy>({
                     ...createRandomPolicy(0),
                     connections: {
                         [CONST.POLICY.CONNECTIONS.NAME.NETSUITE]: {
+                            verified,
                             config: shouldPlaceAuthTypeAtRoot ? createMock({authType: resolvedAuthType}) : createMock({}),
                             options: {
                                 config: createMock({
@@ -7904,6 +7906,7 @@ describe('PolicyUtils', () => {
                 {label: 'JOURNAL_ENTRY export', policy: buildNetSuitePolicy(CONST.NETSUITE_EXPORT_DESTINATION.JOURNAL_ENTRY)},
                 {label: 'EXPENSE_REPORT export', policy: buildNetSuitePolicy(CONST.NETSUITE_EXPORT_DESTINATION.EXPENSE_REPORT)},
                 {label: 'missing export destination', policy: buildNetSuitePolicy(undefined)},
+                {label: 'unverified connection', policy: buildNetSuitePolicy(CONST.NETSUITE_EXPORT_DESTINATION.CREDIT_CARD_CHARGE, undefined, {verified: false})},
             ])('is inactive for $label', ({policy}) => {
                 // Given a NetSuite workspace that does not meet REST + CREDIT_CARD_CHARGE conditions
                 // When checking the predicate

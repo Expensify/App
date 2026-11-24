@@ -102,14 +102,17 @@ function isQuickbooksDesktopVendorMatchingActive(policy: OnyxEntry<Policy>): boo
 }
 
 /**
- * Returns true when NetSuite is connected over REST (oauth2) and configured to export
+ * Returns true when NetSuite is verified, connected over REST (oauth2), and configured to export
  * non-reimbursable expenses as Credit Card Charges. Mirrors `NetSuite::hasVendorFeature` on the PHP side.
  */
 function isNetSuiteVendorMatchingActive(policy: OnyxEntry<Policy>): boolean {
     const connection = policy?.connections?.[CONST.POLICY.CONNECTIONS.NAME.NETSUITE];
-    const optionsConfig = connection?.options?.config;
+    if (!connection || connection.verified === false) {
+        return false;
+    }
+    const optionsConfig = connection.options?.config;
     // NetSuite payloads can store authType under options.config or at the root config, so check both.
-    const authType = optionsConfig?.authType ?? connection?.config?.authType;
+    const authType = optionsConfig?.authType ?? connection.config?.authType;
     return authType === CONST.NETSUITE_CONFIG.AUTH_TYPE.OAUTH2 && optionsConfig?.nonreimbursableExpensesExportDestination === CONST.NETSUITE_EXPORT_DESTINATION.CREDIT_CARD_CHARGE;
 }
 
