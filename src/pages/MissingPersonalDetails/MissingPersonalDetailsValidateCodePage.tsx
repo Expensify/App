@@ -168,7 +168,7 @@ function MissingPersonalDetailsValidateCodePage({
             title={translate('cardPage.validateCardTitle')}
             descriptionPrimary={translate('cardPage.enterSecurityCode', primaryLogin ?? '')}
             sendValidateCode={() => requestValidateCodeAction(resendValidateCodeParams)}
-            validateCodeActionErrorField={walletEnrollmentID ? 'personalDetails' : CONST.MISSING_PERSONAL_DETAILS_VALIDATE_CODE_FIELD}
+            validateCodeActionErrorField={CONST.MISSING_PERSONAL_DETAILS_VALIDATE_CODE_FIELD}
             validateCodeReasonCode={resendValidateCodeParams.reasonCode}
             handleSubmitForm={handleSubmitForm}
             validateError={validateError}
