@@ -129,7 +129,7 @@ describe('TagPickerModal', () => {
         );
 
         // Then the list shows the second list's tags under its own name
-        expect(mockTagPickerProps?.options.unfilteredSections.at(0)?.data.at(0)?.text).toBe('Alpha');
+        expect(mockTagPickerProps?.sections.at(0)?.data.at(0)?.text).toBe('Alpha');
         expect(screen.getByText('Project')).toBeOnTheScreen();
     });
 
@@ -187,7 +187,7 @@ describe('TagPickerModal', () => {
         );
 
         // Then it still shows the first list in the standard-size pop-over that may flip when it overflows
-        expect(mockTagPickerProps?.options.unfilteredSections.at(0)?.data.at(0)?.text).toBe('Engineering');
+        expect(mockTagPickerProps?.sections.at(0)?.data.at(0)?.text).toBe('Engineering');
         expect(mockPopoverProps?.popoverDimensions).toEqual({width: CONST.POPOVER_DROPDOWN_WIDTH, height: CONST.POPOVER_DROPDOWN_MAX_HEIGHT});
         expect(mockPopoverProps?.shouldSwitchPositionIfOverflow).toBe(true);
     });

@@ -8,6 +8,7 @@ import TagPickerModal from '@components/TagPicker/TagPickerModal';
 import useLoadPolicyCategories from '@hooks/useLoadPolicyCategories';
 import useOnyx from '@hooks/useOnyx';
 
+import * as CategoryOptionListUtils from '@libs/CategoryOptionListUtils';
 import getSelectionListPopoverContentHeight from '@libs/getSelectionListPopoverContentHeight';
 
 import CONST from '@src/CONST';
@@ -18,6 +19,10 @@ import type {TextInput, TextProps} from 'react-native';
 import React from 'react';
 
 jest.mock('@hooks/useOnyx', () => jest.fn());
+jest.mock('@libs/CategoryOptionListUtils', () => {
+    const actual = jest.requireActual<typeof CategoryOptionListUtils>('@libs/CategoryOptionListUtils');
+    return {...actual, getCategoryListSections: jest.fn(actual.getCategoryListSections)};
+});
 const mockLoadingCategories = React.createContext(false);
 jest.mock('@hooks/useLoadPolicyCategories', () => jest.fn(() => ({isLoadingPolicyCategories: jest.requireActual<typeof React>('react').useContext(mockLoadingCategories)})));
 jest.mock('@hooks/useLoadPolicyTags', () => jest.fn(() => ({isLoadingPolicyTags: false})));
@@ -114,11 +119,14 @@ describe('picker popover sizing', () => {
         fireEvent.changeText(screen.getByLabelText('common.search'), 'Flights');
         act(() => jest.advanceTimersByTime(CONST.TIMING.USE_DEBOUNCED_STATE_DELAY));
         expect(screen.queryByText('Hotels')).not.toBeOnTheScreen();
+        const buildSections = jest.mocked(CategoryOptionListUtils.getCategoryListSections);
+        buildSections.mockClear();
         categoryNames = [...categoryNames, 'Meals'];
         rerender(React.cloneElement(modal));
 
         // Then the search box stays put until the unfiltered list is shown again
         expect(mockPopoverHeight).toBe(initialHeight);
+        expect(buildSections.mock.calls.map(([options]) => options.searchValue)).toEqual(['Flights']);
         fireEvent.changeText(screen.getByLabelText('common.search'), '');
         expect(mockPopoverHeight).toBe(initialHeight);
         act(() => jest.advanceTimersByTime(CONST.TIMING.USE_DEBOUNCED_STATE_DELAY));

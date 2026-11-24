@@ -5,6 +5,8 @@ import SelectionListWithSections from '@components/SelectionList/SelectionListWi
 
 import useOnyx from '@hooks/useOnyx';
 
+import * as CategoryOptionListUtils from '@libs/CategoryOptionListUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PolicyCategories} from '@src/types/onyx';
@@ -21,6 +23,10 @@ import {useOnyx as useOnyxWithoutSnapshots} from 'react-native-onyx';
 // react-native-onyx `useOnyx` (mocked here as `useOnyxWithoutSnapshots`) and the categories via the
 // snapshot-aware `@hooks/useOnyx`, so we can drive the two independently.
 jest.mock('@components/SelectionList/SelectionListWithSections', () => jest.fn(() => null));
+jest.mock('@libs/CategoryOptionListUtils', () => {
+    const actual = jest.requireActual<typeof CategoryOptionListUtils>('@libs/CategoryOptionListUtils');
+    return {...actual, getCategoryListSections: jest.fn(actual.getCategoryListSections)};
+});
 jest.mock('@hooks/useOnyx', () => jest.fn());
 jest.mock('@hooks/useAutoFocusInput', () => jest.fn(() => ({inputCallbackRef: jest.fn()})));
 jest.mock('@hooks/useNetwork', () => jest.fn(() => ({isOffline: false})));
@@ -65,6 +71,37 @@ const findRow = (searchText: string) =>
 describe('CategoryPicker', () => {
     const mockedUseOnyx = jest.mocked(useOnyx);
     const mockedUseOnyxWithoutSnapshots = jest.mocked(useOnyxWithoutSnapshots);
+
+    it('builds only matching sections when the query changes in a large workspace', () => {
+        // Given a standalone picker with 1,500 nested categories whose cached data can update while it is open
+        mockedUseOnyxWithoutSnapshots.mockReturnValue([false, {status: 'loaded'}]);
+        let categories = Object.fromEntries(
+            Array.from({length: 1500}, (_, index) => {
+                const name = `Travel: Group ${Math.floor(index / 50)}: Category ${index}`;
+                return [name, makeCategory(name, '')];
+            }),
+        );
+        mockedUseOnyx.mockImplementation((key) => [key === `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${POLICY_ID}` ? categories : undefined, {status: 'loaded'}]);
+        const renderPicker = () => (
+            <CategoryPicker
+                policyID={POLICY_ID}
+                onSubmit={jest.fn()}
+            />
+        );
+        const {rerender} = render(renderPicker());
+        expect(findRow('Travel: Group 0: Category 0')).toBeDefined();
+        const buildSections = jest.mocked(CategoryOptionListUtils.getCategoryListSections);
+        buildSections.mockClear();
+
+        // When an unmatched query takes effect as the workspace categories are refreshed
+        mockDebouncedSearchValue = 'No matching category';
+        categories = {...categories};
+        rerender(renderPicker());
+
+        // Then the picker shows no matches without also building the full unfiltered hierarchy
+        expect(findRow('Travel: Group 0: Category 0')).toBeUndefined();
+        expect(buildSections.mock.calls.map(([options]) => options.searchValue)).toEqual([mockDebouncedSearchValue]);
+    });
 
     beforeEach(() => {
         mockDebouncedSearchValue = '';

@@ -154,7 +154,6 @@ function getCategoryPickerOptions(
         shouldShowTextInput: categoriesCount >= searchInputThreshold,
         // Drafts can show search in the list, but the sheet's search space and keyboard handling use saved categories.
         hasSearchablePolicyCategories: (policyCategories ? categoriesCount : 0) >= searchInputThreshold,
-        unfilteredSections: getSections(''),
         getSections,
     };
 }
@@ -169,6 +168,8 @@ type CategoryPickerListProps = Pick<
     'policyID' | 'selectedCategory' | 'onSubmit' | 'onCreateCategory' | 'addBottomSafeAreaPadding' | 'shouldAutoFocusSearchInput' | 'ownerAccountID'
 > & {
     options: ReturnType<typeof getCategoryPickerOptions>;
+    /** Sections for the debounced query, so the create row uses the same query as the displayed results. */
+    sections: ReturnType<ReturnType<typeof getCategoryPickerOptions>['getSections']>;
     searchValue: string;
     debouncedSearchValue: string;
     setSearchValue: (value: string) => void;
@@ -183,6 +184,7 @@ function useCategoryPickerListProps({
     shouldAutoFocusSearchInput = false,
     ownerAccountID,
     options,
+    sections,
     searchValue,
     debouncedSearchValue,
     setSearchValue,
@@ -195,7 +197,6 @@ function useCategoryPickerListProps({
     const {translate} = useLocalize();
     const offlineMessage = isOffline ? `${translate('common.youAppearToBeOffline')} ${translate('search.resultsAreLimited')}` : '';
 
-    const sections = debouncedSearchValue ? options.getSections(debouncedSearchValue) : options.unfilteredSections;
     const sectionsWithTitleStyles = sections.map((section) => ({
         ...section,
         data: section.data.map((category) => ({
@@ -310,7 +311,8 @@ function CategoryPickerList(props: CategoryPickerListProps) {
 function CategoryPicker({policyID, selectedCategory, ownerAccountID, shouldShowNoneOption, shouldAlwaysShowGLCode, searchInputThreshold, ...pickerProps}: CategoryPickerProps) {
     const options = useCategoryPickerOptions({policyID, selectedCategory, ownerAccountID, shouldShowNoneOption, shouldAlwaysShowGLCode, searchInputThreshold});
     const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('');
-    const listProps = useCategoryPickerListProps({...pickerProps, policyID, selectedCategory, ownerAccountID, options, searchValue, debouncedSearchValue, setSearchValue});
+    const sections = options.getSections(debouncedSearchValue);
+    const listProps = useCategoryPickerListProps({...pickerProps, policyID, selectedCategory, ownerAccountID, options, sections, searchValue, debouncedSearchValue, setSearchValue});
     return <SelectionListWithSections {...listProps} />;
 }
 

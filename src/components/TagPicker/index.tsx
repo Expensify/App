@@ -189,7 +189,6 @@ function getTagPickerOptions(
     return {
         hasSearchablePolicyTags: policyTagCount >= searchInputThreshold,
         shouldShowTextInput: availableTagsCount >= searchInputThreshold,
-        unfilteredSections: getSections(''),
         getSections,
     };
 }
@@ -204,6 +203,7 @@ type TagPickerListProps = Pick<
     'policyID' | 'selectedTag' | 'shouldOrderListByTagName' | 'onSubmit' | 'additionalTagsToInclude' | 'addBottomSafeAreaPadding' | 'shouldAutoFocusSearchInput'
 > & {
     options: ReturnType<typeof getTagPickerOptions>;
+    sections: ReturnType<ReturnType<typeof getTagPickerOptions>['getSections']>;
     searchValue: string;
     setSearchValue: (value: string) => void;
 };
@@ -217,13 +217,13 @@ function useTagPickerListProps({
     addBottomSafeAreaPadding = false,
     shouldAutoFocusSearchInput = false,
     options,
+    sections: tagSections,
     searchValue,
     setSearchValue,
 }: TagPickerListProps) {
     const styles = useThemeStyles();
     const {inputCallbackRef} = useAutoFocusInput();
     const {translate, localeCompare} = useLocalize();
-    const tagSections = searchValue ? options.getSections(searchValue) : options.unfilteredSections;
     const sections = tagSections.map((section) => ({
         ...section,
         data: (shouldOrderListByTagName ? section.data.toSorted((a, b) => localeCompare(a.text ?? '', b.text ?? '')) : section.data).map((tag) => ({...tag, titleStyles: styles.w100})),
@@ -295,7 +295,8 @@ function TagPicker({
         additionalTagsToInclude,
         searchInputThreshold,
     });
-    const listProps = useTagPickerListProps({...pickerProps, policyID, selectedTag, additionalTagsToInclude, options, searchValue, setSearchValue});
+    const sections = options.getSections(searchValue);
+    const listProps = useTagPickerListProps({...pickerProps, policyID, selectedTag, additionalTagsToInclude, options, sections, searchValue, setSearchValue});
     return <SelectionListWithSections {...listProps} />;
 }
 

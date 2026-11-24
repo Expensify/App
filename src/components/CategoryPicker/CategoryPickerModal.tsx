@@ -70,7 +70,7 @@ function CategoryPickerModal({
     const data = useCategoryPickerData(policyID);
     const {translate} = data;
     const options = shouldPrepareOptions ? getCategoryPickerOptions(data, {selectedCategory, shouldAlwaysShowGLCode, searchInputThreshold, ownerAccountID}) : undefined;
-    const {rowCount, setRowCountFrozen} = usePickerPopoverRowCount(options?.unfilteredSections, searchKey);
+    const {rowCount, setRowCountFrozen, unfilteredSections} = usePickerPopoverRowCount(options ? () => options.getSections('') : undefined, searchKey);
     const [search, debouncedSearch, setSearch] = useDebouncedState({searchKey, value: ''}, undefined, {
         onDebouncedValueChange: (nextSearch) => {
             // A pending debounce may finish after the list has opened again or switched between sheet and popover.
@@ -80,6 +80,8 @@ function CategoryPickerModal({
             setRowCountFrozen(!!nextSearch.value);
         },
     });
+    const debouncedSearchValue = debouncedSearch.searchKey === searchKey ? debouncedSearch.value : '';
+    const sections = debouncedSearchValue ? options?.getSections(debouncedSearchValue) : unfilteredSections;
 
     // A layout effect, so the span starts before the picker's own effects run and can end it. The popover only renders
     // the picker while it's open, so the picker mounts again on every open.
@@ -137,11 +139,12 @@ function CategoryPickerModal({
                 )
             }
         >
-            {options && (
+            {options && sections && (
                 <CategoryPickerList
                     options={options}
+                    sections={sections}
                     searchValue={search.searchKey === searchKey ? search.value : ''}
-                    debouncedSearchValue={debouncedSearch.searchKey === searchKey ? debouncedSearch.value : ''}
+                    debouncedSearchValue={debouncedSearchValue}
                     setSearchValue={(value) => setSearch({searchKey, value})}
                     selectedCategory={selectedCategory}
                     policyID={policyID}

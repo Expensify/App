@@ -54,8 +54,10 @@ function TagPickerModal({
     const {searchKey, shouldPrepareOptions, finishClosing} = usePickerPopoverSession(isVisible, onModalHide);
     const data = useTagPickerData({policyID, tagListIndex});
     const options = shouldPrepareOptions ? getTagPickerOptions(data, {selectedTag, transactionTag, hasDependentTags, shouldShowGLCode, tagListIndex, searchInputThreshold}) : undefined;
-    const {rowCount, setRowCountFrozen} = usePickerPopoverRowCount(options?.unfilteredSections, searchKey);
+    const {rowCount, setRowCountFrozen, unfilteredSections} = usePickerPopoverRowCount(options ? () => options.getSections('') : undefined, searchKey);
     const [search, setSearch] = useState({searchKey, value: ''});
+    const searchValue = search.searchKey === searchKey ? search.value : '';
+    const sections = searchValue ? options?.getSections(searchValue) : unfilteredSections;
     const setSearchValue = (value: string) => {
         setSearch({searchKey, value});
         setRowCountFrozen(!!value);
@@ -82,10 +84,11 @@ function TagPickerModal({
             title={data.policyTagList.name}
             backButtonSentryLabel={CONST.SENTRY_LABEL.TAG_PICKER_MODAL.BACK_BUTTON}
         >
-            {options && (
+            {options && sections && (
                 <TagPickerList
                     options={options}
-                    searchValue={search.searchKey === searchKey ? search.value : ''}
+                    sections={sections}
+                    searchValue={searchValue}
                     setSearchValue={setSearchValue}
                     policyID={policyID}
                     selectedTag={selectedTag}

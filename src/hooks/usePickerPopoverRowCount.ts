@@ -19,10 +19,11 @@ function countListRows(sections: readonly PickerSection[] | undefined) {
     return rowCount;
 }
 
-function usePickerPopoverRowCount(sections: readonly PickerSection[] | undefined, searchKey: number) {
+function usePickerPopoverRowCount<TSections extends readonly PickerSection[]>(getUnfilteredSections: (() => TSections) | undefined, searchKey: number) {
     const [searchRowCountSnapshot, setSearchRowCountSnapshot] = useState<{searchKey: number; rowCount: number}>();
     const frozenRowCount = searchRowCountSnapshot?.searchKey === searchKey ? searchRowCountSnapshot.rowCount : undefined;
-    const rowCount = frozenRowCount ?? countListRows(sections);
+    const unfilteredSections = frozenRowCount === undefined ? getUnfilteredSections?.() : undefined;
+    const rowCount = frozenRowCount ?? countListRows(unfilteredSections);
 
     const setRowCountFrozen = (shouldFreezeRowCount: boolean) => {
         if (shouldFreezeRowCount && frozenRowCount === undefined) {
@@ -32,7 +33,7 @@ function usePickerPopoverRowCount(sections: readonly PickerSection[] | undefined
         }
     };
 
-    return {rowCount, setRowCountFrozen};
+    return {rowCount, setRowCountFrozen, unfilteredSections};
 }
 
 export default usePickerPopoverRowCount;
