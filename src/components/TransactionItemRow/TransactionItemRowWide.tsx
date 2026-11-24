@@ -28,7 +28,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import getBase62ReportID from '@libs/getBase62ReportID';
 import {getVendorDisplayName} from '@libs/PolicyUtils';
 import {getReportName} from '@libs/ReportNameUtils';
-import {getReimbursableTotal, isCurrentUserSubmitter, isExpenseReport} from '@libs/ReportUtils';
+import {getReimbursableTotal, isCurrentUserSubmitter, isExpenseOrBillReport} from '@libs/ReportUtils';
 import {getViolationsForTransaction} from '@libs/SearchUIUtils';
 import {COPYABLE_TEXT_DATA_SET} from '@libs/SelectionScraper';
 import {getShiftKeyFromEvent} from '@libs/shiftRangeSelection';
@@ -580,7 +580,7 @@ function TransactionItemRowWide({
                         style={[getSearchColumnStyles(CONST.SEARCH.TABLE_COLUMNS.ORIGINAL_AMOUNT, {isAmountColumnWide, shouldRemoveTotalColumnFlex})]}
                     >
                         <AmountCell
-                            total={getOriginalAmountForDisplay(transactionItem, isExpenseReport(transactionItem.report))}
+                            total={getOriginalAmountForDisplay(transactionItem, isExpenseOrBillReport(transactionItem.report))}
                             currency={getOriginalCurrencyForDisplay(transactionItem)}
                         />
                     </View>
@@ -694,7 +694,7 @@ function TransactionItemRowWide({
                     </View>
                 );
             case CONST.SEARCH.TABLE_COLUMNS.TOTAL: {
-                const isFromExpenseReport = isExpenseReport(transactionItem.report ?? report);
+                const isFromExpenseReport = isExpenseOrBillReport(transactionItem.report ?? report);
                 const {amount: totalAmount, currency: totalCurrency} = getTotalForDisplay(transactionItem, report?.currency ?? policy?.outputCurrency, isFromExpenseReport);
                 return (
                     <View

@@ -187,7 +187,7 @@ describe('ReportActionItem', () => {
             const senderAccountID = 321;
             const bill: Report = {
                 reportID: '9876',
-                type: CONST.REPORT.UNSUPPORTED_TYPE.BILL,
+                type: CONST.REPORT.TYPE.BILL,
                 ownerAccountID: ACTOR_ACCOUNT_ID,
                 managerID: 789,
                 billSenderAccountID: senderAccountID,
@@ -272,8 +272,8 @@ describe('ReportActionItem', () => {
         });
 
         it.each([
-            [CONST.REPORT.UNSUPPORTED_TYPE.BILL, CONST.REPORT.ACTIONS.TYPE.CREATED, 'created this bill on behalf of sender1@sender.com'],
-            [CONST.REPORT.UNSUPPORTED_TYPE.BILL, CONST.REPORT.ACTIONS.TYPE.SUBMITTED, 'sent this bill to receiver@receiver.com'],
+            [CONST.REPORT.TYPE.BILL, CONST.REPORT.ACTIONS.TYPE.CREATED, 'created this bill on behalf of sender1@sender.com'],
+            [CONST.REPORT.TYPE.BILL, CONST.REPORT.ACTIONS.TYPE.SUBMITTED, 'sent this bill to receiver@receiver.com'],
             [CONST.REPORT.TYPE.INVOICE, CONST.REPORT.ACTIONS.TYPE.CREATED, 'created this invoice on behalf of sender1@sender.com'],
             [CONST.REPORT.TYPE.INVOICE, CONST.REPORT.ACTIONS.TYPE.SUBMITTED, 'sent this invoice to receiver@receiver.com'],
         ] as const)('uses the submission emails when personal details omit names for %s %s', async (type, actionName, message) => {

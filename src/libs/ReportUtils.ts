@@ -1500,7 +1500,7 @@ function isInvoiceReport(report: OnyxInputOrEntry<Report>): boolean {
 }
 
 function isFinancialReportsForBusinesses(report: OnyxEntry<Report>): boolean {
-    return report?.type === CONST.REPORT.TYPE.EXPENSE || report?.type === CONST.REPORT.TYPE.INVOICE;
+    return report?.type === CONST.REPORT.TYPE.EXPENSE || report?.type === CONST.REPORT.TYPE.BILL || report?.type === CONST.REPORT.TYPE.INVOICE;
 }
 
 function isNewDotInvoice(invoiceRoomID: string | undefined): boolean {
@@ -1517,6 +1517,14 @@ function isNewDotInvoice(invoiceRoomID: string | undefined): boolean {
 function isExpenseReport(reportOrID: OnyxInputOrEntry<Report> | string): boolean {
     const report = typeof reportOrID === 'string' ? (getReport(reportOrID, deprecatedAllReports) ?? null) : reportOrID;
     return report?.type === CONST.REPORT.TYPE.EXPENSE;
+}
+
+/**
+ * Checks if a report is an expense report or a bill. A bill stores its expenses like an expense report, and its
+ * approver approves it like one.
+ */
+function isExpenseOrBillReport(report: OnyxInputOrEntry<Report>): boolean {
+    return isExpenseReport(report) || isBillReport(report);
 }
 
 /**
@@ -2919,7 +2927,7 @@ function isExpenseRequest(report: OnyxInputOrEntry<Report>): report is Thread {
     if (isThread(report)) {
         const parentReportAction = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`]?.[report.parentReportActionID];
         const parentReport = getReport(report?.parentReportID, deprecatedAllReports);
-        return isExpenseReport(parentReport) && !isEmptyObject(parentReportAction) && isTransactionThread(parentReportAction);
+        return isExpenseOrBillReport(parentReport) && !isEmptyObject(parentReportAction) && isTransactionThread(parentReportAction);
     }
     return false;
 }
@@ -2970,11 +2978,11 @@ function isMoneyRequest(reportOrID: OnyxEntry<Report> | string): boolean {
 }
 
 /**
- * Checks if a report is an IOU or expense report.
+ * Checks if a report is an IOU, expense, or bill report.
  */
 function isMoneyRequestReport(reportOrID: OnyxInputOrEntry<Report> | string, reports?: Report[] | OnyxCollection<Report>): boolean {
     const report = typeof reportOrID === 'string' ? (getReport(reportOrID, reports ?? deprecatedAllReports) ?? null) : reportOrID;
-    return isIOUReport(report) || isExpenseReport(report);
+    return isIOUReport(report) || isExpenseOrBillReport(report);
 }
 
 /**
@@ -3254,6 +3262,11 @@ function canAddOrDeleteTransactions(moneyRequestReport: OnyxEntry<Report>, rules
         return false;
     }
 
+    // A bill must keep exactly the expenses of the vendor's invoice.
+    if (isBillReport(moneyRequestReport)) {
+        return false;
+    }
+
     // Adding or deleting transactions is not allowed on a closed report
     if (moneyRequestReport?.statusNum === CONST.REPORT.STATUS_NUM.CLOSED && !isOpenReport(moneyRequestReport)) {
         return false;
@@ -3292,7 +3305,6 @@ function canAddTransaction(
     currentUserAccountID?: number,
 ): boolean {
     // A bill mirrors the vendor's invoice, so its expenses come only from that invoice.
-    // isMoneyRequestReport excludes bills today. This check keeps bills blocked once bills count as expense reports.
     if (isBillReport(moneyRequestReport) || !isMoneyRequestReport(moneyRequestReport)) {
         return false;
     }
@@ -3385,7 +3397,7 @@ function isMoneyRequestReportEligibleForMerge(
 ): boolean {
     const report = typeof reportOrReportID === 'string' ? getReportOrDraftReport({reportID: reportOrReportID}) : reportOrReportID;
 
-    if (!isMoneyRequestReport(report) || isIOUReport(report)) {
+    if (!isExpenseReport(report)) {
         return false;
     }
 
@@ -3501,6 +3513,62 @@ function canApproveIOU(
     return !isReportPayAtEnd && !isReportClosed;
 }
 
+/**
+ * Whether the report header shows Approve to the current user. The bill green dot uses it too, so the dot never shows
+ * without the button.
+ */
+function canApproveExpenseReport(
+    report: OnyxEntry<Report>,
+    reportTransactions: Transaction[],
+    currentUserAccountID: number,
+    reportMetadata: OnyxEntry<ReportMetadata>,
+    policy: OnyxEntry<Policy>,
+): boolean {
+    // Cheap report-level checks first so the transaction scans below only run for reports the user can approve
+    const managerID = report?.managerID ?? CONST.DEFAULT_NUMBER_ID;
+    const isCurrentUserManager = managerID === currentUserAccountID;
+    if (!report || !isCurrentUserManager || !isExpenseOrBillReport(report) || !isProcessingReport(report) || reportTransactions.length === 0) {
+        return false;
+    }
+
+    if (isArchivedOrPendingDeletePolicy(policy)) {
+        return false;
+    }
+
+    if (isSubmitterApproveBlockedOnSubmitWorkspace(policy, report.ownerAccountID, currentUserAccountID)) {
+        return false;
+    }
+
+    const isSubmitWorkspace = isSubmitPolicy(policy);
+    const isApprovalEnabled = policy?.approvalMode && policy.approvalMode !== CONST.POLICY.APPROVAL_MODE.OPTIONAL;
+    if (!isApprovalEnabled && !isSubmitWorkspace) {
+        return false;
+    }
+
+    const isDEWPolicy = hasDynamicExternalWorkflow(policy);
+    if (hasPendingDEWApprove(reportMetadata, isDEWPolicy)) {
+        return false;
+    }
+
+    const isAnyReceiptBeingScanned = reportTransactions.some((transaction) => isScanning(transaction));
+    if (isAnyReceiptBeingScanned) {
+        return false;
+    }
+
+    return !hasOnlyUnsettledExpenses(reportTransactions, report);
+}
+
+/** Whether the current user can approve the bill now. */
+function canApproveBill(
+    report: OnyxEntry<Report>,
+    policy: OnyxEntry<Policy>,
+    reportMetadata: OnyxEntry<ReportMetadata>,
+    currentUserAccountID: number,
+    reportTransactions: Transaction[],
+): boolean {
+    return isBillReport(report) && canApproveExpenseReport(report, reportTransactions, currentUserAccountID, reportMetadata, policy);
+}
+
 function canIOUBePaid(
     iouReport: OnyxInputOrEntry<Report>,
     chatReport: OnyxInputOrEntry<Report>,
@@ -3516,7 +3584,8 @@ function canIOUBePaid(
     const iouSettled = isSettled(iouReport);
 
     // The receiver of an invoice with a linked bill pays the bill, as in Classic, so the invoice offers no Pay.
-    if (isEmptyObject(iouReport) || iouReport.isWaitingForCancelledReimbursement || iouReport.isHiddenForBillReceiver) {
+    // Bills can't be paid in NewDot yet.
+    if (isEmptyObject(iouReport) || iouReport.isWaitingForCancelledReimbursement || iouReport.isHiddenForBillReceiver || isBillReport(iouReport)) {
         return false;
     }
 
@@ -3981,6 +4050,11 @@ function canDeleteMoneyRequestReport(
     cardList: OnyxEntry<CardList>,
     isReportLevelDelete = false,
 ): boolean {
+    // Auth can't delete a bill, and the bill must keep the expenses of the vendor's invoice.
+    if (isBillReport(report)) {
+        return false;
+    }
+
     const isReportPolicyAdmin = isPolicyAdmin(policy);
     const transaction = reportTransactions.at(0);
     const transactionID = transaction?.transactionID;
@@ -4931,7 +5005,7 @@ function getIcons({
     if (isExpenseRequest(report)) {
         return getIconsForExpenseRequest(report, personalDetails, policy, translate, resolvedParentReportAction);
     }
-    if (isExpenseReport(report)) {
+    if (isExpenseOrBillReport(report)) {
         return getIconsForExpenseReport(report, personalDetails, policy, formatPhoneNumber, translate);
     }
     if (isIOUReport(report)) {
@@ -5285,7 +5359,7 @@ function getActionTypeForAssigneeToComplete(
             return CONST.REPORT.ACTION_TYPES_FOR_ASSIGNEE_TO_COMPLETE.TASK;
         }
 
-        if (isProcessingReport(report) && isExpenseReport(report)) {
+        if (isProcessingReport(report) && isExpenseOrBillReport(report)) {
             return CONST.REPORT.ACTION_TYPES_FOR_ASSIGNEE_TO_COMPLETE.EXPENSE;
         }
     }
@@ -5468,9 +5542,20 @@ function getReasonAndReportActionThatRequiresAttention({
     // Add only labels a green dot the chat would show anyway, so it must not change whether the dot shows. Run the checks
     // below as if no candidate was found, exactly like before Add existed.
     const dotCandidateAction = actionBadge === CONST.REPORT.ACTION_BADGE.ADD ? undefined : iouReportActionToApproveOrPay;
+
+    // A bill's own expenses decide whether its approver must act on it.
     // Fall back to the chat's outstanding child so the pending-only check still runs when no badge action was found.
-    const iouReportID = getIOUReportIDFromReportActionPreview(dotCandidateAction) ?? optionOrReport.iouReportID;
+    const iouReportID = isBillReport(optionOrReport) ? optionOrReport.reportID : (getIOUReportIDFromReportActionPreview(dotCandidateAction) ?? optionOrReport.iouReportID);
     const transactions = getReportTransactions(iouReportID, reportsTransactions);
+
+    // The bill's approver gets the green dot on the bill itself.
+    if (canApproveBill(optionOrReport, policy, reportMetadata, currentUserAccountID, transactions)) {
+        return {
+            reason: CONST.REQUIRES_ATTENTION_REASONS.IS_WAITING_FOR_ASSIGNEE_TO_COMPLETE_ACTION,
+            actionBadge: CONST.REPORT.ACTION_BADGE.APPROVE,
+        };
+    }
+
     const hasOnlyPendingTransactions = transactions.length > 0 && transactions.every((t) => isPending(t));
 
     const iouReport = reports ? reports[`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`] : getReportOrDraftReport({reportID: iouReportID});
@@ -5644,8 +5729,8 @@ function getMoneyRequestSpendBreakdown(report: OnyxInputOrEntry<Report>, searchR
             // There is a possibility that if the Expense report has a negative total.
             // This is because there are instances where you can get a credit back on your card,
             // or you enter a negative expense to "offset" future expenses
-            nonReimbursableSpend = isExpenseReport(moneyRequestReport) ? nonReimbursableSpend * -1 : Math.abs(nonReimbursableSpend);
-            totalSpend = isExpenseReport(moneyRequestReport) ? totalSpend * -1 : Math.abs(totalSpend);
+            nonReimbursableSpend = isExpenseOrBillReport(moneyRequestReport) ? nonReimbursableSpend * -1 : Math.abs(nonReimbursableSpend);
+            totalSpend = isExpenseOrBillReport(moneyRequestReport) ? totalSpend * -1 : Math.abs(totalSpend);
 
             const totalDisplaySpend = totalSpend;
             const reimbursableSpend = totalDisplaySpend - nonReimbursableSpend;
@@ -5731,7 +5816,7 @@ function getNegatedReportTotals(
 }
 
 function getBillableAndTaxTotal(report: OnyxEntry<Report>, transactions: Array<OnyxEntry<Transaction>>) {
-    if (!isExpenseReport(report)) {
+    if (!isExpenseOrBillReport(report)) {
         return {
             billableTotal: 0,
             taxTotal: 0,
@@ -5785,6 +5870,12 @@ function isReportFieldOfTypeTitle(reportField: OnyxEntry<PolicyReportField>): bo
 }
 
 function isReportFieldTargetMatchingReport(report: OnyxEntry<Report>, reportField: PolicyReportField): boolean {
+    // The policy title field targets expense reports, but a bill can be renamed like one. Other policy report fields
+    // stay off bills.
+    if (isBillReport(report) && isReportFieldOfTypeTitle(reportField)) {
+        return true;
+    }
+
     return reportField.target === report?.type || (report?.type === CONST.REPORT.TYPE.EXPENSE && !reportField.target);
 }
 
@@ -5899,7 +5990,7 @@ function canEditReportTitle(
         getAvailableReportFields(report, Object.values(policy?.fieldList ?? {})).find((reportField) => isReportFieldOfTypeTitle(reportField)) ?? getTitleFieldWithFallback(policy);
     const isFieldDisabled = isReportFieldDisabled(report, titleField, policy, rules, reportOwnerLogin);
 
-    return !isFieldDisabled && isAdminOwnerApproverOrReportOwner(report, policy, currentUserAccountID) && isExpenseReport(report) && isGroupPolicyPolicyUtils(policy);
+    return !isFieldDisabled && isAdminOwnerApproverOrReportOwner(report, policy, currentUserAccountID) && isExpenseOrBillReport(report) && isGroupPolicyPolicyUtils(policy);
 }
 
 /**
@@ -6011,7 +6102,7 @@ function isTransactionFromExpenseReport(
     if (!!transaction && isDeletedTransaction(transaction)) {
         return true;
     }
-    return isEmptyObject(report) ? isGroupPolicyPolicyUtils(policy) : isExpenseReport(report);
+    return isEmptyObject(report) ? isGroupPolicyPolicyUtils(policy) : isExpenseOrBillReport(report);
 }
 
 /**
@@ -6147,7 +6238,9 @@ function canEditMoneyRequest(
     const moneyRequestReport = report ?? getReportOrDraftReport({reportID: String(moneyRequestReportID)});
     // Without an IOU action, the submitter of an expense report stands in for the requester, because only they can add expenses to it.
     // This function has no current-user parameter, so it passes the same module-level account ID that isActionRequestor uses.
-    const isRequestor = isActionlessReportedExpense ? isExpenseReport(moneyRequestReport) && isCurrentUserSubmitter(moneyRequestReport, deprecatedCurrentUserAccountID) : isActionRequestor;
+    const isRequestor = isActionlessReportedExpense
+        ? isExpenseOrBillReport(moneyRequestReport) && isCurrentUserSubmitter(moneyRequestReport, deprecatedCurrentUserAccountID)
+        : isActionRequestor;
 
     const isSubmitted = isProcessingReport(moneyRequestReport);
     if (isIOUReport(moneyRequestReport)) {
@@ -6240,6 +6333,11 @@ function getNextApproverAccountID(report: OnyxEntry<Report>, rules: OnyxCollecti
 }
 
 function canEditReportPolicy(report: OnyxEntry<Report>, reportPolicy: OnyxEntry<Policy>): boolean {
+    // A bill stays on the policy that received the vendor's invoice.
+    if (isBillReport(report)) {
+        return false;
+    }
+
     const isAdmin = isPolicyAdminPolicyUtils(reportPolicy);
     const isManager = isReportManager(report);
     const isSubmitter = isReportOwner(report);
@@ -6364,8 +6462,8 @@ function canCurrentUserEditExpense(
     reportPolicy: OnyxEntry<Policy>,
     rules: OnyxCollection<Rule>,
 ): boolean {
-    const isAdmin = isExpenseReport(moneyRequestReport) && reportPolicy?.role === CONST.POLICY.ROLE.ADMIN;
-    const isManager = isExpenseReport(moneyRequestReport) && deprecatedCurrentUserAccountID === moneyRequestReport?.managerID;
+    const isAdmin = isExpenseOrBillReport(moneyRequestReport) && reportPolicy?.role === CONST.POLICY.ROLE.ADMIN;
+    const isManager = isExpenseOrBillReport(moneyRequestReport) && deprecatedCurrentUserAccountID === moneyRequestReport?.managerID;
     const isRequestor = deprecatedCurrentUserAccountID === reportAction?.actorAccountID;
     const ownerLogin = getLoginByAccountID(moneyRequestReport?.ownerAccountID, getAllPersonalDetails());
     const isApprover =
@@ -6450,8 +6548,8 @@ function canEditFieldOfMoneyRequest({
     // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
     const reportPolicy = policy ?? getPolicy(moneyRequestReport?.policyID);
     // Moving an expense to another report weighs these two on their own rather than as part of the combined check.
-    const isAdmin = isExpenseReport(moneyRequestReport) && reportPolicy?.role === CONST.POLICY.ROLE.ADMIN;
-    const isManager = isExpenseReport(moneyRequestReport) && deprecatedCurrentUserAccountID === moneyRequestReport?.managerID;
+    const isAdmin = isExpenseOrBillReport(moneyRequestReport) && reportPolicy?.role === CONST.POLICY.ROLE.ADMIN;
+    const isManager = isExpenseOrBillReport(moneyRequestReport) && deprecatedCurrentUserAccountID === moneyRequestReport?.managerID;
 
     // Admins can add or replace a receipt on an approved expense so a missing receipt can still be provided after approval.
     const isAdminChangingReceiptOnApprovedReport = isAdmin && fieldToEdit === CONST.EDIT_REQUEST_FIELD.RECEIPT && !isDeleteAction && !isSettled(moneyRequestReport);
@@ -6503,12 +6601,17 @@ function canEditFieldOfMoneyRequest({
 
     if (fieldToEdit === CONST.EDIT_REQUEST_FIELD.DISTANCE_RATE) {
         // The distance rate can be modified only on the distance expense reports
-        return (isExpenseReport(moneyRequestReport) || isUnreportedExpense) && isDistanceRequest(transaction);
+        return (isExpenseOrBillReport(moneyRequestReport) || isUnreportedExpense) && isDistanceRequest(transaction);
     }
 
     if (fieldToEdit === CONST.EDIT_REQUEST_FIELD.REPORT) {
         if (isUnreportedExpense) {
             return canUnreportedBeMoved(transaction, allPolicies);
+        }
+
+        // A bill must keep the expenses of the vendor's invoice.
+        if (isBillReport(moneyRequestReport)) {
+            return false;
         }
 
         const moneyRequestReportNameValuePair = reportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${moneyRequestReport.reportID}`];
@@ -6698,7 +6801,8 @@ function canHoldUnholdReportAction(
     const canModifyUnholdStatus = !isTrackExpenseMoneyReport && (isAdmin || (isActionOwner && isHoldActionCreator) || isApprover);
 
     const canHoldOrUnholdRequest = !isRequestSettled && !isApproved && !isClosed && !isDeletedParentAction(reportAction);
-    const canHoldRequest = canHoldOrUnholdRequest && !isOnHold && canModifyStatus && !isScanning(transaction) && !isReceiptBeingScanned(transaction);
+    // Approving part of a report moves its held expenses to a new expense report, which a bill can't do.
+    const canHoldRequest = canHoldOrUnholdRequest && !isOnHold && canModifyStatus && !isScanning(transaction) && !isReceiptBeingScanned(transaction) && !isBillReport(report);
 
     // Holding an actionless expense marks it on hold optimistically before the server returns the new action, and removing the hold needs that action's thread
     const canUnholdRequest = !isActionlessReportedExpense && !!(canHoldOrUnholdRequest && isOnHold && (isRequestIOU ? isHoldActionCreator : canModifyUnholdStatus));
@@ -6854,7 +6958,7 @@ function getTransactionReportName({
         return translate('violations.noRoute');
     }
 
-    const isFromExpenseReport = !isEmptyObject(report) && isExpenseReport(report);
+    const isFromExpenseReport = !isEmptyObject(report) && isExpenseOrBillReport(report);
 
     if (isSentMoneyReportAction(reportAction)) {
         return getIOUReportActionDisplayMessage(translate, reportAction as ReportAction, convertToDisplayString, undefined, linkedTransaction);
@@ -7016,7 +7120,7 @@ function getReportPreviewMessage(
 
     const parentReport = getParentReport(report);
     const policyName = getPolicyName({report: parentReport ?? report, policy, unavailableTranslation: translate('workspace.common.unavailable')});
-    const payerName = isExpenseReport(report)
+    const payerName = isExpenseOrBillReport(report)
         ? policyName
         : getDisplayNameForParticipant({
               accountID: report.managerID,
@@ -7228,7 +7332,7 @@ function getReportPreviewReportActionMessage(
     // report action and read back by every viewer, so it must not follow the locale of whoever happened to build it. These mirror
     // `workspace.common.unavailable` and `common.hidden` in `src/languages/en.ts`, and ReportUtilsTest asserts they do not drift from them.
     const policyName = getPolicyName({report: parentReport ?? report, policy, unavailableTranslation: 'Unavailable workspace'});
-    const payerName = isExpenseReport(report)
+    const payerName = isExpenseOrBillReport(report)
         ? policyName
         : getDisplayNameForParticipant({
               accountID: report.managerID,
@@ -11110,9 +11214,9 @@ function canAccessReport(report: OnyxEntry<Report>, isDefaultRoomsBetaEnabled: b
     return true;
 }
 
-/** NewDot can't show unsupported report types. Bills are the exception for users with the newDotBillPay beta. */
+/** NewDot can't show unsupported report types. Bills count as unsupported for users without the newDotBillPay beta. */
 function isUnsupportedReportType(reportType: string | undefined, isBillPayBetaEnabled: boolean): boolean {
-    if (reportType === CONST.REPORT.UNSUPPORTED_TYPE.BILL) {
+    if (reportType === CONST.REPORT.TYPE.BILL) {
         return shouldHideBillReport(reportType, isBillPayBetaEnabled);
     }
     return (Object.values(CONST.REPORT.UNSUPPORTED_TYPE) as string[]).includes(reportType ?? '');
@@ -11655,6 +11759,10 @@ function reasonForReportToBeInOptionList({
     derivedIsEmptyReport,
     hasGuidesEmails,
 }: ShouldReportBeInOptionListParams): ValueOf<typeof CONST.REPORT_IN_LHN_REASONS> | null {
+    if (report?.isHiddenForBillReceiver) {
+        return null;
+    }
+
     const isInDefaultMode = !isInFocusMode;
 
     // Include the currently viewed report. If we excluded the currently viewed report, then there
@@ -12377,7 +12485,7 @@ function shouldReportShowSubscript(report: OnyxEntry<Report>, isReportArchived =
         return true;
     }
 
-    if (isExpenseReport(report)) {
+    if (isExpenseOrBillReport(report)) {
         return true;
     }
 
@@ -12869,7 +12977,7 @@ function getIOUReportActionDisplayMessage(
         }
     }
 
-    const amount = getTransactionAmount(transaction, !isEmptyObject(iouReport) && isExpenseReport(iouReport), transaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID) ?? 0;
+    const amount = getTransactionAmount(transaction, !isEmptyObject(iouReport) && isExpenseOrBillReport(iouReport), transaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID) ?? 0;
     const formattedAmount = convertToDisplayString(amount, getCurrency(transaction)) ?? '';
     const isRequestSettled = isSettled(IOUReportID);
     const isApproved = isReportApproved({report: iouReport});
@@ -13669,7 +13777,6 @@ function isReportOutstanding(
         isEmptyObject(iouReport) ||
         !isExpenseReport(iouReport) ||
         // A bill's expenses come only from the vendor's invoice, so users can't add or move expenses to it.
-        // isExpenseReport excludes bills today. This check keeps bills blocked once bills count as expense reports.
         isBillReport(iouReport) ||
         iouReport?.stateNum === undefined ||
         iouReport?.statusNum === undefined ||
@@ -13681,6 +13788,7 @@ function isReportOutstanding(
     if (isArchivedReport(reportNameValuePair)) {
         return false;
     }
+
     const currentRoute = navigationRef.getCurrentRoute();
     const params = currentRoute?.params as MoneyRequestNavigatorParamList[typeof SCREENS.MONEY_REQUEST.STEP_CONFIRMATION] | ReportsSplitNavigatorParamList[typeof SCREENS.REPORT];
     const activeReport = deprecatedAllReports?.[`${ONYXKEYS.COLLECTION.REPORT}${params?.reportID}`];
@@ -15336,6 +15444,11 @@ function canRejectReportAction(report: Report, currentUserAccountID: number | un
         return false; // Disable invoice
     }
 
+    // Auth's RejectExpenseReport doesn't support bills yet, so the approver sends a bill back with Unapprove instead.
+    if (isBillReport(report)) {
+        return false;
+    }
+
     if (isReportBeingProcessed) {
         return true; // non-IOU reports can be rejected while processing
     }
@@ -15886,7 +15999,7 @@ function getTransactionSortValue(
         case CONST.SEARCH.SORT_BY_COLUMNS.TAG_GL_CODE:
             return getTagGLCode(policyTagLists, getTag(transaction));
         case CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT:
-            return getTransactionAmount(transaction, isExpenseReport(report), transaction.reportID === CONST.REPORT.UNREPORTED_REPORT_ID);
+            return getTransactionAmount(transaction, isExpenseOrBillReport(report), transaction.reportID === CONST.REPORT.UNREPORTED_REPORT_ID);
         case CONST.SEARCH.TABLE_COLUMNS.TOTAL:
             return Math.abs(transaction.convertedAmount ?? 0);
         case CONST.SEARCH.TABLE_COLUMNS.DESCRIPTION:
@@ -15900,13 +16013,13 @@ function getTransactionSortValue(
         case CONST.SEARCH.TABLE_COLUMNS.EXCHANGE_RATE:
             return getExchangeRate(transaction, report?.currency);
         case CONST.SEARCH.TABLE_COLUMNS.ORIGINAL_AMOUNT:
-            return getOriginalAmountForDisplay(transaction, isExpenseReport(report));
+            return getOriginalAmountForDisplay(transaction, isExpenseOrBillReport(report));
         case CONST.SEARCH.TABLE_COLUMNS.MCC:
             return getMCCForDisplay(transaction.mcc);
         case CONST.SEARCH.TABLE_COLUMNS.TAX_CODE:
             return transaction.taxCode ?? '';
         case CONST.SEARCH.TABLE_COLUMNS.TAX_AMOUNT:
-            return getTaxAmount(transaction, isExpenseReport(report));
+            return getTaxAmount(transaction, isExpenseOrBillReport(report));
         case CONST.SEARCH.TABLE_COLUMNS.TAX_RATE:
             return getTaxName(translate, policy, transaction) ?? '';
         case CONST.SEARCH.TABLE_COLUMNS.CARD:
@@ -16163,6 +16276,8 @@ export {
     canDeleteTransaction,
     canBeAutoReimbursed,
     canApproveIOU,
+    canApproveBill,
+    canApproveExpenseReport,
     canIOUBePaid,
     canSubmitReport,
     canCreateRequest,
@@ -16334,6 +16449,7 @@ export {
     generateIsEmptyReport,
     isEmptyReport,
     isRootGroupChat,
+    isExpenseOrBillReport,
     isExpenseReport,
     isExpenseRequest,
     isFinancialReportsForBusinesses,

@@ -19,6 +19,7 @@ import {format} from 'date-fns';
 import {Str} from 'expensify-common';
 
 import {getAddAgentRuleMessage, getDeleteAgentRuleMessage, getUpdateAgentRuleMessage} from './AgentRuleChangeLogUtils';
+import {isBillReport} from './BillUtils';
 import {getForReportAction, getMovedReportID} from './ModifiedExpenseMessage';
 import createDynamicRoute from './Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import {getCurrentUserEmail} from './Network/NetworkStore';
@@ -164,7 +165,7 @@ import {
     isChatThread,
     isClosedExpenseReportWithNoExpenses,
     isConciergeChatReport,
-    isExpenseReport,
+    isExpenseOrBillReport,
     isGroupChat,
     isInvoiceReport,
     isInvoiceRoom,
@@ -714,7 +715,7 @@ function computeReportNameBasedOnReportAction({
     }
 
     if (isRenamedAction(parentReportAction)) {
-        return getRenamedAction(translate, parentReportAction, isExpenseReport(parentReport));
+        return getRenamedAction(translate, parentReportAction, isExpenseOrBillReport(parentReport));
     }
 
     if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.RESOLVED_DUPLICATES)) {
@@ -978,7 +979,8 @@ function computeReportName({
         return parentReportActionBasedName;
     }
 
-    if (report?.reportName && report.type === CONST.REPORT.TYPE.EXPENSE) {
+    // A bill keeps its stored name, which Auth sets from the vendor's invoice and the user can rename.
+    if (report?.reportName && (report.type === CONST.REPORT.TYPE.EXPENSE || isBillReport(report))) {
         return report?.reportName;
     }
 

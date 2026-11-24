@@ -25,12 +25,15 @@ import RenderHTML from './RenderHTML';
 type MoneyReportHeaderStatusBarProps = {
     nextStep: ReportNextStep | undefined;
     reportType: Report['type'];
+
+    /** Shows a chevron after the message, for a next step that opens the report history */
+    shouldShowCaret?: boolean;
 };
 
 type IconName = ValueOf<typeof CONST.NEXT_STEP.ICONS>;
 type IconMap = Record<IconName, IconAsset>;
 
-function MoneyReportHeaderStatusBar({nextStep, reportType}: MoneyReportHeaderStatusBarProps) {
+function MoneyReportHeaderStatusBar({nextStep, reportType, shouldShowCaret = true}: MoneyReportHeaderStatusBarProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate, formatPhoneNumber, dateFnsLocale} = useLocalize();
@@ -46,6 +49,11 @@ function MoneyReportHeaderStatusBar({nextStep, reportType}: MoneyReportHeaderSta
     const currentUserAccountID = currentUserPersonalDetails.accountID;
 
     const messageContent = !nextStep ? '' : buildNextStepMessage(nextStep, translate, dateFnsLocale, currentUserAccountID, formatPhoneNumber, reportType);
+    const message = (
+        <View style={[styles.dFlex, styles.flexRow, styles.flexShrink1, styles.breakWord]}>
+            <RenderHTML html={messageContent} />
+        </View>
+    );
 
     return (
         <View style={[styles.dFlex, styles.flexRow, styles.alignItemsCenter, styles.overflowHidden, styles.w100]}>
@@ -57,11 +65,7 @@ function MoneyReportHeaderStatusBar({nextStep, reportType}: MoneyReportHeaderSta
                     fill={nextStep?.iconFill ?? theme.icon}
                 />
             </View>
-            <CaretWrapper style={styles.flexShrink1}>
-                <View style={[styles.dFlex, styles.flexRow, styles.flexShrink1, styles.breakWord]}>
-                    <RenderHTML html={messageContent} />
-                </View>
-            </CaretWrapper>
+            {shouldShowCaret ? <CaretWrapper style={styles.flexShrink1}>{message}</CaretWrapper> : message}
         </View>
     );
 }

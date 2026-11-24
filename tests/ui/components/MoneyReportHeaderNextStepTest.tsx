@@ -1,4 +1,4 @@
-import {render, waitFor} from '@testing-library/react-native';
+import {render, screen, waitFor} from '@testing-library/react-native';
 
 import MoneyReportHeaderNextStep from '@components/MoneyReportHeaderNextStep';
 import RenderHTML from '@components/RenderHTML';
@@ -50,7 +50,7 @@ describe('MoneyReportHeaderNextStep', () => {
     it.each([
         {
             messageKey: CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_APPROVE,
-            reportType: CONST.REPORT.UNSUPPORTED_TYPE.BILL,
+            reportType: CONST.REPORT.TYPE.BILL,
             target: 'approve the bill',
         },
         {
@@ -60,7 +60,7 @@ describe('MoneyReportHeaderNextStep', () => {
         },
         {
             messageKey: CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_PAY,
-            reportType: CONST.REPORT.UNSUPPORTED_TYPE.BILL,
+            reportType: CONST.REPORT.TYPE.BILL,
             target: 'pay this bill',
         },
         {
@@ -93,5 +93,26 @@ describe('MoneyReportHeaderNextStep', () => {
                 undefined,
             ),
         );
+    });
+
+    it.each([
+        {reportType: CONST.REPORT.TYPE.BILL, shouldOpenReportHistory: false},
+        {reportType: CONST.REPORT.TYPE.EXPENSE, shouldOpenReportHistory: true},
+    ])('opens the report history from the next step: $shouldOpenReportHistory for a $reportType report', async ({reportType, shouldOpenReportHistory}) => {
+        // Given a report that waits on its approver
+        jest.mocked(useNextStep).mockReturnValue({
+            messageKey: CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_APPROVE,
+            icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
+            actorAccountID: 780072,
+        });
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {reportID, type: reportType});
+        await waitForBatchedUpdates();
+
+        // When the header renders the next step
+        render(<MoneyReportHeaderNextStep reportID={reportID} />);
+        await waitForBatchedUpdates();
+
+        // Then only an expense report's next step is a button that opens the report history, which doesn't support bills
+        expect(screen.queryAllByRole(CONST.ROLE.BUTTON)).toHaveLength(shouldOpenReportHistory ? 1 : 0);
     });
 });

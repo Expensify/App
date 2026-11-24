@@ -19,6 +19,7 @@ import type {
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 
+import {isBillReport} from './BillUtils';
 import {areTransactionsEligibleForMerge} from './MergeTransactionUtils';
 import {getLoginByAccountID} from './PersonalDetailsUtils';
 import {
@@ -78,6 +79,7 @@ import {
     isAwaitingFirstLevelApproval,
     isClosedReport as isClosedReportUtils,
     isCurrentUserSubmitter,
+    isExpenseOrBillReport as isExpenseOrBillReportUtils,
     isExpenseReport as isExpenseReportUtils,
     isExportInProgress,
     isExported as isExportedUtils,
@@ -400,7 +402,6 @@ function isUnapproveAction(currentUserLogin: string, currentUserAccountID: numbe
         return false;
     }
 
-    const isExpenseReport = isExpenseReportUtils(report);
     const isReportApprover = isPolicyApprover(policy, currentUserLogin);
     const isReportApproved = isReportApprovedUtils({report});
     const isReportSettled = isSettled(report);
@@ -408,7 +409,7 @@ function isUnapproveAction(currentUserLogin: string, currentUserAccountID: numbe
     const isAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;
     const isManager = report.managerID === currentUserAccountID;
 
-    if (isReportSettled || !isExpenseReport || !isReportApproved || isPaymentProcessing || report.isWaitingForCancelledReimbursement) {
+    if (isReportSettled || !isExpenseOrBillReportUtils(report) || !isReportApproved || isPaymentProcessing || report.isWaitingForCancelledReimbursement) {
         return false;
     }
 
@@ -984,6 +985,11 @@ function isDuplicateReportAction(report: Report): boolean {
 function isDuplicateAction(report: Report, reportTransactions: Transaction[]): boolean {
     // Only single transactions are supported for now
     if (reportTransactions.length !== 1) {
+        return false;
+    }
+
+    // Copying an expense from a bill would turn the vendor's expense into the owner's own expense.
+    if (isBillReport(report)) {
         return false;
     }
 

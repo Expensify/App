@@ -14,7 +14,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {isMessageDeleted, isReversedTransaction as isReversedTransactionReportActionsUtils, isTransactionThread} from '@libs/ReportActionsUtils';
-import {isCanceledTaskReport, isExpenseReport, isInvoiceReport, isIOUReport, isSupportTicket, isTaskReport} from '@libs/ReportUtils';
+import {isCanceledTaskReport, isExpenseOrBillReport, isInvoiceReport, isIOUReport, isSupportTicket, isTaskReport} from '@libs/ReportUtils';
 
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
@@ -159,7 +159,7 @@ function ReportActionItemContentCreated({parentReportAction, transactionID, draf
         );
     }
 
-    if (isExpenseReport(report) || isIOUReport(report) || isInvoiceReport(report)) {
+    if (isExpenseOrBillReport(report) || isIOUReport(report) || isInvoiceReport(report)) {
         return (
             <MoneyReportContentCreated
                 report={report}

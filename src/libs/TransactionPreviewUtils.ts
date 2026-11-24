@@ -27,7 +27,7 @@ import {
     isMessageDeleted,
     isMoneyRequestAction,
 } from './ReportActionsUtils';
-import {hasActionWithErrorsForTransaction, hasReceiptError, isExpenseReport, isReportApproved, isSettled} from './ReportUtils';
+import {hasActionWithErrorsForTransaction, hasReceiptError, isExpenseOrBillReport, isReportApproved, isSettled} from './ReportUtils';
 import StringUtils from './StringUtils';
 import {
     getAmount,
@@ -251,7 +251,7 @@ function getTransactionPreviewTextAndTranslationPaths({
     }
 
     if (hasFieldErrors && RBRMessage === undefined) {
-        const isFromExpenseReport = isExpenseReport(iouReport);
+        const isFromExpenseReport = isExpenseOrBillReport(iouReport);
         const amountMissing = isAmountMissing(transaction, isFromExpenseReport);
         const merchantMissing = isFromExpenseReport && isMerchantMissing(transaction);
         if (amountMissing && merchantMissing) {

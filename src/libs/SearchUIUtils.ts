@@ -130,6 +130,7 @@ import {startMoneyRequest} from './actions/IOU/MoneyRequest';
 import {createTransactionThreadReport} from './actions/Report';
 import {getReportActionsFromSearchSnapshot, setOptimisticDataForTransactionThreadPreview} from './actions/Search';
 import {convertAttendeesToArray} from './AttendeeUtils';
+import {isBillReport} from './BillUtils';
 import {getCardFeedsForDisplay} from './CardFeedUtils';
 import {getCardDescriptionForSearchTable, getFeedNameForDisplay, isPersonalCard} from './CardUtils';
 import {getCategoryGLCode, getDecodedCategoryName} from './CategoryUtils';
@@ -4218,20 +4219,24 @@ function getQuarterSections(
 }
 
 /**
- * Chat search returns the actions of every report the user can access, including bills. Bills stay out of Search for
- * every user until Search supports paying bills, so this removes the actions on bills and the previews that link to a bill.
+ * Chat search returns the actions of every report the user can access, including bills and the vendor invoices linked
+ * to them. Bills stay out of Search for every user until Search supports paying bills. The bill receiver must not see
+ * the linked invoice either. So this removes the actions on those reports and the previews that link to them.
+ *
+ * The linked invoice is often only in the search snapshot, so the snapshot's isHiddenForBillReceiver flag decides here.
+ * shouldReportActionBeVisible reads only Onyx reports and can't see that flag.
  */
-function omitBillReportActionRows(rows: ReportActionListItemType[], data: OnyxTypes.SearchResults['data']): ReportActionListItemType[] {
-    const isBill = (reportID: string | undefined) => {
+function omitBillPayReportActionRows(rows: ReportActionListItemType[], data: OnyxTypes.SearchResults['data']): ReportActionListItemType[] {
+    const isOmitted = (reportID: string | undefined) => {
         if (!reportID) {
             return false;
         }
 
         const report = data[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
-        return report?.reportID === reportID && report.type === CONST.REPORT.UNSUPPORTED_TYPE.BILL;
+        return report?.reportID === reportID && (isBillReport(report) || !!report.isHiddenForBillReceiver);
     };
 
-    return rows.filter((row) => !isBill(row.reportID) && !isBill(getIOUReportIDFromReportActionPreview(row)));
+    return rows.filter((row) => !isOmitted(row.reportID) && !isOmitted(getIOUReportIDFromReportActionPreview(row)));
 }
 
 /**
@@ -4268,9 +4273,9 @@ function getSections({
     shouldReturnTripRooms = false,
 }: GetSectionsParams): GetSectionsResult {
     if (type === CONST.SEARCH.DATA_TYPES.CHAT) {
-        // The count keeps the bill actions, because paging compares it with the server offset, which counts them.
+        // The count keeps the omitted bill pay actions, because paging compares it with the server offset, which counts them.
         const [reportActionRows, reportActionCount] = getReportActionsSections(data, reportAttributesDerivedValue, visibleReportActionsData);
-        return [omitBillReportActionRows(reportActionRows, data), reportActionCount, false];
+        return [omitBillPayReportActionRows(reportActionRows, data), reportActionCount, false];
     }
     if (type === CONST.SEARCH.DATA_TYPES.TASK) {
         return [...getTaskSections(data, formatPhoneNumber, translate, conciergeReportID, reportNameValuePairs, reportAttributesDerivedValue, queryJSON), false];

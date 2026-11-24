@@ -92,7 +92,7 @@ import {
     canUserPerformWriteAction as canUserPerformWriteActionReportUtils,
     getTransactionDetails,
     isActionCreator,
-    isExpenseReport,
+    isExpenseOrBillReport,
     isInvoiceReport,
     isOpenReport,
     isReportApproved,
@@ -377,7 +377,7 @@ function MoneyRequestView({
             ? translate('common.reservationNightsWithNightlyRate', {count: reservationNights, nightlyRate: convertToDisplayString(actualAmount / reservationNights, actualCurrency)})
             : '';
 
-    const transactionOriginalAmount = transaction && getOriginalAmountForDisplay(transaction, isExpenseReport(moneyRequestReport));
+    const transactionOriginalAmount = transaction && getOriginalAmountForDisplay(transaction, isExpenseOrBillReport(moneyRequestReport));
     const formattedOriginalAmount = transactionOriginalAmount && transactionOriginalCurrency && convertToDisplayString(transactionOriginalAmount, transactionOriginalCurrency);
     const isFromCardImport = isCardTransactionTransactionUtils(transaction);
     const cardProgramName =
@@ -1897,7 +1897,7 @@ function MoneyRequestView({
                         />
                     </OfflineWithFeedback>
                 )}
-                {!!parentReport && isExpenseReport(parentReport) && !isFromReviewDuplicates && !isFromMergeTransaction && (
+                {!!parentReport && isExpenseOrBillReport(parentReport) && !isFromReviewDuplicates && !isFromMergeTransaction && (
                     <MoneyRequestViewAdditionalFields
                         transaction={transaction}
                         report={parentReport}

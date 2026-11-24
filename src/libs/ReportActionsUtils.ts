@@ -1730,6 +1730,15 @@ function getVisibleReportActionErrors(reportAction: OnyxEntry<ReportAction>): Re
 }
 
 /**
+ * Whether the action previews a vendor invoice that the current user pays through its linked bill. The bill receiver
+ * must not see that invoice in chats, but can still open it directly.
+ */
+function isReportPreviewHiddenForBillReceiver(reportAction: OnyxEntry<ReportAction>): boolean {
+    const linkedReportID = getIOUReportIDFromReportActionPreview(reportAction);
+    return !!linkedReportID && !!getReportOrDraftReport({reportID: linkedReportID})?.isHiddenForBillReceiver;
+}
+
+/**
  * Checks if a reportAction is fit for display, meaning that it's not deprecated, is of a valid
  * and supported type, it's not deleted and also not closed.
  */
@@ -1840,6 +1849,10 @@ function shouldReportActionBeVisible(
     }
 
     if (!isVisiblePreviewOrMoneyRequest(reportAction)) {
+        return false;
+    }
+
+    if (isReportPreviewHiddenForBillReceiver(reportAction)) {
         return false;
     }
 
@@ -2631,17 +2644,12 @@ function getOneTransactionThreadReportAction(
     reportTransactionIDs?: string[],
 ): ReportAction<'IOU'> | undefined {
     // Only reports that hold expenses have expense threads, so other report types never show the one-expense view.
-    if (
-        report?.type !== CONST.REPORT.TYPE.IOU &&
-        report?.type !== CONST.REPORT.TYPE.EXPENSE &&
-        report?.type !== CONST.REPORT.UNSUPPORTED_TYPE.BILL &&
-        report?.type !== CONST.REPORT.TYPE.INVOICE
-    ) {
+    if (report?.type !== CONST.REPORT.TYPE.IOU && report?.type !== CONST.REPORT.TYPE.EXPENSE && report?.type !== CONST.REPORT.TYPE.BILL && report?.type !== CONST.REPORT.TYPE.INVOICE) {
         return;
     }
 
     // Loaded actions can miss some expenses of a bill, so only the count from the server shows that a bill has one expense.
-    if (report?.type === CONST.REPORT.UNSUPPORTED_TYPE.BILL && report.transactionCount !== 1) {
+    if (report?.type === CONST.REPORT.TYPE.BILL && report.transactionCount !== 1) {
         return;
     }
 

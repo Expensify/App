@@ -18,7 +18,7 @@ import {
     chatIncludesChronosWithID,
     isArchivedNonExpenseReport,
     isCanceledTaskReport,
-    isExpenseReport,
+    isExpenseOrBillReport,
     isHarvestCreatedExpenseReport,
     isInvoiceReport,
     isIOUReport,
@@ -126,7 +126,7 @@ function useReportActionsListRenderItem({
             return true;
         }
 
-        return isExpenseReport(report) || isIOUReport(report) || isInvoiceReport(report);
+        return isExpenseOrBillReport(report) || isIOUReport(report) || isInvoiceReport(report);
     })();
 
     const renderItem = ({item: reportAction, index}: ListRenderItemInfo<OnyxTypes.ReportAction>) => {

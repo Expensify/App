@@ -9,7 +9,7 @@ import type {ManuallyEnteredScanFields} from './TransactionUtils';
 
 import {convertToBackendAmount, convertToFrontendAmountAsInteger} from './CurrencyUtils';
 import replaceAllDigits from './replaceAllDigits';
-import {isExpenseReport, isExpenseRequest, isPolicyExpenseChat} from './ReportUtils';
+import {isExpenseOrBillReport, isExpenseRequest, isPolicyExpenseChat} from './ReportUtils';
 import {
     doesMoneyRequestDraftHaveUserInput,
     hasValidModifiedAmount,
@@ -192,7 +192,7 @@ function isMerchantRequired(report: OnyxEntry<Report>, transaction: OnyxEntry<Tr
     if (transaction && isExpenseUnreported(transaction)) {
         return false;
     }
-    return isExpenseReport(report) || isPolicyExpenseChat(report) || isExpenseRequest(report) || !!transaction?.participants?.some((participant) => !!participant.isPolicyExpenseChat);
+    return isExpenseOrBillReport(report) || isPolicyExpenseChat(report) || isExpenseRequest(report) || !!transaction?.participants?.some((participant) => !!participant.isPolicyExpenseChat);
 }
 
 type AmountHasUnsavedChangesParams = {

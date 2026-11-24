@@ -67,7 +67,7 @@ import {
     isChatRoom,
     isChatThread,
     isConciergeChatReport,
-    isExpenseReport,
+    isExpenseOrBillReport,
     isExpenseRequest,
     isHiddenForCurrentUser,
     isInvoiceReport,
@@ -975,7 +975,7 @@ function getOptionData({
     result.isConciergeThread = isChatThread(report) && !!conciergeReportID && report.parentReportID === conciergeReportID;
     result.participants = report.participants;
 
-    const isExpense = isExpenseReport(report);
+    const isExpense = isExpenseOrBillReport(report);
     const hasMultipleParticipants = participantPersonalDetailList.length > 1 || result.isChatRoom || result.isPolicyExpenseChat || isExpense;
     const subtitle = getChatRoomSubtitle(report, policy, conciergeReportID, translate, rules, false, isReportArchived);
 

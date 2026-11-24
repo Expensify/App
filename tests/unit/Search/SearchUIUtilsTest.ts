@@ -3084,13 +3084,13 @@ describe('SearchUIUtils', () => {
                 childReportID: reportID3,
             } as OnyxTypes.ReportAction;
 
-            const getChatSections = (reportType: string) =>
+            const getChatSections = (reportType: string, isHiddenForBillReceiver?: boolean) =>
                 SearchUIUtils.getSections({
                     dateFnsLocale: undefined,
                     type: CONST.SEARCH.DATA_TYPES.CHAT,
                     data: {
                         ...searchResults.data,
-                        [`${ONYXKEYS.COLLECTION.REPORT}${reportID3}`]: {...searchResults.data[`${ONYXKEYS.COLLECTION.REPORT}${reportID3}`], type: reportType},
+                        [`${ONYXKEYS.COLLECTION.REPORT}${reportID3}`]: {...searchResults.data[`${ONYXKEYS.COLLECTION.REPORT}${reportID3}`], type: reportType, isHiddenForBillReceiver},
                         [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID3}`]: {[billComment.reportActionID]: billComment},
                         [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID2}`]: {[billPreview.reportActionID]: billPreview},
                     },
@@ -3108,7 +3108,7 @@ describe('SearchUIUtils', () => {
             it('should leave out comments on a bill and previews that link to a bill', () => {
                 // Given a chat search whose snapshot holds a comment on a bill and a preview of the bill in another chat
                 // When the chat sections are built
-                const [sections] = getChatSections(CONST.REPORT.UNSUPPORTED_TYPE.BILL);
+                const [sections] = getChatSections(CONST.REPORT.TYPE.BILL);
 
                 // Then neither action is listed, because bills stay out of Search until Search supports paying bills
                 const reportActionIDs = sections.filter(SearchUIUtils.isReportActionListItemType).map((item) => item.reportActionID);
@@ -3117,12 +3117,35 @@ describe('SearchUIUtils', () => {
                 expect(reportActionIDs.length).toBeGreaterThan(0);
             });
 
+            it('should leave out comments on an invoice that the bill receiver pays through its bill, and previews that link to it', () => {
+                // Given a chat search whose snapshot holds an invoice that Auth hides from the bill receiver, and that invoice isn't in Onyx
+                // When the chat sections are built
+                const [sections] = getChatSections(CONST.REPORT.TYPE.INVOICE, true);
+
+                // Then neither the comment on the invoice nor its preview is listed, because the bill receiver sees only the bill
+                const reportActionIDs = sections.filter(SearchUIUtils.isReportActionListItemType).map((item) => item.reportActionID);
+                expect(reportActionIDs).not.toContain(billComment.reportActionID);
+                expect(reportActionIDs).not.toContain(billPreview.reportActionID);
+                expect(reportActionIDs.length).toBeGreaterThan(0);
+            });
+
+            it('should list comments on an invoice and its previews when the invoice is not hidden', () => {
+                // Given a chat search whose snapshot holds an invoice that the user can see
+                // When the chat sections are built
+                const [sections] = getChatSections(CONST.REPORT.TYPE.INVOICE, false);
+
+                // Then the comment on the invoice and its preview are listed
+                const reportActionIDs = sections.filter(SearchUIUtils.isReportActionListItemType).map((item) => item.reportActionID);
+                expect(reportActionIDs).toContain(billComment.reportActionID);
+                expect(reportActionIDs).toContain(billPreview.reportActionID);
+            });
+
             it('should still count the bill actions for paging', () => {
                 // Given the same actions on an expense report, which Search lists
                 const [, expenseReportCount] = getChatSections(CONST.REPORT.TYPE.EXPENSE);
 
                 // When the report is a bill instead
-                const [, billCount] = getChatSections(CONST.REPORT.UNSUPPORTED_TYPE.BILL);
+                const [, billCount] = getChatSections(CONST.REPORT.TYPE.BILL);
 
                 // Then the count stays the same, because paging compares it with the server offset, which counts every action
                 expect(billCount).toBe(expenseReportCount);

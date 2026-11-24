@@ -620,7 +620,7 @@ describe('useActionAvatar', () => {
         source: expect.objectContaining({src: 'mock-ConciergeAvatar'}),
     };
     // Bill intake stores a bill's history under its receiver.
-    const billReport: Report = {reportID: BILL_REPORT_ID, type: CONST.REPORT.UNSUPPORTED_TYPE.BILL, ownerAccountID: USER_ACCOUNT_ID, managerID: USER_ACCOUNT_ID};
+    const billReport: Report = {reportID: BILL_REPORT_ID, type: CONST.REPORT.TYPE.BILL, ownerAccountID: USER_ACCOUNT_ID, managerID: USER_ACCOUNT_ID};
     // Bill intake stores the history of an invoice linked to a bill under its vendor.
     const billInvoiceReport: Report = {reportID: BILL_INVOICE_REPORT_ID, type: CONST.REPORT.TYPE.INVOICE, ownerAccountID: MANAGER_ACCOUNT_ID, managerID: USER_ACCOUNT_ID};
 

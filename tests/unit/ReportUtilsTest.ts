@@ -220,6 +220,7 @@ import {
     isReportExportedOrPending,
     isReportFieldDisabled,
     isReportFieldDisabledForUser,
+    isReportFieldTargetMatchingReport,
     isReportManager,
     isReportOutstanding,
     isReportParticipant,
@@ -4158,7 +4159,7 @@ describe('ReportUtils', () => {
             // Given a bill can receive its policy name without the policy record.
             const billReport: Report = {
                 reportID: 'bill-subtitle',
-                type: CONST.REPORT.UNSUPPORTED_TYPE.BILL,
+                type: CONST.REPORT.TYPE.BILL,
                 policyID: 'bill-policy',
                 policyName: 'Bill Policy',
                 ownerAccountID: currentUserAccountID,
@@ -5847,7 +5848,7 @@ describe('ReportUtils', () => {
                 const vendorAccountID = 20;
                 const bill: Report = {
                     ...LHNTestUtils.getFakeReport(),
-                    type: CONST.REPORT.UNSUPPORTED_TYPE.BILL,
+                    type: CONST.REPORT.TYPE.BILL,
                     stateNum: CONST.REPORT.STATE_NUM.OPEN,
                     statusNum: CONST.REPORT.STATUS_NUM.OPEN,
                     policyID: paidPolicy.id,
@@ -10520,7 +10521,7 @@ describe('ReportUtils', () => {
             {isBillPayBetaEnabled: true, expected: true},
         ])('should include a bill only for users with the newDotBillPay beta (isBillPayBetaEnabled: $isBillPayBetaEnabled)', ({isBillPayBetaEnabled, expected}) => {
             // Given a bill with a draft, so the draft alone would include it in the list
-            const report: Report = {...LHNTestUtils.getFakeReport(), type: CONST.REPORT.UNSUPPORTED_TYPE.BILL};
+            const report: Report = {...LHNTestUtils.getFakeReport(), type: CONST.REPORT.TYPE.BILL};
 
             // When the list checks the bill for a user with or without the newDotBillPay beta
             const result = shouldReportBeInOptionList({
@@ -10546,7 +10547,7 @@ describe('ReportUtils', () => {
 
         it('should exclude a bill when the caller does not pass isBillPayBetaEnabled', () => {
             // Given a bill with a draft and a caller that only the LHN beta flag would cover
-            const report: Report = {...LHNTestUtils.getFakeReport(), type: CONST.REPORT.UNSUPPORTED_TYPE.BILL};
+            const report: Report = {...LHNTestUtils.getFakeReport(), type: CONST.REPORT.TYPE.BILL};
 
             // When another option list checks the bill without the flag
             const result = shouldReportBeInOptionList({
@@ -10566,6 +10567,31 @@ describe('ReportUtils', () => {
             });
 
             // Then the bill stays out, so other lists keep hiding bills
+            expect(result).toBe(false);
+        });
+
+        it('should exclude an invoice that is hidden for the bill receiver', () => {
+            // Given an invoice that the receiver pays through its linked bill, even when it is the report the user is viewing
+            const report: Report = {...LHNTestUtils.getFakeReport(), type: CONST.REPORT.TYPE.INVOICE, isHiddenForBillReceiver: true};
+
+            // When the LHN checks the invoice for a user with the newDotBillPay beta
+            const result = shouldReportBeInOptionList({
+                report,
+                chatReport: mockedChatReport,
+                currentReportId: report.reportID,
+                isInFocusMode: false,
+                isDefaultRoomsBetaEnabled: true,
+                isBillPayBetaEnabled: true,
+                doesReportHaveViolations: false,
+                excludeEmptyChats: false,
+                draftComment: 'Draft',
+                isReportArchived: undefined,
+                hasGuidesEmails: false,
+                conciergeReportID: undefined,
+                derivedIsEmptyReport: undefined,
+            });
+
+            // Then the invoice stays out, so the receiver sees only the bill
             expect(result).toBe(false);
         });
 
@@ -12730,8 +12756,8 @@ describe('ReportUtils', () => {
 
     describe('isUnsupportedReportType', () => {
         it.each([
-            {reportType: CONST.REPORT.UNSUPPORTED_TYPE.BILL, isBillPayBetaEnabled: false, expected: true},
-            {reportType: CONST.REPORT.UNSUPPORTED_TYPE.BILL, isBillPayBetaEnabled: true, expected: false},
+            {reportType: CONST.REPORT.TYPE.BILL, isBillPayBetaEnabled: false, expected: true},
+            {reportType: CONST.REPORT.TYPE.BILL, isBillPayBetaEnabled: true, expected: false},
             {reportType: CONST.REPORT.UNSUPPORTED_TYPE.PAYCHECK, isBillPayBetaEnabled: true, expected: true},
             {reportType: CONST.REPORT.TYPE.EXPENSE, isBillPayBetaEnabled: false, expected: false},
             {reportType: undefined, isBillPayBetaEnabled: false, expected: false},
@@ -14407,7 +14433,7 @@ describe('ReportUtils', () => {
                 stateNum: CONST.REPORT.STATE_NUM.OPEN,
                 statusNum: CONST.REPORT.STATUS_NUM.OPEN,
             };
-            const bill: Report = {...expenseReport, type: CONST.REPORT.UNSUPPORTED_TYPE.BILL};
+            const bill: Report = {...expenseReport, type: CONST.REPORT.TYPE.BILL};
 
             // When it's checked if each report is outstanding
             // Then only the expense report is offered as a report to add expenses to, because a bill's expenses come only from the vendor's invoice
@@ -14553,7 +14579,7 @@ describe('ReportUtils', () => {
                 statusNum: CONST.REPORT.STATUS_NUM.OPEN,
                 ownerAccountID: currentUserAccountID,
             };
-            const bill: Report = {...expenseReport, reportID: '10006', type: CONST.REPORT.UNSUPPORTED_TYPE.BILL};
+            const bill: Report = {...expenseReport, reportID: '10006', type: CONST.REPORT.TYPE.BILL};
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`, expenseReport);
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${bill.reportID}`, bill);
 
@@ -26006,6 +26032,40 @@ describe('ReportUtils', () => {
 
             // Then the same call with a login that submits elsewhere is disabled, so the forwarder is not dropping it
             expect(isReportFieldDisabledForUser(report, textField, threadingPolicy, currentUserAccountID, undefined, THREADING_SUBMITTER_ELSEWHERE)).toBe(true);
+        });
+    });
+
+    describe('isReportFieldTargetMatchingReport', () => {
+        const getField = (fieldID: string): PolicyReportField => ({
+            fieldID,
+            name: 'Field',
+            type: CONST.REPORT_FIELD_TYPES.TEXT,
+            defaultValue: '',
+            deletable: true,
+            target: CONST.POLICY.DEFAULT_FIELD_LIST_TARGET,
+            values: [],
+            keys: [],
+            externalIDs: [],
+            disabledOptions: [],
+            orderWeight: 1,
+            isTax: false,
+        });
+        const bill: Report = {reportID: '1', type: CONST.REPORT.TYPE.BILL};
+
+        it('matches the title field on a bill, so the approver can rename the bill', () => {
+            // Given the policy title field, which targets expense reports
+
+            // When we check it against a bill
+            // Then it matches, because a bill is renamed like an expense report
+            expect(isReportFieldTargetMatchingReport(bill, getField(CONST.REPORT_FIELD_TITLE_FIELD_ID))).toBe(true);
+        });
+
+        it('does not match other expense report fields on a bill', () => {
+            // Given a custom policy report field for expense reports
+
+            // When we check it against a bill
+            // Then it doesn't match, because bills don't show policy report fields
+            expect(isReportFieldTargetMatchingReport(bill, getField('text_customField'))).toBe(false);
         });
     });
 

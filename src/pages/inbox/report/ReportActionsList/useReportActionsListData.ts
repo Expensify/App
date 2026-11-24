@@ -1,5 +1,5 @@
 import {getReportActionMessage, isTransactionThread} from '@libs/ReportActionsUtils';
-import {isExpenseReport, isIOUReport, isInvoiceReport} from '@libs/ReportUtils';
+import {isExpenseOrBillReport, isIOUReport, isInvoiceReport} from '@libs/ReportUtils';
 
 import {useConciergeDraft, useConciergeDraftActions} from '@pages/inbox/ConciergeDraftContext';
 import {useReportActionsListState} from '@pages/inbox/report/ReportActionsListContext';
@@ -35,7 +35,7 @@ function useReportActionsListData({sortedVisibleReportActions, sessionStartTime,
         shouldHideDraft,
     });
 
-    const shouldCollapseSystemMessages = isExpenseReport(report) || isIOUReport(report) || isInvoiceReport(report) || isTransactionThread(parentReportAction);
+    const shouldCollapseSystemMessages = isExpenseOrBillReport(report) || isIOUReport(report) || isInvoiceReport(report) || isTransactionThread(parentReportAction);
     const {
         displayReportActions,
         runsByAnchorReportActionID,

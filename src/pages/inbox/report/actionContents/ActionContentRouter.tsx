@@ -58,7 +58,7 @@ import {
     isTaskAction,
     isTripPreview,
 } from '@libs/ReportActionsUtils';
-import {getMovedActionMessage, isExpenseReport, isInvoiceReport} from '@libs/ReportUtils';
+import {getMovedActionMessage, isExpenseOrBillReport, isInvoiceReport} from '@libs/ReportUtils';
 
 import ReportActionItemBasicMessage from '@pages/inbox/report/ReportActionItemBasicMessage';
 
@@ -535,7 +535,7 @@ function ActionContentRouter({
         );
     }
     if (isRenamedAction(action)) {
-        return <ReportActionItemBasicMessage message={getRenamedAction(translate, action, isExpenseReport(report))} />;
+        return <ReportActionItemBasicMessage message={getRenamedAction(translate, action, isExpenseOrBillReport(report))} />;
     }
     if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.INTEGRATION_SYNC_FAILED)) {
         return (

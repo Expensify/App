@@ -16,6 +16,7 @@ import type {ValueOf} from 'type-fest';
 import {addMonths, format, isPast, parseISO, setDate} from 'date-fns';
 import {Str} from 'expensify-common';
 
+import {isBillReport} from './BillUtils';
 import DateUtils from './DateUtils';
 import Log from './Log';
 import {
@@ -37,7 +38,7 @@ import {
     getMoneyRequestSpendBreakdown,
     getNextApproverAccountID,
     getReasonAndReportActionThatRequiresAttention,
-    isExpenseReport,
+    isExpenseOrBillReport,
     isInvoiceReport,
     isOpenExpenseReport,
     isPayer,
@@ -186,7 +187,7 @@ function buildNextStepMessage(
     const requiredDepositCurrency = nextStep.requiredDepositCurrency ? Str.htmlEncode(nextStep.requiredDepositCurrency) : undefined;
 
     // Auth sends the same approve and pay next steps for bills and expense reports, so the report type picks the wording.
-    const isBill = reportType === CONST.REPORT.UNSUPPORTED_TYPE.BILL;
+    const isBill = reportType === CONST.REPORT.TYPE.BILL;
 
     const message = translate(`nextStep.message.${nextStep.messageKey}`, {actor, actorType, eta, etaType, requiredDepositCurrency, isBill});
     if (!message) {
@@ -221,7 +222,7 @@ function buildOptimisticNextStep(params: BuildOptimisticNextStepParams): ReportN
         personalDetailsByLogins,
     } = params;
 
-    if (!isExpenseReport(report)) {
+    if (!isExpenseOrBillReport(report)) {
         return null;
     }
 
@@ -391,7 +392,10 @@ function buildOptimisticNextStep(params: BuildOptimisticNextStepParams): ReportN
 
             // The server returns no further action for approved reports on workspaces that reimburse outside Expensify (Indirect)
             const isReimbursementManual = reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL;
-            if (isInvoiceReport(report) || reimbursableSpend === 0 || isReimbursementDisabled || isReimbursementManual) {
+
+            // Bills still wait for the payer, because manual reimbursement only skips expense reports.
+            const shouldSkipPayment = isReimbursementManual && !isBillReport(report);
+            if (isInvoiceReport(report) || reimbursableSpend === 0 || isReimbursementDisabled || shouldSkipPayment) {
                 nextStep = nextStepNoActionRequired;
                 break;
             }

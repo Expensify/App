@@ -22,6 +22,7 @@ import {
     getParentReport,
     getPolicyName,
     getReportOrDraftReport,
+    isExpenseOrBillReport,
     isExpenseReport,
     isInvoiceReport,
     isNewDotInvoice,
@@ -294,7 +295,7 @@ function getMoneyRequestReportName({
         }
     }
 
-    if (report?.reportName && isExpenseReport(report)) {
+    if (report?.reportName && isExpenseOrBillReport(report)) {
         return report.reportName;
     }
 
@@ -302,7 +303,7 @@ function getMoneyRequestReportName({
     const formattedAmount = convertToDisplayString(moneyRequestTotal, report?.currency);
 
     let payerOrApproverName;
-    if (isExpenseReport(report)) {
+    if (isExpenseOrBillReport(report)) {
         const parentReport = getParentReport(report);
         payerOrApproverName = getPolicyName({report: parentReport ?? report, policy, unavailableTranslation: translate('workspace.common.unavailable')});
     } else if (isInvoiceReport(report)) {
