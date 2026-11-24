@@ -1,11 +1,15 @@
-import {act, render, screen} from '@testing-library/react-native';
+import {act, fireEvent, render, screen} from '@testing-library/react-native';
 
 import ComposeProviders from '@components/ComposeProviders';
 import {CurrencyListContextProvider} from '@components/CurrencyListContextProvider';
 import {CurrentUserPersonalDetailsProvider} from '@components/CurrentUserPersonalDetailsProvider';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
+import MenuItem from '@components/MenuItem';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import TripRoomPreview from '@components/ReportActionItem/TripRoomPreview';
+
+import getReportRouteForCurrentContext from '@libs/Navigation/helpers/getReportRouteForCurrentContext';
+import Navigation from '@libs/Navigation/Navigation';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -103,6 +107,28 @@ describe('TripRoomPreview', () => {
         // Then the header counts the two bookings, the unit approvers decide on
         expect(screen.getByText(/2 bookings/)).toBeOnTheScreen();
         expect(screen.queryByText(/4 trips/)).not.toBeOnTheScreen();
+    });
+
+    it.each([false, true])('keeps trip row navigation and card backgrounds with travel approval=%s', async (isTravelApprovalEnabled) => {
+        // Given the trip preview can render either booking rows or individual reservation rows.
+        await setUpTrip({accountID: TRAVELER_ACCOUNT_ID, betas: isTravelApprovalEnabled ? [CONST.BETAS.TRAVEL_APPROVAL] : []});
+        const navigate = jest.spyOn(Navigation, 'navigate').mockImplementation(() => {});
+        renderPreview();
+        await waitForBatchedUpdatesWithAct();
+        const rows = screen.UNSAFE_getAllByType(MenuItem.Root);
+
+        // When a composed preview row is activated.
+        const first = rows.at(0);
+        if (!first) {
+            throw new Error('Expected a trip preview row');
+        }
+        fireEvent.press(first, {nativeEvent: {}});
+
+        // Then it opens the trip without introducing independent hover/press backgrounds.
+        expect(rows).toHaveLength(isTravelApprovalEnabled ? 2 : 4);
+        expect(rows.every(({props}) => props.shouldRemoveBackground === true)).toBe(true);
+        expect(navigate).toHaveBeenCalledWith(getReportRouteForCurrentContext({reportID: TRIP_ROOM_ID}));
+        navigate.mockRestore();
     });
 
     it('keeps counting flight legs without travel approval', async () => {

@@ -1,13 +1,17 @@
-import {render, screen} from '@testing-library/react-native';
+import {fireEvent, render, screen} from '@testing-library/react-native';
 
+import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import {ReservationView} from '@components/ReportActionItem/TripDetailsView';
 
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
+import Navigation from '@libs/Navigation/Navigation';
 import StringUtils from '@libs/StringUtils';
 import {getTripReservationCode} from '@libs/TripReservationUtils';
 
 import HotelTripDetails from '@pages/Travel/HotelTripDetails';
 
 import CONST from '@src/CONST';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 
 jest.mock('@hooks/useScreenWrapperTransitionStatus', () => ({
     __esModule: true,
@@ -18,6 +22,7 @@ jest.mock('@hooks/useScreenWrapperTransitionStatus', () => ({
 
 const mockReservationData = {
     reservation: {
+        reservationID: 'reservation-1',
         cancellationDeadline: '2025-04-02T19:00:00-05:00',
         cancellationPolicy: CONST.CANCELLATION_POLICY.PARTIALLY_REFUNDABLE,
         confirmations: [
@@ -60,10 +65,41 @@ describe('ReservationAddressTest', () => {
                 tripRoomReportID={mockReservationData.reportID}
                 sequenceIndex={mockReservationData.sequenceIndex}
             />,
+            {wrapper: OnyxListItemProvider},
         );
 
         const expectedAddress = `${getTripReservationCode(mockReservationData.reservation)}${StringUtils.removeDoubleQuotes(mockReservationData.reservation.start.address)}`;
         expect(screen.getByTestId(CONST.RESERVATION_ADDRESS_TEST_ID)).toHaveTextContent(expectedAddress);
+    });
+
+    it('keeps the reservation row linked to its exact trip detail route', () => {
+        // Given a reservation with transaction, report and sequence identifiers.
+        const navigate = jest.spyOn(Navigation, 'navigate').mockImplementation(() => {});
+        render(
+            <ReservationView
+                reservation={mockReservationData.reservation}
+                transactionID={mockReservationData.transactionID}
+                tripRoomReportID={mockReservationData.reportID}
+                sequenceIndex={mockReservationData.sequenceIndex}
+            />,
+            {wrapper: OnyxListItemProvider},
+        );
+
+        // When the reservation row is activated.
+        fireEvent.press(screen.getByRole('button'), {nativeEvent: {}});
+
+        // Then migration does not change the reservation editor destination or its arguments.
+        expect(navigate).toHaveBeenCalledWith(
+            createDynamicRoute(
+                DYNAMIC_ROUTES.TRAVEL_TRIP_DETAILS.getRoute(
+                    mockReservationData.reportID,
+                    mockReservationData.transactionID,
+                    mockReservationData.reservation.reservationID,
+                    mockReservationData.sequenceIndex,
+                ),
+            ),
+        );
+        navigate.mockRestore();
     });
 
     it('HotelTripDetails should render the reservation address without double quotes', () => {
