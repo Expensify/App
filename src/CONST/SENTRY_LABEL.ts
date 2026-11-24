@@ -19,6 +19,9 @@ const SENTRY_LABEL = {
     },
     DYNAMIC_FORM: {
         TABS_ITEM: 'DynamicForm-TabsItem',
+        CHOICE_FIELD: 'DynamicForm-ChoiceField',
+        CHOICE_FIELD_BACK: 'DynamicForm-ChoiceFieldBack',
+        CHOICE_FIELD_APPLY: 'DynamicForm-ChoiceFieldApply',
         TOGGLE_LINK: 'DynamicForm-ToggleLink',
         LINK_ROW: 'DynamicForm-LinkRow',
         FILE_TYPE_MENU_ITEM: 'DynamicForm-FileTypeMenuItem',
@@ -100,6 +103,7 @@ const SENTRY_LABEL = {
         TEST_CRASH: 'TestToolMenu-TestCrash',
         DEBUG_MODE_SWITCH: 'TestToolMenu-DebugModeSwitch',
         SHOW_BRANCH_NAME_SWITCH: 'TestToolMenu-ShowBranchNameSwitch',
+        HIDE_ENVIRONMENT_BADGE_SWITCH: 'TestToolMenu-HideEnvironmentBadgeSwitch',
         FORCE_OFFLINE_SWITCH: 'TestToolMenu-ForceOfflineSwitch',
         SIMULATE_POOR_CONNECTION_SWITCH: 'TestToolMenu-SimulatePoorConnectionSwitch',
         SIMULATE_FAILING_REQUESTS_SWITCH: 'TestToolMenu-SimulateFailingRequestsSwitch',
@@ -107,6 +111,8 @@ const SENTRY_LABEL = {
         SENTRY_DEBUG_SWITCH: 'TestToolMenu-SentryDebugSwitch',
         BIOMETRICS_TEST: 'TestToolMenu-BiometricsTest',
         BIOMETRICS_REVOKE: 'TestToolMenu-BiometricsRevoke',
+        ADD_TEST_BUSINESS_BANK_ACCOUNT: 'TestToolMenu-AddTestBusinessBankAccount',
+        ADD_TEST_PERSONAL_BANK_ACCOUNT: 'TestToolMenu-AddTestPersonalBankAccount',
     },
     BILLING_BANNER: {
         RIGHT_ICON: 'BillingBanner-RightIcon',
@@ -1745,6 +1751,7 @@ const SENTRY_LABEL = {
         SCAN: {
             MULTI_SCAN: 'Scan-MultiScan',
             FLASH: 'Scan-Flash',
+            RECEIPT_ENHANCEMENT: 'Scan-ReceiptEnhancement',
             CHOOSE_FILE: 'Scan-ChooseFile',
             CHOOSE_FILES: 'Scan-ChooseFiles',
             SHUTTER: 'Scan-Shutter',

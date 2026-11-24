@@ -3,6 +3,7 @@
  * selection until the user applies it to the draft expense.
  */
 import AttendeePickerModal from '@components/AttendeePicker/AttendeePickerModal';
+import type {DropdownFieldRenderProps} from '@components/DropdownField';
 
 import useOnyx from '@hooks/useOnyx';
 import useReportOwnerAsAttendee from '@hooks/useReportOwnerAsAttendee';
@@ -17,9 +18,7 @@ import type {Attendee} from '@src/types/onyx/IOU';
 import {deepEqual} from 'fast-equals';
 import React, {useState} from 'react';
 
-import type {ExpenseFieldDropdownRenderProps} from './ExpenseFieldDropdown';
-
-type AttendeeFieldDropdownProps = ExpenseFieldDropdownRenderProps & {
+type AttendeeFieldDropdownProps = DropdownFieldRenderProps & {
     /** ID of the draft expense the attendees are written to */
     transactionID: string;
 

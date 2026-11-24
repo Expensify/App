@@ -13,7 +13,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import {getPerDiemNameError, getPerDiemNameErrorMessage} from '@libs/PolicyPerDiemUtils';
+import {getAvailablePerDiemRate, getPerDiemNameError, getPerDiemNameErrorMessage} from '@libs/PolicyPerDiemUtils';
 import {getPerDiemCustomUnit} from '@libs/PolicyUtils';
 import StringUtils from '@libs/StringUtils';
 
@@ -44,7 +44,7 @@ function EditPerDiemSubratePage({route}: EditPerDiemSubratePageProps) {
 
     const customUnit = getPerDiemCustomUnit(policy);
 
-    const selectedRate = customUnit?.rates?.[rateID];
+    const selectedRate = getAvailablePerDiemRate(customUnit?.rates?.[rateID]);
     const selectedSubrate = selectedRate?.subRates?.find((subRate) => subRate.id === subRateID);
 
     const {inputCallbackRef} = useAutoFocusInput(true);

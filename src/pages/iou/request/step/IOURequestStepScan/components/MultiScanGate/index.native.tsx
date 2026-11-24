@@ -3,14 +3,15 @@ import {MultiScanProvider} from '@pages/iou/request/step/IOURequestStepScan/comp
 import React from 'react';
 
 type MultiScanGateProps = {
+    iouRequestType: string | undefined;
     children: React.ReactNode;
 };
 
 /**
  * Native gate — always renders MultiScanProvider since multi-scan is available on native.
  */
-function MultiScanGate({children}: MultiScanGateProps) {
-    return <MultiScanProvider>{children}</MultiScanProvider>;
+function MultiScanGate({iouRequestType, children}: MultiScanGateProps) {
+    return <MultiScanProvider iouRequestType={iouRequestType}>{children}</MultiScanProvider>;
 }
 
 export default MultiScanGate;

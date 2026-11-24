@@ -18,7 +18,7 @@ import {assignReportToMe} from '@libs/actions/IOU/ReportWorkflow';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {ReportChangeApproverParamList} from '@libs/Navigation/types';
-import {isControlPolicy, isPendingDeletePolicy, isPolicyAdmin} from '@libs/PolicyUtils';
+import {hasDynamicExternalWorkflow, isControlPolicy, isPendingDeletePolicy, isPolicyAdmin} from '@libs/PolicyUtils';
 import {hasViolations as hasViolationsReportUtils, isAllowedToApproveExpenseReport, isMoneyRequestReport, isMoneyRequestReportPendingDeletion, isProcessingReport} from '@libs/ReportUtils';
 
 import CONST from '@src/CONST';
@@ -48,6 +48,20 @@ type ApproverType = ValueOf<typeof APPROVER_TYPE>;
 
 type DynamicReportChangeApproverPageProps = WithReportOrNotFoundProps & PlatformStackScreenProps<ReportChangeApproverParamList, typeof SCREENS.REPORT_CHANGE_APPROVER.DYNAMIC_ROOT>;
 
+/**
+ * Returns the approver type the picker should select. When the user's choice is no longer offered, it falls back to the first
+ * Add or Reassign option. It never falls back to Bypass, because confirming Bypass approves the report, so the user must pick it.
+ */
+function getSelectedApproverType({approverTypes, selectedApproverType}: {approverTypes: Array<{keyForList: ApproverType}>; selectedApproverType: ApproverType}): ApproverType | undefined {
+    if (approverTypes.some(({keyForList}) => keyForList === selectedApproverType)) {
+        return selectedApproverType;
+    }
+
+    return approverTypes.find(({keyForList}) => keyForList !== APPROVER_TYPE.BYPASS_APPROVER)?.keyForList;
+}
+
+export {getSelectedApproverType};
+
 function DynamicReportChangeApproverPage({report, policy, isLoadingReportData}: DynamicReportChangeApproverPageProps) {
     const {translate, formatPhoneNumber} = useLocalize();
     const styles = useThemeStyles();
@@ -63,20 +77,52 @@ function DynamicReportChangeApproverPage({report, policy, isLoadingReportData}: 
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.REPORT_CHANGE_APPROVER.path);
+    const isDEWEnabled = hasDynamicExternalWorkflow(policy);
 
     const isApprovalEnabled = !!policy?.approvalMode && policy.approvalMode !== CONST.POLICY.APPROVAL_MODE.OPTIONAL;
     // Members only have the reassignment action, so its destination must still be available.
     const canMemberReassignApprover =
         !isLoadingSecurityGroup && !areStrictPolicyRulesEnabled && currentUserDetails.accountID === report?.managerID && isProcessingReport(report) && isApprovalEnabled;
     const hasAdminPermission = isPolicyAdmin(policy);
-    const approverType = hasAdminPermission ? selectedApproverType : APPROVER_TYPE.REASSIGN_APPROVER;
 
     const goBack = () => {
         Navigation.goBack(backPath);
     };
 
+    const data: Array<ListItem<ApproverType>> = [];
+    if (hasAdminPermission && !isDEWEnabled) {
+        data.push({
+            text: translate('iou.changeApprover.actions.addApprover'),
+            keyForList: APPROVER_TYPE.ADD_APPROVER,
+            alternateText: translate('iou.changeApprover.actions.addApproverSubtitle'),
+            isSelected: false,
+        });
+    }
+    if (hasAdminPermission && isAllowedToApproveExpenseReport(report, currentUserDetails.accountID, policy)) {
+        data.push({
+            text: translate('iou.changeApprover.actions.bypassApprovers'),
+            keyForList: APPROVER_TYPE.BYPASS_APPROVER,
+            alternateText: translate('iou.changeApprover.actions.bypassApproversSubtitle'),
+            isSelected: false,
+        });
+    }
+    if ((hasAdminPermission || canMemberReassignApprover) && !isPendingDeletePolicy(policy) && !isDEWEnabled) {
+        data.push({
+            text: translate('iou.changeApprover.actions.reassignApprover'),
+            keyForList: APPROVER_TYPE.REASSIGN_APPROVER,
+            alternateText: translate('iou.changeApprover.actions.reassignApproverSubtitle'),
+            isSelected: false,
+        });
+    }
+    const activeApproverType = getSelectedApproverType({approverTypes: data, selectedApproverType});
+    const approverTypes = data.map((item) => ({...item, isSelected: item.keyForList === activeApproverType}));
+
     const changeApprover = () => {
-        if (approverType === APPROVER_TYPE.ADD_APPROVER) {
+        if (!activeApproverType) {
+            return;
+        }
+
+        if (activeApproverType === APPROVER_TYPE.ADD_APPROVER) {
             if (policy && !isControlPolicy(policy)) {
                 Navigation.navigate(
                     ROUTES.WORKSPACE_UPGRADE.getRoute(
@@ -90,7 +136,7 @@ function DynamicReportChangeApproverPage({report, policy, isLoadingReportData}: 
             Navigation.navigate(ROUTES.REPORT_CHANGE_APPROVER_ADD_APPROVER.getRoute(report.reportID));
             return;
         }
-        if (approverType === APPROVER_TYPE.REASSIGN_APPROVER) {
+        if (activeApproverType === APPROVER_TYPE.REASSIGN_APPROVER) {
             Navigation.navigate(ROUTES.REPORT_CHANGE_APPROVER_REASSIGN_APPROVER.getRoute(report.reportID));
             return;
         }
@@ -99,44 +145,19 @@ function DynamicReportChangeApproverPage({report, policy, isLoadingReportData}: 
         Navigation.dismissToPreviousRHP();
     };
 
-    const data: Array<ListItem<ApproverType>> = [];
-    if (hasAdminPermission) {
-        data.push({
-            text: translate('iou.changeApprover.actions.addApprover'),
-            keyForList: APPROVER_TYPE.ADD_APPROVER,
-            alternateText: translate('iou.changeApprover.actions.addApproverSubtitle'),
-            isSelected: approverType === APPROVER_TYPE.ADD_APPROVER,
-        });
-    }
-    if (hasAdminPermission && isAllowedToApproveExpenseReport(report, currentUserDetails.accountID, policy)) {
-        data.push({
-            text: translate('iou.changeApprover.actions.bypassApprovers'),
-            keyForList: APPROVER_TYPE.BYPASS_APPROVER,
-            alternateText: translate('iou.changeApprover.actions.bypassApproversSubtitle'),
-            isSelected: approverType === APPROVER_TYPE.BYPASS_APPROVER,
-        });
-    }
-    if ((hasAdminPermission || canMemberReassignApprover) && !isPendingDeletePolicy(policy)) {
-        data.push({
-            text: translate('iou.changeApprover.actions.reassignApprover'),
-            keyForList: APPROVER_TYPE.REASSIGN_APPROVER,
-            alternateText: translate('iou.changeApprover.actions.reassignApproverSubtitle'),
-            isSelected: approverType === APPROVER_TYPE.REASSIGN_APPROVER,
-        });
-    }
-    const approverTypes = data;
-
     const shouldShowNotFoundView =
         (isEmptyObject(policy) && !isLoadingReportData) ||
         (!hasAdminPermission && !canMemberReassignApprover) ||
         isPendingDeletePolicy(policy) ||
         !isMoneyRequestReport(report) ||
-        isMoneyRequestReportPendingDeletion(report);
+        isMoneyRequestReportPendingDeletion(report) ||
+        approverTypes.length === 0;
 
     const confirmButtonOptions = {
         showButton: true,
         text: translate('iou.changeApprover.title'),
         onConfirm: changeApprover,
+        isDisabled: !activeApproverType,
     };
 
     const listHeader = (
@@ -172,7 +193,7 @@ function DynamicReportChangeApproverPage({report, policy, isLoadingReportData}: 
                 confirmButtonOptions={confirmButtonOptions}
                 shouldUpdateFocusedIndex
                 customListHeader={listHeader}
-                initiallyFocusedItemKey={approverType}
+                initiallyFocusedItemKey={activeApproverType}
             />
         </ScreenWrapper>
     );

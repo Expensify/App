@@ -12,6 +12,7 @@ import {
     Logging,
     Pagination,
     Reauthentication,
+    ReceiptTelemetry,
     RecordFullReconnectTime,
     ReconcileBulkEditReportAction,
     ReplaceOptimisticAgentAccountID,
@@ -32,6 +33,7 @@ jest.mock('@libs/Request', () => ({
 
 const EXPECTED_ORDER: RequestModule.Middleware[] = [
     Logging,
+    ReceiptTelemetry,
     LoadTest,
     FailureTracking,
     Reauthentication,
@@ -64,9 +66,9 @@ describe('Middleware registration', () => {
         expect(registered).toEqual(EXPECTED_ORDER);
     });
 
-    it('registers all 19 middlewares with no duplicates', () => {
-        expect(registered).toHaveLength(19);
-        expect(new Set(registered).size).toBe(19);
+    it('registers all 20 middlewares with no duplicates', () => {
+        expect(registered).toHaveLength(20);
+        expect(new Set(registered).size).toBe(20);
     });
 
     it('keeps SaveResponseInOnyx after every other Onyx-writing middleware and before FraudMonitoring', () => {
