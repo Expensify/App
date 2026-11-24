@@ -183,6 +183,7 @@ export type {default as RemovePolicyReceiptPartnersConnectionParams} from './Rem
 export type {default as SyncPolicyToQuickbooksDesktopParams} from './SyncPolicyToQuickbooksDesktopParams';
 export type {default as DeleteContactMethodParams} from './DeleteContactMethodParams';
 export type {default as DeletePaymentBankAccountParams} from './DeletePaymentBankAccountParams';
+export type {default as CreateTestBankAccountParams} from './CreateTestBankAccountParams';
 export type {default as DeletePaymentCardParams} from './DeletePaymentCardParams';
 export type {default as DeletePersonalCardParams} from './DeletePersonalCardParams';
 export type {default as TogglePolicyUberAutoInvitePageParams} from './TogglePolicyUberAutoInvitePageParams';

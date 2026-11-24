@@ -35,7 +35,7 @@ import PeekSurfaceContext from './PeekSurfaceContext';
 import {
     useSearchSidebarCollapse,
     useSearchSidebarCollapseFadeStyle,
-    useSearchSidebarLayoutWidthStyle,
+    useSearchSidebarDockedWidthStyle,
     useSearchSidebarToggleButtonStyle,
     useSearchSidebarVisualWidthStyle,
 } from './SearchSidebarCollapseStore';
@@ -54,7 +54,7 @@ function SearchSidebar({state}: SearchSidebarProps) {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const shouldUseFlatNavigationBar = useShouldUseFlatNavigationBar();
     const {isCollapsed, toggleSidebar, startPeek, endPeek} = useSearchSidebarCollapse();
-    const layoutSpacerStyle = useSearchSidebarLayoutWidthStyle();
+    const dockedWidthStyle = useSearchSidebarDockedWidthStyle();
     const visualSidebarWidthStyle = useSearchSidebarVisualWidthStyle();
     const breadcrumbAnimatedStyle = useSearchSidebarCollapseFadeStyle();
     const toggleButtonAnimatedStyle = useSearchSidebarToggleButtonStyle();
@@ -124,7 +124,7 @@ function SearchSidebar({state}: SearchSidebarProps) {
 
     return (
         <PeekSurfaceContext.Provider value={{endPeekIfPointerLeft}}>
-            <Animated.View style={layoutSpacerStyle}>
+            <Animated.View style={[styles.stickToLeft, dockedWidthStyle]}>
                 <Hoverable
                     ref={sidebarRef}
                     onHoverOut={endPeek}

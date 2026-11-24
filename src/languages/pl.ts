@@ -602,6 +602,7 @@ const translations: TranslationDeepObject<typeof en> = {
             other: (count: number) => `${formattedCount ?? count} minuty`,
         }),
         amount: 'Kwota',
+        submitter: 'Zgłaszający',
     },
     socials: {
         podcast: 'Śledź nas na Podcast',
@@ -708,6 +709,14 @@ const translations: TranslationDeepObject<typeof en> = {
         launching: 'Uruchamianie Expensify',
         expired: 'Twoja sesja wygasła.',
         signIn: 'Zaloguj się ponownie.',
+        notValid: 'Nieprawidłowy link.',
+        sessionMismatch: 'Link, który kliknąłeś, nie jest ważny dla twojej bieżącej sesji.',
+        switchAccount: {
+            title: 'Przełączyć konto?',
+            prompt: ({newEmail, currentEmail}: {newEmail: string; currentEmail: string}) => `Jesteś zalogowany jako ${currentEmail}. Ta akcja zaloguje cię zamiast tego jako ${newEmail}.`,
+            confirm: 'Przełącz konta',
+            staySignedIn: 'Nie przełączaj kont',
+        },
     },
     multifactorAuthentication: {
         reviewTransaction: {
@@ -1033,6 +1042,7 @@ const translations: TranslationDeepObject<typeof en> = {
     },
     supportalSwitcher: {
         title: 'Supportal na inne konto',
+        navigationLabel: 'Supportal',
         emailLabel: 'Adres e-mail',
         reasonLabel: 'Powód logowania do pomocy',
         reasonHint: 'Nie znaleziono ostatnich zgłoszeń dla tego konta.',
@@ -1272,6 +1282,8 @@ const translations: TranslationDeepObject<typeof en> = {
     },
     insightsPage: {
         tagLevel: (level: string) => `Poziom tagu ${level}`,
+        noTaggedExpenses: 'Brak wydatków z tagami',
+        noExpensesForTagLevel: (tagLevelName: string) => `Brak wydatków dla ${tagLevelName} w tym zakresie dat.`,
         tagLevelLabel: 'Poziom tagu',
         parent: 'Rodzic',
         shareOfTotal: 'Udział w całości (%)',
@@ -1951,6 +1963,12 @@ const translations: TranslationDeepObject<typeof en> = {
             debitedAmount: 'Pobrana kwota',
             employeeReceived: 'Pracownik otrzymał',
             payAll: 'Zapłać wszystko',
+            fxRateExpiredTitle: 'Kurs wymiany wygasł',
+            fxRatesExpiredTitle: 'Kursy wymiany wygasły',
+            fxRateExpiredPrompt: 'Sprawdź najnowszy kurs przed zapłatą.',
+            fxRatesExpiredPrompt: 'Sprawdź najnowsze kursy przed zapłatą.',
+            getLatestRate: 'Pobierz najnowszy kurs',
+            getLatestRates: 'Pobierz najnowsze kursy',
             reportCount: ({count}: {count: number}) => ({
                 one: '1 raport',
                 few: `${count} raporty`,
@@ -2377,6 +2395,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 }
                 return `Oczekiwanie na zakończenie przetwarzania anulowanej płatności${formattedETA}.`;
             },
+            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_PAYMENT_REVIEW]: (params: ReportNextStepMessageParams) => `Płatność wstrzymana, poczekaj na kolejną aktualizację.`,
             [CONST.NEXT_STEP.MESSAGE_KEY.SUBMITTING_TO_SELF]: (params: ReportNextStepMessageParams) =>
                 `Ups! Wygląda na to, że wysyłasz zgłoszenie <strong>do siebie</strong>. Zatwierdzanie własnych raportów jest <strong>zabronione</strong> w twoim workspace. Wyślij ten raport do kogoś innego albo skontaktuj się z administratorem, żeby zmienić osobę, do której wysyłasz.`,
             [CONST.NEXT_STEP.MESSAGE_KEY.REJECTED_REPORT]: ({actor, actorType}: ReportNextStepMessageParams) => {
@@ -2607,6 +2626,8 @@ const translations: TranslationDeepObject<typeof en> = {
             leftHandNavCache: 'Pamięć podręczna lewego panelu nawigacji',
             clearleftHandNavCache: 'Wyczyść',
             softKillTheApp: 'Miękko zamknij aplikację',
+            testBusinessBankAccount: 'Przetestuj firmowe konto bankowe w USD',
+            testPersonalBankAccount: 'Testowe osobiste konto bankowe w USD',
             kill: 'Zabij',
             sentryDebug: 'Debugowanie Sentry',
             sentrySendDescription: 'Wysyłaj dane do Sentry',
@@ -2614,6 +2635,7 @@ const translations: TranslationDeepObject<typeof en> = {
             sentryHighlightedSpanOps: 'Wyróżnione nazwy zakresów',
             sentryHighlightedSpanOpsPlaceholder: 'kliknięcie interfejsu, nawigacja, ładowanie interfejsu',
             showBranchNameInTitle: 'Pokaż nazwę gałęzi w tytule przeglądarki',
+            hideEnvironmentBadge: 'Ukryj znaczek środowiska',
             betaOverrides: 'Nadpisywanie bet',
             betaOverridesDescription:
                 'Nadpisywanie działa tylko na tym urządzeniu i tylko po stronie frontendu. Beta zachowuje nadpisanie tylko wtedy, gdy różni się od bet z Twojego konta, więc przełączenie jej z powrotem usuwa nadpisanie. „Zresetuj wszystkie nadpisania” przywraca wartości z Twojego konta. Niektóre bety są też kontrolowane przez backend, więc mogą w pełni nie działać zwłaszcza przy żądaniach wysyłanych do backendu.',
@@ -3074,16 +3096,6 @@ const translations: TranslationDeepObject<typeof en> = {
             business: {
                 title: 'Wpisz dane firmy',
                 legalName: 'Prawna nazwa firmy',
-                companyType: 'Typ firmy',
-                companyTypeLimitedLiabilityCompany: 'Spółka z ograniczoną odpowiedzialnością (LLC)',
-                companyTypeForProfitCorporation: 'Korporacja nastawiona na zysk',
-                companyTypeNonProfitCorporation: 'Korporacja non-profit',
-                companyTypeSoleProprietorship: 'Jednoosobowa działalność gospodarcza',
-                companyTypeGeneralPartnership: 'Spółka jawna',
-                companyTypeLimitedPartnership: 'Spółka komandytowa',
-                companyTypeLimitedLiabilityPartnership: 'Spółka partnerska z ograniczoną odpowiedzialnością (LLP)',
-                companyTypeTrust: 'Trust',
-                companyTypeOther: 'Inny',
                 companyRole: 'Twoja rola w firmie',
                 companyRoleOwner: 'Właściciel',
                 companyRoleDirector: 'Członek zarządu',
@@ -3336,8 +3348,9 @@ const translations: TranslationDeepObject<typeof en> = {
                 certify: 'Oświadczam, że podane przeze mnie informacje są prawdziwe i dokładne.',
                 expensifyTerms: `Akceptuję <a href="${CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}">regulamin</a> i <a href="${CONST.OLD_DOT_PUBLIC_URLS.PRIVACY_URL}">politykę prywatności</a> Expensify.`,
                 expensifyTermsAccessibilityLabel: 'Akceptuję regulamin i politykę prywatności Expensify.',
-                wiseTerms: `Akceptuję <a href="${CONST.WISE.TERMS_URL}">regulamin</a> i <a href="${CONST.WISE.PRIVACY_URL}">politykę prywatności</a> Wise.`,
-                wiseTermsAccessibilityLabel: 'Akceptuję regulamin i politykę prywatności Wise.',
+                wiseTerms: `Klikając Potwierdź, akceptuję <a href="${CONST.WISE.TERMS_URL}">Warunki korzystania</a> z Wise, wyrażam zgodę na otrzymywanie dokumentów w formie elektronicznej zgodnie z <a href="${CONST.WISE.ELECTRONIC_COMMUNICATIONS_POLICY_URL}">Polityką komunikacji elektronicznej</a> Wise oraz akceptuję <a href="${CONST.WISE.PRIVACY_URL}">Politykę prywatności</a>.`,
+                wiseTermsAccessibilityLabel:
+                    'Klikając Potwierdź, akceptuję Warunki korzystania z Wise, wyrażam zgodę na otrzymywanie dokumentów w formie elektronicznej zgodnie z Polityką komunikacji elektronicznej Wise oraz akceptuję Politykę prywatności.',
                 error: 'Zaakceptuj wszystkie warunki, aby kontynuować.',
             },
             moreInfoNeeded: {
@@ -3354,7 +3367,10 @@ const translations: TranslationDeepObject<typeof en> = {
             approved: {title: 'Konto zatwierdzone', heading: 'Zatwierdzone do płatności na całym świecie', description: 'Wypłacaj członkom wynagrodzenie, gdziekolwiek są.'},
             rejected: {title: 'Odrzucono konto bankowe', heading: 'Nasz partner odrzucił twoje konto bankowe', description: 'Porozmawiaj z Concierge, żeby dowiedzieć się więcej.'},
         },
-        wiseSetupInProgress: {message: 'Konfiguracja globalnych zwrotów kosztów w toku.', continue: 'Kontynuuj.'},
+        wiseSetupRow: {
+            inProgress: {message: 'Konfiguracja globalnych zwrotów kosztów w toku.'},
+            inReview: {message: 'Konfiguracja globalnych zwrotów kosztów w trakcie weryfikacji.', action: 'Sprawdź status'},
+        },
         wiseGlobalReimbursementsIntro: {
             title: 'Skonfigurować globalne zwroty kosztów?',
             subtitle: 'Płać członkom na całym świecie w ich lokalnej walucie.',
@@ -5386,6 +5402,10 @@ ${amount} dla ${merchant} - ${date}`,
             railTicketExchange: (origin: string, destination: string, startDate: string) => `Twój bilet kolejowy z ${origin} → ${destination} na ${startDate} został wymieniony.`,
             railTicketUpdate: (origin: string, destination: string, startDate: string) => `Twój bilet kolejowy z ${origin} → ${destination} na ${startDate} został zaktualizowany.`,
             defaultUpdate: (type: string) => `Twoja rezerwacja (${type}) została zaktualizowana.`,
+            hotelBooked: (hotelName: string, startDate: string) => `Twoja rezerwacja hotelu w ${hotelName} (zameldowanie ${startDate}) została dokonana.`,
+            carBooked: (vendor: string, startDate: string) => `Twój wynajem samochodu w ${vendor} (odbiór ${startDate}) został zarezerwowany.`,
+            railTicketBooked: (origin: string, destination: string, startDate: string) => `Twój bilet kolejowy z ${origin} do ${destination} na ${startDate} został zarezerwowany.`,
+            defaultBooked: (type: string) => `Twoja rezerwacja typu ${type} została dokonana.`,
         },
         flightTo: 'Lot do',
         trainTo: 'Pociąg do',
@@ -5651,6 +5671,9 @@ ${amount} dla ${merchant} - ${date}`,
             },
             chatgpt: {
                 title: 'ChatGPT',
+            },
+            grok: {
+                title: 'Grok',
             },
         },
         connections: {
@@ -8050,6 +8073,7 @@ Plan Control zaczyna się od 9 USD za aktywnego członka miesięcznie.`,
                 willBeReadyToUse: 'Ta karta będzie gotowa do użycia od razu.',
                 willBeReadyToShip: 'Ta karta będzie gotowa do natychmiastowej wysyłki.',
                 cardholder: 'Posiadacz karty',
+                cardholderEmail: 'Adres e-mail posiadacza karty',
                 cardType: 'Typ karty',
                 limit: 'Limit',
                 limitType: 'Typ limitu',
@@ -8562,6 +8586,7 @@ Plan Control zaczyna się od 9 USD za aktywnego członka miesięcznie.`,
             startDate: 'Data rozpoczęcia',
             endDate: 'Data zakończenia',
             autoGeneratedRateTooltip: 'Ta stawka jest generowana automatycznie.',
+            taxReclaimableOnAmount: (amount: string) => `Podatek możliwy do odzyskania z ${amount}`,
             automaticRates: 'Automatyczne stawki',
             autoUpdateGovernmentRate: 'Automatycznie aktualizuj stawki rządowe',
             autoUpdateGovernmentRateDescription: (countryPhrase: string) =>
@@ -9269,6 +9294,36 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
                 confirmErrorConditionAndDefault: 'Dodaj co najmniej jeden warunek i zastosuj co najmniej jedną wartość domyślną',
                 createRuleFromExpenseAction: 'Utwórz regułę',
                 createRuleFromExpensePrompt: 'aby zastosować zmiany do wszystkich wydatków spełniających twoje kryteria.',
+                merchantTypes: {
+                    [CONST.RULES.MERCHANT_TYPE.AIRLINES]: 'Linie lotnicze',
+                    [CONST.RULES.MERCHANT_TYPE.ALCOHOL_AND_BARS]: 'Alkohol i bary',
+                    [CONST.RULES.MERCHANT_TYPE.AMAZON_AND_BOOKSTORES]: 'Amazon i księgarnie',
+                    [CONST.RULES.MERCHANT_TYPE.AUTOMOTIVE]: 'Motoryzacja',
+                    [CONST.RULES.MERCHANT_TYPE.CAR_RENTALS]: 'Wypożyczalnie samochodów',
+                    [CONST.RULES.MERCHANT_TYPE.DINING]: 'Posiłki',
+                    [CONST.RULES.MERCHANT_TYPE.FUEL_AND_GAS]: 'Paliwo i gaz',
+                    [CONST.RULES.MERCHANT_TYPE.GOVERNMENT_AND_NON_PROFITS]: 'Administracja publiczna i organizacje non-profit',
+                    [CONST.RULES.MERCHANT_TYPE.GROCERIES]: 'Zakupy spożywcze',
+                    [CONST.RULES.MERCHANT_TYPE.GYMS_AND_FITNESS]: 'Siłownie i fitness',
+                    [CONST.RULES.MERCHANT_TYPE.HEALTHCARE]: 'Opieka zdrowotna',
+                    [CONST.RULES.MERCHANT_TYPE.HOTELS]: 'Hotele',
+                    [CONST.RULES.MERCHANT_TYPE.INTERNET_AND_PHONE]: 'Internet i telefon',
+                    [CONST.RULES.MERCHANT_TYPE.OFFICE_SUPPLIES]: 'Artykuły biurowe',
+                    [CONST.RULES.MERCHANT_TYPE.PARKING_AND_TOLLS]: 'Parking i opłaty za przejazd',
+                    [CONST.RULES.MERCHANT_TYPE.PROFESSIONAL_SERVICES]: 'Usługi profesjonalne',
+                    [CONST.RULES.MERCHANT_TYPE.RETAIL]: 'Sprzedaż detaliczna',
+                    [CONST.RULES.MERCHANT_TYPE.SHIPPING_AND_DELIVERY]: 'Wysyłka i dostawa',
+                    [CONST.RULES.MERCHANT_TYPE.SOFTWARE]: 'Oprogramowanie',
+                    [CONST.RULES.MERCHANT_TYPE.TRANSIT_AND_RIDESHARE]: 'Transport publiczny i przejazdy współdzielone',
+                    [CONST.RULES.MERCHANT_TYPE.TRAVEL_AGENCIES]: 'Biura podróży',
+                },
+                dateMatchTypeOn: 'Włączone',
+                dateMatchTypeBefore: 'Przed',
+                dateMatchTypeAfter: 'Po',
+                hasOrDoesNotHave: 'Ma/Nie ma',
+                amountMatchTypeEqualTo: 'Równe',
+                amountMatchTypeGreaterThan: 'Większe niż',
+                amountMatchTypeLessThan: 'Mniej niż',
             },
             categoryRules: {
                 title: 'Reguły kategorii',
@@ -9607,6 +9662,16 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
                 tagIs: (tag: string) => `Tag to „${tag}”`,
                 merchantContains: (merchant: string) => `Sprzedawca zawiera „${merchant}”`,
                 merchantExactlyMatches: (merchant: string) => `Sprzedawca dokładnie odpowiada „${merchant}”`,
+                currencyIs: (currency: string) => `Waluta to „${currency}”`,
+                cardIs: (card: string) => `Karta to „${card}”`,
+                taxRateIs: (taxRate: string) => `Stawka podatku to „${taxRate}”`,
+                submitterIs: (submitter: string) => `Zgłaszający to „${submitter}”`,
+                reimbursableIs: (reimbursable: string) => `Zwrotne to „${reimbursable}”`,
+                billableIs: (billable: string) => `Fakturowalne to „${billable}”`,
+                dateIs: (comparison: string) => `Data jest ${comparison}`,
+                amountIs: (comparison: string) => `Kwota jest ${comparison}`,
+                hasValue: (value: string) => `Ma „${value}”`,
+                doesNotHaveValue: (value: string) => `Nie zawiera „${value}”`,
             },
             merchantTypeRule: {merchantType: 'Typ sprzedawcy', saveRule: 'Zapisz regułę', confirmErrorCategory: 'Wybierz kategorię.'},
             requireFieldsTable: {
@@ -11107,6 +11172,9 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
             openMenu: ({columnName}: {columnName: string}) => `Opcje kolumny ${columnName}`,
             sortAscending: 'Sortuj rosnąco',
             sortDescending: 'Sortuj malejąco',
+            pinLeft: 'Przypnij do lewej',
+            pinRight: 'Przypnij do prawej',
+            unpin: 'Odepnij',
             hideColumn: 'Ukryj kolumnę',
             resetColumnSizes: 'Resetuj szerokość kolumn',
         },
@@ -11573,7 +11641,9 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
                     mentionedAccountID?: number;
                 }) => {
                     let warningTime = 'wkrótce';
-                    if (warningDaysBeforeExpiry === CONST.COMPANY_CARDS.CONSENT_EXPIRY_WARNING_DAYS.TWO_WEEKS) {
+                    if (warningDaysBeforeExpiry === CONST.COMPANY_CARDS.CONSENT_EXPIRY_WARNING_DAYS.ONE_MONTH) {
+                        warningTime = 'za miesiąc';
+                    } else if (warningDaysBeforeExpiry === CONST.COMPANY_CARDS.CONSENT_EXPIRY_WARNING_DAYS.TWO_WEEKS) {
                         warningTime = 'za dwa tygodnie';
                     } else if (warningDaysBeforeExpiry === CONST.COMPANY_CARDS.CONSENT_EXPIRY_WARNING_DAYS.ONE_WEEK) {
                         warningTime = 'za tydzień';
@@ -11668,7 +11738,8 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
                 reimbursementRefundedWithoutBankAccount: 'Środki zostały zwrócone. Możesz ponowić płatność.',
                 reimbursementHeld:
                     'Płatność wstrzymana, dopóki nasz partner nie zakończy weryfikacji. Poczekaj na kolejną aktualizację. Porozmawiaj z <concierge-link>Concierge</concierge-link>.',
-                reimbursementReleased: 'Weryfikacja została zakończona i twoja płatność jest w drodze. Ostateczny kurs walutowy może zmienić kwotę.',
+                reimbursementReleased: ({expectedDate}: {expectedDate: string}) => `Płatność została zwolniona, środki powinny dotrzeć do ${expectedDate}.`,
+                reimbursementReleasedWithoutDate: 'Płatność została zwolniona.',
             },
             error: {
                 invalidCredentials: 'Nieprawidłowe dane logowania, sprawdź konfigurację swojego połączenia.',
@@ -13374,6 +13445,7 @@ Oto *paragon testowy*, żeby pokazać Ci, jak to działa:`,
         offlineMessage: 'Jesteś offline. Historia raportów może być nieaktualna.',
         toMarkAsDone: 'oznacz jako wykonane',
         receivedPayment: 'otrzymano płatność',
+        markedAsManuallyExported: (label: string) => `oznaczył ten raport jako ręcznie wyeksportowany do ${label}`,
     },
 };
 export default translations;
