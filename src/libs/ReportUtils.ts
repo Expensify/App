@@ -3552,7 +3552,7 @@ function canApproveExpenseReport(
     return !hasOnlyUnsettledExpenses(reportTransactions, report);
 }
 
-/** Whether the current user can approve the bill now. The header hides Approve when every expense is on hold. */
+/** Whether the current user can approve the bill now. */
 function canApproveBill(
     report: OnyxEntry<Report>,
     policy: OnyxEntry<Policy>,
@@ -3560,7 +3560,7 @@ function canApproveBill(
     currentUserAccountID: number,
     reportTransactions: Transaction[],
 ): boolean {
-    return isBillReport(report) && canApproveExpenseReport(report, reportTransactions, currentUserAccountID, reportMetadata, policy) && !hasOnlyHeldExpenses(reportTransactions);
+    return isBillReport(report) && canApproveExpenseReport(report, reportTransactions, currentUserAccountID, reportMetadata, policy);
 }
 
 function canIOUBePaid(

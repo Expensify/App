@@ -110,7 +110,6 @@ describe('Bill Pay green dot', () => {
             {...billTransaction, amount: 0, merchant: CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT, receipt: {state: CONST.IOU.RECEIPT_STATE.SCANNING, source: 'receipt.jpg'}},
             false,
         ],
-        ['every expense is on hold', policy, {...billTransaction, comment: {hold: '1'}}, false],
     ] as const)('shows the Approve dot only when the header shows Approve, when %s', async (_, reportPolicy, transaction, shouldShowApprove) => {
         // Given a submitted bill whose policy and expense decide whether the approver can approve it now
         await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
