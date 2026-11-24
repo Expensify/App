@@ -1,0 +1,147 @@
+/**
+ * Turns travel on or off for every member selected on the workspace members page.
+ */
+import Header from '@components/Header';
+import ScreenWrapper from '@components/ScreenWrapper';
+import SelectionList from '@components/SelectionList';
+import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
+import type {ListItem} from '@components/SelectionList/types';
+
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
+import useRedirectToWorkspaceMembersWithoutSelection from '@hooks/useRedirectToWorkspaceMembersWithoutSelection';
+import useThemeStyles from '@hooks/useThemeStyles';
+
+import {clearWorkspaceMembersSelectedForBulkEdit} from '@libs/actions/Policy/Member';
+import {setPolicyTravelMemberAccess} from '@libs/actions/Policy/Travel';
+import type {TravelMemberAccessTarget} from '@libs/actions/Policy/Travel';
+import Navigation from '@libs/Navigation/Navigation';
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
+import {canChangeMemberTravelAccess, canMemberWrite, isWorkspaceProvisionedForTravel} from '@libs/PolicyUtils';
+import {getMemberLoginByAccountID} from '@libs/WorkArrangementUtils';
+
+import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
+import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullscreenLoading';
+import type {WithPolicyAndFullscreenLoadingProps} from '@pages/workspace/withPolicyAndFullscreenLoading';
+
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
+import type SCREENS from '@src/SCREENS';
+import type {PersonalDetailsList} from '@src/types/onyx';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+import React from 'react';
+import {View} from 'react-native';
+
+type TravelBulkActionOption = ListItem & {
+    /** Whether choosing this option lets the selected members book travel. */
+    value: boolean;
+    text: string;
+    alternateText: string;
+};
+
+type WorkspaceMembersChangeTravelAccessPageProps = Omit<WithPolicyAndFullscreenLoadingProps, 'route'> &
+    PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.MEMBERS_CHANGE_TRAVEL_ACCESS> & {
+        personalDetails: OnyxEntry<PersonalDetailsList>;
+    };
+
+function WorkspaceMembersChangeTravelAccessPage({policy, personalDetails, route}: WorkspaceMembersChangeTravelAccessPageProps) {
+    const policyID = route.params.policyID;
+    const styles = useThemeStyles();
+    const {translate} = useLocalize();
+    const {login: currentUserLogin = ''} = useCurrentUserPersonalDetails();
+    const [selection] = useOnyx(ONYXKEYS.RAM_ONLY_WORKSPACE_MEMBERS_SELECTED_FOR_BULK_EDIT);
+    const {isBetaEnabled} = usePermissions();
+    const isTravelMemberAccessBetaEnabled = isBetaEnabled(CONST.BETAS.TRAVEL_MEMBER_ACCESS);
+
+    // Members picked on another workspace's member list are left out, even when they also belong to this one
+    const selectedAccountIDs = selection?.policyID === policyID ? selection.accountIDs : undefined;
+
+    useRedirectToWorkspaceMembersWithoutSelection({
+        policyID,
+        selectedMemberCount: selectedAccountIDs?.length ?? 0,
+    });
+
+    const canChangeTravelAccess =
+        isTravelMemberAccessBetaEnabled && canMemberWrite(policy, currentUserLogin, CONST.POLICY.POLICY_FEATURE.TRAVEL) && isWorkspaceProvisionedForTravel(policy?.travelSettings);
+
+    // Anyone whose travel access this member can't change is left out, including members still being added, whose optimistic
+    // accountID the server doesn't know yet. Members without a loaded accountID never reach the selection.
+    const selectedMembers: TravelMemberAccessTarget[] = (selectedAccountIDs ?? []).flatMap((accountID) => {
+        const email = personalDetails?.[accountID]?.login ?? getMemberLoginByAccountID(policy, accountID);
+        if (!email || !canChangeMemberTravelAccess(policy, currentUserLogin, email, isTravelMemberAccessBetaEnabled)) {
+            return [];
+        }
+        return [{email, accountID}];
+    });
+
+    const navigateBackToMembers = () => {
+        Navigation.goBack(ROUTES.WORKSPACE_MEMBERS.getRoute(policyID));
+    };
+
+    const applyAction = ({value}: TravelBulkActionOption) => {
+        if (!canChangeTravelAccess) {
+            return;
+        }
+
+        // Every selected member can drop out of the list, for example by becoming an admin while this page is open
+        if (selectedMembers.length === 0) {
+            navigateBackToMembers();
+            return;
+        }
+
+        setPolicyTravelMemberAccess(policy, selectedMembers, value);
+        Navigation.goBack(ROUTES.WORKSPACE_MEMBERS.getRoute(policyID), {afterTransition: clearWorkspaceMembersSelectedForBulkEdit});
+    };
+
+    const options: TravelBulkActionOption[] = [
+        {
+            value: true,
+            text: translate('workspace.moreFeatures.travel.members.turnOnTravel'),
+            alternateText: translate('workspace.moreFeatures.travel.members.onDescription'),
+            keyForList: 'turnOn',
+        },
+        {
+            value: false,
+            text: translate('workspace.moreFeatures.travel.members.turnOffTravel'),
+            alternateText: translate('workspace.moreFeatures.travel.members.offDescription'),
+            keyForList: 'turnOff',
+        },
+    ];
+
+    return (
+        <AccessOrNotFoundWrapper
+            policyID={policyID}
+            policyFeature={CONST.POLICY.POLICY_FEATURE.TRAVEL}
+            policyFeatureAccess={CONST.POLICY.POLICY_FEATURE_ACCESS.WRITE}
+            shouldBeBlocked={!canChangeTravelAccess}
+        >
+            <ScreenWrapper
+                testID="WorkspaceMembersChangeTravelAccessPage"
+                enableEdgeToEdgeBottomSafeAreaPadding
+            >
+                <Header>
+                    <Header.BackButton onPress={navigateBackToMembers} />
+                    <Header.Title title={translate('workspace.moreFeatures.travel.members.changeTravelAccess')} />
+                </Header>
+                <View style={[styles.flex1]}>
+                    <SelectionList
+                        ListItem={SingleSelectListItem}
+                        data={options}
+                        onSelectRow={applyAction}
+                        shouldSingleExecuteRowSelect
+                        alternateNumberOfSupportedLines={2}
+                        disableKeyboardShortcuts
+                    />
+                </View>
+            </ScreenWrapper>
+        </AccessOrNotFoundWrapper>
+    );
+}
+
+export default withPolicyAndFullscreenLoading(WorkspaceMembersChangeTravelAccessPage);

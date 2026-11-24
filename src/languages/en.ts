@@ -8094,6 +8094,9 @@ const translations = {
                     offDescription: "Can't book travel",
                     onDescription: 'Can book travel',
                     travelAccess: 'Travel access',
+                    changeTravelAccess: 'Change travel access',
+                    turnOnTravel: 'Turn on travel',
+                    turnOffTravel: 'Turn off travel',
                 },
                 travelBilling: {
                     travelBookingSection: {

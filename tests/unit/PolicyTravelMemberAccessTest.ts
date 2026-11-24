@@ -13,6 +13,7 @@ jest.mock('@libs/API');
 const mockWrite = jest.mocked(write);
 
 const MEMBER = {email: 'member@example.com', accountID: 2};
+const OTHER_MEMBER = {email: 'member2@example.com', accountID: 3};
 
 /** The members of the workspace used to check who can change travel access, with their workspace roles. */
 const WORKSPACE_MEMBERS: Array<[string, PolicyEmployee['role']]> = [
@@ -99,6 +100,44 @@ describe('Policy travel member access', () => {
                 WRITE_COMMANDS.SET_POLICY_TRAVEL_MEMBER_ACCESS,
                 expect.anything(),
                 withEmployeeUpdate('successData', {pendingFields: {canUseTravel: null}}),
+            );
+        });
+
+        it('only sends the members whose access changes when several are updated at once', () => {
+            // Given a member who can book travel and one whose travel access is turned off
+            const policy: Policy = {
+                ...createRandomPolicy(1),
+                id: 'policy-1',
+                employeeList: {
+                    [MEMBER.email]: {email: MEMBER.email, role: CONST.POLICY.ROLE.USER},
+                    [OTHER_MEMBER.email]: {email: OTHER_MEMBER.email, role: CONST.POLICY.ROLE.USER, canUseTravel: false},
+                },
+            };
+
+            // When an admin turns travel off for both
+            setPolicyTravelMemberAccess(policy, [MEMBER, OTHER_MEMBER], false);
+
+            // Then only the member who could book is sent and stored as false, since the other one is already off
+            expect(mockWrite).toHaveBeenLastCalledWith(
+                WRITE_COMMANDS.SET_POLICY_TRAVEL_MEMBER_ACCESS,
+                {policyID: 'policy-1', employeeAccountIDList: String(MEMBER.accountID), enabled: false},
+                withEmployeeUpdate('optimisticData', {canUseTravel: false, pendingFields: {canUseTravel: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}}),
+            );
+
+            // When an admin turns travel on for both
+            setPolicyTravelMemberAccess(policy, [MEMBER, OTHER_MEMBER], true);
+
+            // Then only the member who was off is sent, and their stored false is removed rather than replaced with true
+            expect(mockWrite).toHaveBeenLastCalledWith(
+                WRITE_COMMANDS.SET_POLICY_TRAVEL_MEMBER_ACCESS,
+                {policyID: 'policy-1', employeeAccountIDList: String(OTHER_MEMBER.accountID), enabled: true},
+                expect.objectContaining({
+                    optimisticData: [
+                        expect.objectContaining({
+                            value: {employeeList: {[OTHER_MEMBER.email]: {canUseTravel: null, pendingFields: {canUseTravel: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}}}},
+                        }),
+                    ],
+                }),
             );
         });
     });
