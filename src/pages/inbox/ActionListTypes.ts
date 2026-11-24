@@ -31,9 +31,6 @@ type ActionListRef = {
               positionByKey: (key: string) => number | undefined;
               sizeAtIndex?: (index: number) => number | undefined;
               elementAtIndex?: (index: number) => unknown;
-              scroll?: number;
-              contentLength?: number;
-              scrollLength?: number;
               headerSize?: number;
           }
         | undefined;

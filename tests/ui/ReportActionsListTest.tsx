@@ -49,7 +49,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import {reportActionsListLoadingStateSelector} from '@src/selectors/ReportMetaData';
 import type * as OnyxTypes from '@src/types/onyx';
 
-import type {LegendListMetrics, OnViewableItemsChangedInfo} from '@legendapp/list/react-native';
+import type {LegendListMetrics, LegendListProps, OnViewableItemsChangedInfo} from '@legendapp/list/react-native';
 import type * as ReactNavigation from '@react-navigation/native';
 import type {LayoutChangeEvent, StyleProp, ViewStyle} from 'react-native';
 import type ReactNative from 'react-native';
@@ -272,7 +272,7 @@ type MockLegendListProps = {
     extraData?: unknown;
     getItemType?: (item: OnyxTypes.ReportAction) => string;
     initialScrollAtEnd?: boolean;
-    maintainScrollAtEnd?: {animated: boolean; on: {dataChange: boolean}} | false;
+    maintainScrollAtEnd?: LegendListProps<OnyxTypes.ReportAction>['maintainScrollAtEnd'];
     maintainScrollAtEndThreshold?: number;
     maintainVisibleContentPosition?: boolean;
     onLayout?: (event: LayoutChangeEvent) => void;
@@ -602,14 +602,22 @@ describe('ReportActionsList (body)', () => {
         });
     });
 
-    it('corrects the initial end position after the latest row has been measured', async () => {
-        // Given a report opens at its latest action and the virtualized list finishes its initial placement.
+    it.each([false, true])('follows appended rows only while a Concierge reply is streaming (streaming: %s)', (isStreaming) => {
+        // Given a chat at its newest page, with either a temporary reply or only saved actions.
         mockUseNetwork.mockReturnValue({isOffline: false});
+        if (isStreaming) {
+            mockUseConciergeDraft.mockReturnValue({
+                draftReportAction: {...mockReportActions[1], reportActionID: 'streaming-reply', created: '2023-01-04'},
+                hasActiveDraft: true,
+                isDraftPendingCompletion: true,
+            });
+        }
+
+        // When the list selects the events that should keep the newest message in view.
         renderReportActionsList();
 
-        // When the last row is taller than the estimate, its feedback controls must not remain below the viewport.
-        // Then the list makes one final end scroll after the layout is ready.
-        await waitFor(() => expect(mockLegendScrollToEnd).toHaveBeenCalledWith({animated: false}));
+        // Then the temporary reply follows on insertion. Saved messages use the app's own new-message policy.
+        expect(getCapturedListProps()?.maintainScrollAtEnd).toEqual({on: {dataAppend: isStreaming, itemLayout: true, footerLayout: true}});
     });
 
     it('keeps the native scroll-view throttle supplied by LegendList', () => {
@@ -652,7 +660,7 @@ describe('ReportActionsList (body)', () => {
                 <ReportActionsList reportID={mockReport.reportID} />
             </ActionListContext.Provider>,
         );
-        await waitFor(() => expect(mockLegendScrollToEnd).toHaveBeenCalled());
+        await waitForBatchedUpdatesWithAct();
         mockLegendScrollToEnd.mockClear();
         const frames: FrameRequestCallback[] = [];
         const requestFrame = jest.spyOn(global, 'requestAnimationFrame').mockImplementation((callback) => frames.push(callback));
@@ -690,7 +698,6 @@ describe('ReportActionsList (body)', () => {
                 expect(frames).toHaveLength(0);
             }
             expect(mockLegendScrollToEnd).not.toHaveBeenCalled();
-            expect(getCapturedListProps()?.maintainScrollAtEnd).toBe(false);
         } finally {
             requestFrame.mockRestore();
             mockLegendGetState.mockReturnValue(originalState);
@@ -702,7 +709,7 @@ describe('ReportActionsList (body)', () => {
         mockUseNetwork.mockReturnValue({isOffline: false});
         const originalState = mockLegendGetState();
         renderReportActionsList();
-        await waitFor(() => expect(mockLegendScrollToEnd).toHaveBeenCalled());
+        await waitForBatchedUpdatesWithAct();
         mockLegendScrollToEnd.mockClear();
         try {
             const offset = 500 - distanceFromEnd;
@@ -735,7 +742,7 @@ describe('ReportActionsList (body)', () => {
         mockUseNetwork.mockReturnValue({isOffline: false});
         const originalState = mockLegendGetState();
         renderReportActionsList();
-        await waitFor(() => expect(mockLegendScrollToEnd).toHaveBeenCalled());
+        await waitForBatchedUpdatesWithAct();
         try {
             mockLegendPositionByKey.mockReturnValue(1300);
             mockLegendGetState.mockReturnValue({...originalState, end: 1, contentLength: 2000, scrollLength: 500, scroll: 900});
@@ -768,7 +775,7 @@ describe('ReportActionsList (body)', () => {
         const trackVerticalScrolling = jest.fn<void, Parameters<ReturnType<typeof useReportActionsScroll>['trackVerticalScrolling']>>();
         mockUseReportActionsScroll.mockReturnValue({...defaultScrollState, trackVerticalScrolling});
         renderReportActionsList();
-        await waitFor(() => expect(mockLegendScrollToEnd).toHaveBeenCalled());
+        await waitForBatchedUpdatesWithAct();
         jest.useFakeTimers();
         try {
             const listProps = getCapturedListProps();
@@ -859,7 +866,7 @@ describe('ReportActionsList (body)', () => {
         mockLegendGetState.mockReturnValue({...originalState, contentLength: 2000, scrollLength: 500.4, scroll: 1499.6});
         try {
             renderReportActionsList();
-            await waitFor(() => expect(mockLegendScrollToEnd).toHaveBeenCalled());
+            await waitForBatchedUpdatesWithAct();
             trackVerticalScrolling.mockClear();
 
             // When the reader scrolls up with the mouse wheel.
@@ -871,255 +878,6 @@ describe('ReportActionsList (body)', () => {
             platform.restore();
             mockLegendGetState.mockReturnValue(originalState);
             mockUseReportActionsScroll.mockImplementation(originalImplementation);
-        }
-    });
-
-    it('keeps the latest message visible when its measured height grows after opening', async () => {
-        // Given the chat has opened at the end with a measured viewport.
-        mockUseNetwork.mockReturnValue({isOffline: false});
-        renderReportActionsList();
-        await waitFor(() => expect(mockLegendScrollToEnd).toHaveBeenCalledWith({animated: false}));
-        mockLegendScrollToEnd.mockClear();
-        const listProps = getCapturedListProps();
-        act(() => {
-            listProps?.onScroll?.({
-                nativeEvent: {
-                    contentOffset: {x: 0, y: 500},
-                    contentSize: {height: 1000, width: 300},
-                    layoutMeasurement: {height: 500, width: 300},
-                },
-            });
-        });
-
-        // When a late feedback row makes the content taller without a user scroll.
-        act(() => {
-            listProps?.onScroll?.({
-                nativeEvent: {
-                    contentOffset: {x: 0, y: 500},
-                    contentSize: {height: 1025, width: 300},
-                    layoutMeasurement: {height: 500, width: 300},
-                },
-            });
-            listProps?.onContentSizeChange?.(300, 1025);
-        });
-
-        // Then the last 25 pixels are brought into view.
-        await waitFor(() => expect(mockLegendScrollToEnd).toHaveBeenCalledWith({animated: false}));
-    });
-
-    it.each(['row', 'footer'])('follows the end when a %s grows without a content size event', async (part) => {
-        // Given a chat has finished its initial scroll to the latest message.
-        mockUseNetwork.mockReturnValue({isOffline: false});
-        renderReportActionsList();
-        await waitFor(() => expect(mockLegendScrollToEnd).toHaveBeenCalled());
-        mockLegendScrollToEnd.mockClear();
-
-        // When LegendList measures a streamed reply or shows the thinking indicator below it.
-        const listProps = getCapturedListProps();
-        act(() => {
-            if (part === 'row') {
-                listProps?.onItemSizeChanged?.({index: 1, size: 400, previous: 20});
-            } else {
-                listProps?.onMetricsChange?.({headerSize: 0, footerSize: 40});
-            }
-        });
-
-        // Then the next frame brings the new bottom into view.
-        await waitFor(() => expect(mockLegendScrollToEnd).toHaveBeenCalledWith({animated: false}));
-    });
-
-    it('follows content growth when the reader is 50 pixels above the newest action', async () => {
-        // Given a reader still within the existing 250-pixel follow distance.
-        mockUseNetwork.mockReturnValue({isOffline: false});
-        renderReportActionsList();
-        await waitFor(() => expect(mockLegendScrollToEnd).toHaveBeenCalled());
-        mockLegendScrollToEnd.mockClear();
-        act(() => {
-            const listProps = getCapturedListProps();
-            listProps?.onScrollBeginDrag?.();
-            listProps?.onScroll?.({
-                nativeEvent: {
-                    contentOffset: {x: 0, y: 450},
-                    contentSize: {height: 1000, width: 300},
-                    layoutMeasurement: {height: 500, width: 300},
-                },
-            });
-        });
-
-        // When a new message or streamed text increases the content height.
-        act(() => getCapturedListProps()?.onContentSizeChange?.(300, 1025));
-
-        // Then it follows the new content even though the reader is more than 1% from the end.
-        await waitFor(() => expect(mockLegendScrollToEnd).toHaveBeenCalledWith({animated: false}));
-    });
-
-    it('does not pull the chat back down when the reader has scrolled away', async () => {
-        // Given the chat opened at the end and the reader scrolled upward.
-        mockUseNetwork.mockReturnValue({isOffline: false});
-        renderReportActionsList();
-        await waitFor(() => expect(mockLegendScrollToEnd).toHaveBeenCalledWith({animated: false}));
-        mockLegendScrollToEnd.mockClear();
-        const listProps = getCapturedListProps();
-        act(() => {
-            listProps?.onScroll?.({
-                nativeEvent: {
-                    contentOffset: {x: 0, y: 500},
-                    contentSize: {height: 1000, width: 300},
-                    layoutMeasurement: {height: 500, width: 300},
-                },
-            });
-            listProps?.onScroll?.({
-                nativeEvent: {
-                    contentOffset: {x: 0, y: 200},
-                    contentSize: {height: 1000, width: 300},
-                    layoutMeasurement: {height: 500, width: 300},
-                },
-            });
-        });
-
-        // When the last row grows, the web measurement and the native content size event can both arrive.
-        act(() => {
-            listProps?.onItemSizeChanged?.({index: 1, size: 400, previous: 20});
-            listProps?.onContentSizeChange?.(300, 1380);
-        });
-        await act(
-            async () =>
-                new Promise<void>((resolve) => {
-                    setTimeout(resolve, 30);
-                }),
-        );
-
-        // Then the reader can continue reading the older messages.
-        expect(mockLegendScrollToEnd).not.toHaveBeenCalled();
-    });
-
-    it('resumes resize following after scrolling from a linked action to the end', async () => {
-        // Given the chat opens at a linked action, which must keep its initial position.
-        mockUseNetwork.mockReturnValue({isOffline: false});
-        const originalImplementation = mockUseReportActionsScroll.getMockImplementation();
-        const defaultScrollState = mockUseReportActionsScroll(createMock<Parameters<typeof useReportActionsScroll>[0]>({}));
-        mockUseReportActionsScroll.mockReturnValue({...defaultScrollState, initialScrollIndex: 0});
-        try {
-            renderReportActionsList();
-            expect(mockLegendScrollToEnd).not.toHaveBeenCalled();
-
-            // When the reader reaches the end and the latest row grows afterward.
-            act(() => {
-                const listProps = getCapturedListProps();
-                listProps?.onScroll?.({
-                    nativeEvent: {
-                        contentOffset: {x: 0, y: 500},
-                        contentSize: {height: 1000, width: 300},
-                        layoutMeasurement: {height: 500, width: 300},
-                    },
-                });
-                listProps?.onContentSizeChange?.(300, 1025);
-            });
-
-            // Then the latest content remains visible even though the route still contains a linked action.
-            await waitFor(() => expect(mockLegendScrollToEnd).toHaveBeenCalledWith({animated: false}));
-        } finally {
-            mockUseReportActionsScroll.mockImplementation(originalImplementation);
-        }
-    });
-
-    it.each([
-        {isAtEnd: true, shouldFollowEnd: true},
-        {isAtEnd: false, shouldFollowEnd: false},
-    ])('follows late row growth after opening at an unread marker only when it lands at the end ($isAtEnd)', async ({isAtEnd, shouldFollowEnd}) => {
-        // Given the chat opens at an unread marker, which LegendList clamps to the end when the marker is near the newest action.
-        mockUseNetwork.mockReturnValue({isOffline: false});
-        const originalImplementation = mockUseReportActionsScroll.getMockImplementation();
-        const defaultScrollState = mockUseReportActionsScroll(createMock<Parameters<typeof useReportActionsScroll>[0]>({}));
-        mockUseReportActionsScroll.mockReturnValue({...defaultScrollState, initialScrollIndex: 1});
-        mockLegendGetState.mockReturnValue({...mockLegendGetState(), isAtEnd});
-        try {
-            renderReportActionsList();
-
-            // When rows above the viewport are measured after the list is ready and change the content height.
-            act(() => {
-                getCapturedListProps()?.onContentSizeChange?.(300, 1025);
-            });
-            await act(
-                async () =>
-                    new Promise<void>((resolve) => {
-                        setTimeout(resolve, 30);
-                    }),
-            );
-
-            // Then a list that landed at the end keeps the newest messages in view, and one showing older unread messages stays put.
-            if (shouldFollowEnd) {
-                expect(mockLegendScrollToEnd).toHaveBeenCalledWith({animated: false});
-            } else {
-                expect(mockLegendScrollToEnd).not.toHaveBeenCalled();
-            }
-        } finally {
-            mockUseReportActionsScroll.mockImplementation(originalImplementation);
-            mockLegendGetState.mockReturnValue({...mockLegendGetState(), isAtEnd: false});
-        }
-    });
-
-    it('keeps an unread marker in view when the list settles close to the end', async () => {
-        // Given the chat opens at an unread marker and the list settles 100 pixels above the newest action without the reader scrolling.
-        mockUseNetwork.mockReturnValue({isOffline: false});
-        const originalImplementation = mockUseReportActionsScroll.getMockImplementation();
-        const defaultScrollState = mockUseReportActionsScroll(createMock<Parameters<typeof useReportActionsScroll>[0]>({}));
-        mockUseReportActionsScroll.mockReturnValue({...defaultScrollState, initialScrollIndex: 1});
-        mockLegendGetState.mockReturnValue({...mockLegendGetState(), isAtEnd: false});
-        try {
-            renderReportActionsList();
-            act(() => {
-                getCapturedListProps()?.onScroll?.({
-                    nativeEvent: {
-                        contentOffset: {x: 0, y: 400},
-                        contentSize: {height: 1000, width: 300},
-                        layoutMeasurement: {height: 500, width: 300},
-                    },
-                });
-            });
-
-            // When rows below the marker are measured and make the content taller.
-            act(() => getCapturedListProps()?.onContentSizeChange?.(300, 1025));
-            await act(
-                async () =>
-                    new Promise<void>((resolve) => {
-                        setTimeout(resolve, 30);
-                    }),
-            );
-
-            // Then the list stays at the marker instead of scrolling it out of view.
-            expect(mockLegendScrollToEnd).not.toHaveBeenCalled();
-        } finally {
-            mockUseReportActionsScroll.mockImplementation(originalImplementation);
-        }
-    });
-
-    it('cancels a queued end correction as soon as the reader starts dragging', async () => {
-        // Given removing the latest message has queued a layout correction at the end.
-        mockUseNetwork.mockReturnValue({isOffline: false});
-        renderReportActionsList();
-        await waitFor(() => expect(mockLegendScrollToEnd).toHaveBeenCalled());
-        mockLegendScrollToEnd.mockClear();
-        const animationFrames: FrameRequestCallback[] = [];
-        const requestAnimationFrameSpy = jest.spyOn(global, 'requestAnimationFrame').mockImplementation((callback) => {
-            animationFrames.push(callback);
-            return animationFrames.length;
-        });
-        try {
-            const listProps = getCapturedListProps();
-            // When the user touches the list before the next scroll metrics arrive.
-            act(() => {
-                listProps?.onContentSizeChange?.(300, 900);
-                listProps?.onScrollBeginDrag?.();
-                for (const callback of animationFrames) {
-                    callback(0);
-                }
-            });
-
-            // Then even a callback already dispatched by the frame scheduler respects the gesture.
-            expect(mockLegendScrollToEnd).not.toHaveBeenCalled();
-        } finally {
-            requestAnimationFrameSpy.mockRestore();
         }
     });
 
@@ -1190,7 +948,6 @@ describe('ReportActionsList (body)', () => {
 
         expect(mockLegendListMount).toHaveBeenCalledTimes(1);
         expect(mockLegendListUnmount).not.toHaveBeenCalled();
-        mockLegendScrollToEnd.mockClear();
 
         mockHasOnceLoadedReportActions = true;
         // The mocked Onyx hook does not own state, so changing its return value cannot schedule the
@@ -1205,7 +962,7 @@ describe('ReportActionsList (body)', () => {
 
         expect(mockLegendListMount).toHaveBeenCalledTimes(2);
         expect(mockLegendListUnmount).toHaveBeenCalledTimes(1);
-        await waitFor(() => expect(mockLegendScrollToEnd).toHaveBeenCalledWith({animated: false}));
+        expect(getCapturedListProps()?.initialScrollAtEnd).toBe(true);
     });
 
     it('keeps the initial viewport covered until the hydrated LegendList finishes rendering it', async () => {

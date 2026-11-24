@@ -37,6 +37,7 @@ type UseReportActionsListScrollParams = Pick<
     Pick<ReturnType<typeof useReportActionsPresentation>, 'reportActionIDToDisplayIndex' | 'focusRequestedReportActionID'> &
     Pick<UseReportActionsListDataParams, 'isOffline' | 'linkedReportActionID'> &
     Pick<ReportActionsListProps, 'onLayout'> & {
+        isDraftPendingCompletion: boolean;
         actionBadgeTargetID: string | undefined;
         onScrolledOverThresholdChange: (isOverThreshold: boolean) => void;
     };

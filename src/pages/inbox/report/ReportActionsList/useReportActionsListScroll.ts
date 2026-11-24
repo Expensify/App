@@ -17,12 +17,12 @@ import useScrollToEditingReportAction from '@pages/inbox/report/useScrollToEditi
 import CONST from '@src/CONST';
 import type * as OnyxTypes from '@src/types/onyx';
 
-import type {LegendListMetrics, LegendListRef, OnViewableItemsChangedInfo} from '@legendapp/list/react-native';
+import type {LegendListRef, OnViewableItemsChangedInfo} from '@legendapp/list/react-native';
 import type {LayoutChangeEvent, NativeScrollEvent, NativeSyntheticEvent} from 'react-native';
 
 import {useIsFocused} from '@react-navigation/native';
 import {useEffect, useEffectEvent, useImperativeHandle, useRef, useState} from 'react';
-import {PixelRatio, Platform} from 'react-native';
+import {Platform} from 'react-native';
 
 import type {ReportActionsListScrollMetrics, UseReportActionsListScrollParams} from './types';
 
@@ -33,6 +33,7 @@ const PAGINATION_THRESHOLD = 0.75;
 
 function useReportActionsListScroll({
     reportID,
+    isDraftPendingCompletion,
     sortedVisibleReportActions,
     renderedVisibleReportActions: listData,
     reportActionIDToDisplayIndex,
@@ -93,7 +94,6 @@ function useReportActionsListScroll({
     const listRef = useActionListRef();
     const legendListRef = useRef<LegendListRef>(null);
     const headerSizeRef = useRef(0);
-    const footerSizeRef = useRef(0);
 
     useImperativeHandle(
         listRef,
@@ -124,16 +124,12 @@ function useReportActionsListScroll({
     const oldestLoadedActionID = allReportActionIDs.at(-1);
     const oldestLoadedActionIDAtHistoryRevealRef = useRef<string | undefined>(undefined);
     const distanceFromBottomRef = useRef(getScrollOffset());
-    const shouldFollowContentSizeChangeRef = useRef(false);
     const onShowPreviousMessages = () => {
         // Revealing older actions can make a short session scrollable before the requested history page arrives.
         // Follow the tail only when the reader was actually there; the action-visible threshold is much wider.
         shouldRestoreTailAfterHistoryRevealRef.current = distanceFromBottomRef.current <= 1 && !hasNewerActions;
         const shouldWaitForHistoryPage = shouldRestoreTailAfterHistoryRevealRef.current && hasOlderActions;
         oldestLoadedActionIDAtHistoryRevealRef.current = shouldWaitForHistoryPage ? oldestLoadedActionID : undefined;
-        if (shouldRestoreTailAfterHistoryRevealRef.current) {
-            shouldFollowContentSizeChangeRef.current = true;
-        }
         handleShowPreviousMessages();
     };
 
@@ -146,8 +142,7 @@ function useReportActionsListScroll({
             return;
         }
         const animationFrame = requestAnimationFrame(() => {
-            const shouldSkipTailRestoration = !shouldRestoreTailAfterHistoryRevealRef.current || !shouldFollowContentSizeChangeRef.current;
-            if (shouldSkipTailRestoration) {
+            if (!shouldRestoreTailAfterHistoryRevealRef.current) {
                 return;
             }
             legendListRef.current?.scrollToEnd({animated: false});
@@ -268,54 +263,17 @@ function useReportActionsListScroll({
 
     const readyEndListIDRef = useRef<string | undefined>(undefined);
     const {startViewportAnchor, deferScrollUntilViewportCorrected, finishViewportCorrection, preserveViewportBottom} = useViewportBottomAnchor({legendListRef, listData, listID});
-    const lastContentHeightRef = useRef<number | undefined>(undefined);
     const lastScrollMetricsRef = useRef<ReportActionsListScrollMetrics | undefined>(undefined);
-    const endCorrectionFrameRef = useRef<number | undefined>(undefined);
-    const userScrolledListIDRef = useRef<string | undefined>(undefined);
-    const userDraggedListIDRef = useRef<string | undefined>(undefined);
 
     const stopFollowingEnd = () => {
-        userScrolledListIDRef.current = listID;
-        shouldFollowContentSizeChangeRef.current = false;
         shouldRestoreTailAfterHistoryRevealRef.current = false;
-        if (endCorrectionFrameRef.current === undefined) {
-            return;
-        }
-        cancelAnimationFrame(endCorrectionFrameRef.current);
-        endCorrectionFrameRef.current = undefined;
     };
 
     const stopAutomaticPositioning = () => {
         finishViewportCorrection();
-        userDraggedListIDRef.current = listID;
         stopLinkedMessagePositioning();
         stopFollowingEnd();
     };
-
-    const scheduleEndCorrection = () => {
-        const shouldSkipEndCorrection = readyEndListIDRef.current !== listID || !shouldFollowContentSizeChangeRef.current || hasNewerActions || endCorrectionFrameRef.current !== undefined;
-        if (shouldSkipEndCorrection) {
-            return;
-        }
-        endCorrectionFrameRef.current = requestAnimationFrame(() => {
-            endCorrectionFrameRef.current = undefined;
-            const shouldFollowListEnd = readyEndListIDRef.current === listID && shouldFollowContentSizeChangeRef.current;
-            if (shouldFollowListEnd) {
-                legendListRef.current?.scrollToEnd({animated: false});
-            }
-        });
-    };
-
-    useEffect(
-        () => () => {
-            if (endCorrectionFrameRef.current === undefined) {
-                return;
-            }
-            cancelAnimationFrame(endCorrectionFrameRef.current);
-            endCorrectionFrameRef.current = undefined;
-        },
-        [listID],
-    );
 
     const updateVisibleItemOverflow = (info: OnViewableItemsChangedInfo<OnyxTypes.ReportAction>) => {
         viewableRowIndexesRef.current = new Set(info.viewableItems.map((token) => token.index));
@@ -333,17 +291,8 @@ function useReportActionsListScroll({
         onLoad();
         setLoadedInitialViewportListID(listID);
         readyEndListIDRef.current = listID;
-        // An unread marker near the newest action lands at the end. Rows above it are still measured after
-        // onReady, so keep that end in view instead of exposing older messages.
-        const isUnreadInitialScroll = initialScrollIndex !== undefined && !reportActionIDFromRoute && !shouldBeAlignedToTop;
-        const didLandAtEnd = initialScrollIndex === undefined || (isUnreadInitialScroll && !!legendListRef.current?.getState()?.isAtEnd);
-        shouldFollowContentSizeChangeRef.current = didLandAtEnd && !hasNewerActions && userScrolledListIDRef.current !== listID;
         startViewportAnchor();
-        const state = legendListRef.current?.getState();
-        lastContentHeightRef.current = state ? PixelRatio.roundToNearestPixel(state.contentLength) : undefined;
         lastScrollMetricsRef.current = undefined;
-        // The final row can grow after LegendList's initial end estimate (for example, Concierge feedback).
-        scheduleEndCorrection();
     };
 
     const loadOlderChatsOnStartReached = () => {
@@ -367,26 +316,14 @@ function useReportActionsListScroll({
         const previousMetrics = lastScrollMetricsRef.current;
         distanceFromBottomRef.current = distanceFromBottom;
         const canFollowListEnd = readyEndListIDRef.current === listID && !hasNewerActions;
-        if (canFollowListEnd) {
-            if (distanceFromBottom < CONST.REPORT.ACTIONS.AUTOSCROLL_TO_TOP_THRESHOLD) {
-                // A list opened at an unread or linked message can settle near the end. Following it from there would
-                // push that message out of view as rows resize, so wait until the list reaches the end or the user drags.
-                const shouldFollowResizingEnd = initialScrollIndex === undefined || distanceFromBottom <= 1 || userDraggedListIDRef.current === listID;
-                if (shouldFollowResizingEnd) {
-                    shouldFollowContentSizeChangeRef.current = true;
-                }
-            } else {
-                const hasReaderMovedAwayFromEnd =
-                    (previousMetrics && contentOffset.y < previousMetrics.offset - 1) ||
-                    (previousMetrics &&
-                        previousMetrics.contentHeight === contentSize.height &&
-                        previousMetrics.viewportHeight === layoutMeasurement.height &&
-                        endCorrectionFrameRef.current === undefined);
-                if (hasReaderMovedAwayFromEnd) {
-                    // A pending history request must not reclaim the end after the reader has moved away.
-                    stopFollowingEnd();
-                }
-            }
+        const hasReaderMovedAwayFromEnd =
+            canFollowListEnd &&
+            distanceFromBottom >= CONST.REPORT.ACTIONS.AUTOSCROLL_TO_TOP_THRESHOLD &&
+            !!previousMetrics &&
+            (contentOffset.y < previousMetrics.offset - 1 || (previousMetrics.contentHeight === contentSize.height && previousMetrics.viewportHeight === layoutMeasurement.height));
+        if (hasReaderMovedAwayFromEnd) {
+            // A pending history request must not reclaim the end after the reader has moved away.
+            stopFollowingEnd();
         }
         lastScrollMetricsRef.current = {offset: contentOffset.y, contentHeight: contentSize.height, viewportHeight: layoutMeasurement.height};
 
@@ -464,22 +401,6 @@ function useReportActionsListScroll({
         distanceFromBottomRef.current = distanceFromEnd;
     };
 
-    // LegendList on web reports row and footer measurements without firing onContentSizeChange.
-    const followResizedItem: typeof onItemSizeChanged = (change) => {
-        onItemSizeChanged(change);
-        scheduleEndCorrection();
-    };
-
-    const trackContentSizeChange = (_width: number, height: number) => {
-        trackVerticalScrolling(undefined);
-        // Native can report the same content size again when only the viewport resizes.
-        const contentHeight = PixelRatio.roundToNearestPixel(height);
-        if (contentHeight !== lastContentHeightRef.current) {
-            lastContentHeightRef.current = contentHeight;
-            scheduleEndCorrection();
-        }
-    };
-
     return {
         listID,
         loadedInitialViewportListID,
@@ -510,15 +431,14 @@ function useReportActionsListScroll({
             initialScrollAtEnd: initialScrollIndex === undefined,
             initialScrollIndex: initialScrollIndex === undefined ? undefined : {index: initialScrollIndex, ...initialScrollIndexParams},
             alignItemsAtEnd: !shouldBeAlignedToTop,
+            // The new-message scroll policy sees saved actions only. Let LegendList follow the temporary
+            // Concierge reply when it first appears, then keep following as its text grows.
+            maintainScrollAtEnd: hasNewerActions ? false : {on: {dataAppend: isDraftPendingCompletion, itemLayout: true, footerLayout: true}},
             onReady: markInitialViewportReady,
-            onItemSizeChanged: followResizedItem,
-            onContentSizeChange: trackContentSizeChange,
-            onMetricsChange: ({headerSize, footerSize}: LegendListMetrics) => {
+            onItemSizeChanged,
+            onContentSizeChange: () => trackVerticalScrolling(undefined),
+            onMetricsChange: ({headerSize}: {headerSize: number}) => {
                 headerSizeRef.current = headerSize;
-                if (footerSize !== footerSizeRef.current) {
-                    footerSizeRef.current = footerSize;
-                    scheduleEndCorrection();
-                }
             },
         },
     };

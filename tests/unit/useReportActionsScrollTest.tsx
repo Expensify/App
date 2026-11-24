@@ -38,8 +38,6 @@ jest.spyOn(global, 'requestAnimationFrame').mockImplementation((callback: FrameR
 const mockScrollToBottom = jest.fn();
 const mockScrollToIndex = jest.fn();
 let mockLinkedActionPosition = 40;
-let mockListScroll: number | undefined;
-let mockListHeaderSize = 0;
 jest.mock('@hooks/useReportScrollManager', () => ({
     __esModule: true,
     default: () => ({
@@ -227,7 +225,7 @@ function buildActionListContextValue() {
                 scrollToIndex: mockScrollToIndex,
                 scrollToEnd: mockScrollToBottom,
                 scrollToOffset: jest.fn(),
-                getState: () => ({positionByKey: () => mockLinkedActionPosition, scroll: mockListScroll, contentLength: 5000, scrollLength: 600, headerSize: mockListHeaderSize}),
+                getState: () => ({positionByKey: () => mockLinkedActionPosition}),
             },
         }),
     };
@@ -263,8 +261,6 @@ describe('useReportActionsScroll', () => {
         mockTransitionCallbacks.length = 0;
         mockRouteParams = {};
         mockLinkedActionPosition = 40;
-        mockListScroll = undefined;
-        mockListHeaderSize = 0;
         mockIsFocused = true;
         mockReportRHPActiveRoute = undefined;
         mockIsFloatingMessageCounterVisible = false;
@@ -507,52 +503,23 @@ describe('useReportActionsScroll', () => {
     });
 
     describe('linked message positioning', () => {
-        it('does not reposition an Android link already aligned below the offline history header', async () => {
-            // Given the row position excludes an 800-point header that the scroll offset includes.
-            const platform = jest.replaceProperty(Platform, 'OS', 'android');
-            mockRouteParams = {reportActionID: LINKED_ACTION_ID};
-            mockLinkedActionPosition = 400;
-            mockListHeaderSize = 800;
-            mockListScroll = 1160;
-            const {result} = await renderScroll({renderedVisibleReportActions: [makeAction('123'), makeAction(LINKED_ACTION_ID), makeAction('999')]});
-
-            // When the positioned list becomes ready, it must not start a redundant native scroll.
-            act(() => result.current.onLoad());
-            flushTransitions();
-            expect(mockScrollToIndex).not.toHaveBeenCalled();
-            platform.restore();
-        });
-
-        it('lets Android preserve an already aligned linked message when a preceding row changes height', async () => {
-            // Given Android has already positioned the link and is preserving it during measurement.
+        it('repositions an Android link when a preceding row changes height', async () => {
+            // Given Android has already positioned the link.
             const platform = jest.replaceProperty(Platform, 'OS', 'android');
             mockRouteParams = {reportActionID: LINKED_ACTION_ID};
             mockLinkedActionPosition = 2690;
-            mockListScroll = 2650;
             const {result} = await renderScroll({renderedVisibleReportActions: [makeAction('123'), makeAction(LINKED_ACTION_ID), makeAction('999')]});
             act(() => result.current.onLoad());
             flushTransitions();
             mockScrollToIndex.mockClear();
 
-            // When LegendList updates both the measured position and its pending native scroll adjustment.
+            // When the row above it is measured at a different height.
             mockLinkedActionPosition = 2460;
-            mockListScroll = 2420;
             act(() => result.current.onItemSizeChanged({index: 0, previous: 500, size: 270}));
             flushTransitions();
 
-            // Then another imperative scroll does not apply the same correction a second time.
-            expect(mockScrollToIndex).not.toHaveBeenCalled();
-
-            // A later scroll event that really moves the link still receives a correction.
-            mockListScroll = 2190;
-            act(() =>
-                result.current.trackLinkedMessageScroll(
-                    createMock<Parameters<typeof result.current.trackLinkedMessageScroll>[0]>({
-                        nativeEvent: {contentOffset: {x: 0, y: 2190}, contentSize: {width: 300, height: 5000}, layoutMeasurement: {width: 300, height: 600}},
-                    }),
-                ),
-            );
-            flushTransitions();
+            // Then the link is scrolled to again, as on other platforms. LegendList resolves the index target from the
+            // measured layout, so a native adjustment that already moved the list is not applied a second time.
             expect(mockScrollToIndex).toHaveBeenCalledWith(1, {animated: false, viewPosition: 0, viewOffset: CONST.REPORT.ACTIONS.LINKED_MESSAGE_OFFSET});
             platform.restore();
         });

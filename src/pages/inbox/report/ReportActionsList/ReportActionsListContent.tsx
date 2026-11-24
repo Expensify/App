@@ -180,6 +180,7 @@ function ReportActionsListContent({reportID, onLayout}: ReportActionsListProps) 
         scrollToActionBadgeTarget,
     } = useReportActionsListScroll({
         reportID,
+        isDraftPendingCompletion,
         // Hidden surveys still prove that the selected page contains the newest action.
         sortedVisibleReportActions: paymentFilteredVisibleReportActions,
         renderedVisibleReportActions: listData,
@@ -325,8 +326,6 @@ function ReportActionsListContent({reportID, onLayout}: ReportActionsListProps) 
                     keyboardShouldPersistTaps="handled"
                     extraData={extraData}
                     key={listID}
-                    // Keep the existing pixel-based new-message policy in useReportActionsScroll.
-                    maintainScrollAtEnd={false}
                     // Chats are read from the bottom, so keep the last visible message in place when rows above it resize or load.
                     maintainVisibleContentPosition={{data: true, size: true, anchor: shouldBeAlignedToTop ? 'start' : 'end'}}
                 />
