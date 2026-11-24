@@ -13,8 +13,6 @@ import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import {useGetPersonalDetailsByLogin} from '@hooks/usePersonalDetailByLogin';
 
-import {filterRulesForPolicy} from '@libs/RuleUtils';
-
 import {approveMoneyRequest} from '@userActions/IOU/ReportWorkflow';
 
 import CONST from '@src/CONST';
@@ -37,7 +35,7 @@ function useConfirmApproveReportAction(actionButtonData: ReturnType<typeof useRe
     const {showLockedAccountModal} = useLockedAccountActions();
     const {startApprovedAnimation} = useReportPreviewActions();
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
-    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE, {selector: (allRules) => filterRulesForPolicy(allRules, actionButtonData.iouReport?.policyID)});
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
     const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
 
     const {iouReport, policy, ownerLogin, userBillingGracePeriodEnds, amountOwed, ownerBillingGracePeriodEnd, delegateEmail, delegateAccountID} = actionButtonData;

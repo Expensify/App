@@ -7,11 +7,9 @@ import {getConnectedIntegration, hasDynamicExternalWorkflow} from '@libs/PolicyU
 import {hasPendingDEWSubmit} from '@libs/ReportActionsUtils';
 import getReportPreviewAction from '@libs/ReportPreviewActionUtils';
 import {canIOUBePaid, isExportInProgress} from '@libs/ReportUtils';
-import {filterRulesForPolicy} from '@libs/RuleUtils';
 
 import ONYXKEYS from '@src/ONYXKEYS';
 import {loginSelector} from '@src/selectors/PersonalDetails';
-import {reportPreviewPolicySelector} from '@src/selectors/Policy';
 import type {Policy, Report, Transaction, TransactionViolations} from '@src/types/onyx';
 
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
@@ -46,12 +44,12 @@ function useReportPreviewActionDecision({
     const currentUserDetails = useCurrentUserPersonalDetails();
     const isIouReportArchived = useReportIsArchived(iouReportID);
     const isChatReportArchived = useReportIsArchived(chatReportID);
-    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${iouReport?.policyID}`, {selector: reportPreviewPolicySelector});
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${iouReport?.policyID}`);
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const [iouReportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${iouReportID}`);
     const [isExpenseReportExportInProgress] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReportID}`, {selector: isExportInProgress});
     const [ownerLogin] = usePersonalDetail(iouReport?.ownerAccountID, loginSelector);
-    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE, {selector: (allRules) => filterRulesForPolicy(allRules, iouReport?.policyID)});
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
 
     const isDEWPolicy = hasDynamicExternalWorkflow(policy);
     const isDEWSubmitPending = hasPendingDEWSubmit(iouReportMetadata, isDEWPolicy);

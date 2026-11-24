@@ -8,7 +8,7 @@ import type {Report} from '@src/types/onyx';
 
 import React from 'react';
 
-const mockIouReport = {reportID: '1001', parentReportID: '3003', policyID: 'policy1'} as Report;
+const mockIouReport = {reportID: '1001', parentReportID: '3003'} as Report;
 const mockPolicy = {id: 'policy1'};
 
 // Capture the props AddExpenseActionButton forwards to ButtonWithDropdownMenu.
@@ -23,14 +23,13 @@ jest.mock('@components/ButtonWithDropdownMenu', () => ({
 
 jest.mock('@components/ReportActionItem/MoneyRequestReportPreview/MoneyRequestReportPreviewContext', () => ({
     __esModule: true,
-    useReportPreviewData: () => ({iouReport: mockIouReport, chatReportID: '2002'}),
+    useReportPreviewData: () => ({iouReport: mockIouReport, chatReportID: '2002', policy: mockPolicy}),
 }));
 
 jest.mock('@hooks/useCurrentUserPersonalDetails', () => ({__esModule: true, default: () => ({accountID: 1})}));
 jest.mock('@hooks/useLazyAsset', () => ({__esModule: true, useMemoizedLazyExpensifyIcons: () => ({}), useMemoizedLazyIllustrations: () => ({})}));
 jest.mock('@hooks/useLocalize', () => ({__esModule: true, default: () => ({translate: (key: string) => key})}));
-// The button reads the report's whole policy from Onyx, since the preview context only holds a narrowed one.
-jest.mock('@hooks/useOnyx', () => ({__esModule: true, default: jest.fn((key: string) => (key === 'policy_policy1' ? [mockPolicy] : [undefined]))}));
+jest.mock('@hooks/useOnyx', () => ({__esModule: true, default: jest.fn(() => [undefined])}));
 
 jest.mock('@userActions/IOU/StartExpenseFlows', () => {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment -- partial mock of the real module
@@ -47,7 +46,7 @@ describe('AddExpenseActionButton', () => {
         mockButtonProps.current = undefined;
     });
 
-    it('renders the add-expense dropdown with options built from context data and the report policy', () => {
+    it('renders the add-expense dropdown with options built from context data', () => {
         render(<AddExpenseActionButton />);
 
         expect(mockButtonProps.current?.customText).toBe('iou.addExpense');
