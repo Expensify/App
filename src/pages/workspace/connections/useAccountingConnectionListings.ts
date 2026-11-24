@@ -21,8 +21,10 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Policy} from '@src/types/onyx';
 import type {ConnectionName} from '@src/types/onyx/Policy';
+import type IconAsset from '@src/types/utils/IconAsset';
 
 import type {OnyxEntry} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
 
 import type {ConnectionListing, ConnectionStatus} from './types';
 
@@ -30,6 +32,13 @@ import {getSyncStatusMessage} from './utils';
 
 // Listings only read an integration's title and icon. The setup flow inputs are read by `AccountingContext` when a flow starts.
 const NO_REUSABLE_CONNECTIONS = {sageIntacct: false, qbd: false, certinia: false, rillet: false, dualEntry: false, campfire: false};
+
+type WaitlistListingName = ValueOf<typeof CONST.POLICY.CONNECTIONS.NAME> & keyof typeof CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY;
+
+/** Builds the listing of an accounting integration whose connector isn't released yet, so the grid shows its waitlist card. */
+function getWaitlistListing(name: WaitlistListingName, icon?: IconAsset): ConnectionListing {
+    return {key: name, category: CONST.TAB.CONNECTIONS.ACCOUNTING, title: CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[name], icon};
+}
 
 function useAccountingConnectionListings(policy: OnyxEntry<Policy>): ConnectionListing[] {
     const policyID = policy?.id;
@@ -167,42 +176,21 @@ function useAccountingConnectionListings(policy: OnyxEntry<Policy>): ConnectionL
             // connector flows arrive in later releases, so beta users also see their waitlist cards for now.
             return [
                 listing,
-                {
-                    key: CONST.POLICY.CONNECTIONS.NAME.SAGE_ACCOUNTING,
-                    category: CONST.TAB.CONNECTIONS.ACCOUNTING,
-                    title: CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY.sageAccounting,
-                    // Sage Accounting shares the Sage logo with Sage Intacct
-                    icon: accountingIcons.IntacctSquare,
-                },
-                {
-                    key: CONST.POLICY.CONNECTIONS.NAME.ODOO,
-                    category: CONST.TAB.CONNECTIONS.ACCOUNTING,
-                    title: CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY.odoo,
-                },
+                // Sage Accounting shares the Sage logo with Sage Intacct
+                getWaitlistListing(CONST.POLICY.CONNECTIONS.NAME.SAGE_ACCOUNTING, accountingIcons.IntacctSquare),
+                getWaitlistListing(CONST.POLICY.CONNECTIONS.NAME.ODOO),
             ];
         }
         if (name === CONST.POLICY.CONNECTIONS.NAME.CERTINIA) {
             // Acumatica is placed after Certinia, as in the design. Its connector flow arrives in a later release,
             // so only its waitlist is offered for now.
-            return [
-                listing,
-                {
-                    key: CONST.POLICY.CONNECTIONS.NAME.ACUMATICA,
-                    category: CONST.TAB.CONNECTIONS.ACCOUNTING,
-                    title: CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY.acumatica,
-                    icon: accountingIcons.AcumaticaSquare,
-                },
-            ];
+            return [listing, getWaitlistListing(CONST.POLICY.CONNECTIONS.NAME.ACUMATICA, accountingIcons.AcumaticaSquare)];
         }
         return listing;
     });
 
     // The connector flow arrives in a later release, so beta users also see the waitlist for now.
-    listings.push({
-        key: CONST.POLICY.CONNECTIONS.NAME.EXACT_ONLINE,
-        category: CONST.TAB.CONNECTIONS.ACCOUNTING,
-        title: CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY.exactOnline,
-    });
+    listings.push(getWaitlistListing(CONST.POLICY.CONNECTIONS.NAME.EXACT_ONLINE));
     return listings;
 }
 
