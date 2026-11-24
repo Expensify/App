@@ -64,7 +64,7 @@ function TaxFields({policy, policyForMovingExpenses, iouCurrencyCode, canModifyT
     const styles = useThemeStyles();
     const {translate, preferredLocale} = useLocalize();
     const {convertToDisplayString, getCurrencyDecimals, getCurrencySymbol} = useCurrencyListActions();
-    const {isEditingSplitBill, onTaxAmountEmptyChange, fieldViewRefs} = useConfirmationFields();
+    const {isEditingSplitBill, setEmptyTaxAmountTransactionID, fieldViewRefs} = useConfirmationFields();
     const numberFormRef = useRef<NumberWithSymbolFormRef | null>(null);
 
     const taxSlice = useTransactionSelector(transactionID, taxSliceSelector);
@@ -105,7 +105,7 @@ function TaxFields({policy, policyForMovingExpenses, iouCurrencyCode, canModifyT
 
         const taxAmountInSmallestCurrencyUnits = toBackendTaxAmount(newAmount);
 
-        onTaxAmountEmptyChange?.(newAmount.trim() === '');
+        setEmptyTaxAmountTransactionID?.(newAmount.trim() === '' ? transactionID : undefined);
 
         // When editing a split expense, persist directly to the split draft so that
         // SplitBillDetailsPage and completeSplitBill read the latest value.
@@ -130,15 +130,15 @@ function TaxFields({policy, policyForMovingExpenses, iouCurrencyCode, canModifyT
             }
         }
         numberFormRef.current?.updateNumber(taxAmountInput);
-        onTaxAmountEmptyChange?.(false);
-    }, [taxAmount, taxAmountInput, onTaxAmountEmptyChange]);
+        setEmptyTaxAmountTransactionID?.(undefined);
+    }, [taxAmount, taxAmountInput, setEmptyTaxAmountTransactionID]);
 
     useEffect(() => {
         if (canModifyTaxFields) {
-            return () => onTaxAmountEmptyChange?.(false);
+            return () => setEmptyTaxAmountTransactionID?.(undefined);
         }
-        onTaxAmountEmptyChange?.(false);
-    }, [canModifyTaxFields, onTaxAmountEmptyChange]);
+        setEmptyTaxAmountTransactionID?.(undefined);
+    }, [canModifyTaxFields, setEmptyTaxAmountTransactionID]);
 
     const canSaveFromThisForm = action !== CONST.IOU.ACTION.EDIT || isEditingSplitBill;
     const hasEnabledTaxRates = getEnabledTaxRateCount(taxRates?.taxes ?? {}) > 0;

@@ -121,7 +121,7 @@ const renderMoneyRequestConfirmationListFooter = async (transaction: Transaction
             shouldShowTax: false,
             hasParticipantSection: false,
         },
-        errorState: {shouldDisplayFieldError: false, formError: '' as const, fieldErrors: {}, clearFormErrors: jest.fn(), setFormError: jest.fn()},
+        errorState: {shouldDisplayFieldError: false, formError: '' as const, fieldErrors: {}},
         receiptOptions: {
             receiptFilename: '',
             receiptPath: '',

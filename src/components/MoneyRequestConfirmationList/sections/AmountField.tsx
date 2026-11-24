@@ -367,7 +367,11 @@ function AmountField({
                 // The distance and time forms compute their amount rather than take it, so the field is a read-only
                 // row on them. The trailing slot travels with it, or those forms would have nowhere to offer the
                 // compact add-receipt button from.
-                <View style={[styles.flexRow, styles.alignItemsCenter, shouldUseDropdownRows ? undefined : styles.mt2]}>
+                // A split edited while its receipt is still scanning can be blocked on this row, so it shows the field error and holds the ref a blocked confirm scrolls to.
+                <View
+                    ref={fieldViewRefs?.amount}
+                    style={[styles.flexRow, styles.alignItemsCenter, shouldUseDropdownRows ? undefined : styles.mt2]}
+                >
                     <View style={styles.flex1}>
                         {shouldUseDropdownRows ? (
                             // On the bordered form the editable amount is a text input, so a locked one reads as a
@@ -380,7 +384,7 @@ function AmountField({
                                     onPress={openAmountPage}
                                     isDisabled={didConfirm}
                                     isInteractive={canOpenAmountPage}
-                                    errorText={shouldShowAmountMissingError ? translate('common.error.enterAmount') : ''}
+                                    errorText={amountFieldErrorText}
                                     sentryLabel={CONST.SENTRY_LABEL.REQUEST_CONFIRMATION_LIST.AMOUNT_FIELD}
                                 />
                             </ExpenseFieldContainer>
@@ -396,16 +400,16 @@ function AmountField({
                                         <MenuItem.FieldName>{translate('iou.amount')}</MenuItem.FieldName>
                                         <MenuItem.FieldValue style={styles.moneyRequestConfirmationAmount}>{formattedAmount}</MenuItem.FieldValue>
                                     </MenuItem.Content>
-                                    {(canOpenAmountPage || shouldShowAmountMissingError) && (
+                                    {(canOpenAmountPage || !!amountFieldErrorText) && (
                                         <MenuItem.Trailing>
-                                            {shouldShowAmountMissingError && <MenuItem.BrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />}
+                                            {!!amountFieldErrorText && <MenuItem.BrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />}
                                             {canOpenAmountPage && <MenuItem.Chevron />}
                                         </MenuItem.Trailing>
                                     )}
                                 </MenuItem.Row>
-                                {shouldShowAmountMissingError && (
+                                {!!amountFieldErrorText && (
                                     <MenuItem.HelpText
-                                        message={translate('common.error.enterAmount')}
+                                        message={amountFieldErrorText}
                                         isError
                                     />
                                 )}

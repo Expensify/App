@@ -77,8 +77,8 @@ type ProviderProps = {
     /** Submits the whole expense (used by inline inputs to keep Enter-to-confirm on hardware-keyboard setups) */
     onSubmitForm?: () => void;
 
-    /** Reports whether the inline tax amount field is currently empty, so submission can be blocked when it is left empty */
-    onTaxAmountEmptyChange?: (isEmpty: boolean) => void;
+    /** Records the receipt whose inline tax amount input was emptied, or undefined once it holds a value, so submission can be blocked while it is left empty */
+    setEmptyTaxAmountTransactionID?: (transactionID: string | undefined) => void;
 
     /** Block components rendered inside the Provider */
     children: ReactNode;
@@ -107,7 +107,7 @@ function Provider({
     scrollFocusedInputIntoView,
     fieldViewRefs,
     onSubmitForm,
-    onTaxAmountEmptyChange,
+    setEmptyTaxAmountTransactionID,
     children,
 }: ProviderProps) {
     const value = {
@@ -133,7 +133,7 @@ function Provider({
         scrollFocusedInputIntoView,
         fieldViewRefs,
         onSubmitForm,
-        onTaxAmountEmptyChange,
+        setEmptyTaxAmountTransactionID,
     };
     return <ConfirmationFieldsContext.Provider value={value}>{children}</ConfirmationFieldsContext.Provider>;
 }

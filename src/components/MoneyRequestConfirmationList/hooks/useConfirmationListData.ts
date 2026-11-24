@@ -146,10 +146,12 @@ function useConfirmationListDataWithPolicy({
 
     const [didConfirm, setDidConfirm] = useState(isConfirmed);
     const [didConfirmSplit, setDidConfirmSplit] = useState(false);
-    // A multi-scan swaps the receipt on the same list, so the flag holds the receipt whose tax amount was emptied, and the next receipt never renders with it.
+    // A multi-scan swaps the receipt on the same list, so the flag holds the receipt whose tax amount was emptied. It is dropped once another receipt is on screen, because coming back shows that receipt's stored 0, which is a valid tax amount.
     const [emptyTaxAmountTransactionID, setEmptyTaxAmountTransactionID] = useState<string | undefined>();
+    if (emptyTaxAmountTransactionID && emptyTaxAmountTransactionID !== transactionID) {
+        setEmptyTaxAmountTransactionID(undefined);
+    }
     const isTaxAmountEmpty = !!transactionID && emptyTaxAmountTransactionID === transactionID;
-    const setIsTaxAmountEmpty = (isEmpty: boolean) => setEmptyTaxAmountTransactionID(isEmpty ? transactionID : undefined);
 
     const routeError = Object.values(transaction?.errorFields?.route ?? {}).at(0);
     const isTypeSplit = iouType === CONST.IOU.TYPE.SPLIT;
@@ -162,11 +164,9 @@ function useConfirmationListDataWithPolicy({
         transaction,
         transactionReport,
         iouCategory,
-        iouAttendees,
         policy,
         policyTags,
         policyCategories,
-        currentUserPersonalDetails,
         isEditingSplitBill,
         hasSmartScanFailed,
         didConfirmSplit,
@@ -331,7 +331,7 @@ function useConfirmationListDataWithPolicy({
                 scrollFocusedInputIntoView,
                 fieldViewRefs,
                 onSubmitForm: confirm,
-                onTaxAmountEmptyChange: setIsTaxAmountEmpty,
+                setEmptyTaxAmountTransactionID,
             },
         },
 

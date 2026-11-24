@@ -47,8 +47,8 @@ type ConfirmationFieldsContextValue = {
     /** Submits the whole expense. Used by inline inputs to keep Enter-to-confirm on hardware-keyboard setups (new manual expense flow). */
     onSubmitForm?: () => void;
 
-    /** Reports whether the inline tax amount field is currently empty, so submission can be blocked when it is left empty (new manual expense flow). */
-    onTaxAmountEmptyChange?: (isEmpty: boolean) => void;
+    /** Records the receipt whose inline tax amount input was emptied, or undefined once it holds a value, so submission can be blocked while it is left empty (new manual expense flow). */
+    setEmptyTaxAmountTransactionID?: (transactionID: string | undefined) => void;
 };
 
 const ConfirmationFieldsContext = createContext<ConfirmationFieldsContextValue | null>(null);

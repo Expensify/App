@@ -12,9 +12,9 @@ type ViolationFixParams = {
     policyCategories: PolicyCategories | undefined;
     policyTagLists: PolicyTagLists | undefined;
     policyTaxRates: TaxRates | undefined;
-    iouAttendees: Attendee[] | undefined;
-    ownerLogin: string | undefined;
-    isAttendeeTrackingEnabled: boolean | undefined;
+    iouAttendees?: Attendee[];
+    ownerLogin?: string;
+    isAttendeeTrackingEnabled?: boolean;
     isControlPolicy?: boolean;
     mileageRate?: MileageRate;
     expenseDate?: string;

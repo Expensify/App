@@ -378,7 +378,7 @@ describe('getSiblingFieldErrors', () => {
         const fromPreviousWorkspace = createScanDraft({...completeFields, transactionID: 'txn2', taxCode: 'PREVIOUS_WORKSPACE_TAX', taxAmount: 500});
 
         // When the other receipts are checked
-        // Then only the receipt at 10% is held for its tax amount, because the other one's rate is replaced once it comes on screen
+        // Then only the receipt at 10% is held for its tax amount, because the limit of a rate the workspace doesn't have can't be known
         expect(getSiblingFieldErrors([overTheLimit], taxParams)).toEqual({transactionID: 'txn2', fieldErrors: {taxAmount: 'iou.error.invalidTaxAmount'}});
         expect(getSiblingFieldErrors([fromPreviousWorkspace], taxParams)).toBeUndefined();
     });

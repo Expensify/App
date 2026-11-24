@@ -2,6 +2,7 @@ import {act, fireEvent, render, screen} from '@testing-library/react-native';
 
 import ConfirmationFieldsProvider from '@components/MoneyRequestConfirmationFields/Provider';
 import AmountField from '@components/MoneyRequestConfirmationList/sections/AmountField';
+import ExpenseFormLayoutContext from '@components/MoneyRequestConfirmationList/sections/ExpenseFormLayoutContext';
 import type {NumberWithSymbolFormProps} from '@components/NumberWithSymbolForm';
 
 import {setMoneyRequestAmount, setMoneyRequestCurrency} from '@libs/actions/IOU/MoneyRequest';
@@ -14,7 +15,9 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
 
-import React from 'react';
+import type {View} from 'react-native';
+
+import React, {createRef} from 'react';
 
 const mockFocusAmountInput = jest.fn();
 let mockIsScreenFocused = true;
@@ -99,10 +102,11 @@ jest.mock('@components/MenuItem', () => {
 });
 jest.mock('@components/DropdownFieldRow', () => {
     const {Text} = jest.requireActual<Record<'Text', React.ComponentType<{children?: React.ReactNode}>>>('react-native');
-    return ({value, isInteractive = true}: {value?: string; isInteractive?: boolean}) => (
+    return ({value, isInteractive = true, errorText}: {value?: string; isInteractive?: boolean; errorText?: string}) => (
         <>
             <Text>{`Read-only amount: ${value ?? ''}`}</Text>
             {isInteractive && <Text>Opens amount page</Text>}
+            {!!errorText && <Text>{errorText}</Text>}
         </>
     );
 });
@@ -469,5 +473,38 @@ describe('AmountField while the receipt is scanning', () => {
         // Then the editable amount input stays, so the user can still type an amount inline
         expect(screen.getByText('Enter zero')).toBeOnTheScreen();
         expect(screen.queryByText('Read-only amount: Scanning…')).not.toBeOnTheScreen();
+    });
+
+    it.each([
+        ['push row', false],
+        ['bordered row', true],
+    ])('shows the amount error a blocked save revealed on the %s of a split edited while its receipt is scanning', (_layout, shouldUseDropdownRows) => {
+        // Given a split being edited whose receipt is still scanning, so its amount is a read-only row, and whose save was blocked by its $0 amount
+        const fieldViewRefs = {amount: createRef<View>(), merchant: createRef<View>(), date: createRef<View>(), taxAmount: createRef<View>(), attendees: createRef<View>()};
+
+        // When the field renders
+        render(
+            <ConfirmationFieldsProvider
+                transactionID="1"
+                reportID="2"
+                action={CONST.IOU.ACTION.EDIT}
+                iouType={CONST.IOU.TYPE.SPLIT}
+                isEditingSplitBill
+                fieldViewRefs={fieldViewRefs}
+            >
+                <ExpenseFormLayoutContext.Provider value={{shouldUseDropdownRows}}>
+                    <AmountField
+                        {...amountFieldProps}
+                        formattedAmount="Scanning…"
+                        fieldError="common.error.enterAmount"
+                    />
+                </ExpenseFormLayoutContext.Provider>
+            </ConfirmationFieldsProvider>,
+        );
+
+        // Then the row shows the error and holds the amount ref, so the blocked save scrolls to a message instead of doing nothing visible
+        expect(screen.getByText('Read-only amount: Scanning…')).toBeOnTheScreen();
+        expect(screen.getByText('common.error.enterAmount')).toBeOnTheScreen();
+        expect(fieldViewRefs.amount.current).not.toBeNull();
     });
 });

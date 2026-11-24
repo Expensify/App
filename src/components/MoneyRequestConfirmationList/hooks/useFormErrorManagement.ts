@@ -1,15 +1,12 @@
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 
-import {isAttendeeTrackingEnabled} from '@libs/PolicyUtils';
 import {areRequiredFieldsEmpty, getTag, hasMissingSmartscanFields} from '@libs/TransactionUtils';
 import {getIsViolationFixed} from '@libs/Violations/ViolationsUtils';
 
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import type * as OnyxTypes from '@src/types/onyx';
-import type {Attendee} from '@src/types/onyx/IOU';
-import type {CurrentUserPersonalDetails} from '@src/types/onyx/PersonalDetails';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
@@ -26,9 +23,6 @@ type UseFormErrorManagementParams = {
     /** Currently selected category */
     iouCategory: string;
 
-    /** Currently selected attendees */
-    iouAttendees: Attendee[];
-
     /** Policy the IOU belongs to */
     policy: OnyxEntry<OnyxTypes.Policy>;
 
@@ -37,8 +31,6 @@ type UseFormErrorManagementParams = {
 
     /** Policy categories, used for category validation */
     policyCategories: OnyxEntry<OnyxTypes.PolicyCategories>;
-
-    currentUserPersonalDetails: CurrentUserPersonalDetails;
 
     /** Whether we are editing an existing split bill */
     isEditingSplitBill: boolean | undefined;
@@ -102,11 +94,9 @@ function useFormErrorManagement({
     transaction,
     transactionReport,
     iouCategory,
-    iouAttendees,
     policy,
     policyTags,
     policyCategories,
-    currentUserPersonalDetails,
     isEditingSplitBill,
     hasSmartScanFailed,
     didConfirmSplit,
@@ -147,6 +137,7 @@ function useFormErrorManagement({
         !!isEditingSplitBill &&
         ((!!hasSmartScanFailed && hasMissingSmartscanFields(transaction, transactionReport)) || (didConfirmSplit && areRequiredFieldsEmpty(transaction, transactionReport)));
 
+    // Missing attendees is a field error and never becomes the form error, so the attendees aren't passed.
     const isViolationFixed = getIsViolationFixed(formError, {
         category: iouCategory,
         tag: getTag(transaction),
@@ -155,10 +146,6 @@ function useFormErrorManagement({
         policyCategories,
         policyTagLists: policyTags,
         policyTaxRates: policy?.taxRates?.taxes,
-        iouAttendees,
-        ownerLogin: currentUserPersonalDetails.email ?? currentUserPersonalDetails.login,
-        isAttendeeTrackingEnabled: isAttendeeTrackingEnabled(policy),
-        isControlPolicy: policy?.type === CONST.POLICY.TYPE.CORPORATE,
     });
 
     // Mirror formError into a ref so the effect below can read the current value without listing

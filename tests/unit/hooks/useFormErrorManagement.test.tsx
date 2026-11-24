@@ -6,7 +6,6 @@ import useFormErrorManagement from '@components/MoneyRequestConfirmationList/hoo
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
-import type {CurrentUserPersonalDetails} from '@src/types/onyx/PersonalDetails';
 
 import type * as ReactNavigationModule from '@react-navigation/native';
 
@@ -30,11 +29,9 @@ const baseParams: Params = {
     transaction: createMock<OnyxTypes.Transaction>({transactionID: 'txn1', amount: 100, merchant: 'Coffee', comment: {}}),
     transactionReport: undefined,
     iouCategory: '',
-    iouAttendees: [],
     policy: undefined,
     policyTags: undefined,
     policyCategories: undefined,
-    currentUserPersonalDetails: {accountID: 1} as CurrentUserPersonalDetails,
     isEditingSplitBill: false,
     hasSmartScanFailed: false,
     didConfirmSplit: false,
