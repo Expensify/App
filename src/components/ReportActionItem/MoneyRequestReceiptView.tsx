@@ -26,9 +26,11 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useOriginalReportID from '@hooks/useOriginalReportID';
 import usePermissions from '@hooks/usePermissions';
+import {useGetPersonalDetailsByLogin} from '@hooks/usePersonalDetailByLogin';
 import {usePersonalDetail} from '@hooks/usePersonalDetails';
 import usePrevious from '@hooks/usePrevious';
 import useReceiptTranslation from '@hooks/useReceiptTranslation';
+import useRelatedReportActions from '@hooks/useRelatedReportActions';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useReportsParentHierarchy from '@hooks/useReportsParentHierarchy';
 import useReportTransactionsCollection from '@hooks/useReportTransactionsCollection';
@@ -178,6 +180,7 @@ function MoneyRequestReceiptView({
 
     const originalReportID = useOriginalReportID(report?.reportID, parentReportAction);
     const reportsParentHierarchy = useReportsParentHierarchy(report?.reportID);
+    const relatedReportActions = useRelatedReportActions(reportsParentHierarchy, originalReportID, parentReportAction?.childReportID);
     const {iouReport, chatReport: chatIOUReport, isChatIOUReportArchived} = useGetIOUReportFromReportAction(parentReportAction);
     const [chatIOUReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(iouReport?.chatReportID)}`);
     const iouReportTransactionsCollection = useReportTransactionsCollection(iouReport?.reportID);
@@ -246,6 +249,7 @@ function MoneyRequestReceiptView({
     const isReportArchived = useReportIsArchived(report?.reportID);
     const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
+    const getPersonalDetailsByLogin = useGetPersonalDetailsByLogin();
     const {personalCardsWithBrokenConnection} = useCardFeedErrors();
     const {showConfirmModal} = useConfirmModal();
 
@@ -463,7 +467,7 @@ function MoneyRequestReceiptView({
             return;
         }
 
-        retryReceiptUpload(receiptRetryContext, () =>
+        retryReceiptUpload({...receiptRetryContext, personalDetailsByLogins: getPersonalDetailsByLogin()}, () =>
             clearReceiptUploadError({
                 transactionID: transaction?.transactionID,
                 reportID: parentReportAction?.reportID ?? report?.reportID,
@@ -564,7 +568,14 @@ function MoneyRequestReceiptView({
                 return;
             }
             clearError(linkedTransactionID);
-            clearAllRelatedReportActionErrors({reportID: report.reportID, reportAction: parentReportAction, originalReportID, isOffline, reports: reportsParentHierarchy});
+            clearAllRelatedReportActionErrors({
+                reportID: report.reportID,
+                reportAction: parentReportAction,
+                originalReportID,
+                isOffline,
+                reports: reportsParentHierarchy,
+                reportActions: relatedReportActions,
+            });
             return;
         }
         if (!isEmptyObject(transactionAndReportActionErrors)) {
@@ -572,7 +583,14 @@ function MoneyRequestReceiptView({
         }
         if (!isEmptyObject(errorsWithoutReportCreation)) {
             clearError(transaction.transactionID);
-            clearAllRelatedReportActionErrors({reportID: report.reportID, reportAction: parentReportAction, originalReportID, isOffline, reports: reportsParentHierarchy});
+            clearAllRelatedReportActionErrors({
+                reportID: report.reportID,
+                reportAction: parentReportAction,
+                originalReportID,
+                isOffline,
+                reports: reportsParentHierarchy,
+                reportActions: relatedReportActions,
+            });
         }
         if (!isEmptyObject(reportCreationError)) {
             if (isInNarrowPaneModal) {

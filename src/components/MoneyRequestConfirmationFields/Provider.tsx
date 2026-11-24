@@ -1,3 +1,4 @@
+import type {ConfirmationFieldViewRefs} from '@components/MoneyRequestConfirmationList/hooks/useScrollToFlaggedField';
 import type {MeasurableInput} from '@components/SelectionList/SelectionListWithSections/types';
 
 import type {IOUAction, IOUType} from '@src/CONST';
@@ -70,6 +71,9 @@ type ProviderProps = {
     /** Scrolls the surface so an inline field's input is not hidden behind the keyboard when focused (new manual expense flow) */
     scrollFocusedInputIntoView?: (input: MeasurableInput) => void;
 
+    /** The refs the amount, merchant and date fields attach their outer view to, so a blocked confirm can scroll to them */
+    fieldViewRefs?: ConfirmationFieldViewRefs;
+
     /** Submits the whole expense (used by inline inputs to keep Enter-to-confirm on hardware-keyboard setups) */
     onSubmitForm?: () => void;
 
@@ -101,6 +105,7 @@ function Provider({
     isOdometerDistanceRequest = false,
     isGPSDistanceRequest = false,
     scrollFocusedInputIntoView,
+    fieldViewRefs,
     onSubmitForm,
     onTaxAmountEmptyChange,
     children,
@@ -126,6 +131,7 @@ function Provider({
         isOdometerDistanceRequest,
         isGPSDistanceRequest,
         scrollFocusedInputIntoView,
+        fieldViewRefs,
         onSubmitForm,
         onTaxAmountEmptyChange,
     };

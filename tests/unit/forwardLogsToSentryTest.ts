@@ -114,6 +114,29 @@ describe('forwardLogsToSentry', () => {
         // Then nothing is mirrored to Sentry
         expect(Sentry.addBreadcrumb).not.toHaveBeenCalled();
     });
+    it('forwards the server result class and code but drops the server message', () => {
+        // Given a serverResult line whose server message could name a person
+        const packet = packetWith('[alrt] [Receipt] server result', {
+            event: 'serverResult',
+            receiptTraceId: 'trace-R',
+            command: 'RequestMoney',
+            resultClass: 'permanent',
+            jsonCode: 666,
+            requestID: 'req-9',
+            serverMessage: 'Jane Doe cannot submit this',
+        });
+
+        // When the packet is mirrored to Sentry
+        forwardLogsToSentry(packet);
+
+        // Then the class, code and request id arrive, so failures can be grouped and joined to server logs
+        const breadcrumb = jest.mocked(Sentry.addBreadcrumb).mock.calls.at(0)?.[0];
+        expect(breadcrumb?.data).toMatchObject({resultClass: 'permanent', jsonCode: 666, requestID: 'req-9'});
+
+        // And the free-text server message stays in our own logs only
+        expect(breadcrumb?.data).not.toHaveProperty('serverMessage');
+    });
+
     it('forwards the receipt image keys from a uiError line and drops anything else', () => {
         // Given a receipt image failure line carrying the image context and a stray url
         const packet = packetWith('[hmmm] [Receipt] uiError', {

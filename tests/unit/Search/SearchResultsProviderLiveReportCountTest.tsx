@@ -178,8 +178,38 @@ describe('SearchResultsProvider live to-do report count', () => {
     });
 
     beforeEach(async () => {
+        mockQueryContext.currentSearchQueryJSON = draftsQueryJSON;
         await Onyx.clear();
         await waitForBatchedUpdates();
+    });
+
+    it('updates the total when the footer asks for another breakdown while the drafts stay the same', async () => {
+        // Given Drafts with three reimbursable 10.00 expenses
+        const {result, rerender} = await renderDrafts();
+        const dataBefore = result.current.currentSearchResults?.data;
+        expect(result.current.currentSearchResults?.search?.total).toBe(DRAFT_REPORT_IDS.length * EXPENSE_AMOUNT);
+
+        // When the footer switches to non-reimbursable, which changes the totals but none of the drafts
+        mockQueryContext.currentSearchQueryJSON = draftsQueryJSON && {
+            ...draftsQueryJSON,
+            flatFilters: [
+                ...draftsQueryJSON.flatFilters,
+                {
+                    key: CONST.SEARCH.SYNTAX_FILTER_KEYS.FOOTER_TOTAL,
+                    filters: [{operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, value: CONST.SEARCH.FOOTER_TOTAL.NON_REIMBURSABLE}],
+                },
+            ],
+        };
+        rerender({});
+        await act(async () => {
+            await waitForBatchedUpdates();
+        });
+
+        // Then the total drops to zero with the same data object, so only the footer changes and the rows don't rebuild
+        const search = result.current.currentSearchResults?.search;
+        expect(search?.total).toBe(0);
+        expect(search?.count).toBe(DRAFT_REPORT_IDS.length);
+        expect(result.current.currentSearchResults?.data).toBe(dataBefore);
     });
 
     it("keeps the server's report count when the device holds only some of the matching reports", async () => {

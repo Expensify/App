@@ -225,7 +225,7 @@ const INSIGHTS_DASHBOARD_SPECS: Record<InsightsDashboardID, InsightsDashboardSpe
             {
                 graphKey: CONST.INSIGHTS.GRAPH.AVERAGE_PROCESSING_TIME,
                 titleKey: 'insightsPage.averageProcessingTime',
-                view: CONST.SEARCH.VIEW.PIE,
+                view: CONST.SEARCH.VIEW.BAR,
                 groupBy: CONST.SEARCH.GROUP_BY.WORKFLOW_STAGE,
                 metric: CONST.SEARCH.CHART_METRIC.DURATION,
                 sortBy: CONST.SEARCH.SORT_BY_COLUMNS.AVERAGE_TIME,
