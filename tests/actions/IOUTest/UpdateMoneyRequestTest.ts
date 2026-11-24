@@ -48,7 +48,7 @@ import {createRandomReport} from '../../utils/collections/reports';
 import createRandomTransaction from '../../utils/collections/transaction';
 import createMock from '../../utils/createMock';
 import getOnyxValue from '../../utils/getOnyxValue';
-import {createGlobalFetchMock, getCurrencyDecimalsLocal, getCurrencySymbolLocal} from '../../utils/TestHelper';
+import {createGlobalFetchMock, getCurrencyDecimalsLocal, getCurrencySymbolLocal, translateLocal} from '../../utils/TestHelper';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
 jest.mock('@expensify/react-native-hybrid-app', () => ({
@@ -431,6 +431,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
             mockFetch.pause();
 
             updateMoneyRequestAmountAndCurrency({
+                translate: translateLocal,
                 isVendorMatchingBetaEnabled: false,
                 rules: undefined,
                 transactionID: fakeTransaction.transactionID,
@@ -507,6 +508,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
             mockFetch.pause();
 
             updateMoneyRequestAmountAndCurrency({
+                translate: translateLocal,
                 isVendorMatchingBetaEnabled: false,
                 rules: undefined,
                 transactionID: fakeTransaction.transactionID,
@@ -588,6 +590,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
             await waitForBatchedUpdates();
 
             const {onyxData} = getUpdateTrackExpenseParams({
+                translate: translateLocal,
                 transactionID,
                 transaction,
                 transactionThread: transactionThreadReport,
@@ -695,6 +698,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
             await waitForBatchedUpdates();
 
             updateMoneyRequestAmountAndCurrency({
+                translate: translateLocal,
                 isVendorMatchingBetaEnabled: false,
                 rules: undefined,
                 transactionID,
@@ -1011,6 +1015,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
 
             // When editing the description
             updateMoneyRequestDescription({
+                translate: translateLocal,
                 isVendorMatchingBetaEnabled: false,
                 transactionID,
                 transaction,
@@ -1118,6 +1123,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
 
             // When updating the date
             updateMoneyRequestDate({
+                translate: translateLocal,
                 isVendorMatchingBetaEnabled: false,
                 rules: undefined,
                 personalPolicyOutputCurrency: undefined,
@@ -1319,6 +1325,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
 
             // When updating the money request with distance and waypoints
             updateMoneyRequestDistance({
+                translate: translateLocal,
                 isVendorMatchingBetaEnabled: false,
                 rules: undefined,
                 personalPolicyOutputCurrency: undefined,
@@ -1419,6 +1426,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
 
             // When updating the money request WITHOUT distance (only waypoints)
             updateMoneyRequestDistance({
+                translate: translateLocal,
                 isVendorMatchingBetaEnabled: false,
                 rules: undefined,
                 personalPolicyOutputCurrency: undefined,
@@ -1543,6 +1551,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
 
             // First update: Add more waypoints to the expense
             updateMoneyRequestDistance({
+                translate: translateLocal,
                 isVendorMatchingBetaEnabled: false,
                 rules: undefined,
                 personalPolicyOutputCurrency: undefined,
@@ -1625,6 +1634,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
 
             // Call with empty waypoints - should not crash
             updateMoneyRequestDistance({
+                translate: translateLocal,
                 isVendorMatchingBetaEnabled: false,
                 rules: undefined,
                 personalPolicyOutputCurrency: undefined,
@@ -1678,6 +1688,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID2}`, fakeTransaction2);
 
             updateMoneyRequestDistance({
+                translate: translateLocal,
                 isVendorMatchingBetaEnabled: false,
                 rules: undefined,
                 personalPolicyOutputCurrency: undefined,
@@ -1773,6 +1784,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
 
             // When saving the edit without touching the waypoints
             updateMoneyRequestDistance({
+                translate: translateLocal,
                 isVendorMatchingBetaEnabled: false,
                 rules: undefined,
                 personalPolicyOutputCurrency: undefined,
@@ -1969,6 +1981,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
 
             // When updating the merchant
             updateMoneyRequestMerchant({
+                translate: translateLocal,
                 isVendorMatchingBetaEnabled: false,
                 rules: undefined,
                 transactionID,
@@ -2031,6 +2044,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
 
             // When updating merchant for the track-expense
             updateMoneyRequestMerchant({
+                translate: translateLocal,
                 isVendorMatchingBetaEnabled: false,
                 rules: undefined,
                 transactionID,
@@ -2068,6 +2082,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
 
             // When editing the merchant
             updateMoneyRequestMerchant({
+                translate: translateLocal,
                 isVendorMatchingBetaEnabled: false,
                 transactionID,
                 transaction,
@@ -2180,6 +2195,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
 
                 // When updating the merchant with the given isOffline value
                 updateMoneyRequestMerchant({
+                    translate: translateLocal,
                     isVendorMatchingBetaEnabled: false,
                     rules: undefined,
                     transactionID,
@@ -2254,6 +2270,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
 
             // When the caller passes a higher-precision distance than what `customUnit.quantity` would round to
             const {params} = getUpdateTrackExpenseParams({
+                translate: translateLocal,
                 transactionID,
                 transaction: fakeTransaction,
                 transactionThread: fakeThreadReport,
@@ -2335,6 +2352,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
             await waitForBatchedUpdates();
 
             const {onyxData} = getUpdateTrackExpenseParams({
+                translate: translateLocal,
                 transactionID,
                 transaction: fakeTransaction,
                 transactionThread: fakeThreadReport,
@@ -2412,6 +2430,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
 
             // When building the params without a transaction thread
             const {onyxData} = getUpdateTrackExpenseParams({
+                translate: translateLocal,
                 transactionID,
                 transaction: fakeTransaction,
                 transactionThread: undefined,
@@ -2454,6 +2473,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
 
             // When building the params for an amount change without the transaction being written to Onyx
             const {onyxData} = getUpdateTrackExpenseParams({
+                translate: translateLocal,
                 transactionID,
                 transaction,
                 transactionThread: transactionThreadReport,
@@ -2554,6 +2574,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
             await waitForBatchedUpdates();
 
             updateMoneyRequestDate({
+                translate: translateLocal,
                 isVendorMatchingBetaEnabled: false,
                 rules: undefined,
                 personalPolicyOutputCurrency: undefined,
@@ -2688,6 +2709,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
             await waitForBatchedUpdates();
 
             updateMoneyRequestDate({
+                translate: translateLocal,
                 isVendorMatchingBetaEnabled: false,
                 rules: undefined,
                 personalPolicyOutputCurrency: undefined,
@@ -2791,6 +2813,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
             await waitForBatchedUpdates();
 
             updateMoneyRequestDate({
+                translate: translateLocal,
                 isVendorMatchingBetaEnabled: false,
                 rules: undefined,
                 personalPolicyOutputCurrency: undefined,
@@ -2915,6 +2938,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
             await waitForBatchedUpdates();
 
             updateMoneyRequestDate({
+                translate: translateLocal,
                 isVendorMatchingBetaEnabled: false,
                 rules: undefined,
                 personalPolicyOutputCurrency: undefined,
@@ -3041,6 +3065,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
             await waitForBatchedUpdates();
 
             updateMoneyRequestDate({
+                translate: translateLocal,
                 isVendorMatchingBetaEnabled: false,
                 rules: undefined,
                 personalPolicyOutputCurrency: undefined,
@@ -3129,6 +3154,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
             editTransactionMerchantInline(
                 translate,
                 {
+                    translate,
                     isVendorMatchingBetaEnabled: false,
                     hash: undefined,
                     transactionID,
@@ -3232,6 +3258,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`, [inactiveVendorViolation]);
 
             updateMoneyRequestDescription({
+                translate: translateLocal,
                 isVendorMatchingBetaEnabled: true,
                 transactionID,
                 transaction: fakeTransaction,
@@ -3321,6 +3348,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`, [inactiveVendorViolation]);
 
             updateMoneyRequestDescription({
+                translate: translateLocal,
                 isVendorMatchingBetaEnabled: true,
                 transactionID,
                 transaction: fakeTransaction,
@@ -3382,6 +3410,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
 
         function editAmount(transaction: OnyxEntry<Transaction>) {
             updateMoneyRequestAmountAndCurrency({
+                translate: translateLocal,
                 isVendorMatchingBetaEnabled: false,
                 rules: undefined,
                 transactionID,
@@ -3413,6 +3442,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
 
         function editDescription(transaction: OnyxEntry<Transaction>, comment: string) {
             updateMoneyRequestDescription({
+                translate: translateLocal,
                 isVendorMatchingBetaEnabled: false,
                 transactionID,
                 transaction,

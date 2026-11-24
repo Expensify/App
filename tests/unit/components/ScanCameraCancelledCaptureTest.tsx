@@ -33,6 +33,7 @@ jest.mock('@hooks/useNativeCamera', () => ({
 jest.mock('@react-navigation/native', () => ({
     ...jest.requireActual<Record<string, unknown>>('@react-navigation/native'),
     useNavigation: () => ({isFocused: () => mockIsFocused}),
+    useFocusEffect: () => {},
 }));
 
 jest.mock('@pages/iou/request/step/IOURequestStepScan/captureReceipt', () => ({

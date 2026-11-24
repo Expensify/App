@@ -99,6 +99,10 @@ describe('AttachmentCarouselView web', () => {
         });
     });
 
+    afterEach(() => {
+        jest.restoreAllMocks();
+    });
+
     it.each<Attachment>([{source: 'image.png', attachmentID: 'report_2'}, {source: 'image.png'}, {source: 123}])(
         'keeps attachment identity and focus for source $source and id $attachmentID',
         (attachment) => {
@@ -189,7 +193,7 @@ describe('AttachmentCarouselView web', () => {
         expect(onNavigate.mock.calls.at(0)?.at(0)).toBe(second);
     });
 
-    it('clears focus for empty tokens and navigates a null-index token without changing page or focus', () => {
+    it('preserves focus for empty tokens and navigates a null-index token without changing page or focus', () => {
         // Given a real callback installed by the web target
         const {props} = renderCarousel();
         const viewability = mockFlatList.mock.calls.at(-1)?.[0].onViewableItemsChanged;
@@ -199,7 +203,7 @@ describe('AttachmentCarouselView web', () => {
         }
         const attachment: Attachment = {source: 'second.png'};
 
-        // When a token has no index, navigation still receives it, then an empty token set clears focus
+        // When a token has no index, navigation still receives it, then an empty token set preserves focus
         const tokenWithoutIndex = Object.assign(createMock<Parameters<typeof viewability>[0]['viewableItems'][number]>({item: attachment, key: 'second', isViewable: true}), {index: null});
         act(() => viewability({viewableItems: [tokenWithoutIndex], changed: []}));
         expect(props.onNavigate).toHaveBeenCalledWith(attachment);
@@ -207,30 +211,122 @@ describe('AttachmentCarouselView web', () => {
         expect(screen.getByText('first.png:true')).toBeOnTheScreen();
         act(() => viewability({viewableItems: [], changed: []}));
 
-        // Then empty input removes active focus without another navigation
-        expect(screen.getByText('first.png:false')).toBeOnTheScreen();
+        // Then the resize guard preserves focus without another navigation
+        expect(screen.getByText('first.png:true')).toBeOnTheScreen();
         expect(props.onNavigate).toHaveBeenCalledTimes(1);
     });
 
-    it('returns before keyboard, page or navigation effects during fullscreen', () => {
-        // Given a fullscreen media item
-        jest.mocked(useFullScreenState).mockReturnValue(createMock<ReturnType<typeof useFullScreenState>>({isFullScreen: true, isFullScreenRef: {current: true}}));
+    it.each(['empty', 'multiple', 'unchanged'])('preserves PDF focus for %s viewability samples', (sample) => {
+        // Given a selected PDF whose password input must not lose focus during resize
+        const {props} = renderCarousel({page: 1, attachments: [{source: 'first.png'}, {source: 'protected.pdf'}, {source: 'last.png'}], source: 'protected.pdf'});
         const dismiss = jest.spyOn(Keyboard, 'dismiss');
-        const {props} = renderCarousel();
+        const pdf = {item: props.attachments[1], key: 'pdf', index: 1, isViewable: true};
+        const first = {item: props.attachments[0], key: 'first', index: 0, isViewable: true};
+        let viewableItems = [pdf];
+        if (sample === 'empty') {
+            viewableItems = [];
+        } else if (sample === 'multiple') {
+            viewableItems = [first, pdf];
+        }
+
+        // When FlatList reports an ambiguous sample or the page that is already selected
+        act(() => mockFlatList.mock.calls.at(-1)?.[0].onViewableItemsChanged?.({viewableItems, changed: []}));
+
+        // Then no keyboard, page, navigation, or focus side effect can close the password form
+        expect(dismiss).not.toHaveBeenCalled();
+        expect(props.setPage).not.toHaveBeenCalled();
+        expect(props.onNavigate).not.toHaveBeenCalled();
+        expect(screen.getByText('protected.pdf:true')).toBeOnTheScreen();
+    });
+
+    it('updates selection for a genuine page change and ignores its later acknowledgement', () => {
+        // Given a PDF selected before the user navigates to another attachment
+        const {props, rerender} = renderCarousel({page: 1, attachments: [{source: 'first.png'}, {source: 'protected.pdf'}, {source: 'last.png'}], source: 'protected.pdf'});
+        const dismiss = jest.spyOn(Keyboard, 'dismiss');
+        const last = {item: props.attachments[2], key: 'last', index: 2, isViewable: true};
+
+        // When the list reports a different page and the parent commits that selection
+        act(() => mockFlatList.mock.calls.at(-1)?.[0].onViewableItemsChanged?.({viewableItems: [last], changed: []}));
+        rerender(
+            <AttachmentCarouselView
+                {...props}
+                page={2}
+            />,
+        );
+        act(() => mockFlatList.mock.calls.at(-1)?.[0].onViewableItemsChanged?.({viewableItems: [last], changed: []}));
+
+        // Then the ref tracks the committed page, so acknowledgement does not repeat navigation
+        expect(dismiss).toHaveBeenCalledTimes(1);
+        expect(props.setPage).toHaveBeenCalledTimes(1);
+        expect(props.setPage).toHaveBeenCalledWith(2);
+        expect(props.onNavigate).toHaveBeenCalledTimes(1);
+        expect(props.onNavigate).toHaveBeenCalledWith(props.attachments[2]);
+        expect(screen.getByText('last.png:true')).toBeOnTheScreen();
+        expect(screen.getByText('protected.pdf:false')).toBeOnTheScreen();
+    });
+
+    it.each<{name: string; attachments: Attachment[]}>([
+        {name: 'source', attachments: [{source: 'first.png'}, {source: 'protected.pdf'}, {source: 'replacement.pdf'}]},
+        {
+            name: 'attachment ID with a shared source',
+            attachments: [
+                {source: 'first.png', attachmentID: 'A'},
+                {source: 'protected.pdf', attachmentID: 'B'},
+                {source: 'protected.pdf', attachmentID: 'C'},
+            ],
+        },
+    ])('focuses a replacement PDF at the same index using its $name', ({attachments}) => {
+        // Given B selected between A and C, with identity supplied by either source or attachment ID
+        const selected = attachments[1];
+        const replacement = attachments[2];
+        const replacementLabel = replacement.attachmentID ?? (typeof replacement.source === 'object' ? JSON.stringify(replacement.source) : String(replacement.source));
+        const {props, rerender} = renderCarousel({page: 1, attachments, source: selected.source, attachmentID: selected.attachmentID});
+        const dismiss = jest.spyOn(Keyboard, 'dismiss');
         const viewability = mockFlatList.mock.calls.at(-1)?.[0].onViewableItemsChanged;
-        expect(viewability).toBeDefined();
         if (!viewability) {
             throw new Error('Expected viewability callback');
         }
 
-        // When viewability changes behind fullscreen playback
-        act(() => viewability({viewableItems: [{item: {source: 'second.png'}, key: 'second', index: 1, isViewable: true}], changed: []}));
+        // When deletion removes B, the parent selects C at the same index without remounting the carousel
+        rerender(
+            <AttachmentCarouselView
+                {...props}
+                attachments={[attachments[0], replacement]}
+                source={replacement.source}
+                attachmentID={replacement.attachmentID}
+            />,
+        );
+        expect(mockFlatList.mock.calls.at(-1)?.[0].onViewableItemsChanged).toBe(viewability);
+        const sample = {viewableItems: [{item: replacement, key: 'replacement', index: 1, isViewable: true}], changed: []};
+        act(() => viewability(sample));
 
-        // Then none of the ordinary paging effects happen
+        // Then the original callback focuses C instead of leaving its PDF loading as an unfocused attachment
+        expect(screen.getByText(`${replacementLabel}:true`)).toBeOnTheScreen();
+        expect(props.setPage).toHaveBeenCalledWith(1);
+        expect(props.onNavigate).toHaveBeenCalledWith(replacement);
+        expect(dismiss).toHaveBeenCalledTimes(1);
+
+        // When C is reported again, the unchanged attachment must not dismiss the keyboard or navigate again
+        act(() => viewability(sample));
+        expect(props.setPage).toHaveBeenCalledTimes(1);
+        expect(props.onNavigate).toHaveBeenCalledTimes(1);
+        expect(dismiss).toHaveBeenCalledTimes(1);
+    });
+
+    it('ignores viewability while the fullscreen ref is set', () => {
+        // Given fullscreen playback whose imperative ref suppresses background paging
+        jest.mocked(useFullScreenState).mockReturnValue(createMock<ReturnType<typeof useFullScreenState>>({isFullScreen: false, isFullScreenRef: {current: true}}));
+        const {props} = renderCarousel({page: 1, attachments: [{source: 'first.png'}, {source: 'protected.pdf'}, {source: 'last.png'}], source: 'protected.pdf'});
+        const dismiss = jest.spyOn(Keyboard, 'dismiss');
+
+        // When another attachment is reported as viewable behind the fullscreen player
+        act(() => mockFlatList.mock.calls.at(-1)?.[0].onViewableItemsChanged?.({viewableItems: [{item: props.attachments[2], key: 'last', index: 2, isViewable: true}], changed: []}));
+
+        // Then the keyboard and focused PDF remain untouched without page or navigation updates
         expect(dismiss).not.toHaveBeenCalled();
         expect(props.setPage).not.toHaveBeenCalled();
         expect(props.onNavigate).not.toHaveBeenCalled();
-        dismiss.mockRestore();
+        expect(screen.getByText('protected.pdf:true')).toBeOnTheScreen();
     });
 
     it('shares the real pan gesture and the list ref with pager consumers and retains them on rerender', () => {
