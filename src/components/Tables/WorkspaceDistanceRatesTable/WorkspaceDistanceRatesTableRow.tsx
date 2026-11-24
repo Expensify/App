@@ -60,10 +60,7 @@ type WorkspaceDistanceRatesTableRowProps = {
     statusLabels: Record<string, string>;
     unit?: Unit;
 
-    /**
-     * Whether the user can edit distance rates at all. Unlike the row's own edit flags, it doesn't change while rows are
-     * selected or deleted, so the rate cell's room for the edit button doesn't come and go.
-     */
+    /** Unlike an item's `canEditRate`, it doesn't change in selection mode or while deleting, so the rate cell doesn't shift. */
     canWriteDistanceRates: boolean;
 };
 

@@ -164,8 +164,7 @@ describe('WorkspaceDistanceRatesTable rate cell', () => {
         // When the table renders the row
         await renderTable({canWriteDistanceRates: true, canEditRate: true});
 
-        // Then the cell shows its edit button, and the row keeps the button's width clear after the bolt, so the button
-        // never covers the bolt and swallows the hover its tooltip needs
+        // Then the edit button shows and the row keeps the button's width clear after the bolt, so it never covers the bolt
         await waitFor(() => {
             expect(screen.getByLabelText(TestHelper.translateLocal('common.edit'))).toBeOnTheScreen();
         });
@@ -173,13 +172,11 @@ describe('WorkspaceDistanceRatesTable rate cell', () => {
     });
 
     it('keeps the room for the edit button while the rate cannot be edited for now', async () => {
-        // Given a member who can edit rates, whose rate cell isn't editable for now, as while rows are selected or the
-        // rate is being deleted
+        // Given a member who can edit rates, whose rate can't be edited right now, as in selection mode
         // When the table renders the row
         await renderTable({canWriteDistanceRates: true, canEditRate: false});
 
-        // Then the room stays even though no edit button shows, so the bolt doesn't move sideways when selection mode
-        // starts or ends
+        // Then the room stays without the button, so the bolt doesn't move when selection mode starts or ends
         expect(screen.queryByLabelText(TestHelper.translateLocal('common.edit'))).not.toBeOnTheScreen();
         expect(getRateTextRow()).toHaveStyle({paddingRight: EDIT_BUTTON_CLEARANCE});
     });

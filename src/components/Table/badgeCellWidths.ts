@@ -24,9 +24,8 @@ function getBadgeWidth(styles: ThemeStyles, label: string, iconWidth = 0): numbe
 
 /**
  * The narrowest a drag may make a column whose text ends in a badge: everything before the text, plus the widest badge
- * any row shows, since only the text truncates. Never below the usual drag bound, because a column's own bound replaces
- * that one, so a small badge would otherwise let the column be dragged narrower than a column without a badge.
- * `undefined` when no row shows a badge, so the usual drag bound applies.
+ * any row shows, since only the text truncates. Never below the usual drag bound, which this replaces. `undefined` when
+ * no row shows a badge, so the usual drag bound applies.
  */
 function getBadgeColumnDragMinWidth(shownBadgeWidths: number[], leadingWidth = 0): number | undefined {
     if (shownBadgeWidths.length === 0) {

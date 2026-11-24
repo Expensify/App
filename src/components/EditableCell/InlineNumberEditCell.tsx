@@ -56,19 +56,12 @@ type InlineNumberEditCellProps = {
     /** Defaults to Number() comparison so "1.00" and "1" are treated as unchanged. */
     isEqual?: (newValue: string, originalValue: string) => boolean;
 
-    /**
-     * Rendered right after the display text (like an icon), so it stays next to the value instead of at the cell's edge.
-     * Hidden while editing. With a left-aligned value and the clearance reserved, the text truncates before this content
-     * reaches the edit button, as long as the column keeps room for the cell's padding, this content and the clearance.
-     * A table sized from its content keeps that room through the column's `trailingWidth` and `dragMinWidth`, like
-     * WorkspaceDistanceRatesTable does.
-     */
+    /** Rendered right after the display text (like an icon), so it stays next to the value instead of at the cell's edge. Hidden while editing. */
     children?: ReactNode;
 
     /**
-     * Whether a left-aligned value keeps the edit button's width clear after `children`. Pass false when the user can
-     * never edit the cell, so no room is left for a button they never see. Unlike `canEdit`, it shouldn't change while
-     * the cell is on screen, or the row would shift.
+     * Keeps the edit button's width clear after `children` in a left-aligned cell. Defaults to true. Pass false when the
+     * user can never edit the cell. Unlike `canEdit`, it must stay the same while the cell is shown, or the row shifts.
      */
     shouldReserveEditButtonClearance?: boolean;
 } & EditableProps<string>;
@@ -161,8 +154,7 @@ function InlineNumberEditCell({
             }
         >
             {children ? (
-                // A left-aligned amount puts the edit button at the trailing edge, where the content after the text ends up
-                // once the text truncates. The clearance is kept even while the button is hidden, so hovering never shifts the row.
+                // Only a left-aligned value has its edit button at the trailing edge. The room stays while the button is hidden, so hovering doesn't shift the row.
                 <View
                     style={[
                         styles.flexRow,

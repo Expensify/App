@@ -19,7 +19,7 @@ type WorkspaceDistanceRateValueCellProps = {
     /** Shown right after the rate text, like the auto-generated rate icon. */
     children?: ReactNode;
 
-    /** Whether the user can edit rates at all, so the cell keeps room for the edit button after `children`. */
+    /** True when the user can edit rates at all, even if this rate can't be edited right now. */
     shouldReserveEditButtonClearance: boolean;
 } & EditableProps<string>;
 
