@@ -23,7 +23,8 @@ jest.mock('@react-navigation/native', () => ({
     useIsFocused: () => mockUseIsFocused(),
     createNavigationContainerRef: () => ({}),
 }));
-jest.mock('@libs/Navigation/helpers/isSearchTopmostFullScreenRoute', () => jest.fn(() => false));
+let mockIsSearchTopmostFullScreenRoute = false;
+jest.mock('@libs/Navigation/helpers/isSearchTopmostFullScreenRoute', () => jest.fn(() => mockIsSearchTopmostFullScreenRoute));
 jest.mock('@rnmapbox/maps', () => ({
     __esModule: true,
     default: {},
@@ -42,7 +43,20 @@ afterEach(() => {
     mockIsOffline = false;
     mockUseIsFocused.mockReturnValue(true);
     mockIsInPreloadedTab = false;
+    mockIsSearchTopmostFullScreenRoute = false;
 });
+
+/** Wraps a transaction so the test can tell whether the hook read any of its fields */
+function trackReads(transaction: Transaction) {
+    const reads = {count: 0};
+    const trackedTransaction = new Proxy(transaction, {
+        get: (target, property, receiver) => {
+            reads.count++;
+            return Reflect.get(target, property, receiver) as unknown;
+        },
+    });
+    return {trackedTransaction, reads};
+}
 
 describe('useSearchAutoRefetch', () => {
     beforeAll(async () => {
@@ -880,6 +894,205 @@ describe('useSearchAutoRefetch', () => {
 
             // Then no search is sent, since nothing the results already show has changed
             expect(search).not.toHaveBeenCalled();
+        });
+    });
+
+    describe('while Search is inactive', () => {
+        // Onyx keeps one value object per collection member, so unedited transactions keep their reference across renders.
+        const transaction1 = createMock<Transaction>({transactionID: '1', amount: 100});
+        const transaction2 = createMock<Transaction>({transactionID: '2', amount: 100});
+        const resultsWithTransaction1 = createMock<UseSearchAutoRefetch['searchResults']>({
+            ...baseProps.searchResults,
+            data: {
+                transactions_1: {transactionID: '1'},
+            },
+        });
+        const buildProps = (transactions: UseSearchAutoRefetch['transactions'], previousTransactions: UseSearchAutoRefetch['previousTransactions']) =>
+            createMock<UseSearchAutoRefetch>({
+                ...baseProps,
+                searchResults: resultsWithTransaction1,
+                transactions,
+                previousTransactions,
+            });
+
+        it('should not read transaction fields on a write while hidden, nor refetch on refocus when the write does not touch the results', () => {
+            // Given the Spend tab is hidden behind another tab, with one expense in its results and one outside them
+            mockUseIsFocused.mockReturnValue(false);
+            const initialTransactions = {transactions_1: transaction1, transactions_2: transaction2};
+            const {rerender} = renderHook((props: UseSearchAutoRefetch) => useSearchAutoRefetch(props), {
+                initialProps: buildProps(initialTransactions, initialTransactions),
+            });
+
+            // When the expense outside the results is edited while the tab is hidden, and `usePrevious` catches up
+            const {trackedTransaction, reads} = trackReads(createMock<Transaction>({transactionID: '2', amount: 250}));
+            const editedTransactions = {transactions_1: transaction1, transactions_2: trackedTransaction};
+            rerender(buildProps(editedTransactions, initialTransactions));
+            rerender(buildProps(editedTransactions, editedTransactions));
+
+            // Then the hook does not diff the transactions while hidden, since that costs several passes over every transaction on each write
+            expect(reads.count).toBe(0);
+
+            // When the user opens the tab again
+            mockUseIsFocused.mockReturnValue(true);
+            rerender(buildProps(editedTransactions, editedTransactions));
+
+            // Then no refetch goes out, because nothing the results show has changed
+            expect(search).not.toHaveBeenCalled();
+        });
+
+        it('should refetch exactly once on refocus when a write while hidden touches the results', () => {
+            // Given the Spend tab is hidden behind another tab, with one expense in its results and one outside them
+            mockUseIsFocused.mockReturnValue(false);
+            const initialTransactions = {transactions_1: transaction1, transactions_2: transaction2};
+            const {rerender} = renderHook((props: UseSearchAutoRefetch) => useSearchAutoRefetch(props), {
+                initialProps: buildProps(initialTransactions, initialTransactions),
+            });
+
+            // When the expense in the results is edited while hidden, followed by an unrelated write, with `usePrevious` catching up after each
+            const editedTransactions = {transactions_1: createMock<Transaction>({transactionID: '1', amount: 250}), transactions_2: transaction2};
+            rerender(buildProps(editedTransactions, initialTransactions));
+            rerender(buildProps(editedTransactions, editedTransactions));
+            const laterTransactions = {...editedTransactions, transactions_2: createMock<Transaction>({transactionID: '2', amount: 300})};
+            rerender(buildProps(laterTransactions, editedTransactions));
+            rerender(buildProps(laterTransactions, laterTransactions));
+            expect(search).not.toHaveBeenCalled();
+
+            // And the user opens the tab again
+            mockUseIsFocused.mockReturnValue(true);
+            rerender(buildProps(laterTransactions, laterTransactions));
+
+            // Then exactly one refetch went out, because the edit made while hidden is compared once against the collections from before it
+            expect(search).toHaveBeenCalledTimes(1);
+        });
+
+        it('should refetch once the in-flight search responds when the user returns before it does', () => {
+            // Given a search is in flight when the user leaves the Spend tab
+            const loadingResults = createMock<UseSearchAutoRefetch['searchResults']>({
+                ...resultsWithTransaction1,
+                search: {...resultsWithTransaction1?.search, isLoading: true},
+            });
+            const initialTransactions = {transactions_1: transaction1, transactions_2: transaction2};
+            const {rerender} = renderHook((props: UseSearchAutoRefetch) => useSearchAutoRefetch(props), {
+                initialProps: buildProps(initialTransactions, initialTransactions),
+            });
+            const addedTransactions = {...initialTransactions, transactions_3: createMock<Transaction>({transactionID: '3'})};
+            rerender(buildProps(addedTransactions, initialTransactions));
+            expect(search).toHaveBeenCalledTimes(1);
+            const settledProps = createMock<UseSearchAutoRefetch>({...buildProps(addedTransactions, addedTransactions), searchResults: loadingResults});
+            mockUseIsFocused.mockReturnValue(false);
+            rerender(settledProps);
+
+            // When an expense in the results is edited while hidden, and the user returns before the search responds
+            const editedTransactions = {...addedTransactions, transactions_1: createMock<Transaction>({transactionID: '1', amount: 250})};
+            rerender(createMock<UseSearchAutoRefetch>({...settledProps, transactions: editedTransactions}));
+            rerender(createMock<UseSearchAutoRefetch>({...settledProps, transactions: editedTransactions, previousTransactions: editedTransactions}));
+            mockUseIsFocused.mockReturnValue(true);
+            rerender(createMock<UseSearchAutoRefetch>({...settledProps, transactions: editedTransactions, previousTransactions: editedTransactions}));
+            expect(search).toHaveBeenCalledTimes(1);
+
+            // And the in-flight search then responds
+            rerender(
+                createMock<UseSearchAutoRefetch>({
+                    ...buildProps(editedTransactions, editedTransactions),
+                    searchResults: {...resultsWithTransaction1, data: {transactions_1: {transactionID: '1'}}},
+                }),
+            );
+
+            // Then a second refetch goes out, because the edit happened after the first search was sent
+            expect(search).toHaveBeenCalledTimes(2);
+        });
+
+        it('should refetch on refocus when an expense created while hidden is then updated by the server', () => {
+            // Given the Spend tab is hidden behind another tab, with one expense in its results
+            mockUseIsFocused.mockReturnValue(false);
+            const initialTransactions = {transactions_1: transaction1};
+            const {rerender} = renderHook((props: UseSearchAutoRefetch) => useSearchAutoRefetch(props), {
+                initialProps: buildProps(initialTransactions, initialTransactions),
+            });
+
+            // When the user creates an expense from elsewhere, which also adds it to the snapshot optimistically
+            const resultsWithNewExpense = createMock<UseSearchAutoRefetch['searchResults']>({
+                ...resultsWithTransaction1,
+                data: {transactions_1: {transactionID: '1'}, transactions_2: {transactionID: '2'}},
+            });
+            const buildCreatedProps = (transactions: UseSearchAutoRefetch['transactions'], previousTransactions: UseSearchAutoRefetch['previousTransactions']) =>
+                createMock<UseSearchAutoRefetch>({...buildProps(transactions, previousTransactions), searchResults: resultsWithNewExpense});
+            const createdTransactions = {transactions_1: transaction1, transactions_2: transaction2};
+            rerender(buildCreatedProps(createdTransactions, initialTransactions));
+            rerender(buildCreatedProps(createdTransactions, createdTransactions));
+
+            // And the server response then updates that expense, before the user opens the tab again
+            const updatedTransactions = {transactions_1: transaction1, transactions_2: createMock<Transaction>({transactionID: '2', amount: 150})};
+            rerender(buildCreatedProps(updatedTransactions, createdTransactions));
+            rerender(buildCreatedProps(updatedTransactions, updatedTransactions));
+            mockUseIsFocused.mockReturnValue(true);
+            rerender(buildCreatedProps(updatedTransactions, updatedTransactions));
+
+            // Then a refetch goes out, because the server update is folded into the add and can't be told apart from it
+            expect(search).toHaveBeenCalledTimes(1);
+        });
+
+        it('should refetch on refocus for a change made while hidden after the collections loaded while hidden', () => {
+            // Given the Spend tab is mounted hidden before the collections have loaded
+            mockUseIsFocused.mockReturnValue(false);
+            const {rerender} = renderHook((props: UseSearchAutoRefetch) => useSearchAutoRefetch(props), {
+                initialProps: buildProps({}, {}),
+            });
+
+            // When the collections load while hidden, with `usePrevious` catching up
+            const loadedTransactions = {transactions_1: transaction1};
+            rerender(buildProps(loadedTransactions, {}));
+            rerender(buildProps(loadedTransactions, loadedTransactions));
+
+            // And an expense outside the results is added while hidden, and the user then opens the tab
+            const addedTransactions = {transactions_1: transaction1, transactions_2: transaction2};
+            rerender(buildProps(addedTransactions, loadedTransactions));
+            rerender(buildProps(addedTransactions, addedTransactions));
+            mockUseIsFocused.mockReturnValue(true);
+            rerender(buildProps(addedTransactions, addedTransactions));
+
+            // Then a refetch goes out, because the empty collections from before the load are not used as the starting point
+            expect(search).toHaveBeenCalledTimes(1);
+        });
+
+        it('should not refetch on refocus when an expense was added and removed again while hidden', () => {
+            // Given the Spend tab is hidden behind another tab, with one expense in its results
+            mockUseIsFocused.mockReturnValue(false);
+            const initialTransactions = {transactions_1: transaction1};
+            const {rerender} = renderHook((props: UseSearchAutoRefetch) => useSearchAutoRefetch(props), {
+                initialProps: buildProps(initialTransactions, initialTransactions),
+            });
+
+            // When an expense is added and then removed while hidden, with `usePrevious` catching up after each write
+            const addedTransactions = {transactions_1: transaction1, transactions_2: transaction2};
+            rerender(buildProps(addedTransactions, initialTransactions));
+            rerender(buildProps(addedTransactions, addedTransactions));
+            const removedTransactions = {transactions_1: transaction1};
+            rerender(buildProps(removedTransactions, addedTransactions));
+            rerender(buildProps(removedTransactions, removedTransactions));
+
+            // And the user opens the tab again
+            mockUseIsFocused.mockReturnValue(true);
+            rerender(buildProps(removedTransactions, removedTransactions));
+
+            // Then no refetch goes out, because the collections match what the results were fetched against
+            expect(search).not.toHaveBeenCalled();
+        });
+
+        it('should refetch right away when an RHP is open on top of Search', () => {
+            // Given an RHP is open on top of Search, which blurs Search while it stays the topmost fullscreen route
+            mockUseIsFocused.mockReturnValue(false);
+            mockIsSearchTopmostFullScreenRoute = true;
+            const initialTransactions = {transactions_1: transaction1};
+            const {rerender} = renderHook((props: UseSearchAutoRefetch) => useSearchAutoRefetch(props), {
+                initialProps: buildProps(initialTransactions, initialTransactions),
+            });
+
+            // When the user creates an expense from the RHP
+            rerender(buildProps({transactions_1: transaction1, transactions_2: transaction2}, initialTransactions));
+
+            // Then the refetch goes out without waiting for the RHP to close, so the results show the new expense
+            expect(search).toHaveBeenCalledTimes(1);
         });
     });
 });

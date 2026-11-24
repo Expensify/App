@@ -12,6 +12,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {MemberCustomFieldsByPolicyID} from '@src/selectors/Policy';
 import type {ReportActions, SearchResults, Transaction} from '@src/types/onyx';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
@@ -57,6 +58,13 @@ type UseSearchAutoRefetch = {
     shouldCalculateTotals: boolean;
 };
 
+/** The collections as they were when Search could last refetch, kept while the refetch is deferred */
+type DeferredRefetchBaseline = {
+    transactions: OnyxCollection<Transaction>;
+    reportActions: OnyxCollection<ReportActions>;
+    memberCustomFields: MemberCustomFieldsByPolicyID | undefined;
+};
+
 /**
  * Triggers a search when a transaction or report action is added so the snapshot reflects it.
  * Returns the newly-added transactions, which the grouped views use to refetch each expanded group's child snapshot.
@@ -78,7 +86,7 @@ function useSearchAutoRefetch({
     const {isOffline} = useNetwork();
     const isInPreloadedTab = useIsInPreloadedTab();
     const searchTriggeredRef = useRef(false);
-    const hasPendingSearchRef = useRef(false);
+    const deferredRefetchBaselineRef = useRef<DeferredRefetchBaseline | undefined>(undefined);
     const isChat = queryJSON.type === CONST.SEARCH.DATA_TYPES.CHAT;
     const shouldRefetchOnReportActionChange = shouldRefetchSearchOnReportActionChange(queryJSON);
     const isGroupedSearch = !!getValidGroupBy(queryJSON.groupBy);
@@ -97,6 +105,18 @@ function useSearchAutoRefetch({
         }
     }
 
+    // Declared before the refetch effect so it runs first. When the response lands, the refetch effect then sees the
+    // cleared flag in the same commit and can compare a baseline kept while the search was in flight.
+    useEffect(() => {
+        // For live data, isLoading is always false, so we also need to reset when searchResultsData changes
+        // For snapshot data, we wait for isLoading to become false after the API call completes
+        if (searchResults?.search?.isLoading) {
+            return;
+        }
+
+        searchTriggeredRef.current = false;
+    }, [searchResults?.search?.isLoading, searchResultsData]);
+
     // Trigger search when a new report action is added while on chat or when a new transaction is added for the other search types.
     useEffect(() => {
         // Trip rows don't change when transactions or report actions do
@@ -109,24 +129,55 @@ function useSearchAutoRefetch({
             return;
         }
 
+        // A deferred refetch compares against the collections from before Search went inactive, because `usePrevious`
+        // keeps advancing while it is inactive and would hide the changes made in the meantime.
+        const baseline = deferredRefetchBaselineRef.current;
+        const baseTransactions = baseline ? baseline.transactions : previousTransactions;
+        const baseReportActions = baseline ? baseline.reportActions : previousReportActions;
+        const baseMemberCustomFields = baseline ? baseline.memberCustomFields : previousMemberCustomFields;
+
         // Snapshot and focus updates re-run this effect with unchanged collections, which would diff a collection against itself.
-        if (transactions === previousTransactions && reportActions === previousReportActions && memberCustomFields === previousMemberCustomFields && !hasPendingSearchRef.current) {
+        if (transactions === baseTransactions && reportActions === baseReportActions && memberCustomFields === baseMemberCustomFields) {
             return;
         }
 
-        const previousTransactionIDsLocal = Object.keys(previousTransactions ?? {});
+        // Skip if offline, or if the user has navigated to a different fullscreen page entirely.
+        // An RHP layered on top of Search makes `isFocused` false but keeps Search as the topmost
+        // fullscreen route, so we still want to refetch — otherwise the snapshot can't reflect
+        // entries the user creates from the RHP until they close it.
+        const isSearchStillActive = isFocused || isSearchTopmostFullScreenRoute();
+        if (!isSearchStillActive || isOffline) {
+            // On native the Spend tab stays mounted behind the other tabs, and the comparisons below walk every transaction
+            // and report action. Running them on every write while the user is elsewhere would be wasted, so the
+            // collections from before the first such write are kept and compared once, when Search can refetch again.
+            // Collections still loading are no baseline: compared against them, the first real data would look like an
+            // initial load and every change after it would be skipped.
+            if (!baseline && hasCollectionData(previousTransactions, previousReportActions)) {
+                deferredRefetchBaselineRef.current = {transactions: previousTransactions, reportActions: previousReportActions, memberCustomFields: previousMemberCustomFields};
+            }
+            return;
+        }
+
+        // Keep the baseline while a search is in flight, so the changes it holds are compared once the response lands.
+        if (searchTriggeredRef.current) {
+            return;
+        }
+        const isDeferredComparison = !!baseline;
+        deferredRefetchBaselineRef.current = undefined;
+
+        const previousTransactionIDsLocal = Object.keys(baseTransactions ?? {});
         const transactionsIDs = Object.keys(transactions ?? {});
 
         // Only proceed if we have previous data to compare against
         // This prevents triggering on initial data load
-        const hasPreviousReportActions = Object.values(previousReportActions ?? {}).some((actions) => Object.keys(actions ?? {}).length > 0);
-        if ((previousTransactionIDsLocal.length === 0 && !hasPreviousReportActions) || searchTriggeredRef.current) {
+        const hasPreviousReportActions = Object.values(baseReportActions ?? {}).some((actions) => Object.keys(actions ?? {}).length > 0);
+        if (previousTransactionIDsLocal.length === 0 && !hasPreviousReportActions) {
             return;
         }
 
         // Only chat searches are driven by report actions, so the rest skip walking that collection entirely.
         const reportActionsIDs = isChat ? Object.values(reportActions ?? {}).flatMap((actions) => Object.keys(actions ?? {})) : [];
-        const previousReportActionsIDs = isChat ? Object.values(previousReportActions ?? {}).flatMap((actions) => Object.keys(actions ?? {})) : [];
+        const previousReportActionsIDs = isChat ? Object.values(baseReportActions ?? {}).flatMap((actions) => Object.keys(actions ?? {})) : [];
 
         const previousTransactionsIDsSet = new Set(previousTransactionIDsLocal);
         const previousReportActionsIDsSet = new Set(previousReportActionsIDs);
@@ -139,31 +190,14 @@ function useSearchAutoRefetch({
         const hasChangedResultTransaction =
             !isChat &&
             !hasTransactionsIDsChange &&
-            hasChangedTransactionInSearchResults(transactions, transactionsIDs, previousTransactions, previousTransactionsIDsSet, searchResultsData, isGroupedSearch);
-        const hasChangedResultMemberCustomField = !isChat && hasChangedMemberCustomField(memberCustomFields, previousMemberCustomFields);
+            hasChangedTransactionInSearchResults(transactions, transactionsIDs, baseTransactions, previousTransactionsIDsSet, searchResultsData, isGroupedSearch);
+        const hasChangedResultMemberCustomField = !isChat && hasChangedMemberCustomField(memberCustomFields, baseMemberCustomFields);
 
         // Submitting, approving or forwarding a report changes no transaction, but it can move the report's expenses in or out of the results.
-        const hasRelevantReportActionChange = !isChat && shouldRefetchOnReportActionChange && hasAddedWorkflowReportAction(reportActions, previousReportActions);
+        const hasRelevantReportActionChange = !isChat && shouldRefetchOnReportActionChange && hasAddedWorkflowReportAction(reportActions, baseReportActions);
 
         // Check if there is a change in the transactions or report actions list
-        if (
-            (isChat ? hasReportActionsIDsChange : hasTransactionsIDsChange || hasChangedResultTransaction || hasChangedResultMemberCustomField || hasRelevantReportActionChange) ||
-            hasPendingSearchRef.current
-        ) {
-            // Skip if offline, or if the user has navigated to a different fullscreen page entirely.
-            // An RHP layered on top of Search makes `isFocused` false but keeps Search as the topmost
-            // fullscreen route, so we still want to refetch — otherwise the snapshot can't reflect
-            // entries the user creates from the RHP until they close it.
-            const isSearchStillActive = isFocused || isSearchTopmostFullScreenRoute();
-            if (!isSearchStillActive || isOffline) {
-                hasPendingSearchRef.current = true;
-                return;
-            }
-            // A deferred refetch is its own reason to search. `usePrevious` advances while Search is inactive, so by
-            // the time it becomes active again the change that set the flag has washed out of the comparisons below.
-            const hadPendingSearch = hasPendingSearchRef.current;
-            hasPendingSearchRef.current = false;
-
+        if (isChat ? hasReportActionsIDsChange : hasTransactionsIDsChange || hasChangedResultTransaction || hasChangedResultMemberCustomField || hasRelevantReportActionChange) {
             // Transaction Onyx keys are `transactions_<id>` but search results yield bare IDs, so read the ID off the value.
             const addedTransactionIDs: string[] = [];
             const currentTransactionIDs: string[] = [];
@@ -187,12 +221,14 @@ function useSearchAutoRefetch({
 
             // Only skip search if there are no new items AND search results aren't empty
             // This ensures deletions that result in empty data still trigger search
+            // A deferred comparison folds every write made while Search was inactive into one, so an expense created and then
+            // updated by the server only shows up as added. Its update is invisible, so it is refetched rather than skipped.
             if (
+                !isDeferredComparison &&
                 !hasAGenuinelyNewID &&
                 !hasChangedResultTransaction &&
                 !hasChangedResultMemberCustomField &&
                 !hasRelevantReportActionChange &&
-                !hadPendingSearch &&
                 currentSearchResultIDs.length > 0
             ) {
                 const currentIDsSet = new Set(isChat ? reportActionsIDs : currentTransactionIDs);
@@ -233,16 +269,6 @@ function useSearchAutoRefetch({
         shouldReturnTripRooms,
         isInPreloadedTab,
     ]);
-
-    useEffect(() => {
-        // For live data, isLoading is always false, so we also need to reset when searchResultsData changes
-        // For snapshot data, we wait for isLoading to become false after the API call completes
-        if (searchResults?.search?.isLoading) {
-            return;
-        }
-
-        searchTriggeredRef.current = false;
-    }, [searchResults?.search?.isLoading, searchResultsData]);
 
     return {newTransactions};
 }
@@ -355,6 +381,11 @@ function hasChangedTransactionInSearchResults(
 
     const searchResultIDs = new Set(extractTransactionIDsFromSearchResults(searchResultsData));
     return changedTransactionIDs.some((transactionID) => searchResultIDs.has(transactionID));
+}
+
+/** Whether either collection holds anything yet, so it can serve as the starting point of a comparison */
+function hasCollectionData(transactions: OnyxCollection<Transaction>, reportActions: OnyxCollection<ReportActions>): boolean {
+    return !isEmptyObject(transactions) || Object.values(reportActions ?? {}).some((actions) => !isEmptyObject(actions));
 }
 
 const WORKFLOW_ACTION_TYPES = new Set<string>(CONST.REPORT.WORKFLOW_ACTIONS);
