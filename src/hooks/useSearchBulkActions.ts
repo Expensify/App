@@ -1790,8 +1790,9 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             const selectedOptions = selectedReports.length ? selectedReports : Object.values(selectedTransactions);
             const expenseReportBankAccountID = additionalData?.bankAccountID;
 
+            // Only Select all can include reports that can't be paid, and those aren't paid.
             const restrictedPolicyID = getRestrictedPolicyID(
-                selectedReports.length ? payableSelectedReports : selectedOptions,
+                selectedReports.length ? payableSelectedReports : Object.values(selectedTransactions),
                 userBillingGracePeriodEnds,
                 ownerBillingGracePeriodEnd,
                 amountOwed,
