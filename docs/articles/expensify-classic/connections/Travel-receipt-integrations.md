@@ -87,20 +87,6 @@ Now, all bookings made by employees will automatically sync with Expensify.
 
 ---
 
-# Build Your Own Receipt Integration  
-
-1. Email **receiptintegration@expensify.com** with the following details:
-   - **Subject:** "Receipt Integration Request"
-   - **Body:** A list of email addresses from which the merchant sends receipts.
-2. Within **two weeks**, you'll receive confirmation that the email addresses are whitelisted.
-3. Once confirmed, Cc **receipts@expensify.com** when sending receipt emails to members.
-4. Test the integration:
-   - Send a receipt email to your Expensify email and Cc **receipts@expensify.com**.
-   - Wait for SmartScan to process it.
-   - Check that the merchant, date, and amount are correctly added to the transaction.
-
----
-
 # Using the Integration  
 
 When emailing a receipt:
