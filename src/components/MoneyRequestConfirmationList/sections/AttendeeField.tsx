@@ -1,3 +1,4 @@
+import DropdownField from '@components/DropdownField';
 import MenuItem from '@components/MenuItem';
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import {useConfirmationFields} from '@components/MoneyRequestConfirmationFields/context';
@@ -8,14 +9,13 @@ import UserPills from '@components/UserPills';
 import useAttendees from '@hooks/useAttendees';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import usePermissions from '@hooks/usePermissions';
 
 import {enrichAndSortAttendees} from '@libs/AttendeeUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {getAttendeesListDisplayString} from '@libs/TransactionUtils';
 
-import {callFunctionIfActionIsAllowed} from '@userActions/Session';
+import {callIfAuthenticated} from '@userActions/Session';
 
 import CONST from '@src/CONST';
 import type {IOUAction, IOUType} from '@src/CONST';
@@ -30,7 +30,7 @@ import {authTokenTypeSelector} from '@selectors/Session';
 import React from 'react';
 
 import AttendeeFieldDropdown from './AttendeeFieldDropdown';
-import ExpenseFieldDropdown from './ExpenseFieldDropdown';
+import ExpenseFieldContainer from './ExpenseFieldContainer';
 import {useExpenseFormLayout} from './ExpenseFormLayoutContext';
 import {attendeeSliceSelector} from './selectors';
 import useTransactionSelector from './useTransactionSelector';
@@ -51,7 +51,6 @@ function AttendeeField({formattedAmountPerAttendee, isReadOnly, transactionID, a
     const {translate, localeCompare, formatPhoneNumber} = useLocalize();
     const personalDetailsList = usePersonalDetails();
     const [loginToAccountIDMap] = useOnyx(ONYXKEYS.DERIVED.LOGIN_TO_ACCOUNT_ID_MAP);
-    const {isBetaEnabled} = usePermissions();
     const {didConfirm} = useConfirmationFields();
     const shouldDisplayAttendeesError = formError === 'violations.missingAttendees';
 
@@ -89,38 +88,40 @@ function AttendeeField({formattedAmountPerAttendee, isReadOnly, transactionID, a
     // The dropdown writes the applied selection to the draft, so it stays closed once the expense is submitted and the
     // draft is on its way out, as the category, tag and tax dropdowns do. A saved expense being edited keeps the full page,
     // which saves once through the API with the expense's report and policy in hand.
-    const shouldOpenInDropdown = isBetaEnabled(CONST.BETAS.ANCHORED_FIELD_DROPDOWNS) && !!transactionID && !isReadOnly && !didConfirm && action !== CONST.IOU.ACTION.EDIT;
+    const shouldOpenInDropdown = !!transactionID && !isReadOnly && !didConfirm && action !== CONST.IOU.ACTION.EDIT;
 
     if (shouldUseDropdownRows) {
         return (
-            <ExpenseFieldDropdown
-                name={attendeesDescription}
-                valueComponent={attendeePills}
-                // The creator is always an attendee, so the row reads as filled in from the start.
-                hasValueComponent
-                accessibilityLabel={attendeesAccessibilityLabel}
-                errorText={shouldDisplayAttendeesError ? translate(formError as TranslationPaths) : ''}
-                onPress={openAttendeePage}
-                shouldOpenInDropdown={shouldOpenInDropdown}
-                listHeaderHeight={SELECTION_LIST_POPOVER_HEADER_HEIGHT}
-                renderDropdown={(dropdownProps) =>
-                    !!transactionID && (
-                        <AttendeeFieldDropdown
-                            {...dropdownProps}
-                            transactionID={transactionID}
-                            iouType={iouType}
-                        />
-                    )
-                }
-                isInteractive={!isReadOnly}
-                sentryLabel={CONST.SENTRY_LABEL.REQUEST_CONFIRMATION_LIST.ATTENDEES_FIELD}
-            />
+            <ExpenseFieldContainer>
+                <DropdownField
+                    name={attendeesDescription}
+                    valueComponent={attendeePills}
+                    // The creator is always an attendee, so the row reads as filled in from the start.
+                    hasValueComponent
+                    accessibilityLabel={attendeesAccessibilityLabel}
+                    errorText={shouldDisplayAttendeesError ? translate(formError as TranslationPaths) : ''}
+                    onPress={openAttendeePage}
+                    shouldOpenInDropdown={shouldOpenInDropdown}
+                    listHeaderHeight={SELECTION_LIST_POPOVER_HEADER_HEIGHT}
+                    renderDropdown={(dropdownProps) =>
+                        !!transactionID && (
+                            <AttendeeFieldDropdown
+                                {...dropdownProps}
+                                transactionID={transactionID}
+                                iouType={iouType}
+                            />
+                        )
+                    }
+                    isInteractive={!isReadOnly}
+                    sentryLabel={CONST.SENTRY_LABEL.REQUEST_CONFIRMATION_LIST.ATTENDEES_FIELD}
+                />
+            </ExpenseFieldContainer>
         );
     }
 
     return (
         <MenuItem.Root
-            onPress={isReadOnly ? undefined : callFunctionIfActionIsAllowed(openAttendeePage, false, session)}
+            onPress={isReadOnly ? undefined : callIfAuthenticated(openAttendeePage, session)}
             accessibilityLabel={attendeesAccessibilityLabel}
             sentryLabel={CONST.SENTRY_LABEL.REQUEST_CONFIRMATION_LIST.ATTENDEES_FIELD}
         >

@@ -15,6 +15,7 @@ import {hasFlexColumn} from '@libs/SearchUIUtils';
 
 import variables from '@styles/variables';
 
+import CONST from '@src/CONST';
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 
 import React from 'react';
@@ -58,6 +59,9 @@ type MoneyRequestReportTableHeaderRowProps = {
 
     /** True when the table scrolls horizontally, so the column headers must stay visible */
     shouldScrollHorizontally: boolean;
+
+    /** Replaces each column's heading. See `SortableTableHeader`. */
+    children?: React.ReactNode;
 };
 
 /**
@@ -76,6 +80,7 @@ function MoneyRequestReportTableHeaderRow({
     amountColumnSize,
     taxAmountColumnSize,
     shouldScrollHorizontally,
+    children,
 }: MoneyRequestReportTableHeaderRowProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -113,6 +118,7 @@ function MoneyRequestReportTableHeaderRow({
                     ]}
                 >
                     <Checkbox
+                        sentryLabel={CONST.SENTRY_LABEL.REPORT.TABLE_HEADER_SELECT_ALL}
                         onPress={onToggleAll}
                         accessibilityLabel={translate('accessibilityHints.selectAllTransactions')}
                         isIndeterminate={selectedTransactionIDs.length > 0 && !isSelectAllChecked}
@@ -134,7 +140,9 @@ function MoneyRequestReportTableHeaderRow({
                         amountColumnSize={amountColumnSize}
                         taxAmountColumnSize={taxAmountColumnSize}
                         onSortPress={onSortPress}
-                    />
+                    >
+                        {children}
+                    </MoneyRequestReportTableHeader>
                 )}
             </View>
         </OfflineWithFeedback>

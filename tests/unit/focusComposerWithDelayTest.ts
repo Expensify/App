@@ -5,6 +5,7 @@ import requestKeyboardForFocusedComposer from '@libs/focusComposerWithDelay/requ
 
 import CONST from '@src/CONST';
 
+import type {ComponentRef} from 'react';
 import type {TextInput} from 'react-native';
 
 import createMock from '../utils/createMock';
@@ -122,11 +123,11 @@ describe('focusComposerWithDelay command categories', () => {
 
     it('keeps native top-level selection and requests the keyboard for an already focused input', async () => {
         // Given native selection belongs to the input itself, without a wrapper.
-        const focus = jest.fn<ReturnType<TextInput['focus']>, Parameters<TextInput['focus']>>();
-        const input = createMock<TextInput>({
+        const focus = jest.fn<ReturnType<ComponentRef<typeof TextInput>['focus']>, Parameters<ComponentRef<typeof TextInput>['focus']>>();
+        const input = createMock<ComponentRef<typeof TextInput>>({
             focus,
             isFocused: () => false,
-            setSelection: jest.fn<ReturnType<TextInput['setSelection']>, Parameters<TextInput['setSelection']>>(),
+            setSelection: jest.fn<ReturnType<ComponentRef<typeof TextInput>['setSelection']>, Parameters<ComponentRef<typeof TextInput>['setSelection']>>(),
         });
         const requestKeyboard = jest.mocked(requestKeyboardForFocusedComposer);
 

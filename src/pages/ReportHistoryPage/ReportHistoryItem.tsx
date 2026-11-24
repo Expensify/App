@@ -51,7 +51,7 @@ function ReportHistoryItem({step}: ReportHistoryItemProps) {
                     fill={theme.icon}
                 />
             </View>
-            <Text style={[styles.flex1, styles.reportHistoryLabel]}>
+            <Text style={[styles.flex1, styles.reportHistoryLabel, styles.breakWord]}>
                 {step.accountID === undefined ? (
                     step.label
                 ) : (

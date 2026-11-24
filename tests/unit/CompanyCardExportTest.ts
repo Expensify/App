@@ -771,6 +771,99 @@ describe('getExportMenuItem - DualEntry', () => {
     });
 });
 
+describe('getExportMenuItem - Zoho Books', () => {
+    const exportsTo = translateLocal('common.exportsTo');
+    const defaultSuffix = translateLocal('common.default').toLocaleLowerCase();
+
+    function createZohoBooksPolicy(exportOverrides?: {exportToMultipleAccounts?: boolean; cardProgramAccounts?: Record<string, string>}) {
+        return createBasePolicy({
+            zohoBooks: {
+                config: {
+                    export: {
+                        exportToMultipleAccounts: exportOverrides?.exportToMultipleAccounts ?? true,
+                        reimbursable: CONST.ZOHO_BOOKS_EXPORT_REIMBURSABLE.VENDOR_BILL,
+                        nonReimbursable: CONST.ZOHO_BOOKS_EXPORT_NON_REIMBURSABLE.EXPENSE,
+                        creditCardAccountID: 'zb-1',
+                        cardProgramAccounts: exportOverrides?.cardProgramAccounts,
+                    },
+                },
+                data: {
+                    bankAccounts: [
+                        {id: 'zb-1', name: 'Amex Card', accountType: CONST.ZOHO_BOOKS_ACCOUNT_TYPE.CREDIT_CARD, isActive: true},
+                        {id: 'zb-2', name: 'Operating Checking', accountType: CONST.ZOHO_BOOKS_ACCOUNT_TYPE.BANK, isActive: true},
+                        {id: 'zb-3', name: 'Closed Checking', accountType: CONST.ZOHO_BOOKS_ACCOUNT_TYPE.BANK, isActive: false},
+                        {id: 'zb-4', name: 'Petty Cash', accountType: CONST.ZOHO_BOOKS_ACCOUNT_TYPE.CASH, isActive: true},
+                    ],
+                },
+            },
+        });
+    }
+
+    it('titles the card with the account name and marks the workspace default', () => {
+        // Given a workspace exporting to multiple accounts, and a card with no account of its own
+        const policy = createZohoBooksPolicy();
+        const card = createCardWithExportNVP(CONST.COMPANY_CARDS.EXPORT_CARD_TYPES.NVP_ZOHO_BOOKS_EXPORT_ACCOUNT);
+
+        // When the card's export menu item is resolved
+        const result = getExportMenuItem(CONST.POLICY.CONNECTIONS.NAME.ZOHO_BOOKS, MOCK_POLICY_ID, translate, themeStyles, policy, card);
+
+        // Then it shows the workspace account by name only, because Zoho Books accounts have no number, and marks it as the default
+        expect(result?.title).toBe(`${exportsTo} Amex Card (${defaultSuffix})`);
+        expect(result?.shouldShowMenuItem).toBe(true);
+        expect(result?.exportType).toBe(CONST.COMPANY_CARDS.EXPORT_CARD_TYPES.NVP_ZOHO_BOOKS_EXPORT_ACCOUNT);
+    });
+
+    it("uses the card feed's account when the feed overrides the workspace account", () => {
+        // Given the card's feed exports to its own account
+        const policy = createZohoBooksPolicy({cardProgramAccounts: {[CONST.COMPANY_CARD.FEED_BANK_NAME.VISA]: 'zb-2'}});
+        const card = createCardWithExportNVP(CONST.COMPANY_CARDS.EXPORT_CARD_TYPES.NVP_ZOHO_BOOKS_EXPORT_ACCOUNT, undefined, CONST.COMPANY_CARD.FEED_BANK_NAME.VISA);
+
+        // When the card's export menu item is resolved
+        const result = getExportMenuItem(CONST.POLICY.CONNECTIONS.NAME.ZOHO_BOOKS, MOCK_POLICY_ID, translate, themeStyles, policy, card);
+
+        // Then the card follows its feed's account, which is the card's default
+        expect(result?.title).toBe(`${exportsTo} Operating Checking (${defaultSuffix})`);
+    });
+
+    it('offers only active bank and credit card accounts and drops the default marker for a card with its own account', () => {
+        // Given a card that exports to its own account, in a workspace that also has an inactive bank account and a cash account
+        const policy = createZohoBooksPolicy();
+        const card = createCardWithExportNVP(CONST.COMPANY_CARDS.EXPORT_CARD_TYPES.NVP_ZOHO_BOOKS_EXPORT_ACCOUNT, 'zb-2');
+
+        // When the card's export menu item is resolved
+        const result = getExportMenuItem(CONST.POLICY.CONNECTIONS.NAME.ZOHO_BOOKS, MOCK_POLICY_ID, translate, themeStyles, policy, card);
+
+        // Then the title has no default marker, and only the active bank and credit card accounts are offered, because saving rejects the others
+        expect(result?.title).toBe(`${exportsTo} Operating Checking`);
+        expect(result?.data?.map((item) => item.keyForList)).toEqual(['zb-1', 'zb-2']);
+    });
+
+    it('still titles a card with its saved account after that account becomes inactive', () => {
+        // Given a card whose own account was deactivated in Zoho Books
+        const policy = createZohoBooksPolicy();
+        const card = createCardWithExportNVP(CONST.COMPANY_CARDS.EXPORT_CARD_TYPES.NVP_ZOHO_BOOKS_EXPORT_ACCOUNT, 'zb-3');
+
+        // When the card's export menu item is resolved
+        const result = getExportMenuItem(CONST.POLICY.CONNECTIONS.NAME.ZOHO_BOOKS, MOCK_POLICY_ID, translate, themeStyles, policy, card);
+
+        // Then the title still names the saved account so the admin can see what's set, while the picker leaves it out
+        expect(result?.title).toBe(`${exportsTo} Closed Checking`);
+        expect(result?.data?.map((item) => item.keyForList)).not.toContain('zb-3');
+    });
+
+    it('hides the menu item when the workspace does not export to multiple accounts', () => {
+        // Given a workspace with exporting to multiple accounts turned off
+        const policy = createZohoBooksPolicy({exportToMultipleAccounts: false});
+        const card = createCardWithExportNVP(CONST.COMPANY_CARDS.EXPORT_CARD_TYPES.NVP_ZOHO_BOOKS_EXPORT_ACCOUNT);
+
+        // When the card's export menu item is resolved
+        const result = getExportMenuItem(CONST.POLICY.CONNECTIONS.NAME.ZOHO_BOOKS, MOCK_POLICY_ID, translate, themeStyles, policy, card);
+
+        // Then the card has no per-card account to pick
+        expect(result?.shouldShowMenuItem).toBeFalsy();
+    });
+});
+
 describe('getExportMenuItem - Business Central', () => {
     function createBusinessCentralPolicy(nonReimbursable: ValueOf<typeof CONST.BUSINESS_CENTRAL_EXPORT_DESTINATION>, exportOverrides: PartialDeep<BusinessCentralExport> = {}) {
         return createBasePolicy({

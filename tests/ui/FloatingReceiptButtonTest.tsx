@@ -16,6 +16,7 @@ describe('FloatingReceiptButton hover', () => {
         render(
             <NavigationContainer>
                 <FloatingReceiptButton
+                    sentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}
                     onPress={onPress}
                     accessibilityLabel="fab"
                     role={CONST.ROLE.BUTTON}

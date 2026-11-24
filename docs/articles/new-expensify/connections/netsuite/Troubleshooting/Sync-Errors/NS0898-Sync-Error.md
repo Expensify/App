@@ -43,7 +43,7 @@ On web:
 
 1. Go to the navigation tabs on the left and select **Workspaces**.
 2. Select your Workspace.
-3. Click **Accounting**.
+3. Select **Connections**, then select **Configure** next to NetSuite.
 4. Click **Advanced**.
 5. Locate the approval level settings for:
    - **Expense reports**
@@ -56,7 +56,7 @@ On mobile:
 
 1. Tap the navigation tabs on the bottom and select **Workspaces**.
 2. Select your Workspace.
-3. Tap **Accounting**.
+3. Select **Connections**, then select **Configure** next to NetSuite.
 4. Tap **Advanced**.
 5. Update the approval level for the relevant export type.
 6. Tap **Save**.
@@ -67,9 +67,9 @@ On mobile:
 
 After updating the approval level:
 
-1. Go to **Workspaces > Accounting**.
-2. Click the three-dot menu next to the NetSuite connection.
-3. Click **Sync Now**.
+1. Select **Workspaces > [workspace name] > Connections**, then select **Configure** next to NetSuite.
+2. Select **More (⋮)**.
+3. Select **Sync now**.
 4. Retry the export.
 
 If the approval levels are aligned, the sync should complete successfully.
@@ -80,7 +80,7 @@ If the approval levels are aligned, the sync should complete successfully.
 
 ## Should I Update Approval Settings in NetSuite or the Workspace?
 
-You can update either side, but both systems must match. Most commonly, the adjustment is made in the Workspace under **Accounting > Advanced**.
+You can update either side, but both systems must match. Most commonly, the adjustment is made in the workspace under **Workspaces > [workspace name] > Connections** (select **Configure** next to NetSuite, then select **Advanced**).
 
 ## Does the NS0898 Sync Error Affect All Export Types?
 

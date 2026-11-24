@@ -4,6 +4,7 @@ import {PressableWithFeedback} from '@components/Pressable';
 import useIsSearchRowFocused from '@components/Search/hooks/useIsSearchRowFocused';
 import {useSearchResultsContext} from '@components/Search/SearchContext';
 import {useRowSelection} from '@components/Search/SearchSelectionProvider';
+import {resolveGroupCount} from '@components/Search/selectionBuilders';
 import type {SearchGroupBy} from '@components/Search/types';
 import type {ListItem} from '@components/SelectionList/types';
 
@@ -23,7 +24,7 @@ import type {TransactionPreviewData} from '@libs/actions/Search';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import type {ModifiedMouseEvent} from '@libs/Navigation/helpers/openInternalRouteInNewTab';
 import {getLoginByAccountID} from '@libs/PersonalDetailsUtils';
-import {isCashBackWithdrawalGroup, isTransactionApproverGroupListItemType, isTransactionDayGroupListItemType} from '@libs/SearchUIUtils';
+import {isCashBackWithdrawalGroup, isTransactionApproverGroupListItemType, isTransactionDayGroupListItemType, isTransactionViolationGroupListItemType} from '@libs/SearchUIUtils';
 import {COPYABLE_ROW_DATA_SET} from '@libs/SelectionScraper';
 import {getVisibleTransactionViolations, isTransactionPendingDelete} from '@libs/TransactionUtils';
 
@@ -74,6 +75,7 @@ import TransactionGroupListExpandedItem from './TransactionGroupListExpanded';
 import useGroupChildren from './useGroupChildren';
 import useGroupOpenForShiftRange from './useGroupOpenForShiftRange';
 import useLiveRowCapabilities from './useLiveRowCapabilities';
+import ViolationListItemHeader from './ViolationListItemHeader';
 import WeekListItemHeader from './WeekListItemHeader';
 import WithdrawalIDListItemHeader from './WithdrawalIDListItemHeader';
 import YearListItemHeader from './YearListItemHeader';
@@ -155,6 +157,7 @@ function TransactionGroupListItemImpl({
     const {transactions, isSelectAllChecked, isIndeterminate} = useGroupChildren({
         groupKey: groupItem.keyForList,
         groupTransactions: groupItem.transactions,
+        groupCount: resolveGroupCount(groupItem),
     });
 
     const transactionsWithoutPendingDelete = transactions.filter((transaction) => !isTransactionPendingDelete(transaction));
@@ -503,6 +506,22 @@ function TransactionGroupListItemImpl({
                     />
                 );
             })(),
+            [CONST.SEARCH.GROUP_BY.VIOLATION]: isTransactionViolationGroupListItemType(groupItem) ? (
+                <ViolationListItemHeader
+                    violation={groupItem}
+                    onCheckboxPress={handleSelectionButtonPress}
+                    isDisabled={isDisabledOrEmpty}
+                    columns={columns}
+                    canSelectMultiple={canSelectMultiple}
+                    isSelectAllChecked={isSelectAllChecked}
+                    isIndeterminate={isIndeterminate}
+                    onDownArrowClick={onExpandIconPress}
+                    isExpanded={isExpanded}
+                />
+            ) : null,
+            // Only Insights charts group by these, so Search never lists their groups
+            [CONST.SEARCH.GROUP_BY.PAID_BY]: null,
+            [CONST.SEARCH.GROUP_BY.WORKFLOW_STAGE]: null,
         };
 
         if (searchType === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT) {
@@ -586,7 +605,7 @@ function TransactionGroupListItemImpl({
                 ref={pressableRef}
                 onLongPress={onLongPress}
                 onPress={onPress}
-                disabled={isDisabled && !isItemSelected}
+                disabled={!!isDisabled && !isItemSelected}
                 sentryLabel={CONST.SENTRY_LABEL.SEARCH.TRANSACTION_GROUP_LIST_ITEM}
                 accessibilityLabel={item.text ?? ''}
                 role={isCashBackWithdrawal ? undefined : CONST.ROLE.BUTTON}

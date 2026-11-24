@@ -1,14 +1,17 @@
 import Button from '@components/Button';
 import ButtonDisabledWhenOffline from '@components/Button/composed/ButtonDisabledWhenOffline';
 import DotIndicatorMessage from '@components/DotIndicatorMessage';
+import FormAlertWrapper from '@components/FormAlertWrapper';
+import MenuItem from '@components/MenuItem';
 import MenuItemAvatarNavigation from '@components/MenuItem/presets/MenuItemAvatarNavigation';
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import RenderHTML from '@components/RenderHTML';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 
 import useAccessibilityAnnouncement from '@hooks/useAccessibilityAnnouncement';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
 import type {SubPageProps} from '@hooks/useSubPage/types';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -16,8 +19,14 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
 import type {BrickRoad} from '@libs/WorkspacesSettingsUtils';
 
-import CONST from '@src/CONST';
+import {callIfAuthenticated} from '@userActions/Session';
 
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+
+import type {ReactNode} from 'react';
+
+import {authTokenTypeSelector} from '@selectors/Session';
 import React, {useState} from 'react';
 import {View} from 'react-native';
 
@@ -29,7 +38,7 @@ type SummaryItem = {
     description: string;
 
     /** The answer shown in the row */
-    title: string;
+    title: string | undefined;
 
     /** Whether the chevron is shown on the right of the row */
     shouldShowRightIcon: boolean;
@@ -39,6 +48,9 @@ type SummaryItem = {
 
     /** False for a row that opens nothing, so it is not announced as a button. Defaults to true. */
     interactive?: boolean;
+
+    /** The row shows its answer but cannot be opened for now, such as offline */
+    disabled?: boolean;
 
     /** The brick road indicator shown on the row */
     brickRoadIndicator?: BrickRoad;
@@ -86,8 +98,20 @@ type SummaryLabelRow = {
     title: string;
 };
 
-/** One row of a group: an answer, an entry of a repeated group, or the name of a repeated group */
-type SummaryGroupRow = SummaryItem | SummaryAvatarRow | SummaryLabelRow;
+/** An error about a repeated group as a whole, such as too many entries, shown under its entries since their rows don't carry one */
+type SummaryErrorRow = {
+    /** Tells the row apart from an answer row */
+    kind: 'error';
+
+    /** Unique key of the row */
+    id: string;
+
+    /** The error message */
+    title: string;
+};
+
+/** One row of a group: an answer, an entry of a repeated group, the name of a repeated group, or an error about a repeated group */
+type SummaryGroupRow = SummaryItem | SummaryAvatarRow | SummaryLabelRow | SummaryErrorRow;
 
 /** Answers under one heading. Used instead of `summaryItems` when the confirmation is split by section. */
 type SummaryGroup = {
@@ -124,6 +148,12 @@ type ConfirmationStepProps = SubPageProps &
         /** The error message to display */
         error?: string;
 
+        /** Shows "Please fix the errors in the form before continuing" above Confirm, for rows whose answers need fixing before Confirm can send them */
+        isFixErrorsAlertVisible?: boolean;
+
+        /** Called when the "fix the errors" link in the alert is pressed */
+        onFixTheErrorsLinkPressed?: () => void;
+
         shouldApplySafeAreaPaddingBottom?: boolean;
 
         /** Whether screen readers treat the page title as a heading */
@@ -131,6 +161,9 @@ type ConfirmationStepProps = SubPageProps &
 
         /** Whether screen readers hear that Confirm is in progress, and hear the error after each Confirm press */
         shouldAnnounceSubmitState?: boolean;
+
+        /** Drawn between the rows and Confirm, such as a terms checkbox the user ticks before confirming */
+        children?: ReactNode;
     };
 
 function ConfirmationStep({
@@ -142,14 +175,18 @@ function ConfirmationStep({
     onfidoLinksTitle,
     isLoading,
     error,
+    isFixErrorsAlertVisible = false,
+    onFixTheErrorsLinkPressed,
     onNext,
     shouldApplySafeAreaPaddingBottom = true,
     shouldMarkTitleAsHeading = false,
     shouldAnnounceSubmitState = false,
-    forwardedFSClass,
+    forwardedFSClass = CONST.FULLSTORY.CLASS.MASK,
+    children,
 }: ConfirmationStepProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+    const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
 
     const {paddingBottom: safeAreaInsetPaddingBottom} = useSafeAreaPaddings();
     const [wasLoading, setWasLoading] = useState(!!isLoading);
@@ -181,6 +218,16 @@ function ConfirmationStep({
                 </Text>
             );
         }
+        if ('kind' in row && row.kind === 'error') {
+            return (
+                <DotIndicatorMessage
+                    key={row.id}
+                    style={[styles.ph5, styles.mt2]}
+                    type="error"
+                    messages={{error: row.title}}
+                />
+            );
+        }
         if ('kind' in row) {
             // MenuItemAvatarNavigation takes no FullStory class, so the mask goes on a View around it
             return (
@@ -189,6 +236,7 @@ function ConfirmationStep({
                     fsClass={forwardedFSClass}
                 >
                     <MenuItemAvatarNavigation
+                        sentryLabel={CONST.SENTRY_LABEL.CONFIRMATION_STEP.EDIT}
                         testID={row.id}
                         title={row.title}
                         description={row.description}
@@ -199,21 +247,31 @@ function ConfirmationStep({
                 </View>
             );
         }
-        const {id, description, title, shouldShowRightIcon, onPress, interactive, brickRoadIndicator, errorText, testID, accessibilityLabel} = row;
+        const {id, description, title, shouldShowRightIcon, onPress, interactive, disabled, brickRoadIndicator, errorText, testID, accessibilityLabel} = row;
         return (
-            <MenuItemWithTopDescription
+            <MenuItem.Root
                 key={id}
-                pressableTestID={testID ?? id}
-                description={description}
-                title={title}
-                shouldShowRightIcon={shouldShowRightIcon}
-                onPress={onPress}
-                interactive={interactive}
-                brickRoadIndicator={brickRoadIndicator}
-                errorText={errorText}
+                testID={testID ?? id}
+                onPress={interactive !== false ? callIfAuthenticated(onPress, session) : undefined}
+                isDisabled={disabled}
+                sentryLabel={CONST.SENTRY_LABEL.CONFIRMATION_STEP.EDIT}
                 accessibilityLabel={accessibilityLabel}
-                forwardedFSClass={forwardedFSClass}
-            />
+            >
+                <MenuItemField.Row
+                    name={description}
+                    value={title}
+                    forwardedFSClass={forwardedFSClass}
+                >
+                    {!!brickRoadIndicator && <MenuItem.BrickRoadIndicator status={brickRoadIndicator} />}
+                    {shouldShowRightIcon && <MenuItem.Chevron />}
+                </MenuItemField.Row>
+                {!!errorText && (
+                    <MenuItem.HelpText
+                        message={errorText}
+                        isError
+                    />
+                )}
+            </MenuItem.Root>
         );
     };
 
@@ -254,6 +312,8 @@ function ConfirmationStep({
                 </View>
             )}
 
+            {!!children && <View style={[styles.ph5, styles.mt3]}>{children}</View>}
+
             <View style={[styles.ph5, styles.mt5, styles.flexGrow1, styles.justifyContentEnd]}>
                 {!!error && error.length > 0 && (
                     <DotIndicatorMessage
@@ -262,16 +322,24 @@ function ConfirmationStep({
                         messages={{error}}
                     />
                 )}
-                <ButtonDisabledWhenOffline
-                    variant={CONST.BUTTON_VARIANT.SUCCESS}
-                    size={CONST.BUTTON_SIZE.LARGE}
-                    isLoading={isLoading}
-                    accessibilityState={shouldAnnounceSubmitState ? {busy: !!isLoading} : undefined}
-                    style={[styles.w100]}
-                    onPress={onNext}
+                <FormAlertWrapper
+                    isAlertVisible={isFixErrorsAlertVisible}
+                    onFixTheErrorsLinkPressed={onFixTheErrorsLinkPressed}
                 >
-                    <Button.Text>{translate('common.confirm')}</Button.Text>
-                </ButtonDisabledWhenOffline>
+                    {() => (
+                        <ButtonDisabledWhenOffline
+                            variant={CONST.BUTTON_VARIANT.SUCCESS}
+                            size={CONST.BUTTON_SIZE.LARGE}
+                            isLoading={isLoading}
+                            accessibilityState={shouldAnnounceSubmitState ? {busy: !!isLoading} : undefined}
+                            style={[styles.w100]}
+                            onPress={onNext}
+                            sentryLabel={CONST.SENTRY_LABEL.CONFIRMATION_STEP.CONFIRM}
+                        >
+                            <Button.Text>{translate('common.confirm')}</Button.Text>
+                        </ButtonDisabledWhenOffline>
+                    )}
+                </FormAlertWrapper>
             </View>
         </ScrollView>
     );

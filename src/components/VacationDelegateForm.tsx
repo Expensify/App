@@ -17,6 +17,7 @@ import {
     isVacationDelegateClearDatePassed,
 } from '@libs/VacationDelegateUtils';
 
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/VacationDelegateForm';
 import type {Errors, PendingAction} from '@src/types/onyx/OnyxCommon';
@@ -156,6 +157,7 @@ function VacationDelegateForm({
                 pendingAction={pendingAction}
                 onCloseError={onCloseError}
                 onPress={onChangeDelegate}
+                sentryLabel={CONST.SENTRY_LABEL.VACATION_DELEGATE.CHOOSE_DELEGATE}
             />
             {/* The clear after date and time belong to the same pending save as the delegate, so they grey out with it */}
             <OfflineWithFeedback
@@ -195,6 +197,7 @@ function VacationDelegateForm({
             {!!savedDelegateOnOpen && !!savedDelegate && (
                 <View style={styles.mt4}>
                     <MenuItemAction
+                        sentryLabel={CONST.SENTRY_LABEL.VACATION_DELEGATE.REMOVE}
                         title={translate('statusPage.vacationDelegate.removeDelegate')}
                         icon={icons.Trashcan}
                         onPress={onRemove}

@@ -24,6 +24,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 
 import {delegateEmailSelector} from '@selectors/Account';
 import React from 'react';
+import Onyx from 'react-native-onyx';
 
 import type {CaseID} from './types';
 
@@ -56,7 +57,9 @@ function ReportDetailsTaskDeleteActionContent({report, parentReport, parentRepor
     const ancestors = useAncestors(report);
     const showDeleteModal = useReportDetailsDeleteModal(report.reportID, caseID, parentReportAction);
 
-    const deleteTransaction = () => {
+    const deleteTransaction = async () => {
+        // eslint-disable-next-line rulesdir/no-onyx-get-snapshot-key -- replaces a module-level Onyx.connect used only by handlers, never read a snapshot
+        const reportNameValuePairs = await Onyx.get(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
         deleteTask(
             report,
             parentReport,
@@ -70,17 +73,22 @@ function ReportDetailsTaskDeleteActionContent({report, parentReport, parentRepor
             {
                 ancestors,
                 shouldNavigateBack: !taskDeleteBackTo,
-                lastAccessedReportID: findLastAccessedReport(false, guideAccountIDs, isAnonymousUser, false, report.reportID)?.reportID,
+                lastAccessedReportID: findLastAccessedReport(false, guideAccountIDs, isAnonymousUser, false, report.reportID, reportNameValuePairs)?.reportID,
             },
         );
     };
 
     return (
         <MenuItemAction
+            sentryLabel={CONST.SENTRY_LABEL.REPORT_DETAILS.DELETE_TASK}
             key={CONST.REPORT_DETAILS_MENU_ITEM.DELETE}
             icon={expensifyIcons.Trashcan}
             title={translate('common.delete')}
-            onPress={() => showDeleteModal(undefined, deleteTransaction)}
+            onPress={() =>
+                showDeleteModal(undefined, () => {
+                    deleteTransaction();
+                })
+            }
         />
     );
 }

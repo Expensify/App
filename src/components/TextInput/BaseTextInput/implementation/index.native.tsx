@@ -24,6 +24,7 @@ import useTextInputAccessibility from '@hooks/useTextInputAccessibility';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import getSecretInputFSClass from '@libs/Fullstory/getSecretInputFSClass';
 import getLandscapeTextInputRefProxy from '@libs/getLandscapeTextInputRefProxy';
 import isInputAutoFilled from '@libs/isInputAutoFilled';
 
@@ -90,10 +91,12 @@ function BaseTextInput({
     onClearInput,
     iconContainerStyle,
     clearButtonStyle,
+    clearButtonSentryLabel,
     clearButtonIconSize,
     shouldUseDefaultLineHeightForPrefix = true,
     ref,
-    sentryLabel,
+    // A press on the field focuses the input, so inputs without a label of their own report under a shared one.
+    sentryLabel = CONST.SENTRY_LABEL.TEXT_INPUT.FIELD,
     rightHandSideComponent,
     shouldAllowFocusInLandscapeMode = false,
     ...props
@@ -217,12 +220,14 @@ function BaseTextInput({
     const inputValue = value ?? '';
     const hasValue = inputValue.length > 0 || hasValueRef.current;
 
-    // Activate or deactivate the label when either focus changes, or for controlled
-    // components when the value prop changes:
+    // Keep the label clear of values and adornments, including changes while the input is blurred.
     useEffect(() => {
         if (
             hasValue ||
             isFocused ||
+            forceActiveLabel ||
+            !!prefixCharacter ||
+            !!suffixCharacter ||
             // If the text has been supplied by Chrome autofill, the value state is not synced with the value
             // as Chrome doesn't trigger a change event. When there is autofill text, keep the label activated.
             isInputAutoFilled(input.current)
@@ -231,7 +236,7 @@ function BaseTextInput({
         } else {
             deactivateLabel();
         }
-    }, [activateLabel, deactivateLabel, hasValue, isFocused]);
+    }, [activateLabel, deactivateLabel, forceActiveLabel, hasValue, isFocused, prefixCharacter, suffixCharacter]);
 
     // When the value prop gets cleared externally, we need to keep the ref in sync:
     useEffect(() => {
@@ -275,20 +280,21 @@ function BaseTextInput({
 
     const inputHelpText = errorText || hint;
     const placeholderValue = !!prefixCharacter || !!suffixCharacter || isFocused || !hasLabel || (hasLabel && forceActiveLabel) ? placeholder : undefined;
-    const newTextInputContainerStyles: StyleProp<ViewStyle> = StyleSheet.flatten([
-        styles.textInputContainer,
-        !hasLabel && styles.pt0,
-        textInputContainerStyles,
-        !shouldApplyPaddingToContainer && styles.p0,
-        !!contentWidth && StyleUtils.getWidthStyle(textInputWidth + (shouldApplyPaddingToContainer ? styles.textInputContainer.padding * 2 : 0)),
-        autoGrow && StyleUtils.getAutoGrowWidthInputContainerStyles(textInputWidth, autoGrowExtraSpace, autoGrowMarginSide),
-        !hideFocusedState && isFocused && styles.borderColorFocus,
-        (!!hasError || !!errorText) && styles.borderColorDanger,
-        autoGrowHeight && {scrollPaddingTop: typeof maxAutoGrowHeight === 'number' ? 2 * maxAutoGrowHeight : undefined},
-        isAutoGrowHeightMarkdown && styles.pb2,
-        inputProps.disabled && styles.textInputDisabledContainer,
-        shouldAddPaddingBottom && styles.pb1,
-    ]);
+    const newTextInputContainerStyles: StyleProp<ViewStyle> =
+        StyleSheet.flatten([
+            styles.textInputContainer,
+            !hasLabel && styles.pt0,
+            textInputContainerStyles,
+            !shouldApplyPaddingToContainer && styles.p0,
+            !!contentWidth && StyleUtils.getWidthStyle(textInputWidth + (shouldApplyPaddingToContainer ? styles.textInputContainer.padding * 2 : 0)),
+            autoGrow && StyleUtils.getAutoGrowWidthInputContainerStyles(textInputWidth, autoGrowExtraSpace, autoGrowMarginSide),
+            !hideFocusedState && isFocused && styles.borderColorFocus,
+            (!!hasError || !!errorText) && styles.borderColorDanger,
+            autoGrowHeight && {scrollPaddingTop: typeof maxAutoGrowHeight === 'number' ? 2 * maxAutoGrowHeight : undefined},
+            isAutoGrowHeightMarkdown && styles.pb2,
+            inputProps.disabled && styles.textInputDisabledContainer,
+            shouldAddPaddingBottom && styles.pb1,
+        ]) ?? {};
 
     // TextInputMeasurement is absolutely positioned, so it doesn’t inherit padding/border.
     // We extract the horizontal padding/border from the input container to get an accurate width.
@@ -443,6 +449,7 @@ function BaseTextInput({
                                 onBlur={onBlur}
                                 onChangeText={setValue}
                                 secureTextEntry={passwordHidden}
+                                forwardedFSClass={getSecretInputFSClass(inputProps.forwardedFSClass, inputProps.secureTextEntry)}
                                 onPressOut={inputProps.onPress}
                                 showSoftInputOnFocus={!disableKeyboard}
                                 keyboardType={inputProps.keyboardType}
@@ -472,6 +479,7 @@ function BaseTextInput({
                                     }}
                                     iconSize={clearButtonIconSize}
                                     style={[StyleUtils.getTextInputIconContainerStyles(hasLabel, false, verticalPaddingDiff), clearButtonStyle]}
+                                    sentryLabel={clearButtonSentryLabel}
                                 />
                             )}
                             {!!inputProps.isLoading && !shouldShowClearButton && (
@@ -487,6 +495,7 @@ function BaseTextInput({
                             )}
                             {!!inputProps.secureTextEntry && (
                                 <Checkbox
+                                    sentryLabel={CONST.SENTRY_LABEL.TEXT_INPUT.PASSWORD_VISIBILITY_TOGGLE}
                                     style={StyleUtils.getTextInputIconContainerStyles(hasLabel, true, verticalPaddingDiff)}
                                     onPress={togglePasswordVisibility}
                                     onMouseDown={(event) => {

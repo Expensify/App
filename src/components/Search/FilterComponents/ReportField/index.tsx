@@ -8,11 +8,14 @@ import type {ReportFieldDateKey, ReportFieldTextKey} from '@components/Search/ty
 
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {getDateModifierTitle} from '@libs/SearchQueryUtils';
 import {getDateDisplayValue, getDatePresets} from '@libs/SearchUIUtils';
 import type {SearchDateModifier} from '@libs/SearchUIUtils';
+
+import {callIfAuthenticated} from '@userActions/Session';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -23,7 +26,9 @@ import type {StyleProp, ViewStyle} from 'react-native';
 import type {OnyxCollection} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 
+import {authTokenTypeSelector} from '@selectors/Session';
 import React, {useImperativeHandle, useRef, useState} from 'react';
+import {View} from 'react-native';
 
 import ReportFieldList from './ReportFieldList';
 import ReportFieldText from './ReportFieldText';
@@ -175,14 +180,17 @@ function SelectedDateReportField({ref, field, value: initialValue, selectedDateM
 }
 
 function ReportFieldBase({ref, values: initialValues = {}, selectedField, hasFeed, style, footer, shouldUseScrollView, onFieldSelected, onError}: ReportFieldBaseProps) {
+    const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
     const {translate, localeCompare, dateFnsLocale} = useLocalize();
     const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
     const policyReportFieldsSelector = (policies: OnyxCollection<Policy>) => createAllPolicyReportFieldsSelector(policies, localeCompare);
     const [fieldList] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {
         selector: policyReportFieldsSelector,
     });
     const [values, setValues] = useState<ReportFieldValues>(initialValues);
     const [selectedDateModifier, setSelectedDateModifier] = useState<SearchDateModifier | null>(null);
+    const [focusedFieldKey, setFocusedFieldKey] = useState<string | null>(null);
     const selectedFieldRef = useRef<ReportFieldHandle>(null);
 
     const getValue = (fieldName: string) => {
@@ -290,16 +298,38 @@ function ReportFieldBase({ref, values: initialValues = {}, selectedField, hasFee
 
     return (
         <ScrollView contentContainerStyle={[style]}>
-            {listItems.map((item) => (
-                <MenuItem
-                    key={item.key}
-                    shouldShowRightIcon
-                    viewMode={CONST.OPTION_MODE.COMPACT}
-                    title={item.name}
-                    description={item.value}
-                    onPress={() => onFieldSelected(item.field)}
-                />
-            ))}
+            <View
+                dataSet={{[CONST.ADVANCED_FILTERS_ARROW_ROWS_ELEMENT]: true}}
+                onBlur={() => setFocusedFieldKey(null)}
+            >
+                {listItems.map((item) => (
+                    <View
+                        key={item.key}
+                        onFocus={() => setFocusedFieldKey(item.key)}
+                    >
+                        <MenuItem.Root
+                            sentryLabel={CONST.SENTRY_LABEL.SEARCH.REPORT_FIELD_ITEM}
+                            isCompact
+                            style={focusedFieldKey === item.key && StyleUtils.getButtonBackgroundColorStyle(CONST.BUTTON_STATES.ACTIVE, true)}
+                            onPress={callIfAuthenticated(() => {
+                                // Opening the field takes the focused row away without a blur, so its highlight is cleared here.
+                                setFocusedFieldKey(null);
+                                onFieldSelected(item.field);
+                            }, session)}
+                        >
+                            <MenuItem.Row>
+                                <MenuItem.Content>
+                                    <MenuItem.Title>{item.name}</MenuItem.Title>
+                                    {!!item.value && <MenuItem.Description>{item.value}</MenuItem.Description>}
+                                </MenuItem.Content>
+                                <MenuItem.Trailing>
+                                    <MenuItem.Chevron />
+                                </MenuItem.Trailing>
+                            </MenuItem.Row>
+                        </MenuItem.Root>
+                    </View>
+                ))}
+            </View>
         </ScrollView>
     );
 }

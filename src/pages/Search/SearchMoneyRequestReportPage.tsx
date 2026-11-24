@@ -7,6 +7,7 @@ import {useSearchResultsContext} from '@components/Search/SearchContext';
 import useRHPWidth from '@components/WideRHPContextProvider/useRHPWidth';
 import WideRHPOverlayWrapper from '@components/WideRHPOverlayWrapper';
 
+import useClearDeleteTransactionNavigateBackUrlOnUnmount from '@hooks/useClearDeleteTransactionNavigateBackUrlOnUnmount';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDismissOnMoneyRequestReportRemoval from '@hooks/useDismissOnMoneyRequestReportRemoval';
 import useDocumentTitle from '@hooks/useDocumentTitle';
@@ -14,6 +15,7 @@ import useIsReportReadyToDisplay from '@hooks/useIsReportReadyToDisplay';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useParentReportAction from '@hooks/useParentReportAction';
+import usePermissions from '@hooks/usePermissions';
 import usePrevious from '@hooks/usePrevious';
 import {useDerivedReportNameByReportID} from '@hooks/useReportAttributes';
 import useReportIsArchived from '@hooks/useReportIsArchived';
@@ -23,6 +25,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useTransactionsAndViolationsForReport from '@hooks/useTransactionsAndViolationsForReport';
 import useTransactionThreadReportID from '@hooks/useTransactionThreadReportID';
 
+import {shouldHideBillReport} from '@libs/BillUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Log from '@libs/Log';
 import {getAllNonDeletedTransactions} from '@libs/MoneyRequestReportUtils';
@@ -32,6 +35,7 @@ import type {RightModalNavigatorParamList} from '@libs/Navigation/types';
 import {getIOUActionForTransactionID, getReportAction} from '@libs/ReportActionsUtils';
 import {getReportName} from '@libs/ReportNameUtils';
 import {isMoneyRequestReportPendingDeletion, isValidReportIDFromPath} from '@libs/ReportUtils';
+import {isTransactionEntry} from '@libs/SearchUIUtils';
 import {cancelSendMessageSpansForReport} from '@libs/telemetry/sendMessageSpans';
 import {doesDeleteNavigateBackUrlIncludeDuplicatesReview, getParentReportActionDeletionStatus, hasLoadedReportActions, isThreadReportDeleted} from '@libs/TransactionNavigationUtils';
 
@@ -47,7 +51,6 @@ import {clearDeleteTransactionNavigateBackUrl, createTransactionThreadReport, op
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
-import type {Transaction, TransactionViolations} from '@src/types/onyx';
 
 import {PortalHost} from '@gorhom/portal';
 import {useIsFocused} from '@react-navigation/native';
@@ -72,6 +75,7 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
+    const {isBetaEnabled} = usePermissions();
     const reportIDFromRoute = getNonEmptyStringOnyxID(route.params?.reportID);
     const {currentSearchResults: snapshot} = useSearchResultsContext();
 
@@ -82,7 +86,7 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
         selector: fullPolicySnapshotLastModifiedSelector,
     });
     const [hasReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportIDFromRoute}`, {selector: Boolean});
-    const [deleteTransactionNavigateBackUrl] = useOnyx(ONYXKEYS.NVP_DELETE_TRANSACTION_NAVIGATE_BACK_URL);
+    const [deleteTransactionNavigateBackUrl] = useOnyx(ONYXKEYS.RAM_ONLY_PENDING_TRANSACTION_DELETE_URL);
 
     const parentReportAction = useParentReportAction(report);
 
@@ -124,6 +128,8 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
         });
         return () => handle.cancel();
     }, [isFocused, deleteTransactionNavigateBackUrl]);
+
+    useClearDeleteTransactionNavigateBackUrlOnUnmount(true);
 
     const [reportLoadingState = defaultReportLoadingState] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${reportIDFromRoute}`);
     const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP);
@@ -169,23 +175,18 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
             snapshotViolations: undefined,
         };
     } else {
-        const snapshotData = snapshot.data as Record<string, unknown>;
-        const transactionKey = Object.keys(snapshotData).find((key) => {
-            if (!key.startsWith(ONYXKEYS.COLLECTION.TRANSACTION)) {
-                return false;
-            }
-            const candidate = snapshotData[key];
-            return typeof candidate === 'object' && candidate !== null && 'reportID' in candidate && candidate.reportID === reportIDFromRoute;
-        });
+        const snapshotData = snapshot.data;
+        const transactionKey = Object.keys(snapshotData)
+            .filter(isTransactionEntry)
+            .find((key) => snapshotData[key]?.reportID === reportIDFromRoute);
         if (!transactionKey) {
             derivedValue = {
                 snapshotTransaction: undefined,
                 snapshotViolations: undefined,
             };
         } else {
-            const transaction = snapshotData[transactionKey] as Transaction;
-            const violationKey = `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`;
-            const violations = snapshotData[violationKey] as TransactionViolations | undefined;
+            const transaction = snapshotData[transactionKey];
+            const violations = snapshotData[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`];
             derivedValue = {
                 snapshotTransaction: transaction,
                 snapshotViolations: violations,
@@ -347,15 +348,17 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
     const hasAnyTransactions = reportTransactions.length > 0 || shouldUseSnapshotTransaction;
     const wereAllTransactionsDeleted = hasAnyTransactions && activeTransactionsCount === 0;
 
+    const isBillHidden = shouldHideBillReport(report?.type, isBetaEnabled(CONST.BETAS.NEW_DOT_BILL_PAY));
     const shouldShowAccessErrorPage: boolean =
-        !(isLoadingApp !== false) &&
-        !deleteTransactionNavigateBackUrl &&
-        ((!!reportID && !doesReportIDLookValid) ||
-            isReportPendingDeletion ||
-            wereAllTransactionsDeleted ||
-            wasParentActionDeleted ||
-            isThreadReportDeletedForReview ||
-            (!reportID && hasLoadedReportActionsForAccessError && !hasAnyTransactions));
+        isBillHidden ||
+        (!(isLoadingApp !== false) &&
+            !deleteTransactionNavigateBackUrl &&
+            ((!!reportID && !doesReportIDLookValid) ||
+                isReportPendingDeletion ||
+                wereAllTransactionsDeleted ||
+                wasParentActionDeleted ||
+                isThreadReportDeletedForReview ||
+                (!reportID && hasLoadedReportActionsForAccessError && !hasAnyTransactions)));
 
     useEffect(() => {
         if (!shouldShowAccessErrorPage) {
@@ -373,6 +376,7 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
             wasParentActionDeleted,
             isThreadReportDeletedForReview,
             shouldUseSnapshotTransaction,
+            isBillHidden,
         });
     }, [
         shouldShowAccessErrorPage,
@@ -386,6 +390,7 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
         wasParentActionDeleted,
         isThreadReportDeletedForReview,
         shouldUseSnapshotTransaction,
+        isBillHidden,
     ]);
 
     useClearReportActionDraftsOnReportChange(reportIDFromRoute);

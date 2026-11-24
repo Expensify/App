@@ -1,4 +1,5 @@
 import AmountTextInput from '@components/AmountTextInput';
+import type {AmountTextInputKeyPressEvent} from '@components/AmountTextInput';
 import BigNumberPad from '@components/BigNumberPad';
 import Button from '@components/Button';
 import FormHelpMessage from '@components/FormHelpMessage';
@@ -17,8 +18,8 @@ import {canUseTouchScreen as canUseTouchScreenDeviceCapabilities} from '@libs/De
 
 import CONST from '@src/CONST';
 
-import type {GestureResponderEvent, NativeSyntheticEvent} from 'react-native';
-import type {TextInput} from 'react-native-gesture-handler';
+import type {ComponentRef} from 'react';
+import type {GestureResponderEvent, TextInput} from 'react-native';
 
 import React, {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
@@ -143,10 +144,10 @@ function TimePicker({defaultValue = '', onSubmit, onInputChange = () => {}, shou
     const [selectionMillisecond, setSelectionMillisecond] = useState(showFullFormat ? {start: milliseconds.length, end: milliseconds.length} : {start: 0, end: 0});
 
     const lastPressedKey = useRef('');
-    const hourInputRef = useRef<TextInput | null>(null);
-    const minuteInputRef = useRef<TextInput | null>(null);
-    const secondInputRef = useRef<TextInput | null>(null);
-    const millisecondInputRef = useRef<TextInput | null>(null);
+    const hourInputRef = useRef<ComponentRef<typeof TextInput> | null>(null);
+    const minuteInputRef = useRef<ComponentRef<typeof TextInput> | null>(null);
+    const secondInputRef = useRef<ComponentRef<typeof TextInput> | null>(null);
+    const millisecondInputRef = useRef<ComponentRef<typeof TextInput> | null>(null);
 
     const {inputCallbackRef} = useAutoFocusInput();
 
@@ -658,7 +659,7 @@ function TimePicker({defaultValue = '', onSubmit, onInputChange = () => {}, shou
     useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ARROW_LEFT, arrowLeftCallback, arrowConfig);
     useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ARROW_RIGHT, arrowRightCallback, arrowConfig);
 
-    const handleFocusOnBackspace = (e: NativeSyntheticEvent<KeyboardEvent>) => {
+    const handleFocusOnBackspace = (e: AmountTextInputKeyPressEvent) => {
         if (e.nativeEvent.key !== 'Backspace') {
             return;
         }
@@ -709,6 +710,7 @@ function TimePicker({defaultValue = '', onSubmit, onInputChange = () => {}, shou
     const renderedAmPmButtons = (
         <View style={isInLandscapeMode ? [styles.flexRow, styles.justifyContentCenter, styles.gap2] : styles.timePickerSwitcherContainer}>
             <Button
+                sentryLabel={CONST.SENTRY_LABEL.TIME_PICKER.AM}
                 enableHapticFeedback
                 innerStyles={styleForAM}
                 style={isInLandscapeMode && styles.minWidth18}
@@ -724,6 +726,7 @@ function TimePicker({defaultValue = '', onSubmit, onInputChange = () => {}, shou
                 <Button.Text>{translate('common.am')}</Button.Text>
             </Button>
             <Button
+                sentryLabel={CONST.SENTRY_LABEL.TIME_PICKER.PM}
                 enableHapticFeedback
                 innerStyles={[styleForPM, !isInLandscapeMode && styles.ml1]}
                 style={isInLandscapeMode && styles.minWidth18}
@@ -754,7 +757,7 @@ function TimePicker({defaultValue = '', onSubmit, onInputChange = () => {}, shou
                 }}
                 onChangeAmount={handleHourChange}
                 ref={(textInputRef) => {
-                    hourInputRef.current = textInputRef as TextInput | null;
+                    hourInputRef.current = textInputRef as ComponentRef<typeof TextInput> | null;
                 }}
                 onSelectionChange={(e) => {
                     setSelectionHour(e.nativeEvent.selection);
@@ -776,9 +779,9 @@ function TimePicker({defaultValue = '', onSubmit, onInputChange = () => {}, shou
                 }}
                 onChangeAmount={handleMinutesChange}
                 ref={(textInputRef) => {
-                    minuteInputRef.current = textInputRef as TextInput | null;
+                    minuteInputRef.current = textInputRef as ComponentRef<typeof TextInput> | null;
                     if (!showFullFormat) {
-                        inputCallbackRef(textInputRef as TextInput | null);
+                        inputCallbackRef(textInputRef as ComponentRef<typeof TextInput> | null);
                     }
                 }}
                 onSelectionChange={(e) => {
@@ -803,7 +806,7 @@ function TimePicker({defaultValue = '', onSubmit, onInputChange = () => {}, shou
                         }}
                         onChangeAmount={handleSecondsChange}
                         ref={(textInputRef) => {
-                            secondInputRef.current = textInputRef as TextInput | null;
+                            secondInputRef.current = textInputRef as ComponentRef<typeof TextInput> | null;
                         }}
                         onSelectionChange={(e) => {
                             setSelectionSecond(e.nativeEvent.selection);
@@ -825,9 +828,9 @@ function TimePicker({defaultValue = '', onSubmit, onInputChange = () => {}, shou
                         }}
                         onChangeAmount={handleMillisecondsChange}
                         ref={(textInputRef) => {
-                            millisecondInputRef.current = textInputRef as TextInput | null;
+                            millisecondInputRef.current = textInputRef as ComponentRef<typeof TextInput> | null;
                             if (showFullFormat) {
-                                inputCallbackRef(textInputRef as TextInput | null);
+                                inputCallbackRef(textInputRef as ComponentRef<typeof TextInput> | null);
                             }
                         }}
                         onSelectionChange={(e) => {
@@ -857,6 +860,7 @@ function TimePicker({defaultValue = '', onSubmit, onInputChange = () => {}, shou
 
     const renderedSaveButton = (
         <Button
+            sentryLabel={CONST.SENTRY_LABEL.TIME_PICKER.SAVE_BUTTON}
             variant={CONST.BUTTON_VARIANT.SUCCESS}
             size={isExtraSmallScreenHeight ? CONST.BUTTON_SIZE.MEDIUM : CONST.BUTTON_SIZE.LARGE}
             style={isInLandscapeMode ? [styles.w100, canUseTouchScreen ? styles.mt5 : styles.mt0] : [styles.mb5, styles.mh5]}

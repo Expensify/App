@@ -24,6 +24,12 @@ type ValuePickerItem = {
     shouldHideSelectionButton?: boolean;
 
     titleStyles?: StyleProp<TextStyle>;
+
+    /**
+     * Text the search matches instead of the label, already passed through `StringUtils.sanitizeString` so accents
+     * are ignored. A country lists its ISO code here too, so `US` finds United States the way the country selector does.
+     */
+    searchValue?: string;
 };
 
 type ValueSelectorModalProps = {
@@ -58,6 +64,9 @@ type ValueSelectionListProps = Pick<
 > & {
     /** Whether the parent modal is visible */
     isVisible?: boolean;
+
+    /** Whether the search input takes focus when the list opens. Off on touch screens in a bottom sheet, so the keyboard does not cover the list */
+    shouldAutoFocusSearchInput?: boolean;
 };
 
 type ValuePickerProps = ForwardedFSClassProps & {
@@ -97,6 +106,9 @@ type ValuePickerProps = ForwardedFSClassProps & {
 
     /** Number of lines to show for alternate text */
     alternateNumberOfSupportedLines?: number;
+
+    /** Only applies to the row that opens the modal, since the inline list has no single control to disable */
+    disabled?: boolean;
 };
 
 export type {ValuePickerItem, ValueSelectorModalProps, ValuePickerProps, ValueSelectionListProps};

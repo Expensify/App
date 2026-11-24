@@ -1,9 +1,11 @@
+import type {PersonalDetailsByLogin} from '@components/PersonalDetailsByLoginProvider';
+
 import retryReceiptUpload, {canRetryReceiptUpload} from '@libs/ReceiptUploadRetryHandler';
 import buildReplaceReceiptRetryPayload from '@libs/ReceiptUploadRetryHandler/buildReplaceReceiptRetryPayload';
 import buildRetryPayload, {canBuildRetryPayload} from '@libs/ReceiptUploadRetryHandler/buildRetryPayload';
 import buildTrackExpenseRetryPayload from '@libs/ReceiptUploadRetryHandler/buildTrackExpenseRetryPayload';
 import resolveReceiptFile from '@libs/ReceiptUploadRetryHandler/resolveReceiptFile';
-import type {ReceiptRetryContext} from '@libs/ReceiptUploadRetryHandler/types';
+import type {ReceiptRetryDispatchContext} from '@libs/ReceiptUploadRetryHandler/types';
 
 import {replaceReceipt} from '@userActions/IOU/Receipt';
 import type {ReplaceReceiptRetryParams} from '@userActions/IOU/Receipt';
@@ -26,6 +28,10 @@ jest.mock('@userActions/IOU/TrackExpense', () => ({...jest.requireActual<Record<
 
 const CURRENT_USER_ACCOUNT_ID = 1;
 const OTHER_ACCOUNT_ID = 2;
+const CURRENT_USER_EMAIL = 'me@example.com';
+const CURRENT_USER_PERSONAL_DETAILS_BY_LOGINS: PersonalDetailsByLogin = {
+    [CURRENT_USER_EMAIL]: {accountID: CURRENT_USER_ACCOUNT_ID, login: CURRENT_USER_EMAIL},
+};
 const TRANSACTION_ID = '7000000000000001';
 const IOU_REPORT_ID = '8000000000000001';
 const CHAT_REPORT_ID = '9000000000000001';
@@ -51,7 +57,7 @@ function buildFailedTransaction(overrides: Partial<Transaction> = {}): Transacti
     } as Transaction;
 }
 
-function buildContext(transaction: Transaction, receiptErrorOverrides: Partial<ReceiptError> = {}): ReceiptRetryContext {
+function buildContext(transaction: Transaction, receiptErrorOverrides: Partial<ReceiptError> = {}): ReceiptRetryDispatchContext {
     return {
         receiptError: {
             error: CONST.IOU.RECEIPT_ERROR,
@@ -67,6 +73,7 @@ function buildContext(transaction: Transaction, receiptErrorOverrides: Partial<R
         policyParams: {},
         isVendorMatchingBetaEnabled: false,
         rules: {},
+        personalDetailsByLogins: CURRENT_USER_PERSONAL_DETAILS_BY_LOGINS,
         conciergeReportID: undefined,
         isSelfTourViewed: true,
         isASAPSubmitBetaEnabled: false,
@@ -77,12 +84,12 @@ function buildContext(transaction: Transaction, receiptErrorOverrides: Partial<R
         transactionReport: undefined,
         transactionThreadReport: undefined,
         transactionViolations: undefined,
-        currentUserPersonalDetails: {accountID: CURRENT_USER_ACCOUNT_ID, login: 'me@example.com'},
+        currentUserPersonalDetails: {accountID: CURRENT_USER_ACCOUNT_ID, login: CURRENT_USER_EMAIL},
         introSelected: undefined,
     };
 }
 
-function buildReplaceReceiptContext(retryParamsOverrides: Partial<ReplaceReceiptRetryParams> = {}, receiptErrorOverrides: Partial<ReceiptError> = {}): ReceiptRetryContext {
+function buildReplaceReceiptContext(retryParamsOverrides: Partial<ReplaceReceiptRetryParams> = {}, receiptErrorOverrides: Partial<ReceiptError> = {}): ReceiptRetryDispatchContext {
     const transaction = buildFailedTransaction({receipt: undefined, merchant: 'Coffee', amount: -1200});
     const retryParams: ReplaceReceiptRetryParams = {
         transactionID: TRANSACTION_ID,
@@ -98,7 +105,7 @@ function buildReplaceReceiptContext(retryParamsOverrides: Partial<ReplaceReceipt
 function buildTrackExpenseContext(
     iouReport: Report = {reportID: SELF_DM_REPORT_ID, chatType: CONST.REPORT.CHAT_TYPE.SELF_DM} as Report,
     receiptErrorOverrides: Partial<ReceiptError> = {},
-): ReceiptRetryContext {
+): ReceiptRetryDispatchContext {
     // A tracked expense in the self-DM is unreported, and its amount is stored negated.
     const transaction = buildFailedTransaction({reportID: CONST.REPORT.UNREPORTED_REPORT_ID, amount: -1200});
     return {...buildContext(transaction, {action: CONST.IOU.ACTION_PARAMS.TRACK_EXPENSE, ...receiptErrorOverrides}), iouReport};
@@ -112,7 +119,6 @@ describe('buildRetryPayload', () => {
     beforeEach(async () => {
         await Onyx.clear();
         await Onyx.merge(ONYXKEYS.SESSION, {accountID: CURRENT_USER_ACCOUNT_ID});
-        await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {[CURRENT_USER_ACCOUNT_ID]: {accountID: CURRENT_USER_ACCOUNT_ID, login: 'me@example.com'}});
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${CHAT_REPORT_ID}`, {
             reportID: CHAT_REPORT_ID,
             chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
@@ -232,6 +238,36 @@ describe('buildRetryPayload', () => {
         const canRetry = canBuildRetryPayload(context);
 
         // Then it is hidden, because nothing is left on the device to resend
+        expect(canRetry).toBe(false);
+    });
+
+    it('offers no retry for an expense whose report is the self-DM, because a retry would replace the self-DM with an expense report', () => {
+        // Given a failed expense whose parent report is the self-DM, as left by a track whose move to a workspace failed
+        const context = {
+            ...buildContext(buildFailedTransaction()),
+            iouReport: createMock<Report>({reportID: SELF_DM_REPORT_ID, type: CONST.REPORT.TYPE.CHAT, chatType: CONST.REPORT.CHAT_TYPE.SELF_DM}),
+        };
+
+        // When the view asks whether Try again can be shown
+        const canRetry = canBuildRetryPayload(context);
+
+        // Then it is hidden, because a retry would replace the self-DM with an expense report, and only Save keeps the receipt
+        expect(canRetry).toBe(false);
+    });
+
+    it('offers no retry for an expense whose report lost its type, because a retry would overwrite the wrong report', async () => {
+        // Given a failed expense on a report that lost its type, where everything else about the retry is fine
+        await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {[OTHER_ACCOUNT_ID]: {accountID: OTHER_ACCOUNT_ID, login: 'other@example.com'}});
+        await waitForBatchedUpdates();
+        const context = {
+            ...buildContext(buildFailedTransaction()),
+            iouReport: createMock<Report>({reportID: IOU_REPORT_ID, participants: {[CURRENT_USER_ACCOUNT_ID]: {}, [OTHER_ACCOUNT_ID]: {}}}),
+        };
+
+        // When the view asks whether Try again can be shown
+        const canRetry = canBuildRetryPayload(context);
+
+        // Then it is hidden, because a retry would replace that report with an expense report, and only Save keeps the receipt
         expect(canRetry).toBe(false);
     });
 

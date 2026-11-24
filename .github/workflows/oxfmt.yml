@@ -4,7 +4,6 @@ on:
   workflow_call:
   pull_request:
     types: [opened, synchronize]
-    branches-ignore: [production]
     paths: ['**.js', '**.ts', '**.tsx', '**.json', '**.mjs', '**.cjs', '**.yml', '**.yaml', '.oxfmtrc.json', 'config/.editorconfig', '.watchmanconfig', '.imgbotconfig']
 
 concurrency:

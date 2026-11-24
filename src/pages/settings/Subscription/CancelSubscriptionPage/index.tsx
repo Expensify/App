@@ -3,7 +3,6 @@ import Button from '@components/Button';
 import DelegateNoAccessWrapper from '@components/DelegateNoAccessWrapper';
 import FeedbackSurvey from '@components/FeedbackSurvey';
 import FixedFooter from '@components/FixedFooter';
-import FullscreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -25,7 +24,6 @@ import type {FeedbackSurveyOptionID} from '@src/CONST';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 import React from 'react';
 import {View} from 'react-native';
@@ -37,16 +35,14 @@ function CancelSubscriptionPage() {
     const styles = useThemeStyles();
     const {isBetaEnabled} = usePermissions();
     const canArchivePolicies = isBetaEnabled(CONST.BETAS.ARCHIVE_POLICIES);
-    const [privateSubscription, privateSubscriptionResult] = useOnyx(ONYXKEYS.NVP_PRIVATE_SUBSCRIPTION);
-    const [firstDayFreeTrial, firstDayFreeTrialResult] = useOnyx(ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL);
-    const [lastDayFreeTrial, lastDayFreeTrialResult] = useOnyx(ONYXKEYS.NVP_LAST_DAY_FREE_TRIAL);
-    const [userBillingFundID, userBillingFundIDResult] = useOnyx(ONYXKEYS.NVP_BILLING_FUND_ID);
-    const [account, accountResult] = useOnyx(ONYXKEYS.ACCOUNT);
-    const isLoadingEligibilityData = isLoadingOnyxValue(privateSubscriptionResult, firstDayFreeTrialResult, lastDayFreeTrialResult, userBillingFundIDResult, accountResult);
+    const [privateSubscription] = useOnyx(ONYXKEYS.NVP_PRIVATE_SUBSCRIPTION);
+    const [firstDayFreeTrial] = useOnyx(ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL);
+    const [lastDayFreeTrial] = useOnyx(ONYXKEYS.NVP_LAST_DAY_FREE_TRIAL);
+    const [userBillingFundID] = useOnyx(ONYXKEYS.NVP_BILLING_FUND_ID);
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
 
     const [formState] = useOnyx(ONYXKEYS.FORMS.CANCEL_SUBSCRIPTION_FORM);
-    const [cancellationDetails, cancellationDetailsResult] = useOnyx(ONYXKEYS.NVP_PRIVATE_CANCELLATION_DETAILS);
-    const isLoadingGuardData = isLoadingEligibilityData || isLoadingOnyxValue(cancellationDetailsResult);
+    const [cancellationDetails] = useOnyx(ONYXKEYS.NVP_PRIVATE_CANCELLATION_DETAILS);
 
     const cancellationTypeFromHook = useCancellationType();
     const isEligibleToCancel = canCancelSubscription(privateSubscription?.type, firstDayFreeTrial, lastDayFreeTrial, userBillingFundID, account?.hasPurchases);
@@ -73,10 +69,6 @@ function CancelSubscriptionPage() {
     const isManualCancellation = resolvedCancellationType === CONST.CANCELLATION_TYPE.MANUAL || resolvedCancellationType === CONST.CANCELLATION_TYPE.NONE;
     const isAutomaticCancellation = resolvedCancellationType === CONST.CANCELLATION_TYPE.AUTOMATIC;
 
-    if (isLoadingGuardData) {
-        return <FullscreenLoadingIndicator />;
-    }
-
     return (
         <ScreenWrapper
             testID="CancelSubscriptionPage"
@@ -102,6 +94,7 @@ function CancelSubscriptionPage() {
                                 </View>
                                 <FixedFooter style={styles.ph0}>
                                     <Button
+                                        sentryLabel={CONST.SENTRY_LABEL.SETTINGS_SUBSCRIPTION.CANCEL_SUBSCRIPTION_DONE}
                                         variant={CONST.BUTTON_VARIANT.SUCCESS}
                                         onPress={() => Navigation.goBack()}
                                         size={CONST.BUTTON_SIZE.LARGE}
@@ -129,6 +122,7 @@ function CancelSubscriptionPage() {
                                 </View>
                                 <FixedFooter style={styles.ph0}>
                                     <Button
+                                        sentryLabel={CONST.SENTRY_LABEL.SETTINGS_SUBSCRIPTION.CANCEL_SUBSCRIPTION_DONE}
                                         variant={CONST.BUTTON_VARIANT.SUCCESS}
                                         onPress={() => Navigation.goBack()}
                                         size={CONST.BUTTON_SIZE.LARGE}

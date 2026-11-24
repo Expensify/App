@@ -12,6 +12,7 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
+import useReportAttributes from '@hooks/useReportAttributes';
 import useScreenWrapperTransitionStatus from '@hooks/useScreenWrapperTransitionStatus';
 import useSortedReportActionsData from '@hooks/useSortedReportActionsData';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -54,8 +55,10 @@ function ShareTab() {
     const {activePolicyID} = useActivePolicyContext();
     const [draftComments] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT);
     const [visibleReportActionsData] = useOnyx(ONYXKEYS.DERIVED.VISIBLE_REPORT_ACTIONS);
+    const reportAttributesDerived = useReportAttributes();
     const sortedReportActionsData = useSortedReportActionsData();
     const sortedActions = sortedReportActionsData?.sortedActions;
+    const lastActions = sortedReportActionsData?.lastActions;
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
@@ -87,6 +90,7 @@ function ShareTab() {
               convertToDisplayStringWithoutCurrency,
               options: listOptions ?? {reports: [], personalDetails: []},
               draftComments,
+              reportAttributesDerived,
               isDefaultRoomsBetaEnabled: isBetaEnabled(CONST.BETAS.DEFAULT_ROOMS),
               isUsedInChatFinder: false,
               includeReadOnly: false,
@@ -101,6 +105,7 @@ function ShareTab() {
               policyCollection: allPolicies,
               personalDetails,
               sortedActions,
+              lastActions,
               conciergeReportID,
               isTrackIntentUser,
               translate,

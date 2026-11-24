@@ -90,6 +90,8 @@ function ForYouSection({isInitialLoad, isConciergeMenuVisible, setIsConciergeMen
     const todoItems = [
         {
             key: 'reviewExpenses',
+            sentryLabel: CONST.SENTRY_LABEL.HOME_PAGE.FOR_YOU_ITEM.REVIEW_EXPENSES,
+            buttonSentryLabel: CONST.SENTRY_LABEL.HOME_PAGE.FOR_YOU_ITEM_BUTTON.REVIEW_EXPENSES,
             count: flaggedExpensesCount,
             icon: icons.ReceiptSearch,
             translationKey: 'homePage.forYouSection.reviewExpenses' as const,
@@ -98,6 +100,8 @@ function ForYouSection({isInitialLoad, isConciergeMenuVisible, setIsConciergeMen
         },
         {
             key: 'submit',
+            sentryLabel: CONST.SENTRY_LABEL.HOME_PAGE.FOR_YOU_ITEM.SUBMIT,
+            buttonSentryLabel: CONST.SENTRY_LABEL.HOME_PAGE.FOR_YOU_ITEM_BUTTON.SUBMIT,
             count: submitCount,
             icon: icons.Send,
             translationKey: 'homePage.forYouSection.submit' as const,
@@ -105,6 +109,8 @@ function ForYouSection({isInitialLoad, isConciergeMenuVisible, setIsConciergeMen
         },
         {
             key: 'approve',
+            sentryLabel: CONST.SENTRY_LABEL.HOME_PAGE.FOR_YOU_ITEM.APPROVE,
+            buttonSentryLabel: CONST.SENTRY_LABEL.HOME_PAGE.FOR_YOU_ITEM_BUTTON.APPROVE,
             count: approveCount,
             icon: icons.ThumbsUp,
             translationKey: 'homePage.forYouSection.approve' as const,
@@ -117,6 +123,8 @@ function ForYouSection({isInitialLoad, isConciergeMenuVisible, setIsConciergeMen
         },
         {
             key: 'pay',
+            sentryLabel: CONST.SENTRY_LABEL.HOME_PAGE.FOR_YOU_ITEM.PAY,
+            buttonSentryLabel: CONST.SENTRY_LABEL.HOME_PAGE.FOR_YOU_ITEM_BUTTON.PAY,
             count: payCount,
             icon: icons.MoneyBag,
             translationKey: 'homePage.forYouSection.pay' as const,
@@ -129,6 +137,8 @@ function ForYouSection({isInitialLoad, isConciergeMenuVisible, setIsConciergeMen
         },
         {
             key: 'export',
+            sentryLabel: CONST.SENTRY_LABEL.HOME_PAGE.FOR_YOU_ITEM.EXPORT,
+            buttonSentryLabel: CONST.SENTRY_LABEL.HOME_PAGE.FOR_YOU_ITEM_BUTTON.EXPORT,
             count: exportCount,
             icon: icons.Export,
             translationKey: 'homePage.forYouSection.export' as const,
@@ -141,6 +151,8 @@ function ForYouSection({isInitialLoad, isConciergeMenuVisible, setIsConciergeMen
         },
         {
             key: 'reviewDomainAdminRequests',
+            sentryLabel: CONST.SENTRY_LABEL.HOME_PAGE.FOR_YOU_ITEM.REVIEW_DOMAIN_ADMIN_REQUESTS,
+            buttonSentryLabel: CONST.SENTRY_LABEL.HOME_PAGE.FOR_YOU_ITEM_BUTTON.REVIEW_DOMAIN_ADMIN_REQUESTS,
             count: domainAdminRequestsCount,
             icon: icons.UserShield,
             translationKey: 'homePage.forYouSection.reviewDomainAdminRequests' as const,
@@ -150,9 +162,11 @@ function ForYouSection({isInitialLoad, isConciergeMenuVisible, setIsConciergeMen
 
     const hasAnyTodos = todoItems.length > 0;
 
-    const forYouRows: React.ReactNode[] = todoItems.map(({key, count, icon, translationKey, handler, buttonVariant}) => (
+    const forYouRows: React.ReactNode[] = todoItems.map(({key, count, icon, translationKey, handler, buttonVariant, sentryLabel, buttonSentryLabel}) => (
         <BaseWidgetItem
             key={key}
+            sentryLabel={sentryLabel}
+            buttonSentryLabel={buttonSentryLabel}
             icon={icon}
             title={translate(translationKey, {count})}
             ctaText={translate('homePage.forYouSection.begin')}

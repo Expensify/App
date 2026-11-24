@@ -6,6 +6,7 @@ import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOpt
 
 import {clearDomainSecurityGroupSettingError, updateDomainSecurityGroup} from '@userActions/Domain';
 
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 import {domainSecurityGroupSettingErrorsSelector, domainSecurityGroupSettingPendingActionSelector, selectGroupByID} from '@selectors/Domain';
@@ -42,6 +43,7 @@ function RestrictDefaultLoginSelectionToggle({domainAccountID, groupID}: Restric
                 title={translate('domain.groups.restrictDefaultLoginSelection')}
                 subtitle={translate('domain.groups.restrictDefaultLoginSelectionDescription')}
                 switchAccessibilityLabel={translate('domain.groups.restrictDefaultLoginSelection')}
+                switchSentryLabel={CONST.SENTRY_LABEL.DOMAIN.GROUPS.RESTRICT_DEFAULT_LOGIN_SELECTION_SWITCH}
                 shouldPlaceSubtitleBelowSwitch
                 isActive={isEnabled}
                 onToggle={(enabled) => {

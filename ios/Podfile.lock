@@ -132,6 +132,8 @@ PODS:
     - ExpoModulesCore
   - ExpoFont (57.0.1):
     - ExpoModulesCore
+  - ExpoGlassEffect (57.0.4):
+    - ExpoModulesCore
   - ExpoImage (57.0.1):
     - ExpoModulesCore
     - libavif/libdav1d
@@ -228,7 +230,7 @@ PODS:
     - GoogleUtilities/UserDefaults (~> 8.1)
     - PromisesObjC (~> 2.4)
   - ForkInputMask (7.3.3)
-  - FullStory (1.70.1)
+  - FullStory (1.76.0)
   - fullstory_react-native (1.10.2):
     - FullStory (~> 1.14)
     - hermes-engine
@@ -2071,7 +2073,7 @@ PODS:
     - ReactCommon/turbomodule/core
     - ReactNativeDependencies
     - Yoga
-  - react-native-document-picker (10.1.3):
+  - react-native-document-picker (12.0.3):
     - hermes-engine
     - RCTRequired
     - RCTTypeSafety
@@ -2363,7 +2365,7 @@ PODS:
     - ReactCommon/turbomodule/core
     - ReactNativeDependencies
     - Yoga
-  - react-native-skia (2.11.2):
+  - react-native-skia (2.15.5):
     - hermes-engine
     - RCTRequired
     - RCTTypeSafety
@@ -2998,7 +3000,7 @@ PODS:
   - RNGoogleSignin (10.0.1):
     - GoogleSignIn (~> 7.0)
     - React-Core
-  - RNLiveMarkdown (0.1.343):
+  - RNLiveMarkdown (0.1.372):
     - hermes-engine
     - RCTRequired
     - RCTTypeSafety
@@ -3095,7 +3097,7 @@ PODS:
     - ReactCommon/turbomodule/core
     - ReactNativeDependencies
     - Yoga
-  - RNPermissions (5.4.0):
+  - RNPermissions (5.6.3):
     - hermes-engine
     - RCTRequired
     - RCTTypeSafety
@@ -3490,6 +3492,32 @@ PODS:
     - ReactCommon/turbomodule/core
     - ReactNativeDependencies
     - Yoga
+  - VisionCameraWorklets (5.2.3):
+    - hermes-engine
+    - NitroModules
+    - RCTRequired
+    - RCTTypeSafety
+    - React-callinvoker
+    - React-Core
+    - React-Core-prebuilt
+    - React-debug
+    - React-Fabric
+    - React-featureflags
+    - React-graphics
+    - React-ImageManager
+    - React-jsi
+    - React-NativeModulesApple
+    - React-RCTFabric
+    - React-renderercss
+    - React-rendererdebug
+    - React-utils
+    - ReactCodegen
+    - ReactCommon/turbomodule/bridging
+    - ReactCommon/turbomodule/core
+    - ReactNativeDependencies
+    - RNWorklets
+    - VisionCamera
+    - Yoga
   - Yoga (0.0.0)
 
 DEPENDENCIES:
@@ -3504,6 +3532,7 @@ DEPENDENCIES:
   - ExpoAudio (from `../node_modules/expo-audio/ios`)
   - "ExpoDomWebView (from `../node_modules/@expo/dom-webview/ios`)"
   - ExpoFont (from `../node_modules/expo-font/ios`)
+  - ExpoGlassEffect (from `../node_modules/expo-glass-effect/ios`)
   - ExpoImage (from `../node_modules/expo-image/ios`)
   - ExpoImageManipulator (from `../node_modules/expo-image-manipulator/ios`)
   - ExpoLocation (from `../node_modules/expo-location/ios`)
@@ -3517,7 +3546,7 @@ DEPENDENCIES:
   - ExpoVideo (from `../node_modules/expo-video/ios`)
   - ExpoWebBrowser (from `../node_modules/expo-web-browser/ios`)
   - FBLazyVector (from `../node_modules/react-native/Libraries/FBLazyVector`)
-  - "FullStory (from `{http: \"https://ios-releases.fullstory.com/fullstory-1.70.1-xcframework.tar.gz\"}`)"
+  - "FullStory (from `{http: \"https://ios-releases.fullstory.com/fullstory-1.76.0-xcframework.tar.gz\"}`)"
   - "fullstory_react-native (from `../node_modules/@fullstory/react-native`)"
   - group-ib-fp (from `../node_modules/group-ib-fp`)
   - GzipSwift
@@ -3584,7 +3613,7 @@ DEPENDENCIES:
   - react-native-plaid-link-sdk (from `../node_modules/react-native-plaid-link-sdk`)
   - react-native-quick-base64 (from `../node_modules/react-native-quick-base64`)
   - react-native-safe-area-context (from `../node_modules/react-native-safe-area-context`)
-  - "react-native-skia (from `../node_modules/@shopify/react-native-skia`)"
+  - react-native-skia (from `../node_modules/react-native-skia`)
   - react-native-view-shot (from `../node_modules/react-native-view-shot`)
   - "react-native-wallet (from `../node_modules/@expensify/react-native-wallet`)"
   - react-native-webview (from `../node_modules/react-native-webview`)
@@ -3649,6 +3678,7 @@ DEPENDENCIES:
   - TrustKit (~> 3.0)
   - UMAppLoader (from `../node_modules/unimodules-app-loader/ios`)
   - VisionCamera (from `../node_modules/react-native-vision-camera`)
+  - VisionCameraWorklets (from `../node_modules/react-native-vision-camera-worklets`)
   - Yoga (from `../node_modules/react-native/ReactCommon/yoga`)
 
 SPEC REPOS:
@@ -3715,6 +3745,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/@expo/dom-webview/ios"
   ExpoFont:
     :path: "../node_modules/expo-font/ios"
+  ExpoGlassEffect:
+    :path: "../node_modules/expo-glass-effect/ios"
   ExpoImage:
     :path: "../node_modules/expo-image/ios"
   ExpoImageManipulator:
@@ -3742,7 +3774,7 @@ EXTERNAL SOURCES:
   FBLazyVector:
     :path: "../node_modules/react-native/Libraries/FBLazyVector"
   FullStory:
-    :http: https://ios-releases.fullstory.com/fullstory-1.70.1-xcframework.tar.gz
+    :http: https://ios-releases.fullstory.com/fullstory-1.76.0-xcframework.tar.gz
   fullstory_react-native:
     :path: "../node_modules/@fullstory/react-native"
   group-ib-fp:
@@ -3871,7 +3903,7 @@ EXTERNAL SOURCES:
   react-native-safe-area-context:
     :path: "../node_modules/react-native-safe-area-context"
   react-native-skia:
-    :path: "../node_modules/@shopify/react-native-skia"
+    :path: "../node_modules/react-native-skia"
   react-native-view-shot:
     :path: "../node_modules/react-native-view-shot"
   react-native-wallet:
@@ -3998,12 +4030,14 @@ EXTERNAL SOURCES:
     :path: "../node_modules/unimodules-app-loader/ios"
   VisionCamera:
     :path: "../node_modules/react-native-vision-camera"
+  VisionCameraWorklets:
+    :path: "../node_modules/react-native-vision-camera-worklets"
   Yoga:
     :path: "../node_modules/react-native/ReactCommon/yoga"
 
 CHECKOUT OPTIONS:
   FullStory:
-    :http: https://ios-releases.fullstory.com/fullstory-1.70.1-xcframework.tar.gz
+    :http: https://ios-releases.fullstory.com/fullstory-1.76.0-xcframework.tar.gz
 
 SPEC CHECKSUMS:
   Airship: 857dad42a6594ed562181b0cb40b2ad187db7aac
@@ -4014,12 +4048,13 @@ SPEC CHECKSUMS:
   callstack-repack: 391af9d65585f106b57ca693880593dc2c89db5c
   EXConstants: fa5647482320b7bde855057f8b86580456d4b9f0
   expensify-react-native-background-task: 36103a7c2d62b3f5682a6e2773186d08e46338c5
-  ExpensifyNitroUtils: d627f58d9dd38c2dd4833f59b2c078cf61ad0171
+  ExpensifyNitroUtils: 4165f3f29dbd700d651c1f93ad833818a1f0f63b
   Expo: ce613ebd8e7f9dcd68bae3ec53038db24d3a6ec4
   ExpoAsset: 98143758ff37e14c9ff2a4e7673097db00473011
   ExpoAudio: b69f36525132edba8d87a715b3a20c678ef78b30
   ExpoDomWebView: beaec034e51bd028428b98bb1f2633ab79c6d095
   ExpoFont: 59e1faf66ba9bcd232ae1e2ce58d202a48b6f65e
+  ExpoGlassEffect: 310dc75c8d862de1c4b3ff15a90439ba51a39798
   ExpoImage: 4c1e7634db6033185a98959fb028d8d4b1c89695
   ExpoImageManipulator: d3c962dabd86b331980f8ec6794c6073b3cb541a
   ExpoLocation: 187949911b868f72e34a8a6f8f487207ba86388a
@@ -4039,7 +4074,7 @@ SPEC CHECKSUMS:
   FirebaseCoreInternal: 29d7b3af4aaf0b8f3ed20b568c13df399b06f68c
   FirebaseInstallations: 0ee9074f2c1e86561ace168ee1470dc67aabaf02
   ForkInputMask: 55e3fbab504b22da98483e9f9a6514b98fdd2f3c
-  FullStory: 8f87790ed749aa66497e739b065932852e57077d
+  FullStory: 19b5e39993793fda1b85a743bb35cadda35b1faa
   fullstory_react-native: 4db29340d6e5a4d5f03104b666a75481176d9ae2
   GoogleAppMeasurement: 0dfca1a4b534d123de3945e28f77869d10d0d600
   GoogleSignIn: d4281ab6cf21542b1cfaff85c191f230b399d2db
@@ -4114,7 +4149,7 @@ SPEC CHECKSUMS:
   react-native-blob-util: 0091cf4599c9cc14d79c9f31be887df4d3d3cf59
   react-native-cameraroll: 8fd837cd3e2c96ca378d85eb4340134381797309
   react-native-config: 06c97ec20d877e11bb128d8cdc11329f18494ecb
-  react-native-document-picker: ee9a7692303f36eef1798dcf43f38f51b1382ad1
+  react-native-document-picker: 6cf4f8d1541982a4f836f1927e5766199f169e6c
   react-native-image-picker: 08847883972f3fe37e31896ac2f864286737b4d4
   react-native-key-command: 9a1d8369da3fc9668b6f5389c9d7412189591217
   react-native-keyboard-controller: d07e8ba4e72859601941cc6c508fdd37a635ba04
@@ -4124,7 +4159,7 @@ SPEC CHECKSUMS:
   react-native-plaid-link-sdk: a2df4f145f61869507d730062764abca085b6a00
   react-native-quick-base64: e254a406ac7d7f20857c9fbcbfb57fbf91ae21be
   react-native-safe-area-context: 6acf61f42ee0862bbe00ed7e6c11cd0b81b7f6e3
-  react-native-skia: b3c25cbcfdc2d4f68b73390ff1b50ef2a9bc5968
+  react-native-skia: 193418fe7e6b5b8dc8602a74d8c348214be6f5cd
   react-native-view-shot: 6da2aaa0404b8d617ab1689550acdb251d759af9
   react-native-wallet: 8857943314bcf703480d3ca8051a5072ed3898fe
   react-native-webview: 36fd14012dd0352c90b960ea7860fbc53876593b
@@ -4174,11 +4209,11 @@ SPEC CHECKSUMS:
   RNFS: 89de7d7f4c0f6bafa05343c578f61118c8282ed8
   RNGestureHandler: 85e32defcf23dd3b023356355c5c1dd1d9d51bde
   RNGoogleSignin: 89877c73f0fbf6af2038fbdb7b73b5a25b8330cc
-  RNLiveMarkdown: b6894bb864d517f51ea80c98facd26571f2cd0fe
+  RNLiveMarkdown: 180bd3f6e7582c2d0383cc3a1cee7808cb63d578
   RNLocalize: 82e7aa2857ce5dcd9e2a0c04f8c34c2ed50821df
   rnmapbox-maps: 1cb6aa142a8ea99d0934a36d83d2acf3f2de45d3
   RNNitroSQLite: 8962a30dc9296f8a62bfcc33f3c2a540b1c44aff
-  RNPermissions: 32bd3b977f28442af0900b102f4458f0f9f9b77c
+  RNPermissions: 5938a67cf02a23f8a7f69c170608ab481b81713d
   RNReactNativeHapticFeedback: 6c8677db48f62a635e6a2065f5d2bd02498d7a73
   RNReanimated: e75c988a6527ec651ea2957b93891ddb64d530d4
   RNScreens: 433b8c24dd1dfeaa3b61f72d55052cb64fd19c5f
@@ -4197,8 +4232,9 @@ SPEC CHECKSUMS:
   TweetNacl: 3abf4d1d2082b0114e7a67410e300892448951e6
   UMAppLoader: 173cb90a3039aa9c1b84bace4487e1907a4a5a39
   VisionCamera: c0e2c308592613de270de5f6e722b53d04a26f0d
+  VisionCameraWorklets: 6934662e331a1300a45f6e2236e156de643f2c0d
   Yoga: c30c859b7e9b75e547b600b486fe33165f60de00
 
-PODFILE CHECKSUM: cdbd46f6c89c7123ca4821dc03f66599047601f8
+PODFILE CHECKSUM: 22066e0768760f4bad500b497f3d1576110fd025
 
 COCOAPODS: 1.16.2
