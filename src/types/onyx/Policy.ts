@@ -4489,6 +4489,7 @@ export type {
     CustomUnit,
     Attributes,
     Rate,
+    ReimbursementCountryInfo,
     RateAttributes,
     GovernmentRateSnapshot,
     TaxRate,
