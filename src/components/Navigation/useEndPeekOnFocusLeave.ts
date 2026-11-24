@@ -8,23 +8,23 @@ import type {RefObject} from 'react';
 
 import {useEffect} from 'react';
 
-function useEndPeekOnFocusLeave(surfaceRef: RefObject<HTMLElement | null>, isPeeking: boolean, endPeek: () => void, isMenuOpen: () => boolean) {
+function useEndPeekOnFocusLeave(surfaceRef: RefObject<HTMLElement | null>, isPeeking: boolean, endPeek: () => void) {
     useEffect(() => {
         const element = surfaceRef.current;
         if (!isPeeking || !isHTMLElement(element)) {
             return;
         }
-        // An open menu renders in a portal outside the surface's DOM, so focus inside it reads as outside the surface. The menu holds the peek until it is gone,
-        // and focus then goes back to the menu's button inside the surface.
+        // An open menu renders in a portal outside the surface's DOM, so focus inside it reads as outside the surface. The surface passes an endPeek that keeps
+        // the peek while a menu holds it, and once the menu is gone focus goes back to the menu's button inside the surface.
         const endPeekIfFocusLeft = (event: FocusEvent) => {
-            if (isMenuOpen() || (event.target instanceof Node && element.contains(event.target)) || element.matches(':hover')) {
+            if ((event.target instanceof Node && element.contains(event.target)) || element.matches(':hover')) {
                 return;
             }
             endPeek();
         };
         document.addEventListener('focusin', endPeekIfFocusLeft);
         return () => document.removeEventListener('focusin', endPeekIfFocusLeft);
-    }, [endPeek, isMenuOpen, isPeeking, surfaceRef]);
+    }, [endPeek, isPeeking, surfaceRef]);
 }
 
 export default useEndPeekOnFocusLeave;

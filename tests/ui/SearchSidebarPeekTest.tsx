@@ -189,6 +189,29 @@ describe('SearchSidebar peek', () => {
         expect(collapse.result.current.isPeeking).toBe(true);
     });
 
+    it('ends the peek when focus leaves the sidebar after a menu that held it is gone', async () => {
+        // Given a peeking sidebar whose open menu held the peek while focus was inside the menu
+        const collapse = await renderPeekingSidebar();
+        act(() => {
+            mockPeekSurface?.holdPeekUntilMenuCloses();
+            focus(menuItemNode);
+        });
+
+        // When the menu closes with Escape, which returns keyboard focus to the menu's button, and the user then tabs out of the sidebar
+        mockHasKeyboardFocusInside = true;
+        act(() => {
+            mockPeekSurface?.endPeekIfPointerLeft();
+            focus(mockSidebarButtonNode);
+        });
+        expect(collapse.result.current.isPeeking).toBe(true);
+        act(() => {
+            focus(pageNode);
+        });
+
+        // Then the sidebar collapses, because the menu released its hold once it was gone and focus is no longer in the sidebar
+        expect(collapse.result.current.isPeeking).toBe(false);
+    });
+
     it('keeps peeking when focus lands outside the sidebar while the pointer is over it', async () => {
         // Given a peeking sidebar with the pointer over it
         const collapse = await renderPeekingSidebar();

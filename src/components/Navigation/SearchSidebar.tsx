@@ -84,25 +84,26 @@ function SearchSidebar({state}: SearchSidebarProps) {
         return endPeek;
     }, [endPeek, shouldUseNarrowLayout]);
 
-    // React sends the hover-out through the menu's portal when the pointer leaves the window from its backdrop, and collapsing would unmount the open menu.
-    // One flag is enough, because the backdrop keeps a second menu from opening before the first one is gone.
-    const isMenuOpenRef = useRef(false);
+    // An open saved search menu holds the peek, because collapsing would unmount the menu. The menu is portaled outside the sidebar's DOM, so two things would
+    // otherwise end the peek under it: the hover-out React sends through the portal when the pointer leaves the window from the menu's backdrop,
+    // and focus moving into the menu. One flag is enough, because the backdrop keeps a second menu from opening before the first one is gone.
+    const isPeekHeldRef = useRef(false);
 
-    const endPeekUnlessMenuOpen = () => {
-        if (isMenuOpenRef.current) {
+    const endPeekUnlessHeld = () => {
+        if (isPeekHeldRef.current) {
             return;
         }
         endPeek();
     };
 
     const holdPeekUntilMenuCloses = () => {
-        isMenuOpenRef.current = true;
+        isPeekHeldRef.current = true;
     };
 
     // A saved search's menu is portaled, so its closing sends the sidebar no hover-out and the pointer is read instead.
     // Keyboard focus keeps the peek, because Escape returns it to the menu's button, but mouse focus does not, so a clicked row cannot hold the peek.
     const endPeekIfPointerLeft = () => {
-        isMenuOpenRef.current = false;
+        isPeekHeldRef.current = false;
         const element = sidebarRef.current;
         if (isHTMLElement(element) && (element.matches(':hover') || !!element.querySelector(':focus-visible'))) {
             return;
@@ -110,9 +111,7 @@ function SearchSidebar({state}: SearchSidebarProps) {
         endPeek();
     };
 
-    const isMenuOpen = () => isMenuOpenRef.current;
-
-    useEndPeekOnFocusLeave(sidebarRef, isPeeking, endPeek, isMenuOpen);
+    useEndPeekOnFocusLeave(sidebarRef, isPeeking, endPeekUnlessHeld);
 
     const shouldShowLoadingState = route?.name === SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT ? false : !isOffline && !!isSearchLoading;
 
@@ -146,7 +145,7 @@ function SearchSidebar({state}: SearchSidebarProps) {
             <Animated.View style={[styles.stickToLeft, dockedWidthStyle]}>
                 <Hoverable
                     ref={sidebarRef}
-                    onHoverOut={endPeekUnlessMenuOpen}
+                    onHoverOut={endPeekUnlessHeld}
                 >
                     <Animated.View style={[styles.searchSidebar, styles.stickToLeft, styles.zIndex1, visualSidebarWidthStyle]}>
                         <View style={styles.flex1}>
