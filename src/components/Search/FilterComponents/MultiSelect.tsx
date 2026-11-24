@@ -81,7 +81,11 @@ function MultiSelectFilterListItem(props: ListItemProps<MultiSelectFilterListIte
             shouldRender={!!props.item.tooltipText}
         >
             <View>
-                <MultiSelectListItem {...props} />
+                {/* SelectionList leaves selected items enabled for removal, but required items must stay disabled. */}
+                <MultiSelectListItem
+                    {...props}
+                    isDisabled={props.isDisabled || !!props.item.isDisabled}
+                />
             </View>
         </Tooltip>
     );

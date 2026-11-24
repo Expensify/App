@@ -3,6 +3,7 @@ import {act, render} from '@testing-library/react-native';
 import MultiSelect from '@components/Search/FilterComponents/MultiSelect';
 import type {MultiSelectItem} from '@components/Search/FilterComponents/MultiSelect';
 import SelectionList from '@components/SelectionList';
+import MultiSelectListItem from '@components/SelectionList/ListItem/MultiSelectListItem';
 import type {ListItem} from '@components/SelectionList/ListItem/types';
 
 import CONST from '@src/CONST';
@@ -13,6 +14,12 @@ import {View} from 'react-native';
 jest.mock('@components/SelectionList', () => jest.fn(() => null));
 jest.mock('@components/SelectionList/ListItem/MultiSelectListItem', () => jest.fn(() => null));
 jest.mock('@components/ActivityIndicator', () => jest.fn(() => null));
+jest.mock(
+    '@components/Tooltip',
+    () =>
+        ({children}: React.PropsWithChildren) =>
+            children,
+);
 jest.mock(
     '@components/Search/FilterComponents/ListFilterViewWrapper',
     () =>
@@ -43,6 +50,43 @@ describe('MultiSelect', () => {
 
     beforeEach(() => {
         mockedSelectionList.mockClear();
+        jest.mocked(MultiSelectListItem).mockClear();
+    });
+
+    it.each([
+        {listDisabled: false, itemDisabled: true, expectedDisabled: true},
+        {listDisabled: true, itemDisabled: false, expectedDisabled: true},
+        {listDisabled: false, itemDisabled: false, expectedDisabled: false},
+    ])('preserves disabled state when rendering a selected row (%j)', ({listDisabled, itemDisabled, expectedDisabled}) => {
+        // Given a selected row that may be disabled by the list or by its required-item metadata
+        const item: MultiSelectItem<string> = {text: 'Approved violation', value: CONST.SEARCH.HAS_VALUES.APPROVED_VIOLATION, isDisabled: itemDisabled};
+        render(
+            <MultiSelect
+                value={[item]}
+                items={[item]}
+                onChange={jest.fn()}
+            />,
+        );
+        const props = mockedSelectionList.mock.lastCall?.[0];
+        const Row = props?.ListItem;
+        const row = props?.data.at(0);
+        if (!Row || !row) {
+            throw new Error('Missing selected row');
+        }
+        expect(row.isSelected).toBe(true);
+
+        // When SelectionList renders the selection, it may pass false to allow selected rows to be removed
+        render(
+            <Row
+                item={row}
+                isDisabled={listDisabled}
+                showTooltip={false}
+                onSelectRow={jest.fn()}
+            />,
+        );
+
+        // Then the actual checkbox row still receives either source of disabling, without disabling ordinary selections
+        expect(jest.mocked(MultiSelectListItem).mock.lastCall?.[0].isDisabled).toBe(expectedDisabled);
     });
 
     it('uses the latest item metadata for disabling and tooltips without changing the row renderer', () => {
