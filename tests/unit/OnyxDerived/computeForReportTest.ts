@@ -265,7 +265,7 @@ describe('sortedReportActions', () => {
         [threadActionsKey]: toReportActions(createAction('200', '2024-01-01 11:00:00.000')),
         [unrelatedActionsKey]: toReportActions(createAction('400', '2024-01-01 09:00:00.000')),
     };
-    const currentValue: SortedReportActionsDerivedValue = sortedReportActionsConfig.compute([initialReportActions, allReports], {
+    const currentValue: SortedReportActionsDerivedValue = sortedReportActionsConfig.compute([initialReportActions, allReports, undefined], {
         currentValue: undefined,
         sourceValues: undefined,
         triggeredKeys: new Set<OnyxKey>(),
@@ -276,7 +276,7 @@ describe('sortedReportActions', () => {
         const changedReports = {[`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`]: allReports[`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`]};
 
         // When only the report collection triggers a recompute
-        const result = sortedReportActionsConfig.compute([initialReportActions, allReports], {
+        const result = sortedReportActionsConfig.compute([initialReportActions, allReports, undefined], {
             currentValue,
             sourceValues: {[ONYXKEYS.COLLECTION.REPORT]: changedReports},
             triggeredKeys: new Set<OnyxKey>([ONYXKEYS.COLLECTION.REPORT]),
@@ -296,7 +296,7 @@ describe('sortedReportActions', () => {
         const allReportActions = {...initialReportActions, [threadActionsKey]: threadActions};
 
         // When only the thread's actions trigger a recompute
-        const result = sortedReportActionsConfig.compute([allReportActions, allReports], {
+        const result = sortedReportActionsConfig.compute([allReportActions, allReports, undefined], {
             currentValue,
             sourceValues: {[ONYXKEYS.COLLECTION.REPORT_ACTIONS]: {[threadActionsKey]: threadActions}},
             triggeredKeys: new Set<OnyxKey>([ONYXKEYS.COLLECTION.REPORT_ACTIONS]),

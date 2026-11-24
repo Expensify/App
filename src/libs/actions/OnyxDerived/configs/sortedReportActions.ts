@@ -2,6 +2,7 @@ import {getIsOffline} from '@libs/NetworkState';
 import {getCombinedReportActions, getOneTransactionThreadReportID, getSortedReportActions, withDEWRoutedActionsArray} from '@libs/ReportActionsUtils';
 
 import createOnyxDerivedValueConfig from '@userActions/OnyxDerived/createOnyxDerivedValueConfig';
+import {hasKeyTriggeredCompute} from '@userActions/OnyxDerived/utils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -11,6 +12,8 @@ import type {SortedReportActionsDerivedValue} from '@src/types/onyx/DerivedValue
 import type {OnyxCollection} from 'react-native-onyx';
 
 const EMPTY_VALUE: SortedReportActionsDerivedValue = {sortedActions: {}, lastActions: {}, transactionThreadIDs: {}};
+
+let lastShouldForceOffline: boolean | undefined;
 
 function computeForReport(
     reportID: string,
@@ -78,20 +81,29 @@ function getReportIDsToRecompute(
 
 export default createOnyxDerivedValueConfig({
     key: ONYXKEYS.DERIVED.RAM_ONLY_SORTED_REPORT_ACTIONS,
-    dependencies: [ONYXKEYS.COLLECTION.REPORT_ACTIONS, ONYXKEYS.COLLECTION.REPORT],
-    compute: ([allReportActions, allReports], {sourceValues, currentValue}): SortedReportActionsDerivedValue => {
+    dependencies: [ONYXKEYS.COLLECTION.REPORT_ACTIONS, ONYXKEYS.COLLECTION.REPORT, ONYXKEYS.NETWORK],
+    compute: ([allReportActions, allReports, network], {sourceValues, currentValue, triggeredKeys}): SortedReportActionsDerivedValue => {
+        // NETWORK changes on every server response (timeSkew); only a Force offline toggle needs a rebuild.
+        const shouldForceOffline = !!network?.shouldForceOffline;
+        const hasForceOfflineChanged = shouldForceOffline !== lastShouldForceOffline;
+        lastShouldForceOffline = shouldForceOffline;
+        const isNetworkOnlyTrigger = triggeredKeys?.size === 1 && hasKeyTriggeredCompute(ONYXKEYS.NETWORK, triggeredKeys);
+        if (isNetworkOnlyTrigger && !hasForceOfflineChanged && currentValue) {
+            return currentValue;
+        }
+
         if (!allReportActions) {
             return EMPTY_VALUE;
         }
 
-        // Offline state lives in memory and going offline doesn't recompute this value, so a report keeps the
-        // one transaction thread it got on its last recompute until its actions or the report change again.
+        // Read the in-memory offline state directly (NETWORK is a dependency so recompute still fires when it changes).
         const isOffline = getIsOffline();
 
         const reportActionsUpdates = sourceValues?.[ONYXKEYS.COLLECTION.REPORT_ACTIONS];
         const reportUpdates = sourceValues?.[ONYXKEYS.COLLECTION.REPORT];
 
-        if ((reportActionsUpdates ?? reportUpdates) && currentValue) {
+        // Going offline changes which deleted expenses count toward the one transaction thread, so it needs a full recompute.
+        if ((reportActionsUpdates ?? reportUpdates) && currentValue && !hasForceOfflineChanged) {
             const sortedActions = {...currentValue.sortedActions};
             const lastActions = {...currentValue.lastActions};
             const transactionThreadIDs = {...currentValue.transactionThreadIDs};
@@ -123,7 +135,7 @@ export default createOnyxDerivedValueConfig({
             return {sortedActions, lastActions, transactionThreadIDs};
         }
 
-        // Full recompute when there is no previous value (first load, after Onyx.clear) or no changed members to apply
+        // Full recompute on first load or when the network changes
         const sortedActions: SortedReportActionsDerivedValue['sortedActions'] = {};
         const lastActions: SortedReportActionsDerivedValue['lastActions'] = {};
         const transactionThreadIDs: SortedReportActionsDerivedValue['transactionThreadIDs'] = {};
@@ -150,6 +162,9 @@ export default createOnyxDerivedValueConfig({
         }
 
         return {sortedActions, lastActions, transactionThreadIDs};
+    },
+    onReset: () => {
+        lastShouldForceOffline = undefined;
     },
 });
 
