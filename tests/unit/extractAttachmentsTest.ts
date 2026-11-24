@@ -58,4 +58,15 @@ describe('extractAttachments', () => {
         // Then the text outside the video tag is ignored
         expect(attachments.at(0)?.file?.name).toBe('w_abc123');
     });
+
+    it('uses the raw URL file name for an image whose source has malformed percent-encoding', () => {
+        // Given a Markdown image from another chat participant whose URL ends in an invalid percent-escape
+        const note = '<img src="https://example.com/images/100%.png" />';
+
+        // When the attachments are extracted to open the carousel
+        const attachments = extractNoteAttachments(note);
+
+        // Then the raw file name is used instead of the extraction throwing
+        expect(attachments.at(0)?.file?.name).toBe('100%.png');
+    });
 });
