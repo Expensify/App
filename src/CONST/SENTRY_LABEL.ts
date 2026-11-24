@@ -1751,6 +1751,7 @@ const SENTRY_LABEL = {
         SCAN: {
             MULTI_SCAN: 'Scan-MultiScan',
             FLASH: 'Scan-Flash',
+            RECEIPT_ENHANCEMENT: 'Scan-ReceiptEnhancement',
             CHOOSE_FILE: 'Scan-ChooseFile',
             CHOOSE_FILES: 'Scan-ChooseFiles',
             SHUTTER: 'Scan-Shutter',
@@ -2409,6 +2410,15 @@ const SENTRY_LABEL = {
                 EXPORT_DATE: 'WorkspaceAccountingDigits-ExportDate',
                 DEFAULT_COMPANY_CARD_VENDOR: 'WorkspaceAccountingDigits-DefaultCompanyCardVendor',
                 COMPANY_CARD_ACCOUNT: 'WorkspaceAccountingDigits-CompanyCardAccount',
+                AUTO_SYNC_SWITCH: 'WorkspaceAccountingDigits-AutoSyncSwitch',
+                ACCOUNTING_METHOD: 'WorkspaceAccountingDigits-AccountingMethod',
+                SYNC_REIMBURSED_REPORTS_SWITCH: 'WorkspaceAccountingDigits-SyncReimbursedReportsSwitch',
+                BILL_PAYMENT_ACCOUNT: 'WorkspaceAccountingDigits-BillPaymentAccount',
+                SYNC_EXPENSIFY_CARD_SETTLEMENTS_SWITCH: 'WorkspaceAccountingDigits-SyncExpensifyCardSettlementsSwitch',
+                SETTLEMENT_ACCOUNT: 'WorkspaceAccountingDigits-SettlementAccount',
+                SYNC_TRAVEL_BILLING_SETTLEMENTS_SWITCH: 'WorkspaceAccountingDigits-SyncTravelBillingSettlementsSwitch',
+                TRAVEL_BILLING_SETTLEMENT_ACCOUNT: 'WorkspaceAccountingDigits-TravelBillingSettlementAccount',
+                TRAVEL_BILLING_PAYABLE_ACCOUNT: 'WorkspaceAccountingDigits-TravelBillingPayableAccount',
             },
             CERTINIA: {
                 AUTO_SYNC_SWITCH: 'WorkspaceAccountingCertinia-AutoSyncSwitch',
