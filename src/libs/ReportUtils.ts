@@ -2199,7 +2199,7 @@ function isAwaitingFirstLevelApproval(
     // TODO: Callers are threaded in Parts 5 through 13. Remove this fallback in Part 13 once none of them pass undefined. See https://github.com/Expensify/App/issues/66413.
     const resolvedOwnerLogin = providedOwnerLogin ?? getLoginByAccountID(report.ownerAccountID, getAllPersonalDetails());
     const providedManagerLogin = reportManagerLogin === '' ? undefined : reportManagerLogin;
-    // Callers that don't pass the owner login yet don't pass the manager login either, so it falls back to the personal details store the same way.
+    // Callers that don't pass the manager login falls back to the personal details store for now.
     const resolvedManagerLogin = providedManagerLogin ?? getLoginByAccountID(report.managerID, getAllPersonalDetails());
     const submitToLogin = getSubmitToEmail(policy, report, resolvedOwnerLogin, rules);
 
