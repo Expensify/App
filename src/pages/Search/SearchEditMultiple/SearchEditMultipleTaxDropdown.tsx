@@ -1,4 +1,4 @@
-import type {ExpenseFieldDropdownRenderProps} from '@components/MoneyRequestConfirmationList/sections/ExpenseFieldDropdown';
+import type {DropdownFieldRenderProps} from '@components/DropdownField';
 import TaxPickerModal from '@components/TaxPicker/TaxPickerModal';
 
 import {updateBulkEditDraftTransaction} from '@libs/actions/IOU/BulkEdit';
@@ -10,7 +10,7 @@ import React from 'react';
 
 import {getBulkEditTaxCodeChange} from './SearchEditMultipleUtils';
 
-type SearchEditMultipleTaxDropdownProps = ExpenseFieldDropdownRenderProps & {
+type SearchEditMultipleTaxDropdownProps = DropdownFieldRenderProps & {
     /** Workspace the tax rates belong to */
     policyID: string | undefined;
 
