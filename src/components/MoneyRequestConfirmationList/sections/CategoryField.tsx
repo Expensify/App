@@ -12,7 +12,6 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useReopenAfterReturn from '@hooks/useReopenAfterReturn';
-import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -79,7 +78,6 @@ function CategoryField({
     const {isEditingSplitBill, isScanRequest} = useConfirmationFields();
     const styles = useThemeStyles();
     const theme = useTheme();
-    const StyleUtils = useStyleUtils();
     const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
     const {translate} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['Sparkles']);
@@ -211,29 +209,27 @@ function CategoryField({
             isDisabled={didConfirm}
             sentryLabel={CONST.SENTRY_LABEL.REQUEST_CONFIRMATION_LIST.CATEGORY_FIELD}
         >
-            <View style={[StyleUtils.getMenuItemTextContainerStyle(false), styles.justifyContentCenter]}>
-                <MenuItemField.Row
-                    name={translate('common.category')}
-                    value={decodedCategoryName}
-                    numberOfLinesValue={2}
-                >
-                    {shouldDisplayCategoryError && <MenuItem.BrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />}
-                    {!decodedCategoryName && !shouldDisplayCategoryError && !!getCategoryRightLabel() && (
-                        <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap1]}>
-                            {shouldPromiseAutomaticCategory && (
-                                <Icon
-                                    src={icons.Sparkles}
-                                    fill={theme.icon}
-                                    width={variables.iconSizeSmall}
-                                    height={variables.iconSizeSmall}
-                                />
-                            )}
-                            <MenuItem.RightLabel>{getCategoryRightLabel()}</MenuItem.RightLabel>
-                        </View>
-                    )}
-                    {!isReadOnly && <MenuItem.Chevron />}
-                </MenuItemField.Row>
-            </View>
+            <MenuItemField.Row
+                name={translate('common.category')}
+                value={decodedCategoryName}
+                numberOfLinesValue={2}
+            >
+                {shouldDisplayCategoryError && <MenuItem.BrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />}
+                {!decodedCategoryName && !shouldDisplayCategoryError && !!getCategoryRightLabel() && (
+                    <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap1]}>
+                        {shouldPromiseAutomaticCategory && (
+                            <Icon
+                                src={icons.Sparkles}
+                                fill={theme.icon}
+                                width={variables.iconSizeSmall}
+                                height={variables.iconSizeSmall}
+                            />
+                        )}
+                        <MenuItem.RightLabel>{getCategoryRightLabel()}</MenuItem.RightLabel>
+                    </View>
+                )}
+                {!isReadOnly && <MenuItem.Chevron />}
+            </MenuItemField.Row>
             {shouldDisplayCategoryError && (
                 <MenuItem.HelpText
                     isError

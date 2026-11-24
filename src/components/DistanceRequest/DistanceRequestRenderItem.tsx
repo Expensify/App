@@ -6,7 +6,6 @@ import {useSession} from '@components/OnyxListItemProvider';
 
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
-import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -59,7 +58,6 @@ type DistanceRequestProps = {
 function DistanceRequestRenderItem({waypoints, item = '', onSecondaryInteraction, getIndex, isActive = false, onPress = () => {}, disabled = false}: DistanceRequestProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
-    const StyleUtils = useStyleUtils();
     const session = useSession();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Location', 'DotIndicatorUnfilled', 'DotIndicator']);
     const {translate} = useLocalize();
@@ -94,9 +92,9 @@ function DistanceRequestRenderItem({waypoints, item = '', onSecondaryInteraction
             isDisabled={disabled}
             sentryLabel={sentryLabel}
         >
-            <View style={[styles.flexRow, StyleUtils.getMenuItemTextContainerStyle(false), disabled && styles.cursorDisabled]}>
+            <MenuItem.Row>
                 <MenuItem.Leading>
-                    <View style={[styles.flexRow, styles.mr3]}>
+                    <View style={styles.flexRow}>
                         <DistanceRequestDragHandle
                             onDrag={disabled ? undefined : onSecondaryInteraction}
                             sentryLabel={sentryLabel}
@@ -114,7 +112,7 @@ function DistanceRequestRenderItem({waypoints, item = '', onSecondaryInteraction
                     {!!errorText && <MenuItem.BrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />}
                     <MenuItem.Chevron />
                 </MenuItem.Trailing>
-            </View>
+            </MenuItem.Row>
             {!!errorText && (
                 <MenuItem.HelpText
                     isError
