@@ -1920,6 +1920,7 @@ const SENTRY_LABEL = {
             BULK_ACTIONS_CHANGE_ROLE: 'WorkspaceMembers-BulkActionsChangeRole',
             BULK_ACTIONS_CHANGE_OFFICE_LOCATION: 'WorkspaceMembers-BulkActionsChangeOfficeLocation',
             BULK_ACTIONS_CHANGE_WORK_ARRANGEMENT: 'WorkspaceMembers-BulkActionsChangeWorkArrangement',
+            BULK_ACTIONS_EDIT_CATEGORY_VISIBILITY: 'WorkspaceMembers-BulkActionsEditCategoryVisibility',
             BULK_ACTIONS_REMOVE: 'WorkspaceMembers-BulkActionsRemove',
             MORE_MENU_IMPORT_SPREADSHEET: 'WorkspaceMembers-MoreMenuImportSpreadsheet',
             MORE_MENU_DOWNLOAD_CSV: 'WorkspaceMembers-MoreMenuDownloadCSV',

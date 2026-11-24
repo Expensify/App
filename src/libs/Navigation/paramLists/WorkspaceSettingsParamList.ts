@@ -64,6 +64,9 @@ type WorkspaceSettingsParamList = {
     [SCREENS.WORKSPACE.MEMBERS_CHANGE_OFFICE_LOCATION]: {
         policyID: string;
     };
+    [SCREENS.WORKSPACE.MEMBERS_BULK_CATEGORY_VISIBILITY]: {
+        policyID: string;
+    };
     [SCREENS.WORKSPACE.MEMBERS_CHANGE_WORK_ARRANGEMENT]: {
         policyID: string;
     };

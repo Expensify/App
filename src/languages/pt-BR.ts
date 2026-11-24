@@ -8004,6 +8004,9 @@ O plano Control começa em US$ 9 por membro ativo por mês.`,
             categoryVisibilityRequiredModal: {title: 'Membros devem ter pelo menos uma categoria', description: 'Selecione pelo menos uma categoria que este membro possa usar.'},
             changeOfficeLocation: 'Alterar local do escritório',
             changeWorkArrangement: 'Alterar regime de trabalho',
+            editCategoryVisibility: 'Editar visibilidade de categorias',
+            bulkCategoryVisibilitySaved: ({categoryCount, memberCount}: {categoryCount: string; memberCount: string}) =>
+                `Definidas ${categoryCount} para ${memberCount}. Isso substitui a visibilidade de categorias atual deles.`,
             changeRole: 'Alterar função',
             newRolesBanner: {
                 title: 'Novos cargos disponíveis',

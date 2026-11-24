@@ -137,7 +137,7 @@ function resolveMemberAccountID(email: string, policyMemberEmailsToAccountIDs: M
 function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembersPageProps) {
     useWorkspaceDocumentTitle(policy?.name, 'common.members');
     const tableRef = useRef<TableHandle<WorkspaceMemberRowData, WorkspaceMembersTableColumnKey, string>>(null);
-    const icons = useMemoizedLazyExpensifyIcons(['Building', 'Download', 'FallbackAvatar', 'Location', 'Plus', 'RemoveMembers', 'Sync', 'Table', 'UserPencil']);
+    const icons = useMemoizedLazyExpensifyIcons(['Building', 'Download', 'Eye', 'FallbackAvatar', 'Location', 'Plus', 'RemoveMembers', 'Sync', 'Table', 'UserPencil']);
     const employeePersonalDetails = usePersonalDetailsByLogins(Object.keys(policy?.employeeList ?? {}));
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const styles = useThemeStyles();
@@ -648,6 +648,16 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
                 sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.MEMBERS.BULK_ACTIONS_CHANGE_WORK_ARRANGEMENT,
                 icon: icons.Building,
                 onSelected: () => editSelectedEmployees(ROUTES.WORKSPACE_MEMBERS_CHANGE_WORK_ARRANGEMENT.getRoute(policyID)),
+            });
+        }
+
+        if (isPolicyAdmin(policy) && isControlPolicy(policy) && !!policy?.areCategoriesEnabled) {
+            options.push({
+                text: translate('workspace.people.editCategoryVisibility'),
+                value: CONST.POLICY.MEMBERS_BULK_ACTION_TYPES.EDIT_CATEGORY_VISIBILITY,
+                sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.MEMBERS.BULK_ACTIONS_EDIT_CATEGORY_VISIBILITY,
+                icon: icons.Eye,
+                onSelected: () => editSelectedEmployees(ROUTES.WORKSPACE_MEMBERS_BULK_CATEGORY_VISIBILITY.getRoute(policyID)),
             });
         }
 

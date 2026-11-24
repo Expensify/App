@@ -188,6 +188,69 @@ describe('WorkspaceMembers', () => {
         jest.clearAllMocks();
     });
 
+    describe('Edit category visibility option', () => {
+        const EDIT_CATEGORY_VISIBILITY = 'workspace.people.editCategoryVisibility';
+
+        const openActionsForMember = async () => {
+            const {unmount} = renderPage(SCREENS.WORKSPACE.MEMBERS, {policyID: policy.id});
+            await waitForBatchedUpdatesWithAct();
+            await waitFor(() => {
+                expect(screen.getByText(USER_OPTION)).toBeOnTheScreen();
+            });
+            selectCheckboxByMemberName('Member');
+            await openBulkActions();
+            return unmount;
+        };
+
+        it('is offered to an admin of a Control workspace with categories', async () => {
+            // Given a Control workspace with categories, where the current user is an admin
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, {areCategoriesEnabled: true});
+            });
+
+            // When a member is selected and the bulk actions are opened
+            const unmount = await openActionsForMember();
+
+            // Then the admin can set the selected members' category visibility in one go
+            expect(screen.getByText(TestHelper.translateLocal(EDIT_CATEGORY_VISIBILITY))).toBeOnTheScreen();
+
+            unmount();
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        it('is not offered when the workspace has categories turned off', async () => {
+            // Given a Control workspace without categories
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, {areCategoriesEnabled: false});
+            });
+
+            // When a member is selected and the bulk actions are opened
+            const unmount = await openActionsForMember();
+
+            // Then there's no category visibility to edit
+            expect(screen.queryByText(TestHelper.translateLocal(EDIT_CATEGORY_VISIBILITY))).not.toBeOnTheScreen();
+
+            unmount();
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        it('is not offered to a People Admin', async () => {
+            // Given a Control workspace with categories, where the current user is a People Admin rather than a workspace admin
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, {areCategoriesEnabled: true, role: CONST.POLICY.ROLE.PEOPLE_ADMIN});
+            });
+
+            // When a member is selected and the bulk actions are opened
+            const unmount = await openActionsForMember();
+
+            // Then the option isn't offered, since a People Admin can't change categories
+            expect(screen.queryByText(TestHelper.translateLocal(EDIT_CATEGORY_VISIBILITY))).not.toBeOnTheScreen();
+
+            unmount();
+            await waitForBatchedUpdatesWithAct();
+        });
+    });
+
     describe('Changing roles options', () => {
         it('should offer one Change role action instead of one action per role', async () => {
             // Given the members page with an admin selected

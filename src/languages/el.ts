@@ -8177,6 +8177,9 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
             },
             changeOfficeLocation: 'Αλλαγή τοποθεσίας γραφείου',
             changeWorkArrangement: 'Αλλαγή ρύθμισης εργασίας',
+            editCategoryVisibility: 'Επεξεργασία ορατότητας κατηγοριών',
+            bulkCategoryVisibilitySaved: ({categoryCount, memberCount}: {categoryCount: string; memberCount: string}) =>
+                `Ορίστηκαν ${categoryCount} για ${memberCount}. Αυτό αντικαθιστά την τρέχουσα ορατότητα κατηγοριών τους.`,
             changeRole: 'Αλλαγή ρόλου',
             newRolesBanner: {
                 title: 'Διαθέσιμοι νέοι ρόλοι',

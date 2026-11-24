@@ -3774,6 +3774,10 @@ const ROUTES = {
         route: 'workspaces/:policyID/members/change-office-location',
         getRoute: (policyID: string) => `workspaces/${policyID}/members/change-office-location` as const,
     },
+    WORKSPACE_MEMBERS_BULK_CATEGORY_VISIBILITY: {
+        route: 'workspaces/:policyID/members/category-visibility',
+        getRoute: (policyID: string) => `workspaces/${policyID}/members/category-visibility` as const,
+    },
     WORKSPACE_MEMBERS_CHANGE_WORK_ARRANGEMENT: {
         route: 'workspaces/:policyID/members/change-work-arrangement',
         getRoute: (policyID: string) => `workspaces/${policyID}/members/change-work-arrangement` as const,

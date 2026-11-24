@@ -8055,6 +8055,9 @@ Der Control-Tarif beginnt bei 9 $ pro aktivem Mitglied und Monat.`,
             },
             changeOfficeLocation: 'Bürostandort ändern',
             changeWorkArrangement: 'Arbeitsvereinbarung ändern',
+            editCategoryVisibility: 'Kategorie-Sichtbarkeit bearbeiten',
+            bulkCategoryVisibilitySaved: ({categoryCount, memberCount}: {categoryCount: string; memberCount: string}) =>
+                `${categoryCount} für ${memberCount} festgelegt. Dies ersetzt ihre aktuelle Kategorie-Sichtbarkeit.`,
             changeRole: 'Rolle ändern',
             newRolesBanner: {
                 title: 'Neue Rollen verfügbar',
