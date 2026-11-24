@@ -63,7 +63,6 @@ function SearchMergeReports() {
     const {isBetaEnabled, isBetaEnabledOrUnknown} = usePermissions();
     const isVendorMatchingBetaEnabled = isBetaEnabledOrUnknown(CONST.BETAS.VENDOR_MATCHING);
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
-    const isReportMergeBetaEnabled = isBetaEnabled(CONST.BETAS.REPORT_MERGE);
     const session = useSession();
     const personalDetails = usePersonalDetails();
     const personalPolicy = usePersonalPolicy();
@@ -244,10 +243,6 @@ function SearchMergeReports() {
             const reportKey = `${ONYXKEYS.COLLECTION.REPORT}${reportID}` as const;
             return !allReports?.[reportKey] && !!currentSearchResults?.data?.[reportKey];
         });
-
-    if (!isReportMergeBetaEnabled) {
-        return null;
-    }
 
     return (
         <StepScreenWrapper
