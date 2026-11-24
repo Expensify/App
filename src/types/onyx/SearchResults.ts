@@ -357,6 +357,23 @@ type SearchWorkflowStageGroup = SearchGroupBase & {
     averageDuration: number | null;
 };
 
+/** Any group entry of a grouped search result */
+type SearchGroup =
+    | SearchMemberGroup
+    | SearchCardGroup
+    | SearchWithdrawalIDGroup
+    | SearchCategoryGroup
+    | SearchMerchantGroup
+    | SearchTagGroup
+    | SearchDayGroup
+    | SearchMonthGroup
+    | SearchWeekGroup
+    | SearchYearGroup
+    | SearchQuarterGroup
+    | SearchApproverGroup
+    | SearchViolationGroup
+    | SearchWorkflowStageGroup;
+
 /** Model of an expense in the search results */
 type SearchTransaction = Transaction & {
     /** Whether the expense was ever rejected, only returned when the Rejected column is shown or sorted by */
@@ -380,23 +397,7 @@ type SearchResultDataType = PrefixedRecord<typeof ONYXKEYS.COLLECTION.TRANSACTIO
     PrefixedRecord<typeof ONYXKEYS.COLLECTION.POLICY, Policy> &
     PrefixedRecord<typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, TransactionViolation[]> &
     PrefixedRecord<typeof ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, ReportNameValuePairs> &
-    PrefixedRecord<
-        typeof CONST.SEARCH.GROUP_PREFIX,
-        | SearchMemberGroup
-        | SearchCardGroup
-        | SearchWithdrawalIDGroup
-        | SearchCategoryGroup
-        | SearchMerchantGroup
-        | SearchTagGroup
-        | SearchDayGroup
-        | SearchMonthGroup
-        | SearchWeekGroup
-        | SearchYearGroup
-        | SearchQuarterGroup
-        | SearchApproverGroup
-        | SearchViolationGroup
-        | SearchWorkflowStageGroup
-    >;
+    PrefixedRecord<typeof CONST.SEARCH.GROUP_PREFIX, SearchGroup>;
 
 /** Model of search results */
 type SearchResults = {
@@ -426,6 +427,7 @@ export type {
     SearchResultsInfo,
     SearchResultDataType,
     SearchGroupBase,
+    SearchGroup,
     SearchMemberGroup,
     SearchCardGroup,
     SearchWithdrawalIDGroup,

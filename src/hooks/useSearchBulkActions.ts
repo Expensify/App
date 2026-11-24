@@ -409,9 +409,10 @@ function addSelectedGroupsFilter(queryJSON: SearchQueryJSON, selectedTransaction
     const filterEntries: SelectedGroupValueFilter[] = [];
     const dateRanges: SearchDateRange[] = [];
     for (const key of groupKeys) {
-        const group = searchData[key as keyof SearchResultDataType];
+        const group = searchData[key];
         const entry = group ? getSelectedGroupFilterEntry(groupBy, group) : undefined;
         if (!entry) {
+            Log.warn('[Export] Dropping group export: selected group cannot be turned into a filter', {groupBy, key, hasGroup: !!group});
             return undefined;
         }
         if (entry.kind === 'dateRange') {
