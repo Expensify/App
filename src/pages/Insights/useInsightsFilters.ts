@@ -1,7 +1,8 @@
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 
-import {saveInsightsFilters, setInsightsFilters} from '@libs/actions/Insights';
+import {setInsightsFilters} from '@libs/actions/Insights';
+import {saveSearchFilters} from '@libs/actions/Search';
 import {getPolicyIDOrDefault} from '@libs/PolicyUtils';
 import {getLastSearchQuery} from '@libs/SearchUIUtils';
 
@@ -89,7 +90,7 @@ function useInsightsFilters(dashboard: InsightsDashboardID, shouldSkipFetch?: (n
         if (!isResolved || !isSpend || !canFitTagLevel || selectedTagLevel === filters.tagLevel) {
             return;
         }
-        saveInsightsFilters(searchKey, buildInsightsQueryString(filters));
+        saveSearchFilters(searchKey, buildInsightsQueryString(filters));
     }, [isResolved, isSpend, canFitTagLevel, selectedTagLevel, filters, searchKey]);
 
     // What GetInsights fetches, so two selections that fetch the same thing can be told apart from ones that need a new request. Leaves out the display-only parts: the Compare mode every response already covers, and Running total, which resolves to its bucket here.
@@ -100,7 +101,7 @@ function useInsightsFilters(dashboard: InsightsDashboardID, shouldSkipFetch?: (n
         const query = buildInsightsQueryString(next);
         // GetInsights persists the filters as a side effect, so a change it won't fetch for (Compare mode, a Running total toggle that keeps the same bucket, or any change the page skips fetching for) is saved on its own instead.
         if (fetchedQuery(next) === fetchedQuery(filters) || shouldSkipFetch?.(next)) {
-            saveInsightsFilters(searchKey, query);
+            saveSearchFilters(searchKey, query);
             return;
         }
         setInsightsFilters(searchKey, query);

@@ -17,6 +17,7 @@ import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
+import {useGetPersonalDetailsByLogin} from '@hooks/usePersonalDetailByLogin';
 import useSearchTypeMenuSections from '@hooks/useSearchTypeMenuSections';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -153,6 +154,7 @@ function EmptySearchViewContent({
     // Without the beta, it keeps showing whenever the Travel switch is on.
     const shouldShowBookTrip = isBetaEnabled(CONST.BETAS.TRAVEL_APPROVAL) ? isWorkspaceProvisionedForTravel(activePolicy?.travelSettings) : !!activePolicy?.isTravelEnabled;
     const {getCurrencyDecimals} = useCurrencyListActions();
+    const getPersonalDetailsByLogin = useGetPersonalDetailsByLogin();
     // A new report has no expenses yet, so it can't have violations.
     const hasViolations = false;
     const [hasTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {
@@ -177,17 +179,17 @@ function EmptySearchViewContent({
             return;
         }
 
-        const {reportID: createdReportID} = createNewReport(
-            currentUserPersonalDetails,
+        const {reportID: createdReportID} = createNewReport({
+            ownerPersonalDetails: currentUserPersonalDetails,
             hasViolations,
             isASAPSubmitBetaEnabled,
             policy,
             isTrackIntentUser,
             getCurrencyDecimals,
             rules,
-            false,
+            personalDetailsByLogins: getPersonalDetailsByLogin(),
             shouldDismissEmptyReportsConfirmation,
-        );
+        });
         Navigation.setNavigationActionToMicrotaskQueue(() => {
             Navigation.navigate(
                 ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({

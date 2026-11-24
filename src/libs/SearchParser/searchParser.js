@@ -336,6 +336,10 @@ function peg$parse(input, options) {
   var peg$c149 = "footer-currency";
   var peg$c150 = "footertotal";
   var peg$c151 = "footer-total";
+  var peg$c152 = "leftpinnedcolumns";
+  var peg$c153 = "left-pinned-columns";
+  var peg$c154 = "rightpinnedcolumns";
+  var peg$c155 = "right-pinned-columns";
 
   var peg$r0 = /^[^ \t\r\n\xA0]/;
   var peg$r1 = /^[ \t\r\n\xA0,:=<>!]/;
@@ -527,6 +531,10 @@ function peg$parse(input, options) {
   var peg$e171 = peg$literalExpectation("footer-currency", true);
   var peg$e172 = peg$literalExpectation("footerTotal", true);
   var peg$e173 = peg$literalExpectation("footer-total", true);
+  var peg$e174 = peg$literalExpectation("leftPinnedColumns", true);
+  var peg$e175 = peg$literalExpectation("left-pinned-columns", true);
+  var peg$e176 = peg$literalExpectation("rightPinnedColumns", true);
+  var peg$e177 = peg$literalExpectation("right-pinned-columns", true);
 
   var peg$f0 = function(filters) { return applyDefaults(filters); };
   var peg$f1 = function(head, tail) {
@@ -779,6 +787,14 @@ function peg$parse(input, options) {
   var peg$f137 = function() { return "footerCount"; };
   var peg$f138 = function() { return "footerCurrency"; };
   var peg$f139 = function() { return "footerTotal"; };
+  var peg$f140 = function() {
+  isColumnsContext = true;
+  return "leftPinnedColumns";
+};
+  var peg$f141 = function() {
+  isColumnsContext = true;
+  return "rightPinnedColumns";
+};
   var peg$currPos = options.peg$currPos | 0;
   var peg$savedPos = peg$currPos;
   var peg$posDetailsCache = [{ line: 1, column: 1 }];
@@ -1521,9 +1537,15 @@ function peg$parse(input, options) {
                 if (s1 === peg$FAILED) {
                   s1 = peg$parsecompare();
                   if (s1 === peg$FAILED) {
-                    s1 = peg$parsetagLevel();
+                    s1 = peg$parseleftPinnedColumns();
                     if (s1 === peg$FAILED) {
-                      s1 = peg$parsetagParent();
+                      s1 = peg$parserightPinnedColumns();
+                      if (s1 === peg$FAILED) {
+                        s1 = peg$parsetagLevel();
+                        if (s1 === peg$FAILED) {
+                          s1 = peg$parsetagParent();
+                        }
+                      }
                     }
                   }
                 }
@@ -5884,6 +5906,64 @@ function peg$parse(input, options) {
     return s0;
   }
 
+  function peg$parseleftPinnedColumns() {
+    var s0, s1;
+
+    s0 = peg$currPos;
+    s1 = input.substr(peg$currPos, 17);
+    if (s1.toLowerCase() === peg$c152) {
+      peg$currPos += 17;
+    } else {
+      s1 = peg$FAILED;
+      if (peg$silentFails === 0) { peg$fail(peg$e174); }
+    }
+    if (s1 === peg$FAILED) {
+      s1 = input.substr(peg$currPos, 19);
+      if (s1.toLowerCase() === peg$c153) {
+        peg$currPos += 19;
+      } else {
+        s1 = peg$FAILED;
+        if (peg$silentFails === 0) { peg$fail(peg$e175); }
+      }
+    }
+    if (s1 !== peg$FAILED) {
+      peg$savedPos = s0;
+      s1 = peg$f140();
+    }
+    s0 = s1;
+
+    return s0;
+  }
+
+  function peg$parserightPinnedColumns() {
+    var s0, s1;
+
+    s0 = peg$currPos;
+    s1 = input.substr(peg$currPos, 18);
+    if (s1.toLowerCase() === peg$c154) {
+      peg$currPos += 18;
+    } else {
+      s1 = peg$FAILED;
+      if (peg$silentFails === 0) { peg$fail(peg$e176); }
+    }
+    if (s1 === peg$FAILED) {
+      s1 = input.substr(peg$currPos, 20);
+      if (s1.toLowerCase() === peg$c155) {
+        peg$currPos += 20;
+      } else {
+        s1 = peg$FAILED;
+        if (peg$silentFails === 0) { peg$fail(peg$e177); }
+      }
+    }
+    if (s1 !== peg$FAILED) {
+      peg$savedPos = s0;
+      s1 = peg$f141();
+    }
+    s0 = s1;
+
+    return s0;
+  }
+
   
   const GROUP_BY_DEFAULT_SORT = {
     from: "groupFrom",
@@ -5935,7 +6015,7 @@ function peg$parse(input, options) {
 
   // List fields where you cannot prefix it with "-" to negate it
   const nonNegatableKeys = new Set([
-    "type", "keyword", "groupCurrency", "groupBy", "columns", "limit", "view", "footerCount", "footerTotal", "footerCurrency", "compare", "tagLevel", "tagParent"
+    "type", "keyword", "groupCurrency", "groupBy", "columns", "leftPinnedColumns", "rightPinnedColumns", "limit", "view", "footerCount", "footerTotal", "footerCurrency", "compare", "tagLevel", "tagParent"
   ]);
 
   function isDefaultSortValue(sortBy) {
