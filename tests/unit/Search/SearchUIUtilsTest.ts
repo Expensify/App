@@ -16499,7 +16499,11 @@ describe('SearchUIUtils', () => {
         const otherTransactionID = 'tx-violations-2';
 
         const createSubmittedAction = (
-            actionName: typeof CONST.REPORT.ACTIONS.TYPE.SUBMITTED | typeof CONST.REPORT.ACTIONS.TYPE.SUBMITTED_AND_CLOSED | typeof CONST.REPORT.ACTIONS.TYPE.ADD_EXPENSE_ON_SUBMITTED,
+            actionName:
+                | typeof CONST.REPORT.ACTIONS.TYPE.SUBMITTED
+                | typeof CONST.REPORT.ACTIONS.TYPE.SUBMITTED_AND_CLOSED
+                | typeof CONST.REPORT.ACTIONS.TYPE.CLOSED
+                | typeof CONST.REPORT.ACTIONS.TYPE.ADD_EXPENSE_ON_SUBMITTED,
             violations?: {transactions: Record<string, Array<{name: string}>>},
             reportActionID = 'submit-action-1',
         ): OnyxTypes.ReportAction =>
@@ -16555,6 +16559,18 @@ describe('SearchUIUtils', () => {
 
             expect(SearchUIUtils.getSubmittedViolationsForTransaction([submitAndCloseAction], transactionIDForViolations, translateLocal)).toBe(
                 translateLocal('violations.shortName.receiptRequired'),
+            );
+        });
+
+        test('includes translated labels from CLOSED actions', () => {
+            const closedAction = createSubmittedAction(CONST.REPORT.ACTIONS.TYPE.CLOSED, {
+                transactions: {
+                    [transactionIDForViolations]: [{name: CONST.VIOLATIONS.MISSING_CATEGORY}],
+                },
+            });
+
+            expect(SearchUIUtils.getSubmittedViolationsForTransaction([closedAction], transactionIDForViolations, translateLocal)).toBe(
+                translateLocal('violations.shortName.missingCategory'),
             );
         });
 

@@ -182,6 +182,7 @@ import {
     isApprovedAction,
     isForwardedAction,
     isSubmittedAction,
+    isClosedAction,
     isSubmittedAndClosedAction,
     isWhisperActionTargetedToOthers,
 } from './ReportActionsUtils';
@@ -6004,7 +6005,7 @@ function collectSubmittedViolationNamesForTransaction(violationNames: Set<string
     for (const action of reportActions) {
         // An expense added to a report that was already awaiting approval is not in that report's submit snapshot,
         // so its violations live on their own add-expense-on-submitted action instead.
-        if (!isSubmittedAction(action) && !isSubmittedAndClosedAction(action) && !isAddExpenseOnSubmittedAction(action)) {
+        if (!isSubmittedAction(action) && !isSubmittedAndClosedAction(action) && !isClosedAction(action) && !isAddExpenseOnSubmittedAction(action)) {
             continue;
         }
 
