@@ -8,6 +8,8 @@ import type {CardFeed} from '@src/types/onyx/CardFeeds';
 
 import React from 'react';
 
+import type mockOnyxWithLivePersonalDetails from '../../../../utils/mockOnyxWithLivePersonalDetails';
+
 const ACCOUNT_ID = 42;
 const AVATAR_URL = 'https://example.com/uploaded-avatar.png';
 const LOGIN = 'john@example.com';
@@ -33,9 +35,10 @@ jest.mock('@hooks/useLazyAsset', () => ({
 
 let mockPersonalDetails: PersonalDetailsList = {};
 
-jest.mock('@components/OnyxListItemProvider', () => ({
-    usePersonalDetails: () => mockPersonalDetails,
-}));
+// The live list, which the component reads while there is no Search snapshot
+jest.mock('react-native-onyx', () =>
+    jest.requireActual<{default: typeof mockOnyxWithLivePersonalDetails}>('../../../../utils/mockOnyxWithLivePersonalDetails').default(() => mockPersonalDetails),
+);
 
 jest.mock('@components/Avatar/layouts/SubscriptCardFeedAvatar', () => {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment

@@ -9,7 +9,7 @@ import getReportDetailsColumns from '@libs/getReportDetailsColumns';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import {hasVendorFeature} from '@libs/PolicyUtils';
-import {isReportDetailsCustomColumn} from '@libs/SearchUIUtils';
+import {getRequiredReportDetailsColumns, isReportDetailsCustomColumn} from '@libs/SearchUIUtils';
 
 import type {ReportSettingsNavigatorParamList} from '@navigation/types';
 
@@ -90,7 +90,7 @@ function ReportDetailsColumnsPage() {
 
     const allColumns = ALL_REPORT_DETAILS_CUSTOM_COLUMNS.filter(isColumnAvailable);
     const currentColumns = effectiveColumns.filter(isColumnAvailable);
-    const requiredColumns = new Set<SearchCustomColumnIds>([CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT]);
+    const requiredColumns = getRequiredReportDetailsColumns();
 
     const handleSave = (selectedColumnIds: SearchCustomColumnIds[]) => {
         // Skip saving if columns haven't changed from the effective state, to avoid

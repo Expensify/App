@@ -1,16 +1,24 @@
 import type {ViewStyle} from 'react-native';
 import type {TNode} from 'react-native-render-html';
+import type {Writable} from 'type-fest';
 
 import lodashIsObject from 'lodash/isObject';
 
 import parseAttribute from './parseAttribute';
 
+/** Chart nodes also carry the SVG paint properties that the chart's style attribute sets */
+type ChartNodeStyle = ViewStyle & {
+    fill?: string;
+    stroke?: string;
+    strokeWidth?: number | string;
+};
+
 /**
  * Extract width, height, and style overrides from a tnode's HTML attributes.
  * Returns separate style objects for the node itself and its parent container.
  */
-function parseStyles(tnode: TNode): {nodeStyles: ViewStyle; parentNodeStyles: ViewStyle} {
-    const nodeStyles: ViewStyle = {};
+function parseStyles(tnode: TNode): {nodeStyles: ChartNodeStyle; parentNodeStyles: ViewStyle} {
+    const nodeStyles: Writable<ChartNodeStyle> = {};
     const parentNodeStyles: ViewStyle = {};
 
     const parsedHeight = parseAttribute(tnode.attributes.height);

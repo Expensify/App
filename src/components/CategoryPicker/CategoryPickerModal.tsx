@@ -18,14 +18,14 @@ import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {SentryLabel} from '@src/types/utils/SentryLabel';
+import type {WithSentryLabelWhenPressable} from '@src/types/utils/SentryLabel';
 
-import policyCategoriesVisibilitySelector from '@selectors/PolicyCategories';
+import {policyCategoriesVisibilitySelector} from '@selectors/PolicyCategories';
 import React, {useLayoutEffect, useState} from 'react';
 
 import CategoryPicker from '.';
 
-type CategoryPickerModalProps = {
+type CategoryPickerModalProps = WithSentryLabelWhenPressable<'onAddCategory', 'addCategorySentryLabel'> & {
     /** The policy whose categories should be shown */
     policyID: string | undefined;
 
@@ -43,15 +43,12 @@ type CategoryPickerModalProps = {
     /** Shows a header with a back button and an add button, for users who can add a category to the workspace */
     onAddCategory?: () => void;
 
-    /** Sentry label for the add button, so each caller's presses are attributed to it */
-    addCategorySentryLabel?: SentryLabel;
-
     /** Receives the searched-for name when the user taps the create row. The row is offered only when this is passed. */
     onCreateCategory?: (categoryName: string) => void;
 
     /** The account the expense belongs to, passed only when the current user owns it, so the list shows just the categories they can use */
     ownerAccountID?: number;
-} & Omit<AnchoredSelectionListPopoverProps, 'optionCount' | 'isSearchable' | 'title' | 'backButtonSentryLabel' | 'headerActions' | 'shouldShowHeader' | 'children'>;
+} & Omit<AnchoredSelectionListPopoverProps, 'optionCount' | 'isSearchable' | 'title' | 'backButtonSentryLabel' | 'headerActions' | 'children'>;
 
 function CategoryPickerModal({
     policyID,
@@ -65,6 +62,7 @@ function CategoryPickerModal({
     ownerAccountID,
     isVisible,
     onClose,
+    shouldShowHeader = false,
     ...popoverProps
 }: CategoryPickerModalProps) {
     const theme = useTheme();
@@ -110,7 +108,7 @@ function CategoryPickerModal({
             isSearchable={categoriesCount >= searchInputThreshold}
             title={translate('common.category')}
             backButtonSentryLabel={CONST.SENTRY_LABEL.CATEGORY_PICKER_MODAL.BACK_BUTTON}
-            shouldShowHeader={!!onAddCategory}
+            shouldShowHeader={shouldShowHeader || !!onAddCategory}
             headerActions={
                 !!onAddCategory && (
                     <Tooltip text={translate('workspace.categories.addCategory')}>

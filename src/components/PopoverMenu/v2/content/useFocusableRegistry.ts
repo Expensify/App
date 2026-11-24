@@ -70,4 +70,3 @@ function useFocusableRegistry({isVisible}: {isVisible: boolean}): UseFocusableRe
 }
 
 export default useFocusableRegistry;
-export type {FocusableRegistryActions};
