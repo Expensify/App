@@ -3,6 +3,8 @@ import {act, render} from '@testing-library/react-native';
 import SelectionList from '@components/SelectionList';
 import ValueSelectionList from '@components/ValuePicker/ValueSelectionList';
 
+import StringUtils from '@libs/StringUtils';
+
 import CONST from '@src/CONST';
 
 import type * as ReactNavigation from '@react-navigation/native';
@@ -149,6 +151,61 @@ describe('ValueSelectionList', () => {
             const selectionListProps = mockedSelectionList.mock.lastCall?.[0];
             expect(selectionListProps?.data).toEqual([]);
             expect(selectionListProps?.textInputOptions?.headerMessage).toBe('common.noResultsFound');
+        });
+
+        describe('options with their own search text', () => {
+            const countries = [
+                {value: 'AG', label: 'Antigua & Barbuda'},
+                {value: 'AU', label: 'Australia'},
+                {value: 'BB', label: 'Barbados'},
+                // cspell:disable-next-line
+                {value: 'MX', label: 'México'},
+                {value: 'US', label: 'United States'},
+            ].map((country) => ({...country, searchValue: StringUtils.sanitizeString(`${country.value}${country.label}`)}));
+
+            const renderCountries = () =>
+                render(
+                    <ValueSelectionList
+                        items={countries}
+                        onItemSelected={jest.fn()}
+                    />,
+                );
+
+            it('finds a country by its ISO code and lists it first', () => {
+                // Given a country list whose options search their code and name, as the country selector does
+                renderCountries();
+
+                // When the user types a country code that is also part of other names
+                search('US');
+
+                // Then the country with that code comes first, ahead of names that merely contain it
+                const selectionListProps = mockedSelectionList.mock.lastCall?.[0];
+                expect(selectionListProps?.data.map((item) => item.keyForList)).toEqual(['US', 'AU']);
+            });
+
+            it('lists a name that starts with the query before names that only contain it', () => {
+                // Given a country list where an earlier country contains the text another country starts with
+                renderCountries();
+
+                // When the user types the start of the later country's name
+                search('bar');
+
+                // Then that country comes first, because a name starting with the query is the likelier target
+                const selectionListProps = mockedSelectionList.mock.lastCall?.[0];
+                expect(selectionListProps?.data.map((item) => item.keyForList)).toEqual(['BB', 'AG']);
+            });
+
+            it('ignores accents', () => {
+                // Given a country list with an accented name
+                renderCountries();
+
+                // When the user types the name without the accent
+                search('Mexico');
+
+                // Then the accented country still matches
+                const selectionListProps = mockedSelectionList.mock.lastCall?.[0];
+                expect(selectionListProps?.data.map((item) => item.keyForList)).toEqual(['MX']);
+            });
         });
     });
 

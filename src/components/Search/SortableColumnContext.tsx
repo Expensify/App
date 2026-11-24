@@ -1,17 +1,12 @@
 /** Shares a single column's heading data (name, label, alignment, sorting) from `SortableTableHeader` to the child that renders its heading. */
+import type {ColumnSorting} from '@components/Table/ColumnHeaderMenu';
+
 import type {SearchColumnAlignment} from '@styles/utils';
 
 import React, {createContext, useContext} from 'react';
 
 import type {SortableHeaderLabelProps} from './SortableHeaderText';
-import type {SearchColumnType, SortOrder} from './types';
-
-type SortableColumnSorting = {
-    /** `undefined` when the table is sorted by another column. */
-    activeSortOrder: SortOrder | undefined;
-
-    onSort: (sortOrder: SortOrder) => void;
-};
+import type {SearchColumnType} from './types';
 
 /** The column whose heading a `SortableTableHeader` child renders. */
 type SortableColumn = {
@@ -25,7 +20,7 @@ type SortableColumn = {
     hasResizeHandle: boolean;
 
     /** `undefined` when the column doesn't sort. */
-    sorting: SortableColumnSorting | undefined;
+    sorting: ColumnSorting | undefined;
 
     /** The heading's label, for `SortableHeaderLabel`. */
     labelProps: SortableHeaderLabelProps;
