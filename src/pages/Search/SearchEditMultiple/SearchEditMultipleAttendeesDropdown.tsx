@@ -1,5 +1,5 @@
 import AttendeePickerModal from '@components/AttendeePicker/AttendeePickerModal';
-import type {ExpenseFieldDropdownRenderProps} from '@components/MoneyRequestConfirmationList/sections/ExpenseFieldDropdown';
+import type {DropdownFieldRenderProps} from '@components/DropdownField';
 
 import {updateBulkEditDraftTransaction} from '@libs/actions/IOU/BulkEdit';
 
@@ -9,7 +9,7 @@ import type {Attendee} from '@src/types/onyx/IOU';
 import {deepEqual} from 'fast-equals';
 import React, {useState} from 'react';
 
-type SearchEditMultipleAttendeesDropdownProps = ExpenseFieldDropdownRenderProps & {
+type SearchEditMultipleAttendeesDropdownProps = DropdownFieldRenderProps & {
     /** Attendees the draft already holds when the list opens */
     draftAttendees: Attendee[];
 };
