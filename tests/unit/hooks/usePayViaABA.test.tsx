@@ -110,7 +110,7 @@ describe('usePayViaABA', () => {
 
     it('shows the download modal for the ABA file', async () => {
         // Given a payment via ABA
-        const abaFileRequest = Promise.resolve({fileName: 'ABA_Report_123.aba', content: 'ABA file'});
+        const abaFileRequest = Promise.resolve({abaFile: {fileName: 'ABA_Report_123.aba', content: 'ABA file'}, skippedReportIDs: {}});
         jest.mocked(payViaABA).mockReturnValueOnce(abaFileRequest);
         const {result} = renderHook(() => usePayViaABA(), {wrapper: Wrapper});
         await waitForBatchedUpdatesWithAct();

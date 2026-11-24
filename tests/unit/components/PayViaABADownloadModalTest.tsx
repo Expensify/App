@@ -5,7 +5,9 @@ import PayViaABADownloadModal from '@components/PayViaABADownloadModal';
 import HttpsError from '@libs/Errors/HttpsError';
 import saveTextFile from '@libs/saveTextFile';
 
-import type {ABAFile} from '@userActions/IOU/PayMoneyRequest';
+import type {ABAFile, PayViaABAResult} from '@userActions/IOU/PayMoneyRequest';
+
+import CONST from '@src/CONST';
 
 import React from 'react';
 
@@ -15,8 +17,9 @@ jest.mock('@hooks/useLocalize', () => jest.fn(() => ({translate: (key: string) =
 jest.mock('@libs/saveTextFile', () => jest.fn(() => Promise.resolve()));
 
 const abaFile: ABAFile = {fileName: 'ABA_Report_123.aba', content: 'ABA file'};
+const payViaABAResult: PayViaABAResult = {abaFile, skippedReportIDs: {}};
 
-function renderModal(abaFileRequest: Promise<ABAFile | undefined>, closeModal = jest.fn()) {
+function renderModal(abaFileRequest: Promise<PayViaABAResult | undefined>, closeModal = jest.fn()) {
     render(
         <PayViaABADownloadModal
             abaFileRequest={abaFileRequest}
@@ -34,7 +37,7 @@ describe('PayViaABADownloadModal', () => {
 
     it('saves the ABA file once it is ready, and again when the user asks for it', async () => {
         // Given an ABA file that is still being generated
-        const {promise, resolve} = Promise.withResolvers<ABAFile | undefined>();
+        const {promise, resolve} = Promise.withResolvers<PayViaABAResult | undefined>();
         renderModal(promise);
 
         // Then the user is asked to wait and can't close the modal
@@ -42,7 +45,7 @@ describe('PayViaABADownloadModal', () => {
         expect(screen.queryByText('common.cancel')).not.toBeOnTheScreen();
 
         // When the file arrives
-        await act(async () => resolve(abaFile));
+        await act(async () => resolve(payViaABAResult));
 
         // Then it's saved straight away and the user is told to upload it to their bank
         expect(screen.getByText('iou.successABAFile')).toBeOnTheScreen();
@@ -56,9 +59,22 @@ describe('PayViaABADownloadModal', () => {
         expect(saveTextFile).toHaveBeenCalledTimes(2);
     });
 
+    it('tells the user when some submitters have no AUD bank account, so their reports were left out of the file', async () => {
+        // Given an ABA file that is still being generated
+        const {promise, resolve} = Promise.withResolvers<PayViaABAResult | undefined>();
+        renderModal(promise);
+
+        // When it arrives without a report whose submitter has no AUD bank account
+        await act(async () => resolve({abaFile, skippedReportIDs: {[CONST.ABA_SKIPPED_REPORT_REASON.MISSING_DEPOSIT_ACCOUNT]: ['456']}}));
+
+        // Then the file is still saved for the reports it pays, and the user is asked to get the other submitters to add a bank account
+        expect(saveTextFile).toHaveBeenCalledWith(abaFile);
+        expect(screen.getByText('iou.successABAFile\n\niou.submittersMissingABADepositAccount')).toBeOnTheScreen();
+    });
+
     it("tells the user why the ABA file couldn't be generated", async () => {
         // Given an ABA file the backend refuses to generate
-        const {promise, reject} = Promise.withResolvers<ABAFile | undefined>();
+        const {promise, reject} = Promise.withResolvers<PayViaABAResult | undefined>();
         renderModal(promise);
 
         // When the request fails
@@ -71,7 +87,7 @@ describe('PayViaABADownloadModal', () => {
 
     it("closes when the reports can't be paid at all", async () => {
         // Given a request that will end without a file, like when billing restrictions stop the payment
-        const {promise, resolve} = Promise.withResolvers<ABAFile | undefined>();
+        const {promise, resolve} = Promise.withResolvers<PayViaABAResult | undefined>();
         const closeModal = jest.fn();
         renderModal(promise, closeModal);
 

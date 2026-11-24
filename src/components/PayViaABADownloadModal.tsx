@@ -8,7 +8,7 @@ import HttpsError from '@libs/Errors/HttpsError';
 import Log from '@libs/Log';
 import saveTextFile from '@libs/saveTextFile';
 
-import type {ABAFile} from '@userActions/IOU/PayMoneyRequest';
+import type {PayViaABAResult} from '@userActions/IOU/PayMoneyRequest';
 
 import CONST from '@src/CONST';
 
@@ -20,28 +20,29 @@ import FileDownloadModalWrapper from './Modal/Global/FileDownloadModalWrapper';
 
 type PayViaABADownloadModalProps = ModalProps & {
     /** Resolves with nothing when the reports can't be paid, which closes the modal */
-    abaFileRequest: Promise<ABAFile | undefined>;
+    abaFileRequest: Promise<PayViaABAResult | undefined>;
 
     getDownloadFailedMessage: (error?: HttpsError) => string;
 };
 
 function PayViaABADownloadModal({abaFileRequest, getDownloadFailedMessage, closeModal, resolveModal}: PayViaABADownloadModalProps) {
     const {translate} = useLocalize();
-    const [abaFile, setABAFile] = useState<ABAFile>();
+    const [payViaABAResult, setPayViaABAResult] = useState<PayViaABAResult>();
+    const abaFile = payViaABAResult?.abaFile;
     const [downloadFailedMessage, setDownloadFailedMessage] = useState<string>();
 
     useEffect(() => {
         let isUnmounted = false;
         abaFileRequest
-            .then((file) => {
+            .then((result) => {
                 if (isUnmounted) {
                     return;
                 }
-                if (!file) {
+                if (!result) {
                     closeModal();
                     return;
                 }
-                setABAFile(file);
+                setPayViaABAResult(result);
             })
             .catch((error: unknown) => {
                 if (isUnmounted) {
@@ -65,7 +66,13 @@ function PayViaABADownloadModal({abaFileRequest, getDownloadFailedMessage, close
         if (downloadFailedMessage) {
             return downloadFailedMessage;
         }
-        return abaFile ? translate('iou.successABAFile') : translate('iou.waitForABAFile');
+        if (!abaFile) {
+            return translate('iou.waitForABAFile');
+        }
+        if (payViaABAResult?.skippedReportIDs[CONST.ABA_SKIPPED_REPORT_REASON.MISSING_DEPOSIT_ACCOUNT]?.length) {
+            return `${translate('iou.successABAFile')}\n\n${translate('iou.submittersMissingABADepositAccount')}`;
+        }
+        return translate('iou.successABAFile');
     })();
 
     return (

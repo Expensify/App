@@ -1102,37 +1102,62 @@ type ABAFile = {
     content: string;
 };
 
+/** The reports left out of an ABA file, keyed by why they were left out */
+type SkippedABAReportIDs = Record<string, string[]>;
+
+type PayViaABAResult = {
+    abaFile: ABAFile;
+    skippedReportIDs: SkippedABAReportIDs;
+};
+
 type PayViaABAResponse = {
     jsonCode?: number;
     message?: string;
     aba?: string;
+
+    /** Sent as an empty array when no reports were skipped */
+    skippedReportIDs?: Record<string, Array<string | number>> | [];
 };
 
+/** Keeps the reasons that have reports, so an unexpected shape just means nothing was skipped */
+function getSkippedABAReportIDs(skippedReportIDs: PayViaABAResponse['skippedReportIDs']): SkippedABAReportIDs {
+    if (!skippedReportIDs || typeof skippedReportIDs !== 'object' || Array.isArray(skippedReportIDs)) {
+        return {};
+    }
+    const skippedReportIDsByReason: SkippedABAReportIDs = {};
+    for (const [reason, reportIDs] of Object.entries(skippedReportIDs)) {
+        if (Array.isArray(reportIDs) && reportIDs.length > 0) {
+            skippedReportIDsByReason[reason] = reportIDs.map(String);
+        }
+    }
+    return skippedReportIDsByReason;
+}
+
 /**
- * Reads the ABA file's text from the PayViaABA response. The API currently sends the file itself, but soon will send a
- * JSON response with the file's text in `aba`.
+ * Reads the ABA file's text and the reports left out of it from the PayViaABA response. The API currently sends the file
+ * itself, but soon will send a JSON response with the file's text in `aba`.
  */
-async function getABAFileContent(response: Response): Promise<string> {
+async function parsePayViaABAResponse(response: Response): Promise<{content: string; skippedReportIDs: SkippedABAReportIDs}> {
     if (response.headers.get('content-type') !== 'application/json') {
         if (!response.ok) {
             throw new Error('Failed to download the ABA file');
         }
-        return response.text();
+        return response.text().then((content) => ({content, skippedReportIDs: {}}));
     }
     return response.json().then((data: PayViaABAResponse) => {
         if (data.jsonCode !== CONST.JSON_CODE.SUCCESS || data.aba === undefined) {
             throw new HttpsError({message: data.message ?? '', status: String(data.jsonCode ?? '')});
         }
-        return data.aba;
+        return {content: data.aba, skippedReportIDs: getSkippedABAReportIDs(data.skippedReportIDs)};
     });
 }
 
 /**
- * Gets the ABA file for paying the given reports, leaving it to the caller to save. The backend marks them as "paid elsewhere"
- * when it creates the file. Resolves with nothing when the user can't pay, and rejects with the backend's error when it
- * doesn't send the file.
+ * Gets the ABA file for paying the given reports, leaving it to the caller to save. The backend marks the reports in the
+ * file as "paid elsewhere" when it creates it, and also returns the reports it couldn't pay. Resolves with nothing when
+ * the user can't pay, and rejects with the backend's error when it doesn't send the file.
  */
-async function payViaABA(params: PayViaABAFunctionParams): Promise<ABAFile | undefined> {
+async function payViaABA(params: PayViaABAFunctionParams): Promise<PayViaABAResult | undefined> {
     const {
         reportIDs,
         policy,
@@ -1166,19 +1191,22 @@ async function payViaABA(params: PayViaABAFunctionParams): Promise<ABAFile | und
     // The file download doesn't go through the write queue, so we wait for queued writes to reach the server first
     await API.waitForWrites(WRITE_COMMANDS.PAY_VIA_ABA);
     const response = await fetch(getCommandURL({command: WRITE_COMMANDS.PAY_VIA_ABA}), {method: CONST.NETWORK.METHOD.POST, body: formData, credentials: 'same-origin'});
-    const content = await getABAFileContent(response);
+    const {content, skippedReportIDs} = await parsePayViaABAResponse(response);
 
-    // The backend only sends the file once it has paid the reports, so we mark them as paid now to stop the Pay button
-    // reappearing before the BE's pusher updates arrive.
+    // The backend only sends the file once it has paid the reports in it, so we mark them as paid now to stop the Pay
+    // button reappearing before the BE's pusher updates arrive.
+    const skippedReportIDSet = new Set(Object.values(skippedReportIDs).flat());
     Onyx.update(
-        reportIDs.map((reportID) => ({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
-            value: {statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED, stateNum: CONST.REPORT.STATE_NUM.APPROVED},
-        })),
+        reportIDs
+            .filter((reportID) => !skippedReportIDSet.has(reportID))
+            .map((reportID) => ({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+                value: {statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED, stateNum: CONST.REPORT.STATE_NUM.APPROVED},
+            })),
     );
     onPaid?.();
-    return {fileName, content};
+    return {abaFile: {fileName, content}, skippedReportIDs};
 }
 
 function markReportPaymentReceived(
@@ -1489,4 +1517,4 @@ function savePreferredPaymentMethod(
 }
 
 export {cancelPayment, completePaymentOnboarding, getBankAccountToSetUpBeforePaying, markReportPaymentReceived, payInvoice, payMoneyRequest, payViaABA, savePreferredPaymentMethod};
-export type {ABAFile, PayMoneyRequestFunctionParams};
+export type {ABAFile, PayMoneyRequestFunctionParams, PayViaABAResult, SkippedABAReportIDs};

@@ -3220,30 +3220,30 @@ describe('actions/IOU/PayMoneyRequest', () => {
         it('returns the ABA file for a single report, named the way Classic names it', async () => {
             // Given a single report to pay
             // When it's paid via ABA
-            const abaFile = await payViaABA({...payViaABAParams, reportIDs: ['123']});
+            const result = await payViaABA({...payViaABAParams, reportIDs: ['123']});
 
             // Then the PayViaABA command is posted for that report, paying held expenses too by default, and its response is returned as the report's ABA file
             expect(appendSpy).toHaveBeenCalledWith('reportIDList', '123');
             expect(appendSpy).toHaveBeenCalledWith('shouldReimburseHeldTransactions', 'true');
             const [, payViaABARequest] = getPayViaABACalls().at(0) ?? [];
             expect(payViaABARequest?.method).toBe(CONST.NETWORK.METHOD.POST);
-            expect(abaFile).toEqual({fileName: 'ABA_Report_123.aba', content: 'ABA file'});
+            expect(result).toEqual({abaFile: {fileName: 'ABA_Report_123.aba', content: 'ABA file'}, skippedReportIDs: {}});
         });
 
         it('returns the ABA file when the API sends its text in JSON', async () => {
-            // Given an API that sends the ABA file's text inside its JSON response instead of as a file
+            // Given an API that sends the ABA file's text inside its JSON response instead of as a file, with an empty array when it skipped no reports
             mockPayViaABAResponse({
                 ok: true,
                 headers: new Headers([['content-type', 'application/json']]),
-                json: () => Promise.resolve({jsonCode: CONST.JSON_CODE.SUCCESS, aba: 'ABA file\r\n'}),
+                json: () => Promise.resolve({jsonCode: CONST.JSON_CODE.SUCCESS, aba: 'ABA file\r\n', skippedReportIDs: []}),
             });
             const onPaid = jest.fn();
 
             // When a report is paid via ABA
-            const abaFile = await payViaABA({...payViaABAParams, reportIDs: ['123'], onPaid});
+            const result = await payViaABA({...payViaABAParams, reportIDs: ['123'], onPaid});
 
-            // Then that text is returned as the report's ABA file, the same as when the API sends the file itself
-            expect(abaFile).toEqual({fileName: 'ABA_Report_123.aba', content: 'ABA file\r\n'});
+            // Then that text is returned as the report's ABA file, the same as when the API sends the file itself, with no reports skipped
+            expect(result).toEqual({abaFile: {fileName: 'ABA_Report_123.aba', content: 'ABA file\r\n'}, skippedReportIDs: {}});
             expect(onPaid).toHaveBeenCalled();
         });
 
@@ -3325,12 +3325,44 @@ describe('actions/IOU/PayMoneyRequest', () => {
             const reportIDs = ['123', '456'];
 
             // When they're paid via ABA
-            const abaFile = await payViaABA({...payViaABAParams, reportIDs, shouldReimburseHeldTransactions: false});
+            const result = await payViaABA({...payViaABAParams, reportIDs, shouldReimburseHeldTransactions: false});
 
             // Then one file pays them all, named the way Classic names a bulk ABA file
             expect(appendSpy).toHaveBeenCalledWith('reportIDList', '123,456');
             expect(appendSpy).toHaveBeenCalledWith('shouldReimburseHeldTransactions', 'false');
-            expect(abaFile?.fileName).toBe(`ABA_Report_Bulk_${format(new Date(), CONST.DATE.FNS_FORMAT_STRING)}.aba`);
+            expect(result?.abaFile.fileName).toBe(`ABA_Report_Bulk_${format(new Date(), CONST.DATE.FNS_FORMAT_STRING)}.aba`);
+        });
+
+        it('leaves the reports the backend skipped unpaid, and returns them with the reason', async () => {
+            // Given three approved reports, where the backend can only pay one because two submitters have no AUD bank account
+            for (const reportID of ['123', '456', '789']) {
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {reportID, stateNum: CONST.REPORT.STATE_NUM.APPROVED, statusNum: CONST.REPORT.STATUS_NUM.APPROVED});
+            }
+            mockPayViaABAResponse({
+                ok: true,
+                headers: new Headers([['content-type', 'application/json']]),
+                json: () =>
+                    Promise.resolve({
+                        jsonCode: CONST.JSON_CODE.SUCCESS,
+                        aba: 'ABA file',
+                        skippedReportIDs: {[CONST.ABA_SKIPPED_REPORT_REASON.MISSING_DEPOSIT_ACCOUNT]: [456, '789'], nothingToPay: []},
+                    }),
+            });
+
+            // When they're paid via ABA
+            const result = await payViaABA({...payViaABAParams, reportIDs: ['123', '456', '789']});
+            await waitForBatchedUpdates();
+
+            // Then only the report in the file is shown as paid, since the backend sends no updates for the skipped ones
+            const paidReport = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}123`);
+            expect(paidReport?.statusNum).toBe(CONST.REPORT.STATUS_NUM.REIMBURSED);
+            for (const reportID of ['456', '789']) {
+                const skippedReport = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
+                expect(skippedReport?.statusNum).toBe(CONST.REPORT.STATUS_NUM.APPROVED);
+            }
+
+            // And the skipped reports are returned as string IDs by reason, leaving out reasons without reports, so the user can be told which weren't paid
+            expect(result?.skippedReportIDs).toEqual({[CONST.ABA_SKIPPED_REPORT_REASON.MISSING_DEPOSIT_ACCOUNT]: ['456', '789']});
         });
 
         it('navigates to the restricted action page instead of downloading when billable actions are restricted', () => {
