@@ -545,29 +545,31 @@ function resolveTransactionEditPermissions({
         );
     };
 
-    const canEditDate = canEditRestricted(CONST.EDIT_REQUEST_FIELD.DATE);
-    const canEditMerchant = canEditRestricted(CONST.EDIT_REQUEST_FIELD.MERCHANT);
-    const canEditCategory = canEditRestricted(CONST.EDIT_REQUEST_FIELD.CATEGORY);
-    const canEditAmount = canEditRestricted(CONST.EDIT_REQUEST_FIELD.AMOUNT);
-    const canEditTag = canEditRestricted(CONST.EDIT_REQUEST_FIELD.TAG);
+    const resolveFieldPermissions = () => ({
+        canEditDate: canEditRestricted(CONST.EDIT_REQUEST_FIELD.DATE),
+        canEditMerchant: canEditRestricted(CONST.EDIT_REQUEST_FIELD.MERCHANT),
+        canEditCategory: canEditRestricted(CONST.EDIT_REQUEST_FIELD.CATEGORY),
+        canEditAmount: canEditRestricted(CONST.EDIT_REQUEST_FIELD.AMOUNT),
+        canEditTag: canEditRestricted(CONST.EDIT_REQUEST_FIELD.TAG),
+    });
 
-    const getPermissions = (rules: OnyxCollection<Rule>): TransactionEditPermissions => {
-        if (!applyRules(canEdit, rules)) {
-            return NO_EDIT;
-        }
-        return {
-            canEditDate: applyRules(canEditDate, rules),
-            canEditMerchant: applyRules(canEditMerchant, rules),
-            // Non-restricted; always editable when canEdit is true
-            canEditDescription: true,
-            canEditCategory: applyRules(canEditCategory, rules),
-            canEditAmount: applyRules(canEditAmount, rules),
-            canEditTag: applyRules(canEditTag, rules),
-        };
-    };
+    const applyFieldRules = (fields: ReturnType<typeof resolveFieldPermissions>, rules: OnyxCollection<Rule>): TransactionEditPermissions => ({
+        canEditDate: applyRules(fields.canEditDate, rules),
+        canEditMerchant: applyRules(fields.canEditMerchant, rules),
+        // Non-restricted; always editable when canEdit is true
+        canEditDescription: true,
+        canEditCategory: applyRules(fields.canEditCategory, rules),
+        canEditAmount: applyRules(fields.canEditAmount, rules),
+        canEditTag: applyRules(fields.canEditTag, rules),
+    });
 
-    const doPermissionsNeedRules = [canEdit, canEditDate, canEditMerchant, canEditCategory, canEditAmount, canEditTag].some(doesNeedRules);
-    return doPermissionsNeedRules ? getPermissions : getPermissions(undefined);
+    // Fields are resolved only once canEdit is known to be true.
+    if (doesNeedRules(canEdit)) {
+        return (rules) => (canEdit(rules) ? applyFieldRules(resolveFieldPermissions(), rules) : NO_EDIT);
+    }
+
+    const fields = resolveFieldPermissions();
+    return Object.values(fields).some(doesNeedRules) ? (rules) => applyFieldRules(fields, rules) : applyFieldRules(fields, undefined);
 }
 
 export {

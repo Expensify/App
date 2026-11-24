@@ -102,6 +102,12 @@ type EditParamsReadOnSave =
     | 'currentUserEmail'
     | 'rules';
 
+// A hook of its own so the compiler memoizes the selector: in the caller it shares a scope with the permissions and loses memoization.
+function usePolicyRules(policyID: string | undefined) {
+    const [policyRules] = useOnyx(ONYXKEYS.COLLECTION.RULE, {selector: (rules) => filterRulesForPolicy(rules, policyID)});
+    return policyRules;
+}
+
 function useTransactionInlineEdit({transactionID, hash, linkedReportAction}: UseTransactionInlineEditParams): UseTransactionInlineEditReturn {
     const {translate} = useLocalize();
     const {getCurrencyDecimals, getCurrencySymbol} = useCurrencyListActions();
@@ -200,7 +206,8 @@ function useTransactionInlineEdit({transactionID, hash, linkedReportAction}: Use
         shouldSelectPolicyForUnreported: shouldSelectPolicy,
     });
     const doPermissionsNeedRules = doesNeedRules(resolvedPermissions);
-    const [policyRules] = useOnyx(ONYXKEYS.COLLECTION.RULE, {selector: (rules) => (doPermissionsNeedRules ? filterRulesForPolicy(rules, editPolicy?.id) : undefined)});
+    // Without a policyID the selector skips the scan.
+    const policyRules = usePolicyRules(doPermissionsNeedRules ? editPolicy?.id : undefined);
     const permissions = applyRules(resolvedPermissions, policyRules);
 
     const wasEditingOnMouseDownRef = useRef(false);

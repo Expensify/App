@@ -6428,6 +6428,7 @@ function resolveCanCurrentUserEditExpense(reportAction: OnyxInputOrEntry<ReportA
         return false;
     }
 
+    // Otherwise the user can edit only as an approver in the report's workflow, which depends on the rules.
     const ownerLogin = getLoginByAccountID(moneyRequestReport?.ownerAccountID, getAllPersonalDetails());
     return (rules) => isWorkflowApprover(reportPolicy, ownerLogin, rules, moneyRequestReport?.total ?? 0, deprecatedCurrentUserEmail);
 }
