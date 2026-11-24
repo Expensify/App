@@ -37,7 +37,7 @@ type PolicyEmployee = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** Whether the member is based in an office. When absent, the workspace default applies. */
         hasOfficeWorkArrangement?: boolean;
 
-        /** Whether the member can book travel when the workspace limits travel to members an admin turned on. Ignored when it doesn't. */
+        /** Set to false when an admin turned off the member's travel access. Missing means the member can book travel. */
         canUseTravel?: boolean;
 
         /**
