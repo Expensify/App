@@ -9,7 +9,7 @@
  */
 import type {ActionSheetAwareScrollViewProps} from '@components/ActionSheetAwareScrollView/types';
 
-import {renderBottomPinnedScrollView} from '@pages/inbox/report/ReportActionsList/BottomPinnedScrollView';
+import renderBottomPinnedScrollView from '@pages/inbox/report/ReportActionsList/BottomPinnedScrollView';
 
 import type {LayoutChangeEvent} from 'react-native';
 

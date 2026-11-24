@@ -1,7 +1,7 @@
 /** Keeps the content at the bottom edge of the report-actions list in place when the list viewport changes height. */
 import type {ActionSheetAwareScrollViewProps} from '@components/ActionSheetAwareScrollView/types';
 
-import {renderBottomPinnedScrollView} from '@pages/inbox/report/ReportActionsList/BottomPinnedScrollView';
+import renderBottomPinnedScrollView from '@pages/inbox/report/ReportActionsList/BottomPinnedScrollView';
 
 import {useLayoutEffect, useRef} from 'react';
 

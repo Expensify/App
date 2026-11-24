@@ -43,5 +43,4 @@ function renderBottomPinnedScrollView(props: BottomPinnedScrollViewProps) {
     return <BottomPinnedScrollView {...props} />;
 }
 
-export default BottomPinnedScrollView;
-export {renderBottomPinnedScrollView};
+export default renderBottomPinnedScrollView;
