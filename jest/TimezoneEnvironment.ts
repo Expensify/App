@@ -3,8 +3,6 @@
  * `@jest-environment-options {"timezone": "America/Los_Angeles"}`. Jest gives each test a copy of process.env, so
  * setting process.env.TZ inside a test does not change how Date reads local time.
  */
-import type {EnvironmentContext, JestEnvironmentConfig} from '@jest/environment';
-
 import {TestEnvironment} from 'jest-environment-jsdom';
 
 class TimezoneEnvironment extends TestEnvironment {
@@ -12,9 +10,9 @@ class TimezoneEnvironment extends TestEnvironment {
 
     private originalTimezone: string | undefined;
 
-    constructor(config: JestEnvironmentConfig, context: EnvironmentContext) {
-        super(config, context);
-        this.timezone = config.projectConfig.testEnvironmentOptions.timezone;
+    constructor(...args: ConstructorParameters<typeof TestEnvironment>) {
+        super(...args);
+        this.timezone = args[0].projectConfig.testEnvironmentOptions.timezone;
     }
 
     async setup() {

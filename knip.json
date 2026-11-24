@@ -22,7 +22,8 @@
                 "rock.config.mjs",
                 "rspack.config.mjs",
                 "tests/perf-test/**/*.perf-test.{ts,tsx}",
-                "tests/perf-local/**/*.perf-local.ts"
+                "tests/perf-local/**/*.perf-local.ts",
+                "jest/TimezoneEnvironment.ts"
             ],
             "project": [
                 "src/**/*.{js,jsx,ts,tsx}",
@@ -78,6 +79,7 @@
         "diff-so-fancy"
     ],
     "ignoreBinaries": ["mkcert", "openssl", "xdg-open", "ruby"],
+    "ignoreUnresolved": ["./jest/TimezoneEnvironment.ts"],
     "ignoreIssues": {
         "config/oxlint/ruleNames.mjs": ["exports"],
         "rock.config.mjs": ["unlisted"],
