@@ -1,9 +1,6 @@
 import {act, renderHook} from '@testing-library/react-native';
 
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
-import {SearchQueryContext} from '@components/Search/SearchContext';
-import {SearchScopeProvider} from '@components/Search/SearchScopeProvider';
-import type {SearchQueryContextValue} from '@components/Search/types';
 
 import useTransactionInlineEdit from '@hooks/useTransactionInlineEdit';
 
@@ -12,12 +9,10 @@ import type * as TransactionInlineEditActions from '@libs/actions/TransactionInl
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {PersonalDetailsList, Policy, PolicyCategories, Transaction} from '@src/types/onyx';
-import type SearchResults from '@src/types/onyx/SearchResults';
+import type {Policy, PolicyCategories, Transaction} from '@src/types/onyx';
 
 import Onyx from 'react-native-onyx';
 
-import createMock from '../../utils/createMock';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
 jest.mock('@libs/actions/TransactionInlineEdit', () => ({
@@ -52,27 +47,14 @@ const transaction: Transaction = {
 
 const wrapper = ({children}: {children: React.ReactNode}) => <OnyxListItemProvider>{children}</OnyxListItemProvider>;
 
-const SEARCH_HASH = 12345;
-const SNAPSHOT_ONLY_ACCOUNT_ID = 2;
-const livePersonalDetails: PersonalDetailsList = {[ACCOUNT_ID]: {accountID: ACCOUNT_ID, login: 'user@test.com'}};
-const snapshotPersonalDetails: SearchResults['data']['personalDetailsList'] = {[SNAPSHOT_ONLY_ACCOUNT_ID]: {accountID: SNAPSHOT_ONLY_ACCOUNT_ID, login: 'snapshot-only@test.com'}};
-
-const searchWrapper = ({children}: {children: React.ReactNode}) => (
-    <OnyxListItemProvider>
-        <SearchQueryContext.Provider value={createMock<SearchQueryContextValue>({currentSearchHash: SEARCH_HASH})}>
-            <SearchScopeProvider>{children}</SearchScopeProvider>
-        </SearchQueryContext.Provider>
-    </OnyxListItemProvider>
-);
-
-function renderInlineEditHook(hookWrapper = wrapper) {
+function renderInlineEditHook() {
     let renderCount = 0;
     const hook = renderHook(
         () => {
             renderCount++;
             return useTransactionInlineEdit({transactionID: TRANSACTION_ID});
         },
-        {wrapper: hookWrapper},
+        {wrapper},
     );
     return {...hook, getRenderCount: () => renderCount};
 }
@@ -171,44 +153,5 @@ describe('useTransactionInlineEdit', () => {
 
         // Then the hook doesn't render again, so these writes don't reach any row
         expect(getRenderCount()).toBe(rendersBeforeWrites);
-    });
-
-    it('should pass the live personal details to the edit action outside Search without re-rendering when they change', async () => {
-        // Given a mounted row outside Search
-        await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, livePersonalDetails);
-        const {result, getRenderCount} = renderInlineEditHook();
-        await waitForBatchedUpdates();
-        const rendersBeforeWrite = getRenderCount();
-
-        // When another user is added to the personal details and the user then saves an inline category edit
-        await act(async () => {
-            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, snapshotPersonalDetails);
-        });
-        await act(async () => {
-            await result.current.onEditCategory('Food');
-        });
-
-        // Then the row did not render again, and the edit action still gets the new user, because the list is read when the edit is saved
-        expect(getRenderCount()).toBe(rendersBeforeWrite);
-        expect(mockEditTransactionCategoryInline).toHaveBeenCalledWith(expect.objectContaining({personalDetailsList: {...livePersonalDetails, ...snapshotPersonalDetails}}), 'Food');
-    });
-
-    it('should pass the personal details of the search snapshot to the edit action on Search', async () => {
-        // Given a Search row whose snapshot holds a user that the live personal details don't have
-        await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, livePersonalDetails);
-        await Onyx.set(`${ONYXKEYS.COLLECTION.SNAPSHOT}${SEARCH_HASH}`, {
-            data: createMock<SearchResults['data']>({personalDetailsList: snapshotPersonalDetails}),
-            search: createMock<SearchResults['search']>({hash: SEARCH_HASH}),
-        });
-        const {result} = renderInlineEditHook(searchWrapper);
-        await waitForBatchedUpdates();
-
-        // When the user saves an inline category edit
-        await act(async () => {
-            await result.current.onEditCategory('Food');
-        });
-
-        // Then the edit action gets the snapshot's users, because a report owner can be present there and missing from the live list
-        expect(mockEditTransactionCategoryInline).toHaveBeenCalledWith(expect.objectContaining({personalDetailsList: snapshotPersonalDetails}), 'Food');
     });
 });

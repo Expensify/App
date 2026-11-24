@@ -1,13 +1,14 @@
 import type {ComposerRef} from '@components/Composer/types';
 
+import useAccountIDToNameMap from '@hooks/useAccountIDToNameMap';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useOnyx from '@hooks/useOnyx';
+import {useAllPersonalDetails} from '@hooks/usePersonalDetails';
 import useReportIDToNameMap from '@hooks/useReportIDToNameMap';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useReportScrollManager from '@hooks/useReportScrollManager';
 
 import {clearAllReportActionDrafts, editReportComment} from '@libs/actions/Report';
-import {getAccountIDToNameMap, getAllPersonalDetails} from '@libs/PersonalDetailsStore';
 
 import * as ReportActionContextMenu from '@pages/inbox/report/ContextMenu/ReportActionContextMenu';
 import {useReportActionActiveEditActions} from '@pages/inbox/report/ReportActionEditMessageContext';
@@ -46,9 +47,11 @@ function useEditMessage({
 
     const {email, accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const actionOwnerReportID = originalReportID ?? reportID;
+    const [personalDetails] = useAllPersonalDetails();
     const [originalReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${actionOwnerReportID}`);
     const isOriginalReportArchived = useReportIsArchived(actionOwnerReportID);
     const reportIDToName = useReportIDToNameMap();
+    const accountIDToName = useAccountIDToNameMap();
 
     const {stopEditing, submitEdit} = useReportActionActiveEditActions();
 
@@ -104,11 +107,11 @@ function useEditMessage({
             trimmedNewDraft,
             isOriginalReportArchived,
             email ?? '',
-            getAllPersonalDetails(),
+            personalDetails,
             currentUserAccountID,
             Object.fromEntries(draftMessageVideoAttributeCache),
             reportIDToName,
-            getAccountIDToNameMap(),
+            accountIDToName,
         );
         deleteDraft();
     }

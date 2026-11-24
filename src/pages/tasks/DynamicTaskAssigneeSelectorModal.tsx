@@ -1,5 +1,6 @@
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
 import UserListItem from '@components/SelectionList/ListItem/UserListItem';
 import SelectionListWithSections from '@components/SelectionList/SelectionListWithSections';
@@ -22,7 +23,6 @@ import HttpUtils from '@libs/HttpUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import {getHeaderMessage} from '@libs/PersonalDetailOptionsListUtils';
-import {getPersonalDetail} from '@libs/PersonalDetailsStore';
 import {isOpenTaskReport, isTaskReport} from '@libs/ReportUtils';
 
 import type {NewTaskNavigatorParamList, TaskDetailsNavigatorParamList} from '@navigation/types';
@@ -68,6 +68,8 @@ function DynamicTaskAssigneeSelectorModal() {
         maxRecentReportsToShow: CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW,
         includeRecentReports: true,
     });
+
+    const allPersonalDetails = usePersonalDetails();
 
     const report: OnyxEntry<Report> = (() => {
         if (!reportID) {
@@ -153,12 +155,11 @@ function DynamicTaskAssigneeSelectorModal() {
             return;
         }
 
-        const existingPersonalDetails = getPersonalDetail(option.accountID ?? undefined);
         const assigneePersonalDetails = {
-            ...existingPersonalDetails,
+            ...allPersonalDetails?.[option?.accountID ?? CONST.DEFAULT_NUMBER_ID],
             accountID: option.accountID ?? CONST.DEFAULT_NUMBER_ID,
             login: option.login ?? '',
-            isOptimisticPersonalDetail: !existingPersonalDetails,
+            isOptimisticPersonalDetail: !allPersonalDetails?.[option?.accountID ?? CONST.DEFAULT_NUMBER_ID],
         };
 
         // Check to see if we're editing a task and if so, update the assignee

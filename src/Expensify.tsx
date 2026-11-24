@@ -33,8 +33,6 @@ import Log from './libs/Log';
 import migrateOnyx from './libs/migrateOnyx';
 // This lib needs to be imported for its module-level NetInfo and Onyx subscriptions
 import './libs/NetworkState';
-// Imported eagerly so its Onyx subscription is connected before any handler reads it
-import './libs/PersonalDetailsStore';
 import Navigation from './libs/Navigation/Navigation';
 import NavigationRoot from './libs/Navigation/NavigationRoot';
 import PushNotification from './libs/Notification/PushNotification';

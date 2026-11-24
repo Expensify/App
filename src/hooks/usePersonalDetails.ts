@@ -1,6 +1,4 @@
 /** Personal details reads for components, so nothing touches PERSONAL_DETAILS_LIST directly */
-import {useIsOnSearch} from '@components/Search/SearchScopeProvider';
-
 import ONYXKEYS from '@src/ONYXKEYS';
 import {personalDetailsListSelector, personalDetailsSelector} from '@src/selectors/PersonalDetails';
 import type {PersonalDetails, PersonalDetailsList} from '@src/types/onyx';
@@ -67,13 +65,4 @@ function useAllPersonalDetailsWithoutSnapshots<TReturn>(selector?: (value: Perso
     return useOnyxWithoutSnapshots(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector});
 }
 
-const skipPersonalDetailsList = (): PersonalDetailsList | undefined => undefined;
-
-// For handlers that read PersonalDetailsStore but must keep getting the snapshot's people inside Search. Outside Search it stays undefined and never re-renders the caller.
-function useSearchSnapshotPersonalDetails(): PersonalDetailsList | undefined {
-    const isOnSearch = useIsOnSearch();
-    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: isOnSearch ? undefined : skipPersonalDetailsList});
-    return personalDetails;
-}
-
-export {usePersonalDetail, usePersonalDetailsByIDs, useAllPersonalDetails, useAllPersonalDetailsWithoutSnapshots, useSearchSnapshotPersonalDetails};
+export {usePersonalDetail, usePersonalDetailsByIDs, useAllPersonalDetails, useAllPersonalDetailsWithoutSnapshots};

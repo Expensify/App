@@ -31,6 +31,7 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
+import {usePersonalDetail} from '@hooks/usePersonalDetails';
 import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useScreenBoundDynamicRoute from '@hooks/useScreenBoundDynamicRoute';
@@ -58,7 +59,6 @@ import {getLatestErrorField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
-import {getPersonalDetail} from '@libs/PersonalDetailsStore';
 import {
     canEditWorkspaceSettings,
     canUnarchivePolicy,
@@ -85,6 +85,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import {canDowngradeSelector} from '@src/selectors/Account';
+import {displayNameSelector} from '@src/selectors/PersonalDetails';
 import {createOwnedPaidPoliciesCountsSelector} from '@src/selectors/Policy';
 import type {FileObject} from '@src/types/utils/Attachment';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -292,6 +293,8 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
     const shouldShowOfficeLocationsSection = isBetaEnabled(CONST.BETAS.COMMUTER_EXCLUSIONS_ARRANGEMENTS) && (!readOnly || shouldShowCompanyAddressOffice || officeLocationEntries.length > 0);
     const shouldShowRulesDocumentSubSection = isPolicyAdmin || hasRulesDocument;
 
+    const [ownerDisplayName = ''] = usePersonalDetail(policy?.ownerAccountID, displayNameSelector);
+
     const isFocused = useIsFocused();
     const isPendingDelete = isPendingDeletePolicy(policy);
     const prevIsPendingDelete = usePrevious(isPendingDelete);
@@ -369,7 +372,6 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
 
     const handleLeave = () => {
         const userEmail = session?.email ?? '';
-        const ownerDisplayName = getPersonalDetail(policy?.ownerAccountID)?.displayName ?? '';
         const prompt = getLeaveWorkspaceConfirmationPrompt(policy, userEmail, ownerDisplayName, translate, isApproverOfOutstandingReports);
         const isReimburser = policy?.achAccount?.reimburser === userEmail;
 

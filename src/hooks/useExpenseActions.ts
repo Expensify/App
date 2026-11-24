@@ -14,7 +14,6 @@ import Log from '@libs/Log';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {isTrackOnboardingChoice} from '@libs/OnboardingUtils';
-import {getAllPersonalDetails} from '@libs/PersonalDetailsStore';
 import {getDistanceExpenseTypeForPolicy} from '@libs/PolicyDistanceRatesUtils';
 import {canCreateExpensesOnPolicy, isPolicyAccessible, isPolicyAdmin} from '@libs/PolicyUtils';
 import {getIOUActionForTransactionID} from '@libs/ReportActionsUtils';
@@ -77,6 +76,7 @@ import useParentReportAction from './useParentReportAction';
 import useParticipantsPolicyTags, {getPolicyTagsSelector} from './useParticipantsPolicyTags';
 import usePermissions from './usePermissions';
 import {useGetPersonalDetailsByLogin} from './usePersonalDetailByLogin';
+import {usePersonalDetailsByIDs} from './usePersonalDetails';
 import usePersonalPolicy from './usePersonalPolicy';
 import useReportIsArchived from './useReportIsArchived';
 import useRestrictedActionPolicyID from './useRestrictedActionPolicyID';
@@ -272,6 +272,11 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
     const policyTagList = useMoneyRequestPolicyTagsForReport({report: duplicateTargetReport, currentUserAccountID: accountID});
     const participants = getMoneyRequestParticipantsFromReport(duplicateTargetReport, accountID);
     const participantsPolicyTags = useParticipantsPolicyTags(participants);
+    const [personalDetails] = usePersonalDetailsByIDs([
+        participants.at(0)?.accountID,
+        getMoneyRequestParticipantsFromReport(chatReport, accountID).at(0)?.accountID,
+        getMoneyRequestParticipantsFromReport(activePolicyExpenseChat, accountID).at(0)?.accountID,
+    ]);
 
     const duplicateExpenseTransaction = (transactionList: OnyxTypes.Transaction[]) => {
         if (!transactionList.length) {
@@ -302,7 +307,7 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
                 targetPolicyCategories: activePolicyCategories,
                 targetReport: duplicateTargetReport,
                 existingTransactionDraft,
-                personalDetails: getAllPersonalDetails(),
+                personalDetails,
                 recentWaypoints,
                 targetPolicyTags,
                 currentUser: {accountID: currentUserPersonalDetails?.accountID, email: currentUserPersonalDetails?.email ?? ''},
@@ -487,7 +492,7 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
                     parentChatReport: targetChatForDuplicate,
                     ownerPersonalDetails: currentUserPersonalDetails,
                     isASAPSubmitBetaEnabled,
-                    personalDetails: getAllPersonalDetails(),
+                    personalDetails,
                     quickAction,
                     policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
                     isSelfTourViewed,

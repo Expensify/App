@@ -1,5 +1,5 @@
+import {useSession} from '@components/OnyxListItemProvider';
 import {useSearchSelectionContext} from '@components/Search/SearchContext';
-import {useIsOnSearch} from '@components/Search/SearchScopeProvider';
 
 import type {TransactionInlineEditParams} from '@libs/actions/TransactionInlineEdit';
 import {
@@ -12,7 +12,6 @@ import {
     getTransactionEditPermissions,
 } from '@libs/actions/TransactionInlineEdit';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
-import {getAllPersonalDetails} from '@libs/PersonalDetailsStore';
 import {getDistanceRateCustomUnitRate} from '@libs/PolicyUtils';
 import {getIOUActionForTransactionID} from '@libs/ReportActionsUtils';
 import {isTrackExpenseReportNew} from '@libs/ReportUtils';
@@ -32,6 +31,7 @@ import type {OnyxEntry} from 'react-native-onyx';
  * than being duplicated across every surface that renders a transaction.
  */
 import {guidedSetupAndTourStatusSelector, isTrackIntentUserSelector} from '@selectors/Onboarding';
+import {personalDetailsListSelector} from '@selectors/PersonalDetails';
 import {fullPolicySnapshotLastModifiedSelector} from '@selectors/Policy';
 import {useEffect, useRef} from 'react';
 // eslint-disable-next-line no-restricted-imports -- Need original useOnyx to avoid reading partial Search snapshot policy data.
@@ -45,7 +45,7 @@ import useLocalize from './useLocalize';
 import useNetwork from './useNetwork';
 import useOnyx from './useOnyx';
 import usePermissions from './usePermissions';
-import {useSearchSnapshotPersonalDetails} from './usePersonalDetails';
+import {useAllPersonalDetails} from './usePersonalDetails';
 import usePersonalPolicy from './usePersonalPolicy';
 import usePolicyForMovingExpenses from './usePolicyForMovingExpenses';
 import usePolicyForTransaction from './usePolicyForTransaction';
@@ -162,8 +162,8 @@ function useTransactionInlineEdit({transactionID, hash, linkedReportAction}: Use
 
     const originalTransactionID = transaction?.comment?.originalTransactionID;
     const [originalTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(originalTransactionID)}`);
-    const isOnSearch = useIsOnSearch();
-    const searchSnapshotPersonalDetails = useSearchSnapshotPersonalDetails();
+    const sessionAccountID = useSession()?.accountID;
+    const [personalDetailsList] = useAllPersonalDetails(personalDetailsListSelector([sessionAccountID, parentReportAction?.actorAccountID, parentReportForAction?.ownerAccountID]));
     const {isBetaEnabled, isBetaEnabledOrUnknown} = usePermissions();
     const isVendorMatchingBetaEnabled = isBetaEnabledOrUnknown(CONST.BETAS.VENDOR_MATCHING);
 
@@ -222,7 +222,7 @@ function useTransactionInlineEdit({transactionID, hash, linkedReportAction}: Use
             policyTags,
             isOffline,
             distanceOriginalPolicy,
-            personalDetailsList: isOnSearch ? searchSnapshotPersonalDetails : getAllPersonalDetails(),
+            personalDetailsList,
             delegateAccountID,
             getCurrencyDecimals,
             getCurrencySymbol,

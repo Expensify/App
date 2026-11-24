@@ -8,9 +8,9 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useParentReportAction from '@hooks/useParentReportAction';
+import {usePersonalDetailsByIDs} from '@hooks/usePersonalDetails';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 
-import {getAllPersonalDetails} from '@libs/PersonalDetailsStore';
 import {canMemberRead, isPolicyAdmin as isPolicyAdminUtil, isPolicyEmployee as isPolicyEmployeeUtil} from '@libs/PolicyUtils';
 import {
     canLeaveChat,
@@ -48,6 +48,7 @@ function ReportDetailsMenuLeaveItem({reportID}: ReportDetailsMenuLeaveItemProps)
     const [guidedSetupAndTourStatus] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: guidedSetupAndTourStatusSelector});
     const isSelfTourViewed = guidedSetupAndTourStatus?.isSelfTourViewed;
     const hasCompletedGuidedSetupFlow = guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow;
+    const [personalDetails] = usePersonalDetailsByIDs([CONST.ACCOUNT_ID.CONCIERGE]);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const currentUserAccountID = currentUserPersonalDetails?.accountID;
     const isAnonymousUser = useIsAnonymousUser();
@@ -77,7 +78,7 @@ function ReportDetailsMenuLeaveItem({reportID}: ReportDetailsMenuLeaveItemProps)
                 introSelected,
                 isSelfTourViewed,
                 hasCompletedGuidedSetupFlow,
-                getAllPersonalDetails(),
+                personalDetails,
                 lastAccessedReportID,
             );
             return;
@@ -91,7 +92,7 @@ function ReportDetailsMenuLeaveItem({reportID}: ReportDetailsMenuLeaveItemProps)
             introSelected,
             isSelfTourViewed,
             hasCompletedGuidedSetupFlow,
-            getAllPersonalDetails(),
+            personalDetails,
             isWorkspaceMemberLeavingWorkspaceRoom,
             lastAccessedReportID,
         );

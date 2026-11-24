@@ -3,13 +3,12 @@ import Button from '@components/Button';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import {usePersonalDetail} from '@hooks/usePersonalDetails';
+import {usePersonalDetail, usePersonalDetailsByIDs} from '@hooks/usePersonalDetails';
 import useTransactionsAndViolationsForReport from '@hooks/useTransactionsAndViolationsForReport';
 
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
-import {getAllPersonalDetails} from '@libs/PersonalDetailsStore';
 import {getIOUActionForReportID} from '@libs/ReportActionsUtils';
 import {getOrCreateTransactionThreadReportID} from '@libs/TransactionThreadNavigationUtils';
 import {isDuplicate} from '@libs/TransactionUtils';
@@ -42,6 +41,7 @@ function ReviewDuplicatesPrimaryAction({reportID, chatReportID, isDisabled}: Sim
     const [guidedSetupAndTourStatus] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: guidedSetupAndTourStatusSelector});
     const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const [ownerLogin] = usePersonalDetail(moneyRequestReport?.ownerAccountID, loginSelector);
+    const [personalDetails] = usePersonalDetailsByIDs([accountID, moneyRequestReport?.ownerAccountID, moneyRequestReport?.managerID]);
 
     const {transactions: reportTransactionsMap} = useTransactionsAndViolationsForReport(moneyRequestReport?.reportID);
     const transactions = Object.values(reportTransactionsMap);
@@ -85,7 +85,7 @@ function ReviewDuplicatesPrimaryAction({reportID, chatReportID, isDisabled}: Sim
                                   hasCompletedGuidedSetupFlow: guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow,
                                   currentUserEmail: email,
                                   currentUserAccountID: accountID,
-                                  personalDetails: getAllPersonalDetails(),
+                                  personalDetails,
                                   fullPolicySnapshotLastModifiedByPolicyID:
                                       moneyRequestReport?.policyID && fullPolicySnapshotLastModified ? {[moneyRequestReport.policyID]: fullPolicySnapshotLastModified} : undefined,
                               },

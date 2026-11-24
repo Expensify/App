@@ -1,9 +1,10 @@
+import {buildAccountIDToNameMap} from '@hooks/useAccountIDToNameMap';
 import useOnyx from '@hooks/useOnyx';
+import {useAllPersonalDetails} from '@hooks/usePersonalDetails';
 import {buildReportIDToNameMap} from '@hooks/useReportIDToNameMap';
 
 import {isStandaloneURL, toMarkdownLink} from '@libs/MarkdownLinkHelpers';
 import Parser from '@libs/Parser';
-import {getAccountIDToNameMap} from '@libs/PersonalDetailsStore';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -123,6 +124,7 @@ function replaceEmojiImagesInHTML(html: string, images: HTMLImageElement[], repl
 }
 
 const useHtmlPaste: UseHtmlPaste = (textInputRef, preHtmlPasteCallback, isActive = false, maxLength = CONST.MAX_COMMENT_LENGTH + 1) => {
+    const [personalDetailsList] = useAllPersonalDetails();
     const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
 
     /**
@@ -184,9 +186,9 @@ const useHtmlPaste: UseHtmlPaste = (textInputRef, preHtmlPasteCallback, isActive
     const handlePastedHTML = useCallback(
         (html: string) => {
             // Built here rather than in render so it costs nothing until a paste actually happens.
-            paste(Parser.htmlToMarkdown(html, {reportIDToName: buildReportIDToNameMap(reports), accountIDToName: getAccountIDToNameMap()}));
+            paste(Parser.htmlToMarkdown(html, {reportIDToName: buildReportIDToNameMap(reports), accountIDToName: buildAccountIDToNameMap(personalDetailsList)}));
         },
-        [paste, reports],
+        [paste, reports, personalDetailsList],
     );
 
     /**

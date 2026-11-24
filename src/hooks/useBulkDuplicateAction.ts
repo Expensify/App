@@ -4,7 +4,6 @@ import {bulkDuplicateExpenses} from '@libs/actions/IOU/Duplicate';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Navigation from '@libs/Navigation/Navigation';
 import {isTrackOnboardingChoice} from '@libs/OnboardingUtils';
-import {getAllPersonalDetails} from '@libs/PersonalDetailsStore';
 import {canDuplicateExpenseIntoSourceReport} from '@libs/ReportUtils';
 
 import {getMoneyRequestParticipantsFromReport} from '@userActions/IOU/MoneyRequest';
@@ -30,6 +29,7 @@ import useOnyx from './useOnyx';
 import useParticipantsPolicyTags from './useParticipantsPolicyTags';
 import usePermissions from './usePermissions';
 import {useGetPersonalDetailsByLogin} from './usePersonalDetailByLogin';
+import {usePersonalDetailsByIDs} from './usePersonalDetails';
 import useReportIsArchived from './useReportIsArchived';
 import useRestrictedActionPolicyID from './useRestrictedActionPolicyID';
 
@@ -123,6 +123,7 @@ function useBulkDuplicateAction({
     const policyTagList = useMoneyRequestPolicyTagsForReport({report: duplicateTargetReport, currentUserAccountID: accountID});
     const participants = getMoneyRequestParticipantsFromReport(duplicateTargetReport, accountID);
     const participantsPolicyTags = useParticipantsPolicyTags(participants);
+    const [personalDetails] = usePersonalDetailsByIDs([participants.at(0)?.accountID]);
 
     const handleDuplicate = () => {
         if (restrictedActionPolicyID) {
@@ -141,7 +142,7 @@ function useBulkDuplicateAction({
             targetPolicyCategories: targetPolicyCategories ?? {},
             targetPolicyTags: targetPolicyTags ?? {},
             targetReport: duplicateTargetReport,
-            personalDetails: getAllPersonalDetails(),
+            personalDetails,
             isASAPSubmitBetaEnabled,
             introSelected,
             quickAction,

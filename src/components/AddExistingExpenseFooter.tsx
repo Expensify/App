@@ -6,12 +6,12 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import {useGetPersonalDetailsByLogin} from '@hooks/usePersonalDetailByLogin';
+import {usePersonalDetailsByIDs} from '@hooks/usePersonalDetails';
 import usePersonalPolicy from '@hooks/usePersonalPolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useTransactionsByID from '@hooks/useTransactionsByID';
 
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
-import {getAllPersonalDetails} from '@libs/PersonalDetailsStore';
 import {isIOUReport} from '@libs/ReportUtils';
 
 import Navigation from '@navigation/Navigation';
@@ -54,6 +54,7 @@ function AddExistingExpenseFooter({selectedIds, report, reportToConfirm, policy,
     const {getCurrencyDecimals, getCurrencySymbol} = useCurrencyListActions();
     const getPersonalDetailsByLogin = useGetPersonalDetailsByLogin();
     const session = useSession();
+    const [personalDetails] = usePersonalDetailsByIDs(Object.keys(report?.participants ?? {}).map(Number));
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const delegateAccountID = useDelegateAccountID();
     const personalPolicy = usePersonalPolicy();
@@ -94,7 +95,7 @@ function AddExistingExpenseFooter({selectedIds, report, reportToConfirm, policy,
                         transactionViolations,
                         policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
                         quickAction,
-                        personalDetails: getAllPersonalDetails(),
+                        personalDetails,
                         policyTagList: report?.policyID ? policyTagList : chatReportPolicyTagList,
                         selfDMReportActions,
                         delegateAccountID,
