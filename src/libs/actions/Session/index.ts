@@ -1479,10 +1479,10 @@ function clearDisableTwoFactorAuthErrors() {
 type ValidateTwoFactorAuthOptions = {
     shouldKeepTwoFactorAuthFlowOpen?: boolean;
 
-    /** Magic code emailed to the account before turning on 2FA */
+    /** Security code emailed to the account before turning on 2FA */
     validateCode?: string;
 
-    /** Called when the server rejects the magic code, so the user can enter a new one */
+    /** Called when the server rejects the security code, so the user can enter a new one */
     onInvalidValidateCode?: () => void;
 };
 
@@ -1545,7 +1545,7 @@ function validateTwoFactorAuth(twoFactorAuthCode: string, shouldClearData: boole
 
     // eslint-disable-next-line rulesdir/no-api-side-effects-method
     API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.TWO_FACTOR_AUTH_VALIDATE, params, {optimisticData, successData, failureData}).then((response) => {
-        // The server checks the authenticator code before the magic code, so this error means only the magic code needs replacing
+        // The server checks the authenticator code before the security code, so this error means only the security code needs replacing
         if (response?.jsonCode === CONST.JSON_CODE.INCORRECT_VALIDATE_CODE) {
             options.onInvalidValidateCode?.();
             return;

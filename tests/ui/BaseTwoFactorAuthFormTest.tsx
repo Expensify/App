@@ -113,8 +113,8 @@ describe('BaseTwoFactorAuthForm', () => {
         expect(mockToggleTwoFactorAuth).toHaveBeenCalledWith(false, '123456');
     });
 
-    it('sends the magic code along with the authenticator code when setting up 2FA', () => {
-        // Given the setup form, after the user entered the magic code emailed to them
+    it('sends the security code along with the authenticator code when setting up 2FA', () => {
+        // Given the setup form, after the user entered the security code emailed to them
         const formRef = createRef<BaseTwoFactorAuthFormRef>();
         const onInvalidValidateCode = jest.fn();
         render(
@@ -134,7 +134,7 @@ describe('BaseTwoFactorAuthForm', () => {
             formRef.current?.validateAndSubmitForm();
         });
 
-        // Then both codes are sent, because the server requires the magic code before it turns on 2FA
+        // Then both codes are sent, because the server requires the security code before it turns on 2FA
         expect(mockToggleTwoFactorAuth).not.toHaveBeenCalled();
         expect(mockValidateTwoFactorAuth).toHaveBeenCalledWith('123456', false, {shouldKeepTwoFactorAuthFlowOpen: false, validateCode: '654321', onInvalidValidateCode});
     });

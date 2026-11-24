@@ -22,10 +22,10 @@ type BaseTwoFactorAuthFormProps = {
      */
     validateInsteadOfDisable?: boolean;
 
-    /** Magic code emailed to the account, sent along with the authenticator code when setting up 2FA */
+    /** Security code emailed to the account, sent along with the authenticator code when setting up 2FA */
     validateCode?: string;
 
-    /** Called when the server rejects the magic code, so the page can ask for a new one */
+    /** Called when the server rejects the security code, so the page can ask for a new one */
     onInvalidValidateCode?: () => void;
 
     /** Callback that is called when the text input is focused */

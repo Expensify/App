@@ -1,12 +1,14 @@
-import {act, render} from '@testing-library/react-native';
+import {act, render, screen} from '@testing-library/react-native';
 
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
+import ValidateCodeActionForm from '@components/ValidateCodeActionForm';
 
 import Navigation from '@libs/Navigation/Navigation';
 
 import DynamicTwoFactorAuthPage from '@pages/settings/Security/TwoFactorAuth/DynamicTwoFactorAuthPage';
 
 import {toggleTwoFactorAuth} from '@userActions/Session';
+import {setEnteredSecurityCode} from '@userActions/TwoFactorAuthActions';
 
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -14,6 +16,7 @@ import SCREENS from '@src/SCREENS';
 import type {Account} from '@src/types/onyx';
 
 import type * as ReactNavigationNative from '@react-navigation/native';
+import type {View} from 'react-native';
 
 import React from 'react';
 import Onyx from 'react-native-onyx';
@@ -23,6 +26,7 @@ import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 const RECOVERY_CODES = 'aaaa1111, bbbb2222';
 
 let mockIsFocused = true;
+let mockEnteredSecurityCode: string | undefined;
 
 jest.mock('@react-navigation/native', () => {
     const actualNav = jest.requireActual<typeof ReactNavigationNative>('@react-navigation/native');
@@ -44,13 +48,25 @@ jest.mock('@libs/Navigation/Navigation', () => ({
 jest.mock('@hooks/useDynamicBackPath', () => jest.fn(() => 'settings/security'));
 
 jest.mock('@userActions/Session', () => ({
+    clearAccountMessages: jest.fn(),
     toggleTwoFactorAuth: jest.fn(),
 }));
 
 jest.mock('@userActions/TwoFactorAuthActions', () => ({
+    getEnteredSecurityCode: jest.fn(() => mockEnteredSecurityCode),
     quitAndNavigateBack: jest.fn(),
     setCodesAreCopied: jest.fn(),
+    setEnteredSecurityCode: jest.fn(),
 }));
+
+jest.mock('@userActions/User', () => ({
+    requestValidateCodeAction: jest.fn(),
+}));
+
+jest.mock('@components/ValidateCodeActionForm', () => {
+    const {View: RNView} = jest.requireActual<{View: typeof View}>('react-native');
+    return jest.fn(() => <RNView testID="security-code-form" />);
+});
 
 jest.mock('@pages/settings/Security/TwoFactorAuth/TwoFactorAuthWrapper', () => {
     function MockTwoFactorAuthWrapper({children}: {children: React.ReactNode}) {
@@ -152,6 +168,7 @@ describe('DynamicTwoFactorAuthPage', () => {
     beforeEach(async () => {
         jest.clearAllMocks();
         mockIsFocused = true;
+        mockEnteredSecurityCode = undefined;
         mockGetState.mockReturnValue(buildStackState([PAGE_ROUTE, VERIFY_ROUTE]));
         await Onyx.clear();
         await waitForBatchedUpdates();
@@ -173,8 +190,45 @@ describe('DynamicTwoFactorAuthPage', () => {
         expect(mockToggleTwoFactorAuth).not.toHaveBeenCalled();
     });
 
+    it('asks for the security code before creating and showing the recovery codes', async () => {
+        // Given a validated account starting a fresh 2FA setup
+        await Onyx.merge(ONYXKEYS.ACCOUNT, {validated: true, requiresTwoFactorAuth: false});
+
+        // When the setup opens
+        const view = await renderPage();
+
+        // Then it asks for the emailed security code first and does not create the secret and recovery codes yet, so the user
+        // proves they can read their email before anything else
+        expect(screen.getByTestId('security-code-form')).toBeTruthy();
+        expect(mockToggleTwoFactorAuth).not.toHaveBeenCalled();
+
+        // When the user enters the security code and the recovery codes come back
+        await act(async () => {
+            jest.mocked(ValidateCodeActionForm).mock.calls.at(-1)?.at(0)?.handleSubmitForm('123456');
+            await waitForBatchedUpdates();
+        });
+        await updateAccount({recoveryCodes: RECOVERY_CODES});
+
+        // Then the code is kept for the verify step, which sends it with the authenticator code, and the recovery codes are
+        // created and shown
+        expect(jest.mocked(setEnteredSecurityCode)).toHaveBeenCalledWith('123456');
+        expect(mockToggleTwoFactorAuth).toHaveBeenCalledTimes(1);
+        expect(screen.queryByTestId('security-code-form')).toBeNull();
+        expect(screen.getByText('aaaa1111')).toBeTruthy();
+
+        // When they go on to the verify step and come back, which on native mounts this page again
+        view.unmount();
+        mockEnteredSecurityCode = '123456';
+        await renderPage();
+
+        // Then the recovery codes show right away, because asking again would email a new code and make the first one useless
+        expect(screen.queryByTestId('security-code-form')).toBeNull();
+        expect(screen.getByText('aaaa1111')).toBeTruthy();
+    });
+
     it('calls Toggle once for a fresh setup', async () => {
-        // Given a validated account with no setup in progress
+        // Given a validated account with no setup in progress, which has entered the emailed security code
+        mockEnteredSecurityCode = '123456';
         await Onyx.merge(ONYXKEYS.ACCOUNT, {validated: true, requiresTwoFactorAuth: false});
 
         // When the codes page opens
@@ -186,7 +240,8 @@ describe('DynamicTwoFactorAuthPage', () => {
     });
 
     it('does not call Toggle again when focus flickers before the response arrives', async () => {
-        // Given a fresh setup whose EnableTwoFactorAuth request has not returned codes yet
+        // Given a fresh setup past the security code step, whose EnableTwoFactorAuth request has not returned codes yet
+        mockEnteredSecurityCode = '123456';
         await Onyx.merge(ONYXKEYS.ACCOUNT, {validated: true, requiresTwoFactorAuth: false});
         const view = await renderPage();
         expect(mockToggleTwoFactorAuth).toHaveBeenCalledTimes(1);
@@ -200,7 +255,8 @@ describe('DynamicTwoFactorAuthPage', () => {
     });
 
     it('retries Toggle after a failed request once the page is focused again', async () => {
-        // Given a fresh setup whose first EnableTwoFactorAuth request has not returned codes
+        // Given a fresh setup past the security code step, whose first EnableTwoFactorAuth request has not returned codes
+        mockEnteredSecurityCode = '123456';
         await Onyx.merge(ONYXKEYS.ACCOUNT, {validated: true, requiresTwoFactorAuth: false});
         const view = await renderPage();
         expect(mockToggleTwoFactorAuth).toHaveBeenCalledTimes(1);

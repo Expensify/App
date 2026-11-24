@@ -23,6 +23,7 @@ import {getContactMethod} from '@libs/UserUtils';
 import createDynamicRoute from '@navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 
 import {clearAccountMessages} from '@userActions/Session';
+import {getEnteredSecurityCode, setEnteredSecurityCode} from '@userActions/TwoFactorAuthActions';
 import {requestValidateCodeAction} from '@userActions/User';
 
 import CONST from '@src/CONST';
@@ -47,7 +48,7 @@ function DynamicVerifyPage() {
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const icons = useMemoizedLazyExpensifyIcons(['Copy']);
-    const [validateCode, setValidateCode] = useState<string>();
+    const [validateCode, setValidateCode] = useState(getEnteredSecurityCode);
     const [isValidateCodeRejected, setIsValidateCodeRejected] = useState(false);
     const contactMethod = getContactMethod(account?.primaryLogin, session?.email);
     const formRef = useRef<BaseTwoFactorAuthFormRef>(null);
@@ -95,14 +96,13 @@ function DynamicVerifyPage() {
 
     const goBackToRecoveryCodes = () => Navigation.goBack(createDynamicRoute(DYNAMIC_ROUTES.TWO_FACTOR_AUTH_ROOT.path, backPath));
     const stepCounter = {
-        step: 2,
+        step: 3,
         text: translate('twoFactorAuth.stepVerify'),
-        total: 2,
+        total: 3,
     };
 
-    // The server only turns on 2FA when it also gets a magic code emailed to the account, so someone with a stolen session
-    // can't lock the owner out. We ask for it before the authenticator code because that code expires within a minute,
-    // which isn't enough time to also wait for an email.
+    // The user enters the security code on the first step. This page asks for it again when the server rejected it, or when
+    // the app reloaded and the code from the first step is gone.
     if (!validateCode) {
         return (
             <TwoFactorAuthWrapper
@@ -119,6 +119,7 @@ function DynamicVerifyPage() {
                     sendValidateCode={() => requestValidateCodeAction({reasonCode: CONST.ENABLE_TWO_FACTOR_AUTH_VALIDATE_CODE_REASON})}
                     handleSubmitForm={(code) => {
                         setIsValidateCodeRejected(false);
+                        setEnteredSecurityCode(code);
                         setValidateCode(code);
                     }}
                     clearError={clearAccountMessages}
@@ -188,8 +189,9 @@ function DynamicVerifyPage() {
                         ref={formRef}
                         validateCode={validateCode}
                         onInvalidValidateCode={() => {
-                            // Showing the magic code step again emails a new code, since the rejected one may have expired
+                            // Showing the security code form again emails a new code, since the rejected one may have expired
                             setIsValidateCodeRejected(true);
+                            setEnteredSecurityCode(undefined);
                             setValidateCode(undefined);
                         }}
                         shouldAutoFocusOnMobile={false}
