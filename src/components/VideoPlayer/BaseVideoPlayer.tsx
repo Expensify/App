@@ -32,6 +32,7 @@ import {scheduleOnRN} from 'react-native-worklets';
 import type VideoPlayerProps from './types';
 
 import useHandleNativeVideoControls from './useHandleNativeVideoControls';
+import useVideoPlayerPosition from './useVideoPlayerPosition';
 import {buildVideoSourceURL} from './utils';
 import VideoErrorIndicator from './VideoErrorIndicator';
 import VideoPlayerControls from './VideoPlayerControls';
@@ -102,7 +103,7 @@ function BaseVideoPlayer(props: BaseVideoPlayerProps) {
     // `useEvent` — direct `.playing` read wouldn't re-render when play state changes.
     const {isPlaying} = useEvent(videoPlayerRef.current, 'playingChange', {isPlaying: videoPlayerRef.current.playing, oldIsPlaying: false});
 
-    const {currentTime} = useEvent(videoPlayerRef.current, 'timeUpdate', {currentTime: 0, bufferedPosition: 0, currentLiveTimestamp: null, currentOffsetFromLive: null});
+    const {currentTime, position, setSeekTargetPosition} = useVideoPlayerPosition(videoPlayerRef.current);
     const {status} = useEvent(videoPlayerRef.current, 'statusChange', {status: shouldUseSharedVideoElement ? playerStatus.current : 'loading'});
 
     const isLoading = useMemo(() => {
@@ -630,6 +631,7 @@ function BaseVideoPlayer(props: BaseVideoPlayerProps) {
                                             ref={videoViewRef}
                                             contentFit="contain"
                                             onFullscreenEnter={() => {
+                                                setSeekTargetPosition(null);
                                                 setIsFullScreen(true);
                                                 if (!(videoPlayerElementParentRef.current && 'addEventListener' in videoPlayerElementParentRef.current)) {
                                                     return;
@@ -658,7 +660,7 @@ function BaseVideoPlayer(props: BaseVideoPlayerProps) {
                                 (isPopoverVisible || isHovered || canUseTouchScreen || isEnded) && (
                                     <VideoPlayerControls
                                         duration={duration || 0}
-                                        position={currentTime || 0}
+                                        position={position}
                                         url={url}
                                         fileName={fileName}
                                         videoPlayerRef={videoPlayerRef}
@@ -669,6 +671,8 @@ function BaseVideoPlayer(props: BaseVideoPlayerProps) {
                                         togglePlayCurrentVideo={togglePlayCurrentVideo}
                                         controlsStatus={controlStatusState}
                                         reportID={reportID}
+                                        onSeek={setSeekTargetPosition}
+                                        onEnterFullScreen={() => setSeekTargetPosition(null)}
                                         onSeekStart={() => {
                                             allowSharedAutoPlayRef.current = false;
                                             debouncedHideControl.cancel();

@@ -52,6 +52,12 @@ type VideoPlayerControlsProps = {
 
     reportID: string | undefined;
 
+    /** Receives the requested position in seconds, before the player completes the seek. */
+    onSeek?: (position: number) => void;
+
+    /** Hands position tracking back to native fullscreen controls. */
+    onEnterFullScreen?: () => void;
+
     /** Callback when user starts dragging the progress bar. */
     onSeekStart?: () => void;
 
@@ -100,6 +106,8 @@ function VideoPlayerControls({
     togglePlayCurrentVideo,
     controlsStatus = CONST.VIDEO_PLAYER.CONTROLS_STATUS.SHOW,
     reportID,
+    onSeek,
+    onEnterFullScreen,
     onSeekStart,
     onSeekEnd,
 }: VideoPlayerControlsProps) {
@@ -116,6 +124,7 @@ function VideoPlayerControls({
     };
 
     const enterFullScreenMode = () => {
+        onEnterFullScreen?.();
         updateCurrentURLAndReportID(url, report, reportID);
         videoViewRef.current?.enterFullscreen();
     };
@@ -126,6 +135,7 @@ function VideoPlayerControls({
         }
         // eslint-disable-next-line no-param-reassign
         videoPlayerRef.current.currentTime = newPosition;
+        onSeek?.(newPosition);
     };
 
     const durationFormatted = convertSecondsToTime(duration);
