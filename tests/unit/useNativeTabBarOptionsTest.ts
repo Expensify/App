@@ -195,4 +195,18 @@ describe('iOS useNativeTabBarOptions labels', () => {
         // the glyph's corner, since the classic bar squeezes a wider icon
         expect(layout?.accessoryPlacement).toBe(expectedPlacement);
     });
+
+    it('places the More chevron over the glyph corner in the vertical bar on iOS 26', () => {
+        // Given the flat nav bar laid out as a column, as on a foldable iPhone, on iOS 26
+        jest.spyOn(Platform, 'Version', 'get').mockReturnValue('26.0');
+        const {result} = renderHook(() => useIOSNativeTabBarOptions({...FLAT_NAV_PARAMS, isTabBarVertical: true}));
+
+        // When the More item options are built while the user is on Workspaces
+        result.current.getTabOptions(SCREENS.NATIVE_TAB_ITEM.MORE, MORE_MENU.ITEM.WORKSPACES);
+        const layout = mockGetTabBarIcon.mock.calls.at(-1)?.[0];
+
+        // Then the chevron goes over the glyph's corner, since the column has no label to center the glyph over and a
+        // chevron beside it would make the More icon more than twice as wide as the others
+        expect(layout?.accessoryPlacement).toBe('corner');
+    });
 });

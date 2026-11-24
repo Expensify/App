@@ -55,8 +55,8 @@ function useNativeTabBarOptions({shouldShowNativeTabBar, isTabBarVertical, dotCo
     const shouldDrawLabels = Number.parseInt(String(Platform.Version), 10) >= LIQUID_GLASS_IOS_VERSION;
     // A column has the height for a stacked tab whatever the orientation.
     const isInline = isInLandscapeMode && !isTabBarVertical;
-    // The classic bar would squeeze an icon widened by the More chevron, so the chevron goes over the glyph's corner there.
-    const accessoryPlacement = shouldDrawLabels ? 'beside' : 'corner';
+    // The classic bar and the column squeeze an icon widened by the More chevron, so the chevron goes over the glyph's corner there.
+    const accessoryPlacement = shouldDrawLabels && !isTabBarVertical ? 'beside' : 'corner';
     const tabIconLayout: TabIconLayout = {...(isInline ? LANDSCAPE_TAB_ICON_LAYOUT : TAB_ICON_LAYOUT), accessoryPlacement};
     const barItemCount = Object.keys(tabLabels).length;
     const itemWidth = (windowWidth - 2 * variables.iosNativeTabBarHorizontalInset) / barItemCount - variables.iosNativeTabBarLabelInset;

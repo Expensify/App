@@ -52,13 +52,11 @@ type GetMoreMenuItemsParams = FlatNavTabBarFocus & {
     workspacesDotColor?: string;
 };
 
-const SECTION_ITEM_IDS: readonly MoreMenuSectionItemID[] = [MORE_MENU.ITEM.ACCOUNTING, MORE_MENU.ITEM.SAVED];
-
 function getMoreMenuItems({sections, focusedTabRouteName, activeFlatNavSectionID, workspacesDotColor}: GetMoreMenuItemsParams): MoreMenuItem[] {
     const activeItemID = getMoreTabItemID({focusedTabRouteName, activeFlatNavSectionID});
 
     const items: MoreMenuItem[] = [];
-    for (const id of SECTION_ITEM_IDS) {
+    for (const id of MORE_MENU.SECTION_ITEMS) {
         const section = sections.find((visibleSection) => visibleSection.id === id);
         // Offline, the Saved section stays visible while all its saved searches are pending delete, and none of them can be opened.
         if (!section || !getFlatNavSectionDefaultItem(section)) {
