@@ -866,8 +866,9 @@ function getAutoReportingDates(policy: OnyxEntry<Policy>, report: Report, curren
     const frequency = policy.autoReportingFrequency;
     const offset = policy.autoReportingOffset;
 
-    // Trip reports use the actual first and last expense dates. Workspaces with no reporting period use them too, matching
-    // the backend, so the title never shows a date unrelated to the report.
+    // Trip reports use the actual first and last expense dates. So do workspaces with no reporting period, matching the
+    // backend, so the title never shows a date unrelated to the report. That is auto-reporting off, instant, or
+    // "immediate", which is daily or manual submission.
     const hasAutoReportingPeriod = isDelayedSubmissionEnabled(policy) && frequency !== CONST.POLICY.AUTO_REPORTING_FREQUENCIES.IMMEDIATE;
     if (!hasAutoReportingPeriod || frequency === CONST.POLICY.AUTO_REPORTING_FREQUENCIES.TRIP) {
         // Like the backend, a report without expenses uses the date it was created

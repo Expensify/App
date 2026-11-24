@@ -45,13 +45,12 @@ function getLocalizedNames(date: Date) {
 }
 
 /**
- * Get time components in UTC timezone (to match Classic/OldDot behavior)
+ * Get the hour, minute and second of a date, and their 12-hour forms
  */
-function getUTCTimeComponents(date: Date) {
-    // Use UTC methods to match Classic behavior
-    const hours = date.getUTCHours();
-    const minutes = date.getUTCMinutes();
-    const seconds = date.getUTCSeconds();
+function getTimeComponents(date: Date) {
+    const hours = date.getHours();
+    const minutes = date.getMinutes();
+    const seconds = date.getSeconds();
 
     let hours12 = hours;
     if (hours === 0) {
@@ -82,9 +81,9 @@ function formatRFC2822(date: Date): string {
     const day = date.getDate().toString().padStart(2, '0');
     const year = date.getFullYear();
 
-    const hours = date.getUTCHours().toString().padStart(2, '0');
-    const minutes = date.getUTCMinutes().toString().padStart(2, '0');
-    const seconds = date.getUTCSeconds().toString().padStart(2, '0');
+    const hours = date.getHours().toString().padStart(2, '0');
+    const minutes = date.getMinutes().toString().padStart(2, '0');
+    const seconds = date.getSeconds().toString().padStart(2, '0');
 
     // Get timezone offset in format +0000 or -0500
     const timezoneOffset = -date.getTimezoneOffset();
@@ -109,14 +108,12 @@ function createDateTokens(date: Date): Array<{token: string; value: string}> {
     const isoDayOfWeek = dayOfWeek === 0 ? 7 : dayOfWeek; // 1 = Monday, 7 = Sunday
     const dayOfYear = calculateDayOfYear(date);
     const daysInMonth = new Date(year, month, 0).getDate();
-    // Read the week in local time like the day and month above, so it is the week of the day the title shows
     const weekNumber = getISOWeek(date);
 
     // Get localized names
     const {fullMonthName, shortMonthName, fullDayName, shortDayName} = getLocalizedNames(date);
 
-    // Get time components in UTC timezone (to match Classic/OldDot behavior)
-    const {hours, minutes, seconds, hours12, meridiem, meridiemUpperCase} = getUTCTimeComponents(date);
+    const {hours, minutes, seconds, hours12, meridiem, meridiemUpperCase} = getTimeComponents(date);
 
     return [
         // Year formats (longest to shortest)
@@ -216,8 +213,10 @@ function formatDate(dateString: string | undefined, format = 'yyyy-MM-dd'): stri
     }
 
     try {
-        // Expense dates are stored without a time, like "2025-01-20". new Date() reads that as midnight UTC, which is the
-        // previous day west of UTC, so parseISO reads it as local midnight to keep the day the backend uses.
+        // Dates are stored without a time zone, like the expense date "2025-01-20" or the report's created time
+        // "2025-01-08 15:30:45". parseISO reads them as local time and every token below reads local time, so the
+        // title shows the stored date and time, like the backend. new Date() would read "2025-01-20" as midnight UTC,
+        // which is the previous day west of UTC.
         const date = parseISO(dateString);
         if (Number.isNaN(date.getTime())) {
             return '';
