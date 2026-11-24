@@ -6,7 +6,10 @@ import useLoadPolicyTags from '@hooks/useLoadPolicyTags';
 import type * as PolicyCategory from '@libs/actions/Policy/Category';
 import type * as PolicyTag from '@libs/actions/Policy/Tag';
 
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import type {ValueOf} from 'type-fest';
 
 import Onyx from 'react-native-onyx';
 
@@ -16,6 +19,21 @@ import Onyx from 'react-native-onyx';
  */
 
 const POLICY_ID = 'A1B2C3';
+const CURRENT_USER_EMAIL = 'picker@test.com';
+
+/** Signs the current user in and stores the workspace with the given role for them */
+async function setCurrentUserRole(role: ValueOf<typeof CONST.POLICY.ROLE>) {
+    await Onyx.merge(ONYXKEYS.SESSION, {
+        email: CURRENT_USER_EMAIL,
+        accountID: 1,
+    });
+    await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, {
+        id: POLICY_ID,
+        type: CONST.POLICY.TYPE.CORPORATE,
+        role,
+        employeeList: {[CURRENT_USER_EMAIL]: {email: CURRENT_USER_EMAIL, role}},
+    });
+}
 
 const mockGetPolicyCategories = jest.fn<void, [string]>();
 const mockOpenPolicyTagsPage = jest.fn<void, [string]>();
@@ -73,13 +91,32 @@ describe.each(hooks)('$name', ({renderPicker, getIsLoading, mockRead}) => {
         expect(mockRead).not.toHaveBeenCalled();
     });
 
-    it('reports loading and dispatches a read when a policyID is given and nothing is cached', async () => {
+    it.each([CONST.POLICY.ROLE.ADMIN, CONST.POLICY.ROLE.AUDITOR])('reports loading and dispatches a read for a %s when nothing is cached', async (role) => {
+        // Given a role that Auth lets read the workspace's categories and tags
+        await setCurrentUserRole(role);
+
+        // When a picker for the workspace mounts
         const {result} = renderPicker(POLICY_ID);
 
+        // Then the read is sent and the picker shows a skeleton until it lands
         await waitFor(() => {
             expect(mockRead).toHaveBeenCalledWith(POLICY_ID);
         });
         expect(getIsLoading(result.current)).toBe(true);
+    });
+
+    it('settles on not-loading and dispatches no read for a regular member', async () => {
+        // Given a regular member, whom Auth rejects for this read, so sending it would only fail on every picker open
+        await setCurrentUserRole(CONST.POLICY.ROLE.USER);
+
+        // When a picker for the workspace mounts
+        const {result} = renderPicker(POLICY_ID);
+
+        // Then no read is sent and the picker shows the categories or tags already in Onyx instead of a skeleton
+        await waitFor(() => {
+            expect(getIsLoading(result.current)).toBe(false);
+        });
+        expect(mockRead).not.toHaveBeenCalled();
     });
 });
 
@@ -94,7 +131,8 @@ describe('useLoadPolicyTags hasLoadedPolicyTags', () => {
     });
 
     it('stays false until the tags read completes, then becomes true', async () => {
-        // Given a policy whose tags were never read in this session, so any cached collection may be partial
+        // Given an admin of a policy whose tags were never read in this session, so any cached collection may be partial
+        await setCurrentUserRole(CONST.POLICY.ROLE.ADMIN);
         const {result} = renderHook(() => useLoadPolicyTags(POLICY_ID));
 
         // When the read is dispatched but has not completed
