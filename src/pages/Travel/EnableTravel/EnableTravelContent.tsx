@@ -74,7 +74,11 @@ function EnableTravelContent({policy, policyID, account, privatePersonalDetails,
 
     // Admins enabling travel choose who gets it, which only matters when the workspace has members besides them. Without
     // the beta the step is skipped, so every member gets travel like before.
-    const needsTravelMembers = isBetaEnabled(CONST.BETAS.TRAVEL_MEMBER_ACCESS) && !isProvisioned && isPolicyAdmin(policy) && Object.keys(policy?.employeeList ?? {}).length > 1;
+    const needsTravelMembers =
+        isBetaEnabled(CONST.BETAS.TRAVEL_MEMBER_ACCESS) &&
+        !isProvisioned &&
+        isPolicyAdmin(policy) &&
+        Object.values(policy?.employeeList ?? {}).filter((employee) => employee?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE).length > 1;
 
     let resolvedDomain;
     if (isProvisioned) {
@@ -149,7 +153,10 @@ function EnableTravelContent({policy, policyID, account, privatePersonalDetails,
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
-    const pages = enabledStepNames.map((pageName) => ({pageName, component: STEP_COMPONENT_BY_PAGE_NAME[pageName] ?? TermsStep}));
+    const pages = enabledStepNames.map((pageName) => ({
+        pageName,
+        component: STEP_COMPONENT_BY_PAGE_NAME[pageName] ?? TermsStep,
+    }));
 
     const startFrom = account === undefined ? -1 : 0;
 

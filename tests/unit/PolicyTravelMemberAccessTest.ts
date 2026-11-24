@@ -1,7 +1,7 @@
 import {setPolicyTravelMemberAccess} from '@libs/actions/Policy/Travel';
 import {write} from '@libs/API';
 import {WRITE_COMMANDS} from '@libs/API/types';
-import {canMemberChangeTravelAccess, canMemberUseTravel, isMemberTravelAccessTurnedOff} from '@libs/PolicyUtils';
+import {canChangeMemberTravelAccess, canMemberUseTravel, isMemberTravelAccessTurnedOff} from '@libs/PolicyUtils';
 
 import CONST from '@src/CONST';
 import type {Policy, PolicyEmployee} from '@src/types/onyx';
@@ -45,21 +45,25 @@ describe('Policy travel member access', () => {
     });
 
     describe('setPolicyTravelMemberAccess', () => {
-        it('does nothing when the stored value already matches', () => {
-            // Given a member whose travel access is already stored as on
+        it('does nothing when the member already has the requested access', () => {
+            // Given a member without a stored value, who can book travel
             // When an admin turns travel on for them
-            setPolicyTravelMemberAccess(buildPolicy({canUseTravel: true}), [MEMBER], true);
+            setPolicyTravelMemberAccess(buildPolicy({}), [MEMBER], true);
 
             // Then no request is sent, since nothing would change
             expect(mockWrite).not.toHaveBeenCalled();
+
+            // And turning off a member who is already off sends nothing either
+            setPolicyTravelMemberAccess(buildPolicy({canUseTravel: false}), [MEMBER], false);
+            expect(mockWrite).not.toHaveBeenCalled();
         });
 
-        it('stores off for a member without a stored value', () => {
-            // Given a member without a stored travel access value, who shows as off
+        it('stores false when turning a member off', () => {
+            // Given a member without a stored value, who can book travel
             // When an admin turns travel off for them
             setPolicyTravelMemberAccess(buildPolicy({}), [MEMBER], false);
 
-            // Then off is still sent and stored, so the member is explicitly turned off like the server stores it
+            // Then false is sent and stored optimistically, the only value the server stores
             expect(mockWrite).toHaveBeenCalledWith(
                 WRITE_COMMANDS.SET_POLICY_TRAVEL_MEMBER_ACCESS,
                 {policyID: 'policy-1', employeeAccountIDList: String(MEMBER.accountID), enabled: false},
@@ -67,13 +71,20 @@ describe('Policy travel member access', () => {
             );
         });
 
-        it('restores the stored value and marks the member as a failed update on failure', () => {
-            // Given a member whose travel access is stored as off
+        it('removes the stored false when turning a member on, and restores it on failure', () => {
+            // Given a member whose travel access is turned off
             // When an admin turns travel on for them
             setPolicyTravelMemberAccess(buildPolicy({canUseTravel: false}), [MEMBER], true);
 
-            // Then a failure restores off and marks the member as a failed update, so dismissing the error keeps them in
-            // the list, and a success only clears the pending field
+            // Then the stored false is removed optimistically, since a member without a value can book travel
+            expect(mockWrite).toHaveBeenCalledWith(
+                WRITE_COMMANDS.SET_POLICY_TRAVEL_MEMBER_ACCESS,
+                {policyID: 'policy-1', employeeAccountIDList: String(MEMBER.accountID), enabled: true},
+                withEmployeeUpdate('optimisticData', {canUseTravel: null, pendingFields: {canUseTravel: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}}),
+            );
+
+            // And a failure restores false and marks the member as a failed update, so dismissing the error keeps them in
+            // the list, while a success only clears the pending field
             expect(mockWrite).toHaveBeenCalledWith(
                 WRITE_COMMANDS.SET_POLICY_TRAVEL_MEMBER_ACCESS,
                 expect.anything(),
@@ -94,15 +105,14 @@ describe('Policy travel member access', () => {
 
     describe('travel member helpers', () => {
         it.each([
-            [undefined, false, false],
-            [true, true, false],
+            [undefined, true, false],
             [false, false, true],
         ])('reads canUseTravel %s as can use travel %s and turned off %s', (canUseTravel, expectedCanUseTravel, expectedTurnedOff) => {
             // Given a member with the stored travel access value
             const policy = buildPolicy(canUseTravel === undefined ? {} : {canUseTravel});
 
             // When the app reads it
-            // Then only an explicit true shows them as able to book, and only an explicit false blocks booking
+            // Then only a stored false stops them from booking
             expect(canMemberUseTravel(policy, MEMBER.email)).toBe(expectedCanUseTravel);
             expect(isMemberTravelAccessTurnedOff(policy, MEMBER.email)).toBe(expectedTurnedOff);
         });
@@ -122,12 +132,33 @@ describe('Policy travel member access', () => {
             const policy: Policy = {
                 ...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE),
                 owner: 'owner@example.com',
+                travelSettings: {spotnanaCompanyID: 'company'},
                 employeeList: Object.fromEntries(WORKSPACE_MEMBERS.map(([email, role]) => [email, {email, role}])),
             };
 
             // When we check whether the member can change the target's travel access
             // Then members who manage travel can, except that only full admins can change it for the owner and workspace admins, like Auth
-            expect(canMemberChangeTravelAccess(policy, login, targetLogin)).toBe(expected);
+            expect(canChangeMemberTravelAccess(policy, login, targetLogin, true)).toBe(expected);
+        });
+
+        it('lets nobody change travel access without the beta, before travel is provisioned, or for a member still being added', () => {
+            // Given a provisioned Control workspace with an admin and a member
+            const policy: Policy = {
+                ...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE),
+                owner: 'owner@example.com',
+                travelSettings: {spotnanaCompanyID: 'company'},
+                employeeList: Object.fromEntries(WORKSPACE_MEMBERS.map(([email, role]) => [email, {email, role}])),
+            };
+
+            // When the beta is off, travel isn't provisioned, or the member is still being added
+            // Then even a workspace admin can't change their travel access
+            expect(canChangeMemberTravelAccess(policy, 'admin@example.com', 'member@example.com', false)).toBe(false);
+            expect(canChangeMemberTravelAccess({...policy, travelSettings: undefined}, 'admin@example.com', 'member@example.com', true)).toBe(false);
+            const pendingMemberPolicy: Policy = {
+                ...policy,
+                employeeList: {...policy.employeeList, [MEMBER.email]: {email: MEMBER.email, role: CONST.POLICY.ROLE.USER, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD}},
+            };
+            expect(canChangeMemberTravelAccess(pendingMemberPolicy, 'admin@example.com', 'member@example.com', true)).toBe(false);
         });
 
         it('keeps travel admins from changing the owner even when the owner is not listed as an admin', () => {
@@ -137,6 +168,7 @@ describe('Policy travel member access', () => {
             const policy: Policy = {
                 ...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE),
                 owner: ownerEmail,
+                travelSettings: {spotnanaCompanyID: 'company'},
                 employeeList: {
                     [ownerEmail]: {email: ownerEmail, role: CONST.POLICY.ROLE.USER},
                     [travelAdminEmail]: {email: travelAdminEmail, role: CONST.POLICY.ROLE.TRAVEL_ADMIN},
@@ -145,7 +177,7 @@ describe('Policy travel member access', () => {
 
             // When a travel admin checks whether they can change the owner's travel access
             // Then they can't, because Auth treats the owner as an admin whatever role is listed
-            expect(canMemberChangeTravelAccess(policy, travelAdminEmail, ownerEmail)).toBe(false);
+            expect(canChangeMemberTravelAccess(policy, travelAdminEmail, ownerEmail, true)).toBe(false);
         });
     });
 });

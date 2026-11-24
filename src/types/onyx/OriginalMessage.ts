@@ -968,6 +968,27 @@ type OriginalMessageOfficeLocationChangeLog = {
     oldAddress?: CompanyAddress;
 };
 
+/** Model of a member named in the change log posted when an admin sets up travel for chosen members */
+type OriginalMessageTravelSetupMember = {
+    /** Account ID of the member */
+    accountID?: number;
+
+    /** Login of the member */
+    email?: string;
+
+    /** Display name of the member */
+    name?: string;
+};
+
+/** Model of the change log posted when an admin sets up travel for chosen members, turning everyone else off */
+type OriginalMessageSetUpTravelMemberAccessChangeLog = {
+    /** The first members whose travel booking was turned off */
+    members?: OriginalMessageTravelSetupMember[];
+
+    /** How many members had travel booking turned off in all */
+    count?: number;
+};
+
 /** Model of a member office location change log action */
 type OriginalMessageEmployeeOfficeLocationChangeLog = {
     /** Account ID of the member */
@@ -1990,6 +2011,7 @@ type OriginalMessageMap = {
         [CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_OFFICE_LOCATION]: OriginalMessageOfficeLocationChangeLog;
         [CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_OFFICE_LOCATION]: OriginalMessageOfficeLocationChangeLog;
         [CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_EMPLOYEE_OFFICE_LOCATION]: OriginalMessageEmployeeOfficeLocationChangeLog;
+        [CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.SET_UP_TRAVEL_MEMBER_ACCESS]: OriginalMessageSetUpTravelMemberAccessChangeLog;
     } & Record<ValueOf<typeof CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG>, OriginalMessageChangeLog>;
 
 type OriginalMessage<T extends ReportActionName> = T extends keyof OriginalMessageMap ? OriginalMessageBase & OriginalMessageMap[T] : never;

@@ -11036,6 +11036,13 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
                 : `heeft de goedkeuringsworkflow voor ${member} gewijzigd zodat rapporten boven ${previousLimit} niet meer worden doorgestuurd`,
         changedApprovalLimit: ({member, limit, previousLimit}: {member: string; limit: string; previousLimit: string}) =>
             `heeft de goedkeuringsworkflow voor ${member} gewijzigd om rapporten boven ${limit} door te sturen (voorheen ${previousLimit})`,
+        updatedMemberTravelAccess: ({displayName, canUseTravel}: {displayName: string; canUseTravel: boolean}) =>
+            canUseTravel ? `heeft reizen boeken ingeschakeld voor ${displayName}` : `heeft reizen boeken uitgeschakeld voor ${displayName}`,
+        setUpTravelMemberAccess: ({memberNames}: {memberNames: string}) => `heeft reizen boeken uitgeschakeld voor ${memberNames}`,
+        travelSetupOtherMembers: ({count}: {count: number}) => ({
+            one: '1 andere persoon',
+            other: `${count} andere personen`,
+        }),
         updatedMemberWorkArrangement: ({displayName, newArrangement, oldArrangement}: {displayName: string; newArrangement: string; oldArrangement: string}) =>
             `heeft de werkregeling van ${displayName} gewijzigd naar ${newArrangement} (voorheen ${oldArrangement})`,
         updatedDefaultWorkArrangement: ({newArrangement, oldArrangement}: {newArrangement: string; oldArrangement: string}) =>

@@ -1844,9 +1844,10 @@ describe('PolicyUtils', () => {
                 // When we check who can assign the travel admin role
                 // Then only the Control workspace admin can, since it is an elevated, Control-only role
                 expect(canMemberAssignRole(adminPolicy, memberLogin, CONST.POLICY.ROLE.TRAVEL_ADMIN)).toBe(true);
-                expect(getSelectableRoles(adminPolicy, memberLogin)).toContain(CONST.POLICY.ROLE.TRAVEL_ADMIN);
+                expect(getSelectableRoles(adminPolicy, memberLogin, true)).toContain(CONST.POLICY.ROLE.TRAVEL_ADMIN);
+                expect(getSelectableRoles(adminPolicy, memberLogin, false)).not.toContain(CONST.POLICY.ROLE.TRAVEL_ADMIN);
                 expect(canMemberAssignRole(peopleAdminPolicy, memberLogin, CONST.POLICY.ROLE.TRAVEL_ADMIN)).toBe(false);
-                expect(getSelectableRoles(peopleAdminPolicy, memberLogin)).not.toContain(CONST.POLICY.ROLE.TRAVEL_ADMIN);
+                expect(getSelectableRoles(peopleAdminPolicy, memberLogin, true)).not.toContain(CONST.POLICY.ROLE.TRAVEL_ADMIN);
                 expect(canMemberAssignRole(teamAdminPolicy, memberLogin, CONST.POLICY.ROLE.TRAVEL_ADMIN)).toBe(false);
             });
 
@@ -1856,7 +1857,7 @@ describe('PolicyUtils', () => {
 
                 // When we list the roles they can pick from
                 // Then travel admin isn't offered, since it would grant nothing on this workspace, but the admin could still move an existing travel admin to another role
-                expect(getSelectableRoles(policy, memberLogin)).not.toContain(CONST.POLICY.ROLE.TRAVEL_ADMIN);
+                expect(getSelectableRoles(policy, memberLogin, true)).not.toContain(CONST.POLICY.ROLE.TRAVEL_ADMIN);
                 expect(canMemberAssignRole(policy, memberLogin, CONST.POLICY.ROLE.TRAVEL_ADMIN)).toBe(true);
             });
 

@@ -1,3 +1,6 @@
+/**
+ * Helpers for the "Who can book travel?" step of enabling travel: restoring, locking and saving the member choice.
+ */
 import CONST from '@src/CONST';
 import type {TravelProvisioning} from '@src/types/onyx';
 
@@ -9,8 +12,8 @@ type TravelMemberCandidate = {
     accountID: number;
     email: string;
 
-    /** Whether the accountID is a placeholder because the member's personal details haven't loaded */
-    isAccountIDGenerated: boolean;
+    /** Whether the accountID is real, rather than a placeholder because the member's personal details haven't loaded */
+    hasKnownAccountID: boolean;
 };
 
 /** The member choice saved for this workspace, ignoring one made while enabling travel on another workspace. */
@@ -18,7 +21,10 @@ function getSavedTravelMembersSelection(travelProvisioning: OnyxEntry<TravelProv
     if (travelProvisioning?.travelMembersPolicyID !== policyID) {
         return {};
     }
-    return {shouldEnableAllTravelMembers: travelProvisioning.shouldEnableAllTravelMembers, travelMemberAccountIDs: travelProvisioning.travelMemberAccountIDs};
+    return {
+        shouldEnableAllTravelMembers: travelProvisioning.shouldEnableAllTravelMembers,
+        travelMemberAccountIDs: travelProvisioning.travelMemberAccountIDs,
+    };
 }
 
 /**
@@ -33,7 +39,10 @@ function getTravelMembersSelectionToSend(travelProvisioning: OnyxEntry<TravelPro
     ) {
         return undefined;
     }
-    return {shouldEnableAllTravelMembers: !!travelProvisioning.shouldEnableAllTravelMembers, travelMemberAccountIDs: travelProvisioning.travelMemberAccountIDs ?? []};
+    return {
+        shouldEnableAllTravelMembers: !!travelProvisioning.shouldEnableAllTravelMembers,
+        travelMemberAccountIDs: travelProvisioning.travelMemberAccountIDs ?? [],
+    };
 }
 
 /**
@@ -41,7 +50,7 @@ function getTravelMembersSelectionToSend(travelProvisioning: OnyxEntry<TravelPro
  * hasn't loaded and the server would not match it.
  */
 function isTravelMemberChoiceLocked(member: TravelMemberCandidate, shouldEnableAllTravelMembers: boolean, currentUserLogin: string | undefined): boolean {
-    return shouldEnableAllTravelMembers || member.email === currentUserLogin || member.isAccountIDGenerated;
+    return shouldEnableAllTravelMembers || member.email === currentUserLogin || !member.hasKnownAccountID;
 }
 
 /** The chosen accountIDs to save, leaving out members whose accountID is a placeholder. Choosing everyone sends none. */
@@ -49,7 +58,7 @@ function getTravelMemberAccountIDsToSave(members: TravelMemberCandidate[], selec
     if (shouldEnableAllTravelMembers) {
         return [];
     }
-    const realAccountIDs = new Set(members.filter((member) => !member.isAccountIDGenerated).map((member) => member.accountID));
+    const realAccountIDs = new Set(members.filter((member) => member.hasKnownAccountID).map((member) => member.accountID));
     return selectedAccountIDs.filter((accountID) => realAccountIDs.has(accountID));
 }
 

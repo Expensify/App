@@ -68,7 +68,6 @@ import {
     arePaymentsEnabled,
     canEditWorkspaceSettings as canEditWorkspaceSettingsUtil,
     canMemberAssignRole,
-    canMemberChangeTravelAccess,
     canMemberManageMemberWithRole,
     canMemberRead,
     canMemberWrite,
@@ -76,6 +75,7 @@ import {
     getConnectionExporters,
     getMemberAccountIDsForWorkspace,
     getReimburserEmail,
+    canChangeMemberTravelAccess,
     canMemberUseTravel,
     getSelectableRoles,
     hasActiveExpensifyCard,
@@ -543,14 +543,11 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
             canEditRole,
             onChangeRole: (newRole) => changeMemberRole(login, accountID, policyEmployee.role, newRole),
             canUseTravel: shouldShowTravelColumn ? canMemberUseTravel(policy, login) : undefined,
-            isTravelAccessStored: typeof policyEmployee.canUseTravel === 'boolean',
-            // A member still being added or without a loaded accountID would be sent to the server under an accountID it
-            // doesn't know
+            // A member without a loaded accountID would be sent to the server under an accountID it doesn't know
             canEditTravelAccess:
-                canMemberChangeTravelAccess(policy, currentUserLogin ?? '', login) &&
+                canChangeMemberTravelAccess(policy, currentUserLogin ?? '', login, isBetaEnabled(CONST.BETAS.TRAVEL_MEMBER_ACCESS)) &&
                 !isSelectionModeActive &&
                 !isPendingDeleteOrError &&
-                policyEmployee.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD &&
                 hasKnownAccountID,
             onChangeTravelAccess: (canUseTravel) => setPolicyTravelMemberAccess(policy, [{email: login, accountID}], canUseTravel),
             // Note which secondary login was used to invite this primary login
@@ -635,9 +632,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
         // The Authorized Payer (reimburser) must stay a valid payer, so a selection holding them may only be moved to a role that can pay.
         const reimburserEmail = getReimburserEmail(policy);
         const hasAtLeastOnePayer = !!reimburserEmail && selectedEmployees.includes(reimburserEmail);
-        const selectableRoles = getSelectableRoles(policy, currentUserLogin ?? '', hasAtLeastOnePayer ? [...PAYER_ROLES] : undefined).filter(
-            (selectableRole) => isBetaEnabled(CONST.BETAS.TRAVEL_MEMBER_ACCESS) || selectableRole !== CONST.POLICY.ROLE.TRAVEL_ADMIN,
-        );
+        const selectableRoles = getSelectableRoles(policy, currentUserLogin ?? '', isBetaEnabled(CONST.BETAS.TRAVEL_MEMBER_ACCESS), hasAtLeastOnePayer ? [...PAYER_ROLES] : undefined);
 
         if (isPaidGroupPolicy(policy) && canManageSelectedEmployees && selectableRoles.length > 0) {
             options.push({

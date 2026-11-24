@@ -104,6 +104,8 @@ import {
     getUpdatedCardFeedReimbursableMessage,
     getUpdatedEmployeeOfficeLocationMessage,
     getUpdatedMemberWorkArrangementMessage,
+    getTravelSetupMemberAccessMessage,
+    getUpdatedMemberTravelAccessMessage,
     getUpdatedOfficeLocationMessage,
     getUpdatedProhibitedExpensesMessage,
     getWorkspaceAttendeeTrackingUpdateMessage,
@@ -403,6 +405,12 @@ function computeReportNameBasedOnReportAction({
     }
     if (parentReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_MEMBER_WORK_ARRANGEMENT) {
         return getUpdatedMemberWorkArrangementMessage(translate, parentReportAction);
+    }
+    if (parentReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_MEMBER_TRAVEL_ACCESS) {
+        return getUpdatedMemberTravelAccessMessage(translate, parentReportAction);
+    }
+    if (parentReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.SET_UP_TRAVEL_MEMBER_ACCESS) {
+        return getTravelSetupMemberAccessMessage(translate, parentReportAction);
     }
     if (parentReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_OFFICE_LOCATION) {
         return getAddedOfficeLocationMessage(translate, parentReportAction);

@@ -151,9 +151,8 @@ function setPolicyTravelMemberAccess(policy: OnyxEntry<OnyxTypes.Policy>, member
     }
     const employeeList = policy?.employeeList ?? {};
 
-    // Compare with the stored value rather than whether the member can use travel, so turning off a member without a
-    // stored value still stores false, the same way the server does
-    const targets = members.filter((member) => !!employeeList[member.email] && employeeList[member.email]?.canUseTravel !== enabled);
+    // Only false is ever stored, so members who already have the requested access are left out
+    const targets = members.filter((member) => !!employeeList[member.email] && (employeeList[member.email]?.canUseTravel === false) === enabled);
     if (targets.length === 0) {
         return;
     }
@@ -162,8 +161,9 @@ function setPolicyTravelMemberAccess(policy: OnyxEntry<OnyxTypes.Policy>, member
     const employeeListSuccessUpdate: Record<string, NullishDeep<OnyxTypes.PolicyEmployee>> = {};
     const employeeListFailureUpdate: Record<string, NullishDeep<OnyxTypes.PolicyEmployee>> = {};
     for (const target of targets) {
+        // Turning a member on removes the stored false, since a member without a value can book travel
         employeeListOptimisticUpdate[target.email] = {
-            canUseTravel: enabled,
+            canUseTravel: enabled ? null : false,
             pendingFields: {canUseTravel: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
         };
         employeeListSuccessUpdate[target.email] = {pendingFields: {canUseTravel: null}};
