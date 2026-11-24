@@ -5,7 +5,6 @@ import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import type {ButtonComponentProps} from '@components/Search/FilterDropdowns/FilterPopupButton';
 import SearchDisplayDropdownButton from '@components/Search/SearchPageHeader/SearchDisplayDropdownButton';
-import ThemeProvider from '@components/ThemeProvider';
 
 import type * as ResponsiveLayout from '@hooks/useResponsiveLayout';
 
@@ -16,7 +15,6 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 import {PortalProvider} from '@gorhom/portal';
-import {NavigationContainer} from '@react-navigation/native';
 import React from 'react';
 import Onyx from 'react-native-onyx';
 
