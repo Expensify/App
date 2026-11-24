@@ -88,6 +88,7 @@ import {
     canModifyHoldStatus,
     canRejectReportAction,
     canReassignAsApprover,
+    canRemoveSupportTicketParticipant,
     canRequestMoney,
     canSeeDefaultRoom,
     canUserPerformWriteAction,
@@ -279,6 +280,7 @@ import type {
     CardList,
     Onboarding,
     OnyxInputOrEntry,
+    PersonalDetails,
     PersonalDetailsList,
     Policy,
     PolicyCategories,
@@ -7293,6 +7295,68 @@ describe('ReportUtils', () => {
             expect(isAdminOwnerApproverOrReportOwner(report, testPolicy, approverAccountID)).toBe(true);
             expect(isAdminOwnerApproverOrReportOwner(report, testPolicy, currentUserAccountID)).toBe(false);
             expect(isAdminOwnerApproverOrReportOwner(report, testPolicy, undefined)).toBe(false);
+        });
+    });
+
+    describe('canLeaveChat on support tickets', () => {
+        const customerAccountID = 100;
+        const repAccountID = 200;
+        const inviteeAccountID = 300;
+        const supportTicket: Report = {
+            ...createRandomReport(80209, undefined),
+            type: CONST.REPORT.TYPE.SUPPORT_TICKET,
+            ownerAccountID: customerAccountID,
+            managerID: repAccountID,
+            stateNum: CONST.REPORT.STATE_NUM.OPEN,
+            statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+            participants: buildParticipantsFromAccountIDs([customerAccountID, repAccountID, inviteeAccountID]),
+        };
+
+        it('only lets invited participants leave', () => {
+            // Given an open ticket where the customer and assigned rep must stay
+            // When each participant opens the ticket details
+            // Then only the invitee can leave
+            expect(canLeaveChat(supportTicket, undefined, inviteeAccountID, false)).toBe(true);
+            expect(canLeaveChat(supportTicket, undefined, customerAccountID, false)).toBe(false);
+            expect(canLeaveChat(supportTicket, undefined, repAccountID, false)).toBe(false);
+            expect(canLeaveChat(supportTicket, undefined, undefined, false)).toBe(false);
+        });
+
+        it('lets invitees leave resolved tickets', () => {
+            // Given a resolved ticket that invitees no longer need in their inbox
+            const closedTicket: Report = {...supportTicket, stateNum: CONST.REPORT.STATE_NUM.APPROVED, statusNum: CONST.REPORT.STATUS_NUM.CLOSED};
+
+            // When each participant opens the ticket details
+            // Then only the invitee can leave
+            expect(canLeaveChat(closedTicket, undefined, inviteeAccountID, false)).toBe(true);
+            expect(canLeaveChat(closedTicket, undefined, customerAccountID, false)).toBe(false);
+            expect(canLeaveChat(closedTicket, undefined, repAccountID, false)).toBe(false);
+        });
+
+        it('blocks leaving hidden tickets', () => {
+            // Given a ticket hidden for the invitee
+            const hiddenTicket: Report = {
+                ...supportTicket,
+                participants: {...supportTicket.participants, [inviteeAccountID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN}},
+            };
+
+            // When the invitee opens the ticket details
+            // Then leaving remains unavailable
+            expect(canLeaveChat(hiddenTicket, undefined, inviteeAccountID, false)).toBe(false);
+        });
+
+        it('blocks anonymous users from leaving tickets', () => {
+            // Given a ticket viewed anonymously
+            // When checking leave permissions with an invitee account ID
+            // Then the anonymous viewer cannot leave
+            expect(canLeaveChat(supportTicket, undefined, inviteeAccountID, true)).toBe(false);
+        });
+
+        it('blocks leaving archived tickets', () => {
+            // Given an archived ticket
+            // When an invitee opens the ticket details
+            // Then leaving remains unavailable
+            expect(canLeaveChat(supportTicket, undefined, inviteeAccountID, false, true)).toBe(false);
         });
     });
 
@@ -16886,6 +16950,42 @@ describe('ReportUtils', () => {
         });
     });
 
+    describe('canRemoveSupportTicketParticipant', () => {
+        const customerAccountID = 80001;
+        const repAccountID = 80002;
+        const inviteeAccountID = 80003;
+        const supportTicket: Report = {
+            ...createRandomReport(80208, undefined),
+            type: CONST.REPORT.TYPE.SUPPORT_TICKET,
+            ownerAccountID: customerAccountID,
+            managerID: repAccountID,
+            stateNum: CONST.REPORT.STATE_NUM.OPEN,
+            statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+        };
+
+        it('only lets the assigned rep remove invitees', () => {
+            // Given an open ticket where the customer and assigned rep must remain participants
+            // When removal is checked for the rep, customer, and invitee
+            // Then only the rep can remove an invitee, and neither protected participant can be removed
+            expect(canRemoveSupportTicketParticipant(supportTicket, false, repAccountID, inviteeAccountID)).toBe(true);
+            expect(canRemoveSupportTicketParticipant(supportTicket, false, customerAccountID, inviteeAccountID)).toBe(false);
+            expect(canRemoveSupportTicketParticipant(supportTicket, false, inviteeAccountID, customerAccountID)).toBe(false);
+            expect(canRemoveSupportTicketParticipant(supportTicket, false, repAccountID, customerAccountID)).toBe(false);
+            expect(canRemoveSupportTicketParticipant(supportTicket, false, repAccountID, repAccountID)).toBe(false);
+            expect(canRemoveSupportTicketParticipant(supportTicket, false, undefined, inviteeAccountID)).toBe(false);
+        });
+
+        it('blocks removal on closed or archived tickets', () => {
+            // Given a resolved ticket whose participants should remain available after reopening
+            const closedTicket: Report = {...supportTicket, stateNum: CONST.REPORT.STATE_NUM.APPROVED, statusNum: CONST.REPORT.STATUS_NUM.CLOSED};
+
+            // When the assigned rep views a closed or archived ticket
+            // Then removal is unavailable even though they are still assigned to it
+            expect(canRemoveSupportTicketParticipant(closedTicket, false, repAccountID, inviteeAccountID)).toBe(false);
+            expect(canRemoveSupportTicketParticipant(supportTicket, true, repAccountID, inviteeAccountID)).toBe(false);
+        });
+    });
+
     describe('isCurrentUserInvoiceReceiver', () => {
         const receiverAccountID = 60401;
         const otherAccountID = 60402;
@@ -17010,6 +17110,45 @@ describe('ReportUtils', () => {
 
             // Then a plain participant can invite, and no policy is needed to decide that
             expect(canInviteMembersToReport(groupChat, undefined, false, otherAccountID)).toBe(true);
+        });
+
+        it('only lets the customer and assigned rep invite on an open support ticket', () => {
+            // Given a ticket with a customer, assigned rep, and invited participant
+            const supportTicket: Report = {
+                ...createRandomReport(80206, undefined),
+                type: CONST.REPORT.TYPE.SUPPORT_TICKET,
+                ownerAccountID: submitterAccountID,
+                managerID: otherAccountID,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                participants: buildParticipantsFromAccountIDs([submitterAccountID, otherAccountID, 80003]),
+            };
+
+            // When invite permissions are checked for each role
+            // Then only the customer and assigned rep can invite, regardless of workspace role
+            expect(canInviteMembersToReport(supportTicket, undefined, false, submitterAccountID)).toBe(true);
+            expect(canInviteMembersToReport(supportTicket, undefined, false, otherAccountID)).toBe(true);
+            expect(canInviteMembersToReport(supportTicket, adminPolicy, false, 80003)).toBe(false);
+            expect(canInviteMembersToReport(supportTicket, undefined, false, 80004)).toBe(false);
+            expect(canInviteMembersToReport(supportTicket, undefined, false, undefined)).toBe(false);
+            expect(canInviteMembersToReport(supportTicket, undefined, true, submitterAccountID)).toBe(false);
+        });
+
+        it('blocks the customer and assigned rep from inviting on a closed support ticket', () => {
+            // Given a ticket that has been resolved
+            const supportTicket: Report = {
+                ...createRandomReport(80207, undefined),
+                type: CONST.REPORT.TYPE.SUPPORT_TICKET,
+                ownerAccountID: submitterAccountID,
+                managerID: otherAccountID,
+                stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+                statusNum: CONST.REPORT.STATUS_NUM.CLOSED,
+            };
+
+            // When either authorized inviter opens its Members page
+            // Then inviting is unavailable while the ticket is closed
+            expect(canInviteMembersToReport(supportTicket, undefined, false, submitterAccountID)).toBe(false);
+            expect(canInviteMembersToReport(supportTicket, undefined, false, otherAccountID)).toBe(false);
         });
 
         it('lets the submitter invite on an open expense report', () => {
@@ -20912,7 +21051,7 @@ describe('ReportUtils', () => {
 
     describe('shouldBlockSubmitDueToPreventSelfApproval', () => {
         const policyID = '1';
-        const ownerPersonalDetailsByLogin: PersonalDetailsByLogin = {[currentUserEmail]: {accountID: currentUserAccountID, login: currentUserEmail}};
+        const ownerPersonalDetails: PersonalDetails = {accountID: currentUserAccountID, login: currentUserEmail};
 
         it('should return false when policy is undefined', () => {
             const report: Report = {
@@ -20922,7 +21061,7 @@ describe('ReportUtils', () => {
                 stateNum: CONST.REPORT.STATE_NUM.OPEN,
                 statusNum: CONST.REPORT.STATUS_NUM.OPEN,
             };
-            expect(shouldBlockSubmitDueToPreventSelfApproval(report, undefined, undefined, ownerPersonalDetailsByLogin)).toBe(false);
+            expect(shouldBlockSubmitDueToPreventSelfApproval(report, undefined, undefined, ownerPersonalDetails)).toBe(false);
         });
 
         it('should return false when policy has preventSelfApproval false', () => {
@@ -20939,7 +21078,7 @@ describe('ReportUtils', () => {
                 stateNum: CONST.REPORT.STATE_NUM.OPEN,
                 statusNum: CONST.REPORT.STATUS_NUM.OPEN,
             };
-            expect(shouldBlockSubmitDueToPreventSelfApproval(report, policyWithPreventOff, undefined, ownerPersonalDetailsByLogin)).toBe(false);
+            expect(shouldBlockSubmitDueToPreventSelfApproval(report, policyWithPreventOff, undefined, ownerPersonalDetails)).toBe(false);
         });
 
         it('should return false when report is not owned by current user even with preventSelfApproval true', () => {
@@ -20956,7 +21095,7 @@ describe('ReportUtils', () => {
                 stateNum: CONST.REPORT.STATE_NUM.OPEN,
                 statusNum: CONST.REPORT.STATUS_NUM.OPEN,
             };
-            expect(shouldBlockSubmitDueToPreventSelfApproval(report, policyWithPreventOn, undefined, {})).toBe(false);
+            expect(shouldBlockSubmitDueToPreventSelfApproval(report, policyWithPreventOn, undefined, undefined)).toBe(false);
         });
 
         it('should return true when preventSelfApproval is true, report is open expense, and owner is same as next approver', async () => {
@@ -20992,8 +21131,8 @@ describe('ReportUtils', () => {
             });
             await waitForBatchedUpdates();
 
-            expect(getNextApproverAccountID(report, undefined)).toBe(currentUserAccountID);
-            expect(shouldBlockSubmitDueToPreventSelfApproval(report, policyWithPreventOn, undefined, ownerPersonalDetailsByLogin)).toBe(true);
+            expect(getNextApproverAccountID(report, undefined, false, currentUserEmail, {[currentUserEmail]: ownerPersonalDetails})).toBe(currentUserAccountID);
+            expect(shouldBlockSubmitDueToPreventSelfApproval(report, policyWithPreventOn, undefined, ownerPersonalDetails)).toBe(true);
         });
 
         it('should return true when preventSelfApproval is true, report is processing, and owner is same as manager', async () => {
@@ -21012,7 +21151,7 @@ describe('ReportUtils', () => {
                 statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
             };
             await Onyx.merge(ONYXKEYS.SESSION, {accountID: currentUserAccountID});
-            expect(shouldBlockSubmitDueToPreventSelfApproval(report, policyWithPreventOn, undefined, ownerPersonalDetailsByLogin)).toBe(true);
+            expect(shouldBlockSubmitDueToPreventSelfApproval(report, policyWithPreventOn, undefined, ownerPersonalDetails)).toBe(true);
         });
 
         it('should return true when preventSelfApproval is true, report is open, and the submitter is the first of several approvers', async () => {
@@ -21062,10 +21201,14 @@ describe('ReportUtils', () => {
             await waitForBatchedUpdates();
 
             // When the next approver is somebody else, because getNextApproverAccountID skips past the submitter's own hop
-            expect(getNextApproverAccountID(report, undefined)).toBe(secondApproverAccountID);
+            const personalDetailsByLogins: PersonalDetailsByLogin = {
+                [currentUserEmail]: ownerPersonalDetails,
+                [secondApproverEmail]: {accountID: secondApproverAccountID, login: secondApproverEmail},
+            };
+            expect(getNextApproverAccountID(report, undefined, false, currentUserEmail, personalDetailsByLogins)).toBe(secondApproverAccountID);
 
             // Then submitting is still blocked, because the report is being submitted to the submitter themselves
-            expect(shouldBlockSubmitDueToPreventSelfApproval(report, policyWithPreventOn, undefined, ownerPersonalDetailsByLogin)).toBe(true);
+            expect(shouldBlockSubmitDueToPreventSelfApproval(report, policyWithPreventOn, undefined, ownerPersonalDetails)).toBe(true);
         });
 
         it('should return false when preventSelfApproval is true, report is open, and owner is not same as next approver', async () => {
@@ -21101,7 +21244,7 @@ describe('ReportUtils', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policyWithPreventOn);
             await waitForBatchedUpdates();
 
-            expect(shouldBlockSubmitDueToPreventSelfApproval(report, policyWithPreventOn, undefined, ownerPersonalDetailsByLogin)).toBe(false);
+            expect(shouldBlockSubmitDueToPreventSelfApproval(report, policyWithPreventOn, undefined, ownerPersonalDetails)).toBe(false);
         });
 
         it('should return false when preventSelfApproval is true but report is not open or processing', () => {
@@ -21119,7 +21262,52 @@ describe('ReportUtils', () => {
                 stateNum: CONST.REPORT.STATE_NUM.APPROVED,
                 statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
             };
-            expect(shouldBlockSubmitDueToPreventSelfApproval(approvedReport, policyWithPreventOn, undefined, ownerPersonalDetailsByLogin)).toBe(false);
+            expect(shouldBlockSubmitDueToPreventSelfApproval(approvedReport, policyWithPreventOn, undefined, ownerPersonalDetails)).toBe(false);
+        });
+
+        it('should return false when the owner login is unknown, even though the open report submits to its owner', async () => {
+            // Given an advanced-workflow policy where the submitter submits to themselves and then forwards to a second approver
+            const secondApproverEmail = 'owner@test.com';
+            const policyWithPreventOn: Policy = {
+                ...createRandomPolicy(103),
+                id: policyID,
+                type: CONST.POLICY.TYPE.CORPORATE,
+                preventSelfApproval: true,
+                approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
+                approver: secondApproverEmail,
+                owner: secondApproverEmail,
+                employeeList: {
+                    [currentUserEmail]: {
+                        email: currentUserEmail,
+                        role: CONST.POLICY.ROLE.USER,
+                        submitsTo: currentUserEmail,
+                        forwardsTo: secondApproverEmail,
+                    },
+                    [secondApproverEmail]: {
+                        email: secondApproverEmail,
+                        role: CONST.POLICY.ROLE.ADMIN,
+                        submitsTo: '',
+                    },
+                },
+            };
+            const report: Report = {
+                ...createExpenseReport(1),
+                reportID: 'prevent-self-report-open-unknown-owner',
+                ownerAccountID: currentUserAccountID,
+                managerID: currentUserAccountID,
+                policyID,
+                type: CONST.REPORT.TYPE.EXPENSE,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+            };
+            await Onyx.merge(ONYXKEYS.SESSION, {email: currentUserEmail, accountID: currentUserAccountID});
+            await waitForBatchedUpdates();
+
+            // When checking whether Submit is blocked without the owner's login or personal details
+            const result = shouldBlockSubmitDueToPreventSelfApproval(report, policyWithPreventOn, undefined, undefined);
+
+            // Then Submit isn't blocked, because an unknown owner login is never treated as the login the report submits to
+            expect(result).toBe(false);
         });
     });
 
@@ -29670,6 +29858,27 @@ describe('ReportUtils', () => {
             const details = getTransactionDetails(transaction);
 
             expect(details?.taxValue).toBe('10%');
+        });
+
+        it('should keep the negative sign of a deleted workspace expense when no policy is passed', () => {
+            // Given a deleted workspace expense, which is stored with the opposite sign and whose report can no longer be resolved
+            const transaction = buildOptimisticTransaction({
+                transactionParams: {
+                    amount: 500,
+                    currency: 'USD',
+                    reportID: CONST.REPORT.TRASH_REPORT_ID,
+                    comment: '',
+                    created: '2024-01-01',
+                    taxAmount: 50,
+                },
+            });
+
+            // When getting its details without a policy
+            const details = getTransactionDetails(transaction);
+
+            // Then the expense report sign convention is applied to the amount and the tax amount
+            expect(details?.amount).toBe(-500);
+            expect(details?.taxAmount).toBe(-50);
         });
 
         it.each([CONST.LOCALES.DE, CONST.LOCALES.JA])('keeps default transaction dates machine-readable in %s', async (locale) => {

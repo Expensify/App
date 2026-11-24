@@ -1124,6 +1124,7 @@ const translations = {
     },
     supportalSwitcher: {
         title: 'Supportal into another account',
+        navigationLabel: 'Supportal',
         emailLabel: 'Email address',
         reasonLabel: 'Support login reason',
         reasonHint: 'No recent tickets found for this account.',
@@ -1399,6 +1400,9 @@ const translations = {
         writingYourInsights: 'Writing your insights',
         tagLevel: (level: string) => `Tag level ${level}`,
         tagLevelLabel: 'Tag level',
+        noTaggedExpenses: 'No tagged expenses',
+        // @context The selected tag list name can be a custom name like Department or a fallback like Tag level 2.
+        noExpensesForTagLevel: (tagLevelName: string) => `No expenses for ${tagLevelName} in this date range.`,
         parent: 'Parent',
         shareOfTotal: 'Share of total (%)',
         viewOnSpend: 'View on Spend',
@@ -2077,6 +2081,12 @@ const translations = {
             debitedAmount: 'Debited amount',
             employeeReceived: 'Employee received',
             payAll: 'Pay all',
+            fxRateExpiredTitle: 'FX rate expired',
+            fxRatesExpiredTitle: 'FX rates expired',
+            fxRateExpiredPrompt: 'Review the latest rate before you pay.',
+            fxRatesExpiredPrompt: 'Review the latest rates before you pay.',
+            getLatestRate: 'Get latest rate',
+            getLatestRates: 'Get latest rates',
             reportCount: ({count}: {count: number}) => ({
                 one: '1 report',
                 other: `${count} reports`,
@@ -2483,6 +2493,9 @@ const translations = {
                 }
                 return `Waiting for the cancelled payment to finish processing${formattedETA}.`;
             },
+            // Every next step message takes the same params, and this one shows none of them
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
+            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_PAYMENT_REVIEW]: (params: ReportNextStepMessageParams) => `Payment on hold, look for another update.`,
             // eslint-disable-next-line @typescript-eslint/no-unused-vars
             [CONST.NEXT_STEP.MESSAGE_KEY.SUBMITTING_TO_SELF]: (params: ReportNextStepMessageParams) =>
                 `Oops! Looks like you're submitting to <strong>yourself</strong>. Approving your own reports is <strong>forbidden</strong> by your workspace. Please submit this report to someone else or contact your admin to change the person you submit to.`,
@@ -2735,6 +2748,7 @@ const translations = {
             usingImportedState: 'You are using imported state. Press here to clear it.',
             debugMode: 'Debug mode',
             showBranchNameInTitle: 'Show branch name in browser title',
+            hideEnvironmentBadge: 'Hide environment badge',
             betaOverrides: 'Beta overrides',
             betaOverridesDescription:
                 'Overrides are local to this device and only affect frontend checks. A beta keeps an override only while it differs from your account betas, so toggling it back removes the override. “Reset all overrides” restores the values from your account. Some betas are gated on the backend too, so those can still fail at the request level.',
@@ -2746,6 +2760,8 @@ const translations = {
             leftHandNavCache: 'Left Hand Nav cache',
             clearleftHandNavCache: 'Clear',
             softKillTheApp: 'Soft kill the app',
+            testBusinessBankAccount: 'Test USD business bank account',
+            testPersonalBankAccount: 'Test USD personal bank account',
             kill: 'Kill',
             sentryDebug: 'Sentry debug',
             sentrySendDescription: 'Send data to Sentry',
@@ -3107,16 +3123,6 @@ const translations = {
             business: {
                 title: 'Enter your business info',
                 legalName: 'Legal business name',
-                companyType: 'Company type',
-                companyTypeLimitedLiabilityCompany: 'Limited liability company (LLC)',
-                companyTypeForProfitCorporation: 'For-profit corporation',
-                companyTypeNonProfitCorporation: 'Nonprofit corporation',
-                companyTypeSoleProprietorship: 'Sole proprietorship',
-                companyTypeGeneralPartnership: 'General partnership',
-                companyTypeLimitedPartnership: 'Limited partnership',
-                companyTypeLimitedLiabilityPartnership: 'Limited liability partnership (LLP)',
-                companyTypeTrust: 'Trust',
-                companyTypeOther: 'Other',
                 companyRole: 'Your role at the company',
                 companyRoleOwner: 'Owner',
                 companyRoleDirector: 'Director',
@@ -3370,8 +3376,9 @@ const translations = {
                 certify: "I certify that the information I've provided is true and accurate.",
                 expensifyTerms: `I agree to the Expensify <a href="${CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}">terms and conditions</a> and <a href="${CONST.OLD_DOT_PUBLIC_URLS.PRIVACY_URL}">privacy policy</a>.`,
                 expensifyTermsAccessibilityLabel: 'I agree to the Expensify terms and conditions and privacy policy.',
-                wiseTerms: `I agree to the Wise <a href="${CONST.WISE.TERMS_URL}">terms and conditions</a> and <a href="${CONST.WISE.PRIVACY_URL}">privacy policy</a>.`,
-                wiseTermsAccessibilityLabel: 'I agree to the Wise terms and conditions and privacy policy.',
+                wiseTerms: `By clicking Confirm, I accept Wise’s <a href="${CONST.WISE.TERMS_URL}">Terms of Use</a>, consent to receive electronic records as outlined in Wise’s <a href="${CONST.WISE.ELECTRONIC_COMMUNICATIONS_POLICY_URL}">Electronic Communications Policy</a>, and <a href="${CONST.WISE.PRIVACY_URL}">Privacy Policy</a>.`,
+                wiseTermsAccessibilityLabel:
+                    'By clicking Confirm, I accept Wise’s Terms of Use, consent to receive electronic records as outlined in Wise’s Electronic Communications Policy, and Privacy Policy.',
                 error: 'Please accept all of the terms to continue.',
             },
             moreInfoNeeded: {
@@ -3396,7 +3403,10 @@ const translations = {
                 description: 'Chat with Concierge for more information.',
             },
         },
-        wiseSetupInProgress: {message: 'Global reimbursements setup in progress.', continue: 'Continue.'},
+        wiseSetupRow: {
+            inProgress: {message: 'Global reimbursements setup in progress.'},
+            inReview: {message: 'Global reimbursements setup in review.', action: 'Check status'},
+        },
         wiseGlobalReimbursementsIntro: {
             headerTitle: 'Global reimbursements',
             title: 'Set up global reimbursements?',
@@ -5619,6 +5629,10 @@ const translations = {
             railTicketExchange: (origin: string, destination: string, startDate: string) => `Your rail ticket for ${origin} → ${destination} on ${startDate} has been exchanged.`,
             railTicketUpdate: (origin: string, destination: string, startDate: string) => `Your rail ticket for ${origin} → ${destination} on ${startDate} has been updated.`,
             defaultUpdate: (type: string) => `Your ${type} reservation was updated.`,
+            hotelBooked: (hotelName: string, startDate: string) => `Your hotel reservation at ${hotelName} (check-in ${startDate}) has been booked.`,
+            carBooked: (vendor: string, startDate: string) => `Your ${vendor} car rental (pick-up ${startDate}) has been booked.`,
+            railTicketBooked: (origin: string, destination: string, startDate: string) => `Your rail ticket for ${origin} → ${destination} on ${startDate} has been booked.`,
+            defaultBooked: (type: string) => `Your ${type} reservation has been booked.`,
         },
         nudge: {
             airfareManual:
@@ -5886,6 +5900,9 @@ const translations = {
             },
             chatgpt: {
                 title: 'ChatGPT',
+            },
+            grok: {
+                title: 'Grok',
             },
         },
         connections: {
@@ -8721,6 +8738,7 @@ const translations = {
                 willBeReadyToUse: 'This card will be ready to use immediately.',
                 willBeReadyToShip: 'This card will be ready to ship immediately.',
                 cardholder: 'Cardholder',
+                cardholderEmail: 'Cardholder email',
                 cardType: 'Card type',
                 limit: 'Limit',
                 limitType: 'Limit type',
@@ -12013,7 +12031,8 @@ const translations = {
                 reimbursementRefunded: ({bankAccountLastFour}: {bankAccountLastFour: string}) => `Funds were returned to bank account ${bankAccountLastFour}. You can retry the payment.`,
                 reimbursementRefundedWithoutBankAccount: 'Funds were returned. You can retry the payment.',
                 reimbursementHeld: 'Payment on hold while our partner completes a review. Look for another update. Chat with <concierge-link>Concierge</concierge-link>.',
-                reimbursementReleased: 'The review is complete and your payment is on its way. The final FX rate may change the amount.',
+                reimbursementReleased: ({expectedDate}: {expectedDate: string}) => `Payment released, funds are expected to arrive by ${expectedDate}.`,
+                reimbursementReleasedWithoutDate: 'Payment released.',
                 selectedForRandomAudit: `randomly selected for review`,
                 selectedForRandomAuditMarkdown: `[randomly selected](https://help.expensify.com/articles/expensify-classic/reports/Set-a-random-report-audit-schedule) for review`,
                 share: (to: string) => `invited member ${to}`,
@@ -12051,7 +12070,9 @@ const translations = {
                     mentionedAccountID?: number;
                 }) => {
                     let warningTime = 'soon';
-                    if (warningDaysBeforeExpiry === CONST.COMPANY_CARDS.CONSENT_EXPIRY_WARNING_DAYS.TWO_WEEKS) {
+                    if (warningDaysBeforeExpiry === CONST.COMPANY_CARDS.CONSENT_EXPIRY_WARNING_DAYS.ONE_MONTH) {
+                        warningTime = 'in one month';
+                    } else if (warningDaysBeforeExpiry === CONST.COMPANY_CARDS.CONSENT_EXPIRY_WARNING_DAYS.TWO_WEEKS) {
                         warningTime = 'in two weeks';
                     } else if (warningDaysBeforeExpiry === CONST.COMPANY_CARDS.CONSENT_EXPIRY_WARNING_DAYS.ONE_WEEK) {
                         warningTime = 'in one week';
