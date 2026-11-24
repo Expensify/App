@@ -1097,13 +1097,13 @@ function getDefaultCommercialFeedDisplayName(feed: CardFeedWithNumber | CardFeed
         return;
     }
 
-    const suffix = feedName.slice(displayBase.base.length);
-    if (!suffix || (displayBase.shouldHideOne && suffix === '1')) {
+    const feedSuffix = feedName.slice(displayBase.base.length);
+    if (!feedSuffix || (displayBase.shouldHideOne && feedSuffix === '1')) {
         return displayBase.displayName;
     }
 
     // Preserve unknown variants so they cannot be mistaken for the base feed.
-    return `${displayBase.displayName} ${/^\d+$/.test(suffix) ? suffix : suffix.toUpperCase()}`;
+    return `${displayBase.displayName} ${/^\d+$/.test(feedSuffix) ? feedSuffix : feedSuffix.toUpperCase()}`;
 }
 
 const getBankCardDetailsImage = (bank: BankName, illustrations: IllustrationsType, companyCardIllustrations: CompanyCardBankIcons): IconAsset => {
