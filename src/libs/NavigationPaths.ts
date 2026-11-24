@@ -101,7 +101,9 @@ const APP_ONLY_NAVIGATION_PATHS: RegExp[] = [
     // Deeper paths under shared paths
     new RegExp(String.raw`^\/(?:settings|home|inbox|travel)\/${SEGMENT}`),
     new RegExp(String.raw`^\/statements\/${SEGMENT}\/${SEGMENT}`),
-    new RegExp(String.raw`^\/[uv]\/${SEGMENT}\/${SEGMENT}\/${SEGMENT}`),
+
+    // Deeper paths under validation links, except the make-primary link, which Expensify Classic serves
+    new RegExp(String.raw`^\/(?!v\/\d+\/\w+\.?\/primary(?:\?|$))[uv]\/${SEGMENT}\/${SEGMENT}\/${SEGMENT}`),
 
     // Deeper paths under Classic pages
     new RegExp(String.raw`^\/policy\/${SEGMENT}\/copy-settings${SEGMENT_END}`),

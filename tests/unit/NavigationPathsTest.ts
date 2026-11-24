@@ -10,7 +10,16 @@ import CONST from '@src/CONST';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 
+import navigationPathsFixture from './navigationPaths.fixture.json';
+
 type PathClass = 'appOnly' | 'shared' | 'none';
+
+// Owners in the experience router's cases file. The worker leaves Classic paths to the network, so they have no path class.
+const PATH_CLASS_BY_OWNER: Record<string, PathClass> = {
+    app: 'appOnly',
+    shared: 'shared',
+    classic: 'none',
+};
 
 const EXAMPLE_PARAM = '123';
 const SHARED_EXAMPLES = ['/', '/inbox', '/home', '/settings', '/travel', '/statements/202501', '/v/1/abc', '/u/1/abc'];
@@ -156,17 +165,37 @@ describe('NavigationPaths', () => {
         expect(pathClass).toBe('appOnly');
     });
 
-    it.each(['/reports', '/signin', '/terms', '/policy?param=1', '/index', '/index?x=1', '/concierge', '/concierge/', '/statements', '/Inbox', '/SETTINGS', '/api/OpenApp'])(
-        "leaves '%s' to the browser",
-        (path) => {
-            // Given a path served by Expensify Classic or the backend, or a different spelling of a New Expensify path
-            // When the service worker classifies it
-            const pathClass = classify(path);
+    it.each([
+        '/reports',
+        '/reports/',
+        '/reports//',
+        '/signin',
+        '/signin/',
+        '/signout/',
+        '/terms',
+        '/policy?param=1',
+        '/policy/',
+        '/policy/?x=1',
+        '/index',
+        '/index/',
+        '/index?x=1',
+        '/concierge',
+        '/concierge/',
+        '/statements',
+        '/Inbox',
+        '/SETTINGS',
+        '/api/OpenApp',
+        '/v/1/abc/primary',
+        '/v/1/abc./primary',
+        '/v/1/abc/primary?x=1',
+    ])("leaves '%s' to the browser", (path) => {
+        // Given a path served by Expensify Classic or the backend, or a different spelling of a New Expensify path
+        // When the service worker classifies it
+        const pathClass = classify(path);
 
-            // Then the worker doesn't handle it, so the request reaches the server exactly as without a worker
-            expect(pathClass).toBe('none');
-        },
-    );
+        // Then the worker doesn't handle it, so the request reaches the server exactly as without a worker
+        expect(pathClass).toBe('none');
+    });
 
     it.each(CLASSIC_PAGES)("never opens New Expensify for the Expensify Classic page '/%s'", (page) => {
         // Given an Expensify Classic page, with and without a query and a trailing slash
@@ -175,6 +204,15 @@ describe('NavigationPaths', () => {
 
         // Then none is app-only, because an app-only Classic page would be unreachable for every user with the worker
         expect(pathClasses).not.toContain('appOnly');
+    });
+
+    it.each(Object.entries(navigationPathsFixture.paths))("classifies '%s' like the experience router's '%s' owner", (path, owner) => {
+        // Given a path and its owner from the cases file the experience router also tests
+        // When the service worker classifies it
+        const pathClass = classify(path);
+
+        // Then both agree on which product serves it
+        expect(pathClass).toBe(PATH_CLASS_BY_OWNER[owner]);
     });
 
     it.each(['/signout', '/signout/', '/signout?clean=true', '/signout?resetSession=true', '/signout?shouldStartSignIn=1&email=a', '/signout.php', '/signout.php?clean=true'])(
@@ -218,7 +256,12 @@ describe('NavigationPaths', () => {
         const urls = routePatterns.flatMap(getExampleURLs);
 
         // When each one is classified
-        const unclassified = urls.filter((url) => classify(url) === 'none');
+        const unclassified = urls
+            .filter((url) => classify(url) === 'none')
+            .map(
+                (url) =>
+                    `${url} has no path class. Add it to APP_ONLY_NAVIGATION_PATHS in src/libs/NavigationPaths.ts and make the same change in the experience router, or add its route to UNCLASSIFIED_ROUTES in this test if the worker must leave it to the network.`,
+            );
 
         // Then each one opens New Expensify offline. A new route needs an app-only pattern, or it only works online.
         expect(unclassified).toEqual([]);
