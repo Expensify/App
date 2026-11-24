@@ -1043,6 +1043,7 @@ const translations: TranslationDeepObject<typeof en> = {
     },
     supportalSwitcher: {
         title: 'Supportal σε άλλο λογαριασμό',
+        navigationLabel: 'Supportal',
         emailLabel: 'Διεύθυνση email',
         reasonLabel: 'Αιτία σύνδεσης για υποστήριξη',
         reasonHint: 'Δεν βρέθηκαν πρόσφατα αιτήματα υποστήριξης για αυτόν τον λογαριασμό.',
@@ -2403,6 +2404,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 }
                 return `Αναμονή μέχρι να ολοκληρωθεί η επεξεργασία της ακυρωμένης πληρωμής${formattedETA}.`;
             },
+            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_PAYMENT_REVIEW]: (params: ReportNextStepMessageParams) => `Η πληρωμή έχει τεθεί σε αναμονή, αναζητήστε άλλη ενημέρωση.`,
             [CONST.NEXT_STEP.MESSAGE_KEY.SUBMITTING_TO_SELF]: (params: ReportNextStepMessageParams) =>
                 `Ουπς! Φαίνεται ότι υποβάλλετε σε <strong>εσάς τον/την ίδιο/ίδια</strong>. Η έγκριση των δικών σας αναφορών είναι <strong>απαγορευμένη</strong> από τον χώρο εργασίας σας. Υποβάλετε αυτήν την αναφορά σε κάποιον άλλον ή επικοινωνήστε με τον διαχειριστή σας για να αλλάξετε το άτομο στο οποίο την υποβάλλετε.`,
             [CONST.NEXT_STEP.MESSAGE_KEY.REJECTED_REPORT]: ({actor, actorType}: ReportNextStepMessageParams) => {
@@ -2634,6 +2636,7 @@ const translations: TranslationDeepObject<typeof en> = {
             usingImportedState: 'Χρησιμοποιείτε εισαγόμενη κατάσταση. Πατήστε εδώ για να την καθαρίσετε.',
             debugMode: 'Λειτουργία αποσφαλμάτωσης',
             showBranchNameInTitle: 'Εμφάνιση ονόματος κλάδου στον τίτλο του προγράμματος περιήγησης',
+            hideEnvironmentBadge: 'Απόκρυψη σήματος περιβάλλοντος',
             betaOverrides: 'Παρακάμψεις beta',
             betaOverridesDescription:
                 'Οι παρακάμψεις ισχύουν μόνο για αυτή τη συσκευή και επηρεάζουν μόνο τους ελέγχους του frontend. Μια beta διατηρεί μια παράκαμψη μόνο όσο διαφέρει από τις beta του λογαριασμού σας, οπότε αν την αλλάξετε ξανά η παράκαμψη αφαιρείται. Η «Επαναφορά όλων των παρακάμψεων» επαναφέρει τις τιμές του λογαριασμού σας. Ορισμένες beta ελέγχονται και από το backend, οπότε μπορεί να αποτύχουν σε επίπεδο αιτήματος.',
@@ -2645,6 +2648,8 @@ const translations: TranslationDeepObject<typeof en> = {
             leftHandNavCache: 'μνήμη προσωρινής αποθήκευσης αριστερού πλαϊνού μενού',
             clearleftHandNavCache: 'Εκκαθάριση',
             softKillTheApp: 'Κλείσιμο της εφαρμογής (soft kill)',
+            testBusinessBankAccount: 'Δοκιμαστικός επαγγελματικός τραπεζικός λογαριασμός USD',
+            testPersonalBankAccount: 'Δοκιμαστικός προσωπικός τραπεζικός λογαριασμός σε USD',
             kill: 'Σκότωσε',
             sentryDebug: 'Εντοπισμός σφαλμάτων Sentry',
             sentrySendDescription: 'Αποστολή δεδομένων στο Sentry',
@@ -5457,6 +5462,10 @@ ${amount} για ${merchant} - ${date}`,
             railTicketExchange: (origin: string, destination: string, startDate: string) => `Το σιδηροδρομικό σας εισιτήριο για ${origin} → ${destination} στις ${startDate} έχει αλλάξει.`,
             railTicketUpdate: (origin: string, destination: string, startDate: string) => `Το εισιτήριό σας τρένου για ${origin} → ${destination} στις ${startDate} έχει ενημερωθεί.`,
             defaultUpdate: (type: string) => `Η κράτηση ${type} σας ενημερώθηκε.`,
+            hotelBooked: (hotelName: string, startDate: string) => `Η κράτησή σας στο ξενοδοχείο ${hotelName} (check-in ${startDate}) ολοκληρώθηκε.`,
+            carBooked: (vendor: string, startDate: string) => `Η ενοικίαση αυτοκινήτου σας από ${vendor} (παραλαβή ${startDate}) έχει γίνει.`,
+            railTicketBooked: (origin: string, destination: string, startDate: string) => `Το εισιτήριό σας τρένου για ${origin} → ${destination} στις ${startDate} έχει κρατηθεί.`,
+            defaultBooked: (type: string) => `Η κράτηση ${type} σας έχει γίνει.`,
         },
         flightTo: 'Πτήση προς',
         trainTo: 'Τρένο προς',
@@ -5728,6 +5737,9 @@ ${amount} για ${merchant} - ${date}`,
             },
             chatgpt: {
                 title: 'ChatGPT',
+            },
+            grok: {
+                title: 'Grok',
             },
         },
         connections: {
@@ -8204,6 +8216,7 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
                 willBeReadyToUse: 'Αυτή η κάρτα θα είναι έτοιμη για χρήση αμέσως.',
                 willBeReadyToShip: 'Αυτή η κάρτα θα είναι έτοιμη για αποστολή άμεσα.',
                 cardholder: 'Κάτοχος κάρτας',
+                cardholderEmail: 'Email κατόχου κάρτας',
                 cardType: 'Τύπος κάρτας',
                 limit: 'Όριο',
                 limitType: 'Τύπος ορίου',
@@ -11862,7 +11875,9 @@ ${reportName}`,
                     mentionedAccountID?: number;
                 }) => {
                     let warningTime = 'σύντομα';
-                    if (warningDaysBeforeExpiry === CONST.COMPANY_CARDS.CONSENT_EXPIRY_WARNING_DAYS.TWO_WEEKS) {
+                    if (warningDaysBeforeExpiry === CONST.COMPANY_CARDS.CONSENT_EXPIRY_WARNING_DAYS.ONE_MONTH) {
+                        warningTime = 'σε έναν μήνα';
+                    } else if (warningDaysBeforeExpiry === CONST.COMPANY_CARDS.CONSENT_EXPIRY_WARNING_DAYS.TWO_WEEKS) {
                         warningTime = 'σε δύο εβδομάδες';
                     } else if (warningDaysBeforeExpiry === CONST.COMPANY_CARDS.CONSENT_EXPIRY_WARNING_DAYS.ONE_WEEK) {
                         warningTime = 'σε μία εβδομάδα';
@@ -11954,7 +11969,8 @@ ${reportName}`,
                 reimbursementRefundedWithoutBankAccount: 'Τα χρήματα επιστράφηκαν. Μπορείτε να δοκιμάσετε ξανά την πληρωμή.',
                 reimbursementHeld:
                     'Η πληρωμή έχει τεθεί σε αναμονή όσο ο συνεργάτης μας ολοκληρώνει έναν έλεγχο. Περιμένετε νεότερη ενημέρωση. Συνομιλήστε με τον <concierge-link>Concierge</concierge-link>.',
-                reimbursementReleased: 'Ο έλεγχος ολοκληρώθηκε και η πληρωμή σας είναι καθ’ οδόν. Η τελική ισοτιμία συναλλάγματος ενδέχεται να αλλάξει το ποσό.',
+                reimbursementReleased: ({expectedDate}: {expectedDate: string}) => `Η πληρωμή εκταμιεύτηκε, τα χρήματα αναμένεται να φτάσουν έως τις ${expectedDate}.`,
+                reimbursementReleasedWithoutDate: 'Η πληρωμή αποδεσμεύτηκε.',
             },
             error: {
                 invalidCredentials: 'Μη έγκυρα διαπιστευτήρια, παρακαλούμε ελέγξτε τη ρύθμιση της σύνδεσής σας.',

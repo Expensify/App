@@ -899,6 +899,7 @@ describe('Unread Indicators', () => {
             },
             isASAPSubmitBetaEnabled: true,
             currentUser: {accountID: USER_A_ACCOUNT_ID, email: USER_A_EMAIL},
+            currentUserPersonalDetails: {accountID: USER_A_ACCOUNT_ID, login: USER_A_EMAIL},
             introSelected: undefined,
             quickAction: undefined,
             recentWaypoints,

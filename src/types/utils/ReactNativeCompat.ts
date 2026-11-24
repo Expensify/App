@@ -23,11 +23,13 @@ type HardwareBackPressEvent = Parameters<Parameters<typeof BackHandler.addEventL
 type SingleImageSource = ImageURISource | ImageRequireSource;
 
 /**
- * The key down and click events a View or Pressable receives.
+ * The key down, click and mouse leave events a View or Pressable receives.
  * Handlers read the key, modifiers and pointer position from `nativeEvent`.
  */
 type ViewKeyDownEvent = Parameters<NonNullable<ViewProps['onKeyDown']>>[0];
 
 type ViewClickEvent = Parameters<NonNullable<ViewProps['onClick']>>[0];
 
-export type {CellRendererProps, HardwareBackPressEvent, SingleImageSource, TextInputScrollEvent, ViewabilityConfig, ViewClickEvent, ViewKeyDownEvent, ViewToken};
+type ViewMouseLeaveEvent = Parameters<NonNullable<ViewProps['onMouseLeave']>>[0];
+
+export type {CellRendererProps, HardwareBackPressEvent, SingleImageSource, TextInputScrollEvent, ViewabilityConfig, ViewClickEvent, ViewKeyDownEvent, ViewMouseLeaveEvent, ViewToken};

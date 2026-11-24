@@ -1027,6 +1027,7 @@ const translations: TranslationDeepObject<typeof en> = {
     },
     supportalSwitcher: {
         title: 'Supportal naar een ander account',
+        navigationLabel: 'Supportal',
         emailLabel: 'E-mailadres',
         reasonLabel: 'Reden voor ondersteuning-login',
         reasonHint: 'Geen recente tickets gevonden voor dit account.',
@@ -2343,6 +2344,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 }
                 return `Wachten tot de geannuleerde betaling is verwerkt${formattedETA}.`;
             },
+            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_PAYMENT_REVIEW]: (params: ReportNextStepMessageParams) => `Betaling in de wacht, wacht op een volgende update.`,
             [CONST.NEXT_STEP.MESSAGE_KEY.SUBMITTING_TO_SELF]: (params: ReportNextStepMessageParams) =>
                 `Oeps! Het lijkt erop dat je deze indient bij <strong>jezelf</strong>. Het goedkeuren van je eigen rapporten is door je werkruimte <strong>verboden</strong>. Dien dit rapport in bij iemand anders of neem contact op met je beheerder om de persoon te wijzigen bij wie je indient.`,
             [CONST.NEXT_STEP.MESSAGE_KEY.REJECTED_REPORT]: ({actor, actorType}: ReportNextStepMessageParams) => {
@@ -2574,6 +2576,8 @@ const translations: TranslationDeepObject<typeof en> = {
             leftHandNavCache: 'Cache linkernavigatie',
             clearleftHandNavCache: 'Wissen',
             softKillTheApp: 'App zacht afsluiten',
+            testBusinessBankAccount: 'Test zakelijke USD-bankrekening',
+            testPersonalBankAccount: 'USD persoonlijke bankrekening testen',
             kill: 'Doden',
             sentryDebug: 'Sentry-debug',
             sentrySendDescription: 'Gegevens naar Sentry verzenden',
@@ -2581,6 +2585,7 @@ const translations: TranslationDeepObject<typeof en> = {
             sentryHighlightedSpanOps: 'Gemarkeerde span-namen',
             sentryHighlightedSpanOpsPlaceholder: 'ui.interactie.klik, navigatie, ui.laden',
             showBranchNameInTitle: 'Toon branchnaam in titel van browser',
+            hideEnvironmentBadge: 'Omgevingsbadge verbergen',
             betaOverrides: 'Bèta-overrides',
             betaOverridesDescription:
                 "Overrides gelden alleen voor dit apparaat en zijn alleen van invloed op frontendcontroles. Een bèta houdt een override alleen zolang die afwijkt van de bèta's van je account, dus door hem terug te zetten wordt de override verwijderd. 'Alle overrides resetten' herstelt de waarden van je account. Sommige bèta's worden ook door de backend bepaald en kunnen dus alsnog mislukken op verzoekniveau.",
@@ -5349,6 +5354,10 @@ ${amount} voor ${merchant} - ${date}`,
             railTicketExchange: (origin: string, destination: string, startDate: string) => `Uw treinticket voor ${origin} → ${destination} op ${startDate} is omgewisseld.`,
             railTicketUpdate: (origin: string, destination: string, startDate: string) => `Je treinkaartje voor ${origin} → ${destination} op ${startDate} is bijgewerkt.`,
             defaultUpdate: (type: string) => `Je ${type}reservering is bijgewerkt.`,
+            hotelBooked: (hotelName: string, startDate: string) => `Je hotelreservering bij ${hotelName} (inchecken ${startDate}) is geboekt.`,
+            carBooked: (vendor: string, startDate: string) => `Je ${vendor}-autoverhuur (ophalen op ${startDate}) is geboekt.`,
+            railTicketBooked: (origin: string, destination: string, startDate: string) => `Je treinkaartje voor ${origin} → ${destination} op ${startDate} is geboekt.`,
+            defaultBooked: (type: string) => `Je ${type}-reservering is geboekt.`,
         },
         flightTo: 'Vlucht naar',
         trainTo: 'Trein naar',
@@ -5613,6 +5622,9 @@ ${amount} voor ${merchant} - ${date}`,
             },
             chatgpt: {
                 title: 'ChatGPT',
+            },
+            grok: {
+                title: 'Grok',
             },
         },
         connections: {
@@ -8014,6 +8026,7 @@ Het Control-abonnement begint bij $9 per actieve deelnemer per maand.`,
                 willBeReadyToUse: 'Deze kaart is direct klaar voor gebruik.',
                 willBeReadyToShip: 'Deze kaart is meteen klaar om verzonden te worden.',
                 cardholder: 'Kaarthouder',
+                cardholderEmail: 'E-mailadres van de kaarthouder',
                 cardType: 'Kaarttype',
                 limit: 'Limiet',
                 limitType: 'Limiettype',
@@ -11582,7 +11595,9 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
                     mentionedAccountID?: number;
                 }) => {
                     let warningTime = 'binnenkort';
-                    if (warningDaysBeforeExpiry === CONST.COMPANY_CARDS.CONSENT_EXPIRY_WARNING_DAYS.TWO_WEEKS) {
+                    if (warningDaysBeforeExpiry === CONST.COMPANY_CARDS.CONSENT_EXPIRY_WARNING_DAYS.ONE_MONTH) {
+                        warningTime = 'over een maand';
+                    } else if (warningDaysBeforeExpiry === CONST.COMPANY_CARDS.CONSENT_EXPIRY_WARNING_DAYS.TWO_WEEKS) {
                         warningTime = 'over twee weken';
                     } else if (warningDaysBeforeExpiry === CONST.COMPANY_CARDS.CONSENT_EXPIRY_WARNING_DAYS.ONE_WEEK) {
                         warningTime = 'over een week';
@@ -11677,7 +11692,8 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
                     `De middelen zijn teruggestort op bankrekening ${bankAccountLastFour}. Je kunt de betaling opnieuw proberen.`,
                 reimbursementRefundedWithoutBankAccount: 'Gelden zijn teruggestort. Je kunt de betaling opnieuw proberen.',
                 reimbursementHeld: 'Betaling in de wacht terwijl onze partner een beoordeling afrondt. Wacht op een volgende update. Chat met <concierge-link>Concierge</concierge-link>.',
-                reimbursementReleased: 'De controle is voltooid en je betaling is onderweg. De definitieve wisselkoers kan het bedrag veranderen.',
+                reimbursementReleased: ({expectedDate}: {expectedDate: string}) => `Betaling vrijgegeven, het geld wordt verwacht uiterlijk ${expectedDate}.`,
+                reimbursementReleasedWithoutDate: 'Betaling vrijgegeven.',
             },
             error: {
                 invalidCredentials: 'Ongeldige inloggegevens, controleer de configuratie van je verbinding.',
