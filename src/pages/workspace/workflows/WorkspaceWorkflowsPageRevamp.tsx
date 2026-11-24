@@ -7,6 +7,7 @@ import type {TabSelectorBaseItem} from '@components/TabSelector/types';
 
 import useConfirmModal from '@hooks/useConfirmModal';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useHasApprovalWorkflowWithNonMemberApprover from '@hooks/useHasApprovalWorkflowWithNonMemberApprover';
 import useLayoutSpacing from '@hooks/useLayoutSpacing';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -74,6 +75,7 @@ function WorkspaceWorkflowsPageRevamp({policy, route}: WorkspaceWorkflowsPageRev
     const {showConfirmModal} = useConfirmModal();
     const {login: currentUserLogin = ''} = useCurrentUserPersonalDetails();
     const shouldUseApprovalWorkflowRules = useShouldUseApprovalWorkflowRules(policy);
+    const hasBrokenApprovalWorkflow = useHasApprovalWorkflowWithNonMemberApprover(policyID);
 
     const isSubmitPolicyWorkspace = isSubmitPolicy(policy);
 
@@ -159,6 +161,7 @@ function WorkspaceWorkflowsPageRevamp({policy, route}: WorkspaceWorkflowsPageRev
             sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.WORKFLOWS.TAB.APPROVALS,
             title: translate('workflowsPage.addApprovalsTitle'),
             icon: expensifyIcons.ThumbsUp,
+            shouldShowRedDotIndicator: hasBrokenApprovalWorkflow,
         },
         {
             key: WORKFLOWS_TAB.PAYMENTS,
