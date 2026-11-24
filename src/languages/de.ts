@@ -10111,6 +10111,33 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
             noVendorsFoundDescription: 'Bitte fügen Sie Lieferanten in Digits hinzu und synchronisieren Sie die Verbindung erneut',
             noAccountsFound: 'Keine Konten gefunden',
             noAccountsFoundDescription: 'Bitte fügen Sie Bank- oder Kreditkartenkonten in Digits hinzu und synchronisieren Sie die Verbindung erneut.',
+            noBankAccountsFoundDescription: 'Bitte fügen Sie Bankkonten in Digits hinzu und synchronisieren Sie die Verbindung erneut',
+            noPayableAccountsFoundDescription: 'Bitte fügen Sie Kreditkarten- oder kurzfristige Verbindlichkeitskonten in Digits hinzu und synchronisieren Sie die Verbindung erneut',
+            autoSyncDescription: 'Synchronisieren Sie Digits und Expensify jeden Tag automatisch. Berichte werden in Echtzeit synchronisiert.',
+            accountingMethods: {
+                label: 'Exportmethode',
+                description: 'Wählen Sie, wann Ausgaben exportiert werden sollen.',
+                values: {
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: 'Abgrenzung',
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: 'Bargeld',
+                },
+                alternateText: {
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: 'Auslagen werden nach endgültiger Genehmigung exportiert',
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: 'Auslagen aus eigener Tasche werden beim Bezahlen exportiert',
+                },
+            },
+            syncReimbursedReports: 'Erstattete Berichte synchronisieren',
+            syncReimbursedReportsDescription: 'Wenn ein Bericht per ACH bezahlt wird, wird in diesem Konto eine Rechnungszahlung erzeugt.',
+            billPaymentAccount: {label: 'Rechnungskonto', description: 'Wählen Sie aus, von wo Sie Rechnungen bezahlen möchten, und wir erstellen die Zahlung in Digits.'},
+            syncExpensifyCardSettlements: 'Expensify Kartenabrechnungen synchronisieren',
+            settlementAccount: {label: 'Expensify Karte Ausgleichskonto', description: 'Wählen Sie Ihr Ausgleichskonto und wir erstellen die Zahlung in Digits.'},
+            syncTravelBillingSettlements: 'Konsolidierte Reiserechnungsabrechnungen synchronisieren',
+            travelBillingSettlementAccount: {
+                label: 'Konsolidiertes Abrechnungskonto für Reisekosten',
+                description: 'Wählen Sie Ihr Ausgleichskonto und wir erstellen die Zahlung in Digits.',
+            },
+            travelBillingPayableAccount: {label: 'Konto für konsolidierte Reisekostenverbindlichkeiten'},
+            missingSettlementAccount: (accountName: string) => `Abrechnungen werden nicht synchronisiert, bis Sie ${accountName} auswählen.`,
         },
         zohoBooks: {
             organization: 'Zoho Books-Organisation',
