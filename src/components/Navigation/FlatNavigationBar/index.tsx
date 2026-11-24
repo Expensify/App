@@ -2,12 +2,15 @@ import AccountNavigationAvatar from '@components/Avatar/AccountNavigationAvatar'
 import EnvironmentBadge from '@components/EnvironmentBadge';
 import Hoverable from '@components/Hoverable';
 import DebugTabView from '@components/Navigation/DebugTabView';
+import {DEFAULT_INSIGHTS_TAB_ROUTE} from '@components/Navigation/NavigationTabBar/getInsightsTabRoute';
 import getTabAccessibilityLabel from '@components/Navigation/NavigationTabBar/getTabAccessibilityLabel';
 import NAVIGATION_TABS from '@components/Navigation/NavigationTabBar/NAVIGATION_TABS';
 import useAccountTabNavigation from '@components/Navigation/NavigationTabBar/useAccountTabNavigation';
 import useHomeTabNavigation from '@components/Navigation/NavigationTabBar/useHomeTabNavigation';
 import useInsightsTabNavigation from '@components/Navigation/NavigationTabBar/useInsightsTabNavigation';
 import useSearchTabNavigation from '@components/Navigation/NavigationTabBar/useSearchTabNavigation';
+import useSignedInLinkRoute from '@components/Navigation/NavigationTabBar/useSignedInLinkRoute';
+import useStoredSearchTabRoute from '@components/Navigation/NavigationTabBar/useStoredSearchTabRoute';
 import useWideInboxNavigation from '@components/Navigation/NavigationTabBar/useWideInboxNavigation';
 import {
     COLLAPSE_SURFACE,
@@ -18,6 +21,7 @@ import {
     getFlatNavigationBarVisualWidthStyle,
     useSearchSidebarCollapse,
 } from '@components/Navigation/SearchSidebarCollapseStore';
+import useSupportalSwitcherVisibility from '@components/Navigation/SupportalSwitcher/useSupportalSwitcherVisibility';
 import ScrollView from '@components/ScrollView';
 
 import useAccountTabIndicatorStatus from '@hooks/useAccountTabIndicatorStatus';
@@ -34,11 +38,12 @@ import isHTMLElement from '@libs/isHTMLElement';
 import {setIsSearchTabHovered} from '@libs/Navigation/helpers/searchTabPreloadStore';
 
 import useCreateMenuVisibility from '@pages/inbox/sidebar/FABPopoverContent/useCreateMenuVisibility';
-import SupportalSwitcherButton from '@pages/inbox/sidebar/SupportalSwitcherButton';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 
+import type {ComponentRef} from 'react';
 import type {NativeSyntheticEvent, TargetedEvent} from 'react-native';
 import type {ValueOf} from 'type-fest';
 
@@ -52,6 +57,7 @@ import FlatNavCreateButton from './FlatNavCreateButton';
 import FlatNavDivider from './FlatNavDivider';
 import FlatNavItem from './FlatNavItem';
 import FlatNavLogo from './FlatNavLogo';
+import FlatNavSupportalItem from './FlatNavSupportalItem';
 
 type FlatNavigationBarProps = {
     selectedTab: ValueOf<typeof NAVIGATION_TABS>;
@@ -75,6 +81,8 @@ function FlatNavigationBar({selectedTab}: FlatNavigationBarProps) {
 
     const navigateToInbox = useWideInboxNavigation(selectedTab === NAVIGATION_TABS.INBOX);
     const navigateToSearch = useSearchTabNavigation(selectedTab === NAVIGATION_TABS.SEARCH);
+    const getSignedInLinkRoute = useSignedInLinkRoute();
+    const storedSearchTabRoute = useStoredSearchTabRoute();
     const navigateToInsights = useInsightsTabNavigation(selectedTab === NAVIGATION_TABS.INSIGHTS);
     const navigateToWorkspaces = useRestoreWorkspacesTabOnNavigate();
 
@@ -88,7 +96,10 @@ function FlatNavigationBar({selectedTab}: FlatNavigationBarProps) {
     useEffect(() => endPeek, [endPeek]);
 
     const {isCreateMenuActive, isCreateMenuVisible, showCreateMenu, hideCreateMenu} = useCreateMenuVisibility();
-    const barContainerRef = useRef<View>(null);
+    const {isSupportAgent, isSwitcherVisible: isSupportalSwitcherVisible, showSwitcher: showSupportalSwitcher, hideSwitcher: hideSupportalSwitcher} = useSupportalSwitcherVisibility();
+    // A popover the bar opened holds the peek: its overlay ends the hover without the pointer ever leaving the bar.
+    const isBarPopoverVisible = isCreateMenuVisible || isSupportalSwitcherVisible;
+    const barContainerRef = useRef<ComponentRef<typeof View>>(null);
 
     // Only keyboard focus counts: an item clicked with the mouse keeps focus too, and must not hold the bar open after the pointer leaves.
     const hasKeyboardFocusInside = () => {
@@ -104,26 +115,26 @@ function FlatNavigationBar({selectedTab}: FlatNavigationBarProps) {
         startPeek();
     };
 
-    // The menu's overlay covers the bar until its modal is gone, so the bar never reads as hovered before then.
+    // A popover's overlay covers the bar until its modal is gone, so the bar never reads as hovered before then.
     // Checking any earlier ends the peek under a pointer that is still on the bar, and the bar then peeks right back.
     const endPeekIfPointerAndFocusLeft = () => {
         const element = barContainerRef.current;
         const isHovered = isHTMLElement(element) && element.matches(':hover');
-        if (isCreateMenuVisible || isHovered || hasKeyboardFocusInside()) {
+        if (isBarPopoverVisible || isHovered || hasKeyboardFocusInside()) {
             return;
         }
         endPeek();
     };
 
     const endPeekIfIdle = () => {
-        if (isCreateMenuVisible || hasKeyboardFocusInside()) {
+        if (isBarPopoverVisible || hasKeyboardFocusInside()) {
             return;
         }
         endPeek();
     };
 
     const endPeekUnlessStaying = (event: NativeSyntheticEvent<TargetedEvent>) => {
-        if (isCreateMenuVisible) {
+        if (isBarPopoverVisible) {
             return;
         }
         const currentTarget = event.currentTarget;
@@ -151,135 +162,144 @@ function FlatNavigationBar({selectedTab}: FlatNavigationBarProps) {
                     shouldUseNativeHoverEvents
                     onHoverOut={endPeekIfIdle}
                 >
-                    {(isBarHovered) => (
+                    <Animated.View
+                        ref={barContainerRef}
+                        style={[styles.flatNavigationBarContainer, styles.stickToLeft, styles.zIndex1, getFlatNavigationBarVisualWidthStyle(isVisuallyCollapsed)]}
+                        testID="FlatNavigationBar"
+                    >
                         <Animated.View
-                            ref={barContainerRef}
-                            style={[styles.flatNavigationBarContainer, styles.stickToLeft, styles.zIndex1, getFlatNavigationBarVisualWidthStyle(isVisuallyCollapsed)]}
-                            testID="FlatNavigationBar"
-                        >
+                            style={[styles.flatNavigationBarPeekShadow, getFlatNavigationBarPeekShadowStyle(isPeeking)]}
+                            pointerEvents="none"
+                        />
+                        <View style={styles.flatNavigationBarHeader}>
                             <Animated.View
-                                style={[styles.flatNavigationBarPeekShadow, getFlatNavigationBarPeekShadowStyle(isPeeking)]}
-                                pointerEvents="none"
-                            />
-                            <View style={styles.flatNavigationBarHeader}>
-                                <Animated.View
-                                    testID="FlatNavLogoContainer"
-                                    style={[styles.flatNavigationBarLogoContainer, styles.flexRow, styles.alignItemsCenter, getCollapseFadeStyle(isVisuallyCollapsed)]}
-                                    pointerEvents={isVisuallyCollapsed ? 'none' : 'auto'}
-                                >
-                                    <FlatNavLogo
-                                        isCollapsed={isVisuallyCollapsed}
-                                        onPress={navigateToHome}
-                                    />
-                                    <EnvironmentBadge style={styles.flatNavigationBarEnvironmentBadge} />
-                                </Animated.View>
-                                <FlatNavCollapseToggle
-                                    isCollapsed={isCollapsed}
-                                    onPress={toggleSidebar}
+                                testID="FlatNavLogoContainer"
+                                style={[styles.flatNavigationBarLogoContainer, styles.flexRow, styles.alignItemsCenter, getCollapseFadeStyle(isVisuallyCollapsed)]}
+                                pointerEvents={isVisuallyCollapsed ? 'none' : 'auto'}
+                            >
+                                <FlatNavLogo
+                                    isCollapsed={isVisuallyCollapsed}
+                                    onPress={navigateToHome}
                                 />
-                            </View>
-                            {/* The header stays out of the peek, so pressing the toggle never races the bar widening under the pointer. */}
-                            <Hoverable onHoverIn={startPeek}>
-                                <View
-                                    testID="FlatNavPeekBody"
-                                    style={styles.flex1}
-                                    onFocus={startPeekOnKeyboardFocus}
-                                    onBlur={endPeekUnlessStaying}
-                                >
-                                    <View style={styles.flex1}>
-                                        <View style={styles.flatNavigationBarCreateButtonContainer}>
-                                            <FlatNavCreateButton
-                                                isCompact={isVisuallyCollapsed}
-                                                isCreateMenuActive={isCreateMenuActive}
-                                                isCreateMenuVisible={isCreateMenuVisible}
-                                                showCreateMenu={showCreateMenu}
-                                                hideCreateMenu={hideCreateMenu}
-                                                onCreateMenuHidden={endPeekIfPointerAndFocusLeft}
-                                            />
-                                        </View>
-                                        <ScrollView
-                                            style={styles.flex1}
-                                            showsVerticalScrollIndicator={false}
-                                        >
-                                            <FlatNavItem
-                                                isCollapsed={isVisuallyCollapsed}
-                                                label={translate('common.home')}
-                                                icon={icons.Home}
-                                                isSelected={isHomeSelected}
-                                                sentryLabel={CONST.SENTRY_LABEL.NAVIGATION_TAB_BAR.HOME}
-                                                onPress={navigateToHome}
-                                            />
-                                            <FlatNavItem
-                                                isCollapsed={isVisuallyCollapsed}
-                                                label={translate('common.inbox')}
-                                                icon={icons.Inbox}
-                                                isSelected={selectedTab === NAVIGATION_TABS.INBOX}
-                                                statusIndicatorColor={inboxStatus ? inboxIndicatorColor : undefined}
-                                                accessibilityLabel={getTabAccessibilityLabel(translate('common.inbox'), !!inboxStatus, translate)}
-                                                sentryLabel={CONST.SENTRY_LABEL.NAVIGATION_TAB_BAR.INBOX}
-                                                onPress={navigateToInbox}
-                                            />
-                                            <FlatNavDivider />
-                                            <FlatNavItem
-                                                isCollapsed={isVisuallyCollapsed}
-                                                label={translate('common.spend')}
-                                                icon={icons.ReceiptMultiple}
-                                                isSelected={selectedTab === NAVIGATION_TABS.SEARCH}
-                                                sentryLabel={CONST.SENTRY_LABEL.NAVIGATION_TAB_BAR.REPORTS}
-                                                onPress={navigateToSearch}
-                                                onHoverIn={() => setIsSearchTabHovered(true)}
-                                                onHoverOut={() => setIsSearchTabHovered(false)}
-                                            />
-                                            <FlatNavItem
-                                                isCollapsed={isVisuallyCollapsed}
-                                                label={translate('common.insights')}
-                                                icon={icons.PieChart}
-                                                isSelected={selectedTab === NAVIGATION_TABS.INSIGHTS}
-                                                sentryLabel={CONST.SENTRY_LABEL.NAVIGATION_TAB_BAR.INSIGHTS}
-                                                onPress={navigateToInsights}
-                                            />
-                                            <FlatNavDivider />
-                                            <FlatNavItem
-                                                isCollapsed={isVisuallyCollapsed}
-                                                label={translate('common.workspacesTabTitle')}
-                                                icon={icons.Buildings}
-                                                isSelected={selectedTab === NAVIGATION_TABS.WORKSPACES}
-                                                statusIndicatorColor={workspacesStatus ? workspacesIndicatorColor : undefined}
-                                                accessibilityLabel={getTabAccessibilityLabel(translate('common.workspacesTabTitle'), !!workspacesStatus, translate)}
-                                                sentryLabel={CONST.SENTRY_LABEL.NAVIGATION_TAB_BAR.WORKSPACES}
-                                                onPress={navigateToWorkspaces}
-                                            />
-                                        </ScrollView>
+                                <EnvironmentBadge style={styles.flatNavigationBarEnvironmentBadge} />
+                            </Animated.View>
+                            <FlatNavCollapseToggle
+                                isCollapsed={isCollapsed}
+                                onPress={toggleSidebar}
+                            />
+                        </View>
+                        {/* The header stays out of the peek, so pressing the toggle never races the bar widening under the pointer. */}
+                        <Hoverable onHoverIn={startPeek}>
+                            <View
+                                testID="FlatNavPeekBody"
+                                style={styles.flex1}
+                                onFocus={startPeekOnKeyboardFocus}
+                                onBlur={endPeekUnlessStaying}
+                            >
+                                <View style={styles.flex1}>
+                                    <View style={styles.flatNavigationBarCreateButtonContainer}>
+                                        <FlatNavCreateButton
+                                            isCompact={isVisuallyCollapsed}
+                                            isCreateMenuActive={isCreateMenuActive}
+                                            isCreateMenuVisible={isCreateMenuVisible}
+                                            showCreateMenu={showCreateMenu}
+                                            hideCreateMenu={hideCreateMenu}
+                                            onCreateMenuHidden={endPeekIfPointerAndFocusLeft}
+                                        />
                                     </View>
-                                    <View style={styles.pb3}>
-                                        <View style={[styles.flexRow, styles.ph3]}>
-                                            <SupportalSwitcherButton isSidebarHovered={isBarHovered && !isVisuallyCollapsed} />
-                                        </View>
+                                    <ScrollView
+                                        style={styles.flex1}
+                                        showsVerticalScrollIndicator={false}
+                                    >
+                                        <FlatNavItem
+                                            isCollapsed={isVisuallyCollapsed}
+                                            label={translate('common.home')}
+                                            icon={icons.Home}
+                                            isSelected={isHomeSelected}
+                                            sentryLabel={CONST.SENTRY_LABEL.NAVIGATION_TAB_BAR.HOME}
+                                            onPress={navigateToHome}
+                                            linkRoute={ROUTES.HOME}
+                                        />
+                                        <FlatNavItem
+                                            isCollapsed={isVisuallyCollapsed}
+                                            label={translate('common.inbox')}
+                                            icon={icons.Inbox}
+                                            isSelected={selectedTab === NAVIGATION_TABS.INBOX}
+                                            statusIndicatorColor={inboxStatus ? inboxIndicatorColor : undefined}
+                                            accessibilityLabel={getTabAccessibilityLabel(translate('common.inbox'), !!inboxStatus, translate)}
+                                            sentryLabel={CONST.SENTRY_LABEL.NAVIGATION_TAB_BAR.INBOX}
+                                            onPress={navigateToInbox}
+                                            linkRoute={ROUTES.INBOX}
+                                        />
                                         <FlatNavDivider />
                                         <FlatNavItem
                                             isCollapsed={isVisuallyCollapsed}
-                                            label={accountLabel}
-                                            renderLeftElement={({backgroundColor}) => (
-                                                <Animated.View style={getFlatNavigationBarAccountAvatarStyle(isVisuallyCollapsed)}>
-                                                    <AccountNavigationAvatar
-                                                        isSelected={isAccountSelected}
-                                                        badgeBorderColor={backgroundColor}
-                                                        shouldShowStatus={false}
-                                                    />
-                                                </Animated.View>
-                                            )}
-                                            rightElement={<FlatNavAccountStatus isCollapsed={isVisuallyCollapsed} />}
-                                            isSelected={isAccountSelected}
-                                            isTall
-                                            accessibilityLabel={getTabAccessibilityLabel(`${accountLabel}, ${translate('sidebarScreen.buttonMySettings')}`, !!accountStatus, translate)}
-                                            sentryLabel={CONST.SENTRY_LABEL.NAVIGATION_TAB_BAR.ACCOUNT}
-                                            onPress={navigateToAccount}
+                                            label={translate('common.spend')}
+                                            icon={icons.ReceiptMultiple}
+                                            isSelected={selectedTab === NAVIGATION_TABS.SEARCH}
+                                            sentryLabel={CONST.SENTRY_LABEL.NAVIGATION_TAB_BAR.REPORTS}
+                                            onPress={navigateToSearch}
+                                            linkRoute={getSignedInLinkRoute(storedSearchTabRoute)}
+                                            onHoverIn={() => setIsSearchTabHovered(true)}
+                                            onHoverOut={() => setIsSearchTabHovered(false)}
                                         />
-                                    </View>
+                                        <FlatNavItem
+                                            isCollapsed={isVisuallyCollapsed}
+                                            label={translate('common.insights')}
+                                            icon={icons.PieChart}
+                                            isSelected={selectedTab === NAVIGATION_TABS.INSIGHTS}
+                                            sentryLabel={CONST.SENTRY_LABEL.NAVIGATION_TAB_BAR.INSIGHTS}
+                                            onPress={navigateToInsights}
+                                            linkRoute={getSignedInLinkRoute(DEFAULT_INSIGHTS_TAB_ROUTE)}
+                                        />
+                                        <FlatNavDivider />
+                                        <FlatNavItem
+                                            isCollapsed={isVisuallyCollapsed}
+                                            label={translate('common.workspacesTabTitle')}
+                                            icon={icons.Buildings}
+                                            isSelected={selectedTab === NAVIGATION_TABS.WORKSPACES}
+                                            statusIndicatorColor={workspacesStatus ? workspacesIndicatorColor : undefined}
+                                            accessibilityLabel={getTabAccessibilityLabel(translate('common.workspacesTabTitle'), !!workspacesStatus, translate)}
+                                            sentryLabel={CONST.SENTRY_LABEL.NAVIGATION_TAB_BAR.WORKSPACES}
+                                            onPress={navigateToWorkspaces}
+                                            linkRoute={getSignedInLinkRoute(ROUTES.WORKSPACES_LIST.route)}
+                                        />
+                                    </ScrollView>
                                 </View>
-                            </Hoverable>
-                        </Animated.View>
-                    )}
+                                <View style={styles.pb3}>
+                                    <FlatNavDivider />
+                                    <FlatNavSupportalItem
+                                        isCollapsed={isVisuallyCollapsed}
+                                        isSupportAgent={isSupportAgent}
+                                        isSwitcherVisible={isSupportalSwitcherVisible}
+                                        showSwitcher={showSupportalSwitcher}
+                                        hideSwitcher={hideSupportalSwitcher}
+                                        onSwitcherHidden={endPeekIfPointerAndFocusLeft}
+                                    />
+                                    <FlatNavItem
+                                        isCollapsed={isVisuallyCollapsed}
+                                        label={accountLabel}
+                                        renderLeftElement={({backgroundColor}) => (
+                                            <Animated.View style={getFlatNavigationBarAccountAvatarStyle(isVisuallyCollapsed)}>
+                                                <AccountNavigationAvatar
+                                                    isSelected={isAccountSelected}
+                                                    badgeBorderColor={backgroundColor}
+                                                    shouldShowStatus={false}
+                                                />
+                                            </Animated.View>
+                                        )}
+                                        rightElement={<FlatNavAccountStatus isCollapsed={isVisuallyCollapsed} />}
+                                        isSelected={isAccountSelected}
+                                        isTall
+                                        accessibilityLabel={getTabAccessibilityLabel(`${accountLabel}, ${translate('sidebarScreen.buttonMySettings')}`, !!accountStatus, translate)}
+                                        sentryLabel={CONST.SENTRY_LABEL.NAVIGATION_TAB_BAR.ACCOUNT}
+                                        onPress={navigateToAccount}
+                                        linkRoute={getSignedInLinkRoute(ROUTES.SETTINGS)}
+                                    />
+                                </View>
+                            </View>
+                        </Hoverable>
+                    </Animated.View>
                 </Hoverable>
             </Animated.View>
         </>

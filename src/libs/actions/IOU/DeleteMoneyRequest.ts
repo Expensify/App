@@ -24,13 +24,8 @@ import {
     updateOptimisticParentReportAction,
 } from '@libs/ReportUtils';
 import type {SearchGroupKey} from '@libs/SearchUIUtils';
-import {
-    getAmount,
-    getCurrency,
-    hasNonReimbursableTransactions as hasNonReimbursableTransactionsTransactionUtils,
-    isOnHold,
-    removeTransactionFromDuplicateTransactionViolation,
-} from '@libs/TransactionUtils';
+import {getAmount, getCurrency, hasNonReimbursableTransactions as hasNonReimbursableTransactionsTransactionUtils, isOnHold} from '@libs/TransactionUtils';
+import {removeTransactionFromDuplicateTransactionViolation} from '@libs/TransactionUtils/duplicates';
 
 import {clearByKey as clearPdfByOnyxKey} from '@userActions/CachedPDFPaths';
 import {clearAllRelatedReportActionErrors} from '@userActions/ClearReportActionErrors';
@@ -929,10 +924,11 @@ function deleteMoneyRequest({
             | typeof ONYXKEYS.COLLECTION.SNAPSHOT
         >
     > = [
+        // The transaction is only removed on success. Setting back the queue-time copy would restore pending fields that earlier requests already cleared.
         {
-            onyxMethod: Onyx.METHOD.SET,
+            onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
-            value: {...transaction, pendingAction: null},
+            value: {pendingAction: null},
         },
     ];
 

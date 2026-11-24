@@ -16,9 +16,11 @@ import {canCreateCategoryInSitu} from '@libs/PolicyUtils';
 
 import ONYXKEYS from '@src/ONYXKEYS';
 
+import type {DistributedOmit} from 'type-fest';
+
 import React from 'react';
 
-type InlineCategoryPickerProps = Omit<CategoryPickerModalProps, 'onCreateCategory'> & {
+type InlineCategoryPickerProps = DistributedOmit<CategoryPickerModalProps, 'onCreateCategory'> & {
     /** Receives the updated categories so inline validation includes the category just created. */
     onSave?: TransactionItemRowProps['onEditCategory'];
 };

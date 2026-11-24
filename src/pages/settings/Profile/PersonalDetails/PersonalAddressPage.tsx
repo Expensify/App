@@ -9,6 +9,7 @@ import {getCurrentAddress} from '@libs/PersonalDetailsUtils';
 import AddressPage from '@pages/AddressPage';
 
 import type {FormOnyxValues} from '@src/components/Form/types';
+import CONST from '@src/CONST';
 import {updateAddress as updateAddressPersonalDetails} from '@src/libs/actions/PersonalDetails';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Address} from '@src/types/onyx/PrivatePersonalDetails';
@@ -50,6 +51,7 @@ function PersonalAddressPage() {
             isLoadingApp={isLoadingApp}
             updateAddress={(values) => updateAddress(values, privatePersonalDetails?.addresses ?? [])}
             title={translate('privatePersonalDetails.address')}
+            forwardedFSClass={CONST.FULLSTORY.CLASS.MASK}
         />
     );
 }

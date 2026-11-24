@@ -13,7 +13,7 @@ type CustomFlatListProps<T> = Omit<FlatListProps<T>, 'CellRendererComponent'> & 
      */
     enableAnimatedKeyboardDismissal?: boolean;
 
-    CellRendererComponent?: React.ComponentType<CellRendererProps<T>> | null;
+    CellRendererComponent?: React.ComponentType<CellRendererProps<T>>;
 
     /**
      * Whether to hide the content (e.g. when first displaying the report actions list, we initially show only the top report actions. We then show the full report actions list after the user scrolls)

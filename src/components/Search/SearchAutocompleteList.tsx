@@ -374,6 +374,7 @@ function SearchAutocompleteList({
             personalDetails,
             sortedActions,
             splitAndTrackTransactions,
+            lastActions,
             transactionThreadIDs,
             conciergeReportID,
             isTrackIntentUser,
