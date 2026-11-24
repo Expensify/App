@@ -3,6 +3,7 @@ import {act, render, renderHook} from '@testing-library/react-native';
 import type {PeekSurfaceContextValue} from '@components/Navigation/PeekSurfaceContext';
 import SearchSidebar from '@components/Navigation/SearchSidebar';
 import {useSearchSidebarCollapse} from '@components/Navigation/SearchSidebarCollapseStore';
+import type * as UseEndPeekOnFocusLeaveModule from '@components/Navigation/useEndPeekOnFocusLeave';
 
 import type {PlatformStackNavigationState} from '@libs/Navigation/PlatformStackNavigation/types';
 
@@ -46,6 +47,8 @@ jest.mock('@components/Search/SearchContext', () => ({
     useSearchResultsContext: () => ({lastSearchType: undefined, currentSearchResults: undefined}),
     useSearchResultsActions: () => ({setLastSearchType: () => {}}),
 }));
+// Jest resolves the native variant, which does nothing, so the web one is loaded by its file name.
+jest.mock('@components/Navigation/useEndPeekOnFocusLeave', () => jest.requireActual<typeof UseEndPeekOnFocusLeaveModule>('@components/Navigation/useEndPeekOnFocusLeave/index.ts'));
 let mockIsElementHovered = false;
 let mockHasKeyboardFocusInside = false;
 // Jest has no DOM, so the element the sidebar reads the pointer against counts as one as long as it can answer matches().
