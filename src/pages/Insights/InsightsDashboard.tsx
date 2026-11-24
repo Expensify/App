@@ -32,28 +32,41 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
-import type {AIInsight, InsightsDashboard as InsightsDashboardRecord, InsightsDashboardID, InsightsScope} from '@src/types/onyx';
+import type {AIInsight, InsightsDashboard as InsightsDashboardRecord, InsightsDashboardID, InsightsFutureExpenses, InsightsGraphKey, InsightsScope} from '@src/types/onyx';
 import viewRef from '@src/types/utils/viewRef';
 
 import type {OnyxCollection} from 'react-native-onyx';
 
 import {useIsFocused} from '@react-navigation/native';
-import React, {useEffect, useEffectEvent, useRef} from 'react';
+import React, {useEffect, useEffectEvent, useRef, useState} from 'react';
 import {StyleSheet, View} from 'react-native';
 import Animated, {FadeIn, FadeOut} from 'react-native-reanimated';
 
+import type {InsightsViolationStage, InsightsViolationStages} from './dashboardSpecs';
 import type {InsightsCaptureRef} from './exportInsightsDashboard/types';
 import type {InsightsFilters} from './insightsFilters';
 import type {InsightsChartQuery} from './insightsQueries';
+import type {InsightsTagLevelOption} from './insightsTagLevels';
 import type {InsightsDashboardChart, InsightsDashboardState} from './resolveDashboardState';
 
 import InsightsAICardRow from './ai/InsightsAICardRow';
 import InsightsChartWidget from './charts/InsightsChartWidget';
+import InsightsFutureExpensesNote from './charts/InsightsFutureExpensesNote';
 import InsightsPageControls from './controls/InsightsPageControls';
-import INSIGHTS_DASHBOARD_SPECS, {getPoliciesInScope, getUpgradeablePolicyIDsInScope, getVisibleCharts, shouldUpsellControlPlan} from './dashboardSpecs';
+import InsightsTagLevelControl from './controls/InsightsTagLevelControl';
+import INSIGHTS_DASHBOARD_SPECS, {
+    applyViolationStage,
+    getEnabledStages,
+    getPoliciesInScope,
+    getUpgradeablePolicyIDsInScope,
+    getViolationStage,
+    getVisibleCharts,
+    shouldUpsellControlPlan,
+} from './dashboardSpecs';
 import {getQueryGroupBy} from './insightsGroupByUtils';
 import buildInsightsJsonQuery from './insightsQueries';
 import InsightsTabSelector from './InsightsTabSelector';
+import InsightsTagPolicyLoader from './InsightsTagPolicyLoader';
 import {getDashboardState, hasDashboardResponse, INSIGHTS_DASHBOARD_STATE} from './resolveDashboardState';
 import InsightsEmptyState from './states/InsightsEmptyState';
 import InsightsNoExpensesState from './states/InsightsNoExpensesState';
@@ -72,7 +85,13 @@ type InsightsDashboardContentProps = {
 
     headlineChart: InsightsDashboardChart;
 
-    /** Charts in the grid below the headline, left out when no workspace in scope is eligible for them */
+    /** Last day the charts count expenses through, as the backend resolved today */
+    asOfDate: string | undefined;
+
+    /** Expenses in the date range dated after `asOfDate`, which every chart leaves out */
+    futureExpenses: InsightsFutureExpenses | undefined;
+
+    /** Charts below the headline, left out when no workspace in scope is eligible for them */
     supportingCharts: InsightsDashboardChart[];
 
     /** Page-level filters every chart on the dashboard is narrowed by */
@@ -86,6 +105,13 @@ type InsightsDashboardContentProps = {
 
     /** Changes how the headline chart aggregates: the time bucket, or Running total */
     onGroupByChange: (update: Partial<InsightsFilters>) => void;
+    tagLevelOptions: InsightsTagLevelOption[];
+
+    /** Violation stage picked on each chart that offers one */
+    violationStages: InsightsViolationStages;
+
+    /** Stores the stage picked on the given chart, which only charts with a violation stage control call */
+    onViolationStageChange: (graphKey: InsightsGraphKey, stage: InsightsViolationStage) => void;
 
     /** Ref on the scrolling dashboard content so the export includes cards below the fold */
     captureRef: InsightsCaptureRef;
@@ -94,6 +120,25 @@ type InsightsDashboardContentProps = {
     children?: React.ReactNode;
 };
 
+/** Splits the charts into sections: a full-width chart on its own, or the charts between two full-width ones, which share a two-column grid */
+function getDashboardSections(charts: InsightsDashboardChart[], shouldUseNarrowLayout: boolean): Array<InsightsDashboardChart | InsightsDashboardChart[]> {
+    const isGridChart = (chart: InsightsDashboardChart | undefined) => !!chart && !chart.chart.isFullWidth;
+    const isAloneInGrid = (index: number) => isGridChart(charts.at(index)) && (index === 0 || !isGridChart(charts.at(index - 1))) && !isGridChart(charts.at(index + 1));
+    // A two-column grid with one chart leaves half a row empty, so on wide layouts that chart moves to the bottom, where the gap ends the page
+    const orderedCharts = shouldUseNarrowLayout ? charts : [...charts.filter((chart, index) => !isAloneInGrid(index)), ...charts.filter((chart, index) => isAloneInGrid(index))];
+
+    const sections: Array<InsightsDashboardChart | InsightsDashboardChart[]> = [];
+    for (const chart of orderedCharts) {
+        const lastSection = sections.at(-1);
+        if (!chart.chart.isFullWidth && Array.isArray(lastSection)) {
+            lastSection.push(chart);
+        } else {
+            sections.push(chart.chart.isFullWidth ? chart : [chart]);
+        }
+    }
+    return sections;
+}
+
 function InsightsDashboardContent({
     dashboardID,
     state,
@@ -101,11 +146,16 @@ function InsightsDashboardContent({
     insightsScope,
     hasFailedToLoad,
     headlineChart,
+    asOfDate,
+    futureExpenses,
     supportingCharts,
     filters,
     upgradeablePolicyIDs,
     onRetry,
     onGroupByChange,
+    violationStages,
+    onViolationStageChange,
+    tagLevelOptions,
     captureRef,
     children,
 }: InsightsDashboardContentProps) {
@@ -113,7 +163,7 @@ function InsightsDashboardContent({
     const {pageGutter} = useLayoutSpacing();
     const shouldScrollMainHeader = useIsMobileWebLandscape();
     const theme = useTheme();
-    const {translate} = useLocalize();
+    const {translate, numberFormat} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {isBetaEnabled} = usePermissions();
     const icons = useMemoizedLazyExpensifyIcons(['OfflineCloud']);
@@ -219,8 +269,77 @@ function InsightsDashboardContent({
         );
     }
 
-    // Wide layout stacks the cards in two independent columns, so a short card doesn't leave a gap under it
-    const columns = shouldUseNarrowLayout ? [supportingCharts] : [supportingCharts.filter((chart, index) => index % 2 === 0), supportingCharts.filter((chart, index) => index % 2 === 1)];
+    const tagLevel = filters.tagLevel ?? CONST.INSIGHTS.DEFAULT_TAG_LEVEL;
+    const tagLevelName = tagLevelOptions.find(({value}) => value === tagLevel)?.label ?? translate('insightsPage.tagLevel', numberFormat(tagLevel));
+
+    const renderChart = (
+        {chart, queryJSON, snapshot, previousPeriodQueryJSON, previousPeriodSnapshot, averageQueryJSON, averageSnapshot, average, isDashboardLoaded, stages}: InsightsDashboardChart,
+        isHeadline = false,
+    ) => (
+        <InsightsChartWidget
+            key={chart.graphKey}
+            dashboardID={dashboardID}
+            chart={chart}
+            queryJSON={queryJSON}
+            snapshot={snapshot}
+            previousPeriodQueryJSON={previousPeriodQueryJSON}
+            previousPeriodSnapshot={previousPeriodSnapshot}
+            averageQueryJSON={averageQueryJSON}
+            averageSnapshot={averageSnapshot}
+            average={average}
+            isDashboardLoaded={isDashboardLoaded}
+            stages={stages}
+            filters={filters}
+            insightsScope={insightsScope}
+            countDimension={countDimension}
+            supportsDrillIn={supportsDrillIn}
+            onRetry={onRetry}
+            onGroupByChange={isHeadline ? onGroupByChange : undefined}
+            violationStage={getViolationStage(chart, violationStages)}
+            onViolationStageChange={(stage) => onViolationStageChange(chart.graphKey, stage)}
+            asOfDate={asOfDate}
+            tagLevelName={chart.graphKey === CONST.INSIGHTS.GRAPH.TOP_TAGS ? tagLevelName : undefined}
+        >
+            {chart.graphKey === CONST.INSIGHTS.GRAPH.TOP_TAGS && tagLevelOptions.length > 1 && (
+                <InsightsChartWidget.Controls>
+                    <InsightsTagLevelControl
+                        tagLevel={tagLevel}
+                        label={tagLevelName}
+                        options={tagLevelOptions}
+                        onChange={onGroupByChange}
+                    />
+                </InsightsChartWidget.Controls>
+            )}
+            {isHeadline && !!asOfDate && !!futureExpenses?.count && (
+                <InsightsFutureExpensesNote
+                    futureExpenses={futureExpenses}
+                    asOfDate={asOfDate}
+                    filters={filters}
+                />
+            )}
+        </InsightsChartWidget>
+    );
+
+    const renderGrid = (gridCharts: InsightsDashboardChart[]) => {
+        // Wide layout stacks the cards in two independent columns, so a short card doesn't leave a gap under it
+        const columns = shouldUseNarrowLayout ? [gridCharts] : [gridCharts.filter((chart, index) => index % 2 === 0), gridCharts.filter((chart, index) => index % 2 === 1)];
+        return (
+            <View
+                key={gridCharts.at(0)?.chart.graphKey}
+                style={styles.insightsChartGrid(shouldUseNarrowLayout)}
+            >
+                {columns.map((columnCharts, columnIndex) => (
+                    <View
+                        // eslint-disable-next-line react/no-array-index-key -- columns are fixed positions
+                        key={columnIndex}
+                        style={[styles.flex1, styles.insightsChartColumn(shouldUseNarrowLayout)]}
+                    >
+                        {columnCharts.map((chart) => renderChart(chart))}
+                    </View>
+                ))}
+            </View>
+        );
+    };
 
     return (
         <TabRootScrollViewMarker>
@@ -245,50 +364,8 @@ function InsightsDashboardContent({
                             hasFailedToLoad={hasFailedToLoad}
                         />
                     )}
-                    <InsightsChartWidget
-                        dashboardID={dashboardID}
-                        chart={headlineChart.chart}
-                        queryJSON={headlineChart.queryJSON}
-                        snapshot={headlineChart.snapshot}
-                        previousPeriodQueryJSON={headlineChart.previousPeriodQueryJSON}
-                        previousPeriodSnapshot={headlineChart.previousPeriodSnapshot}
-                        average={headlineChart.average}
-                        isDashboardLoaded={headlineChart.isDashboardLoaded}
-                        filters={filters}
-                        insightsScope={insightsScope}
-                        countDimension={countDimension}
-                        supportsDrillIn={supportsDrillIn}
-                        onRetry={onRetry}
-                        onGroupByChange={onGroupByChange}
-                    />
-                    <View style={styles.insightsChartGrid(shouldUseNarrowLayout)}>
-                        {columns.map((columnCharts, columnIndex) => (
-                            <View
-                                // eslint-disable-next-line react/no-array-index-key -- columns are fixed positions
-                                key={columnIndex}
-                                style={[styles.flex1, styles.insightsChartColumn(shouldUseNarrowLayout)]}
-                            >
-                                {columnCharts.map(({chart, queryJSON, snapshot, previousPeriodQueryJSON, previousPeriodSnapshot, average, isDashboardLoaded}) => (
-                                    <InsightsChartWidget
-                                        key={chart.graphKey}
-                                        dashboardID={dashboardID}
-                                        chart={chart}
-                                        queryJSON={queryJSON}
-                                        snapshot={snapshot}
-                                        previousPeriodQueryJSON={previousPeriodQueryJSON}
-                                        previousPeriodSnapshot={previousPeriodSnapshot}
-                                        average={average}
-                                        isDashboardLoaded={isDashboardLoaded}
-                                        filters={filters}
-                                        insightsScope={insightsScope}
-                                        countDimension={countDimension}
-                                        supportsDrillIn={supportsDrillIn}
-                                        onRetry={onRetry}
-                                    />
-                                ))}
-                            </View>
-                        ))}
-                    </View>
+                    {renderChart(headlineChart, true)}
+                    {getDashboardSections(supportingCharts, shouldUseNarrowLayout).map((section) => (Array.isArray(section) ? renderGrid(section) : renderChart(section)))}
                 </View>
             </ScrollView>
         </TabRootScrollViewMarker>
@@ -315,9 +392,10 @@ function InsightsDashboard({dashboardID, accessibleDashboards}: {dashboardID: In
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const arePoliciesLoaded = policies !== undefined;
     // Checked against the next filters, because a workspace change can turn the upsell on or off
-    const {filters, defaultFilters, isResolved, setFilters} = useInsightsFilters(
+    const {filters, defaultFilters, isResolved, setFilters, tagPolicyIDs, tagLevelOptions} = useInsightsFilters(
         dashboardID,
         (next) => arePoliciesLoaded && shouldUpsellControlPlan(dashboardID, getPoliciesInScope(policies, next.policyIDs), next.policyIDs, login),
+        policies,
     );
     const {headerRef, controlsRef, contentRef, isExporting, isLoading: isChartLoading, exportDashboard, captureContext} = useInsightsExport(dashboardID, filters);
     const updateFilters = (update: Partial<InsightsFilters>) => {
@@ -326,15 +404,23 @@ function InsightsDashboard({dashboardID, accessibleDashboards}: {dashboardID: In
         }
         setFilters(update);
     };
+    // Kept on screen only, since GetInsights doesn't save it with the dashboard's filters. The dashboard's hash includes it, so each stage keeps its own entry.
+    const [violationStages, setViolationStages] = useState<InsightsViolationStages>({});
     const {headlineChart: headlineSpec, supportingCharts: supportingSpecs, isPolicyEligible: isDashboardPolicyEligible, queryType} = INSIGHTS_DASHBOARD_SPECS[dashboardID];
     const policiesInScope = getPoliciesInScope(policies, filters.policyIDs);
     const eligibleCharts = getVisibleCharts(supportingSpecs, policiesInScope, login, isDashboardPolicyEligible);
-    const eligibleGraphKeys = eligibleCharts.map(({graphKey}) => graphKey).join(',');
     // Settled from the policies already in Onyx, so the charts are never requested for a dashboard the upsell stands in for
     const shouldUpsell = arePoliciesLoaded && shouldUpsellControlPlan(dashboardID, policiesInScope, filters.policyIDs, login);
     const upgradeablePolicyIDs = shouldUpsell ? getUpgradeablePolicyIDsInScope(policiesInScope, login) : [];
-    const query = isResolved && arePoliciesLoaded && !shouldUpsell ? buildInsightsJsonQuery(dashboardID, filters, eligibleCharts) : undefined;
+    const query = isResolved && arePoliciesLoaded && !shouldUpsell ? buildInsightsJsonQuery(dashboardID, filters, eligibleCharts, violationStages) : undefined;
     const hash = query?.hash;
+    const snapshotHashes = query?.snapshotHashes.join(',');
+    const updateViolationStage = (graphKey: InsightsGraphKey, stage: InsightsViolationStage) => {
+        if (isExporting) {
+            return;
+        }
+        setViolationStages((currentStages) => ({...currentStages, [graphKey]: stage}));
+    };
     // The bucket actually queried, which Running total resolves to a real day/month bucket. Toggling Running total alone leaves this unchanged, so it stays a client-side transform with no refetch.
     const queryGroupBy = isResolved ? getQueryGroupBy(filters) : undefined;
 
@@ -357,8 +443,8 @@ function InsightsDashboard({dashboardID, accessibleDashboards}: {dashboardID: In
             return;
         }
         onRequestConditionsChanged();
-        // Leaves out jsonQuery so toggling Compare mode doesn't refetch, since every response covers it. The effective bucket and the eligible charts are listed because the hash leaves them out, so changing them triggers a refetch while a pure Running total toggle does not.
-    }, [dashboardID, hash, queryGroupBy, eligibleGraphKeys, isDashboardVisible, isFocused, isOffline]);
+        // Leaves out jsonQuery so toggling Compare mode doesn't refetch, since every response covers it. The chart snapshots are listed because the hash leaves out the effective bucket and the eligible charts, so changing them triggers a refetch while a pure Running total toggle does not.
+    }, [dashboardID, hash, queryGroupBy, snapshotHashes, isDashboardVisible, isFocused, isOffline]);
 
     const [dashboard] = useOnyx(`${ONYXKEYS.COLLECTION.INSIGHTS}${dashboardID}_${hash}`);
     const [hasLoadedBefore = false] = useOnyx(ONYXKEYS.COLLECTION.INSIGHTS, {
@@ -367,10 +453,10 @@ function InsightsDashboard({dashboardID, accessibleDashboards}: {dashboardID: In
     // Until the filters and workspaces load, the charts have no query to read data for, so they show their loading state
     const visibleChartQueries = query
         ? [query.headlineChart, ...query.supportingCharts]
-        : [headlineSpec, ...eligibleCharts].map((chart): InsightsChartQuery => ({chart, queryJSON: undefined}));
+        : [headlineSpec, ...eligibleCharts].map((chart): InsightsChartQuery => ({chart: applyViolationStage(chart, violationStages[chart.graphKey]), queryJSON: undefined}));
     const snapshots = useMultipleSnapshots(
-        visibleChartQueries.flatMap(({queryJSON, previousPeriodQueryJSON}) =>
-            [queryJSON, previousPeriodQueryJSON].flatMap((chartQueryJSON) => (chartQueryJSON ? [String(chartQueryJSON.hash)] : [])),
+        visibleChartQueries.flatMap(({queryJSON, previousPeriodQueryJSON, averageQueryJSON}) =>
+            [queryJSON, previousPeriodQueryJSON, averageQueryJSON].flatMap((chartQueryJSON) => (chartQueryJSON ? [String(chartQueryJSON.hash)] : [])),
         ),
     );
     const charts = visibleChartQueries.map((chartQuery): InsightsDashboardChart => {
@@ -379,8 +465,14 @@ function InsightsDashboard({dashboardID, accessibleDashboards}: {dashboardID: In
             ...chartQuery,
             snapshot: chartQuery.queryJSON ? snapshots[chartQuery.queryJSON.hash] : undefined,
             previousPeriodSnapshot: chartQuery.previousPeriodQueryJSON ? snapshots[chartQuery.previousPeriodQueryJSON.hash] : undefined,
-            average: {[CONST.SEARCH.CHART_METRIC.AMOUNT]: graph?.averageAmount, [CONST.SEARCH.CHART_METRIC.COUNT]: graph?.averageCount},
+            averageSnapshot: chartQuery.averageQueryJSON ? snapshots[chartQuery.averageQueryJSON.hash] : undefined,
+            average: {
+                [CONST.SEARCH.CHART_METRIC.AMOUNT]: graph?.averageAmount,
+                [CONST.SEARCH.CHART_METRIC.COUNT]: graph?.averageCount,
+                [CONST.SEARCH.CHART_METRIC.DURATION]: graph?.averageDuration,
+            },
             isDashboardLoaded: hasDashboardResponse(dashboard),
+            stages: getEnabledStages(chartQuery.chart, policiesInScope, login, isDashboardPolicyEligible),
         };
     });
     const [headlineChart, ...supportingCharts] = charts;
@@ -454,6 +546,7 @@ function InsightsDashboard({dashboardID, accessibleDashboards}: {dashboardID: In
                 {...tabRootScreenWrapperProps}
                 testID="InsightsPage"
             >
+                <InsightsTagPolicyLoader policyIDs={tagPolicyIDs} />
                 {!shouldScrollMainHeader && header}
                 <View style={styles.flex1}>
                     <Animated.View
@@ -471,14 +564,20 @@ function InsightsDashboard({dashboardID, accessibleDashboards}: {dashboardID: In
                                 policyIDs: filters.policyIDs,
                                 date: filters.date,
                                 groupCurrency: filters.groupCurrency,
+                                ...(dashboardID === CONST.INSIGHTS.DASHBOARD.SPEND && {tagLevel: filters.tagLevel}),
                             }}
                             hasFailedToLoad={!!dashboard?.errors}
                             headlineChart={headlineChart}
+                            asOfDate={dashboard?.asOfDate}
+                            futureExpenses={dashboard?.futureExpenses}
                             supportingCharts={supportingCharts}
                             filters={filters}
                             upgradeablePolicyIDs={upgradeablePolicyIDs}
                             onRetry={requestDashboard}
                             onGroupByChange={updateFilters}
+                            violationStages={violationStages}
+                            onViolationStageChange={updateViolationStage}
+                            tagLevelOptions={tagLevelOptions}
                             captureRef={contentRef}
                         >
                             {shouldScrollMainHeader && header}

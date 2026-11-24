@@ -157,6 +157,7 @@ const buildPolicy = (fieldCount: number, extraFields: OnyxTypes.PolicyReportFiel
         role: CONST.POLICY.ROLE.ADMIN,
         outputCurrency: CONST.CURRENCY.USD,
         areReportFieldsEnabled: true,
+        areInvoiceFieldsEnabled: true,
         fieldList,
     };
 };
@@ -174,13 +175,21 @@ const buildReport = (reportOnlyFields: OnyxTypes.PolicyReportField[] = []): Onyx
     total: 0,
 });
 
-const renderReportFields = async (fieldCount: number, extraFields: OnyxTypes.PolicyReportField[] = [], reportOnlyFields: OnyxTypes.PolicyReportField[] = []) => {
+const renderReportFields = async (
+    fieldCount: number,
+    extraFields: OnyxTypes.PolicyReportField[] = [],
+    reportOnlyFields: OnyxTypes.PolicyReportField[] = [],
+    options: {report?: Partial<OnyxTypes.Report>; reportNameValuePairs?: OnyxTypes.ReportNameValuePairs} = {},
+) => {
     const policy = buildPolicy(fieldCount, extraFields);
-    const report = buildReport(reportOnlyFields);
+    const report = {...buildReport(reportOnlyFields), ...options.report};
 
     await act(async () => {
         await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, report);
+        if (options.reportNameValuePairs) {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`, options.reportNameValuePairs);
+        }
     });
     await waitForBatchedUpdatesWithAct();
 
@@ -404,6 +413,29 @@ describe('MoneyRequestViewReportFields', () => {
         // Then the error is already visible, like the report field rows before inline editing, so a report with empty
         // required fields tells the user what still needs filling in
         expect(screen.getByText('EmptyField is required')).toBeOnTheScreen();
+    });
+
+    it.each([false, true])('shows empty invoice fields without required errors when stored in reportNameValuePairs: %s', async (isStoredInNameValuePairs) => {
+        // Given empty invoice fields, including invoices whose saved fields live in name-value pairs
+        const invoiceFields = ['Customer Address', 'PO Number'].map((name, index) => ({
+            ...buildTextField(index),
+            name,
+            value: '',
+            target: CONST.REPORT_FIELD_TARGETS.INVOICE,
+        }));
+        const reportNameValuePairs = isStoredInNameValuePairs ? Object.fromEntries(invoiceFields.map((field) => [`expensify_${field.fieldID}`, field])) : undefined;
+
+        // When an unpaid invoice is opened
+        await renderReportFields(0, invoiceFields, [], {
+            report: {type: CONST.REPORT.TYPE.INVOICE, stateNum: CONST.REPORT.STATE_NUM.SUBMITTED, statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED},
+            reportNameValuePairs,
+        });
+
+        // Then both fields remain visible and empty without the expense-report required errors
+        for (const field of invoiceFields) {
+            expect(screen.getByLabelText(field.name)).toHaveProp('value', '');
+            expect(screen.queryByText(`${field.name} is required`)).not.toBeOnTheScreen();
+        }
     });
 
     it('renders a list field as a collapsed combobox rather than a row that opens a page', async () => {

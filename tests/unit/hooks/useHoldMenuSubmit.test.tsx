@@ -1,76 +1,44 @@
-import {renderHook} from '@testing-library/react-native';
+import {act, renderHook} from '@testing-library/react-native';
+
+import ComposeProviders from '@components/ComposeProviders';
+import {CurrentUserPersonalDetailsProvider} from '@components/CurrentUserPersonalDetailsProvider';
+import {LocaleContextProvider} from '@components/LocaleContextProvider';
+import OnyxListItemProvider from '@components/OnyxListItemProvider';
 
 import useHoldMenuSubmit from '@hooks/useHoldMenuSubmit';
+import type usePayViaABA from '@hooks/usePayViaABA';
 
+import {payMoneyRequest} from '@userActions/IOU/PayMoneyRequest';
 import {approveMoneyRequest} from '@userActions/IOU/ReportWorkflow';
 
 import CONST from '@src/CONST';
-import type {Report, Transaction} from '@src/types/onyx';
+import ONYXKEYS from '@src/ONYXKEYS';
+import type {Policy, Report, Transaction} from '@src/types/onyx';
 
-import {createRandomReport} from '../../utils/collections/reports';
+import React from 'react';
+import Onyx from 'react-native-onyx';
+
+import createRandomPolicy from '../../utils/collections/policies';
 import createRandomTransaction from '../../utils/collections/transaction';
+import waitForBatchedUpdatesWithAct from '../../utils/waitForBatchedUpdatesWithAct';
 
-const mockPayWithWiseQuote = jest.fn();
+const mockPayReportsViaABA = jest.fn<void, Parameters<ReturnType<typeof usePayViaABA>['payReportsViaABA']>>();
+jest.mock('@hooks/usePayViaABA', () => ({__esModule: true, default: jest.fn(() => ({payReportsViaABA: mockPayReportsViaABA, isDownloadingABAFile: false}))}));
+
+jest.mock('@userActions/IOU/PayMoneyRequest', () => ({
+    ...jest.requireActual<Record<string, unknown>>('@userActions/IOU/PayMoneyRequest'),
+    payMoneyRequest: jest.fn(),
+}));
+
 let mockReportTransactions: Transaction[] = [];
+jest.mock('@hooks/useReportTransactions', () => ({__esModule: true, default: () => mockReportTransactions}));
+
+// The violations confirmation has its own tests, so here it runs the approval straight away
+jest.mock('@hooks/useConfirmApproveReportViolations', () => ({__esModule: true, default: () => (onProceed: () => void) => onProceed()}));
 
 jest.mock('@userActions/IOU/ReportWorkflow', () => ({
+    ...jest.requireActual<Record<string, unknown>>('@userActions/IOU/ReportWorkflow'),
     approveMoneyRequest: jest.fn(),
-}));
-
-jest.mock('@hooks/useReportTransactions', () => ({
-    __esModule: true,
-    default: () => mockReportTransactions,
-}));
-
-jest.mock('@hooks/usePayWithWiseQuote', () => ({
-    __esModule: true,
-    default: () => ({payWithWiseQuote: mockPayWithWiseQuote}),
-}));
-
-jest.mock('@hooks/useOnyx', () => ({
-    __esModule: true,
-    default: () => [undefined],
-}));
-
-jest.mock('@hooks/usePolicy', () => ({
-    __esModule: true,
-    default: () => undefined,
-}));
-
-jest.mock('@hooks/usePayChatReportActions', () => ({
-    __esModule: true,
-    default: () => () => undefined,
-}));
-
-jest.mock('@hooks/usePermissions', () => ({
-    __esModule: true,
-    default: () => ({isBetaEnabled: () => false}),
-}));
-
-jest.mock('@hooks/useCurrentUserPersonalDetails', () => ({
-    __esModule: true,
-    default: () => ({
-        accountID: 1,
-        email: 'approver@test.com',
-        login: 'approver@test.com',
-    }),
-}));
-
-jest.mock('@hooks/useCurrencyList', () => ({
-    useCurrencyListActions: () => ({getCurrencyDecimals: () => 2}),
-}));
-
-jest.mock('@hooks/useDelegateAccountID', () => ({
-    __esModule: true,
-    default: () => undefined,
-}));
-
-jest.mock('@hooks/usePersonalDetailByLogin', () => ({
-    useGetPersonalDetailsByLogin: () => () => ({}),
-}));
-
-jest.mock('@hooks/usePersonalDetails', () => ({
-    usePersonalDetail: () => [undefined],
 }));
 
 jest.mock('@components/DelegateNoAccessModalProvider', () => ({
@@ -78,78 +46,110 @@ jest.mock('@components/DelegateNoAccessModalProvider', () => ({
     useDelegateNoAccessActions: () => ({showDelegateNoAccessModal: jest.fn()}),
 }));
 
-jest.mock('@components/LockedAccountModalProvider', () => ({
-    useLockedAccountState: () => ({isAccountLocked: false}),
-    useLockedAccountActions: () => ({showLockedAccountModal: jest.fn()}),
-}));
+const policy: Policy = {...createRandomPolicy(1), id: 'ABAPolicy'};
+const chatReport = {reportID: '200', type: CONST.REPORT.TYPE.CHAT, policyID: policy.id} as Report;
+const expenseReport = {reportID: '100', chatReportID: chatReport.reportID, type: CONST.REPORT.TYPE.EXPENSE, policyID: policy.id} as Report;
 
-jest.mock('@libs/ReportUtils', () => ({
-    getReportOrDraftReport: () => undefined,
-    hasViolations: () => false,
-}));
+function Wrapper({children}: {children: React.ReactNode}) {
+    return <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, CurrentUserPersonalDetailsProvider]}>{children}</ComposeProviders>;
+}
 
 describe('useHoldMenuSubmit', () => {
-    const moneyRequestReport: Report = {
-        ...createRandomReport(1, undefined),
-        reportID: '1',
-    };
-    const chatReport: Report = {
-        ...createRandomReport(2, undefined),
-        reportID: '2',
-    };
+    beforeAll(() => {
+        Onyx.init({keys: ONYXKEYS});
+    });
 
-    beforeEach(() => {
+    beforeEach(async () => {
         jest.clearAllMocks();
-        mockReportTransactions = [{...createRandomTransaction(1), reportID: moneyRequestReport.reportID}];
+        mockReportTransactions = [];
+        await act(async () => {
+            await Onyx.clear();
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
+        });
     });
 
-    it('passes the report transactions to approveMoneyRequest when approving', () => {
-        // Given a hold menu for an approval of a report that has transactions
+    it.each([true, false])('pays via ABA with full set to %s when the report is paid via ABA', async (full) => {
+        // Given the hold menu of a report that's paid via ABA
         const onClose = jest.fn();
-        const {result} = renderHook(() =>
-            useHoldMenuSubmit({
-                moneyRequestReport,
-                chatReport,
-                requestType: CONST.IOU.REPORT_ACTION_TYPE.APPROVE,
-                onClose,
-            }),
+        const onConfirm = jest.fn();
+        const {result} = renderHook(
+            () =>
+                useHoldMenuSubmit({
+                    moneyRequestReport: expenseReport,
+                    chatReport,
+                    requestType: CONST.IOU.REPORT_ACTION_TYPE.PAY,
+                    paymentType: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
+                    paymentMethod: CONST.PAYMENT_METHODS.ABA,
+                    onClose,
+                    onConfirm,
+                }),
+            {wrapper: Wrapper},
         );
+        await waitForBatchedUpdatesWithAct();
 
-        // When the approver picks an option
-        result.current.onSubmit(true);
+        // When the user chooses whether to pay the held expenses too
+        result.current.onSubmit(full);
 
-        // Then the transactions are handed to approveMoneyRequest instead of being looked up inside it, and the menu closes
-        expect(approveMoneyRequest).toHaveBeenCalledWith(
-            expect.objectContaining({
-                expenseReportTransactions: mockReportTransactions,
-                full: true,
-            }),
+        // Then the ABA file is downloaded with that choice instead of marking the report as paid, and the menu closes
+        expect(mockPayReportsViaABA).toHaveBeenCalledWith(
+            [expect.objectContaining({reportID: expenseReport.reportID})],
+            expect.objectContaining({id: policy.id}),
+            expect.objectContaining({shouldReimburseHeldTransactions: full}),
         );
+        expect(payMoneyRequest).not.toHaveBeenCalled();
         expect(onClose).toHaveBeenCalled();
+
+        // And the menu is only confirmed once the file has downloaded, so selection mode turns off and the paid animation plays only when the reports are paid
+        expect(onConfirm).not.toHaveBeenCalled();
+        act(() => mockPayReportsViaABA.mock.calls.at(0)?.[2]?.onPaid?.());
+        expect(onConfirm).toHaveBeenCalledWith(full);
     });
 
-    it('passes the report transactions to payWithWiseQuote when paying', () => {
-        // Given a hold menu for paying a report that has transactions
-        const {result} = renderHook(() =>
-            useHoldMenuSubmit({
-                moneyRequestReport,
-                chatReport,
-                requestType: CONST.IOU.REPORT_ACTION_TYPE.PAY,
-                paymentType: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
-                onClose: jest.fn(),
-            }),
+    it('marks the report as paid elsewhere when it is not paid via ABA', async () => {
+        // Given the hold menu of a report that's marked as paid elsewhere
+        const {result} = renderHook(
+            () =>
+                useHoldMenuSubmit({
+                    moneyRequestReport: expenseReport,
+                    chatReport,
+                    requestType: CONST.IOU.REPORT_ACTION_TYPE.PAY,
+                    paymentType: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
+                    onClose: jest.fn(),
+                }),
+            {wrapper: Wrapper},
         );
+        await waitForBatchedUpdatesWithAct();
 
-        // When the payer picks an option
+        // When the user pays only the expenses that aren't on hold
         result.current.onSubmit(false);
 
-        // Then the same transactions reach the payment flow and approval is not triggered
-        expect(mockPayWithWiseQuote).toHaveBeenCalledWith(
-            expect.objectContaining({
-                iouReportTransactions: mockReportTransactions,
-                full: false,
-            }),
+        // Then it's paid the usual way, without an ABA file
+        expect(payMoneyRequest).toHaveBeenCalledWith(expect.objectContaining({paymentType: CONST.IOU.PAYMENT_TYPE.ELSEWHERE, full: false}));
+        expect(mockPayReportsViaABA).not.toHaveBeenCalled();
+    });
+
+    it('passes the report transactions to approveMoneyRequest when approving', async () => {
+        // Given the hold menu of an approval for a report whose transactions are loaded
+        const reportTransaction: Transaction = {...createRandomTransaction(1), reportID: expenseReport.reportID};
+        mockReportTransactions = [reportTransaction];
+        const onClose = jest.fn();
+        const {result} = renderHook(
+            () =>
+                useHoldMenuSubmit({
+                    moneyRequestReport: expenseReport,
+                    chatReport,
+                    requestType: CONST.IOU.REPORT_ACTION_TYPE.APPROVE,
+                    onClose,
+                }),
+            {wrapper: Wrapper},
         );
-        expect(approveMoneyRequest).not.toHaveBeenCalled();
+        await waitForBatchedUpdatesWithAct();
+
+        // When the approver approves only the expenses that aren't on hold
+        result.current.onSubmit(false);
+
+        // Then approveMoneyRequest gets the report's transactions from the caller instead of reading them from Onyx itself, and the menu closes
+        expect(approveMoneyRequest).toHaveBeenCalledWith(expect.objectContaining({expenseReportTransactions: [reportTransaction], full: false}));
+        expect(onClose).toHaveBeenCalled();
     });
 });
