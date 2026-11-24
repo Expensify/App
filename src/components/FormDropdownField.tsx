@@ -47,10 +47,10 @@ type FormDropdownFieldProps = ForwardedFSClassProps &
         title: string;
 
         /** Validation error shown under the row and read with it */
-        errorText: string;
+        errorText?: string;
 
         /** Dims the row and stops it opening, e.g. while the form waits on the server for new requirements */
-        disabled: boolean;
+        disabled?: boolean;
 
         /** Lets FormProvider scroll to and focus the row when the user asks to fix the errors */
         rowRef?: Ref<ComponentRef<typeof View>>;
@@ -76,8 +76,8 @@ function FormDropdownField({
     value,
     accessibilityLabel,
     title,
-    errorText,
-    disabled,
+    errorText = '',
+    disabled = false,
     rowRef,
     forwardedFSClass,
     renderDropdown,

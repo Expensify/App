@@ -379,7 +379,7 @@ import DropdownChoiceAdapter from '@components/DropdownChoiceAdapter';
 ```
 
 - `label` is the name shown in the row, and `title` is the heading of the list once it opens.
-- Each form passes its own Sentry labels: `sentryLabel` for the row, `backButtonSentryLabel` for the back button in the header of the anchored list (the full-page fallback's back button has no label yet), and `applyButtonSentryLabel` for the Apply button of `MultiChoiceDropdownAdapter`. Add them to `CONST.SENTRY_LABEL` as described in [SENTRY_LABEL.md](SENTRY_LABEL.md).
+- Each form passes its own Sentry labels: `sentryLabel` for the row, `backButtonSentryLabel` for the back button in the header of the anchored list (the full-page fallback's back button reports the generic `Header-BackButton` label), and `applyButtonSentryLabel` for the Apply button of `MultiChoiceDropdownAdapter`. Add them to `CONST.SENTRY_LABEL` as described in [SENTRY_LABEL.md](SENTRY_LABEL.md).
 - An option can set `searchValue` to be found by text other than its label, e.g. a country by its ISO code.
 
 #### Full-page fallback
@@ -392,6 +392,14 @@ A form field has no page of its own to navigate to, so the row opens its list on
 #### Building a dropdown row for another list
 
 For a list the ready-made inputs do not cover, use `FormDropdownField` directly. It renders the row and the full-page fallback, and takes the list twice: `renderDropdown` for the anchored container and `renderFullPageList` for the full page. `CurrencyDropdownAdapter` is a short example to copy.
+
+A new input built on it has to:
+
+- Accept the `ref` that `InputWrapper` passes and forward it as `rowRef`, so `FormProvider` can scroll to the row and focus it.
+- Pass `onBlur` and `forwardedFSClass` through to `FormDropdownField`.
+- In `renderDropdown`, spread the given props (anchor position, alignment, size and `onClose`) into the list's popover, which closes through that `onClose` after a pick or Apply. Pass `forwardedFSClass` to that list as well, because its container renders outside the row and is not masked with it.
+- In `renderFullPageList`, call `onClose` after a pick or Apply. A list that keeps unapplied picks can reset them when `isVisible` changes.
+- Take its Sentry labels with `DropdownRowSentryLabelProps`.
 
 ## Dynamic Form Inputs
 
