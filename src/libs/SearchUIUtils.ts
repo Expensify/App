@@ -2474,21 +2474,21 @@ function getActions(
     }
 
     const ownerLogin = getLoginByAccountID(report.ownerAccountID, data.personalDetailsList);
-    const submitToAccountID = getSubmitToAccountID(policy, report, ownerLogin, rules);
-    const isAllowedToApproveExpenseReport = isAllowedToApproveExpenseReportUtils(report, submitToAccountID, policy);
+    const canApprove = canApproveIOU(report, policy, reportMetadata, currentUserAccountID, allReportTransactions);
+    const canSubmit =
+        isGroupPolicy(policy) &&
+        canSubmitReport(report, ownerLogin, policy, allReportTransactions, allViolations, isArchivedOrPendingDeletePolicy(policy), currentUserLogin, currentUserAccountID);
 
-    if (canApproveIOU(report, policy, reportMetadata, currentUserAccountID, allReportTransactions) && isAllowedToApproveExpenseReport) {
+    // Resolving the submit-to route scans the workspace approval rules, so skip it when neither action can apply.
+    const submitToAccountID = canApprove || canSubmit ? getSubmitToAccountID(policy, report, ownerLogin, rules) : CONST.DEFAULT_NUMBER_ID;
+
+    if (canApprove && isAllowedToApproveExpenseReportUtils(report, submitToAccountID, policy)) {
         allActions.push(CONST.SEARCH.ACTION_TYPES.APPROVE);
     }
 
     // We check submit eligibility separately from approve: on Submit workspaces the popover picks
     // the manager, so don't block Submit when the default submit-to route is the owner.
-
-    if (
-        isGroupPolicy(policy) &&
-        canSubmitReport(report, ownerLogin, policy, allReportTransactions, allViolations, isArchivedOrPendingDeletePolicy(policy), currentUserLogin, currentUserAccountID) &&
-        isSubmitActionAllowedForSearch(report, policy, submitToAccountID, currentUserAccountID)
-    ) {
+    if (canSubmit && isSubmitActionAllowedForSearch(report, policy, submitToAccountID, currentUserAccountID)) {
         allActions.push(CONST.SEARCH.ACTION_TYPES.SUBMIT);
     }
 
