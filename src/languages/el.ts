@@ -5440,6 +5440,11 @@ ${amount} για ${merchant} - ${date}`,
                 required: 'Παρακαλούμε εισαγάγετε το φορολογικό αριθμό της νομικής σας οντότητας.',
             },
         },
+        travelMembers: {
+            headline: 'Ποιος μπορεί να κλείνει ταξίδια;',
+            subtitle: 'Επιλέξτε ποιοι σε αυτόν τον χώρο εργασίας μπορούν να κλείνουν ταξίδια. Μπορείτε να το αλλάξετε οποιαδήποτε στιγμή από τη σελίδα Μέλη.',
+            everyone: 'Όλοι σε αυτόν τον χώρο εργασίας',
+        },
         domainPermissionInfo: {
             title: 'Τομέας',
             restriction: (domain: string) =>
@@ -11287,6 +11292,11 @@ ${reportName}`,
             `άλλαξε τη ροή έγκρισης για τον/την ${member} ώστε να προωθεί αναφορές πάνω από ${limit} (προηγουμένως ${previousLimit})`,
         updatedMemberTravelAccess: ({displayName, canUseTravel}: {displayName: string; canUseTravel: boolean}) =>
             canUseTravel ? `ενεργοποίησε τις κρατήσεις ταξιδιών για τον/την ${displayName}` : `απενεργοποίησε τις κρατήσεις ταξιδιών για τον/την ${displayName}`,
+        setUpTravelMemberAccess: ({memberNames}: {memberNames: string}) => `απενεργοποίησε τις κρατήσεις ταξιδιών για ${memberNames}`,
+        travelSetupOtherMembers: ({count}: {count: number}) => ({
+            one: '1 ακόμη άτομο',
+            other: `${count} ακόμη άτομα`,
+        }),
         updatedMemberWorkArrangement: ({displayName, newArrangement, oldArrangement}: {displayName: string; newArrangement: string; oldArrangement: string}) =>
             `άλλαξε τη ρύθμιση εργασίας του/της ${displayName} σε ${newArrangement} (προηγουμένως: ${oldArrangement})`,
         updatedDefaultWorkArrangement: ({newArrangement, oldArrangement}: {newArrangement: string; oldArrangement: string}) =>

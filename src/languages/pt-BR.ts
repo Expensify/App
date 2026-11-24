@@ -5403,6 +5403,11 @@ ${amount} para ${merchant} - ${date}`,
             inputLabel: 'CNPJ da pessoa jurídica',
             error: {required: 'Insira o CNPJ da sua entidade legal.'},
         },
+        travelMembers: {
+            headline: 'Quem pode reservar viagens?',
+            subtitle: 'Escolha quem neste espaço de trabalho pode reservar viagens. Você pode alterar isso a qualquer momento na página Membros.',
+            everyone: 'Todos neste espaço de trabalho',
+        },
         nudge: {
             airfareManual:
                 'Você sabia que pode reservar voos diretamente no Expensify e ainda acumular milhas nos seus programas de passageiro frequente? Da próxima vez, evite o trabalho de criar sua despesa manualmente e simplesmente reserve pelo <a href="https://travel.expensify.com">Expensify Travel</a> ✈️',
@@ -11036,6 +11041,11 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
             `alterou o fluxo de aprovação de ${member} para encaminhar relatórios acima de ${limit} (antes ${previousLimit})`,
         updatedMemberTravelAccess: ({displayName, canUseTravel}: {displayName: string; canUseTravel: boolean}) =>
             canUseTravel ? `ativou a reserva de viagens para ${displayName}` : `desativou a reserva de viagens para ${displayName}`,
+        setUpTravelMemberAccess: ({memberNames}: {memberNames: string}) => `desativou a reserva de viagens para ${memberNames}`,
+        travelSetupOtherMembers: ({count}: {count: number}) => ({
+            one: `mais ${count} pessoa`,
+            other: `mais ${count} pessoas`,
+        }),
         updatedMemberWorkArrangement: ({displayName, newArrangement, oldArrangement}: {displayName: string; newArrangement: string; oldArrangement: string}) =>
             `alterou o regime de trabalho de ${displayName} para ${newArrangement} (antes ${oldArrangement})`,
         updatedDefaultWorkArrangement: ({newArrangement, oldArrangement}: {newArrangement: string; oldArrangement: string}) =>

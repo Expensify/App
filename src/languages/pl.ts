@@ -5443,6 +5443,11 @@ ${amount} dla ${merchant} - ${date}`,
             inputLabel: 'NIP podmiotu prawnego',
             error: {required: 'Podaj swój identyfikator podatkowy podmiotu prawnego.'},
         },
+        travelMembers: {
+            headline: 'Kto może rezerwować podróże?',
+            subtitle: 'Wybierz, kto w tym obszarze roboczym może rezerwować podróże. Możesz to zmienić w dowolnym momencie na stronie Członkowie.',
+            everyone: 'Wszyscy w tym obszarze roboczym',
+        },
         nudge: {
             airfareManual:
                 'Wiesz, że możesz rezerwować loty bezpośrednio w Expensify i nadal zbierać mile w swoich programach lojalnościowych dla często podróżujących? Następnym razem uniknij kłopotu ręcznego tworzenia wydatku i po prostu zarezerwuj przez <a href="https://travel.expensify.com">Expensify Travel</a> ✈️',
@@ -11067,6 +11072,13 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
             `zmienił obieg akceptacji dla ${member}, aby przekazywać raporty powyżej ${limit} (wcześniej ${previousLimit})`,
         updatedMemberTravelAccess: ({displayName, canUseTravel}: {displayName: string; canUseTravel: boolean}) =>
             canUseTravel ? `włączył(a) rezerwowanie podróży dla użytkownika ${displayName}` : `wyłączył(a) rezerwowanie podróży dla użytkownika ${displayName}`,
+        setUpTravelMemberAccess: ({memberNames}: {memberNames: string}) => `wyłączył(a) rezerwowanie podróży dla: ${memberNames}`,
+        travelSetupOtherMembers: ({count}: {count: number}) => ({
+            one: '1 inna osoba',
+            few: `${count} inne osoby`,
+            many: `${count} innych osób`,
+            other: `${count} innej osoby`,
+        }),
         updatedMemberWorkArrangement: ({displayName, newArrangement, oldArrangement}: {displayName: string; newArrangement: string; oldArrangement: string}) =>
             `zmienił(a) tryb pracy użytkownika ${displayName} na ${newArrangement} (wcześniej ${oldArrangement})`,
         updatedDefaultWorkArrangement: ({newArrangement, oldArrangement}: {newArrangement: string; oldArrangement: string}) =>

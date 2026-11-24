@@ -5651,6 +5651,25 @@ function getUpdatedMemberTravelAccessMessage(translate: LocalizedTranslate, repo
     return translate('workspaceActions.updatedMemberTravelAccess', {displayName, canUseTravel: newValue});
 }
 
+function getTravelSetupMemberAccessMessage(translate: LocalizedTranslate, reportAction: OnyxEntry<ReportAction>): string {
+    if (!isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.SET_UP_TRAVEL_MEMBER_ACCESS)) {
+        return getReportActionText(reportAction);
+    }
+    const {members = [], count = 0} = getOriginalMessage(reportAction) ?? {};
+    const names = members
+        .slice(0, CONST.TRAVEL.MAX_SETUP_CHANGE_LOG_NAMES_SHOWN)
+        .map(({name, email}) => name ?? (email ? formatPhoneNumber(email) : ''))
+        .filter((name) => !!name);
+    if (names.length === 0) {
+        return getReportActionText(reportAction);
+    }
+
+    // The log names the first members and counts the rest, so a large workspace gets one short message
+    const otherCount = count - names.length;
+    const listedMembers = otherCount > 0 ? [...names, translate('workspaceActions.travelSetupOtherMembers', {count: otherCount})] : names;
+    return translate('workspaceActions.setUpTravelMemberAccess', {memberNames: formatList(listedMembers)});
+}
+
 function getAddedOfficeLocationMessage(translate: LocalizedTranslate, reportAction: OnyxEntry<ReportAction>): string {
     if (!isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_OFFICE_LOCATION)) {
         return getReportActionText(reportAction);
@@ -6605,6 +6624,7 @@ export {
     getPolicyWorkArrangementMessage,
     getUpdatedMemberWorkArrangementMessage,
     getUpdatedMemberTravelAccessMessage,
+    getTravelSetupMemberAccessMessage,
     getAddedOfficeLocationMessage,
     getUpdatedOfficeLocationMessage,
     getDeletedOfficeLocationMessage,

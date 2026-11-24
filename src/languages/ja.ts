@@ -5352,6 +5352,11 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
             inputLabel: '法人納税者番号',
             error: {required: '法的事業体の納税者番号を入力してください。'},
         },
+        travelMembers: {
+            headline: '出張を予約できるのは誰ですか？',
+            subtitle: 'このワークスペースで出張を予約できるメンバーを選択してください。メンバーページからいつでも変更できます。',
+            everyone: 'このワークスペースの全員',
+        },
         nudge: {
             airfareManual:
                 'Expensify で直接フライトを予約しても、マイレージプログラムでマイルを獲得できることをご存じでしたか？ 次回からは経費を手動で作成する手間を省き、ぜひ <a href="https://travel.expensify.com">Expensify Travel</a> から予約してください ✈️',
@@ -10875,6 +10880,11 @@ ${reportName}`,
             `${member} さんの承認ワークフローを、${limit} を超えるレポートを転送するように変更しました（以前は ${previousLimit}）。`,
         updatedMemberTravelAccess: ({displayName, canUseTravel}: {displayName: string; canUseTravel: boolean}) =>
             canUseTravel ? `${displayName}さんの出張予約をオンにしました` : `${displayName}さんの出張予約をオフにしました`,
+        setUpTravelMemberAccess: ({memberNames}: {memberNames: string}) => `${memberNames}の出張予約をオフにしました`,
+        travelSetupOtherMembers: ({count}: {count: number}) => ({
+            one: `他${count}人`,
+            other: `他${count}人`,
+        }),
         updatedMemberWorkArrangement: ({displayName, newArrangement, oldArrangement}: {displayName: string; newArrangement: string; oldArrangement: string}) =>
             `${displayName}さんの勤務形態を${newArrangement}（以前は${oldArrangement}）に変更しました`,
         updatedDefaultWorkArrangement: ({newArrangement, oldArrangement}: {newArrangement: string; oldArrangement: string}) =>
