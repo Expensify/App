@@ -1042,6 +1042,7 @@ const translations: TranslationDeepObject<typeof en> = {
     },
     supportalSwitcher: {
         title: 'Supportal na inne konto',
+        navigationLabel: 'Supportal',
         emailLabel: 'Adres e-mail',
         reasonLabel: 'Powód logowania do pomocy',
         reasonHint: 'Nie znaleziono ostatnich zgłoszeń dla tego konta.',
@@ -1281,6 +1282,8 @@ const translations: TranslationDeepObject<typeof en> = {
     },
     insightsPage: {
         tagLevel: (level: string) => `Poziom tagu ${level}`,
+        noTaggedExpenses: 'Brak wydatków z tagami',
+        noExpensesForTagLevel: (tagLevelName: string) => `Brak wydatków dla ${tagLevelName} w tym zakresie dat.`,
         tagLevelLabel: 'Poziom tagu',
         parent: 'Rodzic',
         shareOfTotal: 'Udział w całości (%)',
@@ -1333,7 +1336,6 @@ const translations: TranslationDeepObject<typeof en> = {
         viewDetails: 'Zobacz szczegóły',
         viewAll: 'Zobacz wszystko',
         topExpenses: 'Najwyższe wydatki',
-        noExpensesInRange: 'Brak wydatków w tym zakresie',
         efficiency: 'Wydajność',
         workflowEfficiency: 'Wydajność przepływu pracy',
         averageProcessingTime: 'Średni czas przetwarzania',
@@ -1342,6 +1344,29 @@ const translations: TranslationDeepObject<typeof en> = {
         mostTimeToPay: 'Najdłuższy czas na zapłatę',
         share: 'Udział',
         averageDays: 'Średnia liczba dni',
+        summary: {
+            title: 'Podsumowanie',
+            over: (percentage: string) => `${percentage} powyżej`,
+            under: (percentage: string) => `${percentage} poniżej`,
+            versusMerchantAverage: (amount: string) => `${amount} vs średnia u tego sprzedawcy`,
+            versusMemberAverage: (amount: string) => `${amount} vs średnia tego członka`,
+            versusCategoryAverage: (amount: string) => `${amount} vs średnia dla tej kategorii`,
+            versusAverageDay: (amount: string) => `${amount} vs przeciętny dzień`,
+            versusAverageWeek: (amount: string) => `${amount} vs przeciętny tydzień`,
+            versusAverageMonth: (amount: string) => `${amount} vs przeciętny miesiąc`,
+            versusAverageQuarter: (amount: string) => `${amount} vs średnia w kwartale`,
+            moreHistoryNeeded: 'Potrzebna dłuższa historia:',
+            daysOfHistoryNeeded: (count: number) => `Średnie porównanie pojawi się po ${count} pełnych dniach historii`,
+            weeksOfHistoryNeeded: (count: number) => `Porównanie średnich pojawi się po ${count} pełnych tygodniach historii`,
+            monthsOfHistoryNeeded: (count: number) => `Porównanie średniej pojawi się po ${count} pełnych miesiącach historii`,
+            quartersOfHistoryNeeded: (count: number) => `Porównanie średniej pojawi się po ${count} pełnych kwartałach historii`,
+            periodSpend: (period: string) => `Wydatki za ${period}`,
+            dayAverage: (count: number) => `średnia z ${count} dni`,
+            weekAverage: (count: number) => `średnia z ${count} tygodni`,
+            monthAverage: (count: number) => `średnia z ${count} miesięcy`,
+            quarterAverage: (count: number) => `Średnia z ${count} kwartałów`,
+            shareOfTotal: 'Udział w sumie',
+        },
         generatingAIInsights: 'Generowanie podpowiedzi AI...',
         generatingAIInsightsSubtitle: 'To nie powinno zająć więcej niż minutę',
         readingChart: (chartTitle: string) => `Odczytywanie ${chartTitle}`,
@@ -1512,6 +1537,8 @@ const translations: TranslationDeepObject<typeof en> = {
         flash: 'błysk',
         flipCamera: 'obróć kamerę',
         multiScan: 'wielokrotne skanowanie',
+        receiptEnhancements: 'Ulepszenia paragonów',
+        receiptEnhancementsEnabled: 'Ulepszenia paragonów włączone',
         shutter: 'migawka',
         gallery: 'galeria',
         deleteReceipt: 'Usuń paragon',
@@ -1960,6 +1987,12 @@ const translations: TranslationDeepObject<typeof en> = {
             debitedAmount: 'Pobrana kwota',
             employeeReceived: 'Pracownik otrzymał',
             payAll: 'Zapłać wszystko',
+            fxRateExpiredTitle: 'Kurs wymiany wygasł',
+            fxRatesExpiredTitle: 'Kursy wymiany wygasły',
+            fxRateExpiredPrompt: 'Sprawdź najnowszy kurs przed zapłatą.',
+            fxRatesExpiredPrompt: 'Sprawdź najnowsze kursy przed zapłatą.',
+            getLatestRate: 'Pobierz najnowszy kurs',
+            getLatestRates: 'Pobierz najnowsze kursy',
             reportCount: ({count}: {count: number}) => ({
                 one: '1 raport',
                 few: `${count} raporty`,
@@ -2386,6 +2419,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 }
                 return `Oczekiwanie na zakończenie przetwarzania anulowanej płatności${formattedETA}.`;
             },
+            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_PAYMENT_REVIEW]: (params: ReportNextStepMessageParams) => `Płatność wstrzymana, poczekaj na kolejną aktualizację.`,
             [CONST.NEXT_STEP.MESSAGE_KEY.SUBMITTING_TO_SELF]: (params: ReportNextStepMessageParams) =>
                 `Ups! Wygląda na to, że wysyłasz zgłoszenie <strong>do siebie</strong>. Zatwierdzanie własnych raportów jest <strong>zabronione</strong> w twoim workspace. Wyślij ten raport do kogoś innego albo skontaktuj się z administratorem, żeby zmienić osobę, do której wysyłasz.`,
             [CONST.NEXT_STEP.MESSAGE_KEY.REJECTED_REPORT]: ({actor, actorType}: ReportNextStepMessageParams) => {
@@ -2616,6 +2650,8 @@ const translations: TranslationDeepObject<typeof en> = {
             leftHandNavCache: 'Pamięć podręczna lewego panelu nawigacji',
             clearleftHandNavCache: 'Wyczyść',
             softKillTheApp: 'Miękko zamknij aplikację',
+            testBusinessBankAccount: 'Przetestuj firmowe konto bankowe w USD',
+            testPersonalBankAccount: 'Testowe osobiste konto bankowe w USD',
             kill: 'Zabij',
             sentryDebug: 'Debugowanie Sentry',
             sentrySendDescription: 'Wysyłaj dane do Sentry',
@@ -2623,6 +2659,7 @@ const translations: TranslationDeepObject<typeof en> = {
             sentryHighlightedSpanOps: 'Wyróżnione nazwy zakresów',
             sentryHighlightedSpanOpsPlaceholder: 'kliknięcie interfejsu, nawigacja, ładowanie interfejsu',
             showBranchNameInTitle: 'Pokaż nazwę gałęzi w tytule przeglądarki',
+            hideEnvironmentBadge: 'Ukryj znaczek środowiska',
             betaOverrides: 'Nadpisywanie bet',
             betaOverridesDescription:
                 'Nadpisywanie działa tylko na tym urządzeniu i tylko po stronie frontendu. Beta zachowuje nadpisanie tylko wtedy, gdy różni się od bet z Twojego konta, więc przełączenie jej z powrotem usuwa nadpisanie. „Zresetuj wszystkie nadpisania” przywraca wartości z Twojego konta. Niektóre bety są też kontrolowane przez backend, więc mogą w pełni nie działać zwłaszcza przy żądaniach wysyłanych do backendu.',
@@ -3355,8 +3392,8 @@ const translations: TranslationDeepObject<typeof en> = {
             rejected: {title: 'Odrzucono konto bankowe', heading: 'Nasz partner odrzucił twoje konto bankowe', description: 'Porozmawiaj z Concierge, żeby dowiedzieć się więcej.'},
         },
         wiseSetupRow: {
-            inProgress: {message: 'Konfiguracja globalnych zwrotów kosztów w toku.', link: 'Kontynuuj.'},
-            inReview: {message: 'Konfiguracja globalnych zwrotów kosztów w trakcie weryfikacji.', link: 'Sprawdź status.'},
+            inProgress: {message: 'Konfiguracja globalnych zwrotów kosztów w toku.'},
+            inReview: {message: 'Konfiguracja globalnych zwrotów kosztów w trakcie weryfikacji.', action: 'Sprawdź status'},
         },
         wiseGlobalReimbursementsIntro: {
             title: 'Skonfigurować globalne zwroty kosztów?',
@@ -5389,6 +5426,10 @@ ${amount} dla ${merchant} - ${date}`,
             railTicketExchange: (origin: string, destination: string, startDate: string) => `Twój bilet kolejowy z ${origin} → ${destination} na ${startDate} został wymieniony.`,
             railTicketUpdate: (origin: string, destination: string, startDate: string) => `Twój bilet kolejowy z ${origin} → ${destination} na ${startDate} został zaktualizowany.`,
             defaultUpdate: (type: string) => `Twoja rezerwacja (${type}) została zaktualizowana.`,
+            hotelBooked: (hotelName: string, startDate: string) => `Twoja rezerwacja hotelu w ${hotelName} (zameldowanie ${startDate}) została dokonana.`,
+            carBooked: (vendor: string, startDate: string) => `Twój wynajem samochodu w ${vendor} (odbiór ${startDate}) został zarezerwowany.`,
+            railTicketBooked: (origin: string, destination: string, startDate: string) => `Twój bilet kolejowy z ${origin} do ${destination} na ${startDate} został zarezerwowany.`,
+            defaultBooked: (type: string) => `Twoja rezerwacja typu ${type} została dokonana.`,
         },
         flightTo: 'Lot do',
         trainTo: 'Pociąg do',
@@ -5654,6 +5695,9 @@ ${amount} dla ${merchant} - ${date}`,
             },
             chatgpt: {
                 title: 'ChatGPT',
+            },
+            grok: {
+                title: 'Grok',
             },
         },
         connections: {
@@ -8053,6 +8097,7 @@ Plan Control zaczyna się od 9 USD za aktywnego członka miesięcznie.`,
                 willBeReadyToUse: 'Ta karta będzie gotowa do użycia od razu.',
                 willBeReadyToShip: 'Ta karta będzie gotowa do natychmiastowej wysyłki.',
                 cardholder: 'Posiadacz karty',
+                cardholderEmail: 'Adres e-mail posiadacza karty',
                 cardType: 'Typ karty',
                 limit: 'Limit',
                 limitType: 'Typ limitu',
@@ -10016,6 +10061,33 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
             noVendorsFoundDescription: 'Dodaj proszę dostawców w Digits i zsynchronizuj połączenie ponownie',
             noAccountsFound: 'Nie znaleziono kont',
             noAccountsFoundDescription: 'Dodaj proszę rachunki bankowe lub karty kredytowe w Digits i zsynchronizuj połączenie ponownie',
+            noBankAccountsFoundDescription: 'Dodaj proszę konta bankowe w Digits i ponownie zsynchronizuj połączenie',
+            noPayableAccountsFoundDescription: 'Dodaj proszę konta kart kredytowych lub bieżących zobowiązań w Digits i zsynchronizuj połączenie ponownie',
+            autoSyncDescription: 'Synchronizuj Digits i Expensify automatycznie, każdego dnia. Raporty synchronizują się w czasie rzeczywistym.',
+            accountingMethods: {
+                label: 'Metoda eksportu',
+                description: 'Wybierz, kiedy eksportować wydatki.',
+                values: {
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: 'Memoria',
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: 'Gotówka',
+                },
+                alternateText: {
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: 'Wydatki z własnej kieszeni zostaną wyeksportowane po ostatecznym zatwierdzeniu',
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: 'Wydatki z własnej kieszeni zostaną wyeksportowane po opłaceniu',
+                },
+            },
+            syncReimbursedReports: 'Synchronizuj rozliczone raporty',
+            syncReimbursedReportsDescription: 'Gdy raport zostanie opłacony przez ACH, w tym koncie zostanie wygenerowana płatność rachunku.',
+            billPaymentAccount: {label: 'Konto do opłacania rachunków', description: 'Wybierz, z jakiego konta chcesz opłacać rachunki, a my utworzymy płatność w Digits.'},
+            syncExpensifyCardSettlements: 'Synchronizuj rozliczenia Karty Expensify',
+            settlementAccount: {label: 'Rachunek rozliczeniowy Karty Expensify', description: 'Wybierz swoje konto rozliczeniowe, a my utworzymy płatność w Digits.'},
+            syncTravelBillingSettlements: 'Synchronizuj rozliczenia skonsolidowanego rozliczania podróży',
+            travelBillingSettlementAccount: {
+                label: 'Konto rozliczeniowe skonsolidowanego rozliczania podróży',
+                description: 'Wybierz swoje konto rozliczeniowe, a my utworzymy płatność w Digits.',
+            },
+            travelBillingPayableAccount: {label: 'Konto zobowiązań skonsolidowanego rozliczania podróży'},
+            missingSettlementAccount: (accountName: string) => `Rozliczenia nie będą się synchronizować, dopóki nie wybierzesz ${accountName}.`,
         },
         zohoBooks: {
             organization: 'Organizacja Zoho Books',
@@ -11620,7 +11692,9 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
                     mentionedAccountID?: number;
                 }) => {
                     let warningTime = 'wkrótce';
-                    if (warningDaysBeforeExpiry === CONST.COMPANY_CARDS.CONSENT_EXPIRY_WARNING_DAYS.TWO_WEEKS) {
+                    if (warningDaysBeforeExpiry === CONST.COMPANY_CARDS.CONSENT_EXPIRY_WARNING_DAYS.ONE_MONTH) {
+                        warningTime = 'za miesiąc';
+                    } else if (warningDaysBeforeExpiry === CONST.COMPANY_CARDS.CONSENT_EXPIRY_WARNING_DAYS.TWO_WEEKS) {
                         warningTime = 'za dwa tygodnie';
                     } else if (warningDaysBeforeExpiry === CONST.COMPANY_CARDS.CONSENT_EXPIRY_WARNING_DAYS.ONE_WEEK) {
                         warningTime = 'za tydzień';
@@ -11715,7 +11789,8 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
                 reimbursementRefundedWithoutBankAccount: 'Środki zostały zwrócone. Możesz ponowić płatność.',
                 reimbursementHeld:
                     'Płatność wstrzymana, dopóki nasz partner nie zakończy weryfikacji. Poczekaj na kolejną aktualizację. Porozmawiaj z <concierge-link>Concierge</concierge-link>.',
-                reimbursementReleased: 'Weryfikacja została zakończona i twoja płatność jest w drodze. Ostateczny kurs walutowy może zmienić kwotę.',
+                reimbursementReleased: ({expectedDate}: {expectedDate: string}) => `Płatność została zwolniona, środki powinny dotrzeć do ${expectedDate}.`,
+                reimbursementReleasedWithoutDate: 'Płatność została zwolniona.',
             },
             error: {
                 invalidCredentials: 'Nieprawidłowe dane logowania, sprawdź konfigurację swojego połączenia.',

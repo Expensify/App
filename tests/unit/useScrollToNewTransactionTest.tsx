@@ -7,8 +7,7 @@ import type {TransactionListItemData} from '@components/MoneyRequestReportView/M
 import useScrollToNewTransaction from '@components/MoneyRequestReportView/useScrollToNewTransaction';
 import ScreenVisibilityProvider from '@components/ScreenWrapper/ScreenVisibilityProvider';
 
-import type {ViewToken} from '@src/types/utils/ReactNativeCompat';
-
+import type {ViewToken} from '@shopify/flash-list';
 import type {ReactNode, RefObject} from 'react';
 
 import React, {useEffect, useState} from 'react';
@@ -42,7 +41,7 @@ function renderScrollToNewTransaction({isReportVisible = true, shouldInlineTrans
     const wrapper = ({children}: {children: ReactNode}) => <Report isInitiallyVisible={isReportVisible}>{children}</Report>;
     const listRef = createMock<NonNullable<FlatListRefType>>({current: {scrollToIndex, scrollToOffset}});
     const tableRef: RefObject<ExternalScrollFlashListTableHandle | null> = {current: {getRowPageOffset: () => NEW_ROW_PAGE_OFFSET}};
-    const viewableItemsRef: RefObject<ViewToken[]> = {current: []};
+    const viewableItemsRef: RefObject<Array<ViewToken<unknown>>> = {current: []};
     const scrollOffsetStore = createScrollOffsetStore();
     return renderHook<void, ReportRows>(
         ({newTransactionID, transactionListItems}) =>

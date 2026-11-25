@@ -2,18 +2,14 @@ import type {DynamicFormValues} from '@components/DynamicForm/types';
 
 import {isValidZipCodeForCountry} from '@libs/ValidationUtils';
 
-import type AddressFormFields from '@pages/ReimbursementAccount/AddressFormFields';
+import type {AddressInputKeys} from '@pages/ReimbursementAccount/AddressFormFields';
 
 import CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
 import STATES_BY_COUNTRY from '@src/CONST/STATES_BY_COUNTRY';
 import type {DynamicFormAddressField} from '@src/types/onyx';
 
-import type {ComponentProps} from 'react';
-
 import isCountryCode from './isCountryCode';
-
-type AddressInputKeys = ComponentProps<typeof AddressFormFields>['inputKeys'];
 
 /**
  * Draft keys for AddressFormFields. The street is the field's own value, and an empty key tells AddressSearch to drop that part, such as the place `name`.
@@ -37,14 +33,6 @@ function getAddressInputKeys(fieldKey: string): Required<Pick<AddressInputKeys, 
 function getAddressCountry(fieldKey: string, values: DynamicFormValues): Country | '' {
     const country = values[getAddressInputKeys(fieldKey).country];
     return typeof country === 'string' && isCountryCode(country) ? country : '';
-}
-
-/** The countries the picker lists by code, or undefined when the field takes every country */
-function getCountryOptions(field: DynamicFormAddressField): Record<string, string> | undefined {
-    if (!field.countries) {
-        return undefined;
-    }
-    return Object.fromEntries(field.countries.filter(isCountryCode).map((code) => [code, CONST.ALL_COUNTRIES[code]]));
 }
 
 /** Whether the field takes an address in the country. No country is never allowed, so a required address still asks for one. */
@@ -79,4 +67,4 @@ function isZipCodeRequired(field: DynamicFormAddressField, country: Country | ''
 }
 
 export default getAddressInputKeys;
-export {getAddressCountry, getCountryOptions, getStateOptions, isCountryAllowed, isStateAsked, isZipCodeRequired, isZipCodeShown};
+export {getAddressCountry, getStateOptions, isCountryAllowed, isStateAsked, isZipCodeRequired, isZipCodeShown};

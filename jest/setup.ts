@@ -154,7 +154,8 @@ jest.mock('react-native-reanimated', () => ({
     dispatchCommand: jest.fn(),
     useReducedMotion: jest.fn,
     useScrollViewOffset: jest.fn(() => 0),
-    useAnimatedRef: jest.fn(() => jest.fn()),
+    // A real animated ref is callable and has observe, which useKeyboardDrivenScroll uses to listen to the scroll view's events
+    useAnimatedRef: jest.fn(() => Object.assign(jest.fn(), {observe: jest.fn()})),
     LayoutAnimationConfig: ({children}: {children: React.ReactNode}) => children,
     makeShareableCloneRecursive: jest.fn,
 }));
