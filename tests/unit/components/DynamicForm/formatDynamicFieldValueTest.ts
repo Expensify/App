@@ -52,6 +52,18 @@ describe('formatDynamicFieldValue', () => {
         expect(shown).toBe(expected);
     });
 
+    it('shows the name of a state the field lists itself', () => {
+        // Given a Japanese address under a schema that lists its own states, whose codes are not readable
+        const japaneseAddress: DynamicFormField = {key: 'address', type: 'address', required: true, states: [{key: 'JP_13', label: 'Tokyo'}]};
+        const values = {[addressKeys.street]: '1-1 Main Street', [addressKeys.city]: 'Tokyo', [addressKeys.state]: 'JP_13', [addressKeys.zipCode]: '100-0005', [addressKeys.country]: 'JP'};
+
+        // When it is shown on a confirmation row
+        const shown = formatDynamicFieldValue(japaneseAddress, values, translateLocal);
+
+        // Then the state reads as its name, since the code is only for the server
+        expect(shown).toBe(`1-1 Main Street, Tokyo, Tokyo 100-0005, ${translateLocal('allCountries.JP')}`);
+    });
+
     it('leaves out a zip the form does not ask for', () => {
         // Given an address whose draft holds a zip from an earlier pick, under a schema that asks for no zip
         const addressWithoutZip: DynamicFormField = {key: 'address', type: 'address', required: true, isZipCodeAsked: false};
