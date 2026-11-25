@@ -1,6 +1,3 @@
-import MenuItemField from '@components/MenuItem/presets/MenuItemField';
-import OfflineWithFeedback from '@components/OfflineWithFeedback';
-
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -8,7 +5,7 @@ import useTravelBillingFundID from '@hooks/useTravelBillingFundID';
 
 import {getRouteParamForConnection} from '@libs/AccountingUtils';
 import {toggleTravelBillingContinuousReconciliation} from '@libs/actions/TravelBilling';
-import {getCardSettings, getConnectionBankAccountsForReconciliation} from '@libs/CardUtils';
+import {getCardSettings} from '@libs/CardUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {getIsTravelBillingEnabled} from '@libs/TravelBillingUtils';
@@ -27,6 +24,8 @@ import type {OnyxEntry} from 'react-native-onyx';
 
 import React from 'react';
 import Onyx from 'react-native-onyx';
+
+import TravelBillingReconciliationAccountRow from './TravelBillingReconciliationAccountRow';
 
 type TravelBillingContinuousReconciliationSectionProps = {
     policy: OnyxEntry<Policy>;
@@ -55,10 +54,6 @@ function TravelBillingContinuousReconciliationSection({
     const isTravelBillingEnabled = getIsTravelBillingEnabled(travelSettings);
     const [travelBillingContinuousReconciliation] = useOnyx(`${ONYXKEYS.COLLECTION.TRAVEL_BILLING_USE_CONTINUOUS_RECONCILIATION}${workspaceAccountID}`);
     const [travelBillingContinuousReconciliationPendingAction] = useOnyx(`${ONYXKEYS.COLLECTION.TRAVEL_BILLING_USE_CONTINUOUS_RECONCILIATION_PENDING_ACTION}${workspaceAccountID}`);
-    const [travelBillingReconciliationBankAccountID] = useOnyx(`${ONYXKEYS.COLLECTION.TRAVEL_BILLING_RECONCILIATION_BANK_ACCOUNT_ID}${workspaceAccountID}`);
-    const travelBillingReconciliationBankAccount = getConnectionBankAccountsForReconciliation(policy?.connections, connectionName).find(
-        (account) => account.id === travelBillingReconciliationBankAccountID,
-    );
 
     const isToggleDisabled = !isPayableAccountSet || !isAutoSyncEnabled;
 
@@ -73,11 +68,15 @@ function TravelBillingContinuousReconciliationSection({
     };
 
     const toggleContinuousReconciliation = async (isEnabled: boolean) => {
+        const [travelBillingContinuousReconciliationConnection, travelBillingReconciliationBankAccountID] = await Onyx.multiGet([
+            `${ONYXKEYS.COLLECTION.TRAVEL_BILLING_CONTINUOUS_RECONCILIATION_CONNECTION}${workspaceAccountID}`,
+            `${ONYXKEYS.COLLECTION.TRAVEL_BILLING_RECONCILIATION_BANK_ACCOUNT_ID}${workspaceAccountID}`,
+        ]);
+
         if (isEnabled && !travelBillingReconciliationBankAccountID) {
             navigateToTravelBillingReconciliationAccountSettings();
             return;
         }
-        const travelBillingContinuousReconciliationConnection = await Onyx.get(`${ONYXKEYS.COLLECTION.TRAVEL_BILLING_CONTINUOUS_RECONCILIATION_CONNECTION}${workspaceAccountID}`);
         toggleTravelBillingContinuousReconciliation(workspaceAccountID, isEnabled, connectionName, travelBillingContinuousReconciliationConnection);
     };
 
@@ -104,14 +103,14 @@ function TravelBillingContinuousReconciliationSection({
                 wrapperStyle={[styles.mv3, styles.ph5]}
             />
             {!!travelBillingContinuousReconciliation && (
-                <OfflineWithFeedback pendingAction={travelBillingContinuousReconciliationPendingAction}>
-                    <MenuItemField
-                        sentryLabel={reconciliationAccountSentryLabel}
-                        name={translate('workspace.accounting.reconciliationAccount')}
-                        onPress={navigateToTravelBillingReconciliationAccountSettings}
-                        value={travelBillingReconciliationBankAccount?.name}
-                    />
-                </OfflineWithFeedback>
+                <TravelBillingReconciliationAccountRow
+                    workspaceAccountID={workspaceAccountID}
+                    connections={policy?.connections}
+                    connectionName={connectionName}
+                    pendingAction={travelBillingContinuousReconciliationPendingAction}
+                    sentryLabel={reconciliationAccountSentryLabel}
+                    onPress={navigateToTravelBillingReconciliationAccountSettings}
+                />
             )}
         </>
     );
