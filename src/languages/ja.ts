@@ -1335,6 +1335,13 @@ const translations: TranslationDeepObject<typeof en> = {
             [CONST.INSIGHTS.VIOLATION_STAGE.SUBMITTED]: '提出者',
             [CONST.INSIGHTS.VIOLATION_STAGE.APPROVED]: '承認者',
         },
+        recentHistory: {
+            title: '最近の履歴',
+            dayAverageFor: (count: number, item: string) => `${count} 日間の${item}の平均`,
+            weekAverageFor: (count: number, item: string) => `${count}週間平均 (${item})`,
+            monthAverageFor: (count: number, item: string) => `${item} の${count}か月平均`,
+            quarterAverageFor: (count: number, item: string) => `${item}の${count}四半期平均`,
+        },
     },
     allSettingsScreen: {
         subscription: 'サブスクリプション',

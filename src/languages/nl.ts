@@ -1346,6 +1346,13 @@ const translations: TranslationDeepObject<typeof en> = {
             [CONST.INSIGHTS.VIOLATION_STAGE.SUBMITTED]: 'Indieners',
             [CONST.INSIGHTS.VIOLATION_STAGE.APPROVED]: 'Fiatteurs',
         },
+        recentHistory: {
+            title: 'Recente geschiedenis',
+            dayAverageFor: (count: number, item: string) => `${count}-daags gemiddelde voor ${item}`,
+            weekAverageFor: (count: number, item: string) => `Gemiddelde over ${count} weken voor ${item}`,
+            monthAverageFor: (count: number, item: string) => `Gemiddelde over ${count} maanden voor ${item}`,
+            quarterAverageFor: (count: number, item: string) => `${count}-kwartaalgemiddelde voor ${item}`,
+        },
     },
     allSettingsScreen: {
         subscription: 'Abonnement',

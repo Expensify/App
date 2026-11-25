@@ -1341,6 +1341,13 @@ const translations: TranslationDeepObject<typeof en> = {
             [CONST.INSIGHTS.VIOLATION_STAGE.SUBMITTED]: 'Remitentes',
             [CONST.INSIGHTS.VIOLATION_STAGE.APPROVED]: 'Aprobadores',
         },
+        recentHistory: {
+            title: 'Historial reciente',
+            dayAverageFor: (count: number, item: string) => `Promedio de ${count} días para ${item}`,
+            weekAverageFor: (count: number, item: string) => `Promedio de ${count} semanas para ${item}`,
+            monthAverageFor: (count: number, item: string) => `Promedio de ${count} meses para ${item}`,
+            quarterAverageFor: (count: number, item: string) => `Promedio de ${count} trimestres para ${item}`,
+        },
     },
     allSettingsScreen: {
         subscription: 'Suscripcion',

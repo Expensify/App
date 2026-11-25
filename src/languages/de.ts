@@ -1347,6 +1347,13 @@ const translations: TranslationDeepObject<typeof en> = {
             [CONST.INSIGHTS.VIOLATION_STAGE.SUBMITTED]: 'Einreichende',
             [CONST.INSIGHTS.VIOLATION_STAGE.APPROVED]: 'Genehmigende',
         },
+        recentHistory: {
+            title: 'Letzte Aktivitäten',
+            dayAverageFor: (count: number, item: string) => `${count}-Tage-Durchschnitt für ${item}`,
+            weekAverageFor: (count: number, item: string) => `${count}-Wochen-Durchschnitt für ${item}`,
+            monthAverageFor: (count: number, item: string) => `${count}-Monatsdurchschnitt für ${item}`,
+            quarterAverageFor: (count: number, item: string) => `${count}-Quartalsdurchschnitt für ${item}`,
+        },
     },
     allSettingsScreen: {
         subscription: 'Abonnement',

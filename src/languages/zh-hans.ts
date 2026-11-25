@@ -1301,6 +1301,13 @@ const translations: TranslationDeepObject<typeof en> = {
             [CONST.INSIGHTS.VIOLATION_STAGE.SUBMITTED]: '提交人',
             [CONST.INSIGHTS.VIOLATION_STAGE.APPROVED]: '审批人',
         },
+        recentHistory: {
+            title: '最近记录',
+            dayAverageFor: (count: number, item: string) => `${item} 的 ${count} 日平均值`,
+            weekAverageFor: (count: number, item: string) => `${item}的${count}周平均值`,
+            monthAverageFor: (count: number, item: string) => `${count} 个月平均值（${item}）`,
+            quarterAverageFor: (count: number, item: string) => `${count} 个季度内 ${item} 的平均值`,
+        },
     },
     allSettingsScreen: {
         subscription: '订阅',
