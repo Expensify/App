@@ -41,6 +41,9 @@ type WiseQuoteRequest = {
 
     /** The account the admin pays from */
     bankAccountID: number;
+
+    /** Whether the company pays the FX conversion costs instead of the employee, which changes the fees Wise prices */
+    isFXCostPaidByCompany?: boolean;
 };
 
 export default WiseQuote;

@@ -4,6 +4,7 @@ import Button from '@components/Button';
 import WorkArrangementSelector from '@components/WorkArrangementSelector';
 
 import useOnyx from '@hooks/useOnyx';
+import {usePersonalDetailsByIDs} from '@hooks/usePersonalDetails';
 
 import {setEmployeeWorkArrangement} from '@libs/actions/Policy/DistanceRate';
 import {clearWorkspaceMembersSelectedForBulkEdit} from '@libs/actions/Policy/Member';
@@ -36,6 +37,7 @@ jest.mock('@components/WorkArrangementSelector', () => jest.fn(() => null));
 jest.mock('@hooks/useCurrentUserPersonalDetails', () => jest.fn(() => ({login: 'admin@example.com'})));
 jest.mock('@hooks/useLocalize', () => jest.fn(() => ({translate: (key: string) => key})));
 jest.mock('@hooks/useOnyx', () => jest.fn());
+jest.mock('@hooks/usePersonalDetails', () => ({usePersonalDetailsByIDs: jest.fn()}));
 jest.mock('@hooks/usePermissions', () => jest.fn(() => ({isBetaEnabled: () => true})));
 jest.mock('@hooks/useThemeStyles', () => jest.fn(() => new Proxy({}, {get: () => ({})})));
 jest.mock('@libs/Navigation/Navigation', () => ({goBack: jest.fn(), isNavigationReady: jest.fn(() => Promise.resolve())}));
@@ -57,7 +59,6 @@ type MockButtonProps = {
 
 type WorkspaceMembersChangeWorkArrangementPageTestProps = React.ComponentProps<typeof WorkspaceMembersChangeWorkArrangementPage> & {
     policy: Policy;
-    personalDetails: PersonalDetailsList;
 };
 
 describe('WorkspaceMembersChangeWorkArrangementPage', () => {
@@ -72,6 +73,7 @@ describe('WorkspaceMembersChangeWorkArrangementPage', () => {
 
     beforeEach(() => {
         jest.clearAllMocks();
+        jest.mocked(usePersonalDetailsByIDs).mockReturnValue([createMock<PersonalDetailsList>(personalDetails), {status: 'loaded'}]);
         jest.mocked(useOnyx).mockReturnValue([{policyID, accountIDs: [member1AccountID, member2AccountID]}, {status: 'loaded'}]);
     });
 
@@ -86,7 +88,6 @@ describe('WorkspaceMembersChangeWorkArrangementPage', () => {
         };
         const props = createMock<WorkspaceMembersChangeWorkArrangementPageTestProps>({
             policy: createMock<Policy>(policy),
-            personalDetails,
             route: {params: {policyID}},
         });
         // The HOC mock exposes the wrapped screen directly, which accepts the policy prop that the production HOC normally injects.

@@ -80,7 +80,7 @@ describe('usePayWithWiseQuote', () => {
         result.current.payWithWiseQuote(buildParams(onPaymentSent));
 
         // Then the quote prices the transfer from the account the admin pays from
-        expect(getWiseQuote).toHaveBeenCalledWith(expect.objectContaining({reportID: '1'}), true, PAYING_BANK_ACCOUNT_ID);
+        expect(getWiseQuote).toHaveBeenCalledWith(expect.objectContaining({reportID: '1'}), true, PAYING_BANK_ACCOUNT_ID, undefined);
 
         // Then nothing is paid or refreshed while the quote is on screen, which also covers the admin cancelling it
         expect(mockShowWiseQuoteConfirmModal).toHaveBeenCalledTimes(1);

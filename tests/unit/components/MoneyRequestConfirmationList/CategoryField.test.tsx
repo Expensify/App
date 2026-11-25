@@ -20,17 +20,6 @@ import Onyx from 'react-native-onyx';
 import createRandomPolicy from '../../../utils/collections/policies';
 import waitForBatchedUpdates from '../../../utils/waitForBatchedUpdates';
 
-jest.mock('@components/MenuItemWithTopDescription', () => {
-    const {Text} = jest.requireActual<Record<'Text', React.ComponentType<{children?: React.ReactNode}>>>('react-native');
-    return ({title, description, rightLabel}: {title?: string; description?: string; rightLabel?: string}) => (
-        <>
-            <Text>{description}</Text>
-            <Text>{title}</Text>
-            {rightLabel ? <Text>{rightLabel}</Text> : null}
-        </>
-    );
-});
-
 jest.mock('@hooks/useLocalize', () => () => ({translate: (key: string) => key}));
 jest.mock('@hooks/useThemeStyles', () => () => ({}));
 
@@ -169,6 +158,8 @@ describe('CategoryField', () => {
     it('promises an automatic category on a manual expense when auto-categorization is on', async () => {
         // Given a manual expense on a workspace that categorizes new expenses
         await givenManualExpense();
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${TRANSACTION_ID}`, {category: ''});
+        await waitForBatchedUpdates();
 
         // When the confirmation form renders an optional category row
         renderCategoryField(false, enabledPolicy);
@@ -179,9 +170,23 @@ describe('CategoryField', () => {
         });
     });
 
+    it('hides the push-row automatic label after the category is filled', async () => {
+        // Given a manually categorized expense in a workspace with auto-categorization enabled.
+        await givenManualExpense();
+
+        // When the real composed push row renders its selected value.
+        renderCategoryField(false, enabledPolicy);
+        expect(await screen.findByText('Meals')).toBeOnTheScreen();
+
+        // Then the empty-field promise does not compete with the selected category.
+        expect(screen.queryByText('common.automatic')).toBeNull();
+    });
+
     it('still promises an automatic category when the workspace has never stored the setting', async () => {
         // Given a manual expense on a workspace that has not touched the setting, which defaults to on
         await givenManualExpense();
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${TRANSACTION_ID}`, {category: ''});
+        await waitForBatchedUpdates();
 
         // When the confirmation form renders an optional category row
         renderCategoryField(false, createRandomPolicy(1));
@@ -209,6 +214,8 @@ describe('CategoryField', () => {
     it('promises an automatic category on a required scan row before the draft is initialized as a scan', async () => {
         // Given a draft the share flow has not marked as a scan yet, on a workspace that categorizes receipts
         await givenManualExpense();
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${TRANSACTION_ID}`, {category: ''});
+        await waitForBatchedUpdates();
 
         // When the scan confirmation form renders a required category row
         renderCategoryField(true, enabledPolicy, CONST.IOU.TYPE.SUBMIT, true);
@@ -498,6 +505,8 @@ describe('CategoryField', () => {
     it('shows Required instead of Automatic when the category is required and auto-categorization is off', async () => {
         // Given a manual expense whose workspace both requires a category and will not pick one
         await givenManualExpense();
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${TRANSACTION_ID}`, {category: ''});
+        await waitForBatchedUpdates();
 
         // When the confirmation form renders the category row
         renderCategoryField(true, disabledPolicy);
