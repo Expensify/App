@@ -88,6 +88,26 @@ import {formatPhoneNumber, localeCompare, translateLocal} from '../../utils/Test
 
 const mockGetRootState = jest.fn();
 
+describe('hidden unresolved rejection filter', () => {
+    it.each(['declinedUnresolved:yes', '-declinedUnresolved:no'])('preserves %s when another filter is edited', (predicate) => {
+        // Given an internal suggested-search predicate, not ordinary keyword text
+        const queryJSON = buildSearchQueryJSON(`type:expense ${predicate}`);
+        if (!queryJSON) {
+            throw new Error('Expected the unresolved rejection search to parse');
+        }
+        expect(queryJSON.flatFilters).toContainEqual(expect.objectContaining({key: CONST.SEARCH.SYNTAX_FILTER_KEYS.DECLINED_UNRESOLVED}));
+
+        // When the advanced filters form is opened and a visible filter is added
+        const form = buildFilterFormValuesFromQuery(queryJSON, {}, {}, {}, {}, {}, {});
+        const updatedQuery = buildQueryStringFromFilterFormValues({...form, merchant: 'Coffee'});
+
+        // Then applying filters preserves the hidden predicate rather than broadening the search
+        expect(updatedQuery).toContain(predicate);
+        expect(updatedQuery).toContain('merchant*:Coffee');
+        expect(buildSearchQueryJSON(updatedQuery)?.flatFilters).toEqual(expect.arrayContaining(queryJSON.flatFilters));
+    });
+});
+
 describe('currency-qualified amount filters', () => {
     it.each([
         {filterKey: 'amount', type: 'expense', lower: '50.00 AUD', upper: '100.00 AUD'},
