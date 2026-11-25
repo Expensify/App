@@ -28,7 +28,7 @@ import type {
     DynamicFormTextField,
 } from '@src/types/onyx';
 
-import getAddressInputKeys, {getAddressCountry, getStateOptions, isCountryAllowed, isStateAsked, isZipCodeRequired, isZipCodeShown} from './getAddressInputKeys';
+import getAddressInputKeys, {getAddressCountry, getStateCodes, isCountryAllowed, isStateAsked, isZipCodeRequired, isZipCodeShown} from './getAddressInputKeys';
 import getAnswerKeys from './getAnswerKeys';
 import getFieldOptions from './getFieldOptions';
 import {getFieldLabel} from './getLocalizedText';
@@ -219,8 +219,7 @@ function isAddressRequired(field: DynamicFormAddressField, values: DynamicFormVa
 
 /** A state the country's picker does not list, such as a full name AddressSearch saved before the picker took codes, leaves the picker blank, so it is asked again */
 function isStateAnswered(field: DynamicFormAddressField, state: FormValue | undefined, country: Country | ''): boolean {
-    const stateOptions = getStateOptions(field, country);
-    return typeof state === 'string' && !!stateOptions && Object.hasOwn(stateOptions, state);
+    return typeof state === 'string' && getStateCodes(field, country).includes(state);
 }
 
 /** A state or country the field's picker does not list leaves that picker blank, so it counts as not answered */

@@ -1,4 +1,5 @@
 import type {DynamicFormValues} from '@components/DynamicForm/types';
+import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 
 import {isValidZipCodeForCountry} from '@libs/ValidationUtils';
 
@@ -9,6 +10,7 @@ import type {Country} from '@src/CONST';
 import STATES_BY_COUNTRY from '@src/CONST/STATES_BY_COUNTRY';
 import type {DynamicFormAddressField} from '@src/types/onyx';
 
+import {getOptionLabel} from './getFieldOptions';
 import isCountryCode from './isCountryCode';
 
 /**
@@ -40,20 +42,30 @@ function isCountryAllowed(field: DynamicFormAddressField, country: Country | '')
     return !!country && (!field.countries || field.countries.includes(country));
 }
 
-/** The states the picker lists by code. The field's own states win, and without them the App's list for the country is used, which is the US one until a country is picked. */
-function getStateOptions(field: DynamicFormAddressField, country: Country | ''): Record<string, string> | undefined {
+/** The App's own state list for the country, which is the US one until a country is picked */
+function getAppStates(country: Country | ''): Record<string, string> | undefined {
+    return STATES_BY_COUNTRY[country || CONST.COUNTRY.US];
+}
+
+/** The names of the states the picker lists, by code. The field's own states win, and without them the App's list for the country is used. */
+function getStateOptions(field: DynamicFormAddressField, country: Country | '', translate: LocalizedTranslate): Record<string, string> | undefined {
     if (!field.states) {
-        return STATES_BY_COUNTRY[country || CONST.COUNTRY.US];
+        return getAppStates(country);
     }
     if (field.states.length === 0) {
         return undefined;
     }
-    return Object.fromEntries(field.states.map((state) => [state.key, state.label ?? state.key]));
+    return Object.fromEntries(field.states.map((state) => [state.key, getOptionLabel(state, translate)]));
+}
+
+/** The codes of the states the picker lists, from the same list as getStateOptions */
+function getStateCodes(field: DynamicFormAddressField, country: Country | ''): string[] {
+    return field.states ? field.states.map((state) => state.key) : Object.keys(getAppStates(country) ?? {});
 }
 
 /** The state is asked only where the picker can list the country's states */
 function isStateAsked(field: DynamicFormAddressField, country: Country | ''): boolean {
-    return !!getStateOptions(field, country);
+    return getStateCodes(field, country).length > 0;
 }
 
 /** The zip input shows unless the field says no zip is asked */
@@ -67,4 +79,4 @@ function isZipCodeRequired(field: DynamicFormAddressField, country: Country | ''
 }
 
 export default getAddressInputKeys;
-export {getAddressCountry, getStateOptions, isCountryAllowed, isStateAsked, isZipCodeRequired, isZipCodeShown};
+export {getAddressCountry, getStateCodes, getStateOptions, isCountryAllowed, isStateAsked, isZipCodeRequired, isZipCodeShown};

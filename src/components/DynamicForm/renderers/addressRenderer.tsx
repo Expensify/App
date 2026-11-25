@@ -13,10 +13,10 @@ import type {DynamicFieldRenderer} from './types';
  * An address drawn as one input per part, each under its own draft key. Every part has its own label, so no heading is drawn above them.
  * The state and country open as dropdown rows, like the form's other choice fields.
  */
-const renderAddress: DynamicFieldRenderer<'address'> = (field, {values, styles}, {shouldSaveDraft, forwardedFSClass, onValueChange, defaultValue, disabled}) => {
+const renderAddress: DynamicFieldRenderer<'address'> = (field, {values, styles, translate}, {shouldSaveDraft, forwardedFSClass, onValueChange, defaultValue, disabled}) => {
     const addressKeys = getAddressInputKeys(field.key);
     const country = getAddressCountry(field.key, values);
-    const stateOptions = getStateOptions(field, country);
+    const stateOptions = getStateOptions(field, country, translate);
     // The street arrives as the field's answer. The other parts of a sensitive address are not drafted either, so they start from memory too.
     const getSensitivePart = (key: string) => {
         const part = values[key];

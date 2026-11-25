@@ -62,6 +62,10 @@ describe('formatDynamicFieldValue', () => {
 
         // Then the state reads as its name, since the code is only for the server
         expect(shown).toBe(`1-1 Main Street, Tokyo, Tokyo 100-0005, ${translateLocal('allCountries.JP')}`);
+
+        // And a state whose schema gives a translation key reads in the user's language
+        const translatedAddress: DynamicFormField = {key: 'address', type: 'address', required: true, states: [{key: 'JP_13', label: 'Tokyo', labelKey: 'common.state'}]};
+        expect(formatDynamicFieldValue(translatedAddress, values, translateLocal)).toContain(`${translateLocal('common.state')} 100-0005`);
     });
 
     it('leaves out a zip the form does not ask for', () => {

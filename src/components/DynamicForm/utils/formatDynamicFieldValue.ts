@@ -19,7 +19,8 @@ function formatAddress(field: DynamicFormAddressField, values: DynamicFormValues
     // A state or zip the form does not ask for is not submitted, so it is not shown either
     const stateCode = isStateAsked(field, country) ? getPart(addressKeys.state) : '';
     // A state the field lists itself can have a code that means nothing to the user, such as "JP_13", so its name is shown
-    const state = field.states?.find((option) => option.key === stateCode)?.label ?? stateCode;
+    const stateOption = field.states?.find((option) => option.key === stateCode);
+    const state = stateOption ? getOptionLabel(stateOption, translate) : stateCode;
     const stateAndZip = [state, isZipCodeShown(field) ? getPart(addressKeys.zipCode) : ''].filter(Boolean).join(' ');
     const countryName = country ? translate(`allCountries.${country}`) : '';
     return [getPart(addressKeys.street), getPart(addressKeys.city), stateAndZip, countryName].filter(Boolean).join(', ');
