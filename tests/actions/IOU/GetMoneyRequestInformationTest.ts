@@ -52,6 +52,7 @@ const policyTagListA: PolicyTagLists = {
 
 const baseParams = {
     isVendorMatchingBetaEnabled: false,
+    shouldFlagNewTransactionForReportTable: true,
     parentChatReport,
     participantParams: {
         payeeAccountID: PAYEE_ACCOUNT_ID,

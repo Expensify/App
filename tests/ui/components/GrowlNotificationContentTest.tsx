@@ -25,7 +25,7 @@ const BODY_TEXT = 'You’ve been signed out on all devices.';
 
 function getAnchoredContainer() {
     const container = screen.UNSAFE_getAllByType(View).find((view) => {
-        const style = StyleSheet.flatten<unknown>(view.props.style);
+        const style: unknown = StyleSheet.flatten(view.props.style);
         return (
             !!style &&
             typeof style === 'object' &&
@@ -40,7 +40,7 @@ function getAnchoredContainer() {
 
 function getGrowlWrapper() {
     const wrapper = screen.UNSAFE_getAllByType(View).find((view) => {
-        const style = StyleSheet.flatten<unknown>(view.props.style);
+        const style: unknown = StyleSheet.flatten(view.props.style);
         return !!style && typeof style === 'object' && 'zIndex' in style && style.zIndex === variables.growlNotificationZIndex;
     });
     if (!wrapper) {
@@ -78,14 +78,14 @@ describe('Native Growl placement', () => {
 
         // When the native toast becomes visible
         const container = getAnchoredContainer();
-        const style = StyleSheet.flatten<unknown>(container.props.style);
+        const style: unknown = StyleSheet.flatten(container.props.style);
 
         // Then its rendered native anchor honors the request without changing the ordinary top default
         expect(style).toMatchObject({position: 'absolute', [position ? 'bottom' : 'top']: variables.growlNotificationInset});
         expect(style).not.toHaveProperty(position ? 'top' : 'bottom');
         expect(style).toMatchObject({paddingTop: 44, paddingBottom: 34 * variables.iosSafeAreaInsetsPercentage});
 
-        const wrapperStyle = StyleSheet.flatten<unknown>(getGrowlWrapper().props.style);
+        const wrapperStyle: unknown = StyleSheet.flatten(getGrowlWrapper().props.style);
         if (position) {
             expect(wrapperStyle).toMatchObject({position: 'absolute', top: 0, bottom: 0, left: 0, right: 0});
         } else {

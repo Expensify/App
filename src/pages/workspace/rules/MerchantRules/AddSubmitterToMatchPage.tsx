@@ -52,7 +52,7 @@ function AddSubmitterToMatchPage({route}: AddSubmitterToMatchPageProps) {
             backToRoute={backToRoute}
             items={submitterItems}
             onSave={(submittersToMatch) => updateDraftMerchantRule({submittersToMatch})}
-            getFallbackText={(accountID) => submitters[accountID] ?? accountID}
+            getFallbackText={(accountID) => submitters[accountID] ?? translate('common.hidden')}
         />
     );
 }

@@ -26,6 +26,9 @@ let isAuthenticating: Promise<ReauthenticationResult> | null = null;
 
 const reauthThrottle = new RequestThrottle('Re-authentication');
 
+// A 407 right after a fresh token means the request itself is broken, so it gets one inline replay. A queue rollback copies the request, so each attempt gets its own.
+const requestsReplayedAfterReauth = new WeakSet<WeakKey>();
+
 function reauthenticate(commandName?: string): Promise<ReauthenticationResult> {
     if (isAuthenticating) {
         return isAuthenticating;
@@ -123,8 +126,16 @@ function handleExpiredSession<TKey extends OnyxKey>(
         return Promise.resolve(data);
     }
 
-    return reauthenticate(request?.commandName)
-        .then((result) => {
+    if (requestsReplayedAfterReauth.has(request)) {
+        Log.hmmm('[Reauthenticate] Request rejected again after a successful reauthentication, not replaying it', {command: request.command, isFromSequentialQueue});
+        if (isFromSequentialQueue) {
+            throw new Error(CONST.ERROR.REAUTH_REPLAY_REJECTED);
+        }
+        return Promise.resolve(data);
+    }
+
+    return reauthenticate(request?.commandName).then(
+        (result) => {
             if (!result.wasSuccessful) {
                 if (isFromSequentialQueue) {
                     // A resolved 407 reads as success to SequentialQueue, which deletes the persisted write.
@@ -144,6 +155,7 @@ function handleExpiredSession<TKey extends OnyxKey>(
             }
 
             if (isFromSequentialQueue || apiRequestType === CONST.API_REQUEST_TYPE.MAKE_REQUEST_WITH_SIDE_EFFECTS) {
+                requestsReplayedAfterReauth.add(request);
                 return processWithMiddleware(request, isFromSequentialQueue);
             }
 
@@ -154,15 +166,16 @@ function handleExpiredSession<TKey extends OnyxKey>(
             }
 
             replayMainQueue(request);
-        })
-        .catch(() => {
+        },
+        () => {
             if (isFromSequentialQueue || apiRequestType) {
                 throw new Error('Failed to reauthenticate');
             }
 
             // If we make it here, then our reauthenticate request could not be made due to a networking issue. The original request can be retried safely.
             replayMainQueue(request);
-        });
+        },
+    );
 }
 
 const Reauthentication: Middleware = (response, request, isFromSequentialQueue) =>

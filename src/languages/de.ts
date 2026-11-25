@@ -1031,6 +1031,7 @@ const translations: TranslationDeepObject<typeof en> = {
     },
     supportalSwitcher: {
         title: 'Supportal in ein anderes Konto',
+        navigationLabel: 'Supportal',
         emailLabel: 'E-Mail-Adresse',
         reasonLabel: 'Grund für Support-Login',
         reasonHint: 'Für dieses Konto wurden keine aktuellen Tickets gefunden.',
@@ -1253,6 +1254,8 @@ const translations: TranslationDeepObject<typeof en> = {
     },
     insightsPage: {
         tagLevel: (level: string) => `Tag-Stufe ${level}`,
+        noTaggedExpenses: 'Keine Ausgaben mit Tags',
+        noExpensesForTagLevel: (tagLevelName: string) => `Für ${tagLevelName} gibt es in diesem Zeitraum keine Ausgaben.`,
         tagLevelLabel: 'Tag-Ebene',
         parent: 'Übergeordnet',
         shareOfTotal: 'Anteil am Gesamtwert (%)',
@@ -1305,7 +1308,6 @@ const translations: TranslationDeepObject<typeof en> = {
         viewDetails: 'Details anzeigen',
         viewAll: 'Alle anzeigen',
         topExpenses: 'Top-Ausgaben',
-        noExpensesInRange: 'Keine Ausgaben in diesem Bereich',
         efficiency: 'Effizienz',
         workflowEfficiency: 'Workflow-Effizienz',
         averageProcessingTime: 'Durchschnittliche Bearbeitungszeit',
@@ -1314,6 +1316,29 @@ const translations: TranslationDeepObject<typeof en> = {
         mostTimeToPay: 'Längste Zahlungsfrist',
         share: 'Anteil',
         averageDays: 'Durchschnittliche Tage',
+        summary: {
+            title: 'Zusammenfassung',
+            over: (percentage: string) => `${percentage} darüber`,
+            under: (percentage: string) => `${percentage} darunter`,
+            versusMerchantAverage: (amount: string) => `${amount} vs. dem Durchschnitt dieses Händlers`,
+            versusMemberAverage: (amount: string) => `${amount} vs. dem Durchschnitt dieses Mitglieds`,
+            versusCategoryAverage: (amount: string) => `${amount} im Vergleich zum Durchschnitt dieser Kategorie`,
+            versusAverageDay: (amount: string) => `${amount} vs durchschnittlicher Tag`,
+            versusAverageWeek: (amount: string) => `${amount} vs durchschnittliche Woche`,
+            versusAverageMonth: (amount: string) => `${amount} im Vergleich zum durchschnittlichen Monat`,
+            versusAverageQuarter: (amount: string) => `${amount} vs durchschnittliches Quartal`,
+            moreHistoryNeeded: 'Mehr Verlauf erforderlich:',
+            daysOfHistoryNeeded: (count: number) => `Der Durchschnittsvergleich wird nach ${count} vollständigen Tagen Verlauf angezeigt`,
+            weeksOfHistoryNeeded: (count: number) => `Der Durchschnittsvergleich wird nach ${count} vollständigen Wochen Verlauf angezeigt`,
+            monthsOfHistoryNeeded: (count: number) => `Der Durchschnittsvergleich wird nach ${count} vollständigen Monaten Verlauf angezeigt`,
+            quartersOfHistoryNeeded: (count: number) => `Der Durchschnittsvergleich wird angezeigt, nachdem ${count} vollständige Quartale Verlauf vorhanden sind`,
+            periodSpend: (period: string) => `Ausgaben in ${period}`,
+            dayAverage: (count: number) => `${count}-Tage-Durchschnitt`,
+            weekAverage: (count: number) => `${count}-Wochen-Durchschnitt`,
+            monthAverage: (count: number) => `${count}-Monatsdurchschnitt`,
+            quarterAverage: (count: number) => `Durchschnitt der letzten ${count} Quartale`,
+            shareOfTotal: 'Anteil am Gesamtbetrag',
+        },
         generatingAIInsights: 'KI-Einblicke werden erzeugt ...',
         generatingAIInsightsSubtitle: 'Das sollte nicht länger als eine Minute dauern',
         readingChart: (chartTitle: string) => `${chartTitle} wird gelesen`,
@@ -1473,6 +1498,8 @@ const translations: TranslationDeepObject<typeof en> = {
         flash: 'Blitz',
         flipCamera: 'Kamera wechseln',
         multiScan: 'Mehrfachscan',
+        receiptEnhancements: 'Beleg-Optimierungen',
+        receiptEnhancementsEnabled: 'Beleg-Optimierungen aktiviert',
         shutter: 'Verschluss',
         gallery: 'Galerie',
         deleteReceipt: 'Beleg löschen',
@@ -2356,6 +2383,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 }
                 return `Warten, bis die stornierte Zahlung vollständig verarbeitet ist${formattedETA}.`;
             },
+            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_PAYMENT_REVIEW]: (params: ReportNextStepMessageParams) => `Zahlung ausgesetzt, warten Sie auf eine weitere Aktualisierung.`,
             [CONST.NEXT_STEP.MESSAGE_KEY.SUBMITTING_TO_SELF]: (params: ReportNextStepMessageParams) =>
                 `Ups! Sie scheinen diesen Bericht bei <strong>sich selbst</strong> einzureichen. Die Genehmigung eigener Berichte ist in Ihrem Arbeitsbereich <strong>verboten</strong>. Bitte reichen Sie diesen Bericht bei einer anderen Person ein oder kontaktieren Sie Ihre Admin, um die Person zu ändern, an die Sie Berichte einreichen.`,
             [CONST.NEXT_STEP.MESSAGE_KEY.REJECTED_REPORT]: ({actor, actorType}: ReportNextStepMessageParams) => {
@@ -2588,6 +2616,8 @@ const translations: TranslationDeepObject<typeof en> = {
             leftHandNavCache: 'Cache der linken Navigation',
             clearleftHandNavCache: 'Löschen',
             softKillTheApp: 'App sanft beenden',
+            testBusinessBankAccount: 'USD-Geschäftsbankkonto testen',
+            testPersonalBankAccount: 'USD-Privatbankkonto testen',
             kill: 'Töten',
             sentryDebug: 'Sentry-Debug',
             sentrySendDescription: 'Daten an Sentry senden',
@@ -2595,6 +2625,7 @@ const translations: TranslationDeepObject<typeof en> = {
             sentryHighlightedSpanOps: 'Hervorgehobene Spannen-Namen',
             sentryHighlightedSpanOpsPlaceholder: 'ui.interaktion.klick, navigation, ui.laden',
             showBranchNameInTitle: 'Branch-Namen im Browser-Titel anzeigen',
+            hideEnvironmentBadge: 'Umgebungsabzeichen ausblenden',
             betaOverrides: 'Beta-Überschreibungen',
             betaOverridesDescription:
                 'Überschreibungen gelten nur für dieses Gerät und wirken sich nur auf Frontend-Prüfungen aus. Eine Beta behält eine Überschreibung nur so lange, wie sie von den Betas Ihres Kontos abweicht; schalten Sie sie zurück, wird die Überschreibung entfernt. „Alle Überschreibungen zurücksetzen“ stellt die Werte Ihres Kontos wieder her. Einige Betas werden zusätzlich vom Backend gesteuert und können daher weiterhin auf Anfrageebene fehlschlagen.',
@@ -5387,6 +5418,10 @@ ${amount} für ${merchant} – ${date}`,
             railTicketExchange: (origin: string, destination: string, startDate: string) => `Ihr Bahnticket für ${origin} → ${destination} am ${startDate} wurde umgetauscht.`,
             railTicketUpdate: (origin: string, destination: string, startDate: string) => `Dein Zugticket von ${origin} nach ${destination} am ${startDate} wurde aktualisiert.`,
             defaultUpdate: (type: string) => `Ihre ${type}-Reservierung wurde aktualisiert.`,
+            hotelBooked: (hotelName: string, startDate: string) => `Ihre Hotelreservierung im ${hotelName} (Check-in ${startDate}) wurde gebucht.`,
+            carBooked: (vendor: string, startDate: string) => `Ihre ${vendor} Mietwagenbuchung (Abholung am ${startDate}) wurde vorgenommen.`,
+            railTicketBooked: (origin: string, destination: string, startDate: string) => `Ihr Bahnticket für ${origin} → ${destination} am ${startDate} wurde gebucht.`,
+            defaultBooked: (type: string) => `Ihre ${type}-Reservierung wurde gebucht.`,
         },
         flightTo: 'Flug nach',
         trainTo: 'Zug nach',
@@ -5651,6 +5686,9 @@ ${amount} für ${merchant} – ${date}`,
             },
             chatgpt: {
                 title: 'ChatGPT',
+            },
+            grok: {
+                title: 'Grok',
             },
         },
         connections: {
@@ -8084,6 +8122,7 @@ Der Control-Tarif beginnt bei 9 $ pro aktivem Mitglied und Monat.`,
                 willBeReadyToUse: 'Diese Karte ist sofort einsatzbereit.',
                 willBeReadyToShip: 'Diese Karte ist sofort versandbereit.',
                 cardholder: 'Karteninhaber',
+                cardholderEmail: 'E-Mail-Adresse des Karteninhabers',
                 cardType: 'Kartentyp',
                 limit: 'Limit',
                 limitType: 'Limittyp',
@@ -10075,6 +10114,33 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
             noVendorsFoundDescription: 'Bitte fügen Sie Lieferanten in Digits hinzu und synchronisieren Sie die Verbindung erneut',
             noAccountsFound: 'Keine Konten gefunden',
             noAccountsFoundDescription: 'Bitte fügen Sie Bank- oder Kreditkartenkonten in Digits hinzu und synchronisieren Sie die Verbindung erneut.',
+            noBankAccountsFoundDescription: 'Bitte fügen Sie Bankkonten in Digits hinzu und synchronisieren Sie die Verbindung erneut',
+            noPayableAccountsFoundDescription: 'Bitte fügen Sie Kreditkarten- oder kurzfristige Verbindlichkeitskonten in Digits hinzu und synchronisieren Sie die Verbindung erneut',
+            autoSyncDescription: 'Synchronisieren Sie Digits und Expensify jeden Tag automatisch. Berichte werden in Echtzeit synchronisiert.',
+            accountingMethods: {
+                label: 'Exportmethode',
+                description: 'Wählen Sie, wann Ausgaben exportiert werden sollen.',
+                values: {
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: 'Abgrenzung',
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: 'Bargeld',
+                },
+                alternateText: {
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: 'Auslagen werden nach endgültiger Genehmigung exportiert',
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: 'Auslagen aus eigener Tasche werden beim Bezahlen exportiert',
+                },
+            },
+            syncReimbursedReports: 'Erstattete Berichte synchronisieren',
+            syncReimbursedReportsDescription: 'Wenn ein Bericht per ACH bezahlt wird, wird in diesem Konto eine Rechnungszahlung erzeugt.',
+            billPaymentAccount: {label: 'Rechnungskonto', description: 'Wählen Sie aus, von wo Sie Rechnungen bezahlen möchten, und wir erstellen die Zahlung in Digits.'},
+            syncExpensifyCardSettlements: 'Expensify Kartenabrechnungen synchronisieren',
+            settlementAccount: {label: 'Expensify Karte Ausgleichskonto', description: 'Wählen Sie Ihr Ausgleichskonto und wir erstellen die Zahlung in Digits.'},
+            syncTravelBillingSettlements: 'Konsolidierte Reiserechnungsabrechnungen synchronisieren',
+            travelBillingSettlementAccount: {
+                label: 'Konsolidiertes Abrechnungskonto für Reisekosten',
+                description: 'Wählen Sie Ihr Ausgleichskonto und wir erstellen die Zahlung in Digits.',
+            },
+            travelBillingPayableAccount: {label: 'Konto für konsolidierte Reisekostenverbindlichkeiten'},
+            missingSettlementAccount: (accountName: string) => `Abrechnungen werden nicht synchronisiert, bis Sie ${accountName} auswählen.`,
         },
         zohoBooks: {
             organization: 'Zoho Books-Organisation',
@@ -11666,7 +11732,9 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
                     mentionedAccountID?: number;
                 }) => {
                     let warningTime = 'bald';
-                    if (warningDaysBeforeExpiry === CONST.COMPANY_CARDS.CONSENT_EXPIRY_WARNING_DAYS.TWO_WEEKS) {
+                    if (warningDaysBeforeExpiry === CONST.COMPANY_CARDS.CONSENT_EXPIRY_WARNING_DAYS.ONE_MONTH) {
+                        warningTime = 'in einem Monat';
+                    } else if (warningDaysBeforeExpiry === CONST.COMPANY_CARDS.CONSENT_EXPIRY_WARNING_DAYS.TWO_WEEKS) {
                         warningTime = 'in zwei Wochen';
                     } else if (warningDaysBeforeExpiry === CONST.COMPANY_CARDS.CONSENT_EXPIRY_WARNING_DAYS.ONE_WEEK) {
                         warningTime = 'in einer Woche';
@@ -11762,7 +11830,8 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
                 reimbursementRefundedWithoutBankAccount: 'Gelder wurden zurückgebucht. Sie können die Zahlung erneut versuchen.',
                 reimbursementHeld:
                     'Zahlung zurückgestellt, während unser Partner eine Prüfung abschließt. Warten Sie auf ein weiteres Update. Chatten Sie mit <concierge-link>Concierge</concierge-link>.',
-                reimbursementReleased: 'Die Prüfung ist abgeschlossen und Ihre Zahlung ist unterwegs. Der endgültige FX-Kurs kann den Betrag noch ändern.',
+                reimbursementReleased: ({expectedDate}: {expectedDate: string}) => `Zahlung freigegeben, die Gelder werden voraussichtlich bis zum ${expectedDate} eingehen.`,
+                reimbursementReleasedWithoutDate: 'Zahlung freigegeben.',
             },
             error: {
                 invalidCredentials: 'Ungültige Anmeldedaten, bitte überprüfen Sie die Konfiguration Ihrer Verbindung.',
