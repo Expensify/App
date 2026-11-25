@@ -10,10 +10,14 @@ import type {ValueOf} from 'type-fest';
 import React from 'react';
 import {View as MockView} from 'react-native';
 
-const mockActionState: {reportPreviewAction: ValueOf<typeof CONST.REPORT.REPORT_PREVIEW_ACTIONS>; connectedIntegration: ConnectionName | undefined} = {
+const mockActionState: {
+    reportPreviewAction: ValueOf<typeof CONST.REPORT.REPORT_PREVIEW_ACTIONS>;
+    connectedIntegration: ConnectionName | undefined;
+} = {
     reportPreviewAction: CONST.REPORT.REPORT_PREVIEW_ACTIONS.VIEW,
     connectedIntegration: undefined,
 };
+const mockAnimationState = {isApprovedAnimationRunning: false};
 const mockSubmit = jest.fn();
 const mockApprove = jest.fn();
 const mockPay = jest.fn();
@@ -25,6 +29,7 @@ const mockOpenReport = jest.fn();
 jest.mock('@components/ReportActionItem/MoneyRequestReportPreview/MoneyRequestReportPreviewContext', () => ({
     __esModule: true,
     useReportPreviewActionState: () => mockActionState,
+    useReportPreviewAnimationState: () => mockAnimationState,
     useReportPreviewUIState: () => ({buttonMaxWidth: {}}),
     useReportPreviewActions: () => ({openReportFromPreview: mockOpenReport}),
 }));
@@ -79,9 +84,19 @@ jest.mock('@components/Button', () => {
 });
 
 // These must stay distinct objects: with `{}` values the style assertions below pass even when the styles are missing.
-const mockStyles = {flex1: {flex: 1}, flexRow: {flexDirection: 'row'}, gap2: {gap: 8}};
-jest.mock('@hooks/useThemeStyles', () => ({__esModule: true, default: () => mockStyles}));
-jest.mock('@hooks/useLocalize', () => ({__esModule: true, default: () => ({translate: (key: string) => key})}));
+const mockStyles = {
+    flex1: {flex: 1},
+    flexRow: {flexDirection: 'row'},
+    gap2: {gap: 8},
+};
+jest.mock('@hooks/useThemeStyles', () => ({
+    __esModule: true,
+    default: () => mockStyles,
+}));
+jest.mock('@hooks/useLocalize', () => ({
+    __esModule: true,
+    default: () => ({translate: (key: string) => key}),
+}));
 
 function flattenContainerStyle(rendered: ReturnType<typeof render>): unknown[] {
     const container = rendered.UNSAFE_getAllByType(MockView).at(0);
@@ -103,7 +118,12 @@ describe('ReportPreviewActionButton', () => {
 
         // Then both actions remain in their original order, with View styled as primary and using the existing navigation handler
         expect(mockApprove).toHaveBeenCalled();
-        expect(mockView).toHaveBeenCalledWith(expect.objectContaining({variant: CONST.BUTTON_VARIANT.SUCCESS, onPress: mockOpenReport}));
+        expect(mockView).toHaveBeenCalledWith(
+            expect.objectContaining({
+                variant: CONST.BUTTON_VARIANT.SUCCESS,
+                onPress: mockOpenReport,
+            }),
+        );
         expect(getButtonOrder()).toEqual(['approve-button', 'view-button']);
     });
 
@@ -111,6 +131,42 @@ describe('ReportPreviewActionButton', () => {
         jest.clearAllMocks();
         mockActionState.reportPreviewAction = CONST.REPORT.REPORT_PREVIEW_ACTIONS.VIEW;
         mockActionState.connectedIntegration = undefined;
+        mockAnimationState.isApprovedAnimationRunning = false;
+    });
+
+    it('keeps View primary until the approval animation for a report with violations finishes', () => {
+        // Given an approvable report with visible violations, where View is the primary button
+        mockActionState.reportPreviewAction = CONST.REPORT.REPORT_PREVIEW_ACTIONS.APPROVE_WITH_VIOLATIONS;
+        const rendered = render(<ReportPreviewActionButton />);
+
+        // When the approval animation starts, which switches the action to Pay
+        mockAnimationState.isApprovedAnimationRunning = true;
+        mockActionState.reportPreviewAction = CONST.REPORT.REPORT_PREVIEW_ACTIONS.PAY;
+        rendered.rerender(<ReportPreviewActionButton />);
+
+        // Then View keeps its primary style while the animation plays, so the colors don't swap under the "Approved" button
+        expect(mockView).toHaveBeenLastCalledWith(expect.objectContaining({variant: CONST.BUTTON_VARIANT.SUCCESS}));
+
+        // When the animation finishes
+        mockAnimationState.isApprovedAnimationRunning = false;
+        rendered.rerender(<ReportPreviewActionButton />);
+
+        // Then View returns to the secondary style next to the new primary action
+        expect(mockView).toHaveBeenLastCalledWith(expect.objectContaining({variant: undefined}));
+    });
+
+    it('keeps View secondary during the approval animation for a report without violations', () => {
+        // Given an approvable report without violations, where Approve is the primary button
+        mockActionState.reportPreviewAction = CONST.REPORT.REPORT_PREVIEW_ACTIONS.APPROVE;
+        const rendered = render(<ReportPreviewActionButton />);
+
+        // When the approval animation starts
+        mockAnimationState.isApprovedAnimationRunning = true;
+        mockActionState.reportPreviewAction = CONST.REPORT.REPORT_PREVIEW_ACTIONS.PAY;
+        rendered.rerender(<ReportPreviewActionButton />);
+
+        // Then View stays secondary, because it was never the primary button for this report
+        expect(mockView).toHaveBeenLastCalledWith(expect.objectContaining({variant: undefined}));
     });
 
     it.each([
