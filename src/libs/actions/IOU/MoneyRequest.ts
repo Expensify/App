@@ -1,4 +1,5 @@
 import type {LocalizedTranslate, LocaleContextProps} from '@components/LocaleContextProvider';
+import type {PersonalDetailsByLogin} from '@components/PersonalDetailsByLoginProvider';
 
 import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
 
@@ -57,6 +58,7 @@ import type {
 } from '@src/types/onyx';
 import type {ReportAttributesDerivedValue} from '@src/types/onyx/DerivedValues';
 import type {Accountant, Attendee, Participant} from '@src/types/onyx/IOU';
+import type {CurrentUserPersonalDetails} from '@src/types/onyx/PersonalDetails';
 import type {Unit} from '@src/types/onyx/Policy';
 import type {Comment, Receipt, SplitShares} from '@src/types/onyx/Transaction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -80,6 +82,7 @@ type CreateTransactionParams = {
     report: OnyxEntry<Report>;
     currentUserAccountID: number;
     currentUserEmail?: string;
+    currentUserPersonalDetails: CurrentUserPersonalDetails;
     shouldGenerateTransactionThreadReport: boolean;
     isASAPSubmitBetaEnabled: boolean;
     transactionViolations?: OnyxCollection<TransactionViolation[]>;
@@ -106,6 +109,7 @@ type CreateTransactionParams = {
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
     conciergeChat: OnyxEntry<Report>;
     rules: OnyxCollection<Rule>;
+    personalDetailsByLogins: PersonalDetailsByLogin;
     isVendorMatchingBetaEnabled: boolean | undefined;
 };
 
@@ -131,6 +135,7 @@ function createTransaction({
     report,
     currentUserAccountID,
     currentUserEmail,
+    currentUserPersonalDetails,
     shouldGenerateTransactionThreadReport,
     isASAPSubmitBetaEnabled,
     transactionViolations,
@@ -157,6 +162,7 @@ function createTransaction({
     getCurrencyDecimals,
     conciergeChat,
     rules,
+    personalDetailsByLogins,
     isVendorMatchingBetaEnabled,
 }: CreateTransactionParams) {
     const draftTransactionIDs = Object.keys(allTransactionDrafts ?? {});
@@ -209,6 +215,7 @@ function createTransaction({
                     accountID: currentUserAccountID,
                     email: currentUserEmail ?? '',
                 },
+                currentUserPersonalDetails,
                 introSelected,
                 conciergeChat,
                 quickAction,
@@ -269,6 +276,7 @@ function createTransaction({
                 formatPhoneNumber,
                 getCurrencyDecimals,
                 rules,
+                personalDetailsByLogins,
             });
         }
     }

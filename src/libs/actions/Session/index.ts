@@ -2,6 +2,7 @@ import type {LocaleContextProps} from '@components/LocaleContextProvider';
 
 import {getFreshMarketingAttribution} from '@libs/actions/MarketingAttribution';
 import * as PersistedRequests from '@libs/actions/PersistedRequests';
+import getAdvertisingConsentParams from '@libs/AdvertisingConsent';
 import * as API from '@libs/API';
 import type {
     AuthenticatePusherParams,
@@ -741,7 +742,13 @@ function signUpUser(
     ];
 
     Device.getDeviceInfoWithID().then((deviceInfo) => {
-        const params: SignUpUserParams = {email: login, preferredLocale: preferredLocale ?? null, deviceInfo, ...getFreshMarketingAttribution(storedMarketingAttribution)};
+        const params: SignUpUserParams = {
+            email: login,
+            preferredLocale: preferredLocale ?? null,
+            deviceInfo,
+            ...getAdvertisingConsentParams(),
+            ...getFreshMarketingAttribution(storedMarketingAttribution),
+        };
         if (hasSMSMarketingConsent !== undefined) {
             params.hasSMSMarketingConsent = hasSMSMarketingConsent;
         }
@@ -929,7 +936,13 @@ function beginAppleSignIn(idToken: string | undefined | null, preferredLocale: L
     const onyxData = getThirdPartySignInOnyxData();
 
     Device.getDeviceInfoWithID().then((deviceInfo) => {
-        const params: BeginAppleSignInParams = {idToken, preferredLocale: preferredLocale ?? null, deviceInfo, ...getFreshMarketingAttribution(storedMarketingAttribution)};
+        const params: BeginAppleSignInParams = {
+            idToken,
+            preferredLocale: preferredLocale ?? null,
+            deviceInfo,
+            ...getAdvertisingConsentParams(),
+            ...getFreshMarketingAttribution(storedMarketingAttribution),
+        };
         API.write(WRITE_COMMANDS.SIGN_IN_WITH_APPLE, params, onyxData);
     });
 }
@@ -943,7 +956,13 @@ function beginGoogleSignIn(token: string | null, preferredLocale: Locale | undef
     const onyxData = getThirdPartySignInOnyxData();
 
     Device.getDeviceInfoWithID().then((deviceInfo) => {
-        const params: BeginGoogleSignInParams = {token, preferredLocale: preferredLocale ?? null, deviceInfo, ...getFreshMarketingAttribution(storedMarketingAttribution)};
+        const params: BeginGoogleSignInParams = {
+            token,
+            preferredLocale: preferredLocale ?? null,
+            deviceInfo,
+            ...getAdvertisingConsentParams(),
+            ...getFreshMarketingAttribution(storedMarketingAttribution),
+        };
         API.write(WRITE_COMMANDS.SIGN_IN_WITH_GOOGLE, params, onyxData);
     });
 }
@@ -952,7 +971,7 @@ function beginGoogleSignIn(token: string | null, preferredLocale: Locale | undef
  * Will create a temporary login for the user in the passed authenticate response which is used when
  * re-authenticating after an authToken expires.
  */
-function signInWithShortLivedAuthToken(authToken: string, isSAML: boolean, exitTo: string | undefined, login: string | undefined) {
+function signInWithShortLivedAuthToken(authToken: string, currentAuthToken: string | undefined, isSAML: boolean, exitTo: string | undefined, login: string | undefined) {
     const {optimisticData, failureData, finallyData} = getShortLivedLoginParams(false, isSAML);
     const authMethod = isSAML ? CONST.AUTH_METHOD.SAML : CONST.AUTH_METHOD.SHORT_LIVED_AUTH_TOKEN;
     // Set the in-flight guard synchronously, before awaiting device info. optimisticData below (which also sets this key)
@@ -961,12 +980,20 @@ function signInWithShortLivedAuthToken(authToken: string, isSAML: boolean, exitT
     // re-fires and loops. This key is RAM-only (resets on reload), so setting it early carries no stuck-state risk; the
     // optimisticData re-sets it and finallyData reverts it exactly as before.
     Onyx.set(ONYXKEYS.RAM_ONLY_IS_AUTHENTICATING_WITH_SHORT_LIVED_TOKEN, true);
-    Device.getDeviceInfoWithID().then((deviceInfo) => {
-        API.read(READ_COMMANDS.SIGN_IN_WITH_SHORT_LIVED_AUTH_TOKEN, {authToken, skipReauthentication: true, authMethod, deviceInfo}, {optimisticData, failureData, finallyData});
-    });
     NetworkStore.setLastShortAuthToken(authToken);
+
+    const signInPromise = Device.getDeviceInfoWithID().then((deviceInfo) =>
+        // We use makeRequestWithSideEffects here because the caller needs to inspect the response to detect an ACCOUNT_MISMATCH error
+        // eslint-disable-next-line rulesdir/no-api-side-effects-method
+        API.makeRequestWithSideEffects(
+            SIDE_EFFECT_REQUEST_COMMANDS.SIGN_IN_WITH_SHORT_LIVED_AUTH_TOKEN,
+            {authToken, skipReauthentication: true, authMethod, deviceInfo, currentAuthToken},
+            {optimisticData, failureData, finallyData},
+        ),
+    );
+
     if (!exitTo) {
-        return;
+        return signInPromise;
     }
 
     // waitForUserSignIn keeps a single resolver that openReportFromDeepLink may already hold, so wait on the routes instead.
@@ -984,6 +1011,8 @@ function signInWithShortLivedAuthToken(authToken: string, isSAML: boolean, exitT
             Log.warn('Unable to return to the last visited path after SAML sign in', {error});
         }
     });
+
+    return signInPromise;
 }
 
 /**
@@ -1067,6 +1096,7 @@ function signIn(
             email: login,
             preferredLocale: preferredLocale ?? null,
             deviceInfo,
+            ...getAdvertisingConsentParams(),
         };
 
         // Conditionally pass a password or validateCode to command since we temporarily allow both flows

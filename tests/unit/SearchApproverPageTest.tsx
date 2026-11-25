@@ -1,4 +1,4 @@
-import {render} from '@testing-library/react-native';
+import {act, render} from '@testing-library/react-native';
 
 import ApproverSelectionList from '@components/ApproverSelectionList';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
@@ -6,6 +6,7 @@ import PersonalDetailsByLoginProvider from '@components/PersonalDetailsByLoginPr
 
 import useStrictPolicyRules from '@hooks/useStrictPolicyRules';
 
+import {addReportApprover} from '@libs/actions/IOU/ReportWorkflow';
 import {getDisplayNameForParticipant} from '@libs/ReportUtils';
 
 import SearchAddApproverPage from '@pages/Search/SearchAddApproverPage';
@@ -42,7 +43,8 @@ jest.mock('@hooks/useLazyAsset', () => ({
 
 jest.mock('@components/ApproverSelectionList', () => jest.fn(() => null));
 
-jest.mock('@hooks/usePressLoading', () => () => ({isLoading: false, startWithLoading: (fn: () => void) => fn}));
+jest.mock('@hooks/usePressLoading', () => () => ({isLoading: false, startWithLoading: (fn: () => void) => fn()}));
+jest.mock('@libs/actions/IOU/ReportWorkflow', () => ({addReportApprover: jest.fn()}));
 
 jest.mock('@components/Search/SearchContext', () => {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
@@ -82,6 +84,7 @@ describe('SearchApproverPage', () => {
 
     beforeEach(async () => {
         jest.clearAllMocks();
+        await Onyx.clear();
         jest.mocked(useStrictPolicyRules).mockReturnValue({areStrictPolicyRulesEnabled: false, isLoadingSecurityGroup: false});
         mockSelectedReports = [{reportID: SELECTED_REPORT_ID, policyID: POLICY_ID}];
         const policy = createMock<Policy>({
@@ -120,6 +123,45 @@ describe('SearchApproverPage', () => {
 
         // Each candidate approver's name resolves via getDisplayNameForParticipant, which must receive the translate from useLocalize.
         expect(mockGetDisplayNameForParticipant).toHaveBeenCalledWith(expect.objectContaining({accountID: APPROVER_ACCOUNT_ID, hiddenTranslation: 'common.hidden'}));
+    });
+
+    it.each([SearchAddApproverPage, SearchReassignApproverPage])('blocks an open %p picker when any selected workspace switches to DEW', async (Page) => {
+        // Given an open picker with an eligible approver selected across two workspaces
+        mockSelectedReports = [
+            {reportID: SELECTED_REPORT_ID, policyID: POLICY_ID},
+            {reportID: SECOND_REPORT_ID, policyID: SECOND_POLICY_ID},
+        ];
+        render(
+            <OnyxListItemProvider>
+                <PersonalDetailsByLoginProvider>
+                    <Page />
+                </PersonalDetailsByLoginProvider>
+            </OnyxListItemProvider>,
+        );
+        await waitForBatchedUpdates();
+        const props = mockApproverSelectionList.mock.calls.at(-1)?.[0];
+        const option = props?.allApprovers.at(0);
+        if (!props || !option) {
+            throw new Error('Expected an eligible approver');
+        }
+        expect(props.shouldShowNotFoundView).toBe(false);
+        act(() => props.onSelectApprover?.([option]));
+
+        // When a workspace changes its workflow while the picker remains open
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${SECOND_POLICY_ID}`, {approvalMode: CONST.POLICY.APPROVAL_MODE.DYNAMICEXTERNAL});
+            await waitForBatchedUpdates();
+        });
+
+        // Then the picker becomes unavailable and submitting the selected approver cannot write changes
+        const updatedProps = mockApproverSelectionList.mock.calls.at(-1)?.[0];
+        expect(updatedProps?.shouldShowNotFoundView).toBe(true);
+        const footer = updatedProps?.footerContent;
+        if (!React.isValidElement<{onSubmit: () => void}>(footer)) {
+            throw new Error('Expected a submit button');
+        }
+        act(() => footer.props.onSubmit());
+        expect(addReportApprover).not.toHaveBeenCalled();
     });
 
     it('renders the bulk reassignment picker with eligible workspace members', async () => {

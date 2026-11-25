@@ -7,7 +7,7 @@ import {requestMoney, trackExpense} from '@userActions/IOU/TrackExpense';
 import CONST from '@src/CONST';
 import type {FileObject} from '@src/types/utils/Attachment';
 
-import type {ReceiptRetryContext, RetryOutcome} from './types';
+import type {ReceiptRetryContext, ReceiptRetryDispatchContext, RetryOutcome} from './types';
 
 import buildReplaceReceiptRetryPayload, {canBuildReplaceReceiptRetryPayload} from './buildReplaceReceiptRetryPayload';
 import buildRetryPayload, {canBuildRetryPayload} from './buildRetryPayload';
@@ -16,7 +16,7 @@ import resolveReceiptFile from './resolveReceiptFile';
 
 type RetryFlow = {
     canBuild: (context: ReceiptRetryContext) => boolean;
-    dispatch: (context: ReceiptRetryContext, receiptFile: FileObject) => boolean;
+    dispatch: (context: ReceiptRetryDispatchContext, receiptFile: FileObject) => boolean;
 };
 
 const RETRY_FLOWS: Partial<Record<string, RetryFlow>> = {
@@ -64,7 +64,7 @@ function canRetryReceiptUpload(context: ReceiptRetryContext): boolean {
     return !!getRetryFlow(context)?.canBuild(context);
 }
 
-function retryReceiptUpload(context: ReceiptRetryContext, onDispatched?: () => Promise<unknown>): Promise<RetryOutcome> {
+function retryReceiptUpload(context: ReceiptRetryDispatchContext, onDispatched?: () => Promise<unknown>): Promise<RetryOutcome> {
     const {receiptError} = context;
     const flow = getRetryFlow(context);
 
