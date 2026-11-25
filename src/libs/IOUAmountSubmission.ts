@@ -466,6 +466,8 @@ function submitSkipConfirmationExpense(args: SubmitAmountArgs, ctx: SubmitAmount
                 formatPhoneNumber,
                 getCurrencyDecimals,
                 rules,
+                // Only used for the optimistic next approver of a submitted workspace report, which this skip-confirmation flow never targets (it excludes policy expense chats).
+                personalDetailsByLogins: undefined,
             });
         }
         cleanupAfterSkipConfirmSubmit(overrides.shouldHandleNavigation, {
@@ -635,6 +637,7 @@ function submitCreateAmount(args: SubmitAmountArgs, ctx: SubmitAmountContext): v
 
 function submitEditAmount(args: SubmitAmountArgs, ctx: SubmitAmountContext): void {
     const {
+        translate,
         policy,
         selectedCurrency,
         decimals,
@@ -697,6 +700,7 @@ function submitEditAmount(args: SubmitAmountArgs, ctx: SubmitAmountContext): voi
     const parentReport = report?.parentReportID ? allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID}`] : undefined;
 
     updateMoneyRequestAmountAndCurrency({
+        translate,
         isVendorMatchingBetaEnabled: ctx.isVendorMatchingBetaEnabled,
         transactionID,
         transaction: currentTransaction,

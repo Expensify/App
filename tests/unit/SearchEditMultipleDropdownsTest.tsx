@@ -3,8 +3,8 @@ import {act, render, screen} from '@testing-library/react-native';
 import type {AnchoredSelectionListPopoverProps} from '@components/AnchoredSelectionListPopover';
 import type {AttendeePickerModalProps} from '@components/AttendeePicker/AttendeePickerModal';
 import ComposeProviders from '@components/ComposeProviders';
+import type {DropdownFieldRenderProps} from '@components/DropdownField';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
-import type {ExpenseFieldDropdownRenderProps} from '@components/MoneyRequestConfirmationList/sections/ExpenseFieldDropdown';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import type TagPickerModal from '@components/TagPicker/TagPickerModal';
 import type {TaxPickerModalProps} from '@components/TaxPicker/TaxPickerModal';
@@ -18,7 +18,7 @@ import SearchEditMultipleTaxDropdown from '@pages/Search/SearchEditMultiple/Sear
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {PolicyTagLists, Transaction} from '@src/types/onyx';
+import type {Policy, PolicyTagLists, Transaction} from '@src/types/onyx';
 import type {Attendee} from '@src/types/onyx/IOU';
 
 import type {ComponentProps} from 'react';
@@ -51,12 +51,11 @@ jest.mock('@components/AttendeePicker/AttendeePickerModal', () => (props: Attend
 });
 
 // The yes/no list has no picker of its own, so the container shows the list as-is and the list records what it was handed.
-jest.mock(
-    '@components/AnchoredSelectionListPopover',
-    () =>
-        ({children}: AnchoredSelectionListPopoverProps) =>
-            children,
-);
+let mockPopoverProps: AnchoredSelectionListPopoverProps | undefined;
+jest.mock('@components/AnchoredSelectionListPopover', () => (props: AnchoredSelectionListPopoverProps) => {
+    mockPopoverProps = props;
+    return props.children;
+});
 
 type BooleanListProps = {data: BooleanOption[]; onSelectRow: (option: BooleanOption) => void};
 let mockBooleanListProps: BooleanListProps | undefined;
@@ -69,6 +68,7 @@ const POLICY_ID = 'policy1';
 const DRAFT_KEY = `${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${CONST.IOU.OPTIMISTIC_BULK_EDIT_TRANSACTION_ID}` as const;
 const TAG_NAME = 'Engineering';
 const TAX_CODE = 'id_TAX_RATE_1';
+const TAX_EXEMPT_CODE = 'id_TAX_EXEMPT';
 const TAG_LIST_INDEX = 0;
 
 const policyTags: PolicyTagLists = {
@@ -78,7 +78,7 @@ const policyTags: PolicyTagLists = {
 const alice: Attendee = {email: 'alice@test.com', displayName: 'Alice', avatarUrl: ''};
 const bob: Attendee = {email: 'bob@test.com', displayName: 'Bob', avatarUrl: ''};
 
-const getPopoverProps = (onClose: jest.Mock, isVisible = true): ExpenseFieldDropdownRenderProps => ({
+const getPopoverProps = (onClose: jest.Mock, isVisible = true): DropdownFieldRenderProps => ({
     isVisible,
     onClose,
     anchorPosition: {horizontal: 0, vertical: 0},
@@ -104,6 +104,7 @@ describe('SearchEditMultiple dropdowns', () => {
         mockTaxModalProps = undefined;
         mockAttendeeModalProps = undefined;
         mockBooleanListProps = undefined;
+        mockPopoverProps = undefined;
         await Onyx.clear();
         await waitForBatchedUpdates();
     });
@@ -157,13 +158,79 @@ describe('SearchEditMultiple dropdowns', () => {
     describe('tax rate', () => {
         const renderTaxDropdown = (currentTaxCode: string) =>
             render(
-                <SearchEditMultipleTaxDropdown
-                    {...getPopoverProps(jest.fn())}
-                    policyID={POLICY_ID}
-                    currentTaxCode={currentTaxCode}
-                    selectedTaxRate={currentTaxCode ? 'Tax Rate 1' : ''}
-                />,
+                <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>
+                    <SearchEditMultipleTaxDropdown
+                        {...getPopoverProps(jest.fn())}
+                        policyID={POLICY_ID}
+                        currentTaxCode={currentTaxCode}
+                    />
+                </ComposeProviders>,
             );
+
+        it('marks the picked rate by the name the list gives it, so it does not show twice', async () => {
+            // Given a workspace whose currency isn't USD, with the picked rate as its currency's default and another rate as
+            // the foreign default, and a draft with that rate picked but no currency, which reads as USD
+            const taxPolicy: Partial<Policy> = {
+                id: POLICY_ID,
+                outputCurrency: CONST.CURRENCY.EUR,
+                taxRates: {
+                    name: 'Taxes',
+                    defaultExternalID: TAX_CODE,
+                    foreignTaxDefault: TAX_EXEMPT_CODE,
+                    defaultValue: '5%',
+                    taxes: {
+                        [TAX_CODE]: {name: 'Tax Rate 1', value: '5%'},
+                        [TAX_EXEMPT_CODE]: {name: 'Tax exempt', value: '0%'},
+                    },
+                },
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, taxPolicy);
+            await setDraft({taxCode: TAX_CODE});
+
+            // When the tax list opens
+            renderTaxDropdown(TAX_CODE);
+            await waitForBatchedUpdates();
+
+            // Then the list is told the picked rate as it names it, the workspace default, so the list finds that row and
+            // doesn't add the rate again under the name the bulk edit row shows
+            expect(mockTaxModalProps?.selectedTaxRate).toBe(`Tax Rate 1 (5%) ${CONST.DOT_SEPARATOR} Default`);
+        });
+
+        it('finds and clears a picked rate whose code was renamed while the draft was open', async () => {
+            // Given a draft holding a rate's old code, after an admin renamed that code while the bulk edit was open
+            const oldTaxCode = 'id_OLD_TAX_RATE_1';
+            const renamedPolicy: Partial<Policy> = {
+                id: POLICY_ID,
+                outputCurrency: CONST.CURRENCY.USD,
+                taxRates: {
+                    name: 'Taxes',
+                    defaultExternalID: TAX_EXEMPT_CODE,
+                    foreignTaxDefault: TAX_EXEMPT_CODE,
+                    defaultValue: '0%',
+                    taxes: {
+                        [TAX_CODE]: {name: 'Tax Rate 1', value: '5%', previousTaxCode: oldTaxCode},
+                        [TAX_EXEMPT_CODE]: {name: 'Tax exempt', value: '0%'},
+                    },
+                },
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, renamedPolicy);
+            await setDraft({taxCode: oldTaxCode});
+
+            // When the tax list opens
+            renderTaxDropdown(oldTaxCode);
+            await waitForBatchedUpdates();
+
+            // Then the list still marks the rate under its new code
+            expect(mockTaxModalProps?.selectedTaxRate).toBe('Tax Rate 1 (5%)');
+
+            // When that rate is tapped again
+            act(() => mockTaxModalProps?.onSelected?.({code: TAX_CODE, text: 'Tax Rate 1', keyForList: TAX_CODE}));
+            await waitForBatchedUpdates();
+
+            // Then the pending change is dropped, as for any rate tapped again, rather than picked again under its new code
+            const draft = await getOnyxValue(DRAFT_KEY);
+            expect(draft?.taxCode).toBeUndefined();
+        });
 
         it('records a picked tax rate on the draft', async () => {
             // Given a draft with no tax rate picked yet
@@ -285,6 +352,16 @@ describe('SearchEditMultiple dropdowns', () => {
                 {keyForList: CONST.SEARCH.BOOLEAN.YES, isSelected: false},
                 {keyForList: CONST.SEARCH.BOOLEAN.NO, isSelected: false},
             ]);
+        });
+
+        it('heads the list with the field name, as the other lists of the form do', () => {
+            // Given a yes/no field
+            // When its list opens
+            renderBooleanDropdown(undefined, jest.fn());
+
+            // Then the list shows a header with the field name on every layout, not only in the bottom sheet
+            expect(mockPopoverProps?.shouldShowHeader).toBe(true);
+            expect(mockPopoverProps?.title).toBe('Reimbursable');
         });
 
         it('records No for every expense when it is picked, and closes the list', () => {

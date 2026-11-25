@@ -1,21 +1,15 @@
 /** The flat navigation bar's Create button, together with the create menu it opens right below itself. */
 import Button from '@components/Button';
 
+import useAnchoredPopoverOpener from '@hooks/useAnchoredPopoverOpener';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
-import usePopoverPosition from '@hooks/usePopoverPosition';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import CreateMenuPopover from '@pages/inbox/sidebar/FABPopoverContent/CreateMenuPopover';
 
 import CONST from '@src/CONST';
-import type {AnchorPosition} from '@src/styles';
 import type AnchorAlignment from '@src/types/utils/AnchorAlignment';
-
-import type {ComponentRef} from 'react';
-import type {View} from 'react-native';
-
-import {useRef, useState} from 'react';
 
 const CREATE_MENU_ANCHOR_ALIGNMENT: AnchorAlignment = {
     horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
@@ -43,28 +37,14 @@ function FlatNavCreateButton({isCompact = false, isCreateMenuActive, isCreateMen
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['Plus']);
-    const {calculatePopoverPosition} = usePopoverPosition();
+    const {anchorRef: buttonRef, anchorPosition, openPopover: openCreateMenu} = useAnchoredPopoverOpener(CREATE_MENU_ANCHOR_ALIGNMENT, showCreateMenu);
 
-    const buttonRef = useRef<ComponentRef<typeof View>>(null);
-    const isOpeningRef = useRef(false);
-    const [anchorPosition, setAnchorPosition] = useState<AnchorPosition>();
-
-    // Shows the menu only once the button is measured, so it opens at the button's current position.
     const toggleCreateMenu = () => {
         if (isCreateMenuActive) {
             hideCreateMenu();
             return;
         }
-        // The menu only counts as open once the measurement resolves, so a second press before then must not start another one.
-        if (isOpeningRef.current) {
-            return;
-        }
-        isOpeningRef.current = true;
-        calculatePopoverPosition(buttonRef, CREATE_MENU_ANCHOR_ALIGNMENT).then(({horizontal, vertical}) => {
-            isOpeningRef.current = false;
-            setAnchorPosition({horizontal, vertical});
-            showCreateMenu();
-        });
+        openCreateMenu();
     };
 
     return (

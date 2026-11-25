@@ -20,6 +20,7 @@ type Payload = {
 
 export default {
     allowedAuthenticationMethods: [CONST.MULTIFACTOR_AUTHENTICATION.TYPE.BIOMETRICS_HSM],
+    shouldHideModalOnSuccess: true,
     // Hermes V1 does not suspend at await inside async arrow functions with destructured parameters, so destructure in the body.
     action: async (params, context) => {
         const {card, cardHolderName, cardDescription, signedChallenge, authenticationMethod} = params;
