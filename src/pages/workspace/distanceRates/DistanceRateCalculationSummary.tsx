@@ -37,8 +37,8 @@ type DistanceRateCalculationSummaryProps = {
     /** Government rate in effect today, undefined while it loads */
     governmentRate?: GovernmentMileageRate;
 
-    /** Whether the rate reclaims VAT on fuel, which is only part of each mile */
-    isReclaimingVATOnFuel?: boolean;
+    /** Extra summary lines shown above the unit line */
+    children?: React.ReactNode;
 };
 
 type SummaryLineProps = {
@@ -64,7 +64,7 @@ function SummaryLine({icon, children}: SummaryLineProps) {
 }
 
 /** Explains how a new distance rate is calculated, shown at the bottom of Add rate. */
-function DistanceRateCalculationSummary({unit, currency, governmentRateCountry, governmentRate, isReclaimingVATOnFuel = false}: DistanceRateCalculationSummaryProps) {
+function DistanceRateCalculationSummary({unit, currency, governmentRateCountry, governmentRate, children}: DistanceRateCalculationSummaryProps) {
     const styles = useThemeStyles();
     const {translate, dateFnsLocale} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['Car', 'Info']);
@@ -73,11 +73,7 @@ function DistanceRateCalculationSummary({unit, currency, governmentRateCountry, 
 
     return (
         <View style={[styles.mb4, styles.gap3]}>
-            {isReclaimingVATOnFuel && (
-                <SummaryLine icon={icons.Info}>
-                    <Text style={styles.textLabelSupporting}>{translate('workspace.distanceRates.addRatePage.taxOnlyReclaimableOnFuel')}</Text>
-                </SummaryLine>
-            )}
+            {children}
             <SummaryLine icon={icons.Car}>
                 <Text style={styles.textLabelSupporting}>
                     {translate('workspace.distanceRates.addRatePage.unitPaidIn', Str.recapitalize(translate(getUnitTranslationKey(unit))), currency)}
@@ -100,3 +96,4 @@ function DistanceRateCalculationSummary({unit, currency, governmentRateCountry, 
 }
 
 export default DistanceRateCalculationSummary;
+export {SummaryLine};

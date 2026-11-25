@@ -29,6 +29,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import {setMoneyRequestDistanceRate} from '@libs/actions/IOU/MoneyRequest';
 import {createPolicyTax, getNextTaxCode} from '@libs/actions/TaxRate';
+import {isSelectableTaxRate} from '@libs/CategoryTaxRulesUtils';
 import {convertAmountToDisplayString} from '@libs/CurrencyUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
@@ -75,8 +76,9 @@ import type {ValueOf} from 'type-fest';
 import React, {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 
-import DistanceRateCalculationSummary from './DistanceRateCalculationSummary';
-import DistanceRateTaxSection from './DistanceRateTaxSection';
+import DistanceRateCalculationSummary, {SummaryLine} from './DistanceRateCalculationSummary';
+import DistanceRateTaxRateDropdown from './DistanceRateTaxRateDropdown';
+import DistanceRateTaxSection, {DistanceRateTaxNote, FuelBandTaxTable} from './DistanceRateTaxSection';
 import EuroCountryDropdown from './EuroCountryDropdown';
 
 type CreateDistanceRatePageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.CREATE_DISTANCE_RATE>;
@@ -145,7 +147,7 @@ function CreateDistanceRatePage({
     const newUKFuelVATTaxRateCode = getNextTaxCode(CONST.CUSTOM_UNITS.UK_FUEL_VAT_TAX_RATE_NAME, policy?.taxRates?.taxes);
     const taxRateOptions = [
         ...Object.entries(policy?.taxRates?.taxes ?? {})
-            .filter(([, taxRate]) => !taxRate.isDisabled && taxRate.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE)
+            .filter(([, taxRate]) => isSelectableTaxRate(taxRate))
             .map(([code, taxRate]) => ({value: code, label: formatTaxRateName(taxRate.name, taxRate.value)})),
         ...(shouldAddUKFuelVATTaxRate ? [{value: newUKFuelVATTaxRateCode, label: CONST.CUSTOM_UNITS.UK_FUEL_VAT_TAX_RATE_NAME}] : []),
     ];
@@ -210,7 +212,7 @@ function CreateDistanceRatePage({
     const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.POLICY_CREATE_DISTANCE_RATE_FORM>) =>
         isGovernmentKind ? {} : validateCreateDistanceRateForm(values, toLocaleDigit, translate, existingRateNames, currency, isReclaimVATOn);
 
-    // Distance Track tax only applies while workspace taxes are on, so the policy passed on has both changes for the rates to be chosen from
+    // Saving copies the fuel bands or the single government rate depending on distance Track tax, so the copy reads the policy as it will be once Track tax is set
     const getPolicyWithDistanceTax = (isDistanceTaxOn: boolean): Policy | undefined => {
         if (!policy || !customUnit?.attributes || !customUnitID) {
             return policy;
@@ -404,8 +406,13 @@ function CreateDistanceRatePage({
                                     currency={currency}
                                     governmentRateCountry={isGovernmentKind ? governmentRateCountry : undefined}
                                     governmentRate={currentGovernmentRate}
-                                    isReclaimingVATOnFuel={isReclaimVATOn}
-                                />
+                                >
+                                    {isReclaimVATOn && (
+                                        <SummaryLine icon={icons.Info}>
+                                            <Text style={styles.textLabelSupporting}>{translate('workspace.distanceRates.addRatePage.taxOnlyReclaimableOnFuel')}</Text>
+                                        </SummaryLine>
+                                    )}
+                                </DistanceRateCalculationSummary>
                             ) : undefined
                         }
                         shouldRenderFooterAboveAlert
@@ -557,17 +564,35 @@ function CreateDistanceRatePage({
                                 )}
                                 {shouldShowTaxSection && (
                                     <DistanceRateTaxSection
-                                        isGovernmentRate={isGovernmentKind}
                                         isReclaimVATOn={isReclaimVATOn}
                                         onToggleReclaimVAT={setPickedIsReclaimVATOn}
-                                        note={taxNote}
-                                        shouldShowTaxRate={!isMissingIntegrationVATTaxRate}
-                                        taxRates={taxRateOptions}
-                                        selectedTaxRateCode={taxRateCode}
-                                        onSelectTaxRate={setPickedTaxRateCode}
-                                        fuelBands={fuelBands}
-                                        currency={currency}
-                                    />
+                                    >
+                                        {!!taxNote && <DistanceRateTaxNote>{taxNote}</DistanceRateTaxNote>}
+                                        {isReclaimVATOn && !isMissingIntegrationVATTaxRate && (
+                                            <View style={[styles.mhn4, styles.mt4]}>
+                                                <DistanceRateTaxRateDropdown
+                                                    label={translate('workspace.taxes.taxRate')}
+                                                    selectedTaxRateCode={taxRateCode}
+                                                    taxRates={taxRateOptions}
+                                                    onSelectTaxRate={setPickedTaxRateCode}
+                                                />
+                                            </View>
+                                        )}
+                                        {isReclaimVATOn && isGovernmentKind && <FuelBandTaxTable fuelBands={fuelBands} />}
+                                        {isReclaimVATOn && !isGovernmentKind && (
+                                            <View style={styles.mt4}>
+                                                <InputWrapper
+                                                    InputComponent={AmountForm}
+                                                    inputID={INPUT_IDS.TAX_CLAIMABLE_VALUE}
+                                                    decimals={CONST.MAX_TAX_RATE_DECIMAL_PLACES}
+                                                    currency={currency}
+                                                    isCurrencyPressable={false}
+                                                    displayAsTextInput
+                                                    label={translate('workspace.taxes.taxReclaimableOn')}
+                                                />
+                                            </View>
+                                        )}
+                                    </DistanceRateTaxSection>
                                 )}
                             </>
                         ) : (

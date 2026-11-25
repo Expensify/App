@@ -14,7 +14,7 @@ import React from 'react';
 type DistanceRateTaxRateDropdownProps = {
     label: string;
 
-    /** Code of the selected tax rate */
+    /** Undefined when nothing is selected, which happens when an integration has no 20% rate */
     selectedTaxRateCode: string | undefined;
 
     taxRates: ValuePickerItem[];

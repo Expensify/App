@@ -18,6 +18,7 @@ import Onyx from 'react-native-onyx';
 
 import type {Option} from './searchOptions';
 
+import {isSelectableTaxRate} from './CategoryTaxRulesUtils';
 import {convertAmountToDisplayString} from './CurrencyUtils';
 import DateUtils from './DateUtils';
 import {getMicroSecondOnyxErrorWithTranslationKey} from './ErrorUtils';
@@ -541,10 +542,7 @@ function getCurrentFuelBandGovernmentRates(
 
 /** The tax rate VAT on fuel is linked to by default, which is the first enabled 20% rate whatever its name. */
 function getUKFuelVATTaxRateCode(policy: OnyxEntry<Policy>): string | undefined {
-    return Object.entries(policy?.taxRates?.taxes ?? {}).find(
-        ([, taxRate]) =>
-            !taxRate.isDisabled && taxRate.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && parseFloat(taxRate.value) === CONST.CUSTOM_UNITS.UK_FUEL_VAT_PERCENTAGE,
-    )?.[0];
+    return Object.entries(policy?.taxRates?.taxes ?? {}).find(([, taxRate]) => isSelectableTaxRate(taxRate) && parseFloat(taxRate.value) === CONST.CUSTOM_UNITS.UK_FUEL_VAT_PERCENTAGE)?.[0];
 }
 
 /** Explains why the Add rate page offers no government rate for this country. An undefined country means "Other country". */
