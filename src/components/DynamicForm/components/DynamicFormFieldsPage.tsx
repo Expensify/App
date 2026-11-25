@@ -41,6 +41,7 @@ function DynamicFormFieldsPage({
     refreshError,
     shouldDisableNextWhenOffline,
     onSaveForLater,
+    markUnfinishedForm,
     validatePage,
 }: DynamicFormSubPageProps) {
     const {translate} = useLocalize();
@@ -77,8 +78,18 @@ function DynamicFormFieldsPage({
             keyboardSubmitBehavior={CONST.KEYBOARD_SUBMIT_BEHAVIOR.SUBMIT_ONLY}
             // An offline request is saved to disk, so the last page submits only online, as the confirmation page does. A flow that saves each page asks for it on every page.
             enabledWhenOffline={!isLastPage && !shouldDisableNextWhenOffline}
-            // Try again submits again once the connection is back, so the page is checked and saved as usual
-            onSubmitWhenOffline={onSaveForLater ? (submitNow) => showContinueOfflineModal({onSaveForLater, onContinue: submitNow}) : undefined}
+            // The page passed its checks by now. The last page also sends the form, so a gap on an earlier page is opened first, as it is online, since the
+            // connection would not let the user go on. Try again submits again once the connection is back, so the page is checked and saved as usual.
+            onSubmitWhenOffline={
+                onSaveForLater
+                    ? (submitNow, inputValues) => {
+                          if (isLastPage && markUnfinishedForm(inputValues)) {
+                              return;
+                          }
+                          showContinueOfflineModal({onSaveForLater, onContinue: submitNow});
+                      }
+                    : undefined
+            }
             // Without a confirmation page the last page sends the form, so it shows the request's progress and error as the confirmation page does.
             // A refresh can change the fields on any page, so Next waits for it everywhere.
             isLoading={(isLastPage && !!isSubmitting) || !!isRefreshingRequirements}

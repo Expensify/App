@@ -658,6 +658,56 @@ describe('DynamicFormFlow', () => {
         expect(hasDynamicFormProps(pageProps) && pageProps.shouldShowFieldErrors).toBe(true);
     });
 
+    it('marks the rows to fix and sends nothing when the confirmation page checks an unfinished form offline', async () => {
+        // Given a flow with a confirmation page that offers to continue later offline, whose SSN was lost when the app restarted
+        const {pageProps, onSubmit, rerenderFlow} = await renderFlow({
+            draft: {firstName: 'Jane', legalType: 'PRIVATE'},
+            hasConfirmation: true,
+            currentPageName: CONST.DYNAMIC_FORM.CONFIRMATION_PAGE_KEY,
+            pageIndex: 3,
+            onSaveForLater: jest.fn(),
+        });
+
+        // When Confirm is pressed offline and the page asks the flow whether the form is unfinished before asking about the connection
+        let isUnfinished: boolean | undefined;
+        act(() => {
+            isUnfinished = pageProps?.markUnfinishedForm();
+        });
+        await rerenderFlow();
+
+        // Then the flow says it is, so no modal opens, the rows say what is missing as they do online, and nothing is submitted or saved to disk
+        expect(isUnfinished).toBe(true);
+        expect(onSubmit).not.toHaveBeenCalled();
+        const lastPageProps = mockCurrentPage.mock.lastCall?.[0];
+        expect(hasDynamicFormProps(lastPageProps) && lastPageProps.shouldShowFieldErrors).toBe(true);
+    });
+
+    it('opens the first gap from the last page offline when no confirmation page follows', async () => {
+        // Given the last page of a flow without a confirmation page, offering to continue later offline, whose first page has no SSN
+        const {pageProps, onSubmit} = await renderFlow({draft: {firstName: 'Jane'}, pageIndex: 1, currentPageName: 'recipient', onSaveForLater: jest.fn()});
+
+        // When the last page passes its own checks offline and asks the flow about the whole form, with its own answers
+        const isUnfinished = pageProps?.markUnfinishedForm({legalType: 'PRIVATE'});
+
+        // Then the flow goes back to the page with the gap, as Confirm does online, instead of letting the modal promise a submit that cannot go through
+        expect(isUnfinished).toBe(true);
+        expect(Navigation.goBack).toHaveBeenCalledWith(buildRoute('personal-details'));
+        expect(onSubmit).not.toHaveBeenCalled();
+    });
+
+    it('reports a complete form as finished, so only the connection stops the submit', async () => {
+        // Given the last page of a complete form without a confirmation page
+        const {pageProps, onSubmit} = await renderFlow({draft: {firstName: 'Jane'}, sensitiveAnswers: {ssn: '123456789'}, pageIndex: 1, currentPageName: 'recipient'});
+
+        // When the page asks the flow about the whole form with its own answers
+        const isUnfinished = pageProps?.markUnfinishedForm({legalType: 'PRIVATE'});
+
+        // Then nothing is missing, so the page may ask about the connection, and the check itself neither navigates nor submits
+        expect(isUnfinished).toBe(false);
+        expect(Navigation.goBack).not.toHaveBeenCalled();
+        expect(onSubmit).not.toHaveBeenCalled();
+    });
+
     it('resets to the incomplete page when routes are replaced, since there is no stack to go back in', async () => {
         // Given the same lost SSN on a flow that replaces its routes
         const {subPageOptions} = await renderFlow({draft: {firstName: 'Jane', legalType: 'PRIVATE'}, shouldReplaceRoute: true});

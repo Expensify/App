@@ -146,23 +146,35 @@ function DynamicFormFlow({
         Navigation.goBack(buildRoute(pageName));
     };
 
+    /** The answers a submit sends: the kept ones, with the last page's own on top when it sends the form */
+    const getAnswers = (lastPageValues?: unknown): DynamicFormValues => ({...values, ...toDynamicFormValues(lastPageValues)});
+
     /**
-     * The confirmation page can be reached before every field is answered, such as by URL or after a new form from the server adds a required field. It then stays
-     * open and marks the rows to fix, since a page that jumps away does not say why. Without a confirmation page the last page's answers arrive here, before their draft
-     * is saved, and an incomplete form goes back to its first gap.
+     * Shows what is missing and says whether anything is, so a submit of an unfinished form stops. The confirmation page can be reached before every field is
+     * answered, such as by URL or after a new form from the server adds a required field. It then stays open and marks the rows to fix, since a page that jumps
+     * away does not say why. Without a confirmation page the last page's answers arrive here, before their draft is saved, and an incomplete form goes back to
+     * its first gap. The check needs no connection, so the last step runs it offline too, before asking about the connection.
      */
-    function submitIfComplete(lastPageValues?: unknown) {
-        const answers = {...values, ...toDynamicFormValues(lastPageValues)};
+    const markUnfinishedForm = (lastPageValues?: unknown): boolean => {
+        const answers = getAnswers(lastPageValues);
         const firstIncompleteIndex = getFirstIncompletePageIndex(answers);
         const incompletePage = firstIncompleteIndex === -1 ? undefined : pages.at(firstIncompleteIndex);
         if (incompletePage && hasConfirmationPage) {
             setShouldShowFieldErrors(true);
-            return;
+            return true;
         }
         if (incompletePage) {
             returnTo(incompletePage.key);
+            return true;
+        }
+        return false;
+    };
+
+    function submitIfComplete(lastPageValues?: unknown) {
+        if (markUnfinishedForm(lastPageValues)) {
             return;
         }
+        const answers = getAnswers(lastPageValues);
         // Fields of a page the answers skip are not submitted
         const shownFields = getAllFields(pages.filter((page) => isPageShown(page, answers, allFields)));
         const submittedAnswers = getSubmittedAnswers(shownFields, answers, allFields);
@@ -414,6 +426,7 @@ function DynamicFormFlow({
                     shouldShowFieldErrors={shouldShowFieldErrors}
                     shouldDisableNextWhenOffline={shouldDisableNextWhenOffline}
                     onSaveForLater={onSaveForLater ? saveForLater : undefined}
+                    markUnfinishedForm={markUnfinishedForm}
                     validatePage={validatePage}
                 >
                     {children}

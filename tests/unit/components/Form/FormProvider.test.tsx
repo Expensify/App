@@ -9,6 +9,7 @@ import Text from '@components/Text';
 
 import * as FormActions from '@libs/actions/FormActions';
 import type * as FormActionsModule from '@libs/actions/FormActions';
+import {setHasRadio} from '@libs/NetworkState';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -178,6 +179,80 @@ describe('FormProvider', () => {
         fireEvent.press(screen.getByTestId('mock-submit-button'));
 
         expect(onSubmit).toHaveBeenCalledTimes(1);
+    });
+
+    describe('onSubmitWhenOffline', () => {
+        afterEach(() => {
+            act(() => setHasRadio(true));
+        });
+
+        function renderOfflineForm(validate: FormProviderProps<typeof FORM_ID>['validate']) {
+            const onSubmit = jest.fn();
+            const onSubmitWhenOffline = jest.fn<void, [() => void, unknown]>();
+            render(
+                <FormProvider
+                    formID={FORM_ID as FormProviderProps<typeof FORM_ID>['formID']}
+                    submitButtonText="Submit"
+                    validate={validate}
+                    onSubmit={onSubmit}
+                    onSubmitWhenOffline={onSubmitWhenOffline}
+                >
+                    <RegisteredInput />
+                </FormProvider>,
+            );
+            return {onSubmit, onSubmitWhenOffline};
+        }
+
+        it('shows the errors of an invalid form offline instead of handing the press over', async () => {
+            // Given an offline device on a form whose field fails its check, and a handler that would explain the connection
+            act(() => setHasRadio(false));
+            const {onSubmit, onSubmitWhenOffline} = renderOfflineForm(() => ({name: 'Required'}));
+            await waitForBatchedUpdatesWithAct();
+
+            // When the user presses submit
+            fireEvent.press(screen.getByTestId('mock-submit-button'));
+            await waitForBatchedUpdatesWithAct();
+
+            // Then neither the handler nor the submit runs, since the check needs no connection and the user can fix the field now
+            expect(onSubmitWhenOffline).not.toHaveBeenCalled();
+            expect(onSubmit).not.toHaveBeenCalled();
+        });
+
+        it('hands a valid form offline to the handler, with a retry and the values, instead of submitting', async () => {
+            // Given an offline device on a form that passes its checks
+            act(() => setHasRadio(false));
+            const {onSubmit, onSubmitWhenOffline} = renderOfflineForm(() => ({}));
+            await waitForBatchedUpdatesWithAct();
+            fireEvent.press(screen.getByTestId('mock-input-name'));
+
+            // When the user presses submit
+            fireEvent.press(screen.getByTestId('mock-submit-button'));
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the handler gets a retry and the checked values, and nothing is submitted while offline
+            expect(onSubmitWhenOffline).toHaveBeenCalledTimes(1);
+            expect(onSubmitWhenOffline).toHaveBeenCalledWith(expect.any(Function), expect.objectContaining({name: 'value'}));
+            expect(onSubmit).not.toHaveBeenCalled();
+        });
+
+        it('submits through the retry once the connection is back', async () => {
+            // Given a valid form whose offline press was handed to the handler
+            act(() => setHasRadio(false));
+            const {onSubmit, onSubmitWhenOffline} = renderOfflineForm(() => ({}));
+            await waitForBatchedUpdatesWithAct();
+            fireEvent.press(screen.getByTestId('mock-submit-button'));
+            await waitForBatchedUpdatesWithAct();
+            const retry = onSubmitWhenOffline.mock.lastCall?.[0];
+
+            // When the connection returns and the handler retries right away, within the press debounce
+            act(() => setHasRadio(true));
+            act(() => retry?.());
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the form submits once, as a press online does
+            expect(onSubmit).toHaveBeenCalledTimes(1);
+            expect(onSubmitWhenOffline).toHaveBeenCalledTimes(1);
+        });
     });
 
     it('skips clearing server errors when validation runs without server errors or error fields', async () => {

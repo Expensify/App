@@ -32,6 +32,7 @@ function DynamicFormConfirmationPage({
     onOpenListItemEditor,
     shouldShowFieldErrors = false,
     onSaveForLater,
+    markUnfinishedForm,
     children,
 }: DynamicFormSubPageProps) {
     const {translate} = useLocalize();
@@ -49,13 +50,17 @@ function DynamicFormConfirmationPage({
     return (
         <ConfirmationStep
             isEditing={isEditing}
-            // The flow submits whatever onNext carries, and the press event is not answers
+            // The flow submits whatever onNext carries, and the press event is not answers. Offline, the flow marks the rows to fix first, as it does online, so
+            // the modal opens only when the connection alone stops the user.
             onNext={() => {
-                if (isOffline && onSaveForLater) {
-                    showContinueOfflineModal({onSaveForLater, onContinue: () => onNext()});
+                if (!isOffline || !onSaveForLater) {
+                    onNext();
                     return;
                 }
-                onNext();
+                if (markUnfinishedForm()) {
+                    return;
+                }
+                showContinueOfflineModal({onSaveForLater, onContinue: () => onNext()});
             }}
             isConfirmEnabledWhenOffline={!!onSaveForLater}
             onMove={onMove}

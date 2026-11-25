@@ -33,6 +33,7 @@ function renderPage(isLastPage: boolean, shouldDisableNextWhenOffline?: boolean,
             confirmationTitle="Confirm"
             shouldDisableNextWhenOffline={shouldDisableNextWhenOffline}
             validatePage={validatePage}
+            markUnfinishedForm={jest.fn(() => false)}
         />,
     );
     return jest.mocked(FormProvider).mock.lastCall?.[0];

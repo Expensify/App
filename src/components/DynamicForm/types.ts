@@ -152,6 +152,12 @@ type DynamicFormSubPageProps = SubPageProps &
 
         /** Leaves the flow when the user presses Next or Confirm offline and picks to fill the form out later. Only set when the flow offers it, and its presence keeps those buttons enabled offline. */
         onSaveForLater?: () => void;
+
+        /**
+         * Shows what is missing in an unfinished form, by marking the confirmation page's rows or opening the first page with a gap, and says whether anything
+         * is. The last step runs it offline before asking about the connection, so the user learns about a gap right away. The last page passes its own answers.
+         */
+        markUnfinishedForm: (lastPageValues?: unknown) => boolean;
     };
 
 export type {DynamicFormFieldOfType, DynamicFormFlowProps, DynamicFormLayout, DynamicFormSubPageProps, DynamicFormValues};

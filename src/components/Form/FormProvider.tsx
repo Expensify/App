@@ -126,11 +126,11 @@ type FormProviderProps<TFormID extends OnyxFormKey = OnyxFormKey> = FormProps<TF
     onBeforeSubmit?: () => void;
 
     /**
-     * Called instead of validating and submitting when the user presses submit offline, such as to explain why the form cannot go on. Passing it keeps the
+     * Called instead of submitting when the user presses submit offline and the form passes validation, such as to explain why the form cannot go on. Passing it keeps the
      * submit button enabled offline. The connection is read at press time, so a submit right after the connection returns goes through. It receives
-     * `submitNow`, which submits again without the press debounce, such as once the user asks to try again.
+     * `submitNow`, which submits again without the press debounce, such as once the user asks to try again, and the validated values.
      */
-    onSubmitWhenOffline?: (submitNow: () => void) => void;
+    onSubmitWhenOffline?: (submitNow: () => void, values: FormOnyxValues<TFormID>) => void;
 
     /** Whether the confirm button should show a spinner immediately on press */
     shouldShowLoadingImmediatelyOnPress?: boolean;
@@ -325,14 +325,6 @@ function FormProvider({
 
             onBeforeSubmit?.();
 
-            // Checked before validation, so an unfinished page offline explains the connection instead of marking its fields. The render's isOffline can
-            // lag behind a connection that just came back, so the current state is read. The handler gets the submit without the debounce, so a retry right
-            // after the press is not dropped by the debounce below.
-            if (onSubmitWhenOffline && getIsOffline()) {
-                onSubmitWhenOffline(submitWithoutDebounce);
-                return;
-            }
-
             // Prepare values before submitting
             const trimmedStringValues = shouldTrimValues ? prepareValues(inputValues) : inputValues;
 
@@ -348,6 +340,14 @@ function FormProvider({
             // Validate form and return early if any errors are found
             if (!isEmptyObject(onValidate(trimmedStringValues))) {
                 setErrorAnnouncementKey((prev) => prev + 1);
+                return;
+            }
+
+            // Checked after validation, since the checks need no connection, so the user fixes the form offline instead of meeting its errors only once the
+            // connection is back. The render's isOffline can lag behind a connection that just came back, so the current state is read. The handler gets the
+            // submit without the debounce, so a retry right after the press is not dropped by the debounce below.
+            if (onSubmitWhenOffline && getIsOffline()) {
+                onSubmitWhenOffline(submitWithoutDebounce, trimmedStringValues);
                 return;
             }
 

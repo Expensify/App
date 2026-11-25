@@ -176,8 +176,8 @@ describe('WiseBusinessOnboardingPage offline', () => {
         },
     );
 
-    it('opens the modal offline before checking the page, so an unfinished page does not mark its fields', async () => {
-        // Given an offline device on the representative page with no SSN typed, which would fail the page's checks
+    it('checks the page before opening the modal offline, so an unfinished page marks its fields right away', async () => {
+        // Given an offline device on the representative page with no SSN typed, which fails the page's checks
         setHasRadio(false);
         await renderPage(CONST.WISE.ONBOARDING_STEP.REPRESENTATIVE, {});
 
@@ -185,9 +185,33 @@ describe('WiseBusinessOnboardingPage offline', () => {
         fireEvent.press(screen.getByText('common.next'));
         await waitForBatchedUpdatesWithAct();
 
-        // Then the modal opens and the form shows no alert, since the connection, not the answers, is what stops the user
-        expect(mockShownModals).toHaveLength(1);
+        // Then only the missing SSN is marked, since the rest of the draft is complete, and no modal opens, since the checks need no connection and the user
+        // would otherwise meet them only once back online
+        expect(mockShownModals).toHaveLength(0);
+        expect(screen.getAllByText('common.error.fieldRequired')).toHaveLength(1);
+        expect(screen.getByLabelText(SSN_LABEL)).toHaveDisplayValue('');
+    });
+
+    it('opens the modal offline once the user fixes the page', async () => {
+        // Given an offline device on the representative page whose Next marked the missing SSN
+        const sideEffectSpy = jest.spyOn(API, 'makeRequestWithSideEffects');
+        setHasRadio(false);
+        await renderPage(CONST.WISE.ONBOARDING_STEP.REPRESENTATIVE, {});
+        fireEvent.press(screen.getByText('common.next'));
+        await waitForBatchedUpdatesWithAct();
+        await new Promise((resolve) => {
+            setTimeout(resolve, SUBMIT_DEBOUNCE_MS);
+        });
+
+        // When the user types the SSN and presses Next again
+        fireEvent.changeText(screen.getByLabelText(SSN_LABEL), SSN);
+        fireEvent.press(screen.getByText('common.next'));
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the error is gone and the modal opens, since only the connection stops the user now, and nothing is saved
         expect(screen.queryByText('common.error.fieldRequired')).not.toBeOnTheScreen();
+        expect(mockShownModals.map((modal) => modal.title)).toEqual(['dynamicForm.continueOffline.title']);
+        expect(sideEffectSpy).not.toHaveBeenCalled();
     });
 
     it('leaves the flow with the answers kept when the user picks to fill the form out later', async () => {
@@ -318,6 +342,7 @@ describe('WiseBusinessOnboardingPage offline', () => {
         fireEvent.changeText(screen.getByLabelText(SSN_LABEL), SSN);
         fireEvent.press(screen.getByText('common.next'));
         await waitForBatchedUpdatesWithAct();
+        expect(mockShownModals).toHaveLength(1);
         expect(screen.getByLabelText(SSN_LABEL)).toHaveDisplayValue(SSN);
 
         // Then the SSN is not in the draft or the request queue, which are written to disk, and not even in the memory-only answers, since the page never submitted
