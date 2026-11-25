@@ -1,14 +1,15 @@
 /** Form input for a choice field that takes several answers, drawn as the expense form's dropdown row */
+import MultiValuePickerPopover from '@components/ValuePicker/MultiValuePickerPopover';
+import MultiValueSelectionList from '@components/ValuePicker/MultiValueSelectionList';
+
 import type {SentryLabel} from '@src/types/utils/SentryLabel';
 
 import React from 'react';
 
+import type {DropdownRowInputProps} from '.';
 import type {DropdownChoice} from './DropdownChoiceAdapter';
-import type {DropdownRowInputProps} from './FormDropdownField';
 
-import FormDropdownField from './FormDropdownField';
-import MultiValuePickerPopover from './ValuePicker/MultiValuePickerPopover';
-import MultiValueSelectionList from './ValuePicker/MultiValueSelectionList';
+import FormDropdownField from '.';
 
 /** FormProvider starts an unanswered list field as an empty string, so the value is the keys of the picked options or '' */
 type MultiChoiceDropdownAdapterProps = DropdownRowInputProps<string[] | string, string[]> & {
@@ -25,8 +26,8 @@ function haveSameValues(first: string[], second: string[]) {
 
 /**
  * A choice field whose options open in a container anchored to its row and are applied together with the Apply
- * button, as the attendees row applies its selection. A field that asks the server for new requirements therefore asks
- * once per Apply rather than once per checked option.
+ * button, as the attendees row applies its selection. A field whose change sends a request therefore sends one per
+ * Apply rather than one per checked option.
  */
 function MultiChoiceDropdownAdapter({
     items,

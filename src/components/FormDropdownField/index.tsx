@@ -1,4 +1,10 @@
 /** A form field drawn as a dropdown row, with the full-page list it falls back to. See the dropdown rows section of contributingGuides/FORMS.md */
+import type {DropdownFieldRenderProps} from '@components/DropdownField';
+import DropdownField from '@components/DropdownField';
+import FSClassView from '@components/FSClassView';
+import ModalContext from '@components/Modal/ModalContext';
+import {SELECTION_LIST_POPOVER_HEADER_HEIGHT} from '@components/SelectionListPopoverHeader';
+
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
@@ -10,13 +16,7 @@ import type {View} from 'react-native';
 
 import React, {useContext, useState} from 'react';
 
-import type {DropdownFieldRenderProps} from './DropdownField';
-
-import DropdownField from './DropdownField';
 import FormDropdownFullPageList from './FormDropdownFullPageList';
-import FSClassView from './FSClassView';
-import ModalContext from './Modal/ModalContext';
-import {SELECTION_LIST_POPOVER_HEADER_HEIGHT} from './SelectionListPopoverHeader';
 
 /**
  * Props every dropdown row input takes from its form. `TValue` is the value FormProvider holds for the field, and
@@ -42,7 +42,7 @@ type DropdownRowInputProps<TValue, TPickedValue = TValue> = ForwardedFSClassProp
         /** Validation error shown under the row */
         errorText?: string;
 
-        /** Dims the row and stops it opening, e.g. while the form waits on the server for new requirements */
+        /** Dims the row and stops it opening, e.g. while the form waits for a request to finish */
         disabled?: boolean;
 
         /** Lets FormProvider scroll to and focus the row when the user asks to fix the errors */
@@ -80,7 +80,7 @@ type FormDropdownFieldProps = ForwardedFSClassProps &
         /** Validation error shown under the row and read with it */
         errorText?: string;
 
-        /** Dims the row and stops it opening, e.g. while the form waits on the server for new requirements */
+        /** Dims the row and stops it opening, e.g. while the form waits for a request to finish */
         disabled?: boolean;
 
         /** Lets FormProvider scroll to and focus the row when the user asks to fix the errors */

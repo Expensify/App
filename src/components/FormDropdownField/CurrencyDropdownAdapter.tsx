@@ -1,14 +1,15 @@
 /** Form input for a currency field, drawn as the expense form's dropdown row */
+import CurrencyPickerPopover from '@components/CurrencyPickerPopover';
+import CurrencySelectionList from '@components/CurrencySelectionList';
+
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useLocalize from '@hooks/useLocalize';
 
 import React from 'react';
 
-import type {DropdownRowInputProps} from './FormDropdownField';
+import type {DropdownRowInputProps} from '.';
 
-import CurrencyPickerPopover from './CurrencyPickerPopover';
-import CurrencySelectionList from './CurrencySelectionList';
-import FormDropdownField from './FormDropdownField';
+import FormDropdownField from '.';
 
 /** The value is a currency code */
 type CurrencyDropdownAdapterProps = DropdownRowInputProps<string> & {

@@ -1,14 +1,14 @@
 /** The list of a form's dropdown row on a page of its own */
+import Header from '@components/Header';
+import Modal from '@components/Modal';
+import ScreenWrapper from '@components/ScreenWrapper';
+
 import CONST from '@src/CONST';
 import type {SentryLabel} from '@src/types/utils/SentryLabel';
 
 import type {ReactNode} from 'react';
 
 import React from 'react';
-
-import Header from './Header';
-import Modal from './Modal';
-import ScreenWrapper from './ScreenWrapper';
 
 type FormDropdownFullPageListProps = {
     isVisible: boolean;

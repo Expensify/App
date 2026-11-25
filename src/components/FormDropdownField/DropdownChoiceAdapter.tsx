@@ -1,12 +1,13 @@
 /** Form input for a single choice field, drawn as the expense form's dropdown row */
+import type {ValuePickerItem} from '@components/ValuePicker/types';
+import ValuePickerPopover from '@components/ValuePicker/ValuePickerPopover';
+import ValueSelectionList from '@components/ValuePicker/ValueSelectionList';
+
 import React, {useRef} from 'react';
 
-import type {DropdownRowInputProps} from './FormDropdownField';
-import type {ValuePickerItem} from './ValuePicker/types';
+import type {DropdownRowInputProps} from '.';
 
-import FormDropdownField from './FormDropdownField';
-import ValuePickerPopover from './ValuePicker/ValuePickerPopover';
-import ValueSelectionList from './ValuePicker/ValueSelectionList';
+import FormDropdownField from '.';
 
 /** An option of a dropdown row. `searchValue` is the text the list's search matches instead of the label */
 type DropdownChoice = Required<Pick<ValuePickerItem, 'label' | 'value'>> & Pick<ValuePickerItem, 'searchValue'>;

@@ -1,8 +1,8 @@
 import {act, fireEvent, render, screen} from '@testing-library/react-native';
 
+import type {MultiChoiceDropdownAdapterProps} from '@components/FormDropdownField/MultiChoiceDropdownAdapter';
+import MultiChoiceDropdownAdapter from '@components/FormDropdownField/MultiChoiceDropdownAdapter';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
-import type {MultiChoiceDropdownAdapterProps} from '@components/MultiChoiceDropdownAdapter';
-import MultiChoiceDropdownAdapter from '@components/MultiChoiceDropdownAdapter';
 import MultiValuePickerPopover from '@components/ValuePicker/MultiValuePickerPopover';
 
 import CONST from '@src/CONST';

@@ -1,6 +1,4 @@
 import CheckboxWithLabel from '@components/CheckboxWithLabel';
-import CurrencyDropdownAdapter from '@components/CurrencyDropdownAdapter';
-import DropdownChoiceAdapter from '@components/DropdownChoiceAdapter';
 import CurrencyInlineListAdapter from '@components/DynamicForm/adapters/CurrencyInlineListAdapter';
 import InlineSelectionListAdapter from '@components/DynamicForm/adapters/InlineSelectionListAdapter';
 import TabsAdapter from '@components/DynamicForm/adapters/TabsAdapter';
@@ -9,7 +7,9 @@ import YesNoAdapter from '@components/DynamicForm/adapters/YesNoAdapter';
 import {getFieldChoices} from '@components/DynamicForm/utils/getFieldOptions';
 import getLocalizedText, {getFieldLabel, getInputLabel} from '@components/DynamicForm/utils/getLocalizedText';
 import InputWrapper from '@components/Form/InputWrapper';
-import MultiChoiceDropdownAdapter from '@components/MultiChoiceDropdownAdapter';
+import CurrencyDropdownAdapter from '@components/FormDropdownField/CurrencyDropdownAdapter';
+import DropdownChoiceAdapter from '@components/FormDropdownField/DropdownChoiceAdapter';
+import MultiChoiceDropdownAdapter from '@components/FormDropdownField/MultiChoiceDropdownAdapter';
 import type {Choice} from '@components/RadioButtons';
 import RadioButtons from '@components/RadioButtons';
 

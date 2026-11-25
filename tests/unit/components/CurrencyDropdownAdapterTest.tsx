@@ -1,8 +1,8 @@
 import {act, fireEvent, render, screen} from '@testing-library/react-native';
 
-import type {CurrencyDropdownAdapterProps} from '@components/CurrencyDropdownAdapter';
-import CurrencyDropdownAdapter from '@components/CurrencyDropdownAdapter';
 import CurrencyPickerPopover from '@components/CurrencyPickerPopover';
+import type {CurrencyDropdownAdapterProps} from '@components/FormDropdownField/CurrencyDropdownAdapter';
+import CurrencyDropdownAdapter from '@components/FormDropdownField/CurrencyDropdownAdapter';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 
 import CONST from '@src/CONST';

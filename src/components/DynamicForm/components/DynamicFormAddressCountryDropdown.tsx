@@ -1,6 +1,6 @@
-import DropdownChoiceAdapter from '@components/DropdownChoiceAdapter';
 import {getCountryChoices} from '@components/DynamicForm/utils/getFieldOptions';
 import InputWrapper from '@components/Form/InputWrapper';
+import DropdownChoiceAdapter from '@components/FormDropdownField/DropdownChoiceAdapter';
 
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';

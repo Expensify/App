@@ -18,7 +18,7 @@ import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
 // The full page is a modal, which a bare render cannot open, so it shows its list straight away
 jest.mock(
-    '@components/FormDropdownFullPageList',
+    '@components/FormDropdownField/FormDropdownFullPageList',
     () =>
         ({children}: {children: React.ReactNode}) =>
             children,

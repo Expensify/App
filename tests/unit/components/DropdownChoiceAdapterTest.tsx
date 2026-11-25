@@ -1,7 +1,7 @@
 import {act, fireEvent, render, renderHook, screen} from '@testing-library/react-native';
 
-import DropdownChoiceAdapter from '@components/DropdownChoiceAdapter';
-import type {DropdownChoiceAdapterProps} from '@components/DropdownChoiceAdapter';
+import DropdownChoiceAdapter from '@components/FormDropdownField/DropdownChoiceAdapter';
+import type {DropdownChoiceAdapterProps} from '@components/FormDropdownField/DropdownChoiceAdapter';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import ValuePickerPopover from '@components/ValuePicker/ValuePickerPopover';
 import type {ValuePickerPopoverProps} from '@components/ValuePicker/ValuePickerPopover';

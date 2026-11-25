@@ -1,5 +1,5 @@
-import type {DropdownChoice} from '@components/DropdownChoiceAdapter';
 import type {DynamicFormValues} from '@components/DynamicForm/types';
+import type {DropdownChoice} from '@components/FormDropdownField/DropdownChoiceAdapter';
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 
 import StringUtils from '@libs/StringUtils';
