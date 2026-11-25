@@ -63,6 +63,7 @@ import INSIGHTS_DASHBOARD_SPECS, {
     getVisibleCharts,
     shouldUpsellControlPlan,
 } from './dashboardSpecs';
+import {getExclusionsByGraph} from './insightsExclusions';
 import {getQueryGroupBy} from './insightsGroupByUtils';
 import buildInsightsJsonQuery from './insightsQueries';
 import InsightsTabSelector from './InsightsTabSelector';
@@ -412,7 +413,10 @@ function InsightsDashboard({dashboardID, accessibleDashboards}: {dashboardID: In
     // Settled from the policies already in Onyx, so the charts are never requested for a dashboard the upsell stands in for
     const shouldUpsell = arePoliciesLoaded && shouldUpsellControlPlan(dashboardID, policiesInScope, filters.policyIDs, login);
     const upgradeablePolicyIDs = shouldUpsell ? getUpgradeablePolicyIDsInScope(policiesInScope, login) : [];
-    const query = isResolved && arePoliciesLoaded && !shouldUpsell ? buildInsightsJsonQuery(dashboardID, filters, eligibleCharts, violationStages) : undefined;
+    // Covers every ranking chart of the dashboard, even one hidden for the workspaces in scope, because the backend skips AI cards about any excluded item
+    const rankingGraphKeys = [headlineSpec, ...supportingSpecs].filter((chart) => !!chart.rankedItems).map((chart) => chart.graphKey);
+    const [exclusions] = useOnyx(ONYXKEYS.SEARCH_FILTERS, {selector: (searchFilters) => getExclusionsByGraph(searchFilters, rankingGraphKeys)});
+    const query = isResolved && arePoliciesLoaded && !shouldUpsell ? buildInsightsJsonQuery(dashboardID, filters, eligibleCharts, violationStages, exclusions) : undefined;
     const hash = query?.hash;
     const snapshotHashes = query?.snapshotHashes.join(',');
     const updateViolationStage = (graphKey: InsightsGraphKey, stage: InsightsViolationStage) => {

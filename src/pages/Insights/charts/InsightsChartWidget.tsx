@@ -254,7 +254,11 @@ function InsightsChartWidget({
         isBetaEnabled(CONST.BETAS.INSIGHTS_AI) && (state === INSIGHTS_CHART_STATE.READY || isLoading) ? (
             <InsightsExplainButton
                 explainPrompt={translate('insightsPage.explainChartPrompt', translate(chart.titleKey))}
-                insightsScope={explainViolationStage ? {...insightsScope, violationStage: explainViolationStage} : insightsScope}
+                insightsScope={{
+                    ...insightsScope,
+                    ...(explainViolationStage && {violationStage: explainViolationStage}),
+                    ...(excludedItemKeys.length > 0 && {exclusions: {[chart.graphKey]: excludedItemKeys}}),
+                }}
             />
         ) : null;
 

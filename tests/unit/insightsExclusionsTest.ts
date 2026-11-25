@@ -1,6 +1,6 @@
 import type {GroupedItem} from '@components/Search/types';
 
-import {buildExclusionsFilterQuery, getExcludedItemKeys, getExclusionItemKey, getExclusionsSearchKey, removeExcludedItems} from '@pages/Insights/insightsExclusions';
+import {buildExclusionsFilterQuery, getExcludedItemKeys, getExclusionItemKey, getExclusionsByGraph, getExclusionsSearchKey, removeExcludedItems} from '@pages/Insights/insightsExclusions';
 
 import CONST from '@src/CONST';
 
@@ -23,6 +23,21 @@ describe('insightsExclusions', () => {
 
         // Then it gets its own list, since each chart keeps a separate one
         expect(keys).toEqual(['1', '2']);
+    });
+
+    it('collects the exclusions of the given charts, leaving out charts with none', () => {
+        // Given exclusions saved for Top spenders, an emptied list for Top merchants, and exclusions for a chart of another dashboard
+        const searchFilters = {
+            [getExclusionsSearchKey(CONST.INSIGHTS.GRAPH.TOP_SPENDERS)]: {query: '["1"]', timestamp: ''},
+            [getExclusionsSearchKey(CONST.INSIGHTS.GRAPH.TOP_MERCHANTS)]: {query: '[]', timestamp: ''},
+            [getExclusionsSearchKey(CONST.INSIGHTS.GRAPH.VIOLATIONS_BY_SUBMITTER)]: {query: '["3"]', timestamp: ''},
+        };
+
+        // When the Spend charts' exclusions are collected
+        const exclusions = getExclusionsByGraph(searchFilters, [CONST.INSIGHTS.GRAPH.TOP_SPENDERS, CONST.INSIGHTS.GRAPH.TOP_MERCHANTS]);
+
+        // Then only Top spenders is listed, so a cleared list doesn't change the request
+        expect(exclusions).toEqual({[CONST.INSIGHTS.GRAPH.TOP_SPENDERS]: ['1']});
     });
 
     it('treats a missing or unreadable entry as nothing excluded', () => {

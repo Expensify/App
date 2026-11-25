@@ -6,7 +6,7 @@ import {hashText} from '@libs/UserUtils';
 import CONST from '@src/CONST';
 import type {SearchAdvancedFiltersForm} from '@src/types/form';
 import FILTER_KEYS from '@src/types/form/SearchAdvancedFiltersForm';
-import type {InsightsDashboard, InsightsDashboardID, InsightsGraphKey} from '@src/types/onyx';
+import type {InsightsDashboard, InsightsDashboardID, InsightsExclusions, InsightsGraphKey} from '@src/types/onyx';
 
 import {addDays, format, parseISO} from 'date-fns';
 
@@ -204,7 +204,7 @@ type InsightsQuery = {
     /** Request payload for GetInsights. */
     jsonQuery: string;
 
-    /** Hash of the dashboard-wide query and the picked violation stages, which the response is stored under so every set of filters and stages keeps its own dashboard entry and averages. Leaves out the comparison, since every response carries all of them. */
+    /** Hash of the dashboard-wide query, the picked violation stages and the exclusions, which the response is stored under so every set of filters and stages keeps its own dashboard entry and averages. Leaves out the comparison, since every response carries all of them. */
     hash: number;
 
     /** Hashes of the snapshots the graphs are stored under. */
@@ -220,6 +220,7 @@ function buildInsightsJsonQuery(
     filters: InsightsFilters,
     supportingChartSpecs: InsightsChartSpec[],
     violationStages: InsightsViolationStages = {},
+    exclusions: InsightsExclusions = {},
 ): InsightsQuery | undefined {
     const dashboardFilters = {...filters, tagLevel: dashboard === CONST.INSIGHTS.DASHBOARD.SPEND ? (filters.tagLevel ?? CONST.INSIGHTS.DEFAULT_TAG_LEVEL) : undefined};
     // The backend saves inputQuery as the dashboard's filters, so it keeps the Group by the user picked, not the one fitted to the date range
@@ -249,8 +250,9 @@ function buildInsightsJsonQuery(
         }),
     );
     const hasViolationStages = Object.keys(requestedViolationStages).length > 0;
-    // The stages change the graphs and their averages, so each combination is stored under its own dashboard entry
-    const hash = hasViolationStages ? hashText(JSON.stringify([queryJSON.hash, requestedViolationStages]), INSIGHTS_HASH_RANGE) : queryJSON.hash;
+    const hasExclusions = Object.keys(exclusions).length > 0;
+    // The stages change the graphs and their averages, and the exclusions change which AI cards are picked, so each combination is stored under its own dashboard entry
+    const hash = hasViolationStages || hasExclusions ? hashText(JSON.stringify([queryJSON.hash, requestedViolationStages, exclusions]), INSIGHTS_HASH_RANGE) : queryJSON.hash;
     const graphEntries = [headlineChart, ...supportingCharts]
         .map((chartQuery) => buildSnapshotHashEntry(chartQuery, dashboard, filters))
         .filter((entry): entry is InsightsGraphHashEntry => !!entry);
@@ -268,6 +270,7 @@ function buildInsightsJsonQuery(
             insightsHashes,
             numberOfPeriods: COMPARE_AVERAGE_PERIOD_COUNT,
             ...(hasViolationStages && {violationStages: requestedViolationStages}),
+            ...(hasExclusions && {exclusions}),
         }),
         hash,
         snapshotHashes: graphEntries.flatMap(([, hashes]) => Object.values(hashes).filter((snapshotHash): snapshotHash is number => snapshotHash !== undefined)),
@@ -286,6 +289,15 @@ function buildTopExpensesQueryJSON(query: SearchQueryString): Readonly<SearchQue
     return buildSearchQueryJSON(buildSearchQueryString({...queryJSON, sortBy: CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT, sortOrder: CONST.SEARCH.SORT_ORDER.DESC, limit: TOP_EXPENSES_LIMIT}));
 }
 
-export {applyInsightsFilters, buildDashboardQuery, buildDateFormValues, buildDetailsFiltersQueryJSON, buildFutureExpensesQueryString, buildInsightsQueryString, buildTopExpensesQueryJSON, TOP_EXPENSES_LIMIT};
+export {
+    applyInsightsFilters,
+    buildDashboardQuery,
+    buildDateFormValues,
+    buildDetailsFiltersQueryJSON,
+    buildFutureExpensesQueryString,
+    buildInsightsQueryString,
+    buildTopExpensesQueryJSON,
+    TOP_EXPENSES_LIMIT,
+};
 export type {InsightsChartQuery, InsightsQuery};
 export default buildInsightsJsonQuery;

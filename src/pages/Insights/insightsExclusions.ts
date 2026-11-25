@@ -9,7 +9,7 @@ import {sanitizeSearchValue} from '@libs/SearchQueryUtils';
 import {getLastSearchQuery} from '@libs/SearchUIUtils';
 
 import CONST from '@src/CONST';
-import type {InsightsExclusionsSearchKey, InsightsGraphKey, SearchFilters} from '@src/types/onyx';
+import type {InsightsExclusions, InsightsExclusionsSearchKey, InsightsGraphKey, SearchFilters} from '@src/types/onyx';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
@@ -39,6 +39,18 @@ function getExcludedItemKeys(searchFilters: OnyxEntry<SearchFilters>, graphKey: 
     } catch {
         return [];
     }
+}
+
+/** Reads the excluded item keys of each given chart, leaving out the charts nothing is excluded from */
+function getExclusionsByGraph(searchFilters: OnyxEntry<SearchFilters>, graphKeys: InsightsGraphKey[]): InsightsExclusions {
+    const exclusions: InsightsExclusions = {};
+    for (const graphKey of graphKeys) {
+        const excludedItemKeys = getExcludedItemKeys(searchFilters, graphKey);
+        if (excludedItemKeys.length > 0) {
+            exclusions[graphKey] = excludedItemKeys;
+        }
+    }
+    return exclusions;
 }
 
 /** Returns the key a ranked item is excluded by: the member's account ID, or the merchant, category or tag. Time buckets and other groups can't be excluded. */
@@ -81,4 +93,4 @@ function buildExclusionsFilterQuery(groupBy: SearchGroupBy | undefined, excluded
     return `${CONST.SEARCH.NOT_PREFIX}${filterKey}:${values.join(',')}`;
 }
 
-export {buildExclusionsFilterQuery, getExcludedItemKeys, getExclusionItemKey, getExclusionsSearchKey, removeExcludedItems};
+export {buildExclusionsFilterQuery, getExcludedItemKeys, getExclusionItemKey, getExclusionsByGraph, getExclusionsSearchKey, removeExcludedItems};

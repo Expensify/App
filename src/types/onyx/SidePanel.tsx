@@ -1,7 +1,7 @@
 import type {InsightsViolationStage} from '@pages/Insights/dashboardSpecs';
 import type {InsightsFilters} from '@pages/Insights/insightsFilters';
 
-import type {InsightsSearchKey} from './InsightsDashboard';
+import type {InsightsExclusions, InsightsSearchKey} from './InsightsDashboard';
 
 type SidePanel = {
     /** Whether the Side Panel is open on large screens */
@@ -26,6 +26,9 @@ type InsightsScope = Pick<InsightsFilters, 'policyIDs' | 'date' | 'groupCurrency
 
     /** Encoded ancestor path when explaining a specific dependent tag. */
     tagParent?: string;
+
+    /** Items the user excluded from the explained chart, so the answer covers only the items it shows. AI cards leave it out, since the backend already skips cards about excluded items. */
+    exclusions?: InsightsExclusions;
 };
 
 /**
