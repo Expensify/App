@@ -146,14 +146,28 @@ jobs:
           path: node_modules/react-native/.build/headers
           merge-multiple: true
 
+      - name: Resolve Hermes version
+        id: hermes
+        run: echo "VERSION=$(./scripts/artifacts-utils/get-hermes-version.sh)" >> "$GITHUB_OUTPUT"
+
+      # The compose folds the Hermes public headers into ReactNativeHeaders.xcframework, so stage them first,
+      # like upstream's prebuild-ios-core.yml does.
+      - name: Stage Hermes headers
+        working-directory: node_modules/react-native
+        run: node -e "require('./scripts/ios-prebuild/hermes').prepareHermesArtifactsAsync(require('./package.json').version, process.env.FLAVOR).then(() => process.exit(0)).catch((error) => { console.error(error); process.exit(1); })"
+        env:
+          FLAVOR: ${{ matrix.flavor }}
+          HERMES_VERSION: ${{ steps.hermes.outputs.VERSION }}
+
+      # --require-hermes fails the compose instead of silently shipping ReactNativeHeaders without the Hermes headers.
       - name: Compose XCFramework
         working-directory: node_modules/react-native
-        run: node scripts/ios-prebuild.js -c -f ${{ matrix.flavor }}
+        run: node scripts/ios-prebuild.js -c -f ${{ matrix.flavor }} --require-hermes
 
       - name: Compress and rename XCFramework
         run: |
           cd node_modules/react-native/.build/output/xcframeworks/${{ matrix.flavor }}
-          tar -czf reactnative-core-${{ matrix.flavor == 'Debug' && 'debug' || 'release' }}.tar.gz React.xcframework
+          tar -czf reactnative-core-${{ matrix.flavor == 'Debug' && 'debug' || 'release' }}.tar.gz React.xcframework ReactNativeHeaders.xcframework
 
       - name: Compress and rename dSYM
         run: |
