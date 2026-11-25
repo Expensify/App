@@ -49,7 +49,7 @@ describe('Insights chart summary', () => {
         // Then the total and count still render, but there is no average to show
         expect(screen.getByText('$0.00')).toBeOnTheScreen();
         expect(screen.getByText('0 expenses')).toBeOnTheScreen();
-        expect(screen.queryByText(/average expense/)).not.toBeOnTheScreen();
+        expect(screen.queryByText(/average/)).not.toBeOnTheScreen();
     });
 
     it('shows a localized average and labels the comparison with its direction', async () => {
@@ -61,20 +61,24 @@ describe('Insights chart summary', () => {
         await waitForBatchedUpdatesWithAct();
 
         // Then the breakdown uses a bullet and the comparison exposes its direction in the accessible label
-        expect(screen.getByText('2 expenses • $50.00 average expense')).toBeOnTheScreen();
+        expect(screen.getByText('2 expenses • $50.00 average')).toBeOnTheScreen();
         expect(screen.getByText('50% vs previous period', {includeHiddenElements: true})).toBeOnTheScreen();
         expect(screen.getByRole('group', {name: 'Down 50% vs previous period'})).toBeOnTheScreen();
     });
 
-    it('shows Compliance share without “all”', async () => {
-        // Given one expense has two violations and is the only eligible expense
-        const summary = {current: {violations: 2, flaggedExpenses: 1, eligibleExpenses: 1}};
+    it.each([
+        {violations: 1, flaggedExpenses: 1, headline: '1 violation', breakdown: 'On 1 expense'},
+        {violations: 1628, flaggedExpenses: 521, headline: '1,628 violations', breakdown: 'On 521 expenses'},
+    ])('shows $headline with the count of flagged expenses', async ({violations, flaggedExpenses, headline, breakdown}) => {
+        // Given the Compliance totals include both flagged and eligible expenses
+        const summary = {current: {violations, flaggedExpenses, eligibleExpenses: 1000}};
 
         // When the Compliance summary renders
         renderSummary(summary);
         await waitForBatchedUpdatesWithAct();
 
-        // Then the breakdown distinguishes the expense count from its share
-        expect(screen.getByText('On 1 expense • 100% of expenses')).toBeOnTheScreen();
+        // Then the headline names the unit and the breakdown shows only the flagged count
+        expect(screen.getByText(headline)).toBeOnTheScreen();
+        expect(screen.getByText(breakdown)).toBeOnTheScreen();
     });
 });

@@ -1393,9 +1393,9 @@ const translations = {
     },
     insightsPage: {
         headline: {
-            averageExpense: (amount: string) => `${amount} average expense`,
+            averageExpense: (amount: string) => `${amount} average`,
             flaggedExpenses: ({formattedCount}: {count: number; formattedCount: string}) => ({one: `On ${formattedCount} expense`, other: `On ${formattedCount} expenses`}),
-            shareOfExpenses: (percentage: string) => `${percentage} of expenses`,
+            violationCount: ({formattedCount}: {count: number; formattedCount: string}) => ({one: `${formattedCount} violation`, other: `${formattedCount} violations`}),
             timeToSubmit: (time: string) => `${time} to submit`,
             timeToApprove: (time: string) => `${time} to approve`,
             timeToPay: (time: string) => `${time} to pay`,

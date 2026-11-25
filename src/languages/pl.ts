@@ -1282,14 +1282,19 @@ const translations: TranslationDeepObject<typeof en> = {
     },
     insightsPage: {
         headline: {
-            averageExpense: (amount) => `Średnio ${amount} na wydatek`,
+            averageExpense: (amount) => `Średnio ${amount}`,
             flaggedExpenses: ({formattedCount}) => ({
                 one: `W ${formattedCount} wydatku`,
                 few: `W ${formattedCount} wydatkach`,
                 many: `W ${formattedCount} wydatkach`,
                 other: `W ${formattedCount} wydatku`,
             }),
-            shareOfExpenses: (percentage) => `${percentage} wydatków`,
+            violationCount: ({formattedCount}) => ({
+                one: `${formattedCount} naruszenie`,
+                few: `${formattedCount} naruszenia`,
+                many: `${formattedCount} naruszeń`,
+                other: `${formattedCount} naruszenia`,
+            }),
             timeToSubmit: (time) => `${time} do przesłania`,
             timeToApprove: (time) => `${time} do zatwierdzenia`,
             timeToPay: (time) => `${time} do zapłaty`,

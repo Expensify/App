@@ -18,6 +18,7 @@ function resolveLayoutSpacing(shouldUseNarrowLayout: boolean) {
     const cardGap = layoutSpacing.cardGap[size];
 
     return {
+        shouldUseNarrowLayout,
         values: {cardPadding, pageGutter, cardGap},
         cardPadding: {padding: cardPadding},
         cardPaddingHorizontal: {paddingHorizontal: cardPadding},

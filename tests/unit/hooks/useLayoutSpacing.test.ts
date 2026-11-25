@@ -9,9 +9,14 @@ jest.mock('@hooks/useResponsiveLayout', () => () => ({shouldUseNarrowLayout: moc
 
 describe('useLayoutSpacing', () => {
     it('resolves narrow values on a narrow layout', () => {
+        // Given a narrow viewport
         mockShouldUseNarrowLayout = true;
+
+        // When a component reads the layout spacing
         const {result} = renderHook(() => useLayoutSpacing());
 
+        // Then the layout flag and spacing tokens both describe the narrow layout
+        expect(result.current.shouldUseNarrowLayout).toBe(true);
         expect(result.current.values).toEqual({cardPadding: layoutSpacing.cardPadding.narrow, pageGutter: layoutSpacing.pageGutter.narrow, cardGap: layoutSpacing.cardGap.narrow});
         expect(result.current.cardPadding).toEqual({padding: layoutSpacing.cardPadding.narrow});
         expect(result.current.cardPaddingHorizontal).toEqual({paddingHorizontal: layoutSpacing.cardPadding.narrow});
@@ -26,9 +31,14 @@ describe('useLayoutSpacing', () => {
     });
 
     it('resolves wide values on a wide layout', () => {
+        // Given a wide viewport
         mockShouldUseNarrowLayout = false;
+
+        // When a component reads the layout spacing
         const {result} = renderHook(() => useLayoutSpacing());
 
+        // Then the layout flag and spacing tokens both describe the wide layout
+        expect(result.current.shouldUseNarrowLayout).toBe(false);
         expect(result.current.values).toEqual({cardPadding: layoutSpacing.cardPadding.wide, pageGutter: layoutSpacing.pageGutter.wide, cardGap: layoutSpacing.cardGap.wide});
         expect(result.current.cardPadding).toEqual({padding: layoutSpacing.cardPadding.wide});
         expect(result.current.cardEdgeToEdge).toEqual({marginHorizontal: -layoutSpacing.cardPadding.wide});

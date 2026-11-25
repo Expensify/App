@@ -1255,9 +1255,9 @@ const translations: TranslationDeepObject<typeof en> = {
     },
     insightsPage: {
         headline: {
-            averageExpense: (amount) => `${amount} en moyenne par dépense`,
+            averageExpense: (amount) => `${amount} en moyenne`,
             flaggedExpenses: ({formattedCount}) => ({one: `Sur ${formattedCount} dépense`, other: `Sur ${formattedCount} dépenses`}),
-            shareOfExpenses: (percentage) => `${percentage} des dépenses`,
+            violationCount: ({formattedCount}) => ({one: `${formattedCount} infraction`, other: `${formattedCount} infractions`}),
             timeToSubmit: (time) => `${time} pour soumettre`,
             timeToApprove: (time) => `${time} pour approuver`,
             timeToPay: (time) => `${time} pour payer`,

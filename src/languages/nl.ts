@@ -1250,9 +1250,9 @@ const translations: TranslationDeepObject<typeof en> = {
     },
     insightsPage: {
         headline: {
-            averageExpense: (amount) => `Gemiddeld ${amount} per uitgave`,
+            averageExpense: (amount) => `Gemiddeld ${amount}`,
             flaggedExpenses: ({formattedCount}) => ({one: `Bij ${formattedCount} uitgave`, other: `Bij ${formattedCount} uitgaven`}),
-            shareOfExpenses: (percentage) => `${percentage} van de uitgaven`,
+            violationCount: ({formattedCount}) => ({one: `${formattedCount} overtreding`, other: `${formattedCount} overtredingen`}),
             timeToSubmit: (time) => `${time} tot indiening`,
             timeToApprove: (time) => `${time} tot goedkeuring`,
             timeToPay: (time) => `${time} tot betaling`,

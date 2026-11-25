@@ -56,12 +56,12 @@ function StackedBarChartLegend({stacks}: StackedBarChartLegendProps) {
                 return [
                     <View
                         key={key}
-                        style={[styles.flexRow, styles.alignItemsCenter, styles.gap1, styles.flexShrink1]}
+                        style={[styles.flexRow, styles.alignItemsCenter, styles.gap2, styles.flexShrink1]}
                         role="group"
                         accessible
                         accessibilityLabel={formatList([stackLabel, ...stageLabels])}
                     >
-                        {stack.map(renderSwatch)}
+                        <View style={[styles.flexRow, styles.gap1]}>{stack.map(renderSwatch)}</View>
                         <Text
                             variant="micro"
                             color={theme.icon}

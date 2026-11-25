@@ -48,9 +48,8 @@ function InsightsChartSummary({summary, stages, currency, shouldShowChange}: Ins
     const styles = useThemeStyles();
     const theme = useTheme();
     const icons = useMemoizedLazyExpensifyIcons(['ArrowUpLong', 'ArrowDownLong']);
-    const {cardPaddingHorizontal} = useLayoutSpacing();
+    const {cardPaddingHorizontal, shouldUseNarrowLayout} = useLayoutSpacing();
     const {current, previous} = summary;
-    const formatPercent = (value: number, maximumFractionDigits = 0) => numberFormat(value, {style: 'percent', maximumFractionDigits});
     const formatDuration = (value: number) => DateUtils.formatAverageDuration(value, translate, numberFormat);
     let headline: string;
     let breakdown: string[];
@@ -81,13 +80,12 @@ function InsightsChartSummary({summary, stages, currency, shouldShowChange}: Ins
     } else if ('violations' in current) {
         value = current.violations;
         previousValue = previous && 'violations' in previous ? previous.violations : undefined;
-        headline = numberFormat(value);
+        headline = translate('insightsPage.headline.violationCount', {count: value, formattedCount: numberFormat(value)});
         breakdown = [
             translate('insightsPage.headline.flaggedExpenses', {
                 count: current.flaggedExpenses,
                 formattedCount: numberFormat(current.flaggedExpenses),
             }),
-            translate('insightsPage.headline.shareOfExpenses', formatPercent(current.eligibleExpenses ? current.flaggedExpenses / current.eligibleExpenses : 0, 1)),
         ];
     } else {
         const currentStages = getEfficiencyHeadlineStages(current, stages);
@@ -116,7 +114,7 @@ function InsightsChartSummary({summary, stages, currency, shouldShowChange}: Ins
         } else if (previousValue) {
             const ratio = Math.abs(difference / previousValue);
             if (Math.round(ratio * 100) !== 0) {
-                change = formatPercent(ratio);
+                change = numberFormat(ratio, {style: 'percent', maximumFractionDigits: 0});
             }
         }
     }
@@ -125,7 +123,7 @@ function InsightsChartSummary({summary, stages, currency, shouldShowChange}: Ins
     const changeColor = isIncrease ? theme.textError : theme.textSuccess;
     return (
         <View style={[cardPaddingHorizontal, styles.mb3]}>
-            <View style={[styles.flexRow, styles.flexWrap, styles.alignItemsCenter, styles.gap2]}>
+            <View style={shouldUseNarrowLayout ? [styles.flexColumn, styles.alignItemsStart, styles.gap1] : [styles.flexRow, styles.flexWrap, styles.alignItemsCenter, styles.gap2]}>
                 <Text variant="h1">{headline}</Text>
                 {!!change && (
                     <View

@@ -1297,9 +1297,9 @@ const translations: TranslationDeepObject<typeof en> = {
     },
     insightsPage: {
         headline: {
-            averageExpense: (amount) => `${amount} ανά έξοδο κατά μέσο όρο`,
+            averageExpense: (amount) => `${amount} κατά μέσο όρο`,
             flaggedExpenses: ({formattedCount}) => ({one: `Σε ${formattedCount} έξοδο`, other: `Σε ${formattedCount} έξοδα`}),
-            shareOfExpenses: (percentage) => `${percentage} των εξόδων`,
+            violationCount: ({formattedCount}) => ({one: `${formattedCount} παράβαση`, other: `${formattedCount} παραβάσεις`}),
             timeToSubmit: (time) => `${time} μέχρι την υποβολή`,
             timeToApprove: (time) => `${time} μέχρι την έγκριση`,
             timeToPay: (time) => `${time} μέχρι την πληρωμή`,
