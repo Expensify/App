@@ -31,8 +31,9 @@ import type {
 import type {Rate} from '@src/types/onyx/Policy';
 import type {Participant, ReportNextStep} from '@src/types/onyx/Report';
 import type Rule from '@src/types/onyx/Rule';
+import type {SearchResultDataType} from '@src/types/onyx/SearchResults';
 
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import type {NullishDeep, OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
 import {Str} from 'expensify-common';
 import Onyx from 'react-native-onyx';
@@ -2551,6 +2552,59 @@ describe('actions/Policy', () => {
             expect(updatedPolicy?.name).toBe(policy.name);
             expect(updatedPolicy?.pendingFields?.name).toBeUndefined();
             expect(updatedPolicy?.errorFields?.name).not.toBeUndefined();
+        });
+
+        describe('workspace amounts from Search', () => {
+            const policy = {...createRandomPolicy(0), name: 'Workspace', outputCurrency: CONST.CURRENCY.USD};
+            const snapshotKey = `${ONYXKEYS.COLLECTION.SNAPSHOT}1` as const;
+
+            beforeEach(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
+                const data: NullishDeep<SearchResultDataType> = {};
+                data[`${ONYXKEYS.COLLECTION.REPORT}workspaceReport`] = {reportID: 'workspaceReport', policyID: policy.id};
+                data[`${ONYXKEYS.COLLECTION.REPORT}otherReport`] = {reportID: 'otherReport', policyID: 'otherPolicy'};
+                data[`${ONYXKEYS.COLLECTION.TRANSACTION}workspaceExpense`] = {
+                    transactionID: 'workspaceExpense',
+                    reportID: 'workspaceReport',
+                    policyConvertedAmount: -12000,
+                    policyCurrency: CONST.CURRENCY.USD,
+                };
+                data[`${ONYXKEYS.COLLECTION.TRANSACTION}otherExpense`] = {
+                    transactionID: 'otherExpense',
+                    reportID: 'otherReport',
+                    policyConvertedAmount: -5000,
+                    policyCurrency: CONST.CURRENCY.USD,
+                };
+                await Onyx.merge(snapshotKey, {data});
+            });
+
+            it('clears the workspace amount of the workspace expenses when the currency changes', async () => {
+                // Given a search holding a USD workspace expense and an expense on another workspace, both converted to USD
+
+                // When the workspace currency changes to EUR while the request is pending
+                mockFetch.pause();
+                Policy.updateGeneralSettings(policy, policy.name, NEW_CURRENCY);
+                await waitForBatchedUpdates();
+
+                // Then only the workspace expense loses its USD amount, because Search converted it to the old currency
+                const snapshot = await getOnyxValue(snapshotKey);
+                expect(snapshot?.data?.[`${ONYXKEYS.COLLECTION.TRANSACTION}workspaceExpense`]?.policyConvertedAmount).toBeUndefined();
+                expect(snapshot?.data?.[`${ONYXKEYS.COLLECTION.TRANSACTION}otherExpense`]?.policyConvertedAmount).toBe(-5000);
+                await mockFetch.resume();
+            });
+
+            it('restores the workspace amount when the currency change fails', async () => {
+                // Given a search holding a USD workspace expense converted to USD
+
+                // When the workspace currency change to EUR fails
+                mockFetch.fail();
+                Policy.updateGeneralSettings(policy, policy.name, NEW_CURRENCY);
+                await waitForBatchedUpdates();
+
+                // Then the expense shows its USD amount again, because the workspace keeps its currency
+                const snapshot = await getOnyxValue(snapshotKey);
+                expect(snapshot?.data?.[`${ONYXKEYS.COLLECTION.TRANSACTION}workspaceExpense`]?.policyConvertedAmount).toBe(-12000);
+            });
         });
 
         it('should update workspace currency and distance rates optimistically and succeed', async () => {
