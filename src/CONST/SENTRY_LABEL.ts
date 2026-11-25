@@ -3844,6 +3844,7 @@ const SENTRY_LABEL = {
             FORCE_TWO_FACTOR_AUTH_DISABLE: 'DomainMembers-ForceTwoFactorAuthDisable',
             RESET_TWO_FACTOR_AUTH: 'DomainMembers-ResetTwoFactorAuth',
             RESET_TWO_FACTOR_AUTH_SUBMIT: 'DomainMembers-ResetTwoFactorAuthSubmit',
+            SIGN_OUT_ALL_DEVICES: 'DomainMembers-SignOutAllDevices',
             UNLOCK_ACCOUNT: 'DomainMembers-UnlockAccount',
             FORCE_TWO_FACTOR_AUTH_SWITCH: 'DomainMembers-ForceTwoFactorAuthSwitch',
             MEMBER_FORCE_TWO_FACTOR_AUTH_SWITCH: 'DomainMembers-MemberForceTwoFactorAuthSwitch',

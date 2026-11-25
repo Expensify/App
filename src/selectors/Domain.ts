@@ -31,6 +31,8 @@ const domainSamlSettingsStateSelector = (domain: OnyxEntry<Domain>) =>
 
 const domainNameSelector = (domain: OnyxEntry<Domain>) => (domain?.email ? Str.extractEmailDomain(domain.email) : undefined);
 
+const isDomainValidatedSelector = (domain: OnyxEntry<Domain>) => !!domain?.validated;
+
 const domainSettingsPrimaryContactSelector = (domainSettings: OnyxEntry<DomainSettings>) => domainSettings?.settings?.technicalContactEmail;
 
 const metaIdentitySelector = (samlMetadata: OnyxEntry<SamlMetadata>) => samlMetadata?.metaIdentity;
@@ -324,6 +326,7 @@ function isSecurityGroupPendingDeleteSelector(groupID?: string) {
 
 export {
     domainMemberSettingsSelector,
+    isDomainValidatedSelector,
     selectRestrictedPrimaryPolicyID,
     domainSettingsPrimaryContactSelector,
     domainSamlSettingsStateSelector,

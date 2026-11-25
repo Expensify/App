@@ -13,6 +13,7 @@ import type {
     RemoveDomainAdminParams,
     RequestDomainAdminshipParams,
     ResetDomainMemberTwoFactorAuthParams,
+    RevokeDomainMemberSessionsParams,
     SetDefaultDomainSecurityGroupParams,
     SetTechnicalContactEmailParams,
     SetTwoFactorAuthExemptEmailForDomainParams,
@@ -26,7 +27,10 @@ import {getCommandURL} from '@libs/ApiUtils';
 import {USER_AVATARS} from '@libs/Avatars/UserAvatarCatalog';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import fileDownload from '@libs/fileDownload';
+import Growl from '@libs/Growl';
+import Log from '@libs/Log';
 import enhanceParameters from '@libs/Network/enhanceParameters';
+import {getIsOffline} from '@libs/NetworkState';
 import {buildPersonalDetailsUpdate} from '@libs/PersonalDetailsUtils';
 import type {PersonalDetailsOnyxUpdate} from '@libs/PersonalDetailsUtils';
 import {getDefaultAvatarName} from '@libs/UserAvatarUtils';
@@ -50,6 +54,7 @@ import Onyx from 'react-native-onyx';
 import type {ScimTokenWithState} from './ScimToken/ScimTokenUtils';
 
 import {ScimTokenState} from './ScimToken/ScimTokenUtils';
+import {finishSigningOutOnAllDevices} from './Session';
 
 /**
  * Fetches a validation code that the user is supposed to put in the domain's DNS records to verify it
@@ -2145,6 +2150,42 @@ function resetDomainMemberTwoFactorAuth(domainAccountID: number, targetAccountID
     API.write(WRITE_COMMANDS.RESET_DOMAIN_MEMBER_TWO_FACTOR_AUTH, params, {optimisticData, failureData, successData});
 }
 
+/**
+ * Signs a domain member out on all of their devices. The request waits for the server and is never queued, because
+ * replaying it after reconnecting could sign the member out long after the admin gave up on it.
+ *
+ * @returns whether the member was signed out, so the confirmation can stay open with an error and offer a retry
+ */
+async function revokeDomainMemberSessions(domainAccountID: number, accountID: number, translate: LocalizedTranslate): Promise<boolean> {
+    if (getIsOffline()) {
+        return false;
+    }
+
+    try {
+        const params: RevokeDomainMemberSessionsParams = {
+            domainAccountID,
+            accountIDList: String(accountID),
+        };
+        // eslint-disable-next-line rulesdir/no-api-side-effects-method -- Sign-out must wait for the server response and must never enter the persisted write queue.
+        const response = await API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.REVOKE_DOMAIN_MEMBER_SESSIONS, params);
+        if (response?.jsonCode !== CONST.JSON_CODE.SUCCESS || response.status !== CONST.DOMAIN.REVOKE_MEMBER_SESSIONS_STATUS.COMPLETED) {
+            return false;
+        }
+
+        // An admin who signs out their own account loses this session too, so they follow the self-service sign-out.
+        if (response.callerSignedOut) {
+            await finishSigningOutOnAllDevices(translate);
+            return true;
+        }
+
+        Growl.success({bodyText: translate('domain.members.signOutAllDevicesSuccess'), position: CONST.GROWL.POSITION.BOTTOM_RIGHT});
+        return true;
+    } catch (error) {
+        Log.hmmm('Unable to sign out domain member on all devices', {error});
+        return false;
+    }
+}
+
 function exportMembersToCSV(domainAccountID: number, onDownloadFailed: () => void, translate: LocalizedTranslate) {
     const finalParameters = enhanceParameters(WRITE_COMMANDS.EXPORT_DOMAIN_MEMBERS_CSV, {
         domainAccountID,
@@ -2759,6 +2800,7 @@ function clearDomainHighlightItems(domainAccountID: number) {
 }
 
 export {
+    revokeDomainMemberSessions,
     getDomainValidationCode,
     validateDomain,
     resetDomainValidationError,

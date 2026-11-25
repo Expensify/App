@@ -1,6 +1,9 @@
 import type {MultifactorAuthenticationChallengeObject} from '@libs/MultifactorAuthentication/shared/challengeTypes';
 
+import type CONST from '@src/CONST';
+
 import type {OnyxKey, OnyxUpdate} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
 
 import type TransactionsPending3DSReview from './TransactionsPending3DSReview';
 import type TransactionsPendingFraudReview from './TransactionsPendingFraudReview';
@@ -159,6 +162,12 @@ type Response<TKey extends OnyxKey> = {
 
     /** Human-readable summary of the parsed filters returned by ParseExpenseFilters on success */
     humanReadableSummary?: string;
+
+    /** Outcome of RevokeDomainMemberSessions. Only `completed` means the targeted sessions were revoked. */
+    status?: ValueOf<typeof CONST.DOMAIN.REVOKE_MEMBER_SESSIONS_STATUS>;
+
+    /** Whether RevokeDomainMemberSessions also revoked the caller's own sessions, so this device has to sign out */
+    callerSignedOut?: boolean;
 };
 
 export default Response;

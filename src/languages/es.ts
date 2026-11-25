@@ -13560,6 +13560,9 @@ ${reportName}`,
                 `No puedes establecer un delegado de vacaciones para ${email} porque actualmente es el delegado de los siguientes miembros:`,
             reportSuspiciousActivityPrompt: (email: string) =>
                 `¿Estás seguro? Esto bloqueará la cuenta de <strong>${email}</strong>. <br /><br /> Nuestro equipo revisará la cuenta y eliminará cualquier acceso no autorizado. Para recuperar el acceso, deberá comunicarse con Concierge.`,
+            signOutAllDevicesConfirmation: 'Se cerrará la sesión de este miembro en todos los dispositivos. Tendrá que volver a iniciar sesión para usar Expensify.',
+            signOutAllDevicesError: 'No pudimos cerrar la sesión de este miembro. Inténtalo de nuevo.',
+            signOutAllDevicesSuccess: 'Se ha cerrado la sesión de este miembro en todos los dispositivos.',
             reportSuspiciousActivityConfirmationPrompt:
                 'Revisaremos la cuenta para verificar que sea seguro desbloquearla y nos comunicaremos a través de Concierge si tenemos alguna pregunta.',
             moveToGroup: 'Mover al grupo',

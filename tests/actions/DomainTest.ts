@@ -23,6 +23,7 @@ import {
     resetCreateDomainForm,
     resetDomain,
     resetDomainMemberTwoFactorAuth,
+    revokeDomainMemberSessions,
     setCreateDomainAlreadyHaveAccessError,
     setDefaultSecurityGroup,
     setDomainMembersSelectedForMove,
@@ -31,8 +32,12 @@ import {
     updateDomainSecurityGroup,
 } from '@libs/actions/Domain';
 import {ScimTokenState} from '@libs/actions/ScimToken/ScimTokenUtils';
+import * as SignInRedirect from '@libs/actions/SignInRedirect';
+import * as API from '@libs/API';
 import type {makeRequestWithSideEffects, write} from '@libs/API';
 import {SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
+import Growl from '@libs/Growl';
+import * as NetworkState from '@libs/NetworkState';
 import {generateAccountID} from '@libs/UserUtils';
 
 import CONST from '@src/CONST';
@@ -2045,5 +2050,103 @@ describe('actions/Domain', () => {
                 },
             });
         });
+    });
+});
+
+describe('actions/Domain revokeDomainMemberSessions', () => {
+    const DOMAIN_ACCOUNT_ID = 100;
+    const MEMBER_ACCOUNT_ID = 200;
+    const translate = jest.fn((key: string) => key);
+    const completedResponse = {jsonCode: CONST.JSON_CODE.SUCCESS, status: CONST.DOMAIN.REVOKE_MEMBER_SESSIONS_STATUS.COMPLETED};
+
+    let makeRequestWithSideEffectsSpy: jest.SpiedFunction<typeof makeRequestWithSideEffects>;
+    let writeSpy: jest.SpiedFunction<typeof write>;
+
+    beforeEach(() => {
+        jest.spyOn(NetworkState, 'getIsOffline').mockReturnValue(false);
+        jest.spyOn(Growl, 'success').mockImplementation(() => {});
+        makeRequestWithSideEffectsSpy = jest.spyOn(API, 'makeRequestWithSideEffects').mockResolvedValue(undefined);
+        // eslint-disable-next-line rulesdir/no-multiple-api-calls -- This only spies on write to prove the sign-out is never queued; no API call is made here.
+        writeSpy = jest.spyOn(API, 'write').mockResolvedValue(undefined);
+        jest.spyOn(SignInRedirect, 'default').mockResolvedValue(undefined);
+    });
+
+    afterEach(() => {
+        jest.restoreAllMocks();
+    });
+
+    it('sends the one member in accountIDList and keeps the admin signed in', async () => {
+        // Given the server signs out another member without touching the admin's sessions
+        makeRequestWithSideEffectsSpy.mockResolvedValueOnce({...completedResponse, callerSignedOut: false});
+
+        // When the admin signs out that member from their details
+        const result = await revokeDomainMemberSessions(DOMAIN_ACCOUNT_ID, MEMBER_ACCOUNT_ID, translate);
+
+        // Then the request waits for the server instead of entering the write queue, and the admin only sees the member toast
+        expect(result).toBe(true);
+        expect(makeRequestWithSideEffectsSpy).toHaveBeenCalledWith(SIDE_EFFECT_REQUEST_COMMANDS.REVOKE_DOMAIN_MEMBER_SESSIONS, {
+            domainAccountID: DOMAIN_ACCOUNT_ID,
+            accountIDList: String(MEMBER_ACCOUNT_ID),
+        });
+        expect(writeSpy).not.toHaveBeenCalled();
+        expect(SignInRedirect.default).not.toHaveBeenCalled();
+        expect(Growl.success).toHaveBeenCalledWith({bodyText: 'domain.members.signOutAllDevicesSuccess', position: CONST.GROWL.POSITION.BOTTOM_RIGHT});
+    });
+
+    it('finishes signing out this device before the self-service toast when the caller was signed out', async () => {
+        // Given the admin targeted their own account, so the server also revoked this session
+        const redirect = Promise.withResolvers<void>();
+        jest.mocked(SignInRedirect.default).mockReturnValueOnce(redirect.promise);
+        makeRequestWithSideEffectsSpy.mockResolvedValueOnce({...completedResponse, callerSignedOut: true});
+
+        // When the request completes
+        const result = revokeDomainMemberSessions(DOMAIN_ACCOUNT_ID, MEMBER_ACCOUNT_ID, translate);
+        await waitForBatchedUpdates();
+
+        // Then the toast waits for the credential cleanup and redirect, so it appears on the sign-in screen
+        expect(SignInRedirect.default).toHaveBeenCalledWith(CONST.SIGN_OUT_REASON.USER_SIGN_OUT);
+        expect(Growl.success).not.toHaveBeenCalled();
+        redirect.resolve();
+        await expect(result).resolves.toBe(true);
+        expect(Growl.success).toHaveBeenCalledTimes(1);
+        expect(Growl.success).toHaveBeenCalledWith({bodyText: 'deviceManagementPage.signOutAllDevicesSuccess', position: CONST.GROWL.POSITION.BOTTOM_RIGHT});
+    });
+
+    it.each([undefined, {jsonCode: 500}, {jsonCode: CONST.JSON_CODE.SUCCESS}])('reports failure for a response that does not confirm completion: %p', async (response) => {
+        // Given a response that is an error, or a success without a completed status
+        makeRequestWithSideEffectsSpy.mockResolvedValueOnce(response);
+
+        // When the action finishes
+        const result = await revokeDomainMemberSessions(DOMAIN_ACCOUNT_ID, MEMBER_ACCOUNT_ID, translate);
+
+        // Then the confirmation can show the error and offer a retry, without claiming success or signing out
+        expect(result).toBe(false);
+        expect(SignInRedirect.default).not.toHaveBeenCalled();
+        expect(Growl.success).not.toHaveBeenCalled();
+    });
+
+    it('reports failure when the request fails before a response arrives', async () => {
+        // Given the connection drops during the request
+        makeRequestWithSideEffectsSpy.mockRejectedValueOnce(new Error('Connection lost'));
+
+        // When the action handles the failure
+        const result = await revokeDomainMemberSessions(DOMAIN_ACCOUNT_ID, MEMBER_ACCOUNT_ID, translate);
+
+        // Then the failure goes back to the confirmation without a toast
+        expect(result).toBe(false);
+        expect(Growl.success).not.toHaveBeenCalled();
+    });
+
+    it('does not send or queue the request while offline', async () => {
+        // Given connectivity was lost before the action could send its request
+        jest.mocked(NetworkState.getIsOffline).mockReturnValue(true);
+
+        // When the confirmation tries to submit
+        const result = await revokeDomainMemberSessions(DOMAIN_ACCOUNT_ID, MEMBER_ACCOUNT_ID, translate);
+
+        // Then reconnecting cannot later sign the member out
+        expect(result).toBe(false);
+        expect(makeRequestWithSideEffectsSpy).not.toHaveBeenCalled();
+        expect(writeSpy).not.toHaveBeenCalled();
     });
 });
