@@ -15,6 +15,7 @@ import type {
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import DateUtils from '@libs/DateUtils';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
+import type {CommuterExclusionCustomUnitUpdate} from '@libs/DistanceRequestUtils';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import getTransactionFromTransactionListItem from '@libs/getTransactionFromTransactionListItem';
 import {toLocaleDigit} from '@libs/LocaleDigitUtils';
@@ -88,6 +89,7 @@ import type {Unit} from '@src/types/onyx/Policy';
 import type {OnyxData} from '@src/types/onyx/Request';
 import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
 import type {Waypoint, WaypointCollection} from '@src/types/onyx/Transaction';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type TransactionState from '@src/types/utils/TransactionStateType';
 
 import type {NullishDeep, OnyxCollection, OnyxEntry, OnyxKey, OnyxUpdate} from 'react-native-onyx';
@@ -1312,30 +1314,39 @@ function getChangeTransactionsReportOnyxData({
             });
         }
 
-        // Auto-select a valid default distance rate when moving to a workspace where the current rate is invalid,
-        // and recalculate derived fields (amount, merchant, currency) to match the new rate.
+        // Moving onto another workspace's rates recalculates the amount, merchant and currency from that workspace's rate
+        // and commuter exclusion, as the server does, so the expense shows its new price before the server responds.
         let transactionForViolations = transaction;
         if (isGroupPolicy(policy) && policy?.id && isDistanceRequest(transaction)) {
             const currentRateID = transaction.comment?.customUnit?.customUnitRateID;
             const currentRate = currentRateID ? getDistanceRateCustomUnitRate(policy, currentRateID) : undefined;
-            if (!currentRateID || !currentRate || currentRate.enabled === false) {
-                const defaultRate = DistanceRequestUtils.getDefaultMileageRate(policy);
-                if (defaultRate?.customUnitRateID) {
-                    // Build an updated transaction with the new rate so we can derive fields from it
-                    const updatedTransaction: typeof transaction = {
-                        ...transaction,
-                        comment: {
-                            ...transaction.comment,
-                            customUnit: {
-                                ...transaction.comment?.customUnit,
-                                customUnitRateID: defaultRate.customUnitRateID,
-                                defaultP2PRate: undefined,
-                            },
-                        },
-                    };
+            const isCurrentRateValid = !!currentRate && currentRate.enabled !== false;
 
-                    // Update distanceUnit if the new rate has a different unit, and convert distance if needed
-                    const existingDistanceUnit = transaction.comment?.customUnit?.distanceUnit;
+            // Auto-select a valid default distance rate when moving to a workspace where the current rate is invalid
+            const defaultRateID = isCurrentRateValid ? undefined : DistanceRequestUtils.getDefaultMileageRate(policy)?.customUnitRateID;
+
+            // The server applies the destination workspace's commuter exclusion whenever it moves the expense onto that
+            // workspace's rates. An unreported expense whose rate the workspace already has is returning to it, so it keeps
+            // the exclusion it has.
+            const sourcePolicyID = oldReport?.policyID;
+            const shouldApplyCommuterExclusion = sourcePolicyID !== policy.id && (!!defaultRateID || (isCurrentRateValid && !!sourcePolicyID));
+
+            if (defaultRateID || shouldApplyCommuterExclusion) {
+                // Build an updated transaction with the new rate so we can derive fields from it
+                const updatedTransaction: typeof transaction = {
+                    ...transaction,
+                    comment: {
+                        ...transaction.comment,
+                        customUnit: {
+                            ...transaction.comment?.customUnit,
+                            ...(defaultRateID ? {customUnitRateID: defaultRateID, defaultP2PRate: undefined} : {}),
+                        },
+                    },
+                };
+
+                // Update distanceUnit if the new rate has a different unit, and convert distance if needed
+                const existingDistanceUnit = transaction.comment?.customUnit?.distanceUnit;
+                if (defaultRateID) {
                     const newDistanceUnit = DistanceRequestUtils.getUpdatedDistanceUnit({transaction: updatedTransaction, policy});
                     if (updatedTransaction.comment?.customUnit) {
                         updatedTransaction.comment.customUnit.distanceUnit = newDistanceUnit;
@@ -1348,16 +1359,34 @@ function getChangeTransactionsReportOnyxData({
                             updatedTransaction.comment.customUnit.quantity = distance;
                         }
                     }
+                }
+
+                // Only the server can match a trip against the owner's home and office, so a workspace that excludes
+                // commutes that way keeps the saved exclusion until the server responds
+                const isHomeAndOfficeDestination = policy.commuterExclusions?.method === CONST.POLICY.COMMUTER_EXCLUSION_METHOD.HOME_AND_OFFICE;
+                const commuterExclusionUpdate: CommuterExclusionCustomUnitUpdate =
+                    shouldApplyCommuterExclusion && !isHomeAndOfficeDestination
+                        ? DistanceRequestUtils.getCommuterExclusionCustomUnitUpdate(updatedTransaction.comment?.customUnit, undefined, policy, transaction.iouRequestType)
+                        : {};
+
+                // An expense that keeps its rate and its exclusion keeps its price, so it needs no optimistic update
+                if (defaultRateID || !isEmptyObject(commuterExclusionUpdate)) {
+                    const reimbursableDistance =
+                        commuterExclusionUpdate.reimbursableDistance === undefined
+                            ? updatedTransaction.comment?.customUnit?.reimbursableDistance
+                            : commuterExclusionUpdate.reimbursableDistance;
 
                     // Recalculate amount, merchant, and currency from the new rate
-                    const optimisticValue: Partial<typeof transaction> = {
-                        comment: updatedTransaction.comment,
-                    };
-
+                    const pricedValues: Partial<Pick<Transaction, 'amount' | 'modifiedAmount' | 'modifiedMerchant' | 'modifiedCurrency'>> = {};
                     if (!isFetchingWaypointsFromServer(transaction)) {
                         const updatedMileageRate = DistanceRequestUtils.getRate({transaction: updatedTransaction, policy, useTransactionDistanceUnit: false, personalPolicyOutputCurrency});
                         const {unit, rate} = updatedMileageRate;
-                        const distanceInMeters = getDistanceInMeters(updatedTransaction, unit);
+
+                        // A commuter exclusion takes its distance out of what the expense reimburses
+                        const distanceInMeters =
+                            typeof reimbursableDistance === 'number'
+                                ? DistanceRequestUtils.convertToDistanceInMeters(reimbursableDistance, unit)
+                                : getDistanceInMeters(updatedTransaction, unit);
                         const calculatedAmount = DistanceRequestUtils.getDistanceRequestAmount(distanceInMeters, unit, rate ?? 0);
                         const shouldNegateAmount = isExpenseReport(newReport);
                         const updatedAmount = shouldNegateAmount ? -calculatedAmount : calculatedAmount;
@@ -1375,17 +1404,22 @@ function getChangeTransactionsReportOnyxData({
                             isManualDistanceRequest(transaction),
                         );
 
-                        optimisticValue.amount = updatedAmount;
-                        optimisticValue.modifiedAmount = updatedAmount;
-                        optimisticValue.modifiedMerchant = updatedMerchant;
-                        optimisticValue.modifiedCurrency = updatedCurrency;
+                        pricedValues.amount = updatedAmount;
+                        pricedValues.modifiedAmount = updatedAmount;
+                        pricedValues.modifiedMerchant = updatedMerchant;
+                        pricedValues.modifiedCurrency = updatedCurrency;
                     }
 
+                    const optimisticComment = {
+                        ...updatedTransaction.comment,
+                        customUnit: {...updatedTransaction.comment?.customUnit, ...commuterExclusionUpdate},
+                    };
                     optimisticData.push({
                         onyxMethod: Onyx.METHOD.MERGE,
                         key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`,
-                        value: optimisticValue,
+                        value: {...pricedValues, comment: optimisticComment},
                     });
+                    const previousCustomUnit = transaction.comment?.customUnit;
                     failureData.push({
                         onyxMethod: Onyx.METHOD.MERGE,
                         key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`,
@@ -1393,9 +1427,13 @@ function getChangeTransactionsReportOnyxData({
                             comment: {
                                 customUnit: {
                                     customUnitRateID: currentRateID ?? null,
-                                    defaultP2PRate: transaction.comment?.customUnit?.defaultP2PRate,
+                                    defaultP2PRate: previousCustomUnit?.defaultP2PRate,
                                     distanceUnit: existingDistanceUnit,
-                                    quantity: transaction.comment?.customUnit?.quantity,
+                                    quantity: previousCustomUnit?.quantity,
+                                    commuterExclusion: previousCustomUnit?.commuterExclusion ?? null,
+                                    reimbursableDistance: previousCustomUnit?.reimbursableDistance ?? null,
+                                    commuterExclusionType: previousCustomUnit?.commuterExclusionType ?? null,
+                                    commuterExclusionMethod: previousCustomUnit?.commuterExclusionMethod ?? null,
                                 },
                             },
                             amount: transaction.amount,
@@ -1406,7 +1444,19 @@ function getChangeTransactionsReportOnyxData({
                     });
                     transactionForViolations = {
                         ...updatedTransaction,
-                        ...optimisticValue,
+                        ...pricedValues,
+                        comment: {
+                            ...optimisticComment,
+                            // The optimistic update nulls cleared exclusion fields so Onyx.merge removes them, but the
+                            // transaction used to build violations must leave those fields out instead of holding null
+                            customUnit: {
+                                ...optimisticComment.customUnit,
+                                commuterExclusion: optimisticComment.customUnit.commuterExclusion ?? undefined,
+                                reimbursableDistance: optimisticComment.customUnit.reimbursableDistance ?? undefined,
+                                commuterExclusionType: optimisticComment.customUnit.commuterExclusionType ?? undefined,
+                                commuterExclusionMethod: optimisticComment.customUnit.commuterExclusionMethod ?? undefined,
+                            },
+                        },
                     };
                 }
             }

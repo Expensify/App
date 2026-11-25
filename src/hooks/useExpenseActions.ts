@@ -35,7 +35,6 @@ import {
     getDeleteExpenseTitle,
     getOriginalTransactionWithSplitInfo,
     hasCustomUnitOutOfPolicyViolation as hasCustomUnitOutOfPolicyViolationTransactionUtils,
-    hasAppliedCommuterExclusion,
     isDistanceRequest,
     isPerDiemRequest,
     isTransactionPendingDelete,
@@ -136,7 +135,6 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
             nonPendingDeleteTransactions.push(transaction);
         }
     }
-    const hasCommuterExclusionDistanceRequest = nonPendingDeleteTransactions.some(hasAppliedCommuterExclusion);
 
     const currentTransaction = transactions.at(0);
     const splitEffectivePolicy = useSplitEffectivePolicy(moneyRequestReport, undefined, currentTransaction);
@@ -514,7 +512,7 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
             icon: expensifyIcons.Buildings,
             value: CONST.REPORT.SECONDARY_ACTIONS.CHANGE_WORKSPACE,
             sentryLabel: CONST.SENTRY_LABEL.MORE_MENU.CHANGE_WORKSPACE,
-            shouldShow: (transactions.length === 0 || nonPendingDeleteTransactions.length > 0) && !hasCommuterExclusionDistanceRequest,
+            shouldShow: transactions.length === 0 || nonPendingDeleteTransactions.length > 0,
             onSelected: () => {
                 if (!moneyRequestReport) {
                     return;

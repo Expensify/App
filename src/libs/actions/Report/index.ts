@@ -195,7 +195,6 @@ import {
     getAmount,
     getCurrency,
     getNegatedAmountTransaction,
-    hasAppliedCommuterExclusion,
     isOnHold,
     isManualDistanceRequest,
     isOdometerDistanceRequest,
@@ -9004,9 +9003,7 @@ function buildOptimisticChangePolicyData({
 
 function shouldBlockChangeReportPolicyForMapOrGPSRequirement(reportTransactions: Transaction[], policy: Policy): boolean {
     const isTargetPolicyRequiringMapOrGPS = isMapOrGPSRequired(policy);
-    return reportTransactions.some(
-        (transaction) => hasAppliedCommuterExclusion(transaction) || (isTargetPolicyRequiringMapOrGPS && (isManualDistanceRequest(transaction) || isOdometerDistanceRequest(transaction))),
-    );
+    return reportTransactions.some((transaction) => isTargetPolicyRequiringMapOrGPS && (isManualDistanceRequest(transaction) || isOdometerDistanceRequest(transaction)));
 }
 
 /**

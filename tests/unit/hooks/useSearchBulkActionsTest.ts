@@ -1816,8 +1816,9 @@ describe('useSearchBulkActions - Change workspace', () => {
         expect(hasChangeWorkspaceOption(result.current.headerButtonsOptions)).toBe(false);
     });
 
-    it('hides Change workspace for a report with a commuter exclusion', async () => {
-        // Given a hand-picked draft of the user's with a distance expense that had a commuter exclusion applied
+    it('offers Change workspace for a report with a commuter exclusion', async () => {
+        // Given a hand-picked draft of the user's with a distance expense that had a commuter exclusion applied, which the
+        // server replaces with the new workspace's exclusion when the report moves
         mockAreAllMatchingItemsSelected = false;
         mockSelectedReports = [makeSelectedReport({reportID: 'report2'})];
         await addDraftReport('report2', CURRENT_USER_ACCOUNT_ID);
@@ -1836,12 +1837,10 @@ describe('useSearchBulkActions - Change workspace', () => {
         // When the bulk actions are built
         const {result} = renderHook(() => useSearchBulkActions({queryJSON: expenseReportQueryJSON}), {wrapper: OnyxListItemProvider});
 
+        // Then Change workspace is offered, the same as the report's own Change workspace page
         await waitFor(() => {
-            expect(result.current.headerButtonsOptions.length).toBeGreaterThan(0);
+            expect(hasChangeWorkspaceOption(result.current.headerButtonsOptions)).toBe(true);
         });
-
-        // Then Change workspace is not offered, the same as the report's own Change workspace page
-        expect(hasChangeWorkspaceOption(result.current.headerButtonsOptions)).toBe(false);
     });
 
     it('hides Change workspace for a report exported after the search loaded', async () => {
