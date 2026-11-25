@@ -45,7 +45,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
 import {hasEnabledOptions, isDisablingOrDeletingLastEnabledCategory} from '@libs/OptionsListUtils';
-import {arePolicyRulesEnabled, getConnectedIntegration, hasAccountingConnections, hasTags, isControlPolicy, shouldShowSyncError} from '@libs/PolicyUtils';
+import {arePolicyRulesEnabled, getConnectedIntegration, hasAccountingConnections, hasTags, isControlPolicy, isPolicyAdmin, shouldShowSyncError} from '@libs/PolicyUtils';
 import showInlineEditError from '@libs/showInlineEditError';
 
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
@@ -59,6 +59,7 @@ import {
     openPolicyCategoriesPage,
     setPolicyAutoCategorizeNewExpenses,
     setPolicyShowCategoryGLCodes,
+    setWorkspaceCategoriesSelectedForBulkEdit,
     setWorkspaceCategoryEnabled,
 } from '@userActions/Policy/Category';
 import {clearPolicyErrorField} from '@userActions/Policy/Policy';
@@ -101,8 +102,21 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
     const buildDynamicRoute = useScreenBoundDynamicRoute();
 
     const [selectedCategoryKeys, setSelectedCategoryKeys] = useState<string[]>([]);
+    const [categoriesSelectedForBulkEditCount = 0] = useOnyx(ONYXKEYS.RAM_ONLY_WORKSPACE_CATEGORIES_SELECTED_FOR_BULK_EDIT, {
+        selector: (selection) => selection?.categoryNames.length,
+    });
+
+    // A bulk visibility change clears the categories it was given once it is saved, which ends the selection here too
+    const [prevCategoriesSelectedForBulkEditCount, setPrevCategoriesSelectedForBulkEditCount] = useState(categoriesSelectedForBulkEditCount);
+    if (prevCategoriesSelectedForBulkEditCount !== categoriesSelectedForBulkEditCount) {
+        setPrevCategoriesSelectedForBulkEditCount(categoriesSelectedForBulkEditCount);
+        if (!categoriesSelectedForBulkEditCount) {
+            setSelectedCategoryKeys([]);
+        }
+    }
+
     const canSelectMultiple = canWriteCategories && (isSmallScreenWidth ? isMobileSelectionModeEnabled : true);
-    const icons = useMemoizedLazyExpensifyIcons(['Checkmark', 'Close', 'Download', 'Gear', 'Plus', 'Table', 'Trashcan']);
+    const icons = useMemoizedLazyExpensifyIcons(['Checkmark', 'Close', 'Download', 'Eye', 'Gear', 'Plus', 'Table', 'Trashcan']);
 
     const {
         taskReport: setupCategoryTaskReport,
@@ -564,6 +578,20 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                             policyHasTags,
                             reviewWorkspaceSettingsTaskData: getReviewWorkspaceSettingsTaskCompletion(),
                         });
+                    },
+                });
+            }
+
+            // The server rejects visibility changes on disabled categories, so only the enabled ones are edited
+            if (isPolicyAdmin(policy) && isControlPolicy(policy) && enabledCategories.length > 0) {
+                options.push({
+                    icon: icons.Eye,
+                    text: translate('workspace.categories.editVisibility'),
+                    value: CONST.POLICY.BULK_ACTION_TYPES.EDIT_VISIBILITY,
+                    sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.CATEGORIES.BULK_ACTIONS_EDIT_VISIBILITY,
+                    onSelected: () => {
+                        setWorkspaceCategoriesSelectedForBulkEdit(policyId, enabledCategories);
+                        Navigation.navigate(buildDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_CATEGORIES_BULK_VISIBLE_TO.path));
                     },
                 });
             }

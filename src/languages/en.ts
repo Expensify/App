@@ -8002,11 +8002,13 @@ const translations = {
                 description: `At least one category must remain enabled because your workspace requires categories.`,
             },
             visibleTo: 'Visible to',
+            editVisibility: 'Edit visibility',
             membersCount: ({count}: {count: number}) => ({
                 one: '1 member',
                 other: `${count} members`,
             }),
             visibleToDescription: ({categoryName}: {categoryName: string}) => `Choose which members can use the ${categoryName} category when submitting expenses.`,
+            bulkVisibleToDescription: 'Choose which members can use these categories when submitting expenses.',
             cannotDisableCategoryForMembers: {
                 title: ({categoryName}: {categoryName: string}) => `Can’t disable ${categoryName}`,
                 bulkTitle: 'Can’t disable these categories',
@@ -8676,6 +8678,8 @@ const translations = {
             },
             changeOfficeLocation: 'Change office location',
             changeWorkArrangement: 'Change work arrangement',
+            bulkCategoryVisibilitySaved: ({categoryCount, memberCount}: {categoryCount: string; memberCount: string}) =>
+                `Set ${categoryCount} for ${memberCount}. This replaces their current category visibility.`,
             removeWorkspaceMemberButtonTitle: 'Remove from workspace',
             removeGroupMemberButtonTitle: 'Remove from group',
             removeRoomMemberButtonTitle: 'Remove from chat',

@@ -7286,11 +7286,13 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
                 description: `Pelo menos uma categoria deve permanecer ativada porque seu workspace exige categorias.`,
             },
             visibleTo: 'Visível para',
+            editVisibility: 'Editar visibilidade',
             membersCount: ({count}: {count: number}) => ({
                 one: '1 membro',
                 other: `${count} membros`,
             }),
             visibleToDescription: ({categoryName}: {categoryName: string}) => `Escolha quais membros podem usar a categoria ${categoryName} ao enviar despesas.`,
+            bulkVisibleToDescription: 'Escolha quais membros podem usar estas categorias ao enviar despesas.',
             cannotDisableCategoryForMembers: {
                 title: ({categoryName}: {categoryName: string}) => `Não é possível desativar ${categoryName}`,
                 bulkTitle: 'Não é possível desativar estas categorias',
@@ -8030,6 +8032,8 @@ O plano Control começa em US$ 9 por membro ativo por mês.`,
             categoryVisibilityRequiredModal: {title: 'Membros devem ter pelo menos uma categoria', description: 'Selecione pelo menos uma categoria que este membro possa usar.'},
             changeOfficeLocation: 'Alterar local do escritório',
             changeWorkArrangement: 'Alterar regime de trabalho',
+            bulkCategoryVisibilitySaved: ({categoryCount, memberCount}: {categoryCount: string; memberCount: string}) =>
+                `Definidas ${categoryCount} para ${memberCount}. Isso substitui a visibilidade de categorias atual deles.`,
             changeRole: 'Alterar função',
             newRolesBanner: {
                 title: 'Novos cargos disponíveis',

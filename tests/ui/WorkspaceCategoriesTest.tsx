@@ -39,6 +39,7 @@ import Onyx from 'react-native-onyx';
 import type * as MockReanimatedModalModule from '../utils/mockReanimatedModal';
 
 import createMock from '../utils/createMock';
+import getOnyxValue from '../utils/getOnyxValue';
 import * as LHNTestUtils from '../utils/LHNTestUtils';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
@@ -611,5 +612,98 @@ describe('WorkspaceCategories', () => {
 
         unmount();
         await waitForBatchedUpdatesWithAct();
+    });
+
+    describe('Edit visibility', () => {
+        /** An enabled and a disabled category on an admin's workspace, both selected on the full-width page. */
+        const selectEnabledAndDisabledCategories = async (policyType: typeof CONST.POLICY.TYPE.CORPORATE | typeof CONST.POLICY.TYPE.TEAM) => {
+            await TestHelper.signInWithTestUser();
+            const policy = {
+                ...LHNTestUtils.getFakePolicy(),
+                type: policyType,
+                role: CONST.POLICY.ROLE.ADMIN,
+                areCategoriesEnabled: true,
+            };
+
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policy.id}`, {
+                    [FIRST_CATEGORY]: {name: FIRST_CATEGORY, enabled: true},
+                    [SECOND_CATEGORY]: {name: SECOND_CATEGORY, enabled: false},
+                });
+            });
+
+            const renderResult = renderPage(SCREENS.WORKSPACE.CATEGORIES, {policyID: policy.id});
+            await waitForBatchedUpdatesWithAct();
+            await waitFor(() => {
+                expect(screen.getByText(FIRST_CATEGORY)).toBeOnTheScreen();
+            });
+
+            // Once the list loads, the sticky table header renders a second "Select all" checkbox
+            const selectAll = screen.getAllByLabelText(TestHelper.translateLocal('workspace.common.selectAll')).at(0);
+            if (!selectAll) {
+                throw new Error('Select all button not found');
+            }
+            fireEvent.press(selectAll);
+            await openBulkActions();
+
+            return {...renderResult, policyID: policy.id};
+        };
+
+        it('opens the bulk Visible to page with the enabled selected categories on a Control workspace', async () => {
+            // Given an enabled and a disabled category selected on a Control workspace
+            const navigate = jest.spyOn(Navigation, 'navigate').mockImplementation(() => {});
+            const {unmount, policyID} = await selectEnabledAndDisabledCategories(CONST.POLICY.TYPE.CORPORATE);
+
+            // When the admin chooses Edit visibility
+            const editVisibilityMenuItem = screen.getByText(TestHelper.translateLocal('workspace.categories.editVisibility'));
+            fireEvent.press(editVisibilityMenuItem, {nativeEvent: {}, type: 'press', target: editVisibilityMenuItem, currentTarget: editVisibilityMenuItem});
+            await waitForBatchedUpdatesWithAct();
+
+            // Then only the enabled category is handed to the bulk page, since the server rejects visibility changes on
+            // disabled ones, and the bulk page opens
+            const selection = await getOnyxValue(ONYXKEYS.RAM_ONLY_WORKSPACE_CATEGORIES_SELECTED_FOR_BULK_EDIT);
+            expect(selection).toEqual({policyID, categoryNames: [FIRST_CATEGORY]});
+            expect(navigate).toHaveBeenCalledWith(expect.stringContaining(DYNAMIC_ROUTES.WORKSPACE_CATEGORIES_BULK_VISIBLE_TO.path));
+
+            unmount();
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        it('is not offered on a Collect workspace, where category visibility is not available', async () => {
+            // Given categories selected on a Collect workspace
+            const {unmount} = await selectEnabledAndDisabledCategories(CONST.POLICY.TYPE.TEAM);
+
+            // Then the other bulk actions are offered, but Edit visibility isn't
+            expect(screen.getByText(TestHelper.translateLocal('workspace.categories.disableCategory'))).toBeOnTheScreen();
+            expect(screen.queryByText(TestHelper.translateLocal('workspace.categories.editVisibility'))).not.toBeOnTheScreen();
+
+            unmount();
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        it('ends the selection once a bulk visibility save clears the categories it was given', async () => {
+            // Given categories selected on the full-width page, which shows the floating bar
+            const {unmount} = await setUpCategories();
+            expect(screen.getByLabelText(TestHelper.translateLocal('bulkActionBar.label'))).toBeOnTheScreen();
+
+            // When the bulk Visible to page is opened with them and then saved, which clears the categories it was given
+            await act(async () => {
+                await Onyx.set(ONYXKEYS.RAM_ONLY_WORKSPACE_CATEGORIES_SELECTED_FOR_BULK_EDIT, {policyID: '1', categoryNames: [FIRST_CATEGORY, SECOND_CATEGORY]});
+            });
+            expect(screen.getByLabelText(TestHelper.translateLocal('bulkActionBar.label'))).toBeOnTheScreen();
+            await act(async () => {
+                await Onyx.set(ONYXKEYS.RAM_ONLY_WORKSPACE_CATEGORIES_SELECTED_FOR_BULK_EDIT, null);
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the list's selection ends too, so the floating bar goes away
+            await waitFor(() => {
+                expect(screen.queryByLabelText(TestHelper.translateLocal('bulkActionBar.label'))).toBeNull();
+            });
+
+            unmount();
+            await waitForBatchedUpdatesWithAct();
+        });
     });
 });

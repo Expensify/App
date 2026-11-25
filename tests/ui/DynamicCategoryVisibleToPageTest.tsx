@@ -10,6 +10,9 @@ import {CurrentReportIDContextProvider} from '@hooks/useCurrentReportID';
 import * as useResponsiveLayoutModule from '@hooks/useResponsiveLayout';
 import type ResponsiveLayoutResult from '@hooks/useResponsiveLayout/types';
 
+import {clearWorkspaceCategoriesSelectedForBulkEdit} from '@libs/actions/Policy/Category';
+import Growl from '@libs/Growl';
+import Navigation from '@libs/Navigation/Navigation';
 import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
 import {cancelSpan, endSpan} from '@libs/telemetry/activeSpans';
 import type * as ActiveSpans from '@libs/telemetry/activeSpans';
@@ -51,15 +54,17 @@ const mockFetch = TestHelper.setupGlobalFetchMock();
 
 const Stack = createPlatformStackNavigator<SettingsNavigatorParamList>();
 
-const renderPage = (initialParams: SettingsNavigatorParamList[typeof SCREENS.WORKSPACE.DYNAMIC_CATEGORY_VISIBLE_TO]) =>
+type VisibleToScreenName = typeof SCREENS.WORKSPACE.DYNAMIC_CATEGORY_VISIBLE_TO | typeof SCREENS.WORKSPACE.DYNAMIC_CATEGORIES_BULK_VISIBLE_TO;
+
+const renderScreen = <TScreenName extends VisibleToScreenName>(screenName: TScreenName, initialParams: SettingsNavigatorParamList[TScreenName]) =>
     render(
         <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, CurrentReportIDContextProvider, PersonalDetailsByLoginProvider]}>
             <PortalProvider>
                 <ModalProvider>
                     <NavigationContainer>
-                        <Stack.Navigator initialRouteName={SCREENS.WORKSPACE.DYNAMIC_CATEGORY_VISIBLE_TO}>
+                        <Stack.Navigator initialRouteName={screenName}>
                             <Stack.Screen
-                                name={SCREENS.WORKSPACE.DYNAMIC_CATEGORY_VISIBLE_TO}
+                                name={screenName}
                                 component={DynamicCategoryVisibleToPage}
                                 initialParams={initialParams}
                             />
@@ -69,6 +74,12 @@ const renderPage = (initialParams: SettingsNavigatorParamList[typeof SCREENS.WOR
             </PortalProvider>
         </ComposeProviders>,
     );
+
+const renderPage = (initialParams: SettingsNavigatorParamList[typeof SCREENS.WORKSPACE.DYNAMIC_CATEGORY_VISIBLE_TO]) =>
+    renderScreen(SCREENS.WORKSPACE.DYNAMIC_CATEGORY_VISIBLE_TO, initialParams);
+
+/** Opens the page from the Categories list's bulk menu, which reads the selected categories from memory instead of the route. */
+const renderBulkPage = (policyID: string) => renderScreen(SCREENS.WORKSPACE.DYNAMIC_CATEGORIES_BULK_VISIBLE_TO, {policyID});
 
 describe('DynamicCategoryVisibleToPage', () => {
     const adminAccountID = 1;
@@ -266,5 +277,183 @@ describe('DynamicCategoryVisibleToPage', () => {
 
         // Then the span is cancelled, so the P95 doesn't count a page that never showed its list
         expect(cancelSpan).toHaveBeenCalledWith(CONST.TELEMETRY.SPAN_OPEN_CATEGORY_VISIBLE_TO);
+    });
+
+    describe('bulk edit from the Categories list', () => {
+        const selectCategoriesForBulkEdit = async (categoryNames: string[], policyID = policy.id) => {
+            await act(async () => {
+                await Onyx.set(ONYXKEYS.RAM_ONLY_WORKSPACE_CATEGORIES_SELECTED_FOR_BULK_EDIT, {policyID, categoryNames});
+            });
+        };
+
+        // Travel stays open to everyone, so a member unchecked from the selected categories can still use it.
+        const addTravelCategory = async () => {
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policy.id}`, {Travel: {name: 'Travel', enabled: true}});
+            });
+        };
+
+        it('sets the checked members on every selected category, starting with nobody checked', async () => {
+            // Given Fees and Meals were selected on the Categories list, while every member can still use Travel
+            mockFetch.pause();
+            const goBack = jest.spyOn(Navigation, 'goBack').mockImplementation(() => {});
+            const growlSuccess = jest.spyOn(Growl, 'success').mockImplementation(() => {});
+            await addTravelCategory();
+            await selectCategoriesForBulkEdit(['Fees', 'Meals']);
+            const {unmount} = renderBulkPage(policy.id);
+            await waitForBatchedUpdatesWithAct();
+            expect(await screen.findByText('Bob User')).toBeOnTheScreen();
+
+            // When the admin checks Bob and saves
+            fireEvent.press(screen.getByText('Bob User'));
+            fireEvent.press(screen.getByText('Save'));
+            await waitForBatchedUpdatesWithAct();
+
+            // Then both categories are restricted to Bob alone, which also shows that nobody started checked, and Travel is left alone
+            const categories = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policy.id}`);
+            expect(categories?.Fees?.visibleTo).toEqual({[bobAccountID]: true});
+            expect(categories?.Meals?.visibleTo).toEqual({[bobAccountID]: true});
+            expect(categories?.Fees?.pendingFields?.visibleTo).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
+            expect(categories?.Travel?.visibleTo).toBeUndefined();
+
+            // And the page goes back, clearing the selection once it's gone, and confirms how many categories and members were set
+            expect(goBack.mock.calls.at(0)?.at(1)).toEqual({afterTransition: clearWorkspaceCategoriesSelectedForBulkEdit});
+            expect(growlSuccess).toHaveBeenCalledWith({bodyText: 'Set 2 categories for 1 member. This replaces their current category visibility.'});
+
+            unmount();
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        it('opens every selected category to everyone when every member is checked', async () => {
+            // Given Fees and Meals were selected on the Categories list, and Meals is restricted to the admin and Carol
+            mockFetch.pause();
+            jest.spyOn(Navigation, 'goBack').mockImplementation(() => {});
+            const growlSuccess = jest.spyOn(Growl, 'success').mockImplementation(() => {});
+            await selectCategoriesForBulkEdit(['Fees', 'Meals']);
+            const {unmount} = renderBulkPage(policy.id);
+            await waitForBatchedUpdatesWithAct();
+            expect(await screen.findByText('Bob User')).toBeOnTheScreen();
+
+            // When the admin checks every member and saves
+            fireEvent.press(screen.getByText('Admin User'));
+            fireEvent.press(screen.getByText('Bob User'));
+            fireEvent.press(screen.getByText('Carol User'));
+            fireEvent.press(screen.getByText('Save'));
+            await waitForBatchedUpdatesWithAct();
+
+            // Then Meals is open to everyone again, and the toast counts every member
+            const categories = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policy.id}`);
+            expect(categories?.Meals?.visibleTo).toBeUndefined();
+            expect(categories?.Meals?.pendingFields?.visibleTo).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
+            expect(growlSuccess).toHaveBeenCalledWith({bodyText: 'Set 2 categories for 3 members. This replaces their current category visibility.'});
+
+            unmount();
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        it('disables every selected category when no member is checked, without a toast', async () => {
+            // Given Meals and Travel were selected on the Categories list, while every member can still use Fees
+            mockFetch.pause();
+            jest.spyOn(Navigation, 'goBack').mockImplementation(() => {});
+            const growlSuccess = jest.spyOn(Growl, 'success').mockImplementation(() => {});
+            await addTravelCategory();
+            await selectCategoriesForBulkEdit(['Meals', 'Travel']);
+            const {unmount} = renderBulkPage(policy.id);
+            await waitForBatchedUpdatesWithAct();
+            expect(await screen.findByText('Bob User')).toBeOnTheScreen();
+
+            // When the admin saves without checking anyone
+            fireEvent.press(screen.getByText('Save'));
+            await waitForBatchedUpdatesWithAct();
+
+            // Then both categories are disabled, the page doesn't swap to not found while it closes, and no toast claims
+            // members were set, since disabled categories go back to everyone if they're enabled again
+            const categories = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policy.id}`);
+            expect(categories?.Meals?.enabled).toBe(false);
+            expect(categories?.Travel?.enabled).toBe(false);
+            expect(categories?.Fees?.enabled).toBe(true);
+            expect(screen.queryByText("Hmm... it's not here")).not.toBeOnTheScreen();
+            expect(growlSuccess).not.toHaveBeenCalled();
+
+            unmount();
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        it('blocks the save when a member would be left without any category', async () => {
+            // Given Fees and Meals were selected on the Categories list, and they're the workspace's only categories
+            await selectCategoriesForBulkEdit(['Fees', 'Meals']);
+            const {unmount} = renderBulkPage(policy.id);
+            await waitForBatchedUpdatesWithAct();
+            expect(await screen.findByText('Bob User')).toBeOnTheScreen();
+
+            // When the admin checks everyone but Bob and saves
+            fireEvent.press(screen.getByText('Admin User'));
+            fireEvent.press(screen.getByText('Carol User'));
+            fireEvent.press(screen.getByText('Save'));
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the remove-access modal is shown for both categories, and nothing is saved
+            expect(await screen.findByText('Can’t remove access to these categories')).toBeOnTheScreen();
+            const categories = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policy.id}`);
+            expect(categories?.Fees?.visibleTo).toBeUndefined();
+            expect(categories?.Meals?.visibleTo).toEqual({[adminAccountID]: true, [carolAccountID]: true});
+
+            unmount();
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        it('leaves out the selected categories that are disabled, since the server rejects visibility changes on them', async () => {
+            // Given Fees and a disabled Meals were selected on the Categories list, while every member can still use Travel
+            mockFetch.pause();
+            jest.spyOn(Navigation, 'goBack').mockImplementation(() => {});
+            const growlSuccess = jest.spyOn(Growl, 'success').mockImplementation(() => {});
+            await addTravelCategory();
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policy.id}`, {Meals: {enabled: false}});
+            });
+            await selectCategoriesForBulkEdit(['Fees', 'Meals']);
+            const {unmount} = renderBulkPage(policy.id);
+            await waitForBatchedUpdatesWithAct();
+            expect(await screen.findByText('Bob User')).toBeOnTheScreen();
+
+            // When the admin checks Bob and saves
+            fireEvent.press(screen.getByText('Bob User'));
+            fireEvent.press(screen.getByText('Save'));
+            await waitForBatchedUpdatesWithAct();
+
+            // Then only Fees is restricted to Bob, and the toast counts only Fees
+            const categories = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policy.id}`);
+            expect(categories?.Fees?.visibleTo).toEqual({[bobAccountID]: true});
+            expect(categories?.Meals?.visibleTo).toEqual({[adminAccountID]: true, [carolAccountID]: true});
+            expect(growlSuccess).toHaveBeenCalledWith({bodyText: 'Set 1 category for 1 member. This replaces their current category visibility.'});
+
+            unmount();
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        it.each([
+            {description: 'nothing is selected, as after a refresh', categoryNames: undefined, selectedOnPolicyID: undefined},
+            {description: 'the categories were selected on another workspace', categoryNames: ['Fees'], selectedOnPolicyID: 'otherPolicy'},
+            {description: 'every selected category is disabled', categoryNames: ['Disabled'], selectedOnPolicyID: undefined},
+        ])('blocks the page when $description', async ({categoryNames, selectedOnPolicyID}) => {
+            // Given the bulk-edit selection has no enabled category of this workspace
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policy.id}`, {Disabled: {name: 'Disabled', enabled: false}});
+            });
+            if (categoryNames) {
+                await selectCategoriesForBulkEdit(categoryNames, selectedOnPolicyID);
+            }
+
+            // When the bulk "Visible to" page opens
+            const {unmount} = renderBulkPage(policy.id);
+            await waitForBatchedUpdatesWithAct();
+
+            // Then it's blocked instead of listing the members, since saving would change nothing
+            expect(await screen.findByText("Hmm... it's not here")).toBeOnTheScreen();
+            expect(screen.queryByText('Bob User')).not.toBeOnTheScreen();
+
+            unmount();
+            await waitForBatchedUpdatesWithAct();
+        });
     });
 });

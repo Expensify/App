@@ -7024,11 +7024,13 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                 description: `由于您的工作区需要类别，必须至少保留一个已启用的类别。`,
             },
             visibleTo: '可见范围',
+            editVisibility: '编辑可见范围',
             membersCount: ({count}: {count: number}) => ({
                 one: '1 名成员',
                 other: `${count} 名成员`,
             }),
             visibleToDescription: ({categoryName}: {categoryName: string}) => `选择哪些成员可以在提交报销时使用 ${categoryName} 类别。`,
+            bulkVisibleToDescription: '选择哪些成员可以在提交报销时使用这些类别。',
             cannotDisableCategoryForMembers: {
                 title: ({categoryName}: {categoryName: string}) => `无法禁用 ${categoryName}`,
                 bulkTitle: '无法禁用这些类别',
@@ -7728,6 +7730,8 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
             categoryVisibilityRequiredModal: {title: '成员必须至少有一个类别', description: '请选择该成员可使用的至少一个类别。'},
             changeOfficeLocation: '更改办公室位置',
             changeWorkArrangement: '更改工作安排',
+            bulkCategoryVisibilitySaved: ({categoryCount, memberCount}: {categoryCount: string; memberCount: string}) =>
+                `已为 ${memberCount}设置 ${categoryCount}。这将替换他们当前的类别可见性。`,
             changeRole: '更改角色',
             newRolesBanner: {title: '新角色已可用', subtitle: '<label-text>使用全新的<strong>仅审批</strong>和<strong>来宾</strong>角色，仅授予成员所需的访问权限。</label-text>'},
         },

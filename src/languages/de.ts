@@ -7335,12 +7335,14 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
                 description: `Mindestens eine Kategorie muss aktiviert bleiben, da dein Workspace Kategorien erfordert.`,
             },
             visibleTo: 'Sichtbar für',
+            editVisibility: 'Sichtbarkeit bearbeiten',
             membersCount: ({count}: {count: number}) => ({
                 one: '1 Mitglied',
                 other: `${count} Mitglieder`,
             }),
             visibleToDescription: ({categoryName}: {categoryName: string}) =>
                 `Wählen Sie aus, welche Mitglieder die Kategorie ${categoryName} beim Einreichen von Ausgaben verwenden können.`,
+            bulkVisibleToDescription: 'Wählen Sie aus, welche Mitglieder diese Kategorien beim Einreichen von Ausgaben verwenden können.',
             cannotDisableCategoryForMembers: {
                 title: ({categoryName}: {categoryName: string}) => `${categoryName} kann nicht deaktiviert werden`,
                 bulkTitle: 'Diese Kategorien können nicht deaktiviert werden',
@@ -8081,6 +8083,8 @@ Der Control-Tarif beginnt bei 9 $ pro aktivem Mitglied und Monat.`,
             },
             changeOfficeLocation: 'Bürostandort ändern',
             changeWorkArrangement: 'Arbeitsvereinbarung ändern',
+            bulkCategoryVisibilitySaved: ({categoryCount, memberCount}: {categoryCount: string; memberCount: string}) =>
+                `${categoryCount} für ${memberCount} festgelegt. Dies ersetzt ihre aktuelle Kategorie-Sichtbarkeit.`,
             changeRole: 'Rolle ändern',
             newRolesBanner: {
                 title: 'Neue Rollen verfügbar',

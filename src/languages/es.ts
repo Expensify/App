@@ -7264,11 +7264,13 @@ ${amount} para ${merchant} - ${date}`,
                 description: `Debe quedar al menos una categoría habilitada porque tu espacio de trabajo requiere categorías.`,
             },
             visibleTo: 'Visible para',
+            editVisibility: 'Editar visibilidad',
             membersCount: ({count}: {count: number}) => ({
                 one: '1 miembro',
                 other: `${count} miembros`,
             }),
             visibleToDescription: ({categoryName}: {categoryName: string}) => `Elige qué miembros pueden usar la categoría ${categoryName} al enviar gastos.`,
+            bulkVisibleToDescription: 'Elige qué miembros pueden usar estas categorías al enviar gastos.',
             cannotDisableCategoryForMembers: {
                 title: ({categoryName}: {categoryName: string}) => `No se puede desactivar ${categoryName}`,
                 bulkTitle: 'No se pueden deshabilitar estas categorías',
@@ -8016,6 +8018,8 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
             categoryVisibilityRequiredModal: {title: 'Los miembros deben tener al menos una categoría', description: 'Selecciona al menos una categoría que esta persona pueda usar.'},
             changeOfficeLocation: 'Cambiar ubicación de la oficina',
             changeWorkArrangement: 'Cambiar modalidad de trabajo',
+            bulkCategoryVisibilitySaved: ({categoryCount, memberCount}: {categoryCount: string; memberCount: string}) =>
+                `Se asignaron ${categoryCount} a ${memberCount}. Esto reemplaza su visibilidad de categorías actual.`,
             newRolesBanner: {
                 title: 'Nuevos roles disponibles',
                 subtitle: '<label-text>Da a los miembros solo el acceso que necesitan con los nuevos roles de <strong>Solo aprobación</strong> e <strong>Invitado</strong>.</label-text>',

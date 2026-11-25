@@ -272,6 +272,7 @@ import type WalletTransfer from './WalletTransfer';
 import type WiseBankAccountFields from './WiseBankAccountFields';
 import type {WiseKYCReviewEmbeddedLink} from './WiseKYCReview';
 import type WiseQuote from './WiseQuote';
+import type WorkspaceCategoriesSelectedForBulkEdit from './WorkspaceCategoriesSelectedForBulkEdit';
 import type WorkspaceMembersSelectedForBulkEdit from './WorkspaceMembersSelectedForBulkEdit';
 import type WorkspaceMembersSelectedForRoleChange from './WorkspaceMembersSelectedForRoleChange';
 
@@ -444,6 +445,7 @@ export type {
     TravelSettings,
     WorkspaceTravelSettings,
     WorkspaceMembersSelectedForBulkEdit,
+    WorkspaceCategoriesSelectedForBulkEdit,
     UserLocation,
     UserMetadata,
     UserWallet,

@@ -5527,6 +5527,7 @@ const CONST = {
             ENABLE: 'enable',
             REQUIRE: 'require',
             NOT_REQUIRED: 'notRequired',
+            EDIT_VISIBILITY: 'editVisibility',
         },
         MORE_FEATURES: {
             ARE_CATEGORIES_ENABLED: 'areCategoriesEnabled',

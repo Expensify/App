@@ -7276,11 +7276,13 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
                 description: `Minstens één categorie moet ingeschakeld blijven, omdat je werkruimte categorieën vereist.`,
             },
             visibleTo: 'Zichtbaar voor',
+            editVisibility: 'Zichtbaarheid bewerken',
             membersCount: ({count}: {count: number}) => ({
                 one: '1 lid',
                 other: `${count} leden`,
             }),
             visibleToDescription: ({categoryName}: {categoryName: string}) => `Kies welke leden de categorie ${categoryName} kunnen gebruiken bij het indienen van uitgaven.`,
+            bulkVisibleToDescription: 'Kies welke leden deze categorieën kunnen gebruiken bij het indienen van uitgaven.',
             cannotDisableCategoryForMembers: {
                 title: ({categoryName}: {categoryName: string}) => `Kan ${categoryName} niet uitschakelen`,
                 bulkTitle: 'Deze categorieën kunnen niet worden uitgeschakeld',
@@ -8015,6 +8017,8 @@ Het Control-abonnement begint bij $9 per actieve deelnemer per maand.`,
             categoryVisibilityRequiredModal: {title: 'Leden moeten ten minste één categorie hebben', description: 'Selecteer minstens één categorie die dit lid kan gebruiken.'},
             changeOfficeLocation: 'Locatie kantoor wijzigen',
             changeWorkArrangement: 'Werkregeling wijzigen',
+            bulkCategoryVisibilitySaved: ({categoryCount, memberCount}: {categoryCount: string; memberCount: string}) =>
+                `${categoryCount} ingesteld voor ${memberCount}. Dit vervangt hun huidige categoriezichtbaarheid.`,
             changeRole: 'Rol wijzigen',
             newRolesBanner: {
                 title: 'Nieuwe rollen beschikbaar',

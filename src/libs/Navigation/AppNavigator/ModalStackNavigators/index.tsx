@@ -650,6 +650,7 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
     [SCREENS.WORKSPACE.DYNAMIC_CATEGORY_PAYROLL_CODE]: () => require<ReactComponentModule>('../../../../pages/workspace/categories/CategoryPayrollCodePage').default,
     [SCREENS.WORKSPACE.DYNAMIC_CATEGORY_GL_CODE]: () => require<ReactComponentModule>('../../../../pages/workspace/categories/CategoryGLCodePage').default,
     [SCREENS.WORKSPACE.DYNAMIC_CATEGORY_VISIBLE_TO]: () => require<ReactComponentModule>('../../../../pages/workspace/categories/DynamicCategoryVisibleToPage').default,
+    [SCREENS.WORKSPACE.DYNAMIC_CATEGORIES_BULK_VISIBLE_TO]: () => require<ReactComponentModule>('../../../../pages/workspace/categories/DynamicCategoryVisibleToPage').default,
     [SCREENS.WORKSPACE.DYNAMIC_CATEGORY_FLAG_AMOUNTS_OVER]: () => require<ReactComponentModule>('../../../../pages/workspace/categories/DynamicCategoryFlagAmountsOverPage').default,
     [SCREENS.WORKSPACE.DYNAMIC_EXPENSE_LIMIT_TYPE_SELECTOR]: () => require<ReactComponentModule>('../../../../pages/workspace/categories/DynamicExpenseLimitTypeSelectorPage').default,
     [SCREENS.WORKSPACE.DYNAMIC_IMPORTED_MEMBERS_ROLE]: () => require<ReactComponentModule>('../../../../pages/workspace/members/DynamicImportedMembersRoleSelectionPage').default,
