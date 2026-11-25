@@ -3,6 +3,7 @@ import {act, fireEvent, render, screen} from '@testing-library/react-native';
 import ComposeProviders from '@components/ComposeProviders';
 import HTMLEngineProvider from '@components/HTMLEngineProvider';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
+import MenuItem from '@components/MenuItem';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 
 import Navigation from '@libs/Navigation/Navigation';
@@ -11,6 +12,7 @@ import PaymentMethodList from '@pages/settings/Wallet/PaymentMethodList';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {BankAccount, BankAccountList, Card, CardList} from '@src/types/onyx';
 import type {BankAccountAdditionalData} from '@src/types/onyx/BankAccount';
 
@@ -155,6 +157,50 @@ describe('PaymentMethodList', () => {
             await Onyx.clear();
         });
         jest.clearAllMocks();
+    });
+
+    it.each([
+        {isValidated: true, shouldSkipValidation: false},
+        {isValidated: false, shouldSkipValidation: false},
+        {isValidated: false, shouldSkipValidation: true},
+    ])('preserves Add bank account validation with %o', async ({isValidated, shouldSkipValidation}) => {
+        // Given an account and the caller's existing footer style overrides.
+        const onAddBankAccountPress = jest.fn();
+        const listItemStyle = {minHeight: 80};
+        const addBankAccountItemStyle = {opacity: 0.5};
+        await act(async () => {
+            await Onyx.set(ONYXKEYS.ACCOUNT, {validated: isValidated});
+        });
+
+        // When the composable Add bank account footer is pressed.
+        render(
+            <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, HTMLEngineProvider]}>
+                <PortalProvider>
+                    <PaymentMethodList
+                        shouldShowAddBankAccount
+                        shouldSkipDefaultAccountValidation={shouldSkipValidation}
+                        onAddBankAccountPress={onAddBankAccountPress}
+                        onPress={() => {}}
+                        listItemStyle={listItemStyle}
+                        addBankAccountItemStyle={addBankAccountItemStyle}
+                    />
+                </PortalProvider>
+            </ComposeProviders>,
+        );
+        await waitForBatchedUpdatesWithAct();
+        const footer = screen.UNSAFE_getAllByType(MenuItem.Root).find((root) => root.props.sentryLabel === CONST.SENTRY_LABEL.SETTINGS_WALLET.ADD_BANK_ACCOUNT);
+        expect(footer).toBeDefined();
+        expect(footer?.props.style).toEqual(expect.arrayContaining([listItemStyle, addBankAccountItemStyle]));
+        fireEvent.press(screen.getByRole('button', {name: 'Add bank account'}), {type: 'press'});
+
+        // Then the same validation branch runs, without losing the footer label or styles.
+        if (!isValidated && !shouldSkipValidation) {
+            expect(Navigation.navigate).toHaveBeenCalledWith(expect.stringContaining(DYNAMIC_ROUTES.ADD_BANK_ACCOUNT_VERIFY_ACCOUNT.path));
+            expect(onAddBankAccountPress).not.toHaveBeenCalled();
+        } else {
+            expect(onAddBankAccountPress).toHaveBeenCalledTimes(1);
+            expect(Navigation.navigate).not.toHaveBeenCalled();
+        }
     });
 
     it('shows the physical and virtual halves of a legacy combo card as one row', async () => {
@@ -306,7 +352,7 @@ describe('PaymentMethodList', () => {
         // When the Wallet's bank accounts list renders and the admin presses Continue
         renderBankAccountsList();
         await waitForBatchedUpdatesWithAct();
-        fireEvent.press(screen.getByText('Continue.'), {preventDefault: jest.fn()});
+        fireEvent.press(screen.getByText('Continue'), {preventDefault: jest.fn()});
 
         // Then the row shows the setup is in progress, and Continue opens the intro, which picks the onboarding up where the admin left it
         expect(screen.getByText('Global reimbursements setup in progress.', {exact: false})).toBeOnTheScreen();
@@ -322,25 +368,29 @@ describe('PaymentMethodList', () => {
         // When the Wallet's bank accounts list renders and the admin presses Continue
         renderBankAccountsList();
         await waitForBatchedUpdatesWithAct();
-        fireEvent.press(screen.getByText('Continue.'), {preventDefault: jest.fn()});
+        fireEvent.press(screen.getByText('Continue'), {preventDefault: jest.fn()});
 
-        // Then the row offers Continue to the intro, since Wise waits on the admin rather than the other way around
-        expect(Navigation.navigate).toHaveBeenCalledWith(`settings/wallet/global-reimbursements/${WISE_BANK_ACCOUNT_ID}`);
+        // Then the row says the setup is in progress, since the admin still has answers to give, and Continue opens the status page because the onboarding is already with Wise
+        expect(screen.getByText('Global reimbursements setup in progress.', {exact: false})).toBeOnTheScreen();
+        expect(screen.queryByText('Check status')).not.toBeOnTheScreen();
+        expect(Navigation.navigate).toHaveBeenCalledWith(`settings/wallet/global-reimbursements/${WISE_BANK_ACCOUNT_ID}/status`);
     });
 
-    it('shows a submitted Wise onboarding as in progress without Continue', async () => {
+    it('shows a submitted Wise onboarding as in review, with Check status opening the status page', async () => {
         // Given a business bank account whose Wise onboarding is in review
         await act(async () => {
             await Onyx.set(ONYXKEYS.BANK_ACCOUNT_LIST, {[WISE_BANK_ACCOUNT_ID]: createWiseBusinessBankAccount({status: CONST.WISE.ONBOARDING_STATUS.IN_REVIEW})});
         });
 
-        // When the Wallet's bank accounts list renders
+        // When the Wallet's bank accounts list renders and the admin presses Check status
         renderBankAccountsList();
         await waitForBatchedUpdatesWithAct();
+        fireEvent.press(screen.getByText('Check status'), {preventDefault: jest.fn()});
 
-        // Then the row shows the setup is in progress, with nothing to continue, since the answers are already with Wise
-        expect(screen.getByText('Global reimbursements setup in progress.', {exact: false})).toBeOnTheScreen();
-        expect(screen.queryByText('Continue.')).not.toBeOnTheScreen();
+        // Then the row says the setup is in review instead of offering to continue it, since the answers are already with Wise, and Check status opens its status page
+        expect(screen.getByText('Global reimbursements setup in review.', {exact: false})).toBeOnTheScreen();
+        expect(screen.queryByText('Continue')).not.toBeOnTheScreen();
+        expect(Navigation.navigate).toHaveBeenCalledWith(`settings/wallet/global-reimbursements/${WISE_BANK_ACCOUNT_ID}/status`);
     });
 
     it('hides the Wise onboarding row without the Wise beta', async () => {

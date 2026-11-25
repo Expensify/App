@@ -207,6 +207,61 @@ describe('TransactionPreviewUtils', () => {
             expect(result.RBRMessage.translationPath).not.toEqual('iou.missingAmount');
         });
 
+        it('displays the server rejection reason on a receipt error when present', () => {
+            // Given a scan transaction whose ReceiptError carries a server rejection reason
+            const serverReason = 'New expenses cannot be added to this report.';
+            const functionArgs = {
+                ...basicProps,
+                transaction: {
+                    ...basicProps.transaction,
+                    errors: {
+                        receiptError: {
+                            error: CONST.IOU.RECEIPT_ERROR,
+                            source: 'file:///receipt.jpg',
+                            filename: 'receipt.jpg',
+                            message: serverReason,
+                        },
+                    },
+                },
+                violations: [],
+                originalTransaction: undefined,
+                shouldShowRBR: true,
+            };
+
+            // When building the preview text for the transaction
+            const result = getTransactionPreviewTextAndTranslationPaths(functionArgs);
+
+            // Then the server rejection reason is shown instead of the generic receipt upload failure
+            expect(result.RBRMessage).toEqual({text: serverReason});
+        });
+
+        it('strips HTML tags and line breaks from a server rejection reason on a receipt error', () => {
+            // Given a scan transaction whose ReceiptError carries an HTML server rejection reason
+            const functionArgs = {
+                ...basicProps,
+                transaction: {
+                    ...basicProps.transaction,
+                    errors: {
+                        receiptError: {
+                            error: CONST.IOU.RECEIPT_ERROR,
+                            source: 'file:///receipt.jpg',
+                            filename: 'receipt.jpg',
+                            message: 'Check <a href="https://expensify.com">policy settings</a>.<br />Try again.',
+                        },
+                    },
+                },
+                violations: [],
+                originalTransaction: undefined,
+                shouldShowRBR: true,
+            };
+
+            // When building the preview text for the transaction
+            const result = getTransactionPreviewTextAndTranslationPaths(functionArgs);
+
+            // Then raw HTML tags and line breaks are converted to clean single-line plain text
+            expect(result.RBRMessage).toEqual({text: 'Check policy settings. Try again.'});
+        });
+
         it('should display cash or card as the preview type', () => {
             const functionArgsWithCardTransaction = {
                 ...basicProps,
@@ -863,6 +918,12 @@ describe('TransactionPreviewUtils', () => {
             stateNum: CONST.REPORT.STATE_NUM.OPEN,
             statusNum: CONST.REPORT.STATUS_NUM.OPEN,
         };
+
+        // Duplicates are only compared when their report is loaded and still mergeable.
+        beforeEach(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${fakeReportID}`, fakeReport);
+            await waitForBatchedUpdates();
+        });
 
         it('should navigate to confirmation page when all fields match', () => {
             const transaction1 = buildOptimisticTransaction({

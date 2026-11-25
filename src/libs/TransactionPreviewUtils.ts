@@ -17,7 +17,9 @@ import type {ActionErrorsByTransaction, TransactionDetails} from './ReportUtils'
 import {setReviewDuplicatesKey} from './actions/Transaction';
 import {isCategoryMissing} from './CategoryUtils';
 import DateUtils from './DateUtils';
+import {isReceiptError} from './ErrorUtils';
 import createDynamicRoute from './Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
+import Parser from './Parser';
 import {hasDynamicExternalWorkflow, isGroupPolicy as isGroupPolicyUtil} from './PolicyUtils';
 import {
     getMostRecentActiveDEWSubmitFailedAction,
@@ -30,7 +32,6 @@ import {
 import {hasActionWithErrorsForTransaction, hasReceiptError, isExpenseReport, isReportApproved, isSettled} from './ReportUtils';
 import StringUtils from './StringUtils';
 import {
-    compareDuplicateTransactionFields,
     getAmount,
     getExpenseTypeTranslationKey,
     getFormattedCreated,
@@ -51,6 +52,7 @@ import {
     isScanning,
     shouldShowViolation,
 } from './TransactionUtils';
+import {compareDuplicateTransactionFields} from './TransactionUtils/duplicates';
 import {isInvalidMerchantValue} from './ValidationUtils';
 import {filterReceiptViolations, isHardViolationOrRateDateWarning} from './Violations/ViolationsUtils';
 
@@ -247,7 +249,10 @@ function getTransactionPreviewTextAndTranslationPaths({
     }
 
     if (hasReceiptError(transaction) && RBRMessage === undefined) {
-        RBRMessage = {translationPath: 'iou.error.receiptFailureMessageShort'};
+        const transactionErrors = transaction?.errorFields?.route ?? transaction?.errorFields?.waypoints ?? transaction?.errors;
+        const receiptError = Object.values(transactionErrors ?? {}).find(isReceiptError);
+        const serverReason = receiptError?.message?.trim();
+        RBRMessage = serverReason ? {text: StringUtils.lineBreaksToSpaces(Parser.htmlToText(serverReason))} : {translationPath: 'iou.error.receiptFailureMessageShort'};
     }
 
     if (hasFieldErrors && RBRMessage === undefined) {
@@ -294,11 +299,7 @@ function getTransactionPreviewTextAndTranslationPaths({
     let previewDateText: TranslationPathOrText | undefined;
     if (!isCreatedMissing(transaction)) {
         const created = getFormattedCreated(transaction);
-        const date = DateUtils.formatWithUTCTimeZone(
-            created,
-            DateUtils.doesDateBelongToAPastYear(created) ? CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT : CONST.DATE.MONTH_DAY_ABBR_FORMAT,
-            dateFnsLocale,
-        );
+        const date = DateUtils.formatToMonthDayWithOptionalYearInUTC(created, dateFnsLocale);
         previewDateText = {text: date};
     }
 

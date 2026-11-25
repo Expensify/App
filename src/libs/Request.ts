@@ -13,7 +13,7 @@ import Log from './Log';
 import enhanceParameters from './Network/enhanceParameters';
 import {hasReadRequiredDataFromStorage} from './Network/NetworkStore';
 import {cancelSpan, endSpanWithAttributes} from './telemetry/activeSpans';
-import getRequestPhaseSpanNames, {getNextRequestPhaseAttempt} from './telemetry/measuredRequestPhaseCommands';
+import getRequestPhaseSpanNames, {getNextRequestPhaseAttempt, getRequestPhaseApplyAttributes} from './telemetry/measuredRequestPhaseCommands';
 import startRequestPhaseSpan, {getRequestPhaseSpanId} from './telemetry/startRequestPhaseSpan';
 import trackStartupDataRender from './telemetry/trackStartupDataRender';
 
@@ -23,8 +23,9 @@ let middlewares: Middleware[] = [];
 const latestApplyAttemptByRequest = new WeakMap<WeakKey, number>();
 
 function makeXHR<TKey extends OnyxKey>(request: Request<TKey>): Promise<Response<TKey> | void> {
-    const finalParameters = enhanceParameters(request.command, request?.data ?? {});
     return hasReadRequiredDataFromStorage().then((): Promise<Response<TKey> | void> => {
+        // Add the session only once storage has it, otherwise the first request of a launch goes without one
+        const finalParameters = enhanceParameters(request.command, request?.data ?? {});
         return HttpUtils.xhr(request.command, finalParameters, request.type, request.shouldUseSecure, request.initiatedOffline);
     });
 }
@@ -63,7 +64,10 @@ function processWithMiddleware<TKey extends OnyxKey>(request: Request<TKey>, isF
                 }
 
                 const endApplyPhase = () => {
-                    endSpanWithAttributes(applySpanId, {[CONST.TELEMETRY.ATTRIBUTE_REQUEST_ID]: response?.requestID});
+                    endSpanWithAttributes(applySpanId, {
+                        [CONST.TELEMETRY.ATTRIBUTE_REQUEST_ID]: response?.requestID,
+                        ...getRequestPhaseApplyAttributes(request.command, request.data),
+                    });
                     // Startup only: the probe ends on frame health, which attributes the busy window to this response only while nothing else runs on the thread.
                     if (!isStartupNetworkRequest(request.command)) {
                         return;

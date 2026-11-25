@@ -1,13 +1,16 @@
 import type {DynamicFormValues} from '@components/DynamicForm/types';
 
-import type {DynamicFormContentItem, DynamicFormField, DynamicFormHeading} from '@src/types/onyx';
+import CONST from '@src/CONST';
+import type {DynamicFormContentItem, DynamicFormField, DynamicFormHeading, DynamicFormLink, DynamicFormNotice} from '@src/types/onyx';
 
 import getContentFields from './getContentFields';
 import isHeading from './isHeading';
+import isLink from './isLink';
+import isNotice from './isNotice';
 import isSupportedField from './isSupportedField';
 import logSchemaProblem from './logSchemaProblem';
 
-type DynamicFormVisibleItem = DynamicFormHeading | DynamicFormField;
+type DynamicFormVisibleItem = DynamicFormHeading | DynamicFormLink | DynamicFormNotice | DynamicFormField;
 
 function isFieldVisibleWithin(item: DynamicFormVisibleItem, values: DynamicFormValues, allFields: DynamicFormField[], checkedKeys: Set<string>): boolean {
     if (!item.showWhen) {
@@ -15,8 +18,8 @@ function isFieldVisibleWithin(item: DynamicFormVisibleItem, values: DynamicFormV
     }
     const {key, equals} = item.showWhen;
     const controller = allFields.find((candidate) => candidate.key === key);
-    // A heading can share its key with a field, and it is never a controller, so only field keys mark the chain
-    const chainKeys = isHeading(item) ? checkedKeys : new Set([...checkedKeys, item.key]);
+    // A heading, a link or a notice can share its key with a field, and none is ever a controller, so only field keys mark the chain
+    const chainKeys = isHeading(item) || isLink(item) || isNotice(item) ? checkedKeys : new Set([...checkedKeys, item.key]);
     if (controller && !checkedKeys.has(controller.key) && !isFieldVisibleWithin(controller, values, allFields, chainKeys)) {
         return false;
     }
@@ -41,8 +44,26 @@ function getVisibleFields(fields: DynamicFormField[], values: DynamicFormValues,
     return fields.filter((field) => isFieldVisible(field, values, allFields));
 }
 
-/** Fields of a type this App version does not know and headings with no text are left out, so they neither render nor block submission */
+/** Fields of a type this App version does not know, headings and notices with no text and links with no text or an address outside Expensify are left out, so they neither render nor block submission */
 function isSupportedItem(item: DynamicFormContentItem): item is DynamicFormVisibleItem {
+    if (isLink(item)) {
+        if (!item.text && !item.textKey) {
+            logSchemaProblem('Link without text', {key: item.key});
+            return false;
+        }
+        if (!CONST.DYNAMIC_FORM.ALLOWED_LINK_URL.test(item.url)) {
+            logSchemaProblem('Link outside Expensify', {key: item.key, url: item.url});
+            return false;
+        }
+        return true;
+    }
+    if (isNotice(item)) {
+        if (!item.text && !item.textKey) {
+            logSchemaProblem('Notice without text', {key: item.key});
+            return false;
+        }
+        return true;
+    }
     if (!isHeading(item)) {
         return isSupportedField(item);
     }
@@ -54,7 +75,8 @@ function isSupportedItem(item: DynamicFormContentItem): item is DynamicFormVisib
 }
 
 /**
- * The headings and fields the user sees right now. A heading with no visible field before the next shown heading is left out, so a hidden or unknown field never leaves an orphan title.
+ * The headings, links, fields and notices the user sees right now. A heading with no visible field before the next shown heading is left out, so a hidden or unknown field never leaves an orphan title.
+ * A link or a notice stays wherever the schema puts it, such as after the last field, since it titles nothing that follows.
  * `allFields` is the whole form when `content` is one page of it, since a controlling field can sit on another page.
  */
 function getVisibleContent(content: DynamicFormContentItem[], values: DynamicFormValues, allFields?: DynamicFormField[]): DynamicFormVisibleItem[] {
@@ -62,11 +84,19 @@ function getVisibleContent(content: DynamicFormContentItem[], values: DynamicFor
     const controllers = allFields ?? getContentFields(supportedContent);
     const visibleContent: DynamicFormVisibleItem[] = [];
     let pendingHeading: DynamicFormHeading | undefined;
+    // Links and notices after a pending heading wait with it, so they keep their place under the heading if it is shown, and still show if it is dropped
+    let pendingInlineItems: Array<DynamicFormLink | DynamicFormNotice> = [];
     for (const item of supportedContent) {
         if (!isFieldVisible(item, values, controllers)) {
             continue;
         }
+        if (isLink(item) || isNotice(item)) {
+            pendingInlineItems.push(item);
+            continue;
+        }
         if (isHeading(item)) {
+            visibleContent.push(...pendingInlineItems);
+            pendingInlineItems = [];
             pendingHeading = item;
             continue;
         }
@@ -74,8 +104,10 @@ function getVisibleContent(content: DynamicFormContentItem[], values: DynamicFor
             visibleContent.push(pendingHeading);
             pendingHeading = undefined;
         }
-        visibleContent.push(item);
+        visibleContent.push(...pendingInlineItems, item);
+        pendingInlineItems = [];
     }
+    visibleContent.push(...pendingInlineItems);
     return visibleContent;
 }
 

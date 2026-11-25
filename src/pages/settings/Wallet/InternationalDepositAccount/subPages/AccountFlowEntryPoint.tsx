@@ -120,12 +120,14 @@ function AccountFlowEntryPoint({policyName = '', onBackButtonPress}: AccountFlow
                     <View style={[styles.mt4, cardEdgeToEdge]}>
                         <View style={cardMenuItemInset}>
                             <MenuItemNavigation
+                                sentryLabel={CONST.SENTRY_LABEL.SETTINGS_WALLET.INTERNATIONAL_CONNECT_WITH_PLAID}
                                 title={translate('bankAccount.connectOnlineWithPlaid')}
                                 icon={expensifyIcons.Bank}
                                 isDisabled={!!isPlaidDisabled}
                                 onPress={handleConnectPlaid}
                             />
                             <MenuItemNavigation
+                                sentryLabel={CONST.SENTRY_LABEL.SETTINGS_WALLET.INTERNATIONAL_CONNECT_MANUALLY}
                                 title={translate('bankAccount.connectManually')}
                                 icon={expensifyIcons.Connect}
                                 onPress={handleConnectManually}
@@ -134,14 +136,24 @@ function AccountFlowEntryPoint({policyName = '', onBackButtonPress}: AccountFlow
                     </View>
                 </Section>
                 <View style={[styles.mv0, styles.mh5, styles.flexRow, styles.justifyContentBetween]}>
-                    <TextLink href={CONST.OLD_DOT_PUBLIC_URLS.PRIVACY_URL}>{translate('common.privacy')}</TextLink>
+                    <TextLink
+                        sentryLabel={CONST.SENTRY_LABEL.BANK_ACCOUNT.PRIVACY_LINK}
+                        href={CONST.OLD_DOT_PUBLIC_URLS.PRIVACY_URL}
+                    >
+                        {translate('common.privacy')}
+                    </TextLink>
                     <PressableWithoutFeedback
                         onPress={() => openExternalLink(CONST.ENCRYPTION_AND_SECURITY_HELP_URL)}
                         style={[styles.flexRow, styles.alignItemsCenter]}
                         accessibilityLabel={translate('bankAccount.yourDataIsSecure')}
                         sentryLabel={CONST.SENTRY_LABEL.BANK_ACCOUNT.DATA_SECURE_LINK}
                     >
-                        <TextLink href={CONST.ENCRYPTION_AND_SECURITY_HELP_URL}>{translate('bankAccount.yourDataIsSecure')}</TextLink>
+                        <TextLink
+                            sentryLabel={CONST.SENTRY_LABEL.BANK_ACCOUNT.DATA_SECURE_LINK}
+                            href={CONST.ENCRYPTION_AND_SECURITY_HELP_URL}
+                        >
+                            {translate('bankAccount.yourDataIsSecure')}
+                        </TextLink>
                         <View style={styles.ml1}>
                             <Icon
                                 src={expensifyIcons.Lock}

@@ -20,6 +20,7 @@ import Parser from '@libs/Parser';
 
 import NetSuiteTokenAuthenticationLink from '@pages/workspace/accounting/netsuite/NetSuiteTokenInput/NetSuiteTokenAuthenticationLink';
 import type {CustomSubPageTokenInputProps} from '@pages/workspace/accounting/netsuite/types';
+import {hasNetSuiteOAuthConnection} from '@pages/workspace/accounting/netsuite/utils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -64,7 +65,9 @@ function NetSuiteTokenInputForm({onNext, policyID, isOAuthFlow, isMigration, sho
             return;
         }
 
-        if (shouldUseUpdateNetSuiteTokens(policy)) {
+        // An OAuth connection is unverified until its first sync succeeds, but it can hold the settings of the TBA connection that it replaced.
+        // A new connection resets those settings. Therefore the form always updates the tokens of an OAuth connection.
+        if (hasNetSuiteOAuthConnection(policy) || shouldUseUpdateNetSuiteTokens(policy)) {
             updateNetSuiteTokens(policyID, formValues);
         } else {
             connectPolicyToNetSuite(policyID, formValues);
@@ -86,7 +89,6 @@ function NetSuiteTokenInputForm({onNext, policyID, isOAuthFlow, isMigration, sho
                 addBottomSafeAreaPadding={!isMobileSafari()}
                 keyboardSubmitBehavior={isOAuthFlow ? CONST.KEYBOARD_SUBMIT_BEHAVIOR.SUBMIT_ONLY : undefined}
                 shouldShowLoadingImmediatelyOnPress={!isOAuthFlow}
-                footerContent={shouldShowTokenAuthenticationLink ? <NetSuiteTokenAuthenticationLink policyID={policyID} /> : undefined}
             >
                 {formInputs.map((formInput, index) => (
                     <View
@@ -101,6 +103,7 @@ function NetSuiteTokenInputForm({onNext, policyID, isOAuthFlow, isMigration, sho
                             aria-label={translate(`workspace.netsuite.tokenInput.formSteps.enterCredentials.formInputs.${formInput}`)}
                             role={CONST.ROLE.PRESENTATION}
                             spellCheck={false}
+                            forwardedFSClass={CONST.FULLSTORY.CLASS.MASK}
                         />
                         {formInput === INPUT_IDS.NETSUITE_ACCOUNT_ID && !isOAuthFlow && (
                             <View style={[styles.flexRow, styles.pt2]}>
@@ -113,6 +116,7 @@ function NetSuiteTokenInputForm({onNext, policyID, isOAuthFlow, isMigration, sho
                         )}
                     </View>
                 ))}
+                {shouldShowTokenAuthenticationLink && <NetSuiteTokenAuthenticationLink policyID={policyID} />}
             </FormProvider>
         </>
     );

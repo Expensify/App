@@ -1,3 +1,4 @@
+import FloatingButtonGlass, {isFloatingButtonGlassAvailable} from '@components/FloatingButtonGlass';
 import Icon from '@components/Icon';
 import {loadExpensifyIconsChunk} from '@components/Icon/ExpensifyIconLoader';
 import {loadIllustrationsChunk} from '@components/Icon/IllustrationLoader';
@@ -30,6 +31,7 @@ import type * as OnyxTypes from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
 
+import type {StyleProp, ViewStyle} from 'react-native';
 import type {OnyxCollection} from 'react-native-onyx';
 
 import React, {useEffect, useState} from 'react';
@@ -37,11 +39,14 @@ import {Platform, View} from 'react-native';
 
 type BaseFloatingCameraButtonProps = {
     icon: IconAsset;
+
+    /** Styles applied on top of the button's default styles */
+    style?: StyleProp<ViewStyle>;
 };
 
-function BaseFloatingCameraButton({icon}: BaseFloatingCameraButtonProps) {
+function BaseFloatingCameraButton({icon, style}: BaseFloatingCameraButtonProps) {
     const [session] = useOnyx(ONYXKEYS.SESSION);
-    const {textLight} = useTheme();
+    const {textLight, success} = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {accountID} = useCurrentUserPersonalDetails();
@@ -105,6 +110,7 @@ function BaseFloatingCameraButton({icon}: BaseFloatingCameraButtonProps) {
                 // Prevent text selection on touch devices (e.g. on long press)
                 canUseTouchScreen() && styles.userSelectNone,
                 styles.floatingCameraButton,
+                style,
             ]}
             accessibilityLabel={translate('sidebarScreen.fabScanReceiptExplained')}
             onPress={onPress}
@@ -113,9 +119,13 @@ function BaseFloatingCameraButton({icon}: BaseFloatingCameraButtonProps) {
             sentryLabel={CONST.SENTRY_LABEL.NAVIGATION_TAB_BAR.FLOATING_CAMERA_BUTTON}
         >
             <View
-                style={styles.floatingActionButton}
+                style={[styles.floatingActionButton, isFloatingButtonGlassAvailable && styles.floatingActionButtonGlass]}
                 testID="floating-camera-button-container"
             >
+                <FloatingButtonGlass
+                    tintColor={success}
+                    tintOpacity={variables.floatingCameraButtonGlassTintOpacity}
+                />
                 <Icon
                     fill={textLight}
                     src={icon}

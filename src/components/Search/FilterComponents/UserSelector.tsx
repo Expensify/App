@@ -6,8 +6,10 @@ import UserSelectionListItem from '@components/SelectionList/ListItem/UserSelect
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useInitialValue from '@hooks/useInitialValue';
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePersonalDetailSearchSelector from '@hooks/usePersonalDetailSearchSelector';
+import useSearchUserFilters from '@hooks/useSearchUserFilters';
 import useShouldFooterBeInsideList from '@hooks/useShouldFooterBeInsideList';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -21,7 +23,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
-import React from 'react';
+import React, {useState} from 'react';
 
 import ListFilterWrapper from './ListFilterViewWrapper';
 
@@ -34,11 +36,13 @@ function UserSelector({value = [], isNegatable, policyID, selectionListTextInput
     const styles = useThemeStyles();
     const shouldFooterBeInsideList = useShouldFooterBeInsideList();
     const {translate} = useLocalize();
+    const {isOffline} = useNetwork();
     const personalDetails = usePersonalDetails();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const shouldFocusInputOnScreenFocus = autoFocus && canFocusInputOnScreenFocus();
-    const [isSearchingForReports] = useOnyx(ONYXKEYS.RAM_ONLY_IS_SEARCHING_FOR_REPORTS);
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
+    const [serverScopedLoginsByPolicy, setServerScopedLoginsByPolicy] = useState<{policyIDs: string; logins: string[]}>({policyIDs: '', logins: []});
+
     const initialSelectedAccountIDs = value.reduce<Set<string>>((acc, id) => {
         const participant = personalDetails?.[id];
         if (!participant) {
@@ -56,15 +60,19 @@ function UserSelector({value = [], isNegatable, policyID, selectionListTextInput
     // top on first render without repinning rows that are toggled afterwards.
     const initialSelectedValues = useInitialValue(() => value);
 
-    // When the workspace filter is set, only suggest the members of the selected workspaces. Users that were already
-    // selected when the filter opened are kept in the list even when they aren't members, so they can still be deselected here.
+    const selectedPolicies = policyID?.value?.length ? getAllPolicyValues(policyID, ONYXKEYS.COLLECTION.POLICY, policies) : undefined;
+    const policyIDs = selectedPolicies ? selectedPolicies.map((policy) => policy.id).join(',') : '';
+    const serverScopedLogins = serverScopedLoginsByPolicy.policyIDs === policyIDs ? serverScopedLoginsByPolicy.logins : [];
+
+    // When the workspace filter is set, only suggest the members of the selected workspaces and people returned by
+    // the server for those workspaces' reports (such as removed members). Users that were already selected when the
+    // filter opened are kept in the list even when they aren't members, so they can still be deselected here.
     const workspaceMemberLogins = (() => {
-        if (!policyID?.value?.length) {
+        if (!selectedPolicies) {
             return undefined;
         }
 
         const logins = new Set<string>();
-        const selectedPolicies = getAllPolicyValues(policyID, ONYXKEYS.COLLECTION.POLICY, policies);
         for (const policy of selectedPolicies) {
             if (policy.employeeList) {
                 const employeeLogins = Object.keys(policy.employeeList);
@@ -78,6 +86,9 @@ function UserSelector({value = [], isNegatable, policyID, selectionListTextInput
             }
             logins.add(policy.owner);
         }
+        for (const login of serverScopedLogins) {
+            logins.add(login);
+        }
         for (const accountID of initialSelectedValues) {
             const login = personalDetails?.[accountID]?.login;
             if (login) {
@@ -87,7 +98,7 @@ function UserSelector({value = [], isNegatable, policyID, selectionListTextInput
         return logins.size ? logins : undefined;
     })();
 
-    const {searchTerm, setSearchTerm, selectedOptions, availableOptions, totalOptionsCount, toggleSelection, areOptionsInitialized} = usePersonalDetailSearchSelector({
+    const {searchTerm, debouncedSearchTerm, setSearchTerm, selectedOptions, availableOptions, toggleSelection, areOptionsInitialized} = usePersonalDetailSearchSelector({
         selectionMode: CONST.SEARCH_SELECTOR.SELECTION_MODE_MULTI,
         initialSelected: initialSelectedAccountIDs,
         excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
@@ -99,6 +110,28 @@ function UserSelector({value = [], isNegatable, policyID, selectionListTextInput
         onSelectionChange: onChange,
         shouldKeepSelectedInAvailableOptions: true,
     });
+
+    const addServerScopedLogins = (scopedPolicyIDs: string, logins: string[]) => {
+        setServerScopedLoginsByPolicy((prev) => {
+            if (prev.policyIDs !== scopedPolicyIDs) {
+                return {policyIDs: scopedPolicyIDs, logins: Array.from(new Set(logins))};
+            }
+            const mergedLogins = Array.from(new Set([...prev.logins, ...logins]));
+            if (mergedLogins.length === prev.logins.length) {
+                return prev;
+            }
+            return {policyIDs: scopedPolicyIDs, logins: mergedLogins};
+        });
+    };
+
+    const {isSearching, isLoadingMore, hasMore, loadMoreUsers} = useSearchUserFilters({
+        policyIDs,
+        searchTerm: debouncedSearchTerm,
+        ready,
+        onScopedLoginsChange: addServerScopedLogins,
+    });
+
+    const trimmedSearchTerm = debouncedSearchTerm.trim();
 
     // The current user and selected public-profile users without a login are excluded from personalDetails, so include them in the list when present.
     const availablePersonalDetails = availableOptions.currentUserOption ? [availableOptions.currentUserOption, ...availableOptions.personalDetails] : availableOptions.personalDetails;
@@ -113,32 +146,31 @@ function UserSelector({value = [], isNegatable, policyID, selectionListTextInput
         initialSelectedValues,
     );
 
-    const headerMessage = listData.length === 0 ? translate('common.noResultsFound') : undefined;
+    const shouldShowLoadingPlaceholder = !areOptionsInitialized || !ready;
+    const isSearchPending = !isOffline && searchTerm.trim() !== trimmedSearchTerm;
+    const headerMessage = !shouldShowLoadingPlaceholder && !isSearching && !isSearchPending && listData.length === 0 ? translate('common.noResultsFound') : undefined;
 
     const selectUser = (option: OptionData) => {
         toggleSelection(option);
     };
 
-    const isLoadingNewOptions = !!isSearchingForReports;
-    const shouldShowSearchInput = totalOptionsCount >= CONST.STANDARD_LIST_ITEM_LIMIT;
+    const isLoadingNewOptions = isSearching || isLoadingMore;
 
-    const textInputOptions = shouldShowSearchInput
-        ? {
-              value: searchTerm,
-              label: translate('selectionList.searchForSomeone'),
-              onChangeText: setSearchTerm,
-              headerMessage,
-              disableAutoFocus: !shouldFocusInputOnScreenFocus,
-              style: {
-                  containerStyle: selectionListTextInputStyle,
-              },
-          }
-        : undefined;
+    const textInputOptions = {
+        value: searchTerm,
+        label: translate('selectionList.searchForSomeone'),
+        onChangeText: setSearchTerm,
+        headerMessage,
+        disableAutoFocus: !shouldFocusInputOnScreenFocus,
+        style: {
+            containerStyle: selectionListTextInputStyle,
+        },
+    };
 
     return (
         <ListFilterWrapper
             itemCount={listData.length}
-            isSearchable={shouldShowSearchInput}
+            isSearchable
             isNegatable={isNegatable}
         >
             <SelectionList
@@ -149,7 +181,9 @@ function UserSelector({value = [], isNegatable, policyID, selectionListTextInput
                 onSelectRow={selectUser}
                 shouldUpdateFocusedIndex
                 isLoadingNewOptions={isLoadingNewOptions}
-                shouldShowLoadingPlaceholder={!areOptionsInitialized || !ready}
+                shouldShowLoadingPlaceholder={shouldShowLoadingPlaceholder}
+                onEndReached={hasMore && !isOffline ? loadMoreUsers : undefined}
+                onEndReachedThreshold={0.75}
                 style={{contentContainerStyle: [styles.pb0], ...selectionListStyle}}
                 footerContent={footer}
                 shouldFooterBeInsideList={shouldFooterBeInsideList}

@@ -21,12 +21,13 @@ const mockPay = jest.fn();
 const mockExport = jest.fn();
 const mockAddExpense = jest.fn();
 const mockView = jest.fn();
+const mockOpenReport = jest.fn();
 
 jest.mock('@components/ReportActionItem/MoneyRequestReportPreview/MoneyRequestReportPreviewContext', () => ({
     __esModule: true,
     useReportPreviewActionState: () => mockActionState,
     useReportPreviewUIState: () => ({buttonMaxWidth: {}}),
-    useReportPreviewActions: () => ({openReportFromPreview: jest.fn()}),
+    useReportPreviewActions: () => ({openReportFromPreview: mockOpenReport}),
 }));
 
 jest.mock('@components/ReportActionItem/MoneyRequestReportPreview/SubmitActionButton', () => ({
@@ -90,6 +91,18 @@ function flattenContainerStyle(rendered: ReturnType<typeof render>): unknown[] {
 }
 
 describe('ReportPreviewActionButton', () => {
+    it('keeps Approve and promotes View without changing its navigation', () => {
+        // Given an approvable report with visible violations
+        mockActionState.reportPreviewAction = CONST.REPORT.REPORT_PREVIEW_ACTIONS.APPROVE_WITH_VIOLATIONS;
+
+        // When its preview buttons render
+        render(<ReportPreviewActionButton />);
+
+        // Then both actions remain, with View styled as primary and using the existing navigation handler
+        expect(mockApprove).toHaveBeenCalled();
+        expect(mockView).toHaveBeenCalledWith(expect.objectContaining({variant: CONST.BUTTON_VARIANT.SUCCESS, onPress: mockOpenReport}));
+    });
+
     beforeEach(() => {
         jest.clearAllMocks();
         mockActionState.reportPreviewAction = CONST.REPORT.REPORT_PREVIEW_ACTIONS.VIEW;

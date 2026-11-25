@@ -7,6 +7,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
+import type {SentryLabel} from '@src/types/utils/SentryLabel';
 
 import React from 'react';
 
@@ -16,7 +17,7 @@ type MoneyReportHeaderHistoryButtonProps = ChildrenProps & {
     /** Plain text of the status shown inside the button, so screen readers still announce it */
     message: string;
 
-    sentryLabel: string;
+    sentryLabel: SentryLabel;
 };
 
 /**

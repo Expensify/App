@@ -10,7 +10,7 @@ import {isAuthenticationError} from '@libs/actions/connections';
 import Navigation from '@libs/Navigation/Navigation';
 
 import {useAccountingState} from '@pages/workspace/accounting/AccountingContext/contexts';
-import {getInitialSubPageForNetsuiteTokenInput} from '@pages/workspace/accounting/netsuite/utils';
+import {getInitialSubPageForNetsuiteTokenInput, hasNetSuiteOAuthConnection} from '@pages/workspace/accounting/netsuite/utils';
 
 import type {AnchorPosition} from '@styles/index';
 
@@ -37,7 +37,8 @@ function ConnectToNetSuiteFlow({policyID}: ConnectToNetSuiteFlowProps) {
 
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
     const icons = useMemoizedLazyExpensifyIcons(['Copy', 'LinkCopy']);
-    const shouldGoToCredentialsPage = isAuthenticationError(policy, CONST.POLICY.CONNECTIONS.NAME.NETSUITE);
+    // If the admin reuses the connection of another workspace, it replaces this connection. Therefore an OAuth connection goes directly to the credentials step.
+    const shouldGoToCredentialsPage = isAuthenticationError(policy, CONST.POLICY.CONNECTIONS.NAME.NETSUITE) || hasNetSuiteOAuthConnection(policy);
 
     const threeDotsMenuContainerRef = popoverAnchorRefs?.current?.[CONST.POLICY.CONNECTIONS.NAME.NETSUITE];
 
@@ -45,6 +46,7 @@ function ConnectToNetSuiteFlow({policyID}: ConnectToNetSuiteFlowProps) {
         {
             icon: icons.LinkCopy,
             text: translate('workspace.common.createNewConnection'),
+            sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.NETSUITE.CONNECTION_OPTIONS.CREATE_NEW_CONNECTION,
             onSelected: () => {
                 Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_TOKEN_INPUT.getRoute(policyID, getInitialSubPageForNetsuiteTokenInput(policy)));
                 setIsReuseConnectionsPopoverOpen(false);
@@ -53,6 +55,7 @@ function ConnectToNetSuiteFlow({policyID}: ConnectToNetSuiteFlowProps) {
         {
             icon: icons.Copy,
             text: translate('workspace.common.reuseExistingConnection'),
+            sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.NETSUITE.CONNECTION_OPTIONS.REUSE_EXISTING_CONNECTION,
             onSelected: () => {
                 Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_EXISTING_CONNECTIONS.getRoute(policyID));
                 setIsReuseConnectionsPopoverOpen(false);

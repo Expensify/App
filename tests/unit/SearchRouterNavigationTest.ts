@@ -192,6 +192,7 @@ const domainIcons = {
 };
 const spendIcons = {
     Basket: mockIcon,
+    Tag: mockIcon,
     CalendarSolid: mockIcon,
     Receipt: mockIcon,
     MoneyBag: mockIcon,
@@ -270,7 +271,7 @@ function createSettingsMenuItem(translationKey: MenuData['translationKey'], scre
         translationKey,
         icon: mockIcon,
         screenName,
-        sentryLabel: translationKey,
+        sentryLabel: CONST.SENTRY_LABEL.ACCOUNT.PROFILE,
         action,
     };
 }

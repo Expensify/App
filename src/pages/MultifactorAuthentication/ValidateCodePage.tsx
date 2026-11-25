@@ -255,6 +255,7 @@ function MultifactorAuthenticationValidateCodePage() {
                         />
                     )}
                     <ButtonDisabledWhenOffline
+                        sentryLabel={CONST.SENTRY_LABEL.MULTIFACTOR_AUTHENTICATION.VALIDATE_CODE_VERIFY}
                         variant={CONST.BUTTON_VARIANT.SUCCESS}
                         size={CONST.BUTTON_SIZE.LARGE}
                         style={[styles.w100, styles.ph5, styles.pb5, styles.mt4]}

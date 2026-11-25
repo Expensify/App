@@ -10,6 +10,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {PersonalDetailsList, ReportAction} from '@src/types/onyx';
+import type {SentryLabel} from '@src/types/utils/SentryLabel';
 
 import React from 'react';
 import Onyx from 'react-native-onyx';
@@ -24,7 +25,7 @@ jest.mock('@components/ActionSheetAwareScrollView', () => ({
 }));
 
 type MockContextMenuItemProps = {
-    sentryLabel?: string;
+    sentryLabel?: SentryLabel;
     onPress?: (event: unknown) => void;
     [key: string]: unknown;
 };
@@ -111,7 +112,7 @@ jest.mock('@hooks/useTransactionsAndViolationsForReport', () => () => ({transact
 jest.mock('@userActions/Session', () => ({
     isAnonymousUser: () => false,
     signOutAndRedirectToSignIn: jest.fn(),
-    callFunctionIfActionIsAllowed: (fn: () => void) => fn,
+    callIfAuthenticated: (fn: () => void) => fn,
 }));
 
 const mockShowDeleteModal = jest.fn<void, unknown[]>();
@@ -119,6 +120,7 @@ jest.mock('@pages/inbox/report/ContextMenu/ReportActionContextMenu', () => ({
     hideContextMenu: jest.fn((_: boolean, onHideCallback?: () => void) => onHideCallback?.()),
     showContextMenu: jest.fn(),
     showDeleteModal: (...args: unknown[]) => mockShowDeleteModal(...args),
+    handleHoldEducationalModal: jest.fn((performHold: () => void) => performHold()),
 }));
 
 // Defaults to the real implementation so the hold flow still navigates; the unhold test swaps it for a spy.
@@ -279,7 +281,7 @@ async function seedOnyxData({isOnHold}: {isOnHold: boolean}) {
     await waitForBatchedUpdates();
 }
 
-async function getContextMenuItemOnPress(sentryLabel: string): Promise<(event: unknown) => void> {
+async function getContextMenuItemOnPress(sentryLabel: SentryLabel): Promise<(event: unknown) => void> {
     let contextMenuItem = mockContextMenuItemProps.find((item) => item.sentryLabel === sentryLabel);
 
     await waitFor(() => {

@@ -39,6 +39,7 @@ function InvoiceMenuItem({reportID}: InvoiceMenuItemProps) {
 
     return (
         <FABFocusableMenuItem
+            sentryLabel={CONST.SENTRY_LABEL.FAB_MENU.SEND_INVOICE}
             itemId={ITEM_ID}
             isVisible={canSendInvoice}
             pressableTestID={CONST.SENTRY_LABEL.FAB_MENU.SEND_INVOICE}

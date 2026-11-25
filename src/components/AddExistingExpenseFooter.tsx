@@ -5,6 +5,7 @@ import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
+import {useGetPersonalDetailsByLogin} from '@hooks/usePersonalDetailByLogin';
 import usePersonalPolicy from '@hooks/usePersonalPolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useTransactionsByID from '@hooks/useTransactionsByID';
@@ -50,6 +51,7 @@ function AddExistingExpenseFooter({selectedIds, report, reportToConfirm, policy,
     const isVendorMatchingBetaEnabled = isBetaEnabledOrUnknown(CONST.BETAS.VENDOR_MATCHING);
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const {getCurrencyDecimals, getCurrencySymbol} = useCurrencyListActions();
+    const getPersonalDetailsByLogin = useGetPersonalDetailsByLogin();
     const session = useSession();
     const personalDetails = usePersonalDetails();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
@@ -67,6 +69,7 @@ function AddExistingExpenseFooter({selectedIds, report, reportToConfirm, policy,
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
     const [chatReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(report?.chatReportID)}`);
     const [cardList] = useOnyx(ONYXKEYS.CARD_LIST);
+    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
 
     const [transactions] = useTransactionsByID(selectedIds);
     const reports = useChangeTransactionsReportReports(transactions, reportToConfirm?.reportID);
@@ -111,6 +114,7 @@ function AddExistingExpenseFooter({selectedIds, report, reportToConfirm, policy,
                         currentUserPersonalDetails,
                         newReport: reportToConfirm,
                         policy,
+                        policies,
                         policyCategories,
                         policyTagList,
                         transactions,
@@ -124,6 +128,7 @@ function AddExistingExpenseFooter({selectedIds, report, reportToConfirm, policy,
                         delegateAccountID,
                         getCurrencyDecimals,
                         getCurrencySymbol,
+                        personalDetailsByLogins: getPersonalDetailsByLogin(),
                     });
                 }
             },
@@ -140,6 +145,7 @@ function AddExistingExpenseFooter({selectedIds, report, reportToConfirm, policy,
                 />
             )}
             <Button
+                sentryLabel={CONST.SENTRY_LABEL.ADD_EXISTING_EXPENSE.CONFIRM_BUTTON}
                 variant={CONST.BUTTON_VARIANT.SUCCESS}
                 size={CONST.BUTTON_SIZE.LARGE}
                 style={[styles.w100, styles.justifyContentCenter]}

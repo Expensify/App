@@ -17,6 +17,7 @@ import {isReceiptError} from '@libs/ErrorUtils';
 import type * as PolicyUtils from '@libs/PolicyUtils';
 import {getOriginalMessage, isActionableTrackExpense, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import type {OptimisticChatReport} from '@libs/ReportUtils';
+import {buildCannedSearchQuery, buildSearchQueryJSON} from '@libs/SearchQueryUtils';
 import SidebarUtils from '@libs/SidebarUtils';
 import {getValidWaypoints, isDistanceRequest as isDistanceRequestUtil} from '@libs/TransactionUtils';
 
@@ -206,6 +207,7 @@ describe('actions/IOU/TrackExpense', () => {
                 existingTransaction: distanceTransaction,
                 isASAPSubmitBetaEnabled: false,
                 currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
+                currentUserPersonalDetails: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL},
                 introSelected: undefined,
                 quickAction: undefined,
                 recentWaypoints,
@@ -337,6 +339,7 @@ describe('actions/IOU/TrackExpense', () => {
                 },
                 isASAPSubmitBetaEnabled: false,
                 currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
+                currentUserPersonalDetails: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL},
                 introSelected: undefined,
                 quickAction: undefined,
                 recentWaypoints,
@@ -448,6 +451,7 @@ describe('actions/IOU/TrackExpense', () => {
                 optimisticTransactionID: 'optimistic-ignored-for-move-from-track',
                 isASAPSubmitBetaEnabled: false,
                 currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
+                currentUserPersonalDetails: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL},
                 introSelected: undefined,
                 quickAction: undefined,
                 recentWaypoints,
@@ -544,6 +548,7 @@ describe('actions/IOU/TrackExpense', () => {
                 },
                 isASAPSubmitBetaEnabled: false,
                 currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
+                currentUserPersonalDetails: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL},
                 introSelected: undefined,
                 quickAction: undefined,
                 recentWaypoints,
@@ -605,6 +610,7 @@ describe('actions/IOU/TrackExpense', () => {
                 },
                 isASAPSubmitBetaEnabled: false,
                 currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
+                currentUserPersonalDetails: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL},
                 introSelected: undefined,
                 quickAction: undefined,
                 recentWaypoints,
@@ -692,6 +698,7 @@ describe('actions/IOU/TrackExpense', () => {
                 },
                 isASAPSubmitBetaEnabled: false,
                 currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
+                currentUserPersonalDetails: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL},
                 introSelected: undefined,
                 quickAction: undefined,
                 recentWaypoints,
@@ -753,6 +760,7 @@ describe('actions/IOU/TrackExpense', () => {
                 },
                 isASAPSubmitBetaEnabled: false,
                 currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
+                currentUserPersonalDetails: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL},
                 introSelected: undefined,
                 quickAction: undefined,
                 recentWaypoints,
@@ -843,6 +851,7 @@ describe('actions/IOU/TrackExpense', () => {
                 },
                 isASAPSubmitBetaEnabled: false,
                 currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
+                currentUserPersonalDetails: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL},
                 introSelected: undefined,
                 quickAction: undefined,
                 recentWaypoints,
@@ -903,6 +912,7 @@ describe('actions/IOU/TrackExpense', () => {
                 },
                 isASAPSubmitBetaEnabled: false,
                 currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
+                currentUserPersonalDetails: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL},
                 introSelected: undefined,
 
                 quickAction: undefined,
@@ -987,6 +997,7 @@ describe('actions/IOU/TrackExpense', () => {
                 },
                 isASAPSubmitBetaEnabled: false,
                 currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
+                currentUserPersonalDetails: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL},
                 introSelected: undefined,
 
                 quickAction: undefined,
@@ -1048,6 +1059,7 @@ describe('actions/IOU/TrackExpense', () => {
                 },
                 isASAPSubmitBetaEnabled: false,
                 currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
+                currentUserPersonalDetails: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL},
                 introSelected: undefined,
 
                 quickAction: undefined,
@@ -1160,6 +1172,7 @@ describe('actions/IOU/TrackExpense', () => {
                 },
                 isASAPSubmitBetaEnabled: false,
                 currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
+                currentUserPersonalDetails: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL},
                 introSelected: undefined,
                 quickAction: undefined,
                 recentWaypoints,
@@ -1223,6 +1236,7 @@ describe('actions/IOU/TrackExpense', () => {
                 rules: undefined,
                 isASAPSubmitBetaEnabled: false,
                 currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
+                currentUserPersonalDetails: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL},
                 introSelected: undefined,
                 quickAction: undefined,
                 recentWaypoints,
@@ -1288,6 +1302,7 @@ describe('actions/IOU/TrackExpense', () => {
                 },
                 isASAPSubmitBetaEnabled: false,
                 currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
+                currentUserPersonalDetails: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL},
                 introSelected: undefined,
                 quickAction: undefined,
                 recentWaypoints: [],
@@ -1340,6 +1355,42 @@ describe('actions/IOU/TrackExpense', () => {
             expect(fallbackReportActions).toBeUndefined();
         });
 
+        it('sends the unit the odometer readings were entered in, so the backend can convert them to the rate unit', async () => {
+            // Given a selfDM report and an odometer expense whose readings were entered in km
+            const selfDMReport: Report = {
+                ...createRandomReport(1, CONST.REPORT.CHAT_TYPE.SELF_DM),
+                reportID: 'selfDM-odometer-unit',
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${selfDMReport.reportID}`, selfDMReport);
+
+            // When the expense is tracked
+            trackExpense({
+                ...getDefaultTrackExpenseParams(selfDMReport, {
+                    amount: 1500,
+                    distance: 2.49,
+                    odometerStart: 2,
+                    odometerEnd: 6,
+                    odometerUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS,
+                }),
+                existingTransaction: {
+                    transactionID: CONST.IOU.OPTIMISTIC_TRANSACTION_ID,
+                    reportID: selfDMReport.reportID,
+                    amount: 1500,
+                    currency: 'USD',
+                    created: '',
+                    merchant: '',
+                    iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_ODOMETER,
+                    comment: {type: CONST.TRANSACTION.TYPE.CUSTOM_UNIT, customUnit: {name: CONST.CUSTOM_UNITS.NAME_DISTANCE}},
+                },
+            });
+            await waitForBatchedUpdates();
+
+            // Then the TrackExpense request carries the readings' unit alongside the readings
+            const requestBody = TestHelper.getFetchMockCalls(WRITE_COMMANDS.TRACK_EXPENSE).at(0)?.[1]?.body;
+            const requestParams = requestBody instanceof FormData ? Object.fromEntries(requestBody) : {};
+            expect(requestParams).toEqual(expect.objectContaining({odometerStart: '2', odometerEnd: '6', odometerUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS}));
+        });
+
         it('should create optimistic transaction with correct amount and currency', async () => {
             // Given a selfDM report and transaction data
             const selfDMReport: Report = {
@@ -1371,6 +1422,42 @@ describe('actions/IOU/TrackExpense', () => {
             expect(Math.abs(createdTransaction?.amount ?? 0)).toBe(testAmount);
             expect(createdTransaction?.currency).toBe(testCurrency);
             expect(createdTransaction?.merchant).toBe(testMerchant);
+        });
+
+        it('should use the passed currentUserPersonalDetails in the optimistic search snapshot instead of the Onyx personal details', async () => {
+            // Given a self-DM and Onyx personal details that differ from the details the caller passes in
+            const selfDMReport: Report = {
+                ...createRandomReport(1, CONST.REPORT.CHAT_TYPE.SELF_DM),
+                reportID: 'selfDM-current-user-details',
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${selfDMReport.reportID}`, selfDMReport);
+            await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+                [RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL, displayName: 'Onyx Display Name', avatar: 'https://example.com/onyx-avatar.png'},
+            });
+            await waitForBatchedUpdates();
+
+            const passedPersonalDetails = {
+                accountID: RORY_ACCOUNT_ID,
+                login: RORY_EMAIL,
+                displayName: 'Passed Display Name',
+                avatar: 'https://example.com/passed-avatar.png',
+            };
+
+            // When tracking an expense while passing the current user's details explicitly
+            trackExpense({
+                ...getDefaultTrackExpenseParams(selfDMReport),
+                currentUserPersonalDetails: passedPersonalDetails,
+            });
+            await waitForBatchedUpdates();
+
+            // Then the default Spend > Expenses optimistic snapshot uses the passed details, not the ones from Onyx.
+            // getSearchOnyxUpdate silently falls back to the Onyx subscription, so without this assertion a dropped
+            // pass-through would only show up as stale avatars/names in search results.
+            const searchHash = buildSearchQueryJSON(buildCannedSearchQuery())?.hash;
+            const snapshot = await getOnyxValue(`${ONYXKEYS.COLLECTION.SNAPSHOT}${searchHash}`);
+            const optimisticPersonalDetails = snapshot?.data?.[ONYXKEYS.PERSONAL_DETAILS_LIST]?.[RORY_ACCOUNT_ID];
+            expect(optimisticPersonalDetails?.displayName).toBe(passedPersonalDetails.displayName);
+            expect(optimisticPersonalDetails?.avatar).toBe(passedPersonalDetails.avatar);
         });
 
         it('should create actionable track expense whisper for selfDM reports', async () => {
@@ -1700,6 +1787,7 @@ describe('actions/IOU/TrackExpense', () => {
                 },
                 isASAPSubmitBetaEnabled: false,
                 currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
+                currentUserPersonalDetails: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL},
                 introSelected: undefined,
                 quickAction: undefined,
                 recentWaypoints: [],
@@ -1793,6 +1881,7 @@ describe('actions/IOU/TrackExpense', () => {
                 },
                 isASAPSubmitBetaEnabled: false,
                 currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
+                currentUserPersonalDetails: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL},
                 introSelected: undefined,
                 quickAction: undefined,
                 recentWaypoints: [],
@@ -2170,6 +2259,7 @@ describe('actions/IOU/TrackExpense', () => {
                 isASAPSubmitBetaEnabled: false,
                 currentUserAccountIDParam: RORY_ACCOUNT_ID,
                 currentUserEmailParam: RORY_EMAIL,
+                currentUserPersonalDetails: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL},
                 introSelected: undefined,
                 quickAction: undefined,
                 isSelfTourViewed: true,
@@ -2220,6 +2310,7 @@ describe('actions/IOU/TrackExpense', () => {
                 isASAPSubmitBetaEnabled: false,
                 currentUserAccountIDParam: RORY_ACCOUNT_ID,
                 currentUserEmailParam: RORY_EMAIL,
+                currentUserPersonalDetails: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL},
                 introSelected: undefined,
                 quickAction: undefined,
                 isSelfTourViewed: false,
@@ -2272,6 +2363,7 @@ describe('actions/IOU/TrackExpense', () => {
                 isASAPSubmitBetaEnabled: false,
                 currentUserAccountIDParam: RORY_ACCOUNT_ID,
                 currentUserEmailParam: RORY_EMAIL,
+                currentUserPersonalDetails: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL},
                 introSelected: undefined,
                 quickAction: undefined,
                 isSelfTourViewed: true,
@@ -2315,6 +2407,7 @@ describe('actions/IOU/TrackExpense', () => {
                 isASAPSubmitBetaEnabled: false,
                 currentUserAccountIDParam: RORY_ACCOUNT_ID,
                 currentUserEmailParam: RORY_EMAIL,
+                currentUserPersonalDetails: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL},
                 introSelected: undefined,
                 quickAction: undefined,
                 isSelfTourViewed: false,
@@ -2384,6 +2477,7 @@ describe('actions/IOU/TrackExpense', () => {
                 isASAPSubmitBetaEnabled: false,
                 currentUserAccountIDParam: RORY_ACCOUNT_ID,
                 currentUserEmailParam: RORY_EMAIL,
+                currentUserPersonalDetails: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL},
                 introSelected: undefined,
                 quickAction: undefined,
                 isSelfTourViewed: false,
@@ -2433,6 +2527,7 @@ describe('actions/IOU/TrackExpense', () => {
                 isASAPSubmitBetaEnabled: false,
                 currentUserAccountIDParam: RORY_ACCOUNT_ID,
                 currentUserEmailParam: RORY_EMAIL,
+                currentUserPersonalDetails: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL},
                 introSelected: undefined,
                 quickAction: undefined,
                 isSelfTourViewed: false,
@@ -2522,6 +2617,7 @@ describe('actions/IOU/TrackExpense', () => {
                 },
                 isASAPSubmitBetaEnabled: false,
                 currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
+                currentUserPersonalDetails: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL},
                 introSelected: undefined,
                 quickAction: undefined,
                 recentWaypoints,
@@ -2903,6 +2999,7 @@ describe('actions/IOU/TrackExpense', () => {
                 },
                 isASAPSubmitBetaEnabled: false,
                 currentUser: {accountID: TEST_USER_ACCOUNT_ID, email: TEST_USER_LOGIN},
+                currentUserPersonalDetails: {accountID: TEST_USER_ACCOUNT_ID, login: TEST_USER_LOGIN},
                 introSelected: undefined,
 
                 quickAction: undefined,

@@ -38,6 +38,7 @@ import type {NavigationPartialRoute, NavigationRef, NavigationRoute, NavigationS
 
 import {consumePreMountReplaceOutcome, getFocusedRouteFromNavigatorState, getPreInsertedOriginalTabRoute} from './AppNavigator/createRootStackNavigator/GetStateForActionHandlers';
 import getInitialSplitNavigatorState from './AppNavigator/createSplitNavigator/getInitialSplitNavigatorState';
+import {clearPreservedNavigatorStates} from './AppNavigator/createSplitNavigator/usePreserveNavigatorState';
 import originalCloseRHPFlow from './helpers/closeRHPFlow';
 import getActiveRoute from './helpers/getActiveRoute';
 import getActiveTabName from './helpers/getActiveTabName';
@@ -49,6 +50,7 @@ import {isFullScreenName, isOnboardingFlowName, isSplitNavigatorName} from './he
 import isReportOpenInRHP from './helpers/isReportOpenInRHP';
 import isReportTopmostSplitNavigator from './helpers/isReportTopmostSplitNavigator';
 import isSideModalNavigator from './helpers/isSideModalNavigator';
+import {clearLastVisitedTabPaths} from './helpers/lastVisitedTabPathUtils';
 import linkTo from './helpers/linkTo';
 import getMinimalAction, {getNestedAction, isNamedActionPayload} from './helpers/linkTo/getMinimalAction';
 import {popAndRealignMfaMarker} from './helpers/mfaModalMarkerPreservation';
@@ -589,22 +591,47 @@ function goUp(backToRoute: Route, options?: GoBackOptions): boolean {
             (route, idx) => idx < topRootIndex && route.name === NAVIGATORS.TAB_NAVIGATOR && route.state?.routes?.at(route.state?.index ?? 0)?.name === payload.name,
         );
         const jumpParams = 'params' in payload ? payload.params : undefined;
+        let destinationTabState = targetState;
         if (underlyingTabNavIndex !== -1) {
             // A prevented pop leaves the tab navigator covered, so jumping in it would change the tab under the prompt.
-            if (!dispatch(StackActions.pop(topRootIndex - underlyingTabNavIndex))) {
+            // Without a target, the deepest focused stack (e.g. Settings) would take the pop.
+            if (!dispatch({...StackActions.pop(topRootIndex - underlyingTabNavIndex), target: rootState.key})) {
                 return true;
             }
             // The uncovered tab navigator has the right tab active, but not necessarily the requested screen inside
             // it, so the jump still has to be applied there rather than to the tab navigator that was popped.
-            const underlyingTabStateKey = rootState.routes.at(underlyingTabNavIndex)?.state?.key;
-            if (underlyingTabStateKey) {
-                dispatch({...TabActions.jumpTo(payload.name, jumpParams), target: underlyingTabStateKey});
+            const underlyingTabState = rootState.routes.at(underlyingTabNavIndex)?.state;
+            if (!underlyingTabState?.key) {
+                return true;
             }
-            return true;
+            destinationTabState = underlyingTabState;
+        }
+
+        // jumpTo with params keeps the split the tab shows, so a split of another workspace or domain would keep its
+        // sidebar. Replace it inside the tab instead, keeping the routes under it.
+        const destinationTabIndex = destinationTabState.routes.findIndex((route) => route.name === payload.name);
+        const destinationTabStack = destinationTabIndex === -1 ? undefined : destinationTabState.routes.at(destinationTabIndex)?.state;
+        // Only a mounted tab has a split to replace.
+        if (destinationTabStack?.key && destinationTabStack.stale === false) {
+            const {
+                action: splitAction,
+                targetState: splitTargetState,
+                isFocusedRouteInDifferentScope,
+            } = getMinimalAction(getNestedAction(minimalAction, destinationTabStack), destinationTabStack);
+            if (isFocusedRouteInDifferentScope && splitTargetState.key === destinationTabStack.key) {
+                // A guard kept the other split, so don't show the tab with it.
+                if (!dispatch({...splitAction, type: CONST.NAVIGATION.ACTION_TYPE.REPLACE, target: destinationTabStack.key})) {
+                    return true;
+                }
+                if (destinationTabState.index !== destinationTabIndex) {
+                    dispatch({...TabActions.jumpTo(payload.name), target: destinationTabState.key});
+                }
+                return true;
+            }
         }
         dispatch({
             ...TabActions.jumpTo(payload.name, jumpParams),
-            target: targetState.key,
+            target: destinationTabState.key,
         });
         return true;
     }
@@ -768,6 +795,12 @@ function popToSidebar(options?: {shouldSkipFocusRestore?: boolean}): boolean {
  */
 function resetToAppRoot() {
     navigationRef.current?.reset({index: 0, routes: [{name: NAVIGATORS.TAB_NAVIGATOR}]});
+}
+
+/** Called on every session boundary (sign-out, copilot switch), so add any new per-session navigation cache here. */
+function clearSessionNavigationState() {
+    clearPreservedNavigatorStates();
+    clearLastVisitedTabPaths();
 }
 
 /**
@@ -1393,6 +1426,7 @@ export default {
     waitForProtectedRoutes,
     resetToHome,
     resetToAppRoot,
+    clearSessionNavigationState,
     goBackToHome,
     closeRHPFlow,
     setNavigationActionToMicrotaskQueue,

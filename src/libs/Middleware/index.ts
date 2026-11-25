@@ -1,4 +1,6 @@
+import DiscardStaleSearchSnapshot from './DiscardStaleSearchSnapshot';
 import FailureTracking from './FailureTracking';
+import FlagSearchTransactionWrites from './FlagSearchTransactionWrites';
 import FraudMonitoring from './FraudMonitoring';
 import GlobalReimbursementPayError from './GlobalReimbursementPayError';
 import handleDeletedAccount from './HandleDeletedAccount';
@@ -7,8 +9,10 @@ import HandleUnusedOptimisticID from './HandleUnusedOptimisticID';
 import LoadPostDataForOpenOrReconnect from './LoadPostDataForOpenOrReconnect';
 import LoadTest from './LoadTest';
 import Logging from './Logging';
+import MembersNeedCategoryError from './MembersNeedCategoryError';
 import {Pagination} from './Pagination';
 import Reauthentication from './Reauthentication';
+import ReceiptTelemetry from './ReceiptTelemetry';
 import ReconcileBulkEditReportAction from './ReconcileBulkEditReportAction';
 import RecordFullReconnectTime from './RecordFullReconnectTime';
 import ReplaceOptimisticAgentAccountID from './ReplaceOptimisticAgentAccountID';
@@ -17,20 +21,24 @@ import SentryServerTiming from './SentryServerTiming';
 import SupportalPermission from './SupportalPermission';
 
 export {
+    DiscardStaleSearchSnapshot,
     ReplaceOptimisticAgentAccountID,
     HandleMovedScanFailedExpenses,
     HandleUnusedOptimisticID,
     LoadTest,
     Logging,
     Reauthentication,
+    ReceiptTelemetry,
     RecordFullReconnectTime,
     ReconcileBulkEditReportAction,
     FailureTracking,
+    FlagSearchTransactionWrites,
     SaveResponseInOnyx,
     Pagination,
     handleDeletedAccount,
     SupportalPermission,
     GlobalReimbursementPayError,
+    MembersNeedCategoryError,
     FraudMonitoring,
     LoadPostDataForOpenOrReconnect,
     SentryServerTiming,

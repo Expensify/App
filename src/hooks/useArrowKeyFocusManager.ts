@@ -1,6 +1,6 @@
 import CONST from '@src/CONST';
 
-import {useEffect, useEffectEvent, useState} from 'react';
+import {useEffect, useEffectEvent, useLayoutEffect, useRef, useState} from 'react';
 
 import useKeyboardShortcut from './useKeyboardShortcut';
 import usePrevious from './usePrevious';
@@ -143,8 +143,6 @@ export default function useArrowKeyFocusManager({
         onArrowUpDownCallback();
     };
 
-    useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ARROW_UP, arrowUpCallback, arrowConfig);
-
     const arrowDownCallback = () => {
         if (maxIndex < 0 || !isFocused) {
             return;
@@ -190,8 +188,6 @@ export default function useArrowKeyFocusManager({
         onArrowUpDownCallback();
     };
 
-    useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ARROW_DOWN, arrowDownCallback, arrowConfig);
-
     const arrowLeftCallback = () => {
         if (maxIndex < 0 || !allowHorizontalArrowKeys) {
             return;
@@ -215,8 +211,6 @@ export default function useArrowKeyFocusManager({
             return newFocusedIndex;
         });
     };
-
-    useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ARROW_LEFT, arrowLeftCallback, horizontalArrowConfig);
 
     const arrowRightCallback = () => {
         if (maxIndex < 0 || !allowHorizontalArrowKeys) {
@@ -242,8 +236,25 @@ export default function useArrowKeyFocusManager({
         });
     };
 
-    useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ARROW_RIGHT, arrowRightCallback, horizontalArrowConfig);
+    // The keys are subscribed to wrappers that never change, which call the latest handlers. A new handler would
+    // subscribe again and go to the top of the shortcut stack, so a list re-rendering behind a dropdown opened over it,
+    // e.g. when its rows change, would take the dropdown's arrow keys.
+    const arrowHandlersRef = useRef({up: arrowUpCallback, down: arrowDownCallback, left: arrowLeftCallback, right: arrowRightCallback});
+    useLayoutEffect(() => {
+        arrowHandlersRef.current = {up: arrowUpCallback, down: arrowDownCallback, left: arrowLeftCallback, right: arrowRightCallback};
+    });
+    const handleArrowUp = () => arrowHandlersRef.current.up();
+    const handleArrowDown = () => arrowHandlersRef.current.down();
+    const handleArrowLeft = () => arrowHandlersRef.current.left();
+    const handleArrowRight = () => arrowHandlersRef.current.right();
+
+    useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ARROW_UP, handleArrowUp, arrowConfig);
+    useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ARROW_DOWN, handleArrowDown, arrowConfig);
+    useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ARROW_LEFT, handleArrowLeft, horizontalArrowConfig);
+    useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ARROW_RIGHT, handleArrowRight, horizontalArrowConfig);
 
     // Note: you don't need to manually manage focusedIndex in the parent. setFocusedIndexExternal is only exposed in case you want to reset focusedIndex or focus a specific item
     return [focusedIndex, setFocusedIndexExternal];
 }
+
+export type {Config as ArrowKeyFocusManagerConfig};

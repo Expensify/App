@@ -83,7 +83,7 @@ describe('touchEventBoundaryProps', () => {
     });
 
     it('does not report a sentryLabel that is not a known label', () => {
-        // Given a sentryLabel that is neither in CONST.SENTRY_LABEL nor built with a known prefix or suffix
+        // Given a sentryLabel that is not in CONST.SENTRY_LABEL
         // When the user taps the element with that label
         const {wasLogged} = touch({sentryLabel: 'john.smith@example.com'});
 
@@ -92,31 +92,22 @@ describe('touchEventBoundaryProps', () => {
     });
 
     it.each([
-        `${CONST.SENTRY_LABEL.LHN.OPTION_ROW}-ClearButton`,
+        `${CONST.SENTRY_LABEL.EMOJI_PICKER.SEARCH_INPUT}-ClearButton`,
+        `${CONST.SENTRY_LABEL.LHN.OPTION_ROW}ClearButton`,
         'Search-Filter-merchant',
-        'Search-Filter-statusNot',
         'Search-Filter-reportField-project-code',
         'Search-Advanced-Filter-category',
-        'Search-FilterPopupApply-tag',
+        'Search-FilterPopupApply-reportField-project-code',
         'DynamicHRSyncResultsPage-SkippedEmployees',
-    ])('reports a sentryLabel built at runtime in a known format: %s', (sentryLabel) => {
-        // Given a sentryLabel built from values in the code
+        'Socials-Twitter',
+        'footer.terms',
+    ])('does not report a label in a format that used to be allowed: %s', (sentryLabel) => {
+        // Given a sentryLabel in a format that used to be allowed, like the ones built from filter keys, test IDs, translation
+        // paths, icon names or a suffix appended to a CONST.SENTRY_LABEL value, that is not itself a CONST.SENTRY_LABEL value
         // When the user taps the element with that label
-        const {label} = touch({sentryLabel});
+        const {wasLogged} = touch({sentryLabel});
 
-        // Then the tap is named after it
-        expect(label).toBe(sentryLabel);
+        // Then the tap is not reported, so only labels written out in CONST.SENTRY_LABEL get through
+        expect(wasLogged).toBe(false);
     });
-
-    it.each(['Search-Filter', 'ClearButton', 'Report-Search-Filter-tag', 'LHN-OptionRow-ClearButton-Icon'])(
-        'does not report a sentryLabel that only contains a known prefix or suffix: %s',
-        (sentryLabel) => {
-            // Given a sentryLabel that doesn't start with a known prefix or end with a known suffix
-            // When the user taps the element with that label
-            const {wasLogged} = touch({sentryLabel});
-
-            // Then the tap is not reported
-            expect(wasLogged).toBe(false);
-        },
-    );
 });

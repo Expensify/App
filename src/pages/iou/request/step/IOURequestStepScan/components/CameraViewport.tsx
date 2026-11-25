@@ -18,6 +18,7 @@ import {getTorchModeProp} from '@pages/iou/request/step/IOURequestStepScan/utils
 import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
+import type {SentryLabel} from '@src/types/utils/SentryLabel';
 
 import type {ReactNode, RefObject} from 'react';
 import type {LayoutChangeEvent, ViewStyle} from 'react-native';
@@ -87,7 +88,7 @@ type CameraViewportProps = {
     shouldShowFlashButton: boolean;
 
     /** Sentry label for the flash button */
-    flashSentryLabel?: string;
+    flashSentryLabel?: SentryLabel;
 
     /** Current camera permission status; used to disable the flash button until granted */
     cameraPermissionStatus: PermissionStatus | null;
@@ -101,6 +102,9 @@ type CameraViewportProps = {
 
     /** Whether the torch is requested. VisionCamera applies it asynchronously, so it may not be lit yet */
     isTorchOn?: boolean;
+
+    /** Drawn over the live preview, and hidden while the preview is hidden */
+    overlay?: ReactNode;
 
     /** Extra content rendered below the viewfinder, inside the camera view */
     children?: ReactNode;
@@ -129,6 +133,7 @@ function CameraViewport({
     flash,
     hasFlash,
     setFlash,
+    overlay,
     isTorchOn = false,
     children,
 }: CameraViewportProps) {
@@ -197,6 +202,7 @@ function CameraViewport({
                         orientationSource="interface"
                         implementationMode="compatible"
                     />
+                    {!shouldHidePreview && overlay}
                     <Animated.View style={[styles.cameraFocusIndicator, cameraFocusIndicatorAnimatedStyle]} />
                     <Animated.View
                         pointerEvents="none"

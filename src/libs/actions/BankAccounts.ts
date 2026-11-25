@@ -8,6 +8,7 @@ import type {
     BankAccountHandlePlaidErrorParams,
     ConnectBankAccountParams,
     CreateCollectOnlyDepositAccountParams,
+    CreateTestBankAccountParams,
     DeletePaymentBankAccountParams,
     LinkPlaidToBankAccountParams,
     EnableGlobalReimbursementsForUSDBankAccountParams,
@@ -707,6 +708,12 @@ function addPersonalBankAccount(
     API.write(WRITE_COMMANDS.ADD_PERSONAL_BANK_ACCOUNT, parameters, onyxData);
 }
 
+function createTestBankAccount(type: CreateTestBankAccountParams['type']) {
+    const parameters: CreateTestBankAccountParams = {type};
+
+    API.write(WRITE_COMMANDS.CREATE_TEST_BANK_ACCOUNT, parameters);
+}
+
 function deletePaymentBankAccount(
     bankAccountID: number,
     personalPolicyID: string | undefined,
@@ -1398,6 +1405,16 @@ function clearWiseBankAccountFields() {
     Onyx.set(ONYXKEYS.RAM_ONLY_WISE_BANK_ACCOUNT_FIELDS, null);
 }
 
+/** Drops the form but keeps the picked country, since the country list opens as a new screen that starts on the stored country */
+function clearWiseBankAccountFieldsKeepingCountry(country: string) {
+    Onyx.set(ONYXKEYS.RAM_ONLY_WISE_BANK_ACCOUNT_FIELDS, {country});
+}
+
+/** Drops the result of the last submit, so the next visit opens on the form instead of the success screen */
+function clearWiseBankAccountForm() {
+    Onyx.merge(ONYXKEYS.FORMS.INTERNATIONAL_BANK_ACCOUNT_FORM, {isSuccess: null, errors: null, errorFields: null});
+}
+
 function clearReimbursementAccountBankCreation() {
     Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {isCreateCorpayBankAccount: null, isSuccess: null, isLoading: null});
 }
@@ -1802,7 +1819,7 @@ function createCorpayBankAccountForWalletFlow(data: InternationalBankAccountForm
         inputs: JSON.stringify(inputData),
     };
 
-    const onyxData: OnyxData<typeof ONYXKEYS.REIMBURSEMENT_ACCOUNT> = {
+    const onyxData: OnyxData<typeof ONYXKEYS.REIMBURSEMENT_ACCOUNT | typeof ONYXKEYS.FORMS.INTERNATIONAL_BANK_ACCOUNT_FORM_DRAFT> = {
         optimisticData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
@@ -1823,6 +1840,11 @@ function createCorpayBankAccountForWalletFlow(data: InternationalBankAccountForm
                     errors: null,
                     isSuccess: true,
                 },
+            },
+            {
+                onyxMethod: Onyx.METHOD.SET,
+                key: ONYXKEYS.FORMS.INTERNATIONAL_BANK_ACCOUNT_FORM_DRAFT,
+                value: null,
             },
         ],
         failureData: [
@@ -2132,6 +2154,7 @@ export {
     linkPlaidToBankAccount,
     clearLinkPlaidBankAccountErrors,
     createCorpayBankAccount,
+    createTestBankAccount,
     deletePaymentBankAccount,
     handlePlaidError,
     openPersonalBankAccountSetupView,
@@ -2167,6 +2190,8 @@ export {
     clearReimbursementAccountSaveCorpayOnboardingDirectorInformation,
     clearCorpayBankAccountFields,
     clearWiseBankAccountFields,
+    clearWiseBankAccountFieldsKeepingCountry,
+    clearWiseBankAccountForm,
     createWiseBankAccount,
     finishCorpayBankAccountOnboarding,
     shareBankAccountAndSetPayer,

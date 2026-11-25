@@ -13,7 +13,7 @@ import ViolationsUtils, {
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Beta, BetaOverrides, Policy, PolicyCategories, PolicyTagLists, PolicyVendors, Report, Transaction, TransactionViolation} from '@src/types/onyx';
+import type {Beta, BetaOverrides, Policy, PolicyCategories, PolicyTagLists, PolicyVendors, Report, ReportAction, Transaction, TransactionViolation} from '@src/types/onyx';
 import type {SageIntacctExportConfig} from '@src/types/onyx/Policy';
 import type {RuleFilterComparison, RuleFilterNode} from '@src/types/onyx/RuleFilters';
 import type {TransactionCollectionDataSet} from '@src/types/onyx/Transaction';
@@ -36,6 +36,12 @@ jest.mock('@expensify/react-native-hybrid-app', () => ({
 
 const categoryOutOfPolicyViolation = {
     name: CONST.VIOLATIONS.CATEGORY_OUT_OF_POLICY,
+    type: CONST.VIOLATION_TYPES.VIOLATION,
+    showInReview: true,
+};
+
+const restrictedCategoryViolation = {
+    name: CONST.VIOLATIONS.CATEGORY_NOT_ALLOWED,
     type: CONST.VIOLATION_TYPES.VIOLATION,
     showInReview: true,
 };
@@ -1181,6 +1187,50 @@ describe('getViolationsOnyxData', () => {
                 expect(getFutureDateResult().value).toContainEqual(futureDateViolation);
             });
 
+            it('should add futureDate violation for a time later than the +14 hour window on the latest date', () => {
+                // Given SmartScan saved today's UTC+14 date with a time that hasn't happened yet at UTC+14
+                jest.useFakeTimers();
+                jest.setSystemTime(new Date('2026-08-29T20:00:00Z'));
+                transaction.modifiedCreated = '2026-08-30 18:11:40';
+
+                // When the violations are calculated
+                // Then the time is compared like the backend does, so the violation is added
+                expect(getFutureDateResult().value).toContainEqual(futureDateViolation);
+            });
+
+            it('should not add futureDate violation for a time within the +14 hour window on the latest date', () => {
+                // Given SmartScan saved today's UTC+14 date with a time that has already happened at UTC+14
+                jest.useFakeTimers();
+                jest.setSystemTime(new Date('2026-08-29T20:00:00Z'));
+                transaction.modifiedCreated = '2026-08-30 09:30:00';
+
+                // When the violations are calculated
+                // Then the violation isn't added
+                expect(getFutureDateResult().value).not.toContainEqual(futureDateViolation);
+            });
+
+            it('should add futureDate violation for a time later than the +14 hour window on the current UTC date', () => {
+                // Given SmartScan saved the current UTC date with a time later than now + 14 hours
+                jest.useFakeTimers();
+                jest.setSystemTime(new Date('2026-08-29T02:00:00Z'));
+                transaction.modifiedCreated = '2026-08-29 18:00:00';
+
+                // When the violations are calculated
+                // Then the violation is added, because the date alone is within the window and only the time is beyond it
+                expect(getFutureDateResult().value).toContainEqual(futureDateViolation);
+            });
+
+            it('should not add futureDate violation for a time within the +14 hour window on the current UTC date', () => {
+                // Given SmartScan saved the current UTC date with a time earlier than now + 14 hours
+                jest.useFakeTimers();
+                jest.setSystemTime(new Date('2026-08-29T02:00:00Z'));
+                transaction.modifiedCreated = '2026-08-29 15:00:00';
+
+                // When the violations are calculated
+                // Then the violation isn't added
+                expect(getFutureDateResult().value).not.toContainEqual(futureDateViolation);
+            });
+
             it('should add futureDate violation from created when modifiedCreated is an empty string', () => {
                 jest.useFakeTimers();
                 jest.setSystemTime(new Date('2026-08-29T02:00:00Z'));
@@ -1841,6 +1891,91 @@ describe('getViolationsOnyxData', () => {
                 isInvoiceTransaction: false,
             });
             expect(result.value).toEqual(expect.arrayContaining([categoryOutOfPolicyViolation, ...transactionViolations]));
+        });
+
+        it('should remove the categoryNotAllowed violation when the owner can use the new category', () => {
+            // Given an expense with categoryNotAllowed, recoded to a category the owner can see
+            const ownerAccountID = 1;
+            policyCategories = {Food: {name: 'Food', enabled: true, visibleTo: {[ownerAccountID]: true}}};
+            const iouReport = createMock<Report>({reportID: '1234', type: CONST.REPORT.TYPE.EXPENSE, ownerAccountID});
+
+            // When the violations are recalculated
+            const result = ViolationsUtils.getViolationsOnyxData({
+                isVendorMatchingBetaEnabled: false,
+                ownerLogin: undefined,
+                updatedTransaction: transaction,
+                transactionViolations: [restrictedCategoryViolation],
+                policy,
+                policyTagList: policyTags,
+                policyCategories,
+                hasDependentTags: false,
+                isInvoiceTransaction: false,
+                iouReport,
+            });
+
+            // Then the violation is removed
+            expect(result.value).not.toContainEqual(restrictedCategoryViolation);
+        });
+
+        it.each([
+            [false, ''],
+            [false, undefined],
+            [false, CONST.SEARCH.CATEGORY_DEFAULT_VALUE],
+            [false, CONST.SEARCH.CATEGORY_EMPTY_VALUE],
+            [true, ''],
+            [true, undefined],
+            [true, CONST.SEARCH.CATEGORY_DEFAULT_VALUE],
+            [true, CONST.SEARCH.CATEGORY_EMPTY_VALUE],
+        ])('should clear categoryNotAllowed when requiresCategory is %s and category is %s', (requiresCategory, category) => {
+            // Given an expense with a restricted category warning and no owner account ID available
+            policy.requiresCategory = requiresCategory;
+            transaction.category = category;
+
+            // When the category is cleared, its restriction no longer applies
+            const result = ViolationsUtils.getViolationsOnyxData({
+                isVendorMatchingBetaEnabled: false,
+                ownerLogin: undefined,
+                updatedTransaction: transaction,
+                transactionViolations: [restrictedCategoryViolation],
+                policy,
+                policyTagList: policyTags,
+                policyCategories,
+                hasDependentTags: false,
+                isInvoiceTransaction: false,
+            });
+
+            // Then only the required category warning depends on the policy setting
+            expect(result.value).not.toContainEqual(restrictedCategoryViolation);
+            if (requiresCategory) {
+                expect(result.value).toContainEqual(missingCategoryViolation);
+            } else {
+                expect(result.value).not.toContainEqual(missingCategoryViolation);
+            }
+        });
+
+        it('should keep the categoryNotAllowed violation when the owner still cannot use the category', () => {
+            // Given an expense with categoryNotAllowed, coded to a category only another member can see
+            const ownerAccountID = 1;
+            const otherAccountID = 2;
+            policyCategories = {Food: {name: 'Food', enabled: true, visibleTo: {[otherAccountID]: true}}};
+            const iouReport = createMock<Report>({reportID: '1234', type: CONST.REPORT.TYPE.EXPENSE, ownerAccountID});
+
+            // When the violations are recalculated
+            const result = ViolationsUtils.getViolationsOnyxData({
+                isVendorMatchingBetaEnabled: false,
+                ownerLogin: undefined,
+                updatedTransaction: transaction,
+                transactionViolations: [restrictedCategoryViolation],
+                policy,
+                policyTagList: policyTags,
+                policyCategories,
+                hasDependentTags: false,
+                isInvoiceTransaction: false,
+                iouReport,
+            });
+
+            // Then the violation stays
+            expect(result.value).toContainEqual(restrictedCategoryViolation);
         });
 
         it('should not include a categoryOutOfPolicy violation when category is in policy', () => {
@@ -4866,6 +5001,127 @@ describe('getRBRMessages', () => {
         const expectedResult = `${translateLocal('violations.missingCategory')}. ${translateLocal('violations.missingTag')}.`;
 
         expect(result).toBe(expectedResult);
+    });
+
+    it('should deduplicate the server rejection message when ReceiptError carries the same server reason', () => {
+        // Given a scan transaction with a server rejection string and a reconciled ReceiptError carrying that same message.
+        const serverReason = 'New expenses cannot be added to this report.';
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- Onyx.merge combines server string errors and client ReceiptError entries on the same errors map at runtime.
+        const mixedErrors = {
+            receiptError: {
+                error: CONST.IOU.RECEIPT_ERROR,
+                source: 'file:///receipt.jpg',
+                filename: 'receipt.jpg',
+                message: serverReason,
+            },
+            serverError: serverReason,
+        } as unknown as Transaction['errors'];
+        const transactionWithErrors: Transaction = {
+            ...mockTransaction,
+            errors: mixedErrors,
+        };
+
+        // When building the RBR message for the report table row.
+        const result = ViolationsUtils.getRBRMessages({
+            dateFnsLocale: undefined,
+            transaction: transactionWithErrors,
+            transactionViolations: [],
+            translate: translateLocal,
+            convertToDisplayString,
+            transactionThreadActions: [],
+        });
+
+        // Then only the server rejection reason is returned without appending Receipt upload failed.
+        expect(result).toBe(serverReason);
+    });
+
+    it('should preserve the generic receipt failure message alongside an unrelated transaction error', () => {
+        // Given a scan transaction with an ordinary ReceiptError and an unrelated server edit error string.
+        const editError = 'Unable to find that request';
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- Onyx.merge combines server string errors and client ReceiptError entries on the same errors map at runtime.
+        const mixedErrors = {
+            receiptError: {
+                error: CONST.IOU.RECEIPT_ERROR,
+                source: 'file:///receipt.jpg',
+                filename: 'receipt.jpg',
+            },
+            editError,
+        } as unknown as Transaction['errors'];
+        const transactionWithErrors: Transaction = {
+            ...mockTransaction,
+            errors: mixedErrors,
+        };
+
+        // When building the RBR message for the report table row.
+        const result = ViolationsUtils.getRBRMessages({
+            dateFnsLocale: undefined,
+            transaction: transactionWithErrors,
+            transactionViolations: [],
+            translate: translateLocal,
+            convertToDisplayString,
+            transactionThreadActions: [],
+        });
+
+        // Then both the receipt upload failure and the unrelated edit error are returned.
+        expect(result).toBe(`${translateLocal('iou.error.receiptFailureMessageShort')} ${editError}`);
+    });
+
+    it('should keep the generic receipt failure message when only a ReceiptError is present', () => {
+        // Given a scan transaction with only a ReceiptError and no server error string.
+        const transactionWithReceiptError: Transaction = {
+            ...mockTransaction,
+            errors: {
+                receiptError: {
+                    error: CONST.IOU.RECEIPT_ERROR,
+                    source: 'file:///receipt.jpg',
+                    filename: 'receipt.jpg',
+                },
+            },
+        };
+
+        // When building the RBR message for the report table row.
+        const result = ViolationsUtils.getRBRMessages({
+            dateFnsLocale: undefined,
+            transaction: transactionWithReceiptError,
+            transactionViolations: [],
+            translate: translateLocal,
+            convertToDisplayString,
+            transactionThreadActions: [],
+        });
+
+        // Then the generic short receipt failure copy is still returned.
+        expect(result).toBe(translateLocal('iou.error.receiptFailureMessageShort'));
+    });
+
+    it('should preserve the generic receipt failure message when an unrelated thread action fails', () => {
+        // Given a scan transaction with only a ReceiptError and an unrelated failed comment in its thread.
+        const commentError = 'Failed to post comment.';
+        const transactionWithReceiptError: Transaction = {
+            ...mockTransaction,
+            errors: {
+                receiptError: {
+                    error: CONST.IOU.RECEIPT_ERROR,
+                    source: 'file:///receipt.jpg',
+                    filename: 'receipt.jpg',
+                },
+            },
+        };
+        const failedThreadComment = createMock<ReportAction>({
+            errors: {commentError},
+        });
+
+        // When building the RBR message for the report table row.
+        const result = ViolationsUtils.getRBRMessages({
+            dateFnsLocale: undefined,
+            transaction: transactionWithReceiptError,
+            transactionViolations: [],
+            translate: translateLocal,
+            convertToDisplayString,
+            transactionThreadActions: [failedThreadComment],
+        });
+
+        // Then both the receipt failure message and the failed thread comment message are returned.
+        expect(result).toBe(`${translateLocal('iou.error.receiptFailureMessageShort')} ${commentError}`);
     });
 });
 

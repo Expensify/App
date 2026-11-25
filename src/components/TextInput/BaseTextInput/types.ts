@@ -4,6 +4,7 @@ import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
 
 import type IconAsset from '@src/types/utils/IconAsset';
 import type WithSentryLabel from '@src/types/utils/SentryLabel';
+import type {SentryLabel} from '@src/types/utils/SentryLabel';
 
 import type {MarkdownRange, MarkdownStyle} from '@expensify/react-native-live-markdown';
 import type {NavigationProp, NavigationState} from '@react-navigation/native';
@@ -130,6 +131,9 @@ type CustomBaseTextInputProps = ForwardedFSClassProps &
         isLoading?: boolean;
         autoCompleteType?: string;
 
+        /** Web only. Defaults to ignoring password managers for email inputs unless email or username autofill is requested. Explicit true/false overrides this default. */
+        shouldIgnorePasswordManager?: boolean;
+
         /** List of markdowns that won't be styled as a markdown */
         excludedMarkdownStyles?: Array<keyof MarkdownStyle>;
 
@@ -174,6 +178,9 @@ type CustomBaseTextInputProps = ForwardedFSClassProps &
 
         /** Callback when the input is cleared using the clear button */
         onClearInput?: () => void;
+
+        /** Sentry label of the clear button. Defaults to `CONST.SENTRY_LABEL.TEXT_INPUT.CLEAR_BUTTON` */
+        clearButtonSentryLabel?: SentryLabel;
 
         /** Whether the input should be enforced to take full height of container. Default is `false` */
         shouldUseFullInputHeight?: boolean;

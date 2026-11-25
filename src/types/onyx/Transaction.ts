@@ -117,6 +117,9 @@ type Comment = {
 
     liabilityType?: ValueOf<typeof CONST.TRANSACTION.LIABILITY_TYPE>;
 
+    /** Restriction saved at import: true/false locks reimbursability; null or missing allows changes regardless of later feed settings */
+    forceReimbursable?: boolean | null;
+
     /**
      * Accounting-system vendor matched to this expense.
      * Stored on non-reimbursable card expenses when a vendor is set either by the
@@ -134,6 +137,9 @@ type Comment = {
 
     /** Odometer end reading for distance expenses */
     odometerEnd?: number;
+
+    /** Distance unit the odometer readings were entered in, which can differ from customUnit.distanceUnit after the rate changes */
+    odometerUnit?: Unit | null;
 
     /** Both image fields are needed only locally because server receives only one merged image as receipt */
     /** Odometer start image (File object with uri on web, URI string on native) */
@@ -325,6 +331,9 @@ type ReceiptError = {
 
     /** Parameters required to retry the failed action */
     retryParams?: StartSplitBilActionParams | CreateTrackExpenseParams | RequestMoneyInformation | ReplaceReceiptRetryParams | string;
+
+    /** Server rejection reason attached when expense creation failed with a specific message */
+    message?: string;
 
     error: typeof CONST.IOU.RECEIPT_ERROR;
 };

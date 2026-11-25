@@ -14,6 +14,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import isHTMLElement from '@libs/isHTMLElement';
 import type {PlatformStackNavigationState} from '@libs/Navigation/PlatformStackNavigation/types';
 
 import SearchTypeMenuWide from '@pages/Search/SearchTypeMenuWide';
@@ -25,18 +26,21 @@ import SCREENS from '@src/SCREENS';
 
 import type {ParamListBase} from '@react-navigation/native';
 
-import React, {useEffect} from 'react';
+import React, {useEffect, useRef} from 'react';
 import {View} from 'react-native';
 import Animated from 'react-native-reanimated';
 
+import useShouldUseFlatNavigationBar from './FlatNavigationBar/useShouldUseFlatNavigationBar';
+import PeekSurfaceContext from './PeekSurfaceContext';
 import {
     useSearchSidebarCollapse,
     useSearchSidebarCollapseFadeStyle,
-    useSearchSidebarLayoutWidthStyle,
+    useSearchSidebarDockedWidthStyle,
     useSearchSidebarToggleButtonStyle,
     useSearchSidebarVisualWidthStyle,
 } from './SearchSidebarCollapseStore';
 import TopBar from './TopBar';
+import useEndPeekOnFocusLeave from './useEndPeekOnFocusLeave';
 
 type SearchSidebarProps = {
     state: PlatformStackNavigationState<ParamListBase>;
@@ -49,11 +53,13 @@ function SearchSidebar({state}: SearchSidebarProps) {
     const {isOffline} = useNetwork();
     const shouldShowLoadingBarForReports = useLoadingBarVisibility();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const {isCollapsed, toggleSidebar, startPeek, endPeek} = useSearchSidebarCollapse();
-    const layoutSpacerStyle = useSearchSidebarLayoutWidthStyle();
+    const shouldUseFlatNavigationBar = useShouldUseFlatNavigationBar();
+    const {isCollapsed, isPeeking, toggleSidebar, startPeek, endPeek} = useSearchSidebarCollapse();
+    const dockedWidthStyle = useSearchSidebarDockedWidthStyle();
     const visualSidebarWidthStyle = useSearchSidebarVisualWidthStyle();
     const breadcrumbAnimatedStyle = useSearchSidebarCollapseFadeStyle();
     const toggleButtonAnimatedStyle = useSearchSidebarToggleButtonStyle();
+    const sidebarRef = useRef<HTMLElement>(null);
 
     const route = state.routes.at(-1);
     const {lastSearchType, currentSearchResults} = useSearchResultsContext();
@@ -77,6 +83,35 @@ function SearchSidebar({state}: SearchSidebarProps) {
 
         return endPeek;
     }, [endPeek, shouldUseNarrowLayout]);
+
+    // An open saved search menu holds the peek, because collapsing would unmount the menu. The menu is portaled outside the sidebar's DOM, so two things would
+    // otherwise end the peek under it: the hover-out React sends through the portal when the pointer leaves the window from the menu's backdrop,
+    // and focus moving into the menu. One flag is enough, because the backdrop keeps a second menu from opening before the first one is gone.
+    const isPeekHeldRef = useRef(false);
+
+    const endPeekUnlessHeld = () => {
+        if (isPeekHeldRef.current) {
+            return;
+        }
+        endPeek();
+    };
+
+    const holdPeekUntilMenuCloses = () => {
+        isPeekHeldRef.current = true;
+    };
+
+    // A saved search's menu is portaled, so its closing sends the sidebar no hover-out and the pointer is read instead.
+    // Keyboard focus keeps the peek, because Escape returns it to the menu's button, but mouse focus does not, so a clicked row cannot hold the peek.
+    const endPeekIfPointerLeft = () => {
+        isPeekHeldRef.current = false;
+        const element = sidebarRef.current;
+        if (isHTMLElement(element) && (element.matches(':hover') || !!element.querySelector(':focus-visible'))) {
+            return;
+        }
+        endPeek();
+    };
+
+    useEndPeekOnFocusLeave(sidebarRef, isPeeking, endPeekUnlessHeld);
 
     const shouldShowLoadingState = route?.name === SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT ? false : !isOffline && !!isSearchLoading;
 
@@ -106,28 +141,34 @@ function SearchSidebar({state}: SearchSidebarProps) {
     );
 
     return (
-        <Animated.View style={layoutSpacerStyle}>
-            <Hoverable onHoverOut={endPeek}>
-                <Animated.View style={[styles.searchSidebar, styles.stickToLeft, styles.zIndex1, visualSidebarWidthStyle]}>
-                    <View style={styles.flex1}>
-                        <TopBar
-                            shouldShowLoadingBar={shouldShowLoadingState || shouldShowLoadingBarForReports}
-                            breadcrumbLabel={translate('common.spend')}
-                            breadcrumbAnimatedStyle={breadcrumbAnimatedStyle}
-                            shouldDisplaySearch={false}
-                            shouldDisplayHelpButton={false}
-                        >
-                            {toggleButton}
-                        </TopBar>
-                        <Hoverable onHoverIn={startPeek}>
-                            <View style={styles.flex1}>
-                                <SearchTypeMenuWide />
-                            </View>
-                        </Hoverable>
-                    </View>
-                </Animated.View>
-            </Hoverable>
-        </Animated.View>
+        <PeekSurfaceContext.Provider value={{holdPeekUntilMenuCloses, endPeekIfPointerLeft}}>
+            <Animated.View style={[styles.stickToLeft, dockedWidthStyle]}>
+                <Hoverable
+                    ref={sidebarRef}
+                    onHoverOut={endPeekUnlessHeld}
+                >
+                    <Animated.View style={[styles.searchSidebar, styles.stickToLeft, styles.zIndex1, visualSidebarWidthStyle]}>
+                        <View style={styles.flex1}>
+                            <TopBar
+                                shouldShowLoadingBar={shouldShowLoadingState || shouldShowLoadingBarForReports}
+                                breadcrumbLabel={translate('common.spend')}
+                                breadcrumbAnimatedStyle={breadcrumbAnimatedStyle}
+                                shouldDisplaySearch={false}
+                                shouldDisplayHelpButton={false}
+                            >
+                                {/* The flat navigation bar has its own toggle for the one flag both share. */}
+                                {!shouldUseFlatNavigationBar && toggleButton}
+                            </TopBar>
+                            <Hoverable onHoverIn={startPeek}>
+                                <View style={styles.flex1}>
+                                    <SearchTypeMenuWide />
+                                </View>
+                            </Hoverable>
+                        </View>
+                    </Animated.View>
+                </Hoverable>
+            </Animated.View>
+        </PeekSurfaceContext.Provider>
     );
 }
 

@@ -4,6 +4,8 @@ import Text from '@components/Text';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import type {SentryLabel, WithSentryLabelWhenPressable} from '@src/types/utils/SentryLabel';
+
 import type {StyleProp, ViewStyle} from 'react-native';
 
 import React from 'react';
@@ -11,18 +13,18 @@ import {View} from 'react-native';
 
 import ActionButtons from './ActionButtons';
 
-type BasePopupProps = React.PropsWithChildren & {
-    label?: string;
-    showLabel?: boolean;
-    shouldShowActionButtons?: boolean;
-    applySentryLabel: string;
-    resetSentryLabel?: string;
-    style?: StyleProp<ViewStyle>;
-    shouldSubmitOnEnter?: boolean;
-    onApply: () => void;
-    onReset?: () => void;
-    onBackButtonPress?: () => void;
-};
+type BasePopupProps = React.PropsWithChildren &
+    WithSentryLabelWhenPressable<'onReset', 'resetSentryLabel'> & {
+        label?: string;
+        showLabel?: boolean;
+        shouldShowActionButtons?: boolean;
+        applySentryLabel: SentryLabel;
+        style?: StyleProp<ViewStyle>;
+        shouldSubmitOnEnter?: boolean;
+        onApply: () => void;
+        onReset?: () => void;
+        onBackButtonPress?: () => void;
+    };
 
 function BasePopup({
     children,
@@ -40,6 +42,8 @@ function BasePopup({
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
     const styles = useThemeStyles();
+    // ActionButtons requires the reset label with onReset, so the two are passed on together.
+    const resetProps = onReset ? {onReset, resetSentryLabel} : {};
 
     const shouldDisplayLabel = (showLabel ?? isSmallScreenWidth) && !!label;
 
@@ -59,10 +63,9 @@ function BasePopup({
             {shouldShowActionButtons && (
                 <ActionButtons
                     containerStyle={[styles.flexRow, styles.gap2, styles.ph5, styles.mt2]}
-                    onReset={onReset}
+                    {...resetProps}
                     onApply={onApply}
                     applySentryLabel={applySentryLabel}
-                    resetSentryLabel={resetSentryLabel}
                     shouldSubmitOnEnter={shouldSubmitOnEnter}
                 />
             )}

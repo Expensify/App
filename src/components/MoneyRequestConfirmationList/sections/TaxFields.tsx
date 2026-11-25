@@ -1,3 +1,5 @@
+import DropdownField from '@components/DropdownField';
+import DropdownFieldRow from '@components/DropdownFieldRow';
 import MenuItem from '@components/MenuItem';
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import {useConfirmationFields} from '@components/MoneyRequestConfirmationFields/context';
@@ -8,7 +10,6 @@ import {SELECTION_LIST_POPOVER_HEADER_HEIGHT} from '@components/SelectionListPop
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {setMoneyRequestTaxAmount} from '@libs/actions/IOU/MoneyRequest';
@@ -19,7 +20,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import {getCalculatedTaxAmount, getEnabledTaxRateCount, getTaxAmount, getTaxRateTitle} from '@libs/TransactionUtils';
 
 import {setDraftSplitTransaction} from '@userActions/IOU/Split';
-import {callFunctionIfActionIsAllowed} from '@userActions/Session';
+import {callIfAuthenticated} from '@userActions/Session';
 
 import CONST from '@src/CONST';
 import type {IOUAction, IOUType} from '@src/CONST';
@@ -34,11 +35,11 @@ import {authTokenTypeSelector} from '@selectors/Session';
 import React, {useEffect, useRef} from 'react';
 import {View} from 'react-native';
 
-import ExpenseFieldDropdown from './ExpenseFieldDropdown';
-import ExpenseFieldRow from './ExpenseFieldRow';
+import ExpenseFieldContainer from './ExpenseFieldContainer';
 import {useExpenseFormLayout} from './ExpenseFormLayoutContext';
 import {taxSliceSelector} from './selectors';
 import TaxFieldDropdown from './TaxFieldDropdown';
+import useSplitDraftBaseTransaction from './useSplitDraftBaseTransaction';
 import useTransactionSelector from './useTransactionSelector';
 
 type TaxFieldsProps = {
@@ -62,12 +63,10 @@ function TaxFields({policy, policyForMovingExpenses, iouCurrencyCode, canModifyT
     const {translate, preferredLocale} = useLocalize();
     const {convertToDisplayString, getCurrencyDecimals, getCurrencySymbol} = useCurrencyListActions();
     const {isEditingSplitBill, onTaxAmountEmptyChange} = useConfirmationFields();
-    const {isBetaEnabled} = usePermissions();
     const numberFormRef = useRef<NumberWithSymbolFormRef | null>(null);
 
-    const [splitDraftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`);
-
     const taxSlice = useTransactionSelector(transactionID, taxSliceSelector);
+    const {baseTransaction} = useSplitDraftBaseTransaction(transactionID);
 
     const transactionForHelpers = taxSlice as OnyxEntry<OnyxTypes.Transaction>;
 
@@ -80,7 +79,7 @@ function TaxFields({policy, policyForMovingExpenses, iouCurrencyCode, canModifyT
     const decimals = getCurrencyDecimals(effectiveCurrency);
     const formattedTaxAmount = convertToDisplayString(taxAmount, effectiveCurrency);
     const taxAmountInput = convertToFrontendAmountAsString(taxAmount, decimals);
-    const taxRateTitle = getTaxRateTitle(policy, transactionForHelpers, isMovingCurrentTransactionFromTrackExpense, policyForMovingExpenses);
+    const taxRateTitle = getTaxRateTitle(translate, policy, transactionForHelpers, isMovingCurrentTransactionFromTrackExpense, policyForMovingExpenses);
 
     const taxAmountInputKey = `${taxSlice?.taxCode}-${taxSlice?.taxValue}-${taxSlice?.amount}-${effectiveCurrency}`;
 
@@ -108,7 +107,7 @@ function TaxFields({policy, policyForMovingExpenses, iouCurrencyCode, canModifyT
         // When editing a split expense, persist directly to the split draft so that
         // SplitBillDetailsPage and completeSplitBill read the latest value.
         if (isEditingSplitBill) {
-            setDraftSplitTransaction(transactionID, splitDraftTransaction, {taxAmount: taxAmountInSmallestCurrencyUnits}, getCurrencyDecimals, getCurrencySymbol);
+            setDraftSplitTransaction(translate, transactionID, baseTransaction, {taxAmount: taxAmountInSmallestCurrencyUnits}, getCurrencyDecimals, getCurrencySymbol);
             return;
         }
 
@@ -147,7 +146,7 @@ function TaxFields({policy, policyForMovingExpenses, iouCurrencyCode, canModifyT
 
     const canSaveFromThisForm = action !== CONST.IOU.ACTION.EDIT || isEditingSplitBill;
     const hasEnabledTaxRates = getEnabledTaxRateCount(taxRates?.taxes ?? {}) > 0;
-    const shouldOpenInDropdown = isBetaEnabled(CONST.BETAS.ANCHORED_FIELD_DROPDOWNS) && !!transactionID && !!taxRatesPolicy && canSaveFromThisForm && hasEnabledTaxRates;
+    const shouldOpenInDropdown = !!transactionID && !!taxRatesPolicy && canSaveFromThisForm && hasEnabledTaxRates;
 
     const openTaxRatePage = () => {
         if (!transactionID) {
@@ -169,15 +168,17 @@ function TaxFields({policy, policyForMovingExpenses, iouCurrencyCode, canModifyT
     // the tax-amount page: it reads the amount out for a user who cannot change it. Being non-interactive, the
     // dropdown-row form renders it as a disabled field rather than as one waiting to be filled in.
     const readOnlyTaxAmountRow = shouldUseDropdownRows ? (
-        <ExpenseFieldRow
-            name={translate('iou.taxAmount')}
-            value={formattedTaxAmount}
-            onPress={openTaxAmountPage}
-            isDisabled={didConfirm}
-            isInteractive={false}
-            testID={`${taxRates?.name}_amount`}
-            sentryLabel={CONST.SENTRY_LABEL.REQUEST_CONFIRMATION_LIST.TAX_AMOUNT_FIELD}
-        />
+        <ExpenseFieldContainer>
+            <DropdownFieldRow
+                name={translate('iou.taxAmount')}
+                value={formattedTaxAmount}
+                onPress={openTaxAmountPage}
+                isDisabled={didConfirm}
+                isInteractive={false}
+                testID={`${taxRates?.name}_amount`}
+                sentryLabel={CONST.SENTRY_LABEL.REQUEST_CONFIRMATION_LIST.TAX_AMOUNT_FIELD}
+            />
+        </ExpenseFieldContainer>
     ) : (
         <MenuItemField
             key={`${taxRates?.name}_amount`}
@@ -193,33 +194,35 @@ function TaxFields({policy, policyForMovingExpenses, iouCurrencyCode, canModifyT
     return (
         <>
             {shouldUseDropdownRows ? (
-                <ExpenseFieldDropdown
-                    name={taxRates?.name ?? translate('iou.taxRate')}
-                    value={taxRateTitle}
-                    errorText={shouldDisplayTaxRateError ? translate(formError as TranslationPaths) : ''}
-                    onPress={openTaxRatePage}
-                    shouldOpenInDropdown={shouldOpenInDropdown && canModifyTaxFields && !didConfirm}
-                    listHeaderHeight={SELECTION_LIST_POPOVER_HEADER_HEIGHT}
-                    renderDropdown={(dropdownProps) =>
-                        !!transactionID && (
-                            <TaxFieldDropdown
-                                {...dropdownProps}
-                                transactionID={transactionID}
-                                policy={taxRatesPolicy}
-                                selectedTaxRate={taxRateTitle}
-                            />
-                        )
-                    }
-                    isDisabled={didConfirm}
-                    isInteractive={canModifyTaxFields}
-                    testID={`${taxRates?.name}_rate`}
-                    sentryLabel={CONST.SENTRY_LABEL.REQUEST_CONFIRMATION_LIST.TAX_RATE_FIELD}
-                />
+                <ExpenseFieldContainer>
+                    <DropdownField
+                        name={taxRates?.name ?? translate('iou.taxRate')}
+                        value={taxRateTitle}
+                        errorText={shouldDisplayTaxRateError ? translate(formError as TranslationPaths) : ''}
+                        onPress={openTaxRatePage}
+                        shouldOpenInDropdown={shouldOpenInDropdown && canModifyTaxFields && !didConfirm}
+                        listHeaderHeight={SELECTION_LIST_POPOVER_HEADER_HEIGHT}
+                        renderDropdown={(dropdownProps) =>
+                            !!transactionID && (
+                                <TaxFieldDropdown
+                                    {...dropdownProps}
+                                    transactionID={transactionID}
+                                    policy={taxRatesPolicy}
+                                    selectedTaxRate={taxRateTitle}
+                                />
+                            )
+                        }
+                        isDisabled={didConfirm}
+                        isInteractive={canModifyTaxFields}
+                        testID={`${taxRates?.name}_rate`}
+                        sentryLabel={CONST.SENTRY_LABEL.REQUEST_CONFIRMATION_LIST.TAX_RATE_FIELD}
+                    />
+                </ExpenseFieldContainer>
             ) : (
                 <MenuItem.Root
                     key={`${taxRates?.name}_rate`}
                     testID={`${taxRates?.name}_rate`}
-                    onPress={canModifyTaxFields ? callFunctionIfActionIsAllowed(openTaxRatePage, false, session) : undefined}
+                    onPress={canModifyTaxFields ? callIfAuthenticated(openTaxRatePage, session) : undefined}
                     isDisabled={didConfirm}
                     sentryLabel={CONST.SENTRY_LABEL.REQUEST_CONFIRMATION_LIST.TAX_RATE_FIELD}
                 >

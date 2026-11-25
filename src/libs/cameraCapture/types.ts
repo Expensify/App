@@ -6,6 +6,8 @@ type CapturedPhoto = {
     width: number;
     height: number;
     orientation?: CameraOrientation;
+    captureDurationMs?: number;
+    saveDurationMs?: number;
 };
 
 export default CapturedPhoto;

@@ -1,14 +1,21 @@
 import {fireEvent, render, screen} from '@testing-library/react-native';
 
 import ApprovalWorkflowSection from '@components/ApprovalWorkflowSection';
+import FormHelpMessage from '@components/FormHelpMessage';
+import MenuItem from '@components/MenuItem';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 
+import CONST from '@src/CONST';
 import type ApprovalWorkflow from '@src/types/onyx/ApprovalWorkflow';
 
 import React from 'react';
 
-function mockTranslate(key: string): string {
+function mockTranslate(key: string, params?: {amount?: string}): string {
     switch (key) {
+        case 'workflowsPage.ifReportIsOver':
+            return `If report is over ${params?.amount}`;
+        case 'workflowsPage.finalApprover':
+            return 'Final approver';
         case 'workflowsPage.editWorkflowAction':
             return 'Edit';
         case 'workflowsPage.approver':
@@ -30,6 +37,7 @@ jest.mock('@hooks/useLocalize', () =>
     jest.fn(() => ({
         translate: mockTranslate,
         toLocaleOrdinal: (n: number) => String(n),
+        toLocaleOrdinalWithWords: (n: number) => ['First', 'Second', 'Third'].at(n - 1) ?? String(n),
         localeCompare: (a: string, b: string) => a.localeCompare(b),
     })),
 );
@@ -88,6 +96,43 @@ describe('ApprovalWorkflowSection', () => {
 
         // Then the admin sees an error telling them to fix it
         expect(screen.getByText('workflowsPage.approverNotWorkspaceMember')).toBeTruthy();
+        expect(screen.getByLabelText(CONST.ACCESSIBILITY_LABELS.ERROR)).toBeTruthy();
+        const approverRow = screen.UNSAFE_getAllByType(MenuItem).find((item) => item.props.sentryLabel === CONST.SENTRY_LABEL.WORKSPACE.WORKFLOWS.APPROVAL_SECTION_APPROVER);
+        expect(approverRow?.props.brickRoadIndicator).toBeUndefined();
+        expect(approverRow?.props.shouldBeAccessible).toBe(false);
+    });
+
+    it.each([false, true])('shows the same inline error for a removed regular or over-limit approver: %s', (isOverLimit) => {
+        // Given a removed approver represented as its own step, including optional over-limit steps
+        const brokenWorkflow: ApprovalWorkflow = {
+            ...baseWorkflow,
+            approvers: [
+                {
+                    ...baseWorkflow.approvers[0],
+                    overLimitAmount: isOverLimit ? 50000 : undefined,
+                    isNotWorkspaceMember: true,
+                },
+            ],
+        };
+
+        // When the workflow card renders
+        renderSection({approvalWorkflow: brokenWorkflow, onPress: jest.fn()});
+
+        // Then the same error follows either approver row, without restoring the obsolete forwarding note
+        const errorKey = 'workflowsPage.approverNotWorkspaceMember';
+        const approverRow = screen.UNSAFE_getAllByType(MenuItem).find((item) => item.props.sentryLabel === CONST.SENTRY_LABEL.WORKSPACE.WORKFLOWS.APPROVAL_SECTION_APPROVER);
+        const errorMessage = screen.UNSAFE_getAllByType(FormHelpMessage).find((message) => message.props.message === errorKey);
+        expect(approverRow).toBeDefined();
+        expect(errorMessage).toBeDefined();
+        expect(approverRow?.props.helperText).toBeUndefined();
+        const approverStep = approverRow?.parent?.findAll(() => true) ?? [];
+        expect(approverStep.findIndex((child) => child === errorMessage)).toBeGreaterThan(approverStep.findIndex((child) => child === approverRow));
+        expect(screen.getByText(errorKey)).toBeTruthy();
+
+        // And its text starts under the approver title, with the dot in the icon column instead of beside the text
+        expect(errorMessage?.props.shouldShowRedDotIndicator).toBe(false);
+        expect(errorMessage?.props.style).toEqual(expect.arrayContaining([expect.objectContaining({marginLeft: 12})]));
+        expect(screen.getByLabelText(CONST.ACCESSIBILITY_LABELS.ERROR)).toBeTruthy();
     });
 
     it('does not show the non-member error for a regular approver', () => {
@@ -126,6 +171,57 @@ describe('ApprovalWorkflowSection', () => {
         expect(screen.queryByText('workflowsPage.approverNotWorkspaceMember')).toBeNull();
     });
 
+    it('names a lone approver without a position', () => {
+        // Given a workflow with a single approver
+        // When the workflow card renders
+        renderSection({approvalWorkflow: baseWorkflow, onPress: jest.fn()});
+
+        // Then there's no first or final approver to tell apart, so they're just the approver
+        expect(screen.getByText('Approver')).toBeTruthy();
+    });
+
+    it('names the approvers from the first to the final one, and each optional over-limit approver after the amount they get the reports over', () => {
+        // Given a workflow whose first approver is followed by two optional over-limit approvers and then one more approver
+        const overLimitWorkflow: ApprovalWorkflow = {
+            ...baseWorkflow,
+            approvers: [
+                {email: 'alice@example.com', displayName: 'Alice'},
+                {email: 'brandon@example.com', displayName: 'Brandon', overLimitAmount: 100000},
+                {email: 'cathy@example.com', displayName: 'Cathy', overLimitAmount: 200000},
+                {email: 'charlie@example.com', displayName: 'Charlie'},
+            ],
+        };
+
+        // When the workflow card renders
+        renderSection({approvalWorkflow: overLimitWorkflow, onPress: jest.fn()});
+
+        // Then the over-limit approvers are named after their amounts, and the approver after them is the final one since they don't count
+        expect(screen.getByText('First approver')).toBeTruthy();
+        expect(screen.getAllByText(/^If report is over/)).toHaveLength(2);
+        expect(screen.getByText('Final approver')).toBeTruthy();
+    });
+
+    it('does not name an approver final when an optional over-limit approver comes after them', () => {
+        // Given a workflow where an optional over-limit approver gets the reports over an amount after the last regular approver
+        const overLimitWorkflow: ApprovalWorkflow = {
+            ...baseWorkflow,
+            approvers: [
+                {email: 'alice@example.com', displayName: 'Alice'},
+                {email: 'erica@example.com', displayName: 'Erica', overLimitAmount: 100000},
+                {email: 'joe@example.com', displayName: 'Joe'},
+                {email: 'cathy@example.com', displayName: 'Cathy', overLimitAmount: 200000},
+            ],
+        };
+
+        // When the workflow card renders
+        renderSection({approvalWorkflow: overLimitWorkflow, onPress: jest.fn()});
+
+        // Then the last regular approver is named by their place, since reports over the last amount still go to someone after them
+        expect(screen.getByText('First approver')).toBeTruthy();
+        expect(screen.getByText('Second approver')).toBeTruthy();
+        expect(screen.queryByText('Final approver')).toBeNull();
+    });
+
     it('does not show the non-member error to someone who cannot edit the workflow', () => {
         // Given a workflow whose approver was removed from the workspace, shown read-only
         const brokenWorkflow: ApprovalWorkflow = {...baseWorkflow, approvers: [{email: 'removed@example.com', displayName: 'removed@example.com', isNotWorkspaceMember: true}]};
@@ -135,5 +231,22 @@ describe('ApprovalWorkflowSection', () => {
 
         // Then no error is shown, since there is no Edit button to act on it
         expect(screen.queryByText('workflowsPage.approverNotWorkspaceMember')).toBeNull();
+    });
+
+    it('does not reorder the workflow members while showing them sorted', () => {
+        // Given a workflow whose members aren't in alphabetical order
+        const workflow: ApprovalWorkflow = {
+            ...baseWorkflow,
+            members: [
+                {email: 'zoe@example.com', displayName: 'Zoe'},
+                {email: 'adam@example.com', displayName: 'Adam'},
+            ],
+        };
+
+        // When the workflow card renders
+        renderSection({approvalWorkflow: workflow, onPress: jest.fn()});
+
+        // Then the members keep their order, since the Approvals list keys each workflow by its first member
+        expect(workflow.members.map((member) => member.email)).toEqual(['zoe@example.com', 'adam@example.com']);
     });
 });

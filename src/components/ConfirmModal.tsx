@@ -93,6 +93,12 @@ type ConfirmModalProps = {
     /** Whether the confirm button is loading */
     isConfirmLoading?: boolean;
 
+    /** Whether the confirm button is disabled */
+    isConfirmDisabled?: boolean;
+
+    /** Element shown on the right of the title and the subtitle, centered against both */
+    titleRightElement?: ReactNode;
+
     /** Whether to show a loading indicator next to the title */
     isTitleLoading?: boolean;
 
@@ -151,7 +157,9 @@ function ConfirmModal({
     shouldEnableNewFocusManagement,
     restoreFocusType,
     isConfirmLoading,
+    isConfirmDisabled,
     isTitleLoading,
+    titleRightElement,
     shouldHandleNavigationBack,
     shouldIgnoreBackHandlerDuringTransition,
     innerContainerStyle,
@@ -222,7 +230,9 @@ function ConfirmModal({
                 imageHeight={imageHeight}
                 shouldFitImageToContainer={shouldFitImageToContainer}
                 isConfirmLoading={isConfirmLoading}
+                isConfirmDisabled={isConfirmDisabled}
                 isTitleLoading={isTitleLoading}
+                titleRightElement={titleRightElement}
                 shouldEnablePromptScroll={shouldEnablePromptScroll}
                 shouldUseSuccessStyleForConfirm={shouldUseSuccessStyleForConfirm}
             />

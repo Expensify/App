@@ -4,7 +4,7 @@ import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
 
 import {convertAttendeesToArray, getAttendeesMinusOwnerCount, getIsMissingAttendeesViolation} from '@libs/AttendeeUtils';
 import {isPersonalCard} from '@libs/CardUtils';
-import {getDecodedCategoryName, isCategoryMissing} from '@libs/CategoryUtils';
+import {getDecodedCategoryName, isCategoryMissing, isCategoryVisibleToMember} from '@libs/CategoryUtils';
 import DateUtils from '@libs/DateUtils';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import {isReceiptError} from '@libs/ErrorUtils';
@@ -60,6 +60,8 @@ import Onyx from 'react-native-onyx';
 
 import type ViolationFixParams from './types';
 
+import {getNonDefaultViolationTranslation, isNonDefaultViolationName} from './getNonDefaultViolationTranslation';
+
 type ViolationTranslationParams = {
     violation: TransactionViolation;
     translate: LocaleContextProps['translate'];
@@ -81,7 +83,7 @@ type ViolationTranslationParams = {
  * Filters out receiptRequired violation when itemizedReceiptRequired is also present.
  * Itemized receipt requirement supersedes regular receipt requirement.
  */
-function filterReceiptViolations(violations: TransactionViolation[]): TransactionViolation[] {
+function filterReceiptViolations<TViolation extends {name: string}>(violations: TViolation[]): TViolation[] {
     const hasItemizedReceiptViolation = violations.some((v) => v.name === CONST.VIOLATIONS.ITEMIZED_RECEIPT_REQUIRED);
     const hasReceiptRequiredViolation = violations.some((v) => v.name === CONST.VIOLATIONS.RECEIPT_REQUIRED);
 
@@ -291,7 +293,7 @@ function formatViolationDate(date: string | undefined, dateFnsLocale: DateFnsLoc
         return undefined;
     }
 
-    return DateUtils.formatWithUTCTimeZone(date, CONST.DATE.MONTH_DAY_YEAR_FORMAT, dateFnsLocale);
+    return DateUtils.formatToLongDateInUTC(date, dateFnsLocale);
 }
 
 const RULE_VIOLATION_FILTER_ORDER = [
@@ -524,7 +526,9 @@ function extractErrorMessages(errors: Errors | ReceiptErrors, errorActions: Repo
         if (typeof errorValue === 'string') {
             uniqueMessages.add(errorValue);
         } else if (isReceiptError(errorValue)) {
-            uniqueMessages.add(translate('iou.error.receiptFailureMessageShort'));
+            // Use the server rejection message attached by reconcileFailureDataWithServerErrors when present
+            // so it deduplicates with transaction.errors, while keeping the generic copy for ordinary upload failures.
+            uniqueMessages.add(errorValue.message?.trim() ? errorValue.message : translate('iou.error.receiptFailureMessageShort'));
         } else {
             for (const nestedErrorValue of Object.values(errorValue)) {
                 if (!nestedErrorValue) {
@@ -801,6 +805,11 @@ const ViolationsUtils = {
             newTransactionViolations = reject(newTransactionViolations, {name: CONST.VIOLATIONS.SMARTSCAN_FAILED});
         }
 
+        // A cleared category cannot be restricted, even when the policy does not require categories.
+        if (isCategoryMissing(updatedTransaction.category)) {
+            newTransactionViolations = reject(newTransactionViolations, {name: CONST.VIOLATIONS.CATEGORY_NOT_ALLOWED});
+        }
+
         // Calculate client-side category violations. Also run when the transaction has a category (not just
         // when the policy requires one) so disabling that category flags it optimistically. Mirrors tags below.
         const policyRequiresCategories = (!!policy.requiresCategory || !!updatedTransaction.category) && !isSelfDM;
@@ -821,6 +830,13 @@ const ViolationsUtils = {
             // Remove 'categoryOutOfPolicy' violation if category is in policy
             if (hasCategoryOutOfPolicyViolation && updatedTransaction.category && isCategoryInPolicy) {
                 newTransactionViolations = reject(newTransactionViolations, {name: 'categoryOutOfPolicy'});
+            }
+
+            // Category restrictions belong to the expense owner, not the user editing the expense.
+            const ownerAccountID = iouReport?.ownerAccountID;
+            const hasRestrictedCategoryViolation = transactionViolations.some((violation) => violation.name === CONST.VIOLATIONS.CATEGORY_NOT_ALLOWED);
+            if (hasRestrictedCategoryViolation && ownerAccountID && isCategoryVisibleToMember(categoryData, ownerAccountID)) {
+                newTransactionViolations = reject(newTransactionViolations, {name: CONST.VIOLATIONS.CATEGORY_NOT_ALLOWED});
             }
 
             // Remove 'missingCategory' violation if category is valid according to policy
@@ -1235,6 +1251,10 @@ const ViolationsUtils = {
             missingFields = [],
         } = violation.data ?? {};
 
+        if (isNonDefaultViolationName(violation.name)) {
+            return getNonDefaultViolationTranslation(violation.name, translate);
+        }
+
         switch (violation.name) {
             case 'allTagLevelsRequired':
                 return translate('violations.allTagLevelsRequired');
@@ -1244,6 +1264,8 @@ const ViolationsUtils = {
                 return translate('violations.billableExpense');
             case 'cashExpenseWithNoReceipt':
                 return translate('violations.cashExpenseWithNoReceipt', !isEmptyObject(violation.data) ? convertToDisplayString(amount, currency) : undefined);
+            case 'categoryNotAllowed':
+                return translate('violations.categoryNotAllowed');
             case 'categoryOutOfPolicy':
                 return translate('violations.categoryOutOfPolicy');
             case 'conversionSurcharge':

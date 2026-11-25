@@ -18,6 +18,7 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type {Errors, PendingAction} from '@src/types/onyx/OnyxCommon';
 import type IconAsset from '@src/types/utils/IconAsset';
+import type {SentryLabel} from '@src/types/utils/SentryLabel';
 
 import type {ReactNode} from 'react';
 import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
@@ -38,7 +39,7 @@ type ToggleSettingOptionRowProps = {
     switchAccessibilityLabel: string;
 
     /** Label for Sentry tracking of the switch, from `CONST.SENTRY_LABEL`. Each feature passes its own so their interactions aren't grouped together. */
-    switchSentryLabel: string;
+    switchSentryLabel: SentryLabel;
 
     /** subtitle should show below switch and title */
     shouldPlaceSubtitleBelowSwitch?: boolean;
@@ -83,6 +84,9 @@ type ToggleSettingOptionRowProps = {
 
     /** If there is a pending action, we will grey out the option */
     pendingAction?: PendingAction;
+
+    /** Skips this row's own pending-action opacity, e.g. when an ancestor already dims it, to avoid stacking the dim */
+    shouldDisableOpacity?: boolean;
 
     /** Any error message to show */
     errors?: Errors;
@@ -131,6 +135,7 @@ function ToggleSettingOptionRow({
     isActive,
     disabledAction,
     pendingAction,
+    shouldDisableOpacity = false,
     errors,
     onCloseError,
     disabled = false,
@@ -247,6 +252,7 @@ function ToggleSettingOptionRow({
     return (
         <OfflineWithFeedback
             pendingAction={pendingAction}
+            shouldDisableOpacity={shouldDisableOpacity}
             errors={errors}
             errorRowStyles={[styles.mt2]}
             style={[wrapperStyle]}

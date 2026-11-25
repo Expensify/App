@@ -48,7 +48,7 @@ import {shouldUseTransactionDraft} from '@libs/IOUUtils';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import {roundToTwoDecimalPlaces} from '@libs/NumberUtils';
-import {getOdometerImageIdentity} from '@libs/OdometerUtils';
+import {getOdometerImageIdentity, getOdometerTotalDistance} from '@libs/OdometerUtils';
 import {isTrackOnboardingChoice} from '@libs/OnboardingUtils';
 import {isPolicyExpenseChat as isPolicyExpenseChatUtils} from '@libs/ReportUtils';
 import shouldUseDefaultExpensePolicyUtil from '@libs/shouldUseDefaultExpensePolicy';
@@ -71,6 +71,7 @@ import {useIsFocused} from '@react-navigation/native';
 import lodashIsEmpty from 'lodash/isEmpty';
 import React, {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
+import Onyx from 'react-native-onyx';
 
 import type {WithWritableReportOrNotFoundProps} from './withWritableReportOrNotFound';
 
@@ -129,17 +130,13 @@ function IOURequestStepDistanceOdometer({
     const isArchived = useReportIsArchived(report?.reportID);
     const [personalDetails] = useAllPersonalDetails();
     const reportAttributesDerived = useReportAttributes();
-    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [skipConfirmation] = useOnyx(`${ONYXKEYS.COLLECTION.SKIP_CONFIRMATION}${transactionID}`);
     const [splitDraftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`);
     const allTransactionViolations = useAllTransactionViolations(transaction?.transactionID);
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.parentReportID)}`);
     const [iouReportOwnerLogin] = useAllPersonalDetails(personalDetailsLoginSelector(parentReport?.ownerAccountID));
-    const [reportPolicyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${getNonEmptyStringOnyxID(parentReport?.policyID)}`);
     const policy = usePolicy(report?.policyID);
     const distanceOriginalPolicy = useDistanceRateOriginalPolicy(transaction?.comment?.customUnit?.customUnitRateID);
-    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policy?.id}`);
-    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policy?.id}`);
     const personalPolicy = usePersonalPolicy();
     const defaultExpensePolicy = useDefaultExpensePolicy();
     const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
@@ -148,7 +145,6 @@ function IOURequestStepDistanceOdometer({
     const selfDMReport = useSelfDMReport();
     const {policyForMovingExpenses} = usePolicyForMovingExpenses();
     const [selectedTab, selectedTabResult] = useOnyx(`${ONYXKEYS.COLLECTION.SELECTED_TAB}${CONST.TAB.DISTANCE_REQUEST_TYPE}`);
-    const [recentWaypoints] = useOnyx(ONYXKEYS.NVP_RECENT_WAYPOINTS);
     const isLoadingSelectedTab = isLoadingOnyxValue(selectedTabResult);
 
     // isEditing: we're changing an already existing odometer expense; isEditingConfirmation: we navigated here by pressing 'Distance' field from the confirmation step during the creation of a new odometer expense to adjust the input before submitting
@@ -220,8 +216,6 @@ function IOURequestStepDistanceOdometer({
     });
 
     const [odometerDraft] = useOnyx(ONYXKEYS.ODOMETER_DRAFT);
-    const isTrackIntentUser = isTrackOnboardingChoice(introSelected?.choice);
-    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
 
     const {
         startReading,
@@ -271,6 +265,7 @@ function IOURequestStepDistanceOdometer({
         personalDetails,
         currentUserLogin: currentUserEmailParam,
         currentUserAccountID: currentUserAccountIDParam,
+        currentUserPersonalDetails,
         currentUserLocalCurrency: currentUserPersonalDetails.localCurrencyCode ?? CONST.CURRENCY.USD,
         backToReport,
         shouldSkipConfirmation,
@@ -280,22 +275,8 @@ function IOURequestStepDistanceOdometer({
         translate,
         selfDMReport,
         policyForMovingExpenses,
-        recentWaypoints,
-        introSelected,
         personalOutputCurrency: personalPolicy?.outputCurrency,
     });
-
-    // Calculate total distance - updated live after every input change
-    const totalDistance = (() => {
-        const start = parseFloat(DistanceRequestUtils.normalizeOdometerText(startReading, fromLocaleDigit));
-        const end = parseFloat(DistanceRequestUtils.normalizeOdometerText(endReading, fromLocaleDigit));
-        if (Number.isNaN(start) || Number.isNaN(end) || !startReading || !endReading) {
-            return null;
-        }
-        const distance = end - start;
-        // Show 0 if distance is negative
-        return distance <= 0 ? 0 : distance;
-    })();
 
     // Get image source for web (blob URL) or native (URI string)
     const getImageSource = (image: FileObject | string | {uri?: string} | undefined): string | undefined => {
@@ -402,14 +383,15 @@ function IOURequestStepDistanceOdometer({
     });
 
     // Navigate to next page following Manual tab pattern
-    const navigateToNextPage = () => {
+    const navigateToNextPage = async () => {
         const start = parseFloat(DistanceRequestUtils.normalizeOdometerText(startReading, fromLocaleDigit));
         const end = parseFloat(DistanceRequestUtils.normalizeOdometerText(endReading, fromLocaleDigit));
-        const distance = end - start;
-        const calculatedDistance = roundToTwoDecimalPlaces(distance);
+        const calculatedDistance = getOdometerTotalDistance(start, end, currentTransaction?.comment);
+        const odometerUnit = currentTransaction?.comment?.odometerUnit ?? unit;
 
         if (!isEditing) {
-            setMoneyRequestOdometerReading(transactionID, start, end, isTransactionDraft);
+            // Keep the unit the readings were first entered in, since they aren't converted when the rate's unit changes
+            setMoneyRequestOdometerReading(transactionID, start, end, isTransactionDraft, odometerUnit);
             setMoneyRequestDistance(transactionID, calculatedDistance, isTransactionDraft, unit);
         }
         // Local state has just been persisted to the transaction thus the resync guard can be lowered
@@ -419,8 +401,9 @@ function IOURequestStepDistanceOdometer({
             // In the split flow, when editing we use SPLIT_TRANSACTION_DRAFT to save draft value
             if (isEditingSplit && transaction) {
                 setDraftSplitTransaction(
+                    translate,
                     transaction.transactionID,
-                    splitDraftTransaction,
+                    currentTransaction,
                     {
                         distance: calculatedDistance,
                         odometerStart: start,
@@ -442,8 +425,17 @@ function IOURequestStepDistanceOdometer({
             const hasChanges = previousDistance !== calculatedDistance || previousStart !== start || previousEnd !== end;
 
             if (hasChanges) {
+                const [rules, recentWaypoints, introSelected, policyTags, policyCategories, reportPolicyTags] = await Onyx.multiGet([
+                    ONYXKEYS.COLLECTION.RULE,
+                    ONYXKEYS.NVP_RECENT_WAYPOINTS,
+                    ONYXKEYS.NVP_INTRO_SELECTED,
+                    `${ONYXKEYS.COLLECTION.POLICY_TAGS}${policy?.id}`,
+                    `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policy?.id}`,
+                    `${ONYXKEYS.COLLECTION.POLICY_TAGS}${getNonEmptyStringOnyxID(parentReport?.policyID)}`,
+                ]);
                 // Update distance (which will also update amount and merchant)
                 updateMoneyRequestDistance({
+                    translate,
                     isVendorMatchingBetaEnabled,
                     transaction,
                     transactionThreadReport: report,
@@ -452,6 +444,7 @@ function IOURequestStepDistanceOdometer({
                     distance: calculatedDistance,
                     odometerStart: start,
                     odometerEnd: end,
+                    odometerUnit: transaction?.comment?.odometerUnit ?? undefined,
                     // Not required for odometer distance request
                     transactionBackup: undefined,
                     policy,
@@ -464,7 +457,7 @@ function IOURequestStepDistanceOdometer({
                     recentWaypoints,
                     delegateAccountID,
                     reportPolicyTags,
-                    isTrackIntentUser,
+                    isTrackIntentUser: isTrackOnboardingChoice(introSelected?.choice),
                     personalPolicyOutputCurrency: personalPolicy?.outputCurrency,
                     violations: allTransactionViolations,
                     getCurrencyDecimals,
@@ -509,6 +502,7 @@ function IOURequestStepDistanceOdometer({
         navigateToNextStep({
             odometerStart: start,
             odometerEnd: end,
+            odometerUnit,
             odometerDistance: calculatedDistance,
             unit,
             previousOdometerDraft: odometerDraft,
@@ -547,7 +541,7 @@ function IOURequestStepDistanceOdometer({
         }
 
         // Validation: Check that distance * rate doesn't exceed the backend's safe amount limit
-        if (!DistanceRequestUtils.isDistanceAmountWithinLimit(distance, rate)) {
+        if (!DistanceRequestUtils.isDistanceAmountWithinLimit(getOdometerTotalDistance(start, end, currentTransaction?.comment), rate)) {
             setFormError(translate('iou.error.distanceAmountTooLargeReduceDistance'));
             return;
         }
@@ -597,6 +591,7 @@ function IOURequestStepDistanceOdometer({
     };
 
     useDiscardChangesConfirmation({
+        shouldCloseRHPOnDiscard: action === CONST.IOU.ACTION.CREATE,
         getHasUnsavedChanges,
         onCancel: restoreLastInputFocus,
         onConfirm: isEditingConfirmation
@@ -608,6 +603,18 @@ function IOURequestStepDistanceOdometer({
         onTabSwitchDiscard: handleTabSwitchDiscard,
         onVisibilityChange: setIsDiscardModalVisible,
     });
+
+    // Calculate after the hooks so React Compiler can cache the total and its displayed rounding.
+    const totalDistance = (() => {
+        const start = parseFloat(DistanceRequestUtils.normalizeOdometerText(startReading, fromLocaleDigit));
+        const end = parseFloat(DistanceRequestUtils.normalizeOdometerText(endReading, fromLocaleDigit));
+        if (Number.isNaN(start) || Number.isNaN(end) || !startReading || !endReading) {
+            return null;
+        }
+        const distance = getOdometerTotalDistance(start, end, currentTransaction?.comment);
+        // Show 0 if distance is negative
+        return distance <= 0 ? 0 : distance;
+    })();
 
     const handleSaveForLater = async () => {
         shouldBypassDiscardConfirmationRef.current = true;

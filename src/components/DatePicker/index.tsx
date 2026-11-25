@@ -3,6 +3,7 @@ import type {BaseTextInputProps, BaseTextInputRef} from '@components/TextInput/B
 
 import useAccessibilityAnnouncement from '@hooks/useAccessibilityAnnouncement';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
+import useInputFSClass from '@hooks/useInputFSClass';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -58,6 +59,7 @@ function DatePicker({
     shouldEnableMonthYearBackdropInNarrowPane = false,
     textInputContainerStyles,
     shouldShowLabelTooltipWhenTruncated,
+    clearButtonSentryLabel = CONST.SENTRY_LABEL.DATE_PICKER.CLEAR_BUTTON,
 }: DateInputWithPickerProps) {
     const icons = useMemoizedLazyExpensifyIcons(['Calendar']);
     const styles = useThemeStyles();
@@ -67,6 +69,8 @@ function DatePicker({
     const {paddingHorizontal: iconPaddingHorizontal} = StyleUtils.getTextInputIconContainerStyles(true);
     const {windowHeight, windowWidth} = useWindowDimensions();
     const {translate} = useLocalize();
+    // The calendar renders in a popover outside the form, so it doesn't inherit the form's mask. It takes the class the input picks for itself instead.
+    const calendarFSClass = useInputFSClass(forwardedFSClass, {autoComplete});
 
     const [isModalVisible, setIsModalVisible] = useState(false);
     const announcementMessage = label ? `${label}, ${translate('common.calendarOpened')}` : translate('common.calendarOpened');
@@ -257,6 +261,7 @@ function DatePicker({
                     textInputContainerStyles={[textInputContainerStyles, isModalVisible && styles.borderColorFocus]}
                     shouldHideClearButton={shouldHideClearButton}
                     onClearInput={handleClear}
+                    clearButtonSentryLabel={clearButtonSentryLabel}
                     clearButtonStyle={[styles.mh0, {paddingHorizontal: iconPaddingHorizontal}]}
                     forwardedFSClass={forwardedFSClass}
                     autoComplete={autoComplete}
@@ -277,7 +282,7 @@ function DatePicker({
                 onClose={closeDatePicker}
                 anchorPosition={popoverPosition}
                 shouldPositionFromTop={!isInverted}
-                forwardedFSClass={forwardedFSClass}
+                forwardedFSClass={calendarFSClass}
                 shouldCloseWhenBrowserNavigationChanged
                 shouldEnableMonthYearBackdropInNarrowPane={shouldEnableMonthYearBackdropInNarrowPane}
             />

@@ -14,6 +14,8 @@ import Onyx from 'react-native-onyx';
 import createMock from '../../utils/createMock';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
+const mockTranslate = jest.fn(() => 'Translated tax rate');
+
 // The three writes are the assertions: each branch must reach exactly one of them.
 jest.mock('@libs/actions/IOU/MoneyRequest', () => ({setMoneyRequestTaxRateValues: jest.fn()}));
 jest.mock('@libs/actions/IOU/Split', () => ({setDraftSplitTransaction: jest.fn()}));
@@ -23,6 +25,7 @@ jest.mock('@libs/actions/IOU/UpdateMoneyRequest', () => ({updateMoneyRequestTaxR
 jest.mock('@hooks/useCurrencyList', () => ({useCurrencyListActions: jest.fn(() => ({getCurrencyDecimals: jest.fn(() => 2), getCurrencySymbol: jest.fn(() => '$')}))}));
 jest.mock('@hooks/useCurrentUserPersonalDetails', () => jest.fn(() => ({accountID: 1, login: 'me@example.com'})));
 jest.mock('@hooks/useDelegateAccountID', () => jest.fn(() => undefined));
+jest.mock('@hooks/useLocalize', () => () => ({translate: mockTranslate}));
 jest.mock('@hooks/useAllTransactionViolations', () => jest.fn(() => undefined));
 jest.mock('@hooks/usePersonalDetails', () => ({usePersonalDetail: jest.fn(() => [undefined])}));
 jest.mock('@hooks/usePermissions', () => jest.fn(() => ({isBetaEnabled: jest.fn(() => false), isBetaEnabledOrUnknown: jest.fn(() => false)})));
@@ -105,7 +108,14 @@ describe('useUpdateTransactionTaxRate', () => {
         // Then it saves to the expense itself, with the report its violations are recomputed against
         expect(updateMoneyRequestTaxRate).toHaveBeenCalledTimes(1);
         expect(updateMoneyRequestTaxRate).toHaveBeenCalledWith(
-            expect.objectContaining({transactionID: TRANSACTION_ID, taxCode: REDUCED_TAX_CODE, taxValue: '10%', taxAmount: REDUCED_TAX_AMOUNT, transactionThreadReport: report}),
+            expect.objectContaining({
+                translate: mockTranslate,
+                transactionID: TRANSACTION_ID,
+                taxCode: REDUCED_TAX_CODE,
+                taxValue: '10%',
+                taxAmount: REDUCED_TAX_AMOUNT,
+                transactionThreadReport: report,
+            }),
         );
         expect(setMoneyRequestTaxRateValues).not.toHaveBeenCalled();
         expect(setDraftSplitTransaction).not.toHaveBeenCalled();
@@ -121,8 +131,9 @@ describe('useUpdateTransactionTaxRate', () => {
         // Then only the split draft is written
         expect(setDraftSplitTransaction).toHaveBeenCalledTimes(1);
         expect(setDraftSplitTransaction).toHaveBeenCalledWith(
+            mockTranslate,
             TRANSACTION_ID,
-            undefined,
+            transaction,
             {taxCode: REDUCED_TAX_CODE, taxValue: '10%', taxAmount: REDUCED_TAX_AMOUNT},
             expect.any(Function),
             expect.any(Function),
@@ -140,7 +151,7 @@ describe('useUpdateTransactionTaxRate', () => {
 
         // Then the expense is saved with no rate, value or tax amount
         expect(updateMoneyRequestTaxRate).toHaveBeenCalledTimes(1);
-        expect(updateMoneyRequestTaxRate).toHaveBeenCalledWith(expect.objectContaining({transactionID: TRANSACTION_ID, taxCode: '', taxValue: '', taxAmount: 0}));
+        expect(updateMoneyRequestTaxRate).toHaveBeenCalledWith(expect.objectContaining({translate: mockTranslate, transactionID: TRANSACTION_ID, taxCode: '', taxValue: '', taxAmount: 0}));
         expect(setDraftSplitTransaction).not.toHaveBeenCalled();
     });
 
@@ -153,7 +164,14 @@ describe('useUpdateTransactionTaxRate', () => {
 
         // Then the split draft is cleared, not the saved expense, so the stale tax is not kept on save
         expect(setDraftSplitTransaction).toHaveBeenCalledTimes(1);
-        expect(setDraftSplitTransaction).toHaveBeenCalledWith(TRANSACTION_ID, undefined, {taxAmount: 0, taxCode: '', taxValue: ''}, expect.any(Function), expect.any(Function));
+        expect(setDraftSplitTransaction).toHaveBeenCalledWith(
+            mockTranslate,
+            TRANSACTION_ID,
+            transaction,
+            {taxAmount: 0, taxCode: '', taxValue: ''},
+            expect.any(Function),
+            expect.any(Function),
+        );
         expect(updateMoneyRequestTaxRate).not.toHaveBeenCalled();
     });
 

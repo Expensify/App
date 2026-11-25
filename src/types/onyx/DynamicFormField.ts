@@ -33,6 +33,57 @@ type DynamicFormHeading = {
 
     /** Hides the title only. The fields after it still show, since a heading marks a place rather than containing fields. */
     showWhen?: DynamicFormCondition;
+
+    /** Only a link has a URL, which is what tells a link apart from a heading */
+    url?: never;
+};
+
+/**
+ * A link between the fields of a page, such as one to a help article. It has no `type`, so an App version that does not know links reads it as a
+ * heading with no text and leaves it out.
+ */
+type DynamicFormLink = {
+    /** Can match a field's key, since links and fields are told apart by `type` */
+    key: string;
+
+    /** Address the link opens. Only https links to expensify.com or its subdomains are shown, since the link leaves the form. */
+    url: string;
+
+    /** The schema author's wording, shown when there is no textKey */
+    text?: string;
+
+    /** Translation of `text`, used instead of it when set */
+    textKey?: TranslationPaths;
+
+    /** Hides the link while the condition is not met */
+    showWhen?: DynamicFormCondition;
+
+    /** Only a field has a type, which is what tells a link apart from a field */
+    type?: never;
+};
+
+/** Advice about a whole page in its content, such as a limit on what the account can receive. It asks nothing and shows wherever the schema puts it. Advice about one field is that field's `description` instead. */
+type DynamicFormNotice = {
+    /** Can match a field's key, since notices and fields are told apart by `type` */
+    key: string;
+
+    /** What tells a notice apart from a heading, which has no `type` and no `url` either */
+    presentation: 'notice';
+
+    /** The schema author's wording, shown when there is no textKey */
+    text?: string;
+
+    /** Translation of `text`, used instead of it when set */
+    textKey?: TranslationPaths;
+
+    /** Hides the notice while the condition is not met */
+    showWhen?: DynamicFormCondition;
+
+    /** Only a field has a type, which is what tells a notice apart from a field */
+    type?: never;
+
+    /** Only a link has a URL, which is what tells a link apart from a notice */
+    url?: never;
 };
 
 /** One allowed value of a select or radio field */
@@ -162,6 +213,27 @@ type DynamicFormFileField = DynamicFormFieldBase & {
 
     /** Largest size of one file, in bytes. The form-wide limit applies when not set. */
     maxFileSize?: number;
+
+    /** Upload buttons, each taking its own kinds of document. Files list under their button, and the answer is one `{id, fileType, files}` entry per kind used. A required field needs a file on every button. */
+    uploads?: DynamicFormFileUpload[];
+};
+
+/** One upload button of a file field */
+type DynamicFormFileUpload = {
+    /** The kinds of document the button takes. With one kind the button opens the file picker, with more it asks which kind first. */
+    fileTypes: DynamicFormFieldOption[];
+
+    /** Button text, shown when there is no labelKey. "Upload file" when neither is set. */
+    label?: string;
+
+    /** Translation of `label`, used instead of it when set */
+    labelKey?: TranslationPaths;
+
+    /** Hint under the button, such as what the document must show */
+    description?: string;
+
+    /** Translation of `description`, used instead of it when set */
+    descriptionKey?: TranslationPaths;
 };
 
 /** A money amount */
@@ -257,13 +329,19 @@ type DynamicFormListItem = {
 /** A field as the schema sends it, which can be of a type this App version does not know */
 type DynamicFormSchemaField = DynamicFormField | (DynamicFormFieldBase & {type: string});
 
-/** A heading or a field of a page */
-type DynamicFormContentItem = DynamicFormHeading | DynamicFormSchemaField;
+/** A heading, a link, a notice or a field of a page */
+type DynamicFormContentItem = DynamicFormHeading | DynamicFormLink | DynamicFormNotice | DynamicFormSchemaField;
 
 /** A page of a multi-page form. It is a heading with its own content, so it can carry a title, a description and a `showWhen`. */
 type DynamicFormPage = DynamicFormHeading & {
     /** The headings and fields shown on this page */
     content: DynamicFormContentItem[];
+
+    /** The schema author's name for the page's section on the confirmation page, shown when there is no sectionTitleKey. Without either, or when it is empty, the page's headline names the section. */
+    sectionTitle?: string;
+
+    /** Translation of `sectionTitle`, used instead of it when set */
+    sectionTitleKey?: TranslationPaths;
 };
 
 /** What a multi-page form is built from: pages as the server groups them, or a flat list of fields the App paginates */
@@ -288,11 +366,14 @@ export type {
     DynamicFormCountryField,
     DynamicFormField,
     DynamicFormFieldOption,
+    DynamicFormFileUpload,
     DynamicFormFieldType,
     DynamicFormHeading,
+    DynamicFormLink,
     DynamicFormListField,
     DynamicFormListItem,
     DynamicFormMultiChoiceField,
+    DynamicFormNotice,
     DynamicFormNumberField,
     DynamicFormPage,
     DynamicFormSchema,

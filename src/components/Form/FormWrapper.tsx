@@ -1,5 +1,6 @@
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import FormElement from '@components/FormElement';
+import FSClassView from '@components/FSClassView';
 import ScrollView from '@components/ScrollView';
 import ScrollViewWithContext from '@components/ScrollViewWithContext';
 import Text from '@components/Text';
@@ -18,10 +19,10 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import type {ComponentRef, ForwardedRef, RefObject} from 'react';
 // eslint-disable-next-line no-restricted-imports
-import type {ScrollView as RNScrollView, StyleProp, ViewStyle} from 'react-native';
+import type {ScrollView as RNScrollView, StyleProp, View, ViewStyle} from 'react-native';
 
 import React, {useContext, useImperativeHandle, useRef} from 'react';
-import {Keyboard, View} from 'react-native';
+import {Keyboard} from 'react-native';
 
 import type {FormInputErrors, FormProps, FormWrapperRef, InputRefs} from './types';
 
@@ -103,11 +104,13 @@ function FormWrapper({
     serverErrorFields,
     serverErrorMessage,
     shouldScrollToEnd = false,
+    shouldScrollChildToFocus = true,
     addBottomSafeAreaPadding,
     addOfflineIndicatorBottomSafeAreaPadding,
     shouldSubmitButtonStickToBottom: shouldSubmitButtonStickToBottomProp,
     shouldPreventDefaultFocusOnPressSubmit = false,
     onScroll = () => {},
+    scrollViewRef,
     forwardedFSClass,
     sentryLabel = CONST.SENTRY_LABEL.FORM.SUBMIT_BUTTON,
     ref,
@@ -115,7 +118,8 @@ function FormWrapper({
     submitButtonInnerStyles,
 }: FormWrapperProps) {
     const styles = useThemeStyles();
-    const formRef = useRef<ComponentRef<typeof RNScrollView>>(null);
+    const internalFormRef = useRef<ComponentRef<typeof RNScrollView>>(null);
+    const formRef = scrollViewRef ?? internalFormRef;
     const formContentRef = useRef<ComponentRef<typeof View>>(null);
     const {getErrorAnnouncementKey, getFallbackAnnouncementMessage} = useContext(FormContext);
     const errorAnnouncementKey = getErrorAnnouncementKey();
@@ -162,13 +166,6 @@ function FormWrapper({
         }, CONST.ANIMATED_TRANSITION);
     };
 
-    const scrollTo = (y: number) => {
-        // Wait for the keyboard animation to complete
-        setTimeout(() => {
-            formRef.current?.scrollTo({y: Math.max(y, 0), animated: true});
-        }, CONST.ANIMATED_TRANSITION);
-    };
-
     // If either of `addBottomSafeAreaPadding` or `shouldSubmitButtonStickToBottom` is explicitly set,
     // we expect that the user wants to use the new edge-to-edge mode.
     // In this case, we want to get and apply the padding unconditionally.
@@ -194,7 +191,6 @@ function FormWrapper({
 
     useImperativeHandle(ref, () => ({
         scrollToEnd,
-        scrollTo,
     }));
 
     const SubmitButton = isSubmitButtonVisible && (
@@ -257,28 +253,41 @@ function FormWrapper({
     );
 
     if (!shouldUseScrollView) {
-        if (shouldSubmitButtonStickToBottom) {
-            return (
-                <>
-                    {scrollViewContent()}
-                    {SubmitButton}
-                </>
-            );
+        const content = shouldSubmitButtonStickToBottom ? (
+            <>
+                {scrollViewContent()}
+                {SubmitButton}
+            </>
+        ) : (
+            scrollViewContent()
+        );
+
+        // Without the scroll view there's no FSClassView around the form, so one is added when a class is passed. Forms without a class keep their layout.
+        if (!forwardedFSClass) {
+            return content;
         }
 
-        return scrollViewContent();
+        return (
+            <FSClassView
+                style={styles.flex1}
+                forwardedFSClass={forwardedFSClass}
+            >
+                {content}
+            </FSClassView>
+        );
     }
 
     return (
-        <View
+        <FSClassView
             style={styles.flex1}
-            fsClass={forwardedFSClass}
+            forwardedFSClass={forwardedFSClass}
         >
             {scrollContextEnabled ? (
                 <ScrollViewWithContext
                     style={[styles.w100, styles.flex1]}
                     contentContainerStyle={styles.flexGrow1}
                     keyboardShouldPersistTaps="handled"
+                    scrollsChildToFocus={shouldScrollChildToFocus}
                     addBottomSafeAreaPadding={shouldApplyBottomSafeAreaPadding}
                     addOfflineIndicatorBottomSafeAreaPadding={addOfflineIndicatorBottomSafeAreaPadding}
                     ref={formRef}
@@ -290,6 +299,7 @@ function FormWrapper({
                     style={[styles.w100, styles.flex1]}
                     contentContainerStyle={styles.flexGrow1}
                     keyboardShouldPersistTaps="handled"
+                    scrollsChildToFocus={shouldScrollChildToFocus}
                     addBottomSafeAreaPadding={shouldApplyBottomSafeAreaPadding}
                     addOfflineIndicatorBottomSafeAreaPadding={addOfflineIndicatorBottomSafeAreaPadding}
                     ref={formRef}
@@ -299,7 +309,7 @@ function FormWrapper({
                 </ScrollView>
             )}
             {shouldSubmitButtonStickToBottom && SubmitButton}
-        </View>
+        </FSClassView>
     );
 }
 

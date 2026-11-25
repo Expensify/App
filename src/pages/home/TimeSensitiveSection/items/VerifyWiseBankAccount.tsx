@@ -3,7 +3,8 @@ import BaseWidgetItem from '@components/BaseWidgetItem';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 
-import navigateToWiseMoreInfoNeeded from '@libs/Navigation/helpers/navigateToWiseMoreInfoNeeded';
+import getWiseOnboardingStatusRoute from '@libs/Navigation/helpers/getWiseOnboardingStatusRoute';
+import Navigation from '@libs/Navigation/Navigation';
 
 import CONST from '@src/CONST';
 
@@ -27,11 +28,13 @@ function VerifyWiseBankAccount({bankAccountID, bankAccountLastFour}: VerifyWiseB
 
     return (
         <BaseWidgetItem
+            sentryLabel={CONST.SENTRY_LABEL.HOME_PAGE.TIME_SENSITIVE_ITEM.VERIFY_WISE_BANK_ACCOUNT}
+            buttonSentryLabel={CONST.SENTRY_LABEL.HOME_PAGE.TIME_SENSITIVE_ITEM_BUTTON.VERIFY_WISE_BANK_ACCOUNT}
             icon={icons.GlobeWithCard}
             title={translate('homePage.timeSensitiveSection.verifyWiseBankAccount.title')}
             subtitle={bankAccountLastFour ? translate('homePage.timeSensitiveSection.verifyWiseBankAccount.subtitle', {bankAccountLastFour}) : undefined}
             ctaText={translate('homePage.forYouSection.begin')}
-            onCtaPress={() => navigateToWiseMoreInfoNeeded(bankAccountID)}
+            onCtaPress={() => Navigation.navigate(getWiseOnboardingStatusRoute(bankAccountID))}
             buttonVariant={CONST.BUTTON_VARIANT.SUCCESS}
         />
     );

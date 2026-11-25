@@ -13,7 +13,7 @@ import type {ThemeStyles} from '@styles/index';
 
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
-import type {AccountData, BillingGraceEndPeriod, Policy, Report, Rule} from '@src/types/onyx';
+import type {AccountData, BillingGraceEndPeriod, Policy, Report, Rule, TransactionViolations} from '@src/types/onyx';
 import type BankAccount from '@src/types/onyx/BankAccount';
 import type Fund from '@src/types/onyx/Fund';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
@@ -59,6 +59,7 @@ type SelectPaymentTypeParams = {
     isTrackIntentUser: boolean | undefined;
     ownerLogin: string | undefined;
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
+    allTransactionViolations: OnyxCollection<TransactionViolations>;
     personalDetailsByLogins: PersonalDetailsByLogin;
 };
 
@@ -72,19 +73,28 @@ type BusinessBankAccountOption = {
 };
 
 /**
+ * Auth rejects a wallet transfer to a bank account that is not open or not personal. The US check matches hasExpensifyPaymentMethod.
+ */
+function isWalletTransferBankAccount(bankAccountJSON: BankAccount): boolean {
+    const bankAccount = new BankAccountModel(bankAccountJSON);
+
+    return (
+        bankAccount.getPendingAction() !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE &&
+        bankAccount.isOpen() &&
+        bankAccount.getType() === CONST.BANK_ACCOUNT.TYPE.PERSONAL &&
+        bankAccount.getCountry() === CONST.COUNTRY.US
+    );
+}
+
+function getWalletTransferBankAccounts(bankAccountList: Record<string, BankAccount>): Record<string, BankAccount> {
+    return Object.fromEntries(Object.entries(bankAccountList).filter(([, bankAccount]) => isWalletTransferBankAccount(bankAccount)));
+}
+
+/**
  * Check to see if user has either a debit card or personal US bank account added that can be used with a wallet.
  */
 function hasExpensifyPaymentMethod(fundList: Record<string, Fund>, bankAccountList: Record<string, BankAccount>, shouldIncludeDebitCard = true): boolean {
-    const validBankAccount = Object.values(bankAccountList).some((bankAccountJSON) => {
-        const bankAccount = new BankAccountModel(bankAccountJSON);
-
-        return (
-            bankAccount.getPendingAction() !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE &&
-            bankAccount.isOpen() &&
-            bankAccount.getType() === CONST.BANK_ACCOUNT.TYPE.PERSONAL &&
-            bankAccount?.getCountry() === CONST.COUNTRY.US
-        );
-    });
+    const validBankAccount = Object.values(bankAccountList).some(isWalletTransferBankAccount);
 
     // Hide any billing cards that are not P2P debit cards for now because you cannot make them your default method, or delete them
     const validDebitCard = Object.values(fundList).some((card) => card?.accountData?.additionalData?.isP2PDebitCard ?? false);
@@ -164,6 +174,14 @@ function isAccountData(data: unknown): data is AccountData {
 }
 
 /**
+ * Returns the account data only when it belongs to a bank account.
+ * Debit cards are in the same payment method list, and `accountType` is optional in Onyx, so only account data that has a `type` belongs to a bank account.
+ */
+function getBankAccountData(accountData: BankAccount['accountData'] | Fund['accountData']) {
+    return accountData && 'type' in accountData ? accountData : undefined;
+}
+
+/**
  * Returns whether a payment method's bank currency matches the given currency.
  * When no currency is provided, all methods are considered a match.
  */
@@ -186,6 +204,7 @@ function getBusinessBankAccountOptions(formattedPaymentMethods: PaymentMethod[],
             const isPartiallySetup = isBankAccountPartiallySetup(accountData.state);
             return (
                 accountData.type === CONST.BANK_ACCOUNT.TYPE.BUSINESS &&
+                !accountData.additionalData?.isForABA &&
                 (accountData.state === CONST.BANK_ACCOUNT.STATE.OPEN || accountData.state === CONST.BANK_ACCOUNT.STATE.LOCKED) &&
                 method?.methodID != null &&
                 !isPartiallySetup &&
@@ -244,6 +263,7 @@ const selectPaymentType = (params: SelectPaymentTypeParams) => {
         isTrackIntentUser,
         ownerLogin,
         getCurrencyDecimals,
+        allTransactionViolations,
         personalDetailsByLogins,
     } = params;
     if (policy && shouldRestrictUserBillableActions(policy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, currentAccountID)) {
@@ -282,6 +302,7 @@ const selectPaymentType = (params: SelectPaymentTypeParams) => {
                 delegateAccountID,
                 isTrackIntentUser,
                 getCurrencyDecimals,
+                allTransactionViolations,
                 personalDetailsByLogins,
             });
         }
@@ -293,7 +314,7 @@ const selectPaymentType = (params: SelectPaymentTypeParams) => {
 
 type ApproveActionType = Extract<ValueOf<typeof CONST.IOU.REPORT_ACTION_TYPE>, 'approve'>;
 type PaymentOption = PopoverMenuItem & DropdownOption<ValueOf<typeof CONST.IOU.PAYMENT_TYPE>>;
-type PaymentOrApproveOption = Merge<PaymentOption, {value?: PaymentOption['value'] | ApproveActionType}>;
+type PaymentOrApproveOption = Merge<PaymentOption, {value?: PaymentOption['value'] | ApproveActionType | typeof CONST.PAYMENT_METHODS.ABA}>;
 type SecondaryActionOption = DropdownOption<ValueOf<typeof CONST.REPORT.SECONDARY_ACTIONS>>;
 type WorkspacePolicyPaymentOption = PopoverMenuItem & {workspacePolicy: Policy};
 
@@ -339,8 +360,9 @@ function getActivePaymentType(
     // Policy that is part of payment method ie: Policy when user presses on 'Pay via workspace' option
     const policyFromPaymentMethod = activeAdminPolicies.find((activePolicy) => activePolicy.id === paymentMethod);
 
-    // When user explicitly selects "Pay Elsewhere" / "Mark as Paid", don't require payment method selection since payment happens outside of Expensify
-    const shouldSelectPaymentMethod = paymentMethod !== CONST.IOU.PAYMENT_TYPE.ELSEWHERE && (isPaymentMethod || !isEmpty(businessBankAccountOptions));
+    // When user explicitly selects "Pay Elsewhere" / "Mark as Paid" or "Pay via ABA", don't require payment method selection since payment happens outside of Expensify
+    const isPaidOutsideExpensify = paymentMethod === CONST.IOU.PAYMENT_TYPE.ELSEWHERE || paymentMethod === CONST.PAYMENT_METHODS.ABA;
+    const shouldSelectPaymentMethod = !isPaidOutsideExpensify && (isPaymentMethod || !isEmpty(businessBankAccountOptions));
 
     return {
         paymentType,
@@ -350,10 +372,21 @@ function getActivePaymentType(
     };
 }
 
+/**
+ * Only Mark as paid can be queued offline. Other payment types may need KYC or bank account setup, and paying all
+ * matching reports needs the server to resolve which reports the search query matches.
+ */
+function canPayOffline(paymentType: string | undefined, areAllMatchingItemsSelected: boolean): boolean {
+    return paymentType === CONST.IOU.PAYMENT_TYPE.ELSEWHERE && !areAllMatchingItemsSelected;
+}
+
 export {
+    canPayOffline,
     hasExpensifyPaymentMethod,
+    getWalletTransferBankAccounts,
     getPaymentMethodDescription,
     formatPaymentMethods,
+    getBankAccountData,
     getBusinessBankAccountOptions,
     matchesCurrency,
     calculateWalletTransferBalanceFee,

@@ -27,6 +27,7 @@ import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOpt
 
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
+import type {SentryLabel} from '@src/types/utils/SentryLabel';
 
 import type {ValueOf} from 'type-fest';
 
@@ -42,7 +43,7 @@ type CustomerMappingToggleRowProps = {
     onLockedPress: () => void;
     policy: WithPolicyConnectionsProps['policy'];
     policyID: string | undefined;
-    switchSentryLabel: string;
+    switchSentryLabel: SentryLabel;
 };
 
 function CustomerMappingToggleRow({isLocked, label, mappingName, onLockedPress, policy, policyID, switchSentryLabel}: CustomerMappingToggleRowProps) {

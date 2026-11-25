@@ -69,21 +69,21 @@ On web:
 
 1. Go to the navigation tabs on the left and select **Workspaces**.
 2. Select your Workspace.
-3. Click **Accounting**.
+3. Select **Connections**, then select **Configure** next to NetSuite.
 4. Update the Custom Record or Custom Field ScriptID with the exact value from NetSuite.
 5. Click **Save**.
-6. Click the three-dot menu next to the NetSuite connection.
-7. Click **Sync Now**.
+6. Select **More (⋮)**.
+7. Select **Sync now**.
 
 On mobile:
 
 1. Tap the navigation tabs on the bottom and select **Workspaces**.
 2. Select your Workspace.
-3. Tap **Accounting**.
+3. Select **Connections**, then select **Configure** next to NetSuite.
 4. Update the Custom Record ScriptID field.
 5. Tap **Save**.
-6. Tap the three-dot menu next to the NetSuite connection.
-7. Tap **Sync Now**.
+6. Select **More (⋮)**.
+7. Select **Sync now**.
 
 Retry the sync after updating the ScriptID.
 

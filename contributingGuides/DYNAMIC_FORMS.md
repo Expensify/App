@@ -62,6 +62,8 @@ Pass `inputValues` from the render prop, so `showWhen` and `dependsOn` react to 
 
 A page is a heading with its own `content`: `key`, `title` or `titleKey`, `description` or `descriptionKey`, and an optional `showWhen`. Its `content` holds headings and fields in screen order. An item without a `type` is a heading; a heading shows only while its `showWhen` matches and a visible field follows it before the next heading.
 
+An item without a `type` whose `presentation` is `notice` is a notice: a banner with `text` or `textKey` and an optional `showWhen`, for advice about the whole page. It asks nothing and shows wherever the schema puts it, so two can follow each other. Advice about one field goes in that field's `description`. An App version that does not know notices leaves them out.
+
 When the schema is a flat `{fields}` list, the App builds the pages:
 
 - Addresses, files, multi-selects, lists, dependent selects and selects with more than 10 options get a page of their own.
@@ -111,7 +113,7 @@ The server can send a type this App version does not know. The schema is typed `
 
 ## Privacy and accessibility
 
-- Every field row, read-only rows included, every confirmation row and the list entry editor are masked in session recordings. The mask sits on the row's `View`, so it also covers inputs that do not pass a FullStory class on, such as `CountryPicker`.
+- Every answer is masked in session recordings: field inputs, read-only values, confirmation values and the list entry editor. Field labels and descriptions stay readable. Each input sits in an `FSClassView`, so the text inputs inside it mask themselves too, including inputs that do not pass a FullStory class on, such as `CountryPicker`. A masked `View` alone isn't enough: FullStory lets an input's own `fs-unmask` override it.
 - The confirmation before removing a list entry names the entry only in its masked prompt, since the modal title cannot be masked.
 - Radio buttons, Yes/No questions and tabs are named after their question for screen readers, and the bold labels above addresses, files and lists are headings.
 

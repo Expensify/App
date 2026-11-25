@@ -10,19 +10,22 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useTheme from '@hooks/useTheme';
 
-import {getEnabledCategoriesCount} from '@libs/CategoryUtils';
+import {getEnabledCategoriesCount, getVisibleCategories} from '@libs/CategoryUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
+import startOpenCategoryPickerSpan from '@libs/telemetry/startOpenCategoryPickerSpan';
 
 import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {WithSentryLabelWhenPressable} from '@src/types/utils/SentryLabel';
 
-import React, {useState} from 'react';
+import policyCategoriesVisibilitySelector from '@selectors/PolicyCategories';
+import React, {useLayoutEffect, useState} from 'react';
 
 import CategoryPicker from '.';
 
-type CategoryPickerModalProps = {
+type CategoryPickerModalProps = WithSentryLabelWhenPressable<'onAddCategory', 'addCategorySentryLabel'> & {
     /** The policy whose categories should be shown */
     policyID: string | undefined;
 
@@ -40,12 +43,15 @@ type CategoryPickerModalProps = {
     /** Shows a header with a back button and an add button, for users who can add a category to the workspace */
     onAddCategory?: () => void;
 
-    /** Sentry label for the add button, so each caller's presses are attributed to it */
-    addCategorySentryLabel?: string;
-
     /** Receives the searched-for name when the user taps the create row. The row is offered only when this is passed. */
     onCreateCategory?: (categoryName: string) => void;
-} & Omit<AnchoredSelectionListPopoverProps, 'optionCount' | 'isSearchable' | 'title' | 'backButtonSentryLabel' | 'headerActions' | 'shouldShowHeader' | 'children'>;
+
+    /** The account the expense belongs to, passed only when the current user owns it, so the list shows just the categories they can use */
+    ownerAccountID?: number;
+
+    /** The account the expense belongs to, passed when someone else owns it, so the picker splits the categories by what that member can use */
+    submitterAccountID?: number;
+} & Omit<AnchoredSelectionListPopoverProps, 'optionCount' | 'isSearchable' | 'title' | 'backButtonSentryLabel' | 'headerActions' | 'children'>;
 
 function CategoryPickerModal({
     policyID,
@@ -56,17 +62,31 @@ function CategoryPickerModal({
     onAddCategory,
     addCategorySentryLabel,
     onCreateCategory,
+    ownerAccountID,
+    submitterAccountID,
+    isVisible,
     onClose,
+    shouldShowHeader = false,
     ...popoverProps
 }: CategoryPickerModalProps) {
     const theme = useTheme();
     const {translate} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['Plus']);
 
-    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${getNonEmptyStringOnyxID(policyID)}`, {selector: getEnabledCategoriesCount});
+    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${getNonEmptyStringOnyxID(policyID)}`, {selector: policyCategoriesVisibilitySelector});
     const [renderedRowCount, setRenderedRowCount] = useState<number>();
 
-    const categoriesCount = policyCategories ?? 0;
+    // Counts what the picker lists, so the search input shows only when the owner's own list is long enough.
+    const categoriesCount = getEnabledCategoriesCount(ownerAccountID === undefined || !policyCategories ? policyCategories : getVisibleCategories(policyCategories, ownerAccountID));
+
+    // A layout effect, so the span starts before the picker's own effects run and can end it. The popover only renders
+    // the picker while it's open, so the picker mounts again on every open.
+    useLayoutEffect(() => {
+        if (!isVisible) {
+            return;
+        }
+        startOpenCategoryPickerSpan();
+    }, [isVisible]);
 
     const handleCategorySelect = (item: ListItem) => {
         // If clicking the same category that's already selected, treat it as deselection
@@ -86,12 +106,13 @@ function CategoryPickerModal({
     return (
         <AnchoredSelectionListPopover
             {...popoverProps}
+            isVisible={isVisible}
             onClose={onClose}
             optionCount={renderedRowCount ?? categoriesCount}
             isSearchable={categoriesCount >= searchInputThreshold}
             title={translate('common.category')}
             backButtonSentryLabel={CONST.SENTRY_LABEL.CATEGORY_PICKER_MODAL.BACK_BUTTON}
-            shouldShowHeader={!!onAddCategory}
+            shouldShowHeader={shouldShowHeader || !!onAddCategory}
             headerActions={
                 !!onAddCategory && (
                     <Tooltip text={translate('workspace.categories.addCategory')}>
@@ -122,9 +143,12 @@ function CategoryPickerModal({
                 shouldAutoFocusSearchInput
                 shouldAlwaysShowGLCode={shouldAlwaysShowGLCode}
                 searchInputThreshold={searchInputThreshold}
+                ownerAccountID={ownerAccountID}
+                submitterAccountID={submitterAccountID}
             />
         </AnchoredSelectionListPopover>
     );
 }
 
 export default CategoryPickerModal;
+export type {CategoryPickerModalProps};

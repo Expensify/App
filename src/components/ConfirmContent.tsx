@@ -88,8 +88,14 @@ type ConfirmContentProps = {
     /** Whether the confirm button is loading */
     isConfirmLoading?: boolean;
 
+    /** Whether the confirm button is disabled */
+    isConfirmDisabled?: boolean;
+
     /** Whether to show a loading indicator next to the title */
     isTitleLoading?: boolean;
+
+    /** Element shown on the right of the title and the subtitle, centered against both */
+    titleRightElement?: ReactNode;
 
     /** Whether the prompt should be scrollable when it is taller than the screen (e.g. a long list of items) */
     shouldEnablePromptScroll?: boolean;
@@ -131,7 +137,9 @@ function ConfirmContent({
     shouldReverseStackedButtons = false,
     isVisible,
     isConfirmLoading,
+    isConfirmDisabled = false,
     isTitleLoading = false,
+    titleRightElement,
     shouldEnablePromptScroll = false,
     shouldUseSuccessStyleForConfirm = false,
 }: ConfirmContentProps) {
@@ -161,6 +169,15 @@ function ConfirmContent({
     if (typeof subtitle === 'string') {
         subtitleContent = <Text style={[styles.mb4, subtitleStyles, isCentered ? styles.textAlignCenter : {}]}>{subtitle}</Text>;
     }
+
+    const titleContent = (
+        <View style={[styles.flexRow, isTitleLoading ? styles.justifyContentBetween : {}, styles.alignItemsCenter, isCentered ? {} : styles.mb4, titleContainerStyles]}>
+            <HeaderTitle>
+                <HeaderTitle.Text style={titleStyles}>{title}</HeaderTitle.Text>
+            </HeaderTitle>
+            {isTitleLoading && <ActivityIndicator size={CONST.ACTIVITY_INDICATOR_SIZE.SMALL} />}
+        </View>
+    );
 
     return (
         <>
@@ -207,13 +224,20 @@ function ConfirmContent({
                             />
                         </View>
                     )}
-                    <View style={[styles.flexRow, isTitleLoading ? styles.justifyContentBetween : {}, styles.alignItemsCenter, isCentered ? {} : styles.mb4, titleContainerStyles]}>
-                        <HeaderTitle>
-                            <HeaderTitle.Text style={titleStyles}>{title}</HeaderTitle.Text>
-                        </HeaderTitle>
-                        {isTitleLoading && <ActivityIndicator size={CONST.ACTIVITY_INDICATOR_SIZE.SMALL} />}
-                    </View>
-                    {subtitleContent}
+                    {titleRightElement ? (
+                        <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween, styles.gap3]}>
+                            <View style={styles.flex1}>
+                                {titleContent}
+                                {subtitleContent}
+                            </View>
+                            {titleRightElement}
+                        </View>
+                    ) : (
+                        <>
+                            {titleContent}
+                            {subtitleContent}
+                        </>
+                    )}
                     {shouldScrollPrompt ? <ScrollView style={styles.confirmModalPromptScrollable}>{promptContent}</ScrollView> : promptContent}
                 </View>
 
@@ -221,6 +245,7 @@ function ConfirmContent({
                     <>
                         {shouldShowCancelButton && shouldReverseStackedButtons && (
                             <Button
+                                sentryLabel={CONST.SENTRY_LABEL.CONFIRM_CONTENT.CANCEL_BUTTON}
                                 style={[styles.mt4, styles.noSelect]}
                                 onPress={onCancel}
                                 size={CONST.BUTTON_SIZE.LARGE}
@@ -234,14 +259,17 @@ function ConfirmContent({
                             onPress={onConfirm}
                             size={CONST.BUTTON_SIZE.LARGE}
                             accessibilityLabel={confirmText || translate('common.yes')}
-                            isDisabled={isOffline && shouldDisableConfirmButtonWhenOffline}
+                            accessibilityState={{busy: !!isConfirmLoading}}
+                            isDisabled={(isOffline && shouldDisableConfirmButtonWhenOffline) || isConfirmDisabled}
                             isLoading={isConfirmLoading}
+                            sentryLabel={CONST.SENTRY_LABEL.CONFIRM_CONTENT.CONFIRM_BUTTON}
                         >
                             <Button.KeyboardShortcut isPressOnEnterActive={isVisible} />
                             <Button.Text>{confirmText || translate('common.yes')}</Button.Text>
                         </Button>
                         {shouldShowCancelButton && !shouldReverseStackedButtons && (
                             <Button
+                                sentryLabel={CONST.SENTRY_LABEL.CONFIRM_CONTENT.CANCEL_BUTTON}
                                 style={[styles.mt3, styles.noSelect]}
                                 onPress={onCancel}
                                 size={CONST.BUTTON_SIZE.LARGE}
@@ -254,6 +282,7 @@ function ConfirmContent({
                     <View style={[styles.flexRow, styles.gap4]}>
                         {shouldShowCancelButton && (
                             <Button
+                                sentryLabel={CONST.SENTRY_LABEL.CONFIRM_CONTENT.CANCEL_BUTTON}
                                 style={[styles.noSelect, styles.flex1]}
                                 onPress={onCancel}
                             >
@@ -264,8 +293,10 @@ function ConfirmContent({
                             variant={confirmButtonVariant}
                             style={[styles.flex1]}
                             onPress={onConfirm}
-                            isDisabled={isOffline && shouldDisableConfirmButtonWhenOffline}
+                            accessibilityState={{busy: !!isConfirmLoading}}
+                            isDisabled={(isOffline && shouldDisableConfirmButtonWhenOffline) || isConfirmDisabled}
                             isLoading={isConfirmLoading}
+                            sentryLabel={CONST.SENTRY_LABEL.CONFIRM_CONTENT.CONFIRM_BUTTON}
                         >
                             <Button.KeyboardShortcut isPressOnEnterActive={isVisible} />
                             <Button.Text>{confirmText || translate('common.yes')}</Button.Text>

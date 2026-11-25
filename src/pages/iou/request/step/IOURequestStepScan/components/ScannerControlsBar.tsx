@@ -13,6 +13,7 @@ import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
 import type {FileObject} from '@src/types/utils/Attachment';
+import type {SentryLabel} from '@src/types/utils/SentryLabel';
 
 import React from 'react';
 import {View} from 'react-native';
@@ -58,11 +59,16 @@ type ScannerControlsBarProps = {
     /** Toggles multi-scan mode on or off */
     toggleMultiScan?: () => void;
 
+    isReceiptEnhancementEnabled?: boolean;
+
+    /** Turns receipt enhancements on or off. When omitted the bar has no enhancement button and flash stays after the shutter */
+    toggleReceiptEnhancement?: () => void;
+
     /** Sentry label for the gallery button. Defaults to the scan labels */
-    gallerySentryLabel?: string;
+    gallerySentryLabel?: SentryLabel;
 
     /** Sentry label for the shutter button. Defaults to the scan label */
-    shutterSentryLabel?: string;
+    shutterSentryLabel?: SentryLabel;
 };
 
 function ScannerControlsBar({
@@ -79,6 +85,8 @@ function ScannerControlsBar({
     onPicked,
     capturePhoto,
     toggleMultiScan,
+    isReceiptEnhancementEnabled = false,
+    toggleReceiptEnhancement,
     gallerySentryLabel,
     shutterSentryLabel = CONST.SENTRY_LABEL.REQUEST_STEP.SCAN.SHUTTER,
 }: ScannerControlsBarProps) {
@@ -87,7 +95,31 @@ function ScannerControlsBar({
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
     const lazyIllustrations = useMemoizedLazyIllustrations(['Shutter']);
-    const lazyIcons = useMemoizedLazyExpensifyIcons(['Bolt', 'Gallery', 'ReceiptMultiple', 'boltSlash']);
+    const lazyIcons = useMemoizedLazyExpensifyIcons(['Bolt', 'Gallery', 'ReceiptMultiple', 'Sparkles', 'boltSlash']);
+    const hasReceiptEnhancementButton = !!toggleReceiptEnhancement;
+
+    // Empty View matching the gallery icon size so justifyContentAround keeps the shutter exactly centered
+    const spacer = <View style={StyleUtils.getWidthAndHeightStyle(variables.iconSizeMenuItem)} />;
+
+    const flashButton = setFlash ? (
+        <PressableWithFeedback
+            role={CONST.ROLE.BUTTON}
+            accessibilityLabel={translate('receipt.flash')}
+            sentryLabel={CONST.SENTRY_LABEL.REQUEST_STEP.SCAN.FLASH}
+            style={[hasReceiptEnhancementButton ? styles.alignItemsCenter : styles.alignItemsEnd, !hasFlash && styles.opacity0]}
+            disabled={cameraPermissionStatus !== RESULTS.GRANTED || !hasFlash}
+            onPress={() => setFlash((prevFlash) => !prevFlash)}
+        >
+            <Icon
+                height={variables.iconSizeMenuItem}
+                width={variables.iconSizeMenuItem}
+                src={flash ? lazyIcons.Bolt : lazyIcons.boltSlash}
+                fill={theme.textSupporting}
+            />
+        </PressableWithFeedback>
+    ) : (
+        spacer
+    );
 
     return (
         <View style={[styles.justifyContentAround, styles.alignItemsCenter, styles.p3, !isInLandscapeMode && styles.flexRow]}>
@@ -125,6 +157,7 @@ function ScannerControlsBar({
                     </PressableWithFeedback>
                 )}
             </AttachmentPicker>
+            {hasReceiptEnhancementButton && flashButton}
             <PressableWithFeedback
                 role={CONST.ROLE.BUTTON}
                 accessibilityLabel={translate('receipt.shutter')}
@@ -139,6 +172,26 @@ function ScannerControlsBar({
                     height={CONST.RECEIPT.SHUTTER_SIZE}
                 />
             </PressableWithFeedback>
+            {hasReceiptEnhancementButton && (
+                <PressableWithFeedback
+                    role={CONST.ROLE.SWITCH}
+                    aria-checked={isReceiptEnhancementEnabled}
+                    accessibilityLabel={translate('receipt.receiptEnhancements')}
+                    sentryLabel={CONST.SENTRY_LABEL.REQUEST_STEP.SCAN.RECEIPT_ENHANCEMENT}
+                    style={[styles.alignItemsCenter, isMultiScanEnabled && styles.opacity0]}
+                    disabled={isMultiScanEnabled}
+                    accessible={!isMultiScanEnabled}
+                    aria-hidden={isMultiScanEnabled}
+                    onPress={toggleReceiptEnhancement}
+                >
+                    <Icon
+                        height={variables.iconSizeMenuItem}
+                        width={variables.iconSizeMenuItem}
+                        src={lazyIcons.Sparkles}
+                        fill={isReceiptEnhancementEnabled ? theme.iconSuccessFill : theme.textSupporting}
+                    />
+                </PressableWithFeedback>
+            )}
             {canUseMultiScan && (
                 <PressableWithFeedback
                     accessibilityRole="button"
@@ -156,25 +209,7 @@ function ScannerControlsBar({
                     />
                 </PressableWithFeedback>
             )}
-            {!canUseMultiScan && !!setFlash && (
-                <PressableWithFeedback
-                    role={CONST.ROLE.BUTTON}
-                    accessibilityLabel={translate('receipt.flash')}
-                    sentryLabel={CONST.SENTRY_LABEL.REQUEST_STEP.SCAN.FLASH}
-                    style={[styles.alignItemsEnd, !hasFlash && styles.opacity0]}
-                    disabled={cameraPermissionStatus !== RESULTS.GRANTED || !hasFlash}
-                    onPress={() => setFlash?.((prevFlash) => !prevFlash)}
-                >
-                    <Icon
-                        height={variables.iconSizeMenuItem}
-                        width={variables.iconSizeMenuItem}
-                        src={flash ? lazyIcons.Bolt : lazyIcons.boltSlash}
-                        fill={theme.textSupporting}
-                    />
-                </PressableWithFeedback>
-            )}
-            {/* Empty View matching the gallery icon size so justifyContentAround keeps the shutter exactly centered */}
-            {!canUseMultiScan && !setFlash && <View style={StyleUtils.getWidthAndHeightStyle(variables.iconSizeMenuItem)} />}
+            {!canUseMultiScan && (hasReceiptEnhancementButton ? spacer : flashButton)}
         </View>
     );
 }

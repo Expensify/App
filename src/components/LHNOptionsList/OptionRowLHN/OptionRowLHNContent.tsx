@@ -8,7 +8,7 @@ import SidebarUtils from '@libs/SidebarUtils';
 import CONST from '@src/CONST';
 import type {Icon} from '@src/types/onyx/OnyxCommon';
 
-import type {ViewStyle} from 'react-native';
+import type {StyleProp, ViewStyle} from 'react-native';
 
 import React from 'react';
 import {StyleSheet, View} from 'react-native';
@@ -16,7 +16,7 @@ import {StyleSheet, View} from 'react-native';
 import OptionRowLHN from './OptionRowLHN';
 
 /** Kept apart from `OptionRowLHNData` because React Compiler does not memoize `getOptionData` when it is called there. */
-type OptionRowLHNContentProps = Pick<OptionRowLHNProps, 'onSelectRow' | 'onLayout' | 'testID' | 'hasDraftComment'> & {
+type OptionRowLHNContentProps = Pick<OptionRowLHNProps, 'onSelectRow' | 'onLayout' | 'testID' | 'hasDraftComment' | 'shouldUseFlatNavigationBar'> & {
     optionDataParams: Parameters<typeof SidebarUtils.getOptionData>[0];
 
     /** Whether focus is enabled for the row and its report is the open one. An empty focused row renders nothing instead of a placeholder. */
@@ -45,11 +45,10 @@ function OptionRowLHNContent({optionDataParams, isReportFocused, viewMode, isIOU
     }
 
     const isInFocusMode = viewMode === CONST.OPTION_MODE.COMPACT;
-    const placeholderRowStyle = StyleSheet.flatten<ViewStyle>(
-        isInFocusMode
-            ? [styles.chatLinkRowPressable, styles.flexGrow1, styles.optionItemAvatarNameWrapper, styles.optionRowCompact, styles.justifyContentCenter]
-            : [styles.chatLinkRowPressable, styles.flexGrow1, styles.optionItemAvatarNameWrapper, styles.optionRow, styles.justifyContentCenter],
-    );
+    const placeholderRowStyles: StyleProp<ViewStyle> = isInFocusMode
+        ? [styles.chatLinkRowPressable, styles.flexGrow1, styles.optionItemAvatarNameWrapper, styles.optionRowCompact, styles.justifyContentCenter]
+        : [styles.chatLinkRowPressable, styles.flexGrow1, styles.optionItemAvatarNameWrapper, styles.optionRow, styles.justifyContentCenter];
+    const placeholderRowStyle = StyleSheet.flatten(placeholderRowStyles);
 
     // rendering null as a render item causes the FlashList to render all
     // its children and consume significant memory on the first render. We can avoid this by
