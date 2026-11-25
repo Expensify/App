@@ -81,6 +81,24 @@ describe('DigitsCompanyCardAccountPage', () => {
         expect(props?.textInputOptions?.headerMessage).toBe('common.noResultsFound');
     });
 
+    it('lists inactive bank and credit card accounts, because Digits marks unused accounts inactive', () => {
+        // Given a new Digits company whose bank and credit card accounts have no ledger activity yet, next to an account of another subtype
+        renderPage([
+            {id: 'cards', name: 'Credit Cards', type: 'Liabilities', subtype: CONST.DIGITS_ACCOUNT_SUBTYPE.CREDIT_CARDS, isActive: false},
+            {id: 'rewards', name: 'Credit Card Rewards', type: 'OtherIncome', subtype: 'CreditCardRewards', isActive: false},
+            {id: 'bank', name: 'Bank Accounts', type: 'Assets', subtype: CONST.DIGITS_ACCOUNT_SUBTYPE.BANK_ACCOUNTS, isActive: false},
+        ]);
+
+        // When the page renders
+        const props = mockedSelectionScreen.mock.lastCall?.[0];
+
+        // Then both inactive accounts can be picked, the account of another subtype stays out of the list, and the
+        // inactive credit card account shows as selected because the exporter uses it while none is picked
+        expect(props?.data?.map((item) => item.text)).toEqual(['Credit Cards', 'Bank Accounts']);
+        expect(props?.data?.filter((item) => item.isSelected).map((item) => item.text)).toEqual(['Credit Cards']);
+        expect(props?.shouldShowListEmptyContent).toBe(true);
+    });
+
     it('asks to add accounts in Digits when the workspace has none', () => {
         // Given a Digits connection that imported no bank or credit card accounts
         // When the page renders

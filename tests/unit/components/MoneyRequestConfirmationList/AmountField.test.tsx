@@ -97,7 +97,7 @@ jest.mock('@components/MenuItem', () => {
         },
     };
 });
-jest.mock('@components/MoneyRequestConfirmationList/sections/ExpenseFieldRow', () => {
+jest.mock('@components/DropdownFieldRow', () => {
     const {Text} = jest.requireActual<Record<'Text', React.ComponentType<{children?: React.ReactNode}>>>('react-native');
     return ({value, isInteractive = true}: {value?: string; isInteractive?: boolean}) => (
         <>
@@ -146,6 +146,7 @@ const amountFieldProps: React.ComponentProps<typeof AmountField> = {
     shouldShowTimeRequestFields: false,
     shouldDisplayFieldError: false,
     formError: 'iou.error.invalidAmount',
+    fieldError: undefined,
     policy: undefined,
     clearFormErrors: jest.fn(),
     setFormError: jest.fn(),

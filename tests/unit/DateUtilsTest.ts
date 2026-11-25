@@ -1,4 +1,4 @@
-// cspell:ignore Montag Dienstag Freitag Sonntag März Τρίτη Κυριακή Januar grudzień janv styczeń stycznia
+// cspell:ignore Montag Dienstag Freitag Sonntag März Τρίτη Κυριακή Januar grudzień janv styczeń stycznia dnia godziny godzin minut
 // cspell:ignore Ιανουάριος Ιανουαρίου lundi novembre Δευτέρα Νοεμβρίου -- German, Polish, French and Greek weekday and month
 // names, asserted verbatim so the locale-driven formatters are covered rather than only the English path.
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
@@ -1626,6 +1626,70 @@ describe('DateUtils', () => {
         });
     });
 
+    describe('getMonthDateRange', () => {
+        it('returns the first and last day of a month', () => {
+            // Given February of a leap year, whose last day differs from other years
+            // When its range is built
+            // Then the range ends on the 29th
+            expect(DateUtils.getMonthDateRange(2024, 2)).toEqual({start: '2024-02-01', end: '2024-02-29'});
+        });
+
+        it.each([0, 13, 1.5, Number.NaN])('returns undefined for month %p', (month) => {
+            // Given a month that doesn't exist, which `Date` would roll into another year
+            // When its range is built
+            // Then there is no range rather than one in the wrong year
+            expect(DateUtils.getMonthDateRange(2025, month)).toBeUndefined();
+        });
+
+        it('returns undefined for a year that is not an integer', () => {
+            // Given a missing year, which `format` would throw on
+            // When a range is built for it
+            // Then there is no range rather than a crash
+            expect(DateUtils.getMonthDateRange(Number.NaN, 6)).toBeUndefined();
+        });
+    });
+
+    describe('getQuarterDateRange', () => {
+        it('returns the first and last day of a quarter', () => {
+            // Given the last quarter of the year
+            // When its range is built
+            // Then it covers October through December
+            expect(DateUtils.getQuarterDateRange(2025, 4)).toEqual({start: '2025-10-01', end: '2025-12-31'});
+        });
+
+        it.each([0, 5, 2.5, Number.NaN])('returns undefined for quarter %p', (quarter) => {
+            // Given a quarter that doesn't exist, which `Date` would roll into another year
+            // When its range is built
+            // Then there is no range rather than one in the wrong year
+            expect(DateUtils.getQuarterDateRange(2025, quarter)).toBeUndefined();
+        });
+    });
+
+    describe('getYearDateRange', () => {
+        it('returns the first and last day of a year', () => {
+            // Given a year
+            // When its range is built
+            // Then it covers January 1 through December 31
+            expect(DateUtils.getYearDateRange(2025)).toEqual({start: '2025-01-01', end: '2025-12-31'});
+        });
+
+        it.each([2025.5, Number.NaN])('returns undefined for year %p', (year) => {
+            // Given a year that isn't a whole number, which would build a date string no search can parse
+            // When its range is built
+            // Then there is no range rather than an invalid filter
+            expect(DateUtils.getYearDateRange(year)).toBeUndefined();
+        });
+    });
+
+    describe('isDateStringInMonth', () => {
+        it('matches no date for a month outside the year', () => {
+            // Given month 13, which would otherwise roll into January of the next year
+            // When a January date is checked against it
+            // Then it doesn't match
+            expect(DateUtils.isDateStringInMonth('2026-01-15', 2025, 13)).toBe(false);
+        });
+    });
+
     describe('abbreviated date with a year', () => {
         // cspell:ignore Juni
         // Midday UTC, so the displayed day is the same in every timezone the test can run in.
@@ -1678,16 +1742,49 @@ describe('DateUtils', () => {
             expect(formatted).toBe('2 days');
         });
 
-        it('rounds a duration shorter than a twentieth of a day down to 0 days, and keeps the singular for exactly one day', () => {
-            // Given an average of one hour, one of nine hours, and one of exactly a day
-            const oneHour = 60 * 60;
-            const nineHours = 9 * oneHour;
+        it('writes a duration under an hour in minutes and one under a day in hours, and keeps the singular for exactly one of each', () => {
+            // Given averages of fifty minutes, a minute, two and a half hours, an hour, and exactly a day
+            const durations = [50 * 60, 60, 2.5 * 60 * 60, 60 * 60, CONST.DATE.SECONDS_PER_DAY];
 
             // When each is formatted in English
-            const formatted = [oneHour, nineHours, CONST.DATE.SECONDS_PER_DAY].map((seconds) => DateUtils.formatAverageDuration(seconds, translateLocal, numberFormatIn(CONST.LOCALES.EN)));
+            const formatted = durations.map((seconds) => DateUtils.formatAverageDuration(seconds, translateLocal, numberFormatIn(CONST.LOCALES.EN)));
 
-            // Then sub-day values read as tenths of a day, rounding to 0 below 0.05, because the chart only ever shows days
-            expect(formatted).toEqual(['0 days', '0.4 days', '1 day']);
+            // Then each reads in the largest unit it fills, because tenths of a day would show a short stage as "0 days"
+            expect(formatted).toEqual(['50 minutes', '1 minute', '2.5 hours', '1 hour', '1 day']);
+        });
+
+        it('moves to the next unit when rounding reaches it', () => {
+            // Given an average just under an hour and one just under a day
+            const almostAnHour = 59.8 * 60;
+            const almostADay = CONST.DATE.SECONDS_PER_DAY - 60;
+
+            // When each is formatted in English
+            const formatted = [almostAnHour, almostADay].map((seconds) => DateUtils.formatAverageDuration(seconds, translateLocal, numberFormatIn(CONST.LOCALES.EN)));
+
+            // Then each reads in the next unit, because "60 minutes" and "24 hours" are a whole hour and a whole day
+            expect(formatted).toEqual(['1 hour', '1 day']);
+        });
+
+        it('writes a negative difference too small to show as zero, without a minus sign', () => {
+            // Given a difference of ten seconds in the falling direction, like a compared period that was slightly faster
+            const tenSecondsFaster = -10;
+
+            // When it is formatted in full and in compact notation in English
+            const formatted = [false, true].map((isCompact) => DateUtils.formatAverageDuration(tenSecondsFaster, translateLocal, numberFormatIn(CONST.LOCALES.EN), isCompact));
+
+            // Then it reads as zero, because rounding to whole minutes gives -0, and "-0 minutes" would suggest a change that is not there
+            expect(formatted).toEqual(['0 minutes', '0m']);
+        });
+
+        it('abbreviates minutes and hours when compact, like days', () => {
+            // Given an average of fifty minutes and one of two and a half hours
+            const durations = [50 * 60, 2.5 * 60 * 60];
+
+            // When each is formatted in compact notation in English
+            const formatted = durations.map((seconds) => DateUtils.formatAverageDuration(seconds, translateLocal, numberFormatIn(CONST.LOCALES.EN), true));
+
+            // Then each keeps its own unit as a single letter, so axis ticks read in the same unit as the bars
+            expect(formatted).toEqual(['50m', '2.5h']);
         });
 
         it('abbreviates the unit when compact, the way axis ticks show it', () => {
@@ -1711,6 +1808,18 @@ describe('DateUtils', () => {
 
             // Then the decimal separator is German, because the number is formatted before it reaches the translation
             expect(formatted).toMatch(/^2,5 /);
+        });
+
+        it('uses the Polish form for fractions, which differs from the one for whole numbers', async () => {
+            // Given averages of two and a half and of five in each unit, viewed in Polish
+            await IntlStore.load(CONST.LOCALES.PL);
+            const durations = [2.5 * CONST.DATE.SECONDS_PER_DAY, 5 * CONST.DATE.SECONDS_PER_DAY, 2.5 * 60 * 60, 5 * 60 * 60, 5 * 60];
+
+            // When each is formatted with the Polish number format
+            const formatted = durations.map((seconds) => DateUtils.formatAverageDuration(seconds, translateLocal, numberFormatIn(CONST.LOCALES.PL)));
+
+            // Then fractions take the genitive singular ("2,5 dnia") and whole numbers from five take the genitive plural ("5 dni"), as Polish requires
+            expect(formatted).toEqual(['2,5 dnia', '5 dni', '2,5 godziny', '5 godzin', '5 minut']);
         });
     });
 });

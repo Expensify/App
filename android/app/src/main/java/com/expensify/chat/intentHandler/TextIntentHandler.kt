@@ -53,7 +53,7 @@ class TextIntentHandler(private val context: Context) : AbstractIntentHandler() 
         (intent.getParcelableExtra<Uri>(Intent.EXTRA_STREAM))?.let { fileUri ->
             val resultingPath: String? = FileUtils.copyUriToStorage(fileUri, context)
             if (resultingPath != null) {
-                val shareFileObject = ShareFileObject(resultingPath, intent.type)
+                val shareFileObject = ShareFileObject.Attachment(resultingPath, intent.type)
                 saveToSharedPreferences(IntentHandlerConstants.shareObjectProperty, shareFileObject.toString())
             }
         }
@@ -62,7 +62,7 @@ class TextIntentHandler(private val context: Context) : AbstractIntentHandler() 
     private fun handleTextPlainIntent(intent: Intent, context: Context) {
             var intentTextContent = intent.getStringExtra(Intent.EXTRA_TEXT)
             if(intentTextContent != null) {
-                val shareFileObject = ShareFileObject(intentTextContent, intent.type)
+                val shareFileObject = ShareFileObject.Text(intentTextContent)
                 saveToSharedPreferences(IntentHandlerConstants.shareObjectProperty, shareFileObject.toString())
             }
     }

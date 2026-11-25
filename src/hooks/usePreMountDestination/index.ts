@@ -135,7 +135,10 @@ function usePreMountDestination(route: Route | undefined, options?: UsePreMountD
         if (route && destinationStrategy === CONST.DESTINATION_STRATEGY.PRE_INSERT && preInsertedRouteRef.current !== route) {
             transitionCancelHandleRef.current = TransitionTracker.runAfterTransitions({
                 callback: () => {
-                    preInsertTaskRef.current = Scheduler.scheduleWhenIdle(() => runPreInsert(route));
+                    preInsertTaskRef.current = Scheduler.scheduleWhenIdle(() => {
+                        // The wait above can resolve before the RHP open starts, so also wait for a running transition
+                        transitionCancelHandleRef.current = TransitionTracker.runAfterTransitions({callback: () => runPreInsert(route)});
+                    });
                 },
                 maxWaitForUpcomingTransitionMs: PRE_INSERT_OPEN_TRANSITION_START_WAIT_MS,
                 waitForUpcomingTransition: true,

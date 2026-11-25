@@ -4,6 +4,7 @@ import {
     DiscardStaleSearchSnapshot,
     MembersNeedCategoryError,
     FailureTracking,
+    FlagSearchTransactionWrites,
     FraudMonitoring,
     GlobalReimbursementPayError,
     handleDeletedAccount,
@@ -14,6 +15,7 @@ import {
     Logging,
     Pagination,
     Reauthentication,
+    ReceiptTelemetry,
     RecordFullReconnectTime,
     ReconcileBulkEditReportAction,
     ReplaceOptimisticAgentAccountID,
@@ -41,6 +43,9 @@ function registerMiddlewares() {
     // Logging - Logs request details and errors.
     addMiddleware(Logging);
 
+    // ReceiptTelemetry - Logs the sent and server result steps of the receipt trail. Right after Logging so each replayed attempt is logged too.
+    addMiddleware(ReceiptTelemetry);
+
     // Duplicates API calls (tagged with mockRequest=true) when the server sends load-test parameters via the X-Load-Test response header.
     addMiddleware(LoadTest);
 
@@ -56,7 +61,7 @@ function registerMiddlewares() {
     // Handle supportal permission denial centrally
     addMiddleware(SupportalPermission);
 
-    // Handle the Corpay pay modal signal: when the backend signals that the workspace USD VBBA is not set up on Corpay, replace the optimistic PAY action-error with an action-null so no inline error shows.
+    // Handle the global reimbursements pay signal (Corpay or Wise): drop the failed PAY action and the report error, and hold the signal back for Search bulk pay, which lists its unpaid reports itself.
     addMiddleware(GlobalReimbursementPayError);
 
     // Show the "Cannot disable category" modal when the backend rejects disabling categories some members can't do without.
@@ -88,6 +93,9 @@ function registerMiddlewares() {
 
     // Reconcile bulk-edit actions before successData can reinsert an action Auth skipped.
     addMiddleware(ReconcileBulkEditReportAction);
+
+    // FlagSearchTransactionWrites - Tells Search which transactions a successful user write changed, so it can fetch server-computed values again.
+    addMiddleware(FlagSearchTransactionWrites);
 
     // SaveResponseInOnyx - Merges either the successData or failureData (or finallyData, if included in place of the former two values) into Onyx depending on if the call was successful or not. This must be the last middleware that applies Onyx data
     // (middlewares after it, like FraudMonitoring, must not write Onyx), because the SequentialQueue depends on the result of this middleware to pause the queue (if needed) to bring the app to an up-to-date state.

@@ -678,6 +678,27 @@ describe('TransactionUtils', () => {
     });
 
     describe('getUpdatedTransaction', () => {
+        it('uses the supplied translator for a pending route instead of the global locale', () => {
+            // Given a translator whose output differs from the global locale
+            const translate = jest.fn(() => 'Injected pending label');
+            const transaction = generateTransaction({comment: {waypoints: {}}});
+
+            // When a waypoint edit has no resolved route yet
+            const updatedTransaction = TransactionUtils.getUpdatedTransaction({
+                translate,
+                transaction,
+                transactionChanges: {waypoints: {waypoint0: {address: 'New destination'}}},
+                isFromExpenseReport: false,
+                personalPolicyOutputCurrency: undefined,
+                getCurrencySymbol: getCurrencySymbolLocal,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+            });
+
+            // Then the optimistic merchant comes from the caller's translator
+            expect(translate).toHaveBeenCalledWith('iou.fieldPending');
+            expect(updatedTransaction.modifiedMerchant).toBe('Injected pending label');
+        });
+
         it('should preserve a confirmed zero Scan amount while another field edit is pending', () => {
             // Given a submitted Scan whose explicit zero survived a cache reset without its draft flag
             const transaction = generateTransaction({
@@ -763,9 +784,11 @@ describe('TransactionUtils', () => {
             });
 
             const newDistance = 20; // change distance to 20 miles
+            const translate = jest.fn(() => 'Injected distance label');
 
             // When: updating the transaction with a new distance
             const updatedTransaction = TransactionUtils.getUpdatedTransaction({
+                translate,
                 transaction,
                 isFromExpenseReport: false,
                 policy: fakePolicy,
@@ -777,6 +800,7 @@ describe('TransactionUtils', () => {
 
             // Then: quantity should be updated
             expect(updatedTransaction.comment?.customUnit?.quantity).toBe(newDistance);
+            expect(translate).toHaveBeenCalledWith('common.mile');
 
             // And: amount should be recalculated (20 miles × 1 USD = 20)
             expect(updatedTransaction.modifiedAmount).toBe(20);
@@ -6454,6 +6478,44 @@ describe('TransactionUtils', () => {
 
         it('returns false for undefined', () => {
             expect(TransactionUtils.isSplitContainerTransaction(undefined)).toBe(false);
+        });
+    });
+
+    describe('isUnreportedTransactionOwnedByCurrentUser', () => {
+        it('returns true for an expense that is not on a managed card, whoever holds the card', () => {
+            // Given an unreported expense that is not on a managed card, which only its owner can see
+            const transaction = generateTransaction({reportID: CONST.REPORT.UNREPORTED_REPORT_ID, managedCard: false});
+
+            // When ownership is decided without an IOU action
+            // Then it belongs to the current user, even though no card of theirs matches
+            expect(TransactionUtils.isUnreportedTransactionOwnedByCurrentUser(transaction, false)).toBe(true);
+        });
+
+        it('returns true for an expense with no managedCard flag', () => {
+            // Given a legacy unreported expense that has no managedCard flag, which means it is not on a managed card
+            const transaction = generateTransaction({reportID: CONST.REPORT.UNREPORTED_REPORT_ID, managedCard: undefined});
+
+            // When ownership is decided without an IOU action
+            // Then it belongs to the current user
+            expect(TransactionUtils.isUnreportedTransactionOwnedByCurrentUser(transaction, false)).toBe(true);
+        });
+
+        it('returns true for a managed card expense when the current user holds the card', () => {
+            // Given an unreported expense on a managed card that the current user holds
+            const transaction = generateTransaction({reportID: CONST.REPORT.UNREPORTED_REPORT_ID, managedCard: true});
+
+            // When ownership is decided without an IOU action
+            // Then it belongs to the current user
+            expect(TransactionUtils.isUnreportedTransactionOwnedByCurrentUser(transaction, true)).toBe(true);
+        });
+
+        it('returns false for a managed card expense when another member holds the card', () => {
+            // Given an unreported expense on another member's managed card, which an admin can see on their card feed
+            const transaction = generateTransaction({reportID: CONST.REPORT.UNREPORTED_REPORT_ID, managedCard: true});
+
+            // When ownership is decided without an IOU action
+            // Then it doesn't belong to the current user, so it isn't opened in their self DM
+            expect(TransactionUtils.isUnreportedTransactionOwnedByCurrentUser(transaction, false)).toBe(false);
         });
     });
 });

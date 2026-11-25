@@ -20,7 +20,7 @@ date = "date"i { return "date"; }
 amount = "amount"i { return "amount"; }
 merchant = "merchant"i { return "merchant"; }
 description = "description"i { return "description"; }
-reportID = "reportid"i / "report-id"i { return "reportID"; }
+reportID = ("reportid"i / "report-id"i) { return "reportID"; }
 keyword = "keyword"i { return "keyword"; }
 in = "in"i { return "in"; }
 currency = "currency"i { return "currency"; }
@@ -278,3 +278,12 @@ wordBoundary
 footerCount = ("footerCount"i / "footer-count"i) { return "footerCount"; }
 footerCurrency = ("footerCurrency"i / "footer-currency"i) { return "footerCurrency"; }
 footerTotal = ("footerTotal"i / "footer-total"i) { return "footerTotal"; }
+
+leftPinnedColumns = ("leftPinnedColumns"i / "left-pinned-columns"i) {
+  isColumnsContext = true;
+  return "leftPinnedColumns";
+}
+rightPinnedColumns = ("rightPinnedColumns"i / "right-pinned-columns"i) {
+  isColumnsContext = true;
+  return "rightPinnedColumns";
+}

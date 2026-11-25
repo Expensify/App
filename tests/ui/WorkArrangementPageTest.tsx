@@ -73,7 +73,7 @@ type MockHeaderBackButtonProps = {
     onPress?: () => void;
 };
 
-type WorkArrangementPageTestProps = React.ComponentProps<typeof WorkArrangementPage> & {policy: Policy; personalDetails: PersonalDetailsList};
+type WorkArrangementPageTestProps = React.ComponentProps<typeof WorkArrangementPage> & {policy: Policy};
 
 describe('WorkArrangementPage', () => {
     const policyID = 'policy123';
@@ -106,10 +106,9 @@ describe('WorkArrangementPage', () => {
         });
     });
 
-    const getPage = (routeAccountID = accountID, details: PersonalDetailsList = personalDetails, pagePolicy: Policy = createMock<Policy>(policy), isInviteFlow = false) => {
+    const getPage = (routeAccountID = accountID, pagePolicy: Policy = createMock<Policy>(policy), isInviteFlow = false) => {
         const props = createMock<WorkArrangementPageTestProps>({
             policy: pagePolicy,
-            personalDetails: details,
             route: isInviteFlow
                 ? {name: SCREENS.WORKSPACE.INVITE_WORK_ARRANGEMENT, params: {policyID}}
                 : {name: SCREENS.WORKSPACE.MEMBER_WORK_ARRANGEMENT, params: {policyID, accountID: String(routeAccountID)}},
@@ -124,7 +123,7 @@ describe('WorkArrangementPage', () => {
         );
     };
 
-    const renderPage = (routeAccountID = accountID, details: PersonalDetailsList = personalDetails, pagePolicy?: Policy) => render(getPage(routeAccountID, details, pagePolicy));
+    const renderPage = (routeAccountID = accountID, pagePolicy?: Policy) => render(getPage(routeAccountID, pagePolicy));
 
     it('does nothing when the selected arrangement is already active', () => {
         // Given the workspace default is no regular workspace
@@ -187,7 +186,7 @@ describe('WorkArrangementPage', () => {
         await act(async () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MEMBERS_DRAFT}${policyID}`, {[memberLogin]: inviteAccountID});
         });
-        render(getPage(inviteAccountID, {[inviteAccountID]: createMock<PersonalDetails>({accountID: inviteAccountID, login: memberLogin})}, invitePolicy, true));
+        render(getPage(inviteAccountID, invitePolicy, true));
         await waitForBatchedUpdatesWithAct();
 
         // When the admin selects office-based
@@ -213,7 +212,7 @@ describe('WorkArrangementPage', () => {
         await act(async () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MEMBERS_DRAFT}${policyID}`, {[memberLogin]: inviteAccountID});
         });
-        render(getPage(inviteAccountID, personalDetails, invitePolicy, true));
+        render(getPage(inviteAccountID, invitePolicy, true));
         await waitForBatchedUpdatesWithAct();
 
         // When the admin opens the work arrangement selection for the invite
@@ -224,7 +223,7 @@ describe('WorkArrangementPage', () => {
     it('defaults a member to office-based when neither the member nor workspace has an arrangement', () => {
         // Given a home and office workspace with no member override or workspace default
         const policyWithoutDefault = createMock<Policy>({...policy, commuterExclusions: {method: CONST.POLICY.COMMUTER_EXCLUSION_METHOD.HOME_AND_OFFICE}});
-        renderPage(accountID, personalDetails, policyWithoutDefault);
+        renderPage(accountID, policyWithoutDefault);
 
         // When the member's work arrangement settings load
         // Then Office-based is selected, matching the member details page and server fallback
@@ -241,7 +240,7 @@ describe('WorkArrangementPage', () => {
         await act(async () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MEMBERS_DRAFT}${policyID}`, {[memberLogin]: inviteAccountID});
         });
-        render(getPage(inviteAccountID, personalDetails, invitePolicy, true));
+        render(getPage(inviteAccountID, invitePolicy, true));
         await waitForBatchedUpdatesWithAct();
 
         // When the admin changes the invited approver to office-based
@@ -266,7 +265,7 @@ describe('WorkArrangementPage', () => {
         await act(async () => {
             await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, optimisticPersonalDetails);
         });
-        const renderedPage = renderPage(optimisticAccountID, optimisticPersonalDetails, pendingInvitePolicy);
+        const renderedPage = renderPage(optimisticAccountID, pendingInvitePolicy);
 
         // When the invite syncs and replaces the optimistic personal details with the server account ID
         const syncedAccountID = 67890;
@@ -276,7 +275,7 @@ describe('WorkArrangementPage', () => {
         await act(async () => {
             await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, syncedPersonalDetails);
         });
-        renderedPage.rerender(getPage(optimisticAccountID, syncedPersonalDetails, syncedPolicy));
+        renderedPage.rerender(getPage(optimisticAccountID, syncedPolicy));
 
         // And the admin changes the arrangement for the first time
         act(() => {
@@ -300,7 +299,7 @@ describe('WorkArrangementPage', () => {
         await act(async () => {
             await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, optimisticPersonalDetails);
         });
-        const renderedPage = renderPage(optimisticAccountID, optimisticPersonalDetails, pendingInvitePolicy);
+        const renderedPage = renderPage(optimisticAccountID, pendingInvitePolicy);
 
         // When the invite syncs and replaces the optimistic personal details with the server account ID
         const syncedAccountID = 67890;
@@ -310,7 +309,7 @@ describe('WorkArrangementPage', () => {
         await act(async () => {
             await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, syncedPersonalDetails);
         });
-        renderedPage.rerender(getPage(optimisticAccountID, syncedPersonalDetails, syncedPolicy));
+        renderedPage.rerender(getPage(optimisticAccountID, syncedPolicy));
 
         expect(getSelectionListProps()).toBeDefined();
 
