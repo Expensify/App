@@ -25,7 +25,6 @@ import type {
     DynamicFormFieldType,
     DynamicFormListField,
     DynamicFormSchemaField,
-    DynamicFormTextField,
 } from '@src/types/onyx';
 
 import getAddressInputKeys, {getAddressCountry, getHiddenAddressPartKeys, getStateCodes, isCountryAllowed, isStateAsked, isZipCodeRequired, isZipCodeShown} from './getAddressInputKeys';
