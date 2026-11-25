@@ -83,6 +83,7 @@ function getMoneyRequestAdditionalFields({
                 break;
             }
             case CONST.SEARCH.TABLE_COLUMNS.POSTED: {
+                // The Posted column applies to card transactions, so it should be omitted from cash expenses.
                 if (!isFromCreditCardImport(transaction)) {
                     break;
                 }
@@ -95,6 +96,7 @@ function getMoneyRequestAdditionalFields({
                 fields.push({column, value: getMCCForDisplay(transaction.mcc)});
                 break;
             case CONST.SEARCH.TABLE_COLUMNS.TAX_CODE:
+                // Existing tax rules exclude per diem and time expenses, so the Tax code field does not apply to them.
                 if (isPerDiemRequest(transaction) || isTimeRequest(transaction)) {
                     break;
                 }
