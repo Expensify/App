@@ -2615,7 +2615,7 @@ describe('WorkflowUtils', () => {
             });
 
             it('Should keep the steps the default workflow shares with another default-marked workflow', () => {
-                // Given two default-marked workflows, 1 -> 3 -> 4 for member 10 and 2 -> 3 -> 4 for member 20, whose shared
+                // Given two default-marked workflows, approvers 1, 3 and 4 for member 10 and approvers 2, 3 and 4 for member 20, whose shared
                 // steps at approvers 3 and 4 are saved as one rule each, listing both members
                 const sharedApprovers = ['3@example.com', '4@example.com'];
                 const isSharedStep = (rule: ApprovalWorkflowRule) => sharedApprovers.some((approver) => JSON.stringify(rule.filters).includes(`"${approver}"`));
@@ -2636,7 +2636,7 @@ describe('WorkflowUtils', () => {
             });
 
             it('Should follow a single chain when two default-marked chains share their submit rule', () => {
-                // Given two default-marked chains that both start at approver 1, 1 -> 3 for members 10 and 11 and 1 -> 4 for
+                // Given two default-marked chains that both start at approver 1, approvers 1 and 3 for members 10 and 11 and approvers 1 and 4 for
                 // member 20, whose submit rules were saved as one rule listing all three members
                 const [sharedSubmitRule] = buildApprovalWorkflowRules(buildWorkflow([10, 11, 20], [1, 3], {isDefault: true}));
                 const largerChainRules = buildApprovalWorkflowRules(buildWorkflow([10, 11], [1, 3], {isDefault: true})).slice(1);
@@ -2754,6 +2754,19 @@ describe('WorkflowUtils', () => {
                 const diff = reconcileApprovalWorkflowRulesForEdit(newRules, ['10@example.com'], {existingRules});
 
                 expect(diff).toEqual({});
+            });
+
+            it('Should add the missing members to a structurally identical rule that lists only some of them', () => {
+                // Given the rules of a workflow approved by 1 that list only member 20, such as a step of another chain that lists
+                // submitters carried along with the default workflow
+                const existingRules = keyRules(buildApprovalWorkflowRules(buildWorkflow([20], [1])));
+
+                // When members 10 and 20 are saved with that same chain
+                const newRules = buildApprovalWorkflowRules(buildWorkflow([10, 20], [1]));
+                const diff = reconcileApprovalWorkflowRulesForEdit(newRules, ['10@example.com', '20@example.com'], {existingRules});
+
+                // Then the existing rules stand in for the new ones and list both members, rather than leaving member 10 without them
+                expect(diff).toEqual(keyRules(buildApprovalWorkflowRules(buildWorkflow([20, 10], [1]))));
             });
         });
 

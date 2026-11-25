@@ -3571,7 +3571,7 @@ describe('actions/Workflow', () => {
         it('lists every member once when selecting everyone makes the workflow the default one', async () => {
             mockFetch.pause();
 
-            // Given the [employee1, employee2] -> employee3 workflow and the owner's default workflow of the owner and employee3,
+            // Given the workflow of employee1 and employee2 approved by employee3, and the owner's default workflow of the owner and employee3,
             // both stored as rules, and a "+N more" edit selecting every member
             await createForwardApproveRules(policyID, [employee1Email, employee2Email], employee3Email);
             await createForwardApproveRules(policyID, [ownerEmail, employee3Email], ownerEmail, 'default', true);
@@ -3601,6 +3601,296 @@ describe('actions/Workflow', () => {
                 const submitters = getSavedSubmitters(rule.filters);
                 expect(submitters).toHaveLength(new Set(submitters).size);
             }
+
+            await mockFetch.resume();
+            await waitForBatchedUpdates();
+        });
+    });
+
+    describe('saving the default workflow when rules flagged as the default list submitters it does not show', () => {
+        const policyID = '123456789';
+        const approverK = 'approverk@gmail.com';
+        const approverE = 'approvere@gmail.com';
+        const approverX = 'approverx@gmail.com';
+        const branchMember = 'branch@gmail.com';
+        const visibleMembers = ['member1@gmail.com', 'member2@gmail.com', 'member3@gmail.com', 'member4@gmail.com', 'member5@gmail.com'];
+        const legacyMembers = ['legacy1@gmail.com', 'legacy2@gmail.com'];
+        const removedMembers = Array.from({length: 10}, (_, index) => `removed${index + 1}@gmail.com`);
+        const importJunkRow = '#n/a';
+
+        type FixtureRule = {
+            trigger: typeof CONST.RULES.TRIGGERS.REPORT_SUBMIT | typeof CONST.RULES.TRIGGERS.REPORT_APPROVE;
+            submitters: string[];
+
+            /** The approver a `ReportApprove` rule fires for */
+            to?: string;
+
+            /** The approver the rule forwards to, or none when it approves the report */
+            forwardTo?: string;
+        };
+
+        /** Store a rule flagged as part of the default workflow, the way rules saved before the backend refused a second default can look */
+        async function setDefaultFlaggedRule(ruleID: string, {trigger, submitters, to, forwardTo}: FixtureRule) {
+            const submitterFilter = {operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, left: CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM, right: submitters};
+            await Onyx.set(`${ONYXKEYS.COLLECTION.RULE}${ruleID}`, {
+                scope: CONST.RULES.SCOPE.POLICY,
+                scopeID: policyID,
+                triggers: indexMap(trigger),
+                filters: to
+                    ? {
+                          operator: CONST.SEARCH.SYNTAX_OPERATORS.AND,
+                          left: submitterFilter,
+                          right: {operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, left: CONST.SEARCH.SYNTAX_FILTER_KEYS.TO, right: to},
+                      }
+                    : submitterFilter,
+                actions: indexMap(forwardTo ? {name: CONST.RULES.ACTIONS.FORWARD_TO, approver: forwardTo} : {name: CONST.RULES.ACTIONS.APPROVE_REPORT}),
+                isDefaultApprovalWorkflow: true,
+            });
+        }
+
+        function buildEmployee(email: string, submitsTo = approverK) {
+            return [email, {email, forwardsTo: '', role: CONST.POLICY.ROLE.USER, submitsTo}] as const;
+        }
+
+        /** The policy's rules once the optimistic save is applied, which is the sent diff applied to the existing rules */
+        async function getSavedRules() {
+            return getActivePolicyRules(policyID);
+        }
+
+        function isDefaultSubmitRule(rule: ApprovalWorkflowRule) {
+            return !!rule.isDefaultApprovalWorkflow && Object.values(rule.triggers).includes(CONST.RULES.TRIGGERS.REPORT_SUBMIT);
+        }
+
+        function getForwardApprover(rule: ApprovalWorkflowRule) {
+            return Object.values(rule.actions).find((action) => action.name === CONST.RULES.ACTIONS.FORWARD_TO)?.approver;
+        }
+
+        function getWorkflows(policy: Policy, rules: Awaited<ReturnType<typeof getRulesCollection>>) {
+            return convertApprovalWorkflowRulesToWorkflows({
+                policy,
+                personalDetails: {},
+                localeCompare: (a: string, b: string) => a.localeCompare(b),
+                currentUserLogin: ownerEmail,
+                rules: getApprovalWorkflowRulesForPolicy(rules, policyID),
+            }).approvalWorkflows;
+        }
+
+        /**
+         * The default submit rule forwards to approverK. Its "approverK approves" step lists the visible members, while the
+         * "approverK forwards to approverE" and "approverE approves" steps list branchMember, every rule flagged as the default.
+         * Members removed from the policy and a junk row from a spreadsheet import stay listed in the rules.
+         */
+        async function setUpBranchedDefaultWorkflow(): Promise<Policy> {
+            const policy: Policy = {
+                ...createRandomPolicy(1),
+                id: policyID,
+                type: CONST.POLICY.TYPE.CORPORATE,
+                owner: ownerEmail,
+                approver: approverK,
+                approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
+                employeeList: Object.fromEntries([
+                    ...visibleMembers.map((email) => buildEmployee(email)),
+                    ...legacyMembers.map((email) => buildEmployee(email)),
+                    buildEmployee(branchMember),
+                    buildEmployee(approverK, ''),
+                    buildEmployee(approverE, ''),
+                ]),
+                rules: {},
+            };
+            await setDefaultFlaggedRule('S1', {
+                trigger: CONST.RULES.TRIGGERS.REPORT_SUBMIT,
+                submitters: [...removedMembers, importJunkRow, ...visibleMembers, branchMember],
+                forwardTo: approverK,
+            });
+            await setDefaultFlaggedRule('A1', {trigger: CONST.RULES.TRIGGERS.REPORT_APPROVE, submitters: [...removedMembers.slice(0, 7), importJunkRow, ...visibleMembers], to: approverK});
+            await setDefaultFlaggedRule('A2', {trigger: CONST.RULES.TRIGGERS.REPORT_APPROVE, submitters: [...removedMembers.slice(7), branchMember], to: approverK, forwardTo: approverE});
+            await setDefaultFlaggedRule('A3', {trigger: CONST.RULES.TRIGGERS.REPORT_APPROVE, submitters: [...removedMembers.slice(7), branchMember], to: approverE});
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
+            await Onyx.merge(ONYXKEYS.SESSION, {authToken: '123456789'});
+            await waitForBatchedUpdates();
+            return policy;
+        }
+
+        async function expectBranchMemberOnUnflaggedRules(policy: Policy) {
+            const branchMemberRules = (await getSavedRules()).filter((rule) => extractSubmitterEmails(rule).includes(branchMember));
+            expect(branchMemberRules.length).toBeGreaterThan(0);
+            expect(branchMemberRules.some((rule) => rule.isDefaultApprovalWorkflow)).toBe(false);
+            const branchWorkflow = getWorkflows(policy, await getRulesCollection()).find((workflow) => workflow.members.some((member) => member.email === branchMember));
+            expect(branchWorkflow?.isDefault).toBe(false);
+            expect(branchWorkflow?.approvers.map((approver) => approver.email)).toEqual([approverK, approverE]);
+        }
+
+        it('leaves a single default submit rule when the default approver changes', async () => {
+            mockFetch.pause();
+
+            // Given the branched default workflow, where the page shows branchMember in a workflow of their own
+            const policy = await setUpBranchedDefaultWorkflow();
+            const workflows = getWorkflows(policy, await getRulesCollection());
+            const defaultWorkflow = workflows.find((workflow) => workflow.isDefault);
+            expect(defaultWorkflow?.members.map((member) => member.email).sort()).toEqual([...visibleMembers, ...legacyMembers].sort());
+            expect(defaultWorkflow?.approvers.map((approver) => approver.email)).toEqual([approverK]);
+            if (!defaultWorkflow) {
+                return;
+            }
+
+            // When the default workflow's approver changes from approverK to approverE
+            updateApprovalWorkflowRules({
+                approvalWorkflow: {...defaultWorkflow, approvers: [{email: approverE, displayName: approverE, isCircularReference: false}]},
+                initialApprovalWorkflow: defaultWorkflow,
+                policy,
+                rules: await getRulesCollection(),
+                currentUserLogin: ownerEmail,
+            });
+            await waitForBatchedUpdates();
+
+            // Then a single default submit rule is left, forwarding to approverE every submitter the default rules listed but branchMember
+            const rules = await getSavedRules();
+            const expectedSubmitters = [...visibleMembers, ...legacyMembers, ...removedMembers, importJunkRow].sort();
+            const defaultSubmitRules = rules.filter(isDefaultSubmitRule);
+            expect(defaultSubmitRules).toHaveLength(1);
+            expect(defaultSubmitRules.map(getForwardApprover)).toEqual([approverE]);
+            expect(defaultSubmitRules.map((rule) => extractSubmitterEmails(rule).sort())).toEqual([expectedSubmitters]);
+
+            // And approverE approves the reports of those same submitters
+            const defaultApproveRules = rules.filter((rule) => rule.isDefaultApprovalWorkflow && !isDefaultSubmitRule(rule));
+            expect(defaultApproveRules).toHaveLength(1);
+            expect(defaultApproveRules.map(getForwardApprover)).toEqual([undefined]);
+            expect(defaultApproveRules.map((rule) => extractSubmitterEmails(rule).sort())).toEqual([expectedSubmitters]);
+
+            // And branchMember keeps being routed through approverK and approverE, on rules not flagged as the default
+            await expectBranchMemberOnUnflaggedRules(policy);
+
+            await mockFetch.resume();
+            await waitForBatchedUpdates();
+        });
+
+        it('leaves a single default submit rule when only a second approver is added to the default workflow', async () => {
+            mockFetch.pause();
+
+            // Given the branched default workflow
+            const policy = await setUpBranchedDefaultWorkflow();
+            const defaultWorkflow = getWorkflows(policy, await getRulesCollection()).find((workflow) => workflow.isDefault);
+            if (!defaultWorkflow) {
+                throw new Error('The page shows no default workflow');
+            }
+
+            // When approverX is added as the default workflow's second approver
+            updateApprovalWorkflowRules({
+                approvalWorkflow: {...defaultWorkflow, approvers: [...defaultWorkflow.approvers, {email: approverX, displayName: approverX, isCircularReference: false}]},
+                initialApprovalWorkflow: defaultWorkflow,
+                policy,
+                rules: await getRulesCollection(),
+                currentUserLogin: ownerEmail,
+            });
+            await waitForBatchedUpdates();
+
+            // Then a single default submit rule is left, still forwarding to approverK
+            const defaultSubmitRules = (await getSavedRules()).filter(isDefaultSubmitRule);
+            expect(defaultSubmitRules).toHaveLength(1);
+            expect(defaultSubmitRules.map(getForwardApprover)).toEqual([approverK]);
+            expect(defaultSubmitRules.flatMap(extractSubmitterEmails)).not.toContain(branchMember);
+
+            // And branchMember is split off onto rules not flagged as the default, with the same approvers
+            await expectBranchMemberOnUnflaggedRules(policy);
+
+            await mockFetch.resume();
+            await waitForBatchedUpdates();
+        });
+
+        it('leaves a single default submit rule when a fast edit selects every member', async () => {
+            mockFetch.pause();
+
+            // Given the default workflow of member1 and removed members, approved by approverK, where some removed members are only on
+            // a branch through approverE, and member2 in a workflow approved by approverX
+            const policy: Policy = {
+                ...createRandomPolicy(1),
+                id: policyID,
+                type: CONST.POLICY.TYPE.CORPORATE,
+                owner: ownerEmail,
+                approver: approverK,
+                approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
+                employeeList: Object.fromEntries([buildEmployee('member1@gmail.com'), buildEmployee('member2@gmail.com', approverX)]),
+                rules: {},
+            };
+            await setDefaultFlaggedRule('S1', {trigger: CONST.RULES.TRIGGERS.REPORT_SUBMIT, submitters: ['member1@gmail.com', ...removedMembers], forwardTo: approverK});
+            await setDefaultFlaggedRule('A1', {trigger: CONST.RULES.TRIGGERS.REPORT_APPROVE, submitters: ['member1@gmail.com', ...removedMembers.slice(0, 7)], to: approverK});
+            await setDefaultFlaggedRule('A2', {trigger: CONST.RULES.TRIGGERS.REPORT_APPROVE, submitters: removedMembers.slice(7), to: approverK, forwardTo: approverE});
+            await setDefaultFlaggedRule('A3', {trigger: CONST.RULES.TRIGGERS.REPORT_APPROVE, submitters: removedMembers.slice(7), to: approverE});
+            await createForwardApproveRules(policyID, ['member2@gmail.com'], approverX, 'custom');
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
+            await Onyx.merge(ONYXKEYS.SESSION, {authToken: '123456789'});
+            await waitForBatchedUpdates();
+
+            // When a "+N more" edit of approverX's workflow selects every member, which makes it the default workflow
+            const member2 = {email: 'member2@gmail.com', displayName: 'member2@gmail.com'};
+            const approverXApprover = {email: approverX, displayName: approverX, isCircularReference: false};
+            saveFastEditApprovalWorkflow({
+                approvalWorkflow: {
+                    members: [member2, {email: 'member1@gmail.com', displayName: 'member1@gmail.com'}],
+                    originalMembers: [member2],
+                    approvers: [approverXApprover],
+                    originalApprovers: [approverXApprover],
+                    availableMembers: [],
+                    usedApproverEmails: [],
+                    isDefault: false,
+                    action: CONST.APPROVAL_WORKFLOW.ACTION.EDIT,
+                    isFastEdit: true,
+                },
+                policy,
+                rules: await getRulesCollection(),
+                shouldUseApprovalWorkflowRules: true,
+                currentUserLogin: ownerEmail,
+            });
+            await waitForBatchedUpdates();
+
+            // Then a single default submit rule is left, forwarding everyone, the removed members included, to approverX
+            const defaultSubmitRules = (await getSavedRules()).filter(isDefaultSubmitRule);
+            expect(defaultSubmitRules).toHaveLength(1);
+            expect(defaultSubmitRules.map(getForwardApprover)).toEqual([approverX]);
+            expect(defaultSubmitRules.map((rule) => extractSubmitterEmails(rule).sort())).toEqual([['member1@gmail.com', 'member2@gmail.com', ...removedMembers].sort()]);
+
+            await mockFetch.resume();
+            await waitForBatchedUpdates();
+        });
+
+        it('leaves a single default submit rule when an import gives every member a new approver', async () => {
+            mockFetch.pause();
+
+            // Given the default workflow of member1 and removed members, approved by approverK
+            const policy: Policy = {
+                ...createRandomPolicy(1),
+                id: policyID,
+                type: CONST.POLICY.TYPE.CORPORATE,
+                owner: ownerEmail,
+                approver: approverK,
+                approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
+                employeeList: Object.fromEntries([buildEmployee('member1@gmail.com')]),
+                rules: {},
+            };
+            await setDefaultFlaggedRule('S1', {trigger: CONST.RULES.TRIGGERS.REPORT_SUBMIT, submitters: ['member1@gmail.com', ...removedMembers], forwardTo: approverK});
+            await setDefaultFlaggedRule('A1', {trigger: CONST.RULES.TRIGGERS.REPORT_APPROVE, submitters: ['member1@gmail.com', ...removedMembers], to: approverK});
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
+            await Onyx.merge(ONYXKEYS.SESSION, {authToken: '123456789'});
+            await waitForBatchedUpdates();
+
+            // When an import adds member2 and gives both members approverX as their approver
+            importApprovalWorkflowRules({
+                policy,
+                rules: await getRulesCollection(),
+                members: [
+                    {email: 'member1@gmail.com', approvers: [{email: approverX}]},
+                    {email: 'member2@gmail.com', approvers: [{email: approverX}]},
+                ],
+                addedMemberEmails: ['member2@gmail.com'],
+                currentUserLogin: ownerEmail,
+            });
+            await waitForBatchedUpdates();
+
+            // Then a single default submit rule is left, forwarding everyone, the removed members included, to approverX
+            const defaultSubmitRules = (await getSavedRules()).filter(isDefaultSubmitRule);
+            expect(defaultSubmitRules).toHaveLength(1);
+            expect(defaultSubmitRules.map(getForwardApprover)).toEqual([approverX]);
+            expect(defaultSubmitRules.map((rule) => extractSubmitterEmails(rule).sort())).toEqual([['member1@gmail.com', 'member2@gmail.com', ...removedMembers].sort()]);
 
             await mockFetch.resume();
             await waitForBatchedUpdates();
