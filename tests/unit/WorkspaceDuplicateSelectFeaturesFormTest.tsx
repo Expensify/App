@@ -323,6 +323,19 @@ describe('WorkspaceDuplicateSelectFeaturesForm Rules and Merchant rules', () => 
         expect(getRow('travel')?.isSelected).toBe(false);
     });
 
+    it('does not describe missing invoice markup as zero when only the invoice-fields flag is loaded', async () => {
+        // Given enabled invoice fields whose records have not loaded and no configured markup.
+        await renderForm(false, {areInvoicesEnabled: true, areInvoiceFieldsEnabled: true, invoice: {}, fieldList: {}});
+
+        // When the default selection is submitted.
+        pressContinue();
+
+        // Then Invoices remains selectable without claiming a markup that was never configured.
+        expect(getRow('invoices')?.isSelected).toBe(true);
+        expect(getRow('invoices')?.alternateText).toBeUndefined();
+        expect(getSentParts()).toContain('invoices');
+    });
+
     it('includes Invoices when markup is the only invoice configuration', async () => {
         // Given enabled invoicing with markup and no company details, invoice fields, or bank accounts.
         await renderForm(false, {areInvoicesEnabled: true, areInvoiceFieldsEnabled: false, invoice: {markUp: 25}, fieldList: {}});

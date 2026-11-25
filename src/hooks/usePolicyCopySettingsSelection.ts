@@ -201,10 +201,13 @@ function usePolicyCopySettingsSelection(
                 return getTimeTrackingCopySettingsDescription(sourcePolicy, translate);
             case 'receiptPartners':
                 return getReceiptPartnersCopySettingsDescription(sourcePolicy, translate);
-            case 'invoices':
-                return invoiceFieldsCount
-                    ? `${translate('workspace.common.invoiceFields')}: ${numberFormat(invoiceFieldsCount)}`
-                    : translate('violations.invoiceMarkup', sourcePolicy?.invoice?.markUp ?? CONST.DEFAULT_NUMBER_ID);
+            case 'invoices': {
+                if (invoiceFieldsCount) {
+                    return `${translate('workspace.common.invoiceFields')}: ${numberFormat(invoiceFieldsCount)}`;
+                }
+                const markUp = sourcePolicy?.invoice?.markUp;
+                return markUp === undefined ? undefined : translate('violations.invoiceMarkup', markUp);
+            }
             default:
                 return undefined;
         }
