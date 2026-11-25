@@ -15,6 +15,7 @@ import useNetwork from '@hooks/useNetwork';
 import * as useResponsiveLayoutModule from '@hooks/useResponsiveLayout';
 import type ResponsiveLayoutResult from '@hooks/useResponsiveLayout/types';
 
+import {READ_COMMANDS} from '@libs/API/types';
 import Navigation from '@libs/Navigation/Navigation';
 import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
 import {generateAccountID} from '@libs/UserUtils';
@@ -1121,6 +1122,80 @@ describe('WorkspaceMemberDetailsPage', () => {
 
         expect(roleItem).not.toHaveStyle({opacity: 0.5});
         expect(within(roleItem).queryByTestId('ArrowRight Icon')).not.toBeOnTheScreen();
+
+        unmount();
+        await waitForBatchedUpdatesWithAct();
+    });
+
+    it('loads the profile of a member with known personal details', async () => {
+        // Given a member whose personal details, and so their real accountID, are loaded
+        // When the admin opens their profile
+        const {unmount} = renderPage({policyID: policy.id, accountID: String(invitedAccountID)});
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the profile is requested once, with that accountID
+        TestHelper.expectAPICommandToHaveBeenCalled(READ_COMMANDS.OPEN_POLICY_MEMBER_PROFILE_PAGE, 1);
+        TestHelper.expectAPICommandToHaveBeenCalledWith(READ_COMMANDS.OPEN_POLICY_MEMBER_PROFILE_PAGE, 0, {policyID: policy.id, accountID: invitedAccountID});
+
+        unmount();
+        await waitForBatchedUpdatesWithAct();
+    });
+
+    it('waits for an invite to finish before loading the invited member profile', async () => {
+        // Given a member whose invite is still in flight, so the app only has the accountID it generated from their email
+        const pendingEmail = 'pending@example.com';
+        const pendingOptimisticAccountID = generateAccountID(pendingEmail);
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+                [pendingOptimisticAccountID]: {...TestHelper.buildPersonalDetails(pendingEmail, pendingOptimisticAccountID, 'Pending'), isOptimisticPersonalDetail: true},
+            });
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, {
+                employeeList: {[pendingEmail]: {email: pendingEmail, role: CONST.POLICY.ROLE.USER, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD}},
+            });
+        });
+
+        // When the admin opens their profile
+        const {unmount} = renderPage({policyID: policy.id, accountID: String(pendingOptimisticAccountID)});
+        await waitForBatchedUpdatesWithAct();
+
+        // Then nothing is requested yet, because the server would reject the generated accountID
+        TestHelper.expectAPICommandToHaveBeenCalled(READ_COMMANDS.OPEN_POLICY_MEMBER_PROFILE_PAGE, 0);
+
+        // When the invite succeeds and the member's real accountID arrives
+        const pendingAccountID = 9999;
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+                [pendingOptimisticAccountID]: null,
+                [pendingAccountID]: TestHelper.buildPersonalDetails(pendingEmail, pendingAccountID, 'Pending'),
+            });
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, {employeeList: {[pendingEmail]: {pendingAction: null}}});
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the profile is requested once, with the real accountID
+        TestHelper.expectAPICommandToHaveBeenCalled(READ_COMMANDS.OPEN_POLICY_MEMBER_PROFILE_PAGE, 1);
+        TestHelper.expectAPICommandToHaveBeenCalledWith(READ_COMMANDS.OPEN_POLICY_MEMBER_PROFILE_PAGE, 0, {policyID: policy.id, accountID: pendingAccountID});
+
+        unmount();
+        await waitForBatchedUpdatesWithAct();
+    });
+
+    it('does not load the profile of a member whose personal details are missing', async () => {
+        // Given a member with no personal details, so the page only has the accountID generated from their email
+        const memberWithoutDetails = 'nodetails@example.com';
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, {
+                employeeList: {[memberWithoutDetails]: {email: memberWithoutDetails, role: CONST.POLICY.ROLE.USER}},
+            });
+        });
+
+        // When the admin opens their profile
+        const {unmount} = renderPage({policyID: policy.id, accountID: String(generateAccountID(memberWithoutDetails))});
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the page still shows, but nothing is requested, because the server would reject the generated accountID
+        expect(screen.getByTestId('WorkspaceMemberDetailsPage')).toBeOnTheScreen();
+        TestHelper.expectAPICommandToHaveBeenCalled(READ_COMMANDS.OPEN_POLICY_MEMBER_PROFILE_PAGE, 0);
 
         unmount();
         await waitForBatchedUpdatesWithAct();

@@ -277,9 +277,16 @@ function WorkspaceMemberDetailsPage({policy, route}: WorkspaceMemberDetailsPageP
         Navigation.navigate(backTo);
     };
 
+    // While an invite is in flight, or before the member's personal details load, accountID is one the app generated
+    // from their email. The server doesn't know that ID and rejects the request, so wait until the real accountID
+    // arrives, which runs this again.
+    const hasServerAccountID = !!memberPersonalDetails?.accountID && !memberPersonalDetails.isOptimisticPersonalDetail && member?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD;
     useEffect(() => {
+        if (!hasServerAccountID) {
+            return;
+        }
         openPolicyMemberProfilePage(policyID, accountID);
-    }, [policyID, accountID]);
+    }, [policyID, accountID, hasServerAccountID]);
 
     // OpenPolicyMemberProfilePage doesn't return the member's timezone or validated status, which Local time needs
     useEffect(() => {
