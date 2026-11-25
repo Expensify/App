@@ -1,10 +1,11 @@
 /**
  * Open the saved app immediately on ordinary visits, and fetch fresh HTML for required upgrades.
- * Keep the installed shell and assets available offline without unregistering the worker.
+ * Upgrades keep the worker registered, so the installed shell and assets stay available offline.
  *
  * On the host that serves both New Expensify and Expensify Classic, paths that New Expensify alone serves open the saved app.
  * Paths both products serve go to the network, and offline only a New Expensify user gets the saved app.
  * Every other path is left to the browser, so Classic works as if the worker didn't exist.
+ * Once the experience cookie selects Expensify Classic, the worker removes itself.
  */
 import {APP_UPDATE_QUERY_PARAM} from '@libs/AppUpdateURL';
 import EXPERIENCE_COOKIE from '@libs/ExperienceCookie/EXPERIENCE_COOKIE';
@@ -164,7 +165,38 @@ async function signOutOfClassic(options: RouteHandlerCallbackOptions): Promise<R
     return fetch(options.request);
 }
 
+/**
+ * The worker removes itself once the experience cookie selects Expensify Classic, and its saved media goes with it.
+ * A missing cookie or a failed read keeps the worker, because New Expensify users can be without the cookie.
+ */
+async function removeWorkerForClassicUser(): Promise<void> {
+    if (!('cookieStore' in self)) {
+        return;
+    }
+    const cookie = await self.cookieStore.get(EXPERIENCE_COOKIE.NAME);
+    if (cookie?.value !== EXPERIENCE_COOKIE.VALUES.CLASSIC) {
+        return;
+    }
+    try {
+        await blockAndClearUserMedia();
+    } finally {
+        await self.registration.unregister();
+    }
+}
+
 if (isSharedProductHost) {
+    // Every page load checks the cookie in the background, so no response waits for it
+    self.addEventListener('fetch', (event) => {
+        if (event.request.mode !== 'navigate') {
+            return;
+        }
+        event.waitUntil(
+            removeWorkerForClassicUser().catch((error: unknown) => {
+                console.error('Failed to remove the worker for an Expensify Classic user.', error);
+            }),
+        );
+    });
+
     // Sign-out pages have a .php variant, so file paths are not excluded here.
     registerRoute(new NavigationRoute(signOutOfClassic, {allowlist: SIGN_OUT_NAVIGATION_PATHS}));
     registerRoute(new NavigationRoute(openSavedApp, {allowlist: APP_ONLY_NAVIGATION_PATHS, denylist: NON_PAGE_PATHS}));

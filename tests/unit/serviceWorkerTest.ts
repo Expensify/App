@@ -34,6 +34,8 @@ class MockFetchEvent {
 
 type NavigationHandler = (options: {url: URL; request?: Request; event?: MockFetchEvent}) => Promise<Response>;
 
+type WorkerRequestEvent = {request: {mode: string}; waitUntil: jest.Mock<void, [Promise<void>]>; respondWith: jest.Mock};
+
 const mockUpgradeNavigation = jest.fn<Promise<Response>, [{url: URL; event?: MockFetchEvent}]>();
 const mockSharedUpgradeNavigation = jest.fn<Promise<Response>, [{url: URL; event?: MockFetchEvent}]>();
 const mockSharedNavigation = jest.fn<Promise<Response>, [{url: URL; event?: MockFetchEvent}]>();
@@ -46,6 +48,8 @@ const mockMatchPrecache = jest.fn<Promise<Response | undefined>, [string]>();
 const mockPrecacheAndRoute = jest.fn();
 const mockStaleWhileRevalidate = jest.fn<void, [{cacheName: string; plugins: UserMediaPlugin[]}]>();
 const mockSkipWaiting = jest.fn();
+const mockAddEventListener = jest.fn<void, [string, (event: WorkerRequestEvent) => void]>();
+const mockUnregister = jest.fn<Promise<boolean>, []>();
 
 jest.mock('workbox-core', () => ({clientsClaim: jest.fn()}));
 jest.mock('workbox-expiration', () => ({ExpirationPlugin: jest.fn()}));
@@ -76,6 +80,7 @@ const NETWORK_HANDLES = [mockUpgradeNavigation, mockSharedUpgradeNavigation, moc
 
 let realLocation: Location;
 let realFetch: typeof fetch;
+let realAddEventListener: typeof globalThis.addEventListener;
 
 /** Starts a fresh worker on the given host, the way a browser starts it after it was stopped */
 function startWorker(hostname: string) {
@@ -162,18 +167,35 @@ function arrangeCookieStore(get?: () => Promise<{value: string} | null>) {
     return getCookie;
 }
 
+/** Sends a request to the listener the worker added for every request, and waits for the work it started */
+async function sendRequest(mode: string): Promise<WorkerRequestEvent> {
+    const listener = mockAddEventListener.mock.calls.find(([type]) => type === 'fetch')?.[1];
+    if (!listener) {
+        throw new Error('No fetch listener');
+    }
+    const event: WorkerRequestEvent = {request: {mode}, waitUntil: jest.fn<void, [Promise<void>]>(), respondWith: jest.fn()};
+    listener(event);
+    await Promise.all(event.waitUntil.mock.calls.map(([work]) => work));
+    return event;
+}
+
 describe('service worker navigation', () => {
     beforeAll(() => {
         Object.defineProperty(globalThis, 'skipWaiting', {configurable: true, value: mockSkipWaiting});
         Object.defineProperty(globalThis, 'FetchEvent', {configurable: true, value: MockFetchEvent});
         realFetch = globalThis.fetch;
         Object.defineProperty(globalThis, 'fetch', {configurable: true, writable: true, value: mockFetch});
+        realAddEventListener = globalThis.addEventListener;
+        Object.defineProperty(globalThis, 'addEventListener', {configurable: true, writable: true, value: mockAddEventListener});
+        Object.defineProperty(globalThis, 'registration', {configurable: true, value: {unregister: mockUnregister}});
     });
 
     afterAll(() => {
         Reflect.deleteProperty(globalThis, 'skipWaiting');
         Reflect.deleteProperty(globalThis, 'FetchEvent');
         Object.defineProperty(globalThis, 'fetch', {configurable: true, writable: true, value: realFetch});
+        Object.defineProperty(globalThis, 'addEventListener', {configurable: true, writable: true, value: realAddEventListener});
+        Reflect.deleteProperty(globalThis, 'registration');
     });
 
     beforeEach(() => {
@@ -188,6 +210,8 @@ describe('service worker navigation', () => {
             handle: NETWORK_HANDLES.at(mockNetworkOnly.mock.calls.length - 1) ?? mockUpgradeNavigation,
         }));
         mockFetch.mockReset();
+        mockUnregister.mockReset();
+        mockUnregister.mockResolvedValue(true);
         mockMatchPrecache.mockResolvedValue(createMock<Response>({}));
         arrangeCacheStorage();
         arrangeCookieStore();
@@ -673,6 +697,97 @@ describe('service worker navigation', () => {
             logError.mockRestore();
         });
 
+        it('removes itself and its saved media once the cookie selects Expensify Classic', async () => {
+            // Given a worker with saved media, in a browser whose cookie now selects Classic
+            const cacheStorage = arrangeCacheStorage(['user-media']);
+            arrangeCookieStore(async () => ({value: CONST.EXPERIENCE_COOKIE.VALUES.CLASSIC}));
+
+            // When a page is opened
+            const event = await sendRequest('navigate');
+
+            // Then saving is blocked, saved media is gone, and the worker is unregistered last
+            expect([...cacheStorage.names]).toEqual(['user-media-blocked']);
+            expect(mockUnregister).toHaveBeenCalledTimes(1);
+            expect(cacheStorage.delete.mock.invocationCallOrder.at(0)).toBeLessThan(mockUnregister.mock.invocationCallOrder.at(0) ?? 0);
+
+            // And the page load itself is left to the worker's routes and the browser
+            expect(event.respondWith).not.toHaveBeenCalled();
+        });
+
+        it.each([
+            ['the New Expensify value', {value: CONST.EXPERIENCE_COOKIE.VALUES.NEW}],
+            ['an unknown value', {value: 'other'}],
+            ['no value', null],
+        ])('stays registered when the cookie has %s', async (_description, cookie) => {
+            // Given a worker with saved media, in a browser whose cookie doesn't select Classic
+            const cacheStorage = arrangeCacheStorage(['user-media']);
+            arrangeCookieStore(async () => cookie);
+
+            // When a page is opened
+            await sendRequest('navigate');
+
+            // Then the worker and its media stay, because only a Classic choice removes them
+            expect(mockUnregister).not.toHaveBeenCalled();
+            expect([...cacheStorage.names]).toEqual(['user-media']);
+        });
+
+        it('stays registered in a browser whose workers cannot read cookies', async () => {
+            // Given a browser without the Cookie Store API
+            arrangeCookieStore();
+
+            // When a page is opened
+            await sendRequest('navigate');
+
+            // Then the worker stays, because it can't tell which product the user chose
+            expect(mockUnregister).not.toHaveBeenCalled();
+        });
+
+        it('stays registered when the cookie cannot be read', async () => {
+            // Given a cookie read that fails
+            arrangeCookieStore(async () => {
+                throw new Error('Cookie read failed');
+            });
+            const logError = jest.spyOn(console, 'error').mockImplementation(() => {});
+
+            // When a page is opened
+            await sendRequest('navigate');
+
+            // Then the failure is logged and the worker stays, so a New Expensify user keeps working offline
+            expect(logError).toHaveBeenCalled();
+            expect(mockUnregister).not.toHaveBeenCalled();
+            logError.mockRestore();
+        });
+
+        it('removes itself for a Classic user even when Cache Storage fails', async () => {
+            // Given Cache Storage that rejects every call, in a browser whose cookie selects Classic
+            const cacheStorage = arrangeCacheStorage();
+            cacheStorage.open.mockRejectedValue(new Error('Cache Storage unavailable'));
+            cacheStorage.delete.mockRejectedValue(new Error('Cache Storage unavailable'));
+            arrangeCookieStore(async () => ({value: CONST.EXPERIENCE_COOKIE.VALUES.CLASSIC}));
+            const logError = jest.spyOn(console, 'error').mockImplementation(() => {});
+
+            // When a page is opened
+            await sendRequest('navigate');
+
+            // Then the worker is still unregistered, and the failure is logged
+            expect(mockUnregister).toHaveBeenCalledTimes(1);
+            expect(logError).toHaveBeenCalled();
+            logError.mockRestore();
+        });
+
+        it('reads the cookie only when a page is opened', async () => {
+            // Given a browser whose cookie selects Classic
+            const getCookie = arrangeCookieStore(async () => ({value: CONST.EXPERIENCE_COOKIE.VALUES.CLASSIC}));
+
+            // When a page the worker controls requests a file
+            const event = await sendRequest('cors');
+
+            // Then the cookie is not read, so ordinary requests cost nothing
+            expect(getCookie).not.toHaveBeenCalled();
+            expect(event.waitUntil).not.toHaveBeenCalled();
+            expect(mockUnregister).not.toHaveBeenCalled();
+        });
+
         it.each([
             ['/site/images/logo.png', 'image', false],
             // cspell:disable-next-line
@@ -694,6 +809,13 @@ describe('service worker navigation', () => {
             // Then New Expensify's media is saved and Expensify Classic's page assets are not
             expect(matches).toBe(shouldSave);
         });
+    });
+
+    it('never checks the cookie on page loads on other hosts', () => {
+        // Given the worker on New Expensify's own host, where every user is a New Expensify user
+        // When it starts, before each test
+        // Then it adds no listener of its own for requests, so it can't remove itself
+        expect(mockAddEventListener).not.toHaveBeenCalled();
     });
 
     it('saves Expensify Classic paths as user media on other hosts as before', () => {
