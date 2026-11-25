@@ -75,7 +75,7 @@ function isSupportedItem(item: DynamicFormContentItem): item is DynamicFormVisib
 }
 
 /**
- * The headings, links and fields the user sees right now. A heading with no visible field before the next shown heading is left out, so a hidden or unknown field never leaves an orphan title.
+ * The headings, links, fields and notices the user sees right now. A heading with no visible field before the next shown heading is left out, so a hidden or unknown field never leaves an orphan title.
  * A link or a notice stays wherever the schema puts it, such as after the last field, since it titles nothing that follows.
  * `allFields` is the whole form when `content` is one page of it, since a controlling field can sit on another page.
  */
@@ -85,18 +85,18 @@ function getVisibleContent(content: DynamicFormContentItem[], values: DynamicFor
     const visibleContent: DynamicFormVisibleItem[] = [];
     let pendingHeading: DynamicFormHeading | undefined;
     // Links and notices after a pending heading wait with it, so they keep their place under the heading if it is shown, and still show if it is dropped
-    let pendingLinks: Array<DynamicFormLink | DynamicFormNotice> = [];
+    let pendingInlineItems: Array<DynamicFormLink | DynamicFormNotice> = [];
     for (const item of supportedContent) {
         if (!isFieldVisible(item, values, controllers)) {
             continue;
         }
         if (isLink(item) || isNotice(item)) {
-            pendingLinks.push(item);
+            pendingInlineItems.push(item);
             continue;
         }
         if (isHeading(item)) {
-            visibleContent.push(...pendingLinks);
-            pendingLinks = [];
+            visibleContent.push(...pendingInlineItems);
+            pendingInlineItems = [];
             pendingHeading = item;
             continue;
         }
@@ -104,10 +104,10 @@ function getVisibleContent(content: DynamicFormContentItem[], values: DynamicFor
             visibleContent.push(pendingHeading);
             pendingHeading = undefined;
         }
-        visibleContent.push(...pendingLinks, item);
-        pendingLinks = [];
+        visibleContent.push(...pendingInlineItems, item);
+        pendingInlineItems = [];
     }
-    visibleContent.push(...pendingLinks);
+    visibleContent.push(...pendingInlineItems);
     return visibleContent;
 }
 
