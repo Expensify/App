@@ -16,6 +16,7 @@ import useEnvironment from '@hooks/useEnvironment';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import {usePersonalDetailsByIDs} from '@hooks/usePersonalDetails';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useScreenBoundDynamicRoute from '@hooks/useScreenBoundDynamicRoute';
 import useTheme from '@hooks/useTheme';
@@ -66,7 +67,6 @@ function TransactionPreviewContent({
     isWhisper,
     isHovered,
     chatReport,
-    personalDetails,
     report,
     policy,
     transaction,
@@ -119,6 +119,7 @@ function TransactionPreviewContent({
     const transactionDetails: Partial<TransactionDetails> = getTransactionDetails(transaction, policy, isParentPolicyExpenseChat) ?? {};
     const {amount, comment: requestComment, merchant, category, currency: requestCurrency} = transactionDetails;
     const accountIDToName = useMentionedAccountIDToNameMap(requestComment);
+    const [personalDetails] = usePersonalDetailsByIDs([ownerAccountID, managerID]);
     const ownerLogin = getLoginByAccountID(ownerAccountID, personalDetails);
     const currentUserEmail = currentUserDetails.email ?? '';
     const currentUserLogin = currentUserDetails.login;

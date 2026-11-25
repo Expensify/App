@@ -4,6 +4,7 @@ import ThemeProvider from '@components/ThemeProvider';
 import ThemeStylesProvider from '@components/ThemeStylesContextProvider';
 
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 
@@ -13,12 +14,16 @@ import type {ValueOf} from 'type-fest';
 
 import React from 'react';
 import {View} from 'react-native';
+import Onyx from 'react-native-onyx';
 
 import {actionR14932} from '../../__mocks__/reportData/actions';
 import personalDetails from '../../__mocks__/reportData/personalDetails';
 import {chatReportR14932, iouReportR14932} from '../../__mocks__/reportData/reports';
 import {transactionR14932} from '../../__mocks__/reportData/transactions';
 import {violationsR14932} from '../../__mocks__/reportData/violations';
+
+// The preview cards read the submitter and approver from Onyx
+Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetails);
 
 const veryLongString = 'W'.repeat(1000);
 const veryBigNumber = Number('9'.repeat(12));
@@ -46,7 +51,8 @@ const disabledProperties = [
     'isHovered',
     'isWhisper',
     'walletTermsErrors',
-    'personalDetails',
+    'managerID',
+    'ownerAccountID',
     'chatReport',
 ].reduce<Record<string, {table: {disable: boolean}}>>((disabledArgTypes, property) => {
     // eslint-disable-next-line no-param-reassign
@@ -106,7 +112,8 @@ const story: Meta<typeof TransactionPreviewContent> = {
         isWhisper: false,
         isHovered: false,
         chatReport: chatReportR14932,
-        personalDetails,
+        managerID: iouReportR14932.managerID ?? CONST.DEFAULT_NUMBER_ID,
+        ownerAccountID: iouReportR14932.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID,
         report: iouReportR14932,
         policy: undefined,
         transaction: transactionR14932,
