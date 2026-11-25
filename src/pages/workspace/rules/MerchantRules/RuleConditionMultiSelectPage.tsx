@@ -25,6 +25,7 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
+import type {Icon} from '@src/types/onyx/OnyxCommon';
 import type {SentryLabel} from '@src/types/utils/SentryLabel';
 
 import React from 'react';
@@ -45,6 +46,9 @@ type RuleConditionItem = {
 
     /** Further text the search matches on, such as a currency's full name */
     searchableText?: string;
+
+    /** The avatar the row leads with, which a condition listing people has and the others do not */
+    icons?: Icon[];
 };
 
 type RuleConditionListItem = ListItem & {
@@ -69,12 +73,12 @@ type RuleConditionMultiSelectPageProps = {
     onSave: (values: string[]) => void;
 
     /**
-     * Words a saved value the page has no row for, which defaults to the stored value itself.
+     * Builds the row for a saved value the page has no row for, which defaults to the stored value itself.
      *
      * A value can outlive the workspace that named it, such as a card of a feed the workspace no longer has, and
      * a merchant type is labelled from a list rather than named by the workspace at all.
      */
-    getFallbackText?: (value: string) => string;
+    getFallbackItem?: (value: string) => Pick<RuleConditionItem, 'text' | 'alternateText' | 'icons'>;
 
     /** Whether the items are still arriving, which an empty list would otherwise read as none existing */
     isLoading?: boolean;
@@ -86,7 +90,7 @@ type RuleConditionMultiSelectPageProps = {
  * A rule keeps matching on a value the workspace has since dropped. Listing it is the only way to see what the
  * rule matches on and the only way to take it off, so such a value is added back rather than left out.
  */
-function RuleConditionMultiSelectPage({field, title, testID, sentryLabel, backToRoute, items, onSave, getFallbackText, isLoading}: RuleConditionMultiSelectPageProps) {
+function RuleConditionMultiSelectPage({field, title, testID, sentryLabel, backToRoute, items, onSave, getFallbackItem, isLoading}: RuleConditionMultiSelectPageProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate, localeCompare} = useLocalize();
@@ -96,11 +100,12 @@ function RuleConditionMultiSelectPage({field, title, testID, sentryLabel, backTo
 
     const {selectedValues, initialSelectedValues, toggleValue, toggleAll} = useRuleConditionSelection(form?.[field] ?? []);
 
-    const listItems: RuleConditionListItem[] = items.map(({value, text, alternateText, searchableText}) => ({
+    const listItems: RuleConditionListItem[] = items.map(({value, text, alternateText, searchableText, icons}) => ({
         keyForList: value,
         text,
         alternateText,
         searchableText,
+        icons,
         value,
         isSelected: selectedValues.includes(value),
     }));
@@ -110,7 +115,7 @@ function RuleConditionMultiSelectPage({field, title, testID, sentryLabel, backTo
         if (listedValues.has(value)) {
             continue;
         }
-        listItems.push({keyForList: value, text: getFallbackText ? getFallbackText(value) : value, value, isSelected: true});
+        listItems.push({keyForList: value, text: value, ...getFallbackItem?.(value), value, isSelected: true});
     }
 
     const filterItem = (item: RuleConditionListItem, searchInput: string) =>
@@ -157,15 +162,11 @@ function RuleConditionMultiSelectPage({field, title, testID, sentryLabel, backTo
                 onSelectRow={toggleItem}
                 onSelectionButtonPress={toggleItem}
                 onSelectAll={filteredItems.length > 0 ? toggleSelectAll : undefined}
-                textInputOptions={
-                    sortedItems.length >= CONST.STANDARD_LIST_ITEM_LIMIT
-                        ? {
-                              value: inputValue,
-                              label: translate('common.search'),
-                              onChangeText: setInputValue,
-                          }
-                        : undefined
-                }
+                textInputOptions={{
+                    value: inputValue,
+                    label: translate('common.search'),
+                    onChangeText: setInputValue,
+                }}
                 style={{
                     listHeaderWrapperStyle: [styles.pt5, styles.pb2],
                     listHeaderSelectAllTextStyle: [styles.textLabelSupporting],

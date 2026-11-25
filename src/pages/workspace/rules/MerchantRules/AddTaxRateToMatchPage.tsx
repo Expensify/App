@@ -6,6 +6,7 @@ import {updateDraftMerchantRule} from '@libs/actions/User';
 import {getTaxRateDisplayName, isSelectableTaxRate} from '@libs/CategoryTaxRulesUtils';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
+import {resolveCurrentTaxCode} from '@libs/PolicyUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -36,8 +37,12 @@ function AddTaxRateToMatchPage({route}: AddTaxRateToMatchPageProps) {
     // Keyed the way the tax default and the search filter both key a rate, which is the `id_{NAME}` key of
     // `taxRates.taxes` rather than the rate's own code. A code is editable and is unset on a rate made in OldDot,
     // so a rule keyed by one would name a rate nothing else can resolve.
+    //
+    // A selection made before the rate's code was changed still holds the old key, which the rate no longer answers
+    // to. Leaving the rate's current key listed as well would show it twice, once checked and once not.
+    const selectedTaxRateKeys = new Set(selectedTaxRates.map((taxRateKey) => resolveCurrentTaxCode(policy, taxRateKey)));
     const taxRateItems: RuleConditionItem[] = Object.entries(policy?.taxRates?.taxes ?? {})
-        .filter(([taxRateKey, taxRate]) => selectedTaxRates.includes(taxRateKey) || isSelectableTaxRate(taxRate))
+        .filter(([taxRateKey, taxRate]) => selectedTaxRates.includes(taxRateKey) || (isSelectableTaxRate(taxRate) && !selectedTaxRateKeys.has(taxRateKey)))
         .map(([taxRateKey]) => ({
             value: taxRateKey,
             text: getTaxRateDisplayName(policy, taxRateKey),
@@ -52,6 +57,7 @@ function AddTaxRateToMatchPage({route}: AddTaxRateToMatchPageProps) {
             backToRoute={backToRoute}
             items={taxRateItems}
             onSave={(taxRatesToMatch) => updateDraftMerchantRule({taxRatesToMatch})}
+            getFallbackItem={(taxRateKey) => ({text: getTaxRateDisplayName(policy, taxRateKey)})}
         />
     );
 }

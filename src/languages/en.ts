@@ -10315,6 +10315,7 @@ const translations = {
                 merchantTypeIs: (merchantType: string) => `Merchant type is "${merchantType}"`,
                 currencyIs: (currency: string) => `Currency is "${currency}"`,
                 cardIs: (card: string) => `Card is "${card}"`,
+                unavailableCard: 'Unavailable card',
                 taxRateIs: (taxRate: string) => `Tax rate is "${taxRate}"`,
                 submitterIs: (submitter: string) => `Submitter is "${submitter}"`,
                 reimbursableIs: (reimbursable: string) => `Reimbursable is "${reimbursable}"`,

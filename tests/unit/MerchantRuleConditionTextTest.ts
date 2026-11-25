@@ -129,17 +129,13 @@ describe('Expense default condition text', () => {
         expect(getConditionText(filters)).toBe('Submitter is "Hidden"');
     });
 
-    it('names a card as deleted only once every card has arrived', () => {
+    it('names a card the workspace cannot resolve without showing its stored ID', () => {
         // Given a rule matching on a card that none of the names cover
         const filters: RuleFilterNode = {left: FILTER.CARD_ID, operator: EQUAL_TO, right: ['99999']};
 
-        // When the cards are still loading
-        // Then the row keeps the stored ID, since the card may still arrive
-        expect(getConditionText(filters)).toBe('Card is "99999"');
-
-        // When every card has arrived and the card is still missing
-        // Then the card is gone for good, so the row names it as deleted
-        const loadedConditionNames = {...conditionNames, areCardsLoaded: true};
-        expect(getExpenseDefaultConditionText(filters, translateLocal, convertToDisplayStringWithoutCurrency, false, policy, loadedConditionNames)).toBe('Card is "Deleted card"');
+        // When the row's condition text is built
+        // Then the row reads neutrally, since a card ID says nothing and the client cannot tell a deleted card
+        // from a suspended one or from one still on its way
+        expect(getConditionText(filters)).toBe('Card is "Unavailable card"');
     });
 });

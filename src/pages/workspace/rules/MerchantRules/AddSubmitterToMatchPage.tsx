@@ -1,12 +1,16 @@
 import useExpenseDefaultSubmitterNames from '@hooks/useExpenseDefaultSubmitterNames';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import {useAllPersonalDetails} from '@hooks/usePersonalDetails';
 import usePolicy from '@hooks/usePolicy';
 import useWorkspaceMembers from '@hooks/useWorkspaceMembers';
 
 import {updateDraftMerchantRule} from '@libs/actions/User';
+import {getSubmitterConditionName} from '@libs/MerchantTypeRulesUtils';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {temporaryGetDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
+import {canRoleCreateExpenses} from '@libs/PolicyUtils';
 
 import CONST from '@src/CONST';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
@@ -31,17 +35,44 @@ function AddSubmitterToMatchPage({route}: AddSubmitterToMatchPageProps) {
     const policy = usePolicy(policyID);
     const members = useWorkspaceMembers(policy);
     const submitters = useExpenseDefaultSubmitterNames(policy);
+    const icons = useMemoizedLazyExpensifyIcons(['FallbackAvatar']);
+    const [allPersonalDetails] = useAllPersonalDetails();
+
+    // A rule keeps naming a member the workspace has dropped, and a rule copied to another workspace names members
+    // that workspace never had, so such a row is built from the details rather than left as a bare name.
+    const getSubmitterFallbackItem = (accountID: string) => {
+        const details = allPersonalDetails?.[accountID];
+        const name = getSubmitterConditionName(accountID, submitters, translate);
+        return {
+            text: name,
+            alternateText: details?.login ? formatPhoneNumber(details.login) : undefined,
+            icons: [{source: details?.avatar ?? icons.FallbackAvatar, type: CONST.ICON_TYPE_AVATAR, name, id: Number(accountID)}],
+        };
+    };
 
     // Stored as account IDs, which is what the `from` filter carries. A member whose personal details have not
     // loaded is listed under a generated ID, and one invited offline holds a temporary ID until the invite
     // syncs. Neither is an ID an expense carries, so picking them would save a rule that can never match.
     const submitterItems: RuleConditionItem[] = members
-        .filter(({hasKnownAccountID, details}) => hasKnownAccountID && !details.isOptimisticPersonalDetail)
-        .map(({accountID, details}) => ({
-            value: String(accountID),
-            text: temporaryGetDisplayNameOrDefault({passedPersonalDetails: details, translate, formatPhoneNumber}),
-            alternateText: formatPhoneNumber(details.login ?? ''),
-        }));
+        .filter(
+            ({hasKnownAccountID, details, policyEmployee}) =>
+                hasKnownAccountID &&
+                !details.isOptimisticPersonalDetail &&
+                // A rule only ever matches an expense someone submitted, so a role that cannot create one names
+                // nobody. `useWorkspaceMembers` keeps a pending removal listed while offline so the workspace
+                // still shows it, which a picker of who may submit has no use for either.
+                canRoleCreateExpenses(policyEmployee.role) &&
+                policyEmployee.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+        )
+        .map(({accountID, details}) => {
+            const displayName = temporaryGetDisplayNameOrDefault({passedPersonalDetails: details, translate, formatPhoneNumber});
+            return {
+                value: String(accountID),
+                text: displayName,
+                alternateText: formatPhoneNumber(details.login ?? ''),
+                icons: [{source: details.avatar ?? icons.FallbackAvatar, type: CONST.ICON_TYPE_AVATAR, name: displayName, id: accountID}],
+            };
+        });
 
     return (
         <RuleConditionMultiSelectPage
@@ -52,7 +83,7 @@ function AddSubmitterToMatchPage({route}: AddSubmitterToMatchPageProps) {
             backToRoute={backToRoute}
             items={submitterItems}
             onSave={(submittersToMatch) => updateDraftMerchantRule({submittersToMatch})}
-            getFallbackText={(accountID) => submitters[accountID] ?? translate('common.hidden')}
+            getFallbackItem={getSubmitterFallbackItem}
         />
     );
 }

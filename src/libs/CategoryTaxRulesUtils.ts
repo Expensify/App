@@ -6,7 +6,7 @@ import CONST from '@src/CONST';
 import type {Policy, TaxRate} from '@src/types/onyx';
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 
-import {formatTaxRateName} from './PolicyUtils/tax';
+import {formatTaxRateName, resolveCurrentTaxCode} from './PolicyUtils/tax';
 
 /** Whether a rule has a tax rate to apply. Tracking being on isn't enough on its own, it needs a rate to choose from. */
 function hasUsableTaxRates(policy: Policy | undefined): boolean {
@@ -25,7 +25,8 @@ function getTaxRateDisplayName(policy: Policy | undefined, taxID: string | undef
     if (!taxID) {
         return '';
     }
-    const taxRate = policy?.taxRates?.taxes?.[taxID];
+    // A rate is keyed by its code, so changing the code rekeys it and whatever stored the old key no longer finds it.
+    const taxRate = policy?.taxRates?.taxes?.[resolveCurrentTaxCode(policy, taxID)];
     if (taxRate) {
         return formatTaxRateName(taxRate.name, taxRate.value);
     }

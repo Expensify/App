@@ -16,15 +16,12 @@ import {useAllPersonalDetails} from './usePersonalDetails';
  *
  * Onyx opens with a subset of the cards, so they are asked for here unless the caller already has a loader of its
  * own. Each copy of the loader keeps its own flag, so two of them on one page send the request twice.
- *
- * `areCardsLoaded` separates a card that is gone from one that has not arrived yet, so a caller does not name a
- * real card as deleted while the request is still out.
  */
-function useExpenseDefaultCardNames(shouldLoadCards = true): {cards: Record<string, string>; areCardsLoaded: boolean} {
+function useExpenseDefaultCardNames(shouldLoadCards = true): Record<string, string> {
     const {translate, formatPhoneNumber} = useLocalize();
     const [allPersonalDetails] = useAllPersonalDetails();
-    const {areCardsLoaded} = useLoadSearchCardData(shouldLoadCards);
-    const [cardsLists, cardsListsMetadata] = useCardsLists();
+    useLoadSearchCardData(shouldLoadCards);
+    const [cardsLists] = useCardsLists();
 
     const cards: Record<string, string> = {};
     for (const cardsList of Object.values(cardsLists ?? {})) {
@@ -44,7 +41,7 @@ function useExpenseDefaultCardNames(shouldLoadCards = true): {cards: Record<stri
         }
     }
 
-    return {cards, areCardsLoaded: areCardsLoaded && cardsListsMetadata.status === 'loaded'};
+    return cards;
 }
 
 export default useExpenseDefaultCardNames;
