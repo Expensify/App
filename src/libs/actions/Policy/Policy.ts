@@ -417,6 +417,9 @@ function hasActiveGroupPolicies(policies: Array<OnyxEntry<PolicySelector>> | Ony
     return true;
 }
 
+/** The blockers the delete flow can detect locally. Any other translation key would skip the delete and show an unrelated error on the workspace. */
+type DeleteWorkspaceBlockedErrorKey = Extract<TranslationPaths, 'workspace.common.deleteOpenExpensifyCardsError' | 'workspace.common.deleteTravelBillingError'>;
+
 type DeleteWorkspaceActionParams = {
     policies: OnyxCollection<Policy>;
     policyID: string;
@@ -433,7 +436,7 @@ type DeleteWorkspaceActionParams = {
     lastUsedPaymentMethods?: LastPaymentMethod;
     localeCompare: LocaleContextProps['localeCompare'];
     /** Translation key of the blocker error to surface when the delete is already known to be rejected while offline */
-    deleteWorkspaceBlockedErrorKey?: TranslationPaths;
+    deleteWorkspaceBlockedErrorKey?: DeleteWorkspaceBlockedErrorKey;
     currentUserAccountID: number;
     accountIDToLogin: Record<number, string>;
 };
@@ -8697,4 +8700,4 @@ export {
     setPolicyTimeTrackingDefaultRate,
     upgradeSubmit,
 };
-export type {BuildPolicyDataKeys, CurrentUser, PolicyOwner};
+export type {BuildPolicyDataKeys, CurrentUser, DeleteWorkspaceBlockedErrorKey, PolicyOwner};

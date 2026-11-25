@@ -16,6 +16,7 @@ import useTransactionViolationOfWorkspace from '@hooks/useTransactionViolationOf
 
 import {close as closeVisibleModal} from '@libs/actions/Modal';
 import {calculateBillNewDot, deleteWorkspace, dismissWorkspaceError} from '@libs/actions/Policy/Policy';
+import type {DeleteWorkspaceBlockedErrorKey} from '@libs/actions/Policy/Policy';
 import {filterInactiveCards, getCardSettings, isCard} from '@libs/CardUtils';
 import {getLatestErrorMessage} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -24,7 +25,6 @@ import {isSubscriptionTypeOfInvoicing} from '@libs/SubscriptionUtils';
 import {getIsTravelBillingEnabled, getTravelBillingCardSettingsKey, getTravelBillingFeedID} from '@libs/TravelBillingUtils';
 
 import CONST from '@src/CONST';
-import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import {canDowngradeSelector} from '@src/selectors/Account';
@@ -117,7 +117,7 @@ function DeleteWorkspaceFlow({policyID, onDismiss, onDeleteComplete}: DeleteWork
     const hasTravelCards = Object.values(travelCardsList ?? {}).some(isCard);
     const isBlockedByExpensifyCards = hasExpensifyCardsEnabledOnWorkspace && hasExpensifyCards;
     const isBlockedByTravelBilling = hasTravelBillingEnabledOnWorkspace && hasTravelCards;
-    let deleteWorkspaceBlockedErrorKey: TranslationPaths | undefined;
+    let deleteWorkspaceBlockedErrorKey: DeleteWorkspaceBlockedErrorKey | undefined;
     if (isBlockedByExpensifyCards) {
         deleteWorkspaceBlockedErrorKey = 'workspace.common.deleteOpenExpensifyCardsError';
     } else if (isBlockedByTravelBilling) {
