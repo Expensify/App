@@ -59,7 +59,7 @@ const route: DomainAdminsSettingsPageProps['route'] = {
     name: SCREENS.DOMAIN.ADMINS_SETTINGS,
     params: {domainAccountID: DOMAIN_ACCOUNT_ID},
 };
-// eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- The page never reads the navigator prop when rendered outside a navigator.
+// eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- The page never reads the navigation prop when rendered outside a navigator.
 const navigation = {} as DomainAdminsSettingsPageProps['navigation'];
 
 // Resolved lazily at assertion time, because IntlStore has not loaded the locale yet at module load.
@@ -124,6 +124,8 @@ describe('DomainAdminsSettingsPage consolidated domain billing switch', () => {
             expect.objectContaining({
                 title: TestHelper.translateLocal('workspace.distanceRates.oopsNotSoFast'),
                 prompt: TestHelper.translateLocal('domain.admins.consolidatedDomainBillingLockedMessage'),
+                confirmText: TestHelper.translateLocal('common.buttonConfirm'),
+                shouldShowCancelButton: false,
             }),
         );
     });
