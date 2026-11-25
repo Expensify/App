@@ -1071,7 +1071,6 @@ const SENTRY_LABEL = {
         GROUP_BY_BUTTON: 'Report-GroupByButton',
         GROUP_HEADER_CHECKBOX: 'Report-GroupHeaderCheckbox',
         TABLE_HEADER_SELECT_ALL: 'Report-TableHeaderSelectAll',
-        SHOW_PREVIOUS_MESSAGES_BUTTON: 'Report-ShowPreviousMessagesButton',
         CONCIERGE_CHAT_HISTORY_TOGGLE: 'Report-ConciergeChatHistoryToggle',
         ENABLE_NOTIFICATIONS_BUTTON: 'Report-EnableNotificationsButton',
         ENABLE_NOTIFICATIONS_DISMISS_BUTTON: 'Report-EnableNotificationsDismissButton',

@@ -12,7 +12,6 @@ import useMarkAsRead from '@hooks/useMarkAsRead';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useRetireMerchantRuleSuggestionOnLeave from '@hooks/useRetireMerchantRuleSuggestionOnLeave';
-import useSidePanelState from '@hooks/useSidePanelState';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useUnreadMarker from '@hooks/useUnreadMarker';
 
@@ -72,7 +71,6 @@ function ReportActionsListContent({reportID, onLayout}: ReportActionsListProps) 
         sortedAllReportActions,
         sortedReportActions: unfilteredReportActions,
         sortedVisibleReportActions: unfilteredVisibleReportActions,
-        isConciergeHiddenHistory,
         shouldShowConciergeWelcome,
         isConciergeHistoryExpanded,
     } = useReportActionsListState();
@@ -88,7 +86,6 @@ function ReportActionsListContent({reportID, onLayout}: ReportActionsListProps) 
     const {isOffline} = useNetwork();
     const route = useRoute<PlatformStackRouteProp<ReportsSplitNavigatorParamList, typeof SCREENS.REPORT>>();
     const linkedReportActionID = route?.params?.reportActionID;
-    const {sessionStartTime} = useSidePanelState();
     const {collapseHistory: collapseConciergeHistory} = useConciergeChatHistoryActions();
 
     const recordTimeToMeasureItemLayout = useReportActionsListTelemetry({reportID, onLayout});
@@ -139,7 +136,6 @@ function ReportActionsListContent({reportID, onLayout}: ReportActionsListProps) 
         oldestUnreadReportActionID: oldestUnreadReportAction?.reportActionID,
         isScrolledOverThreshold: hasScrolledOverThreshold,
         hasOnceLoadedReportActions: !!hasOnceLoadedReportActions,
-        newMessageBoundaryTime: isConciergeHiddenHistory ? sessionStartTime : undefined,
     });
 
     const {markNewestActionAsRead, completeSkippedMarkAsRead} = useMarkAsRead({
@@ -153,7 +149,6 @@ function ReportActionsListContent({reportID, onLayout}: ReportActionsListProps) 
 
     const reportActionsListData = useReportActionsListData({
         sortedVisibleReportActions,
-        sessionStartTime,
         linkedReportActionID,
         unreadMarkerReportActionID,
     });
@@ -198,7 +193,6 @@ function ReportActionsListContent({reportID, onLayout}: ReportActionsListProps) 
         sortedReportActions,
         unreadMarkerReportActionID,
         linkedReportActionID,
-        onShowPreviousMessages,
     });
 
     const listHeaderComponent = (

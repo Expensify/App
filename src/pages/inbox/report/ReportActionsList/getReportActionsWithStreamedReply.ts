@@ -9,7 +9,6 @@ type GetReportActionsWithStreamedReplyParams = {
     isDraftPendingCompletion: boolean;
     /** Includes saved replies outside the currently visible page. */
     hasPersistedDraft: boolean;
-    shouldHideDraft: boolean;
 };
 
 type ReportActionsWithStreamedReply = {
@@ -22,10 +21,9 @@ function getReportActionsWithStreamedReply({
     draftReportAction,
     isDraftPendingCompletion,
     hasPersistedDraft,
-    shouldHideDraft,
 }: GetReportActionsWithStreamedReplyParams): ReportActionsWithStreamedReply {
     // A completed reveal belongs to the saved action, even when pagination keeps that action off screen.
-    if (!draftReportAction || shouldHideDraft || (hasPersistedDraft && !isDraftPendingCompletion)) {
+    if (!draftReportAction || (hasPersistedDraft && !isDraftPendingCompletion)) {
         return {reportActionsWithStreamedReply: sortedVisibleReportActions, isSyntheticDraftVisible: false};
     }
 

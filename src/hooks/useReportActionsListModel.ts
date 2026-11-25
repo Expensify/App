@@ -92,16 +92,14 @@ function useReportActionsListModel(reportID: string, isReportLoadPending: boolea
         newestFetchedReportActionID: reportPaginationState?.newestFetchedReportActionID,
     });
 
-    const {sortedReportActions, sortedVisibleReportActions, isConciergeHiddenHistory, showConciergeSidePanelWelcome, showFullHistory, hasPreviousMessages, handleShowPreviousMessages} =
-        useReportActionsVisibility({
-            reportID,
-            reportActions,
-            allReportActions,
-            canPerformWriteAction,
-            hasOlderActions,
-            loadOlderChats,
-            setConciergeShowFullHistory,
-        });
+    const {sortedReportActions, sortedVisibleReportActions, handleShowPreviousMessages} = useReportActionsVisibility({
+        reportID,
+        reportActions,
+        allReportActions,
+        canPerformWriteAction,
+        loadOlderChats,
+        setConciergeShowFullHistory,
+    });
 
     const isMissingReportActions = sortedVisibleReportActions.length === 0;
     const isSingleExpenseReport = reportPreviewAction?.childMoneyRequestCount === 1;
@@ -130,8 +128,6 @@ function useReportActionsListModel(reportID: string, isReportLoadPending: boolea
         oldestUnreadReportAction,
         isSingleExpenseReport,
         isMissingReportActions,
-        isConciergeHiddenHistory,
-        showConciergeSidePanelWelcome,
         derivedIsEmptyReport,
         hasUnreadConciergeMessageFromOthers,
     };
@@ -153,9 +149,6 @@ function useReportActionsListModel(reportID: string, isReportLoadPending: boolea
         parentReportAction,
         sortedReportActions,
         sortedVisibleReportActions,
-        isConciergeHiddenHistory,
-        showFullHistory,
-        hasPreviousMessages,
         persistedReportActionIDs,
         shouldShowConciergeWelcome,
         isConciergeHistoryExpanded,

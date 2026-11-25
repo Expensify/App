@@ -15,12 +15,11 @@ Object.freeze(actions);
 Object.freeze(newer);
 Object.freeze(older);
 
-const defaults = {sortedVisibleReportActions: actions, draftReportAction: reply, isDraftPendingCompletion: true, hasPersistedDraft: false, shouldHideDraft: false};
+const defaults = {sortedVisibleReportActions: actions, draftReportAction: reply, isDraftPendingCompletion: true, hasPersistedDraft: false};
 
 describe('getReportActionsWithStreamedReply', () => {
     it.each([
         {label: 'no reply', overrides: {draftReportAction: null}},
-        {label: 'a reply excluded by hidden history', overrides: {shouldHideDraft: true}},
         {label: 'a completed saved reply outside the page', overrides: {hasPersistedDraft: true, isDraftPendingCompletion: false}},
     ])('preserves the input array for $label', ({overrides}) => {
         // Given a reply which does not need a synthetic row.

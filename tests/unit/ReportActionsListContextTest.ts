@@ -49,8 +49,6 @@ function createReadinessSignals(overrides: Partial<ReportActionsReadinessSignals
         oldestUnreadReportAction: undefined,
         isSingleExpenseReport: false,
         isMissingReportActions: true,
-        isConciergeHiddenHistory: false,
-        showConciergeSidePanelWelcome: false,
         derivedIsEmptyReport: undefined,
         hasUnreadConciergeMessageFromOthers: false,
         ...overrides,

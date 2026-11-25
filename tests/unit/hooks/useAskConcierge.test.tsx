@@ -203,7 +203,8 @@ describe('useAskConcierge', () => {
         });
 
         it('creates a task instead of a comment when the message uses the `[] task` shorthand', async () => {
-            // Given a loaded Concierge report and text that the markdown task detection claims
+            // Given web, where Concierge opens in the side panel, with a loaded Concierge report and text that the markdown task detection claims
+            mockIsInSidePanel = true;
             await seedReports();
             mockCreateTaskFromMarkdown.mockReturnValueOnce(true);
             const {result} = renderAskConcierge({forceConcierge: true});

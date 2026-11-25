@@ -108,7 +108,7 @@ function useComposerSubmit(reportID: string) {
         }
 
         if (createTaskFromMarkdown({text: draftMessageTrimmed, parentReport: report, currentUserPersonalDetails, quickAction, delegateAccountID, ancestors: reportAncestors})) {
-            if (shouldRespondInThread && !isInSidePanel) {
+            if (shouldRespondInThread) {
                 setShowFullHistory(true);
             }
             return;

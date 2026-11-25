@@ -52,7 +52,7 @@ function useAskConcierge({forceConcierge = false}: {forceConcierge?: boolean} = 
         }
         const isTask = createTaskFromMarkdown({text: trimmedQuery, parentReport: targetReport, currentUserPersonalDetails, quickAction, delegateAccountID});
         if (isTask) {
-            if (shouldRespondInThread && !isInSidePanel) {
+            if (shouldRespondInThread) {
                 setShowFullHistory(true);
             }
             openConciergeAnywhere({forceConcierge});

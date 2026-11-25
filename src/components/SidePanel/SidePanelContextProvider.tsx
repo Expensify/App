@@ -6,7 +6,6 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 
 import SidePanelActions from '@libs/actions/SidePanel';
 import focusComposerWithDelay from '@libs/focusComposerWithDelay';
-import {getServerAnchoredDBTime} from '@libs/NetworkState';
 import {canEditWorkspaceSettings, shouldShowPolicy} from '@libs/PolicyUtils';
 import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
 
@@ -46,7 +45,6 @@ type SidePanelStateContextProps = {
     /** Whether the user's beta lets them drag the panel's width. */
     isSidePanelResizable: boolean;
     sidePanelNVP?: SidePanel;
-    sessionStartTime: string | null;
 };
 
 type SidePanelActionsContextProps = {
@@ -66,7 +64,6 @@ const SidePanelStateContext = createContext<SidePanelStateContextProps>({
     sidePanelWidth: variables.sidePanelWidth,
     sidePanelWidthBounds: {min: variables.sidePanelWidth, max: variables.sidePanelWidth},
     isSidePanelResizable: false,
-    sessionStartTime: null,
 });
 
 const SidePanelReportIDContext = createContext<string | undefined>(undefined);
@@ -115,16 +112,12 @@ function SidePanelContextProvider({children}: PropsWithChildren) {
     const reportID = sidePanelNVP?.reportID ?? defaultReportID;
 
     const onCloseCompleteRef = useRef<(() => void) | undefined>(undefined);
-    const [sessionStartTime, setSessionStartTime] = useState<string | null>(null);
     const [prevShouldHideSidePanel, setPrevShouldHideSidePanel] = useState(shouldHideSidePanel);
 
     if (prevShouldHideSidePanel !== shouldHideSidePanel) {
         setPrevShouldHideSidePanel(shouldHideSidePanel);
         // The closed Onyx value arrives before the slide-out ends, so keep Help hidden until the animation completes.
         setIsSidePanelClosing(shouldHideSidePanel);
-        if (!shouldHideSidePanel && !sessionStartTime) {
-            setSessionStartTime(getServerAnchoredDBTime());
-        }
     }
 
     useEffect(() => {
@@ -163,10 +156,7 @@ function SidePanelContextProvider({children}: PropsWithChildren) {
             if (finished) {
                 setIsSidePanelClosing(false);
             }
-            // Clear the session after the slide-out, not when it starts: the panel stays mounted for the animation and
-            // a null session empties its message list. `finished` is false on an interrupted close, sparing the new session.
             if (finished && shouldHideSidePanel) {
-                setSessionStartTime(null);
                 sidePanelTranslateX.current.setValue(sidePanelWidthRef.current);
             }
             onCloseCompleteRef.current?.();
@@ -189,7 +179,6 @@ function SidePanelContextProvider({children}: PropsWithChildren) {
     };
 
     const openSidePanel = (options?: {forceConcierge?: boolean; reportID?: string}) => {
-        setSessionStartTime(getServerAnchoredDBTime());
         SidePanelActions.openSidePanel(!isExtraLargeScreenWidth, options?.forceConcierge, options?.reportID);
     };
 
@@ -208,7 +197,6 @@ function SidePanelContextProvider({children}: PropsWithChildren) {
         sidePanelWidthBounds,
         isSidePanelResizable,
         sidePanelNVP,
-        sessionStartTime,
     };
 
     // Because of the React Compiler we don't need to memoize it manually

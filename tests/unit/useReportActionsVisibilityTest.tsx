@@ -61,7 +61,6 @@ function buildHookProps(reportID: string, actions: ReportActions): HookProps {
         reportActions: actionsArray,
         allReportActions: actionsArray,
         canPerformWriteAction: true,
-        hasOlderActions: false,
         loadOlderChats: jest.fn(),
     };
 }

@@ -65,21 +65,9 @@ function useReportActionsListRenderItem({
     isDraftPendingCompletion,
     unreadMarkerReportActionID,
     linkedReportActionID,
-    onShowPreviousMessages,
 }: UseReportActionsListRenderItemParams) {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const {
-        report,
-        hasNewerActions,
-        transactionThreadReport,
-        parentReportActionForTransactionThread,
-        parentReportAction,
-        isConciergeHiddenHistory,
-        showFullHistory,
-        hasPreviousMessages,
-        persistedReportActionIDs,
-    } = useReportActionsListState();
-    const showHiddenHistory = isConciergeHiddenHistory && !showFullHistory;
+    const {report, hasNewerActions, transactionThreadReport, parentReportActionForTransactionThread, parentReportAction, persistedReportActionIDs} = useReportActionsListState();
 
     const [reportStable] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {selector: getStableReportSelector});
     const [chatReportStable] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(reportStable?.chatReportID)}`, {selector: getStableReportSelector});
@@ -152,9 +140,6 @@ function useReportActionsListRenderItem({
                 }
                 expandSystemMessageRun={expandSystemMessageRun}
                 onExpandedSystemMessageReady={reportAction.reportActionID === focusRequestedReportActionID ? onExpandedSystemMessageReady : undefined}
-                hasPreviousMessages={!!hasPreviousMessages}
-                showFullHistory={!showHiddenHistory}
-                onShowPreviousMessages={onShowPreviousMessages}
                 reportAction={reportAction}
                 parentReportAction={parentReportAction}
                 parentReportActionForTransactionThread={parentReportActionForTransactionThread}

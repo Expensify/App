@@ -54,20 +54,9 @@ function useReportActionsListScroll({
     onLayout,
 }: UseReportActionsListScrollParams) {
     const {windowHeight} = useWindowDimensions();
-    const {
-        report,
-        hasOnceLoadedReportActions,
-        hasNewerActions,
-        sortedAllReportActions,
-        oldestUnreadReportAction,
-        transactionThreadReport,
-        parentReportAction,
-        treatAsNoPaginationAnchor,
-        isConciergeHiddenHistory,
-        showFullHistory,
-    } = useReportActionsListState();
+    const {report, hasOnceLoadedReportActions, hasNewerActions, sortedAllReportActions, oldestUnreadReportAction, transactionThreadReport, parentReportAction, treatAsNoPaginationAnchor} =
+        useReportActionsListState();
     const {setTreatAsNoPaginationAnchor, loadOlderChats, loadNewerChats} = useReportActionsListActions();
-    const showHiddenHistory = isConciergeHiddenHistory && !showFullHistory;
 
     // Remount the list when the deep-linked message or unread anchor changes (scroll positioning), or when the report changes.
     const listID = [reportID, linkedReportActionID, hasOnceLoadedReportActions ? undefined : oldestUnreadReportAction?.reportActionID].join(':');
@@ -157,9 +146,6 @@ function useReportActionsListScroll({
     };
 
     const loadOlderChatsOnEndReached = () => {
-        if (showHiddenHistory) {
-            return;
-        }
         loadOlderChats(false);
     };
 
