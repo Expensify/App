@@ -1,3 +1,5 @@
+import {buildPersonalDetailsByLogin} from '@components/PersonalDetailsByLoginProvider';
+
 import '@libs/actions/IOU/MoneyRequest';
 import {createSplitsAndOnyxData} from '@libs/actions/IOU/Split';
 import initOnyxDerivedValues from '@libs/actions/OnyxDerived';
@@ -429,6 +431,7 @@ describe('actions/IOU', () => {
             [JULES_ACCOUNT_ID]: {accountID: JULES_ACCOUNT_ID, login: JULES_EMAIL, displayName: 'Jules'},
             [VIT_ACCOUNT_ID]: {accountID: VIT_ACCOUNT_ID, login: VIT_EMAIL, displayName: 'Vit'},
         };
+        const mockPersonalDetailsByLogins = buildPersonalDetailsByLogin(mockPersonalDetails);
 
         const baseTransactionParams = {
             amount: 400,
@@ -452,6 +455,7 @@ describe('actions/IOU', () => {
             } = {},
         ) => ({
             getCurrencyDecimals: getCurrencyDecimalsLocal,
+            personalDetailsByLogins: mockPersonalDetailsByLogins,
             participants: overrides.participants ?? [{accountID: CARLOS_ACCOUNT_ID, login: CARLOS_EMAIL}],
             currentUserLogin: RORY_EMAIL,
             currentUserAccountID: RORY_ACCOUNT_ID,

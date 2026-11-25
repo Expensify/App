@@ -22,6 +22,7 @@ import useAllTransactionViolations from './useAllTransactionViolations';
 import {useCurrencyListActions} from './useCurrencyList';
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import useDelegateAccountID from './useDelegateAccountID';
+import useLocalize from './useLocalize';
 import useNetwork from './useNetwork';
 import useOnyx from './useOnyx';
 import usePermissions from './usePermissions';
@@ -73,6 +74,7 @@ function useUpdateTransactionTag({
     isEditingSplit,
 }: UseUpdateTransactionTagParams): UseUpdateTransactionTagResult {
     const {getCurrencyDecimals, getCurrencySymbol} = useCurrencyListActions();
+    const {translate} = useLocalize();
     const {currentSearchHash} = useSearchQueryContext();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const delegateAccountID = useDelegateAccountID();
@@ -110,12 +112,13 @@ function useUpdateTransactionTag({
         });
 
         if (isEditingSplit) {
-            setDraftSplitTransaction(transactionID, currentTransaction, {tag: updatedTag}, getCurrencyDecimals, getCurrencySymbol);
+            setDraftSplitTransaction(translate, transactionID, currentTransaction, {tag: updatedTag}, getCurrencyDecimals, getCurrencySymbol);
             return;
         }
 
         if (isEditing) {
             updateMoneyRequestTag({
+                translate,
                 isVendorMatchingBetaEnabled: isBetaEnabledOrUnknown(CONST.BETAS.VENDOR_MATCHING),
                 transactionID,
                 transaction,

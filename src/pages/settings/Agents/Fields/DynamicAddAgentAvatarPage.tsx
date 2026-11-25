@@ -1,5 +1,3 @@
-import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
-
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useOnyx from '@hooks/useOnyx';
 
@@ -10,7 +8,6 @@ import {setNewAgentAvatarPreset, setNewAgentUploadedAvatar} from '@userActions/A
 
 import ONYXKEYS from '@src/ONYXKEYS';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
-import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 import {useNavigation} from '@react-navigation/native';
 import React from 'react';
@@ -22,7 +19,7 @@ import {EditAgentAvatarContent} from './DynamicEditAgentAvatarPage';
 function DynamicAddAgentAvatarPage() {
     const navigation = useNavigation();
     const returnRoute = useDynamicBackPath(DYNAMIC_ROUTES.AGENT_ADD_AVATAR.path);
-    const [avatarDraft, avatarDraftMetadata] = useOnyx(ONYXKEYS.AGENT_NEW_AVATAR_DRAFT);
+    const [avatarDraft] = useOnyx(ONYXKEYS.AGENT_NEW_AVATAR_DRAFT);
     const initialPresetID = avatarDraft?.customExpensifyAvatarID;
 
     const handleSave = (params: OnSaveParams) => {
@@ -41,10 +38,6 @@ function DynamicAddAgentAvatarPage() {
                 Navigation.goBack(returnRoute);
             });
     };
-
-    if (isLoadingOnyxValue(avatarDraftMetadata)) {
-        return <FullScreenLoadingIndicator />;
-    }
 
     return (
         <EditAgentAvatarContent

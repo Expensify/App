@@ -39,6 +39,7 @@ import {
     getExpectedUnitForCountry,
     getGovernmentRateAmountForUnit,
     getNoGovernmentRateNote,
+    hasGovernmentRateForCurrency,
     isEuroDistanceRateCountry,
     isGovernmentRateCountry,
     isSharedGovernmentRateCurrency,
@@ -68,7 +69,7 @@ import type {Rate} from '@src/types/onyx/Policy';
 import type {ValueOf} from 'type-fest';
 
 import React, {useEffect, useRef, useState} from 'react';
-import {View} from 'react-native';
+import {Keyboard, View} from 'react-native';
 
 import DistanceRateCalculationSummary from './DistanceRateCalculationSummary';
 import EuroCountryDropdown from './EuroCountryDropdown';
@@ -104,8 +105,8 @@ function CreateDistanceRatePage({
     const [governmentMileageRates] = useOnyx(ONYXKEYS.GOVERNMENT_MILEAGE_RATES);
     const formRef = useRef<FormRef>(null);
 
-    // The auto-update toggle is on exactly when the workspace has its government rate, and a workspace has at most one
-    const hasGovernmentRate = !!policy?.shouldAutoUpdateGovernmentDistanceRates;
+    // A workspace has at most one government rate. The server turns auto-update off on some currency changes but keeps the copied rates.
+    const hasGovernmentRate = !!policy?.shouldAutoUpdateGovernmentDistanceRates || hasGovernmentRateForCurrency(policy);
     const isEuroWorkspace = isSharedGovernmentRateCurrency(currency);
 
     const [pickedKind, setPickedKind] = useState<DistanceRateKind>();
@@ -138,8 +139,9 @@ function CreateDistanceRatePage({
 
     useEffect(() => {
         fetchDistanceRates();
-        // eslint-disable-next-line react-hooks/exhaustive-deps -- the rates only need loading once when the page opens
-    }, []);
+        // The reference rates are loaded for the workspace currency, and the currency can change while this page stays open
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [currency]);
 
     // The custom form is cleared and the kind goes back to the new country's default
     const selectEuroCountry = (selectedCountry: string) => {
@@ -153,6 +155,10 @@ function CreateDistanceRatePage({
 
     // Errors from submitting one kind's form don't apply to the other kind
     const selectKind = (selectedKind: DistanceRateKind) => {
+        // Android keeps the keyboard open when the focused Name input unmounts
+        if (selectedKind === CONST.CUSTOM_UNITS.DISTANCE_RATE_KIND.GOVERNMENT) {
+            Keyboard.dismiss();
+        }
         setPickedKind(selectedKind);
         formRef.current?.resetErrors();
     };
@@ -276,7 +282,7 @@ function CreateDistanceRatePage({
                 shouldKeyboardOffsetBottomSafeAreaPadding={shouldShowCountryAndKind ? false : undefined}
             >
                 <HeaderWithBackButton title={isDistanceRateUpgrade ? translate('common.rate') : translate('workspace.distanceRates.addRate')} />
-                <FullPageBlockingView style={styles.flexGrow1}>
+                <FullPageBlockingView style={styles.flex1}>
                     <FormProvider
                         ref={formRef}
                         formID={ONYXKEYS.FORMS.POLICY_CREATE_DISTANCE_RATE_FORM}
@@ -376,6 +382,8 @@ function CreateDistanceRatePage({
                                         <InputWrapper
                                             ref={inputCallbackRef}
                                             InputComponent={TextInput}
+                                            // Name mounts when the user switches to Custom, after the screen's autofocus has run
+                                            autoFocus={pickedKind === CONST.CUSTOM_UNITS.DISTANCE_RATE_KIND.CUSTOM}
                                             inputID={INPUT_IDS.NAME}
                                             label={translate('common.name')}
                                             accessibilityLabel={translate('common.name')}

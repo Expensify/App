@@ -2,6 +2,7 @@ import {
     DiscardStaleSearchSnapshot,
     MembersNeedCategoryError,
     FailureTracking,
+    FlagSearchTransactionWrites,
     FraudMonitoring,
     GlobalReimbursementPayError,
     handleDeletedAccount,
@@ -12,6 +13,7 @@ import {
     Logging,
     Pagination,
     Reauthentication,
+    ReceiptTelemetry,
     RecordFullReconnectTime,
     ReconcileBulkEditReportAction,
     ReplaceOptimisticAgentAccountID,
@@ -32,6 +34,7 @@ jest.mock('@libs/Request', () => ({
 
 const EXPECTED_ORDER: RequestModule.Middleware[] = [
     Logging,
+    ReceiptTelemetry,
     LoadTest,
     FailureTracking,
     Reauthentication,
@@ -48,6 +51,7 @@ const EXPECTED_ORDER: RequestModule.Middleware[] = [
     HandleMovedScanFailedExpenses,
     DiscardStaleSearchSnapshot,
     ReconcileBulkEditReportAction,
+    FlagSearchTransactionWrites,
     SaveResponseInOnyx,
     FraudMonitoring,
 ];
@@ -64,9 +68,9 @@ describe('Middleware registration', () => {
         expect(registered).toEqual(EXPECTED_ORDER);
     });
 
-    it('registers all 19 middlewares with no duplicates', () => {
-        expect(registered).toHaveLength(19);
-        expect(new Set(registered).size).toBe(19);
+    it('registers all 21 middlewares with no duplicates', () => {
+        expect(registered).toHaveLength(21);
+        expect(new Set(registered).size).toBe(21);
     });
 
     it('keeps SaveResponseInOnyx after every other Onyx-writing middleware and before FraudMonitoring', () => {
@@ -78,6 +82,7 @@ describe('Middleware registration', () => {
         expect(indexOf(HandleMovedScanFailedExpenses)).toBeLessThan(indexOf(SaveResponseInOnyx));
         expect(indexOf(DiscardStaleSearchSnapshot)).toBeLessThan(indexOf(SaveResponseInOnyx));
         expect(indexOf(ReconcileBulkEditReportAction)).toBeLessThan(indexOf(SaveResponseInOnyx));
+        expect(indexOf(FlagSearchTransactionWrites)).toBeLessThan(indexOf(SaveResponseInOnyx));
         expect(indexOf(FraudMonitoring)).toBeGreaterThan(indexOf(SaveResponseInOnyx));
     });
 });

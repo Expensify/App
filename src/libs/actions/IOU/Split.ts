@@ -1,6 +1,7 @@
 import ReceiptGeneric from '@assets/images/receipt-generic.png';
 
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
+import type {PersonalDetailsByLogin} from '@components/PersonalDetailsByLoginProvider';
 
 import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
 
@@ -65,6 +66,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {Attendee, Participant, Split} from '@src/types/onyx/IOU';
+import type {Unit} from '@src/types/onyx/Policy';
 import type RecentlyUsedTags from '@src/types/onyx/RecentlyUsedTags';
 import type {OnyxData} from '@src/types/onyx/Request';
 import type {Receipt, ReceiptSource, SplitShares, TransactionChanges, WaypointCollection} from '@src/types/onyx/Transaction';
@@ -119,6 +121,7 @@ type DistanceRequestTransactionParams = BaseTransactionParams & {
     receipt?: Receipt;
     odometerStart?: number;
     odometerEnd?: number;
+    odometerUnit?: Unit;
     gpsCoordinates?: string;
     distanceRequestType?: string;
 
@@ -160,6 +163,7 @@ type CreateDistanceRequestInformation = {
     /** Optimistic chat reportID to build the new chat report at, so it matches the ID the confirmation screen already subscribed to (brand-new P2P recipient). */
     optimisticChatReportID?: string;
     rules: OnyxCollection<OnyxTypes.Rule>;
+    personalDetailsByLogins: PersonalDetailsByLogin;
     isVendorMatchingBetaEnabled: boolean | undefined;
 
     /** Current "Reuse route" list value, so the just used route can be saved locally */
@@ -213,6 +217,7 @@ type CreateSplitsAndOnyxDataParams = {
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
     rules: OnyxCollection<OnyxTypes.Rule>;
+    personalDetailsByLogins: PersonalDetailsByLogin;
     isVendorMatchingBetaEnabled: boolean | undefined;
 };
 
@@ -267,6 +272,7 @@ type CompleteSplitBillActionParams = {
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
     rules: OnyxCollection<OnyxTypes.Rule>;
+    personalDetailsByLogins: PersonalDetailsByLogin;
     isVendorMatchingBetaEnabled: boolean | undefined;
 };
 
@@ -306,6 +312,7 @@ type SplitBillActionsParams = {
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
     rules: OnyxCollection<OnyxTypes.Rule>;
+    personalDetailsByLogins: PersonalDetailsByLogin;
     isVendorMatchingBetaEnabled: boolean | undefined;
 };
 
@@ -347,6 +354,7 @@ function splitBill({
     participantsPolicyTags,
     getCurrencyDecimals,
     rules,
+    personalDetailsByLogins,
     isVendorMatchingBetaEnabled,
 }: SplitBillActionsParams) {
     const parsedComment = getParsedComment(comment);
@@ -385,6 +393,7 @@ function splitBill({
         formatPhoneNumber,
         getCurrencyDecimals,
         rules,
+        personalDetailsByLogins,
         isVendorMatchingBetaEnabled,
     });
 
@@ -457,6 +466,7 @@ function splitBillAndOpenReport({
     participantsPolicyTags,
     getCurrencyDecimals,
     rules,
+    personalDetailsByLogins,
     isVendorMatchingBetaEnabled,
 }: SplitBillActionsParams) {
     const parsedComment = getParsedComment(comment);
@@ -495,6 +505,7 @@ function splitBillAndOpenReport({
         participantsPolicyTags,
         getCurrencyDecimals,
         rules,
+        personalDetailsByLogins,
         isVendorMatchingBetaEnabled,
     });
 
@@ -963,6 +974,7 @@ function completeSplitBill({
     sessionEmail,
     getCurrencyDecimals,
     rules,
+    personalDetailsByLogins,
 }: CompleteSplitBillActionParams) {
     if (!reportAction) {
         return;
@@ -1197,6 +1209,7 @@ function completeSplitBill({
             successData: oneOnOneSuccessData = [],
             failureData: oneOnOneFailureData = [],
         } = buildOnyxDataForMoneyRequest({
+            shouldFlagNewTransactionForReportTable: true,
             isNewChatReport: isNewOneOnOneChatReport,
             isOneOnOneSplit: true,
             shouldCreateNewMoneyRequestReport: shouldCreateNewOneOnOneIOUReport,
@@ -1228,6 +1241,7 @@ function completeSplitBill({
             isTrackIntentUser,
             getCurrencyDecimals,
             rules,
+            personalDetailsByLogins,
             isVendorMatchingBetaEnabled,
         });
 
@@ -1368,6 +1382,7 @@ function resetSplitShares(
  * its own, and passing `undefined` merges `null`, which clears the draft.
  */
 function setDraftSplitTransaction(
+    translate: LocaleContextProps['translate'],
     transactionID: string | undefined,
     splitTransactionDraft: OnyxEntry<OnyxTypes.Transaction>,
     transactionChanges: TransactionChanges,
@@ -1384,6 +1399,7 @@ function setDraftSplitTransaction(
 
     const updatedTransaction = splitTransactionDraft
         ? getUpdatedTransaction({
+              translate,
               transaction: splitTransactionDraft,
               transactionChanges,
               isFromExpenseReport: false,
@@ -1567,6 +1583,7 @@ function createSplitsAndOnyxData({
     formatPhoneNumber,
     getCurrencyDecimals,
     rules,
+    personalDetailsByLogins,
 }: CreateSplitsAndOnyxDataParams): SplitsAndOnyxData {
     const currentUserEmailForIOUSplit = addSMSDomainIfPhoneNumber(currentUserLogin);
     const participantAccountIDs = participants.map((participant) => Number(participant.accountID));
@@ -2000,6 +2017,7 @@ function createSplitsAndOnyxData({
             successData: oneOnOneSuccessData,
             failureData: oneOnOneFailureData,
         } = buildOnyxDataForMoneyRequest({
+            shouldFlagNewTransactionForReportTable: true,
             isNewChatReport: isNewOneOnOneChatReport,
             shouldCreateNewMoneyRequestReport: shouldCreateNewOneOnOneIOUReport,
             isOneOnOneSplit: true,
@@ -2036,6 +2054,7 @@ function createSplitsAndOnyxData({
             isTrackIntentUser,
             getCurrencyDecimals,
             rules,
+            personalDetailsByLogins,
             isVendorMatchingBetaEnabled,
         });
 
@@ -2125,6 +2144,7 @@ function planDistanceRequest(distanceRequestInformation: CreateDistanceRequestIn
         optimisticChatReportID,
         getCurrencyDecimals,
         rules,
+        personalDetailsByLogins,
         isVendorMatchingBetaEnabled,
         reusableDistanceRoutes,
     } = distanceRequestInformation;
@@ -2153,6 +2173,7 @@ function planDistanceRequest(distanceRequestInformation: CreateDistanceRequestIn
         receipt,
         odometerStart,
         odometerEnd,
+        odometerUnit,
         isFromGlobalCreate,
         gpsCoordinates,
         distanceRequestType,
@@ -2216,6 +2237,7 @@ function planDistanceRequest(distanceRequestInformation: CreateDistanceRequestIn
             formatPhoneNumber,
             getCurrencyDecimals,
             rules,
+            personalDetailsByLogins,
             isVendorMatchingBetaEnabled,
         });
         onyxData = splitOnyxData;
@@ -2244,6 +2266,7 @@ function planDistanceRequest(distanceRequestInformation: CreateDistanceRequestIn
             attendees: attendees ? JSON.stringify(attendees) : undefined,
             odometerStart,
             odometerEnd,
+            odometerUnit,
             gpsCoordinates,
             distanceRequestType,
             selectedRouteDistance,
@@ -2264,6 +2287,7 @@ function planDistanceRequest(distanceRequestInformation: CreateDistanceRequestIn
             payerEmail,
             onyxData: moneyRequestOnyxData,
         } = getMoneyRequestInformation({
+            shouldFlagNewTransactionForReportTable: true,
             isVendorMatchingBetaEnabled,
             parentChatReport: currentChatReport,
             existingIOUReport,
@@ -2306,6 +2330,7 @@ function planDistanceRequest(distanceRequestInformation: CreateDistanceRequestIn
                 waypoints: validWaypoints,
                 odometerStart,
                 odometerEnd,
+                odometerUnit,
                 customUnitRateID,
             },
             shouldGenerateTransactionThreadReport: false,
@@ -2323,6 +2348,7 @@ function planDistanceRequest(distanceRequestInformation: CreateDistanceRequestIn
             formatPhoneNumber,
             getCurrencyDecimals,
             rules,
+            personalDetailsByLogins,
             // Refactor this call site to pass real report actions instead of undefined in https://github.com/Expensify/App/issues/66522
             parentChatReportActions: undefined,
             participantChatReportActions: undefined,
@@ -2365,6 +2391,7 @@ function planDistanceRequest(distanceRequestInformation: CreateDistanceRequestIn
             receipt,
             odometerStart,
             odometerEnd,
+            odometerUnit,
             created,
             category,
             tag,

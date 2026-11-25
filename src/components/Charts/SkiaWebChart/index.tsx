@@ -13,18 +13,17 @@ import {markCanvasKitLoadStarted} from '@libs/telemetry/integrations/canvasKitNo
 import variables from '@styles/variables';
 
 import type {TranslationPaths} from '@src/languages/types';
-import viewRef from '@src/types/utils/viewRef';
 
 import type {ComponentType, LazyExoticComponent} from 'react';
+import type {FallbackProps} from 'react-error-boundary';
 
 import * as Sentry from '@sentry/react-native';
-import React, {lazy, Suspense, useRef, useState} from 'react';
+import React, {lazy, Suspense, useState} from 'react';
 import {ErrorBoundary} from 'react-error-boundary';
 import {View} from 'react-native';
 import {LoadSkiaWeb} from 'react-native-skia/lib/module/web';
 
 import getSkiaWebUnsupportedReason from './getSkiaWebUnsupportedReason';
-import useIsSkiaSurfaceUnavailable from './useIsSkiaSurfaceUnavailable';
 
 type ChartLoader<TProps> = () => Promise<{default: ComponentType<TProps>}>;
 
@@ -107,23 +106,41 @@ function ChartSkiaLoading() {
     return null;
 }
 
-function ChartFailedToLoad() {
-    return <ChartUnavailable description="common.chartFailedToLoad" />;
+/**
+ * Matches the errors react-native-skia throws when the browser cannot give its renderer a drawing surface: no
+ * WebGL context (hardware acceleration disabled, GPU blocked by the browser), no graphics context on it, or no
+ * 2D context for the canvas. The capability probe cannot rule these out, because the context is created only
+ * after the CanvasKit WASM module has loaded and WebGL can become unavailable in between.
+ *
+ * They are thrown while the renderer is created, in a layout effect, where the boundary catches them. A surface
+ * that cannot be created for a later draw does not throw: the view skips that frame.
+ */
+const SURFACE_UNAVAILABLE_ERROR_PATTERN = /^Could not create a (?:WebGL|graphics|2D) context$/;
+
+function isSurfaceUnavailableError(error: unknown): boolean {
+    return error instanceof Error && SURFACE_UNAVAILABLE_ERROR_PATTERN.test(error.message);
+}
+
+/** A refused drawing surface means WebGL is unavailable, so telling the user the chart failed to load would be misleading. */
+function ChartErrorFallback({error}: FallbackProps) {
+    return <ChartUnavailable description={isSurfaceUnavailableError(error) ? 'common.webGLNotSupported' : 'common.chartFailedToLoad'} />;
 }
 
 /**
- * CanvasKit failing to initialize is environmental rather than a bug in the chart: a stale or mismatched
- * `canvaskit.wasm` (see https://github.com/Expensify/App/issues/102042), an 8 MB download failing offline,
- * or a chunk that vanished from the CDN. Report it as a warning under one fingerprint so it stays visible in
- * Sentry without fragmenting per chart, and let the boundary show the empty state instead of crashing.
+ * Both failures the boundary catches are environmental rather than a bug in the chart. CanvasKit can fail to
+ * initialize: a stale or mismatched `canvaskit.wasm` (see https://github.com/Expensify/App/issues/102042), an
+ * 8 MB download failing offline, or a chunk that vanished from the CDN. The renderer can also be refused a
+ * drawing surface. Report each as a warning under its own fingerprint so it stays visible in Sentry without
+ * fragmenting per chart, and let the boundary show the empty state instead of crashing.
  */
-const logSkiaLoadError = (error: Error, info: {componentStack?: string | null}) => {
+const logSkiaError = (error: Error, info: {componentStack?: string | null}) => {
     const componentStack = info.componentStack ?? undefined;
-    Log.warn(`[SkiaWebChart] failed to load CanvasKit - ${error.message}`, {componentStack});
+    const isSurfaceUnavailable = isSurfaceUnavailableError(error);
+    Log.warn(`[SkiaWebChart] ${isSurfaceUnavailable ? 'no drawing surface available' : 'failed to load CanvasKit'} - ${error.message}`, {componentStack});
     Sentry.captureException(error, {
         level: 'warning',
-        tags: {context: 'skia-web-chart-load'},
-        fingerprint: ['skia-web-chart-load-failure'],
+        tags: {context: isSurfaceUnavailable ? 'skia-web-chart-surface' : 'skia-web-chart-load'},
+        fingerprint: [isSurfaceUnavailable ? 'skia-web-chart-surface-unavailable' : 'skia-web-chart-load-failure'],
         extra: {componentStack},
     });
 };
@@ -132,25 +149,21 @@ const logSkiaLoadError = (error: Error, info: {componentStack?: string | null}) 
  * Shared web wrapper that loads CanvasKit and the chart's code for the chart entry points (Pie/Line/Bar and the Victory
  * renderer). When the environment can't provide a usable WebGL/Skia surface it shows an "unable to
  * display chart" empty state instead of mounting Skia, avoiding the CanvasKit GL-init crash (see `getSkiaWebUnsupportedReason`).
- * If CanvasKit itself fails to load or link, the error boundary degrades to the same empty state.
+ * If CanvasKit itself fails to load or link, or the renderer is refused a drawing surface after the probe
+ * passed, the error boundary degrades to the same empty state.
  */
 // `object` mirrors WithSkiaWeb's own constraint; `Record<string, unknown>` would reject the
 // interface-based render-html renderer props (VictoryChartRendererProps) that lack an index signature.
 // eslint-disable-next-line @typescript-eslint/no-restricted-types
 function SkiaWebChart<TProps extends object>({getComponent, componentProps}: SkiaWebChartProps<TProps>) {
     const styles = useThemeStyles();
-    const containerRef = useRef<HTMLElement | null>(null);
     const isInsideChartReveal = useIsInsideChartReveal();
 
     // Probed on each mount, so a fresh chart re-checks capability instead of trusting a stale session-wide result.
     const [unsupportedReason] = useState(() => getSkiaWebUnsupportedReason());
 
-    // The probe can pass while the renderer still ends up without a drawing surface, so also listen for the
-    // renderer reporting that and degrade to the empty state.
-    const isSurfaceUnavailable = useIsSkiaSurfaceUnavailable(containerRef);
-
-    // Missing WebAssembly needs a different explanation from an unavailable drawing surface.
-    if (unsupportedReason || isSurfaceUnavailable) {
+    // Missing WebAssembly needs a different explanation from missing WebGL.
+    if (unsupportedReason) {
         return <ChartUnavailable description={unsupportedReason} />;
     }
 
@@ -165,13 +178,10 @@ function SkiaWebChart<TProps extends object>({getComponent, componentProps}: Ski
     const LazyChart = getLazyChart(getComponent);
 
     return (
-        <View
-            ref={viewRef(containerRef)}
-            style={styles.mw100}
-        >
+        <View style={styles.mw100}>
             <ErrorBoundary
-                FallbackComponent={ChartFailedToLoad}
-                onError={logSkiaLoadError}
+                FallbackComponent={ChartErrorFallback}
+                onError={logSkiaError}
             >
                 <Suspense fallback={fallback}>
                     {/* eslint-disable-next-line react-hooks/static-components -- getLazyChart returns the same component for a loader on every render, so its state is never reset */}
