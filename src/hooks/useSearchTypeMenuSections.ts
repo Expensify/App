@@ -18,6 +18,7 @@ import useMappedPolicies from './useMappedPolicies';
 import useNetwork from './useNetwork';
 import useOnyx from './useOnyx';
 import usePermissions from './usePermissions';
+import useRejectedAndHeldSearchVisibility from './useRejectedAndHeldSearchVisibility';
 
 const policyMapper = (policy: OnyxEntry<Policy>): OnyxEntry<Policy> =>
     policy && {
@@ -84,6 +85,7 @@ const useSearchTypeMenuSections = (isScreenFocused = true) => {
     // A report awaiting the current user's approval makes the "Needs approval" suggested search relevant even when they
     // are not part of the policy's approval workflow (e.g. an approver chosen manually on a single report).
     const hasReportAwaitingApproval = useHasReportAwaitingApproval(isScreenFocused);
+    const {shouldShowRejectedSuggestion, shouldShowHeldSuggestion} = useRejectedAndHeldSearchVisibility();
     const [pendingReportCreation, setPendingReportCreation] = useState<{policyID: string; policyName?: string; onConfirm: (shouldDismissEmptyReportsConfirmation: boolean) => void} | null>(
         null,
     );
@@ -124,6 +126,8 @@ const useSearchTypeMenuSections = (isScreenFocused = true) => {
         draftTransactionIDs,
         isTrackIntentUser: isTrackIntentUser ?? false,
         hasReportAwaitingApproval,
+        shouldShowRejectedSuggestion,
+        shouldShowHeldSuggestion,
         policyCategories: allPolicyCategories,
         session: currentUserLoginAndAccountID,
     });

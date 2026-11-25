@@ -52,6 +52,8 @@ const SEARCH_TYPE_MENU_ICON_NAMES = [
     'Document',
     'Pencil',
     'ThumbsUp',
+    'ThumbsDown',
+    'Stopwatch',
     'CheckCircle',
     'Plane',
 ] as const satisfies readonly ExpensifyIconName[];
@@ -251,6 +253,51 @@ function getSuggestedSearches(
                 action: CONST.SEARCH.ACTION_FILTERS.PAY,
                 reimbursable: CONST.SEARCH.BOOLEAN.YES,
                 payer: accountID?.toString(),
+            }),
+            get searchQueryJSON() {
+                return buildSearchQueryJSON(this.searchQuery);
+            },
+            get hash() {
+                return this.searchQueryJSON?.hash ?? CONST.DEFAULT_NUMBER_ID;
+            },
+            get similarSearchHash() {
+                return this.searchQueryJSON?.similarSearchHash ?? CONST.DEFAULT_NUMBER_ID;
+            },
+            get recentSearchHash() {
+                return this.searchQueryJSON?.recentSearchHash ?? CONST.DEFAULT_NUMBER_ID;
+            },
+        },
+        [CONST.SEARCH.SEARCH_KEYS.REJECTED]: {
+            key: CONST.SEARCH.SEARCH_KEYS.REJECTED,
+            translationPath: 'search.filters.rejected',
+            type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+            icon: 'ThumbsDown',
+            searchQuery: buildQueryStringFromFilterFormValues({
+                type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+                declinedUnresolved: CONST.SEARCH.BOOLEAN.YES,
+            }),
+            get searchQueryJSON() {
+                return buildSearchQueryJSON(this.searchQuery);
+            },
+            get hash() {
+                return this.searchQueryJSON?.hash ?? CONST.DEFAULT_NUMBER_ID;
+            },
+            get similarSearchHash() {
+                return this.searchQueryJSON?.similarSearchHash ?? CONST.DEFAULT_NUMBER_ID;
+            },
+            get recentSearchHash() {
+                return this.searchQueryJSON?.recentSearchHash ?? CONST.DEFAULT_NUMBER_ID;
+            },
+        },
+        [CONST.SEARCH.SEARCH_KEYS.HELD]: {
+            key: CONST.SEARCH.SEARCH_KEYS.HELD,
+            translationPath: 'search.filters.held',
+            type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+            icon: 'Stopwatch',
+            searchQuery: buildQueryStringFromFilterFormValues({
+                type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+                held: CONST.SEARCH.BOOLEAN.YES,
+                from: [`${accountID}`],
             }),
             get searchQueryJSON() {
                 return buildSearchQueryJSON(this.searchQuery);

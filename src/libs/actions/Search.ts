@@ -147,6 +147,7 @@ import {approveMoneyRequest} from './IOU/ReportWorkflow';
 import {isCurrencySupportedForGlobalReimbursement} from './Policy/Policy';
 import {setOptimisticTransactionThread} from './Report';
 import {saveLastSearchParams} from './ReportNavigation';
+import {setNameValuePair} from './User';
 
 type OnyxSearchResponse = {
     data: SearchResults['data'];
@@ -1069,6 +1070,16 @@ function saveSearchFilters(searchKey: SearchKey | InsightsSearchKey, query: Sear
     ];
 
     write(WRITE_COMMANDS.SAVE_SEARCH_FILTERS, {jsonQuery: JSON.stringify({searchKey, inputQuery: query})}, {optimisticData});
+}
+
+/** Persists visibility after the first rejected expense, including across sessions. */
+function setHasSeenRejectedSuggestedSearch() {
+    setNameValuePair(ONYXKEYS.NVP_HAS_SEEN_REJECTED_SUGGESTED_SEARCH, true, false);
+}
+
+/** Persists visibility after the first held expense, including across sessions. */
+function setHasSeenHeldSuggestedSearch() {
+    setNameValuePair(ONYXKEYS.NVP_HAS_SEEN_HELD_SUGGESTED_SEARCH, true, false);
 }
 
 function deleteSavedSearch(savedSearchID: string) {
@@ -3033,6 +3044,8 @@ export {
     parseExpenseFilters,
     saveSearch,
     seedMyExpensesSearch,
+    setHasSeenRejectedSuggestedSearch,
+    setHasSeenHeldSuggestedSearch,
     search,
     markInFlightSearchRequestsStale,
     getFooterConvertedAmounts,
