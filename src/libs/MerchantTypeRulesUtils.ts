@@ -277,7 +277,7 @@ type ExpenseDefaultConditionNames = {
  * may be deleted, suspended, or simply still on its way. One neutral label covers all three.
  */
 function getCardConditionName(cardID: string, cards: Record<string, string> | undefined, translate: LocaleContextProps['translate']): string {
-    return cards?.[cardID] ?? translate('workspace.rules.expenseDefaultsTable.unavailableCard');
+    return cards?.[cardID] ?? translate('workspace.companyCards.unavailableCard');
 }
 
 /** What a submitter condition calls a member, which reads the way the rest of the app reads an account it cannot resolve. */

@@ -59,9 +59,10 @@ function AddSubmitterToMatchPage({route}: AddSubmitterToMatchPageProps) {
                 hasKnownAccountID &&
                 !details.isOptimisticPersonalDetail &&
                 // A rule only ever matches an expense someone submitted, so a role that cannot create one names
-                // nobody. `useWorkspaceMembers` keeps a pending removal listed while offline so the workspace
-                // still shows it, which a picker of who may submit has no use for either.
-                canRoleCreateExpenses(policyEmployee.role) &&
+                // nobody. An entry with no role yet is kept, the way the card assignee pickers keep one.
+                (!policyEmployee.role || canRoleCreateExpenses(policyEmployee.role)) &&
+                // `useWorkspaceMembers` keeps a pending removal listed while offline so the workspace still shows
+                // it, which a picker of who may submit has no use for.
                 policyEmployee.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
         )
         .map(({accountID, details}) => {
