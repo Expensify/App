@@ -47,6 +47,11 @@ function isNetSuiteRestConnection(config?: Pick<NetSuiteConnectionConfig, 'authT
     return getNetSuiteConnectionAuthType(config, connection) === CONST.NETSUITE_CONFIG.AUTH_TYPE.OAUTH2;
 }
 
+function hasNetSuiteOAuthConnection(policy: OnyxEntry<Policy>) {
+    const netSuiteConnection = policy?.connections?.[CONST.POLICY.CONNECTIONS.NAME.NETSUITE];
+    return isNetSuiteRestConnection(netSuiteConnection?.options?.config, netSuiteConnection);
+}
+
 function isNonReimbursableCreditCardChargeExport(config?: NetSuiteConnectionConfig) {
     return config?.nonreimbursableExpensesExportDestination === CONST.NETSUITE_EXPORT_DESTINATION.CREDIT_CARD_CHARGE;
 }
@@ -103,10 +108,11 @@ function getInitialSubPageForNetsuiteTokenInput(policy: OnyxEntry<Policy>) {
     const netSuiteConnection = policy?.connections?.[CONST.POLICY.CONNECTIONS.NAME.NETSUITE];
     const isTBAConnection = !!netSuiteConnection?.tokenID;
     const hasAuthError = isAuthenticationError(policy, CONST.POLICY.CONNECTIONS.NAME.NETSUITE);
+    const isOAuthConnection = hasNetSuiteOAuthConnection(policy);
 
     // TBA connections (with or without auth error) migrate through the OAuth wizard starting at INSTALL.
-    // Only OAuth connections with an auth error jump straight to CREDENTIALS for re-authentication.
-    if (!isTBAConnection && hasAuthError) {
+    // OAuth connections jump straight to CREDENTIALS, where the admin can authenticate again or switch to TBA.
+    if (!isTBAConnection && (hasAuthError || isOAuthConnection)) {
         return CONST.NETSUITE_CONFIG.TOKEN_INPUT.PAGE_NAME.CREDENTIALS;
     }
     return CONST.NETSUITE_CONFIG.TOKEN_INPUT.PAGE_NAME.INSTALL;
@@ -193,6 +199,7 @@ export {
     shouldHideCustomFormIDOptions,
     exportExpensesDestinationSettingName,
     isNetSuiteRestConnection,
+    hasNetSuiteOAuthConnection,
     isNonReimbursableCreditCardChargeExport,
     shouldHideReimbursableDefaultVendor,
     shouldHideNonReimbursableCreditCardAccount,

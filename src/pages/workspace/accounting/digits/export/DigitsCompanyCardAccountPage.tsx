@@ -1,6 +1,6 @@
 /**
  * Lets an admin choose the Digits bank or credit card account that company card transactions export to. Until one is
- * picked, the first active credit card account is used.
+ * picked, the first active credit card account is used, or the first credit card account when none is active.
  */
 import BlockingView from '@components/BlockingViews/BlockingView';
 import type {ListItem} from '@components/SelectionList/types';
@@ -46,12 +46,11 @@ function DigitsCompanyCardAccountPage({policy}: WithPolicyConnectionsProps) {
     const selectedAccountID = getDigitsCompanyCardAccount(policy)?.id;
     const backPath = policyID ? ROUTES.POLICY_ACCOUNTING_DIGITS_EXPORT.getRoute(policyID) : undefined;
 
+    // Inactive accounts are listed too, because Digits marks a category inactive until it has ledger activity, so a new
+    // company's bank and credit card accounts all arrive inactive
     const data: AccountListItem[] =
         digitsData?.accounts
-            ?.filter(
-                (accountItem) =>
-                    accountItem.isActive && (accountItem.subtype === CONST.DIGITS_ACCOUNT_SUBTYPE.CREDIT_CARDS || accountItem.subtype === CONST.DIGITS_ACCOUNT_SUBTYPE.BANK_ACCOUNTS),
-            )
+            ?.filter((accountItem) => accountItem.subtype === CONST.DIGITS_ACCOUNT_SUBTYPE.CREDIT_CARDS || accountItem.subtype === CONST.DIGITS_ACCOUNT_SUBTYPE.BANK_ACCOUNTS)
             .map((accountItem) => ({
                 value: accountItem.id,
                 text: accountItem.name,

@@ -23,6 +23,7 @@ import {addErrorMessage} from '@libs/ErrorUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
+import {getAvailablePerDiemRate} from '@libs/PolicyPerDiemUtils';
 import {getActivePoliciesWithExpenseChatAndPerDiemEnabled, getPerDiemCustomUnit} from '@libs/PolicyUtils';
 
 import {getIOURequestPolicyID} from '@userActions/IOU/MoneyRequest';
@@ -109,9 +110,8 @@ function DynamicIOURequestStepSubrate({
     const parsedIndex = parseInt(pageIndex, 10);
     const selectedDestination = transaction?.comment?.customUnit?.customUnitRateID;
     const allSubrates = transaction?.comment?.customUnit?.subRates ?? [];
-    const allPossibleSubrates = selectedDestination ? (customUnit?.rates?.[selectedDestination]?.subRates ?? []) : [];
+    const allPossibleSubrates = getAvailablePerDiemRate(selectedDestination ? customUnit?.rates?.[selectedDestination] : undefined)?.subRates ?? [];
     const currentSubrate: CommentSubrate | undefined = allSubrates.at(parsedIndex) ?? undefined;
-    const totalSubrateCount = allPossibleSubrates.length;
     const filledSubrateCount = allSubrates.length;
     const [subrateValue, setSubrateValue] = useState(currentSubrate?.id);
     const [quantityValue, setQuantityValue] = useState(() => (currentSubrate?.quantity ? String(currentSubrate.quantity) : undefined));
@@ -130,9 +130,10 @@ function DynamicIOURequestStepSubrate({
 
     // Hide the menu when there is only one subrate
     const shouldShowThreeDotsButton = filledSubrateCount > 1 && !isEmptyObject(currentSubrate);
-    const shouldDisableEditor = isFocused && (Number.isNaN(parsedIndex) || parsedIndex < 0 || parsedIndex >= totalSubrateCount || parsedIndex > filledSubrateCount);
-
     const validOptions = getSubrateOptions(allPossibleSubrates, allSubrates, currentSubrate?.id);
+    // Existing expense rows must remain reachable for removal even when their workspace rate is pending deletion.
+    const shouldDisableEditor =
+        isFocused && (Number.isNaN(parsedIndex) || parsedIndex < 0 || parsedIndex > filledSubrateCount || (parsedIndex === filledSubrateCount && validOptions.length === 0));
 
     const goBack = () => {
         if (isEditPage) {

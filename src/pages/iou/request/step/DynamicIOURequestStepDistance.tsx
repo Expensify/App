@@ -540,6 +540,7 @@ function DynamicIOURequestStepDistance({
             // In the split flow, when editing we use SPLIT_TRANSACTION_DRAFT to save draft value in transaction with CONST.IOU.OPTIMISTIC_DISTANCE_SPLIT_TRANSACTION_ID
             if (isEditingSplit && originalSplitTransactionDraft) {
                 setDraftSplitTransaction(
+                    translate,
                     CONST.IOU.OPTIMISTIC_TRANSACTION_ID,
                     originalSplitTransactionDraft,
                     {
@@ -579,6 +580,7 @@ function DynamicIOURequestStepDistance({
             }
             if (transaction?.transactionID && report?.reportID) {
                 updateMoneyRequestDistance({
+                    translate,
                     isVendorMatchingBetaEnabled,
                     transaction,
                     transactionThreadReport: report,
@@ -672,6 +674,7 @@ function DynamicIOURequestStepDistance({
         if (isEditingSplit && transaction) {
             setMoneyRequestDistance(transactionID, distanceAsFloat, shouldUseTransactionDraft(action, iouType), distanceUnit);
             setDraftSplitTransaction(
+                translate,
                 CONST.IOU.OPTIMISTIC_TRANSACTION_ID,
                 splitDraftTransaction ?? optimisticTransaction,
                 {distance: distanceAsFloat},
@@ -709,6 +712,7 @@ function DynamicIOURequestStepDistance({
         const isRouteSelectionOnlyChange = shouldUpdateSelectedRoute && !isDistanceChanged && !isDistanceUnitChanged && !haveWaypointsChanged;
         const hasRouteChanged = haveWaypointsChanged && !deepEqual(transactionBackup?.routes, transaction?.routes);
         updateMoneyRequestDistance({
+            translate,
             isVendorMatchingBetaEnabled,
             transaction,
             transactionThreadReport: report,

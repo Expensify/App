@@ -3,6 +3,7 @@ import getContentFields from '@components/DynamicForm/utils/getContentFields';
 import {getLoneField, getVisibleContent} from '@components/DynamicForm/utils/getVisibleFields';
 import isHeading from '@components/DynamicForm/utils/isHeading';
 import isLink from '@components/DynamicForm/utils/isLink';
+import isNotice from '@components/DynamicForm/utils/isNotice';
 import type {FormValue} from '@components/Form/types';
 
 import useAccessibilityAnnouncement from '@hooks/useAccessibilityAnnouncement';
@@ -16,9 +17,10 @@ import React, {useState} from 'react';
 import DynamicFormFieldRow from './DynamicFormFieldRow';
 import DynamicFormHeadingRow from './DynamicFormHeadingRow';
 import DynamicFormLinkRow from './DynamicFormLinkRow';
+import DynamicFormNoticeRow from './DynamicFormNoticeRow';
 
 type DynamicFormFieldsProps = {
-    /** Headings, links and fields to render, in order. Fields of a type this App version does not know are left out. */
+    /** Headings, links, notices and fields to render, in order. Fields of a type this App version does not know are left out. */
     content: DynamicFormContentItem[];
 
     /** Current answers, from FormProvider's render-prop `inputValues`, so showWhen and dependsOn follow the user's typing */
@@ -103,6 +105,14 @@ function DynamicFormFields({
                 <DynamicFormLinkRow
                     key={`link-${item.key}`}
                     link={item}
+                />
+            );
+        }
+        if (isNotice(item)) {
+            return (
+                <DynamicFormNoticeRow
+                    key={`notice-${item.key}`}
+                    notice={item}
                 />
             );
         }
