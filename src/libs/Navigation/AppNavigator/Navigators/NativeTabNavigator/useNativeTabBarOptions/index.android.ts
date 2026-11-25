@@ -17,15 +17,16 @@ import type NativeTabBarOptionsParams from './types';
 const getFloatingButtonsBottom = (bottomInset: number) => variables.androidNativeTabBarFloatingButtonsBottom + bottomInset;
 
 /**
- * Material draws each icon in its fixed icon slot, with a label of its own. The status dot is drawn into the icon rather
- * than as a Material badge, because RNScreens paints every badge in the badge color of the selected tab. The slot is a
- * square that scales a wider icon down, so the More chevron goes over the glyph's corner instead of beside it.
+ * Material draws each icon in its icon slot, with a label of its own. The status dot is drawn into the icon rather than
+ * as a Material badge, because RNScreens paints every badge in the badge color of the selected tab. The More chevron
+ * goes at the right edge of the selected pill, clear of the glyph and its dot, and RNScreens widens the slot to the icon.
  */
 const TAB_ICON_LAYOUT: TabIconLayout = {
     glyphSize: variables.iconBottomBar,
     iconBoxSize: variables.iconBottomBar,
     direction: 'stacked',
-    accessoryPlacement: 'corner',
+    accessoryPlacement: 'pillEdge',
+    pillWidth: variables.androidNativeTabBarActiveIndicatorWidth,
 };
 
 function useNativeTabBarOptions({shouldShowNativeTabBar, dotColors, tabLabels}: NativeTabBarOptionsParams) {
@@ -43,19 +44,20 @@ function useNativeTabBarOptions({shouldShowNativeTabBar, dotColors, tabLabels}: 
         tabBarStyle: {display: shouldShowNativeTabBar ? 'flex' : 'none', backgroundColor: theme.appBG},
     };
 
-    const getTabOptions = (name: NativeTabRouteName, moreTabItemID?: MoreMenuItemID): NativeBottomTabNavigationOptions => {
-        const {name: glyphName, accessoryName} = getNativeTabIconGlyphs(name, moreTabItemID);
-        return {
-            tabBarLabel: tabLabels[name],
-            tabBarIcon: getTabBarIcon(TAB_ICON_LAYOUT, (isSelected) => ({
+    const getTabOptions = (name: NativeTabRouteName, moreTabItemID?: MoreMenuItemID): NativeBottomTabNavigationOptions => ({
+        tabBarLabel: tabLabels[name],
+        tabBarIcon: getTabBarIcon(TAB_ICON_LAYOUT, (isSelected) => {
+            const {name: glyphName, accessoryName, reservesAccessory} = getNativeTabIconGlyphs(name, moreTabItemID, isSelected);
+            return {
                 name: glyphName,
                 color: isSelected ? theme.iconMenu : theme.icon,
                 dotColor: dotColors[name],
                 // The chevron keeps the inactive color in both states, as in the design.
                 accessory: accessoryName ? {name: accessoryName, color: theme.icon} : undefined,
-            })),
-        };
-    };
+                reservesAccessory,
+            };
+        }),
+    });
 
     return {screenOptions, getTabOptions};
 }

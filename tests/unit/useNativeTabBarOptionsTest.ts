@@ -9,6 +9,8 @@ import type NativeTabBarOptionsParams from '@libs/Navigation/AppNavigator/Naviga
 import FLAT_NAV_TAB_BAR_SLOT from '@libs/Navigation/FlatNavTabBar/FLAT_NAV_TAB_BAR_SLOT';
 import MORE_MENU from '@libs/Navigation/MoreMenu/MORE_MENU';
 
+import variables from '@styles/variables';
+
 import NAVIGATORS from '@src/NAVIGATORS';
 import SCREENS from '@src/SCREENS';
 
@@ -100,12 +102,30 @@ describe.each([
         expect(options[labelOption]).toBe(label);
     });
 
+    it('keeps room for the chevron in the More item only', () => {
+        // Given the flat nav bar while the user is on no page picked from the More menu
+        const {result} = renderHook(() => useNativeTabBarOptions(FLAT_NAV_PARAMS));
+
+        // When the More and Expenses item options are built
+        result.current.getTabOptions(SCREENS.NATIVE_TAB_ITEM.MORE);
+        const getMoreParams = mockGetTabBarIcon.mock.calls.at(-1)?.[1];
+        result.current.getTabOptions(SCREENS.NATIVE_TAB_ITEM.EXPENSES);
+        const getExpensesParams = mockGetTabBarIcon.mock.calls.at(-1)?.[1];
+
+        // Then only the More item is framed for the chevron it draws once an entry is picked, so the bar keeps its layout
+        // when the item switches glyphs
+        for (const isSelected of [false, true]) {
+            expect(getMoreParams?.(isSelected).reservesAccessory).toBe(true);
+            expect(getExpensesParams?.(isSelected).reservesAccessory).toBeFalsy();
+        }
+    });
+
     it.each([
         [MORE_MENU.ITEM.ACCOUNTING, MORE_MENU.ITEM.ACCOUNTING],
         [MORE_MENU.ITEM.SAVED, MORE_MENU.ITEM.SAVED],
         [MORE_MENU.ITEM.INSIGHTS, SCREENS.INSIGHTS],
         [MORE_MENU.ITEM.WORKSPACES, NAVIGATORS.WORKSPACE_NAVIGATOR],
-    ] as const)('draws the More item with the %s glyph and the More chevron', (moreTabItemID, glyphName) => {
+    ] as const)('draws the selected More item with the %s glyph and the More chevron', (moreTabItemID, glyphName) => {
         // Given the flat nav bar while the user is on a page picked from the More menu
         const {result} = renderHook(() => ({options: useNativeTabBarOptions(FLAT_NAV_PARAMS), theme: useTheme()}));
 
@@ -113,17 +133,29 @@ describe.each([
         const options = result.current.options.getTabOptions(SCREENS.NATIVE_TAB_ITEM.MORE, moreTabItemID);
         const getParams = mockGetTabBarIcon.mock.calls.at(-1)?.[1];
 
-        // Then it draws the glyph of that page with the chevron in the inactive color in both states, as in the design,
+        // Then its selected icon draws the glyph of that page with the chevron in the inactive color, as in the design,
         // and keeps the More label and the Workspaces dot, since the item still opens the More menu
-        for (const isSelected of [false, true]) {
-            expect(getParams?.(isSelected)).toMatchObject({
-                name: glyphName,
-                color: isSelected ? result.current.theme.iconMenu : result.current.theme.icon,
-                dotColor: FLAT_NAV_PARAMS.dotColors[SCREENS.NATIVE_TAB_ITEM.MORE],
-                accessory: {name: FLAT_NAV_TAB_BAR_SLOT.MORE, color: result.current.theme.icon},
-            });
-        }
+        expect(getParams?.(true)).toMatchObject({
+            name: glyphName,
+            color: result.current.theme.iconMenu,
+            dotColor: FLAT_NAV_PARAMS.dotColors[SCREENS.NATIVE_TAB_ITEM.MORE],
+            accessory: {name: FLAT_NAV_TAB_BAR_SLOT.MORE, color: result.current.theme.icon},
+        });
         expect(options[labelOption]).toBe('More');
+    });
+
+    it('draws the unselected More item with its own glyph while the user is on a picked entry', () => {
+        // Given the flat nav bar while the user is on Workspaces, picked from the More menu
+        const {result} = renderHook(() => ({options: useNativeTabBarOptions(FLAT_NAV_PARAMS), theme: useTheme()}));
+
+        // When the More item options are built
+        result.current.options.getTabOptions(SCREENS.NATIVE_TAB_ITEM.MORE, MORE_MENU.ITEM.WORKSPACES);
+        const params = mockGetTabBarIcon.mock.calls.at(-1)?.[1]?.(false);
+
+        // Then its unselected icon draws the More glyph alone in the room of the chevron, so a tap on another item swaps
+        // the icons natively, as the selection moves, before JS has caught up with the tap
+        expect(params).toMatchObject({name: FLAT_NAV_TAB_BAR_SLOT.MORE, color: result.current.theme.icon, reservesAccessory: true});
+        expect(params?.accessory).toBeUndefined();
     });
 
     it('ignores the More menu entry for every item but More', () => {
@@ -208,5 +240,23 @@ describe('iOS useNativeTabBarOptions labels', () => {
         // Then the chevron goes over the glyph's corner, since the column has no label to center the glyph over and a
         // chevron beside it would make the More icon more than twice as wide as the others
         expect(layout?.accessoryPlacement).toBe('corner');
+    });
+});
+
+describe('Android useNativeTabBarOptions More chevron', () => {
+    beforeEach(() => {
+        mockGetTabBarIcon.mockClear();
+    });
+
+    it('places the More chevron at the right edge of the selected pill', () => {
+        // Given the flat nav bar on Android
+        const {result} = renderHook(() => useAndroidNativeTabBarOptions(FLAT_NAV_PARAMS));
+
+        // When the More item options are built while the user is on Workspaces
+        result.current.getTabOptions(SCREENS.NATIVE_TAB_ITEM.MORE, MORE_MENU.ITEM.WORKSPACES);
+        const layout = mockGetTabBarIcon.mock.calls.at(-1)?.[0];
+
+        // Then the chevron sits at the pill's edge, clear of the glyph and its status dot, rather than over the glyph
+        expect(layout).toMatchObject({accessoryPlacement: 'pillEdge', pillWidth: variables.androidNativeTabBarActiveIndicatorWidth});
     });
 });

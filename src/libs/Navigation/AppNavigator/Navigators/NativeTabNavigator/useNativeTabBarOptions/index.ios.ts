@@ -85,16 +85,17 @@ function useNativeTabBarOptions({shouldShowNativeTabBar, isTabBarVertical, dotCo
         tabBarMinimizeBehavior: 'none',
     };
 
-    const getTabOptions = (name: NativeTabRouteName, moreTabItemID?: MoreMenuItemID): NativeBottomTabNavigationOptions => {
-        const {name: glyphName, accessoryName} = getNativeTabIconGlyphs(name, moreTabItemID);
-        return {
-            ...(!shouldDrawLabels && {tabBarLabel: tabLabels[name]}),
-            tabBarIcon: getTabBarIcon(tabIconLayout, (isSelected) => ({
+    const getTabOptions = (name: NativeTabRouteName, moreTabItemID?: MoreMenuItemID): NativeBottomTabNavigationOptions => ({
+        ...(!shouldDrawLabels && {tabBarLabel: tabLabels[name]}),
+        tabBarIcon: getTabBarIcon(tabIconLayout, (isSelected) => {
+            const {name: glyphName, accessoryName, reservesAccessory} = getNativeTabIconGlyphs(name, moreTabItemID, isSelected);
+            return {
                 name: glyphName,
                 color: isSelected ? theme.iconMenu : theme.icon,
                 dotColor: dotColors[name],
                 // The chevron keeps the inactive color in both states, as in the design.
                 accessory: accessoryName ? {name: accessoryName, color: theme.icon} : undefined,
+                reservesAccessory,
                 // A column is too narrow for the labels, so it shows the icons alone.
                 label:
                     shouldDrawLabels && !isTabBarVertical
@@ -107,11 +108,11 @@ function useNativeTabBarOptions({shouldShowNativeTabBar, isTabBarVertical, dotCo
                               maxWidth: labelMaxWidth,
                           }
                         : undefined,
-            })),
-            // On iOS 26 the label is drawn into the icon, so VoiceOver reads it from here.
-            tabBarAccessibilityLabel: tabLabels[name],
-        };
-    };
+            };
+        }),
+        // On iOS 26 the label is drawn into the icon, so VoiceOver reads it from here.
+        tabBarAccessibilityLabel: tabLabels[name],
+    });
 
     return {screenOptions, getTabOptions};
 }

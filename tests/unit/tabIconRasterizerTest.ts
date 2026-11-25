@@ -1,5 +1,7 @@
-import {getTabIconFrame} from '@libs/Navigation/AppNavigator/Navigators/NativeTabNavigator/tabIconRasterizer';
+import {getAccessoryWidth, getTabIconFrame} from '@libs/Navigation/AppNavigator/Navigators/NativeTabNavigator/tabIconRasterizer';
 import type {TabIconLayout} from '@libs/Navigation/AppNavigator/Navigators/NativeTabNavigator/tabIconRasterizer';
+
+import variables from '@styles/variables';
 
 // jest/setup.ts mocks the rasterizer for every hook that draws tab icons, and the frame maths needs the real module.
 jest.unmock('@libs/Navigation/AppNavigator/Navigators/NativeTabNavigator/tabIconRasterizer');
@@ -63,5 +65,18 @@ describe('getTabIconFrame', () => {
 
         // Then the canvas holds the glyph and the accessory only, with no room left for a label gap
         expect(frame.canvasWidth).toBe(GLYPH_SIZE + ACCESSORY_WIDTH);
+    });
+
+    it('should frame an icon with its accessory at the pill edge as wide as the pill', () => {
+        // Given the Android More item, whose chevron sits at the right edge of a pill wider than the glyph, with no label
+        const pillWidth = variables.androidNativeTabBarActiveIndicatorWidth;
+        const layout: TabIconLayout = {glyphSize: GLYPH_SIZE, iconBoxSize: GLYPH_SIZE, direction: 'stacked', accessoryPlacement: 'pillEdge', pillWidth};
+
+        // When its frame is laid out
+        const frame = getTabIconFrame(layout, GLYPH_SIZE, getAccessoryWidth(layout, GLYPH_SIZE, SCALE), 0, 0, 0, false, SCALE);
+
+        // Then the icon spans the pill with the glyph in its middle, so the glyph stays where every other item draws its own
+        expect(frame.canvasWidth).toBe(pillWidth);
+        expect(frame.contentLeft + GLYPH_SIZE / 2).toBe(pillWidth / 2);
     });
 });

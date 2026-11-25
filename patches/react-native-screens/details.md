@@ -168,3 +168,10 @@
 - Upstream PR/issue: not reported yet.
 - E/App issue: [#105631](https://github.com/Expensify/App/issues/105631)
 - PR introducing patch: [#107108](https://github.com/Expensify/App/pull/107108)
+
+### [react-native-screens+4.28.0+015+android-tab-icon-view-fits-wide-icons.patch](react-native-screens+4.28.0+015+android-tab-icon-view-fits-wide-icons.patch)
+
+- Reason: On Android, Material sizes every tab icon view as a square of the bar's icon size and scales the icon down to fit it, so an icon wider than tall is squeezed. The flat nav More item draws the picked More menu entry with a smaller chevron at the right edge of the selected pill, which needs an icon as wide as the pill. The patch gives a tab whose icon is wider than tall an icon view of the icon's aspect ratio at the bar's icon height, and every other tab keeps its square view. The selected pill is still drawn behind the icon view, so the icon has to stay within the pill's width, as the App's does.
+- Upstream PR/issue: not reported yet.
+- E/App issue: [#105631](https://github.com/Expensify/App/issues/105631)
+- PR introducing patch: [#107724](https://github.com/Expensify/App/pull/107724)
