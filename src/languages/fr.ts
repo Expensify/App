@@ -8104,7 +8104,7 @@ Le forfait Control commence à 9 $ par Membre actif et par mois.`,
             changeWorkArrangement: 'Modifier l’organisation du travail',
             editCategoryVisibility: 'Modifier la visibilité des catégories',
             bulkCategoryVisibilitySaved: ({categoryCount, memberCount}: {categoryCount: string; memberCount: string}) =>
-                `${categoryCount} définies pour ${memberCount}. Cela remplace leur visibilité des catégories actuelle.`,
+                `Définir ${categoryCount} pour ${memberCount}. Cela remplace la visibilité de catégorie actuelle.`,
             changeRole: 'Modifier le rôle',
             newRolesBanner: {
                 title: 'Nouveaux rôles disponibles',

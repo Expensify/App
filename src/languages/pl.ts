@@ -8062,7 +8062,7 @@ Plan Control zaczyna się od 9 USD za aktywnego członka miesięcznie.`,
             changeWorkArrangement: 'Zmień tryb pracy',
             editCategoryVisibility: 'Edytuj widoczność kategorii',
             bulkCategoryVisibilitySaved: ({categoryCount, memberCount}: {categoryCount: string; memberCount: string}) =>
-                `Ustawiono ${categoryCount} dla: ${memberCount}. Zastępuje to ich obecną widoczność kategorii.`,
+                `Ustaw ${categoryCount} dla ${memberCount}. To zastąpi ich obecną widoczność kategorii.`,
             changeRole: 'Zmień rolę',
             newRolesBanner: {
                 title: 'Nowe role dostępne',

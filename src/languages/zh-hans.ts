@@ -7730,7 +7730,7 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
             changeWorkArrangement: '更改工作安排',
             editCategoryVisibility: '编辑类别可见性',
             bulkCategoryVisibilitySaved: ({categoryCount, memberCount}: {categoryCount: string; memberCount: string}) =>
-                `已为 ${memberCount}设置 ${categoryCount}。这将替换他们当前的类别可见性。`,
+                `为 ${memberCount} 设置 ${categoryCount}。这将替换其当前的类别可见性。`,
             changeRole: '更改角色',
             newRolesBanner: {title: '新角色已可用', subtitle: '<label-text>使用全新的<strong>仅审批</strong>和<strong>来宾</strong>角色，仅授予成员所需的访问权限。</label-text>'},
         },
