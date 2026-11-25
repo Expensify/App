@@ -49,7 +49,7 @@ function DomainAdminsSettingsPage({route}: DomainAdminsSettingsPageProps) {
 
     const technicalContactEmail = technicalContactSettings?.technicalContactEmail;
 
-    // The server accepts this change only from the primary contact when the contact isn't a domain member, and an unverified domain has no members.
+    // Only the primary contact can change this while they aren't a domain member, and an unverified domain has no members.
     const isLocked =
         !!technicalContactEmail &&
         !Str.caseInsensitiveEquals(technicalContactEmail, currentUserLogin ?? '') &&

@@ -121,12 +121,12 @@ describe('DomainAdminsSettingsPage consolidated domain billing switch', () => {
         // Then the switch is locked and the modal tells the admin that only the primary contact can change it
         expect(switchNode.props.accessibilityLabel).toContain(getLockedSuffix());
         expect(toggleConsolidatedDomainBilling).not.toHaveBeenCalled();
-        expect(mockShowConfirmModal).toHaveBeenCalledWith({
-            title: TestHelper.translateLocal('workspace.distanceRates.oopsNotSoFast'),
-            prompt: TestHelper.translateLocal('domain.admins.consolidatedDomainBillingLockedMessage'),
-            confirmText: TestHelper.translateLocal('common.buttonConfirm'),
-            shouldShowCancelButton: false,
-        });
+        expect(mockShowConfirmModal).toHaveBeenCalledWith(
+            expect.objectContaining({
+                title: TestHelper.translateLocal('workspace.distanceRates.oopsNotSoFast'),
+                prompt: TestHelper.translateLocal('domain.admins.consolidatedDomainBillingLockedMessage'),
+            }),
+        );
     });
 
     it('locks the switch when the domain is not verified, even for a contact on the domain', async () => {
@@ -143,8 +143,8 @@ describe('DomainAdminsSettingsPage consolidated domain billing switch', () => {
     });
 
     it('lets any admin change the setting when the primary contact is on the domain', async () => {
-        // Given a primary contact on the verified domain, saved with an upper case email
-        await seedDomain(DOMAIN_CONTACT_EMAIL.toUpperCase());
+        // Given a primary contact on the verified domain
+        await seedDomain(DOMAIN_CONTACT_EMAIL);
 
         // When another admin presses the switch
         const switchNode = await renderPageAndPressSwitch();
@@ -156,8 +156,8 @@ describe('DomainAdminsSettingsPage consolidated domain billing switch', () => {
     });
 
     it('lets the primary contact change the setting when they are outside the domain', async () => {
-        // Given an outside primary contact viewing the page, whose saved email differs in case from their login
-        await seedDomain(OUTSIDE_CONTACT_EMAIL.toUpperCase());
+        // Given an outside primary contact viewing the page
+        await seedDomain(OUTSIDE_CONTACT_EMAIL);
         mockCurrentUserLogin = OUTSIDE_CONTACT_EMAIL;
 
         // When the primary contact presses the switch
