@@ -32,12 +32,13 @@ const CONFIRM_SENTRY_LABELS: Record<DomainVerifiedScreen, SentryLabel> = {
 
 function DomainVerifiedPage({route}: DomainVerifiedPageProps) {
     const {domainAccountID} = route.params;
+    const shouldReturnToGroups = route.name === SCREENS.DOMAIN.MEMBERS_VERIFIED && 'source' in route.params && route.params.source === 'groups';
 
     return (
         <BaseDomainVerifiedPage
             domainAccountID={domainAccountID}
-            redirectTo={REDIRECT_ROUTES[route.name](domainAccountID)}
-            confirmDestination={CONFIRM_ROUTES[route.name](domainAccountID)}
+            redirectTo={shouldReturnToGroups ? ROUTES.DOMAIN_MEMBERS_VERIFY.getRoute(domainAccountID, 'groups') : REDIRECT_ROUTES[route.name](domainAccountID)}
+            confirmDestination={shouldReturnToGroups ? ROUTES.DOMAIN_GROUPS.getRoute(domainAccountID) : CONFIRM_ROUTES[route.name](domainAccountID)}
             confirmSentryLabel={CONFIRM_SENTRY_LABELS[route.name]}
         />
     );
