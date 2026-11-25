@@ -937,7 +937,11 @@ function isOptionEnabled(option?: PolicyTag | PolicyCategory): boolean {
 /**
  * Verifies that there is at least one enabled option
  */
-function hasEnabledOptions(options: PolicyCategories | PolicyTag[]): boolean {
+function hasEnabledOptions(options: PolicyCategories | PolicyTag[] | null | undefined): boolean {
+    if (!options) {
+        return false;
+    }
+
     return Object.values(options).some(isOptionEnabled);
 }
 

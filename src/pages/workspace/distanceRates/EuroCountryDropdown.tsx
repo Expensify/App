@@ -46,6 +46,8 @@ function EuroCountryDropdown({label, selectedCountry, countries, onSelectCountry
                         items={countries}
                         selectedItem={selectedItem}
                         isVisible={popoverProps.isVisible}
+                        // The container already pads for the bottom safe area
+                        addBottomSafeAreaPadding={false}
                         onItemSelected={(item) => {
                             onSelectCountry(item.value ?? '');
                             onClose();

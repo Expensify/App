@@ -251,6 +251,7 @@ function WorkspaceInviteMessageComponent({
                             policy,
                             rules: rulesCollection,
                             shouldUseApprovalWorkflowRules,
+                            currentUserLogin,
                         }),
                 });
             } else {

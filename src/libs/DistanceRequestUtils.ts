@@ -663,6 +663,7 @@ function getRateMatchingCurrentRate(mileageRates: Record<string, MileageRate>, c
  *
  * `currentRate` resolves against the source policy, which this module cannot look up, so callers pass it in. It is optional because
  * a P2P expense carries its rate on the transaction.
+ * `isMatchingRate` distinguishes an eligible equivalent rate from a fallback with the same value.
  *
  * Let's ensure this logic is consistent with the logic in the backend (Auth), which is authoritative here.
  *
