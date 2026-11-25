@@ -4528,7 +4528,7 @@ ${amount} dla ${merchant} - ${date}`,
         join: 'Dołącz',
         transactionalSMSConsent: 'Podając swój numer telefonu, wyrażam zgodę na otrzymywanie od Expensify transakcyjnych powiadomień dotyczących konta.',
         transactionalSMSConsentFinePrint: 'Mogą obowiązywać standardowe opłaty za wiadomości i transmisję danych. Odpowiedz STOP, aby zrezygnować.',
-        marketingSMSConsent: 'Wyrażam zgodę na otrzymywanie marketingowych wiadomości SMS od Expensify',
+        marketingSMSConsent: 'Wyrażam zgodę na otrzymywanie marketingowych wiadomości SMS od Expensify.',
     },
     detailsPage: {
         localTime: 'Czas lokalny',

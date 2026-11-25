@@ -4470,7 +4470,7 @@ ${amount} para ${merchant} - ${date}`,
         join: 'Unirse',
         transactionalSMSConsent: 'Al proporcionar mi número de teléfono, acepto recibir alertas transaccionales de mi cuenta de Expensify.',
         transactionalSMSConsentFinePrint: 'Pueden aplicarse tarifas estándar de mensajes y datos. Responde STOP para darte de baja.',
-        marketingSMSConsent: 'Acepto recibir mensajes de texto de marketing de Expensify',
+        marketingSMSConsent: 'Acepto recibir mensajes de texto de marketing de Expensify.',
     },
     detailsPage: {
         localTime: 'Hora local',

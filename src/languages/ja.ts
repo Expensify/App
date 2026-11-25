@@ -4442,7 +4442,7 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
         join: '参加',
         transactionalSMSConsent: '電話番号を提供することにより、Expensifyからアカウントに関する取引通知を受け取ることに同意します。',
         transactionalSMSConsentFinePrint: '標準のメッセージ料金およびデータ通信料金がかかる場合があります。配信を停止するにはSTOPと返信してください。',
-        marketingSMSConsent: 'Expensifyからのマーケティングテキストの受信に同意します',
+        marketingSMSConsent: 'Expensifyからのマーケティングテキストの受信に同意します。',
     },
     detailsPage: {
         localTime: '現地時間',
