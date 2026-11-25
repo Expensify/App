@@ -7115,8 +7115,8 @@ describe('ReportActionsUtils', () => {
             expect(actual).toBe('changed the tax rate on the distance rate "Default Rate" to "Standard VAT (20%)" (previously "Reduced (5%)")');
         });
 
-        it('should show the tax rate code when the log has no name for it', () => {
-            // Given a rate moved from a deleted tax rate, which has no name to store
+        it('should show the tax rate code when the stored name is empty', () => {
+            // Given a log whose old tax rate name is empty, which the backend stores when it can't find the tax rate's name
             const action: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CUSTOM_UNIT_RATE> = {
                 reportActionID: '1',
                 actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CUSTOM_UNIT_RATE,
@@ -7137,7 +7137,7 @@ describe('ReportActionsUtils', () => {
             // When the log message is built
             const actual = ReportActionsUtils.getWorkspaceCustomUnitRateUpdatedMessage(translateLocal, undefined, action);
 
-            // Then the deleted tax rate is shown by its code
+            // Then the old tax rate falls back to its code, because an empty name would leave nothing to show
             expect(actual).toBe('changed the tax rate on the distance rate "Default Rate" to "VAT 20 (20%)" (previously "INPUT2 (5%)")');
         });
 
