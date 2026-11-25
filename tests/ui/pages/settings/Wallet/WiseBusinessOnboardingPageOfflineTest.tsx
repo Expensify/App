@@ -8,6 +8,7 @@ import OnyxListItemProvider from '@components/OnyxListItemProvider';
 
 import * as API from '@libs/API';
 import {toSavedFile} from '@libs/getWiseOnboardingPageParams';
+import Log from '@libs/Log';
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
 import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
@@ -284,6 +285,28 @@ describe('WiseBusinessOnboardingPage offline', () => {
         expect(writeSpy).toHaveBeenCalledTimes(1);
         expect(mockShownModals).toHaveLength(1);
         connectionCheckSpy.mockRestore();
+    });
+
+    it('asks again and logs why when the connection check of Try again fails', async () => {
+        // Given an offline device on the business page, whose Next opened the offline modal, and a connection check that fails
+        const writeSpy = jest.spyOn(API, 'write');
+        const warnSpy = jest.spyOn(Log, 'warn');
+        const connectionCheckSpy = jest.spyOn(NetworkState, 'refreshAndCheckIsOffline').mockRejectedValue(new Error('NetInfo unavailable'));
+        setHasRadio(false);
+        await renderPage(CONST.WISE.ONBOARDING_STEP.BUSINESS);
+        fireEvent.press(screen.getByText('common.next'));
+        await waitForBatchedUpdatesWithAct();
+
+        // When the user presses Try again
+        mockShownModals.at(0)?.answer(ModalActions.CLOSE);
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the failed check counts as still offline, so the modal opens again and nothing is saved, and the failure is logged, since the user only sees the modal
+        expect(mockShownModals).toHaveLength(2);
+        expect(writeSpy).not.toHaveBeenCalled();
+        expect(warnSpy).toHaveBeenCalledWith('[DynamicForm] The connection check of Try again failed', {error: 'NetInfo unavailable'});
+        connectionCheckSpy.mockRestore();
+        warnSpy.mockRestore();
     });
 
     it('keeps an SSN typed offline out of everything a refresh keeps', async () => {

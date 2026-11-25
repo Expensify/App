@@ -56,8 +56,11 @@ function useContinueOfflineModal() {
                 if (action === ModalActions.CLOSE && isMountedRef.current) {
                     return (
                         refreshAndCheckIsOffline()
-                            // A failed check cannot show the connection is back, so it is treated as still offline
-                            .catch(() => true)
+                            // A failed check cannot show the connection is back, so it is treated as still offline and logged, since the user only sees the modal again
+                            .catch((error: unknown) => {
+                                Log.warn('[DynamicForm] The connection check of Try again failed', {error: error instanceof Error ? error.message : String(error)});
+                                return true;
+                            })
                             .then((isStillOffline) => {
                                 isAttemptRunningRef.current = false;
                                 if (!isMountedRef.current) {
