@@ -426,6 +426,15 @@ describe('RecruitingUtils', () => {
             ]);
         });
 
+        it.each(['lever', 'workable'] as const)('offers nothing for %s, which has no approver field yet', (slug) => {
+            // Given a policy connected to a provider whose Advanced approval isn't available
+            const policy = makeMergeATSPolicy({config: {integration: slug}});
+
+            // When the approver fields are read
+            // Then none are offered, which hides the Advanced approval mode
+            expect(getMergeATSApproverFields(policy)).toEqual([]);
+        });
+
         it('offers nothing when the provider is unknown', () => {
             // Given a connection whose integration slug we can't resolve, since the backend sets it
             // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- deliberately simulating a slug we cannot resolve

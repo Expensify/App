@@ -10,7 +10,7 @@ type MergeATSProviderEntry = {
     /** Provider logo served from the Merge CDN */
     iconUrl: string;
 
-    /** The ATS fields the provider exposes that a candidate's default approver can be read from, in display order */
+    /** The ATS fields the provider exposes that a candidate's default approver can be read from, in display order. Empty when Advanced approval isn't available for the provider. */
     approverFields: ReadonlyArray<ValueOf<typeof CONST.MERGE.ATS_APPROVER_FIELD>>;
 };
 
@@ -25,6 +25,16 @@ const MERGE_ATS_PROVIDERS = {
         displayName: 'Greenhouse',
         iconUrl: 'https://merge-api-public.s3.amazonaws.com/media/Greenhouse_Square_Logo.jpg',
         approverFields: [CONST.MERGE.ATS_APPROVER_FIELD.RECRUITER, CONST.MERGE.ATS_APPROVER_FIELD.RECRUITING_COORDINATOR],
+    },
+    lever: {
+        displayName: 'Lever',
+        iconUrl: 'https://merge-api-public.s3.amazonaws.com/media/Lever_Square_Logo_oYg8yBW.jpg',
+        approverFields: [],
+    },
+    workable: {
+        displayName: 'Workable',
+        iconUrl: 'https://merge-api-public.s3.amazonaws.com/media/Workable_Square_Logo_OvllNl9.jpg',
+        approverFields: [],
     },
 } as const satisfies Record<string, MergeATSProviderEntry>;
 
