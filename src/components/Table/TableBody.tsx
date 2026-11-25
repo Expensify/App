@@ -349,11 +349,11 @@ function TableBodyList({contentContainerStyle, emptyMessage, onLayout, style, ..
     // Consumer footer flex growth is useful below normal rows, but inside the combined empty-state
     // footer it can expand over the page header. Preserve the remaining style while disabling growth.
     const emptyStateFooterStyle = [ListFooterComponentStyle, styles.flexGrow0];
-    const narrowTableMinHeightStyle = shouldUseNarrowTableLayout &&
+    const narrowTableMinHeightStyle =
+        shouldUseNarrowTableLayout &&
         typeof contentMinHeight === 'number' &&
-        typeof tableBodyBottomPadding === 'number' && {
-            minHeight: contentMinHeight + tableBodyBottomPadding,
-        };
+        typeof tableBodyBottomPadding === 'number' &&
+        StyleUtils.getMinimumHeight(contentMinHeight + tableBodyBottomPadding);
     const emptyStateContainerStyle = [
         styles.flex1,
         styles.mnh0,
