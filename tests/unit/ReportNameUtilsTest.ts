@@ -2128,6 +2128,30 @@ describe('ReportNameUtils', () => {
             const name = getPolicyExpenseChatName({report, personalDetailsList: participantsPersonalDetails, translate: translateWithMarker, formatPhoneNumber});
             expect(name).toBe('PolicyMarker:Ragnar Lothbrok');
         });
+
+        describe('before the personal details store has loaded', () => {
+            beforeEach(async () => {
+                // On native, the report names can be computed at app start before the store receives the personal details
+                await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {});
+                await waitForBatchedUpdates();
+            });
+
+            afterEach(async () => {
+                await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, participantsPersonalDetails);
+                await waitForBatchedUpdates();
+            });
+
+            it("uses the owner's display name from the passed personal details", () => {
+                // Given a workspace chat whose owner is in the personal details the caller passes, while the store is still empty
+                const report = createMock<Report>({ownerAccountID: 1, reportName: 'Fallback Report Name'});
+
+                // When its name is computed from that list, as the report attributes derived value does at app start
+                const name = getPolicyExpenseChatName({report, personalDetailsList: participantsPersonalDetails, translate: translateLocal, formatPhoneNumber});
+
+                // Then it shows the owner's display name, because the passed list already has it, instead of falling back to their login
+                expect(name).toBe(translate(CONST.LOCALES.EN, 'workspace.common.policyExpenseChatName', 'Ragnar Lothbrok'));
+            });
+        });
     });
 
     describe('getGroupChatName', () => {
