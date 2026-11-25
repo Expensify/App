@@ -1,5 +1,6 @@
 import useOnyx from '@hooks/useOnyx';
 
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {InsightsDashboardID} from '@src/types/onyx';
 
@@ -22,8 +23,8 @@ type LoadedDashboardEntry = {
 
 /** Checks whether two sets of filters give the same averages */
 function haveSameAverageFilters(filters: InsightsFilters, otherFilters: InsightsFilters): boolean {
-    const {groupBy, compare, ...averageFilters} = filters;
-    const {groupBy: otherGroupBy, compare: otherCompare, ...otherAverageFilters} = otherFilters;
+    const {groupBy, compare, tagLevel, ...averageFilters} = filters;
+    const {groupBy: otherGroupBy, compare: otherCompare, tagLevel: otherTagLevel, ...otherAverageFilters} = otherFilters;
     return deepEqual(averageFilters, otherAverageFilters);
 }
 
@@ -40,7 +41,8 @@ function canReuseAverage(
         loadedEntry.dashboardID === dashboardID &&
         haveSameAverageFilters(loadedEntry.filters, filters) &&
         getViolationStage(chart, loadedEntry.violationStages) === getViolationStage(chart, violationStages) &&
-        (!!chart.groupBy || getQueryGroupBy(loadedEntry.filters) === getQueryGroupBy(filters))
+        (!!chart.groupBy || getQueryGroupBy(loadedEntry.filters) === getQueryGroupBy(filters)) &&
+        (chart.groupBy !== CONST.SEARCH.GROUP_BY.TAG || loadedEntry.filters.tagLevel === filters.tagLevel)
     );
 }
 
