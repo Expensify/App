@@ -5,12 +5,13 @@ import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type {Policy, PolicyCategories, PolicyTagLists, Report, ReportAction} from '@src/types/onyx';
-import type {PersonalRulesModifiedFields, PolicyRulesModifiedFields} from '@src/types/onyx/OriginalMessage';
+import type {PersonalRulesModifiedFields, PolicyRulesModifiedFields, RulesModifiedVendor} from '@src/types/onyx/OriginalMessage';
 import ObjectUtils from '@src/types/utils/ObjectUtils';
 
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 
+import lodashEscape from 'lodash/escape';
 import isEmpty from 'lodash/isEmpty';
 
 import {getDecodedCategoryName, isCategoryMissing} from './CategoryUtils';
@@ -196,6 +197,17 @@ function getMovedFromOrToReportMessage(
 }
 
 /**
+ * Resolves the display name of a vendor from any connection that has it, then the name saved on the action, then the externalID,
+ * so the message still identifies the vendor rather than rendering an empty name.
+ */
+function resolveVendorName(policy: OnyxEntry<Policy>, entry: RulesModifiedVendor | null | undefined): string {
+    if (!entry?.externalID) {
+        return '';
+    }
+    return findVendorByID(policy, entry.externalID)?.name || entry.name || entry.externalID;
+}
+
+/**
  * The fields a rules modified message can name. The backend sends back whatever a rule applied, so a field with
  * no label here is left out rather than rendered without one.
  */
@@ -205,6 +217,7 @@ function getRulesModifiedMessage(
     translate: LocalizedTranslate,
     fields: PolicyRulesModifiedFields | PersonalRulesModifiedFields,
     isPersonalRules: boolean,
+    policy: OnyxEntry<Policy>,
     policyID?: string,
     hasPolicyRuleAccess?: boolean,
 ) {
@@ -235,7 +248,7 @@ function getRulesModifiedMessage(
         }
 
         if (key === 'vendor') {
-            return translate('iou.rulesModifiedFields.common', key, modifiedFields[key]?.name ?? '', isFirst);
+            return translate('iou.rulesModifiedFields.common', key, lodashEscape(resolveVendorName(policy, modifiedFields[key])), isFirst);
         }
         if (key === 'category') {
             return translate('iou.rulesModifiedFields.common', key, getDecodedCategoryName(modifiedFields[key] ?? ''), isFirst);
@@ -513,23 +526,10 @@ function getForReportAction({
     // fallback.
     const hasModifiedVendor = isReportActionOriginalMessageAnObject && ('oldVendor' in reportActionOriginalMessage || 'vendor' in reportActionOriginalMessage);
     if (hasModifiedVendor) {
-        // Vendor is stored on the action as `{externalID, name?, wasManuallySet}` (or absent/null).
-        // Resolve the display name from any connection that has the vendor data (QBO, Intacct, or
-        // Xero), without gating on the workspace's current export mode — a past "set vendor" action
-        // should still render the vendor name after an admin switches the non-reimbursable export
-        // type. When no connection has the vendor any more, prefer the display name persisted on the
-        // action, then fall back to the externalID so the fragment still identifies which vendor was
-        // set rather than rendering `set vendor ""`.
-        const resolveVendorName = (entry: typeof reportActionOriginalMessage.vendor): string => {
-            if (!entry?.externalID) {
-                return '';
-            }
-            return findVendorByID(policy, entry.externalID)?.name ?? entry.name ?? entry.externalID;
-        };
         buildMessageFragmentForValue(
             translate,
-            resolveVendorName(reportActionOriginalMessage?.vendor),
-            resolveVendorName(reportActionOriginalMessage?.oldVendor),
+            resolveVendorName(policy, reportActionOriginalMessage?.vendor),
+            resolveVendorName(policy, reportActionOriginalMessage?.oldVendor),
             translate('common.vendor'),
             true,
             setFragments,
@@ -548,7 +548,7 @@ function getForReportAction({
     if (hasPersonalRulesModifiedFields) {
         const personalRulesModifiedFields = reportActionOriginalMessage.personalRulesModifiedFields;
         if (personalRulesModifiedFields) {
-            return getRulesModifiedMessage(translate, personalRulesModifiedFields, true);
+            return getRulesModifiedMessage(translate, personalRulesModifiedFields, true, policy);
         }
     }
 
@@ -556,9 +556,10 @@ function getForReportAction({
     if (hasPolicyRulesModifiedFields) {
         const policyRulesModifiedFields = reportActionOriginalMessage.policyRulesModifiedFields;
 
-        if (policyRulesModifiedFields && policy?.id) {
-            const hasPolicyRuleAccess = arePolicyRulesEnabled(policy, policyCategories) && isPolicyAdmin(policy, currentUserLogin);
-            return getRulesModifiedMessage(translate, policyRulesModifiedFields, false, policy?.id, hasPolicyRuleAccess);
+        if (policyRulesModifiedFields) {
+            // Until the workspace loads, access can't be checked, so hasPolicyRuleAccess stays false and the message links to the help page.
+            const hasPolicyRuleAccess = !!policy?.id && arePolicyRulesEnabled(policy, policyCategories) && isPolicyAdmin(policy, currentUserLogin);
+            return getRulesModifiedMessage(translate, policyRulesModifiedFields, false, policy, policy?.id ?? reportActionOriginalMessage.policyID, hasPolicyRuleAccess);
         }
     }
 
