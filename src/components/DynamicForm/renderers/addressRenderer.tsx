@@ -1,6 +1,6 @@
 import DynamicFormAddressCountryDropdown from '@components/DynamicForm/components/DynamicFormAddressCountryDropdown';
 import DynamicFormAddressStateDropdown from '@components/DynamicForm/components/DynamicFormAddressStateDropdown';
-import getAddressInputKeys, {getAddressCountry, getStateOptions, isZipCodeShown} from '@components/DynamicForm/utils/getAddressInputKeys';
+import getAddressInputKeys, {getAddressCountry, getStateOptions, isStateAsked, isZipCodeShown} from '@components/DynamicForm/utils/getAddressInputKeys';
 import isSensitiveField from '@components/DynamicForm/utils/isSensitiveField';
 
 import AddressFields from '@pages/ReimbursementAccount/AddressFormFields/AddressFields';
@@ -16,7 +16,7 @@ import type {DynamicFieldRenderer} from './types';
 const renderAddress: DynamicFieldRenderer<'address'> = (field, {values, styles, translate}, {shouldSaveDraft, forwardedFSClass, onValueChange, defaultValue, disabled}) => {
     const addressKeys = getAddressInputKeys(field.key);
     const country = getAddressCountry(field.key, values);
-    const stateOptions = getStateOptions(field, country, translate);
+    const stateOptions = isStateAsked(field, country) ? getStateOptions(field, country, translate) : undefined;
     // The street arrives as the field's answer. The other parts of a sensitive address are not drafted either, so they start from memory too.
     const getSensitivePart = (key: string) => {
         const part = values[key];

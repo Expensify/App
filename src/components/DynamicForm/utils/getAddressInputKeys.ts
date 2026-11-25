@@ -47,7 +47,7 @@ function getAppStates(field: DynamicFormAddressField, country: Country | ''): Re
     if (country) {
         return STATES_BY_COUNTRY[country];
     }
-    return !field.countries || field.countries.includes(CONST.COUNTRY.US) ? STATES_BY_COUNTRY[CONST.COUNTRY.US] : undefined;
+    return isCountryAllowed(field, CONST.COUNTRY.US) ? STATES_BY_COUNTRY[CONST.COUNTRY.US] : undefined;
 }
 
 /** The names of the states the picker lists, by code. The field's own states win, and without them the App's list for the country is used. */
