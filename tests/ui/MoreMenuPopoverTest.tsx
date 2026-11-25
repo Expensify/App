@@ -59,6 +59,7 @@ function renderMenu(isVisible: boolean, focusedTabRouteName: string) {
         <MoreMenuPopover
             isVisible={isVisible}
             onClose={jest.fn()}
+            onItemPicked={jest.fn()}
             onModalHide={jest.fn()}
             focusedTabRouteName={focusedTabRouteName}
         />,

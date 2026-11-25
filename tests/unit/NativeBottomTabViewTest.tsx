@@ -175,6 +175,12 @@ function getFlatNavOptionsWithSpendHost(hostRouteName: string) {
     return {...FLAT_NAV_OPTIONS, Spend: {tabBarItemHidden: true, tabBarItemHostRouteName: hostRouteName}};
 }
 
+// The More menu open: every tab names More as the item to show as selected, since the bar reads it from the focused one
+function getOptionsWithSelectedItem(options: Record<string, Record<string, unknown>>, selectedItemRouteName: string) {
+    const routeNames = ['Inbox', 'Expenses', 'Reports', 'More', 'Spend', 'Workspaces', 'Account'];
+    return Object.fromEntries(routeNames.map((name) => [name, {...options[name], tabBarSelectedItemRouteName: selectedItemRouteName}]));
+}
+
 function renderFlatNav(focusedRouteName: string, {navigation = buildNavigation(), options = FLAT_NAV_OPTIONS} = {}) {
     return render(renderTabView(buildFlatNavTabState(focusedRouteName), navigation, [], options));
 }
@@ -620,6 +626,123 @@ describe('NativeBottomTabView', () => {
         // When the native host is configured
         // Then it gets no order, so the native bar keeps the order of its tabs as before
         expect(mockLatestHostProps?.tabBarItemOrder).toBeUndefined();
+    });
+
+    it('shows another item selected over a visible tab by trading the places of the two tabs', () => {
+        useTabsThatTradePlaces();
+        // Given Inbox focused
+        const navigation = buildNavigation();
+        const screen = render(renderTabView(buildFlatNavTabState('Inbox'), navigation, [], FLAT_NAV_OPTIONS));
+
+        // When the tabs name More as the item to show as selected, as they do while the More menu is open
+        screen.rerender(renderTabView(buildFlatNavTabState('Inbox'), navigation, [], getOptionsWithSelectedItem(FLAT_NAV_OPTIONS, 'More')));
+
+        // Then Inbox stays selected and mounted, takes the place of More and draws its item, so the bar highlights More
+        // over the screen the user is on
+        expect(mockLatestHostProps?.navStateRequest.selectedScreenKey).toBe('Inbox');
+        expect(mockLatestHostProps?.tabBarItemOrder).toEqual(['More', 'Expenses', 'Reports', 'Inbox']);
+        expect(mockLatestScreenProps.get('Inbox')?.title).toBe('More');
+        expect(mockLatestScreenProps.get('More')?.title).toBe('Inbox');
+        expect(contentMounts.filter((mount) => mount.startsWith('Inbox-key'))).toEqual(['Inbox-key@Inbox']);
+        // And a tap on that item is left to its press listener, so native does not scroll Inbox to the top
+        expect(mockLatestScreenProps.get('Inbox')?.specialEffects?.repeatedTabSelection).toEqual({popToRoot: false, scrollToTop: false});
+
+        // When the tabs stop naming it, as they do once the menu closes
+        screen.rerender(renderTabView(buildFlatNavTabState('Inbox'), navigation, [], FLAT_NAV_OPTIONS));
+
+        // Then every tab is back in its place under its own item
+        expect(mockLatestHostProps?.tabBarItemOrder).toEqual(['Inbox', 'Expenses', 'Reports', 'More']);
+        expect(mockLatestScreenProps.get('Inbox')?.title).toBe('Inbox');
+    });
+
+    it('shows another item selected over a visible tab on iOS by selecting its tab with the content of the focused one', () => {
+        // Given Inbox focused on iOS
+        const navigation = buildNavigation();
+        const screen = render(renderTabView(buildFlatNavTabState('Inbox'), navigation, [], FLAT_NAV_OPTIONS));
+        expect(mockLatestScreenProps.get('More')?.hostedContentSourceScreenKey).toBeUndefined();
+
+        // When the tabs name More as the item to show as selected
+        screen.rerender(renderTabView(buildFlatNavTabState('Inbox'), navigation, [], getOptionsWithSelectedItem(FLAT_NAV_OPTIONS, 'More')));
+
+        // Then native selects More, so the bar moves its selection there as on any tab switch, and More shows the
+        // native view of Inbox, so the user keeps seeing the screen they were on instead of an empty tab
+        expect(mockLatestHostProps?.navStateRequest.selectedScreenKey).toBe('More');
+        expect(mockLatestScreenProps.get('More')?.hostedContentSourceScreenKey).toBe('Inbox');
+        expect(mockLatestHostProps?.tabBarItemOrder).toBeUndefined();
+        expect(contentMounts.filter((mount) => mount.startsWith('Inbox-key'))).toEqual(['Inbox-key@Inbox']);
+
+        // When native confirms the selection it made for JS
+        act(() => {
+            mockLatestHostProps?.onTabSelected({nativeEvent: {selectedScreenKey: 'More', provenance: 1, actionOrigin: 'programmatic-js'}});
+        });
+
+        // Then JS does not navigate, since Inbox is still the focused tab
+        expect(navigation.dispatch).not.toHaveBeenCalled();
+
+        // When the tabs stop naming More
+        screen.rerender(renderTabView(buildFlatNavTabState('Inbox'), navigation, [], FLAT_NAV_OPTIONS));
+
+        // Then native selects Inbox again and More shows no other tab's view
+        expect(mockLatestHostProps?.navStateRequest.selectedScreenKey).toBe('Inbox');
+        expect(mockLatestScreenProps.get('More')?.hostedContentSourceScreenKey).toBeUndefined();
+    });
+
+    it.each([
+        {platform: 'android', selectedScreenKey: 'Expenses', tabBarItemOrder: ['Inbox', 'More', 'Reports', 'Expenses'], moreSourceScreenKey: undefined},
+        {platform: 'ios', selectedScreenKey: 'More', tabBarItemOrder: undefined, moreSourceScreenKey: 'Expenses'},
+    ] as const)('shows another item selected over a hidden route with a host on $platform', ({platform, selectedScreenKey, tabBarItemOrder, moreSourceScreenKey}) => {
+        jest.replaceProperty(Platform, 'OS', platform);
+        // Given Spend focused and drawn inside the Expenses placeholder, which it names as its host
+        const navigation = buildNavigation();
+        const screen = render(renderTabView(buildFlatNavTabState('Spend'), navigation, [], FLAT_NAV_OPTIONS));
+
+        // When the tabs name More as the item to show as selected
+        screen.rerender(renderTabView(buildFlatNavTabState('Spend'), navigation, [], getOptionsWithSelectedItem(FLAT_NAV_OPTIONS, 'More')));
+
+        // Then the bar highlights More over Spend the way it does when Spend names More as its host, and Spend is not
+        // mounted again, since More is only the item shown and not a host Spend moved to
+        expect(mockLatestHostProps?.navStateRequest.selectedScreenKey).toBe(selectedScreenKey);
+        expect(mockLatestHostProps?.tabBarItemOrder).toEqual(tabBarItemOrder);
+        expect(mockLatestScreenProps.get('More')?.hostedContentSourceScreenKey).toBe(moreSourceScreenKey);
+        expect(contentMounts.filter((mount) => mount.startsWith('Spend-key'))).toEqual(['Spend-key@Expenses']);
+        expect(getHiddenRouteDisplay(screen, 'Spend-key')).toBeUndefined();
+    });
+
+    it.each([
+        {platform: 'android', selectedScreenKey: 'Inbox', tabBarItemOrder: ['More', 'Expenses', 'Reports', 'Inbox'], moreSourceScreenKey: undefined},
+        {platform: 'ios', selectedScreenKey: 'More', tabBarItemOrder: undefined, moreSourceScreenKey: 'Inbox'},
+    ] as const)('shows another item selected over a hidden route without a host on $platform', ({platform, selectedScreenKey, tabBarItemOrder, moreSourceScreenKey}) => {
+        jest.replaceProperty(Platform, 'OS', platform);
+        // Given Account focused, which has no item: it is drawn in the first tab and the bar shows no item as selected
+        const navigation = buildNavigation();
+        const screen = render(renderTabView(buildFlatNavTabState('Account'), navigation, [], FLAT_NAV_OPTIONS));
+        expect(mockLatestHostProps?.tabBarItemSelectionHidden).toBe(true);
+
+        // When the tabs name More as the item to show as selected
+        screen.rerender(renderTabView(buildFlatNavTabState('Account'), navigation, [], getOptionsWithSelectedItem(FLAT_NAV_OPTIONS, 'More')));
+
+        // Then the bar shows its selection again, on More, over the tab Account is drawn in
+        expect(mockLatestHostProps?.tabBarItemSelectionHidden).toBe(false);
+        expect(mockLatestHostProps?.navStateRequest.selectedScreenKey).toBe(selectedScreenKey);
+        expect(mockLatestHostProps?.tabBarItemOrder).toEqual(tabBarItemOrder);
+        expect(mockLatestScreenProps.get('More')?.hostedContentSourceScreenKey).toBe(moreSourceScreenKey);
+        expect(contentMounts.filter((mount) => mount.startsWith('Account-key'))).toEqual(['Account-key@Inbox']);
+    });
+
+    it('changes nothing when the item to show as selected is the one the focused route is under', () => {
+        // Given Workspaces focused under More, which the bar already shows as selected
+        const navigation = buildNavigation();
+        const screen = render(renderTabView(buildFlatNavTabState('Workspaces'), navigation, [], FLAT_NAV_OPTIONS));
+        const selectedScreenKeyBefore = mockLatestHostProps?.navStateRequest.selectedScreenKey;
+
+        // When the tabs name More as the item to show as selected, as when the menu is opened from one of its own entries
+        screen.rerender(renderTabView(buildFlatNavTabState('Workspaces'), navigation, [], getOptionsWithSelectedItem(FLAT_NAV_OPTIONS, 'More')));
+
+        // Then More stays selected with its own content, so closing the menu has nothing to put back
+        expect(selectedScreenKeyBefore).toBe('More');
+        expect(mockLatestHostProps?.navStateRequest.selectedScreenKey).toBe('More');
+        expect(mockLatestScreenProps.get('More')?.hostedContentSourceScreenKey).toBeUndefined();
+        expect(contentMounts.filter((mount) => mount.startsWith('Workspaces-key'))).toEqual(['Workspaces-key@More']);
     });
 
     it('hides a hidden route without a host while it is not focused', () => {

@@ -27,14 +27,16 @@ import type {NavigationState} from '@react-navigation/native';
 import {createNativeBottomTabNavigator} from '@react-navigation/bottom-tabs/unstable';
 import {useNavigationState, useRoute} from '@react-navigation/native';
 import {authTokenTypeSelector} from '@selectors/Session';
-import React, {createContext, useContext} from 'react';
+import React, {createContext, useContext, useState} from 'react';
 import {View} from 'react-native';
 
+import type {MoreMenuState} from './NativeTabNavigator/MoreMenuStateContext';
 import type {NativeTabRouteName} from './NativeTabNavigator/nativeTabItemUtils';
 import type {NativeTabLayoutProps} from './NativeTabNavigator/NativeTabLayout';
 
 import getActiveTabRoute from './NativeTabNavigator/getActiveTabRoute';
 import isTabHostFullWidth from './NativeTabNavigator/isTabHostFullWidth';
+import MoreMenuStateContext, {isMoreItemSelectedByMenu} from './NativeTabNavigator/MoreMenuStateContext';
 import {findSearchTabRoute, getFlatNavTabHiddenRouteName, getFlatNavTabHostRouteName, getSearchTabSearchKey} from './NativeTabNavigator/nativeTabItemUtils';
 import NativeTabLayout from './NativeTabNavigator/NativeTabLayout';
 import TabRootRevealingContext from './NativeTabNavigator/TabRootRevealingContext';
@@ -115,6 +117,10 @@ function NativeTabNavigator({isFlatNavTabBarEnabled = false}: NativeTabNavigator
     const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
     const isTabBarVertical = useIsTabBarVertical();
     const {screenOptions, getTabOptions} = useNativeTabBarOptions({shouldShowNativeTabBar, isTabBarVertical, dotColors, tabLabels});
+    const [moreMenuState] = useContext(MoreMenuStateContext);
+    // While the More menu is up the bar shows the More item as selected over the screen the user is on. Every tab gets
+    // the name, since the bar reads it from the focused one.
+    const selectedItemOptions = {tabBarSelectedItemRouteName: isMoreItemSelectedByMenu(moreMenuState) ? SCREENS.NATIVE_TAB_ITEM.MORE : undefined};
     // The More menu entry the More item shows is read from the navigator's current state, like the search key, so its
     // glyph changes in the same commit as the focused tab.
     const getMoreTabItemIDFromState = (navigation: {getState: () => NavigationState}) => {
@@ -129,11 +135,17 @@ function NativeTabNavigator({isFlatNavTabBarEnabled = false}: NativeTabNavigator
         route.name in tabLabels
             ? {
                   ...screenOptions,
+                  ...selectedItemOptions,
                   ...getTabOptions(route.name, route.name === SCREENS.NATIVE_TAB_ITEM.MORE ? getMoreTabItemIDFromState(navigation) : undefined),
                   tabBarSelectionEnabled: isTabSelectionEnabled(route.name),
                   tabBarItemHiddenRouteName: getFlatNavTabHiddenRouteName(route.name),
               }
-            : {...screenOptions, ...HIDDEN_TAB_OPTIONS, tabBarItemHostRouteName: getFlatNavTabHostRouteName(route.name, getSearchSectionID(resolveSearchSectionID, navigation.getState()))};
+            : {
+                  ...screenOptions,
+                  ...selectedItemOptions,
+                  ...HIDDEN_TAB_OPTIONS,
+                  tabBarItemHostRouteName: getFlatNavTabHostRouteName(route.name, getSearchSectionID(resolveSearchSectionID, navigation.getState())),
+              };
 
     const tabNavigator = (
         <TabRootRevealingContext.Provider value={setIsTabRootRevealing}>
@@ -196,8 +208,12 @@ function NativeTabNavigator({isFlatNavTabBarEnabled = false}: NativeTabNavigator
     return isTabHostFullWidth ? tabNavigator : <HorizontalSafeArea>{tabNavigator}</HorizontalSafeArea>;
 }
 
-/** The tab navigator with the flat nav bar, which reads where Search is so the bar can highlight its item. */
+/**
+ * The tab navigator with the flat nav bar, which reads where Search is so the bar can highlight its item, and keeps the
+ * state of the More menu so the bar can show the More item selected under it.
+ */
 function FlatNavNativeTabNavigator() {
+    const moreMenuState = useState<MoreMenuState>('closed');
     const route = useRoute();
     const getTabState = (parentState: NavigationState) => parentState.routes.find((parentRoute) => parentRoute.key === route.key)?.state;
     const isSearchFocused = useNavigationState((parentState) => getActiveTabRoute(getTabState(parentState))?.name === NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR);
@@ -205,7 +221,9 @@ function FlatNavNativeTabNavigator() {
 
     return (
         <FlatNavSearchSectionContext.Provider value={getFlatNavSearchSectionID}>
-            <NativeTabNavigator isFlatNavTabBarEnabled />
+            <MoreMenuStateContext.Provider value={moreMenuState}>
+                <NativeTabNavigator isFlatNavTabBarEnabled />
+            </MoreMenuStateContext.Provider>
         </FlatNavSearchSectionContext.Provider>
     );
 }

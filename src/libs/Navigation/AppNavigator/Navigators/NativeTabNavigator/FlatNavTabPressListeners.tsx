@@ -20,13 +20,12 @@ import SCREENS from '@src/SCREENS';
 import {lastExpensesSearchQuerySelector, lastReportsSearchQuerySelector} from '@src/selectors/SearchFilters';
 
 import {authTokenTypeSelector} from '@selectors/Session';
-import React, {useEffect, useRef, useState} from 'react';
+import React, {useContext, useEffect, useRef} from 'react';
 
 import type {NativeTabLayoutProps} from './NativeTabLayout';
 
+import MoreMenuStateContext from './MoreMenuStateContext';
 import {findSearchTabRoute, getSearchTabSearchKey} from './nativeTabItemUtils';
-
-type MoreMenuState = 'closed' | 'open' | 'closing';
 
 function FlatNavTabPressListeners({state, descriptors}: Pick<NativeTabLayoutProps, 'state' | 'descriptors'>) {
     const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
@@ -34,7 +33,7 @@ function FlatNavTabPressListeners({state, descriptors}: Pick<NativeTabLayoutProp
     const [lastReportsSearchQuery] = useOnyx(ONYXKEYS.SEARCH_FILTERS, {selector: lastReportsSearchQuerySelector});
     const {clearSelectedTransactions} = useSearchSelectionActions();
     // The menu is mounted only while it is open or closing, so its data is not read the rest of the time.
-    const [moreMenuState, setMoreMenuState] = useState<MoreMenuState>('closed');
+    const [moreMenuState, setMoreMenuState] = useContext(MoreMenuStateContext);
     const getTabNavigation = (routeName: string) => descriptors[state.routes.find((tabRoute) => tabRoute.name === routeName)?.key ?? '']?.navigation;
     const searchNavigation = getTabNavigation(NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR);
     const expensesNavigation = getTabNavigation(SCREENS.NATIVE_TAB_ITEM.EXPENSES);
@@ -107,7 +106,7 @@ function FlatNavTabPressListeners({state, descriptors}: Pick<NativeTabLayoutProp
                 removeListener?.();
             }
         };
-    }, [expensesNavigation, reportsNavigation, moreNavigation, openSpendTab, session]);
+    }, [expensesNavigation, reportsNavigation, moreNavigation, openSpendTab, session, setMoreMenuState]);
 
     if (moreMenuState === 'closed') {
         return null;
@@ -116,10 +115,12 @@ function FlatNavTabPressListeners({state, descriptors}: Pick<NativeTabLayoutProp
     return (
         <MoreMenuPopover
             isVisible={moreMenuState === 'open'}
-            onClose={() => setMoreMenuState('closing')}
+            // The menu also reports a close right after a pick, which must not undo what the pick set.
+            onClose={() => setMoreMenuState((previousState) => (previousState === 'open' ? 'closing' : previousState))}
+            onItemPicked={() => setMoreMenuState('closingAfterPick')}
             // The hide callback can come from an earlier render, so it reads the current state: a menu opened again
             // while it was closing stays mounted.
-            onModalHide={() => setMoreMenuState((previousState) => (previousState === 'closing' ? 'closed' : previousState))}
+            onModalHide={() => setMoreMenuState((previousState) => (previousState === 'open' ? previousState : 'closed'))}
             focusedTabRouteName={state.routes.at(state.index)?.name}
         />
     );

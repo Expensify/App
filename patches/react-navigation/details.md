@@ -127,6 +127,18 @@
 - PR Introducing Patch: [#107108](https://github.com/Expensify/App/pull/107108)
 - PR Updating Patch: N/A
 
+### [@react-navigation+bottom-tabs+7.19.2+009+selected-item-over-current-tab.patch](@react-navigation+bottom-tabs+7.19.2+009+selected-item-over-current-tab.patch)
+
+- Reason: Adds a `tabBarSelectedItemRouteName` option to the native bottom tabs: the name of the visible tab whose item the bar shows as selected in place of the focused tab's, while the content of the focused tab stays on screen. The flat nav bar sets it to More while the More menu is open, so the iOS selection lens and the Android active indicator sit on More over the screen the user opened the menu from, and go back when the menu closes. The bar reads the option from the focused tab. It needs no new native code and reuses the two mechanisms of patch 008.
+  - A focused hidden route that names a host is treated as if it named that tab as its host, so the bar highlights the item the way it does when the route moves to that host. The route stays in the tab it is drawn in, as the named tab is only the item shown and not a host the route moved to.
+  - Any other focused route, which is a visible tab or a hidden route without a host drawn in the first tab, keeps its tab. On Android that tab trades places with the named tab and draws its item (`tabBarItemOrder`, react-native-screens patch 012). On iOS the named tab is selected and shows the native view of that tab (`hostedContentSourceScreenKey`, react-native-screens patch 014), so UIKit moves the selection as on any tab switch while the same content stays under it. For that, in a bar with hosted routes on iOS the whole content of every tab, its own screen and the hidden routes drawn in it, is now inside the one view with the `RNSTabsHostedContent` native ID, where patch 008 put only the hidden routes with a host. The bar shows its selection while the option is set even over a hidden route without a host, which otherwise hides it (patch 005).
+  - A tab shown under the item of a tab with its own selection disabled leaves a repeated selection of that item to its `tabPress` listener, as patch 006 does for a host.
+  - Without the option nothing changes, and a bar without hosted routes keeps the view hierarchy it had.
+- Upstream PR/issue: not reported, because it builds on patch 003, which has no upstream counterpart.
+- E/App issue: [#105632](https://github.com/Expensify/App/issues/105632), [#107339](https://github.com/Expensify/App/issues/107339)
+- PR Introducing Patch: N/A (draft, to be filled in when the PR is opened)
+- PR Updating Patch: N/A
+
 ### Removed patches
 
 - `@react-navigation+native+7.1.33+003+increase-history-go-popstate-fallback-timeout.patch` was dropped: upstream raised the `createMemoryHistory.go()` fallback timeout from 100ms to 1000ms in 7.3.18 (https://github.com/react-navigation/react-navigation/pull/13217), with the same Firefox rationale as our patch. Original context: [#94571](https://github.com/Expensify/App/issues/94571) / [#95980](https://github.com/Expensify/App/pull/95980), upstream issue https://github.com/react-navigation/react-navigation/issues/11145.

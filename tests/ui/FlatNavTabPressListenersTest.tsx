@@ -4,6 +4,8 @@ import MoreMenuPopover from '@components/Navigation/MoreMenu/MoreMenuPopover';
 
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import FlatNavTabPressListeners from '@libs/Navigation/AppNavigator/Navigators/NativeTabNavigator/FlatNavTabPressListeners';
+import MoreMenuStateContext, {isMoreItemSelectedByMenu} from '@libs/Navigation/AppNavigator/Navigators/NativeTabNavigator/MoreMenuStateContext';
+import type {MoreMenuState} from '@libs/Navigation/AppNavigator/Navigators/NativeTabNavigator/MoreMenuStateContext';
 import type {NativeTabLayoutProps} from '@libs/Navigation/AppNavigator/Navigators/NativeTabNavigator/NativeTabLayout';
 import {navigateToSpendTab, showSpendTabSearchOnMountedSearchPage} from '@libs/SearchNavigationUtils';
 import {startNavigateToReportsTabSpans} from '@libs/telemetry/startTabNavigationSpans';
@@ -13,7 +15,7 @@ import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
 
-import React from 'react';
+import React, {useState} from 'react';
 import {View} from 'react-native';
 import Onyx from 'react-native-onyx';
 
@@ -96,15 +98,33 @@ function buildProps(focusedRouteName: string): Pick<NativeTabLayoutProps, 'state
     };
 }
 
+// Keeps the state of the More menu, as the tab navigator does around its tabs, and marks the bar as showing the More
+// item selected the way the navigator decides it
+function MoreMenuStateProvider({children}: {children: React.ReactNode}) {
+    const moreMenuState = useState<MoreMenuState>('closed');
+    return (
+        <MoreMenuStateContext.Provider value={moreMenuState}>
+            {isMoreItemSelectedByMenu(moreMenuState[0]) && <View testID="MoreItemSelected" />}
+            {children}
+        </MoreMenuStateContext.Provider>
+    );
+}
+
+function isMoreItemSelected() {
+    return screen.queryByTestId('MoreItemSelected') !== null;
+}
+
 async function renderListeners(focusedRouteName: string, searchKey?: string) {
     liveFocusedRouteName = focusedRouteName;
     liveSearchKey = searchKey;
     const props = buildProps(focusedRouteName);
     render(
-        <FlatNavTabPressListeners
-            state={props.state}
-            descriptors={props.descriptors}
-        />,
+        <MoreMenuStateProvider>
+            <FlatNavTabPressListeners
+                state={props.state}
+                descriptors={props.descriptors}
+            />
+        </MoreMenuStateProvider>,
     );
     await waitForBatchedUpdatesWithAct();
 }
@@ -332,5 +352,47 @@ describe('FlatNavTabPressListeners', () => {
         // Then the menu stays mounted and shown, because the callback reads the current state, not the one it was created with
         expect(screen.getByTestId('MoreMenu')).toBeTruthy();
         expect(getMoreMenuProps()?.isVisible).toBe(true);
+    });
+
+    it('keeps the More item selected only until the menu starts closing when the user picks nothing', async () => {
+        // Given Home focused with the More menu closed, so the bar shows Home as selected
+        await renderListeners(SCREENS.HOME);
+        expect(isMoreItemSelected()).toBe(false);
+
+        // When the user presses More
+        press(SCREENS.NATIVE_TAB_ITEM.MORE);
+
+        // Then the menu keeps the More item selected
+        expect(isMoreItemSelected()).toBe(true);
+
+        // When the user closes the menu without a pick, as a tap outside it or the back button does
+        act(() => getMoreMenuProps()?.onClose());
+
+        // Then the selection goes back to the tab the user is on at once, without waiting for the menu to finish closing
+        expect(getMoreMenuProps()?.isVisible).toBe(false);
+        expect(isMoreItemSelected()).toBe(false);
+    });
+
+    it('keeps the More item selected after a pick until the menu has closed', async () => {
+        // Given Home focused with the More menu open
+        await renderListeners(SCREENS.HOME);
+        press(SCREENS.NATIVE_TAB_ITEM.MORE);
+
+        // When the user picks an entry, which the menu reports before the close every pick is followed by
+        act(() => {
+            getMoreMenuProps()?.onItemPicked();
+            getMoreMenuProps()?.onClose();
+        });
+
+        // Then the menu closes with the More item still selected, since the entry opens under More only once the menu
+        // has closed and the selection would otherwise go back to Home in between
+        expect(getMoreMenuProps()?.isVisible).toBe(false);
+        expect(isMoreItemSelected()).toBe(true);
+
+        // When the menu has finished closing
+        act(() => getMoreMenuProps()?.onModalHide());
+
+        // Then the menu no longer holds the selection, which now follows the tab the picked entry opened
+        expect(isMoreItemSelected()).toBe(false);
     });
 });

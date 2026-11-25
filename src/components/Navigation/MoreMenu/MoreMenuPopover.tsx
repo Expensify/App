@@ -48,6 +48,9 @@ type MoreMenuPopoverProps = {
     isVisible: boolean;
     onClose: () => void;
 
+    /** Called when the user picks an entry, before the menu closes and the entry opens */
+    onItemPicked: () => void;
+
     /** Called once the menu has finished closing */
     onModalHide: () => void;
 
@@ -65,7 +68,7 @@ const SENTRY_LABELS: Record<MoreMenuItem['id'], SentryLabel> = {
     [MORE_MENU.ITEM.WORKSPACES]: CONST.SENTRY_LABEL.NAVIGATION_TAB_BAR.MORE_MENU.WORKSPACES,
 };
 
-function MoreMenuPopover({isVisible, onClose, onModalHide, focusedTabRouteName}: MoreMenuPopoverProps) {
+function MoreMenuPopover({isVisible, onClose, onItemPicked, onModalHide, focusedTabRouteName}: MoreMenuPopoverProps) {
     const {translate} = useLocalize();
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -147,7 +150,7 @@ function MoreMenuPopover({isVisible, onClose, onModalHide, focusedTabRouteName}:
         <PopoverMenu
             isVisible={isVisible}
             onClose={onClose}
-            onItemSelected={onClose}
+            onItemSelected={onItemPicked}
             onModalHide={onModalHide}
             menuItems={menuItems}
             anchorRef={anchorRef}
