@@ -73,7 +73,7 @@ function InsightsAICardRow({insights, insightsScope, hasFailedToLoad}: InsightsA
             <ScrollView
                 horizontal
                 showsHorizontalScrollIndicator={hasHoverSupport()}
-                style={[pageGutterEdgeToEdge, styles.pv5]}
+                style={[pageGutterEdgeToEdge, styles.pt5, styles.pb7]}
                 contentContainerStyle={pageGutter}
             >
                 {cards.map((card, index) => renderSlot(card, index, styles.insightsAICard))}
@@ -85,7 +85,7 @@ function InsightsAICardRow({insights, insightsScope, hasFailedToLoad}: InsightsA
     const rows = Array.from({length: Math.ceil(cards.length / cardsPerRow)}, (row, rowIndex) => cards.slice(rowIndex * cardsPerRow, (rowIndex + 1) * cardsPerRow));
 
     return (
-        <View style={[styles.pv10, styles.gap8]}>
+        <View style={[styles.pv5, styles.gap8]}>
             {rows.map((row) => (
                 <View
                     key={row.at(0)?.key}

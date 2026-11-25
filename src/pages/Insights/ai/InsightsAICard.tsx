@@ -21,7 +21,7 @@ function InsightsAICard({insight, insightsScope}: InsightsAICardProps) {
     const styles = useThemeStyles();
 
     return (
-        <View style={[styles.flex1, styles.gap5, styles.justifyContentBetween]}>
+        <View style={styles.gap5}>
             <View style={[styles.ml3, styles.gap2]}>
                 <InsightsAIChip chip={insight.chip} />
                 <View style={styles.gap3}>
