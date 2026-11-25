@@ -9,10 +9,10 @@ import type * as OnyxTypes from '@src/types/onyx';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
+import Onyx from 'react-native-onyx';
+
 import type {DuplicateTransactionsAndViolations} from './useDuplicateTransactionsAndViolations';
 import type {MoneyRequestUpdateParams} from './useMoneyRequestUpdateParams';
-
-import useOnyx from './useOnyx';
 
 type UseUpdateTransactionAmountParams = {
     /** Saved expense being written to */
@@ -33,17 +33,19 @@ type UseUpdateTransactionAmountParams = {
 
 type UseUpdateTransactionAmountResult = {
     /** Saves `amount`, signed and in the smallest currency unit, and `currency` to the expense */
-    updateAmount: (amount: number, currency: string) => void;
+    updateAmount: (amount: number, currency: string) => Promise<void>;
 };
 
 function useUpdateTransactionAmount({transaction, updateParams, duplicates, policy, policyCategories}: UseUpdateTransactionAmountParams): UseUpdateTransactionAmountResult {
     const transactionID = transaction?.transactionID;
-    const [policyRecentlyUsedCurrencies] = useOnyx(ONYXKEYS.RECENTLY_USED_CURRENCIES);
-
-    const updateAmount = (amount: number, currency: string) => {
+    const updateAmount = async (amount: number, currency: string) => {
         if (!transactionID) {
             return;
         }
+        const [{reportPolicyTags, isTrackIntentUser, rules}, policyRecentlyUsedCurrencies] = await Promise.all([
+            updateParams.readSaveOnlyParams(),
+            Onyx.get(ONYXKEYS.RECENTLY_USED_CURRENCIES),
+        ]);
         updateSavedExpenseAmount({
             translate: updateParams.translate,
             policy,
@@ -62,11 +64,11 @@ function useUpdateTransactionAmount({transaction, updateParams, duplicates, poli
             isASAPSubmitBetaEnabled: updateParams.isASAPSubmitBetaEnabled,
             policyRecentlyUsedCurrencies,
             delegateAccountID: updateParams.delegateAccountID,
-            reportPolicyTags: updateParams.reportPolicyTags,
-            isTrackIntentUser: updateParams.isTrackIntentUser,
+            reportPolicyTags,
+            isTrackIntentUser,
             getCurrencyDecimals: updateParams.getCurrencyDecimals,
             getCurrencySymbol: updateParams.getCurrencySymbol,
-            rules: updateParams.rules,
+            rules,
             isVendorMatchingBetaEnabled: updateParams.isVendorMatchingBetaEnabled,
         });
     };

@@ -308,7 +308,6 @@ function MoneyRequestView({
     const allTransactionViolations = useAllTransactionViolations(transaction?.transactionID);
     // Read once here and handed to every field that saves in place, rather than once per field.
     const updateParams = useMoneyRequestUpdateParams(transaction?.transactionID, transactionThreadReport);
-    const duplicates = useDuplicateTransactionsAndViolations(transaction?.transactionID ? [transaction.transactionID] : []);
     const [outstandingReportsByPolicyID] = useOnyx(ONYXKEYS.DERIVED.OUTSTANDING_REPORTS_BY_POLICY_ID);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const delegateAccountID = useDelegateAccountID();
@@ -1395,6 +1394,9 @@ function MoneyRequestView({
     // from SmartScan and a split amount is edited across its splits, so those keep the row that opens their own page.
     const canEditAmountInline =
         canEditAmount && shouldDisplayTransactionAmount && !isPerDiemRequest && !isTransactionScanning && !hasFailedScanAmountPlaceholder && !(shouldShowSplitIndicator && isSplitAvailable);
+    // Only an amount or date saved in place checks the expense against its duplicates, so a view where neither can be
+    // edited doesn't look them up.
+    const duplicates = useDuplicateTransactionsAndViolations((canEditAmountInline || canEditDate) && transaction?.transactionID ? [transaction.transactionID] : []);
     const canAddCategory = canCreateCategoryInSitu(policy, currentUserEmailParam);
     // A tax rate that can no longer be picked asks to be cleared first, which the tax amount's page flow handles.
     const canEditTaxAmountInline = canEditTaxFields && !shouldShowTaxDisabledAlert;

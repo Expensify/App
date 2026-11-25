@@ -25,7 +25,7 @@ type UseSavedAmountInputParams = {
     getAmountError: (newAmount: number) => string;
 
     /** Saves a valid typed amount that differs from the saved one */
-    onSave: (newAmount: number) => void;
+    onSave: (newAmount: number) => void | Promise<void>;
 };
 
 type UseSavedAmountInputResult = {

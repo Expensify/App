@@ -36,6 +36,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 
 import lodashIsEmpty from 'lodash/isEmpty';
 import React from 'react';
+import Onyx from 'react-native-onyx';
 
 import type {WithWritableReportOrNotFoundProps} from './withWritableReportOrNotFound';
 
@@ -71,7 +72,6 @@ function DynamicIOURequestStepDate({
     const updateParams = useMoneyRequestUpdateParams(transactionID, report);
     const duplicates = useDuplicateTransactionsAndViolations(transactionID ? [transactionID] : []);
     const {updateDate: updateSavedExpenseDate} = useUpdateTransactionDate({transaction, updateParams, duplicates, isTrackExpense});
-    const [lastSelectedDistanceRates] = useOnyx(ONYXKEYS.NVP_LAST_SELECTED_DISTANCE_RATES);
     const isEditing = action === CONST.IOU.ACTION.EDIT;
     const isSplitBill = iouType === CONST.IOU.TYPE.SPLIT;
     const isSplitExpense = iouType === CONST.IOU.TYPE.SPLIT_EXPENSE;
@@ -91,7 +91,7 @@ function DynamicIOURequestStepDate({
         Navigation.goBack(backPath, {shouldSkipFocusRestore: true});
     };
 
-    const updateDate = (value: FormOnyxValues<typeof ONYXKEYS.FORMS.MONEY_REQUEST_DATE_FORM>) => {
+    const updateDate = async (value: FormOnyxValues<typeof ONYXKEYS.FORMS.MONEY_REQUEST_DATE_FORM>) => {
         const newCreated = value.moneyRequestCreated;
 
         // Only update created if it has changed. The stored value can include a time from SmartScan, so picking the day
@@ -111,8 +111,10 @@ function DynamicIOURequestStepDate({
         const isTransactionDraft = shouldUseTransactionDraft(action);
 
         if (isEditing) {
-            updateSavedExpenseDate(newCreated);
+            await updateSavedExpenseDate(newCreated);
         } else {
+            // Only this write reads these, so they are read here rather than subscribed to for the whole page
+            const [rules, lastSelectedDistanceRates] = await Onyx.multiGet([ONYXKEYS.COLLECTION.RULE, ONYXKEYS.NVP_LAST_SELECTED_DISTANCE_RATES]);
             setMoneyRequestCreated(transactionID, newCreated, isTransactionDraft, hasReceipt(transaction));
 
             updateDistanceRateOnExpenseDateChange({
@@ -128,7 +130,7 @@ function DynamicIOURequestStepDate({
                 isDraft: isTransactionDraft,
                 personalPolicyOutputCurrency: personalPolicy?.outputCurrency,
                 getCurrencyDecimals,
-                rules: updateParams.rules,
+                rules,
             });
         }
 

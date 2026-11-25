@@ -31,15 +31,21 @@ type UseUpdateTransactionAttendeesParams = {
 
 type UseUpdateTransactionAttendeesResult = {
     /** Writes `attendees` to the expense */
-    updateAttendees: (attendees: Attendee[]) => void;
+    updateAttendees: (attendees: Attendee[]) => Promise<void>;
 };
 
-function useUpdateTransactionAttendees({transactionID, transaction, updateParams, isEditing}: UseUpdateTransactionAttendeesParams): UseUpdateTransactionAttendeesResult {
+function useUpdateTransactionAttendees({
+    transactionID,
+    transaction,
+    updateParams: {readSaveOnlyParams, ...updateParams},
+    isEditing,
+}: UseUpdateTransactionAttendeesParams): UseUpdateTransactionAttendeesResult {
     const {isOffline} = useNetwork();
 
-    const updateAttendees = (attendees: Attendee[]) => {
+    const updateAttendees = async (attendees: Attendee[]) => {
         if (isEditing) {
-            updateMoneyRequestAttendees({...updateParams, transactionID, transaction, attendees, isOffline});
+            const saveOnlyParams = await readSaveOnlyParams();
+            updateMoneyRequestAttendees({...updateParams, ...saveOnlyParams, transactionID, transaction, attendees, isOffline});
             return;
         }
         setMoneyRequestAttendees(transactionID, attendees, true);

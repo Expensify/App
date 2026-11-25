@@ -12,6 +12,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 
 import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 import {loginSelector} from '@selectors/PersonalDetails';
+import Onyx from 'react-native-onyx';
 
 import useAllTransactionViolations from './useAllTransactionViolations';
 import {useCurrencyListActions} from './useCurrencyList';
@@ -32,13 +33,22 @@ function useMoneyRequestUpdateParams(transactionID: string | undefined, transact
     const policyID = transactionThreadReport?.policyID;
     const policy = usePolicy(policyID);
     const violations = useAllTransactionViolations(transactionID);
-    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${getNonEmptyStringOnyxID(policyID)}`);
-    const [policyTagList] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${getNonEmptyStringOnyxID(policyID)}`);
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(transactionThreadReport?.parentReportID)}`);
-    const [reportPolicyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${getNonEmptyStringOnyxID(parentReport?.policyID)}`);
     const [iouReportOwnerLogin] = usePersonalDetail(parentReport?.ownerAccountID, loginSelector);
-    const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
-    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
+
+    // Only a write uses these, so they are read once when it runs. Subscribing to them would re-render every page and
+    // field that saves through here whenever one changes, though none of them shows it. A field whose policy isn't the
+    // report's, e.g. the tax of an unreported expense, passes its own.
+    const readSaveOnlyParams = async (savePolicyID = policyID) => {
+        const [policyCategories, policyTagList, reportPolicyTags, rules, introSelected] = await Onyx.multiGet([
+            `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${getNonEmptyStringOnyxID(savePolicyID)}`,
+            `${ONYXKEYS.COLLECTION.POLICY_TAGS}${getNonEmptyStringOnyxID(savePolicyID)}`,
+            `${ONYXKEYS.COLLECTION.POLICY_TAGS}${getNonEmptyStringOnyxID(parentReport?.policyID)}`,
+            ONYXKEYS.COLLECTION.RULE,
+            ONYXKEYS.NVP_INTRO_SELECTED,
+        ]);
+        return {policyCategories, policyTagList, reportPolicyTags, rules, isTrackIntentUser: isTrackIntentUserSelector(introSelected)};
+    };
 
     return {
         translate,
@@ -47,18 +57,14 @@ function useMoneyRequestUpdateParams(transactionID: string | undefined, transact
         parentReport,
         iouReportOwnerLogin,
         policy,
-        policyTagList,
-        policyCategories,
         currentUserAccountIDParam: currentUserPersonalDetails.accountID,
         currentUserEmailParam: currentUserPersonalDetails.login ?? '',
         isASAPSubmitBetaEnabled: isBetaEnabled(CONST.BETAS.ASAP_SUBMIT),
         delegateAccountID,
-        reportPolicyTags,
-        isTrackIntentUser,
         violations,
         getCurrencyDecimals,
         getCurrencySymbol,
-        rules,
+        readSaveOnlyParams,
     };
 }
 

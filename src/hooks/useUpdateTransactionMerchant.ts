@@ -23,18 +23,19 @@ type UseUpdateTransactionMerchantParams = {
 
 type UseUpdateTransactionMerchantResult = {
     /** Saves `merchant` to the expense. An empty merchant is saved as the partial-merchant placeholder */
-    updateMerchant: (merchant: string) => void;
+    updateMerchant: (merchant: string) => Promise<void>;
 };
 
-function useUpdateTransactionMerchant({transaction, updateParams}: UseUpdateTransactionMerchantParams): UseUpdateTransactionMerchantResult {
+function useUpdateTransactionMerchant({transaction, updateParams: {readSaveOnlyParams, ...updateParams}}: UseUpdateTransactionMerchantParams): UseUpdateTransactionMerchantResult {
     const {isOffline} = useNetwork();
     const transactionID = transaction?.transactionID;
 
-    const updateMerchant = (merchant: string) => {
+    const updateMerchant = async (merchant: string) => {
         if (!transactionID) {
             return;
         }
-        updateMoneyRequestMerchant({...updateParams, transactionID, transaction, value: merchant || CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT, isOffline});
+        const saveOnlyParams = await readSaveOnlyParams();
+        updateMoneyRequestMerchant({...updateParams, ...saveOnlyParams, transactionID, transaction, value: merchant || CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT, isOffline});
     };
 
     return {updateMerchant};

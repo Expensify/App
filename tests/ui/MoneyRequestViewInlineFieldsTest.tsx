@@ -491,6 +491,7 @@ describe('saved expense inline fields', () => {
 
             // When the user picks that same day
             act(() => mockPickDate?.('2025-06-01'));
+            await waitForBatchedUpdatesWithAct();
 
             // Then the date is saved without the time, the same as on the date page, so a futureDate violation can clear
             expect(updateMoneyRequestDate).toHaveBeenCalledTimes(1);
@@ -530,7 +531,7 @@ describe('saved expense inline fields', () => {
             await waitForBatchedUpdatesWithAct();
 
             // When a date is saved through it
-            act(() => result.current.updateDate('2025-07-15'));
+            await act(() => result.current.updateDate('2025-07-15'));
 
             // Then the date is written to that expense with its parent report, which the write needs to recompute violations
             expect(updateMoneyRequestDate).toHaveBeenCalledTimes(1);

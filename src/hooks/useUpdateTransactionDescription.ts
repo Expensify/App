@@ -11,9 +11,9 @@ import type * as OnyxTypes from '@src/types/onyx';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
-import type {MoneyRequestUpdateParams} from './useMoneyRequestUpdateParams';
+import Onyx from 'react-native-onyx';
 
-import useOnyx from './useOnyx';
+import type {MoneyRequestUpdateParams} from './useMoneyRequestUpdateParams';
 
 type UseUpdateTransactionDescriptionParams = {
     /** Saved expense being written to */
@@ -25,18 +25,20 @@ type UseUpdateTransactionDescriptionParams = {
 
 type UseUpdateTransactionDescriptionResult = {
     /** Saves `description`, written as markdown, to the expense */
-    updateDescription: (description: string) => void;
+    updateDescription: (description: string) => Promise<void>;
 };
 
-function useUpdateTransactionDescription({transaction, updateParams}: UseUpdateTransactionDescriptionParams): UseUpdateTransactionDescriptionResult {
+function useUpdateTransactionDescription({transaction, updateParams: {readSaveOnlyParams, ...updateParams}}: UseUpdateTransactionDescriptionParams): UseUpdateTransactionDescriptionResult {
     const transactionID = transaction?.transactionID;
-    const [policyVendors] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_VENDORS}${getNonEmptyStringOnyxID(updateParams.transactionThreadReport?.policyID)}`);
-
-    const updateDescription = (description: string) => {
+    const updateDescription = async (description: string) => {
         if (!transactionID) {
             return;
         }
-        updateMoneyRequestDescription({...updateParams, transactionID, transaction, comment: description, policyVendors});
+        const [saveOnlyParams, policyVendors] = await Promise.all([
+            readSaveOnlyParams(),
+            Onyx.get(`${ONYXKEYS.COLLECTION.POLICY_VENDORS}${getNonEmptyStringOnyxID(updateParams.transactionThreadReport?.policyID)}`),
+        ]);
+        updateMoneyRequestDescription({...updateParams, ...saveOnlyParams, transactionID, transaction, comment: description, policyVendors});
     };
 
     return {updateDescription};

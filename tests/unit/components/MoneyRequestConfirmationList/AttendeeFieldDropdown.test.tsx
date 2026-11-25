@@ -215,6 +215,7 @@ describe('AttendeeFieldDropdown', () => {
         expect(mockModalProps?.attendees).toEqual([creator]);
         act(() => mockModalProps?.onAttendeesChanged([creator, guest]));
         act(() => mockModalProps?.onApply());
+        await waitForBatchedUpdates();
 
         // Then both are saved to the expense the way the attendees page saves them, no draft is written, and the list closes
         expect(updateMoneyRequestAttendees).toHaveBeenCalledTimes(1);

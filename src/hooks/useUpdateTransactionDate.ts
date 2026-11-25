@@ -36,12 +36,12 @@ type UseUpdateTransactionDateParams = {
 
 type UseUpdateTransactionDateResult = {
     /** Saves `created`, a `yyyy-MM-dd` date, to the expense */
-    updateDate: (created: string) => void;
+    updateDate: (created: string) => Promise<void>;
 };
 
 function useUpdateTransactionDate({transaction, updateParams: allUpdateParams, duplicates, isTrackExpense}: UseUpdateTransactionDateParams): UseUpdateTransactionDateResult {
     const transactionID = transaction?.transactionID;
-    const {policy, policyTagList, violations, ...updateParams} = allUpdateParams;
+    const {policy, violations, readSaveOnlyParams, ...updateParams} = allUpdateParams;
     const {isOffline} = useNetwork();
     const personalPolicy = usePersonalPolicy();
     const {policyForMovingExpensesID} = usePolicyForMovingExpenses();
@@ -51,12 +51,14 @@ function useUpdateTransactionDate({transaction, updateParams: allUpdateParams, d
     const shouldLookupDistancePolicy = !!customUnitRateID && !getDistanceRateCustomUnitRate(effectivePolicy, customUnitRateID);
     const distanceOriginalPolicy = useDistanceRateOriginalPolicy(customUnitRateID, shouldLookupDistancePolicy);
 
-    const updateDate = (created: string) => {
+    const updateDate = async (created: string) => {
         if (!transactionID) {
             return;
         }
+        const {policyTagList, ...saveOnlyParams} = await readSaveOnlyParams();
         updateMoneyRequestDate({
             ...updateParams,
+            ...saveOnlyParams,
             transactionID,
             transaction,
             transactions: duplicates.duplicateTransactions,
