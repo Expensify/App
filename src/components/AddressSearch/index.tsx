@@ -295,7 +295,7 @@ function AddressSearch({
             onInputChange?.(values);
         }
 
-        onCountryChange?.(values.country);
+        onCountryChange?.(values.country, values);
         onPress?.(values);
     };
 

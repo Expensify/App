@@ -38,12 +38,19 @@ const renderAddress: DynamicFieldRenderer<'address'> = (field, {values, styles, 
                 }}
                 shouldSaveDraft={shouldSaveDraft}
                 forwardedFSClass={forwardedFSClass}
-                onCountryChange={(pickedCountry) => {
+                onCountryChange={(pickedCountry, pickedAddress) => {
                     // AddressSearch reports the country on every pick and the state reset arrives as '', so only a new country refreshes
                     if (typeof pickedCountry !== 'string' || pickedCountry === '' || pickedCountry === country) {
                         return;
                     }
-                    onValueChange?.(pickedCountry, addressKeys.country);
+                    // The draft still holds the address from before the pick, so the picked parts go with the country
+                    const pickedAnswers = pickedAddress && {
+                        [addressKeys.street]: pickedAddress.street,
+                        [addressKeys.city]: pickedAddress.city,
+                        [addressKeys.state]: pickedAddress.state,
+                        [addressKeys.zipCode]: pickedAddress.zipCode,
+                    };
+                    onValueChange?.(pickedCountry, addressKeys.country, pickedAnswers);
                 }}
             >
                 <AddressFields.Street

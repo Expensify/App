@@ -37,7 +37,8 @@ function DynamicFormAddressCountryDropdown({disabled = false, countries}: Dynami
                 title={translate('countryStep.selectCountry')}
                 value={values?.country}
                 defaultValue={defaultValues?.country}
-                onValueChange={changeCountry}
+                // The form also passes the input key, which changeCountry would take as the picked address
+                onValueChange={(country) => changeCountry(country)}
                 stateInputIDToReset={inputKeys.state ?? 'stateInput'}
                 disabled={disabled}
                 forwardedFSClass={forwardedFSClass}

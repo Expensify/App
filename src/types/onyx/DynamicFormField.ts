@@ -181,7 +181,7 @@ type DynamicFormAddressField = DynamicFormFieldBase & {
     /** Checks the zip against the format of the chosen country */
     rule?: 'zipCode';
 
-    /** Longest street the field takes. The address inputs' own limit of 50 characters when not set. */
+    /** Longest street the field takes, in characters. No limit when not set. */
     maxLength?: number;
 
     /** Codes of the countries the address can be in. Every country the App knows when not set or empty. */

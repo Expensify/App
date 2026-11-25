@@ -47,6 +47,7 @@ type CapturedInputProps = {
     renamedInputKeys?: Record<string, string>;
     allowedCountries?: string[];
     maxInputLength?: number;
+    onCountryChange?: (country: unknown, pickedAddress?: {street?: string; city?: string; state?: string; zipCode?: string}) => void;
     canSelectMultiple?: boolean;
     isSearchable?: boolean;
     valueType?: string;
@@ -116,7 +117,7 @@ function isMasked(element: TestInstance): boolean {
 type RenderFieldsOptions = {
     currency?: string;
     maxFileSize?: number;
-    onRefreshRequirements?: (inputID: string, value: unknown) => void;
+    onRefreshRequirements?: (inputID: string, value: unknown, otherAnswers?: DynamicFormValues) => void;
     isLoneFieldInHeadline?: boolean;
 };
 
@@ -384,9 +385,9 @@ describe('DynamicFormFields', () => {
         // When the fields render
         const rendered = renderFields([longStreet, defaultStreet]);
 
-        // Then the street input takes the schema's length, and the address inputs' own limit without one
+        // Then the street input takes the schema's length, and no limit without one, since the server checks what a form does not
         expect(rendered.get('homeAddress')?.maxInputLength).toBe(255);
-        expect(rendered.get('workAddress')?.maxInputLength).toBe(CONST.FORM_CHARACTER_LIMIT);
+        expect(rendered.get('workAddress')?.maxInputLength).toBeUndefined();
     });
 
     it('lists every country when the address field sends an empty country list', () => {
@@ -677,7 +678,7 @@ describe('DynamicFormFields', () => {
         rendered.get('payoutCurrency')?.onValueChange?.('EUR', 'payoutCurrency');
 
         // Then the screen is told which answer changed, and the other field has no such hook
-        expect(onRefreshRequirements).toHaveBeenCalledWith('payoutCurrency', 'EUR');
+        expect(onRefreshRequirements).toHaveBeenCalledWith('payoutCurrency', 'EUR', undefined);
         expect(rendered.get('nickname')?.onValueChange).toBeUndefined();
     });
 
@@ -1015,7 +1016,33 @@ describe('DynamicFormFields', () => {
 
         // Then the screen fetches the requirements once for the picked country, never for an empty one
         expect(onRefreshRequirements).toHaveBeenCalledTimes(1);
-        expect(onRefreshRequirements).toHaveBeenCalledWith(addressKeys.country, 'GB');
+        expect(onRefreshRequirements).toHaveBeenCalledWith(addressKeys.country, 'GB', undefined);
+    });
+
+    it('asks for new requirements with the picked address when an address search pick changes the country', () => {
+        // Given a refreshing address in Great Britain, whose draft holds a British city and zip
+        const onRefreshRequirements = jest.fn();
+        const homeAddress: DynamicFormField = {key: 'homeAddress', type: 'address', required: true, refreshOnChange: true};
+        const addressKeys = getAddressInputKeys(homeAddress.key);
+        const rendered = renderFields(
+            [homeAddress],
+            {homeAddress: '1 High Street', [addressKeys.city]: 'London', [addressKeys.zipCode]: 'SW1W 9SR', [addressKeys.country]: 'GB'},
+            {onRefreshRequirements},
+        );
+
+        // When the user picks a US address from the search
+        act(() => {
+            rendered.get('homeAddress')?.onCountryChange?.('US', {street: '350 5th Avenue', city: 'New York', state: 'NY', zipCode: '10118'});
+        });
+
+        // Then the requirements are fetched for the US with the picked parts, since the draft still holds the British ones
+        expect(onRefreshRequirements).toHaveBeenCalledTimes(1);
+        expect(onRefreshRequirements).toHaveBeenCalledWith(addressKeys.country, 'US', {
+            homeAddress: '350 5th Avenue',
+            [addressKeys.city]: 'New York',
+            [addressKeys.state]: 'NY',
+            [addressKeys.zipCode]: '10118',
+        });
     });
 
     it('does not ask for new requirements when an address pick keeps the country', () => {

@@ -3,7 +3,6 @@ import InputWrapper from '@components/Form/InputWrapper';
 
 import useLocalize from '@hooks/useLocalize';
 
-import CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 
@@ -22,7 +21,7 @@ type AddressStreetInputProps = {
     /** Country the address search suggests places in, for an address whose country cannot be changed */
     limitSearchesToCountry?: Country | '';
 
-    /** Longest street the user can type, in characters. Defaults to CONST.FORM_CHARACTER_LIMIT. */
+    /** Longest street the user can type, in characters. No limit when not set. */
     maxInputLength?: number;
 
     /** Codes of the countries a picked address can be in. A pick in any other country leaves the country empty. */
@@ -30,7 +29,7 @@ type AddressStreetInputProps = {
 };
 
 /** The street of an address, which searches for places and fills in the other parts from the one picked */
-function AddressStreetInput({translationKey, shouldKeepStateCode = false, limitSearchesToCountry, maxInputLength = CONST.FORM_CHARACTER_LIMIT, allowedCountries}: AddressStreetInputProps) {
+function AddressStreetInput({translationKey, shouldKeepStateCode = false, limitSearchesToCountry, maxInputLength, allowedCountries}: AddressStreetInputProps) {
     const {translate} = useLocalize();
     const {inputKeys, values, defaultValues, errors, shouldSaveDraft, changeCountry, forwardedFSClass} = useAddressFields();
 

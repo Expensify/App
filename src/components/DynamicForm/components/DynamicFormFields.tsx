@@ -36,8 +36,11 @@ type DynamicFormFieldsProps = {
     /** Largest size of one file, in bytes, for file fields that set none. No limit when not set. */
     maxFileSize?: number;
 
-    /** Called when the user changes a field marked `refreshOnChange`, with the draft key that changed, so the screen can fetch the schema again */
-    onRefreshRequirements?: (inputID: string, value: FormValue) => void;
+    /**
+     * Called when the user changes a field marked `refreshOnChange`, with the draft key that changed, so the screen can fetch the schema again.
+     * `otherAnswers` are answers the same change fills in under other keys, such as the street of a picked address, which the draft does not hold yet.
+     */
+    onRefreshRequirements?: (inputID: string, value: FormValue, otherAnswers?: DynamicFormValues) => void;
 
     /** Opens the editor page of a list entry, or of a new one without `itemID`. DynamicFormFlow passes it. Without it, list entries are edited in a modal. */
     onOpenListItemEditor?: (listKey: string, itemID?: string) => void;

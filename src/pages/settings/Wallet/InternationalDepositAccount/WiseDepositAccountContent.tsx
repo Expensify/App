@@ -228,13 +228,13 @@ function WiseDepositAccountContent({backTo, subPage, isEditing}: WiseDepositAcco
         }
     };
 
-    const refreshForm = (inputID: string, value: FormValue) => {
+    const refreshForm = (inputID: string, value: FormValue, otherAnswers?: DynamicFormValues) => {
         // The draft this render read still holds the currency from before the pick, so picking the same currency again keeps the answers
         if (inputID === CURRENCY_INPUT_ID && typeof value === 'string' && value !== getAnswerCurrency(draftValues ?? {})) {
             startOverWithCurrency(value);
             return;
         }
-        const answers = getCurrentSchemaAnswers(schema, draftValues);
+        const answers = {...getCurrentSchemaAnswers(schema, draftValues), ...otherAnswers};
         answers[inputID] = value;
         getWiseBankAccountFields(selectedCountry, getAnswerCurrency(answers), answers);
     };
