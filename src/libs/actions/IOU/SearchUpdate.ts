@@ -492,7 +492,9 @@ function getClearPolicyConvertedAmountOnyxData(shouldClear: (transaction: OnyxTy
         }
 
         if (!isEmptyObject(optimisticSnapshotData)) {
-            const key = `${ONYXKEYS.COLLECTION.SNAPSHOT}${snapshotKey.slice(ONYXKEYS.COLLECTION.SNAPSHOT.length)}` as const;
+            // Rebuilt from the hash because Object.entries types the snapshot key as a plain string
+            const hash = snapshotKey.slice(ONYXKEYS.COLLECTION.SNAPSHOT.length);
+            const key = `${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}` as const;
             optimisticData.push({onyxMethod: Onyx.METHOD.MERGE, key, value: {data: optimisticSnapshotData}});
             failureData.push({onyxMethod: Onyx.METHOD.MERGE, key, value: {data: failureSnapshotData}});
         }
