@@ -11821,6 +11821,7 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
     accessibilityHints: {
         navigateToChatsList: 'Voltar para a lista de chats',
         chatWelcomeMessage: 'Mensagem de boas-vindas do chat',
+        chatDetails: (chatName: string) => `Detalhes de ${chatName}`,
         navigatesToChat: 'Navega para um chat',
         newMessageLineIndicator: 'Indicador de nova linha de mensagem',
         chatMessage: 'Mensagem de chat',

@@ -105,7 +105,7 @@ function ReportActionItemCreated({reportID, policyID}: ReportActionItemCreatedPr
                         <PressableWithoutFeedback
                             onPress={() => navigateToDetailsPage(report, isInSidePanel)}
                             style={[styles.mh5, styles.mb3, styles.alignSelfStart, shouldDisableDetailPage && styles.cursorDefault]}
-                            accessibilityLabel={reportName || translate('common.details')}
+                            accessibilityLabel={reportName ? translate('accessibilityHints.chatDetails', reportName) : translate('common.details')}
                             role={CONST.ROLE.BUTTON}
                             disabled={shouldDisableDetailPage}
                             sentryLabel={CONST.SENTRY_LABEL.REPORT.REPORT_ACTION_ITEM_CREATED}

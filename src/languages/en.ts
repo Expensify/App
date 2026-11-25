@@ -12242,6 +12242,8 @@ const translations = {
     accessibilityHints: {
         navigateToChatsList: 'Navigate back to chats list',
         chatWelcomeMessage: 'Chat welcome message',
+        // @context Screen reader label of the avatar at the top of a chat, which opens that chat's details page. chatName is the chat's name, such as a person, room or workspace.
+        chatDetails: (chatName: string) => `${chatName} details`,
         navigatesToChat: 'Navigates to a chat',
         newMessageLineIndicator: 'New message line indicator',
         chatMessage: 'Chat message',

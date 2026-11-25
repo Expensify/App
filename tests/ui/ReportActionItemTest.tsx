@@ -3096,9 +3096,8 @@ describe('ReportActionItem', () => {
             );
             await waitForBatchedUpdatesWithAct();
 
-            // Then a screen reader hears the chat's name instead of a bare "Details"
-            expect(screen.getByRole(CONST.ROLE.BUTTON, {name: 'Concierge'})).toBeOnTheScreen();
-            expect(screen.queryByRole(CONST.ROLE.BUTTON, {name: translateLocal('common.details')})).not.toBeOnTheScreen();
+            // Then a screen reader hears whose details the avatar opens instead of a bare "Details"
+            expect(screen.getByRole(CONST.ROLE.BUTTON, {name: translateLocal('accessibilityHints.chatDetails', 'Concierge')})).toBeOnTheScreen();
         });
 
         it('isChronosOOOListAction renders ChronosOOOListActions', async () => {

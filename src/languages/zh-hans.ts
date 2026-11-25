@@ -11353,6 +11353,7 @@ ${reportName}`,
     accessibilityHints: {
         navigateToChatsList: '返回到聊天列表',
         chatWelcomeMessage: '聊天欢迎消息',
+        chatDetails: (chatName: string) => `${chatName}详情`,
         navigatesToChat: '跳转到聊天',
         newMessageLineIndicator: '新消息行指示器',
         chatMessage: '聊天消息',
