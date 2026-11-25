@@ -2609,6 +2609,7 @@ function createTransactionThreadReport(params: CreateTransactionThreadReportPara
     const isOwnedByCurrentUser = params.isOwnedByCurrentUser ?? iouReportAction?.actorAccountID === currentUserAccountID;
     const isInUnknownSelfDM = shouldUseSelfDM && !isOwnedByCurrentUser && !params.selfDMReportID;
 
+    // Without an IOU action, the fallback ownership is always false, so only a caller that said the expense isn't the user's gets here
     const isOtherMemberLegacyExpense = isInUnknownSelfDM && params.isOwnedByCurrentUser === false && !!transaction && !iouReportAction?.reportActionID;
     if (isInUnknownSelfDM && !isOtherMemberLegacyExpense) {
         Log.warn('Cannot build transaction thread in the current user self DM for an expense owned by another user', {
