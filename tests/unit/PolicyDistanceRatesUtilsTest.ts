@@ -1,4 +1,5 @@
 import {
+    getCurrentFuelBandGovernmentRates,
     getCurrentGovernmentMileageRate,
     getDefaultEuroDistanceRateCountry,
     getDistanceExpenseTypeForPolicy,
@@ -13,11 +14,13 @@ import {
     getGovernmentRateSeries,
     getGovernmentRateNote,
     getNoGovernmentRateNote,
+    getUKFuelVATTaxRateCode,
     hasGovernmentRateNote,
     isCurrencySupportedForAutoUpdate,
     isGovernmentRateCountry,
     isGovernmentRateUnmodified,
     isMapOrGPSRequired,
+    validateCreateDistanceRateForm,
     validateTaxClaimableValue,
 } from '@libs/PolicyDistanceRatesUtils';
 
@@ -551,6 +554,95 @@ describe('PolicyDistanceRatesUtils', () => {
             // When we look up a euro country with no rate in the list
             // Then nothing is returned, so the page keeps its skeleton and Save stays disabled
             expect(getCurrentGovernmentMileageRate(rates, 'EUR', 'NL', '2026-11-11')).toBeUndefined();
+        });
+    });
+
+    describe('getCurrentFuelBandGovernmentRates', () => {
+        it('picks the current rate of each fuel band in the order the bands are listed', () => {
+            // Given two quarters of two fuel bands, a future quarter, the standard UK rate and another currency's rate
+            const rates: GovernmentMileageRate[] = [
+                {sourceRateID: 'GB_DIESEL_1600CC_2026-06-01', currency: 'GBP', name: 'Diesel', rate: 45, startDate: '2026-06-01', taxClaimablePercentage: 0.3},
+                {sourceRateID: 'GB_PETROL_1400CC_2026-06-01', currency: 'GBP', name: 'Petrol', rate: 45, startDate: '2026-06-01', taxClaimablePercentage: 0.28},
+                {sourceRateID: 'GB_DIESEL_1600CC_2026-09-01', currency: 'GBP', name: 'Diesel', rate: 45, startDate: '2026-09-01', taxClaimablePercentage: 0.33},
+                {sourceRateID: 'GB_DIESEL_1600CC_2026-12-01', currency: 'GBP', name: 'Diesel', rate: 45, startDate: '2026-12-01', taxClaimablePercentage: 0.35},
+                {sourceRateID: 'GB_2026-04-06', currency: 'GBP', name: '2026 UK', rate: 45, startDate: '2026-04-06'},
+                {sourceRateID: 'DE_2026-01-01', currency: 'EUR', name: '2026 Germany', rate: 30, startDate: '2026-01-01'},
+            ];
+
+            // When we look up the bands in effect on a date in November 2026
+            const currentRates = getCurrentFuelBandGovernmentRates(rates, 'GBP', '2026-11-11');
+
+            // Then each band shows once with its latest started quarter, so the table matches the bands saving adds
+            expect(currentRates.map((rate) => rate.sourceRateID)).toEqual(['GB_DIESEL_1600CC_2026-09-01', 'GB_PETROL_1400CC_2026-06-01']);
+        });
+    });
+
+    describe('getUKFuelVATTaxRateCode', () => {
+        it('picks the first enabled 20% tax rate whatever its name', () => {
+            // Given a disabled 20% rate, a 5% rate and an enabled 20% rate an integration imported
+            const policy = {
+                ...createRandomPolicy(1),
+                taxRates: {
+                    name: 'Tax',
+                    defaultExternalID: 'id_EXEMPT',
+                    defaultValue: '0%',
+                    foreignTaxDefault: 'id_EXEMPT',
+                    taxes: {
+                        id_OLD_VAT: {name: 'Old VAT', value: '20%', isDisabled: true},
+                        id_REDUCED: {name: 'Reduced', value: '5%'},
+                        id_XERO_VAT: {name: '20% (VAT on Expenses)', value: '20%'},
+                    },
+                },
+            } satisfies Policy;
+
+            // When we look for the rate VAT on fuel links to
+            // Then the enabled 20% rate is used, because a disabled rate can't be picked on an expense
+            expect(getUKFuelVATTaxRateCode(policy)).toBe('id_XERO_VAT');
+        });
+
+        it('returns undefined when the workspace has no enabled 20% rate', () => {
+            // Given a workspace with only a 5% rate
+            const policy = {
+                ...createRandomPolicy(1),
+                taxRates: {name: 'Tax', defaultExternalID: 'id_REDUCED', defaultValue: '5%', foreignTaxDefault: 'id_REDUCED', taxes: {id_REDUCED: {name: 'Reduced', value: '5%'}}},
+            } satisfies Policy;
+
+            // When we look for the rate VAT on fuel links to
+            // Then there is none, so Add rate offers to add Standard VAT (20%) instead
+            expect(getUKFuelVATTaxRateCode(policy)).toBeUndefined();
+        });
+    });
+
+    describe('validateCreateDistanceRateForm with VAT reclaim', () => {
+        const values = {name: 'Field team', rate: '0.20', startDate: '', endDate: ''};
+
+        it('requires a tax reclaimable amount', () => {
+            // Given a UK custom rate reclaiming VAT with a zero tax reclaimable amount
+            // When the form is validated
+            const errors = validateCreateDistanceRateForm({...values, taxClaimableValue: '0'}, (digit) => digit, translateLocal, [], 'GBP', true);
+
+            // Then the amount is required, since a zero amount reclaims nothing
+            expect(errors.taxClaimableValue).toBe(translateLocal('workspace.distanceRates.errors.taxReclaimableRequired'));
+        });
+
+        it('rejects an amount more than the rate and allows one equal to it', () => {
+            // Given a £0.20 rate
+            // When the tax reclaimable amount is above it, then equal to it
+            const aboveErrors = validateCreateDistanceRateForm({...values, taxClaimableValue: '0.21'}, (digit) => digit, translateLocal, [], 'GBP', true);
+            const equalErrors = validateCreateDistanceRateForm({...values, taxClaimableValue: '0.20'}, (digit) => digit, translateLocal, [], 'GBP', true);
+
+            // Then only the amount above the rate is an error, and it names the rate
+            expect(aboveErrors.taxClaimableValue).toBe(translateLocal('workspace.distanceRates.errors.taxReclaimableMoreThanRate', '£0.20'));
+            expect(equalErrors.taxClaimableValue).toBeUndefined();
+        });
+
+        it("skips the amount when the rate doesn't reclaim VAT", () => {
+            // Given a rate with VAT reclaim off and no tax reclaimable amount
+            // When the form is validated
+            const errors = validateCreateDistanceRateForm({...values, taxClaimableValue: ''}, (digit) => digit, translateLocal, [], 'GBP');
+
+            // Then there's no tax error, because the field isn't shown
+            expect(errors.taxClaimableValue).toBeUndefined();
         });
     });
 

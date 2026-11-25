@@ -1599,6 +1599,9 @@ const SENTRY_LABEL = {
         COUNTRY_BACK_BUTTON: 'CreateDistanceRate-CountryBackButton',
         KIND_GOVERNMENT_TAB: 'CreateDistanceRate-KindTab-Government',
         KIND_CUSTOM_TAB: 'CreateDistanceRate-KindTab-Custom',
+        RECLAIM_VAT_SWITCH: 'CreateDistanceRate-ReclaimVATSwitch',
+        TAX_RATE_FIELD: 'CreateDistanceRate-TaxRateField',
+        TAX_RATE_BACK_BUTTON: 'CreateDistanceRate-TaxRateBackButton',
     },
     REPORT_PICKER_MODAL: {
         BACK_BUTTON: 'ReportPickerModal-BackButton',

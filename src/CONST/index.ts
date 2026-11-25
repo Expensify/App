@@ -6056,6 +6056,10 @@ const CONST = {
         },
         // The country that publishes fuel-band rates, which replace its standard rate on workspaces tracking distance tax
         GOVERNMENT_RATE_FUEL_BAND_COUNTRY: 'GB',
+        // The VAT rate on fuel, which the fuel-band rates and UK custom rates reclaim tax at
+        UK_FUEL_VAT_PERCENTAGE: 20,
+        // Named the same as the tax rate the backend adds for fuel-band rates, so both flows leave the workspace with one
+        UK_FUEL_VAT_TAX_RATE_NAME: 'Standard VAT (20%)',
         // EUR is shared by several supported countries, so an EUR workspace picks the country itself
         GOVERNMENT_RATE_SUPPORTED_EUR_COUNTRIES: ['AT', 'BE', 'FI', 'DE', 'NL', 'PT', 'ES'] as const,
         // Every country that uses the euro, offered when an EUR workspace picks the country a new distance rate is for

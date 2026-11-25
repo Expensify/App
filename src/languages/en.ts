@@ -9476,6 +9476,14 @@ const translations = {
                 // @context Note about Belgium’s government mileage rate. date is the date the current rate started. “Rate” means a mileage reimbursement rate, not an interest rate.
                 governmentRateIndexedQuarterly: (date: string) => `Indexed every quarter. This is the rate from ${date}`,
                 governmentRatePerSwedishMil: (amount: string) => `Skatteverket publishes per Swedish mil (10 km): ${amount} per mil for a car`,
+                tax: 'Tax',
+                reclaimVATOnFuel: 'Reclaim VAT on fuel',
+                fuelType: 'Fuel type',
+                taxOnlyReclaimableOnFuel: 'Tax is only reclaimable on fuel',
+                savingTurnsOnTaxes: 'Saving turns on taxes for this workspace and adds a Standard VAT (20%) tax rate.',
+                savingTurnsOffTrackTax: 'Saving turns off Track tax for all distance rates in this workspace.',
+                // @context Note on the Add distance rate page when the workspace imports its tax rates from an accounting integration that has no 20% VAT rate. integrationName is the integration, for example Xero.
+                addTaxRateInIntegration: (integrationName: string) => `Add a 20% tax rate in ${integrationName} to reclaim VAT. We’ll link it to these rates automatically.`,
             },
             errors: {
                 rateNameRequired: 'Rate name is required',
@@ -9483,6 +9491,9 @@ const translations = {
                 nameRequired: 'Name is required.',
                 amountRequired: 'Amount is required.',
                 startDateMustBeBeforeEndDate: 'Start date must be before end date',
+                taxReclaimableRequired: 'Tax reclaimable on is required.',
+                // @context Error on the Add distance rate page. rate is the rate’s amount per mile or kilometer, for example £0.20.
+                taxReclaimableMoreThanRate: (rate: string) => `Tax reclaimable on can’t be more than the rate (${rate}).`,
             },
         },
         editor: {

@@ -145,6 +145,8 @@ function validateCreateDistanceRateForm(
     toLocaleDigit: (arg: string) => string,
     translate: LocalizedTranslate,
     existingRateNames: string[],
+    currency?: string,
+    shouldValidateTaxClaimableValue = false,
 ): FormInputErrors<typeof ONYXKEYS.FORMS.POLICY_CREATE_DISTANCE_RATE_FORM> {
     const errors: FormInputErrors<typeof ONYXKEYS.FORMS.POLICY_CREATE_DISTANCE_RATE_FORM> = {};
     const nameError = getDistanceRateNameError(existingRateNames, values.name ?? '');
@@ -164,6 +166,19 @@ function validateCreateDistanceRateForm(
 
     if (values.startDate && values.endDate && values.startDate > values.endDate) {
         errors.startDate = translate('workspace.distanceRates.errors.startDateMustBeBeforeEndDate');
+    }
+
+    if (shouldValidateTaxClaimableValue) {
+        const taxClaimableValue = parseFloat(values.taxClaimableValue ?? '');
+        const rate = parseFloat(values.rate ?? '');
+        if (!taxClaimableValue) {
+            errors.taxClaimableValue = translate('workspace.distanceRates.errors.taxReclaimableRequired');
+        } else if (!errors.rate && taxClaimableValue > rate) {
+            errors.taxClaimableValue = translate(
+                'workspace.distanceRates.errors.taxReclaimableMoreThanRate',
+                convertAmountToDisplayString(rate * CONST.POLICY.CUSTOM_UNIT_RATE_BASE_OFFSET, currency),
+            );
+        }
     }
 
     return errors;
@@ -501,6 +516,35 @@ function getCurrentGovernmentMileageRate(
         }
     }
     return currentRate;
+}
+
+/** The UK fuel-band rates in effect today, one per band, in the order the government data lists the bands. */
+function getCurrentFuelBandGovernmentRates(
+    governmentMileageRates: OnyxEntry<GovernmentMileageRate[]>,
+    currency: string | undefined,
+    today = format(new Date(), CONST.DATE.FNS_FORMAT_STRING),
+): GovernmentMileageRate[] {
+    const currentRates = new Map<string, GovernmentMileageRate>();
+    for (const governmentMileageRate of governmentMileageRates ?? []) {
+        const {sourceRateID, startDate} = governmentMileageRate;
+        if (governmentMileageRate.currency !== currency || !isFuelBandGovernmentRate(sourceRateID) || startDate > today) {
+            continue;
+        }
+        const series = getGovernmentRateSeries(sourceRateID);
+        const currentRate = currentRates.get(series);
+        if (!currentRate || startDate > currentRate.startDate) {
+            currentRates.set(series, governmentMileageRate);
+        }
+    }
+    return [...currentRates.values()];
+}
+
+/** The tax rate VAT on fuel is linked to by default, which is the first enabled 20% rate whatever its name. */
+function getUKFuelVATTaxRateCode(policy: OnyxEntry<Policy>): string | undefined {
+    return Object.entries(policy?.taxRates?.taxes ?? {}).find(
+        ([, taxRate]) =>
+            !taxRate.isDisabled && taxRate.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && parseFloat(taxRate.value) === CONST.CUSTOM_UNITS.UK_FUEL_VAT_PERCENTAGE,
+    )?.[0];
 }
 
 /** Explains why the Add rate page offers no government rate for this country. An undefined country means "Other country". */
@@ -855,6 +899,8 @@ export {
     getDefaultEuroDistanceRateCountry,
     getEuroDistanceRateCountryOptions,
     getCurrentGovernmentMileageRate,
+    getCurrentFuelBandGovernmentRates,
+    getUKFuelVATTaxRateCode,
     getNoGovernmentRateNote,
     hasGovernmentRateNote,
     getGovernmentRateNote,
