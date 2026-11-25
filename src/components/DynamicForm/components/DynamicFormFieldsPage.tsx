@@ -6,6 +6,7 @@ import getLocalizedText from '@components/DynamicForm/utils/getLocalizedText';
 import getPageTitle from '@components/DynamicForm/utils/getPageTitle';
 import hasGivenSensitiveAnswer from '@components/DynamicForm/utils/hasGivenSensitiveAnswer';
 import isSensitiveField from '@components/DynamicForm/utils/isSensitiveField';
+import isSupportedField from '@components/DynamicForm/utils/isSupportedField';
 import toDynamicFormValues from '@components/DynamicForm/utils/toDynamicFormValues';
 import FormProvider from '@components/Form/FormProvider';
 import FormHelpMessage from '@components/FormHelpMessage';
@@ -90,7 +91,7 @@ function DynamicFormFieldsPage({
                           showContinueOfflineModal({
                               onSaveForLater,
                               onContinue: submitNow,
-                              hasGivenSensitiveAnswer: hasGivenSensitiveAnswer(getContentFields(page.content), withInputValues(inputValues), allFields),
+                              hasGivenSensitiveAnswer: hasGivenSensitiveAnswer(getContentFields(page.content).filter(isSupportedField), withInputValues(inputValues), allFields),
                           });
                       }
                     : undefined
