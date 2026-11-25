@@ -19,7 +19,6 @@ import useLocalize from '@hooks/useLocalize';
 import useMultipleSnapshots from '@hooks/useMultipleSnapshots';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
-import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useScrollEventEmitter from '@hooks/useScrollEventEmitter';
 import useTheme from '@hooks/useTheme';
@@ -163,9 +162,8 @@ function InsightsDashboardContent({
     const {pageGutter} = useLayoutSpacing();
     const shouldScrollMainHeader = useIsMobileWebLandscape();
     const theme = useTheme();
-    const {translate} = useLocalize();
+    const {translate, numberFormat} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const {isBetaEnabled} = usePermissions();
     const icons = useMemoizedLazyExpensifyIcons(['OfflineCloud']);
     const triggerScrollEvent = useScrollEventEmitter();
     const shouldShowStandInView = state === INSIGHTS_DASHBOARD_STATE.NO_EXPENSES || state === INSIGHTS_DASHBOARD_STATE.EMPTY || state === INSIGHTS_DASHBOARD_STATE.UPSELL;
@@ -269,6 +267,9 @@ function InsightsDashboardContent({
         );
     }
 
+    const tagLevel = filters.tagLevel ?? CONST.INSIGHTS.DEFAULT_TAG_LEVEL;
+    const tagLevelName = tagLevelOptions.find(({value}) => value === tagLevel)?.label ?? translate('insightsPage.tagLevel', numberFormat(tagLevel));
+
     const renderChart = (
         {chart, queryJSON, snapshot, previousPeriodQueryJSON, previousPeriodSnapshot, averageQueryJSON, averageSnapshot, average, isDashboardLoaded, stages}: InsightsDashboardChart,
         isHeadline = false,
@@ -295,11 +296,13 @@ function InsightsDashboardContent({
             violationStage={getViolationStage(chart, violationStages)}
             onViolationStageChange={(stage) => onViolationStageChange(chart.graphKey, stage)}
             asOfDate={asOfDate}
+            tagLevelName={chart.graphKey === CONST.INSIGHTS.GRAPH.TOP_TAGS ? tagLevelName : undefined}
         >
             {chart.graphKey === CONST.INSIGHTS.GRAPH.TOP_TAGS && tagLevelOptions.length > 1 && (
                 <InsightsChartWidget.Controls>
                     <InsightsTagLevelControl
-                        tagLevel={filters.tagLevel ?? CONST.INSIGHTS.DEFAULT_TAG_LEVEL}
+                        tagLevel={tagLevel}
+                        label={tagLevelName}
                         options={tagLevelOptions}
                         onChange={onGroupByChange}
                     />
@@ -352,13 +355,11 @@ function InsightsDashboardContent({
                     collapsable={false}
                     style={[styles.insightsDashboardLayout(shouldUseNarrowLayout), shouldScrollMainHeader && pageGutter]}
                 >
-                    {isBetaEnabled(CONST.BETAS.INSIGHTS_AI) && (
-                        <InsightsAICardRow
-                            insights={aiInsights}
-                            insightsScope={insightsScope}
-                            hasFailedToLoad={hasFailedToLoad}
-                        />
-                    )}
+                    <InsightsAICardRow
+                        insights={aiInsights}
+                        insightsScope={insightsScope}
+                        hasFailedToLoad={hasFailedToLoad}
+                    />
                     {renderChart(headlineChart, true)}
                     {getDashboardSections(supportingCharts, shouldUseNarrowLayout).map((section) => (Array.isArray(section) ? renderGrid(section) : renderChart(section)))}
                 </View>

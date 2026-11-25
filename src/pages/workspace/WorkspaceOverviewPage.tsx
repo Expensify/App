@@ -10,7 +10,6 @@ import {useLockedAccountActions, useLockedAccountState} from '@components/Locked
 import MenuItem from '@components/MenuItem';
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import MenuItemSectionRoot from '@components/MenuItem/presets/MenuItemSectionRoot';
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import PDFThumbnail from '@components/PDFThumbnail';
@@ -642,19 +641,29 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
                         errorRowStyles={styles.mt3}
                     />
                     <OfflineWithFeedback pendingAction={policy?.pendingFields?.name}>
-                        <MenuItemWithTopDescription
-                            title={policyName}
-                            titleStyle={styles.workspaceTitleStyle}
-                            description={translate('workspace.common.workspaceName')}
+                        <MenuItem.Root
                             sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.OVERVIEW.NAME}
-                            shouldShowRightIcon={!readOnly}
-                            interactive={!readOnly}
-                            wrapperStyle={[styles.sectionMenuItemTopDescription, shouldUseNarrowLayout ? styles.mt3 : {}]}
-                            onPress={onPressName}
-                            shouldBreakWord
-                            numberOfLinesTitle={0}
-                            titleAccessibilityRole={CONST.ROLE.HEADER}
-                        />
+                            style={[styles.sectionMenuItemTopDescription, shouldUseNarrowLayout && styles.mt3]}
+                            onPress={readOnly ? undefined : callIfAuthenticated(onPressName, session)}
+                        >
+                            <MenuItem.Row>
+                                <MenuItem.Content>
+                                    <MenuItem.FieldName>{translate('workspace.common.workspaceName')}</MenuItem.FieldName>
+                                    <MenuItem.FieldValue
+                                        style={[styles.workspaceTitleStyle, styles.breakWord]}
+                                        numberOfLines={0}
+                                        accessibilityRole={CONST.ROLE.HEADER}
+                                    >
+                                        {policyName}
+                                    </MenuItem.FieldValue>
+                                </MenuItem.Content>
+                                {!readOnly && (
+                                    <MenuItem.Trailing>
+                                        <MenuItem.Chevron />
+                                    </MenuItem.Trailing>
+                                )}
+                            </MenuItem.Row>
+                        </MenuItem.Root>
                     </OfflineWithFeedback>
                     {(!StringUtils.isEmptyString(policy?.description ?? '') || !readOnly || (prevIsPendingDelete && !isPendingDelete)) && (
                         <OfflineWithFeedback

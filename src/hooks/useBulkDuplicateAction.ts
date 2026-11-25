@@ -61,7 +61,8 @@ function useBulkDuplicateAction({
     sourceChatReport,
     sourcePolicy,
 }: UseBulkDuplicateActionParams) {
-    const {accountID, login: currentUserLogin, localCurrencyCode} = useCurrentUserPersonalDetails();
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    const {accountID, login: currentUserLogin, localCurrencyCode} = currentUserPersonalDetails;
     const delegateAccountID = useDelegateAccountID();
     const getPersonalDetailsByLogin = useGetPersonalDetailsByLogin();
     const {formatPhoneNumber} = useLocalize();
@@ -151,6 +152,7 @@ function useBulkDuplicateAction({
             transactionDrafts,
             recentWaypoints,
             currentUser: {accountID, email: currentUserLogin ?? ''},
+            currentUserPersonalDetails,
             currentUserLocalCurrency: localCurrencyCode ?? CONST.CURRENCY.USD,
             isTrackIntentUser,
             delegateAccountID,

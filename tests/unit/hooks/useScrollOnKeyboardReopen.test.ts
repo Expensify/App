@@ -8,6 +8,8 @@ import type {KeyboardEventData} from 'react-native-keyboard-controller';
 
 import {AppState} from 'react-native';
 
+import {emitAppState} from '../../utils/ReactNativeMockUtils';
+
 const mockKeyboardListeners: Record<string, Set<(event: KeyboardEventData) => void>> = {};
 let mockIsScreenFocused = true;
 let mockIsKeyboardVisible = false;
@@ -48,10 +50,7 @@ function emitKeyboardEvent(event: 'keyboardDidShow' | 'keyboardDidHide', height:
 function setAppState(state: AppStateStatus) {
     act(() => {
         // The shared native mock exposes currentState as a getter, so assigning to it cannot simulate an app state change.
-        if (!('emitCurrentTestState' in AppState) || typeof AppState.emitCurrentTestState !== 'function') {
-            throw new Error('The AppState mock must support emitting state changes');
-        }
-        AppState.emitCurrentTestState(state);
+        emitAppState(state);
         for (const listener of appStateListeners) {
             listener(state);
         }

@@ -178,6 +178,7 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
     // Archive checks
     const isArchivedReport = useReportIsArchived(moneyRequestReport?.reportID);
     const isChatReportArchived = useReportIsArchived(chatReport?.reportID);
+    const isParentReportArchived = useReportIsArchived(moneyRequestReport?.parentReportID);
 
     // Default expense policy / chat
     const defaultExpensePolicy = useDefaultExpensePolicy();
@@ -311,6 +312,7 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
                 recentWaypoints,
                 targetPolicyTags,
                 currentUser: {accountID: currentUserPersonalDetails?.accountID, email: currentUserPersonalDetails?.email ?? ''},
+                currentUserPersonalDetails,
                 currentUserLocalCurrency: currentUserPersonalDetails?.localCurrencyCode ?? CONST.CURRENCY.USD,
                 isTrackIntentUser,
                 delegateAccountID,
@@ -683,6 +685,7 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
                                     bankAccountList,
                                     delegateAccountID,
                                     hash: currentSearchHash,
+                                    isChatReportArchived: isParentReportArchived,
                                 });
                             }, CONST.EXPENSE_REPORT_DELETE_DELAY_MS);
                         },
