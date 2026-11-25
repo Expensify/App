@@ -50,8 +50,8 @@ jest.mock('@components/ReportActionItem/MoneyRequestReportPreview/ApproveActionB
 }));
 jest.mock('@components/ReportActionItem/MoneyRequestReportPreview/PayActionButton', () => ({
     __esModule: true,
-    default: () => {
-        mockPay();
+    default: (props: unknown) => {
+        mockPay(props);
         return <MockView testID="pay-button" />;
     },
 }));
@@ -134,7 +134,7 @@ describe('ReportPreviewActionButton', () => {
         mockAnimationState.isApprovedAnimationRunning = false;
     });
 
-    it('keeps View primary until the approval animation for a report with violations finishes', () => {
+    it('keeps the button colors until the approval animation for a report with violations finishes', () => {
         // Given an approvable report with visible violations, where View is the primary button
         mockActionState.reportPreviewAction = CONST.REPORT.REPORT_PREVIEW_ACTIONS.APPROVE_WITH_VIOLATIONS;
         const rendered = render(<ReportPreviewActionButton />);
@@ -144,18 +144,20 @@ describe('ReportPreviewActionButton', () => {
         mockActionState.reportPreviewAction = CONST.REPORT.REPORT_PREVIEW_ACTIONS.PAY;
         rendered.rerender(<ReportPreviewActionButton />);
 
-        // Then View keeps its primary style while the animation plays, so the colors don't swap under the "Approved" button
+        // Then View stays green and the "Approved" animation stays grey while it plays, so the colors don't swap mid animation
         expect(mockView).toHaveBeenLastCalledWith(expect.objectContaining({variant: CONST.BUTTON_VARIANT.SUCCESS}));
+        expect(mockPay).toHaveBeenLastCalledWith(expect.objectContaining({isSecondary: true}));
 
         // When the animation finishes
         mockAnimationState.isApprovedAnimationRunning = false;
         rendered.rerender(<ReportPreviewActionButton />);
 
-        // Then View returns to the secondary style next to the new primary action
+        // Then View turns grey and the Pay button that replaces the animation turns green
         expect(mockView).toHaveBeenLastCalledWith(expect.objectContaining({variant: undefined}));
+        expect(mockPay).toHaveBeenLastCalledWith(expect.objectContaining({isSecondary: false}));
     });
 
-    it('keeps View secondary during the approval animation for a report without violations', () => {
+    it('keeps View grey and the animation green when approving a report without violations', () => {
         // Given an approvable report without violations, where Approve is the primary button
         mockActionState.reportPreviewAction = CONST.REPORT.REPORT_PREVIEW_ACTIONS.APPROVE;
         const rendered = render(<ReportPreviewActionButton />);
@@ -165,8 +167,9 @@ describe('ReportPreviewActionButton', () => {
         mockActionState.reportPreviewAction = CONST.REPORT.REPORT_PREVIEW_ACTIONS.PAY;
         rendered.rerender(<ReportPreviewActionButton />);
 
-        // Then View stays secondary, because it was never the primary button for this report
+        // Then View stays grey and the "Approved" animation stays green, because Approve was already the green button
         expect(mockView).toHaveBeenLastCalledWith(expect.objectContaining({variant: undefined}));
+        expect(mockPay).toHaveBeenLastCalledWith(expect.objectContaining({isSecondary: false}));
     });
 
     it.each([

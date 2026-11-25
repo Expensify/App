@@ -68,11 +68,14 @@ function createOnyxResult<T>(value: NonNullable<T> | undefined): UseOnyxResult<T
 const mockOnPressHolder: {current?: (params: PaymentActionParams) => void} = {current: undefined};
 // Also capture confirmApproval so the approval path (the only consumer of hasViolations here) can be triggered.
 const mockConfirmApprovalHolder: {current?: () => void} = {current: undefined};
+// Captures the color style PayActionButton passes to the settlement button.
+const mockIsSecondaryHolder: {current?: boolean} = {current: undefined};
 jest.mock('@components/SettlementButton/AnimatedSettlementButton', () => ({
     __esModule: true,
-    default: (props: {onPress?: (params: PaymentActionParams) => void; confirmApproval?: () => void}) => {
+    default: (props: {onPress?: (params: PaymentActionParams) => void; confirmApproval?: () => void; isSecondary?: boolean}) => {
         mockOnPressHolder.current = props.onPress;
         mockConfirmApprovalHolder.current = props.confirmApproval;
+        mockIsSecondaryHolder.current = props.isSecondary;
         return null;
     },
 }));
@@ -167,6 +170,7 @@ describe('PayActionButton', () => {
         jest.clearAllMocks();
         mockOnPressHolder.current = undefined;
         mockConfirmApprovalHolder.current = undefined;
+        mockIsSecondaryHolder.current = undefined;
         mockTransactionViolations = {};
         mockedHasHeldExpenses.mockReturnValue(false);
         mockedHasViolations.mockReturnValue(false);
@@ -179,6 +183,20 @@ describe('PayActionButton', () => {
             }
             return createOnyxResult(undefined);
         });
+    });
+
+    it('keeps the settlement button green unless it is told to be secondary', () => {
+        // Given the report preview's Pay button rendered without a style override
+        const rendered = renderPayActionButton();
+
+        // Then the settlement button is not secondary, because Pay is the green action by default
+        expect(mockIsSecondaryHolder.current).toBe(false);
+
+        // When the preview asks for the secondary style, because Approve was grey before its animation started
+        rendered.rerender(<PayActionButton isSecondary />);
+
+        // Then the settlement button receives it, so the "Approved" animation stays grey
+        expect(mockIsSecondaryHolder.current).toBe(true);
     });
 
     it('forwards the selected bank account to payMoneyRequest when paying with a business bank account', async () => {
