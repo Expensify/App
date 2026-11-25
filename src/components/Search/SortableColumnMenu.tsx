@@ -70,7 +70,7 @@ function SortableColumnMenu({columnEditing, sentryLabel, itemSentryLabels, child
             >
                 <SortableHeaderLabel {...labelContentProps} />
             </ColumnHeaderMenu.Trigger>
-            <ColumnHeaderMenu.Content>
+            <ColumnHeaderMenu.Content alignment={alignment}>
                 {!!sorting && (
                     <ColumnHeaderMenu.SortItems
                         sorting={sorting}

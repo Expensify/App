@@ -47,11 +47,14 @@ type RuleBooleanBaseProps = {
 
     /** Whether to use string values ('true'/'false') instead of boolean values (for ExpenseRuleForm compatibility) */
     useStringValues?: boolean;
+
+    /** Label for the unset option. A condition leaves the field unmatched rather than unchanged, so it reads differently */
+    unsetTranslationKey?: TranslationPaths;
 };
 
 const booleanValues = Object.values(CONST.SEARCH.BOOLEAN);
 
-function RuleBooleanBase({fieldID, titleKey, formID, onSelect, onBack, hash, useStringValues = false}: RuleBooleanBaseProps) {
+function RuleBooleanBase({fieldID, titleKey, formID, onSelect, onBack, hash, useStringValues = false, unsetTranslationKey = 'common.dontChange'}: RuleBooleanBaseProps) {
     const {translate} = useLocalize();
     const [form] = useOnyx(formID);
     const styles = useThemeStyles();
@@ -71,7 +74,7 @@ function RuleBooleanBase({fieldID, titleKey, formID, onSelect, onBack, hash, use
     const items = selectableValues.map((value) => ({
         value,
         keyForList: value,
-        text: translate(`common.${value}`),
+        text: translate(value === KEEP_UNCHANGED ? unsetTranslationKey : `common.${value}`),
         isSelected: selectedItem === value,
     }));
 

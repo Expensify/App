@@ -1,8 +1,46 @@
-import {getPerDiemAmountError, getPerDiemNameError} from '@libs/PolicyPerDiemUtils';
+import {getAvailablePerDiemRate, getPerDiemAmountError, getPerDiemNameError} from '@libs/PolicyPerDiemUtils';
 
 import CONST from '@src/CONST';
+import type {Rate} from '@src/types/onyx/Policy';
 
 describe('PolicyPerDiemUtils', () => {
+    describe('getAvailablePerDiemRate', () => {
+        const rate: Rate = {
+            customUnitRateID: 'london',
+            name: 'London',
+            currency: 'GBP',
+            subRates: [
+                {id: 'breakfast', name: 'Breakfast', rate: 1000, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE},
+                {id: 'lunch', name: 'Lunch', rate: 2000, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
+            ],
+        };
+
+        it('excludes pending deletions from selectable and editable subrates without modifying Onyx data', () => {
+            // Given Breakfast is retained for offline deletion feedback alongside an available sibling
+            // When expense pickers or workspace edit pages look up the available rate
+            const availableRate = getAvailablePerDiemRate(rate);
+
+            // Then Breakfast cannot be found or counted, while Lunch remains available and the stored rate is unchanged
+            expect(availableRate?.subRates).toEqual([rate.subRates?.[1]]);
+            expect(availableRate?.subRates?.find(({id}) => id === 'breakfast')).toBeUndefined();
+            expect(rate.subRates).toHaveLength(2);
+            expect(getAvailablePerDiemRate(rate, true)).toBe(rate);
+        });
+
+        it('excludes an entire pending destination even when a child has its own pending edit', () => {
+            // Given the whole destination is now queued for deletion
+            const deletedRate = {...rate, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE};
+
+            // When expense or edit flows read it
+            const availableRate = getAvailablePerDiemRate(deletedRate);
+
+            // Then neither the destination nor any child is available, but the offline workspace can still display it
+            expect(availableRate).toBeUndefined();
+            expect(getAvailablePerDiemRate(deletedRate, true)).toBe(deletedRate);
+            expect(getAvailablePerDiemRate(undefined)).toBeUndefined();
+        });
+    });
+
     describe('getPerDiemNameError', () => {
         it('should return required when the name is empty or only whitespace', () => {
             expect(getPerDiemNameError('')).toBe(CONST.INPUT_VALIDATION_ERRORS.REQUIRED);

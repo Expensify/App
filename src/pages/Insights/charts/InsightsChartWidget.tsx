@@ -17,7 +17,6 @@ import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useLayoutSpacing from '@hooks/useLayoutSpacing';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
-import usePermissions from '@hooks/usePermissions';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -114,6 +113,9 @@ type InsightsChartWidgetProps = {
     /** Last day GetInsights counted expenses through, as a yyyy-MM-dd string, which the chart and its Details panel treat as today so they stop where the data stops */
     asOfDate?: string;
 
+    /** Selected level's label, set only for Top tags so its empty state can name the level. */
+    tagLevelName?: string;
+
     /** Controls children stay in the header; other children appear below the plot after loading, including empty charts. */
     children?: React.ReactNode;
 };
@@ -144,12 +146,12 @@ function InsightsChartWidget({
     violationStage,
     onViolationStageChange,
     asOfDate,
+    tagLevelName,
     children,
 }: InsightsChartWidgetProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate} = useLocalize();
-    const {isBetaEnabled} = usePermissions();
     const {cardPaddingHorizontal, cardPaddingBottom} = useLayoutSpacing();
     const icons = useMemoizedLazyExpensifyIcons(['Expand', 'Table']);
     const {getCurrencyDecimals} = useCurrencyListActions();
@@ -213,7 +215,7 @@ function InsightsChartWidget({
     };
 
     const openDetails =
-        dashboardID === CONST.INSIGHTS.DASHBOARD.SPEND && isBetaEnabled(CONST.BETAS.INSIGHTS_AI) && queryJSON
+        dashboardID === CONST.INSIGHTS.DASHBOARD.SPEND && queryJSON
             ? (item: GroupedItem) => {
                   const itemParams = getInsightsDetailsItemParams(item, queryJSON);
                   if (!itemParams) {
@@ -237,7 +239,7 @@ function InsightsChartWidget({
 
     const explainViolationStage = violationStage ?? chart.violationStage;
     const explainButton =
-        isBetaEnabled(CONST.BETAS.INSIGHTS_AI) && (state === INSIGHTS_CHART_STATE.READY || isLoading) ? (
+        state === INSIGHTS_CHART_STATE.READY || isLoading ? (
             <InsightsExplainButton
                 explainPrompt={translate('insightsPage.explainChartPrompt', translate(chart.titleKey))}
                 insightsScope={explainViolationStage ? {...insightsScope, violationStage: explainViolationStage} : insightsScope}
@@ -329,7 +331,13 @@ function InsightsChartWidget({
             >
                 {state === INSIGHTS_CHART_STATE.OFFLINE && <ChartOfflineState />}
                 {state === INSIGHTS_CHART_STATE.ERROR && <ChartErrorState onRetry={onRetry} />}
-                {state === INSIGHTS_CHART_STATE.EMPTY && <ChartEmptyState testID={`insightsChartEmptyState-${chart.graphKey}`} />}
+                {state === INSIGHTS_CHART_STATE.EMPTY && (
+                    <ChartEmptyState
+                        testID={`insightsChartEmptyState-${chart.graphKey}`}
+                        title={tagLevelName === undefined ? undefined : translate('insightsPage.noTaggedExpenses')}
+                        description={tagLevelName === undefined ? undefined : translate('insightsPage.noExpensesForTagLevel', tagLevelName)}
+                    />
+                )}
                 {(state === INSIGHTS_CHART_STATE.LOADING || state === INSIGHTS_CHART_STATE.READY) &&
                     (view === CONST.SEARCH.VIEW.TABLE ? (
                         <InsightsRankingTable

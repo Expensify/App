@@ -7,6 +7,8 @@ import type {FormInputErrors, FormOnyxValues, FormRef} from '@components/Form/ty
 import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import TextInput from '@components/TextInput';
 
+import useKeyboardDrivenScroll from '@hooks/useKeyboardDrivenScroll';
+import type {KeyboardScrollable} from '@hooks/useKeyboardDrivenScroll/types';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useScrollOnKeyboardReopen from '@hooks/useScrollOnKeyboardReopen';
@@ -38,6 +40,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import {useFocusEffect} from '@react-navigation/native';
 import React, {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
+import {useAnimatedRef} from 'react-native-reanimated';
 
 import ImpossibleRuleNotice from './ImpossibleRuleNotice';
 import useSuggestionButtonRow from './useSuggestionButtonRow';
@@ -141,6 +144,8 @@ function DescribeRuleForm({
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const formRef = useRef<FormRef>(null);
+    const scrollViewRef = useAnimatedRef<KeyboardScrollable>();
+    const scrollWithKeyboard = useKeyboardDrivenScroll(scrollViewRef);
     const inputRef = useRef<AnimatedTextInputRef>(null);
     const inputTopOffsetRef = useRef(0);
     const pendingGenerationRef = useRef<PendingGeneration>(undefined);
@@ -283,15 +288,15 @@ function DescribeRuleForm({
         describeRule(prompt);
     };
 
+    // The keyboard reopens for an input that kept focus, so a drag since that focus must not cancel the scroll
+    const resetScrollOnKeyboardReopen = useScrollOnKeyboardReopen(inputRef, () => scrollWithKeyboard(inputTopOffsetRef.current, {shouldIgnoreEarlierDrag: true}), isActive);
+
     // On iOS and Android, the keyboard covers the focused input unless the form scrolls to it. The scroll stops at the end of
     // the content, therefore the submit button below the input also stays in view when it fits.
-    const scrollToInput = (shouldDelayScroll = true) => formRef.current?.scrollTo(inputTopOffsetRef.current, shouldDelayScroll);
-    const resetScrollOnKeyboardReopen = useScrollOnKeyboardReopen(inputRef, scrollToInput, isActive);
-
     const scrollToFocusedInput = () => {
         // A genuine focus event already scrolls, so the corresponding keyboard show must not scroll again.
         resetScrollOnKeyboardReopen();
-        scrollToInput();
+        scrollWithKeyboard(inputTopOffsetRef.current);
     };
 
     const describeSuggestedRule = (suggestedPrompt: string) => {
@@ -305,6 +310,7 @@ function DescribeRuleForm({
     return (
         <FormProvider
             ref={formRef}
+            scrollViewRef={scrollViewRef}
             formID={ONYXKEYS.FORMS.NEW_RULE_PROMPT_FORM}
             validate={validate}
             onSubmit={submit}

@@ -762,6 +762,109 @@ describe('handleReplaceFullscreenUnderRHP — focused Reports stack preservation
     });
 });
 
+describe('handleReplaceFullscreenUnderRHP — Spend screens kept under a submit destination', () => {
+    function makeExistingSpendState(focusedTabIndex = 0): StackNavigationState<ParamListBase> {
+        const searchNavRoute = {
+            key: 'search-nav-key',
+            name: NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR,
+            state: {
+                index: 1,
+                routes: [
+                    makeRoute(SCREENS.SEARCH.ROOT, {q: 'type:expense'}, undefined, 'search-expenses-key'),
+                    makeRoute(SCREENS.SEARCH.ROOT, {q: 'type:expense-report'}, undefined, 'search-reports-key'),
+                    makeRoute(SCREENS.SEARCH.ROOT, {q: 'type:expense'}, undefined, 'Search_Root-wide-pre-mount-1'),
+                ],
+            },
+        };
+        const homeRoute = {key: 'home-key', name: SCREENS.HOME};
+        const tabNavRoute = makeRoute(NAVIGATORS.TAB_NAVIGATOR, undefined, {index: focusedTabIndex, routes: [homeRoute, searchNavRoute]}, 'tab-nav-key');
+        return makeStackState([tabNavRoute, makeRHPRoute()]);
+    }
+
+    function getSpendRouteKeys(result: StackNavigationState<ParamListBase> | null) {
+        const tabState = result?.routes.at(0)?.state;
+        const searchNav = tabState?.routes.find((route) => route.name === NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR);
+        return searchNav?.state?.routes.map((route) => route.key);
+    }
+
+    beforeEach(() => {
+        mockStubbedParsedState = {
+            routes: [
+                {
+                    name: NAVIGATORS.TAB_NAVIGATOR,
+                    state: {index: 0, routes: [{name: NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR, state: {index: 0, routes: [{name: SCREENS.SEARCH.ROOT, params: {q: 'type:expense'}}]}}]},
+                },
+            ],
+        };
+    });
+
+    const action: ReplaceFullscreenUnderRHPActionType = {
+        type: CONST.NAVIGATION.ACTION_TYPE.REPLACE_FULLSCREEN_UNDER_RHP,
+        payload: {route: ROUTES.SEARCH_ROOT.getRoute({query: 'type:expense'})},
+    };
+
+    it('keeps the Spend screens the user visited under the destination on wide web', () => {
+        // Given wide web, with Spend Expenses and then Spend Reports visited before going back Home to submit
+        mockGetPlatform.mockReturnValue(CONST.PLATFORM.WEB);
+        mockGetIsNarrowLayout.mockReturnValue(false);
+
+        // When the submit puts Spend Expenses under the RHP, while the hidden pre-mount is still the live one
+        setLiveWideTabPreMountRouteKey('Search_Root-wide-pre-mount-1');
+        const result = handleReplaceFullscreenUnderRHP(makeExistingSpendState(), action, CONFIG_OPTIONS, stackRouter);
+        setLiveWideTabPreMountRouteKey(undefined);
+
+        // Then the visited screens stay below it, because their browser history entries need routes to go Back to, while
+        // the hidden pre-mount is not kept as a second copy
+        const keys = getSpendRouteKeys(result);
+        expect(keys?.slice(0, 2)).toEqual(['search-expenses-key', 'search-reports-key']);
+        expect(keys).toHaveLength(3);
+        expect(keys).not.toContain('Search_Root-wide-pre-mount-1');
+    });
+
+    it('keeps a Spend screen revealed by an earlier submit, which keeps its pre-mount key after the reveal', () => {
+        // Given wide web, where the Expenses screen under Reports was revealed by an earlier submit and is no longer the live pre-mount
+        mockGetPlatform.mockReturnValue(CONST.PLATFORM.WEB);
+        mockGetIsNarrowLayout.mockReturnValue(false);
+
+        markWideTabPreMountRouteKeyRevealed('Search_Root-wide-pre-mount-1');
+
+        // When the next submit puts Spend Expenses under the RHP, and browser Back later restores that state with a RESET
+        const result = handleReplaceFullscreenUnderRHP(makeExistingSpendState(), action, CONFIG_OPTIONS, stackRouter);
+        const restoredAction = removeStalePreMountsFromResetAction(CommonActions.reset(result ?? undefined));
+
+        // Then that earlier screen stays in both, since browser Back still has an entry for it
+        expect(getSpendRouteKeys(result)?.slice(0, 3)).toEqual(['search-expenses-key', 'search-reports-key', 'Search_Root-wide-pre-mount-1']);
+        const revealedSearchScreen = expect.objectContaining({key: 'Search_Root-wide-pre-mount-1'});
+        const spendNavigator = expect.objectContaining({state: expect.objectContaining({routes: expect.arrayContaining([revealedSearchScreen])})});
+        const tabNavigator = expect.objectContaining({state: expect.objectContaining({routes: expect.arrayContaining([spendNavigator])})});
+        expect(restoredAction).toMatchObject({payload: {routes: expect.arrayContaining([tabNavigator])}});
+    });
+
+    it('replaces the Spend screens when the submit starts on Spend itself, so repeated submits do not grow the stack', () => {
+        // Given wide web with Spend focused, where the submit lands on the tab it started from
+        mockGetPlatform.mockReturnValue(CONST.PLATFORM.WEB);
+        mockGetIsNarrowLayout.mockReturnValue(false);
+
+        // When the submit puts Spend Expenses under the RHP
+        const result = handleReplaceFullscreenUnderRHP(makeExistingSpendState(1), action, CONFIG_OPTIONS, stackRouter);
+
+        // Then only the destination is left, since stacking it on the same Expenses page would add a copy on every submit
+        expect(getSpendRouteKeys(result)).toHaveLength(1);
+    });
+
+    it('replaces the Spend screens on narrow layout, where the browser history does not keep them', () => {
+        // Given narrow web with the same visited Spend screens
+        mockGetPlatform.mockReturnValue(CONST.PLATFORM.WEB);
+        mockGetIsNarrowLayout.mockReturnValue(true);
+
+        // When the submit puts Spend Expenses under the RHP
+        const result = handleReplaceFullscreenUnderRHP(makeExistingSpendState(), action, CONFIG_OPTIONS, stackRouter);
+
+        // Then only the destination is left, because keeping the visited screens is limited to wide web
+        expect(getSpendRouteKeys(result)).toHaveLength(1);
+    });
+});
+
 describe('handleReplaceFullscreenUnderRHP — WORKSPACE_NAVIGATOR seeding', () => {
     it('seeds [WORKSPACES_LIST, split] when the workspace tab was never mounted (guards iOS swipe-back regression #93003)', () => {
         mockStubbedParsedState = makeParsedState(INCOMING_SPLIT_ONLY);
