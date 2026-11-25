@@ -11,6 +11,7 @@ import {
     getAdditionalOffset,
     getDomainPaddingForEdgeSpace,
     getNiceYAxisTicks,
+    getSteppedLabelLayout,
     getSteppedYAxisTicks,
     getYAxisTickLayout,
     getCartesianPlotBounds,
@@ -37,7 +38,7 @@ import VictoryTheme, {
 } from '@components/Charts/VictoryTheme';
 import {CHART_SERIES_KEY} from '@components/Search/buildChartSeries';
 
-import {AVERAGE_DURATION_PRECISION_IN_SECONDS} from '@libs/DateUtils';
+import DateUtils, {AVERAGE_DURATION_PRECISION_IN_SECONDS} from '@libs/DateUtils';
 
 import variables from '@styles/variables';
 
@@ -794,6 +795,42 @@ describe('getYAxisTickLayout', () => {
         expect(layout.tickCount).toBe(layout.ticks?.length);
         expect(layout.domain).toEqual([0, 12]);
     });
+
+    it('steps a chart of durations under an hour by minutes, so short averages fill the axis', () => {
+        // Given averages of up to 50 minutes, stepped by the duration rule
+        // When the Y-axis layout is picked
+        const layout = getYAxisTickLayout([0, 50 * CONST.DATE.SECONDS_PER_MINUTE], DateUtils.getAverageDurationTickStep);
+
+        // Then the ticks are round minutes ending at 50, instead of an axis stretched to a tenth of a day
+        expect(layout.ticks?.map((tick) => tick / CONST.DATE.SECONDS_PER_MINUTE)).toEqual([0, 10, 20, 30, 40, 50]);
+    });
+
+    it('steps a chart of durations under a day by tenths of an hour, so ticks land on round hours', () => {
+        // Given averages of up to 5 hours, stepped by the duration rule
+        // When the Y-axis layout is picked
+        const layout = getYAxisTickLayout([0, 5 * CONST.DATE.SECONDS_PER_HOUR], DateUtils.getAverageDurationTickStep);
+
+        // Then the ticks are whole hours, instead of multiples of 2.4 hours
+        expect(layout.ticks?.map((tick) => tick / CONST.DATE.SECONDS_PER_HOUR)).toEqual([0, 1, 2, 3, 4, 5]);
+    });
+
+    it('keeps a chart of durations of a day or more stepped by tenths of a day', () => {
+        // Given averages of up to 11 days, stepped by the duration rule
+        // When the Y-axis layout is picked
+        const layout = getYAxisTickLayout([0, 11 * CONST.DATE.SECONDS_PER_DAY], DateUtils.getAverageDurationTickStep);
+
+        // Then the ticks fall on every second day, as they did before durations under a day read in hours
+        expect(layout.ticks?.map((tick) => tick / CONST.DATE.SECONDS_PER_DAY)).toEqual([0, 2, 4, 6, 8, 10, 12]);
+    });
+
+    it('gives a chart where every duration is zero a one-minute axis', () => {
+        // Given averages that are all zero
+        // When the Y-axis layout is picked
+        const layout = getYAxisTickLayout([0, 0], DateUtils.getAverageDurationTickStep);
+
+        // Then the axis runs from 0 to one minute rather than to a tenth of a day
+        expect(layout.ticks).toEqual([0, CONST.DATE.SECONDS_PER_MINUTE]);
+    });
 });
 
 describe('getBarLayout', () => {
@@ -1092,5 +1129,22 @@ describe('getAxisLabelStep', () => {
 
         // Then the smallest step is used and the point stays labeled
         expect(step).toBe(1);
+    });
+});
+
+describe('getSteppedLabelLayout', () => {
+    it('keeps bar labels horizontal and untruncated, labeling every Nth bar so they do not overlap', () => {
+        // Given 31 daily bars whose 40px labels are wider than the space between neighboring bars
+        const {barWidth, gap, edgeSpace} = getBarLayout(600, 31);
+        const pointXs = Array.from({length: 31}, (_, index) => edgeSpace + index * (barWidth + gap));
+
+        // When laying out the labels with the daily steps
+        const layout = getSteppedLabelLayout({labelWidths: Array<number>(31).fill(40), pointXs, steps: [1, 2, 7, 14], lineHeight: LINE_HEIGHT, ellipsisWidth: 0});
+
+        // Then the labels stay horizontal at full width on one line, and only every 7th bar is labeled because a smaller step would overlap
+        expect(layout.labelRotation).toBe(LABEL_ROTATIONS.HORIZONTAL);
+        expect(layout.labelSkipInterval).toBe(7);
+        expect(layout.regularLabelMaxWidth).toBe(Infinity);
+        expect(layout.xAxisLabelHeight).toBe(LINE_HEIGHT);
     });
 });

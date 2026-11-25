@@ -1,13 +1,18 @@
 import type {CompareItemsCallback, IsItemInSearchCallback, TableColumn, TableHandle} from '@components/Table';
 import Table from '@components/Table';
+import {getBadgeColumnDragMinWidth, getBadgeWidth} from '@components/Table/badgeCellWidths';
 
 import useDomainHighlightOnReturn from '@hooks/useDomainHighlightOnReturn';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useThemeStyles from '@hooks/useThemeStyles';
 
 import tokenizedSearch from '@libs/tokenizedSearch';
 
+import {fontScale} from '@styles/typography';
 import variables from '@styles/variables';
+
+import CONST from '@src/CONST';
 
 import type {ListRenderItemInfo} from '@shopify/flash-list';
 
@@ -25,6 +30,7 @@ type DomainGroupsTableProps = {
 };
 
 export default function DomainGroupsTable({domainAccountID, groups}: DomainGroupsTableProps) {
+    const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
     const tableRef = useRef<TableHandle<DomainGroupRowData, DomainGroupsTableColumnKey>>(null);
@@ -32,11 +38,18 @@ export default function DomainGroupsTable({domainAccountID, groups}: DomainGroup
 
     const shouldUseNarrowTableLayout = shouldUseNarrowLayout || isMediumScreenWidth;
 
-    const domainGroupsTableColumns: Array<TableColumn<DomainGroupsTableColumnKey>> = [
+    const defaultBadgeWidth = getBadgeWidth(styles, translate('common.default'));
+    const hasDefaultGroup = groups.some((group) => group.isDefault);
+
+    const domainGroupsTableColumns: Array<TableColumn<DomainGroupsTableColumnKey, DomainGroupRowData>> = [
         {
             key: 'name',
             label: translate('common.name'),
             sortable: true,
+            dynamicSizing: {
+                getContentToMeasure: (item) => [{text: item.name, fontSize: fontScale.text, trailingWidth: item.isDefault ? defaultBadgeWidth : undefined}],
+                dragMinWidth: getBadgeColumnDragMinWidth(hasDefaultGroup ? [defaultBadgeWidth] : []),
+            },
         },
         {
             key: 'members',
@@ -78,6 +91,8 @@ export default function DomainGroupsTable({domainAccountID, groups}: DomainGroup
 
     return (
         <Table
+            shouldUseDynamicColumns
+            columnResizingID={CONST.TABLES.COLUMN_RESIZING_IDS.DOMAIN_GROUPS}
             ref={tableRef}
             data={groups}
             columns={domainGroupsTableColumns}

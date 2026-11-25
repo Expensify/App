@@ -56,9 +56,6 @@ type TextPickerProps = {
      */
     onValueCommitted?: (value: string) => void;
 
-    /** Text to display under the main menu item */
-    furtherDetails?: string;
-
     shouldShowTooltips?: boolean;
 
     /** The ID used to uniquely identify the input in a Form */
@@ -79,7 +76,7 @@ type TextPickerProps = {
     shouldUseStrictHtmlTagValidation?: boolean;
 
     ref?: ForwardedRef<ComponentRef<typeof View>>;
-} & Pick<MenuItemBaseProps, 'rightLabel' | 'subtitle' | 'description' | 'interactive' | 'wrapperStyle' | 'numberOfLinesTitle' | 'titleStyle' | 'descriptionTextStyle'> &
-    TextProps;
+} & Pick<MenuItemBaseProps, 'rightLabel' | 'subtitle' | 'description' | 'wrapperStyle' | 'numberOfLinesTitle' | 'titleStyle' | 'descriptionTextStyle'> &
+    Omit<TextProps, 'ref'>;
 
 export type {TextSelectorModalProps, TextPickerProps};

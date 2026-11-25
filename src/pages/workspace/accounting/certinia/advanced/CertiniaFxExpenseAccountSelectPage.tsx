@@ -1,14 +1,10 @@
-import BlockingView from '@components/BlockingViews/BlockingView';
 import type {SelectorType} from '@components/SelectionScreen';
-import SelectionScreen from '@components/SelectionScreen';
 import Text from '@components/Text';
 
 import useCanConfigureCurrencyConversionFees from '@hooks/useCanConfigureCurrencyConversionFees';
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useFxExpenseAccountPicker from '@hooks/useFxExpenseAccountPicker';
-import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
-import useSelectionListSearch from '@hooks/useSelectionListSearch';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {clearFinancialForceErrorField, updateFinancialForceFxExpenseAccount} from '@libs/actions/connections/FinancialForce';
@@ -17,10 +13,9 @@ import Navigation from '@libs/Navigation/Navigation';
 import {settingsPendingAction} from '@libs/PolicyUtils';
 
 import {isCertiniaFFAConnection} from '@pages/workspace/accounting/certinia/utils';
+import FxExpenseAccountSelectPage from '@pages/workspace/accounting/common/FxExpenseAccountSelectPage';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
-
-import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
@@ -37,7 +32,6 @@ function CertiniaFxExpenseAccountSelectPage({policy}: WithPolicyConnectionsProps
     const expenseAccounts = data?.expenseAccounts ?? [];
     const {selectedAccountID, hasChanges, selectAccount, buildList} = useFxExpenseAccountPicker(config?.fxExpenseAccount);
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.POLICY_ACCOUNTING_CERTINIA_FX_EXPENSE_ACCOUNT.path);
-    const illustrations = useMemoizedLazyIllustrations(['Telescope']);
 
     const accountOptions: SelectorType[] = expenseAccounts.map((account) => ({
         value: account.id,
@@ -55,51 +49,33 @@ function CertiniaFxExpenseAccountSelectPage({policy}: WithPolicyConnectionsProps
 
     const {searchableList, initiallyFocusedOptionKey, confirmButtonOptions} = buildList(accountOptions, saveSelectedAccount);
 
-    // A Certinia chart of accounts runs to hundreds of General Ledger Accounts, so the list needs a search box.
-    const {filteredData: listData, textInputOptions} = useSelectionListSearch(searchableList, translate('common.noResultsFound'));
-
     const listHeaderComponent = (
         <View style={[styles.pb2, styles.ph5]}>
             <Text style={[styles.pb5, styles.textNormal]}>{translate('workspace.certinia.fxExpenseAccountDescription')}</Text>
         </View>
     );
 
-    const listEmptyContent = (
-        <BlockingView
-            icon={illustrations.Telescope}
-            iconWidth={variables.emptyListIconWidth}
-            iconHeight={variables.emptyListIconHeight}
-            title={translate('workspace.certinia.noExpenseAccountsFound')}
-            subtitle={translate('workspace.certinia.noExpenseAccountsFoundDescription')}
-            containerStyle={styles.pb10}
-        />
-    );
-
     return (
-        <SelectionScreen
+        <FxExpenseAccountSelectPage
             policyID={policyID}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
-            featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
             shouldBeBlocked={!isCertiniaFFAConnection(config) || !canConfigureCurrencyConversionFees}
             displayName="CertiniaFxExpenseAccountSelectPage"
-            data={listData}
-            textInputOptions={textInputOptions}
-            headerContent={listHeaderComponent}
+            data={searchableList}
             onSelectRow={selectAccount}
-            shouldSingleExecuteRowSelect
-            shouldUpdateFocusedIndex
             initiallyFocusedOptionKey={initiallyFocusedOptionKey}
             onBackButtonPress={() => Navigation.goBack(backPath)}
             title="workspace.certinia.fxExpenseAccount"
-            listEmptyContent={listEmptyContent}
-            shouldShowListEmptyContent={!textInputOptions.value}
+            emptyStateTitle={translate('workspace.certinia.noExpenseAccountsFound')}
+            emptyStateSubtitle={translate('workspace.certinia.noExpenseAccountsFoundDescription')}
             connectionName={CONST.POLICY.CONNECTIONS.NAME.CERTINIA}
             pendingAction={settingsPendingAction([CONST.CERTINIA_CONFIG.FX_EXPENSE_ACCOUNT], config?.pendingFields)}
             errors={getLatestErrorField(config ?? {}, CONST.CERTINIA_CONFIG.FX_EXPENSE_ACCOUNT)}
-            errorRowStyles={[styles.ph5, styles.pv3]}
             onClose={() => clearFinancialForceErrorField(policyID, CONST.CERTINIA_CONFIG.FX_EXPENSE_ACCOUNT)}
             confirmButtonOptions={confirmButtonOptions}
-        />
+        >
+            {listHeaderComponent}
+        </FxExpenseAccountSelectPage>
     );
 }
 

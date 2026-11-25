@@ -881,9 +881,8 @@ function isDisablingOrDeletingLastEnabledCategory(
     policy: Policy | undefined,
     policyCategories: PolicyCategories | undefined,
     selectedCategories: Array<PolicyCategory | undefined>,
+    enabledCategoriesCount: number = getEnabledCategoriesCount(policyCategories),
 ): boolean {
-    const enabledCategoriesCount = getEnabledCategoriesCount(policyCategories);
-
     if (!enabledCategoriesCount) {
         return false;
     }
@@ -1959,6 +1958,7 @@ function isValidReport(
     chatReport: OnyxEntry<Report>,
     hasGuidesEmails: boolean,
     derivedIsEmptyReport: boolean | undefined,
+    derivedRequiresAttention: boolean | undefined,
 ): boolean {
     const {
         isDefaultRoomsBetaEnabled = false,
@@ -2007,6 +2007,11 @@ function isValidReport(
         hasGuidesEmails,
         derivedIsEmptyReport,
         transactionViolations,
+        requiresAttention: derivedRequiresAttention,
+        // `requiresAttention` comes from reportAttributes, which already applies the pending-DEW-approve check with the
+        // real metadata, so every caller has to pass `reportAttributesDerived` for that check to hold here. The metadata
+        // below is only read before reportAttributes has computed this report.
+        pendingExpenseActionMetadata: undefined,
     });
 
     if (!shouldBeInOptionList) {
@@ -2514,6 +2519,7 @@ function getValidOptions(
                 // TODO: Pass guideAccountIDs in Phase B. hasExpensifyGuidesEmails falls back to the personal details store until then. See https://github.com/Expensify/App/issues/66413.
                 isDefaultRoom(report.item) ? hasExpensifyGuidesEmails(Object.keys(report.item?.participants ?? {}).map(Number), undefined) : false,
                 report.reportID ? reportAttributesDerived?.[report.reportID]?.isEmpty : undefined,
+                report.reportID ? reportAttributesDerived?.[report.reportID]?.requiresAttention : undefined,
             );
         };
 

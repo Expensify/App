@@ -10,8 +10,8 @@ import type {PendingReveal, RootHistoryState} from './addRootHistoryRouterExtens
 
 import {
     applyRevealPaddingOffset,
-    asCustomHistory,
     getFrozenHistoryStateForRemoveFullscreenUnderRHP,
+    getResetHistory,
     getFrozenHistoryStateForReplaceFullscreenUnderRHP,
     getRevealDismissState,
     getTrailingStringSentinels,
@@ -39,7 +39,7 @@ function addRootHistoryRouterExtension<RouterOptions extends PlatformStackRouter
             return enhanceStateWithHistory(state);
         };
 
-        const getRehydratedState = (partialState: PartialState<PlatformStackNavigationState<ParamListBase>>, configOptions: RouterConfigOptions) => {
+        const getRehydratedState = (partialState: PartialState<RootHistoryState> | RootHistoryState, configOptions: RouterConfigOptions) => {
             const state = router.getRehydratedState(partialState, configOptions);
             const stateWithInitialHistory = enhanceStateWithHistory(state);
 
@@ -49,16 +49,11 @@ function addRootHistoryRouterExtension<RouterOptions extends PlatformStackRouter
             // getStateForAction is what intentionally drops a modal back-guard entry.
             const trailingSentinels = getTrailingStringSentinels(state.history);
             if (trailingSentinels.length > 0) {
-                stateWithInitialHistory.history = [...(asCustomHistory(stateWithInitialHistory.history) ?? []), ...trailingSentinels];
+                stateWithInitialHistory.history = [...(stateWithInitialHistory.history ?? []), ...trailingSentinels];
             }
 
             return stateWithInitialHistory;
         };
-
-        // Centralizes the `PartialState | FullState` cast to `getRehydratedState`'s input shape.
-        function rehydrate(newState: PartialState<RootHistoryState> | RootHistoryState, configOptions: RouterConfigOptions) {
-            return getRehydratedState(newState as PartialState<RootHistoryState>, configOptions);
-        }
 
         const getStateForAction = (state: RootHistoryState, action: RootStackNavigatorAction, configOptions: RouterConfigOptions) => {
             // Snapshot is stale if its RHP key vanished via a non-DISMISS path.
@@ -75,14 +70,14 @@ function addRootHistoryRouterExtension<RouterOptions extends PlatformStackRouter
 
             // REPLACE: capture pending reveal + freeze history (intermediate frame; useLinking historyDelta=0).
             if (isReplaceFullscreenUnderRHPAction(action)) {
-                const result = getFrozenHistoryStateForReplaceFullscreenUnderRHP(state, newState, configOptions, pendingReveal, rehydrate);
+                const result = getFrozenHistoryStateForReplaceFullscreenUnderRHP(state, newState, configOptions, pendingReveal, getRehydratedState);
                 pendingReveal = result.pendingReveal;
                 return result.state;
             }
 
             // REMOVE: cancel path; clear snapshot + freeze history (same rationale as REPLACE).
             if (isRemoveFullscreenUnderRHPAction(action)) {
-                const result = getFrozenHistoryStateForRemoveFullscreenUnderRHP(state, newState, configOptions, rehydrate);
+                const result = getFrozenHistoryStateForRemoveFullscreenUnderRHP(state, newState, configOptions, getRehydratedState);
                 if (state.history) {
                     pendingReveal = null;
                 }
@@ -93,17 +88,17 @@ function addRootHistoryRouterExtension<RouterOptions extends PlatformStackRouter
             // useLinking sees historyDelta=0 and just `history.replace`s the current entry,
             // preserving the prior fullscreen browser entry. (RN 7.x useLinking semantics.)
             if (isDismissModalAction(action) && pendingReveal && state.history) {
-                const result = getRevealDismissState(state, newState, configOptions, pendingReveal, rehydrate);
+                const result = getRevealDismissState(state, newState, configOptions, pendingReveal, getRehydratedState);
                 pendingReveal = result.pendingReveal;
                 if (result.state) {
                     return result.state;
                 }
             }
 
-            const rehydrated = rehydrate(newState, configOptions);
+            const rehydrated = getRehydratedState(newState, configOptions);
 
             // forward navigation out of a `shouldHandleNavigationBack` Modal. The previous state
-            // had a trailing modal back-guard entry; rehydrate() re-appends it on top of the freshly
+            // had a trailing modal back-guard entry; getRehydratedState() re-appends it on top of the freshly
             // pushed route, which would strand a phantom browser entry (Back needing two presses). Drop only
             // the top modal entry so the new history length matches the previous one and useLinking
             // sees historyDelta === 0 → history.replace, letting the new screen consume the guard entry.
@@ -112,15 +107,18 @@ function addRootHistoryRouterExtension<RouterOptions extends PlatformStackRouter
             // unaffected. Either ordering works: if the Modal's own toggle(false) ran first, the trailing
             // entry is already a route and this is a no-op.
             const isForwardNavigation = action.type === CONST.NAVIGATION.ACTION_TYPE.PUSH || action.type === CONST.NAVIGATION.ACTION_TYPE.NAVIGATE;
-            if (isForwardNavigation && isModalHistorySentinel(asCustomHistory(state.history)?.at(-1))) {
-                const consumedHistory = stripTrailingModalSentinels(asCustomHistory(rehydrated.history) ?? []);
+            if (isForwardNavigation && isModalHistorySentinel(state.history?.at(-1))) {
+                const consumedHistory = stripTrailingModalSentinels(rehydrated.history ?? []);
                 return applyRevealPaddingOffset(state, {...rehydrated, history: consumedHistory});
             }
+
+            // A RESET carrying its own history (e.g. browser Back restoring a recorded state) must match that recorded entry
+            const resetHistory = getResetHistory(action);
 
             // Default: re-apply the offset (single source of truth = leading padding entries in
             // state.history). addPushParamsRouterExtension keeps all string entries, so
             // reveal-padding entries survive PUSH_PARAMS / GO_BACK / POP / RESET dispatches.
-            return applyRevealPaddingOffset(state, rehydrated);
+            return applyRevealPaddingOffset({...state, history: resetHistory ?? state.history}, rehydrated);
         };
 
         return {

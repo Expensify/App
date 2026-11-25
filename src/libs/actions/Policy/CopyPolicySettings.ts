@@ -10,7 +10,7 @@ import {categoryHasAnyRequireFieldsRule, hasExplicitAmountLimit} from '@libs/Pol
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {CopyPolicySettings as CopyPolicySettingsState, Policy, PolicyCategories, PolicyTagLists, PolicyCategory, Rule} from '@src/types/onyx';
-import type {CustomUnit, PolicyFeatureName, Rate} from '@src/types/onyx/Policy';
+import type {CustomUnit, PolicyFeatureName, Rate, ReimbursementCountryInfo} from '@src/types/onyx/Policy';
 
 import type {OnyxCollection, OnyxUpdate} from 'react-native-onyx';
 
@@ -48,7 +48,6 @@ const PARTS_TO_POLICY_FIELDS = {
     // (see Auth PR #21638). We rely on the server push for that field.
     workflows: [
         'areWorkflowsEnabled',
-        'isCollectDepositAccountsEnabled',
         'autoReportingFrequency',
         'autoReporting',
         'autoReportingOffset',
@@ -59,6 +58,7 @@ const PARTS_TO_POLICY_FIELDS = {
         'approvalMode',
         'autoApproval',
         'reimbursementChoice',
+        'isCollectDepositAccountsEnabled',
     ],
     rules: [
         'areRulesEnabled',
@@ -231,6 +231,37 @@ function buildTravelSettingsPatch(sourcePolicy: Policy, targetPolicy: Policy): P
     }
 
     return {travelSettings: {...targetPolicy.travelSettings, autoAddTripName: sourcePolicy.travelSettings?.autoAddTripName ?? true}};
+}
+
+/**
+ * Makes the target's countries match the source's, dropping each source bankAccountID.
+ * Keeps a target country that already has its own bank account.
+ */
+function buildReimbursementCountriesPatch(sourcePolicy: Policy, targetPolicy: Policy): Pick<Policy, 'reimbursement'> | undefined {
+    const sourceCountryEntries = Object.entries(sourcePolicy.reimbursement?.countries ?? {});
+    const targetCountryEntries = Object.entries(targetPolicy.reimbursement?.countries ?? {});
+    if (sourceCountryEntries.length === 0 && targetCountryEntries.length === 0) {
+        return undefined;
+    }
+
+    const result: Record<string, ReimbursementCountryInfo> = {};
+    for (const [countryISO, info] of targetCountryEntries) {
+        if (info?.bankAccountID) {
+            result[countryISO] = info;
+        }
+    }
+
+    for (const [countryISO, info] of sourceCountryEntries) {
+        if (info?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
+            continue;
+        }
+        if (result[countryISO]) {
+            continue;
+        }
+        result[countryISO] = {};
+    }
+
+    return {reimbursement: {...targetPolicy.reimbursement, countries: result}};
 }
 
 /**
@@ -464,10 +495,13 @@ function buildCopyPolicySettingsData(
     const isCodingRulesSelected = parts.includes('codingRules');
     const isRulesSelected = parts.includes('rules');
     const isTravelSelected = parts.includes('travel');
+    const isWorkflowsSelected = parts.includes('workflows');
     const timeTrackingPendingFields = isTimeTrackingSelected ? {isTimeTrackingEnabled: pendingAction, timeTrackingDefaultRate: pendingAction} : {};
     const timeTrackingClearedPendingFields = isTimeTrackingSelected ? {isTimeTrackingEnabled: null, timeTrackingDefaultRate: null} : {};
     const receiptPartnersPendingFields = isReceiptPartnersSelected ? {receiptPartners: pendingAction} : {};
     const receiptPartnersClearedPendingFields = isReceiptPartnersSelected ? {receiptPartners: null} : {};
+    const reimbursementPendingFields = isWorkflowsSelected ? {reimbursement: pendingAction} : {};
+    const reimbursementClearedPendingFields = isWorkflowsSelected ? {reimbursement: null} : {};
     // Auth preserves an explicit source Rules toggle, including when Merchant rules are copied.
     const codingRulesPatch = isCodingRulesSelected ? {areRulesEnabled: sourcePolicy.areRulesEnabled ?? true} : {};
     const codingRulesPendingFields = isCodingRulesSelected ? {areRulesEnabled: pendingAction} : {};
@@ -490,6 +524,7 @@ function buildCopyPolicySettingsData(
         const timeTrackingPatch = isTimeTrackingSelected ? buildTimeTrackingPatch(sourcePolicy) : undefined;
         const travelSettingsPatch = isTravelSelected ? buildTravelSettingsPatch(sourcePolicy, targetPolicy) : undefined;
         const receiptPartnersPatch = isReceiptPartnersSelected ? buildReceiptPartnersPatch(sourcePolicy) : undefined;
+        const reimbursementCountriesPatch = isWorkflowsSelected ? buildReimbursementCountriesPatch(sourcePolicy, targetPolicy) : undefined;
         // Merchant rules live in their own collection, so each target policy gets its own copies rather than
         // a shared blob on the policy object. The server mints its own IDs, so the optimistic copies are dropped on success.
         const copiedRules = isCodingRulesSelected ? buildCopiedExpenseDefaultRules(allRules, sourcePolicy.id, targetPolicy.id) : {};
@@ -520,8 +555,16 @@ function buildCopyPolicySettingsData(
                     : {}),
                 ...(travelSettingsPatch ?? {}),
                 ...(receiptPartnersPatch ? {receiptPartners: receiptPartnersPatch.receiptPartners} : {}),
+                ...(reimbursementCountriesPatch ?? {}),
                 ...codingRulesPatch,
-                pendingFields: {...targetPolicy.pendingFields, ...pendingFields, ...timeTrackingPendingFields, ...receiptPartnersPendingFields, ...codingRulesPendingFields},
+                pendingFields: {
+                    ...targetPolicy.pendingFields,
+                    ...pendingFields,
+                    ...timeTrackingPendingFields,
+                    ...receiptPartnersPendingFields,
+                    ...(reimbursementCountriesPatch ? reimbursementPendingFields : {}),
+                    ...codingRulesPendingFields,
+                },
             },
         });
 
@@ -530,7 +573,13 @@ function buildCopyPolicySettingsData(
             onyxMethod: Onyx.METHOD.MERGE,
             key: policyKey,
             value: {
-                pendingFields: {...clearedPendingFields, ...timeTrackingClearedPendingFields, ...receiptPartnersClearedPendingFields, ...codingRulesClearedPendingFields},
+                pendingFields: {
+                    ...clearedPendingFields,
+                    ...timeTrackingClearedPendingFields,
+                    ...receiptPartnersClearedPendingFields,
+                    ...reimbursementClearedPendingFields,
+                    ...codingRulesClearedPendingFields,
+                },
                 errors: null,
             },
         });

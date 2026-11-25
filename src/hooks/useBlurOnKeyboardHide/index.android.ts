@@ -1,3 +1,5 @@
+import type {ScaledSize} from 'react-native';
+
 import {useEffect} from 'react';
 import {AppState, Dimensions} from 'react-native';
 import {KeyboardEvents} from 'react-native-keyboard-controller';
@@ -33,7 +35,7 @@ const useBlurOnKeyboardHide: UseBlurOnKeyboardHide = (ref) => {
         });
 
         // Only width changes count, because the soft keyboard itself changes the window height on Android.
-        const dimensionsSubscription = Dimensions.addEventListener('change', ({window}) => {
+        const dimensionsSubscription = Dimensions.addEventListener('change', ({window}: {window: ScaledSize}) => {
             if (window.width === lastWindowWidth) {
                 return;
             }

@@ -13,6 +13,7 @@ function createMockSearchContext(): {state: SearchStateContextValue; actions: Se
         currentSearchResults: undefined,
         currentSearchTransactionsByReportID: new Map(),
         currentSearchViolations: undefined,
+        approvalWorkflowRules: undefined,
         currentSelectedTransactionReportID: undefined,
         selectedReports: [],
         selectedTransactionIDs: [],

@@ -12,7 +12,7 @@ import type {ErrorFields} from '@src/types/onyx/OnyxCommon';
 import React from 'react';
 import {View} from 'react-native';
 
-import type {InputComponentBaseProps, InputRefs} from '../../../../src/components/Form/types';
+import type {FormProps, InputComponentBaseProps, InputRefs} from '../../../../src/components/Form/types';
 
 jest.mock('@hooks/useLocalize', () =>
     jest.fn(() => ({
@@ -49,11 +49,13 @@ function renderFormWrapper({
     serverErrorFields,
     inputRefs,
     shouldScrollChildToFocus,
+    scrollViewRef,
 }: {
     errors?: Record<string, string>;
     serverErrorFields?: ErrorFields | null;
     inputRefs: React.RefObject<InputRefs>;
     shouldScrollChildToFocus?: boolean;
+    scrollViewRef?: FormProps['scrollViewRef'];
 }) {
     return render(
         <FormContext.Provider
@@ -72,6 +74,7 @@ function renderFormWrapper({
                 isAlertVisible
                 serverErrorFields={serverErrorFields}
                 shouldScrollChildToFocus={shouldScrollChildToFocus}
+                scrollViewRef={scrollViewRef}
             >
                 {null}
             </FormWrapper>
@@ -91,6 +94,19 @@ function createFocusableInput(inputID: string): InputComponentBaseProps {
 describe('FormWrapper', () => {
     beforeEach(() => {
         jest.clearAllMocks();
+    });
+
+    it("gives the caller's scroll view ref the form's scroll view", () => {
+        // Given a caller that needs the form's scroll view, e.g. for useKeyboardDrivenScroll
+        // React fills current on an object ref, which is all FormWrapper needs from the animated ref
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- see the comment above
+        const scrollViewRef = {current: null} as unknown as NonNullable<FormProps['scrollViewRef']>;
+
+        // When the form renders
+        renderFormWrapper({inputRefs: {current: {}}, scrollViewRef});
+
+        // Then the ref points at the scroll view
+        expect(scrollViewRef.current).not.toBeNull();
     });
 
     it('focuses the first local validation error before server field errors', () => {

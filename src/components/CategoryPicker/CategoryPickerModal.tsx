@@ -20,7 +20,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {WithSentryLabelWhenPressable} from '@src/types/utils/SentryLabel';
 
-import {policyCategoriesVisibilitySelector} from '@selectors/PolicyCategories';
+import policyCategoriesVisibilitySelector from '@selectors/PolicyCategories';
 import React, {useLayoutEffect, useState} from 'react';
 
 import CategoryPicker from '.';
@@ -48,7 +48,7 @@ type CategoryPickerModalProps = WithSentryLabelWhenPressable<'onAddCategory', 'a
 
     /** The account the expense belongs to, passed only when the current user owns it, so the list shows just the categories they can use */
     ownerAccountID?: number;
-} & Omit<AnchoredSelectionListPopoverProps, 'optionCount' | 'isSearchable' | 'title' | 'backButtonSentryLabel' | 'headerActions' | 'shouldShowHeader' | 'children'>;
+} & Omit<AnchoredSelectionListPopoverProps, 'optionCount' | 'isSearchable' | 'title' | 'backButtonSentryLabel' | 'headerActions' | 'children'>;
 
 function CategoryPickerModal({
     policyID,
@@ -62,6 +62,7 @@ function CategoryPickerModal({
     ownerAccountID,
     isVisible,
     onClose,
+    shouldShowHeader = false,
     ...popoverProps
 }: CategoryPickerModalProps) {
     const theme = useTheme();
@@ -107,7 +108,7 @@ function CategoryPickerModal({
             isSearchable={categoriesCount >= searchInputThreshold}
             title={translate('common.category')}
             backButtonSentryLabel={CONST.SENTRY_LABEL.CATEGORY_PICKER_MODAL.BACK_BUTTON}
-            shouldShowHeader={!!onAddCategory}
+            shouldShowHeader={shouldShowHeader || !!onAddCategory}
             headerActions={
                 !!onAddCategory && (
                     <Tooltip text={translate('workspace.categories.addCategory')}>
