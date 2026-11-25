@@ -331,3 +331,11 @@
 - E/App issue: https://github.com/Expensify/App/issues/104743
 - PR introducing patch: https://github.com/Expensify/App/pull/106278
 - Removal: drop this patch once the adopted React Native release clears the deferred delete when the tag is created again.
+
+### [react-native+0.88.0+039+process-responder-events-for-unmounted-targets.patch](react-native+0.88.0+039+process-responder-events-for-unmounted-targets.patch)
+
+- Reason: With `enableNativeEventTargetEventDispatching` the Fabric renderer only calls `dispatchNativeEvent` when the event target still has a public instance. A touch that ends after its view unmounted is therefore dropped before it reaches `processResponderEvent`, so the old responder is never released and `trackedTouchCount` stays one too high. The next touch then negotiates against that detached responder, finds no common ancestor and gets no responder, so it is swallowed. On Android this broke dismissing a bottom sheet by tapping its backdrop: `Backdrop` closes the modal `onPressIn` and unmounts while the finger is still down, so the next tap on `More` (or any other tap) did nothing. The patch backports the upstream fix: `dispatchNativeEvent` accepts a missing target and returns right after the responder step, and the dev, prod and profiling Fabric renderers call it for a missing target too.
+- Upstream PR/issue: [react-native#59522](https://github.com/react/react-native/pull/59522) and [react-native#59546](https://github.com/react/react-native/pull/59546), on `main` since 2026-10-27, not in 0.88.1.
+- E/App issue: https://github.com/Expensify/App/issues/101427
+- PR introducing patch: https://github.com/Expensify/App/pull/101739
+- Removal: drop this patch once the adopted React Native release contains `f754dbd20a` and `eb90a8d251`.
