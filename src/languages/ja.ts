@@ -11348,7 +11348,6 @@ ${reportName}`,
             updateExisting: '既存のものを更新',
         },
         chartValueUnavailable: '利用できません',
-        seriesInPeriod: ({series, period}: {series: string; period: string}) => `${series} ${period}`,
     },
     genericErrorPage: {
         title: 'おっと、問題が発生しました！',

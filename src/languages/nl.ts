@@ -11510,7 +11510,6 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
             updateExisting: 'Bestaande bijwerken',
         },
         chartValueUnavailable: 'Niet beschikbaar',
-        seriesInPeriod: ({series, period}: {series: string; period: string}) => `${series} ${period}`,
     },
     genericErrorPage: {
         title: 'Oeps, er is iets misgegaan!',

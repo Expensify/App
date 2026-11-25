@@ -11561,7 +11561,6 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
             updateExisting: 'Zaktualizuj istniejące',
         },
         chartValueUnavailable: 'Niedostępne',
-        seriesInPeriod: ({series, period}: {series: string; period: string}) => `${series} ${period}`,
     },
     genericErrorPage: {
         title: 'Ups, coś poszło nie tak!',

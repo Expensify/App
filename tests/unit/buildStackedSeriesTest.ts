@@ -321,6 +321,9 @@ describe('buildStackedSeries', () => {
             },
         ]);
 
+        // And only the comparison stack gets a shared legend label, so the current stages can name both sets of swatches.
+        expect(series.map(({stackLabel}) => stackLabel)).toEqual([undefined, undefined, undefined, 'Previous period', 'Previous period', 'Previous period']);
+
         // And each month holds both periods' segments, with this February's missing approval still marked unavailable
         const [january, february] = rows;
         expect(january?.point.values).toEqual({

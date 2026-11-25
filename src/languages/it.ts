@@ -11540,7 +11540,6 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
             updateExisting: 'Aggiorna esistente',
         },
         chartValueUnavailable: 'Non disponibile',
-        seriesInPeriod: ({series, period}: {series: string; period: string}) => `${series} ${period}`,
     },
     genericErrorPage: {
         title: 'Oops, qualcosa è andato storto!',

@@ -11655,7 +11655,6 @@ const translations = {
         spendOverTime: 'Spend over time',
         periodSoFar: ({period}: {period: string}) => `${period} so far`,
         chartValueUnavailable: 'Unavailable',
-        seriesInPeriod: ({series, period}: {series: string; period: string}) => `${series} ${period}`,
         weekOf: ({date}: {date: string}) => `Week of ${date}`,
         groupedExpenses: 'grouped expenses',
         bulkActions: {

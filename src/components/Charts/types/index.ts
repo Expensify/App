@@ -22,7 +22,7 @@ type ChartSeries = {
     /** Set on a stacked bar chart's series: the stack the series is a segment of. Series sharing it are stacked in drawing order, bottom first. */
     stackIndex?: number;
 
-    /** Names the period the series' stack covers, like "Jan 1 - Mar 31, 2026" */
+    /** Groups the stack's swatches under one legend label instead of naming each segment. */
     stackLabel?: string;
 };
 

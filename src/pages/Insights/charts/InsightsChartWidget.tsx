@@ -58,7 +58,7 @@ import type {InsightsChartMenuAction} from './InsightsChartMenu';
 import InsightsChartMenu from './InsightsChartMenu';
 import InsightsChartSummary, {InsightsChartSummarySkeleton} from './InsightsChartSummary';
 import InsightsDataTable from './InsightsDataTable';
-import {getEfficiencyHeadlineAverage} from './insightsHeadlineValues';
+import {getEfficiencyHeadlineAverage, getEfficiencyHeadlineStages} from './insightsHeadlineValues';
 import InsightsRankingTable from './InsightsRankingTable';
 import InsightsTrackedFromNote from './InsightsTrackedFromNote';
 
@@ -88,6 +88,7 @@ type InsightsChartWidgetProps = {
 
     isHeadline?: boolean;
 
+    /** Keeps the summary skeleton visible when cached chart data is ready but the dashboard response is pending. */
     shouldWaitForSummary?: boolean;
 
     /** Whether GetInsights answered the dashboard's query */
@@ -179,7 +180,7 @@ function InsightsChartWidget({
         }
     }
 
-    const efficiencyAverage = getEfficiencyHeadlineAverage(headlineSummary?.current, stages);
+    const efficiencyAverage = getEfficiencyHeadlineAverage(getEfficiencyHeadlineStages(headlineSummary?.current, stages));
     const chartAverage = efficiencyAverage === undefined ? average : {...average, [CONST.SEARCH.CHART_METRIC.DURATION]: efficiencyAverage};
     const {data, state, comparison} = useInsightsChartData(
         {chart, queryJSON, snapshot, previousPeriodQueryJSON, previousPeriodSnapshot, averageQueryJSON, averageSnapshot, average: chartAverage, isDashboardLoaded, stages},

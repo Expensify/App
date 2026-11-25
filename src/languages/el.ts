@@ -11785,7 +11785,6 @@ ${reportName}`,
             updateExisting: 'Ενημέρωση υπάρχοντος',
         },
         chartValueUnavailable: 'Μη διαθέσιμο',
-        seriesInPeriod: ({series, period}: {series: string; period: string}) => `${series} ${period}`,
     },
     genericErrorPage: {
         title: 'Ωχ, κάτι πήγε στραβά!',

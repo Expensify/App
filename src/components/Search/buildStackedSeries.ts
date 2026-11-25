@@ -18,7 +18,7 @@ import type {GroupedItem, SearchChartDataRow, SearchGroupBy} from './types';
 
 import {CHART_SERIES_KEY, getAverageLabelKey, isChartAverage} from './buildChartSeries';
 import CHART_GROUP_BY_CONFIG from './chartGroupByConfig';
-import {formatDates, getComparedBucketLabels, getCounterpartBucketRange, getPositionInPrimaryPeriod, getUnpairedBucketLabels, isTimeGroupBy} from './comparisonBuckets';
+import {getComparedBucketLabels, getCounterpartBucketRange, getPositionInPrimaryPeriod, getUnpairedBucketLabels, isTimeGroupBy} from './comparisonBuckets';
 
 /** Position of each period's stack among the stacks of a bucket */
 const STACK_INDEX = {
@@ -228,16 +228,16 @@ function buildStackedSeries({
         })
         .map(({row}) => row);
 
-    const buildStackSeries = (stackIndex: number, period: ChartComparisonPeriods['primary'] | undefined) =>
+    const buildStackSeries = (stackIndex: number, stackLabel?: string) =>
         stages.map((stage): ChartSeries => ({
             key: getStackSeriesKey(stackIndex, stage.key),
             label: stage.label,
             color: stackIndex === STACK_INDEX.PRIMARY ? stage.color : stage.comparisonColor,
             stackIndex,
-            stackLabel: period && formatDates(period, dateFnsLocale),
+            stackLabel,
         }));
-    const [firstSeries, ...otherPrimarySeries] = buildStackSeries(STACK_INDEX.PRIMARY, periods?.primary);
-    const comparisonSeries = periods ? buildStackSeries(STACK_INDEX.COMPARISON, periods.comparison) : [];
+    const [firstSeries, ...otherPrimarySeries] = buildStackSeries(STACK_INDEX.PRIMARY);
+    const comparisonSeries = periods ? buildStackSeries(STACK_INDEX.COMPARISON, translate('insightsPage.compare.previousPeriod')) : [];
     const averageSeries: ChartSeries[] =
         averageValue === undefined
             ? []

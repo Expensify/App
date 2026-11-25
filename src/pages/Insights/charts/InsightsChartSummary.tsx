@@ -90,16 +90,16 @@ function InsightsChartSummary({summary, stages, currency, shouldShowChange}: Ins
             translate('insightsPage.headline.shareOfExpenses', formatPercent(current.eligibleExpenses ? current.flaggedExpenses / current.eligibleExpenses : 0, 1)),
         ];
     } else {
-        const average = getEfficiencyHeadlineAverage(current, stages);
+        const currentStages = getEfficiencyHeadlineStages(current, stages);
+        const average = getEfficiencyHeadlineAverage(currentStages);
         if (average === undefined) {
             return null;
         }
         value = average;
-        const currentStages = getEfficiencyHeadlineStages(current, stages);
         const previousStages = getEfficiencyHeadlineStages(previous, stages);
         // Missing stages are not zero-length stages, so only compare totals for the same stages.
         if (currentStages.length === previousStages.length && currentStages.every(({workflowStage}, index) => workflowStage === previousStages.at(index)?.workflowStage)) {
-            previousValue = previousStages.reduce((total, stage) => total + stage.duration, 0);
+            previousValue = getEfficiencyHeadlineAverage(previousStages);
         }
         isDuration = true;
         headline = formatDuration(value);

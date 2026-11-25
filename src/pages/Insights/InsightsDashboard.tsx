@@ -481,6 +481,9 @@ function InsightsDashboard({dashboardID, accessibleDashboards}: {dashboardID: In
             [queryJSON, previousPeriodQueryJSON, averageQueryJSON].flatMap((chartQueryJSON) => (chartQueryJSON ? [String(chartQueryJSON.hash)] : [])),
         ),
     );
+    const isDashboardLoaded = hasDashboardResponse(dashboard);
+    // A cached chart can appear before its summary arrives. Don't keep the skeleton up offline or after a failed request.
+    const shouldWaitForSummary = !isOffline && !isDashboardLoaded && !dashboard?.responseJsonCode && !dashboard?.errors;
     const charts = visibleChartQueries.map((chartQuery): InsightsDashboardChart => {
         const graph = dashboard?.graphs?.[chartQuery.chart.graphKey];
         return {
@@ -493,10 +496,9 @@ function InsightsDashboard({dashboardID, accessibleDashboards}: {dashboardID: In
                 [CONST.SEARCH.CHART_METRIC.COUNT]: graph?.averageCount,
                 [CONST.SEARCH.CHART_METRIC.DURATION]: graph?.averageDuration,
             },
-            isDashboardLoaded: hasDashboardResponse(dashboard),
+            isDashboardLoaded,
             headlineSummary: graph?.headlineSummary,
-            // A cached chart can appear before its summary arrives. Don't keep the skeleton up offline or after a failed request.
-            shouldWaitForSummary: !isOffline && !hasDashboardResponse(dashboard) && !dashboard?.responseJsonCode && !dashboard?.errors,
+            shouldWaitForSummary,
             stages: getEnabledStages(chartQuery.chart, policiesInScope, login, isDashboardPolicyEligible),
         };
     });

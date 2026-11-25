@@ -20,9 +20,7 @@ import {getBarLayout, getCartesianPlotBounds, getSteppedLabelLayout, getXAxisLab
 import {getBarChartHeight, getXAxisLabelSpace} from '@components/Charts/utils/chartHeights';
 import {getSeriesStacks, getStackTotalsData, getStackTotalSeries} from '@components/Charts/utils/stackedBars';
 import VictoryTheme, {CARTESIAN_Y_AXIS, GLYPH_PADDING, MAX_BAR_LABEL_LINES} from '@components/Charts/VictoryTheme';
-import Text from '@components/Text';
 
-import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -32,7 +30,6 @@ import variables from '@styles/variables';
 import type {TupleToUnion} from 'type-fest';
 import type {CartesianChartRenderArg, ChartBounds, PointsArray, Scale} from 'victory-native';
 
-import {View} from 'react-native';
 import {GestureDetector} from 'react-native-gesture-handler';
 import Animated, {useAnimatedStyle, useSharedValue} from 'react-native-reanimated';
 import {Group, Skia} from 'react-native-skia';
@@ -40,6 +37,8 @@ import {Bar, CartesianChart, StackedBar} from 'victory-native';
 
 import type BarChartProps from './types';
 import type {BarChartContentProps} from './types';
+
+import StackedBarChartLegend from './StackedBarChartLegend';
 
 type VerticalBarChartCanvasProps = Omit<BarChartProps, 'isLoading'> & CartesianCanvasInputs;
 
@@ -63,7 +62,6 @@ function VerticalBarChartCanvas({
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const {translate} = useLocalize();
 
     const seriesKeys = series.map((seriesItem) => seriesItem.key);
     const barSeries = series.filter((seriesItem) => !seriesItem.isAverage);
@@ -423,27 +421,9 @@ function VerticalBarChartCanvas({
         return chart;
     }
 
-    // Stacked segments share their bar, so the legend is what names them. Each stage is listed once per period, the period named only when there are several.
     return (
         <>
-            <View style={[styles.pieChartLegendContainer, styles.justifyContentStart, styles.mh0, styles.mt0, styles.mb3]}>
-                {stacks.flat().map((seriesItem) => (
-                    <View
-                        key={`legend-${seriesItem.key}`}
-                        style={[styles.flexRow, styles.alignItemsCenter]}
-                    >
-                        <View style={[styles.pieChartLegendDot, StyleUtils.getBackgroundColorStyle(seriesItem.color ?? VictoryTheme.colors.default)]} />
-                        <Text style={[styles.pieChartLegendLabel, StyleUtils.getColorStyle(theme.icon), styles.ml2]}>
-                            {stacks.length > 1 && seriesItem.stackLabel && seriesItem.label
-                                ? translate('search.seriesInPeriod', {
-                                      series: seriesItem.label,
-                                      period: seriesItem.stackLabel,
-                                  })
-                                : seriesItem.label}
-                        </Text>
-                    </View>
-                ))}
-            </View>
+            <StackedBarChartLegend stacks={stacks} />
             {chart}
         </>
     );
