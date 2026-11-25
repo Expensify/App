@@ -3,7 +3,7 @@ import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getCombinedReportActions, getFilteredReportActionsForReportView, isCreatedAction} from '@libs/ReportActionsUtils';
 import {isConciergeChatReport, isInvoiceReport, isMoneyRequestReport, isReportTransactionThread as isReportTransactionThreadUtil, shouldReportAlignToTop} from '@libs/ReportUtils';
 
-import getReportActionsToDisplay from '@pages/inbox/report/getReportActionsToDisplay';
+import getReportActionsToDisplay, {buildPlaceholderCreatedAction, buildPlaceholderExpenseAction} from '@pages/inbox/report/getReportActionsToDisplay';
 
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report, ReportAction} from '@src/types/onyx';
@@ -40,8 +40,6 @@ type UseReportActionsPaginationResult = {
 function useReportActionsPagination(reportID: string | undefined, reportActionIDFromRoute: string | undefined): UseReportActionsPaginationResult {
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
     const {isOffline} = useNetwork();
-    const {getCurrencyDecimals} = useCurrencyListActions();
-    const delegateAccountID = useDelegateAccountID();
     const parentReportAction = useParentReportAction(report);
 
     const [treatAsNoPaginationAnchor, setTreatAsNoPaginationAnchor] = useState(false);
@@ -67,15 +65,19 @@ function useReportActionsPagination(reportID: string | undefined, reportActionID
 
     const [chatReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(report?.chatReportID)}`);
 
+    const oldestActionForPlaceholder = getFilteredReportActionsForReportView(unfilteredReportActions).at(-1);
+    const {placeholderCreatedAction, placeholderExpenseAction} = usePlaceholderReportActions({
+        reportID,
+        ownerAccountID: report?.ownerAccountID,
+        oldestActionCreated: oldestActionForPlaceholder?.created,
+        shouldAddCreatedAction:
+            !isCreatedAction(oldestActionForPlaceholder) &&
+            (isMoneyRequestReport(report) || isInvoiceReport(report) || isReportTransactionThreadUtil(report) || isConciergeChatReport(report, conciergeReportID)),
+        shouldAddExpenseAction: isMoneyRequestReport(report) && !!report?.total,
+    });
+
     // React Compiler does not memoize a value created before a hook call and used after it, so these are computed again below the last hook.
     const allReportActions = getFilteredReportActionsForReportView(unfilteredReportActions);
-    const isConciergeChat = isConciergeChatReport(report, conciergeReportID);
-
-    const isReportTransactionThread = isReportTransactionThreadUtil(report);
-
-    const lastAction = allReportActions?.at(-1);
-    const shouldAddCreatedAction = !isCreatedAction(lastAction) && (isMoneyRequestReport(report) || isInvoiceReport(report) || isReportTransactionThread || isConciergeChat);
-
     const reportPreviewAction = getReportPreviewReportAction(report?.chatReportID, report?.reportID, chatReportActions);
 
     // When we are offline before opening an IOU/Expense report,
@@ -83,16 +85,14 @@ function useReportActionsPagination(reportID: string | undefined, reportActionID
     // We generate a fake created action here if it doesn't exist to display the total whenever possible because the total just depends on report data
     // and we also generate an expense action if the number of expenses in allReportActions is less than the total number of expenses
     // to display at least one expense action to match the total data.
-    const reportActionsToDisplay = getReportActionsToDisplay(
-        allReportActions,
-        lastAction,
-        report,
+    const reportActionsToDisplay = getReportActionsToDisplay({
+        reportViewActions: allReportActions,
+        isMoneyRequestReport: isMoneyRequestReport(report),
         reportPreviewAction,
-        thread.transactionThreadReport,
-        shouldAddCreatedAction,
-        getCurrencyDecimals,
-        delegateAccountID,
-    );
+        transactionThreadReport: thread.transactionThreadReport,
+        placeholderCreatedAction,
+        placeholderExpenseAction,
+    });
 
     const reportActions = reportActionsToDisplay
         ? getCombinedReportActions(reportActionsToDisplay, thread.transactionThreadReportID ?? null, thread.transactionThreadReportActions ?? [])
@@ -119,6 +119,25 @@ function useReportActionsPagination(reportID: string | undefined, reportActionID
         setTreatAsNoPaginationAnchor,
         reportPreviewAction,
     };
+}
+
+type PlaceholderReportActionsParams = {
+    reportID: string | undefined;
+    ownerAccountID: number | undefined;
+    oldestActionCreated: string | undefined;
+    shouldAddCreatedAction: boolean;
+    shouldAddExpenseAction: boolean;
+};
+
+/** Isolates placeholder inputs so unrelated Onyx writes cannot invalidate their compiler cache. */
+function usePlaceholderReportActions({reportID, ownerAccountID, oldestActionCreated, shouldAddCreatedAction, shouldAddExpenseAction}: PlaceholderReportActionsParams) {
+    const {getCurrencyDecimals} = useCurrencyListActions();
+    const delegateAccountID = useDelegateAccountID();
+    const placeholderCreatedAction = shouldAddCreatedAction ? buildPlaceholderCreatedAction(reportID, ownerAccountID, oldestActionCreated) : undefined;
+    const placeholderExpenseAction = shouldAddExpenseAction
+        ? buildPlaceholderExpenseAction(reportID, placeholderCreatedAction?.created ?? oldestActionCreated, delegateAccountID, getCurrencyDecimals)
+        : undefined;
+    return {placeholderCreatedAction, placeholderExpenseAction};
 }
 
 export default useReportActionsPagination;
