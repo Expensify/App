@@ -487,8 +487,8 @@ function SubscriptionPlanSettings({planTitle, planIcon, subscriptionPlan}: Subsc
                     </View>
                 </>
             )}
-            {/* The ad row already has 12px padding, so margin below the line would stack. Margin above keeps the hover off the line. */}
-            <View style={[styles.sectionDividerLine, styles.mt3]} />
+            {/* The save row supplies the space below the line, so a margin here would stack. */}
+            <View style={[styles.sectionDividerLine, styles.mt5]} />
             <SaveWithExpensifyRow />
         </View>
     );

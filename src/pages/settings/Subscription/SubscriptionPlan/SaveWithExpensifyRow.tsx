@@ -18,7 +18,7 @@ function SaveWithExpensifyRow() {
     const illustrations = useMemoizedLazyIllustrations(['HandCard']);
 
     return (
-        <View style={[styles.flexRow, styles.alignItemsCenter, styles.pv3]}>
+        <View style={[styles.flexRow, styles.alignItemsCenter, styles.pt5, styles.pb3]}>
             <Icon
                 src={illustrations.HandCard}
                 width={variables.iconHeader}
