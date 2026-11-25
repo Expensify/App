@@ -80,7 +80,6 @@ type SendInvoiceInformation = {
 
 type SendInvoiceOptions = {
     transaction: OnyxEntry<OnyxTypes.Transaction>;
-    currentUserAccountID: number;
     currentUserPersonalDetails: CurrentUserPersonalDetails;
     policyRecentlyUsedCurrencies: string[];
     invoiceChatReport?: OnyxEntry<OnyxTypes.Report>;
@@ -625,7 +624,6 @@ function getReceiverType(receiverParticipant: Participant | InvoiceReceiver | un
 /** Gathers all the data needed to create an invoice. */
 function getSendInvoiceInformation({
     transaction,
-    currentUserAccountID,
     currentUserPersonalDetails,
     policyRecentlyUsedCurrencies,
     invoiceChatReport,
@@ -643,6 +641,7 @@ function getSendInvoiceInformation({
     delegateAccountID,
     getCurrencyDecimals,
 }: SendInvoiceOptions): SendInvoiceInformation {
+    const currentUserAccountID = currentUserPersonalDetails.accountID;
     const {
         amount = 0,
         currency = '',
@@ -794,7 +793,6 @@ function getSendInvoiceInformation({
 }
 
 function sendInvoice({
-    currentUserAccountID,
     currentUserPersonalDetails,
     transaction,
     policyRecentlyUsedCurrencies,
@@ -835,7 +833,6 @@ function sendInvoice({
         onyxData,
     } = getSendInvoiceInformation({
         transaction,
-        currentUserAccountID,
         currentUserPersonalDetails,
         policyRecentlyUsedCurrencies,
         invoiceChatReportID,
@@ -859,7 +856,7 @@ function sendInvoice({
         createdReportActionIDForThread,
         reportActionID,
         senderWorkspaceID,
-        accountID: currentUserAccountID,
+        accountID: currentUserPersonalDetails.accountID,
         amount: transaction?.amount ?? 0,
         currency: transaction?.currency ?? '',
         comment: parsedComment,

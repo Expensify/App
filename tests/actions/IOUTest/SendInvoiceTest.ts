@@ -4,6 +4,7 @@ import type {RenderAPI} from '@testing-library/react-native';
 import {getReceiverType, getSendInvoiceInformation, sendInvoice} from '@libs/actions/IOU/SendInvoice';
 import initOnyxDerivedValues from '@libs/actions/OnyxDerived';
 import {WRITE_COMMANDS} from '@libs/API/types';
+import {buildSearchQueryJSON} from '@libs/SearchQueryUtils';
 
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
@@ -206,7 +207,6 @@ describe('actions/SendInvoice', () => {
             // When: Call getSendInvoiceInformation with policyRecentlyUsedCategories
             const result = getSendInvoiceInformation({
                 transaction: baseTransaction,
-                currentUserAccountID,
                 currentUserPersonalDetails: {accountID: currentUserAccountID},
                 policyRecentlyUsedCurrencies: [],
                 invoiceChatReport: undefined,
@@ -235,7 +235,6 @@ describe('actions/SendInvoice', () => {
 
             const result = getSendInvoiceInformation({
                 transaction: {...baseTransaction, currency: CONST.CURRENCY.EUR},
-                currentUserAccountID,
                 currentUserPersonalDetails: {accountID: currentUserAccountID},
                 policyRecentlyUsedCurrencies: initialCurrencies,
                 invoiceChatReport: undefined,
@@ -290,7 +289,6 @@ describe('actions/SendInvoice', () => {
             // When: Call getSendInvoiceInformation
             const result = getSendInvoiceInformation({
                 transaction: baseTransaction,
-                currentUserAccountID,
                 currentUserPersonalDetails: {accountID: currentUserAccountID},
                 policyRecentlyUsedCurrencies: [],
                 invoiceChatReport: undefined,
@@ -340,7 +338,6 @@ describe('actions/SendInvoice', () => {
 
             const result = getSendInvoiceInformation({
                 transaction: baseTransaction,
-                currentUserAccountID,
                 currentUserPersonalDetails: {accountID: currentUserAccountID},
                 policyRecentlyUsedCurrencies: [],
                 invoiceChatReport: undefined,
@@ -382,7 +379,6 @@ describe('actions/SendInvoice', () => {
 
             const result = getSendInvoiceInformation({
                 transaction,
-                currentUserAccountID,
                 currentUserPersonalDetails: {accountID: currentUserAccountID},
                 policyRecentlyUsedCurrencies: [],
                 invoiceChatReport: existingInvoiceChatReportFixture,
@@ -421,7 +417,6 @@ describe('actions/SendInvoice', () => {
 
                 const result = getSendInvoiceInformation({
                     transaction: baseTransaction,
-                    currentUserAccountID: 123,
                     currentUserPersonalDetails: {accountID: 123},
                     policyRecentlyUsedCurrencies: [],
                     invoiceChatReport: undefined,
@@ -465,7 +460,6 @@ describe('actions/SendInvoice', () => {
             // When: Call getSendInvoiceInformation with existing chat report
             const result = getSendInvoiceInformation({
                 transaction,
-                currentUserAccountID,
                 currentUserPersonalDetails: {accountID: currentUserAccountID},
                 policyRecentlyUsedCurrencies: [],
                 invoiceChatReport: existingInvoiceChatReportFixture,
@@ -505,7 +499,6 @@ describe('actions/SendInvoice', () => {
             // When: Call getSendInvoiceInformation with receipt
             const result = getSendInvoiceInformation({
                 transaction: baseTransaction,
-                currentUserAccountID,
                 currentUserPersonalDetails: {accountID: currentUserAccountID},
                 policyRecentlyUsedCurrencies: [],
                 invoiceChatReport: undefined,
@@ -558,7 +551,6 @@ describe('actions/SendInvoice', () => {
             // When: Call getSendInvoiceInformation with minimal data
             const result = getSendInvoiceInformation({
                 transaction: mockTransaction,
-                currentUserAccountID,
                 currentUserPersonalDetails: {accountID: currentUserAccountID},
                 policyRecentlyUsedCurrencies: [],
                 invoiceChatReport: undefined,
@@ -591,7 +583,6 @@ describe('actions/SendInvoice', () => {
 
             const result = getSendInvoiceInformation({
                 transaction: baseTransaction,
-                currentUserAccountID,
                 currentUserPersonalDetails: {accountID: currentUserAccountID},
                 policyRecentlyUsedCurrencies: [],
                 invoiceChatReport: undefined,
@@ -645,7 +636,6 @@ describe('actions/SendInvoice', () => {
 
             const result = getSendInvoiceInformation({
                 transaction: baseTransaction,
-                currentUserAccountID,
                 currentUserPersonalDetails: {accountID: currentUserAccountID},
                 policyRecentlyUsedCurrencies: [],
                 invoiceChatReport: existingInvoiceChatReport,
@@ -710,7 +700,6 @@ describe('actions/SendInvoice', () => {
             // When: Call getSendInvoiceInformation with senderPolicyTags read from Onyx
             const result = getSendInvoiceInformation({
                 transaction: mockTransaction,
-                currentUserAccountID: 123,
                 currentUserPersonalDetails: {accountID: 123},
                 policyRecentlyUsedCurrencies: [],
                 policyRecentlyUsedTags,
@@ -762,7 +751,6 @@ describe('actions/SendInvoice', () => {
             // When: Call getSendInvoiceInformation without a tag on the transaction
             const result = getSendInvoiceInformation({
                 transaction: mockTransaction,
-                currentUserAccountID: 123,
                 currentUserPersonalDetails: {accountID: 123},
                 policyRecentlyUsedCurrencies: [],
                 senderPolicyTags: senderPolicyTags ?? {},
@@ -794,7 +782,6 @@ describe('actions/SendInvoice', () => {
 
             // When the user sends a new invoice to an individual
             sendInvoice({
-                currentUserAccountID,
                 currentUserPersonalDetails: {accountID: currentUserAccountID},
                 transaction,
                 policyRecentlyUsedCurrencies: [],
@@ -842,7 +829,6 @@ describe('actions/SendInvoice', () => {
             });
 
             sendInvoice({
-                currentUserAccountID: 123,
                 currentUserPersonalDetails: {accountID: 123},
                 transaction,
                 policyRecentlyUsedCurrencies: [],
@@ -872,6 +858,67 @@ describe('actions/SendInvoice', () => {
             }
         });
 
+        it('writes the passed sender details into the invoice search snapshot', async () => {
+            // Given a loaded type:invoice snapshot, so getSearchOnyxUpdate has a recorded query to patch
+            const queryJSON = buildSearchQueryJSON('type:invoice');
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.SNAPSHOT}${queryJSON?.hash}`, {search: {inputQuery: 'type:invoice'}});
+            await waitForBatchedUpdates();
+
+            const writeSpy = jest.fn();
+            const apiSpies = spyOnApiWrites(writeSpy);
+
+            // And sender details that differ from what Onyx holds for the session user, so the Onyx fallback can't satisfy the assertion
+            const senderAccountID = 32;
+            const currentUserPersonalDetails = {accountID: senderAccountID, displayName: 'Sender', login: 'sender@test.com', avatar: 'https://avatar.png'};
+            const transaction = createMock<Transaction>({
+                transactionID: 'transaction_sender_snapshot',
+                reportID: 'report_sender_snapshot',
+                amount: 100,
+                currency: 'USD',
+                created: '2024-02-01',
+                merchant: 'Sender Invoice',
+                participants: [
+                    {accountID: senderAccountID, isSender: true, policyID: 'workspace_test'},
+                    {accountID: 456, isSender: false, login: 'receiver@test.com'},
+                ],
+            });
+
+            // When the invoice is sent
+            sendInvoice({
+                currentUserPersonalDetails,
+                transaction,
+                policyRecentlyUsedCurrencies: [],
+                senderPolicyTags: undefined,
+                formatPhoneNumber,
+                delegateAccountID: undefined,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+            });
+
+            // Then the snapshot gets the sender from the passed details, not from the Onyx fallback
+            expect(writeSpy).toHaveBeenCalledWith(
+                WRITE_COMMANDS.SEND_INVOICE,
+                expect.anything(),
+                expect.objectContaining({
+                    optimisticData: expect.arrayContaining([
+                        expect.objectContaining({
+                            key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${queryJSON?.hash}`,
+                            value: expect.objectContaining({
+                                data: expect.objectContaining({
+                                    [ONYXKEYS.PERSONAL_DETAILS_LIST]: expect.objectContaining({
+                                        [senderAccountID]: expect.objectContaining({displayName: 'Sender', avatar: 'https://avatar.png', login: 'sender@test.com'}),
+                                    }),
+                                }),
+                            }),
+                        }),
+                    ]),
+                }),
+            );
+
+            for (const spy of apiSpies) {
+                spy.mockRestore();
+            }
+        });
+
         it('should not clear transaction pending action when send invoice fails', async () => {
             const testCurrency = CONST.CURRENCY.EUR;
             const transaction: Transaction = {
@@ -883,7 +930,6 @@ describe('actions/SendInvoice', () => {
 
             mockFetch.pause();
             sendInvoice({
-                currentUserAccountID: 1,
                 currentUserPersonalDetails: {accountID: 1},
                 transaction,
                 policyRecentlyUsedCurrencies: initialCurrencies,
@@ -925,7 +971,6 @@ describe('actions/SendInvoice', () => {
 
             // When sending an invoice
             sendInvoice({
-                currentUserAccountID,
                 currentUserPersonalDetails: {accountID: currentUserAccountID},
                 transaction,
                 policyRecentlyUsedCurrencies: [],
@@ -965,7 +1010,6 @@ describe('actions/SendInvoice', () => {
             };
             // When sending an invoice
             sendInvoice({
-                currentUserAccountID: 1,
                 currentUserPersonalDetails: {accountID: 1},
                 transaction,
                 policyRecentlyUsedCurrencies: [],
@@ -1011,7 +1055,6 @@ describe('actions/SendInvoice', () => {
             const apiSpies = spyOnApiWrites(writeSpy);
 
             sendInvoice({
-                currentUserAccountID: 123,
                 currentUserPersonalDetails: {accountID: 123},
                 transaction,
                 policyRecentlyUsedCurrencies: [],
