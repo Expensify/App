@@ -6,6 +6,7 @@ import useConfirmModal from '@hooks/useConfirmModal';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import useRunWithPaymentCard from '@hooks/useRunWithPaymentCard';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {getLatestError} from '@libs/ErrorUtils';
@@ -38,6 +39,7 @@ function DomainAdminsSettingsPage({route}: DomainAdminsSettingsPageProps) {
     const {translate} = useLocalize();
     const {showConfirmModal} = useConfirmModal();
     const {login: currentUserLogin} = useCurrentUserPersonalDetails();
+    const runWithPaymentCard = useRunWithPaymentCard();
 
     const [domainPendingActions] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`);
     const [domainErrors] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`);
@@ -88,7 +90,11 @@ function DomainAdminsSettingsPage({route}: DomainAdminsSettingsPageProps) {
                     if (!domainName) {
                         return;
                     }
-                    toggleConsolidatedDomainBilling(domainAccountID, domainName, value);
+                    if (!value) {
+                        toggleConsolidatedDomainBilling(domainAccountID, domainName, false);
+                        return;
+                    }
+                    runWithPaymentCard(() => toggleConsolidatedDomainBilling(domainAccountID, domainName, true));
                 }}
                 title={translate('domain.admins.consolidatedDomainBilling')}
                 subtitle={

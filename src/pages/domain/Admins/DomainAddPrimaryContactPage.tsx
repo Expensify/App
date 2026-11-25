@@ -4,10 +4,12 @@ import SelectionList from '@components/SelectionList';
 import InviteMemberListItem from '@components/SelectionList/ListItem/InviteMemberListItem';
 import type {ListItem} from '@components/SelectionList/types';
 
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import {useAllPersonalDetails} from '@hooks/usePersonalDetails';
+import useRunWithPaymentCard from '@hooks/useRunWithPaymentCard';
 
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {getSearchValueForPhoneOrEmail} from '@libs/OptionsListUtils';
@@ -42,6 +44,8 @@ type DomainAddPrimaryContactPageProps = PlatformStackScreenProps<SettingsNavigat
 function DomainAddPrimaryContactPage({route}: DomainAddPrimaryContactPageProps) {
     const {domainAccountID} = route.params;
     const {translate, formatPhoneNumber, localeCompare} = useLocalize();
+    const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
+    const runWithPaymentCard = useRunWithPaymentCard();
     const [adminAccountIDs] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {
         selector: adminAccountIDsSelector,
     });
@@ -127,10 +131,21 @@ function DomainAddPrimaryContactPage({route}: DomainAddPrimaryContactPageProps) 
                         if (!option.login || !option.accountID) {
                             return;
                         }
-                        if (option.login !== technicalContactSettings?.technicalContactEmail) {
-                            setPrimaryContact(domainAccountID, option.login, technicalContactSettings?.technicalContactEmail);
+                        if (option.login === technicalContactSettings?.technicalContactEmail) {
+                            Navigation.goBack(ROUTES.DOMAIN_ADMINS_SETTINGS.getRoute(domainAccountID));
+                            return;
                         }
-                        Navigation.goBack(ROUTES.DOMAIN_ADMINS_SETTINGS.getRoute(domainAccountID));
+                        const savePrimaryContact = () => {
+                            setPrimaryContact(domainAccountID, option.login, technicalContactSettings?.technicalContactEmail);
+                            Navigation.goBack(ROUTES.DOMAIN_ADMINS_SETTINGS.getRoute(domainAccountID));
+                        };
+
+                        // While consolidated billing is on, the new primary contact's card pays the domain's bills.
+                        if (technicalContactSettings?.useTechnicalContactBillingCard && option.accountID === currentUserAccountID) {
+                            runWithPaymentCard(savePrimaryContact);
+                            return;
+                        }
+                        savePrimaryContact();
                     }}
                     ListItem={InviteMemberListItem}
                     canSelectMultiple={false}
