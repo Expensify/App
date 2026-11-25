@@ -5992,11 +5992,29 @@ function isCreatedInRange(action: OnyxTypes.ReportAction, {start, end}: {start?:
     return (!start || createdDay >= start) && (!end || createdDay <= end);
 }
 
+/** Returns the account ID an `approver:` value names: the current user for `me`, the ID itself, or the member with that login among the response's people. */
+function getApproverAccountID(value: string, currentAccountID: number | undefined, personalDetails: OnyxTypes.SearchResults['data']['personalDetailsList'] | undefined): string | undefined {
+    if (value === CONST.SEARCH.ME) {
+        return currentAccountID === undefined ? undefined : String(currentAccountID);
+    }
+    if (/^\d+$/.test(value)) {
+        return value;
+    }
+    const member = Object.values(personalDetails ?? {}).find((details) => details?.login?.toLowerCase() === value.toLowerCase());
+    return member?.accountID === undefined ? undefined : String(member.accountID);
+}
+
 /**
  * Returns the actions without the submissions and approvals the query's filters rule out:
  * ones made outside its submission or approval dates, and approvals by someone other than its approvers.
+ * An approver filter naming someone the response doesn't identify rules nothing out, rather than every approval.
  */
-function getViolationSnapshotActions(reportActions: OnyxTypes.ReportAction[], queryJSON: SearchQueryJSON | undefined, currentAccountID: number | undefined): OnyxTypes.ReportAction[] {
+function getViolationSnapshotActions(
+    reportActions: OnyxTypes.ReportAction[],
+    queryJSON: SearchQueryJSON | undefined,
+    currentAccountID: number | undefined,
+    personalDetails?: OnyxTypes.SearchResults['data']['personalDetailsList'],
+): OnyxTypes.ReportAction[] {
     if (!queryJSON) {
         return reportActions;
     }
@@ -6004,7 +6022,8 @@ function getViolationSnapshotActions(reportActions: OnyxTypes.ReportAction[], qu
     const approvalRange = getDateFilterRange(queryJSON, CONST.SEARCH.SYNTAX_FILTER_KEYS.ANY_APPROVAL);
     const approverAccountIDLists = queryJSON.flatFilters
         .filter((filter) => filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.APPROVER && filter.filters.every(({operator}) => operator === CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO))
-        .map((filter) => filter.filters.map(({value}) => (value === CONST.SEARCH.ME ? String(currentAccountID) : String(value))));
+        .map((filter) => filter.filters.map(({value}) => getApproverAccountID(String(value), currentAccountID, personalDetails)))
+        .filter((accountIDs): accountIDs is string[] => accountIDs.every((accountID) => accountID !== undefined));
 
     return reportActions.filter((action) => {
         if (isSubmissionSnapshotAction(action)) {
@@ -6028,7 +6047,7 @@ function getViolationSnapshotActionsByTransactionID(
 ): Map<string, OnyxTypes.ReportAction[]> {
     const reportActions = Object.keys(data).flatMap((key) => (isReportActionEntry(key) ? Object.values(data[key] ?? {}) : []));
     const actionsByTransactionID = new Map<string, OnyxTypes.ReportAction[]>();
-    for (const action of getViolationSnapshotActions(reportActions, queryJSON, currentAccountID)) {
+    for (const action of getViolationSnapshotActions(reportActions, queryJSON, currentAccountID, data.personalDetailsList)) {
         if (!isSubmissionSnapshotAction(action) && !isApprovalSnapshotAction(action)) {
             continue;
         }

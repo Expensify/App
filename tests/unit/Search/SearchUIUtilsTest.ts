@@ -16886,6 +16886,38 @@ describe('SearchUIUtils', () => {
             expect(getIDs(result)).toEqual(['february']);
         });
 
+        test("reads an approver's email as the account the response lists with that login", () => {
+            // Given approvals by two approvers, and a Spend query typed with one approver's email, whose account the response lists
+            const actions = [
+                createAction('alices', CONST.REPORT.ACTIONS.TYPE.APPROVED, '2026-02-10 10:00:00', 5),
+                createAction('bobs', CONST.REPORT.ACTIONS.TYPE.APPROVED, '2026-02-10 10:00:00', 6),
+            ];
+            const queryJSON = buildSearchQueryJSON('type:expense approver:alice@example.com');
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- test-only: the people only carry the fields the lookup reads
+            const personalDetails = {
+                5: {accountID: 5, login: 'alice@example.com'},
+                6: {accountID: 6, login: 'bob@example.com'},
+            } as unknown as OnyxTypes.SearchResults['data']['personalDetailsList'];
+
+            // When the actions are narrowed to the query
+            const result = SearchUIUtils.getViolationSnapshotActions(actions, queryJSON, 1, personalDetails);
+
+            // Then only Alice's approval is kept, as Search matched her by that email
+            expect(getIDs(result)).toEqual(['alices']);
+        });
+
+        test("keeps every approval when the approver can't be identified", () => {
+            // Given an approval, and a query naming an approver by an email the response doesn't list
+            const actions = [createAction('approved', CONST.REPORT.ACTIONS.TYPE.APPROVED, '2026-02-10 10:00:00', 5)];
+            const queryJSON = buildSearchQueryJSON('type:expense approver:someone@example.com');
+
+            // When the actions are narrowed to the query
+            const result = SearchUIUtils.getViolationSnapshotActions(actions, queryJSON, 1, {});
+
+            // Then the approval stays, so the expense's violations still show instead of the column going blank
+            expect(getIDs(result)).toEqual(['approved']);
+        });
+
         test('keeps every action when the query has no submission, approval or approver filters', () => {
             // Given a submission and an approval, and a query on the expense date only
             const actions = [
