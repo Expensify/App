@@ -4552,9 +4552,10 @@ ${amount} για ${merchant} - ${date}`,
     },
     welcomeSignUpForm: {
         join: 'Συμμετοχή',
-        transactionalSMSConsent: 'Δίνοντας τον αριθμό τηλεφώνου μου, συμφωνώ να λαμβάνω ειδοποιήσεις συναλλαγών για τον λογαριασμό μου από την Expensify.',
-        transactionalSMSConsentFinePrint: 'Ενδέχεται να ισχύουν οι τυπικές χρεώσεις μηνυμάτων και δεδομένων. Απαντήστε STOP για διακοπή.',
+        smsConsentIntro: 'Δίνοντας τον αριθμό τηλεφώνου μου:',
+        transactionalSMSConsent: 'Συμφωνώ να λαμβάνω ειδοποιήσεις συναλλαγών για τον λογαριασμό μου από την Expensify.',
         marketingSMSConsent: 'Συμφωνώ να λαμβάνω προωθητικά μηνύματα από την Expensify.',
+        termsWithSMSRates: `<muted-text-xs>Κάνοντας σύνδεση, συμφωνείτε με τους <a href="${CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}">Όρους Παροχής Υπηρεσιών</a> και την <a href="${CONST.OLD_DOT_PUBLIC_URLS.PRIVACY_URL}">Προστασία Προσωπικών Δεδομένων</a>. Ενδέχεται να ισχύουν οι τυπικές χρεώσεις μηνυμάτων και δεδομένων. Η συχνότητα των μηνυμάτων ποικίλλει. Απαντήστε HELP για βοήθεια. Απαντήστε STOP για διακοπή.</muted-text-xs>`,
     },
     detailsPage: {
         localTime: 'Τοπική ώρα',

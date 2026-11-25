@@ -1,6 +1,7 @@
 import Button from '@components/Button';
 import CheckboxWithLabel from '@components/CheckboxWithLabel';
 import FormHelpMessage from '@components/FormHelpMessage';
+import RenderHTML from '@components/RenderHTML';
 import Text from '@components/Text';
 
 import useLocalize from '@hooks/useLocalize';
@@ -23,22 +24,6 @@ import {View} from 'react-native';
 
 import ChangeExpensifyLoginLink from './ChangeExpensifyLoginLink';
 import Terms from './Terms';
-
-function TransactionalSMSConsentLabel() {
-    const styles = useThemeStyles();
-    const {translate} = useLocalize();
-    return (
-        <View style={[styles.ml1, styles.flex1]}>
-            <Text>{translate('welcomeSignUpForm.transactionalSMSConsent')}</Text>
-            <Text
-                variant="label"
-                style={styles.mt2}
-            >
-                {translate('welcomeSignUpForm.transactionalSMSConsentFinePrint')}
-            </Text>
-        </View>
-    );
-}
 
 function SignUpWelcomeForm() {
     const network = useNetwork();
@@ -103,7 +88,13 @@ function SignUpWelcomeForm() {
                 <ChangeExpensifyLoginLink onPress={() => clearSignInData()} />
             </View>
             <View style={[styles.mt4, styles.signInPageWelcomeTextContainer]}>
-                <Terms />
+                {isPhoneSignup ? (
+                    <View style={[styles.renderHTML, styles.mb4]}>
+                        <RenderHTML html={translate('welcomeSignUpForm.termsWithSMSRates')} />
+                    </View>
+                ) : (
+                    <Terms />
+                )}
             </View>
         </>
     );

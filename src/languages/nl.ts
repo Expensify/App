@@ -4482,9 +4482,10 @@ ${amount} voor ${merchant} - ${date}`,
     },
     welcomeSignUpForm: {
         join: 'Deelnemen',
-        transactionalSMSConsent: 'Door mijn telefoonnummer op te geven, ga ik akkoord met het ontvangen van transactionele accountmeldingen van Expensify.',
-        transactionalSMSConsentFinePrint: 'Er kunnen standaardkosten voor berichten en data van toepassing zijn. Antwoord STOP om je af te melden.',
+        smsConsentIntro: 'Door mijn telefoonnummer op te geven:',
+        transactionalSMSConsent: 'Ik ga akkoord met het ontvangen van transactionele accountmeldingen van Expensify.',
         marketingSMSConsent: 'Ik ga akkoord met het ontvangen van marketing-sms van Expensify.',
+        termsWithSMSRates: `<muted-text-xs>Door in te loggen ga je akkoord met de <a href="${CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}">Servicevoorwaarden</a> en het <a href="${CONST.OLD_DOT_PUBLIC_URLS.PRIVACY_URL}">Privacybeleid</a>. Er kunnen standaardkosten voor berichten en data van toepassing zijn. De berichtfrequentie varieert. Antwoord HELP voor hulp. Antwoord STOP om je af te melden.</muted-text-xs>`,
     },
     detailsPage: {
         localTime: 'Lokale tijd',

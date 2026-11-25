@@ -4505,9 +4505,10 @@ ${amount} für ${merchant} – ${date}`,
     },
     welcomeSignUpForm: {
         join: 'Beitreten',
-        transactionalSMSConsent: 'Mit der Angabe meiner Telefonnummer stimme ich zu, transaktionsbezogene Kontobenachrichtigungen von Expensify zu erhalten.',
-        transactionalSMSConsentFinePrint: 'Es können die üblichen Gebühren für Nachrichten und Daten anfallen. Antworte STOP, um dich abzumelden.',
+        smsConsentIntro: 'Mit der Angabe meiner Telefonnummer:',
+        transactionalSMSConsent: 'Ich stimme zu, transaktionsbezogene Kontobenachrichtigungen von Expensify zu erhalten.',
         marketingSMSConsent: 'Ich stimme zu, Marketing-SMS von Expensify zu erhalten.',
+        termsWithSMSRates: `<muted-text-xs>Durch das Einloggen stimmst du den <a href="${CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}">Nutzungsbedingungen</a> und der <a href="${CONST.OLD_DOT_PUBLIC_URLS.PRIVACY_URL}">Datenschutzerklärung</a> zu. Es können die üblichen Gebühren für Nachrichten und Daten anfallen. Die Nachrichtenhäufigkeit variiert. Antworte HELP, um Hilfe zu erhalten. Antworte STOP, um dich abzumelden.</muted-text-xs>`,
     },
     detailsPage: {
         localTime: 'Ortszeit',

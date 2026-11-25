@@ -4338,9 +4338,10 @@ ${amount}，商户：${merchant} - 日期：${date}`,
     },
     welcomeSignUpForm: {
         join: '加入',
-        transactionalSMSConsent: '提供我的电话号码即表示我同意接收来自 Expensify 的账户交易提醒。',
-        transactionalSMSConsentFinePrint: '可能会产生标准短信和数据费用。回复 STOP 退订。',
+        smsConsentIntro: '提供我的电话号码即表示：',
+        transactionalSMSConsent: '我同意接收来自 Expensify 的账户交易提醒。',
         marketingSMSConsent: '我同意接收来自 Expensify 的营销短信。',
+        termsWithSMSRates: `<muted-text-xs>登录即表示你同意<a href="${CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}">服务条款</a>和<a href="${CONST.OLD_DOT_PUBLIC_URLS.PRIVACY_URL}">隐私政策</a>。可能会产生标准短信和数据费用。消息频率不定。回复 HELP 获取帮助。回复 STOP 退订。</muted-text-xs>`,
     },
     detailsPage: {
         localTime: '本地时间',

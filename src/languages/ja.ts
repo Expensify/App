@@ -4440,9 +4440,10 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
     },
     welcomeSignUpForm: {
         join: '参加',
-        transactionalSMSConsent: '電話番号を提供することにより、Expensifyからアカウントに関する取引通知を受け取ることに同意します。',
-        transactionalSMSConsentFinePrint: '標準のメッセージ料金およびデータ通信料金がかかる場合があります。配信を停止するにはSTOPと返信してください。',
+        smsConsentIntro: '電話番号を提供することにより：',
+        transactionalSMSConsent: 'Expensifyからアカウントに関する取引通知を受け取ることに同意します。',
         marketingSMSConsent: 'Expensifyからのマーケティングテキストの受信に同意します。',
+        termsWithSMSRates: `<muted-text-xs>ログインすると、<a href="${CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}">利用規約</a>および<a href="${CONST.OLD_DOT_PUBLIC_URLS.PRIVACY_URL}">プライバシーポリシー</a>に同意したものとみなされます。標準のメッセージ料金およびデータ通信料金がかかる場合があります。メッセージの頻度は異なります。ヘルプが必要な場合はHELPと返信してください。配信を停止するにはSTOPと返信してください。</muted-text-xs>`,
     },
     detailsPage: {
         localTime: '現地時間',

@@ -4526,9 +4526,10 @@ ${amount} dla ${merchant} - ${date}`,
     },
     welcomeSignUpForm: {
         join: 'Dołącz',
-        transactionalSMSConsent: 'Podając swój numer telefonu, wyrażam zgodę na otrzymywanie od Expensify transakcyjnych powiadomień dotyczących konta.',
-        transactionalSMSConsentFinePrint: 'Mogą obowiązywać standardowe opłaty za wiadomości i transmisję danych. Odpowiedz STOP, aby zrezygnować.',
+        smsConsentIntro: 'Podając swój numer telefonu:',
+        transactionalSMSConsent: 'Wyrażam zgodę na otrzymywanie od Expensify transakcyjnych powiadomień dotyczących konta.',
         marketingSMSConsent: 'Wyrażam zgodę na otrzymywanie marketingowych wiadomości SMS od Expensify.',
+        termsWithSMSRates: `<muted-text-xs>Logując się, wyrażasz zgodę na <a href="${CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}">Warunki korzystania z usługi</a> oraz <a href="${CONST.OLD_DOT_PUBLIC_URLS.PRIVACY_URL}">Prywatność</a>. Mogą obowiązywać standardowe opłaty za wiadomości i transmisję danych. Częstotliwość wiadomości jest różna. Odpowiedz HELP, aby uzyskać pomoc. Odpowiedz STOP, aby zrezygnować.</muted-text-xs>`,
     },
     detailsPage: {
         localTime: 'Czas lokalny',
