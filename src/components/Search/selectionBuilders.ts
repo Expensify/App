@@ -343,10 +343,18 @@ function withoutOtherGroupClaims(transaction: SelectedTransactionInfo, groupKeys
 /**
  * Takes one group's header check off its rows when groups share expenses. A row that another group's header check still covers stays selected,
  * stored under that group from then on, and the other rows are dropped. Its coverage is left for that group's next recount, since it was this group's.
+ * Besides the group's loaded rows, every selected row that names the group is cleared too, since a refresh can leave a shared row selected under
+ * another group while it is no longer on this group's page, and its claim would otherwise keep the unchecked group in the selection.
  */
-function removeGroupClaim(selectedTransactions: SelectedTransactions, groupKey: string, rowKeys: string[]): SelectedTransactions {
+function removeGroupClaim(selectedTransactions: SelectedTransactions, groupKey: string, loadedRowKeys: string[]): SelectedTransactions {
     const nextSelectedTransactions = {...selectedTransactions};
     delete nextSelectedTransactions[groupKey];
+    const rowKeys = new Set(loadedRowKeys);
+    for (const [key, transaction] of Object.entries(selectedTransactions)) {
+        if (!isGroupEntry(key) && (transaction.groupKey === groupKey || getClaimedGroupKeys(transaction).some((claimedGroupKey) => claimedGroupKey === groupKey))) {
+            rowKeys.add(key);
+        }
+    }
     for (const key of rowKeys) {
         const transaction = nextSelectedTransactions[key];
         if (!transaction) {

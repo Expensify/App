@@ -12,6 +12,7 @@ import {getGroupKeysSelectedViaGroup, getTemplateGroupExportQuery} from '@hooks/
 
 import {getFooterConvertedAmounts} from '@libs/actions/Search';
 import type {SearchKey} from '@libs/SearchKeyUtils';
+import {buildSearchQueryJSON, getQueryWithFooterSelection} from '@libs/SearchQueryUtils';
 import {canGroupsShareExpenses, isGroupEntry} from '@libs/SearchUIUtils';
 
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -54,7 +55,8 @@ function resetPendingSharedGroupRequestsForTesting() {
 
 /**
  * The selection's groups and loose rows, where groups can share an expense. Undefined for any other grouping, under
- * Select all (whose figures are the search's own), when no group is selected as a whole, or when the groups can't be
+ * Select all (whose figures are the search's own), when fewer than two groups are selected as a whole (one group
+ * can't count an expense twice, so its own figures are exact and need no request), or when the groups can't be
  * turned into one query.
  */
 function getSharedGroupSelection(
@@ -67,7 +69,12 @@ function getSharedGroupSelection(
         return undefined;
     }
     const groupKeys = getGroupKeysSelectedViaGroup(selectedTransactions);
-    const unionQueryJSON = groupKeys.length > 0 ? getTemplateGroupExportQuery(queryJSON, selectedTransactions, searchData) : undefined;
+    const groupsQueryJSON = groupKeys.length > 1 ? getTemplateGroupExportQuery(queryJSON, selectedTransactions, searchData) : undefined;
+    // The footer shows a group selection as the plain total with no breakdown, so the union has to be asked for the
+    // plain total too. The query's footer selections would otherwise make the server return only that breakdown.
+    const unionQueryJSON = groupsQueryJSON
+        ? buildSearchQueryJSON(getQueryWithFooterSelection(groupsQueryJSON, {footerCount: undefined, footerTotal: undefined, footerCurrency: undefined}))
+        : undefined;
     if (!unionQueryJSON) {
         return undefined;
     }

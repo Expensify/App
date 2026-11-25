@@ -542,6 +542,56 @@ describe('SearchSelectionFooter', () => {
             // Then the shared expense is counted once, and the expense checked on its own is added to it
             expect(mockCapturedFooterProps.current).toEqual(expect.objectContaining({count: 2, total: 400, currency: CONST.CURRENCY.USD}));
         });
+
+        it('asks the union for the plain total when the query is on a breakdown', async () => {
+            // Given a query on the reimbursable breakdown, which the footer drops once a group is selected as a whole
+            setSearchQuery(`type:expense group-by:${CONST.SEARCH.GROUP_BY.VIOLATION} footerTotal:${CONST.SEARCH.FOOTER_TOTAL.REIMBURSABLE}`);
+            mockSelectedTransactions.current = {
+                [missingCategoryKey]: buildSelectedTransaction(CONST.CURRENCY.USD),
+                [receiptRequiredKey]: buildSelectedTransaction(CONST.CURRENCY.USD),
+            };
+
+            // When the footer asks for the union of both groups
+            render(<SearchSelectionFooter searchResults={buildSearchResults(CONST.CURRENCY.USD, 1, 300)} />);
+            await waitForBatchedUpdates();
+
+            // Then the request leaves the breakdown out, so the figure shown as total spend is the whole total
+            const filterKeys = getUnionRequest().queryJSON.flatFilters.map((filter) => filter.key);
+            expect(filterKeys).not.toContain(CONST.SEARCH.SYNTAX_FILTER_KEYS.FOOTER_TOTAL);
+            expect(filterKeys).toContain(CONST.SEARCH.SYNTAX_FILTER_KEYS.VIOLATION);
+        });
+
+        it('shows a single group from its own figures without asking for a union', async () => {
+            // Given one group checked through its header, which can't count an expense twice
+            mockSelectedTransactions.current = {[missingCategoryKey]: buildSelectedTransaction(CONST.CURRENCY.USD)};
+
+            // When the footer shows the selection
+            render(<SearchSelectionFooter searchResults={buildSearchResults(CONST.CURRENCY.USD, 1, 300)} />);
+            await waitForBatchedUpdates();
+
+            // Then it shows the group's figures right away, offline as well as online, with no round trip
+            expect(getFooterConvertedAmounts).not.toHaveBeenCalled();
+            expect(mockCapturedFooterProps.current).toEqual(expect.objectContaining({count: 1, isTotalLoading: false}));
+            expect(mockCapturedFooterProps.current?.total).toBeDefined();
+        });
+
+        it('sums the groups offline rather than showing nothing', async () => {
+            // Given both groups checked while offline, with no union answer cached
+            mockIsOffline.current = true;
+            mockSelectedTransactions.current = {
+                [missingCategoryKey]: buildSelectedTransaction(CONST.CURRENCY.USD),
+                [receiptRequiredKey]: buildSelectedTransaction(CONST.CURRENCY.USD),
+            };
+
+            // When the footer shows the selection
+            render(<SearchSelectionFooter searchResults={buildSearchResults(CONST.CURRENCY.USD, 1, 300)} />);
+            await waitForBatchedUpdates();
+
+            // Then it falls back to adding up the groups, which can count the shared expense twice but beats a blank footer
+            expect(getFooterConvertedAmounts).not.toHaveBeenCalled();
+            expect(mockCapturedFooterProps.current).toEqual(expect.objectContaining({count: 2, isTotalLoading: false}));
+            expect(mockCapturedFooterProps.current?.total).toBeDefined();
+        });
     });
 
     it('does not request the same report conversion twice before the optimistic source stamp is observed', async () => {

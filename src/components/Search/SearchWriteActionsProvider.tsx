@@ -1007,7 +1007,11 @@ function SearchWriteActionsProvider({
                 if (isGroupSelected(groupSelectionParams(groupKey, groupTransactions, selectedTransactions, excludedTransactions, areAllMatchingItemsSelected, lookups))) {
                     // Where groups share expenses, a row another group's header check covers stays selected for that group.
                     if (doGroupsShareExpenses && groupKey) {
-                        return removeGroupClaim(selectedTransactions, groupKey, [...groupTransactions.map((transaction) => transaction.keyForList), ...getSelectedGroupRowKeys()]);
+                        return removeGroupClaim(
+                            selectedTransactions,
+                            groupKey,
+                            groupTransactions.map((transaction) => transaction.keyForList),
+                        );
                     }
                     const reducedSelectedTransactions: SelectedTransactions = {...selectedTransactions};
                     if (groupKey) {
