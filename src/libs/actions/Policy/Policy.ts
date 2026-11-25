@@ -120,6 +120,7 @@ import type {AvatarSource} from '@libs/UserAvatarUtils';
 
 import type {Feature} from '@pages/OnboardingInterestedFeatures/types';
 
+import {getClearPolicyConvertedAmountOnyxData} from '@userActions/IOU/SearchUpdate';
 import * as PaymentMethods from '@userActions/PaymentMethods';
 import * as PersistedRequests from '@userActions/PersistedRequests';
 import {buildTaskData, getOnboardingTaskCompletionOnSuccessData, withReviewWorkspaceSettingsTaskData} from '@userActions/Task';
@@ -2518,7 +2519,14 @@ function updateGeneralSettings(
         ? buildOnyxDataForGovernmentRateAutoUpdate(policy, true, governmentMileageRates, currency, governmentRateCountry)
         : undefined;
 
-    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
+    // Search converted each expense to the old currency, so the workspace's expenses show their own amount until the next search
+    const clearPolicyConvertedAmountData = currencyPendingAction
+        ? getClearPolicyConvertedAmountOnyxData(
+              (transaction, searchData) => searchData[`${ONYXKEYS.COLLECTION.REPORT}${transaction.reportID}`]?.policyID === policy.id && transaction.policyCurrency !== currency,
+          )
+        : {optimisticData: [], failureData: []};
+
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY | typeof ONYXKEYS.COLLECTION.SNAPSHOT>> = [
         {
             // We use SET because it's faster than merge and avoids a race condition when setting the currency and navigating the user to the Bank account page in confirmCurrencyChangeAndHideModal
             onyxMethod: Onyx.METHOD.SET,
@@ -2553,6 +2561,7 @@ function updateGeneralSettings(
             },
         },
         ...(governmentRateAutoUpdateData?.onyxData.optimisticData ?? []),
+        ...clearPolicyConvertedAmountData.optimisticData,
     ];
     const finallyData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
         {
@@ -2585,7 +2594,7 @@ function updateGeneralSettings(
         errorFields.outputCurrency = ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workspace.editor.genericFailureMessage');
     }
 
-    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY | typeof ONYXKEYS.COLLECTION.SNAPSHOT>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policy.id}`,
@@ -2606,6 +2615,7 @@ function updateGeneralSettings(
             },
         },
         ...(governmentRateAutoUpdateData?.onyxData.failureData ?? []),
+        ...clearPolicyConvertedAmountData.failureData,
     ];
 
     const params: UpdateWorkspaceGeneralSettingsParams = {
