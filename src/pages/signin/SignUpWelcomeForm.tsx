@@ -38,18 +38,22 @@ function SignUpWelcomeForm() {
     const isPhoneSignup = Str.isSMSLogin(login ?? '');
     const [hasSMSTransactionalConsent, setHasSMSTransactionalConsent] = useState(false);
     const [hasSMSMarketingConsent, setHasSMSMarketingConsent] = useState(false);
-    const transactionalSMSConsentLabel = `${translate('welcomeSignUpForm.transactionalSMSConsent')} ${translate('welcomeSignUpForm.transactionalSMSConsentFinePrint')}`;
+    const transactionalSMSConsentLabel = translate('welcomeSignUpForm.transactionalSMSConsent');
     const marketingSMSConsentLabel = translate('welcomeSignUpForm.marketingSMSConsent');
 
     // Transactional texts are a condition of signing up with a phone number, so Join stays disabled until the user agrees to them
     const isMissingRequiredSMSConsent = isPhoneSignup && !hasSMSTransactionalConsent;
 
+    // On phone sign-ups the consents sit above Join, so Join gets the same room below it before the "Not you?" line
+    const joinButtonStyle = isPhoneSignup ? styles.mb5 : styles.mb2;
+
     return (
         <>
             {isPhoneSignup && (
                 <View style={[styles.mt3, styles.mb2]}>
+                    <Text style={styles.mb3}>{translate('welcomeSignUpForm.smsConsentIntro')}</Text>
                     <CheckboxWithLabel
-                        LabelComponent={TransactionalSMSConsentLabel}
+                        label={transactionalSMSConsentLabel}
                         isChecked={hasSMSTransactionalConsent}
                         onInputChange={(value) => setHasSMSTransactionalConsent(value ?? false)}
                         accessibilityLabel={transactionalSMSConsentLabel}
@@ -73,7 +77,7 @@ function SignUpWelcomeForm() {
                         signUpUser(login, preferredLocale, isPhoneSignup ? {hasSMSTransactionalConsent, hasSMSMarketingConsent} : undefined, marketingAttribution, session);
                         setReadyToShowAuthScreens(true);
                     }}
-                    style={[styles.mb2]}
+                    style={joinButtonStyle}
                     sentryLabel={CONST.SENTRY_LABEL.SIGN_IN.JOIN}
                 >
                     <Button.KeyboardShortcut />
