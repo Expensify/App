@@ -4,6 +4,7 @@ import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
 
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
+import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
 import type {BankAccountList} from '@src/types/onyx';
@@ -11,7 +12,7 @@ import type {ApprovalWorkflowOnyx, Approver, ApproverForkBranch, Member} from '@
 import type ApprovalWorkflow from '@src/types/onyx/ApprovalWorkflow';
 import type {ApprovalWorkflowActions, ApprovalWorkflowRule, ApprovalWorkflowTriggers} from '@src/types/onyx/ApprovalWorkflowRules';
 import type {ImportedSpreadsheetApprover} from '@src/types/onyx/ImportedSpreadsheetMemberData';
-import type {PendingAction} from '@src/types/onyx/OnyxCommon';
+import type {Errors, PendingAction} from '@src/types/onyx/OnyxCommon';
 import type {PersonalDetailsList} from '@src/types/onyx/PersonalDetails';
 import type PersonalDetails from '@src/types/onyx/PersonalDetails';
 import type Policy from '@src/types/onyx/Policy';
@@ -2751,6 +2752,37 @@ function hasApprovalWorkflowWithNonMemberApprover({policy, currentUserLogin, rul
     return shownApprovalWorkflows.some(hasNonMemberApprover);
 }
 
+/** The policy's approval workflow rules, keyed by their Onyx keys, that route any of the members' reports */
+function getMembersApprovalWorkflowRuleEntries(members: Member[], rules: OnyxCollection<Rule>): Array<[`${typeof ONYXKEYS.COLLECTION.RULE}${string}`, Rule & ApprovalWorkflowRule]> {
+    const memberEmails = new Set(getWorkflowMemberEmails(members));
+    return Object.entries(rules ?? {}).filter(
+        (entry): entry is [`${typeof ONYXKEYS.COLLECTION.RULE}${string}`, Rule & ApprovalWorkflowRule] =>
+            entry[0].startsWith(ONYXKEYS.COLLECTION.RULE) && !!entry[1] && isApprovalWorkflowRule(entry[1]) && extractSubmitterEmails(entry[1]).some((email) => memberEmails.has(email)),
+    );
+}
+
+/**
+ * The pending state and errors of the rules that route a workflow's members, so the workflow shows a save that hasn't
+ * reached the server yet, or failed. The members stay in the workflow when one of their rules is deleted, so a deleted rule
+ * makes the workflow pending an update.
+ */
+function getApprovalWorkflowRulesOfflineFeedback(members: Member[], rules: OnyxCollection<Rule>): {pendingAction?: PendingAction; errors?: Errors} {
+    let pendingAction: PendingAction | undefined;
+    let errors: Errors | undefined;
+    for (const [, rule] of getMembersApprovalWorkflowRuleEntries(members, rules)) {
+        const rulePendingAction = rule.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE ? CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE : (rule.pendingAction ?? undefined);
+        if (isEmptyObject(rule.errors)) {
+            pendingAction ??= rulePendingAction;
+            continue;
+        }
+
+        // A failed rule decides how the workflow shows its error: a rule that failed to be added stays pending until it's dismissed
+        errors = {...errors, ...rule.errors};
+        pendingAction = rulePendingAction ?? pendingAction;
+    }
+    return {pendingAction, errors};
+}
+
 /** Whether a workflow has an invalid approver, including its over-limit approver. */
 function hasNonMemberApprover(workflow: ApprovalWorkflow): boolean {
     return workflow.approvers.some((approver) => !!getNonMemberApproverError(approver, workflow.isDefault));
@@ -2796,6 +2828,7 @@ export {
     getFirstApproverByMemberEmail,
     getEnforcedApprovalWorkflows,
     getEnforcedApprovalWorkflowsForMembers,
+    getApprovalWorkflowRulesOfflineFeedback,
     getApprovalWorkflowSource,
     getNonMemberApproverError,
     getApproverPendingActionByMemberEmail,
@@ -2803,6 +2836,7 @@ export {
     getRulesSubmitterToWorkflowKey,
     groupApprovalWorkflowRulesBySubmitter,
     getWorkflowMemberEmails,
+    getMembersApprovalWorkflowRuleEntries,
     hasApprovalWorkflowRules,
     hasApprovalWorkflowWithNonMemberApprover,
     hasMultiLevelApprovalWorkflow,

@@ -17,6 +17,7 @@ import {
     getApproverChainKey,
     getApproversFromImportedApprovers,
     getDefaultFlaggedSubmittersOutsideWorkflow,
+    getMembersApprovalWorkflowRuleEntries,
     getNonMemberApproverError,
     getWorkflowMemberEmails,
     hasRuleBasedDefaultWorkflow,
@@ -511,6 +512,29 @@ function removeApprovalWorkflowForks({approvalWorkflow, policy, rules}: RemoveAp
     updateApprovalWorkflowRules({approvalWorkflow, initialApprovalWorkflow: approvalWorkflow, policy, rules});
 }
 
+type ClearApprovalWorkflowRulesErrorsParams = {
+    /** Members of the workflow whose failed rules save is dismissed */
+    members: Member[];
+    rules: OnyxCollection<Rule>;
+};
+
+/**
+ * Dismiss the error of a failed save of the rules that route a workflow's members. A rule that failed to be added never
+ * reached the server, so it's removed, and the members go back to the routing they had.
+ */
+function clearApprovalWorkflowRulesErrors({members, rules}: ClearApprovalWorkflowRulesErrorsParams) {
+    for (const [ruleKey, rule] of getMembersApprovalWorkflowRuleEntries(members, rules)) {
+        if (isEmptyObject(rule.errors)) {
+            continue;
+        }
+        if (rule.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD) {
+            Onyx.set(ruleKey, null);
+            continue;
+        }
+        Onyx.merge(ruleKey, {errors: null});
+    }
+}
+
 type BuildReturnToDefaultWorkflowDiffParams = {
     /** The workflow these members are leaving, because it is deleted or they are taken out of it, listing only them. */
     approvalWorkflow: ApprovalWorkflow;
@@ -909,6 +933,7 @@ export {
     importApprovalWorkflowRules,
     removeApprovalWorkflowRules,
     removeApprovalWorkflowForks,
+    clearApprovalWorkflowRulesErrors,
     updateApprovalWorkflow,
     updateApprovalWorkflowRules,
     removeApprovalWorkflow,

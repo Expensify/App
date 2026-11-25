@@ -27,7 +27,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {clearPolicyErrorField, setWorkspaceApprovalMode} from '@libs/actions/Policy/Policy';
-import {clearApprovalWorkflow, selectApprovalWorkflowForEdit, setApprovalWorkflow} from '@libs/actions/Workflow';
+import {clearApprovalWorkflow, clearApprovalWorkflowRulesErrors, selectApprovalWorkflowForEdit, setApprovalWorkflow} from '@libs/actions/Workflow';
 import {getLatestErrorField} from '@libs/ErrorUtils';
 import {getHRFinalApprover, isHRAdvancedMode} from '@libs/merge/HRUtils';
 import {isRecruitingAdvancedMode} from '@libs/merge/RecruitingUtils';
@@ -119,6 +119,10 @@ type WorkflowRowProps = {
     onViewForks: (workflow: ApprovalWorkflow) => void;
 
     onShowAllMembers?: (workflow: ApprovalWorkflow) => void;
+
+    /** Dismisses the error of a failed save of the workflow's rules */
+    onDismissErrors: (workflow: ApprovalWorkflow) => void;
+
     currency?: string;
     isDisabled: boolean;
     providerName?: string;
@@ -133,6 +137,7 @@ function WorkflowRow({
     onEdit,
     onViewForks,
     onShowAllMembers,
+    onDismissErrors,
     currency,
     isDisabled,
     providerName,
@@ -141,7 +146,11 @@ function WorkflowRow({
     hrFinalApproverEmail,
 }: WorkflowRowProps) {
     return (
-        <OfflineWithFeedback pendingAction={workflow.pendingAction}>
+        <OfflineWithFeedback
+            pendingAction={workflow.pendingAction}
+            errors={workflow.errors}
+            onClose={() => onDismissErrors(workflow)}
+        >
             <ApprovalWorkflowSection
                 approvalWorkflow={workflow}
                 onPress={onEdit ? () => onEdit(workflow) : undefined}
@@ -295,6 +304,10 @@ function WorkflowsApprovalsTab({policyID}: WorkflowsApprovalsTabProps) {
 
     const shouldBlockApprovalWorkflowEditing = isApprovalWorkflowLockedByIntegration(policy);
     const sortedApprovalWorkflows = canWriteApprovals && !shouldBlockApprovalWorkflowEditing ? sortApprovalWorkflowsByErrors(filteredApprovalWorkflows) : filteredApprovalWorkflows;
+
+    const dismissWorkflowErrors = (workflow: ApprovalWorkflow) => {
+        clearApprovalWorkflowRulesErrors({members: workflow.members, rules: rulesCollection});
+    };
 
     const viewWorkflowForks = (workflow: ApprovalWorkflow) => {
         Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_FORK.getRoute(policyID, getWorkflowAnchor(workflow).approverEmail));
@@ -488,6 +501,7 @@ function WorkflowsApprovalsTab({policyID}: WorkflowsApprovalsTabProps) {
                                         onEdit={isWorkflowEditingDisabled ? undefined : editWorkflow}
                                         onViewForks={viewWorkflowForks}
                                         onShowAllMembers={canShowAllMembers ? showAllWorkflowMembers : undefined}
+                                        onDismissErrors={dismissWorkflowErrors}
                                         currency={policy?.outputCurrency}
                                         isDisabled={isWorkflowEditingDisabled}
                                         providerName={approvalWorkflowSource?.providerName}

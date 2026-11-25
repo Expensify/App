@@ -21,6 +21,7 @@ import {
     getApproverPendingActionByMemberEmail,
     getDefaultWorkflowRules,
     getOpenConnectedToPolicyBusinessBankAccounts,
+    getApprovalWorkflowRulesOfflineFeedback,
     getApprovalWorkflowSource,
     getNonMemberApproverError,
     getEnforcedApprovalWorkflows,
@@ -3056,6 +3057,40 @@ describe('WorkflowUtils', () => {
 
                 // Then it is the default workflow, so its members fold into the default rules
                 expect(rules).toEqual(buildApprovalWorkflowRules(buildWorkflow([30], [1], {isDefault: true})));
+            });
+        });
+
+        describe('getApprovalWorkflowRulesOfflineFeedback', () => {
+            /** The rules of a workflow as stored in Onyx, with the offline state given for each of them */
+            const storeRules = (rules: ApprovalWorkflowRule[], offlineState: Pick<Rule, 'pendingAction' | 'errors'>, keyPrefix: string): OnyxCollection<Rule> =>
+                Object.fromEntries(
+                    rules.map((rule, index) => [`${ONYXKEYS.COLLECTION.RULE}${keyPrefix}${index}`, {...rule, scope: CONST.RULES.SCOPE.POLICY, scopeID: '1', ...offlineState}]),
+                );
+
+            it('Should show a workflow as updated while one of its members rules is pending deletion', () => {
+                // Given the rules of 10@example.com's workflow are being deleted, and those of another workflow are being added
+                const rules = {
+                    ...storeRules(buildApprovalWorkflowRules(buildWorkflow([10], [1])), {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}, 'a'),
+                    ...storeRules(buildApprovalWorkflowRules(buildWorkflow([20], [2])), {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD}, 'b'),
+                };
+
+                // When the offline state of 10@example.com's workflow is read
+                const feedback = getApprovalWorkflowRulesOfflineFeedback([buildMember(10)], rules);
+
+                // Then it's pending an update rather than a deletion, since its members stay, and the other workflow's rules don't count
+                expect(feedback).toEqual({pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE, errors: undefined});
+            });
+
+            it('Should show the error of a failed save on the workflow its rules route', () => {
+                // Given a save of 10@example.com's rules failed and they were restored with an error
+                const error = {'1': 'An unexpected error occurred'};
+                const rules = storeRules(buildApprovalWorkflowRules(buildWorkflow([10], [1])), {pendingAction: undefined, errors: error}, 'a');
+
+                // When the offline state of the workflow is read
+                const feedback = getApprovalWorkflowRulesOfflineFeedback([buildMember(10)], rules);
+
+                // Then the workflow shows the error, and no pending state, since the rules it has are the server's
+                expect(feedback).toEqual({pendingAction: undefined, errors: error});
             });
         });
 

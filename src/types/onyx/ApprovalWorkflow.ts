@@ -141,6 +141,11 @@ type ApprovalWorkflow = OnyxValueWithOfflineFeedback<{
      * Is this the default workflow for the policy
      */
     isDefault: boolean;
+
+    /**
+     * Errors of a failed save of the approval workflow rules that route its members
+     */
+    errors?: Errors;
 }>;
 
 /**

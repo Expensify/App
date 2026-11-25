@@ -7,6 +7,7 @@ import {filterRulesForPolicy, getApprovalWorkflowRulesForPolicy} from '@libs/Rul
 import {
     convertApprovalWorkflowRulesToWorkflows,
     convertPolicyEmployeesToApprovalWorkflows,
+    getApprovalWorkflowRulesOfflineFeedback,
     getApproverPendingActionByMemberEmail,
     getEnforcedApprovalWorkflows,
     getEnforcedApprovalWorkflowsForMembers,
@@ -87,7 +88,19 @@ function useApprovalWorkflows(policy: OnyxEntry<Policy>): UseApprovalWorkflowsRe
         currentUserLogin,
         rules: getApprovalWorkflowRulesForPolicy(rulesCollection, policyID),
     };
-    const {approvalWorkflows, availableMembers, usedApproverEmails} = shouldUseRules ? convertApprovalWorkflowRulesToWorkflows(params) : convertPolicyEmployeesToApprovalWorkflows(params);
+    const {
+        approvalWorkflows: convertedApprovalWorkflows,
+        availableMembers,
+        usedApproverEmails,
+    } = shouldUseRules ? convertApprovalWorkflowRulesToWorkflows(params) : convertPolicyEmployeesToApprovalWorkflows(params);
+
+    // Rules saves mark the rules, not the employees, so the workflows show the rules' pending state and errors
+    const approvalWorkflows = shouldUseRules
+        ? convertedApprovalWorkflows.map((workflow) => {
+              const {pendingAction, errors} = getApprovalWorkflowRulesOfflineFeedback(workflow.members, rulesCollection);
+              return {...workflow, pendingAction: workflow.pendingAction ?? pendingAction, errors};
+          })
+        : convertedApprovalWorkflows;
 
     const isAdvanceApproval = (approvalWorkflows.length > 1 || (approvalWorkflows?.at(0)?.approvers ?? []).length > 1) && isControlPolicy(policy);
 
