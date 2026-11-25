@@ -4,6 +4,7 @@ import getContentFields from '@components/DynamicForm/utils/getContentFields';
 import getDynamicFieldErrors from '@components/DynamicForm/utils/getDynamicFieldErrors';
 import getLocalizedText from '@components/DynamicForm/utils/getLocalizedText';
 import getPageTitle from '@components/DynamicForm/utils/getPageTitle';
+import hasGivenSensitiveAnswer from '@components/DynamicForm/utils/hasGivenSensitiveAnswer';
 import isSensitiveField from '@components/DynamicForm/utils/isSensitiveField';
 import toDynamicFormValues from '@components/DynamicForm/utils/toDynamicFormValues';
 import FormProvider from '@components/Form/FormProvider';
@@ -86,7 +87,11 @@ function DynamicFormFieldsPage({
                           if (isLastPage && markUnfinishedForm(inputValues)) {
                               return;
                           }
-                          showContinueOfflineModal({onSaveForLater, onContinue: submitNow});
+                          showContinueOfflineModal({
+                              onSaveForLater,
+                              onContinue: submitNow,
+                              hasGivenSensitiveAnswer: hasGivenSensitiveAnswer(getContentFields(page.content), withInputValues(inputValues), allFields),
+                          });
                       }
                     : undefined
             }

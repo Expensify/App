@@ -4878,6 +4878,8 @@ const translations = {
         continueOffline: {
             title: "You can't continue offline",
             prompt: "An internet connection is needed to fill out this form. Don't worry, we'll save your progress and you can continue when you're back online.",
+            promptWithSensitiveAnswers:
+                "An internet connection is needed to fill out this form. We'll save your progress so you can continue when you're back online. For your security, sensitive details aren't saved and will need to be entered again.",
             saveForLater: 'Save and fill out later',
             progressSaved: 'Your progress has been saved',
         },

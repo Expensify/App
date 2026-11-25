@@ -18,6 +18,9 @@ type ContinueOfflineModalOptions = {
 
     /** Goes on with what the press would have done, once Try again finds the connection back */
     onContinue: () => void;
+
+    /** The page holds a sensitive answer the user gave, such as an SSN, which leaving drops, so the modal says it will need to be entered again */
+    hasGivenSensitiveAnswer?: boolean;
 };
 
 function useContinueOfflineModal() {
@@ -37,7 +40,8 @@ function useContinueOfflineModal() {
         };
     }, []);
 
-    const showContinueOfflineModal = ({onSaveForLater, onContinue}: ContinueOfflineModalOptions) => {
+    const showContinueOfflineModal = (options: ContinueOfflineModalOptions) => {
+        const {onSaveForLater, onContinue, hasGivenSensitiveAnswer} = options;
         if (isAttemptRunningRef.current) {
             return;
         }
@@ -45,7 +49,7 @@ function useContinueOfflineModal() {
 
         showDecisionModal({
             title: translate('dynamicForm.continueOffline.title'),
-            prompt: translate('dynamicForm.continueOffline.prompt'),
+            prompt: translate(hasGivenSensitiveAnswer ? 'dynamicForm.continueOffline.promptWithSensitiveAnswers' : 'dynamicForm.continueOffline.prompt'),
             firstOptionText: translate('dynamicForm.continueOffline.saveForLater'),
             secondOptionText: translate('common.tryAgain'),
             // A tap outside or Escape only closes the modal, while Try again checks the connection
@@ -67,7 +71,7 @@ function useContinueOfflineModal() {
                                     return;
                                 }
                                 if (isStillOffline) {
-                                    showContinueOfflineModal({onSaveForLater, onContinue});
+                                    showContinueOfflineModal(options);
                                     return;
                                 }
                                 onContinue();

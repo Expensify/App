@@ -33,6 +33,7 @@ import getContentFields from './utils/getContentFields';
 import getPageTitle, {isPageShown} from './utils/getPageTitle';
 import getShownPageErrors from './utils/getShownPageErrors';
 import getSubmittedAnswers from './utils/getSubmittedAnswers';
+import hasDraftAnswer from './utils/hasDraftAnswer';
 import {getHiddenProvidedKeys} from './utils/hasProvidedAnswer';
 import hasSensitiveAnswer from './utils/hasSensitiveAnswer';
 import isSensitiveField from './utils/isSensitiveField';
@@ -43,11 +44,6 @@ import toDynamicFormValues from './utils/toDynamicFormValues';
 
 /** Whether leaving the flow from the offline modal confirms with a toast that the answers are kept. Design has not decided yet, so it is one switch to remove. */
 const SHOULD_SHOW_PROGRESS_SAVED_TOAST = true;
-
-/** An answer the user gave, including `false`, which counts as progress when deciding where a visit resumes */
-function hasDraftAnswer(answer: DynamicFormValues[string]): boolean {
-    return answer !== undefined && answer !== null && answer !== '' && !(Array.isArray(answer) && answer.length === 0);
-}
 
 /** A whole dynamic form: one page per schema page, skipping pages with nothing to ask, then a confirmation page */
 function DynamicFormFlow({
