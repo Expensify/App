@@ -156,7 +156,6 @@ function RulesRequireFieldsPage({
                 Object.fromEntries(changedTagLevels.map((tagList) => [tagList.orderWeight, !tagList.required])),
                 isVendorMatchingBetaEnabled,
                 categoryUpdateForTagRecompute,
-                reviewWorkspaceSettingsTaskData,
             );
         } else if (hasSingleTagChange) {
             setPolicyRequiresTag(policyData, tagRequired, isVendorMatchingBetaEnabled, categoryUpdateForTagRecompute, reviewWorkspaceSettingsTaskData);
