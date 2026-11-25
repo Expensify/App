@@ -351,6 +351,8 @@ function useMarkAsRead({
     };
 
     const completeSkippedMarkAsRead = () => {
+        // markNewestActionAsRead marks everything up to now as read, so complete the skipped read only once the
+        // newer pages are loaded; otherwise unloaded newer actions would be marked read without being seen.
         if (!readActionSkippedRef.current || hasNewerActions || !Visibility.hasFocus()) {
             return;
         }
