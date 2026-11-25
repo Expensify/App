@@ -7365,7 +7365,7 @@ function mapFiltersFormToLabelValueList(
 
         const baseKey = removeNegation(key);
         const labelKey = FILTER_VIEW_MAP[baseKey].labelKey;
-        // A negated amount, such as "-amount:1069", isn't grouped with the other amount keys, so it is formatted here
+        // A negated amount key, such as convertedAmountNot, is not in FILTER_TO_SYNTAX_KEY, so getAmountDisplayValue never formats its hundredths
         const value = isAmountFilterKey(baseKey)
             ? getAmountFilterDisplayValue(searchAdvancedFiltersForm[key]?.toString(), convertToDisplayStringWithoutCurrency)
             : getDisplayValue(key, searchAdvancedFiltersForm, type, translate, localeCompare);
