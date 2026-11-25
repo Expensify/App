@@ -263,6 +263,7 @@ describe('useInsightsTopExpenses', () => {
             // Given a February panel, and an expense forwarded in January with one violation and approved in February with another
             const approvedQuery = `${QUERY} has:${CONST.SEARCH.HAS_VALUES.APPROVED_VIOLATION} ${CONST.SEARCH.SYNTAX_FILTER_KEYS.ANY_APPROVAL}>=2026-02-01 ${CONST.SEARCH.SYNTAX_FILTER_KEYS.ANY_APPROVAL}<=2026-02-28`;
             const approvedQueryJSON = buildTopExpensesQueryJSON(approvedQuery);
+            const transactionID = '1';
             const data = {
                 ...buildSnapshotData(1),
                 [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}1`]: {
@@ -272,9 +273,9 @@ describe('useInsightsTopExpenses', () => {
                         actorAccountID: OTHER_APPROVER_ACCOUNT_ID,
                         created: '2026-01-20 10:00:00',
                         message: [],
-                        originalMessage: {amount: 100, currency: 'USD', violations: {transactions: {'1': [{name: CONST.VIOLATIONS.MISSING_CATEGORY}]}}},
+                        originalMessage: {amount: 100, currency: 'USD', violations: {transactions: {[transactionID]: [{name: CONST.VIOLATIONS.MISSING_CATEGORY}]}}},
                     },
-                    ...buildApprovedViolations('1', '1', APPROVER_ACCOUNT_ID, [CONST.VIOLATIONS.OVER_LIMIT]),
+                    ...buildApprovedViolations('1', transactionID, APPROVER_ACCOUNT_ID, [CONST.VIOLATIONS.OVER_LIMIT]),
                 },
             };
             await Onyx.set(`${ONYXKEYS.COLLECTION.SNAPSHOT}${approvedQueryJSON?.hash}`, {
@@ -287,7 +288,7 @@ describe('useInsightsTopExpenses', () => {
             await waitForBatchedUpdatesWithAct();
 
             // Then the expense shows only the violations of its February approval
-            expect(result.current.violationsByTransactionID?.['1']).toEqual(['Over limit']);
+            expect(result.current.violationsByTransactionID?.[transactionID]).toEqual(['Over limit']);
         });
 
         it('is stale when the Search got no response', async () => {
