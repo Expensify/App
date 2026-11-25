@@ -10,9 +10,10 @@ import wrapOnyxWithWaitForBatchedUpdates from '../utils/wrapOnyxWithWaitForBatch
 
 jest.mock('@libs/canPersistRequest', () => jest.requireActual<Record<string, unknown>>('../../src/libs/canPersistRequest/index.native.ts'));
 
-// Stands in for the React Native File that the share and scan flows put in a receipt create
+// Stands in for the React Native File that the share and scan flows put in a receipt create. Like that File, it keeps
+// its name and type on the prototype, so JSON leaves them out unless they are copied onto the file.
 class MockReceiptFile extends Blob {
-    name = 'receipt.jpg';
+    #fileName: string;
 
     lastModified = 0;
 
@@ -22,17 +23,25 @@ class MockReceiptFile extends Blob {
 
     source = 'file:///Documents/Receipts-Upload/receipt.jpg';
 
-    public constructor(fileBits: BlobPart[] = [], fileName = 'receipt.jpg', options?: FilePropertyBag) {
+    public constructor(fileBits: BlobPart[] = [], fileName = 'receipt.jpg', options: FilePropertyBag = {type: 'image/jpeg'}) {
         super(fileBits, options);
-        this.name = fileName;
+        this.#fileName = fileName;
+    }
+
+    get name() {
+        return this.#fileName;
     }
 }
 
-const receiptCreate: AnyRequest = {
-    command: 'TrackExpense',
-    requestIndex: 1,
-    data: {transactionID: '1', receipt: new MockReceiptFile()},
-};
+function buildReceiptCreate(): AnyRequest {
+    return {
+        command: 'TrackExpense',
+        requestIndex: 1,
+        data: {transactionID: '1', receipt: new MockReceiptFile()},
+    };
+}
+
+const receiptCreate = buildReceiptCreate();
 
 const moveCreatedExpense: AnyRequest = {
     command: 'ChangeTransactionsReport',
@@ -94,5 +103,29 @@ describe('PersistedRequests (native)', () => {
         } finally {
             global.File = originalFile;
         }
+    });
+
+    it('keeps the receipt name and type when the request is stored as JSON', async () => {
+        // Given a receipt create whose File keeps its name and type on the prototype
+        const request = buildReceiptCreate();
+
+        // When it is queued and then written to disk, which stores it as JSON
+        PersistedRequests.save(request);
+        await waitForBatchedUpdates();
+        const storedRequest: unknown = JSON.parse(JSON.stringify(PersistedRequests.getAll().at(0)));
+
+        // Then the stored receipt still has the name and type, so the upload rebuilt from it after a restart is a named
+        // image instead of an unnamed part the server can't use
+        expect(storedRequest).toEqual(
+            expect.objectContaining({
+                data: expect.objectContaining({
+                    receipt: expect.objectContaining({
+                        name: 'receipt.jpg',
+                        type: 'image/jpeg',
+                        source: 'file:///Documents/Receipts-Upload/receipt.jpg',
+                    }),
+                }),
+            }),
+        );
     });
 });

@@ -1221,6 +1221,8 @@ function getChangeTransactionsReportOnyxData({
             key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`,
             value: {
                 reportID,
+                // A retry that works must not leave the error from an earlier failed move on the expense
+                errors: null,
                 ...(shouldClearAmount && {pendingAction: null}),
             },
         });

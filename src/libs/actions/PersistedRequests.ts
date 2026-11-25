@@ -1,5 +1,6 @@
 import {isClientTheLeader} from '@libs/ActiveClientManager';
 import canPersistRequest from '@libs/canPersistRequest';
+import copyFileMetadataToOwnProperties from '@libs/copyFileMetadataToOwnProperties';
 import Log from '@libs/Log';
 import sanitizeLogParams from '@libs/sanitizeLogParams';
 
@@ -247,6 +248,14 @@ function save<TKey extends OnyxKey>(requestToPersist: Request<TKey>): Promise<vo
         ongoingRequest: ongoingRequest?.command ?? 'null',
         isInitialized,
     });
+
+    // A receipt that comes back from disk after a restart is uploaded from its name and type, so they must be stored with it
+    for (const value of Object.values(requestToPersist.data ?? {})) {
+        if (typeof Blob !== 'undefined' && value instanceof Blob) {
+            copyFileMetadataToOwnProperties(value);
+        }
+    }
+
     // If not initialized yet, queue the request for later processing
     if (!isInitialized) {
         Log.info('[PersistedRequests] Queueing request until initialization completes', false, {
