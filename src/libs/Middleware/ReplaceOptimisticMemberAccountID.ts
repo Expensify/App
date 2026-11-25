@@ -4,12 +4,15 @@
  * server rejects the whole request when one of them is still the generated ID. Once the invite succeeds, this
  * middleware replaces those IDs in the queued requests with the real ones from the invite's response.
  *
+ * A login's generated ID can match another account's real accountID, so only the IDs this invite actually generated
+ * are replaced. The invite records them in its successData, which removes the placeholder personal details it created.
+ *
  * The AddMembersToWorkspace request itself is never rewritten: it already succeeded.
  */
 import type {SetPolicyCategoryMemberVisibilityParams, SetPolicyMemberCategoryVisibilityParams} from '@libs/API/parameters';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import Log from '@libs/Log';
-import {getLoginsByAccountIDFromOnyxUpdates} from '@libs/PersonalDetailsUtils';
+import {getLoginsByAccountIDFromOnyxUpdates, getRemovedPersonalDetailsAccountIDsFromOnyxUpdates} from '@libs/PersonalDetailsUtils';
 import type {Middleware} from '@libs/Request';
 import {generateAccountID} from '@libs/UserUtils';
 
@@ -26,14 +29,17 @@ const ACCOUNT_ID_LIST_PARAMS_BY_COMMAND: Partial<Record<string, string[]>> = {
     [WRITE_COMMANDS.SET_POLICY_MEMBER_CATEGORY_VISIBILITY]: ['accountIDList'] satisfies Array<keyof SetPolicyMemberCategoryVisibilityParams>,
 };
 
-/** Maps each invitee's generated accountID to the real one, using the personal details the invite's response sends. */
-function getRealAccountIDsByOptimisticID(onyxData: ReadonlyArray<{key: unknown; value?: unknown}> | undefined): Map<number, number> {
+/**
+ * Maps each invitee's generated accountID to the real one, using the personal details the invite's response sends.
+ * The response also sends existing members, so a generated ID only counts when the invite created it.
+ */
+function getRealAccountIDsByOptimisticID(onyxData: ReadonlyArray<{key: unknown; value?: unknown}> | undefined, optimisticAccountIDs: Set<number>): Map<number, number> {
     const realAccountIDs = new Map<number, number>();
     for (const [realAccountID, login] of getLoginsByAccountIDFromOnyxUpdates(onyxData)) {
         // A phone number's generated ID comes from the number with or without the SMS domain, depending on where it was invited from.
         for (const loginToHash of [login, Str.removeSMSDomain(login)]) {
             const optimisticAccountID = generateAccountID(loginToHash);
-            if (optimisticAccountID !== realAccountID) {
+            if (optimisticAccountIDs.has(optimisticAccountID) && optimisticAccountID !== realAccountID) {
                 realAccountIDs.set(optimisticAccountID, realAccountID);
             }
         }
@@ -68,13 +74,19 @@ const replaceOptimisticMemberAccountID: Middleware = (requestResponse, request) 
             return response;
         }
 
+        // An invite of people who already have an account generates no IDs, so there's nothing to replace.
+        const optimisticAccountIDs = getRemovedPersonalDetailsAccountIDsFromOnyxUpdates(request.successData);
+        if (optimisticAccountIDs.size === 0) {
+            return response;
+        }
+
         // Most invites have nothing queued behind them that sends member accountIDs, so the real IDs are only worked out when something does.
         const queuedRequests = getAll();
         if (!queuedRequests.some((queuedRequest) => ACCOUNT_ID_LIST_PARAMS_BY_COMMAND[queuedRequest.command])) {
             return response;
         }
 
-        const realAccountIDs = getRealAccountIDsByOptimisticID(response.onyxData);
+        const realAccountIDs = getRealAccountIDsByOptimisticID(response.onyxData, optimisticAccountIDs);
         if (realAccountIDs.size === 0) {
             return response;
         }

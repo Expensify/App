@@ -263,9 +263,9 @@ function buildPersonalDetailsUpdate(personalDetails: PersonalDetailsUpdate): Ony
 // The Onyx update produced by buildPersonalDetailsUpdate. Use it instead of naming the key in an OnyxUpdate generic.
 type PersonalDetailsOnyxUpdate = ReturnType<typeof buildPersonalDetailsUpdate>;
 
-/** Reads the login of each account whose personal details a list of Onyx updates sets, such as the ones a server response sends. */
-function getLoginsByAccountIDFromOnyxUpdates(onyxUpdates: ReadonlyArray<{key: unknown; value?: unknown}> | undefined): Map<number, string> {
-    const loginsByAccountID = new Map<number, string>();
+/** Reads each accountID and value that a list of Onyx updates writes to the personal details list. */
+function getPersonalDetailsEntriesFromOnyxUpdates(onyxUpdates: ReadonlyArray<{key: unknown; value?: unknown}> | undefined): Array<[number, unknown]> {
+    const entries: Array<[number, unknown]> = [];
     for (const onyxUpdate of onyxUpdates ?? []) {
         const personalDetails = onyxUpdate.value;
         if (onyxUpdate.key !== ONYXKEYS.PERSONAL_DETAILS_LIST || !isRecord(personalDetails)) {
@@ -274,12 +274,32 @@ function getLoginsByAccountIDFromOnyxUpdates(onyxUpdates: ReadonlyArray<{key: un
 
         for (const [accountIDKey, personalDetail] of Object.entries(personalDetails)) {
             const accountID = Number(accountIDKey);
-            if (accountID && isRecord(personalDetail) && typeof personalDetail.login === 'string') {
-                loginsByAccountID.set(accountID, personalDetail.login);
+            if (accountID) {
+                entries.push([accountID, personalDetail]);
             }
         }
     }
+    return entries;
+}
+
+/** Reads the login of each account whose personal details a list of Onyx updates sets, such as the ones a server response sends. */
+function getLoginsByAccountIDFromOnyxUpdates(onyxUpdates: ReadonlyArray<{key: unknown; value?: unknown}> | undefined): Map<number, string> {
+    const loginsByAccountID = new Map<number, string>();
+    for (const [accountID, personalDetail] of getPersonalDetailsEntriesFromOnyxUpdates(onyxUpdates)) {
+        if (isRecord(personalDetail) && typeof personalDetail.login === 'string') {
+            loginsByAccountID.set(accountID, personalDetail.login);
+        }
+    }
     return loginsByAccountID;
+}
+
+/** Reads the accountIDs whose personal details a list of Onyx updates removes, such as the placeholder ones an invite drops once it succeeds. */
+function getRemovedPersonalDetailsAccountIDsFromOnyxUpdates(onyxUpdates: ReadonlyArray<{key: unknown; value?: unknown}> | undefined): Set<number> {
+    return new Set(
+        getPersonalDetailsEntriesFromOnyxUpdates(onyxUpdates)
+            .filter(([, personalDetail]) => personalDetail === null)
+            .map(([accountID]) => accountID),
+    );
 }
 
 /**
@@ -555,6 +575,7 @@ export {
     getLoginsByAccountIDs,
     getPersonalDetailsOnyxDataForOptimisticUsers,
     getLoginsByAccountIDFromOnyxUpdates,
+    getRemovedPersonalDetailsAccountIDsFromOnyxUpdates,
     getCurrentAddress,
     getFormattedAddress,
     getFormattedStreet,
