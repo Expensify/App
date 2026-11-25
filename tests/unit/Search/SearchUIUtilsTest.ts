@@ -17461,6 +17461,22 @@ describe('SearchUIUtils', () => {
             expect(chips.at(0)).toMatchObject({key: CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT, value: expected});
         });
 
+        it.each([
+            {form: {[FILTER_KEYS.CONVERTED_AMOUNT_NOT]: '1069'}, key: CONST.SEARCH.SYNTAX_FILTER_KEYS.CONVERTED_AMOUNT, expected: '10.69'},
+            {form: {[FILTER_KEYS.PURCHASE_AMOUNT_NOT]: '1069'}, key: CONST.SEARCH.SYNTAX_FILTER_KEYS.PURCHASE_AMOUNT, expected: '10.69'},
+            {form: {[FILTER_KEYS.AMOUNT_NOT]: '50.00 AUD'}, key: CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT, expected: '50.00 AUD'},
+        ])('formats a negated $key amount like the other amount chips', ({form, key, expected}) => {
+            // Given a negated amount filter such as `-convertedAmount:10.69`, which the form stores in hundredths
+            const formatAmount = (amount: number) => (amount / 100).toFixed(2);
+
+            // When the form is mapped to filter chips
+            const chips = SearchUIUtils.mapFiltersFormToLabelValueList(form, new Set(), new Set(), translateLocal, undefined, localeCompare, formatAmount);
+
+            // Then the chip shows the amount the user typed instead of the stored hundredths
+            expect(chips).toHaveLength(1);
+            expect(chips.at(0)).toMatchObject({key, value: expected});
+        });
+
         it('places default filters before non-default filters', () => {
             const form = {
                 [CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD]: 'hotel',
