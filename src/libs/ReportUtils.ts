@@ -9642,7 +9642,9 @@ function buildOptimisticModifiedExpenseReportAction(
     delegateAccountIDParam: number | undefined,
     updatedTransaction?: OnyxInputOrEntry<Transaction>,
     allowNegative = false,
+    actorAccountID = deprecatedCurrentUserAccountID,
 ): OptimisticModifiedExpenseReportAction {
+    const isConcierge = actorAccountID === CONST.ACCOUNT_ID.CONCIERGE;
     const originalMessage = getModifiedExpenseOriginalMessage(oldTransaction, transactionChanges, isFromExpenseReport, policy, updatedTransaction, allowNegative);
     // Expense edits can arrive without updating the report's lastVisibleActionCreated, so also check the loaded actions.
     const latestActionCreated = transactionThread?.reportID ? getLastVisibleAction(transactionThread.reportID)?.created : undefined;
@@ -9650,15 +9652,15 @@ function buildOptimisticModifiedExpenseReportAction(
 
     return {
         actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
-        actorAccountID: deprecatedCurrentUserAccountID,
+        actorAccountID,
         automatic: false,
-        avatar: getCurrentUserAvatar(),
+        avatar: isConcierge ? getDefaultAvatarURL({accountID: CONST.ACCOUNT_ID.CONCIERGE, accountEmail: CONST.EMAIL.CONCIERGE}) : getCurrentUserAvatar(),
         created: getServerAnchoredDBTime('', lastActionCreated),
         isAttachmentOnly: false,
         message: [
             {
                 // Currently we are composing the message from the originalMessage and message is only used in OldDot and not in the App
-                text: 'You',
+                text: isConcierge ? CONST.DISPLAY_NAME.EXPENSIFY_CONCIERGE : 'You',
                 style: 'strong',
                 type: CONST.REPORT.MESSAGE.TYPE.TEXT,
             },
@@ -9667,7 +9669,7 @@ function buildOptimisticModifiedExpenseReportAction(
         person: [
             {
                 style: 'strong',
-                text: getPersonalDetail(deprecatedCurrentUserAccountID)?.displayName ?? String(deprecatedCurrentUserAccountID),
+                text: isConcierge ? CONST.DISPLAY_NAME.EXPENSIFY_CONCIERGE : (getPersonalDetail(actorAccountID)?.displayName ?? String(actorAccountID)),
                 type: 'TEXT',
             },
         ],
