@@ -1,3 +1,4 @@
+// Throwaway: selects one perf test (SearchRouter) for scenario 1 of #107158.
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import type {AnimatedTextInputRef} from '@components/RNTextInput';
