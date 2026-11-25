@@ -1,3 +1,4 @@
+// Throwaway: a file no test imports, for scenario 2 of #107158.
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
