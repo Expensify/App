@@ -181,6 +181,7 @@ function InSelector({value = [], selectionListTextInputStyle, selectionListStyle
                   lastActions,
                   currentUserLogin: currentUserEmail,
                   conciergeReportID,
+                  reportAttributesDerived,
                   isTrackIntentUser,
                   translate,
                   getReportByID,

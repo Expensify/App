@@ -495,6 +495,7 @@ function PolicyDistanceRatesPage({
                         onRowSelectionChange={setSelectedDistanceRates}
                         canWriteDistanceRates={canWriteDistanceRates}
                         isDistanceRateTaxEnabled={isDistanceRateTaxEnabled}
+                        isGovernmentRateAutoUpdateEnabled={!!policy?.shouldAutoUpdateGovernmentDistanceRates}
                         headerComponent={distanceRatesTableHeader}
                         bulkActionOptions={canWriteDistanceRates ? getBulkActionsButtonOptions() : undefined}
                     />

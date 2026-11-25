@@ -170,6 +170,7 @@ function SearchTransactionsChangeReport() {
             isTrackIntentUser,
             getCurrencyDecimals,
             rules,
+            personalDetailsByLogins: getPersonalDetailsByLogin(),
             shouldDismissEmptyReportsConfirmation,
             managedCardTransactionID,
         });

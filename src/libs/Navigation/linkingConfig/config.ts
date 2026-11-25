@@ -1,5 +1,4 @@
 import collectScreensWithTabNavigator from '@libs/Navigation/helpers/collectScreensWithTabNavigator';
-import type {ScreenConfigEntry} from '@libs/Navigation/helpers/collectScreensWithTabNavigator';
 import type {RouteConfig} from '@libs/Navigation/helpers/createNormalizedConfigs';
 import createNormalizedConfigs from '@libs/Navigation/helpers/createNormalizedConfigs';
 
@@ -8,7 +7,6 @@ import type {RootNavigatorParamList} from '@navigation/types';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
-import type {Screen} from '@src/SCREENS';
 import SCREENS from '@src/SCREENS';
 import EXPENSE_RULE_INPUT_IDS from '@src/types/form/ExpenseRuleForm';
 
@@ -882,6 +880,12 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.WORKSPACE.ACCOUNTING.DIGITS_VENDOR_BILL_DATE]: {path: ROUTES.POLICY_ACCOUNTING_DIGITS_VENDOR_BILL_DATE.route},
                         [SCREENS.WORKSPACE.ACCOUNTING.DIGITS_DEFAULT_COMPANY_CARD_VENDOR]: {path: ROUTES.POLICY_ACCOUNTING_DIGITS_DEFAULT_COMPANY_CARD_VENDOR.route},
                         [SCREENS.WORKSPACE.ACCOUNTING.DIGITS_COMPANY_CARD_ACCOUNT]: {path: ROUTES.POLICY_ACCOUNTING_DIGITS_COMPANY_CARD_ACCOUNT.route},
+                        [SCREENS.WORKSPACE.ACCOUNTING.DIGITS_ADVANCED]: {path: ROUTES.POLICY_ACCOUNTING_DIGITS_ADVANCED.route},
+                        [SCREENS.WORKSPACE.ACCOUNTING.DIGITS_EXPORT_METHOD]: {path: ROUTES.POLICY_ACCOUNTING_DIGITS_EXPORT_METHOD.route},
+                        [SCREENS.WORKSPACE.ACCOUNTING.DIGITS_BILL_PAYMENT_ACCOUNT]: {path: ROUTES.POLICY_ACCOUNTING_DIGITS_BILL_PAYMENT_ACCOUNT.route},
+                        [SCREENS.WORKSPACE.ACCOUNTING.DIGITS_EXPENSIFY_CARD_SETTLEMENT_ACCOUNT]: {path: ROUTES.POLICY_ACCOUNTING_DIGITS_EXPENSIFY_CARD_SETTLEMENT_ACCOUNT.route},
+                        [SCREENS.WORKSPACE.ACCOUNTING.DIGITS_TRAVEL_BILLING_SETTLEMENT_ACCOUNT]: {path: ROUTES.POLICY_ACCOUNTING_DIGITS_TRAVEL_BILLING_SETTLEMENT_ACCOUNT.route},
+                        [SCREENS.WORKSPACE.ACCOUNTING.DIGITS_TRAVEL_BILLING_PAYABLE_ACCOUNT]: {path: ROUTES.POLICY_ACCOUNTING_DIGITS_TRAVEL_BILLING_PAYABLE_ACCOUNT.route},
                         [SCREENS.WORKSPACE.ACCOUNTING.BUSINESS_CENTRAL_PREREQUISITES]: {path: ROUTES.POLICY_ACCOUNTING_BUSINESS_CENTRAL_PREREQUISITES.route},
                         [SCREENS.WORKSPACE.ACCOUNTING.BUSINESS_CENTRAL_SETUP]: {path: ROUTES.POLICY_ACCOUNTING_BUSINESS_CENTRAL_SETUP.route},
                         [SCREENS.WORKSPACE.ACCOUNTING.BUSINESS_CENTRAL_COMPANY_SELECTOR]: {path: ROUTES.POLICY_ACCOUNTING_BUSINESS_CENTRAL_COMPANY_SELECTOR.route},
@@ -2687,18 +2691,11 @@ const normalizedConfigs = Object.keys(config.screens)
         ),
     )
     .flat()
-    .reduce(
-        (acc, route) => {
-            acc[route.screen as Screen] = route;
-            return acc;
-        },
-        {} as Record<Screen, RouteConfig>,
-    );
+    .reduce<Record<string, RouteConfig>>((acc, route) => {
+        acc[route.screen] = route;
+        return acc;
+    }, {});
 
-const {
-    screensWithTabNavigator: screensWithOnyxTabNavigator,
-    dynamicTabPatternToTabPaths,
-    dynamicTabScreensByHost,
-} = collectScreensWithTabNavigator(config.screens as Record<string, ScreenConfigEntry>);
+const {screensWithTabNavigator: screensWithOnyxTabNavigator, dynamicTabPatternToTabPaths, dynamicTabScreensByHost} = collectScreensWithTabNavigator(config.screens);
 
 export {normalizedConfigs, config, screensWithOnyxTabNavigator, dynamicTabPatternToTabPaths, dynamicTabScreensByHost};
