@@ -86,7 +86,7 @@ function AccountDetailsPage() {
     const errorKey = getValidateCodeErrorKey(latestError);
     const genericError = !errorKey ? latestError : undefined;
 
-    useRedirectToPendingDomainAccountMergeRequest(email);
+    useRedirectToPendingDomainAccountMergeRequest();
 
     const styles = useThemeStyles();
     const {translate} = useLocalize();

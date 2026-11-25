@@ -106,7 +106,7 @@ function AccountValidatePage() {
     const mergeWithValidateCode = account?.mergeWithValidateCode;
     const getValidateCodeForAccountMerge = account?.getValidateCodeForAccountMerge;
 
-    useRedirectToPendingDomainAccountMergeRequest(email);
+    useRedirectToPendingDomainAccountMergeRequest();
 
     const isAccountMerged = mergeWithValidateCode?.isAccountMerged;
 
