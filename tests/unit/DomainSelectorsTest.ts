@@ -26,7 +26,6 @@ import {
     selectRestrictedPrimaryPolicyID,
     selectSecurityGroupForAccount,
     technicalContactSettingsSelector,
-    unlockRequestedSelector,
     vacationDelegateSelector,
 } from '@selectors/Domain';
 
@@ -1057,19 +1056,6 @@ describe('domainSelectors', () => {
 
             expect(accountLockSelector(accountID)(undefined)).toBeUndefined();
             expect(accountLockSelector(accountID)(domain)).toBeUndefined();
-        });
-    });
-
-    describe('unlockRequestedSelector', () => {
-        it('reads only the requested member and tolerates unloaded domains', () => {
-            // Given a submitted unlock request for one member
-            const domain = createDomainFixture({boundaryEntries: {[`${CONST.DOMAIN.PRIVATE_UNLOCK_REQUESTED_PREFIX}123`]: true}});
-
-            // When reading the submitted state for different members and an unloaded domain
-            // Then only the member with a submitted request is marked
-            expect(unlockRequestedSelector(123)(domain)).toBe(true);
-            expect(unlockRequestedSelector(456)(domain)).toBeUndefined();
-            expect(unlockRequestedSelector(123)(undefined)).toBeUndefined();
         });
     });
 

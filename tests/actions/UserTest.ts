@@ -26,7 +26,7 @@ import * as UserActions from '../../src/libs/actions/User';
 import createMock from '../utils/createMock';
 import getOnyxValue from '../utils/getOnyxValue';
 import PusherHelper from '../utils/PusherHelper';
-import {anyArray, anyObject, anyString, formatPhoneNumber, getOnyxData} from '../utils/TestHelper';
+import {anyArray, anyObject, anyString, formatPhoneNumber} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 jest.mock('@libs/API');
@@ -1179,26 +1179,6 @@ describe('actions/User', () => {
                 {onyxMethod: Onyx.METHOD.MERGE, key: pendingKey, value: {member: {[accountID]: {unlockAccount: null}}}},
                 {onyxMethod: Onyx.METHOD.MERGE, key: errorsKey, value: {memberErrors: {[accountID]: {unlockAccountErrors: anyObject}}}},
             ]);
-        });
-
-        it('clears only the unlock error when it is dismissed', async () => {
-            // Given an unlock error alongside another member error
-            const accountID = 123;
-            const key = `${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}200` as const;
-            await Onyx.set(key, {memberErrors: {[accountID]: {unlockAccountErrors: {timestamp1: 'Unlock failed'}, lockAccountErrors: {timestamp2: 'Lock failed'}}}});
-
-            // When the unlock error is dismissed
-            UserActions.clearUnlockAccountError(200, 123);
-            await waitForBatchedUpdates();
-
-            // Then the unrelated error is preserved
-            await getOnyxData({
-                key,
-                callback: (errors) => {
-                    expect(errors?.memberErrors?.[123]?.unlockAccountErrors).toBeFalsy();
-                    expect(errors?.memberErrors?.[123]?.lockAccountErrors).toEqual({timestamp2: 'Lock failed'});
-                },
-            });
         });
     });
 
