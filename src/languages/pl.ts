@@ -3687,6 +3687,7 @@ ${amount} dla ${merchant} - ${date}`,
         subtitle: 'Przy zwrocie w innej walucie mogą obowiązywać opłaty za przewalutowanie. Wybierz poniżej, kto zapłaci opłaty. Dotyczy to wyłącznie przewalutowań transgranicznych.',
         companyPays: 'Płaci firma',
         employeePays: 'Płaci pracownik',
+        employeePaysDisabledDescription: 'Przestrzeń robocza musi pokrywać opłaty za przewalutowanie, dopóki konto bankowe używa innej waluty.',
         errorMessage: 'Nie udało się zmienić preferencji dotyczącej opłat za przewalutowanie. Spróbuj ponownie lub skontaktuj się z pomocą techniczną.',
     },
     workflowsCreateApprovalsPage: {

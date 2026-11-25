@@ -3724,6 +3724,9 @@ type ACHAccount = {
     /** Bank account state */
     state?: string;
 
+    /** Currency of the bank account, from Corpay or Wise. Null when the account has neither */
+    bankCurrency?: string | null;
+
     /** Emails of users who have had the bank account shared with them */
     sharees?: string[];
 };

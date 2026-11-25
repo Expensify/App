@@ -1,3 +1,4 @@
+import {canUseMismatchedCurrencyPolicyBankAccount} from '@libs/BankAccountUtils';
 import {getExpensifyCardEnrollmentRoute, isCurrencySupportedForECards} from '@libs/CardUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getEligibleExistingBusinessBankAccounts} from '@libs/WorkflowUtils';
@@ -16,6 +17,7 @@ import type {Policy} from '@src/types/onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 
 import useOnyx from './useOnyx';
+import usePermissions from './usePermissions';
 import useReviewWorkspaceSettingsTaskCompletion from './useReviewWorkspaceSettingsTaskCompletion';
 
 type ApplyWorkspaceCurrencyChangeOptions = {
@@ -38,6 +40,7 @@ function useApplyWorkspaceCurrencyChange(policy: OnyxEntry<Policy>) {
     const [supportedCountriesByCurrency] = useOnyx(ONYXKEYS.CARD_SUPPORTED_COUNTRIES);
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
     const [governmentMileageRates] = useOnyx(ONYXKEYS.GOVERNMENT_MILEAGE_RATES);
+    const {isBetaEnabled} = usePermissions();
     const getReviewWorkspaceSettingsTaskCompletion = useReviewWorkspaceSettingsTaskCompletion();
 
     return (
@@ -48,9 +51,14 @@ function useApplyWorkspaceCurrencyChange(policy: OnyxEntry<Policy>) {
             return;
         }
         clearDraftValues(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM);
+        const shouldPreferCompanyFXFees =
+            canUseMismatchedCurrencyPolicyBankAccount(policy.achAccount, isBetaEnabled(CONST.BETAS.MISMATCHED_REIMBURSEMENT_CURRENCY), false, bankAccountList) &&
+            currencyCode !== policy.achAccount?.bankCurrency &&
+            !policy.globalReimbursementFXPreferCompany;
         updateGeneralSettings(policy, policy.name ?? '', currencyCode, getReviewWorkspaceSettingsTaskCompletion(), {
             governmentRateCountry,
             governmentMileageRates: governmentMileageRates ?? [],
+            shouldPreferCompanyFXFees,
         });
         clearCorpayBankAccountFields();
 

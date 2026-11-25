@@ -1,6 +1,7 @@
-import {act, render} from '@testing-library/react-native';
+import {act, render, screen} from '@testing-library/react-native';
 
 import ComposeProviders from '@components/ComposeProviders';
+import HTMLEngineProvider from '@components/HTMLEngineProvider';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 
@@ -119,7 +120,7 @@ const seedOnyx = async (account: ReimbursementAccount, policy: Policy | null = U
 };
 
 const pageElement = (params: RouteParams) => (
-    <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>
+    <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, HTMLEngineProvider]}>
         <ReimbursementAccountPage
             route={buildRoute(params)}
             navigation={navigation}
@@ -481,6 +482,87 @@ describe('ReimbursementAccountPage pending USD redirect', () => {
 
             // Then the existing cleanup still resets the account
             expect(await getReimbursementAccount()).toEqual(CONST.REIMBURSEMENT_ACCOUNT.DEFAULT_DATA);
+        });
+    });
+
+    describe('with a NOK workspace linked to an EUR bank account', () => {
+        const CURRENCY_ERROR = /different currency than USD/;
+        const LOADED_ACCOUNT: ReimbursementAccount = {
+            isLoading: false,
+            shouldShowResetModal: false,
+            achData: buildAchData({state: CONST.BANK_ACCOUNT.STATE.OPEN, currency: CONST.CURRENCY.EUR}),
+        };
+        const buildNokPolicy = (state: string): Policy => ({
+            ...USD_POLICY,
+            outputCurrency: 'NOK',
+            achAccount: createMock<NonNullable<Policy['achAccount']>>({bankAccountID: 1234, state, bankCurrency: CONST.CURRENCY.EUR}),
+        });
+
+        const seedBeta = async (isBetaOn: boolean) => {
+            await act(async () => {
+                await Onyx.set(ONYXKEYS.BETAS, isBetaOn ? [CONST.BETAS.MISMATCHED_REIMBURSEMENT_CURRENCY] : []);
+                await waitForBatchedUpdatesWithAct();
+            });
+        };
+
+        it('opens the linked account without the currency error when the beta is on and no route param asks for a new setup', async () => {
+            // Given the beta is on and an open EUR account is linked to the NOK workspace
+            await seedBeta(true);
+            await seedOnyx(LOADED_ACCOUNT, buildNokPolicy(CONST.BANK_ACCOUNT.STATE.OPEN));
+
+            // When the page is opened with no route params besides the policy
+            await renderPage();
+
+            // Then the page does not block the admin with the currency error
+            expect(screen.queryByText(CURRENCY_ERROR)).not.toBeOnTheScreen();
+        });
+
+        it('still shows the currency error when the beta is on and the admin changes the bank account', async () => {
+            // Given the beta is on and an open EUR account is linked to the NOK workspace
+            await seedBeta(true);
+            await seedOnyx(LOADED_ACCOUNT, buildNokPolicy(CONST.BANK_ACCOUNT.STATE.OPEN));
+
+            // When the page is opened to set up a new account in the change flow
+            await renderPage({policyID: POLICY_ID, isChangingBankAccount: true});
+
+            // Then the currency error shows, because a new account must use a supported currency
+            expect(screen.getByText(CURRENCY_ERROR)).toBeOnTheScreen();
+        });
+
+        it('still shows the currency error when the beta is on and the page opens a new setup', async () => {
+            // Given the beta is on and an open EUR account is linked to the NOK workspace
+            await seedBeta(true);
+            await seedOnyx(LOADED_ACCOUNT, buildNokPolicy(CONST.BANK_ACCOUNT.STATE.OPEN));
+
+            // When the page is opened with stepToOpen=new
+            await renderPage({policyID: POLICY_ID, stepToOpen: 'new'});
+
+            // Then the currency error shows, because a new account must use a supported currency
+            expect(screen.getByText(CURRENCY_ERROR)).toBeOnTheScreen();
+        });
+
+        it('opens a locked linked account without the currency error when the beta is on', async () => {
+            // Given the beta is on and a locked EUR account is linked to the NOK workspace
+            await seedBeta(true);
+            await seedOnyx(LOADED_ACCOUNT, buildNokPolicy(CONST.BANK_ACCOUNT.STATE.LOCKED));
+
+            // When a user who is not the reimburser opens the page with no route params
+            await renderPage();
+
+            // Then the page does not show the currency error
+            expect(screen.queryByText(CURRENCY_ERROR)).not.toBeOnTheScreen();
+        });
+
+        it('shows the currency error when the beta is off', async () => {
+            // Given the beta is off and an open EUR account is linked to the NOK workspace
+            await seedBeta(false);
+            await seedOnyx(LOADED_ACCOUNT, buildNokPolicy(CONST.BANK_ACCOUNT.STATE.OPEN));
+
+            // When the page is opened with no route params besides the policy
+            await renderPage();
+
+            // Then the page behaves as before and shows the currency error
+            expect(screen.getByText(CURRENCY_ERROR)).toBeOnTheScreen();
         });
     });
 });

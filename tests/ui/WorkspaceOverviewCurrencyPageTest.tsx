@@ -43,7 +43,7 @@ jest.mock('@components/CurrencySelectionList', () => {
     const {Pressable, Text} = jest.requireActual<typeof ReactNative>('react-native');
     return ({onSelect}: {onSelect: (item: CurrencyListItem) => void}) => (
         <>
-            {['USD', 'GBP', 'EUR', 'AUD', 'HKD'].map((currencyCode) => (
+            {['USD', 'GBP', 'EUR', 'AUD', 'HKD', 'NOK'].map((currencyCode) => (
                 <Pressable
                     key={currencyCode}
                     testID={`currency-${currencyCode}`}
@@ -209,6 +209,79 @@ describe('WorkspaceOverviewCurrencyPage', () => {
 
         expect(mockNavigate).not.toHaveBeenCalled();
         expect(Navigation.setNavigationActionToMicrotaskQueue).toHaveBeenCalledWith(Navigation.goBack);
+    });
+
+    describe('with an EUR VBA linked to the workspace', () => {
+        const policyWithEurVBA = createMock<Policy>({
+            ...mockPolicy,
+            outputCurrency: CONST.CURRENCY.EUR,
+            achAccount: {bankAccountID: 1, state: CONST.BANK_ACCOUNT.STATE.OPEN, bankCurrency: CONST.CURRENCY.EUR},
+        });
+
+        it('sets company-paid FX when the beta is on and the new currency differs from the VBA currency', () => {
+            // Given the beta is on and an open EUR VBA is linked to the workspace
+            mockIsBetaEnabled = true;
+            renderPage(false, SCREENS.WORKSPACE.CURRENCY, policyWithEurVBA);
+
+            // When the admin changes the workspace currency to NOK
+            fireEvent.press(screen.getByTestId('currency-NOK'));
+
+            // Then the same action also sets company-paid FX, so it can roll both back together
+            expect(updateGeneralSettings).toHaveBeenCalledWith(policyWithEurVBA, policyWithEurVBA.name, 'NOK', undefined, expect.objectContaining({shouldPreferCompanyFXFees: true}));
+        });
+
+        it('does not change FX when the new currency matches the VBA currency', () => {
+            // Given the beta is on and an open EUR VBA is linked to a NOK workspace
+            mockIsBetaEnabled = true;
+            renderPage(false, SCREENS.WORKSPACE.CURRENCY, createMock<Policy>({...policyWithEurVBA, outputCurrency: 'NOK'}));
+
+            // When the admin changes the workspace currency back to EUR
+            fireEvent.press(screen.getByTestId(`currency-${CONST.CURRENCY.EUR}`));
+
+            // Then FX stays as it is
+            expect(updateGeneralSettings).toHaveBeenCalledWith(
+                expect.anything(),
+                expect.anything(),
+                expect.anything(),
+                undefined,
+                expect.objectContaining({shouldPreferCompanyFXFees: false}),
+            );
+        });
+
+        it('does not change FX when the company already pays', () => {
+            // Given the beta is on and the company already pays the conversion fees
+            mockIsBetaEnabled = true;
+            renderPage(false, SCREENS.WORKSPACE.CURRENCY, createMock<Policy>({...policyWithEurVBA, globalReimbursementFXPreferCompany: true}));
+
+            // When the admin changes the workspace currency to NOK
+            fireEvent.press(screen.getByTestId('currency-NOK'));
+
+            // Then no extra request is sent
+            expect(updateGeneralSettings).toHaveBeenCalledWith(
+                expect.anything(),
+                expect.anything(),
+                expect.anything(),
+                undefined,
+                expect.objectContaining({shouldPreferCompanyFXFees: false}),
+            );
+        });
+
+        it('does not change FX when the beta is off', () => {
+            // Given the beta is off and an open EUR VBA is linked to the workspace
+            renderPage(false, SCREENS.WORKSPACE.CURRENCY, policyWithEurVBA);
+
+            // When the admin changes the workspace currency to NOK
+            fireEvent.press(screen.getByTestId('currency-NOK'));
+
+            // Then behavior stays the same as before the beta
+            expect(updateGeneralSettings).toHaveBeenCalledWith(
+                expect.anything(),
+                expect.anything(),
+                expect.anything(),
+                undefined,
+                expect.objectContaining({shouldPreferCompanyFXFees: false}),
+            );
+        });
     });
 
     it('sends the admin to Workflows instead of changing a currency that Direct reimbursement blocks', async () => {

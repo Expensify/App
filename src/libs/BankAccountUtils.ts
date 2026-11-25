@@ -8,6 +8,8 @@ import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
 import type * as OnyxTypes from '@src/types/onyx';
 import type AccountData from '@src/types/onyx/AccountData';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
+import type PaymentMethod from '@src/types/onyx/PaymentMethod';
+import type {ACHAccount} from '@src/types/onyx/Policy';
 import type {ACHData} from '@src/types/onyx/ReimbursementAccount';
 
 import type {OnyxEntry} from 'react-native-onyx';
@@ -242,6 +244,42 @@ function shouldSetUpGlobalReimbursementsBeforePaying(bankAccount: OnyxEntry<Onyx
  */
 function isGlobalReimbursementsEnabled(bankAccount: OnyxEntry<OnyxTypes.BankAccount>): boolean {
     return bankAccount?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && bankAccount?.accountData?.additionalData?.isGlobalReimbursementEnabled === true;
+}
+
+function isCorpayNonUSBankAccount(bankAccount: OnyxEntry<OnyxTypes.BankAccount | PaymentMethod>): boolean {
+    if (!bankAccount || !('bankCountry' in bankAccount) || !('accountData' in bankAccount)) {
+        return false;
+    }
+    return bankAccount.accountData?.additionalData?.globalReimbursementProvider === CONST.GLOBAL_REIMBURSEMENT_PROVIDER.CORPAY && bankAccount.bankCountry !== CONST.COUNTRY.US;
+}
+
+function canUseMismatchedCurrencyBankAccount(bankAccount: OnyxEntry<OnyxTypes.BankAccount | PaymentMethod>, isMismatchedReimbursementCurrencyBetaEnabled: boolean): boolean {
+    if (!isMismatchedReimbursementCurrencyBetaEnabled || !bankAccount || !('bankCountry' in bankAccount)) {
+        return false;
+    }
+    return isCorpayNonUSBankAccount(bankAccount) && bankAccount.accountData?.state === CONST.BANK_ACCOUNT.STATE.OPEN;
+}
+
+/**
+ * Whether the bank account linked to the workspace can pay a workspace in a different currency.
+ * `achAccount` has no provider or country, so when the user has a copy of the linked account in `bankAccountList`, the copy must also be a non-US Corpay account.
+ * Without a copy, only the state and `bankCurrency` of `achAccount` can be checked.
+ */
+function canUseMismatchedCurrencyPolicyBankAccount(
+    achAccount: OnyxEntry<ACHAccount>,
+    isMismatchedReimbursementCurrencyBetaEnabled: boolean,
+    shouldAllowLockedAccount = false,
+    bankAccountList?: OnyxEntry<OnyxTypes.BankAccountList>,
+): boolean {
+    if (!isMismatchedReimbursementCurrencyBetaEnabled || !achAccount?.bankCurrency) {
+        return false;
+    }
+    const isStateAllowed = achAccount.state === CONST.BANK_ACCOUNT.STATE.OPEN || (shouldAllowLockedAccount && achAccount.state === CONST.BANK_ACCOUNT.STATE.LOCKED);
+    if (!isStateAllowed) {
+        return false;
+    }
+    const linkedBankAccount = Object.values(bankAccountList ?? {}).find((bankAccount) => bankAccount?.methodID === achAccount.bankAccountID);
+    return !linkedBankAccount || isCorpayNonUSBankAccount(linkedBankAccount);
 }
 
 type WiseQuotePaymentParams = {
@@ -607,6 +645,8 @@ export {
     isPersonalBankAccountMissingInfo,
     getCompletedStepsForBankAccount,
     showUnlockAlreadyRequestedModal,
+    canUseMismatchedCurrencyBankAccount,
+    canUseMismatchedCurrencyPolicyBankAccount,
     PERSONAL_INFO_STEP,
 };
 export type {BankAccountConnectionStatus, KYBVerificationResponses};

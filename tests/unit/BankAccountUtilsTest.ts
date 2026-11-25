@@ -14,6 +14,8 @@ import {
     hasPartiallySetupBankAccount,
     hasPersonalBankAccountMissingInfo,
     canLinkPlaid,
+    canUseMismatchedCurrencyBankAccount,
+    canUseMismatchedCurrencyPolicyBankAccount,
     isBankAccountPartiallySetup,
     isBankAccountEligibleForGlobalReimbursements,
     isGlobalReimbursementsEnabled,
@@ -34,6 +36,7 @@ import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
 import type {Account, BankAccount, BankAccountList, Policy, Session} from '@src/types/onyx';
 import type AccountData from '@src/types/onyx/AccountData';
 import type {BankAccountAdditionalData} from '@src/types/onyx/BankAccount';
+import type {ACHAccount} from '@src/types/onyx/Policy';
 
 import type {ValueOf} from 'type-fest';
 
@@ -1472,5 +1475,185 @@ describe('BankAccountUtils', () => {
             // Then it does not, so nothing points to an account queued for removal
             expect(isWiseOnboardingMoreInfoNeeded(bankAccount)).toBe(false);
         });
+    });
+});
+
+describe('canUseMismatchedCurrencyBankAccount', () => {
+    const buildAccount = (overrides: {provider?: ValueOf<typeof CONST.GLOBAL_REIMBURSEMENT_PROVIDER>; bankCountry?: string; state?: string} = {}) =>
+        createMock<BankAccount>({
+            bankCountry: overrides.bankCountry ?? 'NO',
+            accountData: {
+                state: overrides.state ?? CONST.BANK_ACCOUNT.STATE.OPEN,
+                additionalData: {globalReimbursementProvider: overrides.provider ?? CONST.GLOBAL_REIMBURSEMENT_PROVIDER.CORPAY},
+            },
+        });
+
+    it('returns true for an open non-US Corpay account when the beta is on', () => {
+        // Given an open Corpay account outside the US
+        const account = buildAccount();
+
+        // When the beta is on
+        const result = canUseMismatchedCurrencyBankAccount(account, true);
+
+        // Then the account can pay a workspace in another currency
+        expect(result).toBe(true);
+    });
+
+    it('returns false when the beta is off', () => {
+        // Given an account that meets every other condition
+        const account = buildAccount();
+
+        // When the beta is off
+        const result = canUseMismatchedCurrencyBankAccount(account, false);
+
+        // Then behavior stays the same as before the beta
+        expect(result).toBe(false);
+    });
+
+    it('returns false when the provider is not Corpay', () => {
+        // Given a Wise account
+        const account = buildAccount({provider: CONST.GLOBAL_REIMBURSEMENT_PROVIDER.WISE});
+
+        // When the beta is on
+        const result = canUseMismatchedCurrencyBankAccount(account, true);
+
+        // Then the account is not allowed
+        expect(result).toBe(false);
+    });
+
+    it('returns false for a US account', () => {
+        // Given a US Corpay account
+        const account = buildAccount({bankCountry: CONST.COUNTRY.US});
+
+        // When the beta is on
+        const result = canUseMismatchedCurrencyBankAccount(account, true);
+
+        // Then the account is not allowed
+        expect(result).toBe(false);
+    });
+
+    it('returns false when the account is not open', () => {
+        // Given a locked Corpay account
+        const account = buildAccount({state: CONST.BANK_ACCOUNT.STATE.LOCKED});
+
+        // When the beta is on
+        const result = canUseMismatchedCurrencyBankAccount(account, true);
+
+        // Then the account is not allowed
+        expect(result).toBe(false);
+    });
+
+    it('returns false when there is no account', () => {
+        // Given no account
+        // When the beta is on
+        const result = canUseMismatchedCurrencyBankAccount(undefined, true);
+
+        // Then the result is false
+        expect(result).toBe(false);
+    });
+});
+
+describe('canUseMismatchedCurrencyPolicyBankAccount', () => {
+    const achAccount = createMock<ACHAccount>({bankAccountID: 1, state: CONST.BANK_ACCOUNT.STATE.OPEN, bankCurrency: 'EUR'});
+
+    it('returns true for an open account with a currency when the beta is on', () => {
+        // Given an open linked account with a bank currency
+        // When the beta is on
+        const result = canUseMismatchedCurrencyPolicyBankAccount(achAccount, true);
+
+        // Then the account is allowed
+        expect(result).toBe(true);
+    });
+
+    it('returns false when the beta is off', () => {
+        // Given an open linked account with a bank currency
+        // When the beta is off
+        const result = canUseMismatchedCurrencyPolicyBankAccount(achAccount, false);
+
+        // Then behavior stays the same as before the beta
+        expect(result).toBe(false);
+    });
+
+    it('returns false when the bank currency is empty or null', () => {
+        // Given linked accounts without a bank currency
+        // When the beta is on
+        // Then neither account is allowed
+        expect(canUseMismatchedCurrencyPolicyBankAccount({...achAccount, bankCurrency: null}, true)).toBe(false);
+        expect(canUseMismatchedCurrencyPolicyBankAccount({...achAccount, bankCurrency: ''}, true)).toBe(false);
+        expect(canUseMismatchedCurrencyPolicyBankAccount({...achAccount, bankCurrency: undefined}, true)).toBe(false);
+    });
+
+    it('allows a locked account only when shouldAllowLockedAccount is true', () => {
+        // Given a locked linked account
+        const locked = {...achAccount, state: CONST.BANK_ACCOUNT.STATE.LOCKED};
+
+        // When the caller does and does not allow locked accounts
+        // Then only the caller that allows them gets true
+        expect(canUseMismatchedCurrencyPolicyBankAccount(locked, true)).toBe(false);
+        expect(canUseMismatchedCurrencyPolicyBankAccount(locked, true, true)).toBe(true);
+    });
+
+    it('returns false for other states even when locked accounts are allowed', () => {
+        // Given a linked account in a pending state
+        const pending = {...achAccount, state: CONST.BANK_ACCOUNT.STATE.PENDING};
+
+        // When locked accounts are allowed
+        const result = canUseMismatchedCurrencyPolicyBankAccount(pending, true, true);
+
+        // Then the account is not allowed
+        expect(result).toBe(false);
+    });
+
+    describe('with a copy of the linked account in the bank account list', () => {
+        const buildList = (provider: ValueOf<typeof CONST.GLOBAL_REIMBURSEMENT_PROVIDER>, bankCountry: string) =>
+            createMock<BankAccountList>({
+                [String(achAccount.bankAccountID)]: {
+                    methodID: achAccount.bankAccountID,
+                    bankCountry,
+                    accountData: {state: CONST.BANK_ACCOUNT.STATE.OPEN, additionalData: {globalReimbursementProvider: provider}},
+                },
+            });
+
+        it('returns true for a non-US Corpay copy', () => {
+            // Given a non-US Corpay copy of the linked account
+            const bankAccountList = buildList(CONST.GLOBAL_REIMBURSEMENT_PROVIDER.CORPAY, 'DE');
+
+            // When the beta is on
+            const result = canUseMismatchedCurrencyPolicyBankAccount(achAccount, true, false, bankAccountList);
+
+            // Then the account is allowed, the same as in the payment menu
+            expect(result).toBe(true);
+        });
+
+        it('returns false for a Wise copy', () => {
+            // Given a Wise copy of the linked account
+            const bankAccountList = buildList(CONST.GLOBAL_REIMBURSEMENT_PROVIDER.WISE, 'DE');
+
+            // When the beta is on
+            const result = canUseMismatchedCurrencyPolicyBankAccount(achAccount, true, false, bankAccountList);
+
+            // Then the account is rejected, because the payment menu rejects it too
+            expect(result).toBe(false);
+        });
+
+        it('returns false for a US Corpay copy', () => {
+            // Given a US Corpay copy of the linked account
+            const bankAccountList = buildList(CONST.GLOBAL_REIMBURSEMENT_PROVIDER.CORPAY, CONST.COUNTRY.US);
+
+            // When the beta is on
+            const result = canUseMismatchedCurrencyPolicyBankAccount(achAccount, true, false, bankAccountList);
+
+            // Then the account is rejected, because the payment menu rejects it too
+            expect(result).toBe(false);
+        });
+    });
+
+    it('returns false when there is no account', () => {
+        // Given no linked account
+        // When the beta is on
+        const result = canUseMismatchedCurrencyPolicyBankAccount(undefined, true);
+
+        // Then the result is false
+        expect(result).toBe(false);
     });
 });

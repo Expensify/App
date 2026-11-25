@@ -3659,6 +3659,7 @@ ${amount} für ${merchant} – ${date}`,
             'Bei Erstattungen in einer anderen Währung können Umrechnungsgebühren anfallen. Wähle unten aus, wer die Gebühren zahlt. Dies gilt nur für grenzüberschreitende Umrechnungen.',
         companyPays: 'Unternehmen zahlt',
         employeePays: 'Mitarbeitende zahlen',
+        employeePaysDisabledDescription: 'Der Workspace muss die Umrechnungsgebühren zahlen, solange das Bankkonto eine andere Währung verwendet.',
         errorMessage: 'Die Einstellung für Währungsumrechnungsgebühren konnte nicht geändert werden. Bitte versuche es erneut oder kontaktiere den Support.',
     },
     workflowsCreateApprovalsPage: {

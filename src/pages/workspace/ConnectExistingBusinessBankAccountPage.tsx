@@ -7,10 +7,11 @@ import Text from '@components/Text';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {isBankAccountPartiallySetup} from '@libs/BankAccountUtils';
+import {canUseMismatchedCurrencyBankAccount, isBankAccountPartiallySetup} from '@libs/BankAccountUtils';
 import {REIMBURSEMENT_ACCOUNT_ROUTE_NAMES} from '@libs/ReimbursementAccountUtils';
 import {appendParam} from '@libs/Url';
 
@@ -22,7 +23,7 @@ import PaymentMethodList from '@pages/settings/Wallet/PaymentMethodList';
 import type {PaymentMethodPressHandlerParams} from '@pages/settings/Wallet/WalletPage/types';
 
 import {setReimbursementAccountLoading} from '@userActions/BankAccounts';
-import {setWorkspaceReimbursement} from '@userActions/Policy/Policy';
+import {setWorkspaceCurrencyConversionFeesPreference, setWorkspaceReimbursement} from '@userActions/Policy/Policy';
 import {navigateToBankAccountRoute, prepareNewBankAccountSetup} from '@userActions/ReimbursementAccount';
 
 import CONST from '@src/CONST';
@@ -43,6 +44,8 @@ function ConnectExistingBusinessBankAccountPage({route}: ConnectExistingBusiness
     const [lastPaymentMethod] = useOnyx(ONYXKEYS.NVP_LAST_PAYMENT_METHOD);
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
+    const {isBetaEnabled} = usePermissions();
+    const isMismatchedReimbursementCurrencyBetaEnabled = isBetaEnabled(CONST.BETAS.MISMATCHED_REIMBURSEMENT_CURRENCY);
     const policyName = policy?.name ?? '';
     const policyCurrency = policy?.outputCurrency ?? '';
     const {shouldUseNarrowLayout} = useResponsiveLayout();
@@ -91,10 +94,19 @@ function ConnectExistingBusinessBankAccountPage({route}: ConnectExistingBusiness
                 addressName: accountData?.addressName,
                 bankName: accountData?.additionalData?.bankName,
                 state: accountData?.state,
+                bankCurrency: bankAccountList[methodID]?.bankCurrency,
                 lastPaymentMethod: lastPaymentMethod?.[policyID],
                 shouldUpdateLastPaymentMethod: accountData?.state === CONST.BANK_ACCOUNT.STATE.OPEN,
                 bankAccountList,
             });
+            const selectedBankAccount = bankAccountList[methodID];
+            if (
+                canUseMismatchedCurrencyBankAccount(selectedBankAccount, isMismatchedReimbursementCurrencyBetaEnabled) &&
+                selectedBankAccount?.bankCurrency !== policyCurrency &&
+                !policy?.globalReimbursementFXPreferCompany
+            ) {
+                setWorkspaceCurrencyConversionFeesPreference(policyID, true, policy?.globalReimbursementFXPreferCompany);
+            }
             setReimbursementAccountLoading(true);
         }
 
@@ -139,6 +151,7 @@ function ConnectExistingBusinessBankAccountPage({route}: ConnectExistingBusiness
                         itemIconRight={icons.ArrowRight}
                         filterType={CONST.BANK_ACCOUNT.TYPE.BUSINESS}
                         filterCurrency={policyCurrency}
+                        isMismatchedReimbursementCurrencyBetaEnabled={isMismatchedReimbursementCurrencyBetaEnabled}
                         excludeStates={[CONST.BANK_ACCOUNT.STATE.LOCKED]}
                         excludeBankAccountID={isChangingBankAccount ? connectedAccountBankAccountID : undefined}
                         shouldHideDefaultBadge

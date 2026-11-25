@@ -14,10 +14,12 @@ import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
 import usePrevious from '@hooks/usePrevious';
 import useRootNavigationState from '@hooks/useRootNavigationState';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import {canUseMismatchedCurrencyPolicyBankAccount} from '@libs/BankAccountUtils';
 import {isCurrencySupportedForECards} from '@libs/CardUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
@@ -98,6 +100,7 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
     const topmostFullScreenRoute = useRootNavigationState((state) => state?.routes.findLast((lastRoute) => isFullScreenName(lastRoute.name)));
     const [isChangingToNewBankAccount] = useOnyx(ONYXKEYS.IS_CHANGING_TO_NEW_BANK_ACCOUNT);
     const [reimbursementAccountBackup] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT_BACKUP);
+    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
 
     const policyName = policy?.name ?? '';
     const policyIDParam = route.params?.policyID;
@@ -108,6 +111,7 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
+    const {isBetaEnabled} = usePermissions();
     const hasRequestedNewBankAccountRef = useRef(false);
     const hasClearedStalePlaidErrorsRef = useRef(false);
     const isChangingBankAccountRef = useRef(isChangingBankAccount);
@@ -143,7 +147,13 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
     }
     const isNonUSDWorkspace = !!policyCurrency && policyCurrency !== CONST.CURRENCY.USD;
     const hasUnsupportedCurrency =
-        isComingFromExpensifyCard && isNonUSDWorkspace ? !isCurrencySupportedForECards(policyCurrency) : policyCurrency && !isCurrencySupportedForGlobalReimbursement(policyCurrency);
+        isComingFromExpensifyCard && isNonUSDWorkspace
+            ? !isCurrencySupportedForECards(policyCurrency)
+            : policyCurrency &&
+              !isCurrencySupportedForGlobalReimbursement(policyCurrency) &&
+              (isChangingBankAccount ||
+                  !!route.params?.stepToOpen ||
+                  !canUseMismatchedCurrencyPolicyBankAccount(policy?.achAccount, isBetaEnabled(CONST.BETAS.MISMATCHED_REIMBURSEMENT_CURRENCY), true, bankAccountList));
 
     const nonUSDCountryDraftValue = reimbursementAccountDraft?.country ?? '';
     let workspaceRoute = '';

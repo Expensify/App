@@ -8,8 +8,11 @@ import TextLink from '@components/TextLink';
 
 import useCanConfigureCurrencyConversionFees from '@hooks/useCanConfigureCurrencyConversionFees';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import {canUseMismatchedCurrencyPolicyBankAccount} from '@libs/BankAccountUtils';
 import {getLatestErrorField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -22,6 +25,7 @@ import type {WithPolicyOnyxProps} from '@pages/workspace/withPolicy';
 import {clearPolicyErrorField, setWorkspaceCurrencyConversionFeesPreference} from '@userActions/Policy/Policy';
 
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 
 import React, {useState} from 'react';
@@ -35,12 +39,19 @@ type CurrencyConversionFeesItem = {
     text: string;
     keyForList: CurrencyConversionFeesPreferenceKey;
     isSelected: boolean;
+    isDisabled?: boolean;
+    alternateText?: string;
 };
 
 function WorkspaceWorkflowsCurrencyConversionFeesPage({policy, route}: WorkspaceWorkflowsCurrencyConversionFeesPageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const canConfigureCurrencyConversionFees = useCanConfigureCurrencyConversionFees(policy);
+    const {isBetaEnabled} = usePermissions();
+    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
+    const isEmployeePaysDisabled =
+        canUseMismatchedCurrencyPolicyBankAccount(policy?.achAccount, isBetaEnabled(CONST.BETAS.MISMATCHED_REIMBURSEMENT_CURRENCY), true, bankAccountList) &&
+        policy?.achAccount?.bankCurrency !== policy?.outputCurrency;
 
     const selectedPreference = policy?.globalReimbursementFXPreferCompany
         ? CONST.POLICY.GLOBAL_REIMBURSEMENT_FX_PREFERENCE.COMPANY
@@ -59,6 +70,8 @@ function WorkspaceWorkflowsCurrencyConversionFeesPage({policy, route}: Workspace
             text: translate('workflowsCurrencyConversionFeesPage.employeePays'),
             keyForList: CONST.POLICY.GLOBAL_REIMBURSEMENT_FX_PREFERENCE.EMPLOYEE,
             isSelected: currentPreference === CONST.POLICY.GLOBAL_REIMBURSEMENT_FX_PREFERENCE.EMPLOYEE,
+            isDisabled: isEmployeePaysDisabled,
+            alternateText: isEmployeePaysDisabled ? translate('workflowsCurrencyConversionFeesPage.employeePaysDisabledDescription') : undefined,
         },
     ];
 

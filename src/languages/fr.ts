@@ -3666,6 +3666,7 @@ ${amount} pour ${merchant} - ${date}`,
             "Lors d'un remboursement dans une autre devise, des frais de conversion peuvent s'appliquer. Sélectionnez ci-dessous qui paiera les frais. Cela s'applique uniquement aux conversions transfrontalières.",
         companyPays: "L'entreprise paie",
         employeePays: "L'employé paie",
+        employeePaysDisabledDescription: "L'espace de travail doit payer les frais de conversion tant que le compte bancaire utilise une autre devise.",
         errorMessage: "La préférence de frais de conversion de devise n'a pas pu être modifiée. Veuillez réessayer ou contacter l'assistance.",
     },
     workflowsCreateApprovalsPage: {

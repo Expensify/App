@@ -407,4 +407,47 @@ describe('PaymentMethodList', () => {
         expect(screen.getByText('Chase Checking')).toBeOnTheScreen();
         expect(screen.queryByText('Global reimbursements setup in progress.', {exact: false})).not.toBeOnTheScreen();
     });
+
+    it.each([
+        ['shows', true],
+        ['hides', false],
+    ])('%s an EUR Corpay account in a NOK workspace list when the beta is %s', async (_label, isBetaOn) => {
+        // Given an open EUR business account outside the US that Corpay manages
+        const eurAccount = createBusinessBankAccount(1, 'Euro Account');
+        await act(async () => {
+            await Onyx.set(
+                ONYXKEYS.BANK_ACCOUNT_LIST,
+                createBankAccountList({
+                    ...eurAccount,
+                    bankCurrency: 'EUR',
+                    bankCountry: 'DE',
+                    accountData: {...eurAccount.accountData, additionalData: {globalReimbursementProvider: CONST.GLOBAL_REIMBURSEMENT_PROVIDER.CORPAY}},
+                }),
+            );
+        });
+
+        // When the list renders with a NOK currency filter
+        render(
+            <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, HTMLEngineProvider]}>
+                <PortalProvider>
+                    <PaymentMethodList
+                        shouldShowBankAccountSections
+                        shouldShowAddBankAccount={false}
+                        filterType={CONST.BANK_ACCOUNT.TYPE.BUSINESS}
+                        filterCurrency="NOK"
+                        isMismatchedReimbursementCurrencyBetaEnabled={isBetaOn}
+                        onPress={() => {}}
+                    />
+                </PortalProvider>
+            </ComposeProviders>,
+        );
+        await waitForBatchedUpdatesWithAct();
+
+        // Then only the beta lets the account past the currency filter
+        if (isBetaOn) {
+            expect(screen.getByText('Euro Account')).toBeOnTheScreen();
+        } else {
+            expect(screen.queryByText('Euro Account')).not.toBeOnTheScreen();
+        }
+    });
 });

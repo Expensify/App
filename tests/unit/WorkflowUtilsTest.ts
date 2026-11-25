@@ -18,6 +18,7 @@ import {
     getApproverTitles,
     hasHiddenEmployeeRoutes,
     getApproverPendingActionByMemberEmail,
+    getEligibleExistingBusinessBankAccounts,
     getOpenConnectedToPolicyBusinessBankAccounts,
     getApprovalWorkflowSource,
     getNonMemberApproverError,
@@ -2245,6 +2246,59 @@ describe('WorkflowUtils', () => {
             const result = getOpenConnectedToPolicyBusinessBankAccounts(bankAccountList, policyWithACH);
 
             expect(result).toEqual([openBusinessBankAccount, secondMatchingAccount]);
+        });
+    });
+
+    describe('mismatched reimbursement currency beta', () => {
+        const bankAccountID = 777;
+        const eurCorpayAccount = {
+            methodID: bankAccountID,
+            bankCurrency: 'EUR',
+            bankCountry: 'DE',
+            accountData: {
+                state: CONST.BANK_ACCOUNT.STATE.OPEN,
+                type: CONST.BANK_ACCOUNT.TYPE.BUSINESS,
+                bankAccountID,
+                additionalData: {globalReimbursementProvider: CONST.GLOBAL_REIMBURSEMENT_PROVIDER.CORPAY},
+            },
+        };
+        const bankAccountList: BankAccountList = {'1': eurCorpayAccount};
+        const nokPolicy = createMock<Policy>({...createRandomPolicy(1), outputCurrency: 'NOK', achAccount: {bankAccountID}});
+
+        it('getEligibleExistingBusinessBankAccounts includes an EUR Corpay account for a NOK policy when the beta is on', () => {
+            // Given an open EUR Corpay account and a NOK policy
+            // When the beta is on
+            const result = getEligibleExistingBusinessBankAccounts(bankAccountList, 'NOK', true, undefined, true);
+
+            // Then the account is eligible
+            expect(result).toEqual([eurCorpayAccount]);
+        });
+
+        it('getEligibleExistingBusinessBankAccounts excludes an EUR Corpay account for a NOK policy when the beta is off', () => {
+            // Given an open EUR Corpay account and a NOK policy
+            // When the beta is off
+            const result = getEligibleExistingBusinessBankAccounts(bankAccountList, 'NOK', true);
+
+            // Then the currency check excludes the account as before
+            expect(result).toEqual([]);
+        });
+
+        it('getOpenConnectedToPolicyBusinessBankAccounts includes the linked EUR Corpay account for a NOK policy when the beta is on', () => {
+            // Given a NOK policy linked to an open EUR Corpay account
+            // When the beta is on
+            const result = getOpenConnectedToPolicyBusinessBankAccounts(bankAccountList, nokPolicy, true);
+
+            // Then the account is returned
+            expect(result).toEqual([eurCorpayAccount]);
+        });
+
+        it('getOpenConnectedToPolicyBusinessBankAccounts excludes the linked EUR Corpay account for a NOK policy when the beta is off', () => {
+            // Given a NOK policy linked to an open EUR Corpay account
+            // When the beta is off
+            const result = getOpenConnectedToPolicyBusinessBankAccounts(bankAccountList, nokPolicy);
+
+            // Then the currency check excludes the account as before
+            expect(result).toEqual([]);
         });
     });
 

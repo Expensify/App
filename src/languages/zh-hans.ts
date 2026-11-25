@@ -3515,6 +3515,7 @@ ${amount}，商户：${merchant} - 日期：${date}`,
         subtitle: '以不同货币报销时，可能会产生兑换费用。请在下方选择由谁支付这些费用。此设置仅适用于跨境兑换。',
         companyPays: '公司支付',
         employeePays: '员工支付',
+        employeePaysDisabledDescription: '银行账户使用不同币种时，工作区必须支付兑换费用。',
         errorMessage: '无法更改货币兑换费用偏好设置。请重试或联系支持团队。',
     },
     workflowsCreateApprovalsPage: {

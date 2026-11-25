@@ -335,6 +335,7 @@ type SetWorkspaceReimbursementActionParams = {
     addressName?: string;
     bankName?: string;
     state?: string;
+    bankCurrency?: string;
     lastPaymentMethod?: LastPaymentMethodType | string;
     shouldUpdateLastPaymentMethod?: boolean;
     currentReimbursementChoice: Policy['reimbursementChoice'];
@@ -1560,6 +1561,7 @@ function setWorkspaceReimbursement({
     addressName,
     bankName,
     state,
+    bankCurrency,
     lastPaymentMethod,
     shouldUpdateLastPaymentMethod,
     currentReimbursementChoice,
@@ -1590,7 +1592,9 @@ function setWorkspaceReimbursement({
                 reimbursementChoice,
                 isLoadingWorkspaceReimbursement: true,
                 reimburser: reimburserEmail,
-                achAccount: shouldClearBankAccountID ? null : {reimburser: reimburserEmail, bankAccountID, accountNumber, addressName, bankName, state},
+                achAccount: shouldClearBankAccountID
+                    ? null
+                    : {reimburser: reimburserEmail, bankAccountID, accountNumber, addressName, bankName, state, ...(bankCurrency !== undefined && {bankCurrency})},
                 errorFields: {reimbursementChoice: null},
                 pendingFields: {reimbursementChoice: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
             },
@@ -1672,6 +1676,7 @@ function setWorkspaceReimbursement({
                           addressName: currentAchAccount?.addressName ?? null,
                           bankName: currentAchAccount?.bankName ?? null,
                           state: currentAchAccount?.state ?? null,
+                          ...(bankCurrency !== undefined && {bankCurrency: currentAchAccount?.bankCurrency ?? null}),
                       },
                 errorFields: {reimbursementChoice: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage')},
                 pendingFields: {reimbursementChoice: null},
@@ -2463,6 +2468,8 @@ type UpdateGeneralSettingsGovernmentRateOptions = {
     governmentRateCountry?: string;
     /** Reference rates used to copy the country's rates optimistically while the request is in flight */
     governmentMileageRates?: GovernmentMileageRate[];
+    /** Whether the currency change also sets company-paid FX fees, which this action rolls back and sends together with the currency change */
+    shouldPreferCompanyFXFees?: boolean;
 };
 
 /**
@@ -2474,7 +2481,7 @@ function updateGeneralSettings(
     name: string,
     currencyValue?: string,
     reviewWorkspaceSettingsTaskData: OnboardingTaskCompletionOnyxData = {},
-    {governmentRateCountry, governmentMileageRates = []}: UpdateGeneralSettingsGovernmentRateOptions = {},
+    {governmentRateCountry, governmentMileageRates = [], shouldPreferCompanyFXFees = false}: UpdateGeneralSettingsGovernmentRateOptions = {},
 ) {
     if (!policy?.id) {
         return;
@@ -2595,6 +2602,7 @@ function updateGeneralSettings(
                 outputCurrency: policy.outputCurrency,
                 // Restore the government rate country that the optimistic currency change cleared
                 ...(currencyPendingAction !== undefined && {autoUpdateGovernmentRateCountry: policy.autoUpdateGovernmentRateCountry ?? null}),
+                ...(shouldPreferCompanyFXFees && {globalReimbursementFXPreferCompany: policy.globalReimbursementFXPreferCompany ?? null}),
                 ...(customUnitID && {
                     customUnits: {
                         [customUnitID]: {
@@ -2648,6 +2656,10 @@ function updateGeneralSettings(
         params,
         withReviewWorkspaceSettingsTaskData({optimisticData, successData, finallyData, failureData}, reviewWorkspaceSettingsTaskData),
     );
+
+    if (shouldPreferCompanyFXFees) {
+        setWorkspaceCurrencyConversionFeesPreference(policy.id, true, policy.globalReimbursementFXPreferCompany);
+    }
 }
 
 function updateWorkspaceDescription(policyID: string, description: string, currentDescription: string | undefined, reviewWorkspaceSettingsTaskData: OnboardingTaskCompletionOnyxData = {}) {

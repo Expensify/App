@@ -9,6 +9,7 @@ import ROUTES from '@src/ROUTES';
 import {hasOtherEligibleBusinessBankAccountsSelector} from '@selectors/ReimbursementAccount';
 
 import useOnyx from './useOnyx';
+import usePermissions from './usePermissions';
 
 /**
  * Returns a handler that changes the workspace's verified business bank account. When there are other eligible
@@ -16,7 +17,11 @@ import useOnyx from './useOnyx';
  * Shared by ConnectedVerifiedBankAccount and VerifiedBankAccountFlowEntryPoint.
  */
 function useChangeBankAccount(policyID: string | undefined, currency: string | undefined, bankAccountID: number | undefined) {
-    const [hasOtherEligibleAccountsToConnect = false] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {selector: hasOtherEligibleBusinessBankAccountsSelector(currency, bankAccountID)});
+    const {isBetaEnabled} = usePermissions();
+    const isMismatchedReimbursementCurrencyBetaEnabled = isBetaEnabled(CONST.BETAS.MISMATCHED_REIMBURSEMENT_CURRENCY);
+    const [hasOtherEligibleAccountsToConnect = false] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {
+        selector: hasOtherEligibleBusinessBankAccountsSelector(currency, bankAccountID, isMismatchedReimbursementCurrencyBetaEnabled),
+    });
 
     return () => {
         if (!policyID || !currency) {

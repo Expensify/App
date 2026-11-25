@@ -489,6 +489,48 @@ describe('PaymentUtils', () => {
             expect(getBusinessBankAccountOptions(methods)).toHaveLength(2);
         });
 
+        it('keeps an open non-US Corpay account in another currency when the beta is on', () => {
+            // Given an open EUR Corpay account outside the US and a NOK workspace currency
+            const methods: PaymentMethod[] = [
+                createMockPaymentMethod({
+                    bankCurrency: 'EUR',
+                    bankCountry: 'DE',
+                    accountData: {
+                        type: CONST.BANK_ACCOUNT.TYPE.BUSINESS,
+                        state: CONST.BANK_ACCOUNT.STATE.OPEN,
+                        additionalData: {globalReimbursementProvider: CONST.GLOBAL_REIMBURSEMENT_PROVIDER.CORPAY},
+                    },
+                }),
+            ];
+
+            // When the beta is on
+            const result = getBusinessBankAccountOptions(methods, 'NOK', undefined, true);
+
+            // Then the account is in the list
+            expect(result).toHaveLength(1);
+        });
+
+        it('drops an account in another currency when the beta is off', () => {
+            // Given an open EUR Corpay account outside the US and a NOK workspace currency
+            const methods: PaymentMethod[] = [
+                createMockPaymentMethod({
+                    bankCurrency: 'EUR',
+                    bankCountry: 'DE',
+                    accountData: {
+                        type: CONST.BANK_ACCOUNT.TYPE.BUSINESS,
+                        state: CONST.BANK_ACCOUNT.STATE.OPEN,
+                        additionalData: {globalReimbursementProvider: CONST.GLOBAL_REIMBURSEMENT_PROVIDER.CORPAY},
+                    },
+                }),
+            ];
+
+            // When the beta is off
+            const result = getBusinessBankAccountOptions(methods, 'NOK');
+
+            // Then the currency check drops the account as before
+            expect(result).toHaveLength(0);
+        });
+
         it('drops methods with null or undefined methodID', () => {
             expect(getBusinessBankAccountOptions([createMockPaymentMethod({methodID: null})])).toHaveLength(0);
             expect(getBusinessBankAccountOptions([createMockPaymentMethod({methodID: undefined})])).toHaveLength(0);

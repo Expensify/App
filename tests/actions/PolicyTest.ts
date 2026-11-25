@@ -2648,6 +2648,27 @@ describe('actions/Policy', () => {
             expect(updatedRate?.errorFields?.currency).not.toBeUndefined();
         });
 
+        it('rolls back company-paid FX together with a failed currency change', async () => {
+            // Given a workspace with employee-paid FX
+            const policy = {
+                ...createRandomPolicy(0),
+                name: 'Workspace',
+                outputCurrency: CONST.CURRENCY.USD,
+                globalReimbursementFXPreferCompany: false,
+            };
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
+
+            // When the currency change that also sets company-paid FX fails
+            mockFetch.fail();
+            Policy.updateGeneralSettings(policy, policy.name, NEW_CURRENCY, {}, {shouldPreferCompanyFXFees: true});
+            await waitForBatchedUpdates();
+
+            // Then both the currency and the FX preference return to their old values
+            const updatedPolicy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`);
+            expect(updatedPolicy?.outputCurrency).toBe(policy.outputCurrency);
+            expect(updatedPolicy?.globalReimbursementFXPreferCompany).toBe(false);
+        });
+
         it('sends the government rate country and the optimistic rate IDs when switching to a shared currency', async () => {
             const apiWriteSpy = jest.spyOn(APIModule, 'write').mockImplementation(() => Promise.resolve());
             const customUnitID = 'unit_123';

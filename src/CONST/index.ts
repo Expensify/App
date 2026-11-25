@@ -1617,6 +1617,7 @@ const CONST = {
         MULTIPLE_APPROVERS: 'multipleApprovers',
         GLOBAL_REIMBURSEMENTS: 'globalReimbursements',
         WISE_REIMBURSEMENTS: 'wiseReimbursements',
+        MISMATCHED_REIMBURSEMENT_CURRENCY: 'mismatchedReimbursementCurrency',
         DEFAULT_LETTER_AVATARS: 'defaultLetterAvatars',
         ARCHIVE_POLICIES: 'archivePolicies',
         MERGE_ATS: 'mergeATSConnections',
