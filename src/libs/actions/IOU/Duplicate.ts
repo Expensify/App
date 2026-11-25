@@ -111,7 +111,8 @@ function buildDuplicatePerDiem(sourceCustomUnit: TransactionCustomUnit, sourceCu
         subRates: sourceCustomUnit.subRates?.map((subRate) => ({
             ...subRate,
             quantity: Number(subRate.quantity),
-            rate: policySubRates.find((policySubRate) => policySubRate.id === subRate.id)?.rate ?? subRate.rate,
+            // An Expensify Classic sub-rate has no saved price, so once the workspace deletes it neither side has one
+            rate: policySubRates.find((policySubRate) => policySubRate.id === subRate.id)?.rate ?? subRate.rate ?? 0,
         })),
     };
     return {customUnit, currency: policyRate?.currency ?? sourceCurrency};

@@ -4106,6 +4106,22 @@ describe('actions/Duplicate', () => {
             // Then the copy doesn't guess a conversion, and leaves the total to the server
             expect(crossCurrencyCopy?.total).toBe(0);
             expect(crossCurrencyCopy?.reimbursableTotal).toBe(0);
+
+            // When the workspace deleted the sub-rate, so neither it nor the Expensify Classic expense has a price for it
+            await Onyx.clear();
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${POLICY_EXPENSE_CHAT_REPORT_ID}`, {reportID: POLICY_EXPENSE_CHAT_REPORT_ID, type: CONST.REPORT.TYPE.CHAT});
+            const deletedSubRateCustomUnits: Policy['customUnits'] = {
+                perDiemUnit: {
+                    customUnitID: 'perDiemUnit',
+                    name: CONST.CUSTOM_UNITS.NAME_PER_DIEM_INTERNATIONAL,
+                    rates: {polandRate: {customUnitRateID: 'polandRate', name: 'Poland', currency: 'INR', subRates: []}},
+                },
+            };
+            const unpricedCopy = await duplicateCrossCurrencyReport([classicPerDiem], {customUnits: deletedSubRateCustomUnits});
+
+            // Then that sub-rate is priced at 0, so the copy's total is a number rather than NaN
+            expect(unpricedCopy?.total).toBe(0);
+            expect(unpricedCopy?.reimbursableTotal).toBe(0);
         });
 
         it('should not fabricate a total from a conversion that predates an unsynced amount edit', async () => {
