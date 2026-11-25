@@ -134,8 +134,8 @@ function handleExpiredSession<TKey extends OnyxKey>(
         return Promise.resolve(data);
     }
 
-    return reauthenticate(request?.commandName)
-        .then((result) => {
+    return reauthenticate(request?.commandName).then(
+        (result) => {
             if (!result.wasSuccessful) {
                 if (isFromSequentialQueue) {
                     // A resolved 407 reads as success to SequentialQueue, which deletes the persisted write.
@@ -166,19 +166,16 @@ function handleExpiredSession<TKey extends OnyxKey>(
             }
 
             replayMainQueue(request);
-        })
-        .catch((error: unknown) => {
+        },
+        () => {
             if (isFromSequentialQueue || apiRequestType) {
-                // Keep this error so the queue's give-up log says why the request was dropped.
-                if (error instanceof Error && error.message === CONST.ERROR.REAUTH_REPLAY_REJECTED) {
-                    throw error;
-                }
                 throw new Error('Failed to reauthenticate');
             }
 
             // If we make it here, then our reauthenticate request could not be made due to a networking issue. The original request can be retried safely.
             replayMainQueue(request);
-        });
+        },
+    );
 }
 
 const Reauthentication: Middleware = (response, request, isFromSequentialQueue) =>

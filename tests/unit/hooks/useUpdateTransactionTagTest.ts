@@ -14,6 +14,8 @@ import Onyx from 'react-native-onyx';
 import createMock from '../../utils/createMock';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
+const mockTranslate = jest.fn(() => 'Translated tag');
+
 // The three writes are the assertions: each branch must reach exactly one of them.
 jest.mock('@libs/actions/IOU/MoneyRequest', () => ({setMoneyRequestTag: jest.fn()}));
 jest.mock('@libs/actions/IOU/Split', () => ({setDraftSplitTransaction: jest.fn()}));
@@ -23,6 +25,7 @@ jest.mock('@libs/actions/IOU/UpdateMoneyRequest', () => ({updateMoneyRequestTag:
 jest.mock('@hooks/useCurrencyList', () => ({useCurrencyListActions: jest.fn(() => ({getCurrencyDecimals: jest.fn(() => 2), getCurrencySymbol: jest.fn(() => '$')}))}));
 jest.mock('@hooks/useCurrentUserPersonalDetails', () => jest.fn(() => ({accountID: 1, login: 'me@example.com'})));
 jest.mock('@hooks/useDelegateAccountID', () => jest.fn(() => undefined));
+jest.mock('@hooks/useLocalize', () => () => ({translate: mockTranslate}));
 jest.mock('@hooks/useAllTransactionViolations', () => jest.fn(() => undefined));
 jest.mock('@hooks/usePersonalDetails', () => ({usePersonalDetail: jest.fn(() => [undefined])}));
 jest.mock('@hooks/usePermissions', () => jest.fn(() => ({isBetaEnabled: jest.fn(() => false), isBetaEnabledOrUnknown: jest.fn(() => false)})));
@@ -102,7 +105,7 @@ describe('useUpdateTransactionTag', () => {
         // Then it saves to the expense itself, with the list it belongs to and the report violations are recomputed against
         expect(updateMoneyRequestTag).toHaveBeenCalledTimes(1);
         expect(updateMoneyRequestTag).toHaveBeenCalledWith(
-            expect.objectContaining({transactionID: TRANSACTION_ID, tag: 'Engineering:Beta', tagListIndex: 1, transactionThreadReport: report}),
+            expect.objectContaining({translate: mockTranslate, transactionID: TRANSACTION_ID, tag: 'Engineering:Beta', tagListIndex: 1, transactionThreadReport: report}),
         );
         expect(setMoneyRequestTag).not.toHaveBeenCalled();
         expect(setDraftSplitTransaction).not.toHaveBeenCalled();
