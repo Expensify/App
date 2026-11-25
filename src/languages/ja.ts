@@ -7171,7 +7171,7 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
             addCategory: 'カテゴリを追加',
             createCategoryFromSearch: (categoryName: string) => `カテゴリ「${categoryName}」を作成`,
             availableToMember: (memberName: string) => `${memberName}が利用可能`,
-            notAvailableToMember: (memberName: string) => `${memberName}は利用不可`,
+            notAvailableToMember: (memberName: string) => `${memberName} は利用できません`,
             editCategory: 'カテゴリーを編集',
             editCategories: 'カテゴリを編集',
             findCategory: 'カテゴリを検索',

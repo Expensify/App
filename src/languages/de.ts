@@ -7319,7 +7319,7 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
             addCategory: 'Kategorie hinzufügen',
             createCategoryFromSearch: (categoryName: string) => `Kategorie „${categoryName}“ erstellen`,
             availableToMember: (memberName: string) => `Verfügbar für ${memberName}`,
-            notAvailableToMember: (memberName: string) => `Nicht verfügbar für ${memberName}`,
+            notAvailableToMember: (memberName: string) => `Für ${memberName} nicht verfügbar`,
             editCategory: 'Kategorie bearbeiten',
             editCategories: 'Kategorien bearbeiten',
             findCategory: 'Kategorie finden',
