@@ -1,3 +1,4 @@
+/** Row of a flagged expense: its receipt, merchant and amount, with its violations next to the date. */
 import DateCell from '@components/Search/SearchList/ListItem/DateCell';
 import type {TransactionListItemType} from '@components/Search/SearchList/ListItem/types';
 import Text from '@components/Text';
@@ -23,7 +24,6 @@ type InsightsFlaggedExpenseRowProps = {
     violations: string[];
 };
 
-/** Row of a flagged expense: its receipt, merchant and amount, with its violations next to the date. */
 function InsightsFlaggedExpenseRow({expense, violations}: InsightsFlaggedExpenseRowProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();

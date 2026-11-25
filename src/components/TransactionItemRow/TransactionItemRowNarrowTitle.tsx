@@ -1,3 +1,4 @@
+/** Title line of an expense on the narrow layout: its merchant, or description without one, with its amount on the right. */
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {isScanning} from '@libs/TransactionUtils';
@@ -26,7 +27,6 @@ type TransactionItemRowNarrowTitleProps = {
     children?: ReactNode;
 };
 
-/** Title line of an expense on the narrow layout: its merchant, or description without one, with its amount on the right. */
 function TransactionItemRowNarrowTitle({transactionItem, report, policy, merchant, merchantOrDescription, shouldShowTooltip, children}: TransactionItemRowNarrowTitleProps) {
     const styles = useThemeStyles();
 
