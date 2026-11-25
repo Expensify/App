@@ -39,6 +39,12 @@ type ActivatePhysicalCardPageBaseProps = {
 
 const LAST_FOUR_DIGITS_LENGTH = 4;
 
+/**
+ * DEMO ONLY: when true, any four digits skip the activation API and go straight to the activation success screen. The card
+ * stays inactive, so the flow can be shown again from the Home activate callout. Set to false before this ships.
+ */
+const IS_ACTIVATION_DEMO_ENABLED = true;
+
 function ActivatePhysicalCardPageBase({cardID = '', navigateBackTo, cardDetailsPath}: ActivatePhysicalCardPageBaseProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -54,18 +60,39 @@ function ActivatePhysicalCardPageBase({cardID = '', navigateBackTo, cardDetailsP
     const cardError = getLatestErrorMessage(inactiveCard ?? {});
 
     const activateCardCodeInputRef = useRef<ValidateCodeInputHandle>(null);
+    const hasHandledActiveCardRef = useRef(false);
+
+    // Only a card activated from this screen shows the success screen. One that is already active goes straight to its details.
+    const hasSubmittedActivationRef = useRef(false);
+
+    // Opened from the Home activate item, the screen under this one is Home itself rather than the card details, so the card
+    // details suffix is added here. The success screen can only open on top of a card details path.
+    const cardDetailsSuffix = DYNAMIC_ROUTES.WALLET_DOMAIN_CARD.getRoute(cardID);
+    const cardDetailsRoute = cardDetailsPath?.endsWith(cardDetailsSuffix) ? cardDetailsPath : createDynamicRoute(cardDetailsSuffix, cardDetailsPath ?? ROUTES.SETTINGS_WALLET);
+
+    /** Replaces this screen with the activation success screen, which leads on to the card details */
+    const goToActivationSuccess = () => {
+        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WALLET_CARD_ACTIVATION_SUCCESS.getRoute(cardID), cardDetailsRoute), {forceReplace: true});
+    };
 
     /**
-     * If state of the card is CONST.EXPENSIFY_CARD.STATE.OPEN, return to the card details screen.
+     * Once the card's state is CONST.EXPENSIFY_CARD.STATE.OPEN, go to the activation success screen.
      */
     useEffect(() => {
-        if (inactiveCard?.state !== CONST.EXPENSIFY_CARD.STATE.OPEN || inactiveCard?.isLoading) {
+        if (inactiveCard?.state !== CONST.EXPENSIFY_CARD.STATE.OPEN || inactiveCard?.isLoading || hasHandledActiveCardRef.current) {
+            return;
+        }
+        hasHandledActiveCardRef.current = true;
+
+        if (!hasSubmittedActivationRef.current) {
+            // Collapse the activate flow back onto the existing card route instead of pushing a new one, so the user is not left
+            // with a duplicate card details screen and a stale route to back through.
+            Navigation.goBack(cardDetailsRoute, {compareParams: false});
             return;
         }
 
-        // Collapse the activate flow back onto the existing card route instead of pushing a new one, so the user is not left
-        // with a duplicate card details screen and a stale route to back through.
-        Navigation.goBack(cardDetailsPath ?? createDynamicRoute(DYNAMIC_ROUTES.WALLET_DOMAIN_CARD.getRoute(cardID), ROUTES.SETTINGS_WALLET), {compareParams: false});
+        goToActivationSuccess();
+        // eslint-disable-next-line react-hooks/exhaustive-deps -- goToActivationSuccess and cardDetailsRoute only depend on cardID and cardDetailsPath, which are listed
     }, [cardID, cardList, inactiveCard?.isLoading, inactiveCard?.state, cardDetailsPath]);
 
     useEffect(() => {
@@ -100,6 +127,12 @@ function ActivatePhysicalCardPageBase({cardID = '', navigateBackTo, cardDetailsP
             return;
         }
 
+        if (IS_ACTIVATION_DEMO_ENABLED) {
+            goToActivationSuccess();
+            return;
+        }
+
+        hasSubmittedActivationRef.current = true;
         activatePhysicalExpensifyCard(lastFourDigits, inactiveCard?.cardID);
     };
 

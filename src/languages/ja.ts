@@ -3524,6 +3524,11 @@ ${date} の ${merchant} への ${amount}`,
         error: {
             thatDidNotMatch: 'カードの下4桁が一致しませんでした。もう一度お試しください。',
         },
+        success: {
+            title: 'カードが有効化されました！',
+            description: 'Expensify カードは、店舗でもオンラインでもすぐにご利用いただけます。',
+            viewCard: 'カードを表示',
+        },
     },
     getPhysicalCard: {
         header: '物理カードを取得',

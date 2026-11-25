@@ -3567,6 +3567,11 @@ ${amount} para ${merchant} - ${date}`,
         error: {
             thatDidNotMatch: 'Isso não correspondeu aos últimos 4 dígitos do seu cartão. Tente novamente.',
         },
+        success: {
+            title: 'Seu cartão está ativado!',
+            description: 'Você já pode começar a usar seu Cartão Expensify para compras em lojas físicas e online.',
+            viewCard: 'Ver cartão',
+        },
     },
     getPhysicalCard: {
         header: 'Obter cartão físico',

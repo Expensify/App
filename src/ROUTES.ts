@@ -1629,6 +1629,12 @@ const DYNAMIC_ROUTES = {
         entryScreens: [SCREENS.SETTINGS.WALLET.DYNAMIC_DOMAIN_CARD, SCREENS.DOMAIN_CARD.DOMAIN_CARD_DETAIL],
         getRoute: (cardID: string) => `activate/${cardID}` as const,
     },
+    WALLET_CARD_ACTIVATION_SUCCESS: {
+        path: 'activated/:cardID',
+        // Home and Wallet are listed because the success URL can end up directly on them, and a reload must still open it
+        entryScreens: [SCREENS.SETTINGS.WALLET.DYNAMIC_DOMAIN_CARD, SCREENS.DOMAIN_CARD.DOMAIN_CARD_DETAIL, SCREENS.HOME, SCREENS.SETTINGS.WALLET.ROOT],
+        getRoute: (cardID: string) => `activated/${cardID}` as const,
+    },
     WALLET_CARD_REVEAL_VALIDATE_CODE: {
         path: 'reveal-validate-code/:cardID',
         entryScreens: [SCREENS.SETTINGS.WALLET.DYNAMIC_DOMAIN_CARD],

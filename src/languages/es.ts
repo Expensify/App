@@ -3544,6 +3544,11 @@ ${amount} para ${merchant} - ${date}`,
         error: {
             thatDidNotMatch: 'Los 4 últimos dígitos de tu tarjeta no coinciden. Por favor, inténtalo de nuevo.',
         },
+        success: {
+            title: '¡Tu tarjeta está activada!',
+            description: 'Ya puedes empezar a usar tu Tarjeta Expensify para compras en tiendas y en línea.',
+            viewCard: 'Ver tarjeta',
+        },
     },
     getPhysicalCard: {
         header: 'Obtener tarjeta física',
