@@ -56,7 +56,7 @@ const Stack = createPlatformStackNavigator<SettingsNavigatorParamList>();
 
 type VisibleToScreenName = typeof SCREENS.WORKSPACE.DYNAMIC_CATEGORY_VISIBLE_TO | typeof SCREENS.WORKSPACE.DYNAMIC_CATEGORIES_BULK_VISIBLE_TO;
 
-const renderScreen = <TScreenName extends VisibleToScreenName>(screenName: TScreenName, initialParams: SettingsNavigatorParamList[TScreenName]) =>
+const renderScreen = (screenName: VisibleToScreenName, initialParams: SettingsNavigatorParamList[VisibleToScreenName]) =>
     render(
         <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, CurrentReportIDContextProvider, PersonalDetailsByLoginProvider]}>
             <PortalProvider>

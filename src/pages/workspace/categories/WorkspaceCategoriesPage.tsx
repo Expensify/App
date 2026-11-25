@@ -16,6 +16,7 @@ import useAlertModals from '@hooks/useAlertModals';
 import useCleanupSelectedOptions from '@hooks/useCleanupSelectedOptions';
 import useConfirmModal from '@hooks/useConfirmModal';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useEndSelectionWhenBulkEditCleared from '@hooks/useEndSelectionWhenBulkEditCleared';
 import useEnvironment from '@hooks/useEnvironment';
 import useLayoutSpacing from '@hooks/useLayoutSpacing';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -105,15 +106,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
     const [categoriesSelectedForBulkEditCount = 0] = useOnyx(ONYXKEYS.RAM_ONLY_WORKSPACE_CATEGORIES_SELECTED_FOR_BULK_EDIT, {
         selector: (selection) => selection?.categoryNames.length,
     });
-
-    // A bulk visibility change clears the categories it was given once it is saved, which ends the selection here too
-    const [prevCategoriesSelectedForBulkEditCount, setPrevCategoriesSelectedForBulkEditCount] = useState(categoriesSelectedForBulkEditCount);
-    if (prevCategoriesSelectedForBulkEditCount !== categoriesSelectedForBulkEditCount) {
-        setPrevCategoriesSelectedForBulkEditCount(categoriesSelectedForBulkEditCount);
-        if (!categoriesSelectedForBulkEditCount) {
-            setSelectedCategoryKeys([]);
-        }
-    }
+    useEndSelectionWhenBulkEditCleared(categoriesSelectedForBulkEditCount, () => setSelectedCategoryKeys([]));
 
     const canSelectMultiple = canWriteCategories && (isSmallScreenWidth ? isMobileSelectionModeEnabled : true);
     const icons = useMemoizedLazyExpensifyIcons(['Checkmark', 'Close', 'Download', 'Eye', 'Gear', 'Plus', 'Table', 'Trashcan']);

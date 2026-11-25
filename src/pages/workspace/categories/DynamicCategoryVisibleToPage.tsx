@@ -193,6 +193,7 @@ function DynamicCategoryVisibleToPage({route}: DynamicCategoryVisibleToPageProps
             return;
         }
 
+        // Clearing the selection right away would leave this page with no categories, so it would show not found while it closes
         Navigation.goBack(backPath, {afterTransition: clearWorkspaceCategoriesSelectedForBulkEdit});
         // Disabled categories go back to everyone if they're enabled again, so no member's visibility was set
         if (!isDisablingCategory) {

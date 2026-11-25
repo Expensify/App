@@ -15,6 +15,7 @@ import useAlertModals from '@hooks/useAlertModals';
 import useApprovalWorkflows from '@hooks/useApprovalWorkflows';
 import useConfirmModal from '@hooks/useConfirmModal';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useEndSelectionWhenBulkEditCleared from '@hooks/useEndSelectionWhenBulkEditCleared';
 import useLayoutSpacing from '@hooks/useLayoutSpacing';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -160,16 +161,7 @@ function WorkspaceMembersPage({route, policy}: WorkspaceMembersPageProps) {
     const [selectedEmployees, setSelectedEmployees] = useState<string[]>([]);
     const {isBetaEnabled} = usePermissions();
     const [membersSelectedForBulkEditCount = 0] = useOnyx(ONYXKEYS.RAM_ONLY_WORKSPACE_MEMBERS_SELECTED_FOR_BULK_EDIT, {selector: (selection) => selection?.accountIDs.length});
-
-    // A bulk office location or work arrangement change clears the members it was given once it is applied, which
-    // ends the selection here too
-    const [prevMembersSelectedForBulkEditCount, setPrevMembersSelectedForBulkEditCount] = useState(membersSelectedForBulkEditCount);
-    if (prevMembersSelectedForBulkEditCount !== membersSelectedForBulkEditCount) {
-        setPrevMembersSelectedForBulkEditCount(membersSelectedForBulkEditCount);
-        if (!membersSelectedForBulkEditCount) {
-            setSelectedEmployees([]);
-        }
-    }
+    useEndSelectionWhenBulkEditCleared(membersSelectedForBulkEditCount, () => setSelectedEmployees([]));
 
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
     const {showDownloadErrorModal} = useAlertModals();
