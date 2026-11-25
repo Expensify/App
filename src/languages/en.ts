@@ -13707,7 +13707,7 @@ const translations = {
             consolidatedDomainBillingDescription: (domainName: string) =>
                 `<comment><muted-text-label>When enabled, the primary contact will pay for all workspaces owned by <strong>${domainName}</strong> members and receive all billing receipts.</muted-text-label></comment>`,
             consolidatedDomainBillingError: "Consolidated domain billing couldn't be changed. Please try again later.",
-            consolidatedDomainBillingLockedMessage: "Only the primary contact can turn consolidated domain billing on or off, because they aren't a domain member.",
+            consolidatedDomainBillingLockedMessage: 'Only the primary contact can turn on consolidated domain billing. To turn it on, make yourself the primary contact first.',
             addAdmin: 'Add admin',
             addAdminError: 'Unable to add this member as an admin. Please try again.',
             requests: 'Requests',

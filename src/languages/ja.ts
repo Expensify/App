@@ -12977,7 +12977,7 @@ ${reportName}`,
             consolidatedDomainBillingDescription: (domainName: string) =>
                 `<comment><muted-text-label>有効にすると、主な連絡先は <strong>${domainName}</strong> メンバーが所有するすべてのワークスペースの支払いを行い、すべての請求書の受領書を受け取ります。</muted-text-label></comment>`,
             consolidatedDomainBillingError: '統合ドメインの請求を変更できませんでした。後でもう一度お試しください。',
-            consolidatedDomainBillingLockedMessage: "Only the primary contact can turn consolidated domain billing on or off, because they aren't a domain member.",
+            consolidatedDomainBillingLockedMessage: 'Only the primary contact can turn on consolidated domain billing. To turn it on, make yourself the primary contact first.',
             addAdmin: '管理者を追加',
             addAdminError: 'このメンバーを管理者として追加できませんでした。もう一度お試しください。',
             requests: 'リクエスト',

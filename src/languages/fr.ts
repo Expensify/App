@@ -13273,7 +13273,7 @@ Voici un *reçu test* pour vous montrer comment ça fonctionne :`,
             consolidatedDomainBillingDescription: (domainName: string) =>
                 `<comment><muted-text-label>Lorsque cette option est activée, le contact principal paiera pour tous les espaces de travail appartenant aux membres de <strong>${domainName}</strong> et recevra tous les reçus de facturation.</muted-text-label></comment>`,
             consolidatedDomainBillingError: 'La facturation de domaine consolidée n’a pas pu être modifiée. Veuillez réessayer plus tard.',
-            consolidatedDomainBillingLockedMessage: "Only the primary contact can turn consolidated domain billing on or off, because they aren't a domain member.",
+            consolidatedDomainBillingLockedMessage: 'Only the primary contact can turn on consolidated domain billing. To turn it on, make yourself the primary contact first.',
             addAdmin: 'Ajouter un administrateur',
             addAdminError: 'Impossible d’ajouter ce membre en tant qu’administrateur. Veuillez réessayer.',
             requests: 'Demandes',
