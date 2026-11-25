@@ -48,6 +48,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {Attendee} from '@src/types/onyx/IOU';
+import type {Unit} from '@src/types/onyx/Policy';
 import type {FileObject} from '@src/types/utils/Attachment';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
@@ -61,7 +62,7 @@ import OnyxUtils from 'react-native-onyx/dist/OnyxUtils';
 import type {MockFetch} from '../utils/TestHelper';
 
 import createCollection from '../utils/collections/createCollection';
-import createRandomPolicy from '../utils/collections/policies';
+import createRandomPolicy, {createCategoryTaxRulesCollection} from '../utils/collections/policies';
 import createRandomReportAction from '../utils/collections/reportActions';
 import {createRandomReport} from '../utils/collections/reports';
 import createRandomTransaction from '../utils/collections/transaction';
@@ -6573,12 +6574,14 @@ describe('actions/Report', () => {
             reportOverrides = {},
             reportActions = {},
             transactionViolations = {},
+            rules,
         }: {
             transactions?: OnyxTypes.Transaction[];
             policy?: OnyxTypes.Policy;
             reportOverrides?: Partial<OnyxTypes.Report>;
             reportActions?: OnyxTypes.ReportActions;
             transactionViolations?: OnyxCollection<OnyxTypes.TransactionViolations>;
+            rules?: OnyxCollection<OnyxTypes.Rule>;
         } = {}) {
             const sourcePolicy = createDistancePolicy('source', 50);
             const report: OnyxTypes.Report = {
@@ -6631,7 +6634,7 @@ describe('actions/Report', () => {
                 isASAPSubmitBetaEnabled: false,
                 isTrackIntentUser: false,
                 reportTransactions: transactions,
-                rules: undefined,
+                rules,
                 delegateAccountID: undefined,
                 personalDetailsByLogins: {[ownerLogin]: {accountID: 1, login: ownerLogin}},
                 isReportLastVisibleArchived: false,
@@ -6671,6 +6674,169 @@ describe('actions/Report', () => {
         afterEach(async () => {
             mockFetch?.succeed();
             await mockFetch?.resume();
+        });
+
+        describe('distance taxes', () => {
+            function createTaxPolicy(rate = 80, currency = 'USD', unit: Unit = CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES) {
+                return {
+                    ...createDistancePolicy('destination', rate, currency),
+                    tax: {trackingEnabled: true},
+                    taxRates: {
+                        name: 'Tax',
+                        defaultExternalID: 'defaultTax',
+                        defaultValue: '10%',
+                        foreignTaxDefault: 'defaultTax',
+                        taxes: {
+                            destinationTax: {name: 'Destination VAT', value: '20%', isDisabled: false},
+                            defaultTax: {name: 'Default VAT', value: '10%', isDisabled: false},
+                            categoryTax: {name: 'Category VAT', value: '5%'},
+                        },
+                    },
+                    customUnits: {
+                        distance: {
+                            customUnitID: 'distance',
+                            name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+                            enabled: true,
+                            attributes: {unit, taxEnabled: true},
+                            rates: {
+                                destinationRate: {
+                                    customUnitRateID: 'destinationRate',
+                                    name: 'Distance rate',
+                                    enabled: true,
+                                    currency,
+                                    rate,
+                                    attributes: {taxRateExternalID: 'destinationTax', taxClaimablePercentage: 1},
+                                },
+                            },
+                        },
+                    },
+                };
+            }
+
+            it.each(['rate', 'partialClaim', 'default', 'category', 'noTax', 'samePrice', 'absentSourceTax', 'kilometersCurrency', 'zeroDecimals'])(
+                'recalculates fallback taxes and restores them on failure: %s',
+                async (scenario) => {
+                    // Given different source taxes and a destination with its own distance tax settings
+                    const transaction: OnyxTypes.Transaction = {
+                        ...createDistanceTransaction(),
+                        category: 'Mileage',
+                        ...(scenario === 'absentSourceTax' ? {} : {taxCode: 'sourceTax', taxValue: '9%', taxAmount: -41}),
+                    };
+                    let currency = 'USD';
+                    if (scenario === 'zeroDecimals') {
+                        currency = 'JPY';
+                    } else if (scenario === 'kilometersCurrency') {
+                        currency = 'EUR';
+                    }
+                    const policy = createTaxPolicy(
+                        80,
+                        currency,
+                        scenario === 'kilometersCurrency' || scenario === 'zeroDecimals' ? CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS : CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                    );
+                    const destinationRate = policy.customUnits.distance.rates.destinationRate;
+                    let expectedTaxCode = 'destinationTax';
+                    let expectedTaxValue: string | undefined = '20%';
+                    let expectedTaxAmount = -133;
+                    if (scenario === 'partialClaim') {
+                        destinationRate.attributes.taxClaimablePercentage = 0.5;
+                        expectedTaxAmount = -67;
+                    }
+                    if (scenario === 'default' || scenario === 'noTax' || scenario === 'category') {
+                        policy.taxRates.taxes.destinationTax.isDisabled = true;
+                        expectedTaxCode = 'defaultTax';
+                        expectedTaxValue = '10%';
+                        expectedTaxAmount = -73;
+                    }
+                    if (scenario === 'category') {
+                        expectedTaxCode = 'categoryTax';
+                        expectedTaxValue = '5%';
+                        expectedTaxAmount = -38;
+                    }
+                    if (scenario === 'noTax') {
+                        policy.taxRates.taxes.defaultTax.isDisabled = true;
+                        expectedTaxCode = '';
+                        expectedTaxValue = undefined;
+                        expectedTaxAmount = 0;
+                    }
+                    if (scenario === 'samePrice' && transaction.comment?.customUnit) {
+                        transaction.comment.customUnit.customUnitRateID = 'deletedRate';
+                        transaction.amount = -800;
+                        transaction.merchant = '10.00 mi @ $0.80 / mi';
+                    }
+                    if (scenario === 'kilometersCurrency') {
+                        expectedTaxAmount = -215;
+                    }
+                    if (scenario === 'zeroDecimals') {
+                        expectedTaxAmount = -200;
+                    }
+                    const originalViolations: OnyxTypes.TransactionViolations = [{name: CONST.VIOLATIONS.TAX_OUT_OF_POLICY, type: CONST.VIOLATION_TYPES.VIOLATION}];
+
+                    // When either workspace move is queued, taxes must use its destination rate before validation
+                    const {params, threadMap} = await changeWorkspace({
+                        transactions: [transaction],
+                        policy,
+                        rules: scenario === 'rate' || scenario === 'category' ? createCategoryTaxRulesCollection(policy.id, 'Mileage', 'categoryTax') : undefined,
+                        reportActions: {
+                            distanceIOUAction: {
+                                reportActionID: 'distanceIOUAction',
+                                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                                actorAccountID: 1,
+                                created: '2026-03-15 00:00:00.000',
+                                originalMessage: {IOUTransactionID: transaction.transactionID, type: CONST.IOU.REPORT_ACTION_TYPE.CREATE},
+                            },
+                        },
+                        transactionViolations: {[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`]: originalViolations},
+                    });
+
+                    // Then the destination tax replaces the source tax, including clearing an unavailable tax value
+                    const updated = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`);
+                    expect(updated?.taxCode).toBe(expectedTaxCode);
+                    expect(updated?.taxValue).toBe(expectedTaxValue);
+                    expect(updated?.taxAmount).toBeCloseTo(expectedTaxAmount);
+                    expect(
+                        (await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`))?.some(
+                            (violation) => violation.name === CONST.VIOLATIONS.TAX_OUT_OF_POLICY,
+                        ),
+                    ).toBe(false);
+                    if (scenario === 'kilometersCurrency') {
+                        expect(updated?.comment?.customUnit).toMatchObject({quantity: 16.09, distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS});
+                        expect(updated?.modifiedCurrency).toBe('EUR');
+                    }
+                    if (scenario === 'samePrice') {
+                        expect(params.distanceRateUpdatedReportActionID).toBeDefined();
+                        expect(threadMap).toEqual({});
+                    }
+                    mockFetch.fail();
+                    await mockFetch.resume();
+                    await waitForBatchedUpdates();
+                    expect(await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`)).toEqual(transaction);
+                    expect(await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`)).toEqual(originalViolations);
+                },
+            );
+
+            it.each(['matching', 'loadingWaypoints', 'policyDisabled', 'distanceDisabled'])('preserves tax fields when tax repricing is skipped: %s', async (scenario) => {
+                // Given existing tax fields that must not be recalculated outside an eligible fallback
+                const transaction = {
+                    ...createDistanceTransaction(),
+                    taxCode: 'sourceTax',
+                    taxValue: '9%',
+                    taxAmount: -41,
+                    ...(scenario === 'loadingWaypoints' ? {pendingFields: {waypoints: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}} : {}),
+                };
+                const policy = createTaxPolicy(scenario === 'matching' ? 50 : 80);
+                if (scenario === 'policyDisabled') {
+                    policy.tax.trackingEnabled = false;
+                }
+                if (scenario === 'distanceDisabled') {
+                    policy.customUnits.distance.attributes.taxEnabled = false;
+                }
+
+                // When the workspace changes with matching rates, pending waypoints or tax tracking disabled
+                await changeWorkspace({transactions: [transaction], policy});
+
+                // Then source taxes remain intact instead of being silently cleared or recalculated
+                expect(await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`)).toMatchObject({taxCode: 'sourceTax', taxValue: '9%', taxAmount: -41});
+            });
         });
 
         it.each(['matching', 'fallback', 'samePriceFallback', 'existingThread', 'currency', 'approved', 'closed', 'loadingWaypoints', 'sameRateID'] as const)(

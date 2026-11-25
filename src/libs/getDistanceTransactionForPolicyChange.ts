@@ -3,7 +3,7 @@ import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
 
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
-import type {Policy, Transaction} from '@src/types/onyx';
+import type {Policy, Rule, Transaction} from '@src/types/onyx';
 
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
@@ -11,10 +11,12 @@ import DistanceRequestUtils from './DistanceRequestUtils';
 import {toLocaleDigit} from './LocaleDigitUtils';
 import {translateLocal} from './Localize';
 import {roundToTwoDecimalPlaces} from './NumberUtils';
+import {isTaxTrackingEnabled} from './PolicyUtils/tax';
 import {
     getAmount,
     getCurrency,
     getDistanceInMeters,
+    getDistanceRateTaxUpdates,
     getMerchant,
     isDistanceRequest,
     isFetchingWaypointsFromServer,
@@ -27,11 +29,13 @@ type DistancePolicyChangeParams = {
     policy: Policy;
     sourcePolicy: OnyxEntry<Policy>;
     policies: OnyxCollection<Policy>;
+    rules: OnyxCollection<Rule>;
+    getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
     getCurrencySymbol: CurrencyListActionsContextType['getCurrencySymbol'];
     isExpenseReport: boolean;
 };
 
-function getDistanceTransactionForPolicyChange({transaction, policy, sourcePolicy, policies, getCurrencySymbol, isExpenseReport}: DistancePolicyChangeParams) {
+function getDistanceTransactionForPolicyChange({transaction, policy, sourcePolicy, policies, rules, getCurrencyDecimals, getCurrencySymbol, isExpenseReport}: DistancePolicyChangeParams) {
     if (!isDistanceRequest(transaction)) {
         return {updatedTransaction: transaction, isFallback: false, repricedTransaction: undefined};
     }
@@ -83,6 +87,12 @@ function getDistanceTransactionForPolicyChange({transaction, policy, sourcePolic
         updatedTransaction.modifiedAmount = updatedAmount;
         updatedTransaction.modifiedCurrency = updatedCurrency;
         updatedTransaction.modifiedMerchant = updatedMerchant;
+        if (isTaxTrackingEnabled(true, policy, true)) {
+            const {taxCode, taxValue, taxAmount} = getDistanceRateTaxUpdates(policy, updatedTransaction, selectedRate.customUnitRateID, rules, getCurrencyDecimals);
+            updatedTransaction.taxCode = taxCode;
+            updatedTransaction.taxValue = taxValue;
+            updatedTransaction.taxAmount = isExpenseReport ? -taxAmount : taxAmount;
+        }
     }
     // A fallback with unchanged effective values gets a report message, but Auth posts no expense message.
     const repricedTransaction =

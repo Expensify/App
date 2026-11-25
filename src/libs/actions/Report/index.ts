@@ -8904,7 +8904,7 @@ function buildOptimisticChangePolicyData({
     const activeReportTransactions = reportTransactions.filter((transaction) => transaction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
     const updatedReportTransactions = activeReportTransactions.map((transaction) => {
         const {updatedTransaction, repricedTransaction, isFallback} = shouldMigrateDistanceRates
-            ? getDistanceTransactionForPolicyChange({transaction, policy, sourcePolicy, policies, isExpenseReport: true, getCurrencySymbol})
+            ? getDistanceTransactionForPolicyChange({transaction, policy, sourcePolicy, policies, rules, isExpenseReport: true, getCurrencySymbol, getCurrencyDecimals})
             : {updatedTransaction: transaction, isFallback: false, repricedTransaction: undefined};
         hasFallbackDistanceRate ||= isFallback;
         hasRepricedTransaction ||= !!repricedTransaction;
@@ -8920,6 +8920,9 @@ function buildOptimisticChangePolicyData({
                               modifiedAmount: updatedTransaction.modifiedAmount,
                               modifiedMerchant: updatedTransaction.modifiedMerchant,
                               modifiedCurrency: updatedTransaction.modifiedCurrency,
+                              taxCode: updatedTransaction.taxCode ?? null,
+                              taxValue: updatedTransaction.taxValue ?? null,
+                              taxAmount: updatedTransaction.taxAmount ?? null,
                           }
                         : {}),
                     pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
@@ -8942,6 +8945,9 @@ function buildOptimisticChangePolicyData({
                     modifiedAmount: transaction.modifiedAmount ?? null,
                     modifiedMerchant: transaction.modifiedMerchant ?? null,
                     modifiedCurrency: transaction.modifiedCurrency ?? null,
+                    taxCode: transaction.taxCode ?? null,
+                    taxValue: transaction.taxValue ?? null,
+                    taxAmount: transaction.taxAmount ?? null,
                     pendingAction: transaction.pendingAction ?? null,
                 },
             });
