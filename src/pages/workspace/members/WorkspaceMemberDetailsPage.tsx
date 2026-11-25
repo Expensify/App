@@ -277,24 +277,26 @@ function WorkspaceMemberDetailsPage({policy, route}: WorkspaceMemberDetailsPageP
         Navigation.navigate(backTo);
     };
 
-    // While an invite is in flight, or before the member's personal details load, accountID is one the app generated
-    // from their email. The server doesn't know that ID, so both profile requests below wait until the real accountID
-    // arrives, which runs them again.
-    const hasServerAccountID = !!memberPersonalDetails?.accountID && !memberPersonalDetails.isOptimisticPersonalDetail && member?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD;
+    // While an invite is in flight, or when the member was only found because the route accountID is the one generated
+    // from their email, the server doesn't know accountID. Both profile requests below wait until the real accountID
+    // arrives, which runs them again. A route accountID that matches no member's email may be a real one whose personal
+    // details aren't cached yet, so it's still requested, and the public profile loads them.
+    const isGeneratedAccountID =
+        member?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD || !!memberPersonalDetails?.isOptimisticPersonalDetail || (!memberPersonalDetails && !!memberLogin);
     useEffect(() => {
-        if (!hasServerAccountID) {
+        if (isGeneratedAccountID) {
             return;
         }
         openPolicyMemberProfilePage(policyID, accountID);
-    }, [policyID, accountID, hasServerAccountID]);
+    }, [policyID, accountID, isGeneratedAccountID]);
 
     // OpenPolicyMemberProfilePage doesn't return the member's timezone or validated status, which Local time needs
     useEffect(() => {
-        if (!hasServerAccountID) {
+        if (isGeneratedAccountID) {
             return;
         }
         openPublicProfilePage(accountID);
-    }, [accountID, hasServerAccountID]);
+    }, [accountID, isGeneratedAccountID]);
 
     // Filter out travel cards — they should not appear on the member profile page
     // as they expose card-level controls and data not intended for workspace admin view.

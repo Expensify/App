@@ -1185,7 +1185,7 @@ describe('WorkspaceMemberDetailsPage', () => {
         await waitForBatchedUpdatesWithAct();
     });
 
-    it('does not load the profile of a member whose personal details are missing', async () => {
+    it('does not load the profile when the link holds the accountID generated from the member email', async () => {
         // Given a member with no personal details, so the page only has the accountID generated from their email
         const memberWithoutDetails = 'nodetails@example.com';
         await act(async () => {
@@ -1202,6 +1202,41 @@ describe('WorkspaceMemberDetailsPage', () => {
         expect(screen.getByTestId('WorkspaceMemberDetailsPage')).toBeOnTheScreen();
         TestHelper.expectAPICommandToHaveBeenCalled(READ_COMMANDS.OPEN_POLICY_MEMBER_PROFILE_PAGE, 0);
         TestHelper.expectAPICommandToHaveBeenCalled(READ_COMMANDS.OPEN_PUBLIC_PROFILE_PAGE, 0);
+
+        unmount();
+        await waitForBatchedUpdatesWithAct();
+    });
+
+    it('loads the profiles of a real accountID from a link before its personal details are cached', async () => {
+        // Given a member whose personal details aren't cached, opened from a link that holds their real accountID
+        const uncachedEmail = 'uncached@example.com';
+        const uncachedAccountID = 4242;
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, {
+                employeeList: {[uncachedEmail]: {email: uncachedEmail, role: CONST.POLICY.ROLE.USER}},
+            });
+        });
+
+        // When the admin opens the link
+        const {unmount} = renderPage({policyID: policy.id, accountID: String(uncachedAccountID)});
+        await waitForBatchedUpdatesWithAct();
+
+        // Then both profiles are requested with that accountID, since it can't be told apart from a real one and the
+        // public profile is what loads the missing personal details
+        TestHelper.expectAPICommandToHaveBeenCalled(READ_COMMANDS.OPEN_POLICY_MEMBER_PROFILE_PAGE, 1);
+        TestHelper.expectAPICommandToHaveBeenCalledWith(READ_COMMANDS.OPEN_POLICY_MEMBER_PROFILE_PAGE, 0, {policyID: policy.id, accountID: uncachedAccountID});
+        TestHelper.expectAPICommandToHaveBeenCalled(READ_COMMANDS.OPEN_PUBLIC_PROFILE_PAGE, 1);
+        TestHelper.expectAPICommandToHaveBeenCalledWith(READ_COMMANDS.OPEN_PUBLIC_PROFILE_PAGE, 0, {accountID: uncachedAccountID});
+
+        // When the public profile returns the member's personal details
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {[uncachedAccountID]: TestHelper.buildPersonalDetails(uncachedEmail, uncachedAccountID, 'Uncached')});
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the page shows the member
+        expect(screen.getByTestId('WorkspaceMemberDetailsPage')).toBeOnTheScreen();
+        expect(screen.getAllByText('Uncached User').length).toBeGreaterThan(0);
 
         unmount();
         await waitForBatchedUpdatesWithAct();
