@@ -31,8 +31,12 @@ const DOMAIN_ACCOUNT_ID = 424242;
 const DOMAIN_KEY = `${ONYXKEYS.COLLECTION.DOMAIN}${DOMAIN_ACCOUNT_ID}` as const;
 const DOMAIN_MEMBER_KEY = `${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${DOMAIN_ACCOUNT_ID}` as const;
 const PRIMARY_CONTACT_EMAIL = 'owner@acme.com';
-const CURRENT_USER: AdminRow = {login: 'admin@acme.com', accountID: 1};
-const PRIMARY_CONTACT: AdminRow = {login: PRIMARY_CONTACT_EMAIL, accountID: 2};
+const CURRENT_USER_ACCOUNT_ID = 1;
+const PRIMARY_CONTACT_ACCOUNT_ID = 2;
+const CURRENT_USER: AdminRow = {login: 'admin@acme.com', accountID: CURRENT_USER_ACCOUNT_ID};
+const PRIMARY_CONTACT: AdminRow = {login: PRIMARY_CONTACT_EMAIL, accountID: PRIMARY_CONTACT_ACCOUNT_ID};
+const CURRENT_USER_ADMIN_KEY = `${CONST.DOMAIN.EXPENSIFY_ADMIN_ACCESS_PREFIX}${CURRENT_USER_ACCOUNT_ID}` as const;
+const PRIMARY_CONTACT_ADMIN_KEY = `${CONST.DOMAIN.EXPENSIFY_ADMIN_ACCESS_PREFIX}${PRIMARY_CONTACT_ACCOUNT_ID}` as const;
 const BILLING_ON_NOTE = 'domain.admins.primaryContactConsolidatedBillingMessage';
 
 const mockPersonalDetails: PersonalDetailsList = {
@@ -98,8 +102,8 @@ const navigation = {} as DomainAddPrimaryContactPageProps['navigation'];
 async function renderPage(isBillingOn: boolean) {
     await act(async () => {
         await Onyx.merge(DOMAIN_KEY, {
-            [`${CONST.DOMAIN.EXPENSIFY_ADMIN_ACCESS_PREFIX}${CURRENT_USER.accountID}`]: CURRENT_USER.accountID,
-            [`${CONST.DOMAIN.EXPENSIFY_ADMIN_ACCESS_PREFIX}${PRIMARY_CONTACT.accountID}`]: PRIMARY_CONTACT.accountID,
+            [CURRENT_USER_ADMIN_KEY]: CURRENT_USER_ACCOUNT_ID,
+            [PRIMARY_CONTACT_ADMIN_KEY]: PRIMARY_CONTACT_ACCOUNT_ID,
         });
         await Onyx.merge(DOMAIN_MEMBER_KEY, {settings: {technicalContactEmail: PRIMARY_CONTACT_EMAIL, useTechnicalContactBillingCard: isBillingOn}});
     });
