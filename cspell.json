@@ -132,6 +132,7 @@
         "elif",
         "evals",
         "EXIF",
+        "exifinterface",
         "EXPENSIDEV",
         "EXPENSIFYAPI",
         "EXPENSIFYPDBUSINESS",

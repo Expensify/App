@@ -174,6 +174,18 @@ describe('ShareRootPage', () => {
         expect(await Onyx.get(ONYXKEYS.SHARE_TEMP_FILE)).toBeUndefined();
     });
 
+    it('shows that a shared file is too large when it is over the size limit', async () => {
+        // Given a shared PDF that is larger than the API accepts
+        jest.mocked(getFileSize).mockResolvedValueOnce(CONST.API_ATTACHMENT_VALIDATIONS.MAX_SIZE + 1);
+        jest.mocked(ShareActionHandler.processFiles).mockResolvedValue([SHARED_PDF]);
+
+        // When the Share screen opens
+        await renderShareRootPage();
+
+        // Then the user is told the file is too large before picking where to share it
+        expect(Alert.alert).toHaveBeenCalledWith(translateLocal('attachmentPicker.attachmentTooLarge'), translateLocal('attachmentPicker.sizeExceeded'), expect.any(Array));
+    });
+
     it('treats a share without a MIME type as the wrong file type', async () => {
         // Given an Android share whose sending app gave no MIME type, which the native handler reports as an empty string
         jest.mocked(ShareActionHandler.processFiles).mockResolvedValue([{...SHARED_PDF, mimeType: ''}]);

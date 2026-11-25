@@ -9,6 +9,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import {addTempShareFile, addValidatedShareFile, clearShareData} from '@libs/actions/Share';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
+import {getErrorMessage} from '@libs/ErrorUtils';
 import {splitExtensionFromFileName, validateImageForCorruption} from '@libs/fileDownload/FileUtils';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
@@ -28,6 +29,7 @@ import React, {useEffect, useRef, useState} from 'react';
 import {Alert, Linking, View} from 'react-native';
 
 import getFileSize from './getFileSize';
+import getShareFileSizeError from './getShareFileSizeError';
 import ShareTab from './ShareTab';
 import SubmitTab from './SubmitTab';
 
@@ -52,7 +54,7 @@ function ShareRootPage() {
 
         getFileSize(file.content)
             .catch((error: unknown) => {
-                Log.warn('[ShareRootPage] Failed to get file size for validation', {error});
+                Log.warn('[ShareRootPage] Failed to get file size for validation', {error: getErrorMessage(error)});
                 return undefined;
             })
             .then((size) => {
@@ -123,18 +125,15 @@ function ShareRootPage() {
                             if (isOutdatedRead()) {
                                 return;
                             }
-                            if (size > CONST.API_ATTACHMENT_VALIDATIONS.MAX_SIZE) {
-                                setErrorTitle(translate('attachmentPicker.attachmentTooLarge'));
-                                setErrorMessage(translate('attachmentPicker.sizeExceeded'));
+                            const sizeError = getShareFileSizeError(size, translate);
+                            if (!sizeError) {
+                                return;
                             }
-
-                            if (size < CONST.API_ATTACHMENT_VALIDATIONS.MIN_SIZE) {
-                                setErrorTitle(translate('attachmentPicker.attachmentTooSmall'));
-                                setErrorMessage(translate('attachmentPicker.sizeNotMet'));
-                            }
+                            setErrorTitle(sizeError.title);
+                            setErrorMessage(sizeError.message);
                         })
                         .catch((error: unknown) => {
-                            Log.warn('[ShareRootPage] Failed to get the shared file size', {error});
+                            Log.warn('[ShareRootPage] Failed to get the shared file size', {error: getErrorMessage(error)});
                         });
                 }
 
@@ -166,7 +165,7 @@ function ShareRootPage() {
                 addTempShareFile(tempFile);
             })
             .catch((error: unknown) => {
-                Log.warn('[ShareRootPage] Failed to process the shared files', {error});
+                Log.warn('[ShareRootPage] Failed to process the shared files', {error: getErrorMessage(error)});
                 if (errorTitle || isOutdatedRead()) {
                     return;
                 }

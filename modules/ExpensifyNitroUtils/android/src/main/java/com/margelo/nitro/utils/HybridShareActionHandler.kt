@@ -5,6 +5,7 @@ import android.graphics.BitmapFactory
 import android.media.MediaMetadataRetriever
 import android.net.Uri
 import android.util.Log
+import androidx.exifinterface.media.ExifInterface
 import com.margelo.nitro.NitroModules
 import com.margelo.nitro.core.Promise
 import org.json.JSONObject
@@ -56,7 +57,17 @@ class HybridShareActionHandler : HybridShareActionHandlerSpec() {
     private fun getImageSize(file: File): Pair<Double, Double> {
         val options = BitmapFactory.Options().apply { inJustDecodeBounds = true }
         BitmapFactory.decodeFile(file.path, options)
-        return options.outWidth.toDouble() to options.outHeight.toDouble()
+        val width = options.outWidth.toDouble()
+        val height = options.outHeight.toDouble()
+
+        val orientation = try {
+            ExifInterface(file.path).getAttributeInt(ExifInterface.TAG_ORIENTATION, ExifInterface.ORIENTATION_NORMAL)
+        } catch (e: Exception) {
+            // ExifInterface can throw an IOException or a RuntimeException, and the orientation is optional, so a failure keeps the stored size.
+            Log.w(TAG, "Could not read the orientation of the shared image", e)
+            ExifInterface.ORIENTATION_NORMAL
+        }
+        return SharedMediaSize.getImageDisplaySize(width, height, orientation)
     }
 
     private fun getVideoSize(file: File): Pair<Double, Double>? {
@@ -65,7 +76,8 @@ class HybridShareActionHandler : HybridShareActionHandlerSpec() {
             retriever.setDataSource(file.path)
             val width = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_WIDTH)?.toDoubleOrNull()
             val height = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_HEIGHT)?.toDoubleOrNull()
-            if (width != null && height != null) width to height else null
+            val rotation = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_ROTATION)?.toIntOrNull() ?: 0
+            if (width == null || height == null) null else SharedMediaSize.getVideoDisplaySize(width, height, rotation)
         } catch (e: RuntimeException) {
             Log.w(TAG, "Could not read the size of the shared video", e)
             null
