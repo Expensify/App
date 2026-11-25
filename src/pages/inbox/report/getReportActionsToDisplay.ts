@@ -2,14 +2,10 @@ import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
 
 import DateUtils from '@libs/DateUtils';
 import {rand64} from '@libs/NumberUtils';
-import {getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {buildOptimisticCreatedReportAction, buildOptimisticIOUReportAction} from '@libs/ReportUtils';
 
 import CONST from '@src/CONST';
 import type * as OnyxTypes from '@src/types/onyx';
-import {isEmptyObject} from '@src/types/utils/EmptyObject';
-
-import type {OnyxInputValue} from 'react-native-onyx';
 
 // Onyx replaces changed actions. Weak keys retain decoration only while its source is still used.
 const pendingCreatedActions = new WeakMap<OnyxTypes.ReportAction, OnyxTypes.ReportAction>();
@@ -18,12 +14,7 @@ type GetReportActionsToDisplayParams = {
     /** The report's own actions in the loaded window, newest first. */
     reportViewActions: OnyxTypes.ReportAction[];
 
-    /** Whether the report is an expense or IOU report. */
-    isMoneyRequestReport: boolean;
-
-    reportPreviewAction: OnyxInputValue<OnyxTypes.ReportAction<'REPORTPREVIEW'>> | undefined;
-
-    transactionThreadReport: OnyxTypes.Report | undefined;
+    hasPendingExpense: boolean;
 
     /** A placeholder CREATED action to add when the loaded window doesn't reach the report's own one. */
     placeholderCreatedAction: OnyxTypes.ReportAction | undefined;
@@ -37,39 +28,16 @@ type GetReportActionsToDisplayParams = {
  * because these actions only arrive with the `OpenReport` response. This adds a placeholder CREATED action, and a
  * placeholder expense when fewer expense actions are loaded than the report preview counts, so the total can show.
  */
-function getReportActionsToDisplay({
-    reportViewActions,
-    isMoneyRequestReport,
-    reportPreviewAction,
-    transactionThreadReport,
-    placeholderCreatedAction,
-    placeholderExpenseAction,
-}: GetReportActionsToDisplayParams): OnyxTypes.ReportAction[] {
+function getReportActionsToDisplay({reportViewActions, hasPendingExpense, placeholderCreatedAction, placeholderExpenseAction}: GetReportActionsToDisplayParams): OnyxTypes.ReportAction[] {
     const actions = placeholderCreatedAction ? [...reportViewActions, placeholderCreatedAction] : [...reportViewActions];
 
-    if (!isMoneyRequestReport || !reportViewActions.length) {
-        return actions;
-    }
-
-    const moneyRequestActions = reportViewActions.filter((action) => {
-        const originalMessage = isMoneyRequestAction(action) ? getOriginalMessage(action) : undefined;
-        return (
-            isMoneyRequestAction(action) &&
-            originalMessage &&
-            (originalMessage?.type === CONST.IOU.REPORT_ACTION_TYPE.CREATE ||
-                !!(originalMessage?.type === CONST.IOU.REPORT_ACTION_TYPE.PAY && originalMessage?.IOUDetails) ||
-                originalMessage?.type === CONST.IOU.REPORT_ACTION_TYPE.TRACK)
-        );
-    });
-
-    if (placeholderExpenseAction && moneyRequestActions.length < (reportPreviewAction?.childMoneyRequestCount ?? 0) && isEmptyObject(transactionThreadReport)) {
-        moneyRequestActions.push(placeholderExpenseAction);
+    if (placeholderExpenseAction) {
         actions.splice(actions.length - 1, 0, placeholderExpenseAction);
     }
 
     // Show the CREATED action as pending while one of the expenses is. Replace it with a copy, because it may be the action Onyx stores.
     const createdAction = actions.at(-1);
-    if (createdAction && moneyRequestActions.some((action) => !!action.pendingAction)) {
+    if (createdAction && (hasPendingExpense || placeholderExpenseAction?.pendingAction)) {
         let pendingCreatedAction = pendingCreatedActions.get(createdAction);
         if (!pendingCreatedAction) {
             pendingCreatedAction = {...createdAction, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE};

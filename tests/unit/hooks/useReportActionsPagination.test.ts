@@ -12,7 +12,7 @@ import Onyx from 'react-native-onyx';
 
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
-const mockGetCurrencyDecimals = () => 2;
+const mockGetCurrencyDecimals = jest.fn(() => 2);
 
 jest.mock('@hooks/useCurrencyList', () => ({useCurrencyListActions: () => ({getCurrencyDecimals: mockGetCurrencyDecimals})}));
 jest.mock('@hooks/useDelegateAccountID', () => ({__esModule: true, default: () => undefined}));
@@ -105,8 +105,8 @@ it('decorates a stored CREATED action without leaking pending state through ackn
     expect(result.current.allReportActions.at(-1)?.pendingAction).toBeFalsy();
 });
 
-it('retains the missing-expense placeholder until the preview count is satisfied', async () => {
-    // Given a preview that counts an expense not yet present in the loaded report.
+it('only builds a missing-expense placeholder while the preview count exceeds the loaded count', async () => {
+    // Given a report whose only expense has already loaded.
     await Onyx.merge(reportKey, {chatReportID: '456'});
     await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}456`, {
         preview: {
@@ -114,14 +114,23 @@ it('retains the missing-expense placeholder until the preview count is satisfied
             actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
             actorAccountID: 1,
             created: expense.created,
-            childMoneyRequestCount: 2,
+            childMoneyRequestCount: 1,
             // Legacy previews remain valid pipeline inputs until their server migration completes.
             // eslint-disable-next-line @typescript-eslint/no-deprecated
             originalMessage: {linkedReportID: reportID},
         },
     });
+    mockGetCurrencyDecimals.mockClear();
     const {result} = renderHook(() => useReportActionsPagination(reportID, undefined));
+    await waitFor(() => expect(result.current.reportActions).toHaveLength(2));
+    expect(mockGetCurrencyDecimals).not.toHaveBeenCalled();
+
+    // When the preview reports another expense, the missing row gets its placeholder.
+    await act(async () => {
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}456`, {preview: {childMoneyRequestCount: 2}});
+    });
     await waitFor(() => expect(result.current.reportActions).toHaveLength(3));
+    expect(mockGetCurrencyDecimals).toHaveBeenCalled();
     const placeholder = result.current.reportActions.at(1);
     expect(placeholder?.reportID).toBe(reportID);
 

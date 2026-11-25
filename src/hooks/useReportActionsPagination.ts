@@ -1,12 +1,13 @@
 import {getReportPreviewReportAction} from '@libs/actions/IOU/MoneyRequestBuilder';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
-import {getCombinedReportActions, getFilteredReportActionsForReportView, isCreatedAction} from '@libs/ReportActionsUtils';
+import {getCombinedReportActions, getFilteredReportActionsForReportView, isCreatedAction, isTransactionThread} from '@libs/ReportActionsUtils';
 import {isConciergeChatReport, isInvoiceReport, isMoneyRequestReport, isReportTransactionThread as isReportTransactionThreadUtil, shouldReportAlignToTop} from '@libs/ReportUtils';
 
 import getReportActionsToDisplay, {buildPlaceholderCreatedAction, buildPlaceholderExpenseAction} from '@pages/inbox/report/getReportActionsToDisplay';
 
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report, ReportAction} from '@src/types/onyx';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
@@ -61,11 +62,9 @@ function useReportActionsPagination(reportID: string | undefined, reportActionID
         // (https://github.com/Expensify/App/issues/93196) without changing regular inbox chat pagination.
         shouldSnapshotInitialLastReadTime: isConciergeChatReport(report, conciergeReportID),
     });
-    const thread = useTransactionThread({reportID, report, allReportActions: getFilteredReportActionsForReportView(unfilteredReportActions), isOffline});
-
-    const [chatReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(report?.chatReportID)}`);
-
-    const oldestActionForPlaceholder = getFilteredReportActionsForReportView(unfilteredReportActions).at(-1);
+    const {allReportActions, reportPreviewAction, hasPendingExpense, hasMissingExpenses} = useReportExpenseActions(report, unfilteredReportActions);
+    const thread = useTransactionThread({reportID, report, allReportActions, isOffline});
+    const oldestActionForPlaceholder = allReportActions.at(-1);
     const {placeholderCreatedAction, placeholderExpenseAction} = usePlaceholderReportActions({
         reportID,
         ownerAccountID: report?.ownerAccountID,
@@ -73,12 +72,8 @@ function useReportActionsPagination(reportID: string | undefined, reportActionID
         shouldAddCreatedAction:
             !isCreatedAction(oldestActionForPlaceholder) &&
             (isMoneyRequestReport(report) || isInvoiceReport(report) || isReportTransactionThreadUtil(report) || isConciergeChatReport(report, conciergeReportID)),
-        shouldAddExpenseAction: isMoneyRequestReport(report) && !!report?.total,
+        shouldAddExpenseAction: hasMissingExpenses && isEmptyObject(thread.transactionThreadReport),
     });
-
-    // React Compiler does not memoize a value created before a hook call and used after it, so these are computed again below the last hook.
-    const allReportActions = getFilteredReportActionsForReportView(unfilteredReportActions);
-    const reportPreviewAction = getReportPreviewReportAction(report?.chatReportID, report?.reportID, chatReportActions);
 
     // When we are offline before opening an IOU/Expense report,
     // the total of the report and sometimes the expense aren't displayed because these actions aren't returned until `OpenReport` API is complete.
@@ -87,9 +82,7 @@ function useReportActionsPagination(reportID: string | undefined, reportActionID
     // to display at least one expense action to match the total data.
     const reportActionsToDisplay = getReportActionsToDisplay({
         reportViewActions: allReportActions,
-        isMoneyRequestReport: isMoneyRequestReport(report),
-        reportPreviewAction,
-        transactionThreadReport: thread.transactionThreadReport,
+        hasPendingExpense,
         placeholderCreatedAction,
         placeholderExpenseAction,
     });
@@ -119,6 +112,17 @@ function useReportActionsPagination(reportID: string | undefined, reportActionID
         setTreatAsNoPaginationAnchor,
         reportPreviewAction,
     };
+}
+
+function useReportExpenseActions(report: OnyxEntry<Report>, unfilteredReportActions: ReportAction[]) {
+    const [chatReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(report?.chatReportID)}`);
+    const reportPreviewAction = getReportPreviewReportAction(report?.chatReportID, report?.reportID, chatReportActions);
+    const isMoneyRequest = isMoneyRequestReport(report);
+    const allReportActions = getFilteredReportActionsForReportView(unfilteredReportActions);
+    const moneyRequestActions = isMoneyRequest ? allReportActions.filter(isTransactionThread) : undefined;
+    const hasPendingExpense = moneyRequestActions?.some((action) => !!action.pendingAction) ?? false;
+    const hasMissingExpenses = !!moneyRequestActions && allReportActions.length > 0 && !!report?.total && moneyRequestActions.length < (reportPreviewAction?.childMoneyRequestCount ?? 0);
+    return {allReportActions, reportPreviewAction, hasPendingExpense, hasMissingExpenses};
 }
 
 type PlaceholderReportActionsParams = {
