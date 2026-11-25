@@ -2,6 +2,8 @@ import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import RenderHTML from '@components/RenderHTML';
 
+import useConfirmModal from '@hooks/useConfirmModal';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -23,6 +25,7 @@ import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
 import {domainNameSelector, technicalContactSettingsSelector} from '@selectors/Domain';
+import {Str} from 'expensify-common';
 import React from 'react';
 import {View} from 'react-native';
 
@@ -33,6 +36,8 @@ function DomainAdminsSettingsPage({route}: DomainAdminsSettingsPageProps) {
 
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const {showConfirmModal} = useConfirmModal();
+    const {login: currentUserLogin} = useCurrentUserPersonalDetails();
 
     const [domainPendingActions] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`);
     const [domainErrors] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`);
@@ -40,6 +45,15 @@ function DomainAdminsSettingsPage({route}: DomainAdminsSettingsPageProps) {
         selector: technicalContactSettingsSelector,
     });
     const [domainName] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {selector: domainNameSelector});
+    const [isDomainValidated] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {selector: (domain) => !!domain?.validated});
+
+    const technicalContactEmail = technicalContactSettings?.technicalContactEmail;
+
+    // The server accepts this change only from the primary contact when the contact isn't a domain member, and an unverified domain has no members.
+    const isLocked =
+        !!technicalContactEmail &&
+        !Str.caseInsensitiveEquals(technicalContactEmail, currentUserLogin ?? '') &&
+        (!isDomainValidated || !Str.caseInsensitiveEquals(Str.extractEmailDomain(technicalContactEmail), domainName ?? ''));
 
     return (
         <BaseDomainSettingsPage domainAccountID={domainAccountID}>
@@ -61,7 +75,19 @@ function DomainAdminsSettingsPage({route}: DomainAdminsSettingsPageProps) {
                 switchAccessibilityLabel={translate('domain.admins.consolidatedDomainBilling')}
                 switchSentryLabel={CONST.SENTRY_LABEL.DOMAIN.ADMINS.CONSOLIDATED_DOMAIN_BILLING_SWITCH}
                 isActive={!!technicalContactSettings?.technicalContactEmail && !!technicalContactSettings?.useTechnicalContactBillingCard}
-                disabled={!technicalContactSettings?.technicalContactEmail}
+                disabled={!technicalContactEmail || isLocked}
+                disabledAction={
+                    isLocked
+                        ? () => {
+                              showConfirmModal({
+                                  title: translate('workspace.distanceRates.oopsNotSoFast'),
+                                  prompt: translate('domain.admins.consolidatedDomainBillingLockedMessage'),
+                                  confirmText: translate('common.buttonConfirm'),
+                                  shouldShowCancelButton: false,
+                              });
+                          }
+                        : undefined
+                }
                 onToggle={(value) => {
                     if (!domainName) {
                         return;
