@@ -10,6 +10,7 @@ import WorkspaceCategoriesTable from '@components/Tables/WorkspaceCategoriesTabl
 import type {WorkspaceCategoryTableColumnKey, WorkspaceCategoryTableRowData} from '@components/Tables/WorkspaceCategoriesTable';
 
 import {CurrentReportIDContextProvider} from '@hooks/useCurrentReportID';
+import * as useMembersNeedCategoryModalModule from '@hooks/useMembersNeedCategoryModal';
 import * as useNetworkModule from '@hooks/useNetwork';
 import * as useResponsiveLayoutModule from '@hooks/useResponsiveLayout';
 import type ResponsiveLayoutResult from '@hooks/useResponsiveLayout/types';
@@ -21,9 +22,12 @@ import Navigation from '@libs/Navigation/Navigation';
 import appNavigationRef from '@libs/Navigation/navigationRef';
 import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
 
-import type {WorkspaceSplitNavigatorParamList} from '@navigation/types';
+import type {SettingsNavigatorParamList, WorkspaceSplitNavigatorParamList} from '@navigation/types';
 
+import CategorySettingsPage from '@pages/workspace/categories/CategorySettingsPage';
 import WorkspaceCategoriesPage from '@pages/workspace/categories/WorkspaceCategoriesPage';
+
+import * as CategoryActions from '@userActions/Policy/Category';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -52,6 +56,7 @@ jest.mock('@components/Modal/ReanimatedModal', () => {
 TestHelper.setupGlobalFetchMock();
 
 const Stack = createPlatformStackNavigator<WorkspaceSplitNavigatorParamList>();
+const SettingsStack = createPlatformStackNavigator<SettingsNavigatorParamList>();
 
 /**
  * The wide layout offers the bulk actions in the floating bar over the table, which gives the first few an inline
@@ -92,6 +97,25 @@ const renderPage = (initialRouteName: typeof SCREENS.WORKSPACE.CATEGORIES, initi
 };
 
 const navigationRef = createNavigationContainerRef<WorkspaceSplitNavigatorParamList>();
+
+const renderCategorySettings = (policyID: string, categoryName: string) =>
+    render(
+        <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, CurrentReportIDContextProvider]}>
+            <PortalProvider>
+                <ModalProvider>
+                    <NavigationContainer>
+                        <SettingsStack.Navigator initialRouteName={SCREENS.WORKSPACE.DYNAMIC_CATEGORY_SETTINGS}>
+                            <SettingsStack.Screen
+                                name={SCREENS.WORKSPACE.DYNAMIC_CATEGORY_SETTINGS}
+                                component={CategorySettingsPage}
+                                initialParams={{policyID, categoryName}}
+                            />
+                        </SettingsStack.Navigator>
+                    </NavigationContainer>
+                </ModalProvider>
+            </PortalProvider>
+        </ComposeProviders>,
+    );
 
 function StackedScreen() {
     return null;
@@ -402,6 +426,65 @@ describe('WorkspaceCategories', () => {
         unmount();
         await waitForBatchedUpdatesWithAct();
     });
+    describe.each(['bulk', 'row', 'settings'] as const)('category visibility validation through %s controls', (entryPoint) => {
+        const memberAccountID = 1;
+        const memberLogin = 'member@example.com';
+        it.each([
+            {description: 'Collect without restrictions', type: CONST.POLICY.TYPE.TEAM, visibleTo: undefined, shouldBlock: false},
+            {description: 'Collect with restrictions retained after a downgrade', type: CONST.POLICY.TYPE.TEAM, visibleTo: {[memberAccountID]: true}, shouldBlock: false},
+            {description: 'Control with a member losing their last visible category', type: CONST.POLICY.TYPE.CORPORATE, visibleTo: {[memberAccountID]: true}, shouldBlock: true},
+        ])('$description', async ({type, visibleTo, shouldBlock}) => {
+            // Given optional categories and a loaded member roster, so an empty roster cannot hide the visibility check.
+            await TestHelper.signInWithTestUser();
+            const policy = {...LHNTestUtils.getFakePolicy(), type, role: CONST.POLICY.ROLE.ADMIN, areCategoriesEnabled: true, requiresCategory: false};
+            const showMembersNeedCategoryModal = jest.fn();
+            jest.spyOn(useMembersNeedCategoryModalModule, 'default').mockReturnValue({
+                policyMemberAccountIDs: [memberAccountID],
+                policyMemberAccountIDsByLogin: {[memberLogin]: memberAccountID},
+                showMembersNeedCategoryModal,
+            });
+            const setWorkspaceCategoryEnabled = jest.spyOn(CategoryActions, 'setWorkspaceCategoryEnabled').mockImplementation(() => {});
+            const categories: PolicyCategories = {
+                [FIRST_CATEGORY]: {name: FIRST_CATEGORY, enabled: true, visibleTo},
+                ...(entryPoint === 'bulk' ? {[SECOND_CATEGORY]: {name: SECOND_CATEGORY, enabled: true, visibleTo}} : {}),
+            };
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
+                await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policy.id}`, categories);
+            });
+            const {unmount} = entryPoint === 'settings' ? renderCategorySettings(policy.id, FIRST_CATEGORY) : renderPage(SCREENS.WORKSPACE.CATEGORIES, {policyID: policy.id});
+            await waitForBatchedUpdatesWithAct();
+
+            // When disabling every enabled category, including the final category through either switch location.
+            if (entryPoint === 'bulk') {
+                const selectAll = screen.getAllByLabelText(TestHelper.translateLocal('workspace.common.selectAll')).at(0);
+                if (!selectAll) {
+                    throw new Error('Select all button not found');
+                }
+                fireEvent.press(selectAll);
+                await openBulkActions();
+                const disableMenuItem = screen.getByText(TestHelper.translateLocal('workspace.categories.disableCategories'));
+                fireEvent.press(disableMenuItem, {nativeEvent: {}, type: 'press', target: disableMenuItem, currentTarget: disableMenuItem});
+            } else {
+                fireEvent.press(screen.getByRole('switch'));
+            }
+            await waitForBatchedUpdatesWithAct();
+
+            // Then Collect submits the update, while Control still protects the member's last visible category.
+            if (shouldBlock) {
+                expect(showMembersNeedCategoryModal).toHaveBeenCalledWith([memberAccountID], Object.keys(categories));
+                expect(setWorkspaceCategoryEnabled).not.toHaveBeenCalled();
+            } else {
+                expect(showMembersNeedCategoryModal).not.toHaveBeenCalled();
+                expect(setWorkspaceCategoryEnabled).toHaveBeenCalledWith(
+                    expect.objectContaining({categoriesToUpdate: Object.fromEntries(Object.keys(categories).map((name) => [name, {name, enabled: false}]))}),
+                );
+            }
+            unmount();
+            await waitForBatchedUpdatesWithAct();
+        });
+    });
+
     it('should show a blocking modal when trying to disable the only enabled category when policy has requiresCategory set to true', async () => {
         await TestHelper.signInWithTestUser();
 
@@ -410,6 +493,7 @@ describe('WorkspaceCategories', () => {
             role: CONST.POLICY.ROLE.ADMIN,
             areCategoriesEnabled: true,
             requiresCategory: true,
+            type: CONST.POLICY.TYPE.TEAM,
         };
 
         const categories = {

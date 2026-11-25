@@ -241,7 +241,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
             return;
         }
 
-        if (!enabled) {
+        if (!enabled && isControlPolicy(policy)) {
             const membersWithoutVisibleCategories = getMembersWithoutVisibleCategories(policyCategories, [category.name], policyMemberAccountIDs);
             if (membersWithoutVisibleCategories.length > 0) {
                 showMembersNeedCategoryModal(membersWithoutVisibleCategories, [category.name]);
@@ -489,7 +489,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                         return acc;
                     }, {});
                 const isDisablingLastEnabledCategory = isDisablingOrDeletingLastEnabledCategory(policy, policyCategories, selectedCategoriesObject);
-                const membersWithoutVisibleCategories = getMembersWithoutVisibleCategories(policyCategories, enabledCategories, policyMemberAccountIDs);
+                const membersWithoutVisibleCategories = isControlPolicy(policy) ? getMembersWithoutVisibleCategories(policyCategories, enabledCategories, policyMemberAccountIDs) : [];
                 options.push({
                     icon: icons.Close,
                     text: translate(enabledCategories.length === 1 ? 'workspace.categories.disableCategory' : 'workspace.categories.disableCategories'),

@@ -164,7 +164,7 @@ function CategorySettingsPage({route: {params, name}, navigation}: CategorySetti
             showCannotDeleteOrDisableLastCategoryModal();
             return;
         }
-        if (!value) {
+        if (!value && isControlPolicy(policy)) {
             const membersWithoutVisibleCategories = getMembersWithoutVisibleCategories(policyCategories, [policyCategory.name], policyMemberAccountIDs);
             if (membersWithoutVisibleCategories.length > 0) {
                 showMembersNeedCategoryModal(membersWithoutVisibleCategories, [policyCategory.name]);
