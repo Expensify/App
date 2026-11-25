@@ -2167,6 +2167,8 @@ const SENTRY_LABEL = {
             AUTHORIZED_PAYER: 'WorkspaceWorkflows-AuthorizedPayer',
             BUSINESS_BANK_ACCOUNT_COUNTRIES: 'WorkspaceWorkflows-BusinessBankAccountCountries',
             APPROVALS_EDIT_SAVE: 'WorkspaceWorkflows-ApprovalsEditSave',
+            MEMBER_APPROVER_CONFIRM: 'WorkspaceWorkflows-MemberApproverConfirm',
+            MEMBER_WORKFLOW_CREATE: 'WorkspaceWorkflows-MemberWorkflowCreate',
             APPROVAL_EDITOR_MEMBERS: 'WorkspaceWorkflows-ApprovalEditorMembers',
             APPROVAL_EDITOR_APPROVER: 'WorkspaceWorkflows-ApprovalEditorApprover',
             APPROVAL_SECTION_EXPENSES_FROM: 'WorkspaceWorkflows-ApprovalSectionExpensesFrom',

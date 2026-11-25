@@ -661,7 +661,10 @@ describe('WorkspaceMemberDetailsPage', () => {
         fireEvent.press(await screen.findByTestId('member-approver-menu-item'), {nativeEvent: {}});
         await waitForBatchedUpdatesWithAct();
 
-        expect(navigateSpy).toHaveBeenCalledWith(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EDIT.getRoute(policy.id, adminPayerEmail, invitedEmail));
+        expect(navigateSpy).toHaveBeenCalledWith(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EDIT.getRoute(policy.id, adminPayerEmail, undefined, invitedEmail));
+        const draft = await getOnyxValue(ONYXKEYS.APPROVAL_WORKFLOW);
+        expect(draft?.members.map((member) => member.email)).toEqual([invitedEmail]);
+        expect(draft?.memberWorkflow?.isConfirmed).toBe(false);
 
         unmount();
         await waitForBatchedUpdatesWithAct();
@@ -698,9 +701,9 @@ describe('WorkspaceMemberDetailsPage', () => {
         fireEvent.press(approverItem, {nativeEvent: {}});
         await waitForBatchedUpdatesWithAct();
 
-        // The editor matches the member ahead of the approver, so naming them would reopen the inert workflow and let a
-        // save write to it. Leaving the member out opens the default workflow the row just showed.
-        expect(navigateSpy).toHaveBeenCalledWith(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EDIT.getRoute(policy.id, ownerEmail));
+        // Then the preview uses the enforced chain rather than the dormant employee routing.
+        expect(navigateSpy).toHaveBeenCalledWith(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EDIT.getRoute(policy.id, ownerEmail, undefined, invitedEmail));
+        expect((await getOnyxValue(ONYXKEYS.APPROVAL_WORKFLOW))?.approvers.at(0)?.email).toBe(ownerEmail);
         expect(navigateSpy).not.toHaveBeenCalledWith(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EDIT.getRoute(policy.id, ownerEmail, invitedEmail));
 
         unmount();
@@ -786,7 +789,7 @@ describe('WorkspaceMemberDetailsPage', () => {
         await waitForBatchedUpdatesWithAct();
 
         // The row names them as their own approver, so a blank create page would contradict the value it shows.
-        expect(navigateSpy).toHaveBeenCalledWith(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EDIT.getRoute(policy.id, ownerEmail, ownerEmail));
+        expect(navigateSpy).toHaveBeenCalledWith(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EDIT.getRoute(policy.id, ownerEmail, undefined, ownerEmail));
         expect(navigateSpy).not.toHaveBeenCalledWith(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_NEW.getRoute(policy.id));
 
         unmount();
@@ -810,10 +813,9 @@ describe('WorkspaceMemberDetailsPage', () => {
         fireEvent.press(await screen.findByTestId('member-approver-menu-item'), {nativeEvent: {}});
         await waitForBatchedUpdatesWithAct();
 
-        expect(navigateSpy).toHaveBeenCalledWith(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_NEW.getRoute(policy.id));
+        expect(navigateSpy).toHaveBeenCalledWith(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EDIT.getRoute(policy.id, invitedEmail, undefined, invitedEmail));
 
-        // The create page is the first step here, unlike the Workflows tab's wizard, so the draft must not look like
-        // it is still on that wizard's opening step. Expenses from discards such a draft when the user leaves it.
+        // Then a member without an approver must still confirm a destination before saving.
         expect((await getOnyxValue(ONYXKEYS.APPROVAL_WORKFLOW))?.isInitialFlow).toBe(false);
 
         unmount();
@@ -843,7 +845,7 @@ describe('WorkspaceMemberDetailsPage', () => {
         fireEvent.press(await screen.findByTestId('member-approver-menu-item'), {nativeEvent: {}});
         await waitForBatchedUpdatesWithAct();
 
-        expect(navigateSpy).toHaveBeenCalledWith(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EDIT.getRoute(policy.id, invitedEmail, invitedEmail));
+        expect(navigateSpy).toHaveBeenCalledWith(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EDIT.getRoute(policy.id, invitedEmail, undefined, invitedEmail));
         expect(navigateSpy).not.toHaveBeenCalledWith(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_NEW.getRoute(policy.id));
 
         unmount();
@@ -893,7 +895,11 @@ describe('WorkspaceMemberDetailsPage', () => {
 
         // Only Control runs the workflows this would create, so a Collect workspace is asked to upgrade first.
         expect(navigateSpy).toHaveBeenCalledWith(
-            ROUTES.WORKSPACE_UPGRADE.getRoute(policy.id, CONST.UPGRADE_FEATURE_INTRO_MAPPING.approvals.alias, ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_NEW.getRoute(policy.id)),
+            ROUTES.WORKSPACE_UPGRADE.getRoute(
+                policy.id,
+                CONST.UPGRADE_FEATURE_INTRO_MAPPING.approvals.alias,
+                ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EDIT.getRoute(policy.id, invitedEmail, undefined, invitedEmail),
+            ),
         );
         expect(navigateSpy).not.toHaveBeenCalledWith(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_NEW.getRoute(policy.id));
 

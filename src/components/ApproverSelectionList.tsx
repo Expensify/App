@@ -42,6 +42,7 @@ type ApproverSelectionListPageProps = {
     shouldShowNotFoundViewLink?: boolean;
     listEmptyContentSubtitle?: string;
     footerContent?: React.ReactNode;
+    children?: React.ReactNode;
     subtitle?: React.ReactNode;
     shouldShowTextInput?: boolean;
     allApprovers: SelectionListApprover[];
@@ -71,6 +72,7 @@ function ApproverSelectionList({
     shouldShowNotFoundViewLink = true,
     listEmptyContentSubtitle,
     footerContent = null,
+    children,
     allApprovers,
     shouldShowListEmptyContent: shouldShowListEmptyContentProp = true,
     allowMultipleSelection = false,
@@ -180,7 +182,7 @@ function ApproverSelectionList({
                     initiallyFocusedItemKey={initiallyFocusedApproverKey}
                     shouldShowTextInput={shouldShowTextInput}
                     shouldShowLoadingPlaceholder={shouldShowLoadingPlaceholder}
-                    footerContent={footerContent}
+                    footerContent={children ?? footerContent}
                     shouldFooterBeInsideList={shouldFooterBeInsideList}
                     addBottomSafeAreaPadding
                     shouldUpdateFocusedIndex={shouldUpdateFocusedIndex}

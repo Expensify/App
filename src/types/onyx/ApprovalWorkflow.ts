@@ -171,6 +171,15 @@ type ApprovalWorkflowOnyx = Omit<ApprovalWorkflow, 'approvers'> & {
      */
     memberEmail?: string;
 
+    /** Members entry point context. Saving is forbidden until a destination has been confirmed. */
+    memberWorkflow?: {
+        policyID: string;
+        member: Member;
+        isConfirmed: boolean;
+        /** Undefined for a new chain; otherwise the shared destination before this member joins. */
+        destination?: ApprovalWorkflow;
+    };
+
     /**
      * Whether the user is in the initial creation flow
      */

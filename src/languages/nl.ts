@@ -3653,6 +3653,8 @@ ${amount} voor ${merchant} - ${date}`,
         submitButton: 'Workflow toevoegen',
     },
     workflowsEditApprovalsPage: {
+        chooseWorkflow: 'Workflow kiezen',
+        createNewWorkflow: 'Nieuwe workflow maken',
         title: 'Goedkeuringsworkflow bewerken',
         deleteTitle: 'Goedkeuringsworkflow verwijderen',
         deletePrompt: 'Weet je zeker dat je deze goedkeuringsworkflow wilt verwijderen? Alle leden zullen daarna de standaardworkflow volgen.',

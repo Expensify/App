@@ -1134,6 +1134,7 @@ type WorkspaceSplitNavigatorParamList = {
         policyID: string;
         firstApproverEmail: string;
         memberEmail?: string;
+        memberToMove?: string;
     };
     [SCREENS.WORKSPACE.DYNAMIC_WORKFLOWS_APPROVALS_EXPENSES_FROM]: {
         policyID: string;

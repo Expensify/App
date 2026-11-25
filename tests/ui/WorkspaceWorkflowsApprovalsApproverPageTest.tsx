@@ -8,8 +8,9 @@ import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import PersonalDetailsByLoginProvider from '@components/PersonalDetailsByLoginProvider';
 
 import Navigation from '@libs/Navigation/Navigation';
-import {convertPolicyEmployeesToApprovalWorkflows} from '@libs/WorkflowUtils';
+import {buildApprovalWorkflowRules, convertPolicyEmployeesToApprovalWorkflows} from '@libs/WorkflowUtils';
 
+import ChooseMemberApprovalWorkflow from '@pages/workspace/workflows/approvals/ChooseMemberApprovalWorkflow';
 import WorkspaceWorkflowsApprovalsApproverPage from '@pages/workspace/workflows/approvals/WorkspaceWorkflowsApprovalsApproverPage';
 
 import {clearApprovalWorkflowApprover, selectApprovalWorkflowForEdit} from '@userActions/Workflow';
@@ -46,6 +47,7 @@ const REMOVED_ACCOUNT_ID = 5;
 
 // The tests read the rows the page hands the list and tap them through its callback, so the list itself renders nothing.
 jest.mock('@components/ApproverSelectionList', () => jest.fn(() => null));
+jest.mock('@pages/workspace/workflows/approvals/ChooseMemberApprovalWorkflow', () => jest.fn(() => null));
 jest.mock('@pages/workspace/AccessOrNotFoundWrapper', () => jest.fn(({children}: PropsWithChildren) => children));
 
 jest.mock('@react-navigation/native', () => {
@@ -154,12 +156,32 @@ async function getApproverEmails() {
     return approvalWorkflow?.approvers.map((approver) => approver?.email);
 }
 
+async function startMemberPreview() {
+    await act(async () => {
+        await Onyx.merge(ONYXKEYS.APPROVAL_WORKFLOW, {
+            members: [{email: DAVE_EMAIL, displayName: 'dave'}],
+            approvers: [{email: ADMIN_EMAIL, displayName: 'admin'}],
+            memberWorkflow: {policyID: POLICY_ID, member: {email: DAVE_EMAIL, displayName: 'dave'}, isConfirmed: false},
+        });
+    });
+}
+
+async function confirmMemberSelection() {
+    const footer = jest.mocked(ApproverSelectionList).mock.lastCall?.[0].children;
+    if (!React.isValidElement<{onPress: () => void}>(footer)) {
+        throw new Error('Expected a Confirm button');
+    }
+    await act(async () => footer.props.onPress());
+    await waitForBatchedUpdatesWithAct();
+}
+
 describe('WorkspaceWorkflowsApprovalsApproverPage', () => {
     beforeAll(() => {
         Onyx.init({keys: ONYXKEYS});
     });
 
     beforeEach(async () => {
+        jest.mocked(ChooseMemberApprovalWorkflow).mockClear();
         jest.mocked(ApproverSelectionList).mockClear();
         jest.mocked(Navigation.goBack).mockClear();
         jest.mocked(Navigation.navigate).mockClear();
@@ -173,6 +195,66 @@ describe('WorkspaceWorkflowsApprovalsApproverPage', () => {
         });
         await waitForBatchedUpdatesWithAct();
         await editWorkflowWithRemovedApprover();
+    });
+
+    it('keeps Members selection provisional and loads the matching legacy chain only on Confirm', async () => {
+        // Given a preview showing the default approver
+        await startMemberPreview();
+        await renderPage(0, SCREENS.WORKSPACE.WORKFLOWS_APPROVALS_APPROVER);
+        // When Bob is selected, the draft remains unchanged until Confirm
+        await tapRow(BOB_EMAIL);
+        expect(await getApproverEmails()).toEqual([ADMIN_EMAIL]);
+        expect(Navigation.goBack).not.toHaveBeenCalled();
+        await confirmMemberSelection();
+        // Then Bob's complete chain is loaded, without the new-engine chooser
+        expect(await getApproverEmails()).toEqual([BOB_EMAIL, ERIN_EMAIL, REMOVED_EMAIL]);
+        expect((await getOnyxValue(ONYXKEYS.APPROVAL_WORKFLOW))?.memberWorkflow?.isConfirmed).toBe(true);
+        expect(ChooseMemberApprovalWorkflow).not.toHaveBeenCalled();
+    });
+
+    it('starts with only the selected first approver when no workflow matches', async () => {
+        // Given Dave can be picked but no workflow starts with him
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, {preventSelfApproval: false});
+        await startMemberPreview();
+        await renderPage(0, SCREENS.WORKSPACE.WORKFLOWS_APPROVALS_APPROVER);
+        // When Dave is selected and confirmed
+        await tapRow(DAVE_EMAIL);
+        await confirmMemberSelection();
+        // Then only Dave remains in a new workflow draft
+        expect(await getApproverEmails()).toEqual([DAVE_EMAIL]);
+        expect((await getOnyxValue(ONYXKEYS.APPROVAL_WORKFLOW))?.memberWorkflow?.destination).toBeUndefined();
+    });
+
+    it.each([true, false])('resolves the new-engine chooser existing/create branch (join=%s)', async (joinExisting) => {
+        // Given two different rules-based workflows start with Bob
+        await Onyx.set(ONYXKEYS.BETAS, [CONST.BETAS.MULTIPLE_APPROVERS]);
+        const destinations = [ERIN_EMAIL, ADMIN_EMAIL].map((email) => ({
+            members: [{email: email === ERIN_EMAIL ? DAVE_EMAIL : ERIN_EMAIL, displayName: email}],
+            approvers: [
+                {email: BOB_EMAIL, displayName: 'bob'},
+                {email, displayName: email},
+            ],
+            isDefault: false,
+        }));
+        for (const [index, workflow] of destinations.entries()) {
+            for (const [ruleIndex, rule] of buildApprovalWorkflowRules(workflow).entries()) {
+                await Onyx.set(`${ONYXKEYS.COLLECTION.RULE}${index}-${ruleIndex}`, {...rule, scope: CONST.RULES.SCOPE.POLICY, scopeID: POLICY_ID});
+            }
+        }
+        await startMemberPreview();
+        await renderPage(0, SCREENS.WORKSPACE.WORKFLOWS_APPROVALS_APPROVER);
+        // When Bob is confirmed, a chooser opens without resolving the draft yet
+        await tapRow(BOB_EMAIL);
+        await confirmMemberSelection();
+        expect(ChooseMemberApprovalWorkflow).toHaveBeenCalled();
+        expect((await getOnyxValue(ONYXKEYS.APPROVAL_WORKFLOW))?.memberWorkflow?.isConfirmed).toBe(false);
+        await act(async () => jest.mocked(ChooseMemberApprovalWorkflow).mock.lastCall?.[0].onSelect(joinExisting ? destinations[1] : undefined));
+        await waitForBatchedUpdatesWithAct();
+        // Then the chosen destination determines both the chain and everyone affected by Save
+        const draft = await getOnyxValue(ONYXKEYS.APPROVAL_WORKFLOW);
+        expect(draft?.memberWorkflow?.isConfirmed).toBe(true);
+        expect(draft?.approvers.map((approver) => approver?.email)).toEqual(joinExisting ? [BOB_EMAIL, ADMIN_EMAIL] : [BOB_EMAIL]);
+        expect(draft?.members.map((member) => member.email)).toEqual(joinExisting ? [ERIN_EMAIL, DAVE_EMAIL] : [DAVE_EMAIL]);
     });
 
     it('lets the admin drop just the approver who left so the previous approver becomes final', async () => {

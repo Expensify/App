@@ -100,9 +100,10 @@ function ApprovalWorkflowEditor({approvalWorkflow, removeApprovalWorkflow, polic
         return previousMember?.pendingFields?.forwardsTo;
     };
 
-    const sortedMembers = approvalWorkflow.isDefault ? [] : sortAlphabetically(approvalWorkflow.members, 'displayName', localeCompare);
+    const shouldShowEveryone = approvalWorkflow.isDefault && !approvalWorkflow.memberWorkflow;
+    const sortedMembers = shouldShowEveryone ? [] : sortAlphabetically(approvalWorkflow.members, 'displayName', localeCompare);
 
-    const members = approvalWorkflow.isDefault
+    const members = shouldShowEveryone
         ? translate('workspace.common.everyone')
         : sortedMembers.map((m) => (Str.isSMSLogin(m.displayName) ? formatPhoneNumber(m.displayName) : m.displayName)).join(', ');
 
@@ -199,14 +200,14 @@ function ApprovalWorkflowEditor({approvalWorkflow, removeApprovalWorkflow, polic
                     accessibilityLabel={[members || translate('workflowsExpensesFromPage.title'), approvalWorkflow?.errors?.members ? translate(approvalWorkflow.errors.members) : undefined]
                         .filter(Boolean)
                         .join('. ')}
-                    onPress={!approvalWorkflow.isDefault ? callIfAuthenticated(handleExpensesFromPress, session) : undefined}
+                    onPress={!approvalWorkflow.isDefault && !approvalWorkflow.memberWorkflow ? callIfAuthenticated(handleExpensesFromPress, session) : undefined}
                     sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.WORKFLOWS.APPROVAL_EDITOR_MEMBERS}
                 >
                     <MenuItem.Row>
                         <MenuItemField.Content name={translate('workflowsExpensesFromPage.title')}>
-                            {approvalWorkflow.isDefault ? <MenuItem.FieldValue numberOfLines={4}>{members}</MenuItem.FieldValue> : <UserPills users={memberPills} />}
+                            {shouldShowEveryone ? <MenuItem.FieldValue numberOfLines={4}>{members}</MenuItem.FieldValue> : <UserPills users={memberPills} />}
                         </MenuItemField.Content>
-                        {!approvalWorkflow.isDefault && (
+                        {!approvalWorkflow.isDefault && !approvalWorkflow.memberWorkflow && (
                             <MenuItem.Trailing>
                                 <MenuItem.Chevron />
                             </MenuItem.Trailing>

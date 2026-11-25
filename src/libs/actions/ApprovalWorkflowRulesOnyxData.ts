@@ -17,6 +17,8 @@ import type {OnyxCollection, OnyxUpdate} from 'react-native-onyx';
 
 import Onyx from 'react-native-onyx';
 
+import buildMemberApproverOnyxData from './buildMemberApproverOnyxData';
+
 type ApprovalWorkflowRulesOnyxDataParams = {
     policyID: string;
 
@@ -35,6 +37,8 @@ type ApprovalWorkflowRulesOnyxDataParams = {
      * showing their approver dim until the save lands.
      */
     membersWithPendingApprover?: string[];
+    /** Originating member whose row shows an error even when all failed rules were new. */
+    memberEmail?: string;
 };
 
 type ApprovalWorkflowRulesOnyxUpdate = OnyxUpdate<typeof ONYXKEYS.COLLECTION.RULE | typeof ONYXKEYS.COLLECTION.POLICY>;
@@ -49,7 +53,13 @@ type ApprovalWorkflowRulesOnyxData = {
  * Build the Onyx updates for a request that applies a diff of approval-workflow rules: the diff shows while the request
  * is pending, and is kept when it succeeds or rolled back when it fails.
  */
-function buildApprovalWorkflowRulesOnyxData({policyID, rulesDiff, previousRules, membersWithPendingApprover}: ApprovalWorkflowRulesOnyxDataParams): ApprovalWorkflowRulesOnyxData {
+function buildApprovalWorkflowRulesOnyxData({
+    policyID,
+    rulesDiff,
+    previousRules,
+    membersWithPendingApprover,
+    memberEmail,
+}: ApprovalWorkflowRulesOnyxDataParams): ApprovalWorkflowRulesOnyxData {
     const genericError = getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage');
 
     const optimisticData: ApprovalWorkflowRulesOnyxUpdate[] = [];
@@ -94,6 +104,10 @@ function buildApprovalWorkflowRulesOnyxData({policyID, rulesDiff, previousRules,
         failureData.push({onyxMethod: Onyx.METHOD.MERGE, key: policyKey, value: {employeeList: markMembers(null)}});
     }
 
+    const feedback = buildMemberApproverOnyxData(policyID, memberEmail);
+    optimisticData.push(...feedback.optimisticData);
+    successData.push(...feedback.successData);
+    failureData.push(...feedback.failureData);
     return {optimisticData, successData, failureData};
 }
 

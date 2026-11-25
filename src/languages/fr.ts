@@ -3675,6 +3675,8 @@ ${amount} pour ${merchant} - ${date}`,
         submitButton: 'Ajouter un workflow',
     },
     workflowsEditApprovalsPage: {
+        chooseWorkflow: 'Choisir un workflow',
+        createNewWorkflow: 'Créer un nouveau workflow',
         title: 'Modifier le workflow d’approbation',
         deleteTitle: 'Supprimer le workflow d’approbation',
         deletePrompt: 'Voulez-vous vraiment supprimer ce workflow d’approbation ? Tous les membres suivront ensuite le workflow par défaut.',

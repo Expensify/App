@@ -50,7 +50,7 @@ type PolicyEmployee = OnyxCommon.OnyxValueWithOfflineFeedback<
         errors?: OnyxCommon.Errors;
 
         /** Errors from api calls that changed a specific setting of the member, such as which categories they can use */
-        errorFields?: OnyxCommon.ErrorFields<'categoryVisibility'>;
+        errorFields?: Partial<OnyxCommon.ErrorFields<'categoryVisibility' | 'submitsTo'>>;
     },
     'categoryVisibility'
 >;

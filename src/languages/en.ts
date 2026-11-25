@@ -3825,6 +3825,8 @@ const translations = {
         submitButton: 'Add workflow',
     },
     workflowsEditApprovalsPage: {
+        chooseWorkflow: 'Choose workflow',
+        createNewWorkflow: 'Create new workflow',
         title: 'Edit approval workflow',
         deleteTitle: 'Delete approval workflow',
         deletePrompt: 'Are you sure you want to delete this approval workflow? All members will subsequently follow the default workflow.',

@@ -3613,6 +3613,8 @@ ${date} の ${merchant} への ${amount}`,
         submitButton: 'ワークフローを追加',
     },
     workflowsEditApprovalsPage: {
+        chooseWorkflow: 'ワークフローを選択',
+        createNewWorkflow: '新しいワークフローを作成',
         title: '承認ワークフローを編集',
         deleteTitle: '承認ワークフローを削除',
         deletePrompt: 'この承認ワークフローを削除してもよろしいですか？すべてのメンバーは以後、デフォルトのワークフローに従うようになります。',

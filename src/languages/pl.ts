@@ -3696,6 +3696,8 @@ ${amount} dla ${merchant} - ${date}`,
         submitButton: 'Dodaj proces',
     },
     workflowsEditApprovalsPage: {
+        chooseWorkflow: 'Wybierz przepływ pracy',
+        createNewWorkflow: 'Utwórz nowy przepływ pracy',
         title: 'Edytuj proces zatwierdzania',
         deleteTitle: 'Usuń proces zatwierdzania',
         deletePrompt: 'Czy na pewno chcesz usunąć ten proces zatwierdzania? Wszyscy członkowie będą następnie korzystać z domyślnego procesu.',

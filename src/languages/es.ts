@@ -3632,6 +3632,8 @@ ${amount} para ${merchant} - ${date}`,
         submitButton: 'Añadir flujo de trabajo',
     },
     workflowsEditApprovalsPage: {
+        chooseWorkflow: 'Elegir flujo de trabajo',
+        createNewWorkflow: 'Crear nuevo flujo de trabajo',
         title: 'Edicion flujo de aprobación',
         deleteTitle: 'Eliminar flujo de trabajo de aprobación',
         deletePrompt: '¿Estás seguro de que quieres eliminar este flujo de trabajo de aprobación? Todos los miembros pasarán a usar el flujo de trabajo predeterminado.',
