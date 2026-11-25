@@ -131,8 +131,9 @@ function SubscriptionPlanCard({subscriptionPlan, isFromComparisonModal = false, 
     }
 
     if (showSubscriptionSettings) {
+        // This content is the whole section, so it does not sit in a second card.
         return (
-            <View style={cardStyles}>
+            <View style={[styles.mt5, styles.flex1]}>
                 <SubscriptionPlanSettings
                     planTitle={title}
                     planIcon={src}

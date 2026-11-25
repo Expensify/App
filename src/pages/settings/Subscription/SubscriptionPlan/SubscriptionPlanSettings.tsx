@@ -175,7 +175,7 @@ function AnnualSavingsInfo() {
 function SubscriptionPlanSettings({planTitle, planIcon, subscriptionPlan}: SubscriptionPlanSettingsProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
-    const {values} = useLayoutSpacing();
+    const {values, cardEdgeToEdge, cardPaddingHorizontal} = useLayoutSpacing();
     const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
     const {translate, dateFnsLocale} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['Tag', 'Coins']);
@@ -396,25 +396,29 @@ function SubscriptionPlanSettings({planTitle, planIcon, subscriptionPlan}: Subsc
                 )}
             </View>
             <OfflineWithFeedback pendingAction={privateSubscription.pendingFields?.type}>
-                <MenuItem.Root
-                    onPress={callIfAuthenticated(navigateToSubscriptionDetails, session)}
-                    sentryLabel={CONST.SENTRY_LABEL.SETTINGS_SUBSCRIPTION.EDIT_SUBSCRIPTION}
-                    testID="SubscriptionPlanSettings-subscriptionType"
-                    accessibilityLabel={`${translate('subscription.subscriptionSettings.subscriptionType')}, ${subscriptionTypeValue}`}
-                >
-                    <MenuItem.Row>
-                        <MenuItem.Content>
-                            <View style={[styles.flexRow, styles.alignItemsCenter]}>
-                                <MenuItem.FieldName>{translate('subscription.subscriptionSettings.subscriptionType')}</MenuItem.FieldName>
-                                {cardView.showAnnualSavingsInfo && <AnnualSavingsInfo />}
-                            </View>
-                            <MenuItem.FieldValue>{subscriptionTypeValue}</MenuItem.FieldValue>
-                        </MenuItem.Content>
-                        <MenuItem.Trailing>
-                            <MenuItem.Chevron />
-                        </MenuItem.Trailing>
-                    </MenuItem.Row>
-                </MenuItem.Root>
+                <View style={cardEdgeToEdge}>
+                    <MenuItem.Root
+                        onPress={callIfAuthenticated(navigateToSubscriptionDetails, session)}
+                        sentryLabel={CONST.SENTRY_LABEL.SETTINGS_SUBSCRIPTION.EDIT_SUBSCRIPTION}
+                        testID="SubscriptionPlanSettings-subscriptionType"
+                        accessibilityLabel={`${translate('subscription.subscriptionSettings.subscriptionType')}, ${subscriptionTypeValue}`}
+                    >
+                        <View style={cardPaddingHorizontal}>
+                            <MenuItem.Row>
+                                <MenuItem.Content>
+                                    <View style={[styles.flexRow, styles.alignItemsCenter]}>
+                                        <MenuItem.FieldName>{translate('subscription.subscriptionSettings.subscriptionType')}</MenuItem.FieldName>
+                                        {cardView.showAnnualSavingsInfo && <AnnualSavingsInfo />}
+                                    </View>
+                                    <MenuItem.FieldValue>{subscriptionTypeValue}</MenuItem.FieldValue>
+                                </MenuItem.Content>
+                                <MenuItem.Trailing>
+                                    <MenuItem.Chevron />
+                                </MenuItem.Trailing>
+                            </MenuItem.Row>
+                        </View>
+                    </MenuItem.Root>
+                </View>
             </OfflineWithFeedback>
             {cardView.showAnnualControls && (
                 <>
@@ -423,41 +427,45 @@ function SubscriptionPlanSettings({planTitle, planIcon, subscriptionPlan}: Subsc
                         errors={privateSubscription.errorFields?.userCount}
                         onClose={clearUpdateSubscriptionSizeError}
                     >
-                        <MenuItem.Root
-                            onPress={cardView.canEditSize ? callIfAuthenticated(navigateToSubscriptionSize, session) : undefined}
-                            sentryLabel={CONST.SENTRY_LABEL.SETTINGS_SUBSCRIPTION.SUBSCRIPTION_SIZE}
-                            testID="SubscriptionPlanSettings-subscriptionSize"
-                        >
-                            <MenuItemField.Row
-                                name={translate('subscription.details.subscriptionSize')}
-                                value={translate('subscription.subscriptionSettings.memberCount', {count: cardView.memberCount})}
+                        <View style={cardEdgeToEdge}>
+                            <MenuItem.Root
+                                onPress={cardView.canEditSize ? callIfAuthenticated(navigateToSubscriptionSize, session) : undefined}
+                                sentryLabel={CONST.SENTRY_LABEL.SETTINGS_SUBSCRIPTION.SUBSCRIPTION_SIZE}
+                                testID="SubscriptionPlanSettings-subscriptionSize"
                             >
-                                {cardView.canEditSize && <MenuItem.Chevron />}
-                            </MenuItemField.Row>
-                            {cardView.showSizeNotSetHelper && (
-                                <MenuItem.HelpText
-                                    message={
-                                        subscriptionSizeHint ? (
-                                            <>
-                                                {subscriptionSizeHint.text}
-                                                <TextLink
-                                                    onPress={openPricingFromSizeHint}
-                                                    onMouseDown={keepSizeHintLinkFromOpeningSizeRow}
-                                                    sentryLabel={CONST.SENTRY_LABEL.SETTINGS_SUBSCRIPTION.SIZE_NOT_SET_LEARN_MORE}
-                                                >
-                                                    {subscriptionSizeHint.linkLabel}
-                                                </TextLink>
-                                            </>
-                                        ) : (
-                                            translate('subscription.subscriptionSettings.sizeNotSet')
-                                                .replaceAll(/<[^>]+>/g, '')
-                                                .replaceAll(/\s+/g, ' ')
-                                                .trim()
-                                        )
-                                    }
-                                />
-                            )}
-                        </MenuItem.Root>
+                                <View style={cardPaddingHorizontal}>
+                                    <MenuItemField.Row
+                                        name={translate('subscription.details.subscriptionSize')}
+                                        value={translate('subscription.subscriptionSettings.memberCount', {count: cardView.memberCount})}
+                                    >
+                                        {cardView.canEditSize && <MenuItem.Chevron />}
+                                    </MenuItemField.Row>
+                                    {cardView.showSizeNotSetHelper && (
+                                        <MenuItem.HelpText
+                                            message={
+                                                subscriptionSizeHint ? (
+                                                    <>
+                                                        {subscriptionSizeHint.text}
+                                                        <TextLink
+                                                            onPress={openPricingFromSizeHint}
+                                                            onMouseDown={keepSizeHintLinkFromOpeningSizeRow}
+                                                            sentryLabel={CONST.SENTRY_LABEL.SETTINGS_SUBSCRIPTION.SIZE_NOT_SET_LEARN_MORE}
+                                                        >
+                                                            {subscriptionSizeHint.linkLabel}
+                                                        </TextLink>
+                                                    </>
+                                                ) : (
+                                                    translate('subscription.subscriptionSettings.sizeNotSet')
+                                                        .replaceAll(/<[^>]+>/g, '')
+                                                        .replaceAll(/\s+/g, ' ')
+                                                        .trim()
+                                                )
+                                            }
+                                        />
+                                    )}
+                                </View>
+                            </MenuItem.Root>
+                        </View>
                     </OfflineWithFeedback>
                     <View
                         style={[settingsRowHorizontalPadding, styles.pv3]}
