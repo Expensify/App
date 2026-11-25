@@ -303,6 +303,7 @@ function getTransactionsForMerging({
 }
 
 function getOnyxTargetTransactionData({
+    translate,
     targetTransaction,
     targetTransactionViolations,
     mergeTransaction,
@@ -323,6 +324,7 @@ function getOnyxTargetTransactionData({
     rules,
     isVendorMatchingBetaEnabled,
 }: {
+    translate: LocaleContextProps['translate'];
     isVendorMatchingBetaEnabled: boolean | undefined;
     targetTransaction: Transaction;
     targetTransactionViolations: OnyxEntry<TransactionViolations>;
@@ -365,6 +367,7 @@ function getOnyxTargetTransactionData({
 
     if (isUnreportedExpense) {
         data = getUpdateTrackExpenseParams({
+            translate,
             transactionID: targetTransaction.transactionID,
             transaction: targetTransaction,
             transactionThread: targetTransactionThreadReport,
@@ -378,6 +381,7 @@ function getOnyxTargetTransactionData({
         });
     } else {
         data = getUpdateMoneyRequestParams({
+            translate,
             isVendorMatchingBetaEnabled,
             transactionID: targetTransaction.transactionID,
             transaction: targetTransaction,
@@ -436,6 +440,7 @@ function getOnyxTargetTransactionData({
 }
 
 type MergeTransactionRequestParams = {
+    translate: LocaleContextProps['translate'];
     mergeTransactionID: string;
     mergeTransaction: MergeTransaction;
     targetTransaction: Transaction;
@@ -477,6 +482,7 @@ type MergeTransactionRequestParams = {
  * - mergeTransaction.reportID: The destination report the user chose; the merged expense ends up here.
  */
 function mergeTransactionRequest({
+    translate,
     mergeTransactionID,
     mergeTransaction,
     targetTransaction,
@@ -542,6 +548,7 @@ function mergeTransactionRequest({
         reportID: mergeTransaction.reportID,
     };
     const onyxTargetTransactionData = getOnyxTargetTransactionData({
+        translate,
         isVendorMatchingBetaEnabled,
         targetTransaction,
         targetTransactionViolations: allTransactionViolations?.[ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS + targetTransaction.transactionID] ?? [],

@@ -18,9 +18,15 @@ import {usePhotoOutput} from 'react-native-vision-camera';
 
 const PHOTO_TARGET_RESOLUTION = {width: CONST.RECEIPT_CAMERA.PHOTO_WIDTH, height: CONST.RECEIPT_CAMERA.PHOTO_HEIGHT};
 
-function useReceiptPhotoOutput(qualityPrioritization: QualityPrioritization, isInLandscapeMode: boolean) {
+// Receipt enhancement draws the outline from the detection frames over the preview. With the ~5 MP format the preview
+// shows a narrower view than the frames (~1.41x on the iPhone 14 Pro's main lens), so the outline wouldn't line up with
+// the receipt. The full-sensor format gives both the same view.
+const FULL_SENSOR_PHOTO_TARGET_RESOLUTION = {width: 4032, height: 3024};
+
+function useReceiptPhotoOutput(qualityPrioritization: QualityPrioritization, isInLandscapeMode: boolean, shouldUseFullSensorResolution = false) {
+    const targetResolution = shouldUseFullSensorResolution ? FULL_SENSOR_PHOTO_TARGET_RESOLUTION : PHOTO_TARGET_RESOLUTION;
     // v5's default 'native' container is HEIC on iOS.
-    const photoOutput = usePhotoOutput({targetResolution: PHOTO_TARGET_RESOLUTION, containerFormat: 'jpeg', qualityPrioritization});
+    const photoOutput = usePhotoOutput({targetResolution, containerFormat: 'jpeg', qualityPrioritization});
     const [photoResolution, setPhotoResolution] = useState<Size | undefined>(undefined);
 
     const updatePhotoResolution = () => {
@@ -32,7 +38,7 @@ function useReceiptPhotoOutput(qualityPrioritization: QualityPrioritization, isI
         setPhotoResolution((previous) => (previous?.width === resolution.width && previous?.height === resolution.height ? previous : {width: resolution.width, height: resolution.height}));
     };
 
-    return {photoOutput, cameraAspectRatio: getCameraAspectRatio(photoResolution ?? PHOTO_TARGET_RESOLUTION, isInLandscapeMode), updatePhotoResolution};
+    return {photoOutput, cameraAspectRatio: getCameraAspectRatio(photoResolution ?? targetResolution, isInLandscapeMode), updatePhotoResolution};
 }
 
 export default useReceiptPhotoOutput;

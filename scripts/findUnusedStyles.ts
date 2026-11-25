@@ -15,8 +15,39 @@ type StyleDefinition = {
 // Static patterns and constants - created once
 const STYLE_FILE_EXTENSIONS = '**/*.{ts,tsx}';
 const STYLE_KEY_SKIP_PATTERNS = new Set(['default', 'exports', 'module', 'require', 'import', 'from', 'theme', 'colors', 'variables', 'CONST', 'Platform', 'StyleSheet']);
+// Keys that are kept even without a consumer. Applies to keys from every scanned style file, not only src/styles/index.ts. textVariants mirrors the Figma Product type scale 1:1 (see tests/unit/TextVariantTest.tsx).
+const UNUSED_STYLE_KEY_ALLOWLIST = new Set(['finePrintStrong']);
+// The avatar styles are read dynamically via `styles[singleAvatarStyleKey]` / `styles[secondAvatarStyleKey]`, so a usage search by name cannot see them.
+// The key is chosen in these two files (as union type members and returned fields), so a string literal equal to the key in them counts as a usage.
+// If a key leaves these files, the script reports it as unused.
+const DYNAMIC_STYLE_KEY_FILES = new Set(['src/components/Avatar/layouts/getDiagonalAvatarSizing.ts', 'src/components/Avatar/layouts/getSubscriptAvatarSizing.ts']);
 // Use EXCLUDED_STYLE_DIRS to clarify which directories are being ignored
 const EXCLUDED_STYLE_DIRS = ['src/styles/utils/**', 'src/styles/generators/**', 'src/styles/theme/**'];
+
+// Unwraps an arrow function body down to the style object: `({...})`, `{...}`, `{...} satisfies T`, `{...} as T`, `<T>{...}`, `{...}!`, a call whose first argument is the style object (`StyleSheet.create({...})`)
+// or a block body that returns one of these (the last top-level `return` counts).
+// It loops because these shapes can be combined in any order. Anything else returns undefined.
+function getStyleObject(body: ts.ConciseBody): ts.ObjectLiteralExpression | undefined {
+    let current: ts.Node | undefined = body;
+    while (current) {
+        if (ts.isBlock(current)) {
+            current = current.statements.findLast(ts.isReturnStatement)?.expression;
+        } else if (
+            ts.isParenthesizedExpression(current) ||
+            ts.isSatisfiesExpression(current) ||
+            ts.isAsExpression(current) ||
+            ts.isTypeAssertionExpression(current) ||
+            ts.isNonNullExpression(current)
+        ) {
+            current = current.expression;
+        } else if (ts.isCallExpression(current)) {
+            current = current.arguments.at(0);
+        } else {
+            return ts.isObjectLiteralExpression(current) ? current : undefined;
+        }
+    }
+    return undefined;
+}
 
 class ComprehensiveStylesFinder {
     private rootDir: string;
@@ -25,8 +56,39 @@ class ComprehensiveStylesFinder {
 
     private fileContents = new Map<string, string>();
 
+    private indexDefinitionCounts = new Map<string, number>();
+
+    private indexRootName: string | undefined;
+
+    private indexSpreadFunctionNames: string[] = [];
+
     constructor(rootDir: string) {
         this.rootDir = rootDir;
+    }
+
+    /**
+     * Checks that src/styles/index.ts was read as expected. Returns an error message when the root style function (the `export default` of the file) is not found,
+     * when a function it spreads has no matching declaration or yields no definitions, or when a root that spreads nothing yields none itself,
+     * so the check cannot pass blind after a refactor of that file. Returns undefined when the structure is fine.
+     */
+    public getIndexStructureProblem(): string | undefined {
+        const structureMismatch = 'The script no longer matches the structure of that file.';
+        if (!this.indexRootName) {
+            return `❌ Found no \`export default\` style function in src/styles/index.ts. ${structureMismatch}`;
+        }
+
+        // The root usually only spreads the other style functions, so it may yield nothing itself. Without any spread it must hold the definitions.
+        if (this.indexSpreadFunctionNames.length === 0 && !this.indexDefinitionCounts.get(this.indexRootName)) {
+            return `❌ Read 0 style definitions from ${this.indexRootName} in src/styles/index.ts. ${structureMismatch}`;
+        }
+
+        for (const functionName of this.indexSpreadFunctionNames) {
+            if (!this.indexDefinitionCounts.get(functionName)) {
+                return `❌ Read 0 style definitions from ${functionName} in src/styles/index.ts. ${structureMismatch}`;
+            }
+        }
+
+        return undefined;
     }
 
     public findUnusedStyles(): StyleDefinition[] {
@@ -73,46 +135,14 @@ class ComprehensiveStylesFinder {
     }
 
     private extractStyleKeysFromFile(sourceFile: ts.SourceFile, file: string): void {
+        if (file === 'src/styles/index.ts') {
+            this.extractIndexStyleDefinitions(sourceFile, file);
+            return;
+        }
+
         const visit = (node: ts.Node) => {
-            // For styles/index.ts, only process styles that are inside the main styles function
-            if (file === 'src/styles/index.ts') {
-                // Look for the main styles function (arrow function assigned to 'styles' variable)
-                if (ts.isVariableDeclaration(node) && ts.isIdentifier(node.name) && node.name.text === 'styles' && node.initializer && ts.isArrowFunction(node.initializer)) {
-                    // Process only the body of the styles function
-                    if (node.initializer.body) {
-                        let returnObject: ts.Expression | undefined;
-
-                        if (ts.isParenthesizedExpression(node.initializer.body)) {
-                            returnObject = node.initializer.body.expression;
-                        } else if (ts.isObjectLiteralExpression(node.initializer.body)) {
-                            returnObject = node.initializer.body;
-                        } else if (ts.isSatisfiesExpression(node.initializer.body)) {
-                            const satisfiesExpr = node.initializer.body.expression;
-
-                            if (ts.isParenthesizedExpression(satisfiesExpr)) {
-                                returnObject = satisfiesExpr.expression;
-                            } else {
-                                returnObject = satisfiesExpr;
-                            }
-                        }
-
-                        if (returnObject && ts.isObjectLiteralExpression(returnObject)) {
-                            // Process each property in the returned object
-                            this.extractStyleDefinitionsFromObject(returnObject, sourceFile, file);
-                        }
-                    }
-                    return; // Don't continue traversing for styles function
-                }
-
-                // Skip processing top-level constants and other functions for styles/index.ts
-                if (ts.isVariableDeclaration(node) || ts.isFunctionDeclaration(node)) {
-                    return;
-                }
-            } else {
-                // For other files, process all style-like nodes normally
-                this.extractStyleDefinitionFromNode(node, sourceFile, file);
-            }
-
+            // For other files, process all style-like nodes normally
+            this.extractStyleDefinitionFromNode(node, sourceFile, file);
             ts.forEachChild(node, visit);
         };
 
@@ -120,53 +150,96 @@ class ComprehensiveStylesFinder {
     }
 
     /**
+     * Reads the definitions of src/styles/index.ts without knowing any function names. The root is the identifier in `export default <root>`,
+     * and the functions that hold the definitions are the root itself plus every function it spreads (`...staticStyles(theme)`).
+     * Top-level constants and other functions are skipped.
+     */
+    private extractIndexStyleDefinitions(sourceFile: ts.SourceFile, file: string): void {
+        const arrowFunctions = new Map<string, ts.ArrowFunction>();
+        let rootName: string | undefined;
+
+        const collect = (node: ts.Node) => {
+            if (ts.isExportAssignment(node) && !node.isExportEquals && ts.isIdentifier(node.expression)) {
+                rootName = node.expression.text;
+            }
+            if (ts.isVariableDeclaration(node) && ts.isIdentifier(node.name) && node.initializer && ts.isArrowFunction(node.initializer)) {
+                arrowFunctions.set(node.name.text, node.initializer);
+            }
+            // Don't continue traversing for variable declarations and functions
+            if (ts.isVariableDeclaration(node) || ts.isFunctionDeclaration(node)) {
+                return;
+            }
+            ts.forEachChild(node, collect);
+        };
+        collect(sourceFile);
+
+        this.indexRootName = rootName;
+        const rootFunction = rootName ? arrowFunctions.get(rootName) : undefined;
+        if (!rootName || !rootFunction) {
+            return;
+        }
+
+        const rootObject = getStyleObject(rootFunction.body);
+        if (rootObject) {
+            for (const property of rootObject.properties) {
+                if (ts.isSpreadAssignment(property) && ts.isCallExpression(property.expression) && ts.isIdentifier(property.expression.expression)) {
+                    this.indexSpreadFunctionNames.push(property.expression.expression.text);
+                }
+            }
+        }
+
+        for (const functionName of new Set([rootName, ...this.indexSpreadFunctionNames])) {
+            const styleFunction = arrowFunctions.get(functionName);
+            const styleObject = styleFunction ? getStyleObject(styleFunction.body) : undefined;
+            if (styleObject) {
+                // Process each property in the returned object
+                this.indexDefinitionCounts.set(functionName, this.extractStyleDefinitionsFromObject(styleObject, sourceFile, file));
+            }
+        }
+    }
+
+    /**
      * Extracts style definitions from a TypeScript object literal expression.
      *
      * This function scans through all properties in an object literal (typically the main styles object)
-     * and identifies valid style definitions. It captures both:
-     * - Property assignments with object literal values (e.g., `myStyle: { color: 'red' }`)
-     * - Method declarations that return styles (e.g., `myStyle: () => ({ color: 'red' })`)
+     * and records every named entry as a style definition, whatever its value is:
+     * - Property assignments (e.g., `myStyle: { color: 'red' }`, `myStyle: (isSmall) => ({...})`, `myStyle: helper(theme)`)
+     * - Shorthand properties, methods and accessors
      *
-     * Valid style definitions are added to the styleDefinitions map with their source location
-     * for later unused style detection.
+     * Entries are added to the styleDefinitions map with their source location for later unused style detection,
+     * unless the key is a spread, a computed/numeric/template key, listed in STYLE_KEY_SKIP_PATTERNS or in UNUSED_STYLE_KEY_ALLOWLIST.
      *
      * @param objectLiteral - The TypeScript object literal expression to scan for style definitions
      * @param sourceFile - The TypeScript source file containing the object literal
      * @param file - The relative file path for tracking style definition locations
+     * @returns The number of style definitions captured from the object
      */
-    private extractStyleDefinitionsFromObject(objectLiteral: ts.ObjectLiteralExpression, sourceFile: ts.SourceFile, file: string): void {
+    private extractStyleDefinitionsFromObject(objectLiteral: ts.ObjectLiteralExpression, sourceFile: ts.SourceFile, file: string): number {
+        let capturedCount = 0;
         for (const property of objectLiteral.properties) {
-            if (ts.isPropertyAssignment(property) || ts.isMethodDeclaration(property)) {
-                const key = TSCompilerUtils.extractKeyFromPropertyNode(property);
+            // Only named entries are definitions: spreads and computed, numeric or template keys are skipped.
+            if (ts.isSpreadAssignment(property) || !(ts.isIdentifier(property.name) || ts.isStringLiteral(property.name))) {
+                continue;
+            }
 
-                if (key && this.isStyleKey(key)) {
-                    try {
-                        let shouldCapture = false;
-                        if (ts.isPropertyAssignment(property)) {
-                            // For PropertyAssignment, check if the value is an object literal
-                            if (ts.isObjectLiteralExpression(property.initializer)) {
-                                shouldCapture = true;
-                            }
-                        } else if (ts.isMethodDeclaration(property)) {
-                            // For MethodDeclaration, it's a function that returns styles
-                            shouldCapture = true;
-                        }
-
-                        if (shouldCapture) {
-                            const {line, character} = sourceFile.getLineAndCharacterOfPosition(property.getStart());
-                            this.styleDefinitions.set(key, {
-                                key,
-                                file,
-                                line: line + 1,
-                                column: character + 1,
-                            });
-                        }
-                    } catch (error) {
-                        console.warn(`Warning: Could not get position for style '${key}' in ${file}`);
-                    }
+            const key = property.name.text;
+            if (this.isStyleKey(key)) {
+                try {
+                    const {line, character} = sourceFile.getLineAndCharacterOfPosition(property.getStart());
+                    this.styleDefinitions.set(key, {
+                        key,
+                        file,
+                        line: line + 1,
+                        column: character + 1,
+                    });
+                    capturedCount++;
+                } catch (error) {
+                    console.warn(`Warning: Could not get position for style '${key}' in ${file}`);
                 }
             }
         }
+
+        return capturedCount;
     }
 
     /**
@@ -235,8 +308,8 @@ class ComprehensiveStylesFinder {
     }
 
     private isStyleKey(key: string): boolean {
-        // Skip certain patterns that are likely not style keys
-        if (STYLE_KEY_SKIP_PATTERNS.has(key)) {
+        // Skip patterns that are likely not style keys, and the allowlisted keys, which are real styles that are kept on purpose
+        if (STYLE_KEY_SKIP_PATTERNS.has(key) || UNUSED_STYLE_KEY_ALLOWLIST.has(key)) {
             return false;
         }
 
@@ -246,6 +319,7 @@ class ComprehensiveStylesFinder {
     private loadAllFileContents(): void {
         // Use excludeMainStyleFiles to exclude only the main style definition files
         // Keep utils/generators/themes for usage checking
+        // src/styles/index.ts is not scanned for usages, so a key referenced only inside index.ts (outside a spread) is reported as unused
         const excludeMainStyleFiles = ['src/styles/index.ts', 'src/styles/variables.ts'];
 
         const sourceFiles = globSync(`src/**/${STYLE_FILE_EXTENSIONS}`, {
@@ -472,6 +546,12 @@ class ComprehensiveStylesFinder {
                     return;
                 }
 
+                // Dynamic lookup keys chosen in DYNAMIC_STYLE_KEY_FILES: string literals in union types and returned fields
+                if (DYNAMIC_STYLE_KEY_FILES.has(file) && ts.isStringLiteral(node) && node.text === key) {
+                    found = true;
+                    return;
+                }
+
                 // Template literal usage: `${key}` or `text-${key}-more`
                 if (ts.isTemplateExpression(node)) {
                     for (const span of node.templateSpans) {
@@ -523,6 +603,12 @@ function main() {
     try {
         const finder = new ComprehensiveStylesFinder(rootDir);
         const unusedStyles = finder.findUnusedStyles();
+
+        const indexStructureProblem = finder.getIndexStructureProblem();
+        if (indexStructureProblem) {
+            console.error(indexStructureProblem);
+            process.exit(1);
+        }
 
         if (unusedStyles.length === 0) {
             console.log('✅ No unused styles found!');

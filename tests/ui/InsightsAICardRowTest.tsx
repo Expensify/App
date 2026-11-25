@@ -312,6 +312,40 @@ describe('InsightsAICardRow', () => {
         expect(screen.getByLabelText(/Down .*30,318/)).toBeOnTheScreen();
     });
 
+    it('shows duration changes in hours below a day and days otherwise', async () => {
+        // Given Efficiency cards with time differences below and above one day
+        const slower: AIInsight = {
+            ...SPIKE,
+            title: 'Time to submit',
+            chip: {
+                type: CONST.INSIGHTS.AI_INSIGHT.CHIP_TYPE.CHANGE,
+                direction: CONST.INSIGHTS.AI_INSIGHT.CHIP_DIRECTION.INCREASE,
+                unit: CONST.INSIGHTS.AI_INSIGHT.CHIP_UNIT.DURATION,
+                value: 12600,
+            },
+        };
+        const faster: AIInsight = {
+            ...TREND,
+            title: 'Time to approve',
+            chip: {
+                type: CONST.INSIGHTS.AI_INSIGHT.CHIP_TYPE.CHANGE,
+                direction: CONST.INSIGHTS.AI_INSIGHT.CHIP_DIRECTION.DECREASE,
+                unit: CONST.INSIGHTS.AI_INSIGHT.CHIP_UNIT.DURATION,
+                value: 362880,
+            },
+        };
+
+        const smallChange: AIInsight = {...faster, id: 'record', title: 'Time to pay', chip: {...faster.chip, value: 120}};
+
+        // When the cards render
+        await renderRow([slower, faster, smallChange], false, {...INSIGHTS_SCOPE, searchKey: CONST.INSIGHTS.SEARCH_KEY.EFFICIENCY});
+
+        // Then each localized value keeps the correct change direction
+        expect(screen.getByLabelText('Up 3.5 hours')).toBeOnTheScreen();
+        expect(screen.getByLabelText('Down 4.2 days')).toBeOnTheScreen();
+        expect(screen.getByLabelText('Down <0.1 hours')).toBeOnTheScreen();
+    });
+
     it('formats a neutral duration chip in days instead of money or a percentage', async () => {
         // Given an Efficiency duration in seconds
         const insight: AIInsight = {...SPIKE, chip: {type: CONST.INSIGHTS.AI_INSIGHT.CHIP_TYPE.NEUTRAL, unit: CONST.INSIGHTS.AI_INSIGHT.CHIP_UNIT.DURATION, value: 216000}};

@@ -5,24 +5,24 @@
 import type {ConfirmationField} from '@components/MoneyRequestConfirmationList/getConfirmationFieldErrors';
 import type {SelectionListWithSectionsHandle} from '@components/SelectionList/SelectionListWithSections/types';
 
-import type {RefObject} from 'react';
+import type {ComponentRef, RefObject} from 'react';
 import type {View} from 'react-native';
 
 import {useEffect, useRef, useState} from 'react';
 
-type ConfirmationFieldViewRefs = Record<ConfirmationField, RefObject<View | null>>;
+type ConfirmationFieldViewRefs = Record<ConfirmationField, RefObject<ComponentRef<typeof View> | null>>;
 
 type ViewToReveal = {
-    viewRef: RefObject<View | null>;
+    viewRef: RefObject<ComponentRef<typeof View> | null>;
     transactionID: string | undefined;
 };
 
 function useScrollToFlaggedField(listRef: RefObject<SelectionListWithSectionsHandle | null>, transactionIDOnScreen: string | undefined) {
-    const amountViewRef = useRef<View>(null);
-    const merchantViewRef = useRef<View>(null);
-    const dateViewRef = useRef<View>(null);
-    const taxAmountViewRef = useRef<View>(null);
-    const attendeesViewRef = useRef<View>(null);
+    const amountViewRef = useRef<ComponentRef<typeof View>>(null);
+    const merchantViewRef = useRef<ComponentRef<typeof View>>(null);
+    const dateViewRef = useRef<ComponentRef<typeof View>>(null);
+    const taxAmountViewRef = useRef<ComponentRef<typeof View>>(null);
+    const attendeesViewRef = useRef<ComponentRef<typeof View>>(null);
     const fieldViewRefs: ConfirmationFieldViewRefs = {amount: amountViewRef, merchant: merchantViewRef, date: dateViewRef, taxAmount: taxAmountViewRef, attendees: attendeesViewRef};
 
     // A new object for every blocked confirm, so confirming again scrolls again even when the same field is flagged.

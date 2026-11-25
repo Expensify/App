@@ -46,6 +46,7 @@ import CONST from './CONST';
 import Expensify from './Expensify';
 import {CurrentReportIDContextProvider} from './hooks/useCurrentReportID';
 import useDefaultDragAndDrop from './hooks/useDefaultDragAndDrop';
+import useRescueStuckReportTextSelection from './hooks/useRescueStuckReportTextSelection';
 import HybridAppHandler from './HybridAppHandler';
 import OnyxUpdateManager from './libs/actions/OnyxUpdateManager';
 import './libs/HybridApp';
@@ -76,6 +77,7 @@ const StrictModeWrapper = CONFIG.USE_REACT_STRICT_MODE_IN_DEV ? React.StrictMode
 
 function App() {
     useDefaultDragAndDrop();
+    useRescueStuckReportTextSelection();
     OnyxUpdateManager();
 
     return (
