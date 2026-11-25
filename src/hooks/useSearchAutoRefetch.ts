@@ -149,9 +149,9 @@ function useSearchAutoRefetch({
                 if (hasCollectionData(previousTransactions, previousReportActions)) {
                     deferredRefetchBaselineRef.current = previous;
                 }
-            } else if (previousMemberCustomFields && Object.keys(previousMemberCustomFields).some((policyID) => !baseline.memberCustomFields?.[policyID])) {
-                // Policies that first show up in the results while inactive start their baseline here, so their later edits still refetch.
-                baseline.memberCustomFields = {...previousMemberCustomFields, ...baseline.memberCustomFields};
+            } else if (previousMemberCustomFields !== memberCustomFields) {
+                // Policies and members that first show up while inactive start their baseline here, so their later edits still refetch.
+                baseline.memberCustomFields = addMissingMembers(baseline.memberCustomFields, previousMemberCustomFields);
             }
             return;
         }
@@ -406,6 +406,15 @@ function hasAddedWorkflowReportAction(reportActions: OnyxCollection<ReportAction
     }
 
     return false;
+}
+
+/** Adds the policies and members the baseline doesn't have yet. Values already in the baseline win. */
+function addMissingMembers(baseline: MemberCustomFieldsByPolicyID | undefined, previous: MemberCustomFieldsByPolicyID | undefined): MemberCustomFieldsByPolicyID {
+    const merged = {...baseline};
+    for (const [policyID, membersByLogin] of Object.entries(previous ?? {})) {
+        merged[policyID] = {...membersByLogin, ...baseline?.[policyID]};
+    }
+    return merged;
 }
 
 function hasChangedMemberCustomField(memberCustomFields: MemberCustomFieldsByPolicyID | undefined, previousMemberCustomFields: MemberCustomFieldsByPolicyID | undefined): boolean {
