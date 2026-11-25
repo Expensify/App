@@ -15,6 +15,8 @@ any:
   - 'jest/**'
   - '**/__mocks__/**'
   - 'src/polyfills/**'
+  # Read through dotenv by __mocks__/react-native-config.ts
+  - '.env.example'
   - 'tests/perf-test/setupAfterEnv.ts'
   # CI itself
   - '.github/workflows/test.yml'
