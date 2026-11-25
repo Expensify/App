@@ -8,6 +8,8 @@ import ModalContext from '@components/Modal/ModalContext';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
+import type {ComponentRef} from 'react';
+
 import React from 'react';
 import {View} from 'react-native';
 import Onyx from 'react-native-onyx';
@@ -37,7 +39,7 @@ describe('FormDropdownField', () => {
     beforeEach(async () => {
         fullPageListProps = undefined;
         renderDropdown.mockClear();
-        jest.spyOn(View.prototype, 'measureInWindow').mockImplementation((callback) => callback(16, 100, 300, 60));
+        jest.spyOn<ComponentRef<typeof View>, 'measureInWindow'>(View.prototype, 'measureInWindow').mockImplementation((callback) => callback(16, 100, 300, 60));
         await Onyx.clear();
         await waitForBatchedUpdates();
     });

@@ -197,6 +197,7 @@ function runCrossReportMergeToSourceReportRequest(fixtures: CrossReportMergeToSo
     const {mergeTransactionID, mergeTransaction, targetTransaction, sourceTransaction, mockViolations, targetReport, sourceIOUAction, sourceExpenseReport, sourceChatReport} = fixtures;
 
     mergeTransactionRequest({
+        translate: TestHelper.translateLocal,
         isVendorMatchingBetaEnabled: false,
         isSourceActionIOUReportArchived: false,
         iouReportOwnerLogin: undefined,
@@ -325,6 +326,7 @@ describe('mergeTransactionRequest', () => {
         // When: The merge transaction request is initiated
         // This should immediately update the UI with optimistic values
         mergeTransactionRequest({
+            translate: TestHelper.translateLocal,
             isVendorMatchingBetaEnabled: false,
             isSourceActionIOUReportArchived: false,
             iouReportOwnerLogin: undefined,
@@ -454,6 +456,7 @@ describe('mergeTransactionRequest', () => {
 
         // When the merge fires
         mergeTransactionRequest({
+            translate: TestHelper.translateLocal,
             isVendorMatchingBetaEnabled: false,
             isSourceActionIOUReportArchived: false,
             iouReportOwnerLogin: undefined,
@@ -566,6 +569,7 @@ describe('mergeTransactionRequest', () => {
 
         // When: The Merge Expense flow is executed
         mergeTransactionRequest({
+            translate: TestHelper.translateLocal,
             isVendorMatchingBetaEnabled: false,
             isSourceActionIOUReportArchived: false,
             iouReportOwnerLogin: undefined,
@@ -732,6 +736,7 @@ describe('mergeTransactionRequest', () => {
         mockFetch?.fail?.();
 
         mergeTransactionRequest({
+            translate: TestHelper.translateLocal,
             isVendorMatchingBetaEnabled: false,
             isSourceActionIOUReportArchived: false,
             iouReportOwnerLogin: undefined,
@@ -855,6 +860,7 @@ describe('mergeTransactionRequest', () => {
         // - Optimistically remove DUPLICATED_TRANSACTION violations since transactions are being merged
         // - Keep other violations like MISSING_CATEGORY intact
         mergeTransactionRequest({
+            translate: TestHelper.translateLocal,
             isVendorMatchingBetaEnabled: false,
             isSourceActionIOUReportArchived: false,
             iouReportOwnerLogin: undefined,
@@ -1095,6 +1101,7 @@ describe('mergeTransactionRequest', () => {
 
             // When: The merge request is executed
             mergeTransactionRequest({
+                translate: TestHelper.translateLocal,
                 isVendorMatchingBetaEnabled: false,
                 isSourceActionIOUReportArchived: false,
                 iouReportOwnerLogin: undefined,
@@ -1308,6 +1315,7 @@ describe('mergeTransactionRequest', () => {
 
             // When: The merge request is executed
             mergeTransactionRequest({
+                translate: TestHelper.translateLocal,
                 isVendorMatchingBetaEnabled: false,
                 isSourceActionIOUReportArchived: false,
                 iouReportOwnerLogin: undefined,
@@ -1470,6 +1478,7 @@ describe('mergeTransactionRequest', () => {
 
             // When: The merge request is executed
             mergeTransactionRequest({
+                translate: TestHelper.translateLocal,
                 isVendorMatchingBetaEnabled: false,
                 isSourceActionIOUReportArchived: false,
                 iouReportOwnerLogin: undefined,
@@ -1609,6 +1618,7 @@ describe('mergeTransactionRequest', () => {
 
             // When: The merge request is executed for the unreported source transaction
             mergeTransactionRequest({
+                translate: TestHelper.translateLocal,
                 isVendorMatchingBetaEnabled: false,
                 isSourceActionIOUReportArchived: false,
                 iouReportOwnerLogin: undefined,
@@ -1758,6 +1768,7 @@ describe('mergeTransactionRequest', () => {
 
             // When: The merge request is executed
             mergeTransactionRequest({
+                translate: TestHelper.translateLocal,
                 isVendorMatchingBetaEnabled: false,
                 isSourceActionIOUReportArchived: false,
                 iouReportOwnerLogin: undefined,

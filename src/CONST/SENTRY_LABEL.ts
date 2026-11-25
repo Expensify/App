@@ -103,6 +103,7 @@ const SENTRY_LABEL = {
         TEST_CRASH: 'TestToolMenu-TestCrash',
         DEBUG_MODE_SWITCH: 'TestToolMenu-DebugModeSwitch',
         SHOW_BRANCH_NAME_SWITCH: 'TestToolMenu-ShowBranchNameSwitch',
+        HIDE_ENVIRONMENT_BADGE_SWITCH: 'TestToolMenu-HideEnvironmentBadgeSwitch',
         FORCE_OFFLINE_SWITCH: 'TestToolMenu-ForceOfflineSwitch',
         SIMULATE_POOR_CONNECTION_SWITCH: 'TestToolMenu-SimulatePoorConnectionSwitch',
         SIMULATE_FAILING_REQUESTS_SWITCH: 'TestToolMenu-SimulateFailingRequestsSwitch',
@@ -110,6 +111,8 @@ const SENTRY_LABEL = {
         SENTRY_DEBUG_SWITCH: 'TestToolMenu-SentryDebugSwitch',
         BIOMETRICS_TEST: 'TestToolMenu-BiometricsTest',
         BIOMETRICS_REVOKE: 'TestToolMenu-BiometricsRevoke',
+        ADD_TEST_BUSINESS_BANK_ACCOUNT: 'TestToolMenu-AddTestBusinessBankAccount',
+        ADD_TEST_PERSONAL_BANK_ACCOUNT: 'TestToolMenu-AddTestPersonalBankAccount',
     },
     BILLING_BANNER: {
         RIGHT_ICON: 'BillingBanner-RightIcon',
@@ -1748,6 +1751,7 @@ const SENTRY_LABEL = {
         SCAN: {
             MULTI_SCAN: 'Scan-MultiScan',
             FLASH: 'Scan-Flash',
+            RECEIPT_ENHANCEMENT: 'Scan-ReceiptEnhancement',
             CHOOSE_FILE: 'Scan-ChooseFile',
             CHOOSE_FILES: 'Scan-ChooseFiles',
             SHUTTER: 'Scan-Shutter',
@@ -2406,6 +2410,15 @@ const SENTRY_LABEL = {
                 EXPORT_DATE: 'WorkspaceAccountingDigits-ExportDate',
                 DEFAULT_COMPANY_CARD_VENDOR: 'WorkspaceAccountingDigits-DefaultCompanyCardVendor',
                 COMPANY_CARD_ACCOUNT: 'WorkspaceAccountingDigits-CompanyCardAccount',
+                AUTO_SYNC_SWITCH: 'WorkspaceAccountingDigits-AutoSyncSwitch',
+                ACCOUNTING_METHOD: 'WorkspaceAccountingDigits-AccountingMethod',
+                SYNC_REIMBURSED_REPORTS_SWITCH: 'WorkspaceAccountingDigits-SyncReimbursedReportsSwitch',
+                BILL_PAYMENT_ACCOUNT: 'WorkspaceAccountingDigits-BillPaymentAccount',
+                SYNC_EXPENSIFY_CARD_SETTLEMENTS_SWITCH: 'WorkspaceAccountingDigits-SyncExpensifyCardSettlementsSwitch',
+                SETTLEMENT_ACCOUNT: 'WorkspaceAccountingDigits-SettlementAccount',
+                SYNC_TRAVEL_BILLING_SETTLEMENTS_SWITCH: 'WorkspaceAccountingDigits-SyncTravelBillingSettlementsSwitch',
+                TRAVEL_BILLING_SETTLEMENT_ACCOUNT: 'WorkspaceAccountingDigits-TravelBillingSettlementAccount',
+                TRAVEL_BILLING_PAYABLE_ACCOUNT: 'WorkspaceAccountingDigits-TravelBillingPayableAccount',
             },
             CERTINIA: {
                 AUTO_SYNC_SWITCH: 'WorkspaceAccountingCertinia-AutoSyncSwitch',
@@ -3277,6 +3290,7 @@ const SENTRY_LABEL = {
         SEND: 'SignIn-Send',
         CONFIRM: 'SignIn-Confirm',
         RECOVERY_CODE_INPUT: 'SignIn-RecoveryCodeInput',
+        USERNAME_INPUT: 'SignIn-UsernameInput',
         FOOTER_LINK: {
             EXPENSE_MANAGEMENT: 'SignIn-FooterLink-ExpenseManagement',
             SPEND_MANAGEMENT: 'SignIn-FooterLink-SpendManagement',
