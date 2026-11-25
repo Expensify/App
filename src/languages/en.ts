@@ -8687,6 +8687,9 @@ const translations = {
             },
             changeOfficeLocation: 'Change office location',
             changeWorkArrangement: 'Change work arrangement',
+            editCategoryVisibility: 'Edit category visibility',
+            bulkCategoryVisibilitySaved: ({categoryCount, memberCount}: {categoryCount: string; memberCount: string}) =>
+                `Set ${categoryCount} for ${memberCount}. This replaces their current category visibility.`,
             removeWorkspaceMemberButtonTitle: 'Remove from workspace',
             removeGroupMemberButtonTitle: 'Remove from group',
             removeRoomMemberButtonTitle: 'Remove from chat',

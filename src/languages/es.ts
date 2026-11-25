@@ -8028,6 +8028,9 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
             categoryVisibilityRequiredModal: {title: 'Los miembros deben tener al menos una categoría', description: 'Selecciona al menos una categoría que esta persona pueda usar.'},
             changeOfficeLocation: 'Cambiar ubicación de la oficina',
             changeWorkArrangement: 'Cambiar modalidad de trabajo',
+            editCategoryVisibility: 'Editar visibilidad de categoría',
+            bulkCategoryVisibilitySaved: ({categoryCount, memberCount}: {categoryCount: string; memberCount: string}) =>
+                `Establece ${categoryCount} para ${memberCount}. Esto reemplaza su visibilidad de categorías actual.`,
             newRolesBanner: {
                 title: 'Nuevos roles disponibles',
                 subtitle: '<label-text>Da a los miembros solo el acceso que necesitan con los nuevos roles de <strong>Solo aprobación</strong> e <strong>Invitado</strong>.</label-text>',

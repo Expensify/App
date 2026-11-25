@@ -8027,6 +8027,9 @@ Het Control-abonnement begint bij $9 per actieve deelnemer per maand.`,
             categoryVisibilityRequiredModal: {title: 'Leden moeten ten minste één categorie hebben', description: 'Selecteer minstens één categorie die dit lid kan gebruiken.'},
             changeOfficeLocation: 'Locatie kantoor wijzigen',
             changeWorkArrangement: 'Werkregeling wijzigen',
+            editCategoryVisibility: 'Categoriezichtbaarheid bewerken',
+            bulkCategoryVisibilitySaved: ({categoryCount, memberCount}: {categoryCount: string; memberCount: string}) =>
+                `Stel ${categoryCount} in voor ${memberCount}. Dit vervangt hun huidige categorie‑zichtbaarheid.`,
             changeRole: 'Rol wijzigen',
             newRolesBanner: {
                 title: 'Nieuwe rollen beschikbaar',

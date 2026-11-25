@@ -7932,6 +7932,9 @@ Control プランは、アクティブメンバー1人あたり月額 $9 から�
             categoryVisibilityRequiredModal: {title: 'メンバーには少なくとも 1 つのカテゴリーが必要です', description: 'このメンバーが使用できるカテゴリを少なくとも 1 つ選択してください。'},
             changeOfficeLocation: 'オフィスの所在地を変更',
             changeWorkArrangement: '勤務形態を変更',
+            editCategoryVisibility: 'カテゴリの表示を編集',
+            bulkCategoryVisibilitySaved: ({categoryCount, memberCount}: {categoryCount: string; memberCount: string}) =>
+                `${memberCount} に ${categoryCount} を設定します。現在のカテゴリの表示設定が置き換えられます。`,
             changeRole: 'ロールを変更',
             newRolesBanner: {
                 title: '新しいロールが利用可能です',

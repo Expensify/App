@@ -5522,6 +5522,7 @@ const CONST = {
             CHANGE_ROLE: 'changeRole',
             CHANGE_OFFICE_LOCATION: 'changeOfficeLocation',
             CHANGE_WORK_ARRANGEMENT: 'changeWorkArrangement',
+            EDIT_CATEGORY_VISIBILITY: 'editCategoryVisibility',
         },
         BULK_ACTION_TYPES: {
             DELETE: 'delete',
