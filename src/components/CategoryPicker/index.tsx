@@ -18,7 +18,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import canFocusInputOnScreenFocus from '@libs/canFocusInputOnScreenFocus';
 import {getCategoryListSections} from '@libs/CategoryOptionListUtils';
 import type {Category, CategoryTreeSection} from '@libs/CategoryOptionListUtils';
-import {canCreateCategoryFromSearch, getEnabledCategoriesCount, getUnavailableCategories, getVisibleCategories, isCategoryVisibleToMember} from '@libs/CategoryUtils';
+import {canCreateCategoryFromSearch, getEnabledCategoriesCount, getUnavailableCategories, getVisibleCategories} from '@libs/CategoryUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getHeaderMessageForNonUserList, getNoneOption} from '@libs/OptionsListUtils';
 import type {OptionTree} from '@libs/OptionsListUtils/types';
@@ -30,6 +30,7 @@ import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {PolicyCategories} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import getEmptyArray from '@src/types/utils/getEmptyArray';
 
@@ -94,6 +95,9 @@ type CategoryPickerProps = {
  * Titles a group of sections built by getCategoryListSections: the first section with rows gets the group's title,
  * since a section's title only shows when it has rows. Offsetting the indexes keeps the header keys unique across groups.
  */
+/** Larger than any sectionIndex getCategoryListSections returns, so offset groups never share a header key */
+const SECTION_INDEX_OFFSET = 10;
+
 const titleSectionGroup = (sections: CategoryTreeSection[], title: string, sectionIndexOffset: number): CategoryTreeSection[] => {
     const titledSectionIndex = sections.findIndex((section) => section.data.length > 0);
     return sections.map((section, index) => ({...section, title: index === titledSectionIndex ? title : '', sectionIndex: (section.sectionIndex ?? 0) + sectionIndexOffset}));
@@ -163,33 +167,30 @@ function CategoryPicker({
             formatPhoneNumber,
             hiddenTranslation: translate('common.hidden'),
         });
-        // The current category goes in the group it belongs to, so a category the member can't use isn't shown as
-        // available. It's read from every category, since a disabled one isn't among the unavailable ones but still shows
+        // As in the regular list, the current category comes first with no heading, so both groups leave it out
         const selectedPolicyCategory = selectedCategory ? allCategories[selectedCategory] : undefined;
-        const isSelectedCategoryUnavailable = !!selectedPolicyCategory && !isCategoryVisibleToMember(selectedPolicyCategory, submitterAccountID);
-        // Each group is one list under its title. Without the threshold, a long list would add its own "Recent" and
-        // "All" headings, which read as groups of their own and repeat recent categories inside the available group.
-        const availableSections = getCategoryListSections({
-            searchValue: debouncedSearchValue,
-            selectedOptions: isSelectedCategoryUnavailable ? [] : selectedOptions,
-            categories: getVisibleCategories(allCategories, submitterAccountID),
-            localeCompare,
-            translate,
-            shouldShowGLCode,
-            searchInputThreshold: Number.POSITIVE_INFINITY,
-        });
-        const unavailableSections = getCategoryListSections({
-            searchValue: debouncedSearchValue,
-            selectedOptions: isSelectedCategoryUnavailable ? selectedOptions : [],
-            categories: unavailableCategories,
-            localeCompare,
-            translate,
-            shouldShowGLCode,
-            searchInputThreshold: Number.POSITIVE_INFINITY,
-        });
+        const withoutSelectedCategory = (groupCategories: PolicyCategories): PolicyCategories =>
+            Object.fromEntries(Object.entries(groupCategories).filter(([categoryName]) => categoryName !== selectedCategory));
+        // Each list is built on its own. Without the threshold, a long list would add its own "Recent" and "All"
+        // headings, which read as groups of their own and repeat recent categories inside the available group.
+        const buildSections = (groupCategories: PolicyCategories, groupSelectedOptions: Category[]) =>
+            getCategoryListSections({
+                searchValue: debouncedSearchValue,
+                selectedOptions: groupSelectedOptions,
+                categories: groupCategories,
+                localeCompare,
+                translate,
+                shouldShowGLCode,
+                searchInputThreshold: Number.POSITIVE_INFINITY,
+            });
+        const selectedSections = buildSections(selectedCategory && selectedPolicyCategory ? {[selectedCategory]: selectedPolicyCategory} : {}, selectedOptions);
+        const availableSections = buildSections(withoutSelectedCategory(getVisibleCategories(allCategories, submitterAccountID)), []);
+        const unavailableSections = buildSections(withoutSelectedCategory(unavailableCategories), []);
+        // The offsets keep each section's header key unique across the three lists
         sections = [
-            ...titleSectionGroup(availableSections, translate('workspace.categories.availableToMember', submitterName), 0),
-            ...titleSectionGroup(unavailableSections, translate('workspace.categories.notAvailableToMember', submitterName), availableSections.length + 1),
+            ...selectedSections.map((section) => ({...section, title: ''})),
+            ...titleSectionGroup(availableSections, translate('workspace.categories.availableToMember', submitterName), SECTION_INDEX_OFFSET),
+            ...titleSectionGroup(unavailableSections, translate('workspace.categories.notAvailableToMember', submitterName), SECTION_INDEX_OFFSET * 2),
         ];
     } else {
         sections = getCategoryListSections({

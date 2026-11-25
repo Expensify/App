@@ -458,20 +458,34 @@ describe('CategoryPicker', () => {
             ]);
         });
 
-        it('lists the current category in the group it belongs to', () => {
+        it('lists the current category first, without a heading, as in the regular list', () => {
+            // Given an expense already coded to Meals, which the member can use
+            // When the admin opens the picker
+            renderForSubmitter('Meals');
+
+            // Then Meals is selected at the top, and the groups list the other categories
+            expect(getGroups()).toEqual([
+                {title: '', rows: ['Meals']},
+                {title: 'workspace.categories.availableToMember', rows: ['Travel']},
+                {title: 'workspace.categories.notAvailableToMember', rows: ['Fuel']},
+            ]);
+            expect(findRow('Meals')?.isSelected).toBe(true);
+        });
+
+        it('lists a current category the member can’t use first too', () => {
             // Given an expense already coded to Fuel, which the member can't use
             // When the admin opens the picker
             renderForSubmitter('Fuel');
 
-            // Then Fuel shows under "Not available", selected, so it isn't presented as one the member can use
+            // Then Fuel is selected at the top rather than under a group, and isn't repeated in "Not available"
             expect(getGroups()).toEqual([
+                {title: '', rows: ['Fuel']},
                 {title: 'workspace.categories.availableToMember', rows: ['Meals', 'Travel']},
-                {title: 'workspace.categories.notAvailableToMember', rows: ['Fuel']},
             ]);
             expect(findRow('Fuel')?.isSelected).toBe(true);
         });
 
-        it('lists a disabled current category the member can’t use under "Not available"', () => {
+        it('lists a disabled current category first', () => {
             // Given an expense coded to Lodging, which is disabled and limited to another member
             mockedUseOnyx.mockImplementation((key) => {
                 if (key === `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${POLICY_ID}`) {
@@ -483,10 +497,11 @@ describe('CategoryPicker', () => {
             // When the admin opens the picker
             renderForSubmitter('Lodging');
 
-            // Then Lodging shows with the categories the member can't use, even though disabled ones aren't otherwise listed
+            // Then Lodging is at the top, as the regular list shows a disabled current category, and the groups are unchanged
             expect(getGroups()).toEqual([
+                {title: '', rows: ['Lodging']},
                 {title: 'workspace.categories.availableToMember', rows: ['Meals', 'Travel']},
-                {title: 'workspace.categories.notAvailableToMember', rows: ['Lodging', 'Fuel']},
+                {title: 'workspace.categories.notAvailableToMember', rows: ['Fuel']},
             ]);
         });
 
