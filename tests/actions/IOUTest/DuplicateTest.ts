@@ -2954,8 +2954,8 @@ describe('actions/Duplicate', () => {
             expect(Navigation.dismissModal).not.toHaveBeenCalled();
         });
 
-        it('per diem expense created in Expensify Classic', async () => {
-            // Given a workspace whose per diem rate prices its sub-rate at 50.00
+        it('per diem expense created in Expensify Classic before its workspace price and currency changed', async () => {
+            // Given a workspace whose per diem sub-rate now costs 60.00 EUR
             const targetPolicy: Policy = {
                 ...mockPolicy,
                 customUnits: {
@@ -2966,20 +2966,21 @@ describe('actions/Duplicate', () => {
                             polandRate: {
                                 customUnitRateID: 'polandRate',
                                 name: 'Poland',
-                                currency: 'PLN',
-                                subRates: [{id: 'subrate-1', name: 'Full Day', rate: 5000}],
+                                currency: 'EUR',
+                                subRates: [{id: 'subrate-1', name: 'Full Day', rate: 6000}],
                             },
                         },
                     },
                 },
             };
 
-            // And a per diem expense saved by Expensify Classic, which stores dates with a time zone offset, and sub-rates without a price and with the quantity as a string
+            // And a 12 x 50.00 PLN per diem expense saved by Expensify Classic, which stores dates with a time zone offset, and sub-rates without a price and with the quantity as a string
             // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- The sub-rate type requires a numeric quantity and a price, but Expensify Classic data has neither
             const classicSubRates = [{key: '0', id: 'subrate-1', name: 'Full Day', quantity: '12'}] as unknown as TransactionCustomUnit['subRates'];
             const classicPerDiemTransaction = {
                 ...mockTransaction,
-                amount: -5000,
+                amount: -60000,
+                currency: 'PLN',
                 iouRequestType: CONST.IOU.REQUEST_TYPE.PER_DIEM,
                 comment: {
                     type: 'customUnit' as const,
@@ -3035,95 +3036,14 @@ describe('actions/Duplicate', () => {
             const writeCall = writeSpy.mock.calls.find(isWriteMockCallForCommand(WRITE_COMMANDS.CREATE_PER_DIEM_REQUEST));
             expect(writeCall?.[1]).toEqual(expect.objectContaining({startDateTime: '2026-07-31 05:30:00', endDateTime: '2026-07-31 20:00:00'}));
 
-            // And the sub-rate carries the workspace's price, which Expensify Classic didn't save, and a numeric quantity, because the server rejects a string
-            expect(JSON.parse(String(writeCall?.[1]?.subRates))).toEqual([expect.objectContaining({id: 'subrate-1', quantity: 12, rate: 5000})]);
-        });
-
-        it('per diem expense whose workspace price and currency changed since it was created', async () => {
-            // Given a workspace whose per diem sub-rate now costs 60.00 EUR
-            const targetPolicy: Policy = {
-                ...mockPolicy,
-                customUnits: {
-                    perDiemUnit: {
-                        customUnitID: 'perDiemUnit',
-                        name: CONST.CUSTOM_UNITS.NAME_PER_DIEM_INTERNATIONAL,
-                        rates: {
-                            polandRate: {
-                                customUnitRateID: 'polandRate',
-                                name: 'Poland',
-                                currency: 'EUR',
-                                subRates: [{id: 'subrate-1', name: 'Full Day', rate: 6000}],
-                            },
-                        },
-                    },
-                },
-            };
-
-            // And a per diem expense created in New Expensify when the sub-rate cost 50.00 PLN
-            const perDiemTransaction = {
-                ...mockTransaction,
-                amount: -5000,
-                currency: 'PLN',
-                iouRequestType: CONST.IOU.REQUEST_TYPE.PER_DIEM,
-                comment: {
-                    type: 'customUnit' as const,
-                    customUnit: {
-                        name: CONST.CUSTOM_UNITS.NAME_PER_DIEM_INTERNATIONAL,
-                        customUnitID: 'perDiemUnit',
-                        customUnitRateID: 'polandRate',
-                        subRates: [{id: 'subrate-1', name: 'Full Day', quantity: 1, rate: 5000}],
-                        attributes: {
-                            dates: {
-                                start: '2026-07-31 05:30:00',
-                                end: '2026-07-31 20:00:00',
-                            },
-                        },
-                    },
-                },
-            };
-
-            // When the expense is duplicated
-            duplicateExpenseTransaction({
-                isVendorMatchingBetaEnabled: false,
-                personalDetailsByLogins: RORY_PERSONAL_DETAILS_BY_LOGINS,
-                conciergeChat: undefined,
-                transaction: perDiemTransaction,
-                optimisticChatReportID: mockOptimisticChatReportID,
-                optimisticIOUReportID: mockOptimisticIOUReportID,
-                isASAPSubmitBetaEnabled: mockIsASAPSubmitBetaEnabled,
-                introSelected: undefined,
-                quickAction: undefined,
-                policyRecentlyUsedCurrencies: [],
-                isSelfTourViewed: false,
-                customUnitPolicyID: '',
-                targetPolicy,
-                targetPolicyCategories: fakePolicyCategories,
-                targetReport: policyExpenseChat,
-                existingTransactionDraft: undefined,
-                personalDetails: {},
-                recentWaypoints: [],
-                targetPolicyTags,
-                policyTagList: targetPolicyTags ?? {},
-                currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
-                currentUserLocalCurrency: undefined,
-                delegateAccountID: undefined,
-                isTrackIntentUser: false,
-                formatPhoneNumber,
-                getCurrencyDecimals: getCurrencyDecimalsLocal,
-                participantsPolicyTags: {},
-                rules: undefined,
-            });
-            await waitForBatchedUpdates();
-
-            // Then the server gets the workspace's current price and currency, which it prices the copy with, so the receipt
-            // it draws from the request shows the same price and currency as the copy
-            const writeCall = writeSpy.mock.calls.find(isWriteMockCallForCommand(WRITE_COMMANDS.CREATE_PER_DIEM_REQUEST));
+            // And the sub-rate carries a numeric quantity, because the server rejects a string, and the workspace's current price and
+            // currency, which the server prices the copy with, so the receipt it draws from the request matches the copy
+            expect(JSON.parse(String(writeCall?.[1]?.subRates))).toEqual([expect.objectContaining({id: 'subrate-1', quantity: 12, rate: 6000})]);
             expect(writeCall?.[1]).toEqual(expect.objectContaining({currency: 'EUR'}));
-            expect(JSON.parse(String(writeCall?.[1]?.subRates))).toEqual([expect.objectContaining({id: 'subrate-1', rate: 6000})]);
 
             // And the copy shows that price and currency while it's being created, so it doesn't change when the server responds
             const copiedPerDiem = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${String(writeCall?.[1]?.transactionID)}`);
-            expect(copiedPerDiem?.amount).toBe(-6000);
+            expect(copiedPerDiem?.amount).toBe(-72000);
             expect(copiedPerDiem?.currency).toBe('EUR');
         });
 
