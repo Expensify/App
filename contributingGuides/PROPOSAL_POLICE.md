@@ -1,12 +1,22 @@
 # ProposalPolice™
 
-ProposalPolice™ is a GitHub Action that watches comments on `Help Wanted` issues. It keeps proposal threads readable by reminding people to use the proposal template, collapsing comments that ask for a job without proposing anything, and withdrawing proposals that duplicate an existing one.
+ProposalPolice™ is a GitHub Action that watches comments on App issues. It hides comments from new contributors before `Help Wanted` is added, and on `Help Wanted` issues it keeps proposal threads readable by reminding people to use the proposal template, collapsing comments that ask for a job without proposing anything, and withdrawing proposals that duplicate an existing one.
 
 It only ever comments, collapses, or edits comments. It never assigns a job, and it never decides whether a proposal is any good — that is still the C+ and internal engineer's call. See [CONTRIBUTING.md](./CONTRIBUTING.md#propose-a-solution-for-the-job) for the proposal process itself.
 
+## Before `Help Wanted`
+
+Only MelvinBot and people we already know should comment on an issue before `Help Wanted` is added. When a new comment is posted on an open issue without `Help Wanted`, ProposalPolice hides it unless the author:
+
+- Has at least one merged PR in Expensify/App.
+- Is a member of `expensify-expensify`, `contributor-plus`, `backend-contributors`, `external-expert-contributors`, or `applause`.
+- Opened the issue or is assigned to it.
+
+Hidden comments are collapsed, not deleted. To let someone in, an employee shows their hidden comment again and assigns them to the issue. If GitHub can't confirm who the author is, the comment is left visible. Edited comments and comments on pull requests are not checked.
+
 ## When it runs
 
-It runs when a comment is created or edited, and does nothing unless all of these are true:
+On `Help Wanted` issues, it runs when a comment is created or edited, and does nothing unless all of these are true:
 
 - The issue is open and has the `Help Wanted` label.
 - The comment is not from an internal bot.
@@ -24,7 +34,7 @@ A comment counts as a proposal when it contains the word "Proposal" plus both ma
 | **Asks for the job with no technical content** — "assign me", "I applied on Upwork" | The comment is collapsed as spam and you get a reply asking for a proposal. |
 | **Anything else** — questions, retest results, feedback on someone else's proposal, takeover coordination | Nothing. Ordinary discussion is not touched. |
 
-Members of `expensify-expensify`, `contributor-plus`, or `contributor-plus-backend`, and anyone who says they are from agencies Expensify works with, can offer their services on a job without posting a proposal and won't be flagged as spam.
+Members of `expensify-expensify`, `contributor-plus`, `backend-contributors`, `external-expert-contributors`, or `applause`, and anyone who says they are from agencies Expensify works with, can offer their services on a job without posting a proposal and won't be flagged as spam.
 
 ## Duplicate proposals
 
