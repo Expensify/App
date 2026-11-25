@@ -10,7 +10,7 @@ import type {Policy, PolicyCategory, Rule} from '@src/types/onyx';
 import type {OnyxCollection} from 'react-native-onyx';
 
 import createRandomPolicy from '../utils/collections/policies';
-import {convertToDisplayString, translateLocal} from '../utils/TestHelper';
+import {convertToDisplayString, convertToDisplayStringWithoutCurrency, translateLocal} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 const policy = {
@@ -35,6 +35,7 @@ describe('getCategoryContextualRules', () => {
                 categoryName: 'Travel',
                 translate: translateLocal,
                 convertToDisplayString,
+                convertToDisplayStringWithoutCurrency,
                 isOffline: false,
             }),
         ).toEqual([]);
@@ -55,6 +56,7 @@ describe('getCategoryContextualRules', () => {
             categoryName: 'Travel',
             translate: translateLocal,
             convertToDisplayString,
+            convertToDisplayStringWithoutCurrency,
             isOffline: false,
         });
 
@@ -85,6 +87,7 @@ describe('getCategoryContextualRules', () => {
             categoryName: 'Travel',
             translate: translateLocal,
             convertToDisplayString,
+            convertToDisplayStringWithoutCurrency,
             isOffline: true,
         });
 
@@ -117,6 +120,7 @@ describe('getCategoryContextualRules', () => {
                 categoryName: 'Travel',
                 translate: translateLocal,
                 convertToDisplayString,
+                convertToDisplayStringWithoutCurrency,
                 isOffline: false,
             }),
         ).toEqual([]);
@@ -159,6 +163,7 @@ describe('getCategoryContextualRules', () => {
                 categoryName: 'Travel',
                 translate: translateLocal,
                 convertToDisplayString,
+                convertToDisplayStringWithoutCurrency,
                 isOffline: false,
             });
 
@@ -178,6 +183,7 @@ describe('getCategoryContextualRules', () => {
                 categoryName: 'Meals',
                 translate: translateLocal,
                 convertToDisplayString,
+                convertToDisplayStringWithoutCurrency,
                 isOffline: false,
             });
 
@@ -194,6 +200,7 @@ describe('getCategoryContextualRules', () => {
                 categoryName: 'Travel',
                 translate: translateLocal,
                 convertToDisplayString,
+                convertToDisplayStringWithoutCurrency,
                 isOffline: true,
             });
 
@@ -226,6 +233,7 @@ describe('getCategoryContextualRules', () => {
                 categoryName: 'Travel',
                 translate: translateLocal,
                 convertToDisplayString,
+                convertToDisplayStringWithoutCurrency,
             };
 
             // When the rules are built offline and online
@@ -258,6 +266,7 @@ describe('getCategoryContextualRules', () => {
                 categoryName: 'Travel',
                 translate: translateLocal,
                 convertToDisplayString,
+                convertToDisplayStringWithoutCurrency,
                 isOffline: false,
             });
 
@@ -290,6 +299,7 @@ describe('getCategoryContextualRules', () => {
                 categoryName: 'Travel',
                 translate: translateLocal,
                 convertToDisplayString,
+                convertToDisplayStringWithoutCurrency,
                 isOffline: false,
             });
 
@@ -328,6 +338,7 @@ describe('getCategoryContextualRules', () => {
                 categoryName: 'Travel',
                 translate: translateLocal,
                 convertToDisplayString,
+                convertToDisplayStringWithoutCurrency,
                 isOffline: false,
             });
 
@@ -362,6 +373,7 @@ describe('getCategoryContextualRules', () => {
                 categoryName: 'Travel',
                 translate: translateLocal,
                 convertToDisplayString,
+                convertToDisplayStringWithoutCurrency,
                 isOffline: false,
             });
 
@@ -394,6 +406,7 @@ describe('getCategoryContextualRules', () => {
                 categoryName: 'Travel',
                 translate: translateLocal,
                 convertToDisplayString,
+                convertToDisplayStringWithoutCurrency,
                 isOffline: false,
             });
 
@@ -421,6 +434,7 @@ describe('getCategoryContextualRules', () => {
                 categoryName: 'Travel',
                 translate: translateLocal,
                 convertToDisplayString,
+                convertToDisplayStringWithoutCurrency,
             };
 
             // When the rules are built offline and online
@@ -455,6 +469,7 @@ describe('getCategoryContextualRules', () => {
                 categoryName: 'Travel',
                 translate: translateLocal,
                 convertToDisplayString,
+                convertToDisplayStringWithoutCurrency,
                 isOffline: false,
             });
 

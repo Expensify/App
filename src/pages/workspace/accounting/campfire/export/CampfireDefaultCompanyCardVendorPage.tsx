@@ -70,7 +70,7 @@ function CampfireDefaultCompanyCardVendorPage({policy}: WithPolicyConnectionsPro
             icon={illustrations.Telescope}
             iconWidth={variables.emptyListIconWidth}
             iconHeight={variables.emptyListIconHeight}
-            title={translate('workspace.campfire.noVendorsFound')}
+            title={translate('workspace.common.noVendorsFound')}
             subtitle={translate('workspace.campfire.noVendorsFoundDescription')}
             containerStyle={styles.pb10}
         />

@@ -70,6 +70,7 @@ function useFlatNavSavedSearchItems(enabled = true): FlatNavSavedSearchItem[] {
                 title: item.name === item.query ? (savedSearchTitles.get(item.query) ?? item.name) : item.name,
                 query: item.query,
                 iconName: savedSearchIconNames.get(item.query) ?? SAVED_SEARCH_FALLBACK_ICON_NAME,
+                pendingAction: item.pendingAction,
                 isDisabled: item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
             };
         })

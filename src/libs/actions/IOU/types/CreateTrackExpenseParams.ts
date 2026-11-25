@@ -46,7 +46,7 @@ type CreateTrackExpenseParams = {
     existingActionableWhisperReportActionID?: string;
     isASAPSubmitBetaEnabled: boolean;
     currentUser: CurrentUser;
-    currentUserPersonalDetails?: CurrentUserPersonalDetails;
+    currentUserPersonalDetails: CurrentUserPersonalDetails;
     introSelected: OnyxEntry<OnyxTypes.IntroSelected>;
     activePolicy?: OnyxEntry<OnyxTypes.Policy>;
     conciergeChat: OnyxEntry<OnyxTypes.Report>;

@@ -72,7 +72,10 @@ function PopoverWithMeasuredContentBase({
     const hasStaticDimensions = popoverDimensions.width > 0 && popoverDimensions.height > 0;
     const modalId = ComposerFocusManager.getId();
 
-    // Static dimensions skip `onLayout`, so sync height changes from the prop.
+    // Static dimensions skip `onLayout`, so sync size changes from the prop.
+    if (hasStaticDimensions && popoverWidth !== popoverDimensions.width) {
+        setPopoverWidth(popoverDimensions.width);
+    }
     if (hasStaticDimensions && popoverHeight !== popoverDimensions.height) {
         setPopoverHeight(popoverDimensions.height);
     }

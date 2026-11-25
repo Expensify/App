@@ -1,6 +1,6 @@
 import {act, renderHook} from '@testing-library/react-native';
 
-import PersonalDetailsByLoginProvider from '@components/PersonalDetailsByLoginProvider';
+import PersonalDetailsByLoginProvider, {buildPersonalDetailsByLogin} from '@components/PersonalDetailsByLoginProvider';
 
 import usePersonalDetailByLogin, {usePersonalDetailsByLogins} from '@hooks/usePersonalDetailByLogin';
 
@@ -305,5 +305,69 @@ describe('usePersonalDetailsByLogins', () => {
         await waitForBatchedUpdates();
 
         expect(result.current).toBe(2);
+    });
+});
+
+describe('buildPersonalDetailsByLogin', () => {
+    it('skips personal details without a login', () => {
+        // Given a personal details list with an entry that has no login, next to one that does
+        const personalDetailsList: PersonalDetailsList = {
+            [ALICE.accountID]: ALICE,
+            [NO_LOGIN.accountID]: NO_LOGIN,
+        };
+
+        // When the list is keyed by login
+        const personalDetailsByLogin = buildPersonalDetailsByLogin(personalDetailsList);
+
+        // Then only the entry with a login is kept, because there is no login to key the other one by
+        expect(personalDetailsByLogin).toEqual({[ALICE.login]: ALICE});
+    });
+
+    it('replaces a closed account with a real account that has the same login', () => {
+        // Given a closed account and a real account that share a login, with the closed one read first
+        const closedAccount: PersonalDetails = {accountID: 10, login: ALICE.login, isClosed: true};
+        const realAccount: PersonalDetails = {accountID: 11, login: ALICE.login};
+        const personalDetailsList: PersonalDetailsList = {
+            [closedAccount.accountID]: closedAccount,
+            [realAccount.accountID]: realAccount,
+        };
+
+        // When the list is keyed by login
+        const personalDetailsByLogin = buildPersonalDetailsByLogin(personalDetailsList);
+
+        // Then the login points to the real account, because a closed account is never the one a login lookup should find
+        expect(personalDetailsByLogin[ALICE.login]).toBe(realAccount);
+    });
+
+    it('replaces an optimistic account with a real account that has the same login', () => {
+        // Given an optimistic account and a real account that share a login, with the optimistic one read first
+        const optimisticAccount: PersonalDetails = {accountID: 10, login: ALICE.login, isOptimisticPersonalDetail: true};
+        const realAccount: PersonalDetails = {accountID: 11, login: ALICE.login};
+        const personalDetailsList: PersonalDetailsList = {
+            [optimisticAccount.accountID]: optimisticAccount,
+            [realAccount.accountID]: realAccount,
+        };
+
+        // When the list is keyed by login
+        const personalDetailsByLogin = buildPersonalDetailsByLogin(personalDetailsList);
+
+        // Then the login points to the real account, because the optimistic one is only a placeholder until the server responds
+        expect(personalDetailsByLogin[ALICE.login]).toBe(realAccount);
+    });
+
+    it('keeps the first real account when two real accounts have the same login', () => {
+        // Given two real accounts that share a login
+        const firstAccount: PersonalDetails = {accountID: 10, login: ALICE.login};
+        const secondAccount: PersonalDetails = {accountID: 11, login: ALICE.login};
+        const personalDetailsList: PersonalDetailsList = {
+            [firstAccount.accountID]: firstAccount,
+            [secondAccount.accountID]: secondAccount,
+        };
+
+        // When the list is keyed by login
+        const personalDetailsByLogin = buildPersonalDetailsByLogin(personalDetailsList);
+
+        // Then the login points to the first account, because a later real account never replaces a real one
+        expect(personalDetailsByLogin[ALICE.login]).toBe(firstAccount);
     });
 });
