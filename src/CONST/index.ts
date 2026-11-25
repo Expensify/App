@@ -133,7 +133,6 @@ type UnofferedOnboardingAccountingConnection =
     // Covered by the Microsoft Dynamics option, and still behind the BUSINESS_CENTRAL beta.
     | typeof CONST.POLICY.CONNECTIONS.NAME.BUSINESS_CENTRAL
     | typeof CONST.POLICY.CONNECTIONS.NAME.ZOHO_BOOKS
-    // Still behind the DIGITS beta.
     | typeof CONST.POLICY.CONNECTIONS.NAME.DIGITS;
 
 type UnhandledAccountingConnection = Exclude<TupleToUnion<typeof CONST.POLICY.CONNECTIONS.ACCOUNTING_CONNECTION_NAMES>, OnboardingAccountingOption | UnofferedOnboardingAccountingConnection>;
@@ -1608,7 +1607,6 @@ const CONST = {
         VENDOR_MATCHING: 'vendorMatching',
         INDIRECT_TAG_UPLOADS: 'indirectTagUploads',
         BUSINESS_CENTRAL: 'businessCentral',
-        DIGITS: 'digits',
         EXACT_ONLINE: 'exactOnline2026',
         ODOO: 'odoo2026',
         SAGE_ACCOUNTING: 'sageAccounting',
