@@ -434,9 +434,17 @@ function SearchSelectionFooter({searchResults, style}: SearchSelectionFooterProp
     // The shared groups' union is asked for in the currency the footer shows, so one request answers both the default and a picked currency.
     const sharedGroupCurrency = hasCustomFooterCurrency ? selectedCurrency : effectiveDefaultCurrency;
     const {total: sharedGroupTotal, isLoading: isSharedGroupTotalLoading} = useSharedGroupSelectionTotal(sharedGroupSelection, sharedGroupCurrency, currentSearchKey);
+    // The union comes in the picked currency, so the loose rows added to it have to be converted too. Until they are, the
+    // selection is summed below like any other, which keeps every figure in one currency.
+    const areLooseEntriesInSharedGroupCurrency =
+        !hasCustomFooterCurrency ||
+        (!!selectedCurrency &&
+            !!sharedGroupSelection?.looseEntries.every(
+                (transaction) => !!transaction.transaction?.transactionID && isTransactionFresh(transaction.transaction.transactionID, selectedCurrency),
+            ));
     // Offline, or once the request has failed, no union figure is coming, so the groups are summed here instead. That can
     // count a shared expense once per group, but it beats a blank footer, and the union replaces it once answered.
-    const shouldUseSharedGroupTotal = !!sharedGroupTotal || isSharedGroupTotalLoading;
+    const shouldUseSharedGroupTotal = (!!sharedGroupTotal || isSharedGroupTotalLoading) && areLooseEntriesInSharedGroupCurrency;
 
     // The whole-search grand total is fresh only while its stamped source still equals the live snapshot total.
     const isSearchTotalFresh = !!selectedCurrencyConvertedTotal && !!selectedCurrency && conversionSources?.searchTotals?.[currentSearchHash]?.[selectedCurrency] === metadataTotal;

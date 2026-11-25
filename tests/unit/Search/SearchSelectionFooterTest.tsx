@@ -9,7 +9,7 @@ import {buildSearchQueryJSON, isSearchQuerySavable} from '@libs/SearchQueryUtils
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {SearchResults} from '@src/types/onyx';
+import type {SearchResults, Transaction} from '@src/types/onyx';
 
 import Onyx from 'react-native-onyx';
 
@@ -462,7 +462,11 @@ describe('SearchSelectionFooter', () => {
 
         /** The union request the footer sent, which the server answers under that query's own hash. */
         function getUnionRequest() {
-            const request = jest.mocked(getFooterConvertedAmounts).mock.calls.at(-1)?.at(0);
+            // A footer in another currency also converts the groups and rows one by one, so the union is the request for a search total
+            const request = jest
+                .mocked(getFooterConvertedAmounts)
+                .mock.calls.map(([params]) => params)
+                .findLast((params) => !!params.sources?.searchTotals);
             if (!request) {
                 throw new Error('Expected the footer to ask for the union of the selected groups');
             }
@@ -573,6 +577,41 @@ describe('SearchSelectionFooter', () => {
             expect(getFooterConvertedAmounts).not.toHaveBeenCalled();
             expect(mockCapturedFooterProps.current).toEqual(expect.objectContaining({count: 1, isTotalLoading: false}));
             expect(mockCapturedFooterProps.current?.total).toBeDefined();
+        });
+
+        it('adds an expense checked on its own to a converted union only once that expense is converted too', async () => {
+            // Given both groups checked in a footer showing EUR, next to an expense of another group checked on its own
+            setSearchQuery(`type:expense group-by:${CONST.SEARCH.GROUP_BY.VIOLATION} footerCurrency:${CONST.CURRENCY.EUR}`);
+            mockSelectedTransactions.current = {
+                [missingCategoryKey]: buildSelectedTransaction(CONST.CURRENCY.USD),
+                [receiptRequiredKey]: buildSelectedTransaction(CONST.CURRENCY.USD),
+                transaction3: {
+                    ...buildSelectedTransaction(CONST.CURRENCY.USD),
+                    groupKey: `${CONST.SEARCH.GROUP_PREFIX}${CONST.VIOLATIONS.OVER_LIMIT}`,
+                    transaction: createMock<Transaction>({transactionID: 'transaction3'}),
+                },
+            };
+            const {rerender} = render(<SearchSelectionFooter searchResults={buildSearchResults(CONST.CURRENCY.USD, 3, 500)} />);
+            await waitForBatchedUpdates();
+            await answerUnionRequest(1, 300);
+
+            // When the device goes offline before the expense's own conversion arrives
+            mockIsOffline.current = true;
+            rerender(<SearchSelectionFooter searchResults={buildSearchResults(CONST.CURRENCY.USD, 3, 500)} />);
+            await waitForBatchedUpdates();
+
+            // Then the footer stays on the default currency rather than adding a USD amount to a EUR union
+            expect(mockCapturedFooterProps.current?.currency).toBe(CONST.CURRENCY.USD);
+
+            // When the expense's conversion is cached
+            await Onyx.merge(ONYXKEYS.SEARCH_FOOTER_CONVERSION, {
+                transactions: {transaction3: {[CONST.CURRENCY.EUR]: -200}},
+                sources: {transactions: {transaction3: {[CONST.CURRENCY.EUR]: -100}}},
+            });
+            await waitForBatchedUpdates();
+
+            // Then the union and the expense are shown together in EUR
+            expect(mockCapturedFooterProps.current).toEqual(expect.objectContaining({count: 2, total: 500, currency: CONST.CURRENCY.EUR}));
         });
 
         it('sums the groups offline rather than showing nothing', async () => {

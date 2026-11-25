@@ -507,6 +507,15 @@ function useReconcileSelectionWithData({
                 const {otherClaimedGroupKeys, ...rest} = entry;
                 newTransactionList[key] = {...rest, ...getOtherClaimedGroupKeysField([...otherGroupKeys])};
             }
+
+            // A group a refresh dropped is never read above, so its claims are ended here. Left in, they would keep it in
+            // the selection, and an export of the selected groups would fail on a group the results no longer hold.
+            for (const [key, entry] of Object.entries(searchResultsData ? newTransactionList : {})) {
+                const goneGroupKeys = new Set(entry.otherClaimedGroupKeys?.filter((groupKey) => !isGroupEntry(groupKey) || !searchResultsData?.[groupKey]));
+                if (goneGroupKeys.size > 0) {
+                    newTransactionList[key] = withoutOtherGroupClaims(entry, goneGroupKeys);
+                }
+            }
         } else {
             for (const transactionItem of filteredData) {
                 if (!Object.hasOwn(transactionItem, 'transactionID') || !('transactionID' in transactionItem)) {

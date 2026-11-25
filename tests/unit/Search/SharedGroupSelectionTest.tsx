@@ -7,8 +7,11 @@ import SearchWriteActionsProvider from '@components/Search/SearchWriteActionsPro
 
 import {getGroupKeysSelectedViaGroup} from '@hooks/useSearchBulkActions';
 
+import type {SearchGroupKey} from '@libs/SearchUIUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {SearchResults} from '@src/types/onyx';
 
 import type * as ReactNavigation from '@react-navigation/native';
 
@@ -16,6 +19,7 @@ import React from 'react';
 import Onyx from 'react-native-onyx';
 
 import {buildCategoryGroup, buildTransactionRow} from '../../utils/collections/searchListItems';
+import createMock from '../../utils/createMock';
 import waitForBatchedUpdatesWithAct from '../../utils/waitForBatchedUpdatesWithAct';
 
 jest.mock('@react-navigation/native', () => ({
@@ -30,8 +34,8 @@ jest.mock('@react-navigation/native', () => ({
     })),
 }));
 
-const MISSING_CATEGORY_KEY = `${CONST.SEARCH.GROUP_PREFIX}${CONST.VIOLATIONS.MISSING_CATEGORY}`;
-const OVER_LIMIT_KEY = `${CONST.SEARCH.GROUP_PREFIX}${CONST.VIOLATIONS.OVER_LIMIT}`;
+const MISSING_CATEGORY_KEY: SearchGroupKey = `${CONST.SEARCH.GROUP_PREFIX}${CONST.VIOLATIONS.MISSING_CATEGORY}`;
+const OVER_LIMIT_KEY: SearchGroupKey = `${CONST.SEARCH.GROUP_PREFIX}${CONST.VIOLATIONS.OVER_LIMIT}`;
 
 /** A row as a group lists it once expanded. Both groups list the same expenses under the same keys, as violation groups do. */
 const buildRow = (index: number, selectionGroupKey: string) => buildTransactionRow(index, String(index), {currency: 'USD', amount: -100, report: {reportID: '11'}, selectionGroupKey});
@@ -51,15 +55,24 @@ function buildGroups(overLimitRows: TransactionListItemType[]) {
     overLimitGroup = {...buildCategoryGroup(OVER_LIMIT_KEY, overLimitRows), count: 2, hasMoreTransactions: overLimitRows.length === 0 ? undefined : false};
 }
 
+/** Whether the search still returns Over limit, which a refresh can drop once its expenses no longer carry the violation. */
+let hasOverLimitGroup = true;
+
 function SharedGroupsWrapper({children}: {children: React.ReactNode}) {
-    const groups = [missingCategoryGroup, overLimitGroup];
+    const groups = hasOverLimitGroup ? [missingCategoryGroup, overLimitGroup] : [missingCategoryGroup];
+    const data: SearchResults['data'] = {};
+    data[MISSING_CATEGORY_KEY] = {violation: CONST.VIOLATIONS.MISSING_CATEGORY, count: 4, total: -400, currency: 'USD'};
+    if (hasOverLimitGroup) {
+        data[OVER_LIMIT_KEY] = {violation: CONST.VIOLATIONS.OVER_LIMIT, count: 2, total: -200, currency: 'USD'};
+    }
+    const searchResults = createMock<SearchResults>({data});
     return (
         <SearchContextProvider>
             <SearchWriteActionsProvider
                 filteredData={groups}
                 renderedData={groups}
                 totalSelectableItemsCount={4}
-                searchResults={undefined}
+                searchResults={searchResults}
                 searchHash={1}
                 transactions={undefined}
                 isMobileSelectionModeEnabled={false}
@@ -113,6 +126,7 @@ describe('Selecting groups that share expenses', () => {
 
     beforeEach(async () => {
         buildGroups([]);
+        hasOverLimitGroup = true;
         await act(async () => {
             await Onyx.clear();
             await waitForBatchedUpdatesWithAct();
@@ -151,6 +165,22 @@ describe('Selecting groups that share expenses', () => {
             expect.objectContaining({groupKey: MISSING_CATEGORY_KEY, isSelectedViaGroup: true, otherClaimedGroupKeys: [OVER_LIMIT_KEY]}),
         );
         expect(getGroupKeysSelectedViaGroup(result.current.selectedTransactions).sort()).toEqual([MISSING_CATEGORY_KEY, OVER_LIMIT_KEY].sort());
+    });
+
+    it('ends the claims of a group a refresh drops', async () => {
+        // Given both groups checked through their headers over the expenses they share
+        const {result, rerender} = renderSelection();
+        await checkBothGroups(result, rerender);
+
+        // When a refresh no longer returns Over limit, while Missing category still lists the shared expenses
+        hasOverLimitGroup = false;
+        rerender({});
+        await act(async () => waitForBatchedUpdatesWithAct());
+
+        // Then the expenses stay selected for Missing category only, so an export of the selected groups doesn't look for a group that's gone
+        expect(result.current.selectedTransactions['1']).toEqual(expect.objectContaining({isSelected: true, groupKey: MISSING_CATEGORY_KEY, isSelectedViaGroup: true}));
+        expect(result.current.selectedTransactions['1']?.otherClaimedGroupKeys).toBeUndefined();
+        expect(getGroupKeysSelectedViaGroup(result.current.selectedTransactions)).toEqual([MISSING_CATEGORY_KEY]);
     });
 
     it('keeps the expenses another group still covers when one of the groups is unchecked', async () => {
