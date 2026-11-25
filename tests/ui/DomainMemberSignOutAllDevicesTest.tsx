@@ -82,7 +82,9 @@ const MEMBER_ERROR_TEXT = 'We couldn’t sign out this member. Please try again.
 const MEMBER_SUCCESS_TEXT = 'This member has been signed out on all devices.';
 const SELF_CONFIRMATION_TEXT = 'You’ll be signed out on all devices, including this one. You’ll need to sign in again to use Expensify.';
 const SELF_SUCCESS_TEXT = 'You’ve been signed out on all devices.';
+// The outcome fields aren't on the shared Response type, so these are declared up front rather than passed as object literals.
 const COMPLETED_RESPONSE = {jsonCode: CONST.JSON_CODE.SUCCESS, status: CONST.DOMAIN.REVOKE_MEMBER_SESSIONS_STATUS.COMPLETED, callerSignedOut: false};
+const CALLER_SIGNED_OUT_RESPONSE = {...COMPLETED_RESPONSE, callerSignedOut: true};
 
 const mockAPI = jest.mocked(API);
 
@@ -315,7 +317,7 @@ describe('Domain member sign out on all devices', () => {
 
     it('follows the self-service flow when the admin signs out their own account', async () => {
         // Given the admin opens their own details, and the server reports that it signed out the caller too
-        mockAPI.makeRequestWithSideEffects.mockResolvedValueOnce({...COMPLETED_RESPONSE, callerSignedOut: true});
+        mockAPI.makeRequestWithSideEffects.mockResolvedValueOnce(CALLER_SIGNED_OUT_RESPONSE);
         jest.mocked(redirectToSignIn).mockResolvedValueOnce();
         await setUpDomain();
         renderPage(ADMIN_ACCOUNT_ID);

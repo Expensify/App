@@ -1,5 +1,3 @@
-import type {LocalizedTranslate} from '@components/LocaleContextProvider';
-
 import {
     addAdminToDomain,
     addMemberToDomain,
@@ -2058,12 +2056,17 @@ describe('actions/Domain', () => {
 describe('actions/Domain revokeDomainMemberSessions', () => {
     const DOMAIN_ACCOUNT_ID = 100;
     const MEMBER_ACCOUNT_ID = 200;
-    // Returns the translation key, so tests can tell which success message was shown.
-    const translate: LocalizedTranslate = (path) => path;
-    const completedResponse = {jsonCode: CONST.JSON_CODE.SUCCESS, status: CONST.DOMAIN.REVOKE_MEMBER_SESSIONS_STATUS.COMPLETED};
+    // The outcome fields aren't on the shared Response type, so these are declared up front rather than passed as object literals.
+    const memberSignedOutResponse = {jsonCode: CONST.JSON_CODE.SUCCESS, status: CONST.DOMAIN.REVOKE_MEMBER_SESSIONS_STATUS.COMPLETED, callerSignedOut: false};
+    const callerSignedOutResponse = {...memberSignedOutResponse, callerSignedOut: true};
 
     let makeRequestWithSideEffectsSpy: jest.SpiedFunction<typeof makeRequestWithSideEffects>;
     let writeSpy: jest.SpiedFunction<typeof write>;
+
+    beforeAll(() => {
+        // The tests assert the English toast text, and translateLocal uses the current locale.
+        IntlStore.load(CONST.LOCALES.EN);
+    });
 
     beforeEach(() => {
         jest.spyOn(NetworkState, 'getIsOffline').mockReturnValue(false);
@@ -2080,10 +2083,10 @@ describe('actions/Domain revokeDomainMemberSessions', () => {
 
     it('sends the one member in accountIDList and keeps the admin signed in', async () => {
         // Given the server signs out another member without touching the admin's sessions
-        makeRequestWithSideEffectsSpy.mockResolvedValueOnce({...completedResponse, callerSignedOut: false});
+        makeRequestWithSideEffectsSpy.mockResolvedValueOnce(memberSignedOutResponse);
 
         // When the admin signs out that member from their details
-        const result = await revokeDomainMemberSessions(DOMAIN_ACCOUNT_ID, MEMBER_ACCOUNT_ID, translate);
+        const result = await revokeDomainMemberSessions(DOMAIN_ACCOUNT_ID, MEMBER_ACCOUNT_ID, TestHelper.translateLocal);
 
         // Then the request waits for the server instead of entering the write queue, and the admin only sees the member toast
         expect(result).toBe(true);
@@ -2093,17 +2096,17 @@ describe('actions/Domain revokeDomainMemberSessions', () => {
         });
         expect(writeSpy).not.toHaveBeenCalled();
         expect(SignInRedirect.default).not.toHaveBeenCalled();
-        expect(Growl.success).toHaveBeenCalledWith({bodyText: 'domain.members.signOutAllDevicesSuccess', position: CONST.GROWL.POSITION.BOTTOM_RIGHT});
+        expect(Growl.success).toHaveBeenCalledWith({bodyText: 'This member has been signed out on all devices.', position: CONST.GROWL.POSITION.BOTTOM_RIGHT});
     });
 
     it('finishes signing out this device before the self-service toast when the caller was signed out', async () => {
         // Given the admin targeted their own account, so the server also revoked this session
         const redirect = Promise.withResolvers<void>();
         jest.mocked(SignInRedirect.default).mockReturnValueOnce(redirect.promise);
-        makeRequestWithSideEffectsSpy.mockResolvedValueOnce({...completedResponse, callerSignedOut: true});
+        makeRequestWithSideEffectsSpy.mockResolvedValueOnce(callerSignedOutResponse);
 
         // When the request completes
-        const result = revokeDomainMemberSessions(DOMAIN_ACCOUNT_ID, MEMBER_ACCOUNT_ID, translate);
+        const result = revokeDomainMemberSessions(DOMAIN_ACCOUNT_ID, MEMBER_ACCOUNT_ID, TestHelper.translateLocal);
         await waitForBatchedUpdates();
 
         // Then the toast waits for the credential cleanup and redirect, so it appears on the sign-in screen
@@ -2112,7 +2115,7 @@ describe('actions/Domain revokeDomainMemberSessions', () => {
         redirect.resolve();
         await expect(result).resolves.toBe(true);
         expect(Growl.success).toHaveBeenCalledTimes(1);
-        expect(Growl.success).toHaveBeenCalledWith({bodyText: 'deviceManagementPage.signOutAllDevicesSuccess', position: CONST.GROWL.POSITION.BOTTOM_RIGHT});
+        expect(Growl.success).toHaveBeenCalledWith({bodyText: 'You’ve been signed out on all devices.', position: CONST.GROWL.POSITION.BOTTOM_RIGHT});
     });
 
     it.each([undefined, {jsonCode: 500}, {jsonCode: CONST.JSON_CODE.SUCCESS}])('reports failure for a response that does not confirm completion: %p', async (response) => {
@@ -2120,7 +2123,7 @@ describe('actions/Domain revokeDomainMemberSessions', () => {
         makeRequestWithSideEffectsSpy.mockResolvedValueOnce(response);
 
         // When the action finishes
-        const result = await revokeDomainMemberSessions(DOMAIN_ACCOUNT_ID, MEMBER_ACCOUNT_ID, translate);
+        const result = await revokeDomainMemberSessions(DOMAIN_ACCOUNT_ID, MEMBER_ACCOUNT_ID, TestHelper.translateLocal);
 
         // Then the confirmation can show the error and offer a retry, without claiming success or signing out
         expect(result).toBe(false);
@@ -2133,7 +2136,7 @@ describe('actions/Domain revokeDomainMemberSessions', () => {
         makeRequestWithSideEffectsSpy.mockRejectedValueOnce(new Error('Connection lost'));
 
         // When the action handles the failure
-        const result = await revokeDomainMemberSessions(DOMAIN_ACCOUNT_ID, MEMBER_ACCOUNT_ID, translate);
+        const result = await revokeDomainMemberSessions(DOMAIN_ACCOUNT_ID, MEMBER_ACCOUNT_ID, TestHelper.translateLocal);
 
         // Then the failure goes back to the confirmation without a toast
         expect(result).toBe(false);
@@ -2145,7 +2148,7 @@ describe('actions/Domain revokeDomainMemberSessions', () => {
         jest.mocked(NetworkState.getIsOffline).mockReturnValue(true);
 
         // When the confirmation tries to submit
-        const result = await revokeDomainMemberSessions(DOMAIN_ACCOUNT_ID, MEMBER_ACCOUNT_ID, translate);
+        const result = await revokeDomainMemberSessions(DOMAIN_ACCOUNT_ID, MEMBER_ACCOUNT_ID, TestHelper.translateLocal);
 
         // Then reconnecting cannot later sign the member out
         expect(result).toBe(false);
