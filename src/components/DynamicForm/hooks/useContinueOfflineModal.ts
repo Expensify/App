@@ -24,8 +24,9 @@ function useContinueOfflineModal() {
     const {translate} = useLocalize();
     const {showDecisionModal} = useDecisionModal();
 
-    // A second press while the modal is up, such as a double tap on Confirm, would stack a second modal that acts on the form after the first one left it
-    const isModalOpenRef = useRef(false);
+    // A second press while the modal is up or Try again is checking the connection, such as a double tap on Confirm, would stack a second modal that acts on
+    // the form after the first one left it
+    const isAttemptRunningRef = useRef(false);
 
     // The modal outlives the page, so its answer is ignored once the page is gone, such as after a deep link or sign-out while it was up
     const isMountedRef = useRef(true);
@@ -37,10 +38,10 @@ function useContinueOfflineModal() {
     }, []);
 
     const showContinueOfflineModal = ({onSaveForLater, onContinue}: ContinueOfflineModalOptions) => {
-        if (isModalOpenRef.current) {
+        if (isAttemptRunningRef.current) {
             return;
         }
-        isModalOpenRef.current = true;
+        isAttemptRunningRef.current = true;
 
         showDecisionModal({
             title: translate('dynamicForm.continueOffline.title'),
@@ -51,36 +52,36 @@ function useContinueOfflineModal() {
             shouldReportDismiss: true,
         })
             .then(({action}) => {
-                isModalOpenRef.current = false;
+                // Try again keeps the attempt running until the connection check answers, so a press during the check cannot open a second modal
+                if (action === ModalActions.CLOSE && isMountedRef.current) {
+                    return (
+                        refreshAndCheckIsOffline()
+                            // A failed check cannot show the connection is back, so it is treated as still offline
+                            .catch(() => true)
+                            .then((isStillOffline) => {
+                                isAttemptRunningRef.current = false;
+                                if (!isMountedRef.current) {
+                                    return;
+                                }
+                                if (isStillOffline) {
+                                    showContinueOfflineModal({onSaveForLater, onContinue});
+                                    return;
+                                }
+                                onContinue();
+                            })
+                    );
+                }
+                isAttemptRunningRef.current = false;
                 if (!isMountedRef.current) {
                     return;
                 }
                 if (action === ModalActions.CONFIRM) {
                     onSaveForLater();
-                    return;
                 }
-                if (action !== ModalActions.CLOSE) {
-                    return;
-                }
-                return (
-                    refreshAndCheckIsOffline()
-                        // A failed check cannot show the connection is back, so it is treated as still offline
-                        .catch(() => true)
-                        .then((isStillOffline) => {
-                            if (!isMountedRef.current) {
-                                return;
-                            }
-                            if (isStillOffline) {
-                                showContinueOfflineModal({onSaveForLater, onContinue});
-                                return;
-                            }
-                            onContinue();
-                        })
-                );
             })
             // The modal can be pressed again, and a failure in leaving or going on is logged, since the user only sees the form stay where it was
             .catch((error: unknown) => {
-                isModalOpenRef.current = false;
+                isAttemptRunningRef.current = false;
                 Log.warn('[DynamicForm] The continue offline modal failed', {error: error instanceof Error ? error.message : String(error)});
             });
     };

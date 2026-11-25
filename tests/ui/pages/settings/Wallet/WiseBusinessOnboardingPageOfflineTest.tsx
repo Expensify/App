@@ -11,6 +11,7 @@ import {toSavedFile} from '@libs/getWiseOnboardingPageParams';
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
 import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
+import * as NetworkState from '@libs/NetworkState';
 import {setHasRadio} from '@libs/NetworkState';
 
 import WiseBusinessOnboardingPage from '@pages/settings/Wallet/EnableGlobalReimbursements/Wise/WiseBusinessOnboardingPage';
@@ -245,6 +246,44 @@ describe('WiseBusinessOnboardingPage offline', () => {
         // Then Next goes through as it does online, so the page is saved to Wise, and no second modal opens
         expect(writeSpy).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({step: CONST.WISE.ONBOARDING_STEP.BUSINESS}), expect.anything());
         expect(mockShownModals).toHaveLength(1);
+    });
+
+    it('opens no second modal when Next is pressed while Try again checks the connection', async () => {
+        // Given an offline device on the business page, whose Next opened the offline modal, and a connection check that has not answered yet
+        const writeSpy = jest.spyOn(API, 'write').mockImplementation(() => Promise.resolve());
+        let answerConnectionCheck: (isOffline: boolean) => void = () => {};
+        const connectionCheckSpy = jest.spyOn(NetworkState, 'refreshAndCheckIsOffline').mockImplementation(
+            () =>
+                new Promise<boolean>((resolve) => {
+                    answerConnectionCheck = resolve;
+                }),
+        );
+        setHasRadio(false);
+        await renderPage(CONST.WISE.ONBOARDING_STEP.BUSINESS);
+        fireEvent.press(screen.getByText('common.next'));
+        await waitForBatchedUpdatesWithAct();
+        mockShownModals.at(0)?.answer(ModalActions.CLOSE);
+        await waitForBatchedUpdatesWithAct();
+        await new Promise((resolve) => {
+            setTimeout(resolve, SUBMIT_DEBOUNCE_MS);
+        });
+
+        // When the user presses Next again during the check
+        fireEvent.press(screen.getByText('common.next'));
+        await waitForBatchedUpdatesWithAct();
+
+        // Then no second modal opens, since a modal left open after the check goes on would act on a page that is gone
+        expect(mockShownModals).toHaveLength(1);
+
+        // When the check finds the connection back
+        act(() => setHasRadio(true));
+        answerConnectionCheck(false);
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the page is saved once, as Try again does online, and still no second modal opens
+        expect(writeSpy).toHaveBeenCalledTimes(1);
+        expect(mockShownModals).toHaveLength(1);
+        connectionCheckSpy.mockRestore();
     });
 
     it('keeps an SSN typed offline out of everything a refresh keeps', async () => {
