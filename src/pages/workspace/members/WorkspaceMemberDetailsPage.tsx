@@ -278,8 +278,8 @@ function WorkspaceMemberDetailsPage({policy, route}: WorkspaceMemberDetailsPageP
     };
 
     // While an invite is in flight, or before the member's personal details load, accountID is one the app generated
-    // from their email. The server doesn't know that ID and rejects the request, so wait until the real accountID
-    // arrives, which runs this again.
+    // from their email. The server doesn't know that ID, so both profile requests below wait until the real accountID
+    // arrives, which runs them again.
     const hasServerAccountID = !!memberPersonalDetails?.accountID && !memberPersonalDetails.isOptimisticPersonalDetail && member?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD;
     useEffect(() => {
         if (!hasServerAccountID) {
@@ -290,8 +290,11 @@ function WorkspaceMemberDetailsPage({policy, route}: WorkspaceMemberDetailsPageP
 
     // OpenPolicyMemberProfilePage doesn't return the member's timezone or validated status, which Local time needs
     useEffect(() => {
+        if (!hasServerAccountID) {
+            return;
+        }
         openPublicProfilePage(accountID);
-    }, [accountID]);
+    }, [accountID, hasServerAccountID]);
 
     // Filter out travel cards — they should not appear on the member profile page
     // as they expose card-level controls and data not intended for workspace admin view.

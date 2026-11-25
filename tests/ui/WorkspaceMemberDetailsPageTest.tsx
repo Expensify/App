@@ -1133,9 +1133,11 @@ describe('WorkspaceMemberDetailsPage', () => {
         const {unmount} = renderPage({policyID: policy.id, accountID: String(invitedAccountID)});
         await waitForBatchedUpdatesWithAct();
 
-        // Then the profile is requested once, with that accountID
+        // Then both profiles are requested once, with that accountID
         TestHelper.expectAPICommandToHaveBeenCalled(READ_COMMANDS.OPEN_POLICY_MEMBER_PROFILE_PAGE, 1);
         TestHelper.expectAPICommandToHaveBeenCalledWith(READ_COMMANDS.OPEN_POLICY_MEMBER_PROFILE_PAGE, 0, {policyID: policy.id, accountID: invitedAccountID});
+        TestHelper.expectAPICommandToHaveBeenCalled(READ_COMMANDS.OPEN_PUBLIC_PROFILE_PAGE, 1);
+        TestHelper.expectAPICommandToHaveBeenCalledWith(READ_COMMANDS.OPEN_PUBLIC_PROFILE_PAGE, 0, {accountID: invitedAccountID});
 
         unmount();
         await waitForBatchedUpdatesWithAct();
@@ -1160,6 +1162,7 @@ describe('WorkspaceMemberDetailsPage', () => {
 
         // Then nothing is requested yet, because the server would reject the generated accountID
         TestHelper.expectAPICommandToHaveBeenCalled(READ_COMMANDS.OPEN_POLICY_MEMBER_PROFILE_PAGE, 0);
+        TestHelper.expectAPICommandToHaveBeenCalled(READ_COMMANDS.OPEN_PUBLIC_PROFILE_PAGE, 0);
 
         // When the invite succeeds and the member's real accountID arrives
         const pendingAccountID = 9999;
@@ -1172,9 +1175,11 @@ describe('WorkspaceMemberDetailsPage', () => {
         });
         await waitForBatchedUpdatesWithAct();
 
-        // Then the profile is requested once, with the real accountID
+        // Then both profiles are requested once, with the real accountID
         TestHelper.expectAPICommandToHaveBeenCalled(READ_COMMANDS.OPEN_POLICY_MEMBER_PROFILE_PAGE, 1);
         TestHelper.expectAPICommandToHaveBeenCalledWith(READ_COMMANDS.OPEN_POLICY_MEMBER_PROFILE_PAGE, 0, {policyID: policy.id, accountID: pendingAccountID});
+        TestHelper.expectAPICommandToHaveBeenCalled(READ_COMMANDS.OPEN_PUBLIC_PROFILE_PAGE, 1);
+        TestHelper.expectAPICommandToHaveBeenCalledWith(READ_COMMANDS.OPEN_PUBLIC_PROFILE_PAGE, 0, {accountID: pendingAccountID});
 
         unmount();
         await waitForBatchedUpdatesWithAct();
@@ -1196,6 +1201,7 @@ describe('WorkspaceMemberDetailsPage', () => {
         // Then the page still shows, but nothing is requested, because the server would reject the generated accountID
         expect(screen.getByTestId('WorkspaceMemberDetailsPage')).toBeOnTheScreen();
         TestHelper.expectAPICommandToHaveBeenCalled(READ_COMMANDS.OPEN_POLICY_MEMBER_PROFILE_PAGE, 0);
+        TestHelper.expectAPICommandToHaveBeenCalled(READ_COMMANDS.OPEN_PUBLIC_PROFILE_PAGE, 0);
 
         unmount();
         await waitForBatchedUpdatesWithAct();
