@@ -1,3 +1,5 @@
+import type {LocalizedTranslate} from '@components/LocaleContextProvider';
+
 import {
     addAdminToDomain,
     addMemberToDomain,
@@ -2056,7 +2058,8 @@ describe('actions/Domain', () => {
 describe('actions/Domain revokeDomainMemberSessions', () => {
     const DOMAIN_ACCOUNT_ID = 100;
     const MEMBER_ACCOUNT_ID = 200;
-    const translate = jest.fn((key: string) => key);
+    // Returns the translation key, so tests can tell which success message was shown.
+    const translate: LocalizedTranslate = (path) => path;
     const completedResponse = {jsonCode: CONST.JSON_CODE.SUCCESS, status: CONST.DOMAIN.REVOKE_MEMBER_SESSIONS_STATUS.COMPLETED};
 
     let makeRequestWithSideEffectsSpy: jest.SpiedFunction<typeof makeRequestWithSideEffects>;

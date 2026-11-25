@@ -2168,12 +2168,14 @@ async function revokeDomainMemberSessions(domainAccountID: number, accountID: nu
         };
         // eslint-disable-next-line rulesdir/no-api-side-effects-method -- Sign-out must wait for the server response and must never enter the persisted write queue.
         const response = await API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.REVOKE_DOMAIN_MEMBER_SESSIONS, params);
-        if (response?.jsonCode !== CONST.JSON_CODE.SUCCESS || response.status !== CONST.DOMAIN.REVOKE_MEMBER_SESSIONS_STATUS.COMPLETED) {
+        // These outcome fields aren't on the shared Response type, where a `status` key would clash with the HTTP status other responses use.
+        const outcome: Record<string, unknown> = response ?? {};
+        if (response?.jsonCode !== CONST.JSON_CODE.SUCCESS || outcome.status !== CONST.DOMAIN.REVOKE_MEMBER_SESSIONS_STATUS.COMPLETED) {
             return false;
         }
 
         // An admin who signs out their own account loses this session too, so they follow the self-service sign-out.
-        if (response.callerSignedOut) {
+        if (outcome.callerSignedOut === true) {
             await finishSigningOutOnAllDevices(translate);
             return true;
         }

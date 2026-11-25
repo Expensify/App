@@ -74,6 +74,7 @@ const DOMAIN_ACCOUNT_ID = 100;
 const ADMIN_ACCOUNT_ID = 1;
 const MEMBER_ACCOUNT_ID = 2;
 const OTHER_MEMBER_ACCOUNT_ID = 3;
+const ADMIN_ACCESS_KEY = `${CONST.DOMAIN.EXPENSIFY_ADMIN_ACCESS_PREFIX}${ADMIN_ACCOUNT_ID}` as const;
 
 const SIGN_OUT_TEXT = 'Sign out on all devices';
 const MEMBER_CONFIRMATION_TEXT = 'This will sign out this member on every device. They’ll need to sign in again to use Expensify.';
@@ -113,7 +114,7 @@ async function setUpDomain({currentUserAccountID = ADMIN_ACCOUNT_ID, isValidated
         accountID: DOMAIN_ACCOUNT_ID,
         email: '+@acme.example',
         validated: isValidated,
-        [`${CONST.DOMAIN.EXPENSIFY_ADMIN_ACCESS_PREFIX}${ADMIN_ACCOUNT_ID}`]: ADMIN_ACCOUNT_ID,
+        [ADMIN_ACCESS_KEY]: ADMIN_ACCOUNT_ID,
     });
     await waitForBatchedUpdatesWithAct();
 }
