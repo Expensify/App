@@ -10,8 +10,8 @@ import {View} from 'react-native';
 
 import {RECENT_HISTORY_PERIOD_COUNT} from './buildRecentHistoryRows';
 
-const NAME_WIDTH = 80;
-const AMOUNT_WIDTH = 96;
+const NAME_WIDTH = 96;
+const AMOUNT_WIDTH = 80;
 
 function InsightsRecentHistorySkeleton() {
     const styles = useThemeStyles();
