@@ -2479,21 +2479,21 @@ function getActions(
     }
 
     const ownerLogin = getLoginByAccountID(report.ownerAccountID, data.personalDetailsList);
-    const submitToAccountID = getSubmitToAccountID(policy, report, ownerLogin, rules);
-    const isAllowedToApproveExpenseReport = isAllowedToApproveExpenseReportUtils(report, submitToAccountID, policy);
+    const canApprove = canApproveIOU(report, policy, reportMetadata, currentUserAccountID, allReportTransactions);
+    const canSubmit =
+        isGroupPolicy(policy) &&
+        canSubmitReport(report, ownerLogin, policy, allReportTransactions, allViolations, isArchivedOrPendingDeletePolicy(policy), currentUserLogin, currentUserAccountID);
 
-    if (canApproveIOU(report, policy, reportMetadata, currentUserAccountID, allReportTransactions) && isAllowedToApproveExpenseReport) {
+    // Resolving the submit-to route scans the workspace approval rules, so skip it when neither action can apply.
+    const submitToAccountID = canApprove || canSubmit ? getSubmitToAccountID(policy, report, ownerLogin, rules) : CONST.DEFAULT_NUMBER_ID;
+
+    if (canApprove && isAllowedToApproveExpenseReportUtils(report, submitToAccountID, policy)) {
         allActions.push(CONST.SEARCH.ACTION_TYPES.APPROVE);
     }
 
     // We check submit eligibility separately from approve: on Submit workspaces the popover picks
     // the manager, so don't block Submit when the default submit-to route is the owner.
-
-    if (
-        isGroupPolicy(policy) &&
-        canSubmitReport(report, ownerLogin, policy, allReportTransactions, allViolations, isArchivedOrPendingDeletePolicy(policy), currentUserLogin, currentUserAccountID) &&
-        isSubmitActionAllowedForSearch(report, policy, submitToAccountID, currentUserAccountID)
-    ) {
+    if (canSubmit && isSubmitActionAllowedForSearch(report, policy, submitToAccountID, currentUserAccountID)) {
         allActions.push(CONST.SEARCH.ACTION_TYPES.SUBMIT);
     }
 
@@ -2870,7 +2870,15 @@ function getReportActionsSections(
                 const isReportArchived = isArchivedReport(data[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`]);
                 if (
                     !reportID ||
-                    !isReportActionVisible(reportAction, reportID, canUserPerformWriteAction(report, isReportArchived), visibleReportActionsData, undefined, reportActionsCollection) ||
+                    !isReportActionVisible(
+                        reportAction,
+                        reportID,
+                        canUserPerformWriteAction(report, isReportArchived),
+                        visibleReportActionsData,
+                        undefined,
+                        reportActionsCollection,
+                        isInvoiceReport(report),
+                    ) ||
                     isDeletedAction(reportAction) ||
                     isResolvedActionableWhisper(reportAction) ||
                     reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.CLOSED ||
@@ -5827,6 +5835,11 @@ function getValidGroupBy(groupBy: string | undefined): SearchGroupBy | undefined
     return groupBy && isGroupBySupportedBySearch(groupBy) && isSearchGroupBy(groupBy) ? groupBy : undefined;
 }
 
+/** Whether one expense can sit in several groups of this grouping, as an expense with two violations sits in both violation groups. */
+function canGroupsShareExpenses(groupBy: string | undefined): boolean {
+    return groupBy === CONST.SEARCH.GROUP_BY.VIOLATION;
+}
+
 function getStatusOptions(translate: LocalizedTranslate, type: SearchDataTypes, shouldReturnTripRooms = false) {
     switch (type) {
         case CONST.SEARCH.DATA_TYPES.INVOICE:
@@ -5852,8 +5865,6 @@ type HasOptionAvailability = {
 
 type GetHasOptionsConfig = {
     policies?: OnyxCollection<OnyxTypes.Policy>;
-    /** The IDs of the workspaces whose categories have rules, from `policyIDsWithCategoryRulesSelector`. */
-    policyIDsWithCategoryRules?: Record<string, true>;
     /** Skip workspace feature filtering so already-selected values still resolve to labels. */
     shouldShowAllOptions?: boolean;
     /**
@@ -5866,10 +5877,9 @@ type GetHasOptionsConfig = {
 /**
  * Which expense `has:` options can apply for the current user, based on accessible workspaces.
  * Pass an empty collection when the user has no workspaces so Tag/Category/Submitted/Approved violation stay hidden.
- * Violations only show for workspaces with Rules on. Migrated Control workspaces leave areRulesEnabled undefined,
- * so those fall back to whether their own categories have Classic category rules.
+ * Violations show for any group workspace because expenses get violations even when Rules is off.
  */
-function getHasOptionAvailability(policies: OnyxCollection<OnyxTypes.Policy> | undefined, policyIDsWithCategoryRules: Record<string, true> = {}): HasOptionAvailability {
+function getHasOptionAvailability(policies: OnyxCollection<OnyxTypes.Policy> | undefined): HasOptionAvailability {
     let shouldShowTag = false;
     let shouldShowCategory = false;
     let shouldShowSubmittedViolation = false;
@@ -5882,9 +5892,8 @@ function getHasOptionAvailability(policies: OnyxCollection<OnyxTypes.Policy> | u
 
         shouldShowTag ||= policy.areTagsEnabled === true;
         shouldShowCategory ||= policy.areCategoriesEnabled === true;
-        const shouldShowRulesBasedViolation = arePolicyRulesEnabled(policy, undefined, !!policyIDsWithCategoryRules[policy.id]);
-        shouldShowSubmittedViolation ||= shouldShowRulesBasedViolation;
-        shouldShowApprovedViolation ||= shouldShowRulesBasedViolation;
+        shouldShowSubmittedViolation = true;
+        shouldShowApprovedViolation = true;
 
         if (shouldShowTag && shouldShowCategory && shouldShowSubmittedViolation && shouldShowApprovedViolation) {
             break;
@@ -5895,19 +5904,19 @@ function getHasOptionAvailability(policies: OnyxCollection<OnyxTypes.Policy> | u
 }
 
 /**
- * Options for the `has:` filter / autocomplete. Tag, Category, Submitted violation, and Approved violation are omitted when
- * no accessible workspace has the matching feature enabled. Pass `policies` from the picker and autocomplete.
+ * Options for the `has:` filter / autocomplete. Tag and Category require the matching workspace feature to be enabled;
+ * Submitted violation and Approved violation require an accessible group workspace. Pass `policies` from the picker and autocomplete.
  * Pass `shouldShowAllOptions` for display/validation so already-selected values still resolve to labels.
  * Pass `selectedValues` in the picker so query/saved selections stay selectable until the user clears them.
  */
 function getHasOptions(translate: LocalizedTranslate, type: SearchDataTypes, config: GetHasOptionsConfig = {}) {
-    const {policies, policyIDsWithCategoryRules, shouldShowAllOptions = false, selectedValues} = config;
+    const {policies, shouldShowAllOptions = false, selectedValues} = config;
 
     switch (type) {
         case CONST.SEARCH.DATA_TYPES.EXPENSE: {
             const availability = shouldShowAllOptions
                 ? {shouldShowTag: true, shouldShowCategory: true, shouldShowSubmittedViolation: true, shouldShowApprovedViolation: true}
-                : getHasOptionAvailability(policies, policyIDsWithCategoryRules);
+                : getHasOptionAvailability(policies);
             const shouldShowTag = availability.shouldShowTag || !!selectedValues?.includes(CONST.SEARCH.HAS_VALUES.TAG);
             const shouldShowCategory = availability.shouldShowCategory || !!selectedValues?.includes(CONST.SEARCH.HAS_VALUES.CATEGORY);
             const shouldShowSubmittedViolation = availability.shouldShowSubmittedViolation || !!selectedValues?.includes(CONST.SEARCH.HAS_VALUES.SUBMITTED_VIOLATION);
@@ -7350,11 +7359,10 @@ function getMultiSelectFilterOptions(
     type: SearchDataTypes,
     translate: LocalizedTranslate,
     policies?: OnyxCollection<OnyxTypes.Policy>,
-    policyIDsWithCategoryRules?: Record<string, true>,
     shouldReturnTripRooms = false,
 ) {
     if (filterKey === FILTER_KEYS.HAS) {
-        return getHasOptions(translate, type, {policies, policyIDsWithCategoryRules});
+        return getHasOptions(translate, type, {policies});
     }
 
     if (filterKey === FILTER_KEYS.IS) {
@@ -8630,6 +8638,7 @@ function isTransactionMatchWithGroupItem(transaction: OnyxTypes.Transaction, gro
 }
 
 export {
+    canGroupsShareExpenses,
     canPolicyAdminChangeApprover,
     getAllMatchingExpenseActionQuery,
     getAllMatchingExportQueryAndExclusions,

@@ -28,6 +28,8 @@ import type {
     OpenSearchPageParams,
     OpenSearchTagFiltersPageParams,
     OpenSearchTagFiltersPageResponse,
+    OpenSearchUserFiltersPageParams,
+    OpenSearchUserFiltersPageResponse,
     QueueBulkMarkAsExportedParams,
     QueueExportSearchItemsToCSVParams,
     QueueExportSearchWithTemplateParams,
@@ -54,6 +56,7 @@ import {isSupportAuthToken} from '@libs/Network/NetworkStore';
 import {getIsOffline} from '@libs/NetworkState';
 import {rand64} from '@libs/NumberUtils';
 import {canPayOffline, getActivePaymentType} from '@libs/PaymentUtils';
+import {getLoginsFromOnyxUpdates} from '@libs/PersonalDetailsUtils';
 import {canAccessPolicyBankAccount} from '@libs/PolicyPaymentUtils';
 import {
     getAccountIDForSubmitManagerEmail,
@@ -301,7 +304,7 @@ type HandleActionButtonPressParams = {
     onPendingCardTransactionsBlock?: () => void;
     onAllHeldExpensesBlock?: () => void;
     /** Confirms any unacknowledged report violations before proceeding with the SUBMIT action. */
-    confirmSubmitReportViolations: (onProceed: ConfirmSubmitReportViolationsOnProceed) => void;
+    confirmSubmitReportViolations: (onProceed: ConfirmSubmitReportViolationsOnProceed) => void | Promise<void>;
     /** Requires approval callers to confirm report violations before proceeding. */
     confirmApproveReportViolations: (onProceed: () => void) => void;
     openReportSubmitToPopover?: (options?: ReportSubmitToPopoverOpenOptions) => void;
@@ -1291,6 +1294,22 @@ function setSearchTagFiltersPagination(
     });
 }
 
+function openSearchUserFiltersPage(params: OpenSearchUserFiltersPageParams, shouldCancelPendingRequests = false): Promise<{hasMore: boolean; nextCursor: string; logins: string[]}> {
+    if (shouldCancelPendingRequests) {
+        HttpUtils.cancelPendingRequests(SIDE_EFFECT_REQUEST_COMMANDS.OPEN_SEARCH_USER_FILTERS_PAGE);
+    }
+
+    return makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.OPEN_SEARCH_USER_FILTERS_PAGE, {...params, canCancel: true}).then((response) => {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- OpenSearchUserFiltersPage response fields are command-specific and not declared on the shared Response type
+        const userFiltersResponse = response as OpenSearchUserFiltersPageResponse | undefined;
+        return {
+            hasMore: !!userFiltersResponse?.hasMore,
+            nextCursor: userFiltersResponse?.nextCursor ?? '',
+            logins: getLoginsFromOnyxUpdates(response?.onyxData),
+        };
+    });
+}
+
 function openBulkChangeApproverPage(reportIDList: OpenBulkChangeApproverPageParams['reportIDList']) {
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.IS_LOADING_BULK_CHANGE_APPROVER_PAGE>> = [
         {
@@ -1817,6 +1836,14 @@ function getFooterConvertedAmounts({
         filters: backendQueryJSON.filters ?? null,
     });
 
+    // The new stamp would otherwise vouch for the total an earlier request left, both while this one is in flight and
+    // after it fails, so each search total it re-stamps is cleared until this request answers.
+    const staleSearchTotals = sources?.searchTotals
+        ? Object.fromEntries(
+              Object.entries(sources.searchTotals).map(([hash, sourceByCurrency]) => [hash, Object.fromEntries(Object.keys(sourceByCurrency ?? {}).map((currency) => [currency, null]))]),
+          )
+        : undefined;
+
     read(
         READ_COMMANDS.GET_TRANSACTIONS_CONVERTED_AMOUNT,
         {
@@ -1829,7 +1856,13 @@ function getFooterConvertedAmounts({
             // Stamp the source figures this request converts (and clear any prior failure for this currency) so a later
             // edit that moves them is detected as stale and the footer can retry. The command merges its converted
             // figures into the same key, so the stamp and the converted value live side by side.
-            optimisticData: [{onyxMethod: Onyx.METHOD.MERGE, key: ONYXKEYS.SEARCH_FOOTER_CONVERSION, value: {...(sources && {sources}), failedCurrencies: {[targetCurrency]: null}}}],
+            optimisticData: [
+                {
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: ONYXKEYS.SEARCH_FOOTER_CONVERSION,
+                    value: {...(sources && {sources}), ...(staleSearchTotals && {searchTotals: staleSearchTotals}), failedCurrencies: {[targetCurrency]: null}},
+                },
+            ],
             // A failed read leaves no converted value, so record the failure; the footer then falls back to the default
             // total instead of the stale converted value (or a skeleton that would stay until the next edit/reconnect).
             failureData: [{onyxMethod: Onyx.METHOD.MERGE, key: ONYXKEYS.SEARCH_FOOTER_CONVERSION, value: {failedCurrencies: {[targetCurrency]: true}}}],
@@ -3074,6 +3107,7 @@ export {
     openSearchCardFiltersPage,
     openSearchCategoryFiltersPage,
     openSearchTagFiltersPage,
+    openSearchUserFiltersPage,
     ALL_POLICY_IDS_KEY,
     setSearchTagFiltersPagination,
     getPolicyFromSearchSnapshot,

@@ -2943,6 +2943,7 @@ const CONST = {
             EXPENSE_HAS_RECEIPT: 'expense_has_receipt',
             EXPENSE_COMMAND: 'expense_command',
             EXPENSE_JSON_CODE: 'expense_json_code',
+            EXPENSE_ERROR_UUID: 'expense_error_uuid',
             MFA_SCENARIO: 'mfa_scenario',
             MFA_ERROR_REASON: 'mfa_error_reason',
             BUILD_TYPE: 'build_type',
@@ -5729,6 +5730,7 @@ const CONST = {
                 EXACT_ONLINE: 'exactOnline',
                 ODOO: 'odoo',
                 SAGE_ACCOUNTING: 'sageAccounting',
+                ACUMATICA: 'acumatica',
                 GUSTO: 'gusto',
                 ZENEFITS: 'zenefits',
                 MERGE_HR: 'merge_hris',
@@ -5772,6 +5774,7 @@ const CONST = {
                 exactOnline: 'Exact Online',
                 odoo: 'Odoo',
                 sageAccounting: 'Sage Accounting',
+                acumatica: 'Acumatica',
                 gusto: 'Gusto',
                 billCom: 'Bill.com',
                 zenefits: 'TriNet',
@@ -5804,7 +5807,7 @@ const CONST = {
             },
             // Integrations that aren't available yet, so the Connections page offers their waitlist instead of connecting
             get WAITLIST_CONNECTION_NAMES() {
-                return [this.NAME.SAGE_ACCOUNTING] as const;
+                return [this.NAME.SAGE_ACCOUNTING, this.NAME.ACUMATICA] as const;
             },
             // The `origin` the backend stamps on a report field imported by an accounting integration. These values
             // differ from the connection names above (e.g. `quickbooksOnline` is stamped as `qbo`), so map them here.
@@ -8479,6 +8482,7 @@ const CONST = {
             UNSUPPORTED_FILTER: '59f73192-0ecc-4af4-8192-96fb2bb3d42a',
         },
         TAG_FILTER_PAGE_SIZE: 200,
+        USER_FILTER_PAGE_SIZE: 50,
         EXITING_ANIMATION_DURATION: 200,
         ME: 'me',
         // Null byte can't appear in a query, so it's safe to join query parts with it
@@ -10720,6 +10724,9 @@ const CONST = {
             DISTANCE: 'QuickCreationActionsBar-Distance',
             BOOK_TRAVEL: 'QuickCreationActionsBar-BookTravel',
         },
+        REPORT_ACTIONS_LIST: 'report-actions-list',
+        MONEY_REQUEST_REPORT_ACTIONS_LIST: 'money-request-report-actions-list',
+        BASE_SIDEBAR_SCREEN: 'BaseSidebarScreen',
     },
 
     AGENTS: {
