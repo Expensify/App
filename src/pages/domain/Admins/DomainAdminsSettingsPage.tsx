@@ -45,15 +45,11 @@ function DomainAdminsSettingsPage({route}: DomainAdminsSettingsPageProps) {
         selector: technicalContactSettingsSelector,
     });
     const [domainName] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {selector: domainNameSelector});
-    const [isDomainValidated] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {selector: (domain) => !!domain?.validated});
 
     const technicalContactEmail = technicalContactSettings?.technicalContactEmail;
 
-    // Only the primary contact can change this while they aren't a domain member, and an unverified domain has no members.
-    const isLocked =
-        !!technicalContactEmail &&
-        !Str.caseInsensitiveEquals(technicalContactEmail, currentUserLogin ?? '') &&
-        (!isDomainValidated || !Str.caseInsensitiveEquals(Str.extractEmailDomain(technicalContactEmail), domainName ?? ''));
+    // Consolidated billing charges the primary contact's card, so only they can turn it on.
+    const isLocked = !!technicalContactEmail && !technicalContactSettings?.useTechnicalContactBillingCard && !Str.caseInsensitiveEquals(technicalContactEmail, currentUserLogin ?? '');
 
     return (
         <BaseDomainSettingsPage domainAccountID={domainAccountID}>
