@@ -63,7 +63,7 @@ function InsightsDetailsPage({route}: InsightsDetailsPageProps) {
     });
     const member = chartMember ?? storedMember;
     const [itemColor = VictoryTheme.colors.default] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${chartQueryJSON?.hash}`, {
-        selector: (snapshot) => getInsightsItemColor(snapshot?.data, chartSpec?.groupBy, chartSpec?.view, itemKey),
+        selector: (snapshot) => getInsightsItemColor(snapshot?.data, chartSpec?.groupBy, chartSpec?.view, chartSpec?.limit, itemKey),
     });
     // A period's title depends on the saved Group by, so nothing resolves until the saved filters load
     const item =
