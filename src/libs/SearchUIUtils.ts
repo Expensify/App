@@ -2870,15 +2870,7 @@ function getReportActionsSections(
                 const isReportArchived = isArchivedReport(data[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`]);
                 if (
                     !reportID ||
-                    !isReportActionVisible(
-                        reportAction,
-                        reportID,
-                        canUserPerformWriteAction(report, isReportArchived),
-                        visibleReportActionsData,
-                        undefined,
-                        reportActionsCollection,
-                        isInvoiceReport(report),
-                    ) ||
+                    !isReportActionVisible(reportAction, reportID, canUserPerformWriteAction(report, isReportArchived), visibleReportActionsData, undefined, reportActionsCollection) ||
                     isDeletedAction(reportAction) ||
                     isResolvedActionableWhisper(reportAction) ||
                     reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.CLOSED ||
