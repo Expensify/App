@@ -24,17 +24,17 @@ import {View} from 'react-native';
 import ChangeExpensifyLoginLink from './ChangeExpensifyLoginLink';
 import Terms from './Terms';
 
-function AlertsSMSConsentLabel() {
+function TransactionalSMSConsentLabel() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     return (
         <View style={[styles.ml1, styles.flex1]}>
-            <Text>{translate('welcomeSignUpForm.alertsSMSConsent')}</Text>
+            <Text>{translate('welcomeSignUpForm.transactionalSMSConsent')}</Text>
             <Text
                 variant="label"
                 style={styles.mt2}
             >
-                {translate('welcomeSignUpForm.alertsSMSConsentFinePrint')}
+                {translate('welcomeSignUpForm.transactionalSMSConsentFinePrint')}
             </Text>
         </View>
     );
@@ -51,23 +51,23 @@ function SignUpWelcomeForm() {
     const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeAndAccountIDSelector});
     const serverErrorText = account ? getLatestErrorMessage(account) : '';
     const isPhoneSignup = Str.isSMSLogin(login ?? '');
-    const [hasSMSAlertsConsent, setHasSMSAlertsConsent] = useState(false);
+    const [hasSMSTransactionalConsent, setHasSMSTransactionalConsent] = useState(false);
     const [hasSMSMarketingConsent, setHasSMSMarketingConsent] = useState(false);
-    const alertsSMSConsentLabel = `${translate('welcomeSignUpForm.alertsSMSConsent')} ${translate('welcomeSignUpForm.alertsSMSConsentFinePrint')}`;
+    const transactionalSMSConsentLabel = `${translate('welcomeSignUpForm.transactionalSMSConsent')} ${translate('welcomeSignUpForm.transactionalSMSConsentFinePrint')}`;
     const marketingSMSConsentLabel = translate('welcomeSignUpForm.marketingSMSConsent');
 
-    // Alert texts are a condition of signing up with a phone number, so Join stays disabled until the user agrees to them
-    const isMissingRequiredSMSConsent = isPhoneSignup && !hasSMSAlertsConsent;
+    // Transactional texts are a condition of signing up with a phone number, so Join stays disabled until the user agrees to them
+    const isMissingRequiredSMSConsent = isPhoneSignup && !hasSMSTransactionalConsent;
 
     return (
         <>
             {isPhoneSignup && (
                 <View style={[styles.mt3, styles.mb2]}>
                     <CheckboxWithLabel
-                        LabelComponent={AlertsSMSConsentLabel}
-                        isChecked={hasSMSAlertsConsent}
-                        onInputChange={(value) => setHasSMSAlertsConsent(value ?? false)}
-                        accessibilityLabel={alertsSMSConsentLabel}
+                        LabelComponent={TransactionalSMSConsentLabel}
+                        isChecked={hasSMSTransactionalConsent}
+                        onInputChange={(value) => setHasSMSTransactionalConsent(value ?? false)}
+                        accessibilityLabel={transactionalSMSConsentLabel}
                         style={styles.mb3}
                     />
                     <CheckboxWithLabel
@@ -85,7 +85,7 @@ function SignUpWelcomeForm() {
                     size={CONST.BUTTON_SIZE.LARGE}
                     isLoading={account?.isLoading}
                     onPress={() => {
-                        signUpUser(login, preferredLocale, isPhoneSignup ? {hasSMSAlertsConsent, hasSMSMarketingConsent} : undefined, marketingAttribution, session);
+                        signUpUser(login, preferredLocale, isPhoneSignup ? {hasSMSTransactionalConsent, hasSMSMarketingConsent} : undefined, marketingAttribution, session);
                         setReadyToShowAuthScreens(true);
                     }}
                     style={[styles.mb2]}

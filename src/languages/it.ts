@@ -4484,8 +4484,8 @@ ${amount} per ${merchant} - ${date}`,
     },
     welcomeSignUpForm: {
         join: 'Partecipa',
-        alertsSMSConsent: "Fornendo il mio numero di telefono, accetto di ricevere da Expensify avvisi transazionali relativi all'account.",
-        alertsSMSConsentFinePrint: "Potrebbero essere applicate le tariffe standard per messaggi e dati. Rispondi STOP per annullare l'iscrizione.",
+        transactionalSMSConsent: "Fornendo il mio numero di telefono, accetto di ricevere da Expensify avvisi transazionali relativi all'account.",
+        transactionalSMSConsentFinePrint: "Potrebbero essere applicate le tariffe standard per messaggi e dati. Rispondi STOP per annullare l'iscrizione.",
         marketingSMSConsent: 'Accetto di ricevere SMS di marketing da Expensify',
     },
     detailsPage: {

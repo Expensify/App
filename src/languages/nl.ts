@@ -4482,8 +4482,8 @@ ${amount} voor ${merchant} - ${date}`,
     },
     welcomeSignUpForm: {
         join: 'Deelnemen',
-        alertsSMSConsent: 'Door mijn telefoonnummer op te geven, ga ik akkoord met het ontvangen van transactionele accountmeldingen van Expensify.',
-        alertsSMSConsentFinePrint: 'Er kunnen standaardkosten voor berichten en data van toepassing zijn. Antwoord STOP om je af te melden.',
+        transactionalSMSConsent: 'Door mijn telefoonnummer op te geven, ga ik akkoord met het ontvangen van transactionele accountmeldingen van Expensify.',
+        transactionalSMSConsentFinePrint: 'Er kunnen standaardkosten voor berichten en data van toepassing zijn. Antwoord STOP om je af te melden.',
         marketingSMSConsent: 'Ik ga akkoord met het ontvangen van marketing-sms van Expensify',
     },
     detailsPage: {

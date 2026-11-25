@@ -683,7 +683,7 @@ function buildOnyxDataToCleanUpAnonymousUser(session: OnyxEntry<Session>): Perso
 
 /** The text message consents collected when someone signs up with a phone number */
 type SMSConsent = {
-    hasSMSAlertsConsent: boolean;
+    hasSMSTransactionalConsent: boolean;
     hasSMSMarketingConsent: boolean;
 };
 
@@ -747,7 +747,7 @@ function signUpUser(
             ...getFreshMarketingAttribution(storedMarketingAttribution),
         };
         if (smsConsent) {
-            params.hasSMSAlertsConsent = smsConsent.hasSMSAlertsConsent;
+            params.hasSMSTransactionalConsent = smsConsent.hasSMSTransactionalConsent;
             params.hasSMSMarketingConsent = smsConsent.hasSMSMarketingConsent;
         }
         API.write(WRITE_COMMANDS.SIGN_UP_USER, params, {optimisticData, successData, failureData});

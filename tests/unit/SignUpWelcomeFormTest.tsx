@@ -13,19 +13,19 @@ import Onyx from 'react-native-onyx';
 
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
-const ALERTS_CONSENT_TEXT = 'I agree to receive transactional account alerts from Expensify.';
-const ALERTS_CONSENT_FINE_PRINT = 'Standard message and data rates may apply.';
-const ALERTS_CONSENT_LABEL = `${ALERTS_CONSENT_TEXT} ${ALERTS_CONSENT_FINE_PRINT}`;
+const TRANSACTIONAL_CONSENT_TEXT = 'I agree to receive transactional account alerts from Expensify.';
+const TRANSACTIONAL_CONSENT_FINE_PRINT = 'Standard message and data rates may apply.';
+const TRANSACTIONAL_CONSENT_LABEL = `${TRANSACTIONAL_CONSENT_TEXT} ${TRANSACTIONAL_CONSENT_FINE_PRINT}`;
 const MARKETING_CONSENT_LABEL = 'I agree to receive marketing texts from Expensify';
 
 jest.mock('@hooks/useLocalize', () =>
     jest.fn(() => ({
         translate: jest.fn((key: string) => {
-            if (key === 'welcomeSignUpForm.alertsSMSConsent') {
-                return ALERTS_CONSENT_TEXT;
+            if (key === 'welcomeSignUpForm.transactionalSMSConsent') {
+                return TRANSACTIONAL_CONSENT_TEXT;
             }
-            if (key === 'welcomeSignUpForm.alertsSMSConsentFinePrint') {
-                return ALERTS_CONSENT_FINE_PRINT;
+            if (key === 'welcomeSignUpForm.transactionalSMSConsentFinePrint') {
+                return TRANSACTIONAL_CONSENT_FINE_PRINT;
             }
             if (key === 'welcomeSignUpForm.marketingSMSConsent') {
                 return MARKETING_CONSENT_LABEL;
@@ -99,7 +99,7 @@ describe('SignUpWelcomeForm', () => {
         await renderForm();
         await waitForBatchedUpdatesWithAct();
 
-        expect(screen.getByLabelText(ALERTS_CONSENT_LABEL)).toBeOnTheScreen();
+        expect(screen.getByLabelText(TRANSACTIONAL_CONSENT_LABEL)).toBeOnTheScreen();
         expect(screen.getByLabelText(MARKETING_CONSENT_LABEL)).toBeOnTheScreen();
     });
 
@@ -108,11 +108,11 @@ describe('SignUpWelcomeForm', () => {
         await renderForm();
         await waitForBatchedUpdatesWithAct();
 
-        expect(screen.queryByLabelText(ALERTS_CONSENT_LABEL)).toBeNull();
+        expect(screen.queryByLabelText(TRANSACTIONAL_CONSENT_LABEL)).toBeNull();
         expect(screen.queryByLabelText(MARKETING_CONSENT_LABEL)).toBeNull();
     });
 
-    it('does not sign up with a phone number until the alerts consent is checked', async () => {
+    it('does not sign up with a phone number until the transactional consent is checked', async () => {
         // Given a phone sign-up where only the optional marketing consent is checked
         await setCredentialsLogin(PHONE_LOGIN);
         await renderForm();
@@ -122,7 +122,7 @@ describe('SignUpWelcomeForm', () => {
         // When the user presses Join
         fireEvent.press(screen.getByText('Join'));
 
-        // Then no account is created, because alert texts are required for phone sign-ups
+        // Then no account is created, because transactional texts are required for phone sign-ups
         expect(signUpUserSpy).not.toHaveBeenCalled();
     });
 
@@ -131,22 +131,22 @@ describe('SignUpWelcomeForm', () => {
         await setCredentialsLogin(PHONE_LOGIN);
         await renderForm();
         await waitForBatchedUpdatesWithAct();
-        fireEvent.press(screen.getByLabelText(ALERTS_CONSENT_LABEL));
+        fireEvent.press(screen.getByLabelText(TRANSACTIONAL_CONSENT_LABEL));
         fireEvent.press(screen.getByLabelText(MARKETING_CONSENT_LABEL));
 
         // When the user presses Join
         fireEvent.press(screen.getByText('Join'));
 
         // Then both consents are sent, so each one is stored
-        expect(signUpUserSpy).toHaveBeenCalledWith(PHONE_LOGIN, undefined, {hasSMSAlertsConsent: true, hasSMSMarketingConsent: true}, undefined, undefined);
+        expect(signUpUserSpy).toHaveBeenCalledWith(PHONE_LOGIN, undefined, {hasSMSTransactionalConsent: true, hasSMSMarketingConsent: true}, undefined, undefined);
     });
 
-    it('passes hasSMSMarketingConsent=false when only the alerts consent is checked', async () => {
-        // Given a phone sign-up that agrees to alert texts and checks then unchecks marketing texts
+    it('passes hasSMSMarketingConsent=false when only the transactional consent is checked', async () => {
+        // Given a phone sign-up that agrees to transactional texts and checks then unchecks marketing texts
         await setCredentialsLogin(PHONE_LOGIN);
         await renderForm();
         await waitForBatchedUpdatesWithAct();
-        fireEvent.press(screen.getByLabelText(ALERTS_CONSENT_LABEL));
+        fireEvent.press(screen.getByLabelText(TRANSACTIONAL_CONSENT_LABEL));
         fireEvent.press(screen.getByLabelText(MARKETING_CONSENT_LABEL));
         fireEvent.press(screen.getByLabelText(MARKETING_CONSENT_LABEL));
 
@@ -154,7 +154,7 @@ describe('SignUpWelcomeForm', () => {
         fireEvent.press(screen.getByText('Join'));
 
         // Then marketing consent is recorded as declined
-        expect(signUpUserSpy).toHaveBeenCalledWith(PHONE_LOGIN, undefined, {hasSMSAlertsConsent: true, hasSMSMarketingConsent: false}, undefined, undefined);
+        expect(signUpUserSpy).toHaveBeenCalledWith(PHONE_LOGIN, undefined, {hasSMSTransactionalConsent: true, hasSMSMarketingConsent: false}, undefined, undefined);
     });
 
     it('omits the consent param when signing up with an email', async () => {
