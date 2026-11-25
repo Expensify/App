@@ -12,6 +12,7 @@ import {getValidGroupBy, isReportActionEntry} from '@libs/SearchUIUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {MemberCustomFieldsByPolicyID} from '@src/selectors/Policy';
+import {isSplitContainerTransactionSelector} from '@src/selectors/Transaction';
 import type {ReportActions, SearchResults, Transaction} from '@src/types/onyx';
 
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
@@ -210,17 +211,13 @@ function useSearchAutoRefetch({
 
             // Transaction Onyx keys are `transactions_<id>` but search results yield bare IDs, so read the ID off the value.
             const addedTransactionIDs: string[] = [];
-            const createdTransactionIDs: string[] = [];
             for (const [key, transaction] of Object.entries(transactions ?? {})) {
                 const transactionID = transaction?.transactionID;
                 if (!transactionID) {
                     continue;
                 }
-                if (!previousTransactionsIDsSet.has(key)) {
+                if (!previousTransactionsIDsSet.has(key) && !isSplitContainerTransactionSelector(transaction)) {
                     addedTransactionIDs.push(transactionID);
-                    if (transaction.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD) {
-                        createdTransactionIDs.push(transactionID);
-                    }
                 }
             }
 
@@ -252,16 +249,6 @@ function useSearchAutoRefetch({
                 if (!hasDeletedID) {
                     return;
                 }
-            }
-
-            // With an RHP over Search, only an entry the user just created there needs a refetch right away. Opening a report
-            // also writes transactions the results lack (split originals, expenses of reports on pages not loaded yet), and
-            // refetching from offset 0 replaces the snapshot, dropping the pages the report navigation arrows loaded. Defer
-            // everything else until Search is focused again.
-            const hasCreatedNewID = isChat ? hasAGenuinelyNewID : createdTransactionIDs.some((id) => !existingSearchResultIDsSet.has(id));
-            if (!isFocused && !hasCreatedNewID) {
-                hasPendingSearchRef.current = true;
-                return;
             }
 
             // Trigger the search
