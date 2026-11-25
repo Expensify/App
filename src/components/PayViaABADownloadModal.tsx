@@ -19,8 +19,7 @@ import type {ModalProps} from './Modal/Global/ModalContext';
 import FileDownloadModalWrapper from './Modal/Global/FileDownloadModalWrapper';
 
 type PayViaABADownloadModalProps = ModalProps & {
-    /** Resolves with nothing when the reports can't be paid, which closes the modal */
-    abaFileRequest: Promise<PayViaABAResult | undefined>;
+    abaFileRequest: Promise<PayViaABAResult>;
 
     getDownloadFailedMessage: (error?: HttpsError) => string;
 };
@@ -38,10 +37,6 @@ function PayViaABADownloadModal({abaFileRequest, getDownloadFailedMessage, close
                 if (isUnmounted) {
                     return;
                 }
-                if (!result) {
-                    closeModal();
-                    return;
-                }
                 setPayViaABAResult(result);
             })
             .catch((error: unknown) => {
@@ -53,7 +48,7 @@ function PayViaABADownloadModal({abaFileRequest, getDownloadFailedMessage, close
         return () => {
             isUnmounted = true;
         };
-    }, [abaFileRequest, getDownloadFailedMessage, closeModal]);
+    }, [abaFileRequest, getDownloadFailedMessage]);
 
     const status = (() => {
         if (downloadFailedMessage) {

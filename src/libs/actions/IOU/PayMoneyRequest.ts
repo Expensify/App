@@ -1084,16 +1084,12 @@ function payMoneyRequest(params: PayMoneyRequestFunctionParams) {
 
 type PayViaABAFunctionParams = {
     reportIDs: string[];
-    policy: OnyxEntry<OnyxTypes.Policy>;
     shouldReimburseHeldTransactions?: boolean;
     introSelected: OnyxEntry<OnyxTypes.IntroSelected>;
     isSelfTourViewed: boolean | undefined;
     currentUserAccountID: number;
     conciergeChat: OnyxEntry<OnyxTypes.Report>;
     delegateAccountID: number | undefined;
-    userBillingGracePeriodEnds: OnyxCollection<OnyxTypes.BillingGraceEndPeriod>;
-    amountOwed: OnyxEntry<number>;
-    ownerBillingGracePeriodEnd?: OnyxEntry<number>;
     onPaid?: () => void;
 };
 
@@ -1154,28 +1150,11 @@ async function parsePayViaABAResponse(response: Response): Promise<{content: str
 
 /**
  * Gets the ABA file for paying the given reports, leaving it to the caller to save. The backend marks the reports in the
- * file as "paid elsewhere" when it creates it, and also returns the reports it couldn't pay. Resolves with nothing when
- * the user can't pay, and rejects with the backend's error when it doesn't send the file.
+ * file as "paid elsewhere" when it creates it, and also returns the reports it couldn't pay. Rejects with the backend's
+ * error when it doesn't send the file.
  */
-async function payViaABA(params: PayViaABAFunctionParams): Promise<PayViaABAResult | undefined> {
-    const {
-        reportIDs,
-        policy,
-        shouldReimburseHeldTransactions = true,
-        introSelected,
-        isSelfTourViewed,
-        currentUserAccountID,
-        conciergeChat,
-        delegateAccountID,
-        userBillingGracePeriodEnds,
-        amountOwed,
-        ownerBillingGracePeriodEnd,
-        onPaid,
-    } = params;
-    if (policy && shouldRestrictUserBillableActions(policy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, currentUserAccountID)) {
-        Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy.id));
-        return undefined;
-    }
+async function payViaABA(params: PayViaABAFunctionParams): Promise<PayViaABAResult> {
+    const {reportIDs, shouldReimburseHeldTransactions = true, introSelected, isSelfTourViewed, currentUserAccountID, conciergeChat, delegateAccountID, onPaid} = params;
 
     completePaymentOnboarding(CONST.IOU.PAYMENT_SELECTED.BBA, introSelected, isSelfTourViewed, currentUserAccountID, conciergeChat, delegateAccountID);
 

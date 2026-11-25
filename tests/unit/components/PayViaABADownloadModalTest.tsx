@@ -19,12 +19,12 @@ jest.mock('@libs/saveTextFile', () => jest.fn(() => Promise.resolve()));
 const abaFile: ABAFile = {fileName: 'ABA_Report_123.aba', content: 'ABA file'};
 const payViaABAResult: PayViaABAResult = {abaFile, skippedReportIDs: {}};
 
-function renderModal(abaFileRequest: Promise<PayViaABAResult | undefined>, closeModal = jest.fn()) {
+function renderModal(abaFileRequest: Promise<PayViaABAResult>) {
     render(
         <PayViaABADownloadModal
             abaFileRequest={abaFileRequest}
             getDownloadFailedMessage={(error) => `Failed: ${error?.message ?? 'unknown'}`}
-            closeModal={closeModal}
+            closeModal={jest.fn()}
             resolveModal={jest.fn()}
         />,
     );
@@ -37,7 +37,7 @@ describe('PayViaABADownloadModal', () => {
 
     it('saves the ABA file once it is ready, and again when the user asks for it', async () => {
         // Given an ABA file that is still being generated
-        const {promise, resolve} = Promise.withResolvers<PayViaABAResult | undefined>();
+        const {promise, resolve} = Promise.withResolvers<PayViaABAResult>();
         renderModal(promise);
 
         // Then the user is asked to wait and can't close the modal
@@ -61,7 +61,7 @@ describe('PayViaABADownloadModal', () => {
 
     it('tells the user when some submitters have no AUD bank account, so their reports were left out of the file', async () => {
         // Given an ABA file that is still being generated
-        const {promise, resolve} = Promise.withResolvers<PayViaABAResult | undefined>();
+        const {promise, resolve} = Promise.withResolvers<PayViaABAResult>();
         renderModal(promise);
 
         // When it arrives without a report whose submitter has no AUD bank account
@@ -74,7 +74,7 @@ describe('PayViaABADownloadModal', () => {
 
     it("tells the user why the ABA file couldn't be generated", async () => {
         // Given an ABA file the backend refuses to generate
-        const {promise, reject} = Promise.withResolvers<PayViaABAResult | undefined>();
+        const {promise, reject} = Promise.withResolvers<PayViaABAResult>();
         renderModal(promise);
 
         // When the request fails
@@ -83,18 +83,5 @@ describe('PayViaABADownloadModal', () => {
         // Then the user is told why, and there's nothing to save
         expect(screen.getByText('Failed: Missing deposit account')).toBeOnTheScreen();
         expect(saveTextFile).not.toHaveBeenCalled();
-    });
-
-    it("closes when the reports can't be paid at all", async () => {
-        // Given a request that will end without a file, like when billing restrictions stop the payment
-        const {promise, resolve} = Promise.withResolvers<PayViaABAResult | undefined>();
-        const closeModal = jest.fn();
-        renderModal(promise, closeModal);
-
-        // When the request ends
-        await act(async () => resolve(undefined));
-
-        // Then the modal closes, since there's no file to wait for
-        expect(closeModal).toHaveBeenCalled();
     });
 });

@@ -3183,16 +3183,12 @@ describe('actions/IOU/PayMoneyRequest', () => {
     });
 
     describe('payViaABA', () => {
-        const policy = {...createRandomPolicy(1), id: 'ABAPolicy', ownerAccountID: CARLOS_ACCOUNT_ID, role: CONST.POLICY.ROLE.ADMIN};
         const payViaABAParams = {
-            policy,
             introSelected: undefined,
             isSelfTourViewed: false,
             currentUserAccountID: CARLOS_ACCOUNT_ID,
             conciergeChat: undefined,
             delegateAccountID: undefined,
-            userBillingGracePeriodEnds: undefined,
-            amountOwed: 0,
         };
         const abaFileResponse = {ok: true, headers: new Headers([['content-type', 'text/plain']]), text: () => Promise.resolve('ABA file')};
         let appendSpy: jest.SpyInstance;
@@ -3363,18 +3359,6 @@ describe('actions/IOU/PayMoneyRequest', () => {
 
             // And the skipped reports are returned as string IDs by reason, leaving out reasons without reports, so the user can be told which weren't paid
             expect(result?.skippedReportIDs).toEqual({[CONST.ABA_SKIPPED_REPORT_REASON.MISSING_DEPOSIT_ACCOUNT]: ['456', '789']});
-        });
-
-        it('navigates to the restricted action page instead of downloading when billable actions are restricted', () => {
-            // Given the workspace owner owes money and their billing grace period has ended
-            const pastDate = Math.floor(Date.now() / 1000) - 86400 * 30;
-
-            // When they try to pay via ABA
-            payViaABA({...payViaABAParams, reportIDs: ['123'], amountOwed: 100, ownerBillingGracePeriodEnd: pastDate});
-
-            // Then they're told why they can't, and no file is downloaded
-            expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.RESTRICTED_ACTION.getRoute(policy.id));
-            expect(getPayViaABACalls()).toHaveLength(0);
         });
     });
 });

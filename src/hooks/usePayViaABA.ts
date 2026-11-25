@@ -4,12 +4,15 @@ import PayViaABADownloadModal from '@components/PayViaABADownloadModal';
 
 import deferModalPresentationAfterPopoverDismiss from '@libs/deferModalPresentationAfterPopoverDismiss';
 import type HttpsError from '@libs/Errors/HttpsError';
+import Navigation from '@libs/Navigation/Navigation';
 import {getDisplayNameForParticipant} from '@libs/ReportUtils';
+import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 
 import {payViaABA} from '@userActions/IOU/PayMoneyRequest';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import type {Policy, Report} from '@src/types/onyx';
 
 import type {OnyxEntry} from 'react-native-onyx';
@@ -33,7 +36,8 @@ type PayReportsViaABAOptions = {
 
 /**
  * Returns a function that pays reports by downloading their ABA file, showing its progress in a download modal.
- * Locked accounts are shown the locked account modal instead, and unvalidated ones verify their account before it downloads.
+ * Locked accounts are shown the locked account modal instead, workspaces with overdue billing go to the restricted action
+ * page, and unvalidated accounts verify before it downloads.
  * Also returns whether a payment is still in progress, so the Pay button can show a loader.
  */
 function usePayViaABA() {
@@ -64,20 +68,16 @@ function usePayViaABA() {
         return name ? translate('iou.missingABADepositAccount', {name}) : translate('iou.submittersMissingABADepositAccount');
     };
 
-    const downloadABAFile = (reports: ReportToPayViaABA[], policy: OnyxEntry<Policy>, {shouldReimburseHeldTransactions, onPaid}: PayReportsViaABAOptions) => {
+    const downloadABAFile = (reports: ReportToPayViaABA[], {shouldReimburseHeldTransactions, onPaid}: PayReportsViaABAOptions) => {
         setIsDownloadingABAFile(true);
         const abaFileRequest = payViaABA({
             reportIDs: reports.map((report) => report.reportID),
-            policy,
             shouldReimburseHeldTransactions,
             introSelected,
             isSelfTourViewed,
             currentUserAccountID: accountID,
             conciergeChat,
             delegateAccountID,
-            userBillingGracePeriodEnds,
-            amountOwed,
-            ownerBillingGracePeriodEnd,
             onPaid,
         });
         deferModalPresentationAfterPopoverDismiss(() => {
@@ -92,11 +92,15 @@ function usePayViaABA() {
             deferModalPresentationAfterPopoverDismiss(showLockedAccountModal);
             return;
         }
-        if (!isUserValidated) {
-            deferModalPresentationAfterPopoverDismiss(() => verifyAccountAndResume(() => downloadABAFile(reports, policy, options)));
+        if (policy && shouldRestrictUserBillableActions(policy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, accountID)) {
+            Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy.id));
             return;
         }
-        downloadABAFile(reports, policy, options);
+        if (!isUserValidated) {
+            deferModalPresentationAfterPopoverDismiss(() => verifyAccountAndResume(() => downloadABAFile(reports, options)));
+            return;
+        }
+        downloadABAFile(reports, options);
     };
 
     return {payReportsViaABA, isDownloadingABAFile};

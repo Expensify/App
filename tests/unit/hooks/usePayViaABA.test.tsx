@@ -11,12 +11,15 @@ import type {PayViaABADownloadModalProps} from '@components/PayViaABADownloadMod
 import usePayViaABA from '@hooks/usePayViaABA';
 
 import HttpsError from '@libs/Errors/HttpsError';
+import Navigation from '@libs/Navigation/Navigation';
 
 import {payViaABA} from '@userActions/IOU/PayMoneyRequest';
+import type {PayViaABAResult} from '@userActions/IOU/PayMoneyRequest';
 
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import type {Policy} from '@src/types/onyx';
 
 import React from 'react';
@@ -56,6 +59,10 @@ jest.mock('@libs/deferModalPresentationAfterPopoverDismiss', () => ({
     default: (presentModal: () => void) => presentModal(),
 }));
 
+jest.mock('@libs/Navigation/Navigation', () => ({
+    navigate: jest.fn(),
+}));
+
 jest.mock('@userActions/IOU/PayMoneyRequest', () => ({
     ...jest.requireActual<Record<string, unknown>>('@userActions/IOU/PayMoneyRequest'),
     payViaABA: jest.fn(() => Promise.resolve()),
@@ -66,7 +73,7 @@ const ACCOUNT_ID = 1;
 function Wrapper({children}: {children: React.ReactNode}) {
     return <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, CurrentUserPersonalDetailsProvider]}>{children}</ComposeProviders>;
 }
-const policy: Policy = {...createRandomPolicy(1), id: 'ABAPolicy'};
+const policy: Policy = {...createRandomPolicy(1), id: 'ABAPolicy', ownerAccountID: ACCOUNT_ID};
 
 describe('usePayViaABA', () => {
     beforeAll(() => {
@@ -95,17 +102,32 @@ describe('usePayViaABA', () => {
         const onPaid = jest.fn();
         act(() => result.current.payReportsViaABA([{reportID: '123'}, {reportID: '456'}], policy, {shouldReimburseHeldTransactions: false, onPaid}));
 
-        // Then the ABA file is downloaded for them, with what the billing and onboarding checks need about the current user
+        // Then the ABA file is downloaded for them, with what the onboarding checks need about the current user
         expect(payViaABA).toHaveBeenCalledWith(
             expect.objectContaining({
                 reportIDs: ['123', '456'],
-                policy,
                 shouldReimburseHeldTransactions: false,
                 onPaid,
                 currentUserAccountID: ACCOUNT_ID,
-                amountOwed: 100,
             }),
         );
+    });
+
+    it('sends the owner to the restricted action page instead of downloading the ABA file when their billing is overdue', async () => {
+        // Given a workspace owner who owes money and is past their billing grace period
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END, Math.floor(Date.now() / 1000) - 86400 * 30);
+        });
+        const {result} = renderHook(() => usePayViaABA(), {wrapper: Wrapper});
+        await waitForBatchedUpdatesWithAct();
+
+        // When a report is paid via ABA
+        act(() => result.current.payReportsViaABA([{reportID: '123'}], policy));
+
+        // Then they're told why they can't pay, without the download modal flashing up first
+        expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.RESTRICTED_ACTION.getRoute(policy.id));
+        expect(payViaABA).not.toHaveBeenCalled();
+        expect(mockShowModal).not.toHaveBeenCalled();
     });
 
     it('shows the download modal for the ABA file', async () => {
@@ -195,17 +217,13 @@ describe('usePayViaABA', () => {
         act(() => mockVerifyAccountAndResume.mock.calls.at(0)?.at(0)?.());
 
         // Then the file they asked for is downloaded
-        expect(payViaABA).toHaveBeenCalledWith(expect.objectContaining({reportIDs: ['123'], policy}));
+        expect(payViaABA).toHaveBeenCalledWith(expect.objectContaining({reportIDs: ['123']}));
     });
 
     it('is loading until the ABA payment finishes', async () => {
         // Given an ABA payment that takes a while
-        let finishPayment: () => void = () => {};
-        jest.mocked(payViaABA).mockReturnValueOnce(
-            new Promise((resolve) => {
-                finishPayment = () => resolve(undefined);
-            }),
-        );
+        const {promise, resolve: finishPayment} = Promise.withResolvers<PayViaABAResult>();
+        jest.mocked(payViaABA).mockReturnValueOnce(promise);
         const {result} = renderHook(() => usePayViaABA(), {wrapper: Wrapper});
         await waitForBatchedUpdatesWithAct();
 
@@ -217,7 +235,7 @@ describe('usePayViaABA', () => {
         expect(result.current.isDownloadingABAFile).toBe(true);
 
         // When the payment finishes
-        await act(async () => finishPayment());
+        await act(async () => finishPayment({abaFile: {fileName: 'ABA_Report_123.aba', content: 'ABA file'}, skippedReportIDs: {}}));
 
         // Then it stops loading
         expect(result.current.isDownloadingABAFile).toBe(false);
