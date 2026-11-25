@@ -101,7 +101,7 @@ function getPendingAction(policyTagList: PolicyTagList): PendingAction | undefin
     if (!policyTagList) {
         return undefined;
     }
-    return (policyTagList.pendingAction ?? Object.values(policyTagList.tags).some((tag: PolicyTag) => tag.pendingAction)) ? CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE : undefined;
+    return (policyTagList.pendingAction ?? Object.values(policyTagList.tags ?? {}).some((tag: PolicyTag) => tag.pendingAction)) ? CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE : undefined;
 }
 
 /** Tag list names can repeat, so add the unique orderWeight to make each multi-level row key unique. */
