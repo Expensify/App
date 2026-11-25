@@ -20,6 +20,7 @@ import type {DeleteWorkspaceBlockedErrorKey} from '@libs/actions/Policy/Policy';
 import {filterInactiveCards, getCardSettings, isCard} from '@libs/CardUtils';
 import {getLatestErrorMessage} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import {getIsOffline} from '@libs/NetworkState';
 import {isPendingDeletePolicy, shouldBlockWorkspaceDeletionForInvoicifyUser} from '@libs/PolicyUtils';
 import {isSubscriptionTypeOfInvoicing} from '@libs/SubscriptionUtils';
 import {getIsTravelBillingEnabled, getTravelBillingCardSettingsKey, getTravelBillingFeedID} from '@libs/TravelBillingUtils';
@@ -124,8 +125,6 @@ function DeleteWorkspaceFlow({policyID, onDismiss, onDeleteComplete}: DeleteWork
         deleteWorkspaceBlockedErrorKey = 'workspace.common.deleteTravelBillingError';
     }
     const isDeleteBlocked = !!deleteWorkspaceBlockedErrorKey;
-    // While offline we can't get the real rejection reason from the backend, so if we already know locally that the workspace has active Expensify Cards or Consolidated Travel Billing, block the delete up front instead of queuing one that will fail on reconnect.
-    const hasDeleteWorkspaceBlockedError = isDeleteBlocked && !!isOffline;
 
     const policyLatestErrorMessage = getLatestErrorMessage(policy);
     const isPendingDelete = isPendingDeletePolicy(policy);
@@ -212,12 +211,17 @@ function DeleteWorkspaceFlow({policyID, onDismiss, onDeleteComplete}: DeleteWork
             confirmText: translate('common.delete'),
             cancelText: translate('common.cancel'),
             buttonVariant: CONST.BUTTON_VARIANT.DANGER,
-            ...(hasDeleteWorkspaceBlockedError ? {} : {isConfirmLoading: isPendingDelete}),
+            isConfirmLoading: isPendingDelete,
         }).then((result) => {
             if (!policyName || result.action !== ModalActions.CONFIRM) {
                 onDismiss();
                 return;
             }
+
+            // The confirmation can stay open while the connection drops or comes back, so read the connection when Delete is pressed instead of using the value from when it opened.
+            const isOfflineOnConfirm = getIsOffline();
+            // While offline we can't get the real rejection reason from the backend, so if we already know locally that the workspace has active Expensify Cards or Consolidated Travel Billing, block the delete up front instead of queuing one that will fail on reconnect.
+            const hasDeleteWorkspaceBlockedError = isDeleteBlocked && isOfflineOnConfirm;
 
             deleteWorkspace({
                 policies,
@@ -240,8 +244,9 @@ function DeleteWorkspaceFlow({policyID, onDismiss, onDeleteComplete}: DeleteWork
             });
 
             if (hasDeleteWorkspaceBlockedError) {
-                showDeleteWorkspaceErrorModal();
-            } else if (isOffline) {
+                // Delete leaves the confirmation open in its loading state, so close it first or it comes back once the error is dismissed.
+                closeVisibleModal(() => showDeleteWorkspaceErrorModal(), false);
+            } else if (isOfflineOnConfirm) {
                 closeModal();
                 onDeleteComplete?.();
                 onDismiss();

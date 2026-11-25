@@ -5,6 +5,8 @@ import type {ModalStateChangePayload} from '@components/Modal/Global/ModalContex
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
+import {getIsOffline} from '@libs/NetworkState';
+import type * as NetworkState from '@libs/NetworkState';
 import {getTravelBillingCardSettingsKey, getTravelBillingFeedID} from '@libs/TravelBillingUtils';
 
 import DeleteWorkspaceFlow from '@pages/workspace/deleteWorkspace/DeleteWorkspaceFlow';
@@ -29,7 +31,7 @@ type ConfirmModalCall = {
 
 const mockDeleteWorkspace = jest.fn();
 const mockShowConfirmModal = jest.fn<Promise<ModalStateChangePayload>, [ConfirmModalCall]>();
-const mockUseNetwork = jest.fn<{isOffline: boolean}, []>();
+const mockCloseVisibleModal = jest.fn((callback?: () => void) => callback?.());
 
 jest.mock('@libs/actions/Policy/Policy', () => ({
     calculateBillNewDot: jest.fn(),
@@ -46,12 +48,17 @@ jest.mock('@hooks/useConfirmModal', () =>
     })),
 );
 
-jest.mock('@hooks/useNetwork', () => () => mockUseNetwork());
+// useNetwork reads the same store, so this one mock drives the connection both when the flow renders and when Delete is pressed
+jest.mock('@libs/NetworkState', () => ({
+    ...jest.requireActual<typeof NetworkState>('@libs/NetworkState'),
+    getIsOffline: jest.fn(),
+}));
+const mockGetIsOffline = jest.mocked(getIsOffline);
 
 jest.mock('@hooks/useScreenBoundDynamicRoute', () => () => (suffix: string) => suffix);
 
 jest.mock('@libs/actions/Modal', () => ({
-    close: jest.fn().mockImplementation((callback?: () => void) => callback?.()),
+    close: (callback?: () => void) => mockCloseVisibleModal(callback),
 }));
 
 jest.mock('@react-navigation/native', () => ({
@@ -97,6 +104,18 @@ function getErrorModalHTML() {
     return React.isValidElement<{html?: string}>(renderHTML) ? renderHTML.props.html : undefined;
 }
 
+/** Keeps the delete confirmation open until the returned function presses Delete, so a test can change the connection in between */
+function holdDeleteConfirmation() {
+    let pressDelete: (() => void) | undefined;
+    mockShowConfirmModal.mockImplementationOnce(
+        () =>
+            new Promise((resolve) => {
+                pressDelete = () => resolve({action: ModalActions.CONFIRM});
+            }),
+    );
+    return () => pressDelete?.();
+}
+
 describe('DeleteWorkspaceFlow', () => {
     beforeAll(() => {
         Onyx.init({keys: ONYXKEYS});
@@ -107,7 +126,8 @@ describe('DeleteWorkspaceFlow', () => {
         mockDeleteWorkspace.mockReset();
         mockShowConfirmModal.mockReset();
         mockShowConfirmModal.mockResolvedValue({action: ModalActions.CONFIRM});
-        mockUseNetwork.mockReturnValue({isOffline: true});
+        mockCloseVisibleModal.mockClear();
+        mockGetIsOffline.mockReturnValue(true);
         await act(async () => {
             await Onyx.clear();
             await Onyx.set(ONYXKEYS.SESSION, {email: USER_EMAIL, accountID: USER_ACCOUNT_ID});
@@ -168,7 +188,7 @@ describe('DeleteWorkspaceFlow', () => {
 
     it('sends the delete while online and shows the Consolidated Travel Billing warning when the backend rejects it', async () => {
         // Given an online admin whose workspace has Consolidated Travel Billing
-        mockUseNetwork.mockReturnValue({isOffline: false});
+        mockGetIsOffline.mockReturnValue(false);
         mockDeleteWorkspace.mockImplementation(() => Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}));
         await act(async () => {
             await enableTravelBilling(WORKSPACE_ACCOUNT_ID);
@@ -190,5 +210,50 @@ describe('DeleteWorkspaceFlow', () => {
         expect(mockDeleteWorkspace).toHaveBeenCalledWith(expect.objectContaining({deleteWorkspaceBlockedErrorKey: undefined}));
         await waitFor(() => expect(mockShowConfirmModal).toHaveBeenCalledTimes(2));
         expect(getErrorModalHTML()).toBe(translateLocal('workspace.common.deleteTravelBillingError'));
+    });
+
+    it('still shows the Consolidated Travel Billing error when the connection drops while the delete confirmation is open', async () => {
+        // Given an online admin looking at the delete confirmation for a workspace with Consolidated Travel Billing
+        mockGetIsOffline.mockReturnValue(false);
+        const pressDelete = holdDeleteConfirmation();
+        await act(async () => {
+            await enableTravelBilling(WORKSPACE_ACCOUNT_ID);
+        });
+        renderFlow();
+        await waitForBatchedUpdatesWithAct();
+        await waitFor(() => expect(mockShowConfirmModal).toHaveBeenCalledTimes(1));
+
+        // When the connection drops before the admin presses Delete
+        mockGetIsOffline.mockReturnValue(true);
+        await act(async () => {
+            pressDelete();
+        });
+
+        // Then the delete is still blocked with the travel billing warning, because the connection is checked when Delete is pressed rather than when the confirmation opened.
+        // Delete leaves the confirmation open, so it has to be closed before the warning shows, or it would come back once the warning is dismissed.
+        await waitFor(() => expect(mockShowConfirmModal).toHaveBeenCalledTimes(2));
+        expect(mockCloseVisibleModal).toHaveBeenCalled();
+        expect(mockDeleteWorkspace).toHaveBeenCalledWith(expect.objectContaining({deleteWorkspaceBlockedErrorKey: 'workspace.common.deleteTravelBillingError'}));
+        expect(getErrorModalHTML()).toBe(translateLocal('workspace.common.deleteTravelBillingError'));
+    });
+
+    it('closes the flow after the offline delete when the connection drops while the delete confirmation is open', async () => {
+        // Given an online admin looking at the delete confirmation for a workspace with nothing blocking the delete
+        mockGetIsOffline.mockReturnValue(false);
+        const onDeleteComplete = jest.fn();
+        const pressDelete = holdDeleteConfirmation();
+        renderFlow(onDeleteComplete);
+        await waitForBatchedUpdatesWithAct();
+        await waitFor(() => expect(mockShowConfirmModal).toHaveBeenCalledTimes(1));
+
+        // When the connection drops before the admin presses Delete
+        mockGetIsOffline.mockReturnValue(true);
+        await act(async () => {
+            pressDelete();
+        });
+
+        // Then the delete is queued and the flow closes right away, since no response will arrive to close it until the app reconnects
+        await waitFor(() => expect(onDeleteComplete).toHaveBeenCalled());
+        expect(mockDeleteWorkspace).toHaveBeenCalledWith(expect.objectContaining({deleteWorkspaceBlockedErrorKey: undefined}));
     });
 });
