@@ -4,6 +4,7 @@ import ComposeProviders from '@components/ComposeProviders';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 
+import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 
@@ -13,8 +14,10 @@ import {toggleConsolidatedDomainBilling} from '@userActions/Domain';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 
+import type * as ReactNavigationNative from '@react-navigation/native';
 import type {PropsWithChildren} from 'react';
 
 import React from 'react';
@@ -35,6 +38,12 @@ const CURRENT_USER_EMAIL = 'admin@acme.com';
 
 let mockCurrentUserLogin = CURRENT_USER_EMAIL;
 
+jest.mock('@react-navigation/native', () => ({
+    ...jest.requireActual<typeof ReactNavigationNative>('@react-navigation/native'),
+    useIsFocused: () => true,
+}));
+jest.mock('@libs/Navigation/Navigation', () => ({navigate: jest.fn()}));
+jest.mock('@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute', () => jest.fn((suffix: string) => suffix));
 jest.mock('@hooks/useConfirmModal', () => jest.requireActual<typeof ConfirmModalMock>('../utils/mockUseConfirmModal').default);
 jest.mock('@hooks/useCurrentUserPersonalDetails', () => jest.fn(() => ({login: mockCurrentUserLogin})));
 jest.mock('@pages/domain/BaseDomainSettingsPage', () => jest.fn(({children}: PropsWithChildren) => children));
@@ -131,8 +140,11 @@ describe('DomainAdminsSettingsPage consolidated domain billing switch', () => {
     });
 
     it('lets the primary contact turn the setting on', async () => {
-        // Given billing that is off, viewed by the primary contact
+        // Given billing that is off, viewed by the primary contact, who has a payment card
         await seedDomain(PRIMARY_CONTACT_EMAIL);
+        await act(async () => {
+            await Onyx.set(ONYXKEYS.NVP_BILLING_FUND_ID, 1234);
+        });
         mockCurrentUserLogin = PRIMARY_CONTACT_EMAIL;
 
         // When the primary contact presses the switch
@@ -141,7 +153,21 @@ describe('DomainAdminsSettingsPage consolidated domain billing switch', () => {
         // Then the switch is not locked and turns billing on without a modal
         expect(switchNode.props.accessibilityLabel).not.toContain(getLockedSuffix());
         expect(mockShowConfirmModal).not.toHaveBeenCalled();
+        expect(Navigation.navigate).not.toHaveBeenCalled();
         expect(toggleConsolidatedDomainBilling).toHaveBeenCalledWith(DOMAIN_ACCOUNT_ID, DOMAIN_NAME, true);
+    });
+
+    it('asks a primary contact without a payment card to add one before turning the setting on', async () => {
+        // Given billing that is off, viewed by the primary contact, who has no payment card
+        await seedDomain(PRIMARY_CONTACT_EMAIL);
+        mockCurrentUserLogin = PRIMARY_CONTACT_EMAIL;
+
+        // When the primary contact presses the switch
+        await renderPageAndPressSwitch();
+
+        // Then the add payment card flow opens and billing stays off until a card is added
+        expect(Navigation.navigate).toHaveBeenCalledWith(DYNAMIC_ROUTES.ADD_PAYMENT_CARD.path);
+        expect(toggleConsolidatedDomainBilling).not.toHaveBeenCalled();
     });
 
     it('lets any admin turn the setting off', async () => {
