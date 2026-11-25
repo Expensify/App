@@ -6246,7 +6246,13 @@ function resolveCanEditMoneyRequest(
 }
 
 // TODO: currentUserEmail will be required eventually so this becomes a pure function. Subscribe the data via useOnyx and pass it from the component. Refactor issue: https://github.com/Expensify/App/issues/66412
-function getNextApproverAccountID(report: OnyxEntry<Report>, rules: OnyxCollection<Rule>, isUnapproved = false, currentUserEmail?: string, personalDetailsByLogins?: PersonalDetailsByLogin) {
+function getNextApproverAccountID(
+    report: OnyxEntry<Report>,
+    rules: OnyxCollection<Rule>,
+    personalDetailsByLogins: PersonalDetailsByLogin | undefined,
+    isUnapproved = false,
+    currentUserEmail?: string,
+) {
     // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
     const policy = getPolicy(report?.policyID);
     const currentUserLogin = currentUserEmail ?? deprecatedCurrentUserEmail ?? '';
@@ -11513,7 +11519,7 @@ function shouldBlockSubmitDueToPreventSelfApproval(
 
     const reportOwnerLogin = reportOwnerPersonalDetails?.login;
     const reportOwnerPersonalDetailsByLogin: PersonalDetailsByLogin = reportOwnerLogin && reportOwnerPersonalDetails ? {[reportOwnerLogin]: reportOwnerPersonalDetails} : {};
-    const nextApproverAccountID = getNextApproverAccountID(report, rules, undefined, undefined, reportOwnerPersonalDetailsByLogin);
+    const nextApproverAccountID = getNextApproverAccountID(report, rules, reportOwnerPersonalDetailsByLogin);
     const isSubmitterSameAsNextApprover = nextApproverAccountID === report?.ownerAccountID;
 
     if (isOpenExpenseReport(report)) {
@@ -16053,7 +16059,7 @@ function shouldShowMarkAsDone({
         return false;
     }
     // Submit & Close policies have no approval chain, so the next approver is never looked up by login and personalDetailsByLogins isn't needed.
-    return getNextApproverAccountID(report, rules, false, undefined, undefined) === report?.ownerAccountID;
+    return getNextApproverAccountID(report, rules, undefined) === report?.ownerAccountID;
 }
 
 /**

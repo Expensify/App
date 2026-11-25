@@ -8262,7 +8262,7 @@ function convertIOUReportToExpenseReport(
     };
 
     // isUnapproved returns before the lookup by login, so personalDetailsByLogins isn't needed.
-    const nextApproverAccountID = getNextApproverAccountID(iouReport, rules, true);
+    const nextApproverAccountID = getNextApproverAccountID(iouReport, rules, undefined, true);
     if (iouReport.managerID !== nextApproverAccountID) {
         expenseReport.stateNum = CONST.REPORT.STATE_NUM.OPEN;
         expenseReport.statusNum = CONST.REPORT.STATUS_NUM.OPEN;
@@ -8592,7 +8592,7 @@ function buildOptimisticChangePolicyData({
             value: {
                 stateNum: CONST.REPORT.STATE_NUM.OPEN,
                 statusNum: CONST.REPORT.STATUS_NUM.OPEN,
-                managerID: getNextApproverAccountID(report, rules, true, undefined, personalDetailsByLogins),
+                managerID: getNextApproverAccountID(report, rules, personalDetailsByLogins, true),
             },
         });
 

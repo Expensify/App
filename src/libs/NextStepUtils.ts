@@ -76,7 +76,7 @@ type BuildOptimisticNextStepParams = {
     isTrackIntentUser: boolean | undefined;
     translate?: LocaleContextProps['translate'];
     rules: OnyxCollection<Rule>;
-    personalDetailsByLogins?: PersonalDetailsByLogin;
+    personalDetailsByLogins: PersonalDetailsByLogin | undefined;
 };
 
 /** The backend still sends the legacy ETA key for older clients, so the submission schedule is read from the schedule fields sent with it. */
@@ -355,7 +355,7 @@ function buildOptimisticNextStep(params: BuildOptimisticNextStepParams): ReportN
             // We want to show pending approval next step for cases where the policy has approvals enabled
             const policyApprovalMode = getApprovalWorkflow(policy);
             if ([CONST.POLICY.APPROVAL_MODE.BASIC, CONST.POLICY.APPROVAL_MODE.ADVANCED].some((approvalMode) => approvalMode === policyApprovalMode)) {
-                const approverAccountID = bypassNextApproverID ?? getNextApproverAccountID(report, rules, isUnapprove, undefined, personalDetailsByLogins);
+                const approverAccountID = bypassNextApproverID ?? getNextApproverAccountID(report, rules, personalDetailsByLogins, isUnapprove);
                 nextStep = {
                     messageKey: CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_APPROVE,
                     icon: CONST.NEXT_STEP.ICONS.HOURGLASS,

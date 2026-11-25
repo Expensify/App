@@ -46,7 +46,7 @@ function ApprovePrimaryAction({reportID, chatReportID, isDisabled}: ApprovePrima
         `${ONYXKEYS.COLLECTION.POLICY}${iouReport?.invoiceReceiver && 'policyID' in iouReport.invoiceReceiver ? iouReport.invoiceReceiver.policyID : ''}`,
     );
 
-    const nextApproverAccountID = getNextApproverAccountID(iouReport, rules, undefined, undefined, personalDetailsByLogins);
+    const nextApproverAccountID = getNextApproverAccountID(iouReport, rules, personalDetailsByLogins);
     const isSubmitterSameAsNextApprover = isReportOwner(iouReport) && (nextApproverAccountID === iouReport?.ownerAccountID || iouReport?.managerID === iouReport?.ownerAccountID);
     const isBlockSubmitDueToPreventSelfApproval = isSubmitterSameAsNextApprover && expenseReportPolicy?.preventSelfApproval;
 
