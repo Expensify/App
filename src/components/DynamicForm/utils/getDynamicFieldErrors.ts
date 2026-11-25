@@ -194,8 +194,8 @@ const VALIDATORS: {[TType in DynamicFormFieldType]: FieldValidator<TType>} = {
         }
         return meetsMinimumAgeRequirement(value) ? [] : [translate('bankAccount.error.age')];
     },
-    // The street is the field's own value and needs no check beyond required. getAddressPartErrors checks the other parts.
-    address: noChecks,
+    // The street is the field's own value. An address search pick is not cut to the input's limit, so its length is checked here. getAddressPartErrors checks the other parts.
+    address: (field, values, translate) => getFormatErrors({maxLength: field.maxLength}, field.key, getStringAnswer(field, values), translate),
     multiselect: getMultiChoiceErrors,
     countryMultiselect: getMultiChoiceErrors,
     boolean: noChecks,
@@ -212,10 +212,13 @@ const VALIDATORS: {[TType in DynamicFormFieldType]: FieldValidator<TType>} = {
 
 /** An optional address the user has started filling in is checked like a required one, so it is never submitted in part */
 function isAddressRequired(field: DynamicFormAddressField, values: DynamicFormValues): boolean {
+    if (field.required) {
+        return true;
+    }
     const {street, city, state, zipCode, country} = getAddressInputKeys(field.key);
     // A part the form hides can hold a value the user never typed, so it does not count as a started address
     const hiddenPartKeys = getHiddenAddressPartKeys(field, values);
-    return field.required || [street, city, state, zipCode, country].some((partKey) => !hiddenPartKeys.includes(partKey) && isAnswered(values[partKey]));
+    return [street, city, state, zipCode, country].some((partKey) => !hiddenPartKeys.includes(partKey) && isAnswered(values[partKey]));
 }
 
 /** A state the country's picker does not list, such as a full name AddressSearch saved before the picker took codes, leaves the picker blank, so it is asked again */

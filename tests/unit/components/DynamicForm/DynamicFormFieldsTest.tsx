@@ -44,6 +44,7 @@ type CapturedInputProps = {
     optionsList?: Record<string, string>;
     renamedInputKeys?: Record<string, string>;
     allowedCountries?: string[];
+    maxInputLength?: number;
     canSelectMultiple?: boolean;
     isSearchable?: boolean;
     valueType?: string;
@@ -367,6 +368,19 @@ describe('DynamicFormFields', () => {
         expect(getItemValues(keys.state)).toEqual(['JAL']);
         expect(rendered.has(keys.zipCode)).toBe(false);
         expect(rendered.has(keys.city)).toBe(true);
+    });
+
+    it('lets the street be as long as the address field says', () => {
+        // Given an address whose schema sets the street's longest length, and one that does not
+        const longStreet: DynamicFormField = {key: 'homeAddress', type: 'address', required: true, maxLength: 255};
+        const defaultStreet: DynamicFormField = {key: 'workAddress', type: 'address', required: true};
+
+        // When the fields render
+        const rendered = renderFields([longStreet, defaultStreet]);
+
+        // Then the street input takes the schema's length, and the address inputs' own limit without one
+        expect(rendered.get('homeAddress')?.maxInputLength).toBe(255);
+        expect(rendered.get('workAddress')?.maxInputLength).toBe(CONST.FORM_CHARACTER_LIMIT);
     });
 
     it('lists every country when the address field sends an empty country list', () => {

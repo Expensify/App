@@ -22,12 +22,15 @@ type AddressStreetInputProps = {
     /** Country the address search suggests places in, for an address whose country cannot be changed */
     limitSearchesToCountry?: Country | '';
 
+    /** Longest street the user can type, in characters. Defaults to CONST.FORM_CHARACTER_LIMIT. */
+    maxInputLength?: number;
+
     /** Codes of the countries a picked address can be in. A pick in any other country leaves the country empty. */
     allowedCountries?: string[];
 };
 
 /** The street of an address, which searches for places and fills in the other parts from the one picked */
-function AddressStreetInput({translationKey, shouldKeepStateCode = false, limitSearchesToCountry, allowedCountries}: AddressStreetInputProps) {
+function AddressStreetInput({translationKey, shouldKeepStateCode = false, limitSearchesToCountry, maxInputLength = CONST.FORM_CHARACTER_LIMIT, allowedCountries}: AddressStreetInputProps) {
     const {translate} = useLocalize();
     const {inputKeys, values, defaultValues, errors, shouldSaveDraft, changeCountry, forwardedFSClass} = useAddressFields();
 
@@ -43,7 +46,7 @@ function AddressStreetInput({translationKey, shouldKeepStateCode = false, limitS
                 errorText={errors?.street ? translate('bankAccount.error.addressStreet') : ''}
                 renamedInputKeys={inputKeys}
                 shouldKeepStateCode={shouldKeepStateCode}
-                maxInputLength={CONST.FORM_CHARACTER_LIMIT}
+                maxInputLength={maxInputLength}
                 limitSearchesToCountry={limitSearchesToCountry}
                 allowedCountries={allowedCountries}
                 onCountryChange={changeCountry}

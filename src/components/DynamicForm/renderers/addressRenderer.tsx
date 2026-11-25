@@ -53,6 +53,7 @@ const renderAddress: DynamicFieldRenderer<'address'> = (field, {values, styles, 
                     // While the country is locked, the search only suggests places in it, so a pick cannot change it
                     limitSearchesToCountry={disabled ? country : undefined}
                     allowedCountries={allowedCountries}
+                    maxInputLength={field.maxLength}
                 />
                 {/* The city sits as far below the street as the field rows space any two inputs */}
                 <AddressFields.City containerStyles={styles.mt4} />
