@@ -49,7 +49,7 @@ function getMeanDuration(data: GroupedItem[]): number | undefined {
 
 /** Resolves a chart's rows, and what it is compared against when the page compares. */
 function useInsightsChartData(dashboardChart: InsightsDashboardChart, filters: InsightsFilters): InsightsChartData {
-    const {chart, queryJSON, snapshot, previousPeriodQueryJSON, previousPeriodSnapshot, averageQueryJSON, averageSnapshot, average, isDashboardLoaded, stages} = dashboardChart;
+    const {chart, queryJSON, snapshot, previousPeriodQueryJSON, previousPeriodSnapshot, averageQueryJSON, averageSnapshot, average, isAverageLoaded, stages} = dashboardChart;
     const theme = useTheme();
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
@@ -93,7 +93,7 @@ function useInsightsChartData(dashboardChart: InsightsDashboardChart, filters: I
                 const color = VictoryTheme.colors.getComparisonColor(VictoryTheme.colors.default, theme.colorScheme);
                 return {...current, comparison: {data: compared.data, color, label: translate('insightsPage.compare.tagAverage')}};
             }
-            if (!isDashboardLoaded) {
+            if (!isAverageLoaded) {
                 return {data: current.data, state: isOffline ? INSIGHTS_CHART_STATE.OFFLINE : INSIGHTS_CHART_STATE.LOADING};
             }
             // The stage chart averages the stages it shows, so the line follows the stages the workspaces in scope have enabled

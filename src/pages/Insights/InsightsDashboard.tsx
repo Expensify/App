@@ -271,7 +271,7 @@ function InsightsDashboardContent({
     const tagLevelName = tagLevelOptions.find(({value}) => value === tagLevel)?.label ?? translate('insightsPage.tagLevel', numberFormat(tagLevel));
 
     const renderChart = (
-        {chart, queryJSON, snapshot, previousPeriodQueryJSON, previousPeriodSnapshot, averageQueryJSON, averageSnapshot, average, isDashboardLoaded, stages}: InsightsDashboardChart,
+        {chart, queryJSON, snapshot, previousPeriodQueryJSON, previousPeriodSnapshot, averageQueryJSON, averageSnapshot, average, isAverageLoaded, stages}: InsightsDashboardChart,
         isHeadline = false,
     ) => (
         <InsightsChartWidget
@@ -285,7 +285,7 @@ function InsightsDashboardContent({
             averageQueryJSON={averageQueryJSON}
             averageSnapshot={averageSnapshot}
             average={average}
-            isDashboardLoaded={isDashboardLoaded}
+            isAverageLoaded={isAverageLoaded}
             stages={stages}
             filters={filters}
             insightsScope={insightsScope}
@@ -469,7 +469,7 @@ function InsightsDashboard({dashboardID, accessibleDashboards}: {dashboardID: In
                 [CONST.SEARCH.CHART_METRIC.COUNT]: graph?.averageCount,
                 [CONST.SEARCH.CHART_METRIC.DURATION]: graph?.averageDuration,
             },
-            isDashboardLoaded: isCurrentDashboardLoaded || !!graph,
+            isAverageLoaded: isCurrentDashboardLoaded || !!graph,
             stages: getEnabledStages(chartQuery.chart, policiesInScope, login, isDashboardPolicyEligible),
         };
     });
