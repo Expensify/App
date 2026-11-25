@@ -6,9 +6,6 @@ function convertSourceToString(source: AttachmentSource) {
     if (typeof source === 'string' || typeof source === 'number') {
         return source.toString();
     }
-    if (source instanceof Array) {
-        return source.map((src) => src.uri).join(', ');
-    }
     if ('uri' in source) {
         return source.uri ?? '';
     }

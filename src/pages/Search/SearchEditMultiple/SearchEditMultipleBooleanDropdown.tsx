@@ -1,11 +1,10 @@
 import AnchoredSelectionListPopover from '@components/AnchoredSelectionListPopover';
-import type {ExpenseFieldDropdownRenderProps} from '@components/MoneyRequestConfirmationList/sections/ExpenseFieldDropdown';
+import type {DropdownFieldRenderProps} from '@components/DropdownField';
 import SelectionList from '@components/SelectionList';
 import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
 import type {ListItem} from '@components/SelectionList/ListItem/types';
 
 import useLocalize from '@hooks/useLocalize';
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
 
 import CONST from '@src/CONST';
 
@@ -16,8 +15,8 @@ type BooleanOption = ListItem & {
     value: boolean;
 };
 
-type SearchEditMultipleBooleanDropdownProps = ExpenseFieldDropdownRenderProps & {
-    /** Name of the field, which heads the bottom sheet */
+type SearchEditMultipleBooleanDropdownProps = DropdownFieldRenderProps & {
+    /** Name of the field, which heads the list */
     title: string;
 
     /** Value the draft records for every expense, `undefined` or `null` while each keeps its own */
@@ -33,8 +32,6 @@ type SearchEditMultipleBooleanDropdownProps = ExpenseFieldDropdownRenderProps & 
  */
 function SearchEditMultipleBooleanDropdown({title, selectedValue, onSelected, onClose, ...popoverProps}: SearchEditMultipleBooleanDropdownProps) {
     const {translate} = useLocalize();
-    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth -- must match PopoverWithMeasuredContent's dock decision (bottom-docked only when isSmallScreenWidth)
-    const {isSmallScreenWidth} = useResponsiveLayout();
 
     const options: BooleanOption[] = [
         {value: true, keyForList: CONST.SEARCH.BOOLEAN.YES, text: translate('common.yes'), isSelected: selectedValue === true},
@@ -55,8 +52,7 @@ function SearchEditMultipleBooleanDropdown({title, selectedValue, onSelected, on
             isSearchable={false}
             title={title}
             backButtonSentryLabel={CONST.SENTRY_LABEL.SEARCH_EDIT_MULTIPLE.BOOLEAN_DROPDOWN_BACK_BUTTON}
-            // The field's name only heads the bottom sheet; a pop-over sits on its field, which already names it.
-            shouldShowHeader={isSmallScreenWidth}
+            shouldShowHeader
         >
             <SelectionList
                 data={options}

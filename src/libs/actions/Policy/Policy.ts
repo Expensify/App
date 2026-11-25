@@ -5263,7 +5263,7 @@ function createWorkspaceFromIOUPayment({
     return {policyID, workspaceChatReportID: memberData.workspaceChatReportID, reportPreviewReportActionID: reportPreviewAction?.reportActionID, adminsChatReportID};
 }
 
-function enablePolicyConnections(policyID: string, enabled: boolean, shouldGoBack = true) {
+function enablePolicyConnections(policyID: string, enabled: boolean) {
     const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.POLICY> = {
         optimisticData: [
             {
@@ -5305,13 +5305,9 @@ function enablePolicyConnections(policyID: string, enabled: boolean, shouldGoBac
     const parameters: EnablePolicyConnectionsParams = {policyID, enabled};
 
     API.writeWithNoDuplicatesEnableFeatureConflicts(WRITE_COMMANDS.ENABLE_POLICY_CONNECTIONS, parameters, onyxData);
-
-    if (enabled && getIsNarrowLayout() && shouldGoBack) {
-        goBackWhenEnableFeature();
-    }
 }
 
-function enablePolicyHR(policyID: string, enabled: boolean, shouldGoBack = true) {
+function enablePolicyHR(policyID: string, enabled: boolean) {
     const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.POLICY> = {
         optimisticData: [
             {
@@ -5353,13 +5349,9 @@ function enablePolicyHR(policyID: string, enabled: boolean, shouldGoBack = true)
     const parameters: EnablePolicyHRParams = {policyID, enabled};
 
     API.writeWithNoDuplicatesEnableFeatureConflicts(WRITE_COMMANDS.ENABLE_POLICY_HR, parameters, onyxData);
-
-    if (enabled && getIsNarrowLayout() && shouldGoBack) {
-        goBackWhenEnableFeature();
-    }
 }
 
-function enablePolicyRecruiting(policyID: string, enabled: boolean, shouldGoBack = true) {
+function enablePolicyRecruiting(policyID: string, enabled: boolean) {
     const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.POLICY> = {
         optimisticData: [
             {
@@ -5391,7 +5383,7 @@ function enablePolicyRecruiting(policyID: string, enabled: boolean, shouldGoBack
                 value: {
                     isRecruitingEnabled: !enabled,
                     pendingFields: {
-                        isMCPEnabled: null,
+                        isRecruitingEnabled: null,
                     },
                 },
             },
@@ -5401,13 +5393,9 @@ function enablePolicyRecruiting(policyID: string, enabled: boolean, shouldGoBack
     const parameters: EnablePolicyRecruitingParams = {policyID, enabled};
 
     API.writeWithNoDuplicatesEnableFeatureConflicts(WRITE_COMMANDS.ENABLE_POLICY_RECRUITING, parameters, onyxData);
-
-    if (enabled && getIsNarrowLayout() && shouldGoBack) {
-        goBackWhenEnableFeature();
-    }
 }
 
-function enablePolicyMCP(policyID: string, enabled: boolean, shouldGoBack = true) {
+function enablePolicyMCP(policyID: string, enabled: boolean) {
     const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.POLICY> = {
         optimisticData: [
             {
@@ -5449,13 +5437,9 @@ function enablePolicyMCP(policyID: string, enabled: boolean, shouldGoBack = true
     const parameters: EnablePolicyMCPParams = {policyID, enabled};
 
     API.writeWithNoDuplicatesEnableFeatureConflicts(WRITE_COMMANDS.ENABLE_POLICY_MCP, parameters, onyxData);
-
-    if (enabled && getIsNarrowLayout() && shouldGoBack) {
-        goBackWhenEnableFeature();
-    }
 }
 
-function enablePolicyReceiptPartners(policyID: string, enabled: boolean, shouldGoBack = true) {
+function enablePolicyReceiptPartners(policyID: string, enabled: boolean) {
     const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.POLICY> = {
         optimisticData: [
             {
@@ -5497,10 +5481,6 @@ function enablePolicyReceiptPartners(policyID: string, enabled: boolean, shouldG
     const parameters: TogglePolicyReceiptPartnersParams = {policyID, enabled};
 
     API.write(WRITE_COMMANDS.TOGGLE_RECEIPT_PARTNERS, parameters, onyxData);
-
-    if (enabled && getIsNarrowLayout() && shouldGoBack) {
-        goBackWhenEnableFeature();
-    }
 }
 
 type ConnectionFeatureName =
@@ -5532,7 +5512,7 @@ function enablePolicyFeatureForConnection(policy: OnyxEntry<Policy>, featureName
     if (featureName === CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED && policy.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD) {
         Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY_HAS_CONNECTIONS_DATA_BEEN_FETCHED}${policy.id}`, true);
     }
-    ENABLE_CONNECTION_FEATURE[featureName](policy.id, true, false);
+    ENABLE_CONNECTION_FEATURE[featureName](policy.id, true);
 }
 
 /** Save the preferred export method for a policy */

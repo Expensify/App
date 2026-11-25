@@ -12,6 +12,7 @@ import {isOdometerDraftPendingHydration} from '@libs/actions/OdometerTransaction
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {MoneyRequestNavigatorParamList} from '@libs/Navigation/types';
 
+import handleMoneyRequestStepDistanceNavigation from '@pages/iou/request/step/IOURequestStepDistance/handleMoneyRequestStepDistanceNavigation';
 import IOURequestStepDistanceOdometer from '@pages/iou/request/step/IOURequestStepDistanceOdometer';
 
 import CONST from '@src/CONST';
@@ -223,6 +224,31 @@ describe('IOURequestStepDistanceOdometer - create-flow Next does not write the s
             await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${TRANSACTION_ID}`, createOdometerDraftTransaction());
             await Onyx.merge(ONYXKEYS.IS_LOADING_APP, false);
         });
+    });
+
+    it.each([
+        {originalUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS, expectedUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS},
+        {originalUnit: undefined, expectedUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES},
+    ])('forwards odometerUnit=$expectedUnit on Next when the saved original unit is $originalUnit', async ({originalUnit, expectedUnit}) => {
+        // Given a miles rate and either an original readings unit or a fresh expense without one
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${TRANSACTION_ID}`, {comment: {odometerUnit: originalUnit}});
+        });
+        renderCreateOdometer();
+        await waitForBatchedUpdatesWithAct();
+
+        // When Next navigates immediately after the readings are saved
+        await enterReadingsAndPressNext('100', '300');
+
+        // Then navigation receives the original unit explicitly, falling back to the rate only for fresh readings
+        expect(handleMoneyRequestStepDistanceNavigation).toHaveBeenCalledWith(
+            expect.objectContaining({
+                odometerStart: 100,
+                odometerEnd: 300,
+                odometerUnit: expectedUnit,
+                unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+            }),
+        );
     });
 
     // "Next" is not a save action (only "Save for later" and the confirmation "Save" write the draft), so it must

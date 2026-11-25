@@ -1,4 +1,4 @@
-import type {ExpenseFieldDropdownRenderProps} from '@components/MoneyRequestConfirmationList/sections/ExpenseFieldDropdown';
+import type {DropdownFieldRenderProps} from '@components/DropdownField';
 import TagPickerModal from '@components/TagPicker/TagPickerModal';
 
 import {updateBulkEditDraftTransaction} from '@libs/actions/IOU/BulkEdit';
@@ -12,7 +12,7 @@ import React from 'react';
 
 import {getBulkEditTagChange} from './SearchEditMultipleUtils';
 
-type SearchEditMultipleTagDropdownProps = ExpenseFieldDropdownRenderProps & {
+type SearchEditMultipleTagDropdownProps = DropdownFieldRenderProps & {
     /** Workspace the tags belong to */
     policyID: string | undefined;
 

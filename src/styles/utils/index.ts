@@ -875,8 +875,8 @@ function getVerticalPaddingDiffFromStyle(textInputContainerStyles: ViewStyle): n
         return typeof paddingValue === 'number' ? paddingValue : 0;
     };
 
-    const paddingTop = getNumericPadding(flatStyle?.paddingTop ?? flatStyle.padding);
-    const paddingBottom = getNumericPadding(flatStyle?.paddingBottom ?? flatStyle.padding);
+    const paddingTop = getNumericPadding(flatStyle?.paddingTop ?? flatStyle?.padding);
+    const paddingBottom = getNumericPadding(flatStyle?.paddingBottom ?? flatStyle?.padding);
     return paddingTop - paddingBottom;
 }
 
@@ -1757,6 +1757,7 @@ function getReportTableColumnLayout(styles: ThemeStyles, columnName: string, opt
         case CONST.SEARCH.TABLE_COLUMNS.CARD:
         case CONST.SEARCH.TABLE_COLUMNS.REPORT_ID:
         case CONST.SEARCH.TABLE_COLUMNS.BASE_62_REPORT_ID:
+        case CONST.SEARCH.TABLE_COLUMNS.TRANSACTION_ID:
         case CONST.SEARCH.TABLE_COLUMNS.MERCHANT:
         case CONST.SEARCH.TABLE_COLUMNS.VENDOR:
         case CONST.SEARCH.TABLE_COLUMNS.FROM:

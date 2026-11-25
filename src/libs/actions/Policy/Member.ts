@@ -1131,6 +1131,7 @@ async function importPolicyMembers(
     members: PolicyMember[],
     shouldShowMemberRolePermissionWarning = false,
     rules?: OnyxCollection<Rule>,
+    currentUserLogin?: string,
 ): Promise<ImportFinalModal> {
     if (!policy?.id) {
         Log.warn('importPolicyMembers called without a valid policy');
@@ -1228,6 +1229,7 @@ async function importPolicyMembers(
             rules,
             members: members.flatMap((member) => (member.approvers && hasApproversChange(member) ? [{email: member.email, approvers: member.approvers}] : [])),
             addedMemberEmails: members.filter((member) => !policy.employeeList?.[member.email]).map((member) => member.email),
+            currentUserLogin,
         });
         return importFinalModal;
     } catch {

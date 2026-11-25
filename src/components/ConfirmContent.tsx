@@ -98,6 +98,9 @@ type ConfirmContentProps = {
     /** Whether to show a loading indicator next to the title */
     isTitleLoading?: boolean;
 
+    /** Element shown on the right of the title and the subtitle, centered against both */
+    titleRightElement?: ReactNode;
+
     /** Whether the prompt should be scrollable when it is taller than the screen (e.g. a long list of items) */
     shouldEnablePromptScroll?: boolean;
 
@@ -141,6 +144,7 @@ function ConfirmContent({
     isConfirmLoading,
     isConfirmDisabled = false,
     isTitleLoading = false,
+    titleRightElement,
     shouldEnablePromptScroll = false,
     shouldUseSuccessStyleForConfirm = false,
 }: ConfirmContentProps) {
@@ -170,6 +174,20 @@ function ConfirmContent({
     if (typeof subtitle === 'string') {
         subtitleContent = <Text style={[styles.mb4, subtitleStyles, isCentered ? styles.textAlignCenter : {}]}>{subtitle}</Text>;
     }
+
+    const titleContent = (
+        <View style={[styles.flexRow, isTitleLoading ? styles.justifyContentBetween : {}, styles.alignItemsCenter, isCentered ? {} : styles.mb4, titleContainerStyles]}>
+            <HeaderTitle>
+                <HeaderTitle.Text
+                    style={titleStyles}
+                    numberOfLines={numberOfTitleLines}
+                >
+                    {title}
+                </HeaderTitle.Text>
+            </HeaderTitle>
+            {isTitleLoading && <ActivityIndicator size={CONST.ACTIVITY_INDICATOR_SIZE.SMALL} />}
+        </View>
+    );
 
     return (
         <>
@@ -216,18 +234,20 @@ function ConfirmContent({
                             />
                         </View>
                     )}
-                    <View style={[styles.flexRow, isTitleLoading ? styles.justifyContentBetween : {}, styles.alignItemsCenter, isCentered ? {} : styles.mb4, titleContainerStyles]}>
-                        <HeaderTitle>
-                            <HeaderTitle.Text
-                                style={titleStyles}
-                                numberOfLines={numberOfTitleLines}
-                            >
-                                {title}
-                            </HeaderTitle.Text>
-                        </HeaderTitle>
-                        {isTitleLoading && <ActivityIndicator size={CONST.ACTIVITY_INDICATOR_SIZE.SMALL} />}
-                    </View>
-                    {subtitleContent}
+                    {titleRightElement ? (
+                        <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween, styles.gap3]}>
+                            <View style={styles.flex1}>
+                                {titleContent}
+                                {subtitleContent}
+                            </View>
+                            {titleRightElement}
+                        </View>
+                    ) : (
+                        <>
+                            {titleContent}
+                            {subtitleContent}
+                        </>
+                    )}
                     {shouldScrollPrompt ? <ScrollView style={styles.confirmModalPromptScrollable}>{promptContent}</ScrollView> : promptContent}
                 </View>
 

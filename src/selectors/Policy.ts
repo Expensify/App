@@ -10,11 +10,13 @@ import {
     canEditWorkspaceSettings,
     canSendInvoice,
     getActiveAdminWorkspaces,
+    getActiveEmployeeWorkspaces,
     getActivePolicies,
     getActivePoliciesWithExpenseChat,
     getOwnedPaidPolicies,
     getPolicyIDFromDomainName,
     getPolicyRole,
+    hasAnyPaidPolicy,
     hasPolicyWithXeroConnection,
     // eslint-disable-next-line no-restricted-imports -- isPaidGroupPolicy is intentional: copy-settings targets are billing/paid-only (Collect/Control), so free group plans like Submit must be excluded (see createCopySettingsEligibleTargetsSelector).
     isPaidGroupPolicy,
@@ -278,6 +280,24 @@ const createHasAdminPolicyWithXeroConnectionSelector =
         hasPolicyWithXeroConnection(getActiveAdminWorkspaces(policies, currentUserLogin));
 
 const hasActiveAdminPoliciesSelector = (policies: OnyxCollection<Policy>, currentUserAccountLogin: string) => getActiveAdminWorkspaces(policies, currentUserAccountLogin).length > 0;
+
+type ProductTrainingPolicyFlags = {
+    /** Whether the user is an employee of at least one active workspace */
+    isUserPolicyEmployee: boolean;
+
+    /** Whether the user is an admin of at least one active workspace */
+    isUserPolicyAdmin: boolean;
+
+    /** Whether any workspace in the collection is a paid one */
+    isUserInPaidPolicy: boolean;
+};
+
+// Three booleans out, so the session-wide product training provider doesn't re-render on every policy_ write
+const productTrainingPolicyFlagsSelector = (policies: OnyxCollection<Policy>, currentUserLogin: string | undefined): ProductTrainingPolicyFlags => ({
+    isUserPolicyEmployee: getActiveEmployeeWorkspaces(policies, currentUserLogin).length > 0,
+    isUserPolicyAdmin: getActiveAdminWorkspaces(policies, currentUserLogin).length > 0,
+    isUserInPaidPolicy: hasAnyPaidPolicy(policies),
+});
 
 /**
  * Whether the user could edit the settings of any active group workspace, which is what the upgrade page gates on once a
@@ -720,6 +740,7 @@ export {
     createReimburserPolicyIDsSelector,
     activeAdminPoliciesSelector,
     hasActiveAdminPoliciesSelector,
+    productTrainingPolicyFlagsSelector,
     canEditAnyWorkspaceSettingsSelector,
     createHasAdminPolicyWithXeroConnectionSelector,
     createTimeSensitiveAdminPoliciesSelector,

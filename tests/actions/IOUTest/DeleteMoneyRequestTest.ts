@@ -1,3 +1,5 @@
+import type {PersonalDetailsByLogin} from '@components/PersonalDetailsByLoginProvider';
+
 import * as ClearReportActionErrorsActions from '@libs/actions/ClearReportActionErrors';
 import {cleanUpMoneyRequest, deleteMoneyRequest, getCleanUpTransactionThreadReportOnyxData, getNavigationUrlOnMoneyRequestDelete} from '@libs/actions/IOU/DeleteMoneyRequest';
 import {getReportPreviewReportAction} from '@libs/actions/IOU/MoneyRequestBuilder';
@@ -6,6 +8,7 @@ import {updateMoneyRequestAmountAndCurrency} from '@libs/actions/IOU/UpdateMoney
 import initOnyxDerivedValues from '@libs/actions/OnyxDerived';
 import {addComment, openReport} from '@libs/actions/Report';
 import {subscribeToUserEvents} from '@libs/actions/User';
+import {WRITE_COMMANDS} from '@libs/API/types';
 import {getOriginalMessage, getReportActionMessage, getReportActionText, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import type {OptimisticChatReport} from '@libs/ReportUtils';
 import {buildTransactionThread, isIOUReport} from '@libs/ReportUtils';
@@ -33,7 +36,16 @@ import {createRandomReport} from '../../utils/collections/reports';
 import createRandomTransaction from '../../utils/collections/transaction';
 import getOnyxValue from '../../utils/getOnyxValue';
 import PusherHelper from '../../utils/PusherHelper';
-import {createGlobalFetchMock, formatPhoneNumber, getCurrencyDecimalsLocal, getCurrencySymbolLocal, getOnyxData, setPersonalDetails, signInWithTestUser} from '../../utils/TestHelper';
+import {
+    createGlobalFetchMock,
+    formatPhoneNumber,
+    getCurrencyDecimalsLocal,
+    getCurrencySymbolLocal,
+    getOnyxData,
+    setPersonalDetails,
+    signInWithTestUser,
+    translateLocal,
+} from '../../utils/TestHelper';
 import {isObject} from '../../utils/typeGuards';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
@@ -72,6 +84,9 @@ const TEST_INTRO_SELECTED: IntroSelected = {
 
 const RORY_EMAIL = 'rory@expensifail.com';
 const RORY_ACCOUNT_ID = 3;
+const RORY_PERSONAL_DETAILS_BY_LOGINS: PersonalDetailsByLogin = {
+    [RORY_EMAIL]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL},
+};
 const CARLOS_ACCOUNT_ID = 1;
 
 OnyxUpdateManager();
@@ -149,6 +164,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
 
             // When a submit IOU expense is made
             requestMoney({
+                personalDetailsByLogins: RORY_PERSONAL_DETAILS_BY_LOGINS,
                 isVendorMatchingBetaEnabled: false,
                 conciergeChat: undefined,
                 report: chatReport,
@@ -352,6 +368,75 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
             expect(tr).toBeFalsy();
         });
 
+        it('does not leave the expense stuck as pending when the delete fails after an earlier edit succeeded', async () => {
+            if (!transaction || !createIOUAction) {
+                throw new Error('Expected the expense and its IOU action to exist');
+            }
+
+            // Given an amount edit that is still pending when the expense is deleted
+            mockFetch.mockAPICommand(WRITE_COMMANDS.DELETE_MONEY_REQUEST, () => ({jsonCode: 400}));
+            mockFetch.pause();
+            updateMoneyRequestAmountAndCurrency({
+                translate: translateLocal,
+                isVendorMatchingBetaEnabled: false,
+                rules: undefined,
+                transactionID: transaction.transactionID,
+                transaction,
+                transactions: {},
+                transactionThreadReport: thread,
+                parentReport: iouReport,
+                iouReportOwnerLogin: undefined,
+                transactionViolations: {},
+                reportPolicyTags: undefined,
+                amount: 20000,
+                currency: CONST.CURRENCY.USD,
+                taxAmount: 0,
+                taxCode: '',
+                taxValue: '',
+                policy: undefined,
+                policyTagList: {},
+                policyCategories: {},
+                currentUserAccountIDParam: TEST_USER_ACCOUNT_ID,
+                currentUserEmailParam: TEST_USER_LOGIN,
+                delegateAccountID: undefined,
+                isASAPSubmitBetaEnabled: false,
+                policyRecentlyUsedCurrencies: [],
+                isTrackIntentUser: false,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                getCurrencySymbol: getCurrencySymbolLocal,
+            });
+            await waitForBatchedUpdates();
+            const editedTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`);
+            expect(editedTransaction?.pendingFields?.amount).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
+
+            // When the expense is deleted, the edit succeeds and the delete fails
+            deleteMoneyRequest({
+                transactionThreadReportActions: undefined,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                transactionID: transaction.transactionID,
+                reportAction: createIOUAction,
+                transactions: {},
+                violations: {},
+                iouReport,
+                iouReportTransactions: editedTransaction ? [editedTransaction] : [],
+                chatReport,
+                transactionThreadReport: thread,
+                isChatIOUReportArchived: false,
+                allTransactionViolationsParam: {},
+                currentUserAccountID: TEST_USER_ACCOUNT_ID,
+                currentUserEmail: TEST_USER_LOGIN,
+            });
+            await waitForBatchedUpdates();
+            await mockFetch.resume();
+            await waitForBatchedUpdates();
+
+            // Then the expense is restored with the edited amount and nothing pending
+            const restoredTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`);
+            expect(restoredTransaction?.pendingAction).toBeFalsy();
+            expect(restoredTransaction?.pendingFields?.amount).toBeFalsy();
+            expect(restoredTransaction?.modifiedAmount).toBe(editedTransaction?.modifiedAmount);
+        });
+
         it('delete the IOU report when there are no expenses left in the IOU report', async () => {
             // Given an IOU report and a paused fetch state
             mockFetch?.pause?.();
@@ -411,6 +496,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
         it('does not delete the IOU report when there are expenses left in the IOU report', async () => {
             // Given multiple expenses on an IOU report
             requestMoney({
+                personalDetailsByLogins: RORY_PERSONAL_DETAILS_BY_LOGINS,
                 isVendorMatchingBetaEnabled: false,
                 conciergeChat: undefined,
                 report: chatReport,
@@ -450,6 +536,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
             mockFetch?.pause?.();
             if (transaction && createIOUAction) {
                 deleteMoneyRequest({
+                    isChatIOUReportArchived: false,
                     transactionThreadReportActions: undefined,
                     getCurrencyDecimals: getCurrencyDecimalsLocal,
                     transactionID: transaction?.transactionID,
@@ -508,6 +595,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
             // Given a second expense on the IOU report, so the report is not deleted and the error
             // clearing runs synchronously instead of inside the navigation transition callback
             requestMoney({
+                personalDetailsByLogins: RORY_PERSONAL_DETAILS_BY_LOGINS,
                 isVendorMatchingBetaEnabled: false,
                 conciergeChat: undefined,
                 report: chatReport,
@@ -639,6 +727,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
             if (transaction && createIOUAction) {
                 // When Deleting an expense
                 deleteMoneyRequest({
+                    isChatIOUReportArchived: false,
                     transactionThreadReportActions: undefined,
                     getCurrencyDecimals: getCurrencyDecimalsLocal,
                     transactionID: transaction?.transactionID,
@@ -745,6 +834,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
             jest.advanceTimersByTime(10);
             if (transaction && createIOUAction) {
                 updateMoneyRequestAmountAndCurrency({
+                    translate: translateLocal,
                     isVendorMatchingBetaEnabled: false,
                     transactionID: transaction.transactionID,
                     transaction,
@@ -802,6 +892,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
             if (transaction && createIOUAction) {
                 // When Deleting an expense
                 deleteMoneyRequest({
+                    isChatIOUReportArchived: false,
                     transactionThreadReportActions: undefined,
                     getCurrencyDecimals: getCurrencyDecimalsLocal,
                     transactionID: transaction?.transactionID,
@@ -927,6 +1018,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
             if (transaction && createIOUAction) {
                 // When deleting expense
                 deleteMoneyRequest({
+                    isChatIOUReportArchived: false,
                     transactionThreadReportActions: undefined,
                     getCurrencyDecimals: getCurrencyDecimalsLocal,
                     transactionID: transaction?.transactionID,
@@ -1134,7 +1226,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
                     iouReportTransactions: transaction ? [transaction] : [],
                     chatReport,
                     transactionThreadReport: thread,
-                    isChatIOUReportArchived: undefined,
+                    isChatIOUReportArchived: false,
                     allTransactionViolationsParam: {},
                     currentUserAccountID: TEST_USER_ACCOUNT_ID,
                     currentUserEmail: TEST_USER_LOGIN,
@@ -1193,6 +1285,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
             const comment2 = 'Send me money please 2';
             if (chatReport) {
                 requestMoney({
+                    personalDetailsByLogins: RORY_PERSONAL_DETAILS_BY_LOGINS,
                     isVendorMatchingBetaEnabled: false,
                     conciergeChat: undefined,
                     report: chatReport,
@@ -1255,7 +1348,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
                     iouReportTransactions: transaction ? [transaction] : [],
                     chatReport,
                     transactionThreadReport: thread,
-                    isChatIOUReportArchived: undefined,
+                    isChatIOUReportArchived: false,
                     allTransactionViolationsParam: {},
                     currentUserAccountID: TEST_USER_ACCOUNT_ID,
                     currentUserEmail: TEST_USER_LOGIN,
@@ -1283,6 +1376,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
         it('navigate the user correctly to the iou Report when appropriate', async () => {
             // Given multiple expenses on an IOU report
             requestMoney({
+                personalDetailsByLogins: RORY_PERSONAL_DETAILS_BY_LOGINS,
                 isVendorMatchingBetaEnabled: false,
                 conciergeChat: undefined,
                 report: chatReport,
@@ -1365,6 +1459,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
             let navigateToAfterDelete;
             if (transaction && createIOUAction) {
                 navigateToAfterDelete = deleteMoneyRequest({
+                    isChatIOUReportArchived: false,
                     transactionThreadReportActions: undefined,
                     getCurrencyDecimals: getCurrencyDecimalsLocal,
                     transactionID: transaction.transactionID,
@@ -1426,6 +1521,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
             if (transaction && createIOUAction) {
                 // When we delete the expense and we should delete the IOU report
                 navigateToAfterDelete = deleteMoneyRequest({
+                    isChatIOUReportArchived: false,
                     transactionThreadReportActions: undefined,
                     getCurrencyDecimals: getCurrencyDecimalsLocal,
                     transactionID: transaction.transactionID,
@@ -1464,6 +1560,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
             const comment2 = 'Send me money please 2';
             if (chatReport) {
                 requestMoney({
+                    personalDetailsByLogins: RORY_PERSONAL_DETAILS_BY_LOGINS,
                     isVendorMatchingBetaEnabled: false,
                     conciergeChat: undefined,
                     report: chatReport,
@@ -1608,6 +1705,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
             jest.advanceTimersByTime(10);
             if (transaction && createIOUAction) {
                 deleteMoneyRequest({
+                    isChatIOUReportArchived: false,
                     transactionThreadReportActions: undefined,
                     getCurrencyDecimals: getCurrencyDecimalsLocal,
                     transactionID: transaction.transactionID,
@@ -1702,6 +1800,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
 
             const selectedTransactionIDs = [transaction1.transactionID, transaction2.transactionID];
             deleteMoneyRequest({
+                isChatIOUReportArchived: false,
                 transactionThreadReportActions: undefined,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 transactionID: transaction1.transactionID,
@@ -1719,6 +1818,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
                 currentUserEmail: TEST_USER_LOGIN,
             });
             deleteMoneyRequest({
+                isChatIOUReportArchived: false,
                 transactionThreadReportActions: undefined,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 transactionID: transaction2.transactionID,
@@ -1810,6 +1910,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
             await waitForBatchedUpdates();
 
             deleteMoneyRequest({
+                isChatIOUReportArchived: false,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 transactionID: transactionToDelete.transactionID,
                 reportAction: moneyRequestAction,
@@ -1882,6 +1983,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
             };
 
             deleteMoneyRequest({
+                isChatIOUReportArchived: false,
                 transactionThreadReportActions: undefined,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 transactionID: transaction1.transactionID,
@@ -1950,6 +2052,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
 
             // And we call deleteMoneyRequest with empty transaction violations
             deleteMoneyRequest({
+                isChatIOUReportArchived: false,
                 transactionThreadReportActions: undefined,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 transactionID: transaction1.transactionID,
@@ -2044,6 +2147,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
             // When the last expense on the report is deleted with the threaded chatReportActions.
             mockFetch?.pause?.();
             deleteMoneyRequest({
+                isChatIOUReportArchived: false,
                 transactionThreadReportActions: undefined,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 transactionID: transaction.transactionID,
@@ -2080,6 +2184,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
             // When the expense is deleted without the threaded data.
             mockFetch?.pause?.();
             deleteMoneyRequest({
+                isChatIOUReportArchived: false,
                 transactionThreadReportActions: undefined,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 transactionID: transaction.transactionID,
@@ -2220,6 +2325,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
             mockFetch?.pause?.();
 
             deleteMoneyRequest({
+                isChatIOUReportArchived: false,
                 transactionThreadReportActions: undefined,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 transactionID: t21.transactionID,
@@ -2248,6 +2354,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
             });
 
             deleteMoneyRequest({
+                isChatIOUReportArchived: false,
                 transactionThreadReportActions: undefined,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 transactionID: t25.transactionID,
@@ -2299,6 +2406,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
             // Pause the fetch so the delete stays in the optimistic (offline) state.
             mockFetch?.pause?.();
             deleteMoneyRequest({
+                isChatIOUReportArchived: false,
                 transactionThreadReportActions: undefined,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 transactionID: oldest.transactionID,
@@ -2345,6 +2453,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
 
             mockFetch?.pause?.();
             deleteMoneyRequest({
+                isChatIOUReportArchived: false,
                 transactionThreadReportActions: undefined,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 transactionID: eurTxn.transactionID,
@@ -2397,6 +2506,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
 
             mockFetch?.pause?.();
             deleteMoneyRequest({
+                isChatIOUReportArchived: false,
                 transactionThreadReportActions: undefined,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 transactionID: t25.transactionID,
@@ -2449,6 +2559,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
             mockFetch?.pause?.();
             // Iter 1: cross-currency delete → total unchanged → marker must be persisted to Onyx.
             deleteMoneyRequest({
+                isChatIOUReportArchived: false,
                 transactionThreadReportActions: undefined,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 transactionID: eurTxn.transactionID,
@@ -2482,6 +2593,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
             // Iter 2: same-currency delete. Its own totals would be computable, but the sticky marker
             // from iter 1 must make it inherit indeterminate → recompute skipped → title preserved.
             deleteMoneyRequest({
+                isChatIOUReportArchived: false,
                 transactionThreadReportActions: undefined,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 transactionID: usdTxn.transactionID,
@@ -2835,6 +2947,125 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
             // Then the last visible action is resolved with that user's whisper visibility instead of the session fallback
             expect(getLastVisibleActionSpy).toHaveBeenCalledWith(IOU_REPORT_ID, expect.anything(), expect.anything(), undefined, undefined, CURRENT_USER_ACCOUNT_ID);
             getLastVisibleActionSpy.mockRestore();
+        });
+    });
+
+    describe('archived invoice chat handling', () => {
+        it('clears hasOutstandingChildRequest when deleting an invoice in an archived invoice chat with a remaining sibling invoice', async () => {
+            // Given an archived individual invoice chat holding two submitted invoices, where the first invoice's only transaction is deleted
+            const invoiceChatReportID = '84001';
+            const deletedInvoiceReportID = '84002';
+            const siblingInvoiceReportID = '84003';
+            const deletedTransactionID = '84004';
+
+            const invoiceChatReport: Report = {
+                ...createRandomReport(84001, CONST.REPORT.CHAT_TYPE.INVOICE),
+                reportID: invoiceChatReportID,
+                type: CONST.REPORT.TYPE.CHAT,
+                hasOutstandingChildRequest: true,
+                invoiceReceiver: {type: CONST.REPORT.INVOICE_RECEIVER_TYPE.INDIVIDUAL, accountID: RORY_ACCOUNT_ID},
+            };
+            const deletedInvoiceReport: Report = {
+                ...createRandomReport(84002, undefined),
+                reportID: deletedInvoiceReportID,
+                type: CONST.REPORT.TYPE.INVOICE,
+                chatReportID: invoiceChatReportID,
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+                total: 1000,
+                currency: CONST.CURRENCY.USD,
+            };
+            const siblingInvoiceReport: Report = {
+                ...createRandomReport(84003, undefined),
+                reportID: siblingInvoiceReportID,
+                type: CONST.REPORT.TYPE.INVOICE,
+                chatReportID: invoiceChatReportID,
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+                total: 2000,
+                currency: CONST.CURRENCY.USD,
+            };
+            const deletedTransaction: Transaction = {
+                ...createRandomTransaction(84004),
+                transactionID: deletedTransactionID,
+                reportID: deletedInvoiceReportID,
+                amount: 1000,
+                currency: CONST.CURRENCY.USD,
+            };
+            const deletedIOUAction: ReportAction = {
+                ...createRandomReportAction(84005),
+                reportActionID: '84005',
+                reportID: deletedInvoiceReportID,
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                originalMessage: {
+                    type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                    IOUTransactionID: deletedTransactionID,
+                    IOUReportID: deletedInvoiceReportID,
+                    amount: 1000,
+                    currency: CONST.CURRENCY.USD,
+                },
+            };
+            const deletedPreview: ReportAction = {
+                ...createRandomReportAction(84006),
+                reportActionID: '84006',
+                actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
+                childReportID: deletedInvoiceReportID,
+                originalMessage: {linkedReportID: deletedInvoiceReportID},
+            };
+            const siblingPreview: ReportAction = {
+                ...createRandomReportAction(84007),
+                reportActionID: '84007',
+                actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
+                childReportID: siblingInvoiceReportID,
+                originalMessage: {linkedReportID: siblingInvoiceReportID},
+            };
+            const chatReportActions: ReportActions = {
+                [deletedPreview.reportActionID]: deletedPreview,
+                [siblingPreview.reportActionID]: siblingPreview,
+            };
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${invoiceChatReportID}`, invoiceChatReport);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${deletedInvoiceReportID}`, deletedInvoiceReport);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${siblingInvoiceReportID}`, siblingInvoiceReport);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${deletedTransactionID}`, deletedTransaction);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${deletedInvoiceReportID}`, {[deletedIOUAction.reportActionID]: deletedIOUAction});
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${invoiceChatReportID}`, chatReportActions);
+            await waitForBatchedUpdates();
+
+            // When deleting the invoice's only transaction while offline with isChatIOUReportArchived set to true
+            mockFetch?.pause?.();
+            deleteMoneyRequest({
+                isChatIOUReportArchived: true,
+                transactionThreadReportActions: undefined,
+                chatReportActions,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                transactionID: deletedTransactionID,
+                reportAction: deletedIOUAction,
+                transactions: {},
+                violations: {},
+                iouReport: deletedInvoiceReport,
+                iouReportTransactions: [deletedTransaction],
+                chatReport: invoiceChatReport,
+                transactionThreadReport: undefined,
+                allTransactionViolationsParam: {},
+                currentUserAccountID: RORY_ACCOUNT_ID,
+                currentUserEmail: RORY_EMAIL,
+                policy: undefined,
+            });
+            await waitForBatchedUpdates();
+
+            // Then the archived chat clears hasOutstandingChildRequest because the remaining sibling invoice is not payable
+            const updatedChatReport = await new Promise<OnyxEntry<Report>>((resolve) => {
+                const connection = Onyx.connect({
+                    key: `${ONYXKEYS.COLLECTION.REPORT}${invoiceChatReportID}`,
+                    callback: (val) => {
+                        connection.unsubscribe();
+                        resolve(val);
+                    },
+                });
+            });
+            expect(updatedChatReport?.hasOutstandingChildRequest).toBe(false);
+            mockFetch?.resume?.();
         });
     });
 });
