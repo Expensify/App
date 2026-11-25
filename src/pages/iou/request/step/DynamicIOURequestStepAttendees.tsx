@@ -30,6 +30,7 @@ import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 import {loginSelector} from '@selectors/PersonalDetails';
 import {deepEqual} from 'fast-equals';
 import React, {useEffect, useRef, useState} from 'react';
+import Onyx from 'react-native-onyx';
 
 import type {WithWritableReportOrNotFoundProps} from './withWritableReportOrNotFound';
 
@@ -51,15 +52,10 @@ function DynamicIOURequestStepAttendees({
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
     const policyID = report?.policyID;
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
-    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
-    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`);
     const reportOwnerAsAttendee = useReportOwnerAsAttendee(transaction);
     const [attendees, setAttendees] = useState<Attendee[]>(() => getOriginalAttendees(transaction, reportOwnerAsAttendee));
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.parentReportID)}`);
     const [iouReportOwnerLogin] = usePersonalDetail(parentReport?.ownerAccountID, loginSelector);
-    const [reportPolicyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${getNonEmptyStringOnyxID(parentReport?.policyID)}`);
-    const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
-    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
     const previousAttendees = usePrevious(attendees);
     const {translate} = useLocalize();
     const {getCurrencyDecimals, getCurrencySymbol} = useCurrencyListActions();
@@ -80,15 +76,24 @@ function DynamicIOURequestStepAttendees({
         backPathRef.current = backPath;
     }, [backPath]);
 
-    const saveAttendees = () => {
+    const saveAttendees = async () => {
         if (attendees.length <= 0) {
             return;
         }
         if (!deepEqual(previousAttendees, attendees)) {
             if (isEditing) {
+                const [rules, policyCategories, policyTags, reportPolicyTags, introSelected] = await Onyx.multiGet([
+                    ONYXKEYS.COLLECTION.RULE,
+                    `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`,
+                    `${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`,
+                    `${ONYXKEYS.COLLECTION.POLICY_TAGS}${getNonEmptyStringOnyxID(parentReport?.policyID)}`,
+                    ONYXKEYS.NVP_INTRO_SELECTED,
+                ]);
                 updateMoneyRequestAttendees({
+                    translate,
                     isVendorMatchingBetaEnabled,
                     transactionID,
+                    transaction,
                     transactionThreadReport: report,
                     parentReport,
                     iouReportOwnerLogin,
@@ -103,7 +108,7 @@ function DynamicIOURequestStepAttendees({
                     isOffline,
                     delegateAccountID,
                     reportPolicyTags,
-                    isTrackIntentUser,
+                    isTrackIntentUser: isTrackIntentUserSelector(introSelected),
                     getCurrencyDecimals,
                     getCurrencySymbol,
                     rules,

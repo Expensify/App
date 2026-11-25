@@ -15,4 +15,3 @@ function PressResponder({children, ...value}: PressResponderProps): React.ReactE
 }
 
 export default PressResponder;
-export type {PressResponderProps};

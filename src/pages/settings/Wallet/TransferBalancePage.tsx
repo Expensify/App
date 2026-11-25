@@ -3,6 +3,7 @@ import ConfirmationPageDefault from '@components/ConfirmationPage/composed/Confi
 import CurrentWalletBalance from '@components/CurrentWalletBalance';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import Icon from '@components/Icon';
 import MenuItem from '@components/MenuItem';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
@@ -25,9 +26,11 @@ import {
 } from '@libs/actions/PaymentMethods';
 import {getLatestErrorMessage} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import {calculateWalletTransferBalanceFee, formatPaymentMethods, hasExpensifyPaymentMethod} from '@libs/PaymentUtils';
+import {calculateWalletTransferBalanceFee, formatPaymentMethods, getWalletTransferBankAccounts, hasExpensifyPaymentMethod} from '@libs/PaymentUtils';
 
 import variables from '@styles/variables';
+
+import {callIfAuthenticated} from '@userActions/Session';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -36,6 +39,7 @@ import type PaymentMethod from '@src/types/onyx/PaymentMethod';
 import type {FilterMethodPaymentType} from '@src/types/onyx/WalletTransfer';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
+import {authTokenTypeSelector} from '@selectors/Session';
 import React, {useEffect} from 'react';
 import {View} from 'react-native';
 
@@ -50,6 +54,7 @@ function TransferBalancePage() {
     const icons = useMemoizedLazyExpensifyIcons(['Bank']);
 
     const [userWallet] = useOnyx(ONYXKEYS.USER_WALLET);
+    const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
     const [walletTransfer] = useOnyx(ONYXKEYS.WALLET_TRANSFER);
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const [fundList] = useOnyx(ONYXKEYS.FUND_LIST);
@@ -80,7 +85,7 @@ function TransferBalancePage() {
      * Get the selected/default payment method account for wallet transfer
      */
     function getSelectedPaymentMethodAccount(): PaymentMethod | undefined {
-        const paymentMethods = formatPaymentMethods(bankAccountList ?? {}, paymentCardList, styles, translate);
+        const paymentMethods = formatPaymentMethods(getWalletTransferBankAccounts(bankAccountList ?? {}), paymentCardList, styles, translate);
 
         const defaultAccount = paymentMethods.find((method) => method.isDefault);
         const selectedAccount = paymentMethods.find(
@@ -93,7 +98,7 @@ function TransferBalancePage() {
         saveWalletTransferMethodType(filterPaymentMethodType);
 
         // If we only have a single option for the given paymentMethodType do not force the user to make a selection
-        const combinedPaymentMethods = formatPaymentMethods(bankAccountList ?? {}, paymentCardList, styles, translate);
+        const combinedPaymentMethods = formatPaymentMethods(getWalletTransferBankAccounts(bankAccountList ?? {}), paymentCardList, styles, translate);
 
         const filteredMethods = combinedPaymentMethods.filter((paymentMethod) => paymentMethod.accountType === filterPaymentMethodType);
         if (filteredMethods.length === 1) {
@@ -133,6 +138,7 @@ function TransferBalancePage() {
                             : translate('transferAmountPage.transferDetailDebitCard')
                     }
                     buttonText={translate('common.done')}
+                    buttonSentryLabel={CONST.SENTRY_LABEL.SETTINGS_WALLET.TRANSFER_SUCCESS_DONE}
                     onButtonPress={dismissSuccessfulTransferBalancePage}
                     containerStyle={styles.flex1}
                 />
@@ -198,18 +204,31 @@ function TransferBalancePage() {
                     </View>
                     <Text style={[styles.pt8, styles.ph5, styles.pb1, styles.textLabelSupporting, styles.justifyContentStart]}>{translate('transferAmountPage.whichAccount')}</Text>
                     {!!selectedAccount && (
-                        <MenuItem
+                        <MenuItem.Root
                             sentryLabel={CONST.SENTRY_LABEL.SETTINGS_WALLET.TRANSFER_ACCOUNT}
-                            title={selectedAccount?.title}
-                            description={selectedAccount?.description}
-                            shouldShowRightIcon
-                            iconStyles={selectedAccount?.iconStyles}
-                            iconWidth={selectedAccount?.iconSize}
-                            iconHeight={selectedAccount?.iconSize}
-                            icon={selectedAccount?.icon}
-                            onPress={() => navigateToChooseTransferAccount(selectedAccount?.accountType ?? CONST.PAYMENT_METHODS.DEBIT_CARD)}
-                            displayInDefaultIconColor
-                        />
+                            onPress={callIfAuthenticated(() => navigateToChooseTransferAccount(selectedAccount.accountType ?? CONST.PAYMENT_METHODS.DEBIT_CARD), session)}
+                        >
+                            <MenuItem.Row>
+                                {!!selectedAccount.icon && (
+                                    <MenuItem.Leading>
+                                        <View style={[styles.popoverMenuIcon, selectedAccount.iconStyles]}>
+                                            <Icon
+                                                src={selectedAccount.icon}
+                                                width={selectedAccount.iconSize}
+                                                height={selectedAccount.iconSize}
+                                            />
+                                        </View>
+                                    </MenuItem.Leading>
+                                )}
+                                <MenuItem.Content>
+                                    {!!selectedAccount.title && <MenuItem.Title>{selectedAccount.title}</MenuItem.Title>}
+                                    {!!selectedAccount.description && <MenuItem.Description>{selectedAccount.description}</MenuItem.Description>}
+                                </MenuItem.Content>
+                                <MenuItem.Trailing>
+                                    <MenuItem.Chevron />
+                                </MenuItem.Trailing>
+                            </MenuItem.Row>
+                        </MenuItem.Root>
                     )}
                     <View style={styles.ph5}>
                         <Text style={[styles.mt5, styles.mb3, styles.textLabelSupporting, styles.justifyContentStart]}>{translate('transferAmountPage.fee')}</Text>

@@ -16,6 +16,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import {getAvailablePerDiemRate} from '@libs/PolicyPerDiemUtils';
 import {getPerDiemCustomUnit} from '@libs/PolicyUtils';
 
 import type {SettingsNavigatorParamList} from '@navigation/types';
@@ -47,7 +48,7 @@ function WorkspacePerDiemDetailsPage({route}: WorkspacePerDiemDetailsPageProps) 
     const customUnit = getPerDiemCustomUnit(policy);
     const {canWrite: canWritePerDiem} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.PER_DIEM);
 
-    const selectedRate = customUnit?.rates?.[rateID];
+    const selectedRate = getAvailablePerDiemRate(customUnit?.rates?.[rateID]);
     const fetchedSubRate = selectedRate?.subRates?.find((subRate) => subRate.id === subRateID);
     const previousFetchedSubRate = usePrevious(fetchedSubRate);
     const icons = useMemoizedLazyExpensifyIcons(['Trashcan']);
@@ -77,7 +78,7 @@ function WorkspacePerDiemDetailsPage({route}: WorkspacePerDiemDetailsPageProps) 
             policyID={policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_PER_DIEM_RATES_ENABLED}
             policyFeature={CONST.POLICY.POLICY_FEATURE.PER_DIEM}
-            shouldBeBlocked={isEmptyObject(selectedSubRate)}
+            shouldBeBlocked={isEmptyObject(fetchedSubRate)}
         >
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding

@@ -20,6 +20,7 @@ type ConfirmSubmitViolationsThenProceedParams = {
     dateFnsLocale: LocaleContextProps['dateFnsLocale'];
     convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'];
     shouldShowMarkAsDoneCopy?: boolean;
+    shouldDeferForPopoverDismiss?: boolean;
     /** Called immediately when there's nothing to confirm, or once the user confirms the violations modal. */
     onProceed: (shouldResolveAcknowledgedViolations?: boolean) => void;
 };
@@ -31,13 +32,14 @@ type ConfirmSubmitViolationsThenProceedParams = {
  * match, stays on the expense even after confirming; only the user's own "Mark as cash" action resolves that
  * one, and RTER's own backend logic decides separately whether a card-matched expense can still submit.
  */
-function confirmSubmitViolationsThenProceed({
+async function confirmSubmitViolationsThenProceed({
     summary,
     showConfirmModal,
     translate,
     dateFnsLocale,
     convertToDisplayString,
     shouldShowMarkAsDoneCopy,
+    shouldDeferForPopoverDismiss,
     onProceed,
 }: ConfirmSubmitViolationsThenProceedParams) {
     if (!hasAnySubmitViolation(summary)) {
@@ -45,12 +47,19 @@ function confirmSubmitViolationsThenProceed({
         return;
     }
 
-    showSubmitViolationsConfirmModal({summary, showConfirmModal, translate, dateFnsLocale, convertToDisplayString, shouldShowMarkAsDoneCopy}).then((result) => {
-        if (result.action !== ModalActions.CONFIRM) {
-            return;
-        }
-        onProceed(shouldResolveAcknowledgedViolations(summary));
+    const result = await showSubmitViolationsConfirmModal({
+        summary,
+        showConfirmModal,
+        translate,
+        dateFnsLocale,
+        convertToDisplayString,
+        shouldShowMarkAsDoneCopy,
+        shouldDeferForPopoverDismiss,
     });
+    if (result.action !== ModalActions.CONFIRM) {
+        return;
+    }
+    onProceed(shouldResolveAcknowledgedViolations(summary));
 }
 
 export default confirmSubmitViolationsThenProceed;

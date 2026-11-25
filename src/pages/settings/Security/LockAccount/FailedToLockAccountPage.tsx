@@ -9,6 +9,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import Navigation from '@libs/Navigation/Navigation';
 
+import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 
 import React from 'react';
@@ -34,6 +35,7 @@ function FailedToLockAccountPage() {
                     description={translate('failedToLockAccountPage.failedToLockAccountDescription')}
                     descriptionStyle={styles.colorMuted}
                     buttonText={translate('failedToLockAccountPage.chatWithConcierge')}
+                    buttonSentryLabel={CONST.SENTRY_LABEL.SETTINGS_SECURITY.FAILED_TO_LOCK_ACCOUNT_CHAT_WITH_CONCIERGE}
                     onButtonPress={() => Navigation.navigate(ROUTES.CONCIERGE)}
                 />
             </ScrollView>

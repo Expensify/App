@@ -7,6 +7,10 @@ import type CanvasSize from './types/CanvasSize';
 const DEFAULT_WIDTH = 600;
 const DEFAULT_HEIGHT = 400;
 
+// The renderer allocates a surface of width x height pixels, so an unbounded size lets one chart use gigabytes of memory.
+// Backend charts are 680 px wide, and KPI charts widen with their bucket count but stay well below this.
+const MAX_DIMENSION = 4096;
+
 function isFiniteCoordinate(value: unknown): value is number {
     return typeof value === 'number' && Number.isFinite(value);
 }
@@ -45,6 +49,9 @@ function resolveCanvasSize(tnode: TNode): CanvasSize {
     }
 
     if (widthIsValid && heightIsValid) {
+        if (rawWidth > MAX_DIMENSION || rawHeight > MAX_DIMENSION) {
+            throw new Error(`<victorychart> width and height must not exceed ${MAX_DIMENSION}`);
+        }
         return {width: rawWidth, height: rawHeight};
     }
 

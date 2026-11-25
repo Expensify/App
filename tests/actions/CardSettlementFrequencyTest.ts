@@ -138,6 +138,7 @@ describe('actions/Card', () => {
                 expect.objectContaining({
                     policyAccountID: String(workspaceAccountID),
                     settlementFrequency: CONST.EXPENSIFY_CARD.FREQUENCY_SETTING.MONTHLY,
+                    feedCountry: programKey,
                 }),
             );
             expect(getLastSettlementFrequencyRequestParams()).not.toHaveProperty('monthlySettlementDate');

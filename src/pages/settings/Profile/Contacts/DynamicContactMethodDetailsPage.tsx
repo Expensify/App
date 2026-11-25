@@ -42,7 +42,7 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {addSMSDomainIfPhoneNumber} from '@libs/PhoneNumber';
-import {expensifyLoginsSelector} from '@libs/UserUtils';
+import {expensifyLoginsSelector, integrationServerLoginSelector} from '@libs/UserUtils';
 
 import {close} from '@userActions/Modal';
 
@@ -52,24 +52,27 @@ import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {Login} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import KeyboardUtils from '@src/utils/keyboard';
 
 import {useIsFocused} from '@react-navigation/native';
 import {Str} from 'expensify-common';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 
+import IntegrationServerLoginDetails from './IntegrationServerLoginDetails';
+
 type DynamicContactMethodDetailsPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.PROFILE.DYNAMIC_CONTACT_METHOD_DETAILS>;
 
 function DynamicContactMethodDetailsPage({route}: DynamicContactMethodDetailsPageProps) {
-    const [loginList, loginListResult] = useOnyx(ONYXKEYS.LOGINS, {selector: expensifyLoginsSelector});
-    const [session, sessionResult] = useOnyx(ONYXKEYS.SESSION);
+    const contactMethod = useMemo(() => addSMSDomainIfPhoneNumber(route.params.contactMethod), [route.params.contactMethod]);
+    const integrationServerLoginByContactMethodSelector = useMemo(() => integrationServerLoginSelector(contactMethod), [contactMethod]);
+    const [loginList] = useOnyx(ONYXKEYS.LOGINS, {selector: expensifyLoginsSelector});
+    const [integrationServerLogin] = useOnyx(ONYXKEYS.LOGINS, {selector: integrationServerLoginByContactMethodSelector});
+    const [session] = useOnyx(ONYXKEYS.SESSION);
     const {securityGroup, isLoadingSecurityGroup} = useUserSecurityGroup();
-    const [isLoadingReportData = true, isLoadingReportDataResult] = useOnyx(ONYXKEYS.IS_LOADING_REPORT_DATA);
+    const [isLoadingReportData = true] = useOnyx(ONYXKEYS.IS_LOADING_REPORT_DATA);
     const [isValidateCodeFormVisible, setIsValidateCodeFormVisible] = useState(true);
     const {isActingAsDelegate} = useDelegateNoAccessState();
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
-    const isLoadingOnyxValues = isLoadingOnyxValue(loginListResult, sessionResult, isLoadingReportDataResult) || isLoadingSecurityGroup;
     const {isAccountLocked} = useLockedAccountState();
     const {showLockedAccountModal} = useLockedAccountActions();
 
@@ -84,11 +87,6 @@ function DynamicContactMethodDetailsPage({route}: DynamicContactMethodDetailsPag
     // Threaded through to SETTINGS_CONTACT_METHOD_SET_DEFAULT_CONFIRM and deleteContactMethod, which
     // still use it to rebuild the contact methods list URL via DYNAMIC_ROUTES.CONTACT_METHODS.
     const backTo = getPathWithoutDynamicSuffix(listPath, DYNAMIC_ROUTES.CONTACT_METHODS.path) || ROUTES.SETTINGS_PROFILE.route;
-
-    /**
-     * Gets the current contact method from the route params
-     */
-    const contactMethod: string = useMemo(() => addSMSDomainIfPhoneNumber(route.params.contactMethod), [route.params.contactMethod]);
 
     const loginDataRef = useRef<Login | undefined>(undefined);
     const loginData = useMemo(() => {
@@ -229,8 +227,17 @@ function DynamicContactMethodDetailsPage({route}: DynamicContactMethodDetailsPag
         return menuItems;
     }, [isValidateCodeFormVisible, translate, turnOnDeleteModal, isDefaultContactMethod, icons.Trashcan]);
 
-    if (isLoadingOnyxValues || (isLoadingReportData && isEmptyObject(loginList))) {
+    if (isLoadingSecurityGroup || (isLoadingReportData && isEmptyObject(loginList))) {
         return <FullscreenLoadingIndicator onGoBack={() => Navigation.goBack(listPath)} />;
+    }
+
+    if (!loginData && integrationServerLogin) {
+        return (
+            <IntegrationServerLoginDetails
+                login={integrationServerLogin}
+                navigateBack={() => Navigation.goBack(listPath)}
+            />
+        );
     }
 
     if (!contactMethod || !loginData) {

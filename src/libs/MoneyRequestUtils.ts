@@ -10,8 +10,15 @@ import type {ManuallyEnteredScanFields} from './TransactionUtils';
 import {convertToBackendAmount, convertToFrontendAmountAsInteger} from './CurrencyUtils';
 import replaceAllDigits from './replaceAllDigits';
 import {isExpenseReport, isExpenseRequest, isPolicyExpenseChat} from './ReportUtils';
-import {doesMoneyRequestDraftHaveUserInput, hasReceiptSource, haveWaypointAddressesChanged, isCreatedMissing, isExpenseUnreported, isPartiallyEnteredScanExpense} from './TransactionUtils';
-import {getMerchantError} from './ValidationUtils';
+import {
+    doesMoneyRequestDraftHaveUserInput,
+    hasValidModifiedAmount,
+    hasReceiptSource,
+    haveWaypointAddressesChanged,
+    isCreatedMissing,
+    isExpenseUnreported,
+    isPartiallyEnteredScanExpense,
+} from './TransactionUtils';
 
 /**
  * Strip comma from the amount
@@ -49,6 +56,23 @@ function addLeadingZero(amount: string, shouldAllowNegative = false): string {
         return `-0${amount}`;
     }
     return amount.startsWith('.') ? `0${amount}` : amount;
+}
+
+/** The backend amount for what was typed in an inline amount field, or null when the field is empty or holds only a sign. */
+function getBackendAmountFromInput(value: string): number | null {
+    const isNegative = value.startsWith('-');
+    const cleanAmount = value.replace('-', '').trim();
+    if (!cleanAmount) {
+        return null;
+    }
+
+    const numericAmount = Number.parseFloat(cleanAmount);
+    if (Number.isNaN(numericAmount)) {
+        return null;
+    }
+
+    const absoluteBackendAmount = convertToBackendAmount(numericAmount);
+    return isNegative ? -absoluteBackendAmount : absoluteBackendAmount;
 }
 
 /**
@@ -170,18 +194,6 @@ function isMerchantRequired(report: OnyxEntry<Report>, transaction: OnyxEntry<Tr
         return false;
     }
     return isExpenseReport(report) || isPolicyExpenseChat(report) || isExpenseRequest(report) || !!transaction?.participants?.some((participant) => !!participant.isPolicyExpenseChat);
-}
-
-/**
- * Validates a merchant value according to business rules.
- *
- * @param merchant - The merchant name to validate
- * @param transaction - The transaction to validate merchant for (used to determine if clearing is allowed)
- * @param report - The parent report for the transaction (used to determine if IOU clearing is allowed)
- * @returns Whether the merchant value is valid
- */
-function isValidMerchant(merchant: string | undefined, transaction?: OnyxEntry<Transaction>, report?: OnyxEntry<Report>): boolean {
-    return !getMerchantError(merchant, isMerchantRequired(report, transaction));
 }
 
 type AmountHasUnsavedChangesParams = {
@@ -311,14 +323,34 @@ function shouldShowConfirmationDate(shouldShowSmartScanFields: boolean, isDistan
     return shouldShowSmartScanFields || isDistanceRequest;
 }
 
+/** The amount the money request confirmation works with: an edited amount when there is one, otherwise the original. */
+function getConfirmationAmount(transaction: OnyxEntry<Transaction>): number {
+    return hasValidModifiedAmount(transaction) ? Number(transaction?.modifiedAmount) : (transaction?.amount ?? 0);
+}
+
+type ConfirmationMerchantRequirementParams = {
+    isPolicyExpenseChat: boolean;
+    isScanRequest: boolean;
+    isEditingSplitBill: boolean | undefined;
+    shouldShowMerchant: boolean;
+};
+
+/**
+ * Whether the merchant is required on the money request confirmation surface. Only a workspace chat requires one, and
+ * a scan leaves it to SmartScan unless its split is being edited.
+ */
+function isConfirmationMerchantRequired(params: ConfirmationMerchantRequirementParams): boolean {
+    return params.isPolicyExpenseChat && (!params.isScanRequest || !!params.isEditingSplitBill) && params.shouldShowMerchant;
+}
+
 /**
  * Whether the required amount is still missing on the money request confirmation surface.
  * `isAmountSet` is only ever set by the manual flow (scan, per diem, distance and time populate the amount
  * programmatically and never set it), so the manual gate is part of the predicate rather than of each call site.
  * A Scan the user started filling in counts too: its three revealed fields are all-or-nothing, so once any of them
  * carries a value the blank ones are missing rather than SmartScan's to read.
- * This is the single source of truth shared by the validation that raises `common.error.fieldRequired`, the effect
- * that clears it once the field is filled, and the amount field that renders it inline, so the three never drift.
+ * `getConfirmationFieldErrors` reads it to build the amount error, and the field and the blocked confirm both read
+ * that one map, so an amount reported missing is always the one shown as missing.
  */
 function isConfirmationAmountMissing(transaction: OnyxEntry<ManuallyEnteredScanFields>, canEnterScanFieldsManually = false, shouldRequireMerchant = true): boolean {
     if (isPartiallyEnteredScanExpense(transaction, canEnterScanFieldsManually, shouldRequireMerchant)) {
@@ -337,9 +369,9 @@ function isConfirmationMerchantMissing(transaction: OnyxEntry<ManuallyEnteredSca
 
 /**
  * Whether the required date is still missing on the money request confirmation surface.
- * Gating on the same `shouldShowConfirmationDate && !isReadOnly` condition that renders the inline date picker keeps
- * validation, clearing and the UI in sync, and skips read-only/scan flows where the date is populated server-side.
- * Shares the same drift-proofing purpose as `isConfirmationAmountMissing`.
+ * It is gated on the same `shouldShowConfirmationDate && !isReadOnly` condition that renders the inline date picker,
+ * so a date the user can't enter is never reported missing, and read-only flows get their date server-side.
+ * Like `isConfirmationAmountMissing`, it feeds `getConfirmationFieldErrors`.
  */
 function isConfirmationDateMissing(
     transaction: OnyxEntry<Transaction>,
@@ -355,10 +387,13 @@ function isConfirmationDateMissing(
 }
 
 export {
+    getBackendAmountFromInput,
     addLeadingZero,
+    getConfirmationAmount,
     isConfirmationAmountMissing,
     isConfirmationDateMissing,
     isConfirmationMerchantMissing,
+    isConfirmationMerchantRequired,
     shouldShowConfirmationDate,
     replaceAllDigits,
     stripCommaFromAmount,
@@ -371,7 +406,6 @@ export {
     isValidMoneyRequestAmount,
     isTaxAmountInvalid,
     isMerchantRequired,
-    isValidMerchant,
     getAmountHasUnsavedChanges,
     getStringFieldHasUnsavedChanges,
     getWaypointsHasUnsavedChanges,

@@ -3,7 +3,8 @@ import type {BuildUserReadableQueryStringParams} from '@libs/SearchQueryUtils';
 
 import type {SaveSearchItem} from '@src/types/onyx/SaveSearch';
 
-import {useDeferredValue} from 'react';
+import {deepEqual} from 'fast-equals';
+import {useDeferredValue, useState} from 'react';
 
 type SavedSearchCollection = Record<string, SaveSearchItem>;
 
@@ -22,11 +23,7 @@ function useSavedSearchTitles({savedSearches, translate, formatPhoneNumber, enab
 
     const titles = new Map<string, string>();
 
-    if (!savedSearches || !enabled) {
-        return titles;
-    }
-
-    for (const item of Object.values(savedSearches)) {
+    for (const item of savedSearches && enabled ? Object.values(savedSearches) : []) {
         if (item.name !== item.query || titles.has(item.query)) {
             continue;
         }
@@ -55,6 +52,13 @@ function useSavedSearchTitles({savedSearches, translate, formatPhoneNumber, enab
         titles.set(item.query, title);
     }
 
+    // Inputs like report attributes are replaced on every expense write, even when no title changes. Returning the
+    // previous map while the titles are the same keeps every tab built from it from rendering again.
+    const [previousTitles, setPreviousTitles] = useState(titles);
+    if (deepEqual(previousTitles, titles)) {
+        return previousTitles;
+    }
+    setPreviousTitles(titles);
     return titles;
 }
 

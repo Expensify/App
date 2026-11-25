@@ -1,6 +1,7 @@
 import {isValidPerDiemExpenseAmount} from '@libs/actions/IOU/PerDiem';
 import {
     getAmountHasUnsavedChanges,
+    getBackendAmountFromInput,
     getStringFieldHasUnsavedChanges,
     getWaypointsHasUnsavedChanges,
     handleNegativeAmountFlipping,
@@ -8,14 +9,13 @@ import {
     haveMoneyRequestDraftsUserEdits,
     isConfirmationAmountMissing,
     isConfirmationDateMissing,
-    isValidMerchant,
+    isConfirmationMerchantRequired,
     isValidMoneyRequestAmount,
     validateAmount,
     validatePercentage,
 } from '@libs/MoneyRequestUtils';
 
 import CONST from '@src/CONST';
-import type Report from '@src/types/onyx/Report';
 import type Transaction from '@src/types/onyx/Transaction';
 import type {TransactionCustomUnit, WaypointCollection} from '@src/types/onyx/Transaction';
 
@@ -269,68 +269,20 @@ describe('ReportActionsUtils', () => {
         });
     });
 
-    describe('isValidMerchant', () => {
-        const iouReport = {
-            reportID: '1',
-            type: CONST.REPORT.TYPE.IOU,
-        } as Report;
+    describe('isConfirmationMerchantRequired', () => {
+        const workspaceManualExpense = {isPolicyExpenseChat: true, isScanRequest: false, isEditingSplitBill: false, shouldShowMerchant: true};
 
-        const expenseReport = {
-            reportID: '123',
-            type: CONST.REPORT.TYPE.EXPENSE,
-        } as Report;
-
-        const unreportedTransaction = createMock<Transaction>({
-            reportID: CONST.REPORT.UNREPORTED_REPORT_ID,
-            amount: 0,
-        });
-
-        const reportedTransaction = createMock<Transaction>({
-            reportID: '123',
-            amount: 0,
-        });
-
-        describe('empty merchants', () => {
-            it('should return true for empty/undefined merchant when transaction is unreported or IOU', () => {
-                expect(isValidMerchant('', unreportedTransaction)).toBe(true);
-                expect(isValidMerchant('   ', unreportedTransaction)).toBe(true);
-                expect(isValidMerchant(undefined, unreportedTransaction)).toBe(true);
-
-                expect(isValidMerchant('', reportedTransaction, iouReport)).toBe(true);
-                expect(isValidMerchant('   ', reportedTransaction, iouReport)).toBe(true);
-                expect(isValidMerchant(undefined, reportedTransaction, iouReport)).toBe(true);
-            });
-
-            it('should return true for empty/undefined merchant when the report is missing, matching the normal edit flow', () => {
-                expect(isValidMerchant('', reportedTransaction)).toBe(true);
-                expect(isValidMerchant('')).toBe(true);
-            });
-
-            it('should return false for empty/undefined merchant on an expense report', () => {
-                expect(isValidMerchant('', reportedTransaction, expenseReport)).toBe(false);
-                expect(isValidMerchant('   ', reportedTransaction, expenseReport)).toBe(false);
-                expect(isValidMerchant(undefined, reportedTransaction, expenseReport)).toBe(false);
-            });
-        });
-
-        describe('invalid merchant constants', () => {
-            it('should return false for invalid merchant constants regardless of transaction', () => {
-                expect(isValidMerchant(CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT)).toBe(false);
-                expect(isValidMerchant(CONST.TRANSACTION.DEFAULT_MERCHANT)).toBe(false);
-                expect(isValidMerchant(CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT, unreportedTransaction)).toBe(false);
-            });
-        });
-
-        describe('byte length validation', () => {
-            it('should respect the 255 byte limit', () => {
-                expect(isValidMerchant('Valid Merchant Name')).toBe(true);
-                expect(isValidMerchant('a'.repeat(CONST.MERCHANT_NAME_MAX_BYTES))).toBe(true);
-                expect(isValidMerchant('a'.repeat(CONST.MERCHANT_NAME_MAX_BYTES + 1))).toBe(false);
-            });
-        });
-
-        it('should trim whitespace before validation', () => {
-            expect(isValidMerchant('  Valid Merchant  ')).toBe(true);
+        it.each([
+            ['a manual expense to a workspace, where only the user can enter it', {}, true],
+            ['the split of a workspace scan being edited, which is only editable once SmartScan left fields blank', {isScanRequest: true, isEditingSplitBill: true}, true],
+            ['a scan, whose merchant SmartScan reads off the receipt', {isScanRequest: true}, false],
+            ['an expense to a person, which does not need a merchant', {isPolicyExpenseChat: false}, false],
+            ['a confirmation that hides the merchant field, which cannot be filled in', {shouldShowMerchant: false}, false],
+        ])('decides whether the merchant is required on %s', (_case, overrides, isRequired) => {
+            // Given a manual workspace expense that differs in this way, if at all
+            // When its merchant requirement is checked
+            // Then the merchant is required only where a workspace needs one and nothing but the user can fill it in
+            expect(isConfirmationMerchantRequired({...workspaceManualExpense, ...overrides})).toBe(isRequired);
         });
     });
 });
@@ -571,6 +523,25 @@ describe('isConfirmationDateMissing', () => {
 
     it('does not flag a read-only confirmation, where the date is populated server-side', () => {
         expect(isConfirmationDateMissing(transactionWithoutDate, true, true)).toBe(false);
+    });
+});
+
+describe('getBackendAmountFromInput', () => {
+    it('converts what was typed to a backend amount, keeping a leading minus', () => {
+        // Given an amount typed in an inline amount field, with and without a minus sign
+        // When it is converted for the draft
+        // Then it is in the smallest currency unit, signed as typed
+        expect(getBackendAmountFromInput('12.5')).toBe(1250);
+        expect(getBackendAmountFromInput('-12.5')).toBe(-1250);
+    });
+
+    it('returns null for an empty field or a lone sign, which has no amount to record', () => {
+        // Given the field was cleared, holds only whitespace, or holds only a minus sign
+        // When it is converted for the draft
+        // Then there is no amount to record
+        expect(getBackendAmountFromInput('')).toBeNull();
+        expect(getBackendAmountFromInput(' ')).toBeNull();
+        expect(getBackendAmountFromInput('-')).toBeNull();
     });
 });
 

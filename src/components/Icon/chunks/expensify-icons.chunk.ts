@@ -153,11 +153,13 @@ import NetSuiteExport from '@assets/images/integrationicons/export/netsuite-icon
 import QBOExport from '@assets/images/integrationicons/export/qbo-icon.svg';
 import SageIntacctExport from '@assets/images/integrationicons/export/sage-intacct-icon.svg';
 import XeroExport from '@assets/images/integrationicons/export/xero-icon.svg';
+import GrokSquare from '@assets/images/integrationicons/grok-icon-square.svg';
 import GustoSquare from '@assets/images/integrationicons/gusto-icon-square.svg';
 import IntuitSquare from '@assets/images/integrationicons/intuit-icon-square.svg';
 import MCPSquare from '@assets/images/integrationicons/mcp-icon-square.svg';
 import MicrosoftDynamicsSquare from '@assets/images/integrationicons/microsoft-dynamics-icon-square.svg';
 import NetSuiteSquare from '@assets/images/integrationicons/netsuite-icon-square.svg';
+import OdooSquare from '@assets/images/integrationicons/odoo-icon-square.svg';
 import OracleSquare from '@assets/images/integrationicons/oracle-icon-square.svg';
 import QBDSquare from '@assets/images/integrationicons/qbd-icon-square.svg';
 import QBOCircle from '@assets/images/integrationicons/qbo-icon-circle.svg';
@@ -514,6 +516,7 @@ const Expensicons = {
     RilletSquare,
     DualEntrySquare,
     ExactOnlineSquare,
+    OdooSquare,
     Rotate,
     RotateLeft,
     Scan,
@@ -554,6 +557,7 @@ const Expensicons = {
     ChatGPTSquare,
     ClaudeSquare,
     CursorSquare,
+    GrokSquare,
     MCPSquare,
     IntacctSquare: SageIntacctSquare,
     AdvancedApprovalsSquare,

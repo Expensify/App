@@ -13,7 +13,6 @@ import android.os.Bundle
 import android.os.Process
 import androidx.multidex.MultiDexApplication
 import com.expensify.chat.bootsplash.BootSplashPackage
-import com.expensify.chat.bootsplash.PrivacyCover
 import com.expensify.chat.navbar.NavBarManagerPackage
 import com.expensify.chat.shortcutManagerModule.ShortcutManagerPackage
 import com.margelo.nitro.nitrofetch.AutoPrefetcher
@@ -59,14 +58,6 @@ class MainApplication : MultiDexApplication(), ReactApplication {
         // to show its inputs.
         registerActivityLifecycleCallbacks(object : Application.ActivityLifecycleCallbacks {
             override fun onActivityCreated(activity: Activity, savedInstanceState: Bundle?) {
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                    activity.setRecentsScreenshotEnabled(false)
-                    // Third-party activities (e.g. Plaid) don't set our TaskDescription, so their recents fallback card would be black.
-                    // They don't get the cover dialog: their focus loss can't be told apart from their own popups or translucent activities.
-                    if (!activity.javaClass.name.startsWith("com.expensify.")) {
-                        PrivacyCover.applyTaskDescription(activity)
-                    }
-                }
                 if (activity.javaClass.name == "com.plaid.internal.link.LinkActivity") {
                     plaidLinkActivity = WeakReference(activity)
                     applyPlaidOrientation(activity, activity.resources.configuration)

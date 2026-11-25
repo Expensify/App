@@ -7,6 +7,7 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
+import {useGetPersonalDetailsByLogin} from '@hooks/usePersonalDetailByLogin';
 
 import {setCustomUnitID, setCustomUnitRateID, setMoneyRequestDraftHasUserEdits} from '@libs/actions/IOU/MoneyRequest';
 import {clearSubrates} from '@libs/actions/IOU/PerDiem';
@@ -27,6 +28,7 @@ import type {Policy, Report, Session, Transaction} from '@src/types/onyx';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
 import {isTrackIntentUserSelector} from '@selectors/Onboarding';
+import Onyx from 'react-native-onyx';
 
 type TransactionGroupListItem = ListItem & {
     /** reportID of the report */
@@ -88,10 +90,10 @@ type UseReportSelectionActionsResult = {
     handleGlobalCreateReport: (item: TransactionGroupListItem) => void;
 
     /** Handler invoked for ordinary report selection — schedules the change after the back animation. */
-    handleRegularReportSelection: (item: TransactionGroupListItem, report: OnyxEntry<Report>) => void;
+    handleRegularReportSelection: (item: TransactionGroupListItem, report: OnyxEntry<Report>) => Promise<void>;
 
     /** Handler invoked when the user opts to remove the expense from its current report (moves it to the personal policy). */
-    removeFromReport: () => void;
+    removeFromReport: () => Promise<void>;
 };
 
 function useReportSelectionActions({
@@ -113,19 +115,15 @@ function useReportSelectionActions({
 }: UseReportSelectionActionsParams): UseReportSelectionActionsResult {
     const {isBetaEnabledOrUnknown} = usePermissions();
     const isVendorMatchingBetaEnabled = isBetaEnabledOrUnknown(CONST.BETAS.VENDOR_MATCHING);
-    const [allPolicyCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES);
-    const [allPolicyTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS);
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const [selfDMReportID] = useOnyx(ONYXKEYS.SELF_DM_REPORT_ID);
     const [selfDMReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(selfDMReportID)}`);
     const {removeTransaction} = useSearchSelectionActions();
     const reports = useChangeTransactionsReportReports(transaction ? [transaction] : [], undefined);
-    const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
-    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
-    const [cardList] = useOnyx(ONYXKEYS.CARD_LIST);
     const delegateAccountID = useDelegateAccountID();
     const {getCurrencyDecimals, getCurrencySymbol} = useCurrencyListActions();
+    const getPersonalDetailsByLogin = useGetPersonalDetailsByLogin();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
 
     const targetTransactionIDs = transaction?.transactionID ? [transaction.transactionID] : [];
@@ -187,10 +185,18 @@ function useReportSelectionActions({
         handleGoBack();
     };
 
-    const handleRegularReportSelection = (item: TransactionGroupListItem, report: OnyxEntry<Report>) => {
+    const handleRegularReportSelection = async (item: TransactionGroupListItem, report: OnyxEntry<Report>) => {
         if (!transaction) {
             return;
         }
+
+        const [allPolicyCategories, allPolicyTags, rules, cardList, introSelected] = await Onyx.multiGet([
+            ONYXKEYS.COLLECTION.POLICY_CATEGORIES,
+            ONYXKEYS.COLLECTION.POLICY_TAGS,
+            ONYXKEYS.COLLECTION.RULE,
+            ONYXKEYS.CARD_LIST,
+            ONYXKEYS.NVP_INTRO_SELECTED,
+        ]);
 
         handleGoBack();
         TransitionTracker.runAfterTransitions({
@@ -227,12 +233,13 @@ function useReportSelectionActions({
                         reports: reportsForCall,
                         rules,
                         cardList,
-                        isTrackIntentUser,
+                        isTrackIntentUser: isTrackIntentUserSelector(introSelected),
                         personalPolicyOutputCurrency: allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${personalPolicyID}`]?.outputCurrency,
                         selfDMReportActions,
                         delegateAccountID,
                         getCurrencyDecimals,
                         getCurrencySymbol,
+                        personalDetailsByLogins: getPersonalDetailsByLogin(),
                     });
                     removeTransaction(transaction.transactionID, {isDeleted: false});
                 } else {
@@ -242,10 +249,16 @@ function useReportSelectionActions({
         });
     };
 
-    const removeFromReport = () => {
+    const removeFromReport = async () => {
         if (!transaction) {
             return;
         }
+        const [allPolicyTags, rules, cardList, introSelected] = await Onyx.multiGet([
+            ONYXKEYS.COLLECTION.POLICY_TAGS,
+            ONYXKEYS.COLLECTION.RULE,
+            ONYXKEYS.CARD_LIST,
+            ONYXKEYS.NVP_INTRO_SELECTED,
+        ]);
         Navigation.dismissToSuperWideRHP({
             afterTransition: () => {
                 const policyTagList = personalPolicyID ? allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${personalPolicyID}`] : {};
@@ -263,12 +276,13 @@ function useReportSelectionActions({
                     reports,
                     rules,
                     cardList,
-                    isTrackIntentUser,
+                    isTrackIntentUser: isTrackIntentUserSelector(introSelected),
                     personalPolicyOutputCurrency: allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${personalPolicyID}`]?.outputCurrency,
                     selfDMReportActions,
                     delegateAccountID,
                     getCurrencyDecimals,
                     getCurrencySymbol,
+                    personalDetailsByLogins: getPersonalDetailsByLogin(),
                 });
                 removeTransaction(transaction.transactionID, {isDeleted: false});
             },

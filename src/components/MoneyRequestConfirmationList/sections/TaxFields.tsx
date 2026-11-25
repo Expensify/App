@@ -1,3 +1,5 @@
+import DropdownField from '@components/DropdownField';
+import DropdownFieldRow from '@components/DropdownFieldRow';
 import MenuItem from '@components/MenuItem';
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import {useConfirmationFields} from '@components/MoneyRequestConfirmationFields/context';
@@ -33,8 +35,7 @@ import {authTokenTypeSelector} from '@selectors/Session';
 import React, {useEffect, useRef} from 'react';
 import {View} from 'react-native';
 
-import ExpenseFieldDropdown from './ExpenseFieldDropdown';
-import ExpenseFieldRow from './ExpenseFieldRow';
+import ExpenseFieldContainer from './ExpenseFieldContainer';
 import {useExpenseFormLayout} from './ExpenseFormLayoutContext';
 import {taxSliceSelector} from './selectors';
 import TaxFieldDropdown from './TaxFieldDropdown';
@@ -168,15 +169,17 @@ function TaxFields({policy, policyForMovingExpenses, iouCurrencyCode, canModifyT
     // the tax-amount page: it reads the amount out for a user who cannot change it. Being non-interactive, the
     // dropdown-row form renders it as a disabled field rather than as one waiting to be filled in.
     const readOnlyTaxAmountRow = shouldUseDropdownRows ? (
-        <ExpenseFieldRow
-            name={translate('iou.taxAmount')}
-            value={formattedTaxAmount}
-            onPress={openTaxAmountPage}
-            isDisabled={didConfirm}
-            isInteractive={false}
-            testID={`${taxRates?.name}_amount`}
-            sentryLabel={CONST.SENTRY_LABEL.REQUEST_CONFIRMATION_LIST.TAX_AMOUNT_FIELD}
-        />
+        <ExpenseFieldContainer>
+            <DropdownFieldRow
+                name={translate('iou.taxAmount')}
+                value={formattedTaxAmount}
+                onPress={openTaxAmountPage}
+                isDisabled={didConfirm}
+                isInteractive={false}
+                testID={`${taxRates?.name}_amount`}
+                sentryLabel={CONST.SENTRY_LABEL.REQUEST_CONFIRMATION_LIST.TAX_AMOUNT_FIELD}
+            />
+        </ExpenseFieldContainer>
     ) : (
         <MenuItemField
             key={`${taxRates?.name}_amount`}
@@ -192,28 +195,30 @@ function TaxFields({policy, policyForMovingExpenses, iouCurrencyCode, canModifyT
     return (
         <>
             {shouldUseDropdownRows ? (
-                <ExpenseFieldDropdown
-                    name={taxRates?.name ?? translate('iou.taxRate')}
-                    value={taxRateTitle}
-                    errorText={shouldDisplayTaxRateError ? translate(formError as TranslationPaths) : ''}
-                    onPress={openTaxRatePage}
-                    shouldOpenInDropdown={shouldOpenInDropdown && canModifyTaxFields && !didConfirm}
-                    listHeaderHeight={SELECTION_LIST_POPOVER_HEADER_HEIGHT}
-                    renderDropdown={(dropdownProps) =>
-                        !!transactionID && (
-                            <TaxFieldDropdown
-                                {...dropdownProps}
-                                transactionID={transactionID}
-                                policy={taxRatesPolicy}
-                                selectedTaxRate={taxRateTitle}
-                            />
-                        )
-                    }
-                    isDisabled={didConfirm}
-                    isInteractive={canModifyTaxFields}
-                    testID={`${taxRates?.name}_rate`}
-                    sentryLabel={CONST.SENTRY_LABEL.REQUEST_CONFIRMATION_LIST.TAX_RATE_FIELD}
-                />
+                <ExpenseFieldContainer>
+                    <DropdownField
+                        name={taxRates?.name ?? translate('iou.taxRate')}
+                        value={taxRateTitle}
+                        errorText={shouldDisplayTaxRateError ? translate(formError as TranslationPaths) : ''}
+                        onPress={openTaxRatePage}
+                        shouldOpenInDropdown={shouldOpenInDropdown && canModifyTaxFields && !didConfirm}
+                        listHeaderHeight={SELECTION_LIST_POPOVER_HEADER_HEIGHT}
+                        renderDropdown={(dropdownProps) =>
+                            !!transactionID && (
+                                <TaxFieldDropdown
+                                    {...dropdownProps}
+                                    transactionID={transactionID}
+                                    policy={taxRatesPolicy}
+                                    selectedTaxRate={taxRateTitle}
+                                />
+                            )
+                        }
+                        isDisabled={didConfirm}
+                        isInteractive={canModifyTaxFields}
+                        testID={`${taxRates?.name}_rate`}
+                        sentryLabel={CONST.SENTRY_LABEL.REQUEST_CONFIRMATION_LIST.TAX_RATE_FIELD}
+                    />
+                </ExpenseFieldContainer>
             ) : (
                 <MenuItem.Root
                     key={`${taxRates?.name}_rate`}

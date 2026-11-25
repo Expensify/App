@@ -8,7 +8,6 @@ import {calculateRemainingFreeTrialDays, doesUserHavePaymentCardAdded, getEarlyD
 
 import useFreeTrial from '@pages/home/FreeTrialSection/useFreeTrial';
 
-import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 import Onyx from 'react-native-onyx';
@@ -233,7 +232,7 @@ describe('useFreeTrial', () => {
 
             renderHook(() => useFreeTrial());
 
-            expect(mockedShouldShowDiscountBanner).toHaveBeenCalledWith(CONST.DEFAULT_NUMBER_ID, true, 'team', firstDayFreeTrial, lastDayFreeTrial, userBillingFundID, {});
+            expect(mockedShouldShowDiscountBanner).toHaveBeenCalledWith(true, true, 'team', firstDayFreeTrial, lastDayFreeTrial, userBillingFundID);
         });
 
         it('should call calculateRemainingFreeTrialDays with lastDayFreeTrial', async () => {
