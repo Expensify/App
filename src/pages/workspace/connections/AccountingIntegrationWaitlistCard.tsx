@@ -7,9 +7,9 @@ import Badge from '@components/Badge';
 import Button from '@components/Button';
 import MenuItem from '@components/MenuItem';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
-import Text from '@components/Text';
 
 import useConfirmModal from '@hooks/useConfirmModal';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -48,6 +48,7 @@ function AccountingIntegrationWaitlistCard({connectionName, title, icon, policyI
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
     const {showConfirmModal} = useConfirmModal();
+    const icons = useMemoizedLazyExpensifyIcons(['Checkmark']);
     const policy = usePolicy(policyID);
     const {canWrite, showReadOnlyModal} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.ACCOUNTING);
     const [isOnServerWaitlist] = useOnyx(ONYXKEYS.NVP_ACCOUNTING_INTEGRATION_WAITLIST, {
@@ -135,30 +136,24 @@ function AccountingIntegrationWaitlistCard({connectionName, title, icon, policyI
                                 />
                             </View>
                         </MenuItem.Content>
-                        <View style={[isOnWaitlist && styles.flex1, styles.justifyContentCenter]}>
+                        <View style={styles.justifyContentCenter}>
                             <MenuItem.Trailing>
-                                {isOnWaitlist ? (
-                                    <Text
-                                        variant="label"
-                                        style={[styles.textSupporting, styles.flexShrink1, styles.textAlignRight]}
-                                    >
-                                        {translate('workspace.accounting.integrationWaitlist.onWaitlist')}
-                                    </Text>
-                                ) : (
-                                    <Button
-                                        onPress={joinWaitlist}
-                                        // A queued request can't finish offline, so the button is disabled rather than loading until the connection returns
-                                        isDisabled={isOffline}
-                                        isLoading={!isOffline && !!request?.pendingAction}
-                                        style={styles.justifyContentCenter}
-                                        innerStyles={!canWrite ? [styles.buttonOpacityDisabled, styles.buttonDisabled] : undefined}
-                                        hoverStyles={!canWrite ? [styles.buttonOpacityDisabled, styles.buttonDisabled] : undefined}
-                                        size={CONST.BUTTON_SIZE.SMALL}
-                                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.JOIN_WAITLIST_BUTTON}
-                                    >
-                                        <Button.Text>{translate('workspace.accounting.integrationWaitlist.joinWaitlist')}</Button.Text>
-                                    </Button>
-                                )}
+                                <Button
+                                    onPress={joinWaitlist}
+                                    // A queued request can't finish offline, so the button is disabled rather than loading until the connection returns
+                                    isDisabled={isOnWaitlist || isOffline}
+                                    isLoading={!isOffline && !!request?.pendingAction}
+                                    style={styles.justifyContentCenter}
+                                    innerStyles={!canWrite && !isOnWaitlist ? [styles.buttonOpacityDisabled, styles.buttonDisabled] : undefined}
+                                    hoverStyles={!canWrite && !isOnWaitlist ? [styles.buttonOpacityDisabled, styles.buttonDisabled] : undefined}
+                                    size={CONST.BUTTON_SIZE.SMALL}
+                                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.JOIN_WAITLIST_BUTTON}
+                                >
+                                    {isOnWaitlist && <Button.Icon src={icons.Checkmark} />}
+                                    <Button.Text>
+                                        {translate(isOnWaitlist ? 'workspace.accounting.integrationWaitlist.onWaitlistButton' : 'workspace.accounting.integrationWaitlist.joinWaitlist')}
+                                    </Button.Text>
+                                </Button>
                             </MenuItem.Trailing>
                         </View>
                     </MenuItem.Row>
