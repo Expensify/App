@@ -12,17 +12,21 @@ import React, {useState} from 'react';
 import BasePopup from './BasePopup';
 
 type TextInputPopupProps = {
-    style?: StyleProp<ViewStyle>;
+    /** The value the input starts with when the popup opens */
     initialValue: string;
+
+    /** The value restored when Reset is pressed, defaults to an empty string */
     defaultValue?: string;
+
     label?: string;
     placeholder?: string;
+    shouldShowResetButton?: boolean;
+    applySentryLabel: SentryLabel;
+    resetSentryLabel: SentryLabel;
+    style?: StyleProp<ViewStyle>;
     onBackButtonPress?: () => void;
     closeOverlay: () => void;
     onChange: (value: string) => void;
-    applySentryLabel: SentryLabel;
-    shouldShowResetButton?: boolean;
-    resetSentryLabel: SentryLabel;
 };
 
 function TextInputPopup({
