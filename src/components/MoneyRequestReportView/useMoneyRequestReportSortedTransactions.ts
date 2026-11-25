@@ -1,6 +1,6 @@
 import type {SearchSortBy, SortOrder} from '@components/Search/types';
 
-import useAccountIDToNameMap from '@hooks/useAccountIDToNameMap';
+import {useMentionedAccountIDToNameMap} from '@hooks/useAccountIDToNameMap';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import {useAllPersonalDetails} from '@hooks/usePersonalDetails';
@@ -98,7 +98,8 @@ function useMoneyRequestReportSortedTransactions({
     policyTagLists,
 }: UseMoneyRequestReportSortedTransactionsParams): UseMoneyRequestReportSortedTransactionsResult {
     const {translate, localeCompare} = useLocalize();
-    const accountIDToName = useAccountIDToNameMap();
+    // Only the users mentioned in these descriptions are looked up, so edits to anyone else's personal details don't re-render the rows
+    const accountIDToName = useMentionedAccountIDToNameMap(transactions.map((transaction) => transaction.comment?.comment ?? '').join(' '));
     const ownerLoginSelector = personalDetailsLoginSelector(report?.ownerAccountID);
     const [ownerLogin] = useAllPersonalDetails(ownerLoginSelector);
     const [cardList] = useOnyx(ONYXKEYS.CARD_LIST);
