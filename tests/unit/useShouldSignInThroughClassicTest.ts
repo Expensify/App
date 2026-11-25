@@ -65,12 +65,15 @@ describe('useShouldSignInThroughClassic', () => {
         // Given a browser that got New Expensify at the path of the Classic sign-in page
         window.history.pushState({}, '', '/signin');
 
-        // When the sign-in screen asks where to sign in
-        const result = await renderWithOnyx();
-        window.history.pushState({}, '', '/');
+        try {
+            // When the sign-in screen asks where to sign in
+            const result = await renderWithOnyx();
 
-        // Then New Expensify keeps its own sign-in screen, since opening the same path again would loop
-        expect(result.current).toBe(false);
+            // Then New Expensify keeps its own sign-in screen, since opening the same path again would loop
+            expect(result.current).toBe(false);
+        } finally {
+            window.history.pushState({}, '', '/');
+        }
     });
 
     it('is false for a signed-in user', async () => {

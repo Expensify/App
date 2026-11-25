@@ -42,6 +42,12 @@ jest.mock('@hooks/useAndroidBackButtonHandler', () => ({
     },
 }));
 
+// The hook needs a navigator to know whether the sign-in screen is focused, and these tests render the screen without one.
+jest.mock('@hooks/useShouldSignInThroughClassic', () => ({
+    __esModule: true,
+    default: () => false,
+}));
+
 // SignInPage renders a full themed layout with form children. None of it participates in navigateBack.
 jest.mock('@pages/signin/SignInPageLayout', () => 'SignInPageLayout');
 jest.mock('@pages/signin/LoginForm', () => 'LoginForm');

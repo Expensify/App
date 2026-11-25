@@ -25,7 +25,7 @@ import type SignInUserParams from '@libs/API/parameters/SignInUserParams';
 import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import asyncOpenURL from '@libs/asyncOpenURL';
 import buildOldDotURL from '@libs/buildOldDotURL';
-import {openClassicSignOutAfter, preventClassicSignIn} from '@libs/ClassicSignIn';
+import {openClassicSignOutAfter, preventClassicSignInDuring} from '@libs/ClassicSignIn';
 import {hasAuthToken} from '@libs/CurrentUserStore';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import FraudProtection from '@libs/FraudProtection';
@@ -320,7 +320,12 @@ async function revokeAllSessions(translate: LocaleContextProps['translate']): Pr
         }
 
         // Wait for session cleanup so the success toast appears on the sign-in screen.
-        await redirectToSignIn(CONST.SIGN_OUT_REASON.USER_SIGN_OUT);
+        const signInRedirect = redirectToSignIn(CONST.SIGN_OUT_REASON.USER_SIGN_OUT);
+
+        // Every device includes this browser's Expensify Classic session, which only its sign-out page can end.
+        // That page replaces this one, so the toast below only shows where Expensify Classic isn't on the same host.
+        openClassicSignOutAfter(signInRedirect);
+        await signInRedirect;
         Growl.success({bodyText: translate('deviceManagementPage.signOutAllDevicesSuccess'), position: CONST.GROWL.POSITION.BOTTOM_RIGHT});
         return true;
     } catch (error) {
@@ -406,7 +411,7 @@ function signOutAndRedirectToSignIn(
     shouldSignOutFromOldDot = true,
     shouldForceUseStashedSession?: boolean,
     signOutReason: SignOutReason = CONST.SIGN_OUT_REASON.USER_SIGN_OUT,
-    shouldSignOutFromClassicWeb = true,
+    shouldEndClassicBrowserSession = true,
 ) {
     Log.info('Redirecting to Sign In because signOut() was called');
     hideContextMenu(false);
@@ -497,15 +502,11 @@ function signOutAndRedirectToSignIn(
             }
             if (response?.hasOldDotAuthCookies) {
                 Log.info('Redirecting to OldDot sign out');
-                preventClassicSignIn();
-                asyncOpenURL(
-                    redirectToSignIn(signOutReason).then(() => {
-                        Onyx.multiSet(onyxSetParams);
-                    }),
-                    `${CONFIG.EXPENSIFY.EXPENSIFY_URL}${CONST.OLDDOT_URLS.SIGN_OUT}`,
-                    true,
-                    true,
-                );
+                const signInRedirect = redirectToSignIn(signOutReason).then(() => {
+                    Onyx.multiSet(onyxSetParams);
+                });
+                preventClassicSignInDuring(signInRedirect);
+                asyncOpenURL(signInRedirect, `${CONFIG.EXPENSIFY.EXPENSIFY_URL}${CONST.OLDDOT_URLS.SIGN_OUT}`, true, true);
             } else if (isPerformingSupportalLogout && hasStashedSession(stashedSession, stashedCredentials)) {
                 // We have confirmed here that the supportal agent was logged in, so we can restore the stashed session
                 // and then redirect to the oldDot supportal page to restore the stashed session
@@ -523,15 +524,15 @@ function signOutAndRedirectToSignIn(
             } else if (isPerformingSupportalLogout && !hasStashedSession(stashedSession, stashedCredentials)) {
                 // If the supportal agent was not logged in, we call `redirectToSignIn` to clear the Onyx DB
                 // and then redirect to supportal and restore the stashed session
-                preventClassicSignIn();
-                redirectToSignIn(CONST.SIGN_OUT_REASON.SUPPORTAL_LOGOUT).then(() => {
-                    Onyx.multiSet(onyxSetParams).then(() => {
-                        buildOldDotURL(CONST.OLDDOT_URLS.SUPPORTAL_RESTORE_STASHED_LOGIN).then((oldDotURL) => {
+                preventClassicSignInDuring(
+                    redirectToSignIn(CONST.SIGN_OUT_REASON.SUPPORTAL_LOGOUT)
+                        .then(() => Onyx.multiSet(onyxSetParams))
+                        .then(() => buildOldDotURL(CONST.OLDDOT_URLS.SUPPORTAL_RESTORE_STASHED_LOGIN))
+                        .then((oldDotURL) => {
                             // Open the oldDot URL to restore the stashed session and go back to OD supportal page
                             openExternalLink(oldDotURL, undefined, true);
-                        });
-                    });
-                });
+                        }),
+                );
             } else if (shouldRestoreStashedSession && !shouldStashSession && hasStashedSession(stashedSession, stashedCredentials)) {
                 // Preserve SESSION during clear to avoid a login page flash, then restore the stashed session.
                 // Seed LAST_FULL_RECONNECT_TIME so subscribeToFullReconnect doesn't fire a duplicate
@@ -564,7 +565,7 @@ function signOutAndRedirectToSignIn(
                 });
 
                 // A stashed session is restored later, so the Expensify Classic session it came from has to stay
-                if (shouldSignOutFromClassicWeb && !shouldStashSession) {
+                if (shouldEndClassicBrowserSession && !shouldStashSession) {
                     openClassicSignOutAfter(signInRedirect);
                 }
             }

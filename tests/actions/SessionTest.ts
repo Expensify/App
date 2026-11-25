@@ -11,7 +11,7 @@ import * as SignInRedirect from '@libs/actions/SignInRedirect';
 import {SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import asyncOpenURL from '@libs/asyncOpenURL';
 import buildOldDotURL from '@libs/buildOldDotURL';
-import {openClassicSignOutAfter, preventClassicSignIn} from '@libs/ClassicSignIn';
+import {openClassicSignOutAfter, preventClassicSignInDuring} from '@libs/ClassicSignIn';
 import {clearExperienceCookie} from '@libs/ExperienceCookie';
 import getPlatform from '@libs/getPlatform';
 import Growl from '@libs/Growl';
@@ -82,7 +82,7 @@ jest.mock('@libs/ExperienceCookie', () => ({
 
 jest.mock('@libs/ClassicSignIn', () => ({
     openClassicSignOutAfter: jest.fn(),
-    preventClassicSignIn: jest.fn(),
+    preventClassicSignInDuring: jest.fn(),
 }));
 
 const mockedGetPlatform = jest.mocked(getPlatform);
@@ -151,6 +151,7 @@ describe('Session', () => {
             expect(mockAPI.write).not.toHaveBeenCalled();
             expect(SignInRedirect.default).toHaveBeenCalledTimes(1);
             expect(Growl.success).not.toHaveBeenCalled();
+            expect(openClassicSignOutAfter).toHaveBeenCalledWith(redirect.promise);
             redirect.resolve();
             await expect(result).resolves.toBe(true);
             expect(Growl.success).toHaveBeenCalledWith({bodyText: 'You’ve been signed out on all devices.', position: CONST.GROWL.POSITION.BOTTOM_RIGHT});
@@ -682,7 +683,7 @@ describe('Session', () => {
             await waitForBatchedUpdates();
 
             expect(asyncOpenURL).toHaveBeenCalledWith(expect.any(Promise), `${CONFIG.EXPENSIFY.EXPENSIFY_URL}${CONST.OLDDOT_URLS.SIGN_OUT}`, true, true);
-            expect(preventClassicSignIn).toHaveBeenCalled();
+            expect(preventClassicSignInDuring).toHaveBeenCalledWith(expect.any(Promise));
             expect(redirectToSignInSpy).toHaveBeenCalled();
             jest.clearAllMocks();
         });
@@ -829,6 +830,31 @@ describe('Session', () => {
                 [ONYXKEYS.CREDENTIALS]: testStashedCredentials,
                 [ONYXKEYS.SESSION]: testStashedSession,
             });
+        });
+
+        test('SignOutAndRedirectToSignIn should keep the Classic sign-in page closed while a supportal agent without a stashed session goes back to supportal', async () => {
+            // Given a supportal session of an agent who wasn't signed in before it started.
+            // The tests above replace Onyx.clear, so their stashed session has to be cleared for real first.
+            jest.restoreAllMocks();
+            await Onyx.clear();
+            await waitForBatchedUpdates();
+            jest.spyOn(SessionUtil, 'isSupportAuthToken').mockReturnValue(true);
+            jest.spyOn(SessionUtil, 'hasStashedSession').mockReturnValue(false);
+            jest.spyOn(SessionUtil, 'signOut').mockResolvedValue(undefined);
+            const redirectToSignInSpy = jest.spyOn(SignInRedirect, 'default').mockImplementation(() => Promise.resolve());
+            jest.clearAllMocks();
+            await Onyx.merge(ONYXKEYS.SESSION, {authTokenType: CONST.AUTH_TOKEN_TYPES.SUPPORT});
+            await waitForBatchedUpdates();
+
+            // When the agent signs out
+            signOutAndRedirectToSignIn(await Onyx.get(ONYXKEYS.SESSION), false, false, true, true);
+            await waitForBatchedUpdates();
+
+            // Then supportal opens, and the signed-out sign-in screen can't open the Classic sign-in page before it
+            expect(redirectToSignInSpy).toHaveBeenCalledWith(CONST.SIGN_OUT_REASON.SUPPORTAL_LOGOUT);
+            expect(preventClassicSignInDuring).toHaveBeenCalledWith(expect.any(Promise));
+            expect(openExternalLink).toHaveBeenCalledWith('mockOldDotURL', undefined, true);
+            jest.clearAllMocks();
         });
     });
 

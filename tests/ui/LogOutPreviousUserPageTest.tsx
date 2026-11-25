@@ -204,6 +204,8 @@ describe('LogOutPreviousUserPage', () => {
 
         // Then the transition route is still on top when the previous account is signed out, so nothing pops the page itself
         expect(signOutAndRedirectToSignIn).toHaveBeenCalledTimes(1);
+        // The new account comes from Expensify Classic, so its browser session there has to stay
+        expect(jest.mocked(signOutAndRedirectToSignIn).mock.calls.at(0)?.at(6)).toBe(false);
         expect(topRouteAtSignOut).toBe(SCREENS.TRANSITION_BETWEEN_APPS);
     });
 
@@ -232,6 +234,8 @@ describe('LogOutPreviousUserPage', () => {
 
         // Then the transition route is on top when the previous account is signed out, so the public transition page can redeem the token from its params
         expect(signOutAndRedirectToSignIn).toHaveBeenCalledTimes(1);
+        // The new account comes from Expensify Classic, so its browser session there has to stay
+        expect(jest.mocked(signOutAndRedirectToSignIn).mock.calls.at(0)?.at(6)).toBe(false);
         expect(topRouteAtSignOut).toBe(SCREENS.TRANSITION_BETWEEN_APPS);
     });
 
@@ -306,6 +310,8 @@ describe('LogOutPreviousUserPage', () => {
         // Then the page rebuilds the public room before the sign-in modal opens, because an anonymous session only gets the sign-in modal and is never signed in to the link account
         expect(resetRootSpy).toHaveBeenCalledTimes(1);
         expect(signOutAndRedirectToSignIn).toHaveBeenCalledTimes(1);
+        // The new account comes from Expensify Classic, so its browser session there has to stay
+        expect(jest.mocked(signOutAndRedirectToSignIn).mock.calls.at(0)?.at(6)).toBe(false);
         expect(resetRootSpy.mock.invocationCallOrder.at(0)).toBeLessThan(jest.mocked(signOutAndRedirectToSignIn).mock.invocationCallOrder.at(0) ?? 0);
         resetRootSpy.mockRestore();
     });
