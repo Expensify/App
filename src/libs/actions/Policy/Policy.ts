@@ -4157,8 +4157,6 @@ function openPolicyWorkflowsPage(policyID: string, includeAllBankAccounts?: bool
     API.read(READ_COMMANDS.OPEN_POLICY_WORKFLOWS_PAGE, params, onyxData);
 }
 
-const RECEIPT_PARTNERS_LOADING_TIMEOUT_MS = 10 * 1000;
-
 function openPolicyReceiptPartnersPage(policyID?: string) {
     if (!policyID) {
         Log.warn('openPolicyReceiptPartnersPage invalid params', {policyID});
@@ -4167,7 +4165,7 @@ function openPolicyReceiptPartnersPage(policyID?: string) {
 
     const params: OpenPolicyReceiptPartnersPageParams = {policyID};
     const loadingKey = `${ONYXKEYS.COLLECTION.RAM_ONLY_IS_LOADING_RECEIPT_PARTNERS}${policyID}` as const;
-    // An offline read applies none of its Onyx data, so the flag would stay set until the timeout below.
+    // An offline read applies none of its Onyx data, so nothing would clear the flag.
     const isOffline = getIsOffline();
     API.read(
         READ_COMMANDS.OPEN_POLICY_RECEIPT_PARTNERS_PAGE,
@@ -4179,14 +4177,6 @@ function openPolicyReceiptPartnersPage(policyID?: string) {
                   finallyData: [{onyxMethod: Onyx.METHOD.SET, key: loadingKey, value: false}],
               },
     );
-    if (isOffline) {
-        return;
-    }
-
-    // A read that throws (5xx, 429, socket error) applies neither its success nor its finally data.
-    setTimeout(() => {
-        Onyx.set(loadingKey, false);
-    }, RECEIPT_PARTNERS_LOADING_TIMEOUT_MS);
 }
 
 function removePolicyReceiptPartnersConnection(policyID: string, partnerName: string, receiptPartnerData?: UberReceiptPartner) {
