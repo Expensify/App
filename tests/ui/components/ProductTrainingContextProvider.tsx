@@ -1,4 +1,4 @@
-import {cleanup, render, renderHook} from '@testing-library/react-native';
+import {act, cleanup, render, renderHook} from '@testing-library/react-native';
 
 import {ProductTrainingContextProvider, useProductTrainingContext} from '@components/ProductTrainingContext';
 import type {ProductTrainingTooltipName} from '@components/ProductTrainingContext/TOOLTIPS';
@@ -7,6 +7,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 
 import {setModalVisibility, willAlertModalBecomeVisible} from '@libs/actions/Modal';
 import DateUtils from '@libs/DateUtils';
+import getPlatform from '@libs/getPlatform';
 import {setHasRadio} from '@libs/NetworkState';
 
 import CONST from '@src/CONST';
@@ -17,6 +18,7 @@ import type {Ref} from 'react';
 import {createRef, useImperativeHandle} from 'react';
 import Onyx from 'react-native-onyx';
 
+import createRandomPolicy from '../../utils/collections/policies';
 import * as TestHelper from '../../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../../utils/waitForBatchedUpdatesWithAct';
 import wrapOnyxWithWaitForBatchedUpdates from '../../utils/wrapOnyxWithWaitForBatchedUpdates';
@@ -25,6 +27,8 @@ jest.mock('@hooks/useResponsiveLayout', () => ({
     __esModule: true,
     default: jest.fn(),
 }));
+
+jest.mock('@libs/getPlatform', () => jest.fn(() => 'web'));
 
 const DEFAULT_USE_RESPONSIVE_LAYOUT_VALUE = {
     shouldUseNarrowLayout: true,
@@ -169,6 +173,129 @@ describe('ProductTrainingContextProvider', () => {
 
             // Then the remaining tooltip should still be shown
             expect(ref.current?.shouldShowProductTrainingTooltip).toBe(true);
+        });
+    });
+
+    describe('Account moved to the top bar', () => {
+        const accountTooltip = CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.ACCOUNT_MOVED_TO_TOP_BAR;
+        const personalPolicyKey = `${ONYXKEYS.COLLECTION.POLICY}personal` as const;
+
+        beforeEach(() => {
+            jest.mocked(getPlatform).mockReturnValue(CONST.PLATFORM.ANDROID);
+            mockUseResponsiveLayout.mockReturnValue(DEFAULT_USE_RESPONSIVE_LAYOUT_VALUE);
+        });
+
+        afterEach(() => {
+            jest.mocked(getPlatform).mockReturnValue(CONST.PLATFORM.WEB);
+            mockUseResponsiveLayout.mockReturnValue({...DEFAULT_USE_RESPONSIVE_LAYOUT_VALUE, shouldUseNarrowLayout: false});
+            jest.useRealTimers();
+        });
+
+        it.each([
+            [CONST.PLATFORM.IOS, '2026-10-29 15:43:40', true],
+            [CONST.PLATFORM.ANDROID, '2026-10-29 15:43:40', true],
+            [CONST.PLATFORM.IOS, '2026-10-29 15:43:41', false],
+            [CONST.PLATFORM.ANDROID, '2026-10-29 15:43:41', false],
+            [CONST.PLATFORM.IOS, '2026-10-29 15:43:42', false],
+            [CONST.PLATFORM.ANDROID, '2026-11-01 00:00:00', false],
+            [CONST.PLATFORM.WEB, '2020-01-01 00:00:00', false],
+            [CONST.PLATFORM.MOBILE_WEB, '2020-01-01 00:00:00', false],
+            [CONST.PLATFORM.ANDROID, undefined, false],
+            [CONST.PLATFORM.ANDROID, 'not a date', false],
+        ] as const)('on %s with personal policy created %s, visibility is %s', async (platform, created, shouldShow) => {
+            // Given a narrow layout, where both native and browser Account buttons can render
+            jest.mocked(getPlatform).mockReturnValue(platform);
+            await Onyx.set(personalPolicyKey, {...createRandomPolicy(1, CONST.POLICY.TYPE.PERSONAL), created});
+
+            // When the Account button requests its educational tooltip
+            const {result} = renderHook(() => useProductTrainingContext(accountTooltip), {wrapper});
+            await waitForBatchedUpdatesWithAct();
+
+            // Then only native users who predate the move are eligible, without opting mobile web into a distinct platform
+            expect(result.current.shouldShowProductTrainingTooltip).toBe(shouldShow);
+            expect(getPlatform).toHaveBeenCalledWith();
+        });
+
+        it('waits for policies and updates eligibility when the personal policy arrives or changes', async () => {
+            // Given no policy collection yet, even though the app has finished loading
+            await waitForBatchedUpdatesWithAct();
+            const {result} = renderHook(() => useProductTrainingContext(accountTooltip), {wrapper});
+            expect(result.current.shouldShowProductTrainingTooltip).toBe(false);
+
+            // When only an old group workspace arrives, its age must not qualify a new employee
+            await act(async () => {
+                await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}group`, {...createRandomPolicy(2, CONST.POLICY.TYPE.TEAM), created: '2020-01-01 00:00:00'});
+            });
+            await waitForBatchedUpdatesWithAct();
+            expect(result.current.shouldShowProductTrainingTooltip).toBe(false);
+
+            // When the account's own pre-cutoff personal policy arrives
+            await act(async () => {
+                await Onyx.set(personalPolicyKey, {...createRandomPolicy(1, CONST.POLICY.TYPE.PERSONAL), created: '2020-01-01 00:00:00'});
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the already-registered tooltip becomes visible without a remount
+            expect(result.current.shouldShowProductTrainingTooltip).toBe(true);
+
+            // When the signup proxy changes to a post-cutoff date
+            await act(async () => {
+                await Onyx.merge(personalPolicyKey, {created: '2026-11-01 00:00:00'});
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            // Then eligibility is recalculated rather than cached at registration
+            expect(result.current.shouldShowProductTrainingTooltip).toBe(false);
+        });
+
+        it('does not let an ineligible Account tooltip block a lower-priority tooltip', async () => {
+            // Given a native user who signed up after the move
+            await Onyx.set(personalPolicyKey, {...createRandomPolicy(1, CONST.POLICY.TYPE.PERSONAL), created: '2026-11-01 00:00:00'});
+
+            // When both the Account tooltip and a lower-priority tooltip register
+            const {result} = renderHook(
+                () => ({
+                    account: useProductTrainingContext(accountTooltip),
+                    lower: useProductTrainingContext(CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.GPS_TOOLTIP),
+                }),
+                {wrapper},
+            );
+            await waitForBatchedUpdatesWithAct();
+
+            // Then eligibility is checked before assigning the visible slot
+            expect(result.current.account.shouldShowProductTrainingTooltip).toBe(false);
+            expect(result.current.lower.shouldShowProductTrainingTooltip).toBe(true);
+        });
+
+        it('keeps the tooltip for an infrequent user until dismissal and respects dismissal across remounts', async () => {
+            // Given an existing native user returning more than 60 days after the move
+            jest.useFakeTimers({doNotFake: ['setImmediate', 'nextTick']});
+            jest.setSystemTime(new Date('2027-02-01T00:00:00Z'));
+            await Onyx.set(personalPolicyKey, {...createRandomPolicy(1, CONST.POLICY.TYPE.PERSONAL), created: '2020-01-01 00:00:00'});
+
+            // When they return without having dismissed the tooltip
+            const {result, unmount} = renderHook(() => useProductTrainingContext(accountTooltip), {wrapper});
+            await waitForBatchedUpdatesWithAct();
+
+            // Then there is no display expiration for existing users
+            expect(result.current.shouldShowProductTrainingTooltip).toBe(true);
+
+            // When they dismiss it through the existing action
+            act(() => result.current.hideProductTrainingTooltip());
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the original dismissal key is persisted and the tooltip hides
+            expect(result.current.shouldShowProductTrainingTooltip).toBe(false);
+            expect(await Onyx.get(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING)).toHaveProperty('accountMovedToTopBar');
+            unmount();
+
+            // When they return again more than 60 days after dismissal
+            jest.setSystemTime(new Date('2027-05-01T00:00:00Z'));
+            const {result: returningResult} = renderHook(() => useProductTrainingContext(accountTooltip), {wrapper});
+            await waitForBatchedUpdatesWithAct();
+
+            // Then dismissal remains permanent
+            expect(returningResult.current.shouldShowProductTrainingTooltip).toBe(false);
         });
     });
 

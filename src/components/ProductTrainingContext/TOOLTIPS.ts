@@ -1,10 +1,13 @@
 import {dismissProductTraining} from '@libs/actions/Welcome';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
+import getPlatform from '@libs/getPlatform';
 
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 
 import type {ValueOf} from 'type-fest';
+
+import {fromZonedTime} from 'date-fns-tz';
 
 const {
     CONCIERGE_LHN_GBR,
@@ -32,6 +35,7 @@ type ShouldShowConditionProps = {
     isUserPolicyAdmin: boolean;
     hasBeenAddedToNudgeMigration: boolean;
     isUserInPaidPolicy: boolean;
+    personalPolicyCreated?: string;
 };
 
 type TooltipData = {
@@ -113,7 +117,15 @@ const TOOLTIPS: Record<ProductTrainingTooltipName, TooltipData> = {
         onHideTooltip: (isDismissedUsingCloseButton = false) => dismissProductTraining(ACCOUNT_MOVED_TO_TOP_BAR, isDismissedUsingCloseButton),
         name: ACCOUNT_MOVED_TO_TOP_BAR,
         priority: 1700,
-        shouldShow: () => true,
+        shouldShow: ({personalPolicyCreated}) => {
+            const platform = getPlatform();
+            if ((platform !== CONST.PLATFORM.IOS && platform !== CONST.PLATFORM.ANDROID) || !personalPolicyCreated) {
+                return false;
+            }
+
+            const created = fromZonedTime(personalPolicyCreated, 'UTC').getTime();
+            return created < fromZonedTime(CONST.ACCOUNT_MOVED_TO_TOP_BAR_CUTOFF_DATE, 'UTC').getTime();
+        },
     },
     [CONNECTIONS_MOVED]: {
         content: 'productTrainingTooltip.connectionsMoved',
