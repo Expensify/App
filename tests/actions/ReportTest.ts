@@ -265,6 +265,17 @@ const parseGuidedSetupData = (value: string): GuidedSetupData => {
 
 type APIWriteSpy = jest.SpiedFunction<typeof API.write>;
 
+const emptyChangePolicyExpenseData = {
+    sourcePolicy: undefined,
+    policies: undefined,
+    policyCategories: undefined,
+    policyTagList: undefined,
+    transactionViolations: undefined,
+    reportActions: undefined,
+    getCurrencySymbol: TestHelper.getCurrencySymbolLocal,
+    isVendorMatchingBetaEnabled: false,
+};
+
 describe('actions/Report', () => {
     let apiWriteSpy: APIWriteSpy;
 
@@ -5132,6 +5143,7 @@ describe('actions/Report', () => {
             };
 
             Report.changeReportPolicy({
+                ...emptyChangePolicyExpenseData,
                 report: expenseReport,
                 getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
                 rules: undefined,
@@ -5171,6 +5183,7 @@ describe('actions/Report', () => {
 
             // When moving to another workspace
             Report.changeReportPolicy({
+                ...emptyChangePolicyExpenseData,
                 report: expenseReport,
                 getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
                 rules: undefined,
@@ -5236,6 +5249,7 @@ describe('actions/Report', () => {
 
             // When moving to another workspace
             Report.changeReportPolicy({
+                ...emptyChangePolicyExpenseData,
                 report: expenseReport,
                 getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
                 rules: undefined,
@@ -5311,6 +5325,7 @@ describe('actions/Report', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${newPolicy.id}`, newPolicy);
 
             Report.changeReportPolicy({
+                ...emptyChangePolicyExpenseData,
                 report: expenseReport,
                 getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
                 rules: undefined,
@@ -5412,6 +5427,7 @@ describe('actions/Report', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${newPolicy.id}`, newPolicy);
 
             Report.changeReportPolicy({
+                ...emptyChangePolicyExpenseData,
                 report: expenseReport,
                 getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
                 rules: undefined,
@@ -5501,6 +5517,7 @@ describe('actions/Report', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${newPolicy.id}`, newPolicy);
 
             Report.changeReportPolicy({
+                ...emptyChangePolicyExpenseData,
                 report: expenseReport,
                 getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
                 rules: undefined,
@@ -5558,6 +5575,7 @@ describe('actions/Report', () => {
 
             // When moving to another workspace
             Report.changeReportPolicyAndInviteSubmitter({
+                ...emptyChangePolicyExpenseData,
                 report: expenseReport,
                 getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
                 rules: undefined,
@@ -5653,6 +5671,7 @@ describe('actions/Report', () => {
 
             // Call changeReportPolicyAndInviteSubmitter
             Report.changeReportPolicyAndInviteSubmitter({
+                ...emptyChangePolicyExpenseData,
                 report: expenseReport,
                 getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
                 rules: undefined,
@@ -5702,6 +5721,7 @@ describe('actions/Report', () => {
             };
 
             Report.changeReportPolicyAndInviteSubmitter({
+                ...emptyChangePolicyExpenseData,
                 report: expenseReport,
                 getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
                 rules: undefined,
@@ -5737,6 +5757,7 @@ describe('actions/Report', () => {
             };
 
             Report.changeReportPolicyAndInviteSubmitter({
+                ...emptyChangePolicyExpenseData,
                 report: expenseReport,
                 getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
                 rules: undefined,
@@ -5771,6 +5792,7 @@ describe('actions/Report', () => {
             };
 
             Report.changeReportPolicyAndInviteSubmitter({
+                ...emptyChangePolicyExpenseData,
                 report: expenseReport,
                 getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
                 rules: undefined,
@@ -5805,6 +5827,7 @@ describe('actions/Report', () => {
             };
 
             Report.changeReportPolicyAndInviteSubmitter({
+                ...emptyChangePolicyExpenseData,
                 report: expenseReport,
                 getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
                 rules: undefined,
@@ -5841,6 +5864,7 @@ describe('actions/Report', () => {
 
             // Do not set personal details for ownerAccountID so getLoginByAccountID returns empty
             Report.changeReportPolicyAndInviteSubmitter({
+                ...emptyChangePolicyExpenseData,
                 report: expenseReport,
                 getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
                 rules: undefined,
@@ -5897,6 +5921,7 @@ describe('actions/Report', () => {
             mockFetch.pause?.();
 
             Report.changeReportPolicyAndInviteSubmitter({
+                ...emptyChangePolicyExpenseData,
                 report: expenseReport,
                 getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
                 rules: undefined,
@@ -6599,6 +6624,7 @@ describe('actions/Report', () => {
                 reportPreviewAction: undefined,
                 getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
                 getCurrencySymbol: TestHelper.getCurrencySymbolLocal,
+                isVendorMatchingBetaEnabled: false,
                 managerLogin: undefined,
                 hasViolationsParam: false,
                 isChangePolicyTrainingModalDismissed: true,
@@ -6676,8 +6702,8 @@ describe('actions/Report', () => {
                     originalMessage: {IOUTransactionID: transaction.transactionID, type: CONST.IOU.REPORT_ACTION_TYPE.CREATE},
                     ...(scenario === 'existingThread' ? {childReportID: 'existingDistanceThread'} : {}),
                 };
-                const isSkipped = ['approved', 'closed', 'loadingWaypoints', 'sameRateID'].includes(scenario);
-                const isUnchanged = isSkipped || scenario === 'matching' || scenario === 'samePriceFallback';
+                const isSkipped = ['approved', 'closed', 'sameRateID'].includes(scenario);
+                const isUnchanged = isSkipped || scenario === 'matching' || scenario === 'samePriceFallback' || scenario === 'loadingWaypoints';
 
                 // When either workspace-change command runs while its API response is paused
                 const {params, threadMap} = await changeWorkspace({
@@ -6741,6 +6767,121 @@ describe('actions/Report', () => {
             },
         );
 
+        it.each([false, true])('handles a missing IOU action with an existing thread: %s', async (hasThread) => {
+            // Given an expense whose IOU action has not been loaded
+            const transaction = {...createDistanceTransaction(), ...(hasThread ? {transactionThreadReportID: 'existingDistanceThread'} : {})};
+
+            // When repricing without a loaded IOU action
+            const {params, threadMap, requestData} = await changeWorkspace({transactions: [transaction]});
+
+            // Then repricing still works, but no orphan thread or CREATED action is generated
+            const updated = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`);
+            expect(updated?.modifiedAmount).toBe(-800);
+            expect(params.distanceRateUpdatedReportActionID).toBeDefined();
+            expect(requestData?.optimisticData?.filter((update) => update.onyxMethod === Onyx.METHOD.SET && update.key.startsWith(ONYXKEYS.COLLECTION.REPORT))).toEqual([]);
+            if (hasThread) {
+                const entry = threadMap[transaction.transactionID];
+                expect(entry.transactionThreadCreatedReportActionID).toBeUndefined();
+                const actions = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}existingDistanceThread`);
+                expect(actions?.[entry.modifiedExpenseReportActionID]?.actionName).toBe(CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE);
+            } else {
+                expect(threadMap).toEqual({});
+                expect(updated?.transactionThreadReportID).toBeUndefined();
+            }
+        });
+
+        it.each(['sourceRate', 'deletedRate'])('keeps the quantity of a legacy expense without a unit and rate %s', async (customUnitRateID) => {
+            // Given a legacy manual expense without a stored unit and a destination using kilometers
+            const transaction = createDistanceTransaction();
+            if (transaction.comment?.customUnit) {
+                delete transaction.comment.customUnit.distanceUnit;
+                transaction.comment.customUnit.customUnitRateID = customUnitRateID;
+            }
+            const policy = createDistancePolicy('destination', 80);
+            const distanceUnit = policy.customUnits?.distance;
+            if (distanceUnit) {
+                distanceUnit.attributes = {unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS};
+            }
+
+            // When moving the expense to the kilometer workspace
+            await changeWorkspace({transactions: [transaction], policy});
+
+            // Then an unknown source unit is not assumed to be miles
+            const updated = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`);
+            expect(updated?.comment?.customUnit).toMatchObject({quantity: 10, distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS, customUnitRateID: 'destinationRate'});
+            expect(updated?.modifiedAmount).toBe(-800);
+        });
+
+        it('updates a pending waypoint rate without repricing and restores its metadata on failure', async () => {
+            // Given an expense awaiting waypoints with manually edited price fields
+            const transaction = {
+                ...createDistanceTransaction(),
+                pendingFields: {waypoints: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
+                modifiedAmount: -700,
+                modifiedMerchant: 'Edited distance',
+                modifiedCurrency: 'EUR',
+            };
+
+            // When changing workspace before the waypoint response, then failing the move
+            const {threadMap} = await changeWorkspace({transactions: [transaction]});
+            const updated = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`);
+            expect(updated).toMatchObject({amount: -500, modifiedAmount: -700, modifiedMerchant: 'Edited distance', modifiedCurrency: 'EUR'});
+            expect(updated?.comment?.customUnit?.customUnitRateID).toBe('destinationRate');
+            expect(threadMap).toEqual({});
+            mockFetch.fail();
+            await mockFetch.resume();
+            await waitForBatchedUpdates();
+
+            // Then neither the original metadata nor the pending price fields are lost
+            expect(await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`)).toEqual(transaction);
+        });
+
+        it('counts only unheld non-reimbursable expenses in their subtotal and restores totals on failure', async () => {
+            // Given all four combinations of hold and reimbursement with distinct amounts
+            const distance = createDistanceTransaction();
+            const ordinary = (transactionID: string, amount: number, reimbursable: boolean, held: boolean): OnyxTypes.Transaction => ({
+                ...createDistanceTransaction(),
+                transactionID,
+                amount,
+                reimbursable,
+                iouRequestType: undefined,
+                comment: {comment: 'Lunch', ...(held ? {hold: 'holdReportActionID'} : {})},
+            });
+            const originalTotals = {
+                total: -1400,
+                unheldTotal: -700,
+                nonReimbursableTotal: -600,
+                unheldNonReimbursableTotal: -200,
+                reimbursableTotal: -800,
+                unheldReimbursableTotal: -500,
+            };
+
+            // When the unheld reimbursable distance expense changes price
+            await changeWorkspace({
+                transactions: [
+                    distance,
+                    ordinary('unheldNonReimbursable', -200, false, false),
+                    ordinary('heldReimbursable', -300, true, true),
+                    ordinary('heldNonReimbursable', -400, false, true),
+                ],
+                reportOverrides: originalTotals,
+            });
+
+            // Then held expenses and reimbursable expenses cannot enter the unheld non-reimbursable subtotal
+            expect(await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`)).toMatchObject({
+                total: -1700,
+                unheldTotal: -1000,
+                nonReimbursableTotal: -600,
+                unheldNonReimbursableTotal: -200,
+                reimbursableTotal: -1100,
+                unheldReimbursableTotal: -800,
+            });
+            mockFetch.fail();
+            await mockFetch.resume();
+            await waitForBatchedUpdates();
+            expect(await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`)).toMatchObject(originalTotals);
+        });
+
         it('recomputes all violations and rolls back expense fields, totals and newly created threads on failure', async () => {
             // Given distance and ordinary expenses, including an existing ordinary-expense violation
             const distance = {...createDistanceTransaction(), convertedAmount: -500};
@@ -6749,6 +6890,15 @@ describe('actions/Report', () => {
             // When changing workspace optimistically and then receiving a failed API response
             const {params, threadMap, requestData} = await changeWorkspace({
                 transactions: [distance, ordinary],
+                reportActions: {
+                    distanceIOUAction: {
+                        reportActionID: 'distanceIOUAction',
+                        actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                        actorAccountID: 1,
+                        created: '2026-03-15 00:00:00.000',
+                        originalMessage: {IOUTransactionID: distance.transactionID, type: CONST.IOU.REPORT_ACTION_TYPE.CREATE},
+                    },
+                },
                 transactionViolations: {[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${ordinary.transactionID}`]: originalViolations},
             });
             expect(requestData?.optimisticData?.filter((update) => update.key.startsWith(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS))).toHaveLength(2);
@@ -6784,6 +6934,7 @@ describe('actions/Report', () => {
             };
             const policy = createRandomPolicy(Number(1));
             Report.buildOptimisticChangePolicyData({
+                ...emptyChangePolicyExpenseData,
                 report,
                 getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
                 rules: undefined,
@@ -6824,6 +6975,7 @@ describe('actions/Report', () => {
             };
             const policy = createRandomPolicy(Number(1));
             const {optimisticReportPreviewAction} = Report.buildOptimisticChangePolicyData({
+                ...emptyChangePolicyExpenseData,
                 report,
                 getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
                 rules: undefined,
@@ -6856,6 +7008,7 @@ describe('actions/Report', () => {
             };
             const policy = createRandomPolicy(Number(1));
             const {optimisticMovedReportAction} = Report.buildOptimisticChangePolicyData({
+                ...emptyChangePolicyExpenseData,
                 report,
                 getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
                 rules: undefined,
@@ -6906,6 +7059,7 @@ describe('actions/Report', () => {
             await waitForBatchedUpdates();
 
             const {optimisticData, successData, failureData} = Report.buildOptimisticChangePolicyData({
+                ...emptyChangePolicyExpenseData,
                 report,
                 getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
                 rules: undefined,
@@ -6975,6 +7129,7 @@ describe('actions/Report', () => {
             await waitForBatchedUpdates();
 
             const {optimisticData} = Report.buildOptimisticChangePolicyData({
+                ...emptyChangePolicyExpenseData,
                 report,
                 getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
                 rules: undefined,
@@ -7028,6 +7183,7 @@ describe('actions/Report', () => {
             await waitForBatchedUpdates();
 
             const {optimisticData} = Report.buildOptimisticChangePolicyData({
+                ...emptyChangePolicyExpenseData,
                 report,
                 getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
                 rules: undefined,
@@ -7094,6 +7250,7 @@ describe('actions/Report', () => {
             await waitForBatchedUpdates();
 
             const {optimisticData} = Report.buildOptimisticChangePolicyData({
+                ...emptyChangePolicyExpenseData,
                 report,
                 getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
                 rules: undefined,
@@ -7163,6 +7320,7 @@ describe('actions/Report', () => {
             const policy = createRandomPolicy(Number(1));
 
             const {optimisticData, failureData} = Report.buildOptimisticChangePolicyData({
+                ...emptyChangePolicyExpenseData,
                 report,
                 getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
                 rules: undefined,
@@ -7249,6 +7407,7 @@ describe('actions/Report', () => {
             await waitForBatchedUpdates();
 
             const {optimisticData, failureData} = Report.buildOptimisticChangePolicyData({
+                ...emptyChangePolicyExpenseData,
                 report,
                 getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
                 rules: undefined,

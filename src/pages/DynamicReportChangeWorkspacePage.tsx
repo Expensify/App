@@ -87,7 +87,7 @@ function DynamicReportChangeWorkspacePage({report}: DynamicReportChangeWorkspace
     const reportPreviewAction = useParentReportAction(report);
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`);
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
-    // The destination is only known on selection; keep its categories and tags ready for confirmation.
+    // The destination is only known on selection. Keep its categories and tags ready for confirmation.
     const [policyCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES);
     const [policyTagLists] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS);
     const [isChangePolicyTrainingModalDismissed = false] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING, {selector: changePolicyTrainingModalDismissedSelector});

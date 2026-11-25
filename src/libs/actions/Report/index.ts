@@ -64,7 +64,7 @@ import * as ApiUtils from '@libs/ApiUtils';
 import * as Browser from '@libs/Browser';
 import trackConciergeResponse from '@libs/ConciergeResponseIndicator';
 import type {CustomRNImageManipulatorResult} from '@libs/cropOrRotateImage/types';
-import {getCurrencyDecimals as getCurrencyDecimalsUtil, getLocalizedCurrencySymbol} from '@libs/CurrencyUtils';
+import {getCurrencyDecimals as getCurrencyDecimalsUtil} from '@libs/CurrencyUtils';
 import DateUtils from '@libs/DateUtils';
 import * as Environment from '@libs/Environment/Environment';
 import {getOldDotURLFromEnvironment} from '@libs/Environment/Environment';
@@ -239,7 +239,6 @@ import type {OnboardingCompanySize, OnboardingMessage} from '@userActions/Welcom
 import CONFIG from '@src/CONFIG';
 import type {OnboardingAccounting} from '@src/CONST';
 import CONST from '@src/CONST';
-import IntlStore from '@src/languages/IntlStore';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
@@ -8513,14 +8512,14 @@ function navigateToTrainingModal(isChangePolicyTrainingModalDismissed: boolean) 
 }
 
 type ChangePolicyExpenseData = {
-    sourcePolicy?: OnyxEntry<Policy>;
-    policies?: OnyxCollection<Policy>;
-    policyCategories?: OnyxEntry<PolicyCategories>;
-    policyTagList?: OnyxEntry<PolicyTagLists>;
-    transactionViolations?: OnyxCollection<TransactionViolations>;
-    reportActions?: OnyxEntry<ReportActions>;
-    getCurrencySymbol?: CurrencyListActionsContextType['getCurrencySymbol'];
-    isVendorMatchingBetaEnabled?: boolean;
+    sourcePolicy: OnyxEntry<Policy>;
+    policies: OnyxCollection<Policy>;
+    policyCategories: OnyxEntry<PolicyCategories>;
+    policyTagList: OnyxEntry<PolicyTagLists>;
+    transactionViolations: OnyxCollection<TransactionViolations>;
+    reportActions: OnyxEntry<ReportActions>;
+    getCurrencySymbol: CurrencyListActionsContextType['getCurrencySymbol'];
+    isVendorMatchingBetaEnabled: boolean;
 };
 
 type DistanceRateThreadData = {
@@ -8554,8 +8553,8 @@ function buildOptimisticChangePolicyData({
     policyTagList,
     transactionViolations,
     reportActions,
-    getCurrencySymbol = (currencyCode) => getLocalizedCurrencySymbol(IntlStore.getCurrentLocale(), currencyCode),
-    isVendorMatchingBetaEnabled = false,
+    getCurrencySymbol,
+    isVendorMatchingBetaEnabled,
 }: {
     report: Report;
     parentReport: OnyxEntry<Report>;
@@ -8973,8 +8972,8 @@ function buildOptimisticChangePolicyData({
         const iouAction = ReportActionsUtils.getIOUActionForTransactionID(expenseActions, transaction.transactionID);
         let transactionThreadReportID = iouAction?.childReportID ?? transaction.transactionThreadReportID;
         let transactionThreadCreatedReportActionID: string | undefined;
-        if (!transactionThreadReportID) {
-            // Construct local data only; opening each thread would queue an API request per expense.
+        if (!transactionThreadReportID && iouAction) {
+            // Construct local data only. Opening each thread would queue an API request per expense.
             const thread = buildTransactionThread(iouAction, {...report, policyID: policy.id}, currentUserAccountID, undefined, generateReportID());
             transactionThreadReportID = thread.reportID;
             const createdAction = buildOptimisticCreatedReportAction({
@@ -8998,18 +8997,19 @@ function buildOptimisticChangePolicyData({
                     value: {transactionThreadReportID: transaction.transactionThreadReportID ?? null},
                 },
             );
-            if (iouAction) {
-                optimisticData.push({
-                    onyxMethod: Onyx.METHOD.MERGE,
-                    key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
-                    value: {[iouAction.reportActionID]: {childReportID: thread.reportID}},
-                });
-                failureData.push({
-                    onyxMethod: Onyx.METHOD.MERGE,
-                    key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
-                    value: {[iouAction.reportActionID]: {childReportID: iouAction.childReportID ?? null}},
-                });
-            }
+            optimisticData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
+                value: {[iouAction.reportActionID]: {childReportID: thread.reportID}},
+            });
+            failureData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
+                value: {[iouAction.reportActionID]: {childReportID: iouAction.childReportID ?? null}},
+            });
+        }
+        if (!transactionThreadReportID) {
+            return updatedTransaction;
         }
         const modifiedAction = buildOptimisticConciergeDistanceRateModifiedExpenseReportAction({
             transactionThreadReportID,

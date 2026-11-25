@@ -26,13 +26,13 @@ type DistancePolicyChangeParams = {
     transaction: Transaction;
     policy: Policy;
     sourcePolicy: OnyxEntry<Policy>;
-    policies?: OnyxCollection<Policy>;
+    policies: OnyxCollection<Policy>;
     getCurrencySymbol: CurrencyListActionsContextType['getCurrencySymbol'];
     isExpenseReport: boolean;
 };
 
 function getDistanceTransactionForPolicyChange({transaction, policy, sourcePolicy, policies, getCurrencySymbol, isExpenseReport}: DistancePolicyChangeParams) {
-    if (!isDistanceRequest(transaction) || isFetchingWaypointsFromServer(transaction)) {
+    if (!isDistanceRequest(transaction)) {
         return {updatedTransaction: transaction, isFallback: false, repricedTransaction: undefined};
     }
     const currentRateID = transaction.comment?.customUnit?.customUnitRateID;
@@ -49,17 +49,19 @@ function getDistanceTransactionForPolicyChange({transaction, policy, sourcePolic
         ...transaction,
         comment: {...transaction.comment, customUnit: {...transaction.comment?.customUnit, customUnitRateID: selectedRate.customUnitRateID, defaultP2PRate: undefined}},
     };
-    const existingDistanceUnit = DistanceRequestUtils.getDistanceUnit(transaction, currentRate);
+    // Legacy expenses without a stored unit must not have their quantity converted from an assumed unit.
+    const existingDistanceUnit = transaction.comment?.customUnit?.distanceUnit;
     const newDistanceUnit = DistanceRequestUtils.getUpdatedDistanceUnit({transaction: updatedTransaction, policy});
     if (updatedTransaction.comment?.customUnit) {
         updatedTransaction.comment.customUnit.distanceUnit = newDistanceUnit;
-        if (newDistanceUnit !== existingDistanceUnit && !isOdometerDistanceRequest(transaction)) {
+        if (existingDistanceUnit && newDistanceUnit !== existingDistanceUnit && !isOdometerDistanceRequest(transaction)) {
             const conversionFactor = existingDistanceUnit === CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES ? CONST.CUSTOM_UNITS.MILES_TO_KILOMETERS : CONST.CUSTOM_UNITS.KILOMETERS_TO_MILES;
             updatedTransaction.comment.customUnit.quantity = roundToTwoDecimalPlaces((transaction.comment?.customUnit?.quantity ?? 0) * conversionFactor);
         }
     }
     const isFallback = !selection?.isMatchingRate;
-    if (isFallback) {
+    // Select the destination rate while waypoints load, but wait for their distance before calculating a price.
+    if (isFallback && !isFetchingWaypointsFromServer(transaction)) {
         const {unit, rate} = selectedRate;
         const distanceInMeters = getDistanceInMeters(updatedTransaction, unit);
         const calculatedAmount = DistanceRequestUtils.getDistanceRequestAmount(distanceInMeters, unit, rate ?? 0);
