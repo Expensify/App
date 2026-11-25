@@ -458,7 +458,9 @@ function updateApprovalWorkflowRules({approvalWorkflow, initialApprovalWorkflow,
     const defaultApprover = getDefaultApprover(policy);
     const unlistedDefaultWorkflowMembers: Member[] =
         initialApprovalWorkflow.isDefault && hasRuleBasedDefaultWorkflow(existingRules)
-            ? [...getDefaultWorkflowSubmitterEmails(existingRules, defaultApprover)].filter((email) => !previousMemberEmails.includes(email)).map((email) => ({email, displayName: email}))
+            ? [...getDefaultWorkflowSubmitterEmails(existingRules, defaultApprover)]
+                  .filter((email) => !previousMemberEmails.includes(email) && !newMemberEmails.includes(email))
+                  .map((email) => ({email, displayName: email}))
             : [];
     const workflowToSave = {...approvalWorkflow, members: [...approvalWorkflow.members, ...unlistedDefaultWorkflowMembers]};
     const newRules = buildApprovalWorkflowRulesForSave(workflowToSave, {

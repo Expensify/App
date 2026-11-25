@@ -3567,5 +3567,43 @@ describe('actions/Workflow', () => {
             await mockFetch.resume();
             await waitForBatchedUpdates();
         });
+
+        it('lists every member once when selecting everyone makes the workflow the default one', async () => {
+            mockFetch.pause();
+
+            // Given the [employee1, employee2] -> employee3 workflow and the owner's default workflow of the owner and employee3,
+            // both stored as rules, and a "+N more" edit selecting every member
+            await createForwardApproveRules(policyID, [employee1Email, employee2Email], employee3Email);
+            await createForwardApproveRules(policyID, [ownerEmail, employee3Email], ownerEmail, 'default', true);
+            const everyMember = [employee1Member, employee2Member, {email: ownerEmail, displayName: ownerEmail}, {email: employee3Email, displayName: employee3Email}];
+            const approvalWorkflow = buildFastEditDraft(everyMember);
+            await seed(approvalWorkflow);
+
+            // When the fast edit is saved as rules, making the workflow the default one
+            saveFastEditApprovalWorkflow({approvalWorkflow, policy, rules: await getRulesCollection(), shouldUseApprovalWorkflowRules: true});
+            await waitForBatchedUpdates();
+
+            // Then every rule lists each member once, since the members who just joined from the old default workflow are not added again.
+            // extractSubmitterEmails drops repeats, so the `from` list is read as saved.
+            const getSavedSubmitters = (node: unknown): unknown[] => {
+                if (!node || typeof node !== 'object') {
+                    return [];
+                }
+                const {left, right} = node as {left?: unknown; right?: unknown};
+                if (left === CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM) {
+                    return Array.isArray(right) ? right : [right];
+                }
+                return [...getSavedSubmitters(left), ...getSavedSubmitters(right)];
+            };
+            const rules = await getActivePolicyRules(policyID);
+            expect(rules.length).toBeGreaterThan(0);
+            for (const rule of rules) {
+                const submitters = getSavedSubmitters(rule.filters);
+                expect(submitters).toHaveLength(new Set(submitters).size);
+            }
+
+            await mockFetch.resume();
+            await waitForBatchedUpdates();
+        });
     });
 });
