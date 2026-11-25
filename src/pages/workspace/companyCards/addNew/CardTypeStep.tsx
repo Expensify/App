@@ -144,9 +144,6 @@ function CardTypeStep({policyID, cardFeeds, workspaceAccountID}: CardTypeStepPro
         shouldShowMockFeed,
     });
     const {bankName, selectedBank, feedType} = addNewCard?.data ?? {};
-    const isOtherBankSelected = selectedBank === CONST.COMPANY_CARDS.BANKS.OTHER;
-    const isNewCardTypeSelected = typeSelected !== feedType;
-    const doesCountrySupportPlaid = isPlaidSupportedCountry(addNewCard?.data?.selectedCountry);
 
     const submit = async () => {
         if (!typeSelected || (typeSelected === CONST.COMPANY_CARD.FEED_BANK_NAME.VCF_MOCK && !shouldShowMockFeed)) {
@@ -156,6 +153,9 @@ function CardTypeStep({policyID, cardFeeds, workspaceAccountID}: CardTypeStepPro
             addNewCompanyCardsFeed(policyID, workspaceAccountID, typeSelected, {}, cardFeeds, lastSelectedFeed);
             Navigation.goBack(ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyID));
         } else {
+            const isOtherBankSelected = selectedBank === CONST.COMPANY_CARDS.BANKS.OTHER;
+            const isNewCardTypeSelected = typeSelected !== feedType;
+
             setAddNewCompanyCardStepAndData({
                 step: CONST.COMPANY_CARDS.STEP.CARD_INSTRUCTIONS,
                 data: {
@@ -168,10 +168,15 @@ function CardTypeStep({policyID, cardFeeds, workspaceAccountID}: CardTypeStepPro
     };
 
     const handleBackButtonPress = () => {
+        const isOtherBankSelected = selectedBank === CONST.COMPANY_CARDS.BANKS.OTHER;
+
         if (isOtherBankSelected) {
             setAddNewCompanyCardStepAndData({step: CONST.COMPANY_CARDS.STEP.SELECT_BANK});
             return;
         }
+
+        const doesCountrySupportPlaid = isPlaidSupportedCountry(addNewCard?.data?.selectedCountry);
+
         if (!doesCountrySupportPlaid) {
             setAddNewCompanyCardStepAndData({step: CONST.COMPANY_CARDS.STEP.SELECT_COUNTRY});
             return;
