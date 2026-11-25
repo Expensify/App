@@ -5,7 +5,6 @@ import {showContextMenuForReport, useShowContextMenuActions, useShowContextMenuS
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import {usePersonalDetailsByIDs} from '@hooks/usePersonalDetails';
 import useTransactionViolations from '@hooks/useTransactionViolations';
 
 import ControlSelection from '@libs/ControlSelection';
@@ -62,7 +61,6 @@ function TransactionPreview(props: TransactionPreviewProps) {
     const [walletTerms] = useOnyx(ONYXKEYS.WALLET_TERMS);
     const session = useSession();
     const {managerID, ownerAccountID} = getTransactionPreviewParticipantIDs(report, reportPreviewAction);
-    const [personalDetails] = usePersonalDetailsByIDs([ownerAccountID, managerID]);
 
     // Get transaction violations for given transaction id from onyx, find duplicated transactions violations and get duplicates
     const allDuplicateIDs = violations?.find((violation) => violation.name === CONST.VIOLATIONS.DUPLICATED_TRANSACTION)?.data?.duplicates ?? [];
@@ -120,7 +118,6 @@ function TransactionPreview(props: TransactionPreviewProps) {
                     action={action}
                     isBillSplit={isBillSplit && !transaction?.comment?.originalTransactionID}
                     chatReport={chatReport}
-                    personalDetails={personalDetails}
                     managerID={managerID}
                     ownerAccountID={ownerAccountID}
                     transaction={transactionPreview}
@@ -147,7 +144,6 @@ function TransactionPreview(props: TransactionPreviewProps) {
             action={action}
             isBillSplit={isBillSplit}
             chatReport={chatReport}
-            personalDetails={personalDetails}
             managerID={managerID}
             ownerAccountID={ownerAccountID}
             transaction={originalTransaction ?? transaction}

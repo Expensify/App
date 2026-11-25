@@ -104,9 +104,7 @@ function MoneyRequestReportPreview({
     const [hasIOUReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(iouReportID)}`, {
         selector: hasReportActionsSelector,
     });
-    const pendingExpenseTransactionRef = useRef<{transaction: Transaction; originRoute: string; conciergeChat: OnyxEntry<Report>; personalDetails: OnyxEntry<PersonalDetailsList>} | null>(
-        null,
-    );
+    const pendingExpenseTransactionRef = useRef<{transaction: Transaction; originRoute: string; conciergeChat: OnyxEntry<Report>} | null>(null);
     // Subscribing to the whole action list re-rendered every card on each write, and a split writes a burst of
     // them. Narrow it to the one action a deferred press is waiting for, so nothing pending means nothing changes.
     const pendingPressActionCountSelector = (reportActions: OnyxEntry<ReportActions>) => {
@@ -390,7 +388,7 @@ function MoneyRequestReportPreview({
         }
 
         if (!isIOUActionLoaded && iouReportID && !isOffline) {
-            pendingExpenseTransactionRef.current = {transaction, originRoute: routeAtPress, conciergeChat, personalDetails};
+            pendingExpenseTransactionRef.current = {transaction, originRoute: routeAtPress, conciergeChat};
             openReport({reportID: iouReportID, introSelected, conciergeChat, currentUserAccountID, hasReportActions: !!hasIOUReportActions, fullPolicySnapshot});
             return;
         }
@@ -408,7 +406,7 @@ function MoneyRequestReportPreview({
             return;
         }
         const pendingTransaction = pendingPress.transaction;
-        const childReportID = resolveChildReportID(pendingTransaction, pendingPress.conciergeChat, pendingPress.personalDetails);
+        const childReportID = resolveChildReportID(pendingTransaction, pendingPress.conciergeChat, getAllPersonalDetails());
         if (childReportID) {
             pendingExpenseTransactionRef.current = null;
             navigateToExpense(childReportID, pendingPress.originRoute);

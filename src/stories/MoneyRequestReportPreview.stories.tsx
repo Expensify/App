@@ -8,6 +8,7 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
 import type {Transaction} from '@src/types/onyx';
 
@@ -17,12 +18,16 @@ import type {StoryFn} from 'storybook-react-rsbuild';
 
 import React, {useRef, useState} from 'react';
 import {View} from 'react-native';
+import Onyx from 'react-native-onyx';
 
 import {actionR14932} from '../../__mocks__/reportData/actions';
 import personalDetails from '../../__mocks__/reportData/personalDetails';
 import {chatReportR14932, iouReportR14932} from '../../__mocks__/reportData/reports';
 import {transactionR14932} from '../../__mocks__/reportData/transactions';
 import {receiptErrorsR14932, violationsR14932} from '../../__mocks__/reportData/violations';
+
+// The preview cards read the submitter and approver from Onyx
+Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetails);
 
 /**
  * We use the Component Story Format for writing stories. Follow the docs here:
@@ -141,7 +146,6 @@ function Template(props: MoneyRequestReportPreviewContentProps, {parameters}: {p
             isWhisper={false}
             isHovered={false}
             chatReport={chatReportR14932}
-            personalDetails={personalDetails}
             managerID={iouReportR14932.managerID ?? CONST.DEFAULT_NUMBER_ID}
             ownerAccountID={iouReportR14932.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID}
             report={iouReportR14932}

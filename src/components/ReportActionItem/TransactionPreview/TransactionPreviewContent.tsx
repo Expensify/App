@@ -16,6 +16,7 @@ import useEnvironment from '@hooks/useEnvironment';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import {usePersonalDetailsByIDs} from '@hooks/usePersonalDetails';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useScreenBoundDynamicRoute from '@hooks/useScreenBoundDynamicRoute';
 import useTheme from '@hooks/useTheme';
@@ -67,7 +68,6 @@ function TransactionPreviewContent({
     isWhisper,
     isHovered,
     chatReport,
-    personalDetails,
     report,
     policy,
     transaction,
@@ -110,6 +110,7 @@ function TransactionPreviewContent({
         backgroundColor: theme.cardBG,
         shouldApplyOtherStyles: false,
     });
+    const [personalDetails] = usePersonalDetailsByIDs([ownerAccountID, managerID]);
     const cardID = getViolationToDescribe(violations, transaction)?.data?.cardID;
     // Keep this the last hook and derive the violation again below it. React Compiler cannot cache values that alias
     // an array built before a hook call, and the whole preview derivation depends on this violation.

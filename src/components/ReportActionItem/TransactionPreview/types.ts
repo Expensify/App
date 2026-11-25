@@ -1,4 +1,4 @@
-import type {PersonalDetailsList, Policy, Report, ReportAction, Transaction, TransactionViolations} from '@src/types/onyx';
+import type {Policy, Report, ReportAction, Transaction, TransactionViolations} from '@src/types/onyx';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 
 import type {DimensionValue, GestureResponderEvent, StyleProp, ViewStyle} from 'react-native';
@@ -91,9 +91,6 @@ type TransactionPreviewContentProps = {
     violations: TransactionViolations;
 
     chatReport: OnyxEntry<Report>;
-
-    /** Optional details about people involved in the transaction */
-    personalDetails?: PersonalDetailsList;
 
     /** Indicates whether the transaction consists of duplicates */
     areThereDuplicates: boolean;

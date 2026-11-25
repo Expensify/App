@@ -115,7 +115,6 @@ const buildTransactionPreviewContent = (violations: TransactionViolation[]) => (
             isWhisper={false}
             isHovered={false}
             chatReport={undefined}
-            personalDetails={personalDetails}
             report={expenseReport}
             policy={corporatePolicy}
             transaction={transaction}
