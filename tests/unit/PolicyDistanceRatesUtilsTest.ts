@@ -584,27 +584,27 @@ describe('PolicyDistanceRatesUtils', () => {
                 ...createRandomPolicy(1),
                 taxRates: {
                     name: 'Tax',
-                    defaultExternalID: 'id_EXEMPT',
+                    defaultExternalID: 'EXEMPT',
                     defaultValue: '0%',
-                    foreignTaxDefault: 'id_EXEMPT',
+                    foreignTaxDefault: 'EXEMPT',
                     taxes: {
-                        id_OLD_VAT: {name: 'Old VAT', value: '20%', isDisabled: true},
-                        id_REDUCED: {name: 'Reduced', value: '5%'},
-                        id_XERO_VAT: {name: '20% (VAT on Expenses)', value: '20%'},
+                        OLD_VAT: {name: 'Old VAT', value: '20%', isDisabled: true},
+                        REDUCED: {name: 'Reduced', value: '5%'},
+                        XERO_VAT: {name: '20% (VAT on Expenses)', value: '20%'},
                     },
                 },
             } satisfies Policy;
 
             // When we look for the rate VAT on fuel links to
             // Then the enabled 20% rate is used, because a disabled rate can't be picked on an expense
-            expect(getUKFuelVATTaxRateCode(policy)).toBe('id_XERO_VAT');
+            expect(getUKFuelVATTaxRateCode(policy)).toBe('XERO_VAT');
         });
 
         it('returns undefined when the workspace has no enabled 20% rate', () => {
             // Given a workspace with only a 5% rate
             const policy = {
                 ...createRandomPolicy(1),
-                taxRates: {name: 'Tax', defaultExternalID: 'id_REDUCED', defaultValue: '5%', foreignTaxDefault: 'id_REDUCED', taxes: {id_REDUCED: {name: 'Reduced', value: '5%'}}},
+                taxRates: {name: 'Tax', defaultExternalID: 'REDUCED', defaultValue: '5%', foreignTaxDefault: 'REDUCED', taxes: {REDUCED: {name: 'Reduced', value: '5%'}}},
             } satisfies Policy;
 
             // When we look for the rate VAT on fuel links to

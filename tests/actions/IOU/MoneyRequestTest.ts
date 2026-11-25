@@ -145,6 +145,7 @@ describe('MoneyRequest', () => {
             report: fakeReport,
             currentUserAccountID,
             currentUserEmail: CURRENT_USER_EMAIL,
+            currentUserPersonalDetails: {accountID: currentUserAccountID, login: CURRENT_USER_EMAIL},
             shouldGenerateTransactionThreadReport: false,
             isASAPSubmitBetaEnabled: false,
             transactionViolations: {},
@@ -762,8 +763,11 @@ describe('MoneyRequest', () => {
         const secondSplitParticipantID = '101';
 
         const selfDMReport = createSelfDM(Number(SELF_DM_REPORT_ID), TEST_USER_ACCOUNT_ID);
+        const CURRENT_USER_LOGIN = 'test@test.com';
+        const CURRENT_USER_ACCOUNT_ID = 1;
 
         const baseParams = {
+            personalDetailsByLogins: {[CURRENT_USER_LOGIN]: {accountID: CURRENT_USER_ACCOUNT_ID, login: CURRENT_USER_LOGIN}},
             isVendorMatchingBetaEnabled: false,
             iouType: CONST.IOU.TYPE.CREATE,
             report: fakeReport,
@@ -773,8 +777,13 @@ describe('MoneyRequest', () => {
             transactionID: '121',
             personalDetails: {},
             waypoints: {},
-            currentUserLogin: 'test@test.com',
-            currentUserAccountID: 1,
+            currentUserLogin: CURRENT_USER_LOGIN,
+            currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+            currentUserPersonalDetails: {
+                accountID: CURRENT_USER_ACCOUNT_ID,
+                login: CURRENT_USER_LOGIN,
+                email: CURRENT_USER_LOGIN,
+            },
             backToReport: undefined,
             shouldSkipConfirmation: false,
             defaultExpensePolicy: undefined,
@@ -803,7 +812,7 @@ describe('MoneyRequest', () => {
             formatPhoneNumber,
             delegateAccountID: undefined,
             participants: getMoneyRequestParticipantOptions({
-                currentUserAccountID: 1,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 report: fakeReport,
                 policy: fakePolicy,
                 personalDetails: {},
@@ -909,6 +918,24 @@ describe('MoneyRequest', () => {
             });
 
             expect(TrackExpense.trackExpense).toHaveBeenCalledWith(expect.objectContaining({conciergeChat}));
+        });
+
+        it('threads currentUserPersonalDetails through to trackExpense when skipping confirmation', () => {
+            // Given a track distance expense that skips confirmation
+            // When the distance step navigates
+            handleMoneyRequestStepDistanceNavigation({
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                ...baseParams,
+                manualDistance: 20,
+                shouldSkipConfirmation: true,
+                iouType: CONST.IOU.TYPE.TRACK,
+                draftTransactionIDs: [baseParams.transactionID],
+                delegateAccountID: undefined,
+                getCurrencySymbol: getCurrencySymbolLocal,
+            });
+
+            // Then trackExpense gets the caller's details instead of reading the current user from Onyx
+            expect(TrackExpense.trackExpense).toHaveBeenCalledWith(expect.objectContaining({currentUserPersonalDetails: baseParams.currentUserPersonalDetails}));
         });
 
         it('call trackExpense for TRACK iouType when from manual distance step and skipping confirmation', async () => {
@@ -1337,15 +1364,27 @@ describe('MoneyRequest', () => {
         });
 
         it('should navigate to confirmation page for CREATE flow from global menu', async () => {
+            // Given a new odometer draft with prefilled participants but no initialized rate
+            const transaction = {
+                ...fakeTransaction,
+                isFromGlobalCreate: true,
+                isFromFloatingActionButton: true,
+                reportID: fakeReport.reportID,
+                participants: [{accountID: 0, isPolicyExpenseChat: true, reportID: fakeReport.reportID, selected: true}],
+                comment: {customUnit: {name: CONST.CUSTOM_UNITS.NAME_DISTANCE}},
+            };
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
 
             // getPolicyExpenseChat resolves reports via ReportUtils' internal Onyx cache, which isn't populated
             // in this bare unit-test harness, so return the policy expense chat report directly.
             jest.mocked(getPolicyExpenseChat).mockReturnValueOnce(fakeReport);
 
+            // When Next initializes the default recipient for the first time
             handleMoneyRequestStepDistanceNavigation({
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 ...baseParams,
+                transaction,
+                odometerDistance: 100,
                 report: undefined,
                 defaultExpensePolicy: fakePolicy,
                 isAutoReporting: true,
@@ -1356,6 +1395,7 @@ describe('MoneyRequest', () => {
             });
             await waitForBatchedUpdates();
 
+            // Then the default workspace and its rate are assigned rather than skipped because participants exist
             const updatedTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${baseParams.transactionID}`);
             expect(updatedTransaction).toMatchObject({
                 reportID: fakeReport.reportID,
@@ -1377,6 +1417,125 @@ describe('MoneyRequest', () => {
             expect(Navigation.navigate).toHaveBeenCalledWith(
                 ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, CONST.IOU.TYPE.SUBMIT, baseParams.transactionID, fakeReport?.reportID),
             );
+        });
+
+        it.each([
+            {unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES, distance: 62.14, hasOriginReport: false},
+            {unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES, distance: 124.27, hasOriginReport: false},
+            {unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS, distance: 100, hasOriginReport: false},
+            {unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES, distance: 62.14, hasOriginReport: true},
+        ])('preserves the selected odometer workspace and latest $distance $unit (origin report: $hasOriginReport)', async ({unit, distance, hasOriginReport}) => {
+            // Given a workspace chosen on confirmation and a stale transaction quantity after editing the readings
+            const selectedReportID = 'selected-workspace-report';
+            const transaction = {
+                ...fakeTransaction,
+                transactionID: baseParams.transactionID,
+                isFromGlobalCreate: true,
+                isFromFloatingActionButton: true,
+                reportID: selectedReportID,
+                participants: [{accountID: 0, isPolicyExpenseChat: true, reportID: selectedReportID, selected: true}],
+                iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_ODOMETER,
+                comment: {
+                    odometerStart: 1000,
+                    odometerEnd: 1100,
+                    odometerUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS,
+                    customUnit: {name: CONST.CUSTOM_UNITS.NAME_DISTANCE, customUnitRateID: 'selected-rate', distanceUnit: unit, quantity: 1},
+                },
+            };
+            const latestTransaction = {...transaction, comment: {...transaction.comment, customUnit: {...transaction.comment.customUnit, quantity: distance}}};
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${baseParams.transactionID}`, latestTransaction);
+
+            // When Next runs again, the originating route and its participants still point at the default workspace
+            handleMoneyRequestStepDistanceNavigation({
+                ...baseParams,
+                transaction,
+                report: hasOriginReport ? fakeReport : undefined,
+                iouType: CONST.IOU.TYPE.SUBMIT,
+                defaultExpensePolicy: fakePolicy,
+                odometerDistance: distance,
+                unit,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                getCurrencySymbol: getCurrencySymbolLocal,
+            });
+            await waitForBatchedUpdates();
+
+            // Then the selected recipient, rate, readings and freshly saved distance survive without another conversion
+            expect(await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${baseParams.transactionID}`)).toEqual(latestTransaction);
+            expect(Navigation.navigate).toHaveBeenCalledWith(
+                ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, CONST.IOU.TYPE.SUBMIT, baseParams.transactionID, selectedReportID),
+            );
+        });
+
+        it.each([
+            {sourceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES, targetUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS, distance: 62.14, expectedDistance: 100, isGPS: false},
+            {sourceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES, targetUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS, distance: 124.28, expectedDistance: 200.01, isGPS: false},
+            {sourceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS, targetUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES, distance: 100, expectedDistance: 62.14, isGPS: false},
+            {sourceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS, targetUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS, distance: 100, expectedDistance: 100, isGPS: false},
+            {sourceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES, targetUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS, distance: 62.14, expectedDistance: 100, isGPS: true},
+            {sourceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS, targetUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS, distance: 100, expectedDistance: 100, isGPS: true},
+        ])('initializes default recipient with $distance $sourceUnit converted to $targetUnit (GPS: $isGPS)', async ({sourceUnit, targetUnit, distance, expectedDistance, isGPS}) => {
+            // Given a draft without a selected recipient whose transaction prop has a stale quantity
+            const rateID = 'default-distance-rate';
+            const defaultPolicy: Policy = {
+                ...fakePolicy,
+                autoReporting: true,
+                customUnits: {
+                    distance: {
+                        customUnitID: 'distance',
+                        name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+                        attributes: {unit: targetUnit},
+                        rates: {[rateID]: {customUnitRateID: rateID, name: 'Default rate', rate: 70, currency: CONST.CURRENCY.USD, enabled: true}},
+                    },
+                },
+            };
+            const transaction = {
+                ...fakeTransaction,
+                transactionID: baseParams.transactionID,
+                isFromGlobalCreate: true,
+                isFromFloatingActionButton: true,
+                reportID: 'other-workspace-report',
+                participants: [],
+                iouRequestType: isGPS ? CONST.IOU.REQUEST_TYPE.DISTANCE_GPS : CONST.IOU.REQUEST_TYPE.DISTANCE_ODOMETER,
+                comment: {
+                    odometerStart: 1000,
+                    odometerEnd: 1100,
+                    odometerUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS,
+                    customUnit: {name: CONST.CUSTOM_UNITS.NAME_DISTANCE, customUnitRateID: 'other-rate', distanceUnit: sourceUnit, quantity: 1},
+                },
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${defaultPolicy.id}`, defaultPolicy);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${baseParams.transactionID}`, transaction);
+            jest.mocked(getPolicyExpenseChat).mockReturnValueOnce(fakeReport);
+
+            // When the first Next selects the default workspace, using the distance just entered rather than the stale quantity
+            handleMoneyRequestStepDistanceNavigation({
+                ...baseParams,
+                transaction,
+                report: undefined,
+                defaultExpensePolicy: defaultPolicy,
+                isAutoReporting: true,
+                odometerDistance: isGPS ? undefined : distance,
+                gpsDistance: isGPS ? distance + 10 : undefined,
+                gpsModifiedDistance: isGPS ? distance : undefined,
+                gpsCoordinates: isGPS ? '[]' : undefined,
+                unit: sourceUnit,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                getCurrencySymbol: getCurrencySymbolLocal,
+            });
+            await waitForBatchedUpdates();
+
+            // Then recipient, rate and distance agree, without converting the raw readings or their original unit
+            const updatedTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${baseParams.transactionID}`);
+            expect(updatedTransaction).toMatchObject({
+                reportID: fakeReport.reportID,
+                participants: [{accountID: 0, isPolicyExpenseChat: true, reportID: fakeReport.reportID, selected: true}],
+                comment: {
+                    odometerStart: 1000,
+                    odometerEnd: 1100,
+                    odometerUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS,
+                    customUnit: {customUnitRateID: rateID, distanceUnit: targetUnit, quantity: expectedDistance},
+                },
+            });
         });
 
         it('should use UNREPORTED_REPORT_ID for transaction when autoReporting is disabled', async () => {
@@ -1576,13 +1735,19 @@ describe('MoneyRequest', () => {
             expect(Split.resetSplitShares).not.toHaveBeenCalled();
         });
 
-        it('should call trackExpense with odometerDistance as distance and forward odometerStart and odometerEnd', () => {
+        it('should forward the original odometer unit and readings when tracking without confirmation', () => {
+            // Given readings entered in kilometers for a distance now displayed in miles
+            const odometerUnit = CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS;
+
+            // When tracking immediately without waiting for the draft's Onyx writes
             handleMoneyRequestStepDistanceNavigation({
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 ...baseParams,
-                odometerDistance: 25,
+                odometerDistance: 15.53,
                 odometerStart: 1000,
                 odometerEnd: 1025,
+                odometerUnit,
+                unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
                 manualDistance: undefined,
                 shouldSkipConfirmation: true,
                 iouType: CONST.IOU.TYPE.TRACK,
@@ -1590,17 +1755,54 @@ describe('MoneyRequest', () => {
                 getCurrencySymbol: getCurrencySymbolLocal,
             });
 
+            // Then the original unit accompanies the readings rather than the destination unit
             expect(TrackExpense.trackExpense).toHaveBeenCalledWith(
                 expect.objectContaining({
                     transactionParams: expect.objectContaining({
-                        distance: 25,
+                        distance: 15.53,
                         odometerStart: 1000,
                         odometerEnd: 1025,
+                        odometerUnit,
                         validWaypoints: undefined,
                     }),
                 }),
             );
             expect(Split.planDistanceRequest).not.toHaveBeenCalled();
+        });
+
+        it('should forward the original odometer unit and readings when submitting without confirmation', () => {
+            // Given readings entered in kilometers for an expense using a miles rate
+            const odometerUnit = CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS;
+
+            // When submitting immediately without waiting for the draft's Onyx writes
+            handleMoneyRequestStepDistanceNavigation({
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                ...baseParams,
+                odometerDistance: 15.53,
+                odometerStart: 1000,
+                odometerEnd: 1025,
+                odometerUnit,
+                unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                manualDistance: undefined,
+                shouldSkipConfirmation: true,
+                iouType: CONST.IOU.TYPE.SUBMIT,
+                draftTransactionIDs: [baseParams.transactionID],
+                getCurrencySymbol: getCurrencySymbolLocal,
+            });
+
+            // Then the create request retains the readings' unit so the backend can convert them
+            expect(Split.planDistanceRequest).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    transactionParams: expect.objectContaining({
+                        distance: 15.53,
+                        odometerStart: 1000,
+                        odometerEnd: 1025,
+                        odometerUnit,
+                        validWaypoints: undefined,
+                    }),
+                }),
+            );
+            expect(TrackExpense.trackExpense).not.toHaveBeenCalled();
         });
 
         it('should call trackExpense with gpsDistance as distance and forward gpsCoordinates', () => {

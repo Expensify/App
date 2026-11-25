@@ -513,6 +513,41 @@ describe('SequentialQueue', () => {
         }
     });
 
+    it('should log a [Receipt] rolledBack line when every request is set to fail', async () => {
+        // Given the network is set to fail every request, which applies each request's failure data
+        await Onyx.set(ONYXKEYS.NETWORK, {shouldFailAllRequests: true, shouldForceOffline: false});
+        await clearPersistedRequests();
+        await waitForBatchedUpdates();
+
+        const offlineSpy = jest.spyOn(NetworkState, 'getIsOffline').mockReturnValue(false);
+        const processSpy = jest.spyOn(RequestModule, 'processWithMiddleware').mockRejectedValue(new Error(CONST.ERROR.FAILED_TO_FETCH));
+        const logInfoSpy = jest.spyOn(Log, 'info');
+
+        try {
+            // When a merchant edit with failure data for its transaction goes through the queue
+            const editRequest: Request<OnyxKey> = {
+                command: WRITE_COMMANDS.UPDATE_MONEY_REQUEST_MERCHANT,
+                data: {transactionID: '91'},
+                failureData: [{key: `${ONYXKEYS.COLLECTION.TRANSACTION}91`, onyxMethod: 'merge', value: {merchant: 'Old merchant'}}],
+            };
+            SequentialQueue.push(editRequest);
+            await waitForBatchedUpdates();
+
+            // Then the rollback is logged with the reason and the reverted field name, so the dashboard can count it
+            expect(logInfoSpy).toHaveBeenCalledWith(
+                expect.stringContaining('rolled back'),
+                false,
+                expect.objectContaining({event: 'rolledBack', trigger: 'failAll', transactionID: '91', revertedTransactionFields: 'merchant'}),
+            );
+            expect(getAll().length).toBe(0);
+        } finally {
+            offlineSpy.mockRestore();
+            processSpy.mockRestore();
+            logInfoSpy.mockRestore();
+            await Onyx.set(ONYXKEYS.NETWORK, {shouldFailAllRequests: false, shouldForceOffline: false});
+        }
+    });
+
     it('should reset the shared throttle when the queue stops because the app went offline', async () => {
         const offlineSpy = jest.spyOn(NetworkState, 'getIsOffline').mockReturnValue(false);
         mockFetch.mockRejectedValue(new Error(CONST.ERROR.FAILED_TO_FETCH));

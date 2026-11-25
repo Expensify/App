@@ -11,7 +11,7 @@ import useLocalize from '@hooks/useLocalize';
 import {renamePerDiemDestinationInline, renamePerDiemSubrateInline, updatePerDiemAmountInline} from '@libs/actions/Policy/InlineEdit';
 import {convertAmountToDisplayString} from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import {getPerDiemRowKey} from '@libs/PolicyPerDiemUtils';
+import {getAvailablePerDiemRate, getPerDiemRowKey} from '@libs/PolicyPerDiemUtils';
 import showInlineEditError from '@libs/showInlineEditError';
 
 import {clearPerDiemRateError} from '@userActions/Policy/PerDiem';
@@ -39,15 +39,19 @@ type UsePerDiemRowsParams = {
     policyID: string;
 };
 
-function getSubRatesData(rates: Record<string, Rate>) {
+function getSubRatesData(rates: Record<string, Rate>, isOffline: boolean) {
     const subRatesData: SubRateData[] = [];
-    for (const rate of Object.values(rates)) {
+    for (const storedRate of Object.values(rates)) {
+        const rate = getAvailablePerDiemRate(storedRate, isOffline);
+        if (!rate) {
+            continue;
+        }
         const subRates = rate.subRates;
         if (subRates) {
             for (const [index, subRate] of subRates.entries()) {
                 subRatesData.push({
-                    pendingAction: rate.pendingAction,
-                    // Rate-level errors appear once; subrate errors appear on the row that was edited.
+                    pendingAction: subRate.pendingAction ?? rate.pendingAction,
+                    // Assign rate-level errors after filtering so a hidden pending deletion cannot swallow the error.
                     errors: rate.errorFields?.[subRate.id] ?? (index === 0 ? rate.errors : undefined),
                     destination: rate.name ?? '',
                     subRateName: subRate.name,
@@ -79,45 +83,43 @@ function usePerDiemRows({customUnit, isOffline, canWritePerDiem, policyID}: UseP
         Navigation.navigate(ROUTES.WORKSPACE_PER_DIEM_DETAILS.getRoute(policyID, rateID, subRateID));
     };
 
-    const allSubRates = getSubRatesData(customUnit?.rates ?? CONST.EMPTY_OBJECT);
+    const allSubRates = getSubRatesData(customUnit?.rates ?? CONST.EMPTY_OBJECT, isOffline);
     const selectableSubRatesByKey = getSelectableSubRatesByKey(allSubRates);
 
-    const perDiemRows: PerDiemTableRowData[] = allSubRates
-        .filter((subRate) => isOffline || subRate.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE)
-        .map((subRate) => {
-            const isDeleting = subRate.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
-            // Whether editing is paused by selection mode is decided by each row, so entering or leaving it doesn't rebuild every row.
-            const canEdit = canWritePerDiem && !isDeleting;
+    const perDiemRows: PerDiemTableRowData[] = allSubRates.map((subRate) => {
+        const isDeleting = subRate.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
+        // Whether editing is paused by selection mode is decided by each row, so entering or leaving it doesn't rebuild every row.
+        const canEdit = canWritePerDiem && !isDeleting;
 
-            return {
-                keyForList: getPerDiemRowKey(subRate.rateID, subRate.subRateID),
-                subRateID: subRate.subRateID,
-                rateID: subRate.rateID,
-                destination: subRate.destination,
-                subRateName: subRate.subRateName,
-                rate: subRate.rate,
-                currency: subRate.currency,
-                formattedAmount: convertAmountToDisplayString(subRate.rate, subRate.currency),
-                disabled: isDeleting,
-                pendingAction: subRate.pendingAction,
-                errors: subRate.errors,
-                canEditDestination: canEdit,
-                canEditSubrate: canEdit,
-                canEditAmount: canEdit,
-                action: () => openSubRateDetails(subRate.rateID, subRate.subRateID),
-                onRenameDestination: (newName: string) => showInlineEditError(renamePerDiemDestinationInline(translate, policyID, subRate.rateID, customUnit, subRate.destination, newName)),
-                onRenameSubrate: (newName: string) =>
-                    showInlineEditError(renamePerDiemSubrateInline(translate, policyID, subRate.rateID, subRate.subRateID, customUnit, subRate.subRateName, newName)),
-                onChangeAmount: (newAmount: string) =>
-                    showInlineEditError(updatePerDiemAmountInline(translate, policyID, subRate.rateID, subRate.subRateID, customUnit, subRate.rate, newAmount)),
-                dismissError: () => {
-                    if (!customUnit) {
-                        return;
-                    }
-                    clearPerDiemRateError(policyID, customUnit.customUnitID, subRate.rateID, subRate.subRateID);
-                },
-            };
-        });
+        return {
+            keyForList: getPerDiemRowKey(subRate.rateID, subRate.subRateID),
+            subRateID: subRate.subRateID,
+            rateID: subRate.rateID,
+            destination: subRate.destination,
+            subRateName: subRate.subRateName,
+            rate: subRate.rate,
+            currency: subRate.currency,
+            formattedAmount: convertAmountToDisplayString(subRate.rate, subRate.currency),
+            disabled: isDeleting,
+            pendingAction: subRate.pendingAction,
+            errors: subRate.errors,
+            canEditDestination: canEdit,
+            canEditSubrate: canEdit,
+            canEditAmount: canEdit,
+            action: () => openSubRateDetails(subRate.rateID, subRate.subRateID),
+            onRenameDestination: (newName: string) => showInlineEditError(renamePerDiemDestinationInline(translate, policyID, subRate.rateID, customUnit, subRate.destination, newName)),
+            onRenameSubrate: (newName: string) =>
+                showInlineEditError(renamePerDiemSubrateInline(translate, policyID, subRate.rateID, subRate.subRateID, customUnit, subRate.subRateName, newName)),
+            onChangeAmount: (newAmount: string) =>
+                showInlineEditError(updatePerDiemAmountInline(translate, policyID, subRate.rateID, subRate.subRateID, customUnit, subRate.rate, newAmount)),
+            dismissError: () => {
+                if (!customUnit) {
+                    return;
+                }
+                clearPerDiemRateError(policyID, customUnit.customUnitID, subRate.rateID, subRate.subRateID);
+            },
+        };
+    });
 
     return {allSubRates, selectableSubRatesByKey, perDiemRows};
 }

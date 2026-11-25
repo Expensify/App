@@ -2,7 +2,7 @@
  * The tax rate field in the Tax section of Add rate. Its list opens anchored to the row, the same way the euro country field does.
  */
 import AnchoredSelectionListPopover from '@components/AnchoredSelectionListPopover';
-import ExpenseFieldDropdown from '@components/MoneyRequestConfirmationList/sections/ExpenseFieldDropdown';
+import DropdownField from '@components/DropdownField';
 import type {ValuePickerItem} from '@components/ValuePicker/types';
 import ValueSelectionList from '@components/ValuePicker/ValueSelectionList';
 
@@ -26,7 +26,7 @@ function DistanceRateTaxRateDropdown({label, selectedTaxRateCode, taxRates, onSe
     const selectedItem = taxRates.find((taxRate) => taxRate.value === selectedTaxRateCode);
 
     return (
-        <ExpenseFieldDropdown
+        <DropdownField
             name={label}
             value={selectedItem?.label}
             shouldOpenInDropdown

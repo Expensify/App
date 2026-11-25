@@ -97,7 +97,7 @@ function renderLayout({receiptOptions = noReceiptOptions, hasParticipantSection 
 function getViewStyles() {
     return screen
         .UNSAFE_getAllByType(View)
-        .map((view) => StyleSheet.flatten<unknown>(view.props.style))
+        .map((view): unknown => StyleSheet.flatten(view.props.style))
         .filter(isRecord);
 }
 

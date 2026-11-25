@@ -1072,8 +1072,9 @@ const CONST = {
     },
     WISE: {
         /** Wise's legal pages, linked from the terms page of the onboarding */
-        TERMS_URL: 'https://wise.com/terms-and-conditions',
-        PRIVACY_URL: 'https://wise.com/privacy-policy',
+        TERMS_URL: 'https://wise.com/en/legal/terms-and-conditions',
+        ELECTRONIC_COMMUNICATIONS_POLICY_URL: 'https://wise.com/electronic-communications-policy',
+        PRIVACY_URL: 'https://wise.com/gb/legal/global-privacy-policy-en',
 
         /** The query param Wise adds to the redirect URL when its hosted KYC form ends, saying how it ended */
         KYC_REVIEW_REDIRECT_STATUS_PARAM: 'status',
@@ -1196,24 +1197,6 @@ const CONST = {
             DONATION_RECEIPTS: 'DONATION_RECEIPTS',
             WRITTEN_CONFIRMATION: 'WRITTEN_CONFIRMATION',
             GRANT_APPROVAL_LETTER: 'GRANT_APPROVAL_LETTER',
-        },
-        /** Wise's companyType values, the legal form */
-        COMPANY_TYPE: {
-            LIMITED: 'LIMITED',
-            PARTNERSHIP: 'PARTNERSHIP',
-            SOLE_TRADER: 'SOLE_TRADER',
-            LIMITED_BY_GUARANTEE: 'LIMITED_BY_GUARANTEE',
-            LIMITED_LIABILITY_COMPANY: 'LIMITED_LIABILITY_COMPANY',
-            FOR_PROFIT_CORPORATION: 'FOR_PROFIT_CORPORATION',
-            NON_PROFIT_CORPORATION: 'NON_PROFIT_CORPORATION',
-            LIMITED_PARTNERSHIP: 'LIMITED_PARTNERSHIP',
-            LIMITED_LIABILITY_PARTNERSHIP: 'LIMITED_LIABILITY_PARTNERSHIP',
-            GENERAL_PARTNERSHIP: 'GENERAL_PARTNERSHIP',
-            SOLE_PROPRIETORSHIP: 'SOLE_PROPRIETORSHIP',
-            PRIVATE_LIMITED_COMPANY: 'PRIVATE_LIMITED_COMPANY',
-            PUBLIC_LIMITED_COMPANY: 'PUBLIC_LIMITED_COMPANY',
-            TRUST: 'TRUST',
-            OTHER: 'OTHER',
         },
         /** Wise's companyRole values */
         COMPANY_ROLE: {
@@ -1637,10 +1620,6 @@ const CONST = {
         DEFAULT_LETTER_AVATARS: 'defaultLetterAvatars',
         ARCHIVE_POLICIES: 'archivePolicies',
         MERGE_ATS: 'mergeATSConnections',
-        REPORT_MERGE: 'reportMerge',
-        INSIGHTS_AI: 'insightsAI',
-        INSIGHTS_COMPLIANCE: 'insightsCompliance',
-        INSIGHTS_EFFICIENCY: 'insightsEfficiency',
         NL_FILTERS: 'nlFilters',
         SUPPORT_TICKET: 'supportTicket',
         RESIZABLE_TABLE_COLUMNS: 'resizableTableColumns',
@@ -1650,11 +1629,13 @@ const CONST = {
         TRAVEL_APPROVAL: 'travelApproval',
         FLAT_NAV: 'flatNav',
         RECEIPT_TRANSLATION: 'receiptTranslation',
+        RECEIPT_ENHANCEMENT: 'receiptEnhancement',
         SCAN_FLASH_TORCH: 'scanFlashTorch',
         NEW_DOT_BILL_PAY: 'newDotBillPay',
         HYBRID_WEB: 'hybridWeb',
         MILEAGE_UI: 'mileageUI',
         MERGE_DOMAIN_ACCOUNTS: 'mergeDomainAccounts',
+        EXPENSE_DEFAULT_CONDITIONS: 'expenseDefaultConditions',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',
@@ -1666,6 +1647,11 @@ const CONST = {
     BANK_ACCOUNT_TYPES: {
         WALLET: 'WALLET',
     },
+    TEST_BANK_ACCOUNT_TYPE: {
+        BUSINESS: 'business',
+        PERSONAL: 'personal',
+    },
+    TEST_BANK_ACCOUNT_STAGING_EMAIL_DOMAIN: 'expensifail.com',
     COUNTRY: {
         AS: 'AS',
         AU: 'AU',
@@ -2762,6 +2748,7 @@ const CONST = {
             WAITING_TO_PAY: 'waitingToPay',
             WAITING_FOR_PAYMENT: 'waitingForPayment',
             WAITING_FOR_CANCELLED_REIMBURSEMENT: 'waitingForCancelledReimbursement',
+            WAITING_FOR_PAYMENT_REVIEW: 'waitingForPaymentReview',
             WAITING_TO_EXPORT: 'waitingToExport',
             SUBMITTING_TO_SELF: 'submittingToSelf',
             REJECTED_REPORT: 'rejectedReport',
@@ -2958,6 +2945,7 @@ const CONST = {
             EXPENSE_HAS_RECEIPT: 'expense_has_receipt',
             EXPENSE_COMMAND: 'expense_command',
             EXPENSE_JSON_CODE: 'expense_json_code',
+            EXPENSE_ERROR_UUID: 'expense_error_uuid',
             MFA_SCENARIO: 'mfa_scenario',
             MFA_ERROR_REASON: 'mfa_error_reason',
             BUILD_TYPE: 'build_type',
@@ -3469,6 +3457,7 @@ const CONST = {
         DUPLICATE_RECORD: 'A record already exists with this ID',
         ALREADY_CREATED: 'AlreadyCreated',
         SERVICE_UNAVAILABLE: 'serviceUnavailable',
+        REAUTH_REPLAY_REJECTED: 'reauthReplayRejected',
 
         // The "Upgrade" is intentional as the 426 HTTP code means "Upgrade Required" and sent by the API. We use the "Update" language everywhere else in the front end when this gets returned.
         UPDATE_REQUIRED: 'Upgrade Required',
@@ -6361,6 +6350,7 @@ const CONST = {
     },
     COMPANY_CARDS: {
         CONSENT_EXPIRY_WARNING_DAYS: {
+            ONE_MONTH: 30,
             TWO_WEEKS: 14,
             ONE_WEEK: 7,
         },
@@ -10465,6 +10455,7 @@ const CONST = {
             },
         },
         UPDATE_OPERATION_TYPE: {
+            BOOKING_CREATED: 'BOOKING_CREATED',
             BOOKING_TICKETED: 'BOOKING_TICKETED',
             TICKET_VOIDED: 'TICKET_VOIDED',
             TICKET_REFUNDED: 'TICKET_REFUNDED',
@@ -10739,6 +10730,9 @@ const CONST = {
             DISTANCE: 'QuickCreationActionsBar-Distance',
             BOOK_TRAVEL: 'QuickCreationActionsBar-BookTravel',
         },
+        REPORT_ACTIONS_LIST: 'report-actions-list',
+        MONEY_REQUEST_REPORT_ACTIONS_LIST: 'money-request-report-actions-list',
+        BASE_SIDEBAR_SCREEN: 'BaseSidebarScreen',
     },
 
     AGENTS: {

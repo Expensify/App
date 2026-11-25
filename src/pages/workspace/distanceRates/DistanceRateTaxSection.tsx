@@ -124,4 +124,3 @@ function FuelBandTaxTable({fuelBands}: FuelBandTaxTableProps) {
 
 export default DistanceRateTaxSection;
 export {DistanceRateTaxNote, FuelBandTaxTable};
-export type {FuelBandTaxReclaimable};

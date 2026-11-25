@@ -114,6 +114,7 @@ function FormWrapper({
     shouldSubmitButtonStickToBottom: shouldSubmitButtonStickToBottomProp,
     shouldPreventDefaultFocusOnPressSubmit = false,
     onScroll = () => {},
+    scrollViewRef,
     forwardedFSClass,
     sentryLabel = CONST.SENTRY_LABEL.FORM.SUBMIT_BUTTON,
     ref,
@@ -121,7 +122,8 @@ function FormWrapper({
     submitButtonInnerStyles,
 }: FormWrapperProps) {
     const styles = useThemeStyles();
-    const formRef = useRef<ComponentRef<typeof RNScrollView>>(null);
+    const internalFormRef = useRef<ComponentRef<typeof RNScrollView>>(null);
+    const formRef = scrollViewRef ?? internalFormRef;
     const formContentRef = useRef<ComponentRef<typeof View>>(null);
     const {getErrorAnnouncementKey, getFallbackAnnouncementMessage} = useContext(FormContext);
     const errorAnnouncementKey = getErrorAnnouncementKey();
@@ -168,18 +170,6 @@ function FormWrapper({
         }, CONST.ANIMATED_TRANSITION);
     };
 
-    const scrollTo = (y: number, shouldDelayScroll = true) => {
-        const scrollToOffset = () => {
-            formRef.current?.scrollTo({y: Math.max(y, 0), animated: true});
-        };
-        if (!shouldDelayScroll) {
-            scrollToOffset();
-            return;
-        }
-        // Focus can arrive before the keyboard animation completes; didShow callers can skip this wait.
-        setTimeout(scrollToOffset, CONST.ANIMATED_TRANSITION);
-    };
-
     // If either of `addBottomSafeAreaPadding` or `shouldSubmitButtonStickToBottom` is explicitly set,
     // we expect that the user wants to use the new edge-to-edge mode.
     // In this case, we want to get and apply the padding unconditionally.
@@ -205,7 +195,6 @@ function FormWrapper({
 
     useImperativeHandle(ref, () => ({
         scrollToEnd,
-        scrollTo,
     }));
 
     const SubmitButton = isSubmitButtonVisible && (
