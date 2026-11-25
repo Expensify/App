@@ -28,6 +28,7 @@ import SCREENS from '@src/SCREENS';
 import type {AnchorPosition} from '@src/styles';
 import type {SentryLabel} from '@src/types/utils/SentryLabel';
 
+import type {ComponentRef} from 'react';
 import type {View} from 'react-native';
 
 import {authTokenTypeSelector} from '@selectors/Session';
@@ -57,7 +58,7 @@ const SENTRY_LABELS: Record<MoreMenuItem['id'], SentryLabel> = {
 function MoreMenuPopover({isVisible, onClose, onModalHide, focusedTabRouteName}: MoreMenuPopoverProps) {
     const {translate} = useLocalize();
     const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
-    const anchorRef = useRef<View>(null);
+    const anchorRef = useRef<ComponentRef<typeof View>>(null);
     const isSearchFocused = focusedTabRouteName === NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR;
     // The sections stay frozen while the menu animates closed.
     const sections = useFlatNavSections({isActive: isVisible});
