@@ -41,7 +41,12 @@ import Onyx from 'react-native-onyx';
 import {useReportPreviewActions, useReportPreviewActionState, useReportPreviewAnimationState, useReportPreviewData, useReportPreviewUIState} from './MoneyRequestReportPreviewContext';
 import useReportPreviewActionButtonData from './useReportPreviewActionButtonData';
 
-function PayActionButton() {
+type PayActionButtonProps = {
+    /** Defaults to false. Keeps the "Approved" animation grey when Approve was the grey button before it was pressed. */
+    isSecondary?: boolean;
+};
+
+function PayActionButton({isSecondary = false}: PayActionButtonProps) {
     const {isBetaEnabled} = usePermissions();
     const {payWithWiseQuote} = usePayWithWiseQuote();
     const {isOffline} = useNetwork();
@@ -186,6 +191,7 @@ function PayActionButton() {
             isPaidAnimationRunning={isPaidAnimationRunning}
             isApprovedAnimationRunning={isApprovedAnimationRunning}
             isDEWApproval={hasDynamicExternalWorkflow(policy)}
+            isSecondary={isSecondary}
             reportID={iouReportID}
             canIOUBePaid={canIOUBePaidAndApproved || isPaidAnimationRunning}
             onAnimationFinish={stopAnimation}

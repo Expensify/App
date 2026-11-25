@@ -25,7 +25,7 @@ function ReportPreviewActionButton() {
     const isApprovingWithViolations = reportPreviewAction === CONST.REPORT.REPORT_PREVIEW_ACTIONS.APPROVE_WITH_VIOLATIONS;
 
     // The approval animation switches the action to Pay as soon as it starts, so the last action before the animation
-    // decides View's style until it finishes. Otherwise View loses its primary style while "Approved" is still showing.
+    // decides the button colors until it finishes. Otherwise View and the "Approved" button swap colors mid animation.
     const [wasApprovingWithViolations, setWasApprovingWithViolations] = useState(isApprovingWithViolations);
     if (!isApprovedAnimationRunning && wasApprovingWithViolations !== isApprovingWithViolations) {
         setWasApprovingWithViolations(isApprovingWithViolations);
@@ -42,7 +42,7 @@ function ReportPreviewActionButton() {
         }
 
         if (reportPreviewAction === CONST.REPORT.REPORT_PREVIEW_ACTIONS.PAY) {
-            return <PayActionButton />;
+            return <PayActionButton isSecondary={shouldPrioritizeView} />;
         }
 
         if (reportPreviewAction === CONST.REPORT.REPORT_PREVIEW_ACTIONS.EXPORT_TO_ACCOUNTING && connectedIntegration) {
