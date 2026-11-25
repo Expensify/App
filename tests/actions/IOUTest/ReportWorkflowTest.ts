@@ -6688,6 +6688,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                         ],
                     },
                     undefined,
+                    undefined,
                     false,
                 ),
             ).toBe(false);
@@ -6716,6 +6717,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                         ],
                     },
                     derivedIsEmptyReport: undefined,
+                    pendingExpenseActionMetadata: undefined,
                     hasGuidesEmails: false,
                 }),
             ).not.toBe(CONST.REPORT_IN_LHN_REASONS.HAS_GBR);

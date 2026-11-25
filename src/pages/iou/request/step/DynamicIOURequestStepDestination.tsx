@@ -24,6 +24,7 @@ import {setTransactionReport} from '@libs/actions/Transaction';
 import {getInitialPerDiemTargetReport} from '@libs/IOUUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
+import {getAvailablePerDiemRate} from '@libs/PolicyPerDiemUtils';
 import {getPerDiemCustomUnit, getPolicyByCustomUnitID, isPolicyAdmin} from '@libs/PolicyUtils';
 import {findSelfDMReportID, getPolicyExpenseChat} from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
@@ -118,8 +119,9 @@ function DynamicIOURequestStepDestination({
 
     const {isOffline} = useNetwork();
     const isLoading = !isOffline && (!customUnit?.rates || isLoadingOnyxValue(policyMetadata));
-    const shouldShowEmptyState = isEmptyObject(customUnit?.rates) && !isOffline && !isLoading;
-    const shouldShowOfflineView = isEmptyObject(customUnit?.rates) && isOffline;
+    const hasAvailableRates = Object.values(customUnit?.rates ?? {}).some((rate) => getAvailablePerDiemRate(rate) !== undefined);
+    const shouldShowEmptyState = !hasAvailableRates && !isOffline && !isLoading;
+    const shouldShowOfflineView = !hasAvailableRates && isOffline;
 
     const navigateBack = () => {
         if (isEditPage) {

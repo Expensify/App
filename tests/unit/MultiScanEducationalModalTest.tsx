@@ -46,7 +46,7 @@ function renderMultiScan() {
     return renderHook(() => ({...useMultiScanState(), ...useMultiScanActions(), styles: useThemeStyles()}), {
         wrapper: ({children}: {children: React.ReactNode}) => (
             <ModalProvider>
-                <MultiScanProvider>{children}</MultiScanProvider>
+                <MultiScanProvider iouRequestType={CONST.IOU.REQUEST_TYPE.SCAN}>{children}</MultiScanProvider>
             </ModalProvider>
         ),
     });

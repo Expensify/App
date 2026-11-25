@@ -140,6 +140,7 @@ function DynamicIOURequestStepDate({
 
         if (isEditing) {
             updateMoneyRequestDate({
+                translate,
                 isVendorMatchingBetaEnabled,
                 transactionID,
                 transaction,

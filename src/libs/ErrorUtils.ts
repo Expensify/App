@@ -12,6 +12,7 @@ import mapValues from 'lodash/mapValues';
 
 import DateUtils from './DateUtils';
 import {translate} from './Localize';
+import {isRecord} from './ObjectUtils';
 
 function getAuthenticateErrorMessage<TKey extends OnyxKey>(response: Response<TKey>): TranslationPaths {
     switch (response.jsonCode) {
@@ -263,6 +264,29 @@ function isTranslationKeyError(message: unknown): message is TranslationKeyError
     return (message as Record<string, unknown>)?.translationKey !== undefined;
 }
 
+function isNonEmptyStringError(error: unknown): error is string {
+    return typeof error === 'string' && error.trim().length > 0;
+}
+
+/** Returns the latest string error with empty entries ignored from an error map that may also contain ReceiptError entries. */
+function getLatestStringErrorMessage(errors: unknown): string | undefined {
+    if (!isRecord(errors)) {
+        return undefined;
+    }
+
+    const latestKey = Object.keys(errors)
+        .sort()
+        .reverse()
+        .find((key) => isNonEmptyStringError(errors[key]));
+
+    if (!latestKey) {
+        return undefined;
+    }
+
+    const error = errors[latestKey];
+    return isNonEmptyStringError(error) ? error : undefined;
+}
+
 export {
     addErrorMessage,
     getAuthenticateErrorMessage,
@@ -275,6 +299,7 @@ export {
     getLatestErrorMessage,
     getLatestErrorMessageField,
     getLatestError,
+    getLatestStringErrorMessage,
     getMicroSecondOnyxErrorWithTranslationKey,
     getMicroSecondOnyxErrorWithMessage,
     getMicroSecondOnyxErrorObject,
