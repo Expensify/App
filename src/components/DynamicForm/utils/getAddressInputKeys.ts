@@ -77,6 +77,12 @@ function isStateAsked(field: DynamicFormAddressField, country: Country | ''): bo
     return getStateCodes(field, country).length > 0;
 }
 
+/** The draft keys of the parts the form does not show. AddressSearch fills the state and the zip even where they are not asked, with values the user never sees. */
+function getHiddenAddressPartKeys(field: DynamicFormAddressField, values: DynamicFormValues): string[] {
+    const addressKeys = getAddressInputKeys(field.key);
+    return [...(isStateAsked(field, getAddressCountry(field.key, values)) ? [] : [addressKeys.state]), ...(isZipCodeShown(field) ? [] : [addressKeys.zipCode])];
+}
+
 /** The zip input shows unless the field says no zip is asked */
 function isZipCodeShown(field: DynamicFormAddressField): boolean {
     return field.isZipCodeAsked !== false;
@@ -88,4 +94,4 @@ function isZipCodeRequired(field: DynamicFormAddressField, country: Country | ''
 }
 
 export default getAddressInputKeys;
-export {getAddressCountry, getAllowedCountries, getStateCodes, getStateOptions, isCountryAllowed, isStateAsked, isZipCodeRequired, isZipCodeShown};
+export {getAddressCountry, getAllowedCountries, getHiddenAddressPartKeys, getStateCodes, getStateOptions, isCountryAllowed, isStateAsked, isZipCodeRequired, isZipCodeShown};

@@ -384,6 +384,38 @@ describe('getDynamicFieldErrors', () => {
         expect(errors).toEqual({});
     });
 
+    it('checks a filled-in zip against the format the schema sends', () => {
+        // Given a US address under a schema that sends the zip's pattern and longest length
+        const addressKeys = getAddressInputKeys('homeAddress');
+        const homeAddress: DynamicFormField = {
+            key: 'homeAddress',
+            type: 'address',
+            required: true,
+            zipCodeFormat: {regex: String.raw`^(?:\d{5}(-\d{4})?)$`, maxLength: 32, example: '10118'},
+        };
+        const values = {homeAddress: '350 5th Avenue', [addressKeys.city]: 'New York', [addressKeys.state]: 'NY', [addressKeys.country]: CONST.COUNTRY.US};
+
+        // When it is validated with a zip that fits the pattern and one that does not
+        const validErrors = getDynamicFieldErrors([homeAddress], {...values, [addressKeys.zipCode]: '10118'}, translateLocal);
+        const invalidErrors = getDynamicFieldErrors([homeAddress], {...values, [addressKeys.zipCode]: '1011'}, translateLocal);
+
+        // Then the wrong zip is flagged on its own input before the form is sent, with the schema's example
+        expect(validErrors).toEqual({});
+        expect(invalidErrors).toEqual({[addressKeys.zipCode]: translateLocal('dynamicForm.error.invalidFormat', {example: '10118'})});
+    });
+
+    it('does not treat a hidden zip as a started address', () => {
+        // Given an optional address with nothing typed, whose draft still holds a zip from an earlier pick, under a schema that asks for no zip
+        const addressKeys = getAddressInputKeys('homeAddress');
+        const homeAddress: DynamicFormField = {key: 'homeAddress', type: 'address', required: false, isZipCodeAsked: false};
+
+        // When it is validated
+        const errors = getDynamicFieldErrors([homeAddress], {[addressKeys.zipCode]: 'SW1W 9SR'}, translateLocal);
+
+        // Then nothing is asked, since the user cannot see or clear the zip that would make the address look started
+        expect(errors).toEqual({});
+    });
+
     it('requires the zip only where the schema asks for one', () => {
         // Given an address in El Salvador, where the App does not require a zip, and one in Great Britain, where it does
         const addressKeys = getAddressInputKeys('homeAddress');
