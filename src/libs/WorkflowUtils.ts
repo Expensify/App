@@ -1581,7 +1581,8 @@ function reconcileApprovalWorkflowRulesForEdit(newRules: ApprovalWorkflowRule[],
             // Structurally identical to a new rule, so it stands in for it. It can list only some of the members, such as
             // a step of another chain that lists the submitters carried along with the default workflow, so it gets the rest.
             matchedExistingIDs.add(ruleID);
-            const missingMemberEmails = memberEmails.filter((email) => !ruleEmails.includes(email));
+            const ruleEmailSet = new Set(ruleEmails);
+            const missingMemberEmails = memberEmails.filter((email) => !ruleEmailSet.has(email));
             if (missingMemberEmails.length > 0) {
                 diff[ruleID] = addMembersToRule(existingRule, missingMemberEmails);
             }
