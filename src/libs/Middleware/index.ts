@@ -1,5 +1,6 @@
 import DiscardStaleSearchSnapshot from './DiscardStaleSearchSnapshot';
 import FailureTracking from './FailureTracking';
+import FlagSearchTransactionWrites from './FlagSearchTransactionWrites';
 import FraudMonitoring from './FraudMonitoring';
 import GlobalReimbursementPayError from './GlobalReimbursementPayError';
 import handleDeletedAccount from './HandleDeletedAccount';
@@ -31,6 +32,7 @@ export {
     RecordFullReconnectTime,
     ReconcileBulkEditReportAction,
     FailureTracking,
+    FlagSearchTransactionWrites,
     SaveResponseInOnyx,
     Pagination,
     handleDeletedAccount,

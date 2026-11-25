@@ -3,8 +3,7 @@ import type FlatListRefType from '@components/FlashList/types';
 
 import useIsScreenVisible from '@hooks/useIsScreenVisible';
 
-import type {ViewToken} from '@src/types/utils/ReactNativeCompat';
-
+import type {ViewToken} from '@shopify/flash-list';
 import type {RefObject} from 'react';
 
 import {useEffect, useRef} from 'react';
@@ -28,7 +27,7 @@ type UseScrollToNewTransactionParams = {
     tableRef: RefObject<ExternalScrollFlashListTableHandle | null>;
 
     /** The main list's items on screen, as its last viewability change reported them. */
-    viewableItemsRef: RefObject<ViewToken[]>;
+    viewableItemsRef: RefObject<Array<ViewToken<unknown>>>;
 
     /** The main list's vertical scroll offset. */
     scrollOffsetStore: ScrollOffsetStore;

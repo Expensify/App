@@ -317,6 +317,9 @@ describe('addRootHistoryRouterExtension', () => {
                     const newRoute = makeRoute(action.payload.name, nextTestKey(action.payload.name), action.payload.params);
                     return withRoutes(state, [...state.routes, newRoute]);
                 }
+                if (action.type === CONST.NAVIGATION.ACTION_TYPE.RESET && action.payload && 'routes' in action.payload) {
+                    return withRoutes(state, createMock<TestState['routes']>(action.payload.routes));
+                }
                 return state;
             });
         }
@@ -384,6 +387,43 @@ describe('addRootHistoryRouterExtension', () => {
             expect(afterNavigate.routes.length).toBe(2);
             expect(afterNavigate.history?.length).toBe(4);
             expect(countLeadingPadding(afterNavigate.history)).toBe(2);
+        });
+
+        it('takes the reveal padding from the reset state, so browser Back restoring a recorded state matches its entry', () => {
+            // Given a completed reveal, which leaves padding at the front of the root history
+            const tabA = makeRoute('TabA', 'tab-a-1');
+            const tabB = makeRoute('TabB', 'tab-b-1');
+            const rhp = makeRoute(NAVIGATORS.RIGHT_MODAL_NAVIGATOR, 'rhp-1');
+            const enhancedRouter = addRootHistoryRouterExtension(makeRevealRouter(tabB))(createMock<PlatformStackRouterOptions>({}));
+            const stateWithRHP = makeState([tabA, rhp], {
+                history: createMock<CustomHistoryEntry[]>([
+                    {key: 'tab-a-1', name: 'TabA'},
+                    {key: 'tab-a-1', name: 'TabA'},
+                    {key: 'rhp-1', name: NAVIGATORS.RIGHT_MODAL_NAVIGATOR},
+                ]),
+            });
+            const afterReplace = getTestStateForAction(enhancedRouter, stateWithRHP, makeReplaceAction());
+            const afterDismiss = getTestStateForAction(enhancedRouter, afterReplace, makeDismissAction());
+            expect(countLeadingPadding(afterDismiss.history)).toBe(2);
+
+            // When browser Back resets to a state recorded before the reveal (no padding), and later to one recorded after an earlier
+            // reveal (one padding entry)
+            const tabC = makeRoute('TabC', 'tab-c-1');
+            const recordedBeforeReveal = {...afterDismiss, routes: [tabC], history: createMock<CustomHistoryEntry[]>([{key: 'tab-c-1', name: 'TabC'}])};
+            const recordedAfterReveal = {
+                ...afterDismiss,
+                routes: [tabC],
+                history: createMock<CustomHistoryEntry[]>([CONST.NAVIGATION.CUSTOM_HISTORY_ENTRY_REVEAL_PADDING, {key: 'tab-c-1', name: 'TabC'}]),
+            };
+            const afterResetBefore = getTestStateForAction(enhancedRouter, afterDismiss, {type: CONST.NAVIGATION.ACTION_TYPE.RESET, payload: recordedBeforeReveal});
+            const afterResetAfter = getTestStateForAction(enhancedRouter, afterDismiss, {type: CONST.NAVIGATION.ACTION_TYPE.RESET, payload: recordedAfterReveal});
+
+            // Then each keeps the padding of its recorded state, not of the state being left. Extra padding would look like a new
+            // entry to useLinking, which pushes one, so Back would land on the same screen again
+            expect(afterResetBefore.routes.map((route) => route.key)).toEqual(['tab-c-1']);
+            expect(countLeadingPadding(afterResetBefore.history)).toBe(0);
+            expect(afterResetAfter.routes.map((route) => route.key)).toEqual(['tab-c-1']);
+            expect(countLeadingPadding(afterResetAfter.history)).toBe(1);
         });
 
         it('does NOT freeze when DISMISS_MODAL fires without a pending reveal', () => {
