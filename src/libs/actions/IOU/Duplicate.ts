@@ -95,6 +95,11 @@ function getIOUActionForTransactions(
     });
 }
 
+/** Duplicating can reach every expense type, including per diem, which needs `personalDetailsByLogins`. */
+type DuplicateRequestMoneyInformation = RequestMoneyInformation & {
+    personalDetailsByLogins: PersonalDetailsByLogin;
+};
+
 type DiscardedSource = {
     amount: number;
     reimbursableAmount: number;
@@ -659,6 +664,7 @@ function buildDuplicateTransactionParams(transaction: OnyxTypes.Transaction, tra
         originalTransactionID: undefined,
         odometerStart: transaction.comment?.odometerStart ?? undefined,
         odometerEnd: transaction.comment?.odometerEnd ?? undefined,
+        odometerUnit: transaction.comment?.odometerUnit ?? undefined,
         receipt: undefined,
         source: undefined,
         waypoints,
@@ -717,10 +723,9 @@ function createExpenseByType({
     participantsPolicyTags,
     policyTags,
     rules,
-    personalDetailsByLogins,
 }: {
     transactionType: string;
-    params: RequestMoneyInformation;
+    params: DuplicateRequestMoneyInformation;
     transaction: OnyxTypes.Transaction;
     transactionDetails: ReturnType<typeof getTransactionDetails>;
     waypoints: WaypointCollection | undefined;
@@ -735,7 +740,6 @@ function createExpenseByType({
     participantsPolicyTags: OnyxTypes.ParticipantsPolicyTags;
     policyTags: OnyxTypes.PolicyTagLists;
     rules: OnyxCollection<OnyxTypes.Rule>;
-    personalDetailsByLogins: PersonalDetailsByLogin;
 }) {
     switch (transactionType) {
         case CONST.SEARCH.TRANSACTION_TYPE.DISTANCE: {
@@ -744,9 +748,6 @@ function createExpenseByType({
             const distanceParams: CreateDistanceRequestInformation = {
                 ...distanceBaseParams,
                 participants,
-                // params.report is always a chat report here (never an IOU/expense report), so planDistanceRequest's
-                // one-to-two transition check short-circuits on isMoneyRequestReport and never reads this list.
-                moneyRequestReportTransactions: [],
                 currentUserLogin: params.currentUserEmailParam,
                 currentUserAccountID: params.currentUserAccountIDParam,
                 existingTransaction: {
@@ -799,7 +800,6 @@ function createExpenseByType({
                 formatPhoneNumber,
                 policyTags,
                 rules,
-                personalDetailsByLogins,
             };
             return submitPerDiemExpense(perDiemParams);
         }
@@ -832,6 +832,7 @@ type DuplicateExpenseTransactionParams = {
     existingIOUReport?: OnyxEntry<OnyxTypes.Report>;
     optimisticReportPreviewActionID?: string;
     currentUser: CurrentUser;
+    currentUserPersonalDetails: CurrentUserPersonalDetails;
     currentUserLocalCurrency: string | undefined;
     isTrackIntentUser: boolean | undefined;
     delegateAccountID: number | undefined;
@@ -866,6 +867,7 @@ function duplicateExpenseTransaction({
     existingIOUReport,
     optimisticReportPreviewActionID: externalReportPreviewActionID,
     currentUser,
+    currentUserPersonalDetails,
     currentUserLocalCurrency,
     isTrackIntentUser,
     delegateAccountID,
@@ -892,7 +894,7 @@ function duplicateExpenseTransaction({
     const {transactionParams, waypoints} = buildDuplicateTransactionParams(transaction, transactionDetails, shouldDuplicateSelfDMExpense);
     const duplicateRequestType = getDuplicateRequestType(transaction, shouldDuplicateSelfDMExpense);
 
-    const params: RequestMoneyInformation = {
+    const params: DuplicateRequestMoneyInformation = {
         isVendorMatchingBetaEnabled,
         report: targetReport,
         existingIOUReport,
@@ -918,6 +920,7 @@ function duplicateExpenseTransaction({
         quickAction,
         existingTransactionDraft,
         rules,
+        personalDetailsByLogins,
         existingTransaction: {
             iouRequestType: duplicateRequestType,
             amount: 0,
@@ -969,6 +972,7 @@ function duplicateExpenseTransaction({
             isDraftPolicy: false,
             isDraftChatReport: false,
             currentUser: {accountID: currentUserAccountID, email: currentUserLogin},
+            currentUserPersonalDetails,
             introSelected,
             conciergeChat,
             quickAction,
@@ -1005,7 +1009,6 @@ function duplicateExpenseTransaction({
         participantsPolicyTags,
         policyTags: targetPolicyTags ?? {},
         rules,
-        personalDetailsByLogins,
     });
 }
 
@@ -1131,20 +1134,17 @@ function duplicateReport({
     }
 
     const newReportName = translate('common.copyOfReportName', sourceReportName);
-    const {reportPreviewReportActionID, ...newReport} = createNewReport(
+    const {reportPreviewReportActionID, ...newReport} = createNewReport({
         ownerPersonalDetails,
-        false,
+        hasViolations: false,
         isASAPSubmitBetaEnabled,
-        targetPolicy,
+        policy: targetPolicy,
         isTrackIntentUser,
         getCurrencyDecimals,
         rules,
-        false,
-        undefined,
-        {
-            reportName: newReportName,
-        },
-    );
+        reportName: newReportName,
+        personalDetailsByLogins,
+    });
 
     const isCrossWorkspace = !!sourceReport && sourceReport.policyID !== targetPolicy.id;
 
@@ -1211,7 +1211,7 @@ function duplicateReport({
         const isLastExpense = i === eligibleTransactions.length - 1;
         const {transactionParams, waypoints} = buildDuplicateTransactionParams(transaction, transactionDetails);
 
-        const params: RequestMoneyInformation = {
+        const params: DuplicateRequestMoneyInformation = {
             isVendorMatchingBetaEnabled,
             report: parentChatReport,
             existingIOUReport: currentIOUReport,
@@ -1243,6 +1243,7 @@ function duplicateReport({
             policyRecentlyUsedCurrencies,
             existingTransactionDraft: undefined,
             rules,
+            personalDetailsByLogins,
             existingTransaction: {
                 iouRequestType: getDuplicateRequestType(transaction),
                 amount: 0,
@@ -1279,7 +1280,6 @@ function duplicateReport({
             participantsPolicyTags,
             policyTags: targetPolicyTags ?? {},
             rules,
-            personalDetailsByLogins,
         });
 
         if (result?.iouReport) {
@@ -1309,6 +1309,7 @@ type BulkDuplicateExpensesParams = {
     transactionDrafts: Record<string, OnyxTypes.Transaction> | undefined;
     recentWaypoints: OnyxEntry<OnyxTypes.RecentWaypoint[]>;
     currentUser: CurrentUser;
+    currentUserPersonalDetails: CurrentUserPersonalDetails;
     currentUserLocalCurrency: string | undefined;
     isTrackIntentUser: boolean | undefined;
     delegateAccountID: number | undefined;
@@ -1339,6 +1340,7 @@ function bulkDuplicateExpenses({
     transactionDrafts,
     recentWaypoints,
     currentUser,
+    currentUserPersonalDetails,
     currentUserLocalCurrency,
     isTrackIntentUser,
     delegateAccountID,
@@ -1459,6 +1461,7 @@ function bulkDuplicateExpenses({
             existingIOUReport: optimisticIOUReport,
             optimisticReportPreviewActionID: currentReportPreviewActionID,
             currentUser,
+            currentUserPersonalDetails,
             currentUserLocalCurrency,
             isTrackIntentUser,
             delegateAccountID,

@@ -1,6 +1,5 @@
 import {render, waitFor} from '@testing-library/react-native';
 
-import {ModalActions} from '@components/Modal/Global/ModalContext';
 import VacationDelegateMenuItem from '@components/VacationDelegateMenuItem';
 
 import {closeUserAccount} from '@libs/actions/Domain';
@@ -27,8 +26,7 @@ const MEMBER_ACCOUNT_ID = 2;
 const SECURITY_GROUP_KEY = `${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}1`;
 
 let mockDomain: Record<string, BaseVacationDelegate | {shared: Record<string, string>}> | undefined;
-const mockShowDecisionModal = jest.fn();
-const mockShowConfirmModal = jest.fn();
+const mockShowCloseAccountModal = jest.fn();
 
 jest.mock('@libs/Navigation/Navigation', () => ({
     navigate: jest.fn(),
@@ -57,8 +55,8 @@ jest.mock('@components/Button', () => ({__esModule: true, default: new Proxy({},
 jest.mock('@hooks/useThemeStyles', () => jest.fn(() => new Proxy({}, {get: () => ({})})));
 jest.mock('@hooks/useLocalize', () => jest.fn(() => ({translate: (key: string) => key})));
 jest.mock('@hooks/useLazyAsset', () => ({useMemoizedLazyExpensifyIcons: jest.fn(() => ({}))}));
-jest.mock('@hooks/useConfirmModal', () => jest.fn(() => ({showConfirmModal: mockShowConfirmModal})));
-jest.mock('@hooks/useDecisionModal', () => jest.fn(() => ({showDecisionModal: mockShowDecisionModal})));
+jest.mock('@hooks/useConfirmModal', () => jest.fn(() => ({showConfirmModal: jest.fn()})));
+jest.mock('@hooks/useCloseDomainAccountModal', () => jest.fn(() => ({showCloseAccountModal: mockShowCloseAccountModal})));
 jest.mock('@hooks/useResponsiveLayout', () => jest.fn(() => ({isSmallScreenWidth: false})));
 jest.mock('@hooks/usePersonalDetails', () => ({usePersonalDetail: jest.fn(() => [{accountID: 2, login: 'member@example.com'}])}));
 // Every domain read goes through a selector, so each one is applied to the same mock domain record
@@ -131,24 +129,22 @@ describe('DomainMemberDetailsPage', () => {
             mockDomain = {[SECURITY_GROUP_KEY]: {shared: {[MEMBER_ACCOUNT_ID]: 'read'}}};
         });
 
-        it('does nothing when the close account choice is dismissed', async () => {
-            // Given the admin dismisses the close account choice with the backdrop, Escape, or Back
-            mockShowDecisionModal.mockResolvedValueOnce({action: ModalActions.DISMISS});
+        it('does nothing when the admin leaves the close account flow', async () => {
+            // Given the admin leaves the close account flow without confirming
+            mockShowCloseAccountModal.mockResolvedValueOnce(undefined);
 
             // When the admin presses the close account button
             pressCloseAccountButton();
 
-            // Then the choice is shown, but no confirmation follows, so the admin is not caught in a loop of modals
-            await waitFor(() => expect(mockShowDecisionModal).toHaveBeenCalledTimes(1));
-            expect(mockShowDecisionModal).toHaveBeenCalledWith(expect.objectContaining({shouldReportDismiss: true}));
-            expect(mockShowConfirmModal).not.toHaveBeenCalled();
+            // Then the flow is shown for one member, but the account stays open and the member page stays
+            await waitFor(() => expect(mockShowCloseAccountModal).toHaveBeenCalledWith(1));
             expect(closeUserAccount).not.toHaveBeenCalled();
+            expect(Navigation.dismissModal).not.toHaveBeenCalled();
         });
 
         it('safely closes the account after the admin confirms a safe close', async () => {
             // Given the admin picks the safe close option and then confirms
-            mockShowDecisionModal.mockResolvedValueOnce({action: ModalActions.CLOSE});
-            mockShowConfirmModal.mockResolvedValueOnce({action: ModalActions.CONFIRM});
+            mockShowCloseAccountModal.mockResolvedValueOnce(false);
 
             // When the admin presses the close account button
             pressCloseAccountButton();
@@ -161,8 +157,7 @@ describe('DomainMemberDetailsPage', () => {
 
         it('force closes the account after the admin confirms a force close', async () => {
             // Given the admin picks the force close option and then confirms
-            mockShowDecisionModal.mockResolvedValueOnce({action: ModalActions.CONFIRM});
-            mockShowConfirmModal.mockResolvedValueOnce({action: ModalActions.CONFIRM});
+            mockShowCloseAccountModal.mockResolvedValueOnce(true);
 
             // When the admin presses the close account button
             pressCloseAccountButton();
@@ -170,20 +165,6 @@ describe('DomainMemberDetailsPage', () => {
             // Then the account is force closed
             await waitFor(() => expect(closeUserAccount).toHaveBeenCalledTimes(1));
             expect(jest.mocked(closeUserAccount).mock.lastCall?.at(-1)).toBe(true);
-        });
-
-        it('returns to the close account choice when the confirmation is cancelled', async () => {
-            // Given the admin picks safe close, cancels the confirmation, and then dismisses the reopened choice
-            mockShowDecisionModal.mockResolvedValueOnce({action: ModalActions.CLOSE}).mockResolvedValueOnce({action: ModalActions.DISMISS});
-            mockShowConfirmModal.mockResolvedValueOnce({action: ModalActions.CLOSE});
-
-            // When the admin presses the close account button
-            pressCloseAccountButton();
-
-            // Then the close account choice is shown again and the account stays open
-            await waitFor(() => expect(mockShowDecisionModal).toHaveBeenCalledTimes(2));
-            expect(mockShowConfirmModal).toHaveBeenCalledTimes(1);
-            expect(closeUserAccount).not.toHaveBeenCalled();
         });
     });
 });

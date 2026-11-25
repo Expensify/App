@@ -23,6 +23,7 @@ function KeypadAmountEditor({
     footer,
     testID,
     shouldUseDynamicFontSize = false,
+    addBottomSafeAreaPadding = true,
 }: KeypadAmountEditorProps) {
     const inputRef = useRef<BaseTextInputRef | null>(null);
 
@@ -72,6 +73,7 @@ function KeypadAmountEditor({
                     actions={actions}
                     footer={footer}
                     testID={testID}
+                    addBottomSafeAreaPadding={addBottomSafeAreaPadding}
                     onEmptyAreaPress={() => {
                         controller.clearSelection();
                         focusInput();

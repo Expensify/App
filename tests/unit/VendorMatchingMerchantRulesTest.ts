@@ -12,7 +12,7 @@ import type {Connections} from '@src/types/onyx/Policy';
 
 import createRandomPolicy from '../utils/collections/policies';
 import createMock from '../utils/createMock';
-import {convertToDisplayString, translateLocal} from '../utils/TestHelper';
+import {convertToDisplayString, convertToDisplayStringWithoutCurrency, translateLocal} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 /**
@@ -28,6 +28,19 @@ const buildForm = (overrides: Partial<MerchantRuleForm> = {}): MerchantRuleForm 
     amount: '',
     tag: '',
     tagsToMatch: [],
+    currenciesToMatch: [],
+    taxRatesToMatch: [],
+    submittersToMatch: [],
+    merchantTypesToMatch: [],
+    dateToMatch: '',
+    dateMatchType: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO,
+    amountToMatch: '',
+    amountMatchType: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO,
+    hasToMatch: [],
+    hasMatchType: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO,
+    cardsToMatch: [],
+    reimbursableToMatch: false,
+    billableToMatch: false,
     tax: '',
     vendorID: '',
     comment: '',
@@ -144,6 +157,7 @@ describe('Vendor matching on merchant rules', () => {
                 rules: withVendorRule(policy, vendorID),
                 translate: translateLocal,
                 convertToDisplayString,
+                convertToDisplayStringWithoutCurrency,
                 isOffline: false,
                 onNavigate: () => {},
             });
