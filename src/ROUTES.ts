@@ -6034,11 +6034,11 @@ const ROUTES = {
     },
     DOMAIN_MEMBERS_VERIFY: {
         route: 'domain/:domainAccountID/members/verify',
-        getRoute: (domainAccountID: number) => `domain/${domainAccountID}/members/verify` as const,
+        getRoute: (domainAccountID: number, source?: 'groups') => `domain/${domainAccountID}/members/verify${source ? `?source=${source}` : ''}` as const,
     },
     DOMAIN_MEMBERS_VERIFIED: {
         route: 'domain/:domainAccountID/members/verified',
-        getRoute: (domainAccountID: number) => `domain/${domainAccountID}/members/verified` as const,
+        getRoute: (domainAccountID: number, source?: 'groups') => `domain/${domainAccountID}/members/verified${source ? `?source=${source}` : ''}` as const,
     },
     DOMAIN_ADMINS: {
         route: 'domain/:domainAccountID/admins',

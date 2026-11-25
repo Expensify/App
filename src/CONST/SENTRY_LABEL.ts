@@ -3798,6 +3798,7 @@ const SENTRY_LABEL = {
         },
         GROUPS: {
             CREATE_GROUP_BUTTON: 'DomainGroups-CreateGroupButton',
+            VERIFY_DOMAIN: 'DomainGroups-VerifyDomain',
             CREATE_PREFERRED_WORKSPACE: 'DomainGroups-CreatePreferredWorkspace',
             DELETE_GROUP: 'DomainGroups-DeleteGroup',
             NAME: 'DomainGroups-Name',

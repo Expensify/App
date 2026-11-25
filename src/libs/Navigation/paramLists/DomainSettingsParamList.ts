@@ -9,9 +9,11 @@ type DomainSettingsParamList = {
     };
     [SCREENS.DOMAIN.MEMBERS_VERIFY]: {
         domainAccountID: number;
+        source?: 'groups';
     };
     [SCREENS.DOMAIN.MEMBERS_VERIFIED]: {
         domainAccountID: number;
+        source?: 'groups';
     };
     [SCREENS.DOMAIN.ADMIN_DETAILS]: {
         domainAccountID: number;

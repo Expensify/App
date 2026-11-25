@@ -20,11 +20,12 @@ const FORWARD_ROUTES: Record<VerifyDomainScreen, (domainAccountID: number) => Ro
 
 function VerifyDomainPage({route}: VerifyDomainPageProps) {
     const {domainAccountID} = route.params;
+    const shouldReturnToGroups = route.name === SCREENS.DOMAIN.MEMBERS_VERIFY && 'source' in route.params && route.params.source === 'groups';
 
     return (
         <BaseVerifyDomainPage
             domainAccountID={domainAccountID}
-            forwardTo={FORWARD_ROUTES[route.name](domainAccountID)}
+            forwardTo={shouldReturnToGroups ? ROUTES.DOMAIN_MEMBERS_VERIFIED.getRoute(domainAccountID, 'groups') : FORWARD_ROUTES[route.name](domainAccountID)}
         />
     );
 }

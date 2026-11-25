@@ -43,6 +43,7 @@ type DomainGroupsPageProps = PlatformStackScreenProps<DomainSplitNavigatorParamL
 function DomainGroupsPage({route}: DomainGroupsPageProps) {
     const {domainAccountID} = route.params;
     const [domainName] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {selector: domainNameSelector});
+    const [isDomainVerified] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {selector: (domain) => domain?.validated});
     useDomainDocumentTitle(domainName, 'domain.groups.title');
     const icons = useMemoizedLazyExpensifyIcons(['Plus']);
     const styles = useThemeStyles();
@@ -90,17 +91,18 @@ function DomainGroupsPage({route}: DomainGroupsPageProps) {
             };
         });
 
-    const createGroupHeaderButton = (
+    const groupActionText = translate(isDomainVerified ? 'domain.groups.createNewGroupButton' : 'domain.verifyDomain.title');
+    const groupActionButton = (
         <Button
-            accessibilityLabel={translate('domain.groups.createNewGroupButton')}
-            sentryLabel={CONST.SENTRY_LABEL.DOMAIN.GROUPS.CREATE_GROUP_BUTTON}
-            onPress={() => Navigation.navigate(ROUTES.DOMAIN_GROUP_CREATE.getRoute(domainAccountID))}
+            accessibilityLabel={groupActionText}
+            sentryLabel={isDomainVerified ? CONST.SENTRY_LABEL.DOMAIN.GROUPS.CREATE_GROUP_BUTTON : CONST.SENTRY_LABEL.DOMAIN.GROUPS.VERIFY_DOMAIN}
+            onPress={() => Navigation.navigate(isDomainVerified ? ROUTES.DOMAIN_GROUP_CREATE.getRoute(domainAccountID) : ROUTES.DOMAIN_MEMBERS_VERIFY.getRoute(domainAccountID, 'groups'))}
             innerStyles={[shouldDisplayButtonsInSeparateLine && styles.alignItemsCenter]}
             style={shouldDisplayButtonsInSeparateLine ? [styles.flexGrow1, styles.mb3] : undefined}
             variant={CONST.BUTTON_VARIANT.SUCCESS}
         >
-            <Button.Icon src={icons.Plus} />
-            <Button.Text>{translate('domain.groups.createNewGroupButton')}</Button.Text>
+            {isDomainVerified && <Button.Icon src={icons.Plus} />}
+            <Button.Text>{groupActionText}</Button.Text>
         </Button>
     );
 
@@ -119,9 +121,9 @@ function DomainGroupsPage({route}: DomainGroupsPageProps) {
                     shouldShowBackButton={shouldUseNarrowLayout}
                     shouldUseHeadlineHeader
                 >
-                    {!shouldDisplayButtonsInSeparateLine && <View style={[styles.flexRow, styles.gap2]}>{createGroupHeaderButton}</View>}
+                    {!shouldDisplayButtonsInSeparateLine && <View style={[styles.flexRow, styles.gap2]}>{groupActionButton}</View>}
                 </HeaderWithBackButton>
-                {shouldDisplayButtonsInSeparateLine && <View style={pageGutter}>{createGroupHeaderButton}</View>}
+                {shouldDisplayButtonsInSeparateLine && <View style={pageGutter}>{groupActionButton}</View>}
 
                 <DomainGroupsTable
                     domainAccountID={domainAccountID}
