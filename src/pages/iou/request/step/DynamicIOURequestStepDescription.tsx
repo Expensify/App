@@ -159,6 +159,7 @@ function DynamicIOURequestStepDescription({
                 ONYXKEYS.NVP_INTRO_SELECTED,
             ]);
             updateMoneyRequestDescription({
+                translate,
                 isVendorMatchingBetaEnabled,
                 transactionID: transaction?.transactionID,
                 transaction,

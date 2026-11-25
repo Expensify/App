@@ -181,7 +181,7 @@ function ScanRouter({report, action, iouType, reportID, transactionID, transacti
     }
 
     return (
-        <MultiScanGate>
+        <MultiScanGate iouRequestType={transaction?.iouRequestType}>
             <ScanLocationPrompt gpsRequired={transaction?.amount === 0 && iouType !== CONST.IOU.TYPE.SPLIT} />
             <ScanNewReceipt
                 report={report}
