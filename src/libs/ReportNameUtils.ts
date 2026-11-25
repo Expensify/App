@@ -164,7 +164,13 @@ function getPolicyExpenseChatName({
     const login = personalDetails ? personalDetails.login : null;
 
     const reportOwnerDisplayName =
-        getDisplayNameForParticipant({accountID: ownerAccountID, shouldRemoveDomain: true, formatPhoneNumber, hiddenTranslation: translate('common.hidden')}) || login;
+        getDisplayNameForParticipant({
+            accountID: ownerAccountID,
+            shouldRemoveDomain: true,
+            formatPhoneNumber,
+            hiddenTranslation: translate('common.hidden'),
+            personalDetailsData: personalDetailsList,
+        }) || login;
 
     if (reportOwnerDisplayName) {
         return translate('workspace.common.policyExpenseChatName', reportOwnerDisplayName);
