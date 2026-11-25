@@ -4,6 +4,8 @@
 /* eslint-disable @typescript-eslint/no-unsafe-return */
 import {act, fireEvent, render, screen} from '@testing-library/react-native';
 
+import useReportOrReportDraft from '@hooks/useReportOrReportDraft';
+
 import {readFileAsync} from '@libs/fileDownload/FileUtils';
 import getCurrentPosition from '@libs/getCurrentPosition';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
@@ -357,6 +359,36 @@ describe('SubmitDetailsPage', () => {
         expect(typeof requestMoneyArg?.optimisticTransactionID).toBe('string');
         expect(requestMoneyArg?.optimisticTransactionID).not.toBe(CONST.IOU.OPTIMISTIC_TRANSACTION_ID);
         expect(cleanupArg?.transactionID).toBe(requestMoneyArg?.optimisticTransactionID);
+    });
+
+    it('tracks the expense on the self DM once Report > None moved the draft there, and keeps it there', async () => {
+        // Given a receipt shared to a chat, whose Report row was set to None, which moves the draft to the self DM
+        const selfDMReportID = 'self-dm-1';
+        const defaultReportLookup = jest.mocked(useReportOrReportDraft).getMockImplementation();
+        jest.mocked(useReportOrReportDraft).mockImplementation((reportID?: string) =>
+            reportID === selfDMReportID ? {reportID, chatType: CONST.REPORT.CHAT_TYPE.SELF_DM, type: CONST.REPORT.TYPE.CHAT} : defaultReportLookup?.(reportID),
+        );
+        renderSubmitDetailsPage();
+        await waitForBatchedUpdatesWithAct();
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${CONST.IOU.OPTIMISTIC_TRANSACTION_ID}`, {
+                reportID: CONST.REPORT.UNREPORTED_REPORT_ID,
+                participants: [{reportID: selfDMReportID, isSelfDM: true, selected: true}],
+            });
+            // Typing an amount re-runs the draft setup, which used to put the draft back on the chat
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${CONST.IOU.OPTIMISTIC_TRANSACTION_ID}`, {isAmountSet: true, amount: 1000, currency: CONST.CURRENCY.USD});
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        // When the user confirms
+        fireEvent.press(screen.getByTestId('mock-confirm-button'));
+        await waitForBatchedUpdatesWithAct();
+        jest.mocked(useReportOrReportDraft).mockImplementation(defaultReportLookup);
+
+        // Then it's tracked on the self DM instead of submitted to the chat, and the user lands on the self DM
+        expect(TrackExpense.trackExpense).toHaveBeenCalledWith(expect.objectContaining({report: expect.objectContaining({reportID: selfDMReportID})}));
+        expect(TrackExpense.requestMoney).not.toHaveBeenCalled();
+        expect(cleanupAndNavigateAfterExpenseCreate).toHaveBeenCalledWith(expect.objectContaining({isSelfDMDestination: true, navigationReportID: selfDMReportID}));
     });
 
     // Error #2 — share receipts must carry a trace id and log captured/submitted milestones so receipt

@@ -19,6 +19,7 @@ import React from 'react';
 import Onyx from 'react-native-onyx';
 
 import createRandomPolicy from '../../../utils/collections/policies';
+import getOnyxValue from '../../../utils/getOnyxValue';
 import waitForBatchedUpdates from '../../../utils/waitForBatchedUpdates';
 
 // Only the write matters here, so the action is stubbed to record what it is asked to save.
@@ -76,6 +77,12 @@ const currentReport: Report = {
     statusNum: CONST.REPORT.STATUS_NUM.OPEN,
 };
 const otherReport: Report = {reportID: OTHER_REPORT_ID, policyID: POLICY_ID, chatReportID: CHAT_REPORT_ID, type: CONST.REPORT.TYPE.EXPENSE};
+const CURRENT_USER_ACCOUNT_ID = 5;
+const SELF_DM_REPORT_ID = 'selfDM1';
+const selfDMReport: Report = {reportID: SELF_DM_REPORT_ID, chatType: CONST.REPORT.CHAT_TYPE.SELF_DM, type: CONST.REPORT.TYPE.CHAT, ownerAccountID: CURRENT_USER_ACCOUNT_ID};
+
+// The screen that owns the form's route switches its expense type, which a field inside a tab can't reach with `useRoute`.
+const mockIOUTypeChange = jest.fn();
 
 const getDropdown = (onClose: jest.Mock, isVisible = true) => (
     <OnyxListItemProvider>
@@ -85,6 +92,7 @@ const getDropdown = (onClose: jest.Mock, isVisible = true) => (
             action={CONST.IOU.ACTION.CREATE}
             iouType={CONST.IOU.TYPE.SUBMIT}
             isPolicyExpenseChat
+            onIOUTypeChange={mockIOUTypeChange}
         >
             <ReportFieldDropdown
                 isVisible={isVisible}
@@ -181,6 +189,48 @@ describe('ReportFieldDropdown', () => {
         // Then the draft is moved to `report2` and the container closes, without the page's navigation
         expect(setTransactionReport).toHaveBeenCalledWith(TRANSACTION_ID, expect.objectContaining({reportID: OTHER_REPORT_ID}), true);
         expect(onClose).toHaveBeenCalledTimes(1);
+    });
+
+    it('puts the draft expense on the self DM when no report is picked', async () => {
+        // Given a draft expense being created in a workspace chat, by a user with a self DM
+        await Onyx.set(ONYXKEYS.SESSION, {accountID: CURRENT_USER_ACCOUNT_ID, email: 'user@test.com'});
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${SELF_DM_REPORT_ID}`, selfDMReport);
+        await setDraftExpense();
+        mockIOUTypeChange.mockClear();
+        const onClose = jest.fn();
+
+        // When the report row's dropdown opens and the user picks None
+        renderDropdown(onClose);
+        await waitForBatchedUpdates();
+        act(() => mockModalProps?.selectNoReport?.());
+        await waitForBatchedUpdates();
+
+        // Then the draft goes on no report and to the self DM, where it is saved unreported, the screen owning the form is
+        // told it now holds a tracked expense, even when the form is a tab of the start page, and the container closes
+        expect(setTransactionReport).toHaveBeenCalledWith(TRANSACTION_ID, {reportID: CONST.REPORT.UNREPORTED_REPORT_ID}, true);
+        const draft = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${TRANSACTION_ID}`);
+        expect(draft?.participants).toEqual([expect.objectContaining({reportID: SELF_DM_REPORT_ID, isSelfDM: true})]);
+        expect(mockIOUTypeChange).toHaveBeenCalledWith(CONST.IOU.TYPE.TRACK);
+        expect(onClose).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not offer no report for a per diem expense, which only exists on a workspace', async () => {
+        // Given a per diem draft expense being created in a workspace chat
+        await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${TRANSACTION_ID}`, {
+            transactionID: TRANSACTION_ID,
+            reportID: CURRENT_REPORT_ID,
+            iouRequestType: CONST.IOU.REQUEST_TYPE.PER_DIEM,
+            participants: [{policyID: POLICY_ID, reportID: CHAT_REPORT_ID, isPolicyExpenseChat: true, selected: true}],
+        });
+        await waitForBatchedUpdates();
+
+        // When the report row's dropdown opens
+        renderDropdown(jest.fn());
+        await waitForBatchedUpdates();
+
+        // Then the list is not handed the option
+        expect(mockModalProps).toBeDefined();
+        expect(mockModalProps?.selectNoReport).toBeUndefined();
     });
 
     it('only closes when the current report is picked again', async () => {

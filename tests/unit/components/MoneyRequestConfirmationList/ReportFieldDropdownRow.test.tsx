@@ -4,6 +4,7 @@ import type DropdownField from '@components/DropdownField';
 import ConfirmationFieldsProvider from '@components/MoneyRequestConfirmationFields/Provider';
 import ExpenseFormLayoutContext, {dropdownRowsExpenseFormLayout} from '@components/MoneyRequestConfirmationList/sections/ExpenseFormLayoutContext';
 import ReportField from '@components/MoneyRequestConfirmationList/sections/ReportField';
+import OnyxListItemProvider from '@components/OnyxListItemProvider';
 
 import Navigation from '@libs/Navigation/Navigation';
 import {canAddTransaction} from '@libs/ReportUtils';
@@ -81,30 +82,33 @@ const otherOutstandingReport: Report = {...outstandingReport, reportID: 'report2
 type RenderParams = {
     action?: IOUAction;
     isPerDiemRequest?: boolean;
+    reportID?: string;
 };
 
-const renderReportRow = ({action = CONST.IOU.ACTION.CREATE, isPerDiemRequest = false}: RenderParams = {}) =>
+const renderReportRow = ({action = CONST.IOU.ACTION.CREATE, isPerDiemRequest = false, reportID = CHAT_REPORT_ID}: RenderParams = {}) =>
     render(
-        <ConfirmationFieldsProvider
-            transactionID={TRANSACTION_ID}
-            reportID={CHAT_REPORT_ID}
-            action={action}
-            iouType={CONST.IOU.TYPE.SUBMIT}
-            isPolicyExpenseChat
-        >
-            <ExpenseFormLayoutContext.Provider value={dropdownRowsExpenseFormLayout}>
-                <ReportField
-                    selectedParticipants={[{policyID: POLICY_ID, reportID: CHAT_REPORT_ID, ownerAccountID: ACCOUNT_ID, isPolicyExpenseChat: true, selected: true}]}
-                    iouType={CONST.IOU.TYPE.SUBMIT}
-                    reportID={CHAT_REPORT_ID}
-                    reportActionID={undefined}
-                    action={action}
-                    transactionID={TRANSACTION_ID}
-                    isPerDiemRequest={isPerDiemRequest}
-                    isPolicyExpenseChat
-                />
-            </ExpenseFormLayoutContext.Provider>
-        </ConfirmationFieldsProvider>,
+        <OnyxListItemProvider>
+            <ConfirmationFieldsProvider
+                transactionID={TRANSACTION_ID}
+                reportID={reportID}
+                action={action}
+                iouType={CONST.IOU.TYPE.SUBMIT}
+                isPolicyExpenseChat
+            >
+                <ExpenseFormLayoutContext.Provider value={dropdownRowsExpenseFormLayout}>
+                    <ReportField
+                        selectedParticipants={[{policyID: POLICY_ID, reportID: CHAT_REPORT_ID, ownerAccountID: ACCOUNT_ID, isPolicyExpenseChat: true, selected: true}]}
+                        iouType={CONST.IOU.TYPE.SUBMIT}
+                        reportID={reportID}
+                        reportActionID={undefined}
+                        action={action}
+                        transactionID={TRANSACTION_ID}
+                        isPerDiemRequest={isPerDiemRequest}
+                        isPolicyExpenseChat
+                    />
+                </ExpenseFormLayoutContext.Provider>
+            </ConfirmationFieldsProvider>
+        </OnyxListItemProvider>,
     );
 
 describe('ReportField', () => {
@@ -114,7 +118,7 @@ describe('ReportField', () => {
     });
 
     beforeEach(async () => {
-        // Two outstanding reports leave an alternative whether or not one is selected by default.
+        // Two reports the expense could go on, which leaves a choice to make whether or not the list offers a new report.
         mockOutstandingReports = [outstandingReport, otherOutstandingReport];
         mockShouldOpenInDropdown = undefined;
         mockIsInteractive = undefined;
@@ -162,17 +166,83 @@ describe('ReportField', () => {
         expect(mockDropdownTransactionID).toBe(TRANSACTION_ID);
     });
 
-    it('does not open the list when there is no report to choose', async () => {
-        // Given a workspace with no outstanding report, where the row reads as a locked field
+    it('opens the list when the workspace has no report open yet', async () => {
+        // Given a workspace with no outstanding report, where the expense would go on a new report
         mockOutstandingReports = [];
 
         // When the form renders the report row
         renderReportRow();
 
-        // Then the row does not open a list, in place or otherwise
+        // Then the row still opens its list, which offers a new report or no report at all
         await waitFor(() => {
-            expect(mockShouldOpenInDropdown).toBe(false);
+            expect(mockShouldOpenInDropdown).toBe(true);
         });
+        expect(mockIsInteractive).toBe(true);
+    });
+
+    it('opens the list when the workspace has only the report the expense goes on', async () => {
+        // Given an expense created in a workspace chat whose only outstanding report is the one it will go on
+        mockOutstandingReports = [outstandingReport];
+
+        // When the form renders the report row
+        renderReportRow();
+
+        // Then the row still opens its list, which offers a new report next to that one
+        await waitFor(() => {
+            expect(mockShouldOpenInDropdown).toBe(true);
+        });
+        expect(mockIsInteractive).toBe(true);
+    });
+
+    it('keeps the row locked when editing an expense on the only report it can go on', async () => {
+        // Given a saved expense on a report, in a workspace with no other outstanding report. The list can hide its new
+        // report option for an edit, which would leave nothing but the report the expense is already on
+        mockOutstandingReports = [outstandingReport];
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${outstandingReport.reportID}`, {
+            ...outstandingReport,
+            stateNum: CONST.REPORT.STATE_NUM.OPEN,
+            statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+        });
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${TRANSACTION_ID}`, {reportID: outstandingReport.reportID});
+        await waitForBatchedUpdates();
+
+        // When the form renders the report row to edit it
+        renderReportRow({action: CONST.IOU.ACTION.EDIT});
+
+        // Then the row reads as a locked field rather than opening a list with nothing to choose
+        await waitFor(() => {
+            expect(mockIsInteractive).toBe(false);
+        });
+    });
+
+    it('keeps the row editable when editing an unreported expense with one report to move it to', async () => {
+        // Given a saved expense that is on no report, which always keeps the new report option, and one outstanding report
+        mockOutstandingReports = [outstandingReport];
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${TRANSACTION_ID}`, {reportID: CONST.REPORT.UNREPORTED_REPORT_ID});
+        await waitForBatchedUpdates();
+
+        // When the form renders the report row to edit it
+        renderReportRow({action: CONST.IOU.ACTION.EDIT});
+
+        // Then the row can be changed, as that report and a new one are both real choices
+        await waitFor(() => {
+            expect(mockIsInteractive).toBe(true);
+        });
+    });
+
+    it('keeps the row locked when the expense is created inside a report', async () => {
+        // Given an expense created from inside an expense report, whose destination is already that report
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${outstandingReport.reportID}`, outstandingReport);
+        await waitForBatchedUpdates();
+
+        // When the form renders the report row
+        renderReportRow({reportID: outstandingReport.reportID});
+
+        // Then the row reads as a locked field and opens nothing
+        await waitFor(() => {
+            expect(mockIsInteractive).toBe(false);
+        });
+        expect(mockShouldOpenInDropdown).toBe(false);
     });
 
     it('keeps the full-page selector for a per diem expense', async () => {
@@ -210,7 +280,7 @@ describe('ReportField', () => {
         await waitForBatchedUpdates();
     };
 
-    it.each([false, true])('shows a disabled New report field with only non-reimbursable reports (global create: %s)', async (isFromGlobalCreate) => {
+    it.each([false, true])('shows New report with only non-reimbursable reports and keeps the list available (global create: %s)', async (isFromGlobalCreate) => {
         // Given two retracted reports which the save path cannot add a new expense to
         await addNonReimbursableExpense(outstandingReport);
         await addNonReimbursableExpense(otherOutstandingReport);
@@ -221,11 +291,12 @@ describe('ReportField', () => {
         // When creating an expense from either the global button or the workspace chat
         renderReportRow();
 
-        // Then the default agrees with the save path and cannot open a picker with no eligible report
+        // Then the default agrees with the save path, and the list still opens in place, since it offers a new report and no
+        // report at all even with no eligible report to pick
         await waitFor(() => {
             expect(mockReportName).toBe('iou.newReport');
-            expect(mockIsInteractive).toBe(false);
-            expect(mockShouldOpenInDropdown).toBe(false);
+            expect(mockIsInteractive).toBe(true);
+            expect(mockShouldOpenInDropdown).toBe(true);
         });
     });
 
@@ -245,6 +316,30 @@ describe('ReportField', () => {
             expect(mockIsInteractive).toBe(true);
             expect(mockShouldOpenInDropdown).toBe(true);
         });
+    });
+
+    it('keeps the row locked for a tracked expense with no workspace to make a report on and no report to pick', async () => {
+        // Given someone with no workspace and no report the tracked expense could go on, so the list would have nothing to offer
+        mockOutstandingReports = [];
+        await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, null);
+        await waitForBatchedUpdates();
+
+        // When they submit a tracked expense to their employer, which can't leave it off a report
+        renderReportRow({action: CONST.IOU.ACTION.SUBMIT});
+
+        // Then the row stays locked rather than opening an empty list
+        await waitFor(() => expect(mockIsInteractive).toBe(false));
+    });
+
+    it('opens the list for a tracked expense with no report to pick when a new one can be made on the workspace', async () => {
+        // Given a workspace with no report the tracked expense could go on yet
+        mockOutstandingReports = [];
+
+        // When the tracked expense is submitted
+        renderReportRow({action: CONST.IOU.ACTION.SUBMIT});
+
+        // Then the row opens, since the list offers to make a new report on that workspace
+        await waitFor(() => expect(mockIsInteractive).toBe(true));
     });
 
     it('shows New report while keeping report selection interactive when submitting a tracked expense', async () => {

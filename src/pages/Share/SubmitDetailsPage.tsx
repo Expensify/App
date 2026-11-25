@@ -100,11 +100,17 @@ function SubmitDetailsPage({
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${CONST.IOU.OPTIMISTIC_TRANSACTION_ID}`);
     const transactionReport = useReportOrReportDraft(transaction?.reportID);
     const [reportNameValuePair] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${getNonEmptyStringOnyxID(transactionReport?.reportID)}`);
-    const iouType = isSelfDM(report) ? CONST.IOU.TYPE.TRACK : CONST.IOU.TYPE.SUBMIT;
+    // Picking None in the Report row moves the draft to the self DM, so from then on the expense is tracked there instead
+    // of submitted to the chat it was shared to: what it shows, how it's sent and where the user lands all follow the draft.
+    // Setting the draft up still goes by the shared-to chat, which would otherwise start the draft over.
+    const draftParticipantReport = useReportOrReportDraft(transaction?.participants?.at(0)?.reportID);
+    const destinationReport = isSelfDM(draftParticipantReport) ? draftParticipantReport : report;
+    const isSelfDMDestination = isSelfDM(destinationReport);
+    const iouType = isSelfDMDestination ? CONST.IOU.TYPE.TRACK : CONST.IOU.TYPE.SUBMIT;
     // Self-DM's FAKE policyID can't load real policy data — usePolicyForTransaction resolves the active workspace instead.
     const {policy} = usePolicyForTransaction({
         transaction,
-        reportPolicyID: getIOURequestPolicyID(transaction, report),
+        reportPolicyID: getIOURequestPolicyID(transaction, destinationReport),
         action: CONST.IOU.ACTION.CREATE,
         iouType,
         isPerDiemRequest: false,
@@ -196,9 +202,19 @@ function SubmitDetailsPage({
     // currency stays on the draft, so a live read would let the next re-seed swap it for the policy's currency.
     const enteredCurrencyRef = useRef<string | undefined>(undefined);
 
+    // Report > None moved the draft off the chat it was shared to. Setting it up again re-seeds it from that chat, which
+    // would put it back there.
+    const hasMovedDraftToSelfDM = isSelfDMDestination && !isSelfDM(report);
+
     useEffect(() => {
         if (transaction?.isAmountSet && transaction.currency) {
             enteredCurrencyRef.current = transaction.currency;
+        }
+
+        // Read when late data re-runs this, rather than listed below: listing it would re-seed the draft from the chat the
+        // moment the user picks a report there again, replacing the one they picked.
+        if (hasMovedDraftToSelfDM) {
+            return;
         }
 
         initMoneyRequest({
@@ -256,7 +272,7 @@ function SubmitDetailsPage({
     // Validate the same source that performUpload reads — so Replace/Crop to an oversized file is still caught before submit.
     useShareFileSizeValidation(currentReceiptSource, setErrorTitle, setErrorMessage, !errorTitle);
 
-    const selectedParticipants = unknownUserDetails ? [unknownUserDetails] : getMoneyRequestParticipantsFromReport(report, currentUserPersonalDetails.accountID);
+    const selectedParticipants = unknownUserDetails ? [unknownUserDetails] : getMoneyRequestParticipantsFromReport(destinationReport, currentUserPersonalDetails.accountID);
     const participants = selectedParticipants.map((participant) => {
         const privateIsArchived = privateIsArchivedMap[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${participant.reportID}`];
         return participant?.accountID
@@ -314,7 +330,7 @@ function SubmitDetailsPage({
     const listOfParticipants = participants.filter((participant) => participant.selected);
     const participant = listOfParticipants.at(0) ?? selectedParticipants.at(0);
     const reportToSubmit = resolveReportForMoneyRequest({transaction, transactionReport, routeReport: report, reportNameValuePair, rules});
-    const postSubmitNavigationReportID = (isSelfDM(report) ? report : reportToSubmit)?.reportID ?? reportOrAccountID;
+    const postSubmitNavigationReportID = (isSelfDMDestination ? destinationReport : reportToSubmit)?.reportID ?? reportOrAccountID;
     const isIouReport = isMoneyRequestReport(reportToSubmit);
     const policyTagsForRequestMoney = useMoneyRequestPolicyTags({
         moneyRequestReportID: isIouReport ? reportToSubmit?.reportID : undefined,
@@ -339,7 +355,7 @@ function SubmitDetailsPage({
         canPreInsertSearch: false,
         iouType,
         isCreatingTrackExpense,
-        isSelfDMDestination: isSelfDM(report),
+        isSelfDMDestination,
         isOptimisticNewChatDestination: false,
         isLookingAroundUser,
         isMovingTransactionFromTrackExpense: false,
@@ -412,15 +428,15 @@ function SubmitDetailsPage({
             receiptTraceId: receipt.receiptTraceId,
             draftTransactionID: transaction.transactionID,
             transactionID: optimisticTransactionID,
-            command: isSelfDM(report) ? WRITE_COMMANDS.TRACK_EXPENSE : WRITE_COMMANDS.REQUEST_MONEY,
+            command: isSelfDMDestination ? WRITE_COMMANDS.TRACK_EXPENSE : WRITE_COMMANDS.REQUEST_MONEY,
             iouType,
         });
 
         const performExpenseCreate = () => {
-            if (isSelfDM(report)) {
+            if (isSelfDMDestination) {
                 trackExpense({
                     getCurrencyDecimals,
-                    report: report ?? {reportID: reportOrAccountID},
+                    report: destinationReport ?? {reportID: reportOrAccountID},
                     isDraftPolicy: false,
                     isDraftChatReport: !!reportDraft,
                     participantParams: {payeeEmail: currentUserPersonalDetails.login, payeeAccountID: currentUserPersonalDetails.accountID, participant},
@@ -523,7 +539,7 @@ function SubmitDetailsPage({
         };
 
         const cleanupParams = {
-            report: isSelfDM(report) ? report : reportToSubmit,
+            report: isSelfDMDestination ? destinationReport : reportToSubmit,
             action: CONST.IOU.ACTION.CREATE,
             draftTransactionIDs,
             transactionID: optimisticTransactionID,
@@ -532,7 +548,7 @@ function SubmitDetailsPage({
             navigationReportID: postSubmitNavigationReportID,
             linkedTrackedExpenseReportAction: transaction.linkedTrackedExpenseReportAction,
             isLookingAroundUser,
-            isSelfDMDestination: isSelfDM(report),
+            isSelfDMDestination,
         };
 
         const runExpenseCreateAndCleanup = (shouldNavigate: boolean) => {

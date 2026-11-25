@@ -20,6 +20,9 @@ type MoneyRequestConfirmationListProps = {
     /** Opens the participant picker owned by the page. */
     onOpenParticipantPicker: () => void;
 
+    /** Switches the form to another expense type, e.g. to a track expense once the report list moves it off any report. Given by the screen that owns the form's route, which a field inside a tab can't reach with `useRoute` */
+    onIOUTypeChange?: (iouType: IOUType) => void;
+
     /** The payment method the SettlementButton chose. */
     onSendMoney?: (paymentMethod: PaymentMethodType | undefined) => Promise<void>;
 

@@ -7,9 +7,10 @@ import useOnyx from '@hooks/useOnyx';
 import useOutstandingReports from '@hooks/useOutstandingReports';
 import usePermissions from '@hooks/usePermissions';
 import {usePersonalDetail} from '@hooks/usePersonalDetails';
+import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import {useDerivedReportNameByReportID} from '@hooks/useReportAttributes';
 
-import {isMovingTransactionFromTrackExpense} from '@libs/IOUUtils';
+import {canCreateReportForExpense, canLeaveExpenseUnreported, isMovingTransactionFromTrackExpense} from '@libs/IOUUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import Parser from '@libs/Parser';
@@ -77,6 +78,8 @@ function ReportField({selectedParticipants, iouType, reportID, reportActionID, a
     const participantReportID = transactionState?.participantReportID;
     const isFromGlobalCreate = transactionState?.isFromGlobalCreate ?? false;
     const isScanRequest = transactionState?.isScanRequest ?? false;
+    const isTimeRequest = transactionState?.isTimeRequest ?? false;
+    const isUnreportedManagedCardTransaction = transactionState?.isUnreportedManagedCardTransaction ?? false;
 
     // Per-key report subscriptions instead of full COLLECTION.REPORT
     const [transactionReportEntry] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transactionReportID}`);
@@ -145,10 +148,20 @@ function ReportField({selectedParticipants, iouType, reportID, reportActionID, a
     // A tracked expense moved to a workspace can only join an open report, so the picker lists only those. Count the same reports here.
     const outstandingReports = isMovingTrackedExpense ? allOutstandingReports.filter(isOpenExpenseReport) : allOutstandingReports;
     const eligibleOutstandingReports = isCreatingExpense ? outstandingReports.filter((report) => canAddTransaction(report, rules)) : outstandingReports;
-    // When creating an expense in an individual report, the report field becomes read-only
-    // since the destination is already determined and there's no need to show a selectable list.
     // Use the default rather than the picked report, so picking the only outstanding report keeps the field editable to switch back.
-    const shouldReportBeEditable = shouldReportFieldBeEditable(eligibleOutstandingReports, selectedReportID, isUnreported || !outstandingReportID) && !isMoneyRequestReport(reportID);
+    const hasOtherReport = shouldReportFieldBeEditable(eligibleOutstandingReports, selectedReportID, isUnreported || !outstandingReportID);
+    // The list also offers a new report when there is a workspace to make it on, and no report at all for an expense
+    // being created, so either is a choice too. The row asks the same questions the list does, so it never opens an
+    // empty list, e.g. for someone with no workspace submitting a tracked expense.
+    const {policyForMovingExpensesID, shouldSelectPolicy} = usePolicyForMovingExpenses(isPerDiemRequest, isTimeRequest, policyID, isUnreportedManagedCardTransaction);
+    const canCreateReport = canCreateReportForExpense({policyForMovingExpensesID, shouldSelectPolicy, isPerDiemRequest, isUnreportedManagedCardTransaction});
+    const canLeaveUnreported = canLeaveExpenseUnreported(action, iouType, isPerDiemRequest, isTimeRequest);
+    // Editing an expense that is already on a report can hide the new report option (someone else's expense, edited by
+    // a non-admin), so there the row needs another report to choose from. Creating from inside an expense report locks
+    // the row, since the expense can only go on that report.
+    const mayHideListOptions = action === CONST.IOU.ACTION.EDIT && !isUnreported;
+    const hasReportChoice = mayHideListOptions ? hasOtherReport : hasOtherReport || canCreateReport || canLeaveUnreported;
+    const shouldReportBeEditable = hasReportChoice && !isMoneyRequestReport(reportID);
     // Editing a saved expense's report and moving a per diem expense both navigate on from the list (to the report, or to
     // the destination step when the workspace changes), so those keep the full page.
     const shouldOpenInDropdown = !!transactionID && shouldReportBeEditable && action !== CONST.IOU.ACTION.EDIT && !isPerDiemRequest;
@@ -157,7 +170,10 @@ function ReportField({selectedParticipants, iouType, reportID, reportActionID, a
         if (!transactionID || !selectedReportID) {
             return;
         }
-        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.MONEY_REQUEST_STEP_REPORT.getRoute(action, iouType, transactionID, selectedReportID, reportActionID)));
+        // With no report to show yet, the page opens from the chat the expense is being created in, as the anchored list
+        // does, rather than from the placeholder ID.
+        const reportIDForPage = selectedReport ? selectedReportID : reportID || selectedReportID;
+        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.MONEY_REQUEST_STEP_REPORT.getRoute(action, iouType, transactionID, reportIDForPage, reportActionID)));
     };
 
     if (shouldUseDropdownRows) {

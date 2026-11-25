@@ -2,6 +2,7 @@ import {render, screen, waitFor} from '@testing-library/react-native';
 
 import ConfirmationFieldsProvider from '@components/MoneyRequestConfirmationFields/Provider';
 import ReportField from '@components/MoneyRequestConfirmationList/sections/ReportField';
+import OnyxListItemProvider from '@components/OnyxListItemProvider';
 
 import initOnyxDerivedValues from '@userActions/OnyxDerived';
 
@@ -77,23 +78,25 @@ const submittedReport: Report = {
 
 const renderReportField = (action: IOUAction = CONST.IOU.ACTION.CREATE) =>
     render(
-        <ConfirmationFieldsProvider
-            transactionID={TRANSACTION_ID}
-            reportID={CHAT_REPORT_ID}
-            action={action}
-            iouType={CONST.IOU.TYPE.SUBMIT}
-        >
-            <ReportField
-                selectedParticipants={[{accountID: 0, reportID: CHAT_REPORT_ID, policyID: POLICY_ID, ownerAccountID: SUBMITTER_ACCOUNT_ID, isPolicyExpenseChat: true, selected: true}]}
-                iouType={CONST.IOU.TYPE.SUBMIT}
-                reportID={CHAT_REPORT_ID}
-                reportActionID={undefined}
-                action={action}
+        <OnyxListItemProvider>
+            <ConfirmationFieldsProvider
                 transactionID={TRANSACTION_ID}
-                isPerDiemRequest={false}
-                isPolicyExpenseChat
-            />
-        </ConfirmationFieldsProvider>,
+                reportID={CHAT_REPORT_ID}
+                action={action}
+                iouType={CONST.IOU.TYPE.SUBMIT}
+            >
+                <ReportField
+                    selectedParticipants={[{accountID: 0, reportID: CHAT_REPORT_ID, policyID: POLICY_ID, ownerAccountID: SUBMITTER_ACCOUNT_ID, isPolicyExpenseChat: true, selected: true}]}
+                    iouType={CONST.IOU.TYPE.SUBMIT}
+                    reportID={CHAT_REPORT_ID}
+                    reportActionID={undefined}
+                    action={action}
+                    transactionID={TRANSACTION_ID}
+                    isPerDiemRequest={false}
+                    isPolicyExpenseChat
+                />
+            </ConfirmationFieldsProvider>
+        </OnyxListItemProvider>,
     );
 
 describe('ReportField', () => {
@@ -172,7 +175,7 @@ describe('ReportField', () => {
         expect(screen.getByText('Submitted report')).toBeEnabled();
     });
 
-    it('keeps the row read-only when a tracked expense is moved and the only report is awaiting approval', async () => {
+    it('shows New report for a tracked expense moved when the only report is awaiting approval, and lets the user open the list', async () => {
         // Given the submitter only has a report awaiting approval, and they move a tracked expense from their self DM to the workspace
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${CHAT_REPORT_ID}`, chatReport);
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${SUBMITTED_REPORT_ID}`, submittedReport);
@@ -181,11 +184,12 @@ describe('ReportField', () => {
         // When the confirmation form renders the report row for the move
         renderReportField(CONST.IOU.ACTION.SUBMIT);
 
-        // Then the row says New report and is not editable, because the server only adds a tracked expense to an open report
+        // Then the row says New report, because the server only adds a tracked expense to an open report, and it can still be
+        // opened, since the list offers to make a new report on the workspace
         await waitFor(() => {
             expect(screen.getByText('iou.newReport')).toBeOnTheScreen();
         });
-        expect(screen.getByText('iou.newReport')).toBeDisabled();
+        expect(screen.getByText('iou.newReport')).not.toBeDisabled();
     });
 
     it('shows the newest open report rather than a newer report awaiting approval', async () => {
@@ -239,7 +243,8 @@ describe('ReportField', () => {
             expect(screen.getByText('Open report')).toBeOnTheScreen();
         });
 
-        // And the row is not editable, because that report is the only one the user could pick
-        expect(screen.getByText('Open report')).toBeDisabled();
+        // And the row can still be changed although that is the only report, since the list also offers a new report and no
+        // report at all
+        expect(screen.getByText('Open report')).not.toBeDisabled();
     });
 });

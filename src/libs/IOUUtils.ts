@@ -376,6 +376,34 @@ function shouldUseTransactionDraft(action: IOUAction | undefined, type?: IOUType
     return action === CONST.IOU.ACTION.CREATE || type === CONST.IOU.TYPE.SPLIT_EXPENSE || isMovingTransactionFromTrackExpense(action);
 }
 
+/**
+ * Whether the report list offers None, which leaves the expense off any report. Only an expense being created can start
+ * without one, and a per diem or time expense only exists on a workspace.
+ */
+function canLeaveExpenseUnreported(action: IOUAction | undefined, iouType: IOUType, isPerDiemRequest: boolean, isTimeRequest: boolean): boolean {
+    const isTypeWithoutReport = iouType === CONST.IOU.TYPE.SUBMIT || iouType === CONST.IOU.TYPE.CREATE || iouType === CONST.IOU.TYPE.TRACK;
+    return action === CONST.IOU.ACTION.CREATE && isTypeWithoutReport && !isPerDiemRequest && !isTimeRequest;
+}
+
+type CanCreateReportForExpenseParams = {
+    /** Workspace a new report would be made on, from `usePolicyForMovingExpenses` */
+    policyForMovingExpensesID: string | undefined;
+
+    /** Whether the user has to pick that workspace first, from `usePolicyForMovingExpenses` */
+    shouldSelectPolicy: boolean;
+
+    isPerDiemRequest: boolean;
+    isUnreportedManagedCardTransaction: boolean;
+};
+
+/**
+ * Whether the report list offers a new report, which needs a workspace to make it on. A per diem expense makes it on its
+ * own workspace, and the server picks one for a managed card expense.
+ */
+function canCreateReportForExpense({policyForMovingExpensesID, shouldSelectPolicy, isPerDiemRequest, isUnreportedManagedCardTransaction}: CanCreateReportForExpenseParams): boolean {
+    return !!policyForMovingExpensesID || shouldSelectPolicy || isPerDiemRequest || isUnreportedManagedCardTransaction;
+}
+
 function navigateToConfirmationPage(
     iouType: IOUType,
     transactionID: string,
@@ -682,6 +710,8 @@ export {
     insertTagIntoTransactionTagsString,
     isMovingTransactionFromTrackExpense,
     shouldUseTransactionDraft,
+    canLeaveExpenseUnreported,
+    canCreateReportForExpense,
     isValidMoneyRequestType,
     navigateToStartMoneyRequestStep,
     updateIOUOwnerAndTotal,

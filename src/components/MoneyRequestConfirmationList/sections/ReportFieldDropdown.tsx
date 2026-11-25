@@ -24,7 +24,7 @@ type ReportFieldDropdownListProps = ReportFieldDropdownProps & {
 
 /** The report list and the hooks that drive it, which pick through the same hook the full-page selector uses so both leave the expense in the same state */
 function ReportFieldDropdownList({transactionID, onClose, onModalHide, ...popoverProps}: ReportFieldDropdownListProps) {
-    const {reportID, action, iouType} = useConfirmationFields();
+    const {reportID, action, iouType, onIOUTypeChange} = useConfirmationFields();
 
     // An expense being created, or moved from a tracked expense, lives in its draft until it is saved.
     const transactionCollection = shouldUseTransactionDraft(action) ? ONYXKEYS.COLLECTION.TRANSACTION_DRAFT : ONYXKEYS.COLLECTION.TRANSACTION;
@@ -40,6 +40,7 @@ function ReportFieldDropdownList({transactionID, onClose, onModalHide, ...popove
         onNavigateAway: onClose,
         // The container has no screen transition to wait for, and the row should show the new report as soon as it closes.
         shouldWriteAfterTransition: false,
+        setFormIOUType: onIOUTypeChange,
     });
 
     return (

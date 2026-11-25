@@ -64,6 +64,7 @@ function useConfirmationListDataWithPolicy({
     onConfirm,
     onSendMoney,
     onOpenParticipantPicker,
+    onIOUTypeChange,
     onSwitchToTransaction,
     showRemoveExpenseConfirmModal,
     isPerDiemRequest = false,
@@ -334,6 +335,7 @@ function useConfirmationListDataWithPolicy({
                 fieldViewRefs,
                 onSubmitForm: confirm,
                 onTaxAmountEmptyChange: setIsTaxAmountEmpty,
+                onIOUTypeChange,
             },
         },
 

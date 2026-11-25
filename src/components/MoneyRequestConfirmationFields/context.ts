@@ -49,6 +49,9 @@ type ConfirmationFieldsContextValue = {
 
     /** Reports whether the inline tax amount field is currently empty, so submission can be blocked when it is left empty (new manual expense flow). */
     onTaxAmountEmptyChange?: (isEmpty: boolean) => void;
+
+    /** Switches the form to another expense type, e.g. to a track expense once the report list moves it off any report. Given by the screen that owns the form's route, which a field inside a tab can't reach with `useRoute` */
+    onIOUTypeChange?: (iouType: IOUType) => void;
 };
 
 const ConfirmationFieldsContext = createContext<ConfirmationFieldsContextValue | null>(null);

@@ -80,6 +80,9 @@ type ProviderProps = {
     /** Reports whether the inline tax amount field is currently empty, so submission can be blocked when it is left empty */
     onTaxAmountEmptyChange?: (isEmpty: boolean) => void;
 
+    /** Switches the form to another expense type, e.g. to a track expense once the report list moves it off any report. Given by the screen that owns the form's route, which a field inside a tab can't reach with `useRoute` */
+    onIOUTypeChange?: (iouType: IOUType) => void;
+
     /** Block components rendered inside the Provider */
     children: ReactNode;
 };
@@ -108,6 +111,7 @@ function Provider({
     fieldViewRefs,
     onSubmitForm,
     onTaxAmountEmptyChange,
+    onIOUTypeChange,
     children,
 }: ProviderProps) {
     const value = {
@@ -134,6 +138,7 @@ function Provider({
         fieldViewRefs,
         onSubmitForm,
         onTaxAmountEmptyChange,
+        onIOUTypeChange,
     };
     return <ConfirmationFieldsContext.Provider value={value}>{children}</ConfirmationFieldsContext.Provider>;
 }
