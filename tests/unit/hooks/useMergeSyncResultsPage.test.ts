@@ -5,6 +5,7 @@ import useMergeSyncResultsPage from '@hooks/useMergeSyncResultsPage';
 import type MergeSyncResult from '@libs/API/MergeSyncResult';
 import type {HRConnectionName} from '@libs/merge/HRUtils';
 import type {RecruitingConnectionName} from '@libs/merge/RecruitingUtils';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
 
@@ -31,9 +32,11 @@ jest.mock('@libs/Navigation/Navigation', () => ({
     default: {navigate: jest.fn()},
 }));
 
-// The real hook reads the owning screen's navigation state, which a hook test has no reason to build.
-const mockBuildDynamicRoute = jest.fn((suffix: string) => `workspaces/${POLICY_ID}/${suffix}`);
-jest.mock('@hooks/useScreenBoundDynamicRoute', () => () => mockBuildDynamicRoute);
+// The real helper reads the active navigation state, which a hook test has no reason to build.
+jest.mock('@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute', () => ({
+    __esModule: true,
+    default: jest.fn(() => RESULTS_ROUTE),
+}));
 
 jest.mock('@libs/Navigation/TransitionTracker', () => ({
     __esModule: true,
@@ -46,6 +49,7 @@ jest.mock('@libs/Navigation/TransitionTracker', () => ({
 }));
 
 const mockNavigate = jest.mocked(Navigation.navigate);
+const mockCreateDynamicRoute = jest.mocked(createDynamicRoute);
 const mockRunAfterTransitions = jest.mocked(TransitionTracker.runAfterTransitions);
 const RESULT = {addedEmployeesCount: 2, removedEmployeesCount: 1, skippedEmployees: [{id: '7', name: 'Al Ex', reason: 'No email address.'}]};
 const RUNNING = CONST.POLICY.CONNECTIONS.SYNC_STAGE_NAME.GUSTO_SYNC_TITLE;
@@ -98,7 +102,7 @@ describe('useMergeSyncResultsPage', () => {
     beforeEach(() => {
         mockIsFocused = true;
         mockNavigate.mockClear();
-        mockBuildDynamicRoute.mockClear();
+        mockCreateDynamicRoute.mockClear();
         mockRunAfterTransitions.mockReset();
         mockRunAfterTransitions.mockImplementation(({callback}) => {
             callback();
@@ -161,7 +165,7 @@ describe('useMergeSyncResultsPage', () => {
         await renderWith([RUNNING, '2026-08-26 10:00:00.000', undefined, mergeATS], mergeATS);
 
         await pushSyncProgress(JOB_DONE, '2026-08-26 10:00:05.000', RESULT, mergeATS);
-        expect(mockBuildDynamicRoute).toHaveBeenCalledWith(DYNAMIC_ROUTES.WORKSPACE_RECRUITING_SYNC_RESULTS.path);
+        expect(mockCreateDynamicRoute).toHaveBeenCalledWith(DYNAMIC_ROUTES.WORKSPACE_RECRUITING_SYNC_RESULTS.path);
         expect(mockNavigate).toHaveBeenCalledTimes(1);
     });
 
@@ -183,11 +187,11 @@ describe('useMergeSyncResultsPage', () => {
         await pushSyncProgress(CONST.POLICY.CONNECTIONS.SYNC_STAGE_NAME.XERO_SYNC_STEP, '2026-08-26 10:00:06.000', undefined, CONST.POLICY.CONNECTIONS.NAME.XERO);
         await setModalVisible(false);
 
-        expect(mockBuildDynamicRoute).toHaveBeenCalledWith(DYNAMIC_ROUTES.WORKSPACE_HR_SYNC_RESULTS.path);
+        expect(mockCreateDynamicRoute).toHaveBeenCalledWith(DYNAMIC_ROUTES.WORKSPACE_HR_SYNC_RESULTS.path);
         expect(mockNavigate).toHaveBeenCalledTimes(1);
     });
 
-    it('holds the results screen while the user is on another screen and opens it when they come back', async () => {
+    it('drops modal-delayed results on blur and opens nothing when the user comes back', async () => {
         // Given a sync that finishes while a modal holds its results screen back
         const {rerender} = await renderWith([RUNNING, '2026-08-26 10:00:00.000']);
         await setModalVisible(true);
@@ -205,13 +209,12 @@ describe('useMergeSyncResultsPage', () => {
         mockIsFocused = true;
         rerender({});
 
-        // Then the held results screen opens one time, built on that screen
-        expect(mockBuildDynamicRoute).toHaveBeenCalledWith(DYNAMIC_ROUTES.WORKSPACE_HR_SYNC_RESULTS.path);
-        expect(mockNavigate).toHaveBeenCalledTimes(1);
-        expect(mockNavigate).toHaveBeenCalledWith(RESULTS_ROUTE);
+        // Then the dropped result cannot open later over a screen the user returned to
+        expect(mockCreateDynamicRoute).not.toHaveBeenCalled();
+        expect(mockNavigate).not.toHaveBeenCalled();
     });
 
-    it('cancels queued navigation on blur and opens results exactly once after refocus', async () => {
+    it('cancels queued navigation on blur and drops results even after refocus', async () => {
         // Given a completed sync whose navigation is waiting for a transition to finish
         const pendingCallbacks = new Set<Parameters<typeof TransitionTracker.runAfterTransitions>[0]['callback']>();
         const cancelHandles: jest.Mock[] = [];
@@ -245,26 +248,17 @@ describe('useMergeSyncResultsPage', () => {
 
         // Then no results open over the other screen
         expect(mockNavigate).not.toHaveBeenCalled();
-        expect(mockBuildDynamicRoute).not.toHaveBeenCalled();
+        expect(mockCreateDynamicRoute).not.toHaveBeenCalled();
 
-        // When the user returns, a fresh transition can open the held result
+        // When the user returns, flushing transitions must not revive the dropped result
         mockIsFocused = true;
         rerender({});
-        expect(mockRunAfterTransitions).toHaveBeenCalledTimes(2);
+        flushTransitions();
+
+        // Then neither a route nor another navigation is queued for the old result
+        expect(mockRunAfterTransitions).toHaveBeenCalledTimes(1);
+        expect(mockCreateDynamicRoute).not.toHaveBeenCalled();
         expect(mockNavigate).not.toHaveBeenCalled();
-        flushTransitions();
-
-        // Then the result opens once and is consumed, even if focus changes again
-        expect(mockBuildDynamicRoute).toHaveBeenCalledWith(DYNAMIC_ROUTES.WORKSPACE_HR_SYNC_RESULTS.path);
-        expect(mockNavigate).toHaveBeenCalledTimes(1);
-        expect(mockNavigate).toHaveBeenCalledWith(RESULTS_ROUTE);
-        mockIsFocused = false;
-        rerender({});
-        mockIsFocused = true;
-        rerender({});
-        flushTransitions();
-        expect(mockRunAfterTransitions).toHaveBeenCalledTimes(2);
-        expect(mockNavigate).toHaveBeenCalledTimes(1);
     });
 
     it('opens the results screen over an RHP that is still open', async () => {
@@ -322,7 +316,7 @@ describe('useMergeSyncResultsPage', () => {
             await renderWith([RUNNING, '2026-08-26 10:00:00.000'], undefined);
 
             await pushSyncProgress(JOB_DONE, '2026-08-26 10:00:05.000', RESULT);
-            expect(mockBuildDynamicRoute).toHaveBeenCalledWith(DYNAMIC_ROUTES.WORKSPACE_HR_SYNC_RESULTS.path);
+            expect(mockCreateDynamicRoute).toHaveBeenCalledWith(DYNAMIC_ROUTES.WORKSPACE_HR_SYNC_RESULTS.path);
             expect(mockNavigate).toHaveBeenCalledTimes(1);
         });
 
