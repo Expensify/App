@@ -99,7 +99,6 @@ function PolicyDistanceRateTaxReclaimableEditPage({route, policy}: PolicyDistanc
                         inputID={INPUT_IDS.TAX_CLAIMABLE_VALUE}
                         decimals={CONST.MAX_TAX_RATE_DECIMAL_PLACES}
                         defaultValue={currentTaxReclaimableOnValue?.toString() ?? ''}
-                        isCurrencyPressable={false}
                         currency={currency}
                         ref={inputCallbackRef}
                     />

@@ -161,7 +161,6 @@ function DynamicExpensifyCardLimitPage({route}: DynamicExpensifyCardLimitPagePro
                     <InputWrapper
                         InputComponent={AmountFormKeypad}
                         defaultValue={convertToFrontendAmountAsString(card?.nameValuePairs?.unapprovedExpenseLimit, 0)}
-                        isCurrencyPressable={false}
                         currency={currency}
                         inputID={INPUT_IDS.LIMIT}
                         ref={inputCallbackRef}

@@ -98,7 +98,6 @@ function PolicyDistanceRateEditPage({route}: PolicyDistanceRateEditPageProps) {
                         inputID={INPUT_IDS.RATE}
                         decimals={CONST.MAX_TAX_RATE_DECIMAL_PLACES}
                         defaultValue={currentRateValue}
-                        isCurrencyPressable={false}
                         currency={currency}
                         ref={inputCallbackRef}
                     />

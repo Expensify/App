@@ -15,8 +15,6 @@ function AmountFormKeypad({
     amountMaxLength,
     errorText,
     onInputChange,
-    onCurrencyButtonPress,
-    isCurrencyPressable = true,
     decimals: decimalsProp,
     hideCurrencySymbol = false,
     autoFocus,
@@ -38,14 +36,6 @@ function AmountFormKeypad({
             errorText={errorText}
             // A parent (FormWrapper, or ScreenWrapper on screens without edge-to-edge) already applies the bottom safe area around this editor
             addBottomSafeAreaPadding={false}
-            actions={
-                isCurrencyPressable && !!currency ? (
-                    <KeypadAmountEditor.CurrencyPickerButton
-                        currency={currency}
-                        onPress={onCurrencyButtonPress}
-                    />
-                ) : undefined
-            }
         >
             {!hideCurrencySymbol && !!symbol && <KeypadAmountEditor.Symbol>{symbol}</KeypadAmountEditor.Symbol>}
             <KeypadAmountEditor.Input

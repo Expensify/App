@@ -9,7 +9,7 @@ type AmountFormBaseProps = {
     value?: string;
 
     /**
-     * Currency of the amount, should be the currency name, not the currency code
+     * ISO currency code of the amount, not the currency symbol
      * e.g. "USD", "EUR", "GBP", not "$", "€", "£"
      */
     currency?: string;
@@ -20,9 +20,6 @@ type AmountFormBaseProps = {
     /** Callback to update the amount in the FormProvider */
     onInputChange?: (value: string) => void;
 
-    /** Fired when the currency button is pressed, navigates to currency selection page */
-    onCurrencyButtonPress?: () => void;
-
     /** Custom max amount length. It defaults to CONST.IOU.AMOUNT_MAX_LENGTH */
     amountMaxLength?: number;
 
@@ -31,6 +28,7 @@ type AmountFormBaseProps = {
 
     hideCurrencySymbol?: boolean;
 
+    /** Forwarded to the text input, so FormProvider can focus the field. Use `numberFormRef` to read or update the amount */
     ref?: ForwardedRef<BaseTextInputRef>;
 
     /** Reference to the number form for imperative updates */
@@ -45,6 +43,7 @@ type AmountFormInlineProps = AmountFormBaseProps & {
     /** Label of the text input, also used as its accessibility label */
     label?: string;
 
+    /** Disables both the input and the trailing dropdown */
     disabled?: boolean;
 
     /** When true, shows the trailing dropdown (same as currency picker in IOU amount flows) */
@@ -55,10 +54,10 @@ type AmountFormInlineProps = AmountFormBaseProps & {
 
     /** Accessibility label for the trailing dropdown */
     currencyButtonAccessibilityLabel?: string;
+
+    onCurrencyButtonPress?: () => void;
 };
 
-type AmountFormKeypadProps = AmountFormBaseProps & {
-    isCurrencyPressable?: boolean;
-};
+type AmountFormKeypadProps = AmountFormBaseProps;
 
 export type {AmountFormInlineProps, AmountFormKeypadProps};

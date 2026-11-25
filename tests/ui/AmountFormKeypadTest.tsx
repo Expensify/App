@@ -81,7 +81,7 @@ describe('AmountFormKeypad', () => {
             renderForm({value: '10', currency: 'USD'});
             await waitForBatchedUpdatesWithAct();
 
-            // Then the value, the number pad and the symbol render, so the migrated path keeps the legacy layout
+            // Then the value, the number pad and the symbol render, with the symbol outside the input so it is not part of the edited value
             expect(screen.getByDisplayValue('10')).toBeOnTheScreen();
             expect(screen.getByTestId('button_1')).toBeOnTheScreen();
             expect(screen.getByText('$')).toBeOnTheScreen();
@@ -229,28 +229,17 @@ describe('AmountFormKeypad', () => {
             expect(screen.queryByDisplayValue('10')).toBeNull();
         });
 
-        it('renders no currency button when the currency is not pressable', async () => {
-            // Given an AmountFormKeypad with a non-pressable currency
-            // When the form renders
-            renderForm({value: '10', currency: 'USD', isCurrencyPressable: false});
+        it('forwards submit editing', async () => {
+            // Given an AmountFormKeypad with an onSubmitEditing callback
+            const onSubmitEditing = jest.fn();
+            renderForm({value: '10', onSubmitEditing});
             await waitForBatchedUpdatesWithAct();
 
-            // Then there is no currency button
-            expect(screen.queryByText('USD')).toBeNull();
-        });
+            // When the user submits from a hardware keyboard
+            fireEvent(screen.getByDisplayValue('10'), 'submitEditing');
 
-        it('renders a pressable currency button by default', async () => {
-            // Given an AmountFormKeypad with the default pressable currency
-            const onCurrencyButtonPress = jest.fn();
-            renderForm({value: '10', currency: 'USD', onCurrencyButtonPress});
-            await waitForBatchedUpdatesWithAct();
-
-            // When the currency button is pressed
-            fireEvent.press(screen.getByText('USD'));
-            await waitForBatchedUpdatesWithAct();
-
-            // Then the currency callback is invoked
-            expect(onCurrencyButtonPress).toHaveBeenCalledTimes(1);
+            // Then the callback is forwarded, so FormProvider can submit the form on Enter
+            expect(onSubmitEditing).toHaveBeenCalledTimes(1);
         });
 
         it('adds no bottom safe area, because FormProvider and ScreenWrapper already apply it', async () => {
@@ -286,7 +275,7 @@ describe('AmountFormKeypad', () => {
         it('rejects props that only the inline adapter takes', () => {
             // Given props meant for the inline adapter
             // When they are passed to AmountFormKeypad
-            // Then the compiler rejects them, since the keypad would silently ignore them
+            // Then typecheck fails on each @ts-expect-error line if the keypad starts accepting the prop. The runtime assertion only keeps the elements in use
             // @ts-expect-error -- the keypad adapter takes no label
             const withLabel = <AmountFormKeypad label="Rate" />;
             // @ts-expect-error -- the keypad adapter takes no disabled

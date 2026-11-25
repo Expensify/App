@@ -231,7 +231,7 @@ describe('AmountFormInline', () => {
             });
             await waitForBatchedUpdatesWithAct();
 
-            // Then the value updates without notifying onInputChange, matching the legacy form
+            // Then the value updates without notifying onInputChange, so an imperative update does not echo back into the form
             expect(numberFormRef.current?.getNumber()).toBe('25');
             expect(screen.getByDisplayValue('25')).toBeOnTheScreen();
             expect(onInputChange).not.toHaveBeenCalled();
@@ -291,18 +291,6 @@ describe('AmountFormInline', () => {
             // Then the callback is not invoked and the input cannot be edited
             expect(onCurrencyButtonPress).not.toHaveBeenCalled();
             expect(screen.getByDisplayValue('10').props.readOnly).toBe(true);
-        });
-    });
-
-    describe('props compatibility', () => {
-        it('rejects props that only the keypad adapter takes', () => {
-            // Given props meant only for the keypad adapter
-            // When they are passed to AmountFormInline
-            // Then the compiler rejects them, since the inline adapter takes no isCurrencyPressable prop
-            // @ts-expect-error -- the inline adapter takes no isCurrencyPressable prop
-            const withCurrencyPressable = <AmountFormInline isCurrencyPressable />;
-
-            expect([withCurrencyPressable]).toHaveLength(1);
         });
     });
 });
