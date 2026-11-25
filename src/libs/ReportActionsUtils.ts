@@ -1996,13 +1996,13 @@ function getLastVisibleAction(
         reportActions = Object.values(reportActionsParam?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`] ?? {});
     }
 
-    // O(n) scan to find the newest visible action, avoiding O(n log n) sort
+    // Skip visibility work for older actions, but keep forward traversal so equal actions retain the first match.
     let newest: ReportAction | undefined;
     for (const action of reportActions) {
-        if (!action || !isReportActionVisibleAsLastAction(action, canUserPerformWriteAction, visibleReportActionsData, reportID, currentUserAccountID)) {
+        if (!action || (newest && !isNewerReportAction(action, newest))) {
             continue;
         }
-        if (!newest || isNewerReportAction(action, newest)) {
+        if (isReportActionVisibleAsLastAction(action, canUserPerformWriteAction, visibleReportActionsData, reportID, currentUserAccountID)) {
             newest = action;
         }
     }
@@ -2090,6 +2090,16 @@ function getLastVisibleMessage(
     return {
         lastMessageText: messageText,
     };
+}
+
+/**
+ * Resolves the previous action and rollback preview for a send. The preview historically uses the session account,
+ * so reuse the action only when the caller's account matches that visibility context.
+ */
+function getLastVisibleActionAndMessage(reportID: string, currentUserAccountID: number) {
+    const lastVisibleAction = getLastVisibleAction(reportID, undefined, {}, undefined, undefined, currentUserAccountID);
+    const previewAction = currentUserAccountID === deprecatedCurrentUserAccountID ? lastVisibleAction : undefined;
+    return {lastVisibleAction, ...getLastVisibleMessage(reportID, undefined, {}, previewAction)};
 }
 
 /**
@@ -2182,22 +2192,32 @@ function getSortedReportActionsForDisplay(
     if (shouldIncludeInvisibleActions) {
         filteredReportActions = Object.values(reportActions).filter(Boolean);
     } else {
-        filteredReportActions = Object.entries(reportActions)
-            .filter(([collectionKey, reportAction]) => {
-                if (isReportActionDeprecated(reportAction, collectionKey)) {
-                    return false;
-                }
-                const actionReportID = reportAction?.reportID ?? reportID;
-                if (!actionReportID) {
-                    return false;
-                }
-                return isReportActionVisible(reportAction, actionReportID, canUserPerformWriteAction, visibleReportActionsData);
-            })
-            .map(([, reportAction]) => reportAction);
+        filteredReportActions = getVisibleReportActionsForDisplay(reportActions, canUserPerformWriteAction, visibleReportActionsData, reportID);
     }
 
     const baseURLAdjustedReportActions = filteredReportActions.map((reportAction) => replaceBaseURLInPolicyChangeLogAction(reportAction));
     return getSortedReportActions(withDEWRoutedActionsArray(baseURLAdjustedReportActions), true);
+}
+
+/** Returns display-visible stored actions without sorting or adding synthetic workflow actions. */
+function getVisibleReportActionsForDisplay(
+    reportActions: NonNullable<OnyxEntry<ReportActions>> | ReportAction[],
+    canUserPerformWriteAction?: boolean,
+    visibleReportActionsData?: VisibleReportActionsDerivedValue,
+    reportID?: string,
+): ReportAction[] {
+    return Object.entries(reportActions)
+        .filter(([collectionKey, reportAction]) => {
+            if (isReportActionDeprecated(reportAction, collectionKey)) {
+                return false;
+            }
+            const actionReportID = reportAction?.reportID ?? reportID;
+            if (!actionReportID) {
+                return false;
+            }
+            return isReportActionVisible(reportAction, actionReportID, canUserPerformWriteAction, visibleReportActionsData);
+        })
+        .map(([, reportAction]) => reportAction);
 }
 
 /**
@@ -6384,6 +6404,7 @@ export {
     getLastVisibleAction,
     getLastVisibleActionIncludingTransactionThread,
     getLastVisibleMessage,
+    getLastVisibleActionAndMessage,
     getLatestReportActionFromOnyxData,
     getLinkedTransactionID,
     resolveTransactionThreadReport,
@@ -6418,6 +6439,7 @@ export {
     getSystemMessageDisplayState,
     getSortedReportActions,
     getSortedReportActionsForDisplay,
+    getVisibleReportActionsForDisplay,
     isCardBrokenConnectionAction,
     getCardConnectionBrokenMessage,
     getTextFromHtml,
