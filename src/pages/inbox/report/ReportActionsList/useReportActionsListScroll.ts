@@ -296,14 +296,16 @@ function useReportActionsListScroll({
         stopFollowingEnd();
     };
 
-    const updateVisibleItemOverflow = (info: OnViewableItemsChangedInfo<OnyxTypes.ReportAction>) => {
+    const trackViewableItems = (info: OnViewableItemsChangedInfo<OnyxTypes.ReportAction>) => {
         viewableRowIndexesRef.current = new Set(info.viewableItems.map((token) => token.index));
         onViewableItemsChanged(info);
-        for (const item of info.changed) {
-            if (!item.isViewable) {
-                continue;
-            }
-            allowLegendListItemOverflow(legendListRef.current, item.index);
+    };
+
+    // Runs when the row is hovered, because recycled containers aren't always mounted at their index when viewability changes.
+    const allowActionOverflow = (action: OnyxTypes.ReportAction) => {
+        const index = legendListRef.current?.getState().indexByKey(getReportActionKey(action));
+        if (index !== undefined) {
+            allowLegendListItemOverflow(legendListRef.current, index);
         }
     };
 
@@ -429,6 +431,7 @@ function useReportActionsListScroll({
         isActionBadgeBelowViewport,
         scrollToBottomAndMarkReportAsRead,
         scrollToActionBadgeTarget,
+        allowActionOverflow,
         legendListProps: {
             ref: legendListRef,
             keyExtractor: getReportActionKey,
@@ -440,7 +443,7 @@ function useReportActionsListScroll({
             onUserScroll: stopAutomaticPositioning,
             onStartReached: loadOlderChatsOnStartReached,
             onStartReachedThreshold: PAGINATION_THRESHOLD,
-            onViewableItemsChanged: updateVisibleItemOverflow,
+            onViewableItemsChanged: trackViewableItems,
             initialScrollAtEnd: initialScrollIndex === undefined,
             initialScrollIndex: initialScrollIndex === undefined ? undefined : {index: initialScrollIndex, ...initialScrollIndexParams},
             alignItemsAtEnd: !shouldBeAlignedToTop,

@@ -34,6 +34,7 @@ import ChatReportActions from '@pages/inbox/ChatReportActions';
 import {useConciergeChatHistoryActions, useConciergeChatHistoryState} from '@pages/inbox/ConciergeChatHistoryContext';
 import {useConciergeDraft, useConciergeDraftActions} from '@pages/inbox/ConciergeDraftContext';
 import CollapsedSystemMessages from '@pages/inbox/report/CollapsedSystemMessages';
+import type * as ReportActionIndexContextModule from '@pages/inbox/report/ReportActionIndexContext';
 import ReportActionsList from '@pages/inbox/report/ReportActionsList';
 import ReportActionsListContent from '@pages/inbox/report/ReportActionsList/ReportActionsListContent';
 import ReportActionsListFloatingMessageCounter from '@pages/inbox/report/ReportActionsList/ReportActionsListFloatingMessageCounter';
@@ -197,8 +198,10 @@ const mockLegendScrollToEnd = jest.fn();
 const mockLegendScrollToOffset = jest.fn();
 const mockLegendScrollToIndex = jest.fn();
 const mockLegendPositionByKey = jest.fn(() => 1500);
+const mockLegendIndexByKey = jest.fn(() => 1);
 const mockLegendGetState = jest.fn((start: number | null = 2, end: number | null = 4) => ({
     positionByKey: mockLegendPositionByKey,
+    indexByKey: mockLegendIndexByKey,
     start,
     end,
     isAtEnd: false,
@@ -208,9 +211,13 @@ const mockLegendGetState = jest.fn((start: number | null = 2, end: number | null
 }));
 const mockLegendGetScrollableNode = jest.fn(() => ({scrollTop: 0}));
 let mockShouldCallLegendListOnLoad = true;
+let mockAllowActionOverflow: ((reportAction: OnyxTypes.ReportAction) => void) | undefined;
 jest.mock('@legendapp/list/react-native', () => {
     const reactModule = jest.requireActual<typeof React>('react');
     const MockLegendListContent = reactModule.forwardRef<{scrollToEnd: typeof mockLegendScrollToEnd}, {onLoad?: () => void; onReady?: () => void}>(({onLoad, onReady}, ref) => {
+        // Required at render time: the context module imports this mocked package, so requiring it in the factory is circular.
+        const {ReportActionAllowOverflowContext} = jest.requireActual<typeof ReportActionIndexContextModule>('@pages/inbox/report/ReportActionIndexContext');
+        mockAllowActionOverflow = reactModule.useContext(ReportActionAllowOverflowContext);
         reactModule.useImperativeHandle(
             ref,
             () => ({
@@ -1484,29 +1491,21 @@ describe('ReportActionsList (body)', () => {
         expect(listProps?.experimental_hideItemsUntilMeasured).toBe(true);
     });
 
-    it('allows visible report action menus to overflow their LegendList item containers', () => {
+    it('allows a hovered report action menu to overflow its LegendList item container', () => {
+        // Given a rendered list whose rows clip their content
         mockUseNetwork.mockReturnValue({isOffline: false});
         renderReportActionsList();
-        const hiddenAction = mockReportActions.at(0);
-        const visibleAction = mockReportActions.at(1);
-        if (!hiddenAction || !visibleAction) {
-            throw new Error('Expected report action fixtures');
+        const hoveredAction = mockReportActions.at(1);
+        if (!hoveredAction) {
+            throw new Error('Expected report action fixture');
         }
 
+        // When a row is hovered, it asks the list to let its menu overflow
         act(() => {
-            getCapturedListProps()?.onViewableItemsChanged?.({
-                changed: [
-                    {containerId: 1, index: 1, isViewable: true, item: visibleAction, key: '1'},
-                    {containerId: 0, index: 0, isViewable: false, item: hiddenAction, key: '0'},
-                ],
-                end: 1,
-                endBuffered: 1,
-                start: 0,
-                startBuffered: 0,
-                viewableItems: [],
-            });
+            mockAllowActionOverflow?.(hoveredAction);
         });
 
+        // Then only the container at that action's current index stops clipping, so a recycled container can't be missed
         expect(mockAllowLegendListItemOverflow).toHaveBeenCalledTimes(1);
         expect(mockAllowLegendListItemOverflow).toHaveBeenCalledWith(expect.objectContaining({scrollToEnd: mockLegendScrollToEnd}), 1);
     });

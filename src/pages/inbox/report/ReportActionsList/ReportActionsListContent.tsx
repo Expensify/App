@@ -28,6 +28,7 @@ import {useConciergeChatHistoryActions} from '@pages/inbox/ConciergeChatHistoryC
 import AskConciergeWelcome from '@pages/inbox/report/AskConciergeWelcome';
 import CollapsedReportHeaderSpacer from '@pages/inbox/report/CollapsibleReportHeader/CollapsedReportHeaderSpacer';
 import ConciergeChatHistoryToggle from '@pages/inbox/report/ConciergeChatHistoryToggle';
+import {ReportActionAllowOverflowContext} from '@pages/inbox/report/ReportActionIndexContext';
 import {useReportActionsListState} from '@pages/inbox/report/ReportActionsListContext';
 import ReportActionsListHeader from '@pages/inbox/report/ReportActionsListHeader';
 import ReportActionsListPaddingView from '@pages/inbox/report/ReportActionsListPaddingView';
@@ -177,6 +178,7 @@ function ReportActionsListContent({reportID, onLayout}: ReportActionsListProps) 
         isActionBadgeBelowViewport,
         scrollToBottomAndMarkReportAsRead,
         scrollToActionBadgeTarget,
+        allowActionOverflow,
     } = useReportActionsListScroll({
         reportID,
         isDraftPendingCompletion,
@@ -303,31 +305,33 @@ function ReportActionsListContent({reportID, onLayout}: ReportActionsListProps) 
                 report={report}
                 isReportArchived={isReportArchived}
             >
-                <LegendList
-                    {...legendListProps}
-                    accessibilityLabel={Platform.OS === 'web' ? undefined : translate('sidebarScreen.listOfChatMessages')}
-                    aria-label={Platform.OS === 'web' ? translate('sidebarScreen.listOfChatMessages') : undefined}
-                    role={Platform.OS === 'web' ? CONST.ROLE.GROUP : undefined}
-                    data-testid={Platform.OS === 'web' ? CONST.TEST_ID.REPORT_ACTIONS_LIST : undefined}
-                    testID={Platform.OS === 'web' ? undefined : CONST.TEST_ID.REPORT_ACTIONS_LIST}
-                    style={[styles.flex1, styles.overscrollBehaviorContain]}
-                    data={listData}
-                    renderItem={renderItem}
-                    drawDistance={REPORT_ACTIONS_DRAW_DISTANCE}
-                    estimatedItemSize={REPORT_ACTIONS_ESTIMATED_ITEM_SIZE}
-                    recycleItems
-                    experimental_hideItemsUntilMeasured
-                    scrollEventThrottle={16}
-                    contentContainerStyle={[styles.chatContentScrollView, styles.pb0]}
-                    ListHeaderComponent={offlineHistoryHeader}
-                    ListFooterComponent={latestActionsFooter}
-                    ListFooterComponentStyle={shouldBeAlignedToTop ? styles.flex1 : undefined}
-                    keyboardShouldPersistTaps="handled"
-                    extraData={extraData}
-                    key={listID}
-                    // Chats are read from the bottom, so keep the last visible message in place when rows above it resize or load.
-                    maintainVisibleContentPosition={{data: true, size: true, anchor: shouldBeAlignedToTop ? 'start' : 'end'}}
-                />
+                <ReportActionAllowOverflowContext.Provider value={allowActionOverflow}>
+                    <LegendList
+                        {...legendListProps}
+                        accessibilityLabel={Platform.OS === 'web' ? undefined : translate('sidebarScreen.listOfChatMessages')}
+                        aria-label={Platform.OS === 'web' ? translate('sidebarScreen.listOfChatMessages') : undefined}
+                        role={Platform.OS === 'web' ? CONST.ROLE.GROUP : undefined}
+                        data-testid={Platform.OS === 'web' ? CONST.TEST_ID.REPORT_ACTIONS_LIST : undefined}
+                        testID={Platform.OS === 'web' ? undefined : CONST.TEST_ID.REPORT_ACTIONS_LIST}
+                        style={[styles.flex1, styles.overscrollBehaviorContain]}
+                        data={listData}
+                        renderItem={renderItem}
+                        drawDistance={REPORT_ACTIONS_DRAW_DISTANCE}
+                        estimatedItemSize={REPORT_ACTIONS_ESTIMATED_ITEM_SIZE}
+                        recycleItems
+                        experimental_hideItemsUntilMeasured
+                        scrollEventThrottle={16}
+                        contentContainerStyle={[styles.chatContentScrollView, styles.pb0]}
+                        ListHeaderComponent={offlineHistoryHeader}
+                        ListFooterComponent={latestActionsFooter}
+                        ListFooterComponentStyle={shouldBeAlignedToTop ? styles.flex1 : undefined}
+                        keyboardShouldPersistTaps="handled"
+                        extraData={extraData}
+                        key={listID}
+                        // Chats are read from the bottom, so keep the last visible message in place when rows above it resize or load.
+                        maintainVisibleContentPosition={{data: true, size: true, anchor: shouldBeAlignedToTop ? 'start' : 'end'}}
+                    />
+                </ReportActionAllowOverflowContext.Provider>
                 {shouldShowInitialViewportSkeleton && (
                     <View
                         pointerEvents="none"
