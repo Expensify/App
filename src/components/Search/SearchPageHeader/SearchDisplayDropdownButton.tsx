@@ -90,7 +90,8 @@ function SearchDisplayDropdownButton({queryJSON, searchResults, onSort}: SearchD
                                 <View
                                     testID="SearchDisplayChangedIndicator"
                                     style={[
-                                        isMediumScreenWidth ? styles.statusIndicatorSmall : styles.statusIndicator,
+                                        styles.statusIndicator,
+                                        isMediumScreenWidth ? styles.searchDisplayIndicatorSmall : styles.searchDisplayIndicator,
                                         styles.statusIndicatorColor(theme.success),
                                         !shouldUseNarrowLayout && StyleUtils.getBorderColorStyle(theme.buttonDefaultBG),
                                     ]}

@@ -7035,16 +7035,15 @@ const staticStyles = (theme: ThemeColors) =>
             width: 12,
             zIndex: 10,
         },
-        statusIndicatorSmall: {
-            borderColor: theme.sidebar,
-            borderRadius: 8,
-            borderWidth: 1.5,
-            position: 'absolute',
-            right: -3,
-            top: -2,
-            height: 9,
-            width: 9,
-            zIndex: 10,
+        searchDisplayIndicator: {
+            right: -5,
+            top: -5,
+        },
+        searchDisplayIndicatorSmall: {
+            height: 10,
+            width: 10,
+            right: -4,
+            top: -4,
         },
         navigationTabBarStatusIndicator: {
             borderColor: theme.sidebar,
