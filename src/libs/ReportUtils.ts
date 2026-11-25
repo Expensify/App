@@ -6074,7 +6074,7 @@ function getTransactionDetails(
 function getTransactionCommentObject(transaction: OnyxEntry<Transaction>): Comment {
     return {
         ...transaction?.comment,
-        comment: Parser.htmlToMarkdown(transaction?.comment?.comment ?? ''),
+        comment: Parser.htmlToMarkdown(getDescription(transaction)),
         waypoints: getWaypoints(transaction),
     };
 }
@@ -15986,7 +15986,7 @@ function getTransactionSortValue(
         case CONST.SEARCH.TABLE_COLUMNS.TOTAL:
             return Math.abs(transaction.convertedAmount ?? 0);
         case CONST.SEARCH.TABLE_COLUMNS.DESCRIPTION:
-            return Parser.htmlToText(transaction.comment?.comment ?? '');
+            return Parser.htmlToText(getDescription(transaction));
         case CONST.SEARCH.TABLE_COLUMNS.REIMBURSABLE:
             return getReimbursable(transaction) ? 1 : 0;
         case CONST.SEARCH.TABLE_COLUMNS.BILLABLE:

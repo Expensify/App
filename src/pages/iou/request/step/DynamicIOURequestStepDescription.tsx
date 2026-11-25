@@ -28,7 +28,7 @@ import {shouldUseTransactionDraft} from '@libs/IOUUtils';
 import Parser from '@libs/Parser';
 import {arePolicyRulesEnabled} from '@libs/PolicyUtils';
 import shouldForceKeyboardIfAlreadyFocused from '@libs/shouldForceKeyboardIfAlreadyFocused';
-import {hasReceipt} from '@libs/TransactionUtils';
+import {getDescription, hasReceipt} from '@libs/TransactionUtils';
 
 import variables from '@styles/variables';
 
@@ -92,11 +92,9 @@ function DynamicIOURequestStepDescription({
 
     let currentDescriptionInMarkdown;
     if (!isTransactionDraft || iouType === CONST.IOU.TYPE.SPLIT_EXPENSE) {
-        currentDescriptionInMarkdown = Parser.htmlToMarkdown(
-            isEditingSplit && !lodashIsEmpty(splitDraftTransaction) ? (splitDraftTransaction?.comment?.comment ?? '') : (transaction?.comment?.comment ?? ''),
-        );
+        currentDescriptionInMarkdown = Parser.htmlToMarkdown(getDescription(isEditingSplit && !lodashIsEmpty(splitDraftTransaction) ? splitDraftTransaction : transaction));
     } else {
-        currentDescriptionInMarkdown = isEditingSplit && !lodashIsEmpty(splitDraftTransaction) ? (splitDraftTransaction?.comment?.comment ?? '') : (transaction?.comment?.comment ?? '');
+        currentDescriptionInMarkdown = getDescription(isEditingSplit && !lodashIsEmpty(splitDraftTransaction) ? splitDraftTransaction : transaction);
     }
 
     const [currentDescription, setCurrentDescription] = useState(currentDescriptionInMarkdown);
