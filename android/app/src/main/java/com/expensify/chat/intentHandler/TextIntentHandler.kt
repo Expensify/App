@@ -20,26 +20,9 @@ class TextIntentHandler(private val context: Context) : AbstractIntentHandler() 
     }
 
     private fun handleTextIntent(intent: Intent, context: Context) {
-        when {
-            intent.type == "text/plain" -> {
-                val extras = intent.extras
-                if (extras != null) {
-                    when {
-                        extras.containsKey(Intent.EXTRA_STREAM) -> {
-                            handleTextFileIntent(intent, context)
-                        }
-                        extras.containsKey(Intent.EXTRA_TEXT) -> {
-                            handleTextPlainIntent(intent, context)
-                        }
-                        else -> {
-                            throw UnsupportedOperationException("Unknown text/plain content")
-                        }
-                    }
-                }
-            }
-            Regex("text/.*").matches(intent.type ?: "") -> handleTextFileIntent(intent, context)
-            else -> throw UnsupportedOperationException("Unsupported MIME type: ${intent.type}")
-        }
+        // A text share can carry a file, text or both. The file is used when it can be saved, and the text otherwise, so a broken attachment doesn't lose the text.
+        val shareFileObject = saveSharedFile(intent, context) ?: getSharedText(intent)
+        shareFileObject?.let { saveToSharedPreferences(IntentHandlerConstants.shareObjectProperty, it.toString()) }
     }
     
     private fun saveToSharedPreferences(key: String, value: String) {
@@ -49,22 +32,17 @@ class TextIntentHandler(private val context: Context) : AbstractIntentHandler() 
         editor.apply()
     }
 
-    private fun handleTextFileIntent(intent: Intent, context: Context) {
-        (intent.getParcelableExtra<Uri>(Intent.EXTRA_STREAM))?.let { fileUri ->
-            val resultingPath: String? = FileUtils.copyUriToStorage(fileUri, context)
-            if (resultingPath != null) {
-                val shareFileObject = ShareFileObject.Attachment(resultingPath, intent.type)
-                saveToSharedPreferences(IntentHandlerConstants.shareObjectProperty, shareFileObject.toString())
-            }
-        }
+    private fun saveSharedFile(intent: Intent, context: Context): ShareFileObject? {
+        val fileUri = intent.getParcelableExtra<Uri>(Intent.EXTRA_STREAM)
+        val resultingPath: String? = fileUri?.let { FileUtils.copyUriToStorage(it, context) }
+        return resultingPath?.let { ShareFileObject.Attachment(it, intent.type) }
     }
 
-    private fun handleTextPlainIntent(intent: Intent, context: Context) {
-            var intentTextContent = intent.getStringExtra(Intent.EXTRA_TEXT)
-            if(intentTextContent != null) {
-                val shareFileObject = ShareFileObject.Text(intentTextContent)
-                saveToSharedPreferences(IntentHandlerConstants.shareObjectProperty, shareFileObject.toString())
-            }
+    private fun getSharedText(intent: Intent): ShareFileObject? {
+        // EXTRA_TEXT is a CharSequence, and senders such as AndroidX ShareCompat put styled text in it, which getStringExtra reads as null.
+        // Blank text is dropped, so a share with no usable file or text shows the missing attachment error instead of an empty message.
+        val text = intent.getCharSequenceExtra(Intent.EXTRA_TEXT)?.toString()
+        return if (text.isNullOrBlank()) null else ShareFileObject.Text(text)
     }
 
     override fun onCompleted() {
