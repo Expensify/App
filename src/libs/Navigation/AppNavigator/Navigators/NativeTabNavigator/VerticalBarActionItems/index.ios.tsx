@@ -3,6 +3,8 @@ import FloatingCameraButton from '@components/FloatingCameraButton';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 
+import {hasVerticalBarBackButton, showVerticalBarHost, subscribeToVerticalBarBackButtons} from '@libs/Navigation/verticalBarHost';
+
 import NavigationTabBarFloatingActionButton from '@pages/inbox/sidebar/NavigationTabBarFloatingActionButton';
 
 import variables from '@styles/variables';
@@ -11,7 +13,7 @@ import type {ParamListBase} from '@react-navigation/native';
 import type {NativeStackHeaderItem, NativeStackNavigationProp} from '@react-navigation/native-stack';
 
 import {useNavigation} from '@react-navigation/native';
-import React, {useLayoutEffect} from 'react';
+import React, {useLayoutEffect, useSyncExternalStore} from 'react';
 import {View} from 'react-native';
 
 /**
@@ -32,21 +34,18 @@ function VerticalBarActionItems() {
     // phone folded in landscape has room for one item above the tab bar. The create button is the one that stays, as an
     // expense created from its menu can start with a scan too.
     const hasRoomForScanItem = windowHeight >= variables.iosVerticalBarSeveralItemsMinHeight;
+    // The back button of the tab screen that is shown takes the place of the buttons in the vertical bar.
+    const getHasBackButton = () => hasVerticalBarBackButton(navigation);
+    const hasBackButton = useSyncExternalStore(subscribeToVerticalBarBackButtons, getHasBackButton, getHasBackButton);
+
+    // UIKit only moves the items of a navigation bar that is shown. The buttons float again when the tab bar leaves the
+    // vertical bar or hides, so they need the bar no longer then.
+    useLayoutEffect(() => showVerticalBarHost(navigation), [navigation]);
 
     useLayoutEffect(() => {
-        navigation.setOptions({
-            // UIKit only moves the items of a navigation bar that is shown. With no title the bar has nothing left to
-            // draw along the top, and a transparent one takes no room from the screen.
-            headerShown: true,
-            headerTransparent: true,
-            headerBackVisible: false,
-            title: '',
-        });
-        // The buttons float again when the tab bar leaves the vertical bar or hides, so the bar goes then.
-        return () => navigation.setOptions({headerShown: false, headerTransparent: undefined, headerBackVisible: undefined, title: undefined});
-    }, [navigation]);
-
-    useLayoutEffect(() => {
+        if (hasBackButton) {
+            return;
+        }
         // The items are the floating buttons themselves, so they look and react to a press as they do over the content.
         // The buttons bring their own glass, so UIKit adds none behind them.
         const createItem: NativeStackHeaderItem = {
@@ -69,7 +68,7 @@ function VerticalBarActionItems() {
         navigation.setOptions({unstable_headerRightItems: () => items});
         // eslint-disable-next-line @typescript-eslint/naming-convention -- React Navigation names the option this way.
         return () => navigation.setOptions({unstable_headerRightItems: undefined});
-    }, [navigation, itemSizeStyle, hasRoomForScanItem]);
+    }, [navigation, itemSizeStyle, hasRoomForScanItem, hasBackButton]);
 
     return null;
 }

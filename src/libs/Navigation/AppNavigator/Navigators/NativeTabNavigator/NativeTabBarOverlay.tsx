@@ -29,12 +29,7 @@ import {getFloatingButtonsBottom} from './useNativeTabBarOptions';
 import VerticalBarActionItems from './VerticalBarActionItems';
 
 /** What a narrow layout draws over the tabs along with the native bar, kept apart so wide layouts skip its hooks. */
-type NativeTabBarOverlayProps = Pick<NativeTabLayoutProps, 'state' | 'descriptors'> & {
-    /** Whether the tab screen that is shown has a back button in the vertical bar, which takes the place of the create and scan buttons there. */
-    hasVerticalBarBackButton: boolean;
-};
-
-function NativeTabBarOverlay({state, descriptors, hasVerticalBarBackButton}: NativeTabBarOverlayProps) {
+function NativeTabBarOverlay({state, descriptors}: Pick<NativeTabLayoutProps, 'state' | 'descriptors'>) {
     const [isDebugModeEnabled] = useOnyx(ONYXKEYS.IS_DEBUG_MODE_ENABLED);
     const styles = useThemeStyles();
     const {bottom: bottomInset, left: leftInset, right: rightInset} = useSafeAreaInsets();
@@ -76,7 +71,7 @@ function NativeTabBarOverlay({state, descriptors, hasVerticalBarBackButton}: Nat
                         <FloatingGPSButton />
                         {/* UIKit draws the create and scan buttons in the vertical bar, where they cover none of the content. */}
                         {isTabBarVertical ? (
-                            !hasVerticalBarBackButton && <VerticalBarActionItems />
+                            <VerticalBarActionItems />
                         ) : (
                             <>
                                 <View style={[styles.navigationTabBarFABItem, styles.ph0, styles.floatingActionButtonPosition]}>

@@ -7,13 +7,12 @@ import SCREENS from '@src/SCREENS';
 
 import type {NativeBottomTabNavigatorProps} from '@react-navigation/bottom-tabs/unstable';
 
-import React, {useState} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 
 import FlatNavTabPressListeners from './FlatNavTabPressListeners';
 import NativeTabBarOverlay from './NativeTabBarOverlay';
 import TabPressListeners from './TabPressListeners';
-import VerticalBarTabsScreenContext from './VerticalBarTabsScreenContext';
 
 type NativeTabLayoutProps = Parameters<NonNullable<NativeBottomTabNavigatorProps['layout']>>[0];
 
@@ -29,15 +28,6 @@ function NativeTabLayout({children, state, descriptors}: NativeTabLayoutProps) {
         .join();
     // The More placeholder is registered only with the flat nav bar, so the layout does not read the beta itself.
     const isFlatNavTabBarShown = state.routes.some((route) => route.name === SCREENS.NATIVE_TAB_ITEM.MORE);
-    // The tab screen that is shown says so when its header puts a back button in the vertical bar, where it takes the
-    // place of the create and scan buttons.
-    // The screen that is left can take its button away after the next one has added its own, so the buttons are counted.
-    const [verticalBarBackButtonCount, setVerticalBarBackButtonCount] = useState(0);
-    const addBackButton = () => {
-        setVerticalBarBackButtonCount((count) => count + 1);
-        return () => setVerticalBarBackButtonCount((count) => count - 1);
-    };
-    const verticalBarTabsScreen = {addBackButton};
 
     // The tabs stay at the same place in the tree in both layouts, so crossing the breakpoint does not remount them.
     return (
@@ -47,7 +37,7 @@ function NativeTabLayout({children, state, descriptors}: NativeTabLayoutProps) {
                 key={tabsWithoutBarItemKey}
                 style={styles.flex1}
             >
-                <VerticalBarTabsScreenContext.Provider value={verticalBarTabsScreen}>{children}</VerticalBarTabsScreenContext.Provider>
+                {children}
             </View>
             <TabPressListeners
                 state={state}
@@ -63,7 +53,6 @@ function NativeTabLayout({children, state, descriptors}: NativeTabLayoutProps) {
                 <NativeTabBarOverlay
                     state={state}
                     descriptors={descriptors}
-                    hasVerticalBarBackButton={verticalBarBackButtonCount > 0}
                 />
             )}
         </View>

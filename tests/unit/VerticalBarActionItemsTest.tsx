@@ -1,8 +1,10 @@
-import {render, screen} from '@testing-library/react-native';
+import {act, render, screen} from '@testing-library/react-native';
 
 import VerticalBarActionItems from '@libs/Navigation/AppNavigator/Navigators/NativeTabNavigator/VerticalBarActionItems/index.ios';
+import {addVerticalBarBackButton} from '@libs/Navigation/verticalBarHost';
 
 import type * as ReactNavigationNative from '@react-navigation/native';
+import type {NavigationProp, ParamListBase} from '@react-navigation/native';
 import type {NativeStackNavigationOptions} from '@react-navigation/native-stack';
 import type ReactNative from 'react-native';
 
@@ -14,13 +16,16 @@ const mockScanButtonTestID = 'scan-button';
 const mockCreateButtonTestID = 'create-button';
 
 const mockSetOptions = jest.fn<void, [BarOptions]>();
+// The navigation of the screen that holds the tabs. Its bar is shared with the back button, which finds it by this object.
+const mockNavigation = {setOptions: mockSetOptions, getParent: () => undefined, isFocused: () => true, addListener: () => () => {}};
 let mockWindow = {windowWidth: 951, windowHeight: 669};
 
 jest.mock('@react-navigation/native', () => ({
     ...jest.requireActual<typeof ReactNavigationNative>('@react-navigation/native'),
-    useNavigation: () => ({setOptions: mockSetOptions}),
+    useNavigation: () => mockNavigation,
 }));
 jest.mock('@hooks/useWindowDimensions', () => () => mockWindow);
+jest.mock('@components/VerticalBarBackButton', () => () => null);
 // The buttons stand in for the floating ones, which need Onyx and a navigator. The items only have to hold them.
 jest.mock('@components/FloatingCameraButton', () => {
     const MockReact = jest.requireActual<typeof React>('react');
@@ -92,5 +97,25 @@ describe('VerticalBarActionItems', () => {
 
         // Then the create button is the only item, because UIKit would draw a second one over the tab column
         expect(getBarItemButtons()).toEqual([mockCreateButtonTestID]);
+    });
+
+    it('takes the buttons out while a tab screen has a back button in the bar, which stays shown for either', () => {
+        // Given the create and scan buttons in the vertical bar of a phone that is open
+        render(<VerticalBarActionItems />);
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- The bar is only given options here.
+        const barNavigation = mockNavigation as unknown as NavigationProp<ParamListBase>;
+
+        // When a header of a tab screen puts its back button in the bar, and then takes it away again
+        let removeBackButton = () => {};
+        act(() => {
+            removeBackButton = addVerticalBarBackButton(barNavigation, () => {});
+        });
+        const buttonsBesideBackButton = getBarItemButtons();
+        act(() => removeBackButton());
+
+        // Then the back button had the bar to itself, the buttons are back once it is gone, and the bar was shown throughout
+        expect(buttonsBesideBackButton).toEqual([]);
+        expect(getBarItemButtons()).toEqual([mockScanButtonTestID, mockCreateButtonTestID]);
+        expect(mockSetOptions).not.toHaveBeenCalledWith(expect.objectContaining({headerShown: false}));
     });
 });

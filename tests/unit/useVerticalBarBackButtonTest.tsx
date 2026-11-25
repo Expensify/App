@@ -4,49 +4,68 @@ import ModalContext from '@components/Modal/ModalContext';
 
 import useVerticalBarBackButton from '@hooks/useVerticalBarBackButton/index.ios';
 
-import type {VerticalBarTabsScreen} from '@libs/Navigation/AppNavigator/Navigators/NativeTabNavigator/VerticalBarTabsScreenContext';
-import VerticalBarTabsScreenContext from '@libs/Navigation/AppNavigator/Navigators/NativeTabNavigator/VerticalBarTabsScreenContext';
-
 import type {NavigationProp, ParamListBase} from '@react-navigation/native';
 import type {NativeStackNavigationOptions} from '@react-navigation/native-stack';
 
-import {NavigationContext, NavigationRouteContext} from '@react-navigation/native';
+import {NavigationContext} from '@react-navigation/native';
 import React, {isValidElement} from 'react';
 
-const ROUTE = {key: 'profile-key', name: 'Profile'};
-
-jest.mock('@hooks/useLocalize', () => () => ({translate: (key: string) => key}));
 jest.mock('@libs/Navigation/AppNavigator/Navigators/NativeTabNavigator/useIsTabBarVertical', () => () => true);
+// The button is only pressed here, through the item it is in, so what it draws is left out.
+jest.mock('@components/VerticalBarBackButton', () => () => null);
 
 const OUTSIDE_MODAL = {default: true};
 const INSIDE_MODAL = {default: false};
 
-/** A navigation of a stack screen, the focused one unless told otherwise, which records the options it is given. */
-function createNavigation({parent, isFocused = true}: {parent?: NavigationProp<ParamListBase>; isFocused?: boolean} = {}) {
+/** A navigation of a screen, the focused one unless told otherwise, which records the options it is given. */
+function createNavigation({parent, isFocused: isFocusedAtFirst = true}: {parent?: NavigationProp<ParamListBase>; isFocused?: boolean} = {}) {
     const setOptions = jest.fn<void, [NativeStackNavigationOptions]>();
+    const listeners = new Set<() => void>();
+    let isFocused = isFocusedAtFirst;
     // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- The hook reads only these members of a navigation.
     const navigation = {
         setOptions,
-        getState: () => ({type: 'stack', index: 0, routes: [ROUTE]}),
         getParent: () => parent,
-        isFocused: () => isFocused,
-        addListener: () => () => {},
+        // A screen is focused only while every screen it is nested in is too.
+        isFocused: () => isFocused && (parent?.isFocused() ?? true),
+        addListener: (_: string, listener: () => void) => {
+            listeners.add(listener);
+            return () => listeners.delete(listener);
+        },
     } as unknown as NavigationProp<ParamListBase>;
-    return {navigation, setOptions};
+    /** The options the screen has after every call so far, merged as React Navigation merges them. */
+    const getOptions = () => {
+        const mergedOptions: NativeStackNavigationOptions = {};
+        for (const [options] of setOptions.mock.calls) {
+            Object.assign(mergedOptions, options);
+        }
+        return mergedOptions;
+    };
+    /** Changes whether the screen is the focused one, as a change of its navigator's state does. */
+    const setIsFocused = (isFocusedNow: boolean) => {
+        isFocused = isFocusedNow;
+    };
+    /** Tells the listeners of the screen that its focus has changed, as its navigator does, with no render of the screen. */
+    const emitFocusChange = () => {
+        for (const listener of listeners) {
+            listener();
+        }
+    };
+    return {navigation, setOptions, getOptions, setIsFocused, emitFocusChange};
 }
 
-/** What the tabs give their screens, which records each back button it is told of, and each one that is gone again. */
-function createTabsScreen() {
-    const removeBackButton = jest.fn();
-    const addBackButton = jest.fn(() => removeBackButton);
-    const tabsScreen: VerticalBarTabsScreen = {addBackButton};
-    return {tabsScreen, addBackButton, removeBackButton};
+type Screen = ReturnType<typeof createNavigation>;
+
+/** Moves the focus from one screen to another. The state changes for both at once, and the navigator tells of it after that. */
+function moveFocus(from: Screen, to?: Screen) {
+    from.setIsFocused(false);
+    to?.setIsFocused(true);
+    from.emitFocusChange();
+    to?.emitFocusChange();
 }
 
 type HeaderProps = {
     screenNavigation: NavigationProp<ParamListBase>;
-    /** What the tabs give their screens, for a header on a tab screen. */
-    tabsScreen?: VerticalBarTabsScreen;
     isInModal?: boolean;
     goBack?: () => void;
     /** Gets what the hook returns: whether the header leaves its own back button out. */
@@ -59,36 +78,37 @@ function BackButtonOwner({goBack, onRender}: Required<Pick<HeaderProps, 'goBack'
     return null;
 }
 
-function Header({screenNavigation, tabsScreen, isInModal = false, goBack = () => {}, onRender = () => {}}: HeaderProps) {
+function Header({screenNavigation, isInModal = false, goBack = () => {}, onRender = () => {}}: HeaderProps) {
     return (
         <ModalContext.Provider value={isInModal ? INSIDE_MODAL : OUTSIDE_MODAL}>
-            <VerticalBarTabsScreenContext.Provider value={tabsScreen}>
-                <NavigationContext.Provider value={screenNavigation}>
-                    <NavigationRouteContext.Provider value={ROUTE}>
-                        <BackButtonOwner
-                            goBack={goBack}
-                            onRender={onRender}
-                        />
-                    </NavigationRouteContext.Provider>
-                </NavigationContext.Provider>
-            </VerticalBarTabsScreenContext.Provider>
+            <NavigationContext.Provider value={screenNavigation}>
+                <BackButtonOwner
+                    goBack={goBack}
+                    onRender={onRender}
+                />
+            </NavigationContext.Provider>
         </ModalContext.Provider>
     );
 }
 
-/** Presses the back item among the options a screen was given. */
-function pressBackItem(options: NativeStackNavigationOptions | undefined) {
-    const item = options?.unstable_headerLeftItems?.({canGoBack: true}).at(0);
+/** The back item among the options of a screen. */
+function getBackItem(options: NativeStackNavigationOptions) {
+    return options.unstable_headerLeftItems?.({canGoBack: true}).at(0);
+}
+
+/** Presses the back item among the options of a screen. */
+function pressBackItem(options: NativeStackNavigationOptions) {
+    const item = getBackItem(options);
     if (item?.type === 'custom' && isValidElement<{onPress: () => void}>(item.element)) {
         item.element.props.onPress();
     }
 }
 
 describe('useVerticalBarBackButton', () => {
-    it("shows the back button in a bar of the screen itself, in place of the header's own, and hides that bar once the header is gone", () => {
-        // Given a header on a tab screen of a foldable iPhone, whose window has a vertical bar
-        const screen = createNavigation();
-        const {tabsScreen} = createTabsScreen();
+    it("shows the back button in the bar of the root stack screen, in place of the header's own, and hides that bar once the header is gone", () => {
+        // Given a header on a screen in a stack nested in a screen of the root stack, on a foldable iPhone whose window has a vertical bar
+        const rootScreen = createNavigation();
+        const screen = createNavigation({parent: rootScreen.navigation});
         const goBack = jest.fn();
         const onRender = jest.fn<void, [boolean]>();
 
@@ -96,92 +116,117 @@ describe('useVerticalBarBackButton', () => {
         const {unmount} = render(
             <Header
                 screenNavigation={screen.navigation}
-                tabsScreen={tabsScreen}
                 goBack={goBack}
                 onRender={onRender}
             />,
         );
-        const shownOptions = screen.setOptions.mock.calls.at(-1)?.[0];
+        const shownOptions = rootScreen.getOptions();
         pressBackItem(shownOptions);
         unmount();
 
-        // Then the screen got a bar that UIKit shows, the header was told to leave its own button out, the press went to
-        // the header's own handler, and the bar is hidden again
-        expect(shownOptions?.headerShown).toBe(true);
+        // Then the root stack's screen, the only one whose bar reaches the edge the vertical bar is on, got a bar that
+        // UIKit shows, the header was told to leave its own button out, the press went to the header's own handler, and
+        // the bar is hidden again with no button
+        expect(shownOptions.headerShown).toBe(true);
+        expect(getBackItem(shownOptions)).toBeDefined();
         expect(onRender).toHaveBeenLastCalledWith(true);
         expect(goBack).toHaveBeenCalledTimes(1);
-        expect(screen.setOptions.mock.calls.at(-1)?.[0].headerShown).toBe(false);
+        expect(rootScreen.getOptions().headerShown).toBe(false);
+        expect(rootScreen.getOptions().unstable_headerLeftItems).toBeUndefined();
+        expect(screen.setOptions).not.toHaveBeenCalled();
     });
 
-    it('tells the tabs about the back button of a tab screen for as long as it is shown', () => {
-        // Given a header on a tab screen, whose back button takes the place of the create and scan buttons in the vertical bar
-        const screen = createNavigation();
-        const {tabsScreen, addBackButton, removeBackButton} = createTabsScreen();
-
-        // When the header is rendered and then unmounts
-        const {unmount} = render(
-            <Header
-                screenNavigation={screen.navigation}
-                tabsScreen={tabsScreen}
-            />,
-        );
-        const removalsWhileMounted = removeBackButton.mock.calls.length;
-        unmount();
-
-        // Then the tabs learned of the button, so they take the create and scan buttons out, and of its end, so they put them back
-        expect(addBackButton).toHaveBeenCalledTimes(1);
-        expect(removalsWhileMounted).toBe(0);
-        expect(removeBackButton).toHaveBeenCalledTimes(1);
-    });
-
-    it('keeps the back button of the next screen of a flow when the screen before it goes after that one has come', () => {
-        // Given two screens of a flow presented over the tabs, which share the bar of the root stack's screen
+    it('keeps the same button in the bar from one screen to the next and back, and hands the press over to the screen that is shown', () => {
+        // Given two screens inside one screen of the root stack, each with a header that has a back button, the first of
+        // which is shown
         const rootScreen = createNavigation();
         const firstScreen = createNavigation({parent: rootScreen.navigation});
-        const secondScreen = createNavigation({parent: rootScreen.navigation});
-        const firstHeader = render(<Header screenNavigation={firstScreen.navigation} />);
+        const secondScreen = createNavigation({parent: rootScreen.navigation, isFocused: false});
+        const goBackFromFirst = jest.fn();
+        const goBackFromSecond = jest.fn();
+        render(
+            <Header
+                screenNavigation={firstScreen.navigation}
+                goBack={goBackFromFirst}
+            />,
+        );
+        const itemOfFirstScreen = getBackItem(rootScreen.getOptions());
 
-        // When the header of the second screen puts its button in the bar before the header of the first one is gone
-        render(<Header screenNavigation={secondScreen.navigation} />);
-        firstHeader.unmount();
+        // When the second screen is pushed, whose header mounts before the navigator tells of the change, and the button
+        // is pressed, and then that screen is closed and the button is pressed again. The first screen is frozen while it
+        // is covered, so it renders nothing when it is uncovered, and only its navigator tells of the change
+        firstScreen.setIsFocused(false);
+        secondScreen.setIsFocused(true);
+        const secondHeader = render(
+            <Header
+                screenNavigation={secondScreen.navigation}
+                goBack={goBackFromSecond}
+            />,
+        );
+        firstScreen.emitFocusChange();
+        pressBackItem(rootScreen.getOptions());
+        const pressesOnSecondScreen = [goBackFromFirst.mock.calls.length, goBackFromSecond.mock.calls.length];
+        moveFocus(secondScreen, firstScreen);
+        pressBackItem(rootScreen.getOptions());
+        secondHeader.unmount();
 
-        // Then the bar is still shown with the button of the second screen, which would have no back button otherwise
-        expect(rootScreen.setOptions.mock.calls.at(-1)?.[0].headerShown).toBe(true);
+        // Then the bar always had the item it had at first, and the item was set only once, so UIKit left the button in
+        // place the whole time, and each press went back from the screen that was shown
+        expect(getBackItem(rootScreen.getOptions())).toBe(itemOfFirstScreen);
+        expect(rootScreen.setOptions.mock.calls.filter(([options]) => 'unstable_headerLeftItems' in options)).toHaveLength(1);
+        expect(rootScreen.setOptions).not.toHaveBeenCalledWith(expect.objectContaining({headerShown: false}));
+        expect(pressesOnSecondScreen).toEqual([0, 1]);
+        expect(goBackFromFirst).toHaveBeenCalledTimes(1);
+        expect(goBackFromSecond).toHaveBeenCalledTimes(1);
     });
 
-    it('adds no back button for a tab screen that is not the one shown, whose header leaves its own out all the same', () => {
-        // Given a header on a tab screen that stays mounted while another screen is shown
-        const screen = createNavigation({isFocused: false});
-        const {tabsScreen, addBackButton} = createTabsScreen();
+    it('takes the button out once the screen of its header is no longer shown, while the header leaves its own out all the same', () => {
+        // Given a header on a tab screen, which stays mounted while another tab is shown
+        const rootScreen = createNavigation();
+        const screen = createNavigation({parent: rootScreen.navigation});
         const onRender = jest.fn<void, [boolean]>();
-
-        // When the header is rendered
         render(
             <Header
                 screenNavigation={screen.navigation}
-                tabsScreen={tabsScreen}
                 onRender={onRender}
             />,
         );
 
-        // Then the vertical bar keeps the items of the screen that is shown, and the header has no button of its own
-        // either, so none appears on it while the screen slides in or out
-        expect(screen.setOptions).not.toHaveBeenCalled();
-        expect(addBackButton).not.toHaveBeenCalled();
+        // When another screen without a back button takes its place
+        moveFocus(screen);
+
+        // Then the vertical bar has no back button, and the header that is no longer shown has none of its own either,
+        // so none appears on it while it slides in or out
+        expect(getBackItem(rootScreen.getOptions())).toBeUndefined();
+        expect(rootScreen.getOptions().headerShown).toBe(false);
         expect(onRender).toHaveBeenLastCalledWith(true);
+    });
+
+    it('keeps the back button while another screen of the root stack covers the one it is in', () => {
+        // Given a header on a screen that is shown, with its back button in the bar of its root stack screen
+        const rootScreen = createNavigation();
+        const screen = createNavigation({parent: rootScreen.navigation});
+        render(<Header screenNavigation={screen.navigation} />);
+        const itemBeforeCover = getBackItem(rootScreen.getOptions());
+
+        // When another screen of the root stack, which has a bar of its own, covers that root stack screen
+        moveFocus(rootScreen);
+        screen.emitFocusChange();
+
+        // Then the button stays in the bar, untouched, so it is there already when the screen is uncovered
+        expect(getBackItem(rootScreen.getOptions())).toBe(itemBeforeCover);
+        expect(rootScreen.setOptions.mock.calls.filter(([options]) => 'unstable_headerLeftItems' in options)).toHaveLength(1);
     });
 
     it('adds no back button for a header inside a modal, which keeps its own', () => {
         // Given a header rendered in a modal, which covers the screen and the bars of the screen under it
         const screen = createNavigation();
-        const {tabsScreen} = createTabsScreen();
         const onRender = jest.fn<void, [boolean]>();
 
         // When the header is rendered
         render(
             <Header
                 screenNavigation={screen.navigation}
-                tabsScreen={tabsScreen}
                 isInModal
                 onRender={onRender}
             />,
@@ -191,20 +236,5 @@ describe('useVerticalBarBackButton', () => {
         // keeps its own button
         expect(screen.setOptions).not.toHaveBeenCalled();
         expect(onRender).toHaveBeenLastCalledWith(false);
-    });
-
-    it('shows the back button in the bar of the root stack screen for a screen presented over the tabs', () => {
-        // Given a header on a screen of a flow presented over the tabs, in a stack nested in a screen of the root stack
-        const rootScreen = createNavigation();
-        const screen = createNavigation({parent: rootScreen.navigation});
-
-        // When the header is rendered
-        render(<Header screenNavigation={screen.navigation} />);
-
-        // Then the button is in the bar of the root stack's screen, the only one of the flow that reaches the edge the
-        // vertical bar is on, and the nested screen's own bar stays untouched
-        expect(rootScreen.setOptions.mock.calls.at(-1)?.[0].headerShown).toBe(true);
-        expect(rootScreen.setOptions.mock.calls.at(-1)?.[0].unstable_headerLeftItems).toBeDefined();
-        expect(screen.setOptions).not.toHaveBeenCalled();
     });
 });
