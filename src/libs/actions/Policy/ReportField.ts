@@ -312,6 +312,7 @@ function createReportField({
         ? {
               policyID: policy?.id,
               invoiceFields: JSON.stringify([optimisticReportFieldDataForPolicy]),
+              completedTaskReportActionID: reviewWorkspaceSettingsTaskData.completedTaskReportActionID,
           }
         : {
               policyID: policy?.id,
@@ -320,8 +321,7 @@ function createReportField({
           };
 
     const createCommand = isInvoiceField ? WRITE_COMMANDS.CREATE_WORKSPACE_INVOICE_FIELD : WRITE_COMMANDS.CREATE_WORKSPACE_REPORT_FIELD;
-    // Invoice fields aren't part of the "Review your workspace settings" task, so only merge the completion data for expense report fields.
-    API.write(createCommand, parameters, isInvoiceField ? onyxData : withReviewWorkspaceSettingsTaskData(onyxData, reviewWorkspaceSettingsTaskData));
+    API.write(createCommand, parameters, withReviewWorkspaceSettingsTaskData(onyxData, reviewWorkspaceSettingsTaskData));
 }
 
 function deleteReportFields({policy, reportFieldsToUpdate, reviewWorkspaceSettingsTaskData = {}}: DeleteReportFieldsParams) {
@@ -397,6 +397,7 @@ function deleteReportFields({policy, reportFieldsToUpdate, reviewWorkspaceSettin
         ? {
               policyID: policy?.id,
               invoiceFields: JSON.stringify(invoiceFieldsPayload),
+              completedTaskReportActionID: reviewWorkspaceSettingsTaskData.completedTaskReportActionID,
           }
         : {
               policyID: policy?.id,
@@ -405,8 +406,7 @@ function deleteReportFields({policy, reportFieldsToUpdate, reviewWorkspaceSettin
           };
     const deleteCommand = isInvoiceField ? WRITE_COMMANDS.DELETE_POLICY_INVOICE_FIELD : WRITE_COMMANDS.DELETE_POLICY_REPORT_FIELD;
 
-    // Invoice fields aren't part of the "Review your workspace settings" task, so only merge the completion data for expense report fields.
-    API.write(deleteCommand, parameters, isInvoiceField ? onyxData : withReviewWorkspaceSettingsTaskData(onyxData, reviewWorkspaceSettingsTaskData));
+    API.write(deleteCommand, parameters, withReviewWorkspaceSettingsTaskData(onyxData, reviewWorkspaceSettingsTaskData));
 }
 
 /**
@@ -479,6 +479,7 @@ function updateReportFieldInitialValue({policy, reportFieldID, newInitialValue, 
         ? {
               policyID: policy?.id,
               invoiceFields: JSON.stringify([updatedReportField]),
+              completedTaskReportActionID: reviewWorkspaceSettingsTaskData.completedTaskReportActionID,
           }
         : {
               policyID: policy?.id,
@@ -487,8 +488,7 @@ function updateReportFieldInitialValue({policy, reportFieldID, newInitialValue, 
           };
     const updateCommand = isInvoiceField ? WRITE_COMMANDS.UPDATE_WORKSPACE_INVOICE_FIELD_INITIAL_VALUE : WRITE_COMMANDS.UPDATE_WORKSPACE_REPORT_FIELD_INITIAL_VALUE;
 
-    // Invoice fields aren't part of the "Review your workspace settings" task, so only merge the completion data for expense report fields.
-    API.write(updateCommand, parameters, isInvoiceField ? onyxData : withReviewWorkspaceSettingsTaskData(onyxData, reviewWorkspaceSettingsTaskData));
+    API.write(updateCommand, parameters, withReviewWorkspaceSettingsTaskData(onyxData, reviewWorkspaceSettingsTaskData));
 }
 
 function updateReportFieldListValueEnabled({policy, reportFieldID, valueIndexes, enabled}: UpdateReportFieldListValueEnabledParams) {
