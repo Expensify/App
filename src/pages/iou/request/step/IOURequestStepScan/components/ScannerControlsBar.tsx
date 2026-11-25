@@ -134,7 +134,7 @@ function ScannerControlsBar({
                 {({openPicker}) => (
                     <PressableWithFeedback
                         role={CONST.ROLE.BUTTON}
-                        accessibilityLabel={translate('receipt.gallery')}
+                        accessibilityLabel={translate(shouldAcceptMultipleFiles ? 'common.chooseFiles' : 'common.chooseFile')}
                         sentryLabel={gallerySentryLabel ?? (shouldAcceptMultipleFiles ? CONST.SENTRY_LABEL.REQUEST_STEP.SCAN.CHOOSE_FILES : CONST.SENTRY_LABEL.REQUEST_STEP.SCAN.CHOOSE_FILE)}
                         style={[styles.alignItemsStart, isMultiScanEnabled && styles.opacity0]}
                         onPress={() =>
@@ -194,8 +194,8 @@ function ScannerControlsBar({
             )}
             {canUseMultiScan && (
                 <PressableWithFeedback
-                    accessibilityRole="button"
-                    role={CONST.ROLE.BUTTON}
+                    role={CONST.ROLE.SWITCH}
+                    aria-checked={isMultiScanEnabled}
                     accessibilityLabel={translate('receipt.multiScan')}
                     sentryLabel={CONST.SENTRY_LABEL.REQUEST_STEP.SCAN.MULTI_SCAN}
                     style={styles.alignItemsEnd}

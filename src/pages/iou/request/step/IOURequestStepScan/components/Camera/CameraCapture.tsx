@@ -311,8 +311,8 @@ function CameraCapture({onCapture, onPicked, shouldAcceptMultipleFiles = false, 
                     </PressableWithFeedback>
                     {canUseMultiScan ? (
                         <PressableWithFeedback
-                            accessibilityRole="button"
-                            role={CONST.ROLE.BUTTON}
+                            role={CONST.ROLE.SWITCH}
+                            aria-checked={isMultiScanEnabled}
                             accessibilityLabel={translate('receipt.multiScan')}
                             style={styles.alignItemsEnd}
                             onPress={toggleMultiScan}

@@ -202,7 +202,7 @@ describe('IOURequestStepScan', () => {
         );
 
         await waitForBatchedUpdatesWithAct();
-        fireEvent.press(screen.getByLabelText('multi-scan'));
+        fireEvent.press(screen.getByLabelText('Multi-scan'));
         await waitForBatchedUpdates();
         const transaction1 = createRandomTransaction(1);
         transaction1.reportID = REPORT_ID;
