@@ -526,7 +526,9 @@ function extractErrorMessages(errors: Errors | ReceiptErrors, errorActions: Repo
         if (typeof errorValue === 'string') {
             uniqueMessages.add(errorValue);
         } else if (isReceiptError(errorValue)) {
-            uniqueMessages.add(translate('iou.error.receiptFailureMessageShort'));
+            // Use the server rejection message attached by reconcileFailureDataWithServerErrors when present
+            // so it deduplicates with transaction.errors, while keeping the generic copy for ordinary upload failures.
+            uniqueMessages.add(errorValue.message?.trim() ? errorValue.message : translate('iou.error.receiptFailureMessageShort'));
         } else {
             for (const nestedErrorValue of Object.values(errorValue)) {
                 if (!nestedErrorValue) {
