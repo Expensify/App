@@ -6857,28 +6857,15 @@ function getDateDisplayValue(syntaxKey: SearchDateFilterKeys, form: Partial<Sear
     const parts: string[] = [];
 
     if (on) {
-        if (isSearchDatePreset(on)) {
-            parts.push(translate(`search.filters.date.presets.${on}`));
-        } else {
-            const formattedOn = DateUtils.formatToReadableString(on, dateFnsLocale);
-            if (formattedOn) {
-                parts.push(`${translate('common.on')} ${formattedOn}`);
-            }
-        }
+        parts.push(isSearchDatePreset(on) ? translate(`search.filters.date.presets.${on}`) : `${translate('common.on')} ${DateUtils.formatToReadableString(on, dateFnsLocale)}`);
     }
 
     if (after) {
-        const formattedAfter = DateUtils.formatToReadableString(after, dateFnsLocale);
-        if (formattedAfter) {
-            parts.push(`${translate('common.after')} ${formattedAfter}`);
-        }
+        parts.push(`${translate('common.after')} ${DateUtils.formatToReadableString(after, dateFnsLocale)}`);
     }
 
     if (before) {
-        const formattedBefore = DateUtils.formatToReadableString(before, dateFnsLocale);
-        if (formattedBefore) {
-            parts.push(`${translate('common.before')} ${formattedBefore}`);
-        }
+        parts.push(`${translate('common.before')} ${DateUtils.formatToReadableString(before, dateFnsLocale)}`);
     }
 
     if (range) {
