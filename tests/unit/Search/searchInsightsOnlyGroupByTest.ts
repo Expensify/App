@@ -45,7 +45,7 @@ describe('search with an Insights-only group-by', () => {
         mockedMakeRequestWithSideEffects.mockResolvedValue(undefined);
     });
 
-    it.each([CONST.SEARCH.GROUP_BY.WORKFLOW_STAGE, CONST.SEARCH.GROUP_BY.VIOLATION, CONST.SEARCH.GROUP_BY.PAID_BY])('sends a Spend query grouped by %s ungrouped', async (groupBy) => {
+    it.each([CONST.SEARCH.GROUP_BY.WORKFLOW_STAGE, CONST.SEARCH.GROUP_BY.PAID_BY])('sends a Spend query grouped by %s ungrouped', async (groupBy) => {
         // Given a Spend query with a group-by only Insights charts use typed in, which the Search command rejects
         const queryJSON = getQueryJSON(`type:expense group-by:${groupBy} merchant:taxi`);
 
@@ -61,16 +61,16 @@ describe('search with an Insights-only group-by', () => {
         expect(sentQuery.filters).toBeTruthy();
     });
 
-    it('still sends a group-by the Search command supports', async () => {
-        // Given a Spend query grouped by submitter
-        const queryJSON = getQueryJSON(`type:expense group-by:${CONST.SEARCH.GROUP_BY.FROM}`);
+    it.each([CONST.SEARCH.GROUP_BY.FROM, CONST.SEARCH.GROUP_BY.VIOLATION])('still sends group-by:%s, which the Search command supports', async (groupBy) => {
+        // Given a Spend query grouped by submitter, or by violation, which Insights charts used first and Search now lists too
+        const queryJSON = getQueryJSON(`type:expense group-by:${groupBy}`);
 
         // When the search is fired
         await search({queryJSON, searchKey: undefined, offset: 0, isLoading: false});
 
         // Then the group-by is sent as typed
         const sentQuery = getLastSentQuery();
-        expect(sentQuery.groupBy).toBe(CONST.SEARCH.GROUP_BY.FROM);
-        expect(sentQuery.inputQuery).toMatch(new RegExp(`group-?by:${CONST.SEARCH.GROUP_BY.FROM}`, 'i'));
+        expect(sentQuery.groupBy).toBe(groupBy);
+        expect(sentQuery.inputQuery).toMatch(new RegExp(`group-?by:${groupBy}`, 'i'));
     });
 });

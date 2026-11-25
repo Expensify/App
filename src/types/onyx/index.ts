@@ -98,6 +98,7 @@ import type {
     DynamicFormListField,
     DynamicFormListItem,
     DynamicFormMultiChoiceField,
+    DynamicFormNotice,
     DynamicFormNumberField,
     DynamicFormPage,
     DynamicFormSchema,
@@ -128,6 +129,8 @@ import type ImportedSpreadsheetMemberData from './ImportedSpreadsheetMemberData'
 import type InitiatingBankAccountUnlock from './InitiatingBankAccountUnlock';
 import type InsightsDashboard from './InsightsDashboard';
 import type {AIInsight, AIInsightChip, InsightsDashboardID, InsightsFutureExpenses, InsightsGraphKey, InsightsSearchKey} from './InsightsDashboard';
+import type InsightsDetails from './InsightsDetails';
+import type {InsightsDetailsSummary} from './InsightsDetails';
 import type IntroSelected from './IntroSelected';
 import type InvitedEmailsToAccountIDs from './InvitedEmailsToAccountIDs';
 import type JoinablePolicies from './JoinablePolicies';
@@ -166,7 +169,7 @@ import type PendingConciergeResponse from './PendingConciergeResponse';
 import type {PendingContactAction} from './PendingContactAction';
 import type PersonalBankAccount from './PersonalBankAccount';
 import type {AddNewPersonalCard} from './PersonalCard';
-import type {PersonalDetailsList, PersonalDetailsMetadata} from './PersonalDetails';
+import type {PersonalDetailsList, PersonalDetailsLoadingState} from './PersonalDetails';
 import type PersonalDetails from './PersonalDetails';
 import type PlaidData from './PlaidData';
 import type Policy from './Policy';
@@ -334,6 +337,8 @@ export type {
     AIInsightChip,
     InsightsDashboard,
     InsightsDashboardID,
+    InsightsDetails,
+    InsightsDetailsSummary,
     InsightsFutureExpenses,
     InsightsGraphKey,
     InsightsSearchKey,
@@ -372,7 +377,7 @@ export type {
     PersonalBankAccount,
     PersonalDetails,
     PersonalDetailsList,
-    PersonalDetailsMetadata,
+    PersonalDetailsLoadingState,
     PlaidData,
     Policy,
     PolicyCategories,
@@ -519,6 +524,7 @@ export type {
     DynamicFormListField,
     DynamicFormListItem,
     DynamicFormMultiChoiceField,
+    DynamicFormNotice,
     DynamicFormNumberField,
     DynamicFormPage,
     DynamicFormSchema,

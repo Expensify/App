@@ -1,5 +1,3 @@
-import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
-
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 
@@ -10,12 +8,12 @@ import {getCurrentAddress} from '@libs/PersonalDetailsUtils';
 import AddressPage from '@pages/AddressPage';
 
 import type {FormOnyxValues} from '@src/components/Form/types';
+import CONST from '@src/CONST';
 import {updateAddress as updateAddressPersonalDetails} from '@src/libs/actions/PersonalDetails';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/HomeAddressForm';
 import type {Address} from '@src/types/onyx/PrivatePersonalDetails';
-import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 import type {RouteProp} from '@react-navigation/native';
 
@@ -43,13 +41,9 @@ function PersonalAddressPage() {
     const route = useRoute<RouteProp<AccountSettingsParamList, typeof SCREENS.SETTINGS.PREFERENCES.HOME_ADDRESS>>();
     const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS);
     const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP);
-    const [defaultCountry, defaultCountryStatus] = useOnyx(ONYXKEYS.COUNTRY);
-    const isLoading = isLoadingOnyxValue(defaultCountryStatus);
+    const [defaultCountry] = useOnyx(ONYXKEYS.COUNTRY);
     const address = normalizeCountryCode(getCurrentAddress(privatePersonalDetails));
 
-    if (isLoading) {
-        return <FullScreenLoadingIndicator />;
-    }
     return (
         <AddressPage
             defaultCountry={getCountryCode(defaultCountry)}
@@ -58,6 +52,7 @@ function PersonalAddressPage() {
             updateAddress={(values) => updateAddress(values, privatePersonalDetails?.addresses ?? [])}
             title={translate('privatePersonalDetails.address')}
             shouldAutoFocusAddressLine1={route.name === SCREENS.SETTINGS.PREFERENCES.HOME_ADDRESS && route.params?.fieldToFocus === INPUT_IDS.ADDRESS_LINE_1}
+            forwardedFSClass={CONST.FULLSTORY.CLASS.MASK}
         />
     );
 }

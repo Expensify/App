@@ -183,6 +183,7 @@ type AccountSettingsParamList = {
     };
     [SCREENS.SETTINGS.WALLET.DYNAMIC_WISE_GLOBAL_REIMBURSEMENTS_INTRO]: {
         bankAccountID: string;
+        isPayingMultipleReports?: string;
     };
     [SCREENS.SETTINGS.WALLET.DYNAMIC_WISE_BUSINESS_ONBOARDING]: {
         bankAccountID: string;

@@ -13,7 +13,7 @@ import colors from '@styles/theme/colors';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import type {HasFilterValues} from '@src/types/form/SearchAdvancedFiltersForm';
-import type {Beta, InsightsDashboardID, InsightsGraphKey, InsightsSearchKey, Policy} from '@src/types/onyx';
+import type {InsightsDashboardID, InsightsGraphKey, InsightsSearchKey, Policy} from '@src/types/onyx';
 import type {SearchDataTypes, SearchWorkflowStageDurations} from '@src/types/onyx/SearchResults';
 
 import type {OnyxCollection} from 'react-native-onyx';
@@ -129,9 +129,6 @@ type InsightsDashboardSpec = {
     /** Label of the dashboard's tab in the segmented control */
     labelKey: TranslationPaths;
 
-    /** The dashboard is hidden unless this beta is enabled */
-    beta?: Beta;
-
     /** The dashboard is shown when any workspace in scope passes this. A dashboard that declares none is always shown. */
     isPolicyEligible?: PolicyEligibilityCheck;
 
@@ -209,7 +206,6 @@ const INSIGHTS_DASHBOARD_SPECS: Record<InsightsDashboardID, InsightsDashboardSpe
     [CONST.INSIGHTS.DASHBOARD.EFFICIENCY]: {
         searchKey: CONST.INSIGHTS.SEARCH_KEY.EFFICIENCY,
         labelKey: 'insightsPage.efficiency',
-        beta: CONST.BETAS.INSIGHTS_EFFICIENCY,
         isPolicyEligible: canViewAllPolicyData,
         queryType: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
         countDimension: CONST.SEARCH.CHART_COUNT_DIMENSION.REPORT,
@@ -225,7 +221,7 @@ const INSIGHTS_DASHBOARD_SPECS: Record<InsightsDashboardID, InsightsDashboardSpe
             {
                 graphKey: CONST.INSIGHTS.GRAPH.AVERAGE_PROCESSING_TIME,
                 titleKey: 'insightsPage.averageProcessingTime',
-                view: CONST.SEARCH.VIEW.PIE,
+                view: CONST.SEARCH.VIEW.BAR,
                 groupBy: CONST.SEARCH.GROUP_BY.WORKFLOW_STAGE,
                 metric: CONST.SEARCH.CHART_METRIC.DURATION,
                 sortBy: CONST.SEARCH.SORT_BY_COLUMNS.AVERAGE_TIME,
@@ -272,7 +268,6 @@ const INSIGHTS_DASHBOARD_SPECS: Record<InsightsDashboardID, InsightsDashboardSpe
     [CONST.INSIGHTS.DASHBOARD.COMPLIANCE]: {
         searchKey: CONST.INSIGHTS.SEARCH_KEY.COMPLIANCE,
         labelKey: 'insightsPage.compliance',
-        beta: CONST.BETAS.INSIGHTS_COMPLIANCE,
         isPolicyEligible: canViewAllPolicyData,
         queryType: CONST.SEARCH.DATA_TYPES.EXPENSE,
         requiresControlPlan: true,
@@ -406,11 +401,11 @@ function getUpgradeablePolicyIDsInScope(policiesInScope: Policy[], login: string
  * Returns the dashboards the user can open, ignoring the workspace filter.
  * Workspaces deleted offline stay in Onyx until the server confirms, so they don't count, or a dashboard would vanish only on reconnect.
  */
-function getAccessibleDashboards(policies: OnyxCollection<Policy>, login: string | undefined, isBetaEnabled: (beta: Beta) => boolean): InsightsDashboardID[] {
+function getAccessibleDashboards(policies: OnyxCollection<Policy>, login: string | undefined): InsightsDashboardID[] {
     const activePolicies = Object.values(policies ?? {}).filter((policy): policy is Policy => !!policy && !isArchivedOrPendingDeletePolicy(policy));
     return Object.values(CONST.INSIGHTS.DASHBOARD).filter((dashboardID) => {
-        const {beta, isPolicyEligible} = INSIGHTS_DASHBOARD_SPECS[dashboardID];
-        return (!beta || isBetaEnabled(beta)) && (!isPolicyEligible || activePolicies.some((policy) => isPolicyEligible(policy, login)));
+        const {isPolicyEligible} = INSIGHTS_DASHBOARD_SPECS[dashboardID];
+        return !isPolicyEligible || activePolicies.some((policy) => isPolicyEligible(policy, login));
     });
 }
 

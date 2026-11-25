@@ -38,7 +38,6 @@ import {isActingAsDelegateSelector} from '@src/selectors/Account';
 import {isTrackingSelector} from '@src/selectors/GPSDraftDetails';
 import type {CurrentUserPersonalDetails} from '@src/types/onyx/PersonalDetails';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 import type {ValueOf} from 'type-fest';
 
@@ -96,9 +95,9 @@ function useInitialSettingsPageMenuData(currentUserPersonalDetails: CurrentUserP
     const [stashedSession] = useOnyx(ONYXKEYS.STASHED_SESSION);
     const [hasAgentError] = useOnyx(ONYXKEYS.COLLECTION.AGENT, {selector: hasAgentErrorsSelector});
     const privateSubscription = usePrivateSubscription();
-    const [tryNewDot, tryNewDotMetadata] = useOnyx(ONYXKEYS.NVP_TRY_NEW_DOT);
+    const [tryNewDot] = useOnyx(ONYXKEYS.NVP_TRY_NEW_DOT);
     const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP);
-    const isLoadingTryNewDot = isTryNewDotLoading(tryNewDot, isLoadingOnyxValue(tryNewDotMetadata), isLoadingApp);
+    const isLoadingTryNewDot = isTryNewDotLoading(tryNewDot, false, isLoadingApp);
 
     const freeTrialText = getFreeTrialText(currentUserPersonalDetails.accountID, translate, policies, introSelected, firstDayFreeTrial, lastDayFreeTrial, privateSubscription);
 

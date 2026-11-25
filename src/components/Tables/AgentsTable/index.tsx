@@ -13,6 +13,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import tokenizedSearch from '@libs/tokenizedSearch';
 
+import {fontScale} from '@styles/typography';
 import variables from '@styles/variables';
 
 import type CONST from '@src/CONST';
@@ -80,6 +81,9 @@ type AgentsTableProps = {
     /** Whether to show the owner column */
     shouldShowOwnerColumn?: boolean;
 
+    /** Key the dragged column widths are saved under. Each page passes its own, since each shows different columns. */
+    columnResizingID: string;
+
     onRowSelectionChange: (selectedRowKeys: string[]) => void;
 
     /** The actions the selected agents support, offered in the floating bar the wide layout shows while rows are selected. */
@@ -95,6 +99,7 @@ export default function AgentsTable({
     selectedKeys,
     shouldShowRoleColumn,
     shouldShowOwnerColumn,
+    columnResizingID,
     onRowSelectionChange,
     bulkActionOptions,
 }: AgentsTableProps) {
@@ -112,6 +117,16 @@ export default function AgentsTable({
             key: 'agent',
             label: translate('agentsPage.title'),
             sortable: true,
+            dynamicSizing: {
+                // The cell stacks the agent's name above their login, so whichever of the two renders wider decides the
+                // column's width. The wide layout only puts the login under the name, as role and owner have their own columns.
+                getContentToMeasure: (item) => [
+                    {text: item.displayName, fontSize: fontScale.text},
+                    {text: item.login, fontSize: fontScale.label},
+                ],
+                extraWidth: variables.tableMemberCellAvatarWidth,
+                minWidth: variables.tableMemberColumnMinWidth,
+            },
         },
         ...(shouldShowRoleColumn
             ? [
@@ -123,6 +138,12 @@ export default function AgentsTable({
                           // editableCellHeader matches the padded role cell so the label and value share an edge.
                           containerStyles: [styles.editableCellHeader],
                       },
+                      dynamicSizing: {
+                          getContentToMeasure: (item: AgentRowData) => (item.role ? [{text: translate('workspace.common.roleName', item.role), fontSize: fontScale.text}] : []),
+                          // A role is one of a short, known set of labels, so the column always shows them in full.
+                          shouldFitContent: true,
+                          extraWidth: variables.editableCellChromeWidth,
+                      },
                   },
               ]
             : []),
@@ -132,6 +153,11 @@ export default function AgentsTable({
                       key: 'owner' as const,
                       label: translate('common.owner'),
                       sortable: true,
+                      dynamicSizing: {
+                          getContentToMeasure: (item: AgentRowData) => (item.ownerDisplayName ? [{text: item.ownerDisplayName, fontSize: fontScale.text}] : []),
+                          // A domain owner's globe icon takes the same room as the other owners' avatar.
+                          extraWidth: variables.tableInlineAvatarCellWidth,
+                      },
                   },
               ]
             : []),
@@ -191,6 +217,8 @@ export default function AgentsTable({
     return (
         <Table
             ref={ref}
+            shouldUseDynamicColumns
+            columnResizingID={columnResizingID}
             data={agents}
             columns={agentsTableColumns}
             renderItem={renderTableItem}

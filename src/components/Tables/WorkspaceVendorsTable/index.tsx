@@ -9,6 +9,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import tokenizedSearch from '@libs/tokenizedSearch';
 
+import {fontScale} from '@styles/typography';
 import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
@@ -56,11 +57,14 @@ function WorkspaceVendorsTable({vendors, selectionEnabled = false, selectedKeys 
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
 
-    const columns: Array<TableColumn<WorkspaceVendorTableColumnKey>> = [
+    const columns: Array<TableColumn<WorkspaceVendorTableColumnKey, WorkspaceVendorTableRowData>> = [
         {
             key: 'name',
             label: translate('common.name'),
             sortable: true,
+            dynamicSizing: {
+                getContentToMeasure: (item) => [{text: item.name, fontSize: fontScale.text}],
+            },
         },
         {
             key: 'enabled',
@@ -68,7 +72,7 @@ function WorkspaceVendorsTable({vendors, selectionEnabled = false, selectedKeys 
             sortable: true,
             width: variables.tableSwitchColumnWidth,
             styling: {
-                containerStyles: [styles.justifyContentEnd],
+                alignment: CONST.SEARCH.TABLE_COLUMN_ALIGNMENT.END,
             },
         },
     ];
@@ -129,6 +133,8 @@ function WorkspaceVendorsTable({vendors, selectionEnabled = false, selectedKeys 
 
     return (
         <Table
+            shouldUseDynamicColumns
+            columnResizingID={CONST.TABLES.COLUMN_RESIZING_IDS.WORKSPACE_VENDORS}
             data={vendors}
             initialSortColumn="name"
             title={translate('workspace.common.vendors')}

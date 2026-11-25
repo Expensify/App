@@ -29,7 +29,7 @@ function buildChartDrillDownQuery(queryJSON: Readonly<SearchQueryJSON>, filterQu
 
 /** Builds the Spend table query behind a chart's "View on Spend", which opens the rows the chart plots as they are grouped and sorted, over the whole period. */
 function buildViewOnSpendQuery(queryJSON: Readonly<SearchQueryJSON>): SearchQueryString {
-    // Search can't group by Insights-only values, so the chart's expenses are listed ungrouped instead (waiting for https://github.com/Expensify/App/issues/105303)
+    // Search can't group by Insights-only values, so the chart's expenses are listed ungrouped instead
     if (!isGroupBySupportedBySearch(queryJSON.groupBy)) {
         return buildSearchQueryString({
             ...queryJSON,
