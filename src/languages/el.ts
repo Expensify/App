@@ -13770,5 +13770,24 @@ ${reportName}`,
         receivedPayment: 'λάβατε πληρωμή',
         markedAsManuallyExported: (label: string) => `σήμανε αυτήν την αναφορά ως μη αυτόματα εξαχθείσα σε ${label}`,
     },
+    reimbursementIntentStep: {
+        title: 'Πώς θέλετε συνήθως να πληρώνετε;',
+        subtitle: 'Μην ανησυχείτε, μπορείτε να ρυθμίσετε και τους δύο τρόπους αργότερα.',
+        payViaExpensify: 'Πληρωμή μέσω Expensify',
+        payViaExpensifyDescription: 'Γρήγορο, ασφαλές και εύκολο',
+        payViaABAFile: 'Πληρωμή αλλού μέσω αρχείου ABA',
+        payViaABAFileDescription: 'Για χειροκίνητες πληρωμές',
+    },
+    abaWithdrawalDetailsStep: {
+        title: 'Ποια είναι τα στοιχεία του λογαριασμού σας;',
+        bsbNumber: 'BSB',
+        bankUserIdentificationNumber: 'Αριθμός ταυτοποίησης χρήστη τράπεζας',
+        companyName: 'Επωνυμία εταιρείας',
+        includeSelfBalancingTransaction: 'Να συμπεριληφθεί η αυτοσυμψηφιζόμενη συναλλαγή στο αρχείο ABA',
+        error: {
+            bsbNumber: 'Παρακαλούμε εισαγάγετε ένα έγκυρο BSB, όπως 123-456',
+            bankUserIdentificationNumber: 'Παρακαλούμε εισαγάγετε έναν έγκυρο αριθμό ταυτοποίησης χρήστη τράπεζας έως 6 ψηφίων',
+        },
+    },
 };
 export default translations;

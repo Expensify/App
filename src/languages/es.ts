@@ -13869,5 +13869,24 @@ ${reportName}`,
         receivedPayment: 'pago recibido',
         markedAsManuallyExported: (label: string) => `marcó este informe como exportado manualmente a ${label}`,
     },
+    reimbursementIntentStep: {
+        title: '¿Cómo sueles querer pagar?',
+        subtitle: 'No te preocupes, puedes configurar ambas opciones más tarde.',
+        payViaExpensify: 'Pagar con Expensify',
+        payViaExpensifyDescription: 'Rápido, seguro y fácil',
+        payViaABAFile: 'Paga en otro lugar mediante un archivo ABA',
+        payViaABAFileDescription: 'Para pagos manuales',
+    },
+    abaWithdrawalDetailsStep: {
+        title: '¿Cuáles son los datos de tu cuenta?',
+        bsbNumber: 'BSB',
+        bankUserIdentificationNumber: 'Número de identificación de usuario bancario',
+        companyName: 'Nombre de la empresa',
+        includeSelfBalancingTransaction: 'Incluir transacción de autocuadre en el archivo ABA',
+        error: {
+            bsbNumber: 'Por favor, introduce un BSB válido, como 123-456',
+            bankUserIdentificationNumber: 'Por favor, introduce un número de identificación de usuario bancario válido de hasta 6 dígitos',
+        },
+    },
 };
 export default translations;

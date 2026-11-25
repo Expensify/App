@@ -1,5 +1,6 @@
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 
+import useLoadDepositAccountSetup from '@hooks/useLoadDepositAccountSetup';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 
@@ -37,6 +38,9 @@ function CorpayDepositAccount({backTo}: CorpayDepositAccountProps) {
     const [draftValues, draftValuesMetadata] = useOnyx(ONYXKEYS.FORMS.INTERNATIONAL_BANK_ACCOUNT_FORM_DRAFT);
     const [country, countryMetadata] = useOnyx(ONYXKEYS.COUNTRY);
     const [isAccountLoading, isLoadingMetadata] = useOnyx(ONYXKEYS.PERSONAL_BANK_ACCOUNT, {selector: isLoadingPersonalBankAccountSelector});
+
+    // Load each workspace's withdrawal accounts so that we can determine whether to show the ABA form
+    useLoadDepositAccountSetup();
 
     const isLoading = isLoadingOnyxValue(privatePersonalDetailsMetadata, corpayFieldsMetadata, bankAccountListMetadata, draftValuesMetadata, countryMetadata, isLoadingMetadata);
 

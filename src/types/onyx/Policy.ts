@@ -3737,6 +3737,9 @@ type ReimbursementCountryInfo = OnyxCommon.OnyxValueWithOfflineFeedback<{
     state?: string;
 
     additionalData?: {
+        /** Whether the account is only used to pay with ABA files */
+        isForABA?: boolean;
+
         verifications?: {
             /** Only set on accounts set up through Corpay */
             corpay?: Record<string, unknown>;

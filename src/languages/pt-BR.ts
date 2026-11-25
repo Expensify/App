@@ -13448,5 +13448,21 @@ Aqui está um *comprovante de teste* para mostrar como funciona:`,
         receivedPayment: 'pagamento recebido',
         markedAsManuallyExported: (label: string) => `marcou este relatório como exportado manualmente para ${label}`,
     },
+    reimbursementIntentStep: {
+        title: 'Como você geralmente quer pagar?',
+        subtitle: 'Não se preocupe, você pode configurar das duas formas depois.',
+        payViaExpensify: 'Pagar via Expensify',
+        payViaExpensifyDescription: 'Rápido, seguro e fácil',
+        payViaABAFile: 'Pagar em outro lugar via arquivo ABA',
+        payViaABAFileDescription: 'Para pagamentos manuais',
+    },
+    abaWithdrawalDetailsStep: {
+        title: 'Quais são os dados da sua conta?',
+        bsbNumber: 'BSB',
+        bankUserIdentificationNumber: 'Número de identificação do usuário do banco',
+        companyName: 'Nome da empresa',
+        includeSelfBalancingTransaction: 'Incluir transação autoequilibrada no arquivo ABA',
+        error: {bsbNumber: 'Insira um BSB válido, como 123-456', bankUserIdentificationNumber: 'Insira um número de identificação de usuário do banco válido, com até 6 dígitos'},
+    },
 };
 export default translations;
