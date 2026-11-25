@@ -1,4 +1,5 @@
 import useOnyx from '@hooks/useOnyx';
+import useReopenAfterReturn from '@hooks/useReopenAfterReturn';
 
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
@@ -6,32 +7,44 @@ import {doesUserHavePaymentCardAdded} from '@libs/SubscriptionUtils';
 
 import ONYXKEYS from '@src/ONYXKEYS';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
+import type {AddPaymentCardForm} from '@src/types/form';
 
-import {useIsFocused} from '@react-navigation/native';
+import type {OnyxEntry} from 'react-native-onyx';
+
 import {useEffect, useRef} from 'react';
+
+const isCardSetupCompleteSelector = (form: OnyxEntry<AddPaymentCardForm>) => !!form?.setupComplete;
 
 /**
  * Returns a function that runs an action which charges the user's payment card. Without a card, it opens the add
  * payment card flow first and runs the action when the user comes back with one.
  */
 function useRunWithPaymentCard() {
-    const isFocused = useIsFocused();
     const [userBillingFundID] = useOnyx(ONYXKEYS.NVP_BILLING_FUND_ID);
+    const [isCardSetupComplete] = useOnyx(ONYXKEYS.FORMS.ADD_PAYMENT_CARD_FORM, {selector: isCardSetupCompleteSelector});
     const hasPaymentCard = doesUserHavePaymentCardAdded(userBillingFundID);
     const pendingActionRef = useRef<() => void>(undefined);
+    const hasAddedCardRef = useRef(false);
 
-    // The screen regains focus when the add payment card flow closes, whether or not the user added a card.
+    // Some cards are saved before the user verifies them, so only a finished card setup counts as adding a card.
+    // The flow resets that flag as it closes, so it is recorded while the flow is still open.
     useEffect(() => {
-        const pendingAction = pendingActionRef.current;
-        if (!isFocused || !pendingAction) {
+        if (!isCardSetupComplete) {
             return;
         }
-        pendingActionRef.current = undefined;
-        if (!hasPaymentCard) {
-            return;
-        }
-        pendingAction();
-    }, [isFocused, hasPaymentCard]);
+        hasAddedCardRef.current = true;
+    }, [isCardSetupComplete]);
+
+    const {setIsDeparting} = useReopenAfterReturn({
+        onReturn: () => {
+            const pendingAction = pendingActionRef.current;
+            pendingActionRef.current = undefined;
+            if (!hasAddedCardRef.current) {
+                return;
+            }
+            pendingAction?.();
+        },
+    });
 
     return (action: () => void) => {
         if (hasPaymentCard) {
@@ -39,6 +52,8 @@ function useRunWithPaymentCard() {
             return;
         }
         pendingActionRef.current = action;
+        hasAddedCardRef.current = false;
+        setIsDeparting(true);
         Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.ADD_PAYMENT_CARD.path));
     };
 }

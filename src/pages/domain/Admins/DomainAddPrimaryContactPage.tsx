@@ -140,7 +140,8 @@ function DomainAddPrimaryContactPage({route}: DomainAddPrimaryContactPageProps) 
                             Navigation.goBack(ROUTES.DOMAIN_ADMINS_SETTINGS.getRoute(domainAccountID));
                         };
 
-                        // While consolidated billing is on, the new primary contact's card pays the domain's bills.
+                        // While consolidated billing is on, the new primary contact's card pays the domain's bills, and admins can
+                        // only choose themselves.
                         if (technicalContactSettings?.useTechnicalContactBillingCard && option.accountID === currentUserAccountID) {
                             runWithPaymentCard(savePrimaryContact);
                             return;
