@@ -195,6 +195,12 @@ type DynamicFormAddressField = DynamicFormFieldBase & {
 
     /** Checks of a filled-in zip, the same ones a text field takes. They apply as well as `rule: 'zipCode'`, not in place of it. */
     zipCodeFormat?: DynamicFormFieldFormat;
+
+    /** Checks of a filled-in city, the same ones a text field takes */
+    cityFormat?: DynamicFormFieldFormat;
+
+    /** What the picked country calls its states, such as "Province", shown on the state row in place of "State" */
+    stateLabel?: string;
 };
 
 /** Uploaded documents */

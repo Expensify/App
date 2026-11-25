@@ -398,6 +398,20 @@ describe('getDynamicFieldErrors', () => {
         expect(errors).toEqual({homeAddress: translateLocal('common.error.characterLimitExceedCounter', street.length, 20)});
     });
 
+    it('checks a filled-in city against the format the schema sends', () => {
+        // Given a British address under a schema whose city takes 10 characters, with a longer city
+        const addressKeys = getAddressInputKeys('homeAddress');
+        const homeAddress: DynamicFormField = {key: 'homeAddress', type: 'address', required: true, cityFormat: {maxLength: 10}};
+        const city = 'Stoke-on-Trent';
+        const values = {homeAddress: '1 High Street', [addressKeys.city]: city, [addressKeys.zipCode]: 'ST1 1AA', [addressKeys.country]: CONST.COUNTRY.GB};
+
+        // When it is validated
+        const errors = getDynamicFieldErrors([homeAddress], values, translateLocal);
+
+        // Then the city is flagged on its own input before the form is sent
+        expect(errors).toEqual({[addressKeys.city]: translateLocal('common.error.characterLimitExceedCounter', city.length, 10)});
+    });
+
     it('checks a filled-in zip against the format the schema sends', () => {
         // Given a US address under a schema that sends the zip's pattern and longest length
         const addressKeys = getAddressInputKeys('homeAddress');

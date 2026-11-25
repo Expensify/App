@@ -257,6 +257,12 @@ function getAddressPartErrors(field: DynamicFormAddressField, values: DynamicFor
             }
         }
     }
+    const city = values[addressKeys.city];
+    if (typeof city === 'string' && city.trim() !== '') {
+        for (const message of getFormatErrors(field.cityFormat ?? {}, addressKeys.city, city.trim(), translate)) {
+            partErrors.push([addressKeys.city, message]);
+        }
+    }
     const zipCode = values[addressKeys.zipCode];
     if (!isZipCodeShown(field) || typeof zipCode !== 'string' || zipCode.trim() === '') {
         return partErrors;

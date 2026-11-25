@@ -38,6 +38,8 @@ type CapturedInputProps = {
     shouldSaveDraft?: boolean;
     forwardedFSClass?: string;
     hint?: string;
+    label?: string;
+    maxLength?: number;
     inputMode?: string;
     maxAutoGrowHeight?: number;
     items?: Array<{value: string; label: string; searchValue?: string}>;
@@ -350,6 +352,8 @@ describe('DynamicFormFields', () => {
             required: true,
             countries: [CONST.COUNTRY.GB, CONST.COUNTRY.MX],
             states: [{key: 'JAL', label: 'Jalisco'}],
+            stateLabel: 'Province',
+            cityFormat: {maxLength: 255},
             isZipCodeAsked: false,
         };
         const keys = getAddressInputKeys('homeAddress');
@@ -368,6 +372,8 @@ describe('DynamicFormFields', () => {
         expect(getItemValues(keys.state)).toEqual(['JAL']);
         expect(rendered.has(keys.zipCode)).toBe(false);
         expect(rendered.has(keys.city)).toBe(true);
+        expect(rendered.get(keys.state)?.label).toBe('Province');
+        expect(rendered.get(keys.city)?.maxLength).toBe(255);
     });
 
     it('lets the street be as long as the address field says', () => {

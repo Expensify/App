@@ -56,9 +56,17 @@ const renderAddress: DynamicFieldRenderer<'address'> = (field, {values, styles, 
                     maxInputLength={field.maxLength}
                 />
                 {/* The city sits as far below the street as the field rows space any two inputs */}
-                <AddressFields.City containerStyles={styles.mt4} />
+                <AddressFields.City
+                    containerStyles={styles.mt4}
+                    maxLength={field.cityFormat?.maxLength}
+                />
                 {/* The state is asked only where there is a list of the country's states */}
-                {!!stateOptions && <DynamicFormAddressStateDropdown stateOptions={stateOptions} />}
+                {!!stateOptions && (
+                    <DynamicFormAddressStateDropdown
+                        stateOptions={stateOptions}
+                        label={field.stateLabel}
+                    />
+                )}
                 {isZipCodeShown(field) && <AddressFields.ZipCode />}
                 {/* Only the country asks for a new form, so the rest of the address stays editable offline */}
                 <DynamicFormAddressCountryDropdown
