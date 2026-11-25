@@ -112,6 +112,7 @@ type BuildOnyxDataForMoneyRequestKeys =
     | typeof ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING
     | typeof ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE
     | typeof ONYXKEYS.COLLECTION.SNAPSHOT
+    | typeof ONYXKEYS.SEARCH_SNAPSHOT_ACCESS
     | typeof ONYXKEYS.REUSABLE_DISTANCE_ROUTES;
 
 type MoneyRequestInformation = {

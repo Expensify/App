@@ -13,6 +13,9 @@ import Onyx from 'react-native-onyx';
 /** How many mounted views show each snapshot. A frozen tab stays mounted, so what it shows survives a switch to another tab */
 const shownSnapshotCounts = new Map<string, number>();
 
+/** Shown saved or suggested searches. One can be shown before its snapshot exists, so its pin is applied when a request records it */
+const shownPinnedHashes = new Set<string>();
+
 /** Each update reads the access record the previous one wrote, so calls fired together don't overwrite each other */
 let accessQueue = Promise.resolve();
 
@@ -34,7 +37,7 @@ async function updateSnapshotAccess(hashes: number[], isPinned: boolean) {
 
         const lastAccessed = Date.now();
         for (const hash of hashes) {
-            access[hash] = {lastAccessed, isPinned: isPinned || !!access[hash]?.isPinned};
+            access[hash] = {lastAccessed, isPinned: isPinned || shownPinnedHashes.has(String(hash)) || !!access[hash]?.isPinned};
             accessUpdate[hash] = access[hash];
         }
 
@@ -70,6 +73,9 @@ async function updateCachedSnapshotAccess(hashes: number[], isPinned: boolean) {
 function showSearchSnapshots(hashes: number[], isPinned = false) {
     for (const hash of hashes) {
         shownSnapshotCounts.set(String(hash), (shownSnapshotCounts.get(String(hash)) ?? 0) + 1);
+        if (isPinned) {
+            shownPinnedHashes.add(String(hash));
+        }
     }
     accessQueue = accessQueue.then(() => updateCachedSnapshotAccess(hashes, isPinned));
 
@@ -80,6 +86,7 @@ function showSearchSnapshots(hashes: number[], isPinned = false) {
                 shownSnapshotCounts.set(String(hash), count - 1);
             } else {
                 shownSnapshotCounts.delete(String(hash));
+                shownPinnedHashes.delete(String(hash));
             }
         }
     };

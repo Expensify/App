@@ -7,8 +7,6 @@ import type {SearchGroupKey} from '@libs/SearchUIUtils';
 import {getCurrency, getMerchant} from '@libs/TransactionUtils';
 import {isInvalidMerchantValue} from '@libs/ValidationUtils';
 
-import {trackSearchSnapshotAccess} from '@userActions/SearchSnapshotCache';
-
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
@@ -193,7 +191,9 @@ function getSearchOnyxUpdate({
     isInvoice,
     previousMoneyRequestAction,
     currentUserPersonalDetails: passedCurrentUserPersonalDetails,
-}: GetSearchOnyxUpdateParams): OnyxData<typeof ONYXKEYS.COLLECTION.SNAPSHOT> | undefined {
+}: GetSearchOnyxUpdateParams):
+    | {optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.SNAPSHOT | typeof ONYXKEYS.SEARCH_SNAPSHOT_ACCESS>>; successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.SNAPSHOT>>}
+    | undefined {
     const toAccountID = participant?.accountID;
     // Callers that already have the current user's details (e.g. read from the CurrentUserPersonalDetails context) pass them in.
     // The rest fall back to the Onyx subscription until they are migrated.
@@ -419,14 +419,16 @@ function getSearchOnyxUpdate({
         return;
     }
 
-    // Snapshots created here (e.g. a group's member snapshot) have no access record yet, so they'd never be evicted
-    const createdHashes = [...writtenHashes].filter((hash) => !allSnapshots[`${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`]);
-    if (createdHashes.length > 0) {
-        trackSearchSnapshotAccess(createdHashes);
-    }
+    // Written with the snapshots so a snapshot this batch creates or restores after an eviction always has an access record
+    const lastAccessed = Date.now();
+    const accessUpdate: OnyxUpdate<typeof ONYXKEYS.SEARCH_SNAPSHOT_ACCESS> = {
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: ONYXKEYS.SEARCH_SNAPSHOT_ACCESS,
+        value: Object.fromEntries([...writtenHashes].map((hash) => [hash, {lastAccessed}])),
+    };
 
     return {
-        optimisticData,
+        optimisticData: [...optimisticData, accessUpdate],
         successData,
     };
 }

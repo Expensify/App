@@ -130,6 +130,20 @@ describe('trackSearchSnapshotAccess', () => {
         expect(await getSnapshotHashes()).toEqual(range(2, MAX));
     });
 
+    it('pins a saved search that is shown before its snapshot is cached', async () => {
+        // Given A saved search opened with nothing cached, so showing it has no snapshot to pin yet
+        const hide = showSearchSnapshots([7000], true);
+
+        // When Its request writes the snapshot and records the access, as search() does, and the user moves on
+        await writeSnapshot(7000);
+        await trackSearchSnapshotAccess([7000]);
+        hide();
+        await cacheSearches(range(1, MAX + 1));
+
+        // Then It was recorded as pinned, so ordinary searches don't evict it
+        expect(await getSnapshotHashes()).toContain(7000);
+    });
+
     it('tracks a snapshot a failed request recreates after it was evicted mid-flight', async () => {
         // Given A search whose request is still pending
         const queryJSON = buildSearchQueryJSON('type:expense status:all');
