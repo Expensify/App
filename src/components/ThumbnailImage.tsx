@@ -10,8 +10,9 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type IconAsset from '@src/types/utils/IconAsset';
 import type {Dimensions} from '@src/types/utils/Layout';
+import type {SingleImageSource} from '@src/types/utils/ReactNativeCompat';
 
-import type {ImageProps, ImageSourcePropType, StyleProp, ViewStyle} from 'react-native';
+import type {ImageProps, StyleProp, ViewStyle} from 'react-native';
 
 import React, {useState} from 'react';
 import {View} from 'react-native';
@@ -29,7 +30,7 @@ import ImageWithSizeCalculation from './ImageWithSizeCalculation';
 const thumbnailDimensionsCache = new Map<string, {width: number; height: number}>();
 
 type ThumbnailImageProps = {
-    previewSourceURL: string | ImageSourcePropType;
+    previewSourceURL: string | SingleImageSource;
     altText?: string;
     style?: StyleProp<ViewStyle>;
 
@@ -101,11 +102,11 @@ function ThumbnailImage({
     const styles = useThemeStyles();
     const theme = useTheme();
     const {isOffline} = useNetwork();
-    const [failedLoadKey, setFailedLoadKey] = useState<{url: string | ImageSourcePropType; isOffline: boolean} | null>(null);
+    const [failedLoadKey, setFailedLoadKey] = useState<{url: string | SingleImageSource; isOffline: boolean} | null>(null);
     const failedToLoad = failedLoadKey !== null && failedLoadKey.url === previewSourceURL && failedLoadKey.isOffline === isOffline;
 
     const cachedDimensions = shouldDynamicallyResize && typeof previewSourceURL === 'string' ? thumbnailDimensionsCache.get(previewSourceURL) : null;
-    const [measuredDimensions, setMeasuredDimensions] = useState<{url: string | ImageSourcePropType; width: number; height: number} | null>(null);
+    const [measuredDimensions, setMeasuredDimensions] = useState<{url: string | SingleImageSource; width: number; height: number} | null>(null);
     const imageDimensions =
         measuredDimensions?.url === previewSourceURL ? measuredDimensions : {width: cachedDimensions?.width ?? imageWidth, height: cachedDimensions?.height ?? imageHeight};
     const {thumbnailDimensionsStyles} = useThumbnailDimensions(imageDimensions.width, imageDimensions.height);

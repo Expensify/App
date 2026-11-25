@@ -8,7 +8,6 @@ import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
-import usePermissions from '@hooks/usePermissions';
 import {usePersonalDetail} from '@hooks/usePersonalDetails';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -44,14 +43,12 @@ type InsightsDetailsPageProps = PlatformStackScreenProps<InsightsDetailsParamLis
 function InsightsDetailsPage({route}: InsightsDetailsPageProps) {
     const styles = useThemeStyles();
     const {translate, dateFnsLocale} = useLocalize();
-    const {isBetaEnabled} = usePermissions();
     const {graphKey, item: itemKey, end: periodEnd, level, parent: parentTagPath, asOf, stage} = route.params;
     const tagLevel = level ? Number(level) : undefined;
     const dashboardID = Object.values(CONST.INSIGHTS.DASHBOARD).find((id) => id === route.params.dashboardID && INSIGHTS_DASHBOARD_SPECS[id].hasDetailsPanel);
     const isCompliance = dashboardID === CONST.INSIGHTS.DASHBOARD.COMPLIANCE;
     const {filters, isResolved} = useInsightsFilters(dashboardID ?? CONST.INSIGHTS.DASHBOARD.SPEND);
 
-    const dashboardSpec = dashboardID ? INSIGHTS_DASHBOARD_SPECS[dashboardID] : undefined;
     const pickedViolationStage = Object.values(CONST.INSIGHTS.VIOLATION_STAGE).find((value) => value === stage);
     const chartSpec = dashboardID ? getChartSpec(dashboardID, graphKey, pickedViolationStage) : undefined;
     const isMemberItem = chartSpec?.groupBy === CONST.SEARCH.GROUP_BY.FROM || chartSpec?.groupBy === CONST.SEARCH.GROUP_BY.APPROVER;
@@ -113,7 +110,7 @@ function InsightsDetailsPage({route}: InsightsDetailsPageProps) {
           )
         : chartSpec && translate(chartSpec.titleKey);
 
-    if (!isBetaEnabled(CONST.BETAS.INSIGHTS_AI) || (!!dashboardSpec?.beta && !isBetaEnabled(dashboardSpec.beta)) || !chartSpec || (isResolved && !item)) {
+    if (!chartSpec || (isResolved && !item)) {
         return (
             <ScreenWrapper testID="InsightsDetailsPage">
                 <FullPageNotFoundView shouldShow />
