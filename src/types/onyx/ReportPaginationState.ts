@@ -13,7 +13,7 @@ type ReportPaginationState = {
     oldestFetchedReportActionID?: string;
 
     /** Results of explicit newest-page requests, shared with the tab that requested the jump. */
-    liveTailRequestResults?: Record<string, {settled?: boolean; newestActionID?: string}>;
+    liveTailRequestResults?: Record<string, {settled?: boolean; newestActionID?: string; expiresAt?: number}>;
 };
 
 export default ReportPaginationState;

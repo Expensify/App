@@ -1,7 +1,7 @@
 import useIsInSidePanel from '@hooks/useIsInSidePanel';
 import type useReportScrollManager from '@hooks/useReportScrollManager';
 
-import {clearLiveTailRequestResult, openReport, pruneReportActionPagesToNewestWindow} from '@libs/actions/Report';
+import {clearLiveTailRequestResult, openReport, pruneExpiredLiveTailResults, pruneReportActionPagesToNewestWindow} from '@libs/actions/Report';
 import {subscribeToNewActionEvent} from '@libs/actions/Report/reportActionSubscribers';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import isReportTopmostSplitNavigator from '@libs/Navigation/helpers/isReportTopmostSplitNavigator';
@@ -20,6 +20,7 @@ import type * as OnyxTypes from '@src/types/onyx';
 import {useNavigation} from '@react-navigation/native';
 import {guidedSetupAndTourStatusSelector} from '@selectors/Onboarding';
 import {fullPolicySnapshotLastModifiedSelector} from '@selectors/Policy';
+import {millisecondsInWeek} from 'date-fns/constants';
 import {useEffect, useEffectEvent, useRef, useState} from 'react';
 import Onyx from 'react-native-onyx';
 
@@ -50,7 +51,7 @@ type UseReportActionsNewActionLiveTailParams = {
     liveTailRequestResults: OnyxTypes.ReportPaginationState['liveTailRequestResults'];
 };
 
-type LiveTailJump = {stage: 'idle' | 'await_prune'} | {stage: 'open_report'; requestID: string} | {stage: 'await_scroll'; newestActionID?: string};
+type LiveTailJump = {stage: 'idle' | 'await_prune'} | {stage: 'open_report'; requestID: string; expiresAt: number} | {stage: 'await_scroll'; newestActionID?: string};
 const PENDING_SENT_ACTION_TIMEOUT_MS = 5000;
 
 /**
@@ -121,7 +122,9 @@ function useReportActionsNewActionLiveTail({
     };
 
     const requestLiveTailJump = () => {
-        if (liveTailJumpRef.current.stage === 'open_report' || liveTailJumpRef.current.stage === 'await_prune') {
+        const now = Date.now();
+        const jump = liveTailJumpRef.current;
+        if ((jump.stage === 'open_report' && jump.expiresAt > now) || jump.stage === 'await_prune') {
             return;
         }
         if (isOffline) {
@@ -131,7 +134,8 @@ function useReportActionsNewActionLiveTail({
             return;
         }
         const requestID = rand64();
-        liveTailJumpRef.current = {stage: 'open_report', requestID};
+        pruneExpiredLiveTailResults(reportID, liveTailRequestResults, now);
+        liveTailJumpRef.current = {stage: 'open_report', requestID, expiresAt: now + millisecondsInWeek};
         openReportAtLiveTail(requestID);
     };
 

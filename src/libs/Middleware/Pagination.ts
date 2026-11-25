@@ -1,4 +1,4 @@
-import {getQueuedOnyxUpdates} from '@libs/actions/QueuedOnyxUpdates';
+import {getQueuedCollectionMember} from '@libs/actions/QueuedOnyxUpdates';
 import type {ApiCommand} from '@libs/API/types';
 import Log from '@libs/Log';
 import {isRecord} from '@libs/ObjectUtils';
@@ -100,6 +100,10 @@ function isPaginatedRequest<TKey extends OnyxKey>(request: Request<TKey> | Pagin
     return 'isPaginated' in request && request.isPaginated;
 }
 
+function isPageList(value: unknown): value is Pages {
+    return Array.isArray(value) && value.every((page: unknown) => Array.isArray(page) && page.every((id: unknown) => typeof id === 'string'));
+}
+
 function processResponse<TKey extends OnyxKey>(requestResponse: Promise<Response<TKey> | void>, request: PaginatedRequest<TKey>, paginationConfig: PaginationConfigMapValue) {
     const {resourceCollectionKey, pageCollectionKey, sortItems, getItemID, type} = paginationConfig;
     const {resourceID, cursorID} = request;
@@ -133,24 +137,16 @@ function processResponse<TKey extends OnyxKey>(requestResponse: Promise<Response
 
         const resourceCollections = resources.get(resourceCollectionKey) ?? {};
         const pagesCollections = pages.get(pageCollectionKey) ?? {};
-        let existingItems = (resourceCollections[resourceKey] ?? {}) as PaginatedResourceCollection;
-        let existingPages: Pages = pagesCollections[pageKey] ?? [];
-
-        // The preceding OpenReport may have finished while its items and page are still waiting for the same queue flush.
-        for (const update of getQueuedOnyxUpdates()) {
-            if (update.onyxMethod === Onyx.METHOD.CLEAR) {
-                existingItems = {};
-                existingPages = [];
-            } else if (update.key === pageKey && update.onyxMethod === Onyx.METHOD.SET) {
-                existingPages = Array.isArray(update.value) ? update.value.filter((page): page is string[] => Array.isArray(page) && page.every((id) => typeof id === 'string')) : [];
-            } else if (update.key === resourceKey && update.onyxMethod === Onyx.METHOD.SET) {
-                existingItems = isRecord(update.value) ? update.value : {};
-            } else if (update.key === resourceKey && update.onyxMethod === Onyx.METHOD.MERGE) {
-                existingItems = isRecord(update.value) ? fastMerge(existingItems, update.value, true) : {};
-            }
+        const existingItems = getQueuedCollectionMember(resourceCollectionKey, resourceID, (resourceCollections[resourceKey] ?? {}) as PaginatedResourceCollection, isRecord);
+        const bufferedPages = getQueuedCollectionMember(pageCollectionKey, resourceID, pagesCollections[pageKey] ?? [], isPageList);
+        if (existingItems === null || bufferedPages === null) {
+            // Keep the server items. End can retry after the replacement commits without acknowledging an unverified page.
+            Log.hmmm('[Pagination] Skipping page metadata during a buffered collection replacement', {resourceCollectionKey, pageCollectionKey});
+            return response;
         }
+        const existingPages = bufferedPages ?? [];
 
-        const allItems = fastMerge(existingItems, pageItems, true);
+        const allItems = fastMerge(existingItems ?? {}, pageItems, true);
         const sortedAllItems = sortItems(allItems, resourceID);
         const isMiddleInitialSlice = type === 'initial' && !cursorID && response.hasNewerActions === true && response.hasOlderActions === true;
 

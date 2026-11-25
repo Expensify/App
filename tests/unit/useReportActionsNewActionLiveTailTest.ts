@@ -8,6 +8,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReportAction} from '@src/types/onyx';
 
+import {millisecondsInWeek} from 'date-fns/constants';
 import Onyx from 'react-native-onyx';
 
 import {createMockReport, getFakeReportAction} from '../utils/ReportTestUtils';
@@ -75,6 +76,7 @@ jest.mock('@libs/actions/Report', () => ({
         mockOpenReport(params);
     },
     clearLiveTailRequestResult: jest.fn(),
+    pruneExpiredLiveTailResults: jest.fn(),
     pruneReportActionPagesToNewestWindow: jest.fn(),
 }));
 
@@ -372,6 +374,33 @@ describe('useReportActionsNewActionLiveTail', () => {
         // Then openReport runs once, for this report
         expect(mockOpenReport).toHaveBeenCalledTimes(1);
         expect(mockOpenReport).toHaveBeenCalledWith(expect.objectContaining({reportID: '1'}));
+    });
+
+    it('lets a suspended tab retry after another reader could have removed its expired result', async () => {
+        // Given End requested the latest page before the reader suspended this tab.
+        const clock = jest.spyOn(Date, 'now');
+        const start = Date.now();
+        try {
+            clock.mockReturnValue(start);
+            const {result} = renderHook((props: HookParams) => useReportActionsNewActionLiveTail(props), {initialProps: buildParams({linkedReportActionID: '2'})});
+            act(() => result.current.requestLiveTailJump());
+            await waitForBatchedUpdates();
+            const previousID = lastLiveTailRequestID();
+            act(() => result.current.requestLiveTailJump());
+            expect(mockOpenReport).toHaveBeenCalledTimes(1);
+
+            // When the reader resumes after the retention period and presses End again.
+            clock.mockReturnValue(start + millisecondsInWeek);
+            act(() => result.current.requestLiveTailJump());
+            await waitForBatchedUpdates();
+
+            // Then another request can finish the jump, and the historical link stays until it succeeds.
+            expect(mockOpenReport).toHaveBeenCalledTimes(2);
+            expect(lastLiveTailRequestID()).not.toBe(previousID);
+            expect(mockNavigationSetParams).not.toHaveBeenCalled();
+        } finally {
+            clock.mockRestore();
+        }
     });
 
     it('keeps the historical link when an earlier request succeeds and the latest-page request fails', async () => {

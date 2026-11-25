@@ -258,6 +258,7 @@ import type {
     RecentlyUsedReportFields,
     Report,
     ReportAction,
+    ReportPaginationState,
     ReportUserIsTyping,
     Rule,
     Session,
@@ -284,6 +285,7 @@ import type {NullishDeep, OnyxCollection, OnyxCollectionInputValue, OnyxEntry, O
 import type {PartialDeep, ValueOf} from 'type-fest';
 
 /* eslint-disable max-lines */
+import {millisecondsInWeek} from 'date-fns/constants';
 import {Str} from 'expensify-common';
 import cloneDeep from 'lodash/cloneDeep';
 import isEmpty from 'lodash/isEmpty';
@@ -2232,6 +2234,24 @@ function openReport(params: OpenReportActionParams) {
         paginationConfig,
         isFromDeepLink || liveTailRequestID ? undefined : {checkAndFixConflictingRequest: (persistedRequests) => resolveOpenReportDuplicationConflictAction(persistedRequests, parameters)},
     );
+}
+
+/** Start retention after a result settles. An offline request can wait in the queue longer than a week. */
+function pruneExpiredLiveTailResults(reportID: string, results: ReportPaginationState['liveTailRequestResults'], now: number) {
+    if (!results) {
+        return;
+    }
+    const updates: Record<string, {expiresAt: number} | null> = {};
+    for (const [id, result] of Object.entries(results)) {
+        if (result.expiresAt !== undefined && result.expiresAt <= now) {
+            updates[id] = null;
+        } else if (result.settled && result.expiresAt === undefined) {
+            updates[id] = {expiresAt: now + millisecondsInWeek};
+        }
+    }
+    if (Object.keys(updates).length > 0) {
+        Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_PAGINATION_STATE}${reportID}`, {liveTailRequestResults: updates});
+    }
 }
 
 function clearLiveTailRequestResult(reportID: string, requestID: string) {
@@ -9749,6 +9769,7 @@ export {
     setOptimisticTransactionThread,
     prepareOnyxDataForCleanUpOptimisticParticipants,
     clearLiveTailRequestResult,
+    pruneExpiredLiveTailResults,
     pruneReportActionPagesToNewestWindow,
     getGuidedSetupDataForOpenReport,
     getReportChannelName,

@@ -104,7 +104,11 @@ function useReportActionsListScroll({
             },
             computeVisibleIndices: () => {
                 const state = legendListRef.current?.getState();
-                return state ? {startIndex: state.start, endIndex: state.end} : undefined;
+                // LegendList can return null bounds during layout despite its numeric public types.
+                if (!state || typeof state.start !== 'number' || typeof state.end !== 'number' || state.start < 0 || state.end < state.start) {
+                    return undefined;
+                }
+                return {startIndex: state.start, endIndex: state.end};
             },
             scrollToEnd: (options) => {
                 legendListRef.current?.scrollToEnd(options);

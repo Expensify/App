@@ -307,7 +307,7 @@ function ReportActionsListContent({reportID, onLayout}: ReportActionsListProps) 
                     {...legendListProps}
                     accessibilityLabel={Platform.OS === 'web' ? undefined : translate('sidebarScreen.listOfChatMessages')}
                     aria-label={Platform.OS === 'web' ? translate('sidebarScreen.listOfChatMessages') : undefined}
-                    role={Platform.OS === 'web' ? 'group' : undefined}
+                    role={Platform.OS === 'web' ? CONST.ROLE.GROUP : undefined}
                     data-testid={Platform.OS === 'web' ? CONST.TEST_ID.REPORT_ACTIONS_LIST : undefined}
                     testID={Platform.OS === 'web' ? undefined : CONST.TEST_ID.REPORT_ACTIONS_LIST}
                     style={[styles.flex1, styles.overscrollBehaviorContain]}

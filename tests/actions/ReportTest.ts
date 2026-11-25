@@ -1575,6 +1575,24 @@ describe('actions/Report', () => {
         expect((await Onyx.get(key))?.liveTailRequestResults).toEqual({jump: {settled: true}});
     });
 
+    it('removes abandoned newest-page results while preserving recent and unsettled requests from other tabs', async () => {
+        // Given another tab closed before acknowledging its result, while two other tabs still need theirs.
+        const key = `${ONYXKEYS.COLLECTION.REPORT_PAGINATION_STATE}1` as const;
+        const now = Date.now();
+        const results = {abandoned: {settled: true, expiresAt: now}, recent: {settled: true, expiresAt: now + 1}, pending: {newestActionID: '2'}, legacy: {settled: true}};
+        await Onyx.set(key, {newestFetchedReportActionID: '2', liveTailRequestResults: results});
+
+        // When the next reader requests the newest page after the abandoned result expires.
+        Report.pruneExpiredLiveTailResults('1', results, now);
+        await waitForBatchedUpdates();
+
+        // Then the old result is gone, and an older client's undated result gets time to be consumed.
+        expect(await Onyx.get(key)).toEqual({
+            newestFetchedReportActionID: '2',
+            liveTailRequestResults: {recent: results.recent, pending: results.pending, legacy: {settled: true, expiresAt: expect.any(Number)}},
+        });
+    });
+
     it('settles the newest-page openReport when the queue exhausts transport retries', async () => {
         // Given an online queue whose last attempt fails before any HTTP response arrives.
         const reportID = '1';

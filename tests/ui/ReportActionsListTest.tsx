@@ -63,6 +63,7 @@ import {makeMutable} from 'react-native-reanimated';
 
 import createMock from '../utils/createMock';
 import {buildSystemAction} from '../utils/ReportTestUtils';
+import {translateLocal} from '../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
 const mockUseIsFocused = jest.fn().mockReturnValue(false);
@@ -196,10 +197,10 @@ const mockLegendScrollToEnd = jest.fn();
 const mockLegendScrollToOffset = jest.fn();
 const mockLegendScrollToIndex = jest.fn();
 const mockLegendPositionByKey = jest.fn(() => 1500);
-const mockLegendGetState = jest.fn(() => ({
+const mockLegendGetState = jest.fn((start: number | null = 2, end: number | null = 4) => ({
     positionByKey: mockLegendPositionByKey,
-    start: 2,
-    end: 4,
+    start,
+    end,
     isAtEnd: false,
     contentLength: 1000,
     scrollLength: 500,
@@ -562,6 +563,18 @@ describe('ReportActionsList (body)', () => {
         expect(position).toBe(1500);
         expect(mockLegendPositionByKey).toHaveBeenCalledWith('linked-action');
         expect(visibleRange).toEqual({startIndex: 2, endIndex: 4});
+
+        // When no rows have been measured, let unread tracking use its last viewability snapshot.
+        const state = mockLegendGetState();
+        for (const [start, end] of [
+            [null, null],
+            [0, null],
+            [-1, -1],
+            [3, 2],
+        ] as const) {
+            mockLegendGetState.mockReturnValueOnce({...state, start, end});
+            expect(adapter?.computeVisibleIndices?.()).toBeUndefined();
+        }
     });
 
     describe('web keyboard scrolling', () => {
@@ -583,6 +596,22 @@ describe('ReportActionsList (body)', () => {
             mockLegendGetScrollableNode.mockImplementation(() => ({scrollTop: 0}));
             scroller.remove();
             outside.remove();
+        });
+
+        it('forwards the accessible name and group role to the web scroller', () => {
+            // Given the web report screen is focused.
+            mockUseIsFocused.mockReturnValue(true);
+
+            // When the list of chat messages mounts with the app's translations.
+            render(
+                <LocaleContextProvider>
+                    <ReportActionsList reportID={mockReport.reportID} />
+                </LocaleContextProvider>,
+            );
+
+            // Then a screen reader can identify the group by its name.
+            expect(getCapturedListProps()).toHaveProperty('role', CONST.ROLE.GROUP);
+            expect(getCapturedListProps()).toHaveProperty('aria-label', translateLocal('sidebarScreen.listOfChatMessages'));
         });
 
         it('releases linked positioning when paging a focused message or starting a pointer drag', () => {

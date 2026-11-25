@@ -240,11 +240,7 @@ function useReportActionsScroll({
             });
         },
         actionBadgeTargetIndex,
-        getVisibleIndexRange: () => {
-            const range = getListRef()?.current?.computeVisibleIndices?.();
-            // An empty viewport comes back as {-1, -2}, which would read as "target above", so fall back to the reported items
-            return range && range.startIndex >= 0 ? range : undefined;
-        },
+        getVisibleIndexRange: () => getListRef()?.current?.computeVisibleIndices?.(),
         shouldBeAlignedToTop,
     });
 
