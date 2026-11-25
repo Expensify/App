@@ -13,6 +13,7 @@ import {useSearchResultsContext} from '@components/Search/SearchContext';
 import Switch from '@components/Switch';
 import Text from '@components/Text';
 
+import {useMentionedAccountIDToNameMap} from '@hooks/useAccountIDToNameMap';
 import useAllTransactions from '@hooks/useAllTransactions';
 import useConfirmModal from '@hooks/useConfirmModal';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
@@ -128,6 +129,7 @@ function DynamicSplitExpenseEditPage({route}: DynamicSplitExpenseEditPageProps) 
 
     const [splitExpenseDraftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${CONST.IOU.OPTIMISTIC_TRANSACTION_ID}`);
     const [originalTransactionDraft] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${splitExpenseDraftTransaction?.comment?.originalTransactionID}`);
+    const accountIDToName = useMentionedAccountIDToNameMap(splitExpenseDraftTransaction?.comment?.comment ?? '');
 
     const allTransactions = useAllTransactions();
 
@@ -231,7 +233,7 @@ function DynamicSplitExpenseEditPage({route}: DynamicSplitExpenseEditPageProps) 
     const previousTagVisibility = usePrevious(tagVisibility);
 
     const splitExpenseDraftTransactionDetails: Partial<TransactionDetails> = getTransactionDetails(splitExpenseDraftTransaction) ?? {};
-    const currentDescription = getParsedComment(Parser.htmlToMarkdown(splitExpenseDraftTransactionDetails?.comment ?? ''));
+    const currentDescription = getParsedComment(Parser.htmlToMarkdown(splitExpenseDraftTransactionDetails?.comment ?? '', {accountIDToName}));
 
     const transactionCategory = splitExpenseDraftTransactionDetails?.category ?? '';
     const categoryForDisplay = isCategoryMissing(transactionCategory) ? '' : transactionCategory;

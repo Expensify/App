@@ -70,6 +70,7 @@ import React, {useRef} from 'react';
 import {View} from 'react-native';
 
 import useRemoveNonInteractiveClickHandler from './hooks/useRemoveNonInteractiveClickHandler';
+import MenuItemHtmlTitle from './MenuItemHtmlTitle';
 
 type IconProps = {
     /** Flag to choose between avatar image or an icon */
@@ -929,7 +930,7 @@ function MenuItem({
                                                                                 isSelectable={shouldEnableTextSelection ? true : undefined}
                                                                             />
                                                                         ) : (
-                                                                            <Text style={styles.webViewStyles.baseFontStyle}>{convertToLTR(Parser.htmlToText(processedTitle))}</Text>
+                                                                            <MenuItemHtmlTitle processedTitle={processedTitle} />
                                                                         )}
                                                                     </View>
                                                                 )}

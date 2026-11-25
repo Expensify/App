@@ -6,6 +6,7 @@ import type LastSearchParams from '@src/types/onyx/ReportNavigation';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
+import useAccountIDToNameMap from './useAccountIDToNameMap';
 import useActionLoadingReportIDs from './useActionLoadingReportIDs';
 import {useCurrencyListActions} from './useCurrencyList';
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
@@ -36,6 +37,7 @@ function useSearchSections(): UseSearchSectionsResult {
     const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
+    const accountIDToName = useAccountIDToNameMap();
     const reportAttributesDerivedValue = useReportAttributes();
 
     const {type, sortOrder, groupBy} = lastSearchQuery?.queryJSON ?? {};
@@ -68,6 +70,7 @@ function useSearchSections(): UseSearchSectionsResult {
             conciergeReportID,
             convertToDisplayString,
             reportAttributesDerivedValue,
+            accountIDToName,
         });
         results = getSortedSections(type, searchData, localeCompare, translate, getEffectiveSortBy(lastSearchQuery?.queryJSON), sortOrder, groupBy).map((value) => value.reportID);
     }

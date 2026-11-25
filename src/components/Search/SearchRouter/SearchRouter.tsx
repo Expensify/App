@@ -10,6 +10,7 @@ import {isSearchQueryItem} from '@components/Search/SearchList/ListItem/SearchQu
 import type {SearchQueryString} from '@components/Search/types';
 import type {SelectionListWithSectionsHandle} from '@components/SelectionList/SelectionListWithSections/types';
 
+import {useMentionedAccountIDToNameMap} from '@hooks/useAccountIDToNameMap';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDebouncedState from '@hooks/useDebouncedState';
@@ -232,6 +233,8 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
 
     const contextualReport = useReportOrReportDraft(contextualReportID);
     const contextualReportParentAction = useParentReportAction(contextualReport, {shouldIgnoreThreadReplies: true});
+    const contextualReportMentionSource = contextualReport ? `${contextualReport.reportName ?? ''} ${contextualReport.lastMessageHtml ?? ''}` : undefined;
+    const accountIDToName = useMentionedAccountIDToNameMap(contextualReportMentionSource);
     const [contextualReportPendingDeleteMemberAccountIDs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${getNonEmptyStringOnyxID(contextualReport?.reportID)}`, {
         selector: pendingDeleteMemberAccountIDsSelector,
     });
@@ -341,7 +344,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
                         text: StringUtils.lineBreaksToSpaces(
                             `${translate('search.searchIn')} ${
                                 shouldParserToHTML
-                                    ? Parser.htmlToText(reportForContextualSearch.text ?? reportForContextualSearch.alternateText ?? '')
+                                    ? Parser.htmlToText(reportForContextualSearch.text ?? reportForContextualSearch.alternateText ?? '', {accountIDToName})
                                     : (reportForContextualSearch.text ?? reportForContextualSearch.alternateText ?? '')
                             }`,
                         ),

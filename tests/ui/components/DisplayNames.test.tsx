@@ -40,7 +40,7 @@ describe('DisplayNames HTML Parsing', () => {
                 />,
             );
 
-            expect(mockHtmlToText).toHaveBeenCalledWith(htmlTitle);
+            expect(mockHtmlToText).toHaveBeenCalledWith(htmlTitle, {accountIDToName: undefined});
             expect(mockHtmlToText).toHaveBeenCalledTimes(1);
         });
 
@@ -68,7 +68,7 @@ describe('DisplayNames HTML Parsing', () => {
                 />,
             );
 
-            expect(mockHtmlToText).toHaveBeenCalledWith(htmlTitle);
+            expect(mockHtmlToText).toHaveBeenCalledWith(htmlTitle, {accountIDToName: undefined});
         });
     });
 });

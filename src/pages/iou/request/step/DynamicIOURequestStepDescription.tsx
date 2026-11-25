@@ -3,6 +3,7 @@ import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import TextInput from '@components/TextInput';
 
+import {useMentionedAccountIDToNameMap} from '@hooks/useAccountIDToNameMap';
 import useAllTransactionViolations from '@hooks/useAllTransactionViolations';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
@@ -90,13 +91,14 @@ function DynamicIOURequestStepDescription({
     const isEditingSplit = (iouType === CONST.IOU.TYPE.SPLIT || iouType === CONST.IOU.TYPE.SPLIT_EXPENSE) && isEditing;
     const isTransactionDraft = shouldUseTransactionDraft(action, iouType);
 
+    const currentCommentHtml = isEditingSplit && !lodashIsEmpty(splitDraftTransaction) ? (splitDraftTransaction?.comment?.comment ?? '') : (transaction?.comment?.comment ?? '');
+    const accountIDToName = useMentionedAccountIDToNameMap(currentCommentHtml);
+
     let currentDescriptionInMarkdown;
     if (!isTransactionDraft || iouType === CONST.IOU.TYPE.SPLIT_EXPENSE) {
-        currentDescriptionInMarkdown = Parser.htmlToMarkdown(
-            isEditingSplit && !lodashIsEmpty(splitDraftTransaction) ? (splitDraftTransaction?.comment?.comment ?? '') : (transaction?.comment?.comment ?? ''),
-        );
+        currentDescriptionInMarkdown = Parser.htmlToMarkdown(currentCommentHtml, {accountIDToName});
     } else {
-        currentDescriptionInMarkdown = isEditingSplit && !lodashIsEmpty(splitDraftTransaction) ? (splitDraftTransaction?.comment?.comment ?? '') : (transaction?.comment?.comment ?? '');
+        currentDescriptionInMarkdown = currentCommentHtml;
     }
 
     const [currentDescription, setCurrentDescription] = useState(currentDescriptionInMarkdown);

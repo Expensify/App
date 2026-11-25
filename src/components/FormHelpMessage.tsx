@@ -1,4 +1,5 @@
 import useAccessibilityAnnouncement from '@hooks/useAccessibilityAnnouncement';
+import {useMentionedAccountIDToNameMap} from '@hooks/useAccountIDToNameMap';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -82,16 +83,16 @@ function FormHelpMessage({
     const visibleMessageRole = shouldUseSeparateWebLiveAnnouncement || !shouldAnnounceError ? undefined : CONST.ROLE.ALERT;
     const visibleMessageLiveRegion = shouldUseSeparateWebLiveAnnouncement || !shouldAnnounceError ? undefined : 'assertive';
 
+    const trimmedMessage = typeof message === 'string' ? message.trim() : '';
+    const accountIDToName = useMentionedAccountIDToNameMap(shouldRenderMessageAsHTML ? trimmedMessage : undefined);
+
     let errorAnnouncementText;
     if (!isError || typeof message !== 'string') {
         errorAnnouncementText = '';
+    } else if (!trimmedMessage) {
+        errorAnnouncementText = '';
     } else {
-        const trimmedMessage = message.trim();
-        if (!trimmedMessage) {
-            errorAnnouncementText = '';
-        } else {
-            errorAnnouncementText = shouldRenderMessageAsHTML ? Parser.htmlToText(trimmedMessage) : trimmedMessage;
-        }
+        errorAnnouncementText = shouldRenderMessageAsHTML ? Parser.htmlToText(trimmedMessage, {accountIDToName}) : trimmedMessage;
     }
 
     const hasError = errorAnnouncementText.length > 0;

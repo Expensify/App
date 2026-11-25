@@ -58,6 +58,8 @@ function useGroupedItems(searchResults: OnyxEntry<SearchResults>, queryJSON: Rea
                       convertToDisplayString,
                       onyxPersonalDetailsList,
                       reportAttributesDerivedValue: undefined,
+                      // accountIDToName is only needed for task/report sections; chart rows are always EXPENSE type.
+                      accountIDToName: undefined,
                   })[0],
                   localeCompare,
                   translate,

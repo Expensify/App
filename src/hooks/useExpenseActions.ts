@@ -59,6 +59,7 @@ import {policyExpenseChatSelector} from '@selectors/Report';
 import {validTransactionDraftsSelector} from '@selectors/TransactionDraft';
 import {useRef} from 'react';
 
+import useAccountIDToNameMap from './useAccountIDToNameMap';
 import useBlockDistanceRequest from './useBlockDistanceRequest';
 import useConfirmModal from './useConfirmModal';
 import {useCurrencyListActions} from './useCurrencyList';
@@ -109,6 +110,7 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
     const isVendorMatchingBetaEnabled = isBetaEnabledOrUnknown(CONST.BETAS.VENDOR_MATCHING);
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const {getCurrencyDecimals, getCurrencySymbol} = useCurrencyListActions();
+    const accountIDToName = useAccountIDToNameMap();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const delegateAccountID = useDelegateAccountID();
     const getPersonalDetailsByLogin = useGetPersonalDetailsByLogin();
@@ -317,6 +319,7 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
                 participantsPolicyTags,
                 conciergeChat,
                 rules,
+                accountIDToName,
             });
         }
     };
@@ -506,6 +509,7 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
                     participantsPolicyTags: reportDuplicateParticipantsPolicyTags,
                     conciergeChat,
                     rules,
+                    accountIDToName,
                 });
             },
         },

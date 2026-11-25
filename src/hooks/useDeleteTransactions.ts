@@ -33,6 +33,7 @@ import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 
 import type {CurrencyListActionsContextType} from './useCurrencyList';
 
+import {buildAccountIDToNameMap} from './useAccountIDToNameMap';
 import {useCurrencyListActions} from './useCurrencyList';
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import useDelegateAccountID from './useDelegateAccountID';
@@ -332,6 +333,7 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
                 formatPhoneNumber,
                 rules,
                 shouldFlagNewSplitsForReportTable: false,
+                accountIDToName: buildAccountIDToNameMap(personalDetails ?? undefined),
             });
         }
 

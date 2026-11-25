@@ -352,6 +352,7 @@ type GetReportSectionsParams = {
     reportActions?: Record<string, OnyxTypes.ReportAction[]>;
     queryJSON?: SearchQueryJSON;
     onyxPersonalDetailsList?: OnyxTypes.PersonalDetailsList;
+    accountIDToName?: Record<string, string>;
 };
 
 type GetTransactionSectionsParams = {
@@ -777,6 +778,7 @@ type GetSectionsParams = {
     reportAttributesDerivedValue: OnyxTypes.ReportAttributesDerivedValue['reports'] | undefined;
     /** Whether a trip search returns trip rooms, which it only does with the TravelApproval beta */
     shouldReturnTripRooms?: boolean;
+    accountIDToName?: Record<string, string>;
 };
 
 /**
@@ -2626,6 +2628,7 @@ function getTaskSections(
     reportNameValuePairs?: OnyxCollection<OnyxTypes.ReportNameValuePairs>,
     reportAttributesDerivedValue?: OnyxTypes.ReportAttributesDerivedValue['reports'],
     queryJSON?: SearchQueryJSON,
+    accountIDToName?: Record<string, string>,
 ): [TaskListItemType[], number] {
     const {shouldShowYearCreated} = shouldShowYear(data);
     const currentQueryJSON = queryJSON ?? getCurrentSearchQueryJSON();
@@ -2646,8 +2649,8 @@ function getTaskSections(
             const report = getReportOrDraftReport({reportID: taskItem.reportID}) ?? taskItem;
             const parentReport = getSearchRowReport(data, taskItem.parentReportID);
 
-            const reportName = StringUtils.lineBreaksToSpaces(Parser.htmlToText(taskItem.reportName));
-            const description = StringUtils.lineBreaksToSpaces(Parser.htmlToText(taskItem.description));
+            const reportName = StringUtils.lineBreaksToSpaces(Parser.htmlToText(taskItem.reportName, {accountIDToName}));
+            const description = StringUtils.lineBreaksToSpaces(Parser.htmlToText(taskItem.description, {accountIDToName}));
 
             const result: TaskListItemType = {
                 ...taskItem,
@@ -3096,6 +3099,7 @@ function getReportSections({
     queryJSON,
     onyxPersonalDetailsList,
     convertToDisplayString,
+    accountIDToName,
 }: GetReportSectionsParams): [TransactionGroupListItemType[], number, boolean] {
     const {
         transactionKeys,
@@ -3263,7 +3267,7 @@ function getReportSections({
                     reportIDToTransactions[reportKey].reportName = getIOUReportName(formatPhoneNumber, translate, convertToDisplayString, data, reportIDToTransactions[reportKey]);
                 }
 
-                reportIDToTransactions[reportKey].reportName = StringUtils.lineBreaksToSpaces(Parser.htmlToText(reportIDToTransactions[reportKey].reportName ?? ''));
+                reportIDToTransactions[reportKey].reportName = StringUtils.lineBreaksToSpaces(Parser.htmlToText(reportIDToTransactions[reportKey].reportName ?? '', {accountIDToName}));
             }
         } else if (isTransactionEntry(key)) {
             const transactionItem = {...data[key]};
@@ -4266,6 +4270,7 @@ function getSections({
     optimisticTransactionID,
     reportAttributesDerivedValue,
     shouldReturnTripRooms = false,
+    accountIDToName,
 }: GetSectionsParams): GetSectionsResult {
     if (type === CONST.SEARCH.DATA_TYPES.CHAT) {
         // The count keeps the bill actions, because paging compares it with the server offset, which counts them.
@@ -4273,7 +4278,7 @@ function getSections({
         return [omitBillReportActionRows(reportActionRows, data), reportActionCount, false];
     }
     if (type === CONST.SEARCH.DATA_TYPES.TASK) {
-        return [...getTaskSections(data, formatPhoneNumber, translate, conciergeReportID, reportNameValuePairs, reportAttributesDerivedValue, queryJSON), false];
+        return [...getTaskSections(data, formatPhoneNumber, translate, conciergeReportID, reportNameValuePairs, reportAttributesDerivedValue, queryJSON, accountIDToName), false];
     }
     if (type === CONST.SEARCH.DATA_TYPES.TRIP && shouldReturnTripRooms) {
         return [...getTripSections(data, formatPhoneNumber, translate), false];
@@ -4296,6 +4301,7 @@ function getSections({
             queryJSON,
             onyxPersonalDetailsList,
             convertToDisplayString,
+            accountIDToName,
         });
     }
 

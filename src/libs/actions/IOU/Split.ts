@@ -274,6 +274,7 @@ type CompleteSplitBillActionParams = {
     rules: OnyxCollection<OnyxTypes.Rule>;
     personalDetailsByLogins: PersonalDetailsByLogin;
     isVendorMatchingBetaEnabled: boolean | undefined;
+    accountIDToName?: Record<string, string>;
 };
 
 type SplitBillActionsParams = {
@@ -975,12 +976,13 @@ function completeSplitBill({
     getCurrencyDecimals,
     rules,
     personalDetailsByLogins,
+    accountIDToName,
 }: CompleteSplitBillActionParams) {
     if (!reportAction) {
         return;
     }
 
-    const parsedComment = getParsedComment(Parser.htmlToMarkdown(updatedTransaction?.comment?.comment ?? ''));
+    const parsedComment = getParsedComment(Parser.htmlToMarkdown(updatedTransaction?.comment?.comment ?? '', {accountIDToName}));
     if (updatedTransaction?.comment) {
         // eslint-disable-next-line no-param-reassign
         updatedTransaction.comment.comment = parsedComment;

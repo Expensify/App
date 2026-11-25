@@ -7,6 +7,7 @@ import type {ListItem as NewListItem, ListItemProps} from '@components/Selection
 import SelectionListWithSections from '@components/SelectionList/SelectionListWithSections';
 import type {Section, SelectionListWithSectionsHandle} from '@components/SelectionList/SelectionListWithSections/types';
 
+import useAccountIDToNameMap from '@hooks/useAccountIDToNameMap';
 import useAutocompleteSuggestions from '@hooks/useAutocompleteSuggestions';
 import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
@@ -205,6 +206,7 @@ function SearchAutocompleteList({
     const styles = useThemeStyles();
     const {translate, localeCompare, formatPhoneNumber, dateFnsLocale} = useLocalize();
     const {convertToDisplayString, convertToDisplayStringWithoutCurrency} = useCurrencyListActions();
+    const accountIDToName = useAccountIDToNameMap();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const contentContainerStyle = useBottomSafeSafeAreaPaddingStyle({
         addOfflineIndicatorBottomSafeAreaPadding: true,
@@ -648,7 +650,7 @@ function SearchAutocompleteList({
             ...option,
             keyForList,
             pressableStyle: styles.br2,
-            text: StringUtils.lineBreaksToSpaces(shouldParserToHTML ? Parser.htmlToText(option.text ?? '') : (option.text ?? '')),
+            text: StringUtils.lineBreaksToSpaces(shouldParserToHTML ? Parser.htmlToText(option.text ?? '', {accountIDToName}) : (option.text ?? '')),
         } as AutocompleteListItem;
     });
     const skeletonHeader = (

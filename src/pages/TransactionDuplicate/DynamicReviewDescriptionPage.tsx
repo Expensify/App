@@ -1,6 +1,7 @@
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 
+import {useMentionedAccountIDToNameMap} from '@hooks/useAccountIDToNameMap';
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -46,13 +47,19 @@ function DynamicReviewDescriptionPage() {
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${getNonEmptyStringOnyxID(reviewDuplicatesReport?.policyID)}`);
 
     const compareResult = compareDuplicateTransactionFields(policyTags ?? {}, transaction, allDuplicates, reviewDuplicatesReport, reviewDuplicates?.transactionID, policy, policyCategories);
+    const allDescriptionCommentsHtml =
+        compareResult.change.description
+            ?.map((d) => d?.comment)
+            .filter(Boolean)
+            .join(' ') ?? '';
+    const accountIDToName = useMentionedAccountIDToNameMap(allDescriptionCommentsHtml);
     const stepNames = Object.keys(compareResult.change ?? {}).map((key, index) => (index + 1).toString());
     const {currentScreenIndex, navigateToNextScreen} = useReviewDuplicatesNavigation(Object.keys(compareResult.change ?? {}), 'description', route.params.reportID, route.params.backTo);
     const options = compareResult.change.description?.map((description) =>
         !description?.comment
             ? {text: translate('violations.none'), value: ''}
             : {
-                  text: StringUtils.lineBreaksToSpaces(Parser.htmlToText(description.comment)),
+                  text: StringUtils.lineBreaksToSpaces(Parser.htmlToText(description.comment, {accountIDToName})),
                   value: description.comment,
               },
     );

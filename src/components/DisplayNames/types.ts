@@ -59,6 +59,9 @@ type DisplayNamesProps = ForwardedFSClassProps & {
     renderAdditionalText?: () => React.ReactNode;
 
     testID?: number;
+
+    /** Map of accountID to display name, used for resolving mention-user tags in the title */
+    accountIDToName?: Record<string, string>;
 };
 
 export default DisplayNamesProps;

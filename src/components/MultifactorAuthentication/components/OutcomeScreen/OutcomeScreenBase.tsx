@@ -9,6 +9,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 
+import {useMentionedAccountIDToNameMap} from '@hooks/useAccountIDToNameMap';
 import {useMemoizedLazyAsset} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -48,6 +49,7 @@ type OutcomeScreenBaseProps = {
 
 function HTMLSubtitle({htmlString = '', style}: {htmlString?: string; style?: ViewStyle}) {
     const styles = useThemeStyles();
+    const accountIDToName = useMentionedAccountIDToNameMap(htmlString);
 
     // RenderHTML expands vertically beyond its content height. We render
     // invisible Text to establish natural height, then overlay RenderHTML
@@ -55,7 +57,7 @@ function HTMLSubtitle({htmlString = '', style}: {htmlString?: string; style?: Vi
     return (
         <View>
             <View style={[styles.opacity0, style]}>
-                <Text style={[styles.textAlignCenter]}>{Parser.htmlToText(htmlString)}</Text>
+                <Text style={[styles.textAlignCenter]}>{Parser.htmlToText(htmlString, {accountIDToName})}</Text>
             </View>
             <View style={[styles.pAbsolute, style]}>
                 <RenderHTML html={`<centered-text><muted-text>${htmlString}</muted-text></centered-text>`} />

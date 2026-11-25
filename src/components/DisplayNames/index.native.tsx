@@ -23,10 +23,11 @@ function DisplayNames({
     testID,
     shouldParseFullTitle = true,
     isSelectable = false,
+    accountIDToName,
 }: DisplayNamesProps) {
     const {translate} = useLocalize();
     const titleContainsTextAndCustomEmoji = containsCustomEmoji(fullTitle) && !containsOnlyCustomEmoji(fullTitle);
-    const processedTitle = shouldParseFullTitle ? Parser.htmlToText(fullTitle) : fullTitle;
+    const processedTitle = shouldParseFullTitle ? Parser.htmlToText(fullTitle, {accountIDToName}) : fullTitle;
     const title = StringUtils.lineBreaksToSpaces(processedTitle) || translate('common.hidden');
 
     return (

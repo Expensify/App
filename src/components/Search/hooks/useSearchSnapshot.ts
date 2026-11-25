@@ -2,6 +2,7 @@ import {useSearchQueryContext, useSearchResultsContext} from '@components/Search
 import type {SearchListItem, TransactionGroupListItemType, TransactionListItemType} from '@components/Search/SearchList/ListItem/types';
 import type {SearchColumnType, SearchData, SearchQueryJSON, SelectedTransactions} from '@components/Search/types';
 
+import {buildAccountIDToNameMap} from '@hooks/useAccountIDToNameMap';
 import useActionLoadingReportIDs from '@hooks/useActionLoadingReportIDs';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -254,6 +255,7 @@ function useSearchSnapshot({queryJSON, searchResults, transactions, reportAction
                   reportAttributesDerivedValue: reportAttributesForSections,
                   optimisticTransactionID,
                   shouldReturnTripRooms,
+                  accountIDToName: buildAccountIDToNameMap(onyxPersonalDetailsList ?? undefined),
               }
             : undefined,
     );
@@ -294,6 +296,7 @@ function useSearchSnapshot({queryJSON, searchResults, transactions, reportAction
                       convertToDisplayString,
                       reportActions: exportReportActions,
                       reportAttributesDerivedValue: undefined,
+                      accountIDToName: buildAccountIDToNameMap(onyxPersonalDetailsList ?? undefined),
                   });
                   // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- group children are flat transactions
                   const typedGroupTransactions = groupTransactions as TransactionListItemType[];

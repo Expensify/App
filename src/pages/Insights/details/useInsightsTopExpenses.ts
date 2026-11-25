@@ -58,6 +58,8 @@ function useInsightsTopExpenses(query: SearchQueryString, snapshotHash: number):
         conciergeReportID,
         convertToDisplayString,
         reportAttributesDerivedValue: undefined,
+        // accountIDToName is only needed for task/report sections; insights only queries expenses.
+        accountIDToName: undefined,
         queryJSON,
     });
     // The server sorts by the converted amount, while the client can only sort by each expense's own currency
