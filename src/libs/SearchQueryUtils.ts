@@ -3465,16 +3465,21 @@ function buildFilterQueryWithSortDefaults(
 
     let {sortBy, sortOrder} = currentQueryOptions;
     if (resetSort) {
-        // Parse without sorting to distinguish the old defaults from a user's chosen direction, including chart defaults.
-        const previousDefaults = buildSearchQueryJSON(buildQueryStringFromFilterFormValues({type: filterValues.type, ...previousState}));
-        if (sortOrder === previousDefaults?.sortOrder) {
-            sortOrder = undefined;
-        }
-
         // The parser already remaps date and group default columns. Only custom columns need a compatibility check.
         const queryWithSortBy = buildSearchQueryJSON(buildQueryStringFromFilterFormValues(filterValues, {sortBy}));
         const isSortByRemapped = queryWithSortBy && queryWithSortBy.sortBy !== sortBy;
-        if (!isSortByRemapped && !getCustomColumns(filterValues.groupBy ?? filterValues.type ?? CONST.SEARCH.DATA_TYPES.EXPENSE).some((column) => getSortByForColumn(column) === sortBy)) {
+        const isCustomSortBySupported = getCustomColumns(filterValues.groupBy ?? filterValues.type ?? CONST.SEARCH.DATA_TYPES.EXPENSE).some(
+            (column) => getSortByForColumn(column) === sortBy,
+        );
+
+        // A surviving custom column keeps its chosen direction even when it matches the old grouping's default.
+        // Otherwise, parse without sorting to distinguish the old defaults from a user's chosen direction, including chart defaults.
+        const previousDefaults = buildSearchQueryJSON(buildQueryStringFromFilterFormValues({type: filterValues.type, ...previousState}));
+        if ((isSortByRemapped || !isCustomSortBySupported) && sortOrder === previousDefaults?.sortOrder) {
+            sortOrder = undefined;
+        }
+
+        if (!isSortByRemapped && !isCustomSortBySupported) {
             sortBy = undefined;
         }
     }

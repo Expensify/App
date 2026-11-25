@@ -61,10 +61,6 @@ function getCustomColumns(value?: SearchDataTypes | SearchGroupBy): SearchCustom
             return Object.values(CONST.SEARCH.GROUP_CUSTOM_COLUMNS.APPROVER);
         case CONST.SEARCH.GROUP_BY.VIOLATION:
             return Object.values(CONST.SEARCH.GROUP_CUSTOM_COLUMNS.VIOLATION);
-        case CONST.SEARCH.GROUP_BY.PAID_BY:
-            return Object.values(CONST.SEARCH.GROUP_CUSTOM_COLUMNS.PAID_BY);
-        case CONST.SEARCH.GROUP_BY.WORKFLOW_STAGE:
-            return Object.values(CONST.SEARCH.GROUP_CUSTOM_COLUMNS.WORKFLOW_STAGE);
         default:
             return [];
     }
