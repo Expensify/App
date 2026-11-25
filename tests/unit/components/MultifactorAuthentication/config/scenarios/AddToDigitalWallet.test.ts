@@ -2,6 +2,7 @@
 import AddToDigitalWallet from '@components/MultifactorAuthentication/config/scenarios/AddToDigitalWallet';
 
 import {getPaymentMethods} from '@libs/actions/PaymentMethods';
+import refreshCardWalletStatus from '@libs/actions/refreshCardWalletStatus';
 import getPlatform from '@libs/getPlatform';
 import Navigation from '@libs/Navigation/Navigation';
 import {handleAddCardToWallet} from '@libs/Wallet';
@@ -15,6 +16,7 @@ import createMock from '../../../../../utils/createMock';
 
 jest.mock('@libs/Wallet', () => ({handleAddCardToWallet: jest.fn()}));
 jest.mock('@libs/actions/PaymentMethods', () => ({getPaymentMethods: jest.fn()}));
+jest.mock('@libs/actions/refreshCardWalletStatus', () => ({__esModule: true, default: jest.fn().mockResolvedValue(undefined)}));
 jest.mock('@libs/getPlatform', () => ({__esModule: true, default: jest.fn()}));
 jest.mock('@libs/Navigation/Navigation', () => ({__esModule: true, default: {navigate: jest.fn()}}));
 
@@ -83,8 +85,9 @@ describe('AddToDigitalWallet scenario', () => {
         // When the provider invokes the scenario completion callback.
         const result = await AddToDigitalWallet.callback(true, {httpStatusCode: 200}, params);
 
-        // Then refresh occurs once and only iOS retains the added-card navigation.
+        // Then cards and the wallet status refresh once and only iOS retains the added-card navigation.
         expect(getPaymentMethods).toHaveBeenCalledTimes(1);
+        expect(refreshCardWalletStatus).toHaveBeenCalledWith(params.card);
         if (platform === CONST.PLATFORM.IOS) {
             expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.SETTINGS_WALLET_CARD_ADDED_TO_WALLET.getRoute('123'));
         } else {
@@ -100,6 +103,7 @@ describe('AddToDigitalWallet scenario', () => {
         // Then the shared failure UI owns dismissal/retry and success side effects never run.
         expect(result).toBe(CONST.MULTIFACTOR_AUTHENTICATION.CALLBACK_RESPONSE.SHOW_OUTCOME_SCREEN);
         expect(getPaymentMethods).not.toHaveBeenCalled();
+        expect(refreshCardWalletStatus).not.toHaveBeenCalled();
         expect(Navigation.navigate).not.toHaveBeenCalled();
     });
 });

@@ -2,6 +2,7 @@
 import type {MultifactorAuthenticationScenarioCustomConfig} from '@components/MultifactorAuthentication/config/types';
 
 import {getPaymentMethods} from '@libs/actions/PaymentMethods';
+import refreshCardWalletStatus from '@libs/actions/refreshCardWalletStatus';
 import getPlatform from '@libs/getPlatform';
 import Navigation from '@libs/Navigation/Navigation';
 import {handleAddCardToWallet} from '@libs/Wallet';
@@ -55,6 +56,7 @@ export default {
             return CONST.MULTIFACTOR_AUTHENTICATION.CALLBACK_RESPONSE.SHOW_OUTCOME_SCREEN;
         }
         getPaymentMethods();
+        refreshCardWalletStatus(payload.card);
         if (getPlatform() === CONST.PLATFORM.IOS) {
             Navigation.navigate(ROUTES.SETTINGS_WALLET_CARD_ADDED_TO_WALLET.getRoute(String(payload.card.cardID)));
         }
