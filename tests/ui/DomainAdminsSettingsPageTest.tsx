@@ -30,8 +30,7 @@ const DOMAIN_ACCOUNT_ID = 424242;
 const DOMAIN_NAME = 'acme.com';
 const DOMAIN_KEY = `${ONYXKEYS.COLLECTION.DOMAIN}${DOMAIN_ACCOUNT_ID}` as const;
 const DOMAIN_MEMBER_KEY = `${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${DOMAIN_ACCOUNT_ID}` as const;
-const OUTSIDE_CONTACT_EMAIL = 'accountant@example.com';
-const DOMAIN_CONTACT_EMAIL = 'owner@acme.com';
+const PRIMARY_CONTACT_EMAIL = 'owner@acme.com';
 const CURRENT_USER_EMAIL = 'admin@acme.com';
 
 let mockCurrentUserLogin = CURRENT_USER_EMAIL;
@@ -66,10 +65,10 @@ const navigation = {} as DomainAdminsSettingsPageProps['navigation'];
 // Resolved lazily at assertion time, because IntlStore has not loaded the locale yet at module load.
 const getLockedSuffix = () => TestHelper.translateLocal('common.locked');
 
-async function seedDomain(technicalContactEmail: string | undefined, isValidated = true) {
+async function seedDomain(technicalContactEmail: string | undefined, isBillingOn = false) {
     await act(async () => {
-        await Onyx.merge(DOMAIN_KEY, {accountID: DOMAIN_ACCOUNT_ID, email: `+@${DOMAIN_NAME}`, validated: isValidated});
-        await Onyx.merge(DOMAIN_MEMBER_KEY, {settings: {technicalContactEmail, useTechnicalContactBillingCard: false}});
+        await Onyx.merge(DOMAIN_KEY, {accountID: DOMAIN_ACCOUNT_ID, email: `+@${DOMAIN_NAME}`});
+        await Onyx.merge(DOMAIN_MEMBER_KEY, {settings: {technicalContactEmail, useTechnicalContactBillingCard: isBillingOn}});
     });
 }
 
@@ -111,14 +110,14 @@ describe('DomainAdminsSettingsPage consolidated domain billing switch', () => {
         });
     });
 
-    it('locks the switch and explains why when the primary contact is outside the domain', async () => {
-        // Given a primary contact whose email is not on the domain, viewed by another admin
-        await seedDomain(OUTSIDE_CONTACT_EMAIL);
+    it('locks the switch and explains why when another admin is the primary contact', async () => {
+        // Given billing that is off, with another admin as the primary contact
+        await seedDomain(PRIMARY_CONTACT_EMAIL);
 
         // When the admin presses the switch
         const switchNode = await renderPageAndPressSwitch();
 
-        // Then the switch is locked and the modal tells the admin that only the primary contact can change it
+        // Then the switch is locked and the modal tells the admin that only the primary contact can turn it on
         expect(switchNode.props.accessibilityLabel).toContain(getLockedSuffix());
         expect(toggleConsolidatedDomainBilling).not.toHaveBeenCalled();
         expect(mockShowConfirmModal).toHaveBeenCalledWith(
@@ -129,36 +128,10 @@ describe('DomainAdminsSettingsPage consolidated domain billing switch', () => {
         );
     });
 
-    it('locks the switch when the domain is not verified, even for a contact on the domain', async () => {
-        // Given a primary contact with an email on an unverified domain, where no account counts as a domain member
-        await seedDomain(DOMAIN_CONTACT_EMAIL, false);
-
-        // When another admin presses the switch
-        const switchNode = await renderPageAndPressSwitch();
-
-        // Then the switch is locked and opens the modal instead of changing the setting
-        expect(switchNode.props.accessibilityLabel).toContain(getLockedSuffix());
-        expect(toggleConsolidatedDomainBilling).not.toHaveBeenCalled();
-        expect(mockShowConfirmModal).toHaveBeenCalledTimes(1);
-    });
-
-    it('lets any admin change the setting when the primary contact is on the domain', async () => {
-        // Given a primary contact on the verified domain
-        await seedDomain(DOMAIN_CONTACT_EMAIL);
-
-        // When another admin presses the switch
-        const switchNode = await renderPageAndPressSwitch();
-
-        // Then the switch is not locked and turns billing on without a modal
-        expect(switchNode.props.accessibilityLabel).not.toContain(getLockedSuffix());
-        expect(mockShowConfirmModal).not.toHaveBeenCalled();
-        expect(toggleConsolidatedDomainBilling).toHaveBeenCalledWith(DOMAIN_ACCOUNT_ID, DOMAIN_NAME, true);
-    });
-
-    it('lets the primary contact change the setting when they are outside the domain', async () => {
-        // Given an outside primary contact viewing the page
-        await seedDomain(OUTSIDE_CONTACT_EMAIL);
-        mockCurrentUserLogin = OUTSIDE_CONTACT_EMAIL;
+    it('lets the primary contact turn the setting on', async () => {
+        // Given billing that is off, viewed by the primary contact
+        await seedDomain(PRIMARY_CONTACT_EMAIL);
+        mockCurrentUserLogin = PRIMARY_CONTACT_EMAIL;
 
         // When the primary contact presses the switch
         const switchNode = await renderPageAndPressSwitch();
@@ -167,6 +140,19 @@ describe('DomainAdminsSettingsPage consolidated domain billing switch', () => {
         expect(switchNode.props.accessibilityLabel).not.toContain(getLockedSuffix());
         expect(mockShowConfirmModal).not.toHaveBeenCalled();
         expect(toggleConsolidatedDomainBilling).toHaveBeenCalledWith(DOMAIN_ACCOUNT_ID, DOMAIN_NAME, true);
+    });
+
+    it('lets any admin turn the setting off', async () => {
+        // Given billing that is on, with another admin as the primary contact
+        await seedDomain(PRIMARY_CONTACT_EMAIL, true);
+
+        // When the admin presses the switch
+        const switchNode = await renderPageAndPressSwitch();
+
+        // Then the switch is not locked and turns billing off without a modal
+        expect(switchNode.props.accessibilityLabel).not.toContain(getLockedSuffix());
+        expect(mockShowConfirmModal).not.toHaveBeenCalled();
+        expect(toggleConsolidatedDomainBilling).toHaveBeenCalledWith(DOMAIN_ACCOUNT_ID, DOMAIN_NAME, false);
     });
 
     it('opens no modal when the switch is disabled because there is no primary contact', async () => {
