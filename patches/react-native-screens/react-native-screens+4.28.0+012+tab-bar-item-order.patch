@@ -1,8 +1,16 @@
 diff --git a/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/container/TabsContainer.kt b/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/container/TabsContainer.kt
-index a2b93b0..3f25442 100644
+index a2b93b0..69e612a 100644
 --- a/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/container/TabsContainer.kt
 +++ b/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/container/TabsContainer.kt
-@@ -168,6 +168,14 @@ class TabsContainer internal constructor(
+@@ -19,6 +19,7 @@ import androidx.core.view.children
+ import androidx.core.view.size
+ import androidx.core.widget.NestedScrollView
+ import androidx.fragment.app.FragmentManager
++import androidx.transition.TransitionManager
+ import com.google.android.material.R
+ import com.google.android.material.bottomnavigation.BottomNavigationView
+ import com.google.android.material.navigation.NavigationBarItemView
+@@ -168,6 +169,14 @@ class TabsContainer internal constructor(
  
      private var interfaceInsetsChangeListener: SafeAreaView? = null
  
@@ -17,7 +25,7 @@ index a2b93b0..3f25442 100644
      internal var tabBarHidden: Boolean by Delegates.observable(false) { _, oldValue, newValue ->
          if (newValue != oldValue) {
              updateInterfaceInsets()
-@@ -542,9 +550,10 @@ class TabsContainer internal constructor(
+@@ -542,9 +551,10 @@ class TabsContainer internal constructor(
  
      private fun updateNavigationMenuStructure() {
          val menu = bottomNavigationView.menu
@@ -30,7 +38,7 @@ index a2b93b0..3f25442 100644
                      menu.getItem(index).itemId == fragment.menuItemId
                  }
  
-@@ -552,9 +561,27 @@ class TabsContainer internal constructor(
+@@ -552,9 +562,30 @@ class TabsContainer internal constructor(
              return
          }
          menu.clear()
@@ -43,6 +51,9 @@ index a2b93b0..3f25442 100644
 +        if (tabBarItemOrder.isNotEmpty() && navState.isNotEmpty()) {
 +            getFragmentForScreenKey(navState.selectedScreenKey)?.let { menu.findItem(it.menuItemId)?.isChecked = true }
 +        }
++        // Material fades the item views out and back in when the menu changes, which blinks the whole bar for a reorder
++        // that keeps every item in view.
++        (bottomNavigationView.getChildAt(0) as? ViewGroup)?.let { TransitionManager.endTransitions(it) }
 +    }
 +
 +    /**
