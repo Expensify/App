@@ -32,8 +32,9 @@ it('retries an unresolved policy URL, preserves stored messages, and shares only
         ...comment,
         reportActionID: '2',
         actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_NAME,
-        message: Object.freeze([message]),
+        message: [message],
     };
+    Object.freeze(policyAction.message);
     const report: ReportActions = Object.freeze({[comment.reportActionID]: comment, [policyAction.reportActionID]: policyAction});
     const pending = getSortedReportActionsForDisplay(report, true, true);
     // When the original asynchronous lookup resolves after the first read.
