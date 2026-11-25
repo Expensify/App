@@ -94,7 +94,6 @@ import {
     isActionCreator,
     isExpenseReport,
     isInvoiceReport,
-    isOpenReport,
     isReportApproved,
     isSettled as isSettledReportUtils,
     isTrackExpenseReportNew,
@@ -428,8 +427,7 @@ function MoneyRequestView({
     const {isExpenseSplit} = getOriginalTransactionWithSplitInfo(transaction, originalTransaction);
     const [transactionReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transaction?.reportID}`);
     const hasMultipleSplits = useHasMultipleSplitChildren(transaction?.comment?.originalTransactionID);
-    const isReportOpen = isOpenReport(moneyRequestReport);
-    const shouldShowSplitIndicator = isExpenseSplit && (hasMultipleSplits || isReportOpen);
+    const shouldShowSplitIndicator = isExpenseSplit && hasMultipleSplits;
     const isSplitAvailable =
         moneyRequestReport &&
         transaction &&
