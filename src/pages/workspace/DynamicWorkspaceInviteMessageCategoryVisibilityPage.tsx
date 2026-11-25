@@ -2,6 +2,7 @@
  * Lets a workspace admin choose which categories the members they're inviting can use, from the invite's "Confirm
  * details" screen. The choice is kept as a draft until the invite is sent.
  */
+import ActivityIndicator from '@components/ActivityIndicator';
 import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import ScreenWrapper from '@components/ScreenWrapper';
 
@@ -26,6 +27,7 @@ import type SCREENS from '@src/SCREENS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import React, {useEffect} from 'react';
+import {View} from 'react-native';
 
 import type {WithPolicyAndFullscreenLoadingProps} from './withPolicyAndFullscreenLoading';
 
@@ -88,13 +90,18 @@ function DynamicWorkspaceInviteMessageCategoryVisibilityPage({policy, route}: Dy
                     title={translate('workspace.people.categoryVisibility')}
                     onBackButtonPress={() => Navigation.goBack(backPath)}
                 />
-                <CategoryVisibilitySelectionList
-                    categories={categories}
-                    isLoading={isLoading}
-                    initialSelectedCategoryNames={initialSelectedCategoryNames}
-                    onSave={saveCategoryVisibility}
-                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.MEMBERS.INVITE_MESSAGE_CATEGORY_VISIBILITY_SAVE}
-                />
+                {isLoading ? (
+                    <View style={[styles.flex1, styles.justifyContentCenter, styles.alignItemsCenter]}>
+                        <ActivityIndicator size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE} />
+                    </View>
+                ) : (
+                    <CategoryVisibilitySelectionList
+                        categories={categories}
+                        initialSelectedCategoryNames={initialSelectedCategoryNames}
+                        onSave={saveCategoryVisibility}
+                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.MEMBERS.INVITE_MESSAGE_CATEGORY_VISIBILITY_SAVE}
+                    />
+                )}
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>
     );

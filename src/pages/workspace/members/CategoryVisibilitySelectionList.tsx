@@ -2,7 +2,6 @@
  * The checklist of a workspace's enabled categories that sets which ones a member can use, with search, select all and
  * a Save button. A member needs at least one category, so saving with none checked shows a modal instead.
  */
-import ActivityIndicator from '@components/ActivityIndicator';
 import BlockingView from '@components/BlockingViews/BlockingView';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import ScrollView from '@components/ScrollView';
@@ -25,21 +24,16 @@ import tokenizedSearch from '@libs/tokenizedSearch';
 
 import variables from '@styles/variables';
 
-import CONST from '@src/CONST';
 import type {PolicyCategory} from '@src/types/onyx';
 import type {WithRequiredSentryLabel} from '@src/types/utils/SentryLabel';
 
 import React from 'react';
-import {View} from 'react-native';
 
 type CategoryVisibilitySelectionListProps = WithRequiredSentryLabel & {
     /** The enabled categories the member can be given */
     categories: PolicyCategory[];
 
-    /** Shows a spinner instead of the list while the categories load */
-    isLoading: boolean;
-
-    /** The categories checked when the list opens */
+    /** The categories to check. The list follows changes to this until the user checks or unchecks something, so it can be passed before the categories load */
     initialSelectedCategoryNames: string[];
 
     /** Called with the checked categories that are still on the list, which is never empty */
@@ -50,7 +44,7 @@ type CategoryListItem = ListItem & {
     value: string;
 };
 
-function CategoryVisibilitySelectionList({categories, isLoading, initialSelectedCategoryNames, onSave, sentryLabel}: CategoryVisibilitySelectionListProps) {
+function CategoryVisibilitySelectionList({categories, initialSelectedCategoryNames, onSave, sentryLabel}: CategoryVisibilitySelectionListProps) {
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
     const illustrations = useMemoizedLazyIllustrations(['Telescope']);
@@ -93,14 +87,6 @@ function CategoryVisibilitySelectionList({categories, isLoading, initialSelected
         }
         onSave(categoryNames);
     };
-
-    if (isLoading) {
-        return (
-            <View style={[styles.flex1, styles.justifyContentCenter, styles.alignItemsCenter]}>
-                <ActivityIndicator size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE} />
-            </View>
-        );
-    }
 
     return (
         <SelectionList

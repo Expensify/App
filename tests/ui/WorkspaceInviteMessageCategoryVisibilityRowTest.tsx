@@ -5,6 +5,7 @@ import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 
 import {addMembersToWorkspace} from '@libs/actions/Policy/Member';
+import type * as MemberActions from '@libs/actions/Policy/Member';
 
 import WorkspaceInviteMessageComponent from '@pages/workspace/members/WorkspaceInviteMessageComponent';
 
@@ -13,6 +14,8 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import type {Policy} from '@src/types/onyx';
 import type {CurrentUserPersonalDetails, PersonalDetailsList} from '@src/types/onyx/PersonalDetails';
+
+import type * as NativeNavigation from '@react-navigation/native';
 
 import {PortalProvider} from '@gorhom/portal';
 import {NavigationContainer} from '@react-navigation/native';
@@ -29,16 +32,11 @@ const INVITEE_EMAIL = 'invitee@example.com';
 const INVITEE_ACCOUNT_ID = 2;
 const MEMBERS_ROUTE = `workspaces/${POLICY_ID}/members` as Route;
 
-jest.mock('@react-navigation/native', () => {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-    const actualNav = jest.requireActual('@react-navigation/native');
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
-    return {
-        ...actualNav,
-        useIsFocused: () => true,
-        usePreventRemove: jest.fn(),
-    };
-});
+jest.mock('@react-navigation/native', () => ({
+    ...jest.requireActual<typeof NativeNavigation>('@react-navigation/native'),
+    useIsFocused: () => true,
+    usePreventRemove: jest.fn(),
+}));
 
 jest.mock('@libs/Navigation/Navigation', () => ({
     goBack: jest.fn(),
@@ -49,15 +47,10 @@ jest.mock('@libs/Navigation/Navigation', () => ({
     dismissModal: jest.fn(),
 }));
 
-jest.mock('@libs/actions/Policy/Member', () => {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-    const actual = jest.requireActual('@libs/actions/Policy/Member');
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
-    return {
-        ...actual,
-        addMembersToWorkspace: jest.fn(),
-    };
-});
+jest.mock('@libs/actions/Policy/Member', () => ({
+    ...jest.requireActual<typeof MemberActions>('@libs/actions/Policy/Member'),
+    addMembersToWorkspace: jest.fn(),
+}));
 
 const addMembersToWorkspaceMock = jest.mocked(addMembersToWorkspace);
 

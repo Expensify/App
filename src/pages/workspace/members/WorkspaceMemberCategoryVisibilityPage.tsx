@@ -2,6 +2,7 @@
  * Lets a workspace admin choose which of the workspace's enabled categories a member can use, from that member's
  * details page. Saving replaces the member's allowed categories with the checked ones.
  */
+import ActivityIndicator from '@components/ActivityIndicator';
 import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import ScreenWrapper from '@components/ScreenWrapper';
 
@@ -29,6 +30,7 @@ import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
 import React, {useEffect} from 'react';
+import {View} from 'react-native';
 
 import CategoryVisibilitySelectionList from './CategoryVisibilitySelectionList';
 
@@ -93,13 +95,18 @@ function WorkspaceMemberCategoryVisibilityPage({policy, route}: WorkspaceMemberC
                     title={translate('workspace.people.categoryVisibility')}
                     onBackButtonPress={() => Navigation.goBack(backToRoute)}
                 />
-                <CategoryVisibilitySelectionList
-                    categories={categories}
-                    isLoading={isLoading}
-                    initialSelectedCategoryNames={memberVisibleCategories}
-                    onSave={saveCategoryVisibility}
-                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.MEMBERS.CATEGORY_VISIBILITY_SAVE}
-                />
+                {isLoading ? (
+                    <View style={[styles.flex1, styles.justifyContentCenter, styles.alignItemsCenter]}>
+                        <ActivityIndicator size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE} />
+                    </View>
+                ) : (
+                    <CategoryVisibilitySelectionList
+                        categories={categories}
+                        initialSelectedCategoryNames={memberVisibleCategories}
+                        onSave={saveCategoryVisibility}
+                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.MEMBERS.CATEGORY_VISIBILITY_SAVE}
+                    />
+                )}
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>
     );
