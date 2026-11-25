@@ -64,7 +64,7 @@ async function renderAndRunAction(action: () => void, useHook = useRunWithPaymen
     return hook;
 }
 
-function setIsFocused(isFocused: boolean, rerender: (props: object) => void) {
+function setIsFocused(isFocused: boolean, rerender: (props: Record<string, unknown>) => void) {
     mockIsFocused = isFocused;
     rerender({});
 }
