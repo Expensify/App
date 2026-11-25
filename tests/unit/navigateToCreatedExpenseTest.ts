@@ -280,18 +280,20 @@ describe('navigateToCreatedExpense', () => {
         expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute('thread-1', undefined, undefined, ''), {forceReplace: false});
     });
 
-    it('should open the transaction thread in the Spend RHP when the user is on the Spend tab', async () => {
-        // Given the user is on the Spend tab
+    it.each([true, false])('should open the single-transaction report directly from Spend when narrow layout is %s', async (isNarrowLayout) => {
+        // Given the user is on Spend, whose carousel may contain unrelated expenses
         mockIsReportTopmostSplitNavigator.mockReturnValue(false);
         mockIsSearchTopmostFullScreenRoute.mockReturnValue(true);
+        mockGetIsNarrowLayout.mockReturnValue(isNarrowLayout);
 
-        // When they open a newly-created expense
-        navigateToCreatedExpense({threadReportID: 'thread-1', transactionID: 'txn-1', iouReportID: 'iou-1', reportTransactions: []});
+        // When they open a newly-created single-transaction invoice or expense report
+        navigateToCreatedExpense({threadReportID: 'thread-1', transactionID: 'txn-1', iouReportID: 'iou-1', reportTransactions: [buildTransaction('txn-1')]});
         await waitForBatchedUpdates();
 
-        // Then the transaction thread opens in the Spend RHP
+        // Then the report's actions are available without relying on a carousel-dependent thread redirect
         expect(Navigation.navigate).toHaveBeenCalledTimes(1);
-        expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.SEARCH_REPORT.getRoute({reportID: 'thread-1', backTo: ''}), {forceReplace: false});
+        expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.SEARCH_REPORT.getRoute({reportID: 'iou-1', backTo: ''}), {forceReplace: false});
+        expect(setActiveTransactionIDs).not.toHaveBeenCalled();
     });
 
     it('should replace the currently-open report instead of stacking when one is already open in the RHP', async () => {
@@ -299,13 +301,56 @@ describe('navigateToCreatedExpense', () => {
         mockIsReportTopmostSplitNavigator.mockReturnValue(false);
         mockIsSearchTopmostFullScreenRoute.mockReturnValue(true);
         mockIsReportOpenInRHP.mockReturnValue(true);
+        const backTo = ROUTES.SEARCH_ROOT.getRoute({query: 'type:expense'});
+        mockGetCurrentRoute.mockReturnValue({params: {backTo}});
 
         // When the user opens a newly-created expense
-        navigateToCreatedExpense({threadReportID: 'thread-1', transactionID: 'txn-1', iouReportID: 'iou-1', reportTransactions: []});
+        navigateToCreatedExpense({threadReportID: 'thread-1', transactionID: 'txn-1', iouReportID: 'iou-1', reportTransactions: [buildTransaction('txn-1')]});
         await waitForBatchedUpdates();
 
-        // Then the open report is replaced rather than stacked on
-        expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.SEARCH_REPORT.getRoute({reportID: 'thread-1', backTo: ''}), {forceReplace: true});
+        // Then the parent replaces the open report and preserves its original back destination
+        expect(Navigation.navigate).toHaveBeenCalledTimes(1);
+        expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.SEARCH_REPORT.getRoute({reportID: 'iou-1', backTo}), {forceReplace: true});
+        expect(setActiveTransactionIDs).not.toHaveBeenCalled();
+    });
+
+    it('should still open the transaction thread from Spend when its report has multiple transactions', async () => {
+        // Given the created expense belongs to a report that cannot display it inline
+        mockIsSearchTopmostFullScreenRoute.mockReturnValue(true);
+
+        // When the user presses View from Spend
+        navigateToCreatedExpense({
+            threadReportID: 'thread-1',
+            transactionID: 'txn-1',
+            iouReportID: 'iou-1',
+            reportTransactions: [buildTransaction('txn-1'), buildTransaction('txn-2')],
+        });
+        await waitForBatchedUpdates();
+
+        // Then the created expense remains the destination rather than the report's transaction list
+        expect(Navigation.navigate).toHaveBeenCalledTimes(1);
+        expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.SEARCH_REPORT.getRoute({reportID: 'thread-1', backTo: ''}), {forceReplace: false});
+        expect(setActiveTransactionIDs).toHaveBeenCalledWith(['txn-1']);
+    });
+
+    it('should ignore pending deletes when opening a single-transaction report from Spend', async () => {
+        // Given the only other transaction is being deleted and should not require a report list
+        mockIsSearchTopmostFullScreenRoute.mockReturnValue(true);
+        const deletedTransaction = {...buildTransaction('txn-2'), pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE};
+
+        // When the user presses View for the remaining expense
+        navigateToCreatedExpense({
+            threadReportID: 'thread-1',
+            transactionID: 'txn-1',
+            iouReportID: 'iou-1',
+            reportTransactions: [buildTransaction('txn-1'), deletedTransaction],
+        });
+        await waitForBatchedUpdates();
+
+        // Then the report opens directly rather than relying on the thread redirect
+        expect(Navigation.navigate).toHaveBeenCalledTimes(1);
+        expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.SEARCH_REPORT.getRoute({reportID: 'iou-1', backTo: ''}), {forceReplace: false});
+        expect(setActiveTransactionIDs).not.toHaveBeenCalled();
     });
 
     it('should open the transaction thread as a full report when the user is on the Inbox tab on a narrow layout', () => {

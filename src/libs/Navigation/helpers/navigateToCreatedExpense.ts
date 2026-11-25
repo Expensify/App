@@ -73,6 +73,11 @@ function navigateToCreatedExpense({threadReportID, transactionID, iouReportID, r
     const backTo = forceReplace ? getCurrentRouteBackTo() : Navigation.getActiveRoute();
 
     if (!openOnInbox) {
+        if (iouReportID && !hasMultipleReportTransactions) {
+            // The Spend carousel can prevent the thread's redirect, so open the report with its actions directly.
+            Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: iouReportID, backTo}), {forceReplace});
+            return;
+        }
         setActiveTransactionIDs([transactionID]).then(() => {
             Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: threadReportID, backTo}), {forceReplace});
         });
