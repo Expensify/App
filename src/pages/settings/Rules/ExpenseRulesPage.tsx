@@ -190,17 +190,15 @@ function ExpenseRulesPage() {
             testID="ExpenseRulesPage-header-dropdown-menu-button"
         />
     ) : (
-        <View style={shouldDisplayButtonsInSeparateLine && styles.mb3}>
-            <Button
-                variant={CONST.BUTTON_VARIANT.SUCCESS}
-                onPress={navigateToNewRulePage}
-                style={[shouldDisplayButtonsInSeparateLine && styles.flex1]}
-                sentryLabel={CONST.SENTRY_LABEL.SETTINGS_RULES.NEW_RULE}
-            >
-                <Button.Icon src={icons.Plus} />
-                <Button.Text>{translate('expenseRulesPage.newRule')}</Button.Text>
-            </Button>
-        </View>
+        <Button
+            variant={CONST.BUTTON_VARIANT.SUCCESS}
+            onPress={navigateToNewRulePage}
+            style={shouldDisplayButtonsInSeparateLine && styles.mb3}
+            sentryLabel={CONST.SENTRY_LABEL.SETTINGS_RULES.NEW_RULE}
+        >
+            <Button.Icon src={icons.Plus} />
+            <Button.Text>{translate('expenseRulesPage.newRule')}</Button.Text>
+        </Button>
     );
 
     const expenseRulesSubtitle = (
