@@ -18,8 +18,10 @@ jest.mock('@components/ThreeDotsMenu', () => {
     // The factory is hoisted above the imports, so it loads what it renders itself.
     // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-unsafe-assignment
     const {Text: MockText} = require('react-native');
-    return ({menuItems, onModalHide}: {menuItems: PopoverMenuItem[]; onModalHide?: () => void}) => (
+    return ({menuItems, onModalHide, onIconPress, shouldOverlay}: {menuItems: PopoverMenuItem[]; onModalHide?: () => void; onIconPress?: () => void; shouldOverlay?: boolean}) => (
         <>
+            {!!shouldOverlay && <MockText>Menu overlay</MockText>}
+            <MockText onPress={() => onIconPress?.()}>Menu icon</MockText>
             <MockText onPress={() => onModalHide?.()}>Menu gone</MockText>
             {menuItems.map((menuItem) => (
                 <MockText
@@ -73,6 +75,34 @@ describe('SavedSearchItemThreeDotMenu', () => {
         }
     });
 
+    it('should render the menu over a backdrop', () => {
+        // Given a saved search's menu, which opens partly outside the sidebar
+        // When it renders
+        renderMenu();
+
+        // Then it renders over a backdrop, because the backdrop belongs to the sidebar's React tree and keeps a pointer past the menu's edge from ending the peek
+        expect(screen.getByText('Menu overlay')).toBeOnTheScreen();
+    });
+
+    it('should hold the peek of its surface when the menu starts opening', () => {
+        // Given a saved search's menu inside a peeking surface
+        const holdPeekUntilMenuCloses = jest.fn();
+        render(
+            <PeekSurfaceContext.Provider value={{holdPeekUntilMenuCloses, endPeekIfPointerLeft: jest.fn()}}>
+                <SavedSearchItemThreeDotMenu
+                    menuItems={[{text: RENAME, onSelected: jest.fn(), sentryLabel: CONST.SENTRY_LABEL.TEST.LABEL}]}
+                    isDisabledItem={false}
+                />
+            </PeekSurfaceContext.Provider>,
+        );
+
+        // When the menu's button is pressed, with the mouse or the keyboard
+        fireEvent.press(screen.getByText('Menu icon'));
+
+        // Then the surface holds its peek, because the pointer leaving the window from the backdrop sends the surface a hover-out
+        expect(holdPeekUntilMenuCloses).toHaveBeenCalledTimes(1);
+    });
+
     it('should end the peek of the navigation bar when the menu lives there', async () => {
         // Given the collapsed navigation bar peeks, with the menu on one of its rows
         const navigationBar = await startPeekOn(COLLAPSE_SURFACE.NAVIGATION_BAR);
@@ -104,9 +134,16 @@ describe('SavedSearchItemThreeDotMenu', () => {
             // Given a menu inside a surface that can end its peek
             const endPeekIfPointerLeft = jest.fn();
             render(
-                <PeekSurfaceContext.Provider value={{endPeekIfPointerLeft}}>
+                <PeekSurfaceContext.Provider value={{holdPeekUntilMenuCloses: jest.fn(), endPeekIfPointerLeft}}>
                     <SavedSearchItemThreeDotMenu
-                        menuItems={[{text: SHARE, onSelected: jest.fn(), shouldCloseModalOnSelect: false, sentryLabel: CONST.SENTRY_LABEL.TEST.LABEL}]}
+                        menuItems={[
+                            {
+                                text: SHARE,
+                                onSelected: jest.fn(),
+                                shouldCloseModalOnSelect: false,
+                                sentryLabel: CONST.SENTRY_LABEL.TEST.LABEL,
+                            },
+                        ]}
                         isDisabledItem={false}
                     />
                 </PeekSurfaceContext.Provider>,
@@ -129,9 +166,12 @@ describe('SavedSearchItemThreeDotMenu', () => {
             // Given a menu rendered without a surface around it
             renderMenu();
 
-            // When the menu's modal is gone
-            // Then nothing throws, as there is no peek to settle
-            expect(() => fireEvent.press(screen.getByText('Menu gone'))).not.toThrow();
+            // When the menu opens and its modal is then gone
+            // Then nothing throws, as there is no peek to hold or to settle
+            expect(() => {
+                fireEvent.press(screen.getByText('Menu icon'));
+                fireEvent.press(screen.getByText('Menu gone'));
+            }).not.toThrow();
         });
     });
 

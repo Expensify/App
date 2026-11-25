@@ -654,6 +654,7 @@ function getTaxForEditedAmount(policy: OnyxEntry<OnyxTypes.Policy>, transaction:
 
 type UpdateSavedExpenseAmountParams = Pick<
     SubmitAmountArgs,
+    | 'translate'
     | 'policy'
     | 'transactionID'
     | 'transaction'
@@ -686,6 +687,7 @@ type UpdateSavedExpenseAmountParams = Pick<
  * the inline amount input on the expense view save through here, so an edit in either leaves the expense in the same state.
  */
 function updateSavedExpenseAmount({
+    translate,
     policy,
     transactionID,
     transaction,
@@ -717,6 +719,7 @@ function updateSavedExpenseAmount({
     }
 
     updateMoneyRequestAmountAndCurrency({
+        translate,
         isVendorMatchingBetaEnabled,
         transactionID,
         transaction,
@@ -747,6 +750,7 @@ function updateSavedExpenseAmount({
 
 function submitEditAmount(args: SubmitAmountArgs, ctx: SubmitAmountContext): void {
     const {
+        translate,
         policy,
         selectedCurrency,
         decimals,
@@ -786,6 +790,7 @@ function submitEditAmount(args: SubmitAmountArgs, ctx: SubmitAmountContext): voi
     const parentReport = report?.parentReportID ? allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID}`] : undefined;
 
     updateSavedExpenseAmount({
+        translate,
         policy,
         transactionID,
         transaction,
