@@ -77,6 +77,7 @@ import getDistanceInMeters from './getDistanceInMeters';
 import getSelectedRouteKey from './getSelectedRouteKey';
 import getTagArrayFromName from './getTagArrayFromName';
 import {getClearedPendingFields, getDistanceMerchantForTransaction, getUpdatedTransaction} from './getUpdatedTransaction';
+import hasCreateFailed from './hasCreateFailed';
 import {
     calculateTaxAmount,
     getCalculatedTaxAmount,
@@ -1426,6 +1427,11 @@ function getEligibleTransactionsToAdd({
 
         // Don't show expenses that are already on the current report
         if (transaction.reportID === reportID) {
+            return false;
+        }
+
+        // The server has no such expense until its create goes through, so adding it to a report would only fail
+        if (hasCreateFailed(transaction)) {
             return false;
         }
 
