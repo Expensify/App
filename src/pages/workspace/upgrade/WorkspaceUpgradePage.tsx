@@ -326,10 +326,10 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
                 enablePerDiem(policyID, true, perDiemCustomUnit?.customUnitID, false);
                 break;
             case CONST.UPGRADE_FEATURE_INTRO_MAPPING.hr.id:
-                enablePolicyHR(policyID, true, false);
+                enablePolicyHR(policyID, true);
                 break;
             case CONST.UPGRADE_FEATURE_INTRO_MAPPING.recruiting.id:
-                enablePolicyRecruiting(policyID, true, false);
+                enablePolicyRecruiting(policyID, true);
                 break;
             case CONST.UPGRADE_FEATURE_INTRO_MAPPING.approvals.id:
             case CONST.UPGRADE_FEATURE_INTRO_MAPPING.approvalSubmit.id:
@@ -367,7 +367,7 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
             }
             case CONST.UPGRADE_FEATURE_INTRO_MAPPING.accounting.id:
             case CONST.UPGRADE_FEATURE_INTRO_MAPPING.intuitEnterpriseSuite.id:
-                enablePolicyConnections(policyID, true, false);
+                enablePolicyConnections(policyID, true);
                 break;
             case CONST.UPGRADE_FEATURE_INTRO_MAPPING.travelSubmit.id:
                 enablePolicyTravel(policyID, true);

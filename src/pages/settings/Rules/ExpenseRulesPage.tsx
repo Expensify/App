@@ -1,4 +1,3 @@
-import ActivityIndicator from '@components/ActivityIndicator';
 import Button from '@components/Button';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
@@ -33,7 +32,6 @@ import ROUTES from '@src/ROUTES';
 import type {ExpenseRule} from '@src/types/onyx';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
 import getEmptyArray from '@src/types/utils/getEmptyArray';
-import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 import React, {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
@@ -50,7 +48,7 @@ function ExpenseRulesPage() {
     const {pageGutter} = useLayoutSpacing();
     const isMobileSelectionModeEnabled = useMobileSelectionMode();
     const icons = useMemoizedLazyExpensifyIcons(['Pencil', 'Plus', 'Trashcan']);
-    const [expenseRules = getEmptyArray<ExpenseRule>(), expenseRulesResult] = useOnyx(ONYXKEYS.NVP_EXPENSE_RULES);
+    const [expenseRules = getEmptyArray<ExpenseRule>()] = useOnyx(ONYXKEYS.NVP_EXPENSE_RULES);
 
     const [selectedRules, setSelectedRules] = useState<string[]>([]);
     const {showConfirmModal} = useConfirmModal();
@@ -69,7 +67,6 @@ function ExpenseRulesPage() {
     }, [expenseRules]);
 
     const hasRules = expenseRules.filter((rule) => isOffline || rule.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE).length > 0;
-    const isLoading = !hasRules && isLoadingOnyxValue(expenseRulesResult);
 
     const canSelectMultiple = !shouldUseNarrowLayout || isMobileSelectionModeEnabled;
     const selectionModeHeader = isMobileSelectionModeEnabled && shouldUseNarrowLayout;
@@ -241,22 +238,13 @@ function ExpenseRulesPage() {
 
             {!hasRules && expenseRulesSubtitle}
 
-            {!hasRules && isLoading && (
-                <ActivityIndicator
-                    size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
-                    style={[styles.flex1]}
-                />
-            )}
-
-            {!isLoading && (
-                <PersonalExpenseRulesTable
-                    selectedKeys={selectedRules}
-                    personalExpenseRules={personalExpenseRules}
-                    onRowSelectionChange={setSelectedRules}
-                    headerComponent={hasRules ? expenseRulesSubtitle : undefined}
-                    bulkActionOptions={headerDropdownOptions}
-                />
-            )}
+            <PersonalExpenseRulesTable
+                selectedKeys={selectedRules}
+                personalExpenseRules={personalExpenseRules}
+                onRowSelectionChange={setSelectedRules}
+                headerComponent={hasRules ? expenseRulesSubtitle : undefined}
+                bulkActionOptions={headerDropdownOptions}
+            />
         </ScreenWrapper>
     );
 }
