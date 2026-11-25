@@ -67,8 +67,9 @@ import type {ValueOf} from 'type-fest';
 
 import {useRoute} from '@react-navigation/native';
 import {homeAndOfficeCommuterExclusionPolicyNameSelector} from '@selectors/Policy';
-import React, {useRef} from 'react';
+import React from 'react';
 import {View} from 'react-native';
+import {useAnimatedRef} from 'react-native-reanimated';
 
 import AgentAIPromptSection from './AgentAIPromptSection';
 
@@ -80,7 +81,7 @@ function ProfilePage() {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {safeAreaPaddingBottomStyle} = useSafeAreaPaddings();
     const scrollEnabled = useScrollEnabled();
-    const scrollViewRef = useRef<ComponentRef<typeof RNScrollView>>(null);
+    const scrollViewRef = useAnimatedRef<ComponentRef<typeof RNScrollView>>();
     const [loginList] = useOnyx(ONYXKEYS.LOGINS, {selector: expensifyLoginsSelector});
     const [hasIntegrationServerError] = useOnyx(ONYXKEYS.LOGINS, {selector: hasIntegrationServerLoginError});
     const [session] = useOnyx(ONYXKEYS.SESSION);

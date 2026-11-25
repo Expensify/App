@@ -2,7 +2,6 @@
  * RHP step shown when a vacation delegate is missing from workspaces: lets the user invite them into the
  * workspaces they admin, skip, or just confirm the delegate.
  */
-import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
@@ -26,7 +25,6 @@ import ROUTES from '@src/ROUTES';
 import {createPoliciesByIDsSelector} from '@src/selectors/Policy';
 import type {Policy, VacationDelegatePolicyDiff} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 import type {NavigationAction} from '@react-navigation/native';
 
@@ -49,7 +47,7 @@ function VacationDelegateMissingWorkspacesPage() {
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const getPersonalDetailsByLogin = useGetPersonalDetailsByLogin();
 
-    const [vacationDelegate, vacationDelegateMetadata] = useOnyx(ONYXKEYS.NVP_PRIVATE_VACATION_DELEGATE);
+    const [vacationDelegate] = useOnyx(ONYXKEYS.NVP_PRIVATE_VACATION_DELEGATE);
 
     const [submittedInput, setSubmittedInput] = useState<ScreenInput>();
 
@@ -102,10 +100,6 @@ function VacationDelegateMissingWorkspacesPage() {
         // above this one (e.g. the root when the whole RHP closes) can't find that key, so it would drop the action.
         navigationRef.dispatch(data.action);
     });
-
-    if (!submittedInput && isLoadingOnyxValue(vacationDelegateMetadata)) {
-        return <FullScreenLoadingIndicator onGoBack={() => Navigation.goBack(ROUTES.SETTINGS_VACATION_DELEGATE)} />;
-    }
 
     if (!policyDiff) {
         return <NotFoundPage />;
