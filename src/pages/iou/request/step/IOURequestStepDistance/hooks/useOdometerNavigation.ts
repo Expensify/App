@@ -104,6 +104,9 @@ type NavigateOptions = {
     /** End odometer reading entered by the user, parsed to a number. */
     odometerEnd: number;
 
+    /** Unit the readings were entered in, which can differ from the current rate's unit. */
+    odometerUnit: Unit | undefined;
+
     /** Computed distance (`end − start`, rounded to two decimals). */
     odometerDistance: number;
 
@@ -165,7 +168,7 @@ function useOdometerNavigation({
     const delegateAccountID = useDelegateAccountID();
     const {getCurrencyDecimals, getCurrencySymbol} = useCurrencyListActions();
 
-    return async ({odometerStart, odometerEnd, odometerDistance, unit, previousOdometerDraft}: NavigateOptions) => {
+    return async ({odometerStart, odometerEnd, odometerUnit, odometerDistance, unit, previousOdometerDraft}: NavigateOptions) => {
         const optimisticTransactionID = rand64();
         const optimisticChatReportID = selfDMReport?.reportID ?? generateReportID();
         const [
@@ -229,6 +232,7 @@ function useOdometerNavigation({
             policyForMovingExpenses,
             odometerStart,
             odometerEnd,
+            odometerUnit,
             odometerDistance,
             previousOdometerDraft,
             recentWaypoints,
