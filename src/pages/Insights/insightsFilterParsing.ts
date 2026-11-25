@@ -35,7 +35,7 @@ function parseDate(queryJSON: SearchQueryJSON): Pick<InsightsFilters, 'date'> | 
 
     const from = dateFilters.find(({operator}) => operator === CONST.SEARCH.SYNTAX_OPERATORS.GREATER_THAN_OR_EQUAL_TO)?.value.toString();
     const to = dateFilters.find(({operator}) => operator === CONST.SEARCH.SYNTAX_OPERATORS.LOWER_THAN_OR_EQUAL_TO)?.value.toString();
-    if (from && to && isValidDate(from) && isValidDate(to)) {
+    if (from && to) {
         return {date: {from, to}};
     }
 

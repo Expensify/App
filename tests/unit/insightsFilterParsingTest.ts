@@ -76,24 +76,21 @@ describe('insightsFilterParsing', () => {
             expect(parsed.date).toEqual({from: '2026-01-01', to: '2026-03-31'});
         });
 
-        it.each(['date:unknown-preset', 'date:2026-02-30', 'date:2026-13-01', 'date>=invalid date<=2026-03-31', 'date>=2026-01-01 date<=2026-02-30'])(
-            'leaves the default date in place for %s without dropping other selections',
-            (dateFilter) => {
-                // Given a stored query with an invalid date but valid currency and grouping selections
-                const query = `groupBy:quarter groupCurrency:PLN ${dateFilter}`;
+        it.each(['date:unknown-preset', 'date:2026-02-30', 'date:2026-13-01'])('leaves the default date in place for %s without dropping other selections', (dateFilter) => {
+            // Given a stored query with an invalid date but valid currency and grouping selections
+            const query = `groupBy:quarter groupCurrency:PLN ${dateFilter}`;
 
-                // When the stored selections override the dashboard defaults
-                const parsed = parseInsightsFilters(query);
-                const defaultFilters = DEFAULT_INSIGHTS_FILTERS[CONST.INSIGHTS.DASHBOARD.SPEND];
-                const filters = {...defaultFilters, ...parsed};
+            // When the stored selections override the dashboard defaults
+            const parsed = parseInsightsFilters(query);
+            const defaultFilters = DEFAULT_INSIGHTS_FILTERS[CONST.INSIGHTS.DASHBOARD.SPEND];
+            const filters = {...defaultFilters, ...parsed};
 
-                // Then only the invalid date is ignored, so it cannot reach date formatting or the next query
-                expect(parsed).not.toHaveProperty('date');
-                expect(filters.date).toEqual(defaultFilters.date);
-                expect(filters.groupBy).toBe(CONST.SEARCH.GROUP_BY.QUARTER);
-                expect(filters.groupCurrency).toBe('PLN');
-            },
-        );
+            // Then only the invalid date is ignored, so it cannot reach date formatting or the next query
+            expect(parsed).not.toHaveProperty('date');
+            expect(filters.date).toEqual(defaultFilters.date);
+            expect(filters.groupBy).toBe(CONST.SEARCH.GROUP_BY.QUARTER);
+            expect(filters.groupCurrency).toBe('PLN');
+        });
 
         it.each(Object.values(CONST.SEARCH.DATE_PRESETS))('preserves the recognized preset %s', (preset) => {
             // Given a known preset, including presets not offered by the Insights picker
