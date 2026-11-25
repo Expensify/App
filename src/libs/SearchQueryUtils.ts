@@ -1797,6 +1797,7 @@ function buildQueryStringFromFilterFormValues(filterValues: Partial<SearchAdvanc
                     filterKey === FILTER_KEYS.REIMBURSABLE ||
                     filterKey === FILTER_KEYS.BILLABLE ||
                     filterKey === FILTER_KEYS.DECLINED ||
+                    filterKey === FILTER_KEYS.DECLINED_UNRESOLVED ||
                     filterKey === FILTER_KEYS.HELD ||
                     filterKey === FILTER_KEYS.TITLE ||
                     filterKey === FILTER_KEYS.SUBMITTER_USER_ID ||
@@ -2484,6 +2485,7 @@ function buildFilterFormValuesFromQuery(
             filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.BILLABLE ||
             filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.REIMBURSABLE ||
             filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.DECLINED ||
+            filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.DECLINED_UNRESOLVED ||
             filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.HELD
         ) {
             const validBooleanTypes = Object.values(CONST.SEARCH.BOOLEAN);

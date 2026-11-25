@@ -1501,6 +1501,20 @@ const keywordTests = [
         },
     },
     {
+        query: 'declinedUnresolved:yes',
+        expected: {
+            type: 'expense',
+            sortBy: 'date',
+            sortOrder: 'desc',
+            view: 'table',
+            filters: {
+                operator: 'eq',
+                left: 'declinedUnresolved',
+                right: 'yes',
+            },
+        },
+    },
+    {
         query: 'declined:yes',
         expected: {
             type: 'expense',

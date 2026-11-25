@@ -75,6 +75,7 @@ withdrawalID
   / "withdrawal-id"i { return "withdrawalID"; }
 billable = "billable"i { return "billable"; }
 declined = "declined"i { return "declined"; }
+declinedUnresolved = "declinedUnresolved"i { return "declinedUnresolved"; }
 held = "held"i { return "held"; }
 reimbursable = "reimbursable"i { return "reimbursable"; }
 type = "type"i { return "type"; }

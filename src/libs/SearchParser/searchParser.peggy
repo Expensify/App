@@ -337,6 +337,7 @@ key "key"
       / createdBy
       / reimbursable
       / billable
+      / declinedUnresolved
       / declined
       / held
       / action

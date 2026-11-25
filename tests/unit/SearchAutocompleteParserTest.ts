@@ -13,6 +13,13 @@ type ExpectedAutocompleteParserResult = Omit<SearchAutocompleteResult, 'autocomp
 
 const tests: Array<{query: string; expected: ExpectedAutocompleteParserResult}> = [
     {
+        query: 'declinedUnresolved:yes',
+        expected: {
+            autocomplete: {key: 'declinedUnresolved', value: 'yes', negated: false, start: 19, length: 3},
+            ranges: [{key: 'declinedUnresolved', value: 'yes', negated: false, start: 19, length: 3}],
+        },
+    },
+    {
         query: parserCommonTests.simple,
         expected: {
             autocomplete: {key: 'type', value: 'expense', negated: false, start: 5, length: 7},

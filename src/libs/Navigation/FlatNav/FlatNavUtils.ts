@@ -46,7 +46,14 @@ const FLAT_NAV_SECTION_DEFINITIONS: readonly FlatNavSectionDefinition[] = [
         id: FLAT_NAV.SECTION.REPORTS,
         translationPath: 'common.reports',
         iconName: 'Document',
-        searchKeys: [CONST.SEARCH.SEARCH_KEYS.REPORTS, CONST.SEARCH.SEARCH_KEYS.SUBMIT, CONST.SEARCH.SEARCH_KEYS.APPROVE, CONST.SEARCH.SEARCH_KEYS.PAY],
+        searchKeys: [
+            CONST.SEARCH.SEARCH_KEYS.REPORTS,
+            CONST.SEARCH.SEARCH_KEYS.SUBMIT,
+            CONST.SEARCH.SEARCH_KEYS.APPROVE,
+            CONST.SEARCH.SEARCH_KEYS.PAY,
+            CONST.SEARCH.SEARCH_KEYS.REJECTED,
+            CONST.SEARCH.SEARCH_KEYS.HELD,
+        ],
     },
     {
         id: FLAT_NAV.SECTION.ACCOUNTING,

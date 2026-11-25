@@ -10606,6 +10606,43 @@ describe('SearchUIUtils', () => {
             expect(menuItemKeys).toContain(CONST.SEARCH.SEARCH_KEYS.EXPORT);
         });
 
+        it('shows Rejected and Held independently of policy settings only after they become relevant', () => {
+            // Given a user with no policies, so no policy-based signal affects these suggestions
+            const params = {
+                currentUserEmail: adminEmail,
+                currentUserAccountID: adminAccountID,
+                cardFeedsByPolicy: {},
+                defaultCardFeed: undefined,
+                policies: {},
+                savedSearches: {},
+                isOffline: false,
+                defaultExpensifyCard: undefined,
+                draftTransactionIDs: [],
+                isTrackIntentUser: false,
+                session: undefined,
+            };
+
+            // When the user has never had a relevant expense
+            const hiddenKeys = SearchUIUtils.createTypeMenuSections(params).flatMap((section) => section.menuItems.map((item) => item.key));
+
+            // Then both suggestions are hidden
+            expect(hiddenKeys).not.toContain(CONST.SEARCH.SEARCH_KEYS.REJECTED);
+            expect(hiddenKeys).not.toContain(CONST.SEARCH.SEARCH_KEYS.HELD);
+
+            // When current expenses or previously persisted flags make the suggestions relevant
+            const sections = SearchUIUtils.createTypeMenuSections({...params, shouldShowRejectedSuggestion: true, shouldShowHeldSuggestion: true});
+            const expenseReports = sections.find((section) => section.translationPath === 'search.tabs.expenseReports');
+            const rejected = expenseReports?.menuItems.find((item) => item.key === CONST.SEARCH.SEARCH_KEYS.REJECTED);
+            const held = expenseReports?.menuItems.find((item) => item.key === CONST.SEARCH.SEARCH_KEYS.HELD);
+
+            // Then they open distinct, parsed queries and Held is restricted to the current user
+            expect(rejected?.searchQuery).toContain('declinedUnresolved:yes');
+            expect(rejected?.searchQueryJSON?.flatFilters).toContainEqual({key: 'declinedUnresolved', filters: [{operator: 'eq', value: 'yes'}]});
+            expect(held?.searchQuery).toContain('held:yes');
+            expect(held?.searchQuery).toContain(`from:${adminAccountID}`);
+            expect(held?.searchQueryJSON?.flatFilters).toContainEqual({key: 'from', filters: [{operator: 'eq', value: adminAccountID.toString()}]});
+        });
+
         it('should keep Submit visible without CTA buttons for group workspaces that are not CTA-eligible', () => {
             const sections = SearchUIUtils.createTypeMenuSections({
                 currentUserEmail: adminEmail,
@@ -17556,6 +17593,17 @@ describe('SearchUIUtils', () => {
 
     describe('mapFiltersFormToLabelValueList', () => {
         const convertToDisplayStringWithoutCurrency = jest.fn((amount = 0) => `${amount}`);
+
+        it('keeps the unresolved rejection predicate out of the visible filters', () => {
+            // Given a hidden rejection predicate alongside a visible merchant filter
+            const form = {declinedUnresolved: CONST.SEARCH.BOOLEAN.YES, merchant: 'Coffee'};
+
+            // When the filter bar builds its chips
+            const chips = SearchUIUtils.mapFiltersFormToLabelValueList(form, new Set(), new Set(), translateLocal, undefined, localeCompare, convertToDisplayStringWithoutCurrency);
+
+            // Then only the editable public filter is shown
+            expect(chips.map((chip) => chip.key)).toEqual([CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT]);
+        });
 
         it.each([
             {form: {amountGreaterThan: '6000', amountGreaterThanOrEqualTo: '5000'}, expected: 'Greater than 60.00, Greater than or equal to 50.00'},

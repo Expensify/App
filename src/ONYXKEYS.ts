@@ -294,6 +294,10 @@ const ONYXKEYS = {
     /** Whether the "For You" section has ever shown an actionable to-do (keeps the section visible once seen) */
     NVP_HAS_SEEN_FOR_YOU_TODO: 'nvp_hasSeenForYouTodo',
 
+    /** Keep the suggested searches visible after the user's first rejected or held expense. */
+    NVP_HAS_SEEN_REJECTED_SUGGESTED_SEARCH: 'nvp_hasSeenRejectedSuggestedSearch',
+    NVP_HAS_SEEN_HELD_SUGGESTED_SEARCH: 'nvp_hasSeenHeldSuggestedSearch',
+
     /** The insight the user last selected in the Home page insights card (defaults to Spend over time) */
     NVP_HOME_SELECTED_INSIGHT: 'nvp_homeSelectedInsight',
 
@@ -1993,6 +1997,8 @@ type OnyxValuesMapping = {
     [ONYXKEYS.OPTIMISTIC_AGENT_ACCOUNT_ID_MAPPING]: Record<string, number>;
     [ONYXKEYS.HAS_LOADED_APP]: boolean;
     [ONYXKEYS.NVP_HAS_SEEN_FOR_YOU_TODO]: boolean;
+    [ONYXKEYS.NVP_HAS_SEEN_REJECTED_SUGGESTED_SEARCH]: boolean;
+    [ONYXKEYS.NVP_HAS_SEEN_HELD_SUGGESTED_SEARCH]: boolean;
     [ONYXKEYS.NVP_HOME_SELECTED_INSIGHT]:
         | typeof CONST.SEARCH.SEARCH_KEYS.SPEND_OVER_TIME
         | typeof CONST.SEARCH.SEARCH_KEYS.TOP_SPENDERS
