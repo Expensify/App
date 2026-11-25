@@ -3062,6 +3062,44 @@ describe('ReportActionItem', () => {
             expect(screen.getByLabelText(translateLocal('accessibilityHints.chatWelcomeMessage'))).toBeOnTheScreen();
         });
 
+        it('CREATED names the chat whose details its avatar opens', async () => {
+            // Given a new chat with Concierge, whose welcome avatar opens the chat's details
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}testReport`, {
+                    reportID: 'testReport',
+                    type: CONST.REPORT.TYPE.CHAT,
+                    reportName: 'Concierge',
+                });
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            // When the created action renders
+            const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.CREATED, {});
+            render(
+                <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, HTMLEngineProvider]}>
+                    <ScreenWrapper testID="test">
+                        <PortalProvider>
+                            <ReportActionItem
+                                reportsParentHierarchy={undefined}
+                                chatReport={undefined}
+                                report={{reportID: 'testReport', type: CONST.REPORT.TYPE.CHAT}}
+                                transactionThreadReport={undefined}
+                                parentReportAction={undefined}
+                                action={action}
+                                displayAsGroup={false}
+                                shouldDisplayNewMarker={false}
+                                isFirstVisibleReportAction={false}
+                            />
+                        </PortalProvider>
+                    </ScreenWrapper>
+                </ComposeProviders>,
+            );
+            await waitForBatchedUpdatesWithAct();
+
+            // Then a screen reader hears whose details the avatar opens instead of a bare "Details"
+            expect(screen.getByRole(CONST.ROLE.BUTTON, {name: translateLocal('accessibilityHints.chatDetails', 'Concierge')})).toBeOnTheScreen();
+        });
+
         it('isChronosOOOListAction renders ChronosOOOListActions', async () => {
             const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.CHRONOS_OOO_LIST, {});
             renderItemWithAction(action);

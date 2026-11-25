@@ -130,8 +130,9 @@ function escapeRegExp(value: string): string {
 const findLockedSwitch = (subtitleKey: Parameters<typeof TestHelper.translateLocal>[0]) =>
     screen.findByRole(CONST.ROLE.SWITCH, {name: new RegExp(`${escapeRegExp(TestHelper.translateLocal(subtitleKey))}.*Locked`, 'i')});
 
-/** Resolves to the unlocked switch row for the given subtitle (no `, Locked` suffix). */
-const findUnlockedSwitch = (subtitleKey: Parameters<typeof TestHelper.translateLocal>[0]) => screen.findByRole(CONST.ROLE.SWITCH, {name: TestHelper.translateLocal(subtitleKey)});
+/** Resolves to the unlocked switch row for the given subtitle: the name ends with the subtitle, so it has no `, Locked` suffix. */
+const findUnlockedSwitch = (subtitleKey: Parameters<typeof TestHelper.translateLocal>[0]) =>
+    screen.findByRole(CONST.ROLE.SWITCH, {name: new RegExp(`${escapeRegExp(TestHelper.translateLocal(subtitleKey))}$`)});
 
 describe('WorkspaceMoreFeaturesPage', () => {
     const POLICY_ID = '1';
@@ -234,6 +235,22 @@ describe('WorkspaceMoreFeaturesPage', () => {
             await waitForBatchedUpdatesWithAct();
 
             await expect(findUnlockedSwitch('workspace.moreFeatures.workflows.subtitle')).resolves.toBeOnTheScreen();
+        });
+
+        it('names the Workflows switch after the feature before its description', async () => {
+            // Given a workspace without a Smart-Limit card, so the Workflows switch is unlocked and its name has no lock suffix
+            await TestHelper.signInWithTestUser();
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, buildPolicy({id: POLICY_ID}));
+            });
+
+            // When More Features renders
+            renderPage({policyID: POLICY_ID});
+            await waitForBatchedUpdatesWithAct();
+
+            // Then a screen reader announces which feature the switch turns on, not only what the feature does
+            const expectedName = `${TestHelper.translateLocal('workspace.moreFeatures.workflows.title')}, ${TestHelper.translateLocal('workspace.moreFeatures.workflows.subtitle')}`;
+            await expect(screen.findByRole(CONST.ROLE.SWITCH, {name: expectedName})).resolves.toBeOnTheScreen();
         });
 
         it('opens the Smart-Limit warning modal when the locked Workflows row is pressed', async () => {

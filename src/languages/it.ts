@@ -11843,6 +11843,7 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
     accessibilityHints: {
         navigateToChatsList: 'Torna all’elenco delle chat',
         chatWelcomeMessage: 'Messaggio di benvenuto in chat',
+        chatDetails: (chatName: string) => `Dettagli di ${chatName}`,
         navigatesToChat: 'Va a una chat',
         newMessageLineIndicator: 'Indicatore di nuova riga di messaggio',
         chatMessage: 'Messaggio chat',

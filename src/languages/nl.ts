@@ -11812,6 +11812,7 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
     accessibilityHints: {
         navigateToChatsList: 'Navigeer terug naar chatlijst',
         chatWelcomeMessage: 'Welkomstbericht voor chat',
+        chatDetails: (chatName: string) => `Details van ${chatName}`,
         navigatesToChat: 'Navigeert naar een chat',
         newMessageLineIndicator: 'Indicatie voor nieuwe berichtenregel',
         chatMessage: 'Chatbericht',

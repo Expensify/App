@@ -9,10 +9,12 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useOptimisticPersonalDetails from '@hooks/useOptimisticPersonalDetails';
 import {usePersonalDetail} from '@hooks/usePersonalDetails';
+import {useDerivedReportNameByReportID} from '@hooks/useReportAttributes';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {hasPendingSubmitWriteForReport} from '@libs/pendingSubmitWrite';
+import {getReportName} from '@libs/ReportNameUtils';
 import {isChatReport, isCurrentUserInvoiceReceiver, isInvoiceRoom, navigateToDetailsPage, shouldDisableDetailPage as shouldDisableDetailPageReportUtils} from '@libs/ReportUtils';
 
 import {clearCreateChatError} from '@userActions/Report';
@@ -41,6 +43,7 @@ function ReportActionItemCreated({reportID, policyID}: ReportActionItemCreatedPr
     const isInSidePanel = useIsInSidePanel();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
+    const derivedReportName = useDerivedReportNameByReportID(reportID);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
@@ -64,6 +67,7 @@ function ReportActionItemCreated({reportID, policyID}: ReportActionItemCreatedPr
     }
 
     const shouldDisableDetailPage = shouldDisableDetailPageReportUtils(report, isParticipantOptimistic);
+    const reportName = getReportName(report, derivedReportName);
 
     return (
         <OfflineWithFeedback
@@ -101,7 +105,7 @@ function ReportActionItemCreated({reportID, policyID}: ReportActionItemCreatedPr
                         <PressableWithoutFeedback
                             onPress={() => navigateToDetailsPage(report, isInSidePanel)}
                             style={[styles.mh5, styles.mb3, styles.alignSelfStart, shouldDisableDetailPage && styles.cursorDefault]}
-                            accessibilityLabel={translate('common.details')}
+                            accessibilityLabel={reportName ? translate('accessibilityHints.chatDetails', reportName) : translate('common.details')}
                             role={CONST.ROLE.BUTTON}
                             disabled={shouldDisableDetailPage}
                             sentryLabel={CONST.SENTRY_LABEL.REPORT.REPORT_ACTION_ITEM_CREATED}

@@ -11897,6 +11897,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
     accessibilityHints: {
         navigateToChatsList: 'Zurück zur Chatliste navigieren',
         chatWelcomeMessage: 'Chat-Begrüßungsnachricht',
+        chatDetails: (chatName: string) => `Details zu ${chatName}`,
         navigatesToChat: 'Navigiert zu einem Chat',
         newMessageLineIndicator: 'Anzeige für neue Nachrichtenzeile',
         chatMessage: 'Chatnachricht',

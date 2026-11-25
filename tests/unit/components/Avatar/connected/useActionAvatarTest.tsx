@@ -243,17 +243,17 @@ type Scenario = [
 ];
 
 const {SINGLE, SUBSCRIPT, MULTIPLE, MULTIPLE_DIAGONAL} = CONST.REPORT_ACTION_AVATARS.TYPE;
-const userActor = {accountID: USER_ACCOUNT_ID, isWorkspaceActor: false, shouldDisplayAllActors: false, actorHint: 'user@example.com', ...USER_PROFILE};
-const conciergeActor = {accountID: CONST.ACCOUNT_ID.CONCIERGE, isWorkspaceActor: false, shouldDisplayAllActors: false, actorHint: CONST.EMAIL.CONCIERGE, login: CONST.EMAIL.CONCIERGE};
+const userActor = {accountID: USER_ACCOUNT_ID, isWorkspaceActor: false, shouldDisplayAllActors: false, actorHint: 'User Name', ...USER_PROFILE};
+const conciergeActor = {accountID: CONST.ACCOUNT_ID.CONCIERGE, isWorkspaceActor: false, shouldDisplayAllActors: false, actorHint: 'Concierge', login: CONST.EMAIL.CONCIERGE};
 const iouActors = {
     avatarType: MULTIPLE,
     accountID: MANAGER_ACCOUNT_ID,
     isWorkspaceActor: false,
     shouldDisplayAllActors: true,
-    actorHint: 'manager@example.com',
+    actorHint: 'Manager Name',
     login: 'manager@example.com',
 };
-const invoiceActors = {accountID: MANAGER_ACCOUNT_ID, isWorkspaceActor: true, shouldDisplayAllActors: true, actorHint: POLICY_ID, login: 'manager@example.com'};
+const invoiceActors = {accountID: MANAGER_ACCOUNT_ID, isWorkspaceActor: true, shouldDisplayAllActors: true, actorHint: 'Sender Workspace', login: 'manager@example.com'};
 
 const SCENARIOS: Scenario[] = [
     ['a comment in a DM', dm, comment(), false, dm, {details: {...userActor, avatarType: SINGLE, chatReportID: DM_ID}, layout: SINGLE, primaryAvatar: USER_ICON}],
@@ -264,7 +264,7 @@ const SCENARIOS: Scenario[] = [
         false,
         dm,
         {
-            details: {...userActor, avatarType: SINGLE, actorHint: 'copilot@example.com', actedForAccountID: USER_ACCOUNT_ID, chatReportID: DM_ID},
+            details: {...userActor, avatarType: SINGLE, actorHint: 'Copilot Name', actedForAccountID: USER_ACCOUNT_ID, chatReportID: DM_ID},
             layout: SINGLE,
             primaryAvatar: COPILOT_ICON,
             copilotAccountID: DELEGATE_ACCOUNT_ID,
@@ -346,7 +346,7 @@ const SCENARIOS: Scenario[] = [
                 ...userActor,
                 avatarType: MULTIPLE,
                 shouldDisplayAllActors: true,
-                actorHint: 'copilot@example.com',
+                actorHint: 'Copilot Name',
                 actedForAccountID: USER_ACCOUNT_ID,
                 chatReportID: DM_ID,
                 iouReportID: IOU_REPORT_ID,
@@ -589,8 +589,8 @@ describe('useActionAvatar', () => {
         expect(pickIcon(result.current.primaryAvatar)).toEqual(MANAGER_ICON);
         expect(result.current.accountID).toBe(MANAGER_ACCOUNT_ID);
 
-        // And the accessibility label names that person by login rather than reading out their account ID
-        expect(result.current.actorHint).toBe('manager@example.com');
+        // And the accessibility label names that person by display name rather than reading out their account ID
+        expect(result.current.actorHint).toBe('Manager Name');
     });
 
     it('should not badge a Concierge action with the copilot whose request created it', async () => {

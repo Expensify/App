@@ -188,9 +188,13 @@ function useActionAvatar({action: passedAction, report, shouldUseRealActor}: Use
     });
     const accountID = reportPreviewSenderID || (actorAccountID ?? CONST.DEFAULT_NUMBER_ID);
     const actorPersonalDetails = personalDetails?.[accountID] ?? undefined;
-    const {avatar, fallbackIcon, login} = personalDetails?.[delegatePersonalDetails ? delegatePersonalDetails.accountID : accountID] ?? {};
+    const {avatar, fallbackIcon} = personalDetails?.[delegatePersonalDetails ? delegatePersonalDetails.accountID : accountID] ?? {};
     const defaultDisplayName = getDisplayNameForParticipant({accountID, personalDetailsData: personalDetails, formatPhoneNumber, hiddenTranslation: translate('common.hidden')}) ?? '';
-    const personActorHint = String(login || defaultDisplayName).replaceAll(CONST.REGEX.MERGED_ACCOUNT_PREFIX, '');
+    // Screen readers speak the pictured person's name, which is the copilot's when one acted.
+    const hintDisplayName = delegatePersonalDetails
+        ? getDisplayNameForParticipant({accountID: delegatePersonalDetails.accountID, personalDetailsData: personalDetails, formatPhoneNumber, hiddenTranslation: translate('common.hidden')})
+        : defaultDisplayName;
+    const personActorHint = hintDisplayName.replaceAll(CONST.REGEX.MERGED_ACCOUNT_PREFIX, '');
 
     // An action's child report can sit on another workspace, e.g. a report preview moved there, so its icons follow the policyID that report now has.
     const [actionChildReportPolicyID] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(isOtherAction ? action?.childReportID : undefined)}`, {
@@ -271,8 +275,8 @@ function useActionAvatar({action: passedAction, report, shouldUseRealActor}: Use
             actedForAccountID: undefined,
             isWorkspaceActor: true,
             shouldDisplayAllActors: !reportPreviewSenderID,
-            // Without a workspace, the label names the person by login rather than reading out their account ID.
-            actorHint: workspaceAvatar.id ? String(workspaceAvatar.id).replaceAll(CONST.REGEX.MERGED_ACCOUNT_PREFIX, '') : personActorHint,
+            // Screen readers name the workspace rather than reading out its policy ID, and name the person when there is no workspace.
+            actorHint: workspaceAvatar.id && workspaceAvatar.name ? workspaceAvatar.name : personActorHint,
             reportPreviewSenderID,
             chatReportID,
             iouReportID,
@@ -457,7 +461,7 @@ function useActionAvatar({action: passedAction, report, shouldUseRealActor}: Use
         actedForAccountID,
         isWorkspaceActor,
         shouldDisplayAllActors: displayAllActors,
-        actorHint: String(isWorkspaceActor && !!resolvedPrimaryAvatar.id ? resolvedPrimaryAvatar.id : login || defaultDisplayName).replaceAll(CONST.REGEX.MERGED_ACCOUNT_PREFIX, ''),
+        actorHint: isWorkspaceActor && resolvedPrimaryAvatar.name ? resolvedPrimaryAvatar.name : personActorHint,
         reportPreviewSenderID,
         chatReportID,
         iouReportID,
