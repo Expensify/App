@@ -1,5 +1,6 @@
 import {write} from '@libs/API';
 import {WRITE_COMMANDS} from '@libs/API/types';
+import {getUpdatedTransactionTag} from '@libs/TagsOptionsListUtils';
 
 import CONST from '@src/CONST';
 import {buildCopyPolicySettingsData, copyPolicySettings} from '@src/libs/actions/Policy/CopyPolicySettings';
@@ -164,6 +165,33 @@ function getCopyPolicySettingsStep(update: {value?: unknown} | undefined): Pick<
 describe('actions/Policy/CopyPolicySettings', () => {
     describe('buildCopyPolicySettingsData', () => {
         describe('per-part field patches and pendingFields', () => {
+            it.each([false, true])('keeps the first tag level when editing the second after copying Tags to a new workspace: %s', (isNewPolicy) => {
+                // Given two tag levels on the source and a target without multi-level tag metadata.
+                const source = makeSourcePolicy({hasMultipleTagLists: true});
+                const target = makeTargetPolicy({hasMultipleTagLists: false});
+                const tags: PolicyTagLists = {
+                    Department: {name: 'Department', required: false, orderWeight: 0, tags: {Engineering: {name: 'Engineering', enabled: true}}},
+                    Project: {name: 'Project', required: false, orderWeight: 1, tags: {Alpha: {name: 'Alpha', enabled: true}}},
+                };
+
+                // When Tags is copied and the second level is edited before the response arrives.
+                const {optimisticData} = buildCopyPolicySettingsData(source, [target], ['tags'], {}, {[SOURCE_TAGS_KEY]: tags}, {}, false, isNewPolicy);
+                const copied = getOptimisticPolicy(optimisticData);
+                const updatedTag = getUpdatedTransactionTag({
+                    transactionTag: 'Engineering',
+                    selectedTagName: 'Alpha',
+                    currentTag: '',
+                    tagListIndex: 1,
+                    policyTags: tags,
+                    hasDependentTags: false,
+                    hasMultipleTagLists: copied?.hasMultipleTagLists ?? false,
+                    tagListCount: 2,
+                });
+
+                // Then choosing a project cannot erase the department already on the expense.
+                expect(updatedTag).toBe('Engineering:Alpha');
+            });
+
             it('copies clean member, tax, connection, report-field and export-layout values', () => {
                 // Given source objects with source-only feedback, nested connection feedback and deleted MCC rules.
                 const feedback = {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE, errors: {old: 'Source failed'}};

@@ -42,7 +42,7 @@ const PARTS_TO_POLICY_FIELDS = {
     reports: ['fieldList', 'areReportFieldsEnabled', 'exportLayouts'],
     accounting: ['connections', 'areConnectionsEnabled'],
     categories: ['areCategoriesEnabled', 'requiresCategory', 'autoCategorizeNewExpenses', 'mccGroup', 'showCategoryGLCodes'],
-    tags: ['areTagsEnabled', 'requiresTag'],
+    tags: ['areTagsEnabled', 'requiresTag', 'hasMultipleTagLists'],
     taxes: ['tax', 'taxRates'],
     // achAccount is intentionally excluded — the backend remaps bankAccountID per-caller
     // (see Auth PR #21638). We rely on the server push for that field.
