@@ -38,7 +38,7 @@ function SubscriptionSizePage() {
 
     const onFinished = () => {
         updateSubscriptionSize(subscriptionSizeFormDraft ? Number(subscriptionSizeFormDraft[INPUT_IDS.SUBSCRIPTION_SIZE]) : 0, privateSubscription?.userCount ?? 0);
-        Navigation.goBack(ROUTES.SETTINGS_SUBSCRIPTION_SETTINGS_DETAILS);
+        Navigation.goBack(ROUTES.SETTINGS_SUBSCRIPTION.route);
     };
 
     const {CurrentPage, pageIndex, prevPage, nextPage, moveTo} = useSubPage({

@@ -29,7 +29,7 @@ function RenewSubscription({endDate}: RenewSubscriptionProps) {
             title={translate('homePage.timeSensitiveSection.renewSubscription.title')}
             subtitle={translate('homePage.timeSensitiveSection.renewSubscription.subtitle', {date: formatSubscriptionEndDate(endDate, dateFnsLocale)})}
             ctaText={translate('homePage.timeSensitiveSection.renewSubscription.cta')}
-            onCtaPress={() => Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION_SETTINGS_DETAILS)}
+            onCtaPress={() => Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION.route)}
             buttonVariant={CONST.BUTTON_VARIANT.SUCCESS}
         />
     );

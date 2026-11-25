@@ -3,13 +3,15 @@ import {isSubscriptionTypeOfInvoicing, shouldUseSimplifiedCollectSubscriptionUI}
 import CONST from '@src/CONST';
 import type {SubscriptionType} from '@src/CONST';
 
+import type {ValueOf} from 'type-fest';
+
 import type {PersonalPolicyTypeExcludedProps} from './SubscriptionPlanCard';
 
-type ExpensifyCodeMenu = 'add' | 'hidden';
+type ExpensifyCodeMenu = ValueOf<typeof CONST.SUBSCRIPTION.PLAN_CARD.CODE_MENU>;
 
-type SubscriptionTypeLabel = 'annual' | 'payPerUse';
+type SubscriptionTypeLabel = ValueOf<typeof CONST.SUBSCRIPTION.PLAN_CARD.TYPE_LABEL>;
 
-type AutoRenewToggleAction = 'delegate' | 'enable' | 'survey' | 'disable';
+type AutoRenewToggleAction = ValueOf<typeof CONST.SUBSCRIPTION.PLAN_CARD.AUTO_RENEW_ACTION>;
 
 type SubscriptionPlanCardViewInput = {
     subscriptionPlan: PersonalPolicyTypeExcludedProps | null;
@@ -81,7 +83,8 @@ function getSubscriptionPlanCardView({
     const showAnnualSavings = showSettings && subscriptionType === CONST.SUBSCRIPTION.TYPE.PAY_PER_USE && !isNewCollect;
     // An applied code cannot be replaced from the card. Classic does not let a customer swap codes after one is applied.
     const hasAppliedCode = !!promoCode || isSecretPromoCode;
-    const expensifyCodeMenu: ExpensifyCodeMenu = !showSettings || !canEditInApp || hasAppliedCode ? 'hidden' : 'add';
+    const expensifyCodeMenu: ExpensifyCodeMenu =
+        !showSettings || !canEditInApp || hasAppliedCode ? CONST.SUBSCRIPTION.PLAN_CARD.CODE_MENU.HIDDEN : CONST.SUBSCRIPTION.PLAN_CARD.CODE_MENU.ADD;
 
     return {
         showSettings,
@@ -89,7 +92,7 @@ function getSubscriptionPlanCardView({
         showAnnualSavingsInfo: showAnnualSavings,
         canEditSize: canEditInApp,
         canToggleAnnualSettings: canEditInApp,
-        subscriptionTypeLabel: isNewCollect || !isAnnual ? 'payPerUse' : 'annual',
+        subscriptionTypeLabel: isNewCollect || !isAnnual ? CONST.SUBSCRIPTION.PLAN_CARD.TYPE_LABEL.PAY_PER_USE : CONST.SUBSCRIPTION.PLAN_CARD.TYPE_LABEL.ANNUAL,
         memberCount: userCount ?? 0,
         showSizeNotSetHelper: showAnnualControls && !userCount,
         showExpensifyCodeBadge: hasAppliedCode,
@@ -105,18 +108,18 @@ function getSubscriptionPlanCardView({
  */
 function getAutoRenewToggleAction({isActingAsDelegate, autoRenew, hasPurchases}: AutoRenewToggleInput): AutoRenewToggleAction {
     if (isActingAsDelegate) {
-        return 'delegate';
+        return CONST.SUBSCRIPTION.PLAN_CARD.AUTO_RENEW_ACTION.DELEGATE;
     }
 
     if (!autoRenew) {
-        return 'enable';
+        return CONST.SUBSCRIPTION.PLAN_CARD.AUTO_RENEW_ACTION.ENABLE;
     }
 
     if (hasPurchases) {
-        return 'survey';
+        return CONST.SUBSCRIPTION.PLAN_CARD.AUTO_RENEW_ACTION.SURVEY;
     }
 
-    return 'disable';
+    return CONST.SUBSCRIPTION.PLAN_CARD.AUTO_RENEW_ACTION.DISABLE;
 }
 
 export {getAutoRenewToggleAction, getSubscriptionPlanCardView, shouldShowSubscriptionPlanSettings};

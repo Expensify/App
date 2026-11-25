@@ -161,8 +161,8 @@ describe('ExpensifyCodePage', () => {
         expect(applyExpensifyCode).toHaveBeenCalledWith('HappyDays100Off');
     });
 
-    it('shows the edit form without the applied code when a visible code is already applied', async () => {
-        // Given a visible applied code, because the discount can be shown but the code itself must stay hidden
+    it('shows NotFoundPage when a visible code is already applied', async () => {
+        // Given a visible applied code, because the card already shows it and this page must not offer a replacement
         await TestHelper.signInWithTestUser();
         await act(async () => {
             await Onyx.set(ONYXKEYS.NVP_PRIVATE_PROMO_CODE, 'APPLIED_CODE');
@@ -175,15 +175,14 @@ describe('ExpensifyCodePage', () => {
         renderPage();
         await waitForBatchedUpdatesWithAct();
 
-        // Then the edit form is shown without the code string, because that sentence is the public detail
-        expect(screen.getByText(TestHelper.translateLocal('subscription.subscriptionSettings.editExpensifyCode'))).toBeOnTheScreen();
-        expect(screen.getByText(TestHelper.translateLocal('subscription.expensifyCode.discountMessage', '20', '3'))).toBeOnTheScreen();
+        // Then the page is Not Found, because an applied code cannot be replaced from here
+        expect(screen.getByTestId('NotFoundPage')).toBeOnTheScreen();
         expect(screen.queryByText('APPLIED_CODE')).not.toBeOnTheScreen();
-        expect(screen.queryByTestId('NotFoundPage')).not.toBeOnTheScreen();
+        expect(screen.queryByText(TestHelper.translateLocal('subscription.subscriptionSettings.editExpensifyCode'))).not.toBeOnTheScreen();
     });
 
     it('shows NotFoundPage when the applied code is secret', async () => {
-        // Given a secret promo, because that code and its discount stay hidden from account settings
+        // Given a secret promo, because that code must not be editable from this page
         await TestHelper.signInWithTestUser();
         await act(async () => {
             await Onyx.set(ONYXKEYS.NVP_PRIVATE_PROMO_CODE, 'SECRET_CODE');
@@ -199,7 +198,7 @@ describe('ExpensifyCodePage', () => {
         renderPage();
         await waitForBatchedUpdatesWithAct();
 
-        // Then the page is Not Found, because a secret code must not be editable or described here
+        // Then the page is Not Found, because a secret code cannot be replaced here
         expect(screen.getByTestId('NotFoundPage')).toBeOnTheScreen();
         expect(screen.queryByRole('button', {name: TestHelper.translateLocal('subscription.expensifyCode.apply')})).not.toBeOnTheScreen();
     });

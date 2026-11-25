@@ -6645,6 +6645,22 @@ const CONST = {
             PAY_PER_USE: 'monthly2018',
             INVOICING: 'invoicing2018',
         },
+        PLAN_CARD: {
+            CODE_MENU: {
+                ADD: 'add',
+                HIDDEN: 'hidden',
+            },
+            TYPE_LABEL: {
+                ANNUAL: 'annual',
+                PAY_PER_USE: 'payPerUse',
+            },
+            AUTO_RENEW_ACTION: {
+                DELEGATE: 'delegate',
+                ENABLE: 'enable',
+                SURVEY: 'survey',
+                DISABLE: 'disable',
+            },
+        },
     },
     EXPENSE_RULES: {
         BULK_ACTION_TYPES: {

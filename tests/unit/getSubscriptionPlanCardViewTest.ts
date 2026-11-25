@@ -30,7 +30,7 @@ describe('getSubscriptionPlanCardView', () => {
 
         // Then the card keeps annual controls and a member count, because the owner can still edit that annual plan
         expect(view.showSettings).toBe(true);
-        expect(view.subscriptionTypeLabel).toBe('annual');
+        expect(view.subscriptionTypeLabel).toBe(CONST.SUBSCRIPTION.PLAN_CARD.TYPE_LABEL.ANNUAL);
         expect(view.memberCount).toBe(12);
         expect(view.showAnnualControls).toBe(true);
         expect(view.showSizeNotSetHelper).toBe(false);
@@ -95,7 +95,7 @@ describe('getSubscriptionPlanCardView', () => {
         });
 
         // Then size and toggles stay hidden and the savings info stays available, because a leftover count is not an annual plan
-        expect(view.subscriptionTypeLabel).toBe('payPerUse');
+        expect(view.subscriptionTypeLabel).toBe(CONST.SUBSCRIPTION.PLAN_CARD.TYPE_LABEL.PAY_PER_USE);
         expect(view.showAnnualControls).toBe(false);
         expect(view.showSizeNotSetHelper).toBe(false);
         expect(view.showAnnualSavingsInfo).toBe(true);
@@ -117,7 +117,7 @@ describe('getSubscriptionPlanCardView', () => {
         });
 
         // Then the card is pay-per-use only, because New Collect cannot buy an annual subscription
-        expect(view.subscriptionTypeLabel).toBe('payPerUse');
+        expect(view.subscriptionTypeLabel).toBe(CONST.SUBSCRIPTION.PLAN_CARD.TYPE_LABEL.PAY_PER_USE);
         expect(view.showAnnualControls).toBe(false);
         expect(view.showAnnualSavingsInfo).toBe(false);
     });
@@ -139,15 +139,15 @@ describe('getSubscriptionPlanCardView', () => {
         const secretCode = getSubscriptionPlanCardView({...base, promoCode: 'SECRET', isSecretPromoCode: true, isTaxExempt: false});
 
         // Then Add is offered only with no code. A secret code still shows a badge, but the code string stays off the card and the menu stays hidden.
-        expect(noCode.expensifyCodeMenu).toBe('add');
+        expect(noCode.expensifyCodeMenu).toBe(CONST.SUBSCRIPTION.PLAN_CARD.CODE_MENU.ADD);
         expect(noCode.showExpensifyCodeBadge).toBe(false);
 
-        expect(visibleCode.expensifyCodeMenu).toBe('hidden');
+        expect(visibleCode.expensifyCodeMenu).toBe(CONST.SUBSCRIPTION.PLAN_CARD.CODE_MENU.HIDDEN);
         expect(visibleCode.showExpensifyCodeBadge).toBe(true);
         expect(visibleCode.showTaxExemptBadge).toBe(true);
         expect(visibleCode.includeRequestTaxExempt).toBe(true);
 
-        expect(secretCode.expensifyCodeMenu).toBe('hidden');
+        expect(secretCode.expensifyCodeMenu).toBe(CONST.SUBSCRIPTION.PLAN_CARD.CODE_MENU.HIDDEN);
         expect(secretCode.showExpensifyCodeBadge).toBe(true);
         expect(secretCode.includeRequestTaxExempt).toBe(true);
     });
@@ -172,7 +172,7 @@ describe('getSubscriptionPlanCardView', () => {
         expect(view.showAnnualControls).toBe(true);
         expect(view.canEditSize).toBe(false);
         expect(view.canToggleAnnualSettings).toBe(false);
-        expect(view.expensifyCodeMenu).toBe('hidden');
+        expect(view.expensifyCodeMenu).toBe(CONST.SUBSCRIPTION.PLAN_CARD.CODE_MENU.HIDDEN);
         expect(view.includeRequestTaxExempt).toBe(true);
     });
 
@@ -219,7 +219,7 @@ describe('getSubscriptionPlanCardView', () => {
         expect(invoiced.showSettings).toBe(false);
         expect(invoiced.showAnnualControls).toBe(false);
         expect(invoicedNewCollect.showSettings).toBe(false);
-        expect(invoicedNewCollect.expensifyCodeMenu).toBe('hidden');
+        expect(invoicedNewCollect.expensifyCodeMenu).toBe(CONST.SUBSCRIPTION.PLAN_CARD.CODE_MENU.HIDDEN);
         expect(invoicedNewCollect.includeRequestTaxExempt).toBe(false);
     });
 });
@@ -229,9 +229,9 @@ describe('getAutoRenewToggleAction', () => {
         // Given a billing owner turning auto-renew on, a paying owner turning it off, and a delegate
         // When each auto-renew action is chosen
         // Then enabling writes immediately, disabling with purchases opens the survey, and a delegate is blocked
-        expect(getAutoRenewToggleAction({isActingAsDelegate: false, autoRenew: false, hasPurchases: true})).toBe('enable');
-        expect(getAutoRenewToggleAction({isActingAsDelegate: false, autoRenew: true, hasPurchases: true})).toBe('survey');
-        expect(getAutoRenewToggleAction({isActingAsDelegate: false, autoRenew: true, hasPurchases: false})).toBe('disable');
-        expect(getAutoRenewToggleAction({isActingAsDelegate: true, autoRenew: true, hasPurchases: false})).toBe('delegate');
+        expect(getAutoRenewToggleAction({isActingAsDelegate: false, autoRenew: false, hasPurchases: true})).toBe(CONST.SUBSCRIPTION.PLAN_CARD.AUTO_RENEW_ACTION.ENABLE);
+        expect(getAutoRenewToggleAction({isActingAsDelegate: false, autoRenew: true, hasPurchases: true})).toBe(CONST.SUBSCRIPTION.PLAN_CARD.AUTO_RENEW_ACTION.SURVEY);
+        expect(getAutoRenewToggleAction({isActingAsDelegate: false, autoRenew: true, hasPurchases: false})).toBe(CONST.SUBSCRIPTION.PLAN_CARD.AUTO_RENEW_ACTION.DISABLE);
+        expect(getAutoRenewToggleAction({isActingAsDelegate: true, autoRenew: true, hasPurchases: false})).toBe(CONST.SUBSCRIPTION.PLAN_CARD.AUTO_RENEW_ACTION.DELEGATE);
     });
 });

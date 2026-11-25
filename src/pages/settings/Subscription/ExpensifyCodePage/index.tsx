@@ -18,7 +18,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import {getFieldRequiredErrors} from '@libs/ValidationUtils';
 
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
-import {getExpensifyCodeDiscountMessage, getPrivatePromoDiscountInfo} from '@pages/settings/Subscription/utils';
+import {getPrivatePromoDiscountInfo} from '@pages/settings/Subscription/utils';
 
 import {applyExpensifyCode} from '@userActions/Subscription';
 
@@ -37,10 +37,9 @@ function ExpensifyCodePage() {
     const [hasSubmitted, setHasSubmitted] = useState(false);
     const [privatePromoCode] = useOnyx(ONYXKEYS.NVP_PRIVATE_PROMO_CODE);
     const [privatePromoDiscount] = useOnyx(ONYXKEYS.NVP_PRIVATE_PROMO_DISCOUNT);
-    const [privatePromoCodeValidBillingCycles] = useOnyx(ONYXKEYS.NVP_PRIVATE_PROMO_CODE_VALID_BILLING_CYCLES);
     const privateSubscription = usePrivateSubscription();
-    const {isSecretPromoCode, promoDiscountValue} = getPrivatePromoDiscountInfo(privatePromoDiscount, privateSubscription?.type === CONST.SUBSCRIPTION.TYPE.ANNUAL);
-    const isExpensifyCodeApplied = !!privatePromoCode;
+    const {isSecretPromoCode} = getPrivatePromoDiscountInfo(privatePromoDiscount, privateSubscription?.type === CONST.SUBSCRIPTION.TYPE.ANNUAL);
+    const hasAppliedCode = !!privatePromoCode || isSecretPromoCode;
 
     const defaultValues = {
         [INPUT_IDS.EXPENSIFY_CODE]: '',
@@ -63,14 +62,14 @@ function ExpensifyCodePage() {
     );
 
     useEffect(() => {
-        if (!hasSubmitted || !isExpensifyCodeApplied) {
+        if (!hasSubmitted || !hasAppliedCode) {
             return;
         }
         Navigation.goBack();
-    }, [hasSubmitted, isExpensifyCodeApplied]);
+    }, [hasSubmitted, hasAppliedCode]);
 
-    // A secret code stays off this page. The discount sentence is on the card, so this field only accepts a replacement code.
-    if (isSecretPromoCode) {
+    // An applied code cannot be replaced here. Classic does not let a customer swap codes after one is applied.
+    if (hasAppliedCode && !hasSubmitted) {
         return <NotFoundPage />;
     }
 
@@ -83,7 +82,7 @@ function ExpensifyCodePage() {
         >
             <DelegateNoAccessWrapper accessDeniedVariants={[CONST.DELEGATE.DENIED_ACCESS_VARIANTS.DELEGATE]}>
                 <HeaderWithBackButton
-                    title={isExpensifyCodeApplied ? translate('subscription.subscriptionSettings.editExpensifyCode') : translate('subscription.expensifyCode.title')}
+                    title={translate('subscription.expensifyCode.title')}
                     onBackButtonPress={Navigation.goBack}
                 />
                 <FormProvider
@@ -95,10 +94,7 @@ function ExpensifyCodePage() {
                     shouldHideFixErrorsAlert
                 >
                     <View>
-                        {isExpensifyCodeApplied && promoDiscountValue !== undefined && (
-                            <Text style={[styles.textNormalThemeText, styles.mb5]}>{getExpensifyCodeDiscountMessage(translate, promoDiscountValue, privatePromoCodeValidBillingCycles)}</Text>
-                        )}
-                        {!isExpensifyCodeApplied && <Text style={[styles.textNormalThemeText, styles.mb5]}>{translate('subscription.expensifyCode.enterCode')}</Text>}
+                        <Text style={[styles.textNormalThemeText, styles.mb5]}>{translate('subscription.expensifyCode.enterCode')}</Text>
                         <InputWrapper
                             InputComponent={TextInput}
                             ref={inputCallbackRef}

@@ -214,7 +214,10 @@ function SubscriptionPlanSettings({planTitle, planIcon, subscriptionPlan}: Subsc
         canEditInApp: canEditSubscriptionSettingsInApp,
     });
 
-    const subscriptionTypeValue = cardView.subscriptionTypeLabel === 'annual' ? translate('subscription.subscriptionSettings.annual') : translate('subscription.details.payPerUse');
+    const subscriptionTypeValue =
+        cardView.subscriptionTypeLabel === CONST.SUBSCRIPTION.PLAN_CARD.TYPE_LABEL.ANNUAL
+            ? translate('subscription.subscriptionSettings.annual')
+            : translate('subscription.details.payPerUse');
     const autoRenewalDate = formatSubscriptionEndDate(privateSubscription?.endDate, dateFnsLocale);
     const autoIncreaseSubtitle = translate('subscription.subscriptionSettings.autoIncreaseDescription', convertToShortDisplayString(possibleCostSavings, preferredCurrency));
     // A secret code stays off the card. The generic badge and the discount sentence still show.
@@ -282,15 +285,15 @@ function SubscriptionPlanSettings({planTitle, planIcon, subscriptionPlan}: Subsc
             hasPurchases: account?.hasPurchases,
         });
 
-        if (action === 'delegate') {
+        if (action === CONST.SUBSCRIPTION.PLAN_CARD.AUTO_RENEW_ACTION.DELEGATE) {
             showDelegateNoAccessModal();
             return;
         }
-        if (action === 'enable') {
+        if (action === CONST.SUBSCRIPTION.PLAN_CARD.AUTO_RENEW_ACTION.ENABLE) {
             updateSubscriptionAutoRenew(true);
             return;
         }
-        if (action === 'survey') {
+        if (action === CONST.SUBSCRIPTION.PLAN_CARD.AUTO_RENEW_ACTION.SURVEY) {
             Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION_DISABLE_AUTO_RENEW_SURVEY);
             return;
         }
@@ -307,7 +310,7 @@ function SubscriptionPlanSettings({planTitle, planIcon, subscriptionPlan}: Subsc
 
     const overflowMenu: ThreeDotsMenuProps['menuItems'] = [];
 
-    if (cardView.expensifyCodeMenu === 'add') {
+    if (cardView.expensifyCodeMenu === CONST.SUBSCRIPTION.PLAN_CARD.CODE_MENU.ADD) {
         overflowMenu.push({
             icon: icons.Tag,
             text: translate('subscription.subscriptionSettings.addExpensifyCode'),
