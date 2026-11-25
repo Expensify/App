@@ -35,6 +35,8 @@ const config = {
         // Inline EXPO_PUBLIC_* env vars into release bundles (e.g. EXPO_PUBLIC_USE_RN_FETCH to keep RN fetch).
         expoInlineEnvVars,
 
+        // Lets knip see that the plugin is used. Remove together with the plugin.
+        /** @type {import('@babel/plugin-proposal-class-properties')} */
         ['@babel/plugin-proposal-class-properties', {loose: true}],
         ['@babel/plugin-proposal-private-methods', {loose: true}],
         ['@babel/plugin-proposal-private-property-in-object', {loose: true}],

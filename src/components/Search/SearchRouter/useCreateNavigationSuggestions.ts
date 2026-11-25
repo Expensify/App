@@ -4,12 +4,14 @@
 import useCreateReport from '@hooks/useCreateReport';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useDefaultWorkspaceTravelGuard from '@hooks/useDefaultWorkspaceTravelGuard';
 import useIsSupportalSession from '@hooks/useIsSupportalSession';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
+import {useGetPersonalDetailsByLogin} from '@hooks/usePersonalDetailByLogin';
 import usePreferredPolicy from '@hooks/usePreferredPolicy';
 
 import {showSupportalPermissionDenied} from '@libs/actions/App';
@@ -35,6 +37,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import {primaryLoginSelector} from '@src/selectors/Account';
 import {isTrackIntentUserSelector} from '@src/selectors/Onboarding';
+import {createHasTravelEnabledPolicySelector} from '@src/selectors/Policy';
 import {emailSelector} from '@src/selectors/Session';
 import {validTransactionDraftIDsSelector} from '@src/selectors/TransactionDraft';
 import type {Policy} from '@src/types/onyx';
@@ -98,7 +101,7 @@ function useCreateNavigationMatchTerms() {
     const {translate} = useLocalize();
 
     return {
-        createExpense: [translate('iou.createExpense'), translate('iou.addExpense'), translate('homePage.gettingStartedSection.createExpense')],
+        createExpense: [translate('iou.createExpense'), translate('iou.addExpense'), translate('iou.createAnExpense'), translate('homePage.gettingStartedSection.addFirstReceipt')],
         createReport: [translate('report.newReport.createReport')],
         trackDistance: [translate('iou.trackDistance')],
         chat: [translate('sidebarScreen.fabNewChat'), `${translate('common.new')} ${translate('common.chat')}`],
@@ -114,6 +117,7 @@ function useCreateNavigationSuggestions(query = '', shouldBuildItems = true): Na
     const icons = useMemoizedLazyExpensifyIcons(['Coins', 'Receipt', 'Cash', 'Transfer', 'MoneyCircle', 'Location', 'Document', 'ChatBubble', 'InvoiceGeneric', 'Suitcase', 'NewWorkspace']);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const {getCurrencyDecimals} = useCurrencyListActions();
+    const getPersonalDetailsByLogin = useGetPersonalDetailsByLogin();
     const {isBetaEnabled} = usePermissions();
     const {isOffline} = useNetwork();
     const {isRestrictedPolicyCreation} = usePreferredPolicy();
@@ -124,6 +128,9 @@ function useCreateNavigationSuggestions(query = '', shouldBuildItems = true): Na
     const [lastDistanceExpenseType] = useOnyx(ONYXKEYS.NVP_LAST_DISTANCE_EXPENSE_TYPE);
     const [primaryLogin] = useOnyx(ONYXKEYS.ACCOUNT, {selector: primaryLoginSelector});
     const [sessionEmail] = useOnyx(ONYXKEYS.SESSION, {selector: emailSelector});
+    const hasTravelEnabledPolicySelector = createHasTravelEnabledPolicySelector(sessionEmail);
+    const [hasTravelEnabledPolicy] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: hasTravelEnabledPolicySelector});
+    const blockIfDefaultWorkspaceLacksTravel = useDefaultWorkspaceTravelGuard({shouldRequireCompletedSetup: false});
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const [activePolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`);
     const [travelSettings] = useOnyx(ONYXKEYS.NVP_TRAVEL_SETTINGS);
@@ -152,17 +159,17 @@ function useCreateNavigationSuggestions(query = '', shouldBuildItems = true): Na
                 clearLastSearchParams();
             }
 
-            const {reportID: createdReportID} = createNewReport(
-                currentUserPersonalDetails,
-                false,
-                isBetaEnabled(CONST.BETAS.ASAP_SUBMIT),
+            const {reportID: createdReportID} = createNewReport({
+                ownerPersonalDetails: currentUserPersonalDetails,
+                hasViolations: false,
+                isASAPSubmitBetaEnabled: isBetaEnabled(CONST.BETAS.ASAP_SUBMIT),
                 policy,
                 isTrackIntentUser,
                 getCurrencyDecimals,
                 rules,
-                false,
+                personalDetailsByLogins: getPersonalDetailsByLogin(),
                 shouldDismissEmptyReportsConfirmation,
-            );
+            });
             // Navigate to the Reports page first so getCreateReportRoute() resolves against
             // the Search/Reports fullscreen context before opening the created report modal.
             Navigation.navigate(getReportsRootRoute(), {forceReplace: isReportInSearch});
@@ -180,7 +187,7 @@ function useCreateNavigationSuggestions(query = '', shouldBuildItems = true): Na
     }
 
     const isInvoiceVisible = canSendInvoice(allPolicies ?? null, sessionEmail);
-    const isTravelVisible = !!activePolicy?.isTravelEnabled;
+    const isTravelVisible = !!hasTravelEnabledPolicy;
     const isBlockedFromSpotnanaTravel = isBetaEnabled(CONST.BETAS.PREVENT_SPOTNANA_TRAVEL);
     const primaryContactMethod = primaryLogin ?? sessionEmail ?? '';
     const isTravelEnabled =
@@ -264,7 +271,12 @@ function useCreateNavigationSuggestions(query = '', shouldBuildItems = true): Na
             matchTerms: matchTerms.travel,
             action: () =>
                 replaceTopmostModalWithAction(() => {
-                    interceptAnonymousUser(() => openBookTravel(activePolicy?.id, isTravelEnabled), session);
+                    interceptAnonymousUser(() => {
+                        if (blockIfDefaultWorkspaceLacksTravel()) {
+                            return;
+                        }
+                        openBookTravel(activePolicy?.id, isTravelEnabled);
+                    }, session);
                 }),
             keyForList: 'create_travel',
         },

@@ -7,6 +7,7 @@ import TextInput from '@components/TextInput';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 
 import useFetchAfterAppLoaded from '@hooks/useFetchAfterAppLoaded';
+import useKeyboardDrivenScroll from '@hooks/useKeyboardDrivenScroll';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -14,17 +15,19 @@ import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {clearAgentPromptUpdateError, openProfilePage, updateAgentPrompt} from '@libs/actions/Agent';
-import getPlatform from '@libs/getPlatform';
 import {containsHtmlTag} from '@libs/ValidationUtils';
+
+import scrollToMultilineInput from '@pages/settings/Agents/scrollToMultilineInput';
 
 import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
-import type {ComponentRef, RefObject} from 'react';
+import type {ComponentRef} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import type {ScrollView as RNScrollView, TextInputKeyPressEvent} from 'react-native';
+import type {AnimatedRef} from 'react-native-reanimated';
 
 import {Str} from 'expensify-common';
 import React, {useEffect, useRef, useState} from 'react';
@@ -35,25 +38,8 @@ const SAVED_CONFIRMATION_DURATION_MS = 2000;
 
 type AgentAIPromptSectionProps = {
     accountID: number;
-    parentScrollViewRef?: RefObject<ComponentRef<typeof RNScrollView> | null>;
+    parentScrollViewRef: AnimatedRef<ComponentRef<typeof RNScrollView>>;
 };
-
-function scrollInputIntoView(parentScrollViewRef: RefObject<ComponentRef<typeof RNScrollView> | null>) {
-    if (getPlatform() !== CONST.PLATFORM.IOS) {
-        return;
-    }
-
-    const scrollView = parentScrollViewRef.current;
-    if (!scrollView) {
-        return;
-    }
-
-    requestAnimationFrame(() => {
-        setTimeout(() => {
-            scrollView.scrollToEnd({animated: true});
-        }, CONST.ANIMATED_TRANSITION);
-    });
-}
 
 function AgentAIPromptSection({accountID, parentScrollViewRef}: AgentAIPromptSectionProps) {
     const {translate} = useLocalize();
@@ -67,6 +53,7 @@ function AgentAIPromptSection({accountID, parentScrollViewRef}: AgentAIPromptSec
     const [showSavedConfirmation, setShowSavedConfirmation] = useState(false);
     const [isUserInitiatedSave, setIsUserInitiatedSave] = useState(false);
     const inputRef = useRef<BaseTextInputRef>(null);
+    const scrollWithKeyboard = useKeyboardDrivenScroll(parentScrollViewRef);
     const wasSavingRef = useRef(false);
     const savedConfirmationTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
     const isSaving = agentPrompt?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE;
@@ -147,12 +134,8 @@ function AgentAIPromptSection({accountID, parentScrollViewRef}: AgentAIPromptSec
         Keyboard.dismiss();
     };
 
-    const handleInputFocus = () => {
-        if (!parentScrollViewRef) {
-            return;
-        }
-        scrollInputIntoView(parentScrollViewRef);
-    };
+    // Like scrollToEnd, as the scroll view stops at its end
+    const scrollInputIntoView = () => scrollToMultilineInput(scrollWithKeyboard, true, Number.MAX_SAFE_INTEGER);
 
     const handleSave = () => {
         if (isSaving && isUserInitiatedSave) {
@@ -220,13 +203,15 @@ function AgentAIPromptSection({accountID, parentScrollViewRef}: AgentAIPromptSec
                     value={draftPrompt}
                     onChangeText={handleChangeText}
                     onKeyPress={handleKeyPress}
+                    maxLength={CONST.AGENT_PROMPT_MAX_LENGTH}
+                    sentryLabel={CONST.SENTRY_LABEL.SETTINGS_PROFILE.AI_PROMPT}
                     multiline
                     autoGrowHeight
                     maxAutoGrowHeight={variables.lineHeightNormal * MAX_VISIBLE_PROMPT_LINES}
                     errorText={errorText}
                     containerStyles={[styles.mb3]}
                     testID="ai-prompt-input"
-                    onFocus={handleInputFocus}
+                    onFocus={scrollInputIntoView}
                 />
             </OfflineWithFeedback>
             <Text style={[styles.textMicroSupporting, styles.mt1, styles.mb5]}>{translate('workspace.rules.agentRules.disclaimer')}</Text>

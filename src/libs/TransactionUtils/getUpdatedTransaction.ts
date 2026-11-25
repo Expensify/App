@@ -15,7 +15,7 @@ import {roundToTwoDecimalPlaces} from '@libs/NumberUtils';
 
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
-import type {Policy, Transaction} from '@src/types/onyx';
+import type {Policy, Rule, Transaction} from '@src/types/onyx';
 import type {Unit} from '@src/types/onyx/Policy';
 import type {TransactionChanges} from '@src/types/onyx/Transaction';
 
@@ -26,12 +26,7 @@ import lodashDeepClone from 'lodash/cloneDeep';
 import lodashSet from 'lodash/set';
 
 import {isFailedScanAmountPlaceholder} from './amountUtils';
-import getDistanceInMeters from './getDistanceInMeters';
-// This cycle import is safe because this file was extracted from TransactionUtils/index.ts, which re-exports it.
-// The functions imported here are pure helpers that aren't called at initialization time.
-// eslint-disable-next-line import/no-cycle
 import {
-    getCategoryTaxDetails,
     getCurrency,
     hasAppliedCommuterExclusion,
     hasLocallyKnownDistance,
@@ -40,7 +35,9 @@ import {
     isManualDistanceRequest,
     isOdometerDistanceRequest,
     isScanRequest,
-} from './index';
+} from './fields';
+import getDistanceInMeters from './getDistanceInMeters';
+import {getCategoryTaxDetails} from './tax';
 
 function getClearedPendingFields(transactionChanges: TransactionChanges) {
     return {
@@ -100,8 +97,7 @@ function getDistanceMerchantForTransaction({
 }
 
 /**
- * Build the distance merchant string (e.g. "5.00 mi @ $0.70 / mi") for a recalculated distance, using the
- * imperative locale accessors the optimistic update paths below have to rely on.
+ * Build the distance merchant string (e.g. "5.00 mi @ $0.70 / mi") using the caller's translation function.
  */
 function getRecalculatedDistanceMerchant(
     transaction: OnyxEntry<Transaction>,
@@ -110,6 +106,7 @@ function getRecalculatedDistanceMerchant(
     rate: number | undefined,
     currency: string,
     getCurrencySymbol: CurrencyListActionsContextType['getCurrencySymbol'],
+    translate: LocaleContextProps['translate'],
     commuterExclusionData?: CommuterExclusionData | null,
 ): string {
     return getDistanceMerchantForTransaction({
@@ -118,7 +115,7 @@ function getRecalculatedDistanceMerchant(
         unit,
         rate,
         currency,
-        translate: translateLocal,
+        translate,
         getCurrencySymbol,
         commuterExclusionData,
     });
@@ -128,6 +125,7 @@ function getRecalculatedDistanceMerchant(
  * Given the edit made to the expense, return an updated transaction object.
  */
 function getUpdatedTransaction({
+    translate = translateLocal,
     transaction,
     transactionChanges,
     isFromExpenseReport,
@@ -136,9 +134,11 @@ function getUpdatedTransaction({
     policies = undefined,
     isSplitTransaction = false,
     personalPolicyOutputCurrency,
-    getCurrencyDecimals,
     getCurrencySymbol,
+    getCurrencyDecimals,
+    rules,
 }: {
+    translate?: LocaleContextProps['translate'];
     transaction: Transaction;
     transactionChanges: TransactionChanges;
     isFromExpenseReport: boolean;
@@ -147,8 +147,11 @@ function getUpdatedTransaction({
     policies?: OnyxCollection<Policy>;
     isSplitTransaction?: boolean;
     personalPolicyOutputCurrency: string | undefined;
-    getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
     getCurrencySymbol: CurrencyListActionsContextType['getCurrencySymbol'];
+    getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
+
+    /** Expense default rules, which is where a category's tax rate lives */
+    rules?: OnyxCollection<Rule>;
 }): Transaction {
     const isUnReportedExpense = transaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
 
@@ -206,7 +209,7 @@ function getUpdatedTransaction({
             // The waypoints were changed, but there is no route – it is pending from the BE and we should mark the fields as pending
             updatedTransaction.amount = CONST.IOU.DEFAULT_AMOUNT;
             updatedTransaction.modifiedAmount = CONST.IOU.DEFAULT_AMOUNT;
-            updatedTransaction.modifiedMerchant = translateLocal('iou.fieldPending');
+            updatedTransaction.modifiedMerchant = translate('iou.fieldPending');
         } else if (transactionChanges.routes?.route0?.geometry?.coordinates) {
             const mileageRate = DistanceRequestUtils.getRate({transaction: updatedTransaction, policy, personalPolicyOutputCurrency});
             const {unit, rate} = mileageRate;
@@ -259,6 +262,7 @@ function getUpdatedTransaction({
                 rate,
                 updatedCurrency,
                 getCurrencySymbol,
+                translate,
                 DistanceRequestUtils.getCommuterExclusionDisplayData(commuterExclusionTransactionData?.customUnit, unit),
             );
 
@@ -370,6 +374,7 @@ function getUpdatedTransaction({
                 rate,
                 updatedCurrency,
                 getCurrencySymbol,
+                translate,
                 DistanceRequestUtils.getCommuterExclusionDisplayData(commuterExclusionTransactionData?.customUnit, unit),
             );
 
@@ -407,7 +412,7 @@ function getUpdatedTransaction({
         // change here only writes a rate that the response immediately overwrites. Split drafts have no such
         // response and send whatever tax the draft holds, so they keep recalculating.
         if (transactionChanges.category || isSplitTransaction) {
-            const {categoryTaxCode, categoryTaxAmount, categoryTaxValue} = getCategoryTaxDetails(transactionChanges.category, transaction, policy, getCurrencyDecimals);
+            const {categoryTaxCode, categoryTaxAmount, categoryTaxValue} = getCategoryTaxDetails(transactionChanges.category, transaction, policy, rules, getCurrencyDecimals);
             if (categoryTaxCode && categoryTaxAmount !== undefined && categoryTaxValue) {
                 updatedTransaction.taxCode = categoryTaxCode;
                 updatedTransaction.taxAmount = categoryTaxAmount;
@@ -482,6 +487,7 @@ function getUpdatedTransaction({
             rate,
             updatedCurrency,
             getCurrencySymbol,
+            translate,
             DistanceRequestUtils.getCommuterExclusionDisplayData(commuterExclusionTransactionData?.customUnit, unit),
         );
 
@@ -550,6 +556,7 @@ function getUpdatedTransaction({
                 rate,
                 updatedCurrency,
                 getCurrencySymbol,
+                translate,
                 DistanceRequestUtils.getCommuterExclusionDisplayData(commuterExclusionTransactionData?.customUnit, unit),
             );
 

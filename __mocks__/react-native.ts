@@ -64,7 +64,7 @@ jest.doMock('react-native', () => {
                         listener(appState);
                     }
                 },
-                addEventListener(type: ReactNative.AppStateEvent, listener: (state: ReactNative.AppStateStatus) => void) {
+                addEventListener(type: ReactNative.AppStateEvent, listener: Parameters<typeof ReactNative.AppState.addEventListener>[1]) {
                     if (type === 'change') {
                         const originalCount = count;
                         changeListeners[originalCount] = listener;

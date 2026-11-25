@@ -4,6 +4,7 @@ import {
     getSyncedParticipantAccountIDs,
     initMoneyRequest,
     resetDraftTransactionsCustomUnit,
+    setCustomUnitRateID,
     setMoneyRequestAmount,
     setMoneyRequestBillable,
     setMoneyRequestCategory,
@@ -35,11 +36,11 @@ import {format} from 'date-fns';
 import Onyx from 'react-native-onyx';
 
 import currencyList from '../../unit/currencyList.json';
-import createRandomPolicy, {createCategoryTaxExpenseRules} from '../../utils/collections/policies';
+import createRandomPolicy from '../../utils/collections/policies';
 import {createRandomReport} from '../../utils/collections/reports';
 import createRandomTransaction from '../../utils/collections/transaction';
 import getOnyxValue from '../../utils/getOnyxValue';
-import {getCurrencyDecimalsLocal, getGlobalFetchMock} from '../../utils/TestHelper';
+import {getGlobalFetchMock} from '../../utils/TestHelper';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
 const topMostReportID = '23423423';
@@ -325,101 +326,90 @@ describe('actions/IOU', () => {
         });
     });
 
-    describe('setMoneyRequestCategory', () => {
-        it('should set the associated tax for the category based on the tax expense rules', async () => {
-            // Given a policy with tax expense rules associated with category
-            const transactionID = '1';
-            const category = 'Advertising';
-            const policyID = '2';
-            const taxCode = 'id_TAX_EXEMPT';
-            const ruleTaxCode = 'id_TAX_RATE_1';
-            const fakePolicy: Policy = {
-                ...createRandomPolicy(Number(policyID)),
-                taxRates: CONST.DEFAULT_TAX,
-                rules: {expenseRules: createCategoryTaxExpenseRules(category, ruleTaxCode)},
+    describe('setCustomUnitRateID', () => {
+        const CUSTOM_UNIT_RATE_ID = 'customUnitRateID123';
+
+        function createPolicyWithKilometreRate(): Policy {
+            const policy = createRandomPolicy(1);
+            policy.customUnits = {
+                distanceUnitID: {
+                    customUnitID: 'distanceUnitID',
+                    name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+                    attributes: {
+                        unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS,
+                    },
+                    rates: {
+                        [CUSTOM_UNIT_RATE_ID]: {
+                            customUnitRateID: CUSTOM_UNIT_RATE_ID,
+                            name: 'Kilometre rate',
+                            rate: 70,
+                            currency: CONST.CURRENCY.USD,
+                            enabled: true,
+                        },
+                    },
+                },
             };
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {
-                taxCode,
-                taxAmount: 0,
-                amount: 100,
-            });
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, fakePolicy);
+            return policy;
+        }
 
-            // When setting the money request category
-            setMoneyRequestCategory(transactionID, category, fakePolicy, getCurrencyDecimalsLocal);
+        function createDistanceDraft(iouRequestType?: Transaction['iouRequestType']): Transaction {
+            return {
+                transactionID: 'testTransaction123',
+                amount: 1000,
+                currency: CONST.CURRENCY.USD,
+                ...(iouRequestType && {iouRequestType}),
+                comment: {
+                    comment: 'Test transaction',
+                    customUnit: {
+                        distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                        quantity: 10,
+                    },
+                },
+                created: DateUtils.getDBTime(),
+                merchant: 'Test Merchant',
+                reportID: 'testReport123',
+            };
+        }
 
+        it('converts distance quantity into the new rate unit', async () => {
+            // Given a draft measured in miles that needs to retain its physical distance
+            const testTransaction = createDistanceDraft();
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${testTransaction.transactionID}`, testTransaction);
+
+            // When the destination rate uses kilometers instead
+            setCustomUnitRateID(testTransaction.transactionID, CUSTOM_UNIT_RATE_ID, testTransaction, createPolicyWithKilometreRate(), false, CONST.CURRENCY.USD);
             await waitForBatchedUpdates();
 
-            // Then the transaction tax rate and amount should be updated based on the expense rules
-            const transaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`);
-            expect(transaction?.taxCode).toBe(ruleTaxCode);
-            expect(transaction?.taxAmount).toBe(5);
+            // Then both the quantity and unit change so they describe the same distance
+            const transactionDraft = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${testTransaction.transactionID}`);
+            expect(transactionDraft?.comment?.customUnit?.customUnitRateID).toBe(CUSTOM_UNIT_RATE_ID);
+            expect(transactionDraft?.comment?.customUnit?.distanceUnit).toBe(CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS);
+            // 10 miles to kilometers = 10 / 0.000621371 * 0.001 = 16.093444978925636
+            expect(transactionDraft?.comment?.customUnit?.quantity).toBe(16.093444978925636);
         });
 
-        describe('should not change the tax', () => {
-            it('if the transaction type is distance', async () => {
-                // Given a policy with tax expense rules associated with category and a distance transaction
-                const transactionID = '1';
-                const category = 'Advertising';
-                const policyID = '2';
-                const taxCode = 'id_TAX_EXEMPT';
-                const ruleTaxCode = 'id_TAX_RATE_1';
-                const taxAmount = 0;
-                const fakePolicy: Policy = {
-                    ...createRandomPolicy(Number(policyID)),
-                    taxRates: CONST.DEFAULT_TAX,
-                    rules: {expenseRules: createCategoryTaxExpenseRules(category, ruleTaxCode)},
-                };
-                await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {
-                    taxCode,
-                    taxAmount,
-                    amount: 100,
-                    iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE,
-                });
-                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, fakePolicy);
+        it('converts distance quantity for an odometer request but keeps the readings as entered', async () => {
+            // Given odometer readings that must continue matching the vehicle's photos
+            const testTransaction = createDistanceDraft(CONST.IOU.REQUEST_TYPE.DISTANCE_ODOMETER);
+            testTransaction.comment = {...testTransaction.comment, odometerStart: 1000, odometerEnd: 1010};
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${testTransaction.transactionID}`, testTransaction);
 
-                // When setting the money request category
-                setMoneyRequestCategory(transactionID, category, fakePolicy, getCurrencyDecimalsLocal);
+            // When the destination rate uses kilometers instead of miles
+            setCustomUnitRateID(testTransaction.transactionID, CUSTOM_UNIT_RATE_ID, testTransaction, createPolicyWithKilometreRate(), false, CONST.CURRENCY.USD);
+            await waitForBatchedUpdates();
 
-                await waitForBatchedUpdates();
-
-                // Then the transaction tax rate and amount shouldn't be updated
-                const transaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`);
-                expect(transaction?.taxCode).toBe(taxCode);
-                expect(transaction?.taxAmount).toBe(taxAmount);
-            });
-
-            it('if there are no tax expense rules', async () => {
-                // Given a policy without tax expense rules
-                const transactionID = '1';
-                const category = 'Advertising';
-                const policyID = '2';
-                const taxCode = 'id_TAX_EXEMPT';
-                const taxAmount = 0;
-                const fakePolicy: Policy = {
-                    ...createRandomPolicy(Number(policyID)),
-                    taxRates: CONST.DEFAULT_TAX,
-                    rules: {},
-                };
-                await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {
-                    taxCode,
-                    taxAmount,
-                    amount: 100,
-                });
-                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, fakePolicy);
-
-                // When setting the money request category
-                setMoneyRequestCategory(transactionID, category, fakePolicy, getCurrencyDecimalsLocal);
-
-                await waitForBatchedUpdates();
-
-                // Then the transaction tax rate and amount shouldn't be updated
-                const transaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`);
-                expect(transaction?.taxCode).toBe(taxCode);
-                expect(transaction?.taxAmount).toBe(taxAmount);
-            });
+            // Then the total converts without changing the readings shown in the photos
+            const transactionDraft = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${testTransaction.transactionID}`);
+            expect(transactionDraft?.comment?.customUnit?.customUnitRateID).toBe(CUSTOM_UNIT_RATE_ID);
+            expect(transactionDraft?.comment?.customUnit?.distanceUnit).toBe(CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS);
+            expect(transactionDraft?.comment?.customUnit?.quantity).toBe(16.093444978925636);
+            // The readings must still match the odometer photos
+            expect(transactionDraft?.comment?.odometerStart).toBe(1000);
+            expect(transactionDraft?.comment?.odometerEnd).toBe(1010);
         });
+    });
 
+    describe('setMoneyRequestCategory', () => {
         it('should clear the tax when the policyID is empty', async () => {
             // Given a transaction with a tax
             const transactionID = '1';
@@ -432,7 +422,7 @@ describe('actions/IOU', () => {
             });
 
             // When setting the money request category without a policyID
-            setMoneyRequestCategory(transactionID, '', undefined, getCurrencyDecimalsLocal);
+            setMoneyRequestCategory(transactionID, '', undefined);
             await waitForBatchedUpdates();
 
             // Then the transaction tax should be cleared

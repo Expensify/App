@@ -45,13 +45,14 @@ function getFirstWriteCall(): {command: WriteCommand; onyxData?: AnyOnyxData} {
     return {command, onyxData};
 }
 
-function createPolicy(options: {isAuthError?: boolean; verified?: boolean; tokenID?: string}): OnyxEntry<Policy> {
+function createPolicy(options: {isAuthError?: boolean; verified?: boolean; tokenID?: string; authType?: typeof CONST.NETSUITE_CONFIG.AUTH_TYPE.OAUTH2}): OnyxEntry<Policy> {
     return createMock<Policy>({
         id: MOCK_POLICY_ID,
         connections: {
             netsuite: {
                 verified: options.verified ?? false,
                 tokenID: options.tokenID,
+                config: {authType: options.authType},
                 lastSync: {
                     isAuthenticationError: options.isAuthError ?? false,
                 },
@@ -410,13 +411,13 @@ describe('actions/connections/NetSuite', () => {
             expect(getInitialSubPageForNetsuiteTokenInput(policy)).toBe(PAGE_NAME.CREDENTIALS);
         });
 
-        it('lands on INSTALL for an OAuth connection without an auth error', () => {
+        it('lands on CREDENTIALS for an OAuth connection without an auth error', () => {
             // Given a healthy OAuth connection (no tokenID, no auth error)
-            const policy = createPolicy({tokenID: '', isAuthError: false});
+            const policy = createPolicy({tokenID: '', isAuthError: false, authType: CONST.NETSUITE_CONFIG.AUTH_TYPE.OAUTH2});
 
             // When determining the initial sub-page
-            // Then the wizard starts from the beginning
-            expect(getInitialSubPageForNetsuiteTokenInput(policy)).toBe(PAGE_NAME.INSTALL);
+            // Then the wizard skips the OAuth setup steps, because the admin either authenticates again or switches to TBA from CREDENTIALS
+            expect(getInitialSubPageForNetsuiteTokenInput(policy)).toBe(PAGE_NAME.CREDENTIALS);
         });
     });
 });

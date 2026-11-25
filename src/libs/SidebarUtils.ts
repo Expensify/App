@@ -252,6 +252,9 @@ function shouldDisplayReportInLHN({
         includeSelfDM: true,
         isReportArchived,
         requiresAttention,
+        // `requiresAttention` comes from reportAttributes, which already applies the pending-DEW-approve check with the
+        // real metadata. The metadata below is only read before reportAttributes has computed this report.
+        pendingExpenseActionMetadata: undefined,
         derivedIsEmptyReport: reportAttributes?.[report?.reportID]?.isEmpty,
         currentUserLogin,
         currentUserAccountID,
@@ -264,6 +267,37 @@ function shouldDisplayReportInLHN({
 
 /** The LHN set produced by the most recent build, read on report open to detect unread chats the LHN did not surface. */
 let lastReportsToDisplayInLHN: ReportsToDisplayInLHN | undefined;
+
+/** The values a flagged LHN entry carries on top of its report */
+type FlaggedLHNEntryFields = {
+    requiresAttention: boolean;
+    hasErrorsOtherThanFailedReceipt: boolean | undefined;
+    isUnreadReport: boolean;
+    lastVisibleActionCreatedForInboxTab: string;
+};
+
+/** Source report of each flagged entry (a spread copy), so an unchanged report can reuse its entry */
+const flaggedLHNEntrySources = new WeakMap<ReportsToDisplayInLHN[string], Report>();
+
+function toFlaggedLHNEntry(report: Report, fields: FlaggedLHNEntryFields): ReportsToDisplayInLHN[string] {
+    const entry = {...report, ...fields};
+    flaggedLHNEntrySources.set(entry, report);
+    return entry;
+}
+
+/** Whether the existing flagged entry was built from this report with these values */
+function isFlaggedLHNEntryUpToDate(existingEntry: ReportsToDisplayInLHN[string] | undefined, report: Report, fields: FlaggedLHNEntryFields): boolean {
+    if (!existingEntry) {
+        return false;
+    }
+    return (
+        flaggedLHNEntrySources.get(existingEntry) === report &&
+        existingEntry.requiresAttention === fields.requiresAttention &&
+        existingEntry.hasErrorsOtherThanFailedReceipt === fields.hasErrorsOtherThanFailedReceipt &&
+        existingEntry.isUnreadReport === fields.isUnreadReport &&
+        existingEntry.lastVisibleActionCreatedForInboxTab === fields.lastVisibleActionCreatedForInboxTab
+    );
+}
 
 /** Used to detect when the focused report changes, so its LHN state is captured before the rebuild that opening triggers. */
 let lastBuildCurrentReportId: string | undefined;
@@ -375,7 +409,7 @@ function getReportsToDisplayInLHN({
             const lastVisibleActionCreatedForInboxTab = getReportLastVisibleActionCreated(report, oneTransactionThreadReport);
             reportsToDisplay[reportID] =
                 requiresAttention || hasErrorsOtherThanFailedReceipt || isUnreadReport
-                    ? {...report, requiresAttention, hasErrorsOtherThanFailedReceipt, isUnreadReport, lastVisibleActionCreatedForInboxTab}
+                    ? toFlaggedLHNEntry(report, {requiresAttention, hasErrorsOtherThanFailedReceipt, isUnreadReport, lastVisibleActionCreatedForInboxTab})
                     : report;
         }
     }
@@ -484,13 +518,9 @@ function updateReportsToDisplayInLHN({
             const existingEntry = displayedReports[reportID];
 
             if (hasFlags) {
-                if (
-                    existingEntry !== report ||
-                    existingEntry?.requiresAttention !== requiresAttention ||
-                    existingEntry?.hasErrorsOtherThanFailedReceipt !== hasErrorsOtherThanFailedReceipt ||
-                    existingEntry?.isUnreadReport !== isUnreadReport
-                ) {
-                    getMutableCopy()[reportID] = {...report, requiresAttention, hasErrorsOtherThanFailedReceipt, isUnreadReport, lastVisibleActionCreatedForInboxTab};
+                const fields = {requiresAttention, hasErrorsOtherThanFailedReceipt, isUnreadReport, lastVisibleActionCreatedForInboxTab};
+                if (!isFlaggedLHNEntryUpToDate(existingEntry, report, fields)) {
+                    getMutableCopy()[reportID] = toFlaggedLHNEntry(report, fields);
                 }
             } else if (existingEntry !== report) {
                 getMutableCopy()[reportID] = report;
@@ -510,7 +540,7 @@ function categorizeReportsForLHN(
     reportsToDisplay: ReportsToDisplayInLHN,
     reportsDrafts: Record<string, boolean> | undefined,
     reportAttributes: ReportAttributesDerivedValue['reports'] | undefined,
-    reportNameValuePairs?: OnyxCollection<ReportNameValuePairs>,
+    archivedReportIDs?: Set<string>,
 ) {
     sortKeyCache.clear();
 
@@ -542,9 +572,7 @@ function categorizeReportsForLHN(
             continue;
         }
 
-        const reportNameValuePairsKey = `${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`;
-        const rNVPs = reportNameValuePairs?.[reportNameValuePairsKey];
-        const isArchived = isArchivedNonExpenseReport(report, !!rNVPs?.private_isArchived);
+        const isArchived = isArchivedNonExpenseReport(report, !!archivedReportIDs?.has(reportID));
         const hasErrors = !!report.hasErrorsOtherThanFailedReceipt && !isArchived;
 
         if (hasErrors) {
@@ -669,7 +697,7 @@ function sortReportsToDisplayInLHN(
     priorityMode: OnyxEntry<PriorityMode>,
     localeCompare: LocaleContextProps['localeCompare'],
     reportsDrafts: Record<string, boolean> | undefined,
-    reportNameValuePairs: OnyxCollection<ReportNameValuePairs> | undefined,
+    archivedReportIDs: Set<string> | undefined,
     reportAttributes: ReportAttributesDerivedValue['reports'] | undefined,
 ): string[] {
     const isInFocusMode = priorityMode === CONST.PRIORITY_MODE.GSD;
@@ -686,7 +714,7 @@ function sortReportsToDisplayInLHN(
     //      - Sorted by reportDisplayName in GSD (focus) view mode
 
     // Step 1: Categorize reports
-    const categories = categorizeReportsForLHN(reportsToDisplay, reportsDrafts, reportAttributes, reportNameValuePairs);
+    const categories = categorizeReportsForLHN(reportsToDisplay, reportsDrafts, reportAttributes, archivedReportIDs);
 
     // Step 2: Sort each category
     const sortedCategories = sortCategorizedReports(categories, isInDefaultMode, localeCompare);
@@ -786,6 +814,7 @@ function getOptionData({
     lastMessageTextFromReport: lastMessageTextFromReportProp,
     card,
     lastAction,
+    lastOriginalAction,
     translate,
     dateFnsLocale,
     convertToDisplayString,
@@ -820,6 +849,7 @@ function getOptionData({
     reportAttributes: OnyxEntry<ReportAttributes>;
     card: Card | undefined;
     lastAction: ReportAction | undefined;
+    lastOriginalAction: OnyxEntry<ReportAction>;
     translate: LocalizedTranslate;
     dateFnsLocale: DateFnsLocale | undefined;
     convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'];
@@ -991,6 +1021,7 @@ function getOptionData({
         reportAttributesDerived,
         visibleReportActionsData,
         oneTransactionThreadReportID: reportAttributes?.oneTransactionThreadReportID,
+        lastOriginalAction,
         currentUserAccountID,
         currentUserLogin,
         isTrackIntentUser,

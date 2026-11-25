@@ -1,5 +1,5 @@
 import Icon from '@components/Icon';
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import MenuItem from '@components/MenuItem';
 
 import useLayoutSpacing from '@hooks/useLayoutSpacing';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -110,28 +110,33 @@ function UpcomingTravelItem({reservation: upcomingReservation}: UpcomingTravelIt
     };
 
     return (
-        <MenuItemWithTopDescription
+        <MenuItem.Root
             sentryLabel={CONST.SENTRY_LABEL.HOME_PAGE.UPCOMING_TRAVEL_ITEM}
-            description={formatCancelledDescription(translate('iou.canceled'), subtitle, isCancelled)}
-            title={title}
-            titleStyle={isCancelled ? [styles.textBold, styles.textSupporting] : styles.textBold}
             accessibilityLabel={isCancelled ? `${formatCancelledDescription(translate('iou.canceled'), subtitle, isCancelled)} ${title}` : undefined}
             onPress={handlePress}
-            shouldShowRightIcon
-            leftComponent={
-                <View style={styles.widgetItemIconContainer}>
-                    <Icon
-                        src={reservationIcon}
-                        width={variables.iconSizeNormal}
-                        height={variables.iconSizeNormal}
-                        fill={theme.icon}
-                    />
-                </View>
-            }
-            wrapperStyle={[styles.alignItemsCenter, cardPaddingHorizontal]}
-            viewMode={CONST.OPTION_MODE.COMPACT}
-            shouldCheckActionAllowedOnPress={false}
-        />
+            style={cardPaddingHorizontal}
+            isCompact
+        >
+            <MenuItem.Row>
+                <MenuItem.Leading>
+                    <View style={styles.widgetItemIconContainer}>
+                        <Icon
+                            src={reservationIcon}
+                            width={variables.iconSizeNormal}
+                            height={variables.iconSizeNormal}
+                            fill={theme.icon}
+                        />
+                    </View>
+                </MenuItem.Leading>
+                <MenuItem.Content>
+                    <MenuItem.FieldName>{formatCancelledDescription(translate('iou.canceled'), subtitle, isCancelled)}</MenuItem.FieldName>
+                    <MenuItem.FieldValue style={isCancelled ? [styles.textBold, styles.textSupporting] : styles.textBold}>{title}</MenuItem.FieldValue>
+                </MenuItem.Content>
+                <MenuItem.Trailing>
+                    <MenuItem.Chevron />
+                </MenuItem.Trailing>
+            </MenuItem.Row>
+        </MenuItem.Root>
     );
 }
 

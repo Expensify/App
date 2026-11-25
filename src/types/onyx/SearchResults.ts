@@ -9,6 +9,7 @@ import type {
 import type {SearchFooterTotal, SearchGroupBy, SearchSortBy, SortOrder} from '@components/Search/types';
 
 import type CONST from '@src/CONST';
+import type {TranslationPaths} from '@src/languages/types';
 import type ONYXKEYS from '@src/ONYXKEYS';
 import type PrefixedRecord from '@src/types/utils/PrefixedRecord';
 
@@ -85,6 +86,9 @@ type SearchResultsInfo = {
      * failure. That verdict otherwise lives in component state, which a reload resets while the errored
      * snapshot survives, so without this a reload would offer a pointless Retry. */
     responseJsonCode?: number;
+
+    /** Client-only validation message key. Cleared when a new search starts so a previous failure cannot supply its message. */
+    errorTranslationKey?: TranslationPaths;
 
     /** The number of results */
     count?: number;
@@ -268,43 +272,66 @@ type SearchMerchantGroup = SearchGroupBase & {
 type SearchTagGroup = SearchGroupBase & {
     /** Tag name */
     tag: string;
+
+    /** 1-based position; absent on legacy full-tag groups. */
+    tagLevel?: number;
+
+    /** Encoded ancestor path for dependent tags, empty for independent tags. */
+    parentTagPath?: string;
+};
+
+/** Average time a time bucket's reports spent in each workflow stage, in seconds. Only Insights returns them, and each is null when no report completed that stage. */
+type SearchWorkflowStageDurations = {
+    /** From creation to submission */
+    submitAverageTime?: number | null;
+
+    /** From submission to approval */
+    approveAverageTime?: number | null;
+
+    /** From approval to payment */
+    reimburseAverageTime?: number | null;
 };
 
 /** Model of day grouped search result */
-type SearchDayGroup = SearchGroupBase & {
-    /** Date in YYYY-MM-DD format */
-    day: string;
-};
+type SearchDayGroup = SearchGroupBase &
+    SearchWorkflowStageDurations & {
+        /** Date in YYYY-MM-DD format */
+        day: string;
+    };
 
 /** Model of month grouped search result */
-type SearchMonthGroup = SearchGroupBase & {
-    /** Year */
-    year: number;
+type SearchMonthGroup = SearchGroupBase &
+    SearchWorkflowStageDurations & {
+        /** Year */
+        year: number;
 
-    /** Month (1-12) */
-    month: number;
-};
+        /** Month (1-12) */
+        month: number;
+    };
 
 /** Model of week grouped search result */
-type SearchWeekGroup = SearchGroupBase & {
-    /** Week start date in YYYY-MM-DD format */
-    week: string;
-};
+type SearchWeekGroup = SearchGroupBase &
+    SearchWorkflowStageDurations & {
+        /** Week start date in YYYY-MM-DD format */
+        week: string;
+    };
 
 /** Model of year grouped search result */
-type SearchYearGroup = SearchGroupBase & {
-    /** Year */
-    year: number;
-};
+type SearchYearGroup = SearchGroupBase &
+    SearchWorkflowStageDurations & {
+        /** Year */
+        year: number;
+    };
 
 /** Model of quarter grouped search result */
-type SearchQuarterGroup = SearchGroupBase & {
-    /** Year */
-    year: number;
+type SearchQuarterGroup = SearchGroupBase &
+    SearchWorkflowStageDurations & {
+        /** Year */
+        year: number;
 
-    /** Quarter (1-4) */
-    quarter: number;
-};
+        /** Quarter (1-4) */
+        quarter: number;
+    };
 
 /** Model of approver grouped search result */
 type SearchApproverGroup = SearchGroupBase & {
@@ -320,6 +347,32 @@ type SearchViolationGroup = SearchGroupBase & {
     /** Violation name, e.g. `missingComment` */
     violation: string;
 };
+
+/** Model of workflow stage grouped search result */
+type SearchWorkflowStageGroup = SearchGroupBase & {
+    /** The workflow stage the group's reports spent time in */
+    workflowStage: ValueOf<typeof CONST.SEARCH.WORKFLOW_STAGES>;
+
+    /** Average time the group's reports spent in the stage, in seconds */
+    averageDuration: number | null;
+};
+
+/** Any group entry of a grouped search result */
+type SearchGroup =
+    | SearchMemberGroup
+    | SearchCardGroup
+    | SearchWithdrawalIDGroup
+    | SearchCategoryGroup
+    | SearchMerchantGroup
+    | SearchTagGroup
+    | SearchDayGroup
+    | SearchMonthGroup
+    | SearchWeekGroup
+    | SearchYearGroup
+    | SearchQuarterGroup
+    | SearchApproverGroup
+    | SearchViolationGroup
+    | SearchWorkflowStageGroup;
 
 /** Model of an expense in the search results */
 type SearchTransaction = Transaction & {
@@ -344,27 +397,15 @@ type SearchResultDataType = PrefixedRecord<typeof ONYXKEYS.COLLECTION.TRANSACTIO
     PrefixedRecord<typeof ONYXKEYS.COLLECTION.POLICY, Policy> &
     PrefixedRecord<typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, TransactionViolation[]> &
     PrefixedRecord<typeof ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, ReportNameValuePairs> &
-    PrefixedRecord<
-        typeof CONST.SEARCH.GROUP_PREFIX,
-        | SearchMemberGroup
-        | SearchCardGroup
-        | SearchWithdrawalIDGroup
-        | SearchCategoryGroup
-        | SearchMerchantGroup
-        | SearchTagGroup
-        | SearchDayGroup
-        | SearchMonthGroup
-        | SearchWeekGroup
-        | SearchYearGroup
-        | SearchQuarterGroup
-        | SearchApproverGroup
-        | SearchViolationGroup
-    >;
+    PrefixedRecord<typeof CONST.SEARCH.GROUP_PREFIX, SearchGroup>;
 
 /** Model of search results */
 type SearchResults = {
     search: SearchResultsInfo;
     data: SearchResultDataType;
+
+    /** Keys of the results in `data`, in the order the server sorted them */
+    orderedKeys?: string[];
 
     /** Whether search data is being fetched from server */
     isLoading?: boolean;
@@ -386,6 +427,7 @@ export type {
     SearchResultsInfo,
     SearchResultDataType,
     SearchGroupBase,
+    SearchGroup,
     SearchMemberGroup,
     SearchCardGroup,
     SearchWithdrawalIDGroup,
@@ -394,9 +436,11 @@ export type {
     SearchTagGroup,
     SearchDayGroup,
     SearchMonthGroup,
+    SearchWorkflowStageDurations,
     SearchWeekGroup,
     SearchYearGroup,
     SearchQuarterGroup,
     SearchApproverGroup,
     SearchViolationGroup,
+    SearchWorkflowStageGroup,
 };

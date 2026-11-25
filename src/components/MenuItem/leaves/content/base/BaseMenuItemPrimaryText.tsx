@@ -1,4 +1,4 @@
-import {useMenuItemAccessibilityLabel} from '@components/MenuItem/MenuItemAccessibilityContext';
+import {useMenuItemAccessibilityLabel, useMenuItemMaskedText} from '@components/MenuItem/MenuItemAccessibilityContext';
 import {useMenuItemConfig} from '@components/MenuItem/MenuItemContext';
 import Text from '@components/Text';
 
@@ -18,7 +18,16 @@ import React from 'react';
 import type {BaseMenuItemTextProps, MenuItemPrimaryTextProps} from './types';
 
 /** Base of the full-contrast leaves */
-function BaseMenuItemPrimaryText({children, accessibilityLabel, numberOfLines = 1, isSelectable = false, slot, style, forwardedFSClass}: MenuItemPrimaryTextProps & BaseMenuItemTextProps) {
+function BaseMenuItemPrimaryText({
+    children,
+    accessibilityLabel,
+    accessibilityRole,
+    numberOfLines = 1,
+    isSelectable = false,
+    slot,
+    style,
+    forwardedFSClass,
+}: MenuItemPrimaryTextProps & BaseMenuItemTextProps) {
     const styles = useThemeStyles();
     const {isDisabled, isInteractive} = useMenuItemConfig();
     const shouldHideTextFromSelection = isInteractive && isDisabled;
@@ -31,6 +40,7 @@ function BaseMenuItemPrimaryText({children, accessibilityLabel, numberOfLines = 
     }
 
     useMenuItemAccessibilityLabel(slot, accessibilityLabel ?? String(children));
+    useMenuItemMaskedText(forwardedFSClass);
 
     const textStyle = [
         styles.flexShrink1,
@@ -49,6 +59,7 @@ function BaseMenuItemPrimaryText({children, accessibilityLabel, numberOfLines = 
         <Text
             style={textStyle}
             numberOfLines={numberOfLines}
+            accessibilityRole={accessibilityRole}
             dataSet={selectionDataSet}
             fsClass={forwardedFSClass}
         >

@@ -9,6 +9,7 @@ import type {MoneyRequestReportPreviewProps} from '@components/ReportActionItem/
 import ScreenWrapper from '@components/ScreenWrapper';
 import {ShowContextMenuActionsContext, ShowContextMenuStateContext} from '@components/ShowContextMenuContext';
 import type * as WideRHPContextProvider from '@components/WideRHPContextProvider';
+import type * as PendingRHPWidths from '@components/WideRHPContextProvider/pendingRHPWidths';
 
 import useNetwork from '@hooks/useNetwork';
 import type ResponsiveLayoutResult from '@hooks/useResponsiveLayout/types';
@@ -132,12 +133,15 @@ jest.mock('@hooks/useReportTransactionsCollection', () => ({
 
 // The RHP widths never reach the rendered output, so capture the calls to assert they are requested and released.
 const mockMarkReportRHPWidth = jest.fn();
-const mockUnmarkReportRHPWidth = jest.fn();
+const mockClearPendingRHPWidth = jest.fn<void, [string]>();
+jest.mock('@components/WideRHPContextProvider/pendingRHPWidths', () => ({
+    ...jest.requireActual<typeof PendingRHPWidths>('@components/WideRHPContextProvider/pendingRHPWidths'),
+    clearPendingRHPWidth: (reportID: string) => mockClearPendingRHPWidth(reportID),
+}));
 jest.mock('@components/WideRHPContextProvider', () => ({
     ...jest.requireActual<typeof WideRHPContextProvider>('@components/WideRHPContextProvider'),
     useWideRHPActions: () => ({
         markReportRHPWidth: mockMarkReportRHPWidth,
-        unmarkReportRHPWidth: mockUnmarkReportRHPWidth,
     }),
 }));
 
@@ -643,26 +647,6 @@ describe('MoneyRequestReportPreview', () => {
             expect(navigateSpy).toHaveBeenNthCalledWith(2, ROUTES.SEARCH_REPORT.getRoute({reportID: `thread_${mockSecondTransactionID}`, backTo: reportRoute}));
         });
 
-        it('opens the only expense on top of its report when single-expense reports use the table view', async () => {
-            // Given a single-expense report and a user who picked the table view, where the expense is a row of the report
-            mockResponsiveLayoutOverride = narrowResponsiveLayout;
-            setReportPreviewData({transactions: [mockSecondTransaction]});
-            jest.spyOn(ReportActionUtils, 'getIOUActionForReportID').mockImplementation(buildActionWithThread);
-            await act(async () => {
-                await Onyx.set(ONYXKEYS.BETAS, [CONST.BETAS.SINGLE_EXPENSE_TABLE_VIEW]);
-                await Onyx.set(ONYXKEYS.NVP_SINGLE_EXPENSE_REPORT_VIEW, CONST.REPORT_LAYOUT.SINGLE_EXPENSE_REPORT_VIEW.TABLE);
-            });
-
-            // When the user presses the expense in the preview
-            await renderAndPopulateCarousel();
-            await pressSecondTransaction();
-
-            // Then its thread opens on top of the report, as it does for an expense on a multi-expense report
-            expect(navigateSpy).toHaveBeenCalledTimes(2);
-            expect(navigateSpy).toHaveBeenNthCalledWith(1, narrowReportRoute());
-            expect(navigateSpy).toHaveBeenNthCalledWith(2, ROUTES.SEARCH_REPORT.getRoute({reportID: `thread_${mockSecondTransactionID}`, backTo: narrowReportRoute()}));
-        });
-
         it('keeps the pressed expense out of the split stack on narrow layouts', async () => {
             // Deploy blocker #97183: removeScreenByKey only filters the root navigator, so a nested split screen can never be removed.
             mockResponsiveLayoutOverride = narrowResponsiveLayout;
@@ -1150,7 +1134,7 @@ describe('MoneyRequestReportPreview', () => {
 
             expect(mockMarkReportRHPWidth).toHaveBeenCalledWith(mockIOUReport.reportID, 'super-wide');
             expect(mockMarkReportRHPWidth).toHaveBeenCalledWith(`thread_${mockSecondTransactionID}`, 'wide');
-            expect(mockUnmarkReportRHPWidth).not.toHaveBeenCalled();
+            expect(mockClearPendingRHPWidth).not.toHaveBeenCalled();
 
             await act(async () => {
                 await new Promise((resolve) => {
@@ -1158,7 +1142,7 @@ describe('MoneyRequestReportPreview', () => {
                 });
             });
 
-            expect(mockUnmarkReportRHPWidth).toHaveBeenCalledWith(`thread_${mockSecondTransactionID}`);
+            expect(mockClearPendingRHPWidth).toHaveBeenCalledWith(`thread_${mockSecondTransactionID}`);
         });
 
         it('seeds the expense view carousel in the order the cards are rendered, not collection order', async () => {

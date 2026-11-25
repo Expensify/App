@@ -154,6 +154,7 @@ function MerchantRuleSuggestionBannerContent({reportID, policyID, containerStyle
                                 <TextLink
                                     style={styles.merchantRuleCalloutAction}
                                     onPress={createRule}
+                                    sentryLabel={CONST.SENTRY_LABEL.MERCHANT_RULE_SUGGESTION_BANNER.CREATE_RULE_LINK}
                                 >
                                     {translate('workspace.rules.merchantRules.createRuleFromExpenseAction')}
                                 </TextLink>
