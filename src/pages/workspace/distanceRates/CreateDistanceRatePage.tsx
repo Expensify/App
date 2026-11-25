@@ -299,7 +299,7 @@ function CreateDistanceRatePage({
                                 />
                             ) : undefined
                         }
-                        shouldRenderFooterAboveSubmit
+                        shouldRenderFooterAboveAlert
                         addBottomSafeAreaPadding
                     >
                         {shouldShowCountryAndKind ? (

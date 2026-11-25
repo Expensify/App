@@ -49,6 +49,9 @@ type FormWrapperProps = ChildrenProps &
         /** should render the extra button above submit button */
         shouldRenderFooterAboveSubmit?: boolean;
 
+        /** Whether to render the footer above the alert, so the alert sits directly above the submit button */
+        shouldRenderFooterAboveAlert?: boolean;
+
         isLoading?: boolean;
 
         /** Whether the fix errors alert should be visible */
@@ -99,6 +102,7 @@ function FormWrapper({
     enterKeyEventListenerPriority = 1,
     isSubmitDisabled = false,
     shouldRenderFooterAboveSubmit = false,
+    shouldRenderFooterAboveAlert = false,
     isLoading = false,
     isAlertVisible = false,
     serverErrorFields,
@@ -229,6 +233,7 @@ function FormWrapper({
             disablePressOnEnter={disablePressOnEnter}
             enterKeyEventListenerPriority={enterKeyEventListenerPriority}
             shouldRenderFooterAboveSubmit={shouldRenderFooterAboveSubmit}
+            shouldRenderFooterAboveAlert={shouldRenderFooterAboveAlert}
             shouldPreventDefaultFocusOnPress={shouldPreventDefaultFocusOnPressSubmit}
             sentryLabel={sentryLabel}
             buttonAndFooterContainerStyles={submitButtonAndFooterContainerStyles}

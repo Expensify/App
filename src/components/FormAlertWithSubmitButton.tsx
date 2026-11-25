@@ -79,6 +79,9 @@ type FormAlertWithSubmitButtonProps = WithRequiredSentryLabel & {
     /** should render the extra button above submit button */
     shouldRenderFooterAboveSubmit?: boolean;
 
+    /** Whether to render the footer above the alert, so the alert sits directly above the submit button */
+    shouldRenderFooterAboveAlert?: boolean;
+
     /**
      * Whether the button should have a background layer in the color of theme.appBG.
      * This is needed for buttons that allow content to display under them.
@@ -113,6 +116,7 @@ function FormAlertWithSubmitButton({
     errorMessageStyle,
     enterKeyEventListenerPriority = 0,
     shouldRenderFooterAboveSubmit = false,
+    shouldRenderFooterAboveAlert = false,
     blendButtonOpacity = false,
     addButtonBottomPadding = true,
     shouldPreventDefaultFocusOnPress = false,
@@ -121,7 +125,8 @@ function FormAlertWithSubmitButton({
     sentryLabel,
 }: FormAlertWithSubmitButtonProps) {
     const styles = useThemeStyles();
-    const style = [!shouldRenderFooterAboveSubmit && footerContent && addButtonBottomPadding ? styles.mb3 : undefined, buttonStyles];
+    const buttonFooterContent = shouldRenderFooterAboveAlert ? undefined : footerContent;
+    const style = [!shouldRenderFooterAboveSubmit && buttonFooterContent && addButtonBottomPadding ? styles.mb3 : undefined, buttonStyles];
     const variant = isButtonNeutral ? undefined : buttonVariant;
 
     // Disable pressOnEnter for Android Native to avoid issues with the Samsung keyboard,
@@ -133,6 +138,7 @@ function FormAlertWithSubmitButton({
     return (
         <FormAlertWrapper
             containerStyles={[styles.justifyContentEnd, containerStyles]}
+            contentAboveAlert={shouldRenderFooterAboveAlert ? footerContent : undefined}
             isAlertVisible={isAlertVisible}
             isMessageHtml={isMessageHtml}
             message={message}
@@ -141,7 +147,7 @@ function FormAlertWithSubmitButton({
         >
             {(isOffline: boolean | undefined) => (
                 <View style={buttonAndFooterContainerStyles}>
-                    {shouldRenderFooterAboveSubmit && footerContent}
+                    {shouldRenderFooterAboveSubmit && buttonFooterContent}
                     {isOffline && !enabledWhenOffline ? (
                         <Button
                             variant={variant}
@@ -172,7 +178,7 @@ function FormAlertWithSubmitButton({
                             <Button.Text>{buttonText}</Button.Text>
                         </Button>
                     )}
-                    {!shouldRenderFooterAboveSubmit && footerContent}
+                    {!shouldRenderFooterAboveSubmit && buttonFooterContent}
                 </View>
             )}
         </FormAlertWrapper>
