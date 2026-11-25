@@ -9,7 +9,7 @@ jest.mock('@libs/Accessibility/fireFocusEvent', () => ({
 const FAKE_IDLE_ID = 4242;
 let capturedIdleCallback: (() => void) | null = null;
 let capturedIdleOptions: {timeout?: number} | undefined;
-const mockCancelIdleCallback = jest.fn<void, [number]>();
+const mockCancelIdleCallback = jest.fn<void, [number | null | undefined]>();
 
 const originalRequestIdleCallback = global.requestIdleCallback;
 const originalCancelIdleCallback = global.cancelIdleCallback;

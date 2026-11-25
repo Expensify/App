@@ -162,18 +162,18 @@ function SearchTransactionsChangeReport() {
     useHydrateReportsFromSnapshot(currentSearchResults, allReports);
 
     const createReportForPolicy = (shouldDismissEmptyReportsConfirmation?: boolean) => {
-        const optimisticReport = createNewReport(
-            targetOwnerPersonalDetails,
+        const optimisticReport = createNewReport({
+            ownerPersonalDetails: targetOwnerPersonalDetails,
             hasViolations,
             isASAPSubmitBetaEnabled,
-            policyForMovingExpenses,
+            policy: policyForMovingExpenses,
             isTrackIntentUser,
             getCurrencyDecimals,
             rules,
-            false,
+            personalDetailsByLogins: getPersonalDetailsByLogin(),
             shouldDismissEmptyReportsConfirmation,
-            {managedCardTransactionID},
-        );
+            managedCardTransactionID,
+        });
         const policyTagList = policyForMovingExpenses?.id ? allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyForMovingExpenses.id}`] : {};
         const reportsForCall = {
             ...reports,
@@ -189,6 +189,7 @@ function SearchTransactionsChangeReport() {
                 currentUserPersonalDetails,
                 newReport: optimisticReport,
                 policy: policyForMovingExpenses,
+                policies: allPolicies,
                 policyCategories: allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyForMovingExpensesID}`],
                 policyTagList,
                 transactions,
@@ -300,6 +301,7 @@ function SearchTransactionsChangeReport() {
             currentUserPersonalDetails,
             newReport: destinationReport,
             policy: allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${item.policyID}`],
+            policies: allPolicies,
             policyCategories: allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${item.policyID}`],
             policyTagList,
             transactions,
@@ -344,6 +346,7 @@ function SearchTransactionsChangeReport() {
             email: session?.email ?? '',
             currentUserPersonalDetails,
             policy: allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${personalPolicyID}`],
+            policies: allPolicies,
             policyTagList,
             transactions,
             allTransactionViolation: transactionViolations,

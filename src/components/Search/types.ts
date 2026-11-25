@@ -6,7 +6,7 @@ import type {SearchKey} from '@libs/SearchKeyUtils';
 import type {SearchTypeMenuItem} from '@libs/SearchSuggestionUtils';
 
 import type CONST from '@src/CONST';
-import type {Report, ReportAction, SearchResults, Transaction, TransactionViolation} from '@src/types/onyx';
+import type {Report, ReportAction, Rule, SearchResults, Transaction, TransactionViolation} from '@src/types/onyx';
 import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
 import type IconAsset from '@src/types/utils/IconAsset';
 
@@ -111,6 +111,12 @@ type SelectedTransactionInfo = {
 
     /** Whether the transaction was selected through its group header */
     isSelectedViaGroup?: boolean;
+
+    /**
+     * Other groups whose header check also covers the transaction, when one expense can sit in several groups (as with violations).
+     * `groupKey` stays the group the row is stored under, so loading or unchecking another group changes only that group's claim.
+     */
+    otherClaimedGroupKeys?: string[];
 
     /** Whether every transaction in the group is selected. Only a fully loaded group earns it, and a partly loaded one can only keep it. */
     isEntireGroupSelected?: boolean;
@@ -235,6 +241,8 @@ type SearchResultsContextValue = {
     currentSearchResults: SearchResults | undefined;
     currentSearchTransactionsByReportID: Map<string, Transaction[]>;
     currentSearchViolations: OnyxCollection<TransactionViolation[]>;
+    /** The policy approval workflow rules, read once for the screen so rows don't each subscribe to every rule */
+    approvalWorkflowRules: OnyxCollection<Rule>;
     /** Whether we're on a main to-do search and should use live Onyx data instead of snapshots */
     shouldUseLiveData: boolean;
     sortedReportIDs: ReadonlyArray<string | undefined>;

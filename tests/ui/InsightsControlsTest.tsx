@@ -260,6 +260,7 @@ describe('Insights controls', () => {
         renderWithProviders(
             <InsightsTagLevelControl
                 tagLevel={1}
+                label="Department"
                 options={[
                     {value: 1, label: 'Department'},
                     {value: 2, label: 'Location'},
@@ -290,6 +291,7 @@ describe('Insights controls', () => {
         renderWithProviders(
             <InsightsTagLevelControl
                 tagLevel={2}
+                label="Location"
                 options={[
                     {value: 1, label: 'Department'},
                     {value: 2, label: 'Location'},

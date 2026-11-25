@@ -44,6 +44,7 @@ import openInternalRouteInNewTab, {isModifiedMousePress} from '@libs/Navigation/
 import type {ModifiedMouseEvent} from '@libs/Navigation/helpers/openInternalRouteInNewTab';
 import type {PlatformStackNavigationProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
+import type {CancelHandle} from '@libs/Navigation/TransitionTracker';
 import {flushPendingSearchWrite, hasPendingSearchWrite} from '@libs/pendingSearchWrite';
 import {isCreatedTaskReportAction} from '@libs/ReportActionsUtils';
 import {isOneTransactionReport} from '@libs/ReportUtils';
@@ -52,6 +53,7 @@ import {getPinnedColumnOrder, getQueryWithPinnedColumns, NO_PINNED_COLUMNS} from
 import {buildCannedSearchQuery, buildSearchQueryString, getFilterFromQuery} from '@libs/SearchQueryUtils';
 import {
     canEditSearchColumns,
+    canGroupsShareExpenses,
     createAndOpenSearchTransactionThread,
     doesSearchItemMatchSort,
     getValidGroupBy,
@@ -109,7 +111,7 @@ import type {ValueOf} from 'type-fest';
 
 import {findFocusedRoute, useFocusEffect, useIsFocused, useNavigation} from '@react-navigation/native';
 import * as Sentry from '@sentry/react-native';
-import React, {startTransition, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import Onyx from 'react-native-onyx';
 import Animated, {useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
@@ -181,7 +183,7 @@ function Search({
     const navigation = useNavigation<PlatformStackNavigationProp<SearchFullscreenNavigatorParamList>>();
     const isFocused = useIsFocused();
 
-    const {markReportRHPWidth, unmarkReportRHPWidth} = useWideRHPActions();
+    const {markReportRHPWidth} = useWideRHPActions();
     const {currentSearchHash, currentSearchKey, shouldResetSearchQuery, suggestedSearches} = useSearchQueryContext();
     const {lastSearchType, shouldUseLiveData} = useSearchResultsContext();
 
@@ -838,12 +840,6 @@ function Search({
                     }
                 }
 
-                if (item.transactions.length > 1) {
-                    markReportRHPWidth(reportID, 'super-wide');
-                } else {
-                    unmarkReportRHPWidth(reportID, 'super-wide');
-                }
-
                 // Persist the current search context so prev/next navigation arrows
                 // in the report RHP can reference the correct result set.
                 saveLastSearchParams({
@@ -858,8 +854,12 @@ function Search({
                     reportID,
                     backTo,
                 });
+                // After the new-tab guard, since a new tab never mounts the screen this width is for.
                 if (openInternalRouteInNewTab(route, event)) {
                     return;
+                }
+                if (item.transactions.length > 1) {
+                    markReportRHPWidth(reportID, 'super-wide');
                 }
                 requestAnimationFrame(() => Navigation.navigate(route));
                 return;
@@ -893,8 +893,6 @@ function Search({
                 return;
             }
 
-            markReportRHPWidth(reportID, 'wide');
-
             if (isTransactionItem && transactionPreviewData) {
                 setOptimisticDataForTransactionThreadPreview(transactionItem, transactionPreviewData, getCurrencyDecimals, delegateAccountID, transactionItem?.reportAction?.childReportID);
             }
@@ -907,6 +905,7 @@ function Search({
             if (openInternalRouteInNewTab(route, event)) {
                 return;
             }
+            markReportRHPWidth(reportID, 'wide');
             if (isTransactionItem) {
                 seedCarouselForOpenedExpense();
             }
@@ -915,7 +914,6 @@ function Search({
         [
             markReportRHPWidth,
             handleSearch,
-            unmarkReportRHPWidth,
             introSelected,
             personalDetails,
             isSelfTourViewed,
@@ -1293,21 +1291,18 @@ function Search({
                 return;
             }
 
-            // Re-arm pending expense skeleton for subsequent creations while Search
+            let rearmAfterRevealHandle: CancelHandle | undefined;
+
+            // Re-arm pending expense tracking for subsequent creations while Search
             // stays mounted (the original hasPendingWriteOnMountRef only covers the first).
             if (hasPendingSearchWrite() && !showPendingExpensePlaceholder) {
                 wasRearmedRef.current = true;
-                const rearm = () => {
+                if (Navigation.getIsRevealingPreMountedFullscreen()) {
+                    // Re-arming mid-slide re-renders the list and stalls it, and the held write lands right after, so no skeleton row
+                    rearmAfterRevealHandle = TransitionTracker.runAfterTransitions({callback: () => rearmTracking(false), waitForUpcomingTransition: true});
+                } else {
                     rearmTracking();
                     setSkeletonWasDisplayed(true);
-                };
-
-                // On a wide pre-mount reveal Search focuses while the RHP is sliding out. Re-arming re-renders the whole list,
-                // so a transition keeps that render from blocking the slide.
-                if (Navigation.getIsRevealingPreMountedFullscreen()) {
-                    startTransition(rearm);
-                } else {
-                    rearm();
                 }
             }
 
@@ -1319,6 +1314,8 @@ function Search({
             endNavigateToReportsContentLoad();
             // On re-focus (e.g. DISMISS_MODAL_ONLY) onLayout won't re-fire — flush here.
             flushPendingSearchWrite();
+
+            return () => rearmAfterRevealHandle?.cancel();
         }, [shouldShowLoadingState, onDestinationVisible, showPendingExpensePlaceholder, rearmTracking]),
     );
 
@@ -1743,6 +1740,7 @@ function Search({
                 type={type}
                 areItemsGrouped={areItemsGrouped}
                 isExpenseReportType={isExpenseReportType}
+                doGroupsShareExpenses={canGroupsShareExpenses(validGroupBy)}
                 isSearchResultsEmpty={isSearchResultsEmpty}
             >
                 <Animated.View style={[styles.flex1, animatedStyle]}>{searchListContent}</Animated.View>

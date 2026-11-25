@@ -1,3 +1,4 @@
+import DropdownFieldRow from '@components/DropdownFieldRow';
 import MenuItem from '@components/MenuItem';
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import {useConfirmationFields} from '@components/MoneyRequestConfirmationFields/context';
@@ -20,7 +21,7 @@ import type {TransactionCustomUnit} from '@src/types/onyx/Transaction';
 import {authTokenTypeSelector} from '@selectors/Session';
 import React from 'react';
 
-import ExpenseFieldRow from './ExpenseFieldRow';
+import ExpenseFieldContainer from './ExpenseFieldContainer';
 import {useExpenseFormLayout} from './ExpenseFormLayoutContext';
 
 type DistanceFieldProps = {
@@ -65,15 +66,17 @@ function DistanceField({hasRoute, distance, unit, customUnit}: DistanceFieldProp
 
     if (shouldUseDropdownRows) {
         return (
-            <ExpenseFieldRow
-                name={distanceToDisplayDescription}
-                value={displayTitle}
-                hintText={distanceToDisplayHintText}
-                onPress={openDistancePage}
-                isDisabled={didConfirm}
-                isInteractive={isDistanceInteractive}
-                sentryLabel={CONST.SENTRY_LABEL.REQUEST_CONFIRMATION_LIST.DISTANCE_FIELD}
-            />
+            <ExpenseFieldContainer>
+                <DropdownFieldRow
+                    name={distanceToDisplayDescription}
+                    value={displayTitle}
+                    hintText={distanceToDisplayHintText}
+                    onPress={openDistancePage}
+                    isDisabled={didConfirm}
+                    isInteractive={isDistanceInteractive}
+                    sentryLabel={CONST.SENTRY_LABEL.REQUEST_CONFIRMATION_LIST.DISTANCE_FIELD}
+                />
+            </ExpenseFieldContainer>
         );
     }
 

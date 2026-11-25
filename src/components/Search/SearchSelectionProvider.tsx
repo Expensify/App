@@ -9,7 +9,7 @@ import type {SearchData, SearchSelectionActionsValue, SearchSelectionContextValu
 
 import {useSearchQueryContext, useSearchSelectionActions, useSearchSelectionContext} from './SearchContext';
 import {SearchSelectionActionsContext, SearchSelectionClearGenerationContext, SearchSelectionContext} from './SearchContextDefinitions';
-import {deriveSelectedReports, isRowChecked} from './selectionBuilders';
+import {deriveSelectedReports, getClaimedGroupKeys, isRowChecked, withoutOtherGroupClaims} from './selectionBuilders';
 
 type SearchSelectionProviderProps = {
     children: React.ReactNode;
@@ -283,14 +283,21 @@ function createSelectionActions(setSelectionState: React.Dispatch<React.SetState
             const newState = {...prevState};
             if (hasSelectedTransactions) {
                 // An expense that stays in its group makes the group partial, while a deleted one leaves the group whole.
-                const removedGroupKey = prevState.selectedTransactions[transactionID]?.groupKey;
-                const partialGroupKey = !isDeleted && removedGroupKey && isGroupEntry(removedGroupKey) ? removedGroupKey : undefined;
+                // So does every other group whose header check covered it, where groups share expenses.
+                const removedTransaction = prevState.selectedTransactions[transactionID];
+                const removedGroupKey = removedTransaction?.groupKey;
+                const partialGroupKeys = new Set<string>(
+                    isDeleted ? [] : [...(removedGroupKey && isGroupEntry(removedGroupKey) ? [removedGroupKey] : []), ...getClaimedGroupKeys(removedTransaction)],
+                );
                 const newSelectedTransactions = Object.entries(prevState.selectedTransactions).reduce((acc, [key, value]) => {
                     if (key === transactionID) {
                         return acc;
                     }
+                    const remainingValue = withoutOtherGroupClaims(value, partialGroupKeys);
                     acc[key] =
-                        partialGroupKey && value.groupKey === partialGroupKey ? {...value, isSelectedViaGroup: false, isEntireGroupSelected: false, coveredGroupCount: undefined} : value;
+                        remainingValue.groupKey && partialGroupKeys.has(remainingValue.groupKey)
+                            ? {...remainingValue, isSelectedViaGroup: false, isEntireGroupSelected: false, coveredGroupCount: undefined}
+                            : remainingValue;
                     return acc;
                 }, {} as SelectedTransactions);
                 newState.selectedTransactions = newSelectedTransactions;

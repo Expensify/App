@@ -215,7 +215,7 @@ function PayActionButton({isSecondary = false}: PayActionButtonProps) {
                 vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
             }}
             isDisabled={isOffline && !canAllowSettlement}
-            isLoading={(!isOffline && !canAllowSettlement) || isDownloadingABAFile || !!isPaymentInFlight}
+            isLoading={(!isOffline && (!canAllowSettlement || !!isPaymentInFlight)) || isDownloadingABAFile}
             sentryLabel={CONST.SENTRY_LABEL.REPORT_PREVIEW.PAY_BUTTON}
         />
     );
