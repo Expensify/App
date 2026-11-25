@@ -1,3 +1,6 @@
+/**
+ * The calculation summary at the bottom of Add rate: the unit line, the government rate note, and any extra lines passed as children.
+ */
 import Icon from '@components/Icon';
 import SkeletonTextLine from '@components/Skeletons/SkeletonTextLine';
 import Text from '@components/Text';

@@ -14,21 +14,24 @@ import React from 'react';
 type DistanceRateTaxRateDropdownProps = {
     label: string;
 
-    /** Undefined when nothing is selected, which happens when an integration has no 20% rate */
+    /** Undefined until the admin picks one when the workspace has no 20% rate */
     selectedTaxRateCode: string | undefined;
 
     taxRates: ValuePickerItem[];
 
     onSelectTaxRate: (taxRateCode: string) => void;
+
+    errorText?: string;
 };
 
-function DistanceRateTaxRateDropdown({label, selectedTaxRateCode, taxRates, onSelectTaxRate}: DistanceRateTaxRateDropdownProps) {
+function DistanceRateTaxRateDropdown({label, selectedTaxRateCode, taxRates, onSelectTaxRate, errorText}: DistanceRateTaxRateDropdownProps) {
     const selectedItem = taxRates.find((taxRate) => taxRate.value === selectedTaxRateCode);
 
     return (
         <DropdownField
             name={label}
             value={selectedItem?.label}
+            errorText={errorText}
             shouldOpenInDropdown
             // The list always opens in place, so there is no full-page selector to fall back to
             onPress={noop}
