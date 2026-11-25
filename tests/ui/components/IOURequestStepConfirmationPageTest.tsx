@@ -3234,6 +3234,49 @@ describe('IOURequestStepConfirmationPageTest', () => {
             });
         });
 
+        it.each([true, false])('hides Billable on invoice confirmation when defaultBillable is %s', async (defaultBillable) => {
+            // Given an invoice draft in a workspace with billable tracking enabled
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, {defaultBillable});
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${TRANSACTION_ID}`, {
+                    participants: [
+                        {accountID: PARTICIPANT_ACCOUNT_ID, selected: true},
+                        {policyID: POLICY_ID, isSender: true},
+                    ],
+                });
+            });
+
+            // When the invoice confirmation screen renders with the workspace defaults
+            render(
+                <OnyxListItemProvider>
+                    <HTMLProviderWrapper>
+                        <CurrentUserPersonalDetailsProvider>
+                            <LocaleContextProvider>
+                                <IOURequestStepConfirmationWithWritableReportOrNotFound
+                                    route={{
+                                        key: 'Money_Request_Step_Confirmation',
+                                        name: 'Money_Request_Step_Confirmation',
+                                        params: {
+                                            action: CONST.IOU.ACTION.CREATE,
+                                            iouType: CONST.IOU.TYPE.INVOICE,
+                                            transactionID: TRANSACTION_ID,
+                                            reportID: POLICY_CHAT_REPORT_ID,
+                                        },
+                                    }}
+                                    navigation={mockNavigation}
+                                />
+                            </LocaleContextProvider>
+                        </CurrentUserPersonalDetailsProvider>
+                    </HTMLProviderWrapper>
+                </OnyxListItemProvider>,
+            );
+            await waitForBatchedUpdatesWithAct();
+
+            // Then invoice confirmation stays available without offering a Billable toggle
+            expect(screen.getByRole('header', {name: 'Send invoice'})).toBeOnTheScreen();
+            expect(screen.queryByRole('switch', {name: 'Billable', includeHiddenElements: true})).not.toBeOnTheScreen();
+        });
+
         it.each([
             {label: 'Reimbursable', defaultValue: true},
             {label: 'Billable', defaultValue: false},

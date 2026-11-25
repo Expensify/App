@@ -91,7 +91,7 @@ function useFooterDerivedFlags({
     const canModifyTaxFields = !isReadOnly && !isDistanceRequest && !isPerDiemRequest;
 
     // A flag for showing the billable field
-    const shouldShowBillable = isBillableEnabledOnPolicy(policy);
+    const shouldShowBillable = !isTypeInvoice && isBillableEnabledOnPolicy(policy);
     // The workspace cash expense rules don't apply to card expenses, which follow their card feed's reimbursable setting instead
     const shouldShowReimbursable =
         (isPolicyExpenseChat || isTrackExpense) &&

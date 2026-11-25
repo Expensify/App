@@ -450,6 +450,33 @@ describe('MoneyRequestView edit fields', () => {
         });
     });
 
+    it.each([
+        {reportType: CONST.REPORT.TYPE.INVOICE, billable: false, ownerAccountID: currentUserAccountID},
+        {reportType: CONST.REPORT.TYPE.INVOICE, billable: true, ownerAccountID: currentUserAccountID},
+        {reportType: CONST.REPORT.TYPE.INVOICE, billable: true, ownerAccountID: 20},
+        {reportType: CONST.REPORT.TYPE.EXPENSE, billable: false, ownerAccountID: currentUserAccountID},
+    ])('only shows Billable on expenses, not invoices ($reportType, billable: $billable, owner: $ownerAccountID)', async ({reportType, billable, ownerAccountID}) => {
+        // Given a workspace that allows billable expenses, including invoices with a saved billable value
+        const threadReport = {...LHNTestUtils.getFakeReport(), parentReportID: expenseReportID, parentReportActionID};
+        await setupTestData();
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${expenseReportID}`, {type: reportType, ownerAccountID});
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {billable});
+        });
+
+        // When the sender or recipient opens the transaction details
+        renderMoneyRequestView(threadReport, {disabledFields: {defaultBillable: false}});
+        await waitForBatchedUpdatesWithAct();
+
+        // Then invoice details hide Billable without removing it from ordinary expenses
+        expect(screen.getByTestId(/^menu-item-iou\.amount/)).toBeOnTheScreen();
+        if (reportType === CONST.REPORT.TYPE.INVOICE) {
+            expect(screen.queryByText('common.billable', {includeHiddenElements: true})).not.toBeOnTheScreen();
+        } else {
+            expect(screen.getByText('common.billable', {includeHiddenElements: true})).toBeOnTheScreen();
+        }
+    });
+
     it('hides the Category and Tag rows when the categories and tags belong to a different policy', async () => {
         const threadReport = {
             ...LHNTestUtils.getFakeReport(),
