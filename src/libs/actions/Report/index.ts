@@ -375,6 +375,9 @@ type OpenReportActionBaseParams = {
     /** The parent report ID for the transaction thread (optional, defaults to transaction.reportID) */
     parentReportID?: string;
 
+    /** Whether the transaction is another member's legacy expense. Its optimistic IOU action has no actor and is removed once OpenReport finishes */
+    isOtherMemberLegacyExpense?: boolean;
+
     shouldAddPendingFields?: boolean;
 
     /** The optimistic selfDM report when it exists on the server but was filtered out from OpenApp response (e.g., no actions yet) */
@@ -1769,6 +1772,7 @@ function openReport(params: OpenReportActionParams) {
         transaction,
         transactionViolations,
         parentReportID,
+        isOtherMemberLegacyExpense = false,
         shouldAddPendingFields = true,
         optimisticSelfDMReport,
         parentReportAction,
@@ -1954,15 +1958,13 @@ function openReport(params: OpenReportActionParams) {
         const parentReport =
             transactionParentReportID === optimisticSelfDMReport?.reportID ? optimisticSelfDMReport : allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionParentReportID}`];
 
-        // Another member's legacy expense opens under the unreported report, and its owner is unknown until the backend responds
-        const isUnderUnreportedReport = transactionParentReportID === CONST.REPORT.UNREPORTED_REPORT_ID;
-        const submitterAccountID = isUnderUnreportedReport ? CONST.DEFAULT_NUMBER_ID : (parentReport?.ownerAccountID ?? currentUserAccountID ?? CONST.DEFAULT_NUMBER_ID);
+        const submitterAccountID = isOtherMemberLegacyExpense ? CONST.DEFAULT_NUMBER_ID : (parentReport?.ownerAccountID ?? currentUserAccountID ?? CONST.DEFAULT_NUMBER_ID);
         const submitterPersonalDetails = submitterAccountID ? personalDetails?.[submitterAccountID] : undefined;
-        const submitterEmail = isUnderUnreportedReport ? '' : (submitterPersonalDetails?.login ?? currentUserLogin ?? '');
+        const submitterEmail = isOtherMemberLegacyExpense ? '' : (submitterPersonalDetails?.login ?? currentUserLogin ?? '');
 
         const optimisticIOUAction = buildOptimisticIOUReportAction({
-            // An unreported expense is tracked in its owner's self DM
-            type: isSelfDM(parentReport) || isUnderUnreportedReport ? CONST.IOU.REPORT_ACTION_TYPE.TRACK : CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+            // Another member's legacy expense is tracked in their self DM
+            type: isSelfDM(parentReport) || isOtherMemberLegacyExpense ? CONST.IOU.REPORT_ACTION_TYPE.TRACK : CONST.IOU.REPORT_ACTION_TYPE.CREATE,
             amount: Math.abs(transaction.amount),
             currency: transaction.currency,
             comment: transaction.comment?.comment ?? '',
@@ -2030,7 +2032,7 @@ function openReport(params: OpenReportActionParams) {
             },
         });
 
-        if (isUnderUnreportedReport) {
+        if (isOtherMemberLegacyExpense) {
             const removePlaceholderAction: OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS> = {
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionParentReportID}`,
@@ -2585,7 +2587,6 @@ function createTransactionThreadReport(params: CreateTransactionThreadReportPara
     const isOwnedByCurrentUser = params.isOwnedByCurrentUser ?? iouReportAction?.actorAccountID === currentUserAccountID;
     const isInUnknownSelfDM = shouldUseSelfDM && !isOwnedByCurrentUser && !params.selfDMReportID;
 
-    // Another member's legacy expense has no IOU action to find their self DM, so it opens under the unreported report
     const isOtherMemberLegacyExpense = isInUnknownSelfDM && !!transaction && !iouReportAction?.reportActionID;
     if (isInUnknownSelfDM && !isOtherMemberLegacyExpense) {
         Log.warn('Cannot build transaction thread in the current user self DM for an expense owned by another user', {
@@ -2597,9 +2598,12 @@ function createTransactionThreadReport(params: CreateTransactionThreadReportPara
 
     const selfDMReportID = shouldUseSelfDM && !isOtherMemberLegacyExpense ? (params.selfDMReportID ?? findSelfDMReportID()) : undefined;
 
+    // Another member's legacy expense has no IOU action to find their self DM, so it opens under a generated parent until the backend links it
+    const placeholderParentReportID = isOtherMemberLegacyExpense ? generateReportID() : undefined;
+
     let optimisticSelfDMReport: Report | undefined;
     let parentReportAction: ReportAction | undefined;
-    let reportToUse: OnyxEntry<Report> = isOtherMemberLegacyExpense ? {reportID: CONST.REPORT.UNREPORTED_REPORT_ID} : iouReport;
+    let reportToUse: OnyxEntry<Report> = placeholderParentReportID ? {reportID: placeholderParentReportID} : iouReport;
     if (selfDMReportID) {
         reportToUse = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${selfDMReportID}`];
 
@@ -2651,7 +2655,8 @@ function createTransactionThreadReport(params: CreateTransactionThreadReportPara
         parentReportActionID: iouReportAction?.reportActionID,
         transaction,
         transactionViolations,
-        parentReportID: selfDMReportID,
+        parentReportID: selfDMReportID ?? placeholderParentReportID,
+        isOtherMemberLegacyExpense,
         shouldAddPendingFields,
         optimisticSelfDMReport,
         parentReportAction,

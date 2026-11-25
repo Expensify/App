@@ -12075,13 +12075,15 @@ describe('actions/Report', () => {
                 });
             }
 
-            /** Finds the action built for the thread under the unreported report */
-            async function getPlaceholderAction(threadReportID: string | undefined) {
-                const unreportedActions = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${CONST.REPORT.UNREPORTED_REPORT_ID}`);
-                return Object.values(unreportedActions ?? {}).find((action) => action?.childReportID === threadReportID);
+            /** Finds the action built for the thread under its generated parent report */
+            async function getPlaceholderAction(thread: OnyxTypes.Report | undefined) {
+                const parentReportActions = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${thread?.parentReportID}`);
+                return Object.values(parentReportActions ?? {}).find((action) => action?.childReportID === thread?.reportID);
             }
 
             beforeEach(async () => {
+                // generateReportID returns one ID in this file, so the generated parent gets its own
+                jest.mocked(ReportUtils.generateReportID).mockReturnValueOnce('placeholder-parent');
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${adminSelfDMReportID}`, {
                     reportID: adminSelfDMReportID,
                     type: CONST.REPORT.TYPE.CHAT,
@@ -12092,14 +12094,13 @@ describe('actions/Report', () => {
             });
 
             afterEach(async () => {
-                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${CONST.REPORT.UNREPORTED_REPORT_ID}`, null);
                 await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${adminSelfDMReportID}`, null);
                 await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${adminSelfDMReportID}`, null);
                 await Onyx.set(ONYXKEYS.SELF_DM_REPORT_ID, null);
                 await waitForBatchedUpdates();
             });
 
-            it('should open the thread under the unreported report and ask the backend to link the expense', async () => {
+            it('should open the thread under a generated parent report and ask the backend to link the expense', async () => {
                 // Given an admin with a self DM, and a member's legacy expense
                 const mockFetch = TestHelper.createGlobalFetchMock();
                 global.fetch = mockFetch;
@@ -12117,13 +12118,15 @@ describe('actions/Report', () => {
                     return;
                 }
 
-                // And it opens under the unreported report, not the admin's self DM
-                expect(result?.parentReportID).toBe(CONST.REPORT.UNREPORTED_REPORT_ID);
+                // And it opens under a generated parent, not the admin's self DM
+                expect(result?.parentReportID).toBeDefined();
+                expect(result?.parentReportID).not.toBe(CONST.REPORT.UNREPORTED_REPORT_ID);
+                expect(result?.parentReportID).not.toBe(adminSelfDMReportID);
                 const adminSelfDMActions = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${adminSelfDMReportID}`);
                 expect(adminSelfDMActions).toBeUndefined();
 
                 // And the placeholder is a track action with no actor, since the owner is unknown until the backend responds
-                const placeholderAction = await getPlaceholderAction(threadReportID);
+                const placeholderAction = await getPlaceholderAction(result);
                 expect(placeholderAction?.actorAccountID).toBe(CONST.DEFAULT_NUMBER_ID);
                 const placeholderOriginalMessage = isActionOfType(placeholderAction, CONST.REPORT.ACTIONS.TYPE.IOU) ? getOriginalMessage(placeholderAction) : undefined;
                 expect(placeholderOriginalMessage?.type).toBe(CONST.IOU.REPORT_ACTION_TYPE.TRACK);
@@ -12150,7 +12153,7 @@ describe('actions/Report', () => {
                 await waitForBatchedUpdates();
 
                 // Then the placeholder is removed, since the backend returns the real IOU action
-                expect(await getPlaceholderAction(result?.reportID)).toBeUndefined();
+                expect(await getPlaceholderAction(result)).toBeUndefined();
             });
 
             it('should remove the placeholder action when OpenReport fails', async () => {
@@ -12167,7 +12170,7 @@ describe('actions/Report', () => {
                 await waitForBatchedUpdates();
 
                 // Then the placeholder is removed too, so the next open starts over
-                expect(await getPlaceholderAction(result?.reportID)).toBeUndefined();
+                expect(await getPlaceholderAction(result)).toBeUndefined();
             });
         });
 
