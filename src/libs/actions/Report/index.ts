@@ -8900,7 +8900,9 @@ function buildOptimisticChangePolicyData({
     const policyHasDependentTags = hasDependentTags(policy, policyTagList);
     let hasFallbackDistanceRate = false;
     let hasRepricedTransaction = false;
-    const updatedReportTransactions = reportTransactions.map((transaction) => {
+    // Queued deletions retain their report ID, but moving the report must not revive or count them.
+    const activeReportTransactions = reportTransactions.filter((transaction) => transaction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
+    const updatedReportTransactions = activeReportTransactions.map((transaction) => {
         const {updatedTransaction, repricedTransaction, isFallback} = shouldMigrateDistanceRates
             ? getDistanceTransactionForPolicyChange({transaction, policy, sourcePolicy, policies, isExpenseReport: true, getCurrencySymbol})
             : {updatedTransaction: transaction, isFallback: false, repricedTransaction: undefined};
@@ -8970,7 +8972,10 @@ function buildOptimisticChangePolicyData({
             return updatedTransaction;
         }
         const iouAction = ReportActionsUtils.getIOUActionForTransactionID(expenseActions, transaction.transactionID);
-        let transactionThreadReportID = iouAction?.childReportID ?? transaction.transactionThreadReportID;
+        // Legacy expenses can store '0' instead of a real thread ID on either link.
+        const iouThreadReportID = iouAction?.childReportID === '0' ? undefined : iouAction?.childReportID;
+        const expenseThreadReportID = transaction.transactionThreadReportID === '0' ? undefined : transaction.transactionThreadReportID;
+        let transactionThreadReportID = iouThreadReportID || expenseThreadReportID;
         let transactionThreadCreatedReportActionID: string | undefined;
         if (!transactionThreadReportID && iouAction) {
             // Construct local data only. Opening each thread would queue an API request per expense.
@@ -9085,7 +9090,7 @@ function buildOptimisticChangePolicyData({
     const destinationCurrency = policy.outputCurrency;
 
     for (const [index, transaction] of updatedReportTransactions.entries()) {
-        const originalTransaction = reportTransactions[index];
+        const originalTransaction = activeReportTransactions[index];
         const hasChangedPrice = getAmount(transaction, true) !== getAmount(originalTransaction, true) || getCurrency(transaction) !== getCurrency(originalTransaction);
         if (!shouldClearConvertedAmount(transaction, sourceCurrency, destinationCurrency) && !hasChangedPrice) {
             continue;
@@ -9127,7 +9132,7 @@ function buildOptimisticChangePolicyData({
 
         for (const [index, transaction] of updatedReportTransactions.entries()) {
             const transactionCurrency = getCurrency(transaction);
-            const originalTransaction = reportTransactions[index];
+            const originalTransaction = activeReportTransactions[index];
             const canKeepConversion =
                 sourceCurrency === destinationCurrency &&
                 getAmount(transaction, true) === getAmount(originalTransaction, true) &&

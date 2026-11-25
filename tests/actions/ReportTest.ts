@@ -6767,9 +6767,9 @@ describe('actions/Report', () => {
             },
         );
 
-        it.each([false, true])('handles a missing IOU action with an existing thread: %s', async (hasThread) => {
+        it.each([undefined, '0', 'existingDistanceThread'])('handles a missing IOU action with thread ID: %s', async (transactionThreadReportID) => {
             // Given an expense whose IOU action has not been loaded
-            const transaction = {...createDistanceTransaction(), ...(hasThread ? {transactionThreadReportID: 'existingDistanceThread'} : {})};
+            const transaction = {...createDistanceTransaction(), transactionThreadReportID};
 
             // When repricing without a loaded IOU action
             const {params, threadMap, requestData} = await changeWorkspace({transactions: [transaction]});
@@ -6779,15 +6779,141 @@ describe('actions/Report', () => {
             expect(updated?.modifiedAmount).toBe(-800);
             expect(params.distanceRateUpdatedReportActionID).toBeDefined();
             expect(requestData?.optimisticData?.filter((update) => update.onyxMethod === Onyx.METHOD.SET && update.key.startsWith(ONYXKEYS.COLLECTION.REPORT))).toEqual([]);
-            if (hasThread) {
+            expect(requestData?.optimisticData?.some((update) => update.key === `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}0`)).toBe(false);
+            if (transactionThreadReportID === 'existingDistanceThread') {
                 const entry = threadMap[transaction.transactionID];
                 expect(entry.transactionThreadCreatedReportActionID).toBeUndefined();
                 const actions = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}existingDistanceThread`);
                 expect(actions?.[entry.modifiedExpenseReportActionID]?.actionName).toBe(CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE);
             } else {
                 expect(threadMap).toEqual({});
-                expect(updated?.transactionThreadReportID).toBeUndefined();
+                expect(updated?.transactionThreadReportID).toBe(transactionThreadReportID);
             }
+        });
+
+        it.each([
+            {childReportID: '0', transactionThreadReportID: '0', existingThreadID: undefined},
+            {childReportID: '0', transactionThreadReportID: 'existingDistanceThread', existingThreadID: 'existingDistanceThread'},
+            {childReportID: '', transactionThreadReportID: 'existingDistanceThread', existingThreadID: 'existingDistanceThread'},
+            {childReportID: 'existingIOUThread', transactionThreadReportID: '0', existingThreadID: 'existingIOUThread'},
+        ])('ignores placeholder thread IDs for $childReportID / $transactionThreadReportID', async ({childReportID, transactionThreadReportID, existingThreadID}) => {
+            // Given a legacy expense whose IOU action or transaction has a placeholder thread ID
+            const transaction = {...createDistanceTransaction(), transactionThreadReportID};
+            const iouAction: OnyxTypes.ReportAction = {
+                reportActionID: 'distanceIOUAction',
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                actorAccountID: 1,
+                created: '2026-03-15 00:00:00.000',
+                originalMessage: {IOUTransactionID: transaction.transactionID, type: CONST.IOU.REPORT_ACTION_TYPE.CREATE},
+                childReportID,
+            };
+
+            // When the move needs an expense explanation
+            const {threadMap, requestData} = await changeWorkspace({transactions: [transaction], reportActions: {[iouAction.reportActionID]: iouAction}});
+
+            // Then a real existing thread is reused or a new linked thread is created, never report zero
+            const entry = threadMap[transaction.transactionID];
+            const threadID = existingThreadID ?? entry.transactionThreadReportID;
+            expect(threadID).toBeTruthy();
+            expect(threadID).not.toBe('0');
+            const threadActions = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${threadID}`);
+            expect(threadActions?.[entry.modifiedExpenseReportActionID]?.actionName).toBe(CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE);
+            const updatedKeys = [
+                ...(requestData?.optimisticData?.map((update) => update.key) ?? []),
+                ...(requestData?.successData?.map((update) => update.key) ?? []),
+                ...(requestData?.failureData?.map((update) => update.key) ?? []),
+            ];
+            expect(updatedKeys.some((key) => key === `${ONYXKEYS.COLLECTION.REPORT}0` || key === `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}0`)).toBe(false);
+            if (existingThreadID) {
+                expect(entry.transactionThreadReportID).toBeUndefined();
+                expect(entry.transactionThreadCreatedReportActionID).toBeUndefined();
+            } else {
+                expect(entry.transactionThreadCreatedReportActionID).toBeDefined();
+                expect(entry.transactionThreadCreatedReportActionID && threadActions?.[entry.transactionThreadCreatedReportActionID]?.actionName).toBe(CONST.REPORT.ACTIONS.TYPE.CREATED);
+                expect(await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${threadID}`)).toMatchObject({parentReportID: reportID, parentReportActionID: iouAction.reportActionID});
+                expect((await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`))?.transactionThreadReportID).toBe(threadID);
+                expect((await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`))?.[iouAction.reportActionID]?.childReportID).toBe(threadID);
+            }
+            mockFetch.fail();
+            await mockFetch.resume();
+            await waitForBatchedUpdates();
+            expect(await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`)).toEqual(transaction);
+            expect((await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`))?.[iouAction.reportActionID]?.childReportID).toBe(childReportID);
+            if (!existingThreadID) {
+                expect(await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${threadID}`)).toBeUndefined();
+                expect(await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${threadID}`)).toBeUndefined();
+            }
+        });
+
+        it.each(['USD', 'EUR'])('preserves pending deletion when repricing into a %s report', async (outputCurrency) => {
+            // Given deletion tombstones before an active expense, including an ordinary expense in the destination currency
+            const deletedDistance = {
+                ...createDistanceTransaction(),
+                transactionID: 'deletedDistance',
+                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                convertedAmount: -500,
+            };
+            const deletedOrdinary = {
+                ...deletedDistance,
+                transactionID: 'deletedOrdinary',
+                currency: outputCurrency,
+                amount: -300,
+                reimbursable: false,
+                iouRequestType: undefined,
+                comment: {comment: 'Deleted lunch'},
+            };
+            const distance = {...createDistanceTransaction(), convertedAmount: -500};
+            const policy = {...createDistancePolicy('destination', 80, outputCurrency), outputCurrency};
+            const deletedIOUAction: OnyxTypes.ReportAction = {
+                reportActionID: 'deletedIOUAction',
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                actorAccountID: 1,
+                created: '2026-03-15 00:00:00.000',
+                originalMessage: {IOUTransactionID: deletedDistance.transactionID, type: CONST.IOU.REPORT_ACTION_TYPE.CREATE},
+            };
+            const originalTotals = {total: -500, unheldTotal: -500, reimbursableTotal: -500, unheldReimbursableTotal: -500, nonReimbursableTotal: 0, unheldNonReimbursableTotal: 0};
+
+            // When changing workspace while the deletions are still queued
+            const {threadMap, requestData} = await changeWorkspace({
+                transactions: [deletedDistance, deletedOrdinary, distance],
+                policy,
+                reportActions: {[deletedIOUAction.reportActionID]: deletedIOUAction},
+                reportOverrides: originalTotals,
+            });
+
+            // Then only the active expense is repriced and counted, and no phase of the move writes to the deleted expenses
+            expect((await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${distance.transactionID}`))?.modifiedAmount).toBe(-800);
+            expect(await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`)).toMatchObject({
+                total: -800,
+                unheldTotal: -800,
+                reimbursableTotal: -800,
+                unheldReimbursableTotal: -800,
+                nonReimbursableTotal: 0,
+                unheldNonReimbursableTotal: 0,
+            });
+            const updatedKeys = [
+                ...(requestData?.optimisticData?.map((update) => update.key) ?? []),
+                ...(requestData?.successData?.map((update) => update.key) ?? []),
+                ...(requestData?.failureData?.map((update) => update.key) ?? []),
+            ];
+            for (const deletedTransaction of [deletedDistance, deletedOrdinary]) {
+                expect(await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${deletedTransaction.transactionID}`)).toEqual(deletedTransaction);
+                expect(threadMap[deletedTransaction.transactionID]).toBeUndefined();
+                expect(
+                    updatedKeys.some(
+                        (key) =>
+                            key === `${ONYXKEYS.COLLECTION.TRANSACTION}${deletedTransaction.transactionID}` ||
+                            key === `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${deletedTransaction.transactionID}`,
+                    ),
+                ).toBe(false);
+            }
+            mockFetch.fail();
+            await mockFetch.resume();
+            await waitForBatchedUpdates();
+            expect(await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${distance.transactionID}`)).toEqual(distance);
+            expect(await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${deletedDistance.transactionID}`)).toEqual(deletedDistance);
+            expect(await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${deletedOrdinary.transactionID}`)).toEqual(deletedOrdinary);
+            expect(await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`)).toMatchObject(originalTotals);
         });
 
         it.each(['sourceRate', 'deletedRate'])('keeps the quantity of a legacy expense without a unit and rate %s', async (customUnitRateID) => {
