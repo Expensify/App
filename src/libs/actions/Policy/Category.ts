@@ -1870,46 +1870,20 @@ function setPolicyMemberCategoryVisibility(
     policyMemberAccountIDs: number[],
     memberLogins: string[],
 ) {
-    const selectedCategories = new Set(categories);
     const optimisticCategories: Record<string, NullishDeep<PolicyCategory>> = {};
     const successCategories: Record<string, NullishDeep<PolicyCategory>> = {};
     const failureCategories: Record<string, NullishDeep<PolicyCategory>> = {};
 
-    for (const category of Object.values(policyCategories)) {
-        if (!category.enabled) {
-            continue;
-        }
-
-        const previousVisibleTo = category.visibleTo ?? null;
-        const shouldBeVisible = selectedCategories.has(category.name);
-
-        // visibleTo is merged, so an existing restriction is changed by patching only the members that move: true adds
-        // a member and null removes one. The failure patch is the inverse, so it puts back exactly what was there.
-        let optimisticVisibleTo: Record<string, boolean | null> | null;
-        let failureVisibleTo: Record<string, boolean | null> | null;
-        if (!previousVisibleTo) {
-            if (shouldBeVisible) {
-                continue;
-            }
-            optimisticVisibleTo = Object.fromEntries(policyMemberAccountIDs.filter((accountID) => !accountIDs.includes(accountID)).map((accountID) => [accountID, true]));
-            failureVisibleTo = null;
-        } else {
-            const changedAccountIDs = accountIDs.filter((accountID) => !!previousVisibleTo[accountID] !== shouldBeVisible);
-            if (changedAccountIDs.length === 0) {
-                continue;
-            }
-            optimisticVisibleTo = Object.fromEntries(changedAccountIDs.map((accountID) => [accountID, shouldBeVisible ? true : null]));
-            failureVisibleTo = Object.fromEntries(changedAccountIDs.map((accountID) => [accountID, shouldBeVisible ? null : true]));
-        }
-
-        optimisticCategories[category.name] = {
+    const visibleToPatches = CategoryUtils.getMemberCategoryVisibilityPatches(policyCategories, accountIDs, categories, policyMemberAccountIDs);
+    for (const [categoryName, {optimisticVisibleTo, failureVisibleTo}] of Object.entries(visibleToPatches)) {
+        optimisticCategories[categoryName] = {
             visibleTo: optimisticVisibleTo,
             pendingFields: {visibleTo: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
         };
-        successCategories[category.name] = {
+        successCategories[categoryName] = {
             pendingFields: {visibleTo: null},
         };
-        failureCategories[category.name] = {
+        failureCategories[categoryName] = {
             visibleTo: failureVisibleTo,
             pendingFields: {visibleTo: null},
         };

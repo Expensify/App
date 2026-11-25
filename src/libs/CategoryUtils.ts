@@ -105,6 +105,60 @@ function getMembersWithoutVisibleCategories(policyCategories: PolicyCategories |
     });
 }
 
+type CategoryVisibleToPatches = {
+    /** Merged into the category's visibleTo to make the change. null opens the category to everyone */
+    optimisticVisibleTo: Record<string, boolean | null> | null;
+
+    /** Merged into the category's visibleTo to undo the change */
+    failureVisibleTo: Record<string, boolean | null> | null;
+};
+
+/**
+ * Works out how each enabled category's visibleTo changes so the given members can use exactly the selected
+ * categories, keyed by category name. Categories that don't change are left out.
+ *
+ * visibleTo is merged, so an existing restriction is changed by patching only the members that move: true adds a
+ * member and null removes one. A category open to everyone is restricted to every other workspace member when the
+ * given members lose access to it. The failure patch is the inverse, so it puts back exactly what was there.
+ */
+function getMemberCategoryVisibilityPatches(
+    policyCategories: PolicyCategories | undefined,
+    accountIDs: number[],
+    selectedCategoryNames: string[],
+    policyMemberAccountIDs: number[],
+): Record<string, CategoryVisibleToPatches> {
+    const selectedCategories = new Set(selectedCategoryNames);
+    const changingAccountIDs = new Set(accountIDs);
+    const everyOtherMemberVisibleTo = Object.fromEntries(policyMemberAccountIDs.filter((accountID) => !changingAccountIDs.has(accountID)).map((accountID) => [accountID, true]));
+    const patches: Record<string, CategoryVisibleToPatches> = {};
+
+    for (const category of Object.values(policyCategories ?? {})) {
+        if (!category.enabled) {
+            continue;
+        }
+
+        const previousVisibleTo = category.visibleTo;
+        const shouldBeVisible = selectedCategories.has(category.name);
+        if (!previousVisibleTo) {
+            if (!shouldBeVisible) {
+                patches[category.name] = {optimisticVisibleTo: {...everyOtherMemberVisibleTo}, failureVisibleTo: null};
+            }
+            continue;
+        }
+
+        const changedAccountIDs = accountIDs.filter((accountID) => !!previousVisibleTo[accountID] !== shouldBeVisible);
+        if (changedAccountIDs.length === 0) {
+            continue;
+        }
+        patches[category.name] = {
+            optimisticVisibleTo: Object.fromEntries(changedAccountIDs.map((accountID) => [accountID, shouldBeVisible ? true : null])),
+            failureVisibleTo: Object.fromEntries(changedAccountIDs.map((accountID) => [accountID, shouldBeVisible ? null : true])),
+        };
+    }
+
+    return patches;
+}
+
 function isCategoryMissing(category: string | undefined): boolean {
     if (!category) {
         return true;
@@ -342,6 +396,7 @@ export {
     getMemberVisibleCategoryNames,
     getVisibleCategories,
     getMembersWithoutVisibleCategories,
+    getMemberCategoryVisibilityPatches,
     isCategoryMissing,
     isCategoryDescriptionRequired,
     getCategoryDescriptionHint,
@@ -360,3 +415,4 @@ export {
     isCategoryVisibleToMember,
     getMemberDefaultCategory,
 };
+export type {CategoryVisibleToPatches};

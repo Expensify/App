@@ -923,6 +923,7 @@ const SCREENS = {
         DYNAMIC_WORKSPACE_INVITE: 'Dynamic_Workspace_Invite',
         DYNAMIC_WORKSPACE_INVITE_MESSAGE: 'Dynamic_Workspace_Invite_Message',
         DYNAMIC_WORKSPACE_INVITE_MESSAGE_ROLE: 'Dynamic_Workspace_Invite_Message_Role',
+        DYNAMIC_WORKSPACE_INVITE_MESSAGE_CATEGORY_VISIBILITY: 'Dynamic_Workspace_Invite_Message_Category_Visibility',
         INVITE_MESSAGE_APPROVER: 'Workspace_Invite_Message_Approver',
         CATEGORIES: 'Workspace_Categories',
         VENDORS: 'Workspace_Vendors',

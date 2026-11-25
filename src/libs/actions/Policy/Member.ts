@@ -13,6 +13,8 @@ import type {
 } from '@libs/API/parameters';
 import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import * as ApiUtils from '@libs/ApiUtils';
+import {getMemberCategoryVisibilityPatches} from '@libs/CategoryUtils';
+import type {CategoryVisibleToPatches} from '@libs/CategoryUtils';
 import DateUtils from '@libs/DateUtils';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import fileDownload from '@libs/fileDownload';
@@ -82,8 +84,11 @@ type AddMembersToWorkspaceOptions = {
     /** Whether the invited members work from the office, for commuter exclusions */
     hasOfficeWorkArrangement?: boolean;
 
-    /** The workspace's categories, so the invited members can use every category until the backend sends visibleTo */
+    /** The workspace's categories, so the invited members' category visibility is right until the backend sends visibleTo */
     policyCategories?: OnyxEntry<PolicyCategories>;
+
+    /** The only categories the invited members can use. Left out, they can use every category */
+    categoryNames?: string[];
 };
 
 function hasPolicyAdminsRoomsAccess(role: string | undefined): boolean {
@@ -865,30 +870,50 @@ function clearWorkspaceOwnerChangeFlow(policyID: string | undefined) {
 }
 
 /**
- * A new member has no category restriction, so they can use every category. Add them to each category limited to some
- * members, so their category visibility is right before the backend sends visibleTo, and offline.
+ * Sets the invited members' category visibility before the backend sends visibleTo, and offline. Without categoryNames a
+ * new member has no restriction, so they're added to each category limited to some members. With categoryNames they can
+ * use only those categories, which changes visibleTo the same way restricting an existing member does.
  * An invitee without personal details gets a temporary accountID that the backend replaces with the real one, so that
  * temporary ID is removed again once the invite succeeds.
  */
-function buildInvitedMembersCategoryVisibilityOnyxData(policyID: string, policyCategories: OnyxEntry<PolicyCategories>, accountIDs: number[], temporaryAccountIDs: Set<number>) {
+function buildInvitedMembersCategoryVisibilityOnyxData(
+    policyID: string,
+    policyCategories: OnyxEntry<PolicyCategories>,
+    accountIDs: number[],
+    temporaryAccountIDs: Set<number>,
+    categoryNames: string[] | undefined,
+    policyMemberAccountIDs: number[],
+) {
+    let visibleToPatches: Record<string, CategoryVisibleToPatches> = {};
+    if (categoryNames) {
+        visibleToPatches = getMemberCategoryVisibilityPatches(policyCategories ?? undefined, accountIDs, categoryNames, policyMemberAccountIDs);
+    } else {
+        for (const [categoryName, category] of Object.entries(policyCategories ?? {})) {
+            const visibleTo = category.visibleTo;
+            if (!visibleTo) {
+                continue;
+            }
+            const hiddenAccountIDs = accountIDs.filter((accountID) => !visibleTo[accountID]);
+            if (hiddenAccountIDs.length === 0) {
+                continue;
+            }
+            visibleToPatches[categoryName] = {
+                optimisticVisibleTo: Object.fromEntries(hiddenAccountIDs.map((accountID) => [accountID, true])),
+                failureVisibleTo: Object.fromEntries(hiddenAccountIDs.map((accountID) => [accountID, null])),
+            };
+        }
+    }
+
     const optimisticCategories: Record<string, NullishDeep<PolicyCategory>> = {};
     const successCategories: Record<string, NullishDeep<PolicyCategory>> = {};
     const failureCategories: Record<string, NullishDeep<PolicyCategory>> = {};
-    for (const [categoryName, category] of Object.entries(policyCategories ?? {})) {
-        const visibleTo = category.visibleTo;
-        if (!visibleTo) {
-            continue;
-        }
-        const hiddenAccountIDs = accountIDs.filter((accountID) => !visibleTo[accountID]);
-        if (hiddenAccountIDs.length === 0) {
-            continue;
-        }
-        optimisticCategories[categoryName] = {visibleTo: Object.fromEntries(hiddenAccountIDs.map((accountID) => [accountID, true]))};
-        failureCategories[categoryName] = {visibleTo: Object.fromEntries(hiddenAccountIDs.map((accountID) => [accountID, null]))};
+    for (const [categoryName, {optimisticVisibleTo, failureVisibleTo}] of Object.entries(visibleToPatches)) {
+        optimisticCategories[categoryName] = {visibleTo: optimisticVisibleTo};
+        failureCategories[categoryName] = {visibleTo: failureVisibleTo};
 
-        const hiddenTemporaryAccountIDs = hiddenAccountIDs.filter((accountID) => temporaryAccountIDs.has(accountID));
-        if (hiddenTemporaryAccountIDs.length > 0) {
-            successCategories[categoryName] = {visibleTo: Object.fromEntries(hiddenTemporaryAccountIDs.map((accountID) => [accountID, null]))};
+        const addedTemporaryAccountIDs = accountIDs.filter((accountID) => temporaryAccountIDs.has(accountID) && optimisticVisibleTo?.[accountID] === true);
+        if (addedTemporaryAccountIDs.length > 0) {
+            successCategories[categoryName] = {visibleTo: Object.fromEntries(addedTemporaryAccountIDs.map((accountID) => [accountID, null]))};
         }
     }
 
@@ -906,7 +931,7 @@ function buildAddMembersToWorkspaceOnyxData(
     role: string,
     currentUser: CurrentUser,
     reportActionsList: OnyxCollection<ReportActions> | undefined,
-    {approverEmail, policyExpenseChatNotificationPreference, hasOfficeWorkArrangement, policyCategories}: AddMembersToWorkspaceOptions = {},
+    {approverEmail, policyExpenseChatNotificationPreference, hasOfficeWorkArrangement, policyCategories, categoryNames}: AddMembersToWorkspaceOptions = {},
 ) {
     const policyID = policy.id;
     const logins = Object.keys(invitedEmailsToAccountIDs).map((memberLogin) => PhoneNumber.addSMSDomainIfPhoneNumber(memberLogin));
@@ -937,7 +962,14 @@ function buildAddMembersToWorkspaceOnyxData(
     for (const accountID of accountIDs) {
         doesPersonalDetailExistByAccountID[accountID] = !newPersonalDetailAccountIDs.has(accountID);
     }
-    const categoryVisibilityOnyxData = buildInvitedMembersCategoryVisibilityOnyxData(policyID, policyCategories, accountIDs, newPersonalDetailAccountIDs);
+    const categoryVisibilityOnyxData = buildInvitedMembersCategoryVisibilityOnyxData(
+        policyID,
+        policyCategories,
+        accountIDs,
+        newPersonalDetailAccountIDs,
+        categoryNames,
+        policyMemberAccountIDs,
+    );
 
     // Roles that cannot create expenses don't get a workspace chat, so don't build an optimistic one.
     const membersChats = canRoleCreateExpenses(effectiveRole)
@@ -1074,7 +1106,7 @@ function addMembersToWorkspace(
     role: string,
     currentUser: CurrentUser,
     reportActionsList: OnyxCollection<ReportActions>,
-    {approverEmail, hasOfficeWorkArrangement, policyCategories}: Omit<AddMembersToWorkspaceOptions, 'policyExpenseChatNotificationPreference'> = {},
+    {approverEmail, hasOfficeWorkArrangement, policyCategories, categoryNames}: Omit<AddMembersToWorkspaceOptions, 'policyExpenseChatNotificationPreference'> = {},
 ) {
     if (!policy?.id) {
         Log.warn('addMembersToWorkspace: Policy ID is undefined');
@@ -1090,7 +1122,7 @@ function addMembersToWorkspace(
         role,
         currentUser,
         reportActionsList,
-        {approverEmail, hasOfficeWorkArrangement, policyCategories},
+        {approverEmail, hasOfficeWorkArrangement, policyCategories, categoryNames},
     );
 
     const params: AddMembersToWorkspaceParams = {
@@ -1102,6 +1134,7 @@ function addMembersToWorkspace(
         }),
         policyID: policy.id,
         ...(hasOfficeWorkArrangement !== undefined ? {hasOfficeWorkArrangement} : {}),
+        ...(categoryNames ? {categoryNames: JSON.stringify(categoryNames)} : {}),
     };
     if (!isEmptyObject(membersChats.reportCreationData)) {
         params.reportCreationData = JSON.stringify(membersChats.reportCreationData);
@@ -1486,6 +1519,15 @@ function clearWorkspaceInviteApproverDraft(policyID: string) {
     Onyx.set(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_APPROVER_DRAFT}${policyID}`, null);
 }
 
+/** Saves the only categories the members being invited can use. No draft means they can use every category. */
+function setWorkspaceInviteCategoryVisibilityDraft(policyID: string, categoryNames: string[]) {
+    Onyx.set(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_CATEGORY_VISIBILITY_DRAFT}${policyID}`, categoryNames);
+}
+
+function clearWorkspaceInviteCategoryVisibilityDraft(policyID: string) {
+    Onyx.set(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_CATEGORY_VISIBILITY_DRAFT}${policyID}`, null);
+}
+
 /**
  * Accept user join request to a workspace
  */
@@ -1635,6 +1677,7 @@ function clearInviteDraft(policyID: string) {
     setWorkspaceInviteMembersDraft(policyID, {});
     clearWorkspaceInviteRoleDraft(policyID);
     clearWorkspaceInviteApproverDraft(policyID);
+    clearWorkspaceInviteCategoryVisibilityDraft(policyID);
     FormActions.clearDraftValues(ONYXKEYS.FORMS.WORKSPACE_INVITE_MESSAGE_FORM);
 }
 
@@ -1738,6 +1781,8 @@ export {
     clearWorkspaceInviteWorkArrangementDraft,
     setWorkspaceInviteApproverDraft,
     clearWorkspaceInviteApproverDraft,
+    setWorkspaceInviteCategoryVisibilityDraft,
+    clearWorkspaceInviteCategoryVisibilityDraft,
     setImportedSpreadsheetMemberData,
     setImportedSpreadsheetMemberRole,
     clearImportedSpreadsheetMemberData,

@@ -22,7 +22,13 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import {clearDraftValues} from '@libs/actions/FormActions';
 import {openExternalLink} from '@libs/actions/Link';
-import {addMembersToWorkspace, clearWorkspaceInviteApproverDraft, clearWorkspaceInviteRoleDraft, clearWorkspaceInviteWorkArrangementDraft} from '@libs/actions/Policy/Member';
+import {
+    addMembersToWorkspace,
+    clearWorkspaceInviteApproverDraft,
+    clearWorkspaceInviteCategoryVisibilityDraft,
+    clearWorkspaceInviteRoleDraft,
+    clearWorkspaceInviteWorkArrangementDraft,
+} from '@libs/actions/Policy/Member';
 import {setWorkspaceInviteMessageDraft} from '@libs/actions/Policy/Policy';
 import {saveFastEditApprovalWorkflow} from '@libs/actions/Workflow';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
@@ -32,6 +38,7 @@ import {getNewAccountIDsAndLogins, getPersonalDetailsForAccountIDs, getPersonalD
 import {
     canMemberAssignElevatedRole,
     canMemberAssignRole,
+    canSetInvitedMembersCategoryVisibility,
     getDefaultApprover,
     getMemberAccountIDsForWorkspace,
     goBackFromInvalidPolicy,
@@ -42,6 +49,7 @@ import {
     tryNavigateToSubmitWorkspaceUpgrade,
 } from '@libs/PolicyUtils';
 import {getAllPolicyExpenseChatReportActions} from '@libs/ReportUtils';
+import {startSpan} from '@libs/telemetry/activeSpans';
 import updateMultilineInputRange from '@libs/updateMultilineInputRange';
 import {getSearchParamFromPath} from '@libs/Url';
 
@@ -123,6 +131,8 @@ function WorkspaceInviteMessageComponent({
     const defaultApprover = getDefaultApprover(policy);
     const [approverDraft] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_APPROVER_DRAFT}${policyID}`);
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
+    const [categoryVisibilityDraft] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_CATEGORY_VISIBILITY_DRAFT}${policyID}`);
+    const shouldShowCategoryVisibilityRow = canSetInvitedMembersCategoryVisibility(policy);
     const workspaceInviteApproverDraft = approverDraft ?? defaultApprover;
     const approverDetails = usePersonalDetailByLogin(workspaceInviteApproverDraft);
     const employeePersonalDetails = usePersonalDetailsByLogins(Object.keys(policy?.employeeList ?? {}));
@@ -151,6 +161,14 @@ function WorkspaceInviteMessageComponent({
 
     const navigateToWorkArrangementPage = () => {
         Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_INVITE_WORK_ARRANGEMENT.path));
+    };
+
+    const navigateToCategoryVisibilityPage = () => {
+        startSpan(CONST.TELEMETRY.SPAN_OPEN_INVITE_CATEGORY_VISIBILITY, {
+            name: CONST.TELEMETRY.SPAN_OPEN_INVITE_CATEGORY_VISIBILITY,
+            op: CONST.TELEMETRY.SPAN_OPEN_INVITE_CATEGORY_VISIBILITY,
+        });
+        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_INVITE_MESSAGE_CATEGORY_VISIBILITY.path));
     };
 
     const personalDetailsOfInvitedEmails = getPersonalDetailsForAccountIDs(Object.values(invitedEmailsToAccountIDsDraft ?? {}), allPersonalDetails ?? {});
@@ -222,6 +240,7 @@ function WorkspaceInviteMessageComponent({
                 approverEmail: shouldShowApproverRow ? validatedApprover : undefined,
                 hasOfficeWorkArrangement: shouldShowWorkArrangement ? selectedHasOfficeWorkArrangement : undefined,
                 policyCategories,
+                categoryNames: shouldShowCategoryVisibilityRow ? categoryVisibilityDraft : undefined,
             },
         );
         setWorkspaceInviteMessageDraft(policyID, welcomeNote ?? null);
@@ -306,6 +325,7 @@ function WorkspaceInviteMessageComponent({
         return () => {
             clearWorkspaceInviteRoleDraft(policyID);
             clearWorkspaceInviteApproverDraft(policyID);
+            clearWorkspaceInviteCategoryVisibilityDraft(policyID);
             clearWorkspaceInviteWorkArrangementDraft(policyID);
         };
     }, [policyID]);
@@ -396,6 +416,18 @@ function WorkspaceInviteMessageComponent({
                                     name={translate('workflowsPage.approver')}
                                     onPress={navigateToApproverPage}
                                     value={approverName}
+                                />
+                            )}
+                            {shouldShowCategoryVisibilityRow && (
+                                <MenuItemField
+                                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.MEMBERS.INVITE_MESSAGE_CATEGORY_VISIBILITY}
+                                    name={translate('workspace.people.categoryVisibility')}
+                                    onPress={navigateToCategoryVisibilityPage}
+                                    value={
+                                        categoryVisibilityDraft
+                                            ? translate('workspace.people.categoriesCount', {count: categoryVisibilityDraft.length})
+                                            : translate('workspace.people.allCategories')
+                                    }
                                 />
                             )}
                             {shouldShowWorkArrangement && (
