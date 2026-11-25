@@ -21,7 +21,6 @@ const REPRESENTATIVE_PAGE = PAGES.find((page) => page.key === 'representative');
 const REPRESENTATIVE_FIELDS = getContentFields(REPRESENTATIVE_PAGE?.content ?? []).filter(isSupportedField);
 
 const EDITABLE_ANSWERS = {
-    companyType: CONST.WISE.COMPANY_TYPE.LIMITED_LIABILITY_COMPANY,
     companyRole: CONST.WISE.COMPANY_ROLE.OWNER,
     industryCategories: ['SOFTWARE_DEVELOPMENT_PUBLISHING'],
     description: 'Accounting software',
@@ -42,10 +41,9 @@ describe('Wise US onboarding form', () => {
         // When its fields are listed
         const fields = BUSINESS_FIELDS.map((field) => [field.key, !!field.readonly]);
 
-        // Then the website, tax ID and address the bank account already holds are left out, and only the admin's own answers can be edited
+        // Then the website, tax ID, address and company type the bank account already holds are left out, and only the admin's own answers can be edited
         expect(fields).toEqual([
             ['companyName', true],
-            ['companyType', false],
             ['companyRole', false],
             ['industryCategories', false],
             ['description', false],
@@ -79,17 +77,6 @@ describe('Wise US onboarding form', () => {
 
         // Then nothing blocks it
         expect(errors).toEqual({});
-    });
-
-    it('asks for the company type when the bank account has none that maps to it', () => {
-        // Given a business page without a company type
-        const {companyType, ...answers} = EDITABLE_ANSWERS;
-
-        // When the page is checked before Next
-        const errors = getDynamicFieldErrors(BUSINESS_FIELDS, answers, translateLocal, ALL_FIELDS);
-
-        // Then the company type is the only answer missing
-        expect(Object.keys(errors)).toEqual(['companyType']);
     });
 
     it('shows an industry category by its translated name', () => {

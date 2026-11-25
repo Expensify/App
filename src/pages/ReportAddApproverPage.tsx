@@ -19,7 +19,7 @@ import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/crea
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {ReportChangeApproverParamList} from '@libs/Navigation/types';
-import {getMemberAccountIDsForWorkspace} from '@libs/PolicyUtils';
+import {getMemberAccountIDsForWorkspace, hasDynamicExternalWorkflow} from '@libs/PolicyUtils';
 import {
     getDisplayNameForParticipant,
     hasViolations as hasViolationsReportUtils,
@@ -58,6 +58,7 @@ function ReportAddApproverPage({report, isLoadingReportData, policy}: ReportAddA
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
 
+    const isDEWEnabled = hasDynamicExternalWorkflow(policy);
     const employeeList = policy?.employeeList;
     const employeePersonalDetails = usePersonalDetailsByLogins(Object.keys(employeeList ?? {}));
     const allApprovers = (() => {
@@ -102,7 +103,7 @@ function ReportAddApproverPage({report, isLoadingReportData, policy}: ReportAddA
 
     const addApprover = () => {
         const employeeAccountID = allApprovers.find((approver) => approver.login === selectedApproverEmail)?.value;
-        if (!selectedApproverEmail || !employeeAccountID) {
+        if (isDEWEnabled || !selectedApproverEmail || !employeeAccountID) {
             return;
         }
         startWithLoading(() => {
@@ -141,7 +142,7 @@ function ReportAddApproverPage({report, isLoadingReportData, policy}: ReportAddA
         setSelectedApproverEmail(approvers.at(0)?.login ?? undefined);
     };
 
-    const shouldShowNotFoundView = !isMoneyRequestReport(report) || isMoneyRequestReportPendingDeletion(report);
+    const shouldShowNotFoundView = isDEWEnabled || !isMoneyRequestReport(report) || isMoneyRequestReportPendingDeletion(report);
 
     return (
         <ApproverSelectionList

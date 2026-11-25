@@ -30,7 +30,7 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import {formatMemberForList, isDisablingOrDeletingLastEnabledCategory} from '@libs/OptionsListUtils';
 import type {MemberForList} from '@libs/OptionsListUtils';
 import moveInitialSelectionToTop from '@libs/SelectionListOrderUtils';
-import {endSpan} from '@libs/telemetry/activeSpans';
+import {cancelSpan, endSpan} from '@libs/telemetry/activeSpans';
 import tokenizedSearch from '@libs/tokenizedSearch';
 
 import type {SettingsNavigatorParamList} from '@navigation/types';
@@ -80,9 +80,20 @@ function DynamicCategoryVisibleToPage({
     const {selectedKeys, toggleKey, toggleVisibleKeys} = useOverridableSelection(visibleMemberKeys);
     const initialSelectedKeys = useInitialSelection(visibleMemberKeys, {resetOnFocus: true});
 
+    // Every row and the save check look members up by key, so a Set keeps large workspaces from scanning the whole selection per member.
+    const selectedKeySet = new Set(selectedKeys);
+
+    // The admin is always a member, so an empty list means the policy and its members haven't loaded yet.
+    const hasMembers = memberAccountIDs.length > 0;
     useEffect(() => {
+        if (!hasMembers) {
+            return;
+        }
         endSpan(CONST.TELEMETRY.SPAN_OPEN_CATEGORY_VISIBLE_TO);
-    }, []);
+    }, [hasMembers]);
+
+    // A no-op once the span has ended, so this only cancels it when the admin leaves before the list renders.
+    useEffect(() => () => cancelSpan(CONST.TELEMETRY.SPAN_OPEN_CATEGORY_VISIBLE_TO), []);
 
     const memberItems: MemberListItem[] = Object.entries(memberAccountIDsByLogin).map(([login, accountID]) => {
         const personalDetail = employeePersonalDetails[login];
@@ -103,7 +114,7 @@ function DynamicCategoryVisibleToPage({
                 ],
                 reportID: '',
                 keyForList: String(accountID),
-                isSelected: selectedKeys.includes(String(accountID)),
+                isSelected: selectedKeySet.has(String(accountID)),
             }),
             value: accountID,
         };
@@ -124,9 +135,10 @@ function DynamicCategoryVisibleToPage({
 
     const saveVisibility = () => {
         // Only current members count, so one removed since the page opened isn't sent.
-        const newSelectedAccountIDs = memberAccountIDs.filter((accountID) => selectedKeys.includes(String(accountID)));
-        const deselectedAccountIDs = memberAccountIDs.filter((accountID) => !selectedKeys.includes(String(accountID)));
-        const hasChanges = newSelectedAccountIDs.length !== visibleAccountIDs.length || newSelectedAccountIDs.some((accountID) => !visibleAccountIDs.includes(accountID));
+        const newSelectedAccountIDs = memberAccountIDs.filter((accountID) => selectedKeySet.has(String(accountID)));
+        const deselectedAccountIDs = memberAccountIDs.filter((accountID) => !selectedKeySet.has(String(accountID)));
+        const visibleAccountIDSet = new Set(visibleAccountIDs);
+        const hasChanges = newSelectedAccountIDs.length !== visibleAccountIDs.length || newSelectedAccountIDs.some((accountID) => !visibleAccountIDSet.has(accountID));
         if (!hasChanges || !policyCategory) {
             Navigation.goBack(categorySettingsBackPath);
             return;

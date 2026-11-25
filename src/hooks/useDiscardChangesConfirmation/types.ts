@@ -5,6 +5,11 @@ type UseDiscardChangesConfirmationOptions = {
     onVisibilityChange?: (visible: boolean) => void;
     onConfirm?: () => void | Promise<void>;
     onTabSwitchDiscard?: () => void | Promise<void>;
+    /**
+     * When the user clicks outside the RHP and picks Discard, close the whole RHP instead of only the focused page.
+     * Going back still closes only this page.
+     */
+    shouldCloseRHPOnDiscard?: boolean;
 };
 
 type DiscardChangesConfirmation = {
