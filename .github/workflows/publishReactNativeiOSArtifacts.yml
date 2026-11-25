@@ -64,7 +64,10 @@ jobs:
 
       - name: Resolve Hermes version
         id: hermes
-        run: echo "VERSION=$(./scripts/artifacts-utils/get-hermes-version.sh)" >> "$GITHUB_OUTPUT"
+        # Assign before echoing: a failure inside echo's arguments would not stop the step.
+        run: |
+          VERSION=$(./scripts/artifacts-utils/get-hermes-version.sh)
+          echo "VERSION=$VERSION" >> "$GITHUB_OUTPUT"
 
       - name: Fetch prebuild files from upstream RN
         uses: ./.github/actions/composite/fetchReactNativePrebuild
@@ -148,7 +151,10 @@ jobs:
 
       - name: Resolve Hermes version
         id: hermes
-        run: echo "VERSION=$(./scripts/artifacts-utils/get-hermes-version.sh)" >> "$GITHUB_OUTPUT"
+        # Assign before echoing: a failure inside echo's arguments would not stop the step.
+        run: |
+          VERSION=$(./scripts/artifacts-utils/get-hermes-version.sh)
+          echo "VERSION=$VERSION" >> "$GITHUB_OUTPUT"
 
       # The compose folds the Hermes public headers into ReactNativeHeaders.xcframework, so stage them first,
       # like upstream's prebuild-ios-core.yml does.
@@ -237,7 +243,10 @@ jobs:
       # resolver reject an artifact whose Hermes differs from the one the consuming app links.
       - name: Resolve Hermes version
         id: hermes
-        run: echo "VERSION=$(./scripts/artifacts-utils/get-hermes-version.sh)" >> "$GITHUB_OUTPUT"
+        # Assign before echoing: a failure inside echo's arguments would not stop the step.
+        run: |
+          VERSION=$(./scripts/artifacts-utils/get-hermes-version.sh)
+          echo "VERSION=$VERSION" >> "$GITHUB_OUTPUT"
 
       - name: Determine new patched RN version
         id: getNewPatchedVersion

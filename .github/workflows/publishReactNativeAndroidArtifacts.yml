@@ -74,7 +74,10 @@ jobs:
       # consuming app links.
       - name: Resolve Hermes version
         id: hermes
-        run: echo "VERSION=$(./scripts/artifacts-utils/get-hermes-version.sh)" >> "$GITHUB_OUTPUT"
+        # Assign before echoing: a failure inside echo's arguments would not stop the step.
+        run: |
+          VERSION=$(./scripts/artifacts-utils/get-hermes-version.sh)
+          echo "VERSION=$VERSION" >> "$GITHUB_OUTPUT"
 
       - name: Get Java version
         id: get-java-version
