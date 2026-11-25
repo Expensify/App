@@ -639,13 +639,13 @@ function getMerchantName(transaction: TransactionWithOptionalSearchFields, trans
     return merchantName !== CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT && merchantName !== CONST.TRANSACTION.DEFAULT_MERCHANT ? (merchantName ?? '') : '';
 }
 
-/**
- * Names a transaction in the label of the control that selects it, so screen readers and agents can tell rows apart.
- * The description is stored as HTML, so it is converted to plain text the same way the description cell shows it.
- */
+/** Names a transaction for its selection control. The description is stored as HTML, so it is read as plain text. */
 function getTransactionSelectionAccessibilityLabel(transaction: TransactionWithOptionalSearchFields, translate: (key: TranslationPaths) => string): string {
-    const description = StringUtils.lineBreaksToSpaces(Parser.htmlToText(getDescription(transaction)));
-    return getMerchantName(transaction, translate) || description || translate('common.select');
+    const merchant = getMerchantName(transaction, translate);
+    if (merchant) {
+        return merchant;
+    }
+    return StringUtils.lineBreaksToSpaces(Parser.htmlToText(getDescription(transaction))) || translate('common.select');
 }
 
 function getReportOwnerAsAttendee(creatorDetails: OnyxEntry<PersonalDetails>): Attendee | undefined {
