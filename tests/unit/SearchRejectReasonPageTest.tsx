@@ -133,6 +133,7 @@ describe('SearchRejectReasonPage', () => {
 
         // When the user submits a reason
         mockSubmitRejectReason?.({comment: 'missing receipts'});
+        await waitForBatchedUpdatesWithAct();
 
         // Then the selected expenses are rejected directly and nothing is queued on the backend
         expect(rejectMoneyRequestsOnSearch).toHaveBeenCalledTimes(1);

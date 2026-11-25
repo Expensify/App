@@ -183,6 +183,7 @@ export type {default as RemovePolicyReceiptPartnersConnectionParams} from './Rem
 export type {default as SyncPolicyToQuickbooksDesktopParams} from './SyncPolicyToQuickbooksDesktopParams';
 export type {default as DeleteContactMethodParams} from './DeleteContactMethodParams';
 export type {default as DeletePaymentBankAccountParams} from './DeletePaymentBankAccountParams';
+export type {default as CreateTestBankAccountParams} from './CreateTestBankAccountParams';
 export type {default as DeletePaymentCardParams} from './DeletePaymentCardParams';
 export type {default as DeletePersonalCardParams} from './DeletePersonalCardParams';
 export type {default as TogglePolicyUberAutoInvitePageParams} from './TogglePolicyUberAutoInvitePageParams';
@@ -563,6 +564,7 @@ export type {default as SetPolicyCategoryDescriptionRequiredParams} from './SetP
 export type {default as SetPolicyCategoryAttendeesRequiredParams} from './SetPolicyCategoryAttendeesRequiredParams';
 export type {default as SetPolicyCategoryApproverParams} from './SetPolicyCategoryApproverParams';
 export type {default as SetPolicyMemberCategoryVisibilityParams} from './SetPolicyMemberCategoryVisibilityParams';
+export type {default as SetPolicyCategoryMemberVisibilityParams} from './SetPolicyCategoryMemberVisibilityParams';
 export type {default as SetWorkspaceCategoryDescriptionHintParams} from './SetWorkspaceCategoryDescriptionHintParams';
 export type {default as SetPolicyCategoryTaxParams} from './SetPolicyCategoryTaxParams';
 export type {default as SetPolicyCategoryMaxAmountParams} from './SetPolicyCategoryMaxAmountParams';
@@ -728,6 +730,7 @@ export type {default as AddAdminToDomainParams} from './AddAdminToDomainParams';
 export type {default as UpdateSamlRequiredParams} from './UpdateSamlRequiredParams';
 export type {default as AddMemberToDomainParams} from './AddMemberToDomainParams';
 export type {default as GetInsightsParams} from './GetInsightsParams';
+export type {default as GetInsightsDetailsParams} from './GetInsightsDetailsParams';
 export type {default as OpenSearchPageParams} from './OpenSearchPageParams';
 export type {default as ParseExpenseFiltersParams} from './ParseExpenseFiltersParams';
 export type {default as TranslateReceiptParams} from './TranslateReceiptParams';

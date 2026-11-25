@@ -489,6 +489,8 @@ function validateReportDraftProperty(key: keyof Report | keyof ReportNameValuePa
         case 'withdrawalIDs':
             return validateString(value);
         case 'hasOutstandingChildRequest':
+        case 'isHiddenForBillReceiver':
+        case 'isAwaitingActionFromCurrentUser':
         case 'hasOutstandingChildTask':
         case 'isOwnPolicyExpenseChat':
         case 'isPinned':
@@ -651,6 +653,7 @@ function validateReportDraftProperty(key: keyof Report | keyof ReportNameValuePa
             return validateConstantEnum(value, CONST.RED_BRICK_ROAD_PENDING_ACTION);
         case 'pendingFields':
             return validateObject<ObjectElement<Report | ReportNameValuePairs, 'pendingFields'>>(value, {
+                isAwaitingActionFromCurrentUser: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 description: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 privateNotes: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 currency: CONST.RED_BRICK_ROAD_PENDING_ACTION,
@@ -691,6 +694,7 @@ function validateReportDraftProperty(key: keyof Report | keyof ReportNameValuePa
                 writeCapability: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 visibility: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 invoiceReceiver: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                isHiddenForBillReceiver: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 parentReportID: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 parentReportActionID: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 managerID: CONST.RED_BRICK_ROAD_PENDING_ACTION,
@@ -1188,6 +1192,7 @@ function validateTransactionDraftProperty(key: keyof Transaction, value: string)
                     rateAutoUpdated: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     odometerStart: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     odometerEnd: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                    odometerUnit: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     odometerStartImage: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     odometerEndImage: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     tripID: CONST.RED_BRICK_ROAD_PENDING_ACTION,
@@ -1327,6 +1332,7 @@ function validateTransactionDraftProperty(key: keyof Transaction, value: string)
                 splitsEndDate: 'string',
                 odometerStart: 'number',
                 odometerEnd: 'number',
+                odometerUnit: 'string',
                 odometerStartImage: 'object',
                 odometerEndImage: 'object',
                 tripID: 'string',
@@ -1582,6 +1588,7 @@ function getReasonForShowingRowInLHN({
     hasGuidesEmails,
     derivedIsEmptyReport,
     transactionViolations,
+    pendingExpenseActionMetadata,
 }: {
     report: OnyxEntry<Report>;
     chatReport: OnyxEntry<Report>;
@@ -1597,6 +1604,7 @@ function getReasonForShowingRowInLHN({
     conciergeReportID: string | undefined;
     derivedIsEmptyReport: boolean | undefined;
     transactionViolations?: OnyxCollection<TransactionViolation[]>;
+    pendingExpenseActionMetadata: OnyxEntry<ReportMetadata>;
 }): TranslationPaths | null {
     if (!report) {
         return null;
@@ -1620,6 +1628,7 @@ function getReasonForShowingRowInLHN({
         derivedIsEmptyReport,
         hasGuidesEmails,
         transactionViolations,
+        pendingExpenseActionMetadata,
     });
 
     if (!([CONST.REPORT_IN_LHN_REASONS.HAS_ADD_WORKSPACE_ROOM_ERRORS, CONST.REPORT_IN_LHN_REASONS.HAS_IOU_VIOLATIONS] as Array<typeof reason>).includes(reason) && hasRBR) {

@@ -55,7 +55,7 @@ function BaseSidebarScreen() {
         <ScreenWrapper
             shouldEnableKeyboardAvoidingView={false}
             style={[styles.sidebar, isMobile() ? styles.userSelectNone : {}]}
-            testID="BaseSidebarScreen"
+            testID={CONST.TEST_ID.BASE_SIDEBAR_SCREEN}
             {...tabRootScreenWrapperProps}
         >
             {({insets}) => (

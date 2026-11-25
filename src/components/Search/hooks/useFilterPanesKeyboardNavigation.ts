@@ -156,6 +156,11 @@ function useFilterPanesKeyboardNavigation<Row>({
                 // Adding the same listener again does nothing, so a release that never came cannot stack them.
                 window.addEventListener('keyup', swallowEscapeRelease, true);
             }
+        } else if (event.target === document.body && (event.key === CONST.KEYBOARD_SHORTCUTS.ARROW_DOWN.shortcutKey || event.key === CONST.KEYBOARD_SHORTCUTS.ARROW_UP.shortcutKey)) {
+            // A filter that swaps its view, like a report field opening its values, takes the focused row with it and leaves the focus on the page.
+            if (!focusFirstShownControl(contentContainer)) {
+                return;
+            }
         } else {
             return;
         }
