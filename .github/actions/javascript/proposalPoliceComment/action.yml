@@ -10,6 +10,14 @@ inputs:
   IS_TRUSTED_COMMENTER:
     description: 'Whether the commenter is a verified approved contributor or partner'
     required: true
+  IS_TEAM_MEMBER:
+    description: 'Whether the commenter is a member of one of the trusted Expensify GitHub teams'
+    required: false
+    default: 'false'
+  COULD_NOT_VERIFY_TEAMS:
+    description: 'Whether a team membership check failed, so the commenter might be a member'
+    required: false
+    default: 'false'
 runs:
   using: 'node24'
   main: './index.js'
