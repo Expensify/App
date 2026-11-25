@@ -6,6 +6,7 @@ import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/
 import Icon from '@components/Icon';
 import MenuItem from '@components/MenuItem';
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
+import MenuItemSectionRoot from '@components/MenuItem/presets/MenuItemSectionRoot';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import Popover from '@components/Popover';
 import {PressableWithFeedback} from '@components/Pressable';
@@ -20,7 +21,6 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useEnvironment from '@hooks/useEnvironment';
 import useHasTeam2025Pricing from '@hooks/useHasTeam2025Pricing';
-import useLayoutSpacing from '@hooks/useLayoutSpacing';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -40,7 +40,6 @@ import Navigation from '@navigation/Navigation';
 import {formatSubscriptionEndDate, getExpensifyCodeDiscountMessage, getPrivatePromoDiscountInfo, openSubscriptionDescriptionLink} from '@pages/settings/Subscription/utils';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
 
-import {menuItemHorizontalPadding} from '@styles/layoutSpacing';
 import variables from '@styles/variables';
 
 import {navigateToConciergeChat} from '@userActions/Report';
@@ -71,8 +70,6 @@ type SubscriptionPlanSettingsProps = {
     planIcon: IconAsset;
     subscriptionPlan: PersonalPolicyTypeExcludedProps | null;
 };
-
-const settingsRowHorizontalPadding = {paddingHorizontal: menuItemHorizontalPadding};
 
 const anchorAlignment = {
     horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
@@ -175,7 +172,6 @@ function AnnualSavingsInfo() {
 function SubscriptionPlanSettings({planTitle, planIcon, subscriptionPlan}: SubscriptionPlanSettingsProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
-    const {values, cardEdgeToEdge, cardPaddingHorizontal} = useLayoutSpacing();
     const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
     const {translate, dateFnsLocale} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['Tag', 'Coins']);
@@ -334,7 +330,7 @@ function SubscriptionPlanSettings({planTitle, planIcon, subscriptionPlan}: Subsc
 
     return (
         <View testID="SubscriptionPlanSettings">
-            <View style={[{paddingTop: values.cardPadding, paddingHorizontal: menuItemHorizontalPadding}, !showPlanStatus && styles.pb2]}>
+            <View style={!showPlanStatus && styles.pb2}>
                 <View>
                     <Text style={styles.textLabelSupporting}>{translate('subscription.yourPlan.plan')}</Text>
                     <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween]}>
@@ -396,29 +392,25 @@ function SubscriptionPlanSettings({planTitle, planIcon, subscriptionPlan}: Subsc
                 )}
             </View>
             <OfflineWithFeedback pendingAction={privateSubscription.pendingFields?.type}>
-                <View style={cardEdgeToEdge}>
-                    <MenuItem.Root
-                        onPress={callIfAuthenticated(navigateToSubscriptionDetails, session)}
-                        sentryLabel={CONST.SENTRY_LABEL.SETTINGS_SUBSCRIPTION.EDIT_SUBSCRIPTION}
-                        testID="SubscriptionPlanSettings-subscriptionType"
-                        accessibilityLabel={`${translate('subscription.subscriptionSettings.subscriptionType')}, ${subscriptionTypeValue}`}
-                    >
-                        <View style={cardPaddingHorizontal}>
-                            <MenuItem.Row>
-                                <MenuItem.Content>
-                                    <View style={[styles.flexRow, styles.alignItemsCenter]}>
-                                        <MenuItem.FieldName>{translate('subscription.subscriptionSettings.subscriptionType')}</MenuItem.FieldName>
-                                        {cardView.showAnnualSavingsInfo && <AnnualSavingsInfo />}
-                                    </View>
-                                    <MenuItem.FieldValue>{subscriptionTypeValue}</MenuItem.FieldValue>
-                                </MenuItem.Content>
-                                <MenuItem.Trailing>
-                                    <MenuItem.Chevron />
-                                </MenuItem.Trailing>
-                            </MenuItem.Row>
-                        </View>
-                    </MenuItem.Root>
-                </View>
+                <MenuItemSectionRoot
+                    onPress={callIfAuthenticated(navigateToSubscriptionDetails, session)}
+                    sentryLabel={CONST.SENTRY_LABEL.SETTINGS_SUBSCRIPTION.EDIT_SUBSCRIPTION}
+                    testID="SubscriptionPlanSettings-subscriptionType"
+                    accessibilityLabel={`${translate('subscription.subscriptionSettings.subscriptionType')}, ${subscriptionTypeValue}`}
+                >
+                    <MenuItem.Row>
+                        <MenuItem.Content>
+                            <View style={[styles.flexRow, styles.alignItemsCenter]}>
+                                <MenuItem.FieldName>{translate('subscription.subscriptionSettings.subscriptionType')}</MenuItem.FieldName>
+                                {cardView.showAnnualSavingsInfo && <AnnualSavingsInfo />}
+                            </View>
+                            <MenuItem.FieldValue>{subscriptionTypeValue}</MenuItem.FieldValue>
+                        </MenuItem.Content>
+                        <MenuItem.Trailing>
+                            <MenuItem.Chevron />
+                        </MenuItem.Trailing>
+                    </MenuItem.Row>
+                </MenuItemSectionRoot>
             </OfflineWithFeedback>
             {cardView.showAnnualControls && (
                 <>
@@ -427,48 +419,44 @@ function SubscriptionPlanSettings({planTitle, planIcon, subscriptionPlan}: Subsc
                         errors={privateSubscription.errorFields?.userCount}
                         onClose={clearUpdateSubscriptionSizeError}
                     >
-                        <View style={cardEdgeToEdge}>
-                            <MenuItem.Root
-                                onPress={cardView.canEditSize ? callIfAuthenticated(navigateToSubscriptionSize, session) : undefined}
-                                sentryLabel={CONST.SENTRY_LABEL.SETTINGS_SUBSCRIPTION.SUBSCRIPTION_SIZE}
-                                testID="SubscriptionPlanSettings-subscriptionSize"
+                        <MenuItemSectionRoot
+                            onPress={cardView.canEditSize ? callIfAuthenticated(navigateToSubscriptionSize, session) : undefined}
+                            sentryLabel={CONST.SENTRY_LABEL.SETTINGS_SUBSCRIPTION.SUBSCRIPTION_SIZE}
+                            testID="SubscriptionPlanSettings-subscriptionSize"
+                        >
+                            <MenuItemField.Row
+                                name={translate('subscription.details.subscriptionSize')}
+                                value={translate('subscription.subscriptionSettings.memberCount', {count: cardView.memberCount})}
                             >
-                                <View style={cardPaddingHorizontal}>
-                                    <MenuItemField.Row
-                                        name={translate('subscription.details.subscriptionSize')}
-                                        value={translate('subscription.subscriptionSettings.memberCount', {count: cardView.memberCount})}
-                                    >
-                                        {cardView.canEditSize && <MenuItem.Chevron />}
-                                    </MenuItemField.Row>
-                                    {cardView.showSizeNotSetHelper && (
-                                        <MenuItem.HelpText
-                                            message={
-                                                subscriptionSizeHint ? (
-                                                    <>
-                                                        {subscriptionSizeHint.text}
-                                                        <TextLink
-                                                            onPress={openPricingFromSizeHint}
-                                                            onMouseDown={keepSizeHintLinkFromOpeningSizeRow}
-                                                            sentryLabel={CONST.SENTRY_LABEL.SETTINGS_SUBSCRIPTION.SIZE_NOT_SET_LEARN_MORE}
-                                                        >
-                                                            {subscriptionSizeHint.linkLabel}
-                                                        </TextLink>
-                                                    </>
-                                                ) : (
-                                                    translate('subscription.subscriptionSettings.sizeNotSet')
-                                                        .replaceAll(/<[^>]+>/g, '')
-                                                        .replaceAll(/\s+/g, ' ')
-                                                        .trim()
-                                                )
-                                            }
-                                        />
-                                    )}
-                                </View>
-                            </MenuItem.Root>
-                        </View>
+                                {cardView.canEditSize && <MenuItem.Chevron />}
+                            </MenuItemField.Row>
+                            {cardView.showSizeNotSetHelper && (
+                                <MenuItem.HelpText
+                                    message={
+                                        subscriptionSizeHint ? (
+                                            <>
+                                                {subscriptionSizeHint.text}
+                                                <TextLink
+                                                    onPress={openPricingFromSizeHint}
+                                                    onMouseDown={keepSizeHintLinkFromOpeningSizeRow}
+                                                    sentryLabel={CONST.SENTRY_LABEL.SETTINGS_SUBSCRIPTION.SIZE_NOT_SET_LEARN_MORE}
+                                                >
+                                                    {subscriptionSizeHint.linkLabel}
+                                                </TextLink>
+                                            </>
+                                        ) : (
+                                            translate('subscription.subscriptionSettings.sizeNotSet')
+                                                .replaceAll(/<[^>]+>/g, '')
+                                                .replaceAll(/\s+/g, ' ')
+                                                .trim()
+                                        )
+                                    }
+                                />
+                            )}
+                        </MenuItemSectionRoot>
                     </OfflineWithFeedback>
                     <View
-                        style={[settingsRowHorizontalPadding, styles.pv3]}
+                        style={styles.pv3}
                         testID="SubscriptionPlanSettings-autoRenew"
                     >
                         <ToggleSettingOptionRow
@@ -483,7 +471,7 @@ function SubscriptionPlanSettings({planTitle, planIcon, subscriptionPlan}: Subsc
                         />
                     </View>
                     <View
-                        style={[settingsRowHorizontalPadding, styles.pt3]}
+                        style={styles.pt3}
                         testID="SubscriptionPlanSettings-autoIncrease"
                     >
                         <ToggleSettingOptionRow
@@ -500,7 +488,7 @@ function SubscriptionPlanSettings({planTitle, planIcon, subscriptionPlan}: Subsc
                 </>
             )}
             {/* The ad row already has 12px padding, so margin below the line would stack. Margin above keeps the hover off the line. */}
-            <View style={[styles.sectionDividerLine, styles.mt3, styles.mh5]} />
+            <View style={[styles.sectionDividerLine, styles.mt3]} />
             <SaveWithExpensifyRow />
         </View>
     );

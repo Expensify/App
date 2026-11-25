@@ -1,7 +1,6 @@
 import Icon from '@components/Icon';
 import Text from '@components/Text';
 
-import useLayoutSpacing from '@hooks/useLayoutSpacing';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -16,11 +15,10 @@ import SaveWithExpensifyButton from './SaveWithExpensifyButton';
 function SaveWithExpensifyRow() {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const {cardPaddingHorizontal} = useLayoutSpacing();
     const illustrations = useMemoizedLazyIllustrations(['HandCard']);
 
     return (
-        <View style={[styles.flexRow, styles.alignItemsCenter, cardPaddingHorizontal, styles.pv3]}>
+        <View style={[styles.flexRow, styles.alignItemsCenter, styles.pv3]}>
             <Icon
                 src={illustrations.HandCard}
                 width={variables.iconHeader}
