@@ -5,7 +5,7 @@ import type {AgentRowData, AgentsTableColumnKey} from '@components/Tables/Agents
 
 import {clearAgentDeleteError, clearAgentError, clearAgentUpdateError, deleteAgent} from '@libs/actions/Agent';
 import {getRuleBotEnforcedPolicy} from '@libs/AgentRulesUtils';
-import {getAgentErrors} from '@libs/AgentUtils';
+import {getAgentErrors, getAgentRecordAccountIDState} from '@libs/AgentUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 
@@ -49,6 +49,7 @@ function useAgentsTable() {
     const [allAgents] = useOnyx(ONYXKEYS.COLLECTION.AGENT);
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [allDomains] = useOnyx(ONYXKEYS.COLLECTION.DOMAIN);
+    const [agentAccountIDMapping] = useOnyx(ONYXKEYS.OPTIMISTIC_AGENT_ACCOUNT_ID_MAPPING);
     const personalDetailsList = usePersonalDetails();
     const chatWithAgent = useChatWithAgent();
     const switchToDelegator = useSwitchToDelegator();
@@ -56,16 +57,26 @@ function useAgentsTable() {
     const showRuleBotGuardModal = useRuleBotGuardModal();
     const [selectedAgents, setSelectedAgents] = useState<string[]>([]);
     const policiesByAccountID = groupByPolicyAccountIDPoliciesSelector(allPolicies);
+    const mappedRealAccountIDs = new Set(Object.values(agentAccountIDMapping ?? {}));
 
     const agents: AgentRowData[] = Object.entries(allAgents ?? {}).flatMap(([key, agent]) => {
         if (!agent) {
             return [];
         }
         const accountID = Number(key.slice(ONYXKEYS.COLLECTION.AGENT.length));
-        const details = personalDetailsList?.[accountID];
-        if (!details) {
+        // A new agent's data reaches this tab key by key. Its temporary record keeps the row until the real one can be
+        // shown, using the real details as soon as they arrive and the record's fallback name before that.
+        const accountIDState = getAgentRecordAccountIDState(accountID, allAgents, personalDetailsList, agentAccountIDMapping, mappedRealAccountIDs);
+        if (!accountIDState) {
             return [];
         }
+        const details = personalDetailsList?.[accountIDState.personalDetailsAccountID];
+        const displayName = details?.displayName ?? details?.login ?? agent.fallbackDisplayName;
+        if (!details && displayName === undefined) {
+            return [];
+        }
+        // Saving, deleting or chatting while the agent is settling would act on an incomplete copy.
+        const login = accountIDState.isSettling ? '' : (details?.login ?? '');
         const pendingAction = agent.pendingAction;
         const isPendingDeletion = pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
         if (isPendingDeletion && !isOffline) {
@@ -92,9 +103,10 @@ function useAgentsTable() {
         return [
             {
                 keyForList: String(accountID),
-                accountID,
-                displayName: details.displayName ?? details.login ?? '',
-                login: details.login ?? '',
+                // The avatar is read by this ID, so it follows the details shown.
+                accountID: accountIDState.personalDetailsAccountID,
+                displayName: displayName ?? '',
+                login,
                 ownerAccountID: agent.ownerAccountID,
                 ownerDisplayName,
                 ownerType: agent.ownerType,
@@ -102,11 +114,12 @@ function useAgentsTable() {
                 pendingAction,
                 errors: Object.keys(agentErrors ?? {}).length > 0 ? agentErrors : undefined,
                 disabled: isPendingDeletion,
+                isSelectionDisabled: accountIDState.isSettling,
                 canManage: true,
                 action: () => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.AGENT_EDIT.getRoute(accountID))),
                 onChatPress: () => chatWithAgent(accountID),
                 // Agents can't open their Agents pages, so land on Home instead of the default Settings tab
-                onCopilotPress: () => switchToDelegator(details.login ?? '', ROUTES.HOME),
+                onCopilotPress: () => switchToDelegator(login, ROUTES.HOME),
                 dismissError: () => handleErrorClose(pendingAction, accountID),
             },
         ];
@@ -141,7 +154,7 @@ function useAgentsTable() {
     const agentsByAccountID = new Map(agents.map((agent) => [agent.keyForList, agent]));
     const selectedAgentKeys = selectedAgents.filter((accountIDString) => {
         const agent = agentsByAccountID.get(accountIDString);
-        return !!agent && agent.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
+        return !!agent && agent.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && !agent.isSelectionDisabled;
     });
 
     const clearSelectedAgents = () => setSelectedAgents((prevSelectedAgents) => (prevSelectedAgents.length > 0 ? [] : prevSelectedAgents));

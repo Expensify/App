@@ -29,6 +29,12 @@ type Agent = OnyxValueWithOfflineFeedback<{
 
     /** Errors specific to updating the agent avatar */
     avatarErrors?: Errors | null;
+
+    /** Only on a new agent's temporary record: the name to show while its personal details are missing in this tab */
+    fallbackDisplayName?: string;
+
+    /** Only on a new agent's temporary record: the avatar to show while its personal details are missing in this tab */
+    fallbackAvatar?: string;
 }>;
 
 export type {AgentOwnerType};

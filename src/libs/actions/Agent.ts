@@ -1,4 +1,4 @@
-import {hasAgentRecord, resolveAgentAccountID} from '@libs/AgentAccountIDMapping';
+import {hasAgentFallback, hasAgentRecord, isMappedRealAgentAccountID, resolveAgentAccountID} from '@libs/AgentAccountIDMapping';
 import {read, write} from '@libs/API';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import {buildAvatarCropResult} from '@libs/AvatarCropUtils';
@@ -7,6 +7,7 @@ import type {CustomRNImageManipulatorResult} from '@libs/cropOrRotateImage/types
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {rand64} from '@libs/NumberUtils';
+import {isRecord} from '@libs/ObjectUtils';
 import {getPersonalDetail} from '@libs/PersonalDetailsStore';
 import {buildPersonalDetailsUpdate} from '@libs/PersonalDetailsUtils';
 import {buildOptimisticChatReport, buildOptimisticCreatedReportAction, generateReportID} from '@libs/ReportUtils';
@@ -25,6 +26,8 @@ import type {OnyxCollection, OnyxCollectionInputValue, OnyxUpdate} from 'react-n
 import type {ValueOf} from 'type-fest';
 
 import Onyx from 'react-native-onyx';
+
+import {getAllIncludingOngoing as getAllPersistedRequests} from './PersistedRequests';
 
 function openAgentsPage() {
     const finallyData: Array<OnyxUpdate<typeof ONYXKEYS.ARE_AGENTS_LOADED>> = [
@@ -94,6 +97,10 @@ function prepareNewAgentOnyxData(
                 prompt,
                 ownerAccountID: policy?.policyAccountID,
                 pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                // Screens and lists show these while this agent's personal details are missing in a tab, e.g. after
+                // CreateAgent's response removed the temporary details but before the tab learned the real accountID.
+                fallbackDisplayName: firstName ?? '',
+                ...(avatarURI ? {fallbackAvatar: avatarURI} : {}),
             },
         },
         {
@@ -262,9 +269,10 @@ function clearAgentDeleteError(accountID: number) {
  * success and failure data, which the tab running the request queue applies; that tab applied CreateAgent's response, so
  * it holds the real data. They only skip the optimistic writes this tab cannot make yet. That tab also skips them until
  * its request queue drains and CreateAgent's response is written, so a save there shows once the server answers.
+ * A caller that already passes a new agent's real accountID gets the same checks.
  */
 function getAllowedOptimisticAgentWrites(accountID: number, agentAccountID: number) {
-    const isSameAgent = agentAccountID === accountID;
+    const isSameAgent = agentAccountID === accountID && !isMappedRealAgentAccountID(agentAccountID);
     return {
         canWritePersonalDetails: isSameAgent || !!getPersonalDetail(agentAccountID)?.login,
         canWriteAgentRecord: isSameAgent || hasAgentRecord(agentAccountID),
@@ -279,11 +287,12 @@ function updateAgentName(accountID: number, firstName: string, originalFirstName
     if (canWritePersonalDetails) {
         optimisticData.push(buildPersonalDetailsUpdate({[agentAccountID]: {displayName: firstName}}));
     }
+    const shouldUpdateFallback = canWriteAgentRecord && hasAgentFallback(agentAccountID);
     if (canWriteAgentRecord) {
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.AGENT}${agentAccountID}`,
-            value: {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE, errors: null, nameErrors: null},
+            value: {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE, errors: null, nameErrors: null, ...(shouldUpdateFallback ? {fallbackDisplayName: firstName} : {})},
         });
     }
 
@@ -301,6 +310,8 @@ function updateAgentName(accountID: number, firstName: string, originalFirstName
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.AGENT}${agentAccountID}`,
+            // The fallback is not reverted: a queued request's updates are moved to the real agent's key once its accountID
+            // is known, and the fallback only belongs on the temporary record.
             value: {pendingAction: null, nameErrors: getMicroSecondOnyxErrorWithTranslationKey('agentsPage.error.updateName')},
         },
     ];
@@ -308,11 +319,24 @@ function updateAgentName(accountID: number, firstName: string, originalFirstName
     write(WRITE_COMMANDS.UPDATE_AGENT_NAME, {agentAccountID, firstName}, {optimisticData, successData, failureData});
 }
 
+// Whether an instructions save for this agent is still queued or in flight and will write its prompt on success. The
+// queue applies success data in order, so a later save must then carry its own prompt to win, as on the server. A save
+// that already finished but whose success data is still held until the queue drains is not visible here.
+function hasQueuedPromptWrite(agentAccountID: number): boolean {
+    return getAllPersistedRequests().some(
+        (request) =>
+            request.command === WRITE_COMMANDS.UPDATE_AGENT_PROMPT &&
+            resolveAgentAccountID(Number(request.data?.agentAccountID)) === agentAccountID &&
+            !!request.successData?.some((update) => isRecord(update.value) && 'prompt' in update.value),
+    );
+}
+
 function updateAgentPrompt(accountID: number, prompt: string, originalPrompt: string) {
     // The caller may still hold an optimistic accountID that was already reconciled while its screen was open.
     const agentAccountID = resolveAgentAccountID(accountID);
     const onyxKey = `${ONYXKEYS.COLLECTION.AGENT}${agentAccountID}`;
     const {canWriteAgentRecord} = getAllowedOptimisticAgentWrites(accountID, agentAccountID);
+    const isNewAgentSave = !canWriteAgentRecord || agentAccountID !== accountID || hasAgentFallback(agentAccountID) || hasQueuedPromptWrite(agentAccountID);
     const optimisticData: AnyOnyxUpdate[] = canWriteAgentRecord
         ? [
               {
@@ -327,8 +351,11 @@ function updateAgentPrompt(accountID: number, prompt: string, originalPrompt: st
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: onyxKey,
-            // Without the optimistic write, the new prompt is saved by the tab that runs the request, which holds the record.
-            value: {...(canWriteAgentRecord ? {} : {prompt}), pendingAction: null, promptErrors: null},
+            // A new agent's saves carry their prompt: one may have skipped its optimistic write, or be moved to the real
+            // agent's key once its accountID is known, and a later save must carry its own to win, as on the server, while
+            // such a save is still queued. Other saves keep their optimistic prompt, so queued saves don't briefly show an
+            // older one.
+            value: {...(isNewAgentSave ? {prompt} : {}), pendingAction: null, promptErrors: null},
         },
     ];
 
@@ -336,9 +363,10 @@ function updateAgentPrompt(accountID: number, prompt: string, originalPrompt: st
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: onyxKey,
-            // Only an optimistic change of the prompt needs reverting.
+            // Only an optimistic change of an existing agent's prompt is reverted. In the cases above, the original prompt
+            // this screen saw can be older than a queued save that has since succeeded, so the server's value is left to win.
             value: {
-                ...(canWriteAgentRecord ? {prompt: originalPrompt} : {}),
+                ...(canWriteAgentRecord && !isNewAgentSave ? {prompt: originalPrompt} : {}),
                 pendingAction: null,
                 promptErrors: getMicroSecondOnyxErrorWithTranslationKey('agentsPage.error.updatePrompt'),
             },
@@ -375,21 +403,27 @@ function updateAgentAvatar(
             }),
         );
     }
+    const shouldUpdateFallback = canWriteAgentRecord && hasAgentFallback(agentAccountID);
     if (canWriteAgentRecord) {
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.AGENT}${agentAccountID}`,
-            value: {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE, errors: null, avatarErrors: null},
+            value: {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE, errors: null, avatarErrors: null, ...(shouldUpdateFallback ? {fallbackAvatar: update.uri} : {})},
         });
     }
 
     const successData: AnyOnyxUpdate[] = [
-        buildPersonalDetailsUpdate({
-            [agentAccountID]: {
-                pendingFields: {avatar: null},
-                errorFields: {avatar: null},
-            },
-        }),
+        // Only an optimistic change of the avatar has pending fields to clear in the personal details list.
+        ...(canWritePersonalDetails
+            ? [
+                  buildPersonalDetailsUpdate({
+                      [agentAccountID]: {
+                          pendingFields: {avatar: null},
+                          errorFields: {avatar: null},
+                      },
+                  }),
+              ]
+            : []),
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.AGENT}${agentAccountID}`,
@@ -414,6 +448,7 @@ function updateAgentAvatar(
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.AGENT}${agentAccountID}`,
+            // The fallback is not reverted, for the same reason as in updateAgentName.
             value: {pendingAction: null, avatarErrors: getMicroSecondOnyxErrorWithTranslationKey('agentsPage.error.updateAvatar')},
         },
     ];
@@ -458,7 +493,9 @@ function deleteAgent(accountID: number, agentLogin?: string, allPolicies?: OnyxC
                 errors: getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
             },
         },
-        buildPersonalDetailsUpdate({[agentAccountID]: {accountID: agentAccountID}}),
+        // Only an optimistic placeholder needs reverting; restoring details this tab never changed could save a personal
+        // details list without the agent's login from a tab that doesn't hold it.
+        ...(canWritePersonalDetails ? [buildPersonalDetailsUpdate({[agentAccountID]: {accountID: agentAccountID}})] : []),
     ];
 
     // The real accountID is known before the queue drains, but the optimistic agent record stays until

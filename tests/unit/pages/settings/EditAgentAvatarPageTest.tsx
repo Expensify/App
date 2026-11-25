@@ -89,7 +89,9 @@ it.each([false, true])('saves a preset to the resolved agent when mapping exists
     const optimisticAccountID = 7345678901234567;
     const realAccountID = 14001;
     await Onyx.multiSet({
-        [ONYXKEYS.PERSONAL_DETAILS_LIST]: {[realAccountID]: {accountID: realAccountID, avatar: 'https://example.com/current.png'}},
+        // This tab holds the real agent's record and server details, so it can save
+        [ONYXKEYS.PERSONAL_DETAILS_LIST]: {[realAccountID]: {accountID: realAccountID, avatar: 'https://example.com/current.png', login: 'agent+14001@expensify.ai'}},
+        [`${ONYXKEYS.COLLECTION.AGENT}${realAccountID}` as const]: {prompt: 'Saved prompt'},
         [ONYXKEYS.OPTIMISTIC_AGENT_ACCOUNT_ID_MAPPING]: mappingExistsOnMount ? {[optimisticAccountID]: realAccountID} : {},
     });
     const mockSetParams = jest.fn();
@@ -124,4 +126,34 @@ it.each([false, true])('saves a preset to the resolved agent when mapping exists
     jest.mocked(Navigation.goBack).mockClear();
     act(() => mockBack());
     expect(Navigation.goBack).toHaveBeenCalledWith(mockBackPath);
+});
+
+it('does not save an avatar while the new agent is still settling in this tab', async () => {
+    // Given a second tab that knows the new agent's real accountID and holds its server details, but not its record yet,
+    // so a save could write into a record this tab doesn't hold
+    const optimisticAccountID = 7345678901234599;
+    const realAccountID = 14002;
+    await Onyx.multiSet({
+        [`${ONYXKEYS.COLLECTION.AGENT}${optimisticAccountID}` as const]: {prompt: 'Pending prompt', fallbackDisplayName: 'Pending name'},
+        [ONYXKEYS.PERSONAL_DETAILS_LIST]: {[realAccountID]: {accountID: realAccountID, avatar: 'https://example.com/current.png', login: 'agent+14002@expensify.ai'}},
+        [ONYXKEYS.OPTIMISTIC_AGENT_ACCOUNT_ID_MAPPING]: {[optimisticAccountID]: realAccountID},
+    });
+    render(
+        <DynamicEditAgentAvatarPage
+            route={createMock<AvatarProps['route']>({params: {accountID: optimisticAccountID}})}
+            navigation={createMock<AvatarProps['navigation']>({setParams: jest.fn()})}
+        />,
+    );
+    await act(async () => waitForBatchedUpdates());
+
+    // When the user picks a preset and saves
+    const presetButton = screen.getAllByLabelText('avatarPage.selectAvatar').at(0);
+    if (!presetButton) {
+        throw new Error('Expected at least one agent avatar preset button');
+    }
+    fireEvent.press(presetButton);
+    act(() => mockSave());
+
+    // Then nothing is saved until this tab holds the real agent's record
+    expect(updateAgentAvatar).not.toHaveBeenCalled();
 });

@@ -253,4 +253,40 @@ describe('AgentsPage', () => {
 
         expect(JSON.stringify(toJSON())).toContain('agentsPage.emptyAgents.title');
     });
+
+    it.each([
+        {order: 'details before the real record, with the mapping', hasMapping: true, shownName: 'Created agent'},
+        {order: 'details before the mapping and the real record', hasMapping: false, shownName: 'Pending agent'},
+    ])('keeps a new agent listed once when another tab sends its $order', ({hasMapping, shownName}) => {
+        // Given a second tab that received the write replacing the new agent's temporary details with the real ones, but not
+        // the real agent's record yet, so the temporary record is the only one this tab holds
+        const temporaryAccountID = 7392018465730291;
+        const realAccountID = 12348;
+        mockUseOnyx.mockImplementation((key) => {
+            if (key === ONYXKEYS.COLLECTION.AGENT) {
+                return [
+                    {
+                        [`${ONYXKEYS.COLLECTION.AGENT}${temporaryAccountID}`]: {
+                            prompt: 'Pending prompt',
+                            fallbackDisplayName: 'Pending agent',
+                            pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                        },
+                    },
+                    {status: 'loaded'},
+                ];
+            }
+            if (key === ONYXKEYS.OPTIMISTIC_AGENT_ACCOUNT_ID_MAPPING) {
+                return [hasMapping ? {[temporaryAccountID]: realAccountID} : undefined, {status: 'loaded'}];
+            }
+            return [undefined, {status: 'loaded'}];
+        });
+        mockUsePersonalDetails.mockReturnValue({[realAccountID]: {accountID: realAccountID, displayName: 'Created agent', login: 'agent+12348@expensify.ai'}});
+
+        // When the Agents page renders
+        render(<AgentsPage />);
+
+        // Then the agent is listed once, with the real name once the mapping links them, or its saved name before that
+        expect(screen.getAllByText(shownName)).toHaveLength(1);
+        expect(screen.queryByText('agentsPage.emptyAgents.title')).not.toBeOnTheScreen();
+    });
 });

@@ -1,4 +1,7 @@
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {Agent} from '@src/types/onyx';
+
+import type {OnyxCollection} from 'react-native-onyx';
 
 /**
  * In-memory record of the {optimisticAccountID: realAccountID} agent mappings received this session. Middleware
@@ -9,6 +12,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
  * replaceOptimisticAgentWithActualAgent without pulling navigation into the startup path.
  */
 const resolvedAgentAccountIDs = new Map<number, number>();
+const realAgentAccountIDs = new Set<number>();
 
 function isValidAgentAccountID(accountID: unknown): accountID is number {
     return typeof accountID === 'number' && Number.isSafeInteger(accountID) && accountID > 0;
@@ -16,6 +20,11 @@ function isValidAgentAccountID(accountID: unknown): accountID is number {
 
 function registerAgentAccountIDMapping(optimisticAccountID: number, realAccountID: number) {
     resolvedAgentAccountIDs.set(optimisticAccountID, realAccountID);
+    realAgentAccountIDs.add(realAccountID);
+}
+
+function isMappedRealAgentAccountID(accountID: number): boolean {
+    return realAgentAccountIDs.has(accountID);
 }
 
 function resolveAgentAccountID(accountID: number): number {
@@ -25,14 +34,19 @@ function resolveAgentAccountID(accountID: number): number {
 // The agent records this tab's cache holds, kept up to date by replaceOptimisticAgentWithActualAgent, which already reads
 // the agents collection. Agent actions check it before an optimistic write to a real agent's record: another tab's writes
 // reach this tab key by key, and a merge into a record this tab does not hold yet would save a record without its prompt.
-let heldAgentRecordKeys = new Set<string>();
+let heldAgentRecords: OnyxCollection<Agent>;
 
-function setHeldAgentRecords(agents: Record<string, unknown> | undefined) {
-    heldAgentRecordKeys = new Set(Object.entries(agents ?? {}).flatMap(([key, agent]) => (agent ? [key] : [])));
+function setHeldAgentRecords(agents: OnyxCollection<Agent>) {
+    heldAgentRecords = agents;
 }
 
 function hasAgentRecord(accountID: number): boolean {
-    return heldAgentRecordKeys.has(`${ONYXKEYS.COLLECTION.AGENT}${accountID}`);
+    return !!heldAgentRecords?.[`${ONYXKEYS.COLLECTION.AGENT}${accountID}`];
 }
 
-export {hasAgentRecord, isValidAgentAccountID, registerAgentAccountIDMapping, resolveAgentAccountID, setHeldAgentRecords};
+// A new agent's temporary record carries the name and avatar its screens fall back to; a save keeps them current.
+function hasAgentFallback(accountID: number): boolean {
+    return heldAgentRecords?.[`${ONYXKEYS.COLLECTION.AGENT}${accountID}`]?.fallbackDisplayName !== undefined;
+}
+
+export {hasAgentFallback, hasAgentRecord, isMappedRealAgentAccountID, isValidAgentAccountID, registerAgentAccountIDMapping, resolveAgentAccountID, setHeldAgentRecords};

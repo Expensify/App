@@ -61,6 +61,7 @@ jest.mock('@libs/Navigation/Navigation', () => {
 // deleteAgent only builds its Onyx data and hands it to write(), so the request itself is never sent. A factory keeps the
 // real API module, and the native modules its logging needs, out of this test.
 jest.mock('@libs/API', () => ({write: jest.fn(), read: jest.fn()}));
+
 const mockWrite = jest.mocked(write);
 
 const mockSubscribeToPersonalDetails = jest.fn();
@@ -210,6 +211,36 @@ describe('replaceOptimisticAgentWithActualAgent', () => {
             [ownerAccountID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
             [realAccountID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN},
         });
+    });
+
+    it("leaves a DM this tab still holds from before CreateAgent's response to that response", async () => {
+        // Given a tab whose copy of the DM is still pending creation, i.e. older than CreateAgent's response, which swaps the
+        // participants itself; writing that copy would save its stale fields over the response's in every tab
+        const optimisticAccountID = 5738294610573830;
+        const realAccountID = 8321047592837466;
+        const ownerAccountID = 31415926;
+        const reportID = '4823958472039486';
+        const participants = {
+            [ownerAccountID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+            [optimisticAccountID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN},
+        };
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {
+            reportID,
+            type: CONST.REPORT.TYPE.CHAT,
+            participants,
+            pendingFields: {createChat: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD},
+        });
+        await Onyx.set(`${ONYXKEYS.COLLECTION.AGENT}${optimisticAccountID}`, {prompt: 'Book my flights'});
+        await addRealAgents(realAccountID);
+        await waitForBatchedUpdates();
+
+        // When the optimistic agent is replaced with the real one in that tab
+        replaceOptimisticAgentWithActualAgent(optimisticAccountID, realAccountID);
+        await waitForBatchedUpdates();
+
+        // Then it doesn't write the report, while it still removes the temporary agent record
+        expect((await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`))?.participants).toStrictEqual(participants);
+        expect(await getOnyxValue(`${ONYXKEYS.COLLECTION.AGENT}${optimisticAccountID}`)).toBeUndefined();
     });
 
     it('leaves a report the backend already swapped untouched', async () => {
@@ -841,10 +872,10 @@ describe('replaceOptimisticAgentWithActualAgent', () => {
     it.each([
         {deletionState: 'in flight', optimisticAccountID: 2864019375286403, realAccountID: 7392018465739203, hasFailed: false},
         {deletionState: 'failed', optimisticAccountID: 2864019375286404, realAccountID: 7392018465739204, hasFailed: true},
-    ])('writes nothing while only deleteAgent placeholders stand for the real agent and the deletion is $deletionState', async ({optimisticAccountID, realAccountID, hasFailed}) => {
+    ])('writes nothing for a deletion made before this tab held the real agent when the deletion is $deletionState', async ({optimisticAccountID, realAccountID, hasFailed}) => {
         // Given a tab whose cache lags behind another tab's: it deleted the agent before the real agent's details from
-        // CreateAgent's response reached it, so deleteAgent wrote nothing optimistic for the real agent. The failed case
-        // checks that the placeholder deleteAgent's failure data writes, which has no login, does not open the gate.
+        // CreateAgent's response reached it, so deleteAgent wrote nothing for the real agent's details, optimistically or on
+        // failure, because a write of that list from this tab could drop the real agent's login.
         await addOptimisticAgent(optimisticAccountID);
         registerAgentAccountIDMapping(optimisticAccountID, realAccountID);
         deleteAgent(optimisticAccountID, undefined, undefined, false);
@@ -855,7 +886,7 @@ describe('replaceOptimisticAgentWithActualAgent', () => {
         }
         await waitForBatchedUpdates();
         const personalDetailsBefore = await getOnyxValue(ONYXKEYS.PERSONAL_DETAILS_LIST);
-        expect(personalDetailsBefore?.[realAccountID]).toStrictEqual(hasFailed ? {accountID: realAccountID} : undefined);
+        expect(personalDetailsBefore?.[realAccountID]).toBeUndefined();
         const mergeSpy = jest.spyOn(Onyx, 'merge');
         const updateSpy = jest.spyOn(Onyx, 'update');
 

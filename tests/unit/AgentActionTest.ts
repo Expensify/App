@@ -9,7 +9,7 @@ import {clearAgentAvatarUpdateError, clearAgentUpdateError, createAgent, createC
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy} from '@src/types/onyx';
-import type {AnyOnyxUpdate} from '@src/types/onyx/Request';
+import type {AnyOnyxUpdate, AnyRequest} from '@src/types/onyx/Request';
 
 import type HybridAppModuleType from '@expensify/react-native-hybrid-app/src/types';
 import type {OnyxCollection, OnyxKey} from 'react-native-onyx';
@@ -20,6 +20,13 @@ import createRandomPolicy from '../utils/collections/policies';
 import createMock from '../utils/createMock';
 
 jest.mock('@libs/API');
+
+// The queued requests decide whether an instructions save has to carry its prompt to win over an earlier queued one.
+const mockGetAllPersistedRequests = jest.fn<AnyRequest[], []>(() => []);
+jest.mock('@userActions/PersistedRequests', () => ({
+    ...jest.requireActual<Record<string, unknown>>('@userActions/PersistedRequests'),
+    getAllIncludingOngoing: () => mockGetAllPersistedRequests(),
+}));
 
 // Whether this tab holds an agent's personal details decides whether a save may write the personal details list.
 const mockGetPersonalDetail = jest.fn<{accountID: number; login?: string} | undefined, [number | undefined]>(() => undefined);
@@ -44,8 +51,8 @@ const mockUpdate = jest.spyOn(Onyx, 'update');
 type CapturedUpdate = Omit<AnyOnyxUpdate<OnyxKey>, 'value'> & {value?: unknown};
 type WriteOptions = {optimisticData: CapturedUpdate[]; successData: CapturedUpdate[]; failureData: CapturedUpdate[]};
 
-function getWriteOptions(): WriteOptions {
-    const options = mockWrite.mock.calls.at(0)?.at(2);
+function getWriteOptions(callIndex = 0): WriteOptions {
+    const options = mockWrite.mock.calls.at(callIndex)?.at(2);
     if (!options || typeof options !== 'object' || !('optimisticData' in options)) {
         throw new Error('write was not called with optimistic options');
     }
@@ -165,6 +172,7 @@ describe('createAgent', () => {
         expect(promptUpdate?.value).toEqual({
             prompt: 'My prompt',
             pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+            fallbackDisplayName: 'Bot',
         });
     });
 
@@ -359,6 +367,18 @@ describe('createAgent', () => {
         expect(failureData.some((u) => u.key === ONYXKEYS.FORMS.ADD_AGENT_FORM)).toBe(false);
     });
 
+    it('stores the name and avatar on the temporary agent record for screens to fall back to', () => {
+        // Given a new agent, whose temporary personal details can be removed in a tab before it learns the real accountID
+        // When it is created with a name and a preset avatar
+        createAgent('Bot', 'My prompt', OWNER_ACCOUNT_ID, OWNER_LOGIN, 'bot-avatar--blue');
+
+        // Then its temporary record carries both, so screens and lists never show it blank
+        const {optimisticData} = getWriteOptions();
+        const temporaryAgent = getUpdateRecord(optimisticData, `${ONYXKEYS.COLLECTION.AGENT}${getOptimisticAccountID()}`);
+        expect(temporaryAgent.fallbackDisplayName).toBe('Bot');
+        expect(typeof temporaryAgent.fallbackAvatar).toBe('string');
+    });
+
     it('success data removes the temporary personal detail and leaves the temporary agent record', () => {
         // Given a new agent whose temporary personal detail must leave the personal details list without a separate
         // cleanup write, because every write of that list saves it whole and could drop another tab's newer entries
@@ -509,6 +529,35 @@ describe('updateAgentName', () => {
         expect(findUpdate(optimisticData, ONYXKEYS.PERSONAL_DETAILS_LIST)).toBeUndefined();
     });
 
+    it("checks what this tab holds also when the caller already passes a new agent's real accountID", () => {
+        // Given a screen that moved to a new agent's real accountID while this tab doesn't hold its record or details yet
+        const optimisticAccountID = 6029384715602944;
+        const realAccountID = 8203947561820400;
+        registerAgentAccountIDMapping(optimisticAccountID, realAccountID);
+
+        // When the name is saved with the real accountID
+        updateAgentName(realAccountID, 'New Name', 'Old Name');
+
+        // Then nothing is written optimistically into keys this tab doesn't hold
+        const {optimisticData} = getWriteOptions();
+        expect(optimisticData).toHaveLength(0);
+    });
+
+    it("keeps a new agent's fallback name current when its temporary record is renamed", () => {
+        // Given a new agent whose temporary record, which carries a fallback name, is held in this tab
+        const optimisticAccountID = 6029384715602945;
+        setHeldAgentRecords({[`${ONYXKEYS.COLLECTION.AGENT}${optimisticAccountID}`]: {prompt: 'Book my flights', fallbackDisplayName: 'Old Name'}});
+
+        // When it is renamed before the real accountID is known
+        updateAgentName(optimisticAccountID, 'New Name', 'Old Name');
+
+        // Then the fallback name follows the new name. The failure data doesn't touch it: a queued request's updates are
+        // moved to the real agent's key once its accountID is known, and the fallback only belongs on the temporary record.
+        const {optimisticData, failureData} = getWriteOptions();
+        expect(getUpdateRecord(optimisticData, `${ONYXKEYS.COLLECTION.AGENT}${optimisticAccountID}`).fallbackDisplayName).toBe('New Name');
+        expect(getUpdateRecord(failureData, `${ONYXKEYS.COLLECTION.AGENT}${optimisticAccountID}`).fallbackDisplayName).toBeUndefined();
+    });
+
     it('no data set touches EDIT_AGENT_NAME_FORM', () => {
         updateAgentName(TEST_ACCOUNT_ID, 'New Name', 'Old Name');
 
@@ -523,6 +572,92 @@ describe('updateAgentName', () => {
 describe('updateAgentPrompt', () => {
     beforeEach(() => {
         jest.clearAllMocks();
+    });
+
+    afterEach(() => {
+        // A test may mark a real agent's record as held in this tab; the next one starts without it.
+        setHeldAgentRecords({});
+    });
+
+    it("keeps an existing agent's queued prompt saves from briefly showing an older prompt", () => {
+        // Given an agent that is not new, saved twice while both requests are queued
+        updateAgentPrompt(TEST_ACCOUNT_ID, 'First prompt', 'Created prompt');
+        updateAgentPrompt(TEST_ACCOUNT_ID, 'Second prompt', 'First prompt');
+
+        // When the first save succeeds while the second one is shown optimistically
+        const first = getWriteOptions(0);
+
+        // Then its success data leaves the shown prompt alone
+        expect(getUpdateRecord(first.successData, `${ONYXKEYS.COLLECTION.AGENT}${TEST_ACCOUNT_ID}`).prompt).toBeUndefined();
+    });
+
+    it('treats an agent created in an earlier session like any existing agent once this tab holds it', () => {
+        // Given an agent whose mapping was stored when it was created long ago, and whose record this tab holds
+        const optimisticAccountID = 6029384715602946;
+        const realAccountID = 8203947561820401;
+        const realAgentKey = `${ONYXKEYS.COLLECTION.AGENT}${realAccountID}` as const;
+        registerAgentAccountIDMapping(optimisticAccountID, realAccountID);
+        setHeldAgentRecords({[realAgentKey]: {prompt: 'Created prompt'}});
+
+        // When its instructions are saved
+        updateAgentPrompt(realAccountID, 'New prompt', 'Created prompt');
+
+        // Then the save is shown optimistically, its success data leaves the prompt alone, and a failure reverts it
+        const {optimisticData, successData, failureData} = getWriteOptions();
+        expect(getUpdateRecord(optimisticData, realAgentKey).prompt).toBe('New prompt');
+        expect(getUpdateRecord(successData, realAgentKey).prompt).toBeUndefined();
+        expect(getUpdateRecord(failureData, realAgentKey).prompt).toBe('Created prompt');
+    });
+
+    it("carries the prompt of a save made on the real accountID while a new agent's earlier save is still queued", () => {
+        // Given a new agent saved once on its temporary accountID, whose success data carries that prompt and is still
+        // queued, and a screen that has since moved to the real accountID and holds the real record
+        const optimisticAccountID = 6029384715602947;
+        const realAccountID = 8203947561820402;
+        const realAgentKey = `${ONYXKEYS.COLLECTION.AGENT}${realAccountID}` as const;
+        registerAgentAccountIDMapping(optimisticAccountID, realAccountID);
+        setHeldAgentRecords({[realAgentKey]: {prompt: 'Created prompt'}});
+        mockGetAllPersistedRequests.mockReturnValueOnce([
+            {
+                command: WRITE_COMMANDS.UPDATE_AGENT_PROMPT,
+                data: {agentAccountID: optimisticAccountID},
+                successData: [{onyxMethod: Onyx.METHOD.MERGE, key: `${ONYXKEYS.COLLECTION.AGENT}${optimisticAccountID}`, value: {prompt: 'First prompt', pendingAction: null}}],
+            },
+        ]);
+
+        // When the instructions are saved again on the real accountID
+        updateAgentPrompt(realAccountID, 'Second prompt', 'Created prompt');
+
+        // Then this save carries its prompt too, so it is applied after the queued one and wins, and a failure doesn't
+        // revert to the older prompt this screen saw
+        const {successData, failureData} = getWriteOptions();
+        expect(getUpdateRecord(successData, realAgentKey).prompt).toBe('Second prompt');
+        expect(getUpdateRecord(failureData, realAgentKey).prompt).toBeUndefined();
+    });
+
+    it('ends on the newest prompt when an earlier save made before the record arrived is still queued', () => {
+        // Given a tab that saves the instructions once before it holds the real agent's record and once after it, while
+        // both requests are still queued. The queue runs them in order and applies their success data in that order.
+        const optimisticAccountID = 6029384715602943;
+        const realAccountID = 8203947561820399;
+        const realAgentKey = `${ONYXKEYS.COLLECTION.AGENT}${realAccountID}` as const;
+        registerAgentAccountIDMapping(optimisticAccountID, realAccountID);
+        updateAgentPrompt(optimisticAccountID, 'First prompt', 'Created prompt');
+        setHeldAgentRecords({[realAgentKey]: {prompt: 'Created prompt'}});
+        updateAgentPrompt(optimisticAccountID, 'Second prompt', 'First prompt');
+
+        // When the second save is shown optimistically and both requests then succeed, in order
+        const first = getWriteOptions(0);
+        const second = getWriteOptions(1);
+        let record: Record<string, unknown> = {prompt: 'Created prompt'};
+        for (const update of [...second.optimisticData, ...first.successData, ...second.successData]) {
+            if (update.key === realAgentKey && isRecord(update.value)) {
+                record = {...record, ...update.value};
+            }
+        }
+
+        // Then the record ends on the newest prompt, as the server does
+        expect(record.prompt).toBe('Second prompt');
     });
 
     it("saves the new prompt through the success data while this tab does not hold the real agent's record", () => {
@@ -596,6 +731,25 @@ describe('updateAgentPrompt', () => {
 describe('deleteAgent', () => {
     beforeEach(() => {
         jest.clearAllMocks();
+    });
+
+    it("does not restore the real agent's details on failure when it did not change them", () => {
+        // Given a tab that resolves the real accountID but does not hold the real agent's details yet, so the deletion
+        // writes no placeholder for them. Restoring them on failure would merge into a list the tab applying the failure may
+        // not hold the real agent in, and save it without the agent's login.
+        const optimisticAccountID = 4718293056471830;
+        const realAccountID = 4031827465903183;
+        registerAgentAccountIDMapping(optimisticAccountID, realAccountID);
+
+        // When the agent is deleted from a screen that still shows the temporary agent
+        deleteAgent(optimisticAccountID, undefined, undefined, false);
+
+        // Then neither the optimistic data nor the failure data writes the real agent's personal detail
+        const {optimisticData, failureData} = getWriteOptions();
+        const writesRealDetail = (updates: CapturedUpdate[]) =>
+            updates.some((update) => update.key === ONYXKEYS.PERSONAL_DETAILS_LIST && isRecord(update.value) && String(realAccountID) in update.value);
+        expect(writesRealDetail(optimisticData)).toBe(false);
+        expect(writesRealDetail(failureData)).toBe(false);
     });
 
     it('calls write with DELETE_AGENT command and correct params', () => {
@@ -873,10 +1027,14 @@ describe('updateAgentAvatar (bot avatar)', () => {
         // When an avatar is picked on a screen that still shows the temporary agent
         updateAgentAvatar(optimisticAccountID, {customExpensifyAvatarID: BOT_AVATAR_ID, uri: BOT_AVATAR_URI}, currentAvatar);
 
-        // Then the request still updates the real agent, and the personal details list is not written optimistically
+        // Then the request still updates the real agent, and neither the optimistic, success nor failure data write the
+        // personal details list: there is nothing of this tab's to clear or revert, and the server's response brings the
+        // new avatar
         expect(mockWrite).toHaveBeenCalledWith(WRITE_COMMANDS.UPDATE_AGENT_AVATAR, {agentAccountID: realAccountID, customExpensifyAvatarID: BOT_AVATAR_ID}, expect.any(Object));
-        const {optimisticData} = getWriteOptions();
+        const {optimisticData, successData, failureData} = getWriteOptions();
         expect(findUpdate(optimisticData, ONYXKEYS.PERSONAL_DETAILS_LIST)).toBeUndefined();
+        expect(findUpdate(successData, ONYXKEYS.PERSONAL_DETAILS_LIST)).toBeUndefined();
+        expect(findUpdate(failureData, ONYXKEYS.PERSONAL_DETAILS_LIST)).toBeUndefined();
     });
 
     it('optimistic data sets avatar URI for bot avatar', () => {

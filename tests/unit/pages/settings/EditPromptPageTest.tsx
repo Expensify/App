@@ -228,7 +228,9 @@ describe('EditPromptPage', () => {
         const backPath = createDynamicRoute(DYNAMIC_ROUTES.AGENT_EDIT.getRoute(realAccountID), ROUTES.SETTINGS_AGENTS);
         await Onyx.clear();
         await Onyx.multiSet({
+            // This tab holds the real agent's record and server details, so it can save
             [`${ONYXKEYS.COLLECTION.AGENT}${realAccountID}` as const]: {prompt: 'Saved prompt'},
+            [ONYXKEYS.PERSONAL_DETAILS_LIST]: {[realAccountID]: {accountID: realAccountID, displayName: 'Saved name', login: 'agent+13001@expensify.ai'}},
             [ONYXKEYS.OPTIMISTIC_AGENT_ACCOUNT_ID_MAPPING]: mappingExistsOnMount ? {[optimisticAccountID]: realAccountID} : {},
         });
         mockUseOnyx.mockImplementation(jest.requireActual<{default: typeof useOnyx}>('@hooks/useOnyx').default);
@@ -270,5 +272,32 @@ describe('EditPromptPage', () => {
 
         // Then the prompt input uses the agent prompt limit, so a prompt longer than a chat comment is not cut off
         expect(mockPromptProps.mock.lastCall?.[0].maxLength).toBe(CONST.AGENT_PROMPT_MAX_LENGTH);
+    });
+
+    it('does not save while the new agent is still settling in this tab', async () => {
+        const optimisticAccountID = 7234567890123498;
+        const realAccountID = 15001;
+        await Onyx.clear();
+        // Given a second tab that knows the new agent's real accountID and holds its server details, but not its record yet,
+        // so a save could write into a record this tab doesn't hold
+        await Onyx.multiSet({
+            [`${ONYXKEYS.COLLECTION.AGENT}${optimisticAccountID}` as const]: {prompt: 'Pending prompt', fallbackDisplayName: 'Pending name'},
+            [ONYXKEYS.PERSONAL_DETAILS_LIST]: {[realAccountID]: {accountID: realAccountID, displayName: 'Created name', login: 'agent+15001@expensify.ai'}},
+            [ONYXKEYS.OPTIMISTIC_AGENT_ACCOUNT_ID_MAPPING]: {[optimisticAccountID]: realAccountID},
+        });
+        mockUseOnyx.mockImplementation(jest.requireActual<{default: typeof useOnyx}>('@hooks/useOnyx').default);
+        render(
+            <EditPromptPage
+                route={createMock<EditPromptPageRoute>({params: {accountID: optimisticAccountID}})}
+                navigation={mockNavigation}
+            />,
+        );
+        await act(async () => waitForBatchedUpdates());
+
+        // When the user saves new instructions
+        act(() => mockSubmit({prompt: 'Updated prompt'}));
+
+        // Then nothing is saved until this tab holds the real agent's record
+        expect(updateAgentPrompt).not.toHaveBeenCalled();
     });
 });

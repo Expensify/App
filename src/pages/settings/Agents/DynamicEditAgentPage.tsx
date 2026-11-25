@@ -47,7 +47,7 @@ function DynamicEditAgentPage({route, navigation}: DynamicEditAgentPageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const icons = useMemoizedLazyExpensifyIcons(['Trashcan', 'ChatBubble', 'MagnifyingGlass', 'Users']);
-    const [accountID, accountIDMetadata, personalDetailsAccountID] = useAgentAccountID(route.params.accountID, navigation);
+    const {accountID, metadata: accountIDMetadata, personalDetailsAccountID, isSettling} = useAgentAccountID(route.params.accountID, navigation);
     const [agent, agentMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.AGENT}${accountID}`);
     const [personalDetails, personalDetailsMetadata] = usePersonalDetail(personalDetailsAccountID);
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
@@ -85,9 +85,11 @@ function DynamicEditAgentPage({route, navigation}: DynamicEditAgentPageProps) {
         deleteAgent(accountID, agentLogin, allPolicies, true, backPath);
     };
     const isPendingAddOrDelete = agent?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD || agent?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
-    // The real agent's details can show while the screen still uses the temporary agent's ID, which chat and search
-    // cannot use yet.
-    const areActionsDisabled = isPendingAddOrDelete || accountID <= 0 || !agentLogin || personalDetailsAccountID !== accountID;
+    // While the agent is settling in this tab, the screen may still use the temporary agent's ID, which chat and search
+    // cannot use, and a save or delete would write from an incomplete copy.
+    const areActionsDisabled = isPendingAddOrDelete || accountID <= 0 || !agentLogin || isSettling;
+    // A new agent's temporary record covers the time its personal details are missing in this tab.
+    const agentAvatarSource = personalDetails?.avatar ?? agent?.fallbackAvatar;
     const agentPrompt = Str.htmlDecode(agent?.prompt?.trim() ?? '');
     const handleChatPress = () => {
         chatWithAgent(accountID);
@@ -108,9 +110,9 @@ function DynamicEditAgentPage({route, navigation}: DynamicEditAgentPageProps) {
         return <NotFoundPage onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_AGENTS)} />;
     }
 
-    const agentAvatar = personalDetails?.avatar ? (
+    const agentAvatar = agentAvatarSource ? (
         <UserAvatar
-            source={personalDetails.avatar}
+            source={agentAvatarSource}
             size={CONST.AVATAR_SIZE.XXXX_LARGE}
             accountID={accountID}
         />
@@ -152,7 +154,7 @@ function DynamicEditAgentPage({route, navigation}: DynamicEditAgentPageProps) {
                         sentryLabel={CONST.SENTRY_LABEL.EDIT_AGENT_PAGE.NAME}
                         name={translate('editAgentPage.agentName')}
                         onPress={handleEditNamePress}
-                        value={personalDetails?.displayName}
+                        value={personalDetails?.displayName ?? agent?.fallbackDisplayName}
                     />
                 </OfflineWithFeedback>
                 <OfflineWithFeedback
@@ -194,6 +196,7 @@ function DynamicEditAgentPage({route, navigation}: DynamicEditAgentPageProps) {
                     title={translate('editAgentPage.deleteAgent')}
                     icon={icons.Trashcan}
                     onPress={handleDeletePress}
+                    isDisabled={isSettling}
                 />
             </ScrollView>
         </ScreenWrapper>

@@ -49,7 +49,7 @@ function DynamicEditPromptPage({route, navigation}: DynamicEditPromptPageProps) 
     const shouldUseScrollableLayout = shouldAutoGrowPromptInput || isInLandscapeMode;
     const shouldShrinkPromptInput = isInLandscapeMode && isKeyboardActive;
     const landscapePromptHeight = shouldShrinkPromptInput ? PROMPT_MAX_HEIGHT_ON_KEYBOARD_OPEN_LANDSCAPE_MODE : styles.h42.height;
-    const [accountID] = useAgentAccountID(route.params.accountID, navigation);
+    const {accountID, isSettling} = useAgentAccountID(route.params.accountID, navigation);
     const [agentPrompt] = useOnyx(`${ONYXKEYS.COLLECTION.AGENT}${accountID}`);
     const formRef = useRef<FormRef>(null);
     const promptTopOffsetRef = useRef(0);
@@ -69,6 +69,10 @@ function DynamicEditPromptPage({route, navigation}: DynamicEditPromptPageProps) 
     };
 
     const handleSubmit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.EDIT_AGENT_PROMPT_FORM>) => {
+        // A save while the agent is settling would write from an incomplete copy of its data.
+        if (isSettling) {
+            return;
+        }
         updateAgentPrompt(accountID, values[INPUT_IDS.PROMPT].trim(), agentPrompt?.prompt ?? '');
         Navigation.goBack(backPath);
     };
@@ -115,6 +119,7 @@ function DynamicEditPromptPage({route, navigation}: DynamicEditPromptPageProps) 
                 shouldUseScrollView={shouldUseScrollableLayout}
                 submitFlexEnabled={false}
                 enabledWhenOffline
+                isSubmitDisabled={isSettling}
                 shouldHideFixErrorsAlert
                 shouldValidateOnChange
                 shouldValidateOnBlur

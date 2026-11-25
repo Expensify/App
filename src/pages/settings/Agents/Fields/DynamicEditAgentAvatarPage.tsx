@@ -57,12 +57,18 @@ type EditAgentAvatarContentProps = {
     accountID: number;
     /** The accountID whose personal details (current avatar) to show, when it differs from accountID */
     personalDetailsAccountID?: number;
+
+    /** The avatar to show while the agent's personal details are missing in this tab */
+    fallbackAvatar?: string;
+
+    /** The agent's data is still reaching this tab; saving would write from an incomplete copy */
+    isSettling?: boolean;
     fallbackRoute?: Route;
     onSave?: (params: OnSaveParams) => void;
     initialPresetID?: string;
 };
 
-function EditAgentAvatarContent({accountID, personalDetailsAccountID = accountID, fallbackRoute, onSave, initialPresetID}: EditAgentAvatarContentProps) {
+function EditAgentAvatarContent({accountID, personalDetailsAccountID = accountID, fallbackAvatar, isSettling = false, fallbackRoute, onSave, initialPresetID}: EditAgentAvatarContentProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -83,7 +89,8 @@ function EditAgentAvatarContent({accountID, personalDetailsAccountID = accountID
         getHasUnsavedChanges: () => isDirty,
     });
 
-    let previewSource: AvatarSource = personalDetails?.avatar ?? '';
+    const currentAvatar = personalDetails?.avatar ?? fallbackAvatar;
+    let previewSource: AvatarSource = currentAvatar ?? '';
     if (selectedBotAvatar) {
         previewSource = AGENT_AVATARS.getLocal(selectedBotAvatar) ?? '';
     } else if (imageData.uri) {
@@ -118,7 +125,8 @@ function EditAgentAvatarContent({accountID, personalDetailsAccountID = accountID
     };
 
     const handleSave = () => {
-        if (!isDirty) {
+        // A save while the agent is settling would write from an incomplete copy of its data.
+        if (!isDirty || isSettling) {
             return;
         }
         suppressDiscardPrompt();
@@ -128,7 +136,7 @@ function EditAgentAvatarContent({accountID, personalDetailsAccountID = accountID
                 onSave({file: imageData.file, uri: imageData.uri});
                 return;
             }
-            updateAgentAvatar(accountID, {file: imageData.file, uri: imageData.uri}, personalDetails?.avatar);
+            updateAgentAvatar(accountID, {file: imageData.file, uri: imageData.uri}, currentAvatar);
             Navigation.goBack(fallbackRoute);
         }
 
@@ -139,7 +147,7 @@ function EditAgentAvatarContent({accountID, personalDetailsAccountID = accountID
                 onSave({customExpensifyAvatarID});
                 return;
             }
-            updateAgentAvatar(accountID, {customExpensifyAvatarID, uri}, personalDetails?.avatar);
+            updateAgentAvatar(accountID, {customExpensifyAvatarID, uri}, currentAvatar);
             Navigation.goBack(fallbackRoute);
         }
     };
@@ -222,7 +230,7 @@ function EditAgentAvatarContent({accountID, personalDetailsAccountID = accountID
             <AvatarPageFooter
                 validationError={errorData.validationError}
                 phraseParam={errorData.phraseParam}
-                isDirty={isDirty}
+                isDirty={isDirty && !isSettling}
                 onSave={handleSave}
             />
         </ScreenWrapper>
@@ -232,12 +240,14 @@ function EditAgentAvatarContent({accountID, personalDetailsAccountID = accountID
 EditAgentAvatarContent.displayName = 'EditAgentAvatarContent';
 
 function DynamicEditAgentAvatarPage({route, navigation}: DynamicEditAgentAvatarPageProps) {
-    const [accountID, , personalDetailsAccountID] = useAgentAccountID(route.params.accountID, navigation);
+    const {accountID, personalDetailsAccountID, isSettling, fallbackAvatar} = useAgentAccountID(route.params.accountID, navigation);
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.AGENT_EDIT_AVATAR.path);
     return (
         <EditAgentAvatarContent
             accountID={accountID}
             personalDetailsAccountID={personalDetailsAccountID}
+            fallbackAvatar={fallbackAvatar}
+            isSettling={isSettling}
             fallbackRoute={backPath}
         />
     );

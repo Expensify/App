@@ -189,7 +189,9 @@ describe('EditNamePage', () => {
         const backPath = createDynamicRoute(DYNAMIC_ROUTES.AGENT_EDIT.getRoute(realAccountID), ROUTES.SETTINGS_AGENTS);
         await Onyx.clear();
         await Onyx.multiSet({
-            [ONYXKEYS.PERSONAL_DETAILS_LIST]: {[realAccountID]: {accountID: realAccountID, displayName: 'Saved name'}},
+            // This tab holds the real agent's record and server details, so it can save
+            [ONYXKEYS.PERSONAL_DETAILS_LIST]: {[realAccountID]: {accountID: realAccountID, displayName: 'Saved name', login: 'agent+13001@expensify.ai'}},
+            [`${ONYXKEYS.COLLECTION.AGENT}${realAccountID}` as const]: {prompt: 'Saved prompt'},
             [ONYXKEYS.OPTIMISTIC_AGENT_ACCOUNT_ID_MAPPING]: mappingExistsOnMount ? {[optimisticAccountID]: realAccountID} : {},
         });
         mockUseOnyx.mockImplementation(jest.requireActual<{default: typeof useOnyx}>('@hooks/useOnyx').default);
@@ -217,5 +219,33 @@ describe('EditNamePage', () => {
         jest.mocked(Navigation.goBack).mockClear();
         act(() => mockBack());
         expect(Navigation.goBack).toHaveBeenCalledWith(backPath);
+    });
+
+    it('does not save while the new agent is still settling in this tab', async () => {
+        const optimisticAccountID = 7234567890123499;
+        const realAccountID = 15001;
+        await Onyx.clear();
+        // Given a second tab that knows the new agent's real accountID and holds its server details, but not its record yet,
+        // so a save could write into a record this tab doesn't hold
+        await Onyx.multiSet({
+            [`${ONYXKEYS.COLLECTION.AGENT}${optimisticAccountID}` as const]: {prompt: 'Pending prompt', fallbackDisplayName: 'Pending name'},
+            [ONYXKEYS.PERSONAL_DETAILS_LIST]: {[realAccountID]: {accountID: realAccountID, displayName: 'Created name', login: 'agent+15001@expensify.ai'}},
+            [ONYXKEYS.OPTIMISTIC_AGENT_ACCOUNT_ID_MAPPING]: {[optimisticAccountID]: realAccountID},
+        });
+        mockUseOnyx.mockImplementation(jest.requireActual<{default: typeof useOnyx}>('@hooks/useOnyx').default);
+        render(
+            <EditNamePage
+                route={createMock<EditNamePageRoute>({params: {accountID: optimisticAccountID}})}
+                navigation={mockNavigation}
+            />,
+        );
+        await act(async () => waitForBatchedUpdates());
+
+        // When the user saves a new name
+        act(() => mockSubmit({firstName: 'Updated name'}));
+
+        // Then nothing is saved until this tab holds the real agent, and the screen stays on the temporary agent
+        expect(updateAgentName).not.toHaveBeenCalled();
+        expect(mockSetParams).not.toHaveBeenCalled();
     });
 });

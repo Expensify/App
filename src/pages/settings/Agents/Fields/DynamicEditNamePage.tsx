@@ -30,14 +30,19 @@ type DynamicEditNamePageProps = PlatformStackScreenProps<SettingsNavigatorParamL
 function DynamicEditNamePage({route, navigation}: DynamicEditNamePageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const [accountID, , personalDetailsAccountID] = useAgentAccountID(route.params.accountID, navigation);
+    const {accountID, personalDetailsAccountID, isSettling, fallbackDisplayName} = useAgentAccountID(route.params.accountID, navigation);
     const [personalDetails] = usePersonalDetail(personalDetailsAccountID);
+    const displayName = personalDetails?.displayName ?? fallbackDisplayName;
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.AGENT_EDIT_NAME.path);
 
     const {inputCallbackRef} = useAutoFocusInput();
 
     const handleSubmit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.EDIT_AGENT_NAME_FORM>) => {
-        updateAgentName(accountID, values[INPUT_IDS.FIRST_NAME].trim(), personalDetails?.displayName ?? '');
+        // A save while the agent is settling would write from an incomplete copy of its data.
+        if (isSettling) {
+            return;
+        }
+        updateAgentName(accountID, values[INPUT_IDS.FIRST_NAME].trim(), displayName ?? '');
         Navigation.goBack(backPath);
     };
 
@@ -58,6 +63,7 @@ function DynamicEditNamePage({route, navigation}: DynamicEditNamePageProps) {
                 submitButtonText={translate('common.save')}
                 style={[styles.flex1, styles.ph5]}
                 enabledWhenOffline
+                isSubmitDisabled={isSettling}
                 shouldHideFixErrorsAlert
             >
                 <InputWrapper
@@ -68,7 +74,7 @@ function DynamicEditNamePage({route, navigation}: DynamicEditNamePageProps) {
                     role={CONST.ROLE.PRESENTATION}
                     autoCapitalize="words"
                     spellCheck={false}
-                    defaultValue={personalDetails?.displayName ?? ''}
+                    defaultValue={displayName ?? ''}
                     ref={inputCallbackRef}
                 />
             </FormProvider>

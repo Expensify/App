@@ -3,6 +3,7 @@ import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import {getPersonalDetail, personalDetailsHydrationPromise, subscribeToPersonalDetails} from '@libs/PersonalDetailsStore';
 
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
 import type {Agent, Report} from '@src/types/onyx';
@@ -109,6 +110,11 @@ function remapReportParticipants(accountIDs: Map<number, number>) {
     // Scan reports once for the whole batch, including persisted mappings on startup. Looking up each participant
     // avoids a full report scan per historical agent while still repairing report-only interrupted replacements.
     for (const report of Object.values(allReports ?? {})) {
+        // A merge saves the whole report from this tab's copy. A DM still pending creation here predates CreateAgent's
+        // response, which swaps its participants itself, so writing that copy would only bring back stale fields.
+        if (report?.pendingFields?.createChat === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD) {
+            continue;
+        }
         const participants: Record<number, Participant | null> = {};
         for (const [participantID, participant] of Object.entries(report?.participants ?? {})) {
             const realAccountID = accountIDs.get(Number(participantID));
