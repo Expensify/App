@@ -2199,7 +2199,10 @@ function buildApprovalWorkflowRulesDiffToUnflagMembers(
  * one of them creates and a later one removes never reached the backend, so there is nothing to delete.
  */
 function mergeApprovalWorkflowRulesDiffs(existingRules: Record<string, ApprovalWorkflowRule>, diffs: ApprovalWorkflowRulesDiff[]): ApprovalWorkflowRulesDiff {
-    const mergedDiff: ApprovalWorkflowRulesDiff = Object.assign({}, ...diffs);
+    const mergedDiff: ApprovalWorkflowRulesDiff = {};
+    for (const diff of diffs) {
+        Object.assign(mergedDiff, diff);
+    }
     return Object.fromEntries(Object.entries(mergedDiff).filter(([ruleID, rule]) => rule !== null || ruleID in existingRules));
 }
 
