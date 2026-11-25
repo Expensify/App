@@ -4,10 +4,11 @@ import type {OptimisticCreatedReportAction, OptimisticIOUReportAction} from '@li
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Report, ReportAction, Transaction} from '@src/types/onyx';
+import type {Policy, Report, ReportAction, Transaction} from '@src/types/onyx';
 
 import Onyx from 'react-native-onyx';
 
+import createRandomPolicy from '../../utils/collections/policies';
 import {createSelfDM} from '../../utils/collections/reports';
 import {getCurrencyDecimalsLocal} from '../../utils/TestHelper';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
@@ -178,6 +179,7 @@ describe('buildOnyxDataForMoneyRequest', () => {
 
             function buildSelfDMParams(): BuildOnyxDataParams {
                 return {
+                    personalDetailsByLogins: {},
                     isVendorMatchingBetaEnabled: false,
                     shouldFlagNewTransactionForReportTable: true,
                     getCurrencyDecimals: getCurrencyDecimalsLocal,
@@ -325,6 +327,7 @@ describe('buildOnyxDataForMoneyRequest', () => {
         describe('when isSelfDMSplit=false (standard flow)', () => {
             function buildStandardParams(): BuildOnyxDataParams {
                 return {
+                    personalDetailsByLogins: {},
                     isVendorMatchingBetaEnabled: false,
                     shouldFlagNewTransactionForReportTable: true,
                     getCurrencyDecimals: getCurrencyDecimalsLocal,
@@ -369,6 +372,7 @@ describe('buildOnyxDataForMoneyRequest', () => {
         describe('when isSelfDMSplit=true but selfDMReportID is undefined', () => {
             function buildNoSelfDMReportIDParams(): BuildOnyxDataParams {
                 return {
+                    personalDetailsByLogins: {},
                     isVendorMatchingBetaEnabled: false,
                     shouldFlagNewTransactionForReportTable: true,
                     getCurrencyDecimals: getCurrencyDecimalsLocal,
@@ -412,6 +416,7 @@ describe('buildOnyxDataForMoneyRequest', () => {
             const optimisticParams = buildBaseOptimisticParams(IOU_REPORT_ID);
 
             return {
+                personalDetailsByLogins: {},
                 isVendorMatchingBetaEnabled: false,
                 shouldFlagNewTransactionForReportTable: true,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
@@ -496,6 +501,7 @@ describe('buildOnyxDataForMoneyRequest', () => {
     it('uses the injected formatter for optimistic new-chat personal detail display name', () => {
         const mockFormatPhoneNumber = jest.fn((phoneNumber: string) => `formatted:${phoneNumber}`);
         const result = getMoneyRequestInformation({
+            personalDetailsByLogins: {},
             isVendorMatchingBetaEnabled: false,
             shouldFlagNewTransactionForReportTable: true,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
@@ -533,5 +539,68 @@ describe('buildOnyxDataForMoneyRequest', () => {
 
         expect(mockFormatPhoneNumber).toHaveBeenCalledWith('+15551234567');
         expect((personalDetailsEntry?.value as Record<number, {displayName: string}>)?.[PAYER_ACCOUNT_ID]?.displayName).toBe('formatted:+15551234567');
+    });
+
+    describe('next step', () => {
+        const POLICY_ID = 'policy-next-step';
+        const APPROVER_ACCOUNT_ID = 3;
+        const APPROVER_EMAIL = 'approver@example.com';
+
+        const policy: Policy = {
+            ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
+            id: POLICY_ID,
+            role: CONST.POLICY.ROLE.USER,
+            approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC,
+            approver: APPROVER_EMAIL,
+            owner: APPROVER_EMAIL,
+        };
+
+        beforeEach(async () => {
+            await Onyx.merge(ONYXKEYS.SESSION, {accountID: CURRENT_USER_ACCOUNT_ID, email: CURRENT_USER_EMAIL});
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, policy);
+            await waitForBatchedUpdates();
+        });
+
+        it('keeps a submitted report waiting on its approver when an expense is added to it', () => {
+            // Given a report on a workspace with approvals that was already submitted to the approver
+            const optimisticParams = buildBaseOptimisticParams(IOU_REPORT_ID);
+            optimisticParams.iou.report = {
+                ...optimisticParams.iou.report,
+                type: CONST.REPORT.TYPE.EXPENSE,
+                policyID: POLICY_ID,
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+            };
+
+            // When the data for an expense added to it is built
+            const {optimisticData} = buildOnyxDataForMoneyRequest({
+                personalDetailsByLogins: {[APPROVER_EMAIL]: {accountID: APPROVER_ACCOUNT_ID, login: APPROVER_EMAIL}},
+                isVendorMatchingBetaEnabled: false,
+                shouldFlagNewTransactionForReportTable: true,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                isNewChatReport: false,
+                shouldCreateNewMoneyRequestReport: false,
+                shouldGenerateTransactionThreadReport: false,
+                isASAPSubmitBetaEnabled: false,
+                currentUserAccountIDParam: CURRENT_USER_ACCOUNT_ID,
+                currentUserEmailParam: CURRENT_USER_EMAIL,
+                hasViolations: false,
+                quickAction: undefined,
+                isSelfDMSplit: false,
+                optimisticParams,
+                policyParams: {policy},
+                delegateAccountID: undefined,
+                isTrackIntentUser: false,
+                rules: undefined,
+            });
+
+            // Then the report's next step still waits on the approver
+            const nextStepUpdates = optimisticData?.filter(
+                (update) => update.key === `${ONYXKEYS.COLLECTION.REPORT}${IOU_REPORT_ID}` && !!update.value && typeof update.value === 'object' && 'nextStep' in update.value,
+            );
+            expect(nextStepUpdates?.at(-1)?.value).toMatchObject({
+                nextStep: {actorAccountID: APPROVER_ACCOUNT_ID, messageKey: CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_APPROVE},
+            });
+        });
     });
 });

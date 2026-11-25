@@ -119,6 +119,9 @@ const RORY_CASH_CARD_ID = 777;
 const RORY_PERSONAL_DETAILS_BY_LOGINS: PersonalDetailsByLogin = {
     [RORY_EMAIL]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL},
 };
+const CARLOS_PERSONAL_DETAILS_BY_LOGINS: PersonalDetailsByLogin = {
+    [CARLOS_EMAIL]: {accountID: CARLOS_ACCOUNT_ID, login: CARLOS_EMAIL},
+};
 
 type LegacyChangeTransactionsReportProps = Omit<
     Parameters<typeof changeTransactionsReportAction>[0],
@@ -258,7 +261,7 @@ describe('actions/Transaction', () => {
                 isTrackIntentUser: false,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 rules: undefined,
-                personalDetailsByLogins: RORY_PERSONAL_DETAILS_BY_LOGINS,
+                personalDetailsByLogins: CARLOS_PERSONAL_DETAILS_BY_LOGINS,
             });
             // Create a tracked expense
             const selfDMReport: Report = {
@@ -1300,6 +1303,7 @@ describe('actions/Transaction', () => {
                 const reports = getTransactionAndExpenseReports(reportID);
 
                 updateSplitTransactionsFromSplitExpensesFlow({
+                    personalDetailsByLogins: {},
                     isVendorMatchingBetaEnabled: false,
                     rules: undefined,
                     allTransactionsList: allTransactions,
@@ -1491,6 +1495,7 @@ describe('actions/Transaction', () => {
                 const reports = getTransactionAndExpenseReports(reportID);
 
                 updateSplitTransactionsFromSplitExpensesFlow({
+                    personalDetailsByLogins: {},
                     isVendorMatchingBetaEnabled: false,
                     rules: undefined,
                     allTransactionsList: allTransactions,
@@ -1696,6 +1701,7 @@ describe('actions/Transaction', () => {
 
                 // it should use splitExpensesTotal in its calculation
                 updateSplitTransactionsFromSplitExpensesFlow({
+                    personalDetailsByLogins: {},
                     isVendorMatchingBetaEnabled: false,
                     rules: undefined,
                     allTransactionsList: allTransactions,
@@ -1948,6 +1954,7 @@ describe('actions/Transaction', () => {
 
                 // When splitting the held expense
                 updateSplitTransactionsFromSplitExpensesFlow({
+                    personalDetailsByLogins: {},
                     isVendorMatchingBetaEnabled: false,
                     rules: undefined,
                     allTransactionsList: allTransactions,

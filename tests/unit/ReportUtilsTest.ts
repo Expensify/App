@@ -21196,7 +21196,7 @@ describe('ReportUtils', () => {
             });
             await waitForBatchedUpdates();
 
-            expect(getNextApproverAccountID(report, undefined, false, currentUserEmail, {[currentUserEmail]: ownerPersonalDetails})).toBe(currentUserAccountID);
+            expect(getNextApproverAccountID(report, undefined, {[currentUserEmail]: ownerPersonalDetails}, false, currentUserEmail)).toBe(currentUserAccountID);
             expect(shouldBlockSubmitDueToPreventSelfApproval(report, policyWithPreventOn, undefined, ownerPersonalDetails)).toBe(true);
         });
 
@@ -21259,10 +21259,6 @@ describe('ReportUtils', () => {
 
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policyWithPreventOn);
             await Onyx.merge(ONYXKEYS.SESSION, {email: currentUserEmail, accountID: currentUserAccountID});
-            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
-                [currentUserAccountID]: {accountID: currentUserAccountID, login: currentUserEmail},
-                [secondApproverAccountID]: {accountID: secondApproverAccountID, login: secondApproverEmail},
-            });
             await waitForBatchedUpdates();
 
             // When the next approver is somebody else, because getNextApproverAccountID skips past the submitter's own hop
@@ -21270,7 +21266,7 @@ describe('ReportUtils', () => {
                 [currentUserEmail]: ownerPersonalDetails,
                 [secondApproverEmail]: {accountID: secondApproverAccountID, login: secondApproverEmail},
             };
-            expect(getNextApproverAccountID(report, undefined, false, currentUserEmail, personalDetailsByLogins)).toBe(secondApproverAccountID);
+            expect(getNextApproverAccountID(report, undefined, personalDetailsByLogins, false, currentUserEmail)).toBe(secondApproverAccountID);
 
             // Then submitting is still blocked, because the report is being submitted to the submitter themselves
             expect(shouldBlockSubmitDueToPreventSelfApproval(report, policyWithPreventOn, undefined, ownerPersonalDetails)).toBe(true);
