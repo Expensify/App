@@ -42,6 +42,7 @@ function WorkspaceCompanyCardsFeedPendingPage() {
                 <Text style={[styles.textAlignCenter, styles.textSupporting, styles.textNormal]}>
                     {translate('workspace.moreFeatures.companyCards.pendingFeedDescription')}
                     <TextLink
+                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.COMPANY_CARDS.FEED_PENDING_CONCIERGE_LINK}
                         onPress={() => {
                             navigateToConciergeChat({
                                 conciergeReportID,

@@ -55,6 +55,7 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {SearchAdvancedFiltersForm} from '@src/types/form';
+import type {SentryLabel} from '@src/types/utils/SentryLabel';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
@@ -77,9 +78,11 @@ import DeferredTransactionItemRowRBR from './DeferredTransactionItemRowRBR';
 
 type TransactionItemRowWideProps = Omit<
     TransactionItemRowProps,
-    'shouldUseNarrowLayout' | 'isAttendeesEnabledForMovingPolicy' | 'isLargeScreenWidth' | 'shouldShowCheckbox' | 'shouldSkipDeferRBR'
-> &
-    TransactionItemRowWideComputedData &
+    'shouldUseNarrowLayout' | 'isAttendeesEnabledForMovingPolicy' | 'isLargeScreenWidth' | 'shouldShowCheckbox' | 'shouldSkipDeferRBR' | 'checkboxSentryLabel'
+> & {
+    /** A wide row shows its checkbox unless it shows a radio button, so it always needs the label. */
+    checkboxSentryLabel: SentryLabel;
+} & TransactionItemRowWideComputedData &
     TransactionItemRowRBRDeferControlProps;
 
 function searchHasFilterSelector(form: OnyxEntry<SearchAdvancedFiltersForm>) {
@@ -179,6 +182,7 @@ function TransactionItemRowWide({
     const session = useSession();
     const isOwnExpense = isExpenseUnreported(transactionItem) || isCurrentUserSubmitter(transactionItem.report ?? report, session?.accountID);
     const categoryOwnerAccountID = isOwnExpense ? session?.accountID : undefined;
+    const categorySubmitterAccountID = isOwnExpense ? undefined : (transactionItem.report ?? report)?.ownerAccountID;
     const submitterUserID = reportForCustomColumns?.submitterUserID;
     const submitterPayrollID = reportForCustomColumns?.submitterPayrollID;
     const orderDealNumbers = reportForCustomColumns?.orderDealNumbers;
@@ -249,7 +253,7 @@ function TransactionItemRowWide({
                         key={column}
                         style={[getSearchColumnStyles(CONST.SEARCH.TABLE_COLUMNS.VIOLATIONS)]}
                     >
-                        <TextCell text={getViolationsForTransaction(reportActions, transactionItem.transactionID, hasFilterValues, translate)} />
+                        <TextCell text={transactionItem.formattedViolations ?? getViolationsForTransaction(reportActions, transactionItem.transactionID, hasFilterValues, translate)} />
                     </View>
                 );
             case CONST.SEARCH.TABLE_COLUMNS.TAG_GL_CODE:
@@ -367,6 +371,7 @@ function TransactionItemRowWide({
                             onSave={onEditCategory}
                             policyID={effectivePolicyID}
                             ownerAccountID={categoryOwnerAccountID}
+                            submitterAccountID={categorySubmitterAccountID}
                         />
                     </View>
                 );
@@ -384,6 +389,7 @@ function TransactionItemRowWide({
                             policyID={effectivePolicyID}
                             policyCategories={policyCategories}
                             ownerAccountID={categoryOwnerAccountID}
+                            submitterAccountID={categorySubmitterAccountID}
                         />
                     </View>
                 );

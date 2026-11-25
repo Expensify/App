@@ -1,7 +1,6 @@
 import type {BootSplashModule} from '@libs/BootSplash/types';
 import type {EnvironmentCheckerModule} from '@libs/Environment/betaChecker/types';
 import type {NavBarButtonStyle, NavigationBarType} from '@libs/NavBarManager/types';
-import type {ShareActionHandlerModule} from '@libs/ShareActionHandlerModule';
 import type {ShortcutManagerModule} from '@libs/ShortcutManager';
 
 /* eslint-disable @typescript-eslint/consistent-type-definitions */
@@ -48,17 +47,9 @@ declare module 'react-native' {
         };
     }
 
-    interface PressableStateCallbackType extends WebPressableStateCallbackType {
+    interface PressableStateCallbackType {
         readonly isScreenReaderActive: boolean;
         readonly isDisabled: boolean;
-    }
-
-    interface AppStateStatic {
-        emitCurrentTestState: (status: string) => void;
-    }
-
-    interface LinkingImpl {
-        setInitialURL: (url: string) => void;
     }
 
     interface NativeModulesStatic {
@@ -69,7 +60,6 @@ declare module 'react-native' {
         GpsTripServiceModule: GpsTripServiceModule;
         EnvironmentChecker: EnvironmentCheckerModule;
         ShortcutManager: ShortcutManagerModule;
-        ShareActionHandler: ShareActionHandlerModule;
         TestToolsBridge: TestToolsBridge;
         PushNotificationBridge?: PushNotificationBridge;
     }

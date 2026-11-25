@@ -382,6 +382,7 @@ function WorkflowsPaymentsTab({policyID}: WorkflowsPaymentsTabProps) {
                                                     message={bankConnectionMessage}
                                                     actionText={bankConnectionActionText}
                                                     onActionPress={canWritePayments && canPerformBankAccountAction ? handleBankAccountPress : undefined}
+                                                    actionSentryLabel={CONST.SENTRY_LABEL.WORKSPACE.WORKFLOWS.BANK_ACCOUNT_CONNECTION_ACTION}
                                                     isActionDisabled={!canInteractWithBankAccountRow}
                                                     statusTone="danger"
                                                     shouldIncludeHorizontalPadding={false}
@@ -481,6 +482,8 @@ function WorkflowsPaymentsTab({policyID}: WorkflowsPaymentsTabProps) {
                             isActive={!!policy?.isCollectDepositAccountsEnabled}
                             onToggle={(isEnabled: boolean) => toggleCollectDepositAccounts(policyID, isEnabled, policy?.isCollectDepositAccountsEnabled)}
                             pendingAction={policy?.pendingFields?.isCollectDepositAccountsEnabled}
+                            // The section card already dims this row via reimbursementChoice, so skip its own dim to avoid stacking opacity
+                            shouldDisableOpacity={!!policy?.pendingFields?.reimbursementChoice}
                             errors={getLatestErrorField(policy ?? {}, CONST.POLICY.COLLECTION_KEYS.IS_COLLECT_DEPOSIT_ACCOUNTS_ENABLED)}
                             onCloseError={() => clearPolicyErrorField(policyID, CONST.POLICY.COLLECTION_KEYS.IS_COLLECT_DEPOSIT_ACCOUNTS_ENABLED)}
                             disabled={!canWritePayments}

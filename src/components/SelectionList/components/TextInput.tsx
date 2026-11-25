@@ -89,6 +89,7 @@ function TextInput({
         placeholder,
         maxLength,
         inputMode,
+        shouldIgnorePasswordManager = true,
         ref: optionsRef,
         style,
         disableAutoCorrect,
@@ -168,6 +169,7 @@ function TextInput({
                     maxLength={maxLength}
                     onChangeText={handleTextInputChange}
                     inputMode={inputMode}
+                    shouldIgnorePasswordManager={shouldIgnorePasswordManager}
                     selectTextOnFocus
                     spellCheck={false}
                     onSubmitEditing={onSubmit}

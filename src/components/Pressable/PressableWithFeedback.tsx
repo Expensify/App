@@ -1,5 +1,7 @@
 import OpacityView from '@components/OpacityView';
 
+import castToSentryLabel from '@libs/castToSentryLabel';
+
 import type {Color} from '@styles/theme/types';
 import variables from '@styles/variables';
 
@@ -74,6 +76,7 @@ function PressableWithFeedback({
         accessibilityHasPopup: rest.accessibilityHasPopup,
         nativeID: rest.nativeID,
         accessibilityControls: rest.accessibilityControls,
+        sentryLabel: rest.sentryLabel,
     });
 
     return (
@@ -88,6 +91,8 @@ function PressableWithFeedback({
             <GenericPressable
                 {...rest}
                 ref={mergedRef}
+                // A press responder can add a handler and its label, so both come from the slot.
+                sentryLabel={castToSentryLabel(slot.sentryLabel)}
                 onPress={slot.onPress}
                 accessibilityState={slot.accessibilityState}
                 accessibilityHasPopup={slot.accessibilityHasPopup}
