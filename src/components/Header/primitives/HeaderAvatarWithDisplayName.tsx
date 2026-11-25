@@ -13,7 +13,7 @@ function HeaderAvatarWithDisplayName(props: AvatarWithDisplayNameProps) {
     const styles = useThemeStyles();
 
     return (
-        <View style={[styles.flex1, styles.pr3]}>
+        <View style={[styles.flex1, styles.flexRow, styles.pr3]}>
             <AvatarWithDisplayName
                 size={avatarSize}
                 {...props}
