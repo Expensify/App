@@ -33,17 +33,17 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
 import type {AIInsight, InsightsDashboard as InsightsDashboardRecord, InsightsDashboardID, InsightsFutureExpenses, InsightsGraphKey, InsightsScope} from '@src/types/onyx';
-import ObjectUtils from '@src/types/utils/ObjectUtils';
 import viewRef from '@src/types/utils/viewRef';
 
 import type {OnyxCollection} from 'react-native-onyx';
 
 import {useIsFocused} from '@react-navigation/native';
+import {deepEqual} from 'fast-equals';
 import React, {useEffect, useEffectEvent, useRef, useState} from 'react';
 import {StyleSheet, View} from 'react-native';
 import Animated, {FadeIn, FadeOut} from 'react-native-reanimated';
 
-import type {InsightsViolationStage, InsightsViolationStages} from './dashboardSpecs';
+import type {InsightsChartSpec, InsightsViolationStage, InsightsViolationStages} from './dashboardSpecs';
 import type {InsightsCaptureRef} from './exportInsightsDashboard/types';
 import type {InsightsFilters} from './insightsFilters';
 import type {InsightsChartQuery} from './insightsQueries';
@@ -373,24 +373,54 @@ function hasStoredDashboardResponse(dashboards: OnyxCollection<InsightsDashboard
     return Object.values(dashboards ?? {}).some(hasDashboardResponse);
 }
 
-/** Returns each graph from the first loaded dashboard entry among its fallback hashes */
-function selectFallbackGraphs(
-    dashboards: OnyxCollection<InsightsDashboardRecord>,
+/** Inputs of the last dashboard entry that loaded, whose averages the charts keep showing while another stage combination or date grouping loads */
+type LoadedDashboardEntry = {
+    dashboardID: InsightsDashboardID;
+    hash: number;
+    filters: InsightsFilters;
+    violationStages: InsightsViolationStages;
+};
+
+/** Checks whether two sets of filters give the same averages. Leaves out the date grouping, which only some charts depend on, and the comparison, since every response carries all of them. */
+function haveSameAverageFilters(filters: InsightsFilters, otherFilters: InsightsFilters): boolean {
+    const {groupBy, compare, ...averageFilters} = filters;
+    const {groupBy: otherGroupBy, compare: otherCompare, ...otherAverageFilters} = otherFilters;
+    return deepEqual(averageFilters, otherAverageFilters);
+}
+
+/** Checks whether a chart's average in the loaded entry equals the one being loaded: its own stage must match, and so must the date grouping unless the chart has its own, since the headline averages per date bucket */
+function canShowLoadedAverage(
+    loadedEntry: LoadedDashboardEntry | undefined,
     dashboardID: InsightsDashboardID,
-    hashes: Partial<Record<InsightsGraphKey, number[]>> | undefined,
-): NonNullable<InsightsDashboardRecord['graphs']> {
-    const fallbackGraphs: NonNullable<InsightsDashboardRecord['graphs']> = {};
-    for (const [graphKey, graphHashes] of ObjectUtils.typedEntries(hashes ?? {})) {
-        for (const hash of graphHashes ?? []) {
-            const entry = dashboards?.[`${ONYXKEYS.COLLECTION.INSIGHTS}${dashboardID}_${hash}`];
-            const graph = hasDashboardResponse(entry) ? entry?.graphs?.[graphKey] : undefined;
-            if (graph) {
-                fallbackGraphs[graphKey] = graph;
-                break;
-            }
-        }
-    }
-    return fallbackGraphs;
+    filters: InsightsFilters,
+    violationStages: InsightsViolationStages,
+    chart: InsightsChartSpec,
+): boolean {
+    return (
+        !!loadedEntry &&
+        loadedEntry.dashboardID === dashboardID &&
+        haveSameAverageFilters(loadedEntry.filters, filters) &&
+        getViolationStage(chart, loadedEntry.violationStages) === getViolationStage(chart, violationStages) &&
+        (!!chart.groupBy || getQueryGroupBy(loadedEntry.filters) === getQueryGroupBy(filters))
+    );
+}
+
+/** Entry the AI cards are read from, kept while their scope stays the same */
+type InsightsCardsEntry = {
+    dashboardID: InsightsDashboardID;
+    hash: number;
+    scope: InsightsScope;
+};
+
+/** Builds the filters the AI cards were written for, which leave out the date grouping and the violation stages */
+function buildInsightsScope(dashboardID: InsightsDashboardID, filters: InsightsFilters): InsightsScope {
+    return {
+        searchKey: INSIGHTS_DASHBOARD_SPECS[dashboardID].searchKey,
+        policyIDs: filters.policyIDs,
+        date: filters.date,
+        groupCurrency: filters.groupCurrency,
+        ...(dashboardID === CONST.INSIGHTS.DASHBOARD.SPEND && {tagLevel: filters.tagLevel}),
+    };
 }
 
 function InsightsDashboard({dashboardID, accessibleDashboards}: {dashboardID: InsightsDashboardID; accessibleDashboards: InsightsDashboardID[]}) {
@@ -466,11 +496,23 @@ function InsightsDashboard({dashboardID, accessibleDashboards}: {dashboardID: In
     const [hasLoadedBefore = false] = useOnyx(ONYXKEYS.COLLECTION.INSIGHTS, {
         selector: hasStoredDashboardResponse,
     });
-    const averageFallbackHashes = query?.averageFallbackHashes;
-    const [fallbackGraphs] = useOnyx(ONYXKEYS.COLLECTION.INSIGHTS, {
-        selector: (dashboards) => selectFallbackGraphs(dashboards, dashboardID, averageFallbackHashes),
-    });
     const isCurrentDashboardLoaded = hasDashboardResponse(dashboard);
+    const [loadedEntry, setLoadedEntry] = useState<LoadedDashboardEntry>();
+    if (isCurrentDashboardLoaded && query && (loadedEntry?.hash !== query.hash || loadedEntry.dashboardID !== dashboardID)) {
+        setLoadedEntry({dashboardID, hash: query.hash, filters, violationStages});
+    }
+    const [loadedDashboard] = useOnyx(`${ONYXKEYS.COLLECTION.INSIGHTS}${loadedEntry?.dashboardID}_${loadedEntry?.hash}`);
+    const insightsScope = buildInsightsScope(dashboardID, filters);
+    // The AI cards cover every date grouping and stage, so they keep showing the cards of the first entry in their scope instead of reloading for each new entry
+    const [cardsEntry, setCardsEntry] = useState<InsightsCardsEntry>();
+    const isCardsEntryInScope = !!cardsEntry && cardsEntry.dashboardID === dashboardID && deepEqual(cardsEntry.scope, insightsScope);
+    if (!isCardsEntryInScope && dashboard?.aiInsights !== undefined && hash !== undefined) {
+        setCardsEntry({dashboardID, hash, scope: insightsScope});
+    }
+    const [cardsEntryInsights] = useOnyx(`${ONYXKEYS.COLLECTION.INSIGHTS}${cardsEntry?.dashboardID}_${cardsEntry?.hash}`, {selector: (entry) => entry?.aiInsights});
+    const aiInsights = isCardsEntryInScope ? cardsEntryInsights : dashboard?.aiInsights;
+    // Changing Group by parses the stored filters again into new objects, so the remembered scope is passed to keep the cards from rendering again
+    const cardsScope = isCardsEntryInScope ? cardsEntry.scope : insightsScope;
     // Until the filters and workspaces load, the charts have no query to read data for, so they show their loading state
     const visibleChartQueries = query
         ? [query.headlineChart, ...query.supportingCharts]
@@ -482,7 +524,8 @@ function InsightsDashboard({dashboardID, accessibleDashboards}: {dashboardID: In
     );
     const charts = visibleChartQueries.map((chartQuery): InsightsDashboardChart => {
         const {graphKey} = chartQuery.chart;
-        const graph = isCurrentDashboardLoaded ? dashboard?.graphs?.[graphKey] : fallbackGraphs?.[graphKey];
+        const loadedGraph = canShowLoadedAverage(loadedEntry, dashboardID, filters, violationStages, chartQuery.chart) ? loadedDashboard?.graphs?.[graphKey] : undefined;
+        const graph = isCurrentDashboardLoaded ? dashboard?.graphs?.[graphKey] : loadedGraph;
         return {
             ...chartQuery,
             snapshot: chartQuery.queryJSON ? snapshots[chartQuery.queryJSON.hash] : undefined,
@@ -580,14 +623,8 @@ function InsightsDashboard({dashboardID, accessibleDashboards}: {dashboardID: In
                         <InsightsDashboardContent
                             dashboardID={dashboardID}
                             state={state}
-                            aiInsights={dashboard?.aiInsights}
-                            insightsScope={{
-                                searchKey: INSIGHTS_DASHBOARD_SPECS[dashboardID].searchKey,
-                                policyIDs: filters.policyIDs,
-                                date: filters.date,
-                                groupCurrency: filters.groupCurrency,
-                                ...(dashboardID === CONST.INSIGHTS.DASHBOARD.SPEND && {tagLevel: filters.tagLevel}),
-                            }}
+                            aiInsights={aiInsights}
+                            insightsScope={cardsScope}
                             hasFailedToLoad={!!dashboard?.errors}
                             headlineChart={headlineChart}
                             asOfDate={dashboard?.asOfDate}
