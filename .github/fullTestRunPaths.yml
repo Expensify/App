@@ -4,7 +4,7 @@ any:
   # Dependencies and toolchain
   - 'package.json'
   - 'package-lock.json'
-  # throwaway (#107158 round 5): this PR's own diff hits it  - 'patches/**'
+  - 'patches/**'
   - 'modules/**'
   - '.nvmrc'
   - 'tsconfig.json'
@@ -12,14 +12,14 @@ any:
   - 'config/babel/**'
   # Jest config and setup, loaded through jest.config.js
   - 'jest.config.js'
-  # throwaway (#107158 round 5): this PR's own diff hits it  - 'jest/**'
+  - 'jest/**'
   - '**/__mocks__/**'
   - 'src/polyfills/**'
   # Read through dotenv by __mocks__/react-native-config.ts
   - '.env.example'
   - 'tests/perf-test/setupAfterEnv.ts'
   # CI itself
-  # throwaway (#107158 round 5): this PR's own diff hits it  - '.github/workflows/test.yml'
-  # throwaway (#107158 round 5): this PR's own diff hits it  - '.github/workflows/reassurePerformanceTests.yml'
+  - '.github/workflows/test.yml'
+  - '.github/workflows/reassurePerformanceTests.yml'
   - '.github/actions/composite/setupNode/**'
-  # throwaway (#107158 round 5): this PR's own diff hits it  - '.github/fullTestRunPaths.yml'
+  - '.github/fullTestRunPaths.yml'
