@@ -4,6 +4,8 @@ import useSearchUserFilters from '@hooks/useSearchUserFilters';
 
 import {openSearchUserFiltersPage} from '@libs/actions/Search';
 
+import CONST from '@src/CONST';
+
 type UserFiltersResponse = {hasMore: boolean; nextCursor: string; logins: string[]};
 
 const mockOpenSearchUserFiltersPage = jest.mocked(openSearchUserFiltersPage);
@@ -60,7 +62,7 @@ describe('useSearchUserFilters', () => {
         // Then isSearching becomes true immediately and the first page is requested
         expect(result.current.isSearching).toBe(true);
         await waitFor(() => {
-            expect(mockOpenSearchUserFiltersPage).toHaveBeenCalledWith({searchQuery: '', cursor: '', policyIDs: 'policy-1'}, true);
+            expect(mockOpenSearchUserFiltersPage).toHaveBeenCalledWith({searchQuery: '', cursor: '', limit: CONST.SEARCH.USER_FILTER_PAGE_SIZE, policyIDs: 'policy-1'}, true);
         });
 
         // When the server responds
@@ -130,7 +132,7 @@ describe('useSearchUserFilters', () => {
             result.current.loadMoreUsers();
         });
         expect(result.current.isLoadingMore).toBe(true);
-        expect(mockOpenSearchUserFiltersPage).toHaveBeenLastCalledWith({searchQuery: '', cursor: 'cursor-1', policyIDs: 'policy-1'}, false);
+        expect(mockOpenSearchUserFiltersPage).toHaveBeenLastCalledWith({searchQuery: '', cursor: 'cursor-1', limit: CONST.SEARCH.USER_FILTER_PAGE_SIZE, policyIDs: 'policy-1'}, false);
 
         rerender({searchTerm: 'bob'});
 

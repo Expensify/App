@@ -4,6 +4,8 @@
  */
 import {openSearchUserFiltersPage} from '@libs/actions/Search';
 
+import CONST from '@src/CONST';
+
 import {useEffect, useRef, useState} from 'react';
 
 import useNetwork from './useNetwork';
@@ -75,7 +77,7 @@ function useSearchUserFilters({policyIDs, searchTerm, ready = true, onScopedLogi
     // search, so the request cancels in-flight ones and a failure resets the whole pagination.
     const fetchUserFiltersPage = (cursor: string, requestSeq: number) => {
         const isFirstPage = cursor === '';
-        openSearchUserFiltersPage({searchQuery: trimmedSearchTerm, cursor, policyIDs: policyIDs || undefined}, isFirstPage)
+        openSearchUserFiltersPage({searchQuery: trimmedSearchTerm, cursor, limit: CONST.SEARCH.USER_FILTER_PAGE_SIZE, policyIDs: policyIDs || undefined}, isFirstPage)
             .then((result) => applyUserFiltersResponse(requestSeq, result))
             .catch(() => {
                 if (requestSeq !== requestSeqRef.current) {
