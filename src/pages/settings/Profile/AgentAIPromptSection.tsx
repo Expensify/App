@@ -6,6 +6,7 @@ import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 
+import useFetchAfterAppLoaded from '@hooks/useFetchAfterAppLoaded';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -60,7 +61,6 @@ function AgentAIPromptSection({accountID, parentScrollViewRef}: AgentAIPromptSec
     const styles = useThemeStyles();
     const icons = useMemoizedLazyExpensifyIcons(['Checkmark']);
     const [agentPrompt] = useOnyx(`${ONYXKEYS.COLLECTION.AGENT}${accountID}`);
-    const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP);
     const [draftPrompt, setDraftPrompt] = useState('');
     const [showEmptyError, setShowEmptyError] = useState(false);
     const [showHtmlError, setShowHtmlError] = useState(false);
@@ -83,15 +83,7 @@ function AgentAIPromptSection({accountID, parentScrollViewRef}: AgentAIPromptSec
     }
     const storedPrompt = Str.htmlDecode(agentPrompt?.prompt ?? '');
 
-    // Delegate.connect seeds IS_LOADING_APP=true via clearOnyxForDelegateTransition and OpenApp's optimisticData,
-    // then flips it back to false in OpenApp's finallyData. By that point NetworkStore.authToken is the delegate.
-    // Waiting on this transition prevents firing OpenProfilePage with the owner authToken during a copilot switch.
-    useEffect(() => {
-        if (isLoadingApp) {
-            return;
-        }
-        openProfilePage();
-    }, [isLoadingApp, accountID]);
+    useFetchAfterAppLoaded(openProfilePage, accountID);
 
     useEffect(() => {
         // eslint-disable-next-line react-hooks/set-state-in-effect
