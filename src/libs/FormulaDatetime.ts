@@ -67,7 +67,7 @@ function getTimeComponents(date: Date) {
  * Format date as RFC 2822/RFC 5322 format
  * Example: "Thu, 08 Jan 2025 15:30:45 +0000"
  */
-function formatRFC2822(date: Date): string {
+function formatRFC2822(date: Date, isExactTime: boolean): string {
     const {shortDayName, shortMonthName} = getLocalizedNames(date);
     const day = date.getDate().toString().padStart(2, '0');
     const year = date.getFullYear();
@@ -76,14 +76,26 @@ function formatRFC2822(date: Date): string {
     const minutes = date.getMinutes().toString().padStart(2, '0');
     const seconds = date.getSeconds().toString().padStart(2, '0');
 
-    // The backend reads a stored date and time as UTC
-    return `${shortDayName}, ${day} ${shortMonthName} ${year} ${hours}:${minutes}:${seconds} +0000`;
+    // The backend reads a stored date and time as UTC. An exact time shows in the user's time zone, so it has their offset.
+    let timezoneString = '+0000';
+    if (isExactTime) {
+        const timezoneOffset = -date.getTimezoneOffset();
+        const offsetSign = timezoneOffset >= 0 ? '+' : '-';
+        const offsetHours = Math.floor(Math.abs(timezoneOffset) / 60)
+            .toString()
+            .padStart(2, '0');
+        const offsetMinutes = (Math.abs(timezoneOffset) % 60).toString().padStart(2, '0');
+        timezoneString = `${offsetSign}${offsetHours}${offsetMinutes}`;
+    }
+
+    return `${shortDayName}, ${day} ${shortMonthName} ${year} ${hours}:${minutes}:${seconds} ${timezoneString}`;
 }
 
 /**
- * Create token definitions for date formatting
+ * Create token definitions for date formatting. An exact time is a moment shown in the user's time zone, like the
+ * current time. Otherwise the date holds a stored date and time.
  */
-function createDateTokens(date: Date): Array<{token: string; value: string}> {
+function createDateTokens(date: Date, isExactTime: boolean): Array<{token: string; value: string}> {
     const year = date.getFullYear();
     const month = date.getMonth() + 1;
     const day = date.getDate();
@@ -99,8 +111,8 @@ function createDateTokens(date: Date): Array<{token: string; value: string}> {
 
     const {hours, minutes, seconds, hours12, meridiem, meridiemUpperCase} = getTimeComponents(date);
 
-    // The backend reads a stored date and time as UTC, so the ISO and Unix times do too
-    const storedTimeAsUTC = new Date(Date.UTC(year, date.getMonth(), day, hours, minutes, seconds, date.getMilliseconds()));
+    // The backend reads a stored date and time as UTC, so the ISO and Unix times do too. An exact time is already a moment.
+    const moment = isExactTime ? date : new Date(Date.UTC(year, date.getMonth(), day, hours, minutes, seconds, date.getMilliseconds()));
 
     return [
         // Year formats (longest to shortest)
@@ -150,10 +162,11 @@ function createDateTokens(date: Date): Array<{token: string; value: string}> {
 
         // Full Date/Time formats
         // ISO 8601: 2025-01-08T15:30:45.123Z
-        {token: 'c', value: storedTimeAsUTC.toISOString()},
-        {token: 'r', value: formatRFC2822(date)}, // RFC 2822: Thu, 08 Jan 2025 15:30:45 +0000
+        {token: 'c', value: moment.toISOString()},
+        // RFC 2822: Thu, 08 Jan 2025 15:30:45 +0000
+        {token: 'r', value: formatRFC2822(date, isExactTime)},
         // Unix timestamp
-        {token: 'U', value: Math.floor(storedTimeAsUTC.getTime() / 1000).toString()},
+        {token: 'U', value: Math.floor(moment.getTime() / 1000).toString()},
     ];
 }
 
@@ -202,27 +215,20 @@ function formatDate(value: string | Date | undefined, format = 'yyyy-MM-dd'): st
     }
 
     try {
-        let date: Date;
-        if (value instanceof Date) {
-            // A Date holds the date and time to show in its local parts
-            date = value;
-        } else if (value.endsWith('Z')) {
-            // A UTC time, like "2025-01-08T15:30:45.123Z", shows its UTC date and time, the same way the backend shows a
-            // stored time. Dropping the "Z" lets parseISO read those as local parts.
-            date = parseISO(value.slice(0, -1));
-        } else {
-            // Dates are stored without a time zone, like the expense date "2025-01-20" or the report's created time
-            // "2025-01-08 15:30:45". parseISO reads them as local time and every token below reads local time, so the
-            // title shows the stored date and time, like the backend. new Date() would read "2025-01-20" as midnight
-            // UTC, which is the previous day west of UTC.
-            date = parseISO(value);
-        }
+        // A Date holds the date and time to show in its local parts. parseISO reads a string into local parts:
+        // - A date stored without a time zone, like the expense date "2025-01-20" or the report's created time
+        //   "2025-01-08 15:30:45", keeps its stored date and time, like the backend. new Date() would read "2025-01-20"
+        //   as midnight UTC, which is the previous day west of UTC.
+        // - A UTC time, like the current time "2025-01-08T15:30:45.123Z", is an exact moment, so it shows in the user's
+        //   time zone.
+        const isExactTime = typeof value === 'string' && value.endsWith('Z');
+        const date = value instanceof Date ? value : parseISO(value);
         if (Number.isNaN(date.getTime())) {
             return '';
         }
 
         // Create tokens for the date
-        const tokens = createDateTokens(date);
+        const tokens = createDateTokens(date, isExactTime);
 
         // Apply token replacement
         return applyTokenReplacement(format, tokens);

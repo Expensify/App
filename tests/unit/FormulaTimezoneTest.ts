@@ -94,11 +94,13 @@ describe('Formula west of UTC', () => {
         // When its expense dates are computed, which fall back to the current time
         const time = compute('{report:startdate:yyyy-MM-dd HH:mm}', context);
         const isoTime = compute('{report:startdate:c}', context);
+        const rfc2822Time = compute('{report:startdate:r}', context);
         const unixTime = compute('{report:enddate:U}', context);
 
-        // Then they show the current time in UTC, the way stored times are shown
-        expect(time).toBe('2025-01-08 15:30');
+        // Then they show the user's local time, and the ISO, RFC 2822 and Unix times give that same moment
+        expect(time).toBe('2025-01-08 07:30');
         expect(isoTime).toBe('2025-01-08T15:30:45.123Z');
+        expect(rfc2822Time).toBe('Wed, 08 Jan 2025 07:30:45 -0800');
         expect(unixTime).toBe('1736350245');
     });
 
