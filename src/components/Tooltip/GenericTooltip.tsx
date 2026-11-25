@@ -192,6 +192,12 @@ function GenericTooltip({
     // tree either way, so toggling `text` doesn't remount them (which would, for example, drop an input's focus).
     const hasTooltipContent = !StringUtils.isEmptyString(text) || renderTooltipContent != null;
 
+    // Keep `renderedKey` in step with the bubble that is actually mounted. While visible the bubble follows `currentKey`,
+    // so retain that on hide; while hidden, a key change unmounts the bubble, so forget the key or it can re-match later.
+    if (renderedKey !== undefined && renderedKey !== currentKey) {
+        setRenderedKey(isVisible ? currentKey : undefined);
+    }
+
     return (
         <>
             {hasTooltipContent && shouldRender && renderedKey !== undefined && (isVisible || renderedKey === currentKey) && (

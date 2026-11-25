@@ -91,6 +91,68 @@ describe('GenericTooltip', () => {
         expect(screen.getByLabelText('New report')).toBeOnTheScreen();
     });
 
+    it('does not remount a hidden tooltip when its text returns to a previously shown value', () => {
+        // Given a tooltip that has shown A and is now hidden, retaining its bubble
+        let tooltipState: GenericTooltipState | undefined;
+        const renderTooltip = (text: string) => (
+            <GenericTooltip text={text}>
+                {(state) => {
+                    tooltipState = state;
+                    return null;
+                }}
+            </GenericTooltip>
+        );
+        const {rerender} = render(renderTooltip('A'));
+        act(() => tooltipState?.showTooltip());
+        expect(screen.getByLabelText('A')).toBeOnTheScreen();
+        act(() => tooltipState?.hideTooltip());
+        expect(screen.getByTestId('tooltip-bubble')).toBeOnTheScreen();
+
+        // When a recycled row changes to B and then back to A without being hovered
+        rerender(renderTooltip('B'));
+        expect(screen.queryByTestId('tooltip-bubble')).not.toBeOnTheScreen();
+        rerender(renderTooltip('A'));
+
+        // Then the bubble stays unmounted rather than measuring the previously shown content again
+        expect(screen.queryByTestId('tooltip-bubble')).not.toBeOnTheScreen();
+
+        // When the row is hovered again
+        act(() => tooltipState?.showTooltip());
+
+        // Then a bubble mounts with A
+        expect(screen.getByLabelText('A')).toBeOnTheScreen();
+    });
+
+    it('retains the current tooltip content on hide after its text changes while visible', () => {
+        // Given a tooltip showing A
+        let tooltipState: GenericTooltipState | undefined;
+        const renderTooltip = (text: string) => (
+            <GenericTooltip text={text}>
+                {(state) => {
+                    tooltipState = state;
+                    return null;
+                }}
+            </GenericTooltip>
+        );
+        const {rerender} = render(renderTooltip('A'));
+        act(() => tooltipState?.showTooltip());
+        expect(screen.getByLabelText('A')).toBeOnTheScreen();
+
+        // When the visible tooltip changes to B and is then hidden
+        rerender(renderTooltip('B'));
+        expect(screen.getByLabelText('B')).toBeOnTheScreen();
+        act(() => tooltipState?.hideTooltip());
+
+        // Then the bubble for B stays mounted so its measured size can be reused on the next hover
+        expect(screen.getByLabelText('B')).toBeOnTheScreen();
+
+        // When the hidden tooltip changes to C
+        rerender(renderTooltip('C'));
+
+        // Then the retained bubble unmounts instead of measuring unused content
+        expect(screen.queryByTestId('tooltip-bubble')).not.toBeOnTheScreen();
+    });
+
     it('does not remount its children when the text toggles between empty and non-empty', () => {
         // Given a tooltip with no text, wrapping a child that counts its mounts. Callers such as a text input toggle `text`
         // to turn the tooltip on and off, and a remount would drop the input's focus.
