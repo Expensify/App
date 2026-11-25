@@ -52,7 +52,7 @@ import {getParticipantsOption, getReportOption} from '@libs/OptionsListUtils';
 import {hasOnlyPersonalPolicies as hasOnlyPersonalPoliciesUtil, resolveCurrentTaxCode} from '@libs/PolicyUtils';
 import ReceiptStorage from '@libs/ReceiptStorage';
 import {shouldValidateFile} from '@libs/ReceiptUtils';
-import {getReportOrDraftReport, isMoneyRequestReport, isSelfDM} from '@libs/ReportUtils';
+import {buildOptimisticSelfDMReport, getReportOrDraftReport, isMoneyRequestReport, isSelfDM} from '@libs/ReportUtils';
 import {cancelSpan, endSpan} from '@libs/telemetry/activeSpans';
 import {logReceiptAdoptFailed, logReceiptCaptured, logReceiptSubmitted, mintAndStampReceiptTraceId} from '@libs/telemetry/ReceiptObservability';
 import {cancelTracking} from '@libs/telemetry/submitFollowUpAction';
@@ -103,8 +103,12 @@ function SubmitDetailsPage({
     // Picking None in the Report row moves the draft to the self DM, so from then on the expense is tracked there instead
     // of submitted to the chat it was shared to: what it shows, how it's sent and where the user lands all follow the draft.
     // Setting the draft up still goes by the shared-to chat, which would otherwise start the draft over.
-    const draftParticipantReport = useReportOrReportDraft(transaction?.participants?.at(0)?.reportID);
-    const destinationReport = isSelfDM(draftParticipantReport) ? draftParticipantReport : report;
+    const draftParticipant = transaction?.participants?.at(0);
+    const draftParticipantReport = useReportOrReportDraft(draftParticipant?.reportID);
+    // An account with no self DM yet only has the one the Report picker built, under the ID it saved on the draft.
+    const unsavedSelfDMReport =
+        draftParticipant?.isSelfDM && draftParticipant.reportID && !draftParticipantReport ? buildOptimisticSelfDMReport(DateUtils.getDBTime(), draftParticipant.reportID) : undefined;
+    const destinationReport = draftParticipant?.isSelfDM ? (draftParticipantReport ?? unsavedSelfDMReport) : report;
     const isSelfDMDestination = isSelfDM(destinationReport);
     const iouType = isSelfDMDestination ? CONST.IOU.TYPE.TRACK : CONST.IOU.TYPE.SUBMIT;
     // Self-DM's FAKE policyID can't load real policy data — usePolicyForTransaction resolves the active workspace instead.
@@ -205,6 +209,8 @@ function SubmitDetailsPage({
     // Report > None moved the draft off the chat it was shared to. Setting it up again re-seeds it from that chat, which
     // would put it back there.
     const hasMovedDraftToSelfDM = isSelfDMDestination && !isSelfDM(report);
+    // The draft is shared with the other create flows, so one left on the self DM by them must still be set up here first.
+    const hasSetUpDraftRef = useRef(false);
 
     useEffect(() => {
         if (transaction?.isAmountSet && transaction.currency) {
@@ -213,9 +219,10 @@ function SubmitDetailsPage({
 
         // Read when late data re-runs this, rather than listed below: listing it would re-seed the draft from the chat the
         // moment the user picks a report there again, replacing the one they picked.
-        if (hasMovedDraftToSelfDM) {
+        if (hasSetUpDraftRef.current && hasMovedDraftToSelfDM) {
             return;
         }
+        hasSetUpDraftRef.current = true;
 
         initMoneyRequest({
             reportID: reportOrAccountID,
@@ -436,7 +443,9 @@ function SubmitDetailsPage({
             if (isSelfDMDestination) {
                 trackExpense({
                     getCurrencyDecimals,
-                    report: destinationReport ?? {reportID: reportOrAccountID},
+                    // Without a report, trackExpense creates the missing self DM under the ID passed as optimisticChatReportID
+                    report: unsavedSelfDMReport ? undefined : (destinationReport ?? {reportID: reportOrAccountID}),
+                    optimisticChatReportID: unsavedSelfDMReport?.reportID,
                     isDraftPolicy: false,
                     isDraftChatReport: !!reportDraft,
                     participantParams: {payeeEmail: currentUserPersonalDetails.login, payeeAccountID: currentUserPersonalDetails.accountID, participant},
