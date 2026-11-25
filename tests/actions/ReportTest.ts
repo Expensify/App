@@ -12094,6 +12094,7 @@ describe('actions/Report', () => {
             });
 
             afterEach(async () => {
+                await Onyx.set(`${ONYXKEYS.COLLECTION.SNAPSHOT}${currentHash}`, null);
                 await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${adminSelfDMReportID}`, null);
                 await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${adminSelfDMReportID}`, null);
                 await Onyx.set(ONYXKEYS.SELF_DM_REPORT_ID, null);
@@ -12138,6 +12139,10 @@ describe('actions/Report', () => {
                     moneyRequestPreviewReportActionID: placeholderAction?.reportActionID,
                 });
 
+                // And the Search row points at the thread, since it has no IOU action for the next tap to find the thread through
+                const snapshot = await getOnyxValue(`${ONYXKEYS.COLLECTION.SNAPSHOT}${currentHash}`);
+                expect(snapshot?.data?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`]?.transactionThreadReportID).toBe(threadReportID);
+
                 await mockFetch.resume?.();
                 await waitForBatchedUpdates();
             });
@@ -12169,9 +12174,30 @@ describe('actions/Report', () => {
                 await waitForNetworkPromises();
                 await waitForBatchedUpdates();
 
-                // Then the placeholder is removed too, so the next open starts over
+                // Then the placeholder and the Search row's link to the thread are removed too, so the next open starts over
                 expect(await getPlaceholderAction(result)).toBeUndefined();
+                const snapshot = await getOnyxValue(`${ONYXKEYS.COLLECTION.SNAPSHOT}${currentHash}`);
+                expect(snapshot?.data?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`]?.transactionThreadReportID).toBeUndefined();
             });
+        });
+
+        it("should not open a legacy expense when the caller doesn't say whose it is", () => {
+            // Given a legacy unreported expense with no IOU action, from a caller that doesn't pass isOwnedByCurrentUser
+            const transaction = {...createRandomTransaction(608), reportID: CONST.REPORT.UNREPORTED_REPORT_ID};
+
+            // When its thread is created
+            const result = Report.createTransactionThreadReport({
+                introSelected: TEST_INTRO_SELECTED,
+                conciergeChat: undefined,
+                currentUserLogin: TEST_USER_LOGIN,
+                currentUserAccountID: TEST_USER_ACCOUNT_ID,
+                personalDetails: undefined,
+                transaction,
+            });
+
+            // Then nothing is created, because only a caller that decided the expense is another member's gets the generated parent
+            expect(result).toBeUndefined();
+            TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.OPEN_REPORT, 0);
         });
 
         it('should return an optimistic transaction thread report when given a valid report and action', async () => {

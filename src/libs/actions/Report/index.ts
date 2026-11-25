@@ -1829,6 +1829,7 @@ function openReport(params: OpenReportActionParams) {
               | typeof ONYXKEYS.COLLECTION.POLICY
               | typeof ONYXKEYS.NVP_ONBOARDING
               | typeof ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE
+              | typeof ONYXKEYS.COLLECTION.SNAPSHOT
           >
         | PersonalDetailsUtils.PersonalDetailsOnyxUpdate
     > = [
@@ -1895,6 +1896,7 @@ function openReport(params: OpenReportActionParams) {
               | typeof ONYXKEYS.COLLECTION.POLICY
               | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS
               | typeof ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE
+              | typeof ONYXKEYS.COLLECTION.SNAPSHOT
           >
         | PersonalDetailsUtils.PersonalDetailsOnyxUpdate
     > = [
@@ -2040,6 +2042,26 @@ function openReport(params: OpenReportActionParams) {
             };
             successData.push(removePlaceholderAction);
             failureData.push(removePlaceholderAction);
+
+            // The Search row still has no IOU action, so the thread ID on the row is what lets the next tap reopen this thread
+            const searchHash = getCurrentSearchQueryJSON()?.hash;
+            if (searchHash) {
+                const optimisticSnapshotData: NullishDeep<SearchResultDataType> = {};
+                optimisticSnapshotData[`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`] = {transactionThreadReportID: reportID};
+                optimisticData.push({
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${searchHash}` as const,
+                    value: {data: optimisticSnapshotData},
+                });
+
+                const failureSnapshotData: NullishDeep<SearchResultDataType> = {};
+                failureSnapshotData[`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`] = {transactionThreadReportID: null};
+                failureData.push({
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${searchHash}` as const,
+                    value: {data: failureSnapshotData},
+                });
+            }
         }
 
         parameters.moneyRequestPreviewReportActionID = iouReportActionID;
@@ -2587,7 +2609,7 @@ function createTransactionThreadReport(params: CreateTransactionThreadReportPara
     const isOwnedByCurrentUser = params.isOwnedByCurrentUser ?? iouReportAction?.actorAccountID === currentUserAccountID;
     const isInUnknownSelfDM = shouldUseSelfDM && !isOwnedByCurrentUser && !params.selfDMReportID;
 
-    const isOtherMemberLegacyExpense = isInUnknownSelfDM && !!transaction && !iouReportAction?.reportActionID;
+    const isOtherMemberLegacyExpense = isInUnknownSelfDM && params.isOwnedByCurrentUser === false && !!transaction && !iouReportAction?.reportActionID;
     if (isInUnknownSelfDM && !isOtherMemberLegacyExpense) {
         Log.warn('Cannot build transaction thread in the current user self DM for an expense owned by another user', {
             transactionID: transaction?.transactionID,

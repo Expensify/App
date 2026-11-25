@@ -15340,6 +15340,19 @@ describe('SearchUIUtils', () => {
                 expect(createTransactionThreadReport).toHaveBeenCalledWith(expect.objectContaining({selfDMReportID, isOwnedByCurrentUser: true}));
             });
 
+            test("Should reopen the thread already created for another member's legacy expense", () => {
+                // Given another member's legacy expense whose Search row already points at the thread opened for it
+                const existingThreadReportID = 'legacy-thread-123';
+                const item = {...buildLegacyUnreportedItem(true, currentUserAccountID + 1), transactionThreadReportID: existingThreadReportID};
+
+                // When the admin opens it again, before Search refreshes the row with the IOU action
+                const targetReportID = SearchUIUtils.createAndOpenSearchTransactionThread({...baseParams, item, shouldNavigate: false});
+
+                // Then that thread opens, so a second tap doesn't create another thread and send another OpenReport
+                expect(targetReportID).toBe(existingThreadReportID);
+                expect(createTransactionThreadReport).not.toHaveBeenCalled();
+            });
+
             test("Should open an expense on another member's managed card outside the admin's self DM", () => {
                 // Given an expense on another member's managed card, which an admin sees on their card feed
                 const item = buildLegacyUnreportedItem(true, currentUserAccountID + 1);

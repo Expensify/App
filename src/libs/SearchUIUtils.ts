@@ -2784,12 +2784,14 @@ function createAndOpenSearchTransactionThread({
         : {hasTransaction: false, hasParentReport: false, hasParentReportAction: false, hasTransactionThreadReport: true};
     setOptimisticDataForTransactionThreadPreview(item, previewData, getCurrencyDecimals, delegateAccountID, IOUTransactionID);
 
-    const hasActualTransactionThread = iouReportAction?.childReportID && iouReportAction?.childReportID !== CONST.FAKE_REPORT_ID;
+    // Another member's legacy expense has no IOU action to hold its thread, so a thread opened for it earlier is on the row
+    const existingTransactionThreadReportID = iouReportAction?.childReportID ?? (isOtherMemberLegacyExpense ? item.transactionThreadReportID : undefined);
+    const hasActualTransactionThread = !!existingTransactionThreadReportID && existingTransactionThreadReportID !== CONST.FAKE_REPORT_ID;
     let transactionThreadReport;
 
     // The transaction thread can be created from the chat page and the snapshot data is stale
     if (hasActualTransactionThread) {
-        transactionThreadReport = getReportOrDraftReport({reportID: iouReportAction.childReportID});
+        transactionThreadReport = getReportOrDraftReport({reportID: existingTransactionThreadReportID});
     }
 
     // Only create a new thread when there's no existing childReportID.
@@ -2826,7 +2828,7 @@ function createAndOpenSearchTransactionThread({
     // When we have an actual transaction thread (childReportID from Onyx) but the report isn't in Onyx yet
     // (e.g. Search didn't return the IOU action for deleted items), use childReportID directly so we don't navigate with undefined
     const targetReportID = shouldNavigateToTransactionThread
-        ? (transactionThreadReport?.reportID ?? (hasActualTransactionThread ? iouReportAction.childReportID : undefined))
+        ? (transactionThreadReport?.reportID ?? (hasActualTransactionThread ? existingTransactionThreadReportID : undefined))
         : item.reportID;
 
     if (shouldNavigate && targetReportID) {
