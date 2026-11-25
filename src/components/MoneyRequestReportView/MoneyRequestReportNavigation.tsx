@@ -76,6 +76,7 @@ const selectSnapshotPaging = (snapshot: OnyxEntry<SearchResults>): SnapshotPagin
     hasMoreResults: !!snapshot?.search?.hasMoreResults,
     offset: snapshot?.search?.offset ?? 0,
     isPending: isSearchPending(snapshot),
+    // Live results drop `errors`, so the response code is the only failure signal both kinds of search keep
     didFail: typeof snapshot?.search?.responseJsonCode === 'number',
 });
 
@@ -169,14 +170,16 @@ function MoneyRequestReportNavigationContent({reportID, shouldDisplayNarrowVersi
     const [lastSearchQuery] = useOnyx(ONYXKEYS.REPORT_NAVIGATION_LAST_SEARCH_QUERY);
     const shouldReturnTripRooms = useShouldReturnTripRooms(lastSearchQuery?.queryJSON?.type);
     const [paging = EMPTY_PAGING] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${lastSearchQuery?.queryJSON?.hash}`, {selector: selectSnapshotPaging});
+    // Other searches on this query, like a refetch carrying the Search list's offset, also mark the snapshot pending,
+    // so only the page this component asked for holds Next back
     const [requestedPageOffset, setRequestedPageOffset] = useState<number>();
     const isOwnPageRequestPending = paging.isPending && paging.offset === requestedPageOffset;
     const isFirstPageRefreshing = paging.isPending && paging.offset === 0;
     const isSearchLoading = paging.isLoading || isOwnPageRequestPending;
 
     const hasUnconfirmedPage = paging.isPending || paging.didFail;
-    const {answeredOffset: answeredLiveOffset} = useLiveRowLimit(paging.offset, hasUnconfirmedPage);
-    const confirmedSnapshotOffset = hasUnconfirmedPage ? Math.max(0, paging.offset - CONST.SEARCH.RESULTS_PAGE_SIZE) : paging.offset;
+    const {answeredOffset: answeredLiveOffset, confirmedOffset: confirmedSnapshotOffset} = useLiveRowLimit(paging.offset, hasUnconfirmedPage);
+    // A refresh rewinds the offset of a to-do search while its loaded rows stay in Onyx, so it pages on from the pages that answered
     const nextPageOffset = (shouldUseLiveData ? answeredLiveOffset : confirmedSnapshotOffset) + CONST.SEARCH.RESULTS_PAGE_SIZE;
 
     // Fast path: use the pre-computed IDs from the search context when they are usable and no page is in
@@ -203,6 +206,8 @@ function MoneyRequestReportNavigationContent({reportID, shouldDisplayNarrowVersi
     const effectiveAllReports = liveCurrentIndex === -1 && lastValidReports ? keepReportInPlace(allReports, lastValidReports, reportID) : allReports;
     const currentIndex = effectiveAllReports.indexOf(reportID);
 
+    // A first page response that lands after the next page would replace the snapshot and drop that page, and offline the
+    // request could only fail
     const canRequestNextPage = paging.hasMoreResults && !isOwnPageRequestPending && !isFirstPageRefreshing && !isOffline;
     const hideNextButton = !canRequestNextPage && currentIndex === effectiveAllReports.length - 1;
     const hidePrevButton = currentIndex === 0;
@@ -236,6 +241,8 @@ function MoneyRequestReportNavigationContent({reportID, shouldDisplayNarrowVersi
             const searchKey = lastSearchQuery.searchKey;
             const offset = nextPageOffset;
             setRequestedPageOffset(offset);
+            // Each Next press queues an OpenReport write, so waiting for writes would hold the page back. A refetch for an
+            // expense created meanwhile returns early while `isLoading` is set and is never retried, so the request leaves it unset.
             requestAnimationFrame(() => {
                 search({
                     queryJSON,

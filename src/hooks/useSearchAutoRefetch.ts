@@ -216,6 +216,8 @@ function useSearchAutoRefetch({
                 if (!transactionID) {
                     continue;
                 }
+                // Opening a report loads the originals of its split expenses. They are never Search rows, and a first page
+                // refetch for them would drop the pages the report navigation loaded.
                 if (!previousTransactionsIDsSet.has(key) && !isSplitContainerTransactionSelector(transaction)) {
                     addedTransactionIDs.push(transactionID);
                 }

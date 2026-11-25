@@ -8,6 +8,9 @@ type LiveRowLimit = {
     /** Offset of the last page the server answered. Unlike the snapshot offset, which every search() caller rewrites, it only moves forward. */
     answeredOffset: number;
 
+    /** Offset of the last page the current snapshot confirms. Unlike `answeredOffset`, it moves back when a refresh rewinds the snapshot. */
+    confirmedOffset: number;
+
     /** Shows one more page of live rows without the server, for when it has no pages left. */
     revealNextPage: () => void;
 };
@@ -32,7 +35,7 @@ function useLiveRowLimit(offset = 0, hasUnconfirmedPage = false): LiveRowLimit {
 
     const revealNextPage = () => setRevealedRows((rows) => rows + CONST.SEARCH.RESULTS_PAGE_SIZE);
 
-    return {liveRowLimit: Math.max(revealedRows, answeredRows), answeredOffset: currentAnsweredOffset, revealNextPage};
+    return {liveRowLimit: Math.max(revealedRows, answeredRows), answeredOffset: currentAnsweredOffset, confirmedOffset, revealNextPage};
 }
 
 export default useLiveRowLimit;
