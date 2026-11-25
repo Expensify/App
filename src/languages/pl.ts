@@ -6956,6 +6956,19 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
             },
             syncExpensifyCardSettlements: 'Synchronizuj rozliczenia Karty Expensify',
             settlementAccount: {label: 'Rachunek rozliczeniowy Karty Expensify', description: 'Wybierz swoje konto rozliczeniowe, a my utworzymy płatność w DualEntry.'},
+            settlementStream: {
+                sync: (currency: string) => `Synchronizuj rozliczenia Karty Expensify w ${currency}`,
+                description: (currency: string) => `Każde rozliczenie w ${currency} utworzymy w DualEntry jako przelew między dwoma poniższymi kontami.`,
+                selectAccountsFirst: 'Wybierz oba konta, aby to włączyć.',
+                bankAccount: {
+                    label: (currency: string) => `Rachunek rozliczeniowy w ${currency}`,
+                    description: (currency: string) => `Wybierz rachunek bankowy w ${currency}, z którego opłacane są rozliczenia Twojej Karty Expensify.`,
+                },
+                cardAccount: {
+                    label: (currency: string) => `Konto Karty Expensify w ${currency}`,
+                    description: (currency: string) => `Wybierz konto w ${currency}, które śledzi saldo Twojej Karty Expensify w DualEntry.`,
+                },
+            },
             syncTravelBillingSettlements: 'Synchronizuj rozliczenia Consolidated Travel Billing',
             travelBillingSettlementAccount: {
                 label: 'Konto rozliczeniowe skonsolidowanego rozliczania podróży',

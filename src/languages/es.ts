@@ -6914,6 +6914,19 @@ ${amount} para ${merchant} - ${date}`,
             },
             syncExpensifyCardSettlements: 'Sincronizar liquidaciones de la Tarjeta Expensify',
             settlementAccount: {label: 'Cuenta de liquidación de la Tarjeta Expensify', description: 'Elige tu cuenta de liquidación y crearemos el pago en DualEntry.'},
+            settlementStream: {
+                sync: (currency: string) => `Sincronizar liquidaciones de la Tarjeta Expensify en ${currency}`,
+                description: (currency: string) => `Crearemos cada liquidación en ${currency} en DualEntry como una transferencia entre las dos cuentas siguientes.`,
+                selectAccountsFirst: 'Selecciona ambas cuentas para activarlo.',
+                bankAccount: {
+                    label: (currency: string) => `Cuenta de liquidación en ${currency}`,
+                    description: (currency: string) => `Elige la cuenta bancaria en ${currency} desde la que se pagan las liquidaciones de tu Tarjeta Expensify.`,
+                },
+                cardAccount: {
+                    label: (currency: string) => `Cuenta de la Tarjeta Expensify en ${currency}`,
+                    description: (currency: string) => `Elige la cuenta en ${currency} que registra el saldo de tu Tarjeta Expensify en DualEntry.`,
+                },
+            },
             syncTravelBillingSettlements: 'Sincronizar liquidaciones de facturación de viajes consolidadas',
             travelBillingSettlementAccount: {
                 label: 'Cuenta de liquidación de facturación de viajes consolidada',

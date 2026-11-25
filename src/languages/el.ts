@@ -7067,6 +7067,19 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
             },
             syncExpensifyCardSettlements: 'Συγχρονισμός διακανονισμών κάρτας Expensify',
             settlementAccount: {label: 'λογαριασμός διακανονισμού κάρτας Expensify', description: 'Επιλέξτε τον λογαριασμό εκκαθάρισης και θα δημιουργήσουμε την πληρωμή στο DualEntry.'},
+            settlementStream: {
+                sync: (currency: string) => `Συγχρονισμός διακανονισμών κάρτας Expensify σε ${currency}`,
+                description: (currency: string) => `Θα δημιουργούμε κάθε διακανονισμό σε ${currency} στο DualEntry ως μεταφορά μεταξύ των δύο παρακάτω λογαριασμών.`,
+                selectAccountsFirst: 'Επιλέξτε και τους δύο λογαριασμούς για να το ενεργοποιήσετε.',
+                bankAccount: {
+                    label: (currency: string) => `Λογαριασμός διακανονισμού σε ${currency}`,
+                    description: (currency: string) => `Επιλέξτε τον τραπεζικό λογαριασμό σε ${currency} από τον οποίο πληρώνονται οι διακανονισμοί της κάρτας Expensify.`,
+                },
+                cardAccount: {
+                    label: (currency: string) => `Λογαριασμός κάρτας Expensify σε ${currency}`,
+                    description: (currency: string) => `Επιλέξτε τον λογαριασμό σε ${currency} που παρακολουθεί το υπόλοιπο της κάρτας Expensify στο DualEntry.`,
+                },
+            },
             syncTravelBillingSettlements: 'Συγχρονισμός διακανονισμών ενοποιημένης χρέωσης ταξιδιών',
             travelBillingSettlementAccount: {
                 label: 'λογαριασμός εκκαθάρισης συγκεντρωτικής χρέωσης ταξιδιών',

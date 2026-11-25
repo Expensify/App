@@ -17,7 +17,14 @@ import type {UrlWithParams} from './libs/Url';
 import type {Screen} from './SCREENS';
 import type {ExpenseRuleFormFieldID} from './types/form/ExpenseRuleForm';
 import type {CardFeedWithDomainID, CompanyCardFeedWithDomainID} from './types/onyx';
-import type {BusinessCentralBankAccountSettingName, ConnectionName, PolicyReportFieldType, SageIntacctMappingName} from './types/onyx/Policy';
+import type {
+    BusinessCentralBankAccountSettingName,
+    ConnectionName,
+    DualEntrySettlementStreamAccountSetting,
+    DualEntrySettlementStreamCurrency,
+    PolicyReportFieldType,
+    SageIntacctMappingName,
+} from './types/onyx/Policy';
 import type {CustomFieldType} from './types/onyx/PolicyEmployee';
 
 import Log from './libs/Log';
@@ -5665,6 +5672,11 @@ const ROUTES = {
     POLICY_ACCOUNTING_DUALENTRY_EXPENSIFY_CARD_SETTLEMENT_ACCOUNT: {
         route: 'workspaces/:policyID/accounting/dualentry/advanced/expensify-card-settlement-account',
         getRoute: (policyID: string) => `workspaces/${policyID}/accounting/dualentry/advanced/expensify-card-settlement-account` as const,
+    },
+    POLICY_ACCOUNTING_DUALENTRY_SETTLEMENT_STREAM_ACCOUNT: {
+        route: 'workspaces/:policyID/accounting/dualentry/advanced/settlement-stream/:currency/:setting',
+        getRoute: (policyID: string, currency: DualEntrySettlementStreamCurrency, setting: DualEntrySettlementStreamAccountSetting) =>
+            `workspaces/${policyID}/accounting/dualentry/advanced/settlement-stream/${currency}/${setting}` as const,
     },
     POLICY_ACCOUNTING_DUALENTRY_TRAVEL_BILLING_SETTLEMENT_ACCOUNT: {
         route: 'workspaces/:policyID/accounting/dualentry/advanced/travel-billing-settlement-account',

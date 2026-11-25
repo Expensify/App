@@ -1074,6 +1074,8 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
         require<ReactComponentModule>('../../../../pages/workspace/accounting/dualentry/advanced/DualEntryFxExpenseAccountPage').default,
     [SCREENS.WORKSPACE.ACCOUNTING.DUALENTRY_EXPENSIFY_CARD_SETTLEMENT_ACCOUNT]: () =>
         require<ReactComponentModule>('../../../../pages/workspace/accounting/dualentry/advanced/DualEntryExpensifyCardSettlementAccountPage').default,
+    [SCREENS.WORKSPACE.ACCOUNTING.DUALENTRY_SETTLEMENT_STREAM_ACCOUNT]: () =>
+        require<ReactComponentModule>('../../../../pages/workspace/accounting/dualentry/advanced/DualEntrySettlementStreamAccountPage').default,
     [SCREENS.WORKSPACE.ACCOUNTING.DUALENTRY_TRAVEL_BILLING_SETTLEMENT_ACCOUNT]: () =>
         require<ReactComponentModule>('../../../../pages/workspace/accounting/dualentry/advanced/DualEntryTravelBillingSettlementAccountPage').default,
     [SCREENS.WORKSPACE.ACCOUNTING.DUALENTRY_TRAVEL_BILLING_PAYABLE_ACCOUNT]: () =>

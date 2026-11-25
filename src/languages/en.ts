@@ -7181,6 +7181,19 @@ const translations = {
                 label: 'Expensify Card settlement account',
                 description: "Choose your settlement account and we'll create the payment in DualEntry.",
             },
+            settlementStream: {
+                sync: (currency: string) => `Sync ${currency} Expensify Card settlements`,
+                description: (currency: string) => `We'll create each ${currency} settlement in DualEntry as a transfer between the two accounts below.`,
+                selectAccountsFirst: 'Select both accounts to turn this on.',
+                bankAccount: {
+                    label: (currency: string) => `${currency} settlement account`,
+                    description: (currency: string) => `Choose the ${currency} bank account your Expensify Card settlements are paid from.`,
+                },
+                cardAccount: {
+                    label: (currency: string) => `${currency} Expensify Card account`,
+                    description: (currency: string) => `Choose the ${currency} account that tracks your Expensify Card balance in DualEntry.`,
+                },
+            },
             syncTravelBillingSettlements: 'Sync Consolidated Travel Billing settlements',
             travelBillingSettlementAccount: {
                 label: 'Consolidated Travel Billing settlement account',

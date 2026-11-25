@@ -5,7 +5,13 @@ import type CONST from '@src/CONST';
 import type {Route as Routes} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {CardFeedWithDomainID, CompanyCardFeedWithDomainID} from '@src/types/onyx';
-import type {BusinessCentralBankAccountSettingName, PolicyReportFieldType, SageIntacctMappingName} from '@src/types/onyx/Policy';
+import type {
+    BusinessCentralBankAccountSettingName,
+    DualEntrySettlementStreamAccountSetting,
+    DualEntrySettlementStreamCurrency,
+    PolicyReportFieldType,
+    SageIntacctMappingName,
+} from '@src/types/onyx/Policy';
 import type {CustomFieldType} from '@src/types/onyx/PolicyEmployee';
 
 import type {TupleToUnion, ValueOf} from 'type-fest';
@@ -1224,6 +1230,11 @@ type WorkspaceSettingsParamList = {
     };
     [SCREENS.WORKSPACE.ACCOUNTING.DUALENTRY_EXPENSIFY_CARD_SETTLEMENT_ACCOUNT]: {
         policyID: string;
+    };
+    [SCREENS.WORKSPACE.ACCOUNTING.DUALENTRY_SETTLEMENT_STREAM_ACCOUNT]: {
+        policyID: string;
+        currency: DualEntrySettlementStreamCurrency;
+        setting: DualEntrySettlementStreamAccountSetting;
     };
     [SCREENS.WORKSPACE.ACCOUNTING.DUALENTRY_TRAVEL_BILLING_SETTLEMENT_ACCOUNT]: {
         policyID: string;

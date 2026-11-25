@@ -4601,6 +4601,22 @@ const CONST = {
         TRAVEL_BILLING_SETTLEMENTS_BANK_ACCOUNT_ID: 'travelInvoicingSettlementsBankAccountID',
         FIELD_MAPPING_PREFIX: 'fieldMapping_',
         CARD_PROGRAM_ACCOUNT_PREFIX: 'cardProgramAccount_',
+        SETTLEMENT_STREAM_PREFIX: 'settlementStream_',
+    },
+
+    /**
+     * The UK/EU Expensify Card program settles in GBP or EUR. The backend keeps the settings of each
+     * currency under a key made of the card program and the currency.
+     */
+    DUALENTRY_SETTLEMENT_STREAM: {
+        GBP: 'GB:GBP',
+        EUR: 'GB:EUR',
+    },
+
+    DUALENTRY_SETTLEMENT_STREAM_SETTING: {
+        ENABLED: 'enabled',
+        BANK_ACCOUNT_ID: 'bankAccountID',
+        CARD_ACCOUNT_ID: 'cardAccountID',
     },
 
     DUALENTRY_MAPPING_VALUE: {

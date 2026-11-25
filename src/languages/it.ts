@@ -6918,6 +6918,19 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
             },
             syncExpensifyCardSettlements: 'Sincronizza le liquidazioni della Carta Expensify',
             settlementAccount: {label: 'Conto di regolamento Carta Expensify', description: 'Scegli il tuo conto di regolamento e creeremo il pagamento in DualEntry.'},
+            settlementStream: {
+                sync: (currency: string) => `Sincronizza le liquidazioni della Carta Expensify in ${currency}`,
+                description: (currency: string) => `Creeremo ogni liquidazione in ${currency} in DualEntry come trasferimento tra i due conti qui sotto.`,
+                selectAccountsFirst: 'Seleziona entrambi i conti per attivare questa opzione.',
+                bankAccount: {
+                    label: (currency: string) => `Conto di regolamento in ${currency}`,
+                    description: (currency: string) => `Scegli il conto bancario in ${currency} da cui vengono pagate le liquidazioni della tua Carta Expensify.`,
+                },
+                cardAccount: {
+                    label: (currency: string) => `Conto della Carta Expensify in ${currency}`,
+                    description: (currency: string) => `Scegli il conto in ${currency} che tiene traccia del saldo della tua Carta Expensify in DualEntry.`,
+                },
+            },
             syncTravelBillingSettlements: 'Sincronizza le liquidazioni della fatturazione di viaggio consolidata',
             travelBillingSettlementAccount: {
                 label: 'Conto di regolamento per la fatturazione di viaggio consolidata',

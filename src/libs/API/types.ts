@@ -602,6 +602,9 @@ const WRITE_COMMANDS = {
     UPDATE_DUALENTRY_FX_EXPENSE_ACCOUNT: 'UpdateDualEntryFxExpenseAccount',
     UPDATE_DUALENTRY_SYNC_EXPENSIFY_CARD_SETTLEMENTS: 'UpdateDualEntrySyncExpensifyCardSettlements',
     UPDATE_DUALENTRY_SETTLEMENTS_ACCOUNT: 'UpdateDualEntrySettlementsAccount',
+    UPDATE_DUALENTRY_SETTLEMENT_STREAM_ENABLED: 'UpdateDualEntrySettlementStreamEnabled',
+    UPDATE_DUALENTRY_SETTLEMENT_STREAM_BANK_ACCOUNT: 'UpdateDualEntrySettlementStreamBankAccount',
+    UPDATE_DUALENTRY_SETTLEMENT_STREAM_CARD_ACCOUNT: 'UpdateDualEntrySettlementStreamCardAccount',
     UPDATE_DUALENTRY_SYNC_TRAVEL_BILLING_SETTLEMENTS: 'UpdateDualEntrySyncTravelBillingSettlements',
     UPDATE_DUALENTRY_TRAVEL_BILLING_SETTLEMENTS_ACCOUNT: 'UpdateDualEntryTravelBillingSettlementsAccount',
     UPDATE_DUALENTRY_TRAVEL_BILLING_PAYABLE_ACCOUNT: 'UpdateDualEntryTravelBillingPayableAccount',
@@ -1420,6 +1423,9 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.UPDATE_DUALENTRY_FX_EXPENSE_ACCOUNT]: Parameters.UpdateDualEntryFxExpenseAccountParams;
     [WRITE_COMMANDS.UPDATE_DUALENTRY_SYNC_EXPENSIFY_CARD_SETTLEMENTS]: Parameters.UpdateDualEntrySyncExpensifyCardSettlementsParams;
     [WRITE_COMMANDS.UPDATE_DUALENTRY_SETTLEMENTS_ACCOUNT]: Parameters.UpdateDualEntrySettlementsAccountParams;
+    [WRITE_COMMANDS.UPDATE_DUALENTRY_SETTLEMENT_STREAM_ENABLED]: Parameters.UpdateDualEntrySettlementStreamEnabledParams;
+    [WRITE_COMMANDS.UPDATE_DUALENTRY_SETTLEMENT_STREAM_BANK_ACCOUNT]: Parameters.UpdateDualEntrySettlementStreamBankAccountParams;
+    [WRITE_COMMANDS.UPDATE_DUALENTRY_SETTLEMENT_STREAM_CARD_ACCOUNT]: Parameters.UpdateDualEntrySettlementStreamCardAccountParams;
     [WRITE_COMMANDS.UPDATE_DUALENTRY_SYNC_TRAVEL_BILLING_SETTLEMENTS]: Parameters.UpdateDualEntrySyncTravelBillingSettlementsParams;
     [WRITE_COMMANDS.UPDATE_DUALENTRY_TRAVEL_BILLING_SETTLEMENTS_ACCOUNT]: Parameters.UpdateDualEntryTravelBillingSettlementsAccountParams;
     [WRITE_COMMANDS.UPDATE_DUALENTRY_TRAVEL_BILLING_PAYABLE_ACCOUNT]: Parameters.UpdateDualEntryTravelBillingPayableAccountParams;

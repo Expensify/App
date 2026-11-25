@@ -772,6 +772,7 @@ const SCREENS = {
             DUALENTRY_BILL_PAYMENT_ACCOUNT: 'Policy_Accounting_DualEntry_Bill_Payment_Account',
             DUALENTRY_FX_EXPENSE_ACCOUNT: 'Policy_Accounting_DualEntry_Fx_Expense_Account',
             DUALENTRY_EXPENSIFY_CARD_SETTLEMENT_ACCOUNT: 'Policy_Accounting_DualEntry_Expensify_Card_Settlement_Account',
+            DUALENTRY_SETTLEMENT_STREAM_ACCOUNT: 'Policy_Accounting_DualEntry_Settlement_Stream_Account',
             DUALENTRY_TRAVEL_BILLING_SETTLEMENT_ACCOUNT: 'Policy_Accounting_DualEntry_Travel_Billing_Settlement_Account',
             DUALENTRY_TRAVEL_BILLING_PAYABLE_ACCOUNT: 'Policy_Accounting_DualEntry_Travel_Billing_Payable_Account',
             CAMPFIRE_SETUP: 'Policy_Accounting_Campfire_Setup',

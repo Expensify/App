@@ -2173,6 +2173,29 @@ type DualEntryAutoSync = {
     jobID?: string | null;
 };
 
+/** Key the backend stores a UK/EU settlement stream under, made of the card program and the currency. */
+type DualEntrySettlementStreamKey = ValueOf<typeof CONST.DUALENTRY_SETTLEMENT_STREAM>;
+
+/** Currency a UK/EU settlement stream settles in. */
+type DualEntrySettlementStreamCurrency = keyof typeof CONST.DUALENTRY_SETTLEMENT_STREAM;
+
+/** The two account settings of a settlement stream that an admin picks from the DualEntry accounts. */
+type DualEntrySettlementStreamAccountSetting = typeof CONST.DUALENTRY_SETTLEMENT_STREAM_SETTING.BANK_ACCOUNT_ID | typeof CONST.DUALENTRY_SETTLEMENT_STREAM_SETTING.CARD_ACCOUNT_ID;
+
+/**
+ * Settings of one UK/EU Expensify Card settlement stream in DualEntry.
+ */
+type DualEntrySettlementStream = {
+    /** Whether the stream's settlements are synced. The backend only accepts true once both accounts are selected. */
+    enabled?: boolean;
+
+    /** Bank account the stream's settlements are paid from. It must be in the stream's currency. */
+    bankAccountID?: string;
+
+    /** Account that tracks the Expensify Card balance the stream's settlements clear. It must be in the stream's currency. */
+    cardAccountID?: string;
+};
+
 /**
  * Synchronization settings for importing and updating data in DualEntry.
  */
@@ -2197,7 +2220,13 @@ type DualEntrySync = {
 
     /** Bank account used for travel billing settlements. */
     travelInvoicingSettlementsBankAccountID: string;
+
+    /** UK/EU Expensify Card settlement streams. US settlements use syncExpensifyCardSettlements and settlementsBankAccountID. */
+    settlementStreams?: Partial<Record<DualEntrySettlementStreamKey, DualEntrySettlementStream>>;
 };
+
+/** Offline feedback key for one setting of a settlement stream */
+type DualEntrySettlementStreamOfflineFeedbackKey = `${typeof CONST.DUALENTRY_CONFIG.SETTLEMENT_STREAM_PREFIX}${DualEntrySettlementStreamKey}_${keyof DualEntrySettlementStream}`;
 
 /**
  * Connection config for DualEntry.
@@ -2230,7 +2259,11 @@ type DualEntryConnectionsConfig = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** Collection of form field errors  */
         errorFields?: OnyxCommon.ErrorFields;
     },
-    DualEntryCodingOfflineFeedbackKeys | DualEntryExportOfflineFeedbackKeys | keyof DualEntryAutoSync | keyof DualEntrySync
+    | DualEntryCodingOfflineFeedbackKeys
+    | DualEntryExportOfflineFeedbackKeys
+    | keyof DualEntryAutoSync
+    | keyof Omit<DualEntrySync, 'settlementStreams'>
+    | DualEntrySettlementStreamOfflineFeedbackKey
 >;
 
 /**
@@ -4575,6 +4608,12 @@ export type {
     DualEntryExportDate,
     DualEntryVendor,
     DualEntryAccount,
+    DualEntryConnectionData,
+    DualEntrySettlementStream,
+    DualEntrySettlementStreamAccountSetting,
+    DualEntrySettlementStreamCurrency,
+    DualEntrySettlementStreamKey,
+    DualEntrySettlementStreamOfflineFeedbackKey,
     DualEntryExport,
     DualEntryAutoSync,
     DualEntrySync,

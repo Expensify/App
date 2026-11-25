@@ -40,6 +40,8 @@ import {CONST as COMMON_CONST} from 'expensify-common';
 import React from 'react';
 import {View} from 'react-native';
 
+import DualEntrySettlementStreamSection from './DualEntrySettlementStreamSection';
+
 function DualEntryAdvancedPage({policy}: WithPolicyConnectionsProps) {
     const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
     const {translate} = useLocalize();
@@ -198,6 +200,18 @@ function DualEntryAdvancedPage({policy}: WithPolicyConnectionsProps) {
                             </MenuItemField>
                         </OfflineWithFeedback>
                     </Accordion>
+                    {!!policyID && (
+                        <>
+                            <DualEntrySettlementStreamSection
+                                policyID={policyID}
+                                currency={CONST.CURRENCY.GBP}
+                            />
+                            <DualEntrySettlementStreamSection
+                                policyID={policyID}
+                                currency={CONST.CURRENCY.EUR}
+                            />
+                        </>
+                    )}
                 </>
             )}
             {isTravelBillingEnabled && (
