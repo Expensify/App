@@ -82,6 +82,7 @@ function useReportActionsPagination(reportID: string | undefined, reportActionID
     // to display at least one expense action to match the total data.
     const reportActionsToDisplay = getReportActionsToDisplay({
         reportViewActions: allReportActions,
+        isMoneyRequestReport: isMoneyRequestReport(report),
         hasPendingExpense,
         placeholderCreatedAction,
         placeholderExpenseAction,
@@ -121,6 +122,7 @@ function useReportExpenseActions(report: OnyxEntry<Report>, unfilteredReportActi
     const allReportActions = getFilteredReportActionsForReportView(unfilteredReportActions);
     const moneyRequestActions = isMoneyRequest ? allReportActions.filter(isTransactionThread) : undefined;
     const hasPendingExpense = moneyRequestActions?.some((action) => !!action.pendingAction) ?? false;
+    // Keep the total visible while offline cached actions contain fewer expenses than the report preview.
     const hasMissingExpenses = !!moneyRequestActions && allReportActions.length > 0 && !!report?.total && moneyRequestActions.length < (reportPreviewAction?.childMoneyRequestCount ?? 0);
     return {allReportActions, reportPreviewAction, hasPendingExpense, hasMissingExpenses};
 }

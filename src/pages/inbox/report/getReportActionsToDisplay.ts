@@ -14,6 +14,8 @@ type GetReportActionsToDisplayParams = {
     /** The report's own actions in the loaded window, newest first. */
     reportViewActions: OnyxTypes.ReportAction[];
 
+    isMoneyRequestReport: boolean;
+
     hasPendingExpense: boolean;
 
     /** A placeholder CREATED action to add when the loaded window doesn't reach the report's own one. */
@@ -28,8 +30,18 @@ type GetReportActionsToDisplayParams = {
  * because these actions only arrive with the `OpenReport` response. This adds a placeholder CREATED action, and a
  * placeholder expense when fewer expense actions are loaded than the report preview counts, so the total can show.
  */
-function getReportActionsToDisplay({reportViewActions, hasPendingExpense, placeholderCreatedAction, placeholderExpenseAction}: GetReportActionsToDisplayParams): OnyxTypes.ReportAction[] {
+function getReportActionsToDisplay({
+    reportViewActions,
+    isMoneyRequestReport,
+    hasPendingExpense,
+    placeholderCreatedAction,
+    placeholderExpenseAction,
+}: GetReportActionsToDisplayParams): OnyxTypes.ReportAction[] {
     const actions = placeholderCreatedAction ? [...reportViewActions, placeholderCreatedAction] : [...reportViewActions];
+
+    if (!isMoneyRequestReport || !reportViewActions.length) {
+        return actions;
+    }
 
     if (placeholderExpenseAction) {
         actions.splice(actions.length - 1, 0, placeholderExpenseAction);
