@@ -4554,7 +4554,9 @@ ${amount} για ${merchant} - ${date}`,
     },
     welcomeSignUpForm: {
         join: 'Συμμετοχή',
-        marketingSMSConsent: 'Συμφωνώ να λαμβάνω προωθητικά μηνύματα από την Expensify',
+        transactionalSMSConsent: 'Δίνοντας τον αριθμό τηλεφώνου μου, συμφωνώ να λαμβάνω ειδοποιήσεις συναλλαγών για τον λογαριασμό μου από την Expensify.',
+        transactionalSMSConsentFinePrint: 'Ενδέχεται να ισχύουν οι τυπικές χρεώσεις μηνυμάτων και δεδομένων. Απαντήστε STOP για διακοπή.',
+        marketingSMSConsent: 'Συμφωνώ να λαμβάνω προωθητικά μηνύματα από την Expensify.',
     },
     detailsPage: {
         localTime: 'Τοπική ώρα',
