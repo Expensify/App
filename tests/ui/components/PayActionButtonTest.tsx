@@ -3,7 +3,9 @@ import {act, render} from '@testing-library/react-native';
 import PayActionButton from '@components/ReportActionItem/MoneyRequestReportPreview/PayActionButton';
 import type {PaymentActionParams} from '@components/SettlementButton/types';
 
+import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import usePayViaABA from '@hooks/usePayViaABA';
 
 import {hasHeldExpensesFromTransactions, hasViolations} from '@libs/ReportUtils';
 
@@ -66,13 +68,15 @@ function createOnyxResult<T>(value: NonNullable<T> | undefined): UseOnyxResult<T
 // Capture the onPress (confirmPayment) handler PayActionButton passes to the settlement button so the payment can be
 // confirmed with a specific selected bank account, mirroring a user picking an account in the dropdown.
 const mockOnPressHolder: {current?: (params: PaymentActionParams) => void} = {current: undefined};
+const mockLoadingState = {isLoading: false, isActionLoading: false};
 // Also capture confirmApproval so the approval path (the only consumer of hasViolations here) can be triggered.
 const mockConfirmApprovalHolder: {current?: () => void} = {current: undefined};
 jest.mock('@components/SettlementButton/AnimatedSettlementButton', () => ({
     __esModule: true,
-    default: (props: {onPress?: (params: PaymentActionParams) => void; confirmApproval?: () => void}) => {
+    default: (props: {onPress?: (params: PaymentActionParams) => void; confirmApproval?: () => void; isLoading: boolean}) => {
         mockOnPressHolder.current = props.onPress;
         mockConfirmApprovalHolder.current = props.confirmApproval;
+        mockLoadingState.isLoading = props.isLoading;
         return null;
     },
 }));
@@ -124,6 +128,8 @@ jest.mock('@hooks/useLastWorkspaceNumber', () => ({__esModule: true, default: je
 jest.mock('@hooks/useCurrencyList', () => ({__esModule: true, useCurrencyListActions: jest.fn(() => ({convertToDisplayString: () => '$100.00'}))}));
 jest.mock('@hooks/useParticipantsInvoiceReport', () => ({__esModule: true, default: jest.fn(() => undefined)}));
 jest.mock('@hooks/usePolicy', () => ({__esModule: true, default: jest.fn(() => undefined)}));
+const mockPayReportsViaABA = jest.fn();
+jest.mock('@hooks/usePayViaABA', () => ({__esModule: true, default: jest.fn(() => ({payReportsViaABA: mockPayReportsViaABA, isDownloadingABAFile: false}))}));
 jest.mock('@hooks/useReportTransactionsCollection', () => ({__esModule: true, default: jest.fn(() => ({}))}));
 jest.mock('@hooks/useOnyx', () => jest.fn());
 
@@ -166,9 +172,15 @@ describe('PayActionButton', () => {
         mockOnPressHolder.current = undefined;
         mockConfirmApprovalHolder.current = undefined;
         mockTransactionViolations = {};
+        mockLoadingState.isActionLoading = false;
+        jest.mocked(useNetwork).mockReturnValue({isOffline: false});
+        jest.mocked(usePayViaABA).mockReturnValue({payReportsViaABA: mockPayReportsViaABA, isDownloadingABAFile: false});
         mockedHasHeldExpenses.mockReturnValue(false);
         mockedHasViolations.mockReturnValue(false);
         mockedUseOnyx.mockImplementation((key) => {
+            if (key === `${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${TEST_IOU_REPORT_ID}`) {
+                return createOnyxResult(mockLoadingState.isActionLoading);
+            }
             if (key === `${ONYXKEYS.COLLECTION.REPORT}${TEST_IOU_REPORT_ID}`) {
                 return createOnyxResult<Report>(iouReport);
             }
@@ -177,6 +189,35 @@ describe('PayActionButton', () => {
             }
             return createOnyxResult(undefined);
         });
+    });
+
+    it('stops showing queued payment loading offline and restores protection on reconnect', () => {
+        // Given a payable report with a payment still queued after cancelling it offline
+        mockLoadingState.isActionLoading = true;
+        const view = renderPayActionButton();
+        expect(mockLoadingState.isLoading).toBe(true);
+
+        // When connectivity changes without the queued payment completing
+        jest.mocked(useNetwork).mockReturnValue({isOffline: true});
+        view.rerender(<PayActionButton />);
+
+        // Then offline loading stops, but reconnecting protects against duplicate payment again
+        expect(mockLoadingState.isLoading).toBe(false);
+        jest.mocked(useNetwork).mockReturnValue({isOffline: false});
+        view.rerender(<PayActionButton />);
+        expect(mockLoadingState.isLoading).toBe(true);
+    });
+
+    it('keeps ABA download loading visible even offline', () => {
+        // Given an ABA file download that has not completed
+        jest.mocked(useNetwork).mockReturnValue({isOffline: true});
+        jest.mocked(usePayViaABA).mockReturnValue({payReportsViaABA: mockPayReportsViaABA, isDownloadingABAFile: true});
+
+        // When the payable report preview renders offline
+        renderPayActionButton();
+
+        // Then the unrelated file download still shows its loading indicator
+        expect(mockLoadingState.isLoading).toBe(true);
     });
 
     it('forwards the selected bank account to payMoneyRequest when paying with a business bank account', async () => {
@@ -201,6 +242,21 @@ describe('PayActionButton', () => {
                 methodID: SELECTED_BANK_ACCOUNT_ID,
             }),
         );
+    });
+
+    it('downloads the ABA file instead of only instantly marking the report as paid when paying via ABA', async () => {
+        // Given the report preview's pay button
+        renderPayActionButton();
+
+        // When "Pay via ABA" is picked
+        act(() => {
+            mockOnPressHolder.current?.({paymentType: CONST.IOU.PAYMENT_TYPE.ELSEWHERE, paymentMethod: CONST.PAYMENT_METHODS.ABA});
+        });
+        await waitForBatchedUpdates();
+
+        // Then the report's ABA file is downloaded, which marks it as paid, instead of only marking it as "paid elsewhere" instantly, and the paid animation plays once it has
+        expect(mockPayReportsViaABA).toHaveBeenCalledWith([expect.objectContaining({reportID: TEST_IOU_REPORT_ID})], undefined, {onPaid: mockReportPreviewActions.startAnimation});
+        expect(mockedPayMoneyRequest).not.toHaveBeenCalled();
     });
 
     it('does not send a bank account for non-VBBA payment types', async () => {
@@ -242,6 +298,7 @@ describe('PayActionButton', () => {
                 reportID: TEST_IOU_REPORT_ID,
                 chatReportID: TEST_CHAT_REPORT_ID,
                 paymentType: CONST.IOU.PAYMENT_TYPE.VBBA,
+                paymentMethod: CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT,
                 methodID: SELECTED_BANK_ACCOUNT_ID,
                 transactionCount: 0,
                 onConfirm: mockReportPreviewActions.startAnimation,
@@ -263,5 +320,20 @@ describe('PayActionButton', () => {
         // Then the payment goes straight through without asking about held expenses
         expect(mockShowHoldMenu).not.toHaveBeenCalled();
         expect(mockedPayMoneyRequest).toHaveBeenCalled();
+    });
+
+    it('opens the hold menu for paying via ABA when the report has held expenses', () => {
+        // Given a report with held expenses
+        mockedHasHeldExpenses.mockReturnValue(true);
+        renderPayActionButton();
+
+        // When "Pay via ABA" is picked
+        act(() => {
+            mockOnPressHolder.current?.({paymentType: CONST.IOU.PAYMENT_TYPE.ELSEWHERE, paymentMethod: CONST.PAYMENT_METHODS.ABA});
+        });
+
+        // Then the hold menu asks whether to pay the held expenses too, and remembers that the report is paid via ABA
+        expect(mockShowHoldMenu).toHaveBeenCalledWith(expect.objectContaining({paymentType: CONST.IOU.PAYMENT_TYPE.ELSEWHERE, paymentMethod: CONST.PAYMENT_METHODS.ABA}));
+        expect(mockPayReportsViaABA).not.toHaveBeenCalled();
     });
 });

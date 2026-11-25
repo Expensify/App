@@ -18,11 +18,13 @@ import {Str} from 'expensify-common';
 import Onyx from 'react-native-onyx';
 
 import type {CompanyAddressOriginalMessage, UpdateACHAccountOriginalMessage} from '../../src/libs/ReportActionsUtils';
-import type {Card, DecisionName, PersonalDetails, PersonalDetailsList, Report, ReportAction, ReportActions} from '../../src/types/onyx';
+import type {Card, DecisionName, PersonalDetails, PersonalDetailsList, Policy, Report, ReportAction, ReportActions} from '../../src/types/onyx';
+import type {CompanyCardFeedWithNumber} from '../../src/types/onyx/CardFeeds';
 import type {OriginalMessageExportIntegration} from '../../src/types/onyx/OriginalMessage';
 import type {CompanyAddress} from '../../src/types/onyx/Policy';
 import type {ReportCollectionDataSet} from '../../src/types/onyx/Report';
 import type {ReportActionsCollectionDataSet} from '../../src/types/onyx/ReportAction';
+import type {Reservation} from '../../src/types/onyx/Transaction';
 
 import {actionR14932 as mockIOUAction, originalMessageR14932 as mockOriginalMessage} from '../../__mocks__/reportData/actions';
 import {chatReportR14932 as mockChatReport, iouReportR14932 as mockIOUReport} from '../../__mocks__/reportData/reports';
@@ -1573,6 +1575,24 @@ describe('ReportActionsUtils', () => {
             ]);
         });
 
+        it('links several Digits card transactions to their Digits ledger', () => {
+            // Given a Digits export that created a ledger transaction for each of two company card expenses
+            const action = buildExportedToIntegrationAction(CONST.EXPORT_LABELS.DIGITS, [
+                'https://my.digits.com/@acme/transactions/ledger/txn-1',
+                'https://my.digits.com/@acme/transactions/ledger/txn-2',
+            ]);
+
+            // When the export confirmation is formatted
+            const fragments = ReportActionsUtils.getExportIntegrationActionFragments(translateLocal, action);
+
+            // Then the company card link opens the company's Digits ledger instead of falling back to QuickBooks Online
+            expect(fragments).toEqual([
+                {text: `exported to ${CONST.EXPORT_LABELS.DIGITS}`, url: ''},
+                {text: 'and successfully created a record for', url: ''},
+                {text: 'company card expenses', url: 'https://my.digits.com/@acme/transactions/ledger'},
+            ]);
+        });
+
         it('does not link Business Central export record IDs', () => {
             // Given an export with one out-of-pocket record and multiple company card records stored as IDs
             const action = buildExportedToIntegrationAction(CONST.EXPORT_LABELS.BUSINESS_CENTRAL, ['card-record-1', 'card-record-2'], ['reimbursable-record-1']);
@@ -1616,6 +1636,29 @@ describe('ReportActionsUtils', () => {
     });
 
     describe('getReportActionMessageFragments', () => {
+        it('should keep the Concierge link in the html and drop the tags from the text for a Wise failed deposit', () => {
+            // Given a REIMBURSEMENT_DEPOSIT_FAILED action before Auth fills in the reason, whose copy links to Concierge
+            const action: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_DEPOSIT_FAILED> = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_DEPOSIT_FAILED,
+                reportActionID: '1',
+                created: '2026-08-10 00:00:00.000',
+                message: [],
+            };
+
+            // When getting the message fragments of the action
+            const fragments = ReportActionsUtils.getReportActionMessageFragments(translateLocal, action);
+
+            // Then the report renders the link from html, while text, used where HTML can't render, reads as a plain sentence
+            const sentence = "Payment failed: the recipient's bank rejected it. Funds will most likely return, though payment may still complete late. Look for another update.";
+            expect(fragments).toEqual([
+                {
+                    text: `${sentence} Chat with Concierge.`,
+                    html: `<muted-text>${sentence} Chat with <concierge-link>Concierge</concierge-link>.</muted-text>`,
+                    type: 'COMMENT',
+                },
+            ]);
+        });
+
         it('should return the correct fragment for the DYNAMIC_EXTERNAL_WORKFLOW_ROUTED action', () => {
             // Given a DYNAMIC_EXTERNAL_WORKFLOW_ROUTED action
             const action: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.DYNAMIC_EXTERNAL_WORKFLOW_ROUTED> = {
@@ -2075,6 +2118,377 @@ describe('ReportActionsUtils', () => {
 
             expect(message).toBe(translateLocal('report.actions.type.integrationsMessage', errorMessage, 'Intuit Enterprise Suite', '', ''));
         });
+
+        it('should keep the delayed message when a fraud review hold sends no estimate', () => {
+            // Given a REIMBURSEMENT_DELAYED action from the fraud review hold, which carries neither an estimate nor a completion
+            const action: Parameters<typeof ReportActionsUtils.getMessageOfOldDotReportAction>[1] = {
+                reportActionID: '1',
+                created: '2026-08-10 00:00:00.000',
+                actionName: CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_DELAYED,
+                originalMessage: {},
+            };
+
+            // When the message is built
+            const message = ReportActionsUtils.getMessageOfOldDotReportAction(translateLocal, action);
+
+            // Then it keeps the existing delay copy, because this path did not change
+            expect(message).toBe('Processed the payment but it’s delayed by 1-2 more business days.');
+        });
+
+        it('should show the new delivery estimate when Wise changes it', () => {
+            // Given a REIMBURSEMENT_DELAYED action Wise posted with a new estimate
+            const action: Parameters<typeof ReportActionsUtils.getMessageOfOldDotReportAction>[1] = {
+                reportActionID: '1',
+                created: '2026-08-10 00:00:00.000',
+                actionName: CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_DELAYED,
+                originalMessage: {expectedDate: '2026-08-20'},
+            };
+
+            // When the message is built
+            const message = ReportActionsUtils.getMessageOfOldDotReportAction(translateLocal, action);
+
+            // Then it names the new date instead of the generic 1-2 business day delay
+            expect(message).toBe('Funds are now expected to arrive by August 20, 2026.');
+        });
+
+        it('should announce an earlier delivery estimate as good news', () => {
+            // Given a REIMBURSEMENT_DELAYED action Wise posted when the estimate moved earlier
+            const action: Parameters<typeof ReportActionsUtils.getMessageOfOldDotReportAction>[1] = {
+                reportActionID: '1',
+                created: '2026-08-10 00:00:00.000',
+                actionName: CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_DELAYED,
+                originalMessage: {expectedDate: '2026-08-17', previousExpectedDate: '2026-08-20'},
+            };
+
+            // When the message is built
+            const message = ReportActionsUtils.getMessageOfOldDotReportAction(translateLocal, action);
+
+            // Then it uses the sooner copy, because the employee gets the money earlier than promised
+            expect(message).toBe('Great news, funds are now expected to arrive by August 17, 2026.');
+        });
+
+        it('should use the plain estimate copy when the delivery estimate moves later', () => {
+            // Given a REIMBURSEMENT_DELAYED action Wise posted when the estimate moved later
+            const action: Parameters<typeof ReportActionsUtils.getMessageOfOldDotReportAction>[1] = {
+                reportActionID: '1',
+                created: '2026-08-10 00:00:00.000',
+                actionName: CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_DELAYED,
+                originalMessage: {expectedDate: '2026-08-20', previousExpectedDate: '2026-08-17'},
+            };
+
+            // When the message is built
+            const message = ReportActionsUtils.getMessageOfOldDotReportAction(translateLocal, action);
+
+            // Then it states the new date without calling it good news
+            expect(message).toBe('Funds are now expected to arrive by August 20, 2026.');
+        });
+
+        it('should compare delivery estimates sent in the Auth date-time format', () => {
+            // Given a REIMBURSEMENT_DELAYED action whose dates use Auth's "yyyy-MM-dd HH:mm:ss" format and moved earlier
+            const action: Parameters<typeof ReportActionsUtils.getMessageOfOldDotReportAction>[1] = {
+                reportActionID: '1',
+                created: '2026-08-10 00:00:00.000',
+                actionName: CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_DELAYED,
+                originalMessage: {expectedDate: '2026-08-17 00:00:00', previousExpectedDate: '2026-08-20 00:00:00'},
+            };
+
+            // When the message is built
+            const message = ReportActionsUtils.getMessageOfOldDotReportAction(translateLocal, action);
+
+            // Then it still recognizes the earlier date, because both dates are parsed in UTC
+            expect(message).toBe('Great news, funds are now expected to arrive by August 17, 2026.');
+        });
+
+        it.each([
+            ['the estimate is unchanged', '2026-08-20', '2026-08-20'],
+            ['the estimate moved earlier within the same day', '2026-08-20 08:00:00', '2026-08-20 17:00:00'],
+            ['a date-only estimate replaces a date-time one on the same day', '2026-08-20', '2026-08-20 12:00:00'],
+            ['the previous estimate cannot be parsed', '2026-08-20', 'not a date'],
+        ])('should not call it good news when %s', (_, expectedDate, previousExpectedDate) => {
+            // Given a REIMBURSEMENT_DELAYED action whose shown day is not earlier than the previous estimate
+            const action: Parameters<typeof ReportActionsUtils.getMessageOfOldDotReportAction>[1] = {
+                reportActionID: '1',
+                created: '2026-08-10 00:00:00.000',
+                actionName: CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_DELAYED,
+                originalMessage: {expectedDate, previousExpectedDate},
+            };
+
+            // When the message is built
+            const message = ReportActionsUtils.getMessageOfOldDotReportAction(translateLocal, action);
+
+            // Then it uses the plain copy, because the message only shows the day and "Great news" next to the same date reads as a mistake
+            expect(message).toBe('Funds are now expected to arrive by August 20, 2026.');
+        });
+
+        it('should confirm the funds arrived when the arrival date cannot be parsed', () => {
+            // Given a completed REIMBURSEMENT_DELAYED action with a malformed date
+            const action: Parameters<typeof ReportActionsUtils.getMessageOfOldDotReportAction>[1] = {
+                reportActionID: '1',
+                created: '2026-08-10 00:00:00.000',
+                actionName: CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_DELAYED,
+                originalMessage: {expectedDate: 'not a date', completed: true},
+            };
+
+            // When the message is built
+            const message = ReportActionsUtils.getMessageOfOldDotReportAction(translateLocal, action);
+
+            // Then it still says the money landed, without an empty "arrived on ." date
+            expect(message).toBe('Funds arrived.');
+        });
+
+        it('should keep the delay copy when the delivery estimate cannot be parsed', () => {
+            // Given a REIMBURSEMENT_DELAYED action with a malformed date
+            const action: Parameters<typeof ReportActionsUtils.getMessageOfOldDotReportAction>[1] = {
+                reportActionID: '1',
+                created: '2026-08-10 00:00:00.000',
+                actionName: CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_DELAYED,
+                originalMessage: {expectedDate: 'not a date'},
+            };
+
+            // When the message is built
+            const message = ReportActionsUtils.getMessageOfOldDotReportAction(translateLocal, action);
+
+            // Then it never shows "arrive by ." with an empty date
+            expect(message).toBe('Processed the payment but it’s delayed by 1-2 more business days.');
+        });
+
+        it('should say when the funds arrived once a delayed or failed deposit completes', () => {
+            // Given a REIMBURSEMENT_DELAYED action Wise posted when the deposit completed, carrying the arrival date
+            const action: Parameters<typeof ReportActionsUtils.getMessageOfOldDotReportAction>[1] = {
+                reportActionID: '1',
+                created: '2026-08-10 00:00:00.000',
+                actionName: CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_DELAYED,
+                originalMessage: {expectedDate: '2026-08-20', completed: true},
+            };
+
+            // When the message is built
+            const message = ReportActionsUtils.getMessageOfOldDotReportAction(translateLocal, action);
+
+            // Then it confirms the arrival, because a new estimate would be wrong for a payment that already landed
+            expect(message).toBe('Funds arrived on August 20, 2026.');
+        });
+
+        it('should confirm the funds arrived even without an arrival date', () => {
+            // Given a completed REIMBURSEMENT_DELAYED action that has no date
+            const action: Parameters<typeof ReportActionsUtils.getMessageOfOldDotReportAction>[1] = {
+                reportActionID: '1',
+                created: '2026-08-10 00:00:00.000',
+                actionName: CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_DELAYED,
+                originalMessage: {completed: true},
+            };
+
+            // When the message is built
+            const message = ReportActionsUtils.getMessageOfOldDotReportAction(translateLocal, action);
+
+            // Then it still says the money landed instead of falling back to the fraud review delay copy
+            expect(message).toBe('Funds arrived.');
+        });
+
+        it.each([
+            ['WRONG_ACCOUNT_NUMBER', 'incorrect account number'],
+            ['WRONG_ACCOUNT_DETAILS', 'incorrect account number or bank code'],
+            ['WRONG_BANK_CODE', 'incorrect bank code'],
+            ['WRONG_BRANCH_CODE', 'incorrect branch code'],
+            ['WRONG_ACCOUNT_TYPE', 'incorrect account type'],
+            ['WRONG_CARD_NUMBER', 'incorrect card number'],
+            ['WRONG_CARD_TYPE', "the recipient's bank doesn't accept this card type"],
+            ['WRONG_NAME', "the account holder name doesn't match"],
+            ['WRONG_PHONE_NUMBER', 'incorrect recipient phone number'],
+            ['WRONG_ID_NUMBER', 'incorrect recipient ID number'],
+            ['WRONG_RUT_NUMBER', 'incorrect recipient tax ID'],
+            ['TAX_ID_NOT_MATCHING', "the tax ID doesn't match the recipient's name"],
+            ['WRONG_CURRENCY', 'the recipient account is in a different currency'],
+            ['ACCOUNT_DOES_NOT_EXIST', "the account doesn't exist at the recipient's bank"],
+            ['EXTERNAL_IDENTIFIER_DETAILS_HAVE_CHANGED', "the recipient's bank details have changed"],
+            ['ACCOUNT_CLOSED', 'the recipient account is closed'],
+            ['ACCOUNT_FROZEN', 'the recipient account is frozen'],
+            ['ACCOUNT_BLOCKED', 'the recipient account is blocked'],
+            ['ACCOUNT_LIMIT_REACHED', 'the recipient account has reached a limit'],
+            ['TAX_ID_SUSPENDED', "the recipient's tax ID is suspended"],
+            ['CANNOT_ACCEPT_FROM_3RD_PARTY', "the recipient's bank doesn't accept third-party payments"],
+            ['CREDITING_ACCOUNT_FORBIDDEN', "the recipient account can't be credited"],
+            ['BUSINESS_PAYMENTS_FORBIDDEN', "the recipient account doesn't accept business payments"],
+            ['RETURN_REQUESTED_BY_RECIPIENT', 'the recipient asked for it to be returned'],
+            ['FUNDS_NOT_EXPECTED_RETURNED', "the recipient's bank wasn't expecting it and returned it"],
+            ['DUPLICATE_ENTRY', "the recipient's bank saw it as a duplicate payment"],
+            ['MANDATE_NOT_FILLED_IN', "the recipient didn't complete their bank's form in time"],
+            ['REQUEST_FOR_INFORMATION_EXPIRED', 'a request for more information expired'],
+            ['WRONG_REFERENCE', 'the payment reference was rejected'],
+            ['WRONG_PAYMENT_PURPOSE', 'the payment purpose was rejected'],
+            ['SENDER_REQUESTED_TO_CANCEL', 'the payment was cancelled'],
+            ['TECHNICAL_ISSUE', 'a technical issue at our payments partner'],
+            ['TECHNICAL_ISSUE_RETRYABLE', 'a technical issue at our payments partner, which will retry'],
+        ])('should name the reason when a deposit fails with Wise code %s', (reason, words) => {
+            // Given a REIMBURSEMENT_DEPOSIT_FAILED action with a Wise failure code we have words for
+            const action: Parameters<typeof ReportActionsUtils.getMessageOfOldDotReportAction>[1] = {
+                reportActionID: '1',
+                created: '2026-08-10 00:00:00.000',
+                actionName: CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_DEPOSIT_FAILED,
+                originalMessage: {reason},
+            };
+
+            // When the message is built
+            const message = ReportActionsUtils.getMessageOfOldDotReportAction(translateLocal, action);
+
+            // Then it shows the approved wording for that code, never Wise's raw code, so a swapped mapping or a copy change fails here
+            expect(message).toBe(
+                `Payment failed: ${words}. Funds will most likely return, though payment may still complete late. Look for another update. Chat with <concierge-link>Concierge</concierge-link>.`,
+            );
+            expect(message).not.toContain(reason);
+        });
+
+        it.each([
+            ['the reason has not arrived yet', undefined],
+            ['the reason is empty', ''],
+            ['Wise did not specify a reason', 'REASON_NOT_SPECIFIED'],
+            ['the Wise code is unknown to the App', 'SOME_NEW_CODE'],
+            ['the code matches an Object prototype key', 'toString'],
+        ])('should say the bank rejected the deposit when %s', (_, reason) => {
+            // Given a REIMBURSEMENT_DEPOSIT_FAILED action without a reason we have words for
+            const action: Parameters<typeof ReportActionsUtils.getMessageOfOldDotReportAction>[1] = {
+                reportActionID: '1',
+                created: '2026-08-10 00:00:00.000',
+                actionName: CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_DEPOSIT_FAILED,
+                originalMessage: {reason},
+            };
+
+            // When the message is built
+            const message = ReportActionsUtils.getMessageOfOldDotReportAction(translateLocal, action);
+
+            // Then it uses the generic reason, because Auth fills the reason in later and Wise can add new codes
+            expect(message).toBe(
+                "Payment failed: the recipient's bank rejected it. Funds will most likely return, though payment may still complete late. Look for another update. Chat with <concierge-link>Concierge</concierge-link>.",
+            );
+        });
+
+        it('should name the bank account the refund went back to', () => {
+            // Given a REIMBURSEMENT_REFUNDED action with the payer's bank account
+            const action: Parameters<typeof ReportActionsUtils.getMessageOfOldDotReportAction>[1] = {
+                reportActionID: '1',
+                created: '2026-08-10 00:00:00.000',
+                actionName: CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_REFUNDED,
+                originalMessage: {amount: 1000, currency: 'USD', debitBankAccountLast4: '1234'},
+            };
+
+            // When the message is built
+            const message = ReportActionsUtils.getMessageOfOldDotReportAction(translateLocal, action);
+
+            // Then the payer knows which account to check before retrying
+            expect(message).toBe('Funds were returned to bank account 1234. You can retry the payment.');
+        });
+
+        it('should still offer a retry when the refund has no bank account', () => {
+            // Given a REIMBURSEMENT_REFUNDED action without the payer's bank account
+            const action: Parameters<typeof ReportActionsUtils.getMessageOfOldDotReportAction>[1] = {
+                reportActionID: '1',
+                created: '2026-08-10 00:00:00.000',
+                actionName: CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_REFUNDED,
+                originalMessage: {},
+            };
+
+            // When the message is built
+            const message = ReportActionsUtils.getMessageOfOldDotReportAction(translateLocal, action);
+
+            // Then it leaves the account out instead of showing an empty number
+            expect(message).toBe('Funds were returned. You can retry the payment.');
+        });
+
+        it('should show the App copy for a held payment', () => {
+            // Given a Wise hold action, which carries no fields
+            const action: Parameters<typeof ReportActionsUtils.getMessageOfOldDotReportAction>[1] = {
+                reportActionID: '1',
+                created: '2026-08-10 00:00:00.000',
+                actionName: CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_HELD,
+                originalMessage: {},
+            };
+
+            // When the message is built
+            const message = ReportActionsUtils.getMessageOfOldDotReportAction(translateLocal, action);
+
+            // Then it uses the approved App copy instead of Auth's English fallback
+            expect(message).toBe('Payment on hold while our partner completes a review. Look for another update. Chat with <concierge-link>Concierge</concierge-link>.');
+        });
+
+        it('should give the delivery estimate when a held payment is released', () => {
+            // Given a Wise release action with the estimate Wise gave once the hold cleared
+            const action: Parameters<typeof ReportActionsUtils.getMessageOfOldDotReportAction>[1] = {
+                reportActionID: '1',
+                created: '2026-08-10 00:00:00.000',
+                actionName: CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_RELEASED,
+                originalMessage: {expectedDate: '2026-08-20'},
+            };
+
+            // When the message is built
+            const message = ReportActionsUtils.getMessageOfOldDotReportAction(translateLocal, action);
+
+            // Then the employee learns when the funds arrive, and nothing about the exchange rate, which Wise locked when we created the transfer
+            expect(message).toBe('Payment released, funds are expected to arrive by August 20, 2026.');
+        });
+
+        it.each([
+            ['carries no date', {}],
+            ['carries a date that cannot be read', {expectedDate: 'not a date'}],
+        ])('should say a held payment was released when the action %s', (_, originalMessage) => {
+            // Given a Wise release action without a usable delivery estimate
+            const action: Parameters<typeof ReportActionsUtils.getMessageOfOldDotReportAction>[1] = {
+                reportActionID: '1',
+                created: '2026-08-10 00:00:00.000',
+                actionName: CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_RELEASED,
+                originalMessage,
+            };
+
+            // When the message is built
+            const message = ReportActionsUtils.getMessageOfOldDotReportAction(translateLocal, action);
+
+            // Then it still says the payment was released, without an empty date
+            expect(message).toBe('Payment released.');
+        });
+
+        it.each([
+            CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_DEPOSIT_FAILED,
+            CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_HELD,
+            CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_REFUNDED,
+            CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_RELEASED,
+        ])('should keep %s visible in the report', (actionName) => {
+            // Given a new Wise action as Auth sends it, which the visibility filter drops unless the App knows its name
+            const authText = "Concierge couldn't deposit the reimbursement because the employee's bank rejected it.";
+            const reportAction: ReportAction = {
+                actionName,
+                reportActionID: '1',
+                created: '2026-08-10',
+                message: [{type: CONST.REPORT.MESSAGE.TYPE.COMMENT, html: authText, text: authText}],
+            };
+
+            // When visibility is checked
+            const isVisible = ReportActionsUtils.shouldReportActionBeVisible(reportAction, reportAction.reportActionID, true);
+
+            // Then the employee sees it in the report
+            expect(isVisible).toBe(true);
+        });
+    });
+
+    describe('getMessageTextOfOldDotReportAction', () => {
+        it.each([
+            [CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_HELD, 'Payment on hold while our partner completes a review. Look for another update. Chat with Concierge.'],
+            [
+                CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_DEPOSIT_FAILED,
+                "Payment failed: the recipient's bank rejected it. Funds will most likely return, though payment may still complete late. Look for another update. Chat with Concierge.",
+            ],
+        ] as const)('should return %s without HTML tags', (actionName, expectedText) => {
+            // Given a Wise action whose copy contains a <concierge-link> tag
+            const action: Parameters<typeof ReportActionsUtils.getMessageTextOfOldDotReportAction>[1] = {
+                reportActionID: '1',
+                created: '2026-08-10 00:00:00.000',
+                actionName,
+                originalMessage: {},
+            };
+
+            // When the plain text used by the LHN, thread title and clipboard is built
+            const text = ReportActionsUtils.getMessageTextOfOldDotReportAction(translateLocal, action);
+
+            // Then the tag is gone, because those surfaces would show it as raw markup
+            expect(text).toBe(expectedText);
+        });
     });
 
     describe('getSendMoneyFlowAction', () => {
@@ -2395,6 +2809,28 @@ describe('ReportActionsUtils', () => {
         it('should return false for CREATED_REPORT_FOR_UNAPPROVED_TRANSACTIONS action with empty message array', () => {
             const reportAction = buildOptimisticCreatedReportForUnapprovedAction('123456', '789012');
             expect(ReportActionsUtils.isDeletedAction(reportAction)).toBe(false);
+        });
+
+        it.each<{message: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.ACTION_DELEGATE_SUBMIT>['message']}>([
+            {message: []},
+            {message: [{html: '', text: '', type: CONST.REPORT.MESSAGE.TYPE.COMMENT}]},
+        ])('should keep delegate submit actions visible when their message is $message', ({message}) => {
+            // Given a delegate submit action whose text is rendered from originalMessage rather than message
+            const reportAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.ACTION_DELEGATE_SUBMIT> = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.ACTION_DELEGATE_SUBMIT,
+                reportActionID: '1',
+                created: '2026-11-19 12:00:00.000',
+                message,
+                originalMessage: {originalManager: '1', delegate: '2', isOnPolicy: false},
+            };
+
+            // When the live action is checked before OpenReport supplies rendered message fragments
+            const isDeleted = ReportActionsUtils.isDeletedAction(reportAction);
+            const isVisible = ReportActionsUtils.shouldReportActionBeVisible(reportAction, reportAction.reportActionID);
+
+            // Then the system message must remain visible without reopening the report
+            expect(isDeleted).toBe(false);
+            expect(isVisible).toBe(true);
         });
 
         it('should return false for CARD_ISSUED_VIRTUAL action with empty message array', () => {
@@ -3202,6 +3638,132 @@ describe('ReportActionsUtils', () => {
             expect(actual).toBe(false);
         });
 
+        it.each([
+            [CONST.REPORT.TYPE.INVOICE, true],
+            [CONST.REPORT.TYPE.EXPENSE, false],
+            [CONST.REPORT.TYPE.IOU, false],
+        ] as const)('shows a NewDot REIMBURSED action on a %s report: %s', async (reportType, isVisible) => {
+            // Given a NewDot payment action on a report. Paying a bill adds no IOU PAY action to its invoice.
+            const reportID = `newDotReimbursed-${reportType}`;
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {
+                reportID,
+                type: reportType,
+            });
+            const reportAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REIMBURSED> = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.REIMBURSED,
+                reportActionID: '1',
+                created: '2025-01-01',
+                message: [{type: 'TEXT', style: 'normal', text: 'paid this report'}],
+                originalMessage: {isNewDot: true},
+            };
+
+            // When the action's visibility is checked for its report
+            const actual = ReportActionsUtils.shouldReportActionBeVisible(reportAction, reportAction.reportActionID, true, undefined, reportID);
+
+            // Then only invoices show it, because other reports show their IOU PAY action instead
+            expect(actual).toBe(isVisible);
+        });
+
+        it.each([
+            [CONST.REPORT.TYPE.INVOICE, true],
+            [CONST.REPORT.TYPE.EXPENSE, false],
+            [CONST.REPORT.TYPE.IOU, false],
+        ] as const)('shows a NewDot MARKED_REIMBURSED action that Auth hides on a %s report: %s', async (reportType, isVisible) => {
+            // Given a report marked as paid from NewDot. Auth sets shouldShow to false on it, because expense reports show an IOU PAY action instead.
+            const reportID = `newDotMarkedReimbursed-${reportType}`;
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {
+                reportID,
+                type: reportType,
+            });
+            const reportAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED> = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED,
+                reportActionID: '2',
+                created: '2026-10-30 21:11:55.001',
+                message: [
+                    {
+                        type: 'TEXT',
+                        style: 'normal',
+                        text: 'marked this report as reimbursed',
+                    },
+                ],
+                originalMessage: {isNewDot: true, message: ''},
+                shouldShow: false,
+            };
+
+            // When the action's visibility is checked for its report
+            const actual = ReportActionsUtils.shouldReportActionBeVisible(reportAction, reportAction.reportActionID, true, undefined, reportID);
+
+            // Then only invoices show it, because marking a bill as paid adds no IOU PAY action to its invoice
+            expect(actual).toBe(isVisible);
+        });
+
+        it('hides a NewDot MARKED_REIMBURSED action on an invoice that has an IOU PAY action', async () => {
+            // Given an invoice paid in NewDot. PayInvoice adds a MARKED_REIMBURSED action and an IOU PAY action for the same payment.
+            const reportID = 'paidInvoiceWithPaySibling';
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {
+                reportID,
+                type: CONST.REPORT.TYPE.INVOICE,
+            });
+            const markedReimbursedAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED> = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED,
+                reportActionID: '1',
+                reportID,
+                created: '2025-01-01 00:00:00',
+                message: [
+                    {
+                        type: 'TEXT',
+                        style: 'normal',
+                        text: 'marked this report as reimbursed',
+                    },
+                ],
+                originalMessage: {isNewDot: true, message: ''},
+                shouldShow: false,
+            };
+            const payAction = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                reportActionID: '2',
+                reportID,
+                created: '2025-01-01 00:00:01',
+                message: [{type: 'TEXT', style: 'normal', text: 'paid'}],
+                originalMessage: {
+                    type: CONST.IOU.REPORT_ACTION_TYPE.PAY,
+                    IOUReportID: reportID,
+                    amount: 100,
+                    currency: CONST.CURRENCY.USD,
+                },
+            } as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU>;
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
+                [markedReimbursedAction.reportActionID]: markedReimbursedAction,
+                [payAction.reportActionID]: payAction,
+            });
+
+            // When the action's visibility is checked for the invoice
+            const actual = ReportActionsUtils.shouldReportActionBeVisible(markedReimbursedAction, markedReimbursedAction.reportActionID, true, undefined, reportID);
+
+            // Then it stays hidden, because the IOU PAY action already shows the payment
+            expect(actual).toBe(false);
+        });
+
+        it("uses the action's reportID to find the invoice when no reportID is passed", async () => {
+            // Given a NewDot REIMBURSED action whose own reportID points to an invoice
+            const reportID = 'invoiceFromActionReportID';
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {reportID, type: CONST.REPORT.TYPE.INVOICE});
+            const reimbursedAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REIMBURSED> = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.REIMBURSED,
+                reportActionID: '1',
+                reportID,
+                created: '2025-01-01 00:00:00',
+                message: [{type: 'TEXT', style: 'normal', text: 'paid this report'}],
+                originalMessage: {isNewDot: true},
+            };
+
+            // When the action's visibility is checked without a reportID
+            const actual = ReportActionsUtils.shouldReportActionBeVisible(reimbursedAction, reimbursedAction.reportActionID, true);
+
+            // Then it shows, because the action's own reportID tells that it belongs to an invoice
+            expect(actual).toBe(true);
+        });
+
         it('should return false for MARKED_REIMBURSED with stale flags when the report has a sibling IOU PAY action', async () => {
             // Given a MARKED_REIMBURSED action with stale write-time flags (no isNewDot, shouldShow not false)
             const reportID = 'reportWithPaySibling';
@@ -3438,6 +4000,86 @@ describe('ReportActionsUtils', () => {
             } as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT>;
 
             const actual = ReportActionsUtils.shouldReportActionBeVisible(reportAction, reportAction.reportActionID, true, CURRENT_USER_ACCOUNT_ID);
+            expect(actual).toBe(true);
+        });
+
+        it('should return false for an actionable report mention whisper when the user cannot create rooms on the policy', () => {
+            // Given a policy chat where the current user has the approve-only role
+            const reportID = '9001';
+            const policyID = 'policy_approve_only';
+            const policy: Policy = {
+                id: policyID,
+                name: 'Approve Only Policy',
+                type: CONST.POLICY.TYPE.CORPORATE,
+                role: CONST.POLICY.ROLE.APPROVE_ONLY,
+                owner: 'owner@test.com',
+                outputCurrency: CONST.CURRENCY.USD,
+            };
+
+            const reportAction = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_REPORT_MENTION_WHISPER,
+                reportActionID: '1',
+                reportID,
+                created: '2025-09-29',
+                message: [{html: 'create room?', type: 'COMMENT', text: 'create room?'}],
+                originalMessage: {},
+            } as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_REPORT_MENTION_WHISPER>;
+
+            // When checking visibility of the room creation whisper
+            const actual = ReportActionsUtils.shouldReportActionBeVisible(
+                reportAction,
+                reportAction.reportActionID,
+                true,
+                undefined,
+                reportID,
+                false,
+                undefined,
+                undefined,
+                policy,
+                'member@test.com',
+            );
+
+            // Then it is hidden because approve-only members cannot create policy rooms
+            expect(actual).toBe(false);
+        });
+
+        it('should return true for an actionable report mention whisper when the user can create rooms on the policy', () => {
+            // Given a policy chat where the current user has the member role
+            const reportID = '9002';
+            const policyID = 'policy_member';
+            const policy: Policy = {
+                id: policyID,
+                name: 'Member Policy',
+                type: CONST.POLICY.TYPE.CORPORATE,
+                role: CONST.POLICY.ROLE.USER,
+                owner: 'owner@test.com',
+                outputCurrency: CONST.CURRENCY.USD,
+            };
+
+            const reportAction = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_REPORT_MENTION_WHISPER,
+                reportActionID: '1',
+                reportID,
+                created: '2025-09-29',
+                message: [{html: 'create room?', type: 'COMMENT', text: 'create room?'}],
+                originalMessage: {},
+            } as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_REPORT_MENTION_WHISPER>;
+
+            // When checking visibility of the room creation whisper
+            const actual = ReportActionsUtils.shouldReportActionBeVisible(
+                reportAction,
+                reportAction.reportActionID,
+                true,
+                undefined,
+                reportID,
+                false,
+                undefined,
+                undefined,
+                policy,
+                'member@test.com',
+            );
+
+            // Then it is visible because regular members can create policy rooms
             expect(actual).toBe(true);
         });
     });
@@ -5241,6 +5883,85 @@ describe('ReportActionsUtils', () => {
     });
 
     describe('getWorkspaceUpdateFieldMessage', () => {
+        describe.each([
+            [1, '1st'],
+            [2, '2nd'],
+            [3, '3rd'],
+            [21, '21st'],
+            ['1', '1st'],
+            ['15', '15th'],
+            [CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_DAY_OF_MONTH, 'Last day of the month'],
+            [CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_BUSINESS_DAY_OF_MONTH, 'Last business day of the month'],
+            [CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_MONDAY_OF_MONTH, 'Last Monday'],
+            [CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_TUESDAY_OF_MONTH, 'Last Tuesday'],
+            [CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_WEDNESDAY_OF_MONTH, 'Last Wednesday'],
+            [CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_THURSDAY_OF_MONTH, 'Last Thursday'],
+            [CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_FRIDAY_OF_MONTH, 'Last Friday'],
+            [CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_SATURDAY_OF_MONTH, 'Last Saturday'],
+            [CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_SUNDAY_OF_MONTH, 'Last Sunday'],
+        ])('monthly offset %s', (offset, displayName) => {
+            it('should display the new date instead of the server message', () => {
+                // Given a valid monthly date change whose server text must not replace the localized message
+                const action = {
+                    actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_FIELD,
+                    reportActionID: '1',
+                    created: '',
+                    message: [{type: 'COMMENT', text: 'server message'}],
+                    originalMessage: {
+                        updatedField: CONST.POLICY.COLLECTION_KEYS.AUTOREPORTING_OFFSET,
+                        oldValue: 1,
+                        newValue: offset,
+                    },
+                } as ReportAction;
+
+                // When building the admin log message
+                const result = getWorkspaceUpdateFieldMessage(translateLocal, action);
+
+                // Then both dates remain visible, including named weekday offsets
+                expect(result).toBe(`updated the monthly report submission date to "${displayName}" (previously "1st")`);
+            });
+
+            it('should display the previous date rather than treating it as unset', () => {
+                // Given a change away from a saved monthly offset
+                const action = {
+                    actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_FIELD,
+                    reportActionID: '1',
+                    created: '',
+                    originalMessage: {
+                        updatedField: CONST.POLICY.COLLECTION_KEYS.AUTOREPORTING_OFFSET,
+                        oldValue: offset,
+                        newValue: 1,
+                    },
+                } as ReportAction;
+
+                // When building the admin log message
+                const result = getWorkspaceUpdateFieldMessage(translateLocal, action);
+
+                // Then a named previous date keeps the updated wording and is not lost
+                expect(result).toBe(`updated the monthly report submission date to "1st" (previously "${displayName}")`);
+            });
+        });
+
+        it('should use set wording when the previous monthly offset is empty', () => {
+            // Given a workspace without a previous monthly date
+            const action = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_FIELD,
+                reportActionID: '1',
+                created: '',
+                originalMessage: {
+                    updatedField: CONST.POLICY.COLLECTION_KEYS.AUTOREPORTING_OFFSET,
+                    oldValue: '',
+                    newValue: CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_FRIDAY_OF_MONTH,
+                },
+            } as ReportAction;
+
+            // When building the admin log message
+            const result = getWorkspaceUpdateFieldMessage(translateLocal, action);
+
+            // Then the new date is translated without inventing a previous date
+            expect(result).toBe('set the monthly report submission date to "Last Friday"');
+        });
+
         it('should return the App message when the workspace timezone changes', () => {
             // Given a timezone update whose server text would otherwise be shown as is
             const action = {
@@ -6367,6 +7088,54 @@ describe('ReportActionsUtils', () => {
             const actual = ReportActionsUtils.getWorkspaceCustomUnitRateUpdatedMessage(translateLocal, undefined, action);
             expect(actual).toBe('updated the distance rate "Default Rate" to apply for all dates (previously March 1, 2026 - April 30, 2026)');
         });
+
+        it('should not repeat the percentage when a tax rate added to a rate already ends with it', () => {
+            // Given a tax rate whose code was built from the name `Standard VAT (20%)`, so the code already ends with its percentage
+            const action: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CUSTOM_UNIT_RATE> = {
+                reportActionID: '1',
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CUSTOM_UNIT_RATE,
+                created: '',
+                originalMessage: {
+                    customUnitName: 'Distance',
+                    customUnitRateName: 'Default Rate',
+                    updatedField: 'taxRateExternalID',
+                    oldValue: '',
+                    newValue: 'id_STANDARD_VAT_(20%)',
+                    oldTaxPercentage: '',
+                    newTaxPercentage: '20%',
+                },
+            };
+
+            // When the log message is built
+            const actual = ReportActionsUtils.getWorkspaceCustomUnitRateUpdatedMessage(translateLocal, undefined, action);
+
+            // Then the percentage is shown once
+            expect(actual).toBe('added the tax rate "id_STANDARD_VAT_(20%)" to the distance rate "Default Rate"');
+        });
+
+        it('should not repeat the percentage when the previous tax rate of a rate already ends with it', () => {
+            // Given a rate moved from a tax rate whose code ends with its percentage to one whose code doesn't
+            const action: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CUSTOM_UNIT_RATE> = {
+                reportActionID: '1',
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CUSTOM_UNIT_RATE,
+                created: '',
+                originalMessage: {
+                    customUnitName: 'Distance',
+                    customUnitRateName: 'Default Rate',
+                    updatedField: 'taxRateExternalID',
+                    oldValue: 'id_STANDARD_VAT_(20%)',
+                    newValue: 'id_TAX_RATE_1',
+                    oldTaxPercentage: '20%',
+                    newTaxPercentage: '5%',
+                },
+            };
+
+            // When the log message is built
+            const actual = ReportActionsUtils.getWorkspaceCustomUnitRateUpdatedMessage(translateLocal, undefined, action);
+
+            // Then the previous tax rate shows its percentage once, and the new one still gets its percentage added
+            expect(actual).toBe('changed the tax rate on the distance rate "Default Rate" to "id_TAX_RATE_1 (5%)" (previously "id_STANDARD_VAT_(20%)")');
+        });
     });
 
     describe('getWorkspaceCustomUnitUpdatedMessage', () => {
@@ -7357,6 +8126,29 @@ describe('ReportActionsUtils', () => {
             const result = getCategoryTaxRateMessage(translateLocal, action);
             expect(result).toBe('changed the "Office Supplies" category default tax rate to "Tax Rate 1 (5%)" (previously "Deleted Tax Rate")');
         });
+
+        it('should not repeat the percentage of a tax rate whose name already ends with it', () => {
+            // Given a category default moved to the tax rate created for UK fuel-band distance rates, whose name already ends with its percentage
+            const action = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CATEGORY_TAX_RATE,
+                reportActionID: '1',
+                created: '',
+                originalMessage: {
+                    categoryName: 'Car',
+                    oldTaxName: 'Tax Rate 1',
+                    oldTaxPercentage: '5%',
+                    newTaxName: 'Standard VAT (20%)',
+                    newTaxPercentage: '20%',
+                },
+                message: [],
+            } as ReportAction;
+
+            // When the log message is built
+            const result = getCategoryTaxRateMessage(translateLocal, action);
+
+            // Then the new rate shows its percentage once, and the old rate still gets its percentage added
+            expect(result).toBe('changed the "Car" category default tax rate to "Standard VAT (20%)" (previously "Tax Rate 1 (5%)")');
+        });
     });
 
     describe('getMccGroupCategoryMessage', () => {
@@ -8151,6 +8943,66 @@ describe('ReportActionsUtils', () => {
             isReversed: false,
         };
 
+        it.each([
+            {actionName: CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION, originalMessage: {label: CONST.EXPORT_LABELS.NETSUITE, lastModified: '2023-01-01 11:00:00.000'}, expected: null},
+            {
+                actionName: CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION,
+                originalMessage: {label: CONST.EXPORT_LABELS.QBO, lastModified: '2023-01-01 11:00:00.000'},
+                expected: 'system-action',
+            },
+            {actionName: CONST.REPORT.ACTIONS.TYPE.REIMBURSED, originalMessage: {actionableForAccountIDs: [currentUserAccountID]}, expected: 'system-action'},
+            {actionName: CONST.REPORT.ACTIONS.TYPE.REIMBURSED, originalMessage: {actionableForAccountIDs: [99]}, expected: null},
+            {actionName: CONST.REPORT.ACTIONS.TYPE.REIMBURSED, originalMessage: {}, expected: 'system-action'},
+        ])('limits automatic markers for $actionName with $originalMessage', ({actionName, originalMessage, expected}) => {
+            // Given an unread system action, including legacy reimbursements without recipient metadata
+            const action = makeAction({reportActionID: 'system-action', actionName, originalMessage});
+
+            // When scanning online or offline in either list direction
+            for (const isOffline of [false, true]) {
+                for (const isReversed of [false, true]) {
+                    // Then only NetSuite exports and reimbursements targeted to someone else are suppressed
+                    expect(getUnreadMarkerReportAction({...baseScanParams, visibleReportActions: [action], isOffline, isReversed})).toEqual([expected, expected ? 0 : -1]);
+                }
+            }
+        });
+
+        it.each([
+            {actionName: CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION, originalMessage: {label: CONST.EXPORT_LABELS.NETSUITE, lastModified: '2023-01-01 11:00:00.000'}},
+            {actionName: CONST.REPORT.ACTIONS.TYPE.REIMBURSED, originalMessage: {actionableForAccountIDs: [99]}},
+        ])('skips informational $actionName without hiding a real unread message', ({actionName, originalMessage}) => {
+            // Given a real unread comment next to a filtered informational action
+            const comment = makeAction({reportActionID: 'comment', created: '2023-01-01 12:00:00.000'});
+            const informational = makeAction({reportActionID: 'informational', actionName, originalMessage});
+            const read = makeAction({reportActionID: 'read', created: '2023-01-01 09:00:00.000'});
+
+            // When the informational action falls before or after the comment in either list direction
+            for (const informationalIsNewer of [false, true]) {
+                const filtered = {...informational, created: informationalIsNewer ? '2023-01-01 13:00:00.000' : informational.created};
+                const newestFirst = informationalIsNewer ? [filtered, comment, read] : [comment, filtered, read];
+                for (const isReversed of [false, true]) {
+                    const actions = isReversed ? [...newestFirst].reverse() : newestFirst;
+                    // Then the real comment keeps the divider at its original list index
+                    expect(getUnreadMarkerReportAction({...baseScanParams, visibleReportActions: actions, isReversed})).toEqual(['comment', actions.indexOf(comment)]);
+                }
+            }
+        });
+
+        it('preserves the existing explicit message-level unread override for a NetSuite export', () => {
+            // Given a NetSuite export explicitly marked unread by the user
+            const action = makeAction({
+                reportActionID: 'manual-export',
+                actionName: CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION,
+                originalMessage: {label: CONST.EXPORT_LABELS.NETSUITE, lastModified: '2023-01-01 11:00:00.000'},
+            });
+
+            // When scanning with the manual anchor main already stores
+            // Then automatic filtering must not change that explicit message-level command
+            expect(getUnreadMarkerReportAction({...baseScanParams, visibleReportActions: [action], manuallyMarkedUnreadReportActionID: action.reportActionID})).toEqual([
+                action.reportActionID,
+                0,
+            ]);
+        });
+
         it('short-circuits to [null, -1] for an anonymous user', () => {
             const visibleReportActions = [makeAction({reportActionID: 'a'})];
             expect(
@@ -8256,6 +9108,77 @@ describe('ReportActionsUtils', () => {
                     prevSortedVisibleReportActionsObjects: {},
                 }),
             ).toEqual([null, -1]);
+        });
+    });
+
+    describe('getCompanyCardConsentExpiringMessage', () => {
+        const amexFeed = `${CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX_DIRECT} 1001` as CompanyCardFeedWithNumber;
+        const buildConsentExpiringAction = (originalMessage: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.COMPANY_CARD_CONSENT_EXPIRING>['originalMessage']) =>
+            ({
+                actionName: CONST.REPORT.ACTIONS.TYPE.COMPANY_CARD_CONSENT_EXPIRING,
+                reportActionID: 'consent-expiring-1',
+                actorAccountID: 1,
+                created: '2026-11-04',
+                message: [],
+                originalMessage,
+            }) as ReportAction;
+
+        it('shows the bank name when the feed has no custom name', () => {
+            // Given a warning for a feed without a custom name, so Auth sends the internal feed name as the feed name
+            const action = buildConsentExpiringAction({policyID: 'pol123', bank: amexFeed, feedName: amexFeed, warningDaysBeforeExpiry: 14});
+
+            // When the warning message is built
+            const result = ReportActionsUtils.getCompanyCardConsentExpiringMessage(translateLocal, action);
+
+            // Then it names the feed the way the Company cards page does instead of showing the internal feed name
+            expect(result).toContain('<strong>American Express</strong>');
+            expect(result).not.toContain(CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX_DIRECT);
+        });
+
+        it('warns one month ahead for a Capital One feed without a custom name', () => {
+            // Given a one-month warning for a Capital One feed without a custom name, so Auth sends the internal feed name as the feed name
+            const capitalOneFeed = CONST.COMPANY_CARD.FEED_BANK_NAME.CAPITAL_ONE;
+            const action = buildConsentExpiringAction({policyID: 'pol123', bank: capitalOneFeed, feedName: capitalOneFeed, warningDaysBeforeExpiry: 30});
+
+            // When the warning message is built
+            const result = ReportActionsUtils.getCompanyCardConsentExpiringMessage(translateLocal, action);
+
+            // Then it names the bank and says consent is needed in one month
+            expect(result).toContain('<strong>Capital One</strong> card connection will need renewed consent in one month');
+        });
+
+        it('keeps the custom feed name', () => {
+            // Given a warning for a feed the admin renamed
+            const action = buildConsentExpiringAction({policyID: 'pol123', bank: amexFeed, feedName: 'Travel cards', warningDaysBeforeExpiry: 14});
+
+            // When the warning message is built
+            const result = ReportActionsUtils.getCompanyCardConsentExpiringMessage(translateLocal, action);
+
+            // Then the admin's custom name is shown
+            expect(result).toContain('<strong>Travel cards</strong>');
+        });
+
+        it('mentions the admin who can renew consent', () => {
+            // Given a warning addressed to the admin who can renew consent
+            const action = buildConsentExpiringAction({policyID: 'pol123', bank: amexFeed, feedName: 'Travel cards', warningDaysBeforeExpiry: 7, mentionedAccountIDs: [12]});
+
+            // When the warning message is built
+            const result = ReportActionsUtils.getCompanyCardConsentExpiringMessage(translateLocal, action);
+
+            // Then the warning starts by mentioning that admin so the room knows who should act
+            expect(result.startsWith('<mention-user accountID="12"/>, your <strong>Travel cards</strong>')).toBe(true);
+        });
+
+        it('addresses the room when no admin is mentioned', () => {
+            // Given a warning with no admin to mention
+            const action = buildConsentExpiringAction({policyID: 'pol123', bank: amexFeed, feedName: 'Travel cards', warningDaysBeforeExpiry: 7});
+
+            // When the warning message is built
+            const result = ReportActionsUtils.getCompanyCardConsentExpiringMessage(translateLocal, action);
+
+            // Then the warning starts without a mention
+            expect(result.startsWith('Your <strong>Travel cards</strong>')).toBe(true);
+            expect(result).not.toContain('<mention-user');
         });
     });
 
@@ -8845,10 +9768,10 @@ describe('ReportActionsUtils', () => {
                 const adminsMessage = ReportActionsUtils.getWorkspaceCategoryUpdateMessage(translateLocal, action);
                 const threadMessage = ReportActionsUtils.getWorkspaceCategoryUpdateMessage(translateLocal, action, undefined, true);
 
-                // Then #admins shows a count so the entry stays short, and the thread names every category
+                // Then #admins shows a count so the entry stays short, and the thread repeats that message and then names every category
                 expect(adminsMessage).toBe('changed Cathy Parker to only see 14 categories');
                 expect(threadMessage).toBe(
-                    `Categories: ${MANY_CATEGORY_NAMES.slice(0, -1)
+                    `changed Cathy Parker to only see 14 categories\nCategories: ${MANY_CATEGORY_NAMES.slice(0, -1)
                         .map((name) => `"${name}"`)
                         .join(', ')}, and "Category 14"`,
                 );
@@ -8867,10 +9790,10 @@ describe('ReportActionsUtils', () => {
                 const adminsMessage = ReportActionsUtils.getWorkspaceCategoryUpdateMessage(translateLocal, action);
                 const threadMessage = ReportActionsUtils.getWorkspaceCategoryUpdateMessage(translateLocal, action, undefined, true);
 
-                // Then #admins shows a count, and the thread names every member
+                // Then #admins shows a count, and the thread repeats that message and then names every member
                 expect(adminsMessage).toBe('set 12 members to only see the "Fees" category');
                 expect(threadMessage).toBe(
-                    `Members: ${MANY_ACCOUNT_IDS.slice(0, -1)
+                    `set 12 members to only see the "Fees" category\nMembers: ${MANY_ACCOUNT_IDS.slice(0, -1)
                         .map((accountID) => `Member ${accountID}`)
                         .join(', ')}, and Member 111`,
                 );
@@ -9351,6 +10274,79 @@ describe('ReportActionsUtils', () => {
                 // Then it is hidden as before, so the new rule only brings back previews that have something to say
                 expect(result).toBe(false);
             });
+        });
+    });
+
+    describe('getTravelUpdateMessage', () => {
+        const formatDate = (datetime: string) => datetime;
+
+        function buildTravelUpdateAction(reservation: Partial<Reservation>): ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.TRAVEL_UPDATE> {
+            return {
+                reportActionID: '1',
+                actionName: CONST.REPORT.ACTIONS.TYPE.TRAVEL_UPDATE,
+                created: '2026-11-20 10:00:00.000',
+                originalMessage: {
+                    operation: CONST.TRAVEL.UPDATE_OPERATION_TYPE.BOOKING_CREATED,
+                    type: CONST.RESERVATION_TYPE.HOTEL,
+                    start: {date: '2026-12-01'},
+                    end: {date: '2026-12-03'},
+                    pnrID: '1234567890',
+                    tripID: '9876543210',
+                    ...reservation,
+                },
+            };
+        }
+
+        it('describes a new hotel booking with the hotel name and check-in date', () => {
+            // Given a new hotel booking whose name Spotnana sent in all caps
+            const action = buildTravelUpdateAction({start: {date: '2026-12-01', longName: 'HILTON GARDEN INN'}, end: {date: '2026-12-03', longName: 'HILTON GARDEN INN'}});
+            // When the trip room message is built
+            // Then it names the hotel in normal capitalization with the check-in date, so the traveler can tell which stay was booked
+            expect(ReportActionsUtils.getTravelUpdateMessage(translateLocal, action, formatDate)).toBe('Your hotel reservation at Hilton Garden Inn (check-in 2026-12-01) has been booked.');
+        });
+
+        it('describes a new car booking with the vendor and pick-up date', () => {
+            // Given a new car rental booking with its vendor
+            const action = buildTravelUpdateAction({type: CONST.RESERVATION_TYPE.CAR, vendor: 'Hertz'});
+            // When the trip room message is built
+            // Then it names the vendor and pick-up date, so the traveler can tell which rental was booked
+            expect(ReportActionsUtils.getTravelUpdateMessage(translateLocal, action, formatDate)).toBe('Your Hertz car rental (pick-up 2026-12-01) has been booked.');
+        });
+
+        it('describes a new rail booking with the route and date', () => {
+            // Given a new rail booking that has both station cities
+            const action = buildTravelUpdateAction({
+                type: CONST.RESERVATION_TYPE.TRAIN,
+                start: {date: '2026-12-01', cityName: 'London', shortName: 'STP'},
+                end: {date: '2026-12-01', cityName: 'Paris', shortName: 'PNO'},
+            });
+            // When the trip room message is built
+            // Then it shows the route and date instead of the generic "was updated" copy
+            expect(ReportActionsUtils.getTravelUpdateMessage(translateLocal, action, formatDate)).toBe('Your rail ticket for London → Paris on 2026-12-01 has been booked.');
+        });
+
+        it('falls back to a generic booked message when the hotel has no name', () => {
+            // Given a new hotel booking that arrived without a hotel name
+            const action = buildTravelUpdateAction({});
+            // When the trip room message is built
+            // Then it falls back to the generic booked copy rather than showing an empty hotel name
+            expect(ReportActionsUtils.getTravelUpdateMessage(translateLocal, action, formatDate)).toBe('Your hotel reservation has been booked.');
+        });
+
+        it('falls back to a generic booked message when the rail stations are missing', () => {
+            // Given a new rail booking that arrived without station names
+            const action = buildTravelUpdateAction({type: CONST.RESERVATION_TYPE.TRAIN});
+            // When the trip room message is built
+            // Then it falls back to the generic booked copy rather than showing an empty route
+            expect(ReportActionsUtils.getTravelUpdateMessage(translateLocal, action, formatDate)).toBe('Your train reservation has been booked.');
+        });
+
+        it('falls back to a generic booked message for other reservation types', () => {
+            // Given a new booking for a type without its own booked copy
+            const action = buildTravelUpdateAction({type: CONST.RESERVATION_TYPE.FLIGHT});
+            // When the trip room message is built
+            // Then it still reads as a booking instead of falling through to the generic "was updated" copy
+            expect(ReportActionsUtils.getTravelUpdateMessage(translateLocal, action, formatDate)).toBe('Your flight reservation has been booked.');
         });
     });
 });

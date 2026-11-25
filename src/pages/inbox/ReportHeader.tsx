@@ -21,15 +21,24 @@ import SCREENS from '@src/SCREENS';
 import {useRoute} from '@react-navigation/native';
 import React from 'react';
 
+import type ReportScreenNavigationProps from './types';
+
 import HeaderView from './HeaderView';
+
+type ReportScreenRoute = ReportScreenNavigationProps['route'];
+
+// navigateToLinkedReportAction sets backTo to the SearchReport screen name, which the registered route params leave out.
+type ReportHeaderRoute = Omit<ReportScreenRoute, 'params'> & {
+    params?: Omit<ReportScreenRoute['params'], 'backTo'> & {backTo?: Route | typeof SCREENS.RIGHT_MODAL.SEARCH_REPORT};
+};
 
 /**
  * Owns header variant selection, back button logic, and OfflineWithFeedback wrapper.
  * Subscribes to report type internally — ReportScreen passes nothing.
  */
 function ReportHeader() {
-    const route = useRoute();
-    const routeParams = route.params as {reportID?: string; backTo?: string} | undefined;
+    const route = useRoute<ReportHeaderRoute>();
+    const routeParams = route.params;
     const reportIDFromRoute = getNonEmptyStringOnyxID(routeParams?.reportID);
     const backTo = routeParams?.backTo;
 
@@ -58,7 +67,7 @@ function ReportHeader() {
             return;
         }
         if (prioritizeBackTo && backTo) {
-            Navigation.goBack(backTo as Route, options);
+            Navigation.goBack(backTo, options);
             return;
         }
         if (isInNarrowPaneModal) {
@@ -66,7 +75,7 @@ function ReportHeader() {
             return;
         }
         if (backTo) {
-            Navigation.goBack(backTo as Route, options);
+            Navigation.goBack(backTo, options);
             return;
         }
         Navigation.goBack(undefined, options);

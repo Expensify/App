@@ -1,5 +1,6 @@
 import {getExpenseHeaders} from '@components/Search/SearchTableHeader';
 import SortableTableHeader from '@components/Search/SortableTableHeader';
+import type {ColumnConfig} from '@components/Search/SortableTableHeader';
 import type {SearchColumnType, SearchSortBy, SortOrder, TableColumnSize} from '@components/Search/types';
 
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -22,6 +23,9 @@ type SearchTableHeaderProps = {
     shouldShowSorting: boolean;
     columns: SearchColumnType[];
     shouldRemoveTotalColumnFlex?: boolean;
+
+    /** Replaces each column's heading. See `SortableTableHeader`. */
+    children?: React.ReactNode;
 };
 function MoneyRequestReportTableHeader({
     sortBy,
@@ -34,10 +38,11 @@ function MoneyRequestReportTableHeader({
     amountColumnSize,
     taxAmountColumnSize,
     shouldRemoveTotalColumnFlex,
+    children,
 }: SearchTableHeaderProps) {
     const styles = useThemeStyles();
 
-    const columnConfig = [
+    const columnConfig: ColumnConfig[] = [
         ...getExpenseHeaders().map((header) => ({
             ...header,
             isColumnSortable: isSortableColumnName(header.columnName),
@@ -86,7 +91,9 @@ function MoneyRequestReportTableHeader({
                 sortOrder={sortOrder}
                 onSortPress={onSortPress}
                 shouldRemoveTotalColumnFlex={shouldRemoveTotalColumnFlex}
-            />
+            >
+                {children}
+            </SortableTableHeader>
         </View>
     );
 }

@@ -1,3 +1,5 @@
+import {markInFlightSearchRequestsStale} from '@libs/actions/Search';
+import type * as SearchActions from '@libs/actions/Search';
 import type {TransactionEditPermissions, TransactionEditPermissionsParams, TransactionInlineEditParams} from '@libs/actions/TransactionInlineEdit';
 import {
     editTransactionAmountInline,
@@ -7,7 +9,10 @@ import {
     editTransactionMerchantInline,
     editTransactionTagInline,
     getTransactionEditPermissions,
+    resolveTransactionEditPermissions,
 } from '@libs/actions/TransactionInlineEdit';
+import {applyRules} from '@libs/ReportUtils';
+import {toIndexMap} from '@libs/RuleUtils';
 
 import {
     updateMoneyRequestAmountAndCurrency,
@@ -23,7 +28,9 @@ import type * as ReportActions from '@userActions/Report';
 import CONST from '@src/CONST';
 import type {TranslationParameters, TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Policy, PolicyCategories, PolicyTagLists, Report, ReportAction, ReportNameValuePairs, Transaction} from '@src/types/onyx';
+import type {Policy, PolicyCategories, PolicyTagLists, Report, ReportAction, ReportNameValuePairs, Rule, Transaction} from '@src/types/onyx';
+
+import type {OnyxCollection} from 'react-native-onyx';
 
 import Onyx from 'react-native-onyx';
 
@@ -53,6 +60,11 @@ jest.mock('@userActions/Report', () => ({
 }));
 
 const mockCreateTransactionThreadReport = jest.mocked(createTransactionThreadReport);
+
+jest.mock('@libs/actions/Search', () => ({
+    ...jest.requireActual<typeof SearchActions>('@libs/actions/Search'),
+    markInFlightSearchRequestsStale: jest.fn(),
+}));
 
 describe('TransactionInlineEdit', () => {
     describe('getTransactionEditPermissions', () => {
@@ -575,6 +587,8 @@ describe('TransactionInlineEdit', () => {
             const submitterEmail = 'inline-edit-submitter@test.com';
             const approverAccountID = 8;
             const approverEmail = 'inline-edit-approver@test.com';
+            const ruleApproverAccountID = 9;
+            const ruleApproverEmail = 'inline-edit-rule-approver@test.com';
             const forwardedPolicyID = 'inline-edit-forwarded-policy';
             const forwardedReportID = 'inline-edit-forwarded-report';
             const forwardedTransactionID = 'inline-edit-forwarded-transaction';
@@ -651,6 +665,7 @@ describe('TransactionInlineEdit', () => {
                     [ONYXKEYS.PERSONAL_DETAILS_LIST]: {
                         [submitterAccountID]: {accountID: submitterAccountID, login: submitterEmail},
                         [approverAccountID]: {accountID: approverAccountID, login: approverEmail},
+                        [ruleApproverAccountID]: {accountID: ruleApproverAccountID, login: ruleApproverEmail},
                     },
                 });
                 await waitForBatchedUpdates();
@@ -675,6 +690,54 @@ describe('TransactionInlineEdit', () => {
                 });
 
                 expect(permissions).toEqual(allFalsePermissions);
+            });
+
+            it('should settle permissions without rules for a workspace admin', () => {
+                // Given a workspace admin viewing a reported expense, whose edit access never depends on approval workflow rules
+                const {rules, ...paramsWithoutRules} = forwardedCheckParams;
+
+                // When resolving the permissions without the rules
+                const permissions = resolveTransactionEditPermissions({...paramsWithoutRules, policy: {...corporatePolicy, role: CONST.POLICY.ROLE.ADMIN}});
+
+                // Then they come back final and editable, so a Search row can skip reading the rules collection
+                expect(permissions).toMatchObject({canEditDate: true, canEditMerchant: true, canEditAmount: true, canEditDescription: true});
+            });
+
+            it('should defer permissions to the rules for a submitter on a submitted corporate report', () => {
+                // Given the submitter of a submitted corporate report, whose edit access depends on where the approval workflow routes it
+                const {rules, ...paramsWithoutRules} = forwardedCheckParams;
+                const resolveWithActions = (parentReportActions: TransactionEditPermissionsParams['parentReportActions']) =>
+                    resolveTransactionEditPermissions({...paramsWithoutRules, parentReportActions});
+
+                // When resolving the permissions before and after the report was forwarded
+                const beforeForward = resolveWithActions({[submittedAction.reportActionID]: submittedAction});
+                const afterForward = resolveWithActions({[submittedAction.reportActionID]: submittedAction, [forwardedAction.reportActionID]: forwardedAction});
+
+                // Then each comes back as a function that the rules finish: editable before the forward, locked after it
+                expect(beforeForward).toBeInstanceOf(Function);
+                expect(applyRules(beforeForward, rules).canEditDescription).toBe(true);
+                expect(applyRules(afterForward, rules)).toEqual(allFalsePermissions);
+            });
+
+            it('should lock the submitter out when an approval workflow rule routes the report past its current manager', () => {
+                // Given a submit rule that sends the submitter's reports to a different approver than the report's manager
+                const {rules, ...paramsWithoutRules} = forwardedCheckParams;
+                const routingRules: OnyxCollection<Rule> = {
+                    [`${ONYXKEYS.COLLECTION.RULE}1`]: {
+                        scope: CONST.RULES.SCOPE.POLICY,
+                        scopeID: forwardedPolicyID,
+                        triggers: toIndexMap([CONST.RULES.TRIGGERS.REPORT_SUBMIT]),
+                        filters: {operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, left: CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM, right: submitterEmail},
+                        actions: toIndexMap([{name: CONST.RULES.ACTIONS.FORWARD_TO, approver: ruleApproverEmail}]),
+                    },
+                };
+
+                // When the deferred permissions are finished without and with that rule
+                const permissions = resolveTransactionEditPermissions({...paramsWithoutRules, parentReportActions: {[submittedAction.reportActionID]: submittedAction}});
+
+                // Then only the rule makes the report count as forwarded, proving the deferred check reads the rules it is given
+                expect(applyRules(permissions, rules).canEditDescription).toBe(true);
+                expect(applyRules(permissions, routingRules)).toEqual(allFalsePermissions);
             });
         });
     });
@@ -739,17 +802,25 @@ describe('TransactionInlineEdit', () => {
 
         // Onyx is never initialized here, so the module-level transaction cache is empty. That is exactly
         // the state of a Search row the user has not opened: it exists only in the search snapshot.
-        it.each([
-            ['date', () => editTransactionDateInline(buildParams(), '2026-01-15', undefined), () => updateMoneyRequestDate, {value: '2026-01-15'}],
-            ['merchant', () => editTransactionMerchantInline(translate, buildParams(), 'Cafe'), () => updateMoneyRequestMerchant, {value: 'Cafe'}],
-            ['description', () => editTransactionDescriptionInline(translate, buildParams(), 'Lunch'), () => updateMoneyRequestDescription, {comment: 'Lunch'}],
-            ['category', () => editTransactionCategoryInline(buildParams(), 'Benefits'), () => updateMoneyRequestCategory, {category: 'Benefits'}],
-            ['amount', () => editTransactionAmountInline(translate, buildParams(), 500), () => updateMoneyRequestAmountAndCurrency, {amount: 500}],
-            ['tag', () => editTransactionTagInline(buildParams(), 'Project1'), () => updateMoneyRequestTag, {tag: 'Project1'}],
-        ])('forwards the caller transaction when editing %s', (_field, edit, getDelegate, expectedChange) => {
-            edit();
+        describe.each([123456, undefined])('with snapshot hash %s', (hash) => {
+            it.each([
+                ['date', () => editTransactionDateInline({...buildParams(), hash}, '2026-01-15', undefined), () => updateMoneyRequestDate, {value: '2026-01-15'}],
+                ['merchant', () => editTransactionMerchantInline(translate, {...buildParams(), hash}, 'Cafe'), () => updateMoneyRequestMerchant, {value: 'Cafe'}],
+                ['description', () => editTransactionDescriptionInline(translate, {...buildParams(), hash}, 'Lunch'), () => updateMoneyRequestDescription, {comment: 'Lunch'}],
+                ['category', () => editTransactionCategoryInline({...buildParams(), hash}, 'Benefits'), () => updateMoneyRequestCategory, {category: 'Benefits'}],
+                ['amount', () => editTransactionAmountInline(translate, {...buildParams(), hash}, 500), () => updateMoneyRequestAmountAndCurrency, {amount: 500}],
+                ['tag', () => editTransactionTagInline({...buildParams(), hash}, 'Project1'), () => updateMoneyRequestTag, {tag: 'Project1'}],
+            ])('forwards the caller transaction and hash when editing %s', (_field, edit, getDelegate, expectedChange) => {
+                // Given a valid inline edit with or without an associated Search snapshot
+                // When the edit delegates to its canonical write action
+                edit();
 
-            expect(getDelegate()).toHaveBeenCalledWith(expect.objectContaining({translate, transactionID: TRANSACTION_ID, transaction: snapshotTransaction, ...expectedChange}));
+                // Then only that snapshot is invalidated, synchronously before optimistic data is applied
+                expect(getDelegate()).toHaveBeenCalledWith(expect.objectContaining({translate, transactionID: TRANSACTION_ID, transaction: snapshotTransaction, hash, ...expectedChange}));
+                expect(markInFlightSearchRequestsStale).toHaveBeenCalledTimes(1);
+                expect(markInFlightSearchRequestsStale).toHaveBeenCalledWith(hash);
+                expect(jest.mocked(markInFlightSearchRequestsStale).mock.invocationCallOrder.at(0)).toBeLessThan(jest.mocked(getDelegate()).mock.invocationCallOrder.at(0) ?? 0);
+            });
         });
 
         it('clears the merchant instead of discarding the edit', () => {

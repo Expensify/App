@@ -199,6 +199,7 @@ function runCrossReportMergeToSourceReportRequest(fixtures: CrossReportMergeToSo
     mergeTransactionRequest({
         translate: TestHelper.translateLocal,
         isVendorMatchingBetaEnabled: false,
+        isSourceActionIOUReportArchived: false,
         iouReportOwnerLogin: undefined,
         mergeTransactionID,
         mergeTransaction,
@@ -327,6 +328,7 @@ describe('mergeTransactionRequest', () => {
         mergeTransactionRequest({
             translate: TestHelper.translateLocal,
             isVendorMatchingBetaEnabled: false,
+            isSourceActionIOUReportArchived: false,
             iouReportOwnerLogin: undefined,
             mergeTransactionID,
             mergeTransaction,
@@ -456,6 +458,7 @@ describe('mergeTransactionRequest', () => {
         mergeTransactionRequest({
             translate: TestHelper.translateLocal,
             isVendorMatchingBetaEnabled: false,
+            isSourceActionIOUReportArchived: false,
             iouReportOwnerLogin: undefined,
             mergeTransactionID,
             mergeTransaction,
@@ -568,6 +571,7 @@ describe('mergeTransactionRequest', () => {
         mergeTransactionRequest({
             translate: TestHelper.translateLocal,
             isVendorMatchingBetaEnabled: false,
+            isSourceActionIOUReportArchived: false,
             iouReportOwnerLogin: undefined,
             mergeTransactionID,
             mergeTransaction,
@@ -682,6 +686,7 @@ describe('mergeTransactionRequest', () => {
     it('should restore original state when API returns error', async () => {
         // Given:
         // - Target transaction with original data that should be restored on failure
+        // - A merge that replaces the target's receipt with the source's receipt
         // - Source transaction that should be restored if merge fails (only transaction in its report)
         // - Source report that should be restored if merge fails
         // - Transaction violations are set up in Onyx for both transactions
@@ -695,12 +700,14 @@ describe('mergeTransactionRequest', () => {
             merchant: 'Original Merchant',
             category: 'Original Category',
             reportID: 'target-report-456',
+            receipt: {source: 'target-receipt.jpg', filename: 'target-receipt.jpg'},
         };
         const sourceTransaction = {
             ...createRandomTransaction(2),
             transactionID: 'source456',
             merchant: 'Source Merchant',
             reportID: sourceReport.reportID,
+            pendingFields: {merchant: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
         };
         const mergeTransaction = {
             ...createRandomMergeTransaction(1),
@@ -708,6 +715,7 @@ describe('mergeTransactionRequest', () => {
             sourceTransactionID: 'source456',
             merchant: 'Updated Merchant',
             category: 'Updated Category',
+            receipt: {source: 'source-receipt.jpg', filename: 'source-receipt.jpg'},
         };
         const mergeTransactionID = 'merge789';
 
@@ -730,6 +738,7 @@ describe('mergeTransactionRequest', () => {
         mergeTransactionRequest({
             translate: TestHelper.translateLocal,
             isVendorMatchingBetaEnabled: false,
+            isSourceActionIOUReportArchived: false,
             iouReportOwnerLogin: undefined,
             mergeTransactionID,
             mergeTransaction,
@@ -797,13 +806,19 @@ describe('mergeTransactionRequest', () => {
             });
         });
 
-        // Verify target transaction is restored to original state
+        // Verify target transaction is restored to original state, including the receipt the merge replaced
         expect(restoredTargetTransaction?.merchant).toBe('Original Merchant');
         expect(restoredTargetTransaction?.category).toBe('Original Category');
+        expect(restoredTargetTransaction?.receipt?.source).toBe('target-receipt.jpg');
+        expect(restoredTargetTransaction?.receipt?.filename).toBe('target-receipt.jpg');
 
         // Verify source transaction is restored (not deleted)
         expect(restoredSourceTransaction?.transactionID).toBe('source456');
         expect(restoredSourceTransaction?.merchant).toBe('Source Merchant');
+
+        // Verify the restored source transaction has no pending state
+        expect(restoredSourceTransaction?.pendingFields).toBeUndefined();
+        expect(restoredSourceTransaction?.pendingAction).toBeUndefined();
 
         // Verify source report is restored (not deleted)
         expect(restoredSourceReport?.reportID).toBe(sourceReport.reportID);
@@ -847,6 +862,7 @@ describe('mergeTransactionRequest', () => {
         mergeTransactionRequest({
             translate: TestHelper.translateLocal,
             isVendorMatchingBetaEnabled: false,
+            isSourceActionIOUReportArchived: false,
             iouReportOwnerLogin: undefined,
             mergeTransactionID,
             mergeTransaction,
@@ -1087,6 +1103,7 @@ describe('mergeTransactionRequest', () => {
             mergeTransactionRequest({
                 translate: TestHelper.translateLocal,
                 isVendorMatchingBetaEnabled: false,
+                isSourceActionIOUReportArchived: false,
                 iouReportOwnerLogin: undefined,
                 mergeTransactionID,
                 mergeTransaction,
@@ -1300,6 +1317,7 @@ describe('mergeTransactionRequest', () => {
             mergeTransactionRequest({
                 translate: TestHelper.translateLocal,
                 isVendorMatchingBetaEnabled: false,
+                isSourceActionIOUReportArchived: false,
                 iouReportOwnerLogin: undefined,
                 mergeTransactionID,
                 mergeTransaction,
@@ -1462,6 +1480,7 @@ describe('mergeTransactionRequest', () => {
             mergeTransactionRequest({
                 translate: TestHelper.translateLocal,
                 isVendorMatchingBetaEnabled: false,
+                isSourceActionIOUReportArchived: false,
                 iouReportOwnerLogin: undefined,
                 mergeTransactionID,
                 mergeTransaction,
@@ -1601,6 +1620,7 @@ describe('mergeTransactionRequest', () => {
             mergeTransactionRequest({
                 translate: TestHelper.translateLocal,
                 isVendorMatchingBetaEnabled: false,
+                isSourceActionIOUReportArchived: false,
                 iouReportOwnerLogin: undefined,
                 mergeTransactionID,
                 mergeTransaction,
@@ -1750,6 +1770,7 @@ describe('mergeTransactionRequest', () => {
             mergeTransactionRequest({
                 translate: TestHelper.translateLocal,
                 isVendorMatchingBetaEnabled: false,
+                isSourceActionIOUReportArchived: false,
                 iouReportOwnerLogin: undefined,
                 mergeTransactionID,
                 mergeTransaction,

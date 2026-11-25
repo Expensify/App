@@ -35,4 +35,40 @@ public final class ExpensifyNitroUtilsAutolinking {
   public static func isAppStartTimeModuleRecyclable() -> Bool {
     return HybridAppStartTimeModule.self is any RecyclableView.Type
   }
+  
+  public static func createDocumentDetectorModule() -> bridge.std__shared_ptr_HybridDocumentDetectorModuleSpec_ {
+    let hybridObject = HybridDocumentDetectorModule()
+    return { () -> bridge.std__shared_ptr_HybridDocumentDetectorModuleSpec_ in
+      let __cxxWrapped = hybridObject.getCxxWrapper()
+      return __cxxWrapped.getCxxPart()
+    }()
+  }
+  
+  public static func isDocumentDetectorModuleRecyclable() -> Bool {
+    return HybridDocumentDetectorModule.self is any RecyclableView.Type
+  }
+  
+  public static func createVerticalBarModule() -> bridge.std__shared_ptr_HybridVerticalBarModuleSpec_ {
+    let hybridObject = HybridVerticalBarModule()
+    return { () -> bridge.std__shared_ptr_HybridVerticalBarModuleSpec_ in
+      let __cxxWrapped = hybridObject.getCxxWrapper()
+      return __cxxWrapped.getCxxPart()
+    }()
+  }
+  
+  public static func isVerticalBarModuleRecyclable() -> Bool {
+    return HybridVerticalBarModule.self is any RecyclableView.Type
+  }
+  
+  public static func createShareActionHandler() -> bridge.std__shared_ptr_HybridShareActionHandlerSpec_ {
+    let hybridObject = HybridShareActionHandler()
+    return { () -> bridge.std__shared_ptr_HybridShareActionHandlerSpec_ in
+      let __cxxWrapped = hybridObject.getCxxWrapper()
+      return __cxxWrapped.getCxxPart()
+    }()
+  }
+  
+  public static func isShareActionHandlerRecyclable() -> Bool {
+    return HybridShareActionHandler.self is any RecyclableView.Type
+  }
 }

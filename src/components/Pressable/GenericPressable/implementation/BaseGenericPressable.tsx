@@ -8,18 +8,29 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import Accessibility from '@libs/Accessibility';
 import HapticFeedback from '@libs/HapticFeedback';
+import type {Shortcut} from '@libs/KeyboardShortcut';
 import mergeRefs from '@libs/mergeRefs';
+import getRoutePath from '@libs/Navigation/helpers/getRoutePath';
+import {isNewTabOrWindowMousePress} from '@libs/Navigation/helpers/openInternalRouteInNewTab';
 import {notifyPressedTrigger, registerPressable} from '@libs/NavigationFocusReturn';
 
 import CONST from '@src/CONST';
+import type {ViewKeyDownEvent} from '@src/types/utils/ReactNativeCompat';
+import type WithSentryLabel from '@src/types/utils/SentryLabel';
 
 import type {ComponentRef} from 'react';
 import type {GestureResponderEvent, View} from 'react-native';
-import type {ValueOf} from 'type-fest';
+import type {DistributedOmit} from 'type-fest';
 
 import React, {useEffect, useRef, useState} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import {Pressable} from 'react-native';
+
+/** The platform wrappers require the label: native passes it on to here, while web renders it as `data-sentry-label` and leaves it out. */
+type BaseGenericPressableProps = DistributedOmit<PressableProps, 'sentryLabel'> & WithSentryLabel;
+
+/** `useKeyboardShortcut` always needs a shortcut. A pressable without `keyboardShortcut` passes this empty one and keeps the hook inactive. */
+const NO_KEYBOARD_SHORTCUT: Pick<Shortcut, 'shortcutKey' | 'descriptionKey' | 'modifiers'> = {shortcutKey: '', descriptionKey: '', modifiers: []};
 
 function GenericPressable({
     children,
@@ -50,8 +61,9 @@ function GenericPressable({
     dataSet,
     forwardedFSClass,
     accessibilityState,
+    linkRoute,
     ...rest
-}: PressableProps) {
+}: BaseGenericPressableProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {isExecuting, singleExecution} = useSingleExecution();
@@ -149,10 +161,30 @@ function GenericPressable({
         onPressHandler(event);
     };
 
-    const pressOnce = (event: GestureResponderEvent) => singleExecution(onPressHandler)(event);
+    const pressOnce = (event?: GestureResponderEvent) => singleExecution(onPressHandler)(event);
 
-    const {shortcutKey, descriptionKey, modifiers} = keyboardShortcut ?? {};
-    useKeyboardShortcut({shortcutKey, descriptionKey, modifiers} as ValueOf<typeof CONST.KEYBOARD_SHORTCUTS>, onKeyboardShortcutPressHandler, {
+    const hasHref = !!linkRoute && !isDisabled && !fullDisabled && interactive;
+
+    // The browser follows the href unless the click is prevented, so only Cmd, Ctrl or Shift clicks on an enabled link reach it and open a new tab or window.
+    const pressLink = (event?: GestureResponderEvent) => {
+        if (hasHref && isNewTabOrWindowMousePress(event)) {
+            return;
+        }
+        event?.preventDefault();
+        if (isDisabled) {
+            return;
+        }
+        pressOnce(event);
+    };
+
+    const getPressHandler = () => {
+        if (linkRoute) {
+            return pressLink;
+        }
+        return !isDisabled ? pressOnce : undefined;
+    };
+
+    useKeyboardShortcut(keyboardShortcut ?? NO_KEYBOARD_SHORTCUT, onKeyboardShortcutPressHandler, {
         isActive: !!keyboardShortcut,
         shouldBubble: false,
         shouldPreventDefault: false,
@@ -165,16 +197,17 @@ function GenericPressable({
      * If a custom onKeyDown handler is provided, it delegates to that handler.
      * Otherwise, for elements with role="link", it triggers onPress when Enter is pressed
      * to comply with W3C APG Link Pattern (https://www.w3.org/WAI/ARIA/apg/patterns/link/).
+     * An element with an href is skipped, because the browser turns Enter into a click that keeps its modifier keys for pressLink.
      */
-    const handleKeyDown = (event: React.KeyboardEvent) => {
+    const handleKeyDown = (event: ViewKeyDownEvent) => {
         if (onKeyDown) {
-            onKeyDown(event as unknown as React.KeyboardEvent<Element>);
+            onKeyDown(event);
             return;
         }
 
-        if (isRoleLink && event.key === CONST.KEYBOARD_SHORTCUTS.ENTER.shortcutKey) {
+        if (isRoleLink && !hasHref && event.nativeEvent.key === CONST.KEYBOARD_SHORTCUTS.ENTER.shortcutKey) {
             event.preventDefault();
-            onPressHandler(event.nativeEvent as unknown as KeyboardEvent);
+            onPressHandler(event.nativeEvent);
         }
     };
 
@@ -184,7 +217,7 @@ function GenericPressable({
             onLayout={shouldUseAutoHitSlop ? onLayout : undefined}
             ref={composedRef}
             disabled={fullDisabled || undefined}
-            onPress={!isDisabled ? pressOnce : undefined}
+            onPress={getPressHandler()}
             onLongPress={!isDisabled && onLongPress ? onLongPressHandler : undefined}
             onKeyDown={!isDisabled ? handleKeyDown : undefined}
             onPressIn={!isDisabled ? onPressIn : undefined}
@@ -215,6 +248,7 @@ function GenericPressable({
             onAccessibilityTap={!isDisabled ? voidOnPressHandler : undefined}
             accessible={accessible}
             fsClass={forwardedFSClass}
+            href={hasHref && linkRoute ? getRoutePath(linkRoute) : undefined}
             {...rest}
             onHoverOut={(event) => {
                 if (event?.type === 'pointerenter' || event?.type === 'mouseenter') {

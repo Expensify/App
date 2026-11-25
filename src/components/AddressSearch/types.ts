@@ -60,7 +60,7 @@ type AddressSearchProps = ForwardedFSClassProps & {
     onInputChange?: (value: string | number | Address | StreetValue, key?: string) => void;
 
     /** A callback function when an address has been auto-selected */
-    onPress?: (props: OnPressProps) => void;
+    onPress?: (props: OnPressProps) => void | Promise<void>;
 
     /** Customize the TextInput container */
     containerStyles?: StyleProp<ViewStyle>;
@@ -76,6 +76,9 @@ type AddressSearchProps = ForwardedFSClassProps & {
 
     /** A map of inputID key names */
     renamedInputKeys?: Record<string, string>;
+
+    /** Whether the state stays a code outside the US and Canada, for a caller whose picker lists the states of other countries */
+    shouldKeepStateCode?: boolean;
 
     /** Auto complete attribute for the input field */
     autoComplete?: TextInputProps['autoComplete'];
