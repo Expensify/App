@@ -69,6 +69,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {Attendee, Participant} from '@src/types/onyx/IOU';
 import type {ErrorFields, Errors, PendingAction, PendingFields} from '@src/types/onyx/OnyxCommon';
+import type {Unit} from '@src/types/onyx/Policy';
 import type {ReportNextStep} from '@src/types/onyx/Report';
 import type ReportAction from '@src/types/onyx/ReportAction';
 import type {OnyxData} from '@src/types/onyx/Request';
@@ -153,6 +154,7 @@ type RequestMoneyTransactionParams = Omit<BaseTransactionParams, 'comment'> & {
     customUnit?: TransactionCustomUnit;
     odometerStart?: number;
     odometerEnd?: number;
+    odometerUnit?: Unit;
 
     /** Transaction type (e.g., 'time' for time tracking expenses) */
     type?: ValueOf<typeof CONST.TRANSACTION.TYPE>;
@@ -1391,6 +1393,7 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
         waypoints,
         odometerStart,
         odometerEnd,
+        odometerUnit,
         isSelfDMSplit,
         selfDMReportID,
     } = transactionParams;
@@ -1597,6 +1600,7 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
             waypoints,
             odometerStart,
             odometerEnd,
+            odometerUnit,
         },
         isDemoTransactionParam: transactionParams.receipt?.isTestDriveReceipt,
     });

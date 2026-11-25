@@ -130,6 +130,8 @@ import type ImportedSpreadsheetMemberData from './ImportedSpreadsheetMemberData'
 import type InitiatingBankAccountUnlock from './InitiatingBankAccountUnlock';
 import type InsightsDashboard from './InsightsDashboard';
 import type {AIInsight, AIInsightChip, InsightsDashboardID, InsightsFutureExpenses, InsightsGraphKey, InsightsSearchKey} from './InsightsDashboard';
+import type InsightsDetails from './InsightsDetails';
+import type {InsightsDetailsSummary} from './InsightsDetails';
 import type IntroSelected from './IntroSelected';
 import type InvitedEmailsToAccountIDs from './InvitedEmailsToAccountIDs';
 import type JoinablePolicies from './JoinablePolicies';
@@ -336,6 +338,8 @@ export type {
     AIInsightChip,
     InsightsDashboard,
     InsightsDashboardID,
+    InsightsDetails,
+    InsightsDetailsSummary,
     InsightsFutureExpenses,
     InsightsGraphKey,
     InsightsSearchKey,
