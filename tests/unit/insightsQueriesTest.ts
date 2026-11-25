@@ -648,7 +648,7 @@ describe('insightsQueries', () => {
     });
 
     describe('buildRecentHistoryQueryString', () => {
-        it("lists the item's expenses from a year before the period through it, grouped by the panel's period", () => {
+        it("covers the item's spend in each of the panel's periods, from a year before the period through it", () => {
             // Given a This month dashboard in one workspace, summarizing November so far
             const filters: InsightsFilters = {...FILTERS, date: {preset: CONST.SEARCH.DATE_PRESETS.THIS_MONTH}, policyIDs: ['policyA']};
 
