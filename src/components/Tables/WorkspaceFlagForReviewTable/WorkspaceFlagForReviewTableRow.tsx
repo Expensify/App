@@ -2,6 +2,7 @@ import Badge from '@components/Badge';
 import Icon from '@components/Icon';
 import Table from '@components/Table';
 import {getCellAccessibilityProps, shouldUseTableSemantics} from '@components/Table/tableAccessibility';
+import Text from '@components/Text';
 import TextWithTooltip from '@components/TextWithTooltip';
 
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -70,12 +71,7 @@ function WorkspaceFlagForReviewTableRow({item, rowIndex, shouldUseNarrowTableLay
                                     textStyles={StyleUtils.getColorStyle(FLAG_BADGE_TEXT_COLOR)}
                                     isCondensed
                                 />
-                                <TextWithTooltip
-                                    shouldShowTooltip
-                                    text={item.conditionText}
-                                    numberOfLines={1}
-                                    style={[styles.optionDisplayName, styles.pre, styles.flexShrink1]}
-                                />
+                                <Text style={styles.flex1}>{item.conditionText}</Text>
                             </View>
                             <TextWithTooltip
                                 shouldShowTooltip

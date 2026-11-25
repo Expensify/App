@@ -1,14 +1,16 @@
+import ActivityIndicator from '@components/ActivityIndicator';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
+import CategoryFlagLimitsLoadError from '@components/Rule/CategoryFlagLimitsLoadError';
 import type {TableEmptyStateProps} from '@components/Table/TableEmptyStates/TableEmptyState';
 import WorkspaceFlagForReviewTable from '@components/Tables/WorkspaceFlagForReviewTable';
 
+import useCategoryFlagLimits from '@hooks/useCategoryFlagLimits';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
-import usePolicyData from '@hooks/usePolicyData';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -23,6 +25,7 @@ import ROUTES from '@src/ROUTES';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
 
 import React from 'react';
+import {View} from 'react-native';
 
 type RulesFlagForReviewTabProps = {
     policyID: string;
@@ -43,20 +46,36 @@ function RulesFlagForReviewTab({policyID, canWriteRules, selectedKeys, onSelecti
     // Its own illustration, so Flag for review doesn't repeat the sorting machine that Field requirements uses.
     const icons = useMemoizedLazyExpensifyIcons(['EmptyStateSpyPigeon']);
     const policy = usePolicy(policyID);
-    const policyData = usePolicyData(policyID);
     const StyleUtils = useStyleUtils();
     const {convertToDisplayString} = useCurrencyListActions();
-    const [policyCategoriesOnyx] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
-    const arePolicyCategoriesLoading = !!policy?.areCategoriesEnabled && policyCategoriesOnyx === undefined;
+    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
+    const {categoryFlagLimits, areCategoryFlagLimitsLoading, haveCategoryFlagLimitsLoaded} = useCategoryFlagLimits(policyID);
 
     const flagForReviewTableData = getFlagForReviewTableData({
         policy,
-        policyCategories: arePolicyCategoriesLoading ? undefined : policyData.categories,
+        policyCategories,
+        categoryFlagLimits,
         translate,
         convertToDisplayString,
         isOffline,
         onNavigate: Navigation.navigate,
     });
+
+    const needsCategories = !policyCategories && !!policy?.areCategoriesEnabled && Object.keys(categoryFlagLimits ?? {}).length > 0;
+    if (!flagForReviewTableData.length && (areCategoryFlagLimitsLoading || !haveCategoryFlagLimitsLoaded || needsCategories)) {
+        return (
+            <>
+                {headerComponent}
+                {areCategoryFlagLimitsLoading ? (
+                    <View style={[styles.flex1, styles.justifyContentCenter, styles.alignItemsCenter]}>
+                        <ActivityIndicator size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE} />
+                    </View>
+                ) : (
+                    <CategoryFlagLimitsLoadError missingCategoriesPolicyID={needsCategories ? policyID : undefined} />
+                )}
+            </>
+        );
+    }
 
     const handleNewFlagForReviewRule = () => {
         if (!canWriteRules) {

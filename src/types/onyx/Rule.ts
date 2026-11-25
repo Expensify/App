@@ -3,8 +3,9 @@ import type CONST from '@src/CONST';
 import type {ValueOf} from 'type-fest';
 
 import type {ApprovalWorkflowRule} from './ApprovalWorkflowRules';
-import type {ExpenseDefaultRule} from './ExpenseDefaultRules';
+import type {ExpenseDefaultRule, ExpenseDefaultTriggers} from './ExpenseDefaultRules';
 import type {Errors, OnyxValueWithOfflineFeedback} from './OnyxCommon';
+import type {RuleFilterNode} from './RuleFilters';
 
 /** The kind of entity a rule is scoped to. */
 type RuleScope = ValueOf<typeof CONST.RULES.SCOPE>;
@@ -15,11 +16,18 @@ type RuleScope = ValueOf<typeof CONST.RULES.SCOPE>;
  */
 type RuleBody = ApprovalWorkflowRule | ExpenseDefaultRule;
 
+/** A category limit mirrored into the rules collection by a legacy write. */
+type CategoryFlagRule = {
+    triggers: ExpenseDefaultTriggers;
+    filters: RuleFilterNode;
+    actions: Record<string, {name: typeof CONST.RULES.ACTIONS.TRIGGER_VIOLATION}>;
+};
+
 /**
  * A rule as stored in the `ONYXKEYS.COLLECTION.RULE` collection under `rules_<ruleID>`.
  */
 type Rule = OnyxValueWithOfflineFeedback<
-    RuleBody & {
+    (RuleBody | CategoryFlagRule) & {
         /** What kind of entity this rule is scoped to. */
         scope: RuleScope;
 

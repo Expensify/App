@@ -7,8 +7,8 @@
  */
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {ApprovalWorkflowAction, ApprovalWorkflowRule} from '@src/types/onyx/ApprovalWorkflowRules';
-import type {ExpenseDefaultAction, ExpenseDefaultRule} from '@src/types/onyx/ExpenseDefaultRules';
+import type {ApprovalWorkflowRule} from '@src/types/onyx/ApprovalWorkflowRules';
+import type {ExpenseDefaultRule} from '@src/types/onyx/ExpenseDefaultRules';
 import type Rule from '@src/types/onyx/Rule';
 import type {RuleFilterComparison, RuleFilterNode} from '@src/types/onyx/RuleFilters';
 
@@ -62,9 +62,7 @@ function isExpenseDefaultRule(rule: Rule | undefined): rule is Rule & ExpenseDef
         return false;
     }
 
-    // A rule's actions are one kind or the other, so widen to the union before reading the shared name.
-    const actionsByIndex: Record<string, ExpenseDefaultAction | ApprovalWorkflowAction> | undefined = rule.actions;
-    const actions = fromIndexMap(actionsByIndex);
+    const actions = fromIndexMap<{name: string}>(rule.actions);
     const hasCreateTransactionTrigger = getRuleTriggers(rule).some((trigger) => trigger === CONST.RULES.TRIGGERS.CREATE_TRANSACTION);
     const hasSetAction = actions.some((action) => action?.name === CONST.RULES.ACTIONS.SET);
     const hasCondition = getRuleFilterLeaves(rule.filters).length > 0;

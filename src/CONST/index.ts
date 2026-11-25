@@ -10087,7 +10087,9 @@ const CONST = {
             FORWARD_TO: 'ForwardTo',
             APPROVE_REPORT: 'ApproveReport',
             SET: 'Set',
+            TRIGGER_VIOLATION: 'TriggerViolation',
         },
+        DAILY_BUDGET_FILTER: 'dailyBudget',
         APPROVAL_WORKFLOW: {
             /** A rule firing only on these is an approval workflow rather than an expense default. */
             TRIGGERS: [RULE_TRIGGERS.REPORT_SUBMIT, RULE_TRIGGERS.REPORT_APPROVE],

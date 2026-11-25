@@ -2,6 +2,7 @@ import ActivityIndicator from '@components/ActivityIndicator';
 import RuleCategoriesDisabledEmptyState from '@components/Rule/RuleCategoriesDisabledEmptyState';
 import RuleSelectionBase from '@components/Rule/RuleSelectionBase';
 
+import useCategoryFlagLimits from '@hooks/useCategoryFlagLimits';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import usePolicyCategoryPickerCategories from '@hooks/usePolicyCategoryPickerCategories';
@@ -10,7 +11,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import {updateDraftFlagForReviewRule} from '@libs/actions/User';
 import {getDecodedCategoryName} from '@libs/CategoryUtils';
-import {hasExplicitFlagAmount} from '@libs/FlagForReviewRulesUtils';
+import {hasFlagForReviewRuleForLegacyWrite} from '@libs/FlagForReviewRulesUtils';
 import Navigation from '@libs/Navigation/Navigation';
 
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
@@ -35,6 +36,7 @@ function FlagForReviewRuleCategoryPageBase({policyID, categoryName}: FlagForRevi
     const styles = useThemeStyles();
 
     const [form] = useOnyx(ONYXKEYS.FORMS.FLAG_FOR_REVIEW_RULE_FORM);
+    const {categoryFlagLimits, areCategoryFlagLimitsLoading} = useCategoryFlagLimits(policyID);
 
     const selectedCategoryName = form?.[INPUT_IDS.CATEGORY];
     const selectedCategoryItem = selectedCategoryName ? {name: getDecodedCategoryName(selectedCategoryName), value: selectedCategoryName} : undefined;
@@ -47,7 +49,7 @@ function FlagForReviewRuleCategoryPageBase({policyID, categoryName}: FlagForRevi
         policyID,
         // Keep the currently selected / route category available, but don't offer other
         // categories that already have a flag-for-review rule (avoids silent overwrite).
-        isEligible: (category) => category.name === categoryName || category.name === selectedCategoryName || !hasExplicitFlagAmount(category.maxExpenseAmount),
+        isEligible: (category) => category.name === categoryName || category.name === selectedCategoryName || !hasFlagForReviewRuleForLegacyWrite(category, categoryFlagLimits),
     });
 
     const categoryItems = categories.map((category) => ({name: getDecodedCategoryName(category.name), value: category.name}));
@@ -66,7 +68,7 @@ function FlagForReviewRuleCategoryPageBase({policyID, categoryName}: FlagForRevi
     let content: React.ReactNode;
     if (!areCategoriesEnabled) {
         content = <RuleCategoriesDisabledEmptyState policyID={policyID} />;
-    } else if (arePolicyCategoriesLoading) {
+    } else if (arePolicyCategoriesLoading || areCategoryFlagLimitsLoading) {
         content = (
             <View style={[styles.flex1, styles.justifyContentCenter, styles.alignItemsCenter]}>
                 <ActivityIndicator size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE} />

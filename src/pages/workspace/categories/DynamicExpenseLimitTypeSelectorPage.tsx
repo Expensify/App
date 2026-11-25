@@ -3,12 +3,15 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
 
+import useCategoryFlagLimits from '@hooks/useCategoryFlagLimits';
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {setDraftValues} from '@libs/actions/FormActions';
+import {getCategoryFlagLimit} from '@libs/FlagForReviewRulesUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 
@@ -37,8 +40,12 @@ function DynamicExpenseLimitTypeSelectorPage({
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.EXPENSE_LIMIT_TYPE_SELECTOR.path);
     const [formDraft] = useOnyx(ONYXKEYS.FORMS.WORKSPACE_CATEGORY_FLAG_AMOUNTS_OVER_FORM_DRAFT);
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
+    const category = policyCategories?.[categoryName];
+    const {categoryFlagLimits} = useCategoryFlagLimits(policyID, category);
+    const policy = usePolicy(policyID);
 
-    const currentExpenseLimitType = formDraft?.expenseLimitType ?? policyCategories?.[categoryName]?.expenseLimitType ?? CONST.POLICY.EXPENSE_LIMIT_TYPES.EXPENSE;
+    const limit = getCategoryFlagLimit(category, categoryFlagLimits, policy?.outputCurrency ?? CONST.CURRENCY.USD);
+    const currentExpenseLimitType = formDraft?.expenseLimitType ?? limit?.expenseLimitType ?? CONST.POLICY.EXPENSE_LIMIT_TYPES.EXPENSE;
 
     const expenseLimitTypes = Object.values(CONST.POLICY.EXPENSE_LIMIT_TYPES).map((value) => ({
         value,

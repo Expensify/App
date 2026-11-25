@@ -40,6 +40,9 @@ type PolicyCategory = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** Maximum amount allowed for an expense in this category */
     maxExpenseAmount?: number;
 
+    /** Auth's rule ID stays with this cap when the category is renamed. */
+    maxExpenseAmountMigrationID?: number;
+
     expenseLimitType?: PolicyCategoryExpenseLimitType;
 
     /** Max expense amount with no receipt violation */

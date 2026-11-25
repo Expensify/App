@@ -34,6 +34,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import getCategoryContextualRules from '@libs/CategoryContextualRulesUtils';
 import {getCategoryApproverRule, getDecodedCategoryName, getMembersWithoutVisibleCategories, isCategoryVisibleToMember} from '@libs/CategoryUtils';
 import {getLatestErrorMessageField} from '@libs/ErrorUtils';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {isDisablingOrDeletingLastEnabledCategory} from '@libs/OptionsListUtils';
@@ -225,7 +226,10 @@ function CategorySettingsPage({route: {params, name}, navigation}: CategorySetti
 
     /** Collect sees this section but every destination is Control-only, so upgrade instead of hitting Not Found. */
     const navigateToCategoryRule = (dynamicRouteSuffix: string) => {
-        const ruleRoute = buildDynamicRoute(dynamicRouteSuffix);
+        const categoryRoute = isQuickSettingsFlow
+            ? createDynamicRoute(DYNAMIC_ROUTES.SETTINGS_CATEGORY_SETTINGS.getRoute(policyCategory.name), ROUTES.SETTINGS_CATEGORIES_ROOT.getRoute(policyID, backTo))
+            : createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_CATEGORY_SETTINGS.getRoute(policyCategory.name), ROUTES.WORKSPACE_CATEGORIES.getRoute(policyID));
+        const ruleRoute = createDynamicRoute(dynamicRouteSuffix, categoryRoute);
         if (tryNavigateToControlPolicyUpgrade(policy, CONST.UPGRADE_FEATURE_INTRO_MAPPING.rules.alias, ruleRoute)) {
             return;
         }
