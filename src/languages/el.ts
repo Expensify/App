@@ -12092,7 +12092,6 @@ ${reportName}`,
     accessibilityHints: {
         navigateToChatsList: 'Μεταβείτε πίσω στη λίστα συνομιλιών',
         chatWelcomeMessage: 'Μήνυμα καλωσορίσματος συνομιλίας',
-        chatDetails: (chatName: string) => `Λεπτομέρειες για ${chatName}`,
         navigatesToChat: 'Πλοηγείται σε μια συνομιλία',
         newMessageLineIndicator: 'Δείκτης νέας γραμμής μηνύματος',
         chatMessage: 'Μήνυμα συνομιλίας',

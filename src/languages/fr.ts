@@ -11927,7 +11927,6 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
     accessibilityHints: {
         navigateToChatsList: 'Revenir à la liste des discussions',
         chatWelcomeMessage: 'Message de bienvenue du chat',
-        chatDetails: (chatName: string) => `Détails de ${chatName}`,
         navigatesToChat: 'Accède à une discussion',
         newMessageLineIndicator: 'Indicateur de nouvelle ligne de message',
         chatMessage: 'Message de chat',

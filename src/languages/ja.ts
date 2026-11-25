@@ -11649,7 +11649,6 @@ ${reportName}`,
     accessibilityHints: {
         navigateToChatsList: 'チャット一覧に戻る',
         chatWelcomeMessage: 'チャットの歓迎メッセージ',
-        chatDetails: (chatName: string) => `${chatName}の詳細`,
         navigatesToChat: 'チャットに移動します',
         newMessageLineIndicator: '新着メッセージ行インジケーター',
         chatMessage: 'チャットメッセージ',
