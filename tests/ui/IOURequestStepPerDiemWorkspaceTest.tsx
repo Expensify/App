@@ -34,6 +34,13 @@ import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct'
 jest.mock('@components/SelectionList', () => jest.fn(() => null));
 jest.mock('@hooks/useRequestStepWorkspaceList', () => jest.fn());
 
+// The workspace chats are looked up from a report cache filled outside of render, so the test hands them over directly
+const mockPolicyExpenseChats: Record<string, Report> = {};
+jest.mock('@libs/ReportUtils', () => ({
+    ...jest.requireActual<Record<string, unknown>>('@libs/ReportUtils'),
+    getPolicyExpenseChat: jest.fn((_ownerAccountID: number | undefined, policyID: string | undefined) => (policyID ? mockPolicyExpenseChats[policyID] : undefined)),
+}));
+
 jest.mock('@libs/Navigation/Navigation', () => ({
     navigate: jest.fn(),
     goBack: jest.fn(),
@@ -141,7 +148,7 @@ async function renderPage(transaction: Transaction) {
                         route={createMock<WorkspaceScreenProps['route']>({
                             key: 'IOURequestStepPerDiemWorkspace',
                             name: SCREENS.MONEY_REQUEST.CREATE,
-                            params: {action: CONST.IOU.ACTION.CREATE, iouType: CONST.IOU.TYPE.CREATE, transactionID: TRANSACTION_ID, reportID: '1'},
+                            params: {iouType: CONST.IOU.TYPE.CREATE, transactionID: TRANSACTION_ID, reportID: '1'},
                         })}
                         navigation={createMock<WorkspaceScreenProps['navigation']>({})}
                         transaction={transaction}
@@ -162,14 +169,8 @@ describe('IOURequestStepPerDiemWorkspace', () => {
     beforeEach(async () => {
         jest.clearAllMocks();
         await signInWithTestUser(ACCOUNT_ID, ACCOUNT_LOGIN);
-        await act(async () => {
-            await Onyx.multiSet({
-                [`${ONYXKEYS.COLLECTION.POLICY}${POLICY_A_ID}`]: createPerDiemPolicy(POLICY_A_ID, UNIT_A_ID),
-                [`${ONYXKEYS.COLLECTION.POLICY}${POLICY_B_ID}`]: createPerDiemPolicy(POLICY_B_ID, UNIT_B_ID),
-                [`${ONYXKEYS.COLLECTION.REPORT}1`]: createPolicyExpenseChat('1', POLICY_A_ID),
-                [`${ONYXKEYS.COLLECTION.REPORT}2`]: createPolicyExpenseChat('2', POLICY_B_ID),
-            });
-        });
+        mockPolicyExpenseChats[POLICY_A_ID] = createPolicyExpenseChat('1', POLICY_A_ID);
+        mockPolicyExpenseChats[POLICY_B_ID] = createPolicyExpenseChat('2', POLICY_B_ID);
     });
 
     afterEach(async () => {

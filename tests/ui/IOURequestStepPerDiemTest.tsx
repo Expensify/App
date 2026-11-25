@@ -181,7 +181,11 @@ describe('IOURequestStepPerDiem', () => {
     it('points a draft from global create at the only per diem workspace even when it starts on a default workspace without per diem', async () => {
         // Given an auto-reporting default workspace without per diem, which a draft from global create starts on
         await act(async () => {
-            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${OTHER_POLICY_ID}`, {...createRandomPolicy(2, CONST.POLICY.TYPE.CORPORATE, 'Default policy'), id: OTHER_POLICY_ID, customUnits: {}});
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${OTHER_POLICY_ID}`, {
+                ...createRandomPolicy(2, CONST.POLICY.TYPE.CORPORATE, 'Default policy'),
+                id: OTHER_POLICY_ID,
+                customUnits: {},
+            });
         });
         const transaction = createDraft({isFromGlobalCreate: true, participants: [{policyID: OTHER_POLICY_ID, isPolicyExpenseChat: true, selected: true}]});
 
