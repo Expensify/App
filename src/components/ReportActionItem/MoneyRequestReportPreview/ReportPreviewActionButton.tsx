@@ -5,13 +5,13 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import CONST from '@src/CONST';
 
-import React, {useState} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 
 import AddExpenseActionButton from './AddExpenseActionButton';
 import ApproveActionButton from './ApproveActionButton';
 import ExportActionButton from './ExportActionButton';
-import {useReportPreviewActions, useReportPreviewActionState, useReportPreviewAnimationState, useReportPreviewUIState} from './MoneyRequestReportPreviewContext';
+import {useReportPreviewActions, useReportPreviewActionState, useReportPreviewUIState} from './MoneyRequestReportPreviewContext';
 import PayActionButton from './PayActionButton';
 import SubmitActionButton from './SubmitActionButton';
 
@@ -19,16 +19,9 @@ function ReportPreviewActionButton() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {reportPreviewAction, connectedIntegration} = useReportPreviewActionState();
-    const {isApprovedAnimationRunning} = useReportPreviewAnimationState();
     const {buttonMaxWidth} = useReportPreviewUIState();
     const {openReportFromPreview} = useReportPreviewActions();
     const shouldPrioritizeView = reportPreviewAction === CONST.REPORT.REPORT_PREVIEW_ACTIONS.APPROVE_WITH_VIOLATIONS;
-    const [shouldShowViewFirst, setShouldShowViewFirst] = useState(shouldPrioritizeView);
-
-    // Approval switches the action to Pay for its loading and completion animation. Keep that feedback where Approve was pressed.
-    if (!isApprovedAnimationRunning && shouldShowViewFirst !== shouldPrioritizeView) {
-        setShouldShowViewFirst(shouldPrioritizeView);
-    }
 
     const renderPrimaryButton = () => {
         if (reportPreviewAction === CONST.REPORT.REPORT_PREVIEW_ACTIONS.SUBMIT) {
@@ -58,7 +51,7 @@ function ReportPreviewActionButton() {
 
     const viewButton = (
         <Button
-            variant={shouldShowViewFirst ? CONST.BUTTON_VARIANT.SUCCESS : undefined}
+            variant={shouldPrioritizeView ? CONST.BUTTON_VARIANT.SUCCESS : undefined}
             // Only flex View when it shares the row with a primary action. A lone View sits in a column with no fixed height, where flex: 1 collapses it on iOS Safari and cuts off the button.
             style={primaryButton ? styles.flex1 : undefined}
             onPress={openReportFromPreview}
@@ -76,10 +69,8 @@ function ReportPreviewActionButton() {
 
     return (
         <View style={[buttonMaxWidth, styles.flex1, styles.flexRow, styles.gap2, styles.reportPreviewActionRow]}>
-            {/* View keeps the middle slot so it stays mounted, and keeps keyboard focus, when the primary action moves to the other side. */}
-            {!shouldShowViewFirst && primaryButtonContainer}
+            {primaryButtonContainer}
             {viewButton}
-            {shouldShowViewFirst && primaryButtonContainer}
         </View>
     );
 }

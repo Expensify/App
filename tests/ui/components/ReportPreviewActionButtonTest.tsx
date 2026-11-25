@@ -14,8 +14,6 @@ const mockActionState: {reportPreviewAction: ValueOf<typeof CONST.REPORT.REPORT_
     reportPreviewAction: CONST.REPORT.REPORT_PREVIEW_ACTIONS.VIEW,
     connectedIntegration: undefined,
 };
-const mockAnimationState = {isApprovedAnimationRunning: false};
-
 const mockSubmit = jest.fn();
 const mockApprove = jest.fn();
 const mockPay = jest.fn();
@@ -27,7 +25,6 @@ const mockOpenReport = jest.fn();
 jest.mock('@components/ReportActionItem/MoneyRequestReportPreview/MoneyRequestReportPreviewContext', () => ({
     __esModule: true,
     useReportPreviewActionState: () => mockActionState,
-    useReportPreviewAnimationState: () => mockAnimationState,
     useReportPreviewUIState: () => ({buttonMaxWidth: {}}),
     useReportPreviewActions: () => ({openReportFromPreview: mockOpenReport}),
 }));
@@ -104,69 +101,16 @@ describe('ReportPreviewActionButton', () => {
         // When its preview buttons render
         render(<ReportPreviewActionButton />);
 
-        // Then both actions remain, with View styled as primary and using the existing navigation handler
+        // Then both actions remain in their original order, with View styled as primary and using the existing navigation handler
         expect(mockApprove).toHaveBeenCalled();
         expect(mockView).toHaveBeenCalledWith(expect.objectContaining({variant: CONST.BUTTON_VARIANT.SUCCESS, onPress: mockOpenReport}));
+        expect(getButtonOrder()).toEqual(['approve-button', 'view-button']);
     });
 
     beforeEach(() => {
         jest.clearAllMocks();
         mockActionState.reportPreviewAction = CONST.REPORT.REPORT_PREVIEW_ACTIONS.VIEW;
         mockActionState.connectedIntegration = undefined;
-        mockAnimationState.isApprovedAnimationRunning = false;
-    });
-
-    it.each([CONST.REPORT.REPORT_PREVIEW_ACTIONS.APPROVE, CONST.REPORT.REPORT_PREVIEW_ACTIONS.APPROVE_WITH_VIOLATIONS])(
-        'keeps approval feedback in its original position until the animation finishes for %s',
-        (action) => {
-            // Given an approvable report, whose violations determine which side Approve occupies
-            mockActionState.reportPreviewAction = action;
-            const rendered = render(<ReportPreviewActionButton />);
-            const isViewFirst = action === CONST.REPORT.REPORT_PREVIEW_ACTIONS.APPROVE_WITH_VIOLATIONS;
-            expect(getButtonOrder()).toEqual(isViewFirst ? ['view-button', 'approve-button'] : ['approve-button', 'view-button']);
-
-            // When approval uses the Pay component for loading and completion feedback
-            mockAnimationState.isApprovedAnimationRunning = true;
-            mockActionState.reportPreviewAction = CONST.REPORT.REPORT_PREVIEW_ACTIONS.PAY;
-            rendered.rerender(<ReportPreviewActionButton />);
-
-            // Then the feedback stays where Approve was, and View keeps its styling and navigation
-            expect(getButtonOrder()).toEqual(isViewFirst ? ['view-button', 'pay-button'] : ['pay-button', 'view-button']);
-            expect(mockView).toHaveBeenLastCalledWith(expect.objectContaining({variant: isViewFirst ? CONST.BUTTON_VARIANT.SUCCESS : undefined, onPress: mockOpenReport}));
-
-            // When the animation finishes and payment is available
-            mockAnimationState.isApprovedAnimationRunning = false;
-            rendered.rerender(<ReportPreviewActionButton />);
-
-            // Then Pay takes the primary position and View returns to its normal styling
-            expect(getButtonOrder()).toEqual(['pay-button', 'view-button']);
-            expect(mockView).toHaveBeenLastCalledWith(expect.objectContaining({variant: undefined}));
-        },
-    );
-
-    it('preserves the secondary approval position after a failed approval and on retry', () => {
-        // Given a report with violations whose approval is awaiting backend validation
-        mockActionState.reportPreviewAction = CONST.REPORT.REPORT_PREVIEW_ACTIONS.APPROVE_WITH_VIOLATIONS;
-        const rendered = render(<ReportPreviewActionButton />);
-        mockAnimationState.isApprovedAnimationRunning = true;
-        mockActionState.reportPreviewAction = CONST.REPORT.REPORT_PREVIEW_ACTIONS.PAY;
-        rendered.rerender(<ReportPreviewActionButton />);
-
-        // When validation fails and the report can be approved again
-        mockAnimationState.isApprovedAnimationRunning = false;
-        mockActionState.reportPreviewAction = CONST.REPORT.REPORT_PREVIEW_ACTIONS.APPROVE_WITH_VIOLATIONS;
-        rendered.rerender(<ReportPreviewActionButton />);
-
-        // Then Approve returns to its original secondary position
-        expect(getButtonOrder()).toEqual(['view-button', 'approve-button']);
-
-        // When the user retries approval
-        mockAnimationState.isApprovedAnimationRunning = true;
-        mockActionState.reportPreviewAction = CONST.REPORT.REPORT_PREVIEW_ACTIONS.PAY;
-        rendered.rerender(<ReportPreviewActionButton />);
-
-        // Then loading still occupies the secondary position
-        expect(getButtonOrder()).toEqual(['view-button', 'pay-button']);
     });
 
     it.each([
