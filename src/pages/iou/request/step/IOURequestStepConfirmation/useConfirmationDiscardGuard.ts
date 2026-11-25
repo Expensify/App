@@ -46,3 +46,4 @@ function useConfirmationDiscardGuard({shouldConfirmDiscardingChanges, requestTyp
 }
 
 export default useConfirmationDiscardGuard;
+export type {UseConfirmationDiscardGuardParams};

@@ -11,6 +11,7 @@ import type IOURequestStepCurrencyModal from '@pages/iou/request/step/IOURequest
 import {setDraftSplitTransaction} from '@userActions/IOU/Split';
 
 import CONST from '@src/CONST';
+import type {IOURequestType} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
 
@@ -126,7 +127,8 @@ jest.mock('@components/DropdownFieldRow', () => {
         </>
     );
 });
-let mockTransactionSlice: {transactionID: string; amount: number; currency: string; isAmountMissing: boolean; isAmountSet?: boolean; isScanning?: boolean; iouRequestType?: string} = {
+type MockTransactionSlice = {transactionID: string; amount: number; currency: string; isAmountMissing: boolean; isAmountSet?: boolean; isScanning?: boolean; iouRequestType?: IOURequestType};
+let mockTransactionSlice: MockTransactionSlice = {
     transactionID: '1',
     amount: 0,
     currency: 'USD',

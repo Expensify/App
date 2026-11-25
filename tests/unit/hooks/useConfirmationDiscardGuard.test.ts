@@ -1,6 +1,9 @@
 import {act, renderHook} from '@testing-library/react-native';
 
+import type UseDiscardChangesConfirmationOptions from '@hooks/useDiscardChangesConfirmation/types';
+
 import useConfirmationDiscardGuard from '@pages/iou/request/step/IOURequestStepConfirmation/useConfirmationDiscardGuard';
+import type {UseConfirmationDiscardGuardParams} from '@pages/iou/request/step/IOURequestStepConfirmation/useConfirmationDiscardGuard';
 
 import CONST from '@src/CONST';
 
@@ -9,15 +12,13 @@ const mockSuppressDiscardPrompt = jest.fn();
 
 jest.mock('@hooks/useDiscardChangesConfirmation', () => ({
     __esModule: true,
-    default: ({getHasUnsavedChanges}: {getHasUnsavedChanges: () => boolean}) => {
+    default: ({getHasUnsavedChanges}: UseDiscardChangesConfirmationOptions) => {
         mockGetHasUnsavedChanges = getHasUnsavedChanges;
         return {suppressDiscardPrompt: mockSuppressDiscardPrompt};
     },
 }));
 
-type GuardParams = Parameters<typeof useConfirmationDiscardGuard>[0];
-
-const untouchedFlowStart: GuardParams = {shouldConfirmDiscardingChanges: true, requestType: CONST.IOU.REQUEST_TYPE.MANUAL, isAmountSet: false, isSubmitting: false};
+const untouchedFlowStart: UseConfirmationDiscardGuardParams = {shouldConfirmDiscardingChanges: true, requestType: CONST.IOU.REQUEST_TYPE.MANUAL, isAmountSet: false, isSubmitting: false};
 
 describe('useConfirmationDiscardGuard', () => {
     it('does not ask before leaving an untouched form', () => {
@@ -55,7 +56,7 @@ describe('useConfirmationDiscardGuard', () => {
 
     it('forgets the amount field input once a tab switch replaces the draft', () => {
         // Given the form that opens the flow, where the amount field reported a minus sign typed without digits
-        const {result, rerender} = renderHook((params: GuardParams) => useConfirmationDiscardGuard(params), {initialProps: untouchedFlowStart});
+        const {result, rerender} = renderHook((params: UseConfirmationDiscardGuardParams) => useConfirmationDiscardGuard(params), {initialProps: untouchedFlowStart});
         act(() => result.current.setHasUnsavedAmountInput(true));
 
         // When the user switches to the Time tab and back, which replaces the draft and remounts the amount field empty

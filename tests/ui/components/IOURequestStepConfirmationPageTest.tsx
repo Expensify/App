@@ -8,6 +8,7 @@ import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
 
 import useConfirmationParticipantSelection from '@hooks/useConfirmationParticipantSelection';
+import type UseDiscardChangesConfirmationOptions from '@hooks/useDiscardChangesConfirmation/types';
 
 import {startSplitBill} from '@libs/actions/IOU/Split';
 import getCurrentPosition from '@libs/getCurrentPosition';
@@ -190,11 +191,12 @@ jest.mock('@react-navigation/native', () => {
 
 // The page renders outside a navigator screen, so the discard guard, which reads the route, is replaced by one that keeps its dirty check
 let mockGetHasUnsavedChanges: () => boolean = () => false;
+const mockSuppressDiscardPrompt = jest.fn();
 jest.mock('@hooks/useDiscardChangesConfirmation', () => ({
     __esModule: true,
-    default: ({getHasUnsavedChanges}: {getHasUnsavedChanges: () => boolean}) => {
+    default: ({getHasUnsavedChanges}: UseDiscardChangesConfirmationOptions) => {
         mockGetHasUnsavedChanges = getHasUnsavedChanges;
-        return {suppressDiscardPrompt: jest.fn()};
+        return {suppressDiscardPrompt: mockSuppressDiscardPrompt};
     },
 }));
 
@@ -3314,7 +3316,7 @@ describe('IOURequestStepConfirmationPageTest', () => {
          * Renders the body the way the manual tab composes it (inside the start page's ScreenWrapper), or the
          * standalone RHP route, which brings its own.
          */
-        async function renderConfirmation({isEmbedded, iouType = 'submit'}: {isEmbedded: boolean; iouType?: 'submit' | 'split'}) {
+        async function renderConfirmation({isEmbedded, iouType = 'submit'}: {isEmbedded: boolean; iouType?: 'submit' | 'split' | 'pay'}) {
             await act(async () => {
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${TRANSACTION_ID}`, {
                     ...DEFAULT_SPLIT_TRANSACTION,
@@ -3428,6 +3430,45 @@ describe('IOURequestStepConfirmationPageTest', () => {
 
             // Then nothing is lost, so the confirmation doesn't ask
             expect(hasUnsavedChanges).toBe(false);
+        });
+
+        it('stops asking as soon as the user creates the expense', async () => {
+            // Given the embedded form holding an amount the user typed, so leaving it would ask
+            await renderConfirmation({isEmbedded: true});
+            expect(mockSuppressDiscardPrompt).not.toHaveBeenCalled();
+
+            // When the user creates the expense
+            fireEvent.press(await screen.findByText(/^Create .*expense/i));
+
+            // Then the prompt is off within the press itself, since the submit can close the form before it marks itself as submitting
+            expect(mockSuppressDiscardPrompt).toHaveBeenCalledTimes(1);
+            await waitFor(() => expect(TrackExpense.requestMoney).toHaveBeenCalled());
+        });
+
+        it('stops asking as soon as the user pays', async () => {
+            // Given the embedded Pay form holding an amount the user typed. Its Pay button opens a menu of payment methods, so the test keeps the confirm action that menu runs.
+            let confirm: ReturnType<typeof ConfirmAction.default> | undefined;
+            const originalBuildConfirmAction = ConfirmAction.default;
+            const buildConfirmActionSpy = jest.spyOn(ConfirmAction, 'default').mockImplementation((params) => {
+                confirm = originalBuildConfirmAction(params);
+                return confirm;
+            });
+            const submitWithDismissFirstSpy = jest.spyOn(SubmitWithDismissFirst, 'submitWithDismissFirst').mockImplementation(() => {});
+
+            try {
+                await renderConfirmation({isEmbedded: true, iouType: 'pay'});
+                expect(mockSuppressDiscardPrompt).not.toHaveBeenCalled();
+
+                // When the user pays elsewhere
+                act(() => confirm?.({paymentType: CONST.IOU.PAYMENT_TYPE.ELSEWHERE}));
+
+                // Then the prompt is off within the confirm itself, since the payment closes the form before it marks itself as submitting
+                expect(mockSuppressDiscardPrompt).toHaveBeenCalledTimes(1);
+                await waitFor(() => expect(submitWithDismissFirstSpy).toHaveBeenCalled());
+            } finally {
+                buildConfirmActionSpy.mockRestore();
+                submitWithDismissFirstSpy.mockRestore();
+            }
         });
     });
 });
