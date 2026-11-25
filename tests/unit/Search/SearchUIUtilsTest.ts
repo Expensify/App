@@ -16662,12 +16662,15 @@ describe('SearchUIUtils', () => {
         });
 
         test('includes translated labels from CLOSED actions', () => {
+            // Given a report closed with a violation on the expense, which records the violations snapshot on its CLOSED action
             const closedAction = createSubmittedAction(CONST.REPORT.ACTIONS.TYPE.CLOSED, {
                 transactions: {
                     [transactionIDForViolations]: [{name: CONST.VIOLATIONS.MISSING_CATEGORY}],
                 },
             });
 
+            // When the expense's submitted violations are read
+            // Then the closed report's violation is listed, since Search counts a CLOSED snapshot as submit-time, like a submission's
             expect(SearchUIUtils.getSubmittedViolationsForTransaction([closedAction], transactionIDForViolations, translateLocal)).toBe(
                 translateLocal('violations.shortName.missingCategory'),
             );
