@@ -17167,14 +17167,30 @@ describe('SearchUIUtils', () => {
     });
 
     describe('getDisplayValue', () => {
+        const convertToDisplayStringWithoutCurrency = jest.fn((amount = 0) => String(amount));
+
         test('returns translated has option labels from getHasOptions', () => {
-            const result = SearchUIUtils.getDisplayValue('has', {has: [CONST.SEARCH.HAS_VALUES.SUBMITTED_VIOLATION]}, CONST.SEARCH.DATA_TYPES.EXPENSE, translateLocal, localeCompare);
+            const result = SearchUIUtils.getDisplayValue(
+                'has',
+                {has: [CONST.SEARCH.HAS_VALUES.SUBMITTED_VIOLATION]},
+                CONST.SEARCH.DATA_TYPES.EXPENSE,
+                translateLocal,
+                localeCompare,
+                convertToDisplayStringWithoutCurrency,
+            );
 
             expect(result).toBe(translateLocal('search.filters.has.submittedViolation'));
         });
 
         test('returns translated approved violation has option label', () => {
-            const result = SearchUIUtils.getDisplayValue('has', {has: [CONST.SEARCH.HAS_VALUES.APPROVED_VIOLATION]}, CONST.SEARCH.DATA_TYPES.EXPENSE, translateLocal, localeCompare);
+            const result = SearchUIUtils.getDisplayValue(
+                'has',
+                {has: [CONST.SEARCH.HAS_VALUES.APPROVED_VIOLATION]},
+                CONST.SEARCH.DATA_TYPES.EXPENSE,
+                translateLocal,
+                localeCompare,
+                convertToDisplayStringWithoutCurrency,
+            );
 
             expect(result).toBe(translateLocal('search.filters.has.approvedViolation'));
         });
@@ -17186,13 +17202,21 @@ describe('SearchUIUtils', () => {
                 CONST.SEARCH.DATA_TYPES.EXPENSE,
                 translateLocal,
                 localeCompare,
+                convertToDisplayStringWithoutCurrency,
             );
 
             expect(result).toBe(`${translateLocal('common.receipt')}, ${translateLocal('search.filters.has.submittedViolation')}`);
         });
 
         test('continues to use common translations for is filter values', () => {
-            const result = SearchUIUtils.getDisplayValue('is', {is: [CONST.SEARCH.IS_VALUES.READ]}, CONST.SEARCH.DATA_TYPES.EXPENSE, translateLocal, localeCompare);
+            const result = SearchUIUtils.getDisplayValue(
+                'is',
+                {is: [CONST.SEARCH.IS_VALUES.READ]},
+                CONST.SEARCH.DATA_TYPES.EXPENSE,
+                translateLocal,
+                localeCompare,
+                convertToDisplayStringWithoutCurrency,
+            );
 
             expect(result).toBe(translateLocal('common.read'));
         });
@@ -17206,7 +17230,7 @@ describe('SearchUIUtils', () => {
             const form = {[FILTER_KEYS.MERCHANT]: 'I', [FILTER_KEYS.MERCHANT_OPERATOR]: merchantOperator};
 
             // When the filter label is built
-            const result = SearchUIUtils.getDisplayValue(FILTER_KEYS.MERCHANT, form, CONST.SEARCH.DATA_TYPES.EXPENSE, translateLocal, localeCompare);
+            const result = SearchUIUtils.getDisplayValue(FILTER_KEYS.MERCHANT, form, CONST.SEARCH.DATA_TYPES.EXPENSE, translateLocal, localeCompare, convertToDisplayStringWithoutCurrency);
 
             // Then the match type is part of the translated label, so a missing operator reads as contains
             expect(result).toBe(translateLocal(translationKey, 'I'));
@@ -17217,7 +17241,7 @@ describe('SearchUIUtils', () => {
             const form = {[key]: CONST.SEARCH.BOOLEAN.YES};
 
             // When the filter label is built
-            const result = SearchUIUtils.getDisplayValue(key, form, CONST.SEARCH.DATA_TYPES.EXPENSE, translateLocal, localeCompare);
+            const result = SearchUIUtils.getDisplayValue(key, form, CONST.SEARCH.DATA_TYPES.EXPENSE, translateLocal, localeCompare, convertToDisplayStringWithoutCurrency);
 
             // Then the label uses the localized value instead of the raw query token, matching the non-negated filter
             expect(result).toBe(translateLocal('common.yes'));
