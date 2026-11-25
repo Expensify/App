@@ -220,11 +220,11 @@ function getActiveVendorMatchingIntegration(policy: OnyxEntry<Policy>): Connecti
     if (isDigitsVendorMatchingActive(policy)) {
         return CONST.POLICY.CONNECTIONS.NAME.DIGITS;
     }
-    if (isBusinessCentralVendorMatchingActive(policy)) {
-        return CONST.POLICY.CONNECTIONS.NAME.BUSINESS_CENTRAL;
-    }
     if (isCertiniaVendorMatchingActive(policy)) {
         return CONST.POLICY.CONNECTIONS.NAME.CERTINIA;
+    }
+    if (isBusinessCentralVendorMatchingActive(policy)) {
+        return CONST.POLICY.CONNECTIONS.NAME.BUSINESS_CENTRAL;
     }
     if (isQuickbooksDesktopVendorMatchingActive(policy)) {
         return CONST.POLICY.CONNECTIONS.NAME.QBD;
@@ -282,6 +282,9 @@ function getActiveVendorMatchingVendors(policy: OnyxEntry<Policy>): Vendor[] | u
     if (isDigitsVendorMatchingActive(policy)) {
         return policy.connections?.[CONST.POLICY.CONNECTIONS.NAME.DIGITS]?.data?.vendors === undefined ? undefined : getDigitsVendors(policy);
     }
+    if (isCertiniaVendorMatchingActive(policy)) {
+        return policy.connections?.[CONST.POLICY.CONNECTIONS.NAME.CERTINIA]?.data?.vendors === undefined ? undefined : getCertiniaVendors(policy);
+    }
     if (isBusinessCentralVendorMatchingActive(policy)) {
         const businessCentralVendors = policy.connections?.[CONST.POLICY.CONNECTIONS.NAME.BUSINESS_CENTRAL]?.data?.vendors;
         if (businessCentralVendors === undefined) {
@@ -299,9 +302,6 @@ function getActiveVendorMatchingVendors(policy: OnyxEntry<Policy>): Vendor[] | u
                 currency: '',
                 email: vendor.email,
             }));
-    }
-    if (isCertiniaVendorMatchingActive(policy)) {
-        return policy.connections?.[CONST.POLICY.CONNECTIONS.NAME.CERTINIA]?.data?.vendors === undefined ? undefined : getCertiniaVendors(policy);
     }
     if (isQuickbooksDesktopVendorMatchingActive(policy)) {
         const vendors = policy.connections?.[CONST.POLICY.CONNECTIONS.NAME.QBD]?.data?.vendors;
