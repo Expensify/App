@@ -462,10 +462,9 @@ describe('BankAccountUtils', () => {
             [wiseBankAccountID]: buildBankAccount(CONST.GLOBAL_REIMBURSEMENT_PROVIDER.WISE),
             [corpayBankAccountID]: buildBankAccount(CONST.GLOBAL_REIMBURSEMENT_PROVIDER.CORPAY),
         };
-        const buildNextStep = (requiresGlobalReimbursement: boolean, depositCurrency?: string) => ({
+        const buildNextStep = (depositCurrency?: string) => ({
             messageKey: CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_PAY,
             icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
-            requiresGlobalReimbursement,
             depositCurrency,
         });
         const crossCurrencyPayment = {
@@ -473,11 +472,11 @@ describe('BankAccountUtils', () => {
             methodID: wiseBankAccountID,
             bankAccountList,
             isWiseReimbursementsBetaEnabled: true,
-            iouReport: {currency: CONST.CURRENCY.USD, nextStep: buildNextStep(true, CONST.CURRENCY.EUR)},
+            iouReport: {currency: CONST.CURRENCY.USD, nextStep: buildNextStep(CONST.CURRENCY.EUR)},
         };
         const sameCurrencyPayment = {
             ...crossCurrencyPayment,
-            iouReport: {currency: CONST.CURRENCY.USD, nextStep: buildNextStep(true, CONST.CURRENCY.USD)},
+            iouReport: {currency: CONST.CURRENCY.USD, nextStep: buildNextStep(CONST.CURRENCY.USD)},
         };
 
         it('asks for a quote when Wise converts the report into another currency', () => {
@@ -501,7 +500,7 @@ describe('BankAccountUtils', () => {
             ['the payment is made elsewhere', {paymentType: CONST.IOU.PAYMENT_TYPE.ELSEWHERE}],
             ['the account is set up through Corpay', {methodID: corpayBankAccountID}],
             ['the account is unknown', {methodID: 3}],
-            ['the report does not go through a global provider', {iouReport: {currency: CONST.CURRENCY.USD, nextStep: buildNextStep(false, CONST.CURRENCY.EUR)}}],
+            ['the backend names no deposit currency', {iouReport: {currency: CONST.CURRENCY.USD, nextStep: buildNextStep()}}],
         ])('pays without a quote when %s', (_label, overrides) => {
             // Given a payment that Wise does not price
             // When deciding whether to get and show the quote first
@@ -524,12 +523,16 @@ describe('BankAccountUtils', () => {
             expect(shouldConfirmWiseQuoteBeforePaying(payment)).toBe(true);
         });
 
-        it('asks for a quote when the deposit currency is unknown', () => {
-            // Given a payment through a global provider whose next step does not name the deposit currency
-            const payment = {...sameCurrencyPayment, iouReport: {currency: CONST.CURRENCY.USD, nextStep: buildNextStep(true)}};
+        it('asks for a quote when the admin pays from a Wise account that is not the workspace account', () => {
+            // Given a cross-currency payment from a chosen Wise account while the workspace pays from another account
+            const payment = {
+                ...crossCurrencyPayment,
+                policy: {achAccount: {bankAccountID: corpayBankAccountID, accountNumber: '', routingNumber: '', addressName: '', bankName: '', reimburser: ''}},
+            };
 
-            // When deciding whether to show the quote first
-            // Then it asks, because the report currency is the workspace currency and can't tell whether Wise converts anything
+            // When deciding whether to get and show the quote first
+            // Then both hold, because the deposit currency and the chosen account decide it, whatever the workspace account is
+            expect(shouldGetWiseQuote(payment)).toBe(true);
             expect(shouldConfirmWiseQuoteBeforePaying(payment)).toBe(true);
         });
 

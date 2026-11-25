@@ -281,20 +281,24 @@ function getWiseBankAccountForPayment(params: WiseQuotePaymentParams): OnyxTypes
     return isWiseAccount ? bankAccount : undefined;
 }
 
-/** Whether Wise sends this report to the employee through a global provider, which it prices with a quote */
+/**
+ * Whether Wise sends this report to the employee, which it prices with a quote.
+ * The backend names the deposit currency only for such reports, while the paying account is picked in the client.
+ */
 function shouldGetWiseQuote(params: WiseQuotePaymentParams): boolean {
-    return !!params.iouReport?.nextStep?.requiresGlobalReimbursement && !!getWiseBankAccountForPayment(params);
+    return !!params.iouReport?.nextStep?.depositCurrency && !!getWiseBankAccountForPayment(params);
 }
 
 /** Whether the admin confirms the Wise quote before paying, which happens when the submitter is paid in another currency than the bank account */
 function shouldConfirmWiseQuoteBeforePaying(params: WiseQuotePaymentParams): boolean {
     const bankAccount = getWiseBankAccountForPayment(params);
-    if (params.wiseQuoteID || !params.iouReport?.nextStep?.requiresGlobalReimbursement || !bankAccount) {
+    const depositCurrency = params.iouReport?.nextStep?.depositCurrency;
+    if (params.wiseQuoteID || !depositCurrency || !bankAccount) {
         return false;
     }
     // `||` not `??`: bankCurrency can be an empty string, which falls through to additionalData
     const bankCurrency = bankAccount.bankCurrency || bankAccount.accountData?.additionalData?.currency;
-    return params.iouReport.nextStep.depositCurrency !== bankCurrency;
+    return depositCurrency !== bankCurrency;
 }
 
 /**
