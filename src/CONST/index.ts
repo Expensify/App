@@ -1624,7 +1624,6 @@ const CONST = {
         SUPPORT_TICKET: 'supportTicket',
         RESIZABLE_TABLE_COLUMNS: 'resizableTableColumns',
         PINNABLE_TABLE_COLUMNS: 'pinnableTableColumns',
-        COLLECT_DEPOSIT_ACCOUNTS: 'collectDepositAccounts',
         RESIZABLE_SIDE_PANEL: 'resizableSidePanel',
         TRAVEL_APPROVAL: 'travelApproval',
         FLAT_NAV: 'flatNav',
