@@ -23,7 +23,7 @@ import {rand64} from '@libs/NumberUtils';
 import {getIOUActionForReportID, getIOUActionForTransactionID, getOriginalMessage, isActionOfType, isAddCommentAction, isDeletedAction, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {buildOptimisticIOUReportAction, getAncestors, getParsedComment, getReportOrDraftReport} from '@libs/ReportUtils';
 import {buildSearchQueryJSON} from '@libs/SearchQueryUtils';
-import * as TransactionUtils from '@libs/TransactionUtils';
+import * as TransactionUtils from '@libs/TransactionUtils/getUpdatedTransaction';
 
 import updateSplitTransactionsFromSplitExpensesFlow from '@pages/iou/updateSplitTransactionsFromSplitExpensesFlow';
 
@@ -3336,6 +3336,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             const {transactionReport} = getTransactionAndExpenseReports(splitExpenses.at(0)?.reportID ?? String(CONST.DEFAULT_NUMBER_ID));
 
             updateSplitTransactionsFromSplitExpensesFlow({
+                translate: translateLocal,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 getCurrencySymbol: getCurrencySymbolLocal,
                 isVendorMatchingBetaEnabled: false,
@@ -7152,6 +7153,7 @@ describe('updateSplitTransactions', () => {
             await getOnyxData({key: ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, callback: (value) => (allReportNameValuePairs = value)});
             const reports = getTransactionAndExpenseReports(reportID);
             updateSplitTransactions({
+                translate: translateLocal,
                 isVendorMatchingBetaEnabled: false,
                 shouldFlagNewSplitsForReportTable: true,
                 rules: undefined,

@@ -1,5 +1,5 @@
 import {clearBulkEditDraftTransaction, initBulkEditDraftTransaction, updateBulkEditDraftTransaction, updateMultipleMoneyRequests} from '@libs/actions/IOU/BulkEdit';
-import * as TransactionUtils from '@libs/TransactionUtils';
+import * as TransactionUtils from '@libs/TransactionUtils/getUpdatedTransaction';
 
 import CONST from '@src/CONST';
 import * as API from '@src/libs/API';
