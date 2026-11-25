@@ -123,6 +123,7 @@ function renderTable() {
                                 selectedKeys={[]}
                                 canWriteDistanceRates
                                 isDistanceRateTaxEnabled={false}
+                                isGovernmentRateAutoUpdateEnabled
                                 onRowSelectionChange={jest.fn()}
                             />
                         </ScreenWrapperStatusContext.Provider>

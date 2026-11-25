@@ -53,7 +53,6 @@ import {
     getParsedComment,
     getReportOrDraftReport,
     getReportRecipientAccountIDs,
-    getReportTransactions,
     isHiddenForCurrentUser,
     isMoneyRequestReport as isMoneyRequestReportReportUtils,
     isPolicyExpenseChat as isPolicyExpenseChatReportUtil,
@@ -100,7 +99,7 @@ import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {Attendee, Participant} from '@src/types/onyx/IOU';
 import type {CurrentUserPersonalDetails} from '@src/types/onyx/PersonalDetails';
-import type {CreatableWorkspaceType} from '@src/types/onyx/Policy';
+import type {CreatableWorkspaceType, Unit} from '@src/types/onyx/Policy';
 import type {QuickActionName} from '@src/types/onyx/QuickAction';
 import type ReportAction from '@src/types/onyx/ReportAction';
 import type {OnyxData} from '@src/types/onyx/Request';
@@ -135,7 +134,6 @@ import {
     getReportPreviewReportAction,
     getTransactionWithPreservedLocalReceiptSource,
 } from './MoneyRequestBuilder';
-import {addPendingNewTransactionIDs, isOneToTwoTransactionTransition} from './PendingNewTransactions';
 import resolveWriteBarrier, {IMMEDIATE} from './resolveWriteBarrier';
 import {getSearchOnyxUpdate} from './SearchUpdate';
 import signalExpenseAddedGrowl from './signalExpenseAddedGrowl';
@@ -179,6 +177,7 @@ type GetTrackExpenseInformationTransactionParams = {
     distance?: number;
     odometerStart?: number;
     odometerEnd?: number;
+    odometerUnit?: Unit;
     gpsCoordinates?: string;
     distanceRequestType?: string;
 };
@@ -206,7 +205,7 @@ type GetTrackExpenseInformationParams = {
     isASAPSubmitBetaEnabled: boolean;
     currentUserAccountIDParam: number;
     currentUserEmailParam: string;
-    currentUserPersonalDetails?: CurrentUserPersonalDetails;
+    currentUserPersonalDetails: CurrentUserPersonalDetails;
     introSelected: OnyxEntry<OnyxTypes.IntroSelected>;
     activePolicy?: OnyxEntry<OnyxTypes.Policy>;
     conciergeChat: OnyxEntry<OnyxTypes.Report>;
@@ -237,7 +236,7 @@ type DeleteTrackExpenseParams = {
     violations: OnyxCollection<OnyxTypes.TransactionViolations>;
     isSingleTransactionView: boolean | undefined;
     isChatReportArchived: boolean | undefined;
-    isChatIOUReportArchived: boolean | undefined;
+    isChatIOUReportArchived: boolean;
     allTransactionViolationsParam: OnyxCollection<OnyxTypes.TransactionViolations>;
     currentUserAccountID: number;
     currentUserEmail: string;
@@ -257,7 +256,7 @@ type BuildOnyxDataForTrackExpenseParams = {
     isASAPSubmitBetaEnabled: boolean;
     quickAction: OnyxEntry<OnyxTypes.QuickAction>;
     currentUserAccountID: number;
-    currentUserPersonalDetails?: CurrentUserPersonalDetails;
+    currentUserPersonalDetails: CurrentUserPersonalDetails;
 };
 
 /** Builds the Onyx data for track expense */
@@ -833,7 +832,7 @@ function getDeleteTrackExpenseInformation({
         failureData.push({
             onyxMethod: Onyx.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
-            value: transaction ?? null,
+            value: transaction ? {...transaction, pendingAction: null, pendingFields: null} : null,
         });
     }
     if (!shouldRemoveIOUTransaction) {
@@ -954,6 +953,7 @@ function getTrackExpenseInformation(params: GetTrackExpenseInformationParams): T
         attendees,
         odometerStart,
         odometerEnd,
+        odometerUnit,
         gpsCoordinates,
     } = transactionParams;
 
@@ -1176,6 +1176,7 @@ function getTrackExpenseInformation(params: GetTrackExpenseInformationParams): T
             attendees,
             odometerStart: isOdometerDistanceRequest ? odometerStart : undefined,
             odometerEnd: isOdometerDistanceRequest ? odometerEnd : undefined,
+            odometerUnit: isOdometerDistanceRequest ? odometerUnit : undefined,
             gpsCoordinates: isGPSDistanceRequest ? gpsCoordinates : undefined,
         },
     });
@@ -1534,13 +1535,11 @@ type RequestMoneyPlan = {
     iouReport: OnyxTypes.Report;
     transactionID: string;
     write: MoneyRequestWrite<typeof WRITE_COMMANDS.REQUEST_MONEY> | ConvertTrackedExpenseToRequestWrite;
-    activeReportID: string | undefined;
 
     /** Set when the expense lands in a chat, whose report list is told about the new preview once the write starts. */
     newActionNotification: {reportID: string; reportAction: OnyxTypes.ReportAction; isFromCurrentUser: boolean} | undefined;
     isRetry: boolean;
     shouldPlaySound: boolean;
-    shouldAddPendingNewTransaction: boolean;
     shouldSignalExpenseAdded: boolean;
 };
 
@@ -1758,6 +1757,7 @@ function planRequestMoney(requestMoneyInformation: RequestMoneyInformation): Req
         formatPhoneNumber,
         getCurrencyDecimals,
         rules,
+        personalDetailsByLogins,
         isVendorMatchingBetaEnabled,
     } = requestMoneyInformation;
     const {payeeAccountID} = participantParams;
@@ -1843,6 +1843,7 @@ function planRequestMoney(requestMoneyInformation: RequestMoneyInformation): Req
         createdReportActionIDForThread,
         onyxData,
     } = getMoneyRequestInformation({
+        shouldFlagNewTransactionForReportTable: true,
         isVendorMatchingBetaEnabled,
         parentChatReport: isMovingTransactionFromTrackExpense ? undefined : currentChatReport,
         existingIOUReport,
@@ -1881,6 +1882,7 @@ function planRequestMoney(requestMoneyInformation: RequestMoneyInformation): Req
         formatPhoneNumber,
         getCurrencyDecimals,
         rules,
+        personalDetailsByLogins,
         // Refactor this call site to pass real report actions instead of undefined in https://github.com/Expensify/App/issues/66522
         parentChatReportActions: undefined,
         participantChatReportActions: undefined,
@@ -2026,20 +2028,18 @@ function planRequestMoney(requestMoneyInformation: RequestMoneyInformation): Req
         iouReport,
         transactionID: transaction.transactionID,
         write,
-        activeReportID,
         newActionNotification:
             activeReportID && !isMoneyRequestReport
                 ? {reportID: activeReportID, reportAction: reportPreviewAction, isFromCurrentUser: payeeAccountID === currentUserAccountIDParam}
                 : undefined,
         isRetry: !!requestMoneyInformation.isRetry,
         shouldPlaySound,
-        shouldAddPendingNewTransaction: isOneToTwoTransactionTransition(isMoneyRequestReport, getReportTransactions(moneyRequestReportID)),
         shouldSignalExpenseAdded: !requestMoneyInformation.isRetry && isFromGlobalCreate,
     };
 }
 
 /**
- * Runs what planRequestMoney leaves out, in this order: the sound, the highlight for a report going from one expense to two, the request, then the Expense added message.
+ * Runs what planRequestMoney leaves out, in this order: the sound, the request, then the Expense added message.
  *
  * @param writeBarrier - Readiness barrier the API write waits on, handed down by whoever triggered the navigation.
  * Without one, the request is sent right away unless Search has a write pending, in which case it waits for Search. A retry never waits for Search.
@@ -2047,10 +2047,6 @@ function planRequestMoney(requestMoneyInformation: RequestMoneyInformation): Req
 function commitRequestMoney(plan: RequestMoneyPlan, writeBarrier?: WriteReadyBarrier) {
     if (plan.shouldPlaySound) {
         playSound(SOUNDS.DONE);
-    }
-
-    if (plan.shouldAddPendingNewTransaction) {
-        addPendingNewTransactionIDs(plan.activeReportID, plan.transactionID);
     }
 
     const {newActionNotification} = plan;
@@ -2233,6 +2229,7 @@ function convertBulkTrackedExpensesToIOU({
             transactionThreadReportID: moneyRequestTransactionThreadReportID,
             onyxData,
         } = getMoneyRequestInformation({
+            shouldFlagNewTransactionForReportTable: true,
             isVendorMatchingBetaEnabled,
             parentChatReport: chatReport,
             participantParams,
@@ -2633,6 +2630,7 @@ function trackExpense(params: CreateTrackExpenseParams) {
         attendees,
         odometerStart,
         odometerEnd,
+        odometerUnit,
         isFromGlobalCreate = false,
         gpsCoordinates,
         distanceRequestType,
@@ -2753,6 +2751,7 @@ function trackExpense(params: CreateTrackExpenseParams) {
             attendees,
             odometerStart,
             odometerEnd,
+            odometerUnit,
             gpsCoordinates,
         },
         policyParams: {
@@ -3046,6 +3045,7 @@ function trackExpense(params: CreateTrackExpenseParams) {
                     isOdometerDistanceRequestTransactionUtils(transaction),
                 odometerStart,
                 odometerEnd,
+                odometerUnit,
             };
             if (actionableWhisperReportActionIDParam) {
                 parameters.actionableWhisperReportActionID = actionableWhisperReportActionIDParam;

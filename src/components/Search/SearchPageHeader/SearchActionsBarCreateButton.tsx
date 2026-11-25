@@ -9,6 +9,7 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
+import {useGetPersonalDetailsByLogin} from '@hooks/usePersonalDetailByLogin';
 import usePopoverPosition from '@hooks/usePopoverPosition';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -49,6 +50,7 @@ function SearchActionsBarCreateButton() {
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const {getCurrencyDecimals} = useCurrencyListActions();
+    const getPersonalDetailsByLogin = useGetPersonalDetailsByLogin();
     // A new report has no expenses yet, so it can't have violations.
     const hasViolations = false;
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
@@ -59,17 +61,17 @@ function SearchActionsBarCreateButton() {
             return;
         }
 
-        const {reportID: createdReportID} = createNewReport(
-            currentUserPersonalDetails,
+        const {reportID: createdReportID} = createNewReport({
+            ownerPersonalDetails: currentUserPersonalDetails,
             hasViolations,
             isASAPSubmitBetaEnabled,
             policy,
             isTrackIntentUser,
             getCurrencyDecimals,
             rules,
-            false,
+            personalDetailsByLogins: getPersonalDetailsByLogin(),
             shouldDismissEmptyReportsConfirmation,
-        );
+        });
         Navigation.setNavigationActionToMicrotaskQueue(() => {
             Navigation.navigate(
                 isSearchTopmostFullScreenRoute()
