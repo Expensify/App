@@ -35,7 +35,7 @@ import {isBillableEnabledOnPolicy} from '@libs/MoneyRequestReportUtils';
 import {getBackendAmountFromInput} from '@libs/MoneyRequestUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {hasEnabledOptions} from '@libs/OptionsListUtils';
-import {canShowReimbursableToggleForPolicy, getCleanedTagName, getTagLists, hasDependentTags as hasDependentTagsPolicyUtils} from '@libs/PolicyUtils';
+import {canShowReimbursableToggleForPolicy, getCleanedTagName, getTagLists, hasDependentTags as hasDependentTagsPolicyUtils, resolveCurrentTaxCode} from '@libs/PolicyUtils';
 import {canEditFieldOfMoneyRequest, isInvoiceReport, isIOUReport, isReportApproved, isSettled} from '@libs/ReportUtils';
 import {getSearchBulkEditPolicyID} from '@libs/SearchUIUtils';
 import {getDependentTagVisibility, hasEnabledTags} from '@libs/TagsOptionsListUtils';
@@ -43,7 +43,7 @@ import startOpenCategoryPickerSpan from '@libs/telemetry/startOpenCategoryPicker
 import {
     getAttendeesListDisplayString,
     getTagArrayFromName,
-    getTaxName,
+    getWorkspaceTaxesSettingsName,
     hasSplitExpenseInSelection,
     isCardTransactionReimbursableEditable,
     isDistanceRequest,
@@ -445,7 +445,7 @@ function SearchEditMultiplePage() {
     // The selectable rows open their list in a container anchored to the row. A dependent tag level needs the levels
     // above it, which only the full page walks through, and a selection without a workspace has no lists to show.
     const canOpenListInDropdown = !!policyID;
-    const selectedTaxRate = draftTransaction?.taxCode ? (getTaxName(translate, policy, draftTransaction) ?? '') : '';
+    const selectedTaxRate = draftTransaction?.taxCode ? (getWorkspaceTaxesSettingsName(translate, policy, resolveCurrentTaxCode(policy, draftTransaction.taxCode)) ?? '') : '';
     const taxRateName = policy?.taxRates?.name ?? translate('common.tax');
     const lockedAmountTitle = draftAmount !== undefined ? convertToDisplayStringWithoutCurrency(draftAmount, currency) : '';
 
