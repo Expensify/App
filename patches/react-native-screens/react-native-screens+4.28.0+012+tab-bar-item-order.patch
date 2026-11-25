@@ -1,5 +1,5 @@
 diff --git a/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/container/TabsContainer.kt b/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/container/TabsContainer.kt
-index a2b93b0..f9f29dd 100644
+index a2b93b0..b536d07 100644
 --- a/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/container/TabsContainer.kt
 +++ b/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/container/TabsContainer.kt
 @@ -8,6 +8,7 @@ import android.graphics.drawable.ColorDrawable
@@ -23,14 +23,14 @@ index a2b93b0..f9f29dd 100644
      private var interfaceInsetsChangeListener: SafeAreaView? = null
  
 +    /** Screen keys in the order their items take in the tab bar. Empty keeps the order of the React children. */
-+    private var isNavigationMenuRebuilt = false
-+
 +    internal var tabBarItemOrder: List<String> by Delegates.observable(emptyList()) { _, oldValue, newValue ->
 +        if (newValue != oldValue) {
 +            invalidationFlags.isNavigationMenuStructureInvalidated = true
 +            invalidationFlags.isNavigationMenuAppearanceInvalidated = true
 +        }
 +    }
++
++    private var isNavigationMenuRebuilt = false
 +
      internal var tabBarHidden: Boolean by Delegates.observable(false) { _, oldValue, newValue ->
          if (newValue != oldValue) {

@@ -41,8 +41,8 @@ function FlatNavTabPressListeners({state, descriptors}: Pick<NativeTabLayoutProp
     const reportsNavigation = getTabNavigation(SCREENS.NATIVE_TAB_ITEM.REPORTS);
     const moreNavigation = getTabNavigation(SCREENS.NATIVE_TAB_ITEM.MORE);
 
-    // A navigation from another tab hands Search its search in the tab route params, which Search takes only in its next
-    // render. A tap made before then would navigate Search directly and be overridden by those params, so it waits.
+    // A navigation through the search route hands Search its search in the tab route params, which Search takes only in its
+    // next render. A tap made before then would navigate Search directly and be overridden by those params, so it waits.
     const pendingSearchNavigation = useRef<{isPending: boolean; queuedSearchKey?: SpendTabSearchKey}>({isPending: false});
     const getCurrentSearchTabRoute = () => findSearchTabRoute(searchNavigation?.getState());
 
@@ -51,7 +51,7 @@ function FlatNavTabPressListeners({state, descriptors}: Pick<NativeTabLayoutProp
     const openSpendTab = (searchKey: SpendTabSearchKey) => {
         const isSearchFocused = !!searchNavigation?.isFocused();
         // A press made after leaving the pending Search for another tab is not queued, since the queue is replayed only
-        // for a user still on Search. It navigates from that tab, which hands Search its search in the params again.
+        // for a user still on Search. It navigates from that tab like any other press.
         if (pendingSearchNavigation.current.isPending && isSearchFocused) {
             pendingSearchNavigation.current.queuedSearchKey = searchKey;
             return;
@@ -75,7 +75,7 @@ function FlatNavTabPressListeners({state, descriptors}: Pick<NativeTabLayoutProp
             isSearchFocused,
             session,
         );
-        // Only a navigation from another tab replaces the Search tab route params, so only that one leaves Search pending.
+        // Only a navigation through the search route replaces the Search tab route params, so only that one leaves Search pending.
         pendingSearchNavigation.current = {isPending: getCurrentSearchTabRoute()?.params !== searchTabRoute?.params};
     };
 
