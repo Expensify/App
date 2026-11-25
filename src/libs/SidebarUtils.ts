@@ -252,6 +252,9 @@ function shouldDisplayReportInLHN({
         includeSelfDM: true,
         isReportArchived,
         requiresAttention,
+        // `requiresAttention` comes from reportAttributes, which already applies the pending-DEW-approve check with the
+        // real metadata. The metadata below is only read before reportAttributes has computed this report.
+        pendingExpenseActionMetadata: undefined,
         derivedIsEmptyReport: reportAttributes?.[report?.reportID]?.isEmpty,
         currentUserLogin,
         currentUserAccountID,

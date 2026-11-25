@@ -6,6 +6,7 @@ import {getTransactionsByReportID, getViolationsFromSearchData, isTodoSearch} fr
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import {approvalWorkflowRulesSelector} from '@src/selectors/Rule';
 import type {SearchResultsInfo} from '@src/types/onyx/SearchResults';
 
 import React, {useState} from 'react';
@@ -46,6 +47,8 @@ function SearchResultsProvider({children}: SearchResultsProviderProps) {
     const currentRecentSearchHash = currentSearchQueryJSON?.recentSearchHash ?? -1;
 
     const [snapshotSearchResults] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${currentSearchHash}`);
+    // Approval routing only reads these rules, a tiny share of the collection on accounts with many expense rules, and every row routes its report
+    const [approvalWorkflowRules] = useOnyx(ONYXKEYS.COLLECTION.RULE, {selector: approvalWorkflowRulesSelector});
 
     const shouldUseLiveData = !!currentSearchKey && isTodoSearch(currentRecentSearchHash, suggestedSearches);
     // A to-do search has no snapshot to carry the backend's aggregate, so the breakdown the footer asks for is
@@ -100,6 +103,7 @@ function SearchResultsProvider({children}: SearchResultsProviderProps) {
         currentSearchResults,
         currentSearchTransactionsByReportID,
         currentSearchViolations,
+        approvalWorkflowRules,
         shouldUseLiveData,
         sortedReportIDs,
         shouldShowFiltersBarLoading,

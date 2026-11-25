@@ -5,6 +5,7 @@ import {MultiScanProvider} from '@pages/iou/request/step/IOURequestStepScan/comp
 import React from 'react';
 
 type MultiScanGateProps = {
+    iouRequestType: string | undefined;
     children: React.ReactNode;
 };
 
@@ -12,9 +13,9 @@ type MultiScanGateProps = {
  * Web gate — renders MultiScanProvider on mobile web (camera-based interaction),
  * passes children through on desktop (which uses file picker with shouldAcceptMultipleFiles instead).
  */
-function MultiScanGate({children}: MultiScanGateProps) {
+function MultiScanGate({iouRequestType, children}: MultiScanGateProps) {
     if (isMobile()) {
-        return <MultiScanProvider>{children}</MultiScanProvider>;
+        return <MultiScanProvider iouRequestType={iouRequestType}>{children}</MultiScanProvider>;
     }
     return children;
 }

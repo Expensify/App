@@ -7,7 +7,7 @@ import type * as ContextMenuActionsModule from '@pages/inbox/report/ContextMenu/
 import CONST from '@src/CONST';
 import type {TranslationParameters, TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Report} from '@src/types/onyx';
+import type {Report, ReportAction} from '@src/types/onyx';
 
 import Onyx from 'react-native-onyx';
 
@@ -319,6 +319,35 @@ describe('ContextMenuActions copy message', () => {
         // Then the translated change log text is copied instead of the stored text
         expect(mockSetString).toHaveBeenCalledWith(translationKey);
         expect(mockSetHtml).not.toHaveBeenCalled();
+    });
+
+    it.each([
+        ['editable when the current user created the expense', 1, true],
+        ['read-only when someone else created the expense', 2, false],
+    ])('copies the scan failed message as %s', (_, iouActionActorAccountID, expectedCanEdit) => {
+        // Given a scan failed action in an expense thread whose parent IOU action is passed in the payload
+        mockCanSetHtml.mockReturnValue(false);
+        const recordTranslation = jest.fn();
+        const translate = <TPath extends TranslationPaths>(path: TPath, ...parameters: TranslationParameters<TPath>): string => {
+            recordTranslation(path, ...parameters);
+            return path;
+        };
+        const scanFailedAction = createMock<ReportAction>({
+            actionName: CONST.REPORT.ACTIONS.TYPE.RECEIPT_SCAN_FAILED,
+            message: [{html: ''}],
+        });
+        const payload: CopyMessagePayload = {
+            ...createReportActionPayload(scanFailedAction),
+            reportParentAction: createMock<ReportAction>({actorAccountID: iouActionActorAccountID}),
+            currentUserAccountID: 1,
+            translate,
+        };
+
+        // When its message is copied
+        copyMessageAction.onPress(false, payload);
+
+        // Then whether the user can still edit the expense is decided by who created the parent IOU action
+        expect(recordTranslation).toHaveBeenCalledWith('violations.smartscanFailed', {canEdit: expectedCanEdit, missingFields: undefined});
     });
 
     it('writes both flavors for an HTML-sourced system message when HTML is supported', () => {
