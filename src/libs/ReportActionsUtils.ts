@@ -1962,17 +1962,10 @@ function replaceBaseURLInPolicyChangeLogAction(reportAction: ReportAction): Repo
     }
 
     const updatedReportAction = clone(reportAction);
-
-    if (!updatedReportAction.message) {
-        return updatedReportAction;
-    }
-
-    if (Array.isArray(updatedReportAction.message)) {
-        const message = updatedReportAction.message.at(0);
-
-        if (message) {
-            message.html = getReportActionHtml(reportAction)?.replace('%baseURL', environmentURL);
-        }
+    const firstMessage = Array.isArray(reportAction.message) ? reportAction.message.at(0) : undefined;
+    if (Array.isArray(reportAction.message) && firstMessage) {
+        // The action clone is shallow, so copy the message before resolving its URL.
+        updatedReportAction.message = [{...firstMessage, html: getReportActionHtml(reportAction)?.replace('%baseURL', environmentURL)}, ...reportAction.message.slice(1)];
     }
 
     return updatedReportAction;
@@ -2161,8 +2154,12 @@ function withDEWRoutedActionsObject(reportActions: OnyxEntry<ReportActions>): On
     }, {} as ReportActions);
 }
 
+// Onyx replaces report values on writes. Arrays supplied by callers can be mutable and must bypass this cache.
+const sortedReportActionsWithInvisibleCache = new WeakMap<ReportActions, {environmentURL: string; actions: ReportAction[]}>();
+
 /**
  * This method returns the report actions that are ready for display in the ReportActionsList.
+ * Unfiltered results for immutable Onyx objects are shared. Callers must not mutate the returned array.
  * The report actions need to be sorted by created timestamp first, and reportActionID second
  * to ensure they will always be displayed in the same order (in case multiple actions have the same timestamp).
  * This is all handled with getSortedReportActions() which is used by several other methods to keep the code DRY.
@@ -2174,6 +2171,14 @@ function getSortedReportActionsForDisplay(
     visibleReportActionsData?: VisibleReportActionsDerivedValue,
     reportID?: string,
 ): ReportAction[] {
+    const canCache = shouldIncludeInvisibleActions && reportActions && !Array.isArray(reportActions);
+    if (canCache) {
+        const cached = sortedReportActionsWithInvisibleCache.get(reportActions);
+        if (cached && cached.environmentURL === environmentURL) {
+            return cached.actions;
+        }
+    }
+
     let filteredReportActions: ReportAction[] = [];
     if (!reportActions) {
         return [];
@@ -2197,7 +2202,12 @@ function getSortedReportActionsForDisplay(
     }
 
     const baseURLAdjustedReportActions = filteredReportActions.map((reportAction) => replaceBaseURLInPolicyChangeLogAction(reportAction));
-    return getSortedReportActions(withDEWRoutedActionsArray(baseURLAdjustedReportActions), true);
+    const sortedActions = getSortedReportActions(withDEWRoutedActionsArray(baseURLAdjustedReportActions), true);
+    // Do not retain placeholder URLs while the asynchronous environment lookup is pending.
+    if (canCache && environmentURL) {
+        sortedReportActionsWithInvisibleCache.set(reportActions, {environmentURL, actions: sortedActions});
+    }
+    return sortedActions;
 }
 
 /**
