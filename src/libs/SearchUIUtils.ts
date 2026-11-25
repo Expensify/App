@@ -5993,8 +5993,8 @@ function isCreatedInRange(action: OnyxTypes.ReportAction, {start, end}: {start?:
 }
 
 /**
- * Returns the actions whose violation snapshots the query can match an expense on: submissions made on its submission dates,
- * and approvals made on its approval dates by its approvers.
+ * Returns the actions without the submissions and approvals the query's filters rule out:
+ * ones made outside its submission or approval dates, and approvals by someone other than its approvers.
  */
 function getViolationSnapshotActions(reportActions: OnyxTypes.ReportAction[], queryJSON: SearchQueryJSON | undefined, currentAccountID: number | undefined): OnyxTypes.ReportAction[] {
     if (!queryJSON) {
@@ -6018,7 +6018,7 @@ function getViolationSnapshotActions(reportActions: OnyxTypes.ReportAction[], qu
 }
 
 /**
- * Groups the response's violation snapshots the query can match an expense on by the expenses they record.
+ * Groups the submissions and approvals the query's filters match by the expenses whose violations they record.
  * An expense moved to another report keeps its violations on the report it was submitted on, so every report's actions are read.
  */
 function getViolationSnapshotActionsByTransactionID(
