@@ -289,11 +289,14 @@ function getForwardsToFromRules(policy: OnyxEntry<Policy>, context: ApprovalWork
 
     const trigger = context.currentApproverEmail ? CONST.RULES.TRIGGERS.REPORT_APPROVE : CONST.RULES.TRIGGERS.REPORT_SUBMIT;
 
-    // Sort by Onyx key so the rule picked stays the same across evaluations when more than one matches (which should not happen).
-    const ruleKeys = Object.keys(rules ?? {}).sort();
-    for (const ruleKey of ruleKeys) {
-        const rule = rules?.[ruleKey];
+    // Pick the matching rule with the lowest Onyx key so the result stays the same across evaluations when more than one matches (which should not happen).
+    let matchedRuleKey: string | undefined;
+    let matchedRule: ApprovalWorkflowRule | undefined;
+    for (const [ruleKey, rule] of Object.entries(rules ?? {})) {
         if (!rule || rule.scope !== CONST.RULES.SCOPE.POLICY || rule.scopeID !== policy.id || rule.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
+            continue;
+        }
+        if (matchedRuleKey !== undefined && ruleKey >= matchedRuleKey) {
             continue;
         }
         if (!isApprovalWorkflowRule(rule) || !Object.values(rule.triggers ?? {}).includes(trigger)) {
@@ -303,10 +306,15 @@ function getForwardsToFromRules(policy: OnyxEntry<Policy>, context: ApprovalWork
             continue;
         }
 
-        return {forwardsTo: Object.values(rule.actions ?? {}).find((action) => action.name === CONST.RULES.ACTIONS.FORWARD_TO)?.approver};
+        matchedRuleKey = ruleKey;
+        matchedRule = rule;
     }
 
-    return undefined;
+    if (!matchedRule) {
+        return undefined;
+    }
+
+    return {forwardsTo: Object.values(matchedRule.actions ?? {}).find((action) => action.name === CONST.RULES.ACTIONS.FORWARD_TO)?.approver};
 }
 
 function getManagerAccountEmail(policy: OnyxEntry<Policy>, ownerLogin: string | undefined, rules: OnyxCollection<Rule>, reportTotal = 0): string {
