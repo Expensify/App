@@ -250,7 +250,8 @@ jest.mock('@hooks/useReportActionsScroll', () =>
         onViewableItemsChanged: jest.fn(),
         isFloatingMessageCounterVisible: false,
         isActionBadgeAboveViewport: false,
-        scrollToBottomAndMarkReportAsRead: mockJumpToLatest,
+        scrollToBottomAndMarkReportAsRead: jest.fn(),
+        scrollToLatest: mockJumpToLatest,
         scrollToActionBadgeTarget: jest.fn(),
         shouldBeAlignedToTop: false,
         initialScrollIndex: undefined,
@@ -287,7 +288,7 @@ type MockLegendListProps = {
     onLayout?: (event: LayoutChangeEvent) => void;
     onLoad?: () => void;
     onReady?: () => void;
-    onScrollBeginDrag?: () => void;
+    onUserScroll?: () => void;
     onStartReachedThreshold?: number;
     onContentSizeChange?: (width: number, height: number) => void;
     onItemSizeChanged?: ReturnType<typeof useReportActionsScroll>['onItemSizeChanged'];
@@ -531,7 +532,7 @@ describe('ReportActionsList (body)', () => {
         await Onyx.clear();
     });
 
-    it('publishes measured positions, the live visible range, and the scroll element through the action-list adapter', () => {
+    it('publishes measured positions and the visible range through the action-list adapter', () => {
         // Given a mounted LegendList with measured rows and its own scroll element.
         mockUseNetwork.mockReturnValue({isOffline: false});
         const registerListRef = jest.fn<void, [ActionListRefType]>();
@@ -555,14 +556,11 @@ describe('ReportActionsList (body)', () => {
         // When linked positioning reads the registered adapter rather than the raw LegendList ref.
         const adapter = registerListRef.mock.calls.at(-1)?.at(0)?.current;
         const position = adapter?.getState?.()?.positionByKey('linked-action');
-        const scrollElement = adapter?.getScrollableNode?.();
         const visibleRange = adapter?.computeVisibleIndices?.();
 
-        // Then measurement recovery and web input cancellation can reach the real list.
+        // Then linked positioning and unread tracking can read the measured rows.
         expect(position).toBe(1500);
         expect(mockLegendPositionByKey).toHaveBeenCalledWith('linked-action');
-        expect(scrollElement).toEqual({scrollTop: 0});
-        expect(mockLegendGetScrollableNode).toHaveBeenCalledTimes(1);
         expect(visibleRange).toEqual({startIndex: 2, endIndex: 4});
     });
 
@@ -585,6 +583,32 @@ describe('ReportActionsList (body)', () => {
             mockLegendGetScrollableNode.mockImplementation(() => ({scrollTop: 0}));
             scroller.remove();
             outside.remove();
+        });
+
+        it('releases linked positioning when paging a focused message or starting a pointer drag', () => {
+            // Given a linked message can keep its position after the initial scroll.
+            mockUseIsFocused.mockReturnValue(true);
+            renderReportActionsList();
+            const scrollResult = mockUseReportActionsScroll.mock.results.at(-1)?.value as ReturnType<typeof useReportActionsScroll>;
+            const stopPositioning = scrollResult.stopLinkedMessagePositioning;
+
+            // When the focused row receives Page Down, the browser owns the scroll.
+            const event = new KeyboardEvent('keydown', {key: 'PageDown', bubbles: true, cancelable: true});
+            act(() => {
+                row.dispatchEvent(event);
+            });
+
+            // Then the linked message stays released and the browser handles the key.
+            expect(event.defaultPrevented).toBe(false);
+            expect(stopPositioning).toHaveBeenCalledTimes(1);
+
+            // When a reader presses the scroller to drag an overlay scrollbar or select text.
+            act(() => {
+                scroller.dispatchEvent(new Event('pointerdown', {bubbles: true}));
+            });
+
+            // Then later measurements cannot pull the viewport back during the drag.
+            expect(stopPositioning).toHaveBeenCalledTimes(2);
         });
 
         it.each([
@@ -678,7 +702,7 @@ describe('ReportActionsList (body)', () => {
         try {
             act(() => {
                 const listProps = getCapturedListProps();
-                listProps?.onScrollBeginDrag?.();
+                listProps?.onUserScroll?.();
                 listProps?.onScroll?.({
                     nativeEvent: {
                         contentOffset: {x: 0, y: 900},
@@ -727,7 +751,7 @@ describe('ReportActionsList (body)', () => {
             const offset = 500 - distanceFromEnd;
             const listProps = getCapturedListProps();
             act(() => {
-                listProps?.onScrollBeginDrag?.();
+                listProps?.onUserScroll?.();
                 listProps?.onScroll?.({
                     nativeEvent: {
                         contentOffset: {x: 0, y: offset},
@@ -761,7 +785,7 @@ describe('ReportActionsList (body)', () => {
             mockLegendGetState.mockReturnValue({...originalState, end: 1, contentLength: 2000, scrollLength: 500, scroll: 900});
             const listProps = getCapturedListProps();
             act(() => {
-                listProps?.onScrollBeginDrag?.();
+                listProps?.onUserScroll?.();
                 listProps?.onScroll?.(createListScrollEvent({offset: 900, contentHeight: 2000, viewportHeight: 500}));
             });
 
@@ -794,7 +818,7 @@ describe('ReportActionsList (body)', () => {
         try {
             const listProps = getCapturedListProps();
             act(() => {
-                listProps?.onScrollBeginDrag?.();
+                listProps?.onUserScroll?.();
                 listProps?.onScroll?.(createListScrollEvent({offset: 900, contentHeight: 2000, viewportHeight: 500}));
             });
             mockLegendGetState.mockReturnValue({...originalState, contentLength: 2000, scrollLength: 200, scroll: 900});
@@ -839,7 +863,7 @@ describe('ReportActionsList (body)', () => {
             await waitForBatchedUpdatesWithAct();
             const listProps = getCapturedListProps();
             act(() => {
-                listProps?.onScrollBeginDrag?.();
+                listProps?.onUserScroll?.();
                 listProps?.onScroll?.(createListScrollEvent({offset: 900, contentHeight: 2000, viewportHeight: 500}));
             });
             mockLegendGetState.mockReturnValue({...originalState, contentLength: 2000, scrollLength: 200, scroll: 900});
@@ -961,7 +985,7 @@ describe('ReportActionsList (body)', () => {
 
         // Then later preview measurements can still correct the target, until the reader takes over.
         expect(stopLinkedPositioning).not.toHaveBeenCalled();
-        act(() => listProps?.onScrollBeginDrag?.());
+        act(() => listProps?.onUserScroll?.());
         expect(stopLinkedPositioning).toHaveBeenCalledTimes(1);
     });
 
@@ -1629,11 +1653,13 @@ describe('ReportActionsList (body)', () => {
 
     describe('Support survey unread markers', () => {
         it.each([
-            {hasUnreadMarker: true, hasNewestPage: true},
-            {hasUnreadMarker: false, hasNewestPage: true},
-            {hasUnreadMarker: true, hasNewestPage: false},
-            {hasUnreadMarker: false, hasNewestPage: false},
-        ])('handles a hidden newest survey (latest page loaded: $hasNewestPage, unread marker: $hasUnreadMarker)', ({hasUnreadMarker, hasNewestPage}) => {
+            {command: 'pill', hasUnreadMarker: true, hasNewestPage: true},
+            {command: 'pill', hasUnreadMarker: false, hasNewestPage: true},
+            {command: 'pill', hasUnreadMarker: true, hasNewestPage: false},
+            {command: 'pill', hasUnreadMarker: false, hasNewestPage: false},
+            {command: 'End', hasUnreadMarker: true, hasNewestPage: true},
+            {command: 'End', hasUnreadMarker: true, hasNewestPage: false},
+        ])('handles $command with a hidden newest survey (latest page loaded: $hasNewestPage, unread marker: $hasUnreadMarker)', ({command, hasUnreadMarker, hasNewestPage}) => {
             // Given a cached survey newer than the reply, but not necessarily in the loaded page
             const reply = {...mockReportActions[1], created: '2023-01-01 00:04:00.000'};
             const survey = {...reply, reportActionID: 'hidden-survey', actionName: CONST.REPORT.ACTIONS.TYPE.SUPPORT_SURVEY, created: '2023-01-01 00:05:00.000'};
@@ -1679,19 +1705,29 @@ describe('ReportActionsList (body)', () => {
             const defaultScrollImplementation = mockUseReportActionsScroll.getMockImplementation();
             mockUseReportActionsScroll.mockImplementation(jest.requireActual<{default: typeof useReportActionsScroll}>('@hooks/useReportActionsScroll').default);
 
+            const platform = jest.replaceProperty(Platform, 'OS', 'web');
+            mockUseIsFocused.mockReturnValue(true);
+            mockLegendGetScrollableNode.mockReturnValue(document.createElement('div'));
             let view: ReturnType<typeof renderReportActionsList> | undefined;
             try {
-                // When the user clicks the counter or Latest with the actual scroll hook mounted
+                // When the reader presses End or clicks the message counter.
                 view = renderReportActionsList();
-                const scrollResult = mockUseReportActionsScroll.mock.results.at(-1)?.value as ReturnType<typeof useReportActionsScroll> | undefined;
-                act(() => scrollResult?.scrollToBottomAndMarkReportAsRead());
+                act(() => {
+                    if (command === 'End') {
+                        document.body.dispatchEvent(new KeyboardEvent('keydown', {key: 'End', bubbles: true, cancelable: true}));
+                    } else {
+                        jest.mocked(ReportActionsListFloatingMessageCounter).mock.lastCall?.[0].onClick?.();
+                    }
+                });
 
                 // Then only a loaded latest page is marked read; a cached survey alone cannot prove freshness
                 expect(getCapturedVisibleActions()).not.toContain(survey);
                 expect(markNewestActionAsRead).toHaveBeenCalledTimes(hasNewestPage ? 1 : 0);
-                const shouldRequestLiveTailJump = !hasNewestPage && !hasUnreadMarker;
+                const shouldJumpToUnread = command === 'pill' && hasUnreadMarker;
+                expect(scrollToIndex).toHaveBeenCalledTimes(shouldJumpToUnread ? 1 : 0);
+                const shouldRequestLiveTailJump = !hasNewestPage && !shouldJumpToUnread;
                 expect(requestLiveTailJump).toHaveBeenCalledTimes(shouldRequestLiveTailJump ? 1 : 0);
-                if (hasUnreadMarker) {
+                if (shouldJumpToUnread) {
                     expect(scrollToIndex).toHaveBeenCalledWith(0, {viewPosition: 0, viewOffset: CONST.REPORT.ACTIONS.LINKED_MESSAGE_OFFSET});
                 } else if (hasNewestPage) {
                     expect(scrollToBottom).toHaveBeenCalled();
@@ -1702,6 +1738,8 @@ describe('ReportActionsList (body)', () => {
             } finally {
                 // Unmount first, so deferred list updates cannot render with the restored hooks.
                 view?.unmount();
+                platform.restore();
+                mockLegendGetScrollableNode.mockImplementation(() => ({scrollTop: 0}));
                 scrollManagerSpy.mockRestore();
                 trackingSpy.mockRestore();
                 liveTailSpy.mockRestore();

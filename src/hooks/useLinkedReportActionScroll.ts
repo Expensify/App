@@ -9,7 +9,6 @@ import type {NativeScrollEvent, NativeSyntheticEvent} from 'react-native';
 
 import {useIsFocused} from '@react-navigation/native';
 import {useEffect, useEffectEvent, useRef, useState} from 'react';
-import {Platform} from 'react-native';
 
 import useReportScrollManager from './useReportScrollManager';
 
@@ -96,33 +95,6 @@ function useLinkedReportActionScroll({listID, linkedReportActionID, targetIndex,
         cancelPositionRef.current = cancel;
         return cancel;
     }, [isFocused, linkedReportActionID, listID, readyListID, targetIndex, isLastAction, measurementVersion]);
-
-    // On web, the reader can also scroll with the wheel, the scrollbar or the keyboard. Treat that input on the
-    // scroll element like a native drag, which hands the viewport back to the reader.
-    useEffect(() => {
-        const shouldSkipWebScrollListeners = Platform.OS !== 'web' || readyListID !== listID;
-        if (shouldSkipWebScrollListeners) {
-            return;
-        }
-        const scrollElement = getListRef()?.current?.getScrollableNode?.();
-        if (!(scrollElement instanceof HTMLElement)) {
-            return;
-        }
-        const onScrollKey = (event: KeyboardEvent) => {
-            if (!['ArrowUp', 'ArrowDown', 'PageUp', 'PageDown', 'Home', 'End', ' '].includes(event.key)) {
-                return;
-            }
-            stopPositioningFromEffect();
-        };
-        scrollElement.addEventListener('wheel', stopPositioningFromEffect, {passive: true});
-        scrollElement.addEventListener('pointerdown', stopPositioningFromEffect, {passive: true});
-        scrollElement.addEventListener('keydown', onScrollKey);
-        return () => {
-            scrollElement.removeEventListener('wheel', stopPositioningFromEffect);
-            scrollElement.removeEventListener('pointerdown', stopPositioningFromEffect);
-            scrollElement.removeEventListener('keydown', onScrollKey);
-        };
-    }, [getListRef, listID, readyListID]);
 
     const onReady = () => setReadyListID(listID);
     const onScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {

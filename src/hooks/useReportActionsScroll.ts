@@ -1,6 +1,5 @@
 import {isSafari} from '@libs/Browser';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
-import durationHighlightItem from '@libs/Navigation/helpers/getDurationHighlightItem';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import REPORT_LINK_ROUTE_PARAMS from '@libs/Navigation/reportLinkRouteParams';
@@ -108,6 +107,9 @@ type UseReportActionsScrollResult = {
     /** Scrolls to the unread marker when available, otherwise to the newest action, and marks the report as read when appropriate */
     scrollToBottomAndMarkReportAsRead: () => void;
 
+    /** Jumps to the latest page even when the New marker is in older history. */
+    scrollToLatest: () => void;
+
     scrollToActionBadgeTarget: () => void;
 
     /** Whether the list should be pinned to the visual top (transaction thread / money request) */
@@ -166,12 +168,9 @@ function useReportActionsScroll({
     const route = useRoute<PlatformStackRouteProp<ReportsSplitNavigatorParamList, typeof SCREENS.REPORT>>();
     const linkedReportActionID = route?.params?.reportActionID;
     const {isOffline} = useNetworkWithOfflineStatus();
-    const [reportLoadingState] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${reportID}`);
+    const [liveTailRequestResults] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_PAGINATION_STATE}${reportID}`, {selector: (state) => state?.liveTailRequestResults});
     const [reportActionPages] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_PAGES}${getNonEmptyStringOnyxID(reportID)}`);
     const [isComposerFullSize = false] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_IS_COMPOSER_FULL_SIZE}${reportID}`);
-    const prevIsLoadingInitialReportActions = usePrevious(reportLoadingState?.isLoadingInitialReportActions);
-
-    const [actionIdToHighlight, setActionIdToHighlight] = useState('');
 
     const lastAction = sortedVisibleReportActions.at(0);
     const lastVisibleActionCreated = getReportLastVisibleActionCreated(report, transactionThreadReport);
@@ -242,13 +241,7 @@ function useReportActionsScroll({
         },
         actionBadgeTargetIndex,
         getVisibleIndexRange: () => {
-            const list = getListRef()?.current;
-            // getLayout is the one accessor that does not throw before FlashList has laid out
-            const isListLayoutPending = !list || (list.getLayout && !list.getLayout(0));
-            if (isListLayoutPending) {
-                return undefined;
-            }
-            const range = list.computeVisibleIndices?.();
+            const range = getListRef()?.current?.computeVisibleIndices?.();
             // An empty viewport comes back as {-1, -2}, which would read as "target above", so fall back to the reported items
             return range && range.startIndex >= 0 ? range : undefined;
         },
@@ -273,7 +266,6 @@ function useReportActionsScroll({
         isOffline,
         reportScrollManager,
         setIsFloatingMessageCounterVisible,
-        setActionIdToHighlight,
         unreadMarkerReportActionID,
         hasNewerActions,
         linkedReportActionID,
@@ -283,8 +275,7 @@ function useReportActionsScroll({
         reportActionPages,
         setTreatAsNoPaginationAnchor,
         treatAsNoPaginationAnchor,
-        prevIsLoadingInitialReportActions,
-        reportLoadingState,
+        liveTailRequestResults,
     });
 
     // Consume an explicit live-tail request after the data render, not on an unrelated future
@@ -329,18 +320,6 @@ function useReportActionsScroll({
         });
         return () => handle.cancel();
     }, [lastAction?.reportActionID, lastAction?.actionName, prevSortedVisibleReportActionsObjects, reportScrollManager]);
-
-    // Clear the highlighted report action after scrolling and highlighting
-    useEffect(() => {
-        if (actionIdToHighlight === '') {
-            return;
-        }
-        // Time highlight is the same as SearchPage
-        const timer = setTimeout(() => {
-            setActionIdToHighlight('');
-        }, durationHighlightItem);
-        return () => clearTimeout(timer);
-    }, [actionIdToHighlight]);
 
     // Only errors the user can actually see should pull the list down to them.
     const lastIOUActionWithError = sortedVisibleReportActions.find((action) => !isEmptyValueObject(getVisibleReportActionErrors(action)));
@@ -421,11 +400,11 @@ function useReportActionsScroll({
         resetKey: `${reportID}:${linkedReportActionID}`,
     });
 
-    const scrollToBottomAndMarkReportAsRead = () => {
+    const jumpToReportAction = (destination: 'unread' | 'latest') => {
         stopLinkedMessagePositioning();
         setIsFloatingMessageCounterVisible(false);
 
-        if (unreadMarkerReportActionIndex >= 0) {
+        if (destination === 'unread' && unreadMarkerReportActionIndex >= 0) {
             reportScrollManager.scrollToIndex(unreadMarkerReportActionIndex, {viewPosition: 0, viewOffset: CONST.REPORT.ACTIONS.LINKED_MESSAGE_OFFSET});
             if (hasNewestReportAction) {
                 markNewestActionAsRead();
@@ -474,7 +453,8 @@ function useReportActionsScroll({
         isFloatingMessageCounterVisible,
         isActionBadgeAboveViewport,
         isActionBadgeBelowViewport,
-        scrollToBottomAndMarkReportAsRead,
+        scrollToBottomAndMarkReportAsRead: () => jumpToReportAction('unread'),
+        scrollToLatest: () => jumpToReportAction('latest'),
         scrollToActionBadgeTarget,
         shouldBeAlignedToTop,
         initialScrollIndex,

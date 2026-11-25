@@ -90,7 +90,8 @@ function useReportActionsListData({sortedVisibleReportActions, isOffline, sessio
         revealDraftFromReportAction(persistedDraftReportAction);
     }, [draftReportAction, isDraftPendingCompletion, persistedDraftReportAction, revealDraftFromReportAction]);
 
-    const unreadMarkerListIndex = shouldCollapseSystemMessages ? unreadMarkerReportActionIndex : listData.findIndex((action) => action.reportActionID === unreadMarkerReportActionID);
+    const unreadMarkerListIndex =
+        shouldCollapseSystemMessages || !unreadMarkerReportActionID ? unreadMarkerReportActionIndex : listData.findIndex((action) => action.reportActionID === unreadMarkerReportActionID);
 
     return {
         renderedVisibleReportActions,

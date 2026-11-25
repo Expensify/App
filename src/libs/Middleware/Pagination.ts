@@ -1,11 +1,13 @@
+import {getQueuedOnyxUpdates} from '@libs/actions/QueuedOnyxUpdates';
 import type {ApiCommand} from '@libs/API/types';
 import Log from '@libs/Log';
+import {isRecord} from '@libs/ObjectUtils';
 import {mergeAndSortContinuousPages, mergePagesByIDOverlap} from '@libs/PaginationUtils';
 
 import CONST from '@src/CONST';
 import type {OnyxCollectionKey, OnyxPagesKey, OnyxValues} from '@src/ONYXKEYS';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Request} from '@src/types/onyx';
+import type {ReportPaginationState, Request} from '@src/types/onyx';
 import type Pages from '@src/types/onyx/Pages';
 import type {AnyOnyxUpdate, PaginatedRequest} from '@src/types/onyx/Request';
 import type Response from '@src/types/onyx/Response';
@@ -130,23 +132,41 @@ function processResponse<TKey extends OnyxKey>(requestResponse: Promise<Response
         }
 
         const resourceCollections = resources.get(resourceCollectionKey) ?? {};
-        const existingItems = (resourceCollections[resourceKey] ?? {}) as PaginatedResourceCollection;
+        const pagesCollections = pages.get(pageCollectionKey) ?? {};
+        let existingItems = (resourceCollections[resourceKey] ?? {}) as PaginatedResourceCollection;
+        let existingPages: Pages = pagesCollections[pageKey] ?? [];
+
+        // The preceding OpenReport may have finished while its items and page are still waiting for the same queue flush.
+        for (const update of getQueuedOnyxUpdates()) {
+            if (update.onyxMethod === Onyx.METHOD.CLEAR) {
+                existingItems = {};
+                existingPages = [];
+            } else if (update.key === pageKey && update.onyxMethod === Onyx.METHOD.SET) {
+                existingPages = Array.isArray(update.value) ? update.value.filter((page): page is string[] => Array.isArray(page) && page.every((id) => typeof id === 'string')) : [];
+            } else if (update.key === resourceKey && update.onyxMethod === Onyx.METHOD.SET) {
+                existingItems = isRecord(update.value) ? update.value : {};
+            } else if (update.key === resourceKey && update.onyxMethod === Onyx.METHOD.MERGE) {
+                existingItems = isRecord(update.value) ? fastMerge(existingItems, update.value, true) : {};
+            }
+        }
+
         const allItems = fastMerge(existingItems, pageItems, true);
         const sortedAllItems = sortItems(allItems, resourceID);
-
-        const pagesCollections = pages.get(pageCollectionKey) ?? {};
-        const existingPages: Pages = pagesCollections[pageKey] ?? [];
-
         const isMiddleInitialSlice = type === 'initial' && !cursorID && response.hasNewerActions === true && response.hasOlderActions === true;
 
-        // Only strip PAGINATION_START_ID from cached pages when the server explicitly confirms newer actions exist.
-        // Some commands (e.g. GetOlderActions) don't return hasNewerActions at all — in that case, preserve the existing boundary.
-        const shouldStripStartMarker = response.hasNewerActions === true;
+        // A historical slice has newer actions by definition. It can only invalidate a known newest page if it reaches that page.
+        const isHistoricalSlice = type === 'initial' && !!cursorID && response.hasNewerActions === true;
+        const newestKnownID = isHistoricalSlice ? existingPages.find((page) => page.at(0) === CONST.PAGINATION_START_ID)?.at(1) : undefined;
+        const newestKnownIndex = newestKnownID ? sortedAllItems.findIndex((item) => getItemID(item) === newestKnownID) : -1;
+        const incomingNewestID = newPage.at(0);
+        const isBeforeKnownNewest = newestKnownIndex >= 0 && newestKnownIndex < sortedAllItems.findIndex((item) => getItemID(item) === incomingNewestID);
+        const shouldStripStartMarker = response.hasNewerActions === true && !isBeforeKnownNewest;
         const sanitizedExistingPages = shouldStripStartMarker ? existingPages.map((page) => page.filter((id) => id !== CONST.PAGINATION_START_ID)) : existingPages;
 
-        const mergedPages: Pages = isMiddleInitialSlice
-            ? mergePagesByIDOverlap(sortedAllItems, [...sanitizedExistingPages, newPage], getItemID)
-            : mergeAndSortContinuousPages(sortedAllItems, [...sanitizedExistingPages, newPage], getItemID);
+        const mergedPages: Pages =
+            isMiddleInitialSlice || isBeforeKnownNewest
+                ? mergePagesByIDOverlap(sortedAllItems, [...sanitizedExistingPages, newPage], getItemID)
+                : mergeAndSortContinuousPages(sortedAllItems, [...sanitizedExistingPages, newPage], getItemID);
 
         const paginationUpdates: AnyOnyxUpdate[] = [
             {
@@ -163,9 +183,13 @@ function processResponse<TKey extends OnyxKey>(requestResponse: Promise<Response
             const newestFetchedID = newPage.find((id) => id !== CONST.PAGINATION_START_ID && id !== CONST.PAGINATION_END_ID && Object.hasOwn(pageItems, id));
             const oldestFetchedID = newPage.findLast((id) => id !== CONST.PAGINATION_START_ID && id !== CONST.PAGINATION_END_ID);
             const isOlderDirection = type === 'previous';
-            const value: Record<string, string> = {};
+            const value: ReportPaginationState = {};
             if (newestFetchedID && !isOlderDirection) {
                 value.newestFetchedReportActionID = newestFetchedID;
+            }
+            if (request.liveTailRequestID && newestFetchedID && shouldMarkNoNewerActions && response.jsonCode === 200) {
+                // The update manager discards this receipt together with the page if the response is stale.
+                value.liveTailRequestResults = {[request.liveTailRequestID]: {newestActionID: newestFetchedID}};
             }
             if (oldestFetchedID && isOlderDirection) {
                 value.oldestFetchedReportActionID = oldestFetchedID;

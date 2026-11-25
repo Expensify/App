@@ -98,7 +98,6 @@ function useReportActionsListScroll({
     useImperativeHandle(
         listRef,
         (): ActionListRef => ({
-            getScrollableNode: (): unknown => legendListRef.current?.getScrollableNode(),
             getState: () => {
                 const state = legendListRef.current?.getState();
                 return state ? {...state, headerSize: headerSizeRef.current} : undefined;
@@ -199,6 +198,7 @@ function useReportActionsListScroll({
         isActionBadgeAboveViewport,
         isActionBadgeBelowViewport,
         scrollToBottomAndMarkReportAsRead,
+        scrollToLatest,
         scrollToActionBadgeTarget,
         shouldBeAlignedToTop,
         initialScrollIndex,
@@ -233,7 +233,8 @@ function useReportActionsListScroll({
     });
 
     const isFocused = useIsFocused();
-    const jumpToLatest = useEffectEvent(scrollToBottomAndMarkReportAsRead);
+    const jumpToLatest = useEffectEvent(scrollToLatest);
+    const releaseLinkedAction = useEffectEvent(stopLinkedMessagePositioning);
     const [loadedInitialViewportListID, setLoadedInitialViewportListID] = useState<string>();
     useEffect(() => {
         // Re-run once this list is ready, so the listener checks against its current scroll element.
@@ -245,16 +246,27 @@ function useReportActionsListScroll({
         if (!(scrollElement instanceof HTMLElement)) {
             return;
         }
-        const jumpOnEndKey = (event: KeyboardEvent) => {
-            if (!shouldJumpToLatest(event, scrollElement)) {
+        const handleChatKey = (event: KeyboardEvent) => {
+            if (shouldJumpToLatest(event, scrollElement)) {
+                event.preventDefault();
+                jumpToLatest();
                 return;
             }
-            event.preventDefault();
-            jumpToLatest();
+            // Browsers can page the list from a focused message or link. LegendList skips keys on those controls.
+            if (!event.defaultPrevented && event.target instanceof Element && scrollElement.contains(event.target) && event.target.closest('button, a, [role="button"]')) {
+                if (['PageUp', 'PageDown', 'Home', 'ArrowUp', 'ArrowDown', ' '].includes(event.key)) {
+                    releaseLinkedAction();
+                }
+            }
         };
+        // Overlay scrollbars and drag selection can move the list without a LegendList user-scroll event.
+        scrollElement.addEventListener('pointerdown', releaseLinkedAction, {passive: true});
         // An empty click leaves focus on the body. Capture End before LegendList handles it on the scroller.
-        document.addEventListener('keydown', jumpOnEndKey, true);
-        return () => document.removeEventListener('keydown', jumpOnEndKey, true);
+        document.addEventListener('keydown', handleChatKey, true);
+        return () => {
+            scrollElement.removeEventListener('pointerdown', releaseLinkedAction);
+            document.removeEventListener('keydown', handleChatKey, true);
+        };
     }, [isFocused, listID, loadedInitialViewportListID]);
 
     // Cover every initial LegendList layout, including cached chats, until the rows are positioned.
@@ -421,7 +433,7 @@ function useReportActionsListScroll({
             onEndReachedThreshold: PAGINATION_THRESHOLD,
             onLayout: keepViewportBottomOnResize,
             onScroll: trackScrollPositionAndThreshold,
-            onScrollBeginDrag: stopAutomaticPositioning,
+            onUserScroll: stopAutomaticPositioning,
             onStartReached: loadOlderChatsOnStartReached,
             onStartReachedThreshold: PAGINATION_THRESHOLD,
             onViewableItemsChanged: updateVisibleItemOverflow,

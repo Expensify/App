@@ -15,7 +15,7 @@ import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 const mockNavigationSetParams = jest.fn();
 const mockGlobalSetParams = jest.fn();
-const mockOpenReport = jest.fn();
+const mockOpenReport = jest.fn<void, [{liveTailRequestID: string}]>();
 const mockLogAlert = jest.fn();
 let newActionHandler: ((isFromCurrentUser: boolean, action: ReportAction | undefined, source: 'local' | 'realtime') => void) | undefined;
 
@@ -71,9 +71,10 @@ jest.mock('@libs/Navigation/TransitionTracker', () => ({
 }));
 
 jest.mock('@libs/actions/Report', () => ({
-    openReport: (...args: unknown[]) => {
-        mockOpenReport(...args);
+    openReport: (params: {liveTailRequestID: string}) => {
+        mockOpenReport(params);
     },
+    clearLiveTailRequestResult: jest.fn(),
     pruneReportActionPagesToNewestWindow: jest.fn(),
 }));
 
@@ -92,6 +93,17 @@ const reportScrollManager = {
     scrollToOffset: jest.fn(),
 };
 
+const newestRow = getFakeReportAction(1);
+const loadedNewestPage = {settled: true, newestActionID: newestRow.reportActionID};
+
+function lastLiveTailRequestID() {
+    const request = mockOpenReport.mock.lastCall?.[0];
+    if (!request) {
+        throw new Error('Expected a live-tail OpenReport');
+    }
+    return request.liveTailRequestID;
+}
+
 function buildParams(overrides: Partial<HookParams> = {}): HookParams {
     return {
         reportID: '1',
@@ -99,18 +111,16 @@ function buildParams(overrides: Partial<HookParams> = {}): HookParams {
         isOffline: false,
         reportScrollManager,
         setIsFloatingMessageCounterVisible: jest.fn(),
-        setActionIdToHighlight: jest.fn(),
         unreadMarkerReportActionID: null,
         hasNewerActions: true,
         linkedReportActionID: undefined,
         hasNewestReportAction: false,
         renderedVisibleReportActions: [],
-        sortedAllReportActionsForPagination: [],
-        reportActionPages: undefined,
+        sortedAllReportActionsForPagination: [newestRow],
+        reportActionPages: [[CONST.PAGINATION_START_ID, newestRow.reportActionID]],
         setTreatAsNoPaginationAnchor: jest.fn(),
         treatAsNoPaginationAnchor: false,
-        prevIsLoadingInitialReportActions: false,
-        reportLoadingState: {isLoadingInitialReportActions: true},
+        liveTailRequestResults: undefined,
         ...overrides,
     };
 }
@@ -142,13 +152,14 @@ describe('useReportActionsNewActionLiveTail', () => {
         act(() => result.current.requestLiveTailJump());
         expect(mockOpenReport).not.toHaveBeenCalled();
         expect(params.setTreatAsNoPaginationAnchor).toHaveBeenCalledWith(true);
-        expect(mockNavigationSetParams).toHaveBeenCalledTimes(isInSidePanel ? 0 : 1);
+        expect(mockNavigationSetParams).not.toHaveBeenCalled();
         expect(mockGlobalSetParams).not.toHaveBeenCalled();
         expect(result.current.isScrollToBottomEnabled).toBe(false);
 
         // Then request the scroll after the cached newest window enters the list.
         const newestCachedParams = {...params, linkedReportActionID: '', treatAsNoPaginationAnchor: true, renderedVisibleReportActions: [newestCachedAction]};
         rerender(newestCachedParams);
+        expect(mockNavigationSetParams).toHaveBeenCalledTimes(isInSidePanel ? 0 : 1);
         await waitFor(() => expect(result.current.isScrollToBottomEnabled).toBe(true));
         act(() => {
             result.current.setIsScrollToBottomEnabled(false);
@@ -182,14 +193,18 @@ describe('useReportActionsNewActionLiveTail', () => {
         expect(result.current.isScrollToBottomEnabled).toBe(false);
         expect(mockNavigationSetParams).not.toHaveBeenCalled();
 
-        // Then completing the request releases that report's anchor, but still waits for the newest row to render.
-        const loadedParams = {...params, prevIsLoadingInitialReportActions: true, reportLoadingState: {isLoadingInitialReportActions: false}};
+        // Then the link stays until the newest row is present in the selected page.
+        const loadedParams = {...params, liveTailRequestResults: {[lastLiveTailRequestID()]: loadedNewestPage}};
         rerender(loadedParams);
-        expect(mockNavigationSetParams).toHaveBeenCalledWith({reportActionID: ''});
+        expect(mockNavigationSetParams).not.toHaveBeenCalled();
         expect(mockGlobalSetParams).not.toHaveBeenCalled();
         expect(result.current.isScrollToBottomEnabled).toBe(false);
 
-        rerender({...loadedParams, linkedReportActionID: '', treatAsNoPaginationAnchor: true, hasNewestReportAction: true});
+        rerender({...loadedParams, treatAsNoPaginationAnchor: true});
+        expect(mockNavigationSetParams).not.toHaveBeenCalled();
+        expect(params.setTreatAsNoPaginationAnchor).toHaveBeenLastCalledWith(true);
+        rerender({...loadedParams, treatAsNoPaginationAnchor: true, hasNewestReportAction: true});
+        expect(mockNavigationSetParams).toHaveBeenCalledWith({reportActionID: ''});
         await act(async () => Promise.resolve());
         expect(result.current.isScrollToBottomEnabled).toBe(true);
         act(() => {
@@ -359,6 +374,101 @@ describe('useReportActionsNewActionLiveTail', () => {
         expect(mockOpenReport).toHaveBeenCalledWith(expect.objectContaining({reportID: '1'}));
     });
 
+    it('keeps the historical link when an earlier request succeeds and the latest-page request fails', async () => {
+        // Given the reader presses End while another OpenReport for this chat is in flight.
+        const params = buildParams({linkedReportActionID: '2'});
+        const {result, rerender} = renderHook((props: HookParams) => useReportActionsNewActionLiveTail(props), {initialProps: params});
+        act(() => result.current.requestLiveTailJump());
+        await waitForBatchedUpdates();
+        const firstRequestID = lastLiveTailRequestID();
+
+        // When the earlier request succeeds, End must keep waiting for its own response.
+        rerender({...params, liveTailRequestResults: {earlier: loadedNewestPage}});
+        expect(mockNavigationSetParams).not.toHaveBeenCalled();
+        expect(params.setTreatAsNoPaginationAnchor).not.toHaveBeenCalled();
+        rerender({...params, liveTailRequestResults: {[firstRequestID]: {settled: true}}});
+
+        // Then the link stays open and another End press can fetch the latest page.
+        expect(mockNavigationSetParams).not.toHaveBeenCalled();
+        act(() => result.current.requestLiveTailJump());
+        await waitForBatchedUpdates();
+        const retryRequestID = lastLiveTailRequestID();
+        expect(mockOpenReport).toHaveBeenCalledTimes(2);
+        expect(retryRequestID).not.toBe(firstRequestID);
+        rerender({...params, liveTailRequestResults: {[firstRequestID]: {settled: true}, [retryRequestID]: loadedNewestPage}, treatAsNoPaginationAnchor: true, hasNewestReportAction: true});
+        expect(mockNavigationSetParams).toHaveBeenCalledWith({reportActionID: ''});
+    });
+
+    it('keeps End retryable when a committed newest page is still unavailable to the reader', async () => {
+        // Given a historical page and an outstanding latest-page request.
+        const params = buildParams({reportActionPages: [['old']], linkedReportActionID: 'old'});
+        const {result, rerender} = renderHook((props: HookParams) => useReportActionsNewActionLiveTail(props), {initialProps: params});
+        act(() => result.current.requestLiveTailJump());
+        await waitForBatchedUpdates();
+
+        // When another tab has committed the newest page but it is still absent here, the reader can press End again.
+        rerender({...params, liveTailRequestResults: {[lastLiveTailRequestID()]: loadedNewestPage}});
+        act(() => result.current.requestLiveTailJump());
+        await waitForBatchedUpdates();
+
+        // Then the link stays in place and the second request reaches the queue.
+        expect(mockNavigationSetParams).not.toHaveBeenCalled();
+        expect(mockOpenReport).toHaveBeenCalledTimes(2);
+    });
+
+    it('waits for the requested action on the follower even when cached report metadata matches an older row', async () => {
+        // Given a follower with an internally consistent but outdated copy of the newest page.
+        const oldRow = getFakeReportAction(1);
+        const newRow = getFakeReportAction(2);
+        const params = buildParams({
+            linkedReportActionID: 'linked',
+            reportActionPages: [[CONST.PAGINATION_START_ID, oldRow.reportActionID]],
+            sortedAllReportActionsForPagination: [oldRow],
+            renderedVisibleReportActions: [oldRow],
+        });
+        const {result, rerender} = renderHook((props: HookParams) => useReportActionsNewActionLiveTail(props), {initialProps: params});
+        act(() => result.current.requestLiveTailJump());
+        await waitForBatchedUpdates();
+
+        // When the leader's receipt arrives first, then the new page keys arrive before the corresponding row.
+        const settled = {
+            ...params,
+            liveTailRequestResults: {[lastLiveTailRequestID()]: {settled: true, newestActionID: newRow.reportActionID}},
+            hasNewestReportAction: true,
+            treatAsNoPaginationAnchor: true,
+        };
+        rerender(settled);
+        expect(mockNavigationSetParams).not.toHaveBeenCalled();
+        const newPage = {...settled, reportActionPages: [[CONST.PAGINATION_START_ID, newRow.reportActionID]]};
+        rerender(newPage);
+        expect(mockNavigationSetParams).not.toHaveBeenCalled();
+
+        // Then the link clears only after the action from this response is available to the rendered window.
+        rerender({...newPage, sortedAllReportActionsForPagination: [newRow, oldRow], renderedVisibleReportActions: [oldRow, newRow]});
+        await waitFor(() => expect(result.current.isScrollToBottomEnabled).toBe(true));
+        expect(mockNavigationSetParams).toHaveBeenCalledWith({reportActionID: ''});
+    });
+
+    it('keeps the historical link retryable when the cached newest page is stale', async () => {
+        // Given a linked chat with a cached newest-page marker and a newer message still missing.
+        const params = buildParams({linkedReportActionID: 'old', reportActionPages: [[CONST.PAGINATION_START_ID, 'stale'], ['old']]});
+        const {result, rerender} = renderHook((props: HookParams) => useReportActionsNewActionLiveTail(props), {initialProps: params});
+        act(() => result.current.requestLiveTailJump());
+        await waitForBatchedUpdates();
+
+        // When the first request settles without updating the cached page.
+        const settled = {...params, liveTailRequestResults: {[lastLiveTailRequestID()]: {settled: true}}};
+        rerender(settled);
+
+        // Then the historical route survives and another End press can fetch the missing message.
+        expect(mockNavigationSetParams).not.toHaveBeenCalled();
+        expect(params.setTreatAsNoPaginationAnchor).not.toHaveBeenCalled();
+        expect(result.current.isScrollToBottomEnabled).toBe(false);
+        act(() => result.current.requestLiveTailJump());
+        await waitForBatchedUpdates();
+        expect(mockOpenReport).toHaveBeenCalledTimes(2);
+    });
+
     it('clears the report screen param after loading the live tail without changing the focused route', async () => {
         const {rerender} = renderHook((props: HookParams) => useReportActionsNewActionLiveTail(props), {initialProps: buildParams()});
 
@@ -369,18 +479,13 @@ describe('useReportActionsNewActionLiveTail', () => {
 
         expect(mockOpenReport).toHaveBeenCalledTimes(1);
 
-        rerender(
-            buildParams({
-                prevIsLoadingInitialReportActions: true,
-                reportLoadingState: {isLoadingInitialReportActions: false},
-            }),
-        );
+        rerender(buildParams({liveTailRequestResults: {[lastLiveTailRequestID()]: loadedNewestPage}, treatAsNoPaginationAnchor: true, hasNewestReportAction: true}));
 
         expect(mockNavigationSetParams).toHaveBeenCalledWith({reportActionID: ''});
         expect(mockGlobalSetParams).not.toHaveBeenCalled();
     });
 
-    it('does not throw and still advances the live-tail jump when navigation is the withNavigationFallback stub', () => {
+    it('does not throw and still advances the live-tail jump when navigation is the withNavigationFallback stub', async () => {
         // No NavigationContext in the side panel tree, so `useNavigation` resolves to the fallback stub.
         mockNavigation = {...FALLBACK_NAVIGATION_CONTEXT_VALUE};
         const setTreatAsNoPaginationAnchor = jest.fn();
@@ -389,13 +494,13 @@ describe('useReportActionsNewActionLiveTail', () => {
         act(() => {
             newActionHandler?.(true, getFakeReportAction(1, {actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT}), 'local');
         });
+        await waitForBatchedUpdates();
 
         expect(() =>
             rerender(
                 buildParams({
                     setTreatAsNoPaginationAnchor,
-                    prevIsLoadingInitialReportActions: true,
-                    reportLoadingState: {isLoadingInitialReportActions: false},
+                    liveTailRequestResults: {[lastLiveTailRequestID()]: loadedNewestPage},
                 }),
             ),
         ).not.toThrow();
@@ -403,7 +508,7 @@ describe('useReportActionsNewActionLiveTail', () => {
         expect(setTreatAsNoPaginationAnchor).toHaveBeenCalledWith(true);
     });
 
-    it('skips the setParams dispatch in the side panel but still advances the live-tail jump', () => {
+    it('skips the setParams dispatch in the side panel but still advances the live-tail jump', async () => {
         mockIsInSidePanel = true;
         const setTreatAsNoPaginationAnchor = jest.fn();
         const {rerender} = renderHook((props: HookParams) => useReportActionsNewActionLiveTail(props), {initialProps: buildParams({setTreatAsNoPaginationAnchor})});
@@ -411,12 +516,12 @@ describe('useReportActionsNewActionLiveTail', () => {
         act(() => {
             newActionHandler?.(true, getFakeReportAction(1, {actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT}), 'local');
         });
+        await waitForBatchedUpdates();
 
         rerender(
             buildParams({
                 setTreatAsNoPaginationAnchor,
-                prevIsLoadingInitialReportActions: true,
-                reportLoadingState: {isLoadingInitialReportActions: false},
+                liveTailRequestResults: {[lastLiveTailRequestID()]: loadedNewestPage},
             }),
         );
 

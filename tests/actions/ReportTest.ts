@@ -23,6 +23,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import REPORT_LINK_ROUTE_PARAMS from '@libs/Navigation/reportLinkRouteParams';
 import {buildOptimisticNextStep} from '@libs/NextStepUtils';
 import {getAccountIDsByLogins} from '@libs/PersonalDetailsUtils';
+import registerReportActionsPagination from '@libs/registerReportActionsPagination';
 import {getOriginalMessage, getReportActionMessage, isActionOfType, isDeletedAction} from '@libs/ReportActionsUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
 import {appendParam} from '@libs/Url';
@@ -41,6 +42,7 @@ import Log from '@src/libs/Log';
 import * as SequentialQueue from '@src/libs/Network/SequentialQueue';
 import {setHasRadio} from '@src/libs/NetworkState';
 import * as ReportUtils from '@src/libs/ReportUtils';
+import * as RequestModule from '@src/libs/Request';
 import type * as SearchQueryUtilsType from '@src/libs/SearchQueryUtils';
 import {generateAccountID} from '@src/libs/UserUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -1528,6 +1530,131 @@ describe('actions/Report', () => {
                 const reportActionReaction = reportActionsReactions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${resultAction?.reportActionID}`];
                 expect(reportActionReaction?.[EMOJI.name].users[TEST_USER_ACCOUNT_ID]).toBeUndefined();
             });
+    });
+
+    it('reports the outcome of the exact openReport that requested the newest page', async () => {
+        // Given a historical OpenReport is already in flight for this chat.
+        const fetchMock = TestHelper.createGlobalFetchMock();
+        global.fetch = fetchMock;
+        const params = {reportID: '1', hasReportActions: true, introSelected: undefined, conciergeChat: undefined, currentUserAccountID: 1};
+        fetchMock.pause();
+        Report.openReport({...params, reportActionID: 'old'});
+        await waitForBatchedUpdates();
+
+        // When the historical request succeeds but the queued newest-page request fails.
+        const openReportResponse = jest.fn().mockReturnValueOnce({jsonCode: 200}).mockReturnValueOnce({jsonCode: 400});
+        fetchMock.mockAPICommand(WRITE_COMMANDS.OPEN_REPORT, openReportResponse);
+        Report.openReport({...params, liveTailRequestID: 'jump'});
+        await fetchMock.resume();
+        await waitForBatchedUpdates();
+        const key = `${ONYXKEYS.COLLECTION.REPORT_PAGINATION_STATE}${params.reportID}` as const;
+
+        // Then only the explicit request publishes a result, and it bypasses the unread anchor.
+        expect(openReportResponse).toHaveBeenCalledTimes(2);
+        expect((await Onyx.get(key))?.liveTailRequestResults).toEqual({jump: {settled: true}});
+        const body = TestHelper.getFetchMockCalls(WRITE_COMMANDS.OPEN_REPORT).at(-1)?.[1]?.body;
+        expect(body).toBeInstanceOf(FormData);
+        expect(body instanceof FormData && body.has('useLastUnreadReportAction')).toBe(false);
+        expect(body instanceof FormData && body.has('liveTailRequestID')).toBe(false);
+
+        // When the retry loads the newest action, the page and its receipt are committed together.
+        await registerReportActionsPagination();
+        const newest = TestHelper.buildTestReportComment('2026-08-21 12:00:00.000', 1);
+        fetchMock.mockAPICommand(WRITE_COMMANDS.OPEN_REPORT, () => ({
+            jsonCode: 200,
+            hasNewerActions: false,
+            onyxData: [{onyxMethod: Onyx.METHOD.MERGE, key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${params.reportID}`, value: {[newest.reportActionID]: newest}}],
+        }));
+        Report.openReport({...params, liveTailRequestID: 'retry'});
+        await waitForBatchedUpdates();
+
+        // Then the caller can acknowledge its result without erasing a different request's result.
+        expect((await Onyx.get(key))?.liveTailRequestResults).toEqual({jump: {settled: true}, retry: {settled: true, newestActionID: newest.reportActionID}});
+        Report.clearLiveTailRequestResult(params.reportID, 'retry');
+        await waitForBatchedUpdates();
+        expect((await Onyx.get(key))?.liveTailRequestResults).toEqual({jump: {settled: true}});
+    });
+
+    it('settles the newest-page openReport when the queue exhausts transport retries', async () => {
+        // Given an online queue whose last attempt fails before any HTTP response arrives.
+        const reportID = '1';
+        const processSpy = jest.spyOn(RequestModule, 'processWithMiddleware').mockRejectedValue(new Error(CONST.ERROR.FAILED_TO_FETCH));
+        const throttleSpy = jest.spyOn(SequentialQueue.sequentialQueueRequestThrottle, 'sleep').mockRejectedValue(undefined);
+        try {
+            // When the queue abandons this explicit newest-page request.
+            Report.openReport({reportID, hasReportActions: true, introSelected: undefined, conciergeChat: undefined, currentUserAccountID: 1, liveTailRequestID: 'jump'});
+            await waitForBatchedUpdates();
+
+            // Then End sees the terminal failure and can retry without releasing the historical link.
+            expect(throttleSpy).toHaveBeenCalled();
+            expect(PersistedRequests.getAll()).toHaveLength(0);
+            expect((await Onyx.get(`${ONYXKEYS.COLLECTION.REPORT_PAGINATION_STATE}${reportID}`))?.liveTailRequestResults).toEqual({jump: {settled: true}});
+        } finally {
+            processSpy.mockRestore();
+            throttleSpy.mockRestore();
+        }
+    });
+
+    it('settles a stale openReport without acknowledging the cached newest page', async () => {
+        // Given the chat has a cached boundary and the client has already applied a newer update.
+        await registerReportActionsPagination();
+        const reportID = '1';
+        const pagesKey = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS_PAGES}${reportID}` as const;
+        const resultKey = `${ONYXKEYS.COLLECTION.REPORT_PAGINATION_STATE}${reportID}` as const;
+        const cachedPages = [[CONST.PAGINATION_START_ID, 'cached']];
+        await Onyx.set(pagesKey, cachedPages);
+        await Onyx.set(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT, 10);
+        const action = TestHelper.buildTestReportComment('2026-08-21 12:00:00.000', 1);
+        const fetchMock = TestHelper.createGlobalFetchMock();
+        global.fetch = fetchMock;
+        fetchMock.mockAPICommand(WRITE_COMMANDS.OPEN_REPORT, () => ({
+            jsonCode: 200,
+            lastUpdateID: 5,
+            previousUpdateID: 4,
+            hasNewerActions: false,
+            onyxData: [{onyxMethod: Onyx.METHOD.MERGE, key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, value: {[action.reportActionID]: action}}],
+        }));
+
+        // When End receives a successful response that the update manager discards as old.
+        Report.openReport({reportID, hasReportActions: true, introSelected: undefined, conciergeChat: undefined, currentUserAccountID: 1, liveTailRequestID: 'jump'});
+        await waitForBatchedUpdates();
+
+        // Then the caller can retry without mistaking the cached boundary for a newly loaded page.
+        expect(await Onyx.get(pagesKey)).toEqual(cachedPages);
+        expect((await Onyx.get(resultKey))?.liveTailRequestResults).toEqual({jump: {settled: true}});
+    });
+
+    it('keeps the newest page when a later linked openReport is processed in the same write batch', async () => {
+        // Given End and a historical link request different pages of the same report.
+        const fetchMock = TestHelper.createGlobalFetchMock();
+        global.fetch = fetchMock;
+        await registerReportActionsPagination();
+        const reportID = '1';
+        const params = {reportID, hasReportActions: true, introSelected: undefined, conciergeChat: undefined, currentUserAccountID: 1};
+        const newest = TestHelper.buildTestReportComment('2026-08-21 12:00:00.000', 1);
+        const historical = TestHelper.buildTestReportComment('2026-08-21 09:00:00.000', 1);
+        const actionKey = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}` as const;
+        fetchMock.mockAPICommand(WRITE_COMMANDS.OPEN_REPORT, ({reportActionID}) => {
+            const action = reportActionID ? historical : newest;
+            return {
+                jsonCode: 200,
+                hasOlderActions: true,
+                hasNewerActions: !!reportActionID,
+                onyxData: [{onyxMethod: Onyx.METHOD.MERGE, key: actionKey, value: {[action.reportActionID]: action}}],
+            };
+        });
+        fetchMock.pause();
+        Report.openReport({...params, liveTailRequestID: 'jump'});
+        await waitForBatchedUpdates();
+
+        // When the linked request runs after End but before either response has reached Onyx.
+        Report.openReport({...params, reportActionID: historical.reportActionID});
+        await fetchMock.resume();
+        await waitForBatchedUpdates();
+
+        // Then each window remains reachable, and only the newest window carries the server boundary.
+        const pages = await Onyx.get(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_PAGES}${reportID}`);
+        expect(pages).toEqual([[CONST.PAGINATION_START_ID, newest.reportActionID], [historical.reportActionID]]);
     });
 
     it('should send only one OpenReport, replacing any extra ones with same reportIDs', async () => {

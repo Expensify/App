@@ -98,8 +98,13 @@ function flushQueue(): Promise<void> {
         });
 }
 
+/** Pending writes still participate when a later response calculates a page for the same report. */
+function getQueuedOnyxUpdates(): readonly AnyOnyxUpdate[] {
+    return queuedOnyxUpdates;
+}
+
 function isEmpty() {
     return queuedOnyxUpdates.length === 0;
 }
 
-export {queueOnyxUpdates, flushQueue, getCurrentFlushPromise, isEmpty};
+export {queueOnyxUpdates, flushQueue, getCurrentFlushPromise, getQueuedOnyxUpdates, isEmpty};

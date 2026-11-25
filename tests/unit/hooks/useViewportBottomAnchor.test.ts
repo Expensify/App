@@ -1,5 +1,6 @@
-import {act, renderHook} from '@testing-library/react-native';
+import {act, render, renderHook, screen} from '@testing-library/react-native';
 
+import renderBottomPinnedScrollView from '@pages/inbox/report/ReportActionsList/BottomPinnedScrollView';
 // Jest resolves this hook to its native file anyway. The explicit path keeps these tests on it.
 import useViewportBottomAnchor from '@pages/inbox/report/ReportActionsList/useViewportBottomAnchor/index.native';
 
@@ -7,6 +8,8 @@ import type {LegendListRef} from '@legendapp/list/react-native';
 import type {LayoutChangeEvent, NativeScrollEvent, NativeSyntheticEvent} from 'react-native';
 
 import createMock from '../../utils/createMock';
+
+jest.unmock('@components/ActionSheetAwareScrollView');
 
 type ScrollEvent = NativeSyntheticEvent<NativeScrollEvent>;
 
@@ -94,6 +97,20 @@ describe('useViewportBottomAnchor on iOS and Android', () => {
 
     afterEach(() => {
         jest.useRealTimers();
+    });
+
+    it('keeps the native scroll view at its measured height while the viewport shrinks', () => {
+        // Given a chat that fills its viewport before the first measurement.
+        const scrollView = (height: number | undefined, raisedBy: number) => renderBottomPinnedScrollView({height, raisedBy, testID: 'chat-scroll'});
+        const {rerender, root} = render(scrollView(undefined, 0));
+        expect(screen.getByTestId('chat-scroll')).toHaveStyle({height: '100%', bottom: 0});
+
+        // When the composer rises, the fixed-height scroll view moves with its bottom edge.
+        rerender(scrollView(500, 120));
+
+        // Then its rows keep their measured height and the visible container clips the overflow.
+        expect(screen.getByTestId('chat-scroll')).toHaveStyle({height: 500, bottom: 120, overflow: 'visible'});
+        expect(root).toHaveStyle({overflow: 'hidden'});
     });
 
     it('lets the scroll view fill its container until the list is positioned', () => {
