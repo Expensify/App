@@ -513,6 +513,7 @@ describe('saved expense inline fields', () => {
 
             // When the user picks the day it already holds
             act(() => mockPickDate?.('2025-06-01'));
+            await waitForBatchedUpdatesWithAct();
 
             // Then nothing is sent, so no pointless edit shows up on the expense
             expect(updateMoneyRequestDate).not.toHaveBeenCalled();
