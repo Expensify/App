@@ -11,6 +11,10 @@ import createMock from '../utils/createMock';
 import {getCurrencyDecimalsLocal} from '../utils/TestHelper';
 
 describe('Formula west of UTC', () => {
+    afterEach(() => {
+        jest.useRealTimers();
+    });
+
     test('expense dates without a time', () => {
         // Given a user west of UTC, on a workspace with no auto-reporting period, with expense dates stored without a time
         const context: FormulaContext = {
@@ -66,6 +70,7 @@ describe('Formula west of UTC', () => {
         const expenseTime = compute('{report:startdate:yyyy-MM-dd HH:mm}', context);
         const expenseISOTime = compute('{report:startdate:c}', context);
         const expenseUnixTime = compute('{report:startdate:U}', context);
+        const expenseRFC2822Time = compute('{report:startdate:r}', context);
 
         // Then they show the stored time, like the backend, rather than shifting it by the user's distance from UTC.
         // The backend reads stored times as UTC, so the ISO and Unix times treat them as UTC too.
@@ -73,6 +78,28 @@ describe('Formula west of UTC', () => {
         expect(expenseTime).toBe('2025-01-20 00:00');
         expect(expenseISOTime).toBe('2025-01-20T00:00:00.000Z');
         expect(expenseUnixTime).toBe('1737331200');
+        expect(expenseRFC2822Time).toBe('Mon, 20 Jan 2025 00:00:00 +0000');
+    });
+
+    test('dates of a report without expenses', () => {
+        // Given a report without expenses, computed at 3:30pm UTC, which is 7:30am for this user
+        jest.useFakeTimers().setSystemTime(new Date('2025-01-08T15:30:45.123Z'));
+        const context: FormulaContext = {
+            getCurrencyDecimals: getCurrencyDecimalsLocal,
+            report: createMock<Report>({reportID: '123'}),
+            policy: createMock<Policy>({}),
+            allTransactions: {},
+        };
+
+        // When its expense dates are computed, which fall back to the current time
+        const time = compute('{report:startdate:yyyy-MM-dd HH:mm}', context);
+        const isoTime = compute('{report:startdate:c}', context);
+        const unixTime = compute('{report:enddate:U}', context);
+
+        // Then they show the current time in UTC, the way stored times are shown
+        expect(time).toBe('2025-01-08 15:30');
+        expect(isoTime).toBe('2025-01-08T15:30:45.123Z');
+        expect(unixTime).toBe('1736350245');
     });
 
     test('day of the year during daylight saving time', () => {

@@ -1325,7 +1325,7 @@ describe('CustomFormula', () => {
 
             // RFC 2822 format (r token)
             const rResult = compute('{report:startdate:r}', mockContextWithDate);
-            expect(rResult).toMatch(/^Wed, 08 Jan 2025 \d{2}:\d{2}:\d{2} [+-]\d{4}$/);
+            expect(rResult).toBe('Wed, 08 Jan 2025 15:30:45 +0000');
 
             // Unix timestamp (U token)
             const uResult = compute('{report:startdate:U}', mockContextWithDate);

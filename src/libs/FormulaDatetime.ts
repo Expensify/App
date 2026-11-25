@@ -76,16 +76,8 @@ function formatRFC2822(date: Date): string {
     const minutes = date.getMinutes().toString().padStart(2, '0');
     const seconds = date.getSeconds().toString().padStart(2, '0');
 
-    // Get timezone offset in format +0000 or -0500
-    const timezoneOffset = -date.getTimezoneOffset();
-    const offsetSign = timezoneOffset >= 0 ? '+' : '-';
-    const offsetHours = Math.floor(Math.abs(timezoneOffset) / 60)
-        .toString()
-        .padStart(2, '0');
-    const offsetMinutes = (Math.abs(timezoneOffset) % 60).toString().padStart(2, '0');
-    const timezoneString = `${offsetSign}${offsetHours}${offsetMinutes}`;
-
-    return `${shortDayName}, ${day} ${shortMonthName} ${year} ${hours}:${minutes}:${seconds} ${timezoneString}`;
+    // The backend reads a stored date and time as UTC
+    return `${shortDayName}, ${day} ${shortMonthName} ${year} ${hours}:${minutes}:${seconds} +0000`;
 }
 
 /**
@@ -157,9 +149,11 @@ function createDateTokens(date: Date): Array<{token: string; value: string}> {
         {token: 'a', value: meridiem},
 
         // Full Date/Time formats
-        {token: 'c', value: storedTimeAsUTC.toISOString()}, // ISO 8601: 2025-01-08T15:30:45.123Z
+        // ISO 8601: 2025-01-08T15:30:45.123Z
+        {token: 'c', value: storedTimeAsUTC.toISOString()},
         {token: 'r', value: formatRFC2822(date)}, // RFC 2822: Thu, 08 Jan 2025 15:30:45 +0000
-        {token: 'U', value: Math.floor(storedTimeAsUTC.getTime() / 1000).toString()}, // Unix timestamp
+        // Unix timestamp
+        {token: 'U', value: Math.floor(storedTimeAsUTC.getTime() / 1000).toString()},
     ];
 }
 
@@ -202,17 +196,27 @@ function applyTokenReplacement(format: string, tokens: Array<{token: string; val
  * Format a date value with comprehensive token-based date format support
  * Supports 40+ date format tokens with localization and timezone handling
  */
-function formatDate(dateString: string | undefined, format = 'yyyy-MM-dd'): string {
-    if (!dateString) {
+function formatDate(value: string | Date | undefined, format = 'yyyy-MM-dd'): string {
+    if (!value) {
         return '';
     }
 
     try {
-        // Dates are stored without a time zone, like the expense date "2025-01-20" or the report's created time
-        // "2025-01-08 15:30:45". parseISO reads them as local time and every token below reads local time, so the
-        // title shows the stored date and time, like the backend. new Date() would read "2025-01-20" as midnight UTC,
-        // which is the previous day west of UTC.
-        const date = parseISO(dateString);
+        let date: Date;
+        if (value instanceof Date) {
+            // A Date holds the date and time to show in its local parts
+            date = value;
+        } else if (value.endsWith('Z')) {
+            // A UTC time, like "2025-01-08T15:30:45.123Z", shows its UTC date and time, the same way the backend shows a
+            // stored time. Dropping the "Z" lets parseISO read those as local parts.
+            date = parseISO(value.slice(0, -1));
+        } else {
+            // Dates are stored without a time zone, like the expense date "2025-01-20" or the report's created time
+            // "2025-01-08 15:30:45". parseISO reads them as local time and every token below reads local time, so the
+            // title shows the stored date and time, like the backend. new Date() would read "2025-01-20" as midnight
+            // UTC, which is the previous day west of UTC.
+            date = parseISO(value);
+        }
         if (Number.isNaN(date.getTime())) {
             return '';
         }

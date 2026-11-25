@@ -356,9 +356,9 @@ function computeAutoReportingInfo(part: FormulaPart, context: FormulaContext, su
 
     switch (subField.toLowerCase()) {
         case 'start':
-            return formatDate(startDate?.toISOString(), format);
+            return formatDate(startDate, format);
         case 'end':
-            return formatDate(endDate?.toISOString(), format);
+            return formatDate(endDate, format);
         default:
             return part.definition;
     }
