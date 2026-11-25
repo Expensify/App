@@ -1,5 +1,6 @@
 import {SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import Log from '@libs/Log';
+import Pusher from '@libs/Pusher';
 import PusherUtils from '@libs/PusherUtils';
 import {logReceiptRolledBack} from '@libs/telemetry/ReceiptObservability';
 import {trackExpenseApiError} from '@libs/telemetry/trackExpenseCreationError';
@@ -18,6 +19,7 @@ import type {Merge} from 'type-fest';
 import Onyx from 'react-native-onyx';
 
 import {getResetSignInFlowUpdate, signOutFromOldDot} from './HybridApp';
+import notifySearchOfTransactionWrites from './notifySearchOfTransactionWrites';
 import {getCurrentFlushPromise, isEmpty as isQueuedOnyxUpdatesEmpty, queueOnyxUpdates} from './QueuedOnyxUpdates';
 
 // This key needs to be separate from ONYXKEYS.ONYX_UPDATES_FROM_SERVER so that it can be updated without triggering the callback when the server IDs are updated. If that
@@ -188,6 +190,8 @@ function applyPusherOnyxUpdates<TKey extends OnyxKey>(updates: Array<OnyxUpdateE
         .reduce((promise, update) => promise.then(() => PusherUtils.triggerMultiEventHandler(update.eventType, update.data)), pusherEventsPromise)
         .then(() => {
             Log.info('[OnyxUpdateManager] Done applying Pusher update', false, {lastUpdateID});
+            // Changes made elsewhere (another device, SmartScan, a posted card transaction) reach Search through here or through Airship pushes on native.
+            notifySearchOfTransactionWrites(updates.flatMap((update) => (update.eventType === Pusher.TYPE.MULTIPLE_EVENT_TYPE.ONYX_API_UPDATE ? update.data : [])));
         });
     const applyPromise = hasServerClear ? appliedPromise.finally(() => signOutFromOldDotAfterServerClear(CONST.ONYX_UPDATE_TYPES.PUSHER)) : appliedPromise;
 
@@ -206,6 +210,7 @@ function applyAirshipOnyxUpdates<TKey extends OnyxKey>(updates: Array<OnyxUpdate
         .reduce((promise, update) => promise.then(() => Onyx.update(update.data)), airshipEventsPromise)
         .then(() => {
             Log.info('[OnyxUpdateManager] Done applying Airship updates', false, {lastUpdateID});
+            notifySearchOfTransactionWrites(updates.flatMap((update) => update.data));
         });
     // A push in the background lets the OS suspend the app once this resolves, so the OldDot sign-out is requested before it does
     const applyPromise = hasServerClear ? appliedPromise.finally(() => signOutFromOldDotAfterServerClear(CONST.ONYX_UPDATE_TYPES.AIRSHIP)) : appliedPromise;
@@ -345,7 +350,13 @@ function apply<TKey extends OnyxKey>({lastUpdateID, previousUpdateID, type, requ
         // them in server order instead of rewinding keys the catch-up already moved forward.
         const shouldQueueBehindStagedWrites = isCatchUpRequest && !isQueuedOnyxUpdatesEmpty() && Number(lastUpdateID) >= lastUpdateIDPendingWriteFlush;
         const shouldQueueUpdates = request.data?.apiRequestType === CONST.API_REQUEST_TYPE.WRITE || shouldQueueBehindStagedWrites;
-        const applyPromise = applyHTTPSOnyxUpdates(request, response, Number(lastUpdateID), shouldQueueUpdates);
+        const applyPromise = applyHTTPSOnyxUpdates(request, response, Number(lastUpdateID), shouldQueueUpdates).then((appliedResponse) => {
+            // Reconnects deliver the server changes this client missed, so they tell Search about them like Pusher would.
+            if (isCatchUpRequest || isFullReconnectRequest) {
+                notifySearchOfTransactionWrites(response.onyxData);
+            }
+            return appliedResponse;
+        });
 
         // WRITE requests only stage their updates in memory here — the real Onyx write happens later in
         // QueuedOnyxUpdates.flushQueue(). Gate the watermark on that flush, but detached from the returned promise:
