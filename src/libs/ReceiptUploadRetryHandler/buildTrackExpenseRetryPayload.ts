@@ -79,6 +79,7 @@ function buildTrackExpenseRetryPayload(context: ReceiptRetryContext, receiptFile
             accountID: currentUser.accountID,
             email: currentUser.login ?? '',
         },
+        currentUserPersonalDetails: currentUser,
         introSelected,
         conciergeChat: conciergeReportID ? getAllReports()?.[`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`] : undefined,
         quickAction: undefined,

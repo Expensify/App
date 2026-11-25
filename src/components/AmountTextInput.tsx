@@ -2,7 +2,7 @@ import useLocalize from '@hooks/useLocalize';
 
 import CONST from '@src/CONST';
 
-import type {KeyboardTypeOptions, NativeSyntheticEvent, StyleProp, TextInputKeyPressEvent, TextInputSelectionChangeEvent, TextStyle, ViewStyle} from 'react-native';
+import type {KeyboardTypeOptions, StyleProp, TextInputKeyPressEvent, TextInputSelectionChangeEvent, TextStyle, ViewStyle} from 'react-native';
 
 import {useNavigation} from '@react-navigation/native';
 import React from 'react';
@@ -11,6 +11,15 @@ import type {TextSelection} from './Composer/types';
 import type {BaseTextInputProps} from './TextInput/BaseTextInput/types';
 
 import TextInput from './TextInput';
+
+/**
+ * React Native's key press event has no `ctrlKey`. Only web key events carry it, so it is optional here and the
+ * Ctrl+D forward-delete check has to handle it being missing.
+ */
+type AmountTextInputKeyPressEvent = {
+    nativeEvent: Pick<TextInputKeyPressEvent['nativeEvent'], 'key'> & {ctrlKey?: boolean};
+    preventDefault: () => void;
+};
 
 type AmountTextInputProps = {
     /** Formatted amount in local currency  */
@@ -30,7 +39,7 @@ type AmountTextInputProps = {
     disableKeyboard?: boolean;
 
     /** Function to call to handle key presses in the text input */
-    onKeyPress?: (event: NativeSyntheticEvent<KeyboardEvent>) => void;
+    onKeyPress?: (event: AmountTextInputKeyPressEvent) => void;
 
     containerStyle?: StyleProp<ViewStyle>;
 
@@ -95,7 +104,7 @@ function AmountTextInput({
             selection={selection}
             onSelectionChange={onSelectionChange}
             accessibilityLabel={accessibilityLabel ?? translate('iou.amount')}
-            onKeyPress={onKeyPress as (event: TextInputKeyPressEvent) => void}
+            onKeyPress={onKeyPress}
             touchableInputWrapperStyle={touchableInputWrapperStyle}
             // On iPad, even if the soft keyboard is hidden, the keyboard suggestion is still shown.
             // Setting both autoCorrect and spellCheck to false will hide the suggestion.
@@ -112,3 +121,4 @@ function AmountTextInput({
 }
 
 export default AmountTextInput;
+export type {AmountTextInputKeyPressEvent};

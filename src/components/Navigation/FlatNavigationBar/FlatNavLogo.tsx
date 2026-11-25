@@ -8,6 +8,7 @@ import useTheme from '@hooks/useTheme';
 import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
+import ROUTES from '@src/ROUTES';
 
 import React from 'react';
 
@@ -30,6 +31,7 @@ function FlatNavLogo({onPress, isCollapsed = false}: FlatNavLogoProps) {
             accessibilityLabel={translate('common.home')}
             testID="ExpensifyLogoButton"
             onPress={onPress}
+            linkRoute={ROUTES.HOME}
             sentryLabel={CONST.SENTRY_LABEL.NAVIGATION_TAB_BAR.EXPENSIFY_LOGO}
             aria-hidden={isCollapsed}
             tabIndex={isCollapsed ? -1 : 0}

@@ -11,14 +11,12 @@ import {removeDraftTransactionsByIDs} from '@userActions/TransactionEdit';
 import CONST from '@src/CONST';
 import type {IOUAction, IOURequestType, IOUType} from '@src/CONST';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
-import type {Report, Transaction} from '@src/types/onyx';
-import type {Participant} from '@src/types/onyx/IOU';
+import type {Transaction} from '@src/types/onyx';
 import type {Receipt} from '@src/types/onyx/Transaction';
 import type {FileObject} from '@src/types/utils/Attachment';
 
-import type {OnyxEntry} from 'react-native-onyx';
-
-import {useEffect} from 'react';
+import {deepEqual} from 'fast-equals';
+import {useEffect, useState} from 'react';
 
 type ReceiptFileValidatorProps = {
     transactions: Transaction[];
@@ -28,8 +26,6 @@ type ReceiptFileValidatorProps = {
     reportID: string;
     action: IOUAction;
     backToReport: string | undefined;
-    report: OnyxEntry<Report>;
-    participants: Participant[];
     draftTransactionIDs: string[] | undefined;
     /**
      * False if an upstream writer is still finalizing transaction receipts. The validator skips
@@ -49,8 +45,8 @@ type ReceiptFileValidatorProps = {
 };
 
 /**
- * Side-effect-only component that validates receipt files when transactions,
- * participants, or report change. If blob URLs have expired (e.g. after a
+ * Side-effect-only component that validates receipt files when their validation
+ * inputs change. If blob URLs have expired (e.g. after a
  * browser refresh), navigates the user back to the start of the request flow.
  */
 function ReceiptFileValidator({
@@ -61,14 +57,27 @@ function ReceiptFileValidator({
     reportID,
     action,
     backToReport,
-    report,
-    participants,
     draftTransactionIDs,
     isReceiptReady,
     canEnterScanFieldsManually,
     isPolicyExpenseChat,
     onReceiptFilesChange,
 }: ReceiptFileValidatorProps) {
+    const validationInputs = transactions.map(({transactionID, receipt, iouRequestType, isAmountSet, isMerchantSet, isCreatedSet}) => ({
+        transactionID,
+        receipt,
+        iouRequestType,
+        isAmountSet,
+        isMerchantSet,
+        isCreatedSet,
+    }));
+    // Default writes and other unrelated draft edits must not read every receipt again.
+    // Compare by content because Onyx can also replace receipts with equivalent objects.
+    const [stableValidationInputs, setStableValidationInputs] = useState(validationInputs);
+    if (!deepEqual(stableValidationInputs, validationInputs)) {
+        setStableValidationInputs(validationInputs);
+    }
+
     // When the component mounts, if there is a receipt, see if the image can be read from the disk. If not, redirect the user to the starting step of the flow.
     // This is because until the request is saved, the receipt file is only stored in the browsers memory as a blob:// and if the browser is refreshed, then
     // the image ceases to exist. The best way for the user to recover from this is to start over from the start of the request process.
@@ -86,7 +95,7 @@ function ReceiptFileValidator({
         let resetInitialTransactionReceipt = false;
 
         Promise.all(
-            transactions.map((item) => {
+            stableValidationInputs.map((item) => {
                 const itemReceiptFilename = item.receipt?.filename;
                 const itemReceiptPath = item.receipt?.source;
                 const itemReceiptType = item.receipt?.type;
@@ -166,9 +175,7 @@ function ReceiptFileValidator({
         reportID,
         action,
         backToReport,
-        report,
-        transactions,
-        participants,
+        stableValidationInputs,
         isReceiptReady,
         canEnterScanFieldsManually,
         isPolicyExpenseChat,

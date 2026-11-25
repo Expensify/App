@@ -7,6 +7,7 @@ import TextInput from '@components/TextInput';
 
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
+import {usePersonalDetail} from '@hooks/usePersonalDetails';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {updateMemberCustomField} from '@libs/actions/Policy/Policy';
@@ -23,28 +24,23 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {PersonalDetailsList} from '@src/types/onyx';
-
-import type {OnyxEntry} from 'react-native-onyx';
+import {loginSelector} from '@src/selectors/PersonalDetails';
 
 import React, {useState} from 'react';
 import {View} from 'react-native';
 
-type WorkspacePolicyOnyxProps = {
-    personalDetails: OnyxEntry<PersonalDetailsList>;
-};
 type WorkspaceMemberCustomFieldPageProps = Omit<WithPolicyAndFullscreenLoadingProps, 'route'> &
-    WorkspacePolicyOnyxProps &
     PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.MEMBER_CUSTOM_FIELD>;
 
-function WorkspaceMemberCustomFieldPage({policy, route, personalDetails}: WorkspaceMemberCustomFieldPageProps) {
+function WorkspaceMemberCustomFieldPage({policy, route}: WorkspaceMemberCustomFieldPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {inputCallbackRef} = useAutoFocusInput();
     const params = route.params;
     const customFieldType = params.customFieldType;
     const accountID = Number(params.accountID);
-    const memberLogin = personalDetails?.[accountID]?.login ?? getMemberLoginByAccountID(policy, accountID);
+    const [memberLoginFromDetails] = usePersonalDetail(accountID, loginSelector);
+    const memberLogin = memberLoginFromDetails ?? getMemberLoginByAccountID(policy, accountID);
     const member = policy?.employeeList?.[memberLogin];
     const customFieldKey = CONST.CUSTOM_FIELD_KEYS[customFieldType];
     const [customField, setCustomField] = useState(member?.[customFieldKey ?? ''] ?? '');

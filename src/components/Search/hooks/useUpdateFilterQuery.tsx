@@ -36,8 +36,9 @@ function useUpdateFilterQuery(queryJSON: SearchQueryJSON | undefined) {
 
         // The filters UI pairs the violation grouping with a violation has value, so the Has pill shows which stages the
         // groups count. Choosing the grouping adds both stages, and removing them (by clearing the Has pill, or by
-        // switching to a type that has no violations) drops the grouping. A typed query without one is left alone,
-        // since Auth reads both stages for it.
+        // switching to a type that has no violations) drops the grouping. A query that reached the page without one, like
+        // an older saved search, is left alone, since Auth reads both stages for it. Typed queries get both stages from
+        // getQueryWithUpdatedValues.
         if (updatedFilterFormValues.groupBy === CONST.SEARCH.GROUP_BY.VIOLATION && !hasValuesIncludeViolationFilter(updatedFilterFormValues.has)) {
             if (currentValues.groupBy !== CONST.SEARCH.GROUP_BY.VIOLATION) {
                 updatedFilterFormValues.has = [...(updatedFilterFormValues.has ?? []), ...VIOLATION_HAS_VALUES];
