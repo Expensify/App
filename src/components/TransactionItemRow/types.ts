@@ -180,6 +180,7 @@ type TransactionItemRowNarrowComputedData = {
     bgActiveStyles: StyleProp<ViewStyle>;
     merchant: string;
     merchantOrDescription: string;
+    selectionAccessibilityLabel: string;
     missingFieldError: string;
     categoryForDisplay: string;
     createdAt: string;

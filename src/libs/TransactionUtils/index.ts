@@ -13,6 +13,7 @@ import type {MachineDateFormat} from '@libs/DateUtils';
 import DateUtils from '@libs/DateUtils';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import {roundToTwoDecimalPlaces} from '@libs/NumberUtils';
+import Parser from '@libs/Parser';
 import {
     canSubmitPerDiemExpenseFromWorkspace,
     getCommaSeparatedTagNameWithSanitizedColons,
@@ -636,6 +637,15 @@ function getMerchantName(transaction: TransactionWithOptionalSearchFields, trans
 
     const merchantName = StringUtils.getFirstLine(merchant);
     return merchantName !== CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT && merchantName !== CONST.TRANSACTION.DEFAULT_MERCHANT ? (merchantName ?? '') : '';
+}
+
+/**
+ * Names a transaction in the label of the control that selects it, so screen readers and agents can tell rows apart.
+ * The description is stored as HTML, so it is converted to plain text the same way the description cell shows it.
+ */
+function getTransactionSelectionAccessibilityLabel(transaction: TransactionWithOptionalSearchFields, translate: (key: TranslationPaths) => string): string {
+    const description = StringUtils.lineBreaksToSpaces(Parser.htmlToText(getDescription(transaction)));
+    return getMerchantName(transaction, translate) || description || translate('common.select');
 }
 
 function getReportOwnerAsAttendee(creatorDetails: OnyxEntry<PersonalDetails>): Attendee | undefined {
@@ -1665,6 +1675,7 @@ export {
     getMerchantName,
     hasAnyTransactionWithoutRTERViolation,
     getMerchantOrDescription,
+    getTransactionSelectionAccessibilityLabel,
     getMCCGroup,
     getCreated,
     getFormattedCreated,

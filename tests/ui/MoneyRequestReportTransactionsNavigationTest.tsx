@@ -28,6 +28,7 @@ import Onyx from 'react-native-onyx';
 
 import createRandomReportAction from '../utils/collections/reportActions';
 import createRandomTransaction from '../utils/collections/transaction';
+import {translateLocal} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 /** The slice of the transaction list's controller the tests below read. */
@@ -162,17 +163,18 @@ describe('MoneyRequestReportTransactionsNavigation', () => {
         const createThreadSpy = jest.spyOn(ReportActions, 'createTransactionThreadReport');
         const setParamsSpy = jest.spyOn(Navigation, 'setParams').mockImplementation(() => {});
 
-        render(<MoneyRequestReportTransactionsNavigation currentTransactionID={FIRST_TRANSACTION_ID} />);
+        render(
+            <LocaleContextProvider>
+                <MoneyRequestReportTransactionsNavigation currentTransactionID={FIRST_TRANSACTION_ID} />
+            </LocaleContextProvider>,
+        );
         await waitForBatchedUpdates();
 
-        // Both arrows render with the generic button role; the second one is next.
-        const buttons = screen.getAllByLabelText(CONST.ROLE.BUTTON);
-        expect(buttons).toHaveLength(2);
-        const nextButton = buttons.at(1);
-        if (!nextButton) {
-            throw new Error('next arrow did not render');
-        }
-        fireEvent.press(nextButton);
+        // Given both arrows are named, so the next one is found by its name rather than its position
+        expect(screen.getByLabelText(translateLocal('common.previous'))).toBeOnTheScreen();
+
+        // When the user presses the next arrow before the report actions load
+        fireEvent.press(screen.getByLabelText(translateLocal('common.next')));
 
         await waitFor(() => {
             expect(createThreadSpy).not.toHaveBeenCalled();
@@ -184,15 +186,14 @@ describe('MoneyRequestReportTransactionsNavigation', () => {
         const openReportSpy = jest.spyOn(ReportActions, 'openReport').mockImplementation(() => {});
         const setParamsSpy = jest.spyOn(Navigation, 'setParams').mockImplementation(() => {});
 
-        render(<MoneyRequestReportTransactionsNavigation currentTransactionID={FIRST_TRANSACTION_ID} />);
+        render(
+            <LocaleContextProvider>
+                <MoneyRequestReportTransactionsNavigation currentTransactionID={FIRST_TRANSACTION_ID} />
+            </LocaleContextProvider>,
+        );
         await waitForBatchedUpdates();
 
-        const buttons = screen.getAllByLabelText(CONST.ROLE.BUTTON);
-        const nextButton = buttons.at(1);
-        if (!nextButton) {
-            throw new Error('next arrow did not render');
-        }
-        fireEvent.press(nextButton);
+        fireEvent.press(screen.getByLabelText(translateLocal('common.next')));
 
         // The press is staged rather than dropped: the sibling's parent report is fetched.
         await waitFor(() => {
@@ -209,15 +210,15 @@ describe('MoneyRequestReportTransactionsNavigation', () => {
         await Onyx.set(`${ONYXKEYS.COLLECTION.RAM_ONLY_FULL_POLICY_SNAPSHOT}policy1`, {lastModified: 123});
         await waitForBatchedUpdates();
 
-        render(<MoneyRequestReportTransactionsNavigation currentTransactionID={FIRST_TRANSACTION_ID} />);
+        render(
+            <LocaleContextProvider>
+                <MoneyRequestReportTransactionsNavigation currentTransactionID={FIRST_TRANSACTION_ID} />
+            </LocaleContextProvider>,
+        );
         await waitForBatchedUpdates();
 
         // When next is pressed before that report's actions are loaded
-        const nextButton = screen.getAllByLabelText(CONST.ROLE.BUTTON).at(1);
-        if (!nextButton) {
-            throw new Error('next arrow did not render');
-        }
-        fireEvent.press(nextButton);
+        fireEvent.press(screen.getByLabelText(translateLocal('common.next')));
 
         // Then the fetch sends the marker so the server can leave out the policy collections the client already has
         await waitFor(() => {
@@ -232,15 +233,14 @@ describe('MoneyRequestReportTransactionsNavigation', () => {
         const getActiveRouteSpy = jest.spyOn(Navigation, 'getActiveRoute');
         getActiveRouteSpy.mockReturnValue(ROUTES.REPORT_WITH_ID.getRoute('origin'));
 
-        render(<MoneyRequestReportTransactionsNavigation currentTransactionID={FIRST_TRANSACTION_ID} />);
+        render(
+            <LocaleContextProvider>
+                <MoneyRequestReportTransactionsNavigation currentTransactionID={FIRST_TRANSACTION_ID} />
+            </LocaleContextProvider>,
+        );
         await waitForBatchedUpdates();
 
-        const buttons = screen.getAllByLabelText(CONST.ROLE.BUTTON);
-        const nextButton = buttons.at(1);
-        if (!nextButton) {
-            throw new Error('next arrow did not render');
-        }
-        fireEvent.press(nextButton);
+        fireEvent.press(screen.getByLabelText(translateLocal('common.next')));
         await waitForBatchedUpdates();
 
         // The user moved on before the fetch settled, so the staged press must not navigate.
@@ -257,15 +257,14 @@ describe('MoneyRequestReportTransactionsNavigation', () => {
         const openReportSpy = jest.spyOn(ReportActions, 'openReport').mockImplementation(() => {});
         const setParamsSpy = jest.spyOn(Navigation, 'setParams').mockImplementation(() => {});
 
-        render(<MoneyRequestReportTransactionsNavigation currentTransactionID={FIRST_TRANSACTION_ID} />);
+        render(
+            <LocaleContextProvider>
+                <MoneyRequestReportTransactionsNavigation currentTransactionID={FIRST_TRANSACTION_ID} />
+            </LocaleContextProvider>,
+        );
         await waitForBatchedUpdates();
 
-        const buttons = screen.getAllByLabelText(CONST.ROLE.BUTTON);
-        const nextButton = buttons.at(1);
-        if (!nextButton) {
-            throw new Error('next arrow did not render');
-        }
-        fireEvent.press(nextButton);
+        fireEvent.press(screen.getByLabelText(translateLocal('common.next')));
 
         // Offline there is nothing to fetch, so the press must fall through instead of being staged. Without a
         // cached IOU action there is no thread to resolve either, so the sibling's own report is the target: a
@@ -288,16 +287,15 @@ describe('MoneyRequestReportTransactionsNavigation', () => {
             params: {reportID: IOU_REPORT_ID, backTo: ROUTES.HOME},
         });
 
-        render(<MoneyRequestReportTransactionsNavigation currentTransactionID={FIRST_TRANSACTION_ID} />);
+        render(
+            <LocaleContextProvider>
+                <MoneyRequestReportTransactionsNavigation currentTransactionID={FIRST_TRANSACTION_ID} />
+            </LocaleContextProvider>,
+        );
         await waitForBatchedUpdates();
 
         // When the user steps to the next expense
-        const buttons = screen.getAllByLabelText(CONST.ROLE.BUTTON);
-        const nextButton = buttons.at(1);
-        if (!nextButton) {
-            throw new Error('next arrow did not render');
-        }
-        fireEvent.press(nextButton);
+        fireEvent.press(screen.getByLabelText(translateLocal('common.next')));
 
         // Then the sibling replaces the screen in place with the original backTo, not the expense being left -
         // otherwise Back would step to the previous expense instead of closing the RHP
