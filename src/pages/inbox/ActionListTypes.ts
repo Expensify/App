@@ -25,6 +25,9 @@ type ActionListRef = {
     getScrollableNode?: () => unknown;
     getLayout?: (index: number) => unknown;
     computeVisibleIndices?: () => {startIndex: number; endIndex: number} | undefined;
+    /** FlashList's last scroll offset, which already includes its own position corrections. Other list implementations can omit this. */
+    getAbsoluteLastScrollOffset?: () => number;
+    getWindowSize?: () => {width: number; height: number};
     /** Measured item positions supplied by LegendList. Other list implementations can omit this. */
     getState?: () => {positionByKey: (key: string) => number | undefined; scroll?: number; contentLength?: number; scrollLength?: number} | undefined;
 };
