@@ -43,14 +43,16 @@ const renderAddress: DynamicFieldRenderer<'address'> = (field, {values, styles, 
                     if (typeof pickedCountry !== 'string' || pickedCountry === '' || pickedCountry === country) {
                         return;
                     }
-                    // The draft still holds the address from before the pick, so the picked parts go with the country
-                    const pickedAnswers = pickedAddress && {
-                        [addressKeys.street]: pickedAddress.street,
-                        [addressKeys.city]: pickedAddress.city,
-                        [addressKeys.state]: pickedAddress.state,
-                        [addressKeys.zipCode]: pickedAddress.zipCode,
-                    };
-                    onValueChange?.(pickedCountry, addressKeys.country, pickedAnswers);
+                    // The draft still holds the address from before the change. An address search pick replaces its parts, and a pick from the country list clears the state.
+                    const changedAnswers = pickedAddress
+                        ? {
+                              [addressKeys.street]: pickedAddress.street,
+                              [addressKeys.city]: pickedAddress.city,
+                              [addressKeys.state]: pickedAddress.state,
+                              [addressKeys.zipCode]: pickedAddress.zipCode,
+                          }
+                        : {[addressKeys.state]: ''};
+                    onValueChange?.(pickedCountry, addressKeys.country, changedAnswers);
                 }}
             >
                 <AddressFields.Street

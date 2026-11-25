@@ -38,7 +38,7 @@ type DynamicFormFieldsProps = {
 
     /**
      * Called when the user changes a field marked `refreshOnChange`, with the draft key that changed, so the screen can fetch the schema again.
-     * `otherAnswers` are answers the same change fills in under other keys, such as the street of a picked address, which the draft does not hold yet.
+     * `otherAnswers` are answers the same change fills in or clears under other keys, such as the street of a picked address, which the draft does not hold yet. A cleared one is ''.
      */
     onRefreshRequirements?: (inputID: string, value: FormValue, otherAnswers?: DynamicFormValues) => void;
 

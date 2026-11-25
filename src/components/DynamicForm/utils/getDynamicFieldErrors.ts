@@ -194,8 +194,8 @@ const VALIDATORS: {[TType in DynamicFormFieldType]: FieldValidator<TType>} = {
         }
         return meetsMinimumAgeRequirement(value) ? [] : [translate('bankAccount.error.age')];
     },
-    // The street is the field's own value. An address search pick is not cut to the input's limit, so its length is checked here. getAddressPartErrors checks the other parts.
-    address: (field, values, translate) => getFormatErrors({maxLength: field.maxLength}, field.key, getStringAnswer(field, values), translate),
+    // The street is the field's own value and needs no check beyond required. getAddressPartErrors checks the other parts.
+    address: noChecks,
     multiselect: getMultiChoiceErrors,
     countryMultiselect: getMultiChoiceErrors,
     boolean: noChecks,

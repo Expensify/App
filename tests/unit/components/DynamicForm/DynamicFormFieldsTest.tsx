@@ -1016,7 +1016,7 @@ describe('DynamicFormFields', () => {
 
         // Then the screen fetches the requirements once for the picked country, never for an empty one
         expect(onRefreshRequirements).toHaveBeenCalledTimes(1);
-        expect(onRefreshRequirements).toHaveBeenCalledWith(addressKeys.country, 'GB', undefined);
+        expect(onRefreshRequirements).toHaveBeenCalledWith(addressKeys.country, 'GB', {[addressKeys.state]: ''});
     });
 
     it('asks for new requirements with the picked address when an address search pick changes the country', () => {

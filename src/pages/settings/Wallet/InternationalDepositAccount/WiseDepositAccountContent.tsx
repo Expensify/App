@@ -44,6 +44,7 @@ import {isUserValidatedSelector} from '@selectors/Account';
 import React, {useContext, useEffect, useEffectEvent, useState} from 'react';
 
 import getCurrentSchemaAnswers from './getCurrentSchemaAnswers';
+import getRefreshAnswers from './getRefreshAnswers';
 import navigateToUSBankAccountFlow from './navigateToUSBankAccountFlow';
 import WiseBankAccountAdded from './WiseBankAccountAdded';
 
@@ -234,8 +235,7 @@ function WiseDepositAccountContent({backTo, subPage, isEditing}: WiseDepositAcco
             startOverWithCurrency(value);
             return;
         }
-        const answers = {...getCurrentSchemaAnswers(schema, draftValues), ...otherAnswers};
-        answers[inputID] = value;
+        const answers = getRefreshAnswers(getCurrentSchemaAnswers(schema, draftValues), inputID, value, otherAnswers);
         getWiseBankAccountFields(selectedCountry, getAnswerCurrency(answers), answers);
     };
 

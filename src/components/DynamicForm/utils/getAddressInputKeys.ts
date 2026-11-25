@@ -1,4 +1,3 @@
-import type {DynamicFormValues} from '@components/DynamicForm/types';
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 
 import {isValidZipCodeForCountry} from '@libs/ValidationUtils';
@@ -32,7 +31,7 @@ function getAddressInputKeys(fieldKey: string): Required<Pick<AddressInputKeys, 
 }
 
 /** The picked country, or '' while none or an unknown one is picked */
-function getAddressCountry(fieldKey: string, values: DynamicFormValues): Country | '' {
+function getAddressCountry(fieldKey: string, values: Record<string, unknown>): Country | '' {
     const country = values[getAddressInputKeys(fieldKey).country];
     return typeof country === 'string' && isCountryCode(country) ? country : '';
 }
@@ -78,7 +77,7 @@ function isStateAsked(field: DynamicFormAddressField, country: Country | ''): bo
 }
 
 /** The draft keys of the parts the form does not show. AddressSearch fills the state and the zip even where they are not asked, with values the user never sees. */
-function getHiddenAddressPartKeys(field: DynamicFormAddressField, values: DynamicFormValues): string[] {
+function getHiddenAddressPartKeys(field: DynamicFormAddressField, values: Record<string, unknown>): string[] {
     const addressKeys = getAddressInputKeys(field.key);
     return [...(isStateAsked(field, getAddressCountry(field.key, values)) ? [] : [addressKeys.state]), ...(isZipCodeShown(field) ? [] : [addressKeys.zipCode])];
 }
