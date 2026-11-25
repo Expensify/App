@@ -11,7 +11,7 @@ In Expensify, categories represent your **chart of accounts, GL accounts, expens
 
 Workspace Admins can create categories manually, or import them automatically when connecting an accounting system such as QuickBooks, Xero, NetSuite, or Sage Intacct. Once categories are available, they can be enabled or disabled as needed. Over time, Expensify also learns how categories are applied to specific merchants and suggests them automatically.
 
-The Categories table displays the category **Name**, **GL Code** (if assigned), the assigned **Approver** (on the Control plan), and whether it's **Enabled** for workspace members to use.
+The **Categories** table displays the category **Name**, **GL code** (if assigned), the assigned **Approver** (on the Control plan), and whether it's **Enabled** for workspace members to use. On wide screens on web, workspaces on the Control plan also display a **Payroll code** column when payroll codes are assigned. You can search categories by payroll code or select the **Payroll code** column header to sort them.
 
 ![The Categories tab]({{site.url}}/assets/images/NewExpensify_ManageCategories_1.png){:width="100%"}
 
