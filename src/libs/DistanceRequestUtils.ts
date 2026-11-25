@@ -663,10 +663,19 @@ function getRateMatchingCurrentRate(mileageRates: Record<string, MileageRate>, c
  *
  * `currentRate` resolves against the source policy, which this module cannot look up, so callers pass it in. It is optional because
  * a P2P expense carries its rate on the transaction.
+ * `isMatchingRate` distinguishes an eligible equivalent rate from a fallback with the same value.
  *
  * Let's ensure this logic is consistent with the logic in the backend (Auth), which is authoritative here.
  */
-function getRateForPolicyChange({transaction, policy, currentRate}: {transaction: OnyxEntry<Transaction>; policy: OnyxEntry<Policy>; currentRate?: MileageRate}): MileageRate | undefined {
+function getRateForPolicyChange({
+    transaction,
+    policy,
+    currentRate,
+}: {
+    transaction: OnyxEntry<Transaction>;
+    policy: OnyxEntry<Policy>;
+    currentRate?: MileageRate;
+}): {rate: MileageRate; isMatchingRate: boolean} | undefined {
     const expenseDate = getFormattedCreated(transaction);
     const mileageRates = getMileageRates(policy);
     const p2pRate = isCustomUnitRateIDForP2P(transaction) ? getRateForP2P(getCurrency(transaction), transaction) : undefined;
@@ -674,10 +683,11 @@ function getRateForPolicyChange({transaction, policy, currentRate}: {transaction
     // Otherwise an expense saved in kilometers is matched as miles and the fallback rate reprices it.
     const rateToMatch = currentRate ?? (p2pRate ? {...p2pRate, unit: getDistanceUnit(transaction, p2pRate)} : undefined);
 
-    const selectedRate = getRateMatchingCurrentRate(mileageRates, rateToMatch, expenseDate) ?? getBestEligibleRateOrPolicyDefault(mileageRates, expenseDate, policy);
+    const matchingRate = getRateMatchingCurrentRate(mileageRates, rateToMatch, expenseDate);
+    const selectedRate = matchingRate ?? getBestEligibleRateOrPolicyDefault(mileageRates, expenseDate, policy);
 
     // getDefaultMileageRate returns a fully shaped rate with an undefined customUnitRateID when the policy has no enabled rates, so normalize that case to undefined.
-    return selectedRate?.customUnitRateID ? selectedRate : undefined;
+    return selectedRate?.customUnitRateID ? {rate: selectedRate, isMatchingRate: !!matchingRate} : undefined;
 }
 
 /**
@@ -989,21 +999,27 @@ function prepareTextForDisplay(text: string): string {
     return text.replaceAll(/[^0-9., ]/g, '').replace(/^0+(?=\d)/, '');
 }
 
-function getRateDateLabel(rate: MileageRate, translate: LocaleContextProps['translate'], dateFnsLocale: DateFnsLocale | undefined): string {
-    const dateFormat = CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT;
+/** Formats a rate's start or end date the way rate labels and the distance rates table show it. */
+function formatRateDate(dateString: string | null | undefined, dateFnsLocale: DateFnsLocale | undefined): string {
+    if (!dateString) {
+        return '';
+    }
+    return format(parseISO(dateString), CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT, {locale: dateFnsLocale});
+}
 
+function getRateDateLabel(rate: MileageRate, translate: LocaleContextProps['translate'], dateFnsLocale: DateFnsLocale | undefined): string {
     try {
         if (rate.startDate && rate.endDate) {
             return translate('iou.rateValidDateRange', {
-                startDate: format(parseISO(rate.startDate), dateFormat, {locale: dateFnsLocale}),
-                endDate: format(parseISO(rate.endDate), dateFormat, {locale: dateFnsLocale}),
+                startDate: formatRateDate(rate.startDate, dateFnsLocale),
+                endDate: formatRateDate(rate.endDate, dateFnsLocale),
             });
         }
         if (rate.startDate) {
-            return translate('iou.rateValidFrom', {startDate: format(parseISO(rate.startDate), dateFormat, {locale: dateFnsLocale})});
+            return translate('iou.rateValidFrom', {startDate: formatRateDate(rate.startDate, dateFnsLocale)});
         }
         if (rate.endDate) {
-            return translate('iou.rateValidUntil', {endDate: format(parseISO(rate.endDate), dateFormat, {locale: dateFnsLocale})});
+            return translate('iou.rateValidUntil', {endDate: formatRateDate(rate.endDate, dateFnsLocale)});
         }
     } catch {
         return '';
@@ -1112,6 +1128,7 @@ export default {
     getBestEligibleRate,
     getRateForPolicyChange,
     getRateDateLabel,
+    formatRateDate,
     getRateDisplayName,
     getRateNameWithDateSuffix,
     compareRatesByDisplayName,

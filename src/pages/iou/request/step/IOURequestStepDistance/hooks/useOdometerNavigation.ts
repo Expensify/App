@@ -8,7 +8,7 @@ import useMoneyRequestPolicyTagsForReport from '@hooks/useMoneyRequestPolicyTags
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
-import useReportTransactions from '@hooks/useReportTransactions';
+import {useGetPersonalDetailsByLogin} from '@hooks/usePersonalDetailByLogin';
 
 import {rand64} from '@libs/NumberUtils';
 import {generateReportID, isMoneyRequestReport as isMoneyRequestReportReportUtils} from '@libs/ReportUtils';
@@ -20,6 +20,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {OdometerDraft, PersonalDetailsList, Policy, Report, Transaction} from '@src/types/onyx';
 import type {ReportAttributesDerivedValue} from '@src/types/onyx/DerivedValues';
+import type {CurrentUserPersonalDetails} from '@src/types/onyx/PersonalDetails';
 import type {Unit} from '@src/types/onyx/Policy';
 
 import type {OnyxEntry} from 'react-native-onyx';
@@ -62,6 +63,9 @@ type UseOdometerNavigationParams = {
     /** Current user's account ID — passed through to the navigation util. */
     currentUserAccountID: number;
 
+    /** Current user's personal details — passed through to the navigation util. */
+    currentUserPersonalDetails: CurrentUserPersonalDetails;
+
     /** Current user's localCurrencyCode — passed through to the navigation util for draft-workspace creation. */
     currentUserLocalCurrency: string | undefined;
 
@@ -100,6 +104,9 @@ type NavigateOptions = {
     /** End odometer reading entered by the user, parsed to a number. */
     odometerEnd: number;
 
+    /** Unit the readings were entered in, which can differ from the current rate's unit. */
+    odometerUnit: Unit | undefined;
+
     /** Computed distance (`end − start`, rounded to two decimals). */
     odometerDistance: number;
 
@@ -122,6 +129,7 @@ function useOdometerNavigation({
     personalDetails,
     currentUserLogin,
     currentUserAccountID,
+    currentUserPersonalDetails,
     currentUserLocalCurrency,
     backToReport,
     shouldSkipConfirmation,
@@ -140,7 +148,7 @@ function useOdometerNavigation({
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const reportIDToCheck = isMoneyRequestReportReportUtils(report) ? report?.chatReportID : report?.reportID;
     const [reportDraft] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${reportIDToCheck}`);
-    const moneyRequestReportTransactions = useReportTransactions(report?.reportID);
+    const getPersonalDetailsByLogin = useGetPersonalDetailsByLogin();
     const {formatPhoneNumber, dateFnsLocale} = useLocalize();
     const policyTagList = useMoneyRequestPolicyTagsForReport({report, currentUserAccountID});
 
@@ -160,7 +168,7 @@ function useOdometerNavigation({
     const delegateAccountID = useDelegateAccountID();
     const {getCurrencyDecimals, getCurrencySymbol} = useCurrencyListActions();
 
-    return async ({odometerStart, odometerEnd, odometerDistance, unit, previousOdometerDraft}: NavigateOptions) => {
+    return async ({odometerStart, odometerEnd, odometerUnit, odometerDistance, unit, previousOdometerDraft}: NavigateOptions) => {
         const optimisticTransactionID = rand64();
         const optimisticChatReportID = selfDMReport?.reportID ?? generateReportID();
         const [
@@ -197,7 +205,6 @@ function useOdometerNavigation({
             iouType,
             action,
             report,
-            moneyRequestReportTransactions,
             isDraftChatReport: !!reportDraft,
             policy,
             transaction,
@@ -206,6 +213,7 @@ function useOdometerNavigation({
             personalDetails,
             currentUserLogin,
             currentUserAccountID,
+            currentUserPersonalDetails,
             currentUserLocalCurrency,
             backToReport,
             shouldSkipConfirmation,
@@ -224,6 +232,7 @@ function useOdometerNavigation({
             policyForMovingExpenses,
             odometerStart,
             odometerEnd,
+            odometerUnit,
             odometerDistance,
             previousOdometerDraft,
             recentWaypoints,
@@ -245,6 +254,7 @@ function useOdometerNavigation({
             participants,
             participantsPolicyTags,
             rules,
+            personalDetailsByLogins: getPersonalDetailsByLogin(),
         });
     };
 }
