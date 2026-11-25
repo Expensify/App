@@ -95,19 +95,27 @@ describe('SignUpWelcomeForm', () => {
     });
 
     it('shows both SMS consent checkboxes when login is a phone number', async () => {
+        // Given a sign-up with a phone number, which is the only kind we text
         await setCredentialsLogin(PHONE_LOGIN);
+
+        // When the welcome form renders
         await renderForm();
         await waitForBatchedUpdatesWithAct();
 
+        // Then both SMS consent checkboxes are shown
         expect(screen.getByLabelText(TRANSACTIONAL_CONSENT_LABEL)).toBeOnTheScreen();
         expect(screen.getByLabelText(MARKETING_CONSENT_LABEL)).toBeOnTheScreen();
     });
 
     it('hides the SMS consent checkboxes when login is an email', async () => {
+        // Given a sign-up with an email address
         await setCredentialsLogin(EMAIL_LOGIN);
+
+        // When the welcome form renders
         await renderForm();
         await waitForBatchedUpdatesWithAct();
 
+        // Then no SMS consent checkboxes are shown, because we don't text email sign-ups
         expect(screen.queryByLabelText(TRANSACTIONAL_CONSENT_LABEL)).toBeNull();
         expect(screen.queryByLabelText(MARKETING_CONSENT_LABEL)).toBeNull();
     });
@@ -127,7 +135,7 @@ describe('SignUpWelcomeForm', () => {
     });
 
     it('passes both consents to signUpUser when both checkboxes are checked', async () => {
-        // Given a phone sign-up that agrees to alert and marketing texts
+        // Given a phone sign-up that agrees to transactional and marketing texts
         await setCredentialsLogin(PHONE_LOGIN);
         await renderForm();
         await waitForBatchedUpdatesWithAct();
