@@ -210,6 +210,7 @@ import {showSupportalPermissionDenied} from '@userActions/App';
 import {cacheAttachment, removeCachedAttachment} from '@userActions/Attachment';
 import {clearByKey} from '@userActions/CachedPDFPaths';
 import {setDownload} from '@userActions/Download';
+import {getClearPolicyConvertedAmountOnyxData} from '@userActions/IOU/SearchUpdate';
 import {close} from '@userActions/Modal';
 import navigateFromNotification from '@userActions/navigateFromNotification';
 import {getAll} from '@userActions/PersistedRequests';
@@ -8109,6 +8110,7 @@ function moveIOUReportToPolicyAndInviteSubmitter(
               | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS
               | typeof ONYXKEYS.COLLECTION.REPORT_METADATA
               | typeof ONYXKEYS.COLLECTION.TRANSACTION
+              | typeof ONYXKEYS.COLLECTION.SNAPSHOT
           >
         | PersonalDetailsUtils.PersonalDetailsOnyxUpdate
     > = [];
@@ -8125,6 +8127,7 @@ function moveIOUReportToPolicyAndInviteSubmitter(
             | typeof ONYXKEYS.COLLECTION.REPORT_METADATA
             | typeof ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE
             | typeof ONYXKEYS.COLLECTION.TRANSACTION
+            | typeof ONYXKEYS.COLLECTION.SNAPSHOT
         >
     > = [];
 
@@ -8234,9 +8237,13 @@ function convertIOUReportToExpenseReport(
     rules: OnyxCollection<Rule>,
     reportTransactions: Transaction[] = [],
 ) {
-    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.TRANSACTION | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>> = [];
+    const optimisticData: Array<
+        OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.TRANSACTION | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS | typeof ONYXKEYS.COLLECTION.SNAPSHOT>
+    > = [];
     const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>> = [];
-    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.TRANSACTION | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>> = [];
+    const failureData: Array<
+        OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.TRANSACTION | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS | typeof ONYXKEYS.COLLECTION.SNAPSHOT>
+    > = [];
 
     const expenseReport = {
         ...iouReport,
@@ -8390,6 +8397,11 @@ function convertIOUReportToExpenseReport(
         value: {[movedReportAction.reportActionID]: null},
     });
 
+    // Search computed each expense's workspace amount without a workspace and with the IOU sign, so it shows its own amount until the next search
+    const clearPolicyConvertedAmountData = getClearPolicyConvertedAmountOnyxData((transaction) => transaction.reportID === reportID);
+    optimisticData.push(...clearPolicyConvertedAmountData.optimisticData);
+    failureData.push(...clearPolicyConvertedAmountData.failureData);
+
     return {optimisticData, successData, failureData, movedExpenseReportAction, movedReportAction};
 }
 
@@ -8450,7 +8462,11 @@ function updatePolicyIdForReportAndThreads(
     >,
     failureData: Array<
         OnyxUpdate<
-            typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS | typeof ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS | typeof ONYXKEYS.COLLECTION.TRANSACTION
+            | typeof ONYXKEYS.COLLECTION.REPORT
+            | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS
+            | typeof ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS
+            | typeof ONYXKEYS.COLLECTION.TRANSACTION
+            | typeof ONYXKEYS.COLLECTION.SNAPSHOT
         >
     >,
 ) {
@@ -8537,7 +8553,11 @@ function buildOptimisticChangePolicyData({
     const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS | typeof ONYXKEYS.COLLECTION.TRANSACTION>> = [];
     const failureData: Array<
         OnyxUpdate<
-            typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS | typeof ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS | typeof ONYXKEYS.COLLECTION.TRANSACTION
+            | typeof ONYXKEYS.COLLECTION.REPORT
+            | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS
+            | typeof ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS
+            | typeof ONYXKEYS.COLLECTION.TRANSACTION
+            | typeof ONYXKEYS.COLLECTION.SNAPSHOT
         >
     > = [];
 
@@ -8903,6 +8923,11 @@ function buildOptimisticChangePolicyData({
             },
         });
     }
+
+    // Search converted each expense to the old workspace's currency, so a workspace with another currency shows the expense's own amount until the next search
+    const clearPolicyConvertedAmountData = getClearPolicyConvertedAmountOnyxData((transaction) => transaction.reportID === reportID && transaction.policyCurrency !== destinationCurrency);
+    optimisticData.push(...clearPolicyConvertedAmountData.optimisticData);
+    failureData.push(...clearPolicyConvertedAmountData.failureData);
 
     // 7. Update report totals when source and destination currencies differ
     // Only include transactions that match the destination currency (their amounts can be used directly)
