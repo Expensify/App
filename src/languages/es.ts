@@ -4683,6 +4683,15 @@ ${amount} para ${merchant} - ${date}`,
         bankInformationStepHeader: '¿Cuáles son los detalles de tu banco?',
         accountHolderInformationStepHeader: '¿Cuáles son los detalles del titular de la cuenta?',
         howDoWeProtectYourData: '¿Cómo protegemos tus datos?',
+        notices: {
+            katakanaName:
+                'Introduce tu nombre exactamente como aparece en tu cuenta bancaria japonesa. Normalmente está escrito en カタカナ (katakana). Si no coincide, tu pago podría retrasarse o rechazarse.',
+            alipayRecipients: 'Solo se puede pagar a destinatarios de China continental, Hong Kong o Macao a través de Alipay.',
+            alipayLimits:
+                'Alipay puede recibir hasta 50.000 CNY por pago y entre 300.000 y 600.000 CNY al año. También pueden aplicarse límites mensuales en el número de pagos, dependiendo del propósito del pago.',
+            malaysianNonResidentLimit:
+                'Las personas no residentes con una cuenta bancaria en Malasia solo pueden recibir 10.000 ringgit malasios al día. Un pago que supere este límite puede llevar a que tu banco cierre tu cuenta.',
+        },
         currencyHeader: '¿Cuál es la moneda de tu cuenta bancaria?',
         confirmationStepHeader: 'Verifica tu información.',
         confirmationStepSubHeader: 'Verifica dos veces los detalles a continuación y marca la casilla de términos para confirmar.',
