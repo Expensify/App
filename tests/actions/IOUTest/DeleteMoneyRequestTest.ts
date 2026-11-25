@@ -3151,6 +3151,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
             mockFetch?.pause?.();
             deleteMoneyRequest({
                 isChatIOUReportArchived: true,
+                isArchivedIOUReport: true,
                 transactionThreadReportActions: undefined,
                 chatReportActions,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
