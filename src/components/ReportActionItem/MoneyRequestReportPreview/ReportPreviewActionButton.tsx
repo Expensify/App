@@ -5,13 +5,13 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import CONST from '@src/CONST';
 
-import React from 'react';
+import React, {useState} from 'react';
 import {View} from 'react-native';
 
 import AddExpenseActionButton from './AddExpenseActionButton';
 import ApproveActionButton from './ApproveActionButton';
 import ExportActionButton from './ExportActionButton';
-import {useReportPreviewActions, useReportPreviewActionState, useReportPreviewUIState} from './MoneyRequestReportPreviewContext';
+import {useReportPreviewActions, useReportPreviewActionState, useReportPreviewAnimationState, useReportPreviewUIState} from './MoneyRequestReportPreviewContext';
 import PayActionButton from './PayActionButton';
 import SubmitActionButton from './SubmitActionButton';
 
@@ -21,14 +21,23 @@ function ReportPreviewActionButton() {
     const {reportPreviewAction, connectedIntegration} = useReportPreviewActionState();
     const {buttonMaxWidth} = useReportPreviewUIState();
     const {openReportFromPreview} = useReportPreviewActions();
-    const shouldPrioritizeView = reportPreviewAction === CONST.REPORT.REPORT_PREVIEW_ACTIONS.APPROVE_WITH_VIOLATIONS;
+    const {isApprovedAnimationRunning} = useReportPreviewAnimationState();
+    const isApprovingWithViolations = reportPreviewAction === CONST.REPORT.REPORT_PREVIEW_ACTIONS.APPROVE_WITH_VIOLATIONS;
+
+    // The approval animation switches the action to Pay as soon as it starts, so the last action before the animation
+    // decides View's style until it finishes. Otherwise View loses its primary style while "Approved" is still showing.
+    const [wasApprovingWithViolations, setWasApprovingWithViolations] = useState(isApprovingWithViolations);
+    if (!isApprovedAnimationRunning && wasApprovingWithViolations !== isApprovingWithViolations) {
+        setWasApprovingWithViolations(isApprovingWithViolations);
+    }
+    const shouldPrioritizeView = isApprovingWithViolations || (isApprovedAnimationRunning && wasApprovingWithViolations);
 
     const renderPrimaryButton = () => {
         if (reportPreviewAction === CONST.REPORT.REPORT_PREVIEW_ACTIONS.SUBMIT) {
             return <SubmitActionButton />;
         }
 
-        if (reportPreviewAction === CONST.REPORT.REPORT_PREVIEW_ACTIONS.APPROVE || shouldPrioritizeView) {
+        if (reportPreviewAction === CONST.REPORT.REPORT_PREVIEW_ACTIONS.APPROVE || isApprovingWithViolations) {
             return <ApproveActionButton />;
         }
 
