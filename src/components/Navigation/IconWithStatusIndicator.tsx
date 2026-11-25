@@ -37,4 +37,3 @@ function IconWithStatusIndicator({src, fill, size, children}: IconWithStatusIndi
 }
 
 export default IconWithStatusIndicator;
-export type {IconWithStatusIndicatorProps};

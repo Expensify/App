@@ -29,4 +29,3 @@ function StatusIndicator({color, borderColor, testID}: StatusIndicatorProps) {
 }
 
 export default StatusIndicator;
-export type {StatusIndicatorProps};
