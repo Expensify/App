@@ -58,6 +58,7 @@ jest.mock('react-native-vision-camera', () => ({
     useCameraDevice: jest.fn(() => null),
     useCameraDevices: jest.fn(() => []),
     usePhotoOutput: jest.fn(() => ({capturePhoto: jest.fn()})),
+    useFrameOutput: jest.fn(() => ({})),
 }));
 
 jest.mock('@pages/iou/request/step/IOURequestStepScan/hooks/useScanRouteParams', () => ({

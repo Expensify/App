@@ -1,6 +1,8 @@
 import {useSearchResultsContext} from '@components/Search/SearchContext';
 import type {SearchQueryJSON} from '@components/Search/types';
 
+import {isSearchDataLoaded} from '@libs/SearchUIUtils';
+
 import type {SearchResults} from '@src/types/onyx';
 
 import useNetwork from './useNetwork';
@@ -18,7 +20,8 @@ function useSearchLoadingState(queryJSON: SearchQueryJSON | undefined, searchRes
         return false;
     }
 
-    const hasNoData = searchResults?.data === undefined;
+    // Data left over from another query doesn't count, or Search mounts with it and shows its empty state while the new query loads.
+    const hasNoData = searchResults?.data === undefined || !isSearchDataLoaded(searchResults, queryJSON);
 
     // Until search() stores the response code, handing off to Search would swap in its skeleton at a different offset.
     const hasClassifiedErrors = Object.keys(searchResults?.errors ?? {}).length > 0 && searchResults?.search?.responseJsonCode != null;

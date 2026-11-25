@@ -19,6 +19,7 @@ import variables from '@styles/variables';
 
 import {setAddNewPersonalCardStepAndData} from '@userActions/PersonalCards';
 
+import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
@@ -58,20 +59,28 @@ function SelectBankStep() {
         setAddNewPersonalCardStepAndData({step: CONST.PERSONAL_CARDS.STEP.SELECT_COUNTRY, data: {selectedBank: null}});
     };
 
-    const data = Object.values(CONST.PERSONAL_CARDS.BANKS).map((bank) => ({
-        value: bank,
-        text: bank === CONST.PERSONAL_CARDS.BANKS.OTHER ? translate('workspace.companyCards.addNewCard.other') : bank,
-        keyForList: bank,
-        isSelected: bankSelected === bank,
-        leftElement: (
-            <Icon
-                src={getPersonalBankCardDetailsImage(bank, illustrations, companyCardBankIcons)}
-                height={variables.iconSizeExtraLarge}
-                width={variables.iconSizeExtraLarge}
-                additionalStyles={styles.mr3}
-            />
-        ),
-    }));
+    const data = Object.values(CONST.PERSONAL_CARDS.BANKS)
+        .filter((bank) => {
+            // Mock Bank is for local development, not deployed environments.
+            if (bank === CONST.PERSONAL_CARDS.BANKS.MOCK_BANK) {
+                return CONFIG.ENVIRONMENT === CONST.ENVIRONMENT.DEV;
+            }
+            return true;
+        })
+        .map((bank) => ({
+            value: bank,
+            text: bank === CONST.PERSONAL_CARDS.BANKS.OTHER ? translate('workspace.companyCards.addNewCard.other') : bank,
+            keyForList: bank,
+            isSelected: bankSelected === bank,
+            leftElement: (
+                <Icon
+                    src={getPersonalBankCardDetailsImage(bank, illustrations, companyCardBankIcons)}
+                    height={variables.iconSizeExtraLarge}
+                    width={variables.iconSizeExtraLarge}
+                    additionalStyles={styles.mr3}
+                />
+            ),
+        }));
 
     return (
         <ScreenWrapper

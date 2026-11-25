@@ -12,7 +12,7 @@ import {submitReport} from '@userActions/IOU/ReportWorkflow';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Report, Transaction, TransactionViolations} from '@src/types/onyx';
+import type {PersonalDetails, PersonalDetailsList, Report, Transaction, TransactionViolations} from '@src/types/onyx';
 
 import type {OnyxCollection, UseOnyxResult} from 'react-native-onyx';
 
@@ -24,13 +24,23 @@ const TEST_IOU_REPORT_ID = '1001';
 const TEST_TRANSACTION_ID = '3003';
 const TEST_ACCOUNT_ID = 1;
 const TEST_EMAIL = 'submitter@test.com';
+const TEST_OWNER_ACCOUNT_ID = 2;
+const TEST_OWNER_EMAIL = 'owner@test.com';
+const TEST_OTHER_EMAIL = 'approver@test.com';
+const TEST_OTHER_ACCOUNT_ID = 3;
 
 const iouReport = {
     reportID: TEST_IOU_REPORT_ID,
     type: CONST.REPORT.TYPE.EXPENSE,
     policyID: 'policy1',
-    ownerAccountID: 2,
+    ownerAccountID: TEST_OWNER_ACCOUNT_ID,
 } as Report;
+
+const ownerPersonalDetails: PersonalDetails = {accountID: TEST_OWNER_ACCOUNT_ID, login: TEST_OWNER_EMAIL};
+
+// Backs the mocked usePersonalDetail. Empty by default; a test that needs it holds more than the owner, so it can tell
+// whether the button asks for the owner's personal details or for someone else's.
+let mockPersonalDetailsList: PersonalDetailsList = {};
 
 const reportViolations: OnyxCollection<TransactionViolations> = {
     [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${TEST_TRANSACTION_ID}`]: [{name: CONST.VIOLATIONS.MISSING_CATEGORY, type: CONST.VIOLATION_TYPES.VIOLATION}],
@@ -153,6 +163,20 @@ jest.mock('@hooks/useLocalize', () => ({__esModule: true, default: jest.fn(() =>
 jest.mock('@hooks/useNetwork', () => ({__esModule: true, default: jest.fn(() => ({isOffline: false}))}));
 jest.mock('@hooks/useReportTransactionsCollection', () => ({__esModule: true, default: jest.fn(() => ({}))}));
 jest.mock('@hooks/useOnyx', () => jest.fn());
+jest.mock('@hooks/usePersonalDetails', () => {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment -- partial mock of the real module
+    const actual = jest.requireActual('@hooks/usePersonalDetails');
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-return -- spread the real module and override selected exports
+    return {
+        ...actual,
+        __esModule: true,
+        // Runs the caller's selector on the personal details, like the real hook does
+        usePersonalDetail: (accountID: number | undefined, selector?: (personalDetail: PersonalDetails | undefined) => unknown) => {
+            const personalDetail = accountID ? (mockPersonalDetailsList[accountID] ?? undefined) : undefined;
+            return [selector ? selector(personalDetail) : personalDetail, {status: 'loaded'}];
+        },
+    };
+});
 
 const mockedUseOnyx = jest.mocked(useOnyx);
 const mockedSubmitReport = jest.mocked(submitReport);
@@ -172,6 +196,7 @@ describe('SubmitActionButton', () => {
         mockSubmitButtonPropsHolder.current = undefined;
         mockTransactionViolations = {};
         mockTransactions = [];
+        mockPersonalDetailsList = {};
         mockAreStrictPolicyRulesEnabled = false;
         mockShouldAutoProceedConfirmSubmit = true;
         mockCapturedConfirmSubmitOnProceed = undefined;
@@ -400,8 +425,20 @@ describe('SubmitActionButton', () => {
     });
 
     it('disables the button and blocks submission when the workspace prevents self-approval', () => {
-        // Given a workspace that prevents self-approval on a report whose next approver is the submitter
+        // Given a workspace that prevents self-approval on a report whose next approver is the submitter, and personal
+        // details for the owner and another user. useOnyx is mocked, so the selectors don't run and each key returns
+        // the already-selected value.
         mockedShouldBlockSubmitDueToPreventSelfApproval.mockReturnValue(true);
+        mockPersonalDetailsList = {
+            [TEST_OWNER_ACCOUNT_ID]: ownerPersonalDetails,
+            [TEST_OTHER_ACCOUNT_ID]: {accountID: TEST_OTHER_ACCOUNT_ID, login: TEST_OTHER_EMAIL},
+        };
+        mockedUseOnyx.mockImplementation((key) => {
+            if (key === `${ONYXKEYS.COLLECTION.REPORT}${TEST_IOU_REPORT_ID}`) {
+                return createOnyxResult<Report>(iouReport);
+            }
+            return createOnyxResult(undefined);
+        });
 
         // When the press handler runs
         render(<SubmitActionButton />);
@@ -415,9 +452,9 @@ describe('SubmitActionButton', () => {
         expect(mockSubmitButtonPropsHolder.current?.isDisabled).toBe(true);
         expect(mockedSubmitReport).not.toHaveBeenCalled();
 
-        // Then the predicate received the same report and policy the header's gate reads (the policy is not hydrated
-        // in this environment, so it is undefined)
-        expect(mockedShouldBlockSubmitDueToPreventSelfApproval).toHaveBeenCalledWith(iouReport, undefined, undefined);
+        // Then the predicate received the same report and policy the header's gate reads (the policy is not hydrated in
+        // this environment, so it is undefined), plus only the owner's personal details
+        expect(mockedShouldBlockSubmitDueToPreventSelfApproval).toHaveBeenCalledWith(iouReport, undefined, undefined, ownerPersonalDetails);
     });
 
     it.each([

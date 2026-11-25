@@ -60,6 +60,8 @@ import Onyx from 'react-native-onyx';
 
 import type ViolationFixParams from './types';
 
+import {getNonDefaultViolationTranslation, isNonDefaultViolationName} from './getNonDefaultViolationTranslation';
+
 type ViolationTranslationParams = {
     violation: TransactionViolation;
     translate: LocaleContextProps['translate'];
@@ -524,7 +526,9 @@ function extractErrorMessages(errors: Errors | ReceiptErrors, errorActions: Repo
         if (typeof errorValue === 'string') {
             uniqueMessages.add(errorValue);
         } else if (isReceiptError(errorValue)) {
-            uniqueMessages.add(translate('iou.error.receiptFailureMessageShort'));
+            // Use the server rejection message attached by reconcileFailureDataWithServerErrors when present
+            // so it deduplicates with transaction.errors, while keeping the generic copy for ordinary upload failures.
+            uniqueMessages.add(errorValue.message?.trim() ? errorValue.message : translate('iou.error.receiptFailureMessageShort'));
         } else {
             for (const nestedErrorValue of Object.values(errorValue)) {
                 if (!nestedErrorValue) {
@@ -1246,6 +1250,10 @@ const ViolationsUtils = {
             errorIndexes = [],
             missingFields = [],
         } = violation.data ?? {};
+
+        if (isNonDefaultViolationName(violation.name)) {
+            return getNonDefaultViolationTranslation(violation.name, translate);
+        }
 
         switch (violation.name) {
             case 'allTagLevelsRequired':
