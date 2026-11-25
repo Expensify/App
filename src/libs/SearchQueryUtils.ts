@@ -30,6 +30,7 @@ import type {
 import type {FeedKeysWithAssignedCards} from '@hooks/useFeedKeysWithAssignedCards';
 
 import CONST from '@src/CONST';
+import IntlStore from '@src/languages/IntlStore';
 import type {TranslationPaths} from '@src/languages/types';
 import NAVIGATORS from '@src/NAVIGATORS';
 import type {OnyxCollectionKey, OnyxCollectionValuesMapping} from '@src/ONYXKEYS';
@@ -88,6 +89,7 @@ import {getCardDescription} from './CardUtils';
 import getCollator from './CollatorUtils';
 import {convertToBackendAmount, convertToFrontendAmountAsInteger} from './CurrencyUtils';
 import DateUtils from './DateUtils';
+import {translate as translateForLocale} from './Localize';
 import Log from './Log';
 import {validateAmount} from './MoneyRequestUtils';
 import {getPreservedNavigatorState} from './Navigation/AppNavigator/createSplitNavigator/usePreserveNavigatorState';
@@ -3605,13 +3607,41 @@ function getDateModifierTitle(modifier: ValueOf<typeof CONST.SEARCH.DATE_MODIFIE
     return fallbackTitle;
 }
 
+// The backend pads each rank to three digits and puts violation names without a rank after every ranked one
+const VIOLATION_SORT_RANK_DIGITS = 3;
+const LAST_VIOLATION_SORT_RANK = 999;
+
+/**
+ * Returns where each violation name's short label falls when the labels are sorted A to Z in the locale. Names that share a
+ * label share a rank, so a list holding both counts that label once.
+ */
+function getViolationSortRanks(locale: OnyxTypes.Locale): Record<string, number> {
+    const violationLabels = Object.values(CONST.VIOLATIONS).map((violationName) => [violationName, translateForLocale(locale, `violations.shortName.${violationName}`)] as const);
+    const sortedLabels = [...new Set(violationLabels.map(([, label]) => label))].sort(getCollator(locale).compare);
+    return Object.fromEntries(violationLabels.map(([violationName, label]) => [violationName, sortedLabels.indexOf(label)]));
+}
+
+/**
+ * Builds the key the backend sorts an expense's violations by: the rank of each label, padded and smallest first, such as
+ * '004,015'. Comparing two keys compares the label lists one label at a time, so a label always sorts before a longer
+ * label that starts with it, which comparing the joined labels as text doesn't guarantee.
+ */
+function getViolationSortKey(violationNames: Iterable<string>, violationSortRanks: Record<string, number>): string | undefined {
+    const ranks = [...new Set(Array.from(violationNames, (violationName) => violationSortRanks[violationName] ?? LAST_VIOLATION_SORT_RANK))].sort((first, second) => first - second);
+    if (!ranks.length) {
+        return undefined;
+    }
+    return ranks.map((rank) => String(rank).padStart(VIOLATION_SORT_RANK_DIGITS, '0')).join(',');
+}
+
 /**
  * Serializes a query object to a JSON string for backend commands (Search, export, CSV).
  * Applies text-field operator normalization (`eq` → `contains`) for `description` so all backend
  * commands use consistent partial-match semantics, while preserving parsed merchant operators.
+ * A violations sort also gets `violationSortRanks`, so the backend sorts by the labels in the viewer's language.
  * Do NOT use for saving/persisting query definitions (e.g. saveSearch), where the original operators must be preserved.
  */
-function serializeQueryJSONForBackend<T extends {filters?: ASTNode | null; rawFilterList?: RawQueryFilter[]}>(queryData: T): string {
+function serializeQueryJSONForBackend<T extends {filters?: ASTNode | null; rawFilterList?: RawQueryFilter[]; sortBy?: string}>(queryData: T): string {
     const normalizedFilters = queryData.filters ? applyContainsOperatorToTextFields(queryData.filters) : queryData.filters;
     const normalizedRawFilterList = queryData.rawFilterList
         ? queryData.rawFilterList.map((filter) => {
@@ -3621,7 +3651,11 @@ function serializeQueryJSONForBackend<T extends {filters?: ASTNode | null; rawFi
               return filter;
           })
         : queryData.rawFilterList;
-    return JSON.stringify({...queryData, filters: normalizedFilters, rawFilterList: normalizedRawFilterList});
+
+    // The backend only has the English violation labels, so a violations sort sends where each label falls in the viewer's language
+    const violationSortRanks = queryData.sortBy === CONST.SEARCH.TABLE_COLUMNS.VIOLATIONS ? getViolationSortRanks(IntlStore.getCurrentLocale() ?? CONST.LOCALES.DEFAULT) : undefined;
+
+    return JSON.stringify({...queryData, filters: normalizedFilters, rawFilterList: normalizedRawFilterList, ...(violationSortRanks && {violationSortRanks})});
 }
 
 function addNegation<T extends string>(filterKey: T, isNegated: boolean): T | `${T}${typeof CONST.SEARCH.NOT_MODIFIER}` {
@@ -3818,6 +3852,8 @@ export {
     getDateModifierTitle,
     applyContainsOperatorToTextFields,
     serializeQueryJSONForBackend,
+    getViolationSortKey,
+    getViolationSortRanks,
     getLastRouteByName,
     getParamsState,
     getRoutes,

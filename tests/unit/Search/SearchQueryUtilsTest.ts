@@ -2,9 +2,11 @@ import type {ASTNode, QueryFilter, SearchFilterKey, SearchQueryJSON} from '@comp
 
 import {generatePolicyID} from '@libs/actions/Policy/Policy';
 import {clearPreservedNavigatorStates, setPreservedNavigatorState} from '@libs/Navigation/AppNavigator/createSplitNavigator/usePreserveNavigatorState';
+import {isRecord} from '@libs/ObjectUtils';
 import {TODO_SEARCH_KEYS} from '@libs/SearchKeyUtils';
 
 import CONST from '@src/CONST';
+import IntlStore from '@src/languages/IntlStore';
 import DateUtils from '@src/libs/DateUtils';
 import {getPinnedColumns} from '@src/libs/SearchPinnedColumnsUtils';
 import {
@@ -6029,6 +6031,45 @@ describe('SearchQueryUtils', () => {
             expect(serialized).toContain('"left":"footerTotal","right":"billable"');
             expect(serialized).toContain('"left":"footerCount","right":"reports"');
             expect(serialized).toContain('"left":"footerCurrency","right":"EUR"');
+        });
+    });
+
+    describe('violation sort ranks sent to the backend', () => {
+        afterEach(() => IntlStore.load(CONST.LOCALES.EN));
+
+        it('ranks the violation names by their labels in the viewer language', async () => {
+            // Given a Spanish viewer sorting expenses by violations
+            await IntlStore.load(CONST.LOCALES.ES);
+            const queryJSON = buildSearchQueryJSON('type:expense has:submitted-violation sort-by:violations sort-order:asc');
+            if (!queryJSON) {
+                throw new Error('Failed to parse query string');
+            }
+
+            // When the query is serialized for the backend
+            const serializedQuery: unknown = JSON.parse(serializeQueryJSONForBackend(queryJSON));
+            const violationSortRanks = isRecord(serializedQuery) && isRecord(serializedQuery.violationSortRanks) ? serializedQuery.violationSortRanks : {};
+
+            // Then every name has a rank
+            expect(violationSortRanks).toMatchObject(Object.fromEntries(Object.values(CONST.VIOLATIONS).map((violationName) => [violationName, expect.any(Number)])));
+
+            // Then the ranks follow the Spanish labels, where "missing category" comes before "description required" and "over limit".
+            // In English, "Description required" comes before "Missing category", so this order only comes from the Spanish labels
+            expect(Number(violationSortRanks[CONST.VIOLATIONS.MISSING_CATEGORY])).toBeLessThan(Number(violationSortRanks[CONST.VIOLATIONS.MISSING_COMMENT]));
+            expect(Number(violationSortRanks[CONST.VIOLATIONS.MISSING_COMMENT])).toBeLessThan(Number(violationSortRanks[CONST.VIOLATIONS.OVER_LIMIT]));
+
+            // Then the two names whose Spanish label is "receipt required" share a rank, so the backend treats them as one label
+            expect(violationSortRanks[CONST.VIOLATIONS.RECEIPT_REQUIRED]).toBe(violationSortRanks[CONST.VIOLATIONS.CASH_EXPENSE_WITH_NO_RECEIPT]);
+        });
+
+        it('leaves out the ranks when the query sorts by another column', () => {
+            // Given a query sorted by date, where the backend doesn't read violation labels
+            const queryJSON = buildSearchQueryJSON('type:expense has:submitted-violation sort-by:date');
+            if (!queryJSON) {
+                throw new Error('Failed to parse query string');
+            }
+
+            // When the query is serialized for the backend, then it has no ranks to keep the request small
+            expect(JSON.parse(serializeQueryJSONForBackend(queryJSON))).not.toHaveProperty('violationSortRanks');
         });
     });
 

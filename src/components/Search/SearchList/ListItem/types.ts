@@ -131,6 +131,9 @@ type TransactionListItemType = ListItem &
          */
         formattedViolations?: string;
 
+        /** The key the backend sorts the Violations column by, so sorting rows here keeps the backend's order */
+        violationsSortKey?: string;
+
         /** The original amount of the transaction */
         originalAmount?: number;
 

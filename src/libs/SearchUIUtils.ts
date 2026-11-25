@@ -247,6 +247,8 @@ import {
     getPositiveHasFilterValues,
     getQueryHashes,
     getViolationDisplayName,
+    getViolationSortKey,
+    getViolationSortRanks,
     hasValuesIncludeViolationFilter,
     isFilterSupported,
     isFilterNegated,
@@ -399,7 +401,7 @@ const transactionColumnNamesToSortingProperty: TransactionSorting = {
     [CONST.SEARCH.TABLE_COLUMNS.TAX_AMOUNT]: 'taxAmount' as const,
     [CONST.SEARCH.TABLE_COLUMNS.RECEIPT]: null,
     [CONST.SEARCH.TABLE_COLUMNS.WITHDRAWAL_ID]: 'withdrawalID' as const,
-    [CONST.SEARCH.TABLE_COLUMNS.VIOLATIONS]: 'formattedViolations' as const,
+    [CONST.SEARCH.TABLE_COLUMNS.VIOLATIONS]: 'violationsSortKey' as const,
 };
 
 const taskColumnNamesToSortingProperty: TaskSorting = {
@@ -2043,6 +2045,7 @@ function getTransactionsSections({
     const currentQueryJSON = queryJSON ?? getCurrentSearchQueryJSON();
     const violationHasValues = getPositiveHasFilterValues(currentQueryJSON);
     const shouldFormatViolations = hasValuesIncludeViolationFilter(violationHasValues);
+    const violationSortRanks = shouldFormatViolations ? getViolationSortRanks(IntlStore.getCurrentLocale() ?? CONST.LOCALES.DEFAULT) : undefined;
 
     for (const key of transactionKeys) {
         const transactionItem = data[key];
@@ -2103,6 +2106,13 @@ function getTransactionsSections({
             const paid = report ? getPaidDate(report, lastReimbursedActionByReportID.get(report.reportID), actions) : undefined;
             const reportMetadata = data[`${ONYXKEYS.COLLECTION.REPORT_METADATA}${transactionItem.reportID}`] ?? {};
             const allActions = getActions(data, allViolations, key, currentSearch, currentUserEmail, currentAccountID, bankAccountList, reportMetadata, rules, actions);
+            const violationNames = shouldFormatViolations
+                ? getViolationNamesForTransaction(
+                      Object.values(data[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionItem.reportID}`] ?? {}),
+                      transactionItem.transactionID,
+                      violationHasValues,
+                  )
+                : undefined;
             const transactionPendingAction = getTransactionPendingAction(transactionItem);
             const reportOwnerAccountIDAsAttendee = getReportOwnerAccountIDAsAttendee(transactionItem, currentAccountID, report?.ownerAccountID);
             const reportOwnerAsAttendee = reportOwnerAccountIDAsAttendee ? getReportOwnerAsAttendee(personalDetailsMap.get(reportOwnerAccountIDAsAttendee.toString())) : undefined;
@@ -2138,14 +2148,11 @@ function getTransactionsSections({
                 formattedTo: shouldShowBlankTo ? '' : formattedTo,
                 formattedTotal,
                 formattedMerchant,
-                ...(shouldFormatViolations
+                ...(violationNames && violationSortRanks
                     ? {
-                          formattedViolations: getViolationsForTransaction(
-                              Object.values(data[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionItem.reportID}`] ?? {}),
-                              transactionItem.transactionID,
-                              violationHasValues,
-                              translate,
-                          ),
+                          formattedViolations: formatTransactionViolationNames(violationNames, translate),
+                          // The backend sorts by this key, so rows sorted here keep the order of every page it returned
+                          violationsSortKey: getViolationSortKey(violationNames, violationSortRanks),
                       }
                     : {}),
                 date,
@@ -6025,16 +6032,11 @@ function getApprovedViolationsForTransaction(reportActions: OnyxTypes.ReportActi
 }
 
 /**
- * Returns the violations to show for a transaction based on the current `has` filter.
+ * Returns the names of the violations to show for a transaction based on the current `has` filter.
  * Submitted and approved snapshots are collected independently, then merged in a Set so
  * a search that includes both filters does not list the same violation twice.
  */
-function getViolationsForTransaction(
-    reportActions: OnyxTypes.ReportAction[] | undefined,
-    transactionID: string | undefined,
-    has: HasFilterValues | undefined,
-    translate?: LocalizedTranslate,
-): string | undefined {
+function getViolationNamesForTransaction(reportActions: OnyxTypes.ReportAction[] | undefined, transactionID: string | undefined, has: HasFilterValues | undefined): Set<string> | undefined {
     if (!reportActions?.length || !transactionID) {
         return undefined;
     }
@@ -6052,8 +6054,20 @@ function getViolationsForTransaction(
     if (shouldIncludeApprovedViolations) {
         collectApprovedViolationNamesForTransaction(violationNames, reportActions, transactionID);
     }
+    return violationNames;
+}
 
-    return formatTransactionViolationNames(violationNames, translate);
+/**
+ * Returns the violations to show for a transaction based on the current `has` filter, as the Violations cell lists them.
+ */
+function getViolationsForTransaction(
+    reportActions: OnyxTypes.ReportAction[] | undefined,
+    transactionID: string | undefined,
+    has: HasFilterValues | undefined,
+    translate?: LocalizedTranslate,
+): string | undefined {
+    const violationNames = getViolationNamesForTransaction(reportActions, transactionID, has);
+    return violationNames ? formatTransactionViolationNames(violationNames, translate) : undefined;
 }
 
 function getTypeOptions(translate: LocalizedTranslate, policies: OnyxCollection<OnyxTypes.Policy>, currentUserLogin?: string) {

@@ -55,6 +55,7 @@ const SEARCH_TRANSACTION_ROW_ONLY_FIELDS: Record<Exclude<keyof TransactionListIt
     formattedTotal: true,
     formattedMerchant: true,
     formattedViolations: true,
+    violationsSortKey: true,
     date: true,
     shouldShowMerchant: true,
     shouldShowYear: true,

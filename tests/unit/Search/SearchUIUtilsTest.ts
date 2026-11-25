@@ -3366,8 +3366,11 @@ describe('SearchUIUtils', () => {
             )[0];
             const violationsTransaction = result.find((item) => item.transactionID === violationsTransactionID);
 
-            // Then only the approve-stage labels are listed alphabetically, so the sort key matches the cell for this query
+            // Then only the approve-stage labels are listed alphabetically, and the sort key is built from the same labels
             expect(violationsTransaction?.formattedViolations).toBe(`${translateLocal('violations.shortName.missingComment')}, ${translateLocal('violations.shortName.overLimit')}`);
+            expect(violationsTransaction?.violationsSortKey).toBe(
+                SearchQueryUtils.getViolationSortKey([CONST.VIOLATIONS.OVER_LIMIT, CONST.VIOLATIONS.MISSING_COMMENT], SearchQueryUtils.getViolationSortRanks(CONST.LOCALES.EN)),
+            );
         });
 
         it('should return getReportSections result when type is EXPENSE REPORT', async () => {
@@ -9629,22 +9632,32 @@ describe('SearchUIUtils', () => {
         });
 
         it('should sort the violations column by its labels, with expenses without violations first when ascending', () => {
-            // Given expenses whose violation labels are already joined alphabetically, as the Violations cell lists them, and one
-            // expense without violations
+            // Given expenses with the sort key the backend builds from their English violation labels, and one expense without violations
             const baseTransaction = transactionsListItems.at(0);
             if (!baseTransaction) {
                 throw new Error('Missing base transaction fixture');
             }
+            const englishRanks = SearchQueryUtils.getViolationSortRanks(CONST.LOCALES.EN);
             const transactions: TransactionListItemType[] = [
-                {...baseTransaction, transactionID: 'missing-category', keyForList: 'missing-category', formattedViolations: translateLocal('violations.shortName.missingCategory')},
-                {...baseTransaction, transactionID: 'no-violations', keyForList: 'no-violations', formattedViolations: undefined},
+                {
+                    ...baseTransaction,
+                    transactionID: 'missing-category',
+                    keyForList: 'missing-category',
+                    violationsSortKey: SearchQueryUtils.getViolationSortKey([CONST.VIOLATIONS.MISSING_CATEGORY], englishRanks),
+                },
+                {...baseTransaction, transactionID: 'no-violations', keyForList: 'no-violations', violationsSortKey: undefined},
                 {
                     ...baseTransaction,
                     transactionID: 'card-match-and-tag',
                     keyForList: 'card-match-and-tag',
-                    formattedViolations: `${translateLocal('violations.shortName.rter')}, ${translateLocal('violations.shortName.missingTag')}`,
+                    violationsSortKey: SearchQueryUtils.getViolationSortKey([CONST.VIOLATIONS.MISSING_TAG, CONST.VIOLATIONS.RTER], englishRanks),
                 },
-                {...baseTransaction, transactionID: 'description', keyForList: 'description', formattedViolations: translateLocal('violations.shortName.missingComment')},
+                {
+                    ...baseTransaction,
+                    transactionID: 'description',
+                    keyForList: 'description',
+                    violationsSortKey: SearchQueryUtils.getViolationSortKey([CONST.VIOLATIONS.MISSING_COMMENT], englishRanks),
+                },
             ];
 
             // When the expenses are sorted by the Violations column in both directions
@@ -9681,6 +9694,51 @@ describe('SearchUIUtils', () => {
                 'card-match-and-tag',
                 'no-violations',
             ]);
+        });
+
+        it('should sort a violation label before a longer label that starts with it, like the backend does', async () => {
+            // Given an Italian viewer, whose label for "over limit" is the start of the label for "over category limit". As text, the cell
+            // for "over limit, receipt required" sorts after the cell for "over category limit", but the backend compares one label
+            // at a time and puts the shorter label first
+            await IntlStore.load(CONST.LOCALES.IT);
+            const italianRanks = SearchQueryUtils.getViolationSortRanks(CONST.LOCALES.IT);
+            const baseTransaction = transactionsListItems.at(0);
+            if (!baseTransaction) {
+                throw new Error('Missing base transaction fixture');
+            }
+            const overLimitNames = [CONST.VIOLATIONS.OVER_LIMIT, CONST.VIOLATIONS.RECEIPT_REQUIRED];
+            const overCategoryLimitNames = [CONST.VIOLATIONS.OVER_CATEGORY_LIMIT];
+            const transactions: TransactionListItemType[] = [
+                {
+                    ...baseTransaction,
+                    transactionID: 'over-category-limit',
+                    keyForList: 'over-category-limit',
+                    formattedViolations: translateLocal('violations.shortName.overCategoryLimit'),
+                    violationsSortKey: SearchQueryUtils.getViolationSortKey(overCategoryLimitNames, italianRanks),
+                },
+                {
+                    ...baseTransaction,
+                    transactionID: 'over-limit-and-receipt',
+                    keyForList: 'over-limit-and-receipt',
+                    formattedViolations: `${translateLocal('violations.shortName.overLimit')}, ${translateLocal('violations.shortName.receiptRequired')}`,
+                    violationsSortKey: SearchQueryUtils.getViolationSortKey(overLimitNames, italianRanks),
+                },
+            ];
+
+            // When the expenses are sorted A to Z by the Violations column
+            const ascendingResult = SearchUIUtils.getSortedSections(
+                CONST.SEARCH.DATA_TYPES.EXPENSE,
+                transactions,
+                localeCompare,
+                translateLocal,
+                CONST.SEARCH.TABLE_COLUMNS.VIOLATIONS,
+                CONST.SEARCH.SORT_ORDER.ASC,
+                undefined,
+            );
+            await IntlStore.load(CONST.LOCALES.EN);
+
+            // Then the expense whose first label is the shorter "over limit" label comes first, matching the order the backend returns
+            expect(ascendingResult.map((item) => ('transactionID' in item ? item.transactionID : undefined))).toEqual(['over-limit-and-receipt', 'over-category-limit']);
         });
 
         it('should sort expenses by the Rejected column, ranking expenses without the field as not rejected', () => {
