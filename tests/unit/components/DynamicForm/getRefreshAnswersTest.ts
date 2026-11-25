@@ -1,6 +1,5 @@
 import getAddressInputKeys from '@components/DynamicForm/utils/getAddressInputKeys';
-
-import getRefreshAnswers from '@pages/settings/Wallet/InternationalDepositAccount/getRefreshAnswers';
+import getRefreshAnswers from '@components/DynamicForm/utils/getRefreshAnswers';
 
 const ADDRESS_KEYS = getAddressInputKeys('address');
 
@@ -30,12 +29,12 @@ describe('getRefreshAnswers', () => {
 
     it('leaves out an answer the change cleared', () => {
         // Given the answers of an Ontario address
-        const currentAnswers = {address: '1 Main Street', [ADDRESS_KEYS.city]: 'Toronto', [ADDRESS_KEYS.state]: 'ON', [ADDRESS_KEYS.country]: 'CA'};
+        const currentAnswers = {address: '1 Main Street', [ADDRESS_KEYS.city]: 'Toronto', [ADDRESS_KEYS.state]: 'ON', [ADDRESS_KEYS.zipCode]: 'M5H 2N2', [ADDRESS_KEYS.country]: 'CA'};
 
-        // When Japan is picked from the country list, which clears the state
-        const answers = getRefreshAnswers(currentAnswers, ADDRESS_KEYS.country, 'JP', {[ADDRESS_KEYS.state]: ''});
+        // When Japan is picked from the country list, which clears the state and the zip
+        const answers = getRefreshAnswers(currentAnswers, ADDRESS_KEYS.country, 'JP', {[ADDRESS_KEYS.state]: '', [ADDRESS_KEYS.zipCode]: ''});
 
-        // Then the old province is not sent with the new country
+        // Then the old province and zip are not sent with the new country
         expect(answers).toEqual({address: '1 Main Street', [ADDRESS_KEYS.city]: 'Toronto', [ADDRESS_KEYS.country]: 'JP'});
     });
 

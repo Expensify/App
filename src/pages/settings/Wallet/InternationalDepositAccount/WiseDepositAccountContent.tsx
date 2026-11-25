@@ -3,6 +3,7 @@ import CheckboxWithLabel from '@components/CheckboxWithLabel';
 import DotIndicatorMessage from '@components/DotIndicatorMessage';
 import DynamicFormFlow from '@components/DynamicForm';
 import type {DynamicFormValues} from '@components/DynamicForm/types';
+import getRefreshAnswers from '@components/DynamicForm/utils/getRefreshAnswers';
 import type {FormValue} from '@components/Form/types';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import Header from '@components/Header';
@@ -44,7 +45,6 @@ import {isUserValidatedSelector} from '@selectors/Account';
 import React, {useContext, useEffect, useEffectEvent, useState} from 'react';
 
 import getCurrentSchemaAnswers from './getCurrentSchemaAnswers';
-import getRefreshAnswers from './getRefreshAnswers';
 import navigateToUSBankAccountFlow from './navigateToUSBankAccountFlow';
 import WiseBankAccountAdded from './WiseBankAccountAdded';
 

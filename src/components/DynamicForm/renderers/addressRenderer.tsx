@@ -43,7 +43,7 @@ const renderAddress: DynamicFieldRenderer<'address'> = (field, {values, styles, 
                     if (typeof pickedCountry !== 'string' || pickedCountry === '' || pickedCountry === country) {
                         return;
                     }
-                    // The draft still holds the address from before the change. An address search pick replaces its parts, and a pick from the country list clears the state.
+                    // The draft still holds the address from before the change. An address search pick replaces its parts, and a pick from the country list clears the state and zip, which belong to the old country.
                     const changedAnswers = pickedAddress
                         ? {
                               [addressKeys.street]: pickedAddress.street,
@@ -51,7 +51,7 @@ const renderAddress: DynamicFieldRenderer<'address'> = (field, {values, styles, 
                               [addressKeys.state]: pickedAddress.state,
                               [addressKeys.zipCode]: pickedAddress.zipCode,
                           }
-                        : {[addressKeys.state]: ''};
+                        : {[addressKeys.state]: '', [addressKeys.zipCode]: ''};
                     onValueChange?.(pickedCountry, addressKeys.country, changedAnswers);
                 }}
             >
