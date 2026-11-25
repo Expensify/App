@@ -82,7 +82,7 @@ describe('findColumnName', () => {
             ...[1, 2].flatMap((position) => [
                 {text: `Approver ${position}`, value: getApproverColumnRole(position, 'approver')},
                 {text: `Approver ${position} approval type`, value: getApproverColumnRole(position, 'approvalType')},
-                {text: `Approver ${position} limit`, value: getApproverColumnRole(position, 'limit')},
+                {text: `Approver ${position} over amount`, value: getApproverColumnRole(position, 'limit')},
             ]),
         ];
 
@@ -90,6 +90,9 @@ describe('findColumnName', () => {
         // Then each one maps to its approver's column, whatever its casing and separators
         expect(findColumnName('Approver 1', columnRoles)).toBe(getApproverColumnRole(1, 'approver'));
         expect(findColumnName('approver_2_approval-type', columnRoles)).toBe(getApproverColumnRole(2, 'approvalType'));
+        expect(findColumnName('Approver 2 over amount', columnRoles)).toBe(getApproverColumnRole(2, 'limit'));
+
+        // And the over amount header that older exports used still maps to the same column
         expect(findColumnName('Approver 2 limit', columnRoles)).toBe(getApproverColumnRole(2, 'limit'));
 
         // And an approver whose columns aren't offered stays unmapped, like a header the import doesn't read

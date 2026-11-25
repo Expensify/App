@@ -21,7 +21,7 @@ const APPROVER_COLUMN_ROLE_PREFIXES: Record<ApproverColumnField, string> = {
 };
 
 /**
- * Normalizes an approver header or approval type cell, so "Approver 2 limit" matches "approver_2_limit", and "Over limit" matches
+ * Normalizes an approver header or approval type cell, so "Approver 2 over amount" matches "approver_2_over-amount", and "Over limit" matches
  * "OVER-LIMIT".
  */
 function normalizeApproverText(text: string): string {
@@ -272,12 +272,13 @@ function findColumnName(header: string, columnRoles?: ColumnRole[]): string {
             break;
     }
 
-    // Every approver has their own columns, like "Approver 2 limit", so those headers are matched by their pattern
-    const approverHeaderMatch = /^approver(\d+)(approvaltype|limit)?$/.exec(normalizeApproverText(String(header)));
+    // Every approver has their own columns, like "Approver 2 over amount", so those headers are matched by their pattern. Files
+    // exported by older versions name that column "Approver 2 limit", so that header maps to it too.
+    const approverHeaderMatch = /^approver(\d+)(approvaltype|overamount|limit)?$/.exec(normalizeApproverText(String(header)));
     const approverPosition = Number(approverHeaderMatch?.at(1));
     if (!attribute && approverPosition >= 1 && approverPosition <= CONST.IMPORT_SPREADSHEET.MAX_APPROVERS) {
         const approverHeaderField = approverHeaderMatch?.at(2);
-        if (approverHeaderField === 'limit') {
+        if (approverHeaderField === 'overamount' || approverHeaderField === 'limit') {
             attribute = getApproverColumnRole(approverPosition, 'limit');
         } else if (approverHeaderField) {
             attribute = getApproverColumnRole(approverPosition, 'approvalType');

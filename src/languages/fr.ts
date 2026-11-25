@@ -1316,19 +1316,19 @@ const translations: TranslationDeepObject<typeof en> = {
         fieldNotMapped: (fieldName: string) => `Oups ! Un champ obligatoire (« ${fieldName} ») n’a pas été associé. Veuillez examiner et réessayer.`,
         singleFieldMultipleColumns: (fieldName: string) => `Oups ! Vous avez associé un seul champ (« ${fieldName} ») à plusieurs colonnes. Veuillez vérifier et réessayer.`,
         emptyMappedField: (fieldName: string) => `Oups ! Le champ (« ${fieldName} ») contient une ou plusieurs valeurs vides. Veuillez vérifier et réessayer.`,
-        invalidApprovalLimit: 'Les limites d’approbation doivent être des montants valides dans la devise de l’espace de travail.',
+        invalidApprovalLimit: 'Les montants de dépassement doivent être des montants valides dans la devise de l’espace de travail.',
         approverColumn: (position: number) => `Approbateur ${position}`,
         approverApprovalTypeColumn: (position: number) => `Type d’approbation de l’approbateur ${position}`,
-        approverLimitColumn: (position: number) => `Limite de l'approbateur ${position}`,
+        approverLimitColumn: (position: number) => `Montant de dépassement de l'approbateur ${position}`,
         approversOutOfOrder: (rowNumber: number) =>
             `Oups ! Il manque un approbateur à la ligne ${rowNumber}. Veuillez lister les approbateurs dans l’ordre, en commençant par l’Approbateur 1, puis réessayez.`,
         approverRepeated: (rowNumber: number) => `Oups ! La ligne ${rowNumber} indique le même approbateur plus d’une fois. Veuillez examiner et réessayer.`,
         invalidApprovalType: (rowNumber: number) => `Oups ! La ligne ${rowNumber} a un type d’approbation qui n’est ni « Always » ni « Over limit ». Veuillez examiner et réessayer.`,
         firstApproverOverLimit: (rowNumber: number) =>
             `Oups ! La ligne ${rowNumber} définit l’Approbateur 1 sur « Over limit », mais chaque note de frais est envoyée à l’Approbateur 1. Veuillez examiner et réessayer.`,
-        approvalLimitMismatch: `Il y a une incohérence entre le type d’approbation et la limite d’approbation pour ces approbateurs. Veuillez la corriger et réessayer. <a href="${CONST.IMPORT_SPREADSHEET.APPROVAL_WORKFLOWS_ARTICLE_LINK}">En savoir plus</a>.`,
+        approvalLimitMismatch: `Il y a une incohérence entre le type d’approbation et le montant de dépassement pour ces approbateurs. Les approbateurs « Over limit » ont besoin d’un montant de dépassement, et les approbateurs « Always » ne peuvent pas en avoir. Veuillez la corriger et réessayer. <a href="${CONST.IMPORT_SPREADSHEET.APPROVAL_WORKFLOWS_ARTICLE_LINK}">En savoir plus</a>.`,
         decreasingApprovalLimits: (rowNumber: number) =>
-            `Oups ! La ligne ${rowNumber} contient un approbateur « Over limit » avec une limite inférieure à celle de l’approbateur « Over limit » qui le précède. Veuillez examiner et réessayer.`,
+            `Oups ! La ligne ${rowNumber} contient un approbateur « Over limit » avec un montant de dépassement inférieur à celui de l’approbateur « Over limit » qui le précède. Veuillez examiner et réessayer.`,
         fieldValueTooLong: (fieldName: string, limit: number) =>
             `Oups ! Le champ (« ${fieldName} ») contient une ou plusieurs valeurs de plus de ${limit} caractères. Veuillez vérifier et réessayer.`,
         importSuccessfulTitle: 'Importation réussie',

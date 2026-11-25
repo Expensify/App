@@ -271,10 +271,10 @@ describe('ImportedMembersPage', () => {
                     ['Approver 1', ADMIN_EMAIL],
                     ['Approver 2', 'director@example.com'],
                     ['Approver 2 approval type', 'Over limit'],
-                    ['Approver 2 limit', '100'],
+                    ['Approver 2 over amount', '100'],
                     ['Approver 3', 'cfo@example.com'],
                     ['Approver 3 approval type', 'Over limit'],
-                    ['Approver 3 limit', '200'],
+                    ['Approver 3 over amount', '200'],
                 ],
             ),
             buildControlPolicy(),
@@ -360,7 +360,7 @@ describe('ImportedMembersPage', () => {
                     ['Approver 1', ADMIN_EMAIL, ADMIN_EMAIL],
                     ['Approver 2', 'director@example.com', 'cfo@example.com'],
                     ['Approver 2 approval type', 'Always', 'Over limit'],
-                    ['Approver 2 limit', '100', ''],
+                    ['Approver 2 over amount', '100', ''],
                 ],
             ),
             buildControlPolicy(),
@@ -381,7 +381,11 @@ describe('ImportedMembersPage', () => {
 
         // Then a modal lists both approvers for the admin to fix, and nothing is imported
         expect(screen.getByText('Import failed')).toBeTruthy();
-        expect(screen.getByText("There's a mismatch between the approval type and approval limit for these approvers. Please fix it and try again. Learn more.")).toBeTruthy();
+        expect(
+            screen.getByText(
+                `There's a mismatch between the approval type and over amount for these approvers. "Over limit" approvers need an over amount, and "Always" approvers can't have one. Please fix it and try again. Learn more.`,
+            ),
+        ).toBeTruthy();
         expect(screen.getByText(`${CONST.DOT_SEPARATOR} director@example.com\n${CONST.DOT_SEPARATOR} cfo@example.com`)).toBeTruthy();
         expect(importPolicyMembersSpy).not.toHaveBeenCalled();
         expect(setImportedSpreadsheetMemberDataSpy).not.toHaveBeenCalled();

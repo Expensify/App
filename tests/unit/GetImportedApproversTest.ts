@@ -3,7 +3,7 @@ import {getApproverColumnRole, getImportedApprovers} from '@libs/importSpreadshe
 import CONST from '@src/CONST';
 
 const APPROVER_POSITIONS = [1, 2, 3];
-const HEADER = ['Email', ...APPROVER_POSITIONS.flatMap((position) => [`Approver ${position}`, `Approver ${position} approval type`, `Approver ${position} limit`])];
+const HEADER = ['Email', ...APPROVER_POSITIONS.flatMap((position) => [`Approver ${position}`, `Approver ${position} approval type`, `Approver ${position} over amount`])];
 const MAPPED_COLUMNS = [
     CONST.CSV_IMPORT_COLUMNS.EMAIL,
     ...APPROVER_POSITIONS.flatMap((position) => [getApproverColumnRole(position, 'approver'), getApproverColumnRole(position, 'approvalType'), getApproverColumnRole(position, 'limit')]),
