@@ -49,12 +49,11 @@ clientsClaim();
  * keep opening the saved app, and a failed read counts as Classic, because the worker can't tell which product the user chose.
  */
 async function isNewExpensifyUser(): Promise<boolean> {
-    const {cookieStore} = self as Partial<Pick<ServiceWorkerGlobalScope, 'cookieStore'>>;
-    if (!cookieStore) {
+    if (!('cookieStore' in self)) {
         return true;
     }
     try {
-        const cookie = await cookieStore.get(EXPERIENCE_COOKIE.NAME);
+        const cookie = await self.cookieStore.get(EXPERIENCE_COOKIE.NAME);
         return cookie?.value === EXPERIENCE_COOKIE.VALUES.NEW;
     } catch (error) {
         console.error('Failed to read the experience cookie; leaving the offline error to the browser.', error);
