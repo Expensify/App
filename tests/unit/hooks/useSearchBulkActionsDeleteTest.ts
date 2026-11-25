@@ -52,6 +52,7 @@ jest.mock('@libs/actions/Report', () => ({
 }));
 
 jest.mock('@libs/actions/Search', () => ({
+    getPolicyFromSearchSnapshot: jest.requireActual<typeof SearchActions>('@libs/actions/Search').getPolicyFromSearchSnapshot,
     openSearchCardFiltersPage: jest.fn(),
     getReportFromSearchSnapshot: jest.requireActual<typeof SearchActions>('@libs/actions/Search').getReportFromSearchSnapshot,
     getReportActionsFromSearchSnapshot: jest.requireActual<typeof SearchActions>('@libs/actions/Search').getReportActionsFromSearchSnapshot,

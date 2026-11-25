@@ -88,6 +88,7 @@ import {
     canModifyHoldStatus,
     canRejectReportAction,
     canReassignAsApprover,
+    canRemoveSupportTicketParticipant,
     canRequestMoney,
     canSeeDefaultRoom,
     canUserPerformWriteAction,
@@ -155,6 +156,7 @@ import {
     getReimbursementQueuedActionMessage,
     getReportActionWithSmartscanError,
     getReportFieldMaps,
+    getReportFieldOptionExternalID,
     getReportFieldsByPolicyID,
     getReportForHeader,
     getReportIDFromLink,
@@ -279,6 +281,7 @@ import type {
     CardList,
     Onboarding,
     OnyxInputOrEntry,
+    PersonalDetails,
     PersonalDetailsList,
     Policy,
     PolicyCategories,
@@ -4590,7 +4593,7 @@ describe('ReportUtils', () => {
         });
 
         it('returns false when there is no report', () => {
-            expect(requiresAttentionFromCurrentUser(undefined, currentUserEmail, currentUserAccountID, undefined)).toBe(false);
+            expect(requiresAttentionFromCurrentUser(undefined, currentUserEmail, currentUserAccountID, undefined, undefined)).toBe(false);
         });
 
         it('returns false when the matched IOU report does not have an owner accountID', () => {
@@ -4598,7 +4601,7 @@ describe('ReportUtils', () => {
                 ...LHNTestUtils.getFakeReport(),
                 ownerAccountID: undefined,
             };
-            expect(requiresAttentionFromCurrentUser(report, currentUserEmail, currentUserAccountID, undefined)).toBe(false);
+            expect(requiresAttentionFromCurrentUser(report, currentUserEmail, currentUserAccountID, undefined, undefined)).toBe(false);
         });
 
         it('returns false when the linked iou report has an outstanding IOU', () => {
@@ -4610,7 +4613,7 @@ describe('ReportUtils', () => {
                 reportID: '1',
                 ownerAccountID: 99,
             }).then(() => {
-                expect(requiresAttentionFromCurrentUser(report, currentUserEmail, currentUserAccountID, undefined)).toBe(false);
+                expect(requiresAttentionFromCurrentUser(report, currentUserEmail, currentUserAccountID, undefined, undefined)).toBe(false);
             });
         });
 
@@ -4620,7 +4623,7 @@ describe('ReportUtils', () => {
                 ownerAccountID: currentUserAccountID,
                 isWaitingOnBankAccount: true,
             };
-            expect(requiresAttentionFromCurrentUser(report, currentUserEmail, currentUserAccountID, undefined)).toBe(false);
+            expect(requiresAttentionFromCurrentUser(report, currentUserEmail, currentUserAccountID, undefined, undefined)).toBe(false);
         });
 
         it('returns false when the report has outstanding IOU and is not waiting for a bank account and the logged user is the report owner', () => {
@@ -4629,7 +4632,7 @@ describe('ReportUtils', () => {
                 ownerAccountID: currentUserAccountID,
                 isWaitingOnBankAccount: false,
             };
-            expect(requiresAttentionFromCurrentUser(report, currentUserEmail, currentUserAccountID, undefined)).toBe(false);
+            expect(requiresAttentionFromCurrentUser(report, currentUserEmail, currentUserAccountID, undefined, undefined)).toBe(false);
         });
 
         it('returns false when the report has no outstanding IOU but is waiting for a bank account and the logged user is not the report owner', () => {
@@ -4638,7 +4641,7 @@ describe('ReportUtils', () => {
                 ownerAccountID: 97,
                 isWaitingOnBankAccount: true,
             };
-            expect(requiresAttentionFromCurrentUser(report, currentUserEmail, currentUserAccountID, undefined)).toBe(false);
+            expect(requiresAttentionFromCurrentUser(report, currentUserEmail, currentUserAccountID, undefined, undefined)).toBe(false);
         });
 
         it('returns true when the report has an unread mention', () => {
@@ -4646,7 +4649,7 @@ describe('ReportUtils', () => {
                 ...LHNTestUtils.getFakeReport(),
                 isUnreadWithMention: true,
             };
-            expect(requiresAttentionFromCurrentUser(report, currentUserEmail, currentUserAccountID, undefined)).toBe(true);
+            expect(requiresAttentionFromCurrentUser(report, currentUserEmail, currentUserAccountID, undefined, undefined)).toBe(true);
         });
 
         it('returns true for @here mention in an admin room', () => {
@@ -4656,7 +4659,7 @@ describe('ReportUtils', () => {
                 lastReadTime: '2024-03-01 12:00:00.000',
                 lastMentionedTime: '2024-03-01 12:00:01.000',
             };
-            expect(requiresAttentionFromCurrentUser(report, currentUserEmail, currentUserAccountID, undefined)).toBe(true);
+            expect(requiresAttentionFromCurrentUser(report, currentUserEmail, currentUserAccountID, undefined, undefined)).toBe(true);
         });
 
         it('returns false for @here in an admin room when user already read after mention', () => {
@@ -4666,7 +4669,7 @@ describe('ReportUtils', () => {
                 lastReadTime: '2024-03-01 12:00:02.000',
                 lastMentionedTime: '2024-03-01 12:00:01.000',
             };
-            expect(requiresAttentionFromCurrentUser(report, currentUserEmail, currentUserAccountID, undefined)).toBe(false);
+            expect(requiresAttentionFromCurrentUser(report, currentUserEmail, currentUserAccountID, undefined, undefined)).toBe(false);
         });
 
         it('returns true when the report is an outstanding task', () => {
@@ -4679,7 +4682,7 @@ describe('ReportUtils', () => {
                 statusNum: CONST.REPORT.STATUS_NUM.OPEN,
                 hasParentAccess: false,
             };
-            expect(requiresAttentionFromCurrentUser(report, currentUserEmail, currentUserAccountID, undefined)).toBe(true);
+            expect(requiresAttentionFromCurrentUser(report, currentUserEmail, currentUserAccountID, undefined, undefined)).toBe(true);
         });
 
         it('returns true when the report has outstanding child expense', () => {
@@ -4689,7 +4692,7 @@ describe('ReportUtils', () => {
                 hasOutstandingChildRequest: true,
                 isWaitingOnBankAccount: false,
             };
-            expect(requiresAttentionFromCurrentUser(report, currentUserEmail, currentUserAccountID, undefined)).toBe(true);
+            expect(requiresAttentionFromCurrentUser(report, currentUserEmail, currentUserAccountID, undefined, undefined)).toBe(true);
         });
 
         it('returns false if the user is not on free trial', async () => {
@@ -4703,7 +4706,7 @@ describe('ReportUtils', () => {
                 chatType: CONST.REPORT.CHAT_TYPE.SYSTEM,
             };
 
-            expect(requiresAttentionFromCurrentUser(report, currentUserEmail, currentUserAccountID, undefined)).toBe(false);
+            expect(requiresAttentionFromCurrentUser(report, currentUserEmail, currentUserAccountID, undefined, undefined)).toBe(false);
         });
 
         it("returns false if the user free trial hasn't ended yet", async () => {
@@ -4717,7 +4720,7 @@ describe('ReportUtils', () => {
                 chatType: CONST.REPORT.CHAT_TYPE.SYSTEM,
             };
 
-            expect(requiresAttentionFromCurrentUser(report, currentUserEmail, currentUserAccountID, undefined)).toBe(false);
+            expect(requiresAttentionFromCurrentUser(report, currentUserEmail, currentUserAccountID, undefined, undefined)).toBe(false);
         });
 
         it('returns true when expense report is awaiting current user approval without parent access', () => {
@@ -4730,7 +4733,7 @@ describe('ReportUtils', () => {
                 statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
             };
 
-            expect(requiresAttentionFromCurrentUser(report, currentUserEmail, currentUserAccountID, undefined)).toBe(true);
+            expect(requiresAttentionFromCurrentUser(report, currentUserEmail, currentUserAccountID, undefined, undefined)).toBe(true);
         });
 
         it('returns false when awaiting approval but parent accessible or user is not approver', () => {
@@ -4743,7 +4746,7 @@ describe('ReportUtils', () => {
                 statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
             };
 
-            expect(requiresAttentionFromCurrentUser(reportWithParentAccess, currentUserEmail, currentUserAccountID, undefined)).toBe(false);
+            expect(requiresAttentionFromCurrentUser(reportWithParentAccess, currentUserEmail, currentUserAccountID, undefined, undefined)).toBe(false);
 
             const reportWithDifferentManager = {
                 ...LHNTestUtils.getFakeReport(),
@@ -4754,7 +4757,7 @@ describe('ReportUtils', () => {
                 statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
             };
 
-            expect(requiresAttentionFromCurrentUser(reportWithDifferentManager, currentUserEmail, currentUserAccountID, undefined)).toBe(false);
+            expect(requiresAttentionFromCurrentUser(reportWithDifferentManager, currentUserEmail, currentUserAccountID, undefined, undefined)).toBe(false);
         });
 
         it('returns false when expense report is awaiting user submission, delayed submission on > daily', async () => {
@@ -4766,7 +4769,7 @@ describe('ReportUtils', () => {
 
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}1`, {reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL});
 
-            expect(requiresAttentionFromCurrentUser(report, currentUserEmail, currentUserAccountID, undefined)).toBe(false);
+            expect(requiresAttentionFromCurrentUser(report, currentUserEmail, currentUserAccountID, undefined, undefined)).toBe(false);
         });
 
         it('returns false when expense report is awaiting user submission, delayed submission on > manually', async () => {
@@ -4778,7 +4781,7 @@ describe('ReportUtils', () => {
 
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}1`, {reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL});
 
-            expect(requiresAttentionFromCurrentUser(report, currentUserEmail, currentUserAccountID, undefined)).toBe(true);
+            expect(requiresAttentionFromCurrentUser(report, currentUserEmail, currentUserAccountID, undefined, undefined)).toBe(true);
         });
 
         it('returns true for expense report awaiting submission with manual submit', async () => {
@@ -4801,8 +4804,8 @@ describe('ReportUtils', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}1`, {reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL});
 
             // The GBR should appear on the policy expense chat but not on the report itself
-            expect(requiresAttentionFromCurrentUser(report, currentUserEmail, currentUserAccountID, undefined)).toBe(false);
-            expect(requiresAttentionFromCurrentUser(policyExpenseChat, currentUserEmail, currentUserAccountID, undefined)).toBe(true);
+            expect(requiresAttentionFromCurrentUser(report, currentUserEmail, currentUserAccountID, undefined, undefined)).toBe(false);
+            expect(requiresAttentionFromCurrentUser(policyExpenseChat, currentUserEmail, currentUserAccountID, undefined, undefined)).toBe(true);
         });
 
         it('returns false when the outstanding child expense only has pending card transactions', async () => {
@@ -4840,7 +4843,7 @@ describe('ReportUtils', () => {
             await waitForBatchedUpdates();
 
             // Even though the chat carries an outstanding-child flag, an all-pending card report can't be actioned yet.
-            expect(requiresAttentionFromCurrentUser(policyExpenseChat, currentUserEmail, currentUserAccountID, undefined)).toBe(false);
+            expect(requiresAttentionFromCurrentUser(policyExpenseChat, currentUserEmail, currentUserAccountID, undefined, undefined)).toBe(false);
         });
 
         it('returns false when the outstanding child is the member own empty report on a workspace they cannot create expenses on', async () => {
@@ -4872,7 +4875,7 @@ describe('ReportUtils', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${expenseReportID}`, expenseReport);
             await waitForBatchedUpdates();
 
-            expect(requiresAttentionFromCurrentUser(policyExpenseChat, currentUserEmail, currentUserAccountID, undefined)).toBe(false);
+            expect(requiresAttentionFromCurrentUser(policyExpenseChat, currentUserEmail, currentUserAccountID, undefined, undefined)).toBe(false);
         });
 
         it('returns false when the outstanding child is the member own open report with expenses on a workspace they cannot create expenses on', async () => {
@@ -4913,7 +4916,7 @@ describe('ReportUtils', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
             await waitForBatchedUpdates();
 
-            expect(requiresAttentionFromCurrentUser(policyExpenseChat, currentUserEmail, currentUserAccountID, undefined)).toBe(false);
+            expect(requiresAttentionFromCurrentUser(policyExpenseChat, currentUserEmail, currentUserAccountID, undefined, undefined)).toBe(false);
         });
 
         it('returns true when the outstanding child is the member own empty report on a workspace they can create expenses on', async () => {
@@ -4945,7 +4948,7 @@ describe('ReportUtils', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${expenseReportID}`, expenseReport);
             await waitForBatchedUpdates();
 
-            expect(requiresAttentionFromCurrentUser(policyExpenseChat, currentUserEmail, currentUserAccountID, undefined)).toBe(true);
+            expect(requiresAttentionFromCurrentUser(policyExpenseChat, currentUserEmail, currentUserAccountID, undefined, undefined)).toBe(true);
         });
 
         describe('when the outstanding child expense is all on hold', () => {
@@ -5022,14 +5025,14 @@ describe('ReportUtils', () => {
                 const policyExpenseChat = await seedHeldChildExpense(otherUserAccountID);
 
                 // An all-held report can't move to its next state, so it isn't a to-do when someone else placed the hold.
-                expect(requiresAttentionFromCurrentUser(policyExpenseChat, currentUserEmail, currentUserAccountID, undefined)).toBe(false);
+                expect(requiresAttentionFromCurrentUser(policyExpenseChat, currentUserEmail, currentUserAccountID, undefined, undefined)).toBe(false);
             });
 
             it('still requires attention when the current user placed the hold', async () => {
                 const policyExpenseChat = await seedHeldChildExpense(currentUserAccountID);
 
                 // Only the person who placed the hold can remove it, so the report stays in their to-do queue.
-                expect(requiresAttentionFromCurrentUser(policyExpenseChat, currentUserEmail, currentUserAccountID, undefined)).toBe(true);
+                expect(requiresAttentionFromCurrentUser(policyExpenseChat, currentUserEmail, currentUserAccountID, undefined, undefined)).toBe(true);
             });
 
             it('does not require attention for an open report the current user owns and placed the hold on', async () => {
@@ -5042,7 +5045,7 @@ describe('ReportUtils', () => {
                 // Only the owner can hold on an open report, and that owner is the one who submits, so the hold placer
                 // exception never applies there. This holds on the fallback path too, where the chat carries an
                 // outstanding-child flag but no report preview action is loaded yet, so there is no action badge.
-                expect(requiresAttentionFromCurrentUser(policyExpenseChat, currentUserEmail, currentUserAccountID, undefined)).toBe(false);
+                expect(requiresAttentionFromCurrentUser(policyExpenseChat, currentUserEmail, currentUserAccountID, undefined, undefined)).toBe(false);
             });
 
             describe('when the chat iouReportID points at an empty open draft', () => {
@@ -5192,7 +5195,7 @@ describe('ReportUtils', () => {
                     const policyExpenseChat = await seedHeldSubmittedChild(otherUserAccountID);
 
                     // When the approver's attention is derived without opening the chat
-                    const requiresAttention = requiresAttentionFromCurrentUser(policyExpenseChat, currentUserEmail, currentUserAccountID, undefined);
+                    const requiresAttention = requiresAttentionFromCurrentUser(policyExpenseChat, currentUserEmail, currentUserAccountID, undefined, undefined);
 
                     // Then the held expense is not a to-do, because the empty draft has no expense of its own
                     expect(requiresAttention).toBe(false);
@@ -5213,7 +5216,7 @@ describe('ReportUtils', () => {
                         }) ?? {};
 
                     // Then the row stays, with Approve on the held expense, because the approver can remove their own hold
-                    expect(requiresAttentionFromCurrentUser(policyExpenseChat, currentUserEmail, currentUserAccountID, undefined)).toBe(true);
+                    expect(requiresAttentionFromCurrentUser(policyExpenseChat, currentUserEmail, currentUserAccountID, undefined, undefined)).toBe(true);
                     expect(reportAction?.childReportID).toBe(heldExpenseReportID);
                     expect(actionBadge).toBe(CONST.REPORT.ACTION_BADGE.APPROVE);
                 });
@@ -5223,7 +5226,7 @@ describe('ReportUtils', () => {
                     const policyExpenseChat = await seedHeldSubmittedChild(otherUserAccountID, {includeOpenDraftPreview: false});
 
                     // When attention is derived
-                    const requiresAttention = requiresAttentionFromCurrentUser(policyExpenseChat, currentUserEmail, currentUserAccountID, undefined);
+                    const requiresAttention = requiresAttentionFromCurrentUser(policyExpenseChat, currentUserEmail, currentUserAccountID, undefined, undefined);
 
                     // Then the chat is still not a to-do
                     expect(requiresAttention).toBe(false);
@@ -5234,7 +5237,7 @@ describe('ReportUtils', () => {
                     const policyExpenseChat = await seedHeldSubmittedChild(otherUserAccountID, {unloadedSiblingStatusNum: CONST.REPORT.STATUS_NUM.SUBMITTED});
 
                     // When attention is derived
-                    const requiresAttention = requiresAttentionFromCurrentUser(policyExpenseChat, currentUserEmail, currentUserAccountID, undefined);
+                    const requiresAttention = requiresAttentionFromCurrentUser(policyExpenseChat, currentUserEmail, currentUserAccountID, undefined, undefined);
 
                     // Then the chat stays in to-do, because that sibling may still need approval
                     expect(requiresAttention).toBe(true);
@@ -5245,7 +5248,7 @@ describe('ReportUtils', () => {
                     const policyExpenseChat = await seedHeldSubmittedChild(otherUserAccountID, {unloadedSiblingStatusNum: CONST.REPORT.STATUS_NUM.REIMBURSED});
 
                     // When attention is derived
-                    const requiresAttention = requiresAttentionFromCurrentUser(policyExpenseChat, currentUserEmail, currentUserAccountID, undefined);
+                    const requiresAttention = requiresAttentionFromCurrentUser(policyExpenseChat, currentUserEmail, currentUserAccountID, undefined, undefined);
 
                     // Then that settled preview does not keep the chat in to-do
                     expect(requiresAttention).toBe(false);
@@ -5256,7 +5259,7 @@ describe('ReportUtils', () => {
                     const policyExpenseChat = await seedHeldSubmittedChild(otherUserAccountID, {includeLoadedSiblingWithoutTransactions: true});
 
                     // When attention is derived from the transaction cache, which has no row for that sibling
-                    const requiresAttention = requiresAttentionFromCurrentUser(policyExpenseChat, currentUserEmail, currentUserAccountID, undefined);
+                    const requiresAttention = requiresAttentionFromCurrentUser(policyExpenseChat, currentUserEmail, currentUserAccountID, undefined, undefined);
 
                     // Then the chat stays in to-do, because the missing transactions cannot be treated as a hold
                     expect(requiresAttention).toBe(true);
@@ -5304,7 +5307,7 @@ describe('ReportUtils', () => {
                         }) ?? {};
 
                     // Then the empty report keeps its Add badge, because the submitter can still add an expense
-                    expect(requiresAttentionFromCurrentUser(policyExpenseChat, currentUserEmail, currentUserAccountID, undefined)).toBe(true);
+                    expect(requiresAttentionFromCurrentUser(policyExpenseChat, currentUserEmail, currentUserAccountID, undefined, undefined)).toBe(true);
                     expect(reportAction?.childReportID).toBe(openDraftReportID);
                     expect(actionBadge).toBe(CONST.REPORT.ACTION_BADGE.ADD);
                 });
@@ -5421,7 +5424,7 @@ describe('ReportUtils', () => {
                 const policyExpenseChat = await seedTwoChildExpenses();
 
                 // The all-held report can't move to its next state, but it must not hide the sibling that can.
-                expect(requiresAttentionFromCurrentUser(policyExpenseChat, currentUserEmail, currentUserAccountID, undefined)).toBe(true);
+                expect(requiresAttentionFromCurrentUser(policyExpenseChat, currentUserEmail, currentUserAccountID, undefined, undefined)).toBe(true);
             });
 
             it('surfaces the approvable sibling as the badge action instead of the all-held report', async () => {
@@ -5459,7 +5462,7 @@ describe('ReportUtils', () => {
                 expect(actionBadge).toBeUndefined();
             });
 
-            it('should fall back to the report metadata in Onyx while callers have not been threaded yet', async () => {
+            it('should not read the report metadata from Onyx when the caller does not pass it', async () => {
                 // Given the same pending approve stored in Onyx rather than passed in
                 const policyExpenseChat = await seedTwoChildExpenses();
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}1`, {approvalMode: CONST.POLICY.APPROVAL_MODE.DYNAMICEXTERNAL});
@@ -5475,8 +5478,34 @@ describe('ReportUtils', () => {
                         reportMetadata: undefined,
                     }) ?? {};
 
-                // Then the approve badge is still suppressed, because the fallback reads the pending approve from Onyx
-                expect(actionBadge).toBeUndefined();
+                // Then the approve badge shows, because the caller owns the metadata now and this one passed none
+                expect(actionBadge).toBe(CONST.REPORT.ACTION_BADGE.APPROVE);
+            });
+
+            it('should suppress the green dot when the option-list caller threads a pending DEW approve', async () => {
+                // Given a dynamic external workflow whose approve request for the chat report is already in flight
+                const policyExpenseChat = await seedTwoChildExpenses();
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}1`, {approvalMode: CONST.POLICY.APPROVAL_MODE.DYNAMICEXTERNAL});
+
+                // When the LHN and option-list gate recomputes attention with the metadata its caller now threads in
+                const requiresAttention = requiresAttentionFromCurrentUser(policyExpenseChat, currentUserEmail, currentUserAccountID, undefined, {
+                    pendingExpenseAction: CONST.EXPENSE_PENDING_ACTION.APPROVE,
+                });
+
+                // Then the report no longer asks for attention, because approving again would be a duplicate
+                expect(requiresAttention).toBe(false);
+            });
+
+            it('should still ask for attention when the same report has no approve pending', async () => {
+                // Given the same workflow with nothing in flight, which is what separates this from the case above
+                const policyExpenseChat = await seedTwoChildExpenses();
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}1`, {approvalMode: CONST.POLICY.APPROVAL_MODE.DYNAMICEXTERNAL});
+
+                // When attention is recomputed with metadata that carries no pending expense action
+                const requiresAttention = requiresAttentionFromCurrentUser(policyExpenseChat, currentUserEmail, currentUserAccountID, undefined, {});
+
+                // Then the report still asks for attention, so the suppression above is the metadata's doing
+                expect(requiresAttention).toBe(true);
             });
         });
 
@@ -5498,8 +5527,8 @@ describe('ReportUtils', () => {
             };
 
             // The GBR should appear on the policy expense chat but not on the report itself
-            expect(requiresAttentionFromCurrentUser(report, currentUserEmail, currentUserAccountID, undefined)).toBe(false);
-            expect(requiresAttentionFromCurrentUser(policyExpenseChat, currentUserEmail, currentUserAccountID, undefined)).toBe(true);
+            expect(requiresAttentionFromCurrentUser(report, currentUserEmail, currentUserAccountID, undefined, undefined)).toBe(false);
+            expect(requiresAttentionFromCurrentUser(policyExpenseChat, currentUserEmail, currentUserAccountID, undefined, undefined)).toBe(true);
         });
 
         it('returns false and does not surface GBR when expense report is approved and reimbursement is enabled', async () => {
@@ -5523,7 +5552,7 @@ describe('ReportUtils', () => {
             await waitForBatchedUpdates();
 
             // When we evaluate if the report requires attention from the current user
-            const requiresAttention = requiresAttentionFromCurrentUser(report, currentUserEmail, currentUserAccountID, undefined);
+            const requiresAttention = requiresAttentionFromCurrentUser(report, currentUserEmail, currentUserAccountID, undefined, undefined);
 
             // Then it should return false because the report is already approved and reimbursement is enabled
             expect(requiresAttention).toBe(false);
@@ -7293,6 +7322,68 @@ describe('ReportUtils', () => {
             expect(isAdminOwnerApproverOrReportOwner(report, testPolicy, approverAccountID)).toBe(true);
             expect(isAdminOwnerApproverOrReportOwner(report, testPolicy, currentUserAccountID)).toBe(false);
             expect(isAdminOwnerApproverOrReportOwner(report, testPolicy, undefined)).toBe(false);
+        });
+    });
+
+    describe('canLeaveChat on support tickets', () => {
+        const customerAccountID = 100;
+        const repAccountID = 200;
+        const inviteeAccountID = 300;
+        const supportTicket: Report = {
+            ...createRandomReport(80209, undefined),
+            type: CONST.REPORT.TYPE.SUPPORT_TICKET,
+            ownerAccountID: customerAccountID,
+            managerID: repAccountID,
+            stateNum: CONST.REPORT.STATE_NUM.OPEN,
+            statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+            participants: buildParticipantsFromAccountIDs([customerAccountID, repAccountID, inviteeAccountID]),
+        };
+
+        it('only lets invited participants leave', () => {
+            // Given an open ticket where the customer and assigned rep must stay
+            // When each participant opens the ticket details
+            // Then only the invitee can leave
+            expect(canLeaveChat(supportTicket, undefined, inviteeAccountID, false)).toBe(true);
+            expect(canLeaveChat(supportTicket, undefined, customerAccountID, false)).toBe(false);
+            expect(canLeaveChat(supportTicket, undefined, repAccountID, false)).toBe(false);
+            expect(canLeaveChat(supportTicket, undefined, undefined, false)).toBe(false);
+        });
+
+        it('lets invitees leave resolved tickets', () => {
+            // Given a resolved ticket that invitees no longer need in their inbox
+            const closedTicket: Report = {...supportTicket, stateNum: CONST.REPORT.STATE_NUM.APPROVED, statusNum: CONST.REPORT.STATUS_NUM.CLOSED};
+
+            // When each participant opens the ticket details
+            // Then only the invitee can leave
+            expect(canLeaveChat(closedTicket, undefined, inviteeAccountID, false)).toBe(true);
+            expect(canLeaveChat(closedTicket, undefined, customerAccountID, false)).toBe(false);
+            expect(canLeaveChat(closedTicket, undefined, repAccountID, false)).toBe(false);
+        });
+
+        it('blocks leaving hidden tickets', () => {
+            // Given a ticket hidden for the invitee
+            const hiddenTicket: Report = {
+                ...supportTicket,
+                participants: {...supportTicket.participants, [inviteeAccountID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN}},
+            };
+
+            // When the invitee opens the ticket details
+            // Then leaving remains unavailable
+            expect(canLeaveChat(hiddenTicket, undefined, inviteeAccountID, false)).toBe(false);
+        });
+
+        it('blocks anonymous users from leaving tickets', () => {
+            // Given a ticket viewed anonymously
+            // When checking leave permissions with an invitee account ID
+            // Then the anonymous viewer cannot leave
+            expect(canLeaveChat(supportTicket, undefined, inviteeAccountID, true)).toBe(false);
+        });
+
+        it('blocks leaving archived tickets', () => {
+            // Given an archived ticket
+            // When an invitee opens the ticket details
+            // Then leaving remains unavailable
+            expect(canLeaveChat(supportTicket, undefined, inviteeAccountID, false, true)).toBe(false);
         });
     });
 
@@ -10447,6 +10538,7 @@ describe('ReportUtils', () => {
                 hasGuidesEmails: false,
                 conciergeReportID: undefined,
                 derivedIsEmptyReport: undefined,
+                pendingExpenseActionMetadata: undefined,
             });
 
             // Then only users with the beta get the bill in the list
@@ -10471,6 +10563,7 @@ describe('ReportUtils', () => {
                 hasGuidesEmails: false,
                 conciergeReportID: undefined,
                 derivedIsEmptyReport: undefined,
+                pendingExpenseActionMetadata: undefined,
             });
 
             // Then the bill stays out, so other lists keep hiding bills
@@ -10495,6 +10588,7 @@ describe('ReportUtils', () => {
                     hasGuidesEmails: false,
                     conciergeReportID: undefined,
                     derivedIsEmptyReport: undefined,
+                    pendingExpenseActionMetadata: undefined,
                 }),
             ).toBeTruthy();
         });
@@ -10521,6 +10615,7 @@ describe('ReportUtils', () => {
                     hasGuidesEmails: false,
                     conciergeReportID: undefined,
                     derivedIsEmptyReport: undefined,
+                    pendingExpenseActionMetadata: undefined,
                 }),
             ).toBeTruthy();
         });
@@ -10552,6 +10647,7 @@ describe('ReportUtils', () => {
                     hasGuidesEmails: false,
                     conciergeReportID: undefined,
                     derivedIsEmptyReport: undefined,
+                    pendingExpenseActionMetadata: undefined,
                 }),
             ).toBeFalsy();
         });
@@ -10618,6 +10714,7 @@ describe('ReportUtils', () => {
                     hasGuidesEmails: false,
                     conciergeReportID: undefined,
                     derivedIsEmptyReport: undefined,
+                    pendingExpenseActionMetadata: undefined,
                 }),
             ).toBeTruthy();
         });
@@ -10643,6 +10740,7 @@ describe('ReportUtils', () => {
                     hasGuidesEmails: false,
                     conciergeReportID: undefined,
                     derivedIsEmptyReport: undefined,
+                    pendingExpenseActionMetadata: undefined,
                 }),
             ).toBeTruthy();
         });
@@ -10668,6 +10766,7 @@ describe('ReportUtils', () => {
                     hasGuidesEmails: false,
                     conciergeReportID: undefined,
                     derivedIsEmptyReport: undefined,
+                    pendingExpenseActionMetadata: undefined,
                 }),
             ).toBeTruthy();
         });
@@ -10693,6 +10792,7 @@ describe('ReportUtils', () => {
                     hasGuidesEmails: false,
                     conciergeReportID: undefined,
                     derivedIsEmptyReport: undefined,
+                    pendingExpenseActionMetadata: undefined,
                 }),
             ).toBeTruthy();
         });
@@ -10731,6 +10831,7 @@ describe('ReportUtils', () => {
                     hasGuidesEmails: false,
                     conciergeReportID: undefined,
                     derivedIsEmptyReport: undefined,
+                    pendingExpenseActionMetadata: undefined,
                 }),
             ).toBeTruthy();
         });
@@ -10764,6 +10865,7 @@ describe('ReportUtils', () => {
                     hasGuidesEmails: false,
                     conciergeReportID: undefined,
                     derivedIsEmptyReport: undefined,
+                    pendingExpenseActionMetadata: undefined,
                 }),
             ).toBeTruthy();
         });
@@ -10797,6 +10899,7 @@ describe('ReportUtils', () => {
                     hasGuidesEmails: false,
                     conciergeReportID: undefined,
                     derivedIsEmptyReport: undefined,
+                    pendingExpenseActionMetadata: undefined,
                 }),
             ).toBeFalsy();
         });
@@ -10824,6 +10927,7 @@ describe('ReportUtils', () => {
                     hasGuidesEmails: false,
                     conciergeReportID: undefined,
                     derivedIsEmptyReport: undefined,
+                    pendingExpenseActionMetadata: undefined,
                 }),
             ).toBeTruthy();
         });
@@ -10853,6 +10957,7 @@ describe('ReportUtils', () => {
                     hasGuidesEmails: false,
                     conciergeReportID: undefined,
                     derivedIsEmptyReport: undefined,
+                    pendingExpenseActionMetadata: undefined,
                 }),
             ).toBeFalsy();
         });
@@ -10877,6 +10982,7 @@ describe('ReportUtils', () => {
                 hasGuidesEmails: false,
                 conciergeReportID: undefined,
                 derivedIsEmptyReport: undefined,
+                pendingExpenseActionMetadata: undefined,
             });
 
             // Then it is excluded, because there would be nothing to render in the option item
@@ -10903,6 +11009,7 @@ describe('ReportUtils', () => {
                 hasGuidesEmails: false,
                 conciergeReportID: undefined,
                 derivedIsEmptyReport: undefined,
+                pendingExpenseActionMetadata: undefined,
             });
 
             // Then it is kept, because a workspace chat renders its name and icon from its policy
@@ -10930,6 +11037,7 @@ describe('ReportUtils', () => {
                     hasGuidesEmails: false,
                     conciergeReportID: undefined,
                     derivedIsEmptyReport: undefined,
+                    pendingExpenseActionMetadata: undefined,
                 }),
             ).toBeFalsy();
         });
@@ -10985,6 +11093,7 @@ describe('ReportUtils', () => {
                     hasGuidesEmails: false,
                     conciergeReportID: undefined,
                     derivedIsEmptyReport: undefined,
+                    pendingExpenseActionMetadata: undefined,
                 }),
             ).toBeFalsy();
         });
@@ -11007,6 +11116,7 @@ describe('ReportUtils', () => {
                     hasGuidesEmails: false,
                     conciergeReportID: undefined,
                     derivedIsEmptyReport: undefined,
+                    pendingExpenseActionMetadata: undefined,
                 }),
             ).toBeFalsy();
         });
@@ -11037,6 +11147,7 @@ describe('ReportUtils', () => {
                     hasGuidesEmails: false,
                     conciergeReportID,
                     derivedIsEmptyReport: undefined,
+                    pendingExpenseActionMetadata: undefined,
                 }),
             ).toBe(CONST.REPORT_IN_LHN_REASONS.DEFAULT);
         });
@@ -11066,6 +11177,7 @@ describe('ReportUtils', () => {
                     conciergeReportID,
                     hasGuidesEmails: false,
                     derivedIsEmptyReport: undefined,
+                    pendingExpenseActionMetadata: undefined,
                 }),
             ).toBe(CONST.REPORT_IN_LHN_REASONS.DEFAULT);
         });
@@ -11094,6 +11206,7 @@ describe('ReportUtils', () => {
                     conciergeReportID: 'some-other-report-id',
                     hasGuidesEmails: false,
                     derivedIsEmptyReport: undefined,
+                    pendingExpenseActionMetadata: undefined,
                 }),
             ).toBeNull();
         });
@@ -11122,6 +11235,7 @@ describe('ReportUtils', () => {
                 isDefaultRoomsBetaEnabled: false,
                 hasGuidesEmails: false,
                 derivedIsEmptyReport: undefined,
+                pendingExpenseActionMetadata: undefined,
             };
 
             // When the param identifies this report as Concierge, the empty chat is kept in the option list...
@@ -11150,6 +11264,7 @@ describe('ReportUtils', () => {
                     hasGuidesEmails: false,
                     conciergeReportID: undefined,
                     derivedIsEmptyReport: undefined,
+                    pendingExpenseActionMetadata: undefined,
                 }),
             ).toBeFalsy();
         });
@@ -11198,6 +11313,7 @@ describe('ReportUtils', () => {
                     hasGuidesEmails: false,
                     conciergeReportID: undefined,
                     derivedIsEmptyReport: undefined,
+                    pendingExpenseActionMetadata: undefined,
                 }),
             ).toBeFalsy();
         });
@@ -11220,6 +11336,7 @@ describe('ReportUtils', () => {
                     hasGuidesEmails: false,
                     conciergeReportID: undefined,
                     derivedIsEmptyReport: undefined,
+                    pendingExpenseActionMetadata: undefined,
                 }),
             ).toBeFalsy();
         });
@@ -11257,6 +11374,7 @@ describe('ReportUtils', () => {
                     hasGuidesEmails: false,
                     conciergeReportID: undefined,
                     derivedIsEmptyReport: undefined,
+                    pendingExpenseActionMetadata: undefined,
                 }),
             ).toBeFalsy();
         });
@@ -11291,6 +11409,7 @@ describe('ReportUtils', () => {
                     hasGuidesEmails: false,
                     conciergeReportID: undefined,
                     derivedIsEmptyReport: undefined,
+                    pendingExpenseActionMetadata: undefined,
                 }),
             ).toBe(CONST.REPORT_IN_LHN_REASONS.IS_UNREAD);
         });
@@ -11323,6 +11442,7 @@ describe('ReportUtils', () => {
                     hasGuidesEmails: false,
                     conciergeReportID: undefined,
                     derivedIsEmptyReport: undefined,
+                    pendingExpenseActionMetadata: undefined,
                 }),
             ).toBeFalsy();
         });
@@ -11348,6 +11468,7 @@ describe('ReportUtils', () => {
                     hasGuidesEmails: false,
                     conciergeReportID: undefined,
                     derivedIsEmptyReport: undefined,
+                    pendingExpenseActionMetadata: undefined,
                 }),
             ).toBe(CONST.REPORT_IN_LHN_REASONS.HAS_ADD_WORKSPACE_ROOM_ERRORS);
         });
@@ -11395,6 +11516,7 @@ describe('ReportUtils', () => {
                     hasGuidesEmails: false,
                     conciergeReportID: undefined,
                     derivedIsEmptyReport: undefined,
+                    pendingExpenseActionMetadata: undefined,
                 }),
             ).toBeFalsy();
         });
@@ -11449,6 +11571,7 @@ describe('ReportUtils', () => {
                     hasGuidesEmails: false,
                     conciergeReportID: undefined,
                     derivedIsEmptyReport: undefined,
+                    pendingExpenseActionMetadata: undefined,
                 }),
             ).toBe(CONST.REPORT_IN_LHN_REASONS.PINNED_BY_USER);
         });
@@ -11474,6 +11597,7 @@ describe('ReportUtils', () => {
                     hasGuidesEmails: false,
                     conciergeReportID: undefined,
                     derivedIsEmptyReport: undefined,
+                    pendingExpenseActionMetadata: undefined,
                 }),
             ).toBeNull();
         });
@@ -11498,6 +11622,7 @@ describe('ReportUtils', () => {
                     hasGuidesEmails: false,
                     conciergeReportID: undefined,
                     derivedIsEmptyReport: undefined,
+                    pendingExpenseActionMetadata: undefined,
                 }),
             ).toBeTruthy();
         });
@@ -11522,6 +11647,7 @@ describe('ReportUtils', () => {
                     hasGuidesEmails: false,
                     conciergeReportID: undefined,
                     derivedIsEmptyReport: undefined,
+                    pendingExpenseActionMetadata: undefined,
                 }),
             ).toBeFalsy();
         });
@@ -11546,6 +11672,7 @@ describe('ReportUtils', () => {
                     hasGuidesEmails: false,
                     conciergeReportID: undefined,
                     derivedIsEmptyReport: undefined,
+                    pendingExpenseActionMetadata: undefined,
                 }),
             ).toBeFalsy();
         });
@@ -11570,6 +11697,7 @@ describe('ReportUtils', () => {
                     hasGuidesEmails: false,
                     conciergeReportID: undefined,
                     derivedIsEmptyReport: undefined,
+                    pendingExpenseActionMetadata: undefined,
                 }),
             ).toBeFalsy();
         });
@@ -11589,6 +11717,7 @@ describe('ReportUtils', () => {
                     hasGuidesEmails: false,
                     conciergeReportID: undefined,
                     derivedIsEmptyReport: undefined,
+                    pendingExpenseActionMetadata: undefined,
                 }),
             ).toBeFalsy();
         });
@@ -11659,6 +11788,7 @@ describe('ReportUtils', () => {
                 hasGuidesEmails: false,
                 conciergeReportID: undefined,
                 derivedIsEmptyReport: undefined,
+                pendingExpenseActionMetadata: undefined,
             });
 
             expect(reason).not.toBe(CONST.REPORT_IN_LHN_REASONS.HAS_IOU_VIOLATIONS);
@@ -12999,7 +13129,7 @@ describe('ReportUtils', () => {
         });
 
         it('findLastAccessedReport should return owned report if no reports was accessed before', () => {
-            const result = findLastAccessedReport(false, undefined, false);
+            const result = findLastAccessedReport(false, undefined, false, false, undefined, undefined);
 
             // Even though the archived report has a more recent lastVisitTime,
             // the function should filter it out and return the normal report
@@ -13038,7 +13168,7 @@ describe('ReportUtils', () => {
 
         it('should resolve a report from the passed collection while the stored reports are still empty', () => {
             // Nothing is in Onyx yet, so the copy the function reads by default holds no reports.
-            expect(findLastAccessedReport(false, undefined, false)).toBeUndefined();
+            expect(findLastAccessedReport(false, undefined, false, false, undefined, undefined)).toBeUndefined();
 
             const reports: OnyxCollection<Report> = {
                 [`${ONYXKEYS.COLLECTION.REPORT}${providedReport.reportID}`]: providedReport,
@@ -13051,7 +13181,7 @@ describe('ReportUtils', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${storedReport.reportID}`, storedReport);
             await waitForBatchedUpdates();
 
-            expect(findLastAccessedReport(false, undefined, false)?.reportID).toBe(storedReport.reportID);
+            expect(findLastAccessedReport(false, undefined, false, false, undefined, undefined)?.reportID).toBe(storedReport.reportID);
 
             const reports: OnyxCollection<Report> = {
                 [`${ONYXKEYS.COLLECTION.REPORT}${providedReport.reportID}`]: providedReport,
@@ -13064,7 +13194,7 @@ describe('ReportUtils', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${storedReport.reportID}`, storedReport);
             await waitForBatchedUpdates();
 
-            expect(findLastAccessedReport(false, undefined, false)?.reportID).toBe(storedReport.reportID);
+            expect(findLastAccessedReport(false, undefined, false, false, undefined, undefined)?.reportID).toBe(storedReport.reportID);
         });
     });
 
@@ -16886,6 +17016,42 @@ describe('ReportUtils', () => {
         });
     });
 
+    describe('canRemoveSupportTicketParticipant', () => {
+        const customerAccountID = 80001;
+        const repAccountID = 80002;
+        const inviteeAccountID = 80003;
+        const supportTicket: Report = {
+            ...createRandomReport(80208, undefined),
+            type: CONST.REPORT.TYPE.SUPPORT_TICKET,
+            ownerAccountID: customerAccountID,
+            managerID: repAccountID,
+            stateNum: CONST.REPORT.STATE_NUM.OPEN,
+            statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+        };
+
+        it('only lets the assigned rep remove invitees', () => {
+            // Given an open ticket where the customer and assigned rep must remain participants
+            // When removal is checked for the rep, customer, and invitee
+            // Then only the rep can remove an invitee, and neither protected participant can be removed
+            expect(canRemoveSupportTicketParticipant(supportTicket, false, repAccountID, inviteeAccountID)).toBe(true);
+            expect(canRemoveSupportTicketParticipant(supportTicket, false, customerAccountID, inviteeAccountID)).toBe(false);
+            expect(canRemoveSupportTicketParticipant(supportTicket, false, inviteeAccountID, customerAccountID)).toBe(false);
+            expect(canRemoveSupportTicketParticipant(supportTicket, false, repAccountID, customerAccountID)).toBe(false);
+            expect(canRemoveSupportTicketParticipant(supportTicket, false, repAccountID, repAccountID)).toBe(false);
+            expect(canRemoveSupportTicketParticipant(supportTicket, false, undefined, inviteeAccountID)).toBe(false);
+        });
+
+        it('blocks removal on closed or archived tickets', () => {
+            // Given a resolved ticket whose participants should remain available after reopening
+            const closedTicket: Report = {...supportTicket, stateNum: CONST.REPORT.STATE_NUM.APPROVED, statusNum: CONST.REPORT.STATUS_NUM.CLOSED};
+
+            // When the assigned rep views a closed or archived ticket
+            // Then removal is unavailable even though they are still assigned to it
+            expect(canRemoveSupportTicketParticipant(closedTicket, false, repAccountID, inviteeAccountID)).toBe(false);
+            expect(canRemoveSupportTicketParticipant(supportTicket, true, repAccountID, inviteeAccountID)).toBe(false);
+        });
+    });
+
     describe('isCurrentUserInvoiceReceiver', () => {
         const receiverAccountID = 60401;
         const otherAccountID = 60402;
@@ -17010,6 +17176,45 @@ describe('ReportUtils', () => {
 
             // Then a plain participant can invite, and no policy is needed to decide that
             expect(canInviteMembersToReport(groupChat, undefined, false, otherAccountID)).toBe(true);
+        });
+
+        it('only lets the customer and assigned rep invite on an open support ticket', () => {
+            // Given a ticket with a customer, assigned rep, and invited participant
+            const supportTicket: Report = {
+                ...createRandomReport(80206, undefined),
+                type: CONST.REPORT.TYPE.SUPPORT_TICKET,
+                ownerAccountID: submitterAccountID,
+                managerID: otherAccountID,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                participants: buildParticipantsFromAccountIDs([submitterAccountID, otherAccountID, 80003]),
+            };
+
+            // When invite permissions are checked for each role
+            // Then only the customer and assigned rep can invite, regardless of workspace role
+            expect(canInviteMembersToReport(supportTicket, undefined, false, submitterAccountID)).toBe(true);
+            expect(canInviteMembersToReport(supportTicket, undefined, false, otherAccountID)).toBe(true);
+            expect(canInviteMembersToReport(supportTicket, adminPolicy, false, 80003)).toBe(false);
+            expect(canInviteMembersToReport(supportTicket, undefined, false, 80004)).toBe(false);
+            expect(canInviteMembersToReport(supportTicket, undefined, false, undefined)).toBe(false);
+            expect(canInviteMembersToReport(supportTicket, undefined, true, submitterAccountID)).toBe(false);
+        });
+
+        it('blocks the customer and assigned rep from inviting on a closed support ticket', () => {
+            // Given a ticket that has been resolved
+            const supportTicket: Report = {
+                ...createRandomReport(80207, undefined),
+                type: CONST.REPORT.TYPE.SUPPORT_TICKET,
+                ownerAccountID: submitterAccountID,
+                managerID: otherAccountID,
+                stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+                statusNum: CONST.REPORT.STATUS_NUM.CLOSED,
+            };
+
+            // When either authorized inviter opens its Members page
+            // Then inviting is unavailable while the ticket is closed
+            expect(canInviteMembersToReport(supportTicket, undefined, false, submitterAccountID)).toBe(false);
+            expect(canInviteMembersToReport(supportTicket, undefined, false, otherAccountID)).toBe(false);
         });
 
         it('lets the submitter invite on an open expense report', () => {
@@ -20912,7 +21117,7 @@ describe('ReportUtils', () => {
 
     describe('shouldBlockSubmitDueToPreventSelfApproval', () => {
         const policyID = '1';
-        const ownerPersonalDetailsByLogin: PersonalDetailsByLogin = {[currentUserEmail]: {accountID: currentUserAccountID, login: currentUserEmail}};
+        const ownerPersonalDetails: PersonalDetails = {accountID: currentUserAccountID, login: currentUserEmail};
 
         it('should return false when policy is undefined', () => {
             const report: Report = {
@@ -20922,7 +21127,7 @@ describe('ReportUtils', () => {
                 stateNum: CONST.REPORT.STATE_NUM.OPEN,
                 statusNum: CONST.REPORT.STATUS_NUM.OPEN,
             };
-            expect(shouldBlockSubmitDueToPreventSelfApproval(report, undefined, undefined, ownerPersonalDetailsByLogin)).toBe(false);
+            expect(shouldBlockSubmitDueToPreventSelfApproval(report, undefined, undefined, ownerPersonalDetails)).toBe(false);
         });
 
         it('should return false when policy has preventSelfApproval false', () => {
@@ -20939,7 +21144,7 @@ describe('ReportUtils', () => {
                 stateNum: CONST.REPORT.STATE_NUM.OPEN,
                 statusNum: CONST.REPORT.STATUS_NUM.OPEN,
             };
-            expect(shouldBlockSubmitDueToPreventSelfApproval(report, policyWithPreventOff, undefined, ownerPersonalDetailsByLogin)).toBe(false);
+            expect(shouldBlockSubmitDueToPreventSelfApproval(report, policyWithPreventOff, undefined, ownerPersonalDetails)).toBe(false);
         });
 
         it('should return false when report is not owned by current user even with preventSelfApproval true', () => {
@@ -20956,7 +21161,7 @@ describe('ReportUtils', () => {
                 stateNum: CONST.REPORT.STATE_NUM.OPEN,
                 statusNum: CONST.REPORT.STATUS_NUM.OPEN,
             };
-            expect(shouldBlockSubmitDueToPreventSelfApproval(report, policyWithPreventOn, undefined, {})).toBe(false);
+            expect(shouldBlockSubmitDueToPreventSelfApproval(report, policyWithPreventOn, undefined, undefined)).toBe(false);
         });
 
         it('should return true when preventSelfApproval is true, report is open expense, and owner is same as next approver', async () => {
@@ -20992,8 +21197,8 @@ describe('ReportUtils', () => {
             });
             await waitForBatchedUpdates();
 
-            expect(getNextApproverAccountID(report, undefined)).toBe(currentUserAccountID);
-            expect(shouldBlockSubmitDueToPreventSelfApproval(report, policyWithPreventOn, undefined, ownerPersonalDetailsByLogin)).toBe(true);
+            expect(getNextApproverAccountID(report, undefined, false, currentUserEmail, {[currentUserEmail]: ownerPersonalDetails})).toBe(currentUserAccountID);
+            expect(shouldBlockSubmitDueToPreventSelfApproval(report, policyWithPreventOn, undefined, ownerPersonalDetails)).toBe(true);
         });
 
         it('should return true when preventSelfApproval is true, report is processing, and owner is same as manager', async () => {
@@ -21012,7 +21217,7 @@ describe('ReportUtils', () => {
                 statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
             };
             await Onyx.merge(ONYXKEYS.SESSION, {accountID: currentUserAccountID});
-            expect(shouldBlockSubmitDueToPreventSelfApproval(report, policyWithPreventOn, undefined, ownerPersonalDetailsByLogin)).toBe(true);
+            expect(shouldBlockSubmitDueToPreventSelfApproval(report, policyWithPreventOn, undefined, ownerPersonalDetails)).toBe(true);
         });
 
         it('should return true when preventSelfApproval is true, report is open, and the submitter is the first of several approvers', async () => {
@@ -21062,10 +21267,14 @@ describe('ReportUtils', () => {
             await waitForBatchedUpdates();
 
             // When the next approver is somebody else, because getNextApproverAccountID skips past the submitter's own hop
-            expect(getNextApproverAccountID(report, undefined)).toBe(secondApproverAccountID);
+            const personalDetailsByLogins: PersonalDetailsByLogin = {
+                [currentUserEmail]: ownerPersonalDetails,
+                [secondApproverEmail]: {accountID: secondApproverAccountID, login: secondApproverEmail},
+            };
+            expect(getNextApproverAccountID(report, undefined, false, currentUserEmail, personalDetailsByLogins)).toBe(secondApproverAccountID);
 
             // Then submitting is still blocked, because the report is being submitted to the submitter themselves
-            expect(shouldBlockSubmitDueToPreventSelfApproval(report, policyWithPreventOn, undefined, ownerPersonalDetailsByLogin)).toBe(true);
+            expect(shouldBlockSubmitDueToPreventSelfApproval(report, policyWithPreventOn, undefined, ownerPersonalDetails)).toBe(true);
         });
 
         it('should return false when preventSelfApproval is true, report is open, and owner is not same as next approver', async () => {
@@ -21101,7 +21310,7 @@ describe('ReportUtils', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policyWithPreventOn);
             await waitForBatchedUpdates();
 
-            expect(shouldBlockSubmitDueToPreventSelfApproval(report, policyWithPreventOn, undefined, ownerPersonalDetailsByLogin)).toBe(false);
+            expect(shouldBlockSubmitDueToPreventSelfApproval(report, policyWithPreventOn, undefined, ownerPersonalDetails)).toBe(false);
         });
 
         it('should return false when preventSelfApproval is true but report is not open or processing', () => {
@@ -21119,7 +21328,52 @@ describe('ReportUtils', () => {
                 stateNum: CONST.REPORT.STATE_NUM.APPROVED,
                 statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
             };
-            expect(shouldBlockSubmitDueToPreventSelfApproval(approvedReport, policyWithPreventOn, undefined, ownerPersonalDetailsByLogin)).toBe(false);
+            expect(shouldBlockSubmitDueToPreventSelfApproval(approvedReport, policyWithPreventOn, undefined, ownerPersonalDetails)).toBe(false);
+        });
+
+        it('should return false when the owner login is unknown, even though the open report submits to its owner', async () => {
+            // Given an advanced-workflow policy where the submitter submits to themselves and then forwards to a second approver
+            const secondApproverEmail = 'owner@test.com';
+            const policyWithPreventOn: Policy = {
+                ...createRandomPolicy(103),
+                id: policyID,
+                type: CONST.POLICY.TYPE.CORPORATE,
+                preventSelfApproval: true,
+                approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
+                approver: secondApproverEmail,
+                owner: secondApproverEmail,
+                employeeList: {
+                    [currentUserEmail]: {
+                        email: currentUserEmail,
+                        role: CONST.POLICY.ROLE.USER,
+                        submitsTo: currentUserEmail,
+                        forwardsTo: secondApproverEmail,
+                    },
+                    [secondApproverEmail]: {
+                        email: secondApproverEmail,
+                        role: CONST.POLICY.ROLE.ADMIN,
+                        submitsTo: '',
+                    },
+                },
+            };
+            const report: Report = {
+                ...createExpenseReport(1),
+                reportID: 'prevent-self-report-open-unknown-owner',
+                ownerAccountID: currentUserAccountID,
+                managerID: currentUserAccountID,
+                policyID,
+                type: CONST.REPORT.TYPE.EXPENSE,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+            };
+            await Onyx.merge(ONYXKEYS.SESSION, {email: currentUserEmail, accountID: currentUserAccountID});
+            await waitForBatchedUpdates();
+
+            // When checking whether Submit is blocked without the owner's login or personal details
+            const result = shouldBlockSubmitDueToPreventSelfApproval(report, policyWithPreventOn, undefined, undefined);
+
+            // Then Submit isn't blocked, because an unknown owner login is never treated as the login the report submits to
+            expect(result).toBe(false);
         });
     });
 
@@ -22223,6 +22477,7 @@ describe('ReportUtils', () => {
             hasGuidesEmails: false,
             conciergeReportID: undefined,
             derivedIsEmptyReport: undefined,
+            pendingExpenseActionMetadata: undefined,
         });
 
         expect(reason).toBe(CONST.REPORT_IN_LHN_REASONS.HAS_GBR);
@@ -22285,6 +22540,7 @@ describe('ReportUtils', () => {
             hasGuidesEmails: false,
             conciergeReportID: undefined,
             derivedIsEmptyReport: undefined,
+            pendingExpenseActionMetadata: undefined,
         });
 
         expect(reason).toBe(CONST.REPORT_IN_LHN_REASONS.DEFAULT);
@@ -22468,7 +22724,7 @@ describe('ReportUtils', () => {
             });
             expect(reasonForAttention?.reason).toBe(CONST.REQUIRES_ATTENTION_REASONS.HAS_CHILD_REPORT_AWAITING_ACTION);
 
-            const requiresAttention = requiresAttentionFromCurrentUser(expenseReport, currentUserEmail, currentUserAccountID, undefined, undefined, false);
+            const requiresAttention = requiresAttentionFromCurrentUser(expenseReport, currentUserEmail, currentUserAccountID, undefined, undefined, undefined, false);
             expect(requiresAttention).toBe(true);
 
             const reasonForOptionList = reasonForReportToBeInOptionList({
@@ -22485,6 +22741,7 @@ describe('ReportUtils', () => {
                 hasGuidesEmails: false,
                 conciergeReportID: undefined,
                 derivedIsEmptyReport: undefined,
+                pendingExpenseActionMetadata: undefined,
             });
 
             expect(reasonForOptionList).toBe(CONST.REPORT_IN_LHN_REASONS.HAS_GBR);
@@ -22522,7 +22779,7 @@ describe('ReportUtils', () => {
             });
             expect(reasonForAttention?.reason).toBe(undefined);
 
-            const requiresAttention = requiresAttentionFromCurrentUser(expenseReport, currentUserEmail, currentUserAccountID, undefined, undefined, false);
+            const requiresAttention = requiresAttentionFromCurrentUser(expenseReport, currentUserEmail, currentUserAccountID, undefined, undefined, undefined, false);
             expect(requiresAttention).toBe(false);
 
             const reasonForOptionList = reasonForReportToBeInOptionList({
@@ -22539,6 +22796,7 @@ describe('ReportUtils', () => {
                 hasGuidesEmails: false,
                 conciergeReportID: undefined,
                 derivedIsEmptyReport: undefined,
+                pendingExpenseActionMetadata: undefined,
             });
 
             expect(reasonForOptionList).toBe(null);
@@ -23842,6 +24100,7 @@ describe('ReportUtils', () => {
             hasGuidesEmails: false,
             conciergeReportID: undefined,
             derivedIsEmptyReport: undefined,
+            pendingExpenseActionMetadata: undefined,
             currentUserAccountID: adminAccountID,
         });
 
@@ -24027,6 +24286,7 @@ describe('ReportUtils', () => {
             hasGuidesEmails: false,
             conciergeReportID: undefined,
             derivedIsEmptyReport: undefined,
+            pendingExpenseActionMetadata: undefined,
         });
 
         expect(reason).toBe(CONST.REPORT_IN_LHN_REASONS.DEFAULT);
@@ -24231,6 +24491,7 @@ describe('ReportUtils', () => {
             hasGuidesEmails: false,
             conciergeReportID: undefined,
             derivedIsEmptyReport: undefined,
+            pendingExpenseActionMetadata: undefined,
         });
 
         expect(reasonBeforeDelete).toBe(CONST.REPORT_IN_LHN_REASONS.HAS_GBR);
@@ -24256,6 +24517,7 @@ describe('ReportUtils', () => {
             hasGuidesEmails: false,
             conciergeReportID: undefined,
             derivedIsEmptyReport: undefined,
+            pendingExpenseActionMetadata: undefined,
         });
 
         expect(reasonAfterDelete).toBe(CONST.REPORT_IN_LHN_REASONS.IS_ARCHIVED);
@@ -24359,6 +24621,7 @@ describe('ReportUtils', () => {
             hasGuidesEmails: false,
             conciergeReportID: undefined,
             derivedIsEmptyReport: undefined,
+            pendingExpenseActionMetadata: undefined,
         });
 
         expect(reasonBeforeRemoval).toBe(CONST.REPORT_IN_LHN_REASONS.HAS_GBR);
@@ -24402,6 +24665,7 @@ describe('ReportUtils', () => {
             hasGuidesEmails: false,
             conciergeReportID: undefined,
             derivedIsEmptyReport: undefined,
+            pendingExpenseActionMetadata: undefined,
         });
 
         expect(reasonAfterRemoval).toBe(CONST.REPORT_IN_LHN_REASONS.HAS_GBR);
@@ -26119,6 +26383,7 @@ describe('ReportUtils', () => {
                 hasGuidesEmails: false,
                 conciergeReportID: undefined,
                 derivedIsEmptyReport: undefined,
+                pendingExpenseActionMetadata: undefined,
             });
             expect(reason).toBe(CONST.REPORT_IN_LHN_REASONS.HAS_GBR);
 
@@ -26175,6 +26440,7 @@ describe('ReportUtils', () => {
                 hasGuidesEmails: false,
                 conciergeReportID: undefined,
                 derivedIsEmptyReport: undefined,
+                pendingExpenseActionMetadata: undefined,
             });
             expect(reason).toBe(CONST.REPORT_IN_LHN_REASONS.DEFAULT);
 
@@ -29083,7 +29349,7 @@ describe('ReportUtils', () => {
             expect(getOutstandingChildRequest(expenseReport).hasOutstandingChildRequest).toBe(true);
 
             // GBR shows on the workspace chat
-            expect(requiresAttentionFromCurrentUser(policyExpenseChat, currentUserEmail, currentUserAccountID, undefined)).toBe(true);
+            expect(requiresAttentionFromCurrentUser(policyExpenseChat, currentUserEmail, currentUserAccountID, undefined, undefined)).toBe(true);
 
             const reason = reasonForReportToBeInOptionList({
                 report: policyExpenseChat,
@@ -29099,6 +29365,7 @@ describe('ReportUtils', () => {
                 hasGuidesEmails: false,
                 conciergeReportID: undefined,
                 derivedIsEmptyReport: undefined,
+                pendingExpenseActionMetadata: undefined,
             });
             expect(reason).toBe(CONST.REPORT_IN_LHN_REASONS.HAS_GBR);
 
@@ -29156,7 +29423,7 @@ describe('ReportUtils', () => {
             expect(getOutstandingChildRequest(expenseReport)).toEqual({});
 
             // The workspace chat still has hasOutstandingChildRequest: true, so GBR persists
-            expect(requiresAttentionFromCurrentUser(policyExpenseChat, currentUserEmail, currentUserAccountID, undefined)).toBe(true);
+            expect(requiresAttentionFromCurrentUser(policyExpenseChat, currentUserEmail, currentUserAccountID, undefined, undefined)).toBe(true);
 
             const reason = reasonForReportToBeInOptionList({
                 report: policyExpenseChat,
@@ -29172,6 +29439,7 @@ describe('ReportUtils', () => {
                 hasGuidesEmails: false,
                 conciergeReportID: undefined,
                 derivedIsEmptyReport: undefined,
+                pendingExpenseActionMetadata: undefined,
             });
             expect(reason).toBe(CONST.REPORT_IN_LHN_REASONS.HAS_GBR);
 
@@ -29670,6 +29938,27 @@ describe('ReportUtils', () => {
             const details = getTransactionDetails(transaction);
 
             expect(details?.taxValue).toBe('10%');
+        });
+
+        it('should keep the negative sign of a deleted workspace expense when no policy is passed', () => {
+            // Given a deleted workspace expense, which is stored with the opposite sign and whose report can no longer be resolved
+            const transaction = buildOptimisticTransaction({
+                transactionParams: {
+                    amount: 500,
+                    currency: 'USD',
+                    reportID: CONST.REPORT.TRASH_REPORT_ID,
+                    comment: '',
+                    created: '2024-01-01',
+                    taxAmount: 50,
+                },
+            });
+
+            // When getting its details without a policy
+            const details = getTransactionDetails(transaction);
+
+            // Then the expense report sign convention is applied to the amount and the tax amount
+            expect(details?.amount).toBe(-500);
+            expect(details?.taxAmount).toBe(-50);
         });
 
         it.each([CONST.LOCALES.DE, CONST.LOCALES.JA])('keeps default transaction dates machine-readable in %s', async (locale) => {
@@ -33136,5 +33425,58 @@ describe('isReportTransactionThreadNew', () => {
         // When checking it
         // Then it is not a transaction thread
         expect(isReportTransactionThreadNew({parentReportID: '1'}, {type: CONST.REPORT.TYPE.EXPENSE}, buildIOUAction(CONST.IOU.REPORT_ACTION_TYPE.CREATE))).toBe(false);
+    });
+});
+
+describe('getReportFieldOptionExternalID', () => {
+    const buildListField = (values: string[], externalIDs: string[], disabledOptions: boolean[]): PolicyReportField => ({
+        fieldID: 'field_id_LOCATION',
+        name: 'Location',
+        type: CONST.REPORT_FIELD_TYPES.LIST,
+        defaultValue: '',
+        orderWeight: 1,
+        deletable: false,
+        target: CONST.REPORT_FIELD_TARGETS.EXPENSE,
+        values,
+        keys: externalIDs,
+        externalIDs,
+        disabledOptions,
+        isTax: false,
+    });
+
+    it('returns the external ID at the position of the matching option', () => {
+        // Given a list field whose options each have their own external ID
+        const field = buildListField(['Corporate / Marketing', 'SW Sales / Marketing', 'Advisory / Consulting'], ['46', '336', '21'], [false, false, false]);
+
+        // When looking up an option by its name
+        // Then the ID at that option's position comes back, so the export gets the option the user picked
+        expect(getReportFieldOptionExternalID(field, 'SW Sales / Marketing')).toBe('336');
+    });
+
+    it('prefers an enabled option over a disabled option with the same name', () => {
+        // Given two options with the same name where only the second one is enabled, as the dropdown only offers enabled options
+        const field = buildListField(['Location A', 'Location A'], ['1', '2'], [true, false]);
+
+        // When looking up that name
+        // Then the enabled option's ID comes back, because that is the only one the user could have picked
+        expect(getReportFieldOptionExternalID(field, 'Location A')).toBe('2');
+    });
+
+    it('returns the disabled option ID when no enabled option has the name', () => {
+        // Given a saved value that only matches a disabled option
+        const field = buildListField(['Location A', 'Location B'], ['1', '2'], [true, false]);
+
+        // When looking up that name
+        // Then that option's ID still comes back, so the value keeps its own ID instead of none
+        expect(getReportFieldOptionExternalID(field, 'Location A')).toBe('1');
+    });
+
+    it('returns an empty string when no option has the name', () => {
+        // Given a value that is not one of the field's options
+        const field = buildListField(['Location A'], ['1'], [false]);
+
+        // When looking it up
+        // Then no ID comes back, instead of the ID of some other option
+        expect(getReportFieldOptionExternalID(field, 'Location B')).toBe('');
     });
 });

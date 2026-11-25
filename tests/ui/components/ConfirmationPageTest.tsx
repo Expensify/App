@@ -3,10 +3,14 @@ import {render} from '@testing-library/react-native';
 import ConfirmationPage from '@components/ConfirmationPage';
 import Lottie from '@components/Lottie';
 
+import type {ViewStyle} from 'react-native';
+
 import React from 'react';
 // Use React Native Animated to exercise the native Animated.Value dimension accepted by ViewStyle.
 // eslint-disable-next-line no-restricted-imports
 import {Animated} from 'react-native';
+
+import createMock from '../../utils/createMock';
 
 jest.mock('@components/Lottie', () => ({
     __esModule: true,
@@ -58,7 +62,7 @@ describe('ConfirmationPage Lottie web dimensions', () => {
         const animatedWidth = new Animated.Value(40);
 
         // When the shared component receives both animated and supported dimensions.
-        render(<ConfirmationPage.Illustration illustrationStyle={{width: animatedWidth, height: '75%'}} />);
+        render(<ConfirmationPage.Illustration illustrationStyle={Object.assign(createMock<ViewStyle>({height: '75%'}), {width: animatedWidth})} />);
         const lottieProps = jest.mocked(Lottie).mock.calls.at(-1)?.at(0);
         expect(lottieProps).toBeDefined();
         // Then only the web width falls back while the native animation keeps its style.

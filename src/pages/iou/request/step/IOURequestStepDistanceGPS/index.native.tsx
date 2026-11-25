@@ -12,6 +12,7 @@ import useMoneyRequestPolicyTagsForReport from '@hooks/useMoneyRequestPolicyTags
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
+import {useGetPersonalDetailsByLogin} from '@hooks/usePersonalDetailByLogin';
 import {useAllPersonalDetails} from '@hooks/usePersonalDetails';
 import usePersonalPolicy from '@hooks/usePersonalPolicy';
 import usePolicy from '@hooks/usePolicy';
@@ -116,6 +117,7 @@ function IOURequestStepDistanceGPS({
 
     const shouldSkipConfirmation = !skipConfirmation || !report?.reportID ? false : !(isArchived || isPolicyExpenseChatUtils(report));
 
+    const getPersonalDetailsByLogin = useGetPersonalDetailsByLogin();
     const policyTagList = useMoneyRequestPolicyTagsForReport({report, currentUserAccountID: currentUserAccountIDParam});
 
     const {participants, participantsPolicyTags} = useMoneyRequestParticipantsPolicyTags({
@@ -170,6 +172,7 @@ function IOURequestStepDistanceGPS({
             waypoints,
             currentUserLogin: currentUserEmailParam,
             currentUserAccountID: currentUserAccountIDParam,
+            currentUserPersonalDetails,
             currentUserLocalCurrency: currentUserPersonalDetails.localCurrencyCode ?? CONST.CURRENCY.USD,
             backToReport,
             shouldSkipConfirmation,
@@ -208,6 +211,7 @@ function IOURequestStepDistanceGPS({
             participants,
             participantsPolicyTags,
             rules,
+            personalDetailsByLogins: getPersonalDetailsByLogin(),
         });
     };
 

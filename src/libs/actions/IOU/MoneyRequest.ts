@@ -58,6 +58,7 @@ import type {
 } from '@src/types/onyx';
 import type {ReportAttributesDerivedValue} from '@src/types/onyx/DerivedValues';
 import type {Accountant, Attendee, Participant} from '@src/types/onyx/IOU';
+import type {CurrentUserPersonalDetails} from '@src/types/onyx/PersonalDetails';
 import type {Unit} from '@src/types/onyx/Policy';
 import type {Comment, Receipt, SplitShares} from '@src/types/onyx/Transaction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -81,6 +82,7 @@ type CreateTransactionParams = {
     report: OnyxEntry<Report>;
     currentUserAccountID: number;
     currentUserEmail?: string;
+    currentUserPersonalDetails: CurrentUserPersonalDetails;
     shouldGenerateTransactionThreadReport: boolean;
     isASAPSubmitBetaEnabled: boolean;
     transactionViolations?: OnyxCollection<TransactionViolation[]>;
@@ -133,6 +135,7 @@ function createTransaction({
     report,
     currentUserAccountID,
     currentUserEmail,
+    currentUserPersonalDetails,
     shouldGenerateTransactionThreadReport,
     isASAPSubmitBetaEnabled,
     transactionViolations,
@@ -212,6 +215,7 @@ function createTransaction({
                     accountID: currentUserAccountID,
                     email: currentUserEmail ?? '',
                 },
+                currentUserPersonalDetails,
                 introSelected,
                 conciergeChat,
                 quickAction,

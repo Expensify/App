@@ -516,6 +516,7 @@ type MergeReportsProps = {
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
     getCurrencySymbol: CurrencyListActionsContextType['getCurrencySymbol'];
     isVendorMatchingBetaEnabled: boolean | undefined;
+    isChatReportArchived: boolean;
     currentUserPersonalDetails: CurrentUserPersonalDetails;
     personalDetailsByLogins: PersonalDetailsByLogin;
 };
@@ -4850,7 +4851,7 @@ type BuildNewReportOptimisticDataParams = {
     isTrackIntentUser: boolean | undefined;
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
     rules: OnyxCollection<Rule>;
-    personalDetailsByLogins?: PersonalDetailsByLogin;
+    personalDetailsByLogins: PersonalDetailsByLogin;
     reportName?: string;
 };
 
@@ -5113,7 +5114,7 @@ type CreateNewReportParams = {
     isTrackIntentUser: boolean | undefined;
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
     rules: OnyxCollection<Rule>;
-    personalDetailsByLogins?: PersonalDetailsByLogin;
+    personalDetailsByLogins: PersonalDetailsByLogin;
     shouldNotifyNewAction?: boolean;
     shouldDismissEmptyReportsConfirmation?: boolean;
     managedCardTransactionID?: string;
@@ -7503,6 +7504,7 @@ type DeleteAppReportProps = {
     bankAccountList: OnyxEntry<BankAccountList>;
     delegateAccountID: number | undefined;
     hash?: number;
+    isChatReportArchived: boolean;
 };
 
 function buildOptimisticDeleteParentReportAction(
@@ -7578,6 +7580,7 @@ function clearChatIOUReportID(
     currentUserAccountIDParam: number,
     allTransactionViolations: OnyxCollection<TransactionViolations>,
     bankAccountList: OnyxEntry<BankAccountList>,
+    isChatReportArchived: boolean,
 ) {
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT>> = [];
     const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.SNAPSHOT>> = [];
@@ -7593,7 +7596,15 @@ function clearChatIOUReportID(
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`,
             value: {
-                hasOutstandingChildRequest: hasOutstandingChildRequest(chatReport, reports, currentUserEmailParam, currentUserAccountIDParam, allTransactionViolations, bankAccountList),
+                hasOutstandingChildRequest: hasOutstandingChildRequest(
+                    chatReport,
+                    reports,
+                    currentUserEmailParam,
+                    currentUserAccountIDParam,
+                    allTransactionViolations,
+                    bankAccountList,
+                    isChatReportArchived,
+                ),
                 ...(shouldClearChatIOUReportID ? {iouReportID: null} : {}),
             },
         });
@@ -7624,6 +7635,7 @@ function deleteAppReport({
     bankAccountList,
     delegateAccountID,
     hash,
+    isChatReportArchived,
 }: DeleteAppReportProps) {
     if (!report?.reportID) {
         Log.warn('[Report] deleteAppReport called with no reportID');
@@ -7985,6 +7997,7 @@ function deleteAppReport({
         currentUserAccountIDParam,
         allTransactionViolations,
         bankAccountList,
+        isChatReportArchived,
     );
     optimisticData.push(...clearChatIOUOptimisticData);
     failureData.push(...clearChatIOUFailureData);
@@ -8548,7 +8561,7 @@ function buildOptimisticChangePolicyData({
     const reportIDToThreadsReportIDsMap = buildReportIDToThreadsReportIDsMap();
     updatePolicyIdForReportAndThreads(reportID, policy.id, reportIDToThreadsReportIDsMap, optimisticData, failureData);
 
-    const newManagerAccountID = getSubmitToAccountID(policy, report, ownerLogin, rules);
+    const newManagerAccountID = getSubmitToAccountID(policy, report, ownerLogin, rules, personalDetailsByLogins);
     const shouldResetApprovalChain = isProcessingReport(report) && newManagerAccountID !== report.managerID && managerLogin && isPolicyMember(policy, managerLogin);
     if (shouldResetApprovalChain) {
         optimisticData.push({
@@ -9372,6 +9385,7 @@ function mergeReports({
     getCurrencyDecimals,
     getCurrencySymbol,
     isVendorMatchingBetaEnabled,
+    isChatReportArchived,
     currentUserPersonalDetails,
     personalDetailsByLogins,
 }: MergeReportsProps) {
@@ -9500,6 +9514,7 @@ function mergeReports({
         accountID,
         allTransactionViolation,
         bankAccountList,
+        isChatReportArchived,
     );
     deleteOptimisticData.push(...clearChatIOUOptimisticData);
     deleteFailureData.push(...clearChatIOUFailureData);

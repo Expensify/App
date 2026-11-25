@@ -169,7 +169,7 @@ function AccountingContextProvider({children, policy}: AccountingContextProvider
             ...(accountingIntegrationData?.hasUnmetConnectPrerequisite ? {integrationToDisconnect: undefined, shouldDisconnectIntegrationBeforeConnecting: false} : {}),
             key: Math.random(),
         };
-        // The setup pages redirect to More features while Connections is off, so they open a frame later, once the policy shows it on
+        // The setup pages redirect away while the accounting feature is off, so they open a frame later, once the policy shows it on
         if (shouldEnableConnections) {
             requestAnimationFrame(() => setActiveIntegration(activeIntegrationToStart));
         } else {
