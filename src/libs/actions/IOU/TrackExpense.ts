@@ -2219,6 +2219,8 @@ function convertBulkTrackedExpensesToIOU({
             formatPhoneNumber,
             getCurrencyDecimals,
             rules,
+            // Only IOU reports are converted here, and they have no next approver to look up
+            personalDetailsByLogins: undefined,
             parentChatReportActions: chatReportActions,
             // The IOU report is already known here and its report preview action can only live in its own chat report,
             // so a chat found by participants would never contain it.
