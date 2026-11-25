@@ -17,11 +17,14 @@ import YesNoAdapter from '@components/DynamicForm/adapters/YesNoAdapter';
 import DynamicFormFields from '@components/DynamicForm/components/DynamicFormFields';
 import type {DynamicFormValues} from '@components/DynamicForm/types';
 import getAddressInputKeys from '@components/DynamicForm/utils/getAddressInputKeys';
+import {getAllFields, getPages} from '@components/DynamicForm/utils/paginate';
 import type {FormValue} from '@components/Form/types';
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import PercentageForm from '@components/PercentageForm';
 import RadioButtons from '@components/RadioButtons';
 import TextInput from '@components/TextInput';
+
+import WiseUSOnboardingForm from '@pages/settings/Wallet/EnableGlobalReimbursements/Wise/forms/US';
 
 import variables from '@styles/variables';
 
@@ -388,6 +391,17 @@ describe('DynamicFormFields', () => {
         // Then the street input takes the schema's length, and no limit without one, since the server checks what a form does not
         expect(rendered.get('homeAddress')?.maxInputLength).toBe(255);
         expect(rendered.get('workAddress')?.maxInputLength).toBeUndefined();
+    });
+
+    it('keeps the street of the Wise business onboarding address to the form character limit', () => {
+        // Given the address the US onboarding form asks the representative for
+        const representativeAddress = getAllFields(getPages(WiseUSOnboardingForm)).find((field) => field.type === 'address');
+
+        // When it is drawn
+        const rendered = renderFields(representativeAddress ? [representativeAddress] : []);
+
+        // Then its street input stops at the form character limit, since the street input has no limit of its own
+        expect(rendered.get(representativeAddress?.key ?? '')?.maxInputLength).toBe(CONST.FORM_CHARACTER_LIMIT);
     });
 
     it('lists every country when the address field sends an empty country list', () => {
