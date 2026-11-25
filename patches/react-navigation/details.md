@@ -136,7 +136,7 @@
   - Without the option nothing changes, and a bar without hosted routes keeps the view hierarchy it had.
 - Upstream PR/issue: not reported, because it builds on patch 003, which has no upstream counterpart.
 - E/App issue: [#105632](https://github.com/Expensify/App/issues/105632), [#107339](https://github.com/Expensify/App/issues/107339)
-- PR Introducing Patch: N/A (draft, to be filled in when the PR is opened)
+- PR Introducing Patch: [#107991](https://github.com/Expensify/App/pull/107991)
 - PR Updating Patch: N/A
 
 ### Removed patches
