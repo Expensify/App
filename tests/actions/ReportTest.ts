@@ -47,10 +47,11 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {Attendee} from '@src/types/onyx/IOU';
+import type {SearchResultDataType} from '@src/types/onyx/SearchResults';
 import type {FileObject} from '@src/types/utils/Attachment';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
-import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
+import type {NullishDeep, OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 
 import {addMinutes, addSeconds, format, subMinutes} from 'date-fns';
 import {toZonedTime} from 'date-fns-tz';
@@ -5212,6 +5213,58 @@ describe('actions/Report', () => {
             expect(snapshotData?.data?.[`${ONYXKEYS.COLLECTION.POLICY}${newPolicy.id}`]).toBeDefined();
         });
 
+        it('clears the workspace amount from Search when the new workspace uses another currency', async () => {
+            // Given a search holding one expense of a USD workspace report converted to USD, and an expense on another report
+            const expenseReport: OnyxTypes.Report = {
+                ...createRandomReport(1, undefined),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                policyID: '1',
+                currency: CONST.CURRENCY.USD,
+            };
+            const searchedExpense = {...createRandomTransaction(1), transactionID: 'searchedExpense', reportID: expenseReport.reportID};
+            const missingExpense = {...createRandomTransaction(2), transactionID: 'missingExpense', reportID: expenseReport.reportID};
+            const snapshotKey = `${ONYXKEYS.COLLECTION.SNAPSHOT}${currentHash}` as const;
+            const data: NullishDeep<SearchResultDataType> = {};
+            data[`${ONYXKEYS.COLLECTION.TRANSACTION}searchedExpense`] = {...searchedExpense, policyConvertedAmount: -12000, policyCurrency: CONST.CURRENCY.USD};
+            data[`${ONYXKEYS.COLLECTION.TRANSACTION}otherExpense`] = {
+                transactionID: 'otherExpense',
+                reportID: 'otherReport',
+                policyConvertedAmount: -5000,
+                policyCurrency: CONST.CURRENCY.USD,
+            };
+            await Onyx.merge(snapshotKey, {data});
+            const newPolicy = {...createRandomPolicy(2), outputCurrency: CONST.CURRENCY.EUR};
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${newPolicy.id}`, newPolicy);
+
+            // When the report moves to a EUR workspace
+            Report.changeReportPolicy({
+                report: expenseReport,
+                getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
+                rules: undefined,
+                delegateAccountID: undefined,
+                personalDetailsByLogins: {},
+                parentReport: undefined,
+                policy: newPolicy,
+                currentUserAccountID: 1,
+                email: '',
+                managerLogin: '',
+                hasViolationsParam: false,
+                isChangePolicyTrainingModalDismissed: false,
+                ownerLogin: undefined,
+                isASAPSubmitBetaEnabled: false,
+                reportPreviewAction: undefined,
+                isTrackIntentUser: false,
+                reportTransactions: [searchedExpense, missingExpense],
+            });
+            await waitForBatchedUpdates();
+
+            // Then the moved expense loses its USD amount, the other report's expense keeps it, and no entry is added for the expense the search doesn't hold
+            const snapshot = await getOnyxValue(snapshotKey);
+            expect(snapshot?.data?.[`${ONYXKEYS.COLLECTION.TRANSACTION}searchedExpense`]?.policyConvertedAmount).toBeUndefined();
+            expect(snapshot?.data?.[`${ONYXKEYS.COLLECTION.TRANSACTION}otherExpense`]?.policyConvertedAmount).toBe(-5000);
+            expect(snapshot?.data?.[`${ONYXKEYS.COLLECTION.TRANSACTION}missingExpense`]).toBeUndefined();
+        });
+
         it('should update the chatReportID and parentReportID to the new policy expense chat report ID', async () => {
             // Given an expense report
             const expenseReport: OnyxTypes.Report = {
@@ -5968,6 +6021,30 @@ describe('actions/Report', () => {
                 });
             });
             expect(Object.values(reportActions ?? {}).at(0)?.actionName).toBe(CONST.REPORT.ACTIONS.TYPE.MOVED);
+        });
+
+        it('clears the workspace amount from Search for the moved expenses', async () => {
+            // Given a search holding an IOU expense, whose amount Search left in its own currency because it had no workspace
+            const ownerAccountID = 1;
+            const ownerEmail = 'owner@gmail.com';
+            const iouReport: OnyxTypes.Report = {...createRandomReport(1, undefined), type: CONST.REPORT.TYPE.IOU, ownerAccountID};
+            const policy: OnyxTypes.Policy = {...createRandomPolicy(1), role: CONST.POLICY.ROLE.ADMIN, employeeList: {[ownerEmail]: {email: ownerEmail, role: CONST.POLICY.ROLE.USER}}};
+            const iouExpense = {...createRandomTransaction(1), transactionID: 'iouExpense', reportID: iouReport.reportID};
+            const snapshotKey = `${ONYXKEYS.COLLECTION.SNAPSHOT}${currentHash}` as const;
+            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {[ownerAccountID]: {login: ownerEmail}});
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`, iouReport);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
+            const data: NullishDeep<SearchResultDataType> = {};
+            data[`${ONYXKEYS.COLLECTION.TRANSACTION}iouExpense`] = {...iouExpense, policyConvertedAmount: 10000, policyCurrency: CONST.CURRENCY.EUR};
+            await Onyx.merge(snapshotKey, {data});
+
+            // When the IOU report moves to a workspace
+            Report.moveIOUReportToPolicy(iouReport, policy, undefined, TestHelper.getCurrencyDecimalsLocal, undefined, false, [iouExpense]);
+            await waitForBatchedUpdates();
+
+            // Then the expense shows its own amount until the next search, because Search computed it without a workspace and with the IOU sign
+            const snapshot = await getOnyxValue(snapshotKey);
+            expect(snapshot?.data?.[`${ONYXKEYS.COLLECTION.TRANSACTION}iouExpense`]?.policyConvertedAmount).toBeUndefined();
         });
 
         it('should return undefined when iouReport is not an IOU report', () => {
