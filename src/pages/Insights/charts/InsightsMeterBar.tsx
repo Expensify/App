@@ -8,14 +8,23 @@ import variables from '@styles/variables';
 
 import React, {useId} from 'react';
 import {View} from 'react-native';
-import Svg, {Defs, Pattern, Rect} from 'react-native-svg';
+import Svg, {Defs, Path, Pattern, Rect} from 'react-native-svg';
 
 import InsightsAverageMarker from './InsightsAverageMarker';
 
-/** Distance between the starts of two hatch stripes, and the width of one stripe */
+/** Distance between two hatch stripes, and the width of one stripe */
 const HATCH_SPACING = 4;
 const HATCH_STRIPE_WIDTH = 2;
-const HATCH_ANGLE = 45;
+
+/** Side of the square tile one 45° stripe crosses corner to corner, so the stripes keep their spacing */
+const HATCH_TILE_SIZE = HATCH_SPACING * Math.SQRT2;
+
+const HATCH_SEGMENTS = [
+    [0, 1, 1, 0],
+    [-0.5, 0.5, 0.5, -0.5],
+    [0.5, 1.5, 1.5, 0.5],
+];
+const HATCH_PATH = HATCH_SEGMENTS.map(([x1, y1, x2, y2]) => `M${x1 * HATCH_TILE_SIZE},${y1 * HATCH_TILE_SIZE} L${x2 * HATCH_TILE_SIZE},${y2 * HATCH_TILE_SIZE}`).join(' ');
 
 type InsightsMeterBarProps = {
     /** Bar length, as a percentage of the track */
@@ -52,14 +61,13 @@ function InsightsMeterBar({widthPercent, color, isHatched = false, averageWidthP
                                 <Pattern
                                     id={patternID}
                                     patternUnits="userSpaceOnUse"
-                                    width={HATCH_SPACING}
-                                    height={HATCH_SPACING}
-                                    patternTransform={`rotate(${HATCH_ANGLE})`}
+                                    width={HATCH_TILE_SIZE}
+                                    height={HATCH_TILE_SIZE}
                                 >
-                                    <Rect
-                                        width={HATCH_STRIPE_WIDTH}
-                                        height={HATCH_SPACING}
-                                        fill={color ?? colors.green400}
+                                    <Path
+                                        d={HATCH_PATH}
+                                        stroke={color ?? colors.green400}
+                                        strokeWidth={HATCH_STRIPE_WIDTH}
                                     />
                                 </Pattern>
                             </Defs>
