@@ -1500,6 +1500,19 @@ function buildQueryStringWithResetFilters(currentQueryJSON: SearchQueryJSON, def
         });
     }
 
+    // The reverse case: clearing a saved violation grouping's Has pill dropped the grouping, so bringing the Has pill back
+    // also brings back the grouping with the rest of the saved display (sorting, columns, chart view). Otherwise the
+    // search still differs from the saved one and keeps offering Save. A grouping chosen after clearing the Has pill is
+    // the user's own choice, so it stays.
+    if (
+        !currentQueryJSON.groupBy &&
+        defaultQueryJSON?.groupBy === CONST.SEARCH.GROUP_BY.VIOLATION &&
+        !queryHasHasFilter(currentQueryJSON, VIOLATION_HAS_VALUES) &&
+        queryHasHasFilter(resetQueryJSON, VIOLATION_HAS_VALUES)
+    ) {
+        return buildQueryStringWithResetDisplay(resetQueryJSON, defaultQueryJSON);
+    }
+
     return buildSearchQueryString(resetQueryJSON);
 }
 
@@ -2122,8 +2135,7 @@ function isSearchBeforeViolationsSnapshotStarted(queryJSON: SearchQueryJSON | un
 /**
  * Returns the start and end date range for a date preset.
  */
-function getDateRangeForPreset(preset: SearchDatePreset): {start: string; end: string} {
-    const now = new Date();
+function getDateRangeForPreset(preset: SearchDatePreset, now = new Date()): {start: string; end: string} {
     let start: Date;
     let end: Date;
     const lastWeek = subWeeks(now, 1);
