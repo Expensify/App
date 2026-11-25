@@ -3791,9 +3791,9 @@ function buildDuplicatePolicyData(sourcePolicy: Policy, options: DuplicatePolicy
                 if (!sourcePolicy.ruleBotAccountID) {
                     return true;
                 }
-                // Unresolved members could be the source RuleBot; Auth supplies their authoritative identities.
+                // Missing personal details must not remove human members or their approval rules while offline.
                 const accountID = personalDetailsByLogins[email]?.accountID;
-                return !!accountID && accountID !== sourcePolicy.ruleBotAccountID;
+                return accountID !== sourcePolicy.ruleBotAccountID;
             }),
         ),
     };

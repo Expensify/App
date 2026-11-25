@@ -750,8 +750,8 @@ describe('actions/Policy', () => {
             expect(source.employeeList?.[EMPLOYEE_EMAIL]?.pendingAction).toBe(pendingAction);
         });
 
-        it.each([true, false])('duplicate workspace omits the source RuleBot with personal details loaded: %s', async (hasBotDetails) => {
-            // Given a source with a RuleBot and failed member edits, plus an Onyx category tombstone.
+        it.each([true, false])('duplicate workspace retains human members with personal details loaded: %s', async (hasMemberDetails) => {
+            // Given an identified RuleBot and a human approver whose details may not have loaded yet.
             const sourceBotEmail = 'source-bot@example.com';
             const source: PolicyType = {
                 ...createRandomPolicy(36, CONST.POLICY.TYPE.CORPORATE),
@@ -760,13 +760,14 @@ describe('actions/Policy', () => {
                     [sourceBotEmail]: {email: sourceBotEmail, role: CONST.POLICY.ROLE.ADMIN},
                     [EMPLOYEE_EMAIL]: {email: EMPLOYEE_EMAIL, role: CONST.POLICY.ROLE.USER, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE, errors: {old: 'Source member error'}},
                 },
+                rules: {approvalRules: [{approver: EMPLOYEE_EMAIL, applyWhen: []}]},
             };
             const categories = {Kept: {name: 'Kept', enabled: true}};
             Object.defineProperty(categories, 'deleted', {value: null, enumerable: true});
             const targetPolicyID = Policy.generatePolicyID();
             mockFetch.pause();
 
-            // When Members and Categories are duplicated before the server provisions the new RuleBot.
+            // When Members, Merchant rules and Categories are duplicated before the server response.
             Policy.duplicateWorkspace(source, {
                 currentUserAccountID: ESH_ACCOUNT_ID,
                 currentUserEmail: ESH_EMAIL,
@@ -774,20 +775,21 @@ describe('actions/Policy', () => {
                 targetPolicyID,
                 policyName: 'Clean duplicate',
                 localCurrency: 'USD',
-                parts: ['members', 'categories'],
+                parts: ['members', 'categories', 'codingRules'],
                 policyCategories: categories,
                 personalDetailsByLogins: {
-                    ...(hasBotDetails ? {[sourceBotEmail]: {accountID: 999, login: sourceBotEmail}} : {}),
-                    [EMPLOYEE_EMAIL]: {accountID: 123, login: EMPLOYEE_EMAIL},
+                    [sourceBotEmail]: {accountID: 999, login: sourceBotEmail},
+                    ...(hasMemberDetails ? {[EMPLOYEE_EMAIL]: {accountID: 123, login: EMPLOYEE_EMAIL}} : {}),
                 },
             });
             await waitForBatchedUpdates();
 
-            // Then the duplicate has clean member data and no source bot identity or null category.
+            // Then the human and their approval rule survive without inheriting the identified source bot.
             const duplicate = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${targetPolicyID}`);
             expect(duplicate?.employeeList?.[sourceBotEmail]).toBeUndefined();
             expect(duplicate?.ruleBotAccountID).toBeUndefined();
             expect(duplicate?.employeeList?.[EMPLOYEE_EMAIL]).toEqual({email: EMPLOYEE_EMAIL, role: CONST.POLICY.ROLE.USER});
+            expect(duplicate?.rules?.approvalRules).toEqual([{approver: EMPLOYEE_EMAIL, applyWhen: []}]);
             expect(await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${targetPolicyID}`)).toEqual({
                 Kept: {name: 'Kept', enabled: true, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD},
             });
