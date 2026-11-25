@@ -2504,7 +2504,6 @@ function getNonMemberApproverError(approver: Approver | undefined, isDefaultWork
 }
 
 export {
-    addMembersToRule,
     applyApprovalWorkflowRulesDiff,
     buildApproverChainFromRules,
     getApproverChainKey,
@@ -2519,13 +2518,11 @@ export {
     getApproverTitles,
     getApproversFromImportedApprovers,
     getDefaultWorkflowRules,
-    getDefaultWorkflowSubmitterEmails,
     getDefaultFlaggedSubmittersOutsideWorkflow,
     buildMembersFromEmails,
     addMembersToDefaultWorkflowRules,
     buildApprovalWorkflowRulesDiffToUnflagMembers,
     mergeApprovalWorkflowRulesDiffs,
-    isEmployeeShownInApprovalWorkflows,
     getFirstApproverByMemberEmail,
     getEnforcedApprovalWorkflows,
     getEnforcedApprovalWorkflowsForMembers,
