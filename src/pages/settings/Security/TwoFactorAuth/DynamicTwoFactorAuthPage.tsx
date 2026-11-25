@@ -152,8 +152,7 @@ function DynamicTwoFactorAuthPage({navigation, route}: DynamicTwoFactorAuthPageP
             return;
         }
 
-        // Wait for the security code, so the secret and recovery codes are only created once the user has shown they can read
-        // their email
+        // Wait for the security code, so the setup emails it before creating the secret and recovery codes
         if (!securityCode) {
             return;
         }
@@ -172,8 +171,8 @@ function DynamicTwoFactorAuthPage({navigation, route}: DynamicTwoFactorAuthPageP
     }, [isUserValidated, isFocused, is2FAEnabled, is2FASetupInProgress, recoveryCodes, securityCode]);
 
     // The server only turns on 2FA when it also gets a security code emailed to the account, so someone with a stolen session
-    // can't lock the owner out. Asking for it first means the user proves they can read their email before anything else,
-    // and it comes before the authenticator code because that code expires within a minute.
+    // can't lock the owner out. The server checks this code on the verify step, together with the authenticator code. It is
+    // asked for first because the authenticator code expires within a minute and checking email can take longer.
     if (isUserValidated && !is2FAEnabled && !securityCode) {
         return (
             <TwoFactorAuthWrapper
