@@ -1,16 +1,12 @@
 import type {DynamicFormValues} from '@components/DynamicForm/types';
 
-import type AddressFormFields from '@pages/ReimbursementAccount/AddressFormFields';
+import type {AddressInputKeys} from '@pages/ReimbursementAccount/AddressFormFields';
 
 import CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
 import STATES_BY_COUNTRY from '@src/CONST/STATES_BY_COUNTRY';
 
-import type {ComponentProps} from 'react';
-
 import isCountryCode from './isCountryCode';
-
-type AddressInputKeys = ComponentProps<typeof AddressFormFields>['inputKeys'];
 
 /**
  * Draft keys for AddressFormFields. The street is the field's own value, and an empty key tells AddressSearch to drop that part, such as the place `name`.

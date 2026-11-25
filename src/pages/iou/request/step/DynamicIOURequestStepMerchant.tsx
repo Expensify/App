@@ -145,6 +145,7 @@ function DynamicIOURequestStepMerchant({
                 ONYXKEYS.NVP_INTRO_SELECTED,
             ]);
             updateMoneyRequestMerchant({
+                translate,
                 isVendorMatchingBetaEnabled,
                 transactionID,
                 transaction,

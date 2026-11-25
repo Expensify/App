@@ -2,7 +2,6 @@ import DatePicker from '@components/DatePicker';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormOnyxValues} from '@components/Form/types';
-import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 
@@ -19,7 +18,6 @@ import {updateStatusDraftCustomClearAfterDate} from '@userActions/User';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/SettingsStatusClearDateForm';
-import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 import React from 'react';
 
@@ -29,7 +27,7 @@ type DateTime = {
 function SetDatePage() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const [statusDraftCustomClearAfterDate, statusDraftCustomClearAfterDateMetaData] = useOnyx(ONYXKEYS.STATUS_DRAFT_CUSTOM_CLEAR_AFTER_DATE);
+    const [statusDraftCustomClearAfterDate] = useOnyx(ONYXKEYS.STATUS_DRAFT_CUSTOM_CLEAR_AFTER_DATE);
     const customStatusClearAfterDate = statusDraftCustomClearAfterDate ?? '';
 
     const onSubmit = (value: DateTime) => {
@@ -47,12 +45,6 @@ function SetDatePage() {
 
         return errors;
     };
-
-    const isLoadingStatusDraft = isLoadingOnyxValue(statusDraftCustomClearAfterDateMetaData);
-
-    if (isLoadingStatusDraft) {
-        return <FullScreenLoadingIndicator onGoBack={() => Navigation.goBack(ROUTES.SETTINGS_STATUS_CLEAR_AFTER)} />;
-    }
 
     return (
         <ScreenWrapper

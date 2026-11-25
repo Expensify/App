@@ -452,7 +452,6 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
     [SCREENS.SETTINGS.PROFILE.CONTACT_METHOD_SET_DEFAULT_CONFIRM]: () =>
         require<ReactComponentModule>('../../../../pages/settings/Profile/Contacts/SetDefaultContactMethodConfirmValidateCodePage').default,
     [SCREENS.SETTINGS.PREFERENCES.PRIORITY_MODE]: () => require<ReactComponentModule>('../../../../pages/settings/Preferences/PriorityModePage').default,
-    [SCREENS.WORKSPACE.ACCOUNTING.ROOT]: () => require<ReactComponentModule>('../../../../pages/workspace/connections/WorkspaceConnectionsPage').default,
     [SCREENS.WORKSPACE.CONNECTIONS_ACCOUNTING]: () => require<ReactComponentModule>('../../../../pages/workspace/connections/ConnectionsAccountingPage').default,
     [SCREENS.WORKSPACE.CONNECTIONS_HR]: () => require<ReactComponentModule>('../../../../pages/workspace/connections/ConnectionsHRPage').default,
     [SCREENS.WORKSPACE.CONNECTIONS_RECRUITING]: () => require<ReactComponentModule>('../../../../pages/workspace/connections/ConnectionsRecruitingPage').default,
@@ -1120,6 +1119,16 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
         require<ReactComponentModule>('../../../../pages/workspace/accounting/digits/export/DigitsDefaultCompanyCardVendorPage').default,
     [SCREENS.WORKSPACE.ACCOUNTING.DIGITS_COMPANY_CARD_ACCOUNT]: () =>
         require<ReactComponentModule>('../../../../pages/workspace/accounting/digits/export/DigitsCompanyCardAccountPage').default,
+    [SCREENS.WORKSPACE.ACCOUNTING.DIGITS_ADVANCED]: () => require<ReactComponentModule>('../../../../pages/workspace/accounting/digits/advanced/DigitsAdvancedPage').default,
+    [SCREENS.WORKSPACE.ACCOUNTING.DIGITS_EXPORT_METHOD]: () => require<ReactComponentModule>('../../../../pages/workspace/accounting/digits/advanced/DigitsExportMethodPage').default,
+    [SCREENS.WORKSPACE.ACCOUNTING.DIGITS_BILL_PAYMENT_ACCOUNT]: () =>
+        require<ReactComponentModule>('../../../../pages/workspace/accounting/digits/advanced/DigitsBillPaymentAccountPage').default,
+    [SCREENS.WORKSPACE.ACCOUNTING.DIGITS_EXPENSIFY_CARD_SETTLEMENT_ACCOUNT]: () =>
+        require<ReactComponentModule>('../../../../pages/workspace/accounting/digits/advanced/DigitsExpensifyCardSettlementAccountPage').default,
+    [SCREENS.WORKSPACE.ACCOUNTING.DIGITS_TRAVEL_BILLING_SETTLEMENT_ACCOUNT]: () =>
+        require<ReactComponentModule>('../../../../pages/workspace/accounting/digits/advanced/DigitsTravelBillingSettlementAccountPage').default,
+    [SCREENS.WORKSPACE.ACCOUNTING.DIGITS_TRAVEL_BILLING_PAYABLE_ACCOUNT]: () =>
+        require<ReactComponentModule>('../../../../pages/workspace/accounting/digits/advanced/DigitsTravelBillingPayableAccountPage').default,
     [SCREENS.WORKSPACE.ACCOUNTING.BUSINESS_CENTRAL_PREREQUISITES]: () =>
         require<ReactComponentModule>('../../../../pages/workspace/accounting/businessCentral/BusinessCentralPrerequisitesPage').default,
     [SCREENS.WORKSPACE.ACCOUNTING.BUSINESS_CENTRAL_SETUP]: () => require<ReactComponentModule>('../../../../pages/workspace/accounting/businessCentral/BusinessCentralSetupPage').default,

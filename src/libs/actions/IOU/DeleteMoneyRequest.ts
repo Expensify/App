@@ -70,7 +70,7 @@ type DeleteMoneyRequestFunctionParams = {
     iouReport: OnyxEntry<OnyxTypes.Report>;
     iouReportTransactions: OnyxTypes.Transaction[];
     chatReport: OnyxEntry<OnyxTypes.Report>;
-    isChatIOUReportArchived?: boolean | undefined;
+    isChatIOUReportArchived: boolean;
     isArchivedIOUReport: boolean;
     isSingleTransactionView?: boolean;
     transactionIDsPendingDeletion?: string[];
@@ -972,7 +972,15 @@ function deleteMoneyRequest({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${chatReport?.reportID}`,
             value: {
-                hasOutstandingChildRequest: hasOutstandingChildRequest(chatReport, updatedIOUReport, currentUserEmail, currentUserAccountID, allTransactionViolationsParam, undefined),
+                hasOutstandingChildRequest: hasOutstandingChildRequest(
+                    chatReport,
+                    updatedIOUReport,
+                    currentUserEmail,
+                    currentUserAccountID,
+                    allTransactionViolationsParam,
+                    undefined,
+                    isChatIOUReportArchived,
+                ),
             },
         });
     }
@@ -996,7 +1004,15 @@ function deleteMoneyRequest({
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.REPORT}${chatReport?.reportID}`,
                 value: {
-                    hasOutstandingChildRequest: hasOutstandingChildRequest(chatReport, iouReport?.reportID, currentUserEmail, currentUserAccountID, allTransactionViolationsParam, undefined),
+                    hasOutstandingChildRequest: hasOutstandingChildRequest(
+                        chatReport,
+                        iouReport?.reportID,
+                        currentUserEmail,
+                        currentUserAccountID,
+                        allTransactionViolationsParam,
+                        undefined,
+                        isChatIOUReportArchived,
+                    ),
                     iouReportID: null,
                     ...optimisticLastReportData,
                 },

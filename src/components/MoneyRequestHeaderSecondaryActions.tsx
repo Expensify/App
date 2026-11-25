@@ -127,7 +127,8 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
     const theme = useTheme();
     const {translate, localeCompare, formatPhoneNumber} = useLocalize();
     const isInSidePanel = useIsInSidePanel();
-    const {login: currentUserLogin, email: currentUserEmail, accountID, localCurrencyCode, displayName: currentUserDisplayName} = useCurrentUserPersonalDetails();
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    const {login: currentUserLogin, email: currentUserEmail, accountID, localCurrencyCode, displayName: currentUserDisplayName} = currentUserPersonalDetails;
     const delegateAccountID = useDelegateAccountID();
     const getPersonalDetailsByLogin = useGetPersonalDetailsByLogin();
     const personalDetails = usePersonalDetails();
@@ -319,6 +320,7 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
                 recentWaypoints,
                 targetPolicyTags,
                 currentUser: {accountID, email: currentUserLogin ?? ''},
+                currentUserPersonalDetails,
                 currentUserLocalCurrency: localCurrencyCode ?? CONST.CURRENCY.USD,
                 isTrackIntentUser,
                 delegateAccountID,

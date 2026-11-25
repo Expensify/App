@@ -409,10 +409,10 @@ function ActionContentRouter({
             />
         );
     }
-    if (action.actionName === CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION) {
+    if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION)) {
         return (
             <MovedTransactionAction
-                action={action as OnyxTypes.ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION>}
+                action={action}
                 originalReport={originalReport}
             />
         );
@@ -446,10 +446,10 @@ function ActionContentRouter({
             </ReportActionItemBasicMessage>
         );
     }
-    if (action.actionName === CONST.REPORT.ACTIONS.TYPE.UNREPORTED_TRANSACTION) {
+    if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.UNREPORTED_TRANSACTION)) {
         return (
             <UnreportedTransactionAction
-                action={action as OnyxTypes.ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.UNREPORTED_TRANSACTION>}
+                action={action}
                 originalReport={originalReport}
             />
         );

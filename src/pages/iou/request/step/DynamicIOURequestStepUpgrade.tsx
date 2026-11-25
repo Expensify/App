@@ -158,6 +158,7 @@ function DynamicIOURequestStepUpgrade({
                 isTrackIntentUser,
                 getCurrencyDecimals,
                 rules,
+                personalDetailsByLogins: getPersonalDetailsByLogin(),
             });
 
             const policyTagList = policyID ? allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`] : {};

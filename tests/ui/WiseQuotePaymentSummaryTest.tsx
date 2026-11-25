@@ -26,12 +26,24 @@ const searchReport: Report = {
     statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
 };
 
-function renderSummary(isQuoteRequired: boolean) {
+const wiseQuote = {
+    wiseQuoteID: 'quote',
+    fee: 412,
+    rate: 0.8623,
+    debitedAmount: 15962,
+    creditedAmount: 13409,
+    currency: CONST.CURRENCY.USD,
+    paymentCurrency: 'EUR',
+    expectedDate: '2026-11-09',
+    expiresAt: '2026-11-06T17:00:00Z',
+};
+
+function renderSummary(isQuoteRequired: boolean, report: Report = searchReport) {
     return render(
         <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, CurrencyListContextProvider]}>
             <WiseQuotePaymentSummary
-                reportID={searchReport.reportID}
-                searchReport={searchReport}
+                reportID={report.reportID}
+                searchReport={report}
                 isPayingUnheldOnly={false}
                 isQuoteRequired={isQuoteRequired}
             />
@@ -64,24 +76,22 @@ describe('WiseQuotePaymentSummary', () => {
 
     it('shows the quote that merges into Onyx on top of a report from Search results', async () => {
         // Given a report from Search results whose only Onyx data is the quote Wise returned
-        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${searchReport.reportID}`, {
-            wiseQuote: {
-                wiseQuoteID: 'quote',
-                fee: 412,
-                rate: 0.8623,
-                debitedAmount: 15962,
-                creditedAmount: 13409,
-                currency: CONST.CURRENCY.USD,
-                paymentCurrency: 'EUR',
-                expectedDate: '2026-11-09',
-                expiresAt: '2026-11-06T17:00:00Z',
-            },
-        });
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${searchReport.reportID}`, {wiseQuote});
         renderSummary(true);
         await waitForBatchedUpdatesWithAct();
 
         // Then the card keeps the report from Search and fills in the quote
         expect(screen.getByText(searchReport.reportName ?? '')).toBeTruthy();
         expect(screen.getByText('$159.62')).toBeTruthy();
+    });
+
+    it('shows the loader instead of the quote Search results still hold while a new quote loads', async () => {
+        // Given a report from Search results that still holds an earlier quote, while the refetch has cleared the quote in Onyx
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${searchReport.reportID}`, {wiseQuote: null});
+        renderSummary(true, {...searchReport, wiseQuote});
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the card waits for the new quote instead of showing the old debit amount
+        expect(screen.queryByText('$159.62')).toBeNull();
     });
 });
