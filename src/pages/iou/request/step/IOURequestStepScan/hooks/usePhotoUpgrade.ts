@@ -4,11 +4,14 @@
  */
 import {capturePhotoToPath} from '@libs/cameraCapture';
 import type CapturedPhoto from '@libs/cameraCapture/types';
+import type {TransformImage} from '@libs/cameraCapture/types';
+import getReceiptsUploadFolderPath from '@libs/getReceiptsUploadFolderPath';
 import Log from '@libs/Log';
 import ReceiptStorage from '@libs/ReceiptStorage';
 import {finish as finishUpgrade, isClaimedForRead as wasReceiptClaimed, recordUpgrade, start as startUpgrade} from '@libs/ReceiptStorage/receiptUpgrades';
 import {endSpanWithAttributes, getSpan, startSpan} from '@libs/telemetry/activeSpans';
 
+import getReceiptFilePath from '@pages/iou/request/step/IOURequestStepScan/captureReceipt/getReceiptFilePath';
 import rotatePhotoToUpright from '@pages/iou/request/step/IOURequestStepScan/utils/rotatePhotoToUpright';
 
 import CONST from '@src/CONST';
@@ -123,7 +126,7 @@ function usePhotoUpgrade() {
         setHasPendingPhotoCapture(false);
     };
 
-    const startPhotoCapture = (photoOutput: CameraPhotoOutput) => {
+    const startPhotoCapture = (photoOutput: CameraPhotoOutput, transformImage?: TransformImage) => {
         const orphaned = pendingPhotoRef.current;
         pendingPhotoRef.current = undefined;
         if (orphaned) {
@@ -149,12 +152,41 @@ function usePhotoUpgrade() {
         let failureOutcome: string = CONST.TELEMETRY.UPGRADE_OUTCOME.CAPTURE_FAILED;
         let isDiscarded = false;
 
-        const nativeCapture = capturePhotoToPath(photoOutput, {flashMode: 'off', enableShutterSound: false});
+        let hasPhotoArrived = false;
+        const markPhotoArrived = () => {
+            hasPhotoArrived = true;
+        };
 
+        // The camera is kept running only until the photo is in hand, not through the crop, which can take seconds and
+        // would keep the camera and its frame analysis busy while the confirmation page opens.
+        let isSessionReleased = false;
+        const releaseSessionOnce = () => {
+            if (isSessionReleased) {
+                return;
+            }
+            isSessionReleased = true;
+            releaseSession();
+        };
+
+        // The slot guards against two photos contending for the camera, so it is freed once the photo is in hand rather than
+        // after its crop, which would make the next quick scan skip its own upgrade.
         photosInFlightRef.current += 1;
+        let isPhotoSlotReleased = false;
         const releasePhotoSlot = () => {
+            if (isPhotoSlotReleased) {
+                return;
+            }
+            isPhotoSlotReleased = true;
             photosInFlightRef.current -= 1;
         };
+
+        const photoSettings = {flashMode: 'off', enableShutterSound: false} as const;
+        const nativeCapture = transformImage
+            ? capturePhotoToPath(photoOutput, photoSettings, getReceiptFilePath(getReceiptsUploadFolderPath()), {onDidCapturePhoto: markPhotoArrived}, transformImage, () => {
+                  releaseSessionOnce();
+                  releasePhotoSlot();
+              })
+            : capturePhotoToPath(photoOutput, photoSettings);
         nativeCapture.then(releasePhotoSlot, releasePhotoSlot);
 
         const capture = nativeCapture.then(
@@ -175,6 +207,11 @@ function usePhotoUpgrade() {
         let deadlineTimeout: ReturnType<typeof setTimeout>;
         const deadline = new Promise<undefined>((resolve) => {
             deadlineTimeout = setTimeout(() => {
+                // Once the photo is in hand its crop runs under its own time limit, so this deadline no longer applies and is
+                // left unresolved.
+                if (hasPhotoArrived) {
+                    return;
+                }
                 isDiscarded = true;
                 failureOutcome = CONST.TELEMETRY.UPGRADE_OUTCOME.CAPTURE_TIMED_OUT;
                 resolve(undefined);
@@ -183,7 +220,7 @@ function usePhotoUpgrade() {
 
         const promise = Promise.race([capture, deadline]).then((photo) => {
             clearTimeout(deadlineTimeout);
-            releaseSession();
+            releaseSessionOnce();
 
             if (!photo) {
                 Log.info('[PhotoUpgrade] no photo to upgrade with, keeping the snapshot');
@@ -205,7 +242,7 @@ function usePhotoUpgrade() {
         setHasPendingPhotoCapture(true);
     };
 
-    const upgradeReceiptWithPhoto = (durableName: string) => {
+    const upgradeReceiptWithPhoto = (durableName: string, isSnapshotTransformed = false) => {
         const pending = pendingPhotoRef.current;
         if (!pending) {
             Log.info('[PhotoUpgrade] no pending photo for this receipt, so it keeps its snapshot', false, {durableName});
@@ -240,7 +277,14 @@ function usePhotoUpgrade() {
                     return undefined;
                 }
 
-                const rotation = rotatePhotoToUpright(photo.path, photo.orientation).catch((error: unknown) => {
+                if (isSnapshotTransformed && !photo.isTransformed) {
+                    Log.info('[PhotoUpgrade] keeping the cropped snapshot, the full-resolution photo could not be cropped', false, {durableName});
+                    reportOutcome(CONST.TELEMETRY.UPGRADE_OUTCOME.ENHANCE_FAILED);
+                    discardPhoto(photo.path);
+                    return undefined;
+                }
+
+                const rotation = (photo.isTransformed ? Promise.resolve(undefined) : rotatePhotoToUpright(photo.path, photo.orientation)).catch((error: unknown) => {
                     throw new UpgradeStepError('rotate', `failed: ${error instanceof Error ? error.message : String(error)}`, false);
                 });
                 return withDeadline(rotation, ROTATE_TIMEOUT_MS, 'rotate', (latePath) => {

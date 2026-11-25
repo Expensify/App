@@ -1497,6 +1497,8 @@ const translations: TranslationDeepObject<typeof en> = {
         multiScan: 'Mehrfachscan',
         receiptEnhancements: 'Beleg-Optimierungen',
         receiptEnhancementsEnabled: 'Beleg-Optimierungen aktiviert',
+        processingReceipt: 'Beleg wird verarbeitet...',
+        receiptCaptured: 'Beleg erfasst',
         shutter: 'Verschluss',
         gallery: 'Galerie',
         deleteReceipt: 'Beleg löschen',

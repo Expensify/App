@@ -1,5 +1,6 @@
 import {capturePhotoToPath, captureSnapshotToPath} from '@libs/cameraCapture';
 
+import type {Image} from 'react-native-nitro-image';
 import type {CameraPhotoOutput, CameraRef, Photo} from 'react-native-vision-camera';
 
 jest.mock('react-native-fs', () => ({mkdir: jest.fn(() => Promise.resolve())}));
@@ -111,5 +112,103 @@ describe('capturePhotoToPath', () => {
         // Then each phase is reported on its own in whole milliseconds, and the folder creation counts toward neither
         expect(result.captureDurationMs).toBe(60);
         expect(result.saveDurationMs).toBe(15);
+    });
+});
+
+describe('capture with a transform', () => {
+    function createImage(width: number, height: number) {
+        const image = {width, height, saveToFileAsync: jest.fn(() => Promise.resolve()), dispose: jest.fn()};
+        return image;
+    }
+
+    it('keeps the source image alive until the transform has stopped reading it', async () => {
+        // Given a snapshot whose transform gives up waiting before its native work is done, as a crop that hits its time limit does
+        const source = createImage(1440, 1920);
+        let releaseSource: () => void = () => {};
+        const sourceReleased = new Promise<void>((resolve) => {
+            releaseSource = resolve;
+        });
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- The mock only implements takeSnapshot
+        const camera = {takeSnapshot: () => Promise.resolve(source)} as unknown as CameraRef;
+
+        // When the capture is saved while the transform is still reading the source
+        const result = await captureSnapshotToPath(camera, '/receipts/receipt.jpg', () => Promise.resolve({image: undefined, sourceReleased}));
+
+        // Then the source is not freed yet, because freeing a bitmap native code is reading crashes on Android
+        expect(result.isTransformed).toBe(false);
+        expect(source.dispose).not.toHaveBeenCalled();
+
+        // When the transform finally lets go of it
+        releaseSource();
+        await sourceReleased;
+        await Promise.resolve();
+
+        // Then the source is freed
+        expect(source.dispose).toHaveBeenCalled();
+    });
+
+    it('saves the camera file as taken when the transform changed nothing', async () => {
+        // Given a photo whose transform finds nothing to crop
+        const {photo, saveToFileAsync} = createPhoto();
+        const decoded = createImage(3024, 4032);
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- The mock only implements the members the capture uses
+        const photoWithImage = Object.assign(photo, {toImageAsync: () => Promise.resolve(decoded)}) as unknown as Photo;
+
+        // When the photo is captured with the transform
+        const result = await capturePhotoToPath(
+            createOutput(() => Promise.resolve(photoWithImage)),
+            {},
+            '/receipts/receipt.jpg',
+            {},
+            () => Promise.resolve({image: undefined, sourceReleased: Promise.resolve()}),
+        );
+
+        // Then the camera's own file is written, keeping its full quality and metadata, instead of a re-encoded copy
+        expect(saveToFileAsync).toHaveBeenCalledWith('/receipts/receipt.jpg');
+        expect(decoded.saveToFileAsync).not.toHaveBeenCalled();
+        expect(result).toMatchObject({width: 3024, height: 4032, orientation: 'right', isTransformed: false});
+    });
+
+    it('saves the transformed image and frees both images when the transform changed it', async () => {
+        // Given a snapshot whose transform returns a cropped image
+        const source = createImage(1440, 1920);
+        const cropped = createImage(700, 1200);
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- The mock only implements takeSnapshot
+        const camera = {takeSnapshot: () => Promise.resolve(source)} as unknown as CameraRef;
+
+        // When the capture is saved
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- The mock only implements the members the save uses
+        const croppedImage = cropped as unknown as Image;
+        const result = await captureSnapshotToPath(camera, '/receipts/receipt.jpg', () => Promise.resolve({image: croppedImage, sourceReleased: Promise.resolve()}));
+        await Promise.resolve();
+
+        // Then the cropped image is the saved receipt, and neither image is kept in memory afterwards
+        expect(cropped.saveToFileAsync).toHaveBeenCalled();
+        expect(source.saveToFileAsync).not.toHaveBeenCalled();
+        expect(result).toMatchObject({width: 700, height: 1200, isTransformed: true});
+        expect(cropped.dispose).toHaveBeenCalled();
+        expect(source.dispose).toHaveBeenCalled();
+    });
+
+    it('saves the camera file as taken when the photo cannot be decoded for the transform', async () => {
+        // Given a photo that fails to decode, as when the phone is short of memory
+        const {photo, saveToFileAsync} = createPhoto();
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- The mock only implements the members the capture uses
+        const photoWithImage = Object.assign(photo, {toImageAsync: () => Promise.reject(new Error('out of memory'))}) as unknown as Photo;
+        const transformImage = jest.fn();
+
+        // When the photo is captured with a transform
+        const result = await capturePhotoToPath(
+            createOutput(() => Promise.resolve(photoWithImage)),
+            {},
+            '/receipts/receipt.jpg',
+            {},
+            transformImage,
+        );
+
+        // Then the shot is kept as the camera took it instead of failing the capture
+        expect(transformImage).not.toHaveBeenCalled();
+        expect(saveToFileAsync).toHaveBeenCalledWith('/receipts/receipt.jpg');
+        expect(result).toMatchObject({width: 3024, height: 4032, isTransformed: false});
     });
 });

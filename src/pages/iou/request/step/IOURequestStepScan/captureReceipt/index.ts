@@ -11,11 +11,11 @@ function shouldTakePhoto({flash, hasFlash, isInLandscapeMode, isTorchOn = false}
     return (flash && hasFlash && !isTorchOn) || isInLandscapeMode;
 }
 
-const captureReceipt: CaptureReceipt = (camera, photoOutput, {flash, hasFlash, isPlatformMuted, path, isInLandscapeMode, isTorchOn = false, onWillCapturePhoto}) => {
+const captureReceipt: CaptureReceipt = (camera, photoOutput, {flash, hasFlash, isPlatformMuted, path, isInLandscapeMode, isTorchOn = false, onWillCapturePhoto, transformImage}) => {
     const filePath = getReceiptFilePath(path);
 
     if (!shouldTakePhoto({flash, hasFlash, isInLandscapeMode, isTorchOn})) {
-        return captureSnapshotToPath(camera, filePath);
+        return captureSnapshotToPath(camera, filePath, transformImage);
     }
 
     const isUsingFlash = flash && hasFlash && !isTorchOn;
@@ -28,6 +28,7 @@ const captureReceipt: CaptureReceipt = (camera, photoOutput, {flash, hasFlash, i
         },
         filePath,
         {onWillCapturePhoto},
+        transformImage,
     );
 };
 

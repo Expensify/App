@@ -127,6 +127,9 @@ dependencies {
   // Add a dependency on NitroModules
   implementation project(":react-native-nitro-modules")
 
+  // The receipt warp takes and returns nitro-image Images, the type VisionCamera hands out for snapshots and photos.
+  implementation project(":react-native-nitro-image")
+
   implementation "com.microsoft.onnxruntime:onnxruntime-android:1.30.0"
 }
 

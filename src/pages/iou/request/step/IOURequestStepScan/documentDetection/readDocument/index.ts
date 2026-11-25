@@ -3,6 +3,7 @@ import type {DocumentReader} from './types';
 const documentReader: DocumentReader = {
     frameResolution: {width: 640, height: 480},
     maxBend: 0,
+    minConfidence: Number.POSITIVE_INFINITY,
     readDocument() {
         'worklet';
 

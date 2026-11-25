@@ -5,6 +5,7 @@ const MIN_VISION_CONFIDENCE = 0.3;
 const documentReader: DocumentReader = {
     frameResolution: {width: 1280, height: 960},
     maxBend: 0.25,
+    minConfidence: MIN_VISION_CONFIDENCE,
     readDocument(frame, detector) {
         'worklet';
 

@@ -1490,6 +1490,8 @@ const translations: TranslationDeepObject<typeof en> = {
         multiScan: 'escaneo múltiple',
         receiptEnhancements: 'Mejoras de recibos',
         receiptEnhancementsEnabled: 'Mejoras de recibos activadas',
+        processingReceipt: 'Procesando recibo...',
+        receiptCaptured: 'Recibo capturado',
         shutter: 'obturador',
         gallery: 'galería',
         deleteReceipt: 'Eliminar recibo',

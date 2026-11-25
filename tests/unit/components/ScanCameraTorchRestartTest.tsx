@@ -12,6 +12,9 @@ let mockViewportProps: {onStarted?: () => void; isTorchOn?: boolean} = {};
 type CaptureOptions = {isTorchOn?: boolean};
 const mockCaptureReceipt = jest.fn<Promise<unknown>, [unknown, unknown, CaptureOptions]>(() => new Promise(() => {}));
 
+// One object for every render, as the real navigation object is.
+const mockNavigation = {isFocused: () => true, addListener: () => () => {}};
+
 jest.mock('@hooks/useNativeCamera', () => ({
     __esModule: true,
     default: () => ({
@@ -51,7 +54,7 @@ jest.mock('@libs/cameraCapture/platformConfig', () => ({
 
 jest.mock('@react-navigation/native', () => ({
     ...jest.requireActual<Record<string, unknown>>('@react-navigation/native'),
-    useNavigation: () => ({isFocused: () => true}),
+    useNavigation: () => mockNavigation,
     useFocusEffect: () => {},
 }));
 

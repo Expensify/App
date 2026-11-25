@@ -58,6 +58,8 @@ namespace margelo::nitro::utils {
     std::optional<DetectedDocument> detectYuv(const YuvFrame& frame) override;
     double open() override;
     void release(double owner) override;
+    std::shared_ptr<Promise<std::optional<DetectedDocument>>> detectInImage(const std::shared_ptr<margelo::nitro::image::HybridImageSpec>& image) override;
+    std::shared_ptr<Promise<std::shared_ptr<margelo::nitro::image::HybridImageSpec>>> warpImage(const std::shared_ptr<margelo::nitro::image::HybridImageSpec>& image, const std::vector<DocumentCorner>& quad, double maxLongSide) override;
 
   private:
     jni::global_ref<JHybridDocumentDetectorModuleSpec::JavaPart> _javaPart;

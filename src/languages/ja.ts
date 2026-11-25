@@ -1479,6 +1479,8 @@ const translations: TranslationDeepObject<typeof en> = {
         multiScan: 'マルチスキャン',
         receiptEnhancements: 'レシート補正',
         receiptEnhancementsEnabled: 'レシート補正をオンにしました',
+        processingReceipt: 'レシートを処理しています...',
+        receiptCaptured: 'レシートを取り込みました',
         shutter: 'シャッター',
         gallery: 'ギャラリー',
         deleteReceipt: '領収書を削除',

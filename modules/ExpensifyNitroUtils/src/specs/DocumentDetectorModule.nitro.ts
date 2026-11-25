@@ -1,3 +1,4 @@
+import type {Image} from 'react-native-nitro-image';
 import type {HybridObject, UInt64} from 'react-native-nitro-modules';
 
 type DocumentCorner = {
@@ -43,6 +44,19 @@ interface DocumentDetectorModule extends HybridObject<{ios: 'swift'; android: 'k
 
     /** Frees the detector's model and buffers, unless another scanner has opened the detector since */
     release(owner: number): void;
+
+    /**
+     * Finds the receipt in an upright still, such as a captured snapshot or photo, with no frame-to-frame tracking.
+     * Corners and outline are shares of the image's width and height. When several papers are in view it returns the
+     * largest.
+     */
+    detectInImage(image: Image): Promise<DetectedDocument | undefined>;
+
+    /**
+     * Maps the four-cornered area of an upright image onto a rectangle, which straightens a receipt seen at an angle.
+     * The corners are in pixels, clockwise from the top left. The result's longer side is at most maxLongSide.
+     */
+    warpImage(image: Image, quad: DocumentCorner[], maxLongSide: number): Promise<Image>;
 }
 
 export type {DocumentCorner, DetectedDocument, YuvFrame, DocumentDetectorModule};

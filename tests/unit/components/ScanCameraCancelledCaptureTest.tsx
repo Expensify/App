@@ -10,6 +10,9 @@ let mockCapturePhoto: (() => void) | undefined;
 let mockResolveCapture: (photo: unknown) => void = () => {};
 let mockRejectCapture: (error: unknown) => void = () => {};
 
+// One object for every render, as the real navigation object is.
+const mockNavigation = {isFocused: () => mockIsFocused, addListener: () => () => {}};
+
 jest.mock('@hooks/useNativeCamera', () => ({
     __esModule: true,
     default: () => ({
@@ -32,7 +35,7 @@ jest.mock('@hooks/useNativeCamera', () => ({
 
 jest.mock('@react-navigation/native', () => ({
     ...jest.requireActual<Record<string, unknown>>('@react-navigation/native'),
-    useNavigation: () => ({isFocused: () => mockIsFocused}),
+    useNavigation: () => mockNavigation,
     useFocusEffect: () => {},
 }));
 

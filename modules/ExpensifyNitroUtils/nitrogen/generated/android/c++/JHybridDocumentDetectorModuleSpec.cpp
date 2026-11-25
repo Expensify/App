@@ -11,6 +11,8 @@
 namespace margelo::nitro::utils { struct DetectedDocument; }
 // Forward declaration of `DocumentCorner` to properly resolve imports.
 namespace margelo::nitro::utils { struct DocumentCorner; }
+// Forward declaration of `HybridImageSpec` to properly resolve imports.
+namespace margelo::nitro::image { class HybridImageSpec; }
 // Forward declaration of `YuvFrame` to properly resolve imports.
 namespace margelo::nitro::utils { struct YuvFrame; }
 
@@ -20,6 +22,11 @@ namespace margelo::nitro::utils { struct YuvFrame; }
 #include "DocumentCorner.hpp"
 #include <vector>
 #include "JDocumentCorner.hpp"
+#include <NitroModules/Promise.hpp>
+#include <NitroModules/JPromise.hpp>
+#include <memory>
+#include <NitroImage/HybridImageSpec.hpp>
+#include <NitroImage/JHybridImageSpec.hpp>
 #include "YuvFrame.hpp"
 #include "JYuvFrame.hpp"
 #include <NitroModules/ArrayBuffer.hpp>
@@ -76,6 +83,47 @@ namespace margelo::nitro::utils {
   void JHybridDocumentDetectorModuleSpec::release(double owner) {
     static const auto method = _javaPart->javaClassStatic()->getMethod<void(double /* owner */)>("release");
     method(_javaPart, owner);
+  }
+  std::shared_ptr<Promise<std::optional<DetectedDocument>>> JHybridDocumentDetectorModuleSpec::detectInImage(const std::shared_ptr<margelo::nitro::image::HybridImageSpec>& image) {
+    static const auto method = _javaPart->javaClassStatic()->getMethod<jni::local_ref<JPromise::javaobject>(jni::alias_ref<margelo::nitro::image::JHybridImageSpec::JavaPart> /* image */)>("detectInImage");
+    auto __result = method(_javaPart, std::dynamic_pointer_cast<margelo::nitro::image::JHybridImageSpec>(image)->getJavaPart());
+    return [&]() {
+      auto __promise = Promise<std::optional<DetectedDocument>>::create();
+      __result->cthis()->addOnResolvedListener([=](const jni::alias_ref<jni::JObject>& __boxedResult) {
+        auto __result = jni::static_ref_cast<JDetectedDocument>(__boxedResult);
+        __promise->resolve(__result != nullptr ? std::make_optional(__result->toCpp()) : std::nullopt);
+      });
+      __result->cthis()->addOnRejectedListener([=](const jni::alias_ref<jni::JThrowable>& __throwable) {
+        jni::JniException __jniError(__throwable);
+        __promise->reject(std::make_exception_ptr(__jniError));
+      });
+      return __promise;
+    }();
+  }
+  std::shared_ptr<Promise<std::shared_ptr<margelo::nitro::image::HybridImageSpec>>> JHybridDocumentDetectorModuleSpec::warpImage(const std::shared_ptr<margelo::nitro::image::HybridImageSpec>& image, const std::vector<DocumentCorner>& quad, double maxLongSide) {
+    static const auto method = _javaPart->javaClassStatic()->getMethod<jni::local_ref<JPromise::javaobject>(jni::alias_ref<margelo::nitro::image::JHybridImageSpec::JavaPart> /* image */, jni::alias_ref<jni::JArrayClass<JDocumentCorner>> /* quad */, double /* maxLongSide */)>("warpImage");
+    auto __result = method(_javaPart, std::dynamic_pointer_cast<margelo::nitro::image::JHybridImageSpec>(image)->getJavaPart(), [&](auto&& __input) {
+      size_t __size = __input.size();
+      jni::local_ref<jni::JArrayClass<JDocumentCorner>> __array = jni::JArrayClass<JDocumentCorner>::newArray(__size);
+      for (size_t __i = 0; __i < __size; __i++) {
+        const auto& __element = __input[__i];
+        auto __elementJni = JDocumentCorner::fromCpp(__element);
+        __array->setElement(__i, *__elementJni);
+      }
+      return __array;
+    }(quad), maxLongSide);
+    return [&]() {
+      auto __promise = Promise<std::shared_ptr<margelo::nitro::image::HybridImageSpec>>::create();
+      __result->cthis()->addOnResolvedListener([=](const jni::alias_ref<jni::JObject>& __boxedResult) {
+        auto __result = jni::static_ref_cast<margelo::nitro::image::JHybridImageSpec::JavaPart>(__boxedResult);
+        __promise->resolve(__result->getJHybridImageSpec());
+      });
+      __result->cthis()->addOnRejectedListener([=](const jni::alias_ref<jni::JThrowable>& __throwable) {
+        jni::JniException __jniError(__throwable);
+        __promise->reject(std::make_exception_ptr(__jniError));
+      });
+      return __promise;
+    }();
   }
 
 } // namespace margelo::nitro::utils

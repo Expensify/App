@@ -6,6 +6,7 @@
 ///
 
 import NitroModules
+import NitroImage
 
 /**
  * A class implementation that bridges HybridDocumentDetectorModuleSpec over to C++.
@@ -180,6 +181,61 @@ open class HybridDocumentDetectorModuleSpec_cxx {
     } catch (let __error) {
       let __exceptionPtr = __error.toCpp()
       return bridge.create_Result_void_(__exceptionPtr)
+    }
+  }
+  
+  @inline(__always)
+  public final func detectInImage(image: bridge.std__shared_ptr_margelo__nitro__image__HybridImageSpec_) -> bridge.Result_std__shared_ptr_Promise_std__optional_DetectedDocument____ {
+    do {
+      let __result = try self.__implementation.detectInImage(image: { () -> any HybridImageSpec in
+        let __unsafePointer = bridge.get_std__shared_ptr_margelo__nitro__image__HybridImageSpec_(image)
+        let __instance = HybridImageSpec_cxx.fromUnsafe(__unsafePointer)
+        return __instance.getHybridImageSpec()
+      }())
+      let __resultCpp = { () -> bridge.std__shared_ptr_Promise_std__optional_DetectedDocument___ in
+        let __promise = bridge.create_std__shared_ptr_Promise_std__optional_DetectedDocument___()
+        let __promiseHolder = bridge.wrap_std__shared_ptr_Promise_std__optional_DetectedDocument___(__promise)
+        __result
+          .then({ __result in __promiseHolder.resolve({ () -> bridge.std__optional_DetectedDocument_ in
+              if let __unwrappedValue = __result {
+                return bridge.create_std__optional_DetectedDocument_(__unwrappedValue)
+              } else {
+                return .init()
+              }
+            }()) })
+          .catch({ __error in __promiseHolder.reject(__error.toCpp()) })
+        return __promise
+      }()
+      return bridge.create_Result_std__shared_ptr_Promise_std__optional_DetectedDocument____(__resultCpp)
+    } catch (let __error) {
+      let __exceptionPtr = __error.toCpp()
+      return bridge.create_Result_std__shared_ptr_Promise_std__optional_DetectedDocument____(__exceptionPtr)
+    }
+  }
+  
+  @inline(__always)
+  public final func warpImage(image: bridge.std__shared_ptr_margelo__nitro__image__HybridImageSpec_, quad: bridge.std__vector_DocumentCorner_, maxLongSide: Double) -> bridge.Result_std__shared_ptr_Promise_std__shared_ptr_margelo__nitro__image__HybridImageSpec____ {
+    do {
+      let __result = try self.__implementation.warpImage(image: { () -> any HybridImageSpec in
+        let __unsafePointer = bridge.get_std__shared_ptr_margelo__nitro__image__HybridImageSpec_(image)
+        let __instance = HybridImageSpec_cxx.fromUnsafe(__unsafePointer)
+        return __instance.getHybridImageSpec()
+      }(), quad: quad.map({ __item in __item }), maxLongSide: maxLongSide)
+      let __resultCpp = { () -> bridge.std__shared_ptr_Promise_std__shared_ptr_margelo__nitro__image__HybridImageSpec___ in
+        let __promise = bridge.create_std__shared_ptr_Promise_std__shared_ptr_margelo__nitro__image__HybridImageSpec___()
+        let __promiseHolder = bridge.wrap_std__shared_ptr_Promise_std__shared_ptr_margelo__nitro__image__HybridImageSpec___(__promise)
+        __result
+          .then({ __result in __promiseHolder.resolve({ () -> bridge.std__shared_ptr_margelo__nitro__image__HybridImageSpec_ in
+              let __cxxWrapped = __result.getCxxWrapper()
+              return __cxxWrapped.getCxxPart()
+            }()) })
+          .catch({ __error in __promiseHolder.reject(__error.toCpp()) })
+        return __promise
+      }()
+      return bridge.create_Result_std__shared_ptr_Promise_std__shared_ptr_margelo__nitro__image__HybridImageSpec____(__resultCpp)
+    } catch (let __error) {
+      let __exceptionPtr = __error.toCpp()
+      return bridge.create_Result_std__shared_ptr_Promise_std__shared_ptr_margelo__nitro__image__HybridImageSpec____(__exceptionPtr)
     }
   }
 }

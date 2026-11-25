@@ -1494,6 +1494,8 @@ const translations: TranslationDeepObject<typeof en> = {
         multiScan: 'meerscannen',
         receiptEnhancements: 'Bonverbeteringen',
         receiptEnhancementsEnabled: 'Bonverbeteringen ingeschakeld',
+        processingReceipt: 'Bon verwerken...',
+        receiptCaptured: 'Bon vastgelegd',
         shutter: 'sluiter',
         gallery: 'galerij',
         deleteReceipt: 'Bon verwijderen',

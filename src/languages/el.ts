@@ -1543,6 +1543,8 @@ const translations: TranslationDeepObject<typeof en> = {
         multiScan: 'πολλαπλή σάρωση',
         receiptEnhancements: 'Βελτιώσεις αποδείξεων',
         receiptEnhancementsEnabled: 'Οι βελτιώσεις αποδείξεων ενεργοποιήθηκαν',
+        processingReceipt: 'Επεξεργασία απόδειξης...',
+        receiptCaptured: 'Η απόδειξη καταγράφηκε',
         shutter: 'κλείστρο',
         gallery: 'συλλογή',
         deleteReceipt: 'Διαγραφή απόδειξης',

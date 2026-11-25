@@ -1,4 +1,5 @@
 import type CapturedPhoto from '@libs/cameraCapture/types';
+import type {TransformImage} from '@libs/cameraCapture/types';
 
 import type {CameraPhotoOutput, CameraRef} from 'react-native-vision-camera';
 
@@ -10,6 +11,9 @@ type CaptureReceiptOptions = {
     isInLandscapeMode: boolean;
     isTorchOn?: boolean;
     onWillCapturePhoto?: () => void;
+
+    /** Runs on the captured image before it is saved */
+    transformImage?: TransformImage;
 };
 
 type CaptureReceipt = (camera: CameraRef, photoOutput: CameraPhotoOutput, options: CaptureReceiptOptions) => Promise<CapturedPhoto>;
