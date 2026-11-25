@@ -62,6 +62,9 @@ type FormDropdownFieldRenderProps = {
 
 type FormDropdownFieldProps = ForwardedFSClassProps &
     WithRequiredSentryLabel & {
+        /** Sentry label for the back button in the header of the full page list */
+        backButtonSentryLabel: SentryLabel;
+
         /** Name of the field, shown in the row and read with its value */
         label: string;
 
@@ -112,6 +115,7 @@ function FormDropdownField({
     renderFullPageList,
     onBlur,
     sentryLabel,
+    backButtonSentryLabel,
 }: FormDropdownFieldProps) {
     const styles = useThemeStyles();
     // BaseModal tells its children they render inside it, so any modal holding the fields opens the full page
@@ -151,6 +155,7 @@ function FormDropdownField({
                 isVisible={isFullPageListVisible}
                 title={title}
                 onClose={closeFullPageList}
+                backButtonSentryLabel={backButtonSentryLabel}
             >
                 <FSClassView
                     style={styles.flex1}

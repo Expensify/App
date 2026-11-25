@@ -69,6 +69,7 @@ function MultiChoiceDropdownAdapter({
             onBlur={onBlur}
             forwardedFSClass={forwardedFSClass}
             sentryLabel={sentryLabel}
+            backButtonSentryLabel={backButtonSentryLabel}
             renderDropdown={(dropdownProps) => (
                 <MultiValuePickerPopover
                     {...dropdownProps}

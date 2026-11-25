@@ -1,5 +1,6 @@
 /** The list of a form's dropdown row on a page of its own */
 import CONST from '@src/CONST';
+import type {SentryLabel} from '@src/types/utils/SentryLabel';
 
 import type {ReactNode} from 'react';
 
@@ -18,6 +19,9 @@ type FormDropdownFullPageListProps = {
     /** Closes the page without a pick */
     onClose: () => void;
 
+    /** Sentry label for the back button in the page's header, so each form's presses are attributed to it */
+    backButtonSentryLabel: SentryLabel;
+
     /** The field's list, the same one its dropdown shows */
     children: ReactNode;
 };
@@ -27,7 +31,7 @@ type FormDropdownFullPageListProps = {
  * one option, where the expense form would navigate to the field's page. A form field has no page to go to, so its
  * list opens here instead.
  */
-function FormDropdownFullPageList({isVisible, title, onClose, children}: FormDropdownFullPageListProps) {
+function FormDropdownFullPageList({isVisible, title, onClose, backButtonSentryLabel, children}: FormDropdownFullPageListProps) {
     return (
         <Modal
             type={CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED}
@@ -43,7 +47,10 @@ function FormDropdownFullPageList({isVisible, title, onClose, children}: FormDro
                 testID="FormDropdownFullPageList"
             >
                 <Header>
-                    <Header.BackButton onPress={onClose} />
+                    <Header.BackButton
+                        onPress={onClose}
+                        sentryLabel={backButtonSentryLabel}
+                    />
                     <Header.Title title={title} />
                 </Header>
                 {children}

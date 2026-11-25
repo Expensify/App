@@ -58,6 +58,7 @@ describe('FormDropdownField', () => {
                         errorText=""
                         disabled={false}
                         sentryLabel={CONST.SENTRY_LABEL.DYNAMIC_FORM.CHOICE_FIELD}
+                        backButtonSentryLabel={CONST.SENTRY_LABEL.DYNAMIC_FORM.CHOICE_FIELD_BACK}
                         renderDropdown={renderDropdown}
                         renderFullPageList={(props) => {
                             fullPageListProps = props;

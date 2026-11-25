@@ -55,6 +55,7 @@ function CurrencyDropdownAdapter({
             onBlur={onBlur}
             forwardedFSClass={forwardedFSClass}
             sentryLabel={sentryLabel}
+            backButtonSentryLabel={backButtonSentryLabel}
             renderDropdown={(dropdownProps) => (
                 <CurrencyPickerPopover
                     {...dropdownProps}

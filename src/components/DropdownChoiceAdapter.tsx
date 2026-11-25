@@ -73,6 +73,7 @@ function DropdownChoiceAdapter({
             onBlur={blurUnlessPicked}
             forwardedFSClass={forwardedFSClass}
             sentryLabel={sentryLabel}
+            backButtonSentryLabel={backButtonSentryLabel}
             renderDropdown={(dropdownProps) => (
                 <ValuePickerPopover
                     {...dropdownProps}
