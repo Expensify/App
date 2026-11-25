@@ -71,6 +71,7 @@ function BankConnection({policyID, feed, title}: BankConnectionProps) {
     const url = getCompanyCardBankConnection(policyID, bankName, feed);
     const isFeedExpired = feed ? isSelectedFeedExpired(cardFeeds?.[feed]) : false;
     const feedExpiration = feed ? cardFeeds?.[feed]?.expiration : undefined;
+    const isFeedLoading = !!feed && !!cardFeeds?.[feed]?.status?.isLoading;
     // null until the popup auto-opens, since the expiration itself can be undefined
     const expirationAtAutoOpenRef = useRef<number | undefined | null>(null);
     const headerTitleAddCards = translate('workspace.companyCards.addCards');
@@ -153,7 +154,8 @@ function BankConnection({policyID, feed, title}: BankConnectionProps) {
                     return;
                 }
             }
-            if (isPlaid) {
+            // A feed load can change the expiration too, so the popup waits for fresh data before recording it.
+            if (isPlaid || isFeedLoading) {
                 return;
             }
             // Auto-open once per mount so reruns don't reload a login in progress. A new expiration means the login finished.
@@ -207,6 +209,7 @@ function BankConnection({policyID, feed, title}: BankConnectionProps) {
         feed,
         isFeedExpired,
         feedExpiration,
+        isFeedLoading,
         isOffline,
         assignCard?.isRefreshing,
         isPlaid,

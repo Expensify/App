@@ -54,9 +54,9 @@ const EXPIRED = NOW - CONST.DATE.SECONDS_PER_DAY;
 const VALID = NOW + CONST.DATE.SECONDS_PER_DAY;
 const RENEWED = VALID + CONST.DATE.SECONDS_PER_DAY;
 
-function mockFeedExpiration(expiration: number) {
+function mockFeedExpiration(expiration: number, isLoading = false) {
     mockUseCardFeeds.mockReturnValue([
-        {[FEED]: {feed: CONST.COMPANY_CARD.FEED_BANK_NAME.CAPITAL_ONE, accountList: ['card'], credentials: '', expiration}},
+        {[FEED]: {feed: CONST.COMPANY_CARD.FEED_BANK_NAME.CAPITAL_ONE, accountList: ['card'], credentials: '', expiration, status: {isLoading}}},
         {status: 'loaded'},
         undefined,
         {},
@@ -111,6 +111,21 @@ describe('BankConnection (web)', () => {
         expect(mockOpenBankConnection).toHaveBeenCalledTimes(openCount);
         expect(getPopupCloseCount()).toBe(closeCount);
         expect(mockCloseRHPFlow.mock.calls.length > 0).toBe(shouldCloseRHP);
+    });
+
+    it('waits for the feed load before opening the bank popup', async () => {
+        // Given a refresh started while the feed is still loading with a cached expiration
+        await Onyx.merge(ONYXKEYS.ASSIGN_CARD, {currentStep: CONST.COMPANY_CARD.STEP.BANK_CONNECTION, isRefreshing: true});
+        mockFeedExpiration(VALID, true);
+        const {rerender} = render(getBankConnection());
+
+        // When the load finishes with a different expiration from the server
+        mockFeedExpiration(RENEWED);
+        rerender(getBankConnection());
+
+        // Then the popup opens only after the load and stays open, because the new expiration is not a finished login
+        expect(mockOpenBankConnection).toHaveBeenCalledTimes(1);
+        expect(getPopupCloseCount()).toBe(0);
     });
 
     it('opens the bank popup again when the admin presses the retry link', async () => {
