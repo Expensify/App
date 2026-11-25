@@ -22,6 +22,7 @@ import {getAllReportActions, getElsewherePaymentReportActionMessageBG, getReport
 import {
     buildOptimisticCancelPaymentReportAction,
     buildOptimisticIOUReportAction,
+    getLatestStandingApprovalAction,
     getReimbursableTotal,
     getUnheldReimbursableTotal,
     hasHeldExpenses as hasHeldExpensesReportUtils,
@@ -680,13 +681,20 @@ function cancelPayment(
     );
     const approvalMode = policy?.approvalMode ?? CONST.POLICY.APPROVAL_MODE.BASIC;
 
-    // Submit workspaces can't approve reports, so Auth sends a canceled payment there back to Outstanding instead of Approved.
-    const isSubmitWorkspace = isSubmitPolicy(policy);
+    const expenseReportActions = getAllReportActions(expenseReport.reportID);
     let stateNum: ValueOf<typeof CONST.REPORT.STATE_NUM> = CONST.REPORT.STATE_NUM.APPROVED;
     let statusNum: ValueOf<typeof CONST.REPORT.STATUS_NUM> = approvalMode === CONST.POLICY.APPROVAL_MODE.OPTIONAL ? CONST.REPORT.STATUS_NUM.CLOSED : CONST.REPORT.STATUS_NUM.APPROVED;
-    if (isSubmitWorkspace) {
-        stateNum = CONST.REPORT.STATE_NUM.SUBMITTED;
-        statusNum = CONST.REPORT.STATUS_NUM.SUBMITTED;
+
+    // Submit workspaces can't approve or close reports, but a report approved or closed on another workspace keeps that
+    // when it moves into one. Auth restores that approval from the report's history and sends any other report back to Outstanding.
+    if (isSubmitPolicy(policy)) {
+        const latestApprovalAction = getLatestStandingApprovalAction(Object.values(expenseReportActions));
+        if (!latestApprovalAction) {
+            stateNum = CONST.REPORT.STATE_NUM.SUBMITTED;
+            statusNum = CONST.REPORT.STATUS_NUM.SUBMITTED;
+        } else {
+            statusNum = latestApprovalAction.actionName === CONST.REPORT.ACTIONS.TYPE.APPROVED ? CONST.REPORT.STATUS_NUM.APPROVED : CONST.REPORT.STATUS_NUM.CLOSED;
+        }
     }
 
     // For OPTIONAL approval mode with a connected bank account, the report status is CLOSED but the next step
@@ -708,7 +716,6 @@ function cancelPayment(
         personalDetailsByLogins,
     });
     const iouReportActions = getAllReportActions(chatReport.iouReportID);
-    const expenseReportActions = getAllReportActions(expenseReport.reportID);
     const iouCreatedAction = Object.values(iouReportActions).find((action) => isCreatedAction(action));
     const expenseCreatedAction = Object.values(expenseReportActions).find((action) => isCreatedAction(action));
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS | typeof ONYXKEYS.COLLECTION.REPORT>> = [

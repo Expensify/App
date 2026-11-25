@@ -2733,6 +2733,64 @@ describe('actions/IOU/PayMoneyRequest', () => {
             expect(restoredPreview?.childStateNum).toBe(CONST.REPORT.STATE_NUM.APPROVED);
             expect(restoredPreview?.childStatusNum).toBe(CONST.REPORT.STATUS_NUM.REIMBURSED);
         });
+
+        it('keeps the approval of a report approved on another workspace when undoing Received payment on a Submit workspace', async () => {
+            const submitterEmail = 'submitter@expensifail.com';
+            const submitterAccountID = 40;
+
+            // Given a report approved on another workspace, moved into a Submit workspace, and then confirmed as paid by its submitter
+            await Onyx.set(ONYXKEYS.SESSION, {email: submitterEmail, accountID: submitterAccountID});
+            const policy = {
+                id: 'cancelMovedSubmitPolicy',
+                name: 'Submit Workspace',
+                role: CONST.POLICY.ROLE.EDITOR,
+                owner: submitterEmail,
+                ownerAccountID: submitterAccountID,
+                outputCurrency: CONST.CURRENCY.USD,
+                type: CONST.POLICY.TYPE.SUBMIT,
+                approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
+                reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO,
+            };
+            const expenseReport = {
+                reportID: 'cancelMovedSubmitExpense',
+                type: CONST.REPORT.TYPE.EXPENSE,
+                ownerAccountID: submitterAccountID,
+                managerID: submitterAccountID,
+                policyID: policy.id,
+                stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+                statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED,
+                total: -1000,
+                nonReimbursableTotal: 0,
+                currency: 'USD',
+                chatReportID: 'cancelMovedSubmitChat',
+            };
+            const chatReport = {
+                reportID: 'cancelMovedSubmitChat',
+                isOwnPolicyExpenseChat: true,
+                ownerAccountID: submitterAccountID,
+                iouReportID: expenseReport.reportID,
+                policyID: policy.id,
+                type: CONST.REPORT.TYPE.CHAT,
+                chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`, expenseReport);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`, chatReport);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport.reportID}`, {
+                submittedAction: createMock<ReportAction>({reportActionID: 'submittedAction', actionName: CONST.REPORT.ACTIONS.TYPE.SUBMITTED, created: '2026-10-14 10:00:00.000'}),
+                approvedAction: createMock<ReportAction>({reportActionID: 'approvedAction', actionName: CONST.REPORT.ACTIONS.TYPE.APPROVED, created: '2026-10-14 11:00:00.000'}),
+            });
+
+            // When the submitter undoes the confirmation
+            mockFetch?.pause?.();
+            cancelPayment(expenseReport, chatReport, policy, true, submitterAccountID, submitterEmail, false, false, undefined);
+            await waitForBatchedUpdates();
+
+            // Then the report goes back to Approved, matching Auth, because the approval from the other workspace still stands
+            const optimisticReport = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`);
+            expect(optimisticReport?.stateNum).toBe(CONST.REPORT.STATE_NUM.APPROVED);
+            expect(optimisticReport?.statusNum).toBe(CONST.REPORT.STATUS_NUM.APPROVED);
+        });
     });
 
     describe('payMoneyRequest', () => {

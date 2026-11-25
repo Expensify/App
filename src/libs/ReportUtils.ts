@@ -14782,6 +14782,31 @@ function getLastApprovalResetTime(reportActionList: ReportAction[]): string {
     return reportActionList.reduce((latest, action) => (RESET_APPROVAL_ACTION_TYPES.has(action.actionName) && action.created > latest ? action.created : latest), '');
 }
 
+/** Actions that leave a report approved or closed until an approval reset */
+const STANDING_APPROVAL_ACTION_TYPES = new Set<string>([CONST.REPORT.ACTIONS.TYPE.APPROVED, CONST.REPORT.ACTIONS.TYPE.CLOSED, CONST.REPORT.ACTIONS.TYPE.SUBMITTED_AND_CLOSED]);
+
+/**
+ * The report's latest approval or close that no later approval reset undid, or undefined when there is none. A report
+ * keeps this when it moves to another workspace, so it tells what state a paid report had before it was paid. An approval
+ * that failed or is being deleted is skipped, because the server never saved it.
+ */
+function getLatestStandingApprovalAction(reportActionList: ReportAction[]): ReportAction | undefined {
+    const lastResetTime = getLastApprovalResetTime(reportActionList);
+    let latestApprovalAction: ReportAction | undefined;
+    for (const action of reportActionList) {
+        if (!STANDING_APPROVAL_ACTION_TYPES.has(action.actionName) || action.created <= lastResetTime) {
+            continue;
+        }
+        if (!isEmptyObject(action.errors) || action.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
+            continue;
+        }
+        if (!latestApprovalAction || action.created > latestApprovalAction.created) {
+            latestApprovalAction = action;
+        }
+    }
+    return latestApprovalAction;
+}
+
 function isExported(reportActions: OnyxEntry<ReportActions> | ReportAction[], report?: OnyxEntry<Report>): boolean {
     if (report?.isExportedToIntegration !== undefined) {
         return report.isExportedToIntegration;
@@ -16105,6 +16130,7 @@ export {
     getIndicatedMissingPaymentMethod,
     getMissingPaymentMethodForQueuedPayment,
     getLastVisibleMessage,
+    getLatestStandingApprovalAction,
     getMoneyRequestSpendBreakdown,
     getNegatedReportTotals,
     getNonHeldAndFullAmount,
