@@ -15,6 +15,7 @@ import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 import type {CurrentUserPersonalDetails} from '@src/types/onyx/PersonalDetails';
 import type {OnyxData} from '@src/types/onyx/Request';
 import type {SearchResultDataType} from '@src/types/onyx/SearchResults';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import type {NullishDeep, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 
@@ -463,4 +464,41 @@ function getGroupPendingDeleteOnyxUpdate(hash: number | undefined, groupKeys: Se
     };
 }
 
-export {getGroupPendingDeleteOnyxUpdate, getSearchOnyxUpdate, shouldOptimisticallyUpdateSearch};
+/**
+ * Clears the workspace amount Search returned for the matching expenses in every loaded search, so they show their own amount until the next search.
+ * Only expenses a search already holds are written, because merging into a missing expense would add an empty row.
+ */
+function getClearPolicyConvertedAmountOnyxData(shouldClear: (transaction: OnyxTypes.Transaction, searchData: OnyxTypes.SearchResults['data']) => boolean): {
+    optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.SNAPSHOT>>;
+    failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.SNAPSHOT>>;
+} {
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.SNAPSHOT>> = [];
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.SNAPSHOT>> = [];
+
+    for (const [snapshotKey, snapshot] of Object.entries(getAllSnapshots() ?? {})) {
+        const searchData = snapshot?.data ?? {};
+        const optimisticSnapshotData: NullishDeep<SearchResultDataType> = {};
+        const failureSnapshotData: NullishDeep<SearchResultDataType> = {};
+        const transactionKeys = Object.keys(searchData).filter((dataKey): dataKey is `${typeof ONYXKEYS.COLLECTION.TRANSACTION}${string}` =>
+            dataKey.startsWith(ONYXKEYS.COLLECTION.TRANSACTION),
+        );
+        for (const key of transactionKeys) {
+            const transaction = searchData[key];
+            if (transaction?.policyConvertedAmount == null || !shouldClear(transaction, searchData)) {
+                continue;
+            }
+            optimisticSnapshotData[key] = {policyConvertedAmount: null};
+            failureSnapshotData[key] = {policyConvertedAmount: transaction.policyConvertedAmount};
+        }
+
+        if (!isEmptyObject(optimisticSnapshotData)) {
+            const key = `${ONYXKEYS.COLLECTION.SNAPSHOT}${snapshotKey.slice(ONYXKEYS.COLLECTION.SNAPSHOT.length)}` as const;
+            optimisticData.push({onyxMethod: Onyx.METHOD.MERGE, key, value: {data: optimisticSnapshotData}});
+            failureData.push({onyxMethod: Onyx.METHOD.MERGE, key, value: {data: failureSnapshotData}});
+        }
+    }
+
+    return {optimisticData, failureData};
+}
+
+export {getClearPolicyConvertedAmountOnyxData, getGroupPendingDeleteOnyxUpdate, getSearchOnyxUpdate, shouldOptimisticallyUpdateSearch};
