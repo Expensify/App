@@ -369,6 +369,19 @@ describe('DynamicFormFields', () => {
         expect(rendered.has(keys.city)).toBe(true);
     });
 
+    it('lists every country when the address field sends an empty country list', () => {
+        // Given an address whose schema sends an empty country list
+        const homeAddress: DynamicFormField = {key: 'homeAddress', type: 'address', required: true, countries: []};
+        const keys = getAddressInputKeys('homeAddress');
+
+        // When the fields render
+        const rendered = renderFields([homeAddress]);
+
+        // Then the country row lists every country and the address search takes any, since an empty picker could never be answered
+        expect(rendered.get(keys.country)?.items).toHaveLength(Object.keys(CONST.ALL_COUNTRIES).length);
+        expect(rendered.get('homeAddress')?.allowedCountries).toBeUndefined();
+    });
+
     it('renders neither hidden fields nor fields of an unknown type', () => {
         // Given a regular field, a field hidden for private recipients and a field of a type this App version does not know
         const email: DynamicFormField = {key: 'email', type: 'text', required: true};

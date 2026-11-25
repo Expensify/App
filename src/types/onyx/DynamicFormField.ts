@@ -178,7 +178,7 @@ type DynamicFormAddressField = DynamicFormFieldBase & {
     /** Checks the zip against the format of the chosen country */
     rule?: 'zipCode';
 
-    /** Codes of the countries the address can be in. Every country the App knows when not set. */
+    /** Codes of the countries the address can be in. Every country the App knows when not set or empty. */
     countries?: string[];
 
     /** The states of the picked country, in place of the App's own lists. An empty list asks for no state. */

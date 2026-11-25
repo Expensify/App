@@ -37,9 +37,15 @@ function getAddressCountry(fieldKey: string, values: DynamicFormValues): Country
     return typeof country === 'string' && isCountryCode(country) ? country : '';
 }
 
+/** Codes of the countries the field takes, or undefined when it takes every country. An empty list counts as none set, so the country picker is never empty. */
+function getAllowedCountries(field: DynamicFormAddressField): string[] | undefined {
+    return field.countries?.length ? field.countries : undefined;
+}
+
 /** Whether the field takes an address in the country. No country is never allowed, so a required address still asks for one. */
 function isCountryAllowed(field: DynamicFormAddressField, country: Country | ''): boolean {
-    return !!country && (!field.countries || field.countries.includes(country));
+    const allowedCountries = getAllowedCountries(field);
+    return !!country && (!allowedCountries || allowedCountries.includes(country));
 }
 
 /** The App's own state list for the country. Until a country is picked it is the US one, unless the field does not take US addresses. */
@@ -82,4 +88,4 @@ function isZipCodeRequired(field: DynamicFormAddressField, country: Country | ''
 }
 
 export default getAddressInputKeys;
-export {getAddressCountry, getStateCodes, getStateOptions, isCountryAllowed, isStateAsked, isZipCodeRequired, isZipCodeShown};
+export {getAddressCountry, getAllowedCountries, getStateCodes, getStateOptions, isCountryAllowed, isStateAsked, isZipCodeRequired, isZipCodeShown};

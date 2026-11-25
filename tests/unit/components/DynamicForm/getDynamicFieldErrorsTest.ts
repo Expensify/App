@@ -371,6 +371,19 @@ describe('getDynamicFieldErrors', () => {
         expect(anyCountryErrors).toEqual({[addressKeys.state]: required, [addressKeys.country]: required});
     });
 
+    it('takes every country when the schema sends an empty country list', () => {
+        // Given a complete British address under a schema whose country list is empty
+        const addressKeys = getAddressInputKeys('homeAddress');
+        const homeAddress: DynamicFormField = {key: 'homeAddress', type: 'address', required: true, countries: []};
+        const values = {homeAddress: '1 High Street', [addressKeys.city]: 'London', [addressKeys.zipCode]: 'SW1W 9SR', [addressKeys.country]: CONST.COUNTRY.GB};
+
+        // When it is validated
+        const errors = getDynamicFieldErrors([homeAddress], values, translateLocal);
+
+        // Then the country passes, since an empty list would otherwise leave no country to pick and the form could never be sent
+        expect(errors).toEqual({});
+    });
+
     it('requires the zip only where the schema asks for one', () => {
         // Given an address in El Salvador, where the App does not require a zip, and one in Great Britain, where it does
         const addressKeys = getAddressInputKeys('homeAddress');
