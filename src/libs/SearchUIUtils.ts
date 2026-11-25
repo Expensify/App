@@ -5835,11 +5835,6 @@ function getValidGroupBy(groupBy: string | undefined): SearchGroupBy | undefined
     return groupBy && isGroupBySupportedBySearch(groupBy) && isSearchGroupBy(groupBy) ? groupBy : undefined;
 }
 
-/** Whether one expense can sit in several groups of this grouping, as an expense with two violations sits in both violation groups. */
-function canGroupsShareExpenses(groupBy: string | undefined): boolean {
-    return groupBy === CONST.SEARCH.GROUP_BY.VIOLATION;
-}
-
 function getStatusOptions(translate: LocalizedTranslate, type: SearchDataTypes, shouldReturnTripRooms = false) {
     switch (type) {
         case CONST.SEARCH.DATA_TYPES.INVOICE:
@@ -8373,17 +8368,30 @@ function isEverySearchBulkEditExpenseOwnedBy(
     allTransactions: OnyxCollection<OnyxTypes.Transaction> | undefined,
     allReports: OnyxCollection<OnyxTypes.Report> | undefined,
 ): boolean {
-    if (selectedTransactionIDs.length === 0) {
-        return false;
-    }
+    return getSearchBulkEditExpenseOwnerAccountID(selectedTransactionIDs, accountID, allTransactions, allReports) === accountID;
+}
 
-    return selectedTransactionIDs.every((transactionID) => {
+/**
+ * Returns the account that owns every selected expense, or undefined when there's no selection or the owners differ. An
+ * unreported expense has no report to read the owner from, so it counts as the current user's, since only they can see it.
+ */
+function getSearchBulkEditExpenseOwnerAccountID(
+    selectedTransactionIDs: string[],
+    currentUserAccountID: number,
+    allTransactions: OnyxCollection<OnyxTypes.Transaction> | undefined,
+    allReports: OnyxCollection<OnyxTypes.Report> | undefined,
+): number | undefined {
+    let ownerAccountID: number | undefined;
+    for (const transactionID of selectedTransactionIDs) {
         const transaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
-        if (!transaction?.reportID || transaction.reportID === CONST.REPORT.UNREPORTED_REPORT_ID) {
-            return true;
+        const isUnreported = !transaction?.reportID || transaction.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
+        const expenseOwnerAccountID = isUnreported ? currentUserAccountID : allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transaction.reportID}`]?.ownerAccountID;
+        if (expenseOwnerAccountID === undefined || (ownerAccountID !== undefined && expenseOwnerAccountID !== ownerAccountID)) {
+            return undefined;
         }
-        return allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transaction.reportID}`]?.ownerAccountID === accountID;
-    });
+        ownerAccountID = expenseOwnerAccountID;
+    }
+    return ownerAccountID;
 }
 
 function filterValidHasValues(hasValues: HasFilterValues | undefined, type: SearchDataTypes | undefined, translate: LocalizedTranslate): HasFilterValues | undefined {
@@ -8638,7 +8646,6 @@ function isTransactionMatchWithGroupItem(transaction: OnyxTypes.Transaction, gro
 }
 
 export {
-    canGroupsShareExpenses,
     canPolicyAdminChangeApprover,
     getAllMatchingExpenseActionQuery,
     getAllMatchingExportQueryAndExclusions,
@@ -8653,6 +8660,7 @@ export {
     getSnapshotFooterTotal,
     getSearchBulkEditPolicyID,
     isEverySearchBulkEditExpenseOwnedBy,
+    getSearchBulkEditExpenseOwnerAccountID,
     getSuggestedSearches,
     getSections,
     getSuggestedSearchesVisibility,

@@ -4713,6 +4713,15 @@ ${amount} für ${merchant} – ${date}`,
         updateSuccessMessage: 'Glückwunsch, dein Bankkonto ist eingerichtet und bereit, Rückerstattungen zu empfangen.',
         bankDetails: 'Bankdaten',
         accountHolderDetails: 'Kontoinhaberangaben',
+        notices: {
+            katakanaName:
+                'Geben Sie Ihren Namen genau so ein, wie er auf Ihrem japanischen Bankkonto erscheint. Er wird normalerweise in カタカナ (Katakana) geschrieben. Eine Abweichung kann Ihre Zahlung verzögern oder zu einer Ablehnung führen.',
+            alipayRecipients: 'Nur Empfänger mit Wohnsitz in Festlandchina, Hongkong oder Macao können über Alipay bezahlt werden.',
+            alipayLimits:
+                'Alipay kann bis zu 50.000 CNY pro Zahlung und zwischen 300.000 und 600.000 CNY pro Jahr empfangen. Monatliche Limits für die Anzahl der Zahlungen können je nach Verwendungszweck der Zahlung ebenfalls gelten.',
+            malaysianNonResidentLimit:
+                'Nichtansässige mit einem Bankkonto in Malaysia können nur 10.000 Malaysische Ringgit pro Tag empfangen. Eine Zahlung über diesem Limit kann dazu führen, dass Ihre Bank Ihr Konto schließt.',
+        },
     },
     addPersonalBankAccountPage: {
         enterPassword: 'Expensify-Passwort eingeben',
@@ -7319,6 +7328,8 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
             createFailureMessage: 'Beim Erstellen der Kategorie ist ein Fehler aufgetreten, bitte versuche es erneut.',
             addCategory: 'Kategorie hinzufügen',
             createCategoryFromSearch: (categoryName: string) => `Kategorie „${categoryName}“ erstellen`,
+            availableToMember: (memberName: string) => `Verfügbar für ${memberName}`,
+            notAvailableToMember: (memberName: string) => `Für ${memberName} nicht verfügbar`,
             editCategory: 'Kategorie bearbeiten',
             editCategories: 'Kategorien bearbeiten',
             findCategory: 'Kategorie finden',

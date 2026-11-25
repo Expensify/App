@@ -4688,6 +4688,15 @@ ${amount} voor ${merchant} - ${date}`,
         updateSuccessMessage: 'Gefeliciteerd, je bankrekening is ingesteld en klaar om terugbetalingen te ontvangen.',
         bankDetails: 'Bankgegevens',
         accountHolderDetails: 'Gegevens rekeninghouder',
+        notices: {
+            katakanaName:
+                'Vul je naam precies in zoals die op je Japanse bankrekening staat. Die wordt meestal in カタカナ (katakana) geschreven. Een verschil kan je betaling vertragen of laten afkeuren.',
+            alipayRecipients: 'Alleen ontvangers in vasteland-China, Hongkong of Macau kunnen via Alipay worden betaald.',
+            alipayLimits:
+                'Alipay kan tot 50.000 CNY per betaling ontvangen en tussen 300.000 en 600.000 CNY per jaar. Afhankelijk van het doel van de betaling kunnen er ook maandelijkse limieten gelden voor het aantal betalingen.',
+            malaysianNonResidentLimit:
+                'Niet-ingezetenen met een bankrekening in Maleisië kunnen maximaal 10.000 Maleisische ringgit per dag ontvangen. Een betaling boven deze limiet kan ertoe leiden dat je bank je rekening sluit.',
+        },
     },
     addPersonalBankAccountPage: {
         enterPassword: 'Voer Expensify-wachtwoord in',
@@ -7260,6 +7269,8 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
             createFailureMessage: 'Er is een fout opgetreden bij het aanmaken van de categorie, probeer het opnieuw.',
             addCategory: 'Categorie toevoegen',
             createCategoryFromSearch: (categoryName: string) => `Categorie „${categoryName}” aanmaken`,
+            availableToMember: (memberName: string) => `Beschikbaar voor ${memberName}`,
+            notAvailableToMember: (memberName: string) => `Niet beschikbaar voor ${memberName}`,
             editCategory: 'Categorie bewerken',
             editCategories: 'Categorieën bewerken',
             findCategory: 'Categorie zoeken',

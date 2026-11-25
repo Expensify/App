@@ -4689,6 +4689,15 @@ ${amount} para ${merchant} - ${date}`,
         updateSuccessMessage: 'Parabéns, sua conta bancária está configurada e pronta para receber reembolsos.',
         bankDetails: 'Dados bancários',
         accountHolderDetails: 'Dados do titular da conta',
+        notices: {
+            katakanaName:
+                'Insira seu nome exatamente como aparece na sua conta bancária japonesa. Ele geralmente é escrito em カタカナ (katakana). Uma diferença pode atrasar ou fazer com que seu pagamento seja rejeitado.',
+            alipayRecipients: 'Somente destinatários da China continental, Hong Kong ou Macau podem receber pagamentos via Alipay.',
+            alipayLimits:
+                'O Alipay pode receber até 50.000 CNY por pagamento e entre 300.000 e 600.000 CNY por ano. Limites mensais quanto ao número de pagamentos também podem ser aplicados, dependendo da finalidade do pagamento.',
+            malaysianNonResidentLimit:
+                'Não residentes com conta bancária na Malásia só podem receber 10.000 ringgits malaios por dia. Um pagamento acima desse limite pode levar o seu banco a encerrar sua conta.',
+        },
     },
     addPersonalBankAccountPage: {
         enterPassword: 'Insira a senha do Expensify',
@@ -7270,6 +7279,8 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
             createFailureMessage: 'Ocorreu um erro ao criar a categoria, tente novamente.',
             addCategory: 'Adicionar categoria',
             createCategoryFromSearch: (categoryName: string) => `Criar categoria “${categoryName}”`,
+            availableToMember: (memberName: string) => `Disponível para ${memberName}`,
+            notAvailableToMember: (memberName: string) => `Não disponível para ${memberName}`,
             editCategory: 'Editar categoria',
             editCategories: 'Editar categorias',
             findCategory: 'Encontrar categoria',
