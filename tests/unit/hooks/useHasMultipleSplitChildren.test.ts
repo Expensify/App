@@ -5,7 +5,6 @@ import useHasMultipleSplitChildren from '@hooks/useHasMultipleSplitChildren';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Transaction} from '@src/types/onyx';
-import type {TransactionCollectionDataSet} from '@src/types/onyx/Transaction';
 
 import Onyx from 'react-native-onyx';
 
@@ -27,7 +26,7 @@ function buildSplitChild(index: number, overrides: Partial<Transaction> = {}): T
 }
 
 async function setTransactions(transactions: Transaction[]) {
-    const collection: TransactionCollectionDataSet = {};
+    const collection: Record<`${typeof ONYXKEYS.COLLECTION.TRANSACTION}${string}`, Transaction> = {};
     for (const transaction of transactions) {
         collection[`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`] = transaction;
     }
