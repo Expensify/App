@@ -12060,6 +12060,7 @@ describe('actions/Report', () => {
 
         describe("another member's legacy unreported expense with no IOU action", () => {
             const adminSelfDMReportID = '605';
+            const snapshotHash = 67890;
 
             /** Opens another member's legacy expense the way Search does: not owned, with no IOU action or self DM */
             function openMemberLegacyExpenseAsAdmin(transaction: OnyxTypes.Transaction) {
@@ -12072,6 +12073,7 @@ describe('actions/Report', () => {
                     iouReportAction: createMock<OnyxTypes.ReportAction>({}),
                     transaction,
                     isOwnedByCurrentUser: false,
+                    snapshotHash,
                 });
             }
 
@@ -12094,7 +12096,7 @@ describe('actions/Report', () => {
             });
 
             afterEach(async () => {
-                await Onyx.set(`${ONYXKEYS.COLLECTION.SNAPSHOT}${currentHash}`, null);
+                await Onyx.set(`${ONYXKEYS.COLLECTION.SNAPSHOT}${snapshotHash}`, null);
                 await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${adminSelfDMReportID}`, null);
                 await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${adminSelfDMReportID}`, null);
                 await Onyx.set(ONYXKEYS.SELF_DM_REPORT_ID, null);
@@ -12139,8 +12141,8 @@ describe('actions/Report', () => {
                     moneyRequestPreviewReportActionID: placeholderAction?.reportActionID,
                 });
 
-                // And the Search row points at the thread, since it has no IOU action for the next tap to find the thread through
-                const snapshot = await getOnyxValue(`${ONYXKEYS.COLLECTION.SNAPSHOT}${currentHash}`);
+                // And the row in the snapshot it was opened from points at the thread, since it has no IOU action for the next tap to find the thread through
+                const snapshot = await getOnyxValue(`${ONYXKEYS.COLLECTION.SNAPSHOT}${snapshotHash}`);
                 expect(snapshot?.data?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`]?.transactionThreadReportID).toBe(threadReportID);
 
                 await mockFetch.resume?.();
@@ -12176,7 +12178,7 @@ describe('actions/Report', () => {
 
                 // Then the placeholder and the Search row's link to the thread are removed too, so the next open starts over
                 expect(await getPlaceholderAction(result)).toBeUndefined();
-                const snapshot = await getOnyxValue(`${ONYXKEYS.COLLECTION.SNAPSHOT}${currentHash}`);
+                const snapshot = await getOnyxValue(`${ONYXKEYS.COLLECTION.SNAPSHOT}${snapshotHash}`);
                 expect(snapshot?.data?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`]?.transactionThreadReportID).toBeUndefined();
             });
         });

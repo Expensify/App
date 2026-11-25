@@ -240,6 +240,7 @@ function TransactionGroupListExpandedImpl({
                         IOUTransactionID: transactionItem?.reportAction?.childReportID,
                         shouldNavigate: false,
                         fullPolicySnapshotLastModifiedByPolicyID,
+                        snapshotHash: transactionsQueryJSON?.hash,
                     });
                     if (targetReportID) {
                         openInternalRouteInNewTab(ROUTES.SEARCH_REPORT.getRoute({reportID: targetReportID, backTo, anchorTransactionID: transactionItem.transactionID}), event);
@@ -260,6 +261,7 @@ function TransactionGroupListExpandedImpl({
                     delegateAccountID,
                     IOUTransactionID: transactionItem?.reportAction?.childReportID,
                     fullPolicySnapshotLastModifiedByPolicyID,
+                    snapshotHash: transactionsQueryJSON?.hash,
                 });
                 return;
             }

@@ -2735,6 +2735,9 @@ type CreateAndOpenSearchTransactionThreadParams = {
 
     /** The lastModified of each policy's cached full policy snapshot, keyed by policyID */
     fullPolicySnapshotLastModifiedByPolicyID?: Record<string, number>;
+
+    /** The hash of the Search snapshot the row comes from, which can be an expanded group's rather than the current query's */
+    snapshotHash?: number;
 };
 
 /** Creates transaction thread report and navigates to it from the search page */
@@ -2754,6 +2757,7 @@ function createAndOpenSearchTransactionThread({
     getCurrencyDecimals,
     conciergeChat,
     fullPolicySnapshotLastModifiedByPolicyID,
+    snapshotHash,
 }: CreateAndOpenSearchTransactionThreadParams): string | undefined {
     const isUnreportedTransaction = item.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
     const isDeleted = isDeletedTransaction(item);
@@ -2819,6 +2823,7 @@ function createAndOpenSearchTransactionThread({
             fullPolicySnapshotLastModified: iouReport?.policyID ? fullPolicySnapshotLastModifiedByPolicyID?.[iouReport.policyID] : undefined,
             selfDMReportID,
             isOwnedByCurrentUser: isOwnExpense,
+            snapshotHash,
         });
     }
 

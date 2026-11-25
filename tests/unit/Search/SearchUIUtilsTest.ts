@@ -15354,19 +15354,21 @@ describe('SearchUIUtils', () => {
             });
 
             test("Should open an expense on another member's managed card outside the admin's self DM", () => {
-                // Given an expense on another member's managed card, which an admin sees on their card feed
+                // Given a legacy expense on another member's managed card, which an admin sees on their card feed
                 const item = buildLegacyUnreportedItem(true, currentUserAccountID + 1);
 
-                // When the admin opens it from Search
-                const targetReportID = SearchUIUtils.createAndOpenSearchTransactionThread({...baseParams, item, shouldNavigate: false});
+                // When the admin opens it from a Search snapshot
+                const snapshotHash = 67890;
+                const targetReportID = SearchUIUtils.createAndOpenSearchTransactionThread({...baseParams, item, shouldNavigate: false, snapshotHash});
 
-                // Then the thread is created without a self DM, since the member's is unknown, and with the transaction so the backend can link it
+                // Then the thread opens without a self DM, because the member's is unknown, and gets the snapshot so the row can be linked to the thread
                 expect(targetReportID).toBe(threadReportID);
                 expect(createTransactionThreadReport).toHaveBeenCalledWith(
                     expect.objectContaining({
                         selfDMReportID: undefined,
                         isOwnedByCurrentUser: false,
                         transaction: expect.objectContaining({reportID: CONST.REPORT.UNREPORTED_REPORT_ID}),
+                        snapshotHash,
                     }),
                 );
             });

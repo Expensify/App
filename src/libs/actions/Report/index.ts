@@ -378,6 +378,9 @@ type OpenReportActionBaseParams = {
     /** Whether the transaction is another member's legacy expense. Its optimistic IOU action has no actor and is removed once OpenReport finishes */
     isOtherMemberLegacyExpense?: boolean;
 
+    /** The hash of the Search snapshot the expense row comes from */
+    snapshotHash?: number;
+
     shouldAddPendingFields?: boolean;
 
     /** The optimistic selfDM report when it exists on the server but was filtered out from OpenApp response (e.g., no actions yet) */
@@ -1773,6 +1776,7 @@ function openReport(params: OpenReportActionParams) {
         transactionViolations,
         parentReportID,
         isOtherMemberLegacyExpense = false,
+        snapshotHash,
         shouldAddPendingFields = true,
         optimisticSelfDMReport,
         parentReportAction,
@@ -2044,13 +2048,12 @@ function openReport(params: OpenReportActionParams) {
             failureData.push(removePlaceholderAction);
 
             // The Search row still has no IOU action, so the thread ID on the row is what lets the next tap reopen this thread
-            const searchHash = getCurrentSearchQueryJSON()?.hash;
-            if (searchHash) {
+            if (snapshotHash) {
                 const optimisticSnapshotData: NullishDeep<SearchResultDataType> = {};
                 optimisticSnapshotData[`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`] = {transactionThreadReportID: reportID};
                 optimisticData.push({
                     onyxMethod: Onyx.METHOD.MERGE,
-                    key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${searchHash}` as const,
+                    key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${snapshotHash}` as const,
                     value: {data: optimisticSnapshotData},
                 });
 
@@ -2058,7 +2061,7 @@ function openReport(params: OpenReportActionParams) {
                 failureSnapshotData[`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`] = {transactionThreadReportID: null};
                 failureData.push({
                     onyxMethod: Onyx.METHOD.MERGE,
-                    key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${searchHash}` as const,
+                    key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${snapshotHash}` as const,
                     value: {data: failureSnapshotData},
                 });
             }
@@ -2584,6 +2587,9 @@ type CreateTransactionThreadReportParams = {
 
     /** Whether the expense belongs to the current user. Read from the IOU action's actor when not set, so pass it for a legacy expense that has no IOU action */
     isOwnedByCurrentUser?: boolean;
+
+    /** The hash of the Search snapshot the expense row comes from */
+    snapshotHash?: number;
 };
 
 function createTransactionThreadReport(params: CreateTransactionThreadReportParams): OptimisticChatReport | undefined {
@@ -2680,6 +2686,7 @@ function createTransactionThreadReport(params: CreateTransactionThreadReportPara
         transactionViolations,
         parentReportID: selfDMReportID ?? placeholderParentReportID,
         isOtherMemberLegacyExpense,
+        snapshotHash: params.snapshotHash,
         shouldAddPendingFields,
         optimisticSelfDMReport,
         parentReportAction,
