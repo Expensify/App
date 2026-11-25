@@ -35,6 +35,9 @@ type WorkspaceCompanyCardTableRowData = TableData &
         isAssigned: boolean;
         assignedCard?: Card;
 
+        /** Set when a full-number search matched this card only on partial digits, so another card could share them */
+        isPartialNumberMatch?: boolean;
+
         /** Whether the card name can be edited inline from the table. Only assigned cards opt in. */
         canEditName?: boolean;
 
@@ -94,7 +97,8 @@ function WorkspaceCompanyCardTableRow({
     const Expensicons = useMemoizedLazyExpensifyIcons(['ArrowRight']);
     const isTableSemanticsEnabled = shouldUseTableSemantics(shouldUseNarrowTableLayout);
 
-    const {cardName, encryptedCardNumber, customCardName, cardholder, assignedCard, isAssigned, errors, pendingAction, isCardDeleted, onDismissError} = item;
+    const {cardName, encryptedCardNumber, customCardName, cardholder, assignedCard, isAssigned, errors, pendingAction, isCardDeleted, isPartialNumberMatch, onDismissError} = item;
+
     const formattedCustomCardName = customCardName ?? '';
     const formattedCardDetails = formatMaskedCardName(cardName);
     const formattedCustomCardNameSuffix = formattedCustomCardName ? ` • ${formattedCustomCardName}` : '';
@@ -134,8 +138,16 @@ function WorkspaceCompanyCardTableRow({
         return Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_COMPANY_CARD_DETAILS.getRoute(feedName, cardID.toString())));
     };
 
+    const partialNumberMatchHint = translate('workspace.moreFeatures.companyCards.matchesLastFourDigitsOnly');
     // Screen readers get the full sync timestamp, which sighted users see in the tooltip.
-    const accessibilityLabel = [memberColumnTitle, formattedCardDetails, formattedCustomCardName, item.exportAccountTitle, item.lastUpdatedTooltip ?? item.lastUpdatedText]
+    const accessibilityLabel = [
+        memberColumnTitle,
+        isPartialNumberMatch ? partialNumberMatchHint : undefined,
+        formattedCardDetails,
+        formattedCustomCardName,
+        item.exportAccountTitle,
+        item.lastUpdatedTooltip ?? item.lastUpdatedText,
+    ]
         .filter(Boolean)
         .join(', ');
 
@@ -181,6 +193,7 @@ function WorkspaceCompanyCardTableRow({
                                     style={[styles.textLabelSupporting, styles.lh16, styles.pre, styles.mr3]}
                                 />
                             )}
+                            {!!isPartialNumberMatch && <Text style={[styles.textLabelSupporting, styles.lh16, styles.mr3]}>{partialNumberMatchHint}</Text>}
                         </View>
                     </View>
 

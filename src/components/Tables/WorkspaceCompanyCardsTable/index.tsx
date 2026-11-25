@@ -9,6 +9,7 @@ import Text from '@components/Text';
 
 import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
 import useCardFeedErrors from '@hooks/useCardFeedErrors';
+import useCompanyCardNumberSearch, {normalizeCardNumber} from '@hooks/useCompanyCardNumberSearch';
 import type {UseCompanyCardsResult} from '@hooks/useCompanyCards';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -50,6 +51,7 @@ import {View} from 'react-native';
 
 import type {WorkspaceCompanyCardTableItemData} from './WorkspaceCompanyCardsTableRow';
 
+import useWorkspaceCompanyCardsBulkActions from './useWorkspaceCompanyCardsBulkActions';
 import WorkspaceCompanyCardsTableControls from './WorkspaceCompanyCardsTableControls';
 import WorkspaceCompanyCardsTableHeaderButtons from './WorkspaceCompanyCardsTableHeaderButtons';
 import WorkspaceCompanyCardTableItem from './WorkspaceCompanyCardsTableRow';
@@ -119,6 +121,10 @@ function WorkspaceCompanyCardsTable({
         isFeedPending,
         onyxMetadata: {cardListMetadata, lastSelectedFeedMetadata},
     } = companyCards;
+
+    // Server-side search for a full card number, which the masked card name can never match. bankName is the
+    // plain feed id (e.g. "gl1025"); selectedFeed is the feed object and feedName carries a domain suffix.
+    const companyCardNumberSearch = useCompanyCardNumberSearch(policyID, bankName, domainOrWorkspaceAccountID);
 
     const {cardFeedErrors} = useCardFeedErrors();
     const illustrations = useMemoizedLazyIllustrations(['LaptopAssignCard', 'BrokenMagnifyingGlass']);
@@ -232,6 +238,7 @@ function WorkspaceCompanyCardsTable({
                     ];
                 },
                 extraWidth: variables.tableMemberCellAvatarWidth,
+                minWidth: variables.tableMemberColumnMinWidth,
             },
         },
         {
@@ -257,7 +264,6 @@ function WorkspaceCompanyCardsTable({
             },
             dynamicSizing: {
                 getContentToMeasure: (item) => (item.customCardName ? [{text: item.customCardName, fontSize: fontScale.text}] : []),
-                // Padding and border sit inside the track. Once a long name sets the column width, that chrome has to be measured or the name clips.
                 extraWidth: variables.editableCellChromeWidth,
             },
         },
@@ -279,7 +285,8 @@ function WorkspaceCompanyCardsTable({
             label: '',
             sortable: false,
             styling: {
-                containerStyles: [styles.justifyContentEnd, styles.pr3],
+                alignment: CONST.SEARCH.TABLE_COLUMN_ALIGNMENT.END,
+                containerStyles: [styles.pr3],
             },
             // A fixed width would reserve the Assign button's space even when no row can show it, so only measure
             // content while at least one row can render the button.
@@ -334,6 +341,9 @@ function WorkspaceCompanyCardsTable({
                       disabled: isCardDeleted,
                       isAssigned,
                       assignedCard,
+                      isPartialNumberMatch:
+                          (cardID !== undefined && companyCardNumberSearch.lastFourCardIDs.has(cardID)) ||
+                          (!!encryptedCardNumber && companyCardNumberSearch.lastFourEncryptedNumbers.has(encryptedCardNumber)),
                       cardholder,
                       // Unassigned cards have no details page and so no Accounting section to match, hence no title.
                       exportAccountTitle: shouldShowExportAccountColumn && assignedCard ? getCardExportAccountTitle(cardExportSettings, assignedCard) : undefined,
@@ -448,6 +458,19 @@ function WorkspaceCompanyCardsTable({
             ...(Str.isSMSLogin(cardholderLogin) ? [formatPhoneNumber(cardholderLogin), cardholderLogin] : [cardholderLogin]),
         ];
 
+        // A full card number can only be matched by the server. Apply those matches only while the typed
+        // number still matches the results in hand, matching by cardID (assigned) or encryptedCardNumber
+        // (unassigned) — never by the masked cardName, whose suffix length differs between code paths.
+        const isServerCardMatch =
+            !!companyCardNumberSearch.resultsQuery &&
+            normalizeCardNumber(searchString) === companyCardNumberSearch.resultsQuery &&
+            ((item.assignedCard?.cardID !== undefined && companyCardNumberSearch.matchedCardIDs.has(item.assignedCard.cardID)) ||
+                (!!item.encryptedCardNumber && companyCardNumberSearch.matchedEncryptedNumbers.has(item.encryptedCardNumber)));
+
+        if (companyCardNumberSearch.isFullNumberQuery) {
+            return isServerCardMatch;
+        }
+
         const matchingItems = tokenizedSearch([item], searchString, () => searchTokens);
         return matchingItems.length > 0 || isAssignedCardMatch || isUnassignedCardMatch;
     };
@@ -531,15 +554,24 @@ function WorkspaceCompanyCardsTable({
                 />
             </View>
         ) : undefined;
+    // Derived here rather than from the table's own rows, so the floating bar and the narrow layout's dropdown are
+    // built from one selection.
+    const selectedCards = cardsData.filter((card) => !card.disabled && validSelectedCardKeys.includes(keyExtractor(card)));
+    const bulkActionOptions = useWorkspaceCompanyCardsBulkActions({
+        policyID,
+        domainOrWorkspaceAccountID,
+        bankName,
+        feedName,
+        canWriteCompanyCards,
+        clearCardSelection,
+        selectedCards,
+    });
+
     const tableControlsComponent = showCards ? (
         <WorkspaceCompanyCardsTableControls
-            policyID={policyID}
-            domainOrWorkspaceAccountID={domainOrWorkspaceAccountID}
-            bankName={bankName}
-            feedName={feedName}
-            canWriteCompanyCards={canWriteCompanyCards}
-            clearCardSelection={clearCardSelection}
+            bulkActionOptions={bulkActionOptions}
             isSelectionModeEnabled={isSelectionModeEnabled}
+            selectedCardsCount={selectedCards.length}
         />
     ) : undefined;
     const balanceLabelsComponent = showCards ? (
@@ -561,6 +593,7 @@ function WorkspaceCompanyCardsTable({
             compareItems={compareItems}
             isItemInSearch={isItemInSearch}
             isItemInFilter={isItemInFilter}
+            onSearchStringChange={companyCardNumberSearch.setSearchValue}
             shouldUseDynamicColumns
             columnResizingID={CONST.TABLES.COLUMN_RESIZING_IDS.WORKSPACE_COMPANY_CARDS}
             initialSortColumn="member"
@@ -634,9 +667,31 @@ function WorkspaceCompanyCardsTable({
                     {!!shouldShowGBDisclaimer && <Text style={[styles.textMicroSupporting, styles.m5]}>{translate('workspace.companyCards.ukRegulation')}</Text>}
                 </Table.EmptyState>
             )}
-            {showCards && !shouldShowPendingUnassignmentLoading && <Table.NoResultsState />}
+            {/* TableBody owns the empty slot, so both the in-flight spinner and the error state must live
+            inside Table.NoResultsState (the extracted no-results element) rather than beside it, or the
+            "No results" message flashes before the server matches arrive. */}
+            {showCards && !shouldShowPendingUnassignmentLoading && (
+                <Table.NoResultsState
+                    shouldShowLoadingIndicator={companyCardNumberSearch.isSearching}
+                    {...(companyCardNumberSearch.hasError
+                        ? {
+                              title: translate('common.genericErrorMessage'),
+                              subtitle: '',
+                              headerMedia: illustrations.BrokenMagnifyingGlass,
+                              buttons: [
+                                  {
+                                      buttonText: translate('common.tryAgain'),
+                                      buttonAction: companyCardNumberSearch.retrySearch,
+                                      sentryLabel: CONST.SENTRY_LABEL.BLOCKING_VIEW.RETRY_BUTTON,
+                                  },
+                              ],
+                          }
+                        : {})}
+                />
+            )}
             {showCards && <Table.Header />}
             {showCards && <Table.Body />}
+            {showCards && <Table.BulkActionBar options={bulkActionOptions} />}
         </Table>
     );
 }

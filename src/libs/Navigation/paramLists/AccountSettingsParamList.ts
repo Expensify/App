@@ -18,9 +18,6 @@ type AccountSettingsParamList = {
         fieldToFocus?: string;
     };
     [SCREENS.SETTINGS.PROFILE.PRIVATE_PERSONAL_DETAILS_CONFIRM_VALIDATE_CODE]: undefined;
-    [SCREENS.SETTINGS.PROFILE.ADDRESS]: {
-        country?: Country | '';
-    };
     [SCREENS.SETTINGS.PROFILE.DYNAMIC_ADDRESS_COUNTRY]: {
         country?: string;
     };
@@ -84,7 +81,6 @@ type AccountSettingsParamList = {
         | undefined;
     [SCREENS.SETTINGS.DYNAMIC_EXIT_SURVEY_REASON]: undefined;
     [SCREENS.SETTINGS.DYNAMIC_EXIT_SURVEY_CONFIRM]: undefined;
-    [SCREENS.SETTINGS.WALLET.DYNAMIC_CARDS_DIGITAL_DETAILS_UPDATE_ADDRESS]: undefined;
     [SCREENS.SETTINGS.WALLET.DYNAMIC_DOMAIN_CARD]: {
         cardID: string;
     };
@@ -186,6 +182,7 @@ type AccountSettingsParamList = {
     };
     [SCREENS.SETTINGS.WALLET.DYNAMIC_WISE_GLOBAL_REIMBURSEMENTS_INTRO]: {
         bankAccountID: string;
+        isPayingMultipleReports?: string;
     };
     [SCREENS.SETTINGS.WALLET.DYNAMIC_WISE_BUSINESS_ONBOARDING]: {
         bankAccountID: string;

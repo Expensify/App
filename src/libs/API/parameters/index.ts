@@ -185,6 +185,7 @@ export type {default as RemovePolicyReceiptPartnersConnectionParams} from './Rem
 export type {default as SyncPolicyToQuickbooksDesktopParams} from './SyncPolicyToQuickbooksDesktopParams';
 export type {default as DeleteContactMethodParams} from './DeleteContactMethodParams';
 export type {default as DeletePaymentBankAccountParams} from './DeletePaymentBankAccountParams';
+export type {default as CreateTestBankAccountParams} from './CreateTestBankAccountParams';
 export type {default as DeletePaymentCardParams} from './DeletePaymentCardParams';
 export type {default as DeletePersonalCardParams} from './DeletePersonalCardParams';
 export type {default as TogglePolicyUberAutoInvitePageParams} from './TogglePolicyUberAutoInvitePageParams';
@@ -565,6 +566,7 @@ export type {default as SetPolicyCategoryDescriptionRequiredParams} from './SetP
 export type {default as SetPolicyCategoryAttendeesRequiredParams} from './SetPolicyCategoryAttendeesRequiredParams';
 export type {default as SetPolicyCategoryApproverParams} from './SetPolicyCategoryApproverParams';
 export type {default as SetPolicyMemberCategoryVisibilityParams} from './SetPolicyMemberCategoryVisibilityParams';
+export type {default as SetPolicyCategoryMemberVisibilityParams} from './SetPolicyCategoryMemberVisibilityParams';
 export type {default as SetWorkspaceCategoryDescriptionHintParams} from './SetWorkspaceCategoryDescriptionHintParams';
 export type {default as SetPolicyCategoryTaxParams} from './SetPolicyCategoryTaxParams';
 export type {default as SetPolicyCategoryMaxAmountParams} from './SetPolicyCategoryMaxAmountParams';
@@ -611,6 +613,7 @@ export type {default as SetCompanyCardFeedName} from './SetCompanyCardFeedName';
 export type {default as DeleteCompanyCardFeed} from './DeleteCompanyCardFeed';
 export type {default as SetCompanyCardTransactionLiability} from './SetCompanyCardTransactionLiability';
 export type {default as OpenPolicyCompanyCardsFeedParams} from './OpenPolicyCompanyCardsFeedParams';
+export type {default as SearchCompanyCardByNumberParams} from './SearchCompanyCardByNumberParams';
 export type {default as OpenPolicyAddCardFeedPageParams} from './OpenPolicyAddCardFeedPageParams';
 export type {default as SetFeedReimbursableParams} from './SetFeedReimbursableParams';
 export type {default as SetFeedStatementPeriodEndDayParams} from './SetFeedStatementPeriodEndDayParams';
@@ -708,6 +711,9 @@ export type {default as QueueExportSearchWithTemplateParams} from './QueueExport
 export type {default as QueueBulkPayReportsParams} from './QueueBulkPayReportsParams';
 export type {default as QueueBulkApproveReportsParams} from './QueueBulkApproveReportsParams';
 export type {default as QueueBulkSubmitReportsParams} from './QueueBulkSubmitReportsParams';
+export type {default as QueueBulkHoldExpensesParams} from './QueueBulkHoldExpensesParams';
+export type {default as QueueBulkUnholdExpensesParams} from './QueueBulkUnholdExpensesParams';
+export type {default as QueueBulkRejectExpensesParams} from './QueueBulkRejectExpensesParams';
 export type {default as QueueBulkChangeReportPolicyParams} from './QueueBulkChangeReportPolicyParams';
 export type {default as QueueBulkMarkAsExportedParams} from './QueueBulkMarkAsExportedParams';
 export type {default as AssignReportToMeParams} from './AssignReportToMeParams';

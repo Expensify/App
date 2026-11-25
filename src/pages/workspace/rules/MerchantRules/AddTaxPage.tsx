@@ -8,6 +8,7 @@ import {hasUsableTaxRates, isSelectableTaxRate} from '@libs/CategoryTaxRulesUtil
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
+import {formatTaxRateName} from '@libs/PolicyUtils';
 
 import ONYXKEYS from '@src/ONYXKEYS';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
@@ -37,7 +38,7 @@ function AddTaxPage({route}: AddTaxPageProps) {
         // marked selected, so the admin couldn't tell what the rule applies, only that it wasn't any of the options.
         .filter(([taxKey, tax]) => taxKey === form?.tax || isSelectableTaxRate(tax))
         .map(([taxKey, tax]) => ({
-            name: `${tax.name} (${tax.value})`,
+            name: formatTaxRateName(tax.name, tax.value),
             value: taxKey,
         }));
 

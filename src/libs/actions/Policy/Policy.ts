@@ -369,8 +369,8 @@ function isCurrencySupportedForDirectReimbursement(currency: string) {
 /**
  * Checks if the currency is supported for global reimbursement
  */
-function isCurrencySupportedForGlobalReimbursement(currency: string) {
-    return (CONST.DIRECT_REIMBURSEMENT_CURRENCIES as readonly string[]).includes(currency);
+function isCurrencySupportedForGlobalReimbursement(currency: string | undefined) {
+    return CONST.DIRECT_REIMBURSEMENT_CURRENCIES.some((supportedCurrency) => supportedCurrency === currency);
 }
 
 /** Check if the policy has invoicing company details */
@@ -5188,7 +5188,7 @@ function createWorkspaceFromIOUPayment({
     return {policyID, workspaceChatReportID: memberData.workspaceChatReportID, reportPreviewReportActionID: reportPreviewAction?.reportActionID, adminsChatReportID};
 }
 
-function enablePolicyConnections(policyID: string, enabled: boolean, shouldGoBack = true) {
+function enablePolicyConnections(policyID: string, enabled: boolean) {
     const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.POLICY> = {
         optimisticData: [
             {
@@ -5230,13 +5230,9 @@ function enablePolicyConnections(policyID: string, enabled: boolean, shouldGoBac
     const parameters: EnablePolicyConnectionsParams = {policyID, enabled};
 
     API.writeWithNoDuplicatesEnableFeatureConflicts(WRITE_COMMANDS.ENABLE_POLICY_CONNECTIONS, parameters, onyxData);
-
-    if (enabled && getIsNarrowLayout() && shouldGoBack) {
-        goBackWhenEnableFeature();
-    }
 }
 
-function enablePolicyHR(policyID: string, enabled: boolean, shouldGoBack = true) {
+function enablePolicyHR(policyID: string, enabled: boolean) {
     const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.POLICY> = {
         optimisticData: [
             {
@@ -5278,13 +5274,9 @@ function enablePolicyHR(policyID: string, enabled: boolean, shouldGoBack = true)
     const parameters: EnablePolicyHRParams = {policyID, enabled};
 
     API.writeWithNoDuplicatesEnableFeatureConflicts(WRITE_COMMANDS.ENABLE_POLICY_HR, parameters, onyxData);
-
-    if (enabled && getIsNarrowLayout() && shouldGoBack) {
-        goBackWhenEnableFeature();
-    }
 }
 
-function enablePolicyRecruiting(policyID: string, enabled: boolean, shouldGoBack = true) {
+function enablePolicyRecruiting(policyID: string, enabled: boolean) {
     const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.POLICY> = {
         optimisticData: [
             {
@@ -5316,7 +5308,7 @@ function enablePolicyRecruiting(policyID: string, enabled: boolean, shouldGoBack
                 value: {
                     isRecruitingEnabled: !enabled,
                     pendingFields: {
-                        isMCPEnabled: null,
+                        isRecruitingEnabled: null,
                     },
                 },
             },
@@ -5326,13 +5318,9 @@ function enablePolicyRecruiting(policyID: string, enabled: boolean, shouldGoBack
     const parameters: EnablePolicyRecruitingParams = {policyID, enabled};
 
     API.writeWithNoDuplicatesEnableFeatureConflicts(WRITE_COMMANDS.ENABLE_POLICY_RECRUITING, parameters, onyxData);
-
-    if (enabled && getIsNarrowLayout() && shouldGoBack) {
-        goBackWhenEnableFeature();
-    }
 }
 
-function enablePolicyMCP(policyID: string, enabled: boolean, shouldGoBack = true) {
+function enablePolicyMCP(policyID: string, enabled: boolean) {
     const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.POLICY> = {
         optimisticData: [
             {
@@ -5374,13 +5362,9 @@ function enablePolicyMCP(policyID: string, enabled: boolean, shouldGoBack = true
     const parameters: EnablePolicyMCPParams = {policyID, enabled};
 
     API.writeWithNoDuplicatesEnableFeatureConflicts(WRITE_COMMANDS.ENABLE_POLICY_MCP, parameters, onyxData);
-
-    if (enabled && getIsNarrowLayout() && shouldGoBack) {
-        goBackWhenEnableFeature();
-    }
 }
 
-function enablePolicyReceiptPartners(policyID: string, enabled: boolean, shouldGoBack = true) {
+function enablePolicyReceiptPartners(policyID: string, enabled: boolean) {
     const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.POLICY> = {
         optimisticData: [
             {
@@ -5422,10 +5406,6 @@ function enablePolicyReceiptPartners(policyID: string, enabled: boolean, shouldG
     const parameters: TogglePolicyReceiptPartnersParams = {policyID, enabled};
 
     API.write(WRITE_COMMANDS.TOGGLE_RECEIPT_PARTNERS, parameters, onyxData);
-
-    if (enabled && getIsNarrowLayout() && shouldGoBack) {
-        goBackWhenEnableFeature();
-    }
 }
 
 type ConnectionFeatureName =
@@ -5457,7 +5437,7 @@ function enablePolicyFeatureForConnection(policy: OnyxEntry<Policy>, featureName
     if (featureName === CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED && policy.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD) {
         Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY_HAS_CONNECTIONS_DATA_BEEN_FETCHED}${policy.id}`, true);
     }
-    ENABLE_CONNECTION_FEATURE[featureName](policy.id, true, false);
+    ENABLE_CONNECTION_FEATURE[featureName](policy.id, true);
 }
 
 /** Save the preferred export method for a policy */
@@ -8448,27 +8428,19 @@ function updateInvoiceCompanyWebsite(policyID: string, companyWebsite: string, c
     API.write(WRITE_COMMANDS.UPDATE_INVOICE_COMPANY_WEBSITE, parameters, {optimisticData, successData, failureData});
 }
 
+type AccessiblePoliciesOnyxData = {
+    requestID: string;
+    optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.VALIDATE_USER_AND_GET_ACCESSIBLE_POLICIES>>;
+    successData: Array<OnyxUpdate<typeof ONYXKEYS.VALIDATE_USER_AND_GET_ACCESSIBLE_POLICIES | typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>>;
+    failureData: Array<OnyxUpdate<typeof ONYXKEYS.VALIDATE_USER_AND_GET_ACCESSIBLE_POLICIES>>;
+};
+
 /**
- * Validates user account and returns a list of accessible policies.
+ * Builds the loading, success and failure Onyx data shared by the accessible policies commands.
  */
-/**
- * @param validateEmailTaskReport The join-workspace intent's "validate your email" Concierge task, when one exists.
- * Auth auto-completes it as part of this command via a forwarded CompleteTask, but ticking it here too avoids waiting
- * on that command's Pusher update to reach the client. The tick rides the command's successData so it only lands once
- * the command has actually succeeded - an invalid validate code must leave the task open. See
- * getOnboardingTaskCompletionOnSuccessData.
- */
-function getAccessiblePolicies(
-    validateCode?: string,
-    validateEmailTaskReport?: OnyxEntry<Report>,
-    validateEmailTaskParentReport?: OnyxEntry<Report>,
-    isValidateEmailTaskParentReportArchived?: boolean,
-    validateEmailTaskHasOutstandingChildTask?: boolean,
-    validateEmailTaskParentReportAction?: OnyxEntry<ReportAction>,
-    currentUserAccountID?: number,
-): string {
+function buildAccessiblePoliciesOnyxData(): AccessiblePoliciesOnyxData {
     const requestID = rand64();
-    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.VALIDATE_USER_AND_GET_ACCESSIBLE_POLICIES>> = [
+    const optimisticData: AccessiblePoliciesOnyxData['optimisticData'] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.VALIDATE_USER_AND_GET_ACCESSIBLE_POLICIES,
@@ -8480,7 +8452,7 @@ function getAccessiblePolicies(
         },
     ];
 
-    const successData: Array<OnyxUpdate<typeof ONYXKEYS.VALIDATE_USER_AND_GET_ACCESSIBLE_POLICIES | typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>> = [
+    const successData: AccessiblePoliciesOnyxData['successData'] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.VALIDATE_USER_AND_GET_ACCESSIBLE_POLICIES,
@@ -8492,7 +8464,7 @@ function getAccessiblePolicies(
         },
     ];
 
-    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.VALIDATE_USER_AND_GET_ACCESSIBLE_POLICIES>> = [
+    const failureData: AccessiblePoliciesOnyxData['failureData'] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.VALIDATE_USER_AND_GET_ACCESSIBLE_POLICIES,
@@ -8502,6 +8474,44 @@ function getAccessiblePolicies(
             },
         },
     ];
+
+    return {requestID, optimisticData, successData, failureData};
+}
+
+/**
+ * Returns a list of the policies accessible to the current user.
+ */
+function getAccessiblePolicies(): string {
+    const {requestID, optimisticData, successData, failureData} = buildAccessiblePoliciesOnyxData();
+
+    API.write(WRITE_COMMANDS.GET_ACCESSIBLE_POLICIES, null, {
+        optimisticData,
+        successData,
+        failureData,
+    });
+
+    return requestID;
+}
+
+/**
+ * Validates the user account with the given validate code and returns a list of accessible policies.
+ *
+ * @param validateEmailTaskReport The join-workspace intent's "validate your email" Concierge task, when one exists.
+ * Auth auto-completes it as part of this command via a forwarded CompleteTask, but ticking it here too avoids waiting
+ * on that command's Pusher update to reach the client. The tick rides the command's successData so it only lands once
+ * the command has actually succeeded - an invalid validate code must leave the task open. See
+ * getOnboardingTaskCompletionOnSuccessData.
+ */
+function validateUserAndGetAccessiblePolicies(
+    validateCode: string,
+    validateEmailTaskReport?: OnyxEntry<Report>,
+    validateEmailTaskParentReport?: OnyxEntry<Report>,
+    isValidateEmailTaskParentReportArchived?: boolean,
+    validateEmailTaskHasOutstandingChildTask?: boolean,
+    validateEmailTaskParentReportAction?: OnyxEntry<ReportAction>,
+    currentUserAccountID?: number,
+): string {
+    const {requestID, optimisticData, successData, failureData} = buildAccessiblePoliciesOnyxData();
 
     let completedTaskReportActionID: string | undefined;
     if (validateEmailTaskReport && currentUserAccountID) {
@@ -8517,9 +8527,7 @@ function getAccessiblePolicies(
         completedTaskReportActionID = validateEmailTaskCompletion.completedTaskReportActionID;
     }
 
-    const command = validateCode ? WRITE_COMMANDS.VALIDATE_USER_AND_GET_ACCESSIBLE_POLICIES : WRITE_COMMANDS.GET_ACCESSIBLE_POLICIES;
-
-    API.write(command, validateCode ? {validateCode, completedTaskReportActionID} : null, {optimisticData, successData, failureData});
+    API.write(WRITE_COMMANDS.VALIDATE_USER_AND_GET_ACCESSIBLE_POLICIES, {validateCode, completedTaskReportActionID}, {optimisticData, successData, failureData});
 
     return requestID;
 }
@@ -8747,6 +8755,7 @@ export {
     updateInvoiceCompanyWebsite,
     downgradeToTeam,
     getAccessiblePolicies,
+    validateUserAndGetAccessiblePolicies,
     clearGetAccessiblePoliciesErrors,
     calculateBillNewDot,
     payAndDowngrade,

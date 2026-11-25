@@ -1,4 +1,5 @@
-import {chatIncludesConcierge, isInvoiceReport, isMoneyRequestReport} from '@libs/ReportUtils';
+import {getAllPersonalDetails} from '@libs/PersonalDetailsStore';
+import {chatIncludesConcierge, isDM, isInvoiceReport, isMoneyRequestReport} from '@libs/ReportUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -7,6 +8,7 @@ import type {Report} from '@src/types/onyx';
 import type {OnyxCollection} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 
+import {getCustomAgentParticipantAccountID, getReportParticipantAccountIDs} from '@selectors/AgentZeroChat';
 import {Str} from 'expensify-common';
 import Onyx from 'react-native-onyx';
 
@@ -62,10 +64,12 @@ const getChatFSClass: GetChatFSClass = (report) => {
         return CONST.FULLSTORY.CLASS.UNMASK;
     }
 
-    // DMs / Groups / Rooms should be unmasked only if Concierge is in the chat.
-    const participantAccountIDs = Object.keys(report.participants ?? {});
+    // DMs / Groups / Rooms should be unmasked only if Concierge is in the chat, or if it's the user's DM with a custom agent.
+    // Custom agents act as Expensify system users like Concierge, but a chat between people stays masked even when an agent is in it.
+    const participantAccountIDs = getReportParticipantAccountIDs(report);
     if (participantAccountIDs.length > 0) {
-        return chatIncludesConcierge(report) ? CONST.FULLSTORY.CLASS.UNMASK : CONST.FULLSTORY.CLASS.MASK;
+        const isCustomAgentDM = isDM(report) && participantAccountIDs.length <= 2 && getCustomAgentParticipantAccountID(participantAccountIDs)(getAllPersonalDetails()) !== undefined;
+        return chatIncludesConcierge(report) || isCustomAgentDM ? CONST.FULLSTORY.CLASS.UNMASK : CONST.FULLSTORY.CLASS.MASK;
     }
 
     return CONST.FULLSTORY.CLASS.UNMASK;
