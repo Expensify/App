@@ -27,6 +27,7 @@ import {
     intervalToDuration,
     isAfter,
     isBefore,
+    isExists,
     isSameDay,
     isSameMonth,
     isSameSecond,
@@ -1421,11 +1422,14 @@ const normalizeDateToEndOfDay = (thruDate: string, timeZone: SelectedTimezone | 
 };
 
 /**
- * Returns the start and end dates of a month in the format yyyy-MM-dd.
+ * Returns the start and end dates of a month in the format yyyy-MM-dd, or undefined when the year or month doesn't name a real month.
  * @param year - Year (e.g., 2025)
  * @param month - Month (1-12, where 1 is January)
  */
-function getMonthDateRange(year: number, month: number): {start: string; end: string} {
+function getMonthDateRange(year: number, month: number): {start: string; end: string} | undefined {
+    if (!isExists(year, month - 1, 1)) {
+        return undefined;
+    }
     return {
         start: format(new Date(year, month - 1, 1), 'yyyy-MM-dd'),
         end: format(new Date(year, month, 0), 'yyyy-MM-dd'),
@@ -1458,11 +1462,14 @@ function getWeekDateRange(weekStartDate: string): {start: string; end: string} {
  * @param month - Month (1-12, where 1 is January)
  */
 function isDateStringInMonth(dateString: string, year: number, month: number): boolean {
+    const monthRange = getMonthDateRange(year, month);
+    if (!monthRange) {
+        return false;
+    }
     const datePart = dateString.substring(0, 10);
-    const {start: monthStart, end: monthEnd} = getMonthDateRange(year, month);
 
     // String comparison works because yyyy-MM-dd format is lexicographically sortable
-    return datePart >= monthStart && datePart <= monthEnd;
+    return datePart >= monthRange.start && datePart <= monthRange.end;
 }
 
 /** Returns a compact date label, e.g. "Sep 15, ’26", or "Sep 15" when the year is left out. */
@@ -1519,14 +1526,22 @@ function getShortFormattedDateRangeForSearch(startDate: string, endDate: string,
     return `${format(start, 'MMM d', {locale: dateFnsLocale})} - ${formattedEnd}`;
 }
 
-function getYearDateRange(year: number): {start: string; end: string} {
+/** Returns the start and end dates of a year in the format yyyy-MM-dd, or undefined when the year doesn't name a real year. */
+function getYearDateRange(year: number): {start: string; end: string} | undefined {
+    if (!isExists(year, 0, 1)) {
+        return undefined;
+    }
     return {
         start: `${year}-01-01`,
         end: `${year}-12-31`,
     };
 }
 
-function getQuarterDateRange(year: number, quarter: number): {start: string; end: string} {
+/** Returns the start and end dates of a quarter in the format yyyy-MM-dd, or undefined when the year or quarter (1-4) doesn't name a real quarter. */
+function getQuarterDateRange(year: number, quarter: number): {start: string; end: string} | undefined {
+    if (!isExists(year, (quarter - 1) * 3, 1)) {
+        return undefined;
+    }
     const startMonth = (quarter - 1) * 3 + 1;
     const endMonth = quarter * 3;
     // Use set() to create dates in local timezone explicitly
