@@ -7000,6 +7000,7 @@ function getDisplayValue(
     type: SearchDataTypes,
     translate: LocalizedTranslate,
     localeCompare: LocaleContextProps['localeCompare'],
+    convertToDisplayStringWithoutCurrency: CurrencyListActionsContextType['convertToDisplayStringWithoutCurrency'],
 ) {
     if (key === FILTER_KEYS.TYPE) {
         const filterValue = form[key];
@@ -7026,6 +7027,11 @@ function getDisplayValue(
             ?.sort((a, b) => sortOptionsWithEmptyValue(a, b, localeCompare))
             .map((value) => (value === CONST.SEARCH.VENDOR_EMPTY_VALUE ? translate('search.noVendor') : value))
             .join(', ');
+    }
+
+    // Bare amounts are stored in hundredths, so they need formatting to read as the amount typed in the query
+    if (isAmountFilterKey(removeNegation(key))) {
+        return getAmountFilterDisplayValue(form[key]?.toString(), convertToDisplayStringWithoutCurrency);
     }
 
     if (key === FILTER_KEYS.CURRENCY || key === FILTER_KEYS.CURRENCY_NOT || key === FILTER_KEYS.PURCHASE_CURRENCY || key === FILTER_KEYS.PURCHASE_CURRENCY_NOT) {
@@ -7365,10 +7371,7 @@ function mapFiltersFormToLabelValueList(
 
         const baseKey = removeNegation(key);
         const labelKey = FILTER_VIEW_MAP[baseKey].labelKey;
-        // A negated amount key, such as convertedAmountNot, is not in FILTER_TO_SYNTAX_KEY, so getAmountDisplayValue never formats its hundredths
-        const value = isAmountFilterKey(baseKey)
-            ? getAmountFilterDisplayValue(searchAdvancedFiltersForm[key]?.toString(), convertToDisplayStringWithoutCurrency)
-            : getDisplayValue(key, searchAdvancedFiltersForm, type, translate, localeCompare);
+        const value = getDisplayValue(key, searchAdvancedFiltersForm, type, translate, localeCompare, convertToDisplayStringWithoutCurrency);
         const label = getLabelValue(key, labelKey, translate);
 
         if (label && value && !(Array.isArray(value) && value.length === 0)) {
