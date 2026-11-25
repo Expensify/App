@@ -18,6 +18,10 @@ import {View} from 'react-native';
 
 import type InteractiveTooltipPortalProps from './types';
 
+function stopEventPropagation(event: {stopPropagation: () => void}) {
+    event.stopPropagation();
+}
+
 function InteractiveTooltipPortal({
     children,
     anchorBounds,
@@ -85,7 +89,14 @@ function InteractiveTooltipPortal({
     });
 
     return ReactDOM.createPortal(
-        <>
+        // React portals bubble synthetic events through the component tree, so stop them here before they reach a pressable ancestor such as a table row.
+        <View
+            onClick={stopEventPropagation}
+            onMouseDown={stopEventPropagation}
+            onPointerDown={stopEventPropagation}
+            onPointerUp={stopEventPropagation}
+            onTouchStart={stopEventPropagation}
+        >
             {isPinned && (
                 <TransparentOverlay
                     onPress={closeTooltip}
@@ -117,7 +128,7 @@ function InteractiveTooltipPortal({
                     </View>
                 </View>
             </Hoverable>
-        </>,
+        </View>,
         body,
     );
 }
