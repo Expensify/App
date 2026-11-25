@@ -10,6 +10,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import {Linking} from 'react-native';
 import Onyx from 'react-native-onyx';
 
+import {setInitialURL} from '../utils/ReactNativeMockUtils';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
 jest.mock('@libs/actions/Link', () => ({
@@ -48,7 +49,7 @@ describe('DeepLinkHandler', () => {
             await Onyx.clear();
         });
         jest.clearAllMocks();
-        Linking.setInitialURL(DEFAULT_URL);
+        setInitialURL(DEFAULT_URL);
     });
 
     afterEach(() => {
@@ -69,7 +70,7 @@ describe('DeepLinkHandler', () => {
         });
 
         // Cold deep link straight into the public room.
-        Linking.setInitialURL(`new-expensify://r/${PUBLIC_ROOM_ID}`);
+        setInitialURL(`new-expensify://r/${PUBLIC_ROOM_ID}`);
 
         render(<DeepLinkHandler onInitialUrl={jest.fn()} />);
         await waitForBatchedUpdatesWithAct();
@@ -100,7 +101,7 @@ describe('DeepLinkHandler', () => {
             });
         });
 
-        Linking.setInitialURL(`new-expensify://r/${PUBLIC_ROOM_ID}`);
+        setInitialURL(`new-expensify://r/${PUBLIC_ROOM_ID}`);
 
         render(<DeepLinkHandler onInitialUrl={jest.fn()} />);
         await waitForBatchedUpdatesWithAct();
@@ -133,7 +134,7 @@ describe('DeepLinkHandler', () => {
             });
         });
 
-        Linking.setInitialURL(`new-expensify://r/${PUBLIC_ROOM_ID}`);
+        setInitialURL(`new-expensify://r/${PUBLIC_ROOM_ID}`);
 
         render(<DeepLinkHandler onInitialUrl={jest.fn()} />);
         await waitForBatchedUpdatesWithAct();
@@ -158,7 +159,7 @@ describe('DeepLinkHandler', () => {
             });
         });
 
-        Linking.setInitialURL(`new-expensify://r/${PUBLIC_ROOM_ID}`);
+        setInitialURL(`new-expensify://r/${PUBLIC_ROOM_ID}`);
 
         render(<DeepLinkHandler onInitialUrl={jest.fn()} />);
         await waitForBatchedUpdatesWithAct();

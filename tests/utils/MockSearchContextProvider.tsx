@@ -50,6 +50,7 @@ function splitState(value: SearchStateContextValue): {
             currentSearchResults: value.currentSearchResults,
             currentSearchTransactionsByReportID: value.currentSearchTransactionsByReportID,
             currentSearchViolations: value.currentSearchViolations,
+            approvalWorkflowRules: value.approvalWorkflowRules,
             shouldUseLiveData: value.shouldUseLiveData,
             sortedReportIDs: value.sortedReportIDs,
             shouldShowFiltersBarLoading: value.shouldShowFiltersBarLoading,
