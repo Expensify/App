@@ -259,6 +259,37 @@ describe('useInsightsTopExpenses', () => {
             expect(result.current.violationsByTransactionID?.['1']).toEqual(['Over limit']);
         });
 
+        it("lists only the violations captured in the panel's period", async () => {
+            // Given a February panel, and an expense forwarded in January with one violation and approved in February with another
+            const approvedQuery = `${QUERY} has:${CONST.SEARCH.HAS_VALUES.APPROVED_VIOLATION} ${CONST.SEARCH.SYNTAX_FILTER_KEYS.ANY_APPROVAL}>=2026-02-01 ${CONST.SEARCH.SYNTAX_FILTER_KEYS.ANY_APPROVAL}<=2026-02-28`;
+            const approvedQueryJSON = buildTopExpensesQueryJSON(approvedQuery);
+            const data = {
+                ...buildSnapshotData(1),
+                [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}1`]: {
+                    forwarded: {
+                        actionName: CONST.REPORT.ACTIONS.TYPE.FORWARDED,
+                        reportActionID: 'forwarded_1',
+                        actorAccountID: OTHER_APPROVER_ACCOUNT_ID,
+                        created: '2026-01-20 10:00:00',
+                        message: [],
+                        originalMessage: {amount: 100, currency: 'USD', violations: {transactions: {'1': [{name: CONST.VIOLATIONS.MISSING_CATEGORY}]}}},
+                    },
+                    ...buildApprovedViolations('1', '1', APPROVER_ACCOUNT_ID, [CONST.VIOLATIONS.OVER_LIMIT]),
+                },
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.SNAPSHOT}${approvedQueryJSON?.hash}`, {
+                data,
+                search: {...buildSearchMetadata(), hash: approvedQueryJSON?.hash},
+            });
+
+            // When the panel renders
+            const {result} = renderTopExpenses(approvedQuery);
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the expense shows only the violations of its February approval
+            expect(result.current.violationsByTransactionID?.['1']).toEqual(['Over limit']);
+        });
+
         it('is stale when the Search got no response', async () => {
             // Given a graph GetInsightsDetails doesn't support, whose Top expenses Search failed without reaching the server
             await Onyx.set(SNAPSHOT_KEY, {errors: {error: 'No response'}, search: {...buildSearchMetadata(), responseJsonCode: CONST.JSON_CODE.NO_RESPONSE}});

@@ -7554,6 +7554,36 @@ describe('SearchQueryUtils', () => {
             // Then both bounds are zero-padded yyyy-MM-dd dates, like the chart groups and today they are compared with
             expect(range).toEqual({start: '2026-01-05', end: '2026-02-09'});
         });
+
+        test('narrows the range to where every date filter overlaps', () => {
+            // Given a quarter narrowed to February by a second pair of filters, like a chart point opened inside a date range
+            const queryJSON = buildSearchQueryJSON('type:expense date>=2026-01-01 date<=2026-03-31 date>=2026-02-01 date<=2026-02-28');
+
+            if (!queryJSON) {
+                throw new Error('Failed to parse query string');
+            }
+
+            // When the date range is read from the query
+            const range = getDateFilterRange(queryJSON);
+
+            // Then it's February, since Search matches only expenses every filter matches
+            expect(range).toEqual({start: '2026-02-01', end: '2026-02-28'});
+        });
+
+        test('covers every date listed in one filter', () => {
+            // Given one filter listing two days, either of which matches
+            const queryJSON = buildSearchQueryJSON('type:expense date:2026-01-05,2026-02-05');
+
+            if (!queryJSON) {
+                throw new Error('Failed to parse query string');
+            }
+
+            // When the date range is read from the query
+            const range = getDateFilterRange(queryJSON);
+
+            // Then the range spans both days rather than being empty
+            expect(range).toEqual({start: '2026-01-05', end: '2026-02-05'});
+        });
     });
 
     describe('isSearchBeforeViolationsSnapshotStarted', () => {

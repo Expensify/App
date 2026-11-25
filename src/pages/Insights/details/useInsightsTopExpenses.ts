@@ -8,7 +8,7 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 
 import {getPositiveHasFilterValues, getViolationDisplayName, hasValuesIncludeViolationFilter} from '@libs/SearchQueryUtils';
-import {getSections, getSortedSections, getViolationNamesForTransaction, isReportActionEntry, isSearchDataLoaded} from '@libs/SearchUIUtils';
+import {getSections, getSortedSections, getViolationNamesForTransaction, getViolationSnapshotActions, isReportActionEntry, isSearchDataLoaded} from '@libs/SearchUIUtils';
 
 import {buildTopExpensesQueryJSON} from '@pages/Insights/insightsQueries';
 
@@ -80,12 +80,12 @@ function useInsightsTopExpenses(query: SearchQueryString, snapshotHash: number):
 
     // On a violation's panel, that violation leads each expense's list
     const itemViolation = String(queryJSON.flatFilters.find((filter) => filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.VIOLATION)?.filters.at(0)?.value ?? '');
-    const approverAccountID = queryJSON.flatFilters.find((filter) => filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.APPROVER)?.filters.at(0)?.value;
-    // An expense moved to another report keeps its violations on the report it was submitted on, so every report's actions are searched.
-    // An approver's panel skips other approvers' approvals, so it shows only the violations captured when that approver approved.
-    const reportActions = Object.keys(snapshot.data)
-        .flatMap((key) => (isReportActionEntry(key) ? Object.values(snapshot.data[key]) : []))
-        .filter((action) => approverAccountID === undefined || String(action.actorAccountID) === String(approverAccountID));
+    // An expense moved to another report keeps its violations on the report it was submitted on, so every report's actions are searched
+    const reportActions = getViolationSnapshotActions(
+        Object.keys(snapshot.data).flatMap((key) => (isReportActionEntry(key) ? Object.values(snapshot.data[key]) : [])),
+        queryJSON,
+        session?.accountID,
+    );
     const violationsByTransactionID = Object.fromEntries(
         expenses.map((expense) => {
             const names = getViolationNamesForTransaction(reportActions, expense.transactionID, hasFilterValues);

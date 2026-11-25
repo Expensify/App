@@ -16831,6 +16831,74 @@ describe('SearchUIUtils', () => {
         });
     });
 
+    describe('getViolationSnapshotActions', () => {
+        const createAction = (reportActionID: string, actionName: string, created: string, actorAccountID?: number): OnyxTypes.ReportAction =>
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- test-only: the actions only carry the fields the filter reads
+            ({reportActionID, actionName, created, actorAccountID, message: [], originalMessage: {}}) as OnyxTypes.ReportAction;
+        const getIDs = (actions: OnyxTypes.ReportAction[]) => actions.map((action) => action.reportActionID);
+
+        test("keeps the submissions made on the query's submission dates", () => {
+            // Given submissions in January and February, and a query for expenses submitted in February
+            const actions = [
+                createAction('january', CONST.REPORT.ACTIONS.TYPE.SUBMITTED, '2026-01-20 10:00:00'),
+                createAction('february', CONST.REPORT.ACTIONS.TYPE.SUBMITTED_AND_CLOSED, '2026-02-10 10:00:00'),
+            ];
+            const queryJSON = buildSearchQueryJSON('type:expense anySubmission>=2026-02-01 anySubmission<=2026-02-28');
+
+            // When the actions are narrowed to the query
+            const result = SearchUIUtils.getViolationSnapshotActions(actions, queryJSON, 1);
+
+            // Then only the February submission is kept, since the January one isn't what the query matched the expense on
+            expect(getIDs(result)).toEqual(['february']);
+        });
+
+        test("keeps the approvals made on the query's approval dates by its approver", () => {
+            // Given approvals by two approvers in February and one in January, and a query for approver 5's February approvals
+            const actions = [
+                createAction('januaryByApprover', CONST.REPORT.ACTIONS.TYPE.FORWARDED, '2026-01-20 10:00:00', 5),
+                createAction('februaryByApprover', CONST.REPORT.ACTIONS.TYPE.APPROVED, '2026-02-10 10:00:00', 5),
+                createAction('februaryByOther', CONST.REPORT.ACTIONS.TYPE.APPROVED, '2026-02-11 10:00:00', 6),
+            ];
+            const queryJSON = buildSearchQueryJSON('type:expense approver:5 anyApproval>=2026-02-01 anyApproval<=2026-02-28');
+
+            // When the actions are narrowed to the query
+            const result = SearchUIUtils.getViolationSnapshotActions(actions, queryJSON, 1);
+
+            // Then only approver 5's February approval is kept
+            expect(getIDs(result)).toEqual(['februaryByApprover']);
+        });
+
+        test('keeps only the actions made where every date filter overlaps', () => {
+            // Given approvals in January and February, and a quarter narrowed to February by a clicked chart point
+            const actions = [
+                createAction('january', CONST.REPORT.ACTIONS.TYPE.APPROVED, '2026-01-20 10:00:00', 5),
+                createAction('february', CONST.REPORT.ACTIONS.TYPE.APPROVED, '2026-02-10 10:00:00', 5),
+            ];
+            const queryJSON = buildSearchQueryJSON('type:expense anyApproval>=2026-01-01 anyApproval<=2026-03-31 anyApproval>=2026-02-01 anyApproval<=2026-02-28');
+
+            // When the actions are narrowed to the query
+            const result = SearchUIUtils.getViolationSnapshotActions(actions, queryJSON, 1);
+
+            // Then only the February approval is kept, since Search matches only what every filter matches
+            expect(getIDs(result)).toEqual(['february']);
+        });
+
+        test('keeps every action when the query has no submission, approval or approver filters', () => {
+            // Given a submission and an approval, and a query on the expense date only
+            const actions = [
+                createAction('submitted', CONST.REPORT.ACTIONS.TYPE.SUBMITTED, '2025-06-01 10:00:00'),
+                createAction('approved', CONST.REPORT.ACTIONS.TYPE.APPROVED, '2025-07-01 10:00:00', 6),
+            ];
+            const queryJSON = buildSearchQueryJSON('type:expense date>=2026-02-01');
+
+            // When the actions are narrowed to the query
+            const result = SearchUIUtils.getViolationSnapshotActions(actions, queryJSON, 1);
+
+            // Then both are kept, since the expense date says nothing about when its report was submitted or approved
+            expect(getIDs(result)).toEqual(['submitted', 'approved']);
+        });
+    });
+
     describe('getApprovedViolationsForTransaction', () => {
         const transactionIDForViolations = 'tx-approved-violations-1';
         const otherTransactionID = 'tx-approved-violations-2';
