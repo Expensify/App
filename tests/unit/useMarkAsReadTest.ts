@@ -616,12 +616,57 @@ describe('useMarkAsRead', () => {
         // Then the read waits, because it would also mark the unloaded messages as read
         expect(readNewestAction).not.toHaveBeenCalled();
 
-        // When the last newer page loads and the divider is seen again
+        // When the last newer page loads without changing anything on screen, so the divider isn't reported as seen again
         rerender({hasNewerActions: false});
-        act(() => result.current.completeSkippedMarkAsRead());
 
-        // Then the skipped read completes
+        // Then the skipped read completes on its own, because the user is still at the bottom and nothing else would retry it
+        expect(readNewestAction).toHaveBeenCalledTimes(1);
         expect(readNewestAction).toHaveBeenCalledWith(REPORT_ID, true);
+    });
+
+    it('does not complete a skipped read when the last newer page loads while the user reads above the bottom', () => {
+        // Given a read skipped while newer pages were on the server, and the user has scrolled up away from the bottom
+        const {rerender} = renderHook(
+            (props: {hasNewerActions: boolean}) =>
+                useMarkAsRead({
+                    reportID: REPORT_ID,
+                    report: REPORT as OnyxEntry<OnyxTypes.Report>,
+                    transactionThreadReport: undefined,
+                    sortedVisibleReportActions: [],
+                    isScrolledToEnd: false,
+                    hasNewerActions: props.hasNewerActions,
+                }),
+            {initialProps: {hasNewerActions: true}},
+        );
+
+        // When the last newer page loads
+        rerender({hasNewerActions: false});
+
+        // Then the chat stays unread, because the user hasn't reached the newest messages
+        expect(readNewestAction).not.toHaveBeenCalled();
+    });
+
+    it('does not complete a skipped read when the last newer page loads after the user left the chat screen', () => {
+        // Given a read skipped while newer pages were on the server
+        const {rerender} = renderHook(
+            (props: {hasNewerActions: boolean}) =>
+                useMarkAsRead({
+                    reportID: REPORT_ID,
+                    report: REPORT as OnyxEntry<OnyxTypes.Report>,
+                    transactionThreadReport: undefined,
+                    sortedVisibleReportActions: [],
+                    isScrolledToEnd: true,
+                    hasNewerActions: props.hasNewerActions,
+                }),
+            {initialProps: {hasNewerActions: true}},
+        );
+
+        // When the user opens another screen on top of the chat, and only then the last newer page loads
+        mockIsFocused = false;
+        rerender({hasNewerActions: false});
+
+        // Then the chat stays unread, because the user isn't looking at it
+        expect(readNewestAction).not.toHaveBeenCalled();
     });
 
     it('does not complete an earlier skipped read after a new message already marked the chat as read', () => {

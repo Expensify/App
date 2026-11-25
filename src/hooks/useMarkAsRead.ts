@@ -359,6 +359,22 @@ function useMarkAsRead({
         markNewestActionAsRead();
     };
 
+    // The last newer page can land without changing anything on screen, for example when it only has messages that are already
+    // shown, and then nothing else would finish a read skipped while newer pages were loading.
+    const completeSkippedReadOnceNewestLoaded = useEffectEvent(() => {
+        if (!isScrolledToEnd || !isVisible || !isFocused || isHiddenFromUser) {
+            return;
+        }
+        completeSkippedMarkAsRead();
+    });
+
+    useEffect(() => {
+        if (hasNewerActions) {
+            return;
+        }
+        completeSkippedReadOnceNewestLoaded();
+    }, [hasNewerActions]);
+
     return {markNewestActionAsRead, completeSkippedMarkAsRead};
 }
 
