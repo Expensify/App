@@ -397,8 +397,13 @@ function useAutocompleteSuggestions({
                         return [];
                 }
             })();
+            const shouldShowViolationGroupBy = getHasOptionAvailability(policies).shouldShowSubmittedViolation;
+            const violationGroupByValue = getUserFriendlyValue(CONST.SEARCH.GROUP_BY.VIOLATION);
             const filteredGroupBy = groupByAutocompleteList.filter(
-                (groupByValue) => groupByValue.toLowerCase().includes(autocompleteValue.toLowerCase()) && !alreadyAutocompletedKeys.has(groupByValue.toLowerCase()),
+                (groupByValue) =>
+                    (groupByValue !== violationGroupByValue || shouldShowViolationGroupBy) &&
+                    groupByValue.toLowerCase().includes(autocompleteValue.toLowerCase()) &&
+                    !alreadyAutocompletedKeys.has(groupByValue.toLowerCase()),
             );
             return filteredGroupBy.map((groupByValue) => ({filterKey: CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.GROUP_BY, text: groupByValue}));
         }
