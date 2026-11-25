@@ -1,4 +1,4 @@
-import {act, render} from '@testing-library/react-native';
+import {act, render, screen} from '@testing-library/react-native';
 
 import type * as UseRunWithPaymentCardModule from '@hooks/useRunWithPaymentCard';
 
@@ -10,12 +10,15 @@ import DomainAddPrimaryContactPage from '@pages/domain/Admins/DomainAddPrimaryCo
 
 import {setPrimaryContact} from '@userActions/Domain';
 
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
+import type {PersonalDetailsList} from '@src/types/onyx';
 
 import type * as ReactNavigationNative from '@react-navigation/native';
-import type {PropsWithChildren} from 'react';
+import type {PropsWithChildren, ReactNode} from 'react';
+import type ReactNative from 'react-native';
 
 import React from 'react';
 import Onyx from 'react-native-onyx';
@@ -25,11 +28,20 @@ import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct'
 type AdminRow = {login: string; accountID: number};
 
 const DOMAIN_ACCOUNT_ID = 424242;
+const DOMAIN_KEY = `${ONYXKEYS.COLLECTION.DOMAIN}${DOMAIN_ACCOUNT_ID}` as const;
 const DOMAIN_MEMBER_KEY = `${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${DOMAIN_ACCOUNT_ID}` as const;
 const PRIMARY_CONTACT_EMAIL = 'owner@acme.com';
 const CURRENT_USER: AdminRow = {login: 'admin@acme.com', accountID: 1};
+const PRIMARY_CONTACT: AdminRow = {login: PRIMARY_CONTACT_EMAIL, accountID: 2};
+const BILLING_ON_NOTE = 'domain.admins.primaryContactConsolidatedBillingMessage';
+
+const mockPersonalDetails: PersonalDetailsList = {
+    [CURRENT_USER.accountID]: CURRENT_USER,
+    [PRIMARY_CONTACT.accountID]: PRIMARY_CONTACT,
+};
 
 let mockSelectRow: ((option: AdminRow) => void) | undefined;
+let mockListProps: {data: AdminRow[]; shouldShowTextInput?: boolean} | undefined;
 
 jest.mock('@react-navigation/native', () => ({
     ...jest.requireActual<typeof ReactNavigationNative>('@react-navigation/native'),
@@ -42,15 +54,34 @@ jest.mock('@navigation/Navigation', () => ({navigate: jest.fn(), goBack: jest.fn
 jest.mock('@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute', () => jest.fn((suffix: string) => suffix));
 jest.mock('@hooks/useCurrentUserPersonalDetails', () => jest.fn(() => ({accountID: 1})));
 jest.mock('@hooks/useLocalize', () => () => ({translate: (key: string) => key, formatPhoneNumber: (phone: string) => phone, localeCompare: (a: string, b: string) => a.localeCompare(b)}));
-jest.mock('@hooks/usePersonalDetails', () => ({useAllPersonalDetails: () => [undefined]}));
+jest.mock('@hooks/usePersonalDetails', () => ({
+    useAllPersonalDetails: (selector: (personalDetails: PersonalDetailsList) => PersonalDetailsList | undefined) => [selector(mockPersonalDetails)],
+}));
 jest.mock('@pages/domain/DomainNotFoundPageWrapper', () => jest.fn(({children}: PropsWithChildren) => children));
 jest.mock('@components/ScreenWrapper', () => jest.fn(({children}: PropsWithChildren) => children));
 jest.mock('@components/HeaderWithBackButton', () => jest.fn(() => null));
+jest.mock('@components/RenderHTML', () => {
+    const ReactMock = jest.requireActual<typeof React>('react');
+    const {Text} = jest.requireActual<typeof ReactNative>('react-native');
+    return ({html}: {html: string}) => ReactMock.createElement(Text, null, html);
+});
 jest.mock('@components/SelectionList', () =>
-    jest.fn(({onSelectRow}: {onSelectRow: (option: AdminRow) => void}) => {
-        mockSelectRow = onSelectRow;
-        return null;
-    }),
+    jest.fn(
+        ({
+            onSelectRow,
+            customListHeaderContent,
+            ...listProps
+        }: {
+            onSelectRow: (option: AdminRow) => void;
+            customListHeaderContent?: ReactNode;
+            data: AdminRow[];
+            shouldShowTextInput?: boolean;
+        }) => {
+            mockSelectRow = onSelectRow;
+            mockListProps = listProps;
+            return customListHeaderContent ?? null;
+        },
+    ),
 );
 jest.mock('@userActions/Domain', () => ({setPrimaryContact: jest.fn()}));
 
@@ -64,8 +95,12 @@ const route: DomainAddPrimaryContactPageProps['route'] = {
 // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- The page never reads the navigation prop when rendered outside a navigator.
 const navigation = {} as DomainAddPrimaryContactPageProps['navigation'];
 
-async function renderPageAndSelectCurrentUser(isBillingOn: boolean) {
+async function renderPage(isBillingOn: boolean) {
     await act(async () => {
+        await Onyx.merge(DOMAIN_KEY, {
+            [`${CONST.DOMAIN.EXPENSIFY_ADMIN_ACCESS_PREFIX}${CURRENT_USER.accountID}`]: CURRENT_USER.accountID,
+            [`${CONST.DOMAIN.EXPENSIFY_ADMIN_ACCESS_PREFIX}${PRIMARY_CONTACT.accountID}`]: PRIMARY_CONTACT.accountID,
+        });
         await Onyx.merge(DOMAIN_MEMBER_KEY, {settings: {technicalContactEmail: PRIMARY_CONTACT_EMAIL, useTechnicalContactBillingCard: isBillingOn}});
     });
     render(
@@ -75,6 +110,10 @@ async function renderPageAndSelectCurrentUser(isBillingOn: boolean) {
         />,
     );
     await waitForBatchedUpdatesWithAct();
+}
+
+async function renderPageAndSelectCurrentUser(isBillingOn: boolean) {
+    await renderPage(isBillingOn);
     act(() => mockSelectRow?.(CURRENT_USER));
 }
 
@@ -86,6 +125,29 @@ describe('DomainAddPrimaryContactPage', () => {
     beforeEach(() => {
         jest.clearAllMocks();
         mockSelectRow = undefined;
+        mockListProps = undefined;
+    });
+
+    it('lists only the current user, without search, and explains why while billing is on', async () => {
+        // Given consolidated billing that is on and another admin as primary contact
+        // When an admin opens the primary contact picker
+        await renderPage(true);
+
+        // Then the list offers only the admin themselves, hides the search, and shows why
+        expect(mockListProps?.data.map((option) => option.login)).toEqual([CURRENT_USER.login]);
+        expect(mockListProps?.shouldShowTextInput).toBe(false);
+        expect(screen.getByText(BILLING_ON_NOTE)).toBeOnTheScreen();
+    });
+
+    it('lists every admin with search and no note while billing is off', async () => {
+        // Given consolidated billing that is off
+        // When an admin opens the primary contact picker
+        await renderPage(false);
+
+        // Then every admin can be picked and searched
+        expect(mockListProps?.data.map((option) => option.login).sort()).toEqual([CURRENT_USER.login, PRIMARY_CONTACT.login]);
+        expect(mockListProps?.shouldShowTextInput).toBe(true);
+        expect(screen.queryByText(BILLING_ON_NOTE)).not.toBeOnTheScreen();
     });
 
     afterEach(async () => {
