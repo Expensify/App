@@ -1027,8 +1027,6 @@ const ONYXKEYS = {
         ATTACHMENT: 'attachment_',
         DOMAIN: 'domain_',
 
-        /** Pending domain-controlled account merge requests, keyed by requestID. Populated by MergeAccount / OpenSecuritySettingsPage. */
-        DOMAIN_ACCOUNT_MERGE_REQUEST: 'domainAccountMergeRequest_',
         DOWNLOAD: 'download_',
         EXPORT_DOWNLOAD: 'nvp_exportDownload_',
         BULK_ACTION: 'nvp_bulkAction_',
@@ -1719,7 +1717,6 @@ type OnyxCollectionValuesMapping = {
     [ONYXKEYS.COLLECTION.AGENT]: OnyxTypes.Agent;
     [ONYXKEYS.COLLECTION.ATTACHMENT]: OnyxTypes.Attachment;
     [ONYXKEYS.COLLECTION.DOMAIN]: OnyxTypes.Domain;
-    [ONYXKEYS.COLLECTION.DOMAIN_ACCOUNT_MERGE_REQUEST]: OnyxTypes.DomainAccountMergeRequest;
     [ONYXKEYS.COLLECTION.DOWNLOAD]: OnyxTypes.Download;
     [ONYXKEYS.COLLECTION.EXPORT_DOWNLOAD]: OnyxTypes.ExportDownload;
     [ONYXKEYS.COLLECTION.BULK_ACTION]: OnyxTypes.BulkAction;

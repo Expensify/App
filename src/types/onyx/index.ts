@@ -562,7 +562,6 @@ export type {
     AppReview,
     AppReviewLastPrompt,
     SamlMetadata,
-    DomainAccountMergeRequest,
     DomainErrors,
     DomainHighlightItems,
     DomainPendingActions,

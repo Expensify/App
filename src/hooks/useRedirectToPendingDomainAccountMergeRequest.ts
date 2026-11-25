@@ -6,7 +6,6 @@ import ROUTES from '@src/ROUTES';
 
 import {useFocusEffect} from '@react-navigation/native';
 import {accountIDSelector} from '@selectors/Session';
-import {useMemo} from 'react';
 
 import useOnyx from './useOnyx';
 
@@ -18,10 +17,7 @@ import useOnyx from './useOnyx';
 function useRedirectToPendingDomainAccountMergeRequest(email: string) {
     const [currentUserAccountID = CONST.DEFAULT_NUMBER_ID] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector});
     const [pendingMergeRequests] = useOnyx(ONYXKEYS.COLLECTION.DOMAIN_ACCOUNT_MERGE_REQUEST);
-    const myPendingMergeRequest = useMemo(
-        () => Object.values(pendingMergeRequests ?? {}).find((requested) => requested?.requesterAccountID === currentUserAccountID),
-        [pendingMergeRequests, currentUserAccountID],
-    );
+    const myPendingMergeRequest = Object.values(pendingMergeRequests ?? {}).find((requested) => requested?.requesterAccountID === currentUserAccountID);
 
     useFocusEffect(() => {
         if (!myPendingMergeRequest || !email) {
