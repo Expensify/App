@@ -5958,6 +5958,23 @@ function getReportFieldsByPolicyID(policy: OnyxEntry<Policy>): Policy['fieldList
 }
 
 /**
+ * Returns the external ID of the option named `value` in a list report field, or an empty string when no option has that name.
+ * An enabled option wins over a disabled option with the same name, because the dropdown only offers enabled options.
+ */
+function getReportFieldOptionExternalID(reportField: PolicyReportField, value: string): string {
+    let optionIndex = reportField.values.findIndex((option, index) => option === value && !reportField.disabledOptions?.at(index));
+    if (optionIndex === -1) {
+        optionIndex = reportField.values.indexOf(value);
+    }
+
+    if (optionIndex === -1) {
+        return '';
+    }
+
+    return reportField.externalIDs?.at(optionIndex) ?? '';
+}
+
+/**
  * Get the report fields that we should display a MoneyReportView gets opened
  */
 
@@ -16360,6 +16377,7 @@ export {
     getReportDescription,
     getReportFieldKey,
     getReportFieldMaps,
+    getReportFieldOptionExternalID,
     getReportIDFromLink,
     getReportTransactions,
     getReportNotificationPreference,
