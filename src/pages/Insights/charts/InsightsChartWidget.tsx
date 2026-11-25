@@ -17,7 +17,6 @@ import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useLayoutSpacing from '@hooks/useLayoutSpacing';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
-import usePermissions from '@hooks/usePermissions';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -153,7 +152,6 @@ function InsightsChartWidget({
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate} = useLocalize();
-    const {isBetaEnabled} = usePermissions();
     const {cardPaddingHorizontal, cardPaddingBottom} = useLayoutSpacing();
     const icons = useMemoizedLazyExpensifyIcons(['Expand', 'Table']);
     const {getCurrencyDecimals} = useCurrencyListActions();
@@ -217,7 +215,7 @@ function InsightsChartWidget({
     };
 
     const openDetails =
-        dashboardID === CONST.INSIGHTS.DASHBOARD.SPEND && isBetaEnabled(CONST.BETAS.INSIGHTS_AI) && queryJSON
+        dashboardID === CONST.INSIGHTS.DASHBOARD.SPEND && queryJSON
             ? (item: GroupedItem) => {
                   const itemParams = getInsightsDetailsItemParams(item, queryJSON);
                   if (!itemParams) {
@@ -241,7 +239,7 @@ function InsightsChartWidget({
 
     const explainViolationStage = violationStage ?? chart.violationStage;
     const explainButton =
-        isBetaEnabled(CONST.BETAS.INSIGHTS_AI) && (state === INSIGHTS_CHART_STATE.READY || isLoading) ? (
+        state === INSIGHTS_CHART_STATE.READY || isLoading ? (
             <InsightsExplainButton
                 explainPrompt={translate('insightsPage.explainChartPrompt', translate(chart.titleKey))}
                 insightsScope={explainViolationStage ? {...insightsScope, violationStage: explainViolationStage} : insightsScope}

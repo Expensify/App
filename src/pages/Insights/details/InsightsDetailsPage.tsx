@@ -8,7 +8,6 @@ import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
-import usePermissions from '@hooks/usePermissions';
 import {usePersonalDetail} from '@hooks/usePersonalDetails';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -44,7 +43,6 @@ type InsightsDetailsPageProps = PlatformStackScreenProps<InsightsDetailsParamLis
 function InsightsDetailsPage({route}: InsightsDetailsPageProps) {
     const styles = useThemeStyles();
     const {translate, dateFnsLocale} = useLocalize();
-    const {isBetaEnabled} = usePermissions();
     const {graphKey, item: itemKey, end: periodEnd, level, parent: parentTagPath, asOf} = route.params;
     const tagLevel = level ? Number(level) : undefined;
     const {filters, isResolved} = useInsightsFilters(CONST.INSIGHTS.DASHBOARD.SPEND);
@@ -100,7 +98,7 @@ function InsightsDetailsPage({route}: InsightsDetailsPageProps) {
     });
     const hasDetailsFailed = !!detailsQuery && (detailsState === INSIGHTS_DETAILS_SECTION_STATE.STALE || detailsState === INSIGHTS_DETAILS_SECTION_STATE.ERROR);
 
-    if (!isBetaEnabled(CONST.BETAS.INSIGHTS_AI) || !chartSpec || (isResolved && !item)) {
+    if (!chartSpec || (isResolved && !item)) {
         return (
             <ScreenWrapper testID="InsightsDetailsPage">
                 <FullPageNotFoundView shouldShow />

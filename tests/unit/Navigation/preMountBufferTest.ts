@@ -728,6 +728,86 @@ describe('Navigation pre-mount buffer', () => {
         expect(mockDispatch).not.toHaveBeenCalled();
     });
 
+    it('cancel after the RHP closed restores the starting tab when the destination was pre-inserted into that same tab', () => {
+        // Given narrow web, the Inbox tab open, and the destination report pre-inserted on top of the Inbox stack
+        const TAB_KEY = 'tab-1';
+        const originalTabRoute: MockRoute = {
+            key: TAB_KEY,
+            name: NAVIGATORS.TAB_NAVIGATOR,
+            state: {index: 0, routes: [{key: 'inbox', name: NAVIGATORS.REPORTS_SPLIT_NAVIGATOR}]},
+        };
+        mockOriginalTabRoute = originalTabRoute;
+        mockStateFromPathRoutes = [{key: 'target', name: NAVIGATORS.TAB_NAVIGATOR}];
+        setRootState([originalTabRoute, {key: RHP_KEY, name: NAVIGATORS.RIGHT_MODAL_NAVIGATOR}]);
+        const tabWithReport: MockRoute = {
+            key: TAB_KEY,
+            name: NAVIGATORS.TAB_NAVIGATOR,
+            state: {key: 'tab-state', index: 0, routes: [{key: 'inbox-with-report', name: NAVIGATORS.REPORTS_SPLIT_NAVIGATOR}], routeNames: [], stale: false},
+        };
+        mockDispatch.mockImplementationOnce(() => {
+            setRootState([tabWithReport, {key: RHP_KEY, name: NAVIGATORS.RIGHT_MODAL_NAVIGATOR}]);
+        });
+        // eslint-disable-next-line rulesdir/no-direct-pre-insert-fullscreen-under-rhp -- unit-testing the guarded function itself, not a production call site
+        Navigation.preInsertFullscreenUnderRHP(ROUTES.REPORT_WITH_ID.getRoute('42'));
+        const rafSpy = jest.spyOn(global, 'requestAnimationFrame').mockImplementation((callback) => {
+            callback(0);
+            return 0;
+        });
+
+        // When the user closes the form with Escape, which removes the RHP before the form unmounts
+        setRootState([tabWithReport]);
+        mockDispatch.mockClear();
+        Navigation.removePreInsertedFullscreenIfNeeded();
+
+        // Then the saved Inbox tab comes back, since jumping to the tab that is already focused would leave the report on top
+        const resetAction = mockDispatch.mock.calls.at(0)?.at(0);
+        expect(resetAction?.payload?.routes?.at(0)).toEqual(originalTabRoute);
+        rafSpy.mockRestore();
+    });
+
+    it('cancel after the RHP closed jumps back to the starting tab when the destination was pre-inserted into another tab', () => {
+        // Given narrow web, the Home tab open, and the destination report pre-inserted by switching to the Inbox tab
+        const TAB_KEY = 'tab-1';
+        const originalTabRoute: MockRoute = {key: TAB_KEY, name: NAVIGATORS.TAB_NAVIGATOR, state: {index: 0, routes: [{key: 'home', name: SCREENS.HOME}]}};
+        mockOriginalTabRoute = originalTabRoute;
+        mockStateFromPathRoutes = [{key: 'target', name: NAVIGATORS.TAB_NAVIGATOR}];
+        setRootState([originalTabRoute, {key: RHP_KEY, name: NAVIGATORS.RIGHT_MODAL_NAVIGATOR}]);
+        const tabOnInbox: MockRoute = {
+            key: TAB_KEY,
+            name: NAVIGATORS.TAB_NAVIGATOR,
+            state: {
+                key: 'tab-state',
+                index: 1,
+                routes: [
+                    {key: 'home', name: SCREENS.HOME},
+                    {key: 'inbox-with-report', name: NAVIGATORS.REPORTS_SPLIT_NAVIGATOR},
+                ],
+                routeNames: [],
+                stale: false,
+            },
+        };
+        mockDispatch.mockImplementationOnce(() => {
+            setRootState([tabOnInbox, {key: RHP_KEY, name: NAVIGATORS.RIGHT_MODAL_NAVIGATOR}]);
+        });
+        // eslint-disable-next-line rulesdir/no-direct-pre-insert-fullscreen-under-rhp -- unit-testing the guarded function itself, not a production call site
+        Navigation.preInsertFullscreenUnderRHP(ROUTES.REPORT_WITH_ID.getRoute('42'));
+        const rafSpy = jest.spyOn(global, 'requestAnimationFrame').mockImplementation((callback) => {
+            callback(0);
+            return 0;
+        });
+
+        // When the user closes the form after the RHP is already gone
+        setRootState([tabOnInbox]);
+        mockDispatch.mockClear();
+        Navigation.removePreInsertedFullscreenIfNeeded();
+
+        // Then it jumps to Home and leaves the rest of the tab state alone, so the Back entries of the other tab are not rewritten
+        const action = mockDispatch.mock.calls.at(0)?.at(0);
+        expect(action?.type).toBe('JUMP_TO');
+        expect(action?.target).toBe('tab-state');
+        rafSpy.mockRestore();
+    });
+
     it('guard: removePreInsertedFullscreenIfNeeded is a no-op when nothing was pre-inserted', () => {
         // Given no active speculative navigation transaction
         const restoreAnimationSpy = jest.spyOn(DeviceEventEmitter, 'emit');

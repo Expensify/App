@@ -198,6 +198,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
 
             // When updating a money request category
             updateMoneyRequestCategory({
+                translate: translateLocal,
                 isVendorMatchingBetaEnabled: false,
                 rules: undefined,
                 transactionID,
@@ -272,6 +273,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
 
             // When setting a category that is in the policy
             updateMoneyRequestCategory({
+                translate: translateLocal,
                 isVendorMatchingBetaEnabled: false,
                 transactionID,
                 transaction,
@@ -649,6 +651,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
 
             // When updating the transaction attendees
             updateMoneyRequestAttendees({
+                translate: translateLocal,
                 isVendorMatchingBetaEnabled: false,
                 rules: undefined,
                 transactionID: transaction.transactionID,
@@ -698,6 +701,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
 
             updateMoneyRequestAttendees({
+                translate: translateLocal,
                 isVendorMatchingBetaEnabled: false,
                 rules: undefined,
                 transactionID: transaction.transactionID,
@@ -767,6 +771,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
 
             // When updating the expense tag
             updateMoneyRequestTag({
+                translate: translateLocal,
                 isVendorMatchingBetaEnabled: false,
                 rules: undefined,
                 transactionID: '1',
@@ -836,6 +841,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
 
             // When unsetting the tag
             updateMoneyRequestTag({
+                translate: translateLocal,
                 isVendorMatchingBetaEnabled: false,
                 rules: undefined,
                 transactionID,
@@ -883,6 +889,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
 
             // When editing the tag
             updateMoneyRequestTag({
+                translate: translateLocal,
                 isVendorMatchingBetaEnabled: false,
                 transactionID,
                 transaction,
@@ -960,6 +967,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
 
             // When editing the tax rate
             updateMoneyRequestTaxRate({
+                translate: translateLocal,
                 isVendorMatchingBetaEnabled: false,
                 transactionID,
                 transaction,
@@ -1100,6 +1108,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
 
             // When updating billable to true
             updateMoneyRequestBillable({
+                translate: translateLocal,
                 isVendorMatchingBetaEnabled: false,
                 rules: undefined,
                 transactionID,
@@ -1141,6 +1150,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
 
             // When updateMoneyRequestBillable is called with an undefined transactionID
             updateMoneyRequestBillable({
+                translate: translateLocal,
                 isVendorMatchingBetaEnabled: false,
                 rules: undefined,
                 transactionID: undefined,
@@ -1172,6 +1182,60 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
     });
 
     describe('updateMoneyRequestDistance', () => {
+        it('uses the caller translator for a reported expense while its edited route is pending', async () => {
+            // Given a reported distance expense and a translator distinct from the global locale
+            const translate = jest.fn(() => 'Caller pending label');
+            const transactionID = 'distanceTranslation';
+            const parentReport = createMock<Report>({reportID: 'expenseReport', type: CONST.REPORT.TYPE.EXPENSE});
+            const transactionThreadReport = createMock<Report>({reportID: 'distanceThread', parentReportID: parentReport.reportID});
+            const transaction: Transaction = {
+                ...createRandomTransaction(0),
+                transactionID,
+                reportID: parentReport.reportID,
+                iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MAP,
+                comment: {type: CONST.TRANSACTION.TYPE.CUSTOM_UNIT, customUnit: {name: CONST.CUSTOM_UNITS.NAME_DISTANCE}, waypoints: {}},
+            };
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, transaction);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${parentReport.reportID}`, parentReport);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReport.reportID}`, transactionThreadReport);
+            mockFetch.pause();
+
+            // When waypoints change without a resolved route, the reported-expense path builds an optimistic edit
+            updateMoneyRequestDistance({
+                translate,
+                transaction,
+                transactionThreadReport,
+                parentReport,
+                iouReportOwnerLogin: undefined,
+                waypoints: {waypoint0: {address: 'New destination'}},
+                recentWaypoints: [],
+                policy: undefined,
+                policyTagList: undefined,
+                policyCategories: undefined,
+                transactionBackup: transaction,
+                currentUserAccountIDParam: RORY_ACCOUNT_ID,
+                currentUserEmailParam: RORY_EMAIL,
+                isASAPSubmitBetaEnabled: false,
+                delegateAccountID: undefined,
+                isTrackIntentUser: false,
+                personalPolicyOutputCurrency: undefined,
+                reportPolicyTags: undefined,
+                violations: undefined,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                getCurrencySymbol: getCurrencySymbolLocal,
+                rules: undefined,
+                isVendorMatchingBetaEnabled: false,
+            });
+            await waitForBatchedUpdates();
+
+            // Then the optimistic merchant uses the caller's translator, not the global English label
+            const updatedTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`);
+            expect(translate).toHaveBeenCalledWith('iou.fieldPending');
+            expect(updatedTransaction?.modifiedMerchant).toBe('Caller pending label');
+            mockFetch.resume();
+            await waitForBatchedUpdates();
+        });
+
         it('should update transaction with distance and waypoints', async () => {
             // Given a distance request transaction with valid waypoints and existing data
             const transactionID = 'transaction_123';
@@ -1736,6 +1800,76 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
             expect(requestParams?.get('transactionID')).toBe(transactionID);
             expect(requestParams?.get('selectedRouteDistance')).toBe('1500');
         });
+
+        it('sends the unit the odometer readings were entered in, so the backend can convert them to the rate unit', async () => {
+            // Given an odometer expense with readings entered in km, now on a rate that uses miles
+            const transactionID = 'odometer_unit_transaction';
+            const policyID = 'odometer_unit_policy';
+            const parentReportID = 'odometer_unit_parent';
+            const transactionThreadReportID = 'odometer_unit_thread';
+            const fakeTransaction: Transaction = {
+                transactionID,
+                amount: 1500,
+                currency: CONST.CURRENCY.USD,
+                created: format(new Date(), CONST.DATE.FNS_FORMAT_STRING),
+                merchant: 'Odometer',
+                reportID: parentReportID,
+                iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_ODOMETER,
+                comment: {
+                    type: CONST.TRANSACTION.TYPE.CUSTOM_UNIT,
+                    customUnit: {name: CONST.CUSTOM_UNITS.NAME_DISTANCE, distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES, quantity: 2.49},
+                    odometerStart: 2,
+                    odometerEnd: 6,
+                    odometerUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS,
+                },
+            };
+            const fakePolicy = createRandomPolicy(1);
+            const transactionThreadReport = createMock<Report>({reportID: transactionThreadReportID, type: CONST.REPORT.TYPE.EXPENSE});
+            const parentReport = createMock<Report>({reportID: parentReportID, type: CONST.REPORT.TYPE.IOU});
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, fakeTransaction);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, fakePolicy);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`, transactionThreadReport);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${parentReportID}`, parentReport);
+
+            // When the end reading is edited
+            updateMoneyRequestDistance({
+                isVendorMatchingBetaEnabled: false,
+                rules: undefined,
+                personalPolicyOutputCurrency: undefined,
+                reportPolicyTags: undefined,
+                transaction: fakeTransaction,
+                transactionThreadReport,
+                parentReport,
+                iouReportOwnerLogin: undefined,
+                recentWaypoints: [],
+                distance: 3.73,
+                policy: fakePolicy,
+                policyTagList: undefined,
+                policyCategories: undefined,
+                transactionBackup: undefined,
+                currentUserAccountIDParam: 123,
+                currentUserEmailParam: 'test@example.com',
+                isASAPSubmitBetaEnabled: false,
+                odometerStart: 2,
+                odometerEnd: 8,
+                odometerUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS,
+                delegateAccountID: undefined,
+                isTrackIntentUser: false,
+                violations: undefined,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                getCurrencySymbol: getCurrencySymbolLocal,
+                translate: translateLocal,
+            });
+            await waitForBatchedUpdates();
+
+            // Then the UpdateMoneyRequestDistance request carries the readings' unit alongside the readings
+            const distanceRequest = mockFetch.mock.calls.find(([url]) => typeof url === 'string' && url.endsWith(`/${WRITE_COMMANDS.UPDATE_MONEY_REQUEST_DISTANCE}?`));
+            const requestBody = distanceRequest?.[1]?.body;
+            const requestParams = requestBody instanceof FormData ? requestBody : undefined;
+            expect(requestParams?.get('odometerEnd')).toBe('8');
+            expect(requestParams?.get('odometerUnit')).toBe(CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS);
+        });
     });
 
     describe('updateMoneyRequestReimbursable', () => {
@@ -1777,6 +1911,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
 
             // When updating reimbursable to the new value
             updateMoneyRequestReimbursable({
+                translate: translateLocal,
                 isVendorMatchingBetaEnabled: false,
                 rules: undefined,
                 transactionID,
@@ -1819,6 +1954,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
 
             // When updateMoneyRequestReimbursable is called with an undefined transactionID
             updateMoneyRequestReimbursable({
+                translate: translateLocal,
                 isVendorMatchingBetaEnabled: false,
                 rules: undefined,
                 transactionID: undefined,
