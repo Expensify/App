@@ -408,4 +408,25 @@ describe('buildMentionedReportIDToNameMapFromReportNames', () => {
         // Then only the named room is mapped, so rooms the action doesn't mention aren't copied and no room gets an empty name
         expect(map).toEqual({[namedRoomID]: '#one'});
     });
+
+    it('prefers the raw name and falls back to the display name for entries restored without one', () => {
+        // Given an archived room whose display name has the archived suffix, and a room whose entry was saved by an older version without a raw name
+        const [archivedRoomID, restoredRoomID] = ['1', '2'];
+        const reportNames = {[archivedRoomID]: {reportName: '#archived (archived) ', rawReportName: '#archived'}, [restoredRoomID]: {reportName: '#restored'}};
+        const reportAction = createMock<ReportAction>({
+            message: [
+                {
+                    type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
+                    html: `<mention-report reportID="${archivedRoomID}"></mention-report> <mention-report reportID="${restoredRoomID}"></mention-report>`,
+                    text: '',
+                },
+            ],
+        });
+
+        // When building the map for the rooms the action mentions
+        const map = buildMentionedReportIDToNameMapFromReportNames(reportNames, [reportAction]);
+
+        // Then the archived room keeps its raw name, and the restored room is still named instead of being left out, which would render as #Hidden
+        expect(map).toEqual({[archivedRoomID]: '#archived', [restoredRoomID]: '#restored'});
+    });
 });

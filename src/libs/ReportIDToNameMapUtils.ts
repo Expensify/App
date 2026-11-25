@@ -97,9 +97,11 @@ function buildReportIDToNameMap(reports: OnyxCollection<Report> | undefined, rep
 function buildMentionedReportIDToNameMapFromReportNames(reportNames: ReportNamesDerivedValue | undefined, reportActions: Array<OnyxEntry<ReportAction>>): ReportIDToNameMap {
     const map: ReportIDToNameMap = {};
     for (const reportID of getMentionedReportIDsInReportActions(reportActions)) {
-        const rawReportName = reportNames?.[reportID]?.rawReportName;
-        if (rawReportName) {
-            map[reportID] = rawReportName;
+        // REPORT_ATTRIBUTES is restored from disk on startup, and entries saved by an older version don't have rawReportName until they are recomputed.
+        // Falling back to the display name keeps naming the room meanwhile, since a room missing from the map renders as #Hidden.
+        const reportName = reportNames?.[reportID]?.rawReportName ?? reportNames?.[reportID]?.reportName;
+        if (reportName) {
+            map[reportID] = reportName;
         }
     }
     return map;
