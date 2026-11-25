@@ -23,8 +23,7 @@ function useSearchTransactions() {
         setHeldTransactions({hold: searchTabHold, value: transactions});
     }
 
-    // Ending a hold is a catch-up, not an expense update, so the refetch check sees no change. The tab requests fresh
-    // results when it is first shown.
+    // Ending a hold is a catch-up, not an expense update, so the refetch check sees no change; the tab requests fresh results on first show.
     const isSearchTabHeld = !!searchTabHold;
     const previousTransactions = usePrevious(transactions);
     const wasSearchTabHeld = usePrevious(isSearchTabHeld);

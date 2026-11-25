@@ -45,10 +45,16 @@ jest.mock('@libs/getPlatform', () => ({
     default: jest.fn(() => 'web'),
 }));
 
-// Jest resolves the native file first, and this suite covers the desktop browser preload target.
-jest.mock('@libs/Navigation/helpers/getSearchTabPreloadTarget', () =>
-    jest.requireActual<typeof GetSearchTabPreloadTargetModule>('@libs/Navigation/helpers/getSearchTabPreloadTarget/index.ts'),
-);
+// Jest resolves the native file first, so each test picks the desktop browser or the native preload target here.
+let mockIsNativePreloadTarget = false;
+jest.mock('@libs/Navigation/helpers/getSearchTabPreloadTarget', () => {
+    const getWebTarget = jest.requireActual<typeof GetSearchTabPreloadTargetModule>('@libs/Navigation/helpers/getSearchTabPreloadTarget/index.ts').default;
+    const getNativeTarget = jest.requireActual<typeof GetSearchTabPreloadTargetModule>('@libs/Navigation/helpers/getSearchTabPreloadTarget/index.native.ts').default;
+    return {
+        __esModule: true,
+        default: (...args: Parameters<typeof getWebTarget>) => (mockIsNativePreloadTarget ? getNativeTarget(...args) : getWebTarget(...args)),
+    };
+});
 
 jest.mock('@libs/telemetry/activeSpans', () => ({
     startSpan: jest.fn(),
@@ -193,5 +199,29 @@ describe('SearchTabPreload', () => {
 
         // Then the Spend tab is not preloaded
         expectNoSpendPreload();
+    });
+
+    describe('on native', () => {
+        beforeEach(() => {
+            mockIsNativePreloadTarget = true;
+            jest.mocked(getIsNarrowLayout).mockReturnValue(true);
+        });
+
+        afterEach(() => {
+            mockIsNativePreloadTarget = false;
+        });
+
+        it.each([
+            ['preloads a Spend tab that the native tab bar mounted but never showed', [], true],
+            ['does not preload the Spend tab again while the first preload still marks it', ['search-1'], false],
+        ])('%s', async (_description, preloadedRouteKeys, shouldPreload) => {
+            // Given the app finished loading on Home in a narrow layout, with the Spend tab marked or not by an earlier preload
+            // When the app goes idle
+            await renderAtIdle(undefined, preloadedRouteKeys);
+
+            // Then only a Spend tab without a mark gets the preload and its span
+            expect(mockNavigationDispatch.mock.calls.length > 0).toBe(shouldPreload);
+            expect(jest.mocked(startSpan).mock.calls.length > 0).toBe(shouldPreload);
+        });
     });
 });

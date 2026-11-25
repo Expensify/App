@@ -770,6 +770,33 @@ describe('SearchPageNarrow', () => {
         expect(markPreloadedContentReady).toHaveBeenCalled();
     });
 
+    it.each([
+        ['does not build the list of the previous query while the saved query is on its way', true],
+        ['does not count the placeholder of the previous query as first content while the saved query is on its way', false],
+    ])('%s', async (_description, hasCachedPreviousResults) => {
+        // Given the saved Spend query on the hidden page's route, while the search contexts still have the previous one
+        mockSearchQueryParam.mockReturnValue(EXPENSE_QUERY);
+        mockIsFocused.mockReturnValue(false);
+        mockIsNavigationFocused.mockReturnValue(false);
+        mockShouldRunFocusEffects.mockReturnValue(false);
+        if (hasCachedPreviousResults) {
+            await act(async () => {
+                await Onyx.set(`${ONYXKEYS.COLLECTION.SNAPSHOT}${expenseQueryJSON?.hash}`, getExpenseSnapshot(false));
+            });
+        }
+        const markPreloadedContentReady = jest.fn();
+
+        // When the page renders before the search contexts catch up
+        renderPage('type:expense status:drafts', true, markPreloadedContentReady);
+        await act(async () => {
+            jest.runAllTimers();
+        });
+
+        // Then it waits for the saved query instead of building or reporting content for the previous one
+        expect(!!listProps.onEndReached).toBe(false);
+        expect(markPreloadedContentReady).not.toHaveBeenCalled();
+    });
+
     it('does not repeat the first page the page-level setup already requested', async () => {
         // Given a query with no snapshot yet, so the page-level setup owns the first request
         mockSearchQueryParam.mockReturnValue(EXPENSE_QUERY);

@@ -12,10 +12,7 @@ type UseConfirmSubmitReportViolationsParams = {
     shouldShowMarkAsDoneCopy?: boolean;
 };
 
-/**
- * Hook that returns a callback to confirm any report violations before proceeding with a report submission, reading the
- * report's transactions and violations by reportID.
- */
+/** Reads the report's transactions and violations by reportID, then works like useConfirmSubmitViolations. */
 function useConfirmSubmitReportViolations({reportID, report, policy, shouldShowMarkAsDoneCopy}: UseConfirmSubmitReportViolationsParams) {
     const {transactions, violations} = useTransactionsAndViolationsForReport(reportID);
 
