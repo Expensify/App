@@ -30,6 +30,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
+import {connectedBankAccountIDSelector} from '@selectors/BankAccount';
 import React, {useState} from 'react';
 import {View} from 'react-native';
 import Onyx from 'react-native-onyx';
@@ -41,14 +42,13 @@ function ConnectExistingBusinessBankAccountPage({route}: ConnectExistingBusiness
     const policyID = route.params?.policyID;
     const backTo = route.params?.backTo;
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
-    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
+    const [connectedBankAccountID] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {selector: connectedBankAccountIDSelector(policyID)});
     const policyName = policy?.name ?? '';
     const policyCurrency = policy?.outputCurrency ?? '';
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const isChangingBankAccount = route.params?.source === CONST.BANK_ACCOUNT.CONNECT_EXISTING_SOURCE.CHANGE_BANK_ACCOUNT;
     const isBankAccountFullySetup = !!policy?.achAccount && (policy.achAccount.state === CONST.BANK_ACCOUNT.STATE.OPEN || policy.achAccount.state === CONST.BANK_ACCOUNT.STATE.LOCKED);
-    const connectedBankAccount = Object.values(bankAccountList ?? {}).find((bankAccount) => bankAccount?.accountData?.additionalData?.policyID === policyID);
-    const connectedAccountBankAccountID = (isBankAccountFullySetup ? policy?.achAccount?.bankAccountID : connectedBankAccount?.methodID) ?? CONST.DEFAULT_NUMBER_ID;
+    const connectedAccountBankAccountID = (isBankAccountFullySetup ? policy?.achAccount?.bankAccountID : connectedBankAccountID) ?? CONST.DEFAULT_NUMBER_ID;
 
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -78,9 +78,9 @@ function ConnectExistingBusinessBankAccountPage({route}: ConnectExistingBusiness
 
         const newReimburserEmail = policy?.achAccount?.reimburser ?? policy?.owner ?? '';
 
+        const [lastPaymentMethod, bankAccountList] = await Onyx.multiGet([ONYXKEYS.NVP_LAST_PAYMENT_METHOD, ONYXKEYS.BANK_ACCOUNT_LIST]);
         if (bankAccountList && methodID && methodID !== connectedAccountBankAccountID && methodID !== policy?.achAccount?.bankAccountID) {
             setIsSelectingBankAccount(true);
-            const lastPaymentMethod = await Onyx.get(ONYXKEYS.NVP_LAST_PAYMENT_METHOD);
             setWorkspaceReimbursement({
                 policyID,
                 currentAchAccount: policy?.achAccount,

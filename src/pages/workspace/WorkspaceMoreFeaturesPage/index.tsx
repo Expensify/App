@@ -6,7 +6,6 @@ import Text from '@components/Text';
 
 import useCardFeeds from '@hooks/useCardFeeds';
 import useConfirmModal from '@hooks/useConfirmModal';
-import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDefaultFundID from '@hooks/useDefaultFundID';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -70,6 +69,7 @@ import type SCREENS from '@src/SCREENS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import {guidedSetupAndTourStatusSelector} from '@selectors/Onboarding';
+import {accountIDSelector} from '@selectors/Session';
 import React, {useEffect} from 'react';
 import Onyx from 'react-native-onyx';
 
@@ -86,7 +86,6 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
     const {isBetaEnabledOrUnknown} = usePermissions();
     // Undefined until the betas load. The action calls below need that distinction, the UI gating just treats it as off
     const isVendorMatchingBetaEnabled = isBetaEnabledOrUnknown(CONST.BETAS.VENDOR_MATCHING);
-    const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const {showConfirmModal} = useConfirmModal();
     const illustrations = useMemoizedLazyIllustrations([
         'FolderOpen',
@@ -108,20 +107,13 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
     const policyID = policy?.id;
     const workspaceAccountID = policy?.policyAccountID ?? CONST.DEFAULT_NUMBER_ID;
     const hasAccountingConnection = hasAccountingConnections(policy);
-    const perDiemCustomUnit = getPerDiemCustomUnit(policy);
-    const distanceRateCustomUnit = getDistanceRateCustomUnit(policy);
 
     const [cardFeeds] = useCardFeeds(policyID);
     const policyData = usePolicyData(policyID);
     const {categories: policyCategories} = policyData;
     const defaultFundID = useDefaultFundID(policyID);
 
-    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
-    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [conciergePersonalDetails] = usePersonalDetailsByIDs([CONST.ACCOUNT_ID.CONCIERGE]);
-    const [guidedSetupAndTourStatus] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: guidedSetupAndTourStatusSelector});
-    const isSelfTourViewed = guidedSetupAndTourStatus?.isSelfTourViewed;
-    const hasCompletedGuidedSetupFlow = guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow;
     const [cardsList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID.toString()}_${CONST.EXPENSIFY_CARD.BANK}`, {
         selector: filterInactiveCards,
     });
@@ -211,6 +203,18 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
         });
     };
 
+    const navigateToConcierge = async () => {
+        const [conciergeReportID, introSelected, onboarding, session] = await Onyx.multiGet([
+            ONYXKEYS.CONCIERGE_REPORT_ID,
+            ONYXKEYS.NVP_INTRO_SELECTED,
+            ONYXKEYS.NVP_ONBOARDING,
+            ONYXKEYS.SESSION,
+        ]);
+        const currentUserAccountID = accountIDSelector(session) ?? CONST.DEFAULT_NUMBER_ID;
+        const {isSelfTourViewed, hasCompletedGuidedSetupFlow} = guidedSetupAndTourStatusSelector(onboarding);
+        navigateToConciergeChat({conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, hasCompletedGuidedSetupFlow, conciergePersonalDetails, shouldDismissModal: false});
+    };
+
     const promptDisableExpensifyCardViaConcierge = async () => {
         const {action} = await showConfirmModal({
             title: translate('workspace.moreFeatures.expensifyCard.disableCardTitle'),
@@ -221,7 +225,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
         if (action !== ModalActions.CONFIRM) {
             return;
         }
-        navigateToConciergeChat({conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, hasCompletedGuidedSetupFlow, conciergePersonalDetails, shouldDismissModal: false});
+        navigateToConcierge();
     };
 
     const promptDisableTravelViaInvoicing = async () => {
@@ -247,7 +251,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
         if (action !== ModalActions.CONFIRM) {
             return;
         }
-        navigateToConciergeChat({conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, hasCompletedGuidedSetupFlow, conciergePersonalDetails, shouldDismissModal: false});
+        navigateToConcierge();
     };
 
     const promptDisableDistanceRatesForCommuterExclusions = async () => {
@@ -289,6 +293,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
             Navigation.navigate(ROUTES.WORKSPACE_UPGRADE.getRoute(policyID, CONST.UPGRADE_FEATURE_INTRO_MAPPING.perDiem.alias, ROUTES.WORKSPACE_MORE_FEATURES.getRoute(policyID)));
             return;
         }
+        const perDiemCustomUnit = getPerDiemCustomUnit(policy);
         const quickAction = await Onyx.get(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE);
         enablePerDiem(policyID, isEnabled, perDiemCustomUnit?.customUnitID, true, quickAction);
     };
@@ -298,11 +303,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
             return;
         }
         const governmentMileageRates = await Onyx.get(ONYXKEYS.GOVERNMENT_MILEAGE_RATES);
-        if (isEnabled) {
-            enablePolicyTaxes(policyID, true, isVendorMatchingBetaEnabled, {policy, governmentMileageRates, policyData});
-            return;
-        }
-        enablePolicyTaxes(policyID, false, isVendorMatchingBetaEnabled, {policy, governmentMileageRates, policyData});
+        enablePolicyTaxes(policyID, isEnabled, isVendorMatchingBetaEnabled, {policy, governmentMileageRates, policyData});
     };
 
     return (
@@ -486,6 +487,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                                     promptDisableDistanceRatesForCommuterExclusions();
                                     return;
                                 }
+                                const distanceRateCustomUnit = getDistanceRateCustomUnit(policy);
                                 enablePolicyDistanceRates(policyID, isEnabled, distanceRateCustomUnit);
                             }}
                             onPress={() => {
