@@ -167,6 +167,32 @@ describe('Selecting groups that share expenses', () => {
         expect(getGroupKeysSelectedViaGroup(result.current.selectedTransactions).sort()).toEqual([MISSING_CATEGORY_KEY, OVER_LIMIT_KEY].sort());
     });
 
+    it('stops counting a group as wholly selected once one of its expenses is unchecked under another group', async () => {
+        // Given Over limit expanded with both its expenses loaded and checked through its header, so its rows read as the whole group
+        buildGroups([buildRow(1, OVER_LIMIT_KEY), buildRow(2, OVER_LIMIT_KEY)]);
+        const {result} = renderSelection();
+        await act(async () => {
+            result.current.toggle(overLimitGroup, overLimitGroup.transactions);
+            await waitForBatchedUpdatesWithAct();
+        });
+        expect(result.current.selectedTransactions['2']).toEqual(expect.objectContaining({groupKey: OVER_LIMIT_KEY, isEntireGroupSelected: true}));
+        const [sharedRow] = missingCategoryGroup.transactions;
+        if (!sharedRow) {
+            throw new Error('Expected Missing category to list the shared expenses');
+        }
+
+        // When one shared expense is unchecked under Missing category
+        await act(async () => {
+            result.current.toggle(sharedRow);
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        // Then the expense left in Over limit no longer reads as the whole group, so deleting it can't hide a group that still holds the unchecked one
+        expect(result.current.selectedTransactions['1']).toBeUndefined();
+        expect(result.current.selectedTransactions['2']).toEqual(expect.objectContaining({isSelected: true, groupKey: OVER_LIMIT_KEY}));
+        expect(result.current.selectedTransactions['2']?.isEntireGroupSelected).toBe(false);
+    });
+
     it('ends the claims of a group a refresh drops', async () => {
         // Given both groups checked through their headers over the expenses they share
         const {result, rerender} = renderSelection();

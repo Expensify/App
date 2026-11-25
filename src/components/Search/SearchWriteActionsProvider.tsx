@@ -929,11 +929,15 @@ function SearchWriteActionsProvider({
                         findGroupCarryingItem()?.keyForList;
                     const parentGroup = (groupKey ? filteredData.find((group) => group.keyForList === groupKey) : undefined) ?? findGroupCarryingItem();
                     const loadedChildren = itemTransactions ?? parentGroup?.transactions ?? [];
+                    const releasedGroupKeys = new Set<string>();
 
                     if (groupKey) {
                         // Toggling one expense makes this group a partial selection, so export the remaining expenses individually.
                         // Every other group whose header check covered the expense becomes partial as well, since the expense is in each of them.
-                        const releasedGroupKeys = new Set<string>([groupKey, ...getClaimedGroupKeys(baseSelection[item.keyForList])]);
+                        releasedGroupKeys.add(groupKey);
+                        for (const claimedGroupKey of getClaimedGroupKeys(baseSelection[item.keyForList])) {
+                            releasedGroupKeys.add(claimedGroupKey);
+                        }
                         for (const [key, transaction] of Object.entries(updatedTransactions)) {
                             let nextTransaction = withoutOtherGroupClaims(transaction, releasedGroupKeys);
                             if (nextTransaction.groupKey && releasedGroupKeys.has(nextTransaction.groupKey) && nextTransaction.isSelectedViaGroup) {
@@ -959,12 +963,27 @@ function SearchWriteActionsProvider({
                         }
                     }
 
-                    return stampGroupCoverageFlags({
+                    let stampedTransactions = stampGroupCoverageFlags({
                         selectedTransactions: updatedTransactions,
                         groupKey,
                         groupCount: groupKey ? lookups.getGroupCount(groupKey, parentGroup) : undefined,
                         loadedRows: loadedChildren,
                     });
+                    // The other groups the expense sits in are recounted too. A group whose rows still read as wholly selected
+                    // after the expense left it would be hidden by a delete of those rows, though the expense is still in it.
+                    for (const releasedGroupKey of releasedGroupKeys) {
+                        if (releasedGroupKey === groupKey) {
+                            continue;
+                        }
+                        const releasedGroup = filteredData.find((group) => group.keyForList === releasedGroupKey);
+                        stampedTransactions = stampGroupCoverageFlags({
+                            selectedTransactions: stampedTransactions,
+                            groupKey: releasedGroupKey,
+                            groupCount: lookups.getGroupCount(releasedGroupKey, releasedGroup),
+                            loadedRows: releasedGroup?.transactions ?? [],
+                        });
+                    }
+                    return stampedTransactions;
                 }
 
                 return updatedTransactions;
