@@ -22,14 +22,12 @@ import {View} from 'react-native';
 type InsightsDetailsSectionHeaderProps = {
     title: string;
 
-    /** Spend page query the View all link opens, which hides the link when omitted */
-    viewAllQuery?: SearchQueryString;
-
-    viewAllSentryLabel: SentryLabel;
+    /** Spend page query the View all link opens, and its Sentry label. The link is hidden without it */
+    viewAll?: {query: SearchQueryString; sentryLabel: SentryLabel};
 };
 
-/** Title row of a Details panel section, with a View all link to the Spend page on the right. */
-function InsightsDetailsSectionHeader({title, viewAllQuery, viewAllSentryLabel}: InsightsDetailsSectionHeaderProps) {
+/** Title row of a Details panel section, with an optional View all link to the Spend page on the right. */
+function InsightsDetailsSectionHeader({title, viewAll}: InsightsDetailsSectionHeaderProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate} = useLocalize();
@@ -43,12 +41,12 @@ function InsightsDetailsSectionHeader({title, viewAllQuery, viewAllSentryLabel}:
             >
                 {title}
             </Text>
-            {!!viewAllQuery && (
+            {!!viewAll && (
                 <PressableWithoutFeedback
-                    onPress={() => Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: viewAllQuery}))}
+                    onPress={() => Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: viewAll.query}))}
                     accessibilityRole={CONST.ROLE.LINK}
                     accessibilityLabel={translate('insightsPage.viewAll')}
-                    sentryLabel={viewAllSentryLabel}
+                    sentryLabel={viewAll.sentryLabel}
                     style={[styles.flexRow, styles.alignItemsCenter, styles.gap1]}
                 >
                     <Text

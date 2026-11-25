@@ -79,8 +79,7 @@ function InsightsRecentHistory({query, history, summary, state, currency, color,
         <View style={[styles.highlightBG, styles.borderRadiusComponentLarge, styles.overflowHidden]}>
             <InsightsDetailsSectionHeader
                 title={translate('insightsPage.recentHistory.title')}
-                viewAllQuery={viewAllQuery}
-                viewAllSentryLabel={CONST.SENTRY_LABEL.INSIGHTS.DETAILS_RECENT_HISTORY_VIEW_ALL}
+                viewAll={{query: viewAllQuery, sentryLabel: CONST.SENTRY_LABEL.INSIGHTS.DETAILS_RECENT_HISTORY_VIEW_ALL}}
             />
             {state === INSIGHTS_DETAILS_SECTION_STATE.OFFLINE && <ChartOfflineState />}
             {state === INSIGHTS_DETAILS_SECTION_STATE.LOADING && <InsightsRecentHistorySkeleton />}

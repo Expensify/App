@@ -46,10 +46,7 @@ function getHistoryPeriodStart(period: InsightsDetailsHistoryPeriod): string {
     return `${period.year}-01-01`;
 }
 
-/**
- * Lays out the periods, newest first, on a scale that fits both the longest bar and the average.
- * Refunds can make a period negative, which draws no bar.
- */
+/** Lays out the periods, newest first, on a scale that fits both the longest bar and the average. */
 function buildRecentHistoryRows(allHistory: InsightsDetailsHistoryPeriod[], average: number | undefined, isNewestInProgress: boolean): RecentHistoryLayout {
     const history = allHistory.slice(0, RECENT_HISTORY_PERIOD_COUNT);
     const scale = Math.max(average ?? 0, ...history.map(({total}) => total));
@@ -62,7 +59,7 @@ function buildRecentHistoryRows(allHistory: InsightsDetailsHistoryPeriod[], aver
             widthPercent: getWidthPercent(period.total),
             isInProgress: isNewestInProgress && index === 0,
         })),
-        averageWidthPercent: average === undefined || scale <= 0 ? undefined : getWidthPercent(average),
+        averageWidthPercent: average === undefined || average <= 0 ? undefined : getWidthPercent(average),
     };
 }
 

@@ -118,8 +118,7 @@ function InsightsTopExpenses({query, snapshotHash, onRetry}: InsightsTopExpenses
         <View style={[styles.highlightBG, styles.borderRadiusComponentLarge, styles.overflowHidden]}>
             <InsightsDetailsSectionHeader
                 title={translate('insightsPage.topExpenses')}
-                viewAllQuery={queryJSON && expenses.length > 0 ? buildViewOnSpendQuery(queryJSON) : undefined}
-                viewAllSentryLabel={CONST.SENTRY_LABEL.INSIGHTS.DETAILS_TOP_EXPENSES_VIEW_ALL}
+                viewAll={queryJSON && expenses.length > 0 ? {query: buildViewOnSpendQuery(queryJSON), sentryLabel: CONST.SENTRY_LABEL.INSIGHTS.DETAILS_TOP_EXPENSES_VIEW_ALL} : undefined}
             />
             {state === INSIGHTS_DETAILS_SECTION_STATE.LOADING && (
                 <SearchRowSkeleton

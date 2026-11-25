@@ -32,6 +32,7 @@ import type {InsightsDetailsSectionState} from './insightsDetailsSectionState';
 import getInsightsAverageComparison, {INSIGHTS_AVERAGE_COMPARISON, MIN_AVERAGE_PERIOD_COUNT} from './getInsightsAverageComparison';
 import getInsightsDetailsPeriodName from './getInsightsDetailsPeriodName';
 import {getPeriodTitle} from './insightsDetailsItem';
+import InsightsDetailsSectionHeader from './InsightsDetailsSectionHeader';
 import {INSIGHTS_DETAILS_SECTION_STATE} from './insightsDetailsSectionState';
 import InsightsSummarySkeleton from './InsightsSummarySkeleton';
 
@@ -207,14 +208,7 @@ function InsightsSummary({query, graphKey, currency, summary, state}: InsightsSu
 
     return (
         <View style={[styles.highlightBG, styles.borderRadiusComponentLarge, styles.overflowHidden]}>
-            <View style={[styles.p4, styles.borderBottom]}>
-                <Text
-                    variant="label"
-                    style={styles.textSupporting}
-                >
-                    {getSectionTitle()}
-                </Text>
-            </View>
+            <InsightsDetailsSectionHeader title={getSectionTitle()} />
             {state === INSIGHTS_DETAILS_SECTION_STATE.OFFLINE && <ChartOfflineState />}
             {state === INSIGHTS_DETAILS_SECTION_STATE.LOADING && <InsightsSummarySkeleton />}
             {state === INSIGHTS_DETAILS_SECTION_STATE.READY && !!summary && !!comparison && (
