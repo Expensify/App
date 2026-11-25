@@ -13188,6 +13188,8 @@ Ecco una *ricevuta di prova* per mostrarti come funziona:`,
                 `<comment><muted-text-label>Se abilitata, la persona di contatto principale pagherà tutti gli spazi di lavoro di proprietà dei membri di <strong>${domainName}</strong> e riceverà tutte le ricevute di fatturazione.</muted-text-label></comment>`,
             consolidatedDomainBillingError: 'La fatturazione consolidata del dominio non può essere modificata. Riprova più tardi.',
             consolidatedDomainBillingLockedMessage: 'Only the primary contact can turn on consolidated domain billing. To turn it on, make yourself the primary contact first.',
+            primaryContactConsolidatedBillingMessage: (domainName: string) =>
+                `Consolidated domain billing is on, so you can only make yourself the primary contact. The primary contact pays for all workspaces owned by <strong>${domainName}</strong> members.`,
             addAdmin: 'Aggiungi amministratore',
             addAdminError: 'Impossibile aggiungere questo membro come amministratore. Riprova.',
             requests: 'Richieste',

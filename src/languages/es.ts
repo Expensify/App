@@ -13502,7 +13502,10 @@ ${reportName}`,
             consolidatedDomainBillingDescription: (domainName: string) =>
                 `<comment><muted-text-label>Cuando está habilitada, el contacto principal pagará todos los espacios de trabajo de los miembros de <strong>${domainName}</strong> y recibirá todos los recibos de facturación.</muted-text-label></comment>`,
             consolidatedDomainBillingError: 'No se pudo cambiar la facturación consolidada del dominio. Por favor, inténtalo de nuevo más tarde.',
-            consolidatedDomainBillingLockedMessage: 'Only the primary contact can turn on consolidated domain billing. To turn it on, make yourself the primary contact first.',
+            consolidatedDomainBillingLockedMessage:
+                'Solo el contacto principal puede habilitar la facturación consolidada del dominio. Para habilitarla, primero conviértete en el contacto principal.',
+            primaryContactConsolidatedBillingMessage: (domainName: string) =>
+                `La facturación consolidada del dominio está habilitada, así que solo puedes convertirte tú en el contacto principal. El contacto principal paga todos los espacios de trabajo de los miembros de <strong>${domainName}</strong>.`,
             addAdmin: 'Añadir administrador',
             addAdminError: 'No se pudo añadir a este miembro como administrador. Por favor, inténtalo de nuevo.',
             requests: 'Solicitudes',

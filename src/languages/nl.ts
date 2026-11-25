@@ -13152,6 +13152,8 @@ Hier is een *proefbon* om je te laten zien hoe het werkt:`,
                 `<comment><muted-text-label>Indien ingeschakeld betaalt de primaire contactpersoon voor alle werkruimtes die eigendom zijn van leden van <strong>${domainName}</strong> en ontvangt diegene alle factuurbewijzen.</muted-text-label></comment>`,
             consolidatedDomainBillingError: 'Gefactureerde geconsolideerde domeinen konden niet worden gewijzigd. Probeer het later opnieuw.',
             consolidatedDomainBillingLockedMessage: 'Only the primary contact can turn on consolidated domain billing. To turn it on, make yourself the primary contact first.',
+            primaryContactConsolidatedBillingMessage: (domainName: string) =>
+                `Consolidated domain billing is on, so you can only make yourself the primary contact. The primary contact pays for all workspaces owned by <strong>${domainName}</strong> members.`,
             addAdmin: 'Beheerder toevoegen',
             addAdminError: 'Kan dit lid niet als beheerder toevoegen. Probeer het opnieuw.',
             requests: 'Verzoeken',

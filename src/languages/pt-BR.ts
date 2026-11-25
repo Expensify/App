@@ -13156,6 +13156,8 @@ Aqui está um *comprovante de teste* para mostrar como funciona:`,
                 `<comment><muted-text-label>Quando ativado, o contato principal pagará por todos os espaços de trabalho pertencentes aos membros de <strong>${domainName}</strong> e receberá todos os recibos de cobrança.</muted-text-label></comment>`,
             consolidatedDomainBillingError: 'A cobrança consolidada de domínios não pôde ser alterada. Tente novamente mais tarde.',
             consolidatedDomainBillingLockedMessage: 'Only the primary contact can turn on consolidated domain billing. To turn it on, make yourself the primary contact first.',
+            primaryContactConsolidatedBillingMessage: (domainName: string) =>
+                `Consolidated domain billing is on, so you can only make yourself the primary contact. The primary contact pays for all workspaces owned by <strong>${domainName}</strong> members.`,
             addAdmin: 'Adicionar administrador',
             addAdminError: 'Não foi possível adicionar este membro como administrador. Tente novamente.',
             requests: 'Solicitações',

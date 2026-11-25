@@ -12665,6 +12665,8 @@ ${reportName}`,
                 `<comment><muted-text-label>启用后，主要联系人将为所有由 <strong>${domainName}</strong> 成员拥有的工作区付款，并接收所有账单收据。</muted-text-label></comment>`,
             consolidatedDomainBillingError: '无法更改合并域账单。请稍后再试。',
             consolidatedDomainBillingLockedMessage: 'Only the primary contact can turn on consolidated domain billing. To turn it on, make yourself the primary contact first.',
+            primaryContactConsolidatedBillingMessage: (domainName: string) =>
+                `Consolidated domain billing is on, so you can only make yourself the primary contact. The primary contact pays for all workspaces owned by <strong>${domainName}</strong> members.`,
             addAdmin: '添加管理员',
             addAdminError: '无法将此成员添加为管理员。请重试。',
             requests: '请求',

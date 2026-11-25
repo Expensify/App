@@ -13708,6 +13708,8 @@ const translations = {
                 `<comment><muted-text-label>When enabled, the primary contact will pay for all workspaces owned by <strong>${domainName}</strong> members and receive all billing receipts.</muted-text-label></comment>`,
             consolidatedDomainBillingError: "Consolidated domain billing couldn't be changed. Please try again later.",
             consolidatedDomainBillingLockedMessage: 'Only the primary contact can turn on consolidated domain billing. To turn it on, make yourself the primary contact first.',
+            primaryContactConsolidatedBillingMessage: (domainName: string) =>
+                `Consolidated domain billing is on, so you can only make yourself the primary contact. The primary contact pays for all workspaces owned by <strong>${domainName}</strong> members.`,
             addAdmin: 'Add admin',
             addAdminError: 'Unable to add this member as an admin. Please try again.',
             requests: 'Requests',

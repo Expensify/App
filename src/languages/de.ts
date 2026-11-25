@@ -13244,6 +13244,8 @@ Hier ist ein *Testbeleg*, um dir zu zeigen, wie es funktioniert:`,
                 `<comment><muted-text-label>Wenn diese Option aktiviert ist, bezahlt die primäre Kontaktperson alle Workspaces, die Mitgliedern von <strong>${domainName}</strong> gehören, und erhält alle Abrechnungsbelege.</muted-text-label></comment>`,
             consolidatedDomainBillingError: 'Die konsolidierte Domain-Abrechnung konnte nicht geändert werden. Bitte versuchen Sie es später noch einmal.',
             consolidatedDomainBillingLockedMessage: 'Only the primary contact can turn on consolidated domain billing. To turn it on, make yourself the primary contact first.',
+            primaryContactConsolidatedBillingMessage: (domainName: string) =>
+                `Consolidated domain billing is on, so you can only make yourself the primary contact. The primary contact pays for all workspaces owned by <strong>${domainName}</strong> members.`,
             addAdmin: 'Admin hinzufügen',
             addAdminError: 'Dieses Mitglied kann nicht als Admin hinzugefügt werden. Bitte versuche es erneut.',
             requests: 'Anfragen',
