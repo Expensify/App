@@ -96,4 +96,4 @@ function enhanceReceipt(image: Image, minConfidence: number, timeoutMs = ENHANCE
 
 export default enhanceReceipt;
 export {ENHANCE_TIMEOUT_MS, UPGRADE_ENHANCE_TIMEOUT_MS};
-export type {EnhancedReceipt, EnhanceOutcome};
+export type {EnhancedReceipt};

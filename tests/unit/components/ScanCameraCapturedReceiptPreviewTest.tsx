@@ -73,7 +73,6 @@ jest.mock('@pages/iou/request/step/IOURequestStepScan/documentDetection/Captured
         const {View} = jest.requireActual<{View: typeof ReactNativeView}>('react-native');
         return <View testID="captured-receipt-preview" />;
     },
-    CAPTURED_RECEIPT_DISPLAY_MS: 700,
 }));
 
 jest.mock('@pages/iou/request/step/IOURequestStepScan/components/MultiScanContext', () => ({

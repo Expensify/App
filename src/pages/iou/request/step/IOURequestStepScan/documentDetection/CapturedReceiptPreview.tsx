@@ -77,4 +77,3 @@ function CapturedReceiptPreview({source, aspectRatio, onFinish}: CapturedReceipt
 }
 
 export default CapturedReceiptPreview;
-export {CAPTURED_RECEIPT_DISPLAY_MS};

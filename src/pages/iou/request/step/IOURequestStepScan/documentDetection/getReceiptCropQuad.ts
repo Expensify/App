@@ -148,4 +148,4 @@ function getReceiptCropQuad(detection: ReceiptDetection, image: ImageSize, minCo
 
 export default getReceiptCropQuad;
 export {CROP_MARGIN_SHARE};
-export type {ReceiptDetection, ImageSize};
+export type {ReceiptDetection};
