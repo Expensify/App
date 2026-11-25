@@ -1,52 +1,23 @@
 /** Form input for a choice field that takes several answers, drawn as the expense form's dropdown row */
-import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
-
 import type {SentryLabel} from '@src/types/utils/SentryLabel';
-
-import type {ComponentRef, Ref} from 'react';
-import type {View} from 'react-native';
 
 import React from 'react';
 
 import type {DropdownChoice} from './DropdownChoiceAdapter';
-import type {DropdownRowSentryLabelProps} from './FormDropdownField';
+import type {DropdownRowInputProps} from './FormDropdownField';
 
 import FormDropdownField from './FormDropdownField';
 import MultiValuePickerPopover from './ValuePicker/MultiValuePickerPopover';
 import MultiValueSelectionList from './ValuePicker/MultiValueSelectionList';
 
-type MultiChoiceDropdownAdapterProps = ForwardedFSClassProps &
-    DropdownRowSentryLabelProps & {
-        /** Options, one row each */
-        items: DropdownChoice[];
+/** FormProvider starts an unanswered list field as an empty string, so the value is the keys of the picked options or '' */
+type MultiChoiceDropdownAdapterProps = DropdownRowInputProps<string[] | string, string[]> & {
+    /** Options, one row each */
+    items: DropdownChoice[];
 
-        /** Sentry label for the Apply button, in the anchored list and on the full page */
-        applyButtonSentryLabel: SentryLabel;
-
-        /** Name of the field, shown in the row and read with its value */
-        label: string;
-
-        /** Heading of the list once it opens */
-        title: string;
-
-        /** Keys of the picked options. FormProvider starts an unanswered list field as an empty string. */
-        value?: string[] | string;
-
-        /** Called with the keys of the applied options. Applying the options the field already holds does not call it. */
-        onInputChange?: (value: string[]) => void;
-
-        /** Validation error shown under the row */
-        errorText?: string;
-
-        /** Dims the row and stops it opening, e.g. while the form waits on the server for new requirements */
-        disabled?: boolean;
-
-        /** Lets FormProvider scroll to and focus the row when the user asks to fix the errors */
-        ref?: Ref<ComponentRef<typeof View>>;
-
-        /** Called when the list closes, so FormProvider validates a field closed without an answer */
-        onBlur?: () => void;
-    };
+    /** Sentry label for the Apply button, in the anchored list and on the full page */
+    applyButtonSentryLabel: SentryLabel;
+};
 
 function haveSameValues(first: string[], second: string[]) {
     return first.length === second.length && first.every((value) => second.includes(value));

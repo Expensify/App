@@ -18,11 +18,39 @@ import FSClassView from './FSClassView';
 import ModalContext from './Modal/ModalContext';
 import {SELECTION_LIST_POPOVER_HEADER_HEIGHT} from './SelectionListPopoverHeader';
 
-/** Sentry labels every dropdown row input takes: one for the row, one for the back button of its anchored list */
-type DropdownRowSentryLabelProps = WithRequiredSentryLabel & {
-    /** Sentry label for the back button in the header of the anchored list, so each form's presses are attributed to it */
-    backButtonSentryLabel: SentryLabel;
-};
+/**
+ * Props every dropdown row input takes from its form. `TValue` is the value FormProvider holds for the field, and
+ * `TPickedValue` the value a pick or Apply sends back.
+ */
+type DropdownRowInputProps<TValue, TPickedValue = TValue> = ForwardedFSClassProps &
+    WithRequiredSentryLabel & {
+        /** Sentry label for the back button in the header of the anchored list, so each form's presses are attributed to it */
+        backButtonSentryLabel: SentryLabel;
+
+        /** Name of the field, shown in the row and read with its value */
+        label: string;
+
+        /** Heading of the list once it opens */
+        title: string;
+
+        /** The field's value */
+        value?: TValue;
+
+        /** Called with a newly picked value. Picking the value the field already holds does not call it. */
+        onInputChange?: (value: TPickedValue, inputID?: string) => void;
+
+        /** Validation error shown under the row */
+        errorText?: string;
+
+        /** Dims the row and stops it opening, e.g. while the form waits on the server for new requirements */
+        disabled?: boolean;
+
+        /** Lets FormProvider scroll to and focus the row when the user asks to fix the errors */
+        ref?: Ref<ComponentRef<typeof View>>;
+
+        /** Called when the list closes without an answer, so FormProvider validates the field */
+        onBlur?: () => void;
+    };
 
 type FormDropdownFieldRenderProps = {
     /** Whether the list is open, so a list that keeps unapplied picks can drop them each time it opens or closes */
@@ -136,4 +164,4 @@ function FormDropdownField({
 }
 
 export default FormDropdownField;
-export type {DropdownRowSentryLabelProps, FormDropdownFieldRenderProps};
+export type {DropdownRowInputProps, FormDropdownFieldRenderProps};

@@ -1,12 +1,7 @@
 /** Form input for a single choice field, drawn as the expense form's dropdown row */
-import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
-
-import type {ComponentRef, Ref} from 'react';
-import type {View} from 'react-native';
-
 import React, {useRef} from 'react';
 
-import type {DropdownRowSentryLabelProps} from './FormDropdownField';
+import type {DropdownRowInputProps} from './FormDropdownField';
 import type {ValuePickerItem} from './ValuePicker/types';
 
 import FormDropdownField from './FormDropdownField';
@@ -16,41 +11,13 @@ import ValueSelectionList from './ValuePicker/ValueSelectionList';
 /** An option of a dropdown row. `searchValue` is the text the list's search matches instead of the label */
 type DropdownChoice = Required<Pick<ValuePickerItem, 'label' | 'value'>> & Pick<ValuePickerItem, 'searchValue'>;
 
-type DropdownChoiceAdapterProps = ForwardedFSClassProps &
-    DropdownRowSentryLabelProps & {
-        /** Options, one row each */
-        items: DropdownChoice[];
+type DropdownChoiceAdapterProps = DropdownRowInputProps<string> & {
+    /** Options, one row each */
+    items: DropdownChoice[];
 
-        /** Name of the field, shown in the row and read with its value */
-        label: string;
-
-        /** Heading of the list once it opens */
-        title: string;
-
-        /** Key of the picked option */
-        value?: string;
-
-        /**
-         * Called with the key of a newly picked option, then with '' and `stateInputIDToReset` to clear that input.
-         * Picking the option the field already holds does not call it.
-         */
-        onInputChange?: (value: string, inputID?: string) => void;
-
-        /** Input cleared on each new pick, like the state of an address whose country changes, since the old state does not belong to the new country */
-        stateInputIDToReset?: string;
-
-        /** Validation error shown under the row */
-        errorText?: string;
-
-        /** Dims the row and stops it opening, e.g. while the form waits on the server for new requirements */
-        disabled?: boolean;
-
-        /** Lets FormProvider scroll to and focus the row when the user asks to fix the errors */
-        ref?: Ref<ComponentRef<typeof View>>;
-
-        /** Called when the list closes without a pick, so FormProvider validates a field closed without an answer */
-        onBlur?: () => void;
-    };
+    /** Input cleared on each new pick by calling `onInputChange` with '' and this ID, like the state of an address whose country changes, since the old state does not belong to the new country */
+    stateInputIDToReset?: string;
+};
 
 /**
  * A choice field whose options open in a container anchored to its row, and picking one saves it and closes the list.
