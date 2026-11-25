@@ -1,49 +1,37 @@
-/**
- * The create and scan buttons as bar items of the screen that holds the tabs. On a foldable iPhone UIKit lays the items of
- * a navigation bar out in the vertical bar, next to the status items and the tab bar, and makes them fit whatever room
- * the bar has. The floating buttons would cover the content instead, so this component takes their place while the tab
- * bar is a column.
- */
-import useLocalize from '@hooks/useLocalize';
-import useTheme from '@hooks/useTheme';
+import FloatingCameraButton from '@components/FloatingCameraButton';
+
+import useStyleUtils from '@hooks/useStyleUtils';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 
-import CreateMenuPopover from '@pages/inbox/sidebar/FABPopoverContent/CreateMenuPopover';
-import useCreateMenuVisibility from '@pages/inbox/sidebar/FABPopoverContent/useCreateMenuVisibility';
-import useScanActions from '@pages/inbox/sidebar/FABPopoverContent/useScanActions';
+import NavigationTabBarFloatingActionButton from '@pages/inbox/sidebar/NavigationTabBarFloatingActionButton';
 
 import variables from '@styles/variables';
 
 import type {ParamListBase} from '@react-navigation/native';
 import type {NativeStackHeaderItem, NativeStackNavigationProp} from '@react-navigation/native-stack';
-import type {View} from 'react-native';
 
 import {useNavigation} from '@react-navigation/native';
-import React, {useEffectEvent, useLayoutEffect, useRef} from 'react';
+import React, {useLayoutEffect} from 'react';
+import {View} from 'react-native';
 
+/**
+ * The create and scan buttons as bar items of the screen that holds the tabs. On a foldable iPhone UIKit lays the items of
+ * a navigation bar out in the vertical bar, next to the status items and the tab bar. The floating buttons would cover
+ * the content instead, so this component moves them there while the tab bar is a column.
+ */
 function VerticalBarActionItems() {
     // The tabs are the screen of the root stack, so this is the navigation of the screen whose bar items UIKit shows.
     const navigation = useNavigation<NativeStackNavigationProp<ParamListBase>>();
-    const theme = useTheme();
-    const {translate} = useLocalize();
+    const StyleUtils = useStyleUtils();
     const {windowHeight} = useWindowDimensions();
-    const {isCreateMenuVisible, hideCreateMenu, toggleCreateMenu} = useCreateMenuVisibility();
-    const {startQuickScanFromCameraButton} = useScanActions();
-    // Both get a new identity whenever the menu opens or closes or the data a scan starts from changes. Read through
-    // effect events, a press runs the latest ones without the bar items being set again on each of those changes.
-    const toggleMenu = useEffectEvent(toggleCreateMenu);
-    const startScan = useEffectEvent(startQuickScanFromCameraButton);
-    // The menu is docked to the bottom of a narrow layout, so it needs no button to line up with.
-    const anchorRef = useRef<View>(null);
-    const createLabel = translate('accessibilityHints.openActionsMenu');
-    const scanLabel = translate('sidebarScreen.fabScanReceiptExplained');
-    const scanItemColor = theme.success;
-    // The fill of the floating create button. UIKit picks the color of a symbol on a filled item itself, so the plus is
-    // not in the icon color as it is on the floating button.
-    const createItemColor = theme.buttonDefaultBG;
-    // UIKit gives every item a slot of a fixed size and never drops one, so in a bar too short for both it draws the second
-    // over the tab bar. The create menu leads to a scan too, so its item is the one that stays.
-    const shouldShowScanItem = windowHeight >= variables.iosVerticalBarTwoItemsMinHeight;
+    // UIKit sizes the slot of an item after the item's view and pads it above and below, which would leave the buttons
+    // further apart than they float. The view is shorter than its button by that padding, and the button, centered in
+    // it, covers the padding, so the gap UIKit keeps between two slots is the one left between the buttons.
+    const itemSizeStyle = StyleUtils.getWidthAndHeightStyle(variables.componentSizeLarge, variables.componentSizeLarge - 2 * variables.iosVerticalBarItemViewPadding);
+    // UIKit never drops an item, so in a bar too short for all of them it draws the last over the tab bar. The bar of a
+    // phone folded in landscape has room for one item above the tab bar. The create button is the one that stays, as an
+    // expense created from its menu can start with a scan too.
+    const hasRoomForScanItem = windowHeight >= variables.iosVerticalBarSeveralItemsMinHeight;
 
     useLayoutEffect(() => {
         navigation.setOptions({
@@ -53,60 +41,37 @@ function VerticalBarActionItems() {
             headerTransparent: true,
             headerBackVisible: false,
             title: '',
-            // eslint-disable-next-line @typescript-eslint/naming-convention -- React Navigation names the option this way.
-            unstable_headerRightItems: () => {
-                // Both icons are SF Symbols, which UIKit has at hand when it places the items. It puts an item with an icon
-                // in the vertical bar and one with only a title in the top bar, and an image that loads later, such as
-                // one from a `data:` URI, comes too late to move the item.
-                const createItem: NativeStackHeaderItem = {
-                    type: 'button',
-                    label: createLabel,
-                    icon: {type: 'sfSymbol', name: 'plus'},
-                    variant: 'prominent',
-                    tintColor: createItemColor,
-                    sharesBackground: false,
-                    onPress: () => toggleMenu(),
-                };
-                if (!shouldShowScanItem) {
-                    return [createItem];
-                }
-                // UIKit stacks the items from the top of the bar, so scan goes over create as the floating buttons do.
-                const scanItem: NativeStackHeaderItem = {
-                    type: 'button',
-                    label: scanLabel,
-                    icon: {type: 'sfSymbol', name: 'camera.fill'},
-                    variant: 'prominent',
-                    tintColor: scanItemColor,
-                    sharesBackground: false,
-                    onPress: () => startScan(),
-                };
-                return [scanItem, createItem];
-            },
         });
-    }, [navigation, createLabel, createItemColor, scanLabel, scanItemColor, shouldShowScanItem]);
+        // The buttons float again when the tab bar leaves the vertical bar or hides, so the bar goes then.
+        return () => navigation.setOptions({headerShown: false, headerTransparent: undefined, headerBackVisible: undefined, title: undefined});
+    }, [navigation]);
 
-    // The floating buttons come back when the tab bar leaves the vertical bar or hides, so the bar items go then, and
-    // with them everything the bar was given only to show them.
-    useLayoutEffect(
-        () => () =>
-            navigation.setOptions({
-                headerShown: false,
-                headerTransparent: undefined,
-                headerBackVisible: undefined,
-                title: undefined,
-                // eslint-disable-next-line @typescript-eslint/naming-convention -- React Navigation names the option this way.
-                unstable_headerRightItems: undefined,
-            }),
-        [navigation],
-    );
+    useLayoutEffect(() => {
+        // The items are the floating buttons themselves, so they look and react to a press as they do over the content.
+        // The buttons bring their own glass, so UIKit adds none behind them.
+        const createItem: NativeStackHeaderItem = {
+            type: 'custom',
+            element: (
+                <View style={itemSizeStyle}>
+                    <NavigationTabBarFloatingActionButton />
+                </View>
+            ),
+            hidesSharedBackground: true,
+        };
+        const scanItem: NativeStackHeaderItem = {
+            type: 'custom',
+            element: <FloatingCameraButton style={itemSizeStyle} />,
+            hidesSharedBackground: true,
+        };
+        // UIKit stacks the items from the top of the bar, so scan goes over create as it does when they float.
+        const items = hasRoomForScanItem ? [scanItem, createItem] : [createItem];
+        // eslint-disable-next-line @typescript-eslint/naming-convention -- React Navigation names the option this way.
+        navigation.setOptions({unstable_headerRightItems: () => items});
+        // eslint-disable-next-line @typescript-eslint/naming-convention -- React Navigation names the option this way.
+        return () => navigation.setOptions({unstable_headerRightItems: undefined});
+    }, [navigation, itemSizeStyle, hasRoomForScanItem]);
 
-    return (
-        <CreateMenuPopover
-            isVisible={isCreateMenuVisible}
-            onClose={hideCreateMenu}
-            anchorRef={anchorRef}
-        />
-    );
+    return null;
 }
 
 export default VerticalBarActionItems;

@@ -8,7 +8,6 @@ import Navigation from '@libs/Navigation/Navigation';
 import {isGroupPolicy} from '@libs/PolicyUtils';
 import {generateReportID, getWorkspaceChats} from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
-import startCameraButtonScanSpans from '@libs/telemetry/startCameraButtonScanSpans';
 
 import Tab from '@userActions/Tab';
 
@@ -53,7 +52,7 @@ function useScanActions() {
     const policyChatReportID = policyChatForActivePolicy?.reportID;
     const [policyChatPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(policyChatForActivePolicy?.policyID)}`);
 
-    const runQuickScan = (shouldStartCameraButtonSpans: boolean) => {
+    const startQuickScan = () => {
         interceptAnonymousUser(() => {
             if (
                 policyChatPolicyID &&
@@ -64,20 +63,12 @@ function useScanActions() {
             }
 
             const quickActionReportID = policyChatReportID ?? reportID;
-            if (shouldStartCameraButtonSpans) {
-                startCameraButtonScanSpans(quickActionReportID);
-            }
             Tab.setSelectedTab(CONST.TAB.IOU_REQUEST_TYPE, CONST.IOU.REQUEST_TYPE.SCAN);
             startMoneyRequest(CONST.IOU.TYPE.CREATE, quickActionReportID, draftTransactionIDs, CONST.IOU.REQUEST_TYPE.SCAN, !!policyChatReportID, undefined, true);
         }, session);
     };
 
-    const startQuickScan = () => runQuickScan(false);
-
-    /** The quick scan of a camera button, whose way to a ready camera is timed from the press. */
-    const startQuickScanFromCameraButton = () => runQuickScan(true);
-
-    return {startScan, startQuickScan, startQuickScanFromCameraButton};
+    return {startScan, startQuickScan};
 }
 
 export default useScanActions;

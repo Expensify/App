@@ -23,6 +23,7 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useThrottledButtonState from '@hooks/useThrottledButtonState';
+import useVerticalBarBackButton from '@hooks/useVerticalBarBackButton';
 
 import getButtonState from '@libs/getButtonState';
 import Navigation from '@libs/Navigation/Navigation';
@@ -108,6 +109,20 @@ function HeaderWithBackButton({
     const reportAvatarSize = useHeaderAvatarSize();
     const {contentHeaderHeightStyle} = useContentHeaderHeight();
     const setBackButtonRef = useInitialFocusRef({shouldSkip: shouldSkipFocusAfterTransition});
+
+    const pressBackButton = () => {
+        if (Keyboard.isVisible()) {
+            Keyboard.dismiss();
+        }
+        const topmostReportId = Navigation.getTopmostReportId();
+        if (shouldNavigateToTopMostReport && topmostReportId) {
+            Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(topmostReportId));
+        } else {
+            onBackButtonPress();
+        }
+    };
+    // The vertical bar of a foldable iPhone shows a back button too.
+    useVerticalBarBackButton(pressBackButton, shouldShowBackButton);
 
     let middleContent;
     const stepCounterTranslation = stepCounter ? translate('stepCounter', stepCounter.step, stepCounter.total, stepCounter.text) : undefined;
@@ -195,17 +210,7 @@ function HeaderWithBackButton({
                     <Tooltip text={translate('common.back')}>
                         <PressableWithoutFeedback
                             ref={setBackButtonRef}
-                            onPress={() => {
-                                if (Keyboard.isVisible()) {
-                                    Keyboard.dismiss();
-                                }
-                                const topmostReportId = Navigation.getTopmostReportId();
-                                if (shouldNavigateToTopMostReport && topmostReportId) {
-                                    Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(topmostReportId));
-                                } else {
-                                    onBackButtonPress();
-                                }
-                            }}
+                            onPress={pressBackButton}
                             style={[styles.touchableButtonImage]}
                             role={CONST.ROLE.BUTTON}
                             accessibilityLabel={translate('common.back')}

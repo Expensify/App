@@ -134,3 +134,17 @@
 - Upstream PR/issue: not reported yet.
 - E/App issue: [#107266](https://github.com/Expensify/App/issues/107266)
 - PR introducing patch: [#107282](https://github.com/Expensify/App/pull/107282)
+
+### [react-native-screens+4.28.0+011+custom-header-views-in-vertical-bar.patch](react-native-screens+4.28.0+011+custom-header-views-in-vertical-bar.patch)
+
+- Reason: On a foldable iPhone (iOS 27.1 and later) UIKit moves the items of a navigation bar into the vertical bar, the column beside the content that also holds the status items and the tab bar. With the default `UIBarButtonItemAxisBehaviorAutomatic` it does that only for the items it draws itself, and keeps an item that wraps a custom view in the top bar. A header item of type `custom` is such an item (`ScreenStackHeaderLeftView` / `ScreenStackHeaderRightView`), and the create and scan buttons are header items of that type so that they look and behave in the vertical bar exactly as they do when they float over the content. The patch sets `axisBehavior` to `UIBarButtonItemAxisBehaviorVerticalPreferred` on the bar button item of a header subview, so UIKit places it in the vertical bar when there is one. Without a vertical bar the item stays in the top bar as before. The app shows no other header subviews in a native navigation bar.
+- Upstream PR/issue: not reported yet. [software-mansion/react-native-screens#5142](https://github.com/software-mansion/react-native-screens/pull/5142) added an `axisBehavior` option for button and menu items only.
+- E/App issue: TBD
+- PR introducing patch: TBD
+
+### [react-native-screens+4.28.0+012+vertical-bar-items-follow-header-style.patch](react-native-screens+4.28.0+012+vertical-bar-items-follow-header-style.patch)
+
+- Reason: A stack header gets the interface style of the app theme through `navigationBar.overrideUserInterfaceStyle`. On a foldable iPhone (iOS 27.1 and later) UIKit draws the bar items in the vertical bar, in a container outside the navigation bar, so they follow the system appearance there. With a dark app theme on a light system the back button and the create and scan items show light glass with dark glyphs next to the tab bar's dark column (`RNSTabBarController` already sets the style on the tab bar's container for the same reason). The patch also sets the style on the navigation controller while its header is shown, which is the closest public owner of that container, and resets it when the header is hidden. Screens with a hidden header, which is every screen without bar items, are unaffected.
+- Upstream PR/issue: not reported yet.
+- E/App issue: TBD
+- PR introducing patch: TBD

@@ -44,6 +44,7 @@ import useStackedHeaderRowPadding from '@hooks/useStackedHeaderRowPadding';
 import useSubscriptionPlan from '@hooks/useSubscriptionPlan';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useVerticalBarBackButton from '@hooks/useVerticalBarBackButton';
 
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import getReportRouteForCurrentContext from '@libs/Navigation/helpers/getReportRouteForCurrentContext';
@@ -399,6 +400,9 @@ function HeaderView({onNavigationMenuButtonClicked, reportID}: HeaderViewProps) 
     // shouldUseNarrowLayout true for any RHP regardless of actual screen width.
     const shouldShowCloseButton = (!!isInSidePanel && !shouldUseNarrowLayout) || isAgentReportInRHP;
     const shouldShowBackButton = (shouldUseNarrowLayout || !!isInSidePanel) && !shouldShowCloseButton;
+    // The vertical bar of a foldable iPhone shows a back button too. The side panel is not a screen with a bar of its
+    // own, so a header in it adds none.
+    useVerticalBarBackButton(onNavigationMenuButtonClicked, shouldShowBackButton && !isInSidePanel);
 
     const onboardingHelpDropdownButton = (
         <OnboardingHelpDropdownButton

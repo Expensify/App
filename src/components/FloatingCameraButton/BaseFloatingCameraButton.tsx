@@ -17,7 +17,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import {isGroupPolicy} from '@libs/PolicyUtils';
 import {generateReportID, getWorkspaceChats} from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
-import startCameraButtonScanSpans from '@libs/telemetry/startCameraButtonScanSpans';
+import {getSpan, startSpan} from '@libs/telemetry/activeSpans';
 
 import variables from '@styles/variables';
 
@@ -31,16 +31,22 @@ import type * as OnyxTypes from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
 
+import type {StyleProp, ViewStyle} from 'react-native';
 import type {OnyxCollection} from 'react-native-onyx';
 
 import React, {useEffect, useState} from 'react';
-import {View} from 'react-native';
+import {Platform, View} from 'react-native';
 
-type BaseFloatingCameraButtonProps = {
+type FloatingCameraButtonProps = {
+    /** Where the button sits. Without it the button floats over the corner the tab bar leaves free. */
+    style?: StyleProp<ViewStyle>;
+};
+
+type BaseFloatingCameraButtonProps = FloatingCameraButtonProps & {
     icon: IconAsset;
 };
 
-function BaseFloatingCameraButton({icon}: BaseFloatingCameraButtonProps) {
+function BaseFloatingCameraButton({icon, style}: BaseFloatingCameraButtonProps) {
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const {textLight, success} = useTheme();
     const styles = useThemeStyles();
@@ -78,7 +84,20 @@ function BaseFloatingCameraButton({icon}: BaseFloatingCameraButtonProps) {
 
             const quickActionReportID = policyChatForActivePolicy?.reportID ?? reportID;
 
-            startCameraButtonScanSpans(quickActionReportID);
+            startSpan(CONST.TELEMETRY.SPAN_ENTRY_TO_SCAN, {
+                name: CONST.TELEMETRY.SPAN_ENTRY_TO_SCAN,
+                op: CONST.TELEMETRY.SPAN_ENTRY_TO_SCAN,
+                attributes: {
+                    [CONST.TELEMETRY.ATTRIBUTE_REPORT_ID]: quickActionReportID,
+                    [CONST.TELEMETRY.ATTRIBUTE_PLATFORM]: Platform.OS,
+                    [CONST.TELEMETRY.ATTRIBUTE_SOURCE]: 'camera_fab',
+                },
+            });
+            startSpan(CONST.TELEMETRY.SPAN_ENTRY_TO_SCAN_NAVIGATION, {
+                name: CONST.TELEMETRY.SPAN_ENTRY_TO_SCAN_NAVIGATION,
+                op: CONST.TELEMETRY.SPAN_ENTRY_TO_SCAN_NAVIGATION,
+                parentSpan: getSpan(CONST.TELEMETRY.SPAN_ENTRY_TO_SCAN),
+            });
 
             Tab.setSelectedTab(CONST.TAB.IOU_REQUEST_TYPE, CONST.IOU.REQUEST_TYPE.SCAN);
             startMoneyRequest(CONST.IOU.TYPE.CREATE, quickActionReportID, draftTransactionIDs, CONST.IOU.REQUEST_TYPE.SCAN, !!policyChatForActivePolicy?.reportID, undefined, true);
@@ -92,7 +111,7 @@ function BaseFloatingCameraButton({icon}: BaseFloatingCameraButtonProps) {
                 styles.ph0,
                 // Prevent text selection on touch devices (e.g. on long press)
                 canUseTouchScreen() && styles.userSelectNone,
-                styles.floatingCameraButton,
+                style ?? styles.floatingCameraButton,
             ]}
             accessibilityLabel={translate('sidebarScreen.fabScanReceiptExplained')}
             onPress={onPress}
@@ -120,3 +139,4 @@ function BaseFloatingCameraButton({icon}: BaseFloatingCameraButtonProps) {
 }
 
 export default BaseFloatingCameraButton;
+export type {FloatingCameraButtonProps};

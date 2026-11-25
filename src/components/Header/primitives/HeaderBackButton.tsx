@@ -4,6 +4,7 @@ import useInitialFocusRef from '@hooks/useInitialFocusRef';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useVerticalBarBackButton from '@hooks/useVerticalBarBackButton';
 
 import Navigation from '@libs/Navigation/Navigation';
 
@@ -28,16 +29,20 @@ function HeaderBackButton({onPress = () => Navigation.goBack(), iconFill}: Heade
     const {shouldSkipFocusAfterTransition} = useHeaderContext();
     const setBackButtonRef = useInitialFocusRef({shouldSkip: shouldSkipFocusAfterTransition});
 
+    const pressBackButton = () => {
+        if (Keyboard.isVisible()) {
+            Keyboard.dismiss();
+        }
+        onPress();
+    };
+    // The vertical bar of a foldable iPhone shows a back button too.
+    useVerticalBarBackButton(pressBackButton);
+
     return (
         <HeaderIconButton
             ref={setBackButtonRef}
             tooltipText={translate('common.back')}
-            onPress={() => {
-                if (Keyboard.isVisible()) {
-                    Keyboard.dismiss();
-                }
-                onPress();
-            }}
+            onPress={pressBackButton}
             iconSrc={icons.BackArrow}
             iconFill={iconFill}
             // Header makes the space for this button with the padding, so we need to add negative margin to fill the space - instead of reducing the padding from pl5 to pl2
