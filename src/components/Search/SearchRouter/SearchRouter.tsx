@@ -39,9 +39,9 @@ import Parser from '@libs/Parser';
 import {getAllTaxRates} from '@libs/PolicyUtils';
 import {isHiddenForCurrentUser, isInvoiceReport, isMoneyRequestReport, isOneOnOneChat} from '@libs/ReportUtils';
 import type {OptionData} from '@libs/ReportUtils';
-import {getAutocompleteQueryWithComma, getTrimmedUserSearchQueryPreservingComma} from '@libs/SearchAutocompleteUtils';
+import {getAutocompleteQueryWithComma, getQueryWithAutocompleteSelection} from '@libs/SearchAutocompleteUtils';
 import {searchKeyToSavedSearchID} from '@libs/SearchKeyUtils';
-import {buildSearchQueryJSON, buildUserReadableQueryString, getQueryWithPreservedSort, getQueryWithUpdatedValues, sanitizeSearchValue} from '@libs/SearchQueryUtils';
+import {buildSearchQueryJSON, buildUserReadableQueryString, getQueryWithPreservedSort, getQueryWithUpdatedValues} from '@libs/SearchQueryUtils';
 import StringUtils from '@libs/StringUtils';
 import {
     beginSearchRouterQuerySession,
@@ -486,8 +486,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
                 setFocusAndScrollToRight();
             } else if (item.searchItemType === CONST.SEARCH.SEARCH_ROUTER_ITEM_TYPE.AUTOCOMPLETE_SUGGESTION && textInputValue) {
                 const fieldKey = item.mapKey?.includes(':') ? item.mapKey.split(':').at(0) : item.mapKey;
-                const trimmedUserSearchQuery = getTrimmedUserSearchQueryPreservingComma(textInputValue, fieldKey);
-                const newSearchQuery = `${trimmedUserSearchQuery}${sanitizeSearchValue(item.searchQuery)}\u00A0`;
+                const newSearchQuery = getQueryWithAutocompleteSelection(textInputValue, fieldKey, item.searchQuery);
                 onSearchQueryChange(newSearchQuery, true, undefined, false);
                 setSelection({start: newSearchQuery.length, end: newSearchQuery.length});
 

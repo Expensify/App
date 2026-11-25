@@ -123,6 +123,7 @@ autocompleteKey "key"
       / anySubmission
       / approved
       / paid
+      / exportedToTemplate
       / exportedTo
       / exported
       / withdrawn

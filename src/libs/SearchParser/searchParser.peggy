@@ -213,6 +213,16 @@ filterList
       if (keywordFilter.right.length > 0) {
         nonKeywords.push(keywordFilter);
       }
+      const exportFilters = nonKeywords.filter((filter) =>
+        filter.operator === "eq" && (filter.left === "exportedTo" || filter.left === "exportedToTemplate")
+      );
+      // Both query keys belong to one multi-select picker, where selecting destinations means either may match.
+      if (new Set(exportFilters.map((filter) => filter.left)).size > 1) {
+        const exportFilterSet = new Set(exportFilters);
+        const otherFilters = nonKeywords.filter((filter) => !exportFilterSet.has(filter));
+        otherFilters.push(exportFilters.reduce((result, filter) => buildFilter("or", result, filter)));
+        return otherFilters.reduce((result, filter) => buildFilter("and", result, filter));
+      }
       return nonKeywords.reduce((result, filter) =>
         buildFilter("and", result, filter)
       );
@@ -322,6 +332,7 @@ key "key"
       / anySubmission
       / approved
       / paid
+      / exportedToTemplate
       / exportedTo
       / exported
       / posted

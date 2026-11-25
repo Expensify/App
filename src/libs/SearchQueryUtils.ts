@@ -81,7 +81,7 @@ import Onyx from 'react-native-onyx';
 import type {SearchFullscreenNavigatorParamList} from './Navigation/types';
 import type {SearchKey} from './SearchKeyUtils';
 
-import {getStandardExportTemplateDisplayName} from './AccountingUtils';
+import {EXPORT_TEMPLATE_SEARCH_PREFIX, getExportedToDisplayName, getExportedToPickerValue, getStandardExportTemplateDisplayName} from './AccountingUtils';
 import {getBankAccountSearchLabel, isBankAccountPartiallySetup} from './BankAccountUtils';
 import {getCardFeedsForDisplay} from './CardFeedUtils';
 import {getCardDescription} from './CardUtils';
@@ -1263,7 +1263,10 @@ function normalizeDatePresetsInQuery(query: SearchQueryString): SearchQueryStrin
 /**
  * Returns whether a given search filter is supported in a given search data type
  */
-function isFilterSupported(filter: SearchAdvancedFiltersKey, type: SearchDataTypes) {
+function isFilterSupported(filter: SearchAdvancedFiltersKey | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTED_TO_TEMPLATE, type: SearchDataTypes) {
+    if (filter === CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTED_TO_TEMPLATE) {
+        return isFilterSupported(CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTED_TO, type);
+    }
     const supportedTypeFilters = ALLOWED_TYPE_FILTERS[type];
     if (!supportedTypeFilters) {
         return false;
@@ -1917,6 +1920,17 @@ function buildQueryStringFromFilterFormValues(filterValues: Partial<SearchAdvanc
                 filterValue.length > 0
             ) {
                 const filterValueArray = [...new Set<string>(filterValue)];
+                if (filterKey === FILTER_KEYS.EXPORTED_TO) {
+                    const literals = filterValueArray.filter((value) => !value.startsWith(EXPORT_TEMPLATE_SEARCH_PREFIX));
+                    const templates = filterValueArray.filter((value) => value.startsWith(EXPORT_TEMPLATE_SEARCH_PREFIX)).map(getExportedToDisplayName);
+                    return [
+                        literals.length ? `${prefix}${CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTED_TO}:${literals.map(sanitizeSearchValue).join(',')}` : '',
+                        templates.length ? `${prefix}${CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTED_TO_TEMPLATE}:${templates.map(sanitizeSearchValue).join(',')}` : '',
+                    ]
+                        .filter(Boolean)
+                        .join(' ');
+                }
+
                 const keyInCorrectForm = (Object.keys(CONST.SEARCH.SYNTAX_FILTER_KEYS) as FilterKeys[]).find((key) => CONST.SEARCH.SYNTAX_FILTER_KEYS[key] === filterKey);
 
                 if (keyInCorrectForm) {
@@ -2357,8 +2371,12 @@ function buildFilterFormValuesFromQuery(
             // Don't filter attendee values by personalDetails - they can be accountIDs OR display names for name-only attendees
             filtersForm[addNegation(filterKey, isNegated)] = filterValues;
         }
-        if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTED_TO) {
-            filtersForm[addNegation(filterKey, isNegated)] = filterValues.filter((value) => exportedToValues.has(value));
+        if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTED_TO || queryFilter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTED_TO_TEMPLATE) {
+            const isTemplate = queryFilter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTED_TO_TEMPLATE;
+            const values = filterValues.map((value) => getExportedToPickerValue(value, isTemplate));
+            const formKey = addNegation(CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTED_TO, isNegated);
+            const knownValues = values.filter((value) => exportedToValues.has(value) || isTemplate);
+            filtersForm[formKey] = [...new Set([...(filtersForm[formKey] ?? []), ...knownValues])];
         }
 
         if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.PAYER) {
