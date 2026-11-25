@@ -436,9 +436,9 @@ describe('WiseBusinessOnboardingPage', () => {
     });
 
     it('starts the draft over when it was started for another bank account', async () => {
-        // Given a draft with answers the user gave for another bank account, and a sensitive answer and a failed page save from that visit
+        // Given a draft with answers the user gave for another bank account, and a sensitive answer, a failed page save and a page left offline from that visit
         await Onyx.multiSet({
-            [ONYXKEYS.REIMBURSEMENT_ACCOUNT]: {wiseOnboardingUnsavedPages: {representative: true}},
+            [ONYXKEYS.REIMBURSEMENT_ACCOUNT]: {wiseOnboardingUnsavedPages: {representative: true}, wiseOnboardingPagesLeftOffline: {business: true}},
             [ONYXKEYS.FORMS.WISE_BUSINESS_ONBOARDING_FORM_DRAFT]: {
                 bankAccountID: '2',
                 companyName: 'Other Business LLC',
@@ -479,6 +479,7 @@ describe('WiseBusinessOnboardingPage', () => {
             });
         });
         expect(reimbursementAccount?.wiseOnboardingUnsavedPages).toBeFalsy();
+        expect(reimbursementAccount?.wiseOnboardingPagesLeftOffline).toBeFalsy();
         expect(screen.getByTestId(FLOW_TEST_ID)).toBeOnTheScreen();
     });
 

@@ -18,7 +18,8 @@ import {openReimbursementAccountPage} from './BankAccounts';
 /**
  * Marks the page as unsaved until its own save succeeds, since `errors` is shared by every page and the next page's save clears it. It also covers a save
  * whose answer never comes, as when the app closes during a request that is not queued, since the running saves are kept only in memory. A failed save marks the page again, so when the same page is
- * saved twice, the success of the earlier save does not hide the failure of the later one.
+ * saved twice, the success of the earlier save does not hide the failure of the later one. A new save sends the page's newest answers, so it clears the
+ * mark of a page left offline, which the success of an older save never does.
  */
 function getOnyxData(step: string, saveID: string): OnyxData<typeof ONYXKEYS.REIMBURSEMENT_ACCOUNT | typeof ONYXKEYS.RAM_ONLY_WISE_ONBOARDING_PENDING_SAVES> {
     return {
@@ -31,7 +32,7 @@ function getOnyxData(step: string, saveID: string): OnyxData<typeof ONYXKEYS.REI
             {
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
-                value: {errors: null, wiseOnboardingUnsavedPages: {[step]: true}},
+                value: {errors: null, wiseOnboardingUnsavedPages: {[step]: true}, wiseOnboardingPagesLeftOffline: {[step]: null}},
             },
         ],
         successData: [
@@ -107,17 +108,20 @@ function saveWiseOnboardingPage(bankAccountID: number, page: DynamicFormPage, an
     saveWiseOnboardingPageThroughQueue(params);
 }
 
-/** Marks a page the user left offline as unsaved, since its answers are only in the draft, so the next visit opens on it. A key that is not a step is never saved, so it is not marked. */
-function markWiseOnboardingPageUnsaved(step: string) {
+/**
+ * Marks a page the user left offline as unsaved, since its answers are only in the draft, so the next visit opens on it. The mark is kept apart from the
+ * pages whose save has not succeeded, so an earlier save of the page that answers later does not clear it. A key that is not a step is never saved, so it is not marked.
+ */
+function markWiseOnboardingPageLeftOffline(step: string) {
     if (!isWiseOnboardingStep(step)) {
         return;
     }
-    Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {wiseOnboardingUnsavedPages: {[step]: true}});
+    Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {wiseOnboardingPagesLeftOffline: {[step]: true}});
 }
 
-/** Drops the unsaved pages of the bank account the draft held, since they say nothing about another account's saves */
+/** Drops the unsaved pages and the pages left offline of the bank account the draft held, since they say nothing about another account's saves */
 function clearWiseOnboardingUnsavedPages() {
-    Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {wiseOnboardingUnsavedPages: null});
+    Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {wiseOnboardingUnsavedPages: null, wiseOnboardingPagesLeftOffline: null});
 }
 
 /** Reads the business details the Wise onboarding form prefills from, and records which bank account the read is for so the form does not read them again. */
@@ -176,7 +180,7 @@ export {
     clearWiseIntroReadBankAccountID,
     clearWiseBusinessOnboardingSubmission,
     clearWiseOnboardingUnsavedPages,
-    markWiseOnboardingPageUnsaved,
+    markWiseOnboardingPageLeftOffline,
     openReimbursementAccountPageForWiseIntro,
     submitWiseBusinessOnboarding,
 };

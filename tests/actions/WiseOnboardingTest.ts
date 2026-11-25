@@ -1,5 +1,5 @@
 import * as PersistedRequests from '@libs/actions/PersistedRequests';
-import saveWiseOnboardingPage from '@libs/actions/WiseOnboarding';
+import saveWiseOnboardingPage, {markWiseOnboardingPageLeftOffline} from '@libs/actions/WiseOnboarding';
 import * as API from '@libs/API';
 import {SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
@@ -10,7 +10,7 @@ import type {DynamicFormPage} from '@src/types/onyx';
 
 import type {OnyxEntry, OnyxKey, OnyxValue} from 'react-native-onyx';
 
-import {isSavingWiseOnboardingPageSelector} from '@selectors/ReimbursementAccount';
+import {isSavingWiseOnboardingPageSelector, unsavedWiseOnboardingPageKeysSelector} from '@selectors/ReimbursementAccount';
 import Onyx from 'react-native-onyx';
 
 import type {MockFetch} from '../utils/TestHelper';
@@ -272,6 +272,46 @@ describe('actions/WiseOnboarding saveWiseOnboardingPage', () => {
         expect(requestCount).toBe(2);
         expect(await readOnyxValue(ONYXKEYS.REIMBURSEMENT_ACCOUNT)).toMatchObject({wiseOnboardingUnsavedPages: {representative: true}});
         expect(isSavingWiseOnboardingPageSelector(await readOnyxValue(ONYXKEYS.RAM_ONLY_WISE_ONBOARDING_PENDING_SAVES))).toBe(false);
+    });
+
+    it('keeps a page left offline unsaved when its earlier save succeeds afterwards', async () => {
+        // Given a business page save that is still running, as when it waits in the queue
+        const writeSpy = jest.spyOn(API, 'write').mockImplementation(() => Promise.resolve());
+        saveWiseOnboardingPage(1, BUSINESS_PAGE, {description: 'We sell bikes'}, {});
+        const onyxData = writeSpy.mock.lastCall?.[2];
+        await Onyx.update(onyxData?.optimisticData ?? []);
+
+        // When the user edits the page offline and leaves it with Save and fill out later, and only then the earlier save succeeds
+        markWiseOnboardingPageLeftOffline('business');
+        await waitForBatchedUpdates();
+        await Onyx.update(onyxData?.successData ?? []);
+
+        // Then the page is still unsaved, since its newest answers are only in the draft, so the next visit opens on it instead of submitting Wise's older answers
+        expect(unsavedWiseOnboardingPageKeysSelector(await readOnyxValue(ONYXKEYS.REIMBURSEMENT_ACCOUNT))).toEqual(['business']);
+
+        // When the page is saved again with its newest answers and the server accepts it
+        writeSpy.mockRestore();
+        saveWiseOnboardingPage(1, BUSINESS_PAGE, {description: 'We sell bikes and scooters'}, {});
+        await waitForBatchedUpdates();
+
+        // Then no page is unsaved, since Wise now holds the answers the user left offline
+        expect(unsavedWiseOnboardingPageKeysSelector(await readOnyxValue(ONYXKEYS.REIMBURSEMENT_ACCOUNT))).toEqual([]);
+    });
+
+    it('keeps a page left offline unsaved when its next save fails', async () => {
+        // Given a business page the user left offline with Save and fill out later
+        markWiseOnboardingPageLeftOffline('business');
+        await waitForBatchedUpdates();
+
+        // When the page is saved again and the server rejects it
+        mockFetch.fail();
+        saveWiseOnboardingPage(1, BUSINESS_PAGE, {description: 'We sell bikes and scooters'}, {});
+        await waitForBatchedUpdates();
+
+        // Then the page is still unsaved, since Wise never got its newest answers, even though the save cleared the mark of the page left offline
+        const reimbursementAccount = await readOnyxValue(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
+        expect(unsavedWiseOnboardingPageKeysSelector(reimbursementAccount)).toEqual(['business']);
+        expect(reimbursementAccount).not.toHaveProperty('wiseOnboardingPagesLeftOffline.business');
     });
 
     it('never writes a typed SSN to the request queue on disk', async () => {

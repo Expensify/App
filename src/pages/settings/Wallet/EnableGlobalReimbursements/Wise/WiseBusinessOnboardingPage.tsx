@@ -29,7 +29,7 @@ import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import {hideBankAccountErrors, openReimbursementAccountPage} from '@userActions/BankAccounts';
 import {clearSensitiveAnswers, saveDraftAnswers} from '@userActions/DynamicForm';
 import {clearDraftValues} from '@userActions/FormActions';
-import saveWiseOnboardingPage, {clearWiseOnboardingUnsavedPages, markWiseOnboardingPageUnsaved} from '@userActions/WiseOnboarding';
+import saveWiseOnboardingPage, {clearWiseOnboardingUnsavedPages, markWiseOnboardingPageLeftOffline} from '@userActions/WiseOnboarding';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -337,7 +337,7 @@ function WiseBusinessOnboardingPage({route}: WiseBusinessOnboardingPageProps) {
                 if (!page) {
                     return;
                 }
-                markWiseOnboardingPageUnsaved(getOnboardingStep(form, page.key));
+                markWiseOnboardingPageLeftOffline(getOnboardingStep(form, page.key));
             }}
             submitError={saveError}
             // Confirm waits while a page is saving, and a visit after a page did not save opens on that page
