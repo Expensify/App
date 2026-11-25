@@ -9083,9 +9083,9 @@ function buildOptimisticChangePolicyData({
         },
     });
 
-    // 6. Handle transactions when moving to a workspace with a different currency
-    // Clear convertedAmount (which is calculated for the old workspace currency) and add pendingAction for proper UI feedback
-    // Only clear for transactions that don't match the destination currency - matching transactions can keep their values
+    // 6. Invalidate stale conversions after workspace currency changes or expense repricing.
+    // A changed amount or expense currency invalidates convertedAmount even when the expense uses the destination currency.
+    // Unchanged expenses keep conversions that are still valid for the destination.
     const sourceCurrency = report.currency;
     const destinationCurrency = policy.outputCurrency;
 
