@@ -4,16 +4,11 @@ import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import {buildViewOnSpendQuery} from '@components/Search/chartDrillDown';
 import ChartOfflineState from '@components/Search/ChartOfflineState';
-import DateCell from '@components/Search/SearchList/ListItem/DateCell';
 import type {TransactionListItemType} from '@components/Search/SearchList/ListItem/types';
 import type {SearchQueryString} from '@components/Search/types';
 import SearchRowSkeleton from '@components/Skeletons/SearchRowSkeleton';
 import Text from '@components/Text';
 import TransactionItemRow from '@components/TransactionItemRow';
-import ReceiptCell from '@components/TransactionItemRow/DataCells/ReceiptCell';
-import TransactionItemRowNarrowSubtitle from '@components/TransactionItemRow/TransactionItemRowNarrowSubtitle';
-import TransactionItemRowNarrowTextColumn from '@components/TransactionItemRow/TransactionItemRowNarrowTextColumn';
-import TransactionItemRowNarrowTitle from '@components/TransactionItemRow/TransactionItemRowNarrowTitle';
 import {useWideRHPActions} from '@components/WideRHPContextProvider';
 
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
@@ -30,7 +25,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import {getTransactionDisplayAmount} from '@libs/ReportUtils';
 import type {TransactionThreadNavigationDescriptor} from '@libs/TransactionThreadNavigationUtils';
 import {getReportIDToOpenForExpense} from '@libs/TransactionThreadNavigationUtils';
-import {getCreated, getCurrency, getDescription, getMerchantName, isScanning} from '@libs/TransactionUtils';
+import {getCreated, getCurrency, isScanning} from '@libs/TransactionUtils';
 
 import {TOP_EXPENSES_LIMIT} from '@pages/Insights/insightsQueries';
 
@@ -47,6 +42,7 @@ import {View} from 'react-native';
 
 import InsightsDetailsSectionError from './InsightsDetailsSectionError';
 import {INSIGHTS_DETAILS_SECTION_STATE} from './insightsDetailsSectionState';
+import InsightsFlaggedExpenseRow from './InsightsFlaggedExpenseRow';
 import useInsightsTopExpenses from './useInsightsTopExpenses';
 
 type InsightsTopExpensesProps = {
@@ -180,71 +176,40 @@ function InsightsTopExpenses({query, title, emptyText, snapshotHash, onRetry}: I
                     {emptyText}
                 </Text>
             )}
-            {expenses.map((item, index) => {
-                const merchant = getMerchantName(item, translate);
-                return (
-                    <PressableWithFeedback
-                        key={item.keyForList}
-                        onPress={() => openExpense(item)}
-                        accessibilityRole={CONST.ROLE.BUTTON}
-                        accessibilityLabel={getRowAccessibilityLabel(item)}
-                        sentryLabel={CONST.SENTRY_LABEL.INSIGHTS.DETAILS_TOP_EXPENSE}
-                        wrapperStyle={styles.w100}
-                        hoverStyle={styles.hoveredComponentBG}
-                        style={[styles.ph4, styles.pv3, index < expenses.length - 1 && styles.borderBottom]}
-                    >
-                        {violationsByTransactionID ? (
-                            <View style={styles.flexRow}>
-                                <ReceiptCell
-                                    transactionItem={item}
-                                    isSelected={false}
-                                    style={styles.mr3}
-                                    shouldUseNarrowLayout
-                                />
-                                <TransactionItemRowNarrowTextColumn>
-                                    <TransactionItemRowNarrowTitle
-                                        transactionItem={item}
-                                        report={item.report}
-                                        policy={item.policy}
-                                        merchant={merchant}
-                                        merchantOrDescription={merchant || getDescription(item)}
-                                        shouldShowTooltip
-                                    />
-                                    <TransactionItemRowNarrowSubtitle>
-                                        <Text
-                                            variant="label"
-                                            numberOfLines={1}
-                                            style={[styles.flex1, styles.textSupporting]}
-                                        >
-                                            {(violationsByTransactionID[item.transactionID] ?? []).join(` ${CONST.DOT_SEPARATOR} `)}
-                                        </Text>
-                                        <DateCell
-                                            date={getCreated(item)}
-                                            showTooltip
-                                            isLargeScreenWidth={false}
-                                        />
-                                    </TransactionItemRowNarrowSubtitle>
-                                </TransactionItemRowNarrowTextColumn>
-                            </View>
-                        ) : (
-                            <TransactionItemRow
-                                transactionItem={item}
-                                report={item.report}
-                                policy={item.policy}
-                                shouldUseNarrowLayout
-                                isSelected={false}
-                                shouldShowTooltip
-                                shouldShowErrors={false}
-                                shouldShowCategoryOnNarrowLayout={false}
-                                dateColumnSize={CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL}
-                                amountColumnSize={CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL}
-                                taxAmountColumnSize={CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL}
-                                style={[styles.p0, styles.noBorderRadius]}
-                            />
-                        )}
-                    </PressableWithFeedback>
-                );
-            })}
+            {expenses.map((item, index) => (
+                <PressableWithFeedback
+                    key={item.keyForList}
+                    onPress={() => openExpense(item)}
+                    accessibilityRole={CONST.ROLE.BUTTON}
+                    accessibilityLabel={getRowAccessibilityLabel(item)}
+                    sentryLabel={CONST.SENTRY_LABEL.INSIGHTS.DETAILS_TOP_EXPENSE}
+                    wrapperStyle={styles.w100}
+                    hoverStyle={styles.hoveredComponentBG}
+                    style={[styles.ph4, styles.pv3, index < expenses.length - 1 && styles.borderBottom]}
+                >
+                    {violationsByTransactionID ? (
+                        <InsightsFlaggedExpenseRow
+                            expense={item}
+                            violations={violationsByTransactionID[item.transactionID] ?? []}
+                        />
+                    ) : (
+                        <TransactionItemRow
+                            transactionItem={item}
+                            report={item.report}
+                            policy={item.policy}
+                            shouldUseNarrowLayout
+                            isSelected={false}
+                            shouldShowTooltip
+                            shouldShowErrors={false}
+                            shouldShowCategoryOnNarrowLayout={false}
+                            dateColumnSize={CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL}
+                            amountColumnSize={CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL}
+                            taxAmountColumnSize={CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL}
+                            style={[styles.p0, styles.noBorderRadius]}
+                        />
+                    )}
+                </PressableWithFeedback>
+            ))}
         </View>
     );
 }
