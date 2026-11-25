@@ -673,6 +673,12 @@ type OriginalMessagePolicyChangeLog = {
     /** Tax percentage of the old tax rate linked to distance rate or category */
     oldTaxPercentage?: string;
 
+    /** Name of the new tax rate linked to a distance rate. Empty when it isn't in the workspace's tax rates, and missing from older logs, so fall back to the tax code */
+    newTaxRateName?: string;
+
+    /** Name of the old tax rate linked to a distance rate. Empty when it was deleted, and missing from older logs, so fall back to the tax code */
+    oldTaxRateName?: string;
+
     /** Name of the new tax rate (without percentage) for category default tax rate */
     newTaxName?: string;
 

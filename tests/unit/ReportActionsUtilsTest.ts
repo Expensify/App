@@ -7089,6 +7089,58 @@ describe('ReportActionsUtils', () => {
             expect(actual).toBe('updated the distance rate "Default Rate" to apply for all dates (previously March 1, 2026 - April 30, 2026)');
         });
 
+        it('should show the tax rate names instead of their codes when the log has them', () => {
+            // Given a rate moved from an integration tax rate to one created in Expensify, with both names stored
+            const action: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CUSTOM_UNIT_RATE> = {
+                reportActionID: '1',
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CUSTOM_UNIT_RATE,
+                created: '',
+                originalMessage: {
+                    customUnitName: 'Distance',
+                    customUnitRateName: 'Default Rate',
+                    updatedField: 'taxRateExternalID',
+                    oldValue: 'INPUT2',
+                    newValue: 'id_STANDARD_VAT__20__',
+                    oldTaxPercentage: '5%',
+                    newTaxPercentage: '20%',
+                    oldTaxRateName: 'Reduced',
+                    newTaxRateName: 'Standard VAT (20%)',
+                },
+            };
+
+            // When the log message is built
+            const actual = ReportActionsUtils.getWorkspaceCustomUnitRateUpdatedMessage(translateLocal, undefined, action);
+
+            // Then the names are shown, each with its percentage once
+            expect(actual).toBe('changed the tax rate on the distance rate "Default Rate" to "Standard VAT (20%)" (previously "Reduced (5%)")');
+        });
+
+        it('should show the tax rate code when the log has no name for it', () => {
+            // Given a rate moved from a deleted tax rate, which has no name to store
+            const action: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CUSTOM_UNIT_RATE> = {
+                reportActionID: '1',
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CUSTOM_UNIT_RATE,
+                created: '',
+                originalMessage: {
+                    customUnitName: 'Distance',
+                    customUnitRateName: 'Default Rate',
+                    updatedField: 'taxRateExternalID',
+                    oldValue: 'INPUT2',
+                    newValue: 'id_VAT_20',
+                    oldTaxPercentage: '5%',
+                    newTaxPercentage: '20%',
+                    oldTaxRateName: '',
+                    newTaxRateName: 'VAT 20',
+                },
+            };
+
+            // When the log message is built
+            const actual = ReportActionsUtils.getWorkspaceCustomUnitRateUpdatedMessage(translateLocal, undefined, action);
+
+            // Then the deleted tax rate is shown by its code
+            expect(actual).toBe('changed the tax rate on the distance rate "Default Rate" to "VAT 20 (20%)" (previously "INPUT2 (5%)")');
+        });
+
         it('should not repeat the percentage when a tax rate added to a rate already ends with it', () => {
             // Given a tax rate whose code was built from the name `Standard VAT (20%)`, so the code already ends with its percentage
             const action: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CUSTOM_UNIT_RATE> = {
