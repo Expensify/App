@@ -8,7 +8,9 @@ import {getFileValidationErrorText, hasHeicOrHeifExtension, resizeImageIfNeeded,
 import type {FileValidationError} from '@libs/fileDownload/FileUtils';
 import convertHeicImage from '@libs/fileDownload/heicConverter';
 import Log from '@libs/Log';
+import ReceiptStorage from '@libs/ReceiptStorage';
 import adoptDerivedFile from '@libs/ReceiptStorage/adoptDerivedFile';
+import {isInDurableFolder} from '@libs/ReceiptStorage/durableFolder';
 import validateAttachmentFile from '@libs/validateAttachmentFile';
 
 import CONST from '@src/CONST';
@@ -38,6 +40,15 @@ const sortFilesByOriginalOrder = (files: FileObject[], orderMap: Map<string, num
 };
 
 const isImageFile = (file: FileObject) => !!hasHeicOrHeifExtension(file) || Str.isImage(file.name ?? '');
+
+function discardRejectedReceiptFile(file: FileObject | undefined) {
+    if (!file?.uri || !isInDurableFolder(file.uri)) {
+        return;
+    }
+    ReceiptStorage.discard(file.uri).catch((error: unknown) => {
+        Log.warn('[useFilesValidation] could not delete a rejected receipt file', {error: error instanceof Error ? error.message : String(error)});
+    });
+}
 
 function useFilesValidation(onFilesValidated: (files: FileObject[], dataTransferItems: DataTransferItem[]) => void) {
     const styles = useThemeStyles();
@@ -369,6 +380,7 @@ function useFilesValidation(onFilesValidated: (files: FileObject[], dataTransfer
                     validNonPdfFiles.push(value);
                     updateFileOrderMapping(filesToResize.at(index), value);
                 } else {
+                    discardRejectedReceiptFile(filesToResize.at(index));
                     const errorMessage = result.reason instanceof Error ? result.reason.message : undefined;
                     if (errorMessage === CONST.FILE_VALIDATION_ERRORS.IMAGE_DIMENSIONS_TOO_LARGE) {
                         collectedErrors.current.push({

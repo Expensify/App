@@ -608,8 +608,8 @@ function logReceiptAdoptFailed({error, captureSource, step}: {error: unknown; ca
 
 /** Logs only the error name, because native crop errors can include the file path. */
 function logReceiptImageEditFailed({step, error}: {step: ReceiptImageEditStep; error?: unknown}) {
-    Log.alert(`${RECEIPT_LOG_PREFIX} cropFailed`, {
-        event: 'cropFailed',
+    Log.alert(`${RECEIPT_LOG_PREFIX} ${step}Failed`, {
+        event: `${step}Failed`,
         step,
         errorName: error instanceof Error ? error.name : undefined,
     });
