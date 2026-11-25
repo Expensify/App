@@ -131,8 +131,7 @@ function CreateDistanceRatePage({
     const isGovernmentRateTaken = isGovernmentKind && hasGovernmentRate;
     const currentGovernmentRate = isGovernmentKind && governmentRateCountry ? getCurrentGovernmentMileageRate(governmentMileageRates, currency, governmentRateCountry) : undefined;
 
-    // Taxes need Control, so only Control workspaces can reclaim VAT on a UK rate
-    const shouldShowTaxSection = shouldShowCountryAndKind && country === CONST.CUSTOM_UNITS.GOVERNMENT_RATE_FUEL_BAND_COUNTRY && isControlPolicy(policy) && !isGovernmentRateTaken;
+    const shouldShowTaxSection = shouldShowCountryAndKind && country === CONST.CUSTOM_UNITS.GOVERNMENT_RATE_FUEL_BAND_COUNTRY && !isGovernmentRateTaken;
     const isTaxEnabled = isPolicyTaxEnabled(policy);
     const isDistanceTaxEnabled = isTaxTrackingEnabled(true, policy, true);
     const isTaxImported = isPolicyTaxImported(policy);
