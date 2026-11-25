@@ -27,15 +27,18 @@ type AIInsightsWithScope = {
 function useShownAIInsights(dashboardID: InsightsDashboardID, filters: InsightsFilters, currentEntryInsights: AIInsight[] | undefined): AIInsightsWithScope {
     const scope = buildInsightsScope(dashboardID, filters);
     const [shownInsights, setShownInsights] = useState<AIInsightsWithScope>();
+    const isSameScope = !!shownInsights && deepEqual(shownInsights.scope, scope);
 
-    if (shownInsights && deepEqual(shownInsights.scope, scope)) {
+    if (currentEntryInsights === undefined) {
+        return isSameScope ? shownInsights : {scope, insights: undefined};
+    }
+
+    if (isSameScope && deepEqual(shownInsights.insights, currentEntryInsights)) {
         return shownInsights;
     }
 
-    const currentInsights = {scope, insights: currentEntryInsights};
-    if (currentEntryInsights !== undefined) {
-        setShownInsights(currentInsights);
-    }
+    const currentInsights = {scope: isSameScope ? shownInsights.scope : scope, insights: currentEntryInsights};
+    setShownInsights(currentInsights);
     return currentInsights;
 }
 
