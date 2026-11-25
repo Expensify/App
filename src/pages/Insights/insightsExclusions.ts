@@ -83,13 +83,27 @@ function removeExcludedItems(items: GroupedItem[] | undefined, excludedItemKeys:
     });
 }
 
+/** Maps an item key to the value Search filters it by, since uncategorized, untagged and merchant-less expenses are matched by a placeholder, not an empty value */
+function getExclusionFilterValue(groupBy: SearchGroupBy, key: string): string {
+    switch (groupBy) {
+        case CONST.SEARCH.GROUP_BY.TAG:
+            return getTagFilterValue(key);
+        case CONST.SEARCH.GROUP_BY.CATEGORY:
+            return key === '' ? CONST.SEARCH.CATEGORY_EMPTY_VALUE : key;
+        case CONST.SEARCH.GROUP_BY.MERCHANT:
+            return key === '' ? CONST.SEARCH.MERCHANT_EMPTY_VALUE : key;
+        default:
+            return key;
+    }
+}
+
 /** Builds the query fragment that leaves the excluded items out of a Spend query, so View on Spend matches the chart */
 function buildExclusionsFilterQuery(groupBy: SearchGroupBy | undefined, excludedItemKeys: string[]): string {
     const filterKey = groupBy ? EXCLUSION_FILTER_KEYS[groupBy] : undefined;
-    if (!filterKey || excludedItemKeys.length === 0) {
+    if (!groupBy || !filterKey || excludedItemKeys.length === 0) {
         return '';
     }
-    const values = excludedItemKeys.map((key) => sanitizeSearchValue(groupBy === CONST.SEARCH.GROUP_BY.TAG ? getTagFilterValue(key) : key));
+    const values = excludedItemKeys.map((key) => sanitizeSearchValue(getExclusionFilterValue(groupBy, key)));
     return `${CONST.SEARCH.NOT_PREFIX}${filterKey}:${values.join(',')}`;
 }
 

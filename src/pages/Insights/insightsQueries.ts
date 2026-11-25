@@ -204,7 +204,7 @@ type InsightsQuery = {
     /** Request payload for GetInsights. */
     jsonQuery: string;
 
-    /** Hash of the dashboard-wide query, the picked violation stages and the exclusions, which the response is stored under so every set of filters and stages keeps its own dashboard entry and averages. Leaves out the comparison, since every response carries all of them. */
+    /** Hash of the dashboard-wide query and the picked violation stages, which the response is stored under so every set of filters and stages keeps its own dashboard entry and averages. Leaves out the comparison, since every response carries all of them. */
     hash: number;
 
     /** Hashes of the snapshots the graphs are stored under. */
@@ -251,8 +251,8 @@ function buildInsightsJsonQuery(
     );
     const hasViolationStages = Object.keys(requestedViolationStages).length > 0;
     const hasExclusions = Object.keys(exclusions).length > 0;
-    // The stages change the graphs and their averages, and the exclusions change which AI cards are picked, so each combination is stored under its own dashboard entry
-    const hash = hasViolationStages || hasExclusions ? hashText(JSON.stringify([queryJSON.hash, requestedViolationStages, exclusions]), INSIGHTS_HASH_RANGE) : queryJSON.hash;
+    // The stages change the graphs and their averages, so each combination is stored under its own dashboard entry. The exclusions are left out because the charts filter them on the client, so changing them keeps the cached graphs on screen while the refetch replaces the AI cards.
+    const hash = hasViolationStages ? hashText(JSON.stringify([queryJSON.hash, requestedViolationStages]), INSIGHTS_HASH_RANGE) : queryJSON.hash;
     const graphEntries = [headlineChart, ...supportingCharts]
         .map((chartQuery) => buildSnapshotHashEntry(chartQuery, dashboard, filters))
         .filter((entry): entry is InsightsGraphHashEntry => !!entry);

@@ -77,4 +77,12 @@ describe('insightsExclusions', () => {
         expect(buildExclusionsFilterQuery(CONST.SEARCH.GROUP_BY.MERCHANT, ['Delta Air Lines'])).toBe('-merchant:"Delta Air Lines"');
         expect(buildExclusionsFilterQuery(CONST.SEARCH.GROUP_BY.FROM, [])).toBe('');
     });
+
+    it('negates uncategorized and merchant-less expenses by their placeholder', () => {
+        // Given an excluded category and merchant row whose key is empty
+        // When the Spend query fragments are built
+        // Then the empty value becomes the placeholder Search matches them by, so the filter isn't dropped
+        expect(buildExclusionsFilterQuery(CONST.SEARCH.GROUP_BY.CATEGORY, ['Meals', ''])).toBe(`-category:Meals,${CONST.SEARCH.CATEGORY_EMPTY_VALUE}`);
+        expect(buildExclusionsFilterQuery(CONST.SEARCH.GROUP_BY.MERCHANT, [''])).toBe(`-merchant:${CONST.SEARCH.MERCHANT_EMPTY_VALUE}`);
+    });
 });

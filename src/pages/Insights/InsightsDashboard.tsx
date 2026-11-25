@@ -447,7 +447,7 @@ function InsightsDashboard({dashboardID, accessibleDashboards}: {dashboardID: In
             return;
         }
         onRequestConditionsChanged();
-        // Leaves out jsonQuery so toggling Compare mode doesn't refetch, since every response covers it. The chart snapshots are listed because the hash leaves out the effective bucket and the eligible charts, so changing them triggers a refetch while a pure Running total toggle does not.
+        // Leaves out jsonQuery so toggling Compare mode doesn't refetch, since every response covers it. Exclusions are only saved from the Exclude RHP, and closing it fetches again with them. The chart snapshots are listed because the hash leaves out the effective bucket and the eligible charts, so changing them triggers a refetch while a pure Running total toggle does not.
     }, [dashboardID, hash, queryGroupBy, snapshotHashes, isDashboardVisible, isFocused, isOffline]);
 
     const [dashboard] = useOnyx(`${ONYXKEYS.COLLECTION.INSIGHTS}${dashboardID}_${hash}`);

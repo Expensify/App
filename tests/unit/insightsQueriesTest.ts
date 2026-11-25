@@ -90,7 +90,7 @@ describe('insightsQueries', () => {
             });
         });
 
-        it('sends the exclusions and stores the response under its own dashboard entry', () => {
+        it('sends the exclusions without moving the dashboard to a new entry', () => {
             // Given the spend dashboard with and without a spender excluded from Top spenders
             const exclusions = {[CONST.INSIGHTS.GRAPH.TOP_SPENDERS]: ['12345']};
             const plain = buildInsightsJsonQuery(CONST.INSIGHTS.DASHBOARD.SPEND, FILTERS, SPEND_SPEC.supportingCharts);
@@ -98,10 +98,10 @@ describe('insightsQueries', () => {
             // When the request with exclusions is built
             const excluded = buildInsightsJsonQuery(CONST.INSIGHTS.DASHBOARD.SPEND, FILTERS, SPEND_SPEC.supportingCharts, {}, exclusions);
 
-            // Then the backend gets the exclusions to skip AI cards about those items, and the hash differs so the cards picked without them aren't shown
+            // Then the backend gets the exclusions to skip AI cards about those items, and the hash stays the same so the cached graphs and averages keep showing while the cards refetch
             expect(parsePayload(excluded)).toMatchObject({exclusions});
             expect(parsePayload(plain)).not.toHaveProperty('exclusions');
-            expect(excluded?.hash).not.toBe(plain?.hash);
+            expect(excluded?.hash).toBe(plain?.hash);
             expect(excluded?.snapshotHashes).toEqual(plain?.snapshotHashes);
         });
 
