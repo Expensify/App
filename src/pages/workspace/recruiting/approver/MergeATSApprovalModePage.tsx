@@ -19,7 +19,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import {updateMergeApprovalMode} from '@libs/actions/connections/merge';
 import {getMergeFinalApprover, isMergeConnected} from '@libs/merge/MergeUtils';
-import {getConnectedATSProvider, getMergeATSApprovalMode, getMergeATSApproverField, getMergeATSApproverFields} from '@libs/merge/RecruitingUtils';
+import {getConnectedATSProvider, getMergeATSApprovalMode, getMergeATSApproverField} from '@libs/merge/RecruitingUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {MergeATSApprovalNavigatorParamList} from '@libs/Navigation/types';
@@ -66,9 +66,6 @@ function MergeATSApprovalModePage({
     // Advanced mode always has an approver field, since that one falls back to the recruiter field, and its final approver is optional.
     const isApproverMissing = selectedApprovalMode === CONST.MERGE.APPROVAL_MODE.BASIC && !finalApprover;
 
-    // Advanced reads the approver from an ATS field, which not every provider exposes
-    const isAdvancedAvailable = getMergeATSApproverFields(policy).length > 0;
-
     const approvalModeOptions: ApprovalModeListItem[] = [
         {
             text: translate('workspace.merge.approvalModes.basic'),
@@ -77,17 +74,13 @@ function MergeATSApprovalModePage({
             value: CONST.MERGE.APPROVAL_MODE.BASIC,
             isSelected: selectedApprovalMode === CONST.MERGE.APPROVAL_MODE.BASIC,
         },
-        ...(isAdvancedAvailable
-            ? [
-                  {
-                      text: translate('workspace.merge.approvalModes.advanced'),
-                      alternateText: translate('workspace.recruiting.approvalModeDescriptions.advanced'),
-                      keyForList: CONST.MERGE.APPROVAL_MODE.ADVANCED,
-                      value: CONST.MERGE.APPROVAL_MODE.ADVANCED,
-                      isSelected: selectedApprovalMode === CONST.MERGE.APPROVAL_MODE.ADVANCED,
-                  },
-              ]
-            : []),
+        {
+            text: translate('workspace.merge.approvalModes.advanced'),
+            alternateText: translate('workspace.recruiting.approvalModeDescriptions.advanced'),
+            keyForList: CONST.MERGE.APPROVAL_MODE.ADVANCED,
+            value: CONST.MERGE.APPROVAL_MODE.ADVANCED,
+            isSelected: selectedApprovalMode === CONST.MERGE.APPROVAL_MODE.ADVANCED,
+        },
         {
             text: translate('workspace.merge.approvalModes.custom'),
             alternateText: translate('workspace.recruiting.approvalModeDescriptions.custom'),

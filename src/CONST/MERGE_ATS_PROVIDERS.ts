@@ -10,7 +10,7 @@ type MergeATSProviderEntry = {
     /** Provider logo served from the Merge CDN */
     iconUrl: string;
 
-    /** The ATS fields the provider exposes that a candidate's default approver can be read from, in display order. Empty when Advanced approval isn't available for the provider. */
+    /** The ATS fields the provider exposes that a candidate's default approver can be read from, in display order */
     approverFields: ReadonlyArray<ValueOf<typeof CONST.MERGE.ATS_APPROVER_FIELD>>;
 };
 
