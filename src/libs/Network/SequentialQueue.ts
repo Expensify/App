@@ -19,7 +19,7 @@ import Log from '@libs/Log';
 import {getIsOffline as isOfflineNetwork, subscribe as subscribeToNetworkState} from '@libs/NetworkState';
 import {processWithMiddleware} from '@libs/Request';
 import RequestThrottle from '@libs/RequestThrottle';
-import {logReceiptEnqueued, logReceiptGaveUp, RECEIPT_BEARING_COMMANDS} from '@libs/telemetry/ReceiptObservability';
+import {logReceiptEnqueued, logReceiptGaveUp, logReceiptRolledBack, RECEIPT_BEARING_COMMANDS} from '@libs/telemetry/ReceiptObservability';
 import type {QueuedReceipt} from '@libs/telemetry/ReceiptObservability';
 
 import CONST from '@src/CONST';
@@ -522,6 +522,7 @@ function process(): Promise<void> {
             if (error.name === CONST.ERROR.REQUEST_CANCELLED || error.message === CONST.ERROR.DUPLICATE_RECORD || shouldFailAllRequests) {
                 if (shouldFailAllRequests) {
                     const onyxUpdates = [...(requestToProcess.failureData ?? []), ...(requestToProcess.finallyData ?? [])] as AnyOnyxUpdate[];
+                    logReceiptRolledBack({command: requestToProcess.command, data: requestToProcess.data, failureData: requestToProcess.failureData, trigger: 'failAll'});
                     Log.info('[SequentialQueue] Applying failure and finally data because shouldFailAllRequests', false, {
                         command: requestToProcess.command,
                         updatesCount: onyxUpdates.length,
@@ -593,6 +594,7 @@ function process(): Promise<void> {
                             errorName: error.name,
                         });
                     }
+                    logReceiptRolledBack({command: requestToProcess.command, data: requestToProcess.data, failureData: requestToProcess.failureData, trigger: 'gaveUp'});
                     Onyx.update(requestToProcess.failureData ?? []);
                     endPersistedRequestAndRemoveFromQueue(requestToProcess);
                     sequentialQueueRequestThrottle.clear();
@@ -831,12 +833,16 @@ async function handleConflictActions<TKey extends OnyxKey>(conflictAction: Confl
             willPushNewRequest: conflictAction.pushNewRequest ?? false,
             hasNextAction: !!conflictAction.nextAction,
         });
-        await deletePersistedRequestsByIndices(conflictAction.indices);
+        const deletion = deletePersistedRequestsByIndices(conflictAction.indices);
         if (conflictAction.pushNewRequest) {
             Log.info('[SequentialQueue] Pushing new request after delete', false, {
                 command: newRequest.command,
             });
-            await savePersistedRequest(newRequest);
+            // Both calls update the queue in memory before returning. Append before awaiting persistence so a request
+            // queued in the meantime cannot be saved and sent ahead of this one.
+            await Promise.all([deletion, savePersistedRequest(newRequest)]);
+        } else {
+            await deletion;
         }
         if (conflictAction.nextAction) {
             Log.info('[SequentialQueue] Processing next conflict action', false, {

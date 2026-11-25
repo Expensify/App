@@ -215,6 +215,23 @@ describe('ValidateLoginPage', () => {
         expect(screen.getByTestId('validate-code')).toBeOnTheScreen();
     });
 
+    it('Should mask the magic code in Fullstory when a signed-in session opens /v/ to view it', async () => {
+        // Given a signed-in browser opening a magic link, which shows the code instead of signing in
+        await act(async () => {
+            await Onyx.set(ONYXKEYS.SESSION, {
+                authToken: 'abcd',
+                autoAuthState: CONST.AUTO_AUTH_STATE.NOT_STARTED,
+            });
+        });
+
+        // When the validate code modal renders the code
+        renderPage({accountID: '1', validateCode: '123456'});
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the code is masked, since anyone watching the session replay could otherwise use it to sign in
+        expect((screen.getByText('123456').props as {fsClass?: string}).fsClass).toBe(CONST.FULLSTORY.CLASS.MASK);
+    });
+
     it('Should keep the loading indicator (not blank) when JUST_SIGNED_IN but authToken has not landed yet', async () => {
         // autoAuthState arrives before authToken (separate Onyx broadcasts), so there is a tick
         // where autoAuthState === JUST_SIGNED_IN but isSignedIn is false. Without the fix every

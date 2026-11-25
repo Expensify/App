@@ -419,6 +419,7 @@ function MoneyRequestReportTransactionItem({
     // component-type swap caused by browser resize.
     const animatedHighlightStyle = useRowHighlightAnimation({
         shouldHighlight: shouldBeHighlighted,
+        highlightKey: transactionID,
         borderRadius: shouldUseNarrowLayout ? variables.componentBorderRadius : 0,
         shouldApplyOtherStyles: !shouldUseNarrowLayout,
     });

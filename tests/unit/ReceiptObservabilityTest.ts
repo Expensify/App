@@ -6,10 +6,14 @@ import {
     logReceiptDropped,
     logReceiptEnqueued,
     logReceiptImageEditFailed,
+    logReceiptNotFound,
     logReceiptQueueSnapshot,
+    logReceiptRolledBack,
+    logReceiptShown,
     mintAndStampReceiptTraceId,
 } from '@libs/telemetry/ReceiptObservability';
 
+import ONYXKEYS from '@src/ONYXKEYS';
 import type {FileObject} from '@src/types/utils/Attachment';
 
 const RECEIPTS_FOLDER = '/var/mobile/Containers/Data/Application/AAAA-1111/Documents/Receipts-Upload';
@@ -264,6 +268,75 @@ describe('ReceiptObservability', () => {
             expect(snapshots).toHaveLength(2);
             expect(snapshots.map((snapshot) => snapshot.params.receiptTraceId)).toEqual(expect.arrayContaining(['trace-A', 'trace-B']));
             expect(snapshots.map((snapshot) => snapshot.params.transactionID)).toEqual(expect.arrayContaining(['100', '200']));
+        });
+    });
+    describe('logReceiptRolledBack', () => {
+        it('logs the names of the reverted transaction fields but never their values', () => {
+            // Given a failed merchant edit whose failure data writes back the whole queue-time transaction
+            const failureData = [
+                {key: `${ONYXKEYS.COLLECTION.TRANSACTION}1`, value: {merchant: 'Old Cafe', comment: {comment: 'private note'}, errorFields: {}}},
+                {key: `${ONYXKEYS.COLLECTION.REPORT}9`, value: {total: 100}},
+            ];
+
+            // When the failure data is applied after a server rejection
+            logReceiptRolledBack({command: WRITE_COMMANDS.UPDATE_MONEY_REQUEST_MERCHANT, data: {transactionID: '1'}, failureData, trigger: 'serverError'});
+
+            // Then the line lists which transaction fields were reverted, so #3290 can see what a rollback undoes
+            const line = logLines.find((logLine) => logLine.params.event === 'rolledBack');
+            expect(line?.params).toMatchObject({transactionID: '1', trigger: 'serverError', revertedKeyCount: 2, revertedTransactionFields: 'comment,errorFields,merchant'});
+
+            // And no reverted value reaches the log line
+            expect(JSON.stringify(line?.params)).not.toContain('Old Cafe');
+            expect(JSON.stringify(line?.params)).not.toContain('private note');
+        });
+
+        it('stays silent for commands outside the receipt trail', () => {
+            // Given a failed report comment, which never touches an expense
+            const failureData = [{key: `${ONYXKEYS.COLLECTION.REPORT}9`, value: {lastMessageText: 'hi'}}];
+
+            // When its failure data is applied
+            logReceiptRolledBack({command: WRITE_COMMANDS.ADD_COMMENT, data: {}, failureData, trigger: 'gaveUp'});
+
+            // Then nothing is logged, so the rollback count only covers expense commands
+            expect(logLines.filter((line) => line.params.event === 'rolledBack')).toHaveLength(0);
+        });
+    });
+
+    describe('logReceiptShown', () => {
+        it('logs once per receipt and per local or remote render', () => {
+            // Given a receipt captured on this device, rendered from its local file twice and then from the server
+            const receiptTraceId = 'trace-shown';
+
+            // When the thumbnail loads three times
+            logReceiptShown({receiptTraceId, transactionID: '5', source: 'file:///receipt.jpg'});
+            logReceiptShown({receiptTraceId, transactionID: '5', source: 'file:///receipt.jpg'});
+            logReceiptShown({receiptTraceId, transactionID: '5', source: 'https://www.expensify.com/receipts/w_1.jpg'});
+
+            // Then a re-render does not log again, but the first remote render does, because it proves the server has the file
+            const lines = logLines.filter((line) => line.params.event === 'receiptShown');
+            expect(lines.map((line) => line.params.isRemoteSource)).toEqual(['false', 'true']);
+        });
+
+        it('skips receipts that were not captured on this device', () => {
+            // Given a receipt with no trace id, e.g. one a coworker added
+            // When its thumbnail loads
+            logReceiptShown({receiptTraceId: undefined, transactionID: '6', source: 'https://www.expensify.com/receipts/w_2.jpg'});
+
+            // Then nothing is logged, which keeps list scrolling from flooding the trail
+            expect(logLines.filter((line) => line.params.event === 'receiptShown')).toHaveLength(0);
+        });
+    });
+
+    describe('logReceiptNotFound', () => {
+        it('logs whether a navigate-back URL is set instead of the URL itself', () => {
+            // Given a report screen showing not-found right after an expense was deleted
+            // When the not-found line is logged
+            logReceiptNotFound({screen: 'report', reportID: '77', isOffline: false, hasDeleteTransactionNavigateBackUrl: true, isOptimisticDelete: true});
+
+            // Then the flags arrive as strings and no URL is part of the line
+            const line = logLines.find((logLine) => logLine.params.event === 'notFound');
+            expect(line?.params).toMatchObject({screen: 'report', reportID: '77', isOffline: 'false', hasDeleteTransactionNavigateBackUrl: 'true', isOptimisticDelete: 'true'});
+            expect(line?.params).not.toHaveProperty('deleteTransactionNavigateBackUrl');
         });
     });
 });
