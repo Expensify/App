@@ -4509,8 +4509,8 @@ ${amount} pour ${merchant} - ${date}`,
     },
     welcomeSignUpForm: {
         join: 'Rejoindre',
-        alertsSMSConsent:
-            "En fournissant mon numéro de téléphone, j'accepte de recevoir des alertes transactionnelles concernant mon compte de la part d'Expensify. Des frais standard de messagerie et de données peuvent s'appliquer. Répondez HELP pour obtenir de l'aide. Répondez STOP pour vous désabonner.",
+        alertsSMSConsent: "En fournissant mon numéro de téléphone, j'accepte de recevoir des alertes transactionnelles concernant mon compte de la part d'Expensify.",
+        alertsSMSConsentFinePrint: "Des frais standard de messagerie et de données peuvent s'appliquer. Répondez STOP pour vous désabonner.",
         marketingSMSConsent: "J'accepte de recevoir des SMS marketing d'Expensify",
     },
     detailsPage: {

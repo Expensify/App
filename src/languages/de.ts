@@ -4505,8 +4505,8 @@ ${amount} für ${merchant} – ${date}`,
     },
     welcomeSignUpForm: {
         join: 'Beitreten',
-        alertsSMSConsent:
-            'Mit der Angabe meiner Telefonnummer stimme ich zu, transaktionsbezogene Kontobenachrichtigungen von Expensify zu erhalten. Es können die üblichen Gebühren für Nachrichten und Daten anfallen. Antworte HELP, um Hilfe zu erhalten. Antworte STOP, um dich abzumelden.',
+        alertsSMSConsent: 'Mit der Angabe meiner Telefonnummer stimme ich zu, transaktionsbezogene Kontobenachrichtigungen von Expensify zu erhalten.',
+        alertsSMSConsentFinePrint: 'Es können die üblichen Gebühren für Nachrichten und Daten anfallen. Antworte STOP, um dich abzumelden.',
         marketingSMSConsent: 'Ich stimme zu, Marketing-SMS von Expensify zu erhalten',
     },
     detailsPage: {

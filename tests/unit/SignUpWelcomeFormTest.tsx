@@ -13,14 +13,19 @@ import Onyx from 'react-native-onyx';
 
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
-const ALERTS_CONSENT_LABEL = 'I agree to receive transactional account alerts from Expensify';
+const ALERTS_CONSENT_TEXT = 'I agree to receive transactional account alerts from Expensify.';
+const ALERTS_CONSENT_FINE_PRINT = 'Standard message and data rates may apply.';
+const ALERTS_CONSENT_LABEL = `${ALERTS_CONSENT_TEXT} ${ALERTS_CONSENT_FINE_PRINT}`;
 const MARKETING_CONSENT_LABEL = 'I agree to receive marketing texts from Expensify';
 
 jest.mock('@hooks/useLocalize', () =>
     jest.fn(() => ({
         translate: jest.fn((key: string) => {
             if (key === 'welcomeSignUpForm.alertsSMSConsent') {
-                return ALERTS_CONSENT_LABEL;
+                return ALERTS_CONSENT_TEXT;
+            }
+            if (key === 'welcomeSignUpForm.alertsSMSConsentFinePrint') {
+                return ALERTS_CONSENT_FINE_PRINT;
             }
             if (key === 'welcomeSignUpForm.marketingSMSConsent') {
                 return MARKETING_CONSENT_LABEL;

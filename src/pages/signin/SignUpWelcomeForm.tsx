@@ -1,6 +1,7 @@
 import Button from '@components/Button';
 import CheckboxWithLabel from '@components/CheckboxWithLabel';
 import FormHelpMessage from '@components/FormHelpMessage';
+import Text from '@components/Text';
 
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -23,6 +24,22 @@ import {View} from 'react-native';
 import ChangeExpensifyLoginLink from './ChangeExpensifyLoginLink';
 import Terms from './Terms';
 
+function AlertsSMSConsentLabel() {
+    const styles = useThemeStyles();
+    const {translate} = useLocalize();
+    return (
+        <View style={[styles.ml1, styles.flex1]}>
+            <Text>{translate('welcomeSignUpForm.alertsSMSConsent')}</Text>
+            <Text
+                variant="label"
+                style={styles.mt2}
+            >
+                {translate('welcomeSignUpForm.alertsSMSConsentFinePrint')}
+            </Text>
+        </View>
+    );
+}
+
 function SignUpWelcomeForm() {
     const network = useNetwork();
     const styles = useThemeStyles();
@@ -36,7 +53,7 @@ function SignUpWelcomeForm() {
     const isPhoneSignup = Str.isSMSLogin(login ?? '');
     const [hasSMSAlertsConsent, setHasSMSAlertsConsent] = useState(false);
     const [hasSMSMarketingConsent, setHasSMSMarketingConsent] = useState(false);
-    const alertsSMSConsentLabel = translate('welcomeSignUpForm.alertsSMSConsent');
+    const alertsSMSConsentLabel = `${translate('welcomeSignUpForm.alertsSMSConsent')} ${translate('welcomeSignUpForm.alertsSMSConsentFinePrint')}`;
     const marketingSMSConsentLabel = translate('welcomeSignUpForm.marketingSMSConsent');
 
     // Alert texts are a condition of signing up with a phone number, so Join stays disabled until the user agrees to them
@@ -47,7 +64,7 @@ function SignUpWelcomeForm() {
             {isPhoneSignup && (
                 <View style={[styles.mt3, styles.mb2]}>
                     <CheckboxWithLabel
-                        label={alertsSMSConsentLabel}
+                        LabelComponent={AlertsSMSConsentLabel}
                         isChecked={hasSMSAlertsConsent}
                         onInputChange={(value) => setHasSMSAlertsConsent(value ?? false)}
                         accessibilityLabel={alertsSMSConsentLabel}
