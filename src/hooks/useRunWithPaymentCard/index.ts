@@ -7,13 +7,9 @@ import {doesUserHavePaymentCardAdded} from '@libs/SubscriptionUtils';
 
 import ONYXKEYS from '@src/ONYXKEYS';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
-import type {AddPaymentCardForm} from '@src/types/form';
 
-import type {OnyxEntry} from 'react-native-onyx';
-
+import {isCardSetupCompleteSelector} from '@selectors/AddPaymentCardForm';
 import {useEffect, useRef} from 'react';
-
-const isCardSetupCompleteSelector = (form: OnyxEntry<AddPaymentCardForm>) => !!form?.setupComplete;
 
 /**
  * Returns a function that runs an action which charges the user's payment card. Without a card, it opens the add
