@@ -3520,10 +3520,6 @@ const staticStyles = (theme: ThemeColors) =>
             borderRadius: variables.componentBorderRadiusLarge,
         },
 
-        cardShadow: {
-            boxShadow: theme.shadow,
-        },
-
         sectionMenuItemTopDescription: {
             ...spacing.ph8,
             ...spacing.mhn8,
