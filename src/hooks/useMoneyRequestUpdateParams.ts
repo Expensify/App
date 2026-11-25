@@ -17,12 +17,14 @@ import useAllTransactionViolations from './useAllTransactionViolations';
 import {useCurrencyListActions} from './useCurrencyList';
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import useDelegateAccountID from './useDelegateAccountID';
+import useLocalize from './useLocalize';
 import useOnyx from './useOnyx';
 import usePermissions from './usePermissions';
 import {usePersonalDetail} from './usePersonalDetails';
 import usePolicy from './usePolicy';
 
 function useMoneyRequestUpdateParams(transactionID: string | undefined, transactionThreadReport: OnyxEntry<OnyxTypes.Report>) {
+    const {translate} = useLocalize();
     const {getCurrencyDecimals, getCurrencySymbol} = useCurrencyListActions();
     const {isBetaEnabled, isBetaEnabledOrUnknown} = usePermissions();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
@@ -39,6 +41,7 @@ function useMoneyRequestUpdateParams(transactionID: string | undefined, transact
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
 
     return {
+        translate,
         isVendorMatchingBetaEnabled: isBetaEnabledOrUnknown(CONST.BETAS.VENDOR_MATCHING),
         transactionThreadReport,
         parentReport,

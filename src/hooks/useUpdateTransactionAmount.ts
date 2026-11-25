@@ -45,6 +45,7 @@ function useUpdateTransactionAmount({transaction, updateParams, duplicates, poli
             return;
         }
         updateSavedExpenseAmount({
+            translate: updateParams.translate,
             policy,
             transactionID,
             transaction,
