@@ -47,14 +47,20 @@ function useMultiScanActions(): MultiScanActions {
 }
 
 type MultiScanProviderProps = {
+    iouRequestType: string | undefined;
     children: React.ReactNode;
 };
 
-function MultiScanProvider({children}: MultiScanProviderProps) {
+function MultiScanProvider({iouRequestType, children}: MultiScanProviderProps) {
     const {iouType, routeName} = useScanRouteParams();
 
     const [isMultiScanEnabled, setIsMultiScanEnabled] = useState(false);
     const showMultiScanEducationalModal = useMultiScanEducationalModal();
+    const [prevIOURequestType, setPrevIOURequestType] = useState(iouRequestType);
+    if (iouRequestType !== prevIOURequestType) {
+        setPrevIOURequestType(iouRequestType);
+        setIsMultiScanEnabled(false);
+    }
     const [dismissedProductTrainingResult] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING);
     const [draftTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftIDsSelector});
     const shouldSuppressPromotionalUI = useShouldSuppressPromotionalUI();

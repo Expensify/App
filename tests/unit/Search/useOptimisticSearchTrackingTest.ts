@@ -132,6 +132,25 @@ describe('useOptimisticSearchTracking', () => {
         expect(result.current.searchDataWithOptimisticTransaction).toHaveProperty(TRANSACTION_KEY);
     });
 
+    it('tracks the optimistic expense without the skeleton row when rearmed for a pre-mount reveal', () => {
+        // Given a mounted search whose tracking ended, and a new submission whose write is pending
+        const queryJSON = buildSearchQueryJSON('type:expense merchant:Unique');
+        if (!queryJSON) {
+            throw new Error('Expected a valid merchant query');
+        }
+        markPendingSearchWrite();
+        setSearchWriteWatchKey(TRANSACTION_KEY);
+        const {result} = renderTracking(queryJSON.hash, {queryJSON});
+        act(() => result.current.trackingState.clearOptimisticTracking());
+
+        // When the reveal rearms it without the placeholder
+        act(() => result.current.rearmTracking(false));
+
+        // Then the row is still kept through stale snapshots, but no skeleton row is added to the list
+        expect(result.current.searchDataWithOptimisticTransaction).toHaveProperty(TRANSACTION_KEY);
+        expect(result.current.showPendingExpensePlaceholder).toBe(false);
+    });
+
     it('does not add the optimistic transaction when it does not match the query filters', () => {
         // Given a submission whose expense is still pending
         markPendingSearchWrite();

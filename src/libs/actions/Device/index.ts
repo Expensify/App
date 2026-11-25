@@ -6,6 +6,7 @@ import Onyx from 'react-native-onyx';
 
 import generateDeviceID from './generateDeviceID';
 import getDeviceInfo from './getDeviceInfo';
+import resolveWindowsVersion from './getDeviceInfo/resolveWindowsVersion';
 
 let deviceID: string | null = null;
 
@@ -57,10 +58,10 @@ function setDeviceID() {
  */
 function getDeviceInfoWithID(): Promise<string> {
     return new Promise((resolve) => {
-        getDeviceID().then((currentDeviceID) =>
+        Promise.all([getDeviceID(), resolveWindowsVersion(getDeviceInfo())]).then(([currentDeviceID, deviceInfo]) =>
             resolve(
                 JSON.stringify({
-                    ...getDeviceInfo(),
+                    ...deviceInfo,
                     deviceID: currentDeviceID,
                 }),
             ),

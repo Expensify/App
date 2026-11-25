@@ -368,6 +368,7 @@ function SearchAutocompleteList({
             currentUserEmail,
             policyCollection: policies,
             personalDetails,
+            reportAttributesDerived: reportAttributes,
             sortedActions,
             lastActions,
             transactionThreadIDs,

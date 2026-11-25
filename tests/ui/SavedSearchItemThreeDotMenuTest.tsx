@@ -1,5 +1,6 @@
 import {act, fireEvent, render, renderHook, screen} from '@testing-library/react-native';
 
+import PeekSurfaceContext from '@components/Navigation/PeekSurfaceContext';
 import {COLLAPSE_SURFACE, useSearchSidebarCollapse} from '@components/Navigation/SearchSidebarCollapseStore';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 
@@ -17,18 +18,25 @@ jest.mock('@components/ThreeDotsMenu', () => {
     // The factory is hoisted above the imports, so it loads what it renders itself.
     // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-unsafe-assignment
     const {Text: MockText} = require('react-native');
-    return ({menuItems}: {menuItems: PopoverMenuItem[]}) =>
-        menuItems.map((menuItem) => (
-            <MockText
-                key={menuItem.text}
-                onPress={() => menuItem.onSelected?.()}
-            >
-                {menuItem.text}
-            </MockText>
-        ));
+    return ({menuItems, onModalHide, onIconPress, shouldOverlay}: {menuItems: PopoverMenuItem[]; onModalHide?: () => void; onIconPress?: () => void; shouldOverlay?: boolean}) => (
+        <>
+            {!!shouldOverlay && <MockText>Menu overlay</MockText>}
+            <MockText onPress={() => onIconPress?.()}>Menu icon</MockText>
+            <MockText onPress={() => onModalHide?.()}>Menu gone</MockText>
+            {menuItems.map((menuItem) => (
+                <MockText
+                    key={menuItem.text}
+                    onPress={() => menuItem.onSelected?.()}
+                >
+                    {menuItem.text}
+                </MockText>
+            ))}
+        </>
+    );
 });
 
 const RENAME = 'Rename';
+const SHARE = 'Share';
 
 function renderMenu(collapseSurface?: (typeof COLLAPSE_SURFACE)[keyof typeof COLLAPSE_SURFACE]) {
     const onRename = jest.fn();
@@ -67,6 +75,34 @@ describe('SavedSearchItemThreeDotMenu', () => {
         }
     });
 
+    it('should render the menu over a backdrop', () => {
+        // Given a saved search's menu, which opens partly outside the sidebar
+        // When it renders
+        renderMenu();
+
+        // Then it renders over a backdrop, because the backdrop belongs to the sidebar's React tree and keeps a pointer past the menu's edge from ending the peek
+        expect(screen.getByText('Menu overlay')).toBeOnTheScreen();
+    });
+
+    it('should hold the peek of its surface when the menu starts opening', () => {
+        // Given a saved search's menu inside a peeking surface
+        const holdPeekUntilMenuCloses = jest.fn();
+        render(
+            <PeekSurfaceContext.Provider value={{holdPeekUntilMenuCloses, endPeekIfPointerLeft: jest.fn()}}>
+                <SavedSearchItemThreeDotMenu
+                    menuItems={[{text: RENAME, onSelected: jest.fn(), sentryLabel: CONST.SENTRY_LABEL.TEST.LABEL}]}
+                    isDisabledItem={false}
+                />
+            </PeekSurfaceContext.Provider>,
+        );
+
+        // When the menu's button is pressed, with the mouse or the keyboard
+        fireEvent.press(screen.getByText('Menu icon'));
+
+        // Then the surface holds its peek, because the pointer leaving the window from the backdrop sends the surface a hover-out
+        expect(holdPeekUntilMenuCloses).toHaveBeenCalledTimes(1);
+    });
+
     it('should end the peek of the navigation bar when the menu lives there', async () => {
         // Given the collapsed navigation bar peeks, with the menu on one of its rows
         const navigationBar = await startPeekOn(COLLAPSE_SURFACE.NAVIGATION_BAR);
@@ -91,6 +127,52 @@ describe('SavedSearchItemThreeDotMenu', () => {
 
         // Then the sidebar stops peeking, as before the surface could be chosen
         expect(searchSidebar.result.current.isPeeking).toBe(false);
+    });
+
+    describe('settling the peek once the menu is gone', () => {
+        it('should ask its surface to end the peek if the pointer left once the menu is gone', () => {
+            // Given a menu inside a surface that can end its peek
+            const endPeekIfPointerLeft = jest.fn();
+            render(
+                <PeekSurfaceContext.Provider value={{holdPeekUntilMenuCloses: jest.fn(), endPeekIfPointerLeft}}>
+                    <SavedSearchItemThreeDotMenu
+                        menuItems={[
+                            {
+                                text: SHARE,
+                                onSelected: jest.fn(),
+                                shouldCloseModalOnSelect: false,
+                                sentryLabel: CONST.SENTRY_LABEL.TEST.LABEL,
+                            },
+                        ]}
+                        isDisabledItem={false}
+                    />
+                </PeekSurfaceContext.Provider>,
+            );
+
+            // When the user picks Share, which keeps the menu open to show the link was copied
+            fireEvent.press(screen.getByText(SHARE));
+
+            // Then the surface is not asked yet, because ending the peek now would unmount the menu while it still shows the copied state
+            expect(endPeekIfPointerLeft).not.toHaveBeenCalled();
+
+            // When the menu's modal is gone, for example after the Share timer closed it under a still pointer
+            fireEvent.press(screen.getByText('Menu gone'));
+
+            // Then the surface is asked to end the peek, since no hover-out reaches it when a portaled menu goes away
+            expect(endPeekIfPointerLeft).toHaveBeenCalledTimes(1);
+        });
+
+        it('should keep working outside a peeking surface', () => {
+            // Given a menu rendered without a surface around it
+            renderMenu();
+
+            // When the menu opens and its modal is then gone
+            // Then nothing throws, as there is no peek to hold or to settle
+            expect(() => {
+                fireEvent.press(screen.getByText('Menu icon'));
+                fireEvent.press(screen.getByText('Menu gone'));
+            }).not.toThrow();
+        });
     });
 
     it('should leave another surface peeking', async () => {

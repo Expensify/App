@@ -331,6 +331,7 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
                 isTrackIntentUser,
                 formatPhoneNumber,
                 rules,
+                shouldFlagNewSplitsForReportTable: false,
             });
         }
 

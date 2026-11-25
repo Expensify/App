@@ -1,7 +1,7 @@
 import {render, waitFor} from '@testing-library/react-native';
 
+import type DropdownField from '@components/DropdownField';
 import ConfirmationFieldsProvider from '@components/MoneyRequestConfirmationFields/Provider';
-import type ExpenseFieldDropdown from '@components/MoneyRequestConfirmationList/sections/ExpenseFieldDropdown';
 import ExpenseFormLayoutContext, {dropdownRowsExpenseFormLayout} from '@components/MoneyRequestConfirmationList/sections/ExpenseFormLayoutContext';
 import ReportField from '@components/MoneyRequestConfirmationList/sections/ReportField';
 
@@ -34,9 +34,9 @@ jest.mock('@hooks/useOutstandingReports', () => () => mockOutstandingReports);
 let mockShouldOpenInDropdown: boolean | undefined;
 let mockIsInteractive: boolean | undefined;
 let mockReportName: string | undefined;
-type ExpenseFieldDropdownMockProps = Pick<ComponentProps<typeof ExpenseFieldDropdown>, 'shouldOpenInDropdown' | 'renderDropdown' | 'isInteractive' | 'value'>;
-jest.mock('@components/MoneyRequestConfirmationList/sections/ExpenseFieldDropdown', () => {
-    return ({shouldOpenInDropdown, renderDropdown, isInteractive, value}: ExpenseFieldDropdownMockProps) => {
+type DropdownFieldMockProps = Pick<ComponentProps<typeof DropdownField>, 'shouldOpenInDropdown' | 'renderDropdown' | 'isInteractive' | 'value'>;
+jest.mock('@components/DropdownField', () => {
+    return ({shouldOpenInDropdown, renderDropdown, isInteractive, value}: DropdownFieldMockProps) => {
         const {MODAL} = jest.requireActual<{default: typeof CONST}>('@src/CONST').default;
         mockShouldOpenInDropdown = shouldOpenInDropdown;
         mockIsInteractive = isInteractive;
@@ -247,17 +247,17 @@ describe('ReportField', () => {
         });
     });
 
-    it('preserves the report default and interaction when submitting a tracked expense', async () => {
-        // Given reports which are not valid creation destinations but remain usable by the submit flow
+    it('shows New report while keeping report selection interactive when submitting a tracked expense', async () => {
+        // Given open reports that the builder cannot select automatically
         await addNonReimbursableExpense(outstandingReport);
         await addNonReimbursableExpense(otherOutstandingReport);
 
-        // When submitting rather than creating the expense
+        // When submitting a tracked expense
         renderReportRow({action: CONST.IOU.ACTION.SUBMIT});
 
-        // Then creation-only restrictions do not change the existing field
+        // Then the default matches the builder while explicit report selection remains available
         await waitFor(() => {
-            expect(mockReportName).toBe(outstandingReport.reportName);
+            expect(mockReportName).toBe('iou.newReport');
             expect(mockIsInteractive).toBe(true);
         });
     });
