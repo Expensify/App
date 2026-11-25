@@ -49,6 +49,7 @@ import type * as OnyxTypes from '@src/types/onyx';
 
 import type * as ReactNavigation from '@react-navigation/native';
 import type ReactNative from 'react-native';
+import type {LayoutChangeEvent} from 'react-native';
 
 import React from 'react';
 import Onyx from 'react-native-onyx';
@@ -209,6 +210,7 @@ type MockInvertedFlashListProps = {
     renderItem?: (info: {item: OnyxTypes.ReportAction; index: number}) => React.ReactElement | null;
     onContentSizeChange?: () => void;
     onStartReached?: () => void;
+    onLayout?: (event: LayoutChangeEvent) => void;
     ListFooterComponent?: React.ReactNode;
 };
 
@@ -1607,9 +1609,7 @@ describe('ReportActionsList (body)', () => {
             const loadNewerChats = jest.fn();
             mockUseNetwork.mockReturnValue({isOffline: false});
             jest.mocked(useLoadReportActions).mockReturnValue({loadOlderChats: jest.fn(), loadNewerChats, currentReportOldestActionID: undefined});
-            jest.mocked(useActionListRef).mockReturnValue(
-                createMock<ReturnType<typeof useActionListRef>>({current: {getAbsoluteLastScrollOffset: () => scrollOffset, getWindowSize: () => ({width: 400, height: 800})}}),
-            );
+            jest.mocked(useActionListRef).mockReturnValue(createMock<ReturnType<typeof useActionListRef>>({current: {getAbsoluteLastScrollOffset: () => scrollOffset}}));
             mockUseOnyx.mockImplementation((key, options) => {
                 if (!key.startsWith(ONYXKEYS.COLLECTION.REPORT_PAGINATION_STATE)) {
                     return getMockOnyxValue(key, options);
@@ -1624,6 +1624,7 @@ describe('ReportActionsList (body)', () => {
                 </ReportActionsSkeletonGuard>
             );
             const view = render(renderList());
+            act(() => getCapturedListProps()?.onLayout?.(createMock<LayoutChangeEvent>({nativeEvent: {layout: {x: 0, y: 0, width: 400, height: 800}}})));
             return {loadNewerChats, rerender: () => view.rerender(renderList())};
         };
 

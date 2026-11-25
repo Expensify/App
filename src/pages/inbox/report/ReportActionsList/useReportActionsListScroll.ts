@@ -172,6 +172,7 @@ function useReportActionsListScroll({
 
     const [newestFetchedReportActionID] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_PAGINATION_STATE}${reportID}`, {selector: newestFetchedReportActionIDSelector});
     const requestedNewerCursorRef = useRef(newestFetchedReportActionID);
+    const listHeightRef = useRef(0);
 
     const loadNewerChatsAfterTransitions = () => {
         requestedNewerCursorRef.current = newestFetchedReportActionID;
@@ -189,12 +190,11 @@ function useReportActionsListScroll({
 
     // FlashList won't call onStartReached again while the user stays at the bottom, so ask for the next page when the cursor moves.
     useEffect(() => {
-        const list = listRef.current;
-        const listHeight = list?.getWindowSize?.().height ?? 0;
-        if (!hasNewerActions || !newestFetchedReportActionID || requestedNewerCursorRef.current === newestFetchedReportActionID || !list?.getAbsoluteLastScrollOffset || listHeight <= 0) {
+        if (!hasNewerActions || !newestFetchedReportActionID || requestedNewerCursorRef.current === newestFetchedReportActionID || listHeightRef.current <= 0) {
             return;
         }
-        if (list.getAbsoluteLastScrollOffset() > listHeight * START_REACHED_THRESHOLD) {
+        const scrollOffset = listRef.current?.getAbsoluteLastScrollOffset?.();
+        if (scrollOffset === undefined || scrollOffset > listHeightRef.current * START_REACHED_THRESHOLD) {
             return;
         }
         loadNewerChatsAfterTransitions();
@@ -227,6 +227,7 @@ function useReportActionsListScroll({
             onStartReached: hasNewerActions ? loadNewerChatsAfterTransitions : undefined,
             onStartReachedThreshold: START_REACHED_THRESHOLD,
             onLayout: (event: LayoutChangeEvent) => {
+                listHeightRef.current = event.nativeEvent.layout.height;
                 onLayout?.(event);
                 flushPendingScrollToBottom();
             },
