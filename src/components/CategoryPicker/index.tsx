@@ -11,16 +11,18 @@ import useLoadPolicyCategories from '@hooks/useLoadPolicyCategories';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import {usePersonalDetailsByIDs} from '@hooks/usePersonalDetails';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import canFocusInputOnScreenFocus from '@libs/canFocusInputOnScreenFocus';
 import {getCategoryListSections} from '@libs/CategoryOptionListUtils';
-import type {Category} from '@libs/CategoryOptionListUtils';
-import {canCreateCategoryFromSearch, getEnabledCategoriesCount, getVisibleCategories} from '@libs/CategoryUtils';
+import type {Category, CategoryTreeSection} from '@libs/CategoryOptionListUtils';
+import {canCreateCategoryFromSearch, getEnabledCategoriesCount, getUnavailableCategories, getVisibleCategories} from '@libs/CategoryUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getHeaderMessageForNonUserList, getNoneOption} from '@libs/OptionsListUtils';
 import type {OptionTree} from '@libs/OptionsListUtils/types';
+import {getDisplayNameForParticipant} from '@libs/ReportUtils';
 import StringUtils from '@libs/StringUtils';
 import {cancelSpan, endSpanWithAttributes} from '@libs/telemetry/activeSpans';
 
@@ -28,6 +30,7 @@ import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {PolicyCategories} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import getEmptyArray from '@src/types/utils/getEmptyArray';
 
@@ -74,11 +77,30 @@ type CategoryPickerProps = {
     ownerAccountID?: number;
 
     /**
+     * The account the expense belongs to, passed when someone else owns it, such as an admin or approver recoding it.
+     * When that member can't use every enabled category, the list is split into the categories available to them and
+     * the ones that aren't, so the admin can tell when they're overriding the member's visibility.
+     */
+    submitterAccountID?: number;
+
+    /**
      * Reports how many rows the unfiltered list renders, for a pop-over wrapper to size itself from. The category
      * count does not match: nested names add a row per parent, a selected out-of-policy category adds one, and
      * the `Recent` and `All` headings add one each. Only reported unfiltered, so searching never resizes it.
      */
     onRenderedRowCountChange?: (rowCount: number) => void;
+};
+
+/**
+ * Titles a group of sections built by getCategoryListSections: the first section with rows gets the group's title,
+ * since a section's title only shows when it has rows. Offsetting the indexes keeps the header keys unique across groups.
+ */
+/** Larger than any sectionIndex getCategoryListSections returns, so offset groups never share a header key */
+const SECTION_INDEX_OFFSET = 10;
+
+const titleSectionGroup = (sections: CategoryTreeSection[], title: string, sectionIndexOffset: number): CategoryTreeSection[] => {
+    const titledSectionIndex = sections.findIndex((section) => section.data.length > 0);
+    return sections.map((section, index) => ({...section, title: index === titledSectionIndex ? title : '', sectionIndex: (section.sectionIndex ?? 0) + sectionIndexOffset}));
 };
 
 const getSelectedOptions = (selectedCategory?: string): Category[] => {
@@ -107,6 +129,7 @@ function CategoryPicker({
     searchInputThreshold = CONST.STANDARD_LIST_ITEM_LIMIT,
     onRenderedRowCountChange,
     ownerAccountID,
+    submitterAccountID,
 }: CategoryPickerProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
@@ -124,7 +147,8 @@ function CategoryPicker({
     // Backfill the policy's categories on demand so lazy-loaded accounts don't get stuck showing only the selected category.
     const {isLoadingPolicyCategories} = useLoadPolicyCategories(policyID);
 
-    const {translate, localeCompare} = useLocalize();
+    const {translate, localeCompare, formatPhoneNumber} = useLocalize();
+    const [submitterPersonalDetails] = usePersonalDetailsByIDs([submitterAccountID]);
     const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('');
     const offlineMessage = isOffline ? `${translate('common.youAppearToBeOffline')} ${translate('search.resultsAreLimited')}` : '';
 
@@ -133,16 +157,53 @@ function CategoryPicker({
     const allCategories = policyCategories ?? policyCategoriesDraft ?? {};
     const categories = ownerAccountID === undefined ? allCategories : getVisibleCategories(allCategories, ownerAccountID);
     const validPolicyRecentlyUsedCategories = policyRecentlyUsedCategories?.filter?.((p) => !isEmptyObject(p));
-    const sections = getCategoryListSections({
-        searchValue: debouncedSearchValue,
-        selectedOptions,
-        categories,
-        localeCompare,
-        recentlyUsedCategories: validPolicyRecentlyUsedCategories,
-        translate,
-        shouldShowGLCode,
-        searchInputThreshold,
-    });
+    const unavailableCategories = submitterAccountID === undefined ? {} : getUnavailableCategories(allCategories, submitterAccountID);
+
+    let sections: CategoryTreeSection[];
+    if (submitterAccountID !== undefined && !isEmptyObject(unavailableCategories)) {
+        const submitterName = getDisplayNameForParticipant({
+            accountID: submitterAccountID,
+            personalDetailsData: submitterPersonalDetails,
+            formatPhoneNumber,
+            hiddenTranslation: translate('common.hidden'),
+        });
+        // As in the regular list, the current category comes first with no heading, so both groups leave it out
+        const selectedPolicyCategory = selectedCategory ? allCategories[selectedCategory] : undefined;
+        const withoutSelectedCategory = (groupCategories: PolicyCategories): PolicyCategories =>
+            Object.fromEntries(Object.entries(groupCategories).filter(([categoryName]) => categoryName !== selectedCategory));
+        // Each list is built on its own. Without the threshold, a long list would add its own "Recent" and "All"
+        // headings, which read as groups of their own and repeat recent categories inside the available group.
+        const buildSections = (groupCategories: PolicyCategories, groupSelectedOptions: Category[]) =>
+            getCategoryListSections({
+                searchValue: debouncedSearchValue,
+                selectedOptions: groupSelectedOptions,
+                categories: groupCategories,
+                localeCompare,
+                translate,
+                shouldShowGLCode,
+                searchInputThreshold: Number.POSITIVE_INFINITY,
+            });
+        const selectedSections = buildSections(selectedCategory && selectedPolicyCategory ? {[selectedCategory]: selectedPolicyCategory} : {}, selectedOptions);
+        const availableSections = buildSections(withoutSelectedCategory(getVisibleCategories(allCategories, submitterAccountID)), []);
+        const unavailableSections = buildSections(withoutSelectedCategory(unavailableCategories), []);
+        // The offsets keep each section's header key unique across the three lists
+        sections = [
+            ...selectedSections.map((section) => ({...section, title: ''})),
+            ...titleSectionGroup(availableSections, translate('workspace.categories.availableToMember', submitterName), SECTION_INDEX_OFFSET),
+            ...titleSectionGroup(unavailableSections, translate('workspace.categories.notAvailableToMember', submitterName), SECTION_INDEX_OFFSET * 2),
+        ];
+    } else {
+        sections = getCategoryListSections({
+            searchValue: debouncedSearchValue,
+            selectedOptions,
+            categories,
+            localeCompare,
+            recentlyUsedCategories: validPolicyRecentlyUsedCategories,
+            translate,
+            shouldShowGLCode,
+            searchInputThreshold,
+        });
+    }
 
     const noneOption: OptionTree[] = shouldShowNoneOption
         ? getNoneOption(debouncedSearchValue, !selectedCategory, translate).map((option): OptionTree => ({

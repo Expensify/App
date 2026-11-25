@@ -37,7 +37,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import {hasEnabledOptions} from '@libs/OptionsListUtils';
 import {canShowReimbursableToggleForPolicy, getCleanedTagName, getTagLists, hasDependentTags as hasDependentTagsPolicyUtils, resolveCurrentTaxCode} from '@libs/PolicyUtils';
 import {canEditFieldOfMoneyRequest, isInvoiceReport, isIOUReport, isReportApproved, isSettled} from '@libs/ReportUtils';
-import {getSearchBulkEditPolicyID} from '@libs/SearchUIUtils';
+import {getSearchBulkEditExpenseOwnerAccountID, getSearchBulkEditPolicyID} from '@libs/SearchUIUtils';
 import {getDependentTagVisibility, hasEnabledTags} from '@libs/TagsOptionsListUtils';
 import startOpenCategoryPickerSpan from '@libs/telemetry/startOpenCategoryPickerSpan';
 import {
@@ -201,6 +201,10 @@ function SearchEditMultiplePage() {
     });
 
     const policyID = getSearchBulkEditPolicyID(selectedTransactionIDs, activePolicyID, mergedTransactions, mergedReports);
+    // The category list is limited to the current user's categories when every expense is theirs, and split by what
+    // the owner can use when every expense belongs to one other member, as on the full-page category selector.
+    const selectedExpensesOwnerAccountID = getSearchBulkEditExpenseOwnerAccountID(selectedTransactionIDs, currentUserAccountID, mergedTransactions, mergedReports);
+    const isEverySelectedExpenseOwn = selectedExpensesOwnerAccountID === currentUserAccountID;
 
     const policy = policyID ? policies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`] : undefined;
     const policyCategories = allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`];
@@ -601,6 +605,8 @@ function SearchEditMultiplePage() {
                                         {...dropdownProps}
                                         policyID={policyID}
                                         selectedCategory={draftTransaction?.category ?? ''}
+                                        ownerAccountID={isEverySelectedExpenseOwn ? currentUserAccountID : undefined}
+                                        submitterAccountID={isEverySelectedExpenseOwn ? undefined : selectedExpensesOwnerAccountID}
                                     />
                                 )}
                                 sentryLabel={CONST.SENTRY_LABEL.SEARCH_EDIT_MULTIPLE.CATEGORY_FIELD}
