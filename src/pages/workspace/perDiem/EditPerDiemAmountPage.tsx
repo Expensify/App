@@ -13,7 +13,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {convertToBackendAmount, convertToFrontendAmountAsString} from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import {getPerDiemAmountError, getPerDiemAmountErrorMessage} from '@libs/PolicyPerDiemUtils';
+import {getAvailablePerDiemRate, getPerDiemAmountError, getPerDiemAmountErrorMessage} from '@libs/PolicyPerDiemUtils';
 import {getPerDiemCustomUnit} from '@libs/PolicyUtils';
 
 import type {SettingsNavigatorParamList} from '@navigation/types';
@@ -43,7 +43,7 @@ function EditPerDiemAmountPage({route}: EditPerDiemAmountPageProps) {
 
     const customUnit = getPerDiemCustomUnit(policy);
 
-    const selectedRate = customUnit?.rates?.[rateID];
+    const selectedRate = getAvailablePerDiemRate(customUnit?.rates?.[rateID]);
     const selectedSubrate = selectedRate?.subRates?.find((subRate) => subRate.id === subRateID);
 
     // We default to 2 decimals for per diem rates since we always store amounts to include 2 decimal places.

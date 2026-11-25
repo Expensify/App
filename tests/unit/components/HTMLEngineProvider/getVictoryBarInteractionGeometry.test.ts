@@ -20,6 +20,32 @@ function buildPoint(x: number, y: number): PointsArray[number] {
 }
 
 describe('getVictoryBarInteractionGeometry', () => {
+    it('should scale an explicit bar width with the scale the chart is rendered at', () => {
+        // Given a bar series that declares a 20px bar width, in a chart rendered at half its design size
+        const seriesConfig = {barWidth: 20};
+
+        // When the hit-test geometry is computed for the rendered chart
+        const geometry = getVictoryBarInteractionGeometry(buildPoint(100, 80), chartBounds, 5, seriesConfig, 0.5);
+
+        // Then the hit area is as wide as the bar that is drawn, which is scaled the same way
+        expect(geometry?.width).toBe(10);
+    });
+
+    it('should scale grouped bar widths and offsets with the scale the chart is rendered at', () => {
+        // Given two grouped bars that declare a width and a group offset in design pixels
+        const yKeys = ['y0', 'y1'] as YKey[];
+        const group = {yKeys, index: 1, barWidth: 20, offsetAttribute: '24'};
+        const designGeometry = getVictoryBarInteractionGeometry(buildPoint(200, 80), chartBounds, 2, {group});
+
+        // When the same chart is rendered at half its design size, with its bounds and points halved
+        const scaledBounds: ChartBounds = {left: 0, right: 200, top: 0, bottom: 150};
+        const scaledGeometry = getVictoryBarInteractionGeometry(buildPoint(100, 40), scaledBounds, 2, {group}, 0.5);
+
+        // Then the hit area is the design one at half size, so it stays on the drawn bar
+        expect(scaledGeometry?.width).toBeCloseTo((designGeometry?.width ?? 0) / 2);
+        expect(scaledGeometry?.x).toBeCloseTo((designGeometry?.x ?? 0) / 2);
+    });
+
     it('uses the same fallback width formula as victory-native Bar', () => {
         const geometry = getVictoryBarInteractionGeometry(buildPoint(100, 80), chartBounds, 5);
 

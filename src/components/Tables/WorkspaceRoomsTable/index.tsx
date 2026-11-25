@@ -6,10 +6,12 @@ import Table, {composeTableListHeader} from '@components/Table';
 import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
 import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import {fontScale} from '@styles/typography';
 import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
@@ -67,6 +69,7 @@ function WorkspaceRoomsTable({
     const {translate, localeCompare} = useLocalize();
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
     const {environmentURL} = useEnvironment();
+    const {isOffline} = useNetwork();
     const tableRef = useRef<TableHandle<WorkspaceRoomRowData, WorkspaceRoomsTableColumnKey>>(null);
     const [roomsMetadata] = useOnyx(ONYXKEYS.POLICY_ROOMS_METADATA, {
         selector: (value) => value?.[policyID],
@@ -106,10 +109,24 @@ function WorkspaceRoomsTable({
         tableRef.current?.highlightItems([highlightedRow.keyForList]);
     }, [highlightedReportID, rooms]);
 
-    const columns: Array<TableColumn<WorkspaceRoomsTableColumnKey>> = [
-        {key: 'name', label: translate('common.name'), sortable: true},
+    const columns: Array<TableColumn<WorkspaceRoomsTableColumnKey, WorkspaceRoomRowData>> = [
+        {
+            key: 'name',
+            label: translate('common.name'),
+            sortable: true,
+            dynamicSizing: {
+                getContentToMeasure: (item) => [{text: item.name, fontSize: fontScale.text}],
+                extraWidth: variables.tableMemberCellAvatarWidth,
+            },
+        },
         {key: 'members', label: translate('common.members'), width: variables.workspaceRoomsMembersColumnWidth, sortable: true},
-        {key: 'actions', label: '', width: variables.workspaceRoomsActionsColumnWidth, styling: {containerStyles: [styles.justifyContentEnd, styles.pr3]}, sortable: false},
+        {
+            key: 'actions',
+            label: '',
+            width: variables.workspaceRoomsActionsColumnWidth,
+            styling: {alignment: CONST.SEARCH.TABLE_COLUMN_ALIGNMENT.END, containerStyles: [styles.pr3]},
+            sortable: false,
+        },
     ];
 
     const compareItems: CompareItemsCallback<WorkspaceRoomRowData, WorkspaceRoomsTableColumnKey> = (a, b, activeSorting) => {
@@ -141,7 +158,8 @@ function WorkspaceRoomsTable({
         </View>
     ) : undefined;
 
-    if (!roomsMetadata?.isLoaded) {
+    // Requests cannot complete offline, so show cached or optimistic rooms (or the empty state) instead of a loading skeleton that would never resolve.
+    if (!roomsMetadata?.isLoaded && !isOffline) {
         // The page header stays visible above the loading skeleton so the layout doesn't jump once the table renders.
         return (
             <>
@@ -156,6 +174,8 @@ function WorkspaceRoomsTable({
     return (
         <Table
             ref={tableRef}
+            shouldUseDynamicColumns
+            columnResizingID={CONST.TABLES.COLUMN_RESIZING_IDS.WORKSPACE_ROOMS}
             data={rooms}
             columns={columns}
             renderItem={renderItem}

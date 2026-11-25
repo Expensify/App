@@ -9,11 +9,15 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {convertToShortDisplayString} from '@libs/CurrencyUtils';
 import DateUtils from '@libs/DateUtils';
 
+import InsightsChangeBadge from '@pages/Insights/InsightsChangeBadge';
+
 import CONST from '@src/CONST';
 import type {AIInsightChip} from '@src/types/onyx';
 
 import React from 'react';
-import {View} from 'react-native';
+
+const SECONDS_PER_HOUR = 60 * 60;
+const MINIMUM_HOURS = 0.1;
 
 type InsightsAIChipProps = {
     chip: AIInsightChip;
@@ -25,7 +29,7 @@ function InsightsAIChip({chip}: InsightsAIChipProps) {
     const theme = useTheme();
     const StyleUtils = useStyleUtils();
     const {translate, numberFormat} = useLocalize();
-    const icons = useMemoizedLazyExpensifyIcons(['ArrowUpLong', 'ArrowDownLong', 'Coins', 'Clock', 'Flag']);
+    const icons = useMemoizedLazyExpensifyIcons(['Coins', 'Clock', 'Flag']);
 
     let value: string;
     let neutralIcon = icons.Coins;
@@ -37,10 +41,25 @@ function InsightsAIChip({chip}: InsightsAIChipProps) {
             value = numberFormat(chip.value);
             neutralIcon = icons.Flag;
             break;
-        case CONST.INSIGHTS.AI_INSIGHT.CHIP_UNIT.DURATION:
-            value = DateUtils.formatAverageDuration(chip.value, translate, numberFormat, true);
-            neutralIcon = icons.Clock;
+        case CONST.INSIGHTS.AI_INSIGHT.CHIP_UNIT.DURATION: {
+            if (chip.type === CONST.INSIGHTS.AI_INSIGHT.CHIP_TYPE.NEUTRAL) {
+                value = DateUtils.formatAverageDuration(chip.value, translate, numberFormat, true);
+                neutralIcon = icons.Clock;
+                break;
+            }
+            const isUnderADay = chip.value < CONST.DATE.SECONDS_PER_DAY;
+            const duration = chip.value / (isUnderADay ? SECONDS_PER_HOUR : CONST.DATE.SECONDS_PER_DAY);
+            // Use "<0.1 hours" so rounding doesn't hide small but real changes.
+            const isBelowPrecision = isUnderADay && duration > 0 && duration < MINIMUM_HOURS;
+            const formattedDuration = numberFormat(isBelowPrecision ? MINIMUM_HOURS : duration, {
+                style: 'unit',
+                unit: isUnderADay ? 'hour' : 'day',
+                unitDisplay: 'long',
+                maximumFractionDigits: 1,
+            });
+            value = isBelowPrecision ? `<${formattedDuration}` : formattedDuration;
             break;
+        }
         default:
             value = numberFormat(chip.value / 100, {style: 'percent', maximumFractionDigits: 0});
     }
@@ -57,22 +76,12 @@ function InsightsAIChip({chip}: InsightsAIChipProps) {
         );
     }
 
-    const isIncrease = chip.direction === CONST.INSIGHTS.AI_INSIGHT.CHIP_DIRECTION.INCREASE;
-
     return (
-        <View
+        <InsightsChangeBadge
+            text={value}
+            isIncrease={chip.direction === CONST.INSIGHTS.AI_INSIGHT.CHIP_DIRECTION.INCREASE}
             style={styles.alignSelfStart}
-            accessible
-            accessibilityLabel={translate(isIncrease ? 'insightsPage.compare.increase' : 'insightsPage.compare.decrease', value)}
-        >
-            <Badge
-                text={value}
-                icon={isIncrease ? icons.ArrowUpLong : icons.ArrowDownLong}
-                error={isIncrease}
-                success={!isIncrease}
-                badgeStyles={styles.ml0}
-            />
-        </View>
+        />
     );
 }
 

@@ -396,7 +396,7 @@ function ImportedMembersPage({route}: ImportedMembersPageProps) {
             Navigation.navigate(isWorkflowsImport ? ROUTES.WORKSPACE_WORKFLOWS_IMPORTED_CONFIRMATION.getRoute(policyID) : ROUTES.WORKSPACE_MEMBERS_IMPORTED_CONFIRMATION.getRoute(policyID));
         } else {
             setIsImporting(true);
-            const importFinalModal = await importPolicyMembers(policy, allMembers, shouldShowMemberRolePermissionWarning, rules);
+            const importFinalModal = await importPolicyMembers(policy, allMembers, shouldShowMemberRolePermissionWarning, rules, currentUserLogin);
             const didShowImportFinalModal = await showImportSpreadsheetConfirmModal(importFinalModal, {onModalHide: navigateBackToMembers});
             if (!didShowImportFinalModal) {
                 setIsImporting(false);

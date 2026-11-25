@@ -42,7 +42,6 @@ import {retractReport, setPreferredReportSubmissionMethod, submitReport} from '@
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {loginSelector} from '@src/selectors/PersonalDetails';
 
 import type {ValueOf} from 'type-fest';
 
@@ -97,7 +96,8 @@ function SubmitPrimaryActionContent({reportID, isDisabled}: SubmitPrimaryActionP
     const isChatReportArchived = useReportIsArchived(moneyRequestReport?.chatReportID);
     const [chatArchiveReason] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(moneyRequestReport?.chatReportID)}`, {selector: getArchiveReason});
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(moneyRequestReport?.policyID)}`);
-    const [submitterLogin] = usePersonalDetail(moneyRequestReport?.ownerAccountID, loginSelector);
+    const [submitterPersonalDetails] = usePersonalDetail(moneyRequestReport?.ownerAccountID);
+    const submitterLogin = submitterPersonalDetails?.login;
     const [userBillingGracePeriodEnds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
     const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
     const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
@@ -109,6 +109,7 @@ function SubmitPrimaryActionContent({reportID, isDisabled}: SubmitPrimaryActionP
     const [preferredSubmissionMethod] = useOnyx(`${ONYXKEYS.COLLECTION.NVP_PREFERRED_REPORT_SUBMISSION_METHOD}${getNonEmptyStringOnyxID(moneyRequestReport?.policyID)}`);
 
     const getPersonalDetailsByLogin = useGetPersonalDetailsByLogin();
+
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const {transactions: reportTransactions, violations} = useTransactionsAndViolationsForReport(moneyRequestReport?.reportID);
     const transactions = Object.values(reportTransactions);
@@ -130,7 +131,7 @@ function SubmitPrimaryActionContent({reportID, isDisabled}: SubmitPrimaryActionP
 
     const {showConfirmModal} = useConfirmModal();
 
-    const isBlockSubmitDueToPreventSelfApproval = shouldBlockSubmitDueToPreventSelfApproval(moneyRequestReport, policy, rules);
+    const isBlockSubmitDueToPreventSelfApproval = shouldBlockSubmitDueToPreventSelfApproval(moneyRequestReport, policy, rules, submitterPersonalDetails);
     const isBlockSubmitDueToStrictPolicyRules = shouldBlockSubmitDueToStrictPolicyRules(
         moneyRequestReport?.reportID,
         violations,
@@ -138,6 +139,8 @@ function SubmitPrimaryActionContent({reportID, isDisabled}: SubmitPrimaryActionP
         accountID,
         email ?? '',
         transactions,
+        moneyRequestReport,
+        policy,
     );
     const isBlockSubmitDueToDeletedWorkspace = shouldBlockSubmitDueToDeletedWorkspace(isChatReportArchived, chatArchiveReason);
     const shouldBlockSubmit = isBlockSubmitDueToStrictPolicyRules || isBlockSubmitDueToPreventSelfApproval || isBlockSubmitDueToDeletedWorkspace;
@@ -153,7 +156,7 @@ function SubmitPrimaryActionContent({reportID, isDisabled}: SubmitPrimaryActionP
 
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Send', 'Document']);
 
-    const handleSubmit = (shouldExportToPDF = false) => {
+    const handleSubmit = (shouldExportToPDF = false, shouldDeferForPopoverDismiss = false) => {
         if (!moneyRequestReport || shouldBlockSubmit) {
             return;
         }
@@ -171,66 +174,83 @@ function SubmitPrimaryActionContent({reportID, isDisabled}: SubmitPrimaryActionP
         }
 
         if (!shouldExportToPDF && isSubmitPolicy(policy) && reportID) {
-            confirmSubmitReportViolations((shouldResolveAcknowledgedViolations) => {
-                openReportSubmitToPopover({shouldResolveAcknowledgedViolations});
-            });
+            confirmSubmitReportViolations(
+                (shouldResolveAcknowledgedViolations) => {
+                    openReportSubmitToPopover({shouldResolveAcknowledgedViolations});
+                },
+                {shouldDeferForPopoverDismiss},
+            );
             return;
         }
 
-        confirmSubmitReportViolations((shouldResolveAcknowledgedViolations) => {
-            submitReport({
-                getCurrencyDecimals,
-                expenseReport: moneyRequestReport,
-                expenseReportTransactions: transactions,
-                policy,
-                rules,
-                currentUserAccountIDParam: accountID,
-                currentUserEmailParam: email ?? '',
-                hasViolations,
-                isASAPSubmitBetaEnabled,
-                userBillingGracePeriodEnds,
-                amountOwed,
-                shouldResolveAcknowledgedViolations,
-                // Open the PDF download modal only once submitReport commits to running (it fires onSubmitted after its
-                // billing-restriction guard), so a restricted account that bails out early doesn't leave the modal stuck.
-                onSubmitted: () => {
-                    startSubmittingAnimation();
-                    if (shouldExportToPDF) {
-                        // If the user cancels while the PDF is still generating, discard the submission (retract it back
-                        // to draft) so they can resubmit — matching the pre-submit-via-PDF behavior.
-                        openPDFDownload().then((result) => {
-                            if (result?.action !== ModalActions.CLOSE) {
-                                return;
-                            }
+        confirmSubmitReportViolations(
+            (shouldResolveAcknowledgedViolations) => {
+                submitReport({
+                    getCurrencyDecimals,
+                    expenseReport: moneyRequestReport,
+                    expenseReportTransactions: transactions,
+                    policy,
+                    rules,
+                    currentUserAccountIDParam: accountID,
+                    currentUserEmailParam: email ?? '',
+                    hasViolations,
+                    isASAPSubmitBetaEnabled,
+                    userBillingGracePeriodEnds,
+                    amountOwed,
+                    shouldResolveAcknowledgedViolations,
+                    // Open the PDF download modal only once submitReport commits to running (it fires onSubmitted after its
+                    // billing-restriction guard), so a restricted account that bails out early doesn't leave the modal stuck.
+                    onSubmitted: () => {
+                        startSubmittingAnimation();
+                        if (shouldExportToPDF) {
+                            // If the user cancels while the PDF is still generating, discard the submission (retract it back
+                            // to draft) so they can resubmit — matching the pre-submit-via-PDF behavior.
+                            openPDFDownload().then((result) => {
+                                if (result?.action !== ModalActions.CLOSE) {
+                                    return;
+                                }
 
-                            // Stop the "Submitted" animation in lockstep with the retract so the header goes straight
-                            // back to the Submit button instead of finishing the animation on a report that is open again.
-                            stopAnimation();
-                            retractReport(moneyRequestReport, chatReport, policy, accountID, email ?? '', hasViolations, isASAPSubmitBetaEnabled, delegateEmail, isTrackIntentUser, rules);
-                        });
-                    }
-                },
-                ownerBillingGracePeriodEnd,
-                delegateEmail,
-                delegateAccountID,
-                shouldExportToPDF,
-                submitterLogin,
-                personalDetailsByLogins: getPersonalDetailsByLogin(),
-                // Submit via PDF submits the report to the submitter (self); the backend keys off this to generate the PDF.
-                managerEmail: shouldExportToPDF ? email : undefined,
-                isTrackIntentUser,
-            });
-            if (currentSearchQueryJSON && !isOffline) {
-                search({
-                    searchKey: currentSearchKey,
-                    shouldCalculateTotals,
-                    offset: 0,
-                    queryJSON: currentSearchQueryJSON,
-                    isLoading: !!currentSearchResults?.search?.isLoading,
-                    shouldReturnTripRooms,
+                                // Stop the "Submitted" animation in lockstep with the retract so the header goes straight
+                                // back to the Submit button instead of finishing the animation on a report that is open again.
+                                stopAnimation();
+                                retractReport(
+                                    moneyRequestReport,
+                                    chatReport,
+                                    policy,
+                                    accountID,
+                                    email ?? '',
+                                    hasViolations,
+                                    isASAPSubmitBetaEnabled,
+                                    delegateEmail,
+                                    isTrackIntentUser,
+                                    rules,
+                                );
+                            });
+                        }
+                    },
+                    ownerBillingGracePeriodEnd,
+                    delegateEmail,
+                    delegateAccountID,
+                    shouldExportToPDF,
+                    submitterLogin,
+                    personalDetailsByLogins: getPersonalDetailsByLogin(),
+                    // Submit via PDF submits the report to the submitter (self); the backend keys off this to generate the PDF.
+                    managerEmail: shouldExportToPDF ? email : undefined,
+                    isTrackIntentUser,
                 });
-            }
-        });
+                if (currentSearchQueryJSON && !isOffline) {
+                    search({
+                        searchKey: currentSearchKey,
+                        shouldCalculateTotals,
+                        offset: 0,
+                        queryJSON: currentSearchQueryJSON,
+                        isLoading: !!currentSearchResults?.search?.isLoading,
+                        shouldReturnTripRooms,
+                    });
+                }
+            },
+            {shouldDeferForPopoverDismiss},
+        );
     };
 
     // While the submit animation is running, fall through to AnimatedSubmitButton so it can play the animation and call
@@ -244,7 +264,7 @@ function SubmitPrimaryActionContent({reportID, isDisabled}: SubmitPrimaryActionP
                 sentryLabel: CONST.SENTRY_LABEL.REPORT.MONEY_REPORT_HEADER_SUBMIT_MENU.SUBMIT,
                 onSelected: () => {
                     setPreferredReportSubmissionMethod(moneyRequestReport?.policyID, CONST.REPORT.SUBMISSION_METHOD.SUBMIT);
-                    handleSubmit();
+                    handleSubmit(false, true);
                 },
             },
             {
@@ -254,7 +274,7 @@ function SubmitPrimaryActionContent({reportID, isDisabled}: SubmitPrimaryActionP
                 sentryLabel: CONST.SENTRY_LABEL.REPORT.MONEY_REPORT_HEADER_SUBMIT_MENU.SUBMIT_VIA_PDF,
                 onSelected: () => {
                     setPreferredReportSubmissionMethod(moneyRequestReport?.policyID, CONST.REPORT.SUBMISSION_METHOD.SUBMIT_VIA_PDF);
-                    handleSubmit(true);
+                    handleSubmit(true, true);
                 },
             },
         ];

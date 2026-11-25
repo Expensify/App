@@ -1,6 +1,5 @@
 import useSingleExecution from '@hooks/useSingleExecution';
 
-import castToSentryLabel from '@libs/castToSentryLabel';
 import mergeRefs from '@libs/mergeRefs';
 
 import {showContextMenu} from '@pages/inbox/report/ContextMenu/ReportActionContextMenu';
@@ -86,7 +85,17 @@ function MenuItemList({menuItems = [], shouldUseSingleExecution = false, wrapper
 
     return (
         // ref is accessed for MenuItem's ref initialization
-        menuItems.map(({key, ref, onPress, onSecondaryInteraction, sentryLabel, ...menuItemProps}) => {
+        menuItems.map(({key, ref, onPress, onSecondaryInteraction, sentryLabel, link, ...menuItemProps}) => {
+            const linkSecondaryInteraction = link === undefined ? undefined : (event: GestureResponderEvent | MouseEvent) => secondaryInteraction(link, event);
+            // The item's type requires a label with a handler or a link, so the label is passed on together with them.
+            const pressProps =
+                onPress || onSecondaryInteraction || link !== undefined
+                    ? {
+                          sentryLabel,
+                          onPress: shouldUseSingleExecution ? singleExecution(onPress) : onPress,
+                          onSecondaryInteraction: onSecondaryInteraction ?? linkSecondaryInteraction,
+                      }
+                    : {};
             return (
                 <OfflineWithFeedback
                     key={key ?? menuItemProps.title}
@@ -98,19 +107,14 @@ function MenuItemList({menuItems = [], shouldUseSingleExecution = false, wrapper
                     <MenuItem
                         key={key ?? menuItemProps.title}
                         wrapperStyle={wrapperStyle}
-                        shouldShowContextMenuHint={menuItemProps.shouldShowContextMenuHint ?? menuItemProps.link !== undefined}
+                        shouldShowContextMenuHint={menuItemProps.shouldShowContextMenuHint ?? link !== undefined}
                         ref={mergeRefs(ref, popoverAnchor)}
-                        shouldBlockSelection={!!menuItemProps.link}
+                        shouldBlockSelection={!!link}
                         icon={icon}
                         iconWidth={iconWidth}
                         iconHeight={iconHeight}
                         {...menuItemProps}
-                        sentryLabel={castToSentryLabel(sentryLabel)}
-                        onPress={shouldUseSingleExecution ? singleExecution(onPress) : onPress}
-                        onSecondaryInteraction={
-                            onSecondaryInteraction ??
-                            (menuItemProps.link !== undefined ? (event: GestureResponderEvent | MouseEvent) => secondaryInteraction(menuItemProps.link, event) : undefined)
-                        }
+                        {...pressProps}
                         disabled={!!menuItemProps.disabled || isExecuting}
                         shouldGreyOutWhenDisabled={menuItemProps.shouldGreyOutWhenDisabled ?? !!menuItemProps.disabled}
                         isFocused={isFocused}

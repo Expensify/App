@@ -247,6 +247,7 @@ describe('ImportedMembersPage', () => {
             [expect.objectContaining({email: 'new-member@example.com', role: CONST.POLICY.ROLE.USER})],
             true,
             {},
+            expect.any(String),
         );
         expect(Navigation.navigate).not.toHaveBeenCalledWith(expect.stringContaining('/imported/confirmation'));
     });
@@ -422,6 +423,6 @@ describe('ImportedMembersPage', () => {
 
         // Then the approver header isn't mapped, because the workflow it would set up couldn't route anything yet, so the
         // member is imported right away without approvers
-        expect(importPolicyMembersSpy).toHaveBeenCalledWith(expect.objectContaining({id: POLICY_ID}), [{email: 'member@example.com', role: ''}], false, {});
+        expect(importPolicyMembersSpy).toHaveBeenCalledWith(expect.objectContaining({id: POLICY_ID}), [{email: 'member@example.com', role: ''}], false, {}, expect.any(String));
     });
 });
