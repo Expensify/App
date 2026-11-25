@@ -228,11 +228,11 @@ function AccessOrNotFoundWrapper({
 
     // We only update the feature state if it isn't pending.
     // This is because the feature state changes several times during the creation of a workspace, while we are waiting for a response from the backend.
-    // Without this, we can be unexpectedly navigated to the More Features page.
-    const shouldRedirectToMoreFeatures = isFocused && !isEmptyObject(policy) && !isFeatureEnabled && !(pendingField && !isOffline) && !shouldShowNotFoundPage;
+    // Without this, we can be unexpectedly navigated to the page where the feature is turned on.
+    const shouldRedirectToFeatureSettings = isFocused && !isEmptyObject(policy) && !isFeatureEnabled && !(pendingField && !isOffline) && !shouldShowNotFoundPage;
 
     useEffect(() => {
-        if (!shouldRedirectToMoreFeatures) {
+        if (!shouldRedirectToFeatureSettings) {
             return;
         }
 
@@ -244,7 +244,7 @@ function AccessOrNotFoundWrapper({
         });
         // We don't need to run the effect on policyID change as we only use it to get the route to navigate to.
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [shouldRedirectToMoreFeatures]);
+    }, [shouldRedirectToFeatureSettings]);
 
     useEffect(() => {
         if (isLoadingReportData || !isPolicyNotAccessible) {
@@ -256,9 +256,9 @@ function AccessOrNotFoundWrapper({
     if (shouldShowFullScreenLoadingIndicator) {
         return <FullscreenLoadingIndicator shouldUseGoBackButton={shouldUseNarrowLayout} />;
     }
-    // The feature linked to this page is disabled, so the redirect effect above will navigate to the More Features page.
+    // The feature linked to this page is disabled, so the redirect effect above will navigate to where it can be turned on.
     // Render a loader instead of the page's children so the disabled page is never shown for a frame (avoids a visible flash).
-    if (shouldRedirectToMoreFeatures) {
+    if (shouldRedirectToFeatureSettings) {
         return <FullscreenLoadingIndicator shouldUseGoBackButton={shouldUseNarrowLayout} />;
     }
     if (shouldShowNotFoundPage) {

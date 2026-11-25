@@ -7,6 +7,7 @@ import useAttachmentErrors from '@components/Attachments/AttachmentView/useAttac
 import type {Attachment} from '@components/Attachments/types';
 import BlockingView from '@components/BlockingViews/BlockingView';
 import Button from '@components/Button';
+import FSClassView from '@components/FSClassView';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 
 import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
@@ -15,12 +16,14 @@ import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import useParentReportAction from '@hooks/useParentReportAction';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import FS from '@libs/Fullstory';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import getPlatform from '@libs/getPlatform';
-import {getOriginalMessage, getReportAction, isMoneyRequestAction} from '@libs/ReportActionsUtils';
+import {getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {hasEReceipt, hasReceiptSource} from '@libs/TransactionUtils';
 import type {AvatarSource} from '@libs/UserAvatarUtils';
 
@@ -103,7 +106,7 @@ function AttachmentModalBaseContent({
     }, [isAuthTokenRequired]);
 
     const [isConfirmButtonDisabled, setIsConfirmButtonDisabled] = useState(false);
-    const parentReportAction = getReportAction(report?.parentReportID, report?.parentReportActionID);
+    const parentReportAction = useParentReportAction(report);
     const transactionID = isMoneyRequestAction(parentReportAction) ? getOriginalMessage(parentReportAction)?.IOUTransactionID : undefined;
     const [transactionFromOnyx] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transactionID)}`);
     const transaction = transactionProp ?? transactionFromOnyx;
@@ -291,7 +294,11 @@ function AttachmentModalBaseContent({
                 shouldOverlayDots
                 subTitleLink={currentAttachmentLink ?? ''}
             />
-            <View style={[styles.imageModalImageCenterContainer, attachmentViewContainerStyles]}>
+            {/* The modal renders outside the chat's masked views, so attachments opened from a masked chat take its class here */}
+            <FSClassView
+                style={[styles.imageModalImageCenterContainer, attachmentViewContainerStyles]}
+                forwardedFSClass={isEmptyObject(report) ? undefined : FS.getChatFSClass(report)}
+            >
                 {isLoading && (
                     <View style={[StyleSheet.absoluteFill, styles.fullScreenLoading]}>
                         <ActivityIndicator
@@ -312,7 +319,7 @@ function AttachmentModalBaseContent({
                     />
                 )}
                 {shouldDisplayContent && (customAttachmentContent ?? Content)}
-            </View>
+            </FSClassView>
             {!!footerActionButtons && (
                 <LayoutAnimationConfig skipEntering>
                     <Animated.View

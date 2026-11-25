@@ -51,6 +51,9 @@ type TabSelectorBaseItem<K extends string = string> = WithRequiredSentryLabel & 
     /** Whether the tab's badge should render in the error (red) style instead of success (green). */
     isBadgeError?: boolean;
 
+    /** Renders a standalone error dot, independent of the badge styled by `isBadgeError`. */
+    shouldShowRedDotIndicator?: boolean;
+
     /** Whether this tab is disabled */
     isDisabled?: boolean;
 
@@ -160,6 +163,9 @@ type TabSelectorItemProps = WithRequiredSentryLabel & {
 
     /** Whether the tab's badge should render in the error (red) style instead of success (green). */
     isBadgeError?: boolean;
+
+    /** Renders a standalone error dot, independent of the badge styled by `isBadgeError`. */
+    shouldShowRedDotIndicator?: boolean;
 
     /** Whether this tab is disabled */
     isDisabled?: boolean;
