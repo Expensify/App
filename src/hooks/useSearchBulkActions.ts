@@ -7,7 +7,7 @@ import {useAllReportsTransactionsAndViolations} from '@components/OnyxListItemPr
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import {useOpenSearchReportSubmitToPopover} from '@components/ReportSubmitToPopoverAnchor';
 import {useSearchQueryContext, useSearchResultsContext, useSearchSelectionActions, useSearchSelectionContext} from '@components/Search/SearchContext';
-import {getClaimedGroupKey, getRowsCheckedInExcludedGroups, getSearchGroupCountByKey, mergeRowsIntoPartlyLoadedGroups} from '@components/Search/selectionBuilders';
+import {getClaimedGroupKeys, getRowsCheckedInExcludedGroups, getSearchGroupCountByKey, mergeRowsIntoPartlyLoadedGroups} from '@components/Search/selectionBuilders';
 import type {ASTNode, BulkPaySelectionData, PaymentData, SearchColumnType, SearchGroupBy, SearchQueryJSON, SelectedReports, SelectedTransactions} from '@components/Search/types';
 
 import {getAccountingIntegrationDisplayName, getExportLabelForConnection, isIntuitEnterpriseSuiteConnection} from '@libs/AccountingUtils';
@@ -257,7 +257,7 @@ function getRestrictedPolicyID(
 }
 
 function isGroupSelection(key: string, transaction: SelectedTransactions[string]): boolean {
-    return key.startsWith(CONST.SEARCH.GROUP_PREFIX) || (!!transaction.isSelectedViaGroup && !!transaction.groupKey);
+    return key.startsWith(CONST.SEARCH.GROUP_PREFIX) || (!!transaction.isSelectedViaGroup && !!transaction.groupKey) || getClaimedGroupKeys(transaction).length > 0;
 }
 
 /**
@@ -357,13 +357,14 @@ function getFullyDeletedGroupKeysByTransactionID(selectedTransactions: SelectedT
 /**
  * Groups the user selected through a group header, including when `limit:` left children unloaded.
  * Export uses this instead of `getSelectedGroupKeys`, which only covers a whole-group delete.
+ * Where groups share expenses, a group whose rows are all stored under another group is read from those rows' other claims.
  */
 function getGroupKeysSelectedViaGroup(selectedTransactions: SelectedTransactions): SearchGroupKey[] {
     const groupKeys = new Set<SearchGroupKey>();
 
     for (const [key, transaction] of Object.entries(selectedTransactions)) {
-        const groupKey = isGroupEntry(key) ? key : getClaimedGroupKey(transaction);
-        if (groupKey) {
+        // A group's own entry can also carry the other groups its merged rows claimed
+        for (const groupKey of isGroupEntry(key) ? [key, ...getClaimedGroupKeys(transaction)] : getClaimedGroupKeys(transaction)) {
             groupKeys.add(groupKey);
         }
     }
@@ -2155,15 +2156,18 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             }
 
             const reports = expensePayments.flatMap((params) => (params.iouReport?.reportID ? [params.iouReport] : []));
-            const quotedReports = expensePayments.flatMap((params) => (params.iouReport?.reportID && shouldGetWiseQuote(params) ? [params.iouReport] : []));
+            const quotedPayments = expensePayments.filter((params) => !!params.iouReport?.reportID && shouldGetWiseQuote(params));
+            const quotedReportIDs = quotedPayments.flatMap((params) => (params.iouReport?.reportID ? [params.iouReport.reportID] : []));
             const getQuotes = () => {
-                for (const report of quotedReports) {
+                for (const {iouReport: report, policy} of quotedPayments) {
+                    if (!report) {
+                        continue;
+                    }
                     // Search results don't hold the quote, which the server merges into the report in Onyx
-                    getWiseQuote({...report, ...allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`]}, true);
+                    getWiseQuote({...report, ...allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`]}, true, policy?.globalReimbursementFXPreferCompany);
                 }
             };
             getQuotes();
-            const quotedReportIDs = quotedReports.map((report) => report.reportID);
             // Bulk pay runs while the pay popover is still dismissing, and iOS can't present a modal until it's gone
             deferModalPresentationAfterPopoverDismiss(() => {
                 showWiseQuoteCarouselModal({

@@ -1,5 +1,6 @@
 import {act, render} from '@testing-library/react-native';
 
+import {resetPendingSharedGroupRequestsForTesting} from '@components/Search/hooks/useSharedGroupSelectionTotal';
 import SearchSelectionFooter, {resetAnsweredFooterTotalsForTesting} from '@components/Search/SearchSelectionFooter';
 import type {SearchFooterCount, SearchFooterTotal, SearchQueryJSON, SelectedReports, SelectedTransactionInfo, SelectedTransactions} from '@components/Search/types';
 
@@ -8,7 +9,7 @@ import {buildSearchQueryJSON, isSearchQuerySavable} from '@libs/SearchQueryUtils
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {SearchResults} from '@src/types/onyx';
+import type {SearchResults, Transaction} from '@src/types/onyx';
 
 import Onyx from 'react-native-onyx';
 
@@ -199,6 +200,7 @@ describe('SearchSelectionFooter', () => {
         mockShouldUseLiveData.current = false;
         mockIsOffline.current = false;
         resetAnsweredFooterTotalsForTesting();
+        resetPendingSharedGroupRequestsForTesting();
         setSearchQuery('type:expense');
         mockSelectedTransactions.current = {transaction1: buildSelectedTransaction(SELECTED_EXPENSE_CURRENCY)};
         mockExcludedTransactions.current = {};
@@ -440,6 +442,201 @@ describe('SearchSelectionFooter', () => {
             // Then the row's conversion is requested, and the footer stays on the default currency until it arrives
             expect(getFooterConvertedAmounts).toHaveBeenCalledWith(expect.objectContaining({targetCurrency: CONST.CURRENCY.EUR, transactionIDList: 'transaction1'}));
             expect(mockCapturedFooterProps.current?.currency).toBe(CONST.CURRENCY.USD);
+        });
+    });
+
+    describe('violation groups that share an expense', () => {
+        const missingCategoryKey = `${CONST.SEARCH.GROUP_PREFIX}${CONST.VIOLATIONS.MISSING_CATEGORY}`;
+        const receiptRequiredKey = `${CONST.SEARCH.GROUP_PREFIX}${CONST.VIOLATIONS.RECEIPT_REQUIRED}`;
+
+        beforeEach(() => {
+            // Each group holds the same one expense, which has both violations
+            setSearchQuery(`type:expense group-by:${CONST.SEARCH.GROUP_BY.VIOLATION}`);
+            mockCurrentSearchResults.current = {
+                data: {
+                    [missingCategoryKey]: {violation: CONST.VIOLATIONS.MISSING_CATEGORY, count: 1, total: 300, currency: CONST.CURRENCY.USD},
+                    [receiptRequiredKey]: {violation: CONST.VIOLATIONS.RECEIPT_REQUIRED, count: 1, total: 300, currency: CONST.CURRENCY.USD},
+                },
+            };
+        });
+
+        /** The union request the footer sent, which the server answers under that query's own hash. */
+        function getUnionRequest() {
+            // A footer in another currency also converts the groups and rows one by one, so the union is the request for a search total
+            const request = jest
+                .mocked(getFooterConvertedAmounts)
+                .mock.calls.map(([params]) => params)
+                .findLast((params) => !!params.sources?.searchTotals);
+            if (!request) {
+                throw new Error('Expected the footer to ask for the union of the selected groups');
+            }
+            return request;
+        }
+
+        /** Answers the union request the way the read command does, stamped against the groups' totals it was sent with. */
+        async function answerUnionRequest(count: number, total: number) {
+            const {queryJSON, targetCurrency, sources} = getUnionRequest();
+            await Onyx.merge(ONYXKEYS.SEARCH_FOOTER_CONVERSION, {searchTotals: {[queryJSON.hash]: {[targetCurrency]: {count, total}}}, sources});
+            await waitForBatchedUpdates();
+        }
+
+        it('counts the shared expense once when both groups are checked while collapsed', async () => {
+            // Given both groups checked through their headers before either was expanded
+            mockSelectedTransactions.current = {
+                [missingCategoryKey]: buildSelectedTransaction(CONST.CURRENCY.USD),
+                [receiptRequiredKey]: buildSelectedTransaction(CONST.CURRENCY.USD),
+            };
+
+            // When the footer shows the selection
+            render(<SearchSelectionFooter searchResults={buildSearchResults(CONST.CURRENCY.USD, 1, 300)} />);
+            await waitForBatchedUpdates();
+
+            // Then it asks for every expense in either group, which counts the shared one once, rather than adding up the groups
+            const {queryJSON, targetCurrency} = getUnionRequest();
+            expect(queryJSON.groupBy).toBeUndefined();
+            expect(queryJSON.flatFilters).toContainEqual({
+                key: CONST.SEARCH.SYNTAX_FILTER_KEYS.VIOLATION,
+                filters: [
+                    {operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, value: CONST.VIOLATIONS.MISSING_CATEGORY},
+                    {operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, value: CONST.VIOLATIONS.RECEIPT_REQUIRED},
+                ],
+            });
+            expect(targetCurrency).toBe(CONST.CURRENCY.USD);
+            expect(mockCapturedFooterProps.current?.isTotalLoading).toBe(true);
+
+            // When the server answers
+            await answerUnionRequest(1, 300);
+
+            // Then the footer shows the one expense and its amount
+            expect(mockCapturedFooterProps.current).toEqual(expect.objectContaining({count: 1, total: 300, currency: CONST.CURRENCY.USD, isTotalLoading: false}));
+        });
+
+        it('asks for the union again after Search clears the figures it already answered', async () => {
+            // Given both groups checked and the union's figures answered
+            mockSelectedTransactions.current = {
+                [missingCategoryKey]: buildSelectedTransaction(CONST.CURRENCY.USD),
+                [receiptRequiredKey]: buildSelectedTransaction(CONST.CURRENCY.USD),
+            };
+            render(<SearchSelectionFooter searchResults={buildSearchResults(CONST.CURRENCY.USD, 1, 300)} />);
+            await waitForBatchedUpdates();
+            await answerUnionRequest(1, 300);
+            expect(getFooterConvertedAmounts).toHaveBeenCalledTimes(1);
+
+            // When Search clears the converted figures while the footer stays on screen
+            await Onyx.set(ONYXKEYS.SEARCH_FOOTER_CONVERSION, null);
+            await waitForBatchedUpdates();
+
+            // Then the footer asks again rather than waiting on a request it already settled
+            expect(getFooterConvertedAmounts).toHaveBeenCalledTimes(2);
+        });
+
+        it('counts the shared expense once when both groups are expanded, and adds an expense checked on its own', async () => {
+            // Given the shared expense stored under Missing category and claimed by both headers, next to an expense
+            // of another group checked on its own
+            mockSelectedTransactions.current = {
+                transaction1: {...buildSelectedTransaction(CONST.CURRENCY.USD), groupKey: missingCategoryKey, isSelectedViaGroup: true, otherClaimedGroupKeys: [receiptRequiredKey]},
+                transaction2: {...buildSelectedTransaction(CONST.CURRENCY.USD), groupKey: `${CONST.SEARCH.GROUP_PREFIX}${CONST.VIOLATIONS.OVER_LIMIT}`},
+            };
+
+            // When the footer shows the selection and the server answers the union of the two groups
+            render(<SearchSelectionFooter searchResults={buildSearchResults(CONST.CURRENCY.USD, 3, 500)} />);
+            await waitForBatchedUpdates();
+            await answerUnionRequest(1, 300);
+
+            // Then the shared expense is counted once, and the expense checked on its own is added to it
+            expect(mockCapturedFooterProps.current).toEqual(expect.objectContaining({count: 2, total: 400, currency: CONST.CURRENCY.USD}));
+        });
+
+        it('asks the union for the plain total when the query is on a breakdown', async () => {
+            // Given a query on the reimbursable breakdown, which the footer drops once a group is selected as a whole
+            setSearchQuery(`type:expense group-by:${CONST.SEARCH.GROUP_BY.VIOLATION} footerTotal:${CONST.SEARCH.FOOTER_TOTAL.REIMBURSABLE}`);
+            mockSelectedTransactions.current = {
+                [missingCategoryKey]: buildSelectedTransaction(CONST.CURRENCY.USD),
+                [receiptRequiredKey]: buildSelectedTransaction(CONST.CURRENCY.USD),
+            };
+
+            // When the footer asks for the union of both groups
+            render(<SearchSelectionFooter searchResults={buildSearchResults(CONST.CURRENCY.USD, 1, 300)} />);
+            await waitForBatchedUpdates();
+
+            // Then the request leaves the breakdown out, so the figure shown as total spend is the whole total
+            const filterKeys = getUnionRequest().queryJSON.flatFilters.map((filter) => filter.key);
+            expect(filterKeys).not.toContain(CONST.SEARCH.SYNTAX_FILTER_KEYS.FOOTER_TOTAL);
+            expect(filterKeys).toContain(CONST.SEARCH.SYNTAX_FILTER_KEYS.VIOLATION);
+        });
+
+        it('shows a single group from its own figures without asking for a union', async () => {
+            // Given one group checked through its header, which can't count an expense twice
+            mockSelectedTransactions.current = {[missingCategoryKey]: buildSelectedTransaction(CONST.CURRENCY.USD)};
+
+            // When the footer shows the selection
+            render(<SearchSelectionFooter searchResults={buildSearchResults(CONST.CURRENCY.USD, 1, 300)} />);
+            await waitForBatchedUpdates();
+
+            // Then it shows the group's figures right away, offline as well as online, with no round trip
+            expect(getFooterConvertedAmounts).not.toHaveBeenCalled();
+            expect(mockCapturedFooterProps.current).toEqual(expect.objectContaining({count: 1, isTotalLoading: false}));
+            expect(mockCapturedFooterProps.current?.total).toBeDefined();
+        });
+
+        it('adds an expense checked on its own to a converted union only once that expense is converted too', async () => {
+            // Given both groups checked in a footer showing EUR, next to an expense of another group checked on its own
+            setSearchQuery(`type:expense group-by:${CONST.SEARCH.GROUP_BY.VIOLATION} footerCurrency:${CONST.CURRENCY.EUR}`);
+            mockSelectedTransactions.current = {
+                [missingCategoryKey]: buildSelectedTransaction(CONST.CURRENCY.USD),
+                [receiptRequiredKey]: buildSelectedTransaction(CONST.CURRENCY.USD),
+                transaction3: {
+                    ...buildSelectedTransaction(CONST.CURRENCY.USD),
+                    groupKey: `${CONST.SEARCH.GROUP_PREFIX}${CONST.VIOLATIONS.OVER_LIMIT}`,
+                    transaction: createMock<Transaction>({transactionID: 'transaction3'}),
+                },
+            };
+            const {rerender} = render(<SearchSelectionFooter searchResults={buildSearchResults(CONST.CURRENCY.USD, 3, 500)} />);
+            await waitForBatchedUpdates();
+            await answerUnionRequest(1, 300);
+
+            // When the device goes offline before the expense's own conversion arrives
+            mockIsOffline.current = true;
+            rerender(<SearchSelectionFooter searchResults={buildSearchResults(CONST.CURRENCY.USD, 3, 500)} />);
+            await waitForBatchedUpdates();
+
+            // Then the footer stays on the default currency rather than adding a USD amount to a EUR union
+            expect(mockCapturedFooterProps.current?.currency).toBe(CONST.CURRENCY.USD);
+
+            // When the expense's conversion is cached
+            await Onyx.merge(ONYXKEYS.SEARCH_FOOTER_CONVERSION, {
+                transactions: {transaction3: {[CONST.CURRENCY.EUR]: -200}},
+                sources: {transactions: {transaction3: {[CONST.CURRENCY.EUR]: -100}}},
+            });
+            await waitForBatchedUpdates();
+
+            // Then the union and the expense are shown together in EUR
+            expect(mockCapturedFooterProps.current).toEqual(expect.objectContaining({count: 2, total: 500, currency: CONST.CURRENCY.EUR}));
+
+            // When a later EUR conversion fails, which leaves the expense's old converted amount behind its new stamp
+            await Onyx.merge(ONYXKEYS.SEARCH_FOOTER_CONVERSION, {failedCurrencies: {[CONST.CURRENCY.EUR]: true}});
+            await waitForBatchedUpdates();
+
+            // Then the footer stops adding that amount to the union and falls back to the default currency
+            expect(mockCapturedFooterProps.current?.currency).toBe(CONST.CURRENCY.USD);
+        });
+
+        it('sums the groups offline rather than showing nothing', async () => {
+            // Given both groups checked while offline, with no union answer cached
+            mockIsOffline.current = true;
+            mockSelectedTransactions.current = {
+                [missingCategoryKey]: buildSelectedTransaction(CONST.CURRENCY.USD),
+                [receiptRequiredKey]: buildSelectedTransaction(CONST.CURRENCY.USD),
+            };
+
+            // When the footer shows the selection
+            render(<SearchSelectionFooter searchResults={buildSearchResults(CONST.CURRENCY.USD, 1, 300)} />);
+            await waitForBatchedUpdates();
+
+            // Then it falls back to adding up the groups, which can count the shared expense twice but beats a blank footer
+            expect(getFooterConvertedAmounts).not.toHaveBeenCalled();
+            expect(mockCapturedFooterProps.current).toEqual(expect.objectContaining({count: 2, isTotalLoading: false}));
+            expect(mockCapturedFooterProps.current?.total).toBeDefined();
         });
     });
 

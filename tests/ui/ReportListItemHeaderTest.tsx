@@ -59,6 +59,7 @@ const mockSearchStateContext = {
     currentSearchResults: undefined,
     currentSearchTransactionsByReportID: new Map(),
     currentSearchViolations: {},
+    approvalWorkflowRules: undefined,
     currentSelectedTransactionReportID: undefined,
     shouldShowFiltersBarLoading: false,
     shouldUseLiveData: false,
@@ -225,6 +226,7 @@ describe('ReportListItemHeader', () => {
                 ...mockSearchStateContext,
                 currentSearchTransactionsByReportID: new Map([[reportItem.reportID, [transaction]]]),
                 currentSearchViolations: {[key]: violations},
+                approvalWorkflowRules: undefined,
             },
             renderExpenseReportRow,
         );

@@ -53,6 +53,7 @@ import {getPinnedColumnOrder, getQueryWithPinnedColumns, NO_PINNED_COLUMNS} from
 import {buildCannedSearchQuery, buildSearchQueryString, getFilterFromQuery} from '@libs/SearchQueryUtils';
 import {
     canEditSearchColumns,
+    canGroupsShareExpenses,
     createAndOpenSearchTransactionThread,
     doesSearchItemMatchSort,
     getValidGroupBy,
@@ -1739,6 +1740,7 @@ function Search({
                 type={type}
                 areItemsGrouped={areItemsGrouped}
                 isExpenseReportType={isExpenseReportType}
+                doGroupsShareExpenses={canGroupsShareExpenses(validGroupBy)}
                 isSearchResultsEmpty={isSearchResultsEmpty}
             >
                 <Animated.View style={[styles.flex1, animatedStyle]}>{searchListContent}</Animated.View>
