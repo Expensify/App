@@ -108,8 +108,8 @@ describe('useAdvancedSearchFilters', () => {
     });
 
     describe('violation filter visibility', () => {
-        it('shows the violation filter when no workspace has Rules enabled', async () => {
-            // Given a paid workspace with Rules turned off, where expenses can still have violations
+        it('shows the violation filter for an accessible group workspace', async () => {
+            // Given a group workspace where expenses can have violations even with Rules off
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}1`, buildPolicy(1, {areRulesEnabled: false}));
             await waitForBatchedUpdates();
 
@@ -122,49 +122,18 @@ describe('useAdvancedSearchFilters', () => {
             expect(result.current.flat()).toContain(CONST.SEARCH.SYNTAX_FILTER_KEYS.VIOLATION);
         });
 
-        it('shows the violation filter when a workspace has Rules enabled', async () => {
-            // Given a paid workspace with Rules turned on
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}1`, buildPolicy(1, {areRulesEnabled: true}));
-
-            // When the advanced filters are built for expenses
-            const {result} = renderHook(() => useAdvancedSearchFilters(CONST.SEARCH.DATA_TYPES.EXPENSE), {wrapper});
-
-            // Then the violation row is offered
-            await waitFor(() => {
-                expect(result.current.flat()).toContain(CONST.SEARCH.SYNTAX_FILTER_KEYS.VIOLATION);
-            });
-        });
-
-        it('shows the violation filter for a migrated Control workspace whose Rules come from Classic category rules', async () => {
-            // Given a Control workspace that never set areRulesEnabled but has a category rule from Expensify Classic,
-            // which is how migrated workspaces report that Rules are on
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}1`, buildPolicy(1, {type: CONST.POLICY.TYPE.CORPORATE, areRulesEnabled: undefined}));
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}1`, {Travel: {name: 'Travel', enabled: true, maxExpenseAmount: 5000}});
-
-            // When the advanced filters are built for expenses
-            const {result} = renderHook(() => useAdvancedSearchFilters(CONST.SEARCH.DATA_TYPES.EXPENSE), {wrapper});
-
-            // Then the violation row is offered because migrated group workspaces also support violation search
-            await waitFor(() => {
-                expect(result.current.flat()).toContain(CONST.SEARCH.SYNTAX_FILTER_KEYS.VIOLATION);
-            });
-        });
-
-        it("shows the violation filter when only another workspace's categories have rules", async () => {
-            // Given a migrated Control workspace with no category rules, and a workspace with Rules turned off
-            // that still has leftover category rules, since turning Rules off doesn't clear them
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}1`, buildPolicy(1, {type: CONST.POLICY.TYPE.CORPORATE, areRulesEnabled: undefined}));
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}2`, buildPolicy(2, {areRulesEnabled: false}));
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}2`, {Travel: {name: 'Travel', enabled: true, maxExpenseAmount: 5000}});
+        it('hides the violation filter when the user only has a personal workspace', async () => {
+            // Given only a personal workspace, which does not support violation search
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}1`, buildPolicy(1, {type: CONST.POLICY.TYPE.PERSONAL}));
             await waitForBatchedUpdates();
 
             // When the advanced filters are built for expenses
             const {result} = renderHook(() => useAdvancedSearchFilters(CONST.SEARCH.DATA_TYPES.EXPENSE), {wrapper});
             await waitForBatchedUpdates();
 
-            // Then the violation row is offered because category rules do not control violation search availability
+            // Then other expense filters remain available without exposing violation search
             expect(result.current.flat()).toContain(CONST.SEARCH.SYNTAX_FILTER_KEYS.RECEIPT_TYPE);
-            expect(result.current.flat()).toContain(CONST.SEARCH.SYNTAX_FILTER_KEYS.VIOLATION);
+            expect(result.current.flat()).not.toContain(CONST.SEARCH.SYNTAX_FILTER_KEYS.VIOLATION);
         });
     });
 

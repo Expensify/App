@@ -49,7 +49,7 @@ type DisplayPopupProps = {
     onSort: () => void;
 };
 
-const hasViolationSearchPolicySelector = (policies: OnyxCollection<Policy>) => getHasOptionAvailability(policies).shouldShowSubmittedViolation;
+const hasViolationSearchPolicySelector = (policies: OnyxCollection<Policy>) => getHasOptionAvailability(policies).shouldShowViolations;
 
 function DisplayPopup({queryJSON, searchResults, closeOverlay, onSort}: DisplayPopupProps) {
     const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
