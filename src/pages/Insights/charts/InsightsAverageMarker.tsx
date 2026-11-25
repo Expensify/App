@@ -11,15 +11,13 @@ import Svg, {Line} from 'react-native-svg';
 
 const DASH_INTERVALS = [4, 4];
 
-type InsightsRankingTableAverageMarkerProps = {
+type InsightsAverageMarkerProps = {
     style?: StyleProp<ViewStyle>;
-
-    /** Defaults to the darker green the ranking table's bars are marked in */
     color?: string;
 };
 
-/** Short vertical dashed mark showing the average across a narrow ranking table row's bar, and in its legend */
-function InsightsRankingTableAverageMarker({style, color = colors.green600}: InsightsRankingTableAverageMarkerProps) {
+/** Short vertical dashed mark showing an average across a bar, and in the legend that explains it */
+function InsightsAverageMarker({style, color = colors.green600}: InsightsAverageMarkerProps) {
     const styles = useThemeStyles();
     const width = variables.insightsRankingTableAverageMarkerWidth;
 
@@ -43,4 +41,4 @@ function InsightsRankingTableAverageMarker({style, color = colors.green600}: Ins
     );
 }
 
-export default InsightsRankingTableAverageMarker;
+export default InsightsAverageMarker;

@@ -8,8 +8,8 @@ import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import InsightsAverageMarker from '@pages/Insights/charts/InsightsAverageMarker';
 import InsightsMeterBar from '@pages/Insights/charts/InsightsMeterBar';
-import InsightsRankingTableAverageMarker from '@pages/Insights/charts/InsightsRankingTableAverageMarker';
 import type {InsightsTimeGroupBy} from '@pages/Insights/insightsGroupByUtils';
 
 import CONST from '@src/CONST';
@@ -117,7 +117,7 @@ function InsightsRecentHistory({query, history, summary, state, currency, color,
                     })}
                     {shouldShowAverageKey && (
                         <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap2, styles.p4]}>
-                            <InsightsRankingTableAverageMarker
+                            <InsightsAverageMarker
                                 style={styles.insightsRankingTableAverageLegendMark}
                                 color={VictoryTheme.colors.getAverageMarkerColor(color)}
                             />

@@ -10,7 +10,7 @@ import React, {useId} from 'react';
 import {View} from 'react-native';
 import Svg, {Defs, Pattern, Rect} from 'react-native-svg';
 
-import InsightsRankingTableAverageMarker from './InsightsRankingTableAverageMarker';
+import InsightsAverageMarker from './InsightsAverageMarker';
 
 /** Distance between the starts of two hatch stripes, and the width of one stripe */
 const HATCH_SPACING = 4;
@@ -74,7 +74,7 @@ function InsightsMeterBar({widthPercent, color, isHatched = false, averageWidthP
             )}
             {averageWidthPercent !== undefined && (
                 <View style={styles.insightsRankingTableAverageLineAnchor(averageWidthPercent, variables.insightsRankingTableAverageMarkerOverhang)}>
-                    <InsightsRankingTableAverageMarker
+                    <InsightsAverageMarker
                         style={styles.flex1}
                         color={color ? VictoryTheme.colors.getAverageMarkerColor(color) : undefined}
                     />
