@@ -5522,6 +5522,7 @@ const CONST = {
             CHANGE_ROLE: 'changeRole',
             CHANGE_OFFICE_LOCATION: 'changeOfficeLocation',
             CHANGE_WORK_ARRANGEMENT: 'changeWorkArrangement',
+            EDIT_CATEGORY_VISIBILITY: 'editCategoryVisibility',
         },
         BULK_ACTION_TYPES: {
             DELETE: 'delete',
@@ -5732,6 +5733,7 @@ const CONST = {
                 EXACT_ONLINE: 'exactOnline',
                 ODOO: 'odoo',
                 SAGE_ACCOUNTING: 'sageAccounting',
+                ACUMATICA: 'acumatica',
                 GUSTO: 'gusto',
                 ZENEFITS: 'zenefits',
                 MERGE_HR: 'merge_hris',
@@ -5775,6 +5777,7 @@ const CONST = {
                 exactOnline: 'Exact Online',
                 odoo: 'Odoo',
                 sageAccounting: 'Sage Accounting',
+                acumatica: 'Acumatica',
                 gusto: 'Gusto',
                 billCom: 'Bill.com',
                 zenefits: 'TriNet',
@@ -5807,7 +5810,7 @@ const CONST = {
             },
             // Integrations that aren't available yet, so the Connections page offers their waitlist instead of connecting
             get WAITLIST_CONNECTION_NAMES() {
-                return [this.NAME.SAGE_ACCOUNTING] as const;
+                return [this.NAME.SAGE_ACCOUNTING, this.NAME.ACUMATICA] as const;
             },
             // The `origin` the backend stamps on a report field imported by an accounting integration. These values
             // differ from the connection names above (e.g. `quickbooksOnline` is stamped as `qbo`), so map them here.
@@ -8489,6 +8492,7 @@ const CONST = {
             UNSUPPORTED_FILTER: '59f73192-0ecc-4af4-8192-96fb2bb3d42a',
         },
         TAG_FILTER_PAGE_SIZE: 200,
+        USER_FILTER_PAGE_SIZE: 50,
         EXITING_ANIMATION_DURATION: 200,
         ME: 'me',
         // Null byte can't appear in a query, so it's safe to join query parts with it
@@ -8768,6 +8772,11 @@ const CONST = {
                 },
                 BASE_62_REPORT_ID: {
                     column: this.TABLE_COLUMNS.BASE_62_REPORT_ID,
+                    search: true,
+                    reportView: false,
+                },
+                TRANSACTION_ID: {
+                    column: this.TABLE_COLUMNS.TRANSACTION_ID,
                     search: true,
                     reportView: false,
                 },
@@ -9186,6 +9195,7 @@ const CONST = {
             BANK_ACCOUNT: 'bankAccount',
             REPORT_ID: 'reportID',
             BASE_62_REPORT_ID: 'base62ReportID',
+            TRANSACTION_ID: 'transactionID',
             EXPORTED_TO: 'exportedto',
             EXCHANGE_RATE: 'exchangeRate',
             REIMBURSABLE_TOTAL: 'reimbursableTotal',
@@ -9304,6 +9314,7 @@ const CONST = {
             FEED: 'feed',
             BANK_ACCOUNT: 'bankAccount',
             REPORT_ID: 'reportID',
+            TRANSACTION_ID: 'transactionID',
             KEYWORD: 'keyword',
             IN: 'in',
             SUBMITTED: 'submitted',
@@ -9407,6 +9418,7 @@ const CONST = {
             FEED: 'feed',
             BANK_ACCOUNT: 'bank-account',
             REPORT_ID: 'report-id',
+            TRANSACTION_ID: 'transaction-id',
             KEYWORD: 'keyword',
             IN: 'in',
             SUBMITTED: 'submitted',
@@ -9496,6 +9508,7 @@ const CONST = {
                 [this.TABLE_COLUMNS.BANK_ACCOUNT]: 'bank-account',
                 [this.TABLE_COLUMNS.REPORT_ID]: 'long-report-id',
                 [this.TABLE_COLUMNS.BASE_62_REPORT_ID]: 'report-id',
+                [this.TABLE_COLUMNS.TRANSACTION_ID]: 'transaction-id',
                 [this.TABLE_COLUMNS.EXPORTED_TO]: 'exported-to',
                 [this.TABLE_COLUMNS.EXCHANGE_RATE]: 'exchange-rate',
                 [this.TABLE_COLUMNS.REIMBURSABLE_TOTAL]: 'reimbursable-total',

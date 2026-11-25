@@ -2825,6 +2825,26 @@ describe('TransactionUtils', () => {
     });
 
     describe('isViolationDismissed', () => {
+        it('treats a categoryNotAllowed dismissal by an admin as dismissed for the member too', () => {
+            // Given an admin who coded the member's expense to a category the member can't use, which dismisses categoryNotAllowed
+            const transaction = generateTransaction({
+                comment: {
+                    dismissedViolations: {
+                        [CONST.VIOLATIONS.CATEGORY_NOT_ALLOWED]: {
+                            [OTHER_USER_EMAIL]: DateUtils.getDBTime(),
+                        },
+                    },
+                },
+            });
+            const violation = {type: CONST.VIOLATION_TYPES.VIOLATION, name: CONST.VIOLATIONS.CATEGORY_NOT_ALLOWED};
+
+            // When the member views the expense, without any report context
+            const result = TransactionUtils.isViolationDismissed(transaction, violation, CURRENT_USER_EMAIL, CURRENT_USER_ID, undefined, undefined, undefined);
+
+            // Then it's dismissed for them as well, since the admin's override applies to everyone
+            expect(result).toBe(true);
+        });
+
         describe('Current user dismissed it themselves', () => {
             it('should return true when current user dismissed the violation', () => {
                 // Given a transaction with a violation dismissed by current user

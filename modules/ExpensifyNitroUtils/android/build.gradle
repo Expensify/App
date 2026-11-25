@@ -128,5 +128,6 @@ dependencies {
   implementation project(":react-native-nitro-modules")
 
   implementation "com.microsoft.onnxruntime:onnxruntime-android:1.30.0"
+  testImplementation "junit:junit:4.13.2"
 }
 

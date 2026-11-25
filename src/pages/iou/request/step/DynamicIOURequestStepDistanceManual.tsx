@@ -239,6 +239,7 @@ function DynamicIOURequestStepDistanceManual({
             if (isEditingSplit && transaction) {
                 const splitDraftTransaction = await Onyx.get(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`);
                 setDraftSplitTransaction(
+                    translate,
                     transaction.transactionID,
                     splitDraftTransaction ?? transaction,
                     {distance: distanceAsFloat},
