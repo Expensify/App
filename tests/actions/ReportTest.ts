@@ -1161,6 +1161,48 @@ describe('actions/Report', () => {
         });
     });
 
+    it('sends the last visible action id when a newer other-user action is past lastVisibleActionCreated', async () => {
+        const reportID = 'admins-mark-unread';
+        const currentUserAccountID = 1;
+        const lastVisibleActionCreated = '2026-09-10 11:12:08.345';
+        const visibleAction = createMock<OnyxTypes.ReportAction>({
+            reportActionID: 'visible-action',
+            actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+            actorAccountID: currentUserAccountID,
+            created: lastVisibleActionCreated,
+            message: [{type: 'COMMENT', text: 'Visible', html: 'Visible'}],
+        });
+        const newerOtherUserAction = createMock<OnyxTypes.ReportAction>({
+            reportActionID: 'newer-other-user-action',
+            actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+            actorAccountID: 2,
+            created: '2026-10-13 14:37:29.743',
+            message: [{type: 'COMMENT', text: 'Newer', html: 'Newer'}],
+        });
+
+        apiWriteSpy.mockResolvedValue(undefined);
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {
+            reportID,
+            type: CONST.REPORT.TYPE.CHAT,
+            lastVisibleActionCreated,
+            lastReadTime: '2026-10-26 19:55:37.512',
+            lastActorAccountID: 2,
+        });
+        await waitForBatchedUpdates();
+
+        Report.markCommentAsUnread(reportID, {visibleAction, newerOtherUserAction}, createMock<OnyxTypes.ReportAction>({}), currentUserAccountID, false);
+
+        expect(apiWriteSpy).toHaveBeenCalledWith(
+            WRITE_COMMANDS.MARK_AS_UNREAD,
+            expect.objectContaining({
+                reportID,
+                reportActionID: visibleAction.reportActionID,
+                lastReadTime: DateUtils.subtractMillisecondsFromDateTime(lastVisibleActionCreated, 1),
+            }),
+            expect.anything(),
+        );
+    });
+
     it('Should properly update comment with links', async () => {
         /* This tests a variety of scenarios when a user edits a comment.
          * We should generate a link when editing a message unless the link was

@@ -3471,7 +3471,17 @@ function markCommentAsUnread(reportID: string | undefined, reportActions: OnyxEn
         },
     ];
 
-    const reportActionID = reportAction?.reportActionID ?? latestReportActionFromOtherUsers?.reportActionID;
+    // The id must belong to the action whose created time we used. The server derives lastReadTime from this id.
+    let boundaryAction: ReportAction | undefined;
+    if (reportAction?.created) {
+        boundaryAction = reportAction;
+    } else if (otherUserActionTime && lastVisibleActionCreated && otherUserActionTime <= lastVisibleActionCreated) {
+        boundaryAction = latestReportActionFromOtherUsers ?? undefined;
+    } else if (lastVisibleActionCreated) {
+        const threadActions = transactionThreadReportID ? ReportActionsUtils.getAllReportActions(transactionThreadReportID) : undefined;
+        boundaryAction = findActionAtLastVisibleTime([reportActions, threadActions], lastVisibleActionCreated);
+    }
+    const reportActionID = boundaryAction?.reportActionID;
 
     const parameters: MarkAsUnreadParams = {
         reportID,
@@ -3481,6 +3491,37 @@ function markCommentAsUnread(reportID: string | undefined, reportActions: OnyxEn
 
     API.write(WRITE_COMMANDS.MARK_AS_UNREAD, parameters, {optimisticData, successData, failureData});
     DeviceEventEmitter.emit(`unreadAction_${reportID}`, lastReadTime);
+}
+
+/** A loaded action MarkAsUnread can use as the unread boundary. Deleted actions and whispers do not move lastVisibleActionCreated. */
+function isUnreadBoundaryAction(action: ReportAction | null | undefined): action is ReportAction {
+    return (
+        !!action?.created &&
+        !ReportActionsUtils.isDeletedAction(action) &&
+        (!ReportActionsUtils.isWhisperAction(action) || action.actionName === CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_MENTION_WHISPER)
+    );
+}
+
+/**
+ * The server sets lastReadTime from reportActionID (created minus 1ms) and ignores the lastReadTime in the request.
+ * When the unread boundary is lastVisibleActionCreated, the id has to be the action at that time, not a newer one.
+ */
+function findActionAtLastVisibleTime(actionGroups: Array<OnyxEntry<ReportActions> | undefined>, lastVisibleActionCreated: string): ReportAction | undefined {
+    let newestAtOrBefore: ReportAction | undefined;
+    for (const actions of actionGroups) {
+        for (const action of Object.values(actions ?? {})) {
+            if (!isUnreadBoundaryAction(action) || action.created > lastVisibleActionCreated) {
+                continue;
+            }
+            if (action.created === lastVisibleActionCreated) {
+                return action;
+            }
+            if (!newestAtOrBefore || action.created > newestAtOrBefore.created) {
+                newestAtOrBefore = action;
+            }
+        }
+    }
+    return newestAtOrBefore;
 }
 
 /** Toggles the pinned state of the report. */

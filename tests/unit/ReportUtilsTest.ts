@@ -12824,6 +12824,20 @@ describe('ReportUtils', () => {
             expect(isUnread(report, undefined, false, false)).toBe(false);
         });
 
+        it('returns true when lastReadTime is exactly 1ms before the newest message and the last actor is the current user', () => {
+            const lastVisibleActionCreated = '2026-10-09 06:36:10.802';
+            const report = {
+                ...LHNTestUtils.getFakeReport(),
+                reportID: '1',
+                lastReadTime: DateUtils.subtractMillisecondsFromDateTime(lastVisibleActionCreated, 1),
+                lastVisibleActionCreated,
+                lastMessageText: 'Hello',
+                lastActorAccountID: currentUserAccountID,
+            };
+
+            expect(isUnread(report, undefined, false, false)).toBe(true);
+        });
+
         it('returns true when the current user manually marked their own message as unread', () => {
             // Given a thread where only the current user has written, so markCommentAsUnread keeps them as the last actor,
             // and the user marked their message as unread, which rolls lastReadTime back and sets the manual marker
