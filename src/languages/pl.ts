@@ -11861,7 +11861,6 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
     accessibilityHints: {
         navigateToChatsList: 'Wróć do listy czatów',
         chatWelcomeMessage: 'Powitanie czatu',
-        chatDetails: (chatName: string) => `Szczegóły: ${chatName}`,
         navigatesToChat: 'Przechodzi do czatu',
         newMessageLineIndicator: 'Wskaźnik nowej linii wiadomości',
         chatMessage: 'Wiadomość czatu',

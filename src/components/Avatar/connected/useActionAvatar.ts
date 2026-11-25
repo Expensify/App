@@ -275,7 +275,7 @@ function useActionAvatar({action: passedAction, report, shouldUseRealActor}: Use
             actedForAccountID: undefined,
             isWorkspaceActor: true,
             shouldDisplayAllActors: !reportPreviewSenderID,
-            // Screen readers name the workspace rather than reading out its policy ID, and name the person when there is no workspace.
+            // Name the workspace rather than its policy ID, or the person when there is no workspace.
             actorHint: workspaceAvatar.id && workspaceAvatar.name ? workspaceAvatar.name : personActorHint,
             reportPreviewSenderID,
             chatReportID,

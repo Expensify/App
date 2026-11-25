@@ -12238,7 +12238,6 @@ ${reportName}`,
     accessibilityHints: {
         navigateToChatsList: 'Vuelve a la lista de chats',
         chatWelcomeMessage: 'Mensaje de bienvenida al chat',
-        chatDetails: (chatName: string) => `Detalles de ${chatName}`,
         navigatesToChat: 'Navega a un chat',
         newMessageLineIndicator: 'Indicador de nueva línea de mensaje',
         chatMessage: 'mensaje de chat',
