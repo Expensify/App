@@ -4,9 +4,18 @@ import type {Scale} from 'victory-native';
 
 import {useEffect, useRef} from 'react';
 
-/** Returns the canvas x and y of each point. The y is the highest series', so the tooltip above it never covers another one. */
-function getHighestPointPositions(data: ChartDataPoint[], series: readonly ChartSeries[], xScale: Scale, yScale: Scale): [number[], number[]] {
-    return [data.map((point, index) => xScale(index)), data.map((point) => yScale(Math.max(...series.flatMap(({key}) => point.values[key] ?? []))))];
+/**
+ * Returns the canvas x and y of each point. The y is the highest series', so the tooltip above it never covers another one.
+ * A point with no values, like a bucket whose stages are all unavailable, sits at 0 so its tooltip still has a position.
+ */
+function getHighestPointPositions(data: ChartDataPoint[], series: readonly ChartSeries[], xScale: (value: number) => number, yScale: (value: number) => number): [number[], number[]] {
+    return [
+        data.map((point, index) => xScale(index)),
+        data.map((point) => {
+            const values = series.flatMap(({key}) => point.values[key] ?? []);
+            return yScale(values.length > 0 ? Math.max(...values) : 0);
+        }),
+    ];
 }
 
 /** Returns a function that sets the points' canvas positions from the given scales, and sets them again whenever the data changes. */
@@ -28,3 +37,4 @@ function useSyncPointPositions(data: ChartDataPoint[], series: readonly ChartSer
 }
 
 export default useSyncPointPositions;
+export {getHighestPointPositions};

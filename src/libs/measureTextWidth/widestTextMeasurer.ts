@@ -9,6 +9,9 @@ const {MEASURED_CANDIDATES_PER_COLUMN} = CONST.TABLES.DYNAMIC_COLUMNS;
 type FontCandidates = {
     font: MeasurableFont;
 
+    /** Width of non-text content rendered after each of these strings, added to its measurement. */
+    trailingWidth: number;
+
     /** The longest strings seen for this font, ascending by length, capped at `MEASURED_CANDIDATES_PER_COLUMN`. */
     texts: string[];
 };
@@ -24,8 +27,8 @@ type FontCandidates = {
  * table size. On tables with tens of thousands of rows, that sort would otherwise dominate.
  */
 type WidestTextMeasurer = {
-    /** Records a string rendered in this column. Empty strings are ignored. */
-    add: (text: string | undefined, font?: MeasurableFont) => void;
+    /** Records a string rendered in this column, followed by `trailingWidth` of non-text content. Empty strings are ignored. */
+    add: (text: string | undefined, font?: MeasurableFont, trailingWidth?: number) => void;
 
     /**
      * Measures the widest string collected, or `null` when the platform can't measure text. Returns 0 when nothing was
@@ -56,12 +59,13 @@ function createWidestTextMeasurer(): WidestTextMeasurer {
     const candidatesByFont = new Map<string, FontCandidates>();
 
     return {
-        add: (text, font = {}) => {
+        add: (text, font = {}, trailingWidth = 0) => {
             if (!text) {
                 return;
             }
 
-            const fontKey = `${font.fontSize ?? ''}|${font.fontWeight ?? ''}|${font.fontFamily ?? ''}`;
+            // Grouped by trailing width too, since a shorter string followed by a badge can be the widest.
+            const fontKey = `${font.fontSize ?? ''}|${font.fontWeight ?? ''}|${font.fontFamily ?? ''}|${trailingWidth}`;
             const existingCandidates = candidatesByFont.get(fontKey);
 
             if (existingCandidates) {
@@ -69,13 +73,13 @@ function createWidestTextMeasurer(): WidestTextMeasurer {
                 return;
             }
 
-            candidatesByFont.set(fontKey, {font, texts: [text]});
+            candidatesByFont.set(fontKey, {font, trailingWidth, texts: [text]});
         },
 
         getWidestWidth: () => {
             let widestWidth = 0;
 
-            for (const {font, texts} of candidatesByFont.values()) {
+            for (const {font, trailingWidth, texts} of candidatesByFont.values()) {
                 for (const text of texts) {
                     const width = measureTextWidth(text, font);
 
@@ -83,7 +87,7 @@ function createWidestTextMeasurer(): WidestTextMeasurer {
                         return null;
                     }
 
-                    widestWidth = Math.max(widestWidth, width);
+                    widestWidth = Math.max(widestWidth, width + trailingWidth);
                 }
             }
 

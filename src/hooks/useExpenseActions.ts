@@ -15,11 +15,12 @@ import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/crea
 import Navigation from '@libs/Navigation/Navigation';
 import {isTrackOnboardingChoice} from '@libs/OnboardingUtils';
 import {getDistanceExpenseTypeForPolicy} from '@libs/PolicyDistanceRatesUtils';
-import {canCreateExpensesOnPolicy, isPolicyAccessible} from '@libs/PolicyUtils';
+import {canCreateExpensesOnPolicy, isPolicyAccessible, isPolicyAdmin} from '@libs/PolicyUtils';
 import {getIOUActionForTransactionID} from '@libs/ReportActionsUtils';
 import {
     canDuplicateExpenseIntoSourceReport,
     canEditFieldOfMoneyRequest,
+    canReassignAsApprover,
     canUserPerformWriteAction as canUserPerformWriteActionReportUtils,
     generateReportID,
     isDM,
@@ -80,6 +81,7 @@ import usePersonalPolicy from './usePersonalPolicy';
 import useReportIsArchived from './useReportIsArchived';
 import useRestrictedActionPolicyID from './useRestrictedActionPolicyID';
 import useSplitEffectivePolicy from './useSplitEffectivePolicy';
+import useStrictPolicyRules from './useStrictPolicyRules';
 import useTheme from './useTheme';
 import useThrottledButtonState from './useThrottledButtonState';
 import useTransactionsAndViolationsForReport from './useTransactionsAndViolationsForReport';
@@ -111,6 +113,7 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
     const delegateAccountID = useDelegateAccountID();
     const getPersonalDetailsByLogin = useGetPersonalDetailsByLogin();
     const {login: currentUserLogin, accountID, email} = currentUserPersonalDetails;
+    const {areStrictPolicyRulesEnabled, isLoadingSecurityGroup} = useStrictPolicyRules();
     const {currentSearchHash} = useSearchQueryContext();
     const {removeTransaction} = useSearchSelectionActions();
 
@@ -176,6 +179,7 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
     // Archive checks
     const isArchivedReport = useReportIsArchived(moneyRequestReport?.reportID);
     const isChatReportArchived = useReportIsArchived(chatReport?.reportID);
+    const isParentReportArchived = useReportIsArchived(moneyRequestReport?.parentReportID);
 
     // Default expense policy / chat
     const defaultExpensePolicy = useDefaultExpensePolicy();
@@ -304,6 +308,7 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
                 recentWaypoints,
                 targetPolicyTags,
                 currentUser: {accountID: currentUserPersonalDetails?.accountID, email: currentUserPersonalDetails?.email ?? ''},
+                currentUserPersonalDetails,
                 currentUserLocalCurrency: currentUserPersonalDetails?.localCurrencyCode ?? CONST.CURRENCY.USD,
                 isTrackIntentUser,
                 delegateAccountID,
@@ -548,6 +553,18 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
                     Log.warn('Change approver secondary action triggered without moneyRequestReport data.');
                     return;
                 }
+                const canMemberReassignApprover =
+                    !isPolicyAdmin(policy) &&
+                    canReassignAsApprover({
+                        report: moneyRequestReport,
+                        currentUserAccountID: accountID,
+                        isLoadingSecurityGroup,
+                        areStrictPolicyRulesEnabled,
+                    });
+                if (canMemberReassignApprover) {
+                    Navigation.navigate(ROUTES.REPORT_CHANGE_APPROVER_REASSIGN_APPROVER.getRoute(moneyRequestReport.reportID));
+                    return;
+                }
                 Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.REPORT_CHANGE_APPROVER.path));
             },
         },
@@ -664,6 +681,7 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
                                     bankAccountList,
                                     delegateAccountID,
                                     hash: currentSearchHash,
+                                    isChatReportArchived: isParentReportArchived,
                                 });
                             }, CONST.EXPENSE_REPORT_DELETE_DELAY_MS);
                         },

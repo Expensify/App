@@ -24,6 +24,7 @@ import useTextInputAccessibility from '@hooks/useTextInputAccessibility';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import getSecretInputFSClass from '@libs/Fullstory/getSecretInputFSClass';
 import getLandscapeTextInputRefProxy from '@libs/getLandscapeTextInputRefProxy';
 import isInputAutoFilled from '@libs/isInputAutoFilled';
 
@@ -98,6 +99,7 @@ function BaseTextInput({
     sentryLabel = CONST.SENTRY_LABEL.TEXT_INPUT.FIELD,
     rightHandSideComponent,
     shouldAllowFocusInLandscapeMode = false,
+    shouldIgnorePasswordManager: _shouldIgnorePasswordManager,
     ...props
 }: BaseTextInputProps) {
     const InputComponent = InputComponentMap.get(type) ?? RNTextInput;
@@ -279,20 +281,21 @@ function BaseTextInput({
 
     const inputHelpText = errorText || hint;
     const placeholderValue = !!prefixCharacter || !!suffixCharacter || isFocused || !hasLabel || (hasLabel && forceActiveLabel) ? placeholder : undefined;
-    const newTextInputContainerStyles: StyleProp<ViewStyle> = StyleSheet.flatten([
-        styles.textInputContainer,
-        !hasLabel && styles.pt0,
-        textInputContainerStyles,
-        !shouldApplyPaddingToContainer && styles.p0,
-        !!contentWidth && StyleUtils.getWidthStyle(textInputWidth + (shouldApplyPaddingToContainer ? styles.textInputContainer.padding * 2 : 0)),
-        autoGrow && StyleUtils.getAutoGrowWidthInputContainerStyles(textInputWidth, autoGrowExtraSpace, autoGrowMarginSide),
-        !hideFocusedState && isFocused && styles.borderColorFocus,
-        (!!hasError || !!errorText) && styles.borderColorDanger,
-        autoGrowHeight && {scrollPaddingTop: typeof maxAutoGrowHeight === 'number' ? 2 * maxAutoGrowHeight : undefined},
-        isAutoGrowHeightMarkdown && styles.pb2,
-        inputProps.disabled && styles.textInputDisabledContainer,
-        shouldAddPaddingBottom && styles.pb1,
-    ]);
+    const newTextInputContainerStyles: StyleProp<ViewStyle> =
+        StyleSheet.flatten([
+            styles.textInputContainer,
+            !hasLabel && styles.pt0,
+            textInputContainerStyles,
+            !shouldApplyPaddingToContainer && styles.p0,
+            !!contentWidth && StyleUtils.getWidthStyle(textInputWidth + (shouldApplyPaddingToContainer ? styles.textInputContainer.padding * 2 : 0)),
+            autoGrow && StyleUtils.getAutoGrowWidthInputContainerStyles(textInputWidth, autoGrowExtraSpace, autoGrowMarginSide),
+            !hideFocusedState && isFocused && styles.borderColorFocus,
+            (!!hasError || !!errorText) && styles.borderColorDanger,
+            autoGrowHeight && {scrollPaddingTop: typeof maxAutoGrowHeight === 'number' ? 2 * maxAutoGrowHeight : undefined},
+            isAutoGrowHeightMarkdown && styles.pb2,
+            inputProps.disabled && styles.textInputDisabledContainer,
+            shouldAddPaddingBottom && styles.pb1,
+        ]) ?? {};
 
     // TextInputMeasurement is absolutely positioned, so it doesn’t inherit padding/border.
     // We extract the horizontal padding/border from the input container to get an accurate width.
@@ -447,6 +450,7 @@ function BaseTextInput({
                                 onBlur={onBlur}
                                 onChangeText={setValue}
                                 secureTextEntry={passwordHidden}
+                                forwardedFSClass={getSecretInputFSClass(inputProps.forwardedFSClass, inputProps.secureTextEntry)}
                                 onPressOut={inputProps.onPress}
                                 showSoftInputOnFocus={!disableKeyboard}
                                 keyboardType={inputProps.keyboardType}

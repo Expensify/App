@@ -17,9 +17,10 @@ const POPOVER_HEIGHT = 400;
 const POPOVER_WIDTH = 300;
 const WINDOW_MARGIN = CONST.MODAL.POPOVER_MENU_PADDING;
 
+const mockWindowWidth = 1000;
 let mockAnchorPosition: PopoverAnchorPosition | undefined;
 
-jest.mock('@hooks/useWindowDimensions', () => () => ({windowWidth: 1000, windowHeight: 600}));
+jest.mock('@hooks/useWindowDimensions', () => () => ({windowWidth: mockWindowWidth, windowHeight: 600}));
 
 jest.mock('@components/Popover', () => {
     const MockPopover = ({anchorPosition, children}: {anchorPosition: PopoverAnchorPosition; children: ReactNode}) => {
@@ -47,6 +48,33 @@ function renderPopoverAt(vertical: number, verticalAlignment: ValueOf<typeof CON
     );
     return mockAnchorPosition;
 }
+
+describe('PopoverWithMeasuredContentBase horizontal positioning', () => {
+    it('positions the popover by its current width when a static width changes while it is open', () => {
+        // Given an open popover as wide as its anchor row, which ends a gutter short of the window's right edge
+        const ROW_RIGHT_EDGE = mockWindowWidth - 20;
+        const buildPopover = (width: number) => (
+            <PopoverWithMeasuredContentBase
+                isVisible
+                onClose={() => {}}
+                anchorRef={createRef<ComponentRef<typeof View>>()}
+                anchorPosition={{horizontal: ROW_RIGHT_EDGE - width, vertical: 100}}
+                anchorAlignment={{horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT, vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP}}
+                popoverDimensions={{height: POPOVER_HEIGHT, width}}
+            >
+                <Text>content</Text>
+            </PopoverWithMeasuredContentBase>
+        );
+        const {rerender} = render(buildPopover(POPOVER_WIDTH));
+
+        // When the row gets narrower and the popover is given the new width and left edge
+        const narrowerWidth = POPOVER_WIDTH - 100;
+        rerender(buildPopover(narrowerWidth));
+
+        // Then it stays on the row's left edge, since the width it opened with would look like an overflow and shift it left
+        expect(mockAnchorPosition?.left).toBe(ROW_RIGHT_EDGE - narrowerWidth);
+    });
+});
 
 describe('PopoverWithMeasuredContentBase vertical positioning', () => {
     describe('BOTTOM alignment (popover opens above the anchor)', () => {
