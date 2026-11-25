@@ -16,6 +16,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import {fetchPerDiemRates} from '@libs/actions/Policy/PerDiem';
 import Navigation from '@libs/Navigation/Navigation';
+import {getAvailablePerDiemRate} from '@libs/PolicyPerDiemUtils';
 import {getPerDiemCustomUnit, isPolicyAdmin} from '@libs/PolicyUtils';
 
 import CONST from '@src/CONST';
@@ -48,10 +49,12 @@ function PerDiemRatesGate({policyID, backToRoute, children}: PerDiemRatesGatePro
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
     const customUnit = getPerDiemCustomUnit(policy);
     const hasRates = !isEmptyObject(customUnit?.rates);
+    // Rates pending deletion can't be picked, so a workspace with only those counts as having none
+    const hasAvailableRates = Object.values(customUnit?.rates ?? {}).some((rate) => getAvailablePerDiemRate(rate) !== undefined);
 
     const isLoading = !isOffline && !customUnit?.rates;
-    const shouldShowEmptyState = !hasRates && !isOffline && !isLoading;
-    const shouldShowOfflineView = !hasRates && isOffline;
+    const shouldShowEmptyState = !hasAvailableRates && !isOffline && !isLoading;
+    const shouldShowOfflineView = !hasAvailableRates && isOffline;
 
     useEffect(() => {
         if (hasRates || isOffline) {

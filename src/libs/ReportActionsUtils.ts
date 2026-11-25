@@ -479,6 +479,7 @@ function isDeletedAction(reportAction: OnyxInputOrEntry<ReportAction | Optimisti
         reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_DIRECTOR_INFORMATION_REQUIRED ||
         reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED_REPORT_FOR_UNAPPROVED_TRANSACTIONS ||
         reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.REASSIGN_APPROVER ||
+        reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ACTION_DELEGATE_SUBMIT ||
         reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.MERGED_EXPENSE_DELETED ||
         reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_AUTO_CATEGORIZE_NEW_EXPENSES ||
         reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_EMPLOYEE_DISPLAY_NAME ||
@@ -738,7 +739,7 @@ function getSystemMessageDisplayState(
     const firstAction = reportActions.at(0);
     const lastAction = reportActions.at(-1);
     const isNewestFirst = !!firstAction && !!lastAction && isNewerReportAction(firstAction, lastAction);
-    const chronologicalActions = isNewestFirst ? reportActions.toReversed() : reportActions;
+    const chronologicalActions = isNewestFirst ? [...reportActions].reverse() : reportActions;
 
     const appendAction = (reportAction: ReportAction) => {
         reportActionIDToDisplayIndex.set(reportAction.reportActionID, displayReportActions.length);
@@ -1741,6 +1742,7 @@ function shouldReportActionBeVisible(
     reportID?: string,
     isSupportTicketReport = false,
     reportActions?: OnyxEntry<ReportActions>,
+    isInvoice?: boolean,
     policy?: OnyxEntry<Policy>,
     currentUserEmail?: string,
 ): boolean {
@@ -1820,10 +1822,12 @@ function shouldReportActionBeVisible(
         return false;
     }
 
-    // Auth sets shouldShow to false on REIMBURSED and MARKED_REIMBURSED actions created from NewDot, because NewDot shows an IOU PAY action instead.
-    // Invoices keep them visible, because paying a linked bill adds no IOU PAY action to the invoice.
+    // Hide REIMBURSED and MARKED_REIMBURSED actions created from NewDot since an IOU PAY action is displayed instead.
+    // ReimburseReport and MarkReimbursed add no IOU PAY action to an invoice, and neither does paying its linked bill, so the payment action stays visible on invoices.
+    // Auth sets shouldShow to false on MARKED_REIMBURSED actions created from NewDot for the same reason, so invoices ignore it too.
     if (isPaymentRecordedByReimbursedAction(reportAction)) {
-        if (reportAction.shouldShow === false) {
+        // Search passes isInvoice because its invoice can exist only in the Search snapshot, not in Onyx.
+        if (isPaymentActionHiddenOutsideInvoices(reportAction) && !(isInvoice ?? isInvoiceReportID(reportAction.reportID ?? reportID))) {
             return false;
         }
 
@@ -1882,6 +1886,7 @@ function isReportActionVisible(
     // TODO: Remove optional (?) once all callers pass currentUserAccountID. Refactor issue: https://github.com/Expensify/App/issues/66408
     currentUserAccountID?: number,
     reportActions?: OnyxEntry<ReportActions>,
+    isInvoice?: boolean,
 ): boolean {
     if (!reportAction?.reportActionID) {
         return false;
@@ -1893,18 +1898,45 @@ function isReportActionVisible(
     // from what's cached in visibleReportActions (which reflects persisted Onyx data).
     // We must recalculate visibility at runtime to ensure accuracy for these transient states.
     if (reportAction.pendingAction) {
-        return shouldReportActionBeVisible(reportAction, reportAction.reportActionID, canUserPerformWriteAction, currentUserAccountID, reportID, isSupportTicketReport, reportActions);
+        return shouldReportActionBeVisible(
+            reportAction,
+            reportAction.reportActionID,
+            canUserPerformWriteAction,
+            currentUserAccountID,
+            reportID,
+            isSupportTicketReport,
+            reportActions,
+            isInvoice,
+        );
     }
 
     if (visibleReportActions && reportID) {
         const reportCache = visibleReportActions[reportID];
         if (!reportCache) {
-            return shouldReportActionBeVisible(reportAction, reportAction.reportActionID, canUserPerformWriteAction, currentUserAccountID, reportID, isSupportTicketReport, reportActions);
+            return shouldReportActionBeVisible(
+                reportAction,
+                reportAction.reportActionID,
+                canUserPerformWriteAction,
+                currentUserAccountID,
+                reportID,
+                isSupportTicketReport,
+                reportActions,
+                isInvoice,
+            );
         }
         const staticVisibility = reportCache[reportAction.reportActionID];
         // If action is not in derived value cache, fall back to runtime calculation
         if (staticVisibility === undefined) {
-            return shouldReportActionBeVisible(reportAction, reportAction.reportActionID, canUserPerformWriteAction, currentUserAccountID, reportID, isSupportTicketReport, reportActions);
+            return shouldReportActionBeVisible(
+                reportAction,
+                reportAction.reportActionID,
+                canUserPerformWriteAction,
+                currentUserAccountID,
+                reportID,
+                isSupportTicketReport,
+                reportActions,
+                isInvoice,
+            );
         }
         if (!staticVisibility) {
             return false;
@@ -1914,7 +1946,7 @@ function isReportActionVisible(
         }
         return true;
     }
-    return shouldReportActionBeVisible(reportAction, reportAction.reportActionID, canUserPerformWriteAction, currentUserAccountID, reportID, isSupportTicketReport, reportActions);
+    return shouldReportActionBeVisible(reportAction, reportAction.reportActionID, canUserPerformWriteAction, currentUserAccountID, reportID, isSupportTicketReport, reportActions, isInvoice);
 }
 
 /**
@@ -3573,6 +3605,18 @@ function isPaymentRecordedByReimbursedAction(
     reportAction: OnyxEntry<ReportAction>,
 ): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REIMBURSED | typeof CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED> {
     return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.REIMBURSED) || isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED);
+}
+
+function isInvoiceReportID(reportID: string | undefined): boolean {
+    return !!reportID && getReportOrDraftReport({reportID})?.type === CONST.REPORT.TYPE.INVOICE;
+}
+
+/**
+ * Returns true for a REIMBURSED or MARKED_REIMBURSED action that was created from NewDot or that Auth marked with
+ * shouldShow false. Such an action is hidden on every report except an invoice.
+ */
+function isPaymentActionHiddenOutsideInvoices(reportAction: OnyxEntry<ReportAction>): boolean {
+    return isPaymentRecordedByReimbursedAction(reportAction) && (!!getOriginalMessage(reportAction)?.isNewDot || reportAction.shouldShow === false);
 }
 
 /**
@@ -6520,6 +6564,7 @@ export {
     isActionableAddPaymentCard,
     isActionableCardFraudAlert,
     isActionableWhisperRequiringWritePermission,
+    isPaymentActionHiddenOutsideInvoices,
     getExportIntegrationActionFragments,
     getExportIntegrationLastMessageText,
     getExportIntegrationMessageHTML,

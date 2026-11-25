@@ -1,4 +1,5 @@
 import useContentHeaderHeight from '@hooks/useContentHeaderHeight';
+import useRemeasureOnWindowResize from '@hooks/useRemeasureOnWindowResize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
 import useWindowDimensions from '@hooks/useWindowDimensions';
@@ -11,6 +12,7 @@ import type AnchorAlignment from '@src/types/utils/AnchorAlignment';
 import type {ComponentRef, ReactNode, Ref} from 'react';
 import type {View} from 'react-native';
 
+import {shallowEqual} from 'fast-equals';
 import React, {useImperativeHandle, useRef, useState} from 'react';
 
 import type {DropdownFieldRowProps} from './DropdownFieldRow';
@@ -42,7 +44,7 @@ const ANCHOR_ALIGNMENT_ABOVE: AnchorAlignment = {
     vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
 };
 
-/** Where and how big the container is, measured off the row each time it opens */
+/** Where and how big the container is, measured off the row each time it opens and again whenever the window changes size under it */
 type DropdownLayout = {
     horizontal: number;
     vertical: number;
@@ -147,6 +149,27 @@ function DropdownField({renderDropdown, shouldOpenInDropdown, onPress, onOpen, l
         onPress?.();
     };
 
+    /** Measures the row and hands back where the container goes, and whether that side has room for a list */
+    const measureLayout = (onMeasured: (measuredLayout: DropdownLayout, hasUsableHeight: boolean) => void) => {
+        anchorRef.current?.measureInWindow((x, y, width, height) => {
+            const spaceBelow = windowHeight - (y + height + CONTAINER_GAP);
+            const spaceAbove = y - CONTAINER_GAP - (safeAreaTop + contentHeaderHeight);
+            const shouldOpenAbove = spaceBelow < maxContainerHeight && spaceAbove > spaceBelow;
+            const availableHeight = (shouldOpenAbove ? spaceAbove : spaceBelow) - CONTAINER_BORDER;
+
+            onMeasured(
+                {
+                    horizontal: x,
+                    vertical: shouldOpenAbove ? y - CONTAINER_GAP : y + height + CONTAINER_GAP,
+                    width,
+                    height: Math.min(maxContainerHeight, availableHeight),
+                    shouldOpenAbove,
+                },
+                availableHeight >= minUsableHeight,
+            );
+        });
+    };
+
     const openDropdown = () => {
         onOpen?.();
         if (isSmallScreenWidth) {
@@ -155,28 +178,34 @@ function DropdownField({renderDropdown, shouldOpenInDropdown, onPress, onOpen, l
             return;
         }
 
-        anchorRef.current?.measureInWindow((x, y, width, height) => {
-            const spaceBelow = windowHeight - (y + height + CONTAINER_GAP);
-            const spaceAbove = y - CONTAINER_GAP - (safeAreaTop + contentHeaderHeight);
-            const shouldOpenAbove = spaceBelow < maxContainerHeight && spaceAbove > spaceBelow;
-            const availableHeight = (shouldOpenAbove ? spaceAbove : spaceBelow) - CONTAINER_BORDER;
-
-            if (availableHeight < minUsableHeight && onPress) {
+        measureLayout((measuredLayout, hasUsableHeight) => {
+            if (!hasUsableHeight && onPress) {
                 onPress();
                 return;
             }
 
-            setLayout({
-                horizontal: x,
-                vertical: shouldOpenAbove ? y - CONTAINER_GAP : y + height + CONTAINER_GAP,
-                width,
-                height: Math.min(maxContainerHeight, availableHeight),
-                shouldOpenAbove,
-            });
+            setLayout(measuredLayout);
             setHasEverOpened(true);
             updateVisibility(true);
         });
     };
+
+    const remeasureOpenDropdown = (isStale: () => boolean) => {
+        measureLayout((measuredLayout, hasUsableHeight) => {
+            if (isStale()) {
+                return;
+            }
+            // Pressing the row here would have opened its page instead, but a resize is no reason to navigate, so the list just closes.
+            if (!hasUsableHeight && onPress) {
+                closeDropdown();
+                return;
+            }
+            setLayout((currentLayout) => (shallowEqual(currentLayout, measuredLayout) ? currentLayout : measuredLayout));
+        });
+    };
+
+    // The row moves and resizes with the window, so an open pop-over is placed off it again. A bottom sheet doesn't hang off the row.
+    useRemeasureOnWindowResize(isVisible && !isSmallScreenWidth, remeasureOpenDropdown);
 
     const handlePress = () => {
         if (!shouldOpenInDropdown) {

@@ -320,7 +320,6 @@ function IOURequestStartPage({
                                         {() => (
                                             <TabScreenWithFocusTrapWrapper>
                                                 <IOURequestStepScan
-                                                    key={transactionRequestType}
                                                     route={route}
                                                     navigation={navigation}
                                                 />

@@ -116,8 +116,10 @@ function ConfirmModalWrapper({closeModal, onModalHide, resolveModal, onBackdropP
     };
 
     // Mirror the confirm button's disabled state so the Enter shortcut can't bypass a button that is visually disabled.
+    // A focused button or link handles Enter itself, so opening a link in the prompt doesn't also confirm.
+    const isEnterHandledByFocusedElement = activeElementRole === CONST.ROLE.BUTTON || activeElementRole === CONST.ROLE.LINK;
     const shortcutConfig = {
-        isActive: activeElementRole !== CONST.ROLE.BUTTON && !isConfirmLoading && !isConfirmDisabledWhileOffline && !props.isConfirmDisabled,
+        isActive: !isEnterHandledByFocusedElement && !isConfirmLoading && !isConfirmDisabledWhileOffline && !props.isConfirmDisabled,
         shouldPreventDefault: false,
         shouldBubble: false,
     };

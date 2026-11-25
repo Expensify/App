@@ -7,7 +7,7 @@ import {useAllReportsTransactionsAndViolations} from '@components/OnyxListItemPr
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import {useOpenSearchReportSubmitToPopover} from '@components/ReportSubmitToPopoverAnchor';
 import {useSearchQueryContext, useSearchResultsContext, useSearchSelectionActions, useSearchSelectionContext} from '@components/Search/SearchContext';
-import {getClaimedGroupKey, getRowsCheckedInExcludedGroups, getSearchGroupCountByKey, mergeRowsIntoPartlyLoadedGroups} from '@components/Search/selectionBuilders';
+import {getClaimedGroupKeys, getRowsCheckedInExcludedGroups, getSearchGroupCountByKey, mergeRowsIntoPartlyLoadedGroups} from '@components/Search/selectionBuilders';
 import type {ASTNode, BulkPaySelectionData, PaymentData, SearchColumnType, SearchGroupBy, SearchQueryJSON, SelectedReports, SelectedTransactions} from '@components/Search/types';
 
 import {getAccountingIntegrationDisplayName, getExportLabelForConnection, isIntuitEnterpriseSuiteConnection} from '@libs/AccountingUtils';
@@ -257,7 +257,7 @@ function getRestrictedPolicyID(
 }
 
 function isGroupSelection(key: string, transaction: SelectedTransactions[string]): boolean {
-    return key.startsWith(CONST.SEARCH.GROUP_PREFIX) || (!!transaction.isSelectedViaGroup && !!transaction.groupKey);
+    return key.startsWith(CONST.SEARCH.GROUP_PREFIX) || (!!transaction.isSelectedViaGroup && !!transaction.groupKey) || getClaimedGroupKeys(transaction).length > 0;
 }
 
 /**
@@ -357,13 +357,14 @@ function getFullyDeletedGroupKeysByTransactionID(selectedTransactions: SelectedT
 /**
  * Groups the user selected through a group header, including when `limit:` left children unloaded.
  * Export uses this instead of `getSelectedGroupKeys`, which only covers a whole-group delete.
+ * Where groups share expenses, a group whose rows are all stored under another group is read from those rows' other claims.
  */
 function getGroupKeysSelectedViaGroup(selectedTransactions: SelectedTransactions): SearchGroupKey[] {
     const groupKeys = new Set<SearchGroupKey>();
 
     for (const [key, transaction] of Object.entries(selectedTransactions)) {
-        const groupKey = isGroupEntry(key) ? key : getClaimedGroupKey(transaction);
-        if (groupKey) {
+        // A group's own entry can also carry the other groups its merged rows claimed
+        for (const groupKey of isGroupEntry(key) ? [key, ...getClaimedGroupKeys(transaction)] : getClaimedGroupKeys(transaction)) {
             groupKeys.add(groupKey);
         }
     }
@@ -409,9 +410,10 @@ function addSelectedGroupsFilter(queryJSON: SearchQueryJSON, selectedTransaction
     const filterEntries: SelectedGroupValueFilter[] = [];
     const dateRanges: SearchDateRange[] = [];
     for (const key of groupKeys) {
-        const group = searchData[key as keyof SearchResultDataType];
+        const group = searchData[key];
         const entry = group ? getSelectedGroupFilterEntry(groupBy, group) : undefined;
         if (!entry) {
+            Log.warn('[Export] Dropping group export: selected group cannot be turned into a filter', {groupBy, key, hasGroup: !!group});
             return undefined;
         }
         if (entry.kind === 'dateRange') {
@@ -851,7 +853,6 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
     const hasOnlyEmptyReports = selectedReports.length > 0 && emptyReports.length === selectedReports.length;
 
     const payableSelectedReports = useMemo(() => selectedReports.filter((report) => report.canPay), [selectedReports]);
-    const payableSelectedReportIDs = useMemo(() => payableSelectedReports.map((report) => report.reportID).filter((reportID) => reportID !== undefined), [payableSelectedReports]);
     const payScopedReports = useMemo(() => (payableSelectedReports.length > 0 ? payableSelectedReports : selectedReports), [payableSelectedReports, selectedReports]);
     const payScopedReportIDs = useMemo(() => payScopedReports.map((report) => report.reportID).filter((reportID) => reportID !== undefined), [payScopedReports]);
 
@@ -1685,6 +1686,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                     bankAccountList,
                     delegateAccountID,
                     hash,
+                    isChatReportArchived: isArchivedReport(allReportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.parentReportID}`]),
                 });
             }
         } else {
@@ -1740,6 +1742,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                     bankAccountList,
                     delegateAccountID,
                     hash,
+                    isChatReportArchived: isArchivedReport(allReportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.parentReportID}`]),
                 });
             }
         }
@@ -1768,6 +1771,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         duplicateTransactions,
         duplicateTransactionViolations,
         delegateAccountID,
+        allReportNameValuePairs,
     ]);
 
     const onBulkPaySelected = useCallback(
@@ -1788,10 +1792,18 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                 return;
             }
 
-            const selectedOptions = selectedReports.length ? payableSelectedReports : Object.values(selectedTransactions);
+            const selectedOptions = selectedReports.length ? selectedReports : Object.values(selectedTransactions);
             const expenseReportBankAccountID = additionalData?.bankAccountID;
 
-            const restrictedPolicyID = getRestrictedPolicyID(selectedOptions, userBillingGracePeriodEnds, ownerBillingGracePeriodEnd, amountOwed, policies, accountID);
+            // Only Select all can include reports that can't be paid, and those aren't paid.
+            const restrictedPolicyID = getRestrictedPolicyID(
+                selectedReports.length ? payableSelectedReports : Object.values(selectedTransactions),
+                userBillingGracePeriodEnds,
+                ownerBillingGracePeriodEnd,
+                amountOwed,
+                policies,
+                accountID,
+            );
             if (restrictedPolicyID) {
                 Log.info('[BulkPay] Blocking bulk pay: billable actions are restricted', false, {policyID: restrictedPolicyID});
                 Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(restrictedPolicyID));
@@ -1897,7 +1909,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             }
             const itemsToPay =
                 selectedReports.length > 0
-                    ? payableSelectedReports.map((report) => ({
+                    ? selectedReports.map((report) => ({
                           reportID: report.reportID,
                           amount: report.total,
                           policyID: report.policyID,
@@ -2144,15 +2156,18 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             }
 
             const reports = expensePayments.flatMap((params) => (params.iouReport?.reportID ? [params.iouReport] : []));
-            const quotedReports = expensePayments.flatMap((params) => (params.iouReport?.reportID && shouldGetWiseQuote(params) ? [params.iouReport] : []));
+            const quotedPayments = expensePayments.filter((params) => !!params.iouReport?.reportID && shouldGetWiseQuote(params));
+            const quotedReportIDs = quotedPayments.flatMap((params) => (params.iouReport?.reportID ? [params.iouReport.reportID] : []));
             const getQuotes = () => {
-                for (const report of quotedReports) {
+                for (const {iouReport: report, policy} of quotedPayments) {
+                    if (!report) {
+                        continue;
+                    }
                     // Search results don't hold the quote, which the server merges into the report in Onyx
-                    getWiseQuote({...report, ...allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`]}, true);
+                    getWiseQuote({...report, ...allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`]}, true, policy?.globalReimbursementFXPreferCompany);
                 }
             };
             getQuotes();
-            const quotedReportIDs = quotedReports.map((report) => report.reportID);
             // Bulk pay runs while the pay popover is still dismissing, and iOS can't present a modal until it's gone
             deferModalPresentationAfterPopoverDismiss(() => {
                 showWiseQuoteCarouselModal({
@@ -2178,7 +2193,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             isOffline,
             isBetaEnabled,
             isDelegateAccessRestricted,
-            selectedReports.length,
+            selectedReports,
             payableSelectedReports,
             selectedTransactions,
             userBillingGracePeriodEnds,
@@ -2399,10 +2414,6 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
 
         const options: Array<DropdownOption<SearchHeaderOptionValue>> = [];
         const isAnyTransactionOnHold = Object.values(selectedTransactions).some((transaction) => transaction.isHeld);
-        const isAnyPayableTransactionOnHold =
-            payableSelectedReports.length > 0
-                ? Object.values(selectedTransactions).some((transaction) => transaction.isHeld && !!transaction.reportID && payableSelectedReportIDs.includes(transaction.reportID))
-                : isAnyTransactionOnHold;
         const allMatchingReportActionQuery = areAllMatchingItemsSelected && queryJSON ? getAllMatchingReportActionQuery(queryJSON, excludedTransactions, isExpenseReportType) : undefined;
 
         const getExportOptions = () => {
@@ -2890,9 +2901,10 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
 
         const {shouldEnableBulkPayOption} = getPayOption(selectedReports, selectedTransactions, lastPaymentMethods, selectedReportIDs, personalPolicyID);
         const hasLoadedPayableReport = payableSelectedReports.length > 0 || selectedReports.length === 0;
+        // Select all can cover reports that aren't loaded, so the server picks which matching reports it can pay.
         const shouldShowPayOption = areAllMatchingItemsSelected
             ? hasLoadedPayableReport && !!bulkPayButtonOptions?.length && !!allMatchingReportActionQuery
-            : !isAnyPayableTransactionOnHold && shouldEnableBulkPayOption && !!bulkPayButtonOptions?.length;
+            : !isAnyTransactionOnHold && shouldEnableBulkPayOption && !!bulkPayButtonOptions?.length;
         const payButtonOption: DropdownOption<SearchHeaderOptionValue> & Pick<PopoverMenuItem, 'rightIcon'> = {
             icon: expensifyIcons.MoneyBag,
             text: translate('search.bulkActions.pay'),
@@ -3538,7 +3550,6 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                   .map(({reportID}) => currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`])
                   .filter((report) => !!report?.reportID && report.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
         if (
-            isBetaEnabled(CONST.BETAS.REPORT_MERGE) &&
             selectedMergeReports.length === selectedReports.length &&
             queryJSON?.type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT &&
             canMergeReports(
@@ -3810,7 +3821,6 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         isOffline,
         selectedReports,
         payableSelectedReports.length,
-        payableSelectedReportIDs,
         lastPaymentMethods,
         selectedReportIDs,
         personalPolicyID,

@@ -83,6 +83,29 @@ describe('PerDiemRequestUtils', () => {
         expect(tokenizeSearchResult).toStrictEqual(searchResultList);
     });
 
+    it('offers only unfilled available subrates while retaining existing expense rows', () => {
+        // Given Breakfast is pending deletion and Lunch is the only available subrate
+        const breakfast = {id: 'breakfast', name: 'Breakfast', rate: 1000, quantity: 1};
+        const lunch = {id: 'lunch', name: 'Lunch', rate: 2000, quantity: 1};
+        const customUnit: CustomUnit = {
+            customUnitID: 'per-diem',
+            name: CONST.CUSTOM_UNITS.NAME_PER_DIEM_INTERNATIONAL,
+            rates: {london: {customUnitRateID: 'london', subRates: [{...breakfast, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}, lunch]}},
+        };
+        const transaction = createRandomTransaction(1);
+        transaction.comment = {...transaction.comment, customUnit: {customUnitID: 'per-diem', customUnitRateID: 'london', subRates: [lunch]}};
+
+        // When confirmation derives the subrate fields
+        const fields = getSubratesFields(customUnit, transaction);
+
+        // Then no extra field is offered just because the deleted subrate remains in Onyx
+        expect(fields).toEqual([lunch]);
+
+        // Given an older draft instead contains Breakfast, its saved row must remain removable and Lunch can still be added
+        transaction.comment.customUnit = {...transaction.comment.customUnit, subRates: [breakfast]};
+        expect(getSubratesFields(customUnit, transaction)).toEqual([breakfast, undefined]);
+    });
+
     describe('getCustomUnitID', () => {
         it('should return the correct custom unit ID', async () => {
             const policy: Policy = {

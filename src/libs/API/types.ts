@@ -1762,6 +1762,7 @@ const READ_COMMANDS = {
     OPEN_SEARCH_CATEGORY_FILTERS_PAGE: 'OpenSearchCategoryFiltersPage',
     SEARCH: 'Search',
     GET_INSIGHTS: 'GetInsights',
+    GET_INSIGHTS_DETAILS: 'GetInsightsDetails',
     GET_TRANSACTIONS_CONVERTED_AMOUNT: 'GetTransactionsConvertedAmount',
     GET_OLDER_ACTIONS: 'GetOlderActions',
     GET_NEWER_ACTIONS: 'GetNewerActions',
@@ -1910,6 +1911,7 @@ type ReadCommandParameters = {
     [READ_COMMANDS.OPEN_SEARCH_PAGE]: Parameters.OpenSearchPageParams;
     [READ_COMMANDS.SEARCH]: Parameters.SearchParams;
     [READ_COMMANDS.GET_INSIGHTS]: Parameters.GetInsightsParams;
+    [READ_COMMANDS.GET_INSIGHTS_DETAILS]: Parameters.GetInsightsDetailsParams;
     [READ_COMMANDS.GET_TRANSACTIONS_CONVERTED_AMOUNT]: Parameters.GetTransactionsConvertedAmountParams;
     [READ_COMMANDS.BEGIN_SIGNIN]: Parameters.BeginSignInParams;
     [READ_COMMANDS.SIGN_IN_WITH_SUPPORT_AUTH_TOKEN]: Parameters.SignInWithSupportAuthTokenParams;
@@ -2008,6 +2010,7 @@ const SIDE_EFFECT_REQUEST_COMMANDS = {
     SEARCH: 'Search',
     SEARCH_COMPANY_CARD_BY_NUMBER: 'SearchCompanyCardByNumber',
     GET_INSIGHTS: 'GetInsights',
+    GET_INSIGHTS_DETAILS: 'GetInsightsDetails',
     GET_SCIM_TOKEN: 'GetSCIMToken',
     PARSE_EXPENSE_FILTERS: 'ParseExpenseFilters',
     TRANSLATE_RECEIPT: 'TranslateReceipt',
@@ -2040,6 +2043,7 @@ const SIDE_EFFECT_REQUEST_COMMANDS = {
     REVEAL_CARD_PIN: 'RevealCardPIN',
     CHANGE_CARD_PIN: 'ChangeCardPIN',
     OPEN_SEARCH_TAG_FILTERS_PAGE: 'OpenSearchTagFiltersPage',
+    OPEN_SEARCH_USER_FILTERS_PAGE: 'OpenSearchUserFiltersPage',
     // A Wise onboarding page that carries a sensitive answer, such as the SSN, is sent without the request queue so the answer is never written to disk
     UPDATE_WISE_ONBOARDING_ADDITIONAL_DATA: 'UpdateWiseOnboardingAdditionalData',
 } as const;
@@ -2101,6 +2105,7 @@ type SideEffectRequestCommandParameters = {
     [SIDE_EFFECT_REQUEST_COMMANDS.REVEAL_CARD_PIN]: Parameters.RevealCardPINParams;
     [SIDE_EFFECT_REQUEST_COMMANDS.CHANGE_CARD_PIN]: Parameters.ChangeCardPINParams;
     [SIDE_EFFECT_REQUEST_COMMANDS.OPEN_SEARCH_TAG_FILTERS_PAGE]: Parameters.OpenSearchTagFiltersPageParams;
+    [SIDE_EFFECT_REQUEST_COMMANDS.OPEN_SEARCH_USER_FILTERS_PAGE]: Parameters.OpenSearchUserFiltersPageParams;
     [SIDE_EFFECT_REQUEST_COMMANDS.UPDATE_WISE_ONBOARDING_ADDITIONAL_DATA]: Parameters.UpdateWiseOnboardingAdditionalDataParams;
 };
 

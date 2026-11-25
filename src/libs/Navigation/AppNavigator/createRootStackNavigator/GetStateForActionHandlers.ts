@@ -7,7 +7,7 @@ import getModalRouteOnTop from '@libs/Navigation/helpers/getModalRouteOnTop';
 import getStateFromPath from '@libs/Navigation/helpers/getStateFromPath';
 import hasNativeSwipeBackGesture from '@libs/Navigation/helpers/hasNativeSwipeBackGesture';
 import {isFullScreenName, isPreMountBufferHostName} from '@libs/Navigation/helpers/isNavigatorName';
-import {isStaleWideTabPreMountPreloadedRouteKey, isStaleWideTabPreMountRouteKey} from '@libs/Navigation/helpers/wideTabPreMountRouteKey';
+import {isLiveWideTabPreMountRouteKey, isStaleWideTabPreMountPreloadedRouteKey, isStaleWideTabPreMountRouteKey} from '@libs/Navigation/helpers/wideTabPreMountRouteKey';
 import {SIDEBAR_TO_SPLIT, SPLIT_TO_SIDEBAR} from '@libs/Navigation/linkingConfig/RELATIONS';
 import type {NavigationPartialRoute, ReportsSplitNavigatorParamList} from '@libs/Navigation/types';
 import {isRecord} from '@libs/ObjectUtils';
@@ -273,6 +273,7 @@ function getTargetTabRoute(
     existingTabRoute: TabRouteForReplacement | undefined,
     focusedTargetTab: NavigationPartialRoute,
     shouldPreserveFocusedReportsStack = false,
+    shouldKeepExistingTabScreens = false,
 ): TabRouteForReplacement {
     // Prepend a back-target route beneath the incoming screen when the incoming state starts with a
     // different screen, so back navigation lands somewhere sensible: the existing sidebar/root route
@@ -333,6 +334,16 @@ function getTargetTabRoute(
         mergedNestedState = {...focusedTargetTab.state, routes: prependedRoutes, index: prependedRoutes.length - 1};
     }
 
+    // Browser history entries made on the screens already in the tab need those routes for browser Back to walk through them
+    const incomingRoutes = mergedNestedState?.routes;
+    if (shouldKeepExistingTabScreens && incomingRoutes?.length && existingNestedRoutes?.length && existingFirstRoute?.name === newFirstRoute?.name) {
+        // Drop the hidden pre-mount and screens the incoming state brings, keep pre-mounts revealed by earlier submits
+        const incomingKeys = new Set(incomingRoutes.map((route) => route.key));
+        const keptRoutes = existingNestedRoutes.filter((route) => !isLiveWideTabPreMountRouteKey(route.key) && !incomingKeys.has(route.key));
+        const stackedRoutes = [...keptRoutes, ...incomingRoutes];
+        mergedNestedState = {...mergedNestedState, routes: stackedRoutes, index: stackedRoutes.length - 1};
+    }
+
     if (!existingTabRoute) {
         return {
             name: focusedTargetTab.name,
@@ -363,11 +374,15 @@ function getTabStateWithExistingFocusedTarget(existingTabState: NavigationState,
     // this on web would make browser Back skip that report while React Navigation keeps it.
     const shouldPreserveFocusedReportsStack = isNativePlatform && targetTabIndex === existingTabState.index;
 
+    // Spend screens have no sidebar to duplicate. Skipped when Spend is focused, so submits made on Spend do not grow its stack
+    const shouldKeepExistingTabScreens =
+        !isNativePlatform && !getIsNarrowLayout() && focusedTargetTab.name === NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR && targetTabIndex !== existingTabState.index;
+
     const updatedTabRoutes = existingTabState.routes.map((route, index) => {
         if (index !== targetTabIndex) {
             return route;
         }
-        return getTargetTabRoute(route, focusedTargetTab, shouldPreserveFocusedReportsStack);
+        return getTargetTabRoute(route, focusedTargetTab, shouldPreserveFocusedReportsStack, shouldKeepExistingTabScreens);
     });
     return {...existingTabState, routes: updatedTabRoutes, index: targetTabIndex};
 }

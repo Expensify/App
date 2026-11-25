@@ -1019,6 +1019,7 @@ const translations: TranslationDeepObject<typeof en> = {
     },
     supportalSwitcher: {
         title: '別のアカウントでサポートポータルを開く',
+        navigationLabel: 'Supportal',
         emailLabel: 'メールアドレス',
         reasonLabel: 'サポートログインの理由',
         reasonHint: 'このアカウントには最近のチケットが見つかりませんでした。',
@@ -1238,6 +1239,8 @@ const translations: TranslationDeepObject<typeof en> = {
     },
     insightsPage: {
         tagLevel: (level: string) => `タグレベル ${level}`,
+        noTaggedExpenses: 'タグが付いた経費がありません',
+        noExpensesForTagLevel: (tagLevelName: string) => `この期間には${tagLevelName}の経費がありません。`,
         tagLevelLabel: 'タグレベル',
         parent: '親',
         shareOfTotal: '全体に占める割合（％）',
@@ -1290,7 +1293,6 @@ const translations: TranslationDeepObject<typeof en> = {
         viewDetails: '詳細を表示',
         viewAll: 'すべて表示',
         topExpenses: '上位の経費',
-        noExpensesInRange: 'この範囲内に経費はありません',
         efficiency: '効率',
         workflowEfficiency: 'ワークフロー効率',
         averageProcessingTime: '平均処理時間',
@@ -1299,6 +1301,29 @@ const translations: TranslationDeepObject<typeof en> = {
         mostTimeToPay: '支払いまで最も時間がかかる',
         share: 'シェア割合',
         averageDays: '平均日数',
+        summary: {
+            title: '概要',
+            over: (percentage: string) => `${percentage} 超過`,
+            under: (percentage: string) => `${percentage} 未満`,
+            versusMerchantAverage: (amount: string) => `${amount}（この加盟店の平均額との比較）`,
+            versusMemberAverage: (amount: string) => `${amount} 対 このメンバーの平均`,
+            versusCategoryAverage: (amount: string) => `${amount}（このカテゴリーの平均との比較）`,
+            versusAverageDay: (amount: string) => `平均日との比較：${amount}`,
+            versusAverageWeek: (amount: string) => `${amount}（平均的な週との比較）`,
+            versusAverageMonth: (amount: string) => `${amount} 対 平均月額`,
+            versusAverageQuarter: (amount: string) => `平均四半期との比較：${amount}`,
+            moreHistoryNeeded: 'さらに履歴が必要です:',
+            daysOfHistoryNeeded: (count: number) => `平均比較は、履歴が${count}日分そろってから表示されます`,
+            weeksOfHistoryNeeded: (count: number) => `平均比較は、${count}週間分の履歴がそろうと表示されます`,
+            monthsOfHistoryNeeded: (count: number) => `平均比較は、履歴が${count}か月分そろってから表示されます`,
+            quartersOfHistoryNeeded: (count: number) => `平均比較は、${count} 四半期分の履歴が完了すると表示されます`,
+            periodSpend: (period: string) => `${period}の支出`,
+            dayAverage: (count: number) => `${count}日平均`,
+            weekAverage: (count: number) => `${count}週間の平均`,
+            monthAverage: (count: number) => `${count}か月平均`,
+            quarterAverage: (count: number) => `${count} 四半期の平均`,
+            shareOfTotal: '合計に対する割合',
+        },
         generatingAIInsights: 'AI インサイトを生成しています…',
         generatingAIInsightsSubtitle: '1 分もかからないはずです',
         readingChart: (chartTitle: string) => `${chartTitle} を読み込み中`,
@@ -1452,6 +1477,8 @@ const translations: TranslationDeepObject<typeof en> = {
         flash: 'フラッシュ',
         flipCamera: 'カメラを反転',
         multiScan: 'マルチスキャン',
+        receiptEnhancements: 'レシート補正',
+        receiptEnhancementsEnabled: 'レシート補正をオンにしました',
         shutter: 'シャッター',
         gallery: 'ギャラリー',
         deleteReceipt: '領収書を削除',
@@ -1892,14 +1919,15 @@ const translations: TranslationDeepObject<typeof en> = {
         wisePaymentSummary: {
             confirmPayment: '支払いを確認',
             reportTotal: 'レポート合計',
-            unheldAmountBeingPaid: '支払われる保留外の金額',
-            debitAmount: '引き落とし額',
             employeeWillReceive: '従業員の受取額',
+            companyWillPay: '会社の支払予定額',
             totalFees: '手数料合計',
             fxRate: '為替レート',
             paymentDetails: '支払いの詳細',
             debitedAmount: '引き落とし額',
             employeeReceived: '従業員の受取額',
+            paymentDisclosure: ({buttonText}: {buttonText: string}) =>
+                `<muted-text-micro>受取人の銀行が請求する手数料や外国の税金により、受取額が少なくなる場合があります。${buttonText}をクリックすると、Wiseの<a href="${CONST.WISE.TERMS_URL}">利用規約</a>と<a href="${CONST.WISE.PRIVACY_URL}">プライバシーポリシー</a>に同意したものとみなされます。</muted-text-micro>`,
             payAll: 'すべて支払う',
             fxRateExpiredTitle: '為替レートの期限切れ',
             fxRatesExpiredTitle: '為替レートの期限切れ',
@@ -5576,6 +5604,9 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
             chatgpt: {
                 title: 'ChatGPT',
             },
+            grok: {
+                title: 'Grok',
+            },
         },
         connections: {
             tabs: {
@@ -7927,6 +7958,7 @@ Control プランは、アクティブメンバー1人あたり月額 $9 から�
                 willBeReadyToUse: 'このカードはすぐに利用できるようになります。',
                 willBeReadyToShip: 'このカードはすぐに発送できる状態になります。',
                 cardholder: 'カード名義人',
+                cardholderEmail: 'カード名義人のメールアドレス',
                 cardType: 'カードの種類',
                 limit: '上限',
                 limitType: '上限の種類',
@@ -9867,6 +9899,30 @@ ${reportName}`,
             noVendorsFoundDescription: 'Digits に仕入先を追加して、もう一度同期してください',
             noAccountsFound: 'アカウントが見つかりません',
             noAccountsFoundDescription: 'Digits で銀行口座またはクレジットカード口座を追加して、もう一度同期してください',
+            noBankAccountsFoundDescription: 'Digits に銀行口座を追加して、もう一度同期してください',
+            noPayableAccountsFoundDescription: 'Digits でクレジットカードまたは流動負債の勘定科目を追加して、もう一度同期してください',
+            autoSyncDescription: 'Digits と Expensify を毎日自動同期できます。レポートはリアルタイムで同期されます。',
+            accountingMethods: {
+                label: 'エクスポート方法',
+                description: '経費をエクスポートするタイミングを選択します。',
+                values: {
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: '発生主義',
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: '現金',
+                },
+                alternateText: {
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: '立替経費は最終承認時にエクスポートされます',
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: '立替経費は支払われたタイミングでエクスポートされます',
+                },
+            },
+            syncReimbursedReports: '精算済みレポートを同期',
+            syncReimbursedReportsDescription: 'レポートが ACH で支払われると、この勘定科目に支払済みの請求が作成されます。',
+            billPaymentAccount: {label: '請求書支払用口座', description: '請求書の支払元を選択すると、Digits 内で支払いが作成されます。'},
+            syncExpensifyCardSettlements: 'Expensify カードの決済を同期',
+            settlementAccount: {label: 'Expensify カードの決済口座', description: '清算口座を選択すると、Digits で支払いを作成します。'},
+            syncTravelBillingSettlements: '統合トラベル請求の精算を同期する',
+            travelBillingSettlementAccount: {label: '集中管理された出張請求の決済口座', description: '清算口座を選択すると、Digits で支払いを作成します。'},
+            travelBillingPayableAccount: {label: '統合旅行請求支払勘定'},
+            missingSettlementAccount: (accountName: string) => `${accountName} を選択するまで決済は同期されません。`,
         },
         zohoBooks: {
             organization: 'Zoho Books 組織',
@@ -11427,7 +11483,9 @@ ${reportName}`,
                     mentionedAccountID?: number;
                 }) => {
                     let warningTime = 'まもなく';
-                    if (warningDaysBeforeExpiry === CONST.COMPANY_CARDS.CONSENT_EXPIRY_WARNING_DAYS.TWO_WEEKS) {
+                    if (warningDaysBeforeExpiry === CONST.COMPANY_CARDS.CONSENT_EXPIRY_WARNING_DAYS.ONE_MONTH) {
+                        warningTime = '1か月後';
+                    } else if (warningDaysBeforeExpiry === CONST.COMPANY_CARDS.CONSENT_EXPIRY_WARNING_DAYS.TWO_WEEKS) {
                         warningTime = '2週間後';
                     } else if (warningDaysBeforeExpiry === CONST.COMPANY_CARDS.CONSENT_EXPIRY_WARNING_DAYS.ONE_WEEK) {
                         warningTime = '1週間後';

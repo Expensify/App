@@ -14,6 +14,7 @@ import lodashSortBy from 'lodash/sortBy';
 import type {OptionTree} from './OptionsListUtils';
 
 import DateUtils from './DateUtils';
+import {getAvailablePerDiemRate} from './PolicyPerDiemUtils';
 import {isPolicyExpenseChat} from './ReportUtils';
 import tokenizedSearch from './tokenizedSearch';
 
@@ -186,10 +187,11 @@ function getSubratesFields(customUnit: CustomUnit | undefined, transaction: Onyx
     if (!customUnitRateID) {
         return [undefined];
     }
-    const selectedDestination = customUnit?.rates?.[customUnitRateID];
-    const countSubrates = selectedDestination?.subRates?.length ?? 0;
+    const selectedDestination = getAvailablePerDiemRate(customUnit?.rates?.[customUnitRateID]);
     const currentSubrates = transaction?.comment?.customUnit?.subRates ?? [];
-    if (currentSubrates.length === countSubrates) {
+    const currentSubrateIDs = new Set(currentSubrates.map(({id}) => id));
+    const hasAvailableSubrate = selectedDestination?.subRates?.some(({id}) => !currentSubrateIDs.has(id));
+    if (!hasAvailableSubrate) {
         return currentSubrates;
     }
     return [...currentSubrates, undefined];

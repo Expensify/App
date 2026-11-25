@@ -67,6 +67,9 @@ const ONYXKEYS = {
 
     /** Ordered reportIDs from the latest SearchForReports response, used to display server search results in the tier order Auth returned. */
     RAM_ONLY_SEARCH_RESULT_REPORT_IDS: 'searchResultReportIDs',
+
+    /** Transactions (and the reports they left) that successful user writes or server pushes changed, each with the ID of the write that last changed it (only recent writes are kept), so Search can refetch the snapshot that shows them */
+    RAM_ONLY_SEARCH_TRANSACTION_WRITES: 'searchTransactionWrites',
     /** Boolean flag set whenever we are searching for users in the server */
     RAM_ONLY_IS_SEARCHING_FOR_USERS: 'isSearchingForUsers',
 
@@ -1010,6 +1013,8 @@ const ONYXKEYS = {
     /** Whether the user has denied the contact import permission prompt */
     HAS_DENIED_CONTACT_IMPORT_PROMPT: 'hasDeniedContactImportPrompt',
 
+    IS_RECEIPT_ENHANCEMENT_ENABLED: 'isReceiptEnhancementEnabled',
+
     /** Maps each newly-added transaction ID to its search data type, flagging it for the "Expense added" growl */
     RAM_ONLY_EXPENSE_ADDED_GROWL_TRANSACTION_IDS: 'expenseAddedGrowlTransactionIDs',
 
@@ -1157,6 +1162,9 @@ const ONYXKEYS = {
 
         /** One entry per Insights dashboard and set of filters, keyed by dashboard ID and query hash, holding everything the backend returns for it */
         INSIGHTS: 'insights_',
+
+        /** Data of the Insights Details panels, keyed by a hash of the graph, filters, period and item */
+        INSIGHTS_DETAILS: 'insightsDetails_',
 
         // Shared NVPs
         /** Collection of agent prompts keyed by agent accountID, representing agents owned by the current user */
@@ -1786,6 +1794,7 @@ type OnyxCollectionValuesMapping = {
     [ONYXKEYS.COLLECTION.DOMAIN_ACCOUNT_MERGE_REQUEST]: OnyxTypes.DomainAccountMergeRequest;
     [ONYXKEYS.COLLECTION.SNAPSHOT]: OnyxTypes.SearchResults;
     [ONYXKEYS.COLLECTION.INSIGHTS]: OnyxTypes.InsightsDashboard;
+    [ONYXKEYS.COLLECTION.INSIGHTS_DETAILS]: OnyxTypes.InsightsDetails;
     [ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT]: OnyxTypes.Agent;
     [ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END]: OnyxTypes.BillingGraceEndPeriod;
     [ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER]: OnyxTypes.CardFeeds;
@@ -2025,6 +2034,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.RAM_ONLY_WISE_ONBOARDING_PENDING_SAVES]: Record<string, boolean>;
     [ONYXKEYS.RAM_ONLY_WISE_INTRO_READ_BANK_ACCOUNT_ID]: number;
     [ONYXKEYS.RAM_ONLY_SEARCH_RESULT_REPORT_IDS]: string[] | null;
+    [ONYXKEYS.RAM_ONLY_SEARCH_TRANSACTION_WRITES]: {writeID: number; oldestWriteID: number; transactionIDs: Record<string, number>; reportIDs: Record<string, number>};
     [ONYXKEYS.RAM_ONLY_IS_SEARCHING_FOR_USERS]: boolean;
     [ONYXKEYS.RAM_ONLY_IS_AUTHENTICATING_WITH_SHORT_LIVED_TOKEN]: boolean;
     [ONYXKEYS.LAST_VISITED_PATH]: string | undefined;
@@ -2153,6 +2163,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.SINGLE_RHP_WIDTH]: number;
     [ONYXKEYS.SIDE_PANEL_WIDTH]: number;
     [ONYXKEYS.HAS_DENIED_CONTACT_IMPORT_PROMPT]: boolean | undefined;
+    [ONYXKEYS.IS_RECEIPT_ENHANCEMENT_ENABLED]: boolean | undefined;
     [ONYXKEYS.PERSONAL_POLICY_ID]: string;
     [ONYXKEYS.RAM_ONLY_EXPENSE_ADDED_GROWL_TRANSACTION_IDS]: Record<string, SearchDataTypes>;
     [ONYXKEYS.ROOM_ID_HIGHLIGHT_ON_ROOMS_PAGE]: string | null;

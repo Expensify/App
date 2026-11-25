@@ -1043,6 +1043,7 @@ const translations: TranslationDeepObject<typeof en> = {
     },
     supportalSwitcher: {
         title: 'Supportal σε άλλο λογαριασμό',
+        navigationLabel: 'Supportal',
         emailLabel: 'Διεύθυνση email',
         reasonLabel: 'Αιτία σύνδεσης για υποστήριξη',
         reasonHint: 'Δεν βρέθηκαν πρόσφατα αιτήματα υποστήριξης για αυτόν τον λογαριασμό.',
@@ -1296,6 +1297,8 @@ const translations: TranslationDeepObject<typeof en> = {
     },
     insightsPage: {
         tagLevel: (level: string) => `Επίπεδο ετικέτας ${level}`,
+        noTaggedExpenses: 'Δεν υπάρχουν δαπάνες με ετικέτες',
+        noExpensesForTagLevel: (tagLevelName: string) => `Δεν υπάρχουν δαπάνες για ${tagLevelName} σε αυτό το εύρος ημερομηνιών.`,
         tagLevelLabel: 'Επίπεδο ετικέτας',
         parent: 'Γονέας',
         shareOfTotal: 'Μερίδιο του συνόλου (%)',
@@ -1348,7 +1351,6 @@ const translations: TranslationDeepObject<typeof en> = {
         viewDetails: 'Προβολή λεπτομερειών',
         viewAll: 'Προβολή όλων',
         topExpenses: 'Κορυφαίες δαπάνες',
-        noExpensesInRange: 'Δεν υπάρχουν δαπάνες σε αυτό το εύρος',
         efficiency: 'Αποδοτικότητα',
         workflowEfficiency: 'Αποδοτικότητα ροής εργασιών',
         averageProcessingTime: 'Μέσος χρόνος επεξεργασίας',
@@ -1357,6 +1359,29 @@ const translations: TranslationDeepObject<typeof en> = {
         mostTimeToPay: 'Περισσότερος χρόνος για πληρωμή',
         share: 'Μερίδιο',
         averageDays: 'Μέσος όρος ημερών',
+        summary: {
+            title: 'Σύνοψη',
+            over: (percentage: string) => `${percentage} πάνω από`,
+            under: (percentage: string) => `${percentage} κάτω από`,
+            versusMerchantAverage: (amount: string) => `${amount} σε σύγκριση με τον μέσο όρο αυτού του εμπόρου`,
+            versusMemberAverage: (amount: string) => `${amount} σε σύγκριση με τον μέσο όρο αυτού του μέλους`,
+            versusCategoryAverage: (amount: string) => `${amount} σε σύγκριση με τον μέσο όρο αυτής της κατηγορίας`,
+            versusAverageDay: (amount: string) => `${amount} έναντι μέσης ημέρας`,
+            versusAverageWeek: (amount: string) => `${amount} σε σύγκριση με μέση εβδομάδα`,
+            versusAverageMonth: (amount: string) => `${amount} έναντι μέσου μήνα`,
+            versusAverageQuarter: (amount: string) => `${amount} έναντι μέσου τριμήνου`,
+            moreHistoryNeeded: 'Απαιτείται περισσότερα ιστορικό:',
+            daysOfHistoryNeeded: (count: number) => `Η μέση σύγκριση θα εμφανιστεί μετά από ${count} πλήρεις ημέρες ιστορικού`,
+            weeksOfHistoryNeeded: (count: number) => `Η σύγκριση μέσου όρου θα εμφανιστεί μετά από ${count} πλήρεις εβδομάδες ιστορικού`,
+            monthsOfHistoryNeeded: (count: number) => `Η σύγκριση μέσου όρου θα εμφανιστεί μετά από ${count} πλήρεις μήνες ιστορικού`,
+            quartersOfHistoryNeeded: (count: number) => `Η μέση σύγκριση θα εμφανιστεί μετά από ${count} πλήρη τρίμηνα ιστορικού`,
+            periodSpend: (period: string) => `δαπάνες ${period}`,
+            dayAverage: (count: number) => `μέσος όρος ${count} ημερών`,
+            weekAverage: (count: number) => `μέσος όρος ${count} εβδομάδων`,
+            monthAverage: (count: number) => `μέσος όρος ${count} μηνών`,
+            quarterAverage: (count: number) => `μέσος όρος ${count} τριμήνων`,
+            shareOfTotal: 'Ποσοστό επί του συνόλου',
+        },
         generatingAIInsights: 'Δημιουργία AI Insights...',
         generatingAIInsightsSubtitle: 'Αυτό δεν θα πάρει πάνω από ένα λεπτό',
         readingChart: (chartTitle: string) => `Ανάγνωση ${chartTitle}`,
@@ -1516,6 +1541,8 @@ const translations: TranslationDeepObject<typeof en> = {
         flash: 'φλας',
         flipCamera: 'περιστροφή κάμερας',
         multiScan: 'πολλαπλή σάρωση',
+        receiptEnhancements: 'Βελτιώσεις αποδείξεων',
+        receiptEnhancementsEnabled: 'Οι βελτιώσεις αποδείξεων ενεργοποιήθηκαν',
         shutter: 'κλείστρο',
         gallery: 'συλλογή',
         deleteReceipt: 'Διαγραφή απόδειξης',
@@ -1969,14 +1996,15 @@ const translations: TranslationDeepObject<typeof en> = {
         wisePaymentSummary: {
             confirmPayment: 'Επιβεβαίωση πληρωμής',
             reportTotal: 'Σύνολο αναφοράς',
-            unheldAmountBeingPaid: 'Ποσό εκτός αναμονής προς πληρωμή',
-            debitAmount: 'Ποσό χρέωσης',
             employeeWillReceive: 'Ο υπάλληλος θα λάβει',
+            companyWillPay: 'Η εταιρεία θα πληρώσει',
             totalFees: 'Συνολικές χρεώσεις',
             fxRate: 'Συναλλαγματική ισοτιμία',
             paymentDetails: 'Στοιχεία πληρωμής',
             debitedAmount: 'Χρεωμένο ποσό',
             employeeReceived: 'Ο υπάλληλος έλαβε',
+            paymentDisclosure: ({buttonText}: {buttonText: string}) =>
+                `<muted-text-micro>Ο παραλήπτης ενδέχεται να λάβει λιγότερα λόγω χρεώσεων της τράπεζάς του και ξένων φόρων. Κάνοντας κλικ στο ${buttonText}, αποδέχομαι τους <a href="${CONST.WISE.TERMS_URL}">Όρους χρήσης</a> και την <a href="${CONST.WISE.PRIVACY_URL}">Πολιτική απορρήτου</a> της Wise.</muted-text-micro>`,
             payAll: 'Πληρωμή όλων',
             fxRateExpiredTitle: 'Η συναλλαγματική ισοτιμία έληξε',
             fxRatesExpiredTitle: 'Οι συναλλαγματικές ισοτιμίες έληξαν',
@@ -5737,6 +5765,9 @@ ${amount} για ${merchant} - ${date}`,
             chatgpt: {
                 title: 'ChatGPT',
             },
+            grok: {
+                title: 'Grok',
+            },
         },
         connections: {
             tabs: {
@@ -8212,6 +8243,7 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
                 willBeReadyToUse: 'Αυτή η κάρτα θα είναι έτοιμη για χρήση αμέσως.',
                 willBeReadyToShip: 'Αυτή η κάρτα θα είναι έτοιμη για αποστολή άμεσα.',
                 cardholder: 'Κάτοχος κάρτας',
+                cardholderEmail: 'Email κατόχου κάρτας',
                 cardType: 'Τύπος κάρτας',
                 limit: 'Όριο',
                 limitType: 'Τύπος ορίου',
@@ -10236,6 +10268,33 @@ ${reportName}`,
             noVendorsFoundDescription: 'Παρακαλούμε προσθέστε προμηθευτές στο Digits και συγχρονίστε ξανά τη σύνδεση',
             noAccountsFound: 'Δεν βρέθηκαν λογαριασμοί',
             noAccountsFoundDescription: 'Παρακαλούμε προσθέστε λογαριασμούς τραπέζης ή πιστωτικών καρτών στο Digits και συγχρονίστε ξανά τη σύνδεση',
+            noBankAccountsFoundDescription: 'Παρακαλούμε προσθέστε τραπεζικούς λογαριασμούς στο Digits και συγχρονίστε ξανά τη σύνδεση',
+            noPayableAccountsFoundDescription: 'Παρακαλούμε προσθέστε λογαριασμούς πιστωτικών καρτών ή τρεχουσών υποχρεώσεων στο Digits και συγχρονίστε ξανά τη σύνδεση',
+            autoSyncDescription: 'Συγχρονίστε αυτόματα κάθε μέρα το Digits με το Expensify. Οι αναφορές συγχρονίζονται σε πραγματικό χρόνο.',
+            accountingMethods: {
+                label: 'Μέθοδος εξαγωγής',
+                description: 'Επιλέξτε πότε θα εξαχθούν οι δαπάνες.',
+                values: {
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: 'Δεδουλευμένη βάση',
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: 'Μετρητά',
+                },
+                alternateText: {
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: 'Οι δαπάνες από ίδια κεφάλαια θα εξαχθούν όταν λάβουν τελική έγκριση',
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: 'Οι εκτός τσέπης δαπάνες θα εξαχθούν όταν πληρωθούν',
+                },
+            },
+            syncReimbursedReports: 'Συγχρονισμός αποζημιωμένων αναφορών',
+            syncReimbursedReportsDescription: 'Όταν μια αναφορά πληρώνεται μέσω ACH, θα δημιουργηθεί μια πληρωμή λογαριασμού σε αυτόν τον λογαριασμό.',
+            billPaymentAccount: {label: 'Λογαριασμός πληρωμής λογαριασμών', description: 'Επιλέξτε από πού θα πληρώνονται οι λογαριασμοί και θα δημιουργήσουμε την πληρωμή στο Digits.'},
+            syncExpensifyCardSettlements: 'Συγχρονισμός διακανονισμών κάρτας Expensify',
+            settlementAccount: {label: 'λογαριασμός διακανονισμού κάρτας Expensify', description: 'Επιλέξτε τον λογαριασμό διακανονισμού σας και θα δημιουργήσουμε την πληρωμή στο Digits.'},
+            syncTravelBillingSettlements: 'Συγχρονισμός διακανονισμών ενοποιημένης χρέωσης ταξιδιών',
+            travelBillingSettlementAccount: {
+                label: 'λογαριασμός διακανονισμού συγκεντρωτικής χρέωσης ταξιδιών',
+                description: 'Επιλέξτε τον λογαριασμό διακανονισμού σας και θα δημιουργήσουμε την πληρωμή στο Digits.',
+            },
+            travelBillingPayableAccount: {label: 'Λογαριασμός πληρωτέων για ενοποιημένη χρέωση ταξιδιών'},
+            missingSettlementAccount: (accountName: string) => `Οι διακανονισμοί δεν θα συγχρονιστούν μέχρι να επιλέξετε τον/την ${accountName}.`,
         },
         zohoBooks: {
             organization: 'Οργανισμός Zoho Books',
@@ -11870,7 +11929,9 @@ ${reportName}`,
                     mentionedAccountID?: number;
                 }) => {
                     let warningTime = 'σύντομα';
-                    if (warningDaysBeforeExpiry === CONST.COMPANY_CARDS.CONSENT_EXPIRY_WARNING_DAYS.TWO_WEEKS) {
+                    if (warningDaysBeforeExpiry === CONST.COMPANY_CARDS.CONSENT_EXPIRY_WARNING_DAYS.ONE_MONTH) {
+                        warningTime = 'σε έναν μήνα';
+                    } else if (warningDaysBeforeExpiry === CONST.COMPANY_CARDS.CONSENT_EXPIRY_WARNING_DAYS.TWO_WEEKS) {
                         warningTime = 'σε δύο εβδομάδες';
                     } else if (warningDaysBeforeExpiry === CONST.COMPANY_CARDS.CONSENT_EXPIRY_WARNING_DAYS.ONE_WEEK) {
                         warningTime = 'σε μία εβδομάδα';

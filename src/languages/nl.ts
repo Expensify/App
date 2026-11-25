@@ -1027,6 +1027,7 @@ const translations: TranslationDeepObject<typeof en> = {
     },
     supportalSwitcher: {
         title: 'Supportal naar een ander account',
+        navigationLabel: 'Supportal',
         emailLabel: 'E-mailadres',
         reasonLabel: 'Reden voor ondersteuning-login',
         reasonHint: 'Geen recente tickets gevonden voor dit account.',
@@ -1249,6 +1250,8 @@ const translations: TranslationDeepObject<typeof en> = {
     },
     insightsPage: {
         tagLevel: (level: string) => `Tagniveau ${level}`,
+        noTaggedExpenses: 'Geen uitgaven met tags',
+        noExpensesForTagLevel: (tagLevelName: string) => `Geen uitgaven voor ${tagLevelName} in dit datumbereik.`,
         tagLevelLabel: 'Tagniveau',
         parent: 'Ouder',
         shareOfTotal: 'Aandeel van totaal (%)',
@@ -1301,7 +1304,6 @@ const translations: TranslationDeepObject<typeof en> = {
         viewDetails: 'Bekijk details',
         viewAll: 'Alles bekijken',
         topExpenses: 'Belangrijkste uitgaven',
-        noExpensesInRange: 'Geen uitgaven in dit bereik',
         efficiency: 'Efficiëntie',
         workflowEfficiency: 'Workflow-efficiëntie',
         averageProcessingTime: 'Gemiddelde verwerkingstijd',
@@ -1310,6 +1312,29 @@ const translations: TranslationDeepObject<typeof en> = {
         mostTimeToPay: 'Meeste tijd om te betalen',
         share: 'Aandeel',
         averageDays: 'Gemiddeld aantal dagen',
+        summary: {
+            title: 'Samenvatting',
+            over: (percentage: string) => `${percentage} over`,
+            under: (percentage: string) => `${percentage} lager`,
+            versusMerchantAverage: (amount: string) => `${amount} vs het gemiddelde van deze verkoper`,
+            versusMemberAverage: (amount: string) => `${amount} vs het gemiddelde van dit lid`,
+            versusCategoryAverage: (amount: string) => `${amount} vs het gemiddelde van deze categorie`,
+            versusAverageDay: (amount: string) => `${amount} vs gemiddelde dag`,
+            versusAverageWeek: (amount: string) => `${amount} vs gemiddelde week`,
+            versusAverageMonth: (amount: string) => `${amount} t.o.v. gemiddelde maand`,
+            versusAverageQuarter: (amount: string) => `${amount} vs gemiddeld kwartaal`,
+            moreHistoryNeeded: 'Meer geschiedenis nodig:',
+            daysOfHistoryNeeded: (count: number) => `Gemiddelde vergelijking wordt weergegeven na ${count} volledige dagen aan geschiedenis`,
+            weeksOfHistoryNeeded: (count: number) => `Gemiddelde vergelijking wordt getoond na ${count} volledige weken geschiedenis`,
+            monthsOfHistoryNeeded: (count: number) => `De gemiddelde vergelijking wordt getoond nadat er ${count} volledige maanden aan geschiedenis zijn.`,
+            quartersOfHistoryNeeded: (count: number) => `Gemiddelde vergelijking wordt weergegeven na ${count} volledige kwartalen geschiedenis`,
+            periodSpend: (period: string) => `Uitgaven in ${period}`,
+            dayAverage: (count: number) => `gemiddeld ${count} dagen`,
+            weekAverage: (count: number) => `${count} weken gemiddeld`,
+            monthAverage: (count: number) => `Gemiddelde over ${count} maanden`,
+            quarterAverage: (count: number) => `gemiddelde over ${count} kwartalen`,
+            shareOfTotal: 'Aandeel van totaal',
+        },
         generatingAIInsights: 'AI-inzichten genereren...',
         generatingAIInsightsSubtitle: 'Dit duurt niet langer dan een minuut',
         readingChart: (chartTitle: string) => `${chartTitle} wordt geladen`,
@@ -1467,6 +1492,8 @@ const translations: TranslationDeepObject<typeof en> = {
         flash: 'flits',
         flipCamera: 'camera omdraaien',
         multiScan: 'meerscannen',
+        receiptEnhancements: 'Bonverbeteringen',
+        receiptEnhancementsEnabled: 'Bonverbeteringen ingeschakeld',
         shutter: 'sluiter',
         gallery: 'galerij',
         deleteReceipt: 'Bon verwijderen',
@@ -1908,14 +1935,15 @@ const translations: TranslationDeepObject<typeof en> = {
         wisePaymentSummary: {
             confirmPayment: 'Betaling bevestigen',
             reportTotal: 'Rapporttotaal',
-            unheldAmountBeingPaid: 'Te betalen bedrag zonder wachtstand',
-            debitAmount: 'Afschrijvingsbedrag',
             employeeWillReceive: 'Werknemer ontvangt',
+            companyWillPay: 'Bedrijf betaalt',
             totalFees: 'Totale kosten',
             fxRate: 'Wisselkoers',
             paymentDetails: 'Betalingsgegevens',
             debitedAmount: 'Afgeschreven bedrag',
             employeeReceived: 'Medewerker ontving',
+            paymentDisclosure: ({buttonText}: {buttonText: string}) =>
+                `<muted-text-micro>De ontvanger kan minder ontvangen door kosten van de bank van de ontvanger en buitenlandse belastingen. Door op ${buttonText} te klikken, accepteer ik de <a href="${CONST.WISE.TERMS_URL}">Gebruiksvoorwaarden</a> en het <a href="${CONST.WISE.PRIVACY_URL}">Privacybeleid</a> van Wise.</muted-text-micro>`,
             payAll: 'Alles betalen',
             fxRateExpiredTitle: 'Wisselkoers verlopen',
             fxRatesExpiredTitle: 'Wisselkoersen verlopen',
@@ -5622,6 +5650,9 @@ ${amount} voor ${merchant} - ${date}`,
             chatgpt: {
                 title: 'ChatGPT',
             },
+            grok: {
+                title: 'Grok',
+            },
         },
         connections: {
             tabs: {
@@ -8022,6 +8053,7 @@ Het Control-abonnement begint bij $9 per actieve deelnemer per maand.`,
                 willBeReadyToUse: 'Deze kaart is direct klaar voor gebruik.',
                 willBeReadyToShip: 'Deze kaart is meteen klaar om verzonden te worden.',
                 cardholder: 'Kaarthouder',
+                cardholderEmail: 'E-mailadres van de kaarthouder',
                 cardType: 'Kaarttype',
                 limit: 'Limiet',
                 limitType: 'Limiettype',
@@ -9995,6 +10027,30 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
             noVendorsFoundDescription: 'Voeg leveranciers toe in Digits en synchroniseer de verbinding opnieuw',
             noAccountsFound: 'Geen accounts gevonden',
             noAccountsFoundDescription: 'Voeg bank- of creditcardrekeningen toe in Digits en synchroniseer de verbinding opnieuw',
+            noBankAccountsFoundDescription: 'Voeg alsjeblieft bankrekeningen toe in Digits en synchroniseer de verbinding opnieuw',
+            noPayableAccountsFoundDescription: 'Voeg creditcard- of kortlopende schuldenrekeningen toe in Digits en synchroniseer de koppeling opnieuw',
+            autoSyncDescription: 'Synchroniseer Digits en Expensify elke dag automatisch. Rapporten worden in realtime gesynchroniseerd.',
+            accountingMethods: {
+                label: 'Exportmethode',
+                description: 'Kies wanneer je onkosten exporteert.',
+                values: {
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: 'Transactiebasis',
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: 'Contant',
+                },
+                alternateText: {
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: 'Uitgaven uit eigen zak worden geëxporteerd zodra ze definitief zijn goedgekeurd',
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: 'Uit eigen zak betaalde uitgaven worden geëxporteerd zodra ze zijn betaald',
+                },
+            },
+            syncReimbursedReports: 'Terugbetaalde rapporten synchroniseren',
+            syncReimbursedReportsDescription: 'Wanneer een rapport via ACH wordt betaald, wordt er een rekeningbetaling in deze rekening gegenereerd.',
+            billPaymentAccount: {label: 'Rekening voor factuurbetalingen', description: 'Kies vanwaar je rekeningen wilt betalen en wij maken de betaling aan in Digits.'},
+            syncExpensifyCardSettlements: 'Expensify Kaart-afrekeningen synchroniseren',
+            settlementAccount: {label: 'Afwikkelingsrekening voor Expensify Kaart', description: 'Kies je afwikkelingsrekening en wij maken de betaling aan in Digits.'},
+            syncTravelBillingSettlements: 'Geconsolideerde Travel Billing-afrekeningen synchroniseren',
+            travelBillingSettlementAccount: {label: 'Verzamelafrekeningrekening voor zakelijke reizen', description: 'Kies je afwikkelingsrekening en wij maken de betaling aan in Digits.'},
+            travelBillingPayableAccount: {label: 'Te betalen rekening voor geconsolideerde reiskosten'},
+            missingSettlementAccount: (accountName: string) => `Afrekeningen worden niet gesynchroniseerd totdat je de ${accountName} kiest.`,
         },
         zohoBooks: {
             organization: 'Zoho Books-organisatie',
@@ -11590,7 +11646,9 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
                     mentionedAccountID?: number;
                 }) => {
                     let warningTime = 'binnenkort';
-                    if (warningDaysBeforeExpiry === CONST.COMPANY_CARDS.CONSENT_EXPIRY_WARNING_DAYS.TWO_WEEKS) {
+                    if (warningDaysBeforeExpiry === CONST.COMPANY_CARDS.CONSENT_EXPIRY_WARNING_DAYS.ONE_MONTH) {
+                        warningTime = 'over een maand';
+                    } else if (warningDaysBeforeExpiry === CONST.COMPANY_CARDS.CONSENT_EXPIRY_WARNING_DAYS.TWO_WEEKS) {
                         warningTime = 'over twee weken';
                     } else if (warningDaysBeforeExpiry === CONST.COMPANY_CARDS.CONSENT_EXPIRY_WARNING_DAYS.ONE_WEEK) {
                         warningTime = 'over een week';
