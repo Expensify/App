@@ -756,6 +756,45 @@ describe('actions/PolicyMember', () => {
             await mockFetch?.resume?.();
         });
 
+        it('limits a category open to everyone to every current member, including ones left out of the announce room', async () => {
+            // Given Travel open to everyone, and an existing member whose last change failed, so the announce room leaves them out
+            const policyID = '1';
+            const existingAccountID = 1111;
+            const erroredAccountID = 2222;
+            const newAccountID = 1234;
+            const newEmail = 'new@gmail.com';
+            const policy = createRandomPolicy(Number(policyID));
+            const policyCategories = {
+                Fuel: {name: 'Fuel', enabled: true, visibleTo: null},
+                Travel: {name: 'Travel', enabled: true, visibleTo: null},
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`, policyCategories);
+
+            // When a new member is invited with only Fuel, before the backend responds
+            mockFetch?.pause?.();
+            Member.addMembersToWorkspace(
+                {[newEmail]: newAccountID},
+                {},
+                'Welcome',
+                policy,
+                [existingAccountID],
+                CONST.POLICY.ROLE.USER,
+                currentUser,
+                {},
+                {
+                    policyCategories,
+                    categoryNames: ['Fuel'],
+                    categoryVisibilityMemberAccountIDs: [existingAccountID, erroredAccountID],
+                },
+            );
+            await waitForBatchedUpdates();
+
+            // Then Travel stays visible to the member with errors too, since only the new member was limited
+            const categories = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
+            expect(categories?.Travel?.visibleTo).toEqual({[existingAccountID]: true, [erroredAccountID]: true});
+            await mockFetch?.resume?.();
+        });
+
         it('opens categories back up when an invite with chosen categories fails', async () => {
             // Given Fuel limited to an existing member and Travel open to everyone
             const policyID = '1';

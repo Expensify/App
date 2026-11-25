@@ -6,10 +6,9 @@ import ActivityIndicator from '@components/ActivityIndicator';
 import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import ScreenWrapper from '@components/ScreenWrapper';
 
-import useLoadPolicyCategories from '@hooks/useLoadPolicyCategories';
+import useCategoryVisibilityCategories from '@hooks/useCategoryVisibilityCategories';
 import useLocalize from '@hooks/useLocalize';
 import {usePersonalDetailsByLogins} from '@hooks/usePersonalDetailByLogin';
-import usePolicyCategoryPickerCategories from '@hooks/usePolicyCategoryPickerCategories';
 import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -47,9 +46,7 @@ function WorkspaceMemberCategoryVisibilityPage({policy, route}: WorkspaceMemberC
 
     const memberLogin = Object.keys(policy?.employeeList ?? {}).find((login) => employeePersonalDetails[login]?.accountID === accountID);
 
-    const {categories, policyCategories, areCategoriesEnabled, isLoading: isLoadingPickerCategories} = usePolicyCategoryPickerCategories({policyID});
-    const {isLoadingCompletePolicyCategories} = useLoadPolicyCategories(policyID);
-    const isLoading = isLoadingPickerCategories || isLoadingCompletePolicyCategories;
+    const {categories, policyCategories, areCategoriesEnabled, isLoading} = useCategoryVisibilityCategories(policyID);
 
     // An unrestricted member sees every enabled category, so every row starts checked.
     const memberVisibleCategories = getMemberVisibleCategoryNames(policyCategories, accountID);

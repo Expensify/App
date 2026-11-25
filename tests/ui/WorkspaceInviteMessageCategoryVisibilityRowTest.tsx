@@ -2,7 +2,9 @@ import {act, fireEvent, render, screen} from '@testing-library/react-native';
 
 import ComposeProviders from '@components/ComposeProviders';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
+import {ModalProvider} from '@components/Modal/Global/ModalContext';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
+import PersonalDetailsByLoginProvider from '@components/PersonalDetailsByLoginProvider';
 
 import {addMembersToWorkspace} from '@libs/actions/Policy/Member';
 import type * as MemberActions from '@libs/actions/Policy/Member';
@@ -12,7 +14,7 @@ import WorkspaceInviteMessageComponent from '@pages/workspace/members/WorkspaceI
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
-import type {Policy} from '@src/types/onyx';
+import type {Policy, PolicyCategories} from '@src/types/onyx';
 import type {CurrentUserPersonalDetails, PersonalDetailsList} from '@src/types/onyx/PersonalDetails';
 
 import type * as NativeNavigation from '@react-navigation/native';
@@ -22,6 +24,8 @@ import {NavigationContainer} from '@react-navigation/native';
 import React from 'react';
 import Onyx from 'react-native-onyx';
 
+import type * as MockReanimatedModalModule from '../utils/mockReanimatedModal';
+
 import {buildPersonalDetails, translateLocal} from '../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
@@ -30,6 +34,8 @@ const ADMIN_EMAIL = 'admin@example.com';
 const ADMIN_ACCOUNT_ID = 1;
 const INVITEE_EMAIL = 'invitee@example.com';
 const INVITEE_ACCOUNT_ID = 2;
+const ERRORED_MEMBER_EMAIL = 'errored@example.com';
+const ERRORED_MEMBER_ACCOUNT_ID = 3;
 const MEMBERS_ROUTE = `workspaces/${POLICY_ID}/members` as Route;
 
 jest.mock('@react-navigation/native', () => ({
@@ -45,7 +51,13 @@ jest.mock('@libs/Navigation/Navigation', () => ({
     getActiveRouteWithoutParams: jest.fn(() => ''),
     isNavigationReady: jest.fn(() => Promise.resolve()),
     dismissModal: jest.fn(),
+    isTopmostRouteModalScreen: jest.fn(() => false),
 }));
+
+jest.mock('@components/Modal/ReanimatedModal', () => {
+    const {default: MockReanimatedModal} = jest.requireActual<typeof MockReanimatedModalModule>('../utils/mockReanimatedModal');
+    return MockReanimatedModal;
+});
 
 jest.mock('@libs/actions/Policy/Member', () => ({
     ...jest.requireActual<typeof MemberActions>('@libs/actions/Policy/Member'),
@@ -87,16 +99,18 @@ async function renderPage(policy: Policy) {
         await waitForBatchedUpdatesWithAct();
     });
     render(
-        <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>
+        <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, PersonalDetailsByLoginProvider]}>
             <PortalProvider>
-                <NavigationContainer>
-                    <WorkspaceInviteMessageComponent
-                        policy={policy}
-                        policyID={POLICY_ID}
-                        backTo={MEMBERS_ROUTE}
-                        currentUserPersonalDetails={currentUserPersonalDetails}
-                    />
-                </NavigationContainer>
+                <ModalProvider>
+                    <NavigationContainer>
+                        <WorkspaceInviteMessageComponent
+                            policy={policy}
+                            policyID={POLICY_ID}
+                            backTo={MEMBERS_ROUTE}
+                            currentUserPersonalDetails={currentUserPersonalDetails}
+                        />
+                    </NavigationContainer>
+                </ModalProvider>
             </PortalProvider>
         </ComposeProviders>,
     );
@@ -106,6 +120,13 @@ async function renderPage(policy: Policy) {
 async function pressInvite() {
     fireEvent.press(screen.getByText(translateLocal('common.invite')));
     await waitForBatchedUpdatesWithAct();
+}
+
+async function setCategoriesAndDraft(policyCategories: PolicyCategories, categoryVisibilityDraft: string[]) {
+    await act(async () => {
+        await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${POLICY_ID}`, policyCategories);
+        await Onyx.set(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_CATEGORY_VISIBILITY_DRAFT}${POLICY_ID}`, categoryVisibilityDraft);
+    });
 }
 
 const queryCategoryVisibilityRow = () => screen.queryByText(translateLocal('workspace.people.categoryVisibility'));
@@ -124,6 +145,7 @@ describe('WorkspaceInviteMessageComponent - Category visibility row', () => {
             await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {
                 [ADMIN_ACCOUNT_ID]: buildPersonalDetails(ADMIN_EMAIL, ADMIN_ACCOUNT_ID, 'admin'),
                 [INVITEE_ACCOUNT_ID]: buildPersonalDetails(INVITEE_EMAIL, INVITEE_ACCOUNT_ID, 'invitee'),
+                [ERRORED_MEMBER_ACCOUNT_ID]: buildPersonalDetails(ERRORED_MEMBER_EMAIL, ERRORED_MEMBER_ACCOUNT_ID, 'errored'),
             } satisfies PersonalDetailsList);
             await Onyx.merge(ONYXKEYS.SESSION, {email: ADMIN_EMAIL, accountID: ADMIN_ACCOUNT_ID});
             await Onyx.set(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MEMBERS_DRAFT}${POLICY_ID}`, {[INVITEE_EMAIL]: INVITEE_ACCOUNT_ID});
@@ -157,9 +179,13 @@ describe('WorkspaceInviteMessageComponent - Category visibility row', () => {
 
     it('shows the number of chosen categories and sends them with the invite', async () => {
         // Given the admin limited the members being invited to Meals and Travel
-        await act(async () => {
-            await Onyx.set(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_CATEGORY_VISIBILITY_DRAFT}${POLICY_ID}`, ['Meals', 'Travel']);
-        });
+        await setCategoriesAndDraft(
+            {
+                Meals: {name: 'Meals', enabled: true},
+                Travel: {name: 'Travel', enabled: true},
+            },
+            ['Meals', 'Travel'],
+        );
         await renderPage(buildPolicy());
 
         // Then the row counts them
@@ -170,6 +196,68 @@ describe('WorkspaceInviteMessageComponent - Category visibility row', () => {
 
         // Then the chosen categories go with it, so the backend restricts the new member
         expect(addMembersToWorkspaceMock.mock.lastCall?.[8]?.categoryNames).toEqual(['Meals', 'Travel']);
+    });
+
+    it('counts and sends only the chosen categories that are still enabled', async () => {
+        // Given the admin limited the members being invited to Meals, Travel and Fuel, and since then another admin
+        // disabled Travel and deleted Fuel
+        await setCategoriesAndDraft(
+            {
+                Meals: {name: 'Meals', enabled: true},
+                Travel: {name: 'Travel', enabled: false},
+            },
+            ['Meals', 'Travel', 'Fuel'],
+        );
+        await renderPage(buildPolicy());
+
+        // Then the row counts only Meals
+        expect(screen.getByText(translateLocal('workspace.people.categoriesCount', {count: 1}))).toBeOnTheScreen();
+
+        // When the admin sends the invite
+        await pressInvite();
+
+        // Then only Meals goes with it, since the new member can't be limited to a category that's gone
+        expect(addMembersToWorkspaceMock.mock.lastCall?.[8]?.categoryNames).toEqual(['Meals']);
+    });
+
+    it("doesn't send the invite when every chosen category is gone, since a member needs at least one", async () => {
+        // Given the admin limited the members being invited to Travel, which another admin has since disabled
+        await setCategoriesAndDraft(
+            {
+                Meals: {name: 'Meals', enabled: true},
+                Travel: {name: 'Travel', enabled: false},
+            },
+            ['Travel'],
+        );
+        await renderPage(buildPolicy());
+
+        // When the admin sends the invite
+        await pressInvite();
+
+        // Then the same modal as the Category visibility page asks for a category, and nothing is sent
+        expect(await screen.findByText(translateLocal('workspace.people.categoryVisibilityRequiredModal.title'))).toBeOnTheScreen();
+        expect(addMembersToWorkspaceMock).not.toHaveBeenCalled();
+    });
+
+    it('limits categories with every current member, including ones with errors', async () => {
+        // Given an existing member whose last change failed, and the admin limited the members being invited to Meals
+        await setCategoriesAndDraft({Meals: {name: 'Meals', enabled: true}}, ['Meals']);
+        await renderPage(
+            buildPolicy({
+                employeeList: {
+                    [ADMIN_EMAIL]: {email: ADMIN_EMAIL, submitsTo: ADMIN_EMAIL, role: CONST.POLICY.ROLE.ADMIN},
+                    [ERRORED_MEMBER_EMAIL]: {email: ERRORED_MEMBER_EMAIL, role: CONST.POLICY.ROLE.USER, errors: {error: 'Role change failed'}},
+                },
+            }),
+        );
+
+        // When the admin sends the invite
+        await pressInvite();
+
+        // Then the member with errors is left out of the announce room's members, but counted for category visibility,
+        // so limiting the invitees doesn't take any category away from them
+        expect(addMembersToWorkspaceMock.mock.lastCall?.[4]).toEqual([ADMIN_ACCOUNT_ID]);
+        expect(addMembersToWorkspaceMock.mock.lastCall?.[8]?.categoryVisibilityMemberAccountIDs).toEqual([ADMIN_ACCOUNT_ID, ERRORED_MEMBER_ACCOUNT_ID]);
     });
 
     it('hides the row from a People Admin', async () => {

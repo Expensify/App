@@ -89,6 +89,12 @@ type AddMembersToWorkspaceOptions = {
 
     /** The only categories the invited members can use. Left out, they can use every category */
     categoryNames?: string[];
+
+    /**
+     * Every current member, including ones with errors. A category open to everyone that categoryNames leaves out is
+     * limited to them, so it stays open to every existing member. Left out, the members passed for the announce room are used.
+     */
+    categoryVisibilityMemberAccountIDs?: number[];
 };
 
 function hasPolicyAdminsRoomsAccess(role: string | undefined): boolean {
@@ -931,7 +937,14 @@ function buildAddMembersToWorkspaceOnyxData(
     role: string,
     currentUser: CurrentUser,
     reportActionsList: OnyxCollection<ReportActions> | undefined,
-    {approverEmail, policyExpenseChatNotificationPreference, hasOfficeWorkArrangement, policyCategories, categoryNames}: AddMembersToWorkspaceOptions = {},
+    {
+        approverEmail,
+        policyExpenseChatNotificationPreference,
+        hasOfficeWorkArrangement,
+        policyCategories,
+        categoryNames,
+        categoryVisibilityMemberAccountIDs,
+    }: AddMembersToWorkspaceOptions = {},
 ) {
     const policyID = policy.id;
     const logins = Object.keys(invitedEmailsToAccountIDs).map((memberLogin) => PhoneNumber.addSMSDomainIfPhoneNumber(memberLogin));
@@ -968,7 +981,7 @@ function buildAddMembersToWorkspaceOnyxData(
         accountIDs,
         newPersonalDetailAccountIDs,
         categoryNames,
-        policyMemberAccountIDs,
+        categoryVisibilityMemberAccountIDs ?? policyMemberAccountIDs,
     );
 
     // Roles that cannot create expenses don't get a workspace chat, so don't build an optimistic one.
@@ -1106,7 +1119,13 @@ function addMembersToWorkspace(
     role: string,
     currentUser: CurrentUser,
     reportActionsList: OnyxCollection<ReportActions>,
-    {approverEmail, hasOfficeWorkArrangement, policyCategories, categoryNames}: Omit<AddMembersToWorkspaceOptions, 'policyExpenseChatNotificationPreference'> = {},
+    {
+        approverEmail,
+        hasOfficeWorkArrangement,
+        policyCategories,
+        categoryNames,
+        categoryVisibilityMemberAccountIDs,
+    }: Omit<AddMembersToWorkspaceOptions, 'policyExpenseChatNotificationPreference'> = {},
 ) {
     if (!policy?.id) {
         Log.warn('addMembersToWorkspace: Policy ID is undefined');
@@ -1122,7 +1141,7 @@ function addMembersToWorkspace(
         role,
         currentUser,
         reportActionsList,
-        {approverEmail, hasOfficeWorkArrangement, policyCategories, categoryNames},
+        {approverEmail, hasOfficeWorkArrangement, policyCategories, categoryNames, categoryVisibilityMemberAccountIDs},
     );
 
     const params: AddMembersToWorkspaceParams = {

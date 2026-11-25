@@ -6,11 +6,10 @@ import ActivityIndicator from '@components/ActivityIndicator';
 import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import ScreenWrapper from '@components/ScreenWrapper';
 
+import useCategoryVisibilityCategories from '@hooks/useCategoryVisibilityCategories';
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
-import useLoadPolicyCategories from '@hooks/useLoadPolicyCategories';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import usePolicyCategoryPickerCategories from '@hooks/usePolicyCategoryPickerCategories';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {clearWorkspaceInviteCategoryVisibilityDraft, setWorkspaceInviteCategoryVisibilityDraft} from '@libs/actions/Policy/Member';
@@ -45,9 +44,7 @@ function DynamicWorkspaceInviteMessageCategoryVisibilityPage({policy, route}: Dy
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.WORKSPACE_INVITE_MESSAGE_CATEGORY_VISIBILITY.path);
     const [categoryVisibilityDraft] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_CATEGORY_VISIBILITY_DRAFT}${policyID}`);
 
-    const {categories, isLoading: isLoadingPickerCategories} = usePolicyCategoryPickerCategories({policyID});
-    const {isLoadingCompletePolicyCategories} = useLoadPolicyCategories(policyID);
-    const isLoading = isLoadingPickerCategories || isLoadingCompletePolicyCategories;
+    const {categories, isLoading} = useCategoryVisibilityCategories(policyID);
 
     // Without a draft the members being invited can use every category, so every row starts checked.
     const initialSelectedCategoryNames = categoryVisibilityDraft ?? categories.map((category) => category.name);

@@ -150,6 +150,29 @@ describe('DynamicWorkspaceInviteMessageCategoryVisibilityPage', () => {
         await waitForBatchedUpdatesWithAct();
     });
 
+    it("keeps the admin's checks while the categories are read again, as on reconnect", async () => {
+        // Given no draft, with the category list already on screen
+        const {unmount} = renderPage(policy.id);
+        await waitForBatchedUpdatesWithAct();
+        expect(await screen.findByText('Travel')).toBeOnTheScreen();
+
+        // When the admin unchecks Travel, and then the categories are read again, as when the app reconnects
+        fireEvent.press(screen.getByText('Travel'));
+        await act(async () => {
+            await Onyx.set(`${ONYXKEYS.COLLECTION.RAM_ONLY_POLICY_CATEGORIES_LOADING_STATE}${policy.id}`, {isLoading: true, hasOnceLoaded: false});
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the list stays on screen instead of a spinner, and saving keeps Travel unchecked
+        expect(screen.getByText('Travel')).toBeOnTheScreen();
+        fireEvent.press(screen.getByText('Save'));
+        await waitForBatchedUpdatesWithAct();
+        expect(await getOnyxValue(draftKey)).toEqual(['Fuel', 'Meals']);
+
+        unmount();
+        await waitForBatchedUpdatesWithAct();
+    });
+
     it("doesn't save when every category is unchecked, since a member needs at least one", async () => {
         // Given a draft that limits the members being invited to Meals
         await act(async () => {

@@ -13,6 +13,7 @@ import TextInput from '@components/TextInput';
 
 import useApprovalWorkflows from '@hooks/useApprovalWorkflows';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
+import useConfirmModal from '@hooks/useConfirmModal';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
@@ -97,6 +98,7 @@ function WorkspaceInviteMessageComponent({
 }: WorkspaceInviteMessageComponentProps) {
     const styles = useThemeStyles();
     const {translate, formatPhoneNumber, localeCompare} = useLocalize();
+    const {showConfirmModal} = useConfirmModal();
     const {isBetaEnabled} = usePermissions();
     const policyName = policy?.name;
 
@@ -133,6 +135,9 @@ function WorkspaceInviteMessageComponent({
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
     const [categoryVisibilityDraft] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_CATEGORY_VISIBILITY_DRAFT}${policyID}`);
     const shouldShowCategoryVisibilityRow = canSetInvitedMembersCategoryVisibility(policy);
+    // Another admin can disable, rename or delete a chosen category while this page is open, and the invite can only
+    // limit the new members to enabled categories, so the row and the invite count only those.
+    const categoryVisibilityDraftNames = categoryVisibilityDraft?.filter((categoryName) => !!policyCategories?.[categoryName]?.enabled);
     const workspaceInviteApproverDraft = approverDraft ?? defaultApprover;
     const approverDetails = usePersonalDetailByLogin(workspaceInviteApproverDraft);
     const employeePersonalDetails = usePersonalDetailsByLogins(Object.keys(policy?.employeeList ?? {}));
@@ -217,8 +222,23 @@ function WorkspaceInviteMessageComponent({
 
     const sendInvitation = () => {
         Keyboard.dismiss();
+        const categoryNames = shouldShowCategoryVisibilityRow ? categoryVisibilityDraftNames : undefined;
+        // A member needs at least one category, so an invite whose chosen categories are all gone waits for the admin to pick again
+        if (categoryNames?.length === 0) {
+            showConfirmModal({
+                title: translate('workspace.people.categoryVisibilityRequiredModal.title'),
+                prompt: translate('workspace.people.categoryVisibilityRequiredModal.description'),
+                confirmText: translate('common.buttonConfirm'),
+                shouldShowCancelButton: false,
+            });
+            return;
+        }
+
         const filteredReportActions = getAllPolicyExpenseChatReportActions(allReports, allReportActions);
         const policyMemberAccountIDs = Object.values(getMemberAccountIDsForWorkspace(policy?.employeeList, employeePersonalDetails, false, false));
+        // Unlike the announce room, category visibility includes members with errors, so limiting the invitees doesn't take
+        // a category away from them too.
+        const categoryVisibilityMemberAccountIDs = categoryNames ? Object.values(getMemberAccountIDsForWorkspace(policy?.employeeList, employeePersonalDetails, true, false)) : undefined;
         const {newAccountIDs, newLogins} = getNewAccountIDsAndLogins(invitedEmailsToAccountIDsDraft, allPersonalDetails);
         // Please see https://github.com/Expensify/App/blob/main/README.md#Security for more details
         // See https://github.com/Expensify/App/blob/main/README.md#workspace, we set conditions about who can leave the workspace
@@ -240,7 +260,8 @@ function WorkspaceInviteMessageComponent({
                 approverEmail: shouldShowApproverRow ? validatedApprover : undefined,
                 hasOfficeWorkArrangement: shouldShowWorkArrangement ? selectedHasOfficeWorkArrangement : undefined,
                 policyCategories,
-                categoryNames: shouldShowCategoryVisibilityRow ? categoryVisibilityDraft : undefined,
+                categoryNames,
+                categoryVisibilityMemberAccountIDs,
             },
         );
         setWorkspaceInviteMessageDraft(policyID, welcomeNote ?? null);
@@ -424,8 +445,8 @@ function WorkspaceInviteMessageComponent({
                                     name={translate('workspace.people.categoryVisibility')}
                                     onPress={navigateToCategoryVisibilityPage}
                                     value={
-                                        categoryVisibilityDraft
-                                            ? translate('workspace.people.categoriesCount', {count: categoryVisibilityDraft.length})
+                                        categoryVisibilityDraftNames
+                                            ? translate('workspace.people.categoriesCount', {count: categoryVisibilityDraftNames.length})
                                             : translate('workspace.people.allCategories')
                                     }
                                 />
