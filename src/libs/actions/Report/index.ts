@@ -1953,12 +1953,16 @@ function openReport(params: OpenReportActionParams) {
         // Use optimisticSelfDMReport if provided (when selfDM exists but wasn't in allReports)
         const parentReport =
             transactionParentReportID === optimisticSelfDMReport?.reportID ? optimisticSelfDMReport : allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionParentReportID}`];
-        const submitterAccountID = parentReport?.ownerAccountID ?? currentUserAccountID ?? CONST.DEFAULT_NUMBER_ID;
+
+        // Another member's legacy expense opens under the unreported report, and its owner is unknown until the backend responds
+        const isUnderUnreportedReport = transactionParentReportID === CONST.REPORT.UNREPORTED_REPORT_ID;
+        const submitterAccountID = isUnderUnreportedReport ? CONST.DEFAULT_NUMBER_ID : (parentReport?.ownerAccountID ?? currentUserAccountID ?? CONST.DEFAULT_NUMBER_ID);
         const submitterPersonalDetails = submitterAccountID ? personalDetails?.[submitterAccountID] : undefined;
-        const submitterEmail = submitterPersonalDetails?.login ?? currentUserLogin ?? '';
+        const submitterEmail = isUnderUnreportedReport ? '' : (submitterPersonalDetails?.login ?? currentUserLogin ?? '');
 
         const optimisticIOUAction = buildOptimisticIOUReportAction({
-            type: isSelfDM(parentReport) ? CONST.IOU.REPORT_ACTION_TYPE.TRACK : CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+            // An unreported expense is tracked in its owner's self DM
+            type: isSelfDM(parentReport) || isUnderUnreportedReport ? CONST.IOU.REPORT_ACTION_TYPE.TRACK : CONST.IOU.REPORT_ACTION_TYPE.CREATE,
             amount: Math.abs(transaction.amount),
             currency: transaction.currency,
             comment: transaction.comment?.comment ?? '',
@@ -2025,6 +2029,16 @@ function openReport(params: OpenReportActionParams) {
                 },
             },
         });
+
+        if (isUnderUnreportedReport) {
+            const removePlaceholderAction: OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS> = {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionParentReportID}`,
+                value: {[iouReportActionID]: null},
+            };
+            successData.push(removePlaceholderAction);
+            failureData.push(removePlaceholderAction);
+        }
 
         parameters.moneyRequestPreviewReportActionID = iouReportActionID;
 
@@ -2569,7 +2583,11 @@ function createTransactionThreadReport(params: CreateTransactionThreadReportPara
     const isUnreportedTransaction = transaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
     const shouldUseSelfDM = isTrackExpense || isUnreportedTransaction;
     const isOwnedByCurrentUser = params.isOwnedByCurrentUser ?? iouReportAction?.actorAccountID === currentUserAccountID;
-    if (shouldUseSelfDM && !isOwnedByCurrentUser && !params.selfDMReportID) {
+    const isInUnknownSelfDM = shouldUseSelfDM && !isOwnedByCurrentUser && !params.selfDMReportID;
+
+    // Another member's legacy expense has no IOU action to find their self DM, so it opens under the unreported report
+    const isOtherMemberLegacyExpense = isInUnknownSelfDM && !!transaction && !iouReportAction?.reportActionID;
+    if (isInUnknownSelfDM && !isOtherMemberLegacyExpense) {
         Log.warn('Cannot build transaction thread in the current user self DM for an expense owned by another user', {
             transactionID: transaction?.transactionID,
             reportActionID: iouReportAction?.reportActionID,
@@ -2577,11 +2595,11 @@ function createTransactionThreadReport(params: CreateTransactionThreadReportPara
         return;
     }
 
-    const selfDMReportID = shouldUseSelfDM ? (params.selfDMReportID ?? findSelfDMReportID()) : undefined;
+    const selfDMReportID = shouldUseSelfDM && !isOtherMemberLegacyExpense ? (params.selfDMReportID ?? findSelfDMReportID()) : undefined;
 
     let optimisticSelfDMReport: Report | undefined;
     let parentReportAction: ReportAction | undefined;
-    let reportToUse = iouReport;
+    let reportToUse: OnyxEntry<Report> = isOtherMemberLegacyExpense ? {reportID: CONST.REPORT.UNREPORTED_REPORT_ID} : iouReport;
     if (selfDMReportID) {
         reportToUse = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${selfDMReportID}`];
 

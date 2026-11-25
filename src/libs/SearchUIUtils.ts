@@ -2770,8 +2770,10 @@ function createAndOpenSearchTransactionThread({
     const expenseSelfDMReportID = isOwnExpense ? (findSelfDMReportID() ?? ownerSelfDMReportID) : ownerSelfDMReportID;
     const selfDMReportID = isUnreportedTransaction ? expenseSelfDMReportID : undefined;
     const iouReportAction = getIOUActionForReportID(selfDMReportID ?? item.reportID, item.transactionID);
-    // Another member's unreported expense can only open in their self DM
-    if (isUnreportedTransaction && !selfDMReportID) {
+
+    // Another member's unreported expense opens in their self DM. A legacy one has no IOU action to find it, so the backend links it instead
+    const isOtherMemberLegacyExpense = !ownerAction && !isOwnExpense;
+    if (isUnreportedTransaction && !selfDMReportID && !isOtherMemberLegacyExpense) {
         return;
     }
 

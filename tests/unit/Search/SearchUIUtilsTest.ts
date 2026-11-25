@@ -15340,17 +15340,22 @@ describe('SearchUIUtils', () => {
                 expect(createTransactionThreadReport).toHaveBeenCalledWith(expect.objectContaining({selfDMReportID, isOwnedByCurrentUser: true}));
             });
 
-            test("Should not open an expense on another member's managed card", () => {
+            test("Should open an expense on another member's managed card outside the admin's self DM", () => {
                 // Given an expense on another member's managed card, which an admin sees on their card feed
                 const item = buildLegacyUnreportedItem(true, currentUserAccountID + 1);
 
                 // When the admin opens it from Search
-                const targetReportID = SearchUIUtils.createAndOpenSearchTransactionThread({...baseParams, item});
+                const targetReportID = SearchUIUtils.createAndOpenSearchTransactionThread({...baseParams, item, shouldNavigate: false});
 
-                // Then nothing is created, because without an action the member's self DM is unknown and the admin's own self DM is the wrong place
-                expect(targetReportID).toBeUndefined();
-                expect(createTransactionThreadReport).not.toHaveBeenCalled();
-                expect(Navigation.navigate).not.toHaveBeenCalled();
+                // Then the thread is created without a self DM, since the member's is unknown, and with the transaction so the backend can link it
+                expect(targetReportID).toBe(threadReportID);
+                expect(createTransactionThreadReport).toHaveBeenCalledWith(
+                    expect.objectContaining({
+                        selfDMReportID: undefined,
+                        isOwnedByCurrentUser: false,
+                        transaction: expect.objectContaining({reportID: CONST.REPORT.UNREPORTED_REPORT_ID}),
+                    }),
+                );
             });
         });
 
