@@ -199,6 +199,7 @@ function useLifecycleActions({reportID, startApprovedAnimation, startAnimation, 
         report: moneyRequestReport,
         policy,
         shouldShowMarkAsDoneCopy,
+        shouldDeferForPopoverDismiss: true,
     });
 
     const confirmApproveReportViolations = useConfirmApproveReportViolations({report: moneyRequestReport, policy, transactions, violationsCollection: violations});

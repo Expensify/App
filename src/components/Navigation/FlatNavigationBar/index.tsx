@@ -47,7 +47,7 @@ import type {ComponentRef} from 'react';
 import type {NativeSyntheticEvent, TargetedEvent} from 'react-native';
 import type {ValueOf} from 'type-fest';
 
-import React, {useEffect, useRef} from 'react';
+import {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 import Animated from 'react-native-reanimated';
 
@@ -62,6 +62,18 @@ import FlatNavSupportalItem from './FlatNavSupportalItem';
 type FlatNavigationBarProps = {
     selectedTab: ValueOf<typeof NAVIGATION_TABS>;
 };
+
+// Only keyboard focus counts: an item clicked with the mouse keeps focus too, and must not hold anything open after the pointer leaves.
+function hasKeyboardFocusIn(element: unknown) {
+    return isHTMLElement(element) && !!element.querySelector(':focus-visible');
+}
+
+// On web the native event is a DOM FocusEvent, whose relatedTarget is the element receiving focus.
+function isFocusMovingWithin(event: NativeSyntheticEvent<TargetedEvent>) {
+    const currentTarget = event.currentTarget;
+    const relatedTarget = 'relatedTarget' in event.nativeEvent ? event.nativeEvent.relatedTarget : null;
+    return isHTMLElement(currentTarget) && isHTMLElement(relatedTarget) && currentTarget.contains(relatedTarget);
+}
 
 /** Wide-layout left navigation that lists every top-level destination as a full-width row, with Account at the bottom. */
 function FlatNavigationBar({selectedTab}: FlatNavigationBarProps) {
@@ -101,11 +113,7 @@ function FlatNavigationBar({selectedTab}: FlatNavigationBarProps) {
     const isBarPopoverVisible = isCreateMenuVisible || isSupportalSwitcherVisible;
     const barContainerRef = useRef<ComponentRef<typeof View>>(null);
 
-    // Only keyboard focus counts: an item clicked with the mouse keeps focus too, and must not hold the bar open after the pointer leaves.
-    const hasKeyboardFocusInside = () => {
-        const element = barContainerRef.current;
-        return isHTMLElement(element) && !!element.querySelector(':focus-visible');
-    };
+    const hasKeyboardFocusInside = () => hasKeyboardFocusIn(barContainerRef.current);
 
     // Closing the Create menu hands focus back to its button, and that focus must not reopen a peek the pointer has already left.
     const startPeekOnKeyboardFocus = () => {
@@ -137,11 +145,8 @@ function FlatNavigationBar({selectedTab}: FlatNavigationBarProps) {
         if (isBarPopoverVisible) {
             return;
         }
-        const currentTarget = event.currentTarget;
-        // On web the native event is a DOM FocusEvent, whose relatedTarget is the element receiving focus.
-        const relatedTarget = 'relatedTarget' in event.nativeEvent ? event.nativeEvent.relatedTarget : null;
         // Tabbing between items inside the bar keeps the peek open.
-        if (isHTMLElement(currentTarget) && isHTMLElement(relatedTarget) && currentTarget.contains(relatedTarget)) {
+        if (isFocusMovingWithin(event)) {
             return;
         }
         const element = barContainerRef.current;
@@ -149,6 +154,20 @@ function FlatNavigationBar({selectedTab}: FlatNavigationBarProps) {
             return;
         }
         endPeek();
+    };
+
+    // Supportal sits right above Account and shows only while the pointer or keyboard focus is on that pair, so it never clutters the bar.
+    const [hasKeyboardFocusOnAccountArea, setHasKeyboardFocusOnAccountArea] = useState(false);
+    const accountAreaRef = useRef<ComponentRef<typeof View>>(null);
+
+    const updateAccountAreaFocus = () => setHasKeyboardFocusOnAccountArea(hasKeyboardFocusIn(accountAreaRef.current));
+
+    const clearAccountAreaFocus = (event: NativeSyntheticEvent<TargetedEvent>) => {
+        // Tabbing between Account and Supportal keeps Supportal showing.
+        if (isFocusMovingWithin(event)) {
+            return;
+        }
+        setHasKeyboardFocusOnAccountArea(false);
     };
 
     const accountLabel = currentUserPersonalDetails.displayName ? currentUserPersonalDetails.displayName : translate('initialSettingsPage.account');
@@ -268,34 +287,52 @@ function FlatNavigationBar({selectedTab}: FlatNavigationBarProps) {
                                 </View>
                                 <View style={styles.pb3}>
                                     <FlatNavDivider />
-                                    <FlatNavSupportalItem
-                                        isCollapsed={isVisuallyCollapsed}
-                                        isSupportAgent={isSupportAgent}
-                                        isSwitcherVisible={isSupportalSwitcherVisible}
-                                        showSwitcher={showSupportalSwitcher}
-                                        hideSwitcher={hideSupportalSwitcher}
-                                        onSwitcherHidden={endPeekIfPointerAndFocusLeft}
-                                    />
-                                    <FlatNavItem
-                                        isCollapsed={isVisuallyCollapsed}
-                                        label={accountLabel}
-                                        renderLeftElement={({backgroundColor}) => (
-                                            <Animated.View style={getFlatNavigationBarAccountAvatarStyle(isVisuallyCollapsed)}>
-                                                <AccountNavigationAvatar
-                                                    isSelected={isAccountSelected}
-                                                    badgeBorderColor={backgroundColor}
-                                                    shouldShowStatus={false}
+                                    {/* Hover covers Supportal too, so the pointer can move up from Account onto it without it disappearing.
+                                        The switcher's portal is a React child of this area, so synthetic hover events would count its overlay as part of the area and never end the hover once it closes. */}
+                                    <Hoverable shouldUseNativeHoverEvents>
+                                        {(isAccountAreaHovered) => (
+                                            <View
+                                                ref={accountAreaRef}
+                                                testID="FlatNavAccountArea"
+                                                onFocus={updateAccountAreaFocus}
+                                                onBlur={clearAccountAreaFocus}
+                                            >
+                                                <FlatNavSupportalItem
+                                                    isCollapsed={isVisuallyCollapsed}
+                                                    isSupportAgent={isSupportAgent}
+                                                    isRowVisible={isAccountAreaHovered || hasKeyboardFocusOnAccountArea}
+                                                    isSwitcherVisible={isSupportalSwitcherVisible}
+                                                    showSwitcher={showSupportalSwitcher}
+                                                    hideSwitcher={hideSupportalSwitcher}
+                                                    onSwitcherHidden={endPeekIfPointerAndFocusLeft}
                                                 />
-                                            </Animated.View>
+                                                <FlatNavItem
+                                                    isCollapsed={isVisuallyCollapsed}
+                                                    label={accountLabel}
+                                                    renderLeftElement={({backgroundColor}) => (
+                                                        <Animated.View style={getFlatNavigationBarAccountAvatarStyle(isVisuallyCollapsed)}>
+                                                            <AccountNavigationAvatar
+                                                                isSelected={isAccountSelected}
+                                                                badgeBorderColor={backgroundColor}
+                                                                shouldShowStatus={false}
+                                                            />
+                                                        </Animated.View>
+                                                    )}
+                                                    rightElement={<FlatNavAccountStatus isCollapsed={isVisuallyCollapsed} />}
+                                                    isSelected={isAccountSelected}
+                                                    isTall
+                                                    accessibilityLabel={getTabAccessibilityLabel(
+                                                        `${accountLabel}, ${translate('sidebarScreen.buttonMySettings')}`,
+                                                        !!accountStatus,
+                                                        translate,
+                                                    )}
+                                                    sentryLabel={CONST.SENTRY_LABEL.NAVIGATION_TAB_BAR.ACCOUNT}
+                                                    onPress={navigateToAccount}
+                                                    linkRoute={getSignedInLinkRoute(ROUTES.SETTINGS)}
+                                                />
+                                            </View>
                                         )}
-                                        rightElement={<FlatNavAccountStatus isCollapsed={isVisuallyCollapsed} />}
-                                        isSelected={isAccountSelected}
-                                        isTall
-                                        accessibilityLabel={getTabAccessibilityLabel(`${accountLabel}, ${translate('sidebarScreen.buttonMySettings')}`, !!accountStatus, translate)}
-                                        sentryLabel={CONST.SENTRY_LABEL.NAVIGATION_TAB_BAR.ACCOUNT}
-                                        onPress={navigateToAccount}
-                                        linkRoute={getSignedInLinkRoute(ROUTES.SETTINGS)}
-                                    />
+                                    </Hoverable>
                                 </View>
                             </View>
                         </Hoverable>

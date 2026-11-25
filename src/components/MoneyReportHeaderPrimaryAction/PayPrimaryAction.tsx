@@ -262,7 +262,7 @@ function PayPrimaryAction({reportID, chatReportID, isDisabled}: PayPrimaryAction
             enablePaymentsRoute={ROUTES.ENABLE_PAYMENTS}
             shouldHidePaymentOptions={!shouldShowPayButton}
             isDisabled={(isOffline && !canAllowSettlement) || isDisabled}
-            isLoading={(!isOffline && !canAllowSettlement) || isDownloadingABAFile || !!isPaymentInFlight}
+            isLoading={(!isOffline && (!canAllowSettlement || !!isPaymentInFlight)) || isDownloadingABAFile}
         />
     );
 }

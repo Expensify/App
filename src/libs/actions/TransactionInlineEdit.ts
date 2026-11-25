@@ -10,7 +10,18 @@ import {hasEnabledOptions} from '@libs/OptionsListUtils';
 import {getLoginByAccountID} from '@libs/PersonalDetailsUtils';
 import {getTagLists, isGroupPolicy, isMultiLevelTags, resolveCurrentTaxCode} from '@libs/PolicyUtils';
 import {isMoneyRequestAction} from '@libs/ReportActionsUtils';
-import {canEditFieldOfMoneyRequest, canEditMoneyRequest, canUserPerformWriteAction, isArchivedReport, isInvoiceReport, isIOUReport, shouldEnableNegative} from '@libs/ReportUtils';
+import {
+    applyRules,
+    canUserPerformWriteAction,
+    doesNeedRules,
+    isArchivedReport,
+    isInvoiceReport,
+    isIOUReport,
+    resolveCanEditFieldOfMoneyRequest,
+    resolveCanEditMoneyRequest,
+    shouldEnableNegative,
+} from '@libs/ReportUtils';
+import type {RuleDependent} from '@libs/ReportUtils';
 import StringUtils from '@libs/StringUtils';
 import {hasEnabledTags} from '@libs/TagsOptionsListUtils';
 import {
@@ -406,7 +417,12 @@ function editTransactionTagInline(params: TransactionInlineEditParams, newTag: s
  * 3. Restricted fields (date, merchant, amount): canEditFieldOfMoneyRequest per field
  * 4. Non-restricted fields (description, category, tag): canEdit + policy feature flags
  */
-function getTransactionEditPermissions({
+function getTransactionEditPermissions({rules, ...params}: TransactionEditPermissionsParams): TransactionEditPermissions {
+    return applyRules(resolveTransactionEditPermissions(params), rules);
+}
+
+/** getTransactionEditPermissions without the rules, see RuleDependent. Lets each Search row skip reading the rules collection. */
+function resolveTransactionEditPermissions({
     transaction,
     parentReportAction,
     parentReport,
@@ -421,8 +437,7 @@ function getTransactionEditPermissions({
     originalTransaction,
     disabled,
     shouldSelectPolicyForUnreported,
-    rules,
-}: TransactionEditPermissionsParams): TransactionEditPermissions {
+}: Omit<TransactionEditPermissionsParams, 'rules'>): RuleDependent<TransactionEditPermissions> {
     if (disabled || !transaction) {
         return NO_EDIT;
     }
@@ -447,14 +462,15 @@ function getTransactionEditPermissions({
     // always editable by the owner.
     const canEdit =
         isUnreported ||
-        (isMoneyRequestAction(parentReportAction) && canEditMoneyRequest(parentReportAction, transaction, rules, isChatReportArchived, parentReport, policy, parentReportActions));
-    if (!canEdit) {
+        (isMoneyRequestAction(parentReportAction) && resolveCanEditMoneyRequest(parentReportAction, transaction, isChatReportArchived, parentReport, policy, parentReportActions));
+    // A function still depends on the rules, so only a settled false returns early.
+    if (canEdit === false) {
         return NO_EDIT;
     }
 
     // For restricted fields, delegate to canEditFieldOfMoneyRequest.
     // Unreported expenses bypass this (all restricted fields editable by owner).
-    const canEditRestricted = (field: ValueOf<typeof CONST.EDIT_REQUEST_FIELD>) => {
+    const canEditRestricted = (field: ValueOf<typeof CONST.EDIT_REQUEST_FIELD>): RuleDependent<boolean> => {
         if (field === CONST.EDIT_REQUEST_FIELD.AMOUNT) {
             // Split expense children cannot have their amount edited inline
             const {isExpenseSplit} = getOriginalTransactionWithSplitInfo(transaction, originalTransaction);
@@ -519,7 +535,7 @@ function getTransactionEditPermissions({
 
         return (
             isUnreported ||
-            canEditFieldOfMoneyRequest({
+            resolveCanEditFieldOfMoneyRequest({
                 reportAction: parentReportAction,
                 reportActions: parentReportActions,
                 fieldToEdit: field,
@@ -528,20 +544,35 @@ function getTransactionEditPermissions({
                 transaction,
                 report: parentReport,
                 policy,
-                rules,
             })
         );
     };
 
-    return {
+    const resolveFieldPermissions = () => ({
         canEditDate: canEditRestricted(CONST.EDIT_REQUEST_FIELD.DATE),
         canEditMerchant: canEditRestricted(CONST.EDIT_REQUEST_FIELD.MERCHANT),
-        // Non-restricted; always editable when canEdit is true
-        canEditDescription: true,
         canEditCategory: canEditRestricted(CONST.EDIT_REQUEST_FIELD.CATEGORY),
         canEditAmount: canEditRestricted(CONST.EDIT_REQUEST_FIELD.AMOUNT),
         canEditTag: canEditRestricted(CONST.EDIT_REQUEST_FIELD.TAG),
-    };
+    });
+
+    const applyFieldRules = (fields: ReturnType<typeof resolveFieldPermissions>, rules: OnyxCollection<Rule>): TransactionEditPermissions => ({
+        canEditDate: applyRules(fields.canEditDate, rules),
+        canEditMerchant: applyRules(fields.canEditMerchant, rules),
+        // Non-restricted; always editable when canEdit is true
+        canEditDescription: true,
+        canEditCategory: applyRules(fields.canEditCategory, rules),
+        canEditAmount: applyRules(fields.canEditAmount, rules),
+        canEditTag: applyRules(fields.canEditTag, rules),
+    });
+
+    // Fields are resolved only once canEdit is known to be true.
+    if (doesNeedRules(canEdit)) {
+        return (rules) => (canEdit(rules) ? applyFieldRules(resolveFieldPermissions(), rules) : NO_EDIT);
+    }
+
+    const fields = resolveFieldPermissions();
+    return Object.values(fields).some(doesNeedRules) ? (rules) => applyFieldRules(fields, rules) : applyFieldRules(fields, undefined);
 }
 
 export {
@@ -552,6 +583,7 @@ export {
     editTransactionAmountInline,
     editTransactionTagInline,
     getTransactionEditPermissions,
+    resolveTransactionEditPermissions,
 };
 
 export type {TransactionInlineEditParams, TransactionEditPermissions, TransactionEditPermissionsParams};

@@ -1929,14 +1929,15 @@ const translations: TranslationDeepObject<typeof en> = {
         wisePaymentSummary: {
             confirmPayment: 'Confirmar pago',
             reportTotal: 'Total del informe',
-            unheldAmountBeingPaid: 'Importe no retenido a pagar',
-            debitAmount: 'Importe a debitar',
             employeeWillReceive: 'El empleado recibirá',
+            companyWillPay: 'La empresa pagará',
             totalFees: 'Comisiones totales',
             fxRate: 'Tipo de cambio',
             paymentDetails: 'Detalles del pago',
             debitedAmount: 'Importe cargado',
             employeeReceived: 'El empleado recibió',
+            paymentDisclosure: ({buttonText}: {buttonText: string}) =>
+                `<muted-text-micro>El destinatario podría recibir menos debido a las comisiones de su banco y a impuestos extranjeros. Al hacer clic en ${buttonText}, acepto los <a href="${CONST.WISE.TERMS_URL}">Términos de uso</a> y la <a href="${CONST.WISE.PRIVACY_URL}">Política de privacidad</a> de Wise.</muted-text-micro>`,
             payAll: 'Pagar todo',
             fxRateExpiredTitle: 'Tipo de cambio caducado',
             fxRatesExpiredTitle: 'Tipos de cambio caducados',
