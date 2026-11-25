@@ -164,6 +164,7 @@ function CategorySettingsPage({route: {params, name}, navigation}: CategorySetti
             showCannotDeleteOrDisableLastCategoryModal();
             return;
         }
+        // Only Control enforces category visibility per member; Collect ignores restrictions retained after a downgrade.
         if (!value && isControlPolicy(policy)) {
             const membersWithoutVisibleCategories = getMembersWithoutVisibleCategories(policyCategories, [policyCategory.name], policyMemberAccountIDs);
             if (membersWithoutVisibleCategories.length > 0) {

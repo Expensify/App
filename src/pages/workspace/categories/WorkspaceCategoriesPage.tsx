@@ -241,6 +241,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
             return;
         }
 
+        // Only Control enforces category visibility per member; Collect ignores restrictions retained after a downgrade.
         if (!enabled && isControlPolicy(policy)) {
             const membersWithoutVisibleCategories = getMembersWithoutVisibleCategories(policyCategories, [category.name], policyMemberAccountIDs);
             if (membersWithoutVisibleCategories.length > 0) {
@@ -489,6 +490,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                         return acc;
                     }, {});
                 const isDisablingLastEnabledCategory = isDisablingOrDeletingLastEnabledCategory(policy, policyCategories, selectedCategoriesObject);
+                // Only Control enforces category visibility per member; an empty list skips this guard on Collect despite retained restrictions.
                 const membersWithoutVisibleCategories = isControlPolicy(policy) ? getMembersWithoutVisibleCategories(policyCategories, enabledCategories, policyMemberAccountIDs) : [];
                 options.push({
                     icon: icons.Close,
