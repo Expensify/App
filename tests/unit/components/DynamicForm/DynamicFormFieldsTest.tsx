@@ -567,6 +567,26 @@ describe('DynamicFormFields', () => {
         expect(rendered.get(addressKeys.country)?.items?.find((item) => item.value === 'GB')?.searchValue).toMatch(/^gb/);
     });
 
+    it('searches a select of countries by code even when it holds a code we do not list', () => {
+        // Given a country select, like Wise's account holder country, with one code we don't list
+        const country: DynamicFormField = {
+            key: 'country',
+            type: 'select',
+            required: true,
+            values: [
+                {key: 'XX', label: 'Unlisted'},
+                {key: 'GB', label: 'United Kingdom'},
+                {key: 'FR', label: 'France'},
+            ],
+        };
+
+        // When it renders
+        const rendered = renderFields([country]);
+
+        // Then typing `GB` still finds the United Kingdom, since one unknown code must not turn off code search for the rest
+        expect(rendered.get('country')?.items?.find((item) => item.value === 'GB')?.searchValue).toMatch(/^gb/);
+    });
+
     it('opens the numeric keyboard for a text field whose regex takes digits only', () => {
         // Given a sort code that must be six digits, and a reference that takes letters too
         const sortCode: DynamicFormField = {key: 'sortCode', type: 'text', required: true, regex: '^\\d{6}$'};
