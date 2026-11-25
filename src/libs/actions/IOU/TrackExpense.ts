@@ -204,7 +204,7 @@ type GetTrackExpenseInformationParams = {
     isASAPSubmitBetaEnabled: boolean;
     currentUserAccountIDParam: number;
     currentUserEmailParam: string;
-    currentUserPersonalDetails?: CurrentUserPersonalDetails;
+    currentUserPersonalDetails: CurrentUserPersonalDetails;
     introSelected: OnyxEntry<OnyxTypes.IntroSelected>;
     activePolicy?: OnyxEntry<OnyxTypes.Policy>;
     conciergeChat: OnyxEntry<OnyxTypes.Report>;
@@ -255,7 +255,7 @@ type BuildOnyxDataForTrackExpenseParams = {
     isASAPSubmitBetaEnabled: boolean;
     quickAction: OnyxEntry<OnyxTypes.QuickAction>;
     currentUserAccountID: number;
-    currentUserPersonalDetails?: CurrentUserPersonalDetails;
+    currentUserPersonalDetails: CurrentUserPersonalDetails;
 };
 
 /** Builds the Onyx data for track expense */
@@ -1820,6 +1820,7 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
         createdReportActionIDForThread,
         onyxData,
     } = getMoneyRequestInformation({
+        shouldFlagNewTransactionForReportTable: true,
         isVendorMatchingBetaEnabled,
         parentChatReport: isMovingTransactionFromTrackExpense ? undefined : currentChatReport,
         existingIOUReport,
@@ -2192,6 +2193,7 @@ function convertBulkTrackedExpensesToIOU({
             transactionThreadReportID: moneyRequestTransactionThreadReportID,
             onyxData,
         } = getMoneyRequestInformation({
+            shouldFlagNewTransactionForReportTable: true,
             isVendorMatchingBetaEnabled,
             parentChatReport: chatReport,
             participantParams,

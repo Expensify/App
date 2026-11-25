@@ -7,12 +7,40 @@ import Log from '@libs/Log';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {OnyxKey} from '@src/ONYXKEYS';
 import type {InsightsDashboardID, InsightsSearchKey} from '@src/types/onyx';
+import type {OnyxData} from '@src/types/onyx/Request';
 import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
 
 import type {OnyxUpdate} from 'react-native-onyx';
 
 import Onyx from 'react-native-onyx';
+
+/** Sends an Insights read command and stores the response's JSON code, which distinguishes backend errors from requests that got no response */
+function requestInsights<TKey extends OnyxKey>(
+    command: typeof READ_COMMANDS.GET_INSIGHTS | typeof READ_COMMANDS.GET_INSIGHTS_DETAILS,
+    jsonQuery: string,
+    key: `${typeof ONYXKEYS.COLLECTION.INSIGHTS | typeof ONYXKEYS.COLLECTION.INSIGHTS_DETAILS}${string}`,
+    onyxData: OnyxData<TKey>,
+) {
+    waitForWrites(command).then(() =>
+        // API.read() hides the response code and network rejections, which are needed to tell backend errors from failed requests, same as Search
+        makeRequestWithSideEffects(command, {jsonQuery}, onyxData)
+            .then((result) => {
+                if (typeof result?.jsonCode !== 'number' || result.jsonCode === CONST.JSON_CODE.SUCCESS) {
+                    return;
+                }
+                Onyx.merge(key, {responseJsonCode: result.jsonCode}).catch((error: unknown) => Log.hmmm(`[Insights] failed to store the ${command} response code`, {error: String(error)}));
+            })
+            .catch((error: unknown) => {
+                // A network-level rejection never reaches SaveResponseInOnyx, so failureData has to be applied here
+                Log.hmmm(`[Insights] ${command} request failed`, {
+                    error: String(error),
+                });
+                return Onyx.update(onyxData.failureData ?? []);
+            }),
+    );
+}
 
 function getInsights(dashboard: InsightsDashboardID, hash: number, jsonQuery: string, snapshotHashes: number[], queryType: SearchDataTypes) {
     const key = `${ONYXKEYS.COLLECTION.INSIGHTS}${dashboard}_${hash}` as const;
@@ -55,27 +83,50 @@ function getInsights(dashboard: InsightsDashboardID, hash: number, jsonQuery: st
         },
     }));
 
-    waitForWrites(READ_COMMANDS.GET_INSIGHTS).then(() =>
-        // API.read() hides the response code and network rejections, which are needed to tell backend errors from failed requests, same as Search
-        makeRequestWithSideEffects(READ_COMMANDS.GET_INSIGHTS, {jsonQuery}, {optimisticData, successData, failureData})
-            .then((result) => {
-                if (typeof result?.jsonCode !== 'number' || result.jsonCode === CONST.JSON_CODE.SUCCESS) {
-                    return;
-                }
-                Onyx.merge(key, {responseJsonCode: result.jsonCode}).catch((error: unknown) => Log.hmmm('[Insights] failed to store the GetInsights response code', {error: String(error)}));
-            })
-            .catch((error: unknown) => {
-                // A network-level rejection never reaches SaveResponseInOnyx, so failureData has to be applied here
-                Log.hmmm('[Insights] GetInsights request failed', {
-                    error: String(error),
-                });
-                return Onyx.update(failureData);
-            }),
-    );
+    requestInsights(READ_COMMANDS.GET_INSIGHTS, jsonQuery, key, {optimisticData, successData, failureData});
+}
+
+/** Fetches the Details panel's sections and fills the snapshot with its Top expenses */
+function getInsightsDetails(hash: number, jsonQuery: string, topExpensesSnapshotHash: number) {
+    const key = `${ONYXKEYS.COLLECTION.INSIGHTS_DETAILS}${hash}` as const;
+    const snapshotKey = `${ONYXKEYS.COLLECTION.SNAPSHOT}${topExpensesSnapshotHash}` as const;
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.INSIGHTS_DETAILS | typeof ONYXKEYS.COLLECTION.SNAPSHOT>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key,
+            value: {errors: null, responseJsonCode: null},
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: snapshotKey,
+            value: {errors: null, search: {responseJsonCode: null, errorTranslationKey: null}},
+        },
+    ];
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.SNAPSHOT>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: snapshotKey,
+            value: {
+                search: {state: CONST.SEARCH.SNAPSHOT_STATE.LOADED, type: CONST.SEARCH.DATA_TYPES.EXPENSE, hash: topExpensesSnapshotHash},
+            },
+        },
+    ];
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.INSIGHTS_DETAILS>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key,
+            value: {
+                responseJsonCode: CONST.JSON_CODE.NO_RESPONSE,
+                errors: getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
+            },
+        },
+    ];
+
+    requestInsights(READ_COMMANDS.GET_INSIGHTS_DETAILS, jsonQuery, key, {optimisticData, successData, failureData});
 }
 
 function setInsightsFilters(searchKey: InsightsSearchKey, query: SearchQueryString) {
     Onyx.merge(ONYXKEYS.SEARCH_FILTERS, {[searchKey]: {query}});
 }
 
-export {getInsights, setInsightsFilters};
+export {getInsights, getInsightsDetails, setInsightsFilters};
