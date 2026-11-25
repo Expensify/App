@@ -23,6 +23,8 @@ import {canViewAllPolicyData, hasMultipleMembers} from './insightsAccess';
 
 type PolicyEligibilityCheck = (policy: Policy, login: string | undefined) => boolean;
 
+type InsightsDetailsSection = ValueOf<typeof CONST.INSIGHTS.DETAILS_SECTION>;
+
 /** One workflow stage a chart shows */
 type InsightsChartStage = {
     workflowStage: ValueOf<typeof CONST.SEARCH.WORKFLOW_STAGES>;
@@ -111,7 +113,17 @@ type InsightsChartSpec = {
      * A time-grouped chart stacks them in each bucket's column, and a chart grouped by workflow stage draws them as its groups.
      */
     stages?: InsightsChartStage[];
+
+    /** Sections GetInsightsDetails returns for a point of the chart, left out by charts it doesn't support */
+    detailsSections?: InsightsDetailsSection[];
 };
+
+/** Sections of a ranking chart's points, which unlike a time chart's also get the item's recent history */
+const RANKING_DETAILS_SECTIONS: InsightsDetailsSection[] = [
+    CONST.INSIGHTS.DETAILS_SECTION.SUMMARY,
+    CONST.INSIGHTS.DETAILS_SECTION.RECENT_HISTORY,
+    CONST.INSIGHTS.DETAILS_SECTION.TOP_EXPENSES,
+];
 
 /** Violations kept at submission or approval */
 const VIOLATION_HAS_VALUES: HasFilterValues = [CONST.SEARCH.HAS_VALUES.SUBMITTED_VIOLATION, CONST.SEARCH.HAS_VALUES.APPROVED_VIOLATION];
@@ -163,6 +175,7 @@ const INSIGHTS_DASHBOARD_SPECS: Record<InsightsDashboardID, InsightsDashboardSpe
             graphKey: CONST.INSIGHTS.GRAPH.SPEND_OVER_TIME,
             titleKey: 'search.spendOverTime',
             view: CONST.SEARCH.VIEW.LINE,
+            detailsSections: [CONST.INSIGHTS.DETAILS_SECTION.SUMMARY, CONST.INSIGHTS.DETAILS_SECTION.TOP_EXPENSES],
         },
         supportingCharts: [
             {
@@ -174,6 +187,7 @@ const INSIGHTS_DASHBOARD_SPECS: Record<InsightsDashboardID, InsightsDashboardSpe
                 sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
                 limit: CONST.SEARCH.TOP_SEARCH_LIMIT,
                 isPolicyEligible: isPolicyEligibleForTopSpenders,
+                detailsSections: RANKING_DETAILS_SECTIONS,
             },
             {
                 graphKey: CONST.INSIGHTS.GRAPH.TOP_MERCHANTS,
@@ -183,6 +197,7 @@ const INSIGHTS_DASHBOARD_SPECS: Record<InsightsDashboardID, InsightsDashboardSpe
                 sortBy: CONST.SEARCH.TABLE_COLUMNS.GROUP_TOTAL,
                 sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
                 limit: CONST.SEARCH.TOP_SEARCH_LIMIT,
+                detailsSections: RANKING_DETAILS_SECTIONS,
             },
             {
                 graphKey: CONST.INSIGHTS.GRAPH.TOP_CATEGORIES,
@@ -193,6 +208,7 @@ const INSIGHTS_DASHBOARD_SPECS: Record<InsightsDashboardID, InsightsDashboardSpe
                 sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
                 limit: CONST.SEARCH.TOP_SEARCH_LIMIT,
                 isPolicyEligible: isPolicyEligibleForTopCategories,
+                detailsSections: RANKING_DETAILS_SECTIONS,
             },
             {
                 graphKey: CONST.INSIGHTS.GRAPH.TOP_TAGS,
@@ -443,5 +459,5 @@ export {
     shouldUpsellControlPlan,
     VIOLATION_HAS_VALUES,
 };
-export type {InsightsChartSpec, InsightsChartStage, InsightsDateFilterKey, InsightsViolationStage, InsightsViolationStages};
+export type {InsightsChartSpec, InsightsChartStage, InsightsDateFilterKey, InsightsDetailsSection, InsightsViolationStage, InsightsViolationStages};
 export default INSIGHTS_DASHBOARD_SPECS;

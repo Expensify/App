@@ -21,7 +21,7 @@ type InsightsMeterBarProps = {
     /** Bar length, as a percentage of the track */
     widthPercent: number;
 
-    /** Defaults to the green the ranking table's bars are drawn in */
+    /** Fill of the bar, whose average marker is drawn in a darker shade of it */
     color?: string;
 
     /** Whether the bar is drawn hatched, for a value that may still grow */

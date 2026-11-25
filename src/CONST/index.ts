@@ -10840,6 +10840,11 @@ const CONST = {
             SUBMITTED: 'submitted',
             APPROVED: 'approved',
         },
+        DETAILS_SECTION: {
+            SUMMARY: 'summary',
+            RECENT_HISTORY: 'recentHistory',
+            TOP_EXPENSES: 'topExpenses',
+        },
     },
 
     SECTION_LIST_ITEM_TYPE: {

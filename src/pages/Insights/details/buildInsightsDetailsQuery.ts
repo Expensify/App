@@ -5,6 +5,7 @@ import type {SearchGroupBy} from '@components/Search/types';
 import DateUtils from '@libs/DateUtils';
 import {hashText} from '@libs/UserUtils';
 
+import type {InsightsDetailsSection} from '@pages/Insights/dashboardSpecs';
 import getInsightsDateRange from '@pages/Insights/getInsightsDateRange';
 import type {InsightsFilters} from '@pages/Insights/insightsFilters';
 import type {InsightsTimeGroupBy} from '@pages/Insights/insightsGroupByUtils';
@@ -16,20 +17,6 @@ import type {InsightsGraphKey} from '@src/types/onyx';
 import {format, getMonth, getQuarter, getYear, parseISO, startOfWeek} from 'date-fns';
 
 import getInsightsDetailsPeriod from './getInsightsDetailsPeriod';
-
-/** Sections of a panel opened from a time graph, like Spend over time */
-const TIME_GRAPH_DETAILS_SECTIONS = ['summary', 'topExpenses'];
-
-/** Sections of a panel opened from a ranking graph */
-const RANKING_GRAPH_DETAILS_SECTIONS = ['summary', 'recentHistory', 'topExpenses'];
-
-/** Graphs supported by GetInsightsDetails, the backend rejects requests for the other ones */
-const SUPPORTED_GRAPH_KEYS = new Set<InsightsGraphKey>([
-    CONST.INSIGHTS.GRAPH.SPEND_OVER_TIME,
-    CONST.INSIGHTS.GRAPH.TOP_MERCHANTS,
-    CONST.INSIGHTS.GRAPH.TOP_CATEGORIES,
-    CONST.INSIGHTS.GRAPH.TOP_SPENDERS,
-]);
 
 type InsightsDetailsQuery = {
     /** Request payload for GetInsightsDetails */
@@ -53,6 +40,10 @@ type InsightsDetailsQuery = {
 
 type BuildInsightsDetailsQueryParams = {
     graphKey: InsightsGraphKey;
+
+    /** Sections to request, none for graphs GetInsightsDetails doesn't support */
+    sections: InsightsDetailsSection[] | undefined;
+
     filters: InsightsFilters;
 
     /** What the ranking graph groups by, undefined for Spend over time */
@@ -118,6 +109,7 @@ function getSummarizedPeriod({
 /** Builds the request for a Details panel's sections, or nothing when the backend doesn't support the graph or the period can't be resolved. */
 function buildInsightsDetailsQuery({
     graphKey,
+    sections,
     filters,
     itemGroupBy,
     itemKey,
@@ -125,7 +117,7 @@ function buildInsightsDetailsQuery({
     topExpensesSnapshotHash,
     lastDay,
 }: BuildInsightsDetailsQueryParams): InsightsDetailsQuery | undefined {
-    if (!SUPPORTED_GRAPH_KEYS.has(graphKey)) {
+    if (!sections?.length) {
         return undefined;
     }
     const periodGroupBy = getInsightsDetailsPeriod(filters, graphKey);
@@ -145,7 +137,7 @@ function buildInsightsDetailsQuery({
     return {
         jsonQuery: JSON.stringify({
             ...hashedFields,
-            sections: itemGroupBy ? RANKING_GRAPH_DETAILS_SECTIONS : TIME_GRAPH_DETAILS_SECTIONS,
+            sections,
             topExpensesSnapshotHash,
             hash,
         }),

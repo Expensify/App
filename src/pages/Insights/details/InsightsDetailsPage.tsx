@@ -87,6 +87,7 @@ function InsightsDetailsPage({route}: InsightsDetailsPageProps) {
         chartSpec && topExpensesSnapshotHash !== undefined
             ? buildInsightsDetailsQuery({
                   graphKey: chartSpec.graphKey,
+                  sections: chartSpec.detailsSections,
                   filters,
                   itemGroupBy: chartSpec.groupBy,
                   itemKey,
@@ -155,7 +156,7 @@ function InsightsDetailsPage({route}: InsightsDetailsPageProps) {
                                     state={detailsState}
                                 />
                             )}
-                            {!!detailsQuery && !!chartSpec.groupBy && (
+                            {!!detailsQuery && !!chartSpec.detailsSections?.includes(CONST.INSIGHTS.DETAILS_SECTION.RECENT_HISTORY) && (
                                 <InsightsRecentHistory
                                     query={detailsQuery}
                                     history={details?.recentHistory}
