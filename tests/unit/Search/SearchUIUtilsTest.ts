@@ -9457,6 +9457,46 @@ describe('SearchUIUtils', () => {
             expect(descendingResult.map((item) => ('transactionID' in item ? item.transactionID : undefined))).toEqual(['gl-code-6200', 'gl-code-6100', 'gl-code-1010', 'without-gl-code']);
         });
 
+        it('should sort expenses by Transaction ID as whole numbers without losing digits', () => {
+            // Given transaction IDs of different lengths, where text order differs from number order, and two IDs that a
+            // double can't tell apart because they differ past its 15 to 17 significant digits
+            const shortestID = '999999999999999999';
+            const middleID = '1234567890123456789';
+            const largeID = '4611686018427387904';
+            const largestID = '4611686018427387905';
+            const baseTransaction = transactionsListItems.at(0);
+            if (!baseTransaction) {
+                throw new Error('Missing transaction fixture');
+            }
+            const unorderedTransactions: TransactionListItemType[] = [largeID, shortestID, largestID, middleID].map((id) => ({
+                ...baseTransaction,
+                transactionID: id,
+                keyForList: id,
+            }));
+
+            // When the expenses are sorted by Transaction ID in both directions
+            const ascendingResult = SearchUIUtils.getSortedSections(
+                CONST.SEARCH.DATA_TYPES.EXPENSE,
+                [...unorderedTransactions],
+                localeCompare,
+                translateLocal,
+                CONST.SEARCH.TABLE_COLUMNS.TRANSACTION_ID,
+                CONST.SEARCH.SORT_ORDER.ASC,
+            );
+            const descendingResult = SearchUIUtils.getSortedSections(
+                CONST.SEARCH.DATA_TYPES.EXPENSE,
+                [...unorderedTransactions],
+                localeCompare,
+                translateLocal,
+                CONST.SEARCH.TABLE_COLUMNS.TRANSACTION_ID,
+                CONST.SEARCH.SORT_ORDER.DESC,
+            );
+
+            // Then they follow the IDs' number order, so the backend's order and the local order agree
+            expect(ascendingResult.map((item) => ('transactionID' in item ? item.transactionID : undefined))).toEqual([shortestID, middleID, largeID, largestID]);
+            expect(descendingResult.map((item) => ('transactionID' in item ? item.transactionID : undefined))).toEqual([largestID, largeID, middleID, shortestID]);
+        });
+
         it('should keep the row order unchanged when sorting a column that is empty for every row (asc and desc are no-ops)', () => {
             // Regression test for https://github.com/Expensify/App/issues/94893: sorting an all-empty column must be a no-op —
             // the order stays the same and is identical for both directions. `created` is intentionally unsorted so that the
@@ -14198,6 +14238,41 @@ describe('SearchUIUtils', () => {
             expect(violationsHeader?.isColumnSortable).not.toBe(false);
         });
 
+        test('Should show the Transaction ID column on expense searches when it is selected', () => {
+            // Given an expense search where the user selected the Transaction ID column
+            const baseTransaction = searchResults.data[`transactions_${transactionID}`];
+            const defaultVisibleColumns = Object.values(CONST.SEARCH.TYPE_DEFAULT_COLUMNS.EXPENSE);
+
+            // When the columns to show are computed with and without that column selected
+            const columnsWithTransactionID = SearchUIUtils.getColumnsToShow({
+                currentAccountID: submitterAccountID,
+                data: [baseTransaction],
+                visibleColumns: [...defaultVisibleColumns, CONST.SEARCH.TABLE_COLUMNS.TRANSACTION_ID],
+            });
+            const defaultColumns = SearchUIUtils.getColumnsToShow({
+                currentAccountID: submitterAccountID,
+                data: [baseTransaction],
+                visibleColumns: defaultVisibleColumns,
+            });
+
+            // Then the column only shows when the user picked it, since it is off by default
+            expect(columnsWithTransactionID).toContain(CONST.SEARCH.TABLE_COLUMNS.TRANSACTION_ID);
+            expect(defaultColumns).not.toContain(CONST.SEARCH.TABLE_COLUMNS.TRANSACTION_ID);
+        });
+
+        test('Should offer sorting by Transaction ID', () => {
+            // Given the Transaction ID column is shown
+            const columns = [CONST.SEARCH.TABLE_COLUMNS.TRANSACTION_ID];
+
+            // When the Sort by options and the expense table headers are built
+            const sortByOptions = SearchUIUtils.getSortByOptions(columns, translateLocal);
+            const transactionIDHeader = getExpenseHeaders().find(({columnName}) => columnName === CONST.SEARCH.TABLE_COLUMNS.TRANSACTION_ID);
+
+            // Then both offer a Transaction ID sort, so the column sorts like the other ID columns
+            expect(sortByOptions).toEqual([{text: translateLocal('common.transactionID'), value: CONST.SEARCH.TABLE_COLUMNS.TRANSACTION_ID}]);
+            expect(transactionIDHeader?.isColumnSortable).toBe(true);
+        });
+
         test('Should show MCC whenever that column is selected, even with no displayable MCC', () => {
             const baseTransaction = searchResults.data[`transactions_${transactionID}`];
             const transactionWithoutMCC = {
@@ -15103,6 +15178,15 @@ describe('SearchUIUtils', () => {
         it('should return correct translation key for WITHDRAWAL_ID column', () => {
             const translationKey = SearchUIUtils.getSearchColumnTranslationKey(CONST.SEARCH.TABLE_COLUMNS.WITHDRAWAL_ID);
             expect(translationKey).toBe('common.withdrawalID');
+        });
+
+        it('should return correct translation key for TRANSACTION_ID column', () => {
+            // Given the Transaction ID column, whose header is also sent as the export column label
+            // When its translation key is resolved
+            const translationKey = SearchUIUtils.getSearchColumnTranslationKey(CONST.SEARCH.TABLE_COLUMNS.TRANSACTION_ID);
+
+            // Then it uses the Transaction ID label
+            expect(translationKey).toBe('common.transactionID');
         });
 
         it('should label the DECLINED column with the Rejected filter label', () => {

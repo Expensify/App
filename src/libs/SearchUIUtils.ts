@@ -399,6 +399,7 @@ const transactionColumnNamesToSortingProperty: TransactionSorting = {
     [CONST.SEARCH.TABLE_COLUMNS.TAX_AMOUNT]: 'taxAmount' as const,
     [CONST.SEARCH.TABLE_COLUMNS.RECEIPT]: null,
     [CONST.SEARCH.TABLE_COLUMNS.WITHDRAWAL_ID]: 'withdrawalID' as const,
+    [CONST.SEARCH.TABLE_COLUMNS.TRANSACTION_ID]: 'transactionID' as const,
     [CONST.SEARCH.TABLE_COLUMNS.VIOLATIONS]: 'formattedViolations' as const,
 };
 
@@ -5183,6 +5184,8 @@ function getSearchColumnTranslationKey(column: SearchSortBy, type?: SearchDataTy
             return 'common.total';
         case CONST.SEARCH.TABLE_COLUMNS.BASE_62_REPORT_ID:
             return 'common.reportID';
+        case CONST.SEARCH.TABLE_COLUMNS.TRANSACTION_ID:
+            return 'common.transactionID';
         case CONST.SEARCH.TABLE_COLUMNS.GROUP_WITHDRAWAL_STATUS:
             return 'common.withdrawalStatus';
         case CONST.SEARCH.TABLE_COLUMNS.GROUP_BANK_ACCOUNT:
@@ -6611,6 +6614,13 @@ const FILTER_VIEW_MAP = {
         advancedFilterSentryLabel: CONST.SENTRY_LABEL.SEARCH.ADVANCED_FILTER.REPORT_ID,
         applySentryLabel: CONST.SENTRY_LABEL.SEARCH.FILTER_POPUP_APPLY.REPORT_ID,
     },
+    [CONST.SEARCH.SYNTAX_FILTER_KEYS.TRANSACTION_ID]: {
+        labelKey: 'common.transactionID',
+        icon: 'Fingerprint',
+        filterSentryLabel: CONST.SENTRY_LABEL.SEARCH.FILTER.TRANSACTION_ID,
+        advancedFilterSentryLabel: CONST.SENTRY_LABEL.SEARCH.ADVANCED_FILTER.TRANSACTION_ID,
+        applySentryLabel: CONST.SENTRY_LABEL.SEARCH.FILTER_POPUP_APPLY.TRANSACTION_ID,
+    },
     [CONST.SEARCH.SYNTAX_FILTER_KEYS.STATUS]: {
         labelKey: 'common.status',
         icon: 'DotIndicator',
@@ -7767,6 +7777,7 @@ function getColumnsToShow({
               [CONST.SEARCH.TABLE_COLUMNS.ORIGINAL_AMOUNT]: false,
               [CONST.SEARCH.TABLE_COLUMNS.BASE_62_REPORT_ID]: false,
               [CONST.SEARCH.TABLE_COLUMNS.REPORT_ID]: false,
+              [CONST.SEARCH.TABLE_COLUMNS.TRANSACTION_ID]: false,
               [CONST.SEARCH.TABLE_COLUMNS.TITLE]: false,
               [CONST.SEARCH.TABLE_COLUMNS.EXPORTED_TO]: false,
               [CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT]: true,
