@@ -13432,6 +13432,7 @@ ${reportName}`,
             consolidatedDomainBillingDescription: (domainName: string) =>
                 `<comment><muted-text-label>Όταν είναι ενεργοποιημένο, το κύριο άτομο επικοινωνίας θα πληρώνει για όλους τους χώρους εργασίας που ανήκουν σε μέλη του <strong>${domainName}</strong> και θα λαμβάνει όλες τις αποδείξεις χρέωσης.</muted-text-label></comment>`,
             consolidatedDomainBillingError: 'Η ενοποιημένη χρέωση τομέα δεν ήταν δυνατό να αλλάξει. Δοκιμάστε ξανά αργότερα.',
+            consolidatedDomainBillingLockedMessage: "Only the primary contact can turn consolidated domain billing on or off, because they aren't a domain member.",
             addAdmin: 'Προσθήκη διαχειριστή',
             addAdminError: 'Δεν είναι δυνατή η προσθήκη αυτού του μέλους ως διαχειριστή. Παρακαλούμε δοκιμάστε ξανά.',
             requests: 'Αιτήματα',
