@@ -24,6 +24,7 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import {usePersonalDetailsByLogins} from '@hooks/usePersonalDetailByLogin';
+import {useAllPersonalDetails} from '@hooks/usePersonalDetails';
 import usePrevious from '@hooks/usePrevious';
 import usePrivateIsArchivedMap from '@hooks/usePrivateIsArchivedMap';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -134,7 +135,8 @@ function resolveMemberAccountID(email: string, policyMemberEmailsToAccountIDs: M
     return policyMemberEmailsToAccountIDs[email] ? Number(policyMemberEmailsToAccountIDs[email]) : generateAccountID(email);
 }
 
-function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembersPageProps) {
+function WorkspaceMembersPage({route, policy}: WorkspaceMembersPageProps) {
+    const [personalDetails] = useAllPersonalDetails();
     useWorkspaceDocumentTitle(policy?.name, 'common.members');
     const tableRef = useRef<TableHandle<WorkspaceMemberRowData, WorkspaceMembersTableColumnKey, string>>(null);
     const icons = useMemoizedLazyExpensifyIcons(['Building', 'Download', 'FallbackAvatar', 'Location', 'Plus', 'RemoveMembers', 'Sync', 'Table', 'UserPencil']);
@@ -566,6 +568,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
                         {shouldShowHRSyncLink && '. '}
                         {shouldShowHRSyncLink && (
                             <TextLink
+                                sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.MEMBERS.CONFIGURE_HR_SYNC_LINK}
                                 onPress={() => Navigation.navigate(ROUTES.WORKSPACE_CONNECTIONS.getRoute(policyID, undefined, undefined, undefined, undefined, CONST.TAB.CONNECTIONS.PEOPLE))}
                             >
                                 {translate('workspace.people.configureHRSync', connectedHRProvider?.displayName ?? '')}

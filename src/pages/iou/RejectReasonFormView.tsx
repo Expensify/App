@@ -21,14 +21,17 @@ import React from 'react';
 import {View} from 'react-native';
 
 type RejectReasonFormViewProps = {
-    onSubmit: (values: FormOnyxValues<typeof ONYXKEYS.FORMS.MONEY_REQUEST_REJECT_FORM>) => void;
+    onSubmit: (values: FormOnyxValues<typeof ONYXKEYS.FORMS.MONEY_REQUEST_REJECT_FORM>) => void | Promise<void>;
     validate: (values: FormOnyxValues<typeof ONYXKEYS.FORMS.MONEY_REQUEST_REJECT_FORM>) => Partial<Record<'comment', string | undefined>>;
 
     /** Link to previous page */
     backTo?: Route;
+
+    /** Whether the form can be submitted while offline (defaults to true) */
+    enabledWhenOffline?: boolean;
 };
 
-function RejectReasonFormView({backTo, validate, onSubmit}: RejectReasonFormViewProps) {
+function RejectReasonFormView({backTo, validate, onSubmit, enabledWhenOffline = true}: RejectReasonFormViewProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {inputCallbackRef} = useAutoFocusInput();
@@ -49,7 +52,7 @@ function RejectReasonFormView({backTo, validate, onSubmit}: RejectReasonFormView
                 style={[styles.flexGrow1, styles.ph5]}
                 onSubmit={onSubmit}
                 validate={validate}
-                enabledWhenOffline
+                enabledWhenOffline={enabledWhenOffline}
                 shouldHideFixErrorsAlert
                 buttonVariant={CONST.BUTTON_VARIANT.DANGER}
             >
