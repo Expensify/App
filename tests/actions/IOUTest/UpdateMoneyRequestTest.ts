@@ -342,6 +342,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
             ) => {
                 const transaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`);
                 updateMoneyRequestCategory({
+                    translate: translateLocal,
                     isVendorMatchingBetaEnabled: false,
                     rules: undefined,
                     transactionID,
