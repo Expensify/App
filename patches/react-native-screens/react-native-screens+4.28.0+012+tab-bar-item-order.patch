@@ -1,8 +1,16 @@
 diff --git a/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/container/TabsContainer.kt b/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/container/TabsContainer.kt
-index a2b93b0..69e612a 100644
+index a2b93b0..f9f29dd 100644
 --- a/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/container/TabsContainer.kt
 +++ b/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/container/TabsContainer.kt
-@@ -19,6 +19,7 @@ import androidx.core.view.children
+@@ -8,6 +8,7 @@ import android.graphics.drawable.ColorDrawable
+ import android.view.Gravity
+ import android.view.MenuItem
+ import android.view.View
++import android.view.View.MeasureSpec
+ import android.view.ViewGroup
+ import android.view.WindowInsets
+ import android.widget.FrameLayout
+@@ -19,6 +20,7 @@ import androidx.core.view.children
  import androidx.core.view.size
  import androidx.core.widget.NestedScrollView
  import androidx.fragment.app.FragmentManager
@@ -10,11 +18,13 @@ index a2b93b0..69e612a 100644
  import com.google.android.material.R
  import com.google.android.material.bottomnavigation.BottomNavigationView
  import com.google.android.material.navigation.NavigationBarItemView
-@@ -168,6 +169,14 @@ class TabsContainer internal constructor(
+@@ -168,6 +170,16 @@ class TabsContainer internal constructor(
  
      private var interfaceInsetsChangeListener: SafeAreaView? = null
  
 +    /** Screen keys in the order their items take in the tab bar. Empty keeps the order of the React children. */
++    private var isNavigationMenuRebuilt = false
++
 +    internal var tabBarItemOrder: List<String> by Delegates.observable(emptyList()) { _, oldValue, newValue ->
 +        if (newValue != oldValue) {
 +            invalidationFlags.isNavigationMenuStructureInvalidated = true
@@ -25,7 +35,52 @@ index a2b93b0..69e612a 100644
      internal var tabBarHidden: Boolean by Delegates.observable(false) { _, oldValue, newValue ->
          if (newValue != oldValue) {
              updateInterfaceInsets()
-@@ -542,9 +551,10 @@ class TabsContainer internal constructor(
+@@ -464,6 +476,44 @@ class TabsContainer internal constructor(
+         performPreSelectedTabUpdateActions()
+         performSelectedTabUpdateIfNeeded()
+         performPostSelectedTabUpdateActions()
++        settleNavigationMenuAfterRebuild()
++    }
++
++    /**
++     * A rebuilt menu has new item views. Material fades them in, React Native lays them out only on a later frame, and
++     * Material sizes the active indicator of an item in a message it posts once the item has a width. So for a few frames
++     * after a reorder that keeps every item in view the bar would blink or show the items unstyled. The selection can
++     * change after the menu is rebuilt in the same update, so this runs once the whole update is done.
++     */
++    @SuppressLint("RestrictedApi")
++    private fun settleNavigationMenuAfterRebuild() {
++        if (!isNavigationMenuRebuilt) {
++            return
++        }
++        isNavigationMenuRebuilt = false
++        val menuView = bottomNavigationView.getChildAt(0) as? ViewGroup ?: return
++        TransitionManager.endTransitions(menuView)
++        if (bottomNavigationView.width == 0 || bottomNavigationView.height == 0) {
++            return
++        }
++        measureBottomNavigationViewAtCurrentSize()
++        menuView.children.filterIsInstance<NavigationBarItemView>().forEach {
++            it.updateActiveIndicatorLayoutParams(it.measuredWidth)
++        }
++        measureBottomNavigationViewAtCurrentSize()
++        bottomNavigationView.layout(
++            bottomNavigationView.left,
++            bottomNavigationView.top,
++            bottomNavigationView.right,
++            bottomNavigationView.bottom,
++        )
++    }
++
++    private fun measureBottomNavigationViewAtCurrentSize() {
++        bottomNavigationView.measure(
++            MeasureSpec.makeMeasureSpec(bottomNavigationView.width, MeasureSpec.EXACTLY),
++            MeasureSpec.makeMeasureSpec(bottomNavigationView.height, MeasureSpec.EXACTLY),
++        )
+     }
+ 
+     private fun performPreSelectedTabUpdateActions() {
+@@ -542,19 +592,48 @@ class TabsContainer internal constructor(
  
      private fun updateNavigationMenuStructure() {
          val menu = bottomNavigationView.menu
@@ -38,22 +93,29 @@ index a2b93b0..69e612a 100644
                      menu.getItem(index).itemId == fragment.menuItemId
                  }
  
-@@ -552,9 +562,30 @@ class TabsContainer internal constructor(
+         if (isMenuInSync) {
              return
          }
++        val selectedPosition = (0 until menu.size).firstOrNull { menu.getItem(it).isChecked }
          menu.clear()
 -        tabsModel.forEach { fragment ->
 +        orderedTabs.forEach { fragment ->
              menu.getOrCreateMenuItemForFragment(fragment)
          }
 +        // A rebuilt menu checks its first item. A new order does not change the selected tab, so its item is checked
-+        // again here, which does not report a selection. Without an order the menu is left as it was built.
++        // again here, which does not report a selection. The place that was selected is checked first with the active
++        // indicator off, which sets it without an animation, so the indicator leaves the place it was drawn in as it
++        // does on a tab switch. Without an order the menu is left as it was built.
 +        if (tabBarItemOrder.isNotEmpty() && navState.isNotEmpty()) {
++            selectedPosition?.takeIf { it < menu.size }?.let { position ->
++                val isActiveIndicatorEnabled = bottomNavigationView.isItemActiveIndicatorEnabled
++                bottomNavigationView.isItemActiveIndicatorEnabled = false
++                menu.getItem(position).isChecked = true
++                bottomNavigationView.isItemActiveIndicatorEnabled = isActiveIndicatorEnabled
++            }
 +            getFragmentForScreenKey(navState.selectedScreenKey)?.let { menu.findItem(it.menuItemId)?.isChecked = true }
 +        }
-+        // Material fades the item views out and back in when the menu changes, which blinks the whole bar for a reorder
-+        // that keeps every item in view.
-+        (bottomNavigationView.getChildAt(0) as? ViewGroup)?.let { TransitionManager.endTransitions(it) }
++        isNavigationMenuRebuilt = true
 +    }
 +
 +    /**
@@ -125,6 +187,99 @@ index 7342e3c..856a054 100644
      override fun setNativeContainerBackgroundColor(
          view: TabsHost,
          value: Int?,
+diff --git a/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/screen/TabsScreen.kt b/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/screen/TabsScreen.kt
+index ba33fe8..e49a196 100644
+--- a/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/screen/TabsScreen.kt
++++ b/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/screen/TabsScreen.kt
+@@ -90,6 +90,10 @@ class TabsScreen(
+         }
+     }
+ 
++    /** The uris of the latest icons, so an icon that loads after a newer one does not replace it. */
++    internal var iconUri: String? = null
++    internal var selectedIconUri: String? = null
++
+     var icon: Drawable? by Delegates.observable(null) { _, oldValue, newValue ->
+         updateMenuItemAttributesIfNeeded(oldValue, newValue)
+     }
+diff --git a/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/screen/TabsScreenViewManager.kt b/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/screen/TabsScreenViewManager.kt
+index 54c5021..bdb6047 100644
+--- a/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/screen/TabsScreenViewManager.kt
++++ b/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/screen/TabsScreenViewManager.kt
+@@ -1,6 +1,11 @@
+ package com.swmansion.rnscreens.gamma.tabs.screen
+ 
+ import android.content.Context
++import android.graphics.Bitmap
++import android.graphics.drawable.BitmapDrawable
++import android.graphics.drawable.Drawable
++import android.util.LruCache
++import androidx.core.graphics.drawable.toDrawable
+ import com.facebook.react.bridge.ReadableMap
+ import com.facebook.react.module.annotations.ReactModule
+ import com.facebook.react.uimanager.ThemedReactContext
+@@ -22,6 +27,8 @@ import com.swmansion.rnscreens.gamma.tabs.screen.event.TabsScreenWillAppearEvent
+ import com.swmansion.rnscreens.gamma.tabs.screen.event.TabsScreenWillDisappearEvent
+ import com.swmansion.rnscreens.utils.RNSLog
+ 
++private val loadedIconBitmaps = LruCache<String, Bitmap>(64)
++
+ @ReactModule(name = TabsScreenViewManager.REACT_CLASS)
+ class TabsScreenViewManager :
+     ViewGroupManager<TabsScreen>(),
+@@ -135,14 +142,37 @@ class TabsScreenViewManager :
+         view.selectedDrawableIconResourceName = value
+     }
+ 
++    /**
++     * A tab that takes another place in the tab bar takes the icon of the tab that was there, in the same update that
++     * moves it. A decode lands only on a later frame, which would show the tab under its old icon until then, so an
++     * icon loaded before is set right away.
++     */
++    private fun loadIcon(
++        view: TabsScreen,
++        uri: String,
++        onLoaded: (Drawable) -> Unit,
++    ) {
++        loadedIconBitmaps.get(uri)?.let {
++            onLoaded(it.toDrawable(view.resources))
++            return
++        }
++        loadImage(view.context, uri) { drawable ->
++            if (drawable != null) {
++                (drawable as? BitmapDrawable)?.bitmap?.let { loadedIconBitmaps.put(uri, it) }
++                onLoaded(drawable)
++            }
++        }
++    }
++
+     override fun setImageIconResource(
+         view: TabsScreen,
+         value: ReadableMap?,
+     ) {
+         val uri = value?.getString("uri")
++        view.iconUri = uri
+         if (uri != null) {
+-            loadImage(view.context, uri) { drawable ->
+-                if (drawable != null) {
++            loadIcon(view, uri) { drawable ->
++                if (view.iconUri == uri) {
+                     view.icon = drawable
+                 }
+             }
+@@ -154,9 +184,10 @@ class TabsScreenViewManager :
+         value: ReadableMap?,
+     ) {
+         val uri = value?.getString("uri")
++        view.selectedIconUri = uri
+         if (uri != null) {
+-            loadImage(view.context, uri) { drawable ->
+-                if (drawable != null) {
++            loadIcon(view, uri) { drawable ->
++                if (view.selectedIconUri == uri) {
+                     view.selectedIcon = drawable
+                 }
+             }
 diff --git a/node_modules/react-native-screens/src/fabric/tabs/TabsHostAndroidNativeComponent.ts b/node_modules/react-native-screens/src/fabric/tabs/TabsHostAndroidNativeComponent.ts
 index 138da4d..023ce74 100644
 --- a/node_modules/react-native-screens/src/fabric/tabs/TabsHostAndroidNativeComponent.ts
