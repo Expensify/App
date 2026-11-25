@@ -190,7 +190,7 @@ function AccountValidatePage() {
                     }
                     descriptionSecondaryStyles={styles.mb8}
                     handleSubmitForm={(code) => {
-                        mergeWithValidateCodeAction(email, code);
+                        mergeWithValidateCodeAction(email, code, countryCode);
                     }}
                     sendValidateCode={() => {
                         requestValidationCodeForAccountMerge(email, true, countryCode);

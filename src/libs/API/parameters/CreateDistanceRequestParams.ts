@@ -1,3 +1,4 @@
+import type {Unit} from '@src/types/onyx/Policy';
 import type {Receipt} from '@src/types/onyx/Transaction';
 
 type CreateDistanceRequestParams = {
@@ -32,6 +33,9 @@ type CreateDistanceRequestParams = {
     modifiedDistance?: number;
     odometerStart?: number;
     odometerEnd?: number;
+
+    /** Distance unit the odometer readings were entered in, so the backend can convert them when the rate uses a different unit */
+    odometerUnit?: Unit;
     gpsCoordinates?: string;
     distanceRequestType?: string;
     customUnitPolicyID?: string;

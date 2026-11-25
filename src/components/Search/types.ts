@@ -6,7 +6,7 @@ import type {SearchKey} from '@libs/SearchKeyUtils';
 import type {SearchTypeMenuItem} from '@libs/SearchSuggestionUtils';
 
 import type CONST from '@src/CONST';
-import type {Report, ReportAction, SearchResults, Transaction, TransactionViolation} from '@src/types/onyx';
+import type {Report, ReportAction, Rule, SearchResults, Transaction, TransactionViolation} from '@src/types/onyx';
 import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
 import type IconAsset from '@src/types/utils/IconAsset';
 
@@ -235,6 +235,8 @@ type SearchResultsContextValue = {
     currentSearchResults: SearchResults | undefined;
     currentSearchTransactionsByReportID: Map<string, Transaction[]>;
     currentSearchViolations: OnyxCollection<TransactionViolation[]>;
+    /** The policy approval workflow rules, read once for the screen so rows don't each subscribe to every rule */
+    approvalWorkflowRules: OnyxCollection<Rule>;
     /** Whether we're on a main to-do search and should use live Onyx data instead of snapshots */
     shouldUseLiveData: boolean;
     sortedReportIDs: ReadonlyArray<string | undefined>;

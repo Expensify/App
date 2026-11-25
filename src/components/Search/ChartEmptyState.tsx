@@ -7,10 +7,16 @@ import React from 'react';
 
 type ChartEmptyStateProps = {
     testID?: string;
+
+    /** Defaults to the generic chart unavailable title. */
+    title?: string;
+
+    /** Defaults to the generic not enough data message. */
+    description?: string;
 };
 
 /** Stands in for a chart with too little data to plot. */
-function ChartEmptyState({testID}: ChartEmptyStateProps) {
+function ChartEmptyState({testID, title, description}: ChartEmptyStateProps) {
     const {translate} = useLocalize();
     const illustrations = useMemoizedLazyIllustrations(['Chart']);
 
@@ -18,8 +24,8 @@ function ChartEmptyState({testID}: ChartEmptyStateProps) {
         <HomeSectionEmptyState
             testID={testID}
             illustration={illustrations.Chart}
-            title={translate('homePage.insightsSection.chartUnavailable')}
-            description={translate('homePage.insightsSection.notEnoughData')}
+            title={title ?? translate('homePage.insightsSection.chartUnavailable')}
+            description={description ?? translate('homePage.insightsSection.notEnoughData')}
         />
     );
 }
