@@ -178,6 +178,22 @@ describe('IOURequestStepPerDiem', () => {
         expect(screen.queryByText(/^confirmation:/)).toBeNull();
     });
 
+    it('points a draft from global create at the only per diem workspace even when it starts on a default workspace without per diem', async () => {
+        // Given an auto-reporting default workspace without per diem, which a draft from global create starts on
+        await act(async () => {
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${OTHER_POLICY_ID}`, {...createRandomPolicy(2, CONST.POLICY.TYPE.CORPORATE, 'Default policy'), id: OTHER_POLICY_ID, customUnits: {}});
+        });
+        const transaction = createDraft({isFromGlobalCreate: true, participants: [{policyID: OTHER_POLICY_ID, isPolicyExpenseChat: true, selected: true}]});
+
+        // When the per diem tab opens with the only per diem workspace
+        renderPage({transaction, explicitPolicyID: POLICY_ID});
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the draft is set up on the per diem workspace, instead of waiting forever on the default one's missing rates
+        expect(setCustomUnitID).toHaveBeenCalledWith(TRANSACTION_ID, CUSTOM_UNIT_ID);
+        expect(setMoneyRequestParticipantsFromReport).toHaveBeenCalledTimes(1);
+    });
+
     it('replaces the placeholder custom unit of a draft started before the rates loaded', async () => {
         // Given a per diem draft from a workspace chat that still carries the placeholder custom unit
         const transaction = createDraft({comment: {customUnit: {customUnitID: CONST.CUSTOM_UNITS.FAKE_P2P_ID, name: CONST.CUSTOM_UNITS.NAME_PER_DIEM_INTERNATIONAL}}});

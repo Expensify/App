@@ -14,12 +14,13 @@ import useRequestStepWorkspaceList from '@hooks/useRequestStepWorkspaceList';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {fetchPerDiemRates} from '@libs/actions/Policy/PerDiem';
-import {getInitialPerDiemTargetReport} from '@libs/IOUUtils';
+import {getInitialPerDiemTargetReport, getSelectedWorkspacePolicyID} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getActivePoliciesWithExpenseChatAndPerDiemEnabled, getPerDiemCustomUnit} from '@libs/PolicyUtils';
 import {findSelfDMReportID, getPolicyExpenseChat} from '@libs/ReportUtils';
 
 import {setCustomUnitID, setMoneyRequestCategory, setMoneyRequestParticipants, setMoneyRequestParticipantsFromReport} from '@userActions/IOU/MoneyRequest';
+import {resetPerDiemCustomUnit} from '@userActions/IOU/PerDiem';
 import {setTransactionReport} from '@userActions/Transaction';
 
 import CONST from '@src/CONST';
@@ -86,6 +87,9 @@ function IOURequestStepPerDiemWorkspace({route, transaction}: IOURequestStepPerD
         }
         setPendingPolicyID(undefined);
 
+        // Read before the participants below are rewritten to the picked workspace
+        const isSameWorkspace = getSelectedWorkspacePolicyID(transaction, action) === policy?.id && transaction?.comment?.customUnit?.customUnitID === perDiemUnit.customUnitID;
+
         setTransactionReport(transactionID, {reportID: transactionReportID}, true);
         if (targetIouType === CONST.IOU.TYPE.TRACK) {
             setMoneyRequestParticipantsFromReport(transactionID, targetReport, accountID, false);
@@ -100,7 +104,12 @@ function IOURequestStepPerDiemWorkspace({route, transaction}: IOURequestStepPerD
                 },
             ]);
         }
-        setCustomUnitID(transactionID, perDiemUnit.customUnitID);
+        if (isSameWorkspace) {
+            setCustomUnitID(transactionID, perDiemUnit.customUnitID);
+        } else {
+            // The destination and subrates filled in for the previous workspace are its rates, which don't exist in this one
+            resetPerDiemCustomUnit(transactionID, perDiemUnit.customUnitID);
+        }
         setMoneyRequestCategory(transactionID, perDiemUnit.defaultCategory ?? '', undefined);
 
         Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(action, targetIouType, transactionID, targetReport.reportID));
@@ -182,3 +191,4 @@ function IOURequestStepPerDiemWorkspace({route, transaction}: IOURequestStepPerD
 }
 
 export default withFullTransactionOrNotFound(IOURequestStepPerDiemWorkspace);
+export {IOURequestStepPerDiemWorkspace as IOURequestStepPerDiemWorkspaceContent};

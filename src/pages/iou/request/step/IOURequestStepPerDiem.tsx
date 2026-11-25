@@ -56,9 +56,11 @@ function IOURequestStepPerDiem({report, route, navigation, transaction, explicit
         selector: (policies) => (!explicitPolicyID && reportPolicyID === CONST.POLICY.ID_FAKE ? getPolicyByCustomUnitID(transaction, policies)?.id : undefined),
     });
     const [selfDMReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${findSelfDMReportID()}`);
-    // The workspace picked in the form's "To" row wins, so the rates gate and the per diem unit follow it there. The route
-    // report stays on the workspace the flow started from.
-    const policyID = getSelectedWorkspacePolicyID(transaction, action) ?? explicitPolicyID ?? (reportPolicyID === CONST.POLICY.ID_FAKE ? customUnitPolicyID : reportPolicyID);
+    // The only per diem workspace wins: a draft from global create can start on an auto-reporting default workspace without
+    // per diem, and following it would leave the form loading rates that never come. Otherwise the workspace picked in the
+    // form's "To" row wins, so the rates gate and the per diem unit follow it there, while the route report stays on the
+    // workspace the flow started from.
+    const policyID = explicitPolicyID ?? getSelectedWorkspacePolicyID(transaction, action) ?? (reportPolicyID === CONST.POLICY.ID_FAKE ? customUnitPolicyID : reportPolicyID);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
     const perDiemUnit = getPerDiemCustomUnit(policy);
 
