@@ -492,6 +492,8 @@ function mergeRowsIntoPartlyLoadedGroups(
     for (const [groupKey, {group, rowKeys}] of partlyLoadedGroups) {
         const rows = rowKeys.map((key) => selectedTransactions[key]);
         const firstRowPolicyID = rows.at(0)?.policyID;
+        // Where groups share expenses, the rows can be the only record that another group's header is checked, so the entry keeps those claims.
+        const otherClaimedGroupKeys = new Set(rows.flatMap((row) => getClaimedGroupKeys(row)).filter((claimedGroupKey) => claimedGroupKey !== groupKey));
         // The Export menu reads the workspace, and whether every expense is from a one-expense report, to decide which options apply.
         merged[groupKey] = {
             ...buildGroupSelectedEntry({
@@ -503,6 +505,7 @@ function mergeRowsIntoPartlyLoadedGroups(
                 policyID: rows.every((row) => row.policyID === firstRowPolicyID) ? firstRowPolicyID : undefined,
             }),
             isFromOneTransactionReport: rows.every((row) => row.isFromOneTransactionReport),
+            ...getOtherClaimedGroupKeysField([...otherClaimedGroupKeys]),
         };
     }
     return merged;

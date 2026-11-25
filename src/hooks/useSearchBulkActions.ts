@@ -363,7 +363,8 @@ function getGroupKeysSelectedViaGroup(selectedTransactions: SelectedTransactions
     const groupKeys = new Set<SearchGroupKey>();
 
     for (const [key, transaction] of Object.entries(selectedTransactions)) {
-        for (const groupKey of isGroupEntry(key) ? [key] : getClaimedGroupKeys(transaction)) {
+        // A group's own entry can also carry the other groups its merged rows claimed
+        for (const groupKey of isGroupEntry(key) ? [key, ...getClaimedGroupKeys(transaction)] : getClaimedGroupKeys(transaction)) {
             groupKeys.add(groupKey);
         }
     }

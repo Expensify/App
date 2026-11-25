@@ -2,6 +2,8 @@ import type {TransactionGroupListItemType, TransactionReportGroupListItemType} f
 import {mapEmptyReportToSelectedEntry, mergeRowsIntoPartlyLoadedGroups, removeGroupClaim, resolveGroupCount, stampGroupCoverageFlags} from '@components/Search/selectionBuilders';
 import type {SelectedTransactions} from '@components/Search/types';
 
+import {getGroupKeysSelectedViaGroup} from '@hooks/useSearchBulkActions';
+
 import type {SearchGroupKey} from '@libs/SearchUIUtils';
 
 import CONST from '@src/CONST';
@@ -188,6 +190,26 @@ describe('selectionBuilders', () => {
             expect(Object.keys(merged)).toEqual(['txn3', groupKey]);
             expect(merged[groupKey]).toEqual(expect.objectContaining({displayAmount: 12990, currency: CONST.CURRENCY.USD}));
             expect(merged.txn3).toBe(selection.txn3);
+        });
+
+        it('keeps the other groups the merged rows were checked for, so an export still covers them', () => {
+            // Given two loaded rows of a 692-expense group checked through its header, which another checked group lists too
+            const searchData = buildDayGroupData([
+                [groupKey, {count: 692, total: 12990}],
+                [otherGroupKey, {count: 40, total: 800}],
+            ]);
+            const selection = buildSelection({
+                txn1: {isSelectedViaGroup: true, groupKey, otherClaimedGroupKeys: [otherGroupKey]},
+                txn2: {isSelectedViaGroup: true, groupKey, otherClaimedGroupKeys: [otherGroupKey]},
+            });
+
+            // When the rows are merged into the groups they stand for
+            const merged = mergeRowsIntoPartlyLoadedGroups(selection, searchData, false);
+
+            // Then the group's entry still names the other group, whose own unloaded expenses the rows were the only record of
+            expect(Object.keys(merged)).toEqual([groupKey]);
+            expect(merged[groupKey]?.otherClaimedGroupKeys).toEqual([otherGroupKey]);
+            expect(getGroupKeysSelectedViaGroup(merged).sort()).toEqual([groupKey, otherGroupKey].sort());
         });
 
         it('keeps the workspace of the rows it replaces, and whether they all come from one-expense reports', () => {

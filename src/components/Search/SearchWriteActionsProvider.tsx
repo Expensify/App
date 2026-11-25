@@ -414,7 +414,13 @@ function useReconcileSelectionWithData({
                         continue;
                     }
 
-                    const isSelectedViaGroup = isClaimEnding || hasMovedGroup ? false : (previousSelection?.isSelectedViaGroup ?? (isWritingOutGroupSelection ? true : undefined));
+                    // A row whose group a refresh dropped moves to a group that shares it. When that group's header already covered the row, its claim
+                    // becomes the row's own, or the group would stop reading as checked through its header once it is the only claim left.
+                    const isPromotingClaim = hasMovedGroup && !!reportKey && !!previousSelection?.otherClaimedGroupKeys?.includes(reportKey);
+                    const isSelectedViaGroup =
+                        isClaimEnding || (hasMovedGroup && !isPromotingClaim)
+                            ? false
+                            : isPromotingClaim || (previousSelection?.isSelectedViaGroup ?? (isWritingOutGroupSelection ? true : undefined));
                     const liveSelectionEntry: SelectedTransactionInfo = {
                         ...baseEntry,
                         isSelected: isEntrySelected,
@@ -425,7 +431,7 @@ function useReconcileSelectionWithData({
                             : (previousSelection?.groupKey ?? (isWritingOutGroupSelection || (isExpenseReportType && isParentGroupExcluded) ? reportKey : undefined)),
                         isSelectedViaGroup,
                         ...getClaimedGroupCountField(isSelectedViaGroup ? getLowerCount(claimedGroupCount, groupByCount) : undefined),
-                        ...getOtherClaimedGroupKeysField(previousSelection?.otherClaimedGroupKeys),
+                        ...getOtherClaimedGroupKeysField(previousSelection?.otherClaimedGroupKeys?.filter((claimedGroupKey) => !isPromotingClaim || claimedGroupKey !== reportKey)),
                     };
                     liveSelectionEntries.set(listKey, liveSelectionEntry);
                     liveSelectionEntries.set(transactionItem.transactionID, liveSelectionEntry);

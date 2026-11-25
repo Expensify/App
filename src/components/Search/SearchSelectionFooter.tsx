@@ -436,9 +436,11 @@ function SearchSelectionFooter({searchResults, style}: SearchSelectionFooterProp
     const {total: sharedGroupTotal, isLoading: isSharedGroupTotalLoading} = useSharedGroupSelectionTotal(sharedGroupSelection, sharedGroupCurrency, currentSearchKey);
     // The union comes in the picked currency, so the loose rows added to it have to be converted too. Until they are, the
     // selection is summed below like any other, which keeps every figure in one currency.
+    // A failed request leaves the old conversion behind its new stamp, so after a failure a row's converted amount can't be trusted.
     const areLooseEntriesInSharedGroupCurrency =
         !hasCustomFooterCurrency ||
         (!!selectedCurrency &&
+            !hasConversionFailed &&
             !!sharedGroupSelection?.looseEntries.every(
                 (transaction) => !!transaction.transaction?.transactionID && isTransactionFresh(transaction.transaction.transactionID, selectedCurrency),
             ));

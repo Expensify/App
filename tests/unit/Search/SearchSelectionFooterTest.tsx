@@ -612,6 +612,13 @@ describe('SearchSelectionFooter', () => {
 
             // Then the union and the expense are shown together in EUR
             expect(mockCapturedFooterProps.current).toEqual(expect.objectContaining({count: 2, total: 500, currency: CONST.CURRENCY.EUR}));
+
+            // When a later EUR conversion fails, which leaves the expense's old converted amount behind its new stamp
+            await Onyx.merge(ONYXKEYS.SEARCH_FOOTER_CONVERSION, {failedCurrencies: {[CONST.CURRENCY.EUR]: true}});
+            await waitForBatchedUpdates();
+
+            // Then the footer stops adding that amount to the union and falls back to the default currency
+            expect(mockCapturedFooterProps.current?.currency).toBe(CONST.CURRENCY.USD);
         });
 
         it('sums the groups offline rather than showing nothing', async () => {
