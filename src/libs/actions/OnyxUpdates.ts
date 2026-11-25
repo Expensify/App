@@ -2,6 +2,7 @@ import {SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import Log from '@libs/Log';
 import Pusher from '@libs/Pusher';
 import PusherUtils from '@libs/PusherUtils';
+import reconcileFailureDataWithServerErrors from '@libs/reconcileFailureDataWithServerErrors';
 import {logReceiptRolledBack} from '@libs/telemetry/ReceiptObservability';
 import {trackExpenseApiError} from '@libs/telemetry/trackExpenseCreationError';
 
@@ -160,11 +161,13 @@ function applyHTTPSOnyxUpdates<TKey extends OnyxKey>(
                     command: request.command,
                     jsonCode: response.jsonCode ?? 0,
                     message: response.message,
+                    errorUUID: response.UUID,
                     requestData: request.data,
                 });
                 logReceiptRolledBack({command: request.command, data: request.data, failureData: request.failureData, trigger: 'serverError'});
 
-                return updateHandler(request.failureData);
+                const reconciledFailureData = reconcileFailureDataWithServerErrors(request.command, request.failureData, response.onyxData);
+                return reconciledFailureData.length > 0 ? updateHandler(reconciledFailureData) : Promise.resolve();
             }
             return Promise.resolve();
         })
