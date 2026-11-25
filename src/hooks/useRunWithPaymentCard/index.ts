@@ -1,3 +1,5 @@
+import useOnyx from '@hooks/useOnyx';
+
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {doesUserHavePaymentCardAdded} from '@libs/SubscriptionUtils';
@@ -7,8 +9,6 @@ import {DYNAMIC_ROUTES} from '@src/ROUTES';
 
 import {useIsFocused} from '@react-navigation/native';
 import {useEffect, useRef} from 'react';
-
-import useOnyx from './useOnyx';
 
 /**
  * Returns a function that runs an action which charges the user's payment card. Without a card, it opens the add
