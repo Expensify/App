@@ -143,7 +143,8 @@ function FormAlertWithSubmitButton({
             isMessageHtml={isMessageHtml}
             message={message}
             onFixTheErrorsLinkPressed={onFixTheErrorsLinkPressed}
-            errorMessageStyle={errorMessageStyle}
+            // The footer above the alert already ends with its own bottom margin
+            errorMessageStyle={shouldRenderFooterAboveAlert ? [styles.mt1, errorMessageStyle] : errorMessageStyle}
         >
             {(isOffline: boolean | undefined) => (
                 <View style={buttonAndFooterContainerStyles}>
