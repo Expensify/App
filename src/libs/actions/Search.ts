@@ -301,7 +301,7 @@ type HandleActionButtonPressParams = {
     onPendingCardTransactionsBlock?: () => void;
     onAllHeldExpensesBlock?: () => void;
     /** Confirms any unacknowledged report violations before proceeding with the SUBMIT action. */
-    confirmSubmitReportViolations: (onProceed: ConfirmSubmitReportViolationsOnProceed) => void;
+    confirmSubmitReportViolations: (onProceed: ConfirmSubmitReportViolationsOnProceed) => void | Promise<void>;
     /** Requires approval callers to confirm report violations before proceeding. */
     confirmApproveReportViolations: (onProceed: () => void) => void;
     openReportSubmitToPopover?: (options?: ReportSubmitToPopoverOpenOptions) => void;

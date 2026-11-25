@@ -42,6 +42,9 @@ type MenuItemRootProps = PropsWithChildren &
 
         isCompact?: boolean;
 
+        /** Keeps the active row highlighted while a drag or keyboard interaction owns focus */
+        isFocused?: boolean;
+
         /**
          * Pre-computed accessibility label. When provided, `Root` uses it instead of deriving the label
          * from the text leaves. Announcements such as "opens in a new tab" are still appended.
@@ -76,6 +79,7 @@ function MenuItemRoot({
     onPress,
     isDisabled = false,
     isCompact = false,
+    isFocused = false,
     sentryLabel,
     testID,
     accessibilityLabel,
@@ -183,9 +187,9 @@ function MenuItemRoot({
                                 isCompact && styles.optionRowCompact,
                                 isCompactPopover && styles.compactPopoverMenuItemBase,
                                 style,
-                                StyleUtils.getButtonBackgroundColorStyle(getButtonState({isActive: isHovered, isPressed: pressed, isDisabled, isInteractive}), true),
+                                StyleUtils.getButtonBackgroundColorStyle(getButtonState({isActive: isFocused || isHovered, isPressed: pressed, isDisabled, isInteractive}), true),
                                 isDisabled && styles.buttonOpacityDisabled,
-                                isHovered && isInteractive && !pressed && styles.hoveredComponentBG,
+                                isHovered && isInteractive && !isFocused && !pressed && styles.hoveredComponentBG,
                             ] as StyleProp<ViewStyle>
                         }
                         disabled={isDisabled}
