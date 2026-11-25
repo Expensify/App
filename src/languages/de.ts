@@ -4663,9 +4663,11 @@ ${amount} für ${merchant} – ${date}`,
         onFile: 'Vorhanden',
         continueOffline: {
             title: 'Sie können offline nicht fortfahren',
-            prompt: 'Für das Ausfüllen dieses Formulars ist eine Internetverbindung erforderlich. Keine Sorge, wir speichern Ihren Fortschritt und Sie können weitermachen, sobald Sie wieder online sind.',
+            prompt: 'Zum Ausfüllen dieses Formulars wird eine Internetverbindung benötigt. Keine Sorge, wir speichern Ihren Fortschritt und Sie können fortfahren, sobald Sie wieder online sind.',
             saveForLater: 'Speichern und später ausfüllen',
             progressSaved: 'Ihr Fortschritt wurde gespeichert',
+            promptWithSensitiveAnswers:
+                'Für das Ausfüllen dieses Formulars ist eine Internetverbindung erforderlich. Wir speichern Ihren Fortschritt, damit Sie weitermachen können, sobald Sie wieder online sind. Zu Ihrer Sicherheit werden vertrauliche Angaben nicht gespeichert und müssen erneut eingegeben werden.',
         },
     },
     addPersonalBankAccount: {

@@ -4595,9 +4595,11 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
         onFile: 'ファイル登録済み',
         continueOffline: {
             title: 'オフラインのままでは続行できません',
-            prompt: 'このフォームに入力するにはインターネット接続が必要です。ご安心ください、進捗は保存されますので、オンラインに戻ったときに続行できます。',
+            prompt: 'このフォームを入力するにはインターネット接続が必要です。進行状況は保存されるので、オンラインに戻ったときに続けて行えます。',
             saveForLater: '保存して後で入力する',
-            progressSaved: '進行状況は保存されています',
+            progressSaved: '進捗は保存されました',
+            promptWithSensitiveAnswers:
+                'このフォームに入力するにはインターネット接続が必要です。オフラインの場合でも進行状況は保存されるため、オンラインに戻ったときに続行できます。安全のため、機密性の高い情報は保存されず、再度入力していただく必要があります。',
         },
     },
     addPersonalBankAccount: {

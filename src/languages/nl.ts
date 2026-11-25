@@ -4641,6 +4641,8 @@ ${amount} voor ${merchant} - ${date}`,
             prompt: 'Er is een internetverbinding nodig om dit formulier in te vullen. Maak je geen zorgen, we slaan je voortgang op en je kunt doorgaan zodra je weer online bent.',
             saveForLater: 'Opslaan en later invullen',
             progressSaved: 'Je voortgang is opgeslagen',
+            promptWithSensitiveAnswers:
+                'Er is een internetverbinding nodig om dit formulier in te vullen. We slaan je voortgang op zodat je verder kunt gaan zodra je weer online bent. Voor jouw veiligheid worden gevoelige gegevens niet opgeslagen en moet je ze opnieuw invoeren.',
         },
     },
     addPersonalBankAccount: {

@@ -4642,6 +4642,8 @@ ${amount} para ${merchant} - ${date}`,
             prompt: 'É necessária uma conexão com a internet para preencher este formulário. Não se preocupe, vamos salvar seu progresso e você poderá continuar quando estiver online novamente.',
             saveForLater: 'Salvar e preencher depois',
             progressSaved: 'Seu progresso foi salvo',
+            promptWithSensitiveAnswers:
+                'É necessário estar conectado à internet para preencher este formulário. Vamos salvar seu progresso para que você possa continuar quando estiver online novamente. Para sua segurança, detalhes confidenciais não são salvos e precisarão ser inseridos novamente.',
         },
     },
     addPersonalBankAccount: {

@@ -4644,9 +4644,11 @@ ${amount} para ${merchant} - ${date}`,
         onFile: 'En archivo',
         continueOffline: {
             title: 'No puedes continuar sin conexión',
-            prompt: 'Se necesita una conexión a internet para rellenar este formulario. No te preocupes, guardaremos tu progreso y podrás continuar cuando vuelvas a estar en línea.',
+            prompt: 'Se necesita una conexión a internet para completar este formulario. No te preocupes, guardaremos tu progreso y podrás continuar cuando vuelvas a estar en línea.',
             saveForLater: 'Guardar y completar más tarde',
             progressSaved: 'Tu progreso se ha guardado',
+            promptWithSensitiveAnswers:
+                'Se necesita conexión a internet para completar este formulario. Guardaremos tu progreso para que puedas continuar cuando vuelvas a estar en línea. Por seguridad, los datos sensibles no se guardan y tendrás que introducirlos de nuevo.',
         },
     },
     addPersonalBankAccount: {

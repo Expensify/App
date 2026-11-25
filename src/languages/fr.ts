@@ -4671,9 +4671,11 @@ ${amount} pour ${merchant} - ${date}`,
         onFile: 'Enregistré',
         continueOffline: {
             title: 'Vous ne pouvez pas continuer hors ligne',
-            prompt: 'Une connexion Internet est nécessaire pour remplir ce formulaire. Ne vous inquiétez pas, nous enregistrerons votre progression et vous pourrez continuer lorsque vous serez de nouveau en ligne.',
+            prompt: 'Une connexion internet est nécessaire pour remplir ce formulaire. Ne vous inquiétez pas, nous enregistrerons votre progression et vous pourrez continuer lorsque vous serez de nouveau en ligne.',
             saveForLater: 'Enregistrer et remplir plus tard',
             progressSaved: 'Votre progression a été enregistrée',
+            promptWithSensitiveAnswers:
+                'Une connexion Internet est nécessaire pour remplir ce formulaire. Nous enregistrerons votre progression afin que vous puissiez continuer lorsque vous serez de nouveau en ligne. Pour votre sécurité, les informations sensibles ne sont pas enregistrées et devront être saisies à nouveau.',
         },
     },
     addPersonalBankAccount: {

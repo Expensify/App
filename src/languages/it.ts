@@ -4640,9 +4640,11 @@ ${amount} per ${merchant} - ${date}`,
         onFile: 'Registrato',
         continueOffline: {
             title: 'Non puoi continuare offline',
-            prompt: 'È necessaria una connessione a Internet per compilare questo modulo. Non preoccuparti, salveremo i tuoi progressi e potrai continuare quando tornerai online.',
+            prompt: 'Per compilare questo modulo è necessaria una connessione a Internet. Non preoccuparti, salveremo i tuoi progressi e potrai continuare quando tornerai online.',
             saveForLater: 'Salva e compila più tardi',
             progressSaved: 'I tuoi progressi sono stati salvati',
+            promptWithSensitiveAnswers:
+                'È necessaria una connessione a Internet per compilare questo modulo. Salveremo i tuoi progressi così potrai continuare quando tornerai online. Per la tua sicurezza, i dati sensibili non vengono salvati e dovranno essere inseriti di nuovo.',
         },
     },
     addPersonalBankAccount: {

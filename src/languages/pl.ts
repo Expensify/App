@@ -4687,6 +4687,8 @@ ${amount} dla ${merchant} - ${date}`,
             prompt: 'Do wypełnienia tego formularza potrzebne jest połączenie z internetem. Spokojnie, zapiszemy twój postęp i będziesz mógł/mogła kontynuować, gdy znów będziesz online.',
             saveForLater: 'Zapisz i wypełnij później',
             progressSaved: 'Twój postęp został zapisany',
+            promptWithSensitiveAnswers:
+                'Do wypełnienia tego formularza potrzebne jest połączenie z internetem. Zapiszemy postęp, żebyś mógł/mogła kontynuować, gdy znów będziesz online. Ze względów bezpieczeństwa wrażliwe dane nie są zapisywane i trzeba je będzie wprowadzić ponownie.',
         },
     },
     addPersonalBankAccount: {
