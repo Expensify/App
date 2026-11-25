@@ -5958,6 +5958,23 @@ function getReportFieldsByPolicyID(policy: OnyxEntry<Policy>): Policy['fieldList
 }
 
 /**
+ * Returns the external ID of the option named `value` in a list report field, or an empty string when no option has that name.
+ * An enabled option wins over a disabled option with the same name, because the dropdown only offers enabled options.
+ */
+function getReportFieldOptionExternalID(reportField: PolicyReportField, value: string): string {
+    let optionIndex = reportField.values.findIndex((option, index) => option === value && !reportField.disabledOptions?.at(index));
+    if (optionIndex === -1) {
+        optionIndex = reportField.values.indexOf(value);
+    }
+
+    if (optionIndex === -1) {
+        return '';
+    }
+
+    return reportField.externalIDs?.at(optionIndex) ?? '';
+}
+
+/**
  * Get the report fields that we should display a MoneyReportView gets opened
  */
 
@@ -6102,6 +6119,50 @@ function canEditMoneyRequest(
     reportActions?: OnyxEntry<ReportActions> | ReportAction[],
     isActionlessReportedExpense = false,
 ): boolean {
+    return applyRules(resolveCanEditMoneyRequest(reportAction, linkedTransaction, isChatReportArchived, report, policy, reportActions, isActionlessReportedExpense), rules);
+}
+
+/**
+ * A result that is either settled without the approval workflow rules, or a function that settles it with them. Lets
+ * callers skip reading the rules collection, which can hold hundreds of thousands of rules for an admin of many workspaces.
+ */
+type RuleDependent<T> = T | ((rules: OnyxCollection<Rule>) => T);
+
+function doesNeedRules<T>(result: RuleDependent<T>): result is (rules: OnyxCollection<Rule>) => T {
+    return result instanceof Function;
+}
+
+function applyRules<T>(result: RuleDependent<T>, rules: OnyxCollection<Rule>): T {
+    return doesNeedRules(result) ? result(rules) : result;
+}
+
+/** ANDs two permissions, staying settled whenever the rules can't change the combined answer. */
+function combineRuleDependents(first: RuleDependent<boolean>, second: RuleDependent<boolean>): RuleDependent<boolean> {
+    if (first === false || second === false) {
+        return false;
+    }
+    if (first === true) {
+        return second;
+    }
+    if (second === true) {
+        return first;
+    }
+    return (rules) => first(rules) && second(rules);
+}
+
+/**
+ * canEditMoneyRequest without the rules, see RuleDependent. canEditMoneyRequest applies the rules to its result, so the
+ * conditions live only here.
+ */
+function resolveCanEditMoneyRequest(
+    reportAction: OnyxInputOrEntry<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU>>,
+    linkedTransaction: OnyxEntry<Transaction>,
+    isChatReportArchived = false,
+    report?: OnyxInputOrEntry<Report>,
+    policy?: OnyxEntry<Policy>,
+    reportActions?: OnyxEntry<ReportActions> | ReportAction[],
+    isActionlessReportedExpense = false,
+): RuleDependent<boolean> {
     // isDeletedAction treats a missing action as deleted, so it only applies when there is an action to check
     const isDeleted = !isActionlessReportedExpense && isDeletedAction(reportAction);
 
@@ -6175,28 +6236,30 @@ function canEditMoneyRequest(
         return true;
     }
 
-    const ownerLogin = getLoginByAccountID(moneyRequestReport?.ownerAccountID, getAllPersonalDetails());
-    const isWorkflowApproverEditing =
-        isExpenseReport(moneyRequestReport) &&
-        isOpenReport(moneyRequestReport) &&
-        isWorkflowApprover(reportPolicy, ownerLogin, rules, moneyRequestReport?.total ?? 0, deprecatedCurrentUserEmail);
-    if (isWorkflowApproverEditing) {
-        return true;
-    }
+    return (rules) => {
+        const ownerLogin = getLoginByAccountID(moneyRequestReport?.ownerAccountID, getAllPersonalDetails());
+        const isWorkflowApproverEditing =
+            isExpenseReport(moneyRequestReport) &&
+            isOpenReport(moneyRequestReport) &&
+            isWorkflowApprover(reportPolicy, ownerLogin, rules, moneyRequestReport?.total ?? 0, deprecatedCurrentUserEmail);
+        if (isWorkflowApproverEditing) {
+            return true;
+        }
 
-    // On policies with Dynamic External Workflow, non-admin/managers should only be able to submit their expenses on open reports
-    if (!isOpenReport(moneyRequestReport) && hasDynamicExternalWorkflow(reportPolicy)) {
-        return false;
-    }
+        // On policies with Dynamic External Workflow, non-admin/managers should only be able to submit their expenses on open reports
+        if (!isOpenReport(moneyRequestReport) && hasDynamicExternalWorkflow(reportPolicy)) {
+            return false;
+        }
 
-    if (reportPolicy?.type === CONST.POLICY.TYPE.CORPORATE && moneyRequestReport && isSubmitted && isCurrentUserSubmitter(moneyRequestReport)) {
-        const isForwarded =
-            getSubmitToAccountID(reportPolicy, moneyRequestReport, getLoginByAccountID(moneyRequestReport.ownerAccountID, getAllPersonalDetails()), rules) !== moneyRequestReport.managerID ||
-            hasReportBeenForwardedSinceLastSubmit(moneyRequestReport, reportActions);
-        return !isForwarded;
-    }
+        if (reportPolicy?.type === CONST.POLICY.TYPE.CORPORATE && moneyRequestReport && isSubmitted && isCurrentUserSubmitter(moneyRequestReport)) {
+            const isForwarded =
+                getSubmitToAccountID(reportPolicy, moneyRequestReport, getLoginByAccountID(moneyRequestReport.ownerAccountID, getAllPersonalDetails()), rules) !==
+                    moneyRequestReport.managerID || hasReportBeenForwardedSinceLastSubmit(moneyRequestReport, reportActions);
+            return !isForwarded;
+        }
 
-    return !isReportApproved({report: moneyRequestReport}) && !isSettled(moneyRequestReport) && !isClosedReport(moneyRequestReport) && isRequestor;
+        return !isReportApproved({report: moneyRequestReport}) && !isSettled(moneyRequestReport) && !isClosedReport(moneyRequestReport) && isRequestor;
+    };
 }
 
 // TODO: currentUserEmail will be required eventually so this becomes a pure function. Subscribe the data via useOnyx and pass it from the component. Refactor issue: https://github.com/Expensify/App/issues/66412
@@ -6364,35 +6427,27 @@ function canCurrentUserEditExpense(
     reportPolicy: OnyxEntry<Policy>,
     rules: OnyxCollection<Rule>,
 ): boolean {
+    return applyRules(resolveCanCurrentUserEditExpense(reportAction, moneyRequestReport, reportPolicy), rules);
+}
+
+/** canCurrentUserEditExpense without the rules, see RuleDependent. */
+function resolveCanCurrentUserEditExpense(reportAction: OnyxInputOrEntry<ReportAction>, moneyRequestReport: OnyxEntry<Report>, reportPolicy: OnyxEntry<Policy>): RuleDependent<boolean> {
     const isAdmin = isExpenseReport(moneyRequestReport) && reportPolicy?.role === CONST.POLICY.ROLE.ADMIN;
     const isManager = isExpenseReport(moneyRequestReport) && deprecatedCurrentUserAccountID === moneyRequestReport?.managerID;
     const isRequestor = deprecatedCurrentUserAccountID === reportAction?.actorAccountID;
-    const ownerLogin = getLoginByAccountID(moneyRequestReport?.ownerAccountID, getAllPersonalDetails());
-    const isApprover =
-        isExpenseReport(moneyRequestReport) &&
-        isOpenReport(moneyRequestReport) &&
-        isWorkflowApprover(reportPolicy, ownerLogin, rules, moneyRequestReport?.total ?? 0, deprecatedCurrentUserEmail);
+    if (isAdmin || isManager || isRequestor) {
+        return true;
+    }
+    if (!isExpenseReport(moneyRequestReport) || !isOpenReport(moneyRequestReport)) {
+        return false;
+    }
 
-    return isAdmin || isManager || isRequestor || isApprover;
+    // Otherwise the user can edit only as an approver in the report's workflow, which depends on the rules.
+    const ownerLogin = getLoginByAccountID(moneyRequestReport?.ownerAccountID, getAllPersonalDetails());
+    return (rules) => isWorkflowApprover(reportPolicy, ownerLogin, rules, moneyRequestReport?.total ?? 0, deprecatedCurrentUserEmail);
 }
 
-/**
- * Checks if the current user can edit the provided property of an expense
- *
- */
-function canEditFieldOfMoneyRequest({
-    reportAction,
-    fieldToEdit,
-    isDeleteAction = false,
-    isChatReportArchived = false,
-    outstandingReportsByPolicyID,
-    transaction,
-    report,
-    policy,
-    reportNameValuePairs,
-    reportActions,
-    rules,
-}: {
+type CanEditFieldOfMoneyRequestParams = {
     reportAction: OnyxInputOrEntry<ReportAction>;
     fieldToEdit: EditRequestField;
     isDeleteAction?: boolean;
@@ -6405,7 +6460,28 @@ function canEditFieldOfMoneyRequest({
     // Temporarily optional while callers are migrated in smaller PRs. Once every caller passes it, the module-level fallback in hasReportBeenForwardedSinceLastSubmit is removed as part of https://github.com/Expensify/App/issues/66419.
     reportActions?: OnyxEntry<ReportActions> | ReportAction[];
     rules: OnyxCollection<Rule>;
-}): boolean {
+};
+
+/**
+ * Checks if the current user can edit the provided property of an expense
+ */
+function canEditFieldOfMoneyRequest({rules, ...params}: CanEditFieldOfMoneyRequestParams): boolean {
+    return applyRules(resolveCanEditFieldOfMoneyRequest(params), rules);
+}
+
+/** canEditFieldOfMoneyRequest without the rules, see RuleDependent. */
+function resolveCanEditFieldOfMoneyRequest({
+    reportAction,
+    fieldToEdit,
+    isDeleteAction = false,
+    isChatReportArchived = false,
+    outstandingReportsByPolicyID,
+    transaction,
+    report,
+    policy,
+    reportNameValuePairs,
+    reportActions,
+}: Omit<CanEditFieldOfMoneyRequestParams, 'rules'>): RuleDependent<boolean> {
     // A list of fields that cannot be edited by anyone, once an expense has been settled
     const restrictedFields: string[] = [
         CONST.EDIT_REQUEST_FIELD.AMOUNT,
@@ -6429,18 +6505,54 @@ function canEditFieldOfMoneyRequest({
     const isActionlessReportedExpense = !reportAction && !!transaction && !isUnreportedLegacyTransaction && transaction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
     const moneyRequestAction = isMoneyRequestAction(reportAction) ? reportAction : undefined;
 
-    if (
-        (!moneyRequestAction && !isActionlessReportedExpense) ||
-        !canEditMoneyRequest(moneyRequestAction, transaction, rules, isChatReportArchived, report, policy, reportActions, isActionlessReportedExpense)
-    ) {
+    if (!moneyRequestAction && !isActionlessReportedExpense) {
+        return false;
+    }
+    const canEditRequest = resolveCanEditMoneyRequest(moneyRequestAction, transaction, isChatReportArchived, report, policy, reportActions, isActionlessReportedExpense);
+    // A function still depends on the rules, so only a settled false returns early.
+    if (canEditRequest === false) {
         return false;
     }
 
     // If we're editing fields such as category, tag, description, billable, etc. the check above should be enough for handling the permission
     if (!restrictedFields.includes(fieldToEdit)) {
-        return true;
+        return canEditRequest;
     }
 
+    return combineRuleDependents(
+        canEditRequest,
+        resolveCanEditRestrictedFieldOfMoneyRequest({
+            reportAction,
+            moneyRequestAction,
+            isActionlessReportedExpense,
+            fieldToEdit,
+            isDeleteAction,
+            outstandingReportsByPolicyID,
+            transaction,
+            report,
+            policy,
+            reportNameValuePairs,
+        }),
+    );
+}
+
+/** The restricted-field part of resolveCanEditFieldOfMoneyRequest, for an expense that can be edited at all. */
+function resolveCanEditRestrictedFieldOfMoneyRequest({
+    reportAction,
+    moneyRequestAction,
+    isActionlessReportedExpense,
+    fieldToEdit,
+    isDeleteAction,
+    outstandingReportsByPolicyID,
+    transaction,
+    report,
+    policy,
+    reportNameValuePairs,
+}: Pick<CanEditFieldOfMoneyRequestParams, 'reportAction' | 'fieldToEdit' | 'outstandingReportsByPolicyID' | 'transaction' | 'report' | 'policy' | 'reportNameValuePairs'> & {
+    moneyRequestAction: OnyxInputOrEntry<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU>>;
+    isActionlessReportedExpense: boolean;
+    isDeleteAction: boolean;
+}): RuleDependent<boolean> {
     // Prefer the action's own reportID; fall back to originalMessage.IOUReportID only when the backend omits reportID.
     // Preferring reportID keeps moved expenses correct (the moved action carries a stale IOUReportID from the source report).
     // Temporary until the backend reliably sends reportID on IOU actions. See https://github.com/Expensify/App/issues/93882.
@@ -6468,7 +6580,7 @@ function canEditFieldOfMoneyRequest({
         return false;
     }
 
-    const canEditExpense = canCurrentUserEditExpense(reportAction, moneyRequestReport, reportPolicy, rules);
+    const canEditExpense = resolveCanCurrentUserEditExpense(reportAction, moneyRequestReport, reportPolicy);
     const isRequestor = deprecatedCurrentUserAccountID === reportAction?.actorAccountID;
 
     if (fieldToEdit === CONST.EDIT_REQUEST_FIELD.REIMBURSABLE) {
@@ -6487,15 +6599,14 @@ function canEditFieldOfMoneyRequest({
     }
 
     if (fieldToEdit === CONST.EDIT_REQUEST_FIELD.RECEIPT) {
-        return (
+        const canChangeReceipt =
             !isClosedReport(moneyRequestReport) &&
             !isInvoiceReport(moneyRequestReport) &&
             !isReceiptScanBlockingEdit(transaction) &&
             !isPerDiemRequest(transaction) &&
             (!isDistanceRequest(transaction) || isManualDistanceRequestTransactionUtils(transaction) || isOdometerDistanceRequest(transaction)) &&
-            canEditExpense &&
-            (isDeleteAction ? isRequestor : true)
-        );
+            (isDeleteAction ? isRequestor : true);
+        return combineRuleDependents(canChangeReceipt, canEditExpense);
     }
 
     // Unreported transaction from OldDot can have the reportID as an empty string
@@ -6511,71 +6622,73 @@ function canEditFieldOfMoneyRequest({
             return canUnreportedBeMoved(transaction, allPolicies);
         }
 
-        const moneyRequestReportNameValuePair = reportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${moneyRequestReport.reportID}`];
-        if (!isReportOutstanding(moneyRequestReport, moneyRequestReport.policyID, rules, moneyRequestReportNameValuePair)) {
-            return false;
-        }
+        return (rules) => {
+            const moneyRequestReportNameValuePair = reportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${moneyRequestReport.reportID}`];
+            if (!isReportOutstanding(moneyRequestReport, moneyRequestReport.policyID, rules, moneyRequestReportNameValuePair)) {
+                return false;
+            }
 
-        const isRequestIOU = isIOUReport(moneyRequestReport);
-        if (isRequestIOU) {
-            return false;
-        }
-        const isOwner = moneyRequestReport?.ownerAccountID === deprecatedCurrentUserAccountID;
+            const isRequestIOU = isIOUReport(moneyRequestReport);
+            if (isRequestIOU) {
+                return false;
+            }
+            const isOwner = moneyRequestReport?.ownerAccountID === deprecatedCurrentUserAccountID;
 
-        if (isInvoiceReport(moneyRequestReport)) {
-            return (
-                getOutstandingReportsForUser(
-                    moneyRequestReport?.policyID,
+            if (isInvoiceReport(moneyRequestReport)) {
+                return (
+                    getOutstandingReportsForUser(
+                        moneyRequestReport?.policyID,
+                        moneyRequestReport?.ownerAccountID,
+                        rules,
+                        reportNameValuePairs,
+                        outstandingReportsByPolicyID?.[moneyRequestReport?.policyID ?? CONST.DEFAULT_NUMBER_ID] ?? {},
+                    ).length > 0
+                );
+            }
+            const isSubmitter = isCurrentUserSubmitter(moneyRequestReport);
+
+            // If the report is Open, then only submitters, admins can move expenses
+            const isOpen = isOpenExpenseReport(moneyRequestReport);
+            if (!isUnreportedExpense && isOpen && !isSubmitter && !isAdmin) {
+                return false;
+            }
+
+            // A member who cannot create expenses on the report's policy can only move their own expense to another workspace where they can create a report.
+            if (!isAdmin && !!reportPolicy && !canCreateExpensesOnPolicy(reportPolicy, deprecatedCurrentUserEmail)) {
+                if (!isOwner) {
+                    return false;
+                }
+                const isPerDiem = isPerDiemRequest(transaction);
+                return getGroupPoliciesWhereReportCanBeCreated(allPolicies, deprecatedCurrentUserEmail).some(
+                    (destinationPolicy) => destinationPolicy.id !== moneyRequestReport.policyID && (!isPerDiem || canSubmitPerDiemExpenseFromWorkspace(destinationPolicy)),
+                );
+            }
+
+            // Check the cheaper condition first
+            if ((isOwner || isAdmin || isManager) && isReportOutstanding(moneyRequestReport, moneyRequestReport.policyID, rules, moneyRequestReportNameValuePair)) {
+                return true;
+            }
+
+            // Check if there are multiple outstanding reports across policies
+            let outstandingReportsCount = 0;
+            for (const currentPolicy of policiesArray) {
+                const reports = getOutstandingReportsForUser(
+                    currentPolicy.id,
                     moneyRequestReport?.ownerAccountID,
                     rules,
                     reportNameValuePairs,
-                    outstandingReportsByPolicyID?.[moneyRequestReport?.policyID ?? CONST.DEFAULT_NUMBER_ID] ?? {},
-                ).length > 0
-            );
-        }
-        const isSubmitter = isCurrentUserSubmitter(moneyRequestReport);
+                    outstandingReportsByPolicyID?.[currentPolicy?.id] ?? {},
+                );
+                outstandingReportsCount += reports.length;
 
-        // If the report is Open, then only submitters, admins can move expenses
-        const isOpen = isOpenExpenseReport(moneyRequestReport);
-        if (!isUnreportedExpense && isOpen && !isSubmitter && !isAdmin) {
+                // Short-circuit once we find more than 1
+                if (outstandingReportsCount > 1) {
+                    return true;
+                }
+            }
+
             return false;
-        }
-
-        // A member who cannot create expenses on the report's policy can only move their own expense to another workspace where they can create a report.
-        if (!isAdmin && !!reportPolicy && !canCreateExpensesOnPolicy(reportPolicy, deprecatedCurrentUserEmail)) {
-            if (!isOwner) {
-                return false;
-            }
-            const isPerDiem = isPerDiemRequest(transaction);
-            return getGroupPoliciesWhereReportCanBeCreated(allPolicies, deprecatedCurrentUserEmail).some(
-                (destinationPolicy) => destinationPolicy.id !== moneyRequestReport.policyID && (!isPerDiem || canSubmitPerDiemExpenseFromWorkspace(destinationPolicy)),
-            );
-        }
-
-        // Check the cheaper condition first
-        if ((isOwner || isAdmin || isManager) && isReportOutstanding(moneyRequestReport, moneyRequestReport.policyID, rules, moneyRequestReportNameValuePair)) {
-            return true;
-        }
-
-        // Check if there are multiple outstanding reports across policies
-        let outstandingReportsCount = 0;
-        for (const currentPolicy of policiesArray) {
-            const reports = getOutstandingReportsForUser(
-                currentPolicy.id,
-                moneyRequestReport?.ownerAccountID,
-                rules,
-                reportNameValuePairs,
-                outstandingReportsByPolicyID?.[currentPolicy?.id] ?? {},
-            );
-            outstandingReportsCount += reports.length;
-
-            // Short-circuit once we find more than 1
-            if (outstandingReportsCount > 1) {
-                return true;
-            }
-        }
-
-        return false;
+        };
     }
 
     if (isUnreportedExpense && !isRequestor) {
@@ -9546,7 +9659,9 @@ function buildOptimisticModifiedExpenseReportAction(
     delegateAccountIDParam: number | undefined,
     updatedTransaction?: OnyxInputOrEntry<Transaction>,
     allowNegative = false,
+    actorAccountID = deprecatedCurrentUserAccountID,
 ): OptimisticModifiedExpenseReportAction {
+    const isConcierge = actorAccountID === CONST.ACCOUNT_ID.CONCIERGE;
     const originalMessage = getModifiedExpenseOriginalMessage(oldTransaction, transactionChanges, isFromExpenseReport, policy, updatedTransaction, allowNegative);
     // Expense edits can arrive without updating the report's lastVisibleActionCreated, so also check the loaded actions.
     const latestActionCreated = transactionThread?.reportID ? getLastVisibleAction(transactionThread.reportID)?.created : undefined;
@@ -9554,15 +9669,15 @@ function buildOptimisticModifiedExpenseReportAction(
 
     return {
         actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
-        actorAccountID: deprecatedCurrentUserAccountID,
+        actorAccountID,
         automatic: false,
-        avatar: getCurrentUserAvatar(),
+        avatar: isConcierge ? getDefaultAvatarURL({accountID: CONST.ACCOUNT_ID.CONCIERGE, accountEmail: CONST.EMAIL.CONCIERGE}) : getCurrentUserAvatar(),
         created: getServerAnchoredDBTime('', lastActionCreated),
         isAttachmentOnly: false,
         message: [
             {
                 // Currently we are composing the message from the originalMessage and message is only used in OldDot and not in the App
-                text: 'You',
+                text: isConcierge ? CONST.DISPLAY_NAME.EXPENSIFY_CONCIERGE : 'You',
                 style: 'strong',
                 type: CONST.REPORT.MESSAGE.TYPE.TEXT,
             },
@@ -9571,7 +9686,7 @@ function buildOptimisticModifiedExpenseReportAction(
         person: [
             {
                 style: 'strong',
-                text: getPersonalDetail(deprecatedCurrentUserAccountID)?.displayName ?? String(deprecatedCurrentUserAccountID),
+                text: isConcierge ? CONST.DISPLAY_NAME.EXPENSIFY_CONCIERGE : (getPersonalDetail(actorAccountID)?.displayName ?? String(actorAccountID)),
                 type: 'TEXT',
             },
         ],
@@ -16177,6 +16292,10 @@ export {
     canEditFieldOfMoneyRequest,
     canEditMultipleTransactions,
     canEditMoneyRequest,
+    resolveCanEditMoneyRequest,
+    resolveCanEditFieldOfMoneyRequest,
+    applyRules,
+    doesNeedRules,
     canEditReportAction,
     canEditReportDescription,
     canEditRoomVisibility,
@@ -16258,6 +16377,7 @@ export {
     getReportDescription,
     getReportFieldKey,
     getReportFieldMaps,
+    getReportFieldOptionExternalID,
     getReportIDFromLink,
     getReportTransactions,
     getReportNotificationPreference,
@@ -16559,6 +16679,7 @@ export {
 };
 
 export type {
+    RuleDependent,
     SortableColumnName,
     Ancestor,
     DisplayNameWithTooltips,

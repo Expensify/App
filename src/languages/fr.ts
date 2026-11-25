@@ -405,6 +405,7 @@ const translations: TranslationDeepObject<typeof en> = {
         reportID: 'ID de note de frais',
         longReportID: 'ID de note de frais longue',
         withdrawalID: 'ID de retrait',
+        transactionID: 'ID de transaction',
         internationalReimbursementIDs: 'ID de remboursement international',
         amountDebited: 'Montant débité',
         amountReimbursed: 'Montant remboursé',
@@ -1950,14 +1951,15 @@ const translations: TranslationDeepObject<typeof en> = {
         wisePaymentSummary: {
             confirmPayment: 'Confirmer le paiement',
             reportTotal: 'Total de la note de frais',
-            unheldAmountBeingPaid: 'Montant non retenu à payer',
-            debitAmount: 'Montant débité',
             employeeWillReceive: 'L’employé recevra',
+            companyWillPay: 'L’entreprise paiera',
             totalFees: 'Frais totaux',
             fxRate: 'Taux de change',
             paymentDetails: 'Détails du paiement',
             debitedAmount: 'Montant débité',
             employeeReceived: "L'employé a reçu",
+            paymentDisclosure: ({buttonText}: {buttonText: string}) =>
+                `<muted-text-micro>Le destinataire peut recevoir moins en raison des frais facturés par sa banque et des taxes étrangères. En cliquant sur ${buttonText}, j’accepte les <a href="${CONST.WISE.TERMS_URL}">Conditions d’utilisation</a> et la <a href="${CONST.WISE.PRIVACY_URL}">Politique de confidentialité</a> de Wise.</muted-text-micro>`,
             payAll: 'Tout payer',
             fxRateExpiredTitle: 'Taux de change expiré',
             fxRatesExpiredTitle: 'Taux de change expirés',
@@ -4720,6 +4722,15 @@ ${amount} pour ${merchant} - ${date}`,
         updateSuccessMessage: 'Félicitations, votre compte bancaire est configuré et prêt à recevoir des remboursements.',
         bankDetails: 'Coordonnées bancaires',
         accountHolderDetails: 'Détails du titulaire du compte',
+        notices: {
+            katakanaName:
+                'Saisissez votre nom exactement tel qu’il apparaît sur votre compte bancaire japonais. Il est généralement écrit en カタカナ (katakana). Toute différence peut retarder ou entraîner le rejet de votre paiement.',
+            alipayRecipients: 'Seuls les destinataires résidant en Chine continentale, à Hong Kong ou à Macao peuvent être payés via Alipay.',
+            alipayLimits:
+                'Alipay peut recevoir jusqu’à 50 000 CNY par paiement et entre 300 000 et 600 000 CNY par an. Des limites mensuelles sur le nombre de paiements peuvent également s’appliquer, selon l’objectif du paiement.',
+            malaysianNonResidentLimit:
+                'Les non-résidents disposant d’un compte bancaire en Malaisie ne peuvent recevoir que 10 000 ringgits malaisiens par jour. Un paiement dépassant cette limite peut conduire votre banque à fermer votre compte.',
+        },
     },
     addPersonalBankAccountPage: {
         enterPassword: 'Saisissez le mot de passe Expensify',
@@ -7329,6 +7340,8 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
             createFailureMessage: 'Une erreur s’est produite lors de la création de la catégorie, veuillez réessayer.',
             addCategory: 'Ajouter une catégorie',
             createCategoryFromSearch: (categoryName: string) => `Créer la catégorie « ${categoryName} »`,
+            availableToMember: (memberName: string) => `Disponible pour ${memberName}`,
+            notAvailableToMember: (memberName: string) => `Non disponible pour ${memberName}`,
             editCategory: 'Modifier la catégorie',
             editCategories: 'Modifier les catégories',
             findCategory: 'Rechercher une catégorie',
@@ -8102,6 +8115,9 @@ Le forfait Control commence à 9 $ par Membre actif et par mois.`,
             categoryVisibilityRequiredModal: {title: 'Les membres doivent avoir au moins une catégorie', description: 'Sélectionnez au moins une catégorie que ce membre peut utiliser.'},
             changeOfficeLocation: 'Modifier le lieu de travail',
             changeWorkArrangement: 'Modifier l’organisation du travail',
+            editCategoryVisibility: 'Modifier la visibilité des catégories',
+            bulkCategoryVisibilitySaved: ({categoryCount, memberCount}: {categoryCount: string; memberCount: string}) =>
+                `Définir ${categoryCount} pour ${memberCount}. Cela remplace la visibilité de catégorie actuelle.`,
             changeRole: 'Modifier le rôle',
             newRolesBanner: {
                 title: 'Nouveaux rôles disponibles',
