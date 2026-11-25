@@ -115,37 +115,40 @@ describe('mirrored category flag limits', () => {
         expect(onlineRows).toEqual([]);
     });
 
-    it('keeps a mirrored limit visible after consecutive offline renames', () => {
-        // Given two queued renames and a newly added category using the original name.
-        const renamedCategory = {
-            ...mealCategory,
-            name: 'Food',
-            previousCategoryName: 'Team meals',
-            maxExpenseAmountMigrationID: 1,
-            maxExpenseAmount: 900,
-            pendingFields: {name: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
-        };
-        const categoryFlagLimits = selectFlagLimits({[ruleKey('1')]: dailyRule});
-        const onNavigate = jest.fn();
+    it.each([{pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD}, {pendingFields: {name: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}}])(
+        'keeps a mirrored cap on its category when another category takes the old name (%o)',
+        (pendingCategoryUpdate) => {
+            // Given two queued renames and a different category using the original name.
+            const renamedCategory = {
+                ...mealCategory,
+                name: 'Food',
+                previousCategoryName: 'Team meals',
+                maxExpenseAmountMigrationID: 1,
+                maxExpenseAmount: 900,
+                pendingFields: {name: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
+            };
+            const categoryFlagLimits = selectFlagLimits({[ruleKey('1')]: dailyRule});
+            const onNavigate = jest.fn();
 
-        // When loading the flag table from the renamed category and cached rule.
-        const rows = getFlagForReviewTableData({
-            policy,
-            policyCategories: {
-                [renamedCategory.name]: renamedCategory,
-                [mealCategory.name]: {...mealCategory, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD},
-            },
-            categoryFlagLimits,
-            translate: translateLocal,
-            convertToDisplayString,
-            isOffline: true,
-            onNavigate,
-        });
-        rows.at(0)?.action();
+            // When loading the flag table from the renamed category and cached rule.
+            const rows = getFlagForReviewTableData({
+                policy,
+                policyCategories: {
+                    [renamedCategory.name]: renamedCategory,
+                    [mealCategory.name]: {...mealCategory, ...pendingCategoryUpdate},
+                },
+                categoryFlagLimits,
+                translate: translateLocal,
+                convertToDisplayString,
+                isOffline: true,
+                onNavigate,
+            });
+            rows.at(0)?.action();
 
-        // Then only the renamed category keeps the cap and the edit route uses its new name.
-        expect(rows).toHaveLength(1);
-        expect(rows.at(0)?.conditionText).toContain('"Food" total over $100.25');
-        expect(onNavigate).toHaveBeenCalledWith(ROUTES.RULES_FLAG_FOR_REVIEW_RULE_EDIT.getRoute(policy.id, renamedCategory.name));
-    });
+            // Then only the renamed category keeps the cap and the edit route uses its new name.
+            expect(rows).toHaveLength(1);
+            expect(rows.at(0)?.conditionText).toContain('"Food" total over $100.25');
+            expect(onNavigate).toHaveBeenCalledWith(ROUTES.RULES_FLAG_FOR_REVIEW_RULE_EDIT.getRoute(policy.id, renamedCategory.name));
+        },
+    );
 });

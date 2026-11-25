@@ -5,7 +5,7 @@ import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
 import type {FlagForReviewRuleForm} from '@src/types/form/FlagForReviewRuleForm';
 import INPUT_IDS from '@src/types/form/FlagForReviewRuleForm';
@@ -55,13 +55,28 @@ function getFlagForReviewRuleNavigationRoute(policyID: string, categoryName: str
     return ROUTES.RULES_FLAG_FOR_REVIEW_RULE_EDIT.getRoute(policyID, categoryName);
 }
 
+/** A cold category link can expose only its RHP suffix until the underlay mounts. */
+function qualifyCategoryFlagRulePath(policyID: string, path: string): string {
+    const suffix = path.replace(/^\//, '');
+    if (suffix.startsWith(DYNAMIC_ROUTES.WORKSPACE_CATEGORY_SETTINGS.getRoute(''))) {
+        return `${ROUTES.WORKSPACE_CATEGORIES.getRoute(policyID)}/${suffix}`;
+    }
+    if (suffix.startsWith(DYNAMIC_ROUTES.SETTINGS_CATEGORY_SETTINGS.getRoute(''))) {
+        return `${ROUTES.SETTINGS_CATEGORIES_ROOT.getRoute(policyID)}/${suffix}`;
+    }
+    return path;
+}
+
 function getMirroredCategoryFlagLimit(category: PolicyCategory, limits: CategoryFlagLimits | undefined): CategoryFlagLimit | undefined {
     if (!limits || category.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD) {
         return undefined;
     }
     const migrationID = category.maxExpenseAmountMigrationID;
     // A queued rename changes the category name before Auth can send the updated rule.
-    if (category.pendingFields?.name && migrationID) {
+    if (category.pendingFields?.name) {
+        if (!migrationID) {
+            return undefined;
+        }
         const ruleKey = `${ONYXKEYS.COLLECTION.RULE}${migrationID}`;
         return Object.values(limits).find((limit) => limit?.ruleKey === ruleKey);
     }
@@ -219,6 +234,7 @@ export {
     getFlagForReviewTableData,
     hasExplicitFlagAmount,
     hasFlagForReviewRuleForLegacyWrite,
+    qualifyCategoryFlagRulePath,
     saveFlagForReviewRule,
 };
 export type {FlagForReviewTableItem};

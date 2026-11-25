@@ -3,10 +3,12 @@ import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import CategoryFlagLimitsLoadError from '@components/Rule/CategoryFlagLimitsLoadError';
 import type {TableEmptyStateProps} from '@components/Table/TableEmptyStates/TableEmptyState';
 import WorkspaceFlagForReviewTable from '@components/Tables/WorkspaceFlagForReviewTable';
+import TextLink from '@components/TextLink';
 
 import useCategoryFlagLimits from '@hooks/useCategoryFlagLimits';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
+import useLoadPolicyCategories from '@hooks/useLoadPolicyCategories';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -14,6 +16,7 @@ import usePolicy from '@hooks/usePolicy';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import {getPolicyCategories} from '@libs/actions/Policy/Category';
 import {getFlagForReviewTableData} from '@libs/FlagForReviewRulesUtils';
 import Navigation from '@libs/Navigation/Navigation';
 
@@ -61,7 +64,8 @@ function RulesFlagForReviewTab({policyID, canWriteRules, selectedKeys, onSelecti
         onNavigate: Navigation.navigate,
     });
 
-    const needsCategories = !policyCategories && !!policy?.areCategoriesEnabled && Object.keys(categoryFlagLimits ?? {}).length > 0;
+    const needsCategories = !!policy?.areCategoriesEnabled && Object.keys(categoryFlagLimits ?? {}).some((categoryName) => !policyCategories?.[categoryName]);
+    useLoadPolicyCategories(needsCategories && policyCategories ? policyID : undefined);
     if (!flagForReviewTableData.length && (areCategoryFlagLimitsLoading || !haveCategoryFlagLimitsLoaded || needsCategories)) {
         return (
             <>
@@ -111,7 +115,23 @@ function RulesFlagForReviewTab({policyID, canWriteRules, selectedKeys, onSelecti
             selectionEnabled={canWriteRules}
             selectedKeys={selectedKeys}
             onRowSelectionChange={onSelectionChange}
-            headerComponent={headerComponent}
+            headerComponent={
+                needsCategories && !isOffline ? (
+                    <>
+                        {headerComponent}
+                        <View style={styles.mh5}>
+                            <TextLink
+                                sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.FLAG_FOR_REVIEW_RETRY_CATEGORIES}
+                                onPress={() => getPolicyCategories(policyID)}
+                            >
+                                {translate('common.tryAgain')}
+                            </TextLink>
+                        </View>
+                    </>
+                ) : (
+                    headerComponent
+                )
+            }
             bulkActionOptions={bulkActionOptions}
             emptyState={flagForReviewEmptyState}
         />

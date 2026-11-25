@@ -31,6 +31,7 @@ import {
     getFlagForReviewFormFromLimit,
     getFlagForReviewRuleAmountError,
     hasFlagForReviewRuleForLegacyWrite,
+    qualifyCategoryFlagRulePath,
     saveFlagForReviewRule,
 } from '@libs/FlagForReviewRulesUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
@@ -123,6 +124,7 @@ function FlagForReviewRulePageBase({
     const parsedMaxAmount = Number.parseFloat(draftMaxExpenseAmount ?? '');
     const maxAmountMenuTitle = Number.isFinite(parsedMaxAmount) ? convertToDisplayString(convertToBackendAmount(parsedMaxAmount), flagLimit?.currency ?? policyCurrency) : '';
     const isDailyLimit = form?.[INPUT_IDS.EXPENSE_LIMIT_TYPE] === CONST.POLICY.EXPENSE_LIMIT_TYPES.DAILY;
+    const dailyLimitDescription = isDailyLimit ? translate('workspace.rules.categoryRules.expenseLimitTypes.dailySubtitle') : undefined;
 
     useEffect(() => () => clearDraftFlagForReviewRule(), []);
 
@@ -197,6 +199,16 @@ function FlagForReviewRulePageBase({
         }
 
         handleSave();
+    };
+
+    const navigateToAmount = () => {
+        if (!isCategoryScopedFlow) {
+            Navigation.navigate(getFlagForReviewRuleAmountRoute(policyID, categoryName, isCategoryLocked));
+            return;
+        }
+
+        const path = qualifyCategoryFlagRulePath(policyID, Navigation.getActiveRoute());
+        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_CATEGORY_RULES_FLAG_FOR_REVIEW_AMOUNT.path, path));
     };
 
     const {deleteIconButtonProps} = useRuleDeleteHeaderProps({
@@ -306,19 +318,8 @@ function FlagForReviewRulePageBase({
                         )}
                     </MenuItem.Root>
                     <MenuItem.Root
-                        onPress={
-                            canSaveRule
-                                ? callIfAuthenticated(
-                                      () =>
-                                          Navigation.navigate(
-                                              isCategoryScopedFlow
-                                                  ? createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_CATEGORY_RULES_FLAG_FOR_REVIEW_AMOUNT.path)
-                                                  : getFlagForReviewRuleAmountRoute(policyID, categoryName, isCategoryLocked),
-                                          ),
-                                      session,
-                                  )
-                                : undefined
-                        }
+                        onPress={canSaveRule ? callIfAuthenticated(navigateToAmount, session) : undefined}
+                        accessibilityLabel={dailyLimitDescription ? `${translate('iou.amount')}, ${maxAmountMenuTitle}. ${dailyLimitDescription}` : undefined}
                         sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.FLAG_FOR_REVIEW_RULE_AMOUNT}
                     >
                         <MenuItem.Row>
@@ -327,7 +328,6 @@ function FlagForReviewRulePageBase({
                             </MenuItem.Leading>
                             <MenuItemField.Content name={translate('iou.amount')}>
                                 {!!maxAmountMenuTitle && <MenuItem.FieldValue>{translate('workspace.rules.spendRules.maxAmountAbove', {amount: maxAmountMenuTitle})}</MenuItem.FieldValue>}
-                                {isDailyLimit && <MenuItem.Description>{translate('workspace.rules.categoryRules.expenseLimitTypes.dailySubtitle')}</MenuItem.Description>}
                             </MenuItemField.Content>
                             {canSaveRule && (
                                 <MenuItem.Trailing>
@@ -335,6 +335,7 @@ function FlagForReviewRulePageBase({
                                 </MenuItem.Trailing>
                             )}
                         </MenuItem.Row>
+                        {!!dailyLimitDescription && <MenuItem.HelpText message={dailyLimitDescription} />}
                         {!!amountError && (
                             <MenuItem.HelpText
                                 isError

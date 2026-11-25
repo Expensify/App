@@ -9,7 +9,6 @@ import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelec
 import Text from '@components/Text';
 
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
-import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
@@ -17,7 +16,8 @@ import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {updateDraftFlagForReviewRule} from '@libs/actions/User';
-import {getFlagForReviewRuleAmountError} from '@libs/FlagForReviewRulesUtils';
+import {getFlagForReviewRuleAmountError, qualifyCategoryFlagRulePath} from '@libs/FlagForReviewRulesUtils';
+import stripDynamicRouteSuffixFromPath from '@libs/Navigation/helpers/dynamicRoutesUtils/stripDynamicRouteSuffixFromPath';
 import Navigation from '@libs/Navigation/Navigation';
 
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
@@ -49,7 +49,6 @@ function FlagForReviewRuleAmountPageBase({policyID, categoryName, isCategoryLock
     const {inputCallbackRef} = useAutoFocusInput();
     const {canWrite: canWriteRules} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.RULES);
     const policyCurrency = policy?.outputCurrency ?? CONST.CURRENCY.USD;
-    const categoryScopedBackPath = useDynamicBackPath(DYNAMIC_ROUTES.WORKSPACE_CATEGORY_RULES_FLAG_FOR_REVIEW_AMOUNT.path);
 
     const [form] = useOnyx(ONYXKEYS.FORMS.FLAG_FOR_REVIEW_RULE_FORM);
     const defaultValue = form?.[FLAG_FOR_REVIEW_RULE_INPUT_IDS.MAX_EXPENSE_AMOUNT] ?? '';
@@ -57,16 +56,18 @@ function FlagForReviewRuleAmountPageBase({policyID, categoryName, isCategoryLock
     const [expenseLimitType, setExpenseLimitType] = useState<PolicyCategoryExpenseLimitType>(draftExpenseLimitType);
     const selectedExpenseLimitType = expenseLimitType ?? draftExpenseLimitType;
 
-    let backToRoute;
-    if (isCategoryScopedFlow) {
-        backToRoute = categoryScopedBackPath;
-    } else if (isEditing) {
-        backToRoute = ROUTES.RULES_FLAG_FOR_REVIEW_RULE_EDIT.getRoute(policyID, categoryName, isCategoryLocked);
-    } else {
+    const getBackToRoute = () => {
+        if (isCategoryScopedFlow) {
+            const path = qualifyCategoryFlagRulePath(policyID, Navigation.getActiveRoute());
+            return stripDynamicRouteSuffixFromPath(path, DYNAMIC_ROUTES.WORKSPACE_CATEGORY_RULES_FLAG_FOR_REVIEW_AMOUNT.path);
+        }
+        if (isEditing) {
+            return ROUTES.RULES_FLAG_FOR_REVIEW_RULE_EDIT.getRoute(policyID, categoryName, isCategoryLocked);
+        }
         // Only preserve ?categoryName= when create started category-scoped (locked). Never inject the
         // draft-selected category — that remounts Rules-tab create and locks the field.
-        backToRoute = ROUTES.RULES_FLAG_FOR_REVIEW_RULE_NEW.getRoute(policyID, isCategoryLocked ? form?.[FLAG_FOR_REVIEW_RULE_INPUT_IDS.CATEGORY] : undefined);
-    }
+        return ROUTES.RULES_FLAG_FOR_REVIEW_RULE_NEW.getRoute(policyID, isCategoryLocked ? form?.[FLAG_FOR_REVIEW_RULE_INPUT_IDS.CATEGORY] : undefined);
+    };
 
     const expenseLimitTypes = Object.values(CONST.POLICY.EXPENSE_LIMIT_TYPES).map((value) => ({
         value,
@@ -77,7 +78,7 @@ function FlagForReviewRuleAmountPageBase({policyID, categoryName, isCategoryLock
     }));
 
     const goBack = () => {
-        Navigation.goBack(backToRoute);
+        Navigation.goBack(getBackToRoute());
     };
 
     const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.FLAG_FOR_REVIEW_RULE_MAX_AMOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.FLAG_FOR_REVIEW_RULE_MAX_AMOUNT_FORM> => {
@@ -96,7 +97,7 @@ function FlagForReviewRuleAmountPageBase({policyID, categoryName, isCategoryLock
             [FLAG_FOR_REVIEW_RULE_INPUT_IDS.MAX_EXPENSE_AMOUNT]: values.maxAmount.trim(),
             [FLAG_FOR_REVIEW_RULE_INPUT_IDS.EXPENSE_LIMIT_TYPE]: selectedExpenseLimitType,
         });
-        Navigation.goBack(backToRoute, {shouldSkipFocusRestore: true});
+        Navigation.goBack(getBackToRoute(), {shouldSkipFocusRestore: true});
     };
 
     return (
