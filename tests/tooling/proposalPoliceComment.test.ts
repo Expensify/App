@@ -23,6 +23,8 @@ const mockGetAllCommentDetails = jest.fn<(issueNumber: number) => Promise<Propos
 const mockCreateComment = jest.fn<(repo: string, issueNumber: number, body: string) => Promise<void>>();
 const mockMinimizeCommentAsSpam = jest.fn<(commentNodeID: string) => Promise<void>>();
 const mockUpdateComment = jest.fn<(params: {comment_id: number; body: string}) => Promise<void>>();
+const mockGetIssue = jest.fn<(params: {issue_number: number}) => Promise<{data: {labels: Array<{name: string}>; assignees: Array<{login: string}>}}>>();
+const mockSearchIssuesAndPullRequests = jest.fn<(params: {q: string; per_page: number}) => Promise<{data: {total_count: number}}>>();
 
 const mockPromptResponses = jest.fn<(params: {input: string}) => Promise<{text: string; responseID: string}>>();
 const mockCreateConversation = jest.fn<(items?: ResponseInputItem[]) => Promise<Conversation>>();
@@ -47,7 +49,10 @@ await mock.module('@github/libs/GithubUtils', () => ({
         getAllCommentDetails: mockGetAllCommentDetails,
         createComment: mockCreateComment,
         minimizeCommentAsSpam: mockMinimizeCommentAsSpam,
-        octokit: {issues: {updateComment: mockUpdateComment}},
+        octokit: {
+            issues: {updateComment: mockUpdateComment, get: mockGetIssue},
+            search: {issuesAndPullRequests: mockSearchIssuesAndPullRequests},
+        },
     },
 }));
 
@@ -120,6 +125,8 @@ function resetMocks() {
         mockCreateComment,
         mockMinimizeCommentAsSpam,
         mockUpdateComment,
+        mockGetIssue,
+        mockSearchIssuesAndPullRequests,
         mockPromptResponses,
         mockCreateConversation,
         mockAddConversationItems,
@@ -131,6 +138,8 @@ function resetMocks() {
     }
 
     mockGetAllCommentDetails.mockResolvedValue([]);
+    mockGetIssue.mockResolvedValue({data: {labels: [], assignees: []}});
+    mockSearchIssuesAndPullRequests.mockResolvedValue({data: {total_count: 0}});
     mockCreateConversation.mockResolvedValue({id: 'conv_new', created_at: 0, metadata: null, object: 'conversation'});
     mockListConversationItems.mockResolvedValue([]);
     // Bypass the real JSON-schema validators here; OpenAIUtils.test.ts already covers parseJSONResponse itself.
@@ -652,5 +661,205 @@ describe('proposalPoliceComment', () => {
 
         expect(mockCreateConversation).not.toHaveBeenCalled();
         expect(mockPromptResponses).toHaveBeenNthCalledWith(1, expect.objectContaining({conversation: 'conv_existing'}));
+    });
+});
+
+describe('proposalPoliceComment on issues without Help Wanted', () => {
+    function setPayloadWithoutHelpWanted(
+        overrides: Partial<{action: 'created' | 'edited'; login: string; authorAssociation: string; issueState: string; issueAuthor: string; isPullRequest: boolean}> = {},
+    ) {
+        context.payload = {
+            action: overrides.action ?? 'created',
+            issue: {
+                number: 1,
+                state: overrides.issueState ?? 'open',
+                labels: [{name: 'Bug'}],
+                user: {login: overrides.issueAuthor ?? 'issue-author'},
+                pull_request: overrides.isPullRequest ? {url: 'https://api.github.com/repos/Expensify/App/pulls/1'} : undefined,
+            },
+            comment: {...makeComment({id: 42, login: overrides.login ?? 'new-account'}), author_association: overrides.authorAssociation ?? 'NONE'},
+            changes: overrides.action === 'edited' ? {body: {from: 'old body'}} : undefined,
+        };
+    }
+
+    beforeEach(() => {
+        resetMocks();
+        process.env.INPUT_PROPOSAL_POLICE_API_KEY = 'test-api-key';
+        process.env.INPUT_IS_TRUSTED_COMMENTER = 'false';
+        process.env.INPUT_IS_TEAM_MEMBER = 'false';
+        process.env.INPUT_COULD_NOT_VERIFY_TEAMS = 'false';
+    });
+
+    it('hides a comment from someone with no merged App PR', async () => {
+        // Given a comment before Help Wanted from an account that never had an App PR merged
+        setPayloadWithoutHelpWanted();
+
+        // When ProposalPolice runs
+        await run();
+
+        // Then the comment is hidden, not deleted, and no bot reply or model call adds more noise
+        expect(mockSearchIssuesAndPullRequests).toHaveBeenCalledWith(expect.objectContaining({q: 'repo:Expensify/App is:pr is:merged author:new-account', per_page: 1}));
+        expect(mockMinimizeCommentAsSpam).toHaveBeenCalledWith('IC_node_42');
+        expect(mockUpdateComment).not.toHaveBeenCalled();
+        expect(mockCreateComment).not.toHaveBeenCalled();
+        expect(mockPromptResponses).not.toHaveBeenCalled();
+    });
+
+    it('leaves the comment visible when the author has a merged App PR', async () => {
+        // Given an author with at least one merged App PR
+        setPayloadWithoutHelpWanted();
+        mockSearchIssuesAndPullRequests.mockResolvedValue({data: {total_count: 1}});
+
+        // When ProposalPolice runs
+        await run();
+
+        // Then one merged PR is enough to comment before Help Wanted
+        expect(mockMinimizeCommentAsSpam).not.toHaveBeenCalled();
+    });
+
+    it('leaves the comment visible for a member of a trusted team without checking PRs', async () => {
+        // Given an employee, C+, backend contributor, agency or Applause team member
+        process.env.INPUT_IS_TEAM_MEMBER = 'true';
+        setPayloadWithoutHelpWanted();
+
+        // When ProposalPolice runs
+        await run();
+
+        // Then the team membership is enough and no API calls are spent on the PR history
+        expect(mockSearchIssuesAndPullRequests).not.toHaveBeenCalled();
+        expect(mockMinimizeCommentAsSpam).not.toHaveBeenCalled();
+    });
+
+    it('leaves the comment visible when the team check failed', async () => {
+        // Given the workflow could not confirm whether the commenter is on a trusted team
+        process.env.INPUT_COULD_NOT_VERIFY_TEAMS = 'true';
+        setPayloadWithoutHelpWanted();
+
+        // When ProposalPolice runs
+        await run();
+
+        // Then a real member is never hidden because of a GitHub API failure
+        expect(mockMinimizeCommentAsSpam).not.toHaveBeenCalled();
+    });
+
+    it('leaves the comment visible when the author opened the issue', async () => {
+        // Given the person who reported the issue replies on it
+        setPayloadWithoutHelpWanted({login: 'reporter', issueAuthor: 'reporter'});
+
+        // When ProposalPolice runs
+        await run();
+
+        // Then the reporter can answer questions about their own bug
+        expect(mockSearchIssuesAndPullRequests).not.toHaveBeenCalled();
+        expect(mockMinimizeCommentAsSpam).not.toHaveBeenCalled();
+    });
+
+    it('leaves the comment visible for an org member', async () => {
+        // Given GitHub already marks the commenter as an Expensify org member
+        setPayloadWithoutHelpWanted({authorAssociation: 'MEMBER'});
+
+        // When ProposalPolice runs
+        await run();
+
+        // Then the comment stays without any extra API calls
+        expect(mockGetIssue).not.toHaveBeenCalled();
+        expect(mockMinimizeCommentAsSpam).not.toHaveBeenCalled();
+    });
+
+    it('leaves a bot comment visible', async () => {
+        // Given a bot comments before Help Wanted
+        setPayloadWithoutHelpWanted({login: 'github-actions[bot]'});
+
+        // When ProposalPolice runs
+        await run();
+
+        // Then bots are never hidden
+        expect(mockMinimizeCommentAsSpam).not.toHaveBeenCalled();
+    });
+
+    it('leaves the comment visible when Help Wanted was added after the comment was posted', async () => {
+        // Given the event says no Help Wanted, but the label is on the issue by the time the run starts
+        setPayloadWithoutHelpWanted();
+        mockGetIssue.mockResolvedValue({data: {labels: [{name: 'Help Wanted'}], assignees: []}});
+
+        // When ProposalPolice runs
+        await run();
+
+        // Then the current labels win, since the job is now open to everyone
+        expect(mockMinimizeCommentAsSpam).not.toHaveBeenCalled();
+    });
+
+    it('leaves the comment visible when the author is now assigned to the issue', async () => {
+        // Given an employee assigned the commenter to let them in
+        setPayloadWithoutHelpWanted();
+        mockGetIssue.mockResolvedValue({data: {labels: [], assignees: [{login: 'new-account'}]}});
+
+        // When ProposalPolice runs
+        await run();
+
+        // Then assignees can always comment on their issue
+        expect(mockSearchIssuesAndPullRequests).not.toHaveBeenCalled();
+        expect(mockMinimizeCommentAsSpam).not.toHaveBeenCalled();
+    });
+
+    it('leaves the comment visible when the merged PR check fails', async () => {
+        // Given GitHub search fails, for example because of a rate limit
+        setPayloadWithoutHelpWanted();
+        mockSearchIssuesAndPullRequests.mockRejectedValue(new Error('API rate limit exceeded'));
+
+        // When ProposalPolice runs
+        await run();
+
+        // Then we can't tell whether they have a merged PR, so the comment stays
+        expect(mockMinimizeCommentAsSpam).not.toHaveBeenCalled();
+    });
+
+    it('does not check comments on pull requests', async () => {
+        // Given a comment on a PR, which GitHub also sends as an issue comment
+        setPayloadWithoutHelpWanted({isPullRequest: true});
+
+        // When ProposalPolice runs
+        await run();
+
+        // Then PR discussions are left alone
+        expect(mockGetIssue).not.toHaveBeenCalled();
+        expect(mockMinimizeCommentAsSpam).not.toHaveBeenCalled();
+    });
+
+    it('does not check comments on closed issues', async () => {
+        // Given a comment on a closed issue
+        setPayloadWithoutHelpWanted({issueState: 'closed'});
+
+        // When ProposalPolice runs
+        await run();
+
+        // Then nothing is hidden, since there is no job to claim
+        expect(mockGetIssue).not.toHaveBeenCalled();
+        expect(mockMinimizeCommentAsSpam).not.toHaveBeenCalled();
+    });
+
+    it('does not check edited comments', async () => {
+        // Given an employee showed a hidden comment again and its author then edits it
+        setPayloadWithoutHelpWanted({action: 'edited'});
+
+        // When ProposalPolice runs
+        await run();
+
+        // Then the edit doesn't hide the comment again
+        expect(mockGetIssue).not.toHaveBeenCalled();
+        expect(mockMinimizeCommentAsSpam).not.toHaveBeenCalled();
+    });
+
+    it('does not check the PR history of people commenting on Help Wanted issues', async () => {
+        // Given a new account posts on an issue that already has Help Wanted
+        setPayload({action: 'created', comment: makeComment({login: 'new-account', body: 'Retested on staging, still reproducible.'})});
+        mockPromptResponses.mockResolvedValueOnce({text: JSON.stringify({intent: 'NOT_AN_ATTEMPT'}), responseID: 'resp_intent'});
+
+        // When ProposalPolice runs
+        await run();
+
+        // Then anyone can comment once the job is open
+        expect(mockSearchIssuesAndPullRequests).not.toHaveBeenCalled();
+        expect(mockMinimizeCommentAsSpam).not.toHaveBeenCalled();
     });
 });
