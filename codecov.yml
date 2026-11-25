@@ -9,6 +9,10 @@ coverage:
         target: auto
         threshold: 1%
 
+codecov:
+  notify:
+    wait_for_ci: true
+
 comment:
   require_changes: 'uncovered_patch'
   layout: 'condensed_header, files'
