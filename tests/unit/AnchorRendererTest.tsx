@@ -14,10 +14,9 @@ import createMock from '../utils/createMock';
 
 type MockAnchorProps = {onPress: () => void};
 const mockCommentAnchor = jest.fn<null, [MockAnchorProps]>(() => null);
-const mockTextLink = jest.fn<null, [MockAnchorProps]>(() => null);
 
 jest.mock('@components/AnchorForCommentsOnly', () => ({__esModule: true, default: (props: MockAnchorProps) => mockCommentAnchor(props)}));
-jest.mock('@components/TextLink', () => ({__esModule: true, default: (props: MockAnchorProps) => mockTextLink(props)}));
+jest.mock('@components/TextLink', () => ({__esModule: true, default: () => null}));
 jest.mock('@components/OnyxListItemProvider', () => ({useSession: () => undefined}));
 jest.mock('@hooks/useEnvironment', () => () => ({environmentURL: 'https://dev.new.expensify.com:8082/'}));
 jest.mock('@hooks/useHover', () => () => ({hovered: false, bind: {}}));

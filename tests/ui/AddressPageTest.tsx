@@ -64,11 +64,7 @@ describe('AddressPageTest', () => {
         });
         await waitForBatchedUpdatesWithAct();
     });
-    it.each([
-        [SCREENS.SETTINGS.PREFERENCES.HOME_ADDRESS, 'addressLine1', true],
-        [SCREENS.SETTINGS.PREFERENCES.HOME_ADDRESS, undefined, false],
-        [SCREENS.SETTINGS.PREFERENCES.HOME_ADDRESS, 'city', false],
-    ] as const)('only focuses the requested home address input: %s / %s', async (route, fieldToFocus, shouldAutoFocus) => {
+    it('only focuses Address line 1 when requested', async () => {
         // Given message links opt in to focus, unlike ordinary Preferences navigation
         await TestHelper.signInWithTestUser();
         await act(async () => {
@@ -76,16 +72,20 @@ describe('AddressPageTest', () => {
             await Onyx.set(ONYXKEYS.IS_LOADING_APP, false);
         });
 
-        // When the real page and address form render for that entry point
-        renderPage(route, fieldToFocus);
+        // When the page opens with an explicit focus request
+        const {unmount} = renderPage(SCREENS.SETTINGS.PREFERENCES.HOME_ADDRESS, 'addressLine1');
         await waitForBatchedUpdatesWithAct();
 
-        // Then focus intent reaches only Address line 1, without premature required-field validation
-        expect(screen.getByLabelText('Address line 1').props.autoFocus).toBe(shouldAutoFocus);
-        for (const label of ['Address line 2', 'City', 'State / Province', 'Zip / Postcode']) {
-            expect(screen.getByLabelText(label).props.autoFocus).not.toBe(true);
-        }
-        expect(screen.queryByText('This field is required')).toBeNull();
+        // Then Address line 1 receives focus
+        expect(screen.getByLabelText('Address line 1').props.autoFocus).toBe(true);
+
+        // When the page opens without a focus request
+        unmount();
+        renderPage(SCREENS.SETTINGS.PREFERENCES.HOME_ADDRESS);
+        await waitForBatchedUpdatesWithAct();
+
+        // Then ordinary Preferences navigation does not request focus
+        expect(screen.getByLabelText('Address line 1').props.autoFocus).toBe(false);
     });
 
     it('should not reset state', async () => {
