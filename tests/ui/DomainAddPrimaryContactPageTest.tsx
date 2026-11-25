@@ -1,5 +1,7 @@
 import {act, render} from '@testing-library/react-native';
 
+import type * as UseRunWithPaymentCardModule from '@hooks/useRunWithPaymentCard';
+
 import Navigation from '@navigation/Navigation';
 import type {PlatformStackScreenProps} from '@navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@navigation/types';
@@ -32,7 +34,10 @@ let mockSelectRow: ((option: AdminRow) => void) | undefined;
 jest.mock('@react-navigation/native', () => ({
     ...jest.requireActual<typeof ReactNavigationNative>('@react-navigation/native'),
     useIsFocused: () => true,
+    useFocusEffect: jest.fn(),
 }));
+// The add payment card flow is web-only, and Jest resolves the native variant by default.
+jest.mock('@hooks/useRunWithPaymentCard', () => jest.requireActual<typeof UseRunWithPaymentCardModule>('@hooks/useRunWithPaymentCard/index.ts'));
 jest.mock('@navigation/Navigation', () => ({navigate: jest.fn(), goBack: jest.fn()}));
 jest.mock('@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute', () => jest.fn((suffix: string) => suffix));
 jest.mock('@hooks/useCurrentUserPersonalDetails', () => jest.fn(() => ({accountID: 1})));
