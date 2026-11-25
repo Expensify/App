@@ -472,7 +472,6 @@ function SubscriptionPlanSettings({planTitle, planIcon, subscriptionPlan}: Subsc
                             isActive={privateSubscription.autoRenew}
                             disabled={!cardView.canToggleAnnualSettings}
                             pendingAction={privateSubscription.pendingFields?.autoRenew}
-                            shouldPlaceSubtitleBelowSwitch
                         />
                     </View>
                     <View
@@ -488,7 +487,6 @@ function SubscriptionPlanSettings({planTitle, planIcon, subscriptionPlan}: Subsc
                             isActive={privateSubscription.addNewUsersAutomatically ?? false}
                             disabled={!cardView.canToggleAnnualSettings}
                             pendingAction={privateSubscription.pendingFields?.addNewUsersAutomatically}
-                            shouldPlaceSubtitleBelowSwitch
                         />
                     </View>
                 </>
