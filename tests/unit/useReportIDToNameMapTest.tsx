@@ -391,7 +391,7 @@ describe('buildMentionedReportIDToNameMapFromReportNames', () => {
     it('maps only the mentioned rooms that have a name', () => {
         // Given derived report names for more reports than the action mentions
         const [namedRoomID, otherRoomID, unnamedRoomID, unloadedRoomID] = ['1', '2', '3', '4'];
-        const reportNames = {[namedRoomID]: {reportName: '#one'}, [otherRoomID]: {reportName: '#two'}, [unnamedRoomID]: {reportName: ''}};
+        const reportNames = {[namedRoomID]: {reportName: '#one', rawReportName: '#one'}, [otherRoomID]: {reportName: '#two', rawReportName: '#two'}, [unnamedRoomID]: {reportName: ''}};
         const reportAction = createMock<ReportAction>({
             message: [
                 {

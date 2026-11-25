@@ -90,15 +90,16 @@ function buildReportIDToNameMap(reports: OnyxCollection<Report> | undefined, rep
 }
 
 /**
- * Builds a map of reportID to report name for the rooms the given report actions mention, from the names in the REPORT_ATTRIBUTES derived value.
+ * Builds a map of reportID to room name for the rooms the given report actions mention, from the raw report names in the REPORT_ATTRIBUTES derived value.
+ * It uses the stored room names, not the display names, which mark archived rooms, so the preview names rooms the same way the rendered message does.
  * LHN rows already read these names through a selector, while a subscription to COLLECTION.REPORT would re-render every row whenever any report changes.
  */
 function buildMentionedReportIDToNameMapFromReportNames(reportNames: ReportNamesDerivedValue | undefined, reportActions: Array<OnyxEntry<ReportAction>>): ReportIDToNameMap {
     const map: ReportIDToNameMap = {};
     for (const reportID of getMentionedReportIDsInReportActions(reportActions)) {
-        const reportName = reportNames?.[reportID]?.reportName;
-        if (reportName) {
-            map[reportID] = reportName;
+        const rawReportName = reportNames?.[reportID]?.rawReportName;
+        if (rawReportName) {
+            map[reportID] = rawReportName;
         }
     }
     return map;

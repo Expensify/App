@@ -568,7 +568,7 @@ describe('ReportAlternateTextUtils', () => {
                 isReportArchived: false,
                 privateIsArchived: false,
                 conciergeReportID: '999',
-                reportAttributesDerived: {[mentionedRoomID]: {reportName: '#mentioned-room'}},
+                reportAttributesDerived: {[mentionedRoomID]: {reportName: '#mentioned-room', rawReportName: '#mentioned-room'}},
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 currentUserLogin: CURRENT_USER_LOGIN,
                 translate: translateLocal,
@@ -678,7 +678,7 @@ describe('ReportAlternateTextUtils', () => {
                 isReportArchived: false,
                 lastAction,
                 lastOriginalAction: lastAction,
-                reportAttributesDerived: {[mentionedRoomID]: {reportName: '#mentioned-room'}},
+                reportAttributesDerived: {[mentionedRoomID]: {reportName: '#mentioned-room', rawReportName: '#mentioned-room'}},
                 currentUserLogin: CURRENT_USER_LOGIN,
                 formatPhoneNumber,
                 rules: undefined,
@@ -721,7 +721,7 @@ describe('ReportAlternateTextUtils', () => {
                 lastAction: expenseAction,
                 lastOriginalAction: expenseAction,
                 oneTransactionThreadReportID: '201',
-                reportAttributesDerived: {[swappedInRoomID]: {reportName: '#swapped-in-room'}},
+                reportAttributesDerived: {[swappedInRoomID]: {reportName: '#swapped-in-room', rawReportName: '#swapped-in-room'}},
                 currentUserLogin: CURRENT_USER_LOGIN,
                 formatPhoneNumber,
                 rules: undefined,
@@ -729,6 +729,36 @@ describe('ReportAlternateTextUtils', () => {
 
             // Then the room in the swapped-in comment keeps its name instead of showing as #Hidden
             expect(lastMessage).toBe('see #swapped-in-room');
+        });
+
+        it('names a mentioned archived room the same way the message does', () => {
+            // Given a last comment that mentions an archived room, whose derived display name carries the archived suffix while its raw report name does not
+            const archivedRoomID = '555';
+            const lastAction = makeAction(CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT, {
+                message: [{type: 'COMMENT', html: `see <mention-report reportID="${archivedRoomID}"></mention-report>`, text: 'see', isDeletedParentAction: false, deleted: ''}],
+            });
+
+            // When the LHN builds the last message text
+            const lastMessage = getLastMessageTextForReport({
+                dateFnsLocale: undefined,
+                conciergeReportID: undefined,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                personalDetails: undefined,
+                translate: translateLocal,
+                convertToDisplayString,
+                report: makeReport(),
+                lastActorDetails: null,
+                isReportArchived: false,
+                lastAction,
+                lastOriginalAction: lastAction,
+                reportAttributesDerived: {[archivedRoomID]: {reportName: '#archived-room (archived) ', rawReportName: '#archived-room'}},
+                currentUserLogin: CURRENT_USER_LOGIN,
+                formatPhoneNumber,
+                rules: undefined,
+            });
+
+            // Then the preview uses the raw report name, matching the rendered mention and the thread title, not the derived display name
+            expect(lastMessage).toBe('see #archived-room');
         });
 
         describe('getReportPreviewMessage', () => {

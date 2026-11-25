@@ -22,9 +22,9 @@ const reportIsEmptySelector = (attributes: OnyxEntry<ReportAttributesDerivedValu
 const reportNamesByIDsSelector = (attributes: OnyxEntry<ReportAttributesDerivedValue>, reportIDs: Array<string | undefined>): ReportNamesDerivedValue => {
     const reportNames: ReportNamesDerivedValue = {};
     for (const reportID of reportIDs) {
-        const reportName = reportNameSelector(attributes, reportID);
-        if (reportID && reportName !== undefined) {
-            reportNames[reportID] = {reportName};
+        const reportAttributes = reportID ? attributes?.reports?.[reportID] : undefined;
+        if (reportID && reportAttributes?.reportName !== undefined) {
+            reportNames[reportID] = {reportName: reportAttributes.reportName, rawReportName: reportAttributes.rawReportName};
         }
     }
     return reportNames;

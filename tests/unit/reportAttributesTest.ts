@@ -30,6 +30,7 @@ jest.mock('@libs/ReportUtils', () => ({
     hasViolations: jest.fn(() => false),
     hasVisibleReportFieldViolations: jest.fn(() => false),
     isArchivedReport: jest.fn(() => false),
+    isChatRoom: jest.fn(() => false),
     isOpenReport: jest.fn(() => false),
     isPolicyAdmin: jest.fn(() => false),
     isPolicyExpenseChat: jest.fn(() => false),
