@@ -299,9 +299,16 @@ describe('DynamicEditAgentPage', () => {
         expect(serialized).not.toContain('editAgentPage.deleteAgent');
     });
 
-    it('does not render NotFoundPage while Onyx is still loading', () => {
-        mockUseOnyx.mockReturnValue([undefined, {status: 'loading'}]);
+    it('does not render NotFoundPage while the app is still loading', () => {
+        // Given the agent and its personal details are missing because OpenApp hasn't returned them yet
+        mockUseOnyx.mockImplementation((key) => {
+            if (key === ONYXKEYS.IS_LOADING_APP) {
+                return [true, {status: 'loaded'}];
+            }
+            return [undefined, {status: 'loaded'}];
+        });
 
+        // When the edit agent page renders
         const {toJSON} = render(
             <DynamicEditAgentPage
                 route={mockRoute}
@@ -309,6 +316,7 @@ describe('DynamicEditAgentPage', () => {
             />,
         );
 
+        // Then it waits for the app to load instead of showing Not Found for an agent that may still arrive
         expect(JSON.stringify(toJSON())).not.toContain('notFound.notHere');
     });
 });

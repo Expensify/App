@@ -8,6 +8,7 @@ import NetSuiteTokenInputForm from '@pages/workspace/accounting/netsuite/NetSuit
 
 import CONST from '@src/CONST';
 import type {NetSuiteTokenInputForm as NetSuiteTokenInputFormType} from '@src/types/form/NetSuiteTokenInputForm';
+import type Policy from '@src/types/onyx/Policy';
 
 import React from 'react';
 
@@ -35,6 +36,7 @@ type MockFormProviderProps = {
 const mockFormProps: {current: Omit<MockFormProviderProps, 'children'> | undefined} = {
     current: undefined,
 };
+const mockPolicy: {current: Partial<Policy> | undefined} = {current: undefined};
 
 jest.mock('@hooks/useLocalize', () => () => ({
     translate: (key: string) => key,
@@ -56,7 +58,7 @@ jest.mock('@hooks/useEnvironment', () => () => ({
 jest.mock('@hooks/useAutoFocusInput', () => () => ({
     inputCallbackRef: jest.fn(),
 }));
-jest.mock('@hooks/usePolicy', () => () => undefined);
+jest.mock('@hooks/usePolicy', () => () => mockPolicy.current);
 jest.mock('@libs/actions/connections', () => ({
     shouldUseUpdateNetSuiteTokens: jest.fn(() => false),
 }));
@@ -104,6 +106,7 @@ describe('NetSuiteTokenInputForm', () => {
     beforeEach(() => {
         jest.clearAllMocks();
         mockFormProps.current = undefined;
+        mockPolicy.current = undefined;
         mockedShouldUseUpdateNetSuiteTokens.mockReturnValue(false);
     });
 
@@ -191,6 +194,20 @@ describe('NetSuiteTokenInputForm', () => {
             renderForm(false);
             submitForm();
 
+            expect(mockedUpdateNetSuiteTokens).toHaveBeenCalledWith(POLICY_ID, FORM_VALUES);
+            expect(mockedConnectPolicyToNetSuite).not.toHaveBeenCalled();
+        });
+
+        it('updates the tokens of an OAuth connection so the connection moves back to TBA and keeps its settings', () => {
+            // Given an OAuth connection with no auth error that never synced, which is the state after a failed OAuth migration
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- The form only reads the auth type of the NetSuite connection, so the rest of the connection is left out.
+            mockPolicy.current = {connections: {netsuite: {verified: false, config: {authType: CONST.NETSUITE_CONFIG.AUTH_TYPE.OAUTH2}}}} as Partial<Policy>;
+            renderForm(false);
+
+            // When the admin submits new TBA tokens
+            submitForm();
+
+            // Then the form updates the tokens, because a new connection would reset the settings of the connection
             expect(mockedUpdateNetSuiteTokens).toHaveBeenCalledWith(POLICY_ID, FORM_VALUES);
             expect(mockedConnectPolicyToNetSuite).not.toHaveBeenCalled();
         });

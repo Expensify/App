@@ -52,7 +52,6 @@ import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {Login} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import KeyboardUtils from '@src/utils/keyboard';
 
 import {useIsFocused} from '@react-navigation/native';
@@ -66,15 +65,14 @@ type DynamicContactMethodDetailsPageProps = PlatformStackScreenProps<SettingsNav
 function DynamicContactMethodDetailsPage({route}: DynamicContactMethodDetailsPageProps) {
     const contactMethod = useMemo(() => addSMSDomainIfPhoneNumber(route.params.contactMethod), [route.params.contactMethod]);
     const integrationServerLoginByContactMethodSelector = useMemo(() => integrationServerLoginSelector(contactMethod), [contactMethod]);
-    const [loginList, loginListResult] = useOnyx(ONYXKEYS.LOGINS, {selector: expensifyLoginsSelector});
+    const [loginList] = useOnyx(ONYXKEYS.LOGINS, {selector: expensifyLoginsSelector});
     const [integrationServerLogin] = useOnyx(ONYXKEYS.LOGINS, {selector: integrationServerLoginByContactMethodSelector});
-    const [session, sessionResult] = useOnyx(ONYXKEYS.SESSION);
+    const [session] = useOnyx(ONYXKEYS.SESSION);
     const {securityGroup, isLoadingSecurityGroup} = useUserSecurityGroup();
-    const [isLoadingReportData = true, isLoadingReportDataResult] = useOnyx(ONYXKEYS.IS_LOADING_REPORT_DATA);
+    const [isLoadingReportData = true] = useOnyx(ONYXKEYS.IS_LOADING_REPORT_DATA);
     const [isValidateCodeFormVisible, setIsValidateCodeFormVisible] = useState(true);
     const {isActingAsDelegate} = useDelegateNoAccessState();
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
-    const isLoadingOnyxValues = isLoadingOnyxValue(loginListResult, sessionResult, isLoadingReportDataResult) || isLoadingSecurityGroup;
     const {isAccountLocked} = useLockedAccountState();
     const {showLockedAccountModal} = useLockedAccountActions();
 
@@ -229,7 +227,7 @@ function DynamicContactMethodDetailsPage({route}: DynamicContactMethodDetailsPag
         return menuItems;
     }, [isValidateCodeFormVisible, translate, turnOnDeleteModal, isDefaultContactMethod, icons.Trashcan]);
 
-    if (isLoadingOnyxValues || (isLoadingReportData && isEmptyObject(loginList))) {
+    if (isLoadingSecurityGroup || (isLoadingReportData && isEmptyObject(loginList))) {
         return <FullscreenLoadingIndicator onGoBack={() => Navigation.goBack(listPath)} />;
     }
 

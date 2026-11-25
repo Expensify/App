@@ -5,9 +5,11 @@ import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import type * as SearchContextModule from '@components/Search/SearchContext';
 import TransactionListItem from '@components/Search/SearchList/ListItem/TransactionListItem';
+import TransactionListItemNarrow from '@components/Search/SearchList/ListItem/TransactionListItem/TransactionListItemNarrow';
 import type {TransactionListItemType} from '@components/Search/SearchList/ListItem/types';
 
 import useConfirmApproveReportViolations from '@hooks/useConfirmApproveReportViolations';
+import useNetwork from '@hooks/useNetwork';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -26,6 +28,8 @@ const POLICY_ID = '06F34677820A4D07';
 const TRANSACTION_VIOLATIONS_KEY = `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${TRANSACTION_ID}` as const;
 
 const mockSearchResults: {current: {data: Record<string, unknown>} | undefined} = {current: undefined};
+
+jest.mock('@hooks/useNetwork', () => ({__esModule: true, default: jest.fn(() => ({isOffline: false}))}));
 
 jest.mock('@hooks/useConfirmApproveReportViolations', () => ({
     __esModule: true,
@@ -57,7 +61,7 @@ jest.mock('@components/Search/SearchList/ListItem/TransactionListItem/Transactio
     const {Text} = jest.requireActual<{Text: React.ComponentType<{children: React.ReactNode}>}>('react-native');
     return {
         __esModule: true,
-        default: ({transactionViolations}: {transactionViolations: TransactionViolation[]}) => <Text>{transactionViolations.map((violation) => violation.name).join(',')}</Text>,
+        default: jest.fn(({transactionViolations}: {transactionViolations: TransactionViolation[]}) => <Text>{transactionViolations.map((violation) => violation.name).join(',')}</Text>),
     };
 });
 
@@ -100,6 +104,7 @@ describe('TransactionListItem violations', () => {
 
     beforeEach(async () => {
         await Onyx.clear();
+        jest.mocked(useNetwork).mockReturnValue({isOffline: false});
         mockSearchResults.current = {
             data: {
                 [`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`]: {reportID: REPORT_ID, policyID: POLICY_ID, type: CONST.REPORT.TYPE.EXPENSE},
@@ -107,6 +112,19 @@ describe('TransactionListItem violations', () => {
             },
         };
         await waitForBatchedUpdatesWithAct();
+    });
+
+    it.each([false, true])('only forwards queued action loading while online (offline: %s)', async (isOffline) => {
+        // Given a transaction whose report still has a queued payment after cancellation
+        await Onyx.set(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${REPORT_ID}`, {isActionLoading: true});
+        jest.mocked(useNetwork).mockReturnValue({isOffline});
+
+        // When the Search transaction row renders
+        renderRow();
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the shared layout props suppress queued-action loading only offline
+        expect(jest.mocked(TransactionListItemNarrow).mock.lastCall?.[0].isActionLoading).toBe(!isOffline);
     });
 
     it('shows the violations from the search snapshot when they are not in live Onyx', async () => {

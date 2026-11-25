@@ -1,12 +1,8 @@
 /* eslint-disable rulesdir/prefer-actions-set-data -- stories seed Onyx directly so the ID-driven avatar cases render real data */
-import AccountAvatar from '@components/Avatar/connected/AccountAvatar';
-import ReportAvatar from '@components/Avatar/connected/ReportAvatar';
 import UserAvatar from '@components/Avatar/UserAvatar';
 import WorkspaceAvatar from '@components/Avatar/WorkspaceAvatar';
 import Button from '@components/Button';
 import CompactMenuContext from '@components/CompactMenuContext';
-import DisplayNames from '@components/DisplayNames';
-import type {DisplayNameWithTooltip} from '@components/DisplayNames/types';
 import MenuItem from '@components/MenuItem';
 import MenuItemAction from '@components/MenuItem/presets/MenuItemAction';
 import MenuItemAvatarNavigation from '@components/MenuItem/presets/MenuItemAvatarNavigation';
@@ -51,7 +47,7 @@ const story: Meta<typeof MenuItem> = {
 
 const CARD_WIDTH = 360;
 
-/** Account and report the ID-driven (`iconAccountID`/`iconReportID`) avatar cases resolve against */
+/** Account and report the ID-driven avatar cases resolve against */
 const STORY_ACCOUNT_ID = 90210;
 const STORY_REPORT_ID = 'menuItemComparisonStoryReport';
 const STORY_POLICY_ID = 'menuItemComparisonStoryPolicy';
@@ -81,8 +77,6 @@ async function seedStoryOnyxData() {
         }),
     ]);
 }
-
-const STORY_TOOLTIP_DETAILS: DisplayNameWithTooltip[] = [{displayName: 'John Doe', accountID: STORY_ACCOUNT_ID, login: 'john@example.com'}];
 
 const sentryLabel = CONST.SENTRY_LABEL.TEST.LABEL;
 
@@ -1031,54 +1025,6 @@ function Comparison() {
             <SectionHeading title="Phase 2 — avatars" />
 
             <Card
-                title="Avatar + label + tooltip title + description + chevron"
-                legacy={
-                    <MenuItem
-                        label="Assignee"
-                        avatarID={STORY_ACCOUNT_ID}
-                        iconType={CONST.ICON_TYPE_AVATAR}
-                        icon={icons.FallbackAvatar}
-                        title="John Doe"
-                        description="john@example.com"
-                        titleWithTooltips={STORY_TOOLTIP_DETAILS}
-                        shouldShowRightIcon
-                        onPress={noop}
-                        sentryLabel={sentryLabel}
-                    />
-                }
-                composable={
-                    <MenuItemWithLabel
-                        label="Assignee"
-                        onPress={noop}
-                        sentryLabel={sentryLabel}
-                    >
-                        <MenuItem.Row>
-                            <MenuItem.Leading>
-                                <UserAvatar
-                                    source={icons.FallbackAvatar}
-                                    accountID={STORY_ACCOUNT_ID}
-                                />
-                            </MenuItem.Leading>
-                            <MenuItem.Content>
-                                <MenuItem.Title accessibilityLabel="John Doe">
-                                    <DisplayNames
-                                        fullTitle="John Doe"
-                                        displayNamesWithTooltips={STORY_TOOLTIP_DETAILS}
-                                        tooltipEnabled
-                                        numberOfLines={1}
-                                    />
-                                </MenuItem.Title>
-                                <MenuItem.Description>john@example.com</MenuItem.Description>
-                            </MenuItem.Content>
-                            <MenuItem.Trailing>
-                                <MenuItem.Chevron />
-                            </MenuItem.Trailing>
-                        </MenuItem.Row>
-                    </MenuItemWithLabel>
-                }
-            />
-
-            <Card
                 title="Avatar + title + 1-line description"
                 legacy={
                     <View style={styles.mt1}>
@@ -1420,127 +1366,6 @@ function Comparison() {
                             <MenuItem.Trailing>
                                 <MenuItem.Chevron />
                             </MenuItem.Trailing>
-                        </MenuItem.Row>
-                    </MenuItemWithLabel>
-                }
-            />
-
-            <Card
-                title="accountID avatar + tooltip title + description"
-                legacy={
-                    <MenuItem
-                        label="Assignee"
-                        title="John Doe"
-                        description="john@example.com"
-                        iconAccountID={STORY_ACCOUNT_ID}
-                        titleWithTooltips={STORY_TOOLTIP_DETAILS}
-                        shouldShowRightIcon
-                        onPress={noop}
-                        sentryLabel={sentryLabel}
-                    />
-                }
-                composable={
-                    <MenuItemWithLabel
-                        label="Assignee"
-                        onPress={noop}
-                        sentryLabel={sentryLabel}
-                    >
-                        <MenuItem.Row>
-                            <MenuItem.Leading>
-                                <AccountAvatar
-                                    accountID={STORY_ACCOUNT_ID}
-                                    containerStyle={[styles.actionAvatar]}
-                                />
-                            </MenuItem.Leading>
-                            <MenuItem.Content>
-                                <MenuItem.Title accessibilityLabel="John Doe">
-                                    <DisplayNames
-                                        fullTitle="John Doe"
-                                        displayNamesWithTooltips={STORY_TOOLTIP_DETAILS}
-                                        tooltipEnabled
-                                        numberOfLines={1}
-                                    />
-                                </MenuItem.Title>
-                                <MenuItem.Description>john@example.com</MenuItem.Description>
-                            </MenuItem.Content>
-                            <MenuItem.Trailing>
-                                <MenuItem.Chevron />
-                            </MenuItem.Trailing>
-                        </MenuItem.Row>
-                    </MenuItemWithLabel>
-                }
-            />
-
-            <Card
-                title="reportID avatar + right label"
-                legacy={
-                    <MenuItem
-                        label="Share"
-                        description="Expensify Inc"
-                        iconReportID={STORY_REPORT_ID}
-                        rightLabel="Required"
-                        shouldShowRightIcon
-                        onPress={noop}
-                        sentryLabel={sentryLabel}
-                    />
-                }
-                composable={
-                    <MenuItemWithLabel
-                        label="Share"
-                        onPress={noop}
-                        sentryLabel={sentryLabel}
-                    >
-                        <MenuItem.Row>
-                            <MenuItem.Leading>
-                                <ReportAvatar
-                                    singleAvatarContainerStyle={[styles.actionAvatar]}
-                                    reportID={STORY_REPORT_ID}
-                                />
-                            </MenuItem.Leading>
-                            <MenuItem.Content>
-                                <MenuItem.Description>Expensify Inc</MenuItem.Description>
-                            </MenuItem.Content>
-                            <MenuItem.Trailing>
-                                <MenuItem.RightLabel>Required</MenuItem.RightLabel>
-                                <MenuItem.Chevron />
-                            </MenuItem.Trailing>
-                        </MenuItem.Row>
-                    </MenuItemWithLabel>
-                }
-            />
-
-            <Card
-                title="Disabled — greyed out"
-                legacy={
-                    <MenuItem
-                        label="Assignee"
-                        title="John Doe"
-                        description="john@example.com"
-                        iconAccountID={STORY_ACCOUNT_ID}
-                        avatarSize={CONST.AVATAR_SIZE.X_SMALL}
-                        disabled
-                        onPress={noop}
-                        sentryLabel={sentryLabel}
-                    />
-                }
-                composable={
-                    <MenuItemWithLabel
-                        label="Assignee"
-                        isDisabled
-                        onPress={noop}
-                        sentryLabel={sentryLabel}
-                    >
-                        <MenuItem.Row>
-                            <MenuItem.Leading>
-                                <UserAvatar
-                                    accountID={STORY_ACCOUNT_ID}
-                                    size={CONST.AVATAR_SIZE.X_SMALL}
-                                />
-                            </MenuItem.Leading>
-                            <MenuItem.Content>
-                                <MenuItem.Title>John Doe</MenuItem.Title>
-                                <MenuItem.Description>john@example.com</MenuItem.Description>
-                            </MenuItem.Content>
                         </MenuItem.Row>
                     </MenuItemWithLabel>
                 }

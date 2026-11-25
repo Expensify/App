@@ -67,7 +67,7 @@ function useRulesTableBulkActions({policyID, activeTab, selectedRuleKeysByTab, c
     const policy = usePolicy(policyID);
     const policyData = usePolicyData(policyID);
     const getReviewWorkspaceSettingsTaskCompletion = useReviewWorkspaceSettingsTaskCompletion();
-    const {convertToDisplayString} = useCurrencyListActions();
+    const {convertToDisplayString, convertToDisplayStringWithoutCurrency} = useCurrencyListActions();
     const defaultFundID = useDefaultFundID(policyID);
     const [expensifyCardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${defaultFundID}`);
     const {cardRules} = useExpensifyCardRules(policyID);
@@ -162,6 +162,7 @@ function useRulesTableBulkActions({policyID, activeTab, selectedRuleKeysByTab, c
         policyTags: policyTagsOnyx,
         translate,
         convertToDisplayString,
+        convertToDisplayStringWithoutCurrency,
         isOffline,
         onNavigate: Navigation.navigate,
     });

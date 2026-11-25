@@ -26,6 +26,7 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useOriginalReportID from '@hooks/useOriginalReportID';
 import usePermissions from '@hooks/usePermissions';
+import {useGetPersonalDetailsByLogin} from '@hooks/usePersonalDetailByLogin';
 import {usePersonalDetail} from '@hooks/usePersonalDetails';
 import usePrevious from '@hooks/usePrevious';
 import useReceiptTranslation from '@hooks/useReceiptTranslation';
@@ -248,6 +249,7 @@ function MoneyRequestReceiptView({
     const isReportArchived = useReportIsArchived(report?.reportID);
     const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
+    const getPersonalDetailsByLogin = useGetPersonalDetailsByLogin();
     const {personalCardsWithBrokenConnection} = useCardFeedErrors();
     const {showConfirmModal} = useConfirmModal();
 
@@ -465,7 +467,7 @@ function MoneyRequestReceiptView({
             return;
         }
 
-        retryReceiptUpload(receiptRetryContext, () =>
+        retryReceiptUpload({...receiptRetryContext, personalDetailsByLogins: getPersonalDetailsByLogin()}, () =>
             clearReceiptUploadError({
                 transactionID: transaction?.transactionID,
                 reportID: parentReportAction?.reportID ?? report?.reportID,
