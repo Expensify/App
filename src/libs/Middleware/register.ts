@@ -19,6 +19,7 @@ import {
     RecordFullReconnectTime,
     ReconcileBulkEditReportAction,
     ReplaceOptimisticAgentAccountID,
+    ReplaceOptimisticMemberAccountID,
     SaveResponseInOnyx,
     SentryServerTiming,
     SupportalPermission,
@@ -72,6 +73,9 @@ function registerMiddlewares() {
 
     // Rewrites the remaining serialized requests when the response maps an optimistic agent accountID to the server-assigned one.
     addMiddleware(ReplaceOptimisticAgentAccountID);
+
+    // Rewrites the remaining serialized requests that send the generated accountID of a member invited offline, once the invite returns the real one.
+    addMiddleware(ReplaceOptimisticMemberAccountID);
 
     addMiddleware(Pagination);
 

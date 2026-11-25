@@ -18,6 +18,7 @@ import Onyx from 'react-native-onyx';
 
 import {getCountryCode} from './CountryUtils';
 import {areEmailsFromSamePrivateDomain} from './LoginUtils';
+import {isRecord} from './ObjectUtils';
 import {getPersonalDetailByLogin} from './PersonalDetailsStore';
 import {addSMSDomainIfPhoneNumber, parsePhoneNumber} from './PhoneNumber';
 import {getDefaultAvatarURL} from './UserAvatarUtils';
@@ -261,6 +262,25 @@ function buildPersonalDetailsUpdate(personalDetails: PersonalDetailsUpdate): Ony
 
 // The Onyx update produced by buildPersonalDetailsUpdate. Use it instead of naming the key in an OnyxUpdate generic.
 type PersonalDetailsOnyxUpdate = ReturnType<typeof buildPersonalDetailsUpdate>;
+
+/** Reads the login of each account whose personal details a list of Onyx updates sets, such as the ones a server response sends. */
+function getLoginsByAccountIDFromOnyxUpdates(onyxUpdates: ReadonlyArray<{key: unknown; value?: unknown}> | undefined): Map<number, string> {
+    const loginsByAccountID = new Map<number, string>();
+    for (const onyxUpdate of onyxUpdates ?? []) {
+        const personalDetails = onyxUpdate.value;
+        if (onyxUpdate.key !== ONYXKEYS.PERSONAL_DETAILS_LIST || !isRecord(personalDetails)) {
+            continue;
+        }
+
+        for (const [accountIDKey, personalDetail] of Object.entries(personalDetails)) {
+            const accountID = Number(accountIDKey);
+            if (accountID && isRecord(personalDetail) && typeof personalDetail.login === 'string') {
+                loginsByAccountID.set(accountID, personalDetail.login);
+            }
+        }
+    }
+    return loginsByAccountID;
+}
 
 /**
  * Given a list of logins and accountIDs, return Onyx data for users with no existing personal details stored. These users might be brand new or unknown.
@@ -534,6 +554,7 @@ export {
     getAccountIDsByLogins,
     getLoginsByAccountIDs,
     getPersonalDetailsOnyxDataForOptimisticUsers,
+    getLoginsByAccountIDFromOnyxUpdates,
     getCurrentAddress,
     getFormattedAddress,
     getFormattedStreet,

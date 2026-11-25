@@ -21,6 +21,7 @@ import {usePersonalDetailsByLogins} from '@hooks/usePersonalDetailByLogin';
 import usePolicyData from '@hooks/usePolicyData';
 import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
 import useSearchResults from '@hooks/useSearchResults';
+import useShouldFooterBeInsideList from '@hooks/useShouldFooterBeInsideList';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {setPolicyCategoryMemberVisibility} from '@libs/actions/Policy/Category';
@@ -67,6 +68,7 @@ function DynamicCategoryVisibleToPage({
     const {policyMemberAccountIDs: memberAccountIDs, policyMemberAccountIDsByLogin: memberAccountIDsByLogin, showMembersNeedCategoryModal} = useMembersNeedCategoryModal(policyID);
     const employeePersonalDetails = usePersonalDetailsByLogins(Object.keys(policy?.employeeList ?? {}));
     const categorySettingsBackPath = useDynamicBackPath(DYNAMIC_ROUTES.WORKSPACE_CATEGORY_VISIBLE_TO.path);
+    const shouldFooterBeInsideList = useShouldFooterBeInsideList();
 
     const policyCategory = policyCategories[categoryName];
     // The server rejects visibility changes on a disabled category. A pending enabled change means this page just disabled
@@ -208,6 +210,7 @@ function DynamicCategoryVisibleToPage({
                         listHeaderWrapperStyle: [styles.pt5, styles.pb2],
                         listHeaderSelectAllTextStyle: [styles.textLabelSupporting],
                     }}
+                    shouldFooterBeInsideList={shouldFooterBeInsideList}
                     footerContent={
                         <FormAlertWithSubmitButton
                             sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.CATEGORIES.VISIBLE_TO_SAVE}
