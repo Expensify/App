@@ -17,7 +17,7 @@ import waitForBatchedUpdatesWithAct from '../../utils/waitForBatchedUpdatesWithA
 const TRANSACTION_KEY = `${ONYXKEYS.COLLECTION.TRANSACTION}1` as const;
 const TRANSACTION: Transaction = {transactionID: '1', amount: 100, currency: 'USD', created: '2026-11-24', merchant: 'Original', reportID: '1', comment: {}};
 
-// Read by the wrapper on every render, so a test can hold or release the tab between renders. Each hold is a new object.
+// Set between renders to hold or release the tab. Each hold is a new object.
 let searchTabHold: SearchTabHold | undefined;
 function SearchTabWrapper({children}: ChildrenProps) {
     return <SearchTabHoldContext value={searchTabHold}>{children}</SearchTabHoldContext>;
@@ -81,8 +81,7 @@ describe('useSearchTransactions', () => {
         // Then Search renders the current transactions at once
         expect(result.current.transactions?.[TRANSACTION_KEY]?.merchant).toBe('Edited');
 
-        // And the previous value matches them, so the auto refetch does not send a second search next to the one the tab
-        // sends when it is first shown
+        // And the previous value matches them, so the auto refetch sees no change
         expect(result.current.previousTransactions).toBe(result.current.transactions);
     });
 

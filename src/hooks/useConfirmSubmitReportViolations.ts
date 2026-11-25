@@ -13,8 +13,8 @@ type UseConfirmSubmitReportViolationsParams = {
 };
 
 /**
- * Hook that returns a callback to confirm the violations of a report's transactions before proceeding with its submission.
- * It reads the report's transactions and violations; a caller that already has them uses useConfirmSubmitViolations instead.
+ * Hook that returns a callback to confirm any report violations before proceeding with a report submission, reading the
+ * report's transactions and violations by reportID.
  */
 function useConfirmSubmitReportViolations({reportID, report, policy, shouldShowMarkAsDoneCopy}: UseConfirmSubmitReportViolationsParams) {
     const {transactions, violations} = useTransactionsAndViolationsForReport(reportID);

@@ -254,10 +254,8 @@ function SearchPageNarrow({
         }, [isHeaderInteractive, isInteractive, startTransition]),
     );
 
-    // A Spend tab preloaded at idle builds its list from cached results while hidden, so the first tap only reveals it.
-    // Hidden, the list sends no request and ends no span, as `Search` reads the same preloaded state. Without cached
-    // results there is no list to build, only an animated loading skeleton, so the still placeholder stays and counts as
-    // the tab's first content.
+    // A preloaded Spend tab builds its list from cached results while hidden. Without cached results the still
+    // placeholder stays and counts as the tab's first content.
     const isInPreloadedTab = useIsInPreloadedTab();
     const markPreloadedTabContentReady = useMarkPreloadedTabContentReady();
     useEffect(() => {

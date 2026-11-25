@@ -22,9 +22,8 @@ type UseConfirmSubmitViolationsParams = {
 };
 
 /**
- * Hook that returns a callback to confirm the violations of the given transactions (rejected expenses, pending RTER
+ * Hook that returns a callback to confirm any report violations (rejected expenses, pending RTER
  * card-match, a missing merchant or amount, and other policy violations) before proceeding with a report submission.
- * It reads no report data itself, so a caller that already has the transactions does not re-render on every expense change.
  */
 function useConfirmSubmitViolations({report, policy, shouldShowMarkAsDoneCopy = false, transactions, violationsCollection}: UseConfirmSubmitViolationsParams) {
     const {showConfirmModal} = useConfirmModal();

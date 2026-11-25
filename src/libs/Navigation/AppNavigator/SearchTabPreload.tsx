@@ -30,7 +30,6 @@ type SearchTabPreloadProps = {
 
 /**
  * Builds the Spend tab off idle with the exact query the tab button would open, so the first visit only reveals it.
- * The platform's `getSearchTabPreloadTarget` decides when a preload has something to build.
  * Its own component, so the saved Spend query it reads re-renders only this and not AuthScreensInitHandler.
  */
 function SearchTabPreload({isLoadingApp, tabNavigatorStateKey}: SearchTabPreloadProps) {

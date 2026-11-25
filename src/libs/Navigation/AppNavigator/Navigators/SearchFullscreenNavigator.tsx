@@ -89,10 +89,7 @@ function SearchFullscreenNavigator({route}: PlatformStackScreenProps<TabNavigato
         <FreezeWrapper shouldStayUnfrozen={isInPreloadedTab && (!isPreloadedContentReady || isPreloadedTabHovered)}>
             <IsInPreloadedTabContext.Provider value={isInPreloadedTab}>
                 <PreloadedTabContentReadyContext.Provider value={markPreloadedContentReady}>
-                    <SearchTabContextHold
-                        isInPreloadedTab={isInPreloadedTab}
-                        isPreloadedContentReady={isPreloadedContentReady}
-                    >
+                    <SearchTabContextHold shouldHoldWhenHidden={!isInPreloadedTab || isPreloadedContentReady}>
                         {shouldRenderContent && (
                             <Stack.Navigator
                                 screenOptions={centralScreenOptions}

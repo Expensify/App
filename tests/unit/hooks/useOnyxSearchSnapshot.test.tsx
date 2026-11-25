@@ -229,8 +229,7 @@ describe('useOnyx Search snapshot updates', () => {
         // Then the reader shows the snapshot copy of its report
         expect(result.current[0]?.reportName).toBe(expectedReportName);
 
-        // And it re-renders only when its own entry changed, as a read outside Search would, so a list row does not
-        // re-render for every write to the results it is part of
+        // And it re-renders only when its own entry changed, as a read outside Search would
         expect(renderCount > renderCountBeforeWrite).toBe(shouldRender);
     });
 

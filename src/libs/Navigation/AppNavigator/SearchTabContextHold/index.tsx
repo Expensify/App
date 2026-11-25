@@ -1,9 +1,6 @@
 import type SearchTabContextHoldProps from './types';
 
-/**
- * On web the Spend tab is frozen while it is in the background, so it does not re-render on data changes and there is
- * nothing to hold.
- */
+/** On web the hidden Spend tab is frozen, so there is nothing to hold. */
 function SearchTabContextHold({children}: SearchTabContextHoldProps) {
     return children;
 }

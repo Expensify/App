@@ -203,7 +203,7 @@ function renderedRowKeys() {
 }
 
 const mockIsFocused = jest.fn(() => true);
-// The test navigator always shows its screen, so a page kept hidden in a background tab holds its focus effects instead.
+// The test navigator always focuses its screen, so tests of a hidden page turn focus effects off here.
 const mockShouldRunFocusEffects = jest.fn(() => true);
 jest.mock('@react-navigation/native', () => {
     const actualNavigation = jest.requireActual<typeof reactNavigationNativeImport>('@react-navigation/native');
@@ -766,8 +766,7 @@ describe('SearchPageNarrow', () => {
             jest.runAllTimers();
         });
 
-        // Then the tab learns its first content is on screen, so it holds the hidden page on its contexts instead of
-        // re-rendering it on every expense update until the user opens it
+        // Then the tab is told its first content is on screen, so it can start holding the hidden page
         expect(markPreloadedContentReady).toHaveBeenCalled();
     });
 

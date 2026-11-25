@@ -55,8 +55,7 @@ const useOnyx: UseOnyxWithoutSnapshots = <TKey extends OnyxKey, TReturnValue = O
     // Determine if we should use snapshot data based on search state and key
     const shouldUseSnapshot = isOnSearch && !!currentSearchHash && isSnapshotCompatible && !shouldUseLiveData;
 
-    // A snapshot read subscribes to the whole snapshot, so it selects its own key. Onyx then compares only that key's data and a
-    // write to another key in the snapshot does not re-render the reader, as it would not for a read outside Search.
+    // Selects the key out of the snapshot, so a write to another snapshot key does not re-render the reader.
     const selector = !shouldUseSnapshot
         ? selectorProp
         : (data: OnyxValue<OnyxKey> | undefined) => {

@@ -68,24 +68,6 @@ function getTabPreloadTarget(rootState: RootNavigationState, tabRouteName: strin
     return tabState.key;
 }
 
-/**
- * For a tab navigator that mounts every tab at startup: the tab's screens exist from the start, so only a tab never
- * shown since startup still has its first build ahead. Undefined while the tab has an entry in the tab history. A back press
- * drops that entry, so a tab shown and left with back counts as unvisited again; preloading it rebuilds nothing.
- */
-function getUnvisitedTabPreloadTarget(rootState: RootNavigationState, tabRouteName: string): string | undefined {
-    const tabState = getTabNavigatorState(rootState);
-    const tabRoute = tabState?.routes.findLast((route) => route.name === tabRouteName);
-    const focusedRouteName = getFocusedTabRouteName(rootState);
-    const wasShown = !!tabState?.history?.some((record) => record.type === 'route' && record.key === tabRoute?.key);
-
-    if (!tabState?.key || !tabRoute?.key || wasShown || focusedRouteName === tabRouteName) {
-        return undefined;
-    }
-
-    return tabState.key;
-}
-
 function getReportsTabPreloadTarget(rootState: RootNavigationState): string | undefined {
     return getTabPreloadTarget(rootState, NAVIGATORS.REPORTS_SPLIT_NAVIGATOR);
 }
@@ -110,7 +92,6 @@ export {
     getTabNavigatorStateKey,
     getReportsTabPreloadTarget,
     getTabPreloadTarget,
-    getUnvisitedTabPreloadTarget,
     isReportsTabPreloaded,
     isTabPreloaded,
     isTabRoutePreloaded,
