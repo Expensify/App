@@ -16899,6 +16899,33 @@ describe('SearchUIUtils', () => {
         });
     });
 
+    describe('getViolationSnapshotActionsByTransactionID', () => {
+        test("finds an expense's snapshot on the report it was submitted on after it moved to another one", () => {
+            // Given an expense now on report 2, whose submission snapshot is on report 1, and a report 2 action that records no violations
+            const submitted = {
+                reportActionID: 'submitted',
+                actionName: CONST.REPORT.ACTIONS.TYPE.SUBMITTED,
+                created: '2026-02-10 10:00:00',
+                message: [],
+                originalMessage: {amount: 100, currency: CONST.CURRENCY.USD, violations: {transactions: {movedTransaction: [{name: CONST.VIOLATIONS.OVER_LIMIT}]}}},
+            };
+            const comment = {reportActionID: 'comment', actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT, created: '2026-02-11 10:00:00', message: []};
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- test-only: the response only carries the entries the grouping reads
+            const data = {
+                [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}1`]: {submitted},
+                [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}2`]: {comment},
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}movedTransaction`]: {transactionID: 'movedTransaction', reportID: '2'},
+            } as unknown as OnyxTypes.SearchResults['data'];
+
+            // When the snapshots are grouped by expense
+            const result = SearchUIUtils.getViolationSnapshotActionsByTransactionID(data, buildSearchQueryJSON('type:expense has:submitted-violation'), 1);
+
+            // Then the expense gets the submission from report 1, since the snapshot stays where the report was submitted
+            expect(result.get('movedTransaction')?.map((action) => action.reportActionID)).toEqual(['submitted']);
+            expect(result.size).toBe(1);
+        });
+    });
+
     describe('getApprovedViolationsForTransaction', () => {
         const transactionIDForViolations = 'tx-approved-violations-1';
         const otherTransactionID = 'tx-approved-violations-2';

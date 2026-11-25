@@ -2045,6 +2045,7 @@ function getTransactionsSections({
     const currentQueryJSON = queryJSON ?? getCurrentSearchQueryJSON();
     const violationHasValues = getPositiveHasFilterValues(currentQueryJSON);
     const shouldFormatViolations = hasValuesIncludeViolationFilter(violationHasValues);
+    const violationSnapshotActionsByTransactionID = shouldFormatViolations ? getViolationSnapshotActionsByTransactionID(data, currentQueryJSON, currentAccountID) : undefined;
 
     for (const key of transactionKeys) {
         const transactionItem = data[key];
@@ -2143,7 +2144,7 @@ function getTransactionsSections({
                 ...(shouldFormatViolations
                     ? {
                           formattedViolations: getViolationsForTransaction(
-                              getViolationSnapshotActions(Object.values(data[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionItem.reportID}`] ?? {}), currentQueryJSON, currentAccountID),
+                              violationSnapshotActionsByTransactionID?.get(transactionItem.transactionID),
                               transactionItem.transactionID,
                               violationHasValues,
                               translate,
@@ -6016,6 +6017,33 @@ function getViolationSnapshotActions(reportActions: OnyxTypes.ReportAction[], qu
     });
 }
 
+/**
+ * Groups the response's violation snapshots the query can match an expense on by the expenses they record.
+ * An expense moved to another report keeps its violations on the report it was submitted on, so every report's actions are read.
+ */
+function getViolationSnapshotActionsByTransactionID(
+    data: OnyxTypes.SearchResults['data'],
+    queryJSON: SearchQueryJSON | undefined,
+    currentAccountID: number | undefined,
+): Map<string, OnyxTypes.ReportAction[]> {
+    const reportActions = Object.keys(data).flatMap((key) => (isReportActionEntry(key) ? Object.values(data[key] ?? {}) : []));
+    const actionsByTransactionID = new Map<string, OnyxTypes.ReportAction[]>();
+    for (const action of getViolationSnapshotActions(reportActions, queryJSON, currentAccountID)) {
+        if (!isSubmissionSnapshotAction(action) && !isApprovalSnapshotAction(action)) {
+            continue;
+        }
+        for (const transactionID of Object.keys(getOriginalMessage(action)?.violations?.transactions ?? {})) {
+            const actions = actionsByTransactionID.get(transactionID);
+            if (actions) {
+                actions.push(action);
+            } else {
+                actionsByTransactionID.set(transactionID, [action]);
+            }
+        }
+    }
+    return actionsByTransactionID;
+}
+
 function collectSubmittedViolationNamesForTransaction(violationNames: Set<string>, reportActions: OnyxTypes.ReportAction[], transactionID: string) {
     for (const action of reportActions) {
         if (!isSubmissionSnapshotAction(action)) {
@@ -8771,6 +8799,7 @@ export {
     getApprovedViolationsForTransaction,
     getViolationNamesForTransaction,
     getViolationSnapshotActions,
+    getViolationSnapshotActionsByTransactionID,
     getViolationsForTransaction,
     getSettlementStatus,
     getSettlementStatusBadgeProps,
