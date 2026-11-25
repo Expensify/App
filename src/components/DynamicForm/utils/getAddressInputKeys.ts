@@ -42,15 +42,18 @@ function isCountryAllowed(field: DynamicFormAddressField, country: Country | '')
     return !!country && (!field.countries || field.countries.includes(country));
 }
 
-/** The App's own state list for the country, which is the US one until a country is picked */
-function getAppStates(country: Country | ''): Record<string, string> | undefined {
-    return STATES_BY_COUNTRY[country || CONST.COUNTRY.US];
+/** The App's own state list for the country. Until a country is picked it is the US one, unless the field does not take US addresses. */
+function getAppStates(field: DynamicFormAddressField, country: Country | ''): Record<string, string> | undefined {
+    if (country) {
+        return STATES_BY_COUNTRY[country];
+    }
+    return !field.countries || field.countries.includes(CONST.COUNTRY.US) ? STATES_BY_COUNTRY[CONST.COUNTRY.US] : undefined;
 }
 
 /** The names of the states the picker lists, by code. The field's own states win, and without them the App's list for the country is used. */
 function getStateOptions(field: DynamicFormAddressField, country: Country | '', translate: LocalizedTranslate): Record<string, string> | undefined {
     if (!field.states) {
-        return getAppStates(country);
+        return getAppStates(field, country);
     }
     if (field.states.length === 0) {
         return undefined;
@@ -60,7 +63,7 @@ function getStateOptions(field: DynamicFormAddressField, country: Country | '', 
 
 /** The codes of the states the picker lists, from the same list as getStateOptions */
 function getStateCodes(field: DynamicFormAddressField, country: Country | ''): string[] {
-    return field.states ? field.states.map((state) => state.key) : Object.keys(getAppStates(country) ?? {});
+    return field.states ? field.states.map((state) => state.key) : Object.keys(getAppStates(field, country) ?? {});
 }
 
 /** The state is asked only where the picker can list the country's states */

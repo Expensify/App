@@ -354,6 +354,23 @@ describe('getDynamicFieldErrors', () => {
         expect(unlistedCountryErrors).toEqual({[addressKeys.country]: required});
     });
 
+    it('asks for no US state before a country is picked when the field does not take US addresses', () => {
+        // Given a required address with no country picked yet, under a schema that takes Georgia only and one that takes every country
+        const addressKeys = getAddressInputKeys('homeAddress');
+        const georgianOnly: DynamicFormField = {key: 'homeAddress', type: 'address', required: true, countries: ['GE']};
+        const anyCountry: DynamicFormField = {key: 'homeAddress', type: 'address', required: true};
+        const values = {homeAddress: '1 Main Street', [addressKeys.city]: 'Tbilisi', [addressKeys.zipCode]: '0105'};
+
+        // When each is validated
+        const georgianOnlyErrors = getDynamicFieldErrors([georgianOnly], values, translateLocal);
+        const anyCountryErrors = getDynamicFieldErrors([anyCountry], values, translateLocal);
+
+        // Then only the country is asked where the US is not allowed, since a US state could never be right there
+        const required = translateLocal('common.error.fieldRequired');
+        expect(georgianOnlyErrors).toEqual({[addressKeys.country]: required});
+        expect(anyCountryErrors).toEqual({[addressKeys.state]: required, [addressKeys.country]: required});
+    });
+
     it('requires the zip only where the schema asks for one', () => {
         // Given an address in El Salvador, where the App does not require a zip, and one in Great Britain, where it does
         const addressKeys = getAddressInputKeys('homeAddress');
