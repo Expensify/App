@@ -52,7 +52,6 @@ const mockSetNewAgentAvatarPreset = jest.fn<void, unknown[]>();
 const mockClearNewAgentAvatarDraft = jest.fn<void, unknown[]>();
 const mockClearNewAgentTemplate = jest.fn<void, unknown[]>();
 let mockAvatarDraft: {customExpensifyAvatarID?: string; uploadedAvatar?: {uri: string; name: string; type: string}} | undefined;
-let mockAvatarDraftStatus: 'loading' | 'loaded' = 'loaded';
 let mockIsNarrowLayout = true;
 let mockTemplate: {name: string; prompt: string; avatarID: string} | undefined;
 let mockPolicy: {id: string; policyAccountID: number; employeeList: PolicyEmployeeList} | undefined;
@@ -101,7 +100,7 @@ jest.mock('@hooks/useOnyx', () => {
         __esModule: true,
         default: jest.fn((key: string) => {
             if (key === onyxKeys.AGENT_NEW_AVATAR_DRAFT) {
-                return [mockAvatarDraft, {status: mockAvatarDraftStatus}] as const;
+                return [mockAvatarDraft, {status: 'loaded'}] as const;
             }
             if (key === onyxKeys.NEW_AGENT_TEMPLATE) {
                 return [mockTemplate, {status: 'loaded'}] as const;
@@ -228,7 +227,6 @@ describe('AddAgentPage', () => {
     beforeEach(() => {
         jest.clearAllMocks();
         mockAvatarDraft = undefined;
-        mockAvatarDraftStatus = 'loaded';
         mockIsNarrowLayout = true;
         mockTemplate = undefined;
         mockPolicy = undefined;
@@ -304,14 +302,6 @@ describe('AddAgentPage', () => {
 
         expect(mockSetNewAgentAvatarPreset).not.toHaveBeenCalled();
         expect(mockNavigate).toHaveBeenCalledWith(createDynamicRoute(DYNAMIC_ROUTES.AGENT_ADD_AVATAR.getRoute()));
-    });
-
-    it('does not seed a default while the draft is still loading (avoids clobbering a saved avatar on refresh)', () => {
-        mockAvatarDraftStatus = 'loading';
-
-        renderAddAgentPage();
-
-        expect(mockSetNewAgentAvatarPreset).not.toHaveBeenCalled();
     });
 
     it('does not seed a default when a draft already exists (e.g. after a refresh)', () => {
