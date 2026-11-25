@@ -54,6 +54,70 @@ const PROPOSAL_POLICE_MODEL = 'gpt-5.6-luna';
  */
 const DUPLICATE_SIMILARITY_THRESHOLD = 90;
 
+/**
+ * Author associations GitHub only gives to Expensify org members and people with write access to the repo.
+ */
+const TRUSTED_AUTHOR_ASSOCIATIONS = new Set(['OWNER', 'MEMBER', 'COLLABORATOR']);
+
+function hasHelpWantedLabel(labels: Array<string | {name?: string}>): boolean {
+    return labels.some((label) => (typeof label === 'string' ? label : label.name) === CONST.LABELS.HELP_WANTED);
+}
+
+async function hasMergedAppPullRequest(login: string): Promise<boolean> {
+    const {data} = await GithubUtils.octokit.search.issuesAndPullRequests({
+        q: `repo:${CONST.GITHUB_OWNER}/${CONST.APP_REPO} is:pr is:merged author:${login}`,
+        // eslint-disable-next-line @typescript-eslint/naming-convention -- GitHub's REST API parameter name
+        per_page: 1,
+    });
+    return data.total_count > 0;
+}
+
+/**
+ * Hides a comment on an issue without "Help Wanted" when its author has never had an App PR merged,
+ * since only Melvin and people we already know should comment before the job opens up.
+ */
+async function hideCommentFromNewContributor(payload: IssueCommentCreatedEvent) {
+    const {comment, issue} = payload;
+    const author = comment.user.login;
+
+    if (isBotUser(author, comment.user.type) || author === issue.user.login || TRUSTED_AUTHOR_ASSOCIATIONS.has(comment.author_association)) {
+        console.log('Comment is from a bot, the issue author, or an org member, leaving it visible.', author);
+        return;
+    }
+
+    if (getInput('IS_TEAM_MEMBER') === 'true') {
+        console.log('Commenter is on a trusted team, leaving the comment visible.', author);
+        return;
+    }
+
+    if (getInput('COULD_NOT_VERIFY_TEAMS') === 'true') {
+        core.warning(`Could not verify ${author}'s team membership, leaving comment ${comment.id} visible.`);
+        return;
+    }
+
+    try {
+        // The event payload can be stale, so read the issue again before hiding anything
+        // eslint-disable-next-line @typescript-eslint/naming-convention -- GitHub's REST API parameter name
+        const {data: currentIssue} = await GithubUtils.octokit.issues.get({...context.repo, issue_number: issue.number});
+        if (hasHelpWantedLabel(currentIssue.labels) || currentIssue.assignees?.some((assignee) => assignee.login === author)) {
+            console.log('Issue now has "Help Wanted" or the commenter is assigned, leaving the comment visible.', author);
+            return;
+        }
+
+        if (await hasMergedAppPullRequest(author)) {
+            console.log('Commenter has a merged App PR, leaving the comment visible.', author);
+            return;
+        }
+    } catch (error: unknown) {
+        const message = error instanceof Error ? error.message : String(error);
+        core.warning(`Could not check whether ${author} can comment before "Help Wanted", leaving comment ${comment.id} visible: ${message}`);
+        return;
+    }
+
+    core.notice(`ProposalPolice hid comment ${comment.id} by ${author}, who has no merged App PR, on an issue without "Help Wanted"`);
+    await GithubUtils.minimizeCommentAsSpam(comment.node_id);
+}
+
 function isCommentCreatedEvent(payload: IssueCommentEvent): payload is IssueCommentCreatedEvent {
     return payload.action === CONST.ACTIONS.CREATED;
 }
@@ -105,6 +169,12 @@ async function run() {
     }
 
     const payload = context.payload as IssueCommentEvent;
+
+    // Only new comments are checked, so a comment an employee unhides stays visible when its author edits it
+    if (isCommentCreatedEvent(payload) && payload.issue.state === CONST.STATE.OPEN && !payload.issue.pull_request && !hasHelpWantedLabel(payload.issue.labels)) {
+        await hideCommentFromNewContributor(payload);
+        return;
+    }
 
     // Return early unless issue is open AND has the "Help Wanted" label
     if (payload.issue?.state !== CONST.STATE.OPEN || !payload.issue?.labels.some((issueLabel: {name: string}) => issueLabel.name === CONST.LABELS.HELP_WANTED)) {
