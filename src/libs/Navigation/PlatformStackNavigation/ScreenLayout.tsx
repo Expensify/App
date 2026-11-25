@@ -1,4 +1,5 @@
 import HorizontalSafeArea from '@components/HorizontalSafeArea';
+import ScreenSafeAreaInsets from '@components/ScreenSafeAreaInsets';
 
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import type {TransitionHandle} from '@libs/Navigation/TransitionTracker';
@@ -35,12 +36,16 @@ function keepOutOfHorizontalSafeArea(routeName: string, screen: React.ReactEleme
 function screenLayoutWrapper({navigation, ...rest}: ScreenLayoutArgs<ParamListBase, string, PlatformSpecificNavigationOptions, string>) {
     // The type cast is needed because useNavigationBuilder hardcodes the Navigation generic to `string`.
     const transitionAwareNavigation = navigation as unknown as TransitionAwareNavigation;
-    return keepOutOfHorizontalSafeArea(
-        rest.route.name,
-        <ScreenLayout
-            {...rest}
-            navigation={transitionAwareNavigation}
-        />,
+    return (
+        <ScreenSafeAreaInsets>
+            {keepOutOfHorizontalSafeArea(
+                rest.route.name,
+                <ScreenLayout
+                    {...rest}
+                    navigation={transitionAwareNavigation}
+                />,
+            )}
+        </ScreenSafeAreaInsets>
     );
 }
 

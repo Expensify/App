@@ -10,9 +10,6 @@ type SafeAreaProviderProps = ChildrenProps;
 type SafeAreaConsumerProps = {
     children?: (insets: EdgeInsets) => ReactNode;
 };
-type SafeAreaInsetsContextValue = {
-    Consumer: (props: SafeAreaConsumerProps) => ReactNode;
-};
 
 const insets: EdgeInsets = {
     top: 0,
@@ -48,9 +45,8 @@ const SafeAreaView = View;
 const SafeAreaProvider = (props: SafeAreaProviderProps) => props.children;
 const SafeAreaConsumer = (props: SafeAreaConsumerProps) => props.children?.(insets);
 const SafeAreaListener = (props: SafeAreaListenerProps) => props.children;
-const SafeAreaInsetsContext: SafeAreaInsetsContextValue = {
-    Consumer: SafeAreaConsumer,
-};
+// A real context, so screens that override the insets for their subtree (ScreenSafeAreaInsets) can provide it.
+const SafeAreaInsetsContext = React.createContext<EdgeInsets | null>(insets);
 
 const useSafeAreaFrame: jest.Mock<ReturnType<typeof LibUseSafeAreaFrame>> = jest.fn(() => ({
     x: 0,
