@@ -121,8 +121,9 @@ function HeaderWithBackButton({
             onBackButtonPress();
         }
     };
-    // The vertical bar of a foldable iPhone shows a back button too.
-    useVerticalBarBackButton(pressBackButton, shouldShowBackButton);
+    // The vertical bar of a foldable iPhone has the back button instead.
+    const isBackButtonInVerticalBar = useVerticalBarBackButton(pressBackButton, shouldShowBackButton);
+    const shouldShowHeaderBackButton = shouldShowBackButton && !isBackButtonInVerticalBar;
 
     let middleContent;
     const stepCounterTranslation = stepCounter ? translate('stepCounter', stepCounter.step, stepCounter.total, stepCounter.text) : undefined;
@@ -199,14 +200,14 @@ function HeaderWithBackButton({
                 styles.headerBar,
                 contentHeaderHeightStyle,
                 shouldShowBorderBottom && styles.borderBottom,
-                shouldShowBackButton && [styles.pl2],
+                shouldShowHeaderBackButton && [styles.pl2],
                 shouldOverlay && StyleSheet.absoluteFill,
                 style,
             ]}
             onTouchStart={isInLandscapeMode ? () => Keyboard.dismiss() : undefined}
         >
             <View style={[styles.dFlex, styles.flexRow, styles.alignItemsCenter, styles.flexGrow1, styles.justifyContentBetween, styles.overflowHidden, styles.mr3]}>
-                {shouldShowBackButton && (
+                {shouldShowHeaderBackButton && (
                     <Tooltip text={translate('common.back')}>
                         <PressableWithoutFeedback
                             ref={setBackButtonRef}

@@ -35,8 +35,11 @@ function HeaderBackButton({onPress = () => Navigation.goBack(), iconFill}: Heade
         }
         onPress();
     };
-    // The vertical bar of a foldable iPhone shows a back button too.
-    useVerticalBarBackButton(pressBackButton);
+    // The vertical bar of a foldable iPhone has the back button instead.
+    const isBackButtonInVerticalBar = useVerticalBarBackButton(pressBackButton);
+    if (isBackButtonInVerticalBar) {
+        return null;
+    }
 
     return (
         <HeaderIconButton

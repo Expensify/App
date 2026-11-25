@@ -16,19 +16,23 @@ import ReportHeaderTitleSkeleton from './ReportHeaderTitleSkeleton';
 type ReportHeaderSkeletonViewProps = {
     shouldAnimate?: boolean;
     onBackButtonPress?: () => void;
+
+    /** Whether a narrow layout shows the back button. A header that has one elsewhere, as in the vertical bar of a foldable iPhone, leaves it out. */
+    shouldShowBackButton?: boolean;
 };
 
-function ReportHeaderSkeletonView({shouldAnimate = true, onBackButtonPress = () => {}}: ReportHeaderSkeletonViewProps) {
+function ReportHeaderSkeletonView({shouldAnimate = true, onBackButtonPress = () => {}, shouldShowBackButton = true}: ReportHeaderSkeletonViewProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const icons = useMemoizedLazyExpensifyIcons(['BackArrow']);
+    const hasBackButton = shouldUseNarrowLayout && shouldShowBackButton;
 
     return (
-        <View style={[styles.appContentHeader, shouldUseNarrowLayout && styles.pl2, styles.h100]}>
-            <View style={[styles.appContentHeaderTitle, !shouldUseNarrowLayout && styles.pl5]}>
-                {shouldUseNarrowLayout && (
+        <View style={[styles.appContentHeader, hasBackButton && styles.pl2, styles.h100]}>
+            <View style={[styles.appContentHeaderTitle, !hasBackButton && styles.pl5]}>
+                {hasBackButton && (
                     <PressableWithFeedback
                         onPress={onBackButtonPress}
                         style={[styles.touchableButtonImage]}

@@ -400,9 +400,10 @@ function HeaderView({onNavigationMenuButtonClicked, reportID}: HeaderViewProps) 
     // shouldUseNarrowLayout true for any RHP regardless of actual screen width.
     const shouldShowCloseButton = (!!isInSidePanel && !shouldUseNarrowLayout) || isAgentReportInRHP;
     const shouldShowBackButton = (shouldUseNarrowLayout || !!isInSidePanel) && !shouldShowCloseButton;
-    // The vertical bar of a foldable iPhone shows a back button too. The side panel is not a screen with a bar of its
-    // own, so a header in it adds none.
-    useVerticalBarBackButton(onNavigationMenuButtonClicked, shouldShowBackButton && !isInSidePanel);
+    // The vertical bar of a foldable iPhone has the back button instead. The side panel is not a screen with a bar of
+    // its own, so a header in it keeps its button.
+    const isBackButtonInVerticalBar = useVerticalBarBackButton(onNavigationMenuButtonClicked, shouldShowBackButton && !isInSidePanel);
+    const shouldShowHeaderBackButton = shouldShowBackButton && !isBackButtonInVerticalBar;
 
     const onboardingHelpDropdownButton = (
         <OnboardingHelpDropdownButton
@@ -431,10 +432,13 @@ function HeaderView({onNavigationMenuButtonClicked, reportID}: HeaderViewProps) 
             >
                 <View style={[styles.appContentHeader, contentHeaderHeightStyle, styles.pr3]}>
                     {isLoading ? (
-                        <ReportHeaderSkeletonView onBackButtonPress={onNavigationMenuButtonClicked} />
+                        <ReportHeaderSkeletonView
+                            onBackButtonPress={onNavigationMenuButtonClicked}
+                            shouldShowBackButton={!isBackButtonInVerticalBar}
+                        />
                     ) : (
-                        <View style={[styles.appContentHeaderTitle, (!shouldUseNarrowLayout || isAgentReportInRHP) && !isLoading && styles.pl5]}>
-                            {shouldShowBackButton && (
+                        <View style={[styles.appContentHeaderTitle, (!shouldUseNarrowLayout || isAgentReportInRHP || isBackButtonInVerticalBar) && !isLoading && styles.pl5]}>
+                            {shouldShowHeaderBackButton && (
                                 <PressableWithoutFeedback
                                     ref={setBackButtonRef}
                                     onPress={onNavigationMenuButtonClicked}
