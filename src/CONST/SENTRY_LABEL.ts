@@ -3074,6 +3074,7 @@ const SENTRY_LABEL = {
             TAGS: 'Onboarding-InterestedFeaturesItem-Tags',
             PER_DIEM_RATES: 'Onboarding-InterestedFeaturesItem-PerDiemRates',
             TIME_TRACKING: 'Onboarding-InterestedFeaturesItem-TimeTracking',
+            HR: 'Onboarding-InterestedFeaturesItem-HR',
         },
         INTERESTED_FEATURES_CHECKBOX: {
             CATEGORIES: 'Onboarding-InterestedFeaturesCheckbox-Categories',
@@ -3087,6 +3088,7 @@ const SENTRY_LABEL = {
             TAGS: 'Onboarding-InterestedFeaturesCheckbox-Tags',
             PER_DIEM_RATES: 'Onboarding-InterestedFeaturesCheckbox-PerDiemRates',
             TIME_TRACKING: 'Onboarding-InterestedFeaturesCheckbox-TimeTracking',
+            HR: 'Onboarding-InterestedFeaturesCheckbox-HR',
         },
         ACCOUNTING_SELECT_INTEGRATION: 'OnboardingAccounting-SelectIntegration',
         PURPOSE_ITEM: 'Onboarding-PurposeItem',

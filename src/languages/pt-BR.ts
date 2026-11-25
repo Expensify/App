@@ -7589,6 +7589,9 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
                 subtitle: 'Defina uma taxa horária faturável para o controle de tempo.',
                 defaultHourlyRate: 'Taxa horária padrão',
             },
+            hr: {
+                subtitle: 'Conecte ferramentas de RH e mantenha as aprovações dos funcionários sincronizadas.',
+            },
             vendors: {
                 title: 'Fornecedores',
                 subtitle: 'Combine as despesas do cartão com fornecedores importados do seu software de contabilidade.',

@@ -44,7 +44,7 @@ import type {BaseOnboardingInterestedFeaturesProps, Feature, FeatureDetails, Sec
 function BaseOnboardingInterestedFeatures({shouldUseNativeStyles}: BaseOnboardingInterestedFeaturesProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const illustrations = useMemoizedLazyIllustrations(['FolderOpen', 'Accounting', 'CompanyCard', 'Workflows', 'Rules', 'Car', 'Tag', 'PerDiem', 'HandCard', 'Luggage', 'Clock']);
+    const illustrations = useMemoizedLazyIllustrations(['FolderOpen', 'Accounting', 'CompanyCard', 'Workflows', 'Rules', 'Car', 'Tag', 'PerDiem', 'HandCard', 'Luggage', 'Clock', 'Members']);
 
     // We need to use isSmallScreenWidth, see navigateAfterOnboarding function comment
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
@@ -135,6 +135,13 @@ function BaseOnboardingInterestedFeatures({shouldUseNativeStyles}: BaseOnboardin
             icon: illustrations.Clock,
             sentryLabel: CONST.SENTRY_LABEL.ONBOARDING.INTERESTED_FEATURES_ITEM.TIME_TRACKING,
             checkboxSentryLabel: CONST.SENTRY_LABEL.ONBOARDING.INTERESTED_FEATURES_CHECKBOX.TIME_TRACKING,
+        },
+        [CONST.POLICY.MORE_FEATURES.IS_HR_ENABLED]: {
+            title: translate('workspace.common.hr'),
+            subtitle: translate('workspace.moreFeatures.hr.subtitle'),
+            icon: illustrations.Members,
+            sentryLabel: CONST.SENTRY_LABEL.ONBOARDING.INTERESTED_FEATURES_ITEM.HR,
+            checkboxSentryLabel: CONST.SENTRY_LABEL.ONBOARDING.INTERESTED_FEATURES_CHECKBOX.HR,
         },
     };
 

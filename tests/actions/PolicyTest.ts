@@ -1,4 +1,5 @@
 import type {GuidedSetupTask} from '@libs/actions/Report';
+import {getDefaultOnboardingFeaturesMap} from '@libs/actions/Welcome/OnboardingFeatures';
 import * as APIModule from '@libs/API';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import GoogleTagManager from '@libs/GoogleTagManager';
@@ -113,6 +114,49 @@ describe('actions/Policy', () => {
     describe('createWorkspace', () => {
         afterEach(() => {
             mockFetch?.resume?.();
+        });
+
+        it.each([false, true])('creates the appropriate plan when onboarding HR selection is %s', async (isHRSelected) => {
+            // Given HR is the only optional feature whose selection differs from the defaults
+            const featuresMap = getDefaultOnboardingFeaturesMap().map((feature) => (feature.id === CONST.POLICY.MORE_FEATURES.IS_HR_ENABLED ? {...feature, enabled: isHRSelected} : feature));
+            const apiWriteSpy = jest.spyOn(APIModule, 'write').mockImplementation(() => Promise.resolve());
+
+            try {
+                // When onboarding creates a workspace using these feature choices
+                Policy.createWorkspace({
+                    conciergeChat: undefined,
+                    policyOwner: {email: ESH_EMAIL, accountID: ESH_ACCOUNT_ID},
+                    makeMeAdmin: true,
+                    policyName: WORKSPACE_NAME,
+                    policyID: Policy.generatePolicyID(),
+                    engagementChoice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM,
+                    introSelected: {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
+                    currentUserAccountIDParam: ESH_ACCOUNT_ID,
+                    currentUserEmailParam: ESH_EMAIL,
+                    currency: CONST.CURRENCY.USD,
+                    featuresMap,
+                    isSelfTourViewed: false,
+                    hasActiveAdminPolicies: false,
+                    hasOwnedPaidPolicy: false,
+                    activePolicy: undefined,
+                    delegateAccountID: undefined,
+                });
+                await waitForBatchedUpdates();
+
+                // Then HR is serialized even when unchecked, and only selecting it requires Control
+                expect(apiWriteSpy).toHaveBeenCalledWith(
+                    WRITE_COMMANDS.CREATE_WORKSPACE,
+                    expect.objectContaining({
+                        type: isHRSelected ? CONST.POLICY.TYPE.CORPORATE : CONST.POLICY.TYPE.TEAM,
+                    }),
+                    expect.anything(),
+                );
+                const parameters = requireRecord(requireCallArgument(apiWriteSpy.mock.calls.at(0), 1));
+                const features = parseJSONRecord(requireStringProperty(parameters, 'features'));
+                expect(features[CONST.POLICY.MORE_FEATURES.IS_HR_ENABLED]).toBe(isHRSelected);
+            } finally {
+                apiWriteSpy.mockRestore();
+            }
         });
 
         it('forwards the user-reported integration name to CreateWorkspace', async () => {
