@@ -109,6 +109,7 @@ function TransactionPreviewContent({
         backgroundColor: theme.cardBG,
         shouldApplyOtherStyles: false,
     });
+    const [personalDetails] = usePersonalDetailsByIDs([ownerAccountID, managerID]);
     const cardID = getViolationToDescribe(violations, transaction)?.data?.cardID;
     // Keep this the last hook and derive the violation again below it. React Compiler cannot cache values that alias
     // an array built before a hook call, and the whole preview derivation depends on this violation.
@@ -119,7 +120,6 @@ function TransactionPreviewContent({
     const transactionDetails: Partial<TransactionDetails> = getTransactionDetails(transaction, policy, isParentPolicyExpenseChat) ?? {};
     const {amount, comment: requestComment, merchant, category, currency: requestCurrency} = transactionDetails;
     const accountIDToName = useMentionedAccountIDToNameMap(requestComment);
-    const [personalDetails] = usePersonalDetailsByIDs([ownerAccountID, managerID]);
     const ownerLogin = getLoginByAccountID(ownerAccountID, personalDetails);
     const currentUserEmail = currentUserDetails.email ?? '';
     const currentUserLogin = currentUserDetails.login;
