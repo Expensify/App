@@ -171,6 +171,17 @@ describe('ReceiptObservability', () => {
             // Then the path stays out of the log
             expect(alertLines).toEqual([{message: '[Receipt] cropFailed', params: {event: 'cropFailed', step: 'crop', errorName: 'TypeError'}}]);
         });
+
+        it('logs a failed rotate with the error name and not the message', () => {
+            // Given a native rotate error whose message contains the file path
+            const error = new TypeError('Could not rotate file:///var/mobile/receipt.jpg');
+
+            // When the failure is logged
+            logReceiptImageEditFailed({step: 'rotate', error});
+
+            // Then it is logged as rotateFailed, so rotates aren't grouped with crops, and the path stays out of the log
+            expect(alertLines).toEqual([{message: '[Receipt] rotateFailed', params: {event: 'rotateFailed', step: 'rotate', errorName: 'TypeError'}}]);
+        });
     });
 
     describe('logReceiptQueueSnapshot', () => {
