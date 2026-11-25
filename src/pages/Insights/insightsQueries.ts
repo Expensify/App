@@ -24,7 +24,7 @@ const COMPARE_AVERAGE_PERIOD_COUNT = 1;
 /** How many expenses the Details panel lists under Top expenses */
 const TOP_EXPENSES_LIMIT = 10;
 
-/** How many months Recent history's View all lists: the summarized period's month and the 12 the average covers before it */
+/** How many months Recent history's View all lists: the summarized period's month and the 12 before it, the most the average can cover */
 const RECENT_HISTORY_MONTH_COUNT = 13;
 
 /** Range of the numbers Search hashes its queries into, which the dashboard's hash shares */
