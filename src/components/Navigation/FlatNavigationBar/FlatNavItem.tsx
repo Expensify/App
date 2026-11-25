@@ -2,6 +2,7 @@ import Icon from '@components/Icon';
 import getTabIconFill from '@components/Navigation/NavigationTabBar/getTabIconFill';
 import {getCollapseFadeStyle} from '@components/Navigation/SearchSidebarCollapseStore';
 import {PressableWithFeedback} from '@components/Pressable';
+import type {PressableRef} from '@components/Pressable/GenericPressable/types';
 import Text from '@components/Text';
 
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -15,13 +16,16 @@ import type {Route} from '@src/ROUTES';
 import type IconAsset from '@src/types/utils/IconAsset';
 import type {SentryLabel} from '@src/types/utils/SentryLabel';
 
-import type {ColorValue} from 'react-native';
+import type {ColorValue, Role} from 'react-native';
 
 import React from 'react';
 import {View} from 'react-native';
 import Animated from 'react-native-reanimated';
 
 type FlatNavItemProps = {
+    /** Lets the row be measured, e.g. to anchor a popover it opens */
+    ref?: PressableRef;
+
     /** Translated row label */
     label: string;
 
@@ -34,6 +38,12 @@ type FlatNavItemProps = {
     rightElement?: React.ReactNode;
 
     isSelected: boolean;
+
+    /** Role of the row, a tab unless it does something else, like opening a popover */
+    role?: Role;
+
+    /** Whether the popover the row opens is showing. Leave it out for a row that does not open one. */
+    isExpanded?: boolean;
 
     /** Whether the row keeps only its icon, so the bar can narrow to an icon rail */
     isCollapsed?: boolean;
@@ -63,11 +73,14 @@ type FlatNavItemProps = {
 
 /** Full-width row of the flat navigation bar: an icon or avatar, then the destination's label. */
 function FlatNavItem({
+    ref,
     label,
     icon,
     renderLeftElement,
     rightElement,
     isSelected,
+    role = CONST.ROLE.TAB,
+    isExpanded,
     isCollapsed = false,
     isTall = false,
     statusIndicatorColor,
@@ -94,11 +107,13 @@ function FlatNavItem({
 
     return (
         <PressableWithFeedback
+            ref={ref}
             onPress={onPress}
             linkRoute={linkRoute}
-            role={CONST.ROLE.TAB}
+            role={role}
             accessibilityLabel={accessibilityLabel ?? label}
-            accessibilityState={{selected: isSelected}}
+            accessibilityHasPopup={isExpanded === undefined ? undefined : 'dialog'}
+            accessibilityState={isExpanded === undefined ? {selected: isSelected} : {expanded: isExpanded}}
             sentryLabel={sentryLabel}
             onHoverIn={onHoverIn}
             onHoverOut={onHoverOut}

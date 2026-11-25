@@ -216,8 +216,8 @@ function isReportMergeableForDuplicates(report: OnyxEntry<Report>, reportID: str
  */
 function removeSettledAndApprovedTransactions(transactions: Array<OnyxEntry<Transaction>>): Transaction[] {
     return transactions.filter(
-        (transaction) => !!transaction && isReportMergeableForDuplicates(getReportOrDraftReport({reportID: transaction.reportID}), transaction.reportID),
-    ) as Transaction[];
+        (transaction): transaction is Transaction => !!transaction && isReportMergeableForDuplicates(getReportOrDraftReport({reportID: transaction.reportID}), transaction.reportID),
+    );
 }
 
 /**
@@ -288,7 +288,7 @@ function compareDuplicateTransactionFields(
                 items
                     .map((item) => {
                         // Prioritize modifiedMerchant over merchant
-                        if (keys.includes('modifiedMerchant' as keyof Transaction) && keys.includes('merchant' as keyof Transaction)) {
+                        if (keys.includes('modifiedMerchant') && keys.includes('merchant')) {
                             return getMerchant(item);
                         }
                         return keys.map((key) => item?.[key]);
@@ -460,11 +460,11 @@ function buildMergeDuplicatesParams(
     keptTransaction: OnyxEntry<Transaction>,
 ): MergeDuplicatesTransactionParams {
     return {
-        amount: -getAmount(originalTransaction as OnyxEntry<Transaction>, true),
+        amount: -getAmount(originalTransaction, true),
         reportID: originalTransaction?.reportID,
         receiptID: originalTransaction?.receipt?.receiptID ?? CONST.DEFAULT_NUMBER_ID,
-        currency: getCurrency(originalTransaction as OnyxEntry<Transaction>),
-        created: getFormattedCreated(originalTransaction as OnyxEntry<Transaction>),
+        currency: getCurrency(originalTransaction),
+        created: getFormattedCreated(originalTransaction),
         transaction: keptTransaction,
         transactionList: removeSettledAndApprovedTransactions(duplicatedTransactions ?? []),
         billable: reviewDuplicates?.billable ?? false,

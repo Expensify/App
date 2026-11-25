@@ -2,6 +2,7 @@ import {
     DiscardStaleSearchSnapshot,
     MembersNeedCategoryError,
     FailureTracking,
+    FlagSearchTransactionWrites,
     FraudMonitoring,
     GlobalReimbursementPayError,
     handleDeletedAccount,
@@ -12,6 +13,7 @@ import {
     Logging,
     Pagination,
     Reauthentication,
+    ReceiptTelemetry,
     RecordFullReconnectTime,
     ReconcileBulkEditReportAction,
     ReconcileConciergeProcessingStatus,
@@ -33,6 +35,7 @@ jest.mock('@libs/Request', () => ({
 
 const EXPECTED_ORDER: RequestModule.Middleware[] = [
     Logging,
+    ReceiptTelemetry,
     LoadTest,
     FailureTracking,
     Reauthentication,
@@ -49,6 +52,7 @@ const EXPECTED_ORDER: RequestModule.Middleware[] = [
     HandleMovedScanFailedExpenses,
     DiscardStaleSearchSnapshot,
     ReconcileBulkEditReportAction,
+    FlagSearchTransactionWrites,
     ReconcileConciergeProcessingStatus,
     SaveResponseInOnyx,
     FraudMonitoring,
@@ -66,9 +70,9 @@ describe('Middleware registration', () => {
         expect(registered).toEqual(EXPECTED_ORDER);
     });
 
-    it('registers all 20 middlewares with no duplicates', () => {
-        expect(registered).toHaveLength(20);
-        expect(new Set(registered).size).toBe(20);
+    it('registers all 22 middlewares with no duplicates', () => {
+        expect(registered).toHaveLength(22);
+        expect(new Set(registered).size).toBe(22);
     });
 
     it('keeps SaveResponseInOnyx after every other Onyx-writing middleware and before FraudMonitoring', () => {
@@ -80,6 +84,7 @@ describe('Middleware registration', () => {
         expect(indexOf(HandleMovedScanFailedExpenses)).toBeLessThan(indexOf(SaveResponseInOnyx));
         expect(indexOf(DiscardStaleSearchSnapshot)).toBeLessThan(indexOf(SaveResponseInOnyx));
         expect(indexOf(ReconcileBulkEditReportAction)).toBeLessThan(indexOf(SaveResponseInOnyx));
+        expect(indexOf(FlagSearchTransactionWrites)).toBeLessThan(indexOf(SaveResponseInOnyx));
         expect(indexOf(FraudMonitoring)).toBeGreaterThan(indexOf(SaveResponseInOnyx));
     });
 });

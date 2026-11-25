@@ -1,5 +1,6 @@
 import DiscardStaleSearchSnapshot from './DiscardStaleSearchSnapshot';
 import FailureTracking from './FailureTracking';
+import FlagSearchTransactionWrites from './FlagSearchTransactionWrites';
 import FraudMonitoring from './FraudMonitoring';
 import GlobalReimbursementPayError from './GlobalReimbursementPayError';
 import handleDeletedAccount from './HandleDeletedAccount';
@@ -11,6 +12,7 @@ import Logging from './Logging';
 import MembersNeedCategoryError from './MembersNeedCategoryError';
 import {Pagination} from './Pagination';
 import Reauthentication from './Reauthentication';
+import ReceiptTelemetry from './ReceiptTelemetry';
 import ReconcileBulkEditReportAction from './ReconcileBulkEditReportAction';
 import ReconcileConciergeProcessingStatus from './ReconcileConciergeProcessingStatus';
 import RecordFullReconnectTime from './RecordFullReconnectTime';
@@ -27,10 +29,12 @@ export {
     LoadTest,
     Logging,
     Reauthentication,
+    ReceiptTelemetry,
     RecordFullReconnectTime,
     ReconcileBulkEditReportAction,
     ReconcileConciergeProcessingStatus,
     FailureTracking,
+    FlagSearchTransactionWrites,
     SaveResponseInOnyx,
     Pagination,
     handleDeletedAccount,

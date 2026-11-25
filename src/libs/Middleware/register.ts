@@ -4,6 +4,7 @@ import {
     DiscardStaleSearchSnapshot,
     MembersNeedCategoryError,
     FailureTracking,
+    FlagSearchTransactionWrites,
     FraudMonitoring,
     GlobalReimbursementPayError,
     handleDeletedAccount,
@@ -14,6 +15,7 @@ import {
     Logging,
     Pagination,
     Reauthentication,
+    ReceiptTelemetry,
     RecordFullReconnectTime,
     ReconcileBulkEditReportAction,
     ReconcileConciergeProcessingStatus,
@@ -41,6 +43,9 @@ function registerMiddlewares() {
 
     // Logging - Logs request details and errors.
     addMiddleware(Logging);
+
+    // ReceiptTelemetry - Logs the sent and server result steps of the receipt trail. Right after Logging so each replayed attempt is logged too.
+    addMiddleware(ReceiptTelemetry);
 
     // Duplicates API calls (tagged with mockRequest=true) when the server sends load-test parameters via the X-Load-Test response header.
     addMiddleware(LoadTest);
@@ -89,6 +94,9 @@ function registerMiddlewares() {
 
     // Reconcile bulk-edit actions before successData can reinsert an action Auth skipped.
     addMiddleware(ReconcileBulkEditReportAction);
+
+    // FlagSearchTransactionWrites - Tells Search which transactions a successful user write changed, so it can fetch server-computed values again.
+    addMiddleware(FlagSearchTransactionWrites);
 
     // Applies the server's Concierge decision for a sent message, so the optimistic indicator follows the real reply destination or clears.
     addMiddleware(ReconcileConciergeProcessingStatus);
