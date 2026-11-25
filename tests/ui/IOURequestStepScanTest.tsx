@@ -23,6 +23,7 @@ import Onyx from 'react-native-onyx';
 
 import createRandomTransaction from '../utils/collections/transaction';
 import createMock from '../utils/createMock';
+import {translateLocal} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
@@ -202,7 +203,7 @@ describe('IOURequestStepScan', () => {
         );
 
         await waitForBatchedUpdatesWithAct();
-        fireEvent.press(screen.getByLabelText('Multi-scan'));
+        fireEvent.press(screen.getByLabelText(translateLocal('receipt.multiScan')));
         await waitForBatchedUpdates();
         const transaction1 = createRandomTransaction(1);
         transaction1.reportID = REPORT_ID;
