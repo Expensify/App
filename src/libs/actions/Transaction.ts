@@ -1330,7 +1330,11 @@ function getChangeTransactionsReportOnyxData({
             if (!isSameWorkspace) {
                 const sourcePolicy = sourcePolicyID ? policies?.[`${ONYXKEYS.COLLECTION.POLICY}${sourcePolicyID}`] : getPolicyForDistanceRateID(currentRateID, policies);
                 const currentRate = currentRateID && sourcePolicy ? DistanceRequestUtils.getMileageRates(sourcePolicy, true)[currentRateID] : undefined;
-                const rateSelection = DistanceRequestUtils.getRateForPolicyChange({transaction, policy, currentRate});
+                const rateSelection = DistanceRequestUtils.getRateForPolicyChange({
+                    transaction,
+                    policy,
+                    currentRate: currentRate ? {...currentRate, unit: DistanceRequestUtils.getDistanceUnit(transaction, currentRate)} : undefined,
+                });
                 const selectedRate = rateSelection?.rate;
                 if (rateSelection && selectedRate?.customUnitRateID) {
                     // Build an updated transaction with the new rate so we can derive fields from it

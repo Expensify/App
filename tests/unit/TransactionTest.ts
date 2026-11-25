@@ -2523,14 +2523,18 @@ describe('Transaction', () => {
             const SOURCE_POLICY_ID = 'sourcePolicy';
             const DESTINATION_POLICY_ID = 'destinationPolicy';
 
-            function createDistancePolicy(policyID: string, rates: Record<string, {rate: number; enabled?: boolean; endDate?: string}>): Policy {
+            function createDistancePolicy(
+                policyID: string,
+                rates: Record<string, {rate: number; enabled?: boolean; endDate?: string}>,
+                unit: Unit = CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+            ): Policy {
                 return {
                     ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
                     id: policyID,
                     outputCurrency: 'USD',
                     customUnits: {
                         distanceUnit: {
-                            attributes: {unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES},
+                            attributes: {unit},
                             customUnitID: 'distanceUnit',
                             defaultCategory: '',
                             enabled: true,
@@ -2674,6 +2678,36 @@ describe('Transaction', () => {
                 expect(result.transaction?.merchant).toBe(transaction.merchant);
                 expect(result.transaction?.modifiedMerchant).toBeUndefined();
                 expect(result.modifiedExpenseActions).toHaveLength(0);
+            });
+
+            it.each([
+                {reportID: FAKE_OLD_REPORT_ID, destinationUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES, shouldMatch: true},
+                {reportID: CONST.REPORT.UNREPORTED_REPORT_ID, destinationUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES, shouldMatch: true},
+                {reportID: FAKE_OLD_REPORT_ID, destinationUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS, shouldMatch: false},
+                {reportID: CONST.REPORT.UNREPORTED_REPORT_ID, destinationUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS, shouldMatch: false},
+            ])('uses the stored expense unit when moving from report $reportID to $destinationUnit rates', async ({reportID, destinationUnit, shouldMatch}) => {
+                // Given a miles expense whose source workspace has since switched to kilometers
+                const transaction = {...createDistanceTransaction(reportID, 'sourceRate'), modifiedAmount: -900};
+                const policies = {
+                    [SOURCE_POLICY_ID]: createDistancePolicy(SOURCE_POLICY_ID, {sourceRate: {rate: 50, enabled: false}}, CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS),
+                    [DESTINATION_POLICY_ID]: createDistancePolicy(DESTINATION_POLICY_ID, {defaultRate: {rate: 67}, sameValueRate: {rate: 50}}, destinationUnit),
+                };
+
+                // When moving to a workspace whose rate unit may match the expense but not the source workspace
+                const result = await moveDistanceExpense(transaction, policies, reportID === FAKE_OLD_REPORT_ID ? SOURCE_POLICY_ID : undefined);
+
+                // Then only a genuinely equivalent rate preserves the edited amount and avoids a rate-change message
+                expect(result.transaction?.comment?.customUnit?.customUnitRateID).toBe(shouldMatch ? 'sameValueRate' : 'defaultRate');
+                expect(result.transaction?.comment?.customUnit?.distanceUnit).toBe(destinationUnit);
+                expect(result.transaction?.comment?.customUnit?.quantity).toBe(shouldMatch ? 10 : 16.09);
+                expect(result.transaction?.modifiedAmount).toBe(shouldMatch ? -900 : -1078);
+                expect(result.transaction?.merchant).toBe(transaction.merchant);
+                if (shouldMatch) {
+                    expect(result.transaction?.modifiedMerchant).toBeUndefined();
+                } else {
+                    expect(result.transaction?.modifiedMerchant).not.toBe(transaction.merchant);
+                }
+                expect(result.modifiedExpenseActions).toHaveLength(shouldMatch ? 0 : 1);
             });
 
             it('reprices a fallback and sends one Concierge action ordered after the move, with cleanup on success and failure', async () => {
