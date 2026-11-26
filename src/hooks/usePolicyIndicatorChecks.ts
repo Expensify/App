@@ -3,8 +3,8 @@ import {getDomainsWithErrors, hasPendingDomainAdminRequestsToReview} from '@libs
 import {isMergeHRCompleteSetupNeeded, shouldShowHRConnectionError} from '@libs/merge/HRUtils';
 import {
     getUberConnectionErrorDirectlyFromPolicy,
-    isArchivedPolicy,
     isPolicyAdmin,
+    shouldCheckPolicyForErrors,
     shouldShowCustomUnitsError,
     shouldShowUKFuelRateTaxError,
     shouldShowEmployeeListError,
@@ -12,7 +12,7 @@ import {
     shouldShowReimbursableExportDestinationAccountError,
     shouldShowSyncError,
 } from '@libs/PolicyUtils';
-import {getApprovalWorkflowRulesForPolicy} from '@libs/RuleUtils';
+import {getApprovalWorkflowRulesForPolicy, groupRulesByPolicyID} from '@libs/RuleUtils';
 import {hasApprovalWorkflowWithNonMemberApprover} from '@libs/WorkflowUtils';
 
 import CONST from '@src/CONST';
@@ -52,18 +52,18 @@ function usePolicyIndicatorChecks(): PolicyIndicatorChecksResult {
     const {isBetaEnabled} = usePermissions();
     const isMultipleApproversBetaEnabled = isBetaEnabled(CONST.BETAS.MULTIPLE_APPROVERS);
     const [allRules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
+    const rulesByPolicyID = isMultipleApproversBetaEnabled ? groupRulesByPolicyID(allRules) : undefined;
 
     // Building approval workflows is heavy on large accounts, so it runs in a selector and only reruns when its inputs change, not on every render
     const nonMemberApproverPolicyIDSelector = (policies: OnyxCollection<Policy>) =>
         Object.values(policies ?? {}).find(
             (policy) =>
-                !!policy?.id &&
-                !isArchivedPolicy(policy) &&
+                shouldCheckPolicyForErrors(policy) &&
                 hasApprovalWorkflowWithNonMemberApprover({
                     policy,
                     currentUserLogin,
                     // Rules only route the workflows under the beta, so they aren't used otherwise
-                    rules: isMultipleApproversBetaEnabled ? getApprovalWorkflowRulesForPolicy(allRules, policy.id) : undefined,
+                    rules: rulesByPolicyID ? getApprovalWorkflowRulesForPolicy(rulesByPolicyID[policy.id], policy.id) : undefined,
                     isMultipleApproversBetaEnabled,
                 }),
         )?.id;
