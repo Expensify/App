@@ -78,4 +78,40 @@ describe('getContextMenuAccessibilityProps', () => {
             accessibilityHint: undefined,
         });
     });
+
+    it('reads a hint at the end of the label on web, which has no accessibility hint', () => {
+        // Given a chat row with a navigation hint, on web
+        mockedGetPlatform.mockReturnValue(CONST.PLATFORM.WEB);
+
+        // When its accessibility props are computed
+        const props = getContextMenuAccessibilityProps({
+            accessibilityLabel: 'Concierge',
+            accessibilityHint: 'Navigates to a chat',
+            contextMenuHint: 'Context menu available. Press Shift+F10 to open.',
+        });
+
+        // Then web screen readers still hear the hint, after the name, instead of losing it
+        expect(props).toEqual({
+            accessibilityLabel: 'Concierge. Navigates to a chat. Context menu available. Press Shift+F10 to open.',
+            accessibilityHint: undefined,
+        });
+    });
+
+    it('keeps the hint out of the label on native', () => {
+        // Given the same chat row on native
+        mockedGetPlatform.mockReturnValue(CONST.PLATFORM.IOS);
+
+        // When its accessibility props are computed
+        const props = getContextMenuAccessibilityProps({
+            accessibilityLabel: 'Concierge',
+            accessibilityHint: 'Navigates to a chat',
+            contextMenuHint: 'Context menu available. Double-tap and hold to open.',
+        });
+
+        // Then the name stays short and the hint is read after a pause, as native screen readers expect
+        expect(props).toEqual({
+            accessibilityLabel: 'Concierge',
+            accessibilityHint: 'Navigates to a chat. Context menu available. Double-tap and hold to open.',
+        });
+    });
 });
