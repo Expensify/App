@@ -33,6 +33,7 @@ import * as SessionUtil from '@src/libs/actions/Session';
 import {KEYS_TO_PRESERVE_SUPPORTAL, signOutAndRedirectToSignIn} from '@src/libs/actions/Session';
 import * as API from '@src/libs/API';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import type {Account, Credentials, MarketingAttribution, Session} from '@src/types/onyx';
 import type {StoredMarketingAttribution} from '@src/types/onyx/MarketingAttribution';
 
@@ -110,6 +111,38 @@ beforeEach(() => {
 });
 
 describe('Session', () => {
+    describe('canAnonymousUserAccessRoute', () => {
+        test.each(['', '/'])('allows a report attachment on refresh with prefix "%s"', (prefix) => {
+            // Given an attachment URL from a report that an anonymous user can view
+            const route = `${prefix}${ROUTES.REPORT_ATTACHMENTS.getRoute({type: CONST.ATTACHMENT_TYPE.REPORT, reportID: '123', source: 'https://example.com/image.png'})}`;
+
+            // When startup checks whether to redirect the anonymous user
+            const canAccess = SessionUtil.canAnonymousUserAccessRoute(route);
+
+            // Then the attachment remains accessible without an unnecessary sign-in modal
+            expect(canAccess).toBe(true);
+        });
+
+        test.each([
+            'attachment',
+            'attachment?type=r',
+            'attachment?type=r&reportID=',
+            'attachment?reportID=123',
+            'attachment?type=s&reportID=123',
+            'attachment?type=n&reportID=123',
+            'attachment?type=o&reportID=123',
+            'attachment/other?type=r&reportID=123',
+            'settings?type=r&reportID=123',
+        ])('does not allow an unrelated or incomplete attachment route: %s', (route) => {
+            // Given a route that does not identify a report attachment
+            // When startup checks anonymous route eligibility
+            const canAccess = SessionUtil.canAnonymousUserAccessRoute(route);
+
+            // Then attachment query parameters do not bypass the existing sign-in requirement
+            expect(canAccess).toBe(false);
+        });
+    });
+
     describe('revokeAllSessions', () => {
         const translate = jest.fn(() => 'You’ve been signed out on all devices.');
         const mockAPI = jest.mocked(API);
