@@ -45,6 +45,9 @@ type CategoryPickerModalProps = WithSentryLabelWhenPressable<'onAddCategory', 'a
 
     /** The account the expense belongs to, passed only when the current user owns it, so the list shows just the categories they can use */
     ownerAccountID?: number;
+
+    /** The account the expense belongs to, passed when someone else owns it, so the picker splits the categories by what that member can use */
+    submitterAccountID?: number;
 } & Omit<AnchoredSelectionListPopoverProps, 'optionCount' | 'isSearchable' | 'title' | 'backButtonSentryLabel' | 'headerActions' | 'children'>;
 
 function CategoryPickerModal({
@@ -57,6 +60,7 @@ function CategoryPickerModal({
     addCategorySentryLabel,
     onCreateCategory,
     ownerAccountID,
+    submitterAccountID,
     isVisible,
     onClose,
     onModalHide,
@@ -67,9 +71,9 @@ function CategoryPickerModal({
     const icons = useMemoizedLazyExpensifyIcons(['Plus']);
 
     const {searchKey, shouldPrepareOptions, finishClosing} = usePickerPopoverSession(isVisible, onModalHide);
-    const data = useCategoryPickerData(policyID);
+    const data = useCategoryPickerData(policyID, submitterAccountID);
     const {translate} = data;
-    const options = shouldPrepareOptions ? getCategoryPickerOptions(data, {selectedCategory, shouldAlwaysShowGLCode, searchInputThreshold, ownerAccountID}) : undefined;
+    const options = shouldPrepareOptions ? getCategoryPickerOptions(data, {selectedCategory, shouldAlwaysShowGLCode, searchInputThreshold, ownerAccountID, submitterAccountID}) : undefined;
     const {rowCount, setRowCountFrozen, unfilteredSections} = usePickerPopoverRowCount(options ? () => options.getSections('') : undefined, searchKey);
     const [search, debouncedSearch, setSearch] = useDebouncedState({searchKey, value: ''}, undefined, {
         onDebouncedValueChange: (nextSearch) => {

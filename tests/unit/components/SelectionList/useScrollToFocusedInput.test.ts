@@ -30,7 +30,9 @@ describe('useScrollToFocusedInput (native)', () => {
             const scrollToOffset = jest.fn();
             const scroller = {...createViewAt(LIST_TOP, LIST_HEIGHT), scrollTo: jest.fn()};
             const {result} = renderHook(() =>
-                useScrollToFocusedInput({current: {scrollToOffset, getNativeScrollRef: () => createMock<ReturnType<FlashListRef<unknown>['getNativeScrollRef']>>(scroller)}}),
+                useScrollToFocusedInput({
+                    current: Object.assign(createMock<Pick<FlashListRef<unknown>, 'scrollToOffset' | 'getNativeScrollRef'>>({scrollToOffset}), {getNativeScrollRef: () => scroller}),
+                }),
             );
             result.current.containerRef.current = createMock<ComponentRef<typeof View>>(createViewAt(LIST_TOP, LIST_HEIGHT + 200));
             act(() => result.current.trackScrollOffset(createMock<NativeSyntheticEvent<NativeScrollEvent>>({nativeEvent: {contentOffset: {y: SCROLL_OFFSET}}})));

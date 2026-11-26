@@ -91,6 +91,48 @@ describe('usePerDiemRows', () => {
         expect(deletedRow?.canEditAmount).toBe(false);
     });
 
+    it('keeps a pending subrate disabled offline without marking its sibling, then hides it on reconnection', () => {
+        // Given one deleted subrate and one unchanged subrate in the same destination.
+        const rates = createRates();
+        const breakfast = rates.rate1.subRates?.[0];
+        if (breakfast) {
+            breakfast.pendingAction = CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
+        }
+        const customUnit = createCustomUnit(rates);
+
+        // When the table renders offline, only the selected row has pending deletion feedback.
+        const {result, rerender} = renderPerDiemRows({customUnit, isOffline: true});
+        expect(result.current.perDiemRows[0]).toMatchObject({pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE, disabled: true, canEditAmount: false});
+        expect(result.current.perDiemRows[1]).toMatchObject({disabled: false, canEditAmount: true});
+        expect(Object.keys(result.current.selectableSubRatesByKey)).toEqual(['rate1:sub2']);
+
+        // Then reconnection hides the pending row, but the unselected sibling remains.
+        rerender({customUnit, isOffline: false});
+        expect(result.current.perDiemRows.map((row) => row.subRateName)).toEqual(['Lunch']);
+    });
+
+    it('places the rate-level error on the first visible row rather than a hidden pending deletion', () => {
+        // Given the first sibling is pending deletion and the destination has a rate-level error
+        const rates = createRates();
+        rates.rate1.subRates = [
+            {id: 'sub1', name: 'Breakfast', rate: 600, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE},
+            {id: 'sub2', name: 'Lunch', rate: 1200},
+        ];
+        const errors = {[Date.now()]: 'Could not update this rate'};
+        rates.rate1.errors = errors;
+        const customUnit = createCustomUnit(rates);
+
+        // When the table renders online, the first stored sibling is hidden
+        const {result, rerender} = renderPerDiemRows({customUnit, isOffline: false});
+
+        // Then the visible sibling carries the error, and offline it still appears only once
+        expect(result.current.perDiemRows).toHaveLength(1);
+        expect(result.current.perDiemRows[0]).toMatchObject({subRateID: 'sub2', errors});
+        rerender({customUnit, isOffline: true});
+        expect(result.current.perDiemRows.filter((row) => row.errors)).toHaveLength(1);
+        expect(result.current.perDiemRows[0]).toMatchObject({subRateID: 'sub1', errors});
+    });
+
     it('only lets members who can write edit a row', () => {
         // Given a member who can only read the Per Diem rates
         const customUnit = createCustomUnit(createRates());

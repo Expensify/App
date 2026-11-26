@@ -637,6 +637,7 @@ function submitCreateAmount(args: SubmitAmountArgs, ctx: SubmitAmountContext): v
 
 function submitEditAmount(args: SubmitAmountArgs, ctx: SubmitAmountContext): void {
     const {
+        translate,
         policy,
         selectedCurrency,
         decimals,
@@ -681,6 +682,7 @@ function submitEditAmount(args: SubmitAmountArgs, ctx: SubmitAmountContext): voi
 
     if (isSplitBill) {
         setDraftSplitTransaction(
+            translate,
             transactionID,
             splitDraftTransaction ?? transaction,
             {amount: newAmount, currency: selectedCurrency, taxCode, taxAmount},
@@ -699,6 +701,7 @@ function submitEditAmount(args: SubmitAmountArgs, ctx: SubmitAmountContext): voi
     const parentReport = report?.parentReportID ? allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID}`] : undefined;
 
     updateMoneyRequestAmountAndCurrency({
+        translate,
         isVendorMatchingBetaEnabled: ctx.isVendorMatchingBetaEnabled,
         transactionID,
         transaction: currentTransaction,

@@ -11,16 +11,18 @@ import useLoadPolicyCategories from '@hooks/useLoadPolicyCategories';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import {usePersonalDetailsByIDs} from '@hooks/usePersonalDetails';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import canFocusInputOnScreenFocus from '@libs/canFocusInputOnScreenFocus';
 import {getCategoryListSections} from '@libs/CategoryOptionListUtils';
-import type {Category} from '@libs/CategoryOptionListUtils';
-import {canCreateCategoryFromSearch, getEnabledCategoriesCount, getVisibleCategories} from '@libs/CategoryUtils';
+import type {Category, CategoryTreeSection} from '@libs/CategoryOptionListUtils';
+import {canCreateCategoryFromSearch, getEnabledCategoriesCount, getUnavailableCategories, getVisibleCategories} from '@libs/CategoryUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getHeaderMessageForNonUserList, getNoneOption} from '@libs/OptionsListUtils';
 import type {OptionTree} from '@libs/OptionsListUtils/types';
+import {getDisplayNameForParticipant} from '@libs/ReportUtils';
 import StringUtils from '@libs/StringUtils';
 import {cancelSpan, endSpanWithAttributes} from '@libs/telemetry/activeSpans';
 
@@ -28,6 +30,7 @@ import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {PolicyCategories} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import getEmptyArray from '@src/types/utils/getEmptyArray';
 
@@ -72,6 +75,23 @@ type CategoryPickerProps = {
      * list shows.
      */
     ownerAccountID?: number;
+
+    /**
+     * The expense owner when someone else recodes it. Categories are grouped by whether the owner can use them.
+     */
+    submitterAccountID?: number;
+};
+
+/**
+ * Titles a group of sections built by getCategoryListSections: the first section with rows gets the group's title,
+ * since a section's title only shows when it has rows. Offsetting the indexes keeps the header keys unique across groups.
+ */
+/** Larger than any sectionIndex getCategoryListSections returns, so offset groups never share a header key */
+const SECTION_INDEX_OFFSET = 10;
+
+const titleSectionGroup = (sections: CategoryTreeSection[], title: string, sectionIndexOffset: number): CategoryTreeSection[] => {
+    const titledSectionIndex = sections.findIndex((section) => section.data.length > 0);
+    return sections.map((section, index) => ({...section, title: index === titledSectionIndex ? title : '', sectionIndex: (section.sectionIndex ?? 0) + sectionIndexOffset}));
 };
 
 const getSelectedOptions = (selectedCategory?: string): Category[] => {
@@ -88,27 +108,41 @@ const getSelectedOptions = (selectedCategory?: string): Category[] => {
     ];
 };
 
-type CategoryPickerOptionsProps = Pick<CategoryPickerProps, 'selectedCategory' | 'policyID' | 'shouldShowNoneOption' | 'shouldAlwaysShowGLCode' | 'searchInputThreshold' | 'ownerAccountID'>;
+type CategoryPickerOptionsProps = Pick<
+    CategoryPickerProps,
+    'selectedCategory' | 'policyID' | 'shouldShowNoneOption' | 'shouldAlwaysShowGLCode' | 'searchInputThreshold' | 'ownerAccountID' | 'submitterAccountID'
+>;
 
-function useCategoryPickerData(policyID: string | undefined) {
+function useCategoryPickerData(policyID: string | undefined, submitterAccountID?: number) {
     const [shouldShowGLCodeFromPolicy] = useOnyxWithoutSnapshots(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(policyID)}`, {
         selector: (policy) => !!policy?.showCategoryGLCodes && !!policy?.glCodes,
     });
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${getNonEmptyStringOnyxID(policyID)}`);
     const [policyCategoriesDraft] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES_DRAFT}${getNonEmptyStringOnyxID(policyID)}`);
     const [policyRecentlyUsedCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CATEGORIES}${getNonEmptyStringOnyxID(policyID)}`);
-    const {translate, localeCompare} = useLocalize();
-    return {policyCategories, policyCategoriesDraft, policyRecentlyUsedCategories, shouldShowGLCodeFromPolicy, translate, localeCompare};
+    const {translate, localeCompare, formatPhoneNumber} = useLocalize();
+    const [submitterPersonalDetails] = usePersonalDetailsByIDs([submitterAccountID]);
+    return {policyCategories, policyCategoriesDraft, policyRecentlyUsedCategories, shouldShowGLCodeFromPolicy, translate, localeCompare, formatPhoneNumber, submitterPersonalDetails};
 }
 
 function getCategoryPickerOptions(
-    {policyCategories, policyCategoriesDraft, policyRecentlyUsedCategories, shouldShowGLCodeFromPolicy, translate, localeCompare}: ReturnType<typeof useCategoryPickerData>,
+    {
+        policyCategories,
+        policyCategoriesDraft,
+        policyRecentlyUsedCategories,
+        shouldShowGLCodeFromPolicy,
+        translate,
+        localeCompare,
+        formatPhoneNumber,
+        submitterPersonalDetails,
+    }: ReturnType<typeof useCategoryPickerData>,
     {
         selectedCategory,
         shouldShowNoneOption = false,
         shouldAlwaysShowGLCode = false,
         searchInputThreshold = CONST.STANDARD_LIST_ITEM_LIMIT,
         ownerAccountID,
+        submitterAccountID,
     }: Omit<CategoryPickerOptionsProps, 'policyID'>,
 ) {
     const shouldShowGLCode = shouldAlwaysShowGLCode || !!shouldShowGLCodeFromPolicy;
@@ -117,17 +151,53 @@ function getCategoryPickerOptions(
     const selectedOptions = getSelectedOptions(selectedCategory);
     const categories = ownerAccountID === undefined ? allCategories : getVisibleCategories(allCategories, ownerAccountID);
     const validPolicyRecentlyUsedCategories = policyRecentlyUsedCategories?.filter?.((p) => !isEmptyObject(p));
-    const getSections = (searchValue: string) => {
-        const sections = getCategoryListSections({
-            searchValue,
-            selectedOptions,
-            categories,
-            localeCompare,
-            recentlyUsedCategories: validPolicyRecentlyUsedCategories,
-            translate,
-            shouldShowGLCode,
-            searchInputThreshold,
+    const unavailableCategories = submitterAccountID === undefined ? {} : getUnavailableCategories(allCategories, submitterAccountID);
+    const getSectionsForQuery = (searchValue: string): CategoryTreeSection[] => {
+        if (submitterAccountID === undefined || isEmptyObject(unavailableCategories)) {
+            return getCategoryListSections({
+                searchValue,
+                selectedOptions,
+                categories,
+                localeCompare,
+                recentlyUsedCategories: validPolicyRecentlyUsedCategories,
+                translate,
+                shouldShowGLCode,
+                searchInputThreshold,
+            });
+        }
+
+        const submitterName = getDisplayNameForParticipant({
+            accountID: submitterAccountID,
+            personalDetailsData: submitterPersonalDetails,
+            formatPhoneNumber,
+            hiddenTranslation: translate('common.hidden'),
         });
+        // Keep the selected category above the groups without repeating it in either group.
+        const selectedPolicyCategory = selectedCategory ? allCategories[selectedCategory] : undefined;
+        const withoutSelectedCategory = (groupCategories: PolicyCategories): PolicyCategories =>
+            Object.fromEntries(Object.entries(groupCategories).filter(([categoryName]) => categoryName !== selectedCategory));
+        // Suppress Recent and All within each group, so the availability headings are the only headings.
+        const buildGroupSections = (groupCategories: PolicyCategories, groupSelectedOptions: Category[]) =>
+            getCategoryListSections({
+                searchValue,
+                selectedOptions: groupSelectedOptions,
+                categories: groupCategories,
+                localeCompare,
+                translate,
+                shouldShowGLCode,
+                searchInputThreshold: Number.POSITIVE_INFINITY,
+            });
+        const selectedSections = buildGroupSections(selectedCategory && selectedPolicyCategory ? {[selectedCategory]: selectedPolicyCategory} : {}, selectedOptions);
+        const availableSections = buildGroupSections(withoutSelectedCategory(getVisibleCategories(allCategories, submitterAccountID)), []);
+        const unavailableSections = buildGroupSections(withoutSelectedCategory(unavailableCategories), []);
+        return [
+            ...selectedSections.map((section) => ({...section, title: ''})),
+            ...titleSectionGroup(availableSections, translate('workspace.categories.availableToMember', submitterName), SECTION_INDEX_OFFSET),
+            ...titleSectionGroup(unavailableSections, translate('workspace.categories.notAvailableToMember', submitterName), SECTION_INDEX_OFFSET * 2),
+        ];
+    };
+    const getSections = (searchValue: string) => {
+        const sections = getSectionsForQuery(searchValue);
 
         const noneOption: OptionTree[] = shouldShowNoneOption
             ? getNoneOption(searchValue, !selectedCategory, translate).map((option): OptionTree => ({
@@ -159,7 +229,7 @@ function getCategoryPickerOptions(
 }
 
 function useCategoryPickerOptions({policyID, ...options}: CategoryPickerOptionsProps) {
-    const data = useCategoryPickerData(policyID);
+    const data = useCategoryPickerData(policyID, options.submitterAccountID);
     return getCategoryPickerOptions(data, options);
 }
 
@@ -308,8 +378,17 @@ function CategoryPickerList(props: CategoryPickerListProps) {
     return <SelectionListWithSections {...listProps} />;
 }
 
-function CategoryPicker({policyID, selectedCategory, ownerAccountID, shouldShowNoneOption, shouldAlwaysShowGLCode, searchInputThreshold, ...pickerProps}: CategoryPickerProps) {
-    const options = useCategoryPickerOptions({policyID, selectedCategory, ownerAccountID, shouldShowNoneOption, shouldAlwaysShowGLCode, searchInputThreshold});
+function CategoryPicker({
+    policyID,
+    selectedCategory,
+    ownerAccountID,
+    submitterAccountID,
+    shouldShowNoneOption,
+    shouldAlwaysShowGLCode,
+    searchInputThreshold,
+    ...pickerProps
+}: CategoryPickerProps) {
+    const options = useCategoryPickerOptions({policyID, selectedCategory, ownerAccountID, submitterAccountID, shouldShowNoneOption, shouldAlwaysShowGLCode, searchInputThreshold});
     const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('');
     const sections = options.getSections(debouncedSearchValue);
     const listProps = useCategoryPickerListProps({...pickerProps, policyID, selectedCategory, ownerAccountID, options, sections, searchValue, debouncedSearchValue, setSearchValue});
