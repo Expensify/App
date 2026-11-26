@@ -17,7 +17,7 @@ import type * as OnyxTypes from '@src/types/onyx';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
-import React, {useState} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 
 type DateInputFieldProps = {
@@ -44,11 +44,8 @@ function DateInputField({transaction, updateParams, duplicates, isTrackExpense, 
     const styles = useThemeStyles();
     const {updateDate} = useUpdateTransactionDate({transaction, updateParams, duplicates, isTrackExpense});
     const savedDate = getFormattedCreated(transaction);
-    const [isCleared, setIsCleared] = useState(false);
 
     const saveDate = (newDate: string) => {
-        // An expense always has a date, so clearing only empties the picker until the next pick.
-        setIsCleared(!newDate);
         // The stored value can include a time from SmartScan, so picking the day that is already shown still saves the
         // date without that time, which can clear a futureDate violation, the same as the date page.
         if (!newDate || newDate === getCreated(transaction)) {
@@ -62,20 +59,14 @@ function DateInputField({transaction, updateParams, duplicates, isTrackExpense, 
         <View style={styles.mh4}>
             <DatePicker
                 inputID={INPUT_IDS.MONEY_REQUEST_CREATED}
-                value={isCleared ? '' : savedDate}
+                value={savedDate}
                 label={label}
                 maxDate={CONST.CALENDAR_PICKER.MAX_DATE}
                 onInputChange={saveDate}
                 errorText={errorText}
                 shouldDeferShowUntilPositioned
-                clearButtonSentryLabel={CONST.SENTRY_LABEL.MONEY_REQUEST_VIEW.DATE_FIELD_CLEAR_BUTTON}
-                onPickerVisibilityChange={(isVisible) => {
-                    // Closing the calendar without a pick brings the saved date back.
-                    if (isVisible || !isCleared) {
-                        return;
-                    }
-                    setIsCleared(false);
-                }}
+                // An expense always has a date, so there is nothing to clear.
+                shouldHideClearButton
             />
         </View>
     );

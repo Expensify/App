@@ -1353,7 +1353,6 @@ const SENTRY_LABEL = {
         DISTANCE_FIELD: 'MoneyRequestView-DistanceField',
         RATE_FIELD: 'MoneyRequestView-RateField',
         DATE_FIELD: 'MoneyRequestView-DateField',
-        DATE_FIELD_CLEAR_BUTTON: 'MoneyRequestView-DateFieldClearButton',
         CATEGORY_FIELD: 'MoneyRequestView-CategoryField',
         TAG_FIELD: 'MoneyRequestView-TagField',
         VENDOR_FIELD: 'MoneyRequestView-VendorField',

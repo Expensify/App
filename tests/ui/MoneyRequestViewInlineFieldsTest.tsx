@@ -48,8 +48,10 @@ jest.mock('@react-navigation/native', () => ({
 }));
 // The calendar is covered by the DatePicker tests; here only what the date field does with a pick matters.
 let mockPickDate: ((date: string) => void) | undefined;
-jest.mock('@components/DatePicker', () => ({onInputChange}: {onInputChange?: (date: string) => void}) => {
+let mockShouldHideDateClearButton: boolean | undefined;
+jest.mock('@components/DatePicker', () => ({onInputChange, shouldHideClearButton}: {onInputChange?: (date: string) => void; shouldHideClearButton?: boolean}) => {
     mockPickDate = onInputChange;
+    mockShouldHideDateClearButton = shouldHideClearButton;
     return null;
 });
 jest.mock('@hooks/useCurrencyList', () => ({
@@ -476,6 +478,24 @@ describe('saved expense inline fields', () => {
     });
 
     describe('DateInputField', () => {
+        it('offers no clear button, since a saved expense always has a date', async () => {
+            // Given a saved expense with a date
+            renderField(
+                <DateInputField
+                    transaction={transaction}
+                    updateParams={updateParams}
+                    duplicates={NO_DUPLICATES}
+                    isTrackExpense={false}
+                    label="date"
+                />,
+            );
+            await waitForBatchedUpdatesWithAct();
+
+            // When its date field shows
+            // Then the picker hides its clear button, which would blank the field without changing the saved date
+            expect(mockShouldHideDateClearButton).toBe(true);
+        });
+
         it('saves the day already shown when the stored date also has a time', async () => {
             // Given a saved expense whose stored date carries a SmartScan time on the day the field shows
             renderField(
