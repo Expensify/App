@@ -5,7 +5,6 @@ import * as PerDiem from '@libs/actions/IOU/PerDiem';
 import * as Split from '@libs/actions/IOU/Split';
 import * as TrackExpense from '@libs/actions/IOU/TrackExpense';
 import initOnyxDerivedValues from '@libs/actions/OnyxDerived';
-import type {WriteReadyBarrier} from '@libs/API';
 import {getTransactionDetails} from '@libs/ReportUtils';
 
 import CONST from '@src/CONST';
@@ -24,7 +23,8 @@ import {formatPhoneNumber, getCurrencyDecimalsLocal} from '../../utils/TestHelpe
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
 jest.mock('@libs/actions/IOU/TrackExpense', () => ({
-    requestMoney: jest.fn(),
+    planRequestMoney: jest.fn(() => ({iouReport: {reportID: 'planned-iou-report-id'}, transactionID: 'planned-request-transaction-id'})),
+    commitRequestMoney: jest.fn(),
     trackExpense: jest.fn(),
 }));
 
@@ -182,10 +182,12 @@ describe('actions/IOU/createExpenseByType', () => {
     }
 
     describe('default expense type', () => {
-        it('calls requestMoney for CASH type', () => {
+        it('plans and commits a request for CASH type, and returns the planned IOU report and transaction ID', () => {
+            // Given a cash expense to duplicate
             const {transaction, transactionDetails, params} = buildBaseParams();
 
-            callCreateExpenseByType({
+            // When the duplicate path routes it by its transaction type
+            const result = callCreateExpenseByType({
                 transactionType: CONST.SEARCH.TRANSACTION_TYPE.CASH,
                 params,
                 transaction,
@@ -193,14 +195,39 @@ describe('actions/IOU/createExpenseByType', () => {
                 participants: [{login: PARTICIPANT_EMAIL, accountID: PARTICIPANT_ACCOUNT_ID}],
             });
 
-            expect(TrackExpense.requestMoney).toHaveBeenCalledTimes(1);
+            // Then the plan it builds is the one it writes, and its IOU report and transaction ID come back so the batch can add the next expense to that report
+            const plan: unknown = jest.mocked(TrackExpense.planRequestMoney).mock.results.at(0)?.value;
+            expect(TrackExpense.planRequestMoney).toHaveBeenCalledTimes(1);
+            expect(TrackExpense.commitRequestMoney).toHaveBeenCalledWith(plan);
+            expect(result?.iouReport?.reportID).toBe('planned-iou-report-id');
+            expect(result?.transactionID).toBe('planned-request-transaction-id');
             expect(Split.planDistanceRequest).not.toHaveBeenCalled();
             expect(PerDiem.submitPerDiemExpense).not.toHaveBeenCalled();
         });
 
-        it('passes the original params through unchanged to requestMoney', () => {
+        it('writes and returns nothing when the request cannot be planned', () => {
+            // Given a cash expense whose plan is refused, as for a SUBMIT with no tracked expense to move
+            const {transaction, transactionDetails, params} = buildBaseParams();
+            jest.mocked(TrackExpense.planRequestMoney).mockReturnValueOnce(undefined);
+
+            // When the duplicate path routes it by its transaction type
+            const result = callCreateExpenseByType({
+                transactionType: CONST.SEARCH.TRANSACTION_TYPE.CASH,
+                params,
+                transaction,
+                transactionDetails,
+            });
+
+            // Then nothing is committed and no report comes back, so the batch does not add the next expense to a report that was never written
+            expect(TrackExpense.commitRequestMoney).not.toHaveBeenCalled();
+            expect(result).toBeUndefined();
+        });
+
+        it('passes the original params through unchanged to planRequestMoney', () => {
+            // Given a cash expense whose params the duplicate path already built
             const {transaction, transactionDetails, params} = buildBaseParams();
 
+            // When the duplicate path routes it by its transaction type
             callCreateExpenseByType({
                 transactionType: CONST.SEARCH.TRANSACTION_TYPE.CASH,
                 params,
@@ -208,12 +235,15 @@ describe('actions/IOU/createExpenseByType', () => {
                 transactionDetails,
             });
 
-            expect(TrackExpense.requestMoney).toHaveBeenCalledWith(params);
+            // Then the planner gets those params as they are, since only the distance and per diem branches reshape them
+            expect(TrackExpense.planRequestMoney).toHaveBeenCalledWith(params);
         });
 
-        it('calls requestMoney for an unrecognized transaction type (fallthrough default)', () => {
+        it('plans a request for an unrecognized transaction type (fallthrough default)', () => {
+            // Given an expense whose transaction type none of the branches names
             const {transaction, transactionDetails, params} = buildBaseParams();
 
+            // When the duplicate path routes it by its transaction type
             callCreateExpenseByType({
                 transactionType: 'unknownType',
                 params,
@@ -221,7 +251,8 @@ describe('actions/IOU/createExpenseByType', () => {
                 transactionDetails,
             });
 
-            expect(TrackExpense.requestMoney).toHaveBeenCalledTimes(1);
+            // Then it is duplicated as a regular expense, so an unknown type still produces a copy instead of being dropped
+            expect(TrackExpense.planRequestMoney).toHaveBeenCalledTimes(1);
             expect(Split.planDistanceRequest).not.toHaveBeenCalled();
             expect(PerDiem.submitPerDiemExpense).not.toHaveBeenCalled();
         });
@@ -234,30 +265,27 @@ describe('actions/IOU/createExpenseByType', () => {
         };
 
         it('plans and commits a distance request for DISTANCE type, and returns the planned transaction ID', () => {
-            // Given a distance expense to duplicate, with a write barrier from the caller
+            // Given a distance expense to duplicate
             const {transaction, transactionDetails, params} = buildBaseParams({
                 comment: {comment: 'road trip', customUnit: {distanceUnit: 'mi'}},
             });
-            const writeBarrier: WriteReadyBarrier = () => Promise.resolve();
 
             // When the duplicate path routes it by its transaction type
             const result = callCreateExpenseByType({
                 transactionType: CONST.SEARCH.TRANSACTION_TYPE.DISTANCE,
-                params: {...params, writeBarrier},
+                params,
                 transaction,
                 transactionDetails,
                 waypoints,
                 participants: [{login: PARTICIPANT_EMAIL, accountID: PARTICIPANT_ACCOUNT_ID}],
             });
 
-            // Then the plan it builds is the one it writes, behind the caller's barrier like the other expense types, and its transaction ID comes back for the growl.
-            // The barrier goes only to the commit, since the planner sends nothing.
+            // Then the plan it builds is the one it writes, and its transaction ID comes back for the growl
             const plan: unknown = jest.mocked(Split.planDistanceRequest).mock.results.at(0)?.value;
             expect(Split.planDistanceRequest).toHaveBeenCalledTimes(1);
-            expect(getLastDistanceRequestParams()).not.toHaveProperty('writeBarrier');
-            expect(Split.commitDistanceRequest).toHaveBeenCalledWith(plan, writeBarrier);
+            expect(Split.commitDistanceRequest).toHaveBeenCalledWith(plan);
             expect(result?.transactionID).toBe('planned-distance-transaction-id');
-            expect(TrackExpense.requestMoney).not.toHaveBeenCalled();
+            expect(TrackExpense.planRequestMoney).not.toHaveBeenCalled();
             expect(PerDiem.submitPerDiemExpense).not.toHaveBeenCalled();
         });
 
@@ -346,7 +374,7 @@ describe('actions/IOU/createExpenseByType', () => {
             });
 
             expect(PerDiem.submitPerDiemExpense).toHaveBeenCalledTimes(1);
-            expect(TrackExpense.requestMoney).not.toHaveBeenCalled();
+            expect(TrackExpense.planRequestMoney).not.toHaveBeenCalled();
             expect(Split.planDistanceRequest).not.toHaveBeenCalled();
         });
 

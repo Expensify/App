@@ -1,14 +1,17 @@
+import {act, renderHook} from '@testing-library/react-native';
+
+import type {WriteReadyBarrier} from '@libs/API';
 import cleanupAfterExpenseCreate from '@libs/Navigation/helpers/cleanupAfterExpenseCreate';
 import cleanupAndNavigateAfterExpenseCreate from '@libs/Navigation/helpers/cleanupAndNavigateAfterExpenseCreate';
 
 import useRequestMoneySubmission from '@pages/iou/request/step/confirmation/submission/useRequestMoneySubmission';
 import {resolveChatTargetForSubmitCleanup} from '@pages/iou/request/step/resolveChatTarget';
 
-import {requestMoney} from '@userActions/IOU/TrackExpense';
+import {commitRequestMoney, planRequestMoney} from '@userActions/IOU/TrackExpense';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Policy, Transaction} from '@src/types/onyx';
+import type {Policy, Report, Transaction} from '@src/types/onyx';
 import type {Receipt} from '@src/types/onyx/Transaction';
 
 import Onyx from 'react-native-onyx';
@@ -26,13 +29,15 @@ import {
     renderAndSubmit,
     TRANSACTION_ID,
 } from '../../utils/expenseSubmissionTestUtils';
+import waitForBatchedUpdatesWithAct from '../../utils/waitForBatchedUpdatesWithAct';
 
-jest.mock('@userActions/IOU/TrackExpense', () => ({requestMoney: jest.fn()}));
+jest.mock('@userActions/IOU/TrackExpense', () => ({planRequestMoney: jest.fn(), commitRequestMoney: jest.fn()}));
 jest.mock('@libs/Navigation/helpers/cleanupAfterExpenseCreate', () => ({__esModule: true, default: jest.fn()}));
 jest.mock('@libs/Navigation/helpers/cleanupAndNavigateAfterExpenseCreate', () => ({__esModule: true, default: jest.fn()}));
 jest.mock('@pages/iou/request/step/resolveChatTarget', () => ({resolveChatTargetForSubmitCleanup: jest.fn()}));
 
-const mockRequestMoneyAction = jest.mocked(requestMoney);
+const mockPlanRequestMoney = jest.mocked(planRequestMoney);
+const mockCommitRequestMoney = jest.mocked(commitRequestMoney);
 const mockCleanupAfterExpenseCreate = jest.mocked(cleanupAfterExpenseCreate);
 const mockCleanupAndNavigateAfterExpenseCreate = jest.mocked(cleanupAndNavigateAfterExpenseCreate);
 const mockResolveChatTargetForSubmitCleanup = jest.mocked(resolveChatTargetForSubmitCleanup);
@@ -69,6 +74,10 @@ function buildParams(overrides: Partial<UseRequestMoneySubmissionParams> = {}): 
     };
 }
 
+function buildPlan(iouReport: Report) {
+    return createMock<NonNullable<ReturnType<typeof planRequestMoney>>>({iouReport, transactionID: 'planned-transaction-1'});
+}
+
 function submit(params: UseRequestMoneySubmissionParams, shouldHandleNavigation: boolean) {
     return renderAndSubmit(() => useRequestMoneySubmission(params), shouldHandleNavigation);
 }
@@ -81,7 +90,7 @@ describe('useRequestMoneySubmission', () => {
     beforeEach(async () => {
         jest.clearAllMocks();
         await Onyx.clear();
-        mockRequestMoneyAction.mockReturnValue({iouReport: buildChatReport({reportID: 'iou-1'})});
+        mockPlanRequestMoney.mockReturnValue(buildPlan(buildChatReport({reportID: 'iou-1'})));
     });
 
     it('uses the transaction report ID for a brand-new P2P recipient optimistic chat', async () => {
@@ -93,7 +102,23 @@ describe('useRequestMoneySubmission', () => {
         await submit(buildParams({transaction, transactions: [transaction], report: undefined}), false);
 
         // Then the reserved ID is forwarded, so the optimistic transaction and chat data line up with the chat the screen subscribes to
-        expect(mockRequestMoneyAction).toHaveBeenCalledWith(expect.objectContaining({optimisticChatReportID: optimisticP2PReportID}));
+        expect(mockPlanRequestMoney).toHaveBeenCalledWith(expect.objectContaining({optimisticChatReportID: optimisticP2PReportID}));
+    });
+
+    it('commits the plan it built, behind the write barrier from the caller', async () => {
+        // Given an expense submitted after the screen started navigating, so the caller hands in a barrier
+        const writeBarrier: WriteReadyBarrier = () => Promise.resolve();
+        const {result} = renderHook(() => useRequestMoneySubmission(buildParams()));
+        await waitForBatchedUpdatesWithAct();
+
+        // When it is submitted with that barrier
+        await act(async () => {
+            result.current.createTransaction({locationPermissionGranted: false, shouldHandleNavigation: false, writeBarrier});
+        });
+
+        // Then the plan is written as built and the write waits on the barrier, so it doesn't land in the middle of the transition
+        expect(mockCommitRequestMoney).toHaveBeenCalledTimes(1);
+        expect(mockCommitRequestMoney).toHaveBeenCalledWith(mockPlanRequestMoney.mock.results.at(0)?.value, writeBarrier);
     });
 
     describe('receipt state on a Scan the user filled in', () => {
@@ -115,7 +140,7 @@ describe('useRequestMoneySubmission', () => {
             await submit(params, false);
 
             // Then SmartScan is told to leave the receipt alone rather than overwriting what the user typed
-            expect(mockRequestMoneyAction).toHaveBeenCalledWith(
+            expect(mockPlanRequestMoney).toHaveBeenCalledWith(
                 expect.objectContaining({
                     transactionParams: expect.objectContaining({receiptState: CONST.IOU.RECEIPT_STATE.OPEN}),
                 }),
@@ -130,7 +155,7 @@ describe('useRequestMoneySubmission', () => {
             await submit(params, false);
 
             // Then SmartScan is asked to read the receipt so the cleared field still gets filled in
-            expect(mockRequestMoneyAction).toHaveBeenCalledWith(
+            expect(mockPlanRequestMoney).toHaveBeenCalledWith(
                 expect.objectContaining({
                     transactionParams: expect.objectContaining({receiptState: CONST.IOU.RECEIPT_STATE.SCAN_READY}),
                 }),
@@ -145,7 +170,7 @@ describe('useRequestMoneySubmission', () => {
             await submit(params, false);
 
             // Then the merchant isn't required, so SmartScan is told to leave the entered values alone
-            expect(mockRequestMoneyAction).toHaveBeenCalledWith(
+            expect(mockPlanRequestMoney).toHaveBeenCalledWith(
                 expect.objectContaining({
                     transactionParams: expect.objectContaining({receiptState: CONST.IOU.RECEIPT_STATE.OPEN}),
                 }),
@@ -164,7 +189,7 @@ describe('useRequestMoneySubmission', () => {
             await submit(params, false);
 
             // Then no override is sent and the action keeps using the state the validator wrote onto the receipt
-            expect(mockRequestMoneyAction).toHaveBeenCalledWith(
+            expect(mockPlanRequestMoney).toHaveBeenCalledWith(
                 expect.objectContaining({
                     transactionParams: expect.objectContaining({
                         receiptState: undefined,
@@ -182,7 +207,7 @@ describe('useRequestMoneySubmission', () => {
         await submit(buildParams(), false);
 
         // Then the drafts are cleaned up without navigating a second time
-        expect(mockRequestMoneyAction).toHaveBeenCalledTimes(1);
+        expect(mockCommitRequestMoney).toHaveBeenCalledTimes(1);
         expect(mockCleanupAfterExpenseCreate).toHaveBeenCalledTimes(1);
         expect(mockCleanupAfterExpenseCreate).toHaveBeenCalledWith(expect.objectContaining({draftTransactionIDs: [DRAFT_ID]}));
         expect(mockCleanupAndNavigateAfterExpenseCreate).not.toHaveBeenCalled();
@@ -195,7 +220,7 @@ describe('useRequestMoneySubmission', () => {
         await submit(buildParams(), true);
 
         // Then cleanupAndNavigateAfterExpenseCreate runs, which does the cleanup itself, so the plain cleanup is not called on top of it
-        expect(mockRequestMoneyAction).toHaveBeenCalledTimes(1);
+        expect(mockCommitRequestMoney).toHaveBeenCalledTimes(1);
         expect(mockCleanupAndNavigateAfterExpenseCreate).toHaveBeenCalledTimes(1);
         expect(mockCleanupAfterExpenseCreate).not.toHaveBeenCalled();
     });
@@ -214,8 +239,8 @@ describe('useRequestMoneySubmission', () => {
     });
 
     it('uses iouReport.chatReportID for cleanup navigation instead of re-deriving it through resolveChatTargetForSubmitCleanup', async () => {
-        // Given requestMoney reports the chat it wrote to
-        mockRequestMoneyAction.mockReturnValue({iouReport: buildChatReport({reportID: 'iou-1', chatReportID: 'iou-chat-77'})});
+        // Given a plan whose IOU report names the chat it writes to
+        mockPlanRequestMoney.mockReturnValue(buildPlan(buildChatReport({reportID: 'iou-1', chatReportID: 'iou-chat-77'})));
 
         // When the expense is submitted
         await submit(buildParams(), true);
@@ -225,7 +250,7 @@ describe('useRequestMoneySubmission', () => {
         expect(mockCleanupAndNavigateAfterExpenseCreate).toHaveBeenCalledWith(expect.objectContaining({optimisticChatReportID: 'iou-chat-77'}));
     });
 
-    it('sends the tracked per diem being submitted to requestMoney with its linked-track metadata, so the original tracked expense is moved', async () => {
+    it('plans the tracked per diem being submitted with its linked-track metadata, so the original tracked expense is moved', async () => {
         // Given a tracked per diem expense being submitted, which resolveSubmissionPath sends down the request money path
         const linkedTrackedExpenseFields = buildLinkedTrackedExpenseFields('tracked-per-diem-transaction-1');
         const perDiemTransaction = buildPerDiemTransaction(linkedTrackedExpenseFields);
@@ -233,9 +258,9 @@ describe('useRequestMoneySubmission', () => {
         // When it is submitted
         await submit(buildParams({action: CONST.IOU.ACTION.SUBMIT, transaction: perDiemTransaction, transactions: [perDiemTransaction]}), true);
 
-        // Then requestMoney gets the tracked expense to move rather than creating a new one
-        expect(mockRequestMoneyAction).toHaveBeenCalledTimes(1);
-        expect(mockRequestMoneyAction).toHaveBeenCalledWith(
+        // Then the plan is for moving the tracked expense rather than creating a new one
+        expect(mockPlanRequestMoney).toHaveBeenCalledTimes(1);
+        expect(mockPlanRequestMoney).toHaveBeenCalledWith(
             expect.objectContaining({
                 action: CONST.IOU.ACTION.SUBMIT,
                 existingTransaction: perDiemTransaction,
@@ -245,30 +270,32 @@ describe('useRequestMoneySubmission', () => {
     });
 
     describe('action bailout', () => {
-        it('skips requestMoney entirely when a SUBMIT batch is missing linked-track metadata', async () => {
-            // Given a SUBMIT whose transaction has no linked tracked expense, which the action would only reject per item, too late for the UI to keep the draft
+        it('skips planning entirely when a SUBMIT batch is missing linked-track metadata', async () => {
+            // Given a SUBMIT whose transaction has no linked tracked expense, which the planner would only reject per item, too late for the UI to keep the draft
             const params = buildParams({action: CONST.IOU.ACTION.SUBMIT});
 
             // When it is submitted
             await submit(params, true);
 
             // Then the batch is rejected up front, so nothing is written and the draft is left for a retry
-            expect(mockRequestMoneyAction).not.toHaveBeenCalled();
+            expect(mockPlanRequestMoney).not.toHaveBeenCalled();
+            expect(mockCommitRequestMoney).not.toHaveBeenCalled();
             expect(mockCleanupAfterExpenseCreate).not.toHaveBeenCalled();
             expect(mockCleanupAndNavigateAfterExpenseCreate).not.toHaveBeenCalled();
         });
 
         it('skips cleanup and navigation when any transaction in a multi-transaction SUBMIT batch bails', async () => {
-            // Given a two-transaction SUBMIT where the action bails on the second one
+            // Given a two-transaction SUBMIT where the planner bails on the second one
             const transaction1 = buildTransaction({transactionID: 't-1', ...buildLinkedTrackedExpenseFields('tracked-1')});
             const transaction2 = buildTransaction({transactionID: 't-2', ...buildLinkedTrackedExpenseFields('tracked-2')});
-            mockRequestMoneyAction.mockReturnValueOnce({iouReport: buildChatReport({reportID: 'iou-1'})}).mockReturnValueOnce({});
+            mockPlanRequestMoney.mockReturnValueOnce(buildPlan(buildChatReport({reportID: 'iou-1'}))).mockReturnValueOnce(undefined);
 
             // When the batch is submitted
             await submit(buildParams({action: CONST.IOU.ACTION.SUBMIT, transaction: transaction1, transactions: [transaction1, transaction2]}), true);
 
-            // Then the drafts are kept, so the failed transaction can be retried
-            expect(mockRequestMoneyAction).toHaveBeenCalledTimes(2);
+            // Then only the planned expense is written, and the drafts are kept so the failed transaction can be retried
+            expect(mockPlanRequestMoney).toHaveBeenCalledTimes(2);
+            expect(mockCommitRequestMoney).toHaveBeenCalledTimes(1);
             expect(mockCleanupAfterExpenseCreate).not.toHaveBeenCalled();
             expect(mockCleanupAndNavigateAfterExpenseCreate).not.toHaveBeenCalled();
         });

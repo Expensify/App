@@ -108,7 +108,8 @@ jest.mock('@libs/actions/IOU/TrackExpense', () => {
     const actual = jest.requireActual<typeof TrackExpense>('@libs/actions/IOU/TrackExpense');
     return {
         ...actual,
-        requestMoney: jest.fn(() => ({iouReport: undefined})),
+        planRequestMoney: jest.fn(),
+        commitRequestMoney: jest.fn(),
         trackExpense: jest.fn(),
     };
 });
@@ -493,7 +494,7 @@ describe('IOURequestStepConfirmationPageTest', () => {
 
             // Entering two of the three turns this into a manual expense, so the untouched date is now required.
             expect(screen.getByText(translateLocal('common.error.fieldRequired'))).toBeOnTheScreen();
-            expect(TrackExpense.requestMoney).not.toHaveBeenCalled();
+            expect(TrackExpense.planRequestMoney).not.toHaveBeenCalled();
         });
 
         it('stops requiring the blank fields once the partially filled ones are cleared back to an untouched scan', async () => {
@@ -521,7 +522,7 @@ describe('IOURequestStepConfirmationPageTest', () => {
             fireEvent.press(screen.getByText(translateLocal('iou.createExpense')));
             await waitForBatchedUpdatesWithAct();
             expect(screen.queryByText(translateLocal('common.error.fieldRequired'))).not.toBeOnTheScreen();
-            await waitFor(() => expect(TrackExpense.requestMoney).toHaveBeenCalledTimes(1));
+            await waitFor(() => expect(TrackExpense.planRequestMoney).toHaveBeenCalledTimes(1));
         });
 
         it('drops the "Automatic" label from all three fields as soon as any one of them is entered', async () => {
@@ -631,8 +632,8 @@ describe('IOURequestStepConfirmationPageTest', () => {
             fireEvent.press(screen.getByText(translateLocal('iou.createExpense')));
             await waitForBatchedUpdatesWithAct();
 
-            expect(TrackExpense.requestMoney).toHaveBeenCalledTimes(1);
-            expect(jest.mocked(TrackExpense.requestMoney).mock.calls.at(0)?.[0].transactionParams).toEqual(
+            expect(TrackExpense.planRequestMoney).toHaveBeenCalledTimes(1);
+            expect(jest.mocked(TrackExpense.planRequestMoney).mock.calls.at(0)?.[0].transactionParams).toEqual(
                 expect.objectContaining({amount: 1234, merchant: 'Starbucks', created: '2025-01-15'}),
             );
         });
@@ -651,8 +652,8 @@ describe('IOURequestStepConfirmationPageTest', () => {
                 await waitForBatchedUpdatesWithAct();
 
                 // Then the expense is created carrying the cached position, with no location read holding the tap up
-                expect(TrackExpense.requestMoney).toHaveBeenCalledTimes(1);
-                expect(jest.mocked(TrackExpense.requestMoney).mock.calls.at(0)?.[0].gpsPoint).toEqual({lat: 40.7128, long: -74.006});
+                expect(TrackExpense.planRequestMoney).toHaveBeenCalledTimes(1);
+                expect(jest.mocked(TrackExpense.planRequestMoney).mock.calls.at(0)?.[0].gpsPoint).toEqual({lat: 40.7128, long: -74.006});
                 expect(getCurrentPosition).not.toHaveBeenCalled();
             });
         });
@@ -1854,8 +1855,8 @@ describe('IOURequestStepConfirmationPageTest', () => {
             await waitForBatchedUpdatesWithAct();
             fireEvent.press(await screen.findByText(getConfirmButtonRegex()));
 
-            await waitFor(() => expect(TrackExpense.requestMoney).toHaveBeenCalled());
-            const requestMoneyMock = jest.mocked(TrackExpense.requestMoney);
+            await waitFor(() => expect(TrackExpense.planRequestMoney).toHaveBeenCalled());
+            const requestMoneyMock = jest.mocked(TrackExpense.planRequestMoney);
             const params = requestMoneyMock.mock.calls.at(0)?.at(0);
             expect(params?.report).toBeUndefined();
         });
@@ -1920,8 +1921,8 @@ describe('IOURequestStepConfirmationPageTest', () => {
             await waitForBatchedUpdatesWithAct();
             fireEvent.press(await screen.findByText(getConfirmButtonRegex()));
 
-            await waitFor(() => expect(TrackExpense.requestMoney).toHaveBeenCalled());
-            const requestMoneyMock = jest.mocked(TrackExpense.requestMoney);
+            await waitFor(() => expect(TrackExpense.planRequestMoney).toHaveBeenCalled());
+            const requestMoneyMock = jest.mocked(TrackExpense.planRequestMoney);
             const params = requestMoneyMock.mock.calls.at(0)?.at(0);
             expect(params?.report?.reportID).toBe(routeReportID);
         });
@@ -1995,8 +1996,8 @@ describe('IOURequestStepConfirmationPageTest', () => {
                 await waitForBatchedUpdatesWithAct();
                 fireEvent.press(await screen.findByText(getConfirmButtonRegex()));
 
-                await waitFor(() => expect(TrackExpense.requestMoney).toHaveBeenCalled());
-                const requestMoneyMock = jest.mocked(TrackExpense.requestMoney);
+                await waitFor(() => expect(TrackExpense.planRequestMoney).toHaveBeenCalled());
+                const requestMoneyMock = jest.mocked(TrackExpense.planRequestMoney);
                 const params = requestMoneyMock.mock.calls.at(0)?.at(0);
                 expect(params?.report?.reportID).toBe(transactionReportID);
             } finally {
@@ -2090,8 +2091,8 @@ describe('IOURequestStepConfirmationPageTest', () => {
             fireEvent.press(await screen.findByText(getConfirmButtonRegex()));
 
             // Then the expense goes to the existing chat with the real account, so the chat isn't rebuilt as a new one
-            await waitFor(() => expect(TrackExpense.requestMoney).toHaveBeenCalled());
-            const params = jest.mocked(TrackExpense.requestMoney).mock.calls.at(0)?.at(0);
+            await waitFor(() => expect(TrackExpense.planRequestMoney).toHaveBeenCalled());
+            const params = jest.mocked(TrackExpense.planRequestMoney).mock.calls.at(0)?.at(0);
             expect(params?.participantParams.participant.accountID).toBe(realAccountID);
             expect(params?.participantParams.participant.login).toBe(login);
             expect(params?.report?.reportID).toBe(chatReportID);
@@ -2183,8 +2184,8 @@ describe('IOURequestStepConfirmationPageTest', () => {
             fireEvent.press(await screen.findByText(getConfirmButtonRegex()));
 
             // Then the expense goes to the existing chat with the real account, found through the chat because there is no login
-            await waitFor(() => expect(TrackExpense.requestMoney).toHaveBeenCalled());
-            const params = jest.mocked(TrackExpense.requestMoney).mock.calls.at(0)?.at(0);
+            await waitFor(() => expect(TrackExpense.planRequestMoney).toHaveBeenCalled());
+            const params = jest.mocked(TrackExpense.planRequestMoney).mock.calls.at(0)?.at(0);
             expect(params?.participantParams.participant.accountID).toBe(realAccountID);
             expect(params?.report?.reportID).toBe(chatReportID);
         });
@@ -2253,8 +2254,8 @@ describe('IOURequestStepConfirmationPageTest', () => {
             fireEvent.press(await screen.findByText(getConfirmButtonRegex()));
 
             // Then the expense goes to the existing chat with the real account, found through the chat the draft saved
-            await waitFor(() => expect(TrackExpense.requestMoney).toHaveBeenCalled());
-            const params = jest.mocked(TrackExpense.requestMoney).mock.calls.at(0)?.at(0);
+            await waitFor(() => expect(TrackExpense.planRequestMoney).toHaveBeenCalled());
+            const params = jest.mocked(TrackExpense.planRequestMoney).mock.calls.at(0)?.at(0);
             expect(params?.participantParams.participant.accountID).toBe(realAccountID);
             expect(params?.report?.reportID).toBe(chatReportID);
         });
@@ -2401,7 +2402,7 @@ describe('IOURequestStepConfirmationPageTest', () => {
             await waitForBatchedUpdatesWithAct();
             fireEvent.press(await screen.findByText(/^Create .*expense/i));
 
-            await waitFor(() => expect(TrackExpense.requestMoney).toHaveBeenCalled());
+            await waitFor(() => expect(TrackExpense.planRequestMoney).toHaveBeenCalled());
             expect(TrackExpense.trackExpense).not.toHaveBeenCalled();
         });
 
