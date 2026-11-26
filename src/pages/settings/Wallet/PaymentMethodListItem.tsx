@@ -30,6 +30,7 @@ import {clearAddPaymentMethodError, clearDeletePaymentMethodError} from '@userAc
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
+import type {Route} from '@src/ROUTES';
 import type {BankIcon} from '@src/types/onyx/Bank';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 import type PaymentMethod from '@src/types/onyx/PaymentMethod';
@@ -66,6 +67,10 @@ type PaymentMethodItem = PaymentMethod & {
     title?: string;
     description: string;
     onPress?: (e: GestureResponderEvent | KeyboardEvent | undefined) => void;
+
+    /** Renders the row as a link to this route on web, so it can be opened in a new tab */
+    linkRoute?: Route;
+
     isGroupedCardDomain?: boolean;
     canDismissError?: boolean;
     disabled?: boolean;
@@ -277,6 +282,7 @@ function PaymentMethodListItem({item, shouldShowDefaultBadge, threeDotsMenuItems
     ) : undefined;
     const menuItemProps: React.ComponentProps<typeof MenuItem> = {
         onPress: handleRowPress,
+        linkRoute: item.linkRoute,
         sentryLabel: CONST.SENTRY_LABEL.PAYMENT_METHOD_LIST_ITEM.ROW,
         title: item.title,
         titleAddon: item.isGlobalReimbursementsEnabled ? <GlobalReimbursementsEnabledIcon onPress={handleRowPress} /> : undefined,
