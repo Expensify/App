@@ -26,28 +26,6 @@ PODS:
   - AppAuth/Core (1.7.6)
   - AppAuth/ExternalUserAgent (1.7.6):
     - AppAuth/Core
-  - Appduct (0.16.0):
-    - hermes-engine
-    - RCTRequired
-    - RCTTypeSafety
-    - React-Core
-    - React-Core-prebuilt
-    - React-debug
-    - React-Fabric
-    - React-featureflags
-    - React-graphics
-    - React-ImageManager
-    - React-jsi
-    - React-NativeModulesApple
-    - React-RCTFabric
-    - React-renderercss
-    - React-rendererdebug
-    - React-utils
-    - ReactCodegen
-    - ReactCommon/turbomodule/bridging
-    - ReactCommon/turbomodule/core
-    - ReactNativeDependencies
-    - Yoga
   - AppLogs (0.1.0)
   - callstack-repack (5.4.1):
     - hermes-engine
@@ -200,6 +178,11 @@ PODS:
   - ExpoModulesWorklets (57.0.15):
     - ExpoModulesCore
     - ExpoModulesJSI
+  - ExpoModulesWorkletsAdapter (57.0.15):
+    - ExpoModulesCore
+    - ExpoModulesJSI
+    - ExpoModulesWorklets
+    - RNWorklets
   - ExpoStoreReview (57.0.1):
     - ExpoModulesCore
   - ExpoTaskManager (57.0.6):
@@ -3539,7 +3522,6 @@ PODS:
 
 DEPENDENCIES:
   - AirshipServiceExtension
-  - "Appduct (from `../node_modules/@appduct/react-native`)"
   - AppLogs (from `../node_modules/react-native-app-logs/AppLogsPod`)
   - "callstack-repack (from `../node_modules/@callstack/repack`)"
   - EXConstants (from `../node_modules/expo-constants/ios`)
@@ -3558,6 +3540,7 @@ DEPENDENCIES:
   - ExpoModulesCore (from `../node_modules/expo-modules-core`)
   - ExpoModulesJSI (from `../node_modules/expo-modules-jsi/apple`)
   - ExpoModulesWorklets (from `../node_modules/expo-modules-core`)
+  - ExpoModulesWorkletsAdapter (from `../node_modules/expo-modules-core`)
   - ExpoStoreReview (from `../node_modules/expo-store-review/ios`)
   - ExpoTaskManager (from `../node_modules/expo-task-manager/ios`)
   - ExpoVideo (from `../node_modules/expo-video/ios`)
@@ -3742,8 +3725,6 @@ SPEC REPOS:
     - TweetNacl
 
 EXTERNAL SOURCES:
-  Appduct:
-    :path: "../node_modules/@appduct/react-native"
   AppLogs:
     :path: "../node_modules/react-native-app-logs/AppLogsPod"
   callstack-repack:
@@ -3779,6 +3760,8 @@ EXTERNAL SOURCES:
   ExpoModulesJSI:
     :path: "../node_modules/expo-modules-jsi/apple"
   ExpoModulesWorklets:
+    :path: "../node_modules/expo-modules-core"
+  ExpoModulesWorkletsAdapter:
     :path: "../node_modules/expo-modules-core"
   ExpoStoreReview:
     :path: "../node_modules/expo-store-review/ios"
@@ -4061,7 +4044,6 @@ SPEC CHECKSUMS:
   AirshipFrameworkProxy: 64a4bb802af3a344201748907a89641588963feb
   AirshipServiceExtension: 50d11b2f62c4a490d4e81a1c36f70e2ecb70a27e
   AppAuth: d4f13a8fe0baf391b2108511793e4b479691fb73
-  Appduct: d6799b5bfa7172b89737c9c40ca7adc33b257a1a
   AppLogs: 3bc4e9b141dbf265b9464409caaa40416a9ee0e0
   callstack-repack: 391af9d65585f106b57ca693880593dc2c89db5c
   EXConstants: fa5647482320b7bde855057f8b86580456d4b9f0
@@ -4080,6 +4062,7 @@ SPEC CHECKSUMS:
   ExpoModulesCore: 9c02efc618119023146b9b8db9c0930e43ac977d
   ExpoModulesJSI: 4f849c58e99b57c2438b21ed6bc2fcb6f984a0d1
   ExpoModulesWorklets: 5e70b46d570c5b1b702c18bc8ac8d1af0171450e
+  ExpoModulesWorkletsAdapter: 536e81cd66f1b69c9301c5df6099b4e172a3702d
   ExpoStoreReview: 2a0f6b8e04112aea2f6e3e1cb84109d78f4d041f
   ExpoTaskManager: f68326227852a30148700965c37c058c1473c6a2
   ExpoVideo: b1d9a325ddcd4f3ed8ccb374c01b688e98bc6a04
@@ -4179,7 +4162,7 @@ SPEC CHECKSUMS:
   react-native-skia: 193418fe7e6b5b8dc8602a74d8c348214be6f5cd
   react-native-view-shot: 6da2aaa0404b8d617ab1689550acdb251d759af9
   react-native-wallet: 8857943314bcf703480d3ca8051a5072ed3898fe
-  react-native-webview: 006d1ead1d2708b2fd1b6639a759139963b39e55
+  react-native-webview: 36fd14012dd0352c90b960ea7860fbc53876593b
   React-NativeModulesApple: a092d89b58f635ebfab88048b0eda9fb516819fd
   React-networking: ee8e1504d7c1c73a3655bf545ca1184bebae4c7f
   React-oscompat: 0b72a7e926954a0415ccd83e0748b6561fe45367
@@ -4229,7 +4212,7 @@ SPEC CHECKSUMS:
   RNLiveMarkdown: 180bd3f6e7582c2d0383cc3a1cee7808cb63d578
   RNLocalize: 82e7aa2857ce5dcd9e2a0c04f8c34c2ed50821df
   rnmapbox-maps: 1cb6aa142a8ea99d0934a36d83d2acf3f2de45d3
-  RNNitroSQLite: 3d27fc987e28d1c18d3c386af35d7bb6809c009e
+  RNNitroSQLite: 8962a30dc9296f8a62bfcc33f3c2a540b1c44aff
   RNPermissions: 5938a67cf02a23f8a7f69c170608ab481b81713d
   RNReactNativeHapticFeedback: 6c8677db48f62a635e6a2065f5d2bd02498d7a73
   RNReanimated: e75c988a6527ec651ea2957b93891ddb64d530d4
