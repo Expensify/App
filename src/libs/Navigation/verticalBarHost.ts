@@ -79,14 +79,9 @@ function getVerticalBar(barNavigation: ScreenNavigation): VerticalBar {
 }
 
 /**
- * Sets the items of the bar and shows the bar while it has any.
- *
- * The back button is in the bar while the screen of one of its headers is shown. A screen is shown while it is the one
- * on screen in the screen of the root stack it is part of: it and every navigator between the two are the focused ones,
- * which a screen in a tab that is not selected is not. That root screen has its bar to itself, so it makes no difference
- * whether another one covers it, and the button stays in its bar for when the screen is uncovered. A navigation only
- * tells whether its screen is focused all the way up, so while the root screen is covered, what was found last still
- * holds.
+ * Applies what the bar should hold: the back button if a header's screen is shown, else the create and scan buttons,
+ * and shows the bar only when it holds something. A screen counts as shown when it and every navigator up to the root
+ * screen are focused. While the root screen is covered that can't be read, so the last answer is kept.
  */
 function updateVerticalBar(barNavigation: ScreenNavigation) {
     const bar = getVerticalBar(barNavigation);
@@ -104,14 +99,14 @@ function updateVerticalBar(barNavigation: ScreenNavigation) {
     }
     bar.hasBackButton = hasBackButton;
     bar.rightItems = rightItems;
-    const isShown = hasBackButton || !!rightItems;
+    const isBarShown = hasBackButton || !!rightItems;
     // With no title the bar has nothing to draw along the top, and a transparent one takes no room from the screen. The
     // native back button would pop the screen itself and skip what a header does on a press.
     barNavigation.setOptions({
-        headerShown: isShown,
-        headerTransparent: isShown || undefined,
-        headerBackVisible: isShown ? false : undefined,
-        title: isShown ? '' : undefined,
+        headerShown: isBarShown,
+        headerTransparent: isBarShown || undefined,
+        headerBackVisible: isBarShown ? false : undefined,
+        title: isBarShown ? '' : undefined,
         // eslint-disable-next-line @typescript-eslint/naming-convention -- React Navigation names the option this way.
         unstable_headerLeftItems: hasBackButton ? () => [bar.backButtonItem] : undefined,
         // eslint-disable-next-line @typescript-eslint/naming-convention -- React Navigation names the option this way.
@@ -129,14 +124,9 @@ function setVerticalBarActionItems(barNavigation: ScreenNavigation, actionItems:
 }
 
 /**
- * Gives the back button of a header to the vertical bar for as long as the header is mounted. The button is in the bar
- * while the header's screen is shown, and a press then does what the header says.
- *
- * Which screen is shown is read from the navigation whenever a screen gains or loses focus, not from what the screens
- * render: a screen that is covered is frozen, and comes back to life only after the one over it has started to close.
- * The button would be gone in between, where it now stays in place from one screen to the next.
- *
- * Returns what takes the header's part in the button away.
+ * Registers a header's back button with the bar of its root stack screen, while the header is mounted. Which header is
+ * shown is read from focus events, not renders, because covered screens are frozen and would leave a gap.
+ * Returns the cleanup.
  */
 function addVerticalBarBackButton(screenNavigation: ScreenNavigation, onPress: () => void): () => void {
     const barNavigation = getRootScreenNavigation(screenNavigation);

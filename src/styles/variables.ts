@@ -158,13 +158,11 @@ export default {
     /** UITabBar's row above the home indicator inset, plus the gap to the floating buttons. */
     iosNativeTabBarFloatingButtonsBottom: 50,
     /**
-     * The shortest vertical bar that holds the status items, more than one bar item and the tab bar's column of five tabs
-     * without UIKit laying an item over the column. The bar of a folded iPhone Duo in landscape is 466 high: the items
-     * start at 82 and take about 50 each with 12 between them, and the column starts at 180. Every other bar is at
-     * least 669.
+     * The shortest vertical bar with room for more than one item above the tab column. The folded iPhone Duo in landscape
+     * (466) has room for one; every other bar is at least 669.
      */
     iosVerticalBarSeveralItemsMinHeight: 550,
-    /** The room UIKit leaves on every side of a bar item's own view in the vertical bar, on top of the gap between two items. */
+    /** UIKit pads each vertical bar item's view by this much above and below; the view is made shorter by it so the buttons keep their floating gap. */
     iosVerticalBarItemViewPadding: 5,
     iconHeader: 48,
     iconSection: 68,

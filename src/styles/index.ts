@@ -2154,10 +2154,8 @@ const staticStyles = (theme: ThemeColors) =>
             boxShadow: theme.shadow,
         },
 
-        // UIKit sizes the slot of an item in the vertical bar after the item's view and pads it above and below, which
-        // would leave the buttons there further apart than they float. The view is shorter than its button by that
-        // padding, and the button, centered in it, covers the padding, so the gap UIKit keeps between two slots is the
-        // one left between the buttons.
+        // The view of a button in the vertical bar. UIKit pads it above and below, so it is shorter than the button by that
+        // padding: the button spills into it and two buttons keep the same gap they have when they float.
         verticalBarItem: {
             width: variables.componentSizeLarge,
             height: variables.componentSizeLarge - 2 * variables.iosVerticalBarItemViewPadding,

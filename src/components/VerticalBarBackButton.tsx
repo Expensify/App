@@ -17,11 +17,7 @@ type VerticalBarBackButtonProps = {
     onPress: () => void;
 };
 
-/**
- * The back button of a header as an item of the vertical bar of a foldable iPhone. It is made as the create button that
- * sits in that bar is, so the two look alike, with the arrow a header has. The vertical bar only exists on iOS versions
- * that draw liquid glass, so the button is always glass.
- */
+/** The back button of a header as an item of the vertical bar of a foldable iPhone. */
 function VerticalBarBackButton({onPress}: VerticalBarBackButtonProps) {
     const theme = useTheme();
     const styles = useThemeStyles();

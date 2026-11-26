@@ -13,7 +13,7 @@ import {useContext, useEffect, useEffectEvent} from 'react';
 import type UseVerticalBarBackButton from './types';
 
 const useVerticalBarBackButton: UseVerticalBarBackButton = (goBack, shouldShowBackButton = true) => {
-    // Headers are also rendered outside a navigator, so the navigation is read from the context, which may be empty.
+    // useNavigation() throws outside a navigator, and headers are rendered there too, so read the context, which is then empty.
     const screenNavigation = useContext(NavigationContext);
     const hasVerticalBar = useIsTabBarVertical();
     // A modal covers the screen and its bars, so a button there could not be reached.
@@ -23,8 +23,7 @@ const useVerticalBarBackButton: UseVerticalBarBackButton = (goBack, shouldShowBa
     // without the button being handed over again each time.
     const pressBackButton = useEffectEvent(goBack);
 
-    // A screen that is covered is frozen, which takes its layout effects away until it is shown again. This effect
-    // stays, so the header keeps its part in the button, and the button is there as soon as the screen is uncovered.
+    // Not useLayoutEffect: a covered screen is frozen and loses its layout effects, so the button would blink on return.
     useEffect(() => {
         if (!isInVerticalBar || !screenNavigation) {
             return;

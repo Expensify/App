@@ -22,16 +22,15 @@ import {View} from 'react-native';
  * the content instead, so this component moves them there while the tab bar is a column.
  */
 function VerticalBarActionItems() {
-    // The tabs are the screen of the root stack, so this is the navigation of the screen whose bar items UIKit shows.
+    // This renders inside the tab navigator, so it gets the navigation of the root stack screen that holds the tabs.
+    // The bar items go on that screen's native bar, the one UIKit moves into the vertical bar.
     const navigation = useNavigation<NativeStackNavigationProp<ParamListBase>>();
     const styles = useThemeStyles();
     const {windowHeight} = useWindowDimensions();
     // UIKit never drops an item, so in a bar too short for all of them it draws the last over the tab bar. The bar of a
-    // phone folded in landscape has room for one item above the tab bar. The create button is the one that stays, as an
-    // expense created from its menu can start with a scan too.
+    // phone folded in landscape has room for one item above the tab bar. The create button is the one that stays.
     const hasRoomForScanItem = windowHeight >= variables.iosVerticalBarSeveralItemsMinHeight;
 
-    // The buttons float again when the tab bar leaves the vertical bar or hides, so they leave the bar then.
     useLayoutEffect(() => {
         // The items are the floating buttons themselves, so they look and react to a press as they do over the content.
         // The buttons bring their own glass, so UIKit adds none behind them.
@@ -51,6 +50,7 @@ function VerticalBarActionItems() {
         };
         // UIKit stacks the items from the top of the bar, so scan goes over create as it does when they float.
         setVerticalBarActionItems(navigation, hasRoomForScanItem ? [scanItem, createItem] : [createItem]);
+        // This unmounts when the tab bar stops being a column or hides, and the floating buttons take over then.
         return () => setVerticalBarActionItems(navigation, undefined);
     }, [navigation, styles.verticalBarItem, hasRoomForScanItem]);
 
