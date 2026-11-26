@@ -30139,7 +30139,7 @@ describe('ReportUtils', () => {
         });
 
         it('should return the stored reportName for an invoice that has an invoice room', async () => {
-            // Given an invoice with a renamed stored name whose invoice room is loaded, so NewDot would compute its name
+            // Given an invoice with a renamed stored name whose invoice room is loaded
             const invoiceRoom: Report = {
                 reportID: 'invoice-chat-125',
                 type: CONST.REPORT.TYPE.CHAT,
@@ -30154,14 +30154,13 @@ describe('ReportUtils', () => {
                 reportName: 'Office chairs for March',
                 currency: 'USD',
             };
-            const translateWithMarker: LocalizedTranslate = (path, ...parameters) => (path === 'iou.payerOwesAmount' ? 'PayerOwesMarker' : translateLocal(path, ...parameters));
             const name = getChatListItemReportName(
                 {...createRandomReportAction(8)},
                 invoiceReport,
                 invoiceRoom,
                 undefined,
                 [],
-                {translate: translateWithMarker, formatPhoneNumber},
+                {translate: translateLocal, formatPhoneNumber},
                 convertToDisplayString,
                 undefined,
                 undefined,
