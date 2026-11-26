@@ -1,5 +1,7 @@
 import getCurrentUrl from '@libs/Navigation/currentUrl';
 
+import {isServerDataReady} from '@userActions/Welcome';
+
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Session} from '@src/types/onyx';
 
@@ -61,7 +63,8 @@ function registerGuard(guard: NavigationGuard): void {
 function createGuardContext(overrides?: Partial<GuardContext>): GuardContext {
     const isAuthenticated = !!session?.authToken;
     const currentUrl = getCurrentUrl();
-    const isLoading = isLoadingApp;
+    // IS_LOADING_APP is persisted as false, so a reopened app also has to wait for this session's first sync
+    const isLoading = isLoadingApp || !isServerDataReady();
 
     return {
         isAuthenticated,

@@ -191,7 +191,9 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady}: N
             const isRootPath = !path || path === '' || path === '/';
             const isSpecificDeepLink = path && !isRootPath;
 
-            if (!isSpecificDeepLink) {
+            // useOnboardingFlowRouter resumes onboarding from ONBOARDING_LAST_VISITED_PATH once it knows the user still needs it
+            const isSavedOnboardingPath = isOnboardingPath(lastVisitedPath) && !isJoinWorkspaceTaskPath(lastVisitedPath);
+            if (!isSpecificDeepLink && !isSavedOnboardingPath) {
                 Log.info('Restoring last visited path on app startup', false, {lastVisitedPath, initialUrl, path});
                 return getAdaptedStateFromPath(lastVisitedPath);
             }

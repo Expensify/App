@@ -44,6 +44,11 @@ function onServerDataReady(): Promise<void> {
     return isServerDataReadyPromise;
 }
 
+/** Whether this session's first OpenApp or ReconnectApp has finished */
+function isServerDataReady(): boolean {
+    return hasStartedLoading && !isLoadingReportData;
+}
+
 /**
  * Check if report data are loaded
  */
@@ -308,6 +313,7 @@ function dismissProductTraining(elementName: string, isDismissedUsingCloseButton
 
 export {
     onServerDataReady,
+    isServerDataReady,
     dismissProductTraining,
     setOnboardingPurposeSelected,
     updateOnboardingLastVisitedPath,

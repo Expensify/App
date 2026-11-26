@@ -7,7 +7,7 @@ import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import {isLoggingInAsNewUser} from '@libs/SessionUtils';
 import {hasSecureLinkKey} from '@libs/Url';
 
-import {completeHybridAppOnboarding} from '@userActions/Welcome';
+import {completeHybridAppOnboarding, onServerDataReady} from '@userActions/Welcome';
 import {buildOnboardingFlowParams, startOnboardingFlow} from '@userActions/Welcome/OnboardingFlow';
 
 import CONFIG from '@src/CONFIG';
@@ -18,7 +18,7 @@ import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import {isSingleNewDotEntrySelector} from '@selectors/HybridApp';
 import {hasCompletedGuidedSetupFlowSelector, tryNewDotOnyxSelector, wasInvitedToNewDotSelector} from '@selectors/Onboarding';
 import {emailSelector} from '@selectors/Session';
-import {useEffect} from 'react';
+import {useEffect, useState} from 'react';
 
 import useOnyx from './useOnyx';
 import useRootNavigationState from './useRootNavigationState';
@@ -64,6 +64,21 @@ function useOnboardingFlowRouter() {
 
     const isOnboardingCompleted = hasCompletedGuidedSetupFlowSelector(onboardingValues);
 
+    // A reopened app has isLoadingApp cached as false, so wait for this session's first OpenApp or ReconnectApp before deciding
+    const [isServerDataReady, setIsServerDataReady] = useState(false);
+    useEffect(() => {
+        let isActive = true;
+        onServerDataReady().then(() => {
+            if (!isActive) {
+                return;
+            }
+            setIsServerDataReady(true);
+        });
+        return () => {
+            isActive = false;
+        };
+    }, []);
+
     useEffect(() => {
         // This should delay opening the onboarding modal so it does not interfere with the ongoing ReportScreen params changes
 
@@ -81,7 +96,7 @@ function useOnboardingFlowRouter() {
                     return;
                 }
 
-                if (isLoadingApp !== false || isOnboardingLoading) {
+                if (isLoadingApp !== false || isOnboardingLoading || !isServerDataReady) {
                     return;
                 }
 
@@ -152,6 +167,7 @@ function useOnboardingFlowRouter() {
         };
     }, [
         isLoadingApp,
+        isServerDataReady,
         isValidateLoginFlow,
         isHybridAppOnboardingCompleted,
         isOnboardingCompletedMetadata,

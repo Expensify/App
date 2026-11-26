@@ -108,6 +108,7 @@ function AuthScreensInitHandler() {
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
     const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP);
+    const [hasNonPersonalPolicy] = useOnyx(ONYXKEYS.HAS_NON_PERSONAL_POLICY);
     const lastWorkspaceNumber = useLastWorkspaceNumber(ownerEmail ?? undefined);
     const policyOwnerLogin = ownerEmail ?? session?.email;
     const policyOwnerAccountID = usePersonalDetailByLogin(policyOwnerLogin, accountIDSelector);
@@ -237,6 +238,10 @@ function AuthScreensInitHandler() {
                 // Don't want to call `openReport` again when logging out and then logging in
                 setIsAuthenticatedAtStartup(true);
             }
+            App.openApp();
+        } else if (guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow === false && !hasNonPersonalPolicy) {
+            // Onboarding could still open for this account, and only OpenApp returns hasNonPersonalPolicy
+            Log.info('[AuthScreens] Sending OpenApp to refresh onboarding eligibility');
             App.openApp();
         } else {
             Log.info('[AuthScreens] Sending ReconnectApp');
