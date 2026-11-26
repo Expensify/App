@@ -53,7 +53,8 @@ type InsightsRecentHistoryProps = {
     /** Name of the item, which the average's key refers to */
     itemTitle: string;
 
-    viewAllQuery: SearchQueryString;
+    /** Omit to hide View all when the expenses cannot be opened with the same scope. */
+    viewAllQuery?: SearchQueryString;
 
     /** Year of the dashboard's last day, whose periods are named without their year */
     currentYear: number;
@@ -79,7 +80,7 @@ function InsightsRecentHistory({query, history, summary, state, currency, color,
         <View style={[styles.highlightBG, styles.borderRadiusComponentLarge, styles.overflowHidden]}>
             <InsightsDetailsSectionHeader
                 title={translate('insightsPage.recentHistory.title')}
-                viewAll={{query: viewAllQuery, sentryLabel: CONST.SENTRY_LABEL.INSIGHTS.DETAILS_RECENT_HISTORY_VIEW_ALL}}
+                viewAll={viewAllQuery ? {query: viewAllQuery, sentryLabel: CONST.SENTRY_LABEL.INSIGHTS.DETAILS_RECENT_HISTORY_VIEW_ALL} : undefined}
             />
             {state === INSIGHTS_DETAILS_SECTION_STATE.OFFLINE && <ChartOfflineState />}
             {state === INSIGHTS_DETAILS_SECTION_STATE.LOADING && <InsightsRecentHistorySkeleton />}

@@ -14,7 +14,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {InsightsDetailsParamList} from '@libs/Navigation/types';
-import {buildSearchQueryJSON} from '@libs/SearchQueryUtils';
+import {buildSearchQueryJSON, buildSearchQueryString} from '@libs/SearchQueryUtils';
 
 import INSIGHTS_DASHBOARD_SPECS from '@pages/Insights/dashboardSpecs';
 import getInsightsLastDay from '@pages/Insights/getInsightsLastDay';
@@ -106,6 +106,14 @@ function InsightsDetailsPage({route}: InsightsDetailsPageProps) {
     const {isOffline} = useNetwork();
     const [details] = useOnyx(`${ONYXKEYS.COLLECTION.INSIGHTS_DETAILS}${detailsQuery?.hash}`);
     const viewAllQueryJSON = chartSpec ? scopeInsightsDrillDownQuery(topExpensesQueryJSON, chartSpec.graphKey, details?.eligiblePolicyIDs) : undefined;
+    const recentHistoryQueryJSON =
+        chartSpec && detailsQuery && item
+            ? scopeInsightsDrillDownQuery(
+                  buildSearchQueryJSON(buildRecentHistoryQueryString(filters, detailsQuery.periodGroupBy, detailsQuery.period.end, item.filterQuery)),
+                  chartSpec.graphKey,
+                  details?.eligiblePolicyIDs,
+              )
+            : undefined;
     const summary = details?.summary;
     const detailsState = getInsightsDetailsSectionState({
         isOffline,
@@ -172,7 +180,7 @@ function InsightsDetailsPage({route}: InsightsDetailsPageProps) {
                                     currency={filters.groupCurrency}
                                     color={itemColor}
                                     itemTitle={item.title}
-                                    viewAllQuery={buildRecentHistoryQueryString(filters, detailsQuery.periodGroupBy, detailsQuery.period.end, item.filterQuery)}
+                                    viewAllQuery={recentHistoryQueryJSON && buildSearchQueryString(recentHistoryQueryJSON)}
                                     currentYear={getYear(parseISO(getInsightsLastDay(asOf)))}
                                 />
                             )}
