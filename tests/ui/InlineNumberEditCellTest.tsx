@@ -15,9 +15,6 @@ import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct'
 const TRAILING_CONTENT_TEST_ID = 'trailing-content';
 const DISPLAY_TEXT = '$0.73 / mile';
 
-// styles.editableCellEditButtonClearance: the gap plus the edit button.
-const EDIT_BUTTON_CLEARANCE = variables.spacing2 + variables.editableCellEditButtonSize;
-
 type RenderOptions = {
     textAlign: 'left' | 'right';
     shouldReserveEditButtonClearance?: boolean;
@@ -62,7 +59,7 @@ describe('InlineNumberEditCell', () => {
         await renderCellWithTrailingContent({textAlign: 'left'});
 
         // Then the edit button's width stays clear after the icon, since a left-aligned cell shows the button at its trailing edge
-        expect(getTrailingContentRow()).toHaveStyle({paddingRight: EDIT_BUTTON_CLEARANCE});
+        expect(getTrailingContentRow()).toHaveStyle({paddingRight: variables.editableCellEditButtonClearance});
     });
 
     it('leaves no clearance when the cell asks not to reserve it', async () => {
@@ -71,7 +68,7 @@ describe('InlineNumberEditCell', () => {
         await renderCellWithTrailingContent({textAlign: 'left', shouldReserveEditButtonClearance: false});
 
         // Then no room is kept, which is what a table needs for members who never see the button
-        expect(getTrailingContentRow()).not.toHaveStyle({paddingRight: EDIT_BUTTON_CLEARANCE});
+        expect(getTrailingContentRow()).not.toHaveStyle({paddingRight: variables.editableCellEditButtonClearance});
     });
 
     it('leaves no clearance after a right-aligned value, whose edit button shows on the other side', async () => {
@@ -80,6 +77,6 @@ describe('InlineNumberEditCell', () => {
         await renderCellWithTrailingContent({textAlign: 'right'});
 
         // Then no room is kept after the icon, since a right-aligned cell shows its edit button at the leading edge
-        expect(getTrailingContentRow()).not.toHaveStyle({paddingRight: EDIT_BUTTON_CLEARANCE});
+        expect(getTrailingContentRow()).not.toHaveStyle({paddingRight: variables.editableCellEditButtonClearance});
     });
 });

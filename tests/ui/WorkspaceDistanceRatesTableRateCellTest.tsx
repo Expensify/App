@@ -55,9 +55,6 @@ const WIDE_LAYOUT: ResponsiveLayoutResult = {
 
 const SCREEN_WRAPPER_STATUS = {didScreenTransitionEnd: true, isSafeAreaTopPaddingApplied: true, isSafeAreaBottomPaddingApplied: true};
 
-// styles.editableCellEditButtonClearance: the gap plus the edit button.
-const EDIT_BUTTON_CLEARANCE = variables.spacing2 + variables.editableCellEditButtonSize;
-
 const FORMATTED_RATE = '£0.45 / mile';
 const GOVERNMENT_RATE = {sourceRateID: 'GB_2011-04-06', rate: 45, startDate: '2011-04-06'};
 
@@ -169,7 +166,7 @@ describe('WorkspaceDistanceRatesTable rate cell', () => {
         await waitFor(() => {
             expect(screen.getByLabelText(TestHelper.translateLocal('common.edit'))).toBeOnTheScreen();
         });
-        expect(getRateTextRow()).toHaveStyle({paddingRight: EDIT_BUTTON_CLEARANCE});
+        expect(getRateTextRow()).toHaveStyle({paddingRight: variables.editableCellEditButtonClearance});
     });
 
     it('keeps the room for the edit button while the rate cannot be edited for now', async () => {
@@ -179,7 +176,7 @@ describe('WorkspaceDistanceRatesTable rate cell', () => {
 
         // Then the room stays without the button, so the bolt doesn't move when selection mode starts or ends
         expect(screen.queryByLabelText(TestHelper.translateLocal('common.edit'))).not.toBeOnTheScreen();
-        expect(getRateTextRow()).toHaveStyle({paddingRight: EDIT_BUTTON_CLEARANCE});
+        expect(getRateTextRow()).toHaveStyle({paddingRight: variables.editableCellEditButtonClearance});
     });
 
     it('leaves no room for the edit button when the member cannot edit rates', async () => {
@@ -188,6 +185,6 @@ describe('WorkspaceDistanceRatesTable rate cell', () => {
         await renderTable({canWriteDistanceRates: false, canEditRate: false});
 
         // Then nothing is kept clear after the bolt, matching the column width the table measures for this member
-        expect(getRateTextRow()).not.toHaveStyle({paddingRight: EDIT_BUTTON_CLEARANCE});
+        expect(getRateTextRow()).not.toHaveStyle({paddingRight: variables.editableCellEditButtonClearance});
     });
 });

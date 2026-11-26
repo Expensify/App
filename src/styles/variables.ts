@@ -692,6 +692,9 @@ export default {
     // What the edit button covers at the trailing edge of an editable cell, from its size and the inset it sits at.
     editableCellEditButtonSize: 28,
     editableCellEditButtonWidth: 28 + 4,
+    // Room an editable cell keeps after an icon that follows its value, so the edit button doesn't cover the icon: the gap
+    // before the button, plus the button.
+    editableCellEditButtonClearance: spacing2 + 28,
     // How short a value has to be before that edit button is worth reserving room for.
     narrowEditableContentWidth: 60,
     pieChartLegendMargin: 32,
