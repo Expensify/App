@@ -15,12 +15,18 @@ function getViewportWidth(): number {
  * when the soft keyboard opens. Unlike `window.screen`, it follows the active panel of a foldable phone: Safari on a
  * foldable iPhone keeps reporting the cover panel in `window.screen` after the phone is unfolded. In split screen it is the
  * app's own window, so a split window that is wider than it is tall counts as landscape.
+ *
+ * During a `resize` event Safari can still report the previous window, e.g. the cover panel of a foldable iPhone right after
+ * the app comes back to the foreground unfolded, and no later event corrects it. The window always contains the viewport,
+ * so each side is raised to at least the viewport's. The soft keyboard only shrinks the viewport, so it can't raise them.
  */
 function getWindowSides(): {shortSide: number; longSide: number} {
     const width = window.outerWidth || window.screen.width;
     const height = window.outerHeight || window.screen.height;
+    const viewportShortSide = Math.min(window.innerWidth, window.innerHeight);
+    const viewportLongSide = Math.max(window.innerWidth, window.innerHeight);
 
-    return {shortSide: Math.min(width, height), longSide: Math.max(width, height)};
+    return {shortSide: Math.max(Math.min(width, height), viewportShortSide), longSide: Math.max(width, height, viewportLongSide)};
 }
 
 /**
