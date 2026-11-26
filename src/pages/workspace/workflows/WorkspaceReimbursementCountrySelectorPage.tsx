@@ -11,7 +11,6 @@ import useDebouncedState from '@hooks/useDebouncedState';
 import useInitialSelection from '@hooks/useInitialSelection';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import usePermissions from '@hooks/usePermissions';
 
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -45,7 +44,6 @@ type CountryOption = Option & {
 
 function WorkspaceReimbursementCountrySelectorPage({policy, route}: WorkspaceReimbursementCountrySelectorPageProps) {
     const {translate} = useLocalize();
-    const {isBetaEnabled} = usePermissions();
     const [policyBankAccountCountry] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {selector: (bankAccountList) => getPolicyBankAccountCountry(policy, bankAccountList)});
     const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('');
 
@@ -115,7 +113,6 @@ function WorkspaceReimbursementCountrySelectorPage({policy, route}: WorkspaceRei
             featureName={CONST.POLICY.MORE_FEATURES.ARE_WORKFLOWS_ENABLED}
             policyFeature={CONST.POLICY.POLICY_FEATURE.WORKFLOWS_PAYMENTS}
             policyFeatureAccess={CONST.POLICY.POLICY_FEATURE_ACCESS.WRITE}
-            shouldBeBlocked={!isBetaEnabled(CONST.BETAS.COLLECT_DEPOSIT_ACCOUNTS)}
         >
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding

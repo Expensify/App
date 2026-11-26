@@ -823,6 +823,11 @@ const translations: TranslationDeepObject<typeof en> = {
         setPin: {didNotShipCard: 'Nie wysłaliśmy twojej karty. Spróbuj ponownie.'},
         revealPin: {couldNotReveal: 'Nie udało się wyświetlić twojego PIN-u. Spróbuj ponownie.'},
         changePin: {didNotChange: 'Nie zmieniliśmy twojego PIN-u. Spróbuj ponownie.'},
+        addToWallet: {
+            failedHeader: 'Nie udało się dodać karty',
+            failedTitle: 'Nie udało się dodać Twojej karty do portfela',
+            failedSubtitle: 'Podczas dodawania karty coś poszło nie tak. Jeśli karta jest już w Twoim portfelu, możesz z niej tam korzystać.',
+        },
         revealCardDetail: {couldNotReveal: 'Nie udało się wyświetlić szczegółów Twojej karty. Spróbuj ponownie.'},
     },
     validateCodeModal: {
