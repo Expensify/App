@@ -128,7 +128,7 @@ describe('WorkspaceDistanceRatesTable rate cell', () => {
         // When the table renders the row
         await renderTable({canWriteDistanceRates: true, canEditRate: true});
 
-        // Then the edit button shows and the row keeps the button's width clear after the bolt, so it never covers the bolt
+        // Then the edit button shows and keeps its room after the bolt
         await waitFor(() => {
             expect(screen.getByLabelText(TestHelper.translateLocal('common.edit'))).toBeOnTheScreen();
         });

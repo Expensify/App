@@ -58,7 +58,7 @@ describe('InlineNumberEditCell', () => {
         // When the cell renders
         await renderCellWithTrailingContent({textAlign: 'left'});
 
-        // Then the edit button's width stays clear after the icon, since a left-aligned cell shows the button at its trailing edge
+        // Then the edit button keeps its room after the icon
         expect(getTrailingContentRow()).toHaveStyle({paddingRight: variables.editableCellEditButtonClearance});
     });
 
