@@ -53,7 +53,7 @@ function getChoices(options: DynamicFormFieldOption[], translate: LocalizedTrans
         return {
             value: option.key,
             label,
-            // Wise sends some country lists, like the account holder's country, as a `select` keyed by country codes. Each option is checked on its own,
+            // A `select` field can list countries keyed by country codes. Each option is checked on its own,
             // so a code we don't list loses only its own code search instead of turning it off for the whole list
             searchValue: isCountryCode(option.key) ? StringUtils.sanitizeString(`${option.key}${label}`) : undefined,
         };
