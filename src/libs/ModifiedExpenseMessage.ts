@@ -527,8 +527,8 @@ function getForReportAction({
     if (hasModifiedVendor) {
         buildMessageFragmentForValue(
             translate,
-            resolveVendorName(policy, reportActionOriginalMessage?.vendor),
-            resolveVendorName(policy, reportActionOriginalMessage?.oldVendor),
+            lodashEscape(resolveVendorName(policy, reportActionOriginalMessage?.vendor)),
+            lodashEscape(resolveVendorName(policy, reportActionOriginalMessage?.oldVendor)),
             translate('common.vendor'),
             true,
             setFragments,
@@ -558,7 +558,11 @@ function getForReportAction({
         if (policyRulesModifiedFields) {
             // Until the workspace loads, access can't be checked, so hasPolicyRuleAccess stays false and the message links to the help page.
             const hasPolicyRuleAccess = !!policy?.id && arePolicyRulesEnabled(policy, policyCategories) && isPolicyAdmin(policy, currentUserLogin);
-            return getRulesModifiedMessage(translate, policyRulesModifiedFields, false, policy, policy?.id ?? reportActionOriginalMessage.policyID, hasPolicyRuleAccess);
+            const policyRulesMessage = getRulesModifiedMessage(translate, policyRulesModifiedFields, false, policy, policy?.id ?? reportActionOriginalMessage.policyID, hasPolicyRuleAccess);
+            // With nothing to format, fall through to the generic "changed the expense" message.
+            if (policyRulesMessage) {
+                return policyRulesMessage;
+            }
         }
     }
 
