@@ -29,6 +29,7 @@ import {updateLastRoute} from './libs/actions/App';
 import {initReconnect} from './libs/actions/Reconnect';
 import * as ActiveClientManager from './libs/ActiveClientManager';
 import {isSafari} from './libs/Browser';
+import {shouldHopToSharedHost} from './libs/LegacyHostHop';
 import Log from './libs/Log';
 import migrateOnyx from './libs/migrateOnyx';
 // This lib needs to be imported for its module-level NetInfo and Onyx subscriptions
@@ -44,6 +45,7 @@ import {cleanupTelemetryTrackers, initializeTelemetryTrackers} from './libs/tele
 import Visibility from './libs/Visibility';
 import ONYXKEYS from './ONYXKEYS';
 import PriorityModeHandler from './PriorityModeHandler';
+import SharedHostHopHandler from './SharedHostHopHandler';
 import {useSplashScreenActions, useSplashScreenState} from './SplashScreenStateContext';
 
 Onyx.registerLogger(({level, message, parameters}) => {
@@ -69,6 +71,10 @@ function Expensify() {
     const [isCheckingPublicRoom = true] = useOnyx(ONYXKEYS.RAM_ONLY_IS_CHECKING_PUBLIC_ROOM);
     const [updateRequired] = useOnyx(ONYXKEYS.RAM_ONLY_UPDATE_REQUIRED);
     const [lastVisitedPath] = useOnyx(ONYXKEYS.LAST_VISITED_PATH);
+
+    // Navigation waits while the page may move to the shared host, so the app doesn't show and then leave
+    const [isHoppingToSharedHost, setIsHoppingToSharedHost] = useState(shouldHopToSharedHost);
+    const stayOnThisHost = useCallback(() => setIsHoppingToSharedHost(false), []);
     useDebugShortcut();
     useSaveMarketingAttribution();
 
@@ -308,11 +314,12 @@ function Expensify() {
             <FullstoryUserContextHandler />
             <DeepLinkHandler onInitialUrl={setInitialUrl} />
             <AppleAuthWrapper />
+            {isHoppingToSharedHost && <SharedHostHopHandler onStay={stayOnThisHost} />}
             {splashScreenState === CONST.BOOT_SPLASH_STATE.HIDDEN && <UnreadIndicatorUpdater />}
             {/* Wait for the initial URL to resolve before mounting NavigationRoot, because its initialState
                 is computed once on mount. In HybridApp, getInitialURL() may never resolve (OldDot native
                 bridge), so we skip this guard to avoid blocking the app. */}
-            {hasAttemptedToOpenPublicRoom && (CONFIG.IS_HYBRID_APP || initialUrl !== undefined) && (
+            {hasAttemptedToOpenPublicRoom && !isHoppingToSharedHost && (CONFIG.IS_HYBRID_APP || initialUrl !== undefined) && (
                 <NavigationRoot
                     onReady={setNavigationReady}
                     authenticated={isAuthenticated}

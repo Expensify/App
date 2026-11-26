@@ -42,6 +42,16 @@ function getClientRequestIndex(request: {requestIndex?: number; requestID?: numb
 }
 
 let initializationCallback: () => void;
+let resolveInitialization: () => void = () => {};
+const initializationPromise = new Promise<void>((resolve) => {
+    resolveInitialization = resolve;
+});
+
+/** Resolves once the queue stored on disk has been loaded into memory, so the getters below reflect it */
+function waitForInitialization(): Promise<void> {
+    return initializationPromise;
+}
+
 function triggerInitializationCallback() {
     if (typeof initializationCallback !== 'function') {
         return;
@@ -190,6 +200,7 @@ Onyx.connectWithoutView({
             triggerInitializationCallback();
         }
         isInitialized = true;
+        resolveInitialization();
     },
 });
 // We have opted for connectWithoutView here as this module is strictly non-UI
@@ -575,6 +586,7 @@ export {
     rollbackOngoingRequest,
     deleteRequestsByIndices,
     onInitialization,
+    waitForInitialization,
     onCrossTabRequestsMerged,
     resetPendingWritesForTest,
 };
