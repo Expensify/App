@@ -645,7 +645,6 @@ describe('WorkspaceCategories', () => {
                 throw new Error('Select all button not found');
             }
             fireEvent.press(selectAll);
-            await openBulkActions();
 
             return {...renderResult, policyID: policy.id};
         };
@@ -655,7 +654,8 @@ describe('WorkspaceCategories', () => {
             const navigate = jest.spyOn(Navigation, 'navigate').mockImplementation(() => {});
             const {unmount, policyID} = await selectEnabledAndDisabledCategories(CONST.POLICY.TYPE.CORPORATE);
 
-            // When the admin chooses Edit visibility
+            // When the admin opens the bulk actions and chooses Edit visibility
+            await openBulkActions();
             const editVisibilityMenuItem = screen.getByText(TestHelper.translateLocal('workspace.categories.editVisibility'));
             fireEvent.press(editVisibilityMenuItem, {nativeEvent: {}, type: 'press', target: editVisibilityMenuItem, currentTarget: editVisibilityMenuItem});
             await waitForBatchedUpdatesWithAct();
@@ -673,6 +673,9 @@ describe('WorkspaceCategories', () => {
         it('is not offered on a Collect workspace, where category visibility is not available', async () => {
             // Given categories selected on a Collect workspace
             const {unmount} = await selectEnabledAndDisabledCategories(CONST.POLICY.TYPE.TEAM);
+
+            // When the admin opens the bulk actions
+            await openBulkActions();
 
             // Then the other bulk actions are offered, but Edit visibility isn't
             expect(screen.getByText(TestHelper.translateLocal('workspace.categories.disableCategory'))).toBeOnTheScreen();

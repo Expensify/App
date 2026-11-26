@@ -379,6 +379,32 @@ describe('DynamicCategoryVisibleToPage', () => {
             await waitForBatchedUpdatesWithAct();
         });
 
+        it("doesn't save before the workspace members load, since an empty list would disable every selected category", async () => {
+            // Given Meals and Travel were selected on the Categories list, and the workspace's members haven't loaded yet
+            const goBack = jest.spyOn(Navigation, 'goBack').mockImplementation(() => {});
+            await addTravelCategory();
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, {employeeList: null});
+            });
+            await selectCategoriesForBulkEdit(['Meals', 'Travel']);
+            const {unmount} = renderBulkPage(policy.id);
+            await waitForBatchedUpdatesWithAct();
+            expect(await screen.findByText('Save')).toBeOnTheScreen();
+
+            // When the admin presses Save
+            fireEvent.press(screen.getByText('Save'));
+            await waitForBatchedUpdatesWithAct();
+
+            // Then nothing is saved and the page stays open, so the categories keep their members
+            const categories = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policy.id}`);
+            expect(categories?.Meals?.enabled).toBe(true);
+            expect(categories?.Travel?.enabled).toBe(true);
+            expect(goBack).not.toHaveBeenCalled();
+
+            unmount();
+            await waitForBatchedUpdatesWithAct();
+        });
+
         it('blocks the save when a member would be left without any category', async () => {
             // Given Fees and Meals were selected on the Categories list, and they're the workspace's only categories
             await selectCategoriesForBulkEdit(['Fees', 'Meals']);

@@ -258,6 +258,8 @@ function DynamicCategoryVisibleToPage({route}: DynamicCategoryVisibleToPageProps
                             buttonText={translate('common.save')}
                             isAlertVisible={false}
                             onSubmit={saveVisibility}
+                            // Saving before the members load would read as unchecking every member, which disables the categories in a bulk edit
+                            isDisabled={!hasMembers}
                             enabledWhenOffline
                             containerStyles={[styles.flexReset, styles.flexGrow0, styles.flexShrink0, styles.flexBasisAuto]}
                         />
