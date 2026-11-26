@@ -177,21 +177,24 @@ function mockGetOlderActions(messageCount: number) {
     });
 }
 
-function mockGetNewerActions(messageCount: number) {
-    fetchMock.mockAPICommand('GetNewerActions', ({reportID, reportActionID}) => ({
-        onyxData:
-            reportID === REPORT_ID
-                ? [
-                      {
-                          onyxMethod: 'merge',
-                          key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`,
-                          // The API also returns the action that was requested with the reportActionID.
-                          value: buildReportComments(messageCount + 1, reportActionID, true),
-                      },
-                  ]
-                : [],
-        hasNewerActions: messageCount > 0,
-    }));
+function mockGetNewerActions(messageCountByCursor: Record<string, number>) {
+    fetchMock.mockAPICommand('GetNewerActions', ({reportID, reportActionID}) => {
+        const messageCount = messageCountByCursor[reportActionID] ?? 0;
+        return {
+            onyxData:
+                reportID === REPORT_ID
+                    ? [
+                          {
+                              onyxMethod: 'merge',
+                              key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`,
+                              // The API also returns the action that was requested with the reportActionID.
+                              value: buildReportComments(messageCount + 1, reportActionID, true),
+                          },
+                      ]
+                    : [],
+            hasNewerActions: messageCount > 0,
+        };
+    });
 }
 
 async function fastSignInWithTestUser() {
@@ -358,12 +361,14 @@ describe('Pagination', () => {
     });
 
     it('opens a chat and load newer messages', async () => {
+        // Given a linked message with one newer page and a terminal response, so pagination has a finite end.
         mockOpenReport(5, '5');
-        mockGetNewerActions(5);
+        mockGetNewerActions({'5': 5, '10': 0});
 
         await signInAndGetApp();
         await navigateToSidebarOption(COMMENT_LINKING_REPORT_ID);
 
+        // When the reader follows the link and stays at the newer edge, pagination must continue without another scroll.
         const link = screen.getByText('Link 1');
         fireEvent(link, 'press');
         await waitFor(() => {
@@ -377,45 +382,32 @@ describe('Pagination', () => {
         await waitForNetworkPromises();
         await waitForBatchedUpdatesWithAct();
 
-        // Here we have 5 messages from the initial OpenReport and 5 from the initial GetNewerActions.
-        expect(getReportActions()).toHaveLength(10);
+        // Then pagination advances to the terminal cursor automatically and keeps the ten distinct messages.
+        await waitFor(() => {
+            expect(getReportActions()).toHaveLength(10);
+            TestHelper.expectAPICommandToHaveBeenCalled('GetNewerActions', 2);
+        });
 
-        // Simulate the backend returning no new messages to simulate reaching the start of the chat.
-        mockGetNewerActions(0);
-
-        // There is 1 extra call here because of the comment linking report.
-
-        // Simulate the backend returning no new messages to simulate reaching the start of the chat.
-        mockGetNewerActions(0);
         TestHelper.expectAPICommandToHaveBeenCalled('OpenReport', 3);
         TestHelper.expectAPICommandToHaveBeenCalledWith('OpenReport', 1, {reportID: REPORT_ID, reportActionID: '5'});
         TestHelper.expectAPICommandToHaveBeenCalled('GetOlderActions', 0);
         TestHelper.expectAPICommandToHaveBeenCalledWith('GetNewerActions', 0, {reportID: REPORT_ID, reportActionID: '5'});
+        TestHelper.expectAPICommandToHaveBeenCalledWith('GetNewerActions', 1, {reportID: REPORT_ID, reportActionID: '10'});
 
-        // Simulate the maintainVisibleContentPosition scroll adjustment, so it is now possible to scroll down more.
+        await waitForNetworkPromises();
+        await waitForBatchedUpdatesWithAct();
+
+        // When the reader leaves and returns to the newer edge after the terminal response, there is nothing left to fetch.
         scrollToOffset(500);
         await waitForBatchedUpdatesWithAct();
         scrollToOffset(0);
         await waitForBatchedUpdatesWithAct();
 
-        // We now have 10 messages. 5 from the initial OpenReport and 5 from the GetNewerActions call.
-        expect(getReportActions()).toHaveLength(10);
-
+        // Then the terminal boundary prevents another request and preserves all ten messages.
         TestHelper.expectAPICommandToHaveBeenCalled('OpenReport', 3);
         TestHelper.expectAPICommandToHaveBeenCalled('GetOlderActions', 0);
         TestHelper.expectAPICommandToHaveBeenCalled('GetNewerActions', 2);
 
-        scrollToOffset(500);
-        await waitForBatchedUpdatesWithAct();
-        scrollToOffset(0);
-        await waitForBatchedUpdatesWithAct();
-
-        // When there are no newer actions, we don't want to trigger GetNewerActions again.
-        TestHelper.expectAPICommandToHaveBeenCalled('OpenReport', 3);
-        TestHelper.expectAPICommandToHaveBeenCalled('GetOlderActions', 0);
-        TestHelper.expectAPICommandToHaveBeenCalled('GetNewerActions', 2);
-
-        // We still have 10 messages. 5 from the initial OpenReport and 5 from the GetNewerActions call.
         expect(getReportActions()).toHaveLength(10);
     });
 });
