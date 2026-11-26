@@ -1471,6 +1471,7 @@ const translations = {
             // @context Column header naming who or what finished a workflow stage: people, an AI agent or rules.
             sourceColumn: 'Source',
             averageTimeColumn: 'Average time',
+            averageHoursColumn: 'Average hours',
             source: {
                 [CONST.INSIGHTS.HANDLED_BY_SOURCE.PEOPLE]: 'Members',
                 [CONST.INSIGHTS.HANDLED_BY_SOURCE.AGENT]: 'AI agent',

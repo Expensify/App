@@ -288,8 +288,7 @@ function InsightsChartWidget({
         });
     }
 
-    // Handled by has no menu, since its rows can't be listed on Spend
-    const canUseMenuActions = !handledByStage && !!queryJSON && (state === INSIGHTS_CHART_STATE.READY || (isLoading && canOpenOnSpend));
+    const canUseMenuActions = !!queryJSON && (state === INSIGHTS_CHART_STATE.READY || (isLoading && canOpenOnSpend));
     // An empty stage still lists its setup rows, which are what a workspace without automation needs
     const shouldShowHandledByTable =
         !!handledByStage && (state === INSIGHTS_CHART_STATE.LOADING || state === INSIGHTS_CHART_STATE.READY || (state === INSIGHTS_CHART_STATE.EMPTY && handledBySetupRows.length > 0));

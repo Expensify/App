@@ -45,8 +45,36 @@ const GROUP_HEADER_KEYS: Partial<Record<SearchGroupBy, TranslationPaths>> = {
 /** Matches the precision the chart writes average durations in */
 const AVERAGE_DAYS_FRACTION_DIGITS = 1;
 
+/** Hours keep two decimals, so a source handling reports in minutes doesn't read as 0 */
+const AVERAGE_HOURS_FRACTION_DIGITS = 2;
+
+/** Shares are written like the table writes them, e.g. 40.8 */
+const SHARE_FRACTION_DIGITS = 1;
+
 function formatDays(durationInSeconds: number): string {
     return (durationInSeconds / CONST.DATE.SECONDS_PER_DAY).toFixed(AVERAGE_DAYS_FRACTION_DIGITS);
+}
+
+/** Writes the Handled by sources as the table lists them, leaving out sources with no reports and the setup rows, which hold no data */
+function buildHandledByCSV(data: GroupedItem[], translate: LocalizedTranslate): string {
+    const sources = data.flatMap((item) => (item.groupedBy === CONST.SEARCH.GROUP_BY.HANDLED_BY && item.count > 0 ? [item] : []));
+    const reportCount = sources.reduce((sum, item) => sum + item.count, 0);
+    const header = [
+        translate('insightsPage.handledBy.sourceColumn'),
+        translate('insightsPage.share'),
+        translate(COUNT_COLUMN_TITLE_KEYS[CONST.SEARCH.CHART_COUNT_DIMENSION.REPORT]),
+        translate('insightsPage.handledBy.averageHoursColumn'),
+    ];
+    const rows = sources.map((item) =>
+        [
+            escapeCsvField(item.formattedHandledBy),
+            ((item.count / reportCount) * 100).toFixed(SHARE_FRACTION_DIGITS),
+            String(item.count),
+            // A source with no finished report has no average, so its cell is left empty rather than read as 0 hours
+            item.averageDuration === null ? '' : (item.averageDuration / CONST.DATE.SECONDS_PER_HOUR).toFixed(AVERAGE_HOURS_FRACTION_DIGITS),
+        ].join(','),
+    );
+    return `\uFEFF${[header.map(escapeCsvField).join(','), ...rows].join('\r\n')}`;
 }
 
 function buildInsightsChartCSV({
@@ -63,6 +91,9 @@ function buildInsightsChartCSV({
     stages,
 }: BuildInsightsChartCSVParams): string {
     const {getLabel, getDateRange} = CHART_GROUP_BY_CONFIG[groupBy];
+    if (groupBy === CONST.SEARCH.GROUP_BY.HANDLED_BY) {
+        return buildHandledByCSV(data, translate);
+    }
     if (groupBy === CONST.SEARCH.GROUP_BY.TAG && data.some((item) => item.groupedBy === CONST.SEARCH.GROUP_BY.TAG && item.tagLevel !== undefined)) {
         const tagHeader = [
             translate('common.tag'),
