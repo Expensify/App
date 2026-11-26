@@ -45,7 +45,14 @@ jest.mock('@libs/ReportActionsUtils', () => ({
     resolveTransactionThreadReport: jest.requireActual<typeof ReportActionsUtils>('@libs/ReportActionsUtils').resolveTransactionThreadReport,
 }));
 // Permissions are fixed here so the test reaches the modal's rotate handler.
-jest.mock('@libs/ReportUtils', () => ({canEditFieldOfMoneyRequest: () => true, isMoneyRequestReport: () => true, isReportManager: () => false, isTrackExpenseReport: () => false}));
+jest.mock('@libs/ReportUtils', () => ({
+    canEditFieldOfMoneyRequest: () => true,
+    isExpenseReport: () => false,
+    isMoneyRequestReport: () => true,
+    isOpenReport: () => false,
+    isReportManager: () => false,
+    isTrackExpenseReport: () => false,
+}));
 jest.mock('@hooks/useAllTransactions', () => ({__esModule: true, default: jest.fn()}));
 jest.mock('@hooks/useOnyx', () => ({__esModule: true, default: jest.requireActual<{useOnyx: typeof useOnyx}>('react-native-onyx').useOnyx}));
 jest.mock('@hooks/usePolicy', () => ({__esModule: true, default: () => undefined}));
