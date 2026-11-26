@@ -78,14 +78,14 @@ describe('ValidateCodeCountdown', () => {
 
     it('reports the time that actually elapsed after the timer was starved of callbacks', () => {
         renderCountdown();
-        expect(screen.getByText('00:30')).toBeOnTheScreen();
+        expect(screen.getByText('00:30', {includeHiddenElements: true})).toBeOnTheScreen();
 
         tickSeconds(3);
-        expect(screen.getByText('00:27')).toBeOnTheScreen();
+        expect(screen.getByText('00:27', {includeHiddenElements: true})).toBeOnTheScreen();
 
         // 14s of the 30s window are gone once the single resume callback lands.
         suspendFor(10 * CONST.MILLISECONDS_PER_SECOND);
-        expect(screen.getByText('00:16')).toBeOnTheScreen();
+        expect(screen.getByText('00:16', {includeHiddenElements: true})).toBeOnTheScreen();
     });
 
     it('finishes once the window has elapsed even if the callbacks never arrived', () => {
@@ -98,17 +98,17 @@ describe('ValidateCodeCountdown', () => {
 
     it('keeps measuring from a persisted requestedAt when one is passed', () => {
         renderCountdown(jest.fn(), BASE_TIME - 8 * CONST.MILLISECONDS_PER_SECOND);
-        expect(screen.getByText('00:22')).toBeOnTheScreen();
+        expect(screen.getByText('00:22', {includeHiddenElements: true})).toBeOnTheScreen();
 
         suspendFor(10 * CONST.MILLISECONDS_PER_SECOND);
-        expect(screen.getByText('00:11')).toBeOnTheScreen();
+        expect(screen.getByText('00:11', {includeHiddenElements: true})).toBeOnTheScreen();
     });
 
     // A backward clock correction leaves the anchor in the future, where the clamp returns the same value every tick.
     it('keeps ticking to zero when the clock is corrected backward', () => {
         const onCountdownFinish = jest.fn();
         renderCountdown(onCountdownFinish, BASE_TIME + 10 * CONST.MILLISECONDS_PER_SECOND);
-        expect(screen.getByText('00:30')).toBeOnTheScreen();
+        expect(screen.getByText('00:30', {includeHiddenElements: true})).toBeOnTheScreen();
 
         tickSeconds(45);
         expect(onCountdownFinish).toHaveBeenCalled();
@@ -134,10 +134,10 @@ describe('ValidateCodeCountdown', () => {
 
         tickSeconds(5);
         act(() => ref.current?.resetCountdown());
-        expect(screen.getByText('00:30')).toBeOnTheScreen();
+        expect(screen.getByText('00:30', {includeHiddenElements: true})).toBeOnTheScreen();
 
         suspendFor(10 * CONST.MILLISECONDS_PER_SECOND);
-        expect(screen.getByText('00:19')).toBeOnTheScreen();
+        expect(screen.getByText('00:19', {includeHiddenElements: true})).toBeOnTheScreen();
     });
 
     it('reads as one disabled element with the full sentence, so screen readers do not offer a link named only by the time', () => {
@@ -150,6 +150,10 @@ describe('ValidateCodeCountdown', () => {
 
         // Then it says what the time is for and that it can't be used yet
         expect(countdown).toBeDisabled();
+
+        // And the time inside stays on screen but is hidden from screen readers, so Android doesn't offer it as its own link
+        expect(screen.queryByText('00:26')).not.toBeOnTheScreen();
+        expect(screen.getByText('00:26', {includeHiddenElements: true})).toBeOnTheScreen();
 
         // When the next second passes
         tickSeconds(1);

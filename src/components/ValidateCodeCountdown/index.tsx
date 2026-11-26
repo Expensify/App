@@ -9,9 +9,10 @@ import DateUtils from '@libs/DateUtils';
 import CONST from '@src/CONST';
 
 import React, {useEffect, useImperativeHandle, useRef, useState} from 'react';
-import {View} from 'react-native';
 
 import type {ValidateCodeCountdownProps} from './types';
+
+import CountdownAccessibilityWrapper from './CountdownAccessibilityWrapper';
 
 const ANNOUNCEMENT_INTERVAL_SECONDS = 10;
 
@@ -82,18 +83,13 @@ function ValidateCodeCountdown({onCountdownFinish, requestedAt, ref}: ValidateCo
     );
 
     return (
-        // The time sits in a link that would be read alone as "00:26", so the countdown is read as one disabled sentence
-        <View
-            accessible
-            accessibilityLabel={translate('validateCodeForm.requestNewCodeAccessibilityLabel', {count: timeRemaining})}
-            accessibilityState={{disabled: true}}
-        >
+        <CountdownAccessibilityWrapper accessibilityLabel={translate('validateCodeForm.requestNewCodeAccessibilityLabel', {count: timeRemaining})}>
             <RenderHTML
                 html={translate('validateCodeForm.requestNewCode', {
                     timeRemaining: `00:${String(timeRemaining).padStart(2, '0')}`,
                 })}
             />
-        </View>
+        </CountdownAccessibilityWrapper>
     );
 }
 
