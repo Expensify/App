@@ -46,10 +46,10 @@ describe('buildRecentHistoryRows', () => {
         expect(rows.map(({isInProgress}) => isInProgress)).toEqual([true, false]);
     });
 
-    it('lists at most four periods and draws no bar for refunds', () => {
+    it('lists at most four periods and starts the scale at the refund', () => {
         // Given five periods, one of them refunded below zero
         const history = [
-            {total: -300, count: 1, year: 2026, month: 11},
+            {total: -100, count: 1, year: 2026, month: 11},
             {total: 400, count: 1, year: 2026, month: 10},
             {total: 200, count: 1, year: 2026, month: 9},
             {total: 100, count: 1, year: 2026, month: 8},
@@ -59,8 +59,38 @@ describe('buildRecentHistoryRows', () => {
         // When the rows are laid out without an average
         const {rows, averageWidthPercent} = buildRecentHistoryRows(history, undefined, false);
 
-        // Then the four newest periods are listed, the refunded one with an empty bar, and the fifth doesn't widen the scale
-        expect(rows.map(({widthPercent}) => widthPercent)).toEqual([0, 100, 50, 25]);
+        // Then the four newest periods are listed on a scale from the refund to the largest spend, and the fifth doesn't widen it
+        expect(rows.map(({widthPercent}) => widthPercent)).toEqual([0, 100, 60, 40]);
         expect(averageWidthPercent).toBeUndefined();
+    });
+
+    it('keeps a negative average on the scale', () => {
+        // Given refunds that bring the average below zero
+        const history = [
+            {total: 300, count: 1, year: 2026, month: 11},
+            {total: -500, count: 1, year: 2026, month: 10},
+        ];
+
+        // When the rows are laid out with that average
+        const {rows, averageWidthPercent} = buildRecentHistoryRows(history, -100, false);
+
+        // Then the average is marked on the scale starting at the refund
+        expect(rows.map(({widthPercent}) => widthPercent)).toEqual([100, 0]);
+        expect(averageWidthPercent).toBe(50);
+    });
+
+    it('starts the scale at a negative average when the listed periods are all positive', () => {
+        // Given periods with spend only, and an average brought below zero by refunds in older periods, which the section doesn't list
+        const history = [
+            {total: 300, count: 1, year: 2026, month: 11},
+            {total: 100, count: 1, year: 2026, month: 10},
+        ];
+
+        // When the rows are laid out with that average
+        const {rows, averageWidthPercent} = buildRecentHistoryRows(history, -100, false);
+
+        // Then the scale starts at the average, so its marker sits at the track's start and the bars are measured from it
+        expect(rows.map(({widthPercent}) => widthPercent)).toEqual([100, 50]);
+        expect(averageWidthPercent).toBe(0);
     });
 });

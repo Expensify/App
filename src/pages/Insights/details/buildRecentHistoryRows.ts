@@ -14,7 +14,7 @@ type RecentHistoryRow = {
     /** Spend in the period, in the group currency's smallest unit */
     total: number;
 
-    /** Bar length, as a percentage of the longest bar or the average, whichever is larger */
+    /** Bar length, as a percentage of the track */
     widthPercent: number;
 
     /** Whether the period hasn't ended yet */
@@ -46,11 +46,13 @@ function getHistoryPeriodStart(period: InsightsDetailsHistoryPeriod): string {
     return `${period.year}-01-01`;
 }
 
-/** Lays out the periods, newest first, on a scale that fits both the longest bar and the average. */
+/** Lays out the periods, newest first, on a scale from the lowest to the highest of zero, the periods and the average. */
 function buildRecentHistoryRows(allHistory: InsightsDetailsHistoryPeriod[], average: number | undefined, isNewestInProgress: boolean): RecentHistoryLayout {
     const history = allHistory.slice(0, RECENT_HISTORY_PERIOD_COUNT);
-    const scale = Math.max(average ?? 0, ...history.map(({total}) => total));
-    const getWidthPercent = (value: number) => (scale > 0 ? (Math.max(value, 0) / scale) * 100 : 0);
+    const values = [0, average ?? 0, ...history.map(({total}) => total)];
+    const min = Math.min(...values);
+    const range = Math.max(...values) - min;
+    const getWidthPercent = (value: number) => (range > 0 ? ((value - min) / range) * 100 : 0);
 
     return {
         rows: history.map((period, index) => ({
@@ -59,7 +61,7 @@ function buildRecentHistoryRows(allHistory: InsightsDetailsHistoryPeriod[], aver
             widthPercent: getWidthPercent(period.total),
             isInProgress: isNewestInProgress && index === 0,
         })),
-        averageWidthPercent: average === undefined || average <= 0 ? undefined : getWidthPercent(average),
+        averageWidthPercent: average === undefined ? undefined : getWidthPercent(average),
     };
 }
 
