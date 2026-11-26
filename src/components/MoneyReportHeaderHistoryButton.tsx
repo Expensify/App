@@ -32,7 +32,7 @@ function MoneyReportHeaderHistoryButton({children, message, sentryLabel}: MoneyR
             onPress={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.REPORT_HISTORY.path))}
             wrapperStyle={[styles.w100, styles.justifyContentCenter, styles.headerStatusBarContainer]}
             // The next step message ends with its own punctuation, which would otherwise be read before the comma
-            accessibilityLabel={`${message.replace(/[.!?]$/, '')}, ${translate('reportHistoryPage.title')}`}
+            accessibilityLabel={`${message.replace(/[.!?。！？]$/, '')}, ${translate('reportHistoryPage.title')}`}
             role={CONST.ROLE.BUTTON}
             sentryLabel={sentryLabel}
         >

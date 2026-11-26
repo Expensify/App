@@ -61,6 +61,10 @@ function renderRow(item: TransactionListItemType, isDeletedTransaction: boolean,
 }
 
 describe('TransactionListItemNarrow', () => {
+    afterEach(() => {
+        jest.mocked(useRowSelection).mockReturnValue({isSelected: false});
+    });
+
     it('shows From for a deleted expense', () => {
         // Given a deleted expense whose From resolved to the cardholder
         const item = makeItem(CONST.REPORT.TRASH_REPORT_ID);

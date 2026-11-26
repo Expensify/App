@@ -97,7 +97,7 @@ describe('TransactionItemRow accessibility labels', () => {
         renderRow(transaction, false);
         await waitForBatchedUpdates();
 
-        // Then the arrow says what it does, and the merchant name stays unique to the checkbox
+        // Then the arrow says what it does, and the checkbox is named after the merchant
         expect(screen.getByLabelText(translateLocal('iou.viewDetails'))).toBeOnTheScreen();
         expect(screen.getByLabelText('Audit Cafe')).toBeOnTheScreen();
     });

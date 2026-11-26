@@ -24,6 +24,8 @@ import React, {useRef} from 'react';
 
 import type {TransactionListItemNarrowProps} from './types';
 
+import getSelectableRowAccessibilityState from './getSelectableRowAccessibilityState';
+
 function TransactionListItemNarrow<TItem extends ListItem>({
     item,
     isDeletedTransaction,
@@ -101,8 +103,7 @@ function TransactionListItemNarrow<TItem extends ListItem>({
                 onPress={handleOnPress}
                 disabled={!!isDisabled && !isSelected}
                 accessibilityLabel={item.text ?? ''}
-                // In select mode the checkbox is read as part of the row, so the row carries its selected state
-                accessibilityState={canSelectMultiple ? {selected: isSelected} : undefined}
+                accessibilityState={getSelectableRowAccessibilityState(canSelectMultiple, isSelected)}
                 role={!isDeletedTransaction ? CONST.ROLE.BUTTON : 'none'}
                 isNested
                 shouldAllowTextSelection
