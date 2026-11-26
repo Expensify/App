@@ -280,6 +280,8 @@ type MoneyRequestInformationParams = {
     parentChatReportActions?: OnyxEntry<OnyxTypes.ReportActions>;
     /** Report actions of the participant's existing chat, which is their policy expense chat or the 1:1 chat found by `getChatByParticipants` */
     participantChatReportActions?: OnyxEntry<OnyxTypes.ReportActions>;
+    /** Keeps a newly created optimistic expense report open when auto-submit is deferred for a batch item. */
+    shouldDeferAutoSubmit?: boolean;
 };
 
 type MoneyRequestOptimisticParams = {
@@ -1357,6 +1359,7 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
         personalDetailsByLogins,
         parentChatReportActions,
         participantChatReportActions,
+        shouldDeferAutoSubmit,
     } = moneyRequestInformation;
     const {payeeAccountID = currentUserAccountIDParam, payeeEmail = currentUserEmailParam, participant} = participantParams;
     const {policy, policyCategories, policyTagList, policyRecentlyUsedCategories, policyRecentlyUsedTags} = policyParams;
@@ -1494,6 +1497,7 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
                   isASAPSubmitBetaEnabled,
                   getCurrencyDecimals,
                   rules,
+                  shouldDeferAutoSubmit,
               })
             : buildOptimisticIOUReport(payeeAccountID, payerAccountID, reportAmount, chatReport.reportID, currency, getCurrencyDecimals, undefined, undefined, optimisticReportID);
     } else if (isTransactionAlreadyOnReport) {

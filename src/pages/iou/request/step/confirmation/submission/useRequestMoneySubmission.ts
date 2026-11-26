@@ -13,7 +13,7 @@ import {completeTestDriveTask} from '@libs/actions/Task';
 import type {WriteReadyBarrier} from '@libs/API';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
-import {getExistingTransactionID, getReusableP2PReportID, resolveOptimisticChatReportID} from '@libs/IOUUtils';
+import {getExistingTransactionID, getReusableP2PReportID, resolveOptimisticChatReportID, shouldDeferAutoSubmitForBatchItem} from '@libs/IOUUtils';
 import {rand64, roundToTwoDecimalPlaces} from '@libs/NumberUtils';
 import {isMoneyRequestReport as isMoneyRequestReportReportUtils} from '@libs/ReportUtils';
 import {
@@ -176,11 +176,19 @@ function useRequestMoneySubmission({
         const {chatReportID: optimisticChatReportID} = resolveOptimisticChatReportID(participantAccountIDs, undefined, reusableP2PReportID);
         const optimisticCreatedReportActionID = rand64();
         const optimisticReportPreviewActionID = rand64();
+        const isExpenseReport = isMoneyRequestReportReportUtils(report);
         let existingIOUReport: Report | undefined;
         let allTransactionsCreated = true;
         let lastOptimisticTransactionID: string | undefined;
 
-        for (const item of transactions) {
+        for (const [index, item] of transactions.entries()) {
+            const shouldDeferAutoSubmit = shouldDeferAutoSubmitForBatchItem({
+                nextTransaction: transactions.at(index + 1),
+                hasNextItem: index < transactions.length - 1,
+                isFromExistingReport: isExpenseReport,
+                isASAPSubmitBetaEnabled,
+                action,
+            });
             lastOptimisticTransactionID = rand64();
             const receipt = receiptFiles[item.transactionID];
             logSubmittedReceiptMilestone({
@@ -300,6 +308,7 @@ function useRequestMoneySubmission({
                 },
                 optimisticTransactionID: lastOptimisticTransactionID,
                 shouldGenerateTransactionThreadReport,
+                shouldDeferAutoSubmit,
                 isASAPSubmitBetaEnabled,
                 currentUserAccountIDParam: currentUserPersonalDetails.accountID,
                 currentUserEmailParam: currentUserPersonalDetails.email ?? '',
@@ -324,7 +333,6 @@ function useRequestMoneySubmission({
             }
         }
 
-        const isExpenseReport = isMoneyRequestReportReportUtils(report);
         performPostBatchCleanup({
             transactions,
             report,

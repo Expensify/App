@@ -3402,5 +3402,59 @@ describe('actions/IOU', () => {
             expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.REQUEST_MONEY, 1);
             expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.TRACK_EXPENSE, 0);
         });
+
+        it('defers auto-submit on non-final receipts and keeps a new Submit and Close optimistic report open until the final receipt', async () => {
+            // Given a workspace with Instant Submit, Submit and Close, and reimbursements disabled, plus two receipts dropped at once
+            await signInWithTestUser(CREATE_TRANSACTION_USER_ACCOUNT_ID, CREATE_TRANSACTION_USER_LOGIN);
+            const policyID = 'submit-and-close-policy';
+            const chatReportID = 'submit-and-close-chat';
+            const policy: Policy = {
+                ...createRandomPolicy(92, CONST.POLICY.TYPE.TEAM),
+                id: policyID,
+                autoReporting: true,
+                autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT,
+                approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL,
+                reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO,
+            };
+            const chatReport: Report = {
+                ...createRandomReport(92, CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT),
+                reportID: chatReportID,
+                policyID,
+                ownerAccountID: CREATE_TRANSACTION_USER_ACCOUNT_ID,
+                iouReportID: undefined,
+            };
+            await Onyx.multiSet({
+                [`${ONYXKEYS.COLLECTION.POLICY}${policyID}`]: policy,
+                [`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`]: chatReport,
+            });
+            const tx1 = {...createRandomTransaction(93), transactionID: 'batch-tx-1', amount: 0, currency: 'USD', created: '2026-11-26'};
+            const tx2 = {...createRandomTransaction(94), transactionID: 'batch-tx-2', amount: 0, currency: 'USD', created: '2026-11-26'};
+
+            // When both receipts are submitted in one batch via createTransaction
+            const writeSpy = jest.spyOn(API, 'writeWhenReady');
+            createTransaction({
+                ...buildCreateTransactionParams(CONST.IOU.TYPE.TRACK, chatReport),
+                policyParams: {policy},
+                participant: {reportID: chatReportID, isPolicyExpenseChat: true, policyID},
+                transactions: [tx1, tx2],
+                files: [
+                    {transactionID: tx1.transactionID, source: 'receipt-1'},
+                    {transactionID: tx2.transactionID, source: 'receipt-2'},
+                ],
+                optimisticTransactionIDs: ['opt-tx-1', 'opt-tx-2'],
+            });
+            await waitForBatchedUpdates();
+
+            // Then both TrackExpense calls target the same report, and only the first defers auto-submit
+            const trackCalls = writeSpy.mock.calls.filter(([command]) => command === WRITE_COMMANDS.TRACK_EXPENSE);
+            expect(trackCalls).toHaveLength(2);
+            const firstParams = trackCalls.at(0)?.at(1);
+            const secondParams = trackCalls.at(1)?.at(1);
+            const firstReportID = typeof firstParams === 'object' && firstParams !== null && 'iouReportID' in firstParams ? firstParams.iouReportID : undefined;
+            expect(firstReportID).toBeTruthy();
+            expect(firstParams).toEqual(expect.objectContaining({iouReportID: firstReportID, shouldDeferAutoSubmit: true}));
+            expect(secondParams).toEqual(expect.objectContaining({iouReportID: firstReportID, shouldDeferAutoSubmit: false}));
+            writeSpy.mockRestore();
+        });
     });
 });

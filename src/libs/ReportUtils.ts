@@ -1075,6 +1075,8 @@ type BuildOptimisticExpenseReportParams = {
     createdTimestamp?: string;
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
     rules: OnyxCollection<Rule>;
+    /** Keeps the optimistic report open when auto-submit is deferred for an earlier item in a batch. */
+    shouldDeferAutoSubmit?: boolean;
 };
 
 type ReportByPolicyMap = Record<string, OnyxCollection<Report>>;
@@ -8612,8 +8614,8 @@ function computeOptimisticReportNameWithMetadata(
  * Returns the stateNum and statusNum for an expense report based on the policy settings
  * @param policy
  */
-function getExpenseReportStateAndStatus(policy: OnyxEntry<Policy>, isASAPSubmitBetaEnabled: boolean, isEmptyOptimisticReport = false) {
-    if (isASAPSubmitBetaEnabled) {
+function getExpenseReportStateAndStatus(policy: OnyxEntry<Policy>, isASAPSubmitBetaEnabled: boolean, isEmptyOptimisticReport = false, shouldDeferAutoSubmit = false) {
+    if (isASAPSubmitBetaEnabled || shouldDeferAutoSubmit) {
         return {
             stateNum: CONST.REPORT.STATE_NUM.OPEN,
             statusNum: CONST.REPORT.STATUS_NUM.OPEN,
@@ -8669,6 +8671,7 @@ function buildOptimisticExpenseReport({
     createdTimestamp,
     getCurrencyDecimals,
     rules,
+    shouldDeferAutoSubmit = false,
 }: BuildOptimisticExpenseReportParams): OptimisticExpenseReport {
     // The amount for Expense reports are stored as negative value in the database
     const storedTotal = total * -1;
@@ -8682,7 +8685,7 @@ function buildOptimisticExpenseReport({
     const policyDraft = allPolicyDrafts?.[`${ONYXKEYS.COLLECTION.POLICY_DRAFTS}${policyID}`];
     const policy = policyReal ?? policyDraft;
 
-    const {stateNum, statusNum} = getExpenseReportStateAndStatus(policy, isASAPSubmitBetaEnabled);
+    const {stateNum, statusNum} = getExpenseReportStateAndStatus(policy, isASAPSubmitBetaEnabled, false, shouldDeferAutoSubmit);
 
     const created = createdTimestamp ?? DateUtils.getDBTime();
 
@@ -13541,6 +13544,14 @@ function getIndicatedMissingPaymentMethod(
 }
 
 /**
+ * Whether a SmartScan expense creates a separate report under the ASAP Submit beta.
+ * Adding to an existing report or submitting a tracked expense stays on the target report instead.
+ */
+function willScanRequestCreateNewReport(isScanRequest: boolean, isASAPSubmitBetaEnabled: boolean, action?: IOUAction, isFromExistingReport?: boolean): boolean {
+    return !isFromExistingReport && action !== CONST.IOU.ACTION.SUBMIT && isScanRequest && isASAPSubmitBetaEnabled;
+}
+
+/**
  * Used from expense actions to decide if we need to build an optimistic expense report.
  * Create a new report if:
  * - we don't have an iouReport set in the chatReport
@@ -13566,7 +13577,7 @@ function shouldCreateNewMoneyRequestReport(
         isReportPendingDelete(existingIOUReport) ||
         hasIOUWaitingOnCurrentUserBankAccount(chatReport) ||
         !canAddTransaction(existingIOUReport, rules) ||
-        (!isFromExistingReport && action !== CONST.IOU.ACTION.SUBMIT && isScanRequest && isASAPSubmitBetaEnabled)
+        willScanRequestCreateNewReport(isScanRequest, isASAPSubmitBetaEnabled, action, isFromExistingReport)
     );
 }
 
@@ -16566,6 +16577,7 @@ export {
     selectFilteredReportActionsForReports,
     shouldAutoFocusOnKeyPress,
     shouldCreateNewMoneyRequestReport,
+    willScanRequestCreateNewReport,
     shouldDisableDetailPage,
     shouldDisableRename,
     shouldDisableThread,

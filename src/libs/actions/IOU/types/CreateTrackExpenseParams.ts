@@ -27,6 +27,7 @@ type TrackExpenseAccountantParams = {
 
 type CreateTrackExpenseParams = {
     report: OnyxEntry<OnyxTypes.Report>;
+    existingIOUReport?: OnyxEntry<OnyxTypes.Report>;
     isDraftPolicy: boolean;
     action?: IOUAction;
     participantParams: RequestMoneyParticipantParams;
@@ -67,6 +68,8 @@ type CreateTrackExpenseParams = {
 
     /** Current "Reuse route" list value, so the just used route can be saved locally */
     reusableDistanceRoutes?: OnyxTypes.ReusableDistanceRoute[];
+    /** Defers instant auto-submit so earlier items in a batch do not close the report before remaining items arrive. */
+    shouldDeferAutoSubmit?: boolean;
 };
 
 /** Saved with a failed track's receipt error, because the failure deletes the whisper and a retry needs its ID to rebuild it. */

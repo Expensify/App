@@ -12,9 +12,16 @@ import type {WriteReadyBarrier} from '@libs/API';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import {getStringifiedGPSCoordinates} from '@libs/GPSDraftDetailsUtils';
+import {shouldDeferAutoSubmitForBatchItem} from '@libs/IOUUtils';
 import {rand64} from '@libs/NumberUtils';
 import {getNewAccountIDsAndLogins} from '@libs/PersonalDetailsUtils';
-import {findSelfDMReportID, generateReportID, getAllPolicyExpenseChatReportActions, getChatReportFromMoneyRequestReport} from '@libs/ReportUtils';
+import {
+    findSelfDMReportID,
+    generateReportID,
+    getAllPolicyExpenseChatReportActions,
+    getChatReportFromMoneyRequestReport,
+    isMoneyRequestReport as isMoneyRequestReportReportUtils,
+} from '@libs/ReportUtils';
 import {getDistanceRequestType, getIsFromGlobalCreate, getRateID, getSelectedRouteDistance, getValidWaypoints} from '@libs/TransactionUtils';
 import hasManualMapDistanceOverride from '@libs/TransactionUtils/hasManualMapDistanceOverride';
 
@@ -168,8 +175,17 @@ function useTrackExpenseSubmission({
             submittedCommand = WRITE_COMMANDS.SHARE_TRACKED_EXPENSE;
         }
 
+        const isExpenseReport = isMoneyRequestReportReportUtils(trackReport);
+        let existingIOUReport: Report | undefined;
         let lastOptimisticTransactionID: string | undefined;
-        for (const item of transactions) {
+        for (const [index, item] of transactions.entries()) {
+            const shouldDeferAutoSubmit = shouldDeferAutoSubmitForBatchItem({
+                nextTransaction: transactions.at(index + 1),
+                hasNextItem: index < transactions.length - 1,
+                isFromExistingReport: isExpenseReport,
+                isASAPSubmitBetaEnabled,
+                action,
+            });
             const {newAccountIDs, newLogins} =
                 item.accountant?.login && item.accountant.accountID ? getNewAccountIDsAndLogins({[item.accountant.login]: item.accountant.accountID}, personalDetails) : {};
             lastOptimisticTransactionID = rand64();
@@ -192,10 +208,11 @@ function useTrackExpenseSubmission({
 
             const email = currentUserPersonalDetails.email ?? '';
 
-            trackExpenseIOUActions({
+            const result = trackExpenseIOUActions({
                 getCurrencyDecimals,
                 writeBarrier,
                 report: trackReport,
+                existingIOUReport,
                 isDraftPolicy,
                 isDraftChatReport: !!isDraftChatReport,
                 action,
@@ -269,7 +286,9 @@ function useTrackExpenseSubmission({
                 rules,
                 personalDetailsByLogins: employeePersonalDetails,
                 reusableDistanceRoutes,
+                shouldDeferAutoSubmit,
             });
+            existingIOUReport = result?.iouReport;
         }
         performPostBatchCleanup({
             transactions,

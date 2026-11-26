@@ -190,7 +190,10 @@ type GetTrackExpenseInformationParticipantParams = {
 
 type GetTrackExpenseInformationParams = {
     parentChatReport: OnyxEntry<OnyxTypes.Report>;
+    existingIOUReport?: OnyxEntry<OnyxTypes.Report>;
     moneyRequestReportID?: string;
+    action?: IOUAction;
+    shouldDeferAutoSubmit?: boolean;
     existingTransaction?: OnyxEntry<OnyxTypes.Transaction>;
     existingTransactionID?: string;
     optimisticTransactionID?: string;
@@ -902,7 +905,10 @@ function getDeleteTrackExpenseInformation({
 function getTrackExpenseInformation(params: GetTrackExpenseInformationParams): TrackExpenseInformation {
     const {
         parentChatReport,
+        existingIOUReport,
         moneyRequestReportID = '',
+        action,
+        shouldDeferAutoSubmit,
         existingTransaction,
         existingTransactionID,
         optimisticTransactionID: providedOptimisticTransactionID,
@@ -1101,13 +1107,23 @@ function getTrackExpenseInformation(params: GetTrackExpenseInformationParams): T
     const optimisticExpenseReportID = generateReportID();
 
     if (shouldUseMoneyReport) {
-        if (moneyRequestReportID) {
+        if (existingIOUReport) {
+            iouReport = existingIOUReport;
+        } else if (moneyRequestReportID) {
             iouReport = getAllReports()?.[`${ONYXKEYS.COLLECTION.REPORT}${moneyRequestReportID}`] ?? null;
         } else {
             iouReport = getAllReports()?.[`${ONYXKEYS.COLLECTION.REPORT}${chatReport.iouReportID}`] ?? null;
         }
         const isScanRequest = isScanRequestTransactionUtils(existingTransaction);
-        shouldCreateNewMoneyRequestReport = shouldCreateNewMoneyRequestReportReportUtils(iouReport, chatReport, isScanRequest, isASAPSubmitBetaEnabled, rules);
+        shouldCreateNewMoneyRequestReport = shouldCreateNewMoneyRequestReportReportUtils(
+            iouReport,
+            chatReport,
+            isScanRequest,
+            isASAPSubmitBetaEnabled,
+            rules,
+            action,
+            !!moneyRequestReportID,
+        );
         if (!iouReport || shouldCreateNewMoneyRequestReport) {
             const reportTransactions = buildMinimalTransactionForFormula(optimisticTransactionID, optimisticExpenseReportID, created, amount, currency, merchant);
 
@@ -1123,6 +1139,7 @@ function getTrackExpenseInformation(params: GetTrackExpenseInformationParams): T
                 reportTransactions,
                 getCurrencyDecimals,
                 rules,
+                shouldDeferAutoSubmit,
             });
         } else {
             iouReport = {...iouReport};
@@ -1789,6 +1806,8 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
 
     const retryParams = {
         ...requestMoneyInformation,
+        // Retries run alone outside the original batch, so they must not defer auto-submit.
+        shouldDeferAutoSubmit: undefined,
         participantParams: {
             ...requestMoneyInformation.participantParams,
             participant: (({icons, ...rest}) => rest)(requestMoneyInformation.participantParams.participant),
@@ -1867,6 +1886,7 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
         // Refactor this call site to pass real report actions instead of undefined in https://github.com/Expensify/App/issues/66522
         parentChatReportActions: undefined,
         participantChatReportActions: undefined,
+        shouldDeferAutoSubmit,
     });
     const activeReportID = isMoneyRequestReport ? report?.reportID : chatReport.reportID;
 
@@ -2288,7 +2308,7 @@ type MoveTrackedExpenseToPolicyConfig = {
  * getConvertTrackedExpenseInformation, the write command, and a few command-specific params, so they share this body.
  */
 function moveTrackedExpenseToPolicy(trackedExpenseParams: TrackedExpenseParams, {action, command, extraParams}: MoveTrackedExpenseToPolicyConfig) {
-    const {onyxData, reportInformation, transactionParams, policyParams, createdWorkspaceParams, currentUser} = trackedExpenseParams;
+    const {onyxData, reportInformation, transactionParams, policyParams, createdWorkspaceParams, currentUser, shouldDeferAutoSubmit} = trackedExpenseParams;
     const {accountID: currentUserAccountID} = currentUser;
     const {optimisticData, successData, failureData} = onyxData ?? {};
     const {transactionID} = transactionParams;
@@ -2342,6 +2362,7 @@ function moveTrackedExpenseToPolicy(trackedExpenseParams: TrackedExpenseParams, 
         guidedSetupData: createdWorkspaceParams?.guidedSetupData,
         description: transactionParams.comment,
         attendees: transactionParams.attendees ? JSON.stringify(transactionParams.attendees) : undefined,
+        shouldDeferAutoSubmit,
         ...extraParams,
     };
 
@@ -2402,6 +2423,7 @@ function shareTrackedExpense(trackedExpenseParams: TrackedExpenseParams) {
         currentUser,
         reportActionsList,
         personalDetailsByLogins,
+        shouldDeferAutoSubmit,
     } = trackedExpenseParams;
     const {accountID: currentUserAccountID} = currentUser;
 
@@ -2521,6 +2543,7 @@ function shareTrackedExpense(trackedExpenseParams: TrackedExpenseParams) {
         customUnitRateID: createdWorkspaceParams?.customUnitRateID ?? transactionParams.customUnitRateID,
         attendees: transactionParams.attendees ? JSON.stringify(transactionParams.attendees) : undefined,
         accountantEmail,
+        shouldDeferAutoSubmit,
     };
 
     API.write(WRITE_COMMANDS.SHARE_TRACKED_EXPENSE, parameters, onyxData);
@@ -2532,7 +2555,9 @@ function shareTrackedExpense(trackedExpenseParams: TrackedExpenseParams) {
 function trackExpense(params: CreateTrackExpenseParams) {
     const {
         report,
+        existingIOUReport,
         action,
+        shouldDeferAutoSubmit,
         isDraftPolicy,
         participantParams,
         policyParams: policyData = {},
@@ -2618,8 +2643,11 @@ function trackExpense(params: CreateTrackExpenseParams) {
     const retryParams: CreateTrackExpenseParams = {
         ...params,
         report,
+        // Retries run alone outside the original batch, so they must not reuse the batch report or defer auto-submit.
+        existingIOUReport: undefined,
         isDraftPolicy,
         action,
+        shouldDeferAutoSubmit: undefined,
         // Strip reportActionsList from retryParams to keep the serialized error JSON small.
         reportActionsList: undefined,
         participantParams: {
@@ -2683,7 +2711,10 @@ function trackExpense(params: CreateTrackExpenseParams) {
         onyxData: trackExpenseInformationOnyxData,
     } = getTrackExpenseInformation({
         parentChatReport: currentChatReport,
+        existingIOUReport,
         moneyRequestReportID,
+        action,
+        shouldDeferAutoSubmit,
         existingTransaction,
         optimisticTransactionID,
         currentReportActionID,
@@ -2842,6 +2873,7 @@ function trackExpense(params: CreateTrackExpenseParams) {
                 createdWorkspaceParams,
                 currentUser: {accountID: currentUserAccountIDParam, email: currentUserEmailParam},
                 reportActionsList: reportActionsList ?? {},
+                shouldDeferAutoSubmit,
             };
 
             categorizeTrackedExpense(trackedExpenseParams);
@@ -2897,6 +2929,7 @@ function trackExpense(params: CreateTrackExpenseParams) {
                 currentUser: {accountID: currentUserAccountIDParam, email: currentUserEmailParam},
                 reportActionsList,
                 personalDetailsByLogins,
+                shouldDeferAutoSubmit,
             };
             shareTrackedExpense(trackedExpenseParams);
             break;
@@ -2951,6 +2984,7 @@ function trackExpense(params: CreateTrackExpenseParams) {
                 isDistanceRequest,
                 currentUser: {accountID: currentUserAccountIDParam, email: currentUserEmailParam},
                 reportActionsList,
+                shouldDeferAutoSubmit,
             };
 
             submitTrackedExpenseToPolicy(trackedExpenseParams);
@@ -3014,6 +3048,7 @@ function trackExpense(params: CreateTrackExpenseParams) {
                 odometerStart,
                 odometerEnd,
                 odometerUnit,
+                shouldDeferAutoSubmit,
             };
             if (actionableWhisperReportActionIDParam) {
                 parameters.actionableWhisperReportActionID = actionableWhisperReportActionIDParam;
