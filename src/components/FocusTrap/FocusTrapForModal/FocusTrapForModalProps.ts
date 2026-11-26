@@ -12,7 +12,7 @@ type FocusTrapForModalProps = {
     shouldPreventScroll?: boolean;
     shouldReturnFocus?: boolean;
 
-    /** Whether a click outside releases focus. A modal that ignores those clicks keeps focus instead. */
+    /** Whether a click outside or Escape releases focus. A modal that ignores both keeps focus instead. */
     shouldDeactivateOnClickOutside?: boolean;
 
     /**

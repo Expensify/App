@@ -96,7 +96,7 @@ type BaseModalProps = Partial<ReanimatedModalProps> &
         /** Whether to prevent the focus trap from scrolling the element into view. */
         shouldPreventScrollOnFocus?: boolean;
 
-        /** Web only. Defaults to true, so a click outside releases focus. Pass false for a modal that ignores those clicks. */
+        /** Web only. Defaults to true, so a click outside or Escape releases focus. Pass false for a modal that ignores both. */
         shouldDeactivateFocusTrapOnClickOutside?: boolean;
 
         /**

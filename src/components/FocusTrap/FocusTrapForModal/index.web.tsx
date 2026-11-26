@@ -86,6 +86,7 @@ function FocusTrapForModal({
                 preventScroll: shouldPreventScroll,
                 trapStack: sharedTrapStack,
                 clickOutsideDeactivates: () => shouldDeactivateOnClickOutsideRef.current,
+                escapeDeactivates: () => shouldDeactivateOnClickOutsideRef.current,
                 initialFocus,
                 // Lazy so document.body isn't evaluated at render time (SSR-safe).
                 fallbackFocus: () => document.body,

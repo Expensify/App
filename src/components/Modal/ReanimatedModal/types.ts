@@ -123,7 +123,7 @@ type ReanimatedModalProps = ViewProps &
         type?: ValueOf<typeof CONST.MODAL.MODAL_TYPE>;
         shouldPreventScrollOnFocus?: boolean;
 
-        /** Web only. Defaults to true, so a click outside releases focus. Pass false for a modal that ignores those clicks. */
+        /** Web only. Defaults to true, so a click outside or Escape releases focus. Pass false for a modal that ignores both. */
         shouldDeactivateFocusTrapOnClickOutside?: boolean;
 
         /** Whether to use a custom backdrop for the modal? (This prevents focus issues on desktop) */

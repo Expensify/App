@@ -331,6 +331,11 @@ function isClickOutsideDeactivating(): boolean {
     return typeof clickOutsideDeactivates === 'function' ? clickOutsideDeactivates(new MouseEvent('click')) : !!clickOutsideDeactivates;
 }
 
+function isEscapeDeactivating(): boolean {
+    const escapeDeactivates = capturedOptions?.escapeDeactivates;
+    return typeof escapeDeactivates === 'function' ? escapeDeactivates(new KeyboardEvent('keydown', {key: 'Escape'})) : escapeDeactivates !== false;
+}
+
 describe('FocusTrapForModal — clicks outside', () => {
     beforeEach(() => {
         capturedOptions = null;
@@ -359,6 +364,22 @@ describe('FocusTrapForModal — clicks outside', () => {
 
         // Then focus stays inside, so Tab can't reach the page behind it
         expect(isClickOutsideDeactivating()).toBe(false);
+    });
+
+    it('keeps focus on Escape in a modal that ignores clicks outside', () => {
+        // Given a running Select all job's status, which Escape doesn't close
+        // When its focus trap is rendered
+        render(
+            <FocusTrapForModal
+                active
+                shouldDeactivateOnClickOutside={false}
+            >
+                {null}
+            </FocusTrapForModal>,
+        );
+
+        // Then Escape doesn't release focus either, so Tab can't reach the page behind it
+        expect(isEscapeDeactivating()).toBe(false);
     });
 
     it('releases focus on a click outside once a modal that ignored it stops ignoring it', () => {
