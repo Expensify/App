@@ -4700,6 +4700,14 @@ ${amount} für ${merchant} – ${date}`,
         numberedItem: ({item, number}: {item: string; number: number}) => `${item} ${number}`,
         questionsChanged: 'Die Fragen auf dieser Seite haben sich geändert',
         onFile: 'Vorhanden',
+        continueOffline: {
+            title: 'Sie können offline nicht fortfahren',
+            prompt: 'Zum Ausfüllen dieses Formulars wird eine Internetverbindung benötigt. Keine Sorge, wir speichern Ihren Fortschritt und Sie können fortfahren, sobald Sie wieder online sind.',
+            saveForLater: 'Speichern und später ausfüllen',
+            progressSaved: 'Ihr Fortschritt wurde gespeichert',
+            promptWithSensitiveAnswers:
+                'Für das Ausfüllen dieses Formulars ist eine Internetverbindung erforderlich. Wir speichern Ihren Fortschritt, damit Sie weitermachen können, sobald Sie wieder online sind. Zu Ihrer Sicherheit werden vertrauliche Angaben nicht gespeichert und müssen erneut eingegeben werden.',
+        },
     },
     addPersonalBankAccount: {
         swiftBicFormatError: 'Der SWIFT/BIC muss 8 oder 11 Zeichen lang sein, mit 6 Buchstaben gefolgt von 2 oder 5 Buchstaben oder Ziffern.',

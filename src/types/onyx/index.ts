@@ -273,6 +273,7 @@ import type WalletTerms from './WalletTerms';
 import type WalletTransfer from './WalletTransfer';
 import type WiseBankAccountFields from './WiseBankAccountFields';
 import type {WiseKYCReviewEmbeddedLink} from './WiseKYCReview';
+import type WiseOnboardingUnsavedPages from './WiseOnboardingUnsavedPages';
 import type WiseQuote from './WiseQuote';
 import type WorkspaceMembersSelectedForBulkEdit from './WorkspaceMembersSelectedForBulkEdit';
 import type WorkspaceMembersSelectedForRoleChange from './WorkspaceMembersSelectedForRoleChange';
@@ -510,6 +511,7 @@ export type {
     CorpayFields,
     WiseBankAccountFields,
     WiseKYCReviewEmbeddedLink,
+    WiseOnboardingUnsavedPages,
     WiseQuote,
     CorpayFormField,
     DynamicFormAddressField,

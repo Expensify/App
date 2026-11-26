@@ -4632,6 +4632,14 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
         numberedItem: ({item, number}: {item: string; number: number}) => `${item}${number}`,
         questionsChanged: 'このページの質問が変更されました',
         onFile: 'ファイル登録済み',
+        continueOffline: {
+            title: 'オフラインのままでは続行できません',
+            prompt: 'このフォームを入力するにはインターネット接続が必要です。進行状況は保存されるので、オンラインに戻ったときに続けて行えます。',
+            saveForLater: '保存して後で入力する',
+            progressSaved: '進捗は保存されました',
+            promptWithSensitiveAnswers:
+                'このフォームに入力するにはインターネット接続が必要です。オフラインの場合でも進行状況は保存されるため、オンラインに戻ったときに続行できます。安全のため、機密性の高い情報は保存されず、再度入力していただく必要があります。',
+        },
     },
     addPersonalBankAccount: {
         swiftBicFormatError: 'SWIFT/BIC は 8 文字または 11 文字で、最初の 6 文字はアルファベット、続く 2 文字または 5 文字はアルファベットまたは数字である必要があります。',

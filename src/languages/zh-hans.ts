@@ -4528,6 +4528,13 @@ ${amount}，商户：${merchant} - 日期：${date}`,
         numberedItem: ({item, number}: {item: string; number: number}) => `${item}${number}`,
         questionsChanged: '此页面上的问题已更改',
         onFile: '已备案',
+        continueOffline: {
+            title: '你无法在离线状态下继续',
+            prompt: '需要连接互联网才能填写此表单。别担心，我们会保存你的进度，你重新联网后即可继续。',
+            saveForLater: '保存并稍后填写',
+            progressSaved: '您的进度已保存',
+            promptWithSensitiveAnswers: '填写此表单需要互联网连接。我们会保存你的进度，这样你在恢复联网后可以继续填写。出于安全考虑，敏感信息不会被保存，需要重新输入。',
+        },
     },
     addPersonalBankAccount: {
         swiftBicFormatError: 'SWIFT/BIC 必须为 8 或 11 个字符长度，由 6 个字母后接 2 或 5 个字母或数字组成。',
