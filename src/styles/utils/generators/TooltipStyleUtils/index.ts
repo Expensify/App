@@ -57,6 +57,7 @@ type TooltipParams = {
     shouldAddHorizontalPadding?: boolean;
     isEducationTooltip?: boolean;
     computeHorizontalShiftForNative?: boolean;
+    shouldSetWidth?: boolean;
 };
 
 type TooltipAnimationProps = {
@@ -115,6 +116,7 @@ const createTooltipStyleUtils: StyleUtilGenerator<GetTooltipStylesStyleUtil> = (
         wrapperStyle = {},
         isEducationTooltip = false,
         computeHorizontalShiftForNative = false,
+        shouldSetWidth = true,
     }) => {
         const pointerWidth = isEducationTooltip ? EDUCATION_POINTER_WIDTH : POINTER_WIDTH;
         const pointerHeight = isEducationTooltip ? EDUCATION_POINTER_HEIGHT : POINTER_HEIGHT;
@@ -247,7 +249,7 @@ const createTooltipStyleUtils: StyleUtilGenerator<GetTooltipStylesStyleUtil> = (
                 ...tooltipVerticalPadding,
                 ...spacing.ph2,
                 zIndex: variables.tooltipZIndex,
-                width: tooltipWidth,
+                width: shouldSetWidth ? tooltipWidth : undefined,
                 maxWidth,
                 top: rootWrapperTop,
                 left: rootWrapperLeft,

@@ -79,6 +79,8 @@ function BaseGenericTooltip({
                 shouldAddHorizontalPadding: false,
                 isEducationTooltip,
                 computeHorizontalShiftForNative,
+                // Setting the measured width would keep the tooltip at its old width when maxWidth grows (e.g. rotating back to portrait)
+                shouldSetWidth: false,
             }),
         [
             StyleUtils,
@@ -125,7 +127,7 @@ function BaseGenericTooltip({
 
     const onWrapperLayout = (e: LayoutChangeEvent) => {
         const {height, width} = e.nativeEvent.layout;
-        if (height === wrapperMeasuredHeightAnimated.get()) {
+        if (width === contentMeasuredWidthAnimated.get() && height === wrapperMeasuredHeightAnimated.get()) {
             return;
         }
         // To avoid unnecessary re-renders of the content container when passing state values to useAnimatedStyle,
