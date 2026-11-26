@@ -309,13 +309,15 @@ function buildTaxActionValue(taxKey: string | undefined, policy: Policy | undefi
         return undefined;
     }
 
-    const tax = policy?.taxRates?.taxes?.[taxKey];
+    // A rate is keyed by its code, so renaming the code leaves a rule setting a key no rate answers to.
+    const externalID = resolveCurrentTaxCode(policy, taxKey);
+    const tax = policy?.taxRates?.taxes?.[externalID];
 
     return {
         // field_id_TAX is the name the rules engine gives this key, so it can't follow our casing convention
         // eslint-disable-next-line @typescript-eslint/naming-convention
         field_id_TAX: {
-            externalID: taxKey,
+            externalID,
             ...(tax ? {value: tax.value, name: tax.name} : {}),
         },
     };

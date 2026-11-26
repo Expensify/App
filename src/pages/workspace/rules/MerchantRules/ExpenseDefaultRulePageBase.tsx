@@ -52,7 +52,7 @@ import {getAmountComparisonText, getCardConditionName, getDateComparisonText, ge
 import Navigation from '@libs/Navigation/Navigation';
 import {hasEnabledOptions} from '@libs/OptionsListUtils';
 import Parser from '@libs/Parser';
-import {findPolicyTagAtLevel, getCleanedTagName, getTagLists, getTaxByID, getVendorRuleDisplayValue, hasVendorFeature} from '@libs/PolicyUtils';
+import {findPolicyTagAtLevel, getCleanedTagName, getTagLists, getTaxByID, getVendorRuleDisplayValue, hasVendorFeature, resolveCurrentTaxCode} from '@libs/PolicyUtils';
 import {getEnabledTags} from '@libs/TagsOptionsListUtils';
 import {getTagArrayFromName} from '@libs/TransactionUtils';
 
@@ -369,7 +369,9 @@ function ExpenseDefaultRulePageBase({
     const amountDisplayName = form?.amount ? convertToDisplayString(Number(form.amount), policy?.outputCurrency) : undefined;
     const categoryDisplayName = form?.category ? getDecodedCategoryName(form.category) : undefined;
     // Blank rather than the raw ID once the rate is gone from the workspace.
-    const taxDisplayName = (form?.tax && getTaxByID(policy, form.tax) ? getTaxRateDisplayName(policy, form.tax) : '') || undefined;
+    // The row shows nothing rather than a raw code for a rate the workspace no longer has, and a renamed rate is
+    // still a rate the workspace has, so the check resolves the code the way the label does.
+    const taxDisplayName = (form?.tax && getTaxByID(policy, resolveCurrentTaxCode(policy, form.tax)) ? getTaxRateDisplayName(policy, form.tax) : '') || undefined;
 
     /**
      * Checks if another rule already matches on the same conditions.
