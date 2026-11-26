@@ -185,8 +185,8 @@ describe('InsightsAICardRow', () => {
         ['desktop', false, false],
         ['tablet', false, true],
         ['narrow', true, false],
-    ] as const)('reserves the same space for the loader and cards on %s layouts', async (_layout, shouldUseNarrowLayout, isMediumScreenWidth) => {
-        // Given loading and loaded content share a responsive space reservation
+    ] as const)('reserves space only while loading on %s layouts', async (_layout, shouldUseNarrowLayout, isMediumScreenWidth) => {
+        // Given the loader reserves room for the tallest card layout
         jest.spyOn(useResponsiveLayoutModule, 'default').mockReturnValue(createMock<ReturnType<typeof useResponsiveLayoutModule.default>>({shouldUseNarrowLayout, isMediumScreenWidth}));
         const {rerender} = await renderRow(undefined);
         const loadingStyle: unknown = StyleSheet.flatten(screen.root.props.style);
@@ -206,8 +206,8 @@ describe('InsightsAICardRow', () => {
         );
         await act(async () => jest.advanceTimersByTimeAsync(0));
 
-        // Then the chart below keeps the same reserved boundary
-        expect(findAncestorWithStyle(screen.getByText(SPIKE.title), 'minHeight', minHeight)).toBeDefined();
+        // Then the cards take their own height, so short insights keep the designed spacing around the row
+        expect(findAncestorWithStyle(screen.getByText(SPIKE.title), 'minHeight', minHeight)).toBeUndefined();
     });
 
     it('reveals cards one at a time across tablet rows', async () => {
