@@ -1,8 +1,12 @@
 # https://docs.codecov.com/docs/codecovyml-reference
 coverage:
   status:
-    # PRs run only the tests for the files they change, so project coverage is only meaningful on main.
-    project: off
+    project:
+      default:
+        informational: true
+        target: auto
+        branches:
+          - main
     patch:
       default:
         informational: true
