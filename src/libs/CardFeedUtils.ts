@@ -9,7 +9,7 @@ import CONST from '@src/CONST';
 import type {CombinedCardFeeds} from '@src/hooks/useCardFeeds';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Card, CardFeeds, CardList, Domain, ExpensifyCardSettings, PersonalDetailsList, Policy, WorkspaceCardsList} from '@src/types/onyx';
-import type {CardFeedData, CardFeedsStatus, CardFeedsStatusByDomainID, CardFeedWithNumber, CombinedCardFeed, CustomCardFeedData} from '@src/types/onyx/CardFeeds';
+import type {CardFeedsStatus, CardFeedsStatusByDomainID, CardFeedWithNumber, CombinedCardFeed, CustomCardFeedData} from '@src/types/onyx/CardFeeds';
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import ObjectUtils from '@src/types/utils/ObjectUtils';
@@ -56,9 +56,8 @@ type CardFeedForDisplay = {
     linkedPolicyIDs?: string[];
 
     /**
-     * Supporting text shown beneath the feed name in the Spend page feed filter so feeds of the same
-     * type can be told apart: the origin workspace name (workspace-level feeds) or the domain
-     * (domain-level feeds).
+     * Supporting text in the Spend page feed filter and Add cards "From other workspaces" list so feeds
+     * of the same type can be told apart: the origin workspace name or the domain backing the feed.
      */
     subtitle?: string;
 };
@@ -200,29 +199,19 @@ function getExpensifyCardFeedsForDisplay(
 }
 
 /**
- * Resolves the domain/workspace supporting text for a company card feed shown in the Spend page feed filter.
+ * Resolves the domain/workspace supporting text for company card feed filters and selectors.
  *
- * Workspace-level feeds show the origin workspace name via `preferredPolicy`. That is the workspace where the feed
- * was originally configured, even when it is shared to several workspaces. Domain-level feeds (no
- * `preferredPolicy`) fall back to the domain backing the feed's fund. Returns `undefined` when there is
- * nothing to disambiguate with.
+ * The fund identifies the feed's origin, independently of preferred or linked workspaces.
+ * Returns `undefined` when the origin's name is unavailable.
  */
-function getCompanyFeedSubtitle(
-    feedData: CardFeedData | undefined,
-    fundID: string,
-    policies: OnyxCollection<Policy> | undefined,
-    domains: OnyxCollection<Domain> | undefined,
-): string | undefined {
-    const preferredPolicy = feedData && 'preferredPolicy' in feedData ? feedData.preferredPolicy : undefined;
-    if (preferredPolicy) {
-        const policyName = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${preferredPolicy.toUpperCase()}`]?.name;
-        if (policyName) {
-            return policyName;
-        }
+function getCompanyFeedSubtitle(fundID: string, policyNameByFundID: Map<number, string | undefined>, domains: OnyxCollection<Domain> | undefined): string | undefined {
+    const numericFundID = Number(fundID);
+    const domain = getDomainByFundID(domains, numericFundID);
+    if (domain) {
+        return domain.email ? Str.extractEmailDomain(domain.email) : undefined;
     }
 
-    const domainEmail = getDomainByFundID(domains, Number(fundID))?.email;
-    return domainEmail ? Str.extractEmailDomain(domainEmail) : undefined;
+    return policyNameByFundID.get(numericFundID);
 }
 
 /**
@@ -242,6 +231,14 @@ function getCardFeedsForDisplay(
     expensifyCardSettings?: OnyxCollection<ExpensifyCardSettings>,
 ): CardFeedsForDisplay {
     const cardFeedsForDisplay: CardFeedsForDisplay = {};
+    // Index origins once because a fund can contain several feeds shared to other workspaces.
+    const policyNameByFundID = new Map<number, string | undefined>();
+    for (const policy of Object.values(policies ?? {})) {
+        if (policy?.policyAccountID === undefined || policy.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
+            continue;
+        }
+        policyNameByFundID.set(policy.policyAccountID, policy.name);
+    }
 
     for (const [domainKey, cardFeeds] of Object.entries(allCardFeeds ?? {})) {
         // sharedNVP_private_domain_member_123456 -> 123456
@@ -250,7 +247,7 @@ function getCardFeedsForDisplay(
             continue;
         }
 
-        for (const [feed, feedData] of ObjectUtils.typedEntries(getOriginalCompanyFeeds(cardFeeds, feedKeysWithCards, Number(fundID)))) {
+        for (const [feed] of ObjectUtils.typedEntries(getOriginalCompanyFeeds(cardFeeds, feedKeysWithCards, Number(fundID)))) {
             const id = `${fundID}_${feed}`;
 
             if (cardFeedsForDisplay[id]) {
@@ -262,7 +259,7 @@ function getCardFeedsForDisplay(
                 feed,
                 fundID,
                 name: getCustomOrFormattedFeedName(translate, feed, cardFeeds?.settings?.companyCardNicknames?.[feed], false) ?? feed,
-                subtitle: getCompanyFeedSubtitle(feedData, fundID, policies, domains),
+                subtitle: getCompanyFeedSubtitle(fundID, policyNameByFundID, domains),
             };
         }
     }
@@ -452,11 +449,13 @@ function getVisibleCompanyCardFeedsForSelector(
     // Precompute the fundIDs (policyAccountIDs) backed by non-deleted policies the user can administer.
     // This avoids re-scanning every policy for each domain entry (was O(domains × policies)).
     const adminPolicyFundIDs = new Set<number>();
+    const adminPolicyNameByFundID = new Map<number, string | undefined>();
     for (const policy of Object.values(policies ?? {})) {
         if (policy?.policyAccountID === undefined || !isPolicyAdmin(policy) || policy.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
             continue;
         }
         adminPolicyFundIDs.add(policy.policyAccountID);
+        adminPolicyNameByFundID.set(policy.policyAccountID, policy.name);
     }
 
     for (const [domainKey, cardFeeds] of Object.entries(allCardFeeds ?? {})) {
@@ -495,6 +494,7 @@ function getVisibleCompanyCardFeedsForSelector(
                 fundID,
                 linkedPolicyIDs,
                 name: getCustomOrFormattedFeedName(translate, feed, cardFeeds?.settings?.companyCardNicknames?.[feed], false) ?? feed,
+                subtitle: getCompanyFeedSubtitle(fundID, adminPolicyNameByFundID, domains),
             });
         }
     }
@@ -590,7 +590,8 @@ function getCombinedCardFeedsFromAllFeeds(
                 ...feedSettings,
                 ...oAuthAccountDetails,
                 ...reimbursableOverrides,
-                customFeedName: customFeedName ?? feedSettings?.uploadLayoutSettings?.layoutName,
+                // An empty nickname means the feed has no custom name, so `||` lets it fall back to the CSV layout name
+                customFeedName: customFeedName || feedSettings?.uploadLayoutSettings?.layoutName,
                 domainID,
                 feed: feedName,
                 status,

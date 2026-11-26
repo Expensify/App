@@ -11,6 +11,7 @@ import {
     getDownloadFileName,
     getExportFileName,
     getExtensionFromMimeType,
+    getFileName,
     getFileNameWithFallback,
     getFileValidationErrorText,
     getImageDimensionsAfterResize,
@@ -89,6 +90,34 @@ describe('FileUtils', () => {
             // When the MIME type is resolved
             // Then the generic binary type is returned
             expect(getMimeType('nope')).toBe('application/octet-stream');
+        });
+    });
+
+    describe('getFileName', () => {
+        it('should decode the last URL segment and replace illegal characters', () => {
+            // Given an image URL whose file name is percent-encoded and contains a character illegal in file names
+            const url = 'https://example.com/images/bank%20statement%3A2026.png?v=1#preview';
+
+            // When the file name is read from it
+            const fileName = getFileName(url);
+
+            // Then it is decoded, stripped of the query and hash, and the illegal character is replaced
+            expect(fileName).toBe('bank statement_2026.png');
+        });
+
+        it.each([
+            ['a lone percent sign', 'https://example.com/images/100%.png', '100%.png'],
+            ['an invalid escape', 'https://example.com/images/image%zz.png', 'image%zz.png'],
+            ['a truncated multi-byte escape', 'https://example.com/images/price%E2%82.png', 'price%E2%82.png'],
+            ['malformed encoding and illegal characters', 'https://example.com/images/a:b*100%.png', 'a_b_100%.png'],
+        ])('should return the raw segment for %s instead of throwing', (_, url, expected) => {
+            // Given an image URL from a chat message whose last segment has malformed percent-encoding, which
+            // would otherwise throw while rendering the message
+            // When the file name is read from it
+            const fileName = getFileName(url);
+
+            // Then the raw segment is returned, with illegal file name characters still replaced
+            expect(fileName).toBe(expected);
         });
     });
 

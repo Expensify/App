@@ -291,6 +291,7 @@ describe('actions/Transaction', () => {
                 },
                 isASAPSubmitBetaEnabled: false,
                 currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
+                currentUserPersonalDetails: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL},
                 introSelected: undefined,
                 quickAction: undefined,
                 recentWaypoints,
@@ -869,6 +870,63 @@ describe('actions/Transaction', () => {
             expect(updated).not.toHaveProperty('action');
             expect(updated).not.toHaveProperty('from');
             expect(updated).not.toHaveProperty('to');
+        });
+
+        it('does not keep the workspace amount from Search on a moved expense', async () => {
+            // Given an expense that Search returned with its amount converted to its workspace's currency
+            const policyID = generatePolicyID();
+            const mockPolicy: Policy = {...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM), id: policyID, outputCurrency: CONST.CURRENCY.EUR, pendingAction: undefined};
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, mockPolicy);
+
+            const transactionID = 'txn-converted-move';
+            const transaction: Transaction = {
+                transactionID,
+                reportID: 'source-report-converted-move',
+                amount: -10000,
+                currency: CONST.CURRENCY.EUR,
+                policyConvertedAmount: -12000,
+                reimbursable: true,
+                merchant: 'Merchant',
+                created: format(new Date(), CONST.DATE.FNS_FORMAT_STRING),
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, transaction);
+
+            const expenseReport = {
+                reportID: 'dest-expense-report-converted-move',
+                type: CONST.REPORT.TYPE.EXPENSE,
+                policyID,
+                chatReportID: 'dest-chat-report-converted-move',
+                ownerAccountID: RORY_ACCOUNT_ID,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+            } as Report;
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`, expenseReport);
+            await waitForBatchedUpdates();
+
+            // When it is moved to a report on another workspace
+            changeTransactionsReport({
+                isVendorMatchingBetaEnabled: false,
+                transactionIDs: [transactionID],
+                isASAPSubmitBetaEnabled: false,
+                accountID: RORY_ACCOUNT_ID,
+                email: RORY_EMAIL,
+                currentUserPersonalDetails,
+                newReport: expenseReport,
+                policy: mockPolicy,
+                allTransactions: {[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]: transaction},
+                policyTagList: undefined,
+                transactionViolations: {},
+                reports: undefined,
+                isTrackIntentUser: false,
+                cardList: undefined,
+            });
+            await waitForBatchedUpdates();
+
+            // Then Search shows it without the old workspace amount, because that amount was converted to the old workspace's currency
+            const snapshot = await getOnyxValue(`${ONYXKEYS.COLLECTION.SNAPSHOT}${unapprovedCashHash}`);
+            const searchTransaction = snapshot?.data?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
+            expect(searchTransaction?.reportID).toBe(expenseReport.reportID);
+            expect(searchTransaction?.policyConvertedAmount).toBeUndefined();
         });
 
         describe('unheldTotal', () => {

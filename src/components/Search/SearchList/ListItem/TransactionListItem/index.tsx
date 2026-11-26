@@ -13,11 +13,12 @@ import useLiveRowCapabilities from '@components/Search/SearchList/ListItem/useLi
 import type {ListItem} from '@components/SelectionList/types';
 
 import useConfirmModal from '@hooks/useConfirmModal';
-import useConfirmSubmitReportViolations from '@hooks/useConfirmSubmitReportViolations';
+import useConfirmSubmitViolations from '@hooks/useConfirmSubmitViolations';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDistanceRateOriginalPolicy from '@hooks/useDistanceRateOriginalPolicy';
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import {useReportPaymentContext} from '@hooks/usePaymentContext';
 import {useGetPersonalDetailsByLogin} from '@hooks/usePersonalDetailByLogin';
@@ -105,6 +106,7 @@ function TransactionListItemInner<TItem extends ListItem>({
     const isDeletedTransaction = isDeletedTransactionUtil(transactionItem);
 
     const {isLargeScreenWidth} = useResponsiveLayout();
+    const {isOffline} = useNetwork();
     const {currentSearchHash, currentSearchKey} = useSearchQueryContext();
     const {currentSearchResults} = useSearchResultsContext();
     const snapshotData = currentSearchResults?.data;
@@ -224,8 +226,7 @@ function TransactionListItemInner<TItem extends ListItem>({
     const transactionViolations = mergeProhibitedViolations(rateOnyxViolations);
 
     const filteredViolationsCollection: OnyxCollection<TransactionViolations> = {[transactionViolationsKey]: transactionViolations};
-    const confirmSubmitReportViolations = useConfirmSubmitReportViolations({
-        reportID: transactionItem.reportID,
+    const confirmSubmitReportViolations = useConfirmSubmitViolations({
         report: reportForViolations,
         policy: policyForViolations,
         shouldShowMarkAsDoneCopy,
@@ -308,7 +309,8 @@ function TransactionListItemInner<TItem extends ListItem>({
         shouldSyncFocus,
         columns,
         isLoading,
-        isActionLoading,
+        // Queued actions cannot complete offline, so hide their spinner but keep the Onyx flag for Search row retention.
+        isActionLoading: !isOffline && isActionLoading,
         transactionViolations,
         handleActionButtonPress,
         shouldDisableActionPointerEvents: shouldDisableSearchSubmitPress,

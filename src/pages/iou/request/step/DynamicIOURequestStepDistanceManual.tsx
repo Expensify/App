@@ -239,6 +239,7 @@ function DynamicIOURequestStepDistanceManual({
             if (isEditingSplit && transaction) {
                 const splitDraftTransaction = await Onyx.get(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`);
                 setDraftSplitTransaction(
+                    translate,
                     transaction.transactionID,
                     splitDraftTransaction ?? transaction,
                     {distance: distanceAsFloat},
@@ -266,6 +267,7 @@ function DynamicIOURequestStepDistanceManual({
                     ONYXKEYS.NVP_RECENT_WAYPOINTS,
                 ]);
                 updateMoneyRequestDistance({
+                    translate,
                     isVendorMatchingBetaEnabled,
                     transaction,
                     transactionThreadReport: report,

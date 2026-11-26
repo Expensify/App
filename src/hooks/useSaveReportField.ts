@@ -8,7 +8,8 @@
 import {useSession} from '@components/OnyxListItemProvider';
 
 import {updateReportField, updateReportName} from '@libs/actions/Report';
-import {getReportFieldKey, hasViolations as hasViolationsReportUtils, isReportFieldDisabled, isReportFieldOfTypeTitle} from '@libs/ReportUtils';
+import Log from '@libs/Log';
+import {getReportFieldKey, getReportFieldOptionExternalID, hasViolations as hasViolationsReportUtils, isReportFieldDisabled, isReportFieldOfTypeTitle, isSettled} from '@libs/ReportUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -63,10 +64,29 @@ function useSaveReportField(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>
         );
         const isFieldDisabled = isReportFieldDisabled(report, reportField, policy, rules, reportOwnerLogin);
         const hasOtherViolations = Object.entries(report.fieldList ?? {}).some(([key, field]) => key !== fieldKey && field.value === '' && !isFieldDisabled);
+        let externalID = reportField.externalID;
+        if (reportField.type === CONST.REPORT_FIELD_TYPES.LIST) {
+            const policyOptionsField = policy?.fieldList?.[fieldKey] ?? policy?.fieldList?.[reportField.fieldID];
+            const reportOptionsField = report.fieldList?.[fieldKey] ?? report.fieldList?.[reportField.fieldID] ?? reportField;
+
+            // A paid report's inline dropdown lists the options saved on the report, which stop following the workspace once the
+            // report is approved, so a renamed option only exists there. Other reports and the edit page list the workspace's options.
+            // The second list covers the other dropdown, for example the edit page offering an option added after the report was paid.
+            const optionsFields = isSettled(report) ? [reportOptionsField, policyOptionsField] : [policyOptionsField, reportOptionsField];
+            for (const optionsField of optionsFields) {
+                externalID = optionsField ? getReportFieldOptionExternalID(optionsField, value) : '';
+                if (externalID) {
+                    break;
+                }
+            }
+            if (!externalID) {
+                Log.hmmm(`No matching external ID found for report field value "${value}" in report field "${reportField.name}" (${reportField.fieldID})`);
+            }
+        }
 
         updateReportField({
             report: {...report, reportID: report.reportID},
-            reportField: {...reportField, value},
+            reportField: {...reportField, value, externalID},
             previousReportField: reportField,
             policy,
             isASAPSubmitBetaEnabled: isBetaEnabled(CONST.BETAS.ASAP_SUBMIT),

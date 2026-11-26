@@ -90,7 +90,7 @@ Expense Rules work as follows:
 - Rules match based on whether the merchant name contains the text you entered
 - Rules apply automatically when expenses are created
 - If multiple rules match, they apply from top to bottom
-- Personal Expense Rules override [Workspace Merchant Rules](https://help.expensify.com/articles/new-expensify/workspaces/Workspace-Merchant-Rules)
+- Personal Expense Rules override [workspace expense defaults](/articles/new-expensify/workspaces/Workspace-Rules#how-to-apply-expense-defaults-on-the-expense-defaults-tab)
 
 Rules do not apply retroactively unless you manually update existing expenses.
 

@@ -16,13 +16,14 @@ import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import useParentReportAction from '@hooks/useParentReportAction';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import FS from '@libs/Fullstory';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import getPlatform from '@libs/getPlatform';
-import {getOriginalMessage, getReportAction, isMoneyRequestAction} from '@libs/ReportActionsUtils';
+import {getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {hasEReceipt, hasReceiptSource} from '@libs/TransactionUtils';
 import type {AvatarSource} from '@libs/UserAvatarUtils';
 
@@ -105,7 +106,7 @@ function AttachmentModalBaseContent({
     }, [isAuthTokenRequired]);
 
     const [isConfirmButtonDisabled, setIsConfirmButtonDisabled] = useState(false);
-    const parentReportAction = getReportAction(report?.parentReportID, report?.parentReportActionID);
+    const parentReportAction = useParentReportAction(report);
     const transactionID = isMoneyRequestAction(parentReportAction) ? getOriginalMessage(parentReportAction)?.IOUTransactionID : undefined;
     const [transactionFromOnyx] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transactionID)}`);
     const transaction = transactionProp ?? transactionFromOnyx;
