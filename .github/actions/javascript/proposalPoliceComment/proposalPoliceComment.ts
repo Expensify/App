@@ -2,6 +2,7 @@ import CONST from '@github/libs/CONST';
 import GithubUtils from '@github/libs/GithubUtils';
 import isBotUser from '@github/libs/isBotUser';
 import isProposal from '@github/libs/isProposal';
+import {getTeamMembership} from '@github/libs/isTeamMember';
 
 import {buildCommentIntentInput, buildDuplicateCheckInput, buildDuplicateCheckSeedItem, buildEditCheckInput} from '@prompts/proposalPolice/input';
 import {buildCommentIntentInstructions, buildDuplicateCheckInstructions, buildEditCheckInstructions} from '@prompts/proposalPolice/instructions';
@@ -38,7 +39,7 @@ import type {IssueCommentCreatedEvent, IssueCommentEditedEvent, IssueCommentEven
 
 import {getInput, setFailed} from '@actions/core';
 import * as core from '@actions/core';
-import {context} from '@actions/github';
+import {context, getOctokit} from '@actions/github';
 import {format} from 'date-fns';
 import {toZonedTime} from 'date-fns-tz';
 
@@ -53,6 +54,109 @@ const PROPOSAL_POLICE_MODEL = 'gpt-5.6-luna';
  * depend on the model reproducing a cutoff stated in the prompt.
  */
 const DUPLICATE_SIMILARITY_THRESHOLD = 90;
+
+/**
+ * Author associations GitHub only gives to Expensify org members and people with write access to the repo.
+ */
+const TRUSTED_AUTHOR_ASSOCIATIONS = new Set(['OWNER', 'MEMBER', 'COLLABORATOR']);
+
+/**
+ * Employees, C+, backend contributors, agencies like Callstack, and Applause testers.
+ */
+const TRUSTED_TEAM_SLUGS = ['expensify-expensify', 'contributor-plus', 'backend-contributors', 'external-expert-contributors', 'applause'];
+
+/**
+ * Partner engineers aren't always on a team we can check, so a job claim that says which agency they're from is trusted.
+ */
+const PARTNER_AGENCY_PATTERN = /(^|\s)from\s+(Callstack|Margelo|Software\s?Mansion)([^A-Za-z0-9_]|$)/i;
+
+/**
+ * Whether the commenter is on one of the trusted teams, or undefined when that can't be checked.
+ * The read:org token is needed because author_association doesn't show concealed org members.
+ */
+async function getTrustedTeamMembership(login: string): Promise<boolean | undefined> {
+    const orgToken = getInput('OS_BOTIFY_TOKEN');
+    if (!orgToken) {
+        return undefined;
+    }
+
+    const orgOctokit = getOctokit(orgToken);
+    let hasFailedCheck = false;
+    for (const teamSlug of TRUSTED_TEAM_SLUGS) {
+        const isMember = await getTeamMembership(orgOctokit.rest, CONST.GITHUB_OWNER, teamSlug, login);
+        if (isMember) {
+            return true;
+        }
+        hasFailedCheck ||= isMember === undefined;
+    }
+
+    return hasFailedCheck ? undefined : false;
+}
+
+function hasHelpWantedLabel(labels: Array<string | {name?: string}>): boolean {
+    return labels.some((label) => (typeof label === 'string' ? label : label.name) === CONST.LABELS.HELP_WANTED);
+}
+
+async function hasMergedAppPullRequest(login: string): Promise<boolean> {
+    const {data} = await GithubUtils.octokit.search.issuesAndPullRequests({
+        q: `repo:${CONST.GITHUB_OWNER}/${CONST.APP_REPO} is:pr is:merged author:${login}`,
+        // eslint-disable-next-line @typescript-eslint/naming-convention -- GitHub's REST API parameter name
+        per_page: 1,
+    });
+
+    // A search that timed out can report 0 results even when the commenter has merged PRs
+    if (data.incomplete_results && data.total_count === 0) {
+        throw new Error(`The merged PR search for ${login} returned incomplete results`);
+    }
+    return data.total_count > 0;
+}
+
+/**
+ * Hides a comment on an issue without "Help Wanted" when its author has never had an App PR merged,
+ * since only Melvin and people we already know should comment before the job opens up.
+ */
+async function hideCommentFromNewContributor(payload: IssueCommentCreatedEvent) {
+    const {comment, issue} = payload;
+    const author = comment.user.login;
+
+    if (isBotUser(author, comment.user.type) || author === issue.user.login || TRUSTED_AUTHOR_ASSOCIATIONS.has(comment.author_association)) {
+        console.log('Comment is from a bot, the issue author, or an org member, leaving it visible.', author);
+        return;
+    }
+
+    const isTrustedTeamMember = await getTrustedTeamMembership(author);
+    if (isTrustedTeamMember) {
+        console.log('Commenter is on a trusted team, leaving the comment visible.', author);
+        return;
+    }
+
+    if (isTrustedTeamMember === undefined) {
+        core.warning(`Could not verify ${author}'s team membership, leaving comment ${comment.id} visible.`);
+        return;
+    }
+
+    try {
+        // The event payload can be stale, so read the issue again before hiding anything
+        // eslint-disable-next-line @typescript-eslint/naming-convention -- GitHub's REST API parameter name
+        const {data: currentIssue} = await GithubUtils.octokit.issues.get({...context.repo, issue_number: issue.number});
+        if (hasHelpWantedLabel(currentIssue.labels) || currentIssue.assignees?.some((assignee) => assignee.login === author)) {
+            console.log('Issue now has "Help Wanted" or the commenter is assigned, leaving the comment visible.', author);
+            return;
+        }
+
+        if (await hasMergedAppPullRequest(author)) {
+            console.log('Commenter has a merged App PR, leaving the comment visible.', author);
+            return;
+        }
+    } catch (error: unknown) {
+        const message = error instanceof Error ? error.message : String(error);
+        core.warning(`Could not check whether ${author} can comment before "Help Wanted", leaving comment ${comment.id} visible: ${message}`);
+        return;
+    }
+
+    core.notice(`ProposalPolice hid comment ${comment.id} by ${author}, who has no merged App PR, on an issue without "Help Wanted"`);
+    await GithubUtils.minimizeCommentAsSpam(comment.node_id);
+}
 
 function isCommentCreatedEvent(payload: IssueCommentEvent): payload is IssueCommentCreatedEvent {
     return payload.action === CONST.ACTIONS.CREATED;
@@ -106,6 +210,12 @@ async function run() {
 
     const payload = context.payload as IssueCommentEvent;
 
+    // Only new comments are checked, so a comment an employee unhides stays visible when its author edits it
+    if (isCommentCreatedEvent(payload) && payload.issue.state === CONST.STATE.OPEN && !payload.issue.pull_request && !hasHelpWantedLabel(payload.issue.labels)) {
+        await hideCommentFromNewContributor(payload);
+        return;
+    }
+
     // Return early unless issue is open AND has the "Help Wanted" label
     if (payload.issue?.state !== CONST.STATE.OPEN || !payload.issue?.labels.some((issueLabel: {name: string}) => issueLabel.name === CONST.LABELS.HELP_WANTED)) {
         console.log('Issue is not open or does not have the "Help Wanted" label, skipping checks.');
@@ -150,7 +260,6 @@ async function run() {
     }
 
     const apiKey = getInput('PROPOSAL_POLICE_API_KEY', {required: true});
-    const isTrustedCommenter = getInput('IS_TRUSTED_COMMENTER') === 'true';
     const openAI = new OpenAIUtils(apiKey);
 
     const issueNumber = payload.issue?.number ?? -1;
@@ -166,6 +275,7 @@ async function run() {
         // rather than by the model. Only what's left over needs classifying, which is a judgment call.
         if (!isProposal(newProposalBody)) {
             console.log('Comment does not follow the proposal template. Classifying what it is trying to do...');
+            const isTrustedCommenter = PARTNER_AGENCY_PATTERN.test(newProposalBody) || !!(await getTrustedTeamMembership(newProposalAuthor));
             const intentResponse = await openAI.promptResponses({
                 instructions: buildCommentIntentInstructions(),
                 input: buildCommentIntentInput(newProposalBody, isTrustedCommenter),

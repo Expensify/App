@@ -412,6 +412,7 @@ const translations: TranslationDeepObject<typeof en> = {
         reportID: 'Αναγνωριστικό αναφοράς',
         longReportID: 'Μακρύ αναγνωριστικό αναφοράς',
         withdrawalID: 'Αναγνωριστικό ανάληψης',
+        transactionID: 'Αναγνωριστικό συναλλαγής',
         internationalReimbursementIDs: 'Διεθνή αναγνωριστικά αποζημιώσεων',
         amountDebited: 'Ποσό χρέωσης',
         amountReimbursed: 'Ποσό που αποζημιώθηκε',
@@ -504,6 +505,7 @@ const translations: TranslationDeepObject<typeof en> = {
         corpayPayModalPrompt:
             'Αυτός ο υποβάλλων έχει τραπεζικό λογαριασμό που δεν είναι σε USD. Ενεργοποιήστε τις διεθνείς αποζημιώσεις για να πληρώσετε την αναφορά, ή ζητήστε του να προσθέσει τραπεζικό λογαριασμό σε USD.',
         purchaseAmount: 'Ποσό αγοράς',
+        convertedAmount: 'Μετατραπέν ποσό',
         originalAmount: 'Αρχικό ποσό',
         frequency: 'Συχνότητα',
         link: 'Σύνδεσμος',
@@ -821,6 +823,11 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         changePin: {
             didNotChange: 'Δεν αλλάξαμε το PIN σας. Παρακαλούμε προσπαθήστε ξανά.',
+        },
+        addToWallet: {
+            failedHeader: 'Δεν ήταν δυνατή η προσθήκη της κάρτας',
+            failedTitle: 'Δεν μπορέσαμε να προσθέσουμε την κάρτα σας στο πορτοφόλι σας',
+            failedSubtitle: 'Κάτι πήγε στραβά κατά την προσθήκη της κάρτας. Αν υπάρχει ήδη στο πορτοφόλι σας, μπορείτε να τη χρησιμοποιήσετε εκεί.',
         },
         revealCardDetail: {
             couldNotReveal: 'Δεν μπορέσαμε να εμφανίσουμε τα στοιχεία της κάρτας σας. Παρακαλούμε δοκιμάστε ξανά.',
@@ -1392,7 +1399,10 @@ const translations: TranslationDeepObject<typeof en> = {
             label: 'Παραβάσεις των',
             [CONST.INSIGHTS.VIOLATION_STAGE.SUBMITTED]: 'Υποβάλλοντες',
             [CONST.INSIGHTS.VIOLATION_STAGE.APPROVED]: 'Εγκριτές',
+            chartTitle: (title: string, stage: string) => `${title} (${stage})`,
         },
+        flaggedExpenses: 'Επισημασμένες δαπάνες',
+        noFlaggedExpensesInRange: 'Δεν υπάρχουν επισημασμένες δαπάνες σε αυτό το εύρος',
     },
     allSettingsScreen: {
         subscription: 'Συνδρομή',
@@ -4553,7 +4563,9 @@ ${amount} για ${merchant} - ${date}`,
     },
     welcomeSignUpForm: {
         join: 'Συμμετοχή',
-        marketingSMSConsent: 'Συμφωνώ να λαμβάνω προωθητικά μηνύματα από την Expensify',
+        transactionalSMSConsent: 'Δίνοντας τον αριθμό τηλεφώνου μου, συμφωνώ να λαμβάνω ειδοποιήσεις συναλλαγών για τον λογαριασμό μου από την Expensify.',
+        transactionalSMSConsentFinePrint: 'Ενδέχεται να ισχύουν οι τυπικές χρεώσεις μηνυμάτων και δεδομένων. Απαντήστε STOP για διακοπή.',
+        marketingSMSConsent: 'Συμφωνώ να λαμβάνω προωθητικά μηνύματα από την Expensify.',
     },
     detailsPage: {
         localTime: 'Τοπική ώρα',
@@ -4750,6 +4762,14 @@ ${amount} για ${merchant} - ${date}`,
         numberedItem: ({item, number}: {item: string; number: number}) => `${item} ${number}`,
         questionsChanged: 'Οι ερωτήσεις σε αυτή τη σελίδα άλλαξαν',
         onFile: 'Καταχωρισμένο',
+        continueOffline: {
+            title: 'Δεν μπορείτε να συνεχίσετε εκτός σύνδεσης',
+            prompt: 'Απαιτείται σύνδεση στο διαδίκτυο για να συμπληρώσετε αυτή τη φόρμα. Μην ανησυχείτε, θα αποθηκεύσουμε την πρόοδό σας και μπορείτε να συνεχίσετε όταν είστε πάλι online.',
+            saveForLater: 'Αποθήκευση και συμπλήρωση αργότερα',
+            progressSaved: 'Η πρόοδός σας αποθηκεύτηκε',
+            promptWithSensitiveAnswers:
+                'Απαιτείται σύνδεση στο διαδίκτυο για να συμπληρώσετε αυτήν τη φόρμα. Θα αποθηκεύσουμε την πρόοδό σας ώστε να μπορέσετε να συνεχίσετε όταν θα είστε ξανά συνδεδεμένοι. Για τη δική σας ασφάλεια, ευαίσθητες λεπτομέρειες δεν αποθηκεύονται και θα χρειαστεί να καταχωριστούν ξανά.',
+        },
     },
     addPersonalBankAccount: {
         swiftBicFormatError: 'Το SWIFT/BIC πρέπει να έχει μήκος 8 ή 11 χαρακτήρες, με 6 γράμματα ακολουθούμενα από 2 ή 5 γράμματα ή αριθμούς.',
@@ -4770,6 +4790,15 @@ ${amount} για ${merchant} - ${date}`,
         updateSuccessMessage: 'Συγχαρητήρια, ο τραπεζικός σας λογαριασμός έχει ρυθμιστεί και είναι έτοιμος να λαμβάνει αποζημιώσεις.',
         bankDetails: 'Τραπεζικά στοιχεία',
         accountHolderDetails: 'Στοιχεία κατόχου λογαριασμού',
+        notices: {
+            katakanaName:
+                'Εισαγάγετε το όνομά σας ακριβώς όπως εμφανίζεται στον ιαπωνικό τραπεζικό σας λογαριασμό. Συνήθως είναι γραμμένο με Κατάκανα (カタカナ). Τυχόν ασυμφωνία μπορεί να καθυστερήσει ή να απορρίψει την πληρωμή σας.',
+            alipayRecipients: 'Μόνο δικαιούχοι από την ηπειρωτική Κίνα, το Χονγκ Κονγκ ή το Μακάο μπορούν να πληρωθούν μέσω Alipay.',
+            alipayLimits:
+                'Το Alipay μπορεί να λάβει έως 50.000 CNY ανά πληρωμή και μεταξύ 300.000 και 600.000 CNY ετησίως. Ενδέχεται επίσης να ισχύουν μηνιαία όρια στον αριθμό των πληρωμών, ανάλογα με τον σκοπό της πληρωμής.',
+            malaysianNonResidentLimit:
+                'Μη κάτοικοι με τραπεζικό λογαριασμό στη Μαλαισία μπορούν να λαμβάνουν μόνο 10.000 ρινγκίτ Μαλαισίας την ημέρα. Πληρωμή πάνω από αυτό το όριο μπορεί να οδηγήσει την τράπεζά σας να κλείσει τον λογαριασμό σας.',
+        },
     },
     addPersonalBankAccountPage: {
         enterPassword: 'Εισαγάγετε τον κωδικό Expensify',
@@ -7426,6 +7455,8 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
             createFailureMessage: 'Παρουσιάστηκε σφάλμα κατά τη δημιουργία της κατηγορίας, παρακαλούμε δοκιμάστε ξανά',
             addCategory: 'Προσθήκη κατηγορίας',
             createCategoryFromSearch: (categoryName: string) => `Δημιουργία κατηγορίας «${categoryName}»`,
+            availableToMember: (memberName: string) => `Διαθέσιμο για τον/την ${memberName}`,
+            notAvailableToMember: (memberName: string) => `Μη διαθέσιμο για τον/την ${memberName}`,
             editCategory: 'Επεξεργασία κατηγορίας',
             editCategories: 'Επεξεργαστείτε κατηγορίες',
             findCategory: 'Εύρεση κατηγορίας',
@@ -7443,11 +7474,13 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
                 description: `Πρέπει να παραμείνει ενεργοποιημένη τουλάχιστον μία κατηγορία, επειδή ο χώρος εργασίας σας απαιτεί κατηγορίες.`,
             },
             visibleTo: 'Ορατό σε',
+            editVisibility: 'Επεξεργασία ορατότητας',
             membersCount: ({count}: {count: number}) => ({
                 one: '1 μέλος',
                 other: `${count} μέλη`,
             }),
             visibleToDescription: ({categoryName}: {categoryName: string}) => `Επιλέξτε ποια μέλη μπορούν να χρησιμοποιούν την κατηγορία ${categoryName} όταν υποβάλλουν δαπάνες.`,
+            bulkVisibleToDescription: 'Επιλέξτε ποια μέλη μπορούν να χρησιμοποιούν αυτές τις κατηγορίες όταν υποβάλλουν έξοδα.',
             cannotDisableCategoryForMembers: {
                 title: ({categoryName}: {categoryName: string}) => `Δεν είναι δυνατή η απενεργοποίηση της κατηγορίας ${categoryName}`,
                 bulkTitle: 'Δεν μπορείτε να απενεργοποιήσετε αυτές τις κατηγορίες',
@@ -8204,6 +8237,9 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
             },
             changeOfficeLocation: 'Αλλαγή τοποθεσίας γραφείου',
             changeWorkArrangement: 'Αλλαγή ρύθμισης εργασίας',
+            editCategoryVisibility: 'Επεξεργασία ορατότητας κατηγορίας',
+            bulkCategoryVisibilitySaved: ({categoryCount, memberCount}: {categoryCount: string; memberCount: string}) =>
+                `Ορίστε ${categoryCount} για ${memberCount}. Αυτό αντικαθιστά την τρέχουσα ορατότητα κατηγοριών τους.`,
             changeRole: 'Αλλαγή ρόλου',
             newRolesBanner: {
                 title: 'Διαθέσιμοι νέοι ρόλοι',
@@ -8243,7 +8279,6 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
                 willBeReadyToUse: 'Αυτή η κάρτα θα είναι έτοιμη για χρήση αμέσως.',
                 willBeReadyToShip: 'Αυτή η κάρτα θα είναι έτοιμη για αποστολή άμεσα.',
                 cardholder: 'Κάτοχος κάρτας',
-                cardholderEmail: 'Email κατόχου κάρτας',
                 cardType: 'Τύπος κάρτας',
                 limit: 'Όριο',
                 limitType: 'Τύπος ορίου',
