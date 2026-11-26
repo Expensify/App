@@ -6787,6 +6787,8 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
                 description: 'Wählen Sie aus, wohin erstattungsfähige Ausgaben exportiert werden sollen.',
                 accountRequiredError: 'Bitte wählen Sie ein Rillet-Erstattungskonto aus.',
             },
+            autoCreateVendor: 'Lieferanten automatisch erstellen',
+            autoCreateVendorDescription: 'Expensify erstellt in Rillet automatisch Lieferanten, wenn sie noch nicht vorhanden sind.',
             achPaymentAccount: {label: 'ACH-Zahlungskonto', description: 'Wählen Sie aus, von wo Berichte bezahlt werden sollen, und wir erstellen die Zahlung in Rillet.'},
         },
         dualEntry: {

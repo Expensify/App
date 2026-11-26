@@ -6742,6 +6742,8 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
                     'Quando la tua azienda copre il costo di conversione valutaria su un pagamento effettuato all’estero, registreremo tale costo su questo conto in Rillet come registrazione contabile.',
             },
             reimbursementAccount: {label: 'Conto di rimborso', description: 'Scegli dove esportare le spese rimborsabili.', accountRequiredError: 'Seleziona un conto di rimborso Rillet.'},
+            autoCreateVendor: 'Crea automaticamente i fornitori',
+            autoCreateVendorDescription: 'Expensify creerà automaticamente i fornitori in Rillet se non esistono già.',
             achPaymentAccount: {label: 'Conto di pagamento ACH', description: 'Scegli da dove pagare i report e creeremo il pagamento in Rillet.'},
         },
         dualEntry: {

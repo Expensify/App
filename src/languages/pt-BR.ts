@@ -6751,6 +6751,8 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
                 description: 'Escolha para onde exportar as despesas reembolsáveis.',
                 accountRequiredError: 'Selecione uma conta de reembolso Rillet.',
             },
+            autoCreateVendor: 'Criar fornecedores automaticamente',
+            autoCreateVendorDescription: 'O Expensify criará automaticamente fornecedores no Rillet se eles ainda não existirem.',
             achPaymentAccount: {label: 'Conta de pagamento ACH', description: 'Escolha de onde pagar os relatórios e criaremos o pagamento no Rillet.'},
         },
         dualEntry: {
