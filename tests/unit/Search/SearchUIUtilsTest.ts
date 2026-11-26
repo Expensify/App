@@ -3044,6 +3044,47 @@ describe('SearchUIUtils', () => {
             expect(snapshotReportActionIDs).toStrictEqual([payAction.reportActionID]);
         });
 
+        it('should show a NewDot REIMBURSED action on an invoice that is only in the Search snapshot', () => {
+            // Given a CHAT search result whose invoice isn't loaded into Onyx, with a NewDot REIMBURSED action
+            const snapshotInvoiceID = 'snapshotOnlyInvoiceID';
+            const reimbursedAction = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.REIMBURSED,
+                reportActionID: 'snapshotReimbursedActionID',
+                reportID: snapshotInvoiceID,
+                created: '2025-01-01 00:00:00',
+                message: [{type: 'TEXT', style: 'normal', text: 'paid this report'}],
+                originalMessage: {isNewDot: true},
+            } as OnyxTypes.ReportAction;
+            const data: OnyxTypes.SearchResults['data'] = {
+                ...searchResults.data,
+                [`${ONYXKEYS.COLLECTION.REPORT}${snapshotInvoiceID}`]: createMock<OnyxTypes.Report>({reportID: snapshotInvoiceID, type: CONST.REPORT.TYPE.INVOICE}),
+                [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${snapshotInvoiceID}`]: {[reimbursedAction.reportActionID]: reimbursedAction},
+            };
+
+            // When the CHAT sections are built from the snapshot
+            const [sections] = SearchUIUtils.getSections({
+                dateFnsLocale: undefined,
+                type: CONST.SEARCH.DATA_TYPES.CHAT,
+                data,
+                currentAccountID: 2074551,
+                currentUserEmail: '',
+                translate: translateLocal,
+                formatPhoneNumber,
+                bankAccountList: {},
+                rules: undefined,
+                conciergeReportID: undefined,
+                convertToDisplayString,
+                reportAttributesDerivedValue: {},
+            });
+
+            // Then the payment action is listed, because the snapshot shows the report is an invoice, and invoices have no IOU PAY action for this payment
+            const snapshotReportActionIDs = sections
+                .filter(SearchUIUtils.isReportActionListItemType)
+                .filter((item) => item.reportID === snapshotInvoiceID)
+                .map((item) => item.reportActionID);
+            expect(snapshotReportActionIDs).toStrictEqual([reimbursedAction.reportActionID]);
+        });
+
         it('should return getTransactionsSections result when groupBy is undefined', () => {
             expect(
                 SearchUIUtils.getSections({
@@ -4434,6 +4475,70 @@ describe('SearchUIUtils', () => {
             expect(result.some((item) => item.formattedMonth === 'June 2026')).toBe(true);
         });
 
+        it('should skip a month group outside 1-12', () => {
+            // Given a month 13 group, which would otherwise get a "January 2027" label and no query to open
+            const dataWithInvalidMonth: OnyxTypes.SearchResults['data'] = {
+                personalDetailsList: {},
+                [`${CONST.SEARCH.GROUP_PREFIX}2026_1` as const]: {year: 2026, month: 1, count: 2, currency: 'USD', total: 50},
+                [`${CONST.SEARCH.GROUP_PREFIX}2026_13` as const]: {year: 2026, month: 13, count: 1, currency: 'USD', total: 25},
+            };
+
+            // When the month sections are built
+            const [result] = getSectionsByType(
+                SearchUIUtils.getSections({
+                    dateFnsLocale: undefined,
+                    type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+                    data: dataWithInvalidMonth,
+                    currentAccountID: 2074551,
+                    currentUserEmail: '',
+                    translate: translateLocal,
+                    formatPhoneNumber,
+                    bankAccountList: {},
+                    rules: undefined,
+                    groupBy: CONST.SEARCH.GROUP_BY.MONTH,
+                    conciergeReportID: undefined,
+                    convertToDisplayString,
+                    reportAttributesDerivedValue: {},
+                }),
+                SearchUIUtils.isTransactionMonthGroupListItemType,
+            );
+
+            // Then only the real month gets a section, the same way week skips a group it can't place
+            expect(result.map((item) => item.keyForList)).toEqual([`${CONST.SEARCH.GROUP_PREFIX}2026_1`]);
+        });
+
+        it('should skip a quarter group outside 1-4', () => {
+            // Given a quarter 5 group, which would otherwise get a rolled-over label and no query to open
+            const dataWithInvalidQuarter: OnyxTypes.SearchResults['data'] = {
+                personalDetailsList: {},
+                [`${CONST.SEARCH.GROUP_PREFIX}2026_1` as const]: {year: 2026, quarter: 1, count: 2, currency: 'USD', total: 50},
+                [`${CONST.SEARCH.GROUP_PREFIX}2026_5` as const]: {year: 2026, quarter: 5, count: 1, currency: 'USD', total: 25},
+            };
+
+            // When the quarter sections are built
+            const [result] = getSectionsByType(
+                SearchUIUtils.getSections({
+                    dateFnsLocale: undefined,
+                    type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+                    data: dataWithInvalidQuarter,
+                    currentAccountID: 2074551,
+                    currentUserEmail: '',
+                    translate: translateLocal,
+                    formatPhoneNumber,
+                    bankAccountList: {},
+                    rules: undefined,
+                    groupBy: CONST.SEARCH.GROUP_BY.QUARTER,
+                    conciergeReportID: undefined,
+                    convertToDisplayString,
+                    reportAttributesDerivedValue: {},
+                }),
+                SearchUIUtils.isTransactionQuarterGroupListItemType,
+            );
+
+            // Then only the real quarter gets a section
+            expect(result.map((item) => item.keyForList)).toEqual([`${CONST.SEARCH.GROUP_PREFIX}2026_1`]);
+        });
+
         it('should leave the year out of short labels when every month falls in the same year', () => {
             // Given months that all fall in 2026, so a year on every chart axis label would repeat the same information
             const dataInOneYear: OnyxTypes.SearchResults['data'] = {
@@ -4731,7 +4836,7 @@ describe('SearchUIUtils', () => {
         it('should apply date filter when expanding year group', () => {
             // Test that adjustTimeRangeToDateFilters correctly applies a date filter
             // when expanding a year group (e.g., date >= 2025-12-01)
-            const yearDateRange = DateUtils.getYearDateRange(2025);
+            const yearDateRange = {start: '2025-01-01', end: '2025-12-31'};
             const dateFilter = {
                 key: CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE,
                 filters: [
@@ -4753,7 +4858,7 @@ describe('SearchUIUtils', () => {
 
         it('should apply date filter with both start and end limits when expanding year group', () => {
             // Test that adjustTimeRangeToDateFilters correctly applies both start and end date filters
-            const yearDateRange = DateUtils.getYearDateRange(2025);
+            const yearDateRange = {start: '2025-01-01', end: '2025-12-31'};
             const dateFilter = {
                 key: CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE,
                 filters: [
@@ -4777,7 +4882,7 @@ describe('SearchUIUtils', () => {
         });
 
         it('should return original time range when no date filter is provided', () => {
-            const yearDateRange = DateUtils.getYearDateRange(2025);
+            const yearDateRange = {start: '2025-01-01', end: '2025-12-31'};
 
             const result = SearchUIUtils.adjustTimeRangeToDateFilters(yearDateRange, undefined);
 
@@ -4789,7 +4894,7 @@ describe('SearchUIUtils', () => {
         it('should apply date filter when expanding month group', () => {
             // Test that adjustTimeRangeToDateFilters correctly applies a date filter
             // when expanding a month group (e.g., date >= 2025-12-15)
-            const monthDateRange = DateUtils.getMonthDateRange(2025, 12);
+            const monthDateRange = {start: '2025-12-01', end: '2025-12-31'};
             const dateFilter = {
                 key: CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE,
                 filters: [
@@ -4811,7 +4916,7 @@ describe('SearchUIUtils', () => {
 
         it('should apply date filter with both start and end limits when expanding month group', () => {
             // Test that adjustTimeRangeToDateFilters correctly applies both start and end date filters
-            const monthDateRange = DateUtils.getMonthDateRange(2025, 6);
+            const monthDateRange = {start: '2025-06-01', end: '2025-06-30'};
             const dateFilter = {
                 key: CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE,
                 filters: [
@@ -4837,7 +4942,7 @@ describe('SearchUIUtils', () => {
         it('should apply date filter when expanding quarter group', () => {
             // Test that adjustTimeRangeToDateFilters correctly applies a date filter
             // when expanding a quarter group (e.g., date >= 2025-09-15)
-            const quarterDateRange = DateUtils.getQuarterDateRange(2025, 3);
+            const quarterDateRange = {start: '2025-07-01', end: '2025-09-30'};
             const dateFilter = {
                 key: CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE,
                 filters: [
@@ -4859,7 +4964,7 @@ describe('SearchUIUtils', () => {
 
         it('should apply date filter with both start and end limits when expanding quarter group', () => {
             // Test that adjustTimeRangeToDateFilters correctly applies both start and end date filters
-            const quarterDateRange = DateUtils.getQuarterDateRange(2025, 2);
+            const quarterDateRange = {start: '2025-04-01', end: '2025-06-30'};
             const dateFilter = {
                 key: CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE,
                 filters: [
@@ -4897,7 +5002,7 @@ describe('SearchUIUtils', () => {
             it('should intersect date preset with additional constraints instead of overwriting', () => {
                 // Test that when combining a date preset (EQUAL_TO) with additional constraints,
                 // we intersect the ranges (take max for start, min for end) rather than overwriting
-                const yearDateRange = DateUtils.getYearDateRange(2026);
+                const yearDateRange = {start: '2026-01-01', end: '2026-12-31'};
                 const dateFilter = {
                     key: CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE,
                     filters: [
@@ -4924,7 +5029,7 @@ describe('SearchUIUtils', () => {
             it('should intersect date preset end limit with additional constraints', () => {
                 // Test that when combining a date preset with an end constraint,
                 // we take the minimum (earliest) end date to intersect ranges
-                const yearDateRange = DateUtils.getYearDateRange(2026);
+                const yearDateRange = {start: '2026-01-01', end: '2026-12-31'};
                 const dateFilter = {
                     key: CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE,
                     filters: [
@@ -4998,7 +5103,7 @@ describe('SearchUIUtils', () => {
 
         it('should correctly intersect multiple date filters (GREATER_THAN and LOWER_THAN) when expanding quarter groups', () => {
             // This verifies that both date filters are respected when expanding quarter groups
-            const quarterDateRange = DateUtils.getQuarterDateRange(2026, 1);
+            const quarterDateRange = {start: '2026-01-01', end: '2026-03-31'};
             const dateFilter = {
                 key: CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE,
                 filters: [
@@ -5025,7 +5130,7 @@ describe('SearchUIUtils', () => {
 
         it('should correctly intersect GREATER_THAN and LOWER_THAN filters that narrow the range', () => {
             // Test case where both filters narrow down a quarter range
-            const quarterDateRange = DateUtils.getQuarterDateRange(2025, 4);
+            const quarterDateRange = {start: '2025-10-01', end: '2025-12-31'};
             const dateFilter = {
                 key: CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE,
                 filters: [
@@ -5052,7 +5157,7 @@ describe('SearchUIUtils', () => {
         it('should handle multiple date filter objects when multiple date filters exist in flatFilters', () => {
             // Test that adjustTimeRangeToDateFilters correctly merges and processes multiple date filter objects
             // This simulates the scenario where date>2025-12-02 and date<2026-02-02 are stored as separate filter objects
-            const quarterDateRange = DateUtils.getQuarterDateRange(2026, 1); // Q1 2026: 2026-01-01 to 2026-03-31
+            const quarterDateRange = {start: '2026-01-01', end: '2026-03-31'};
             const flatFilters = [
                 {
                     key: CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE,
@@ -5308,6 +5413,38 @@ describe('SearchUIUtils', () => {
             // Check that formatted week contains the start date
             expect(result.some((item) => item.formattedWeek.includes('Jan 25'))).toBe(true);
             expect(result.some((item) => item.formattedWeek.includes('Jun 15'))).toBe(true);
+        });
+
+        it('should skip a week group without a week', () => {
+            // Given a week-grouped snapshot where one group has an empty week
+            const data: OnyxTypes.SearchResults['data'] = {
+                personalDetailsList: {},
+                [`${CONST.SEARCH.GROUP_PREFIX}2026-01-25` as const]: {week: '2026-01-25', count: 2, currency: 'USD', total: 50},
+                [`${CONST.SEARCH.GROUP_PREFIX}empty` as const]: {week: '', count: 1, currency: 'USD', total: 25},
+            };
+
+            // When the week sections are built
+            const [result] = getSectionsByType(
+                SearchUIUtils.getSections({
+                    dateFnsLocale: undefined,
+                    type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+                    data,
+                    currentAccountID: 2074551,
+                    currentUserEmail: '',
+                    translate: translateLocal,
+                    formatPhoneNumber,
+                    bankAccountList: {},
+                    rules: undefined,
+                    groupBy: CONST.SEARCH.GROUP_BY.WEEK,
+                    conciergeReportID: undefined,
+                    convertToDisplayString,
+                    reportAttributesDerivedValue: {},
+                }),
+                SearchUIUtils.isTransactionWeekGroupListItemType,
+            );
+
+            // Then only the valid week is shown, because a week's dates are also its label and an empty week has none
+            expect(result.map((item) => item.week)).toEqual(['2026-01-25']);
         });
 
         it('should return isTransactionCategoryGroupListItemType false for non-category group items', () => {
@@ -9162,7 +9299,10 @@ describe('SearchUIUtils', () => {
 
         it('should give each selected merchant group a merchant filter entry with its own value', () => {
             // Given the "Amazon" group and the "No merchant" group of a merchant-grouped search
-            const groups = [{merchant: 'Amazon'}, {merchant: ''}];
+            const groups = [
+                {count: 1, total: 100, currency: CONST.CURRENCY.USD, merchant: 'Amazon'},
+                {count: 1, total: 100, currency: CONST.CURRENCY.USD, merchant: ''},
+            ];
 
             // When the export builds the filter entry for each selected group
             const selectedGroupEntries = groups.map((group) => SearchUIUtils.getSelectedGroupFilterEntry(CONST.SEARCH.GROUP_BY.MERCHANT, group));
@@ -9371,6 +9511,46 @@ describe('SearchUIUtils', () => {
             // Then they are ordered by the workspace amount, falling back to the expense's own amount when it has none
             expect(ascendingResult.map((item) => ('transactionID' in item ? item.transactionID : undefined))).toEqual(['small-converted', 'created-offline', 'large-converted']);
             expect(descendingResult.map((item) => ('transactionID' in item ? item.transactionID : undefined))).toEqual(['large-converted', 'created-offline', 'small-converted']);
+        });
+
+        it('should sort expenses by Transaction ID as whole numbers without losing digits', () => {
+            // Given transaction IDs of different lengths, where text order differs from number order, and two IDs that a
+            // double can't tell apart because they differ past its 15 to 17 significant digits
+            const shortestID = '999999999999999999';
+            const middleID = '1234567890123456789';
+            const largeID = '4611686018427387904';
+            const largestID = '4611686018427387905';
+            const baseTransaction = transactionsListItems.at(0);
+            if (!baseTransaction) {
+                throw new Error('Missing transaction fixture');
+            }
+            const unorderedTransactions: TransactionListItemType[] = [largeID, shortestID, largestID, middleID].map((id) => ({
+                ...baseTransaction,
+                transactionID: id,
+                keyForList: id,
+            }));
+
+            // When the expenses are sorted by Transaction ID in both directions
+            const ascendingResult = SearchUIUtils.getSortedSections(
+                CONST.SEARCH.DATA_TYPES.EXPENSE,
+                [...unorderedTransactions],
+                localeCompare,
+                translateLocal,
+                CONST.SEARCH.TABLE_COLUMNS.TRANSACTION_ID,
+                CONST.SEARCH.SORT_ORDER.ASC,
+            );
+            const descendingResult = SearchUIUtils.getSortedSections(
+                CONST.SEARCH.DATA_TYPES.EXPENSE,
+                [...unorderedTransactions],
+                localeCompare,
+                translateLocal,
+                CONST.SEARCH.TABLE_COLUMNS.TRANSACTION_ID,
+                CONST.SEARCH.SORT_ORDER.DESC,
+            );
+
+            // Then they follow the IDs' number order, so the backend's order and the local order agree
+            expect(ascendingResult.map((item) => ('transactionID' in item ? item.transactionID : undefined))).toEqual([shortestID, middleID, largeID, largestID]);
+            expect(descendingResult.map((item) => ('transactionID' in item ? item.transactionID : undefined))).toEqual([largestID, largeID, middleID, shortestID]);
         });
 
         it('should keep the row order unchanged when sorting a column that is empty for every row (asc and desc are no-ops)', () => {
@@ -14114,6 +14294,41 @@ describe('SearchUIUtils', () => {
             expect(violationsHeader?.isColumnSortable).not.toBe(false);
         });
 
+        test('Should show the Transaction ID column on expense searches when it is selected', () => {
+            // Given an expense search where the user selected the Transaction ID column
+            const baseTransaction = searchResults.data[`transactions_${transactionID}`];
+            const defaultVisibleColumns = Object.values(CONST.SEARCH.TYPE_DEFAULT_COLUMNS.EXPENSE);
+
+            // When the columns to show are computed with and without that column selected
+            const columnsWithTransactionID = SearchUIUtils.getColumnsToShow({
+                currentAccountID: submitterAccountID,
+                data: [baseTransaction],
+                visibleColumns: [...defaultVisibleColumns, CONST.SEARCH.TABLE_COLUMNS.TRANSACTION_ID],
+            });
+            const defaultColumns = SearchUIUtils.getColumnsToShow({
+                currentAccountID: submitterAccountID,
+                data: [baseTransaction],
+                visibleColumns: defaultVisibleColumns,
+            });
+
+            // Then the column only shows when the user picked it, since it is off by default
+            expect(columnsWithTransactionID).toContain(CONST.SEARCH.TABLE_COLUMNS.TRANSACTION_ID);
+            expect(defaultColumns).not.toContain(CONST.SEARCH.TABLE_COLUMNS.TRANSACTION_ID);
+        });
+
+        test('Should offer sorting by Transaction ID', () => {
+            // Given the Transaction ID column is shown
+            const columns = [CONST.SEARCH.TABLE_COLUMNS.TRANSACTION_ID];
+
+            // When the Sort by options and the expense table headers are built
+            const sortByOptions = SearchUIUtils.getSortByOptions(columns, translateLocal);
+            const transactionIDHeader = getExpenseHeaders().find(({columnName}) => columnName === CONST.SEARCH.TABLE_COLUMNS.TRANSACTION_ID);
+
+            // Then both offer a Transaction ID sort, so the column sorts like the other ID columns
+            expect(sortByOptions).toEqual([{text: translateLocal('common.transactionID'), value: CONST.SEARCH.TABLE_COLUMNS.TRANSACTION_ID}]);
+            expect(transactionIDHeader?.isColumnSortable).toBe(true);
+        });
+
         test('Should show MCC whenever that column is selected, even with no displayable MCC', () => {
             const baseTransaction = searchResults.data[`transactions_${transactionID}`];
             const transactionWithoutMCC = {
@@ -15021,6 +15236,15 @@ describe('SearchUIUtils', () => {
             expect(translationKey).toBe('common.withdrawalID');
         });
 
+        it('should return correct translation key for TRANSACTION_ID column', () => {
+            // Given the Transaction ID column, whose header is also sent as the export column label
+            // When its translation key is resolved
+            const translationKey = SearchUIUtils.getSearchColumnTranslationKey(CONST.SEARCH.TABLE_COLUMNS.TRANSACTION_ID);
+
+            // Then it uses the Transaction ID label
+            expect(translationKey).toBe('common.transactionID');
+        });
+
         it('should label the DECLINED column with the Rejected filter label', () => {
             // Given the Rejected column, whose header is also sent as the export column label
             // When its translation key is resolved for expenses and expense reports
@@ -15589,6 +15813,54 @@ describe('SearchUIUtils', () => {
 
             // Then nothing is filtered, since there's no owner to filter for
             expect(result).toBe(false);
+        });
+    });
+
+    describe('getSearchBulkEditExpenseOwnerAccountID', () => {
+        const memberReport: OnyxTypes.Report = {reportID: 'r2', ownerAccountID: 2};
+        const otherMemberReport: OnyxTypes.Report = {reportID: 'r3', ownerAccountID: 3};
+        const reports: OnyxCollection<OnyxTypes.Report> = {
+            [`${ONYXKEYS.COLLECTION.REPORT}${memberReport.reportID}`]: memberReport,
+            [`${ONYXKEYS.COLLECTION.REPORT}${otherMemberReport.reportID}`]: otherMemberReport,
+        };
+        const transactions: OnyxCollection<OnyxTypes.Transaction> = {
+            [`${ONYXKEYS.COLLECTION.TRANSACTION}t1`]: createMock<OnyxTypes.Transaction>({transactionID: 't1', reportID: 'r2'}),
+            [`${ONYXKEYS.COLLECTION.TRANSACTION}t2`]: createMock<OnyxTypes.Transaction>({transactionID: 't2', reportID: 'r2'}),
+            [`${ONYXKEYS.COLLECTION.TRANSACTION}t3`]: createMock<OnyxTypes.Transaction>({transactionID: 't3', reportID: 'r3'}),
+            [`${ONYXKEYS.COLLECTION.TRANSACTION}t4`]: createMock<OnyxTypes.Transaction>({transactionID: 't4', reportID: CONST.REPORT.UNREPORTED_REPORT_ID}),
+        };
+
+        it('returns the member who owns every selected expense', () => {
+            // Given an admin who selected two expenses on the same member's report
+            // When resolving whose categories the bulk-edit picker should compare against
+            const ownerAccountID = SearchUIUtils.getSearchBulkEditExpenseOwnerAccountID(['t1', 't2'], 1, transactions, reports);
+
+            // Then it's that member, so the picker can show which categories they can use
+            expect(ownerAccountID).toBe(2);
+        });
+
+        it('returns undefined when the selected expenses belong to different members', () => {
+            // Given an admin who selected expenses from two members
+            // When resolving the shared owner
+            const ownerAccountID = SearchUIUtils.getSearchBulkEditExpenseOwnerAccountID(['t1', 't3'], 1, transactions, reports);
+
+            // Then there's none, since one member's visibility can't describe both expenses
+            expect(ownerAccountID).toBeUndefined();
+        });
+
+        it('counts an unreported expense as the current user’s', () => {
+            // Given an unreported expense, which only its owner can see, selected alone and next to a member's expense
+            // When resolving the shared owner
+            // Then it belongs to the current user, so mixing it with a member's expense leaves no shared owner
+            expect(SearchUIUtils.getSearchBulkEditExpenseOwnerAccountID(['t4'], 1, transactions, reports)).toBe(1);
+            expect(SearchUIUtils.getSearchBulkEditExpenseOwnerAccountID(['t1', 't4'], 1, transactions, reports)).toBeUndefined();
+        });
+
+        it('returns undefined when nothing is selected', () => {
+            // Given no selected expenses
+            // When resolving the shared owner
+            // Then there's none
+            expect(SearchUIUtils.getSearchBulkEditExpenseOwnerAccountID([], 1, transactions, reports)).toBeUndefined();
         });
     });
 
@@ -16318,6 +16590,26 @@ describe('SearchUIUtils', () => {
         });
     });
 
+    describe('getHasOptionAvailability', () => {
+        test.each([CONST.POLICY.TYPE.TEAM, CONST.POLICY.TYPE.CORPORATE])('shows violations for a %s workspace without a Rules setting', (policyType) => {
+            // Given a group workspace without a Rules setting or enabled tags and categories
+            const policies: OnyxCollection<OnyxTypes.Policy> = {
+                [`${ONYXKEYS.COLLECTION.POLICY}1`]: {
+                    ...createRandomPolicy(1, policyType),
+                    areRulesEnabled: undefined,
+                    areTagsEnabled: false,
+                    areCategoriesEnabled: false,
+                },
+            };
+
+            // When checking availability without loading any category rules
+            const availability = SearchUIUtils.getHasOptionAvailability(policies);
+
+            // Then violations are available without enabling tags or categories
+            expect(availability).toEqual({shouldShowTag: false, shouldShowCategory: false, shouldShowSubmittedViolation: true, shouldShowApprovedViolation: true});
+        });
+    });
+
     describe('getHasOptions', () => {
         const getExpenseHasOptions = () => ({
             receipt: {text: translateLocal('common.receipt'), value: CONST.SEARCH.HAS_VALUES.RECEIPT},
@@ -16343,7 +16635,8 @@ describe('SearchUIUtils', () => {
         });
 
         test('shows Tag only when at least one accessible workspace has tags enabled', () => {
-            const {receipt, attachment, tag} = getExpenseHasOptions();
+            // Given a workspace with tags enabled but categories and Rules disabled
+            const {receipt, attachment, tag, submittedViolation, approvedViolation} = getExpenseHasOptions();
             const policies: OnyxCollection<OnyxTypes.Policy> = {
                 [`${ONYXKEYS.COLLECTION.POLICY}1`]: {
                     ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
@@ -16353,9 +16646,11 @@ describe('SearchUIUtils', () => {
                 },
             };
 
+            // When building the expense has filter options
             const result = SearchUIUtils.getHasOptions(translateLocal, CONST.SEARCH.DATA_TYPES.EXPENSE, {policies});
 
-            expect(result).toEqual([receipt, attachment, tag]);
+            // Then tags and violations are available without exposing categories
+            expect(result).toEqual([receipt, attachment, tag, submittedViolation, approvedViolation]);
         });
 
         test('hides Tag when no accessible workspace has tags enabled', () => {
@@ -16377,7 +16672,8 @@ describe('SearchUIUtils', () => {
         });
 
         test('shows Category only when at least one accessible workspace has categories enabled', () => {
-            const {receipt, attachment, category} = getExpenseHasOptions();
+            // Given a workspace with categories enabled but tags and Rules disabled
+            const {receipt, attachment, category, submittedViolation, approvedViolation} = getExpenseHasOptions();
             const policies: OnyxCollection<OnyxTypes.Policy> = {
                 [`${ONYXKEYS.COLLECTION.POLICY}1`]: {
                     ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
@@ -16387,9 +16683,11 @@ describe('SearchUIUtils', () => {
                 },
             };
 
+            // When building the expense has filter options
             const result = SearchUIUtils.getHasOptions(translateLocal, CONST.SEARCH.DATA_TYPES.EXPENSE, {policies});
 
-            expect(result).toEqual([receipt, attachment, category]);
+            // Then categories and violations are available without exposing tags
+            expect(result).toEqual([receipt, attachment, category, submittedViolation, approvedViolation]);
         });
 
         test('hides Category when no accessible workspace has categories enabled', () => {
@@ -16426,20 +16724,23 @@ describe('SearchUIUtils', () => {
             expect(result).toEqual([receipt, attachment, submittedViolation, approvedViolation]);
         });
 
-        test('hides Submitted and Approved violation when no accessible workspace has Rules enabled', () => {
+        test.each([CONST.POLICY.TYPE.TEAM, CONST.POLICY.TYPE.CORPORATE])('shows Submitted and Approved violation for a %s workspace with Rules off', (policyType) => {
+            // Given a group workspace with Rules disabled, expenses can still have violations
             const policies: OnyxCollection<OnyxTypes.Policy> = {
                 [`${ONYXKEYS.COLLECTION.POLICY}1`]: {
-                    ...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE),
+                    ...createRandomPolicy(1, policyType),
                     areTagsEnabled: true,
                     areCategoriesEnabled: true,
                     areRulesEnabled: false,
                 },
             };
 
+            // When building the expense has filter options
             const result = SearchUIUtils.getHasOptions(translateLocal, CONST.SEARCH.DATA_TYPES.EXPENSE, {policies});
 
-            expect(result.map((option) => option.value)).not.toContain(CONST.SEARCH.HAS_VALUES.SUBMITTED_VIOLATION);
-            expect(result.map((option) => option.value)).not.toContain(CONST.SEARCH.HAS_VALUES.APPROVED_VIOLATION);
+            // Then both violation options remain available alongside enabled workspace features
+            expect(result.map((option) => option.value)).toContain(CONST.SEARCH.HAS_VALUES.SUBMITTED_VIOLATION);
+            expect(result.map((option) => option.value)).toContain(CONST.SEARCH.HAS_VALUES.APPROVED_VIOLATION);
             expect(result.map((option) => option.value)).toContain(CONST.SEARCH.HAS_VALUES.TAG);
             expect(result.map((option) => option.value)).toContain(CONST.SEARCH.HAS_VALUES.CATEGORY);
         });
@@ -18202,9 +18503,7 @@ describe('Trip search', () => {
     it('offers upcoming, done and canceled as trip room statuses', () => {
         // Given a trip search with and without the TravelApproval beta
         const getStatusValues = (shouldReturnTripRooms: boolean) =>
-            SearchUIUtils.getMultiSelectFilterOptions(FILTER_KEYS.STATUS, CONST.SEARCH.DATA_TYPES.TRIP, translateLocal, undefined, undefined, shouldReturnTripRooms).map(
-                (option) => option.value,
-            );
+            SearchUIUtils.getMultiSelectFilterOptions(FILTER_KEYS.STATUS, CONST.SEARCH.DATA_TYPES.TRIP, translateLocal, undefined, shouldReturnTripRooms).map((option) => option.value);
 
         // When the Status filter options are built
         // Then trip rooms offer their own statuses, and the expense search keeps current and past

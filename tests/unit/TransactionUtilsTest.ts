@@ -678,6 +678,27 @@ describe('TransactionUtils', () => {
     });
 
     describe('getUpdatedTransaction', () => {
+        it('uses the supplied translator for a pending route instead of the global locale', () => {
+            // Given a translator whose output differs from the global locale
+            const translate = jest.fn(() => 'Injected pending label');
+            const transaction = generateTransaction({comment: {waypoints: {}}});
+
+            // When a waypoint edit has no resolved route yet
+            const updatedTransaction = TransactionUtils.getUpdatedTransaction({
+                translate,
+                transaction,
+                transactionChanges: {waypoints: {waypoint0: {address: 'New destination'}}},
+                isFromExpenseReport: false,
+                personalPolicyOutputCurrency: undefined,
+                getCurrencySymbol: getCurrencySymbolLocal,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+            });
+
+            // Then the optimistic merchant comes from the caller's translator
+            expect(translate).toHaveBeenCalledWith('iou.fieldPending');
+            expect(updatedTransaction.modifiedMerchant).toBe('Injected pending label');
+        });
+
         it('should preserve a confirmed zero Scan amount while another field edit is pending', () => {
             // Given a submitted Scan whose explicit zero survived a cache reset without its draft flag
             const transaction = generateTransaction({
@@ -817,9 +838,11 @@ describe('TransactionUtils', () => {
             });
 
             const newDistance = 20; // change distance to 20 miles
+            const translate = jest.fn(() => 'Injected distance label');
 
             // When: updating the transaction with a new distance
             const updatedTransaction = TransactionUtils.getUpdatedTransaction({
+                translate,
                 transaction,
                 isFromExpenseReport: false,
                 policy: fakePolicy,
@@ -831,6 +854,7 @@ describe('TransactionUtils', () => {
 
             // Then: quantity should be updated
             expect(updatedTransaction.comment?.customUnit?.quantity).toBe(newDistance);
+            expect(translate).toHaveBeenCalledWith('common.mile');
 
             // And: amount should be recalculated (20 miles × 1 USD = 20)
             expect(updatedTransaction.modifiedAmount).toBe(20);
@@ -2855,6 +2879,26 @@ describe('TransactionUtils', () => {
     });
 
     describe('isViolationDismissed', () => {
+        it('treats a categoryNotAllowed dismissal by an admin as dismissed for the member too', () => {
+            // Given an admin who coded the member's expense to a category the member can't use, which dismisses categoryNotAllowed
+            const transaction = generateTransaction({
+                comment: {
+                    dismissedViolations: {
+                        [CONST.VIOLATIONS.CATEGORY_NOT_ALLOWED]: {
+                            [OTHER_USER_EMAIL]: DateUtils.getDBTime(),
+                        },
+                    },
+                },
+            });
+            const violation = {type: CONST.VIOLATION_TYPES.VIOLATION, name: CONST.VIOLATIONS.CATEGORY_NOT_ALLOWED};
+
+            // When the member views the expense, without any report context
+            const result = TransactionUtils.isViolationDismissed(transaction, violation, CURRENT_USER_EMAIL, CURRENT_USER_ID, undefined, undefined, undefined);
+
+            // Then it's dismissed for them as well, since the admin's override applies to everyone
+            expect(result).toBe(true);
+        });
+
         describe('Current user dismissed it themselves', () => {
             it('should return true when current user dismissed the violation', () => {
                 // Given a transaction with a violation dismissed by current user

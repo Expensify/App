@@ -51,4 +51,32 @@ describe('formatDynamicFieldValue', () => {
         // Then a state the form does not ask for is left out, since it is not submitted either
         expect(shown).toBe(expected);
     });
+
+    it('shows the name of a state the field lists itself', () => {
+        // Given a Japanese address under a schema that lists its own states, whose codes are not readable
+        const japaneseAddress: DynamicFormField = {key: 'address', type: 'address', required: true, states: [{key: 'JP_13', label: 'Tokyo'}]};
+        const values = {[addressKeys.street]: '1-1 Main Street', [addressKeys.city]: 'Tokyo', [addressKeys.state]: 'JP_13', [addressKeys.zipCode]: '100-0005', [addressKeys.country]: 'JP'};
+
+        // When it is shown on a confirmation row
+        const shown = formatDynamicFieldValue(japaneseAddress, values, translateLocal);
+
+        // Then the state reads as its name, since the code is only for the server
+        expect(shown).toBe(`1-1 Main Street, Tokyo, Tokyo 100-0005, ${translateLocal('allCountries.JP')}`);
+
+        // And a state whose schema gives a translation key reads in the user's language
+        const translatedAddress: DynamicFormField = {key: 'address', type: 'address', required: true, states: [{key: 'JP_13', label: 'Tokyo', labelKey: 'common.state'}]};
+        expect(formatDynamicFieldValue(translatedAddress, values, translateLocal)).toContain(`${translateLocal('common.state')} 100-0005`);
+    });
+
+    it('leaves out a zip the form does not ask for', () => {
+        // Given an address whose draft holds a zip from an earlier pick, under a schema that asks for no zip
+        const addressWithoutZip: DynamicFormField = {key: 'address', type: 'address', required: true, isZipCodeAsked: false};
+        const values = {[addressKeys.street]: "1 Queen's Road Central", [addressKeys.city]: 'Hong Kong', [addressKeys.zipCode]: 'SW1W 9SR', [addressKeys.country]: 'HK'};
+
+        // When it is shown on a confirmation row
+        const shown = formatDynamicFieldValue(addressWithoutZip, values, translateLocal);
+
+        // Then the zip is left out, since it is not submitted either
+        expect(shown).toBe(`1 Queen's Road Central, Hong Kong, ${translateLocal('allCountries.HK')}`);
+    });
 });

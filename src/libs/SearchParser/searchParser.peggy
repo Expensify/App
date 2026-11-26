@@ -293,6 +293,7 @@ key "key"
       / merchant
       / description
       / reportID
+      / transactionID
       / keyword
       / in
       / currency

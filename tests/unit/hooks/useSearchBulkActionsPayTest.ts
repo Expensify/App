@@ -15,6 +15,10 @@ import type * as PayMoneyRequestActions from '@libs/actions/IOU/PayMoneyRequest'
 import {openPaymentMethods} from '@libs/actions/PaymentMethods';
 import {getLastPolicyPaymentMethod, queueBulkPayReports} from '@libs/actions/Search';
 import type * as SearchActions from '@libs/actions/Search';
+import {getWiseQuote} from '@libs/actions/Wise';
+import Navigation from '@libs/Navigation/Navigation';
+import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
+import type * as SubscriptionUtilsModule from '@libs/SubscriptionUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -137,6 +141,11 @@ jest.mock('@libs/actions/Report', () => ({
 
 jest.mock('@libs/actions/User', () => ({
     setNameValuePair: jest.fn(),
+}));
+
+jest.mock('@libs/SubscriptionUtils', () => ({
+    ...jest.requireActual<typeof SubscriptionUtilsModule>('@libs/SubscriptionUtils'),
+    shouldRestrictUserBillableActions: jest.fn(() => false),
 }));
 
 jest.mock('@libs/Navigation/Navigation', () => ({
@@ -262,6 +271,7 @@ jest.mock('@components/Search/SearchContext', () => ({
 }));
 
 const CURRENT_USER_ACCOUNT_ID = 1;
+const RESTRICTED_POLICY_OWNER_ACCOUNT_ID = 2;
 
 jest.mock('@hooks/useCurrentUserPersonalDetails', () => ({
     __esModule: true,
@@ -344,6 +354,7 @@ describe('useSearchBulkActions - Pay option', () => {
         mockBulkPayButtonOptions = [{text: 'Pay with bank account', key: CONST.IOU.PAYMENT_TYPE.VBBA}];
         mockAreAllMatchingItemsSelected = false;
         mockExcludedTransactions = {};
+        jest.mocked(shouldRestrictUserBillableActions).mockImplementation(() => false);
         await Onyx.clear();
         mockSelectedTransactions = {tx1: makeSelectedTransaction()};
         mockSelectedReports = [];
@@ -522,6 +533,29 @@ describe('useSearchBulkActions - Pay option', () => {
         });
     });
 
+    it('queues the Select all payment when only a report that cannot be paid is in a restricted workspace', async () => {
+        // Given "Select all" where report 2 cannot be paid and its workspace has billing restrictions
+        mockAreAllMatchingItemsSelected = true;
+        mockBulkPayButtonOptions = [{text: 'Mark as paid', key: CONST.IOU.PAYMENT_TYPE.ELSEWHERE}];
+        mockSelectedReports = [makeSelectedReport({canPay: true}), makeSelectedReport({reportID: '2', policyID: 'policy2', canPay: false, action: CONST.SEARCH.ACTION_TYPES.VIEW})];
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}policy2`, {id: 'policy2', role: CONST.POLICY.ROLE.ADMIN, ownerAccountID: RESTRICTED_POLICY_OWNER_ACCOUNT_ID});
+        jest.mocked(shouldRestrictUserBillableActions).mockImplementation((policy) => policy?.ownerAccountID === RESTRICTED_POLICY_OWNER_ACCOUNT_ID);
+
+        const {result} = renderHook(() => useSearchBulkActions({queryJSON: expenseReportQueryJSON}), {wrapper: OnyxListItemProvider});
+        await waitFor(() => {
+            expect(getPayOptionFromResult(result.current.headerButtonsOptions)).toBeDefined();
+        });
+
+        // When the user selects the Pay option
+        await act(async () => {
+            await getPayOptionFromResult(result.current.headerButtonsOptions)?.onSelected?.();
+        });
+
+        // Then the payment is queued, because report 2 is not one that gets paid
+        expect(Navigation.navigate).not.toHaveBeenCalled();
+        expect(queueBulkPayReports).toHaveBeenCalledTimes(1);
+    });
+
     it('hides the Pay option under Select all when no loaded report is payable', async () => {
         // Given "Select all" where every report on the loaded page is view-only. That is the one honest signal
         // the loaded page gives us that the query has nothing to pay.
@@ -555,9 +589,8 @@ describe('useSearchBulkActions - Pay option', () => {
         expect(getPayOptionFromResult(result.current.headerButtonsOptions)).toBeUndefined();
     });
 
-    it('keeps the Pay option when a held expense sits in a report that is not being paid', async () => {
-        // Given "Select all on this page" over a mixed page: report 1 is payable, report 2 is view-only and holds a
-        // held expense. Bulk pay only settles report 1, so report 2's hold must not decide the whole selection.
+    it('hides the Pay option when a held expense sits in any selected report', async () => {
+        // Given two selected reports where only the second one contains a held expense and cannot be paid
         mockSelectedReports = [makeSelectedReport({reportID: '1', canPay: true}), makeSelectedReport({reportID: '2', canPay: false})];
         mockSelectedTransactions = {
             tx1: makeSelectedTransaction({reportID: '1'}),
@@ -567,10 +600,12 @@ describe('useSearchBulkActions - Pay option', () => {
         // When the bulk actions hook computes the header dropdown options
         const {result} = renderHook(() => useSearchBulkActions({queryJSON: expenseReportQueryJSON}), {wrapper: OnyxListItemProvider});
 
-        // Then Pay is still offered, because the hold is scoped to the reports that will actually be paid
         await waitFor(() => {
-            expect(getPayOptionFromResult(result.current.headerButtonsOptions)).toBeDefined();
+            expect(result.current.headerButtonsOptions).toBeDefined();
         });
+
+        // Then Pay is hidden, the same way a held expense in any selected report hides Approve
+        expect(getPayOptionFromResult(result.current.headerButtonsOptions)).toBeUndefined();
     });
 
     it('hides the Pay option when a held expense sits in a report that is being paid', async () => {
@@ -757,43 +792,6 @@ describe('useSearchBulkActions - bulk pay chat report fallback', () => {
             false,
             expect.objectContaining({reportID: '1', isItemInvoice: true}),
         );
-    });
-
-    it('pays only the payable reports when the selection also contains one the viewer cannot settle', async () => {
-        // Given a selection of two reports where only the first one can be paid, e.g. the second is still awaiting approval
-        mockSelectedReports = [
-            {
-                reportID: '1',
-                policyID: 'policy1',
-                chatReportID: '2',
-                total: 100,
-                action: CONST.SEARCH.ACTION_TYPES.PAY,
-                canPay: true,
-                canApprove: false,
-                canSubmit: false,
-                canChangeApprover: false,
-            },
-            {
-                reportID: '3',
-                policyID: 'policy1',
-                chatReportID: '4',
-                total: 100,
-                action: CONST.SEARCH.ACTION_TYPES.VIEW,
-                canPay: false,
-                canApprove: false,
-                canSubmit: false,
-                canChangeApprover: false,
-            },
-        ];
-        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}3`, {reportID: '3', type: CONST.REPORT.TYPE.EXPENSE, chatReportID: '4', policyID: 'policy1'});
-
-        // When the user selects bulk Pay
-        await selectBulkPay();
-
-        // Then only the payable report is paid: the ineligible one is left out of the run entirely rather than
-        // being paid alongside it or aborting the whole bulk payment
-        expect(payMoneyRequest).toHaveBeenCalledTimes(1);
-        expect(payMoneyRequest).toHaveBeenCalledWith(expect.objectContaining({iouReport: expect.objectContaining({reportID: '1'})}));
     });
 
     it('skips a report when the chat is not loaded and no chatReportID is available', async () => {
@@ -1210,6 +1208,21 @@ describe('useSearchBulkActions - bulk pay Wise quote', () => {
 
         // Then the carousel opens for the selected report
         expect(mockShowWiseQuoteCarouselModal).toHaveBeenCalledWith(expect.objectContaining({quotedReportIDs: ['1']}));
+    });
+
+    it('asks for each quote with who pays the FX costs in the report workspace', async () => {
+        // Given a selected report in a workspace where the employee pays the FX costs
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}policy1`, {globalReimbursementFXPreferCompany: false});
+        const {result} = renderHook(() => useSearchBulkActions({queryJSON: expenseReportQueryJSON}), {wrapper: OnyxListItemProvider});
+        await waitFor(() => {
+            expect(getPayOptionFromResult(result.current.headerButtonsOptions)).toBeDefined();
+        });
+
+        // When the user pays with the business bank account
+        act(() => result.current.confirmPayment(CONST.IOU.PAYMENT_TYPE.VBBA, {bankAccountID: 999}));
+
+        // Then the quote is asked with the employee paying the FX costs, so a quote saved for the company paying them isn't reused
+        await waitFor(() => expect(getWiseQuote).toHaveBeenCalledWith(expect.objectContaining({reportID: '1'}), true, false));
     });
 });
 

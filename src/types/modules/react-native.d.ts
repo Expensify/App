@@ -52,14 +52,6 @@ declare module 'react-native' {
         readonly isDisabled: boolean;
     }
 
-    interface AppStateStatic {
-        emitCurrentTestState: (status: string) => void;
-    }
-
-    interface LinkingImpl {
-        setInitialURL: (url: string) => void;
-    }
-
     interface NativeModulesStatic {
         AppStateTracker: AppStateTrackerModule;
         BootSplash: BootSplashModule;

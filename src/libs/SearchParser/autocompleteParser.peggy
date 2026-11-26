@@ -139,6 +139,7 @@ autocompleteKey "key"
       / merchant
       / description
       / reportID
+      / transactionID
       / withdrawalID
       / title
       / submitterUserID
