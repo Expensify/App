@@ -16,12 +16,13 @@ import Text from '@components/Text';
 
 import useConfirmApproveReportViolations from '@hooks/useConfirmApproveReportViolations';
 import useConfirmModal from '@hooks/useConfirmModal';
-import useConfirmSubmitReportViolations from '@hooks/useConfirmSubmitReportViolations';
+import useConfirmSubmitViolations from '@hooks/useConfirmSubmitViolations';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLayoutSpacing from '@hooks/useLayoutSpacing';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import {useReportPaymentContext} from '@hooks/usePaymentContext';
 import {useGetPersonalDetailsByLogin} from '@hooks/usePersonalDetailByLogin';
@@ -121,6 +122,7 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
     const {translate, dateFnsLocale} = useLocalize();
     const {getCurrencyDecimals, convertToDisplayString} = useCurrencyListActions();
     const {isLargeScreenWidth} = useResponsiveLayout();
+    const {isOffline} = useNetwork();
     const {currentSearchHash, currentSearchKey} = useSearchQueryContext();
     const {currentSearchResults, currentSearchTransactionsByReportID, currentSearchViolations} = useSearchResultsContext();
     const [isActionLoading] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${reportItem.reportID}`, {
@@ -229,8 +231,7 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
         liveViolations: liveViolationsForSnapshotTransactions,
         filteredLiveViolations: reportViolations,
     } = useReportApprovalWarningData(reportItem.reportID, snapshotTransactions, currentSearchViolations);
-    const confirmSubmitReportViolations = useConfirmSubmitReportViolations({
-        reportID: reportItem.reportID,
+    const confirmSubmitReportViolations = useConfirmSubmitViolations({
         report: reportForViolations,
         policy: policyForViolations,
         shouldShowMarkAsDoneCopy,
@@ -460,7 +461,9 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
                         item={liveReportItem}
                         columns={columns}
                         reportActions={reportActions}
-                        isActionLoading={isActionLoading ?? isLoading}
+                        // Queued actions cannot complete offline, so hide their spinner but keep the Onyx flag for Search row retention.
+                        // Preserve the existing loading fallback when no action loading state is available.
+                        isActionLoading={isActionLoading == null ? isLoading : !isOffline && isActionLoading}
                         canSelectMultiple={canSelectMultiple}
                         onCheckboxPress={handleSelectionButtonPress}
                         onButtonPress={handleOnButtonPress}

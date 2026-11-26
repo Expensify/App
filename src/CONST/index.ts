@@ -37,6 +37,9 @@ type DefaultPolicyTagLists = Record<
     }
 >;
 
+const EMOJIS_REGEX =
+    /[\p{Extended_Pictographic}\uE000-\uF8FF\u{F0000}-\u{FFFFD}\u{100000}-\u{10FFFD}](\u200D[\p{Extended_Pictographic}\uE000-\uF8FF\u{F0000}-\u{FFFFD}\u{100000}-\u{10FFFD}]|[\u{1F3FB}-\u{1F3FF}]|[\u{E0020}-\u{E007F}]|\uFE0F|\u20E3)*|[\u{1F1E6}-\u{1F1FF}]{2}|[#*0-9]\uFE0F?\u20E3/du;
+
 // Creating a default array and object this way because objects ({}) and arrays ([]) are not stable types.
 // Freezing the array ensures that it cannot be unintentionally modified.
 const EMPTY_ARRAY = Object.freeze([]);
@@ -418,6 +421,8 @@ const CONST = {
     BACKGROUND_IMAGE_TRANSITION_DURATION: 1000,
     SCREEN_TRANSITION_END_TIMEOUT: 1000,
     PENDING_TRANSACTION_DELETION_DELAY: 4000,
+    PENDING_TRANSACTION_FRESHNESS_WINDOW: 60000,
+    PENDING_RHP_WIDTH_WINDOW: 2000,
     PENDING_TRANSACTION_SCROLL_DELAY: 1000,
 
     // Delay before pre-inserting the Search fullscreen route under the RHP on the confirmation screen.
@@ -1070,8 +1075,9 @@ const CONST = {
     },
     WISE: {
         /** Wise's legal pages, linked from the terms page of the onboarding */
-        TERMS_URL: 'https://wise.com/terms-and-conditions',
-        PRIVACY_URL: 'https://wise.com/privacy-policy',
+        TERMS_URL: 'https://wise.com/en/legal/terms-and-conditions',
+        ELECTRONIC_COMMUNICATIONS_POLICY_URL: 'https://wise.com/electronic-communications-policy',
+        PRIVACY_URL: 'https://wise.com/gb/legal/global-privacy-policy-en',
 
         /** The query param Wise adds to the redirect URL when its hosted KYC form ends, saying how it ended */
         KYC_REVIEW_REDIRECT_STATUS_PARAM: 'status',
@@ -1194,24 +1200,6 @@ const CONST = {
             DONATION_RECEIPTS: 'DONATION_RECEIPTS',
             WRITTEN_CONFIRMATION: 'WRITTEN_CONFIRMATION',
             GRANT_APPROVAL_LETTER: 'GRANT_APPROVAL_LETTER',
-        },
-        /** Wise's companyType values, the legal form */
-        COMPANY_TYPE: {
-            LIMITED: 'LIMITED',
-            PARTNERSHIP: 'PARTNERSHIP',
-            SOLE_TRADER: 'SOLE_TRADER',
-            LIMITED_BY_GUARANTEE: 'LIMITED_BY_GUARANTEE',
-            LIMITED_LIABILITY_COMPANY: 'LIMITED_LIABILITY_COMPANY',
-            FOR_PROFIT_CORPORATION: 'FOR_PROFIT_CORPORATION',
-            NON_PROFIT_CORPORATION: 'NON_PROFIT_CORPORATION',
-            LIMITED_PARTNERSHIP: 'LIMITED_PARTNERSHIP',
-            LIMITED_LIABILITY_PARTNERSHIP: 'LIMITED_LIABILITY_PARTNERSHIP',
-            GENERAL_PARTNERSHIP: 'GENERAL_PARTNERSHIP',
-            SOLE_PROPRIETORSHIP: 'SOLE_PROPRIETORSHIP',
-            PRIVATE_LIMITED_COMPANY: 'PRIVATE_LIMITED_COMPANY',
-            PUBLIC_LIMITED_COMPANY: 'PUBLIC_LIMITED_COMPANY',
-            TRUST: 'TRUST',
-            OTHER: 'OTHER',
         },
         /** Wise's companyRole values */
         COMPANY_ROLE: {
@@ -1635,10 +1623,6 @@ const CONST = {
         DEFAULT_LETTER_AVATARS: 'defaultLetterAvatars',
         ARCHIVE_POLICIES: 'archivePolicies',
         MERGE_ATS: 'mergeATSConnections',
-        REPORT_MERGE: 'reportMerge',
-        INSIGHTS_AI: 'insightsAI',
-        INSIGHTS_COMPLIANCE: 'insightsCompliance',
-        INSIGHTS_EFFICIENCY: 'insightsEfficiency',
         NL_FILTERS: 'nlFilters',
         SUPPORT_TICKET: 'supportTicket',
         RESIZABLE_TABLE_COLUMNS: 'resizableTableColumns',
@@ -1648,11 +1632,13 @@ const CONST = {
         TRAVEL_APPROVAL: 'travelApproval',
         FLAT_NAV: 'flatNav',
         RECEIPT_TRANSLATION: 'receiptTranslation',
+        RECEIPT_ENHANCEMENT: 'receiptEnhancement',
         SCAN_FLASH_TORCH: 'scanFlashTorch',
         NEW_DOT_BILL_PAY: 'newDotBillPay',
         HYBRID_WEB: 'hybridWeb',
         MILEAGE_UI: 'mileageUI',
         MERGE_DOMAIN_ACCOUNTS: 'mergeDomainAccounts',
+        EXPENSE_DEFAULT_CONDITIONS: 'expenseDefaultConditions',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',
@@ -1664,6 +1650,11 @@ const CONST = {
     BANK_ACCOUNT_TYPES: {
         WALLET: 'WALLET',
     },
+    TEST_BANK_ACCOUNT_TYPE: {
+        BUSINESS: 'business',
+        PERSONAL: 'personal',
+    },
+    TEST_BANK_ACCOUNT_STAGING_EMAIL_DOMAIN: 'expensifail.com',
     COUNTRY: {
         AS: 'AS',
         AU: 'AU',
@@ -2758,6 +2749,7 @@ const CONST = {
             WAITING_TO_PAY: 'waitingToPay',
             WAITING_FOR_PAYMENT: 'waitingForPayment',
             WAITING_FOR_CANCELLED_REIMBURSEMENT: 'waitingForCancelledReimbursement',
+            WAITING_FOR_PAYMENT_REVIEW: 'waitingForPaymentReview',
             WAITING_TO_EXPORT: 'waitingToExport',
             SUBMITTING_TO_SELF: 'submittingToSelf',
             REJECTED_REPORT: 'rejectedReport',
@@ -2954,6 +2946,7 @@ const CONST = {
             EXPENSE_HAS_RECEIPT: 'expense_has_receipt',
             EXPENSE_COMMAND: 'expense_command',
             EXPENSE_JSON_CODE: 'expense_json_code',
+            EXPENSE_ERROR_UUID: 'expense_error_uuid',
             MFA_SCENARIO: 'mfa_scenario',
             MFA_ERROR_REASON: 'mfa_error_reason',
             BUILD_TYPE: 'build_type',
@@ -3465,6 +3458,7 @@ const CONST = {
         DUPLICATE_RECORD: 'A record already exists with this ID',
         ALREADY_CREATED: 'AlreadyCreated',
         SERVICE_UNAVAILABLE: 'serviceUnavailable',
+        REAUTH_REPLAY_REJECTED: 'reauthReplayRejected',
 
         // The "Upgrade" is intentional as the 426 HTTP code means "Upgrade Required" and sent by the API. We use the "Update" language everywhere else in the front end when this gets returned.
         UPDATE_REQUIRED: 'Upgrade Required',
@@ -3477,6 +3471,7 @@ const CONST = {
     },
     ERROR_TYPE: {
         SOCKET: 'Expensify\\Auth\\Error\\Socket',
+        ACCOUNT_MISMATCH: 'Expensify\\Error\\Auth\\AccountMismatch',
     },
     ERROR_TITLE: {
         SOCKET: 'Issue connecting to database',
@@ -5528,6 +5523,7 @@ const CONST = {
             CHANGE_ROLE: 'changeRole',
             CHANGE_OFFICE_LOCATION: 'changeOfficeLocation',
             CHANGE_WORK_ARRANGEMENT: 'changeWorkArrangement',
+            EDIT_CATEGORY_VISIBILITY: 'editCategoryVisibility',
         },
         BULK_ACTION_TYPES: {
             DELETE: 'delete',
@@ -5738,6 +5734,7 @@ const CONST = {
                 EXACT_ONLINE: 'exactOnline',
                 ODOO: 'odoo',
                 SAGE_ACCOUNTING: 'sageAccounting',
+                ACUMATICA: 'acumatica',
                 GUSTO: 'gusto',
                 ZENEFITS: 'zenefits',
                 MERGE_HR: 'merge_hris',
@@ -5781,6 +5778,7 @@ const CONST = {
                 exactOnline: 'Exact Online',
                 odoo: 'Odoo',
                 sageAccounting: 'Sage Accounting',
+                acumatica: 'Acumatica',
                 gusto: 'Gusto',
                 billCom: 'Bill.com',
                 zenefits: 'TriNet',
@@ -5813,7 +5811,7 @@ const CONST = {
             },
             // Integrations that aren't available yet, so the Connections page offers their waitlist instead of connecting
             get WAITLIST_CONNECTION_NAMES() {
-                return [this.NAME.SAGE_ACCOUNTING] as const;
+                return [this.NAME.SAGE_ACCOUNTING, this.NAME.ACUMATICA] as const;
             },
             // The `origin` the backend stamps on a report field imported by an accounting integration. These values
             // differ from the connection names above (e.g. `quickbooksOnline` is stamped as `qbo`), so map them here.
@@ -6349,6 +6347,7 @@ const CONST = {
     },
     COMPANY_CARDS: {
         CONSENT_EXPIRY_WARNING_DAYS: {
+            ONE_MONTH: 30,
             TWO_WEEKS: 14,
             ONE_WEEK: 7,
         },
@@ -6791,7 +6790,11 @@ const CONST = {
         // eslint-disable-next-line no-misleading-character-class
         EMOJI: /[\p{Extended_Pictographic}\u200d\u{1f1e6}-\u{1f1ff}\u{1f3fb}-\u{1f3ff}\u{e0020}-\u{e007f}\u20E3\uFE0F]|[#*0-9]\uFE0F?\u20E3/gu,
 
-        EMOJIS: /[\p{Extended_Pictographic}\uE000-\uF8FF\u{F0000}-\u{FFFFD}\u{100000}-\u{10FFFD}](\u200D[\p{Extended_Pictographic}\uE000-\uF8FF\u{F0000}-\u{FFFFD}\u{100000}-\u{10FFFD}]|[\u{1F3FB}-\u{1F3FF}]|[\u{E0020}-\u{E007F}]|\uFE0F|\u20E3)*|[\u{1F1E6}-\u{1F1FF}]{2}|[#*0-9]\uFE0F?\u20E3/du,
+        EMOJIS: EMOJIS_REGEX,
+
+        // Every EMOJIS match contains one of these code points, so text without them has no emoji
+        // eslint-disable-next-line no-misleading-character-class -- \u20E3 is listed alone on purpose, it marks keycap emojis
+        EMOJI_CODE_POINT: /[\p{Extended_Pictographic}\uE000-\uF8FF\u{F0000}-\u{FFFFD}\u{100000}-\u{10FFFD}\u{1F1E6}-\u{1F1FF}\u20E3]/u,
 
         EMOJI_SKIN_TONES: /[\u{1f3fb}-\u{1f3ff}]/gu,
 
@@ -6850,9 +6853,8 @@ const CONST = {
             return new RegExp(`[\\n\\s]|${this.SPECIAL_CHAR_MENTION_BREAKER.source}|${this.EMOJI.source}`, 'gu');
         },
 
-        get ALL_EMOJIS() {
-            return new RegExp(this.EMOJIS, this.EMOJIS.flags.concat('g'));
-        },
+        // Shared instance with the g flag: use it only with String.match, matchAll or replace. RegExp.test and exec keep lastIndex between calls.
+        ALL_EMOJIS: new RegExp(EMOJIS_REGEX, `${EMOJIS_REGEX.flags}g`),
 
         MERGED_ACCOUNT_PREFIX: /^(MERGED_\d+@)/g,
         ROUTES: {
@@ -8487,6 +8489,7 @@ const CONST = {
             UNSUPPORTED_FILTER: '59f73192-0ecc-4af4-8192-96fb2bb3d42a',
         },
         TAG_FILTER_PAGE_SIZE: 200,
+        USER_FILTER_PAGE_SIZE: 50,
         EXITING_ANIMATION_DURATION: 200,
         ME: 'me',
         // Null byte can't appear in a query, so it's safe to join query parts with it
@@ -8766,6 +8769,11 @@ const CONST = {
                 },
                 BASE_62_REPORT_ID: {
                     column: this.TABLE_COLUMNS.BASE_62_REPORT_ID,
+                    search: true,
+                    reportView: false,
+                },
+                TRANSACTION_ID: {
+                    column: this.TABLE_COLUMNS.TRANSACTION_ID,
                     search: true,
                     reportView: false,
                 },
@@ -9122,6 +9130,11 @@ const CONST = {
             CENTER: 'center',
             END: 'end',
         },
+        /** The edge of the Spend table a pinned column is moved to. */
+        PINNED_COLUMN_SIDE: {
+            LEFT: 'left',
+            RIGHT: 'right',
+        },
         TABLE_COLUMNS: {
             RECEIPT: 'receipt',
             DATE: 'date',
@@ -9179,6 +9192,7 @@ const CONST = {
             BANK_ACCOUNT: 'bankAccount',
             REPORT_ID: 'reportID',
             BASE_62_REPORT_ID: 'base62ReportID',
+            TRANSACTION_ID: 'transactionID',
             EXPORTED_TO: 'exportedto',
             EXCHANGE_RATE: 'exchangeRate',
             REIMBURSABLE_TOTAL: 'reimbursableTotal',
@@ -9229,6 +9243,8 @@ const CONST = {
             VIEW: 'view',
             GROUP_BY: 'groupBy',
             COLUMNS: 'columns',
+            LEFT_PINNED_COLUMNS: 'leftPinnedColumns',
+            RIGHT_PINNED_COLUMNS: 'rightPinnedColumns',
             LIMIT: 'limit',
             COMPARE: 'compare',
             TAG_LEVEL: 'tagLevel',
@@ -9295,6 +9311,7 @@ const CONST = {
             FEED: 'feed',
             BANK_ACCOUNT: 'bankAccount',
             REPORT_ID: 'reportID',
+            TRANSACTION_ID: 'transactionID',
             KEYWORD: 'keyword',
             IN: 'in',
             SUBMITTED: 'submitted',
@@ -9398,6 +9415,7 @@ const CONST = {
             FEED: 'feed',
             BANK_ACCOUNT: 'bank-account',
             REPORT_ID: 'report-id',
+            TRANSACTION_ID: 'transaction-id',
             KEYWORD: 'keyword',
             IN: 'in',
             SUBMITTED: 'submitted',
@@ -9431,6 +9449,8 @@ const CONST = {
             ORDER_DEAL_NUMBERS: 'order-deal-numbers',
             APPROVER: 'approver',
             COLUMNS: 'columns',
+            LEFT_PINNED_COLUMNS: 'left-pinned-columns',
+            RIGHT_PINNED_COLUMNS: 'right-pinned-columns',
             LIMIT: 'limit',
             FOOTER_COUNT: 'footer-count',
             FOOTER_TOTAL: 'footer-total',
@@ -9485,6 +9505,7 @@ const CONST = {
                 [this.TABLE_COLUMNS.BANK_ACCOUNT]: 'bank-account',
                 [this.TABLE_COLUMNS.REPORT_ID]: 'long-report-id',
                 [this.TABLE_COLUMNS.BASE_62_REPORT_ID]: 'report-id',
+                [this.TABLE_COLUMNS.TRANSACTION_ID]: 'transaction-id',
                 [this.TABLE_COLUMNS.EXPORTED_TO]: 'exported-to',
                 [this.TABLE_COLUMNS.EXCHANGE_RATE]: 'exchange-rate',
                 [this.TABLE_COLUMNS.REIMBURSABLE_TOTAL]: 'reimbursable-total',
@@ -10077,6 +10098,35 @@ const CONST = {
             /** A rule firing only on these is an approval workflow rather than an expense default. */
             TRIGGERS: [RULE_TRIGGERS.REPORT_SUBMIT, RULE_TRIGGERS.REPORT_APPROVE],
         },
+        /**
+         * The merchant categories a rule can match on.
+         *
+         * These are the rules engine's own vocabulary, which is not the same as the `mccGroup` groups the
+         * merchant type defaults use. The two taxonomies overlap only on `airlines` and `groceries`.
+         */
+        MERCHANT_TYPE: {
+            AIRLINES: 'airlines',
+            ALCOHOL_AND_BARS: 'alcoholAndBars',
+            AMAZON_AND_BOOKSTORES: 'amazonAndBookstores',
+            AUTOMOTIVE: 'automotive',
+            CAR_RENTALS: 'carRentals',
+            DINING: 'dining',
+            FUEL_AND_GAS: 'fuelAndGas',
+            GOVERNMENT_AND_NON_PROFITS: 'governmentAndNonProfits',
+            GROCERIES: 'groceries',
+            GYMS_AND_FITNESS: 'gymsAndFitness',
+            HEALTHCARE: 'healthcare',
+            HOTELS: 'hotels',
+            INTERNET_AND_PHONE: 'internetAndPhone',
+            OFFICE_SUPPLIES: 'officeSupplies',
+            PARKING_AND_TOLLS: 'parkingAndTolls',
+            PROFESSIONAL_SERVICES: 'professionalServices',
+            RETAIL: 'retail',
+            SHIPPING_AND_DELIVERY: 'shippingAndDelivery',
+            SOFTWARE: 'software',
+            TRANSIT_AND_RIDESHARE: 'transitAndRideshare',
+            TRAVEL_AGENCIES: 'travelAgencies',
+        },
         EXPENSE_DEFAULT: {
             /** Expense fields a `Set` action can write to */
             FIELD: {
@@ -10415,6 +10465,7 @@ const CONST = {
             },
         },
         UPDATE_OPERATION_TYPE: {
+            BOOKING_CREATED: 'BOOKING_CREATED',
             BOOKING_TICKETED: 'BOOKING_TICKETED',
             TICKET_VOIDED: 'TICKET_VOIDED',
             TICKET_REFUNDED: 'TICKET_REFUNDED',
@@ -10632,6 +10683,24 @@ const CONST = {
             WORKSPACE_TAXES: 'workspaceTaxes',
             WORKSPACE_EXPENSIFY_CARDS: 'workspaceExpensifyCards',
             WORKSPACE_COMPANY_CARDS: 'workspaceCompanyCards',
+            WORKSPACE_CATEGORIES: 'workspaceCategories',
+            WORKSPACE_FLAG_FOR_REVIEW: 'workspaceFlagForReview',
+            WORKSPACE_REQUIRE_FIELDS: 'workspaceRequireFields',
+            WORKSPACE_DISTANCE_RATES: 'workspaceDistanceRates',
+            WORKSPACE_EXPENSE_DEFAULTS: 'workspaceExpenseDefaults',
+            WORKSPACE_LIST: 'workspaceList',
+            WORKSPACE_PER_DIEM: 'workspacePerDiem',
+            WORKSPACE_ROOMS: 'workspaceRooms',
+            WORKSPACE_SPEND_RULES: 'workspaceSpendRules',
+            WORKSPACE_TAGS: 'workspaceTags',
+            WORKSPACE_VENDORS: 'workspaceVendors',
+            AGENTS: 'agents',
+            WORKSPACE_AGENTS: 'workspaceAgents',
+            DOMAIN_ADMINS: 'domainAdmins',
+            DOMAIN_GROUPS: 'domainGroups',
+            DOMAIN_LIST: 'domainList',
+            DOMAIN_MEMBERS: 'domainMembers',
+            PERSONAL_EXPENSE_RULES: 'personalExpenseRules',
 
             /** Prefix of the Search table IDs, one per search. See `getSearchColumnResizingID`. */
             SEARCH_PREFIX: 'search',
@@ -10671,6 +10740,9 @@ const CONST = {
             DISTANCE: 'QuickCreationActionsBar-Distance',
             BOOK_TRAVEL: 'QuickCreationActionsBar-BookTravel',
         },
+        REPORT_ACTIONS_LIST: 'report-actions-list',
+        MONEY_REQUEST_REPORT_ACTIONS_LIST: 'money-request-report-actions-list',
+        BASE_SIDEBAR_SCREEN: 'BaseSidebarScreen',
     },
 
     AGENTS: {

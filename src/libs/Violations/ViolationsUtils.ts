@@ -227,7 +227,7 @@ function getTagViolationForIndependentTags(policyTagList: PolicyTagLists, transa
                 continue;
             }
             const tags = policyTagList[policyTagKeys[i]].tags;
-            const isTagInPolicy = !!tags[selectedTag]?.enabled;
+            const isTagInPolicy = !!tags?.[selectedTag]?.enabled;
             if (!isTagInPolicy) {
                 newTransactionViolations.push({
                     name: CONST.VIOLATIONS.TAG_OUT_OF_POLICY,
@@ -526,7 +526,9 @@ function extractErrorMessages(errors: Errors | ReceiptErrors, errorActions: Repo
         if (typeof errorValue === 'string') {
             uniqueMessages.add(errorValue);
         } else if (isReceiptError(errorValue)) {
-            uniqueMessages.add(translate('iou.error.receiptFailureMessageShort'));
+            // Use the server rejection message attached by reconcileFailureDataWithServerErrors when present
+            // so it deduplicates with transaction.errors, while keeping the generic copy for ordinary upload failures.
+            uniqueMessages.add(errorValue.message?.trim() ? errorValue.message : translate('iou.error.receiptFailureMessageShort'));
         } else {
             for (const nestedErrorValue of Object.values(errorValue)) {
                 if (!nestedErrorValue) {

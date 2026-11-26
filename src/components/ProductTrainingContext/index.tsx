@@ -11,7 +11,6 @@ import useSidePanelState from '@hooks/useSidePanelState';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {getActiveAdminWorkspaces, getActiveEmployeeWorkspaces, hasAnyPaidPolicy} from '@libs/PolicyUtils';
 import isProductTrainingElementDismissed, {hasDismissalExpired} from '@libs/TooltipUtils';
 
 import variables from '@styles/variables';
@@ -23,6 +22,7 @@ import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 import {activeModalKindSelector} from '@selectors/Modal';
 import {hasCompletedGuidedSetupFlowSelector} from '@selectors/Onboarding';
+import {productTrainingPolicyFlagsSelector} from '@selectors/Policy';
 import {emailSelector} from '@selectors/Session';
 import React, {createContext, useContext, useEffect, useState} from 'react';
 import {View} from 'react-native';
@@ -76,15 +76,16 @@ function ProductTrainingContextProvider({children}: ChildrenProps) {
         selector: hasCompletedGuidedSetupFlowSelector,
     });
 
-    const [allPolicies, allPoliciesMetadata] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [currentUserLogin, currentUserLoginMetadata] = useOnyx(ONYXKEYS.SESSION, {selector: emailSelector});
+    const [policyFlags, allPoliciesMetadata] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {
+        selector: (policies) => productTrainingPolicyFlagsSelector(policies, currentUserLogin),
+    });
     const shouldSuppressPromotionalUI = useShouldSuppressPromotionalUI();
 
-    const isUserPolicyEmployee =
-        !(!allPolicies || !currentUserLogin || isLoadingOnyxValue(allPoliciesMetadata, currentUserLoginMetadata)) && getActiveEmployeeWorkspaces(allPolicies, currentUserLogin).length > 0;
-
-    const isUserPolicyAdmin =
-        !(!allPolicies || !currentUserLogin || isLoadingOnyxValue(allPoliciesMetadata, currentUserLoginMetadata)) && getActiveAdminWorkspaces(allPolicies, currentUserLogin).length > 0;
+    const isPolicyDataReady = !!policyFlags && !!currentUserLogin && !isLoadingOnyxValue(allPoliciesMetadata, currentUserLoginMetadata);
+    const isUserPolicyEmployee = isPolicyDataReady && policyFlags.isUserPolicyEmployee;
+    const isUserPolicyAdmin = isPolicyDataReady && policyFlags.isUserPolicyAdmin;
+    const isUserInPaidPolicy = isPolicyDataReady && policyFlags.isUserInPaidPolicy;
 
     const [dismissedProductTraining] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING);
 
@@ -116,8 +117,6 @@ function ProductTrainingContextProvider({children}: ChildrenProps) {
             return next;
         });
     };
-
-    const isUserInPaidPolicy = !(!allPolicies || !currentUserLogin || isLoadingOnyxValue(allPoliciesMetadata, currentUserLoginMetadata)) && hasAnyPaidPolicy(allPolicies);
 
     const shouldTooltipBeVisible = (tooltipName: ProductTrainingTooltipName) => {
         if (isLoadingOnyxValue(isOnboardingCompletedMetadata) || isLoadingApp) {

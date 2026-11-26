@@ -4,6 +4,7 @@ import useOnyx from '@hooks/useOnyx';
 
 import KeyboardShortcut from '@libs/KeyboardShortcut';
 import getActiveTabName from '@libs/Navigation/helpers/getActiveTabName';
+import isSideModalNavigator from '@libs/Navigation/helpers/isSideModalNavigator';
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
 import type {NavigationRoute} from '@libs/Navigation/types';
 
@@ -85,6 +86,11 @@ function EscapeHandler() {
                     return;
                 }
 
+                // Restore the original tab before dismissing, just like the flow's back button. Waiting for unmount
+                // cleanup would briefly focus the speculative destination and make cancellation look like a tab return.
+                if (topmostRootRoute && isSideModalNavigator(topmostRootRoute.name)) {
+                    Navigation.removePreInsertedFullscreenIfNeeded();
+                }
                 Navigation.dismissModal();
             },
             shortcutConfig.descriptionKey,

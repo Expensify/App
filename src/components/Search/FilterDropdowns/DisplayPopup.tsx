@@ -31,7 +31,6 @@ import {getEmptyObject} from '@src/types/utils/EmptyObject';
 
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
-import {policyIDsWithCategoryRulesSelector} from '@selectors/PolicyCategories';
 import {authTokenTypeSelector} from '@selectors/Session';
 import React, {useState} from 'react';
 import {View} from 'react-native';
@@ -49,6 +48,8 @@ type DisplayPopupProps = {
     closeOverlay: () => void;
     onSort: () => void;
 };
+
+const hasViolationSearchPolicySelector = (policies: OnyxCollection<Policy>) => getHasOptionAvailability(policies).shouldShowSubmittedViolation;
 
 function DisplayPopup({queryJSON, searchResults, closeOverlay, onSort}: DisplayPopupProps) {
     const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
@@ -70,12 +71,10 @@ function DisplayPopup({queryJSON, searchResults, closeOverlay, onSort}: DisplayP
         | null
     >(null);
 
-    const [policyIDsWithCategoryRules] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES, {selector: policyIDsWithCategoryRulesSelector});
-    const hasRulesEnabledPolicySelector = (policies: OnyxCollection<Policy>) => getHasOptionAvailability(policies, policyIDsWithCategoryRules).shouldShowSubmittedViolation;
-    const [hasRulesEnabledPolicy = false] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: hasRulesEnabledPolicySelector});
+    const [hasViolationSearchPolicy = false] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: hasViolationSearchPolicySelector});
 
     // Keep Violation in the list while it's selected, so the current grouping still shows its label
-    const groupBySections = getGroupBySections(translate, hasRulesEnabledPolicy || queryJSON.groupBy === CONST.SEARCH.GROUP_BY.VIOLATION);
+    const groupBySections = getGroupBySections(translate, hasViolationSearchPolicy || queryJSON.groupBy === CONST.SEARCH.GROUP_BY.VIOLATION);
     const groupBy = groupBySections.flatMap((section) => section.options).find((option) => option.value === queryJSON.groupBy) ?? null;
     const viewOptions = getViewOptions(translate);
     const view = viewOptions.find((option) => option.value === queryJSON.view) ?? viewOptions.at(0);

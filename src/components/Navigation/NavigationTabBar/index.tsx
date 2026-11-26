@@ -205,7 +205,7 @@ function NavigationTabBar({selectedTab, shouldShowFloatingButtons = true}: Navig
 
             {shouldShowFloatingButtons && (
                 <>
-                    <View style={[styles.navigationTabBarFABItem, styles.ph0, styles.floatingActionButtonPosition]}>
+                    <View style={[styles.navigationTabBarFABItem, styles.ph0, styles.floatingActionButtonPosition, isInLandscapeMode && styles.floatingActionButtonPositionLandscape]}>
                         <NavigationTabBarFloatingActionButton />
                     </View>
                     <FloatingGPSButton />

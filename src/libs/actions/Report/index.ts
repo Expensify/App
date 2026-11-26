@@ -96,7 +96,7 @@ import capturePageHTML from '@libs/PageHTMLCapture';
 import {prunePagesToNewestWindow} from '@libs/PaginationUtils';
 import Parser from '@libs/Parser';
 import {getParsedMessageWithShortMentions} from '@libs/ParsingUtils';
-import {getAllPersonalDetails, getPersonalDetail} from '@libs/PersonalDetailsStore';
+import {getAccountIDToNameMap, getAllPersonalDetailLogins, getPersonalDetail} from '@libs/PersonalDetailsStore';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import {addSMSDomainIfPhoneNumber} from '@libs/PhoneNumber';
 import {isMapOrGPSRequired} from '@libs/PolicyDistanceRatesUtils';
@@ -516,6 +516,7 @@ type MergeReportsProps = {
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
     getCurrencySymbol: CurrencyListActionsContextType['getCurrencySymbol'];
     isVendorMatchingBetaEnabled: boolean | undefined;
+    isChatReportArchived: boolean;
     currentUserPersonalDetails: CurrentUserPersonalDetails;
     personalDetailsByLogins: PersonalDetailsByLogin;
 };
@@ -2542,6 +2543,9 @@ type CreateTransactionThreadReportParams = {
 
     /** The self DM holding the expense, used instead of the current user's when set */
     selfDMReportID?: string;
+
+    /** Whether the expense belongs to the current user. Read from the IOU action's actor when not set, so pass it for a legacy expense that has no IOU action */
+    isOwnedByCurrentUser?: boolean;
 };
 
 function createTransactionThreadReport(params: CreateTransactionThreadReportParams): OptimisticChatReport | undefined {
@@ -2564,7 +2568,7 @@ function createTransactionThreadReport(params: CreateTransactionThreadReportPara
     const isTrackExpense = !iouReport && ReportActionsUtils.isTrackExpenseAction(iouReportAction);
     const isUnreportedTransaction = transaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
     const shouldUseSelfDM = isTrackExpense || isUnreportedTransaction;
-    const isOwnedByCurrentUser = iouReportAction?.actorAccountID === currentUserAccountID;
+    const isOwnedByCurrentUser = params.isOwnedByCurrentUser ?? iouReportAction?.actorAccountID === currentUserAccountID;
     if (shouldUseSelfDM && !isOwnedByCurrentUser && !params.selfDMReportID) {
         Log.warn('Cannot build transaction thread in the current user self DM for an expense owned by another user', {
             transactionID: transaction?.transactionID,
@@ -3816,13 +3820,14 @@ function removeLinksFromHtml(html: string, links: string[]): string {
  *
  * @param newCommentText text of the comment after editing.
  * @param originalCommentMarkdown original markdown of the comment before editing.
+ * @param availableMentionLogins logins that short mentions such as `@john` resolve against.
  * @param videoAttributeCache cache of video attributes ([videoSource]: videoAttributes)
  */
 function handleUserDeletedLinksInHtml(
     newCommentText: string,
     originalCommentMarkdown: string,
     currentUserLogin: string,
-    personalDetails: OnyxEntry<PersonalDetailsList>,
+    availableMentionLogins: string[] | undefined,
     videoAttributeCache?: Record<string, string>,
 ): string {
     if (newCommentText.length > CONST.MAX_MARKUP_LENGTH) {
@@ -3830,12 +3835,11 @@ function handleUserDeletedLinksInHtml(
     }
 
     const userEmailDomain = isEmailPublicDomain(currentUserLogin) ? '' : Str.extractEmailDomain(currentUserLogin);
-    const allPersonalDetailLogins = Object.values(personalDetails ?? {}).map((personalDetail) => personalDetail?.login ?? '');
 
     const htmlForNewComment = getParsedMessageWithShortMentions({
         text: newCommentText,
         userEmailDomain,
-        availableMentionLogins: allPersonalDetailLogins,
+        availableMentionLogins: availableMentionLogins ?? [],
         parserOptions: {
             extras: {videoAttributeCache},
         },
@@ -3861,7 +3865,7 @@ startDeferredAttachmentEditReplays((deferredEdit, syncedAction) => {
             textForNewComment,
             isOriginalReportArchived,
             currentUserLogin,
-            getAllPersonalDetails(),
+            getAllPersonalDetailLogins(),
             currentUserAccountID,
             videoAttributeCache,
             reportIDToName,
@@ -3878,7 +3882,7 @@ function editReportComment(
     textForNewComment: string,
     isOriginalReportArchived: boolean | undefined,
     currentUserLogin: string,
-    personalDetails: OnyxEntry<PersonalDetailsList>,
+    availableMentionLogins: string[] | undefined,
     currentUserAccountID: number,
     videoAttributeCache?: Record<string, string>,
     reportIDToName?: Record<string, string>,
@@ -3905,7 +3909,7 @@ function editReportComment(
     }
     const htmlForNewComment = restoreAttachmentAnchorLabels(
         restoreAttachmentAnchorAttributes(
-            handleUserDeletedLinksInHtml(draftForNewComment, originalCommentMarkdown, currentUserLogin, personalDetails, videoAttributeCache),
+            handleUserDeletedLinksInHtml(draftForNewComment, originalCommentMarkdown, currentUserLogin, availableMentionLogins, videoAttributeCache),
             originalCommentHTML,
         ),
         draftForNewComment,
@@ -4043,8 +4047,10 @@ function editReportComment(
             currentUserAccountID,
             isOriginalReportArchived,
             videoAttributeCache,
-            reportIDToName: getReportIDToNameMapForRoomsInMarkdown(reportIDToName, textForNewComment),
-            accountIDToName: getAccountIDToNameMapForMentionsInMarkdown(accountIDToName, textForNewComment),
+            // The caller's maps only have the rooms and users the original HTML mentions by ID. An offline message mentions
+            // them by name, and the synced copy this edit is compared against mentions them by ID, so look them up here.
+            reportIDToName: getReportIDToNameMapForRoomsInMarkdown(buildReportIDToNameMap(allReports), textForNewComment),
+            accountIDToName: getAccountIDToNameMapForMentionsInMarkdown(getAccountIDToNameMap(), textForNewComment),
         };
         deferAttachmentEdit(reportActionID, deferredEdit);
         return;
@@ -4847,6 +4853,7 @@ type BuildNewReportOptimisticDataParams = {
     isTrackIntentUser: boolean | undefined;
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
     rules: OnyxCollection<Rule>;
+    personalDetailsByLogins: PersonalDetailsByLogin;
     reportName?: string;
 };
 
@@ -4861,23 +4868,25 @@ function buildNewReportOptimisticData({
     isTrackIntentUser,
     getCurrencyDecimals,
     rules,
+    personalDetailsByLogins,
     reportName,
 }: BuildNewReportOptimisticDataParams) {
     const {accountID, login, email} = ownerPersonalDetails;
     const timeOfCreation = DateUtils.getDBTime();
     const parentReport = getPolicyExpenseChat(accountID, policy?.id);
-    const optimisticReportData = buildOptimisticEmptyReport(
+    const optimisticReportData = buildOptimisticEmptyReport({
         reportID,
         accountID,
         login,
         parentReport,
-        reportPreviewReportActionID,
+        parentReportActionID: reportPreviewReportActionID,
         policy,
         timeOfCreation,
         isASAPSubmitBetaEnabled,
         getCurrencyDecimals,
         rules,
-    );
+        personalDetailsByLogins,
+    });
 
     if (reportName) {
         optimisticReportData.reportName = reportName;
@@ -5099,20 +5108,35 @@ function buildNewReportOptimisticData({
     };
 }
 
-// Refactoring this to a params object would touch every call site and is out of scope here.
-function createNewReport(
-    ownerPersonalDetails: CurrentUserPersonalDetails,
-    hasViolationsParam: boolean,
-    isASAPSubmitBetaEnabled: boolean,
-    policy: OnyxEntry<Policy>,
-    isTrackIntentUser: boolean | undefined,
-    getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'],
-    rules: OnyxCollection<Rule>,
+type CreateNewReportParams = {
+    ownerPersonalDetails: CurrentUserPersonalDetails;
+    hasViolations: boolean;
+    isASAPSubmitBetaEnabled: boolean;
+    policy: OnyxEntry<Policy>;
+    isTrackIntentUser: boolean | undefined;
+    getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
+    rules: OnyxCollection<Rule>;
+    personalDetailsByLogins: PersonalDetailsByLogin;
+    shouldNotifyNewAction?: boolean;
+    shouldDismissEmptyReportsConfirmation?: boolean;
+    managedCardTransactionID?: string;
+    reportName?: string;
+};
+
+function createNewReport({
+    ownerPersonalDetails,
+    hasViolations,
+    isASAPSubmitBetaEnabled,
+    policy,
+    isTrackIntentUser,
+    getCurrencyDecimals,
+    rules,
+    personalDetailsByLogins,
     shouldNotifyNewAction = false,
-    shouldDismissEmptyReportsConfirmation?: boolean,
-    options: {managedCardTransactionID?: string; reportName?: string} = {},
-) {
-    const {managedCardTransactionID, reportName} = options;
+    shouldDismissEmptyReportsConfirmation,
+    managedCardTransactionID,
+    reportName,
+}: CreateNewReportParams) {
     const optimisticReportID = generateReportID();
     const reportActionID = rand64();
     const reportPreviewReportActionID = rand64();
@@ -5123,11 +5147,12 @@ function createNewReport(
         reportActionID,
         ownerPersonalDetails,
         reportPreviewReportActionID,
-        hasViolationsParam,
+        hasViolationsParam: hasViolations,
         isASAPSubmitBetaEnabled,
         isTrackIntentUser,
         getCurrencyDecimals,
         rules,
+        personalDetailsByLogins,
         reportName,
     });
 
@@ -7481,6 +7506,7 @@ type DeleteAppReportProps = {
     bankAccountList: OnyxEntry<BankAccountList>;
     delegateAccountID: number | undefined;
     hash?: number;
+    isChatReportArchived: boolean;
 };
 
 function buildOptimisticDeleteParentReportAction(
@@ -7556,6 +7582,7 @@ function clearChatIOUReportID(
     currentUserAccountIDParam: number,
     allTransactionViolations: OnyxCollection<TransactionViolations>,
     bankAccountList: OnyxEntry<BankAccountList>,
+    isChatReportArchived: boolean,
 ) {
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT>> = [];
     const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.SNAPSHOT>> = [];
@@ -7571,7 +7598,15 @@ function clearChatIOUReportID(
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`,
             value: {
-                hasOutstandingChildRequest: hasOutstandingChildRequest(chatReport, reports, currentUserEmailParam, currentUserAccountIDParam, allTransactionViolations, bankAccountList),
+                hasOutstandingChildRequest: hasOutstandingChildRequest(
+                    chatReport,
+                    reports,
+                    currentUserEmailParam,
+                    currentUserAccountIDParam,
+                    allTransactionViolations,
+                    bankAccountList,
+                    isChatReportArchived,
+                ),
                 ...(shouldClearChatIOUReportID ? {iouReportID: null} : {}),
             },
         });
@@ -7602,6 +7637,7 @@ function deleteAppReport({
     bankAccountList,
     delegateAccountID,
     hash,
+    isChatReportArchived,
 }: DeleteAppReportProps) {
     if (!report?.reportID) {
         Log.warn('[Report] deleteAppReport called with no reportID');
@@ -7963,6 +7999,7 @@ function deleteAppReport({
         currentUserAccountIDParam,
         allTransactionViolations,
         bankAccountList,
+        isChatReportArchived,
     );
     optimisticData.push(...clearChatIOUOptimisticData);
     failureData.push(...clearChatIOUFailureData);
@@ -8526,7 +8563,7 @@ function buildOptimisticChangePolicyData({
     const reportIDToThreadsReportIDsMap = buildReportIDToThreadsReportIDsMap();
     updatePolicyIdForReportAndThreads(reportID, policy.id, reportIDToThreadsReportIDsMap, optimisticData, failureData);
 
-    const newManagerAccountID = getSubmitToAccountID(policy, report, ownerLogin, rules);
+    const newManagerAccountID = getSubmitToAccountID(policy, report, ownerLogin, rules, personalDetailsByLogins);
     const shouldResetApprovalChain = isProcessingReport(report) && newManagerAccountID !== report.managerID && managerLogin && isPolicyMember(policy, managerLogin);
     if (shouldResetApprovalChain) {
         optimisticData.push({
@@ -9350,6 +9387,7 @@ function mergeReports({
     getCurrencyDecimals,
     getCurrencySymbol,
     isVendorMatchingBetaEnabled,
+    isChatReportArchived,
     currentUserPersonalDetails,
     personalDetailsByLogins,
 }: MergeReportsProps) {
@@ -9478,6 +9516,7 @@ function mergeReports({
         accountID,
         allTransactionViolation,
         bankAccountList,
+        isChatReportArchived,
     );
     deleteOptimisticData.push(...clearChatIOUOptimisticData);
     deleteFailureData.push(...clearChatIOUFailureData);

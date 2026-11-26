@@ -12,6 +12,7 @@ import useMoneyRequestPolicyTags from '@hooks/useMoneyRequestPolicyTags';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
+import {useGetPersonalDetailsByLogin} from '@hooks/usePersonalDetailByLogin';
 import {useAllPersonalDetails} from '@hooks/usePersonalDetails';
 import usePersonalPolicy from '@hooks/usePersonalPolicy';
 import usePolicyForTransaction from '@hooks/usePolicyForTransaction';
@@ -115,6 +116,7 @@ function SubmitDetailsPage({
     const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
     const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE);
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
+    const getPersonalDetailsByLogin = useGetPersonalDetailsByLogin();
     const reportAttributesDerived = useReportAttributes();
     const privateIsArchivedMap = usePrivateIsArchivedMap();
     const [currentDate] = useOnyx(ONYXKEYS.CURRENT_DATE);
@@ -247,7 +249,7 @@ function SubmitDetailsPage({
 
     // Prefer the draft receipt (reflects Replace/Crop) for both display and upload — keeps them in sync.
     const currentReceiptSource = typeof transaction?.receipt?.source === 'string' ? transaction.receipt.source : sharedFileSource;
-    // Avoid getFileName(): its decodeURIComponent throws on raw '%' in filenames (e.g., "Receipt 100%.jpg").
+    // Avoid getFileName(): it percent-decodes its input, which would change a filename that contains '%' (e.g., "Receipt 100%25.jpg").
     const currentReceiptName = (transaction?.receipt?.filename?.split('/').pop() ?? '') || sharedFileName;
     const currentReceiptType = transaction?.receipt?.type ?? sharedFileType;
 
@@ -511,6 +513,7 @@ function SubmitDetailsPage({
                     formatPhoneNumber,
                     optimisticChatReportID: routeReportID,
                     rules,
+                    personalDetailsByLogins: getPersonalDetailsByLogin(),
                 });
             }
 

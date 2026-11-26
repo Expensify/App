@@ -10,6 +10,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import tokenizedSearch from '@libs/tokenizedSearch';
 import type {AvatarSource} from '@libs/UserAvatarUtils';
 
+import {fontScale} from '@styles/typography';
 import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
@@ -22,11 +23,12 @@ import React from 'react';
 
 import WorkspaceCategoriesTableRow from './WorkspaceCategoriesTableRow';
 
-type WorkspaceCategoryTableColumnKey = 'name' | 'glCode' | 'approver' | 'enabled' | 'actions';
+type WorkspaceCategoryTableColumnKey = 'name' | 'glCode' | 'payrollCode' | 'approver' | 'enabled' | 'actions';
 
 type WorkspaceCategoryTableRowData = TableData & {
     name: string;
     glCode?: string;
+    payrollCode?: string;
     enabled: boolean;
     approverAvatar?: AvatarSource;
     approverAccountID?: number;
@@ -47,6 +49,7 @@ type WorkspaceCategoriesTableProps = {
     categories: WorkspaceCategoryTableRowData[];
     selectionEnabled: boolean;
     shouldShowGLCodeColumn: boolean;
+    shouldShowPayrollCodeColumn: boolean;
     shouldShowApproverColumn: boolean;
     selectedKeys: string[];
     emptyStateSubtitleText: React.ReactNode;
@@ -64,6 +67,7 @@ export default function WorkspaceCategoriesTable({
     selectedKeys,
     selectionEnabled,
     shouldShowGLCodeColumn,
+    shouldShowPayrollCodeColumn,
     shouldShowApproverColumn,
     emptyStateSubtitleText,
     emptyStateButtons,
@@ -75,7 +79,7 @@ export default function WorkspaceCategoriesTable({
     const {translate, localeCompare} = useLocalize();
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
 
-    const categoryTableColumns: Array<TableColumn<WorkspaceCategoryTableColumnKey>> = [
+    const categoryTableColumns: Array<TableColumn<WorkspaceCategoryTableColumnKey, WorkspaceCategoryTableRowData>> = [
         {
             key: 'name',
             label: translate('common.name'),
@@ -84,12 +88,28 @@ export default function WorkspaceCategoriesTable({
                 // editableCellHeader matches the padded name cell so the label and value share an edge.
                 containerStyles: [styles.editableCellHeader],
             },
+            dynamicSizing: {
+                getContentToMeasure: (item) => [{text: item.name, fontSize: fontScale.text}],
+                extraWidth: variables.editableCellChromeWidth,
+            },
         },
         ...(shouldShowGLCodeColumn
             ? [
                   {
                       key: 'glCode' as const,
                       label: translate('workspace.categories.glCode'),
+                      sortable: true,
+                      dynamicSizing: {
+                          getContentToMeasure: (item: WorkspaceCategoryTableRowData) => (item.glCode ? [{text: item.glCode, fontSize: fontScale.text}] : []),
+                      },
+                  },
+              ]
+            : []),
+        ...(shouldShowPayrollCodeColumn
+            ? [
+                  {
+                      key: 'payrollCode' as const,
+                      label: translate('workspace.categories.payrollCode'),
                       sortable: true,
                   },
               ]
@@ -100,6 +120,12 @@ export default function WorkspaceCategoriesTable({
                       key: 'approver' as const,
                       label: translate('common.approver'),
                       sortable: true,
+                      dynamicSizing: {
+                          // The row only renders the approver, avatar included, when it has both a name and an account.
+                          getContentToMeasure: (item: WorkspaceCategoryTableRowData) =>
+                              item.approverDisplayName && item.approverAccountID ? [{text: item.approverDisplayName, fontSize: fontScale.text}] : [],
+                          extraWidth: variables.tableInlineAvatarCellWidth,
+                      },
                   },
               ]
             : []),
@@ -141,12 +167,18 @@ export default function WorkspaceCategoriesTable({
             return localeCompare(glCode1, glCode2) * orderMultiplier;
         }
 
+        if (activeSorting.columnKey === 'payrollCode') {
+            const payrollCode1 = item1.payrollCode ?? '';
+            const payrollCode2 = item2.payrollCode ?? '';
+            return localeCompare(payrollCode1, payrollCode2) * orderMultiplier;
+        }
+
         return localeCompare(item1.name, item2.name) * orderMultiplier;
     };
 
     const isItemInSearch: IsItemInSearchCallback<WorkspaceCategoryTableRowData> = (item, searchValue) => {
         const searchLower = searchValue.toLowerCase();
-        const results = tokenizedSearch([item], searchLower, (option) => [option.name, option.glCode ?? '']);
+        const results = tokenizedSearch([item], searchLower, (option) => [option.name, option.glCode ?? '', option.payrollCode ?? '']);
         return results.length > 0;
     };
 
@@ -155,6 +187,7 @@ export default function WorkspaceCategoriesTable({
             item={item}
             rowIndex={index}
             shouldShowGLCodeColumn={shouldShowGLCodeColumn}
+            shouldShowPayrollCodeColumn={shouldShowPayrollCodeColumn}
             shouldShowApproverColumn={shouldShowApproverColumn}
             shouldUseNarrowTableLayout={shouldUseNarrowLayout || isMediumScreenWidth}
         />
@@ -166,6 +199,8 @@ export default function WorkspaceCategoriesTable({
     return (
         <Table
             ref={ref}
+            shouldUseDynamicColumns
+            columnResizingID={CONST.TABLES.COLUMN_RESIZING_IDS.WORKSPACE_CATEGORIES}
             data={categories}
             initialSortColumn="name"
             selectionEnabled={selectionEnabled}
@@ -193,4 +228,4 @@ export default function WorkspaceCategoriesTable({
     );
 }
 
-export type {WorkspaceCategoryTableRowData};
+export type {WorkspaceCategoryTableColumnKey, WorkspaceCategoryTableRowData};
