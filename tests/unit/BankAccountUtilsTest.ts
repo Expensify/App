@@ -462,11 +462,13 @@ describe('BankAccountUtils', () => {
             [wiseBankAccountID]: buildBankAccount(CONST.GLOBAL_REIMBURSEMENT_PROVIDER.WISE),
             [corpayBankAccountID]: buildBankAccount(CONST.GLOBAL_REIMBURSEMENT_PROVIDER.CORPAY),
         };
-        const buildNextStep = (depositCurrency?: string) => ({
+        const buildNextStep = (depositCurrency?: string, requiresGlobalReimbursement?: boolean) => ({
             messageKey: CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_PAY,
             icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
             depositCurrency,
+            requiresGlobalReimbursement,
         });
+        const buildPolicy = (bankAccountID: number) => ({achAccount: {bankAccountID, accountNumber: '', routingNumber: '', addressName: '', bankName: '', reimburser: ''}});
         const crossCurrencyPayment = {
             paymentType: CONST.IOU.PAYMENT_TYPE.VBBA,
             methodID: wiseBankAccountID,
@@ -487,12 +489,31 @@ describe('BankAccountUtils', () => {
             expect(shouldConfirmWiseQuoteBeforePaying(crossCurrencyPayment)).toBe(true);
         });
 
-        it('gets a quote without asking when the report is in the bank account currency', () => {
-            // Given a report whose submitter is paid in USD through a global provider, from a USD Wise account
+        it('pays a domestic report without a quote', () => {
+            // Given a report whose submitter is paid in USD to a US account, from a USD Wise account, which the backend doesn't flag
+            // When deciding whether to get and show the quote first
+            // Then neither holds, because Wise doesn't send this payment and answers its quote request with no quote
+            expect(shouldGetWiseQuote(sameCurrencyPayment)).toBe(false);
+            expect(shouldConfirmWiseQuoteBeforePaying(sameCurrencyPayment)).toBe(false);
+        });
+
+        it('gets a quote without asking when the backend flags a report in the bank account currency, paid from the workspace account', () => {
+            // Given a flagged report whose submitter is paid in USD abroad, from the workspace USD Wise account
+            const payment = {...sameCurrencyPayment, policy: buildPolicy(wiseBankAccountID), iouReport: {currency: CONST.CURRENCY.USD, nextStep: buildNextStep(CONST.CURRENCY.USD, true)}};
+
             // When deciding whether to get and show the quote first
             // Then it gets the quote for the fees, but pays without asking since nothing is converted
-            expect(shouldGetWiseQuote(sameCurrencyPayment)).toBe(true);
-            expect(shouldConfirmWiseQuoteBeforePaying(sameCurrencyPayment)).toBe(false);
+            expect(shouldGetWiseQuote(payment)).toBe(true);
+            expect(shouldConfirmWiseQuoteBeforePaying(payment)).toBe(false);
+        });
+
+        it('ignores the flag when the admin pays from an account that is not the workspace account', () => {
+            // Given a flagged report in the bank account currency, paid from a chosen Wise account while the workspace pays from another account
+            const payment = {...sameCurrencyPayment, policy: buildPolicy(corpayBankAccountID), iouReport: {currency: CONST.CURRENCY.USD, nextStep: buildNextStep(CONST.CURRENCY.USD, true)}};
+
+            // When deciding whether to get the quote
+            // Then it doesn't, because the backend computes the flag for the workspace account only
+            expect(shouldGetWiseQuote(payment)).toBe(false);
         });
 
         it.each([
@@ -514,7 +535,7 @@ describe('BankAccountUtils', () => {
             const payment = {
                 ...crossCurrencyPayment,
                 methodID: undefined,
-                policy: {achAccount: {bankAccountID: wiseBankAccountID, accountNumber: '', routingNumber: '', addressName: '', bankName: '', reimburser: ''}},
+                policy: buildPolicy(wiseBankAccountID),
             };
 
             // When deciding whether to get and show the quote first
@@ -527,7 +548,7 @@ describe('BankAccountUtils', () => {
             // Given a cross-currency payment from a chosen Wise account while the workspace pays from another account
             const payment = {
                 ...crossCurrencyPayment,
-                policy: {achAccount: {bankAccountID: corpayBankAccountID, accountNumber: '', routingNumber: '', addressName: '', bankName: '', reimburser: ''}},
+                policy: buildPolicy(corpayBankAccountID),
             };
 
             // When deciding whether to get and show the quote first

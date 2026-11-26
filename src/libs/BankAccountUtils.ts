@@ -281,24 +281,30 @@ function getWiseBankAccountForPayment(params: WiseQuotePaymentParams): OnyxTypes
     return isWiseAccount ? bankAccount : undefined;
 }
 
+/** Whether Wise converts the payment, because the submitter is paid in another currency than the bank account */
+function isPaidInDifferentCurrency(bankAccount: OnyxTypes.BankAccount, depositCurrency: string | undefined): boolean {
+    // `||` not `??`: bankCurrency can be an empty string, which falls through to additionalData
+    const bankCurrency = bankAccount.bankCurrency || bankAccount.accountData?.additionalData?.currency;
+    return !!depositCurrency && depositCurrency !== bankCurrency;
+}
+
 /**
  * Whether Wise sends this report to the employee, which it prices with a quote.
- * The backend names the deposit currency only for such reports, while the paying account is picked in the client.
+ * The backend flags such reports for the workspace account only, and names the deposit currency for domestic reports too.
  */
 function shouldGetWiseQuote(params: WiseQuotePaymentParams): boolean {
-    return !!params.iouReport?.nextStep?.depositCurrency && !!getWiseBankAccountForPayment(params);
+    const bankAccount = getWiseBankAccountForPayment(params);
+    if (!bankAccount) {
+        return false;
+    }
+    const isWorkspaceAccount = getBankAccountIDForPayment(params) === params.policy?.achAccount?.bankAccountID;
+    return (isWorkspaceAccount && !!params.iouReport?.nextStep?.requiresGlobalReimbursement) || isPaidInDifferentCurrency(bankAccount, params.iouReport?.nextStep?.depositCurrency);
 }
 
 /** Whether the admin confirms the Wise quote before paying, which happens when the submitter is paid in another currency than the bank account */
 function shouldConfirmWiseQuoteBeforePaying(params: WiseQuotePaymentParams): boolean {
     const bankAccount = getWiseBankAccountForPayment(params);
-    const depositCurrency = params.iouReport?.nextStep?.depositCurrency;
-    if (params.wiseQuoteID || !depositCurrency || !bankAccount) {
-        return false;
-    }
-    // `||` not `??`: bankCurrency can be an empty string, which falls through to additionalData
-    const bankCurrency = bankAccount.bankCurrency || bankAccount.accountData?.additionalData?.currency;
-    return depositCurrency !== bankCurrency;
+    return !params.wiseQuoteID && !!bankAccount && isPaidInDifferentCurrency(bankAccount, params.iouReport?.nextStep?.depositCurrency);
 }
 
 /**
