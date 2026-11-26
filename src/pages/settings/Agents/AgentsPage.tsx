@@ -9,6 +9,7 @@ import AgentsTable from '@components/Tables/AgentsTable';
 
 import useAgentsTable from '@hooks/useAgentsTable';
 import useDocumentTitle from '@hooks/useDocumentTitle';
+import useFetchAfterAppLoaded from '@hooks/useFetchAfterAppLoaded';
 import useLayoutSpacing from '@hooks/useLayoutSpacing';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -26,7 +27,6 @@ import CONST from '@src/CONST';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
 
-import {useEffect} from 'react';
 import {View} from 'react-native';
 
 function AgentsPage() {
@@ -47,7 +47,8 @@ function AgentsPage() {
     const shouldShowBulkActionsButton = shouldUseNarrowLayout && canSelectMultiple;
 
     useDocumentTitle(translate('agentsPage.title'));
-    useEffect(() => openAgentsPage(), []);
+
+    useFetchAfterAppLoaded(openAgentsPage);
 
     const newAgentButton = hasAgents ? (
         <Button
