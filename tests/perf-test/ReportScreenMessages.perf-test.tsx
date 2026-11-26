@@ -2,6 +2,7 @@
 import {act, cleanup, render, screen} from '@testing-library/react-native';
 
 import ComposeProviders from '@components/ComposeProviders';
+import HTMLEngineProvider from '@components/HTMLEngineProvider';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import {KeyboardStateProvider} from '@components/withKeyboardState';
@@ -176,7 +177,7 @@ const reactionListContextValue = {showReactionList: () => {}, hideReactionList: 
 function ReportScreenMessagesWrapper() {
     return (
         <NavigationContainer ref={navigationRef}>
-            <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, KeyboardStateProvider, AttachmentModalContextProvider]}>
+            <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, HTMLEngineProvider, KeyboardStateProvider, AttachmentModalContextProvider]}>
                 <ReactionListContext.Provider value={reactionListContextValue}>
                     <ActionListContext.Provider value={actionListContextValue}>
                         <ReportActionsList reportID={REPORT_ID} />
