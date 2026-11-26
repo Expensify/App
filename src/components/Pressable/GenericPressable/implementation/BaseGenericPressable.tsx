@@ -8,6 +8,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import Accessibility from '@libs/Accessibility';
 import HapticFeedback from '@libs/HapticFeedback';
+import type {Shortcut} from '@libs/KeyboardShortcut';
 import mergeRefs from '@libs/mergeRefs';
 import getRoutePath from '@libs/Navigation/helpers/getRoutePath';
 import {isNewTabOrWindowMousePress} from '@libs/Navigation/helpers/openInternalRouteInNewTab';
@@ -19,7 +20,7 @@ import type WithSentryLabel from '@src/types/utils/SentryLabel';
 
 import type {ComponentRef} from 'react';
 import type {GestureResponderEvent, View} from 'react-native';
-import type {DistributedOmit, ValueOf} from 'type-fest';
+import type {DistributedOmit} from 'type-fest';
 
 import React, {useEffect, useRef, useState} from 'react';
 // eslint-disable-next-line no-restricted-imports
@@ -27,6 +28,9 @@ import {Pressable} from 'react-native';
 
 /** The platform wrappers require the label: native passes it on to here, while web renders it as `data-sentry-label` and leaves it out. */
 type BaseGenericPressableProps = DistributedOmit<PressableProps, 'sentryLabel'> & WithSentryLabel;
+
+/** `useKeyboardShortcut` always needs a shortcut. A pressable without `keyboardShortcut` passes this empty one and keeps the hook inactive. */
+const NO_KEYBOARD_SHORTCUT: Pick<Shortcut, 'shortcutKey' | 'descriptionKey' | 'modifiers'> = {shortcutKey: '', descriptionKey: '', modifiers: []};
 
 function GenericPressable({
     children,
@@ -180,8 +184,7 @@ function GenericPressable({
         return !isDisabled ? pressOnce : undefined;
     };
 
-    const {shortcutKey, descriptionKey, modifiers} = keyboardShortcut ?? {};
-    useKeyboardShortcut({shortcutKey, descriptionKey, modifiers} as ValueOf<typeof CONST.KEYBOARD_SHORTCUTS>, onKeyboardShortcutPressHandler, {
+    useKeyboardShortcut(keyboardShortcut ?? NO_KEYBOARD_SHORTCUT, onKeyboardShortcutPressHandler, {
         isActive: !!keyboardShortcut,
         shouldBubble: false,
         shouldPreventDefault: false,
@@ -204,7 +207,7 @@ function GenericPressable({
 
         if (isRoleLink && !hasHref && event.nativeEvent.key === CONST.KEYBOARD_SHORTCUTS.ENTER.shortcutKey) {
             event.preventDefault();
-            onPressHandler(event.nativeEvent as unknown as KeyboardEvent);
+            onPressHandler(event.nativeEvent);
         }
     };
 

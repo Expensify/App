@@ -8,6 +8,7 @@ import {isApprovalWorkflowRule} from '@src/libs/RuleUtils';
 import {
     applyApprovalWorkflowRulesDiff,
     buildApprovalWorkflowRules,
+    buildApprovalWorkflowRulesForSave,
     calculateApprovers,
     convertApprovalWorkflowRulesToWorkflows,
     convertApprovalWorkflowToPolicyEmployees,
@@ -18,6 +19,7 @@ import {
     getApproverTitles,
     hasHiddenEmployeeRoutes,
     getApproverPendingActionByMemberEmail,
+    getDefaultWorkflowRules,
     getOpenConnectedToPolicyBusinessBankAccounts,
     getApprovalWorkflowSource,
     getNonMemberApproverError,
@@ -39,6 +41,7 @@ import {
     reconcileApprovalWorkflowRulesForMembersChange,
     reconcileApprovalWorkflowRulesForRemove,
     shouldUseApprovalWorkflowRules,
+    sortApprovalWorkflowsByErrors,
     updateWorkflowDataOnApproverRemoval,
 } from '@src/libs/WorkflowUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -64,6 +67,39 @@ import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 const personalDetails: PersonalDetailsList = {};
 const personalDetailsByEmail: PersonalDetailsList = {};
+
+describe('sortApprovalWorkflowsByErrors', () => {
+    it.each([false, true])('pins Everyone first when its broken state is %s and preserves order within groups', (isDefaultBroken) => {
+        // Given healthy and broken workflows interleaved, with the default workflow not already first
+        const healthyFirst = buildWorkflow([1], [2]);
+        const healthySecond = buildWorkflow([3], [4]);
+        const brokenFirst = buildWorkflow([5], [6], {approvers: [buildApprover(6, {isNotWorkspaceMember: true})]});
+        const brokenSecond = buildWorkflow([7], [8], {approvers: [buildApprover(8, {overLimitAmount: 50000, isNotWorkspaceMember: true})]});
+        const everyone = buildWorkflow([], [9], {isDefault: true, approvers: [buildApprover(9, {isNotWorkspaceMember: isDefaultBroken})]});
+        const workflows = [healthyFirst, brokenFirst, everyone, healthySecond, brokenSecond];
+
+        // When the complete collection is sorted
+        const sorted = sortApprovalWorkflowsByErrors(workflows);
+
+        // Then Everyone stays first, both kinds of errors precede healthy workflows, and the source is not mutated
+        expect(sorted).toEqual([everyone, brokenFirst, brokenSecond, healthyFirst, healthySecond]);
+        expect(workflows).toEqual([healthyFirst, brokenFirst, everyone, healthySecond, brokenSecond]);
+    });
+
+    it('returns a repaired workflow to its original relative position among healthy workflows', () => {
+        // Given a broken workflow initially following a healthy workflow
+        const healthy = buildWorkflow([1], [2]);
+        const broken = buildWorkflow([3], [4], {approvers: [buildApprover(4, {isNotWorkspaceMember: true})]});
+        expect(sortApprovalWorkflowsByErrors([healthy, broken])).toEqual([broken, healthy]);
+
+        // When the approver is repaired and the source collection is sorted again
+        const repaired = {...broken, approvers: [buildApprover(4)]};
+
+        // Then its healthy ordering is restored
+        expect(sortApprovalWorkflowsByErrors([healthy, repaired])).toEqual([healthy, repaired]);
+        expect(sortApprovalWorkflowsByErrors([])).toEqual([]);
+    });
+});
 
 function buildPolicyEmployee(accountID: number, policyEmployee: Partial<PolicyEmployee> = {}): PolicyEmployee {
     return {
@@ -2563,6 +2599,116 @@ describe('WorkflowUtils', () => {
             });
         });
 
+        describe('when the rules declare more than one default workflow', () => {
+            // Approver 1 is the default approver. Approver 2's workflow also carries the default marker, as rules saved
+            // before the backend refused a second default can.
+            const defaultApproverRules = buildApprovalWorkflowRules(buildWorkflow([10, 11], [1], {isDefault: true}));
+            const otherApproverRules = buildApprovalWorkflowRules(buildWorkflow([20, 21], [2], {isDefault: true}));
+            const existingRules = {
+                ...keyRules(defaultApproverRules),
+                ...Object.fromEntries(otherApproverRules.map((rule, index) => [`otherApproverRule${index}`, rule])),
+            };
+
+            it('Should pick the default workflow that starts at the default approver', () => {
+                // Given the two default-marked workflows above, with approver 1 as the default approver
+                // When the default workflow's rules are read
+                const defaultWorkflowRules = getDefaultWorkflowRules(existingRules, '1@example.com');
+
+                // Then only approver 1's workflow comes back, the one the Workflows page shows as the default
+                expect(Object.keys(defaultWorkflowRules)).toEqual(['rule0', 'rule1']);
+            });
+
+            it('Should pick the first default workflow when none starts at the default approver', () => {
+                // Given the two default-marked workflows above, and a default approver neither starts at
+                // When the default workflow's rules are read
+                const defaultWorkflowRules = getDefaultWorkflowRules(existingRules, '3@example.com');
+
+                // Then the first one comes back, so there is still a single default workflow
+                expect(Object.keys(defaultWorkflowRules)).toEqual(['rule0', 'rule1']);
+            });
+
+            it('Should pick only one default workflow when two start at the default approver', () => {
+                // Given two default-marked workflows that both start at the default approver but end with different
+                // approvers, the way rules saved before the backend refused a second default can
+                const firstWorkflowRules = buildApprovalWorkflowRules(buildWorkflow([10], [1, 3], {isDefault: true}));
+                const secondWorkflowRules = buildApprovalWorkflowRules(buildWorkflow([20], [1, 4], {isDefault: true}));
+                const rules = {
+                    ...Object.fromEntries(firstWorkflowRules.map((rule, index) => [`first${index}`, rule])),
+                    ...Object.fromEntries(secondWorkflowRules.map((rule, index) => [`second${index}`, rule])),
+                };
+
+                // When the default workflow's rules are read
+                const defaultWorkflowRules = getDefaultWorkflowRules(rules, '1@example.com');
+
+                // Then only the first workflow's rules come back, so members join a single chain
+                expect(Object.keys(defaultWorkflowRules).sort()).toEqual(
+                    Object.keys(rules)
+                        .filter((ruleID) => ruleID.startsWith('first'))
+                        .sort(),
+                );
+            });
+
+            it('Should keep the steps the default workflow shares with another default-marked workflow', () => {
+                // Given two default-marked workflows, approvers 1, 3 and 4 for member 10 and approvers 2, 3 and 4 for member 20, whose shared
+                // steps at approvers 3 and 4 are saved as one rule each, listing both members
+                const sharedApprovers = ['3@example.com', '4@example.com'];
+                const isSharedStep = (rule: ApprovalWorkflowRule) => sharedApprovers.some((approver) => JSON.stringify(rule.filters).includes(`"${approver}"`));
+                const firstWorkflowRules = buildApprovalWorkflowRules(buildWorkflow([10], [1, 3, 4], {isDefault: true})).filter((rule) => !isSharedStep(rule));
+                const secondWorkflowRules = buildApprovalWorkflowRules(buildWorkflow([20], [2, 3, 4], {isDefault: true})).filter((rule) => !isSharedStep(rule));
+                const sharedStepRules = buildApprovalWorkflowRules(buildWorkflow([10, 20], [1, 3, 4], {isDefault: true})).filter(isSharedStep);
+                const rules = {
+                    ...Object.fromEntries(firstWorkflowRules.map((rule, index) => [`first${index}`, rule])),
+                    ...Object.fromEntries(secondWorkflowRules.map((rule, index) => [`second${index}`, rule])),
+                    ...Object.fromEntries(sharedStepRules.map((rule, index) => [`shared${index}`, rule])),
+                };
+
+                // When the default workflow's rules are read, with approver 1 as the default approver
+                const defaultWorkflowRules = getDefaultWorkflowRules(rules, '1@example.com');
+
+                // Then approver 1's workflow comes back with its shared steps, so members returned to it still reach approver 4
+                expect(Object.keys(defaultWorkflowRules).sort()).toEqual(['first0', 'first1', 'shared0', 'shared1']);
+            });
+
+            it('Should follow a single chain when two default-marked chains share their submit rule', () => {
+                // Given two default-marked chains that both start at approver 1, approvers 1 and 3 for members 10 and 11 and approvers 1 and 4 for
+                // member 20, whose submit rules were saved as one rule listing all three members
+                const [sharedSubmitRule] = buildApprovalWorkflowRules(buildWorkflow([10, 11, 20], [1, 3], {isDefault: true}));
+                const largerChainRules = buildApprovalWorkflowRules(buildWorkflow([10, 11], [1, 3], {isDefault: true})).slice(1);
+                const smallerChainRules = buildApprovalWorkflowRules(buildWorkflow([20], [1, 4], {isDefault: true})).slice(1);
+                const rules = {
+                    sharedSubmit: sharedSubmitRule,
+                    ...Object.fromEntries(smallerChainRules.map((rule, index) => [`smaller${index}`, rule])),
+                    ...Object.fromEntries(largerChainRules.map((rule, index) => [`larger${index}`, rule])),
+                };
+
+                // When the default workflow's rules are read, with approver 1 as the default approver
+                const defaultWorkflowRules = getDefaultWorkflowRules(rules, '1@example.com');
+
+                // Then the shared submit rule comes back with the chain routing most of its members, so a workflow routed like
+                // it still counts as the default one, and members returned to it go through every approver of that chain
+                expect(Object.keys(defaultWorkflowRules).sort()).toEqual(['larger0', 'larger1', 'sharedSubmit']);
+            });
+
+            it('Should not treat a workflow routed like the other default-marked workflow as the default one', () => {
+                // Given the two default-marked workflows above, with approver 1 as the default approver
+                // When an ordinary workflow approved by approver 2 is saved
+                const rules = buildApprovalWorkflowRulesForSave(buildWorkflow([30], [2]), {existingRules, employees: {}, defaultApprover: '1@example.com'});
+
+                // Then it is saved as its own workflow rather than folded into approver 2's default-marked rules
+                expect(rules).toEqual(buildApprovalWorkflowRules(buildWorkflow([30], [2])));
+                expect(rules.some((rule) => !!rule.isDefaultApprovalWorkflow)).toBe(false);
+            });
+
+            it('Should still treat a workflow routed like the default approver workflow as the default one', () => {
+                // Given the two default-marked workflows above, with approver 1 as the default approver
+                // When a workflow approved by approver 1 is saved
+                const rules = buildApprovalWorkflowRulesForSave(buildWorkflow([30], [1]), {existingRules, employees: {}, defaultApprover: '1@example.com'});
+
+                // Then it is the default workflow, so its members fold into the default rules
+                expect(rules).toEqual(buildApprovalWorkflowRules(buildWorkflow([30], [1], {isDefault: true})));
+            });
+        });
+
         describe('applyApprovalWorkflowRulesDiff', () => {
             const [ruleA] = buildApprovalWorkflowRules(buildWorkflow([2], [1]));
             const [ruleB] = buildApprovalWorkflowRules(buildWorkflow([3], [4]));
@@ -2642,6 +2788,19 @@ describe('WorkflowUtils', () => {
                 const diff = reconcileApprovalWorkflowRulesForEdit(newRules, ['10@example.com'], {existingRules});
 
                 expect(diff).toEqual({});
+            });
+
+            it('Should add the missing members to a structurally identical rule that lists only some of them', () => {
+                // Given the rules of a workflow approved by 1 that list only member 20, such as a step of another chain that lists
+                // submitters carried along with the default workflow
+                const existingRules = keyRules(buildApprovalWorkflowRules(buildWorkflow([20], [1])));
+
+                // When members 10 and 20 are saved with that same chain
+                const newRules = buildApprovalWorkflowRules(buildWorkflow([10, 20], [1]));
+                const diff = reconcileApprovalWorkflowRulesForEdit(newRules, ['10@example.com', '20@example.com'], {existingRules});
+
+                // Then the existing rules stand in for the new ones and list both members, rather than leaving member 10 without them
+                expect(diff).toEqual(keyRules(buildApprovalWorkflowRules(buildWorkflow([20, 10], [1]))));
             });
         });
 
@@ -2724,6 +2883,21 @@ describe('WorkflowUtils', () => {
                 const rules = keyRules([...buildApprovalWorkflowRules(buildWorkflow([5], [1], {isDefault: true})), ...buildApprovalWorkflowRules(buildWorkflow([6], [1, 2]))]);
 
                 expect(getRulesSubmitterToFirstApprover(rules, {}, '1@example.com')).toEqual({'6@example.com': '1@example.com'});
+            });
+
+            it('Should still list the members of a second default-marked workflow', () => {
+                // Given two default-marked workflows, member 5's starting at the default approver and member 6's at approver 2,
+                // as rules saved before the backend refused a second default can declare
+                const rules = keyRules([
+                    ...buildApprovalWorkflowRules(buildWorkflow([5], [1], {isDefault: true})),
+                    ...buildApprovalWorkflowRules(buildWorkflow([6], [2], {isDefault: true})),
+                ]);
+
+                // When the members already in a workflow are listed, with approver 1 as the default approver
+                const submitterToFirstApprover = getRulesSubmitterToFirstApprover(rules, {}, '1@example.com');
+
+                // Then member 6 is listed, since only member 5's workflow is the default one, so moving 6 still warns the admin
+                expect(submitterToFirstApprover).toEqual({'6@example.com': '2@example.com'});
             });
         });
 

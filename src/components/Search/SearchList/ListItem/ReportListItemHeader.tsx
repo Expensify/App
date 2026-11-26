@@ -20,6 +20,7 @@ import useConfirmSubmitReportViolations from '@hooks/useConfirmSubmitReportViola
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import {useReportPaymentContext} from '@hooks/usePaymentContext';
 import {useGetPersonalDetailsByLogin} from '@hooks/usePersonalDetailByLogin';
@@ -145,6 +146,7 @@ function HeaderFirstRow<TItem extends ListItem>({
     const StyleUtils = useStyleUtils();
     const {isLargeScreenWidth} = useResponsiveLayout();
     const theme = useTheme();
+    const {isOffline} = useNetwork();
     const [isActionLoading] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${reportItem.reportID}`, {selector: isActionLoadingSelector});
     const {isSelected} = useRowSelection(reportItem.keyForList);
 
@@ -220,7 +222,8 @@ function HeaderFirstRow<TItem extends ListItem>({
                         action={reportItem.action}
                         onButtonPress={handleOnButtonPress}
                         isSelected={isSelected}
-                        isLoading={isActionLoading}
+                        // Queued actions cannot complete offline, so hide their spinner but keep the Onyx flag for Search row retention.
+                        isLoading={!isOffline && isActionLoading}
                         shouldShowMarkAsDoneCopy={shouldShowMarkAsDoneCopy}
                         policyID={reportItem.policyID}
                         reportID={reportItem.reportID}

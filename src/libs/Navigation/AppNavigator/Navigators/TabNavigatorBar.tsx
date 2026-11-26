@@ -92,10 +92,11 @@ function TabNavigatorBar({state}: Pick<BottomTabBarProps, 'state'>) {
 
     if (shouldUseNarrowLayout) {
         // Negative marginTop overlays the tab bar on content (zero flex space) to prevent layout shifts.
+        // box-none lets taps beside the bar, such as next to the shorter landscape bar, reach the content under it.
         return (
             <View
                 style={[StyleUtils.getTabBarNarrowStyle(safeAreaPaddingBottom, isInLandscapeMode), shouldHideNarrowBar && styles.opacity0]}
-                pointerEvents={shouldHideNarrowBar ? 'none' : 'auto'}
+                pointerEvents={shouldHideNarrowBar ? 'none' : 'box-none'}
             >
                 <NavigationTabBar
                     selectedTab={selectedTab}
