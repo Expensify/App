@@ -1,8 +1,4 @@
-/**
- * Reports a `CONST.ROLE.*` value used as an accessible name. Role constants hold plain words such as "button", so they
- * pass for label text, but a screen reader already announces the role on its own and translates it. A role used as a
- * label is read twice, stays in English, and gives every such control the same name.
- */
+/** Reports `CONST.ROLE.*` used as an accessible name: screen readers already announce the role, so it would be read twice and in English. */
 const name = 'no-role-as-accessibility-label';
 
 const meta = {
