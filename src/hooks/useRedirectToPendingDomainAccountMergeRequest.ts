@@ -1,4 +1,5 @@
 import Navigation from '@libs/Navigation/Navigation';
+import TransitionTracker from '@libs/Navigation/TransitionTracker';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -9,6 +10,7 @@ import {pendingMergeRequestByRequesterSelector} from '@selectors/Domain';
 import {accountIDSelector, emailSelector} from '@selectors/Session';
 
 import useOnyx from './useOnyx';
+import usePermissions from './usePermissions';
 
 /**
  * Redirects to the pending domain-account-merge-request result screen whenever the current user has a stored
@@ -21,15 +23,23 @@ function useRedirectToPendingDomainAccountMergeRequest() {
     const [myPendingMergeRequest] = useOnyx(ONYXKEYS.COLLECTION.DOMAIN_ACCOUNT_MERGE_REQUEST, {
         selector: pendingMergeRequestByRequesterSelector(currentUserAccountID),
     });
+    const {isBetaEnabled} = usePermissions();
+    const canUseMergeDomainAccounts = isBetaEnabled(CONST.BETAS.MERGE_DOMAIN_ACCOUNTS);
 
     useFocusEffect(() => {
-        if (!myPendingMergeRequest || !userEmailOrPhone) {
-            return;
-        }
-        Navigation.navigate(ROUTES.SETTINGS_MERGE_ACCOUNTS_RESULT.getRoute(userEmailOrPhone.trim(), CONST.MERGE_ACCOUNT_RESULTS.PENDING_DOMAIN_APPROVAL), {forceReplace: true});
+        const task = TransitionTracker.runAfterTransitions({
+            callback: () => {
+                if (!canUseMergeDomainAccounts || !myPendingMergeRequest || !userEmailOrPhone) {
+                    return;
+                }
+                Navigation.navigate(ROUTES.SETTINGS_MERGE_ACCOUNTS_RESULT.getRoute(userEmailOrPhone.trim(), CONST.MERGE_ACCOUNT_RESULTS.PENDING_DOMAIN_APPROVAL), {forceReplace: true});
+            },
+        });
+
+        return () => task.cancel();
     });
 
-    return myPendingMergeRequest;
+    return canUseMergeDomainAccounts ? myPendingMergeRequest : undefined;
 }
 
 export default useRedirectToPendingDomainAccountMergeRequest;

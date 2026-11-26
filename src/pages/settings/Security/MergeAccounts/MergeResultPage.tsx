@@ -6,6 +6,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useMergeResultConfirmationConfig from '@hooks/useMergeResultConfirmationConfig';
+import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import Navigation from '@libs/Navigation/Navigation';
@@ -14,10 +15,13 @@ import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 
 import {useRoute} from '@react-navigation/native';
+import {pendingMergeRequestByRequesterSelector} from '@selectors/Domain';
+import {accountIDSelector} from '@selectors/Session';
 import {useEffect} from 'react';
 
 function MergeResultPage() {
@@ -28,6 +32,18 @@ function MergeResultPage() {
     const {result, login, backTo} = params;
 
     const isTerminalResult = result === CONST.MERGE_ACCOUNT_RESULTS.SUCCESS || result === CONST.MERGE_ACCOUNT_RESULTS.PENDING_DOMAIN_APPROVAL;
+
+    const [currentUserAccountID = CONST.DEFAULT_NUMBER_ID] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector});
+    const [myPendingMergeRequest] = useOnyx(ONYXKEYS.COLLECTION.DOMAIN_ACCOUNT_MERGE_REQUEST, {
+        selector: pendingMergeRequestByRequesterSelector(currentUserAccountID),
+    });
+
+    useEffect(() => {
+        if (result !== CONST.MERGE_ACCOUNT_RESULTS.PENDING_DOMAIN_APPROVAL || myPendingMergeRequest) {
+            return;
+        }
+        Navigation.goBack(ROUTES.SETTINGS_SECURITY.getRoute());
+    }, [result, myPendingMergeRequest]);
 
     useEffect(() => {
         /**
