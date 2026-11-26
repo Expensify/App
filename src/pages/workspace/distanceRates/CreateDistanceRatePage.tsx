@@ -311,14 +311,12 @@ function CreateDistanceRatePage({
                         {shouldShowCountryAndKind ? (
                             <>
                                 {canPickEuroCountry ? (
-                                    <View style={styles.mhn4}>
-                                        <EuroCountryDropdown
-                                            label={translate('workspace.distanceRates.addRatePage.whichCountry')}
-                                            selectedCountry={country ?? ''}
-                                            countries={getEuroDistanceRateCountryOptions(translate, localeCompare)}
-                                            onSelectCountry={selectEuroCountry}
-                                        />
-                                    </View>
+                                    <EuroCountryDropdown
+                                        label={translate('workspace.distanceRates.addRatePage.whichCountry')}
+                                        selectedCountry={country ?? ''}
+                                        countries={getEuroDistanceRateCountryOptions(translate, localeCompare)}
+                                        onSelectCountry={selectEuroCountry}
+                                    />
                                 ) : (
                                     <View style={styles.mhn5}>
                                         <MenuItemField
