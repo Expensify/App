@@ -1,5 +1,5 @@
 diff --git a/node_modules/react-native-gesture-handler/lib/typescript/v3/components/GestureComponents.web.d.ts b/node_modules/react-native-gesture-handler/lib/typescript/v3/components/GestureComponents.web.d.ts
-index 23d00f1..9d98034 100644
+index 3eb184e..48ecad1 100644
 --- a/node_modules/react-native-gesture-handler/lib/typescript/v3/components/GestureComponents.web.d.ts
 +++ b/node_modules/react-native-gesture-handler/lib/typescript/v3/components/GestureComponents.web.d.ts
 @@ -1,5 +1,5 @@
@@ -9,16 +9,16 @@ index 23d00f1..9d98034 100644
  export declare const ScrollView: {
      (props: Omit<import("react-native").ScrollViewProps, "ref"> & {
          ref?: React.Ref<import("react-native").ScrollViewInstance> | undefined;
-@@ -117,6 +117,7 @@ export declare const TextInput: {
-     } & import("../types").GestureCallbacks<import("../hooks/gestures/native/NativeTypes").NativeHandlerData> & import("../hooks/gestures/native/NativeTypes").NativeGestureNativeProperties & import("../types").ExternalRelations & import("../types/NativeWrapperType").WrapperSpecificProperties<unknown>): React.JSX.Element;
+@@ -18,6 +18,7 @@ export declare const TextInput: {
+     } & Omit<import("../types").CommonGestureConfig, "runOnJS" | "disableReanimated"> & import("../types").GestureCallbacks<import("../hooks/gestures/native/NativeTypes").NativeHandlerData> & import("../hooks/gestures/native/NativeTypes").NativeGestureNativeProperties & import("../types").ExternalRelations & import("../types/NativeWrapperType").WrapperSpecificProperties<unknown>): React.JSX.Element;
      displayName: any;
  };
 +export type TextInput = typeof TextInput & RNTextInput;
  export declare const DrawerLayoutAndroid: () => React.JSX.Element;
  export declare const RefreshControl: {
      (props: Omit<import("react-native").ViewProps, "ref"> & {
-@@ -157,5 +158,8 @@ export declare const RefreshControl: {
-     } & import("../types").GestureCallbacks<import("../hooks/gestures/native/NativeTypes").NativeHandlerData> & import("../hooks/gestures/native/NativeTypes").NativeGestureNativeProperties & import("../types").ExternalRelations & import("../types/NativeWrapperType").WrapperSpecificProperties<unknown>): React.JSX.Element;
+@@ -25,5 +26,8 @@ export declare const RefreshControl: {
+     } & Omit<import("../types").CommonGestureConfig, "runOnJS" | "disableReanimated"> & import("../types").GestureCallbacks<import("../hooks/gestures/native/NativeTypes").NativeHandlerData> & import("../hooks/gestures/native/NativeTypes").NativeGestureNativeProperties & import("../types").ExternalRelations & import("../types/NativeWrapperType").WrapperSpecificProperties<unknown>): React.JSX.Element;
      displayName: any;
  };
 -export declare const FlatList: <ItemT>(props: FlatListProps<ItemT>) => React.JSX.Element;
