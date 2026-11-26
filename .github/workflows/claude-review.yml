@@ -102,6 +102,8 @@ jobs:
           anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
           github_token: ${{ secrets.GITHUB_TOKEN }}
           allowed_non_write_users: '*'
+          # The authorize job checks the PR author. These bots request reviewers, so they start review_requested runs.
+          allowed_bots: 'expensify-chore-bot,melvin-bot'
           prompt: '/review-code-pr REPO: ${{ github.repository }} PR_NUMBER: ${{ github.event.pull_request.number || github.event.issue.number }}'
           claude_args: |
             --model claude-opus-4-8
@@ -124,6 +126,8 @@ jobs:
           anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
           github_token: ${{ secrets.GITHUB_TOKEN }}
           allowed_non_write_users: '*'
+          # The authorize job checks the PR author. These bots request reviewers, so they start review_requested runs.
+          allowed_bots: 'expensify-chore-bot,melvin-bot'
           prompt: '/review-helpdot-pr REPO: ${{ github.repository }} PR_NUMBER: ${{ github.event.pull_request.number || github.event.issue.number }}'
           claude_args: |
             --model claude-opus-4-8

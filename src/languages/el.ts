@@ -7479,11 +7479,13 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
                 description: `Πρέπει να παραμείνει ενεργοποιημένη τουλάχιστον μία κατηγορία, επειδή ο χώρος εργασίας σας απαιτεί κατηγορίες.`,
             },
             visibleTo: 'Ορατό σε',
+            editVisibility: 'Επεξεργασία ορατότητας',
             membersCount: ({count}: {count: number}) => ({
                 one: '1 μέλος',
                 other: `${count} μέλη`,
             }),
             visibleToDescription: ({categoryName}: {categoryName: string}) => `Επιλέξτε ποια μέλη μπορούν να χρησιμοποιούν την κατηγορία ${categoryName} όταν υποβάλλουν δαπάνες.`,
+            bulkVisibleToDescription: 'Επιλέξτε ποια μέλη μπορούν να χρησιμοποιούν αυτές τις κατηγορίες όταν υποβάλλουν έξοδα.',
             cannotDisableCategoryForMembers: {
                 title: ({categoryName}: {categoryName: string}) => `Δεν είναι δυνατή η απενεργοποίηση της κατηγορίας ${categoryName}`,
                 bulkTitle: 'Δεν μπορείτε να απενεργοποιήσετε αυτές τις κατηγορίες',

@@ -7323,11 +7323,13 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
                 description: `Pelo menos uma categoria deve permanecer ativada porque seu workspace exige categorias.`,
             },
             visibleTo: 'Visível para',
+            editVisibility: 'Editar visibilidade',
             membersCount: ({count}: {count: number}) => ({
                 one: '1 membro',
                 other: `${count} membros`,
             }),
             visibleToDescription: ({categoryName}: {categoryName: string}) => `Escolha quais membros podem usar a categoria ${categoryName} ao enviar despesas.`,
+            bulkVisibleToDescription: 'Escolha quais membros podem usar essas categorias ao enviar despesas.',
             cannotDisableCategoryForMembers: {
                 title: ({categoryName}: {categoryName: string}) => `Não é possível desativar ${categoryName}`,
                 bulkTitle: 'Não é possível desativar estas categorias',
