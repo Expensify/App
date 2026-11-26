@@ -2138,8 +2138,11 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
      */
     getMentionTextColor: (isOurMention: boolean): string => (isOurMention ? theme.ourMentionText : theme.mentionText),
 
-    /** Returns the color of a change in spend, red when it went up and green when it went down */
-    getSpendChangeColor: (isIncrease: boolean): string => (isIncrease ? theme.danger : theme.successHover),
+    /** Returns the arrow color of a change in spend, red when it went up and green when it went down */
+    getSpendChangeIconColor: (isIncrease: boolean): string => (isIncrease ? theme.danger : theme.success),
+
+    /** Returns the text color of a change in spend, red when it went up and green when it went down */
+    getSpendChangeTextColor: (isIncrease: boolean): string => (isIncrease ? theme.textError : theme.textSuccess),
 
     /**
      * Generate the wrapper styles for the mini ReportActionContextMenu.
