@@ -87,6 +87,8 @@ jest.mock('@hooks/useConfirmModal', () => jest.requireActual<typeof ConfirmModal
 
 TestHelper.setupGlobalFetchMock();
 
+const conciergeChatKey = `${ONYXKEYS.COLLECTION.REPORT}999` as const;
+
 const cardSettingsKey = `${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${WORKSPACE_ACCOUNT_ID}` as const;
 
 describe('WorkspaceCardsListLabel', () => {
@@ -211,7 +213,7 @@ describe('WorkspaceCardsListLabel', () => {
         // When the admin requests a limit increase
         await requestLimitIncreaseWithPendingOnboarding({
             [ONYXKEYS.CONCIERGE_REPORT_ID]: '999',
-            [`${ONYXKEYS.COLLECTION.REPORT}999`]: {reportID: '999'},
+            [conciergeChatKey]: {reportID: '999'},
         });
 
         // Then OpenReport gets the stored chat and is enqueued first, so Concierge replies last
@@ -235,7 +237,7 @@ describe('WorkspaceCardsListLabel', () => {
         // When the admin requests a limit increase
         await requestLimitIncreaseWithPendingOnboarding({
             [ONYXKEYS.CONCIERGE_REPORT_ID]: '999',
-            [`${ONYXKEYS.COLLECTION.REPORT}999`]: {reportID: '999'},
+            [conciergeChatKey]: {reportID: '999'},
             [ONYXKEYS.IS_LOADING_APP]: true,
         });
 
