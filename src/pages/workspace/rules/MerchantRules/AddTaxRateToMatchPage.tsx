@@ -39,10 +39,12 @@ function AddTaxRateToMatchPage({route}: AddTaxRateToMatchPageProps) {
     // so a rule keyed by one would name a rate nothing else can resolve.
     //
     // A selection made before the rate's code was changed still holds the old key, which the rate no longer answers
-    // to. Leaving the rate's current key listed as well would show it twice, once checked and once not.
-    const selectedTaxRateKeys = new Set(selectedTaxRates.map((taxRateKey) => resolveCurrentTaxCode(policy, taxRateKey)));
+    // to. The picker works in current keys throughout, so the rate ticks and unticks like any other one and saving
+    // the rule moves it onto the key the rate has now.
+    const selectedTaxRateKeys = selectedTaxRates.map((taxRateKey) => resolveCurrentTaxCode(policy, taxRateKey));
+    const selectedTaxRateKeySet = new Set(selectedTaxRateKeys);
     const taxRateItems: RuleConditionItem[] = Object.entries(policy?.taxRates?.taxes ?? {})
-        .filter(([taxRateKey, taxRate]) => selectedTaxRates.includes(taxRateKey) || (isSelectableTaxRate(taxRate) && !selectedTaxRateKeys.has(taxRateKey)))
+        .filter(([taxRateKey, taxRate]) => selectedTaxRateKeySet.has(taxRateKey) || isSelectableTaxRate(taxRate))
         .map(([taxRateKey]) => ({
             value: taxRateKey,
             text: getTaxRateDisplayName(policy, taxRateKey),
@@ -56,6 +58,7 @@ function AddTaxRateToMatchPage({route}: AddTaxRateToMatchPageProps) {
             sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.MERCHANT_RULE_TAX_RATE_TO_MATCH_SAVE}
             backToRoute={backToRoute}
             items={taxRateItems}
+            draftValues={selectedTaxRateKeys}
             onSave={(taxRatesToMatch) => updateDraftMerchantRule({taxRatesToMatch})}
             getFallbackItem={(taxRateKey) => ({text: getTaxRateDisplayName(policy, taxRateKey)})}
         />

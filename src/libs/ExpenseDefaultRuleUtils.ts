@@ -25,6 +25,7 @@ import type {ValueOf} from 'type-fest';
 
 import {rand64} from './NumberUtils';
 import Parser from './Parser';
+import {resolveCurrentTaxCode} from './PolicyUtils/tax';
 import {fromIndexMap, getRuleFilterLeaves, isExpenseDefaultRule, isRuleFilterComparison, isRuleFilterNode, toIndexMap} from './RuleUtils';
 
 /** The form shape the merchant rule editor round-trips a rule through. */
@@ -543,7 +544,11 @@ function buildExpenseDefaultActions(formValues: Partial<ExpenseDefaultFormValues
  * Returns undefined when the form has nothing to match on or nothing to set, which the API rejects.
  */
 function buildExpenseDefaultRule(formValues: Partial<ExpenseDefaultFormValues>, policy: Policy | undefined, existingTriggers?: Rule['triggers']): BuiltExpenseDefaultRule | undefined {
-    const filters = buildExpenseDefaultFilters(formValues);
+    // A rate is keyed by its code, so changing the code leaves a rule saved earlier matching on a key no rate
+    // answers to any more. Saving the rule moves it onto the key the rate has now.
+    const taxRatesToMatch = formValues.taxRatesToMatch?.map((taxRateKey) => resolveCurrentTaxCode(policy, taxRateKey));
+
+    const filters = buildExpenseDefaultFilters(taxRatesToMatch ? {...formValues, taxRatesToMatch} : formValues);
     const actions = buildExpenseDefaultActions(formValues, policy);
 
     if (!filters || Object.keys(actions).length === 0) {

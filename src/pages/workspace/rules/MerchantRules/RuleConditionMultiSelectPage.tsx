@@ -70,6 +70,9 @@ type RuleConditionMultiSelectPageProps = {
 
     items: RuleConditionItem[];
 
+    /** The values the selection starts from, for a field whose saved values need resolving before they can be ticked */
+    draftValues?: string[];
+
     onSave: (values: string[]) => void;
 
     /**
@@ -90,7 +93,7 @@ type RuleConditionMultiSelectPageProps = {
  * A rule keeps matching on a value the workspace has since dropped. Listing it is the only way to see what the
  * rule matches on and the only way to take it off, so such a value is added back rather than left out.
  */
-function RuleConditionMultiSelectPage({field, title, testID, sentryLabel, backToRoute, items, onSave, getFallbackItem, isLoading}: RuleConditionMultiSelectPageProps) {
+function RuleConditionMultiSelectPage({field, title, testID, sentryLabel, backToRoute, items, draftValues, onSave, getFallbackItem, isLoading}: RuleConditionMultiSelectPageProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate, localeCompare} = useLocalize();
@@ -98,7 +101,7 @@ function RuleConditionMultiSelectPage({field, title, testID, sentryLabel, backTo
 
     const [form] = useOnyx(ONYXKEYS.FORMS.MERCHANT_RULE_FORM);
 
-    const {selectedValues, initialSelectedValues, toggleValue, toggleAll} = useRuleConditionSelection(form?.[field] ?? []);
+    const {selectedValues, initialSelectedValues, toggleValue, toggleAll} = useRuleConditionSelection(draftValues ?? form?.[field] ?? []);
 
     const listItems: RuleConditionListItem[] = items.map(({value, text, alternateText, searchableText, icons}) => ({
         keyForList: value,
