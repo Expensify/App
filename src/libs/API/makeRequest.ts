@@ -29,6 +29,8 @@ let requestIndex = Date.now();
 // The requestIndex of the newest WRITE prepared so far, so a READ response can tell whether a WRITE was made after the READ was sent
 let latestWriteRequestIndex = 0;
 
+// OpenReport runs on almost every report open and only loads the report, so a READ already in flight when it is made
+// still has current data. Counting it would drop that READ's response and send the READ again for no reason.
 const writesThatKeepReadsCurrent = new Set<string>([WRITE_COMMANDS.OPEN_REPORT]);
 
 function getLatestWriteRequestIndex(): number {
