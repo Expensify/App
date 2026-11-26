@@ -3252,6 +3252,32 @@ describe('Table', () => {
             expect(screen.queryByText('CODE-Z')).toBeNull();
         });
 
+        it.each(layouts)('falls back to Name ascending when the sorted Tax code column disappears on $name layouts', async (layout) => {
+            // Given a mounted table sorted by a conditional column in a different order than its default
+            setLayout(layout);
+            const {rerender} = render(<TaxesWithDisplaySettings />);
+            await waitForBatchedUpdatesWithAct();
+            fireEvent.press(screen.getByText('search.display.sortBy'), {});
+            await waitForBatchedUpdatesWithAct();
+            fireEvent.press(screen.getByTestId(`${CONST.BASE_LIST_ITEM_TEST_ID}taxCode`));
+            fireEvent.press(screen.getByText('common.apply'));
+            fireEvent.press(screen.getByText('search.display.sortBy'), {});
+            fireEvent.press(screen.getByText('search.display.sortOrder'), {});
+            fireEvent.press(screen.getByTestId(`${CONST.BASE_LIST_ITEM_TEST_ID}desc`));
+            fireEvent.press(screen.getByText('common.apply'));
+            expect(screen.getAllByText(/^(Alpha|Bravo|Charlie)$/).map((node) => String(node.props.children))).toEqual(['Alpha', 'Charlie', 'Bravo']);
+
+            // When the data-driven column disappears without remounting the table
+            rerender(<TaxesWithDisplaySettings shouldShowTaxCodeColumn={false} />);
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the rows and Display summary both use the default column and order at every width
+            expect(screen.getAllByText(/^(Alpha|Bravo|Charlie)$/).map((node) => String(node.props.children))).toEqual(['Alpha', 'Bravo', 'Charlie']);
+            expect(screen.getByText(`common.name ${CONST.DOT_SEPARATOR} search.filters.sortOrder.asc`)).toBeOnTheScreen();
+            fireEvent.press(screen.getByText('search.display.sortBy'), {});
+            expect(screen.queryByTestId(`${CONST.BASE_LIST_ITEM_TEST_ID}taxCode`)).toBeNull();
+        });
+
         it.each(layouts)('omits Tax code sorting when codes are unavailable on $name layouts', async (layout) => {
             // Given a workspace without a Tax code column
             setLayout(layout);

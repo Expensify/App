@@ -39,8 +39,8 @@ function renderSorting(compareItems: CompareItemsCallback<TestItem> = compareByN
 }
 
 describe('useSorting middleware', () => {
-    it('keeps the chosen column and order when resizing and invalidates the sorted-data cache', () => {
-        // Given a wide table whose key order differs from its initial name order
+    it('keeps the chosen column and order when rerendering and invalidates the sorted-data cache', () => {
+        // Given a table whose key order differs from its initial name order
         const items = createItems();
         const compareItems: CompareItemsCallback<TestItem> = (first, second, sorting) => {
             const columnKey = sorting.columnKey === 'keyForList' ? 'keyForList' : 'name';
@@ -48,34 +48,29 @@ describe('useSorting middleware', () => {
             return sorting.order === CONST.SEARCH.SORT_ORDER.ASC ? comparison : -comparison;
         };
         const onSortingChange = jest.fn();
-        const {result, rerender} = renderHook(
-            ({isNarrow}: {isNarrow: boolean}) =>
-                useSorting({
-                    compareItems,
-                    initialSortColumn: NAME_COLUMN_KEY,
-                    initialSortOrder: CONST.SEARCH.SORT_ORDER.DESC,
-                    columnKeys: [NAME_COLUMN_KEY, 'keyForList'],
-                    shouldUseNarrowTableLayout: isNarrow,
-                    onSortingChange,
-                }),
-            {initialProps: {isNarrow: false}},
+        const {result, rerender} = renderHook(() =>
+            useSorting({
+                compareItems,
+                initialSortColumn: NAME_COLUMN_KEY,
+                initialSortOrder: CONST.SEARCH.SORT_ORDER.DESC,
+                columnKeys: [NAME_COLUMN_KEY, 'keyForList'],
+                onSortingChange,
+            }),
         );
         expect(result.current.middleware(items).map((item) => item.name)).toEqual(['Charlie', 'Bravo', 'Alpha']);
 
-        // When the user chooses a different column in the same order and resizes the mounted table
+        // When the user chooses a different column in the same order and rerenders the mounted table
         act(() => result.current.methods.updateSorting({columnKey: 'keyForList', order: CONST.SEARCH.SORT_ORDER.DESC}));
-        for (const isNarrow of [true, false]) {
-            rerender({isNarrow});
+        rerender({});
 
-            // Then neither resizing nor the earlier cached result replaces the user's choice
-            expect(result.current.activeSorting).toEqual({columnKey: 'keyForList', order: CONST.SEARCH.SORT_ORDER.DESC});
-            expect(result.current.methods.getActiveSorting()).toEqual(result.current.activeSorting);
-            expect(result.current.middleware(items).map((item) => item.name)).toEqual(['Bravo', 'Alpha', 'Charlie']);
-        }
+        // Then neither rerendering nor the earlier cached result replaces the user's choice
+        expect(result.current.activeSorting).toEqual({columnKey: 'keyForList', order: CONST.SEARCH.SORT_ORDER.DESC});
+        expect(result.current.methods.getActiveSorting()).toEqual(result.current.activeSorting);
+        expect(result.current.middleware(items).map((item) => item.name)).toEqual(['Bravo', 'Alpha', 'Charlie']);
         expect(onSortingChange).toHaveBeenCalledTimes(1);
     });
 
-    it.each([false, true])('preserves the existing missing-column policy when narrow layout is %s', (isNarrow) => {
+    it('falls back to the default column and order when a column disappears', () => {
         // Given a conditional column with a user-selected order different from the default
         const onSortingChange = jest.fn();
         const {result, rerender} = renderHook(
@@ -85,7 +80,6 @@ describe('useSorting middleware', () => {
                     initialSortColumn: NAME_COLUMN_KEY,
                     initialSortOrder: CONST.SEARCH.SORT_ORDER.DESC,
                     columnKeys,
-                    shouldUseNarrowTableLayout: isNarrow,
                     onSortingChange,
                 }),
             {initialProps: {columnKeys: [NAME_COLUMN_KEY, 'conditional']}},
@@ -97,8 +91,8 @@ describe('useSorting middleware', () => {
         // When the conditional column disappears
         rerender({columnKeys: [NAME_COLUMN_KEY]});
 
-        // Then wide tables derive the default while compact tables retain the stored selection, without emitting a user change
-        expect(result.current.activeSorting).toEqual(isNarrow ? chosenSorting : {columnKey: NAME_COLUMN_KEY, order: CONST.SEARCH.SORT_ORDER.DESC});
+        // Then the table derives the default without emitting a user change
+        expect(result.current.activeSorting).toEqual({columnKey: NAME_COLUMN_KEY, order: CONST.SEARCH.SORT_ORDER.DESC});
         expect(onSortingChange).not.toHaveBeenCalled();
 
         // When the column returns, the derived fallback has not overwritten the stored choice

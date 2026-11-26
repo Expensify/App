@@ -232,7 +232,6 @@ function TableContent<DataType extends TableData, ColumnKey extends string = str
         compareItems,
         initialSortColumn,
         initialSortOrder,
-        shouldUseNarrowTableLayout,
         onSortingChange,
         columnKeys,
     });

@@ -65,7 +65,6 @@ type UseSortingProps<T, ColumnKey extends string = string> = {
     compareItems?: CompareItemsCallback<T, ColumnKey>;
     initialSortColumn?: ColumnKey;
     initialSortOrder?: SortOrder;
-    shouldUseNarrowTableLayout?: boolean;
     onSortingChange?: (sorting: ActiveSorting<ColumnKey>) => void;
 
     /** Keys of the columns currently rendered, so sorting can fall back once its active column is no longer one of them. */
@@ -84,7 +83,7 @@ type UseSortingResult<T, ColumnKey extends string = string> = MiddlewareHookResu
 };
 
 /**
- * Resolves the sorting configuration, falling back when a column disappears on wide layouts.
+ * Resolves the sorting configuration, falling back when a column disappears.
  *
  * This is a standalone top-level function (rather than being inlined in the `useMemo` callback) because
  * OXC's React Compiler currently fails to compile a component/hook when a generic type expression
@@ -95,18 +94,11 @@ type UseSortingResult<T, ColumnKey extends string = string> = MiddlewareHookResu
  * @template ColumnKey - The type of column keys.
  */
 function resolveActiveSorting<ColumnKey extends string = string>(
-    shouldUseNarrowTableLayout: boolean | undefined,
     userSorting: ActiveSorting<ColumnKey>,
     columnKeys: ColumnKey[],
     initialSortColumn: ColumnKey | undefined,
     initialSortOrder: SortOrder,
 ): ActiveSorting<ColumnKey> {
-    if (shouldUseNarrowTableLayout) {
-        // Narrow layouts drop columns for space rather than because the data lost them, so the fallback below must not
-        // run here. Otherwise resizing past the breakpoint would silently discard the sort the user picked.
-        return userSorting;
-    }
-
     // A column that stops being rendered (e.g. a conditional column loses its last value) can leave the table sorted
     // by a key no header shows an arrow for. Falling back to the initial column keeps the sort visible and correct.
     if (userSorting.columnKey && !columnKeys.includes(userSorting.columnKey)) {
@@ -129,7 +121,6 @@ function useSorting<T, ColumnKey extends string = string>({
     compareItems,
     initialSortColumn,
     initialSortOrder = CONST.SEARCH.SORT_ORDER.ASC,
-    shouldUseNarrowTableLayout,
     onSortingChange,
     columnKeys,
 }: UseSortingProps<T, ColumnKey>): UseSortingResult<T, ColumnKey> {
@@ -138,7 +129,7 @@ function useSorting<T, ColumnKey extends string = string>({
         order: initialSortOrder,
     });
 
-    const activeSorting = resolveActiveSorting(shouldUseNarrowTableLayout, userSorting, columnKeys, initialSortColumn, initialSortOrder);
+    const activeSorting = resolveActiveSorting(userSorting, columnKeys, initialSortColumn, initialSortOrder);
 
     const updateSorting: SortingMethods<ColumnKey>['updateSorting'] = (value) => {
         const newSorting = typeof value === 'function' ? value(userSorting) : value;
