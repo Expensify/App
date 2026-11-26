@@ -107,7 +107,6 @@ function SageIntacctUserDimensionsPage({policy}: WithPolicyProps) {
                                     sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.SAGE_INTACCT.USER_DIMENSION_ROW}
                                     name={translate('workspace.intacct.userDefinedDimension')}
                                     onPress={() => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_EDIT_USER_DIMENSION.getRoute(policyID, userDimension.dimension))}
-                                    linkRoute={ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_EDIT_USER_DIMENSION.getRoute(policyID, userDimension.dimension)}
                                     value={userDimension.dimension}
                                 >
                                     {areSettingsInErrorFields([`${CONST.SAGE_INTACCT_CONFIG.DIMENSION_PREFIX}${userDimension.dimension}`], config?.errorFields) && (

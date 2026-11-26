@@ -165,7 +165,6 @@ function WorkspaceCompanyCardsSettingsPage({
                             value={feedName}
                             name={translate('workspace.moreFeatures.companyCards.cardFeedName')}
                             onPress={navigateToChangeFeedName}
-                            linkRoute={ROUTES.WORKSPACE_COMPANY_CARDS_SETTINGS_FEED_NAME.getRoute(policyID)}
                         />
                         <OfflineWithFeedback pendingAction={selectedFeedData?.pendingFields?.statementPeriodEndDay}>
                             <MenuItemField
@@ -173,7 +172,6 @@ function WorkspaceCompanyCardsSettingsPage({
                                 value={statementCloseDate?.toString()}
                                 name={translate('workspace.moreFeatures.companyCards.statementCloseDateTitle')}
                                 onPress={navigateToChangeStatementCloseDate}
-                                linkRoute={ROUTES.WORKSPACE_COMPANY_CARDS_SETTINGS_STATEMENT_CLOSE_DATE.getRoute(policyID)}
                             >
                                 {!!selectedFeedData?.errorFields?.statementPeriodEndDay && <MenuItem.BrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />}
                             </MenuItemField>
@@ -184,7 +182,6 @@ function WorkspaceCompanyCardsSettingsPage({
                                 value={reimbursable}
                                 name={translate('workspace.companyCards.reimbursable.title')}
                                 onPress={navigateToChangeReimbursable}
-                                linkRoute={ROUTES.WORKSPACE_COMPANY_CARDS_SETTINGS_REIMBURSABLE.getRoute(policyID)}
                             >
                                 {!!selectedFeedData?.errorFields?.forceReimbursable && <MenuItem.BrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />}
                             </MenuItemField>

@@ -185,7 +185,6 @@ function MergeATSApprovalModePage({
                                             name={translate('workspace.recruiting.approverField')}
                                             value={getApproverFieldName(approverField, translate)}
                                             onPress={() => Navigation.navigate(ROUTES.WORKSPACE_RECRUITING_MERGE_APPROVER_FIELD.getRoute(policyID))}
-                                            linkRoute={ROUTES.WORKSPACE_RECRUITING_MERGE_APPROVER_FIELD.getRoute(policyID)}
                                         />
                                         <MergeATSFinalApproverMenuItem
                                             policyID={policyID}

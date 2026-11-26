@@ -190,7 +190,6 @@ function MerchantTypeRulePageBase({policyID, groupID, testID}: MerchantTypeRuleP
                     <Text style={[styles.textLabel, styles.textStrong, styles.lh16, styles.ph5, styles.pv3]}>{translate('workspace.rules.merchantRules.thenApplyFollowingDefaults')}</Text>
                     <MenuItem.Root
                         onPress={canWriteRules ? callIfAuthenticated(() => Navigation.navigate(ROUTES.RULES_MERCHANT_TYPE_CATEGORY.getRoute(policyID, groupID)), session) : undefined}
-                        linkRoute={ROUTES.RULES_MERCHANT_TYPE_CATEGORY.getRoute(policyID, groupID)}
                         sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.MERCHANT_TYPE_RULE_CATEGORY}
                     >
                         <MenuItem.Row>

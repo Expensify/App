@@ -140,7 +140,6 @@ function CopyPolicySettingsConfirmPage() {
                             value={translatedParts}
                             numberOfLinesValue={0}
                             onPress={navigateToSelectFeatures}
-                            linkRoute={sourcePolicyID ? ROUTES.POLICY_COPY_SETTINGS_SELECT_FEATURES.getRoute(sourcePolicyID) : undefined}
                         />
                         <MenuItemField
                             sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.COPY_SETTINGS_CONFIRM_WORKSPACES}
@@ -148,7 +147,6 @@ function CopyPolicySettingsConfirmPage() {
                             value={targetPolicies.map((policy) => policy?.name).join(', ')}
                             numberOfLinesValue={0}
                             onPress={navigateToSelectWorkspaces}
-                            linkRoute={sourcePolicyID ? ROUTES.POLICY_COPY_SETTINGS.getRoute(sourcePolicyID) : undefined}
                         />
                     </View>
                 </ScrollView>

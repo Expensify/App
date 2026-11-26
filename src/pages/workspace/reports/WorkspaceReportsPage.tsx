@@ -139,7 +139,6 @@ function WorkspaceReportFieldsPage({
                                 <View style={styles.mt6}>
                                     <MenuItemSectionRoot
                                         onPress={canWriteReportFields ? () => Navigation.navigate(ROUTES.REPORTS_DEFAULT_TITLE.getRoute(policyID)) : undefined}
-                                        linkRoute={ROUTES.REPORTS_DEFAULT_TITLE.getRoute(policyID)}
                                         sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.REPORTS.CUSTOM_NAME_TITLE}
                                     >
                                         <MenuItemField.Row

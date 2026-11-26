@@ -454,7 +454,6 @@ function WorkspaceTravelBillingSection({policyID}: WorkspaceTravelBillingSection
                 <MenuItemSectionRoot
                     sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.TRAVEL.BILLING_SETTLEMENT_ACCOUNT}
                     onPress={canWriteMoreFeatures ? callIfAuthenticated(() => Navigation.navigate(ROUTES.WORKSPACE_TRAVEL_SETTINGS_ACCOUNT.getRoute(policyID)), session) : undefined}
-                    linkRoute={ROUTES.WORKSPACE_TRAVEL_SETTINGS_ACCOUNT.getRoute(policyID)}
                 >
                     <MenuItem.Row>
                         <MenuItem.Content>
@@ -480,7 +479,6 @@ function WorkspaceTravelBillingSection({policyID}: WorkspaceTravelBillingSection
                 <MenuItemSectionRoot
                     sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.TRAVEL.BILLING_SETTLEMENT_FREQUENCY}
                     onPress={canWriteMoreFeatures ? callIfAuthenticated(() => Navigation.navigate(ROUTES.WORKSPACE_TRAVEL_SETTINGS_FREQUENCY.getRoute(policyID)), session) : undefined}
-                    linkRoute={ROUTES.WORKSPACE_TRAVEL_SETTINGS_FREQUENCY.getRoute(policyID)}
                 >
                     <MenuItemField.Row
                         name={translate('workspace.moreFeatures.travel.travelBilling.travelBillingSection.subsections.settlementFrequencyLabel')}
@@ -501,7 +499,6 @@ function WorkspaceTravelBillingSection({policyID}: WorkspaceTravelBillingSection
                 <MenuItemSectionRoot
                     sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.TRAVEL.BILLING_MONTHLY_LIMIT}
                     onPress={canWriteMoreFeatures ? callIfAuthenticated(() => Navigation.navigate(ROUTES.WORKSPACE_TRAVEL_SETTINGS_MONTHLY_LIMIT.getRoute(policyID)), session) : undefined}
-                    linkRoute={ROUTES.WORKSPACE_TRAVEL_SETTINGS_MONTHLY_LIMIT.getRoute(policyID)}
                 >
                     <MenuItemField.Row
                         name={translate('workspace.moreFeatures.travel.travelBilling.travelBillingSection.subsections.monthlySpendLimitLabel')}

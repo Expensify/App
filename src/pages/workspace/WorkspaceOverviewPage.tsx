@@ -645,7 +645,6 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
                             sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.OVERVIEW.NAME}
                             style={[styles.sectionMenuItemTopDescription, shouldUseNarrowLayout && styles.mt3]}
                             onPress={readOnly ? undefined : callIfAuthenticated(onPressName, session)}
-                            linkRoute={policyID ? ROUTES.WORKSPACE_OVERVIEW_NAME.getRoute(policyID) : undefined}
                         >
                             <MenuItem.Row>
                                 <MenuItem.Content>
@@ -681,7 +680,6 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
                                 <MenuItemSectionRoot
                                     sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.OVERVIEW.DESCRIPTION}
                                     onPress={readOnly ? undefined : callIfAuthenticated(onPressDescription, session)}
-                                    linkRoute={policyID ? ROUTES.WORKSPACE_OVERVIEW_DESCRIPTION.getRoute(policyID) : undefined}
                                 >
                                     <MenuItem.Row>
                                         <MenuItemField.Content name={translate('workspace.editor.descriptionInputLabel')}>
@@ -710,7 +708,6 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
                         >
                             <MenuItemSectionRoot
                                 onPress={readOnly ? undefined : onPressClientID}
-                                linkRoute={policyID ? ROUTES.WORKSPACE_OVERVIEW_CLIENT_ID.getRoute(policyID) : undefined}
                                 sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.OVERVIEW.CLIENT_ID}
                             >
                                 <MenuItemField.Row
@@ -736,7 +733,6 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
                         <View>
                             <MenuItemSectionRoot
                                 onPress={isCurrencyInteractive ? onPressCurrency : undefined}
-                                linkRoute={policyID ? ROUTES.WORKSPACE_OVERVIEW_CURRENCY.getRoute(policyID) : undefined}
                                 sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.OVERVIEW.CURRENCY}
                             >
                                 <MenuItemField.Row
@@ -769,7 +765,6 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
                         <View>
                             <MenuItemSectionRoot
                                 onPress={readOnly ? undefined : onPressTimezone}
-                                linkRoute={policyID ? ROUTES.WORKSPACE_OVERVIEW_TIMEZONE.getRoute(policyID) : undefined}
                                 sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.OVERVIEW.TIMEZONE}
                             >
                                 <MenuItemField.Row
@@ -867,7 +862,6 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
                                 >
                                     <MenuItemSectionRoot
                                         onPress={isEditable ? () => Navigation.navigate(ROUTES.WORKSPACE_OVERVIEW_OFFICE_LOCATION_EDIT.getRoute(routePolicyID, officeID)) : undefined}
-                                        linkRoute={ROUTES.WORKSPACE_OVERVIEW_OFFICE_LOCATION_EDIT.getRoute(routePolicyID, officeID)}
                                         sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.OVERVIEW.OFFICE_LOCATION}
                                     >
                                         <MenuItem.Row>
@@ -892,7 +886,6 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
                         {!readOnly && (
                             <MenuItemSectionRoot
                                 onPress={() => Navigation.navigate(ROUTES.WORKSPACE_OVERVIEW_OFFICE_LOCATION_ADD.getRoute(routePolicyID))}
-                                linkRoute={ROUTES.WORKSPACE_OVERVIEW_OFFICE_LOCATION_ADD.getRoute(routePolicyID)}
                                 sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.OVERVIEW.ADD_OFFICE_LOCATION}
                             >
                                 <MenuItem.Row>
@@ -1004,7 +997,6 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
                                     sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.OVERVIEW.CUSTOM_RULES}
                                     style={shouldShowRulesDocumentSubSection && styles.mt4}
                                     onPress={readOnly ? undefined : callIfAuthenticated(() => Navigation.navigate(ROUTES.RULES_CUSTOM.getRoute(route.params.policyID)), session)}
-                                    linkRoute={ROUTES.RULES_CUSTOM.getRoute(route.params.policyID)}
                                 >
                                     <MenuItem.Row>
                                         <MenuItemField.Content name={translate('workspace.rules.customRules.policyText')}>

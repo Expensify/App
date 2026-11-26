@@ -184,7 +184,7 @@ describe('Composable form picker rows', () => {
             );
 
             // When the user presses the row with a native event.
-            fireEvent.press(screen.getByRole('link'), {nativeEvent: {}, preventDefault: jest.fn()});
+            fireEvent.press(screen.getByRole('button'), {nativeEvent: {}});
 
             // Then navigation still goes to the supplied route.
             expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.HOME);

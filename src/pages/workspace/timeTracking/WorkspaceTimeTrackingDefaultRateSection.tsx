@@ -39,7 +39,6 @@ function WorkspaceTimeTrackingDefaultRateSection({policyID, canWriteMoreFeatures
             <OfflineWithFeedback pendingAction={policy?.pendingFields?.timeTrackingDefaultRate}>
                 <MenuItemSectionRoot
                     onPress={canWriteMoreFeatures ? () => Navigation.navigate(ROUTES.WORKSPACE_TIME_TRACKING_DEFAULT_RATE.getRoute(policyID)) : undefined}
-                    linkRoute={ROUTES.WORKSPACE_TIME_TRACKING_DEFAULT_RATE.getRoute(policyID)}
                     sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.TIME_TRACKING.DEFAULT_RATE}
                 >
                     <MenuItemField.Row

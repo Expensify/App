@@ -227,7 +227,6 @@ function CreateFieldsPage({policy, policyID, isInvoiceField, listValuesRoute, ge
                                     value={listValues}
                                     numberOfLinesValue={5}
                                     onPress={() => Navigation.navigate(listValuesRoute)}
-                                    linkRoute={listValuesRoute}
                                 />
                             )}
 

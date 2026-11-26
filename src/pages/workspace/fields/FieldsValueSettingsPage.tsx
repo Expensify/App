@@ -164,7 +164,6 @@ function FieldsValueSettingsPage({policy, policyID, valueIndex, reportFieldID, i
                         name={translate('common.value')}
                         value={currentValueName ?? oldValueName}
                         onPress={canWrite && !reportFieldID ? navigateToEditValue : undefined}
-                        linkRoute={getEditValueRoute(shouldUseInvoiceRoutes, policyID, valueIndex)}
                     />
                     {canWrite && !isImportedReportField && (
                         <MenuItemAction

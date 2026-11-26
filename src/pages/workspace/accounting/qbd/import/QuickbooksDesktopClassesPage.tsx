@@ -72,7 +72,6 @@ function QuickbooksDesktopClassesPage({policy}: WithPolicyProps) {
                     <View style={styles.mt4}>
                         <MenuItemSectionRoot
                             onPress={() => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_CLASSES_DISPLAYED_AS.getRoute(policyID))}
-                            linkRoute={ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_CLASSES_DISPLAYED_AS.getRoute(policyID)}
                             sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.QBD.CLASSES_DISPLAYED_AS}
                         >
                             <MenuItemField.Row

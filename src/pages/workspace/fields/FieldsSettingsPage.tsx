@@ -129,7 +129,6 @@ function FieldsSettingsPage({
                             sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.REPORT_FIELDS.SETTINGS_LIST_VALUES}
                             name={translate('workspace.reportFields.listValues')}
                             onPress={canWrite ? () => Navigation.navigate(getListValuesRoute(policyID, reportFieldID)) : undefined}
-                            linkRoute={getListValuesRoute(policyID, reportFieldID)}
                             value={listValues.join(', ')}
                             numberOfLinesValue={5}
                         />
@@ -140,7 +139,6 @@ function FieldsSettingsPage({
                             value={getReportFieldInitialValue(reportField, translate)}
                             name={translate('common.initialValue')}
                             onPress={canWrite && !isDateFieldType ? () => Navigation.navigate(getInitialValueRoute(policyID, reportFieldID)) : undefined}
-                            linkRoute={getInitialValueRoute(policyID, reportFieldID)}
                         />
                     )}
                     {canWrite && !isImportedReportField && (

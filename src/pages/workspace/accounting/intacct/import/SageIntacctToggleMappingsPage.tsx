@@ -131,7 +131,6 @@ function SageIntacctToggleMappingsPage({route}: SageIntacctToggleMappingsPagePro
                 <OfflineWithFeedback pendingAction={settingsPendingAction([mappingName], config?.pendingFields)}>
                     <MenuItem.Root
                         onPress={callIfAuthenticated(() => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_MAPPINGS_TYPE.getRoute(policyID, mappingName)), session)}
-                        linkRoute={ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_MAPPINGS_TYPE.getRoute(policyID, mappingName)}
                         sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.SAGE_INTACCT.MAPPING_TYPE}
                     >
                         <MenuItemField.Row

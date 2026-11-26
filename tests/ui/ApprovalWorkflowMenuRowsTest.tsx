@@ -20,7 +20,7 @@ import React from 'react';
 import createMock from '../utils/createMock';
 
 const policyID = 'approval-menu-test';
-const pressEvent = {nativeEvent: {}, preventDefault: jest.fn()};
+const pressEvent = {nativeEvent: {}};
 const mockApprovalWorkflowKey = ONYXKEYS.APPROVAL_WORKFLOW;
 const mockAdditionalApproverEmail = 'additional@example.com';
 let mockWorkflow: ApprovalWorkflowOnyx;
@@ -209,7 +209,7 @@ describe('Approval workflow composed rows', () => {
         renderLimitPage();
 
         // When the named primary approver is pressed
-        fireEvent.press(screen.getByRole('link', {name: 'Approver One'}), pressEvent);
+        fireEvent.press(screen.getByRole('button', {name: 'Approver One'}), pressEvent);
 
         // Then the current approver-change route opens without restoring the removed over-limit picker
         expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_APPROVER_CHANGE.getRoute(policyID, 0));

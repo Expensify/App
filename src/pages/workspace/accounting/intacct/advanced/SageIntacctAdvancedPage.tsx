@@ -160,7 +160,6 @@ function SageIntacctAdvancedPage({policy}: WithPolicyProps) {
                         sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.SAGE_INTACCT.PAYMENT_ACCOUNT}
                         name={translate('workspace.sageIntacct.paymentAccount')}
                         onPress={() => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_PAYMENT_ACCOUNT.getRoute(policyID))}
-                        linkRoute={ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_PAYMENT_ACCOUNT.getRoute(policyID)}
                         value={getReimbursedAccountName(data?.bankAccounts ?? [], sync?.reimbursementAccountID)}
                     >
                         {areSettingsInErrorFields([CONST.SAGE_INTACCT_CONFIG.REIMBURSEMENT_ACCOUNT_ID], errorFields) && (
@@ -177,7 +176,6 @@ function SageIntacctAdvancedPage({policy}: WithPolicyProps) {
                             sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.SAGE_INTACCT.FX_EXPENSE_ACCOUNT}
                             name={translate('workspace.sageIntacct.fxExpenseAccount')}
                             onPress={() => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_FX_EXPENSE_ACCOUNT.getRoute(policyID))}
-                            linkRoute={ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_FX_EXPENSE_ACCOUNT.getRoute(policyID)}
                             value={data?.expenseAccounts?.find((account) => account.id === config?.fxExpenseAccount)?.name}
                         >
                             {areSettingsInErrorFields([CONST.SAGE_INTACCT_CONFIG.FX_EXPENSE_ACCOUNT], errorFields) && (

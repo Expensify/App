@@ -139,7 +139,6 @@ function WorkspaceEditTaxPage({
                             value={currentTaxRate?.name}
                             name={translate('common.name')}
                             onPress={canEditTaxFields ? () => Navigation.navigate(ROUTES.WORKSPACE_TAX_NAME.getRoute(`${policyID}`, taxID)) : undefined}
-                            linkRoute={ROUTES.WORKSPACE_TAX_NAME.getRoute(`${policyID}`, taxID)}
                         />
                     </OfflineWithFeedback>
                     <OfflineWithFeedback
@@ -153,7 +152,6 @@ function WorkspaceEditTaxPage({
                             value={currentTaxRate?.value}
                             name={translate('workspace.taxes.value')}
                             onPress={canEditTaxFields ? () => Navigation.navigate(ROUTES.WORKSPACE_TAX_VALUE.getRoute(`${policyID}`, taxID)) : undefined}
-                            linkRoute={ROUTES.WORKSPACE_TAX_VALUE.getRoute(`${policyID}`, taxID)}
                         />
                     </OfflineWithFeedback>
                     <OfflineWithFeedback

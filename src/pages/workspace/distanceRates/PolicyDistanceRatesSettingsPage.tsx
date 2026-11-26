@@ -224,7 +224,6 @@ function PolicyDistanceRatesSettingsPage({route}: PolicyDistanceRatesSettingsPag
                                     name={translate('workspace.distanceRates.unit')}
                                     value={defaultUnit ? Str.recapitalize(translate(getUnitTranslationKey(defaultUnit))) : ''}
                                     onPress={canWriteDistanceRates ? () => Navigation.navigate(ROUTES.WORKSPACE_DISTANCE_RATES_UNIT.getRoute(policyID)) : undefined}
-                                    linkRoute={ROUTES.WORKSPACE_DISTANCE_RATES_UNIT.getRoute(policyID)}
                                     sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.DISTANCE_RATES.UNIT_SELECTOR}
                                 />
                             </View>
@@ -295,7 +294,6 @@ function PolicyDistanceRatesSettingsPage({route}: PolicyDistanceRatesSettingsPag
                                 name={translate('common.country')}
                                 value={autoUpdateCountry ? translate(`allCountries.${autoUpdateCountry}`) : ''}
                                 onPress={canWriteDistanceRates ? () => Navigation.navigate(ROUTES.WORKSPACE_DISTANCE_RATES_GOVERNMENT_RATE_COUNTRY.getRoute(policyID)) : undefined}
-                                linkRoute={ROUTES.WORKSPACE_DISTANCE_RATES_GOVERNMENT_RATE_COUNTRY.getRoute(policyID)}
                                 sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.DISTANCE_RATES.COUNTRY_SELECTOR}
                             />
                         </OfflineWithFeedback>
@@ -331,7 +329,6 @@ function PolicyDistanceRatesSettingsPage({route}: PolicyDistanceRatesSettingsPag
                                     name={translate('workspace.distanceRates.commuterExclusions.title')}
                                     value={getCommuterExclusionsSummary(policy?.commuterExclusions, defaultUnit, translate)}
                                     onPress={() => Navigation.navigate(ROUTES.WORKSPACE_DISTANCE_RATES_COMMUTER_EXCLUSIONS.getRoute(policyID))}
-                                    linkRoute={ROUTES.WORKSPACE_DISTANCE_RATES_COMMUTER_EXCLUSIONS.getRoute(policyID)}
                                 />
                             </View>
                         </OfflineWithFeedback>

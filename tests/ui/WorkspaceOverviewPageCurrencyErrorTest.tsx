@@ -130,7 +130,7 @@ describe('WorkspaceOverviewPage currency error', () => {
         await waitForBatchedUpdatesWithAct();
 
         // When the composed name row is pressed.
-        fireEvent.press(screen.getByRole('link', {name: `Workspace name, ${name}`}), {nativeEvent: {}, preventDefault: jest.fn()});
+        fireEvent.press(screen.getByRole('button', {name: `Workspace name, ${name}`}), {nativeEvent: {}});
 
         // Then the name retains heading semantics and the original rename destination.
         expect(screen.getByText(name)).toHaveProp('accessibilityRole', CONST.ROLE.HEADER);

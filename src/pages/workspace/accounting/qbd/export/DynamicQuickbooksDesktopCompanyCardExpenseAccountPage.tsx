@@ -145,7 +145,6 @@ function DynamicQuickbooksDesktopCompanyCardExpenseAccountPage({policy}: WithPol
                                 sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.QBD.BILL_DEFAULT_VENDOR}
                                 name={translate('workspace.accounting.defaultVendor')}
                                 onPress={() => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_NON_REIMBURSABLE_DEFAULT_VENDOR_SELECT.getRoute(policyID))}
-                                linkRoute={ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_NON_REIMBURSABLE_DEFAULT_VENDOR_SELECT.getRoute(policyID)}
                                 value={nonReimbursableBillDefaultVendorObject?.name}
                             >
                                 {areSettingsInErrorFields([CONST.QUICKBOOKS_DESKTOP_CONFIG.NON_REIMBURSABLE_BILL_DEFAULT_VENDOR], qbdConfig?.errorFields) && (

@@ -138,7 +138,6 @@ function SageIntacctImportPage({policy}: WithPolicyProps) {
                         sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.SAGE_INTACCT.IMPORT_TAX}
                         name={translate('common.tax')}
                         onPress={() => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_IMPORT_TAX.getRoute(policyID))}
-                        linkRoute={ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_IMPORT_TAX.getRoute(policyID)}
                         value={
                             sageIntacctConfig?.tax?.syncTax ? sageIntacctConfig?.tax?.taxSolutionID || sageIntacctData?.taxSolutionIDs?.at(0) : translate('workspace.accounting.notImported')
                         }
@@ -155,7 +154,6 @@ function SageIntacctImportPage({policy}: WithPolicyProps) {
                     sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.SAGE_INTACCT.USER_DIMENSIONS}
                     name={translate('workspace.intacct.userDefinedDimensions')}
                     onPress={() => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_USER_DIMENSIONS.getRoute(policyID))}
-                    linkRoute={ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_USER_DIMENSIONS.getRoute(policyID)}
                     value={
                         sageIntacctConfig?.mappings?.dimensions && sageIntacctConfig?.mappings?.dimensions?.length > 0
                             ? translate('workspace.intacct.userDimensionsAdded', {count: sageIntacctConfig?.mappings?.dimensions?.length})
