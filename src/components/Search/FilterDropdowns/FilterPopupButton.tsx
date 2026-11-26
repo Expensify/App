@@ -1,5 +1,4 @@
 import PopoverWithMeasuredContent from '@components/PopoverWithMeasuredContent';
-import withViewportOffsetTop from '@components/withViewportOffsetTop';
 
 import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
 import useKeyboardState from '@hooks/useKeyboardState';
@@ -8,6 +7,7 @@ import usePopoverPosition from '@hooks/usePopoverPosition';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useViewportOffsetTop from '@hooks/useViewportOffsetTop';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 
 import CONST from '@src/CONST';
@@ -36,7 +36,6 @@ type ButtonComponentProps = {
 };
 
 type FilterPopupButtonProps = {
-    viewportOffsetTop: number;
     wrapperStyle?: StyleProp<ViewStyle>;
     popoverWidth?: number;
     popoverAnchorAlignment?: AnchorAlignment;
@@ -56,7 +55,6 @@ const ANCHOR_ORIGIN = {
 };
 
 function FilterPopupButton({
-    viewportOffsetTop,
     popoverWidth,
     wrapperStyle,
     popoverAnchorAlignment: popoverAnchorAlignmentProp,
@@ -78,6 +76,9 @@ function FilterPopupButton({
     });
     const StyleUtils = useStyleUtils();
     const {windowHeight} = useWindowDimensions();
+    // Follows visualViewport scroll as well as resize: iOS Safari can fire the keyboard resize before it scrolls the page to the
+    // focused input, and an offset read only on resize then leaves the bottom-docked sheet one keyboard height too high.
+    const viewportOffsetTop = useViewportOffsetTop();
     const triggerRef = useRef<ComponentRef<typeof View> | null>(null);
     const anchorRef = useRef<ComponentRef<typeof View> | null>(null);
     const [isOverlayVisible, setIsOverlayVisible] = useState(false);
@@ -173,4 +174,4 @@ function FilterPopupButton({
 }
 
 export type {PopoverComponentProps, ButtonComponentProps, FilterPopupButtonProps};
-export default withViewportOffsetTop(FilterPopupButton);
+export default FilterPopupButton;
