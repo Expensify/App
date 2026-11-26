@@ -59,7 +59,6 @@ describe('a QA build', () => {
     it.each([CONST.SERVER.PRODUCTION, CONST.SERVER.STAGING])('ignores a stored %s and stays on QA', async (storedServer) => {
         await setActiveServer(storedServer);
 
-        expect(ApiUtils.getActiveServer()).toBe(CONST.SERVER.QA);
         expect(ApiUtils.isQAServerActive()).toBe(true);
         expect(ApiUtils.getApiRoot()).toBe('https://qa.exops.io/');
     });

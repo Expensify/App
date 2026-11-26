@@ -132,9 +132,5 @@ function isQAServerActive(): boolean {
     return getCurrentActiveServerState().activeServer === CONST.SERVER.QA;
 }
 
-function getActiveServer(): Server {
-    return getCurrentActiveServerState().activeServer;
-}
-
 export type {ActiveServerState, Server};
-export {getActiveServer, getApiRoot, getCommandURL, isQAServerActive, resolveActiveServer};
+export {getApiRoot, getCommandURL, isQAServerActive, resolveActiveServer};
