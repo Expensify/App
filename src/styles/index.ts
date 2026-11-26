@@ -2154,13 +2154,13 @@ const staticStyles = (theme: ThemeColors) =>
             boxShadow: theme.shadow,
         },
 
-        floatingSecondaryActionButton: {
-            backgroundColor: theme.buttonDefaultBG,
-            height: variables.componentSizeLarge,
+        // UIKit sizes the slot of an item in the vertical bar after the item's view and pads it above and below, which
+        // would leave the buttons there further apart than they float. The view is shorter than its button by that
+        // padding, and the button, centered in it, covers the padding, so the gap UIKit keeps between two slots is the
+        // one left between the buttons.
+        verticalBarItem: {
             width: variables.componentSizeLarge,
-            borderRadius: variables.componentBorderRadiusCircle,
-            alignItems: 'center',
-            justifyContent: 'center',
+            height: variables.componentSizeLarge - 2 * variables.iosVerticalBarItemViewPadding,
         },
 
         floatingActionButtonSmall: {
