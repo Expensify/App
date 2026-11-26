@@ -965,8 +965,13 @@ describe('AssignCardFeed', () => {
             await pressAssignCard({isCardAlreadyAssigned: false});
 
             // Then the card is assigned for the policy's workspace account
-            expect(assignWorkspaceCompanyCard).toHaveBeenCalledTimes(1);
-            expect(jest.mocked(assignWorkspaceCompanyCard).mock.calls.at(0)?.at(1)).toBe(WORKSPACE_ACCOUNT_ID);
+            expect(assignWorkspaceCompanyCard).toHaveBeenCalledWith(
+                expect.objectContaining({policyAccountID: WORKSPACE_ACCOUNT_ID}),
+                WORKSPACE_ACCOUNT_ID,
+                expect.anything(),
+                undefined,
+                expect.any(Number),
+            );
         });
 
         it('shows the already assigned error instead of assigning a card the workspace already has', async () => {
