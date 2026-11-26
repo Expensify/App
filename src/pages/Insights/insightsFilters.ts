@@ -43,9 +43,9 @@ const DEFAULT_INSIGHTS_FILTERS: Record<InsightsDashboardID, Omit<InsightsFilters
         compare: CONST.SEARCH.COMPARE.PREVIOUS_PERIOD,
     },
     [CONST.INSIGHTS.DASHBOARD.EFFICIENCY]: {
-        date: {preset: CONST.SEARCH.DATE_PRESETS.THIS_YEAR},
+        date: {preset: CONST.SEARCH.DATE_PRESETS.THIS_MONTH},
         policyIDs: [],
-        groupBy: CONST.SEARCH.GROUP_BY.MONTH,
+        groupBy: CONST.SEARCH.GROUP_BY.DAY,
     },
     [CONST.INSIGHTS.DASHBOARD.COMPLIANCE]: {
         date: {preset: CONST.SEARCH.DATE_PRESETS.THIS_MONTH},

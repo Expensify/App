@@ -81,6 +81,27 @@ describe('ContextMenuActions editAction', () => {
         // Then the edit option is hidden because both edit-permission checks rejected it
         expect(result).toBe(false);
     });
+    it('hides the edit option when a support ticket resolves and restores it after reopening', () => {
+        // Given an editable message in an open support ticket
+        jest.spyOn(require('@libs/ReportUtils'), 'canEditReportAction').mockReturnValue(true);
+        const report = createMock<Report>({
+            type: CONST.REPORT.TYPE.SUPPORT_TICKET,
+            stateNum: CONST.REPORT.STATE_NUM.OPEN,
+            statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+        });
+        const args = createMock<ShouldShowArgs>({type: CONST.CONTEXT_MENU_TYPES.REPORT_ACTION, report});
+        expect(shouldShowEditAction(args)).toBe(true);
+
+        // When the ticket resolves, editing must not leave a mobile draft without a composer
+        report.stateNum = CONST.REPORT.STATE_NUM.APPROVED;
+        report.statusNum = CONST.REPORT.STATUS_NUM.CLOSED;
+        expect(shouldShowEditAction(args)).toBe(false);
+
+        // Then reopening the ticket makes the message editable again
+        report.stateNum = CONST.REPORT.STATE_NUM.OPEN;
+        report.statusNum = CONST.REPORT.STATUS_NUM.OPEN;
+        expect(shouldShowEditAction(args)).toBe(true);
+    });
     it("sends the report policy's full policy snapshot marker when opening the expense to edit it", () => {
         // Given a money request action in a workspace expense report whose full policy snapshot is already cached
         const openReportSpy = jest.spyOn(require('@userActions/Report'), 'openReport').mockImplementation(() => {});

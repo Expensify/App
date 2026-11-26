@@ -46,10 +46,10 @@ function EarlyRenewalOfferPage() {
     const illustrations = useMemoizedLazyIllustrations(['IceCreamMenu', 'IceCreamNumberOne', 'IceCreamNumberTwo']);
     const [selectedOfferID, setSelectedOfferID] = useState<IncentivizedOfferID | null>(null);
     const [errorMessage, setErrorMessage] = useState('');
-    const [eligibility, eligibilityMetadata] = useOnyx(ONYXKEYS.EARLY_RENEWAL_OFFER_ELIGIBILITY);
+    const [eligibility] = useOnyx(ONYXKEYS.EARLY_RENEWAL_OFFER_ELIGIBILITY);
     const {isIncentivizedPeriod} = useEarlyRenewalPeriod();
     // Auth would reject a claim from anyone who can't claim right now, so they shouldn't reach the picker by URL
-    const shouldShowNotFound = eligibilityMetadata.status === 'loaded' && (!eligibility?.canClaim || !isIncentivizedPeriod);
+    const shouldShowNotFound = !eligibility?.canClaim || !isIncentivizedPeriod;
 
     const selectOffer = (offerID: IncentivizedOfferID) => {
         setSelectedOfferID(offerID);

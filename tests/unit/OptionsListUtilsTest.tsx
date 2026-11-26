@@ -36,6 +36,7 @@ import {
     getSearchValueForPhoneOrEmail,
     getUserToInviteOption,
     getValidOptions,
+    hasEnabledOptions,
     hydrateContactOption,
     optionsOrderAndGroupBy,
     optionsOrderBy,
@@ -45,7 +46,7 @@ import {
     recentReportComparator,
 } from '@libs/OptionsListUtils';
 import {getCurrentUserSearchTerms, getPersonalDetailSearchTerms} from '@libs/OptionsListUtils/searchMatchUtils';
-import {canCreateTaskInReport, canUserPerformWriteAction, isCanceledTaskReport, isExpensifyOnlyParticipantInReport} from '@libs/ReportUtils';
+import {canCreateTaskInReport, canUserPerformWriteAction, isCanceledTaskReport} from '@libs/ReportUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import SidebarUtils from '@libs/SidebarUtils';
 import sortAlphabetically from '@libs/sortAlphabetically';
@@ -116,6 +117,35 @@ Onyx.connectWithoutView({
 const getReportByIDFromOnyx = (reportID: string | undefined): OnyxEntry<Report> => onyxReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
 
 describe('OptionsListUtils', () => {
+    describe('hasEnabledOptions', () => {
+        it.each([undefined, null, {}, []])('returns false for an absent or empty collection: %p', (options) => {
+            // Given an empty collection or an omitted tags property from an empty policy tag list.
+            // When checking whether it offers anything selectable.
+            const result = hasEnabledOptions(options);
+
+            // Then an empty list cannot make an expense tag row visible.
+            expect(result).toBe(false);
+        });
+
+        it.each([
+            {enabled: false, pendingAction: undefined, expected: false},
+            {enabled: true, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE, expected: false},
+            {enabled: true, pendingAction: undefined, expected: true},
+            {enabled: true, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD, expected: true},
+        ])('preserves option availability for %p', ({enabled, pendingAction, expected}) => {
+            // Given a tag or category whose availability depends on both its enabled state and pending deletion.
+            const option = {name: 'Travel', enabled, pendingAction};
+
+            // When checking either supported collection shape, including a disabled sibling.
+            const arrayResult = hasEnabledOptions([{name: 'Disabled', enabled: false}, option]);
+            const objectResult = hasEnabledOptions({Disabled: {name: 'Disabled', enabled: false}, Travel: option});
+
+            // Then nullish collection handling has not changed which existing options are selectable.
+            expect(arrayResult).toBe(expected);
+            expect(objectResult).toBe(expected);
+        });
+    });
+
     const policyID = 'ABC123';
 
     const POLICY: Policy = {
@@ -3965,7 +3995,7 @@ describe('OptionsListUtils', () => {
                 const report = option.item;
                 const {result: isReportArchived} = renderHook(() => useReportIsArchived(report.reportID));
 
-                if (canUserPerformWriteAction(report, isReportArchived.current) || isExpensifyOnlyParticipantInReport(report)) {
+                if (canUserPerformWriteAction(report, isReportArchived.current)) {
                     filtered.push(option);
                 }
                 return filtered;
@@ -4872,7 +4902,7 @@ describe('OptionsListUtils', () => {
             const filteredReportsWithWorkspaceRooms = Object.values(OPTIONS_WITH_WORKSPACE_ROOM.reports).reduce<OptionList['reports']>((filtered, option) => {
                 const report = option.item;
 
-                if (canUserPerformWriteAction(report, false) || isExpensifyOnlyParticipantInReport(report)) {
+                if (canUserPerformWriteAction(report, false)) {
                     filtered.push(option);
                 }
                 return filtered;
@@ -4941,7 +4971,7 @@ describe('OptionsListUtils', () => {
             const filteredReportsWithWorkspaceRooms = Object.values(OPTIONS_WITH_WORKSPACE_ROOM.reports).reduce<OptionList['reports']>((filtered, option) => {
                 const report = option.item;
 
-                if (canUserPerformWriteAction(report, false) || isExpensifyOnlyParticipantInReport(report)) {
+                if (canUserPerformWriteAction(report, false)) {
                     filtered.push(option);
                 }
                 return filtered;

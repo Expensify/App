@@ -10,7 +10,7 @@ import {isAuthenticationError} from '@libs/actions/connections';
 import Navigation from '@libs/Navigation/Navigation';
 
 import {useAccountingState} from '@pages/workspace/accounting/AccountingContext/contexts';
-import {getInitialSubPageForNetsuiteTokenInput} from '@pages/workspace/accounting/netsuite/utils';
+import {getInitialSubPageForNetsuiteTokenInput, hasNetSuiteOAuthConnection} from '@pages/workspace/accounting/netsuite/utils';
 
 import type {AnchorPosition} from '@styles/index';
 
@@ -37,7 +37,8 @@ function ConnectToNetSuiteFlow({policyID}: ConnectToNetSuiteFlowProps) {
 
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
     const icons = useMemoizedLazyExpensifyIcons(['Copy', 'LinkCopy']);
-    const shouldGoToCredentialsPage = isAuthenticationError(policy, CONST.POLICY.CONNECTIONS.NAME.NETSUITE);
+    // If the admin reuses the connection of another workspace, it replaces this connection. Therefore an OAuth connection goes directly to the credentials step.
+    const shouldGoToCredentialsPage = isAuthenticationError(policy, CONST.POLICY.CONNECTIONS.NAME.NETSUITE) || hasNetSuiteOAuthConnection(policy);
 
     const threeDotsMenuContainerRef = popoverAnchorRefs?.current?.[CONST.POLICY.CONNECTIONS.NAME.NETSUITE];
 

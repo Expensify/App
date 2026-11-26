@@ -6,8 +6,8 @@ import {parseAttributeAsStringArray} from '@components/HTMLEngineProvider/HTMLRe
 import parseRawChartData from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/parseRawChartData';
 import resolveCategoryIndex from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/resolveCategoryIndex';
 
-import type {SkTypeface} from '@shopify/react-native-skia';
 import type {TNode} from 'react-native-render-html';
+import type {SkTypeface} from 'react-native-skia';
 
 /**
  * Parse data points from a `<victorybar>` or `<victoryline>` node.
