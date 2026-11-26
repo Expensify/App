@@ -1,4 +1,3 @@
-import FullscreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Icon from '@components/Icon';
 import getBankIcon from '@components/Icon/BankIcons';
@@ -25,7 +24,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {AccountData, BankAccount} from '@src/types/onyx';
 import type {BankName} from '@src/types/onyx/Bank';
-import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 import React, {useState} from 'react';
 import {View} from 'react-native';
@@ -36,7 +34,7 @@ type BankAccountListItem = ListItem & {
 };
 
 function ChooseTransferAccountPage() {
-    const [walletTransfer, walletTransferResult] = useOnyx(ONYXKEYS.WALLET_TRANSFER);
+    const [walletTransfer] = useOnyx(ONYXKEYS.WALLET_TRANSFER);
 
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -117,10 +115,6 @@ function ChooseTransferAccountPage() {
         onConfirm: saveTransferAccount,
         isDisabled: !currentSelectedAccountID || currentSelectedAccountID === selectedAccountID,
     };
-
-    if (isLoadingOnyxValue(walletTransferResult)) {
-        return <FullscreenLoadingIndicator onGoBack={() => Navigation.goBack(ROUTES.SETTINGS_WALLET_TRANSFER_BALANCE)} />;
-    }
 
     return (
         <ScreenWrapper

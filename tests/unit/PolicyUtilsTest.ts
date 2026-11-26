@@ -4154,6 +4154,15 @@ describe('PolicyUtils', () => {
         });
 
         describe('findPolicyTagAtLevel', () => {
+            it.each([undefined, null])('finds no selected tag in missing tags: %p', (tags) => {
+                // Given a rule retaining a tag from a list with an omitted map.
+                // When resolving that selected value for display.
+                const result = findPolicyTagAtLevel(tags, 'Previous selection', 'Parent');
+
+                // Then there is no matching policy tag rather than a render error.
+                expect(result).toBeUndefined();
+            });
+
             // Dependent tag lists key their tags by the full tag path, so the tag name alone is never a record key
             const dependentLevelTags: PolicyTags = {
                 'California:100:North:20': {name: '20', enabled: true, rules: {parentTagsFilter: '^California\\:100\\:North$'}},

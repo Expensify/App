@@ -11,7 +11,6 @@ import {getEmptyObject} from '@src/types/utils/EmptyObject';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
 import {filterCardsHiddenFromSearch} from '@selectors/Card';
-import {policyIDsWithCategoryRulesSelector} from '@selectors/PolicyCategories';
 import {emailSelector} from '@selectors/Session';
 
 import useLocalize from './useLocalize';
@@ -57,6 +56,7 @@ const typeFiltersKeys = {
         [CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID, CONST.SEARCH.SYNTAX_FILTER_KEYS.FEED, CONST.SEARCH.SYNTAX_FILTER_KEYS.TRANSACTION_STATUS, CONST.SEARCH.SYNTAX_FILTER_KEYS.POSTED],
         [
             CONST.SEARCH.SYNTAX_FILTER_KEYS.REPORT_ID,
+            CONST.SEARCH.SYNTAX_FILTER_KEYS.TRANSACTION_ID,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.REPORT_FIELD,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.SUBMITTER_USER_ID,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.SUBMITTER_PAYROLL_ID,
@@ -328,8 +328,7 @@ function useAdvancedSearchFilters(type: SearchDataTypes | undefined) {
     const isVendorFilterAvailableSelector = (allPolicies: OnyxCollection<Policy>) => hasVendorFeatureOnAnyPolicy(allPolicies, isVendorMatchingBetaEnabled);
     const [isVendorFilterAvailable = false] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: isVendorFilterAvailableSelector});
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
-    const [policyIDsWithCategoryRules] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES, {selector: policyIDsWithCategoryRulesSelector});
-    const shouldDisplayViolationFilter = getHasOptionAvailability(policies, policyIDsWithCategoryRules).shouldShowSubmittedViolation;
+    const shouldDisplayViolationFilter = getHasOptionAvailability(policies).shouldShowSubmittedViolation;
 
     const {workspaces} = useAdvancedSearchFiltersWorkspaces(policies);
 
