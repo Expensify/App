@@ -3423,10 +3423,8 @@ describe('actions/IOU', () => {
                 ownerAccountID: CREATE_TRANSACTION_USER_ACCOUNT_ID,
                 iouReportID: undefined,
             };
-            await Onyx.multiSet({
-                [`${ONYXKEYS.COLLECTION.POLICY}${policyID}`]: policy,
-                [`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`]: chatReport,
-            });
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`, chatReport);
             const tx1 = {...createRandomTransaction(93), transactionID: 'batch-tx-1', amount: 0, currency: 'USD', created: '2026-11-26'};
             const tx2 = {...createRandomTransaction(94), transactionID: 'batch-tx-2', amount: 0, currency: 'USD', created: '2026-11-26'};
 
