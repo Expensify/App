@@ -11,9 +11,11 @@ import {getColumnHiding, getCustomColumnDefault, getValidGroupBy, navigateToSear
 import ROUTES from '@src/ROUTES';
 
 /**
- * @param shownQueryJSON The query whose results the table shows, which decides which of its columns can be hidden
- * @param currentSearchQueryJSON The search the user is on, which a hidden column is taken off. While a filter change loads, the table still shows the
- * previous query's results, and hiding a column from that query would drop the new filter.
+ * @param shownQueryJSON The query whose results are on screen. Its type, grouping, saved columns and violation filter decide which of the
+ * shown columns can be hidden.
+ * @param currentSearchQueryJSON The query of the search the user is on. It differs from `shownQueryJSON` only while a new search loads
+ * and the previous results stay on screen. A hidden column is removed from `currentSearchQueryJSON`, so nothing else the new search
+ * changed is lost.
  * @param columns The columns the table shows, in order
  */
 function useSearchColumnEditing(shownQueryJSON: SearchQueryJSON, currentSearchQueryJSON: SearchQueryJSON, columns: SearchColumnType[]): ColumnEditing {

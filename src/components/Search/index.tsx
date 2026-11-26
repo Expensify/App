@@ -140,7 +140,11 @@ import TaskSearchView from './TaskSearchView';
 import TripSearchView from './TripSearchView';
 
 type SearchProps = {
-    /** The query whose results are on screen. While a filter change loads, it is still the previous query, so a search the user starts from here builds on `currentSearchQueryJSON` instead. */
+    /**
+     * The query whose results are on screen. While a new search loads, the page keeps showing the previous results, so until the new ones
+     * arrive this is the previous query, not the search the user is on. Actions that start another search, like sorting, build on the
+     * current search from `useSearchQueryContext()` instead.
+     */
     queryJSON: SearchQueryJSON;
     hasFilterBars?: boolean;
     onSearchListScroll?: (event: NativeSyntheticEvent<NativeScrollEvent>) => void;
@@ -1017,14 +1021,15 @@ function Search({
 
     const previousColumns = usePrevious(currentColumns);
     const [columnsToShow, setColumnsToShow] = useState<SearchColumnType[]>(getEmptyArray);
-    // While a filter change loads, the table keeps the previous query's results on screen. Sorting and column changes build on the search the
-    // user is on instead, or they would drop the filter that was just applied.
+    // While a new search loads, the page keeps the previous results on screen, so `queryJSON` describes those results, not the search the
+    // user is on. Sorting and column changes build on `currentSearchQueryJSON` instead, so they don't undo what the new search changed.
     const currentSearchQueryJSON = contextSearchQueryJSON ?? queryJSON;
-    // A filter change that switches the type, grouping or view brings a table with other columns and sorts (a line chart resets its sort to
-    // run forward in time), which the table still on screen can't edit.
+    // When the new search has another type, grouping or view, its table has other columns and sort options than the table on screen
+    // (switching to a line chart, for example, resets the sort so time runs forward), so the table on screen offers no column actions until
+    // the new results arrive.
     const canEditShownTable = type === currentSearchQueryJSON.type && validGroupBy === getValidGroupBy(currentSearchQueryJSON.groupBy) && view === currentSearchQueryJSON.view;
-    // A chart still plotting the previous search can't be drilled into: the pressed bar's range could contradict the filter that was just
-    // applied, like a March bar under a Last month date filter, and open an empty list.
+    // A chart that still shows the previous results can't be drilled into, because a pressed bar's range could contradict the new search,
+    // like a March bar under a Last month date filter, and open an empty list.
     const isShowingCurrentSearchResults = hash === currentSearchQueryJSON.hash;
     const columnEditing = useSearchColumnEditing(queryJSON, currentSearchQueryJSON, columnsToShow);
     const pinSearchColumn = usePinSearchColumn(queryJSON, currentSearchQueryJSON, currentSearchKey);

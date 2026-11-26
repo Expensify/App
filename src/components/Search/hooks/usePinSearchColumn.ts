@@ -26,10 +26,13 @@ type PinSearchColumn = {
 };
 
 /**
- * @param shownQueryJSON The query whose results the table shows, which decides whether its columns can be pinned
- * @param currentSearchQueryJSON The search the user is on. While a filter change loads, the table still shows the previous query's results, but the
- * pins to draw and the query a pin changes are this one's, or the pins would drop back and a pin would drop the new filter.
- * @param searchKey The search whose saved filters keep the pins
+ * @param shownQueryJSON The query whose results are on screen. The column menu offers Pin left and Pin right only when this query has no
+ * Group by. Pins apply to the columns of the plain expense table, while a table grouped by, for example, category shows group columns
+ * like Expenses or Total instead.
+ * @param currentSearchQueryJSON The query of the search the user is on. It differs from `shownQueryJSON` only while a new search loads
+ * and the previous results stay on screen. The pins to draw are read from `currentSearchQueryJSON`, and a pin is added to it, so neither
+ * the pins nor anything else the new search changed are lost.
+ * @param searchKey The search, like Expenses or a saved search, that the pinned query is saved under, so it reopens with the pins
  */
 function usePinSearchColumn(shownQueryJSON: SearchQueryJSON, currentSearchQueryJSON: SearchQueryJSON, searchKey: SearchKey | undefined): PinSearchColumn {
     const navigation = useNavigation<PlatformStackNavigationProp<SearchFullscreenNavigatorParamList>>();
@@ -37,8 +40,9 @@ function usePinSearchColumn(shownQueryJSON: SearchQueryJSON, currentSearchQueryJ
 
     const pinColumn = (column: SearchColumnType, side: PinnedColumnSide | undefined) => {
         const query = buildSearchQueryString(getQueryWithPinnedColumns(currentSearchQueryJSON, setColumnPin(pinnedColumns, column, side), queryHasViolationFilter(currentSearchQueryJSON)));
-        // Pins don't change the results, so a pin made while a filter change loads keeps holding the previous results instead of
-        // swapping them for a skeleton.
+        // While a new search loads, SearchPage keeps the previous results on screen only if the new query is marked as a refinement.
+        // Pinning doesn't change which results load, so when the current query has that mark, the pinned query gets it too. Without it,
+        // the previous results would be replaced by a loading skeleton until the new ones arrive.
         if (isQueryARefinement(currentSearchQueryJSON.inputQuery)) {
             markQueryAsRefinement(query);
         }
