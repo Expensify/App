@@ -248,4 +248,38 @@ describe('WorkspaceCardsListLabel', () => {
         expect(mockOpenReport).not.toHaveBeenCalled();
         expect(mockRequestExpensifyCardLimitIncrease).toHaveBeenCalledTimes(1);
     });
+
+    it('skips OpenReport but still requests the limit increase while the app is loading', async () => {
+        // Given pending guided setup and an existing Concierge chat, while the app is still loading
+        await act(async () => {
+            await Onyx.merge(cardSettingsKey, {US: {paymentBankAccountID: 1234, isPaymentBankAccountConnectedWithPlaid: false}});
+            await Onyx.multiSet({
+                [ONYXKEYS.NVP_INTRO_SELECTED]: {choice: CONST.ONBOARDING_CHOICES.ADMIN},
+                [ONYXKEYS.NVP_ONBOARDING]: {hasCompletedGuidedSetupFlow: false},
+                [ONYXKEYS.CONCIERGE_REPORT_ID]: '999',
+                [ONYXKEYS.IS_LOADING_APP]: true,
+            });
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}999`, {reportID: '999'});
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        // When the admin requests a limit increase from the remaining limit info
+        render(
+            <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>
+                <WorkspaceCardsListLabel
+                    type={CONST.WORKSPACE_CARDS_LIST_LABEL_TYPE.REMAINING_LIMIT}
+                    value={100000}
+                />
+            </ComposeProviders>,
+        );
+        await waitForBatchedUpdatesWithAct();
+        fireEvent.press(screen.getByLabelText('Remaining limit'));
+        await waitForBatchedUpdatesWithAct();
+        fireEvent.press(screen.getByText('Request limit increase'));
+        await waitForBatchedUpdatesWithAct();
+
+        // Then ReportFetchHandler's deferred OpenReport is left to run, and the limit increase is still requested
+        expect(mockOpenReport).not.toHaveBeenCalled();
+        expect(mockRequestExpensifyCardLimitIncrease).toHaveBeenCalledTimes(1);
+    });
 });
