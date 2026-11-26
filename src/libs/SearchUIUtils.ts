@@ -213,6 +213,7 @@ import {
     getReportStatusTooltipTranslation,
     getReportStatusTranslation,
     getTransactionDisplayAmount,
+    getTransactionPolicyConvertedDisplayAmount,
     hasHeldExpenses,
     hasInvoiceReports,
     hasReportBeenRejectedToSubmitter,
@@ -234,7 +235,7 @@ import {
     shouldReportShowSubscript,
 } from './ReportUtils';
 import {getAmountFilterDisplayValue} from './SearchAmountFilterUtils';
-import {getCustomColumns, groupByRequiredColumns} from './SearchColumnsUtils';
+import {getCustomColumns, getSortByForColumn, groupByRequiredColumns} from './SearchColumnsUtils';
 import {isReportEntry, TODO_SEARCH_KEYS} from './SearchKeyUtils';
 import {
     buildSearchQueryJSON,
@@ -4663,6 +4664,14 @@ function getSortedTransactionData(
         });
     }
 
+    if (sortBy === CONST.SEARCH.TABLE_COLUMNS.CONVERTED_AMOUNT) {
+        return data.sort((a, b) => {
+            const aValue = getTransactionPolicyConvertedDisplayAmount(a, a.report, a.policy);
+            const bValue = getTransactionPolicyConvertedDisplayAmount(b, b.report, b.policy);
+            return compareValues(aValue, bValue, sortOrder, sortBy, localeCompare, true);
+        });
+    }
+
     if (sortBy === CONST.SEARCH.TABLE_COLUMNS.MCC) {
         return data.sort((a, b) => {
             const aValue = getMCCForDisplay(a.mcc);
@@ -5146,6 +5155,8 @@ function getSearchColumnTranslationKey(column: SearchSortBy, type?: SearchDataTy
             return 'common.violations';
         case CONST.SEARCH.TABLE_COLUMNS.ORIGINAL_AMOUNT:
             return 'common.purchaseAmount';
+        case CONST.SEARCH.TABLE_COLUMNS.CONVERTED_AMOUNT:
+            return 'common.convertedAmount';
         case CONST.SEARCH.TABLE_COLUMNS.REIMBURSABLE:
             return 'common.reimbursable';
         case CONST.SEARCH.TABLE_COLUMNS.BILLABLE:
@@ -5272,26 +5283,6 @@ function getSearchColumnTranslationKey(column: SearchSortBy, type?: SearchDataTy
 
 function isColumnSortable(column: SearchColumnType) {
     return !nonSortableColumns.has(column);
-}
-
-function getSortByForColumn(column: SearchColumnType): SearchSortBy {
-    // The trip columns sort by the trip search's own sort keys
-    if (column === CONST.SEARCH.TABLE_COLUMNS.START_DATE) {
-        return CONST.SEARCH.TABLE_COLUMNS.DATE;
-    }
-    if (column === CONST.SEARCH.TABLE_COLUMNS.TRIP_NAME) {
-        return CONST.SEARCH.TABLE_COLUMNS.TITLE;
-    }
-    if (column === CONST.SEARCH.TABLE_COLUMNS.TRAVELER) {
-        return CONST.SEARCH.TABLE_COLUMNS.FROM;
-    }
-    if (column === CONST.SEARCH.TABLE_COLUMNS.CATEGORY_GL_CODE) {
-        return CONST.SEARCH.SORT_BY_COLUMNS.CATEGORY_GL_CODE;
-    }
-    if (column === CONST.SEARCH.TABLE_COLUMNS.TAG_GL_CODE) {
-        return CONST.SEARCH.SORT_BY_COLUMNS.TAG_GL_CODE;
-    }
-    return column;
 }
 
 type OverflowMenuIconsType = Record<'Pencil' | 'Trashcan' | 'LinkCopy' | 'Checkmark', IconAsset>;
@@ -6042,35 +6033,32 @@ function getApprovedViolationsForTransaction(reportActions: OnyxTypes.ReportActi
 }
 
 /**
- * Returns the violations to show for a transaction based on the current `has` filter.
+ * Returns the names of the violations to show for a transaction based on the current `has` filter.
  * Submitted and approved snapshots are collected independently, then merged in a Set so
  * a search that includes both filters does not list the same violation twice.
  */
+function getViolationNamesForTransaction(reportActions: OnyxTypes.ReportAction[] | undefined, transactionID: string | undefined, has: HasFilterValues | undefined): Set<string> {
+    const violationNames = new Set<string>();
+    if (!reportActions?.length || !transactionID) {
+        return violationNames;
+    }
+    if (has?.includes(CONST.SEARCH.HAS_VALUES.SUBMITTED_VIOLATION)) {
+        collectSubmittedViolationNamesForTransaction(violationNames, reportActions, transactionID);
+    }
+    if (has?.includes(CONST.SEARCH.HAS_VALUES.APPROVED_VIOLATION)) {
+        collectApprovedViolationNamesForTransaction(violationNames, reportActions, transactionID);
+    }
+    return violationNames;
+}
+
+/** Returns the violations to show for a transaction based on the current `has` filter, as one sorted label. */
 function getViolationsForTransaction(
     reportActions: OnyxTypes.ReportAction[] | undefined,
     transactionID: string | undefined,
     has: HasFilterValues | undefined,
     translate?: LocalizedTranslate,
 ): string | undefined {
-    if (!reportActions?.length || !transactionID) {
-        return undefined;
-    }
-
-    const shouldIncludeSubmittedViolations = !!has?.includes(CONST.SEARCH.HAS_VALUES.SUBMITTED_VIOLATION);
-    const shouldIncludeApprovedViolations = !!has?.includes(CONST.SEARCH.HAS_VALUES.APPROVED_VIOLATION);
-    if (!shouldIncludeSubmittedViolations && !shouldIncludeApprovedViolations) {
-        return undefined;
-    }
-
-    const violationNames = new Set<string>();
-    if (shouldIncludeSubmittedViolations) {
-        collectSubmittedViolationNamesForTransaction(violationNames, reportActions, transactionID);
-    }
-    if (shouldIncludeApprovedViolations) {
-        collectApprovedViolationNamesForTransaction(violationNames, reportActions, transactionID);
-    }
-
-    return formatTransactionViolationNames(violationNames, translate);
+    return formatTransactionViolationNames(getViolationNamesForTransaction(reportActions, transactionID, has), translate);
 }
 
 function getTypeOptions(translate: LocalizedTranslate, policies: OnyxCollection<OnyxTypes.Policy>, currentUserLogin?: string) {
@@ -6390,6 +6378,12 @@ const FILTER_TO_SYNTAX_KEY = {
     [FILTER_KEYS.TOTAL_GREATER_THAN]: CONST.SEARCH.SYNTAX_FILTER_KEYS.TOTAL,
     [FILTER_KEYS.TOTAL_GREATER_THAN_OR_EQUAL_TO]: CONST.SEARCH.SYNTAX_FILTER_KEYS.TOTAL,
     [FILTER_KEYS.TOTAL_LESS_THAN_OR_EQUAL_TO]: CONST.SEARCH.SYNTAX_FILTER_KEYS.TOTAL,
+
+    [FILTER_KEYS.CONVERTED_AMOUNT_EQUAL_TO]: CONST.SEARCH.SYNTAX_FILTER_KEYS.CONVERTED_AMOUNT,
+    [FILTER_KEYS.CONVERTED_AMOUNT_LESS_THAN]: CONST.SEARCH.SYNTAX_FILTER_KEYS.CONVERTED_AMOUNT,
+    [FILTER_KEYS.CONVERTED_AMOUNT_GREATER_THAN]: CONST.SEARCH.SYNTAX_FILTER_KEYS.CONVERTED_AMOUNT,
+    [FILTER_KEYS.CONVERTED_AMOUNT_GREATER_THAN_OR_EQUAL_TO]: CONST.SEARCH.SYNTAX_FILTER_KEYS.CONVERTED_AMOUNT,
+    [FILTER_KEYS.CONVERTED_AMOUNT_LESS_THAN_OR_EQUAL_TO]: CONST.SEARCH.SYNTAX_FILTER_KEYS.CONVERTED_AMOUNT,
 
     [FILTER_KEYS.PURCHASE_AMOUNT_EQUAL_TO]: CONST.SEARCH.SYNTAX_FILTER_KEYS.PURCHASE_AMOUNT,
     [FILTER_KEYS.PURCHASE_AMOUNT_LESS_THAN]: CONST.SEARCH.SYNTAX_FILTER_KEYS.PURCHASE_AMOUNT,
@@ -6736,6 +6730,13 @@ const FILTER_VIEW_MAP = {
         advancedFilterSentryLabel: CONST.SENTRY_LABEL.SEARCH.ADVANCED_FILTER.AMOUNT,
         applySentryLabel: CONST.SENTRY_LABEL.SEARCH.FILTER_POPUP_APPLY.AMOUNT,
     },
+    [CONST.SEARCH.SYNTAX_FILTER_KEYS.CONVERTED_AMOUNT]: {
+        labelKey: 'common.convertedAmount',
+        icon: 'Coins',
+        filterSentryLabel: CONST.SENTRY_LABEL.SEARCH.FILTER.CONVERTED_AMOUNT,
+        advancedFilterSentryLabel: CONST.SENTRY_LABEL.SEARCH.ADVANCED_FILTER.CONVERTED_AMOUNT,
+        applySentryLabel: CONST.SENTRY_LABEL.SEARCH.FILTER_POPUP_APPLY.CONVERTED_AMOUNT,
+    },
     [CONST.SEARCH.SYNTAX_FILTER_KEYS.PURCHASE_AMOUNT]: {
         labelKey: 'common.purchaseAmount',
         icon: 'Coins',
@@ -6971,6 +6972,7 @@ function getDisplayValue(
     type: SearchDataTypes,
     translate: LocalizedTranslate,
     localeCompare: LocaleContextProps['localeCompare'],
+    convertToDisplayStringWithoutCurrency: CurrencyListActionsContextType['convertToDisplayStringWithoutCurrency'],
 ) {
     if (key === FILTER_KEYS.TYPE) {
         const filterValue = form[key];
@@ -6997,6 +6999,11 @@ function getDisplayValue(
             ?.sort((a, b) => sortOptionsWithEmptyValue(a, b, localeCompare))
             .map((value) => (value === CONST.SEARCH.VENDOR_EMPTY_VALUE ? translate('search.noVendor') : value))
             .join(', ');
+    }
+
+    // Bare amounts are stored in hundredths, so they need formatting to read as the amount typed in the query
+    if (isAmountFilterKey(removeNegation(key))) {
+        return getAmountFilterDisplayValue(form[key]?.toString(), convertToDisplayStringWithoutCurrency);
     }
 
     if (key === FILTER_KEYS.CURRENCY || key === FILTER_KEYS.CURRENCY_NOT || key === FILTER_KEYS.PURCHASE_CURRENCY || key === FILTER_KEYS.PURCHASE_CURRENCY_NOT) {
@@ -7336,7 +7343,7 @@ function mapFiltersFormToLabelValueList(
 
         const baseKey = removeNegation(key);
         const labelKey = FILTER_VIEW_MAP[baseKey].labelKey;
-        const value = getDisplayValue(key, searchAdvancedFiltersForm, type, translate, localeCompare);
+        const value = getDisplayValue(key, searchAdvancedFiltersForm, type, translate, localeCompare, convertToDisplayStringWithoutCurrency);
         const label = getLabelValue(key, labelKey, translate);
 
         if (label && value && !(Array.isArray(value) && value.length === 0)) {
@@ -7792,6 +7799,7 @@ function getColumnsToShow({
               [CONST.SEARCH.TABLE_COLUMNS.TAX_AMOUNT]: false,
               [CONST.SEARCH.TABLE_COLUMNS.EXCHANGE_RATE]: false,
               [CONST.SEARCH.TABLE_COLUMNS.ORIGINAL_AMOUNT]: false,
+              [CONST.SEARCH.TABLE_COLUMNS.CONVERTED_AMOUNT]: false,
               [CONST.SEARCH.TABLE_COLUMNS.BASE_62_REPORT_ID]: false,
               [CONST.SEARCH.TABLE_COLUMNS.REPORT_ID]: false,
               [CONST.SEARCH.TABLE_COLUMNS.TRANSACTION_ID]: false,
@@ -8768,6 +8776,7 @@ export {
     getViolationFilterOptions,
     getSubmittedViolationsForTransaction,
     getApprovedViolationsForTransaction,
+    getViolationNamesForTransaction,
     getViolationsForTransaction,
     getSettlementStatus,
     getSettlementStatusBadgeProps,

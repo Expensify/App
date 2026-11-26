@@ -225,7 +225,7 @@ To manage MCC default categories:
 
 ## How Workspace Merchant Rules apply categories
 
-Workspace Admins can configure [**Workspace Merchant Rules**](https://help.expensify.com/articles/new-expensify/workspaces/Workspace-Merchant-Rules) to apply consistent categories based on merchant name across all workspace members.
+Workspace Admins can configure [**workspace expense defaults**](/articles/new-expensify/workspaces/Workspace-Rules#how-to-apply-expense-defaults-on-the-expense-defaults-tab) to apply consistent categories based on merchant name across all workspace members.
 
 - Rules apply across all expenses on the workspace.
 - Rules take precedence over learned suggestions.
