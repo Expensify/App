@@ -260,6 +260,22 @@ describe('Middleware', () => {
                 expect((await getOnyxValue(transactionKey))?.comment?.comment).toBe('from server');
             });
 
+            test('applies a SearchForTodos response when only an OpenReport WRITE was made while it was in flight', async () => {
+                // Given a SearchForTodos READ that is sent before the user opens a report
+                const readRequest = prepareRequest(READ_COMMANDS.SEARCH_FOR_TODOS, CONST.API_REQUEST_TYPE.READ, null);
+                const xhrSpy = jest.spyOn(HttpUtils, 'xhr').mockResolvedValueOnce(buildResponse('from server'));
+                processRequest(readRequest, CONST.API_REQUEST_TYPE.READ);
+
+                // When an OpenReport WRITE is made while the READ is in flight
+                prepareRequest(WRITE_COMMANDS.OPEN_REPORT, CONST.API_REQUEST_TYPE.WRITE, {reportID: '1'});
+                await waitForBatchedUpdates();
+                await waitForNetworkPromises();
+
+                // Then the response is applied and not sent again, because OpenReport only loads the report and does not change data that SearchForTodos returns
+                expect(xhrSpy).toHaveBeenCalledTimes(1);
+                expect((await getOnyxValue(transactionKey))?.comment?.comment).toBe('from server');
+            });
+
             test('applies a READ that is not in the allowlist even when a newer WRITE exists', async () => {
                 // Given a READ that is not known to bring back stale data, sent before a WRITE
                 const readRequest = prepareRequest(READ_COMMANDS.OPEN_SEARCH_PAGE, CONST.API_REQUEST_TYPE.READ, {});

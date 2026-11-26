@@ -19,6 +19,8 @@ import Onyx from 'react-native-onyx';
 
 import type {ApiCommand, ApiRequestCommandParameters, ApiRequestType} from './types';
 
+import {WRITE_COMMANDS} from './types';
+
 // Use timestamp-based IDs to avoid collisions between browser tabs.
 // Each tab has its own JS context with its own counter, so a simple
 // incrementing number would collide across tabs.
@@ -26,6 +28,8 @@ let requestIndex = Date.now();
 
 // The requestIndex of the newest WRITE prepared so far, so a READ response can tell whether a WRITE was made after the READ was sent
 let latestWriteRequestIndex = 0;
+
+const writesThatKeepReadsCurrent = new Set<string>([WRITE_COMMANDS.OPEN_REPORT]);
 
 function getLatestWriteRequestIndex(): number {
     return latestWriteRequestIndex;
@@ -93,7 +97,9 @@ function prepareRequest<TCommand extends ApiCommand, TKey extends OnyxKey>(
     };
 
     if (isWriteRequest) {
-        latestWriteRequestIndex = currentRequestIndex;
+        if (!writesThatKeepReadsCurrent.has(command)) {
+            latestWriteRequestIndex = currentRequestIndex;
+        }
         // This should be removed once we are no longer using deprecatedAPI https://github.com/Expensify/Expensify/issues/215650
         request.data.shouldRetry ??= true;
         request.data.canCancel = true;
