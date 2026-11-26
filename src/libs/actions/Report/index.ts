@@ -202,6 +202,7 @@ import {
     getConvertedAmount,
     getNegatedAmountTransaction,
     hasAppliedCommuterExclusion,
+    hasValidModifiedAmount,
     isOnHold,
     isManualDistanceRequest,
     isOdometerDistanceRequest,
@@ -9130,55 +9131,71 @@ function buildOptimisticChangePolicyData({
     }
 
     // 7. Repricing can change totals even when the report's output currency stays the same.
-    // Cached totals can include foreign expenses whose individual conversions have not loaded yet.
-    // Keep those totals and their preview until the server can value every unchanged expense.
-    const hasUnvaluedUnchangedForeignExpense =
-        hasRepricedTransaction &&
-        sourceCurrency === destinationCurrency &&
-        updatedReportTransactions.some((transaction, index) => {
-            if (transaction.convertedAmount != null || getCurrency(transaction) === destinationCurrency) {
-                return false;
+    if (destinationCurrency && ((sourceCurrency && sourceCurrency !== destinationCurrency) || hasRepricedTransaction)) {
+        const isReportCurrencyUnchanged = sourceCurrency === destinationCurrency;
+        const getReportCurrencyAmount = (transaction: Transaction, canUseConversion: boolean): number | undefined => {
+            if (getCurrency(transaction) === destinationCurrency) {
+                if (transaction.amount == null && !hasValidModifiedAmount(transaction)) {
+                    return undefined;
+                }
+                return getAmount(transaction, true);
             }
+            return canUseConversion && transaction.convertedAmount != null ? getConvertedAmount(transaction, true) : undefined;
+        };
+        const hasUnvaluedTransaction = updatedReportTransactions.some((transaction, index) => {
             const originalTransaction = activeReportTransactions[index];
-            return getAmount(transaction, true) === getAmount(originalTransaction, true) && getCurrency(transaction) === getCurrency(originalTransaction);
+            const isPriceUnchanged = getAmount(transaction, true) === getAmount(originalTransaction, true) && getCurrency(transaction) === getCurrency(originalTransaction);
+            return getReportCurrencyAmount(transaction, isReportCurrencyUnchanged && isPriceUnchanged) === undefined;
         });
-    if (destinationCurrency && !hasUnvaluedUnchangedForeignExpense && ((sourceCurrency && sourceCurrency !== destinationCurrency) || hasRepricedTransaction)) {
-        let newTotal = 0;
-        let newUnheldTotal = 0;
-        let newNonReimbursableTotal = 0;
-        let newUnheldNonReimbursableTotal = 0;
-        let newReimbursableTotal = 0;
-        let newUnheldReimbursableTotal = 0;
+        // Unknown FX may already be included in cached totals, or excluded for an expense added offline.
+        // Apply only known differences to that baseline and leave absent subtotals unknown.
+        const shouldAdjustCachedTotals = isReportCurrencyUnchanged && hasUnvaluedTransaction;
+        let newTotal = shouldAdjustCachedTotals ? report.total : 0;
+        let newUnheldTotal = shouldAdjustCachedTotals ? report.unheldTotal : 0;
+        let newNonReimbursableTotal = shouldAdjustCachedTotals ? report.nonReimbursableTotal : 0;
+        let newUnheldNonReimbursableTotal = shouldAdjustCachedTotals ? report.unheldNonReimbursableTotal : 0;
+        let newReimbursableTotal = shouldAdjustCachedTotals ? report.reimbursableTotal : 0;
+        let newUnheldReimbursableTotal = shouldAdjustCachedTotals ? report.unheldReimbursableTotal : 0;
 
         for (const [index, transaction] of updatedReportTransactions.entries()) {
-            const transactionCurrency = getCurrency(transaction);
             const originalTransaction = activeReportTransactions[index];
-            const canKeepConversion =
-                sourceCurrency === destinationCurrency &&
-                getAmount(transaction, true) === getAmount(originalTransaction, true) &&
-                transactionCurrency === getCurrency(originalTransaction) &&
-                transaction.convertedAmount != null;
+            const isPriceUnchanged = getAmount(transaction, true) === getAmount(originalTransaction, true) && getCurrency(transaction) === getCurrency(originalTransaction);
+            const updatedAmount = getReportCurrencyAmount(transaction, isReportCurrencyUnchanged && isPriceUnchanged);
+            let transactionAmount = updatedAmount;
+            if (shouldAdjustCachedTotals) {
+                if (isPriceUnchanged) {
+                    continue;
+                }
+                const originalAmount = getReportCurrencyAmount(originalTransaction, true);
+                if (originalAmount === undefined || updatedAmount === undefined) {
+                    continue;
+                }
+                transactionAmount = updatedAmount - originalAmount;
+            }
+            if (transactionAmount === undefined) {
+                continue;
+            }
 
-            // Preserve valid conversions of unrelated expenses, including refunds.
-            if (transactionCurrency === destinationCurrency || canKeepConversion) {
-                const transactionAmount = transactionCurrency === destinationCurrency ? getAmount(transaction, true) : getConvertedAmount(transaction, true);
+            if (newTotal !== undefined) {
                 newTotal -= transactionAmount;
-                // `unheldTotal` is the signed sum of the transactions that are not on hold, so it has to be
-                // recomputed here too. `getNonHeldAndFullAmount` prefers it over the derived sum, so leaving the
-                // old-currency value behind would show the hold and Pay amounts in the source currency.
-                if (!isOnHold(transaction)) {
-                    newUnheldTotal -= transactionAmount;
-                }
-                if (!transaction.reimbursable) {
+            }
+            // Keep the signed hold and reimbursement subtotals in step with the same contribution or delta.
+            if (!isOnHold(transaction) && newUnheldTotal !== undefined) {
+                newUnheldTotal -= transactionAmount;
+            }
+            if (!transaction.reimbursable) {
+                if (newNonReimbursableTotal !== undefined) {
                     newNonReimbursableTotal -= transactionAmount;
-                } else {
-                    newReimbursableTotal -= transactionAmount;
-                    if (!isOnHold(transaction)) {
-                        newUnheldReimbursableTotal -= transactionAmount;
-                    }
                 }
-                if (!transaction.reimbursable && !isOnHold(transaction)) {
+                if (!isOnHold(transaction) && newUnheldNonReimbursableTotal !== undefined) {
                     newUnheldNonReimbursableTotal -= transactionAmount;
+                }
+            } else {
+                if (newReimbursableTotal !== undefined) {
+                    newReimbursableTotal -= transactionAmount;
+                }
+                if (!isOnHold(transaction) && newUnheldReimbursableTotal !== undefined) {
+                    newUnheldReimbursableTotal -= transactionAmount;
                 }
             }
         }
@@ -9205,7 +9222,7 @@ function buildOptimisticChangePolicyData({
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
             value: {
                 pendingFields: {
-                    total: null,
+                    total: report.pendingFields?.total ?? null,
                 },
             },
         });

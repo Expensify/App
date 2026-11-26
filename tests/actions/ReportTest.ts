@@ -6925,7 +6925,7 @@ describe('actions/Report', () => {
                         expect(typeof entry.transactionThreadCreatedReportActionID).toBe('string');
                         expect(updated?.transactionThreadReportID).toBe(threadID);
                     }
-                    expect((await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`))?.total).toBe(scenario === 'currency' ? 0 : -800);
+                    expect((await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`))?.total).toBe(scenario === 'currency' ? -500 : -800);
                 }
                 if (scenario === 'currency') {
                     expect(updated?.modifiedCurrency).toBe('EUR');
@@ -7289,8 +7289,12 @@ describe('actions/Report', () => {
             };
 
             // When a USD distance expense reprices without changing the report's output currency
-            const {params} = await changeWorkspace({transactions: [distance, foreignDebit, foreignRefund], reportOverrides: originalTotals});
-            const expectedOptimisticTotals = conversion === 'missing' ? originalTotals : repricedTotals;
+            const previousTotalPending = fails || conversion === 'known' ? CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE : undefined;
+            const {params} = await changeWorkspace({
+                transactions: [distance, foreignDebit, foreignRefund],
+                reportOverrides: {...originalTotals, pendingFields: {total: previousTotalPending, reportName: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}},
+            });
+            const expectedOptimisticTotals = repricedTotals;
             const updatedReport = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
             const previewChatID = updatedReport?.parentReportID;
             if (!previewChatID) {
@@ -7298,9 +7302,10 @@ describe('actions/Report', () => {
             }
             const getPreview = async () => (await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${previewChatID}`))?.[params.reportPreviewReportActionID];
 
-            // Then missing FX keeps every cached subtotal and preview, while known conversions retain signed contributions
+            // Then the known USD delta updates totals and preview without changing any cached foreign contribution
             expect((await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${distance.transactionID}`))?.modifiedAmount).toBe(-800);
             expect(updatedReport).toMatchObject(expectedOptimisticTotals);
+            expect(updatedReport?.pendingFields?.total).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
             const expectedPreviewAmount = (Math.abs(expectedOptimisticTotals.total) / 100).toFixed(2);
             expect(getReportActionMessage(await getPreview())?.text).toContain(`$${expectedPreviewAmount}`);
             expect(await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${foreignDebit.transactionID}`)).toEqual(foreignDebit);
@@ -7325,12 +7330,105 @@ describe('actions/Report', () => {
             await waitForNetworkPromises();
             await waitForBatchedUpdates();
             expect(await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`)).toMatchObject(fails ? originalTotals : repricedTotals);
+            const reconciledReport = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
+            expect(reconciledReport?.pendingFields?.total).toBe(previousTotalPending);
+            expect(reconciledReport?.pendingFields?.reportName).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
             if (fails) {
                 expect(await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${distance.transactionID}`)).toEqual(distance);
                 expect(await getPreview()).toBeUndefined();
             } else {
                 expect(getReportActionMessage(await getPreview())?.text).toContain(`$${(Math.abs(repricedTotals.total) / 100).toFixed(2)}`);
             }
+        });
+
+        it('updates the USD total when a foreign expense added offline has no cached contribution', async () => {
+            // Given the cached USD total excludes a newly added CAD expense awaiting conversion
+            const distance = createDistanceTransaction();
+            const foreign: OnyxTypes.Transaction = {
+                ...distance,
+                transactionID: 'offlineCADExpense',
+                amount: -1000,
+                currency: 'CAD',
+                iouRequestType: undefined,
+                comment: {comment: 'Offline purchase'},
+                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+            };
+            const originalTotals = {total: -500, unheldTotal: -500, reimbursableTotal: -500, unheldReimbursableTotal: -500, nonReimbursableTotal: 0, unheldNonReimbursableTotal: 0};
+
+            // When moving the report reprices its USD expense from five to eight dollars
+            const {params} = await changeWorkspace({transactions: [distance, foreign], reportOverrides: originalTotals});
+
+            // Then the known difference applies immediately and the unresolved report total is visibly pending
+            const updatedReport = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
+            expect(updatedReport).toMatchObject({
+                total: -800,
+                unheldTotal: -800,
+                reimbursableTotal: -800,
+                unheldReimbursableTotal: -800,
+                nonReimbursableTotal: 0,
+                unheldNonReimbursableTotal: 0,
+                pendingFields: {total: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
+            });
+            expect((await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${distance.transactionID}`))?.modifiedAmount).toBe(-800);
+            expect(await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${foreign.transactionID}`)).toEqual(foreign);
+            const previews = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${updatedReport?.parentReportID}`);
+            expect(getReportActionMessage(previews?.[params.reportPreviewReportActionID])?.text).toContain('$8.00');
+            mockFetch.fail();
+            await mockFetch.resume();
+            await waitForBatchedUpdates();
+            const restored = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
+            expect(restored).toMatchObject(originalTotals);
+            expect(restored?.pendingFields?.total).toBeUndefined();
+        });
+
+        it('does not invent missing cached subtotals while applying a known repricing delta', async () => {
+            // Given only the report total is cached and an unchanged foreign expense has no conversion
+            const foreign: OnyxTypes.Transaction = {
+                ...createDistanceTransaction(),
+                transactionID: 'foreignExpense',
+                currency: 'CAD',
+                iouRequestType: undefined,
+                comment: {comment: 'Foreign purchase'},
+            };
+            const missingSubtotals = {
+                unheldTotal: undefined,
+                reimbursableTotal: undefined,
+                unheldReimbursableTotal: undefined,
+                nonReimbursableTotal: undefined,
+                unheldNonReimbursableTotal: undefined,
+            };
+
+            // When the USD expense reprices but the missing foreign contribution cannot be reconstructed
+            await changeWorkspace({transactions: [createDistanceTransaction(), foreign], reportOverrides: {total: -500, ...missingSubtotals}});
+
+            // Then the known total delta is applied without assuming any unknown subtotal was zero
+            const updatedReport = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
+            expect(updatedReport?.total).toBe(-800);
+            expect(updatedReport?.pendingFields?.total).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
+            for (const field of ['unheldTotal', 'reimbursableTotal', 'unheldReimbursableTotal', 'nonReimbursableTotal', 'unheldNonReimbursableTotal'] as const) {
+                expect(updatedReport?.[field]).toBeUndefined();
+            }
+        });
+
+        it('keeps a currency reprice with unknown FX pending and restores the original conversion on failure', async () => {
+            // Given a USD report expense with a cached conversion that will be invalid after an EUR rate is selected
+            const distance = {...createDistanceTransaction(), convertedAmount: -500};
+
+            // When its fallback changes the expense currency without supplying a fresh USD conversion
+            await changeWorkspace({transactions: [distance], policy: createDistancePolicy('destination', 80, 'EUR')});
+
+            // Then the old report contribution is retained as pending, not replaced with a fabricated conversion
+            const updatedReport = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
+            expect(updatedReport?.total).toBe(-500);
+            expect(updatedReport?.pendingFields?.total).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
+            const updatedTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${distance.transactionID}`);
+            expect(updatedTransaction?.modifiedCurrency).toBe('EUR');
+            expect(updatedTransaction?.convertedAmount).toBeUndefined();
+            mockFetch.fail();
+            await mockFetch.resume();
+            await waitForBatchedUpdates();
+            expect(await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${distance.transactionID}`)).toEqual(distance);
+            expect((await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`))?.pendingFields?.total).toBeUndefined();
         });
 
         it('recomputes all violations and rolls back expense fields, totals and newly created threads on failure', async () => {
