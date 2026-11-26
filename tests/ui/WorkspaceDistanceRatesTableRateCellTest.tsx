@@ -61,8 +61,8 @@ type RenderOptions = {
     canEditRate: boolean;
 };
 
-async function renderTable({canWriteDistanceRates, canEditRate}: RenderOptions) {
-    render(
+function buildTable({canWriteDistanceRates, canEditRate}: RenderOptions) {
+    return (
         <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, CurrentReportIDContextProvider]}>
             <PortalProvider>
                 <ModalProvider>
@@ -84,9 +84,19 @@ async function renderTable({canWriteDistanceRates, canEditRate}: RenderOptions) 
                     </NavigationContainer>
                 </ModalProvider>
             </PortalProvider>
-        </ComposeProviders>,
+        </ComposeProviders>
     );
+}
+
+/** Renders the table and returns a function that rerenders it with new options, like a row changing on screen. */
+async function renderTable(options: RenderOptions) {
+    const {rerender} = render(buildTable(options));
     await waitForBatchedUpdatesWithAct();
+
+    return async (nextOptions: RenderOptions) => {
+        rerender(buildTable(nextOptions));
+        await waitForBatchedUpdatesWithAct();
+    };
 }
 
 /** The row that lays out the rate text and the bolt after it: the closest view around the rate text. */
@@ -135,12 +145,17 @@ describe('WorkspaceDistanceRatesTable rate cell', () => {
         expect(getRateTextRow()).toHaveStyle({paddingRight: variables.editableCellEditButtonClearance});
     });
 
-    it('keeps the room for the edit button while the rate cannot be edited for now', async () => {
-        // Given a member who can edit rates, whose rate can't be edited right now, as in selection mode
-        // When the table renders the row
-        await renderTable({canWriteDistanceRates: true, canEditRate: false});
+    it('keeps the room for the edit button when the rate stops being editable, as in selection mode', async () => {
+        // Given a member who can edit rates, with the edit button showing after the bolt
+        const rerenderTable = await renderTable({canWriteDistanceRates: true, canEditRate: true});
+        await waitFor(() => {
+            expect(screen.getByLabelText(TestHelper.translateLocal('common.edit'))).toBeOnTheScreen();
+        });
 
-        // Then the room stays without the button, so the bolt doesn't move when selection mode starts or ends
+        // When the rate stops being editable, as when selection mode starts
+        await rerenderTable({canWriteDistanceRates: true, canEditRate: false});
+
+        // Then the button goes away but its room stays, so the bolt doesn't move
         expect(screen.queryByLabelText(TestHelper.translateLocal('common.edit'))).not.toBeOnTheScreen();
         expect(getRateTextRow()).toHaveStyle({paddingRight: variables.editableCellEditButtonClearance});
     });
