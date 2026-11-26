@@ -1,6 +1,6 @@
 /**
- * Builds the rows of the Exclude panel: every item of a ranking chart with data for the dashboard's filters, ranked and valued the way the chart ranks them,
- * plus the saved exclusions with no data for the filters, so they can still be removed. Excluded items open at the top.
+ * Builds the rows of the Exclude panel: the items of a ranking chart that GetInsights returns for the dashboard's filters (capped server side, e.g. at 10),
+ * ranked and valued the way the chart ranks them, plus the saved exclusions missing from that data, so they can still be removed. Excluded items open at the top.
  */
 import formatChartCount from '@components/Charts/utils/formatChartCount';
 import CHART_GROUP_BY_CONFIG from '@components/Search/chartGroupByConfig';
@@ -59,7 +59,7 @@ function useInsightsExcludeItems({dashboardID, chart, selectedItemKeys, initialS
     const {filters, isResolved} = useInsightsFilters(dashboardID);
     const queryJSON = isResolved && chart.groupBy ? buildDashboardQuery(applyInsightsFilters(chart, filters), dashboardID) : undefined;
     const [snapshot] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${queryJSON?.hash}`);
-    // Every ranked item, not only the ones the chart shows, so an item can be excluded before it moves up
+    // Every item the snapshot holds, not only the ones the chart shows, so an item can be excluded before it moves up
     const rankedItems = useGroupedItems(normalizeInsightsSnapshot(snapshot, queryJSON?.groupBy), queryJSON && {...queryJSON, limit: undefined});
     const isPeople = isPeopleChart(chart.rankedItems);
     const itemsWithData = (rankedItems ?? []).filter((item) => item.count > 0 && hasChartedValue(item, chart.metric));
