@@ -702,6 +702,18 @@ describe('insightsQueries', () => {
             expect(query).toContain(`${CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE}>=2025-10-01`);
             expect(query).toContain(`${CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE}<=2026-11-24`);
         });
+
+        it('reaches back to the oldest year the section lists', () => {
+            // Given a This year dashboard, whose Recent history lists 2026 so far and the three years before it
+            const filters: InsightsFilters = {...FILTERS, date: {preset: CONST.SEARCH.DATE_PRESETS.THIS_YEAR}};
+
+            // When the query behind Recent history's View all is built
+            const query = buildRecentHistoryQueryString(filters, CONST.SEARCH.GROUP_BY.YEAR, '2026-11-24', 'merchant="Amazon"');
+
+            // Then it starts on January 1, 2023 rather than at last year, so every listed year can be found on Spend
+            expect(query).toContain(`${CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE}>=2023-01-01`);
+            expect(query).toContain(`${CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE}<=2026-11-24`);
+        });
     });
 
     describe('buildFutureExpensesQueryString', () => {
