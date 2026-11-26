@@ -1027,7 +1027,7 @@ const staticStyles = (theme: ThemeColors) =>
         // Nested rows have no icon, so they indent by the row padding plus the icon's width. Their label then starts
         // at the same x as the labels of the rows above them.
         flatNavigationBarSubItem: {
-            paddingLeft: navigationRowPaddingHorizontal + variables.iconSizeNormal,
+            paddingLeft: navigationRowPaddingHorizontal + variables.iconSizeNormal + variables.flatNavigationBarItemGap,
             borderRadius: 0,
         },
 
@@ -1078,11 +1078,11 @@ const staticStyles = (theme: ThemeColors) =>
 
         // The line stops short of the rows above and below the group, so it reads as belonging to the sub-rows alone.
         flatNavigationBarSubItemRuleFirst: {
-            top: 8,
+            top: 4,
         },
 
         flatNavigationBarSubItemRuleLast: {
-            bottom: 8,
+            bottom: 4,
         },
 
         // A stub of line laid over the resting rule, centred on it so it reads as that line lighting up.

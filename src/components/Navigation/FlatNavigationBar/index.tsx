@@ -23,6 +23,7 @@ import {
 } from '@components/Navigation/SearchSidebarCollapseStore';
 import useSupportalSwitcherVisibility from '@components/Navigation/SupportalSwitcher/useSupportalSwitcherVisibility';
 import ScrollView from '@components/ScrollView';
+import {useSearchQueryContext, useSearchSelectionActions} from '@components/Search/SearchContext';
 
 import useAccountTabIndicatorStatus from '@hooks/useAccountTabIndicatorStatus';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -31,15 +32,24 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useRestoreWorkspacesTabOnNavigate from '@hooks/useRestoreWorkspacesTabOnNavigate';
+import useSingleExecution from '@hooks/useSingleExecution';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useTodoCounts from '@hooks/useTodoCounts';
 import useWorkspacesTabIndicatorStatus from '@hooks/useWorkspacesTabIndicatorStatus';
 
+import {setSearchContext} from '@libs/actions/Search';
 import clearSelectedText from '@libs/clearSelectedText/clearSelectedText';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import isHTMLElement from '@libs/isHTMLElement';
 import {setIsSearchTabHovered} from '@libs/Navigation/helpers/searchTabPreloadStore';
 import Navigation from '@libs/Navigation/Navigation';
+import {savedSearchIDToSearchKey} from '@libs/SearchKeyUtils';
+import navigateToCannedSpendSearch from '@libs/SearchNavigationUtils';
+import {getValidLastQuery} from '@libs/SearchQueryUtils';
+import type {SearchTypeMenuItem} from '@libs/SearchUIUtils';
+import {formatBadgeText, getItemBadgeText, getLastSearchQuery, getSearchTypeMenuItemSentryLabel} from '@libs/SearchUIUtils';
+import {ACCOUNTING_KEYS, EXPENSES_KEYS, getGroupedSearchTranslationPath, REPORTS_KEYS} from '@libs/SpendNavigationGroups';
 
 import {requestNewConciergeQuestion} from '@pages/AskConcierge/NewQuestionStore';
 import useCreateMenuVisibility from '@pages/inbox/sidebar/FABPopoverContent/useCreateMenuVisibility';
@@ -64,7 +74,10 @@ import FlatNavCreateButton from './FlatNavCreateButton';
 import FlatNavDivider from './FlatNavDivider';
 import FlatNavItem from './FlatNavItem';
 import FlatNavLogo from './FlatNavLogo';
+import FlatNavSavedSearches from './FlatNavSavedSearches';
+import FlatNavSubItemList from './FlatNavSubItemList';
 import FlatNavSupportalItem from './FlatNavSupportalItem';
+import useFlatNavSpendItems from './useFlatNavSpendItems';
 
 /** Destinations the design calls for that have no page yet, shown only while the debug toggle is on. */
 const PLACEHOLDER_DESTINATIONS = [
@@ -112,12 +125,27 @@ function FlatNavigationBar({selectedTab}: FlatNavigationBarProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [isDebugModeEnabled] = useOnyx(ONYXKEYS.IS_DEBUG_MODE_ENABLED);
-    const icons = useMemoizedLazyExpensifyIcons(['Home', 'Inbox', 'ReceiptMultiple', 'PieChart', 'Buildings', 'Concierge', 'Coins', 'InvoiceGeneric', 'LuggageWithLines']);
+    const icons = useMemoizedLazyExpensifyIcons([
+        'Home',
+        'Inbox',
+        'Receipt',
+        'Document',
+        'Connect',
+        'Bookmark',
+        'PieChart',
+        'Buildings',
+        'Concierge',
+        'Coins',
+        'InvoiceGeneric',
+        'LuggageWithLines',
+    ]);
     const theme = useTheme();
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const [shouldShowExtraNavItems = false] = useOnyx(ONYXKEYS.SHOULD_SHOW_EXTRA_NAV_ITEMS);
     const [shouldShowAskConciergeNavItem = true] = useOnyx(ONYXKEYS.SHOULD_SHOW_ASK_CONCIERGE_NAV_ITEM);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const [searchFilters] = useOnyx(ONYXKEYS.SEARCH_FILTERS);
+    const [savedSearches] = useOnyx(ONYXKEYS.SAVED_SEARCHES);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const {isCollapsed, isPeeking, isVisuallyCollapsed, toggleSidebar, startPeek, endPeek} = useSearchSidebarCollapse(COLLAPSE_SURFACE.NAVIGATION_BAR);
 
@@ -140,6 +168,87 @@ function FlatNavigationBar({selectedTab}: FlatNavigationBarProps) {
 
     const navigateToHome = useHomeTabNavigation(isHomeSelected);
     const navigateToAccount = useAccountTabNavigation(isAccountSelected);
+
+    // Spend is listed as its groups rather than as one row: Expenses, Reports, Accounting and Saved, each opening
+    // into its own searches.
+    const {singleExecution} = useSingleExecution();
+    const {currentSearchKey} = useSearchQueryContext();
+    const {clearSelectedTransactions} = useSearchSelectionActions();
+    const {counts: reportCounts} = useTodoCounts();
+    const {expenses, reports, accounting} = useFlatNavSpendItems();
+
+    // Read once, outside the conditional rows, so the route stays cached between renders.
+    const spendLinkRoute = getSignedInLinkRoute(storedSearchTabRoute);
+
+    const isSpendTabSelected = selectedTab === NAVIGATION_TABS.SEARCH;
+    const isExpensesGroupSelected = isSpendTabSelected && EXPENSES_KEYS.some((key) => key === currentSearchKey);
+    const isReportsGroupSelected = isSpendTabSelected && REPORTS_KEYS.some((key) => key === currentSearchKey);
+    const isAccountingGroupSelected = isSpendTabSelected && ACCOUNTING_KEYS.some((key) => key === currentSearchKey);
+    const isSavedGroupSelected = isSpendTabSelected && !!currentSearchKey?.startsWith(CONST.SEARCH.SAVED_SEARCH_PREFIX);
+
+    // The parent row of Expenses and Reports is the group's broadest search, so it leads nowhere new as a child.
+    // What is left under it are the narrower searches, and a user who only ever sees their own has none of them.
+    const expensesRoot = expenses.find((item) => item.key === CONST.SEARCH.SEARCH_KEYS.EXPENSES);
+    const expensesChildren = expenses.filter((item) => item.key !== CONST.SEARCH.SEARCH_KEYS.EXPENSES);
+    const reportsRoot = reports.find((item) => item.key === CONST.SEARCH.SEARCH_KEYS.REPORTS);
+    const reportsChildren = reports.filter((item) => item.key !== CONST.SEARCH.SEARCH_KEYS.REPORTS);
+
+    // A collapsed bar hides every group's children, so a selected group is only expanded while the bar is open.
+    const isExpensesGroupExpanded = isExpensesGroupSelected && !isVisuallyCollapsed && expensesChildren.length > 0;
+    const isReportsGroupExpanded = isReportsGroupSelected && !isVisuallyCollapsed && reportsChildren.length > 0;
+    const isAccountingGroupExpanded = isAccountingGroupSelected && !isVisuallyCollapsed;
+    const isSavedGroupExpanded = isSavedGroupSelected && !isVisuallyCollapsed;
+    const hasSavedSearches = Object.keys(savedSearches ?? {}).length > 0;
+
+    const navigateToSearchItem = singleExecution((item: SearchTypeMenuItem) => {
+        clearSelectedText();
+        interceptAnonymousUser(() => {
+            navigateToCannedSpendSearch(item.key, item.searchQuery, getLastSearchQuery(searchFilters, item.key), clearSelectedTransactions);
+        }, session);
+    });
+
+    // A group row stands in for its children while they are hidden, so it carries their combined count. Once they
+    // show their own counts, repeating the total on the parent would double-report it.
+    const countsBySearchKey: Record<string, number> = reportCounts;
+    const getGroupBadgeText = (items: SearchTypeMenuItem[], isExpanded: boolean) =>
+        isExpanded ? undefined : formatBadgeText(items.reduce((total, item) => total + (countsBySearchKey[item.key] ?? 0), 0));
+
+    // A parent row that is a search in its own right keeps only its own count once its children are showing theirs.
+    const getParentBadgeText = (items: SearchTypeMenuItem[], rootItem: SearchTypeMenuItem | undefined, isExpanded: boolean) =>
+        isExpanded && rootItem ? getItemBadgeText(rootItem.key, reportCounts) : getGroupBadgeText(items, isExpanded && !rootItem);
+
+    const hasGroupBadge = (items: SearchTypeMenuItem[]) => !!getGroupBadgeText(items, false);
+
+    const renderSearchItem = (item: SearchTypeMenuItem, index: number, total: number) => (
+        <FlatNavItem
+            key={item.key}
+            isCollapsed={isVisuallyCollapsed}
+            label={translate(getGroupedSearchTranslationPath(item.key, item.translationPath))}
+            isSelected={isSpendTabSelected && currentSearchKey === item.key}
+            isSubItem
+            isFirstSubItem={index === 0}
+            isLastSubItem={index === total - 1}
+            badgeText={getItemBadgeText(item.key, reportCounts)}
+            sentryLabel={getSearchTypeMenuItemSentryLabel(item.key)}
+            onPress={() => navigateToSearchItem(item)}
+        />
+    );
+
+    // Opening the group navigates to a saved search so its children can render; the first one by key order is the
+    // cheapest choice here, since ordering the list by title needs the Onyx data FlatNavSavedSearches loads.
+    const navigateToFirstSavedSearch = () => {
+        const [savedSearchID, savedSearch] = Object.entries(savedSearches ?? {}).at(0) ?? [];
+        if (!savedSearchID || !savedSearch) {
+            return;
+        }
+        const searchKey = savedSearchIDToSearchKey(savedSearchID);
+        const query = getValidLastQuery(getLastSearchQuery(searchFilters, searchKey), savedSearch.query);
+        clearSelectedText();
+        interceptAnonymousUser(() => {
+            setSearchContext(false);
+            Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query, name: savedSearch.name, searchKey}));
+        }, session);
+    };
 
     const navigateToAskConcierge = () => {
         // Pressing the row while the page is open starts a new question, since there is nowhere to navigate.
@@ -314,17 +423,82 @@ function FlatNavigationBar({selectedTab}: FlatNavigationBarProps) {
                                             linkRoute={ROUTES.INBOX}
                                         />
                                         <FlatNavDivider />
-                                        <FlatNavItem
-                                            isCollapsed={isVisuallyCollapsed}
-                                            label={translate('common.spend')}
-                                            icon={icons.ReceiptMultiple}
-                                            isSelected={selectedTab === NAVIGATION_TABS.SEARCH}
-                                            sentryLabel={CONST.SENTRY_LABEL.NAVIGATION_TAB_BAR.REPORTS}
-                                            onPress={navigateToSearch}
-                                            linkRoute={getSignedInLinkRoute(storedSearchTabRoute)}
-                                            onHoverIn={() => setIsSearchTabHovered(true)}
-                                            onHoverOut={() => setIsSearchTabHovered(false)}
-                                        />
+                                        {expenses.length > 0 && (
+                                            <>
+                                                <FlatNavItem
+                                                    isCollapsed={isVisuallyCollapsed}
+                                                    label={translate('search.tabs.expenses')}
+                                                    icon={icons.Receipt}
+                                                    isSelected={isSpendTabSelected && currentSearchKey === CONST.SEARCH.SEARCH_KEYS.EXPENSES}
+                                                    badgeText={getParentBadgeText(expenses, expensesRoot, isExpensesGroupExpanded)}
+                                                    hasCollapsedStatusIndicator={hasGroupBadge(expenses)}
+                                                    sentryLabel={CONST.SENTRY_LABEL.NAVIGATION_TAB_BAR.EXPENSES}
+                                                    onPress={() => (expensesRoot ? navigateToSearchItem(expensesRoot) : navigateToSearch())}
+                                                    linkRoute={spendLinkRoute}
+                                                    onHoverIn={() => setIsSearchTabHovered(true)}
+                                                    onHoverOut={() => setIsSearchTabHovered(false)}
+                                                />
+                                                {isExpensesGroupSelected && expensesChildren.length > 0 && (
+                                                    <FlatNavSubItemList
+                                                        isExpanded={isExpensesGroupExpanded}
+                                                        selectedIndex={expensesChildren.findIndex((item) => item.key === currentSearchKey)}
+                                                    >
+                                                        {expensesChildren.map((item, index) => renderSearchItem(item, index, expensesChildren.length))}
+                                                    </FlatNavSubItemList>
+                                                )}
+                                            </>
+                                        )}
+                                        {reports.length > 0 && (
+                                            <>
+                                                <FlatNavItem
+                                                    isCollapsed={isVisuallyCollapsed}
+                                                    label={translate('common.reports')}
+                                                    icon={icons.Document}
+                                                    isSelected={isSpendTabSelected && currentSearchKey === CONST.SEARCH.SEARCH_KEYS.REPORTS}
+                                                    badgeText={getParentBadgeText(reports, reportsRoot, isReportsGroupExpanded)}
+                                                    hasCollapsedStatusIndicator={hasGroupBadge(reports)}
+                                                    sentryLabel={CONST.SENTRY_LABEL.NAVIGATION_TAB_BAR.REPORTS}
+                                                    onPress={() => (reportsRoot ? navigateToSearchItem(reportsRoot) : navigateToSearch())}
+                                                />
+                                                {isReportsGroupSelected && reportsChildren.length > 0 && (
+                                                    <FlatNavSubItemList
+                                                        isExpanded={isReportsGroupExpanded}
+                                                        selectedIndex={reportsChildren.findIndex((item) => item.key === currentSearchKey)}
+                                                    >
+                                                        {reportsChildren.map((item, index) => renderSearchItem(item, index, reportsChildren.length))}
+                                                    </FlatNavSubItemList>
+                                                )}
+                                            </>
+                                        )}
+                                        {accounting.length > 0 && (
+                                            <>
+                                                <FlatNavItem
+                                                    isCollapsed={isVisuallyCollapsed}
+                                                    label={translate('search.tabs.accounting')}
+                                                    icon={icons.Connect}
+                                                    isSelected={isAccountingGroupSelected}
+                                                    badgeText={getGroupBadgeText(accounting, isAccountingGroupExpanded)}
+                                                    hasCollapsedStatusIndicator={hasGroupBadge(accounting)}
+                                                    sentryLabel={CONST.SENTRY_LABEL.NAVIGATION_TAB_BAR.MORE_MENU.ACCOUNTING}
+                                                    onPress={() => {
+                                                        const firstAccounting = accounting.at(0);
+                                                        if (!firstAccounting) {
+                                                            navigateToSearch();
+                                                            return;
+                                                        }
+                                                        navigateToSearchItem(firstAccounting);
+                                                    }}
+                                                />
+                                                {isAccountingGroupSelected && (
+                                                    <FlatNavSubItemList
+                                                        isExpanded={isAccountingGroupExpanded}
+                                                        selectedIndex={accounting.findIndex((item) => item.key === currentSearchKey)}
+                                                    >
+                                                        {accounting.map((item, index) => renderSearchItem(item, index, accounting.length))}
+                                                    </FlatNavSubItemList>
+                                                )}
+                                            </>
+                                        )}
                                         <FlatNavItem
                                             isCollapsed={isVisuallyCollapsed}
                                             label={translate('common.insights')}
@@ -334,6 +508,19 @@ function FlatNavigationBar({selectedTab}: FlatNavigationBarProps) {
                                             onPress={navigateToInsights}
                                             linkRoute={getSignedInLinkRoute(DEFAULT_INSIGHTS_TAB_ROUTE)}
                                         />
+                                        {hasSavedSearches && (
+                                            <>
+                                                <FlatNavItem
+                                                    isCollapsed={isVisuallyCollapsed}
+                                                    label={translate('search.savedSearchesMenuItemTitle')}
+                                                    icon={icons.Bookmark}
+                                                    isSelected={isSavedGroupSelected}
+                                                    sentryLabel={CONST.SENTRY_LABEL.NAVIGATION_TAB_BAR.MORE_MENU.SAVED}
+                                                    onPress={navigateToFirstSavedSearch}
+                                                />
+                                                {isSavedGroupSelected && <FlatNavSavedSearches isExpanded={isSavedGroupExpanded} />}
+                                            </>
+                                        )}
                                         {shouldShowExtraNavItems &&
                                             PLACEHOLDER_DESTINATIONS.map(({label, iconName}) => (
                                                 <FlatNavItem

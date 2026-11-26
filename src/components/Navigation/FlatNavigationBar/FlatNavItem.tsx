@@ -1,3 +1,4 @@
+import Badge from '@components/Badge';
 import Icon from '@components/Icon';
 import getTabIconFill from '@components/Navigation/NavigationTabBar/getTabIconFill';
 import {getCollapseFadeStyle} from '@components/Navigation/SearchSidebarCollapseStore';
@@ -23,6 +24,7 @@ import {View} from 'react-native';
 import Animated from 'react-native-reanimated';
 
 import FlatNavMarqueeLabel from './FlatNavMarqueeLabel';
+import FlatNavRowActionBackdrop from './FlatNavRowActionBackdrop';
 
 type FlatNavItemProps = {
     /** Lets the row be measured, e.g. to anchor a popover it opens */
@@ -71,6 +73,12 @@ type FlatNavItemProps = {
     /** Dot drawn on the icon when the destination needs the user's attention */
     statusIndicatorColor?: string;
 
+    /** Count shown at the row's end, such as the reports waiting on the user */
+    badgeText?: string;
+
+    /** Whether a collapsed row stands in for its badge with a dot, since a narrow row has nowhere to put a count */
+    hasCollapsedStatusIndicator?: boolean;
+
     /** Spoken name of the row, defaults to label */
     accessibilityLabel?: string;
 
@@ -106,6 +114,8 @@ function FlatNavItem({
     hoverActionComponent,
     isTall = false,
     statusIndicatorColor,
+    badgeText,
+    hasCollapsedStatusIndicator = false,
     accessibilityLabel,
     sentryLabel,
     onPress,
@@ -127,6 +137,9 @@ function FlatNavItem({
     // The label stays mounted and fades, rather than disappearing the moment the bar starts narrowing.
     const collapseFadeStyle = getCollapseFadeStyle(isCollapsed);
 
+    // A collapsed row has nowhere to put a badge, so it shows the same green dot the Inbox row uses.
+    const resolvedStatusIndicatorColor = statusIndicatorColor ?? (isCollapsed && hasCollapsedStatusIndicator ? theme.iconSuccessFill : undefined);
+
     return (
         <PressableWithFeedback
             ref={ref}
@@ -140,14 +153,15 @@ function FlatNavItem({
             onHoverIn={onHoverIn}
             onHoverOut={onHoverOut}
             style={({hovered}) => [
-                isSubItem && !isCollapsed && styles.flatNavigationBarSubItem,
                 styles.flatNavigationBarItem,
                 isTall && styles.flatNavigationBarAccountItem,
-                getRowBackgroundStyle(hovered),
+                // A child row is marked by the marker on the group's rule, so it takes no background of its own.
+                !isSubItem && getRowBackgroundStyle(hovered),
+                isSubItem && !isCollapsed && styles.flatNavigationBarSubItem,
             ]}
         >
             {({hovered}) => {
-                const rowBackgroundColor = getRowBackgroundStyle(hovered)?.backgroundColor;
+                const rowBackgroundColor = isSubItem ? undefined : getRowBackgroundStyle(hovered)?.backgroundColor;
                 return (
                     <>
                         {isSubItem && !isCollapsed && (
@@ -167,12 +181,12 @@ function FlatNavItem({
                                     width={variables.iconSizeNormal}
                                     height={variables.iconSizeNormal}
                                 />
-                                {!!statusIndicatorColor && (
+                                {!!resolvedStatusIndicatorColor && (
                                     <View
                                         testID="FlatNavItemStatusIndicator"
                                         style={[
                                             styles.navigationTabBarStatusIndicator,
-                                            styles.statusIndicatorColor(statusIndicatorColor),
+                                            styles.statusIndicatorColor(resolvedStatusIndicatorColor),
                                             // The dot's stroke reads as a gap cut out of the row, so it takes the row's background.
                                             !!rowBackgroundColor && StyleUtils.getBorderColorStyle(rowBackgroundColor),
                                         ]}
@@ -198,8 +212,23 @@ function FlatNavItem({
                                 </Text>
                             )}
                         </Animated.View>
+                        {!!badgeText && !isCollapsed && (
+                            <Animated.View style={collapseFadeStyle}>
+                                <Badge
+                                    text={badgeText}
+                                    // todoBadge fixes a 28x24 box, which would override the condensed sizing this row needs.
+                                    badgeStyles={styles.ml0}
+                                    success
+                                    isCondensed
+                                />
+                            </Animated.View>
+                        )}
+                        {/* Hidden rather than unmounted, so the menu it opens survives the pointer leaving the row. */}
                         {!isCollapsed && !!hoverActionComponent && (
-                            <View style={hovered ? styles.flatNavigationBarRowAction : styles.flatNavigationBarRowActionHidden}>{hoverActionComponent}</View>
+                            <View style={[styles.flatNavigationBarRowAction, !hovered && styles.flatNavigationBarRowActionHidden]}>
+                                <FlatNavRowActionBackdrop />
+                                {hoverActionComponent}
+                            </View>
                         )}
                         {rightElement}
                     </>
