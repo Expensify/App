@@ -8650,9 +8650,13 @@ type ReportStateAndStatus = {
     statusNum: ValueOf<typeof CONST.REPORT.STATUS_NUM>;
 };
 
+/** Parameters used to finalize the optimistic report state on the last item of a deferred batch. */
 type GetFinalizedDeferredBatchReportStateParams = {
+    /** Optimistic report cloned for the current batch item. */
     iouReport: Report;
+    /** True when this item reuses an in-memory report carried from an earlier batch item. */
     hasExistingIOUReport: boolean;
+    /** Explicit false marks the final item of a deferred batch. Undefined means a non-batch request and true means still deferred. */
     shouldDeferAutoSubmit?: boolean;
     policy: OnyxEntry<Policy>;
     isASAPSubmitBetaEnabled: boolean;

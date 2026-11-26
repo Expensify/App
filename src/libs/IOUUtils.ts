@@ -673,11 +673,15 @@ function resolveEarlyReportID(isFromGlobalCreate: boolean, participants: Partici
     return firstParticipant?.reportID;
 }
 
+/** Parameters used to decide if a batch item should defer instant auto-submit. */
 type ShouldDeferAutoSubmitForBatchItemParams = {
+    /** Next transaction in the batch, or undefined when the next receipt has no draft transaction. */
     nextTransaction: OnyxEntry<Transaction>;
     hasNextItem: boolean;
+    /** True when the batch targets an existing expense report rather than a chat report. */
     isFromExistingReport: boolean;
     isASAPSubmitBetaEnabled: boolean;
+    /** IOU action for the batch, used to keep tracked-expense submissions on the same report. */
     action?: IOUAction;
 };
 
