@@ -2043,6 +2043,15 @@ describe('useSearchBulkActions - Hold, Unhold and Reject under Select all', () =
     });
 });
 
+async function pressDelete(result: {current: ReturnType<typeof useSearchBulkActions>}) {
+    await waitFor(() => {
+        expect(result.current.headerButtonsOptions.some((option) => option.value === CONST.SEARCH.BULK_ACTION_TYPES.DELETE)).toBe(true);
+    });
+    await act(async () => {
+        await result.current.headerButtonsOptions.find((option) => option.value === CONST.SEARCH.BULK_ACTION_TYPES.DELETE)?.onSelected?.();
+    });
+}
+
 describe('useSearchBulkActions - Delete under Select all', () => {
     beforeAll(() => {
         Onyx.init({keys: ONYXKEYS});
@@ -2074,13 +2083,7 @@ describe('useSearchBulkActions - Delete under Select all', () => {
         const {result} = renderHook(() => useSearchBulkActions({queryJSON: expenseReportQueryJSON}), {wrapper: OnyxListItemProvider});
 
         // When the user deletes the selection
-        await waitFor(() => {
-            expect(result.current.headerButtonsOptions.some((option) => option.value === CONST.SEARCH.BULK_ACTION_TYPES.DELETE)).toBe(true);
-        });
-        const deleteOption = result.current.headerButtonsOptions.find((option) => option.value === CONST.SEARCH.BULK_ACTION_TYPES.DELETE);
-        await act(async () => {
-            await deleteOption?.onSelected?.();
-        });
+        await pressDelete(result);
 
         // Then the search is handed to the backend to delete the reports, not looped per loaded report
         expect(queueBulkDeleteReports).toHaveBeenCalledWith(expect.any(String));
@@ -2095,13 +2098,7 @@ describe('useSearchBulkActions - Delete under Select all', () => {
         const {result} = renderHook(() => useSearchBulkActions({queryJSON: baseQueryJSON}), {wrapper: OnyxListItemProvider});
 
         // When the user deletes the selection
-        await waitFor(() => {
-            expect(result.current.headerButtonsOptions.some((option) => option.value === CONST.SEARCH.BULK_ACTION_TYPES.DELETE)).toBe(true);
-        });
-        const deleteOption = result.current.headerButtonsOptions.find((option) => option.value === CONST.SEARCH.BULK_ACTION_TYPES.DELETE);
-        await act(async () => {
-            await deleteOption?.onSelected?.();
-        });
+        await pressDelete(result);
 
         // Then the search is handed to the backend with the deselected expense listed, so it is kept
         expect(queueBulkDeleteExpenses).toHaveBeenCalledWith(expect.any(String), ['tx2']);
@@ -2117,13 +2114,7 @@ describe('useSearchBulkActions - Delete under Select all', () => {
         const {result} = renderHook(() => useSearchBulkActions({queryJSON: baseQueryJSON}), {wrapper: OnyxListItemProvider});
 
         // When the user confirms
-        await waitFor(() => {
-            expect(result.current.headerButtonsOptions.some((option) => option.value === CONST.SEARCH.BULK_ACTION_TYPES.DELETE)).toBe(true);
-        });
-        const deleteOption = result.current.headerButtonsOptions.find((option) => option.value === CONST.SEARCH.BULK_ACTION_TYPES.DELETE);
-        await act(async () => {
-            await deleteOption?.onSelected?.();
-        });
+        await pressDelete(result);
 
         // Then nothing is queued, since the backend would delete whatever matches once the device reconnects
         expect(queueBulkDeleteExpenses).not.toHaveBeenCalled();
@@ -2173,13 +2164,7 @@ describe('useSearchBulkActions - Delete under Select all', () => {
         const {result} = renderHook(() => useSearchBulkActions({queryJSON: baseQueryJSON}), {wrapper: OnyxListItemProvider});
 
         // When the user backs out
-        await waitFor(() => {
-            expect(result.current.headerButtonsOptions.some((option) => option.value === CONST.SEARCH.BULK_ACTION_TYPES.DELETE)).toBe(true);
-        });
-        const deleteOption = result.current.headerButtonsOptions.find((option) => option.value === CONST.SEARCH.BULK_ACTION_TYPES.DELETE);
-        await act(async () => {
-            await deleteOption?.onSelected?.();
-        });
+        await pressDelete(result);
 
         // Then nothing is queued
         expect(queueBulkDeleteExpenses).not.toHaveBeenCalled();
