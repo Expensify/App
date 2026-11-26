@@ -12,6 +12,7 @@ import type {Policy} from '@src/types/onyx';
 import Onyx from 'react-native-onyx';
 
 import createRandomPolicy from '../../utils/collections/policies';
+import {mergePersonalDetailsList} from '../../utils/PersonalDetailsTestUtils';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
 jest.mock('@hooks/useLocalize', () =>
@@ -212,7 +213,7 @@ describe('useInviteeGettingStartedItems', () => {
         it('should wait for transactions to load before showing the section', async () => {
             // Given an invitee who added a name and signed in on a mobile app, while their transactions are still loading
             await setupWorkspaceInviteeScenario();
-            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {[CURRENT_USER_ACCOUNT_ID]: {accountID: CURRENT_USER_ACCOUNT_ID, firstName: 'Jane'}});
+            await mergePersonalDetailsList({[CURRENT_USER_ACCOUNT_ID]: {accountID: CURRENT_USER_ACCOUNT_ID, firstName: 'Jane'}});
             await Onyx.merge(ONYXKEYS.NVP_LAST_ANDROID_LOGIN, '2026-11-01 10:00:00');
             await waitForBatchedUpdates();
             useOnyxMock.mockImplementation((key: unknown, ...rest: unknown[]) => (key === ONYXKEYS.COLLECTION.TRANSACTION ? [undefined, {status: 'loading'}] : actualUseOnyx(key, ...rest)));
@@ -242,7 +243,7 @@ describe('useInviteeGettingStartedItems', () => {
         it('should complete "Add your name" once the user has a first name', async () => {
             // Given an invitee who saved a first name
             await setupWorkspaceInviteeScenario();
-            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {[CURRENT_USER_ACCOUNT_ID]: {accountID: CURRENT_USER_ACCOUNT_ID, firstName: 'Jane', displayName: 'Jane'}});
+            await mergePersonalDetailsList({[CURRENT_USER_ACCOUNT_ID]: {accountID: CURRENT_USER_ACCOUNT_ID, firstName: 'Jane', displayName: 'Jane'}});
             await waitForBatchedUpdates();
 
             // When the hook builds the checklist
@@ -255,7 +256,7 @@ describe('useInviteeGettingStartedItems', () => {
         it('should not complete "Add your name" from the default display name alone', async () => {
             // Given an invitee whose display name is only the email fallback
             await setupWorkspaceInviteeScenario();
-            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {[CURRENT_USER_ACCOUNT_ID]: {accountID: CURRENT_USER_ACCOUNT_ID, firstName: '', displayName: 'jane@test.com'}});
+            await mergePersonalDetailsList({[CURRENT_USER_ACCOUNT_ID]: {accountID: CURRENT_USER_ACCOUNT_ID, firstName: '', displayName: 'jane@test.com'}});
             await waitForBatchedUpdates();
 
             // When the hook builds the checklist
@@ -298,7 +299,7 @@ describe('useInviteeGettingStartedItems', () => {
             expect(result.current.addNameItem.isComplete).toBe(false);
 
             // When they save a name while the section is on screen
-            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {[CURRENT_USER_ACCOUNT_ID]: {accountID: CURRENT_USER_ACCOUNT_ID, firstName: 'Jane'}});
+            await mergePersonalDetailsList({[CURRENT_USER_ACCOUNT_ID]: {accountID: CURRENT_USER_ACCOUNT_ID, firstName: 'Jane'}});
 
             // Then the step flips to complete without a reload
             await waitFor(() => expect(result.current.addNameItem.isComplete).toBe(true));
@@ -307,7 +308,7 @@ describe('useInviteeGettingStartedItems', () => {
         it('should hide the section once all three steps are complete', async () => {
             // Given an invitee who finished every step
             await setupWorkspaceInviteeScenario();
-            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {[CURRENT_USER_ACCOUNT_ID]: {accountID: CURRENT_USER_ACCOUNT_ID, lastName: 'Doe'}});
+            await mergePersonalDetailsList({[CURRENT_USER_ACCOUNT_ID]: {accountID: CURRENT_USER_ACCOUNT_ID, lastName: 'Doe'}});
             await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}1`, {transactionID: '1', amount: 100, reportID: CONST.REPORT.UNREPORTED_REPORT_ID});
             await Onyx.merge(ONYXKEYS.NVP_LAST_ANDROID_LOGIN, '2026-11-01 10:00:00');
             await waitForBatchedUpdates();

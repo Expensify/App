@@ -14,6 +14,7 @@ import type {PersonalDetailsList} from '@src/types/onyx';
 import React from 'react';
 import Onyx from 'react-native-onyx';
 
+import {withPersonalDetails} from '../utils/PersonalDetailsTestUtils';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
 const CURRENT_USER_ACCOUNT_ID = 1;
@@ -58,7 +59,7 @@ describe('usePersonalDetailOptions', () => {
         await act(async () => {
             await Onyx.clear();
             await Onyx.multiSet({
-                [ONYXKEYS.PERSONAL_DETAILS_LIST]: PERSONAL_DETAILS,
+                ...withPersonalDetails(PERSONAL_DETAILS),
                 [ONYXKEYS.SESSION]: {accountID: CURRENT_USER_ACCOUNT_ID, email: CURRENT_USER_EMAIL},
                 [ONYXKEYS.COUNTRY_CODE]: CONST.DEFAULT_COUNTRY_CODE,
             });

@@ -12,6 +12,8 @@ import React from 'react';
 
 import type mockOnyxWithLivePersonalDetails from '../../../../utils/mockOnyxWithLivePersonalDetails';
 
+import {toPersonalDetailsCollection} from '../../../../utils/PersonalDetailsTestUtils';
+
 const IOU_REPORT_ID = 'iou123';
 const CHAT_REPORT_ID = 'chat123';
 const REPORT_PREVIEW_ID = 'preview123';
@@ -388,7 +390,10 @@ describe('IOUReportAvatar (connected)', () => {
     ] as const)('should name the sender from %s', (_case, snapshot, expectedName) => {
         // Given an IOU report with one sender, on Search with or without a snapshot
         seedIOU();
-        mockOnyxData[ONYXKEYS.PERSONAL_DETAILS_LIST] = snapshot;
+        const snapshotPersonalDetails = toPersonalDetailsCollection(snapshot);
+        // A snapshot without personal details serves no collection, as @hooks/useOnyx does
+        mockOnyxData[ONYXKEYS.COLLECTION.PERSONAL_DETAILS] = snapshot ? snapshotPersonalDetails : undefined;
+        Object.assign(mockOnyxData, snapshotPersonalDetails);
         mockSenderAccountID = OWNER_ACCOUNT_ID;
 
         // When it renders

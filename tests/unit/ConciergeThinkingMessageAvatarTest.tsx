@@ -8,6 +8,7 @@ import React from 'react';
 import Onyx from 'react-native-onyx';
 
 import {createAdminRoom, createAnnounceRoom} from '../utils/collections/reports';
+import {mergePersonalDetailsList} from '../utils/PersonalDetailsTestUtils';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 // Capture props passed to AccountAvatar (only rendered for non-Concierge agents).
@@ -100,7 +101,7 @@ beforeAll(() => {
 beforeEach(async () => {
     mockCapturedAvatarProps = {};
     mockCandidateAgentIDs = [conciergeAccountID];
-    await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetails);
+    await mergePersonalDetailsList(personalDetails);
     await waitForBatchedUpdates();
 });
 

@@ -44,6 +44,7 @@ import createRandomPolicy from '../utils/collections/policies';
 import createRandomReportAction from '../utils/collections/reportActions';
 import {createExpenseReport} from '../utils/collections/reports';
 import createRandomTransaction from '../utils/collections/transaction';
+import {setPersonalDetailsList} from '../utils/PersonalDetailsTestUtils';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
 // Saving runs a heavy Onyx update, so it is stubbed to observe when it runs relative to the spinner.
@@ -207,7 +208,7 @@ describe('SearchEditMultiplePage', () => {
             delete mockOnVisibilityChangeByRow[rowName];
         }
         await Onyx.set(ONYXKEYS.SESSION, {email: CURRENT_USER_EMAIL, accountID: CURRENT_USER_ACCOUNT_ID});
-        await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {[CURRENT_USER_ACCOUNT_ID]: {accountID: CURRENT_USER_ACCOUNT_ID, login: CURRENT_USER_EMAIL}});
+        await setPersonalDetailsList({[CURRENT_USER_ACCOUNT_ID]: {accountID: CURRENT_USER_ACCOUNT_ID, login: CURRENT_USER_EMAIL}});
         await Onyx.set(ONYXKEYS.NVP_ACTIVE_POLICY_ID, POLICY_ID);
         await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, policy);
         await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${OPEN_REPORT_ID}`, buildReport(OPEN_REPORT_ID, CONST.REPORT.STATUS_NUM.OPEN, CONST.REPORT.STATE_NUM.OPEN));

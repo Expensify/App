@@ -76,7 +76,7 @@ function getUpdateRecord(updates: CapturedUpdate[], key: OnyxKey): Record<string
 }
 
 function getPersonalDetailValue(updates: CapturedUpdate[], accountID: number): unknown {
-    return getUpdateRecord(updates, ONYXKEYS.PERSONAL_DETAILS_LIST)[accountID];
+    return getUpdateRecord(updates, ONYXKEYS.COLLECTION.PERSONAL_DETAILS)[`${ONYXKEYS.COLLECTION.PERSONAL_DETAILS}${accountID}`];
 }
 
 function getPersonalDetailEntry(updates: CapturedUpdate[], accountID: number): Record<string, unknown> {
@@ -84,16 +84,16 @@ function getPersonalDetailEntry(updates: CapturedUpdate[], accountID: number): R
 }
 
 function getOptimisticPersonalDetails(): Record<string, unknown> {
-    const personalDetailUpdate = mockUpdate.mock.calls.flatMap(([updates]) => updates).find((update) => update.key === ONYXKEYS.PERSONAL_DETAILS_LIST);
+    const personalDetailUpdate = mockUpdate.mock.calls.flatMap(([updates]) => updates).find((update) => update.key === ONYXKEYS.COLLECTION.PERSONAL_DETAILS);
     return requireRecord(personalDetailUpdate?.value, 'No optimistic personal detail update');
 }
 
 function getOptimisticAccountID(): number {
-    return Number(Object.keys(getOptimisticPersonalDetails()).at(0));
+    return Number(Object.keys(getOptimisticPersonalDetails()).at(0)?.slice(ONYXKEYS.COLLECTION.PERSONAL_DETAILS.length));
 }
 
 function getOptimisticPersonalDetailEntry(accountID: number): Record<string, unknown> {
-    return requireRecord(getOptimisticPersonalDetails()[accountID], `No optimistic personal detail entry for ${accountID}`);
+    return requireRecord(getOptimisticPersonalDetails()[`${ONYXKEYS.COLLECTION.PERSONAL_DETAILS}${accountID}`], `No optimistic personal detail entry for ${accountID}`);
 }
 
 const OWNER_ACCOUNT_ID = 999;
@@ -357,7 +357,7 @@ describe('createAgent', () => {
         const {successData} = getWriteOptions();
         const accountID = getOptimisticAccountID();
 
-        expect(findUpdate(successData, ONYXKEYS.PERSONAL_DETAILS_LIST)).toBeUndefined();
+        expect(findUpdate(successData, ONYXKEYS.COLLECTION.PERSONAL_DETAILS)).toBeUndefined();
         expect(findUpdate(successData, `${ONYXKEYS.COLLECTION.AGENT}${accountID}`)).toBeUndefined();
     });
 
@@ -396,7 +396,7 @@ describe('updateAgentName', () => {
         expect(mockWrite).toHaveBeenCalledWith(WRITE_COMMANDS.UPDATE_AGENT_NAME, {agentAccountID: TEST_ACCOUNT_ID, firstName: 'New Name'}, expect.any(Object));
     });
 
-    it('optimistic data updates displayName in PERSONAL_DETAILS_LIST for the given accountID', () => {
+    it('optimistic data updates displayName in personal details for the given accountID', () => {
         updateAgentName(TEST_ACCOUNT_ID, 'New Name', 'Old Name');
 
         const {optimisticData} = getWriteOptions();
@@ -419,7 +419,7 @@ describe('updateAgentName', () => {
         expect(getUpdateRecord(successData, `${ONYXKEYS.COLLECTION.AGENT}${TEST_ACCOUNT_ID}`).pendingAction).toBeNull();
     });
 
-    it('failure data reverts displayName to originalFirstName in PERSONAL_DETAILS_LIST', () => {
+    it('failure data reverts displayName to originalFirstName in personal details', () => {
         updateAgentName(TEST_ACCOUNT_ID, 'New Name', 'Old Name');
 
         const {failureData} = getWriteOptions();

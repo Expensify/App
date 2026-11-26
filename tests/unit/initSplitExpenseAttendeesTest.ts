@@ -22,6 +22,7 @@ import type {OnyxMultiSetInput} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 
 import getOnyxValue from '../utils/getOnyxValue';
+import {withPersonalDetails} from '../utils/PersonalDetailsTestUtils';
 import {isObject} from '../utils/typeGuards';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import currencyList from './currencyList.json';
@@ -75,9 +76,9 @@ beforeEach(async () => {
         initialKeyStates: {
             [ONYXKEYS.CURRENCY_LIST]: currencyList,
             [ONYXKEYS.SESSION]: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
-            [ONYXKEYS.PERSONAL_DETAILS_LIST]: {
+            ...withPersonalDetails({
                 [RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL},
-            },
+            }),
         },
     });
     const {result, unmount} = renderHook(useCurrencyListActions, {wrapper: CurrencyListContextProvider});

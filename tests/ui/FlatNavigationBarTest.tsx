@@ -25,6 +25,7 @@ import React from 'react';
 import {StyleSheet} from 'react-native';
 import Onyx from 'react-native-onyx';
 
+import {setPersonalDetailsList} from '../utils/PersonalDetailsTestUtils';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
 type IndicatorStatusMock = {status: string | undefined; indicatorColor: string | undefined};
@@ -272,7 +273,7 @@ describe('FlatNavigationBar', () => {
 
     it('labels the Account row with the user name', async () => {
         // Given a user with a display name
-        await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {[ACCOUNT_ID]: {accountID: ACCOUNT_ID, displayName: 'John Doe'}});
+        await setPersonalDetailsList({[ACCOUNT_ID]: {accountID: ACCOUNT_ID, displayName: 'John Doe'}});
 
         // When the bar renders
         renderBar(NAVIGATION_TABS.HOME);
@@ -285,7 +286,7 @@ describe('FlatNavigationBar', () => {
 
     it('shows the emoji status on the right of the Account row', async () => {
         // Given a user with an emoji status
-        await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {[ACCOUNT_ID]: {accountID: ACCOUNT_ID, displayName: 'John Doe', status: {emojiCode: '🥪', text: 'Lunch!'}}});
+        await setPersonalDetailsList({[ACCOUNT_ID]: {accountID: ACCOUNT_ID, displayName: 'John Doe', status: {emojiCode: '🥪', text: 'Lunch!'}}});
 
         // When the bar renders
         renderBar(NAVIGATION_TABS.HOME);
@@ -298,7 +299,7 @@ describe('FlatNavigationBar', () => {
 
     it('shows no status chip when the user has no emoji status', async () => {
         // Given a user without an emoji status
-        await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {[ACCOUNT_ID]: {accountID: ACCOUNT_ID, displayName: 'John Doe'}});
+        await setPersonalDetailsList({[ACCOUNT_ID]: {accountID: ACCOUNT_ID, displayName: 'John Doe'}});
 
         // When the bar renders
         renderBar(NAVIGATION_TABS.HOME);

@@ -27,6 +27,7 @@ import {createRandomReport} from '../../utils/collections/reports';
 import createRandomTransaction from '../../utils/collections/transaction';
 import createMock from '../../utils/createMock';
 import getOnyxValue from '../../utils/getOnyxValue';
+import {setPersonalDetailsList, withPersonalDetails} from '../../utils/PersonalDetailsTestUtils';
 import {getGlobalFetchMock} from '../../utils/TestHelper';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
@@ -101,9 +102,9 @@ describe('actions/IOU', () => {
             keys: ONYXKEYS,
             initialKeyStates: {
                 [ONYXKEYS.SESSION]: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
-                [ONYXKEYS.PERSONAL_DETAILS_LIST]: {
+                ...withPersonalDetails({
                     [RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL},
-                },
+                }),
                 [ONYXKEYS.CURRENCY_LIST]: currencyList,
             },
         });
@@ -669,7 +670,7 @@ describe('actions/IOU', () => {
         });
 
         it('returns undefined when there is no current user account', async () => {
-            await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {});
+            await setPersonalDetailsList({});
             await Onyx.set(ONYXKEYS.SESSION, {});
             await waitForBatchedUpdates();
             const result = getSearchOnyxUpdate({

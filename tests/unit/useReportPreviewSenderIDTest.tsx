@@ -21,6 +21,7 @@ import {actionR14932, actionR98765} from '../../__mocks__/reportData/actions';
 import personalDetails from '../../__mocks__/reportData/personalDetails';
 import {chatReportR14932, iouReportR14932} from '../../__mocks__/reportData/reports';
 import {transactionR14932} from '../../__mocks__/reportData/transactions';
+import {withPersonalDetails} from '../utils/PersonalDetailsTestUtils';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
 const reportActions = [{[actionR14932.reportActionID]: actionR14932}];
@@ -76,7 +77,7 @@ describe('useReportPreviewSenderID', () => {
     beforeEach(() => {
         return act(async () => {
             await Onyx.multiSet({
-                [ONYXKEYS.PERSONAL_DETAILS_LIST]: personalDetails,
+                ...withPersonalDetails(personalDetails),
                 ...reportActionCollectionDataSet,
                 ...transactionCollectionDataSet,
             });

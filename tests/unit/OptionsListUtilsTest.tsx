@@ -70,6 +70,7 @@ import Onyx from 'react-native-onyx';
 import createRandomReportAction from '../utils/collections/reportActions';
 import {createRandomReport, createRegularChat} from '../utils/collections/reports';
 import {getFakeAdvancedReportAction} from '../utils/LHNTestUtils';
+import {mergePersonalDetailsList, setPersonalDetailsList} from '../utils/PersonalDetailsTestUtils';
 import {convertToDisplayString, convertToDisplayStringWithoutCurrency, formatPhoneNumber, localeCompare, translateLocal} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
@@ -832,7 +833,7 @@ describe('OptionsListUtils', () => {
 
         Onyx.registerLogger(() => {});
 
-        await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, PERSONAL_DETAILS);
+        await setPersonalDetailsList(PERSONAL_DETAILS);
         await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}10`, REPORTS['10'] ?? {});
         await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}10`, reportNameValuePairs);
         await waitForBatchedUpdates();
@@ -940,7 +941,7 @@ describe('OptionsListUtils', () => {
         // Onyx.clear() models sign-out and empties PERSONAL_DETAILS_LIST. Report-holder option text
         // resolves via ReportUtils.allPersonalDetails (the live connect), so restore the list the
         // same way a signed-in session would after login.
-        await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, PERSONAL_DETAILS);
+        await setPersonalDetailsList(PERSONAL_DETAILS);
         await waitForBatchedUpdates();
     });
 
@@ -6152,7 +6153,7 @@ describe('OptionsListUtils', () => {
             expect(filteredOptions.recentReports.at(1)?.text).toBe('Mister Fantastic, Invisible Woman');
 
             return waitForBatchedUpdates()
-                .then(() => Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, PERSONAL_DETAILS_WITH_PERIODS))
+                .then(() => setPersonalDetailsList(PERSONAL_DETAILS_WITH_PERIODS))
                 .then(() => {
                     // Given a set of options with periods
                     const OPTIONS_WITH_PERIODS = createFilteredOptionList(
@@ -6502,7 +6503,7 @@ describe('OptionsListUtils', () => {
         it('createFilteredOptionList() localization', async () => {
             renderLocaleContextProvider();
             // Given a set of reports and personal details
-            await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, PERSONAL_DETAILS);
+            await setPersonalDetailsList(PERSONAL_DETAILS);
             // When we call createFilteredOptionList and extract the reports
             const reports = createFilteredOptionList(
                 PERSONAL_DETAILS,
@@ -8710,7 +8711,7 @@ describe('OptionsListUtils', () => {
             // Given the canonical account for a phone number, whose login carries the SMS domain
             const canonicalAccountID = 8800001;
             const canonicalLogin = '+12025550199@expensify.sms';
-            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+            await mergePersonalDetailsList({
                 [canonicalAccountID]: {accountID: canonicalAccountID, login: canonicalLogin, displayName: canonicalLogin},
             });
             await waitForBatchedUpdates();
@@ -8729,7 +8730,7 @@ describe('OptionsListUtils', () => {
             expect(result.accountID).toBe(canonicalAccountID);
             expect(result.login).toBe(canonicalLogin);
 
-            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {[canonicalAccountID]: null});
+            await mergePersonalDetailsList({[canonicalAccountID]: null});
             await waitForBatchedUpdates();
         });
 
@@ -9319,7 +9320,7 @@ describe('OptionsListUtils', () => {
                 },
             };
 
-            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetails);
+            await mergePersonalDetailsList(personalDetails);
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, report);
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${testPolicyID}`, policy);
             await waitForBatchedUpdates();
@@ -9410,7 +9411,7 @@ describe('OptionsListUtils', () => {
                 accountID: currentUserAccountID,
                 email: 'currentuser@test.com',
             });
-            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetails);
+            await mergePersonalDetailsList(personalDetails);
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, report);
             await waitForBatchedUpdates();
 
@@ -10313,7 +10314,7 @@ describe('OptionsListUtils', () => {
             };
 
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, report);
-            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, testPersonalDetails);
+            await mergePersonalDetailsList(testPersonalDetails);
             await waitForBatchedUpdates();
 
             const participant = {reportID};
@@ -10424,7 +10425,7 @@ describe('OptionsListUtils', () => {
 
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, report);
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${testPolicyID}`, policy);
-            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, testPersonalDetails);
+            await mergePersonalDetailsList(testPersonalDetails);
             await waitForBatchedUpdates();
 
             const participant = {
@@ -10532,7 +10533,7 @@ describe('OptionsListUtils', () => {
 
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, report);
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${testPolicyID}`, policy);
-            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, testPersonalDetails);
+            await mergePersonalDetailsList(testPersonalDetails);
             await waitForBatchedUpdates();
 
             const participant = {
@@ -10836,7 +10837,7 @@ describe('OptionsListUtils', () => {
 
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, report);
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${testPolicyID}`, policy);
-            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, testPersonalDetails);
+            await mergePersonalDetailsList(testPersonalDetails);
             await waitForBatchedUpdates();
 
             const participant = {
@@ -10984,7 +10985,7 @@ describe('OptionsListUtils', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${formatReportID1}`, report1);
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${formatReportID2}`, report2);
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${formatTestPolicyID}`, formatPolicy);
-            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, formatPersonalDetails);
+            await mergePersonalDetailsList(formatPersonalDetails);
             await waitForBatchedUpdates();
         });
 
@@ -12274,7 +12275,7 @@ describe('OptionsListUtils', () => {
             const sortedActions = {[report.reportID]: [reportAction]};
 
             // The participant's display name is resolved from Onyx, so seed it to keep the assertion below deterministic.
-            await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, PERSONAL_DETAILS);
+            await setPersonalDetailsList(PERSONAL_DETAILS);
 
             const roomOption = createOptionFromReport({
                 lastActions: undefined,

@@ -35,6 +35,7 @@ import React from 'react';
 import Onyx from 'react-native-onyx';
 
 import getOnyxValue from '../utils/getOnyxValue';
+import {setPersonalDetailsList} from '../utils/PersonalDetailsTestUtils';
 import {buildPersonalDetails} from '../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
@@ -84,7 +85,7 @@ async function seedWorkspace(locale: Locale = CONST.LOCALES.EN, policyOverrides:
     await act(async () => {
         await Onyx.clear();
         await Onyx.set(ONYXKEYS.SESSION, {email: OWNER_EMAIL, accountID: OWNER_ACCOUNT_ID, authToken: 'testToken'});
-        await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {[OWNER_ACCOUNT_ID]: buildPersonalDetails(OWNER_EMAIL, OWNER_ACCOUNT_ID)});
+        await setPersonalDetailsList({[OWNER_ACCOUNT_ID]: buildPersonalDetails(OWNER_EMAIL, OWNER_ACCOUNT_ID)});
         await Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, locale);
         await Onyx.set(ONYXKEYS.PREFERRED_THEME, CONST.THEME.LIGHT);
         await Onyx.set(ONYXKEYS.NETWORK, {shouldForceOffline: false});

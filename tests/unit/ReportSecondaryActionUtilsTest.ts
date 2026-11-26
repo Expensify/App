@@ -26,6 +26,7 @@ import createRandomPolicy from '../utils/collections/policies';
 import {createExpenseReport} from '../utils/collections/reports';
 import createRandomTransaction from '../utils/collections/transaction';
 import createMock from '../utils/createMock';
+import {mergePersonalDetailsList, setPersonalDetailsList, withPersonalDetails} from '../utils/PersonalDetailsTestUtils';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 const EMPLOYEE_ACCOUNT_ID = 1;
@@ -136,7 +137,7 @@ describe('getSecondaryAction', () => {
             keys: ONYXKEYS,
             initialKeyStates: {
                 [ONYXKEYS.SESSION]: SESSION,
-                [ONYXKEYS.PERSONAL_DETAILS_LIST]: {[EMPLOYEE_ACCOUNT_ID]: PERSONAL_DETAILS, [APPROVER_ACCOUNT_ID]: {accountID: APPROVER_ACCOUNT_ID, login: APPROVER_EMAIL}},
+                ...withPersonalDetails({[EMPLOYEE_ACCOUNT_ID]: PERSONAL_DETAILS, [APPROVER_ACCOUNT_ID]: {accountID: APPROVER_ACCOUNT_ID, login: APPROVER_EMAIL}}),
             },
         });
     });
@@ -4129,7 +4130,7 @@ describe('getSecondaryAction', () => {
         await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, policy);
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
         await Onyx.merge(ONYXKEYS.SESSION, {email: EMPLOYEE_EMAIL, accountID: EMPLOYEE_ACCOUNT_ID});
-        await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetails);
+        await mergePersonalDetailsList(personalDetails);
 
         const result = getSecondaryReportActions({
             currentUserLogin: EMPLOYEE_EMAIL,
@@ -4176,7 +4177,7 @@ describe('getSecondaryAction', () => {
         await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, policy);
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
         await Onyx.merge(ONYXKEYS.SESSION, {email: EMPLOYEE_EMAIL, accountID: EMPLOYEE_ACCOUNT_ID});
-        await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetails);
+        await mergePersonalDetailsList(personalDetails);
 
         const result = getSecondaryReportActions({
             currentUserLogin: EMPLOYEE_EMAIL,
@@ -4238,7 +4239,7 @@ describe('getSecondaryAction', () => {
         await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, newPolicy);
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
         await Onyx.merge(ONYXKEYS.SESSION, {email: EMPLOYEE_EMAIL, accountID: EMPLOYEE_ACCOUNT_ID});
-        await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetails);
+        await mergePersonalDetailsList(personalDetails);
 
         const result = getSecondaryReportActions({
             currentUserLogin: EMPLOYEE_EMAIL,
@@ -4300,7 +4301,7 @@ describe('getSecondaryAction', () => {
         await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${OLD_POLICY_ID}`, oldPolicy);
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
         await Onyx.merge(ONYXKEYS.SESSION, {email: APPROVER_EMAIL, accountID: APPROVER_ACCOUNT_ID});
-        await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetails);
+        await mergePersonalDetailsList(personalDetails);
 
         const result = getSecondaryReportActions({
             currentUserLogin: EMPLOYEE_EMAIL,
@@ -4362,7 +4363,7 @@ describe('getSecondaryAction', () => {
         await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, policy);
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
         await Onyx.merge(ONYXKEYS.SESSION, {email: ADMIN_EMAIL, accountID: ADMIN_ACCOUNT_ID});
-        await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetails);
+        await mergePersonalDetailsList(personalDetails);
 
         const result = getSecondaryReportActions({
             currentUserLogin: EMPLOYEE_EMAIL,
@@ -5454,7 +5455,7 @@ describe('getReportAccountingExportActions', () => {
         Onyx.clear();
         await Onyx.merge(ONYXKEYS.SESSION, SESSION);
         await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, null);
-        await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {[EMPLOYEE_ACCOUNT_ID]: PERSONAL_DETAILS});
+        await setPersonalDetailsList({[EMPLOYEE_ACCOUNT_ID]: PERSONAL_DETAILS});
     });
 
     it('returns no accounting options when the user cannot export the report to an integration', () => {
@@ -5915,7 +5916,7 @@ describe('getSecondaryTransactionThreadActions', () => {
         Onyx.clear();
         await Onyx.merge(ONYXKEYS.SESSION, SESSION);
         await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, null);
-        await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {[EMPLOYEE_ACCOUNT_ID]: PERSONAL_DETAILS});
+        await setPersonalDetailsList({[EMPLOYEE_ACCOUNT_ID]: PERSONAL_DETAILS});
     });
 
     it('should always return VIEW_DETAILS', () => {
@@ -6172,7 +6173,7 @@ describe('getSecondaryTransactionThreadActions', () => {
 
         await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, policy);
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
-        await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {[EMPLOYEE_ACCOUNT_ID]: PERSONAL_DETAILS, [MANAGER_ACCOUNT_ID]: {accountID: MANAGER_ACCOUNT_ID, login: MANAGER_EMAIL}});
+        await mergePersonalDetailsList({[EMPLOYEE_ACCOUNT_ID]: PERSONAL_DETAILS, [MANAGER_ACCOUNT_ID]: {accountID: MANAGER_ACCOUNT_ID, login: MANAGER_EMAIL}});
         await waitForBatchedUpdates();
 
         // When building the thread's secondary actions
@@ -6232,7 +6233,7 @@ describe('getSecondaryTransactionThreadActions', () => {
         await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, policy);
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
         await Onyx.merge(ONYXKEYS.SESSION, {email: EMPLOYEE_EMAIL, accountID: EMPLOYEE_ACCOUNT_ID});
-        await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetails);
+        await mergePersonalDetailsList(personalDetails);
 
         const result = getSecondaryReportActions({
             currentUserLogin: EMPLOYEE_EMAIL,

@@ -16,6 +16,7 @@ import createPersonalDetails from '../utils/collections/personalDetails';
 import createRandomPolicy from '../utils/collections/policies';
 import createRandomReportAction, {getRandomDate} from '../utils/collections/reportActions';
 import {createRandomReport} from '../utils/collections/reports';
+import {withPersonalDetails} from '../utils/PersonalDetailsTestUtils';
 import {convertToDisplayString, convertToDisplayStringWithoutCurrency, localeCompare, translateLocal, formatPhoneNumber} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
@@ -54,7 +55,7 @@ describe('SidebarUtils', () => {
         });
 
         Onyx.multiSet({
-            [ONYXKEYS.PERSONAL_DETAILS_LIST]: personalDetails,
+            ...withPersonalDetails(personalDetails),
             [ONYXKEYS.NVP_PREFERRED_LOCALE]: 'en',
         });
     });

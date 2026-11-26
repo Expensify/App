@@ -15,6 +15,7 @@ import React from 'react';
 import Onyx from 'react-native-onyx';
 
 import createMock from '../utils/createMock';
+import {mergePersonalDetailsList} from '../utils/PersonalDetailsTestUtils';
 import {buildPersonalDetails} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
@@ -65,7 +66,7 @@ describe('ReportAddApproverPage', () => {
     });
 
     it('resolves candidate approver names through the translate function from useLocalize', async () => {
-        await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {[APPROVER_ACCOUNT_ID]: buildPersonalDetails(APPROVER_EMAIL, APPROVER_ACCOUNT_ID, 'Approver')});
+        await mergePersonalDetailsList({[APPROVER_ACCOUNT_ID]: buildPersonalDetails(APPROVER_EMAIL, APPROVER_ACCOUNT_ID, 'Approver')});
         await waitForBatchedUpdates();
 
         const policy = createMock<Policy>({

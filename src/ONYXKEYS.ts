@@ -123,7 +123,7 @@ const ONYXKEYS = {
     // keep edit message focus state
     INPUT_FOCUSED: 'inputFocused',
 
-    /** Contains all the personalDetails the user has access to, keyed by accountID */
+    /** Legacy single-key form of COLLECTION.PERSONAL_DETAILS, still read by derived values */
     PERSONAL_DETAILS_LIST: 'personalDetailsList',
 
     /** Contains all the private personal details of the user */
@@ -1035,6 +1035,8 @@ const ONYXKEYS = {
         DOWNLOAD: 'download_',
         EXPORT_DOWNLOAD: 'nvp_exportDownload_',
         BULK_ACTION: 'nvp_bulkAction_',
+        /** Personal details of one person the user has access to, keyed by accountID */
+        PERSONAL_DETAILS: 'personalDetails_',
         POLICY: 'policy_',
         POLICY_DRAFTS: 'policyDrafts_',
         POLICY_JOIN_MEMBER: 'policyJoinMember_',
@@ -1756,6 +1758,7 @@ type OnyxCollectionValuesMapping = {
     [ONYXKEYS.COLLECTION.RAM_ONLY_IS_LOADING_RECEIPT_PARTNERS]: boolean;
     [ONYXKEYS.COLLECTION.RAM_ONLY_COMPANY_CARDS_LOADING_STATE]: OnyxTypes.CompanyCardsLoadingState;
     [ONYXKEYS.COLLECTION.RAM_ONLY_PERSONAL_DETAILS_LOADING_STATE]: OnyxTypes.PersonalDetailsLoadingState;
+    [ONYXKEYS.COLLECTION.PERSONAL_DETAILS]: OnyxTypes.PersonalDetails;
     [ONYXKEYS.COLLECTION.RAM_ONLY_COMPANY_CARD_NUMBER_SEARCH]: OnyxTypes.CompanyCardNumberSearch;
     [ONYXKEYS.COLLECTION.RAM_ONLY_RECEIPT_TRANSLATION_STATE]: OnyxTypes.ReceiptTranslationState;
     [ONYXKEYS.COLLECTION.RAM_ONLY_EXPENSIFY_CARD_LOADING_STATE]: OnyxTypes.ExpensifyCardLoadingState;

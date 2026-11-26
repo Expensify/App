@@ -17,6 +17,7 @@ import path from 'path';
 import React from 'react';
 import Onyx from 'react-native-onyx';
 
+import {mergePersonalDetailsList} from '../utils/PersonalDetailsTestUtils';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 const mockTranslate = jest.fn((key: string) => {
@@ -77,7 +78,7 @@ async function seedCustomAgentReport({isDM, includeSession = true}: {isDM: boole
             [customAgentAccountID]: participant,
         },
     });
-    await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+    await mergePersonalDetailsList({
         [customAgentAccountID]: {
             accountID: customAgentAccountID,
             displayName: 'Agent',

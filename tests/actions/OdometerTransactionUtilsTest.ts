@@ -28,6 +28,7 @@ import Onyx from 'react-native-onyx';
 import currencyList from '../unit/currencyList.json';
 import createRandomTransaction from '../utils/collections/transaction';
 import getOnyxValue from '../utils/getOnyxValue';
+import {withPersonalDetails} from '../utils/PersonalDetailsTestUtils';
 import {getGlobalFetchMock} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
@@ -105,7 +106,7 @@ describe('actions/OdometerTransactionUtils', () => {
             keys: ONYXKEYS,
             initialKeyStates: {
                 [ONYXKEYS.SESSION]: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
-                [ONYXKEYS.PERSONAL_DETAILS_LIST]: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
+                ...withPersonalDetails({[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}}),
                 [ONYXKEYS.CURRENCY_LIST]: currencyList,
             },
         });

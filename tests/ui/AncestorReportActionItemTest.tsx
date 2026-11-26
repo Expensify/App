@@ -17,6 +17,7 @@ import type {OnyxCollection} from 'react-native-onyx';
 import React from 'react';
 import Onyx from 'react-native-onyx';
 
+import {withPersonalDetails} from '../utils/PersonalDetailsTestUtils';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
 jest.mock('@pages/inbox/report/ReportActionItem', () => jest.fn(() => null));
@@ -89,7 +90,7 @@ describe('AncestorReportActionItem feedback prompt', () => {
         mockReportActionItem.mockClear();
         await Onyx.clear();
         await Onyx.multiSet({
-            [ONYXKEYS.PERSONAL_DETAILS_LIST]: {[AGENT_ACCOUNT_ID]: {accountID: AGENT_ACCOUNT_ID, isCustomAgent: true}},
+            ...withPersonalDetails({[AGENT_ACCOUNT_ID]: {accountID: AGENT_ACCOUNT_ID, isCustomAgent: true}}),
             [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${PARENT_REPORT_ID}` as const]: {
                 [conciergeComment.reportActionID]: conciergeComment,
                 [olderAgentComment.reportActionID]: olderAgentComment,

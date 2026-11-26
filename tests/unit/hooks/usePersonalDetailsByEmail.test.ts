@@ -6,6 +6,8 @@ import ONYXKEYS from '@src/ONYXKEYS';
 
 import Onyx from 'react-native-onyx';
 
+import {mergePersonalDetailsList} from '../../utils/PersonalDetailsTestUtils';
+
 const ACCOUNT_ID_ALICE = 1;
 const ACCOUNT_ID_BOB = 2;
 
@@ -24,7 +26,7 @@ describe('usePersonalDetailsByEmail', () => {
             [ACCOUNT_ID_BOB]: {accountID: ACCOUNT_ID_BOB, displayName: 'Bob', login: 'bob@test.com'},
         };
 
-        await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetailsList);
+        await mergePersonalDetailsList(personalDetailsList);
 
         const {result} = renderHook(() => usePersonalDetailsByEmail());
 
@@ -40,7 +42,7 @@ describe('usePersonalDetailsByEmail', () => {
             [ACCOUNT_ID_ALICE]: {accountID: ACCOUNT_ID_ALICE, displayName: 'Alice'},
         };
 
-        await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetailsList);
+        await mergePersonalDetailsList(personalDetailsList);
 
         const {result} = renderHook(() => usePersonalDetailsByEmail());
 
@@ -57,7 +59,7 @@ describe('usePersonalDetailsByEmail', () => {
     });
 
     it('should update when personal details change in Onyx', async () => {
-        await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+        await mergePersonalDetailsList({
             [ACCOUNT_ID_ALICE]: {accountID: ACCOUNT_ID_ALICE, displayName: 'Alice', login: 'alice@test.com'},
         });
 
@@ -68,7 +70,7 @@ describe('usePersonalDetailsByEmail', () => {
             expect(result.current?.['bob@test.com']).toBeUndefined();
         });
 
-        await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+        await mergePersonalDetailsList({
             [ACCOUNT_ID_BOB]: {accountID: ACCOUNT_ID_BOB, displayName: 'Bob', login: 'bob@test.com'},
         });
 

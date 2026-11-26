@@ -12,6 +12,7 @@ import React from 'react';
 import Onyx from 'react-native-onyx';
 
 import * as LHNTestUtils from '../utils/LHNTestUtils';
+import {mergePersonalDetailsList} from '../utils/PersonalDetailsTestUtils';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
@@ -154,7 +155,7 @@ describe('TransactionPreviewContent', () => {
     const seedOnyx = async (reportActions: Record<string, ReportAction>) => {
         await act(async () => {
             await Onyx.merge(ONYXKEYS.SESSION, {accountID: currentUserAccountID, email: currentUserEmail});
-            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetails);
+            await mergePersonalDetailsList(personalDetails);
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, corporatePolicy);
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${expenseReportID}`, expenseReport);
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReportID}`, reportActions);

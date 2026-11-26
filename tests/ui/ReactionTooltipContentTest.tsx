@@ -13,6 +13,7 @@ import type {PersonalDetailsList} from '@src/types/onyx';
 import React from 'react';
 import Onyx from 'react-native-onyx';
 
+import {setPersonalDetailsList} from '../utils/PersonalDetailsTestUtils';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
 const renderWithProviders = (component: React.ReactElement) => {
@@ -51,7 +52,7 @@ describe('ReactionTooltipContent', () => {
         };
 
         await act(async () => {
-            await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetails);
+            await setPersonalDetailsList(personalDetails);
         });
         await waitForBatchedUpdatesWithAct();
 

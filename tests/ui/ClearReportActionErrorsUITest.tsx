@@ -25,6 +25,7 @@ import React from 'react';
 import Onyx from 'react-native-onyx';
 
 import getOnyxValue from '../utils/getOnyxValue';
+import {mergePersonalDetailsList} from '../utils/PersonalDetailsTestUtils';
 import {createMockReport, getFakeReportAction} from '../utils/ReportTestUtils';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 import wrapOnyxWithWaitForBatchedUpdates from '../utils/wrapOnyxWithWaitForBatchedUpdates';
@@ -73,7 +74,7 @@ describe('ClearReportActionErrors UI', () => {
         wrapOnyxWithWaitForBatchedUpdates(Onyx);
         setHasRadio(true);
         await act(async () => {
-            await Onyx.merge(`${ONYXKEYS.PERSONAL_DETAILS_LIST}`, {
+            await mergePersonalDetailsList({
                 [ACTOR_ACCOUNT_ID]: {
                     accountID: ACTOR_ACCOUNT_ID,
                     avatar: 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/default-avatar_9.png',

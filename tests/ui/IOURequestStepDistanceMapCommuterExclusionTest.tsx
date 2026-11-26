@@ -22,6 +22,7 @@ import React from 'react';
 import Onyx from 'react-native-onyx';
 
 import createMock from '../utils/createMock';
+import {setPersonalDetailsList} from '../utils/PersonalDetailsTestUtils';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
@@ -77,7 +78,7 @@ type DistanceMapScreenProps = PlatformStackScreenProps<MoneyRequestNavigatorPara
 async function setUpOnyx() {
     await act(async () => {
         await Onyx.set(ONYXKEYS.SESSION, {accountID: ACCOUNT_ID, email: ACCOUNT_LOGIN});
-        await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {[ACCOUNT_ID]: {accountID: ACCOUNT_ID, login: ACCOUNT_LOGIN}});
+        await setPersonalDetailsList({[ACCOUNT_ID]: {accountID: ACCOUNT_ID, login: ACCOUNT_LOGIN}});
         await Onyx.set(ONYXKEYS.PRIVATE_PERSONAL_DETAILS, {addresses: []});
         await Onyx.set(ONYXKEYS.NVP_ACTIVE_POLICY_ID, RESTRICTED_POLICY_ID);
         await Onyx.set(

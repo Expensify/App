@@ -28,6 +28,7 @@ import React from 'react';
 import Onyx from 'react-native-onyx';
 
 import * as LHNTestUtils from '../utils/LHNTestUtils';
+import {mergePersonalDetailsList} from '../utils/PersonalDetailsTestUtils';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
@@ -89,7 +90,7 @@ const buildPolicy = (policyOverrides: Partial<Policy>): Policy =>
 const setupPolicy = async (policyOverrides: Partial<Policy>) => {
     await act(async () => {
         await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, buildPolicy(policyOverrides));
-        await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetails);
+        await mergePersonalDetailsList(personalDetails);
     });
 };
 

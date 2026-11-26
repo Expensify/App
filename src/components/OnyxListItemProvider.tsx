@@ -1,6 +1,10 @@
-import ONYXKEYS from '@src/ONYXKEYS';
+import {useAllPersonalDetails} from '@hooks/usePersonalDetails';
 
-import React from 'react';
+import ONYXKEYS from '@src/ONYXKEYS';
+import type {PersonalDetailsList} from '@src/types/onyx';
+import type ChildrenProps from '@src/types/utils/ChildrenProps';
+
+import React, {createContext, useContext} from 'react';
 
 import ActivePolicyProvider from './ActivePolicyProvider';
 import ComposeProviders from './ComposeProviders';
@@ -11,7 +15,21 @@ import createOnyxContext from './createOnyxContext';
  * Set up any providers for individual keys. This should only be used in cases where many components will subscribe to
  * the same key (e.g. FlatList renderItem components)
  */
-const [PersonalDetailsProvider, , usePersonalDetails] = createOnyxContext(ONYXKEYS.PERSONAL_DETAILS_LIST);
+const PersonalDetailsContext = createContext<PersonalDetailsList | undefined | null>(null);
+
+function PersonalDetailsProvider({children}: ChildrenProps) {
+    const [personalDetails] = useAllPersonalDetails();
+    return <PersonalDetailsContext.Provider value={personalDetails}>{children}</PersonalDetailsContext.Provider>;
+}
+
+function usePersonalDetails() {
+    const personalDetails = useContext(PersonalDetailsContext);
+    if (personalDetails === null) {
+        throw new Error('usePersonalDetails must be used within a OnyxListItemProvider');
+    }
+    return personalDetails;
+}
+
 const [BlockedFromConciergeProvider, , useBlockedFromConcierge] = createOnyxContext(ONYXKEYS.NVP_BLOCKED_FROM_CONCIERGE);
 const [BetasProvider, BetasContext] = createOnyxContext(ONYXKEYS.BETAS);
 const [BetaConfigurationProvider, BetaConfigurationContext] = createOnyxContext(ONYXKEYS.BETA_CONFIGURATION);

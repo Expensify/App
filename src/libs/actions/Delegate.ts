@@ -64,6 +64,8 @@ const KEYS_TO_PRESERVE_DELEGATE_ACCESS = [
     // Keep personal details through the switch so the nav avatar and user names render
     // instantly instead of showing a skeleton while OpenApp responds. OpenApp overwrites
     // this key with fresh data when its response lands, so stale entries are short lived.
+    ONYXKEYS.COLLECTION.PERSONAL_DETAILS,
+    // Derived values still read the legacy key
     ONYXKEYS.PERSONAL_DETAILS_LIST,
 ];
 

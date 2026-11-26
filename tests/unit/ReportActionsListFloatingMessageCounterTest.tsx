@@ -14,6 +14,7 @@ import React from 'react';
 import {View} from 'react-native';
 import Onyx from 'react-native-onyx';
 
+import {setPersonalDetailsList} from '../utils/PersonalDetailsTestUtils';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 const ACCOUNT_ID = 1;
@@ -111,7 +112,7 @@ describe('ReportActionsListFloatingMessageCounter', () => {
     beforeEach(async () => {
         await Onyx.clear();
         await Onyx.set(ONYXKEYS.SESSION, {accountID: ACCOUNT_ID, email: USER_EMAIL});
-        await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+        await setPersonalDetailsList({
             [ACCOUNT_ID]: {accountID: ACCOUNT_ID, login: USER_EMAIL},
             [OTHER_ACCOUNT_ID]: {accountID: OTHER_ACCOUNT_ID, login: OTHER_EMAIL},
         });

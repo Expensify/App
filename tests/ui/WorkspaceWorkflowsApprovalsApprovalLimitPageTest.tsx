@@ -25,6 +25,7 @@ import React from 'react';
 import Onyx from 'react-native-onyx';
 
 import getOnyxValue from '../utils/getOnyxValue';
+import {setPersonalDetailsList} from '../utils/PersonalDetailsTestUtils';
 import {buildPersonalDetails, translateLocal} from '../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
@@ -131,7 +132,7 @@ describe('WorkspaceWorkflowsApprovalsApprovalLimitPage', () => {
             await Onyx.set(ONYXKEYS.HAS_LOADED_APP, true);
             await Onyx.set(ONYXKEYS.IS_LOADING_REPORT_DATA, false);
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, buildPolicy());
-            await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+            await setPersonalDetailsList({
                 [ALICE_ACCOUNT_ID]: buildPersonalDetails(ALICE_EMAIL, ALICE_ACCOUNT_ID, 'alice'),
                 [BOB_ACCOUNT_ID]: buildPersonalDetails(BOB_EMAIL, BOB_ACCOUNT_ID, 'bob'),
                 [CAROL_ACCOUNT_ID]: buildPersonalDetails(CAROL_EMAIL, CAROL_ACCOUNT_ID, 'carol'),

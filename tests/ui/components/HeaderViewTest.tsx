@@ -29,6 +29,7 @@ import Onyx from 'react-native-onyx';
 
 import {createRandomReport, createRegularChat} from '../../utils/collections/reports';
 import createMock from '../../utils/createMock';
+import {mergePersonalDetailsList, withPersonalDetails} from '../../utils/PersonalDetailsTestUtils';
 import {translateLocal} from '../../utils/TestHelper';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 import waitForBatchedUpdatesWithAct from '../../utils/waitForBatchedUpdatesWithAct';
@@ -98,12 +99,12 @@ describe('HeaderView', () => {
             await Onyx.multiSet(
                 createMock<KeyValueMapping>({
                     [reportKey]: report,
-                    [ONYXKEYS.PERSONAL_DETAILS_LIST]: {
+                    ...withPersonalDetails({
                         [accountID]: {
                             accountID,
                             displayName,
                         },
-                    },
+                    }),
                 }),
             );
         });
@@ -128,7 +129,7 @@ describe('HeaderView', () => {
         // When the invoice receiver display name is updated
         displayName = 'test edit';
         await act(async () => {
-            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+            await mergePersonalDetailsList({
                 [accountID]: {
                     displayName,
                 },
@@ -358,7 +359,7 @@ describe('HeaderView', () => {
         await act(async () => {
             await Onyx.merge(ONYXKEYS.SESSION, {accountID: currentUserAccountID});
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
-            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetailsList);
+            await mergePersonalDetailsList(personalDetailsList);
             await Onyx.merge(ONYXKEYS.ACCOUNT, {accountManagerAccountID, accountManagerCalendarLink});
         });
 
@@ -376,7 +377,7 @@ describe('HeaderView', () => {
         const report = createRegularChat(501, [currentUserAccountID]);
         await act(async () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
-            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetailsList);
+            await mergePersonalDetailsList(personalDetailsList);
             await Onyx.set(ONYXKEYS.CONCIERGE_REPORT_ID, report.reportID);
             await Onyx.merge(ONYXKEYS.ACCOUNT, {accountManagerAccountID, accountManagerCalendarLink});
         });
@@ -395,7 +396,7 @@ describe('HeaderView', () => {
         const report = createRegularChat(501, [currentUserAccountID]);
         await act(async () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
-            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetailsList);
+            await mergePersonalDetailsList(personalDetailsList);
             await Onyx.set(ONYXKEYS.CONCIERGE_REPORT_ID, report.reportID);
         });
 
@@ -420,7 +421,7 @@ describe('HeaderView', () => {
         await act(async () => {
             await Onyx.merge(ONYXKEYS.SESSION, {accountID: currentUserAccountID});
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
-            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetailsList);
+            await mergePersonalDetailsList(personalDetailsList);
             await Onyx.set(ONYXKEYS.CONCIERGE_REPORT_ID, isConciergeChat ? report.reportID : '503');
             await Onyx.set(ONYXKEYS.NVP_ONBOARDING, {chatReportID: report.reportID});
             await Onyx.set(ONYXKEYS.NVP_INTRO_SELECTED, {companySize: CONST.ONBOARDING_COMPANY_SIZE.MICRO_SMALL});
@@ -448,7 +449,7 @@ describe('HeaderView', () => {
         const report = createRegularChat(501, [currentUserAccountID]);
         await act(async () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
-            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetailsList);
+            await mergePersonalDetailsList(personalDetailsList);
             await Onyx.set(ONYXKEYS.CONCIERGE_REPORT_ID, report.reportID);
         });
         renderHeader(report.reportID);
@@ -466,7 +467,7 @@ describe('HeaderView', () => {
         const report = createRegularChat(501, [currentUserAccountID]);
         await act(async () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
-            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetailsList);
+            await mergePersonalDetailsList(personalDetailsList);
             await Onyx.set(ONYXKEYS.CONCIERGE_REPORT_ID, report.reportID);
         });
         mockUseNetwork.mockReturnValue({isOffline: true});
@@ -486,7 +487,7 @@ describe('HeaderView', () => {
         await act(async () => {
             await Onyx.merge(ONYXKEYS.SESSION, {accountID: currentUserAccountID});
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
-            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetailsList);
+            await mergePersonalDetailsList(personalDetailsList);
         });
 
         // When the chat header renders
@@ -503,7 +504,7 @@ describe('HeaderView', () => {
         await act(async () => {
             await Onyx.merge(ONYXKEYS.SESSION, {accountID: currentUserAccountID});
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
-            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetailsList);
+            await mergePersonalDetailsList(personalDetailsList);
             await Onyx.merge(ONYXKEYS.ACCOUNT, {accountManagerAccountID});
         });
 
@@ -520,7 +521,7 @@ describe('HeaderView', () => {
         await act(async () => {
             await Onyx.merge(ONYXKEYS.SESSION, {accountID: currentUserAccountID});
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
-            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetailsList);
+            await mergePersonalDetailsList(personalDetailsList);
             await Onyx.merge(ONYXKEYS.ACCOUNT, {accountManagerAccountID, accountManagerCalendarLink});
         });
 

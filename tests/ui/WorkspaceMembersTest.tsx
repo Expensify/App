@@ -38,6 +38,7 @@ import Onyx from 'react-native-onyx';
 import createMock from '../utils/createMock';
 import getOnyxValue from '../utils/getOnyxValue';
 import * as LHNTestUtils from '../utils/LHNTestUtils';
+import {mergePersonalDetailsList, setPersonalDetailsList} from '../utils/PersonalDetailsTestUtils';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
@@ -164,7 +165,7 @@ describe('WorkspaceMembers', () => {
         await TestHelper.signInWithTestUser(selfAccountID, selfEmail, undefined, 'Self');
         await act(async () => {
             await Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, CONST.LOCALES.EN);
-            await Onyx.set(`${ONYXKEYS.PERSONAL_DETAILS_LIST}`, {
+            await setPersonalDetailsList({
                 [ownerAccountID]: TestHelper.buildPersonalDetails(ownerEmail, ownerAccountID, 'Owner'),
                 [adminAccountID]: TestHelper.buildPersonalDetails(adminEmail, adminAccountID, 'Admin'),
                 [auditorAccountID]: TestHelper.buildPersonalDetails(auditorEmail, auditorAccountID, 'Auditor'),
@@ -1231,7 +1232,7 @@ describe('WorkspaceMembers', () => {
             const invitedEmail = 'invited@example.com';
             const invitedAccountID = 424242;
             await act(async () => {
-                await Onyx.merge(`${ONYXKEYS.PERSONAL_DETAILS_LIST}`, {
+                await mergePersonalDetailsList({
                     [invitedAccountID]: {
                         ...TestHelper.buildPersonalDetails(invitedEmail, invitedAccountID, 'Invited'),
                         isOptimisticPersonalDetail: true,

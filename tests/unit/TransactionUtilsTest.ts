@@ -36,6 +36,7 @@ import createRandomPolicy, {createCategoryTaxRulesCollection} from '../utils/col
 import {createRandomReport} from '../utils/collections/reports';
 import createRandomTransaction from '../utils/collections/transaction';
 import createMock from '../utils/createMock';
+import {withPersonalDetails} from '../utils/PersonalDetailsTestUtils';
 import {formatPhoneNumber, getCurrencyDecimalsLocal, getCurrencySymbolLocal, translateLocal} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
@@ -131,7 +132,7 @@ describe('TransactionUtils', () => {
             keys: ONYXKEYS,
             initialKeyStates: {
                 [ONYXKEYS.SESSION]: {accountID: CURRENT_USER_ID, email: CURRENT_USER_EMAIL},
-                [ONYXKEYS.PERSONAL_DETAILS_LIST]: {
+                ...withPersonalDetails({
                     [CURRENT_USER_ID]: {
                         accountID: CURRENT_USER_ID,
                         login: CURRENT_USER_EMAIL,
@@ -142,7 +143,7 @@ describe('TransactionUtils', () => {
                         login: OTHER_USER_EMAIL,
                         displayName: 'Second User',
                     },
-                },
+                }),
                 ...reportCollectionDataSet,
             },
         });

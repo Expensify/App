@@ -44,6 +44,7 @@ import * as TrackExpense from '../../../src/libs/actions/IOU/TrackExpense';
 import createRandomPolicy from '../../utils/collections/policies';
 import createMockScreenNavigation from '../../utils/createMockScreenNavigation';
 import getOnyxValue from '../../utils/getOnyxValue';
+import {mergePersonalDetailsList, toPersonalDetailsCollection} from '../../utils/PersonalDetailsTestUtils';
 import {setupGlobalFetchMock, signInWithTestUser, translateLocal} from '../../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../../utils/waitForBatchedUpdatesWithAct';
 
@@ -2012,7 +2013,7 @@ describe('IOURequestStepConfirmationPageTest', () => {
             const login = 'new.login@example.com';
             const transactionID = 'tx-quick-action';
             await act(async () => {
-                await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+                await mergePersonalDetailsList({
                     [optimisticAccountID]: {accountID: optimisticAccountID, login, displayName: login, isOptimisticPersonalDetail: true},
                 });
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`, {
@@ -2074,6 +2075,11 @@ describe('IOURequestStepConfirmationPageTest', () => {
                         value: {[realAccountID]: {accountID: realAccountID, login, displayName: login}},
                     },
                     {
+                        onyxMethod: Onyx.METHOD.MERGE_COLLECTION,
+                        key: ONYXKEYS.COLLECTION.PERSONAL_DETAILS,
+                        value: toPersonalDetailsCollection({[realAccountID]: {accountID: realAccountID, login, displayName: login}}),
+                    },
+                    {
                         onyxMethod: Onyx.METHOD.MERGE,
                         key: `${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`,
                         value: {participants: {[realAccountID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS}}},
@@ -2081,6 +2087,7 @@ describe('IOURequestStepConfirmationPageTest', () => {
                 ]);
                 await Onyx.update([
                     {onyxMethod: Onyx.METHOD.MERGE, key: ONYXKEYS.PERSONAL_DETAILS_LIST, value: {[optimisticAccountID]: null}},
+                    {onyxMethod: Onyx.METHOD.MERGE_COLLECTION, key: ONYXKEYS.COLLECTION.PERSONAL_DETAILS, value: toPersonalDetailsCollection({[optimisticAccountID]: null})},
                     {onyxMethod: Onyx.METHOD.MERGE, key: `${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`, value: {participants: {[optimisticAccountID]: null}}},
                 ]);
             });
@@ -2105,7 +2112,7 @@ describe('IOURequestStepConfirmationPageTest', () => {
             const login = 'existing.user@example.com';
             const transactionID = 'tx-existing-user';
             await act(async () => {
-                await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+                await mergePersonalDetailsList({
                     [optimisticAccountID]: {accountID: optimisticAccountID, login, displayName: login, isOptimisticPersonalDetail: true},
                 });
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`, {
@@ -2167,6 +2174,11 @@ describe('IOURequestStepConfirmationPageTest', () => {
                         value: {[realAccountID]: {accountID: realAccountID, displayName: 'Existing User'}},
                     },
                     {
+                        onyxMethod: Onyx.METHOD.MERGE_COLLECTION,
+                        key: ONYXKEYS.COLLECTION.PERSONAL_DETAILS,
+                        value: toPersonalDetailsCollection({[realAccountID]: {accountID: realAccountID, displayName: 'Existing User'}}),
+                    },
+                    {
                         onyxMethod: Onyx.METHOD.MERGE,
                         key: `${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`,
                         value: {participants: {[realAccountID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS}}},
@@ -2174,6 +2186,7 @@ describe('IOURequestStepConfirmationPageTest', () => {
                 ]);
                 await Onyx.update([
                     {onyxMethod: Onyx.METHOD.MERGE, key: ONYXKEYS.PERSONAL_DETAILS_LIST, value: {[optimisticAccountID]: null}},
+                    {onyxMethod: Onyx.METHOD.MERGE_COLLECTION, key: ONYXKEYS.COLLECTION.PERSONAL_DETAILS, value: toPersonalDetailsCollection({[optimisticAccountID]: null})},
                     {onyxMethod: Onyx.METHOD.MERGE, key: `${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`, value: {participants: {[optimisticAccountID]: null}}},
                 ]);
             });
@@ -2212,7 +2225,7 @@ describe('IOURequestStepConfirmationPageTest', () => {
 
                 // And the first expense already synced, for example while the app was in the background, so the chat only lists the
                 // real account and the server returned it without its login
-                await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {[realAccountID]: {accountID: realAccountID, displayName: 'Synced User'}});
+                await mergePersonalDetailsList({[realAccountID]: {accountID: realAccountID, displayName: 'Synced User'}});
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`, {
                     reportID: chatReportID,
                     type: CONST.REPORT.TYPE.CHAT,
@@ -2267,7 +2280,7 @@ describe('IOURequestStepConfirmationPageTest', () => {
             const login = 'split.login@example.com';
             const transactionID = 'tx-split-share';
             await act(async () => {
-                await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+                await mergePersonalDetailsList({
                     [optimisticAccountID]: {accountID: optimisticAccountID, login, displayName: login, isOptimisticPersonalDetail: true},
                 });
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`, {
@@ -2332,6 +2345,11 @@ describe('IOURequestStepConfirmationPageTest', () => {
                         value: {[realAccountID]: {accountID: realAccountID, login, displayName: login}},
                     },
                     {
+                        onyxMethod: Onyx.METHOD.MERGE_COLLECTION,
+                        key: ONYXKEYS.COLLECTION.PERSONAL_DETAILS,
+                        value: toPersonalDetailsCollection({[realAccountID]: {accountID: realAccountID, login, displayName: login}}),
+                    },
+                    {
                         onyxMethod: Onyx.METHOD.MERGE,
                         key: `${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`,
                         value: {participants: {[realAccountID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS}}},
@@ -2339,6 +2357,7 @@ describe('IOURequestStepConfirmationPageTest', () => {
                 ]);
                 await Onyx.update([
                     {onyxMethod: Onyx.METHOD.MERGE, key: ONYXKEYS.PERSONAL_DETAILS_LIST, value: {[optimisticAccountID]: null}},
+                    {onyxMethod: Onyx.METHOD.MERGE_COLLECTION, key: ONYXKEYS.COLLECTION.PERSONAL_DETAILS, value: toPersonalDetailsCollection({[optimisticAccountID]: null})},
                     {onyxMethod: Onyx.METHOD.MERGE, key: `${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`, value: {participants: {[optimisticAccountID]: null}}},
                 ]);
             });

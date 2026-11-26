@@ -44,6 +44,7 @@ import {clearTokenRefresh, removeAllFromAutoprefetch} from 'react-native-nitro-f
 import Onyx from 'react-native-onyx';
 
 import getOnyxValue from '../utils/getOnyxValue';
+import {personalDetailsUpdate} from '../utils/PersonalDetailsTestUtils';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
@@ -2007,8 +2008,8 @@ describe('Session', () => {
     describe('buildOnyxDataToCleanUpAnonymousUser through the sign-in actions', () => {
         const ANONYMOUS_ACCOUNT_ID = 999;
         const anonymousSession = {authTokenType: CONST.AUTH_TOKEN_TYPES.ANONYMOUS, accountID: ANONYMOUS_ACCOUNT_ID};
-        const anonymousCleanupUpdate = {onyxMethod: Onyx.METHOD.MERGE, key: ONYXKEYS.PERSONAL_DETAILS_LIST, value: {[ANONYMOUS_ACCOUNT_ID]: null}};
-        const emptyCleanupUpdate = {onyxMethod: Onyx.METHOD.MERGE, key: ONYXKEYS.PERSONAL_DETAILS_LIST, value: {}};
+        const anonymousCleanupUpdate = personalDetailsUpdate({[ANONYMOUS_ACCOUNT_ID]: null});
+        const emptyCleanupUpdate = personalDetailsUpdate({});
 
         beforeEach(async () => {
             // A signed-in session is stored, so a cleanup entry for the anonymous account can only come from the passed session
@@ -2069,7 +2070,7 @@ describe('Session', () => {
             await waitForBatchedUpdates();
 
             // Then no anonymous account is cleared, because the passed session wins over the stored one
-            expect(writeSpy.mock.calls.at(0)?.[2]?.successData).toEqual(expect.arrayContaining([{onyxMethod: Onyx.METHOD.MERGE, key: ONYXKEYS.PERSONAL_DETAILS_LIST, value: {}}]));
+            expect(writeSpy.mock.calls.at(0)?.[2]?.successData).toEqual(expect.arrayContaining([personalDetailsUpdate({})]));
 
             writeSpy.mockRestore();
         });

@@ -20,6 +20,7 @@ import type {SvgProps} from 'react-native-svg';
 import React from 'react';
 import Onyx from 'react-native-onyx';
 
+import {mergePersonalDetailsList} from '../utils/PersonalDetailsTestUtils';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 const mockTranslate = jest.fn((path: string) => path);
@@ -169,7 +170,7 @@ describe('ShareCodePage', () => {
 
             // A user-uploaded avatar has no bundled local SVG, so the QR logo must come from its URL.
             await Onyx.merge(ONYXKEYS.SESSION, {accountID: PARTICIPANT_A, email: 'user@example.com'});
-            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+            await mergePersonalDetailsList({
                 [PARTICIPANT_A]: {accountID: PARTICIPANT_A, avatar: 'https://example.com/images/avatar_custom.png'},
             });
             await waitForBatchedUpdates();

@@ -13,6 +13,7 @@ import {NavigationContainer} from '@react-navigation/native';
 import React from 'react';
 import Onyx from 'react-native-onyx';
 
+import {setPersonalDetailsList} from '../utils/PersonalDetailsTestUtils';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
 jest.mock('@hooks/useLocalize', () =>
@@ -110,7 +111,7 @@ describe('ReportWelcomeText', () => {
     beforeEach(async () => {
         await act(async () => {
             await Onyx.clear();
-            await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetails);
+            await setPersonalDetailsList(personalDetails);
         });
         await waitForBatchedUpdatesWithAct();
     });

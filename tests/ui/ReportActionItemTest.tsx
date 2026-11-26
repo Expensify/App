@@ -42,6 +42,7 @@ import {StyleSheet} from 'react-native';
 import Onyx from 'react-native-onyx';
 
 import createMock from '../utils/createMock';
+import {mergePersonalDetailsList, setPersonalDetailsList} from '../utils/PersonalDetailsTestUtils';
 import {translateLocal} from '../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 import wrapOnyxWithWaitForBatchedUpdates from '../utils/wrapOnyxWithWaitForBatchedUpdates';
@@ -128,7 +129,7 @@ describe('ReportActionItem', () => {
         wrapOnyxWithWaitForBatchedUpdates(Onyx);
         setHasRadio(true);
         await act(async () => {
-            await Onyx.merge(`${ONYXKEYS.PERSONAL_DETAILS_LIST}`, {
+            await mergePersonalDetailsList({
                 [ACTOR_ACCOUNT_ID]: {
                     accountID: ACTOR_ACCOUNT_ID,
                     avatar: 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/default-avatar_9.png',
@@ -203,7 +204,7 @@ describe('ReportActionItem', () => {
             await act(async () => {
                 await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${bill.reportID}`, bill);
                 await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${bill.reportID}`, {[createdAction.reportActionID]: createdAction, [action.reportActionID]: action});
-                await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+                await mergePersonalDetailsList({
                     [ACTOR_ACCOUNT_ID]: {accountID: ACTOR_ACCOUNT_ID, displayName: 'Receiver'},
                     [senderAccountID]: {accountID: senderAccountID, displayName: 'Sender'},
                     [processorAccountID]: {accountID: processorAccountID, displayName: 'Tom Jones', login: 'tom@example.com'},
@@ -252,7 +253,7 @@ describe('ReportActionItem', () => {
                 await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${invoice.reportID}`, invoice);
                 await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${invoice.reportID}`, {billID: 9878});
                 await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${invoice.reportID}`, {[createdAction.reportActionID]: createdAction, [action.reportActionID]: action});
-                await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+                await mergePersonalDetailsList({
                     [ACTOR_ACCOUNT_ID]: {accountID: ACTOR_ACCOUNT_ID, displayName: 'Receiver'},
                     [senderAccountID]: {accountID: senderAccountID, displayName: 'Sender'},
                     [processorAccountID]: {accountID: processorAccountID, displayName: 'Tom Jones', login: 'tom@example.com'},
@@ -299,7 +300,7 @@ describe('ReportActionItem', () => {
                     [createdAction.reportActionID]: createdAction,
                     [submittedAction.reportActionID]: submittedAction,
                 });
-                await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+                await setPersonalDetailsList({
                     [ACTOR_ACCOUNT_ID]: {accountID: ACTOR_ACCOUNT_ID},
                     [senderAccountID]: {accountID: senderAccountID},
                     [CONST.ACCOUNT_ID.CONCIERGE]: {accountID: CONST.ACCOUNT_ID.CONCIERGE, displayName: 'Concierge', login: CONST.EMAIL.CONCIERGE},
@@ -325,7 +326,7 @@ describe('ReportActionItem', () => {
                 await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${invoice.reportID}`, invoice);
                 await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${invoice.reportID}`, {billID: 9883});
                 await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${invoice.reportID}`, {[action.reportActionID]: action});
-                await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+                await mergePersonalDetailsList({
                     [ACTOR_ACCOUNT_ID]: {accountID: ACTOR_ACCOUNT_ID, displayName: 'Original receiver'},
                     [currentManagerAccountID]: {accountID: currentManagerAccountID, displayName: 'Current manager'},
                     [CONST.ACCOUNT_ID.CONCIERGE]: {accountID: CONST.ACCOUNT_ID.CONCIERGE, displayName: 'Concierge', login: CONST.EMAIL.CONCIERGE},
@@ -349,7 +350,7 @@ describe('ReportActionItem', () => {
             await act(async () => {
                 await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${invoice.reportID}`, invoice);
                 await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${invoice.reportID}`, {[action.reportActionID]: action});
-                await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {[senderAccountID]: {accountID: senderAccountID, displayName: 'Sender'}});
+                await mergePersonalDetailsList({[senderAccountID]: {accountID: senderAccountID, displayName: 'Sender'}});
             });
 
             // When NewDot renders the invoice submission.

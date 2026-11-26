@@ -13,6 +13,7 @@ import type {Attendee} from '@src/types/onyx/IOU';
 import React from 'react';
 import Onyx from 'react-native-onyx';
 
+import {withPersonalDetails} from '../../../utils/PersonalDetailsTestUtils';
 import waitForBatchedUpdates from '../../../utils/waitForBatchedUpdates';
 
 // Only the write matters here, so the action is stubbed to record what it is asked to save.
@@ -67,7 +68,7 @@ describe('AttendeeFieldDropdown', () => {
         // The expense sits on a report the creator owns, which is where the list finds the creator to start from.
         await Onyx.multiSet({
             [ONYXKEYS.SESSION]: {accountID: CURRENT_USER_ACCOUNT_ID, email: CURRENT_USER_LOGIN},
-            [ONYXKEYS.PERSONAL_DETAILS_LIST]: {[CURRENT_USER_ACCOUNT_ID]: {accountID: CURRENT_USER_ACCOUNT_ID, login: CURRENT_USER_LOGIN, displayName: 'Creator'}},
+            ...withPersonalDetails({[CURRENT_USER_ACCOUNT_ID]: {accountID: CURRENT_USER_ACCOUNT_ID, login: CURRENT_USER_LOGIN, displayName: 'Creator'}}),
             [`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}` as const]: {reportID: REPORT_ID, ownerAccountID: CURRENT_USER_ACCOUNT_ID},
         });
         await waitForBatchedUpdates();

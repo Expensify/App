@@ -17,6 +17,7 @@ import type {Report, ReportAction} from '@src/types/onyx';
 import React from 'react';
 import Onyx from 'react-native-onyx';
 
+import {withPersonalDetails} from '../utils/PersonalDetailsTestUtils';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
 jest.mock('@libs/actions/Report', () => {
@@ -61,7 +62,7 @@ describe('ReportActionItemMessageWithExplain', () => {
         await act(async () => {
             await Onyx.multiSet({
                 [ONYXKEYS.SESSION]: {accountID: CURRENT_USER_ACCOUNT_ID, email: CURRENT_USER_EMAIL},
-                [ONYXKEYS.PERSONAL_DETAILS_LIST]: {[CURRENT_USER_ACCOUNT_ID]: {accountID: CURRENT_USER_ACCOUNT_ID, login: CURRENT_USER_EMAIL}},
+                ...withPersonalDetails({[CURRENT_USER_ACCOUNT_ID]: {accountID: CURRENT_USER_ACCOUNT_ID, login: CURRENT_USER_EMAIL}}),
                 [ONYXKEYS.NVP_INTRO_SELECTED]: {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
                 [ONYXKEYS.NVP_ONBOARDING]: {selfTourViewed: true},
                 [ONYXKEYS.CONCIERGE_REPORT_ID]: CONCIERGE_REPORT_ID,

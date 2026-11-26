@@ -24,8 +24,8 @@ import Onyx from 'react-native-onyx';
 
 import {chatReportR14932} from '../../__mocks__/reportData/reports';
 import createRandomReportAction from '../utils/collections/reportActions';
-import getOnyxValue from '../utils/getOnyxValue';
 import * as LHNTestUtils from '../utils/LHNTestUtils';
+import {getPersonalDetailsList, withPersonalDetails} from '../utils/PersonalDetailsTestUtils';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
@@ -150,7 +150,7 @@ describe('SidebarLinksData', () => {
             await Onyx.multiSet({
                 [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.GSD,
                 [ONYXKEYS.BETAS]: betas,
-                [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtils.fakePersonalDetails,
+                ...withPersonalDetails(LHNTestUtils.fakePersonalDetails),
                 [ONYXKEYS.IS_LOADING_APP]: false,
                 ...(reportData ?? {}),
                 ...(otherData ?? {}),
@@ -516,7 +516,7 @@ describe('SidebarLinksData', () => {
 
             await waitForBatchedUpdatesWithAct();
 
-            const personalDetail = await getOnyxValue(ONYXKEYS.PERSONAL_DETAILS_LIST);
+            const personalDetail = await getPersonalDetailsList();
             expect(personalDetail?.[TEST_USER_ACCOUNT_ID]?.accountID).toBe(TEST_USER_ACCOUNT_ID);
         });
     });

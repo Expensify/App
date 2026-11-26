@@ -33,6 +33,7 @@ import createRandomReportAction from '../utils/collections/reportActions';
 import {createExpenseReport, createRandomReport} from '../utils/collections/reports';
 import createRandomTransaction, {createRandomDistanceRequestTransaction} from '../utils/collections/transaction';
 import getOnyxValue from '../utils/getOnyxValue';
+import {getPersonalDetailsList, withPersonalDetails} from '../utils/PersonalDetailsTestUtils';
 import * as TestHelper from '../utils/TestHelper';
 import {getCurrencyDecimalsLocal, getCurrencySymbolLocal} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
@@ -242,7 +243,7 @@ describe('mergeTransactionRequest', () => {
             keys: ONYXKEYS,
             initialKeyStates: {
                 [ONYXKEYS.SESSION]: {accountID: TEST_ACCOUNT_ID, email: TEST_EMAIL},
-                [ONYXKEYS.PERSONAL_DETAILS_LIST]: {[TEST_ACCOUNT_ID]: {accountID: TEST_ACCOUNT_ID, login: TEST_EMAIL}},
+                ...withPersonalDetails({[TEST_ACCOUNT_ID]: {accountID: TEST_ACCOUNT_ID, login: TEST_EMAIL}}),
             },
         });
     });
@@ -1244,7 +1245,7 @@ describe('mergeTransactionRequest', () => {
                 [TEST_ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN, role: CONST.REPORT.ROLE.ADMIN},
             });
 
-            const allPersonalDetails = await getOnyxValue(ONYXKEYS.PERSONAL_DETAILS_LIST);
+            const allPersonalDetails = await getPersonalDetailsList();
             const participantAccountIDs = Object.keys(thread.participants ?? {}).map(Number);
             jest.advanceTimersByTime(10);
             const participants = participantAccountIDs.flatMap((accountID) => {
@@ -1443,7 +1444,7 @@ describe('mergeTransactionRequest', () => {
                 [TEST_ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN, role: CONST.REPORT.ROLE.ADMIN},
             });
 
-            const allPersonalDetails = await getOnyxValue(ONYXKEYS.PERSONAL_DETAILS_LIST);
+            const allPersonalDetails = await getPersonalDetailsList();
             const participantAccountIDs = Object.keys(thread.participants ?? {}).map(Number);
             jest.advanceTimersByTime(10);
             const participants = participantAccountIDs.flatMap((accountID) => {

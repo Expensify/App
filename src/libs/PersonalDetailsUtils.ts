@@ -10,7 +10,7 @@ import type {Address} from '@src/types/onyx/PrivatePersonalDetails';
 import type {AnyOnyxUpdate, OnyxData} from '@src/types/onyx/Request';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
-import type {OnyxEntry, OnyxMergeInput, OnyxUpdate} from 'react-native-onyx';
+import type {OnyxEntry, OnyxMergeCollectionInput, OnyxMergeInput, OnyxUpdate} from 'react-native-onyx';
 import type {SetNonNullable} from 'type-fest';
 
 import {Str} from 'expensify-common';
@@ -19,6 +19,7 @@ import Onyx from 'react-native-onyx';
 import {getCountryCode} from './CountryUtils';
 import {areEmailsFromSamePrivateDomain} from './LoginUtils';
 import {isRecord} from './ObjectUtils';
+import {getPersonalDetailsKey} from './PersonalDetailsCollection';
 import {getPersonalDetailByLogin} from './PersonalDetailsStore';
 import {addSMSDomainIfPhoneNumber, parsePhoneNumber} from './PhoneNumber';
 import {getDefaultAvatarURL} from './UserAvatarUtils';
@@ -249,27 +250,51 @@ function getNewAccountIDsAndLogins(invitedEmailsToAccountIDs: InvitedEmailsToAcc
     );
 }
 
-type PersonalDetailsUpdate = OnyxMergeInput<typeof ONYXKEYS.PERSONAL_DETAILS_LIST>;
+type PersonalDetailsUpdate = Record<string, OnyxMergeInput<typeof ONYXKEYS.COLLECTION.PERSONAL_DETAILS> | undefined>;
 
-// All writes are merges, and the builder is what turns one list update into one update per account after the reshape
-function buildPersonalDetailsUpdate(personalDetails: PersonalDetailsUpdate): OnyxUpdate<typeof ONYXKEYS.PERSONAL_DETAILS_LIST> {
+// All writes are merges, keyed by accountID. One MERGE_COLLECTION fans out to one merge per account, and a null value removes that account.
+function buildPersonalDetailsUpdate(personalDetails: PersonalDetailsUpdate): OnyxUpdate<typeof ONYXKEYS.COLLECTION.PERSONAL_DETAILS> {
+    const value: Record<string, OnyxMergeInput<typeof ONYXKEYS.COLLECTION.PERSONAL_DETAILS>> = {};
+    for (const [accountID, personalDetail] of Object.entries(personalDetails)) {
+        if (personalDetail !== undefined) {
+            value[getPersonalDetailsKey(accountID)] = personalDetail;
+        }
+    }
     return {
-        onyxMethod: Onyx.METHOD.MERGE,
-        key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-        value: personalDetails,
+        onyxMethod: Onyx.METHOD.MERGE_COLLECTION,
+        key: ONYXKEYS.COLLECTION.PERSONAL_DETAILS,
+        // Onyx types collection merges as non-null members, but applies a null member as a removal, which the cleanup updates rely on
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
+        value: value as OnyxMergeCollectionInput<typeof ONYXKEYS.COLLECTION.PERSONAL_DETAILS>,
     };
+}
+
+/**
+ * Personal details, keyed by accountID, carried by Onyx updates in either the collection or the legacy single-key format.
+ */
+function getPersonalDetailsFromOnyxUpdates(onyxData?: AnyOnyxUpdate[]): Record<string, unknown> {
+    const personalDetails: Record<string, unknown> = {};
+    for (const update of onyxData ?? []) {
+        const key = String(update.key);
+        if (key === ONYXKEYS.PERSONAL_DETAILS_LIST || key === ONYXKEYS.COLLECTION.PERSONAL_DETAILS) {
+            if (!isRecord(update.value)) {
+                continue;
+            }
+            for (const [entryKey, detail] of Object.entries(update.value)) {
+                personalDetails[entryKey.startsWith(ONYXKEYS.COLLECTION.PERSONAL_DETAILS) ? entryKey.slice(ONYXKEYS.COLLECTION.PERSONAL_DETAILS.length) : entryKey] = detail;
+            }
+        } else if (key.startsWith(ONYXKEYS.COLLECTION.PERSONAL_DETAILS)) {
+            personalDetails[key.slice(ONYXKEYS.COLLECTION.PERSONAL_DETAILS.length)] = update.value;
+        }
+    }
+    return personalDetails;
 }
 
 /**
  * Extracts logins from personal details updates in Onyx data.
  */
 function getLoginsFromOnyxUpdates(onyxData?: AnyOnyxUpdate[]): string[] {
-    const update = onyxData?.find((item) => item.key === ONYXKEYS.PERSONAL_DETAILS_LIST);
-    if (!isRecord(update?.value)) {
-        return [];
-    }
-
-    return Object.values(update.value)
+    return Object.values(getPersonalDetailsFromOnyxUpdates(onyxData))
         .filter(isRecord)
         .map((detail) => detail.login)
         .filter((login): login is string => typeof login === 'string');
@@ -286,7 +311,7 @@ function getPersonalDetailsOnyxDataForOptimisticUsers(
     newLogins: string[],
     newAccountIDs: number[],
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
-): OnyxData<typeof ONYXKEYS.PERSONAL_DETAILS_LIST> {
+): OnyxData<typeof ONYXKEYS.COLLECTION.PERSONAL_DETAILS> {
     const personalDetailsNew: PersonalDetailsList = {};
     const personalDetailsCleanup: PersonalDetailsList = {};
 
@@ -568,4 +593,5 @@ export {
     temporaryGetDisplayNameOrDefault,
     buildPersonalDetailsUpdate,
     getLoginsFromOnyxUpdates,
+    getPersonalDetailsFromOnyxUpdates,
 };

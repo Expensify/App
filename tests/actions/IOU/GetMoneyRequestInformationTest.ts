@@ -7,6 +7,7 @@ import type {PolicyTagLists, Report, ReportAction, Transaction} from '@src/types
 
 import Onyx from 'react-native-onyx';
 
+import {mergePersonalDetailsList} from '../../utils/PersonalDetailsTestUtils';
 import {formatPhoneNumber, getCurrencyDecimalsLocal} from '../../utils/TestHelper';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
@@ -566,7 +567,7 @@ describe('getMoneyRequestInformation', () => {
         it('creates a new report when the submitter only has a report that is awaiting approval', async () => {
             // Submitting a report clears the chat's `iouReportID`, so this fallback runs right after a submit too.
             // The submitted report must never be reused — the next expense belongs on a fresh report.
-            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+            await mergePersonalDetailsList({
                 [PAYEE_ACCOUNT_ID]: {accountID: PAYEE_ACCOUNT_ID, login: 'payee@example.com'},
                 [APPROVER_ACCOUNT_ID]: {accountID: APPROVER_ACCOUNT_ID, login: APPROVER_EMAIL},
             });

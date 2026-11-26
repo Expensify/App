@@ -7,6 +7,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import Onyx from 'react-native-onyx';
 
 import getOnyxValue from '../utils/getOnyxValue';
+import {withPersonalDetails} from '../utils/PersonalDetailsTestUtils';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 const GUIDE_ACCOUNT_ID = 8;
@@ -16,7 +17,7 @@ describe('OnyxDerived with a value restored from disk', () => {
         // Given the guide accountIDs and their personal details are already stored, as after an app restart
         Onyx.init({keys: ONYXKEYS});
         await Onyx.multiSet({
-            [ONYXKEYS.PERSONAL_DETAILS_LIST]: {[GUIDE_ACCOUNT_ID]: {accountID: GUIDE_ACCOUNT_ID, login: `guide@${CONST.EMAIL.GUIDES_DOMAIN}`}},
+            ...withPersonalDetails({[GUIDE_ACCOUNT_ID]: {accountID: GUIDE_ACCOUNT_ID, login: `guide@${CONST.EMAIL.GUIDES_DOMAIN}`}}),
             [ONYXKEYS.DERIVED.GUIDE_ACCOUNT_IDS]: [GUIDE_ACCOUNT_ID],
         });
         await waitForBatchedUpdates();

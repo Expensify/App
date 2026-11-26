@@ -41,6 +41,7 @@ import createRandomTransaction from '../../utils/collections/transaction';
 import createMock from '../../utils/createMock';
 import getOnyxValue from '../../utils/getOnyxValue';
 import initCurrencyListContext from '../../utils/initCurrencyListContext';
+import {getPersonalDetailsList, setPersonalDetailsList, withPersonalDetails} from '../../utils/PersonalDetailsTestUtils';
 import {formatPhoneNumber, getCurrencyDecimalsLocal, getGlobalFetchMock, getOnyxData, getRequiredWriteCall} from '../../utils/TestHelper';
 import {isObject} from '../../utils/typeGuards';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
@@ -165,7 +166,7 @@ describe('actions/Duplicate', () => {
                 keys: ONYXKEYS,
                 initialKeyStates: {
                     [ONYXKEYS.SESSION]: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
-                    [ONYXKEYS.PERSONAL_DETAILS_LIST]: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
+                    ...withPersonalDetails({[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}}),
                 },
             });
         });
@@ -733,7 +734,7 @@ describe('actions/Duplicate', () => {
                 [RORY_ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN, role: CONST.REPORT.ROLE.ADMIN},
             });
 
-            const allPersonalDetails = await getOnyxValue(ONYXKEYS.PERSONAL_DETAILS_LIST);
+            const allPersonalDetails = await getPersonalDetailsList();
             const participantAccountIDs = Object.keys(transactionThreadReport1.participants ?? {}).map(Number);
             jest.advanceTimersByTime(10);
             const participants = participantAccountIDs.flatMap((accountID) => {
@@ -4513,7 +4514,7 @@ describe('actions/Duplicate', () => {
 
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${approvalPolicy.id}`, approvalPolicy);
             await Onyx.set(ONYXKEYS.SESSION, {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL});
-            await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+            await setPersonalDetailsList({
                 [RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL},
                 [firstApproverAccountID]: {accountID: firstApproverAccountID, login: firstApproverEmail},
                 [overLimitApproverAccountID]: {accountID: overLimitApproverAccountID, login: overLimitApproverEmail},

@@ -109,9 +109,14 @@ const mockUseOnyx = useOnyx as jest.MockedFunction<typeof useOnyx>;
 
 // Runs the selector a component passed to useOnyx over a given personal details list
 function selectFromPersonalDetails(selector: unknown, personalDetails: OnyxTypes.PersonalDetailsList) {
+    // The selector reads the personal details collection, keyed `personalDetails_<accountID>`
+    const collection: Record<string, unknown> = {};
+    for (const [accountID, personalDetail] of Object.entries(personalDetails)) {
+        collection[`${ONYXKEYS.COLLECTION.PERSONAL_DETAILS}${accountID}`] = personalDetail;
+    }
     // jest erases the generic type info, so the selector needs a narrowing assertion back to its real signature.
     // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
-    return (selector as (personalDetailsList: OnyxTypes.PersonalDetailsList) => NonNullable<unknown> | undefined)(personalDetails);
+    return (selector as (personalDetailsCollection: Record<string, unknown>) => NonNullable<unknown> | undefined)(collection);
 }
 const mockUseResponsiveLayout = useResponsiveLayout as jest.MockedFunction<typeof useResponsiveLayout>;
 const mockUseTransactionsAndViolationsForReport = useTransactionsAndViolationsForReport as jest.MockedFunction<typeof useTransactionsAndViolationsForReport>;
@@ -928,7 +933,7 @@ describe('ReportActionsList (body)', () => {
                 person: [{type: 'TEXT', style: 'strong', text: 'Receipt Checker'}],
             };
             mockUseOnyx.mockImplementation((key, options) => {
-                if (key === ONYXKEYS.PERSONAL_DETAILS_LIST && options?.selector) {
+                if (key === ONYXKEYS.COLLECTION.PERSONAL_DETAILS && options?.selector) {
                     return [selectFromPersonalDetails(options.selector, {[agentAccountID]: {accountID: agentAccountID, isCustomAgent: true}}), {status: 'loaded'}];
                 }
                 return getMockOnyxValue(key, options);

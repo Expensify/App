@@ -24,6 +24,7 @@ import type {InvitedEmailsToAccountIDs, PersonalDetails, PersonalDetailsList} fr
 
 import Onyx from 'react-native-onyx';
 
+import {personalDetailsUpdate, setPersonalDetailsList} from '../../utils/PersonalDetailsTestUtils';
 import {formatPhoneNumber, translateLocal} from '../../utils/TestHelper';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
@@ -159,50 +160,42 @@ describe('PersonalDetailsUtils', () => {
             const result = getPersonalDetailsOnyxDataForOptimisticUsers(newLogins, newAccountIDs, formatPhoneNumber);
             const expected = {
                 optimisticData: [
-                    {
-                        key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-                        onyxMethod: 'merge',
-                        value: {
-                            // eslint-disable-next-line @typescript-eslint/naming-convention
-                            '1': {
-                                accountID: 1,
-                                avatar: 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/default-avatar_15.png',
-                                displayName: '3322076524',
-                                isOptimisticPersonalDetail: true,
-                                login: '3322076524',
-                            },
-                            // eslint-disable-next-line @typescript-eslint/naming-convention
-                            '2': {
-                                accountID: 2,
-                                avatar: 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/generated/letter/v1/ice700/T.png',
-                                displayName: 'test2@test.com',
-                                isOptimisticPersonalDetail: true,
-                                login: 'test2@test.com',
-                            },
-                            // eslint-disable-next-line @typescript-eslint/naming-convention
-                            '3': {
-                                accountID: 3,
-                                avatar: 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/default-avatar_6.png',
-                                displayName: '(418) 543-8090',
-                                isOptimisticPersonalDetail: true,
-                                login: '+14185438090',
-                            },
+                    personalDetailsUpdate({
+                        // eslint-disable-next-line @typescript-eslint/naming-convention
+                        '1': {
+                            accountID: 1,
+                            avatar: 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/default-avatar_15.png',
+                            displayName: '3322076524',
+                            isOptimisticPersonalDetail: true,
+                            login: '3322076524',
                         },
-                    },
+                        // eslint-disable-next-line @typescript-eslint/naming-convention
+                        '2': {
+                            accountID: 2,
+                            avatar: 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/generated/letter/v1/ice700/T.png',
+                            displayName: 'test2@test.com',
+                            isOptimisticPersonalDetail: true,
+                            login: 'test2@test.com',
+                        },
+                        // eslint-disable-next-line @typescript-eslint/naming-convention
+                        '3': {
+                            accountID: 3,
+                            avatar: 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/default-avatar_6.png',
+                            displayName: '(418) 543-8090',
+                            isOptimisticPersonalDetail: true,
+                            login: '+14185438090',
+                        },
+                    }),
                 ],
                 finallyData: [
-                    {
-                        key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-                        onyxMethod: Onyx.METHOD.MERGE,
-                        value: {
-                            // eslint-disable-next-line @typescript-eslint/naming-convention
-                            '1': null,
-                            // eslint-disable-next-line @typescript-eslint/naming-convention
-                            '2': null,
-                            // eslint-disable-next-line @typescript-eslint/naming-convention
-                            '3': null,
-                        },
-                    },
+                    personalDetailsUpdate({
+                        // eslint-disable-next-line @typescript-eslint/naming-convention
+                        '1': null,
+                        // eslint-disable-next-line @typescript-eslint/naming-convention
+                        '2': null,
+                        // eslint-disable-next-line @typescript-eslint/naming-convention
+                        '3': null,
+                    }),
                 ],
             };
             expect(result).toEqual(expected);
@@ -632,7 +625,7 @@ describe('PersonalDetailsUtils', () => {
                 },
             };
 
-            await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetails);
+            await setPersonalDetailsList(personalDetails);
             await waitForBatchedUpdates();
 
             // The cache is built with lowercase keys, so we need to test that the lookup works
@@ -655,7 +648,7 @@ describe('PersonalDetailsUtils', () => {
                 },
             };
 
-            await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, closedHasHigherAccountID);
+            await setPersonalDetailsList(closedHasHigherAccountID);
             await waitForBatchedUpdates();
 
             expect(getAccountIDsByLogins(['user1@example.com'])).toEqual([accountID1]);
@@ -672,7 +665,7 @@ describe('PersonalDetailsUtils', () => {
                 },
             };
 
-            await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, closedHasLowerAccountID);
+            await setPersonalDetailsList(closedHasLowerAccountID);
             await waitForBatchedUpdates();
 
             expect(getAccountIDsByLogins(['user1@example.com'])).toEqual([accountID2]);
@@ -691,7 +684,7 @@ describe('PersonalDetailsUtils', () => {
                 },
             };
 
-            await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, optimisticHasHigherAccountID);
+            await setPersonalDetailsList(optimisticHasHigherAccountID);
             await waitForBatchedUpdates();
 
             expect(getAccountIDsByLogins(['user1@example.com'])).toEqual([accountID1]);
@@ -708,7 +701,7 @@ describe('PersonalDetailsUtils', () => {
                 },
             };
 
-            await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, optimisticHasLowerAccountID);
+            await setPersonalDetailsList(optimisticHasLowerAccountID);
             await waitForBatchedUpdates();
 
             expect(getAccountIDsByLogins(['user1@example.com'])).toEqual([accountID2]);
@@ -727,7 +720,7 @@ describe('PersonalDetailsUtils', () => {
                 },
             };
 
-            await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetails);
+            await setPersonalDetailsList(personalDetails);
             await waitForBatchedUpdates();
 
             const result = getPersonalDetailByEmail('test@example.com');
@@ -747,7 +740,7 @@ describe('PersonalDetailsUtils', () => {
                 },
             };
 
-            await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetails);
+            await setPersonalDetailsList(personalDetails);
             await waitForBatchedUpdates();
 
             const result = getPersonalDetailByEmail('unknown@example.com');
@@ -763,7 +756,7 @@ describe('PersonalDetailsUtils', () => {
                 },
             };
 
-            await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetails);
+            await setPersonalDetailsList(personalDetails);
             await waitForBatchedUpdates();
 
             const result = getPersonalDetailByEmail('test@example.com');

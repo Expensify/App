@@ -46,6 +46,7 @@ import {createSidebarReportsCollection, createSidebarTestData} from '../utils/co
 import createRandomTransaction from '../utils/collections/transaction';
 import createMock from '../utils/createMock';
 import * as LHNTestUtils from '../utils/LHNTestUtils';
+import {setPersonalDetailsList} from '../utils/PersonalDetailsTestUtils';
 import {convertToDisplayString, convertToDisplayStringWithoutCurrency, getCurrencyDecimalsLocal, localeCompare, translateLocal, formatPhoneNumber} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
@@ -3356,7 +3357,7 @@ describe('SidebarUtils', () => {
             const reportActions: ReportActions = {[lastAction.reportActionID]: lastAction};
             await act(async () => {
                 await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
-                await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {[mentionedAccountID]: {accountID: mentionedAccountID, firstName: '', lastName: ''}});
+                await setPersonalDetailsList({[mentionedAccountID]: {accountID: mentionedAccountID, firstName: '', lastName: ''}});
                 await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, reportActions);
             });
 
@@ -4258,7 +4259,7 @@ describe('SidebarUtils', () => {
                 };
                 await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
                 await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, reportActions);
-                await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, PERSONAL_DETAILS);
+                await setPersonalDetailsList(PERSONAL_DETAILS);
                 const result = SidebarUtils.getOptionData({
                     lastOriginalAction: undefined,
                     dateFnsLocale: undefined,
@@ -4362,7 +4363,7 @@ describe('SidebarUtils', () => {
                     await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`, iouReport);
                     await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport.reportID}`, iouReportActions);
                     await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
-                    await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetailList);
+                    await setPersonalDetailsList(personalDetailList);
                     await Onyx.set(ONYXKEYS.SESSION, {accountID: managerID});
                 });
 
@@ -4483,7 +4484,7 @@ describe('SidebarUtils', () => {
                     await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`, iouReport);
                     await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport.reportID}`, iouReportActions);
                     await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
-                    await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetailList);
+                    await setPersonalDetailsList(personalDetailList);
                     await Onyx.set(ONYXKEYS.SESSION, {accountID: managerID});
                 });
 

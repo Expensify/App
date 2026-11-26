@@ -283,7 +283,7 @@ type BuildPolicyDataOptions = {
     userReportedIntegrationName?: string;
     isAnnualSubscription?: boolean;
     featuresMap?: Array<Pick<Feature, 'id' | 'enabled' | 'enabledByDefault' | 'requiresUpdate'>>;
-    // `doesPersonalDetailExist` is threaded from the caller's useOnyx(PERSONAL_DETAILS_LIST) so createPolicyExpenseChats
+    // `doesPersonalDetailExist` is threaded from the caller's personal details read so createPolicyExpenseChats
     // doesn't read the deprecated module-level copy. It's paired with the participant so it's required whenever an admin is added.
     adminParticipant?: {participant: Participant; doesPersonalDetailExist: boolean};
     hasOutstandingChildRequest?: boolean;
@@ -2863,7 +2863,7 @@ type BuildPolicyDataKeys =
     | typeof ONYXKEYS.COLLECTION.POLICY_CATEGORIES
     | typeof ONYXKEYS.COLLECTION.POLICY_CATEGORIES_DRAFT
     | typeof ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS
-    | typeof ONYXKEYS.PERSONAL_DETAILS_LIST;
+    | typeof ONYXKEYS.COLLECTION.PERSONAL_DETAILS;
 
 function getRoleForNewWorkspaceMember(isSubmitWorkspace: boolean, makeMeAdmin: boolean): ValueOf<typeof CONST.POLICY.ROLE> {
     if (isSubmitWorkspace) {
@@ -3264,7 +3264,7 @@ function buildPolicyData(options: BuildPolicyDataOptions): OnyxData<BuildPolicyD
             | typeof ONYXKEYS.NVP_ONBOARDING
             | typeof ONYXKEYS.COLLECTION.POLICY_CATEGORIES
             | typeof ONYXKEYS.COLLECTION.POLICY_CATEGORIES_DRAFT
-            | typeof ONYXKEYS.PERSONAL_DETAILS_LIST
+            | typeof ONYXKEYS.COLLECTION.PERSONAL_DETAILS
         >
     > = [
         {
@@ -3369,7 +3369,7 @@ function buildPolicyData(options: BuildPolicyDataOptions): OnyxData<BuildPolicyD
             | typeof ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS
             | typeof ONYXKEYS.COLLECTION.REPORT_METADATA
             | typeof ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE
-            | typeof ONYXKEYS.PERSONAL_DETAILS_LIST
+            | typeof ONYXKEYS.COLLECTION.PERSONAL_DETAILS
         >
     > = [
         {

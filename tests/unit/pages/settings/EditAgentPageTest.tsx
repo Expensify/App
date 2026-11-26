@@ -14,7 +14,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {PersonalDetailsList} from '@src/types/onyx';
+import type {PersonalDetails} from '@src/types/onyx';
 
 import React from 'react';
 
@@ -140,11 +140,11 @@ jest.mock('@pages/ErrorPage/NotFoundPage', () => {
 
 const mockUseOnyx = jest.mocked(useOnyx);
 
-// Runs the selector a component passed to useOnyx over a given personal details list
-function selectFromPersonalDetails(selector: unknown, personalDetails: PersonalDetailsList) {
+// Runs the selector a component passed to useOnyx over a given personal detail
+function selectFromPersonalDetails(selector: unknown, personalDetail: PersonalDetails) {
     // jest erases the generic type info, so the selector needs a narrowing assertion back to its real signature.
     // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
-    return (selector as (personalDetailsList: PersonalDetailsList) => NonNullable<unknown> | undefined)(personalDetails);
+    return (selector as (value: PersonalDetails) => NonNullable<unknown> | undefined)(personalDetail);
 }
 
 const TEST_ACCOUNT_ID = 12345;
@@ -159,8 +159,8 @@ describe('DynamicEditAgentPage', () => {
     beforeEach(() => {
         jest.clearAllMocks();
         mockUseOnyx.mockImplementation((key, options) => {
-            if (key === ONYXKEYS.PERSONAL_DETAILS_LIST && options?.selector) {
-                return [selectFromPersonalDetails(options.selector, {[TEST_ACCOUNT_ID]: {accountID: TEST_ACCOUNT_ID, displayName: 'Default Agent'}}), {status: 'loaded'}];
+            if (key === `${ONYXKEYS.COLLECTION.PERSONAL_DETAILS}${TEST_ACCOUNT_ID}` && options?.selector) {
+                return [selectFromPersonalDetails(options.selector, {accountID: TEST_ACCOUNT_ID, displayName: 'Default Agent'}), {status: 'loaded'}];
             }
             if (typeof key === 'string' && key.startsWith(ONYXKEYS.COLLECTION.AGENT)) {
                 return [{prompt: 'Default prompt'}, {status: 'loaded'}];
@@ -171,8 +171,8 @@ describe('DynamicEditAgentPage', () => {
 
     it('renders agent name from personalDetails', () => {
         mockUseOnyx.mockImplementation((key, options) => {
-            if (key === ONYXKEYS.PERSONAL_DETAILS_LIST && options?.selector) {
-                return [selectFromPersonalDetails(options.selector, {[TEST_ACCOUNT_ID]: {accountID: TEST_ACCOUNT_ID, displayName: 'Test Agent'}}), {status: 'loaded'}];
+            if (key === `${ONYXKEYS.COLLECTION.PERSONAL_DETAILS}${TEST_ACCOUNT_ID}` && options?.selector) {
+                return [selectFromPersonalDetails(options.selector, {accountID: TEST_ACCOUNT_ID, displayName: 'Test Agent'}), {status: 'loaded'}];
             }
             return [undefined, {status: 'loaded'}];
         });
@@ -218,11 +218,8 @@ describe('DynamicEditAgentPage', () => {
 
     it('navigates to the agent chat history search when the view agent history menu item is pressed', () => {
         mockUseOnyx.mockImplementation((key, options) => {
-            if (key === ONYXKEYS.PERSONAL_DETAILS_LIST && options?.selector) {
-                return [
-                    selectFromPersonalDetails(options.selector, {[TEST_ACCOUNT_ID]: {accountID: TEST_ACCOUNT_ID, displayName: 'Test Agent', login: 'agent@expensify.com'}}),
-                    {status: 'loaded'},
-                ];
+            if (key === `${ONYXKEYS.COLLECTION.PERSONAL_DETAILS}${TEST_ACCOUNT_ID}` && options?.selector) {
+                return [selectFromPersonalDetails(options.selector, {accountID: TEST_ACCOUNT_ID, displayName: 'Test Agent', login: 'agent@expensify.com'}), {status: 'loaded'}];
             }
             return [undefined, {status: 'loaded'}];
         });

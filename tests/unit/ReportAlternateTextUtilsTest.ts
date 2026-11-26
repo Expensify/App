@@ -63,6 +63,7 @@ import {createRandomReport} from '../utils/collections/reports';
 import createRandomTransaction from '../utils/collections/transaction';
 import createMock from '../utils/createMock';
 import * as LHNTestUtils from '../utils/LHNTestUtils';
+import {withPersonalDetails} from '../utils/PersonalDetailsTestUtils';
 import {convertToDisplayString, convertToDisplayStringWithoutCurrency, formatPhoneNumber, localeCompare, translateLocal} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
@@ -3291,11 +3292,11 @@ describe('ReportAlternateTextUtils', () => {
             await waitForBatchedUpdates();
             await act(async () => {
                 await Onyx.multiSet({
-                    [ONYXKEYS.PERSONAL_DETAILS_LIST]: {
+                    ...withPersonalDetails({
                         ...LHNTestUtils.fakePersonalDetails,
                         // Owner without displayName/login resolves to the hidden label provided by translate.
                         [hiddenOwnerAccountID]: {accountID: hiddenOwnerAccountID, login: '', displayName: ''},
-                    },
+                    }),
                 });
             });
             const translateWithHiddenMarker: LocalizedTranslate = (path, ...parameters) => (path === 'common.hidden' ? 'HiddenMarker' : translateLocal(path, ...parameters));
@@ -3409,7 +3410,7 @@ describe('ReportAlternateTextUtils', () => {
                     .then(() =>
                         act(async () => {
                             await Onyx.multiSet({
-                                [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtils.fakePersonalDetails,
+                                ...withPersonalDetails(LHNTestUtils.fakePersonalDetails),
                             });
                         }),
                     )
@@ -3443,7 +3444,7 @@ describe('ReportAlternateTextUtils', () => {
             await waitForBatchedUpdates();
             await act(async () => {
                 await Onyx.multiSet({
-                    [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtils.fakePersonalDetails,
+                    ...withPersonalDetails(LHNTestUtils.fakePersonalDetails),
                 });
             });
 
@@ -3475,7 +3476,7 @@ describe('ReportAlternateTextUtils', () => {
             await waitForBatchedUpdates();
             await act(async () => {
                 await Onyx.multiSet({
-                    [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtils.fakePersonalDetails,
+                    ...withPersonalDetails(LHNTestUtils.fakePersonalDetails),
                 });
             });
 
@@ -3509,7 +3510,7 @@ describe('ReportAlternateTextUtils', () => {
             await waitForBatchedUpdates();
             await act(async () => {
                 await Onyx.multiSet({
-                    [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtils.fakePersonalDetails,
+                    ...withPersonalDetails(LHNTestUtils.fakePersonalDetails),
                 });
             });
 
@@ -3826,7 +3827,7 @@ describe('ReportAlternateTextUtils', () => {
             await waitForBatchedUpdates();
             await act(async () => {
                 await Onyx.multiSet({
-                    [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtils.fakePersonalDetails,
+                    ...withPersonalDetails(LHNTestUtils.fakePersonalDetails),
                 });
             });
 
@@ -3856,7 +3857,7 @@ describe('ReportAlternateTextUtils', () => {
             await waitForBatchedUpdates();
             await act(async () => {
                 await Onyx.multiSet({
-                    [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtils.fakePersonalDetails,
+                    ...withPersonalDetails(LHNTestUtils.fakePersonalDetails),
                 });
             });
 
@@ -3937,7 +3938,7 @@ describe('ReportAlternateTextUtils', () => {
             await waitForBatchedUpdates();
             await act(async () => {
                 await Onyx.multiSet({
-                    [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtils.fakePersonalDetails,
+                    ...withPersonalDetails(LHNTestUtils.fakePersonalDetails),
                     [ONYXKEYS.SESSION]: {accountID: currentUserAccountID},
                 });
             });
@@ -3976,7 +3977,7 @@ describe('ReportAlternateTextUtils', () => {
             await waitForBatchedUpdates();
             await act(async () => {
                 await Onyx.multiSet({
-                    [ONYXKEYS.PERSONAL_DETAILS_LIST]: {
+                    ...withPersonalDetails({
                         ...LHNTestUtils.fakePersonalDetails,
                         [otherUserAccountID]: {
                             accountID: otherUserAccountID,
@@ -3984,7 +3985,7 @@ describe('ReportAlternateTextUtils', () => {
                             login: 'other@test.com',
                             avatar: '',
                         },
-                    },
+                    }),
                     [ONYXKEYS.SESSION]: {accountID: currentUserAccountID},
                 });
             });
@@ -4022,7 +4023,7 @@ describe('ReportAlternateTextUtils', () => {
             await waitForBatchedUpdates();
             await act(async () => {
                 await Onyx.multiSet({
-                    [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtils.fakePersonalDetails,
+                    ...withPersonalDetails(LHNTestUtils.fakePersonalDetails),
                     [ONYXKEYS.SESSION]: {accountID: currentUserAccountID},
                 });
             });
@@ -4061,7 +4062,7 @@ describe('ReportAlternateTextUtils', () => {
             await waitForBatchedUpdates();
             await act(async () => {
                 await Onyx.multiSet({
-                    [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtils.fakePersonalDetails,
+                    ...withPersonalDetails(LHNTestUtils.fakePersonalDetails),
                     [ONYXKEYS.SESSION]: {accountID: currentUserAccountID},
                 });
             });

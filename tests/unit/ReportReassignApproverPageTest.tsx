@@ -24,6 +24,7 @@ import React from 'react';
 import Onyx from 'react-native-onyx';
 
 import createMock from '../utils/createMock';
+import {mergePersonalDetailsList} from '../utils/PersonalDetailsTestUtils';
 import {buildPersonalDetails} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
@@ -134,7 +135,7 @@ function getSubmitButtonDisabled() {
 describe('ReportReassignApproverPage', () => {
     beforeAll(async () => {
         Onyx.init({keys: ONYXKEYS});
-        await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+        await mergePersonalDetailsList({
             [CURRENT_MANAGER_ACCOUNT_ID]: buildPersonalDetails(CURRENT_MANAGER_EMAIL, CURRENT_MANAGER_ACCOUNT_ID, 'Current manager'),
             [SUBMITTER_ACCOUNT_ID]: buildPersonalDetails(SUBMITTER_EMAIL, SUBMITTER_ACCOUNT_ID, 'Submitter'),
             [ELIGIBLE_APPROVER_ACCOUNT_ID]: buildPersonalDetails(ELIGIBLE_APPROVER_EMAIL, ELIGIBLE_APPROVER_ACCOUNT_ID, 'Eligible approver'),

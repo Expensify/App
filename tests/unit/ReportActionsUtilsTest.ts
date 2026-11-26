@@ -100,6 +100,7 @@ import {createRandomReport} from '../utils/collections/reports';
 import createRandomTransaction from '../utils/collections/transaction';
 import createMock from '../utils/createMock';
 import * as LHNTestUtils from '../utils/LHNTestUtils';
+import {setPersonalDetailsList} from '../utils/PersonalDetailsTestUtils';
 import {getFakeReportAction} from '../utils/ReportTestUtils';
 import {convertToDisplayString, translateLocal} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
@@ -9687,7 +9688,7 @@ describe('ReportActionsUtils', () => {
                 for (const accountID of MANY_ACCOUNT_IDS) {
                     personalDetails[accountID] = {accountID, displayName: `Member ${accountID}`, login: `member${accountID}@example.com`};
                 }
-                await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetails);
+                await setPersonalDetailsList(personalDetails);
                 await waitForBatchedUpdates();
             });
 

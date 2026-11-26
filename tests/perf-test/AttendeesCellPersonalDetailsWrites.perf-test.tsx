@@ -16,6 +16,7 @@ import {View} from 'react-native';
 import Onyx from 'react-native-onyx';
 import {measureRenders} from 'reassure';
 
+import {mergePersonalDetailsList, setPersonalDetailsList} from '../utils/PersonalDetailsTestUtils';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 const ROW_COUNT = 50;
@@ -63,7 +64,7 @@ describe('AttendeesCell on personal details writes', () => {
     });
 
     beforeEach(async () => {
-        await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetails);
+        await setPersonalDetailsList(personalDetails);
         await waitForBatchedUpdates();
     });
 
@@ -81,7 +82,7 @@ describe('AttendeesCell on personal details writes', () => {
 
             // When a user who attends none of them is renamed, which makes the engine recompute the login map to the same content
             for (let index = 0; index < WRITES_PER_SCENARIO; index++) {
-                await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {[UNRELATED_ACCOUNT_ID]: {displayName: `Unrelated ${run}-${index}`}});
+                await mergePersonalDetailsList({[UNRELATED_ACCOUNT_ID]: {displayName: `Unrelated ${run}-${index}`}});
                 await waitForBatchedUpdates();
             }
             run++;

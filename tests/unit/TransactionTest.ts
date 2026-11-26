@@ -55,6 +55,7 @@ import createRandomPolicyCategories from '../utils/collections/policyCategory';
 import {createExpenseReport, createRandomReport} from '../utils/collections/reports';
 import createMock from '../utils/createMock';
 import getOnyxValue from '../utils/getOnyxValue';
+import {mergePersonalDetailsList} from '../utils/PersonalDetailsTestUtils';
 import * as TestHelper from '../utils/TestHelper';
 import {hasDefinedProperty, parseJSONRecord, readProperty, isReportMergeUpdate, isReportStateMergeUpdate} from '../utils/typeGuards';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
@@ -1481,7 +1482,7 @@ describe('Transaction', () => {
             };
 
             await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
-            await Onyx.merge(`${ONYXKEYS.PERSONAL_DETAILS_LIST}`, userPersonalDetails);
+            await mergePersonalDetailsList(userPersonalDetails);
 
             const allTransactions = {
                 [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`]: transaction,
@@ -1716,7 +1717,7 @@ describe('Transaction', () => {
         it('should optimistically update search snapshots when moving a transaction to unreported', async () => {
             const mockAPIWrite = jest.spyOn(API, 'write').mockResolvedValue(undefined);
 
-            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+            await mergePersonalDetailsList({
                 [CURRENT_USER_ID]: {
                     accountID: CURRENT_USER_ID,
                     displayName: 'Current User',

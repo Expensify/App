@@ -48,6 +48,7 @@ import createRandomPolicy from '../../utils/collections/policies';
 import {createRandomReport} from '../../utils/collections/reports';
 import createRandomTransaction from '../../utils/collections/transaction';
 import getOnyxValue from '../../utils/getOnyxValue';
+import {setPersonalDetailsList} from '../../utils/PersonalDetailsTestUtils';
 import {
     expectAPICommandToHaveBeenCalled,
     formatPhoneNumber,
@@ -3167,7 +3168,7 @@ describe('actions/IOU', () => {
         });
 
         it('adds grouped from snapshot optimistic data for grouped search queries', async () => {
-            await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}});
+            await setPersonalDetailsList({[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}});
 
             const currentSearchQueryJSON = {
                 type: CONST.SEARCH.DATA_TYPES.EXPENSE,

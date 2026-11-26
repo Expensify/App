@@ -15,6 +15,7 @@ import type {PersonalDetailsList, Report} from '@src/types/onyx';
 import React from 'react';
 import Onyx from 'react-native-onyx';
 
+import {mergePersonalDetailsList} from '../utils/PersonalDetailsTestUtils';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 const CURRENT_USER_ACCOUNT_ID = 1;
@@ -80,7 +81,7 @@ describe('ComposerLocalTime', () => {
         };
 
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
-        await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetails);
+        await mergePersonalDetailsList(personalDetails);
         await waitForBatchedUpdates();
 
         renderWithProviders(<ComposerLocalTime />, REPORT_ID);
@@ -105,7 +106,7 @@ describe('ComposerLocalTime', () => {
         };
 
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
-        await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetails);
+        await mergePersonalDetailsList(personalDetails);
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_IS_COMPOSER_FULL_SIZE}${REPORT_ID}`, true);
         await waitForBatchedUpdates();
 
@@ -131,7 +132,7 @@ describe('ComposerLocalTime', () => {
         };
 
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
-        await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetails);
+        await mergePersonalDetailsList(personalDetails);
         await waitForBatchedUpdates();
 
         const {toJSON} = renderWithProviders(<ComposerLocalTime />, REPORT_ID);

@@ -10,6 +10,7 @@ import Onyx from 'react-native-onyx';
 import {measureRenders} from 'reassure';
 
 import * as LHNTestUtils from '../utils/LHNTestUtils';
+import {mergePersonalDetailsList, withPersonalDetails} from '../utils/PersonalDetailsTestUtils';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import wrapOnyxWithWaitForBatchedUpdates from '../utils/wrapOnyxWithWaitForBatchedUpdates';
@@ -83,7 +84,7 @@ describe('SidebarLinks on personal details writes', () => {
     test('[SidebarLinks] should re-render when a user outside the LHN is renamed', async () => {
         // Given 500 reports in the LHN, a guide, and a user who is in none of the reports
         await Onyx.multiSet({
-            [ONYXKEYS.PERSONAL_DETAILS_LIST]: personalDetails,
+            ...withPersonalDetails(personalDetails),
             [ONYXKEYS.BETAS]: [CONST.BETAS.DEFAULT_ROOMS],
             [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.GSD,
             [ONYXKEYS.IS_LOADING_REPORT_DATA]: false,
@@ -98,7 +99,7 @@ describe('SidebarLinks on personal details writes', () => {
 
             // When that user is renamed repeatedly, which makes the derived engine recompute the guide accountIDs to the same content
             for (let index = 0; index < WRITES_PER_SCENARIO; index++) {
-                await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {[UNRELATED_ACCOUNT_ID]: {displayName: `Unrelated ${run}-${index}`}});
+                await mergePersonalDetailsList({[UNRELATED_ACCOUNT_ID]: {displayName: `Unrelated ${run}-${index}`}});
                 await waitForBatchedUpdates();
             }
             run++;

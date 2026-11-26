@@ -7,6 +7,7 @@ import type {PersonalDetails, PersonalDetailsList} from '@src/types/onyx';
 
 import Onyx from 'react-native-onyx';
 
+import {mergePersonalDetailsList, setPersonalDetailsList} from '../utils/PersonalDetailsTestUtils';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 function createPersonalDetails(accountID: number, overrides: Partial<PersonalDetails> = {}): PersonalDetails {
@@ -50,26 +51,25 @@ describe('useAccountIDToNameMap', () => {
     });
 
     it('maps accountID to login when login is present', async () => {
-        await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, buildList([[1, createPersonalDetails(1, {login: 'alice@example.com', displayName: 'Alice'})]]));
+        await setPersonalDetailsList(buildList([[1, createPersonalDetails(1, {login: 'alice@example.com', displayName: 'Alice'})]]));
         const {result} = await renderAccountIDToNameMap();
         expect(result.current['1']).toBe('alice@example.com');
     });
 
     it('falls back to displayName when login is undefined', async () => {
-        await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, buildList([[2, createPersonalDetails(2, {login: undefined, displayName: 'Bob'})]]));
+        await setPersonalDetailsList(buildList([[2, createPersonalDetails(2, {login: undefined, displayName: 'Bob'})]]));
         const {result} = await renderAccountIDToNameMap();
         expect(result.current['2']).toBe('Bob');
     });
 
     it('falls back to an empty string when both login and displayName are undefined', async () => {
-        await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, buildList([[3, createPersonalDetails(3, {login: undefined, displayName: undefined})]]));
+        await setPersonalDetailsList(buildList([[3, createPersonalDetails(3, {login: undefined, displayName: undefined})]]));
         const {result} = await renderAccountIDToNameMap();
         expect(result.current['3']).toBe('');
     });
 
     it('maps multiple accounts and skips null entries', async () => {
-        await Onyx.set(
-            ONYXKEYS.PERSONAL_DETAILS_LIST,
+        await setPersonalDetailsList(
             buildList([
                 [10, createPersonalDetails(10, {login: 'eve@example.com', displayName: 'Eve'})],
                 [11, createPersonalDetails(11, {login: undefined, displayName: 'Frank'})],
@@ -85,13 +85,13 @@ describe('useAccountIDToNameMap', () => {
     });
 
     it('reflects updates to personal details', async () => {
-        await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, buildList([[1, createPersonalDetails(1, {login: 'alice@example.com'})]]));
+        await setPersonalDetailsList(buildList([[1, createPersonalDetails(1, {login: 'alice@example.com'})]]));
         const {result} = await renderAccountIDToNameMap();
         expect(result.current['1']).toBe('alice@example.com');
 
         const accountID = 1;
         await act(async () => {
-            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {[accountID]: {login: 'alice2@example.com'}});
+            await mergePersonalDetailsList({[accountID]: {login: 'alice2@example.com'}});
             await waitForBatchedUpdates();
         });
 
@@ -99,7 +99,7 @@ describe('useAccountIDToNameMap', () => {
     });
 
     it('keeps a stable reference across re-renders when personal details do not change', async () => {
-        await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, buildList([[1, createPersonalDetails(1, {login: 'alice@example.com'})]]));
+        await setPersonalDetailsList(buildList([[1, createPersonalDetails(1, {login: 'alice@example.com'})]]));
         const {result, rerender} = await renderAccountIDToNameMap();
         const firstResult = result.current;
 
@@ -114,8 +114,7 @@ describe('useAccountIDToNameMap', () => {
 
 describe('useMentionedAccountIDToNameMap', () => {
     it('returns only mentioned account IDs when html is provided', async () => {
-        await Onyx.set(
-            ONYXKEYS.PERSONAL_DETAILS_LIST,
+        await setPersonalDetailsList(
             buildList([
                 [1001, createPersonalDetails(1001, {login: 'alice@expensify.com', displayName: 'Alice'})],
                 [1002, createPersonalDetails(1002, {login: 'bob@expensify.com', displayName: 'Bob'})],
@@ -140,7 +139,7 @@ describe('useMentionedAccountIDToNameMap', () => {
     });
 
     it('returns an empty map when html has no mentions', async () => {
-        await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, buildList([[1, createPersonalDetails(1, {login: 'alice@example.com'})]]));
+        await setPersonalDetailsList(buildList([[1, createPersonalDetails(1, {login: 'alice@example.com'})]]));
 
         const hook = renderHook(() => useMentionedAccountIDToNameMap('Buy milk'));
         await act(async () => {
@@ -154,8 +153,7 @@ describe('useMentionedAccountIDToNameMap', () => {
 
     it('keeps the same reference when an unrelated personal detail changes', async () => {
         // Given a map scoped to one mentioned user, while another user exists
-        await Onyx.set(
-            ONYXKEYS.PERSONAL_DETAILS_LIST,
+        await setPersonalDetailsList(
             buildList([
                 [1, createPersonalDetails(1, {login: 'alice@example.com'})],
                 [2, createPersonalDetails(2, {login: 'bob@example.com'})],
@@ -170,7 +168,7 @@ describe('useMentionedAccountIDToNameMap', () => {
         // When the user who is not mentioned changes
         const unmentionedAccountID = 2;
         await act(async () => {
-            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {[unmentionedAccountID]: {login: 'bob2@example.com'}});
+            await mergePersonalDetailsList({[unmentionedAccountID]: {login: 'bob2@example.com'}});
             await waitForBatchedUpdates();
         });
 
@@ -180,7 +178,7 @@ describe('useMentionedAccountIDToNameMap', () => {
 
     it('updates when the mentioned user changes', async () => {
         // Given a map scoped to one mentioned user
-        await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, buildList([[1, createPersonalDetails(1, {login: 'alice@example.com'})]]));
+        await setPersonalDetailsList(buildList([[1, createPersonalDetails(1, {login: 'alice@example.com'})]]));
         const hook = renderHook(() => useMentionedAccountIDToNameMap('<mention-user accountID="1"/>'));
         await act(async () => {
             await waitForBatchedUpdates();
@@ -190,7 +188,7 @@ describe('useMentionedAccountIDToNameMap', () => {
         // When that user's login changes
         const mentionedAccountID = 1;
         await act(async () => {
-            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {[mentionedAccountID]: {login: 'alice2@example.com'}});
+            await mergePersonalDetailsList({[mentionedAccountID]: {login: 'alice2@example.com'}});
             await waitForBatchedUpdates();
         });
 

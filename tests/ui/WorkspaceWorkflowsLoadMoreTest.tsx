@@ -29,6 +29,7 @@ import React from 'react';
 import Onyx from 'react-native-onyx';
 
 import * as LHNTestUtils from '../utils/LHNTestUtils';
+import {mergePersonalDetailsList} from '../utils/PersonalDetailsTestUtils';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
@@ -108,7 +109,7 @@ const setupPolicy = async (customWorkflowCount: number) => {
     const {employeeList, personalDetails} = buildWorkflowData(customWorkflowCount);
     await act(async () => {
         await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, buildPolicy(employeeList));
-        await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetails);
+        await mergePersonalDetailsList(personalDetails);
     });
 };
 
@@ -195,7 +196,7 @@ describe('WorkspaceWorkflowsPageRevamp - Approvals Load more', () => {
         delete employeeList[removedApproverEmail];
         await act(async () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, buildPolicy(employeeList));
-            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetails);
+            await mergePersonalDetailsList(personalDetails);
         });
 
         // When the approvals page first renders, without loading more
@@ -254,7 +255,7 @@ describe('WorkspaceWorkflowsPageRevamp - Approvals Load more', () => {
         }
         await act(async () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, policy);
-            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetails);
+            await mergePersonalDetailsList(personalDetails);
         });
 
         // When the viewer opens Approvals without expanding the list

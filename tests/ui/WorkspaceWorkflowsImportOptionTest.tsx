@@ -27,6 +27,7 @@ import React from 'react';
 import Onyx from 'react-native-onyx';
 
 import * as LHNTestUtils from '../utils/LHNTestUtils';
+import {mergePersonalDetailsList} from '../utils/PersonalDetailsTestUtils';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
@@ -54,7 +55,7 @@ async function setUp(approvalMode: ValueOf<typeof CONST.POLICY.APPROVAL_MODE>, i
             reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO,
             employeeList: {[OWNER_EMAIL]: {email: OWNER_EMAIL, role: CONST.POLICY.ROLE.ADMIN, submitsTo: OWNER_EMAIL}},
         });
-        await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {[OWNER_ACCOUNT_ID]: TestHelper.buildPersonalDetails(OWNER_EMAIL, OWNER_ACCOUNT_ID, 'Owner')});
+        await mergePersonalDetailsList({[OWNER_ACCOUNT_ID]: TestHelper.buildPersonalDetails(OWNER_EMAIL, OWNER_ACCOUNT_ID, 'Owner')});
         await Onyx.set(ONYXKEYS.BETAS, isMultipleApproversBetaEnabled ? [CONST.BETAS.MULTIPLE_APPROVERS] : []);
     });
 }

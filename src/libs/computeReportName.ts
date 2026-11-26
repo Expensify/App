@@ -1053,7 +1053,7 @@ function computeReportName({
     }
 
     if (isGroupChat(report)) {
-        return getGroupChatName(formatPhoneNumber, translate, undefined, true, report, pendingDeleteMemberAccountIDs) ?? '';
+        return getGroupChatName(formatPhoneNumber, translate, undefined, true, report, pendingDeleteMemberAccountIDs, personalDetailsList) ?? '';
     }
 
     let formattedName: string | undefined;

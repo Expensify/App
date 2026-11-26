@@ -16,6 +16,7 @@ import Onyx from 'react-native-onyx';
 
 import createMock from '../utils/createMock';
 import * as LHNTestUtils from '../utils/LHNTestUtils';
+import {withPersonalDetails} from '../utils/PersonalDetailsTestUtils';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 import wrapOnyxWithWaitForBatchedUpdates from '../utils/wrapOnyxWithWaitForBatchedUpdates';
@@ -102,7 +103,7 @@ describe('Sidebar', () => {
                             await Onyx.multiSet({
                                 [ONYXKEYS.BETAS]: betas,
                                 [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.GSD,
-                                [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtils.fakePersonalDetails,
+                                ...withPersonalDetails(LHNTestUtils.fakePersonalDetails),
                                 [ONYXKEYS.IS_LOADING_APP]: false,
                                 ...reportNameValuePairsCollection,
                                 ...reportCollection,
@@ -165,7 +166,7 @@ describe('Sidebar', () => {
                             await Onyx.multiSet({
                                 [ONYXKEYS.BETAS]: betas,
                                 [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.GSD,
-                                [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtils.fakePersonalDetails,
+                                ...withPersonalDetails(LHNTestUtils.fakePersonalDetails),
                                 [ONYXKEYS.IS_LOADING_APP]: false,
                                 ...reportNameValuePairsCollection,
                                 ...reportCollection,

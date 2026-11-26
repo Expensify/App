@@ -42,6 +42,7 @@ import Onyx from 'react-native-onyx';
 import createMock from '../utils/createMock';
 import getOnyxValue from '../utils/getOnyxValue';
 import * as LHNTestUtils from '../utils/LHNTestUtils';
+import {mergePersonalDetailsList, setPersonalDetailsList} from '../utils/PersonalDetailsTestUtils';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
@@ -149,7 +150,7 @@ describe('WorkspaceMemberDetailsPage', () => {
         await TestHelper.signInWithTestUser(selfAccountID, selfEmail, undefined, 'Self');
         await act(async () => {
             await Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, CONST.LOCALES.EN);
-            await Onyx.set(`${ONYXKEYS.PERSONAL_DETAILS_LIST}`, {
+            await setPersonalDetailsList({
                 [ownerAccountID]: TestHelper.buildPersonalDetails(ownerEmail, ownerAccountID, 'Owner'),
                 [selfAccountID]: TestHelper.buildPersonalDetails(selfEmail, selfAccountID, 'Self'),
                 [invitedAccountID]: TestHelper.buildPersonalDetails(invitedEmail, invitedAccountID, 'Invited'),
@@ -934,7 +935,7 @@ describe('WorkspaceMemberDetailsPage', () => {
 
     const setMemberPersonalDetails = async (personalDetails: Record<string, unknown>) => {
         await act(async () => {
-            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {[invitedAccountID]: personalDetails});
+            await mergePersonalDetailsList({[invitedAccountID]: personalDetails});
         });
     };
 
@@ -1148,7 +1149,7 @@ describe('WorkspaceMemberDetailsPage', () => {
         const pendingEmail = 'pending@example.com';
         const pendingOptimisticAccountID = generateAccountID(pendingEmail);
         await act(async () => {
-            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+            await mergePersonalDetailsList({
                 [pendingOptimisticAccountID]: {...TestHelper.buildPersonalDetails(pendingEmail, pendingOptimisticAccountID, 'Pending'), isOptimisticPersonalDetail: true},
             });
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, {
@@ -1167,7 +1168,7 @@ describe('WorkspaceMemberDetailsPage', () => {
         // When the invite succeeds and the member's real accountID arrives
         const pendingAccountID = 9999;
         await act(async () => {
-            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+            await mergePersonalDetailsList({
                 [pendingOptimisticAccountID]: null,
                 [pendingAccountID]: TestHelper.buildPersonalDetails(pendingEmail, pendingAccountID, 'Pending'),
             });
@@ -1230,7 +1231,7 @@ describe('WorkspaceMemberDetailsPage', () => {
 
         // When the public profile returns the member's personal details
         await act(async () => {
-            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {[uncachedAccountID]: TestHelper.buildPersonalDetails(uncachedEmail, uncachedAccountID, 'Uncached')});
+            await mergePersonalDetailsList({[uncachedAccountID]: TestHelper.buildPersonalDetails(uncachedEmail, uncachedAccountID, 'Uncached')});
         });
         await waitForBatchedUpdatesWithAct();
 
@@ -1248,7 +1249,7 @@ describe('WorkspaceMemberDetailsPage', () => {
         const placeholderEmail = 'placeholder@example.com';
         const placeholderAccountID = generateAccountID(placeholderEmail);
         await act(async () => {
-            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {[placeholderAccountID]: TestHelper.buildPersonalDetails(placeholderEmail, placeholderAccountID, 'Placeholder')});
+            await mergePersonalDetailsList({[placeholderAccountID]: TestHelper.buildPersonalDetails(placeholderEmail, placeholderAccountID, 'Placeholder')});
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, {
                 employeeList: {[placeholderEmail]: {email: placeholderEmail, role: CONST.POLICY.ROLE.USER}},
             });

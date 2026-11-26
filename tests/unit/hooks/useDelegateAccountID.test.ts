@@ -6,6 +6,8 @@ import ONYXKEYS from '@src/ONYXKEYS';
 
 import Onyx from 'react-native-onyx';
 
+import {mergePersonalDetailsList} from '../../utils/PersonalDetailsTestUtils';
+
 const ACCOUNT_ID_ALICE = 1;
 const ACCOUNT_ID_BOB = 2;
 const ACCOUNT_ID_CAROL = 3;
@@ -20,7 +22,7 @@ describe('useDelegateAccountID', () => {
     });
 
     it('returns the accountID of the delegate when both account and personal details are set', async () => {
-        await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+        await mergePersonalDetailsList({
             [ACCOUNT_ID_ALICE]: {accountID: ACCOUNT_ID_ALICE, login: 'alice@test.com'},
             [ACCOUNT_ID_BOB]: {accountID: ACCOUNT_ID_BOB, login: 'bob@test.com'},
         });
@@ -34,7 +36,7 @@ describe('useDelegateAccountID', () => {
     });
 
     it('matches the delegate email case-insensitively', async () => {
-        await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+        await mergePersonalDetailsList({
             [ACCOUNT_ID_ALICE]: {accountID: ACCOUNT_ID_ALICE, login: 'alice@test.com'},
         });
         await Onyx.merge(ONYXKEYS.ACCOUNT, {delegatedAccess: {delegate: 'ALICE@TEST.COM'}});
@@ -47,7 +49,7 @@ describe('useDelegateAccountID', () => {
     });
 
     it('returns undefined when there is no delegate set on the account', async () => {
-        await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+        await mergePersonalDetailsList({
             [ACCOUNT_ID_ALICE]: {accountID: ACCOUNT_ID_ALICE, login: 'alice@test.com'},
         });
 
@@ -59,7 +61,7 @@ describe('useDelegateAccountID', () => {
     });
 
     it('returns undefined when the delegate email does not match any personal detail', async () => {
-        await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+        await mergePersonalDetailsList({
             [ACCOUNT_ID_ALICE]: {accountID: ACCOUNT_ID_ALICE, login: 'alice@test.com'},
         });
         await Onyx.merge(ONYXKEYS.ACCOUNT, {delegatedAccess: {delegate: 'unknown@test.com'}});
@@ -82,7 +84,7 @@ describe('useDelegateAccountID', () => {
     });
 
     it('updates when the delegate email changes', async () => {
-        await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+        await mergePersonalDetailsList({
             [ACCOUNT_ID_ALICE]: {accountID: ACCOUNT_ID_ALICE, login: 'alice@test.com'},
             [ACCOUNT_ID_BOB]: {accountID: ACCOUNT_ID_BOB, login: 'bob@test.com'},
         });
@@ -103,7 +105,7 @@ describe('useDelegateAccountID', () => {
 
     it('updates when the matching personal detail is added later', async () => {
         await Onyx.merge(ONYXKEYS.ACCOUNT, {delegatedAccess: {delegate: 'carol@test.com'}});
-        await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+        await mergePersonalDetailsList({
             [ACCOUNT_ID_ALICE]: {accountID: ACCOUNT_ID_ALICE, login: 'alice@test.com'},
         });
 
@@ -113,7 +115,7 @@ describe('useDelegateAccountID', () => {
             expect(result.current).toBeUndefined();
         });
 
-        await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+        await mergePersonalDetailsList({
             [ACCOUNT_ID_CAROL]: {accountID: ACCOUNT_ID_CAROL, login: 'carol@test.com'},
         });
 

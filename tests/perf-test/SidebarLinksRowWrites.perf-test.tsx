@@ -10,6 +10,7 @@ import Onyx from 'react-native-onyx';
 import {measureRenders} from 'reassure';
 
 import * as LHNTestUtils from '../utils/LHNTestUtils';
+import {withPersonalDetails} from '../utils/PersonalDetailsTestUtils';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import wrapOnyxWithWaitForBatchedUpdates from '../utils/wrapOnyxWithWaitForBatchedUpdates';
@@ -71,7 +72,7 @@ describe('SidebarLinks on single-key writes', () => {
 
         // Given 500 reports in the LHN and a policy that none of them belongs to
         await Onyx.multiSet({
-            [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtils.fakePersonalDetails,
+            ...withPersonalDetails(LHNTestUtils.fakePersonalDetails),
             [ONYXKEYS.BETAS]: [CONST.BETAS.DEFAULT_ROOMS],
             [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.GSD,
             [ONYXKEYS.IS_LOADING_REPORT_DATA]: false,

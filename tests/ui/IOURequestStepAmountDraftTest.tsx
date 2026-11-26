@@ -26,6 +26,7 @@ import * as TrackExpense from '../../src/libs/actions/IOU/TrackExpense';
 import cleanupAndNavigateAfterExpenseCreate from '../../src/libs/Navigation/helpers/cleanupAndNavigateAfterExpenseCreate';
 import createRandomTransaction from '../utils/collections/transaction';
 import createMock from '../utils/createMock';
+import {mergePersonalDetailsList} from '../utils/PersonalDetailsTestUtils';
 import {signInWithTestUser} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
@@ -242,7 +243,7 @@ describe('IOURequestStepAmount - draft transactions coverage', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${TRANSACTION_ID}`, transaction);
             await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${draftTransaction.transactionID}`, draftTransaction);
             await Onyx.merge(`${ONYXKEYS.COLLECTION.SKIP_CONFIRMATION}${TRANSACTION_ID}`, true);
-            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+            await mergePersonalDetailsList({
                 [PARTICIPANT_ACCOUNT_ID]: {
                     accountID: PARTICIPANT_ACCOUNT_ID,
                     login: 'participant@test.com',

@@ -17,6 +17,7 @@ import type * as NativeNavigation from '@react-navigation/native';
 import React from 'react';
 import Onyx from 'react-native-onyx';
 
+import {mergePersonalDetailsList} from '../utils/PersonalDetailsTestUtils';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
@@ -76,7 +77,7 @@ async function signInAsAgent() {
     const accountID = 1;
     await TestHelper.signInWithTestUser(accountID, 'testbot_123@expensify.ai');
     await Onyx.set(ONYXKEYS.IS_LOADING_APP, false);
-    await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+    await mergePersonalDetailsList({
         [accountID]: {
             accountID,
             login: 'testbot_123@expensify.ai',

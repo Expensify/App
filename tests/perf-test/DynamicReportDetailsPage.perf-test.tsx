@@ -29,6 +29,7 @@ import createRandomReportAction from '../utils/collections/reportActions';
 import {createRandomReport} from '../utils/collections/reports';
 import createRandomTransaction from '../utils/collections/transaction';
 import createMock from '../utils/createMock';
+import {setPersonalDetailsList} from '../utils/PersonalDetailsTestUtils';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
@@ -218,7 +219,7 @@ function renderPage(report: Report) {
 async function seedCommonData() {
     await Promise.all([
         Onyx.set(ONYXKEYS.IS_LOADING_REPORT_DATA, false),
-        Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, buildPersonalDetails()),
+        setPersonalDetailsList(buildPersonalDetails()),
         Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, policy),
         Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${ROOM_REPORT_ID}`, roomReport),
         Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${EXPENSE_CHAT_REPORT_ID}`, expenseChatReport),

@@ -1,13 +1,14 @@
 import {SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import SaveResponseInOnyx from '@libs/Middleware/SaveResponseInOnyx';
+import {buildPersonalDetailsUpdate} from '@libs/PersonalDetailsUtils';
 
 import CONST from '@src/CONST';
 import * as App from '@src/libs/actions/App';
 import * as PersistedRequests from '@src/libs/actions/PersistedRequests';
 import type MoveIOUReportToExistingPolicyParams from '@src/libs/API/parameters/MoveIOUReportToExistingPolicyParams';
-import HttpUtils from '@src/libs/HttpUtils';
 // This import is needed to initialize the Onyx connections that call replaceOptimisticReportWithActualReport
 import '@src/libs/actions/replaceOptimisticReportWithActualReport';
+import HttpUtils from '@src/libs/HttpUtils';
 import handleUnusedOptimisticID from '@src/libs/Middleware/HandleUnusedOptimisticID';
 import * as Network from '@src/libs/Network';
 import * as MainQueue from '@src/libs/Network/MainQueue';
@@ -15,7 +16,7 @@ import * as NetworkStore from '@src/libs/Network/NetworkStore';
 import * as SequentialQueue from '@src/libs/Network/SequentialQueue';
 import * as Request from '@src/libs/Request';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Report as OnyxReport, PersonalDetailsList} from '@src/types/onyx';
+import type {Report as OnyxReport} from '@src/types/onyx';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
@@ -23,6 +24,7 @@ import Onyx from 'react-native-onyx';
 
 import createMock from '../utils/createMock';
 import getOnyxValue from '../utils/getOnyxValue';
+import {getPersonalDetailsList, withPersonalDetails} from '../utils/PersonalDetailsTestUtils';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import waitForNetworkPromises from '../utils/waitForNetworkPromises';
@@ -382,12 +384,12 @@ describe('Middleware', () => {
                     reportID: optimisticReportID,
                     participants: {[optimisticAccountID]: {notificationPreference: 'always'}},
                 },
-                [ONYXKEYS.PERSONAL_DETAILS_LIST]: {
+                ...withPersonalDetails({
                     [optimisticAccountID]: {
                         accountID: optimisticAccountID,
                         isOptimisticPersonalDetail: true,
                     },
-                },
+                }),
             });
 
             Request.addMiddleware(handleUnusedOptimisticID);
@@ -443,6 +445,11 @@ describe('Middleware', () => {
                                 },
                             },
                         },
+                        buildPersonalDetailsUpdate({
+                            [preexistingAccountID]: {
+                                accountID: preexistingAccountID,
+                            },
+                        }),
                     ],
                 };
             });
@@ -476,15 +483,7 @@ describe('Middleware', () => {
             expect(preexistingReportUpdated?.participants?.[optimisticAccountID]).toBeUndefined();
             expect(preexistingReportUpdated?.participants?.[preexistingAccountID]).not.toBeUndefined();
 
-            const personalDetails = await new Promise<OnyxEntry<PersonalDetailsList>>((resolve) => {
-                const connection = Onyx.connect({
-                    key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-                    callback: (data) => {
-                        connection.unsubscribe();
-                        resolve(data);
-                    },
-                });
-            });
+            const personalDetails = await getPersonalDetailsList();
             expect(personalDetails?.[optimisticAccountID]).toBeUndefined();
             expect(personalDetails?.[preexistingAccountID]).not.toBeUndefined();
         });
@@ -498,12 +497,12 @@ describe('Middleware', () => {
                     reportID: optimisticReportID,
                     participants: {[optimisticAccountID]: {notificationPreference: 'always'}},
                 },
-                [ONYXKEYS.PERSONAL_DETAILS_LIST]: {
+                ...withPersonalDetails({
                     [optimisticAccountID]: {
                         accountID: optimisticAccountID,
                         isOptimisticPersonalDetail: true,
                     },
-                },
+                }),
             });
 
             Request.addMiddleware(handleUnusedOptimisticID);
@@ -539,6 +538,11 @@ describe('Middleware', () => {
                             },
                         },
                     },
+                    buildPersonalDetailsUpdate({
+                        [preexistingAccountID]: {
+                            accountID: preexistingAccountID,
+                        },
+                    }),
                 ],
             }));
 
@@ -560,15 +564,7 @@ describe('Middleware', () => {
             expect(optimisticReportUpdated?.participants?.[optimisticAccountID]).toBeUndefined();
             expect(optimisticReportUpdated?.participants?.[preexistingAccountID]).not.toBeUndefined();
 
-            const personalDetails = await new Promise<OnyxEntry<PersonalDetailsList>>((resolve) => {
-                const connection = Onyx.connect({
-                    key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-                    callback: (data) => {
-                        connection.unsubscribe();
-                        resolve(data);
-                    },
-                });
-            });
+            const personalDetails = await getPersonalDetailsList();
             expect(personalDetails?.[optimisticAccountID]).toBeUndefined();
             expect(personalDetails?.[preexistingAccountID]).not.toBeUndefined();
         });
@@ -583,13 +579,13 @@ describe('Middleware', () => {
                     reportID: optimisticReportID,
                     participants: {[optimisticAccountID]: {notificationPreference: 'always'}},
                 },
-                [ONYXKEYS.PERSONAL_DETAILS_LIST]: {
+                ...withPersonalDetails({
                     [optimisticAccountID]: {
                         accountID: optimisticAccountID,
                         login: invitedEmail,
                         isOptimisticPersonalDetail: true,
                     },
-                },
+                }),
             });
 
             Request.addMiddleware(handleUnusedOptimisticID);
@@ -621,6 +617,11 @@ describe('Middleware', () => {
                             },
                         },
                     },
+                    buildPersonalDetailsUpdate({
+                        [settledAccountID]: {
+                            accountID: settledAccountID,
+                        },
+                    }),
                 ],
             });
 
@@ -628,15 +629,7 @@ describe('Middleware', () => {
             await SequentialQueue.waitForIdle();
             await waitForBatchedUpdates();
 
-            const personalDetails = await new Promise<OnyxEntry<PersonalDetailsList>>((resolve) => {
-                const connection = Onyx.connect({
-                    key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-                    callback: (data) => {
-                        connection.unsubscribe();
-                        resolve(data);
-                    },
-                });
-            });
+            const personalDetails = await getPersonalDetailsList();
             expect(personalDetails?.[optimisticAccountID]).toBeUndefined();
             expect(personalDetails?.[settledAccountID]?.login).toBe(invitedEmail);
         });
@@ -651,13 +644,13 @@ describe('Middleware', () => {
                     reportID: optimisticReportID,
                     participants: {[optimisticAccountID]: {notificationPreference: 'always'}},
                 },
-                [ONYXKEYS.PERSONAL_DETAILS_LIST]: {
+                ...withPersonalDetails({
                     [optimisticAccountID]: {
                         accountID: optimisticAccountID,
                         login: 'invited@example.com',
                         isOptimisticPersonalDetail: true,
                     },
-                },
+                }),
             });
 
             Request.addMiddleware(handleUnusedOptimisticID);
@@ -690,6 +683,12 @@ describe('Middleware', () => {
                             },
                         },
                     },
+                    buildPersonalDetailsUpdate({
+                        [settledAccountID]: {
+                            accountID: settledAccountID,
+                            login: serverLogin,
+                        },
+                    }),
                 ],
             });
 
@@ -697,15 +696,7 @@ describe('Middleware', () => {
             await SequentialQueue.waitForIdle();
             await waitForBatchedUpdates();
 
-            const personalDetails = await new Promise<OnyxEntry<PersonalDetailsList>>((resolve) => {
-                const connection = Onyx.connect({
-                    key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-                    callback: (data) => {
-                        connection.unsubscribe();
-                        resolve(data);
-                    },
-                });
-            });
+            const personalDetails = await getPersonalDetailsList();
             expect(personalDetails?.[optimisticAccountID]).toBeUndefined();
             expect(personalDetails?.[settledAccountID]?.login).toBe(serverLogin);
         });
@@ -720,13 +711,13 @@ describe('Middleware', () => {
                     reportID: optimisticReportID,
                     participants: {[optimisticAccountID]: {notificationPreference: 'always'}},
                 },
-                [ONYXKEYS.PERSONAL_DETAILS_LIST]: {
+                ...withPersonalDetails({
                     [optimisticAccountID]: {
                         accountID: optimisticAccountID,
                         login: invitedEmail,
                         isOptimisticPersonalDetail: true,
                     },
-                },
+                }),
             });
 
             Request.addMiddleware(handleUnusedOptimisticID);
@@ -759,6 +750,12 @@ describe('Middleware', () => {
                             },
                         },
                     },
+                    buildPersonalDetailsUpdate({
+                        [settledAccountID]: {
+                            accountID: settledAccountID,
+                            login: '',
+                        },
+                    }),
                 ],
             });
 
@@ -766,15 +763,7 @@ describe('Middleware', () => {
             await SequentialQueue.waitForIdle();
             await waitForBatchedUpdates();
 
-            const personalDetails = await new Promise<OnyxEntry<PersonalDetailsList>>((resolve) => {
-                const connection = Onyx.connect({
-                    key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-                    callback: (data) => {
-                        connection.unsubscribe();
-                        resolve(data);
-                    },
-                });
-            });
+            const personalDetails = await getPersonalDetailsList();
             expect(personalDetails?.[optimisticAccountID]).toBeUndefined();
             expect(personalDetails?.[settledAccountID]?.login).toBe('');
         });
@@ -788,11 +777,11 @@ describe('Middleware', () => {
                     reportID: optimisticReportID,
                     participants: {[knownAccountID]: {notificationPreference: 'always'}},
                 },
-                [ONYXKEYS.PERSONAL_DETAILS_LIST]: {
+                ...withPersonalDetails({
                     [knownAccountID]: {
                         accountID: knownAccountID,
                     },
-                },
+                }),
             });
 
             Request.addMiddleware(handleUnusedOptimisticID);
@@ -822,15 +811,7 @@ describe('Middleware', () => {
             await SequentialQueue.waitForIdle();
             await waitForBatchedUpdates();
 
-            const personalDetails = await new Promise<OnyxEntry<PersonalDetailsList>>((resolve) => {
-                const connection = Onyx.connect({
-                    key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-                    callback: (data) => {
-                        connection.unsubscribe();
-                        resolve(data);
-                    },
-                });
-            });
+            const personalDetails = await getPersonalDetailsList();
             expect(personalDetails?.[knownAccountID]?.login).toBe(invitedEmail);
         });
 
@@ -843,13 +824,13 @@ describe('Middleware', () => {
                     reportID: optimisticReportID,
                     participants: {[knownAccountID]: {notificationPreference: 'always'}},
                 },
-                [ONYXKEYS.PERSONAL_DETAILS_LIST]: {
+                ...withPersonalDetails({
                     [knownAccountID]: {
                         accountID: knownAccountID,
                         login: '',
                         displayName: '',
                     },
-                },
+                }),
             });
 
             Request.addMiddleware(handleUnusedOptimisticID);
@@ -879,15 +860,7 @@ describe('Middleware', () => {
             await SequentialQueue.waitForIdle();
             await waitForBatchedUpdates();
 
-            const personalDetails = await new Promise<OnyxEntry<PersonalDetailsList>>((resolve) => {
-                const connection = Onyx.connect({
-                    key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-                    callback: (data) => {
-                        connection.unsubscribe();
-                        resolve(data);
-                    },
-                });
-            });
+            const personalDetails = await getPersonalDetailsList();
             expect(personalDetails?.[knownAccountID]?.login).toBe('');
         });
     });

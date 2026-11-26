@@ -37,6 +37,7 @@ import {SafeAreaProvider} from 'react-native-safe-area-context';
 
 import findAncestorByType from '../utils/findAncestorByType';
 import findAncestorWithStyle from '../utils/findAncestorWithStyle';
+import {setPersonalDetailsList} from '../utils/PersonalDetailsTestUtils';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
 // The lazy asset mock supplies objects rather than native SVG components, so keep a visible image boundary.
@@ -421,7 +422,7 @@ describe.each(callers)('Agent rules in the $name', ({name, Component}) => {
         // Given saved rules can retain a bot ID after that bot leaves the workspace
         await setPolicyAgentRules({[RULE_ID]: createRule()}, {ruleBotAccountID, employeeList});
         await act(async () => {
-            await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+            await setPersonalDetailsList({
                 [RULE_BOT_ACCOUNT_ID]: {accountID: RULE_BOT_ACCOUNT_ID, displayName: 'RuleBot', login: RULE_BOT_EMAIL, avatar: RULE_BOT_AVATAR},
             });
         });

@@ -28,6 +28,7 @@ import React from 'react';
 import Onyx from 'react-native-onyx';
 
 import createMock from '../utils/createMock';
+import {setPersonalDetailsList} from '../utils/PersonalDetailsTestUtils';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
 jest.mock('@libs/actions/Report', () => ({
@@ -113,7 +114,7 @@ async function seedBaseOnyx(policyOverrides?: Partial<Policy>) {
         pendingAction: null,
     };
     await Onyx.set(ONYXKEYS.SESSION, {accountID: ACCOUNT_ID, email: EMAIL});
-    await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+    await setPersonalDetailsList({
         [ACCOUNT_ID]: {login: EMAIL, accountID: ACCOUNT_ID, displayName: EMAIL},
     });
     await Onyx.set(ONYXKEYS.IS_LOADING_APP, false);

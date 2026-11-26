@@ -32,6 +32,7 @@ import Onyx from 'react-native-onyx';
 import {initialWindowMetrics, SafeAreaProvider} from 'react-native-safe-area-context';
 
 import getOnyxValue from '../utils/getOnyxValue';
+import {setPersonalDetailsList} from '../utils/PersonalDetailsTestUtils';
 import {translateLocal} from '../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
@@ -57,7 +58,7 @@ const dotIndicator = expect.objectContaining({testID: 'mock-expensify-icon-DotIn
 async function renderPage(draftClearAfter = FUTURE_CLEAR_AFTER, currentClearAfter = '') {
     await act(async () => {
         await Onyx.set(ONYXKEYS.CUSTOM_STATUS_DRAFT, {clearAfter: draftClearAfter, text: 'Status draft', emojiCode: '💬'});
-        await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {[ACCOUNT_ID]: {accountID: ACCOUNT_ID, status: {clearAfter: currentClearAfter, text: 'Saved status', emojiCode: '💬'}}});
+        await setPersonalDetailsList({[ACCOUNT_ID]: {accountID: ACCOUNT_ID, status: {clearAfter: currentClearAfter, text: 'Saved status', emojiCode: '💬'}}});
     });
 
     render(

@@ -33,6 +33,7 @@ import Onyx from 'react-native-onyx';
 
 import currencyList from '../unit/currencyList.json';
 import createRandomPolicy from '../utils/collections/policies';
+import {mergePersonalDetailsList} from '../utils/PersonalDetailsTestUtils';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
@@ -193,7 +194,7 @@ describe('InitialSettingsPage - agent account', () => {
         };
 
         await act(async () => {
-            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetails);
+            await mergePersonalDetailsList(personalDetails);
             await Onyx.merge(ONYXKEYS.IS_LOADING_APP, false);
         });
 

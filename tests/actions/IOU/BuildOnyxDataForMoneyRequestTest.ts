@@ -529,9 +529,11 @@ describe('buildOnyxDataForMoneyRequest', () => {
             participantChatReportActions: undefined,
         });
 
-        const personalDetailsEntry = result.onyxData.optimisticData?.find((entry) => entry.key === ONYXKEYS.PERSONAL_DETAILS_LIST);
+        const personalDetailsEntry = result.onyxData.optimisticData?.find((entry) => entry.key === ONYXKEYS.COLLECTION.PERSONAL_DETAILS);
 
         expect(mockFormatPhoneNumber).toHaveBeenCalledWith('+15551234567');
-        expect((personalDetailsEntry?.value as Record<number, {displayName: string}>)?.[PAYER_ACCOUNT_ID]?.displayName).toBe('formatted:+15551234567');
+        expect((personalDetailsEntry?.value as Record<string, {displayName: string}>)?.[`${ONYXKEYS.COLLECTION.PERSONAL_DETAILS}${PAYER_ACCOUNT_ID}`]?.displayName).toBe(
+            'formatted:+15551234567',
+        );
     });
 });

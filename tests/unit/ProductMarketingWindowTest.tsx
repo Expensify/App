@@ -37,6 +37,7 @@ import {NavigationContainer} from '@react-navigation/native';
 import React from 'react';
 import Onyx from 'react-native-onyx';
 
+import {mergePersonalDetailsList, setPersonalDetailsList} from '../utils/PersonalDetailsTestUtils';
 import {buildPersonalDetails} from '../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
@@ -133,7 +134,7 @@ async function setupOnyxBaseline({initializeOnboarding = true}: {initializeOnboa
     if (initializeOnboarding) {
         await Onyx.set(ONYXKEYS.NVP_ONBOARDING, {hasCompletedGuidedSetupFlow: true});
     }
-    await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+    await setPersonalDetailsList({
         [USER_ACCOUNT_ID]: buildPersonalDetails(USER_EMAIL, USER_ACCOUNT_ID, 'User'),
     });
     await Onyx.merge(ONYXKEYS.SESSION, {
@@ -242,7 +243,7 @@ describe('ProductMarketingWindowManager', () => {
 
         await act(async () => {
             await Onyx.set(ONYXKEYS.IS_LOADING_APP, true);
-            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+            await mergePersonalDetailsList({
                 [SECOND_USER_ACCOUNT_ID]: buildPersonalDetails(SECOND_USER_EMAIL, SECOND_USER_ACCOUNT_ID, 'Second User'),
             });
             await Onyx.merge(ONYXKEYS.SESSION, {
@@ -503,7 +504,7 @@ describe('ProductMarketingWindowManager', () => {
         // Given an admin of an active workspace whose personal details have not loaded, so only the session knows their login
         await act(async () => {
             await setupOnyxBaseline();
-            await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {});
+            await setPersonalDetailsList({});
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, buildAdminPolicy());
             await waitForBatchedUpdatesWithAct();
         });
@@ -590,7 +591,7 @@ describe('ProductMarketingWindowManager', () => {
         await act(async () => {
             // Deliberately do not write IS_LOADING_APP: the manager must treat the never-written key as still loading.
             await Onyx.clear();
-            await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+            await setPersonalDetailsList({
                 [USER_ACCOUNT_ID]: buildPersonalDetails(USER_EMAIL, USER_ACCOUNT_ID, 'User'),
             });
             await Onyx.merge(ONYXKEYS.SESSION, {

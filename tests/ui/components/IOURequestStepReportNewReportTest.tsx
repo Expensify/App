@@ -18,6 +18,7 @@ import Onyx from 'react-native-onyx';
 
 import createRandomPolicy from '../../utils/collections/policies';
 import {createPolicyExpenseChat, createRandomReport} from '../../utils/collections/reports';
+import {mergePersonalDetailsList} from '../../utils/PersonalDetailsTestUtils';
 import {signInWithTestUser} from '../../utils/TestHelper';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
@@ -145,7 +146,7 @@ function buildExpenseReport(reportID: string, policyID: string, chatReportID: st
 /** An expense being created in the workspace chat of POLICY_ID_2, whose report was just submitted, which clears the chat's iouReportID */
 async function givenExpenseInWorkspaceChatWithSubmittedReport() {
     await signInWithTestUser(ACCOUNT_ID, ACCOUNT_LOGIN);
-    await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {[APPROVER_ACCOUNT_ID]: {accountID: APPROVER_ACCOUNT_ID, login: APPROVER_LOGIN}});
+    await mergePersonalDetailsList({[APPROVER_ACCOUNT_ID]: {accountID: APPROVER_ACCOUNT_ID, login: APPROVER_LOGIN}});
     const buildPolicy = (policyID: string) => ({
         ...createRandomPolicy(Number(policyID)),
         id: policyID,

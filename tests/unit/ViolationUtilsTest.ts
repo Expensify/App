@@ -21,6 +21,7 @@ import type {TransactionCollectionDataSet} from '@src/types/onyx/Transaction';
 import Onyx from 'react-native-onyx';
 
 import createMock from '../utils/createMock';
+import {mergePersonalDetailsList} from '../utils/PersonalDetailsTestUtils';
 import {convertToDisplayString, translateLocal} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
@@ -2933,7 +2934,7 @@ describe('getViolationsOnyxData', () => {
             beforeEach(async () => {
                 // Seed personal details so the report owner's accountID resolves to a login via getLoginByAccountID.
                 // This populates the allPersonalDetails cache that PersonalDetailsUtils reads from.
-                await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {[ownerAccountID]: {accountID: ownerAccountID, login: ownerLogin}});
+                await mergePersonalDetailsList({[ownerAccountID]: {accountID: ownerAccountID, login: ownerLogin}});
                 await waitForBatchedUpdates();
             });
 

@@ -26,6 +26,7 @@ import {createRandomCompanyCard, createRandomExpensifyCard} from '../utils/colle
 import {createRandomReport} from '../utils/collections/reports';
 import createRandomTransaction from '../utils/collections/transaction';
 import getOnyxValue from '../utils/getOnyxValue';
+import {mergePersonalDetailsList, setPersonalDetailsList} from '../utils/PersonalDetailsTestUtils';
 import {createMockReport, getFakeReportAction} from '../utils/ReportTestUtils';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
@@ -430,7 +431,7 @@ describe('OnyxDerived', () => {
         it('should not recompute reportAttributes when personalDetailsList changes without displayName change', async () => {
             // Set up initial state with report and personalDetailsList
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${mockReport.reportID}`, mockReport);
-            await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+            await setPersonalDetailsList({
                 '1': {
                     accountID: 1,
                     displayName: 'John Doe',
@@ -449,7 +450,7 @@ describe('OnyxDerived', () => {
             const generateReportAttributesSpy = jest.spyOn(require('@libs/ReportUtils'), 'generateReportAttributes');
 
             // Change only the login (not displayName) - this should trigger the optimization
-            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+            await mergePersonalDetailsList({
                 '1': {
                     login: 'john.newemail@example.com',
                 },
@@ -472,7 +473,7 @@ describe('OnyxDerived', () => {
         it('should recompute reportAttributes when personalDetailsList displayName changes', async () => {
             // Set up initial state with report and personalDetailsList
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${mockReport.reportID}`, mockReport);
-            await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+            await setPersonalDetailsList({
                 '1': {
                     accountID: 1,
                     displayName: 'John Doe',
@@ -487,7 +488,7 @@ describe('OnyxDerived', () => {
             const initialDerivedReportAttributes = await OnyxUtils.get(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES);
 
             // Change the displayName - this should trigger full recomputation
-            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+            await mergePersonalDetailsList({
                 '1': {
                     displayName: 'Jane Doe',
                     firstName: 'Jane',
@@ -1151,7 +1152,7 @@ describe('OnyxDerived', () => {
     describe('skipping the write when compute returns the current value', () => {
         beforeEach(async () => {
             jest.restoreAllMocks();
-            await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, PERSONAL_DETAILS);
+            await setPersonalDetailsList(PERSONAL_DETAILS);
             await waitForBatchedUpdates();
         });
 
@@ -1160,7 +1161,7 @@ describe('OnyxDerived', () => {
             const setDerivedValueSpy = jest.spyOn(OnyxDerivedUtils, 'setDerivedValue');
 
             // When a member is renamed, which recomputes the guides to the value already held
-            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {[MEMBER_ACCOUNT_ID]: {displayName: 'Renamed member'}});
+            await mergePersonalDetailsList({[MEMBER_ACCOUNT_ID]: {displayName: 'Renamed member'}});
             await waitForBatchedUpdates();
 
             // Then nothing is written, so subscribers aren't notified and the value isn't rewritten to disk
@@ -1173,7 +1174,7 @@ describe('OnyxDerived', () => {
             const endSpanSpy = jest.spyOn(ActiveSpans, 'endSpan');
 
             // When a recompute returns the current value and skips the write
-            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {[MEMBER_ACCOUNT_ID]: {displayName: 'Renamed member'}});
+            await mergePersonalDetailsList({[MEMBER_ACCOUNT_ID]: {displayName: 'Renamed member'}});
             await waitForBatchedUpdates();
 
             // Then the early return still goes through finally, so no compute span is left open
@@ -1187,7 +1188,7 @@ describe('OnyxDerived', () => {
             const setDerivedValueSpy = jest.spyOn(OnyxDerivedUtils, 'setDerivedValue');
 
             // When the same personal details come back, as on signing in again
-            await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, PERSONAL_DETAILS);
+            await setPersonalDetailsList(PERSONAL_DETAILS);
             await waitForBatchedUpdates();
 
             // Then the engine writes the value again instead of treating the pre-clear value as current
@@ -1203,7 +1204,7 @@ describe('OnyxDerived', () => {
             await waitForBatchedUpdates();
 
             // When a personal details write changes a name but no login, as OpenApp does on return
-            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {[MEMBER_ACCOUNT_ID]: {displayName: 'Renamed member'}});
+            await mergePersonalDetailsList({[MEMBER_ACCOUNT_ID]: {displayName: 'Renamed member'}});
             await waitForBatchedUpdates();
 
             // Then both derived keys are written again rather than staying empty until a login set changes
@@ -1223,7 +1224,7 @@ describe('OnyxDerived', () => {
         beforeEach(async () => {
             await act(async () => {
                 await Onyx.set(ONYXKEYS.RAM_ONLY_ARE_TRANSLATIONS_LOADING, false);
-                await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, PERSONAL_DETAILS);
+                await setPersonalDetailsList(PERSONAL_DETAILS);
             });
             await waitForBatchedUpdatesWithAct();
         });
@@ -1237,7 +1238,7 @@ describe('OnyxDerived', () => {
 
             // When a member renames themselves, which leaves both derived values with the same content
             await act(async () => {
-                await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {[MEMBER_ACCOUNT_ID]: {displayName: 'Renamed member'}});
+                await mergePersonalDetailsList({[MEMBER_ACCOUNT_ID]: {displayName: 'Renamed member'}});
             });
             await waitForBatchedUpdatesWithAct();
 
@@ -1254,7 +1255,7 @@ describe('OnyxDerived', () => {
 
             // When a second guide's personal details arrive
             await act(async () => {
-                await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+                await mergePersonalDetailsList({
                     [NEW_GUIDE_ACCOUNT_ID]: {accountID: NEW_GUIDE_ACCOUNT_ID, login: `new.guide@${CONST.EMAIL.GUIDES_DOMAIN}`},
                 });
             });
@@ -1273,7 +1274,7 @@ describe('OnyxDerived', () => {
 
             // When a new member's personal details arrive
             await act(async () => {
-                await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+                await mergePersonalDetailsList({
                     [NEW_MEMBER_ACCOUNT_ID]: {accountID: NEW_MEMBER_ACCOUNT_ID, login: 'new.member@example.com'},
                 });
             });

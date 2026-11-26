@@ -33,6 +33,7 @@ import type * as MockReanimatedModalModule from '../utils/mockReanimatedModal';
 import createMock from '../utils/createMock';
 import getOnyxValue from '../utils/getOnyxValue';
 import * as LHNTestUtils from '../utils/LHNTestUtils';
+import {setPersonalDetailsList} from '../utils/PersonalDetailsTestUtils';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
@@ -104,7 +105,7 @@ describe('DynamicCategoryVisibleToPage', () => {
         await TestHelper.signInWithTestUser(adminAccountID, adminEmail, undefined, 'Admin');
         await act(async () => {
             await Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, CONST.LOCALES.EN);
-            await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+            await setPersonalDetailsList({
                 [adminAccountID]: TestHelper.buildPersonalDetails(adminEmail, adminAccountID, 'Admin'),
                 [bobAccountID]: TestHelper.buildPersonalDetails(bobEmail, bobAccountID, 'Bob'),
                 [carolAccountID]: TestHelper.buildPersonalDetails(carolEmail, carolAccountID, 'Carol'),

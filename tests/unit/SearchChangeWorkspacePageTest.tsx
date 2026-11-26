@@ -21,6 +21,7 @@ import type {ValueOf} from 'type-fest';
 import React from 'react';
 import Onyx from 'react-native-onyx';
 
+import {mergePersonalDetailsList} from '../utils/PersonalDetailsTestUtils';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
 const mockQueryJSON: SearchQueryJSON = {
@@ -143,7 +144,7 @@ describe('SearchChangeWorkspacePage', () => {
         await Onyx.clear();
         // ReportUtils keeps the last signed-in user until the session is replaced
         await Onyx.set(ONYXKEYS.SESSION, {});
-        await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {[SUBMITTER_ACCOUNT_ID]: {accountID: SUBMITTER_ACCOUNT_ID, login: SUBMITTER_EMAIL}});
+        await mergePersonalDetailsList({[SUBMITTER_ACCOUNT_ID]: {accountID: SUBMITTER_ACCOUNT_ID, login: SUBMITTER_EMAIL}});
         await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}policy2`, makePolicy('policy2', 'Workspace 2', CONST.POLICY.ROLE.USER));
     });
 
@@ -242,7 +243,7 @@ describe('SearchChangeWorkspacePage', () => {
 
     it('lists a workspace the submitter is on when their login is in a different case', async () => {
         // Given the submitter's login has capitals, while the workspace members are stored in lowercase
-        await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {[SUBMITTER_ACCOUNT_ID]: {login: 'Submitter@Example.com'}});
+        await mergePersonalDetailsList({[SUBMITTER_ACCOUNT_ID]: {login: 'Submitter@Example.com'}});
 
         // When the page lists the workspaces
         render(
@@ -285,7 +286,7 @@ describe('SearchChangeWorkspacePage', () => {
             [`${ONYXKEYS.COLLECTION.REPORT}report1`]: {...makeReport('report1', CONST.REPORT.STATUS_NUM.OPEN), stateNum: CONST.REPORT.STATE_NUM.OPEN},
         };
         mockSelectedReports = [{reportID: 'report1'}];
-        await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {[SUBMITTER_ACCOUNT_ID]: {login: 'Submitter@Example.com'}});
+        await mergePersonalDetailsList({[SUBMITTER_ACCOUNT_ID]: {login: 'Submitter@Example.com'}});
         await Onyx.merge(ONYXKEYS.SESSION, {email: SUBMITTER_EMAIL, accountID: SUBMITTER_ACCOUNT_ID});
         await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}policy3`, {id: 'policy3', name: 'Workspace 3', type: CONST.POLICY.TYPE.TEAM, role: CONST.POLICY.ROLE.USER});
 

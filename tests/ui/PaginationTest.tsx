@@ -16,6 +16,7 @@ import Onyx from 'react-native-onyx';
 
 import type {NativeNavigationMock} from '../../__mocks__/@react-navigation/native';
 
+import {mergePersonalDetailsList, withPersonalDetails} from '../utils/PersonalDetailsTestUtils';
 import PusherHelper from '../utils/PusherHelper';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
@@ -213,9 +214,9 @@ async function fastSignInWithTestUser() {
         },
         [ONYXKEYS.BETAS]: ['all'],
         [ONYXKEYS.NVP_PRIVATE_PUSH_NOTIFICATION_ID]: 'randomID',
-        [ONYXKEYS.PERSONAL_DETAILS_LIST]: {
+        ...withPersonalDetails({
             [USER_A_ACCOUNT_ID]: TestHelper.buildPersonalDetails(USER_A_EMAIL, USER_A_ACCOUNT_ID, 'A'),
-        },
+        }),
     });
     await waitForBatchedUpdates();
 }
@@ -248,7 +249,7 @@ async function signInAndGetApp(): Promise<void> {
             lastActorAccountID: USER_B_ACCOUNT_ID,
             type: CONST.REPORT.TYPE.CHAT,
         }),
-        Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+        mergePersonalDetailsList({
             [USER_B_ACCOUNT_ID]: TestHelper.buildPersonalDetails(USER_B_EMAIL, USER_B_ACCOUNT_ID, 'B'),
         }),
 

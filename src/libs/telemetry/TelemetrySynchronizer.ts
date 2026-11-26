@@ -85,7 +85,7 @@ Onyx.connectWithoutView({
 });
 
 Onyx.connectWithoutView({
-    key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+    key: ONYXKEYS.COLLECTION.PERSONAL_DETAILS,
     callback: (value) => {
         if (!value || !session?.email) {
             return;

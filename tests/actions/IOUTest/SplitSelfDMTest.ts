@@ -21,6 +21,7 @@ import createPersonalDetails from '../../utils/collections/personalDetails';
 import {createSelfDM} from '../../utils/collections/reports';
 import createMock from '../../utils/createMock';
 import getOnyxValue from '../../utils/getOnyxValue';
+import {withPersonalDetails} from '../../utils/PersonalDetailsTestUtils';
 import {formatPhoneNumber, getCurrencyDecimalsLocal, getCurrencySymbolLocal, getGlobalFetchMock, getOnyxData} from '../../utils/TestHelper';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 import waitForNetworkPromises from '../../utils/waitForNetworkPromises';
@@ -76,7 +77,7 @@ beforeAll(() => {
         keys: ONYXKEYS,
         initialKeyStates: {
             [ONYXKEYS.SESSION]: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
-            [ONYXKEYS.PERSONAL_DETAILS_LIST]: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
+            ...withPersonalDetails({[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}}),
         },
     });
     initOnyxDerivedValues();

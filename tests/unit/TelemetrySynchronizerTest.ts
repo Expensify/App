@@ -13,6 +13,7 @@ import Onyx from 'react-native-onyx';
 import createRandomPolicy from '../utils/collections/policies';
 import {createRandomReport} from '../utils/collections/reports';
 import createRandomTransaction from '../utils/collections/transaction';
+import {setPersonalDetailsList} from '../utils/PersonalDetailsTestUtils';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
 jest.mock('@sentry/react-native', () => ({
@@ -259,7 +260,7 @@ describe('TelemetrySynchronizer', () => {
         it('should register personal_details_count_raw when the personal details list changes', async () => {
             await Onyx.set(ONYXKEYS.SESSION, {email: 'test@example.com', accountID: 1});
             const personalDetails = Object.fromEntries([1, 2].map((accountID) => [accountID, {accountID}]));
-            await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetails);
+            await setPersonalDetailsList(personalDetails);
             await waitForBatchedUpdatesWithAct();
 
             expect(getGlobalSpanAttributes()[CONST.TELEMETRY.ATTRIBUTE_PERSONAL_DETAILS_COUNT_RAW]).toBe(2);

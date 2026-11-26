@@ -23,6 +23,7 @@ import Onyx from 'react-native-onyx';
 import type * as MockUseConfirmModalUtil from '../utils/mockUseConfirmModal';
 
 import {getShowConfirmModalOption, mockShowConfirmModal, resetMockConfirmModal, resolveShowConfirmModal} from '../utils/mockUseConfirmModal';
+import {mergePersonalDetailsList} from '../utils/PersonalDetailsTestUtils';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
@@ -112,7 +113,7 @@ describe('UnshareBankAccount', () => {
         Onyx.init({keys: ONYXKEYS});
         await Onyx.clear();
         await Onyx.merge(ONYXKEYS.SESSION, {email: CURRENT_USER_EMAIL, accountID: CURRENT_USER_ACCOUNT_ID});
-        await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+        await mergePersonalDetailsList({
             [CURRENT_USER_ACCOUNT_ID]: {accountID: CURRENT_USER_ACCOUNT_ID, login: CURRENT_USER_EMAIL, displayName: 'Me'},
             [OTHER_ADMIN_ACCOUNT_ID]: {accountID: OTHER_ADMIN_ACCOUNT_ID, login: OTHER_ADMIN_EMAIL, displayName: 'Other Admin'},
         });

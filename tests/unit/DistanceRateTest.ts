@@ -21,6 +21,7 @@ import Onyx from 'react-native-onyx';
 
 import createRandomPolicy from '../utils/collections/policies';
 import createRandomTransaction from '../utils/collections/transaction';
+import {setPersonalDetailsList} from '../utils/PersonalDetailsTestUtils';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
@@ -878,7 +879,7 @@ describe('DistanceRate', () => {
 
         async function seedWorkArrangementPolicy(policy: Policy) {
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
-            await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetails);
+            await setPersonalDetailsList(personalDetails);
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}1`, {reportID: '1', policyID: policy.id, chatType: CONST.REPORT.CHAT_TYPE.POLICY_ADMINS} as Report);
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}1`, {});
             await waitForBatchedUpdates();
@@ -1058,7 +1059,7 @@ describe('DistanceRate', () => {
                 employeeList: {[member1Email]: {email: member1Email}},
             };
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
-            await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+            await setPersonalDetailsList({
                 [member1AccountID]: {accountID: member1AccountID, login: member1Email, displayName: 'Member One'},
             });
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}1`, {});
@@ -1094,7 +1095,7 @@ describe('DistanceRate', () => {
                 ...personalDetails,
                 [missingMemberAccountID]: {accountID: missingMemberAccountID, login: 'ghost@test.com', displayName: 'Ghost'},
             };
-            await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetailsWithGhost);
+            await setPersonalDetailsList(personalDetailsWithGhost);
             await waitForBatchedUpdates();
             // When the member missing from the policy employee list is passed
             setEmployeeWorkArrangement(policy, [missingMemberAccountID], true, personalDetailsWithGhost);
@@ -1156,7 +1157,7 @@ describe('DistanceRate', () => {
 
         async function seedOfficeLocationPolicy(policy: Policy) {
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
-            await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetails);
+            await setPersonalDetailsList(personalDetails);
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}2`, {reportID: '2', policyID: policy.id, chatType: CONST.REPORT.CHAT_TYPE.POLICY_ADMINS} as Report);
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}2`, {});
             await waitForBatchedUpdates();

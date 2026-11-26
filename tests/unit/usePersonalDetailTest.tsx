@@ -7,6 +7,7 @@ import type {PersonalDetails, PersonalDetailsList} from '@src/types/onyx';
 
 import Onyx from 'react-native-onyx';
 
+import {mergePersonalDetailsList, setPersonalDetailsList} from '../utils/PersonalDetailsTestUtils';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 const ALICE = {accountID: 1, displayName: 'Alice', login: 'alice@test.com'};
@@ -17,7 +18,7 @@ const loginsSelector = (personalDetails: PersonalDetailsList) => Object.values(p
 
 async function mergePersonalDetails(personalDetails: Record<number, Partial<PersonalDetails>>) {
     await act(async () => {
-        await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetails);
+        await mergePersonalDetailsList(personalDetails);
     });
     await waitForBatchedUpdates();
 }
@@ -28,7 +29,7 @@ describe('usePersonalDetail', () => {
     });
 
     beforeEach(async () => {
-        await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {[ALICE.accountID]: ALICE, [BOB.accountID]: BOB});
+        await setPersonalDetailsList({[ALICE.accountID]: ALICE, [BOB.accountID]: BOB});
         await waitForBatchedUpdates();
     });
 
@@ -119,7 +120,7 @@ describe('usePersonalDetailsByIDs', () => {
     });
 
     beforeEach(async () => {
-        await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {[ALICE.accountID]: ALICE, [BOB.accountID]: BOB});
+        await setPersonalDetailsList({[ALICE.accountID]: ALICE, [BOB.accountID]: BOB});
         await waitForBatchedUpdates();
     });
 

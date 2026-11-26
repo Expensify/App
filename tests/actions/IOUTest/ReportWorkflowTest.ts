@@ -59,6 +59,7 @@ import {createRandomReport} from '../../utils/collections/reports';
 import createRandomTransaction from '../../utils/collections/transaction';
 import createMock from '../../utils/createMock';
 import getOnyxValue from '../../utils/getOnyxValue';
+import {mergePersonalDetailsList, setPersonalDetailsList} from '../../utils/PersonalDetailsTestUtils';
 import {
     createGlobalFetchMock,
     formatPhoneNumber,
@@ -3377,7 +3378,7 @@ describe('actions/IOU/ReportWorkflow', () => {
             jest.clearAllMocks();
             // eslint-disable-next-line rulesdir/no-multiple-api-calls -- Inspecting API.write calls in each delegate forwarding test.
             jest.spyOn(API, 'write');
-            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+            await mergePersonalDetailsList({
                 [DELEGATE_ACCOUNT_ID]: {
                     accountID: DELEGATE_ACCOUNT_ID,
                     login: DELEGATE_EMAIL,
@@ -4887,7 +4888,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                 statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
             };
 
-            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+            await mergePersonalDetailsList({
                 [approverAccountID]: {
                     accountID: approverAccountID,
                     login: approverLogin,
@@ -5107,7 +5108,7 @@ describe('actions/IOU/ReportWorkflow', () => {
             await Onyx.clear();
 
             // Set up personal details
-            await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+            await setPersonalDetailsList({
                 [adminAccountID]: {
                     accountID: adminAccountID,
                     login: adminEmail,
@@ -5421,7 +5422,7 @@ describe('actions/IOU/ReportWorkflow', () => {
             await Onyx.clear();
 
             // Set up personal details
-            await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+            await setPersonalDetailsList({
                 [adminAccountID]: {
                     accountID: adminAccountID,
                     login: adminEmail,
@@ -5806,7 +5807,7 @@ describe('actions/IOU/ReportWorkflow', () => {
             await Onyx.clear();
 
             // Set up personal details
-            await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+            await setPersonalDetailsList({
                 [adminAccountID]: {
                     accountID: adminAccountID,
                     login: adminEmail,

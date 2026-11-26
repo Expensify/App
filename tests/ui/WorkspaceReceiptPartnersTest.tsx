@@ -32,6 +32,7 @@ import {StyleSheet} from 'react-native';
 import Onyx from 'react-native-onyx';
 
 import * as LHNTestUtils from '../utils/LHNTestUtils';
+import {mergePersonalDetailsList} from '../utils/PersonalDetailsTestUtils';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
@@ -213,7 +214,7 @@ describe('WorkspaceReceiptPartners', () => {
 
         await act(async () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, basePolicy);
-            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, employeePersonalDetails);
+            await mergePersonalDetailsList(employeePersonalDetails);
         });
 
         renderInvitePage({policyID, integration: UBER_INTEGRATION});
@@ -231,7 +232,7 @@ describe('WorkspaceReceiptPartners', () => {
 
         await act(async () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, basePolicy);
-            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, employeePersonalDetails);
+            await mergePersonalDetailsList(employeePersonalDetails);
         });
 
         renderEditInvitePage({policyID, integration: UBER_INTEGRATION});
@@ -249,7 +250,7 @@ describe('WorkspaceReceiptPartners', () => {
 
         await act(async () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, basePolicy);
-            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, employeePersonalDetails);
+            await mergePersonalDetailsList(employeePersonalDetails);
         });
 
         renderChangeBillingAccountPage({
@@ -299,7 +300,7 @@ describe('WorkspaceReceiptPartners', () => {
             await TestHelper.signInWithTestUser();
             await act(async () => {
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, basePolicy);
-                await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, employeePersonalDetails);
+                await mergePersonalDetailsList(employeePersonalDetails);
             });
 
             // When the page is rendered on a device that has a bottom safe area inset
@@ -331,7 +332,7 @@ describe('WorkspaceReceiptPartners', () => {
                         },
                     },
                 });
-                await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, employeePersonalDetails);
+                await mergePersonalDetailsList(employeePersonalDetails);
             });
 
             // When the page is rendered on a device that has a bottom safe area inset

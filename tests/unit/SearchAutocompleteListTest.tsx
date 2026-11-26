@@ -38,6 +38,7 @@ import OnyxUtils from 'react-native-onyx/dist/OnyxUtils';
 import createCollection from '../utils/collections/createCollection';
 import createPersonalDetails from '../utils/collections/personalDetails';
 import {createRandomReport} from '../utils/collections/reports';
+import {withPersonalDetails} from '../utils/PersonalDetailsTestUtils';
 import * as TestHelper from '../utils/TestHelper';
 import {formatPhoneNumber} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
@@ -313,7 +314,7 @@ describe('SearchAutocompleteList', () => {
         await waitForBatchedUpdates();
         await Onyx.multiSet({
             ...mockedReports,
-            [ONYXKEYS.PERSONAL_DETAILS_LIST]: mockedPersonalDetails,
+            ...withPersonalDetails(mockedPersonalDetails),
             [ONYXKEYS.BETAS]: mockedBetas,
         });
 
@@ -369,7 +370,7 @@ describe('SearchAutocompleteList', () => {
         await waitForBatchedUpdates();
         await Onyx.multiSet({
             ...mockedReports,
-            [ONYXKEYS.PERSONAL_DETAILS_LIST]: mockedPersonalDetails,
+            ...withPersonalDetails(mockedPersonalDetails),
             [ONYXKEYS.BETAS]: mockedBetas,
             [ONYXKEYS.RAM_ONLY_IS_SEARCHING_FOR_REPORTS]: true,
             [ONYXKEYS.RECENT_SEARCHES]: recentSearches,
@@ -407,7 +408,7 @@ describe('SearchAutocompleteList', () => {
         await Onyx.multiSet({
             ...mockedReports,
             [ONYXKEYS.BETAS]: mockedBetas,
-            [ONYXKEYS.PERSONAL_DETAILS_LIST]: mockedPersonalDetails,
+            ...withPersonalDetails(mockedPersonalDetails),
         });
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${contextualReportID}`, contextualReport);
         await Onyx.set(ONYXKEYS.SESSION, {accountID: currentUserAccountID, email: 'test@test.com'});
@@ -467,7 +468,7 @@ describe('SearchAutocompleteList', () => {
         });
         await Onyx.multiSet({
             [ONYXKEYS.BETAS]: mockedBetas,
-            [ONYXKEYS.PERSONAL_DETAILS_LIST]: mockedPersonalDetails,
+            ...withPersonalDetails(mockedPersonalDetails),
         });
         await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${adminsReportID}`, adminsReport);
         await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${threadReportID}`, threadReport);
@@ -565,7 +566,7 @@ describe('SearchAutocompleteList', () => {
         await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${threadReportID}`, {[categoryAction.reportActionID]: categoryAction});
         await Onyx.multiSet({
             [ONYXKEYS.BETAS]: mockedBetas,
-            [ONYXKEYS.PERSONAL_DETAILS_LIST]: mockedPersonalDetails,
+            ...withPersonalDetails(mockedPersonalDetails),
         });
         await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${adminsReportID}`, adminsReport);
         await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${threadReportID}`, threadReport);
@@ -637,7 +638,7 @@ describe('SearchAutocompleteList', () => {
             await waitForBatchedUpdates();
             await Onyx.multiSet({
                 ...mockedReports,
-                [ONYXKEYS.PERSONAL_DETAILS_LIST]: mockedPersonalDetails,
+                ...withPersonalDetails(mockedPersonalDetails),
                 [ONYXKEYS.BETAS]: mockedBetas,
             });
 
@@ -660,7 +661,7 @@ describe('SearchAutocompleteList', () => {
             await waitForBatchedUpdates();
             await Onyx.multiSet({
                 ...mockedReports,
-                [ONYXKEYS.PERSONAL_DETAILS_LIST]: mockedPersonalDetails,
+                ...withPersonalDetails(mockedPersonalDetails),
                 [ONYXKEYS.BETAS]: mockedBetas,
                 [ONYXKEYS.RECENT_SEARCHES]: recentSearches,
             });
@@ -681,7 +682,7 @@ describe('SearchAutocompleteList', () => {
             await waitForBatchedUpdates();
             await Onyx.multiSet({
                 ...mockedReports,
-                [ONYXKEYS.PERSONAL_DETAILS_LIST]: mockedPersonalDetails,
+                ...withPersonalDetails(mockedPersonalDetails),
                 [ONYXKEYS.BETAS]: mockedBetas,
             });
             render(<SearchRouterWrapper />);
@@ -735,7 +736,7 @@ describe('SearchAutocompleteList', () => {
             await waitForBatchedUpdates();
             await Onyx.multiSet({
                 ...mockedReports,
-                [ONYXKEYS.PERSONAL_DETAILS_LIST]: mockedPersonalDetails,
+                ...withPersonalDetails(mockedPersonalDetails),
                 [ONYXKEYS.BETAS]: mockedBetas,
                 [ONYXKEYS.RECENT_SEARCHES]: recentSearches,
             });
@@ -774,7 +775,7 @@ describe('SearchAutocompleteList', () => {
             await waitForBatchedUpdates();
             await Onyx.multiSet({
                 ...mockedReports,
-                [ONYXKEYS.PERSONAL_DETAILS_LIST]: mockedPersonalDetails,
+                ...withPersonalDetails(mockedPersonalDetails),
                 [ONYXKEYS.BETAS]: mockedBetas,
                 [ONYXKEYS.RECENT_SEARCHES]: recentSearches,
             });
@@ -816,7 +817,7 @@ describe('SearchAutocompleteList', () => {
             await waitForBatchedUpdates();
             await Onyx.multiSet({
                 ...mockedReports,
-                [ONYXKEYS.PERSONAL_DETAILS_LIST]: mockedPersonalDetails,
+                ...withPersonalDetails(mockedPersonalDetails),
                 [ONYXKEYS.BETAS]: mockedBetas,
             });
 
@@ -891,7 +892,7 @@ describe('SearchAutocompleteList', () => {
             await waitForBatchedUpdates();
             await Onyx.multiSet({
                 ...mockedReports,
-                [ONYXKEYS.PERSONAL_DETAILS_LIST]: mockedPersonalDetails,
+                ...withPersonalDetails(mockedPersonalDetails),
                 [ONYXKEYS.BETAS]: mockedBetas,
             });
 
@@ -942,7 +943,7 @@ describe('SearchAutocompleteList', () => {
             await waitForBatchedUpdates();
             await Onyx.multiSet({
                 ...mockedReports,
-                [ONYXKEYS.PERSONAL_DETAILS_LIST]: mockedPersonalDetails,
+                ...withPersonalDetails(mockedPersonalDetails),
                 [ONYXKEYS.BETAS]: mockedBetas,
             });
 
@@ -987,7 +988,7 @@ describe('SearchAutocompleteList', () => {
             await waitForBatchedUpdates();
             await Onyx.multiSet({
                 ...mockedReports,
-                [ONYXKEYS.PERSONAL_DETAILS_LIST]: mockedPersonalDetails,
+                ...withPersonalDetails(mockedPersonalDetails),
                 [ONYXKEYS.BETAS]: mockedBetas,
             });
 
@@ -1025,7 +1026,7 @@ describe('SearchAutocompleteList', () => {
             await waitForBatchedUpdates();
             await Onyx.multiSet({
                 ...mockedReports,
-                [ONYXKEYS.PERSONAL_DETAILS_LIST]: mockedPersonalDetails,
+                ...withPersonalDetails(mockedPersonalDetails),
                 [ONYXKEYS.BETAS]: mockedBetas,
                 [ONYXKEYS.RECENT_SEARCHES]: recentSearches,
             });

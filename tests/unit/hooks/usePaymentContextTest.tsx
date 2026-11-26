@@ -13,6 +13,7 @@ import React from 'react';
 import Onyx from 'react-native-onyx';
 
 import createRandomPolicy from '../../utils/collections/policies';
+import {withPersonalDetails} from '../../utils/PersonalDetailsTestUtils';
 import waitForBatchedUpdatesWithAct from '../../utils/waitForBatchedUpdatesWithAct';
 
 const CURRENT_USER_ACCOUNT_ID = 1;
@@ -53,10 +54,10 @@ describe('usePaymentContext', () => {
         await act(async () => {
             await Onyx.multiSet({
                 [ONYXKEYS.SESSION]: {accountID: CURRENT_USER_ACCOUNT_ID, email: CURRENT_USER_EMAIL},
-                [ONYXKEYS.PERSONAL_DETAILS_LIST]: {
+                ...withPersonalDetails({
                     [CURRENT_USER_ACCOUNT_ID]: {accountID: CURRENT_USER_ACCOUNT_ID, login: CURRENT_USER_EMAIL, displayName: 'Payer', localCurrencyCode: CONST.CURRENCY.EUR},
                     [DELEGATE_ACCOUNT_ID]: {accountID: DELEGATE_ACCOUNT_ID, login: DELEGATE_EMAIL},
-                },
+                }),
                 [ONYXKEYS.ACCOUNT]: {delegatedAccess: {delegate: DELEGATE_EMAIL}},
                 [ONYXKEYS.NVP_ACTIVE_POLICY_ID]: ACTIVE_POLICY_ID,
                 [ACTIVE_POLICY_KEY]: activePolicy,

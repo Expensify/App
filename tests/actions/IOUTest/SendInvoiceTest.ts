@@ -29,6 +29,7 @@ import createRandomTransaction from '../../utils/collections/transaction';
 import createMock from '../../utils/createMock';
 import getOnyxValue from '../../utils/getOnyxValue';
 import initCurrencyListContext from '../../utils/initCurrencyListContext';
+import {personalDetailsUpdate, withPersonalDetails} from '../../utils/PersonalDetailsTestUtils';
 import {createGlobalFetchMock, formatPhoneNumber, getCurrencyDecimalsLocal} from '../../utils/TestHelper';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
@@ -108,7 +109,7 @@ describe('actions/SendInvoice', () => {
             keys: ONYXKEYS,
             initialKeyStates: {
                 [ONYXKEYS.SESSION]: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
-                [ONYXKEYS.PERSONAL_DETAILS_LIST]: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
+                ...withPersonalDetails({[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}}),
             },
         });
     });
@@ -845,10 +846,7 @@ describe('actions/SendInvoice', () => {
                 }),
                 expect.objectContaining({
                     optimisticData: expect.arrayContaining([
-                        expect.objectContaining({
-                            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-                            value: {[receiverAccountID]: expect.objectContaining({login: smsLogin, displayName: formatPhoneNumber(phoneNumber)})},
-                        }),
+                        expect.objectContaining(personalDetailsUpdate({[receiverAccountID]: expect.objectContaining({login: smsLogin, displayName: formatPhoneNumber(phoneNumber)})})),
                     ]),
                 }),
             );

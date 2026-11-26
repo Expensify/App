@@ -35,6 +35,7 @@ import createRandomReportAction from '../../utils/collections/reportActions';
 import {createRandomReport} from '../../utils/collections/reports';
 import createRandomTransaction from '../../utils/collections/transaction';
 import getOnyxValue from '../../utils/getOnyxValue';
+import {getPersonalDetailsList, withPersonalDetails} from '../../utils/PersonalDetailsTestUtils';
 import PusherHelper from '../../utils/PusherHelper';
 import {
     createGlobalFetchMock,
@@ -99,7 +100,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
             keys: ONYXKEYS,
             initialKeyStates: {
                 [ONYXKEYS.SESSION]: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
-                [ONYXKEYS.PERSONAL_DETAILS_LIST]: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
+                ...withPersonalDetails({[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}}),
             },
         });
         initOnyxDerivedValues();
@@ -686,7 +687,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
             jest.advanceTimersByTime(10);
 
             // Given User logins from the participant accounts
-            const allPersonalDetails = await getOnyxValue(ONYXKEYS.PERSONAL_DETAILS_LIST);
+            const allPersonalDetails = await getPersonalDetailsList();
             const participantAccountIDs = Object.keys(thread.participants ?? {}).map(Number);
             const participants = participantAccountIDs.flatMap((accountID) => {
                 const login = allPersonalDetails?.[accountID]?.login;
@@ -796,7 +797,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
             jest.advanceTimersByTime(10);
 
             // Given User logins from the participant accounts
-            const allPersonalDetails = await getOnyxValue(ONYXKEYS.PERSONAL_DETAILS_LIST);
+            const allPersonalDetails = await getPersonalDetailsList();
             const participantAccountIDs = Object.keys(thread.participants ?? {}).map(Number);
             const participants = participantAccountIDs.flatMap((accountID) => {
                 const login = allPersonalDetails?.[accountID]?.login;
@@ -939,7 +940,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
 
             expect(thread.participants).toEqual(expectedTransactionThreadParticipants);
 
-            const allPersonalDetails = await getOnyxValue(ONYXKEYS.PERSONAL_DETAILS_LIST);
+            const allPersonalDetails = await getPersonalDetailsList();
             const participantAccountIDs = Object.keys(thread.participants ?? {}).map(Number);
             jest.advanceTimersByTime(10);
             const participants = participantAccountIDs.flatMap((accountID) => {
@@ -1090,7 +1091,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
             await waitForBatchedUpdates();
 
             jest.advanceTimersByTime(10);
-            const allPersonalDetails = await getOnyxValue(ONYXKEYS.PERSONAL_DETAILS_LIST);
+            const allPersonalDetails = await getPersonalDetailsList();
             const participantAccountIDs = Object.keys(thread.participants ?? {}).map(Number);
             const participants = participantAccountIDs.flatMap((accountID) => {
                 const login = allPersonalDetails?.[accountID]?.login;
@@ -1427,7 +1428,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
             expect(thread.participants).toStrictEqual(expectedTransactionThreadParticipants);
 
             jest.advanceTimersByTime(10);
-            const allPersonalDetails = await getOnyxValue(ONYXKEYS.PERSONAL_DETAILS_LIST);
+            const allPersonalDetails = await getPersonalDetailsList();
             const participantAccountIDs = Object.keys(thread.participants ?? {}).map(Number);
             const participants = participantAccountIDs.flatMap((accountID) => {
                 const login = allPersonalDetails?.[accountID]?.login;
@@ -1622,7 +1623,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
 
             expect(thread.participants).toEqual(expectedTransactionThreadParticipants);
 
-            const allPersonalDetails = await getOnyxValue(ONYXKEYS.PERSONAL_DETAILS_LIST);
+            const allPersonalDetails = await getPersonalDetailsList();
             const participantAccountIDs = Object.keys(thread.participants ?? {}).map(Number);
             jest.advanceTimersByTime(10);
             const participants = participantAccountIDs.flatMap((accountID) => {

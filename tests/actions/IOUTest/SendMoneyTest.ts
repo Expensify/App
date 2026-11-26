@@ -10,6 +10,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 
 import Onyx from 'react-native-onyx';
 
+import {mergePersonalDetailsList, withPersonalDetails} from '../../utils/PersonalDetailsTestUtils';
 import {getCurrencyDecimalsLocal, getGlobalFetchMock} from '../../utils/TestHelper';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
@@ -60,10 +61,10 @@ describe('actions/IOU/SendMoney', () => {
             keys: ONYXKEYS,
             initialKeyStates: {
                 [ONYXKEYS.SESSION]: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
-                [ONYXKEYS.PERSONAL_DETAILS_LIST]: {
+                ...withPersonalDetails({
                     [RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL},
                     [CARLOS_ACCOUNT_ID]: {accountID: CARLOS_ACCOUNT_ID, login: CARLOS_EMAIL},
-                },
+                }),
             },
         });
         initOnyxDerivedValues();
@@ -76,7 +77,7 @@ describe('actions/IOU/SendMoney', () => {
         global.fetch = getGlobalFetchMock();
         await Onyx.clear();
         await Onyx.merge(ONYXKEYS.SESSION, {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL});
-        await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+        await mergePersonalDetailsList({
             [RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL},
             [CARLOS_ACCOUNT_ID]: {accountID: CARLOS_ACCOUNT_ID, login: CARLOS_EMAIL},
         });

@@ -25,6 +25,7 @@ import {NavigationContainer} from '@react-navigation/native';
 import React, {act} from 'react';
 import Onyx from 'react-native-onyx';
 
+import {mergePersonalDetailsList} from '../utils/PersonalDetailsTestUtils';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
@@ -81,7 +82,7 @@ describe('ProfilePage - agent custom instructions', () => {
         };
 
         await act(async () => {
-            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetails);
+            await mergePersonalDetailsList(personalDetails);
             await Onyx.merge(`${ONYXKEYS.COLLECTION.AGENT}${AGENT_ACCOUNT_ID}`, {prompt, pendingAction: null});
             await Onyx.merge(ONYXKEYS.IS_LOADING_APP, false);
         });
@@ -125,7 +126,7 @@ describe('ProfilePage - agent custom instructions', () => {
         };
 
         await act(async () => {
-            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetails);
+            await mergePersonalDetailsList(personalDetails);
             await Onyx.merge(`${ONYXKEYS.COLLECTION.AGENT}${AGENT_ACCOUNT_ID}`, {prompt: 'Ignore #some-room mentions.', pendingAction: null});
             await Onyx.merge(ONYXKEYS.IS_LOADING_APP, false);
         });

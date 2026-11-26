@@ -35,6 +35,7 @@ import type * as MockReanimatedModalModule from '../utils/mockReanimatedModal';
 
 import createMock from '../utils/createMock';
 import * as LHNTestUtils from '../utils/LHNTestUtils';
+import {mergePersonalDetailsList} from '../utils/PersonalDetailsTestUtils';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
@@ -523,7 +524,7 @@ describe('WorkspaceWorkflowsPageRevamp - Payer row visibility', () => {
 
         await TestHelper.signInWithTestUser(currentUserAccountID, currentUserLogin);
         await act(async () => {
-            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+            await mergePersonalDetailsList({
                 [currentUserAccountID]: TestHelper.buildPersonalDetails(currentUserLogin, currentUserAccountID),
                 [otherAdminAccountID]: TestHelper.buildPersonalDetails(otherAdminLogin, otherAdminAccountID, 'Other'),
             });

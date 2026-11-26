@@ -50,6 +50,7 @@ import Onyx from 'react-native-onyx';
 
 import createMock from '../utils/createMock';
 import getOnyxValue from '../utils/getOnyxValue';
+import {getPersonalDetailsList, personalDetailsUpdate, setPersonalDetailsList} from '../utils/PersonalDetailsTestUtils';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
@@ -270,7 +271,7 @@ describe('actions/Domain', () => {
                         value: expect.any(Object),
                     }),
                     expect.objectContaining({
-                        key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+                        key: ONYXKEYS.COLLECTION.PERSONAL_DETAILS,
                         // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
                         value: expect.any(Object),
                     }),
@@ -329,27 +330,21 @@ describe('actions/Domain', () => {
             {domainName, targetEmail},
             {
                 optimisticData: expect.arrayContaining([
-                    expect.objectContaining({
-                        key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-                        value: {
+                    expect.objectContaining(
+                        personalDetailsUpdate({
                             [accountID]: {
                                 accountID,
                                 login: targetEmail,
                                 displayName: targetEmail,
                                 isOptimisticPersonalDetail: true,
                             },
-                        },
-                    }),
+                        }),
+                    ),
                 ]),
-                successData: expect.arrayContaining([
-                    expect.objectContaining({
-                        key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-                        value: {[accountID]: null},
-                    }),
-                ]),
+                successData: expect.arrayContaining([expect.objectContaining(personalDetailsUpdate({[accountID]: null}))]),
                 // Kept on failure so the errored row still renders with its dismiss button.
                 // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-                failureData: expect.not.arrayContaining([expect.objectContaining({key: ONYXKEYS.PERSONAL_DETAILS_LIST})]),
+                failureData: expect.not.arrayContaining([expect.objectContaining({key: ONYXKEYS.COLLECTION.PERSONAL_DETAILS})]),
             },
         );
 
@@ -370,11 +365,11 @@ describe('actions/Domain', () => {
             {domainName, targetEmail},
             expect.objectContaining({
                 // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-                optimisticData: expect.not.arrayContaining([expect.objectContaining({key: ONYXKEYS.PERSONAL_DETAILS_LIST})]),
+                optimisticData: expect.not.arrayContaining([expect.objectContaining({key: ONYXKEYS.COLLECTION.PERSONAL_DETAILS})]),
                 // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-                successData: expect.not.arrayContaining([expect.objectContaining({key: ONYXKEYS.PERSONAL_DETAILS_LIST})]),
+                successData: expect.not.arrayContaining([expect.objectContaining({key: ONYXKEYS.COLLECTION.PERSONAL_DETAILS})]),
                 // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-                failureData: expect.not.arrayContaining([expect.objectContaining({key: ONYXKEYS.PERSONAL_DETAILS_LIST})]),
+                failureData: expect.not.arrayContaining([expect.objectContaining({key: ONYXKEYS.COLLECTION.PERSONAL_DETAILS})]),
             }),
         );
 
@@ -1092,18 +1087,15 @@ describe('actions/Domain', () => {
         const email = 'user@test.com';
         const optimisticAccountID = generateAccountID(email);
 
-        await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+        await setPersonalDetailsList({
             [optimisticAccountID]: {accountID: optimisticAccountID, login: email, isOptimisticPersonalDetail: true},
         });
 
         clearDomainMemberError(domainAccountID, optimisticAccountID, email, '', true);
 
-        await TestHelper.getOnyxData({
-            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-            callback: (personalDetails) => {
-                expect(personalDetails?.[optimisticAccountID]).toBeFalsy();
-            },
-        });
+        await waitForBatchedUpdates();
+        const personalDetails = await getPersonalDetailsList();
+        expect(personalDetails?.[optimisticAccountID]).toBeFalsy();
     });
 
     it('clearDomainMemberError - keeps the personal details of a real account', async () => {
@@ -1111,18 +1103,15 @@ describe('actions/Domain', () => {
         const accountID = 456;
         const email = 'user@test.com';
 
-        await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+        await setPersonalDetailsList({
             [accountID]: {accountID, login: email},
         });
 
         clearDomainMemberError(domainAccountID, accountID, email, '');
 
-        await TestHelper.getOnyxData({
-            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-            callback: (personalDetails) => {
-                expect(personalDetails?.[accountID]?.login).toBe(email);
-            },
-        });
+        await waitForBatchedUpdates();
+        const personalDetails = await getPersonalDetailsList();
+        expect(personalDetails?.[accountID]?.login).toBe(email);
     });
 
     it('clearTwoFactorAuthExemptEmailsErrors - clears twoFactorAuthExemptEmailsError for the given email', async () => {

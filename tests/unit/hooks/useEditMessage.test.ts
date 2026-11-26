@@ -13,6 +13,7 @@ import Onyx from 'react-native-onyx';
 
 import createMock from '../../utils/createMock';
 import * as LHNTestUtils from '../../utils/LHNTestUtils';
+import {mergePersonalDetailsList, setPersonalDetailsList} from '../../utils/PersonalDetailsTestUtils';
 import * as TestHelper from '../../utils/TestHelper';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
@@ -201,7 +202,7 @@ describe('useEditMessage', () => {
         await act(async () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${mentionedReportID}`, {reportID: mentionedReportID, reportName: '#mentioned'});
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}222`, {reportID: '222', reportName: '#other'});
-            await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+            await setPersonalDetailsList({
                 [aliceAccountID]: {accountID: aliceAccountID, login: 'alice@test.com'},
                 [bobAccountID]: {accountID: bobAccountID, login: 'bob@test.com'},
             });
@@ -262,7 +263,7 @@ describe('useEditMessage', () => {
         // When another report is written and a user changes their display name, which keeps every login the same
         await act(async () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}999`, {reportID: '999', reportName: '#unrelated', lastReadTime: '2026-11-10 10:00:00.000'});
-            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {[loadedAccountID]: {displayName: 'Renamed'}});
+            await mergePersonalDetailsList({[loadedAccountID]: {displayName: 'Renamed'}});
         });
 
         // Then publishDraft keeps its inputs, so the composer reading it from context does not re-render

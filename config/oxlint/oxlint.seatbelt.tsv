@@ -459,7 +459,6 @@
 "../../src/CONFIG.ts"	"import/no-named-as-default"	1
 "../../src/CONST/index.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/CONST/runtimeConfigured.ts"	"import/no-named-as-default"	1
-"../../src/CONST/runtimeConfigured.ts"	"rulesdir/no-direct-personal-details-list"	1
 "../../src/DeepLinkHandler.tsx"	"no-restricted-syntax"	1
 "../../src/DeepLinkHandler.tsx"	"rulesdir/no-onyx-loading-status"	8
 "../../src/Expensify.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
@@ -671,7 +670,6 @@
 "../../src/libs/actions/Policy/Member.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/libs/actions/Policy/Member.ts"	"no-restricted-imports"	1
 "../../src/libs/actions/Policy/Member.ts"	"no-restricted-syntax"	7
-"../../src/libs/actions/Policy/Member.ts"	"rulesdir/no-direct-personal-details-list"	1
 "../../src/libs/actions/Policy/Member.ts"	"rulesdir/no-onyx-connect"	1
 "../../src/libs/actions/Policy/PerDiem.ts"	"no-restricted-syntax"	1
 "../../src/libs/actions/Policy/Plan.ts"	"no-restricted-syntax"	1
@@ -802,7 +800,6 @@
 "../../src/libs/Middleware/HandleUnusedOptimisticID.ts"	"@typescript-eslint/no-unnecessary-type-assertion"	1
 "../../src/libs/Middleware/HandleUnusedOptimisticID.ts"	"@typescript-eslint/no-unsafe-type-assertion"	4
 "../../src/libs/Middleware/HandleUnusedOptimisticID.ts"	"no-restricted-syntax"	1
-"../../src/libs/Middleware/HandleUnusedOptimisticID.ts"	"rulesdir/no-direct-personal-details-list"	1
 "../../src/libs/Middleware/Logging.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/libs/Middleware/Pagination.ts"	"@typescript-eslint/no-unsafe-type-assertion"	5
 "../../src/libs/Middleware/Reauthentication.ts"	"@typescript-eslint/no-unnecessary-type-assertion"	1
@@ -938,7 +935,6 @@
 "../../src/libs/SidebarUtils.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/libs/StatusBar/types.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/libs/telemetry/forwardLogsToSentry.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
-"../../src/libs/telemetry/TelemetrySynchronizer.ts"	"rulesdir/no-direct-personal-details-list"	1
 "../../src/libs/TransactionPreviewUtils.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/libs/TransactionUtils/getUpdatedTransaction.ts"	"@typescript-eslint/no-deprecated/translateLocal"	1
 "../../src/libs/TransactionUtils/index.ts"	"@typescript-eslint/no-deprecated/getReportTransactions"	1

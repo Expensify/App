@@ -30,6 +30,7 @@ import Onyx from 'react-native-onyx';
 import {measureRenders} from 'reassure';
 
 import * as LHNTestUtils from '../utils/LHNTestUtils';
+import {mergePersonalDetailsList} from '../utils/PersonalDetailsTestUtils';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
@@ -132,7 +133,7 @@ beforeEach(async () => {
             reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO,
             employeeList,
         });
-        await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetails);
+        await mergePersonalDetailsList(personalDetails);
     });
     await TestHelper.signInWithTestUser(OWNER_ACCOUNT_ID, OWNER_EMAIL);
 });

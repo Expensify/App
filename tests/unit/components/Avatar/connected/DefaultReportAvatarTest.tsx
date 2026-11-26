@@ -14,6 +14,8 @@ import React from 'react';
 
 import type mockOnyxWithLivePersonalDetails from '../../../../utils/mockOnyxWithLivePersonalDetails';
 
+import {toPersonalDetailsCollection} from '../../../../utils/PersonalDetailsTestUtils';
+
 const REPORT_ID = 'report123';
 const POLICY_ID = 'policy123';
 const FALLBACK_NAME = 'Fallback Name';
@@ -247,9 +249,11 @@ describe('DefaultReportAvatar (connected)', () => {
         // Given a 1:1 DM whose other member is in both the Search snapshot and the live list, with conflicting details, as on a Search surface
         seedReport({type: CONST.REPORT.TYPE.CHAT, participants: buildParticipants(CURRENT_USER_ACCOUNT_ID, OTHER_ACCOUNT_ID)});
         mockPersonalDetails = {[OTHER_ACCOUNT_ID]: {accountID: OTHER_ACCOUNT_ID, displayName: 'Live Name', avatar: 'https://example.com/live-avatar.png'}};
-        mockOnyxData[ONYXKEYS.PERSONAL_DETAILS_LIST] = {
+        const snapshotPersonalDetails = toPersonalDetailsCollection({
             [OTHER_ACCOUNT_ID]: {accountID: OTHER_ACCOUNT_ID, displayName: `User ${OTHER_ACCOUNT_ID}`, avatar: `https://example.com/avatar-${OTHER_ACCOUNT_ID}.png`},
-        };
+        });
+        mockOnyxData[ONYXKEYS.COLLECTION.PERSONAL_DETAILS] = snapshotPersonalDetails;
+        Object.assign(mockOnyxData, snapshotPersonalDetails);
 
         // When it renders
         renderWithPersonalDetails(

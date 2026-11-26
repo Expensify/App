@@ -22,6 +22,7 @@ import Onyx from 'react-native-onyx';
 import type {NativeNavigationMock} from '../../__mocks__/@react-navigation/native';
 
 import {fakePersonalDetails} from '../utils/LHNTestUtils';
+import {mergePersonalDetailsList} from '../utils/PersonalDetailsTestUtils';
 import {translateLocal} from '../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
@@ -82,7 +83,7 @@ describe('NewChatPage', () => {
 
     it('should not auto-scroll when adding a user to the group selection', async () => {
         await act(async () => {
-            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, fakePersonalDetails);
+            await mergePersonalDetailsList(fakePersonalDetails);
         });
         render(<NewChatPage />, {wrapper});
         await waitForBatchedUpdatesWithAct();
@@ -99,7 +100,7 @@ describe('NewChatPage', () => {
 
     it('should not move a selected user to the top of the list', async () => {
         await act(async () => {
-            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, fakePersonalDetails);
+            await mergePersonalDetailsList(fakePersonalDetails);
         });
         render(<NewChatPage />, {wrapper});
         await waitForBatchedUpdatesWithAct();
@@ -134,7 +135,7 @@ describe('NewChatPage', () => {
 
     it('should keep a selected non-existing user visible in the top section after the search is cleared', async () => {
         await act(async () => {
-            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, fakePersonalDetails);
+            await mergePersonalDetailsList(fakePersonalDetails);
         });
         render(<NewChatPage />, {wrapper});
         await waitForBatchedUpdatesWithAct();
@@ -175,7 +176,7 @@ describe('NewChatPage', () => {
 
     it('should not auto-scroll when selecting multiple users in sequence', async () => {
         await act(async () => {
-            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, fakePersonalDetails);
+            await mergePersonalDetailsList(fakePersonalDetails);
         });
         render(<NewChatPage />, {wrapper});
         await waitForBatchedUpdatesWithAct();
@@ -208,7 +209,7 @@ describe('NewChatPage', () => {
 
     it('should toggle selection correctly via the row checkbox with the deferred selection update', async () => {
         await act(async () => {
-            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, fakePersonalDetails);
+            await mergePersonalDetailsList(fakePersonalDetails);
         });
         render(<NewChatPage />, {wrapper});
         await waitForBatchedUpdatesWithAct();
@@ -251,7 +252,7 @@ describe('NewChatPage', () => {
 
     it('should keep the user selected when the still-visible "Add to group" button is pressed twice before the deferred update commits', async () => {
         await act(async () => {
-            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, fakePersonalDetails);
+            await mergePersonalDetailsList(fakePersonalDetails);
         });
         render(<NewChatPage />, {wrapper});
         await waitForBatchedUpdatesWithAct();
@@ -283,7 +284,7 @@ describe('NewChatPage', () => {
 
     it('should not open the group confirmation when the last member was removed just before pressing Next', async () => {
         await act(async () => {
-            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, fakePersonalDetails);
+            await mergePersonalDetailsList(fakePersonalDetails);
             await Onyx.merge(ONYXKEYS.SESSION, {accountID: 1, email: 'email1@test.com'});
         });
         render(<NewChatPage />, {wrapper});
@@ -331,7 +332,7 @@ describe('NewChatPage', () => {
 
     it('should add a row-pressed user to the group instead of opening a 1:1 chat when the row is pressed before the deferred selection commits', async () => {
         await act(async () => {
-            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, fakePersonalDetails);
+            await mergePersonalDetailsList(fakePersonalDetails);
             await Onyx.merge(ONYXKEYS.SESSION, {accountID: 1, email: 'email1@test.com'});
         });
         render(<NewChatPage />, {wrapper});
@@ -381,7 +382,7 @@ describe('NewChatPage', () => {
         it.each(excludedGroupEmails)('%s', async (email) => {
             // Given that a personal details list is initialized in Onyx
             await act(async () => {
-                await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+                await mergePersonalDetailsList({
                     // eslint-disable-next-line @typescript-eslint/naming-convention
                     '1': {accountID: 1, login: email},
                 });

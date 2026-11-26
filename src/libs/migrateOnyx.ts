@@ -2,6 +2,7 @@ import CONST from '@src/CONST';
 
 import Log from './Log';
 import MoveFilesOutOfDocuments from './migrations/MoveFilesOutOfDocuments';
+import MovePersonalDetailsListToCollection from './migrations/MovePersonalDetailsListToCollection';
 import MoveSearchQueryByHashToSnapshots from './migrations/MoveSearchQueryByHashToSnapshots';
 import RemoveNonArrayFrequentlyUsedEmojis from './migrations/RemoveNonArrayFrequentlyUsedEmojis';
 import RemoveSearchRowFieldsFromTransactions from './migrations/RemoveSearchRowFieldsFromTransactions';
@@ -28,6 +29,7 @@ export default function () {
             RenameLegacySageIntacctExportDate,
             RemoveSearchRowFieldsFromTransactions,
             RemoveNonArrayFrequentlyUsedEmojis,
+            MovePersonalDetailsListToCollection,
         ];
 
         // Reduce all promises down to a single promise. All promises run in a linear fashion, waiting for the

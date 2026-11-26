@@ -23,6 +23,7 @@ import Onyx from 'react-native-onyx';
 
 import createMock from '../../utils/createMock';
 import {getFakeReport} from '../../utils/LHNTestUtils';
+import {mergePersonalDetailsList} from '../../utils/PersonalDetailsTestUtils';
 
 // Mock dynamic imports that break without --experimental-vm-modules
 jest.mock('@src/languages/IntlStore', () => {
@@ -386,7 +387,7 @@ describe('LHNOptionsList', () => {
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${parentReportID}`, parentReport);
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, threadReport);
-                await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+                await mergePersonalDetailsList({
                     [accountID1]: {accountID: accountID1, login: 'admin1@test.com', displayName: 'Admin One', avatar: 'admin1-avatar'},
                     [accountID2]: {accountID: accountID2, login: 'admin2@test.com', displayName: 'Admin Two', avatar: 'admin2-avatar'},
                 });
@@ -462,7 +463,7 @@ describe('LHNOptionsList', () => {
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`, {
                     [parentActionID]: parentAction,
                 });
-                await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+                await mergePersonalDetailsList({
                     [accountID1]: {accountID: accountID1, login: 'user1@test.com', displayName: 'User One', avatar: 'user1-avatar'},
                     [accountID2]: {accountID: accountID2, login: 'user2@test.com', displayName: 'User Two', avatar: 'user2-avatar'},
                 });
@@ -527,7 +528,7 @@ describe('LHNOptionsList', () => {
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${parentReportID}`, parentReport);
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, taskReport);
-                await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+                await mergePersonalDetailsList({
                     [accountID1]: {accountID: accountID1, login: 'user1@test.com', displayName: 'User One', avatar: 'user1-avatar'},
                     [accountID2]: {accountID: accountID2, login: 'user2@test.com', displayName: 'User Two', avatar: 'user2-avatar'},
                 });
@@ -600,7 +601,7 @@ describe('LHNOptionsList', () => {
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`, {
                     [parentActionID]: parentAction,
                 });
-                await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+                await mergePersonalDetailsList({
                     [ownerAccountID]: {accountID: ownerAccountID, login: 'owner@test.com', displayName: 'Owner', avatar: 'owner-avatar'},
                     [copilotAccountID]: {accountID: copilotAccountID, login: 'copilot@test.com', displayName: 'Copilot', avatar: 'copilot-avatar'},
                 });
@@ -667,7 +668,7 @@ describe('LHNOptionsList', () => {
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, invoicePolicy);
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${invoiceRoomID}`, invoiceRoom);
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${invoiceReportID}`, invoiceReport);
-                await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+                await mergePersonalDetailsList({
                     [accountID1]: {accountID: accountID1, login: 'sender@test.com', displayName: 'Sender', avatar: 'sender-avatar'},
                     [accountID2]: {accountID: accountID2, login: 'receiver@test.com', displayName: 'Receiver', avatar: 'receiver-avatar'},
                 });
@@ -716,7 +717,7 @@ describe('LHNOptionsList', () => {
             await act(async () => {
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, report);
-                await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+                await mergePersonalDetailsList({
                     [ownerAccountID]: {accountID: ownerAccountID, login: 'owner@test.com', displayName: 'Owner', avatar: 'owner-avatar'},
                     [managerAccountID]: {accountID: managerAccountID, login: 'manager@test.com', displayName: 'Manager', avatar: 'manager-avatar'},
                 });

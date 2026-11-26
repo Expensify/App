@@ -25,6 +25,7 @@ import {NavigationContainer} from '@react-navigation/native';
 import React from 'react';
 import Onyx from 'react-native-onyx';
 
+import {withPersonalDetails} from '../utils/PersonalDetailsTestUtils';
 import {getFetchMockCalls, getGlobalFetchMock, setupGlobalFetchMock, signInWithTestUser, translateLocal} from '../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 import wrapOnyxWithWaitForBatchedUpdates from '../utils/wrapOnyxWithWaitForBatchedUpdates';
@@ -164,7 +165,7 @@ describe('ReportAttachments', () => {
             keys: ONYXKEYS,
             initialKeyStates: {
                 [ONYXKEYS.SESSION]: {accountID: TEST_USER_ACCOUNT_ID, email: TEST_USER_LOGIN},
-                [ONYXKEYS.PERSONAL_DETAILS_LIST]: {[TEST_USER_ACCOUNT_ID]: {accountID: TEST_USER_ACCOUNT_ID, login: TEST_USER_LOGIN}},
+                ...withPersonalDetails({[TEST_USER_ACCOUNT_ID]: {accountID: TEST_USER_ACCOUNT_ID, login: TEST_USER_LOGIN}}),
             },
             evictableKeys: [ONYXKEYS.COLLECTION.REPORT_ACTIONS],
         });
