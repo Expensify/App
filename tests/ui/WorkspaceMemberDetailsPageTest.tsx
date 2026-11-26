@@ -982,9 +982,6 @@ describe('WorkspaceMemberDetailsPage', () => {
         expect(navigateSpy).toHaveBeenCalledWith(ROUTES.SEARCH_ROOT.getRoute({query, rawQuery: query}));
         expect(revealSpy).not.toHaveBeenCalled();
 
-        dismissModalSpy.mockRestore();
-        navigateSpy.mockRestore();
-        revealSpy.mockRestore();
         unmount();
         await waitForBatchedUpdatesWithAct();
     });
