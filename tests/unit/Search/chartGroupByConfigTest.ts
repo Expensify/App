@@ -259,7 +259,24 @@ describe('CHART_GROUP_BY_CONFIG', () => {
         const query = CHART_GROUP_BY_CONFIG[CONST.SEARCH.GROUP_BY.MERCHANT].getFilterQuery(item);
 
         // Then the exact operator prevents matching merchants that only contain this name.
-        expect(query).toBe('merchant="I"');
+        expect(query).toBe('merchant=I');
+    });
+
+    it('escapes quotes in merchant and category names, so the filter keeps the whole name', () => {
+        // Given a merchant and a category whose names contain a quote
+        const merchant = createMock<TransactionMerchantGroupListItemType>({groupedBy: CONST.SEARCH.GROUP_BY.MERCHANT, merchant: 'Joe\'s "Diner"'});
+        const category = createMock<TransactionCategoryGroupListItemType>({groupedBy: CONST.SEARCH.GROUP_BY.CATEGORY, category: 'Team "fun"'});
+
+        // When the chart builds their drill-down queries
+        const merchantQuery = CHART_GROUP_BY_CONFIG[CONST.SEARCH.GROUP_BY.MERCHANT].getFilterQuery(merchant);
+        const categoryQuery = CHART_GROUP_BY_CONFIG[CONST.SEARCH.GROUP_BY.CATEGORY].getFilterQuery(category);
+
+        // Then the quotes are escaped, so they can't close the value early and leave the rest as separate search terms
+        expect(merchantQuery).toBe('merchant="Joe\'s \\"Diner\\""');
+        expect(categoryQuery).toBe('category:"Team \\"fun\\""');
+        expect(buildSearchQueryJSON(`type:expense ${merchantQuery}`)?.flatFilters).toEqual([
+            {key: CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT, filters: [{operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, value: 'Joe\'s "Diner"'}]},
+        ]);
     });
 
     test.each(cases)('returns the $groupBy chart values for a matching item', ({groupBy, item, expectedIcon, expectedLabel, expectedShortLabel, expectedFilterQuery}) => {

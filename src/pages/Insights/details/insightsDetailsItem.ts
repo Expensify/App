@@ -1,6 +1,6 @@
 /** Converts a clicked chart group to the URL params the Details panel names it by, and back to its title and Spend filter. */
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
-import CHART_GROUP_BY_CONFIG, {buildTagFilterQuery} from '@components/Search/chartGroupByConfig';
+import CHART_GROUP_BY_CONFIG, {buildCategoryFilterQuery, buildMerchantFilterQuery, buildTagFilterQuery} from '@components/Search/chartGroupByConfig';
 import type {GroupedItem, SearchDateFilterKeys, SearchGroupBy, SearchQueryJSON} from '@components/Search/types';
 
 import {getDecodedCategoryName} from '@libs/CategoryUtils';
@@ -150,12 +150,12 @@ function resolveInsightsDetailsItem({
             return {title: getViolationDisplayName(itemKey, translate), filterQuery: `${CONST.SEARCH.SYNTAX_FILTER_KEYS.VIOLATION}:${itemKey}`};
         case CONST.SEARCH.GROUP_BY.MERCHANT: {
             const isEmptyMerchant = !itemKey || itemKey === CONST.SEARCH.MERCHANT_EMPTY_VALUE || itemKey === CONST.TRANSACTION.UNKNOWN_MERCHANT || isInvalidMerchantValue(itemKey);
-            return {title: isEmptyMerchant ? translate('search.noMerchant') : itemKey, filterQuery: `merchant="${itemKey}"`};
+            return {title: isEmptyMerchant ? translate('search.noMerchant') : itemKey, filterQuery: buildMerchantFilterQuery(itemKey)};
         }
         case CONST.SEARCH.GROUP_BY.CATEGORY:
             return {
                 title: !itemKey || itemKey === CONST.SEARCH.CATEGORY_EMPTY_VALUE ? itemKey : getDecodedCategoryName(itemKey),
-                filterQuery: `category:"${itemKey}"`,
+                filterQuery: buildCategoryFilterQuery(itemKey),
             };
         case CONST.SEARCH.GROUP_BY.TAG: {
             if (tagLevel !== undefined && (!Number.isSafeInteger(tagLevel) || tagLevel < 1)) {
