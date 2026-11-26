@@ -37,16 +37,29 @@ const DOMAIN_KEY = `${ONYXKEYS.COLLECTION.DOMAIN}${DOMAIN_ACCOUNT_ID}` as const;
 const DOMAIN_MEMBER_KEY = `${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${DOMAIN_ACCOUNT_ID}` as const;
 const PRIMARY_CONTACT_EMAIL = 'owner@acme.com';
 const CURRENT_USER_EMAIL = 'admin@acme.com';
+const BILLING_FUND_ID = 1234;
 
 let mockCurrentUserLogin = CURRENT_USER_EMAIL;
+let mockIsNativeApp = false;
 
 jest.mock('@react-navigation/native', () => ({
     ...jest.requireActual<typeof ReactNavigationNative>('@react-navigation/native'),
     useIsFocused: () => true,
     useFocusEffect: jest.fn(),
 }));
-// The add payment card flow is web-only, and Jest resolves the native variant by default.
-jest.mock('@hooks/useRunWithPaymentCard', () => jest.requireActual<typeof UseRunWithPaymentCardModule>('@hooks/useRunWithPaymentCard/index.ts'));
+// Jest resolves the native variant by default, so each test picks the platform whose payment card step it checks.
+jest.mock('@hooks/useRunWithPaymentCard', () => {
+    const {default: useRunWithPaymentCardOnWeb} = jest.requireActual<typeof UseRunWithPaymentCardModule>('@hooks/useRunWithPaymentCard/index.ts');
+    const {default: useRunWithPaymentCardOnNative} = jest.requireActual<typeof UseRunWithPaymentCardModule>('@hooks/useRunWithPaymentCard/index.native.ts');
+    return {
+        __esModule: true,
+        default: (flow: Parameters<typeof UseRunWithPaymentCardModule.default>[0]) => {
+            const runOnWeb = useRunWithPaymentCardOnWeb(flow);
+            const runOnNative = useRunWithPaymentCardOnNative(flow);
+            return mockIsNativeApp ? runOnNative : runOnWeb;
+        },
+    };
+});
 jest.mock('@libs/Navigation/Navigation', () => ({navigate: jest.fn()}));
 jest.mock('@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute', () => jest.fn((suffix: string) => suffix));
 jest.mock('@hooks/useConfirmModal', () => jest.requireActual<typeof ConfirmModalMock>('../utils/mockUseConfirmModal').default);
@@ -113,6 +126,7 @@ describe('DomainAdminsSettingsPage consolidated domain billing switch', () => {
         jest.clearAllMocks();
         resetMockConfirmModal();
         mockCurrentUserLogin = CURRENT_USER_EMAIL;
+        mockIsNativeApp = false;
         await act(async () => {
             await Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, CONST.LOCALES.EN);
         });
@@ -148,7 +162,7 @@ describe('DomainAdminsSettingsPage consolidated domain billing switch', () => {
         // Given billing that is off, viewed by the primary contact, who has a payment card
         await seedDomain(PRIMARY_CONTACT_EMAIL);
         await act(async () => {
-            await Onyx.set(ONYXKEYS.NVP_BILLING_FUND_ID, 1234);
+            await Onyx.set(ONYXKEYS.NVP_BILLING_FUND_ID, BILLING_FUND_ID);
         });
         mockCurrentUserLogin = PRIMARY_CONTACT_EMAIL;
 
@@ -170,9 +184,48 @@ describe('DomainAdminsSettingsPage consolidated domain billing switch', () => {
         // When the primary contact presses the switch
         await renderPageAndPressSwitch();
 
-        // Then the add payment card flow opens and billing stays off until a card is added
-        expect(Navigation.navigate).toHaveBeenCalledWith(DYNAMIC_ROUTES.ADD_PAYMENT_CARD.path);
+        // Then the domain payment card page opens and billing stays off until a card is added
+        expect(Navigation.navigate).toHaveBeenCalledWith(DYNAMIC_ROUTES.DOMAIN_PAYMENT_CARD.getRoute(CONST.DOMAIN.PAYMENT_CARD_FLOW.CONSOLIDATED_BILLING));
         expect(toggleConsolidatedDomainBilling).not.toHaveBeenCalled();
+    });
+
+    it('tells a primary contact without a payment card in the mobile app to add one on the web first', async () => {
+        // Given billing that is off, viewed in the mobile app by the primary contact, who has no payment card
+        await seedDomain(PRIMARY_CONTACT_EMAIL);
+        mockCurrentUserLogin = PRIMARY_CONTACT_EMAIL;
+        mockIsNativeApp = true;
+
+        // When the primary contact presses the switch
+        await renderPageAndPressSwitch();
+
+        // Then a modal explains that a card is needed, and billing stays off
+        expect(mockShowConfirmModal).toHaveBeenCalledWith(
+            expect.objectContaining({
+                title: TestHelper.translateLocal('workspace.distanceRates.oopsNotSoFast'),
+                prompt: TestHelper.translateLocal('domain.admins.consolidatedBillingNoCardMobileMessage'),
+                confirmText: TestHelper.translateLocal('common.buttonConfirm'),
+                shouldShowCancelButton: false,
+            }),
+        );
+        expect(Navigation.navigate).not.toHaveBeenCalled();
+        expect(toggleConsolidatedDomainBilling).not.toHaveBeenCalled();
+    });
+
+    it('lets a primary contact with a payment card turn the setting on in the mobile app', async () => {
+        // Given billing that is off, viewed in the mobile app by the primary contact, who has a payment card
+        await seedDomain(PRIMARY_CONTACT_EMAIL);
+        await act(async () => {
+            await Onyx.set(ONYXKEYS.NVP_BILLING_FUND_ID, BILLING_FUND_ID);
+        });
+        mockCurrentUserLogin = PRIMARY_CONTACT_EMAIL;
+        mockIsNativeApp = true;
+
+        // When the primary contact presses the switch
+        await renderPageAndPressSwitch();
+
+        // Then billing turns on without a modal
+        expect(mockShowConfirmModal).not.toHaveBeenCalled();
+        expect(toggleConsolidatedDomainBilling).toHaveBeenCalledWith(DOMAIN_ACCOUNT_ID, DOMAIN_NAME, true);
     });
 
     it('lets any admin turn the setting off', async () => {

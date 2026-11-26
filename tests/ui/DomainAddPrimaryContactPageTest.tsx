@@ -23,6 +23,9 @@ import type ReactNative from 'react-native';
 import React from 'react';
 import Onyx from 'react-native-onyx';
 
+import type * as ConfirmModalMock from '../utils/mockUseConfirmModal';
+
+import {mockShowConfirmModal, resetMockConfirmModal} from '../utils/mockUseConfirmModal';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
 type AdminRow = {login: string; accountID: number};
@@ -38,6 +41,7 @@ const PRIMARY_CONTACT: AdminRow = {login: PRIMARY_CONTACT_EMAIL, accountID: PRIM
 const CURRENT_USER_ADMIN_KEY = `${CONST.DOMAIN.EXPENSIFY_ADMIN_ACCESS_PREFIX}${CURRENT_USER_ACCOUNT_ID}` as const;
 const PRIMARY_CONTACT_ADMIN_KEY = `${CONST.DOMAIN.EXPENSIFY_ADMIN_ACCESS_PREFIX}${PRIMARY_CONTACT_ACCOUNT_ID}` as const;
 const BILLING_ON_NOTE = 'domain.admins.primaryContactConsolidatedBillingMessage';
+const BILLING_FUND_ID = 1234;
 
 const mockPersonalDetails: PersonalDetailsList = {
     [CURRENT_USER.accountID]: CURRENT_USER,
@@ -46,14 +50,27 @@ const mockPersonalDetails: PersonalDetailsList = {
 
 let mockSelectRow: ((option: AdminRow) => void) | undefined;
 let mockListProps: {data: AdminRow[]; shouldShowTextInput?: boolean} | undefined;
+let mockIsNativeApp = false;
 
 jest.mock('@react-navigation/native', () => ({
     ...jest.requireActual<typeof ReactNavigationNative>('@react-navigation/native'),
     useIsFocused: () => true,
     useFocusEffect: jest.fn(),
 }));
-// The add payment card flow is web-only, and Jest resolves the native variant by default.
-jest.mock('@hooks/useRunWithPaymentCard', () => jest.requireActual<typeof UseRunWithPaymentCardModule>('@hooks/useRunWithPaymentCard/index.ts'));
+// Jest resolves the native variant by default, so each test picks the platform whose payment card step it checks.
+jest.mock('@hooks/useRunWithPaymentCard', () => {
+    const {default: useRunWithPaymentCardOnWeb} = jest.requireActual<typeof UseRunWithPaymentCardModule>('@hooks/useRunWithPaymentCard/index.ts');
+    const {default: useRunWithPaymentCardOnNative} = jest.requireActual<typeof UseRunWithPaymentCardModule>('@hooks/useRunWithPaymentCard/index.native.ts');
+    return {
+        __esModule: true,
+        default: (flow: Parameters<typeof UseRunWithPaymentCardModule.default>[0]) => {
+            const runOnWeb = useRunWithPaymentCardOnWeb(flow);
+            const runOnNative = useRunWithPaymentCardOnNative(flow);
+            return mockIsNativeApp ? runOnNative : runOnWeb;
+        },
+    };
+});
+jest.mock('@hooks/useConfirmModal', () => jest.requireActual<typeof ConfirmModalMock>('../utils/mockUseConfirmModal').default);
 jest.mock('@navigation/Navigation', () => ({navigate: jest.fn(), goBack: jest.fn()}));
 jest.mock('@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute', () => jest.fn((suffix: string) => suffix));
 jest.mock('@hooks/useCurrentUserPersonalDetails', () => jest.fn(() => ({accountID: 1})));
@@ -130,6 +147,8 @@ describe('DomainAddPrimaryContactPage', () => {
         jest.clearAllMocks();
         mockSelectRow = undefined;
         mockListProps = undefined;
+        mockIsNativeApp = false;
+        resetMockConfirmModal();
     });
 
     it('lists only the current user, without search, and explains why while billing is on', async () => {
@@ -165,9 +184,45 @@ describe('DomainAddPrimaryContactPage', () => {
         // When the admin picks themselves as primary contact
         await renderPageAndSelectCurrentUser(true);
 
-        // Then the add payment card flow opens and the primary contact stays the same until a card is added
-        expect(Navigation.navigate).toHaveBeenCalledWith(DYNAMIC_ROUTES.ADD_PAYMENT_CARD.path);
+        // Then the domain payment card page opens and the primary contact stays the same until a card is added
+        expect(Navigation.navigate).toHaveBeenCalledWith(DYNAMIC_ROUTES.DOMAIN_PAYMENT_CARD.getRoute(CONST.DOMAIN.PAYMENT_CARD_FLOW.PRIMARY_CONTACT));
         expect(setPrimaryContact).not.toHaveBeenCalled();
+    });
+
+    it('tells an admin without a payment card in the mobile app to add one on the web before taking over as primary contact while billing is on', async () => {
+        // Given consolidated billing that is on, viewed in the mobile app by an admin without a payment card
+        mockIsNativeApp = true;
+
+        // When the admin picks themselves as primary contact
+        await renderPageAndSelectCurrentUser(true);
+
+        // Then a modal explains that a card is needed, and the primary contact stays the same
+        expect(mockShowConfirmModal).toHaveBeenCalledWith(
+            expect.objectContaining({
+                title: 'workspace.distanceRates.oopsNotSoFast',
+                prompt: 'domain.admins.primaryContactNoCardMobileMessage',
+                confirmText: 'common.buttonConfirm',
+                shouldShowCancelButton: false,
+            }),
+        );
+        expect(Navigation.navigate).not.toHaveBeenCalled();
+        expect(setPrimaryContact).not.toHaveBeenCalled();
+    });
+
+    it('makes an admin with a payment card in the mobile app the primary contact while billing is on', async () => {
+        // Given consolidated billing that is on, viewed in the mobile app by an admin with a payment card
+        mockIsNativeApp = true;
+        await act(async () => {
+            await Onyx.set(ONYXKEYS.NVP_BILLING_FUND_ID, BILLING_FUND_ID);
+        });
+
+        // When the admin picks themselves as primary contact
+        await renderPageAndSelectCurrentUser(true);
+
+        // Then the admin becomes the primary contact without a modal
+        expect(mockShowConfirmModal).not.toHaveBeenCalled();
+        expect(setPrimaryContact).toHaveBeenCalledWith(DOMAIN_ACCOUNT_ID, CURRENT_USER.login, PRIMARY_CONTACT_EMAIL);
+        expect(Navigation.goBack).toHaveBeenCalledWith(ROUTES.DOMAIN_ADMINS_SETTINGS.getRoute(DOMAIN_ACCOUNT_ID));
     });
 
     it('makes an admin without a payment card the primary contact right away while billing is off', async () => {
