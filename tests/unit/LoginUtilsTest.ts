@@ -6,6 +6,7 @@ import {
     getPhoneNumberWithoutSpecialChars,
     isDomainPublic,
     isEmailPublicDomain,
+    parsePhoneNumberForAddress,
     sanitizePhoneOrEmail,
     validateNumber,
 } from '@libs/LoginUtils';
@@ -73,6 +74,35 @@ describe('LoginUtils', () => {
         });
         it('Should return undefined for a value that is not a phone number', () => {
             expect(formatE164PhoneNumber('abcdefg', CONST.DEFAULT_COUNTRY_CODE)).toBeUndefined();
+        });
+    });
+    describe('parsePhoneNumberForAddress', () => {
+        it('Should read a number without a country code as one from the address country', () => {
+            // Given a US address entered by someone whose location is Singapore
+            const singaporeCountryCode = 65;
+
+            // When they enter a US number without the country code
+            const parsedPhoneNumber = parsePhoneNumberForAddress('(585) 752-7441', CONST.COUNTRY.US, singaporeCountryCode);
+
+            // Then it's read as a US number, the same way the admin shipping form reads it
+            expect(parsedPhoneNumber.possible).toBe(true);
+            expect(parsedPhoneNumber.number?.e164).toBe('+15857527441');
+        });
+        it('Should use the location country code when there is no address country', () => {
+            // Given no address country yet
+            // When a number without a country code is entered from the US
+            const parsedPhoneNumber = parsePhoneNumberForAddress('201 867 5309', undefined, CONST.DEFAULT_COUNTRY_CODE);
+
+            // Then the location's country code is used
+            expect(parsedPhoneNumber.number?.e164).toBe('+12018675309');
+        });
+        it('Should keep the calling code of a number that already has one', () => {
+            // Given a US address
+            // When a UK number with its calling code is entered
+            const parsedPhoneNumber = parsePhoneNumberForAddress('+442071234567', CONST.COUNTRY.US, CONST.DEFAULT_COUNTRY_CODE);
+
+            // Then the number keeps its own calling code
+            expect(parsedPhoneNumber.number?.e164).toBe('+442071234567');
         });
     });
     describe('isEmailPublicDomain', () => {
