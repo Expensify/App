@@ -86,7 +86,7 @@ function Pressable({optionItem, isOptionFocused, selectedStyle, hoveredStyle, on
     const contextMenuHint = getContextMenuAccessibilityHint({translate});
     const {accessibilityLabel: accessibilityLabelWithContextMenuHint, accessibilityHint} = getContextMenuAccessibilityProps({
         accessibilityLabel,
-        nativeAccessibilityHint: translate('accessibilityHints.navigatesToChat'),
+        accessibilityHint: translate('accessibilityHints.navigatesToChat'),
         contextMenuHint,
     });
 

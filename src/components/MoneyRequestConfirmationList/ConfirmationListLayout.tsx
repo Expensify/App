@@ -19,13 +19,14 @@ import type {MoneyRequestConfirmationListItem} from './types';
 
 import ConfirmationFooterContent from './ConfirmationFooterContent';
 import ConfirmationTelemetry from './ConfirmationTelemetry';
+import shouldUseOptionRoleForRows from './shouldUseOptionRoleForRows';
 
-// The rows open other pages instead of picking a value, so they keep the button role. Android has no `option` role and would announce none.
+// The rows open other pages instead of picking a value, so on native they keep the button role
 function ConfirmationListItem(props: BareUserListItemProps<MoneyRequestConfirmationListItem>) {
     return (
         <BareUserListItem
             {...props}
-            shouldUseOptionRole={false}
+            shouldUseOptionRole={shouldUseOptionRoleForRows}
         />
     );
 }
