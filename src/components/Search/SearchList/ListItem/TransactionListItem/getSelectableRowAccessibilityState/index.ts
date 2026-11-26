@@ -1,8 +1,6 @@
-import type {AccessibilityState} from 'react-native';
+import type GetSelectableRowAccessibilityState from './types';
 
 /** On web the checkbox is its own element with its checked state, and ARIA does not allow aria-selected on a button row. */
-function getSelectableRowAccessibilityState(_canSelectMultiple: boolean | undefined, _isSelected: boolean): AccessibilityState | undefined {
-    return undefined;
-}
+const getSelectableRowAccessibilityState: GetSelectableRowAccessibilityState = () => undefined;
 
 export default getSelectableRowAccessibilityState;
