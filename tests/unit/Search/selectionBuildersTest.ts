@@ -1,5 +1,5 @@
 import type {TransactionGroupListItemType, TransactionReportGroupListItemType} from '@components/Search/SearchList/ListItem/types';
-import {mapEmptyReportToSelectedEntry, mergeRowsIntoPartlyLoadedGroups, removeGroupClaim, resolveGroupCount, stampGroupCoverageFlags} from '@components/Search/selectionBuilders';
+import {deselectSharedGroup, mapEmptyReportToSelectedEntry, mergeRowsIntoPartlyLoadedGroups, resolveGroupCount, stampGroupCoverageFlags} from '@components/Search/selectionBuilders';
 import type {SelectedTransactions} from '@components/Search/types';
 
 import {getGroupKeysSelectedViaGroup} from '@hooks/useSearchBulkActions';
@@ -28,10 +28,27 @@ function buildDayGroupData(groups: Array<[SearchGroupKey, Omit<SearchDayGroup, '
 }
 
 describe('selectionBuilders', () => {
-    describe('removeGroupClaim', () => {
+    describe('deselectSharedGroup', () => {
         const otherGroupKey: SearchGroupKey = `${CONST.SEARCH.GROUP_PREFIX}43`;
 
-        it('ends the claim on a shared row that is no longer on the page of the unchecked group', () => {
+        it('unchecks a shared expense in every group and ends the header claim of the other group', () => {
+            // Given a shared expense claimed by both headers, next to another expense only the other group holds
+            const selection = buildSelection({
+                transaction1: {groupKey, isSelectedViaGroup: true, otherClaimedGroupKeys: [otherGroupKey]},
+                transaction2: {groupKey: otherGroupKey, isSelectedViaGroup: true},
+            });
+
+            // When this group's header is unchecked
+            const result = deselectSharedGroup(selection, groupKey, ['transaction1']);
+
+            // Then the shared expense is unchecked everywhere, since keeping it for the other group would leave this group's checkbox checked,
+            // and the other group's remaining expense stays selected as a partial selection
+            expect(result.selectedTransactions.transaction1).toBeUndefined();
+            expect(result.selectedTransactions.transaction2).toEqual(expect.objectContaining({isSelected: true, groupKey: otherGroupKey, isSelectedViaGroup: false}));
+            expect([...result.releasedGroupKeys]).toEqual([otherGroupKey]);
+        });
+
+        it('unchecks a shared expense that is no longer on the page of the unchecked group', () => {
             // Given a shared expense stored under another group and claimed by both headers, which a refresh left off this group's loaded page
             const selection = buildSelection({
                 [groupKey]: {},
@@ -39,12 +56,11 @@ describe('selectionBuilders', () => {
             });
 
             // When this group is unchecked with none of its rows loaded
-            const result = removeGroupClaim(selection, groupKey, []);
+            const result = deselectSharedGroup(selection, groupKey, []);
 
-            // Then the expense stays selected for the other group only, so the unchecked group no longer counts in the selection
-            expect(result[groupKey]).toBeUndefined();
-            expect(result.transaction1).toEqual(expect.objectContaining({groupKey: otherGroupKey, isSelectedViaGroup: true}));
-            expect(result.transaction1?.otherClaimedGroupKeys).toBeUndefined();
+            // Then the group's entry and the expense both go, and the other group's claim on it ends
+            expect(result.selectedTransactions).toEqual({});
+            expect([...result.releasedGroupKeys]).toEqual([otherGroupKey]);
         });
 
         it('drops an off-page row stored under the unchecked group when no other group claims it', () => {
@@ -52,10 +68,11 @@ describe('selectionBuilders', () => {
             const selection = buildSelection({transaction1: {groupKey}});
 
             // When this group is unchecked with none of its rows loaded
-            const result = removeGroupClaim(selection, groupKey, []);
+            const result = deselectSharedGroup(selection, groupKey, []);
 
             // Then the expense is cleared too, since the unchecked header no longer leaves a checkbox to clear it with
-            expect(result.transaction1).toBeUndefined();
+            expect(result.selectedTransactions.transaction1).toBeUndefined();
+            expect(result.releasedGroupKeys.size).toBe(0);
         });
     });
 

@@ -58,7 +58,7 @@ import {
     mapEmptyReportToSelectedEntry,
     mapTransactionItemToSelectedEntry,
     prepareTransactionsList,
-    removeGroupClaim,
+    deselectSharedGroup,
     resolveGroupCount,
     spellOutGroupSelection,
     stampGroupCoverageFlags,
@@ -795,6 +795,24 @@ function SearchWriteActionsProvider({
         canGroupsShareExpenses: doGroupsShareExpenses,
     });
 
+    /**
+     * Recounts the coverage of groups whose header claims a click ended. A group whose rows still read as wholly selected after one of its
+     * expenses was unchecked would be hidden by a delete of those rows, though the unchecked expense is still in it.
+     */
+    const recountGroupCoverage = (selection: SelectedTransactions, groupKeys: Iterable<string>, lookups: ReturnType<typeof readGroupLookups>): SelectedTransactions => {
+        let recountedSelection = selection;
+        for (const groupKey of groupKeys) {
+            const group = isGroupedItemArray(filteredData) ? filteredData.find((groupItem) => groupItem.keyForList === groupKey) : undefined;
+            recountedSelection = stampGroupCoverageFlags({
+                selectedTransactions: recountedSelection,
+                groupKey,
+                groupCount: lookups.getGroupCount(groupKey, group),
+                loadedRows: group?.transactions ?? [],
+            });
+        }
+        return recountedSelection;
+    };
+
     // Called from a click, the defaults read the current selection. A state updater passes the values from its own update instead.
     const groupSelectionParams = (
         groupKey: string | undefined,
@@ -969,27 +987,18 @@ function SearchWriteActionsProvider({
                         }
                     }
 
-                    let stampedTransactions = stampGroupCoverageFlags({
+                    const stampedTransactions = stampGroupCoverageFlags({
                         selectedTransactions: updatedTransactions,
                         groupKey,
                         groupCount: groupKey ? lookups.getGroupCount(groupKey, parentGroup) : undefined,
                         loadedRows: loadedChildren,
                     });
-                    // The other groups the expense sits in are recounted too. A group whose rows still read as wholly selected
-                    // after the expense left it would be hidden by a delete of those rows, though the expense is still in it.
-                    for (const releasedGroupKey of releasedGroupKeys) {
-                        if (releasedGroupKey === groupKey) {
-                            continue;
-                        }
-                        const releasedGroup = filteredData.find((group) => group.keyForList === releasedGroupKey);
-                        stampedTransactions = stampGroupCoverageFlags({
-                            selectedTransactions: stampedTransactions,
-                            groupKey: releasedGroupKey,
-                            groupCount: lookups.getGroupCount(releasedGroupKey, releasedGroup),
-                            loadedRows: releasedGroup?.transactions ?? [],
-                        });
-                    }
-                    return stampedTransactions;
+                    // The other groups the expense sits in are recounted too
+                    return recountGroupCoverage(
+                        stampedTransactions,
+                        [...releasedGroupKeys].filter((releasedGroupKey) => releasedGroupKey !== groupKey),
+                        lookups,
+                    );
                 }
 
                 return updatedTransactions;
@@ -1039,13 +1048,13 @@ function SearchWriteActionsProvider({
                 const getSelectedGroupRowKeys = () => (groupKey && isGroupEntry(groupKey) ? (getSelectedRowKeysByGroupKey(selectedTransactions).get(groupKey) ?? []) : []);
 
                 if (isGroupSelected(groupSelectionParams(groupKey, groupTransactions, selectedTransactions, excludedTransactions, areAllMatchingItemsSelected, lookups))) {
-                    // Where groups share expenses, a row another group's header check covers stays selected for that group.
                     if (doGroupsShareExpenses && groupKey) {
-                        return removeGroupClaim(
+                        const deselection = deselectSharedGroup(
                             selectedTransactions,
                             groupKey,
                             groupTransactions.map((transaction) => transaction.keyForList),
                         );
+                        return recountGroupCoverage(deselection.selectedTransactions, deselection.releasedGroupKeys, lookups);
                     }
                     const reducedSelectedTransactions: SelectedTransactions = {...selectedTransactions};
                     if (groupKey) {

@@ -341,12 +341,17 @@ function withoutOtherGroupClaims(transaction: SelectedTransactionInfo, groupKeys
 }
 
 /**
- * Takes one group's header check off its rows when groups share expenses. A row that another group's header check still covers stays selected,
- * stored under that group from then on, and the other rows are dropped. Its coverage is left for that group's next recount, since it was this group's.
- * Besides the group's loaded rows, every selected row that names the group is cleared too, since a refresh can leave a shared row selected under
- * another group while it is no longer on this group's page, and its claim would otherwise keep the unchecked group in the selection.
+ * Unchecks one group's header when groups share expenses. Each of its expenses is one expense however many groups list it, so it is unchecked in
+ * all of them, and any other group whose header check covered one of them becomes a partial selection, as unchecking that expense there would make it.
+ * Keeping the expense selected for the other group would leave this group's checkbox checked, since every row it shows would still be.
+ * Besides the group's loaded rows, every selected row that names the group goes too, since a refresh can leave one off the group's page.
+ * Returns the other groups whose header claims ended, so their coverage can be recounted.
  */
-function removeGroupClaim(selectedTransactions: SelectedTransactions, groupKey: string, loadedRowKeys: string[]): SelectedTransactions {
+function deselectSharedGroup(
+    selectedTransactions: SelectedTransactions,
+    groupKey: string,
+    loadedRowKeys: string[],
+): {selectedTransactions: SelectedTransactions; releasedGroupKeys: Set<string>} {
     const nextSelectedTransactions = {...selectedTransactions};
     delete nextSelectedTransactions[groupKey];
     const rowKeys = new Set(loadedRowKeys);
@@ -355,24 +360,32 @@ function removeGroupClaim(selectedTransactions: SelectedTransactions, groupKey: 
             rowKeys.add(key);
         }
     }
+    const releasedGroupKeys = new Set<string>();
     for (const key of rowKeys) {
         const transaction = nextSelectedTransactions[key];
         if (!transaction) {
             continue;
         }
-        const [nextGroupKey, ...otherGroupKeys] = getClaimedGroupKeys(transaction).filter((claimedGroupKey) => claimedGroupKey !== groupKey);
-        if (!nextGroupKey) {
-            delete nextSelectedTransactions[key];
-            continue;
+        for (const claimedGroupKey of getClaimedGroupKeys(transaction)) {
+            if (claimedGroupKey !== groupKey) {
+                releasedGroupKeys.add(claimedGroupKey);
+            }
         }
-        if (transaction.groupKey === nextGroupKey) {
-            nextSelectedTransactions[key] = withoutOtherGroupClaims(transaction, new Set([groupKey]));
-            continue;
-        }
-        const {claimedGroupCount, coveredGroupCount, isEntireGroupSelected, otherClaimedGroupKeys, ...rest} = transaction;
-        nextSelectedTransactions[key] = {...rest, groupKey: nextGroupKey, isSelectedViaGroup: true, ...getOtherClaimedGroupKeysField(otherGroupKeys)};
+        delete nextSelectedTransactions[key];
     }
-    return nextSelectedTransactions;
+    if (releasedGroupKeys.size === 0) {
+        return {selectedTransactions: nextSelectedTransactions, releasedGroupKeys};
+    }
+    for (const [key, transaction] of Object.entries(nextSelectedTransactions)) {
+        let nextTransaction = withoutOtherGroupClaims(transaction, releasedGroupKeys);
+        if (nextTransaction.groupKey && releasedGroupKeys.has(nextTransaction.groupKey) && nextTransaction.isSelectedViaGroup) {
+            nextTransaction = {...nextTransaction, isSelectedViaGroup: false};
+        }
+        if (nextTransaction !== transaction) {
+            nextSelectedTransactions[key] = nextTransaction;
+        }
+    }
+    return {selectedTransactions: nextSelectedTransactions, releasedGroupKeys};
 }
 
 /**
@@ -1054,7 +1067,7 @@ export {
     getClaimedGroupKeys,
     getOtherClaimedGroupKeysField,
     withoutOtherGroupClaims,
-    removeGroupClaim,
+    deselectSharedGroup,
     getGroupClaims,
     getLowerCount,
     getClaimedGroupCountField,

@@ -4,6 +4,8 @@ import {useSearchRowSelectionActions, useSearchSelectionActions, useSearchSelect
 import {SearchContextProvider} from '@components/Search/SearchContextProvider';
 import type {TransactionCategoryGroupListItemType, TransactionListItemType} from '@components/Search/SearchList/ListItem/types';
 import SearchWriteActionsProvider from '@components/Search/SearchWriteActionsProvider';
+import {getGroupCheckboxState} from '@components/Search/selectionBuilders';
+import type {SelectedTransactions} from '@components/Search/types';
 
 import {getGroupKeysSelectedViaGroup} from '@hooks/useSearchBulkActions';
 
@@ -124,6 +126,18 @@ async function checkBothGroups(result: ReturnType<typeof renderSelection>['resul
     await act(async () => waitForBatchedUpdatesWithAct());
 }
 
+/** Whether a group's header checkbox shows as checked for the given selection. */
+function isGroupChecked(selectedTransactions: SelectedTransactions, group: TransactionCategoryGroupListItemType) {
+    return getGroupCheckboxState({
+        groupKey: group.keyForList,
+        children: group.transactions,
+        selectedTransactions,
+        excludedTransactions: {},
+        areAllMatchingItemsSelected: false,
+        groupCount: group.count,
+    }).isSelectAllChecked;
+}
+
 describe('Selecting groups that share expenses', () => {
     beforeAll(() => Onyx.init({keys: ONYXKEYS}));
 
@@ -230,7 +244,7 @@ describe('Selecting groups that share expenses', () => {
         expect(getGroupKeysSelectedViaGroup(result.current.selectedTransactions)).toEqual([OVER_LIMIT_KEY]);
     });
 
-    it('keeps the expenses another group still covers when one of the groups is unchecked', async () => {
+    it('unchecks the shared expenses in both groups when one of the groups is unchecked', async () => {
         // Given both groups checked through their headers over the expenses they share
         const {result, rerender} = renderSelection();
         await checkBothGroups(result, rerender);
@@ -241,11 +255,37 @@ describe('Selecting groups that share expenses', () => {
             await waitForBatchedUpdatesWithAct();
         });
 
-        // Then only Over limit's claim goes: the shared expenses stay selected for Missing category, which still covers them
-        expect(result.current.selectedTransactions['1']).toEqual(expect.objectContaining({isSelected: true, groupKey: MISSING_CATEGORY_KEY, isSelectedViaGroup: true}));
-        expect(result.current.selectedTransactions['2']).toEqual(expect.objectContaining({isSelected: true, groupKey: MISSING_CATEGORY_KEY, isSelectedViaGroup: true}));
-        expect(result.current.selectedTransactions['1']?.otherClaimedGroupKeys).toBeUndefined();
-        expect(getGroupKeysSelectedViaGroup(result.current.selectedTransactions)).toEqual([MISSING_CATEGORY_KEY]);
+        // Then the shared expenses are unchecked in Missing category too, since they are the same expenses, and Missing category's header
+        // claim ends with them, so neither checkbox stays checked and the click is never a no-op
+        expect(result.current.selectedTransactions['1']).toBeUndefined();
+        expect(result.current.selectedTransactions['2']).toBeUndefined();
+        expect(getGroupKeysSelectedViaGroup(result.current.selectedTransactions)).toEqual([]);
+        expect(isGroupChecked(result.current.selectedTransactions, overLimitGroup)).toBe(false);
+        expect(isGroupChecked(result.current.selectedTransactions, missingCategoryGroup)).toBe(false);
+    });
+
+    it('unchecks a group after Select all when all of its expenses are also in another group', async () => {
+        // Given both groups expanded, so their rows are loaded, and every row checked through Select all
+        const {result, rerender} = renderSelection();
+        loadOverLimitRows(rerender);
+        await act(async () => waitForBatchedUpdatesWithAct());
+        await act(async () => {
+            result.current.toggleAll();
+            await waitForBatchedUpdatesWithAct();
+        });
+        expect(isGroupChecked(result.current.selectedTransactions, overLimitGroup)).toBe(true);
+
+        // When Over limit's header is clicked, whose expenses Missing category lists as well
+        await act(async () => {
+            result.current.toggle(overLimitGroup, overLimitGroup.transactions);
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        // Then its checkbox unchecks, rather than staying checked because Missing category still covered its expenses
+        expect(isGroupChecked(result.current.selectedTransactions, overLimitGroup)).toBe(false);
+        expect(isGroupChecked(result.current.selectedTransactions, missingCategoryGroup)).toBe(false);
+        expect(result.current.selectedTransactions['1']).toBeUndefined();
+        expect(result.current.selectedTransactions['2']).toBeUndefined();
     });
 
     it('ends the claim of every group an unchecked expense sits in', async () => {

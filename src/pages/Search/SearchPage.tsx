@@ -1,5 +1,6 @@
 import {ReportSubmitToPopoverHost, SEARCH_REPORT_SUBMIT_TO_POPOVER_ANCHOR_ALIGNMENT} from '@components/ReportSubmitToPopoverAnchor';
 import {useSearchQueryContext, useSearchResultsActions, useSearchResultsContext, useSearchSelectionActions} from '@components/Search/SearchContext';
+import SharedGroupSelectionTotalProvider from '@components/Search/SharedGroupSelectionTotalProvider';
 import type {SearchParams, SearchQueryJSON} from '@components/Search/types';
 import {usePlaybackActionsContext} from '@components/VideoPlayerContexts/PlaybackContext';
 
@@ -205,35 +206,37 @@ function SearchPage({route}: SearchPageProps) {
     return (
         <ReportSubmitToPopoverHost anchorAlignment={SEARCH_REPORT_SUBMIT_TO_POPOVER_ANCHOR_ALIGNMENT}>
             <PaymentContextProvider>
-                <Animated.View style={[styles.flex1]}>
-                    {shouldUseNarrowLayout ? (
-                        <SearchPageNarrow
-                            queryJSON={currentSearchQueryJSON}
-                            searchResults={searchResults}
-                            contentQueryJSON={contentQueryJSON}
-                            contentSearchResults={contentSearchResults}
-                            isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
-                            onSortPressedCallback={onSortPressedCallback}
-                            searchOverlayContent={searchOverlayContent}
-                            onSearchContentReady={onContentReady}
-                            hasFilterBars={hasFilterBars}
-                            isOverlayActive={isOverlayActive}
-                        />
-                    ) : (
-                        <SearchPageWide
-                            queryJSON={currentSearchQueryJSON}
-                            searchResults={searchResults}
-                            contentQueryJSON={contentQueryJSON}
-                            contentSearchResults={contentSearchResults}
-                            isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
-                            handleSearchAction={handleSearchAction}
-                            onSortPressedCallback={onSortPressedCallback}
-                            route={route}
-                            searchOverlayContent={searchOverlayContent}
-                            onSearchContentReady={onContentReady}
-                        />
-                    )}
-                </Animated.View>
+                <SharedGroupSelectionTotalProvider>
+                    <Animated.View style={[styles.flex1]}>
+                        {shouldUseNarrowLayout ? (
+                            <SearchPageNarrow
+                                queryJSON={currentSearchQueryJSON}
+                                searchResults={searchResults}
+                                contentQueryJSON={contentQueryJSON}
+                                contentSearchResults={contentSearchResults}
+                                isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
+                                onSortPressedCallback={onSortPressedCallback}
+                                searchOverlayContent={searchOverlayContent}
+                                onSearchContentReady={onContentReady}
+                                hasFilterBars={hasFilterBars}
+                                isOverlayActive={isOverlayActive}
+                            />
+                        ) : (
+                            <SearchPageWide
+                                queryJSON={currentSearchQueryJSON}
+                                searchResults={searchResults}
+                                contentQueryJSON={contentQueryJSON}
+                                contentSearchResults={contentSearchResults}
+                                isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
+                                handleSearchAction={handleSearchAction}
+                                onSortPressedCallback={onSortPressedCallback}
+                                route={route}
+                                searchOverlayContent={searchOverlayContent}
+                                onSearchContentReady={onContentReady}
+                            />
+                        )}
+                    </Animated.View>
+                </SharedGroupSelectionTotalProvider>
             </PaymentContextProvider>
         </ReportSubmitToPopoverHost>
     );

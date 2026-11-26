@@ -24,10 +24,10 @@ import {View} from 'react-native';
 
 import type {SearchFooterCount, SearchFooterTotal, SelectedTransactionInfo, SelectedTransactions} from './types';
 
-import useSharedGroupSelectionTotal, {getSharedGroupSelection} from './hooks/useSharedGroupSelectionTotal';
 import {useSearchQueryContext, useSearchResultsContext, useSearchSelectionContext} from './SearchContext';
 import SearchPageFooter from './SearchPageFooter';
 import {getRowsCheckedInExcludedGroups, mergeRowsIntoPartlyLoadedGroups} from './selectionBuilders';
+import {useSharedGroupSelectionTotal} from './SharedGroupSelectionTotalProvider';
 
 type SearchSelectionFooterProps = {
     /** The (sorting-aware) results the page is displaying; source of the footer's totals metadata. */
@@ -217,9 +217,8 @@ function SearchSelectionFooter({searchResults, style}: SearchSelectionFooterProp
     const isGroupedSearch = !isReportsSearch && !!currentSearchQueryJSON?.groupBy;
 
     // Where one expense can sit in several groups, adding up the selected groups counts a shared expense once per group,
-    // so the footer asks the server for the groups' union instead. Read from the selection before partly loaded groups
-    // are merged into one entry each, since a row stored under one group can also be claimed by another.
-    const sharedGroupSelection = isGroupedSearch ? getSharedGroupSelection(currentSearchQueryJSON, loadedSelection, currentSearchResults?.data, areAllMatchingItemsSelected) : undefined;
+    // so the footer shows the groups' union, which the provider above asks the server for.
+    const {sharedGroupSelection, total: sharedGroupAnswer, currency: sharedGroupAnswerCurrency, isLoading: isSharedGroupAnswerLoading} = useSharedGroupSelectionTotal();
 
     const metadata = searchResults?.search;
 
@@ -433,7 +432,11 @@ function SearchSelectionFooter({searchResults, style}: SearchSelectionFooterProp
 
     // The shared groups' union is asked for in the currency the footer shows, so one request answers both the default and a picked currency.
     const sharedGroupCurrency = hasCustomFooterCurrency ? selectedCurrency : effectiveDefaultCurrency;
-    const {total: sharedGroupTotal, isLoading: isSharedGroupTotalLoading} = useSharedGroupSelectionTotal(sharedGroupSelection, sharedGroupCurrency, currentSearchKey);
+    // The union is asked in the currency the query names, which a pick reaches a moment after the footer shows it. Until
+    // then the answer is in another currency, so the selection is summed below instead.
+    const isSharedGroupAnswerInFooterCurrency = !!sharedGroupAnswerCurrency && sharedGroupAnswerCurrency === sharedGroupCurrency;
+    const sharedGroupTotal = isSharedGroupAnswerInFooterCurrency ? sharedGroupAnswer : undefined;
+    const isSharedGroupTotalLoading = isSharedGroupAnswerInFooterCurrency && isSharedGroupAnswerLoading;
     // The union comes in the picked currency, so the loose rows added to it have to be converted too. Until they are, the
     // selection is summed below like any other, which keeps every figure in one currency.
     // A failed request leaves the old conversion behind its new stamp, so after a failure a row's converted amount can't be trusted.

@@ -36,9 +36,9 @@ import type {BulkPaySelectionData, SearchQueryJSON, SelectedTransactions} from '
 
 import BulkDuplicateHandler from './BulkDuplicateHandler';
 import BulkDuplicateReportHandler from './BulkDuplicateReportHandler';
-import useSharedGroupSelectionTotal, {getSharedGroupSelection} from './hooks/useSharedGroupSelectionTotal';
-import {useSearchQueryContext, useSearchResultsContext, useSearchSelectionActions, useSearchSelectionContext} from './SearchContext';
+import {useSearchResultsContext, useSearchSelectionActions, useSearchSelectionContext} from './SearchContext';
 import {getRowsCheckedInExcludedGroups, mergeRowsIntoPartlyLoadedGroups} from './selectionBuilders';
+import {useSharedGroupSelectionTotal} from './SharedGroupSelectionTotalProvider';
 
 type SearchBulkActionsButtonProps = {
     queryJSON: SearchQueryJSON;
@@ -53,7 +53,6 @@ function SearchBulkActionsButton({queryJSON}: SearchBulkActionsButtonProps) {
     const {selectedTransactions, excludedTransactions = getEmptyObject<SelectedTransactions>(), selectedReports, areAllMatchingItemsSelected} = useSearchSelectionContext();
     const {clearSelectedTransactions} = useSearchSelectionActions();
     const {currentSearchResults} = useSearchResultsContext();
-    const {currentSearchKey} = useSearchQueryContext();
     const kycWallRef = useContext(KYCWallContext);
     const {isAccountLocked} = useLockedAccountState();
     const {showLockedAccountModal} = useLockedAccountActions();
@@ -126,13 +125,8 @@ function SearchBulkActionsButton({queryJSON}: SearchBulkActionsButtonProps) {
         }, 0);
     };
     // Groups that share an expense add up to more expenses than they hold, so their count is the server's answer for the groups' union.
-    const sharedGroupSelection = getSharedGroupSelection(queryJSON, selectedTransactions, searchData, !!areAllMatchingItemsSelected);
-    const {count: sharedGroupCount, isLoading: isSharedGroupCountLoading} = useSharedGroupSelectionTotal(
-        sharedGroupSelection,
-        currentSearchResults?.search?.currency,
-        currentSearchKey,
-        true,
-    );
+    const {sharedGroupSelection, total: sharedGroupTotal, isLoading: isSharedGroupCountLoading} = useSharedGroupSelectionTotal();
+    const sharedGroupCount = sharedGroupTotal?.count;
     const {selectedItemsCount, excludedItemsCount} = {
         selectedItemsCount:
             sharedGroupSelection && sharedGroupCount !== undefined
