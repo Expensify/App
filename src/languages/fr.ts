@@ -504,6 +504,7 @@ const translations: TranslationDeepObject<typeof en> = {
         corpayPayModalPrompt:
             "Cette personne a un compte bancaire qui n'est pas en USD. Activez les remboursements globaux pour payer la note de frais, ou demandez-lui d'ajouter un compte bancaire en USD.",
         purchaseAmount: "Montant de l'achat",
+        convertedAmount: 'Montant converti',
         originalAmount: 'Montant initial',
         frequency: 'Fréquence',
         link: 'Lien',
@@ -810,6 +811,11 @@ const translations: TranslationDeepObject<typeof en> = {
         setPin: {didNotShipCard: 'Nous n’avons pas envoyé votre carte. Veuillez réessayer.'},
         revealPin: {couldNotReveal: "Nous n'avons pas pu afficher votre code PIN. Veuillez réessayer."},
         changePin: {didNotChange: "Nous n'avons pas modifié votre code PIN. Veuillez réessayer."},
+        addToWallet: {
+            failedHeader: "Impossible d'ajouter la carte",
+            failedTitle: "Nous n'avons pas pu ajouter votre carte à votre portefeuille",
+            failedSubtitle: "Une erreur s'est produite lors de l'ajout de la carte. Si elle se trouve déjà dans votre portefeuille, vous pouvez l'y utiliser.",
+        },
         revealCardDetail: {couldNotReveal: 'Nous n’avons pas pu afficher les détails de votre carte. Veuillez réessayer.'},
     },
     validateCodeModal: {
@@ -1354,7 +1360,10 @@ const translations: TranslationDeepObject<typeof en> = {
             label: 'Infractions de',
             [CONST.INSIGHTS.VIOLATION_STAGE.SUBMITTED]: 'Déclarants',
             [CONST.INSIGHTS.VIOLATION_STAGE.APPROVED]: 'Approbateurs',
+            chartTitle: (title: string, stage: string) => `${title} (${stage})`,
         },
+        flaggedExpenses: 'Dépenses signalées',
+        noFlaggedExpensesInRange: 'Aucune dépense signalée dans cet intervalle',
     },
     allSettingsScreen: {
         subscription: 'Abonnement',
@@ -4704,6 +4713,14 @@ ${amount} pour ${merchant} - ${date}`,
         numberedItem: ({item, number}: {item: string; number: number}) => `${item} ${number}`,
         questionsChanged: 'Les questions de cette page ont changé',
         onFile: 'Enregistré',
+        continueOffline: {
+            title: 'Vous ne pouvez pas continuer hors ligne',
+            prompt: 'Une connexion internet est nécessaire pour remplir ce formulaire. Ne vous inquiétez pas, nous enregistrerons votre progression et vous pourrez continuer lorsque vous serez de nouveau en ligne.',
+            saveForLater: 'Enregistrer et remplir plus tard',
+            progressSaved: 'Votre progression a été enregistrée',
+            promptWithSensitiveAnswers:
+                'Une connexion Internet est nécessaire pour remplir ce formulaire. Nous enregistrerons votre progression afin que vous puissiez continuer lorsque vous serez de nouveau en ligne. Pour votre sécurité, les informations sensibles ne sont pas enregistrées et devront être saisies à nouveau.',
+        },
     },
     addPersonalBankAccount: {
         swiftBicFormatError: 'Le code SWIFT/BIC doit comporter 8 ou 11 caractères, avec 6 lettres suivies de 2 ou 5 lettres ou chiffres.',
@@ -7361,11 +7378,13 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
                 description: `Au moins une catégorie doit rester activée, car votre espace de travail exige des catégories.`,
             },
             visibleTo: 'Visible pour',
+            editVisibility: 'Modifier la visibilité',
             membersCount: ({count}: {count: number}) => ({
                 one: '1 membre',
                 other: `${count} membres`,
             }),
             visibleToDescription: ({categoryName}: {categoryName: string}) => `Choisissez quels membres peuvent utiliser la catégorie ${categoryName} lors de la soumission de dépenses.`,
+            bulkVisibleToDescription: 'Choisissez quels membres peuvent utiliser ces catégories lors de la soumission de dépenses.',
             cannotDisableCategoryForMembers: {
                 title: ({categoryName}: {categoryName: string}) => `Impossible de désactiver ${categoryName}`,
                 bulkTitle: 'Impossible de désactiver ces catégories',
@@ -8158,7 +8177,6 @@ Le forfait Control commence à 9 $ par Membre actif et par mois.`,
                 willBeReadyToUse: 'Cette carte sera prête à être utilisée immédiatement.',
                 willBeReadyToShip: 'Cette carte sera prête à être expédiée immédiatement.',
                 cardholder: 'Titulaire de la carte',
-                cardholderEmail: 'Adresse e-mail du titulaire de la carte',
                 cardType: 'Type de carte',
                 limit: 'Limite',
                 limitType: 'Type de limite',

@@ -505,6 +505,7 @@ const translations: TranslationDeepObject<typeof en> = {
         corpayPayModalPrompt:
             'Diese einreichende Person hat ein Bankkonto in einer anderen Währung als USD. Aktiviere globale Rückerstattungen, um den Bericht zu bezahlen, oder bitte sie, ein USD-Bankkonto hinzuzufügen.',
         purchaseAmount: 'Kaufbetrag',
+        convertedAmount: 'Umgerechneter Betrag',
         originalAmount: 'Ursprünglicher Betrag',
         frequency: 'Häufigkeit',
         link: 'Link',
@@ -810,6 +811,11 @@ const translations: TranslationDeepObject<typeof en> = {
         setPin: {didNotShipCard: 'Wir haben Ihre Karte nicht versendet. Bitte versuchen Sie es erneut.'},
         revealPin: {couldNotReveal: 'Wir konnten Ihre PIN nicht anzeigen. Bitte versuchen Sie es erneut.'},
         changePin: {didNotChange: 'Wir haben Ihre PIN nicht geändert. Bitte versuchen Sie es erneut.'},
+        addToWallet: {
+            failedHeader: 'Karte konnte nicht hinzugefügt werden',
+            failedTitle: 'Wir konnten Ihre Karte nicht zu Ihrer Wallet hinzufügen',
+            failedSubtitle: 'Beim Hinzufügen der Karte ist etwas schiefgelaufen. Wenn sie bereits in Ihrer Wallet ist, können Sie sie dort verwenden.',
+        },
         revealCardDetail: {couldNotReveal: 'Wir konnten Ihre Kartendaten nicht anzeigen. Bitte versuchen Sie es noch einmal.'},
     },
     validateCodeModal: {
@@ -1347,7 +1353,10 @@ const translations: TranslationDeepObject<typeof en> = {
             label: 'Verstöße gegen',
             [CONST.INSIGHTS.VIOLATION_STAGE.SUBMITTED]: 'Einreichende',
             [CONST.INSIGHTS.VIOLATION_STAGE.APPROVED]: 'Genehmigende',
+            chartTitle: (title: string, stage: string) => `${title} (${stage})`,
         },
+        flaggedExpenses: 'Markierte Ausgaben',
+        noFlaggedExpensesInRange: 'Keine markierten Ausgaben in diesem Zeitraum',
     },
     allSettingsScreen: {
         subscription: 'Abonnement',
@@ -4696,6 +4705,14 @@ ${amount} für ${merchant} – ${date}`,
         numberedItem: ({item, number}: {item: string; number: number}) => `${item} ${number}`,
         questionsChanged: 'Die Fragen auf dieser Seite haben sich geändert',
         onFile: 'Vorhanden',
+        continueOffline: {
+            title: 'Sie können offline nicht fortfahren',
+            prompt: 'Zum Ausfüllen dieses Formulars wird eine Internetverbindung benötigt. Keine Sorge, wir speichern Ihren Fortschritt und Sie können fortfahren, sobald Sie wieder online sind.',
+            saveForLater: 'Speichern und später ausfüllen',
+            progressSaved: 'Ihr Fortschritt wurde gespeichert',
+            promptWithSensitiveAnswers:
+                'Für das Ausfüllen dieses Formulars ist eine Internetverbindung erforderlich. Wir speichern Ihren Fortschritt, damit Sie weitermachen können, sobald Sie wieder online sind. Zu Ihrer Sicherheit werden vertrauliche Angaben nicht gespeichert und müssen erneut eingegeben werden.',
+        },
     },
     addPersonalBankAccount: {
         swiftBicFormatError: 'Der SWIFT/BIC muss 8 oder 11 Zeichen lang sein, mit 6 Buchstaben gefolgt von 2 oder 5 Buchstaben oder Ziffern.',
@@ -7350,12 +7367,14 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
                 description: `Mindestens eine Kategorie muss aktiviert bleiben, da dein Workspace Kategorien erfordert.`,
             },
             visibleTo: 'Sichtbar für',
+            editVisibility: 'Sichtbarkeit bearbeiten',
             membersCount: ({count}: {count: number}) => ({
                 one: '1 Mitglied',
                 other: `${count} Mitglieder`,
             }),
             visibleToDescription: ({categoryName}: {categoryName: string}) =>
                 `Wählen Sie aus, welche Mitglieder die Kategorie ${categoryName} beim Einreichen von Ausgaben verwenden können.`,
+            bulkVisibleToDescription: 'Wählen Sie aus, welche Mitglieder diese Kategorien beim Einreichen von Ausgaben verwenden können.',
             cannotDisableCategoryForMembers: {
                 title: ({categoryName}: {categoryName: string}) => `${categoryName} kann nicht deaktiviert werden`,
                 bulkTitle: 'Diese Kategorien können nicht deaktiviert werden',
@@ -8137,7 +8156,6 @@ Der Control-Tarif beginnt bei 9 $ pro aktivem Mitglied und Monat.`,
                 willBeReadyToUse: 'Diese Karte ist sofort einsatzbereit.',
                 willBeReadyToShip: 'Diese Karte ist sofort versandbereit.',
                 cardholder: 'Karteninhaber',
-                cardholderEmail: 'E-Mail-Adresse des Karteninhabers',
                 cardType: 'Kartentyp',
                 limit: 'Limit',
                 limitType: 'Limittyp',

@@ -206,6 +206,7 @@ import {
     wasActionTakenByCurrentUser,
     withDEWRoutedActionsArray,
 } from './ReportActionsUtils';
+import {buildMentionedReportIDToNameMapFromReportNames} from './ReportIDToNameMapUtils';
 import {getReportName} from './ReportNameUtils';
 import {
     canUserPerformWriteAction,
@@ -547,8 +548,10 @@ function getLastMessageTextForReport({
     // eslint-disable-next-line @typescript-eslint/no-deprecated
     const transactionThreadReportID = oneTransactionThreadReportID ?? (reportID ? deprecatedCachedOneTransactionThreadReportIDs[reportID] : undefined);
 
+    const lastActionReportIDToName = buildMentionedReportIDToNameMapFromReportNames(reportAttributesDerived, [lastAction]);
+
     // Compute lastVisibleMessage before IOU filter — it needs IOU CREATE/TRACK for text extraction.
-    const lastVisibleMessage = getLastVisibleMessage(report?.reportID, undefined, {}, lastReportAction, visibleReportActionsDataParam);
+    const lastVisibleMessage = getLastVisibleMessage(report?.reportID, undefined, {}, lastReportAction, visibleReportActionsDataParam, undefined, lastActionReportIDToName);
 
     // For one-transaction reports, filter IOU CREATE/TRACK and fall back to the parent's action (e.g. REPORT_PREVIEW).
     if (transactionThreadReportID && lastReportAction && isMoneyRequestAction(lastReportAction)) {
@@ -568,6 +571,10 @@ function getLastMessageTextForReport({
             }
         }
     }
+
+    // The filter above can swap in the parent's action, so look up the rooms that action mentions too
+    const reportIDToName =
+        lastReportAction === lastAction ? lastActionReportIDToName : buildMentionedReportIDToNameMapFromReportNames(reportAttributesDerived, [lastAction, lastReportAction]);
 
     let lastMessageTextFromReport = '';
 
@@ -971,17 +978,17 @@ function getLastMessageTextForReport({
 
     // we do not want to show report closed in LHN for non archived report so use getReportLastMessage as fallback instead of lastMessageText from report
     if (reportID && !isReportArchived && report.lastActionType === CONST.REPORT.ACTIONS.TYPE.CLOSED) {
-        return lastMessageTextFromReport || (getReportLastMessage(reportID, isReportArchived, undefined).lastMessageText ?? '');
+        return lastMessageTextFromReport || (getReportLastMessage(reportID, isReportArchived, undefined, reportIDToName).lastMessageText ?? '');
     }
 
     // If the last report action is a pending moderation action, get the last message text from the last visible report action
     if (reportID && !lastMessageTextFromReport && isPendingRemove(lastOriginalAction)) {
-        lastMessageTextFromReport = getReportActionMessageText(lastReportAction);
+        lastMessageTextFromReport = getReportActionMessageText(lastReportAction, reportIDToName);
     }
 
     // If the report is a one-transaction report, get the last message text from combined report actions so the LHN can display modifications to the transaction thread or the report itself
     if (reportID && !lastMessageTextFromReport && lastReportAction && transactionThreadReportID) {
-        lastMessageTextFromReport = getReportActionMessageText(lastReportAction);
+        lastMessageTextFromReport = getReportActionMessageText(lastReportAction, reportIDToName);
     }
 
     // If the last action is AddComment and no last message text was determined yet, use getLastVisibleMessage to get the preview text
@@ -1692,7 +1699,15 @@ function getReportAlternateText({
             alternateText =
                 lastMessageTextFromReport.length > 0
                     ? formatReportLastMessageText(Parser.htmlToText(lastMessageText))
-                    : getLastVisibleMessage(report.reportID, isAllowedToComment, {}, lastAction, visibleReportActionsData, currentUserAccountID)?.lastMessageText;
+                    : getLastVisibleMessage(
+                          report.reportID,
+                          isAllowedToComment,
+                          {},
+                          lastAction,
+                          visibleReportActionsData,
+                          currentUserAccountID,
+                          buildMentionedReportIDToNameMapFromReportNames(reportAttributesDerived, [lastAction]),
+                      )?.lastMessageText;
 
             if (!alternateText) {
                 alternateText = formatReportLastMessageText(

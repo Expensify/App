@@ -505,6 +505,7 @@ const translations: TranslationDeepObject<typeof en> = {
         corpayPayModalPrompt:
             'Αυτός ο υποβάλλων έχει τραπεζικό λογαριασμό που δεν είναι σε USD. Ενεργοποιήστε τις διεθνείς αποζημιώσεις για να πληρώσετε την αναφορά, ή ζητήστε του να προσθέσει τραπεζικό λογαριασμό σε USD.',
         purchaseAmount: 'Ποσό αγοράς',
+        convertedAmount: 'Μετατραπέν ποσό',
         originalAmount: 'Αρχικό ποσό',
         frequency: 'Συχνότητα',
         link: 'Σύνδεσμος',
@@ -822,6 +823,11 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         changePin: {
             didNotChange: 'Δεν αλλάξαμε το PIN σας. Παρακαλούμε προσπαθήστε ξανά.',
+        },
+        addToWallet: {
+            failedHeader: 'Δεν ήταν δυνατή η προσθήκη της κάρτας',
+            failedTitle: 'Δεν μπορέσαμε να προσθέσουμε την κάρτα σας στο πορτοφόλι σας',
+            failedSubtitle: 'Κάτι πήγε στραβά κατά την προσθήκη της κάρτας. Αν υπάρχει ήδη στο πορτοφόλι σας, μπορείτε να τη χρησιμοποιήσετε εκεί.',
         },
         revealCardDetail: {
             couldNotReveal: 'Δεν μπορέσαμε να εμφανίσουμε τα στοιχεία της κάρτας σας. Παρακαλούμε δοκιμάστε ξανά.',
@@ -1393,7 +1399,10 @@ const translations: TranslationDeepObject<typeof en> = {
             label: 'Παραβάσεις των',
             [CONST.INSIGHTS.VIOLATION_STAGE.SUBMITTED]: 'Υποβάλλοντες',
             [CONST.INSIGHTS.VIOLATION_STAGE.APPROVED]: 'Εγκριτές',
+            chartTitle: (title: string, stage: string) => `${title} (${stage})`,
         },
+        flaggedExpenses: 'Επισημασμένες δαπάνες',
+        noFlaggedExpensesInRange: 'Δεν υπάρχουν επισημασμένες δαπάνες σε αυτό το εύρος',
     },
     allSettingsScreen: {
         subscription: 'Συνδρομή',
@@ -4753,6 +4762,14 @@ ${amount} για ${merchant} - ${date}`,
         numberedItem: ({item, number}: {item: string; number: number}) => `${item} ${number}`,
         questionsChanged: 'Οι ερωτήσεις σε αυτή τη σελίδα άλλαξαν',
         onFile: 'Καταχωρισμένο',
+        continueOffline: {
+            title: 'Δεν μπορείτε να συνεχίσετε εκτός σύνδεσης',
+            prompt: 'Απαιτείται σύνδεση στο διαδίκτυο για να συμπληρώσετε αυτή τη φόρμα. Μην ανησυχείτε, θα αποθηκεύσουμε την πρόοδό σας και μπορείτε να συνεχίσετε όταν είστε πάλι online.',
+            saveForLater: 'Αποθήκευση και συμπλήρωση αργότερα',
+            progressSaved: 'Η πρόοδός σας αποθηκεύτηκε',
+            promptWithSensitiveAnswers:
+                'Απαιτείται σύνδεση στο διαδίκτυο για να συμπληρώσετε αυτήν τη φόρμα. Θα αποθηκεύσουμε την πρόοδό σας ώστε να μπορέσετε να συνεχίσετε όταν θα είστε ξανά συνδεδεμένοι. Για τη δική σας ασφάλεια, ευαίσθητες λεπτομέρειες δεν αποθηκεύονται και θα χρειαστεί να καταχωριστούν ξανά.',
+        },
     },
     addPersonalBankAccount: {
         swiftBicFormatError: 'Το SWIFT/BIC πρέπει να έχει μήκος 8 ή 11 χαρακτήρες, με 6 γράμματα ακολουθούμενα από 2 ή 5 γράμματα ή αριθμούς.',
@@ -7457,11 +7474,13 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
                 description: `Πρέπει να παραμείνει ενεργοποιημένη τουλάχιστον μία κατηγορία, επειδή ο χώρος εργασίας σας απαιτεί κατηγορίες.`,
             },
             visibleTo: 'Ορατό σε',
+            editVisibility: 'Επεξεργασία ορατότητας',
             membersCount: ({count}: {count: number}) => ({
                 one: '1 μέλος',
                 other: `${count} μέλη`,
             }),
             visibleToDescription: ({categoryName}: {categoryName: string}) => `Επιλέξτε ποια μέλη μπορούν να χρησιμοποιούν την κατηγορία ${categoryName} όταν υποβάλλουν δαπάνες.`,
+            bulkVisibleToDescription: 'Επιλέξτε ποια μέλη μπορούν να χρησιμοποιούν αυτές τις κατηγορίες όταν υποβάλλουν έξοδα.',
             cannotDisableCategoryForMembers: {
                 title: ({categoryName}: {categoryName: string}) => `Δεν είναι δυνατή η απενεργοποίηση της κατηγορίας ${categoryName}`,
                 bulkTitle: 'Δεν μπορείτε να απενεργοποιήσετε αυτές τις κατηγορίες',
@@ -8260,7 +8279,6 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
                 willBeReadyToUse: 'Αυτή η κάρτα θα είναι έτοιμη για χρήση αμέσως.',
                 willBeReadyToShip: 'Αυτή η κάρτα θα είναι έτοιμη για αποστολή άμεσα.',
                 cardholder: 'Κάτοχος κάρτας',
-                cardholderEmail: 'Email κατόχου κάρτας',
                 cardType: 'Τύπος κάρτας',
                 limit: 'Όριο',
                 limitType: 'Τύπος ορίου',
