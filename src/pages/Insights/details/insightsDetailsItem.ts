@@ -56,17 +56,21 @@ type RankingGroup = {
     accountID?: number | null;
     merchant?: string;
     category?: string;
+    violation?: string;
 };
 
 /** Returns the key the Details panel's URL names a ranking graph's group by, or undefined for a group that isn't ranked by a single value. */
 function getRankingItemKey(groupBy: SearchGroupBy, group: RankingGroup): string | undefined {
     switch (groupBy) {
         case CONST.SEARCH.GROUP_BY.FROM:
+        case CONST.SEARCH.GROUP_BY.APPROVER:
             return group.accountID === undefined || group.accountID === null ? undefined : String(group.accountID);
         case CONST.SEARCH.GROUP_BY.MERCHANT:
             return group.merchant;
         case CONST.SEARCH.GROUP_BY.CATEGORY:
             return group.category;
+        case CONST.SEARCH.GROUP_BY.VIOLATION:
+            return group.violation;
         default:
             return undefined;
     }
@@ -84,10 +88,6 @@ function getInsightsDetailsItemParams(
     }
 
     switch (item.groupedBy) {
-        case CONST.SEARCH.GROUP_BY.APPROVER:
-            return {itemKey: String(item.accountID)};
-        case CONST.SEARCH.GROUP_BY.VIOLATION:
-            return {itemKey: item.violation};
         case CONST.SEARCH.GROUP_BY.TAG:
             return {itemKey: item.tag, tagLevel: item.tagLevel, parentTagPath: item.parentTagPath};
         default:
