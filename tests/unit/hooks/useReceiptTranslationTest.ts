@@ -18,6 +18,9 @@ jest.mock('@hooks/usePermissions');
 
 const CURRENT_USER_ACCOUNT_ID = 1;
 const OTHER_APPROVER_ACCOUNT_ID = 2;
+const EMPLOYEE_ACCOUNT_ID = 3;
+const CURRENT_USER_EMAIL = 'approver@test.com';
+const EMPLOYEE_EMAIL = 'employee@test.com';
 const POLICY_ID = 'ABC123';
 const REPORT_ID = '100';
 
@@ -39,7 +42,7 @@ describe('useReceiptTranslation', () => {
 
     beforeEach(async () => {
         jest.mocked(usePermissions).mockReturnValue(createMock<ReturnType<typeof usePermissions>>({isBetaEnabled: (beta) => beta === CONST.BETAS.RECEIPT_TRANSLATION}));
-        await Onyx.set(ONYXKEYS.SESSION, {accountID: CURRENT_USER_ACCOUNT_ID});
+        await Onyx.set(ONYXKEYS.SESSION, {accountID: CURRENT_USER_ACCOUNT_ID, email: CURRENT_USER_EMAIL});
     });
 
     afterEach(async () => {
@@ -67,6 +70,34 @@ describe('useReceiptTranslation', () => {
         await waitForBatchedUpdatesWithAct();
 
         // Then the approver can translate, because they review this report's receipts
+        expect(result.current.canTranslate).toBe(true);
+    });
+
+    it('shows Translate to the approver the workspace routes a draft report to', async () => {
+        // Given a draft report that names someone else as approver, while the workspace routes it to the current user
+        await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {[EMPLOYEE_ACCOUNT_ID]: {accountID: EMPLOYEE_ACCOUNT_ID, login: EMPLOYEE_EMAIL}});
+        await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, {
+            id: POLICY_ID,
+            type: CONST.POLICY.TYPE.CORPORATE,
+            role: CONST.POLICY.ROLE.USER,
+            approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
+            employeeList: {[EMPLOYEE_EMAIL]: {submitsTo: CURRENT_USER_EMAIL}},
+        });
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, {
+            reportID: REPORT_ID,
+            policyID: POLICY_ID,
+            type: CONST.REPORT.TYPE.EXPENSE,
+            ownerAccountID: EMPLOYEE_ACCOUNT_ID,
+            managerID: OTHER_APPROVER_ACCOUNT_ID,
+            stateNum: CONST.REPORT.STATE_NUM.OPEN,
+            statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+        });
+
+        // When the hook reads the expense's receipt
+        const {result} = renderHook(() => useReceiptTranslation(transaction));
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the current user can translate, because they approve the report once it's submitted
         expect(result.current.canTranslate).toBe(true);
     });
 
