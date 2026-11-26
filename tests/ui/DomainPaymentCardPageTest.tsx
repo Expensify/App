@@ -64,6 +64,10 @@ jest.mock('@components/AddPaymentCard/SubscriptionPaymentCardForm', () => ({head
 });
 jest.mock('@userActions/Domain', () => ({setPrimaryContact: jest.fn(), toggleConsolidatedDomainBilling: jest.fn()}));
 jest.mock('@userActions/PaymentMethods', () => ({addSubscriptionPaymentCard: jest.fn(), clearPaymentCardFormErrorAndSubmit: jest.fn()}));
+jest.mock('@pages/domain/Admins/DomainPaymentCardPage', () => {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+    return jest.requireActual('@pages/domain/Admins/DomainPaymentCardPage/index.tsx');
+});
 
 type DomainPaymentCardPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.DOMAIN.DYNAMIC_PAYMENT_CARD>;
 
