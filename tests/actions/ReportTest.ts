@@ -8,7 +8,6 @@ import type handleWalletStatementNavigationDefault from '@components/WalletState
 
 import {buildAccountIDToNameMap, getMentionedAccountIDs} from '@hooks/useAccountIDToNameMap';
 import useAncestors from '@hooks/useAncestors';
-import {buildReportIDToNameMap, getMentionedReportIDs} from '@hooks/useReportIDToNameMap';
 
 import type {GuidedSetupData, TaskForParameters} from '@libs/actions/Report';
 import markAllMessagesAsRead from '@libs/actions/Report/MarkAllMessageAsRead';
@@ -26,6 +25,7 @@ import REPORT_LINK_ROUTE_PARAMS from '@libs/Navigation/reportLinkRouteParams';
 import {buildOptimisticNextStep} from '@libs/NextStepUtils';
 import {getAccountIDsByLogins} from '@libs/PersonalDetailsUtils';
 import {getOriginalMessage, getReportActionMessage, isActionOfType, isDeletedAction} from '@libs/ReportActionsUtils';
+import {buildReportIDToNameMap, getMentionedReportIDs} from '@libs/ReportIDToNameMapUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
 import {appendParam} from '@libs/Url';
 

@@ -28,10 +28,10 @@ type TableFilterBarProps = PropsWithChildren<{
 export default function TableFilterBar({label, shouldShowResetFiltersButton, children}: TableFilterBarProps) {
     const styles = useThemeStyles();
     const {pageGutter} = useLayoutSpacing();
-    const {filterConfig, tableMethods, activeFilters, onSearchStringChange, columns, narrowLayoutSortColumn, originalDataLength, shouldUseNarrowTableLayout} = useTableContext();
+    const {filterConfig, tableMethods, activeFilters, onSearchStringChange, columns, originalDataLength, shouldUseNarrowTableLayout} = useTableContext();
 
     const hasFiltersAvailable = Object.keys(filterConfig ?? {}).length > 0;
-    const showsDisplaySettingsTrigger = shouldShowTableDisplaySettingsTrigger({columns, shouldUseNarrowTableLayout, narrowLayoutSortColumn});
+    const showsDisplaySettingsTrigger = shouldShowTableDisplaySettingsTrigger({columns});
     const actionColumnVisible = hasFiltersAvailable || showsDisplaySettingsTrigger || !!children;
 
     const appliedFilters = Object.entries(activeFilters ?? {})
