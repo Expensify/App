@@ -153,6 +153,9 @@ type CustomBaseTextInputProps = ForwardedFSClassProps &
         isLoading?: boolean;
         autoCompleteType?: string;
 
+        /** Web only. Defaults to ignoring password managers for email inputs unless email or username autofill is requested. Explicit true/false overrides this default. */
+        shouldIgnorePasswordManager?: boolean;
+
         /** List of markdowns that won't be styled as a markdown */
         excludedMarkdownStyles?: Array<keyof MarkdownStyle>;
 
