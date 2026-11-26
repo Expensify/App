@@ -341,16 +341,14 @@ describe('NetworkState — a successful request clears the INTERNET_UNREACHABLE 
         const {refresh} = jest.requireMock<{refresh: jest.Mock}>('@react-native-community/netinfo');
         refresh.mockClear();
 
-        // Given NetInfo missed the reconnect and still reports no connection. On Chrome, connection.change can fire
-        // before navigator.onLine turns true, and NetInfo sends no Ping while disconnected, so nothing clears NO_RADIO
+        // Given NetInfo missed the reconnect and still reports no connection
         fireNetInfoState({isConnected: false, isInternetReachable: false});
         expect(getIsOffline()).toBe(true);
 
-        // When a read goes through the FailureTracking middleware and succeeds, proving the network works
+        // When a request succeeds
         await FailureTracking(Promise.resolve({jsonCode: 200}), mockRequest, false);
 
-        // Then the app is back online without a page reload, NetInfo is asked to re-read the connection so its Ping
-        // resumes, and the queued writes get a single jittered reconnect
+        // Then the app is back online, NetInfo re-reads the connection and one reconnect fires
         expect(getIsOffline()).toBe(false);
         expect(refresh).toHaveBeenCalledTimes(1);
         jest.runAllTimers();
