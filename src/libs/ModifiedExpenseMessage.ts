@@ -197,14 +197,13 @@ function getMovedFromOrToReportMessage(
 }
 
 /**
- * Resolves the display name of a vendor from any connection that has it, then the name saved on the action, then the externalID,
- * so the message still identifies the vendor rather than rendering an empty name.
+ * Resolves the display name of a vendor
  */
 function resolveVendorName(policy: OnyxEntry<Policy>, entry: RulesModifiedVendor | null | undefined): string {
     if (!entry?.externalID) {
         return '';
     }
-    return findVendorByID(policy, entry.externalID)?.name || entry.name || entry.externalID;
+    return entry.name || findVendorByID(policy, entry.externalID)?.name || entry.externalID;
 }
 
 /**
