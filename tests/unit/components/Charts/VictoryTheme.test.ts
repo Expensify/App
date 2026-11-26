@@ -10,7 +10,7 @@ import CONST from '@src/CONST';
  * `@styles/theme/colors` before the module's IIFE runs.
  */
 function loadVictoryTheme(): typeof VictoryThemeModule.default {
-    const mod = jest.requireActual<typeof VictoryThemeModule>('@components/Charts/VictoryTheme');
+    const mod: typeof VictoryThemeModule = jest.requireActual('@components/Charts/VictoryTheme');
     return mod.default;
 }
 

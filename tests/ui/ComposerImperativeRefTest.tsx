@@ -51,14 +51,14 @@ import createMock from '../utils/createMock';
 let mockShouldMountComposer = true;
 let mockShouldUseNativeComposer = false;
 let mockMarkdownInput: ComponentRef<typeof TextInput> | (HTMLDivElement & Pick<ComponentRef<typeof TextInput>, 'clear' | 'isFocused'>) | null = null;
-const WebComposer = jest.requireActual<typeof ImplementationModule>('@components/Composer/implementation/index.tsx').default;
-const {forceClearInput: clearWebInput} = jest.requireActual<typeof ComponentUtilsModule>('@libs/ComponentUtils/index.ts');
+const {default: WebComposer}: typeof ImplementationModule = jest.requireActual('@components/Composer/implementation/index.tsx');
+const {forceClearInput: clearWebInput}: typeof ComponentUtilsModule = jest.requireActual('@libs/ComponentUtils/index.ts');
 const mockResetScroll = jest.fn<
     ReturnType<ReturnType<typeof UseComposerSuggestionsModule.default>['resetScrollPosition']>,
     Parameters<ReturnType<typeof UseComposerSuggestionsModule.default>['resetScrollPosition']>
 >();
 const mockSuggestionsRef = {current: null};
-const {forceClearInput: clearNativeInput} = jest.requireActual<typeof ComponentUtilsNativeModule>('@libs/ComponentUtils/index.native.ts');
+const {forceClearInput: clearNativeInput}: typeof ComponentUtilsNativeModule = jest.requireActual('@libs/ComponentUtils/index.native.ts');
 
 jest.mock('@components/Composer', () => {
     const ReactModule = jest.requireActual<typeof React>('react');
@@ -85,7 +85,10 @@ jest.mock('@hooks/useIsScrollBarVisible', () => () => false);
 jest.mock('@hooks/useBlurOnKeyboardHide', () => jest.fn<ReturnType<typeof UseBlurOnKeyboardHideModule.default>, Parameters<typeof UseBlurOnKeyboardHideModule.default>>());
 jest.mock('@hooks/useIsInLandscapeMode', () => jest.fn(() => false));
 jest.mock('@hooks/useOnyx', () => () => [undefined]);
-jest.mock('@hooks/useHtmlPaste', () => jest.requireActual<typeof UseHtmlPasteModule>('@hooks/useHtmlPaste/index.ts'));
+jest.mock('@hooks/useHtmlPaste', () => {
+    const actual: typeof UseHtmlPasteModule = jest.requireActual('@hooks/useHtmlPaste/index.ts');
+    return actual;
+});
 jest.mock('@hooks/useCurrentUserPersonalDetails', () => () => ({accountID: 1}));
 jest.mock('@hooks/useIsInSidePanel', () => () => false);
 jest.mock('@hooks/useKeyboardState', () => () => ({isKeyboardShown: false}));
@@ -112,9 +115,10 @@ jest.mock('react-native-image-size', () => ({
     default: {getSize: (uri: string) => mockGetImageSize(uri)},
 }));
 // Jest resolves the iOS/web variant, which leaves the reported size as is, so use the Android one that applies the rotation.
-jest.mock('@libs/cropOrRotateImage/getDeviceOrientationAwareImageSize', () =>
-    jest.requireActual<Record<string, unknown>>('@libs/cropOrRotateImage/getDeviceOrientationAwareImageSize/index.android'),
-);
+jest.mock('@libs/cropOrRotateImage/getDeviceOrientationAwareImageSize', () => {
+    const actual: Record<string, unknown> = jest.requireActual('@libs/cropOrRotateImage/getDeviceOrientationAwareImageSize/index.android');
+    return actual;
+});
 jest.mock('@pages/inbox/report/ReportActionEditMessageContext', () => ({
     useReportActionActiveEditActions: () => ({
         setEditingMessage: jest.fn<

@@ -13,7 +13,7 @@ jest.mock('expo-web-browser', () => ({
 }));
 jest.mock('@components/Reactions/MiniQuickEmojiReactions', () => 'MiniQuickEmojiReactions');
 jest.mock('@components/Reactions/QuickEmojiReactions', () => 'QuickEmojiReactions');
-const {default: ContextMenuActions} = jest.requireActual<typeof ContextMenuActionsModule>('@pages/inbox/report/ContextMenu/ContextMenuActions');
+const {default: ContextMenuActions}: typeof ContextMenuActionsModule = jest.requireActual('@pages/inbox/report/ContextMenu/ContextMenuActions');
 const editAction = ContextMenuActions.find((action) => 'sentryLabel' in action && action.sentryLabel === CONST.SENTRY_LABEL.CONTEXT_MENU.EDIT_COMMENT);
 if (!editAction?.shouldShow) {
     throw new Error('Edit comment context menu action was not found');

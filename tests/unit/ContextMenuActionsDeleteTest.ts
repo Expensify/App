@@ -26,7 +26,7 @@ jest.mock('@pages/inbox/report/ContextMenu/ReportActionContextMenu', () => ({
     },
 }));
 
-const {default: ContextMenuActions} = jest.requireActual<typeof ContextMenuActionsModule>('@pages/inbox/report/ContextMenu/ContextMenuActions');
+const {default: ContextMenuActions}: typeof ContextMenuActionsModule = jest.requireActual('@pages/inbox/report/ContextMenu/ContextMenuActions');
 
 const deleteAction = ContextMenuActions.find((action) => 'sentryLabel' in action && action.sentryLabel === CONST.SENTRY_LABEL.CONTEXT_MENU.DELETE);
 if (!deleteAction || !('onPress' in deleteAction)) {
