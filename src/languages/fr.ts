@@ -7378,11 +7378,13 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
                 description: `Au moins une catégorie doit rester activée, car votre espace de travail exige des catégories.`,
             },
             visibleTo: 'Visible pour',
+            editVisibility: 'Modifier la visibilité',
             membersCount: ({count}: {count: number}) => ({
                 one: '1 membre',
                 other: `${count} membres`,
             }),
             visibleToDescription: ({categoryName}: {categoryName: string}) => `Choisissez quels membres peuvent utiliser la catégorie ${categoryName} lors de la soumission de dépenses.`,
+            bulkVisibleToDescription: 'Choisissez quels membres peuvent utiliser ces catégories lors de la soumission de dépenses.',
             cannotDisableCategoryForMembers: {
                 title: ({categoryName}: {categoryName: string}) => `Impossible de désactiver ${categoryName}`,
                 bulkTitle: 'Impossible de désactiver ces catégories',

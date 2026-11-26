@@ -7296,11 +7296,13 @@ ${amount} para ${merchant} - ${date}`,
                 description: `Debe quedar al menos una categoría habilitada porque tu espacio de trabajo requiere categorías.`,
             },
             visibleTo: 'Visible para',
+            editVisibility: 'Editar visibilidad',
             membersCount: ({count}: {count: number}) => ({
                 one: '1 miembro',
                 other: `${count} miembros`,
             }),
             visibleToDescription: ({categoryName}: {categoryName: string}) => `Elige qué miembros pueden usar la categoría ${categoryName} al enviar gastos.`,
+            bulkVisibleToDescription: 'Elige qué miembros pueden usar estas categorías al enviar gastos.',
             cannotDisableCategoryForMembers: {
                 title: ({categoryName}: {categoryName: string}) => `No se puede desactivar ${categoryName}`,
                 bulkTitle: 'No se pueden deshabilitar estas categorías',

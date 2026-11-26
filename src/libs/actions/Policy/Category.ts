@@ -2073,6 +2073,14 @@ function setPolicyCategoryMemberVisibility(
     API.write(WRITE_COMMANDS.SET_POLICY_CATEGORY_MEMBER_VISIBILITY, parameters, onyxData);
 }
 
+function setWorkspaceCategoriesSelectedForBulkEdit(policyID: string, categoryNames: string[]) {
+    Onyx.set(ONYXKEYS.RAM_ONLY_WORKSPACE_CATEGORIES_SELECTED_FOR_BULK_EDIT, {policyID, categoryNames});
+}
+
+function clearWorkspaceCategoriesSelectedForBulkEdit() {
+    Onyx.set(ONYXKEYS.RAM_ONLY_WORKSPACE_CATEGORIES_SELECTED_FOR_BULK_EDIT, null);
+}
+
 /** Signals the "Cannot disable category" modal for members the backend refused to leave without a category. */
 function setMembersNeedCategoryModal(policyID: string, accountIDs: number[], categoryNames: string[], isRemovingAccess = false) {
     Onyx.set(ONYXKEYS.RAM_ONLY_MEMBERS_NEED_CATEGORY_MODAL, {policyID, accountIDs, categoryNames, isRemovingAccess});
@@ -2198,6 +2206,8 @@ export {
     setPolicyCustomUnitDefaultCategory,
     setMembersNeedCategoryModal,
     setPolicyCategoryMemberVisibility,
+    setWorkspaceCategoriesSelectedForBulkEdit,
+    clearWorkspaceCategoriesSelectedForBulkEdit,
     setPolicyMemberCategoryVisibility,
     setWorkspaceCategoryDescriptionHint,
     setWorkspaceCategoryEnabled,

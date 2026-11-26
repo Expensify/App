@@ -7308,11 +7308,13 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
                 description: `Minstens één categorie moet ingeschakeld blijven, omdat je werkruimte categorieën vereist.`,
             },
             visibleTo: 'Zichtbaar voor',
+            editVisibility: 'Zichtbaarheid bewerken',
             membersCount: ({count}: {count: number}) => ({
                 one: '1 lid',
                 other: `${count} leden`,
             }),
             visibleToDescription: ({categoryName}: {categoryName: string}) => `Kies welke leden de categorie ${categoryName} kunnen gebruiken bij het indienen van uitgaven.`,
+            bulkVisibleToDescription: 'Kies welke leden deze categorieën kunnen gebruiken bij het indienen van declaraties.',
             cannotDisableCategoryForMembers: {
                 title: ({categoryName}: {categoryName: string}) => `Kan ${categoryName} niet uitschakelen`,
                 bulkTitle: 'Deze categorieën kunnen niet worden uitgeschakeld',

@@ -1979,6 +1979,7 @@ const SENTRY_LABEL = {
                 ENABLE: 'WorkspaceCategories-BulkActions-Enable',
             },
             BULK_ACTIONS_DELETE: 'WorkspaceCategories-BulkActionsDelete',
+            BULK_ACTIONS_EDIT_VISIBILITY: 'WorkspaceCategories-BulkActionsEditVisibility',
             MORE_MENU_AUTO_CATEGORIZE: 'WorkspaceCategories-MoreMenuAutoCategorize',
             MORE_MENU_SHOW_GL_CODES: 'WorkspaceCategories-MoreMenuShowGLCodes',
             MORE_MENU_IMPORT_SPREADSHEET: 'WorkspaceCategories-MoreMenuImportSpreadsheet',

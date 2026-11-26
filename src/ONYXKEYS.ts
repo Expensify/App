@@ -602,6 +602,8 @@ const ONYXKEYS = {
     RAM_ONLY_WORKSPACE_MEMBERS_SELECTED_FOR_BULK_EDIT: 'workspaceMembersSelectedForBulkEdit',
     /** The workspace members selected for the bulk role change, with the workspace they were selected on */
     RAM_ONLY_WORKSPACE_MEMBERS_SELECTED_FOR_ROLE_CHANGE: 'workspaceMembersSelectedForRoleChange',
+    /** The workspace categories selected for a bulk visibility change, with the workspace they were selected on */
+    RAM_ONLY_WORKSPACE_CATEGORIES_SELECTED_FOR_BULK_EDIT: 'workspaceCategoriesSelectedForBulkEdit',
 
     // The theme setting set by the user in preferences.
     // This can be either "light", "dark", "system", "light-contrast", "dark-contrast" or "system-contrast"
@@ -2023,6 +2025,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.RAM_ONLY_DOMAIN_MEMBERS_SELECTED_FOR_MOVE]: string[];
     [ONYXKEYS.RAM_ONLY_WORKSPACE_MEMBERS_SELECTED_FOR_BULK_EDIT]: OnyxTypes.WorkspaceMembersSelectedForBulkEdit;
     [ONYXKEYS.RAM_ONLY_WORKSPACE_MEMBERS_SELECTED_FOR_ROLE_CHANGE]: OnyxTypes.WorkspaceMembersSelectedForRoleChange;
+    [ONYXKEYS.RAM_ONLY_WORKSPACE_CATEGORIES_SELECTED_FOR_BULK_EDIT]: OnyxTypes.WorkspaceCategoriesSelectedForBulkEdit;
     [ONYXKEYS.VERIFY_3DS_SUBSCRIPTION]: string;
     [ONYXKEYS.VERIFY_3DS_SUBSCRIPTION_SOURCE]: string;
     [ONYXKEYS.PREFERRED_THEME]: ValueOf<typeof CONST.THEME>;
