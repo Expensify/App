@@ -6,16 +6,19 @@ import Text from '@components/Text';
 import TextWithTooltip from '@components/TextWithTooltip';
 
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
+import useOnyx from '@hooks/useOnyx';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import {clearRuleErrors} from '@libs/actions/Policy/Rules';
 import type {FlagForReviewTableItem} from '@libs/FlagForReviewRulesUtils';
 
 import colors from '@styles/theme/colors';
 import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 
 import React from 'react';
 import {View} from 'react-native';
@@ -34,6 +37,9 @@ function WorkspaceFlagForReviewTableRow({item, rowIndex, shouldUseNarrowTableLay
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const Expensicons = useMemoizedLazyExpensifyIcons(['ArrowRight', 'Flag']);
+    const [feedback] = useOnyx(`${ONYXKEYS.COLLECTION.RULE}${item.ruleID}`, {
+        selector: (rule) => (rule ? {errors: rule.errors, pendingAction: rule.pendingAction} : undefined),
+    });
 
     const isTableSemanticsEnabled = shouldUseTableSemantics(shouldUseNarrowTableLayout);
 
@@ -49,6 +55,8 @@ function WorkspaceFlagForReviewTableRow({item, rowIndex, shouldUseNarrowTableLay
             offlineWithFeedback={{
                 pendingAction: item.pendingAction,
                 shouldHideOnDelete: false,
+                errors: feedback?.errors,
+                onClose: () => clearRuleErrors(item.ruleID, feedback),
             }}
             onPress={item.action}
         >

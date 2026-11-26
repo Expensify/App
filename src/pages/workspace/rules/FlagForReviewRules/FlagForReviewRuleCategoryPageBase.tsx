@@ -9,9 +9,9 @@ import usePolicyCategoryPickerCategories from '@hooks/usePolicyCategoryPickerCat
 import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {updateDraftFlagForReviewRule} from '@libs/actions/User';
+import {setDraftFlagForReviewRule} from '@libs/actions/User';
 import {getDecodedCategoryName} from '@libs/CategoryUtils';
-import {hasFlagForReviewRuleForLegacyWrite} from '@libs/FlagForReviewRulesUtils';
+import {canMatchFlagRuleCategory, getCategoryFlagLimit, getFlagForReviewConditions, getFlagForReviewDraftKey} from '@libs/FlagForReviewRulesUtils';
 import Navigation from '@libs/Navigation/Navigation';
 
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
@@ -26,19 +26,23 @@ import {View} from 'react-native';
 
 type FlagForReviewRuleCategoryPageBaseProps = {
     policyID: string;
-    categoryName?: string;
+    ruleID?: string;
 };
 
-function FlagForReviewRuleCategoryPageBase({policyID, categoryName}: FlagForReviewRuleCategoryPageBaseProps) {
-    const isEditing = !!categoryName;
+function FlagForReviewRuleCategoryPageBase({policyID, ruleID}: FlagForReviewRuleCategoryPageBaseProps) {
     const policy = usePolicy(policyID);
     const {canWrite: canWriteRules} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.RULES);
     const styles = useThemeStyles();
 
-    const [form] = useOnyx(ONYXKEYS.FORMS.FLAG_FOR_REVIEW_RULE_FORM);
+    const [storedDraft] = useOnyx(ONYXKEYS.FORMS.FLAG_FOR_REVIEW_RULE_FORM);
     const {categoryFlagLimits, areCategoryFlagLimitsLoading} = useCategoryFlagLimits(policyID);
+    const [rule] = useOnyx(`${ONYXKEYS.COLLECTION.RULE}${ruleID}`);
+    const conditions = rule?.scope === CONST.RULES.SCOPE.POLICY && rule.scopeID === policyID ? getFlagForReviewConditions(rule) : undefined;
+    const draftKey = getFlagForReviewDraftKey(policyID, ruleID);
+    const form = storedDraft?.draftKey === draftKey ? storedDraft : undefined;
 
-    const selectedCategoryName = form?.[INPUT_IDS.CATEGORY];
+    const selectedCategoryName = form?.[INPUT_IDS.CATEGORY] ?? conditions?.categoryName;
+    const hasMerchant = !!(form?.merchantToMatch ?? conditions?.merchant?.name)?.trim();
     const selectedCategoryItem = selectedCategoryName ? {name: getDecodedCategoryName(selectedCategoryName), value: selectedCategoryName} : undefined;
 
     const {
@@ -47,21 +51,24 @@ function FlagForReviewRuleCategoryPageBase({policyID, categoryName}: FlagForRevi
         isLoading: arePolicyCategoriesLoading,
     } = usePolicyCategoryPickerCategories({
         policyID,
-        // Keep the currently selected / route category available, but don't offer other
-        // categories that already have a flag-for-review rule (avoids silent overwrite).
-        isEligible: (category) => category.name === categoryName || category.name === selectedCategoryName || !hasFlagForReviewRuleForLegacyWrite(category, categoryFlagLimits),
+        isEligible: (category) => {
+            if (!canMatchFlagRuleCategory(category)) {
+                return false;
+            }
+            const limit = getCategoryFlagLimit(category, categoryFlagLimits);
+            return hasMerchant || !limit || limit.ruleID === ruleID || category.name === selectedCategoryName;
+        },
     });
 
     const categoryItems = categories.map((category) => ({name: getDecodedCategoryName(category.name), value: category.name}));
 
-    const backToRoute = isEditing ? ROUTES.RULES_FLAG_FOR_REVIEW_RULE_EDIT.getRoute(policyID, categoryName) : ROUTES.RULES_FLAG_FOR_REVIEW_RULE_NEW.getRoute(policyID);
+    const backToRoute = ruleID ? ROUTES.RULES_FLAG_FOR_REVIEW_RULE_EDIT.getRoute(policyID, ruleID) : ROUTES.RULES_FLAG_FOR_REVIEW_RULE_NEW.getRoute(policyID);
 
     const onSave = (value?: string) => {
-        // Preserve the current draft amount / limit type. Merging from the destination category
-        // would discard in-progress edits and can overwrite an existing rule on save.
-        updateDraftFlagForReviewRule({
+        setDraftFlagForReviewRule({
             ...form,
-            [INPUT_IDS.CATEGORY]: value,
+            [INPUT_IDS.CATEGORY]: value ?? '',
+            [INPUT_IDS.DRAFT_KEY]: draftKey,
         });
     };
 
@@ -81,7 +88,7 @@ function FlagForReviewRuleCategoryPageBase({policyID, categoryName}: FlagForRevi
                 items={categoryItems}
                 onSave={onSave}
                 backToRoute={backToRoute}
-                allowNoneOption={false}
+                allowNoneOption={hasMerchant}
                 shouldSkipFocusRestoreOnSave
             />
         );
@@ -93,7 +100,7 @@ function FlagForReviewRuleCategoryPageBase({policyID, categoryName}: FlagForRevi
             featureName={CONST.POLICY.MORE_FEATURES.ARE_RULES_ENABLED}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID, CONST.POLICY.ACCESS_VARIANTS.CONTROL]}
             policyFeature={CONST.POLICY.POLICY_FEATURE.RULES}
-            shouldBeBlocked={!canWriteRules}
+            shouldBeBlocked={!canWriteRules || (!!ruleID && !areCategoryFlagLimitsLoading && !conditions)}
         >
             <RuleSelectionBase
                 titleKey="common.category"

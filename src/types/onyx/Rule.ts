@@ -14,20 +14,30 @@ type RuleScope = ValueOf<typeof CONST.RULES.SCOPE>;
  * The body of a rule, i.e. the `value` sent to `SetRule`. Which body a rule has is determined by its
  * triggers and actions rather than by a discriminator field.
  */
-type RuleBody = ApprovalWorkflowRule | ExpenseDefaultRule;
+type RuleBody = ApprovalWorkflowRule | ExpenseDefaultRule | FlagForReviewRule;
 
-/** A category limit mirrored into the rules collection by a legacy write. */
-type CategoryFlagRule = {
+/** The explicit submit behavior of a flag rule. */
+type FlagRuleEnforcement = ValueOf<typeof CONST.RULES.FLAG_FOR_REVIEW.ENFORCEMENT>;
+
+/** A rule that flags an expense for review. */
+type FlagForReviewRule = {
     triggers: ExpenseDefaultTriggers;
     filters: RuleFilterNode;
-    actions: Record<string, {name: typeof CONST.RULES.ACTIONS.TRIGGER_VIOLATION}>;
+    actions: Record<
+        string,
+        {
+            name: typeof CONST.RULES.ACTIONS.TRIGGER_VIOLATION;
+            /** Omitted on migrated rules to keep legacy submission behavior. */
+            enforcement?: FlagRuleEnforcement;
+        }
+    >;
 };
 
 /**
  * A rule as stored in the `ONYXKEYS.COLLECTION.RULE` collection under `rules_<ruleID>`.
  */
 type Rule = OnyxValueWithOfflineFeedback<
-    (RuleBody | CategoryFlagRule) & {
+    RuleBody & {
         /** What kind of entity this rule is scoped to. */
         scope: RuleScope;
 
@@ -46,4 +56,4 @@ type Rule = OnyxValueWithOfflineFeedback<
 >;
 
 export default Rule;
-export type {RuleBody};
+export type {FlagForReviewRule, FlagRuleEnforcement, RuleBody};

@@ -12,14 +12,15 @@ type EditFlagForReviewRulePageProps =
     | PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.DYNAMIC_CATEGORY_FLAG_FOR_REVIEW_RULE_EDIT>;
 
 function EditFlagForReviewRulePage({route}: EditFlagForReviewRulePageProps) {
-    const {policyID, categoryName} = route.params;
+    const {policyID} = route.params;
     const isCategoryScopedFlow = route.name === SCREENS.WORKSPACE.DYNAMIC_CATEGORY_FLAG_FOR_REVIEW_RULE_EDIT;
     const isCategoryLocked = isCategoryScopedFlow || ('isCategoryLocked' in route.params && route.params.isCategoryLocked === 'true');
 
     return (
         <FlagForReviewRulePageBase
             policyID={policyID}
-            categoryName={categoryName}
+            categoryName={'categoryName' in route.params ? route.params.categoryName : undefined}
+            ruleID={'ruleID' in route.params ? route.params.ruleID : undefined}
             isCategoryLocked={isCategoryLocked}
             isCategoryScopedFlow={isCategoryScopedFlow}
             testID="EditFlagForReviewRulePage"

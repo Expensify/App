@@ -1840,7 +1840,7 @@ type WorkspaceSettingsParamList = {
     };
     [SCREENS.WORKSPACE.RULES_FLAG_FOR_REVIEW_RULE_EDIT]: {
         policyID: string;
-        categoryName: string;
+        ruleID: string;
         /** When 'true', category field is locked (e.g. opened from category details RHP). */
         isCategoryLocked?: string;
     };
@@ -1849,16 +1849,21 @@ type WorkspaceSettingsParamList = {
     };
     [SCREENS.WORKSPACE.RULES_FLAG_FOR_REVIEW_RULE_CATEGORY_EDIT]: {
         policyID: string;
-        categoryName: string;
+        ruleID: string;
+    };
+    [SCREENS.WORKSPACE.RULES_FLAG_FOR_REVIEW_RULE_MERCHANT]: {
+        policyID: string;
+        ruleID: string;
     };
     [SCREENS.WORKSPACE.RULES_FLAG_FOR_REVIEW_RULE_AMOUNT]: {
         policyID: string;
+        categoryName?: string;
         /** When 'true', return to create with ?categoryName= so the locked category create entry matches. */
         isCategoryLocked?: string;
     };
     [SCREENS.WORKSPACE.RULES_FLAG_FOR_REVIEW_RULE_AMOUNT_EDIT]: {
         policyID: string;
-        categoryName: string;
+        ruleID: string;
         /** When 'true', preserve locked category on return to the edit screen. */
         isCategoryLocked?: string;
     };
@@ -1867,7 +1872,7 @@ type WorkspaceSettingsParamList = {
     };
     [SCREENS.WORKSPACE.RULES_FLAG_FOR_REVIEW_RULE_EXPENSE_LIMIT_TYPE_EDIT]: {
         policyID: string;
-        categoryName: string;
+        ruleID: string;
     };
     [SCREENS.WORKSPACE.RULES_MERCHANT_TYPE_EDIT]: {
         policyID: string;

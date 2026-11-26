@@ -1,7 +1,7 @@
 import OnyxUpdateManager from '@libs/actions/OnyxUpdateManager';
 import {
     addPolicyAgentRule,
-    clearMerchantRuleErrors,
+    clearRuleErrors,
     clearPolicyAgentRuleErrors,
     deleteRule,
     deletePolicyAgentRule,
@@ -13,6 +13,7 @@ import {
 import * as API from '@libs/API';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import {buildExpenseDefaultRule} from '@libs/ExpenseDefaultRuleUtils';
+import {buildFlagForReviewRule, getFlagForReviewRulePriority} from '@libs/FlagForReviewRulesUtils';
 import {flush as flushSequentialQueue} from '@libs/Network/SequentialQueue';
 import {toIndexMap} from '@libs/RuleUtils';
 
@@ -653,8 +654,49 @@ describe('actions/PolicyRules', () => {
         });
     });
 
-    describe('clearMerchantRuleErrors', () => {
+    describe('flag for review writes', () => {
+        it('uses the migrated ID and priority, rolls back a failed cap edit, and keeps enforcement omitted', async () => {
+            // Given Auth's daily cap has no explicit enforcement or Onyx priority.
+            const policyID = 'policy1';
+            const ruleID = '754';
+            const ruleKey = `${ONYXKEYS.COLLECTION.RULE}${ruleID}` as const;
+            const categories = {Meals: {name: 'Meals', enabled: true, maxExpenseAmountMigrationID: 754}};
+            const form = {category: 'Meals', maxExpenseAmount: '100', expenseLimitType: CONST.POLICY.EXPENSE_LIMIT_TYPES.DAILY};
+            const originalBody = buildFlagForReviewRule(form, CONST.CURRENCY.USD, undefined);
+            if (!originalBody) {
+                throw new Error('Missing daily cap fixture');
+            }
+            const rule = {...originalBody, scope: CONST.RULES.SCOPE.POLICY, scopeID: policyID};
+            await Onyx.set(ruleKey, rule);
+            mockFetch.pause?.();
+
+            // When the admin changes only the cap and the queued write fails.
+            setRule(policyID, buildFlagForReviewRule({...form, maxExpenseAmount: '125.50'}, CONST.CURRENCY.USD, undefined), getFlagForReviewRulePriority(ruleID, categories), ruleID, rule);
+            await waitForBatchedUpdates();
+            expect((await getRules())?.[ruleKey]).toMatchObject({pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE});
+            mockFetch.fail?.();
+            await mockFetch.resume?.();
+            await waitForBatchedUpdates();
+
+            // Then the same rule is restored and the request didn't alter submit behavior or migration priority.
+            TestHelper.expectAPICommandToHaveBeenCalledWith(WRITE_COMMANDS.SET_RULE, 0, {
+                scope: CONST.RULES.SCOPE.POLICY,
+                scopeID: policyID,
+                ruleID,
+                priority: 70000,
+                value: JSON.stringify({...originalBody, filters: {...originalBody.filters, right: {left: 'dailyBudget', operator: 'gt', right: '125.50 USD'}}}),
+                shouldUpdateMatchingTransactions: false,
+            });
+            const restoredRule = (await getRules())?.[ruleKey];
+            expect(restoredRule).toMatchObject(rule);
+            expect(restoredRule?.errors).toBeTruthy();
+            expect(restoredRule?.pendingAction).toBeFalsy();
+        });
+    });
+
+    describe('clearRuleErrors', () => {
         it('removes the rule entirely when its pendingAction was ADD', async () => {
+            // Given a rule that never reached the server.
             const ruleID = 'merchantRule1';
             const rule: Rule = {
                 ...buildExpenseDefaultRuleForPolicy('policy1'),
@@ -663,13 +705,16 @@ describe('actions/PolicyRules', () => {
             };
             await Onyx.set(`${ONYXKEYS.COLLECTION.RULE}${ruleID}`, rule);
 
-            clearMerchantRuleErrors(ruleID, rule);
+            // When the admin dismisses the error.
+            clearRuleErrors(ruleID, rule);
             await waitForBatchedUpdates();
 
+            // Then no unsaved rule remains.
             expect((await getRules())?.[`${ONYXKEYS.COLLECTION.RULE}${ruleID}`]).toBeFalsy();
         });
 
         it('clears only the errors when the rule has a non-ADD pending action', async () => {
+            // Given a saved rule with an error.
             const ruleID = 'merchantRule1';
             const rule: Rule = {
                 ...buildExpenseDefaultRuleForPolicy('policy1'),
@@ -678,18 +723,23 @@ describe('actions/PolicyRules', () => {
             };
             await Onyx.set(`${ONYXKEYS.COLLECTION.RULE}${ruleID}`, rule);
 
-            clearMerchantRuleErrors(ruleID, rule);
+            // When the admin dismisses the error.
+            clearRuleErrors(ruleID, rule);
             await waitForBatchedUpdates();
 
+            // Then Onyx keeps the existing rule.
             const cleared = (await getRules())?.[`${ONYXKEYS.COLLECTION.RULE}${ruleID}`];
             expect(cleared?.errors).toBeFalsy();
             expect(cleared?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
         });
 
         it('does nothing when no rule is passed', async () => {
-            clearMerchantRuleErrors('missing', undefined);
+            // Given the rule is no longer in Onyx.
+            // When the admin dismisses its error.
+            clearRuleErrors('missing', undefined);
             await waitForBatchedUpdates();
 
+            // Then no entry is created for it.
             expect(Object.keys((await getRules()) ?? {})).toHaveLength(0);
         });
     });

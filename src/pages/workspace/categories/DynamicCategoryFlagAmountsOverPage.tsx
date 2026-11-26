@@ -18,9 +18,17 @@ import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {clearDraftValues} from '@libs/actions/FormActions';
+import {deleteRule, setRule} from '@libs/actions/Policy/Rules';
 import {getDecodedCategoryName} from '@libs/CategoryUtils';
 import {convertToFrontendAmountAsString} from '@libs/CurrencyUtils';
-import {getCategoryFlagLimit, hasFlagForReviewRuleForLegacyWrite} from '@libs/FlagForReviewRulesUtils';
+import {
+    buildFlagForReviewRule,
+    canMatchFlagRuleCategory,
+    getCategoryFlagLimit,
+    getFlagForReviewConditions,
+    getFlagForReviewRuleAmountError,
+    getFlagForReviewRulePriority,
+} from '@libs/FlagForReviewRulesUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -29,18 +37,65 @@ import type {SettingsNavigatorParamList} from '@navigation/types';
 
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 
-import {setPolicyCategoryMaxAmount} from '@userActions/Policy/Category';
-
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/WorkspaceCategoryFlagAmountsOverForm';
+import type {PolicyCategoryExpenseLimitType} from '@src/types/onyx/PolicyCategory';
 
 import React, {useEffect} from 'react';
 import {View} from 'react-native';
 
 type DynamicCategoryFlagAmountsOverPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.DYNAMIC_CATEGORY_FLAG_AMOUNTS_OVER>;
+
+type CategoryFlagAmountFieldsProps = {
+    categoryName: string;
+    expenseLimitType: PolicyCategoryExpenseLimitType;
+    currency: string;
+    amount: number | undefined;
+    isDisabled: boolean;
+};
+
+function CategoryFlagAmountFields({categoryName, expenseLimitType, currency, amount, isDisabled}: CategoryFlagAmountFieldsProps) {
+    const styles = useThemeStyles();
+    const {translate} = useLocalize();
+    const {inputCallbackRef} = useAutoFocusInput();
+    const {getCurrencyDecimals} = useCurrencyListActions();
+    const defaultValue = convertToFrontendAmountAsString(amount, getCurrencyDecimals(currency));
+
+    return (
+        <>
+            <View style={[styles.mb4, styles.pt3, styles.ph5]}>
+                <Text style={styles.pb5}>{translate('workspace.rules.categoryRules.flagAmountsOverDescription', getDecodedCategoryName(categoryName))}</Text>
+                <InputWrapper
+                    label={translate('iou.amount')}
+                    InputComponent={AmountForm}
+                    inputID={INPUT_IDS.MAX_EXPENSE_AMOUNT}
+                    currency={currency}
+                    defaultValue={defaultValue}
+                    isCurrencyPressable={false}
+                    disabled={isDisabled}
+                    ref={inputCallbackRef}
+                    displayAsTextInput
+                />
+                <Text style={[styles.mutedTextLabel, styles.mt2]}>
+                    {expenseLimitType === CONST.POLICY.EXPENSE_LIMIT_TYPES.DAILY
+                        ? translate('workspace.rules.categoryRules.expenseLimitTypes.dailySubtitle')
+                        : translate('workspace.rules.categoryRules.flagAmountsOverSubtitle')}
+                </Text>
+            </View>
+            <View style={styles.mt3}>
+                <MenuItemField
+                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.CATEGORIES.FLAG_AMOUNTS_OVER_TYPE}
+                    name={translate('common.type')}
+                    value={translate(`workspace.rules.categoryRules.expenseLimitTypes.${expenseLimitType}`)}
+                    onPress={isDisabled ? undefined : () => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.EXPENSE_LIMIT_TYPE_SELECTOR.path))}
+                />
+            </View>
+        </>
+    );
+}
 
 function DynamicCategoryFlagAmountsOverPage({
     route: {
@@ -51,7 +106,6 @@ function DynamicCategoryFlagAmountsOverPage({
     const categorySettingsBackPath = useDynamicBackPath(DYNAMIC_ROUTES.WORKSPACE_CATEGORY_FLAG_AMOUNTS_OVER.path);
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {getCurrencyDecimals} = useCurrencyListActions();
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
     const [formDraft] = useOnyx(ONYXKEYS.FORMS.WORKSPACE_CATEGORY_FLAG_AMOUNTS_OVER_FORM_DRAFT);
     const category = policyCategories?.[categoryName];
@@ -63,16 +117,16 @@ function DynamicCategoryFlagAmountsOverPage({
         };
     }, []);
 
-    const {inputCallbackRef} = useAutoFocusInput();
-
     const policyCurrency = policy?.outputCurrency ?? CONST.CURRENCY.USD;
-    const flagLimit = getCategoryFlagLimit(category, categoryFlagLimits, policyCurrency);
+    const flagLimit = getCategoryFlagLimit(category, categoryFlagLimits);
+    const ruleID = flagLimit?.ruleID;
+    const [rule] = useOnyx(`${ONYXKEYS.COLLECTION.RULE}${ruleID}`);
+    const existingRule = rule?.scope === CONST.RULES.SCOPE.POLICY && rule.scopeID === policyID ? rule : undefined;
+    const conditions = getFlagForReviewConditions(existingRule);
     const expenseLimitType = formDraft?.expenseLimitType ?? flagLimit?.expenseLimitType ?? CONST.POLICY.EXPENSE_LIMIT_TYPES.EXPENSE;
-    const hasCurrencyMismatch = !!flagLimit && flagLimit.currency !== policyCurrency;
-    const isLimitUnavailable = !flagLimit && (!haveCategoryFlagLimitsLoaded || !category || hasFlagForReviewRuleForLegacyWrite(category, categoryFlagLimits));
-    const decodedCategoryName = getDecodedCategoryName(categoryName);
+    const isRuleWritePending = !!existingRule?.pendingAction && !existingRule.errors;
+    const isLimitUnavailable = !canMatchFlagRuleCategory(category) || (flagLimit ? !conditions : !haveCategoryFlagLimitsLoaded);
     const currency = flagLimit?.currency ?? policyCurrency;
-    const defaultValue = flagLimit ? convertToFrontendAmountAsString(flagLimit.amount, getCurrencyDecimals(currency)) : '';
     if (areCategoryFlagLimitsLoading && !flagLimit) {
         return <FullScreenLoadingIndicator shouldUseGoBackButton />;
     }
@@ -99,47 +153,48 @@ function DynamicCategoryFlagAmountsOverPage({
                     <FormProvider
                         style={[styles.flexGrow1]}
                         formID={ONYXKEYS.FORMS.WORKSPACE_CATEGORY_FLAG_AMOUNTS_OVER_FORM}
+                        validate={({maxExpenseAmount}) => {
+                            if (!maxExpenseAmount?.trim()) {
+                                return {};
+                            }
+                            const error = getFlagForReviewRuleAmountError(maxExpenseAmount, translate, expenseLimitType);
+                            return error ? {maxExpenseAmount: error} : {};
+                        }}
                         onSubmit={({maxExpenseAmount}) => {
-                            if (hasCurrencyMismatch) {
+                            if (!category || isRuleWritePending || isLimitUnavailable) {
                                 return;
                             }
-                            setPolicyCategoryMaxAmount(policyID, categoryName, maxExpenseAmount, expenseLimitType, policyCategories);
+                            if (!maxExpenseAmount?.trim()) {
+                                if (ruleID && existingRule) {
+                                    deleteRule(ruleID, existingRule);
+                                }
+                            } else {
+                                const ruleBody = buildFlagForReviewRule(
+                                    {category: category.name, maxExpenseAmount, expenseLimitType},
+                                    currency,
+                                    conditions ? conditions.enforcement : CONST.RULES.FLAG_FOR_REVIEW.ENFORCEMENT.WARNING,
+                                );
+                                if (!ruleBody) {
+                                    return;
+                                }
+                                setRule(policyID, ruleBody, getFlagForReviewRulePriority(ruleID, policyCategories), ruleID, existingRule);
+                            }
                             Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.goBack(categorySettingsBackPath));
                         }}
                         submitButtonText={translate('workspace.editor.save')}
-                        isSubmitDisabled={hasCurrencyMismatch}
+                        isSubmitDisabled={isRuleWritePending}
                         enabledWhenOffline
                         submitButtonStyles={styles.ph5}
                         shouldHideFixErrorsAlert
                         addBottomSafeAreaPadding
                     >
-                        <View style={[styles.mb4, styles.pt3, styles.ph5]}>
-                            <Text style={styles.pb5}>{translate('workspace.rules.categoryRules.flagAmountsOverDescription', decodedCategoryName)}</Text>
-                            <InputWrapper
-                                label={translate('iou.amount')}
-                                InputComponent={AmountForm}
-                                inputID={INPUT_IDS.MAX_EXPENSE_AMOUNT}
-                                currency={currency}
-                                defaultValue={defaultValue}
-                                isCurrencyPressable={false}
-                                disabled={hasCurrencyMismatch}
-                                ref={inputCallbackRef}
-                                displayAsTextInput
-                            />
-                            <Text style={[styles.mutedTextLabel, styles.mt2]}>
-                                {expenseLimitType === CONST.POLICY.EXPENSE_LIMIT_TYPES.DAILY
-                                    ? translate('workspace.rules.categoryRules.expenseLimitTypes.dailySubtitle')
-                                    : translate('workspace.rules.categoryRules.flagAmountsOverSubtitle')}
-                            </Text>
-                        </View>
-                        <View style={styles.mt3}>
-                            <MenuItemField
-                                sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.CATEGORIES.FLAG_AMOUNTS_OVER_TYPE}
-                                name={translate('common.type')}
-                                value={translate(`workspace.rules.categoryRules.expenseLimitTypes.${expenseLimitType}`)}
-                                onPress={hasCurrencyMismatch ? undefined : () => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.EXPENSE_LIMIT_TYPE_SELECTOR.path))}
-                            />
-                        </View>
+                        <CategoryFlagAmountFields
+                            categoryName={categoryName}
+                            expenseLimitType={expenseLimitType}
+                            currency={currency}
+                            amount={flagLimit?.amount}
+                            isDisabled={isRuleWritePending}
+                        />
                     </FormProvider>
                 )}
             </ScreenWrapper>

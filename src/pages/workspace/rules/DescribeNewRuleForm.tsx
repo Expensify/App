@@ -20,7 +20,7 @@ import {setDraftValues} from '@libs/actions/FormActions';
 import {openPolicyCategoriesPage} from '@libs/actions/Policy/Category';
 import {setDraftFlagForReviewRule, setDraftMerchantRule, setDraftRequireFieldsRule, setDraftSpendRule} from '@libs/actions/User';
 import {filterInactiveCards} from '@libs/CardUtils';
-import {hasFlagForReviewRuleForLegacyWrite} from '@libs/FlagForReviewRulesUtils';
+import {getCategoryFlagLimit, getDescribedFlagForReviewDraft} from '@libs/FlagForReviewRulesUtils';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import {categoryHasAnyRequireFieldsRule, getRequireFieldsDraftFromGeneratedValues} from '@libs/RequireFieldsRulesUtils';
@@ -86,7 +86,7 @@ function seedDraftAndNavigate(values: GeneratedRuleValues, ruleType: GeneratedRu
             Navigation.navigate(ROUTES.RULES_REQUIRE_FIELDS_RULE_NEW.getRoute(policyID));
             break;
         case CONST.GENERATED_RULE.RULE_TYPE.FLAG_FOR_REVIEW:
-            setDraftFlagForReviewRule(values);
+            setDraftFlagForReviewRule(getDescribedFlagForReviewDraft(policyID, values));
             Navigation.navigate(ROUTES.RULES_FLAG_FOR_REVIEW_RULE_NEW.getRoute(policyID));
             break;
         case CONST.GENERATED_RULE.RULE_TYPE.RESTRICT_CARD_SPEND:
@@ -143,7 +143,7 @@ function DescribeNewRuleForm({policyID, children}: DescribeNewRuleFormProps) {
             case CONST.GENERATED_RULE.RULE_TYPE.REQUIRE_FIELDS:
                 return !categoryHasAnyRequireFieldsRule(category);
             case CONST.GENERATED_RULE.RULE_TYPE.FLAG_FOR_REVIEW:
-                return !hasFlagForReviewRuleForLegacyWrite(category, categoryFlagLimits);
+                return !getCategoryFlagLimit(category, categoryFlagLimits);
             default:
                 return true;
         }

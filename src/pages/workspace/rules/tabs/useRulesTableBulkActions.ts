@@ -3,17 +3,18 @@ import type {SpendRuleTableItem} from '@components/Tables/WorkspaceSpendRulesTab
 
 import useConfirmModal from '@hooks/useConfirmModal';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDefaultFundID from '@hooks/useDefaultFundID';
 import useExpensifyCardRules from '@hooks/useExpensifyCardRulesList';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import useOnboardingTaskInformation from '@hooks/useOnboardingTaskInformation';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
 import usePolicyData from '@hooks/usePolicyData';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useReviewWorkspaceSettingsTaskCompletion from '@hooks/useReviewWorkspaceSettingsTaskCompletion';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -21,7 +22,8 @@ import {deleteExpensifyCardRule} from '@libs/actions/Card';
 import {openPolicyCategoriesPage} from '@libs/actions/Policy/Category';
 import {openPolicyExpensifyCardsPage} from '@libs/actions/Policy/Policy';
 import {deleteRule} from '@libs/actions/Policy/Rules';
-import {deleteFlagForReviewRule, getFlagForReviewTableData} from '@libs/FlagForReviewRulesUtils';
+import {completeReviewWorkspaceSettingsTask, getReviewWorkspaceSettingsTaskCompletionData} from '@libs/actions/Task';
+import {getFlagForReviewTableData} from '@libs/FlagForReviewRulesUtils';
 import {getExpenseDefaultsTableData, isMerchantTypeRuleKey} from '@libs/MerchantTypeRulesUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {deleteRequireFieldsRule, getRequireFieldsTableData} from '@libs/RequireFieldsRulesUtils';
@@ -34,7 +36,7 @@ import ROUTES from '@src/ROUTES';
 
 import type {ValueOf} from 'type-fest';
 
-import {getCategoryFlagLimitsForPolicy} from '@selectors/Rule';
+import {getFlagForReviewRulesForPolicy} from '@selectors/Rule';
 import {useEffect, useRef} from 'react';
 
 const DEFAULT_SPEND_RULE_ID = 'default-rule';
@@ -67,7 +69,8 @@ function useRulesTableBulkActions({policyID, activeTab, selectedRuleKeysByTab, c
     const {isOffline} = useNetwork();
     const policy = usePolicy(policyID);
     const policyData = usePolicyData(policyID);
-    const getReviewWorkspaceSettingsTaskCompletion = useReviewWorkspaceSettingsTaskCompletion();
+    const {accountID} = useCurrentUserPersonalDetails();
+    const reviewWorkspaceSettingsTaskInformation = useOnboardingTaskInformation(CONST.ONBOARDING_TASK_TYPE.REVIEW_WORKSPACE_SETTINGS);
     const {convertToDisplayString, convertToDisplayStringWithoutCurrency} = useCurrencyListActions();
     const defaultFundID = useDefaultFundID(policyID);
     const [expensifyCardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${defaultFundID}`);
@@ -181,9 +184,9 @@ function useRulesTableBulkActions({policyID, activeTab, selectedRuleKeysByTab, c
     const flagForReviewTableData =
         canWriteRules && selectedRuleKeysByTab[RULES_TAB.FLAG_FOR_REVIEW]?.length
             ? getFlagForReviewTableData({
-                  policy,
-                  policyCategories: arePolicyCategoriesLoading ? undefined : policyData.categories,
-                  categoryFlagLimits: getCategoryFlagLimitsForPolicy(rules, policyID),
+                  policyID,
+                  policyCategories: policyCategoriesOnyx,
+                  flagRules: getFlagForReviewRulesForPolicy(rules, policyID),
                   translate,
                   convertToDisplayString,
                   isOffline,
@@ -195,7 +198,7 @@ function useRulesTableBulkActions({policyID, activeTab, selectedRuleKeysByTab, c
         [RULES_TAB.CARD_RESTRICTIONS]: new Set(spendRulesTableData.filter((rule) => !rule.disabled).map((rule) => rule.keyForList)),
         [RULES_TAB.EXPENSE_DEFAULTS]: new Set(expenseDefaultsTableData.filter((rule) => !rule.disabled && !rule.isSelectionDisabled).map((rule) => rule.keyForList)),
         [RULES_TAB.REQUIRE_FIELDS]: new Set(requireFieldsTableData.filter((rule) => !rule.disabled).map((rule) => rule.keyForList)),
-        [RULES_TAB.FLAG_FOR_REVIEW]: new Set(flagForReviewTableData.filter((rule) => !rule.disabled).map((rule) => rule.keyForList)),
+        [RULES_TAB.FLAG_FOR_REVIEW]: new Set(flagForReviewTableData.filter((rule) => !rule.disabled && !rule.isSelectionDisabled).map((rule) => rule.keyForList)),
     };
 
     const getFilteredSelectedKeys = (tab: TableSelectionTab) => {
@@ -242,7 +245,7 @@ function useRulesTableBulkActions({policyID, activeTab, selectedRuleKeysByTab, c
 
         if (activeTab === RULES_TAB.REQUIRE_FIELDS) {
             // Drained to {} after the first write so this bulk delete's optimistic task tick fires exactly once.
-            let remainingTaskData = getReviewWorkspaceSettingsTaskCompletion();
+            let remainingTaskData = getReviewWorkspaceSettingsTaskCompletionData(reviewWorkspaceSettingsTaskInformation, accountID);
             for (const ruleKey of filteredSelectedRequireFieldsRuleKeys) {
                 deleteRequireFieldsRule(policyData, ruleKey, isVendorMatchingBetaEnabled, remainingTaskData);
                 remainingTaskData = {};
@@ -252,11 +255,19 @@ function useRulesTableBulkActions({policyID, activeTab, selectedRuleKeysByTab, c
         }
 
         if (activeTab === RULES_TAB.FLAG_FOR_REVIEW) {
-            // Drained to {} after the first write so this bulk delete's optimistic task tick fires exactly once.
-            let remainingTaskData = getReviewWorkspaceSettingsTaskCompletion();
-            for (const categoryName of filteredSelectedFlagForReviewRuleKeys) {
-                deleteFlagForReviewRule(policyID, categoryName, policyData.categories, remainingTaskData);
-                remainingTaskData = {};
+            let didDeleteSavedRule = false;
+            for (const ruleID of filteredSelectedFlagForReviewRuleKeys) {
+                const rule = rules?.[`${ONYXKEYS.COLLECTION.RULE}${ruleID}`];
+                if (!rule) {
+                    continue;
+                }
+                deleteRule(ruleID, rule);
+                if (rule.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD) {
+                    didDeleteSavedRule = true;
+                }
+            }
+            if (didDeleteSavedRule) {
+                completeReviewWorkspaceSettingsTask(reviewWorkspaceSettingsTaskInformation, accountID);
             }
             clearTableSelection();
             return;

@@ -1,4 +1,11 @@
-import {getCategoryFlagLimit, getFlagForReviewFormFromLimit, getFlagForReviewTableData, hasFlagForReviewRuleForLegacyWrite} from '@libs/FlagForReviewRulesUtils';
+import {
+    buildFlagForReviewRule,
+    canMatchFlagRuleCategory,
+    getCategoryFlagLimit,
+    getFlagForReviewConditions,
+    getFlagForReviewDraft,
+    getFlagForReviewTableData,
+} from '@libs/FlagForReviewRulesUtils';
 import {toIndexMap} from '@libs/RuleUtils';
 
 import CONST from '@src/CONST';
@@ -7,7 +14,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Rule} from '@src/types/onyx';
 
-import {createCategoryFlagLimitsSelector} from '@selectors/Rule';
+import {createCategoryFlagLimitsSelector, createFlagForReviewRulesSelector} from '@selectors/Rule';
 
 import createRandomPolicy from '../utils/collections/policies';
 import {convertToDisplayString, translateLocal} from '../utils/TestHelper';
@@ -15,6 +22,7 @@ import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 const policy = {...createRandomPolicy(0), outputCurrency: CONST.CURRENCY.USD};
 const selectFlagLimits = createCategoryFlagLimitsSelector(policy.id);
+const selectFlagRules = createFlagForReviewRulesSelector(policy.id);
 const ruleKey = (id: string) => `${ONYXKEYS.COLLECTION.RULE}${id}` as const;
 const {ACTIONS, TRIGGERS, DAILY_BUDGET_FILTER} = CONST.RULES;
 const {AND, OR, EQUAL_TO, GREATER_THAN} = CONST.SEARCH.SYNTAX_OPERATORS;
@@ -38,7 +46,7 @@ describe('mirrored category flag limits', () => {
     });
 
     it('reads only migrated-shaped transaction flags in this workspace', () => {
-        // Given rules from multiple workspaces, including rule shapes the legacy editor cannot round-trip.
+        // Given rules from multiple workspaces, including rule shapes the flag editor cannot round-trip.
         const expenseRule = {
             ...dailyRule,
             filters: {
@@ -68,8 +76,8 @@ describe('mirrored category flag limits', () => {
 
         // Then the category names stay in stored form, and monetary operands keep their own currency and type.
         expect(limits).toEqual({
-            [mealCategory.name]: {amount: 10025, currency: CONST.CURRENCY.USD, expenseLimitType: DAILY, ruleKey: ruleKey('2')},
-            Travel: {amount: 300000, currency: 'JPY', expenseLimitType: EXPENSE, ruleKey: ruleKey('3')},
+            [mealCategory.name]: {amount: 10025, currency: CONST.CURRENCY.USD, expenseLimitType: DAILY, ruleID: '2'},
+            Travel: {amount: 300000, currency: 'JPY', expenseLimitType: EXPENSE, ruleID: '3'},
         });
     });
 
@@ -77,35 +85,41 @@ describe('mirrored category flag limits', () => {
         // Given a daily cap mirrored to rules and conflicting legacy values.
         const category = {...mealCategory, maxExpenseAmount: 4200, expenseLimitType: EXPENSE};
         const policyCategories = {[category.name]: category, Parking: {name: 'Parking', enabled: true, maxExpenseAmount: 2500}};
-        const categoryFlagLimits = selectFlagLimits({[ruleKey('1')]: dailyRule});
+        const flagRules = selectFlagRules({[ruleKey('1')]: dailyRule});
         const onNavigate = jest.fn();
 
         // When rendering the table and deriving the edit draft.
-        const rows = getFlagForReviewTableData({policy, policyCategories, categoryFlagLimits, translate: translateLocal, convertToDisplayString, isOffline: false, onNavigate});
-        const limit = getCategoryFlagLimit(category, categoryFlagLimits, policy.outputCurrency);
-        const form = limit && getFlagForReviewFormFromLimit(category.name, limit, () => CONST.DEFAULT_CURRENCY_DECIMALS);
+        const rows = getFlagForReviewTableData({policyID: policy.id, policyCategories, flagRules, translate: translateLocal, convertToDisplayString, isOffline: false, onNavigate});
+        const conditions = flagRules['1'];
+        const form = getFlagForReviewDraft(conditions, () => CONST.DEFAULT_CURRENCY_DECIMALS);
         rows.at(0)?.action();
 
-        // Then only the mirrored cap is shown, with daily scope and the existing category edit route.
-        expect(rows.map((row) => [row.keyForList, row.conditionText])).toEqual([[mealCategory.name, '"Meals & drinks" total over $100.25 per submitter per day across reports']]);
-        expect(form).toEqual({category: mealCategory.name, maxExpenseAmount: '100.25', expenseLimitType: DAILY});
-        expect(onNavigate).toHaveBeenCalledWith(ROUTES.RULES_FLAG_FOR_REVIEW_RULE_EDIT.getRoute(policy.id, mealCategory.name));
-        expect(hasFlagForReviewRuleForLegacyWrite(policyCategories.Parking, categoryFlagLimits)).toBe(true);
+        // Then only the mirrored cap is shown, with daily scope and a stable rule ID.
+        expect(rows.map((row) => [row.keyForList, row.conditionText])).toEqual([['1', '"Meals & drinks" total over $100.25 per submitter per day across reports']]);
+        expect(form).toMatchObject({category: mealCategory.name, maxExpenseAmount: '100.25', expenseLimitType: DAILY});
+        expect(onNavigate).toHaveBeenCalledWith(ROUTES.RULES_FLAG_FOR_REVIEW_RULE_EDIT.getRoute(policy.id, '1'));
+        expect(getCategoryFlagLimit(policyCategories.Parking, selectFlagLimits({[ruleKey('1')]: dailyRule}))).toBeUndefined();
     });
 
-    it('keeps pending legacy writes visible until Auth supplies the mirrored state', () => {
+    it('reflects pending state from the rule, not the legacy category', () => {
         // Given a queued amount change and a queued deletion for the same mirrored limit.
         const {UPDATE, DELETE} = CONST.RED_BRICK_ROAD_PENDING_ACTION;
-        const categoryFlagLimits = selectFlagLimits({[ruleKey('1')]: dailyRule});
-        const params = {policy, categoryFlagLimits, translate: translateLocal, convertToDisplayString, onNavigate: jest.fn()};
-        const category = {...mealCategory, maxExpenseAmount: 2500, expenseLimitType: EXPENSE};
-        const pendingUpdate = {[category.name]: {...category, pendingFields: {maxExpenseAmount: UPDATE}}};
-        const pendingDelete = {[category.name]: {...category, pendingFields: {maxExpenseAmount: DELETE}}};
+        const updatedRule = {...dailyRule, pendingAction: UPDATE, filters: {...dailyRule.filters, right: {...dailyCap, right: '25.00 USD'}}};
+        const deletedRule = {...dailyRule, pendingAction: DELETE};
+        const params = {
+            policyID: policy.id,
+            policyCategories: {[mealCategory.name]: {...mealCategory, maxExpenseAmount: 4200}},
+            translate: translateLocal,
+            convertToDisplayString,
+            onNavigate: jest.fn(),
+        };
+        const updatedFlags = selectFlagRules({[ruleKey('1')]: updatedRule});
+        const deletedFlags = selectFlagRules({[ruleKey('1')]: deletedRule});
 
         // When showing them offline, then reconnecting while the delete is in flight.
-        const updatedRows = getFlagForReviewTableData({...params, policyCategories: pendingUpdate, isOffline: true});
-        const deletedRows = getFlagForReviewTableData({...params, policyCategories: pendingDelete, isOffline: true});
-        const onlineRows = getFlagForReviewTableData({...params, policyCategories: pendingDelete, isOffline: false});
+        const updatedRows = getFlagForReviewTableData({...params, flagRules: updatedFlags, isOffline: true});
+        const deletedRows = getFlagForReviewTableData({...params, flagRules: deletedFlags, isOffline: true});
+        const onlineRows = getFlagForReviewTableData({...params, flagRules: deletedFlags, isOffline: false});
 
         // Then the pending amount is shown and the deleted row cannot be selected or reopened.
         expect(updatedRows.at(0)?.conditionText).toContain('$25.00');
@@ -127,17 +141,17 @@ describe('mirrored category flag limits', () => {
                 maxExpenseAmount: 900,
                 pendingFields: {name: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
             };
-            const categoryFlagLimits = selectFlagLimits({[ruleKey('1')]: dailyRule});
+            const flagRules = selectFlagRules({[ruleKey('1')]: dailyRule});
             const onNavigate = jest.fn();
 
             // When loading the flag table from the renamed category and cached rule.
             const rows = getFlagForReviewTableData({
-                policy,
+                policyID: policy.id,
                 policyCategories: {
                     [renamedCategory.name]: renamedCategory,
                     [mealCategory.name]: {...mealCategory, ...pendingCategoryUpdate},
                 },
-                categoryFlagLimits,
+                flagRules,
                 translate: translateLocal,
                 convertToDisplayString,
                 isOffline: true,
@@ -145,10 +159,28 @@ describe('mirrored category flag limits', () => {
             });
             rows.at(0)?.action();
 
-            // Then only the renamed category keeps the cap and the edit route uses its new name.
+            // Then only the renamed category keeps the cap and the edit route keeps its ID.
             expect(rows).toHaveLength(1);
             expect(rows.at(0)?.conditionText).toContain('"Food" total over $100.25');
-            expect(onNavigate).toHaveBeenCalledWith(ROUTES.RULES_FLAG_FOR_REVIEW_RULE_EDIT.getRoute(policy.id, renamedCategory.name));
+            expect(onNavigate).toHaveBeenCalledWith(ROUTES.RULES_FLAG_FOR_REVIEW_RULE_EDIT.getRoute(policy.id, '1'));
+            const limits = selectFlagLimits({[ruleKey('1')]: dailyRule});
+            expect(getCategoryFlagLimit(renamedCategory, limits)?.ruleID).toBe('1');
+            expect(getCategoryFlagLimit({...mealCategory, ...pendingCategoryUpdate}, limits)).toBeUndefined();
+            expect(canMatchFlagRuleCategory({...mealCategory, ...pendingCategoryUpdate})).toBe(false);
         },
     );
+
+    it.each([CONST.RULES.FLAG_FOR_REVIEW.ENFORCEMENT.WARNING, CONST.RULES.FLAG_FOR_REVIEW.ENFORCEMENT.BLOCK])('round-trips a merchant and per-expense threshold with %s', (enforcement) => {
+        // Given a merchant rule that also matches a category and a per-expense amount.
+        const draft = {merchantToMatch: 'Starbucks', matchType: EQUAL_TO, category: mealCategory.name, maxExpenseAmount: '3000', expenseLimitType: EXPENSE};
+        const body = buildFlagForReviewRule(draft, 'JPY', enforcement);
+
+        // When the wire body comes back from GetRules and seeds the editor.
+        const conditions = body && getFlagForReviewConditions({...dailyRule, ...body});
+
+        // Then the one-based action, exact match, amount and currency survive.
+        expect(Object.keys(body?.actions ?? {})).toEqual(['1']);
+        expect(body?.actions[1]).toEqual({name: ACTIONS.TRIGGER_VIOLATION, enforcement});
+        expect(conditions && getFlagForReviewDraft(conditions, () => 0)).toMatchObject({...draft, enforcement, currency: 'JPY'});
+    });
 });

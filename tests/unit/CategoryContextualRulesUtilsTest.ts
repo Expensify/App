@@ -19,18 +19,20 @@ const policy = {
     outputCurrency: CONST.CURRENCY.USD,
 };
 
-const travelFlagRules: OnyxCollection<Rule> = {
-    [`${ONYXKEYS.COLLECTION.RULE}2`]: {
-        scope: CONST.RULES.SCOPE.POLICY,
-        scopeID: policy.id,
-        triggers: toIndexMap([CONST.RULES.TRIGGERS.CREATE_TRANSACTION, CONST.RULES.TRIGGERS.UPDATE_TRANSACTION]),
-        actions: toIndexMap([{name: CONST.RULES.ACTIONS.TRIGGER_VIOLATION}]),
-        filters: {
-            operator: CONST.SEARCH.SYNTAX_OPERATORS.AND,
-            left: {left: CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY, operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, right: 'Travel'},
-            right: {left: CONST.RULES.DAILY_BUDGET_FILTER, operator: CONST.SEARCH.SYNTAX_OPERATORS.GREATER_THAN, right: '200 USD'},
-        },
+const travelFlagRule = {
+    scope: CONST.RULES.SCOPE.POLICY,
+    scopeID: policy.id,
+    triggers: toIndexMap([CONST.RULES.TRIGGERS.CREATE_TRANSACTION, CONST.RULES.TRIGGERS.UPDATE_TRANSACTION]),
+    actions: toIndexMap([{name: CONST.RULES.ACTIONS.TRIGGER_VIOLATION}]),
+    filters: {
+        operator: CONST.SEARCH.SYNTAX_OPERATORS.AND,
+        left: {left: CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY, operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, right: 'Travel'},
+        right: {left: CONST.RULES.DAILY_BUDGET_FILTER, operator: CONST.SEARCH.SYNTAX_OPERATORS.GREATER_THAN, right: '200 USD'},
     },
+} satisfies Rule;
+const travelFlagRules: OnyxCollection<Rule> = {[`${ONYXKEYS.COLLECTION.RULE}2`]: travelFlagRule};
+const pendingDeleteFlagRules: OnyxCollection<Rule> = {
+    [`${ONYXKEYS.COLLECTION.RULE}2`]: {...travelFlagRule, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE},
 };
 
 describe('getCategoryContextualRules', () => {
@@ -88,7 +90,7 @@ describe('getCategoryContextualRules', () => {
     });
 
     it('keeps optimistically deleted rules listed and disabled while offline', () => {
-        // Given a legacy delete queued before the flag rule has reached the rules collection.
+        // Given a rule delete and a legacy field requirement delete are both queued.
         const category: PolicyCategory = {
             name: 'Travel',
             enabled: true,
@@ -96,7 +98,6 @@ describe('getCategoryContextualRules', () => {
             expenseLimitType: CONST.POLICY.EXPENSE_LIMIT_TYPES.EXPENSE,
             areCommentsRequired: true,
             pendingFields: {
-                maxExpenseAmount: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
                 areCommentsRequired: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
             },
         };
@@ -104,6 +105,7 @@ describe('getCategoryContextualRules', () => {
         // When viewing category rules offline.
         const rules = getCategoryContextualRules({
             policy,
+            policyRules: pendingDeleteFlagRules,
             category,
             categoryName: 'Travel',
             translate: translateLocal,
@@ -131,7 +133,6 @@ describe('getCategoryContextualRules', () => {
             expenseLimitType: CONST.POLICY.EXPENSE_LIMIT_TYPES.EXPENSE,
             areCommentsRequired: true,
             pendingFields: {
-                maxExpenseAmount: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
                 areCommentsRequired: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
             },
         };
@@ -139,7 +140,7 @@ describe('getCategoryContextualRules', () => {
         // When viewing the category rules online.
         const rules = getCategoryContextualRules({
             policy,
-            policyRules: travelFlagRules,
+            policyRules: pendingDeleteFlagRules,
             category,
             categoryName: 'Travel',
             translate: translateLocal,

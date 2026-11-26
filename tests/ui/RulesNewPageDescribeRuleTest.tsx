@@ -314,7 +314,7 @@ describe('New rule describe section', () => {
         });
 
         // Then the flag for review editor opens with the generated values, so the admin only reviews and saves
-        expect(await getOnyxValue(ONYXKEYS.FORMS.FLAG_FOR_REVIEW_RULE_FORM)).toEqual({maxExpenseAmount: '500'});
+        expect(await getOnyxValue(ONYXKEYS.FORMS.FLAG_FOR_REVIEW_RULE_FORM)).toEqual({maxExpenseAmount: '500', draftKey: `${POLICY_ID}/new`});
         expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.RULES_FLAG_FOR_REVIEW_RULE_NEW.getRoute(POLICY_ID));
     });
 
