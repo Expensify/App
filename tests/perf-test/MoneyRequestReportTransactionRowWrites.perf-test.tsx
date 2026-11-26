@@ -29,6 +29,7 @@ import Onyx from 'react-native-onyx';
 import {makeMutable} from 'react-native-reanimated';
 import {measureRenders} from 'reassure';
 
+import {mergePersonalDetailsList} from '../utils/PersonalDetailsTestUtils';
 import * as ReportTestUtils from '../utils/ReportTestUtils';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
@@ -284,9 +285,7 @@ describe.each(['narrow', 'wide'])('%s layout', (layout) => {
     test('[MoneyRequestReportTransactionRows] should re-render when an unrelated personal detail changes', async () => {
         // Given an expense report with 10 transactions, when a user outside the report is renamed
         // Then reassure measures what an unrelated personal details write costs the rows
-        await measureWrites((run, index) =>
-            Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {[UNRELATED_ACCOUNT_ID]: {accountID: UNRELATED_ACCOUNT_ID, displayName: `Unrelated ${run}-${index}`}}),
-        );
+        await measureWrites((run, index) => mergePersonalDetailsList({[UNRELATED_ACCOUNT_ID]: {accountID: UNRELATED_ACCOUNT_ID, displayName: `Unrelated ${run}-${index}`}}));
     });
 
     test('[MoneyRequestReportTransactionRows] should re-render when the report total changes', async () => {

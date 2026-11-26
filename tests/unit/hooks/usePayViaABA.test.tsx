@@ -20,6 +20,7 @@ import React from 'react';
 import Onyx from 'react-native-onyx';
 
 import createRandomPolicy from '../../utils/collections/policies';
+import {mergePersonalDetailsList} from '../../utils/PersonalDetailsTestUtils';
 import {translateLocal} from '../../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../../utils/waitForBatchedUpdatesWithAct';
 
@@ -73,7 +74,7 @@ describe('usePayViaABA', () => {
         await act(async () => {
             await Onyx.clear();
             await Onyx.merge(ONYXKEYS.SESSION, {accountID: ACCOUNT_ID, email: 'admin@test.com'});
-            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {[ACCOUNT_ID]: {accountID: ACCOUNT_ID, login: 'admin@test.com'}});
+            await mergePersonalDetailsList({[ACCOUNT_ID]: {accountID: ACCOUNT_ID, login: 'admin@test.com'}});
             await Onyx.merge(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED, 100);
         });
     });
@@ -123,7 +124,7 @@ describe('usePayViaABA', () => {
         // Given a report submitted by an employee who hasn't added a bank account the ABA file can pay into
         const employeeAccountID = 2;
         await act(async () => {
-            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {[employeeAccountID]: {accountID: employeeAccountID, login: 'tom@test.com', displayName: 'Tom Jones'}});
+            await mergePersonalDetailsList({[employeeAccountID]: {accountID: employeeAccountID, login: 'tom@test.com', displayName: 'Tom Jones'}});
         });
         const {result} = renderHook(() => usePayViaABA(), {wrapper: Wrapper});
         await waitForBatchedUpdatesWithAct();

@@ -34,6 +34,7 @@ import {NavigationContainer} from '@react-navigation/native';
 import React from 'react';
 import Onyx from 'react-native-onyx';
 
+import {mergePersonalDetailsList} from '../utils/PersonalDetailsTestUtils';
 import * as TestHelper from '../utils/TestHelper';
 import {isObject} from '../utils/typeGuards';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
@@ -244,7 +245,7 @@ describe('ProfilePage - agent account', () => {
         };
 
         await act(async () => {
-            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetails);
+            await mergePersonalDetailsList(personalDetails);
             await Onyx.merge(ONYXKEYS.IS_LOADING_APP, false);
         });
 
@@ -661,7 +662,7 @@ describe('ProfilePage - See chat history', () => {
         };
 
         await act(async () => {
-            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetails);
+            await mergePersonalDetailsList(personalDetails);
             await Onyx.merge(ONYXKEYS.IS_LOADING_APP, false);
         });
         await waitForBatchedUpdatesWithAct();
@@ -782,7 +783,7 @@ describe('ProfilePage - SMS domain handling', () => {
         };
 
         await act(async () => {
-            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetails);
+            await mergePersonalDetailsList(personalDetails);
             await Onyx.merge(ONYXKEYS.IS_LOADING_APP, false);
         });
 
@@ -822,7 +823,7 @@ describe('ProfilePage - SMS domain handling', () => {
         };
 
         await act(async () => {
-            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetails);
+            await mergePersonalDetailsList(personalDetails);
             await Onyx.merge(ONYXKEYS.IS_LOADING_APP, false);
         });
 

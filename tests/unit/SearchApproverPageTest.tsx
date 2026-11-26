@@ -20,6 +20,7 @@ import React from 'react';
 import Onyx from 'react-native-onyx';
 
 import createMock from '../utils/createMock';
+import {mergePersonalDetailsList} from '../utils/PersonalDetailsTestUtils';
 import {buildPersonalDetails} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
@@ -103,7 +104,7 @@ describe('SearchApproverPage', () => {
         });
         const report = createMock<Report>({reportID: SELECTED_REPORT_ID, type: CONST.REPORT.TYPE.EXPENSE, policyID: POLICY_ID, managerID: MANAGER_ACCOUNT_ID});
         const secondReport = createMock<Report>({reportID: SECOND_REPORT_ID, type: CONST.REPORT.TYPE.EXPENSE, policyID: SECOND_POLICY_ID, managerID: MANAGER_ACCOUNT_ID});
-        await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {[APPROVER_ACCOUNT_ID]: buildPersonalDetails(APPROVER_EMAIL, APPROVER_ACCOUNT_ID, 'Approver')});
+        await mergePersonalDetailsList({[APPROVER_ACCOUNT_ID]: buildPersonalDetails(APPROVER_EMAIL, APPROVER_ACCOUNT_ID, 'Approver')});
         await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, policy);
         await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${SECOND_POLICY_ID}`, secondPolicy);
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${SELECTED_REPORT_ID}`, report);

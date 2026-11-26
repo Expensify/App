@@ -40,6 +40,7 @@ import createRandomPolicy from '../../utils/collections/policies';
 import {createRandomReport} from '../../utils/collections/reports';
 import createRandomTransaction from '../../utils/collections/transaction';
 import getOnyxValue from '../../utils/getOnyxValue';
+import {mergePersonalDetailsList, withPersonalDetails} from '../../utils/PersonalDetailsTestUtils';
 import {getGlobalFetchMock} from '../../utils/TestHelper';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
@@ -120,7 +121,7 @@ describe('actions/IOU', () => {
             keys: ONYXKEYS,
             initialKeyStates: {
                 [ONYXKEYS.SESSION]: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
-                [ONYXKEYS.PERSONAL_DETAILS_LIST]: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
+                ...withPersonalDetails({[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}}),
                 [ONYXKEYS.CURRENCY_LIST]: currencyList,
             },
         });
@@ -741,7 +742,7 @@ describe('actions/IOU', () => {
 
             beforeEach(async () => {
                 // Given a 1:1 chat with a recipient created offline, whose optimistic personal details have a login
-                await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {[recipientAccountID]: {accountID: recipientAccountID, login: recipientLogin, isOptimisticPersonalDetail: true}});
+                await mergePersonalDetailsList({[recipientAccountID]: {accountID: recipientAccountID, login: recipientLogin, isOptimisticPersonalDetail: true}});
                 await waitForBatchedUpdates();
             });
 
@@ -793,7 +794,7 @@ describe('actions/IOU', () => {
                 // Given a 1:1 chat with a recipient whose personal details came from the server, so they are not optimistic
                 const recipientAccountID = 9999994;
                 const recipientLogin = 'synced.recipient@expensifail.com';
-                await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {[recipientAccountID]: {accountID: recipientAccountID, login: recipientLogin}});
+                await mergePersonalDetailsList({[recipientAccountID]: {accountID: recipientAccountID, login: recipientLogin}});
                 await waitForBatchedUpdates();
                 const chatReport = {
                     reportID: 'chatReport789',

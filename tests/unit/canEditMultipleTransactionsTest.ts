@@ -12,6 +12,7 @@ import createRandomPolicy from '../utils/collections/policies';
 import createRandomReportAction from '../utils/collections/reportActions';
 import {createExpenseReport} from '../utils/collections/reports';
 import createRandomTransaction from '../utils/collections/transaction';
+import {mergePersonalDetailsList} from '../utils/PersonalDetailsTestUtils';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 const currentUserAccountID = 1;
@@ -339,7 +340,7 @@ describe('canEditMultipleTransactions', () => {
         const approverAccountID = 99;
         const approverEmail = 'approver99@example.com';
         // canEditMoneyRequest resolves the submitter and the approver route from personal details and the policy
-        await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+        await mergePersonalDetailsList({
             [currentUserAccountID]: {accountID: currentUserAccountID, login: currentUserEmail},
             [approverAccountID]: {accountID: approverAccountID, login: approverEmail},
         });

@@ -61,6 +61,7 @@ import createRandomPolicy from '../../utils/collections/policies';
 import createRandomTransaction from '../../utils/collections/transaction';
 import createMock from '../../utils/createMock';
 import getOnyxValue from '../../utils/getOnyxValue';
+import {mergePersonalDetailsList} from '../../utils/PersonalDetailsTestUtils';
 import {convertToDisplayString, formatPhoneNumber, getCurrencyDecimalsLocal, localeCompare, translateLocal} from '../../utils/TestHelper';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
@@ -16240,14 +16241,14 @@ describe('SearchUIUtils', () => {
             beforeEach(async () => {
                 // The approval check resolves the policy and the approver's account ID from Onyx rather than from the arguments
                 await Onyx.merge(POLICY_KEY, approvalPolicy);
-                await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetailsList);
+                await mergePersonalDetailsList(personalDetailsList);
                 await Onyx.merge(ONYXKEYS.SESSION, {accountID: TEST_ACCOUNT_ID, email: TEST_OWNER_LOGIN});
                 await waitForBatchedUpdates();
             });
 
             afterEach(async () => {
                 await Onyx.merge(POLICY_KEY, null);
-                await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, null);
+                await mergePersonalDetailsList(null);
             });
 
             it('hides the delete option when the live report actions show the report was forwarded since its last submit', () => {

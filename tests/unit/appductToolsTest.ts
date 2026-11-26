@@ -17,6 +17,8 @@ import type {NavigationState} from '@react-navigation/native';
 import {addAppductListener, registerTool} from '@appduct/react-native';
 import Onyx from 'react-native-onyx';
 
+import {withPersonalDetails} from '../utils/PersonalDetailsTestUtils';
+
 jest.mock('@userActions/Session', () => ({
     ...jest.requireActual<Record<string, unknown>>('@userActions/Session'),
     beginSignIn: jest.fn(),
@@ -124,7 +126,7 @@ describe('get_state', () => {
     it('reports the signed-in identity, taking the login from personal details', async () => {
         await Onyx.multiSet({
             [ONYXKEYS.SESSION]: {...SIGNED_IN_SESSION, email: 'session@gmail.com'},
-            [ONYXKEYS.PERSONAL_DETAILS_LIST]: {[ACCOUNT_ID]: {accountID: ACCOUNT_ID, login: 's@gmail.com'}},
+            ...withPersonalDetails({[ACCOUNT_ID]: {accountID: ACCOUNT_ID, login: 's@gmail.com'}}),
             [ONYXKEYS.NVP_ONBOARDING]: {hasCompletedGuidedSetupFlow: true},
             [ONYXKEYS.IS_LOADING_APP]: false,
         });

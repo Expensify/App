@@ -17,7 +17,7 @@ function getMentionedAccountIDs(htmlString: string | undefined): number[] {
 }
 
 /**
- * Build the accountID -> name map from PERSONAL_DETAILS_LIST.
+ * Build the accountID -> name map from personal details.
  * When accountIDs is passed, only those accounts are looked up, so callers rendering many items don't walk the whole list.
  */
 function buildAccountIDToNameMap(personalDetailsList: PersonalDetailsList | undefined, accountIDs?: number[]): AccountIDToNameMap {
@@ -32,7 +32,7 @@ function buildAccountIDToNameMap(personalDetailsList: PersonalDetailsList | unde
     return map;
 }
 
-/** Returns an accountID -> name (login or displayName) map built from PERSONAL_DETAILS_LIST. */
+/** Returns an accountID -> name (login or displayName) map built from personal details. */
 function useAccountIDToNameMap(): AccountIDToNameMap {
     const [personalDetailsList] = useAllPersonalDetails();
     return buildAccountIDToNameMap(personalDetailsList);

@@ -15,6 +15,7 @@ import React from 'react';
 import Onyx from 'react-native-onyx';
 
 import createRandomPolicy from '../utils/collections/policies';
+import {setPersonalDetailsList} from '../utils/PersonalDetailsTestUtils';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 const SOURCE_POLICY_ID = 'source-policy-1';
@@ -156,7 +157,7 @@ describe('CopyPolicySettingsNavigation', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${SOURCE_POLICY_ID}`, createTestPolicy(SOURCE_POLICY_ID, 'Source Workspace'));
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${TARGET_POLICY_1_ID}`, createTestPolicy(TARGET_POLICY_1_ID, 'Target Workspace 1'));
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${TARGET_POLICY_2_ID}`, createTestPolicy(TARGET_POLICY_2_ID, 'Target Workspace 2'));
-            await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+            await setPersonalDetailsList({
                 [TEST_USER_ACCOUNT_ID]: {
                     accountID: TEST_USER_ACCOUNT_ID,
                     login: TEST_USER_EMAIL,

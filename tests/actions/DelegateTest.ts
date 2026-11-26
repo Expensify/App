@@ -30,6 +30,7 @@ import type {DelegatedAccess} from '@src/types/onyx/Account';
 import Onyx from 'react-native-onyx';
 
 import getOnyxValue from '../utils/getOnyxValue';
+import {setPersonalDetailsList} from '../utils/PersonalDetailsTestUtils';
 import {setupGlobalFetchMock, translateLocal} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
@@ -536,7 +537,7 @@ describe('actions/Delegate', () => {
         const agentAccountID = 3;
 
         beforeEach(async () => {
-            await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {[agentAccountID]: {accountID: agentAccountID, login: agentEmail, isCustomAgent: true}});
+            await setPersonalDetailsList({[agentAccountID]: {accountID: agentAccountID, login: agentEmail, isCustomAgent: true}});
             jest.spyOn(navigationRef, 'isReady').mockReturnValue(true);
             jest.spyOn(API, 'makeRequestWithSideEffects').mockResolvedValue({
                 jsonCode: CONST.JSON_CODE.SUCCESS,

@@ -346,6 +346,7 @@ import createRandomTransaction from '../utils/collections/transaction';
 import createMock from '../utils/createMock';
 import * as LHNTestUtils from '../utils/LHNTestUtils';
 import {fakePersonalDetails} from '../utils/LHNTestUtils';
+import {mergePersonalDetailsList, setPersonalDetailsList, withPersonalDetails} from '../utils/PersonalDetailsTestUtils';
 import {
     convertToDisplayString,
     convertToDisplayStringWithoutCurrency,
@@ -635,7 +636,7 @@ describe('ReportUtils', () => {
         Onyx.init({keys: ONYXKEYS});
         const policyCollectionDataSet = toCollectionDataSet(ONYXKEYS.COLLECTION.POLICY, [policy], (current) => current.id);
         Onyx.multiSet({
-            [ONYXKEYS.PERSONAL_DETAILS_LIST]: participantsPersonalDetails,
+            ...withPersonalDetails(participantsPersonalDetails),
             [ONYXKEYS.SESSION]: {email: currentUserEmail, accountID: currentUserAccountID},
             [ONYXKEYS.COUNTRY_CODE]: 1,
             ...policyCollectionDataSet,
@@ -675,11 +676,11 @@ describe('ReportUtils', () => {
         };
 
         beforeAll(async () => {
-            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {[reimburserAccountID]: {accountID: reimburserAccountID, login: reimburserEmail}});
+            await mergePersonalDetailsList({[reimburserAccountID]: {accountID: reimburserAccountID, login: reimburserEmail}});
         });
 
         afterAll(async () => {
-            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {[reimburserAccountID]: null});
+            await mergePersonalDetailsList({[reimburserAccountID]: null});
         });
 
         it('should return the right message when payment type is ACH', async () => {
@@ -1395,7 +1396,7 @@ describe('ReportUtils', () => {
         it('includes avatar and accountID in optimistic Account Executive personal detail', async () => {
             // Reset personal details to remove any Account Executive entry added by previous tests,
             // so the optimistic creation path (else branch) is exercised.
-            await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, participantsPersonalDetails);
+            await setPersonalDetailsList(participantsPersonalDetails);
             await waitForBatchedUpdates();
 
             const updateSpy = jest.spyOn(Onyx, 'update');
@@ -1415,7 +1416,7 @@ describe('ReportUtils', () => {
 
             const personalDetailsCall = updateSpy.mock.calls
                 .flatMap((call) => (Array.isArray(call[0]) ? call[0] : []))
-                .find((update) => typeof update === 'object' && update !== null && 'key' in update && update.key === ONYXKEYS.PERSONAL_DETAILS_LIST);
+                .find((update) => typeof update === 'object' && update !== null && 'key' in update && update.key === ONYXKEYS.COLLECTION.PERSONAL_DETAILS);
             if (!personalDetailsCall || typeof personalDetailsCall.value !== 'object' || personalDetailsCall.value === null) {
                 throw new Error('Expected personal details merge call');
             }
@@ -2028,7 +2029,7 @@ describe('ReportUtils', () => {
         test('routes each display name through the injected translate function', async () => {
             const hiddenAccountID = 909090;
             // The participant has no resolvable name, so it falls back to the "hidden" copy produced by the injected translate
-            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+            await mergePersonalDetailsList({
                 [hiddenAccountID]: {accountID: hiddenAccountID, login: '', displayName: ''},
             });
             await waitForBatchedUpdates();
@@ -2059,7 +2060,7 @@ describe('ReportUtils', () => {
                 },
             };
 
-            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetailsWithHidden);
+            await mergePersonalDetailsList(personalDetailsWithHidden);
             await Onyx.set(ONYXKEYS.RAM_ONLY_ARE_TRANSLATIONS_LOADING, false);
             await waitForBatchedUpdates();
 
@@ -2087,7 +2088,7 @@ describe('ReportUtils', () => {
                 },
             };
 
-            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetailsWithHidden);
+            await mergePersonalDetailsList(personalDetailsWithHidden);
             await Onyx.set(ONYXKEYS.RAM_ONLY_ARE_TRANSLATIONS_LOADING, false);
             await waitForBatchedUpdates();
 
@@ -4323,7 +4324,7 @@ describe('ReportUtils', () => {
         it('resolves the report owner name through the provided translate function for an expense report without a parent', async () => {
             const hiddenOwnerAccountID = 780050;
             // The owner has no displayName/login, so the name resolves to the hidden label provided by translate.
-            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {[hiddenOwnerAccountID]: {accountID: hiddenOwnerAccountID, login: '', displayName: ''}});
+            await mergePersonalDetailsList({[hiddenOwnerAccountID]: {accountID: hiddenOwnerAccountID, login: '', displayName: ''}});
             await waitForBatchedUpdates();
             const expenseReport = {reportID: '780051', type: CONST.REPORT.TYPE.EXPENSE, ownerAccountID: hiddenOwnerAccountID};
             const translateWithHiddenMarker: LocalizedTranslate = (path, ...parameters) => (path === 'common.hidden' ? 'HiddenMarker' : translateLocal(path, ...parameters));
@@ -4473,7 +4474,7 @@ describe('ReportUtils', () => {
         it('resolves a hidden participant name through the provided translate function', async () => {
             const hiddenAccountID = 780001;
             const namedAccountID = 780002;
-            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+            await mergePersonalDetailsList({
                 [hiddenAccountID]: {accountID: hiddenAccountID, login: '', displayName: ''},
                 [namedAccountID]: {accountID: namedAccountID, login: 'named@test.com', displayName: 'Named User'},
             });
@@ -4558,7 +4559,7 @@ describe('ReportUtils', () => {
     describe('getReimbursementDeQueuedOrCanceledActionMessage', () => {
         it('interpolates the submitter name resolved through the provided translate function', async () => {
             const hiddenAccountID = 780020;
-            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {[hiddenAccountID]: {accountID: hiddenAccountID, login: '', displayName: ''}});
+            await mergePersonalDetailsList({[hiddenAccountID]: {accountID: hiddenAccountID, login: '', displayName: ''}});
             await waitForBatchedUpdates();
             const translateWithHiddenMarker: LocalizedTranslate = (path, ...parameters) => (path === 'common.hidden' ? 'HiddenMarker' : translateLocal(path, ...parameters));
             const reportAction = createMock<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_DEQUEUED>>({
@@ -5564,7 +5565,7 @@ describe('ReportUtils', () => {
             await Onyx.clear();
             const policyCollectionDataSet = toCollectionDataSet(ONYXKEYS.COLLECTION.POLICY, [policy], (current) => current.id);
             await Onyx.multiSet({
-                [ONYXKEYS.PERSONAL_DETAILS_LIST]: participantsPersonalDetails,
+                ...withPersonalDetails(participantsPersonalDetails),
                 [ONYXKEYS.SESSION]: {email: currentUserEmail, accountID: currentUserAccountID},
                 ...policyCollectionDataSet,
             });
@@ -5574,7 +5575,7 @@ describe('ReportUtils', () => {
             await Onyx.clear();
             const policyCollectionDataSet = toCollectionDataSet(ONYXKEYS.COLLECTION.POLICY, [policy], (current) => current.id);
             await Onyx.multiSet({
-                [ONYXKEYS.PERSONAL_DETAILS_LIST]: participantsPersonalDetails,
+                ...withPersonalDetails(participantsPersonalDetails),
                 [ONYXKEYS.SESSION]: {email: currentUserEmail, accountID: currentUserAccountID},
                 ...policyCollectionDataSet,
             });
@@ -5718,7 +5719,7 @@ describe('ReportUtils', () => {
         const participantsAccountIDs = Object.keys(participantsPersonalDetails).map(Number);
 
         beforeAll(() => {
-            Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+            mergePersonalDetailsList({
                 [currentUserAccountID]: {
                     accountID: currentUserAccountID,
                     login: currentUserEmail,
@@ -6797,11 +6798,11 @@ describe('ReportUtils', () => {
             const accountID = 1;
 
             await Onyx.multiSet({
-                [ONYXKEYS.PERSONAL_DETAILS_LIST]: {
+                ...withPersonalDetails({
                     [accountID]: {
                         accountID,
                     },
-                },
+                }),
                 [ONYXKEYS.SESSION]: {email: currentUserEmail, accountID},
             });
 
@@ -6818,11 +6819,11 @@ describe('ReportUtils', () => {
             const report = LHNTestUtils.getFakeReport([accountID, CONST.ACCOUNT_ID.CONCIERGE]);
 
             await Onyx.multiSet({
-                [ONYXKEYS.PERSONAL_DETAILS_LIST]: {
+                ...withPersonalDetails({
                     [accountID]: {
                         accountID,
                     },
-                },
+                }),
                 [ONYXKEYS.SESSION]: {email: currentUserEmail, accountID},
             });
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
@@ -7025,7 +7026,7 @@ describe('ReportUtils', () => {
             const transactionThreadReport = buildTransactionThread(expenseCreatedAction, expenseReport, currentUserAccountID);
             expenseCreatedAction.childReportID = transactionThreadReport.reportID;
 
-            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+            await mergePersonalDetailsList({
                 [currentUserAccountID]: {
                     accountID: currentUserAccountID,
                     displayName: currentUserEmail,
@@ -7712,7 +7713,7 @@ describe('ReportUtils', () => {
              * lets a test tell apart the login the caller passed from the one the personal details store holds.
              */
             async function setUpApprovalChain() {
-                await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+                await setPersonalDetailsList({
                     [THREADING_OWNER_ACCOUNT_ID]: {accountID: THREADING_OWNER_ACCOUNT_ID, login: THREADING_OWNER_EMAIL},
                     [THREADING_APPROVER_ACCOUNT_ID]: {accountID: THREADING_APPROVER_ACCOUNT_ID, login: THREADING_APPROVER_EMAIL},
                 });
@@ -7986,7 +7987,7 @@ describe('ReportUtils', () => {
             };
 
             await Onyx.multiSet({
-                [ONYXKEYS.PERSONAL_DETAILS_LIST]: participantsPersonalDetails,
+                ...withPersonalDetails(participantsPersonalDetails),
                 [ONYXKEYS.SESSION]: {email: currentUserEmail, accountID: currentUserAccountID},
                 ...reportCollectionDataSet,
                 ...transactionCollectionDataSet,
@@ -8042,7 +8043,7 @@ describe('ReportUtils', () => {
             };
 
             await Onyx.multiSet({
-                [ONYXKEYS.PERSONAL_DETAILS_LIST]: participantsPersonalDetails,
+                ...withPersonalDetails(participantsPersonalDetails),
                 [ONYXKEYS.SESSION]: {email: currentUserEmail, accountID: currentUserAccountID},
                 ...reportCollectionDataSet,
                 ...transactionCollectionDataSet,
@@ -8125,7 +8126,7 @@ describe('ReportUtils', () => {
 
             // The report actions are deliberately NOT stored in Onyx: the function must rely on the reportActions it is given
             await Onyx.multiSet({
-                [ONYXKEYS.PERSONAL_DETAILS_LIST]: participantsPersonalDetails,
+                ...withPersonalDetails(participantsPersonalDetails),
                 [ONYXKEYS.SESSION]: {email: currentUserEmail, accountID: currentUserAccountID},
                 ...policyCollectionDataSet,
                 ...reportCollectionDataSet,
@@ -8390,7 +8391,7 @@ describe('ReportUtils', () => {
             };
 
             await Onyx.multiSet({
-                [ONYXKEYS.PERSONAL_DETAILS_LIST]: participantsPersonalDetails,
+                ...withPersonalDetails(participantsPersonalDetails),
                 [ONYXKEYS.SESSION]: {email: currentUserEmail, accountID: currentUserAccountID},
                 ...policyCollectionDataSet,
                 ...reportCollectionDataSet,
@@ -8522,7 +8523,7 @@ describe('ReportUtils', () => {
 
             // The report actions are deliberately NOT stored in Onyx: canEditReportAction must forward the reportActions it is given
             await Onyx.multiSet({
-                [ONYXKEYS.PERSONAL_DETAILS_LIST]: participantsPersonalDetails,
+                ...withPersonalDetails(participantsPersonalDetails),
                 [ONYXKEYS.SESSION]: {email: currentUserEmail, accountID: currentUserAccountID},
                 ...policyCollectionDataSet,
                 ...reportCollectionDataSet,
@@ -9503,7 +9504,7 @@ describe('ReportUtils', () => {
 
             await Onyx.merge(ONYXKEYS.SESSION, {email: approverEmail, accountID: approverAccountID});
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policyWithWorkflow);
-            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, testPersonalDetails);
+            await mergePersonalDetailsList(testPersonalDetails);
             await waitForBatchedUpdates();
         });
 
@@ -10046,7 +10047,7 @@ describe('ReportUtils', () => {
             const strangerAccountID = 9999;
             const strangerEmail = 'stranger@test.com';
             await Onyx.merge(ONYXKEYS.SESSION, {email: strangerEmail, accountID: strangerAccountID});
-            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {[strangerAccountID]: {accountID: strangerAccountID, login: strangerEmail}});
+            await mergePersonalDetailsList({[strangerAccountID]: {accountID: strangerAccountID, login: strangerEmail}});
 
             const openExpenseReport: Report = {
                 reportID: '12355',
@@ -10272,27 +10273,27 @@ describe('ReportUtils', () => {
 
         describe('When participantAccountIDs is passed to getGroupChatName', () => {
             it('Should show all participants name if count <= 5 and shouldApplyLimit is false', async () => {
-                await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, fakePersonalDetails);
+                await mergePersonalDetailsList(fakePersonalDetails);
                 expect(getGroupChatName(formatPhoneNumber, translateLocal, fourParticipants)).toEqual('Four, One, Three, Two');
             });
 
             it('Should show all participants name if count <= 5 and shouldApplyLimit is true', async () => {
-                await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, fakePersonalDetails);
+                await mergePersonalDetailsList(fakePersonalDetails);
                 expect(getGroupChatName(formatPhoneNumber, translateLocal, fourParticipants)).toEqual('Four, One, Three, Two');
             });
 
             it('Should show 5 participants name with ellipsis if count > 5 and shouldApplyLimit is true', async () => {
-                await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, fakePersonalDetails);
+                await mergePersonalDetailsList(fakePersonalDetails);
                 expect(getGroupChatName(formatPhoneNumber, translateLocal, eightParticipants, true)).toEqual('Five, Four, One, Three, Two...');
             });
 
             it('Should show all participants name if count > 5 and shouldApplyLimit is false', async () => {
-                await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, fakePersonalDetails);
+                await mergePersonalDetailsList(fakePersonalDetails);
                 expect(getGroupChatName(formatPhoneNumber, translateLocal, eightParticipants, false)).toEqual('Eight, Five, Four, One, Seven, Six, Three, Two');
             });
 
             it('Should use correct display name for participants', async () => {
-                await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, participantsPersonalDetails);
+                await mergePersonalDetailsList(participantsPersonalDetails);
                 expect(getGroupChatName(formatPhoneNumber, translateLocal, fourParticipants, true)).toEqual('(833) 240-3627, floki@vikings.net, Lagertha, Ragnar');
             });
         });
@@ -10306,7 +10307,7 @@ describe('ReportUtils', () => {
                     reportName: "Let's talk",
                 };
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}1`, report);
-                await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, fakePersonalDetails);
+                await mergePersonalDetailsList(fakePersonalDetails);
                 expect(getGroupChatName(formatPhoneNumber, translateLocal, undefined, false, report)).toEqual("Let's talk");
             });
 
@@ -10318,7 +10319,7 @@ describe('ReportUtils', () => {
                     reportName: "Let's talk",
                 };
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}1`, report);
-                await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, fakePersonalDetails);
+                await mergePersonalDetailsList(fakePersonalDetails);
                 expect(getGroupChatName(formatPhoneNumber, translateLocal, undefined, true, report)).toEqual("Let's talk");
             });
 
@@ -10330,7 +10331,7 @@ describe('ReportUtils', () => {
                     reportName: "Let's talk",
                 };
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}1`, report);
-                await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, fakePersonalDetails);
+                await mergePersonalDetailsList(fakePersonalDetails);
                 expect(getGroupChatName(formatPhoneNumber, translateLocal, undefined, true, report)).toEqual("Let's talk");
             });
 
@@ -10342,7 +10343,7 @@ describe('ReportUtils', () => {
                     reportName: "Let's talk",
                 };
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}1`, report);
-                await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, fakePersonalDetails);
+                await mergePersonalDetailsList(fakePersonalDetails);
                 expect(getGroupChatName(formatPhoneNumber, translateLocal, undefined, false, report)).toEqual("Let's talk");
             });
 
@@ -10354,7 +10355,7 @@ describe('ReportUtils', () => {
                     reportName: '',
                 };
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}1`, report);
-                await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, fakePersonalDetails);
+                await mergePersonalDetailsList(fakePersonalDetails);
                 expect(getGroupChatName(formatPhoneNumber, translateLocal, undefined, false, report)).toEqual('Eight, Five, Four, One, Seven, Six, Three, Two');
             });
         });
@@ -10379,7 +10380,7 @@ describe('ReportUtils', () => {
 
         it('should exclude the pending delete members passed by the caller from the icon name', async () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${groupChatReport.reportID}`, groupChatReport);
-            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, fakePersonalDetails);
+            await mergePersonalDetailsList(fakePersonalDetails);
 
             const icons = getIcons({report: groupChatReport, formatPhoneNumber, translate: translateLocal, personalDetails: fakePersonalDetails, pendingDeleteMemberAccountIDs: ['4']});
 
@@ -10389,7 +10390,7 @@ describe('ReportUtils', () => {
         it('should not read the report metadata from Onyx when the caller does not pass the pending delete members', async () => {
             // Given a group chat whose metadata in Onyx marks one member as pending removal
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${groupChatReport.reportID}`, groupChatReport);
-            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, fakePersonalDetails);
+            await mergePersonalDetailsList(fakePersonalDetails);
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${groupChatReport.reportID}`, {
                 pendingChatMembers: [{accountID: '4', pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}],
             });
@@ -10403,7 +10404,7 @@ describe('ReportUtils', () => {
 
         it('should use the default group avatar when the report has no avatar URL', async () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${groupChatReport.reportID}`, groupChatReport);
-            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, fakePersonalDetails);
+            await mergePersonalDetailsList(fakePersonalDetails);
 
             const icons = getIcons({report: groupChatReport, formatPhoneNumber, translate: translateLocal, personalDetails: fakePersonalDetails, pendingDeleteMemberAccountIDs: []});
 
@@ -10462,7 +10463,7 @@ describe('ReportUtils', () => {
             // while the caller resolved that same action as posted by another user
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${parentReportID}`, {reportID: parentReportID, type: CONST.REPORT.TYPE.EXPENSE});
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`, {[parentReportActionID]: buildIOUAction(onyxActorAccountID)});
-            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, fakePersonalDetails);
+            await mergePersonalDetailsList(fakePersonalDetails);
 
             // When the icons are built with the caller's parent report action
             const icons = getIcons({
@@ -10481,7 +10482,7 @@ describe('ReportUtils', () => {
         it('should build the chat thread avatar from the parent report action passed by the caller', async () => {
             // Given a chat thread whose parent chat is in Onyx but whose parent actions are not loaded there
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${parentReportID}`, {reportID: parentReportID, type: CONST.REPORT.TYPE.CHAT});
-            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, fakePersonalDetails);
+            await mergePersonalDetailsList(fakePersonalDetails);
 
             // When the icons are built with the caller's parent report action
             const icons = getIcons({
@@ -10502,7 +10503,7 @@ describe('ReportUtils', () => {
             // Given a chat thread whose parent action is only available in Onyx
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${parentReportID}`, {reportID: parentReportID, type: CONST.REPORT.TYPE.CHAT});
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`, {[parentReportActionID]: buildCommentAction(onyxActorAccountID)});
-            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, fakePersonalDetails);
+            await mergePersonalDetailsList(fakePersonalDetails);
 
             // When the icons are built without a parent report action
             const icons = getIcons({report: chatThread, formatPhoneNumber, translate: translateLocal, personalDetails: fakePersonalDetails});
@@ -13233,7 +13234,7 @@ describe('ReportUtils', () => {
                         ownerAccountID: employeeAccountID,
                         type: CONST.REPORT.TYPE.EXPENSE,
                     };
-                    Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetails).then(() => {
+                    setPersonalDetailsList(personalDetails).then(() => {
                         const result = ['owner@test.com'];
                         expect(getApprovalChain(policyTest, expenseReport, undefined, undefined)).toStrictEqual(result);
                     });
@@ -13252,7 +13253,7 @@ describe('ReportUtils', () => {
                         ownerAccountID: employeeAccountID,
                         type: CONST.REPORT.TYPE.EXPENSE,
                     };
-                    Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetails).then(() => {
+                    setPersonalDetailsList(personalDetails).then(() => {
                         const result = ['admin@test.com'];
                         expect(getApprovalChain(policyTest, expenseReport, personalDetails[employeeAccountID]?.login, undefined)).toStrictEqual(result);
                     });
@@ -13292,7 +13293,7 @@ describe('ReportUtils', () => {
                             reportID: expenseReport.reportID,
                         };
                         Onyx.multiSet({
-                            [ONYXKEYS.PERSONAL_DETAILS_LIST]: personalDetails,
+                            ...withPersonalDetails(personalDetails),
                             [ONYXKEYS.COLLECTION.TRANSACTION]: {
                                 [transaction1.transactionID]: transaction1,
                                 [transaction2.transactionID]: transaction2,
@@ -13938,7 +13939,7 @@ describe('ReportUtils', () => {
     describe('buildReportNameFromParticipantNames', () => {
         beforeAll(async () => {
             await Onyx.set(ONYXKEYS.SESSION, {email: currentUserEmail, accountID: currentUserAccountID});
-            await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, fakePersonalDetails);
+            await setPersonalDetailsList(fakePersonalDetails);
         });
 
         /**
@@ -14204,7 +14205,7 @@ describe('ReportUtils', () => {
          * That lets each test tell apart the passed login, the stored login, and the default.
          */
         async function setUpApprovalChain() {
-            await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+            await setPersonalDetailsList({
                 [REPORT_OWNER_ACCOUNT_ID]: {accountID: REPORT_OWNER_ACCOUNT_ID, login: REPORT_OWNER_EMAIL},
                 [FIRST_APPROVER_ACCOUNT_ID]: {accountID: FIRST_APPROVER_ACCOUNT_ID, login: FIRST_APPROVER_EMAIL},
                 [SECOND_APPROVER_ACCOUNT_ID]: {accountID: SECOND_APPROVER_ACCOUNT_ID, login: SECOND_APPROVER_EMAIL},
@@ -14338,7 +14339,7 @@ describe('ReportUtils', () => {
                 ...policy,
                 approver: currentUserEmail,
             });
-            await Onyx.set(`${ONYXKEYS.PERSONAL_DETAILS_LIST}`, {
+            await setPersonalDetailsList({
                 [currentUserAccountID]: {
                     accountID: currentUserAccountID,
                     login: currentUserEmail,
@@ -14376,7 +14377,7 @@ describe('ReportUtils', () => {
                 ...policy,
                 approver: currentUserEmail,
             });
-            await Onyx.set(`${ONYXKEYS.PERSONAL_DETAILS_LIST}`, {
+            await setPersonalDetailsList({
                 [currentUserAccountID]: {
                     accountID: currentUserAccountID,
                     login: currentUserEmail,
@@ -14610,7 +14611,7 @@ describe('ReportUtils', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, {[createdAction.reportActionID]: createdAction});
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${workflowDisabledPolicy.id}`, workflowDisabledPolicy);
-            await Onyx.set(`${ONYXKEYS.PERSONAL_DETAILS_LIST}`, {
+            await setPersonalDetailsList({
                 [currentUserAccountID]: {
                     accountID: currentUserAccountID,
                     displayName: 'Lagertha Lothbrok',
@@ -14661,7 +14662,7 @@ describe('ReportUtils', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, {[createdAction.reportActionID]: createdAction});
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${basicApprovalPolicy.id}`, basicApprovalPolicy);
-            await Onyx.set(`${ONYXKEYS.PERSONAL_DETAILS_LIST}`, {
+            await setPersonalDetailsList({
                 [currentUserAccountID]: {
                     accountID: currentUserAccountID,
                     login: currentUserEmail,
@@ -14702,7 +14703,7 @@ describe('ReportUtils', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, {[createdAction.reportActionID]: createdAction});
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${dynamicExternalWorkflowPolicy.id}`, dynamicExternalWorkflowPolicy);
-            await Onyx.set(`${ONYXKEYS.PERSONAL_DETAILS_LIST}`, {
+            await setPersonalDetailsList({
                 [currentUserAccountID]: {
                     accountID: currentUserAccountID,
                     login: currentUserEmail,
@@ -16964,7 +16965,7 @@ describe('ReportUtils', () => {
             // Given the current session uses a public-domain email (so the deprecated fallback domain would be empty) and ragnar@vikings.net is a known login
             await Onyx.multiSet({
                 [ONYXKEYS.SESSION]: {email: 'publicuser@gmail.com', accountID: currentUserAccountID},
-                [ONYXKEYS.PERSONAL_DETAILS_LIST]: participantsPersonalDetails,
+                ...withPersonalDetails(participantsPersonalDetails),
             });
             await waitForBatchedUpdates();
         });
@@ -19228,7 +19229,7 @@ describe('ReportUtils', () => {
 
         beforeEach(async () => {
             await Onyx.multiSet({
-                [ONYXKEYS.PERSONAL_DETAILS_LIST]: participantsPersonalDetails,
+                ...withPersonalDetails(participantsPersonalDetails),
                 [ONYXKEYS.SESSION]: {email: currentUserEmail, accountID: currentUserAccountID},
             });
         });
@@ -19378,7 +19379,7 @@ describe('ReportUtils', () => {
                 };
                 await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${mockReportID}`, expenseReport);
                 await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${firstLevelApprovalPolicy.id}`, firstLevelApprovalPolicy);
-                await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+                await mergePersonalDetailsList({
                     [managerAccountID]: {
                         accountID: managerAccountID,
                         login: managerEmail,
@@ -19764,13 +19765,13 @@ describe('ReportUtils', () => {
                 ...createRandomReport(40002, undefined),
                 participants: buildParticipantsFromAccountIDs([currentUserAccountID, 8]),
             };
-            Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetails).then(() => {
+            setPersonalDetailsList(personalDetails).then(() => {
                 expect(canSeeDefaultRoom(report, true, true, false)).toBe(true);
             });
         });
         it('should return true if the report is admin room', () => {
             const report: Report = createRandomReport(40002, CONST.REPORT.CHAT_TYPE.POLICY_ADMINS);
-            Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetails).then(() => {
+            setPersonalDetailsList(personalDetails).then(() => {
                 expect(canSeeDefaultRoom(report, true, false, false)).toBe(true);
             });
         });
@@ -19784,14 +19785,14 @@ describe('ReportUtils', () => {
 
         it('should not consult the personal details list when guideAccountIDs is provided', async () => {
             // Account 8 is a guide according to the personal details list, but the passed guide list is authoritative.
-            await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetails);
+            await setPersonalDetailsList(personalDetails);
             await waitForBatchedUpdates();
             expect(hasExpensifyGuidesEmails([8], [])).toBe(false);
             await Onyx.clear();
         });
 
         it('should fall back to module-level allPersonalDetails when guideAccountIDs is undefined', async () => {
-            await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetails);
+            await setPersonalDetailsList(personalDetails);
             await waitForBatchedUpdates();
             expect(hasExpensifyGuidesEmails([8], undefined)).toBe(true);
             expect(hasExpensifyGuidesEmails([1], undefined)).toBe(false);
@@ -21192,7 +21193,7 @@ describe('ReportUtils', () => {
 
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policyWithPreventOn);
             await Onyx.merge(ONYXKEYS.SESSION, {accountID: currentUserAccountID});
-            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+            await mergePersonalDetailsList({
                 [currentUserAccountID]: {accountID: currentUserAccountID, login: currentUserEmail},
             });
             await waitForBatchedUpdates();
@@ -21260,7 +21261,7 @@ describe('ReportUtils', () => {
 
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policyWithPreventOn);
             await Onyx.merge(ONYXKEYS.SESSION, {email: currentUserEmail, accountID: currentUserAccountID});
-            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+            await mergePersonalDetailsList({
                 [currentUserAccountID]: {accountID: currentUserAccountID, login: currentUserEmail},
                 [secondApproverAccountID]: {accountID: secondApproverAccountID, login: secondApproverEmail},
             });
@@ -22549,7 +22550,7 @@ describe('ReportUtils', () => {
 
     describe('getDisplayNameForParticipant', () => {
         it('should return the display name for a participant', async () => {
-            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, fakePersonalDetails);
+            await mergePersonalDetailsList(fakePersonalDetails);
 
             waitForBatchedUpdates();
 
@@ -22616,7 +22617,7 @@ describe('ReportUtils', () => {
         });
         it('should return the known displayName for an optimistic personal detail that already has one (e.g. an agent pending creation)', async () => {
             const optimisticAccountID = 8399123;
-            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+            await mergePersonalDetailsList({
                 [optimisticAccountID]: {
                     accountID: optimisticAccountID,
                     displayName: "Bob's Agent",
@@ -22642,7 +22643,7 @@ describe('ReportUtils', () => {
                 },
             };
 
-            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetailsWithHidden);
+            await mergePersonalDetailsList(personalDetailsWithHidden);
             await Onyx.set(ONYXKEYS.RAM_ONLY_ARE_TRANSLATIONS_LOADING, false);
             await waitForBatchedUpdates();
 
@@ -22668,7 +22669,7 @@ describe('ReportUtils', () => {
                 },
             };
 
-            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetailsWithHidden);
+            await mergePersonalDetailsList(personalDetailsWithHidden);
             await Onyx.set(ONYXKEYS.RAM_ONLY_ARE_TRANSLATIONS_LOADING, false);
             await waitForBatchedUpdates();
 
@@ -22808,7 +22809,7 @@ describe('ReportUtils', () => {
             await Onyx.clear();
 
             const importedContactAccountID = 987001;
-            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+            await mergePersonalDetailsList({
                 [importedContactAccountID]: {
                     accountID: importedContactAccountID,
                     login: '+15551234567@expensify.sms',
@@ -22830,7 +22831,7 @@ describe('ReportUtils', () => {
             await Onyx.clear();
 
             const importedContactAccountID = 987002;
-            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+            await mergePersonalDetailsList({
                 [importedContactAccountID]: {
                     accountID: importedContactAccountID,
                     login: '+15551234567@expensify.sms',
@@ -22852,7 +22853,7 @@ describe('ReportUtils', () => {
             await Onyx.clear();
 
             const newUserAccountID = 987003;
-            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+            await mergePersonalDetailsList({
                 [newUserAccountID]: {
                     accountID: newUserAccountID,
                     login: 'newuser@example.com',
@@ -22872,7 +22873,7 @@ describe('ReportUtils', () => {
             await Onyx.clear();
 
             const newUserAccountID = 987004;
-            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+            await mergePersonalDetailsList({
                 [newUserAccountID]: {
                     accountID: newUserAccountID,
                     login: 'newuser2@example.com',
@@ -24867,13 +24868,13 @@ describe('ReportUtils', () => {
             };
 
             beforeEach(async () => {
-                await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {[reimburserAccountID]: {accountID: reimburserAccountID, login: reimburserEmail}});
+                await mergePersonalDetailsList({[reimburserAccountID]: {accountID: reimburserAccountID, login: reimburserEmail}});
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${settledPolicyID}`, settledPolicy);
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${settledReport.reportID}`, settledReport);
             });
 
             afterEach(async () => {
-                await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {[reimburserAccountID]: null});
+                await mergePersonalDetailsList({[reimburserAccountID]: null});
             });
 
             it('shows the bank account from the action accountNumber instead of the policy default', () => {
@@ -25093,7 +25094,7 @@ describe('ReportUtils', () => {
                 };
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`, iouReport);
                 // A participant with no name resolves to the "hidden" copy, which is produced by the injected translate
-                await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+                await mergePersonalDetailsList({
                     [hiddenManagerAccountID]: {accountID: hiddenManagerAccountID, login: '', displayName: ''},
                 });
 
@@ -25292,7 +25293,7 @@ describe('ReportUtils', () => {
                     statusNum: CONST.REPORT.STATUS_NUM.OPEN,
                 };
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
-                await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {[hiddenManagerAccountID]: {accountID: hiddenManagerAccountID, login: '', displayName: ''}});
+                await mergePersonalDetailsList({[hiddenManagerAccountID]: {accountID: hiddenManagerAccountID, login: '', displayName: ''}});
 
                 // When the message is built while Spanish is the loaded locale, which the cached module-level translation used to follow
                 await IntlStore.load(CONST.LOCALES.ES).then(waitForBatchedUpdates);
@@ -25335,7 +25336,7 @@ describe('ReportUtils', () => {
         it('routes the display name through the injected translate function', async () => {
             const hiddenAccountID = 778899;
             // A participant with no name resolves to the "hidden" copy, which is produced by the injected translate
-            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+            await mergePersonalDetailsList({
                 [hiddenAccountID]: {accountID: hiddenAccountID, login: '', displayName: ''},
             });
             await waitForBatchedUpdates();
@@ -25363,7 +25364,7 @@ describe('ReportUtils', () => {
                 },
             };
             // A payee with no name resolves to the "hidden" copy, which is produced by the injected translate
-            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+            await mergePersonalDetailsList({
                 [hiddenPayeeAccountID]: {accountID: hiddenPayeeAccountID, login: '', displayName: ''},
             });
             await waitForBatchedUpdates();
@@ -25378,7 +25379,7 @@ describe('ReportUtils', () => {
             // Other suites in this file mutate the shared personal details, so this test owns the accounts it asserts on
             const payerAccountID = 665545;
             const payeeAccountID = 665546;
-            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+            await mergePersonalDetailsList({
                 [payerAccountID]: {accountID: payerAccountID, login: 'payer@vikings.net', displayName: 'Payer', firstName: 'Payer'},
                 [payeeAccountID]: {accountID: payeeAccountID, login: 'payee@vikings.net', displayName: 'Payee', firstName: 'Payee'},
             });
@@ -25954,7 +25955,7 @@ describe('ReportUtils', () => {
         beforeAll(async () => {
             // Earlier describes leave the session on another account, and isReportOwner reads the session rather than a parameter
             await Onyx.set(ONYXKEYS.SESSION, {email: currentUserEmail, accountID: currentUserAccountID});
-            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+            await mergePersonalDetailsList({
                 [THREADING_MANAGER_ACCOUNT_ID]: {accountID: THREADING_MANAGER_ACCOUNT_ID, login: 'part6-approver-a@test.com'},
                 [THREADING_OTHER_APPROVER_ACCOUNT_ID]: {accountID: THREADING_OTHER_APPROVER_ACCOUNT_ID, login: 'part6-approver-b@test.com'},
             });
@@ -25964,7 +25965,7 @@ describe('ReportUtils', () => {
 
         afterAll(async () => {
             await Onyx.set(ONYXKEYS.SESSION, {email: currentUserEmail, accountID: currentUserAccountID});
-            await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, participantsPersonalDetails);
+            await setPersonalDetailsList(participantsPersonalDetails);
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${THREADING_POLICY_ID}`, null);
             return waitForBatchedUpdates();
         });
@@ -32642,7 +32643,7 @@ describe('shouldShowMarkAsDone', () => {
             owner: currentUserEmail,
         });
         await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, testPolicy);
-        await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+        await mergePersonalDetailsList({
             [currentUserAccountID]: {accountID: currentUserAccountID, login: currentUserEmail},
         });
         await waitForBatchedUpdates();
@@ -32888,7 +32889,7 @@ describe('buildOptimisticModifiedExpenseReportAction sets delegateAccountID', ()
 
     it('does not fall back to the signed-in delegate when no delegateAccountID is passed', async () => {
         // Given a signed-in copilot stored in Onyx
-        await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {[DELEGATE_ACCOUNT_ID]: {accountID: DELEGATE_ACCOUNT_ID, login: DELEGATE_LOGIN}});
+        await mergePersonalDetailsList({[DELEGATE_ACCOUNT_ID]: {accountID: DELEGATE_ACCOUNT_ID, login: DELEGATE_LOGIN}});
         await Onyx.merge(ONYXKEYS.ACCOUNT, {delegatedAccess: {delegate: DELEGATE_LOGIN}});
         await waitForBatchedUpdates();
 

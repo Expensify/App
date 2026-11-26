@@ -16,6 +16,7 @@ import type {OnyxCollection} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 
 import createMock from '../utils/createMock';
+import {setPersonalDetailsList} from '../utils/PersonalDetailsTestUtils';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 const CURRENT_USER_ACCOUNT_ID = 1;
@@ -497,7 +498,7 @@ describe('useTodoCounts', () => {
             const payReport = createPayableReport();
 
             await Onyx.set(ONYXKEYS.SESSION, {email: SECONDARY_LOGIN, accountID: CURRENT_USER_ACCOUNT_ID}); // User signed in with secondary login (phone)
-            await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+            await setPersonalDetailsList({
                 [CURRENT_USER_ACCOUNT_ID]: {
                     accountID: CURRENT_USER_ACCOUNT_ID,
                     login: PRIMARY_LOGIN, // Primary login stored in personal details

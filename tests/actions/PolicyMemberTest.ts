@@ -27,6 +27,7 @@ import createRandomReportAction from '../utils/collections/reportActions';
 import {createRandomReport} from '../utils/collections/reports';
 import createMock from '../utils/createMock';
 import getOnyxValue from '../utils/getOnyxValue';
+import {setPersonalDetailsList} from '../utils/PersonalDetailsTestUtils';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
@@ -155,7 +156,7 @@ describe('actions/PolicyMember', () => {
             mockFetch?.pause?.();
             Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
             Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${adminRoom.reportID}`, adminRoom);
-            Onyx.set(`${ONYXKEYS.PERSONAL_DETAILS_LIST}`, {[fakeUser2.accountID]: fakeUser2});
+            setPersonalDetailsList({[fakeUser2.accountID]: fakeUser2});
             await waitForBatchedUpdates();
             // When a user's role is set as admin on a policy
             Member.updateWorkspaceMembersRole(fakePolicy, [fakeUser2.login ?? ''], [fakeUser2.accountID], CONST.POLICY.ROLE.ADMIN);
@@ -769,7 +770,7 @@ describe('actions/PolicyMember', () => {
                     [ownerAccountID]: {notificationPreference: 'always'},
                 },
             });
-            await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+            await setPersonalDetailsList({
                 [cardAdminAccountID]: {login: cardAdminEmail},
             });
 
@@ -1096,7 +1097,7 @@ describe('actions/PolicyMember', () => {
             const userAccountID = 1236;
             const userEmail = 'user@example.com';
 
-            await Onyx.set(`${ONYXKEYS.PERSONAL_DETAILS_LIST}`, {
+            await setPersonalDetailsList({
                 [adminAccountID]: {login: adminEmail},
                 [auditorAccountID]: {login: auditorEmail},
                 [userAccountID]: {login: userEmail},
@@ -1175,7 +1176,7 @@ describe('actions/PolicyMember', () => {
             const userAccountID = 1236;
             const userEmail = 'user@example.com';
 
-            await Onyx.set(`${ONYXKEYS.PERSONAL_DETAILS_LIST}`, {
+            await setPersonalDetailsList({
                 [adminAccountID]: {login: adminEmail},
                 [auditorAccountID]: {login: auditorEmail},
                 [userAccountID]: {login: userEmail},
@@ -1308,7 +1309,7 @@ describe('actions/PolicyMember', () => {
             const userEmail = 'user@example.com';
             const ownerEmail = 'owner@gmail.com';
 
-            await Onyx.set(`${ONYXKEYS.PERSONAL_DETAILS_LIST}`, {
+            await setPersonalDetailsList({
                 [userAccountID]: {login: userEmail},
             });
             const policy = {
@@ -1360,7 +1361,7 @@ describe('actions/PolicyMember', () => {
             const ownerAccountID = 1;
             const userAccountID = 4321;
 
-            await Onyx.set(`${ONYXKEYS.PERSONAL_DETAILS_LIST}`, {
+            await setPersonalDetailsList({
                 [ownerAccountID]: {login: ownerEmail},
                 [userAccountID]: {login: userEmail},
             });
@@ -1406,7 +1407,7 @@ describe('actions/PolicyMember', () => {
             const ownerAccountID = 1;
             const primaryAccountID = 4321;
 
-            await Onyx.set(`${ONYXKEYS.PERSONAL_DETAILS_LIST}`, {
+            await setPersonalDetailsList({
                 [ownerAccountID]: {login: ownerEmail},
                 [primaryAccountID]: {login: primaryEmail},
             });

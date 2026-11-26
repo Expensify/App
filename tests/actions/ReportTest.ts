@@ -69,6 +69,7 @@ import createRandomTransaction from '../utils/collections/transaction';
 import createMock from '../utils/createMock';
 import getIsUsingFakeTimers from '../utils/getIsUsingFakeTimers';
 import getOnyxValue from '../utils/getOnyxValue';
+import {getPersonalDetailsList, mergePersonalDetailsList, setPersonalDetailsList} from '../utils/PersonalDetailsTestUtils';
 import PusherHelper from '../utils/PusherHelper';
 import * as TestHelper from '../utils/TestHelper';
 import {formatPhoneNumber} from '../utils/TestHelper';
@@ -583,7 +584,7 @@ describe('actions/Report', () => {
         // The Onyx personal details list doesn't flag anyone as optimistic, so only the passed personal details can drive the clean up.
         Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${REPORT.reportID}`, REPORT);
         Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${REPORT.reportID}`, REPORT_METADATA);
-        Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+        setPersonalDetailsList({
             [OPTIMISTIC_PARTICIPANT_ACCOUNT_ID]: {accountID: OPTIMISTIC_PARTICIPANT_ACCOUNT_ID, login: 'optimistic@test.com'},
             [SETTLED_PARTICIPANT_ACCOUNT_ID]: {accountID: SETTLED_PARTICIPANT_ACCOUNT_ID, login: 'settled@test.com'},
         });
@@ -607,7 +608,7 @@ describe('actions/Report', () => {
             })
             .then(async () => {
                 // Then only the optimistic personal details are removed
-                const personalDetailsList = await getOnyxValue(ONYXKEYS.PERSONAL_DETAILS_LIST);
+                const personalDetailsList = await getPersonalDetailsList();
                 expect(personalDetailsList?.[OPTIMISTIC_PARTICIPANT_ACCOUNT_ID]).toBeUndefined();
                 expect(personalDetailsList?.[SETTLED_PARTICIPANT_ACCOUNT_ID]).toBeDefined();
             });
@@ -665,7 +666,7 @@ describe('actions/Report', () => {
 
         await TestHelper.signInWithTestUser(TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN);
         await TestHelper.setPersonalDetails(TEST_USER_LOGIN, TEST_USER_ACCOUNT_ID);
-        await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+        await mergePersonalDetailsList({
             [CONST.ACCOUNT_ID.CONCIERGE]: {
                 accountID: CONST.ACCOUNT_ID.CONCIERGE,
                 login: CONST.EMAIL.CONCIERGE,
@@ -1254,7 +1255,7 @@ describe('actions/Report', () => {
             login: 'user@expensify.com',
             email: 'user@expensify.com',
         };
-        await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+        await mergePersonalDetailsList({
             [privateDomainAccount.accountID]: privateDomainAccount,
         });
         originalCommentMarkdown = 'Comment';
@@ -1658,7 +1659,7 @@ describe('actions/Report', () => {
         const PARTICIPANT_LOGIN = 'participant@test.com';
 
         // Given a participant whose personal details are stored in Onyx
-        await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {[PARTICIPANT_ACCOUNT_ID]: {accountID: PARTICIPANT_ACCOUNT_ID, login: PARTICIPANT_LOGIN}});
+        await mergePersonalDetailsList({[PARTICIPANT_ACCOUNT_ID]: {accountID: PARTICIPANT_ACCOUNT_ID, login: PARTICIPANT_LOGIN}});
         await waitForBatchedUpdates();
 
         setHasRadio(false);
@@ -1680,7 +1681,7 @@ describe('actions/Report', () => {
         await waitForBatchedUpdates();
 
         // Then optimistic personal details are built for them, so openReport reads the passed value instead of the Onyx store
-        const personalDetailsList = await getOnyxValue(ONYXKEYS.PERSONAL_DETAILS_LIST);
+        const personalDetailsList = await getPersonalDetailsList();
         expect(personalDetailsList?.[PARTICIPANT_ACCOUNT_ID]?.isOptimisticPersonalDetail).toBe(true);
 
         setHasRadio(true);
@@ -1754,7 +1755,7 @@ describe('actions/Report', () => {
         expect(transaction).toBeTruthy();
 
         // The legacy preview recovery builds the submitter's name and avatar from the personal details passed to openReport, so they have to be threaded here
-        const personalDetails = await getOnyxValue(ONYXKEYS.PERSONAL_DETAILS_LIST);
+        const personalDetails = await getPersonalDetailsList();
 
         Report.openReport({
             conciergeChat: undefined,
@@ -3187,7 +3188,7 @@ describe('actions/Report', () => {
             global.fetch = TestHelper.createGlobalFetchMock();
             setHasRadio(false);
             await seedUploadingComment();
-            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+            await mergePersonalDetailsList({
                 1001: {accountID: 1001, login: 'alice@expensify.com'},
                 1002: {accountID: 1002, login: 'bob@expensify.com'},
             });
@@ -5559,7 +5560,7 @@ describe('actions/Report', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${expenseReport.reportID}`, {
                 private_isArchived: DateUtils.getDBTime(),
             });
-            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+            await mergePersonalDetailsList({
                 [ownerAccountID]: {
                     login: ownerEmail,
                 },
@@ -5656,7 +5657,7 @@ describe('actions/Report', () => {
             await Promise.all([
                 Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`, expenseReport),
                 Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${newPolicy.id}`, newPolicy),
-                Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {[ownerAccountID]: submitter}),
+                mergePersonalDetailsList({[ownerAccountID]: submitter}),
             ]);
             await waitForBatchedUpdates();
 
@@ -5899,7 +5900,7 @@ describe('actions/Report', () => {
 
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`, expenseReport);
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${targetPolicy.id}`, targetPolicy);
-            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {[ownerAccountID]: {login: ownerEmail, accountID: ownerAccountID}});
+            await mergePersonalDetailsList({[ownerAccountID]: {login: ownerEmail, accountID: ownerAccountID}});
 
             const mockFetch = TestHelper.createGlobalFetchMock();
             global.fetch = mockFetch;
@@ -5959,7 +5960,7 @@ describe('actions/Report', () => {
                 employeeList: {[adminEmail]: {email: adminEmail, role: CONST.POLICY.ROLE.ADMIN}, [ownerEmail]: {email: ownerEmail, role: CONST.POLICY.ROLE.USER}},
             };
 
-            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+            await mergePersonalDetailsList({
                 [ownerAccountID]: {
                     login: ownerEmail,
                 },
@@ -6045,7 +6046,7 @@ describe('actions/Report', () => {
                 message: [{html: '$100.00 expense', text: '$100.00 expense', type: 'COMMENT'}],
             });
 
-            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {[ownerAccountID]: {login: ownerEmail}});
+            await mergePersonalDetailsList({[ownerAccountID]: {login: ownerEmail}});
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`, iouReport);
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport.reportID}`, {[iouReportAction.reportActionID]: iouReportAction});
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
@@ -6290,7 +6291,7 @@ describe('actions/Report', () => {
             };
             const policy: OnyxTypes.Policy = {...createRandomPolicy(1), role: CONST.POLICY.ROLE.ADMIN};
 
-            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+            await mergePersonalDetailsList({
                 [ownerAccountID]: {
                     login: ownerEmail,
                 },
@@ -6359,7 +6360,7 @@ describe('actions/Report', () => {
             await Promise.all([
                 Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`, iouReport),
                 Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy),
-                Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {[ownerAccountID]: submitter}),
+                mergePersonalDetailsList({[ownerAccountID]: submitter}),
             ]);
             await waitForBatchedUpdates();
 
@@ -6412,7 +6413,7 @@ describe('actions/Report', () => {
                 convertedAmount: 6000,
             };
 
-            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+            await mergePersonalDetailsList({
                 [ownerAccountID]: {
                     login: ownerEmail,
                 },
@@ -6460,7 +6461,7 @@ describe('actions/Report', () => {
                 amount: 3000,
             };
 
-            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+            await mergePersonalDetailsList({
                 [ownerAccountID]: {
                     login: ownerEmail,
                 },
@@ -7304,7 +7305,7 @@ describe('actions/Report', () => {
             // Given Onyx knows an owner that is absent from the caller's explicitly supplied data.
             const reportID = 'missing-owner-details';
             const owner = {accountID: 111, login: 'cached-owner@example.com'};
-            await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {[owner.accountID]: owner});
+            await setPersonalDetailsList({[owner.accountID]: owner});
             await waitForBatchedUpdates();
             setHasRadio(false);
 
@@ -7330,7 +7331,7 @@ describe('actions/Report', () => {
             // Given a participant exists in Onyx but is absent from the data supplied by the caller.
             const reportID = 'missing-participant-details';
             const participant = {accountID: 222, login: 'known@example.com'};
-            await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {[participant.accountID]: participant});
+            await setPersonalDetailsList({[participant.accountID]: participant});
             await waitForBatchedUpdates();
             setHasRadio(false);
 
@@ -7348,7 +7349,7 @@ describe('actions/Report', () => {
             await waitForBatchedUpdates();
 
             // Then participant creation uses the supplied list consistently, including when it is undefined.
-            const details = await getOnyxValue(ONYXKEYS.PERSONAL_DETAILS_LIST);
+            const details = await getPersonalDetailsList();
             expect(details?.[participant.accountID]?.isOptimisticPersonalDetail).toBe(true);
         });
 
@@ -7361,7 +7362,7 @@ describe('actions/Report', () => {
             const known = {accountID: 222, login: 'known@example.com', displayName: 'Known participant'};
             const newLogin = 'new@example.com';
             const newAccountID = generateAccountID(newLogin);
-            await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {[owner.accountID]: owner, [known.accountID]: known});
+            await setPersonalDetailsList({[owner.accountID]: owner, [known.accountID]: known});
             await waitForBatchedUpdates();
             setHasRadio(false);
 
@@ -7386,7 +7387,7 @@ describe('actions/Report', () => {
             const actions = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`);
             const createdAction = Object.values(actions ?? {}).find((action) => action?.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED);
             expect(createdAction?.message).toEqual(expect.arrayContaining([expect.objectContaining({text: owner.login})]));
-            const details = await getOnyxValue(ONYXKEYS.PERSONAL_DETAILS_LIST);
+            const details = await getPersonalDetailsList();
             expect(details?.[known.accountID]).toEqual(known);
             expect(details?.[newAccountID]).toEqual({accountID: newAccountID, login: newLogin, displayName: newLogin, isOptimisticPersonalDetail: true});
 
@@ -7400,7 +7401,7 @@ describe('actions/Report', () => {
 
             // Then existing profiles survive both outcomes, and a failed thread removes only its newly created profile.
             TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.OPEN_REPORT, 1);
-            const settledDetails = await getOnyxValue(ONYXKEYS.PERSONAL_DETAILS_LIST);
+            const settledDetails = await getPersonalDetailsList();
             expect(settledDetails?.[owner.accountID]).toEqual(owner);
             expect(settledDetails?.[known.accountID]).toEqual(known);
             if (shouldSucceed) {
@@ -7743,7 +7744,7 @@ describe('actions/Report', () => {
 
             await TestHelper.signInWithTestUser(TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN);
             await TestHelper.setPersonalDetails(TEST_USER_LOGIN, TEST_USER_ACCOUNT_ID);
-            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+            await mergePersonalDetailsList({
                 [CONST.ACCOUNT_ID.CONCIERGE]: {
                     accountID: CONST.ACCOUNT_ID.CONCIERGE,
                     login: CONST.EMAIL.CONCIERGE,
@@ -7778,7 +7779,7 @@ describe('actions/Report', () => {
 
             await TestHelper.signInWithTestUser(TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN);
             await TestHelper.setPersonalDetails(TEST_USER_LOGIN, TEST_USER_ACCOUNT_ID);
-            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+            await mergePersonalDetailsList({
                 [CONST.ACCOUNT_ID.CONCIERGE]: {
                     accountID: CONST.ACCOUNT_ID.CONCIERGE,
                     login: CONST.EMAIL.CONCIERGE,
@@ -7848,7 +7849,7 @@ describe('actions/Report', () => {
                 await TestHelper.signInWithTestUser(TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN);
                 await TestHelper.setPersonalDetails(TEST_USER_LOGIN, TEST_USER_ACCOUNT_ID);
                 // Concierge is a known account in Onyx, so its login resolves to CONST.ACCOUNT_ID.CONCIERGE when the chat is created.
-                await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {[CONST.ACCOUNT_ID.CONCIERGE]: CONCIERGE_PERSONAL_DETAIL});
+                await mergePersonalDetailsList({[CONST.ACCOUNT_ID.CONCIERGE]: CONCIERGE_PERSONAL_DETAIL});
                 await waitForBatchedUpdates();
             });
 
@@ -7867,13 +7868,13 @@ describe('actions/Report', () => {
 
                 // Then the Concierge chat is created without touching Concierge's personal detail
                 TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.OPEN_REPORT, 1);
-                const personalDetailsList = await getOnyxValue(ONYXKEYS.PERSONAL_DETAILS_LIST);
+                const personalDetailsList = await getPersonalDetailsList();
                 expect(personalDetailsList?.[CONST.ACCOUNT_ID.CONCIERGE]).toEqual(CONCIERGE_PERSONAL_DETAIL);
             });
 
             it('reads Concierge details loaded while waiting for server data', async () => {
                 // Given navigation starts before OpenApp has loaded Concierge, with an empty caller snapshot.
-                await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {[CONST.ACCOUNT_ID.CONCIERGE]: null});
+                await mergePersonalDetailsList({[CONST.ACCOUNT_ID.CONCIERGE]: null});
                 await waitForBatchedUpdates();
                 let resolveServerDataReady = () => {};
                 const serverDataReady = new Promise<void>((resolve) => {
@@ -7896,7 +7897,7 @@ describe('actions/Report', () => {
                 expect(PersistedRequests.getAll()).toHaveLength(0);
 
                 // When OpenApp loads the real profile and then signals readiness, the captured snapshot is still empty.
-                await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {[CONST.ACCOUNT_ID.CONCIERGE]: CONCIERGE_PERSONAL_DETAIL});
+                await mergePersonalDetailsList({[CONST.ACCOUNT_ID.CONCIERGE]: CONCIERGE_PERSONAL_DETAIL});
                 await waitForBatchedUpdates();
                 resolveServerDataReady();
                 await navigationPromise;
@@ -7905,7 +7906,7 @@ describe('actions/Report', () => {
                 // Then the queued report uses Concierge's real account and never overwrites its profile optimistically.
                 const openReportRequests = PersistedRequests.getAll().filter((request) => request.command === WRITE_COMMANDS.OPEN_REPORT);
                 expect(openReportRequests).toHaveLength(1);
-                const personalDetailsList = await getOnyxValue(ONYXKEYS.PERSONAL_DETAILS_LIST);
+                const personalDetailsList = await getPersonalDetailsList();
                 expect(personalDetailsList?.[CONST.ACCOUNT_ID.CONCIERGE]).toEqual(CONCIERGE_PERSONAL_DETAIL);
                 expect(ReportUtils.buildOptimisticChatReport).toHaveBeenCalledWith(expect.objectContaining({participantList: [CONST.ACCOUNT_ID.CONCIERGE, TEST_USER_ACCOUNT_ID]}));
             });
@@ -7926,7 +7927,7 @@ describe('actions/Report', () => {
 
                 // Then the Concierge chat is created and the real Concierge personal detail is not overwritten by an optimistic one
                 TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.OPEN_REPORT, 1);
-                const personalDetailsList = await getOnyxValue(ONYXKEYS.PERSONAL_DETAILS_LIST);
+                const personalDetailsList = await getPersonalDetailsList();
                 expect(personalDetailsList?.[CONST.ACCOUNT_ID.CONCIERGE]).toEqual(CONCIERGE_PERSONAL_DETAIL);
             });
         });
@@ -8305,7 +8306,7 @@ describe('actions/Report', () => {
 
             await TestHelper.signInWithTestUser(TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN);
             await TestHelper.setPersonalDetails(TEST_USER_LOGIN, TEST_USER_ACCOUNT_ID);
-            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+            await mergePersonalDetailsList({
                 [CONST.ACCOUNT_ID.CONCIERGE]: {
                     accountID: CONST.ACCOUNT_ID.CONCIERGE,
                     login: CONST.EMAIL.CONCIERGE,
@@ -10451,7 +10452,7 @@ describe('actions/Report', () => {
 
         beforeEach(async () => {
             await TestHelper.signInWithTestUser(TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN);
-            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+            await mergePersonalDetailsList({
                 [CONST.ACCOUNT_ID.CONCIERGE]: {
                     accountID: CONST.ACCOUNT_ID.CONCIERGE,
                     login: CONST.EMAIL.CONCIERGE,
@@ -10743,7 +10744,7 @@ describe('actions/Report', () => {
             expect(newGroupChatReport).not.toBeNull();
 
             // Then optimistic personal details should be added for the unknown participant
-            const personalDetails = await getOnyxValue(ONYXKEYS.PERSONAL_DETAILS_LIST);
+            const personalDetails = await getPersonalDetailsList();
             const optimisticEntry = Object.values(personalDetails ?? {}).find((details) => details?.login === UNKNOWN_PARTICIPANT_LOGIN && details?.isOptimisticPersonalDetail === true);
             expect(optimisticEntry).not.toBeUndefined();
         });
@@ -10957,7 +10958,7 @@ describe('actions/Report', () => {
 
             await TestHelper.signInWithTestUser(TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN);
             await TestHelper.setPersonalDetails(TEST_USER_LOGIN, TEST_USER_ACCOUNT_ID);
-            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+            await mergePersonalDetailsList({
                 [PARTICIPANT_ACCOUNT_ID]: {
                     accountID: PARTICIPANT_ACCOUNT_ID,
                     login: PARTICIPANT_LOGIN,
@@ -10998,7 +10999,7 @@ describe('actions/Report', () => {
 
             await TestHelper.signInWithTestUser(TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN);
             await TestHelper.setPersonalDetails(TEST_USER_LOGIN, TEST_USER_ACCOUNT_ID);
-            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+            await mergePersonalDetailsList({
                 [PARTICIPANT_ACCOUNT_ID]: {
                     accountID: PARTICIPANT_ACCOUNT_ID,
                     login: PARTICIPANT_LOGIN,
@@ -11055,7 +11056,7 @@ describe('actions/Report', () => {
 
             await TestHelper.signInWithTestUser(TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN);
             await TestHelper.setPersonalDetails(TEST_USER_LOGIN, TEST_USER_ACCOUNT_ID);
-            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+            await mergePersonalDetailsList({
                 [PARTICIPANT_ACCOUNT_ID]: {
                     accountID: PARTICIPANT_ACCOUNT_ID,
                     login: PARTICIPANT_LOGIN,
@@ -11111,7 +11112,7 @@ describe('actions/Report', () => {
 
             await TestHelper.signInWithTestUser(TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN);
             await TestHelper.setPersonalDetails(TEST_USER_LOGIN, TEST_USER_ACCOUNT_ID);
-            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+            await mergePersonalDetailsList({
                 [PARTICIPANT_ACCOUNT_ID]: {
                     accountID: PARTICIPANT_ACCOUNT_ID,
                     login: PARTICIPANT_LOGIN,
@@ -11158,7 +11159,7 @@ describe('actions/Report', () => {
 
             await TestHelper.signInWithTestUser(TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN);
             await TestHelper.setPersonalDetails(TEST_USER_LOGIN, TEST_USER_ACCOUNT_ID);
-            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+            await mergePersonalDetailsList({
                 [PARTICIPANT_ACCOUNT_ID]: {
                     accountID: PARTICIPANT_ACCOUNT_ID,
                     login: PARTICIPANT_LOGIN,
@@ -11229,7 +11230,7 @@ describe('actions/Report', () => {
 
             await TestHelper.signInWithTestUser(TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN);
             await TestHelper.setPersonalDetails(TEST_USER_LOGIN, TEST_USER_ACCOUNT_ID);
-            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+            await mergePersonalDetailsList({
                 [PARTICIPANT_ACCOUNT_ID]: {
                     accountID: PARTICIPANT_ACCOUNT_ID,
                     login: PARTICIPANT_LOGIN,
@@ -11266,7 +11267,7 @@ describe('actions/Report', () => {
 
             await TestHelper.signInWithTestUser(TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN);
             await TestHelper.setPersonalDetails(TEST_USER_LOGIN, TEST_USER_ACCOUNT_ID);
-            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+            await mergePersonalDetailsList({
                 [PARTICIPANT_ACCOUNT_ID]: {
                     accountID: PARTICIPANT_ACCOUNT_ID,
                     login: PARTICIPANT_LOGIN,
@@ -11305,7 +11306,7 @@ describe('actions/Report', () => {
 
             await TestHelper.signInWithTestUser(TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN);
             await TestHelper.setPersonalDetails(TEST_USER_LOGIN, TEST_USER_ACCOUNT_ID);
-            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+            await mergePersonalDetailsList({
                 [PARTICIPANT_ACCOUNT_ID]: {
                     accountID: PARTICIPANT_ACCOUNT_ID,
                     login: PARTICIPANT_LOGIN,
@@ -11344,7 +11345,7 @@ describe('actions/Report', () => {
 
             await TestHelper.signInWithTestUser(TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN);
             await TestHelper.setPersonalDetails(TEST_USER_LOGIN, TEST_USER_ACCOUNT_ID);
-            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+            await mergePersonalDetailsList({
                 [PARTICIPANT_ACCOUNT_ID]: {
                     accountID: PARTICIPANT_ACCOUNT_ID,
                     login: PARTICIPANT_LOGIN,
@@ -11384,7 +11385,7 @@ describe('actions/Report', () => {
 
             await TestHelper.signInWithTestUser(TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN);
             await TestHelper.setPersonalDetails(TEST_USER_LOGIN, TEST_USER_ACCOUNT_ID);
-            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+            await mergePersonalDetailsList({
                 [PARTICIPANT_ACCOUNT_ID]: {
                     accountID: PARTICIPANT_ACCOUNT_ID,
                     login: PARTICIPANT_LOGIN,
@@ -11577,7 +11578,7 @@ describe('actions/Report', () => {
         async function signInAsSupportAgent() {
             await TestHelper.signInWithTestUser(TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN);
             await TestHelper.setPersonalDetails(TEST_USER_LOGIN, TEST_USER_ACCOUNT_ID);
-            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+            await mergePersonalDetailsList({
                 [PARTICIPANT_ACCOUNT_ID]: {accountID: PARTICIPANT_ACCOUNT_ID, login: PARTICIPANT_LOGIN, displayName: 'Participant'},
             });
             await Onyx.set(ONYXKEYS.SUPPORTAL_PERMISSION_DENIED, null);
@@ -12317,7 +12318,7 @@ describe('actions/Report', () => {
 
             // Given a stale login for the actor in the Onyx personal details list
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${parentReport.reportID}`, parentReport);
-            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+            await mergePersonalDetailsList({
                 [ACTOR_ACCOUNT_ID]: {accountID: ACTOR_ACCOUNT_ID, login: 'stale@test.com'},
             });
             await waitForBatchedUpdates();
@@ -13235,7 +13236,7 @@ describe('actions/Report', () => {
         // which silently attributed the action to a copilot the caller never asked for.
         it('does not fall back to the signed-in delegate when delegateAccountIDParam is undefined', async () => {
             const delegateLogin = 'copilot@example.com';
-            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {[DELEGATE_ACCOUNT_ID]: {accountID: DELEGATE_ACCOUNT_ID, login: delegateLogin}});
+            await mergePersonalDetailsList({[DELEGATE_ACCOUNT_ID]: {accountID: DELEGATE_ACCOUNT_ID, login: delegateLogin}});
             await Onyx.merge(ONYXKEYS.ACCOUNT, {delegatedAccess: {delegate: delegateLogin}});
             await waitForBatchedUpdates();
 

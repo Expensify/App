@@ -24,6 +24,7 @@ import React from 'react';
 import Onyx from 'react-native-onyx';
 
 import createRandomPolicy from '../utils/collections/policies';
+import {mergePersonalDetailsList} from '../utils/PersonalDetailsTestUtils';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
@@ -97,7 +98,7 @@ describe('PaymentDetailsPage Activity list', () => {
     beforeEach(async () => {
         Onyx.init({keys: ONYXKEYS});
         await Onyx.clear();
-        await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, Object.fromEntries([BOB, TODD, ...OTHER_MEMBERS].map((member) => [member.accountID, member])));
+        await mergePersonalDetailsList(Object.fromEntries([BOB, TODD, ...OTHER_MEMBERS].map((member) => [member.accountID, member])));
         await waitForBatchedUpdatesWithAct();
     });
 

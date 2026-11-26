@@ -19,7 +19,7 @@ import fileDownload from '@libs/fileDownload';
 import Log from '@libs/Log';
 import enhanceParameters from '@libs/Network/enhanceParameters';
 import Parser from '@libs/Parser';
-import {buildPersonalDetailsUpdate} from '@libs/PersonalDetailsUtils';
+import {buildPersonalDetailsUpdate, getPersonalDetailsFromOnyxUpdates} from '@libs/PersonalDetailsUtils';
 import type {PersonalDetailsOnyxUpdate} from '@libs/PersonalDetailsUtils';
 import * as PhoneNumber from '@libs/PhoneNumber';
 import {canRoleCreateExpenses, getDefaultApprover, getOwnerChangePayerSuccessData, hasDynamicExternalWorkflow, isControlPolicy, isPolicyAdmin, isSubmitPolicy} from '@libs/PolicyUtils';
@@ -900,7 +900,7 @@ function buildInvitedMembersCategoryVisibilityOnyxData(policyID: string, policyC
 
 function buildAddMembersToWorkspaceOnyxData(
     invitedEmailsToAccountIDs: InvitedEmailsToAccountIDs,
-    newPersonalDetailsOnyxData: OnyxData<typeof ONYXKEYS.PERSONAL_DETAILS_LIST>,
+    newPersonalDetailsOnyxData: OnyxData<typeof ONYXKEYS.COLLECTION.PERSONAL_DETAILS>,
     policy: Policy,
     policyMemberAccountIDs: number[],
     role: string,
@@ -924,14 +924,8 @@ function buildAddMembersToWorkspaceOnyxData(
 
     const doesPersonalDetailExistByAccountID: Record<number, boolean> = {};
     const newPersonalDetailAccountIDs = new Set<number>();
-    for (const update of newPersonalDetailsOnyxData.optimisticData ?? []) {
-        if (update.key !== ONYXKEYS.PERSONAL_DETAILS_LIST) {
-            continue;
-        }
-
-        for (const accountID of Object.keys(update.value ?? {})) {
-            newPersonalDetailAccountIDs.add(Number(accountID));
-        }
+    for (const accountID of Object.keys(getPersonalDetailsFromOnyxUpdates(newPersonalDetailsOnyxData.optimisticData))) {
+        newPersonalDetailAccountIDs.add(Number(accountID));
     }
 
     for (const accountID of accountIDs) {
@@ -1067,7 +1061,7 @@ function buildAddMembersToWorkspaceOnyxData(
  */
 function addMembersToWorkspace(
     invitedEmailsToAccountIDs: InvitedEmailsToAccountIDs,
-    newPersonalDetailsOnyxData: OnyxData<typeof ONYXKEYS.PERSONAL_DETAILS_LIST>,
+    newPersonalDetailsOnyxData: OnyxData<typeof ONYXKEYS.COLLECTION.PERSONAL_DETAILS>,
     welcomeNote: string,
     policy: OnyxEntry<Policy>,
     policyMemberAccountIDs: number[],

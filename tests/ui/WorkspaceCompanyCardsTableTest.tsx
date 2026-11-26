@@ -15,6 +15,7 @@ import type {CardFeedsStatusByDomainID, CombinedCardFeed, CompanyCardFeedWithDom
 import React from 'react';
 import Onyx from 'react-native-onyx';
 
+import {mergePersonalDetailsList} from '../utils/PersonalDetailsTestUtils';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
@@ -181,7 +182,7 @@ function renderTable(
 describe('WorkspaceCompanyCardsTable loading suppression', () => {
     beforeEach(async () => {
         await Onyx.clear();
-        await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {});
+        await mergePersonalDetailsList({});
         await waitForBatchedUpdates();
     });
 
@@ -243,7 +244,7 @@ describe('WorkspaceCompanyCardsTable loading suppression', () => {
 describe('WorkspaceCompanyCardsTable pending page fetch', () => {
     beforeEach(async () => {
         await Onyx.clear();
-        await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {});
+        await mergePersonalDetailsList({});
         await waitForBatchedUpdates();
     });
 
@@ -294,7 +295,7 @@ describe('WorkspaceCompanyCardsTable pending page fetch', () => {
 describe('WorkspaceCompanyCardsTable unresolved workspace account ID', () => {
     beforeEach(async () => {
         await Onyx.clear();
-        await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {});
+        await mergePersonalDetailsList({});
         await waitForBatchedUpdates();
     });
 
@@ -320,7 +321,7 @@ describe('WorkspaceCompanyCardsTable unresolved workspace account ID', () => {
 describe('WorkspaceCompanyCardsTable selection mode', () => {
     beforeEach(async () => {
         await Onyx.clear();
-        await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {});
+        await mergePersonalDetailsList({});
         await waitForBatchedUpdates();
     });
 

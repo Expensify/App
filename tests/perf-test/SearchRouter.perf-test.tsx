@@ -21,6 +21,7 @@ import {measureRenders} from 'reassure';
 import createCollection from '../utils/collections/createCollection';
 import createPersonalDetails from '../utils/collections/personalDetails';
 import {createRandomReport} from '../utils/collections/reports';
+import {withPersonalDetails} from '../utils/PersonalDetailsTestUtils';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import wrapOnyxWithWaitForBatchedUpdates from '../utils/wrapOnyxWithWaitForBatchedUpdates';
@@ -166,7 +167,7 @@ test('[SearchRouter] should render list with cached options', async () => {
         .then(() =>
             Onyx.multiSet({
                 ...mockedReports,
-                [ONYXKEYS.PERSONAL_DETAILS_LIST]: mockedPersonalDetails,
+                ...withPersonalDetails(mockedPersonalDetails),
                 [ONYXKEYS.BETAS]: mockedBetas,
                 [ONYXKEYS.RAM_ONLY_IS_SEARCHING_FOR_REPORTS]: true,
             }),
@@ -186,7 +187,7 @@ test('[SearchRouter] should react to text input changes', async () => {
         .then(() =>
             Onyx.multiSet({
                 ...mockedReports,
-                [ONYXKEYS.PERSONAL_DETAILS_LIST]: mockedPersonalDetails,
+                ...withPersonalDetails(mockedPersonalDetails),
                 [ONYXKEYS.BETAS]: mockedBetas,
                 [ONYXKEYS.RAM_ONLY_IS_SEARCHING_FOR_REPORTS]: true,
             }),
@@ -211,7 +212,7 @@ test('[SearchRouter] should re-render minimally when typing into the full router
         .then(() =>
             Onyx.multiSet({
                 ...mockedReports,
-                [ONYXKEYS.PERSONAL_DETAILS_LIST]: mockedPersonalDetails,
+                ...withPersonalDetails(mockedPersonalDetails),
                 [ONYXKEYS.BETAS]: mockedBetas,
                 [ONYXKEYS.RAM_ONLY_IS_SEARCHING_FOR_REPORTS]: true,
             }),

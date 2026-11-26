@@ -27,6 +27,7 @@ import type {OnyxCollection} from 'react-native-onyx';
 
 import Onyx from 'react-native-onyx';
 
+import {setPersonalDetailsList} from '../utils/PersonalDetailsTestUtils';
 import {formatPhoneNumber, translateLocal} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
@@ -345,7 +346,7 @@ describe('PersonalDetailOptionsListUtils', () => {
             },
         });
         Onyx.registerLogger(() => {});
-        return waitForBatchedUpdates().then(() => Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, PERSONAL_DETAILS));
+        return waitForBatchedUpdates().then(() => setPersonalDetailsList(PERSONAL_DETAILS));
     });
 
     let OPTIONS: OptionList;

@@ -34,6 +34,7 @@ import type {OnyxCollection} from 'react-native-onyx';
 
 import Onyx from 'react-native-onyx';
 
+import {withPersonalDetails} from '../../utils/PersonalDetailsTestUtils';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
 /** Echoes the translation path and any interpolated values so assertions can lock the chosen message. */
@@ -662,11 +663,11 @@ describe('TransactionInlineEdit', () => {
                 Onyx.init({keys: ONYXKEYS});
                 await Onyx.multiSet({
                     [ONYXKEYS.SESSION]: {email: submitterEmail, accountID: submitterAccountID},
-                    [ONYXKEYS.PERSONAL_DETAILS_LIST]: {
+                    ...withPersonalDetails({
                         [submitterAccountID]: {accountID: submitterAccountID, login: submitterEmail},
                         [approverAccountID]: {accountID: approverAccountID, login: approverEmail},
                         [ruleApproverAccountID]: {accountID: ruleApproverAccountID, login: ruleApproverEmail},
-                    },
+                    }),
                 });
                 await waitForBatchedUpdates();
             });

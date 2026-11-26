@@ -28,6 +28,7 @@ import Onyx from 'react-native-onyx';
 
 import createMock from '../utils/createMock';
 import getOnyxValue from '../utils/getOnyxValue';
+import {setPersonalDetailsList} from '../utils/PersonalDetailsTestUtils';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
 let mockIsWorkArrangementBetaEnabled = true;
@@ -100,7 +101,7 @@ describe('WorkArrangementPage', () => {
         jest.mocked(canMemberWrite).mockReturnValue(true);
         jest.mocked(useDynamicBackPath).mockReturnValue(`workspaces/${policyID}/members/invite/invite-message` as Route);
         await act(async () => {
-            await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetails);
+            await setPersonalDetailsList(personalDetails);
             await Onyx.set(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MEMBERS_DRAFT}${policyID}`, {});
             await Onyx.set(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_WORK_ARRANGEMENT_DRAFT}${policyID}`, null);
         });
@@ -263,7 +264,7 @@ describe('WorkArrangementPage', () => {
             employeeList: {[memberLogin]: {email: memberLogin, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD}},
         });
         await act(async () => {
-            await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, optimisticPersonalDetails);
+            await setPersonalDetailsList(optimisticPersonalDetails);
         });
         const renderedPage = renderPage(optimisticAccountID, pendingInvitePolicy);
 
@@ -273,7 +274,7 @@ describe('WorkArrangementPage', () => {
         const syncedPersonalDetails: PersonalDetailsList = {[syncedAccountID]: syncedPersonalDetail};
         const syncedPolicy = createMock<Policy>({...pendingInvitePolicy, employeeList: {[memberLogin]: {email: memberLogin, pendingAction: null}}});
         await act(async () => {
-            await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, syncedPersonalDetails);
+            await setPersonalDetailsList(syncedPersonalDetails);
         });
         renderedPage.rerender(getPage(optimisticAccountID, syncedPolicy));
 
@@ -297,7 +298,7 @@ describe('WorkArrangementPage', () => {
             employeeList: {[memberLogin]: {email: memberLogin, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD}},
         });
         await act(async () => {
-            await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, optimisticPersonalDetails);
+            await setPersonalDetailsList(optimisticPersonalDetails);
         });
         const renderedPage = renderPage(optimisticAccountID, pendingInvitePolicy);
 
@@ -307,7 +308,7 @@ describe('WorkArrangementPage', () => {
         const syncedPersonalDetails: PersonalDetailsList = {[syncedAccountID]: syncedPersonalDetail};
         const syncedPolicy = createMock<Policy>({...pendingInvitePolicy, employeeList: {[memberLogin]: {email: memberLogin, pendingAction: null}}});
         await act(async () => {
-            await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, syncedPersonalDetails);
+            await setPersonalDetailsList(syncedPersonalDetails);
         });
         renderedPage.rerender(getPage(optimisticAccountID, syncedPolicy));
 

@@ -28,6 +28,7 @@ import Onyx from 'react-native-onyx';
 
 import currencyList from '../unit/currencyList.json';
 import {getFakePolicy} from '../utils/LHNTestUtils';
+import {mergePersonalDetailsList, setPersonalDetailsList} from '../utils/PersonalDetailsTestUtils';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
@@ -93,7 +94,7 @@ describe('Workspace Expensify Card details cardholder email', () => {
         await act(async () => {
             await Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, CONST.LOCALES.EN);
             await Onyx.set(ONYXKEYS.CURRENCY_LIST, currencyList);
-            await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+            await setPersonalDetailsList({
                 [adminAccountID]: TestHelper.buildPersonalDetails(adminEmail, adminAccountID, 'Admin'),
             });
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
@@ -126,7 +127,7 @@ describe('Workspace Expensify Card details cardholder email', () => {
         // Given cardholders can have display names unrelated to their email, neither should replace the other.
         await act(async () => {
             await Onyx.set(workspaceCardsKey, {[cardID]: buildCard(isVirtual)});
-            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+            await mergePersonalDetailsList({
                 [cardholderAccountID]: {accountID: cardholderAccountID, login: cardholderEmail, displayName},
             });
         });
@@ -158,7 +159,7 @@ describe('Workspace Expensify Card details cardholder email', () => {
         await act(async () => {
             await Onyx.set(ONYXKEYS.COUNTRY_CODE, 1);
             await Onyx.set(workspaceCardsKey, {[cardID]: buildCard(isVirtual)});
-            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+            await mergePersonalDetailsList({
                 [cardholderAccountID]: {accountID: cardholderAccountID, login: phoneLogin, displayName: 'Card Holder'},
             });
         });
@@ -192,13 +193,13 @@ describe('Workspace Expensify Card details cardholder email', () => {
 
             // When only a display name arrives, it still cannot stand in for the email.
             await act(async () => {
-                await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {[cardholderAccountID]: {accountID: cardholderAccountID, displayName: 'Card Holder'}});
+                await mergePersonalDetailsList({[cardholderAccountID]: {accountID: cardholderAccountID, displayName: 'Card Holder'}});
             });
             expect(screen.queryByText(emailLabel)).toBeNull();
 
             // Then a subsequent profile update supplies the selected cardholder's email without a remount.
             await act(async () => {
-                await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {[cardholderAccountID]: {login: cardholderEmail}});
+                await mergePersonalDetailsList({[cardholderAccountID]: {login: cardholderEmail}});
             });
             expect(await screen.findByLabelText(`${emailLabel}, ${cardholderEmail}`)).toBeOnTheScreen();
         },
@@ -209,7 +210,7 @@ describe('Workspace Expensify Card details cardholder email', () => {
         const longEmail = 'a.very.long.cardholder.email.address.for.narrow.layouts@example.com';
         await act(async () => {
             await Onyx.set(workspaceCardsKey, {[cardID]: buildCard()});
-            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {[cardholderAccountID]: {accountID: cardholderAccountID, login: longEmail, displayName: 'Card Holder'}});
+            await mergePersonalDetailsList({[cardholderAccountID]: {accountID: cardholderAccountID, login: longEmail, displayName: 'Card Holder'}});
         });
 
         // When the email row is rendered and pressed, it must remain a read-only value.

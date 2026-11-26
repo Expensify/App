@@ -202,6 +202,7 @@ import {createRandomReport} from '../utils/collections/reports';
 import createRandomTransaction from '../utils/collections/transaction';
 import createMock from '../utils/createMock';
 import createUKFuelRateTaxPolicy from '../utils/createUKFuelRateTaxPolicy';
+import {setPersonalDetailsList} from '../utils/PersonalDetailsTestUtils';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
@@ -2202,7 +2203,7 @@ describe('PolicyUtils', () => {
     describe('useDefaultFundID', () => {
         beforeEach(() => {
             wrapOnyxWithWaitForBatchedUpdates(Onyx);
-            Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetails);
+            setPersonalDetailsList(personalDetails);
         });
         afterEach(async () => {
             await Onyx.clear();
@@ -2845,7 +2846,7 @@ describe('PolicyUtils', () => {
         describe('getSubmitToAccountID', () => {
             beforeEach(() => {
                 wrapOnyxWithWaitForBatchedUpdates(Onyx);
-                Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetails);
+                setPersonalDetailsList(personalDetails);
             });
             afterEach(async () => {
                 await Onyx.clear();
@@ -3119,7 +3120,7 @@ describe('PolicyUtils', () => {
         describe('getSubmitReportManagerAccountID', () => {
             beforeEach(() => {
                 wrapOnyxWithWaitForBatchedUpdates(Onyx);
-                Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetails);
+                setPersonalDetailsList(personalDetails);
             });
             afterEach(async () => {
                 await Onyx.clear();
@@ -3500,7 +3501,7 @@ describe('PolicyUtils', () => {
 
             beforeEach(async () => {
                 wrapOnyxWithWaitForBatchedUpdates(Onyx);
-                await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetails);
+                await setPersonalDetailsList(personalDetails);
                 await Onyx.set(`${ONYXKEYS.COLLECTION.RULE}1` as const, buildRule(submitRule));
                 await Onyx.set(`${ONYXKEYS.COLLECTION.RULE}2` as const, buildRule(underLimitRule));
                 await Onyx.set(`${ONYXKEYS.COLLECTION.RULE}3` as const, buildRule(overLimitRule));
@@ -3643,7 +3644,7 @@ describe('PolicyUtils', () => {
         describe('getSubmitReportManagerAccountID', () => {
             beforeEach(() => {
                 wrapOnyxWithWaitForBatchedUpdates(Onyx);
-                Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetails);
+                setPersonalDetailsList(personalDetails);
             });
             afterEach(async () => {
                 await Onyx.clear();
@@ -3740,7 +3741,7 @@ describe('PolicyUtils', () => {
     describe('isWorkspaceEligibleForReportChange', () => {
         beforeEach(() => {
             wrapOnyxWithWaitForBatchedUpdates(Onyx);
-            Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetails);
+            setPersonalDetailsList(personalDetails);
         });
         afterEach(async () => {
             await Onyx.clear();
@@ -5892,7 +5893,7 @@ describe('PolicyUtils', () => {
         describe('getEligibleBankAccountShareRecipientEmails', () => {
             beforeEach(() => {
                 wrapOnyxWithWaitForBatchedUpdates(Onyx);
-                Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetails);
+                setPersonalDetailsList(personalDetails);
             });
             afterEach(async () => {
                 await Onyx.clear();
@@ -6097,7 +6098,7 @@ describe('PolicyUtils', () => {
         describe('hasEligibleBankAccountShareRecipient', () => {
             beforeEach(() => {
                 wrapOnyxWithWaitForBatchedUpdates(Onyx);
-                Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetails);
+                setPersonalDetailsList(personalDetails);
             });
             afterEach(async () => {
                 await Onyx.clear();

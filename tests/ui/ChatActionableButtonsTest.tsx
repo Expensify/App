@@ -13,6 +13,7 @@ import type {Report, ReportAction} from '@src/types/onyx';
 import React from 'react';
 import Onyx from 'react-native-onyx';
 
+import {mergePersonalDetailsList} from '../utils/PersonalDetailsTestUtils';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 import wrapOnyxWithWaitForBatchedUpdates from '../utils/wrapOnyxWithWaitForBatchedUpdates';
 
@@ -61,7 +62,7 @@ describe('ChatActionableButtons', () => {
         wrapOnyxWithWaitForBatchedUpdates(Onyx);
         await act(async () => {
             await Onyx.merge(ONYXKEYS.SESSION, {accountID: CURRENT_USER_ACCOUNT_ID, email: 'test@test.com'});
-            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+            await mergePersonalDetailsList({
                 [CURRENT_USER_ACCOUNT_ID]: {
                     accountID: CURRENT_USER_ACCOUNT_ID,
                     login: 'test@test.com',

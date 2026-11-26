@@ -27,6 +27,7 @@ import Onyx from 'react-native-onyx';
 import createMock from '../utils/createMock';
 import getOnyxValue from '../utils/getOnyxValue';
 import * as LHNTestUtils from '../utils/LHNTestUtils';
+import {setPersonalDetailsList} from '../utils/PersonalDetailsTestUtils';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
@@ -91,7 +92,7 @@ describe('WorkspaceInviteMessageApproverPage', () => {
         await TestHelper.signInWithTestUser(selfAccountID, selfEmail, undefined, 'Self');
         await act(async () => {
             await Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, CONST.LOCALES.EN);
-            await Onyx.set(`${ONYXKEYS.PERSONAL_DETAILS_LIST}`, {
+            await setPersonalDetailsList({
                 [ownerAccountID]: TestHelper.buildPersonalDetails(ownerEmail, ownerAccountID, 'Owner'),
                 [adminAccountID]: TestHelper.buildPersonalDetails(adminEmail, adminAccountID, 'Admin'),
                 [userAccountID]: TestHelper.buildPersonalDetails(userEmail, userAccountID, 'User'),

@@ -29,6 +29,7 @@ import Onyx from 'react-native-onyx';
 
 import currencyListFixture from '../unit/currencyList.json';
 import createMock from './createMock';
+import {mergePersonalDetailsList} from './PersonalDetailsTestUtils';
 import {setInitialURL} from './ReactNativeMockUtils';
 import {isObject} from './typeGuards';
 import waitForBatchedUpdates from './waitForBatchedUpdates';
@@ -206,7 +207,7 @@ function signInWithTestUser(accountID = 1, login = 'test@user.com', password = '
     const originalXhr = HttpUtils.xhr;
 
     HttpUtils.xhr = jest.fn().mockImplementation(() => {
-        const mockedResponse: OnyxResponse<typeof ONYXKEYS.CREDENTIALS | typeof ONYXKEYS.ACCOUNT | typeof ONYXKEYS.PERSONAL_DETAILS_LIST> = {
+        const mockedResponse: OnyxResponse<typeof ONYXKEYS.CREDENTIALS | typeof ONYXKEYS.ACCOUNT | typeof ONYXKEYS.PERSONAL_DETAILS_LIST | typeof ONYXKEYS.COLLECTION.PERSONAL_DETAILS> = {
             onyxData: [
                 {
                     onyxMethod: Onyx.METHOD.MERGE,
@@ -228,6 +229,11 @@ function signInWithTestUser(accountID = 1, login = 'test@user.com', password = '
                     value: {
                         [accountID]: buildPersonalDetails(login, accountID, firstName),
                     },
+                },
+                {
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.PERSONAL_DETAILS}${accountID}`,
+                    value: buildPersonalDetails(login, accountID, firstName),
                 },
             ],
             jsonCode: 200,
@@ -439,7 +445,7 @@ function expectAPICommandToHaveBeenCalledWith<TCommand extends ApiCommand>(comma
 }
 
 function setPersonalDetails(login: string, accountID: number) {
-    Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+    mergePersonalDetailsList({
         [accountID]: buildPersonalDetails(login, accountID),
     });
     return waitForBatchedUpdates();

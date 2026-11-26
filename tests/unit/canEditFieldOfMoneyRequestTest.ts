@@ -17,6 +17,7 @@ import createRandomPolicy from '../utils/collections/policies';
 import createRandomReportAction from '../utils/collections/reportActions';
 import {createExpenseReport, createInvoiceReport} from '../utils/collections/reports';
 import createRandomTransaction from '../utils/collections/transaction';
+import {setPersonalDetailsList, withPersonalDetails} from '../utils/PersonalDetailsTestUtils';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 const currentUserAccountID = 5;
@@ -315,7 +316,7 @@ describe('canEditFieldOfMoneyRequest', () => {
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${EXPENSE_OUTSTANDING_REPORT_1_ID}`, outstandingExpenseReport1);
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${EXPENSE_OUTSTANDING_REPORT_2_ID}`, outstandingExpenseReport2);
                 await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, expensePolicy);
-                await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+                await setPersonalDetailsList({
                     [currentUserAccountID]: {
                         accountID: currentUserAccountID,
                         login: currentUserEmail,
@@ -343,7 +344,7 @@ describe('canEditFieldOfMoneyRequest', () => {
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${EXPENSE_OUTSTANDING_REPORT_1_ID}`, outstandingExpenseReport1);
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${EXPENSE_OUTSTANDING_REPORT_2_ID}`, outstandingExpenseReport2);
                 await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, expensePolicy);
-                await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+                await setPersonalDetailsList({
                     [currentUserAccountID]: {
                         accountID: currentUserAccountID,
                         login: currentUserEmail,
@@ -464,7 +465,7 @@ describe('canEditFieldOfMoneyRequest', () => {
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${IOUReportID}`, expenseReport);
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${EXPENSE_OUTSTANDING_REPORT_1_ID}`, outstandingExpenseReport1);
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${EXPENSE_OUTSTANDING_REPORT_2_ID}`, outstandingExpenseReport2);
-                await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+                await setPersonalDetailsList({
                     [currentUserAccountID]: {
                         accountID: currentUserAccountID,
                         login: currentUserEmail,
@@ -506,7 +507,7 @@ describe('canEditFieldOfMoneyRequest', () => {
                 };
                 await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, adminPolicy);
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${IOUReportID}`, employeeExpenseReport);
-                await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+                await setPersonalDetailsList({
                     [employeeAccountID]: {
                         accountID: employeeAccountID,
                         login: employeeEmail,
@@ -1576,10 +1577,10 @@ describe('canEditFieldOfMoneyRequest', () => {
             const transactionCollectionDataSet = toCollectionDataSet(ONYXKEYS.COLLECTION.TRANSACTION, [transaction], (current) => current.transactionID);
             await Onyx.multiSet({
                 [ONYXKEYS.SESSION]: {email: currentUserEmail, accountID: currentUserAccountID},
-                [ONYXKEYS.PERSONAL_DETAILS_LIST]: {
+                ...withPersonalDetails({
                     [currentUserAccountID]: {accountID: currentUserAccountID, login: currentUserEmail},
                     [secondUserAccountID]: {accountID: secondUserAccountID, login: secondUserEmail},
-                },
+                }),
                 ...policyCollectionDataSet,
                 ...reportCollectionDataSet,
                 ...transactionCollectionDataSet,

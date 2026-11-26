@@ -4,6 +4,8 @@ import type {PersonalDetails, PersonalDetailsList} from '@src/types/onyx';
 
 import Onyx from 'react-native-onyx';
 
+import {toPersonalDetailsList} from './PersonalDetailsCollection';
+
 let allPersonalDetails: PersonalDetailsList = {};
 let loginToPersonalDetails: Record<string, PersonalDetails> = {};
 let accountIDToName: Record<string, string> = {};
@@ -26,9 +28,9 @@ function buildLoginMapping(personalDetailsList: PersonalDetailsList): Record<str
 
 // Only sanctioned connectWithoutView for personal details, don't add another: React uses @hooks/usePersonalDetails, everything else uses this store
 Onyx.connectWithoutView({
-    key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+    key: ONYXKEYS.COLLECTION.PERSONAL_DETAILS,
     callback: (value) => {
-        allPersonalDetails = value ?? {};
+        allPersonalDetails = toPersonalDetailsList(value) ?? {};
         loginToPersonalDetails = buildLoginMapping(allPersonalDetails);
         accountIDToName = {};
         for (const personalDetail of Object.values(allPersonalDetails)) {

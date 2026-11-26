@@ -38,6 +38,7 @@ import {createAdminRoom, createExpenseReport, createPolicyExpenseChat, createReg
 import createRandomTransaction from '../utils/collections/transaction';
 import createMock from '../utils/createMock';
 import {fakePersonalDetails} from '../utils/LHNTestUtils';
+import {mergePersonalDetailsList, setPersonalDetailsList, withPersonalDetails} from '../utils/PersonalDetailsTestUtils';
 import {convertToDisplayString, convertToDisplayStringWithoutCurrency, formatPhoneNumber, getCurrencySymbolLocal, translateLocal} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
@@ -114,7 +115,7 @@ describe('ReportNameUtils', () => {
     beforeAll(async () => {
         Onyx.init({keys: ONYXKEYS});
         await Onyx.multiSet({
-            [ONYXKEYS.PERSONAL_DETAILS_LIST]: participantsPersonalDetails,
+            ...withPersonalDetails(participantsPersonalDetails),
             [ONYXKEYS.SESSION]: {accountID: currentUserAccountID, email: 'lagertha2@vikings.net'},
         });
         await IntlStore.load(CONST.LOCALES.EN);
@@ -200,7 +201,7 @@ describe('ReportNameUtils', () => {
                 reportName: undefined,
             };
 
-            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, participantsPersonalDetails);
+            await mergePersonalDetailsList(participantsPersonalDetails);
             const name = computeReportName(
                 report,
                 emptyCollections.reports,
@@ -314,7 +315,7 @@ describe('ReportNameUtils', () => {
                 ownerAccountID: 1,
             };
 
-            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, participantsPersonalDetails);
+            await mergePersonalDetailsList(participantsPersonalDetails);
             const name = computeReportName(
                 report,
                 emptyCollections.reports,
@@ -1829,7 +1830,7 @@ describe('ReportNameUtils', () => {
                 [`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`]: {private_isArchived: 'true'},
             } satisfies Record<string, ReportNameValuePairs>;
 
-            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, participantsPersonalDetails);
+            await mergePersonalDetailsList(participantsPersonalDetails);
             const name = computeReportName(
                 report,
                 emptyCollections.reports,
@@ -2153,27 +2154,27 @@ describe('ReportNameUtils', () => {
 
         describe('When participantAccountIDs is passed to getGroupChatName', () => {
             it('shows all participants when count <= 5 and shouldApplyLimit is false', async () => {
-                await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, fakePersonalDetails);
+                await mergePersonalDetailsList(fakePersonalDetails);
                 expect(getGroupChatName(formatPhoneNumber, translateLocal, fourParticipants)).toEqual('Four, One, Three, Two');
             });
 
             it('shows all participants when count <= 5 and shouldApplyLimit is true', async () => {
-                await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, fakePersonalDetails);
+                await mergePersonalDetailsList(fakePersonalDetails);
                 expect(getGroupChatName(formatPhoneNumber, translateLocal, fourParticipants, true)).toEqual('Four, One, Three, Two');
             });
 
             it('shows 5 participants with ellipsis when count > 5 and shouldApplyLimit is true', async () => {
-                await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, fakePersonalDetails);
+                await mergePersonalDetailsList(fakePersonalDetails);
                 expect(getGroupChatName(formatPhoneNumber, translateLocal, eightParticipants, true)).toEqual('Five, Four, One, Three, Two...');
             });
 
             it('shows all participants when count > 5 and shouldApplyLimit is false', async () => {
-                await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, fakePersonalDetails);
+                await mergePersonalDetailsList(fakePersonalDetails);
                 expect(getGroupChatName(formatPhoneNumber, translateLocal, eightParticipants, false)).toEqual('Eight, Five, Four, One, Seven, Six, Three, Two');
             });
 
             it('uses correct display names for participants', async () => {
-                await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, participantsPersonalDetails);
+                await mergePersonalDetailsList(participantsPersonalDetails);
                 expect(getGroupChatName(formatPhoneNumber, translateLocal, fourParticipants, true)).toEqual('(833) 240-3627, floki@vikings.net, Lagertha, Ragnar');
             });
         });
@@ -2186,7 +2187,7 @@ describe('ReportNameUtils', () => {
                     reportName: "Let's talk",
                 };
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
-                await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, fakePersonalDetails);
+                await mergePersonalDetailsList(fakePersonalDetails);
                 expect(getGroupChatName(formatPhoneNumber, translateLocal, undefined, false, report)).toEqual("Let's talk");
             });
 
@@ -2197,7 +2198,7 @@ describe('ReportNameUtils', () => {
                     reportName: "Let's talk",
                 };
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
-                await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, fakePersonalDetails);
+                await mergePersonalDetailsList(fakePersonalDetails);
                 expect(getGroupChatName(formatPhoneNumber, translateLocal, undefined, true, report)).toEqual("Let's talk");
             });
 
@@ -2208,7 +2209,7 @@ describe('ReportNameUtils', () => {
                     reportName: "Let's talk",
                 };
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
-                await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, fakePersonalDetails);
+                await mergePersonalDetailsList(fakePersonalDetails);
                 expect(getGroupChatName(formatPhoneNumber, translateLocal, undefined, true, report)).toEqual("Let's talk");
             });
 
@@ -2219,7 +2220,7 @@ describe('ReportNameUtils', () => {
                     reportName: "Let's talk",
                 };
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
-                await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, fakePersonalDetails);
+                await mergePersonalDetailsList(fakePersonalDetails);
                 expect(getGroupChatName(formatPhoneNumber, translateLocal, undefined, false, report)).toEqual("Let's talk");
             });
 
@@ -2230,7 +2231,7 @@ describe('ReportNameUtils', () => {
                     reportName: '',
                 };
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
-                await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, fakePersonalDetails);
+                await mergePersonalDetailsList(fakePersonalDetails);
                 expect(getGroupChatName(formatPhoneNumber, translateLocal, undefined, false, report)).toEqual('Eight, Five, Four, One, Seven, Six, Three, Two');
             });
 
@@ -2241,7 +2242,7 @@ describe('ReportNameUtils', () => {
                     reportName: '',
                 };
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
-                await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, fakePersonalDetails);
+                await mergePersonalDetailsList(fakePersonalDetails);
 
                 expect(getGroupChatName(formatPhoneNumber, translateLocal, undefined, false, report, ['2', '4'])).toEqual('One, Three');
             });
@@ -2253,7 +2254,7 @@ describe('ReportNameUtils', () => {
                     reportName: '',
                 };
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
-                await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, fakePersonalDetails);
+                await mergePersonalDetailsList(fakePersonalDetails);
 
                 expect(getGroupChatName(formatPhoneNumber, translateLocal, undefined, false, report, [])).toEqual('Four, One, Three, Two');
             });
@@ -2265,7 +2266,7 @@ describe('ReportNameUtils', () => {
                     reportName: '',
                 };
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
-                await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, fakePersonalDetails);
+                await mergePersonalDetailsList(fakePersonalDetails);
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${report.reportID}`, {
                     pendingChatMembers: [{accountID: '1', pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}],
                 });
@@ -2275,7 +2276,7 @@ describe('ReportNameUtils', () => {
         });
 
         it('builds the single-participant default name through the provided translate function', async () => {
-            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, fakePersonalDetails);
+            await mergePersonalDetailsList(fakePersonalDetails);
             // A single participant produces the groupChat.defaultReportName label from the provided translate function.
             const translateWithMarker: LocalizedTranslate = (path, ...parameters) =>
                 path === 'groupChat.defaultReportName' ? `GroupMarker:${String(parameters.at(0))}` : translateLocal(path, ...parameters);
@@ -2289,7 +2290,7 @@ describe('ReportNameUtils', () => {
         it('resolves the payer name through the provided translate function for an IOU report', async () => {
             const hiddenManagerAccountID = 780060;
             // The manager has no displayName/login, so the payer name resolves to the hidden label provided by translate.
-            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {[hiddenManagerAccountID]: {accountID: hiddenManagerAccountID, login: '', displayName: ''}});
+            await mergePersonalDetailsList({[hiddenManagerAccountID]: {accountID: hiddenManagerAccountID, login: '', displayName: ''}});
             await waitForBatchedUpdates();
             const iouReport: Report = {
                 reportID: '780061',
@@ -2428,7 +2429,7 @@ describe('ReportNameUtils', () => {
 
         it('returns the "spent" message when the report has non-reimbursable transactions and is not settled', async () => {
             // Earlier tests in this file overwrite ONYXKEYS.PERSONAL_DETAILS_LIST, so restore it here to keep this test order-independent
-            await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, participantsPersonalDetails);
+            await setPersonalDetailsList(participantsPersonalDetails);
             await waitForBatchedUpdates();
 
             // Given an unsettled expense report owned by Ragnar (accountID 1) with a non-empty fieldList

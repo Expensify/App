@@ -108,6 +108,10 @@ const ONYX_KEY_EXPORT_RULES: Record<string, ExportRule> = {
         allowList: ['accountID', 'timezone', 'status', 'pronouns'],
         maskList: ['firstName', 'lastName', 'displayName', 'avatar', 'login'],
     },
+    [ONYXKEYS.COLLECTION.PERSONAL_DETAILS]: {
+        allowList: ['accountID', 'timezone', 'status', 'pronouns'],
+        maskList: ['firstName', 'lastName', 'displayName', 'avatar', 'login'],
+    },
     [ONYXKEYS.COLLECTION.REPORT]: {
         allowList: [
             'reportID',

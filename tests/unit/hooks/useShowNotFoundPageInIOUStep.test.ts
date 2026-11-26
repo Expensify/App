@@ -11,6 +11,7 @@ import Onyx from 'react-native-onyx';
 import createRandomReportAction from '../../utils/collections/reportActions';
 import {createRandomReport} from '../../utils/collections/reports';
 import createRandomTransaction from '../../utils/collections/transaction';
+import {mergePersonalDetailsList} from '../../utils/PersonalDetailsTestUtils';
 
 describe('useShowNotFoundPageInIOUStep', () => {
     beforeAll(() => {
@@ -118,7 +119,7 @@ describe('useShowNotFoundPageInIOUStep', () => {
         };
 
         await Onyx.merge(ONYXKEYS.SESSION, {accountID: currentUserAccountID, email: currentUserEmail});
-        await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+        await mergePersonalDetailsList({
             [currentUserAccountID]: {accountID: currentUserAccountID, login: currentUserEmail},
             [approverAccountID]: {accountID: approverAccountID, login: approverEmail},
         });

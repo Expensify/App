@@ -13,6 +13,7 @@ import Onyx from 'react-native-onyx';
 
 import createRandomPolicy from '../../utils/collections/policies';
 import createMock from '../../utils/createMock';
+import {setPersonalDetailsList} from '../../utils/PersonalDetailsTestUtils';
 import {buildPersonalDetails} from '../../utils/TestHelper';
 
 jest.mock('@hooks/useCurrentUserPersonalDetails');
@@ -73,7 +74,7 @@ describe('useApprovalWorkflows', () => {
         jest.mocked(useCurrentUserPersonalDetails).mockReturnValue(createMock<ReturnType<typeof useCurrentUserPersonalDetails>>({login: CURRENT_USER_LOGIN}));
         mockIsBetaEnabled([]);
         // The hook reads the personal details itself, so they are seeded rather than passed in.
-        await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetails);
+        await setPersonalDetailsList(personalDetails);
     });
 
     afterEach(async () => {

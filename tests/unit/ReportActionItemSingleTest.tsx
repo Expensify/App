@@ -18,6 +18,7 @@ import Onyx from 'react-native-onyx';
 
 import createMock from '../utils/createMock';
 import * as LHNTestUtils from '../utils/LHNTestUtils';
+import {mergePersonalDetailsList, withPersonalDetails} from '../utils/PersonalDetailsTestUtils';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 import wrapOnyxWithWaitForBatchedUpdates from '../utils/wrapOnyxWithWaitForBatchedUpdates';
 
@@ -65,7 +66,7 @@ describe('ReportActionItemSingle', () => {
                 await waitForBatchedUpdatesWithAct();
                 await act(async () => {
                     await Onyx.multiSet({
-                        [ONYXKEYS.PERSONAL_DETAILS_LIST]: fakePersonalDetails,
+                        ...withPersonalDetails(fakePersonalDetails),
                         [ONYXKEYS.IS_LOADING_REPORT_DATA]: false,
                         [ONYXKEYS.COLLECTION.REPORT_ACTIONS]: {
                             [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${fakeReport.reportID}`]: {
@@ -130,7 +131,7 @@ describe('ReportActionItemSingle', () => {
             await act(async () => {
                 await Promise.all([
                     Onyx.merge(ONYXKEYS.IS_LOADING_REPORT_DATA, false),
-                    Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+                    mergePersonalDetailsList({
                         [OWNER_ACCOUNT_ID]: {accountID: OWNER_ACCOUNT_ID, login: 'owner@test.com', displayName: 'Owner Person'},
                         [MANAGER_ACCOUNT_ID]: {accountID: MANAGER_ACCOUNT_ID, login: 'manager@test.com', displayName: 'Manager Person'},
                     }),
@@ -174,7 +175,7 @@ describe('ReportActionItemSingle', () => {
             await act(async () => {
                 await Onyx.multiSet({
                     [ONYXKEYS.IS_LOADING_REPORT_DATA]: false,
-                    [ONYXKEYS.PERSONAL_DETAILS_LIST]: {},
+                    ...withPersonalDetails({}),
                     [ONYXKEYS.COLLECTION.REPORT]: {
                         [`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`]: report,
                     },

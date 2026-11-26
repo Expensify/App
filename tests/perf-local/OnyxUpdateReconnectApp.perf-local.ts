@@ -16,6 +16,7 @@ import createRandomPolicy from '../utils/collections/policies';
 import createRandomReportAction from '../utils/collections/reportActions';
 import {createRandomReport} from '../utils/collections/reports';
 import createRandomTransaction from '../utils/collections/transaction';
+import {withPersonalDetails} from '../utils/PersonalDetailsTestUtils';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 const REPORT_COUNT = 3000;
@@ -130,7 +131,7 @@ describe('Onyx.update with a ReconnectApp-sized response', () => {
             ...reportActions,
             ...transactions,
             ...policies,
-            [ONYXKEYS.PERSONAL_DETAILS_LIST]: personalDetails,
+            ...withPersonalDetails(personalDetails),
             [ONYXKEYS.NVP_PREFERRED_LOCALE]: CONST.LOCALES.EN,
             [ONYXKEYS.SESSION]: {accountID: 1, email: 'test@example.com'},
         });

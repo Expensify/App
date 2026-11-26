@@ -12,6 +12,7 @@ import type {OnyxCollection, OnyxMultiSetInput} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 
 import getOnyxValue from '../getOnyxValue';
+import {withPersonalDetails} from '../PersonalDetailsTestUtils';
 import waitForBatchedUpdates from '../waitForBatchedUpdates';
 
 const CURRENT_USER_EMAIL = 'current.user@example.com';
@@ -725,7 +726,7 @@ function getArchivedEntries(privateIsArchivedMap: PrivateIsArchivedMap): Record<
 function getOnyxEntries(fixture: SearchFixture): OnyxMultiSetInput {
     return {
         [ONYXKEYS.SESSION]: SESSION,
-        [ONYXKEYS.PERSONAL_DETAILS_LIST]: fixture.personalDetails,
+        ...withPersonalDetails(fixture.personalDetails),
         [ONYXKEYS.LOGINS]: fixture.loginList,
         ...fixture.reports,
         ...fixture.reportActions,
@@ -784,7 +785,7 @@ function getChangedEntries<TValue>(previous: Readonly<Record<string, TValue>>, n
  */
 function writeSearchFixtureUpdateToOnyx(previous: SearchFixture, next: SearchFixture): Promise<SearchFixtureDerivedData> {
     return writeOnyxEntries({
-        ...(previous.personalDetails === next.personalDetails ? {} : {[ONYXKEYS.PERSONAL_DETAILS_LIST]: next.personalDetails}),
+        ...(previous.personalDetails === next.personalDetails ? {} : {...withPersonalDetails(next.personalDetails)}),
         ...(previous.loginList === next.loginList ? {} : {[ONYXKEYS.LOGINS]: next.loginList}),
         ...getChangedEntries(previous.reports, next.reports),
         ...getChangedEntries(previous.reportActions, next.reportActions),

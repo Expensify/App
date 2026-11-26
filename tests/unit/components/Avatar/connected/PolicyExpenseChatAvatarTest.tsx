@@ -12,6 +12,8 @@ import React from 'react';
 
 import type mockOnyxWithLivePersonalDetails from '../../../../utils/mockOnyxWithLivePersonalDetails';
 
+import {toPersonalDetailsCollection} from '../../../../utils/PersonalDetailsTestUtils';
+
 const REPORT_ID = 'report123';
 const POLICY_ID = 'policy123';
 const POLICY_NAME = 'Acme Workspace';
@@ -192,9 +194,11 @@ describe('PolicyExpenseChatAvatar (connected)', () => {
         // Given a policy expense chat whose member is only known to the Search snapshot, as on a Search surface
         seedChat();
         mockPersonalDetails = {};
-        mockOnyxData[ONYXKEYS.PERSONAL_DETAILS_LIST] = {
+        const snapshotPersonalDetails = toPersonalDetailsCollection({
             [OWNER_ACCOUNT_ID]: {accountID: OWNER_ACCOUNT_ID, login: OWNER_LOGIN, displayName: OWNER_DISPLAY_NAME, avatar: OWNER_AVATAR_URL},
-        };
+        });
+        mockOnyxData[ONYXKEYS.COLLECTION.PERSONAL_DETAILS] = snapshotPersonalDetails;
+        Object.assign(mockOnyxData, snapshotPersonalDetails);
 
         // When it renders
         renderWithPersonalDetails(

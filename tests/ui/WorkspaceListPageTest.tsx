@@ -17,6 +17,7 @@ import {PortalProvider} from '@gorhom/portal';
 import {NavigationContainer} from '@react-navigation/native';
 import Onyx from 'react-native-onyx';
 
+import {setPersonalDetailsList} from '../utils/PersonalDetailsTestUtils';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
 const Stack = createPlatformStackNavigator<WorkspaceNavigatorParamList>();
@@ -78,7 +79,7 @@ describe('WorkspaceListPage', () => {
             accountID: TEST_ACCOUNT_ID,
         });
 
-        await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+        await setPersonalDetailsList({
             [TEST_ACCOUNT_ID]: {
                 login: TEST_EMAIL,
                 accountID: TEST_ACCOUNT_ID,
@@ -123,7 +124,7 @@ describe('WorkspaceListPage', () => {
             accountID: TEST_ACCOUNT_ID,
         });
 
-        await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+        await setPersonalDetailsList({
             [TEST_ACCOUNT_ID]: {
                 login: TEST_EMAIL,
                 accountID: TEST_ACCOUNT_ID,
@@ -167,7 +168,7 @@ describe('WorkspaceListPage', () => {
             accountID: TEST_ACCOUNT_ID,
         });
 
-        await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+        await setPersonalDetailsList({
             [TEST_ACCOUNT_ID]: {
                 login: TEST_EMAIL,
                 accountID: TEST_ACCOUNT_ID,

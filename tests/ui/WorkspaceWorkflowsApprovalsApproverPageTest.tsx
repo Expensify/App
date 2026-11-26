@@ -29,6 +29,7 @@ import Onyx from 'react-native-onyx';
 
 import createMock from '../utils/createMock';
 import getOnyxValue from '../utils/getOnyxValue';
+import {mergePersonalDetailsList, setPersonalDetailsList} from '../utils/PersonalDetailsTestUtils';
 import {buildPersonalDetails, localeCompare} from '../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
@@ -168,7 +169,7 @@ describe('WorkspaceWorkflowsApprovalsApproverPage', () => {
             await Onyx.set(ONYXKEYS.HAS_LOADED_APP, true);
             await Onyx.set(ONYXKEYS.IS_LOADING_REPORT_DATA, false);
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, buildPolicy(buildEmployeeList()));
-            await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, buildPersonalDetailsList());
+            await setPersonalDetailsList(buildPersonalDetailsList());
             await Onyx.merge(ONYXKEYS.SESSION, {email: ADMIN_EMAIL, accountID: ADMIN_ACCOUNT_ID});
         });
         await waitForBatchedUpdatesWithAct();
@@ -259,7 +260,7 @@ describe('WorkspaceWorkflowsApprovalsApproverPage', () => {
         const frankAccountID = 6;
         await act(async () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, {employeeList: {[frankEmail]: {email: frankEmail, role: CONST.POLICY.ROLE.USER, submitsTo: ADMIN_EMAIL}}});
-            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {[frankAccountID]: buildPersonalDetails(frankEmail, frankAccountID, 'frank')});
+            await mergePersonalDetailsList({[frankAccountID]: buildPersonalDetails(frankEmail, frankAccountID, 'frank')});
         });
         await waitForBatchedUpdatesWithAct();
 

@@ -9,7 +9,7 @@ import EditNamePage from '@pages/settings/Agents/Fields/DynamicEditNamePage';
 
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
-import type {PersonalDetailsList} from '@src/types/onyx';
+import type {PersonalDetails} from '@src/types/onyx';
 
 import React from 'react';
 
@@ -87,11 +87,11 @@ jest.mock('@components/Form/InputWrapper', () => {
 
 const mockUseOnyx = jest.mocked(useOnyx);
 
-// Runs the selector a component passed to useOnyx over a given personal details list
-function selectFromPersonalDetails(selector: unknown, personalDetails: PersonalDetailsList) {
+// Runs the selector a component passed to useOnyx over a given personal detail
+function selectFromPersonalDetails(selector: unknown, personalDetail: PersonalDetails) {
     // jest erases the generic type info, so the selector needs a narrowing assertion back to its real signature.
     // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
-    return (selector as (personalDetailsList: PersonalDetailsList) => NonNullable<unknown> | undefined)(personalDetails);
+    return (selector as (value: PersonalDetails) => NonNullable<unknown> | undefined)(personalDetail);
 }
 
 const TEST_ACCOUNT_ID = 12345;
@@ -121,8 +121,8 @@ describe('EditNamePage', () => {
 
     it('renders agent name as default value in InputWrapper', () => {
         mockUseOnyx.mockImplementation((key, options) => {
-            if (key === ONYXKEYS.PERSONAL_DETAILS_LIST && options?.selector) {
-                return [selectFromPersonalDetails(options.selector, {[TEST_ACCOUNT_ID]: {accountID: TEST_ACCOUNT_ID, displayName: 'Old Name'}}), {status: 'loaded'}];
+            if (key === `${ONYXKEYS.COLLECTION.PERSONAL_DETAILS}${TEST_ACCOUNT_ID}` && options?.selector) {
+                return [selectFromPersonalDetails(options.selector, {accountID: TEST_ACCOUNT_ID, displayName: 'Old Name'}), {status: 'loaded'}];
             }
             return [undefined, {status: 'loaded'}];
         });

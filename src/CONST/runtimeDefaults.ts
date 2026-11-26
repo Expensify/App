@@ -86,7 +86,7 @@ const CONST_RUNTIME_DEFAULTS: ConstRuntime = {
         SVFG: 2012843,
         QA_GUIDE: 14365522,
     },
-    SEARCH_SNAPSHOT_ONYX_KEYS: ['report_', 'policy_', 'transactions_', 'transactionViolations_', 'reportActions_', 'personalDetailsList', 'reportNameValuePairs_'],
+    SEARCH_SNAPSHOT_ONYX_KEYS: ['report_', 'policy_', 'transactions_', 'transactionViolations_', 'reportActions_', 'personalDetails_', 'reportNameValuePairs_'],
     EXCLUDE_FROM_LAST_VISITED_PATH: [
         'not-found',
         'SAMLSignIn',

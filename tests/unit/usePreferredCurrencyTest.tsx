@@ -8,6 +8,7 @@ import type {FundList} from '@src/types/onyx';
 
 import Onyx from 'react-native-onyx';
 
+import {setPersonalDetailsList} from '../utils/PersonalDetailsTestUtils';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
@@ -33,7 +34,7 @@ describe('usePreferredCurrency', () => {
     it('uses a supported local currency', async () => {
         // Given a local currency that is a valid payment card currency, and no billing card to override it
         await act(async () => {
-            await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {[ACCOUNT_ID]: {accountID: ACCOUNT_ID, localCurrencyCode: CONST.PAYMENT_CARD_CURRENCY.GBP}});
+            await setPersonalDetailsList({[ACCOUNT_ID]: {accountID: ACCOUNT_ID, localCurrencyCode: CONST.PAYMENT_CARD_CURRENCY.GBP}});
             await waitForBatchedUpdates();
         });
         // When a screen asks for the preferred currency
@@ -45,7 +46,7 @@ describe('usePreferredCurrency', () => {
     it('rejects an unsupported local currency', async () => {
         // Given a local currency that cannot be used for card payments, so prices cannot be shown in it
         await act(async () => {
-            await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {[ACCOUNT_ID]: {accountID: ACCOUNT_ID, localCurrencyCode: 'JPY'}});
+            await setPersonalDetailsList({[ACCOUNT_ID]: {accountID: ACCOUNT_ID, localCurrencyCode: 'JPY'}});
             await waitForBatchedUpdates();
         });
         // When a screen asks for the preferred currency
@@ -66,7 +67,7 @@ describe('usePreferredCurrency', () => {
         // Given a billing card in a different currency from the local one, so the two preferences conflict
         const fundList: FundList = {billingCard: {accountData: {currency: CONST.PAYMENT_CARD_CURRENCY.EUR, additionalData: {isBillingCard: true}}}};
         await act(async () => {
-            await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {[ACCOUNT_ID]: {accountID: ACCOUNT_ID, localCurrencyCode: CONST.PAYMENT_CARD_CURRENCY.GBP}});
+            await setPersonalDetailsList({[ACCOUNT_ID]: {accountID: ACCOUNT_ID, localCurrencyCode: CONST.PAYMENT_CARD_CURRENCY.GBP}});
             await Onyx.set(ONYXKEYS.FUND_LIST, fundList);
             await waitForBatchedUpdates();
         });

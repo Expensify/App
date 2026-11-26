@@ -29,6 +29,7 @@ import type {ValueOf} from 'type-fest';
 import React from 'react';
 import Onyx from 'react-native-onyx';
 
+import {mergePersonalDetailsList} from '../../utils/PersonalDetailsTestUtils';
 import {getOnyxData, translateLocal} from '../../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../../utils/waitForBatchedUpdatesWithAct';
 
@@ -273,7 +274,7 @@ type OnyxSetupParams = {
 async function setupOnyxState({report, chatReport, policy, extraPolicies, activePolicyID, personalPolicyID, bankAccountList, lastPaymentMethod, userWallet, betas}: OnyxSetupParams) {
     await act(async () => {
         await Onyx.merge(ONYXKEYS.SESSION, {accountID: ACCOUNT_ID, email: ACCOUNT_LOGIN});
-        await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+        await mergePersonalDetailsList({
             [ACCOUNT_ID]: {accountID: ACCOUNT_ID, login: ACCOUNT_LOGIN, displayName: 'Test User'},
         });
 

@@ -10,6 +10,7 @@ import Onyx from 'react-native-onyx';
 import {measureAsyncFunction, measureRenders} from 'reassure';
 
 import * as LHNTestUtils from '../utils/LHNTestUtils';
+import {mergePersonalDetailsList, withPersonalDetails} from '../utils/PersonalDetailsTestUtils';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import wrapOnyxWithWaitForBatchedUpdates from '../utils/wrapOnyxWithWaitForBatchedUpdates';
@@ -79,7 +80,7 @@ describe.each([500, 5000])('SidebarLinks write path with %i reports', (reportCou
 
         // Given many reports sorted by recent activity and a room older than all of them, so it sits below the rendered window
         await Onyx.multiSet({
-            [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtils.fakePersonalDetails,
+            ...withPersonalDetails(LHNTestUtils.fakePersonalDetails),
             [ONYXKEYS.BETAS]: [CONST.BETAS.DEFAULT_ROOMS],
             [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.DEFAULT,
             [ONYXKEYS.IS_LOADING_REPORT_DATA]: false,
@@ -156,7 +157,7 @@ describe.each([500, 5000])('SidebarLinks write path with %i reports', (reportCou
         // When a user who is in no LHN report changes their display name
         await measureAsyncFunction(async () => {
             for (let index = 0; index < WRITES_PER_SCENARIO; index++) {
-                await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {[OUTSIDE_ACCOUNT_ID]: {accountID: OUTSIDE_ACCOUNT_ID, displayName: `Outside ${run}-${index}`}});
+                await mergePersonalDetailsList({[OUTSIDE_ACCOUNT_ID]: {accountID: OUTSIDE_ACCOUNT_ID, displayName: `Outside ${run}-${index}`}});
                 await waitForBatchedUpdates();
             }
             run++;

@@ -22,6 +22,7 @@ import createRandomPolicy from '../utils/collections/policies';
 import {createRandomReport} from '../utils/collections/reports';
 import createRandomTransaction from '../utils/collections/transaction';
 import createMock from '../utils/createMock';
+import {mergePersonalDetailsList, setPersonalDetailsList} from '../utils/PersonalDetailsTestUtils';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
 const CURRENT_USER_ACCOUNT_ID = 1;
@@ -71,7 +72,7 @@ describe('getReportPreviewAction', () => {
     beforeEach(async () => {
         Onyx.clear();
         await Onyx.merge(ONYXKEYS.SESSION, SESSION);
-        await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {[CURRENT_USER_ACCOUNT_ID]: PERSONAL_DETAILS});
+        await setPersonalDetailsList({[CURRENT_USER_ACCOUNT_ID]: PERSONAL_DETAILS});
     });
 
     it('getReportPreviewAction should return ADD_EXPENSE action for report preview with no transactions', async () => {
@@ -271,7 +272,7 @@ describe('getReportPreviewAction', () => {
             policy.harvesting.enabled = false;
         }
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
-        await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {[OWNER_ACCOUNT_ID]: {accountID: OWNER_ACCOUNT_ID, login: OWNER_EMAIL}});
+        await mergePersonalDetailsList({[OWNER_ACCOUNT_ID]: {accountID: OWNER_ACCOUNT_ID, login: OWNER_EMAIL}});
         const transaction = createMock<Transaction>({
             reportID: `${REPORT_ID}`,
             amount: 100,
@@ -539,7 +540,7 @@ describe('getReportPreviewAction', () => {
         const OWNER_EMAIL = 'owner@mail.com';
         // beforeEach's Onyx.clear isn't awaited; explicit clear + reset guarantees state.
         await Onyx.clear();
-        await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {[CURRENT_USER_ACCOUNT_ID]: PERSONAL_DETAILS});
+        await setPersonalDetailsList({[CURRENT_USER_ACCOUNT_ID]: PERSONAL_DETAILS});
         const report: Report = {
             reportID: `${REPORT_ID}`,
             type: CONST.REPORT.TYPE.EXPENSE,

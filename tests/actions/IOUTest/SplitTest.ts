@@ -20,6 +20,7 @@ import {WRITE_COMMANDS} from '@libs/API/types';
 import {createTransitionBarrier, writeWhenReady} from '@libs/API/writeWhenReady';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import {rand64} from '@libs/NumberUtils';
+import {toPersonalDetailsList} from '@libs/PersonalDetailsCollection';
 import {getIOUActionForReportID, getIOUActionForTransactionID, getOriginalMessage, isActionOfType, isAddCommentAction, isDeletedAction, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {buildOptimisticIOUReportAction, getAncestors, getParsedComment, getReportOrDraftReport} from '@libs/ReportUtils';
 import {buildSearchQueryJSON} from '@libs/SearchQueryUtils';
@@ -679,9 +680,10 @@ describe('split expense', () => {
                 () =>
                     new Promise<void>((resolve) => {
                         const connection = Onyx.connect({
-                            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-                            callback: (allPersonalDetails) => {
+                            key: ONYXKEYS.COLLECTION.PERSONAL_DETAILS,
+                            callback: (personalDetailsCollection) => {
                                 connection.unsubscribe();
+                                const allPersonalDetails = toPersonalDetailsList(personalDetailsCollection);
                                 expect(allPersonalDetails).toMatchObject({
                                     [VIT_ACCOUNT_ID]: {
                                         accountID: VIT_ACCOUNT_ID,

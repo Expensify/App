@@ -15,6 +15,7 @@ import Onyx from 'react-native-onyx';
 
 import * as PersonalDetailsActions from '../../src/libs/actions/PersonalDetails';
 import createMock from '../utils/createMock';
+import {personalDetailsUpdate} from '../utils/PersonalDetailsTestUtils';
 import {getRequiredOnyxUpdate, getRequiredOnyxUpdates, getRequiredWriteCall} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
@@ -280,18 +281,14 @@ describe('actions/PersonalDetails', () => {
                                 legalLastName,
                             },
                         },
-                        {
-                            onyxMethod: Onyx.METHOD.MERGE,
-                            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-                            value: {
-                                // eslint-disable-next-line @typescript-eslint/naming-convention
-                                123: {
-                                    displayName: expectedDisplayName,
-                                    firstName: legalFirstName,
-                                    lastName: legalLastName,
-                                },
+                        personalDetailsUpdate({
+                            // eslint-disable-next-line @typescript-eslint/naming-convention
+                            123: {
+                                displayName: expectedDisplayName,
+                                firstName: legalFirstName,
+                                lastName: legalLastName,
                             },
-                        },
+                        }),
                     ],
                 },
             );
@@ -402,7 +399,9 @@ describe('actions/PersonalDetails', () => {
             expect(command).toBe(WRITE_COMMANDS.UPDATE_LEGAL_NAME);
             expect(parameters).toEqual({legalFirstName, legalLastName});
             const optimisticUpdates = getRequiredOnyxUpdates(onyxData, 'optimisticData');
-            const personalDetails = getRequiredOnyxUpdate(onyxData, 'optimisticData', ONYXKEYS.PERSONAL_DETAILS_LIST, Onyx.METHOD.MERGE, true).value[123];
+            const personalDetails = getRequiredOnyxUpdate(onyxData, 'optimisticData', ONYXKEYS.COLLECTION.PERSONAL_DETAILS, Onyx.METHOD.MERGE_COLLECTION, true).value[
+                `${ONYXKEYS.COLLECTION.PERSONAL_DETAILS}123`
+            ];
             const displayName = personalDetails && typeof personalDetails === 'object' && 'displayName' in personalDetails ? personalDetails.displayName : undefined;
             if (typeof displayName !== 'string') {
                 throw new Error('Expected the optimistic personal details displayName to be a string.');
@@ -417,18 +416,14 @@ describe('actions/PersonalDetails', () => {
                         legalLastName,
                     },
                 },
-                {
-                    onyxMethod: Onyx.METHOD.MERGE,
-                    key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-                    value: {
-                        // eslint-disable-next-line @typescript-eslint/naming-convention
-                        123: {
-                            displayName,
-                            firstName: legalFirstName,
-                            lastName: legalLastName,
-                        },
+                personalDetailsUpdate({
+                    // eslint-disable-next-line @typescript-eslint/naming-convention
+                    123: {
+                        displayName,
+                        firstName: legalFirstName,
+                        lastName: legalLastName,
                     },
-                },
+                }),
             ]);
         });
 
@@ -451,7 +446,9 @@ describe('actions/PersonalDetails', () => {
             expect(command).toBe(WRITE_COMMANDS.UPDATE_LEGAL_NAME);
             expect(parameters).toEqual({legalFirstName, legalLastName});
             const optimisticUpdates = getRequiredOnyxUpdates(onyxData, 'optimisticData');
-            const personalDetails = getRequiredOnyxUpdate(onyxData, 'optimisticData', ONYXKEYS.PERSONAL_DETAILS_LIST, Onyx.METHOD.MERGE, true).value[456];
+            const personalDetails = getRequiredOnyxUpdate(onyxData, 'optimisticData', ONYXKEYS.COLLECTION.PERSONAL_DETAILS, Onyx.METHOD.MERGE_COLLECTION, true).value[
+                `${ONYXKEYS.COLLECTION.PERSONAL_DETAILS}456`
+            ];
             const displayName = personalDetails && typeof personalDetails === 'object' && 'displayName' in personalDetails ? personalDetails.displayName : undefined;
             if (typeof displayName !== 'string') {
                 throw new Error('Expected the optimistic personal details displayName to be a string.');
@@ -466,18 +463,14 @@ describe('actions/PersonalDetails', () => {
                         legalLastName,
                     },
                 },
-                {
-                    onyxMethod: Onyx.METHOD.MERGE,
-                    key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-                    value: {
-                        // eslint-disable-next-line @typescript-eslint/naming-convention
-                        456: {
-                            displayName,
-                            firstName: legalFirstName,
-                            lastName: legalLastName,
-                        },
+                personalDetailsUpdate({
+                    // eslint-disable-next-line @typescript-eslint/naming-convention
+                    456: {
+                        displayName,
+                        firstName: legalFirstName,
+                        lastName: legalLastName,
                     },
-                },
+                }),
             ]);
         });
     });
@@ -507,34 +500,26 @@ describe('actions/PersonalDetails', () => {
                 {firstName: 'New', lastName: 'Name'},
                 {
                     optimisticData: [
-                        {
-                            onyxMethod: Onyx.METHOD.MERGE,
-                            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-                            value: {
-                                // eslint-disable-next-line @typescript-eslint/naming-convention
-                                123: {
-                                    firstName: 'New',
-                                    lastName: 'Name',
-                                    displayName: 'New Name',
-                                    avatar: rewrittenAvatar,
-                                },
+                        personalDetailsUpdate({
+                            // eslint-disable-next-line @typescript-eslint/naming-convention
+                            123: {
+                                firstName: 'New',
+                                lastName: 'Name',
+                                displayName: 'New Name',
+                                avatar: rewrittenAvatar,
                             },
-                        },
+                        }),
                     ],
                     failureData: [
-                        {
-                            onyxMethod: Onyx.METHOD.MERGE,
-                            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-                            value: {
-                                // eslint-disable-next-line @typescript-eslint/naming-convention
-                                123: {
-                                    firstName: 'Old',
-                                    lastName: 'Name',
-                                    displayName: 'Old Name',
-                                    avatar: currentUserPersonalDetails.avatar,
-                                },
+                        personalDetailsUpdate({
+                            // eslint-disable-next-line @typescript-eslint/naming-convention
+                            123: {
+                                firstName: 'Old',
+                                lastName: 'Name',
+                                displayName: 'Old Name',
+                                avatar: currentUserPersonalDetails.avatar,
                             },
-                        },
+                        }),
                     ],
                 },
             );
@@ -552,32 +537,24 @@ describe('actions/PersonalDetails', () => {
                 {firstName: 'New', lastName: 'Name'},
                 {
                     optimisticData: [
-                        {
-                            onyxMethod: Onyx.METHOD.MERGE,
-                            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-                            value: {
-                                // eslint-disable-next-line @typescript-eslint/naming-convention
-                                123: {
-                                    firstName: 'New',
-                                    lastName: 'Name',
-                                    displayName: 'New Name',
-                                },
+                        personalDetailsUpdate({
+                            // eslint-disable-next-line @typescript-eslint/naming-convention
+                            123: {
+                                firstName: 'New',
+                                lastName: 'Name',
+                                displayName: 'New Name',
                             },
-                        },
+                        }),
                     ],
                     failureData: [
-                        {
-                            onyxMethod: Onyx.METHOD.MERGE,
-                            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-                            value: {
-                                // eslint-disable-next-line @typescript-eslint/naming-convention
-                                123: {
-                                    firstName: 'Old',
-                                    lastName: 'Name',
-                                    displayName: 'Old Name',
-                                },
+                        personalDetailsUpdate({
+                            // eslint-disable-next-line @typescript-eslint/naming-convention
+                            123: {
+                                firstName: 'Old',
+                                lastName: 'Name',
+                                displayName: 'Old Name',
                             },
-                        },
+                        }),
                     ],
                 },
             );
@@ -611,56 +588,44 @@ describe('actions/PersonalDetails', () => {
                 {file: mockFile},
                 {
                     optimisticData: [
-                        {
-                            onyxMethod: Onyx.METHOD.MERGE,
-                            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-                            value: {
-                                // eslint-disable-next-line @typescript-eslint/naming-convention
-                                123: {
-                                    avatar: mockFile.uri,
-                                    avatarThumbnail: mockFile.uri,
-                                    originalFileName: mockFile.name,
-                                    errorFields: {
-                                        avatar: null,
-                                    },
-                                    pendingFields: {
-                                        avatar: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
-                                        originalFileName: null,
-                                    },
-                                    fallbackIcon: mockFile.uri,
+                        personalDetailsUpdate({
+                            // eslint-disable-next-line @typescript-eslint/naming-convention
+                            123: {
+                                avatar: mockFile.uri,
+                                avatarThumbnail: mockFile.uri,
+                                originalFileName: mockFile.name,
+                                errorFields: {
+                                    avatar: null,
                                 },
+                                pendingFields: {
+                                    avatar: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                                    originalFileName: null,
+                                },
+                                fallbackIcon: mockFile.uri,
                             },
-                        },
+                        }),
                     ],
                     successData: [
-                        {
-                            onyxMethod: Onyx.METHOD.MERGE,
-                            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-                            value: {
-                                // eslint-disable-next-line @typescript-eslint/naming-convention
-                                123: {
-                                    pendingFields: {
-                                        avatar: null,
-                                    },
+                        personalDetailsUpdate({
+                            // eslint-disable-next-line @typescript-eslint/naming-convention
+                            123: {
+                                pendingFields: {
+                                    avatar: null,
                                 },
                             },
-                        },
+                        }),
                     ],
                     failureData: [
-                        {
-                            onyxMethod: Onyx.METHOD.MERGE,
-                            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-                            value: {
-                                // eslint-disable-next-line @typescript-eslint/naming-convention
-                                123: {
-                                    avatar: currentUserPersonalDetail.avatar,
-                                    avatarThumbnail: currentUserPersonalDetail.avatarThumbnail ?? currentUserPersonalDetail.avatar,
-                                    pendingFields: {
-                                        avatar: null,
-                                    },
+                        personalDetailsUpdate({
+                            // eslint-disable-next-line @typescript-eslint/naming-convention
+                            123: {
+                                avatar: currentUserPersonalDetail.avatar,
+                                avatarThumbnail: currentUserPersonalDetail.avatarThumbnail ?? currentUserPersonalDetail.avatar,
+                                pendingFields: {
+                                    avatar: null,
                                 },
                             },
-                        },
+                        }),
                     ],
                 },
             );
@@ -687,56 +652,44 @@ describe('actions/PersonalDetails', () => {
                 {file: mockFile},
                 {
                     optimisticData: [
-                        {
-                            onyxMethod: Onyx.METHOD.MERGE,
-                            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-                            value: {
-                                // eslint-disable-next-line @typescript-eslint/naming-convention
-                                123: {
-                                    avatar: mockFile.uri,
-                                    avatarThumbnail: mockFile.uri,
-                                    originalFileName: mockFile.name,
-                                    errorFields: {
-                                        avatar: null,
-                                    },
-                                    pendingFields: {
-                                        avatar: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
-                                        originalFileName: null,
-                                    },
-                                    fallbackIcon: mockFile.uri,
+                        personalDetailsUpdate({
+                            // eslint-disable-next-line @typescript-eslint/naming-convention
+                            123: {
+                                avatar: mockFile.uri,
+                                avatarThumbnail: mockFile.uri,
+                                originalFileName: mockFile.name,
+                                errorFields: {
+                                    avatar: null,
                                 },
+                                pendingFields: {
+                                    avatar: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                                    originalFileName: null,
+                                },
+                                fallbackIcon: mockFile.uri,
                             },
-                        },
+                        }),
                     ],
                     successData: [
-                        {
-                            onyxMethod: Onyx.METHOD.MERGE,
-                            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-                            value: {
-                                // eslint-disable-next-line @typescript-eslint/naming-convention
-                                123: {
-                                    pendingFields: {
-                                        avatar: null,
-                                    },
+                        personalDetailsUpdate({
+                            // eslint-disable-next-line @typescript-eslint/naming-convention
+                            123: {
+                                pendingFields: {
+                                    avatar: null,
                                 },
                             },
-                        },
+                        }),
                     ],
                     failureData: [
-                        {
-                            onyxMethod: Onyx.METHOD.MERGE,
-                            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-                            value: {
-                                // eslint-disable-next-line @typescript-eslint/naming-convention
-                                123: {
-                                    avatar: currentUserPersonalDetail.avatar,
-                                    avatarThumbnail: currentUserPersonalDetail.avatarThumbnail ?? currentUserPersonalDetail.avatar,
-                                    pendingFields: {
-                                        avatar: null,
-                                    },
+                        personalDetailsUpdate({
+                            // eslint-disable-next-line @typescript-eslint/naming-convention
+                            123: {
+                                avatar: currentUserPersonalDetail.avatar,
+                                avatarThumbnail: currentUserPersonalDetail.avatarThumbnail ?? currentUserPersonalDetail.avatar,
+                                pendingFields: {
+                                    avatar: null,
                                 },
                             },
-                        },
+                        }),
                     ],
                 },
             );
@@ -762,56 +715,44 @@ describe('actions/PersonalDetails', () => {
                 {customExpensifyAvatarID: mockFile.customExpensifyAvatarID},
                 {
                     optimisticData: [
-                        {
-                            onyxMethod: Onyx.METHOD.MERGE,
-                            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-                            value: {
-                                // eslint-disable-next-line @typescript-eslint/naming-convention
-                                123: {
-                                    avatar: mockFile.uri,
-                                    avatarThumbnail: mockFile.uri,
-                                    originalFileName: mockFile.name,
-                                    errorFields: {
-                                        avatar: null,
-                                    },
-                                    pendingFields: {
-                                        avatar: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
-                                        originalFileName: null,
-                                    },
-                                    fallbackIcon: mockFile.uri,
+                        personalDetailsUpdate({
+                            // eslint-disable-next-line @typescript-eslint/naming-convention
+                            123: {
+                                avatar: mockFile.uri,
+                                avatarThumbnail: mockFile.uri,
+                                originalFileName: mockFile.name,
+                                errorFields: {
+                                    avatar: null,
                                 },
+                                pendingFields: {
+                                    avatar: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                                    originalFileName: null,
+                                },
+                                fallbackIcon: mockFile.uri,
                             },
-                        },
+                        }),
                     ],
                     successData: [
-                        {
-                            onyxMethod: Onyx.METHOD.MERGE,
-                            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-                            value: {
-                                // eslint-disable-next-line @typescript-eslint/naming-convention
-                                123: {
-                                    pendingFields: {
-                                        avatar: null,
-                                    },
+                        personalDetailsUpdate({
+                            // eslint-disable-next-line @typescript-eslint/naming-convention
+                            123: {
+                                pendingFields: {
+                                    avatar: null,
                                 },
                             },
-                        },
+                        }),
                     ],
                     failureData: [
-                        {
-                            onyxMethod: Onyx.METHOD.MERGE,
-                            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-                            value: {
-                                // eslint-disable-next-line @typescript-eslint/naming-convention
-                                123: {
-                                    avatar: currentUserPersonalDetail.avatar,
-                                    avatarThumbnail: currentUserPersonalDetail.avatarThumbnail ?? currentUserPersonalDetail.avatar,
-                                    pendingFields: {
-                                        avatar: null,
-                                    },
+                        personalDetailsUpdate({
+                            // eslint-disable-next-line @typescript-eslint/naming-convention
+                            123: {
+                                avatar: currentUserPersonalDetail.avatar,
+                                avatarThumbnail: currentUserPersonalDetail.avatarThumbnail ?? currentUserPersonalDetail.avatar,
+                                pendingFields: {
+                                    avatar: null,
                                 },
                             },
-                        },
+                        }),
                     ],
                 },
             );
@@ -836,20 +777,16 @@ describe('actions/PersonalDetails', () => {
                 {file: mockFile},
                 expect.objectContaining({
                     failureData: [
-                        {
-                            onyxMethod: Onyx.METHOD.MERGE,
-                            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-                            value: {
-                                // eslint-disable-next-line @typescript-eslint/naming-convention
-                                123: {
-                                    avatar: currentUserPersonalDetail.avatar,
-                                    avatarThumbnail: currentUserPersonalDetail.avatar,
-                                    pendingFields: {
-                                        avatar: null,
-                                    },
+                        personalDetailsUpdate({
+                            // eslint-disable-next-line @typescript-eslint/naming-convention
+                            123: {
+                                avatar: currentUserPersonalDetail.avatar,
+                                avatarThumbnail: currentUserPersonalDetail.avatar,
+                                pendingFields: {
+                                    avatar: null,
                                 },
                             },
-                        },
+                        }),
                     ],
                 }),
             );
@@ -926,30 +863,22 @@ describe('actions/PersonalDetails', () => {
             });
             expect(mockAPI.write).toHaveBeenCalledWith(WRITE_COMMANDS.DELETE_USER_AVATAR, null, {
                 optimisticData: [
-                    {
-                        onyxMethod: Onyx.METHOD.MERGE,
-                        key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-                        value: {
-                            // eslint-disable-next-line @typescript-eslint/naming-convention
-                            123: {
-                                avatar: expectedDefaultAvatar,
-                                fallbackIcon: null,
-                            },
+                    personalDetailsUpdate({
+                        // eslint-disable-next-line @typescript-eslint/naming-convention
+                        123: {
+                            avatar: expectedDefaultAvatar,
+                            fallbackIcon: null,
                         },
-                    },
+                    }),
                 ],
                 failureData: [
-                    {
-                        onyxMethod: Onyx.METHOD.MERGE,
-                        key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-                        value: {
-                            // eslint-disable-next-line @typescript-eslint/naming-convention
-                            123: {
-                                avatar: currentUserPersonalDetail.avatar,
-                                fallbackIcon: currentUserPersonalDetail.fallbackIcon,
-                            },
+                    personalDetailsUpdate({
+                        // eslint-disable-next-line @typescript-eslint/naming-convention
+                        123: {
+                            avatar: currentUserPersonalDetail.avatar,
+                            fallbackIcon: currentUserPersonalDetail.fallbackIcon,
                         },
-                    },
+                    }),
                 ],
             });
         });
@@ -972,17 +901,13 @@ describe('actions/PersonalDetails', () => {
                 null,
                 expect.objectContaining({
                     failureData: [
-                        {
-                            onyxMethod: Onyx.METHOD.MERGE,
-                            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-                            value: {
-                                // eslint-disable-next-line @typescript-eslint/naming-convention
-                                123: {
-                                    avatar: currentUserPersonalDetail.avatar,
-                                    fallbackIcon: undefined,
-                                },
+                        personalDetailsUpdate({
+                            // eslint-disable-next-line @typescript-eslint/naming-convention
+                            123: {
+                                avatar: currentUserPersonalDetail.avatar,
+                                fallbackIcon: undefined,
                             },
-                        },
+                        }),
                     ],
                 }),
             );
@@ -1024,17 +949,13 @@ describe('actions/PersonalDetails', () => {
                 null,
                 expect.objectContaining({
                     optimisticData: [
-                        {
-                            onyxMethod: Onyx.METHOD.MERGE,
-                            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-                            value: {
-                                // eslint-disable-next-line @typescript-eslint/naming-convention
-                                456: {
-                                    avatar: expectedDefaultAvatar,
-                                    fallbackIcon: null,
-                                },
+                        personalDetailsUpdate({
+                            // eslint-disable-next-line @typescript-eslint/naming-convention
+                            456: {
+                                avatar: expectedDefaultAvatar,
+                                fallbackIcon: null,
                             },
-                        },
+                        }),
                     ],
                 }),
             );

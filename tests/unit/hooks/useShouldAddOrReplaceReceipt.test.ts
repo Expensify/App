@@ -12,6 +12,7 @@ import type {Receipt} from '@src/types/onyx/Transaction';
 import Onyx from 'react-native-onyx';
 
 import createRandomReportAction from '../../utils/collections/reportActions';
+import {mergePersonalDetailsList} from '../../utils/PersonalDetailsTestUtils';
 import waitForBatchedUpdatesWithAct from '../../utils/waitForBatchedUpdatesWithAct';
 
 const ACCOUNT_ID = 1;
@@ -146,7 +147,7 @@ describe('useShouldAddOrReplaceReceipt', () => {
         const THREAD_REPORT_ID = '101';
         const submittedAction: ReportAction = {...createRandomReportAction(2), actionName: CONST.REPORT.ACTIONS.TYPE.SUBMITTED, created: '2025-01-02 12:00:00'};
         const forwardedAction: ReportAction = {...createRandomReportAction(3), actionName: CONST.REPORT.ACTIONS.TYPE.FORWARDED, created: '2025-01-03 12:00:00'};
-        await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+        await mergePersonalDetailsList({
             [ACCOUNT_ID]: {accountID: ACCOUNT_ID, login: SUBMITTER_EMAIL},
             [MANAGER_ACCOUNT_ID]: {accountID: MANAGER_ACCOUNT_ID, login: MANAGER_EMAIL},
         });

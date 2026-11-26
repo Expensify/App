@@ -37,6 +37,7 @@ import Onyx from 'react-native-onyx';
 import {actionR14932, actionR98765} from '../../__mocks__/reportData/actions';
 import createMock from '../utils/createMock';
 import * as LHNTestUtils from '../utils/LHNTestUtils';
+import {withPersonalDetails} from '../utils/PersonalDetailsTestUtils';
 import {formatPhoneNumber, translateLocal} from '../utils/TestHelper';
 
 const FAKE_PERSONAL_DETAILS = LHNTestUtils.fakePersonalDetails;
@@ -118,7 +119,7 @@ beforeAll(() => {
         keys: ONYXKEYS,
         initialKeyStates: {
             [ONYXKEYS.SESSION]: {email: FAKE_PERSONAL_DETAILS[currentUserAccountID]?.login, accountID: currentUserAccountID},
-            [ONYXKEYS.PERSONAL_DETAILS_LIST]: FAKE_PERSONAL_DETAILS,
+            ...withPersonalDetails(FAKE_PERSONAL_DETAILS),
             ...FAKE_REPORT_ACTIONS,
             ...FAKE_REPORTS,
             ...FAKE_POLICIES,

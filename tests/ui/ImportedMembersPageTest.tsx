@@ -17,6 +17,7 @@ import type {ImportedSpreadsheet, Policy} from '@src/types/onyx';
 import React from 'react';
 import Onyx from 'react-native-onyx';
 
+import {setPersonalDetailsList} from '../utils/PersonalDetailsTestUtils';
 import {buildPersonalDetails} from '../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
@@ -132,7 +133,7 @@ async function seedOnyx(spreadsheet: ImportedSpreadsheet, policy = buildSubmitPo
     await act(async () => {
         await Onyx.clear();
         await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, policy);
-        await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {[accountID]: buildPersonalDetails(login, accountID, 'admin')});
+        await setPersonalDetailsList({[accountID]: buildPersonalDetails(login, accountID, 'admin')});
         await Onyx.merge(ONYXKEYS.SESSION, {email: login, accountID});
         await Onyx.set(ONYXKEYS.NETWORK, {shouldForceOffline: false});
         await Onyx.set(ONYXKEYS.IMPORTED_SPREADSHEET, spreadsheet);

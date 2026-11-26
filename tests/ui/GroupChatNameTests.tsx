@@ -13,6 +13,7 @@ import type {Participant} from '@src/types/onyx/Report';
 import React from 'react';
 import Onyx from 'react-native-onyx';
 
+import {mergePersonalDetailsList} from '../utils/PersonalDetailsTestUtils';
 import PusherHelper from '../utils/PusherHelper';
 import * as TestHelper from '../utils/TestHelper';
 import {navigateToSidebarOption, formatPhoneNumber} from '../utils/TestHelper';
@@ -207,7 +208,7 @@ function signInAndGetApp(reportName = '', participantAccountIDs?: number[]): Pro
                         type: CONST.REPORT.TYPE.CHAT,
                         chatType: CONST.REPORT.CHAT_TYPE.GROUP,
                     }),
-                    Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+                    mergePersonalDetailsList({
                         [USER_A_ACCOUNT_ID]: TestHelper.buildPersonalDetails(USER_A_EMAIL, USER_A_ACCOUNT_ID, 'A'),
                         [USER_B_ACCOUNT_ID]: TestHelper.buildPersonalDetails(USER_B_EMAIL, USER_B_ACCOUNT_ID, 'B'),
                         [USER_C_ACCOUNT_ID]: TestHelper.buildPersonalDetails(USER_C_EMAIL, USER_C_ACCOUNT_ID, 'C'),

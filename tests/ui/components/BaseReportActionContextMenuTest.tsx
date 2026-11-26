@@ -16,6 +16,7 @@ import React from 'react';
 import Onyx from 'react-native-onyx';
 
 import getOnyxValue from '../../utils/getOnyxValue';
+import {mergePersonalDetailsList} from '../../utils/PersonalDetailsTestUtils';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
 jest.mock('@components/ActionSheetAwareScrollView', () => ({
@@ -190,7 +191,7 @@ async function seedOnyxData({isOnHold}: {isOnHold: boolean}) {
         email: 'user@test.com',
     });
 
-    await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, testPersonalDetails);
+    await mergePersonalDetailsList(testPersonalDetails);
 
     // Policy (needed by canModifyHoldStatus for isPolicyAdmin, and by changeMoneyRequestHoldStatus)
     await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
@@ -489,7 +490,7 @@ async function seedMoneyRequestPreviewData({
     await Onyx.clear();
 
     await Onyx.merge(ONYXKEYS.SESSION, {accountID: currentUserAccountID, email: currentUserLogin});
-    await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, testPersonalDetails);
+    await mergePersonalDetailsList(testPersonalDetails);
 
     // The 1:1 chat holding the report preview action that gets long-pressed
     await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${dmChatReportID}`, {

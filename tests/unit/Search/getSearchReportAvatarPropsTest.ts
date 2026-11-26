@@ -15,6 +15,7 @@ import {actionR14932} from '../../../__mocks__/reportData/actions';
 import personalDetails from '../../../__mocks__/reportData/personalDetails';
 import {policy420A} from '../../../__mocks__/reportData/policies';
 import {chatReportR14932, iouReportR14932} from '../../../__mocks__/reportData/reports';
+import {withPersonalDetails} from '../../utils/PersonalDetailsTestUtils';
 import {translateLocal} from '../../utils/TestHelper';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
@@ -147,7 +148,7 @@ const reportsCollectionDataSet = toCollectionDataSet(
 
 const onyxState = {
     [ONYXKEYS.SESSION]: {accountID: LOGGED_USER_ID, email: personalDetails[LOGGED_USER_ID].login},
-    [ONYXKEYS.PERSONAL_DETAILS_LIST]: personalDetails,
+    ...withPersonalDetails(personalDetails),
     ...policiesCollectionDataSet,
     ...reportsCollectionDataSet,
 };

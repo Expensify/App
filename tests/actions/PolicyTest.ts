@@ -43,6 +43,7 @@ import createRandomTransaction from '../utils/collections/transaction';
 import createMock from '../utils/createMock';
 import createUKFuelRateTaxPolicy from '../utils/createUKFuelRateTaxPolicy';
 import getOnyxValue from '../utils/getOnyxValue';
+import {setPersonalDetailsList} from '../utils/PersonalDetailsTestUtils';
 import * as TestHelper from '../utils/TestHelper';
 import {
     getOptionalNumberProperty,
@@ -2295,7 +2296,7 @@ describe('actions/Policy', () => {
         it('should use the explicit currency argument and not fall back to the deprecated session user localCurrencyCode', async () => {
             // Set Onyx session + personal details so localCurrencyCode would be EUR if the fallback were used
             await Onyx.set(ONYXKEYS.SESSION, {email: ESH_EMAIL, accountID: ESH_ACCOUNT_ID});
-            await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+            await setPersonalDetailsList({
                 [ESH_ACCOUNT_ID]: {accountID: ESH_ACCOUNT_ID, login: ESH_EMAIL, localCurrencyCode: CONST.CURRENCY.EUR},
             });
             await waitForBatchedUpdates();
@@ -3518,7 +3519,7 @@ describe('actions/Policy', () => {
         it('should use the explicit currency argument and not fall back to the deprecated session user localCurrencyCode', async () => {
             // Set Onyx session + personal details so localCurrencyCode would be EUR if the fallback were used
             await Onyx.set(ONYXKEYS.SESSION, {email: ESH_EMAIL, accountID: ESH_ACCOUNT_ID});
-            await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+            await setPersonalDetailsList({
                 [ESH_ACCOUNT_ID]: {accountID: ESH_ACCOUNT_ID, login: ESH_EMAIL, localCurrencyCode: CONST.CURRENCY.EUR},
             });
             await waitForBatchedUpdates();
@@ -7975,7 +7976,7 @@ describe('actions/Policy', () => {
             // Given a signed-in user, and a personal details list that does NOT contain the new member
             // (so the deprecated module-level fallback would treat the member as unknown)
             await Onyx.set(ONYXKEYS.SESSION, {email: ESH_EMAIL, accountID: ESH_ACCOUNT_ID});
-            await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {[ESH_ACCOUNT_ID]: {accountID: ESH_ACCOUNT_ID, login: ESH_EMAIL}});
+            await setPersonalDetailsList({[ESH_ACCOUNT_ID]: {accountID: ESH_ACCOUNT_ID, login: ESH_EMAIL}});
             await waitForBatchedUpdates();
 
             const getSuccessValue = (result: ReturnType<typeof Policy.createPolicyExpenseChats>) => {

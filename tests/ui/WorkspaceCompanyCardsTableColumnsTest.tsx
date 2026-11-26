@@ -21,6 +21,7 @@ import React from 'react';
 import Onyx from 'react-native-onyx';
 
 import createMock from '../utils/createMock';
+import {mergePersonalDetailsList} from '../utils/PersonalDetailsTestUtils';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
@@ -203,7 +204,7 @@ async function setQBOPolicy(nvpExportAccount?: string) {
             },
         },
     });
-    await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+    await mergePersonalDetailsList({
         [ACCOUNT_ID]: {accountID: ACCOUNT_ID, displayName: 'Alice Smith', login: 'alice@example.com'},
     });
 

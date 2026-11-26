@@ -43,6 +43,7 @@ import {createRandomReport} from '../../utils/collections/reports';
 import createRandomTransaction from '../../utils/collections/transaction';
 import createMock from '../../utils/createMock';
 import getOnyxValue from '../../utils/getOnyxValue';
+import {setPersonalDetailsList} from '../../utils/PersonalDetailsTestUtils';
 import {createGlobalFetchMock, formatPhoneNumber, getCurrencyDecimalsLocal, getOnyxData, getRequiredOnyxUpdate, getRequiredWriteCall, translateLocal} from '../../utils/TestHelper';
 import {readProperty, requireRecordArrayProperty, requireStringProperty} from '../../utils/typeGuards';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
@@ -1107,7 +1108,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
             const adminEmail = 'admin@test.com';
             const employeeEmail = 'employee@test.com';
 
-            await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+            await setPersonalDetailsList({
                 [adminAccountID]: {
                     accountID: adminAccountID,
                     login: adminEmail,
@@ -2454,7 +2455,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
                 email: adminEmail,
                 accountID: adminAccountID,
             });
-            await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+            await setPersonalDetailsList({
                 [adminAccountID]: {
                     accountID: adminAccountID,
                     login: adminEmail,
@@ -2537,7 +2538,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
                 email: adminEmail,
                 accountID: adminAccountID,
             });
-            await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+            await setPersonalDetailsList({
                 [adminAccountID]: {
                     accountID: adminAccountID,
                     login: adminEmail,
@@ -2814,7 +2815,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
                 email: CARLOS_EMAIL,
                 accountID: CARLOS_ACCOUNT_ID,
             });
-            await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+            await setPersonalDetailsList({
                 [CARLOS_ACCOUNT_ID]: {
                     accountID: CARLOS_ACCOUNT_ID,
                     firstName: 'Carlos',

@@ -45,6 +45,7 @@ import Onyx from 'react-native-onyx';
 import createRandomPolicy from '../utils/collections/policies';
 import createMock from '../utils/createMock';
 import {getFakeReport, getFakeReportAction} from '../utils/LHNTestUtils';
+import {setPersonalDetailsList} from '../utils/PersonalDetailsTestUtils';
 import {formatPhoneNumber, getGlobalFetchMock, translateLocal} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
@@ -378,7 +379,7 @@ describe('actions/Task', () => {
         beforeEach(async () => {
             await Onyx.clear();
             await Onyx.set(ONYXKEYS.SESSION, {email: 'user1@gmail.com', accountID: 2});
-            await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+            await setPersonalDetailsList({
                 [DELEGATE_ACCOUNT_ID]: {accountID: DELEGATE_ACCOUNT_ID, login: DELEGATE_EMAIL},
             });
             await waitForBatchedUpdates();
@@ -1145,7 +1146,7 @@ describe('actions/Task', () => {
             await act(async () => {
                 await Onyx.clear();
                 await Onyx.set(ONYXKEYS.SESSION, {email: currentUserPersonalDetails.login, accountID: currentUserAccountID});
-                await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+                await setPersonalDetailsList({
                     [currentUserAccountID]: {accountID: currentUserAccountID, login: 'user@domain.com', displayName: 'User'},
                     [coworkerAccountID]: {accountID: coworkerAccountID, login: 'mat@domain.com', displayName: 'Mat'},
                 } as PersonalDetailsList);
@@ -1259,7 +1260,7 @@ describe('actions/Task', () => {
                     email: 'user@example.com',
                     accountID: CURRENT_USER_ACCOUNT_ID,
                 });
-                await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+                await setPersonalDetailsList({
                     [DELEGATE_ACCOUNT_ID]: {
                         accountID: DELEGATE_ACCOUNT_ID,
                         login: DELEGATE_EMAIL,
@@ -1521,7 +1522,7 @@ describe('actions/Task', () => {
                     email: 'user@example.com',
                     accountID: CURRENT_USER_ACCOUNT_ID,
                 });
-                await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+                await setPersonalDetailsList({
                     [DELEGATE_ACCOUNT_ID]: {
                         accountID: DELEGATE_ACCOUNT_ID,
                         login: DELEGATE_EMAIL,
@@ -1591,7 +1592,7 @@ describe('actions/Task', () => {
                     email: 'user@example.com',
                     accountID: CURRENT_USER_ACCOUNT_ID,
                 });
-                await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+                await setPersonalDetailsList({
                     [DELEGATE_ACCOUNT_ID]: {
                         accountID: DELEGATE_ACCOUNT_ID,
                         login: DELEGATE_EMAIL,
@@ -1692,7 +1693,7 @@ describe('actions/Task', () => {
                     email: 'user@example.com',
                     accountID: mockCurrentUserAccountID,
                 });
-                await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+                await setPersonalDetailsList({
                     [DELEGATE_ACCOUNT_ID]: {
                         accountID: DELEGATE_ACCOUNT_ID,
                         login: DELEGATE_EMAIL,
@@ -2057,7 +2058,7 @@ describe('actions/Task', () => {
             await act(async () => {
                 await Onyx.clear();
                 await Onyx.set(ONYXKEYS.SESSION, {email: 'current@example.com', accountID: CURRENT_USER_ACCOUNT_ID});
-                await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetails);
+                await setPersonalDetailsList(personalDetails);
                 await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
             });
             await waitForBatchedUpdatesWithAct();

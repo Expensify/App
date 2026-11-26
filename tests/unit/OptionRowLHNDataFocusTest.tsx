@@ -20,6 +20,7 @@ import React, {useEffect} from 'react';
 import Onyx from 'react-native-onyx';
 
 import * as LHNTestUtils from '../utils/LHNTestUtils';
+import {withPersonalDetails} from '../utils/PersonalDetailsTestUtils';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import wrapOnyxWithWaitForBatchedUpdates from '../utils/wrapOnyxWithWaitForBatchedUpdates';
@@ -101,7 +102,7 @@ describe('OptionRowLHNData focus', () => {
         wrapOnyxWithWaitForBatchedUpdates(Onyx);
         await TestHelper.signInWithTestUser(1, 'email1@test.com', undefined, undefined, 'One');
         await Onyx.multiSet({
-            [ONYXKEYS.PERSONAL_DETAILS_LIST]: LHNTestUtils.fakePersonalDetails,
+            ...withPersonalDetails(LHNTestUtils.fakePersonalDetails),
             [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.DEFAULT,
             ...reports,
         });

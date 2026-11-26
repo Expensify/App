@@ -718,6 +718,7 @@ export default await buildOxlintConfig({
                 'src/libs/PersonalDetailsUtils.ts',
                 'src/components/OnyxListItemProvider.tsx',
                 'src/libs/ExportOnyxState/masking.ts',
+                'src/libs/migrations/MovePersonalDetailsListToCollection.ts',
                 'tests/**/*.{ts,tsx}',
                 'jest/**/*.{ts,tsx}',
                 '__mocks__/**/*.{ts,tsx}',

@@ -28,6 +28,7 @@ import {NavigationContainer} from '@react-navigation/native';
 import Onyx from 'react-native-onyx';
 
 import * as LHNTestUtils from '../utils/LHNTestUtils';
+import {mergePersonalDetailsList} from '../utils/PersonalDetailsTestUtils';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
@@ -550,7 +551,7 @@ describe('WorkspaceUpgrade', () => {
 
             // Initialized the user's preferred currency to another payment card currency
             await act(async () => {
-                await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {[accountID]: {localCurrencyCode: currency}});
+                await mergePersonalDetailsList({[accountID]: {localCurrencyCode: currency}});
             });
 
             // Render the WorkspaceUpgradePage without a feature to render GenericFeaturesView

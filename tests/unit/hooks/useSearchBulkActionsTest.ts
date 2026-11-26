@@ -31,6 +31,7 @@ import Onyx from 'react-native-onyx';
 
 import createRandomTransaction from '../../utils/collections/transaction';
 import createMock from '../../utils/createMock';
+import {mergePersonalDetailsList} from '../../utils/PersonalDetailsTestUtils';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
 const mockQueueExportSearchItemsToCSV = jest.mocked(queueExportSearchItemsToCSV);
@@ -1725,7 +1726,7 @@ describe('useSearchBulkActions - Change workspace', () => {
         mockGetExportTemplates.mockReturnValue({customTemplates: [], defaultTemplates: []});
 
         await Onyx.merge(ONYXKEYS.SESSION, {accountID: CURRENT_USER_ACCOUNT_ID, email: 'test@example.com'});
-        await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+        await mergePersonalDetailsList({
             [CURRENT_USER_ACCOUNT_ID]: {accountID: CURRENT_USER_ACCOUNT_ID, login: 'test@example.com'},
             [CURRENT_USER_ACCOUNT_ID + 1]: {accountID: CURRENT_USER_ACCOUNT_ID + 1, login: 'other@example.com'},
         });

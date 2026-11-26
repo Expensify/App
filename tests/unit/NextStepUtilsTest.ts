@@ -22,6 +22,7 @@ import {execFileSync} from 'child_process';
 import Onyx from 'react-native-onyx';
 
 import createMock from '../utils/createMock';
+import {mergePersonalDetailsList, withPersonalDetails} from '../utils/PersonalDetailsTestUtils';
 import {formatPhoneNumber, getCurrencyDecimalsLocal, translateLocal} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
@@ -71,7 +72,7 @@ describe('libs/NextStepUtils', () => {
 
             Onyx.multiSet({
                 [ONYXKEYS.SESSION]: {email: currentUserEmail, accountID: currentUserAccountID},
-                [ONYXKEYS.PERSONAL_DETAILS_LIST]: {
+                ...withPersonalDetails({
                     [strangeAccountID]: {
                         accountID: strangeAccountID,
                         login: strangeEmail,
@@ -87,7 +88,7 @@ describe('libs/NextStepUtils', () => {
                         login: ownerEmail,
                         avatar: '',
                     },
-                },
+                }),
                 ...policyCollectionDataSet,
             }).then(waitForBatchedUpdates);
         });
@@ -929,13 +930,13 @@ describe('libs/NextStepUtils', () => {
         beforeAll(() => {
             Onyx.multiSet({
                 [ONYXKEYS.SESSION]: {email: currentUserEmail, accountID: currentUserAccountID},
-                [ONYXKEYS.PERSONAL_DETAILS_LIST]: {
+                ...withPersonalDetails({
                     [currentUserAccountID]: {
                         accountID: currentUserAccountID,
                         login: currentUserEmail,
                         avatar: '',
                     },
-                },
+                }),
             }).then(waitForBatchedUpdates);
         });
 
@@ -1469,7 +1470,7 @@ describe('libs/NextStepUtils', () => {
                 // Given bills and expense reports share the same approve and pay next steps from Auth.
                 const otherActorAccountID = 780073;
                 await IntlStore.load(CONST.LOCALES.EN);
-                await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {[otherActorAccountID]: {accountID: otherActorAccountID, displayName: 'Approver'}});
+                await mergePersonalDetailsList({[otherActorAccountID]: {accountID: otherActorAccountID, displayName: 'Approver'}});
                 await waitForBatchedUpdates();
                 const nextStep: ReportNextStep = {
                     messageKey,
@@ -1489,7 +1490,7 @@ describe('libs/NextStepUtils', () => {
         it('resolves the actor name through the provided translate function', async () => {
             const hiddenActorAccountID = 780070;
             // The actor has no displayName/login, so its name resolves to the hidden label provided by translate.
-            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {[hiddenActorAccountID]: {accountID: hiddenActorAccountID, login: '', displayName: ''}});
+            await mergePersonalDetailsList({[hiddenActorAccountID]: {accountID: hiddenActorAccountID, login: '', displayName: ''}});
             await waitForBatchedUpdates();
             const nextStep: ReportNextStep = {
                 messageKey: CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_SUBMIT,
@@ -1544,7 +1545,7 @@ describe('libs/NextStepUtils', () => {
         it('uses the provided phone number formatter when resolving an SMS actor login', async () => {
             const phoneActorAccountID = 780071;
             const phoneActorLogin = '18332403628@expensify.sms';
-            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {[phoneActorAccountID]: {accountID: phoneActorAccountID, login: phoneActorLogin}});
+            await mergePersonalDetailsList({[phoneActorAccountID]: {accountID: phoneActorAccountID, login: phoneActorLogin}});
             await waitForBatchedUpdates();
             const nextStep: ReportNextStep = {
                 messageKey: CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_SUBMIT,
@@ -1837,13 +1838,13 @@ describe('libs/NextStepUtils', () => {
 
             await Onyx.multiSet({
                 [ONYXKEYS.SESSION]: {email: currentUserEmail, accountID: currentUserAccountID},
-                [ONYXKEYS.PERSONAL_DETAILS_LIST]: {
+                ...withPersonalDetails({
                     [currentUserAccountID]: {
                         accountID: currentUserAccountID,
                         login: currentUserEmail,
                         avatar: '',
                     },
-                },
+                }),
                 ...policyCollectionDataSet,
             });
             await waitForBatchedUpdates();

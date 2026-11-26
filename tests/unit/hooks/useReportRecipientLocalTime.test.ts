@@ -8,6 +8,8 @@ import type {PersonalDetailsList, Report} from '@src/types/onyx';
 
 import Onyx from 'react-native-onyx';
 
+import {mergePersonalDetailsList} from '../../utils/PersonalDetailsTestUtils';
+
 const CURRENT_USER_ACCOUNT_ID = 1;
 const RECIPIENT_ACCOUNT_ID = 2;
 
@@ -55,7 +57,7 @@ describe('useReportRecipientLocalTime', () => {
             expect(result.current).toBe(false);
         });
 
-        await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, RECIPIENT_PERSONAL_DETAILS);
+        await mergePersonalDetailsList(RECIPIENT_PERSONAL_DETAILS);
 
         await waitFor(() => {
             expect(result.current).toBe(true);
@@ -64,7 +66,7 @@ describe('useReportRecipientLocalTime', () => {
 
     it.each([CONST.IOU.REPORT_ACTION_TYPE.TRACK, CONST.IOU.REPORT_ACTION_TYPE.CREATE])('hides the local time once the parent action of the thread is a %s expense', async (type) => {
         // Given a thread with one other participant, whose parent action has not loaded yet
-        await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, RECIPIENT_PERSONAL_DETAILS);
+        await mergePersonalDetailsList(RECIPIENT_PERSONAL_DETAILS);
         const {result} = renderHook(() => useReportRecipientLocalTime({report: THREAD}));
         await waitFor(() => {
             expect(result.current).toBe(true);
@@ -83,7 +85,7 @@ describe('useReportRecipientLocalTime', () => {
 
     it('keeps the local time in a comment thread', async () => {
         // Given a thread with one other participant, whose parent action is a comment
-        await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, RECIPIENT_PERSONAL_DETAILS);
+        await mergePersonalDetailsList(RECIPIENT_PERSONAL_DETAILS);
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${PARENT_REPORT_ID}`, {
             [PARENT_REPORT_ACTION_ID]: {reportActionID: PARENT_REPORT_ACTION_ID, actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT},
         });

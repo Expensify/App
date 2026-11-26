@@ -10,6 +10,8 @@ import Onyx from 'react-native-onyx';
 import {createRandomReport} from 'tests/utils/collections/reports';
 import createRandomTransaction from 'tests/utils/collections/transaction';
 
+import {mergePersonalDetailsList} from '../../utils/PersonalDetailsTestUtils';
+
 describe('useReportOwnerAsAttendee', () => {
     beforeEach(() => {
         return Onyx.clear();
@@ -31,7 +33,7 @@ describe('useReportOwnerAsAttendee', () => {
             ...createRandomReport(id, undefined),
             ownerAccountID,
         });
-        await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+        await mergePersonalDetailsList({
             [ownerAccountID]: ownerDetails,
         });
         const {result} = renderHook(() => useReportOwnerAsAttendee(transaction));
@@ -49,7 +51,7 @@ describe('useReportOwnerAsAttendee', () => {
             avatar: 'avatar',
         };
         const transaction = createRandomTransaction(reportID);
-        await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+        await mergePersonalDetailsList({
             [ownerAccountID]: ownerDetails,
         });
         const {result} = renderHook(() => useReportOwnerAsAttendee(transaction));
@@ -77,7 +79,7 @@ describe('useReportOwnerAsAttendee', () => {
             avatar: 'avatar',
         };
         const transaction = createRandomTransaction(reportID);
-        await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+        await mergePersonalDetailsList({
             [ownerAccountID]: ownerDetails,
         });
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${reportID}`, {

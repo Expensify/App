@@ -2,7 +2,7 @@ import {prepareOnyxDataForCleanUpOptimisticParticipants} from '@libs/actions/Rep
 import {WRITE_COMMANDS} from '@libs/API/types';
 import deepReplaceKeysAndValues from '@libs/deepReplaceKeysAndValues';
 import {getAllPersonalDetails} from '@libs/PersonalDetailsStore';
-import {buildPersonalDetailsUpdate} from '@libs/PersonalDetailsUtils';
+import {buildPersonalDetailsUpdate, getPersonalDetailsFromOnyxUpdates} from '@libs/PersonalDetailsUtils';
 import type {Middleware} from '@libs/Request';
 
 import * as PersistedRequests from '@userActions/PersistedRequests';
@@ -57,15 +57,13 @@ function getRestoredPersonalDetails(
                 settledParticipantIDs.add(accountID);
             }
         }
-        if (update.key === ONYXKEYS.PERSONAL_DETAILS_LIST && isRecord(update.value)) {
-            for (const [accountID, detail] of Object.entries(update.value)) {
-                // An explicit login in the response, even '', is respected; only an omitted key marks a candidate
-                if (!isRecord(detail) || 'login' in detail) {
-                    continue;
-                }
-                missingLoginDetailIDs.add(accountID);
-            }
+    }
+    for (const [accountID, detail] of Object.entries(getPersonalDetailsFromOnyxUpdates(responseOnyxData))) {
+        // An explicit login in the response, even '', is respected; only an omitted key marks a candidate
+        if (!isRecord(detail) || 'login' in detail) {
+            continue;
         }
+        missingLoginDetailIDs.add(accountID);
     }
 
     for (const accountID of missingLoginParticipants) {

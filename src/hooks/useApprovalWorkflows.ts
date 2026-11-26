@@ -66,7 +66,7 @@ type UseApprovalWorkflowsResult = {
     /** The workspace's approval-workflow rules, exposed so consumers don't need a second `RULE` subscription */
     rulesCollection: OnyxCollection<Rule>;
 
-    /** Personal details, exposed so consumers don't need a second `PERSONAL_DETAILS_LIST` subscription */
+    /** Personal details, exposed so consumers don't need a second personal details subscription */
     personalDetails: OnyxEntry<PersonalDetailsList>;
 };
 

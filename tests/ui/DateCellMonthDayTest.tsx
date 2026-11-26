@@ -15,6 +15,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import React from 'react';
 import Onyx from 'react-native-onyx';
 
+import {setPersonalDetailsList} from '../utils/PersonalDetailsTestUtils';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
 jest.mock('@libs/Navigation/Navigation');
@@ -99,7 +100,7 @@ describe('DateCell month and day', () => {
         const accountID = 999;
         await act(async () => {
             await Onyx.set(ONYXKEYS.SESSION, {accountID});
-            await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+            await setPersonalDetailsList({
                 [accountID]: {accountID, timezone: {automatic: false, selected: 'America/Los_Angeles'}},
             });
         });

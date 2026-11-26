@@ -20,6 +20,7 @@ import React from 'react';
 import {TextInput as RNTextInput} from 'react-native';
 import Onyx from 'react-native-onyx';
 
+import {mergePersonalDetailsList} from '../utils/PersonalDetailsTestUtils';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
@@ -119,7 +120,7 @@ async function addDelegators(count = 1) {
                 delegators: generatedDelegators,
             },
         });
-        await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, generatedPersonalDetails);
+        await mergePersonalDetailsList(generatedPersonalDetails);
     });
     await waitForBatchedUpdatesWithAct();
 }

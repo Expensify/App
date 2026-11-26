@@ -22,6 +22,7 @@ import Onyx from 'react-native-onyx';
 import createRandomReportAction from '../../../utils/collections/reportActions';
 import {createRandomReport} from '../../../utils/collections/reports';
 import createMock from '../../../utils/createMock';
+import {mergePersonalDetailsList} from '../../../utils/PersonalDetailsTestUtils';
 import waitForBatchedUpdatesWithAct from '../../../utils/waitForBatchedUpdatesWithAct';
 
 // Every row, preset or composed, draws its title through this leaf, so it marks one row per title
@@ -103,7 +104,7 @@ describe('ReportDetailsMenuItems', () => {
         mockUseOnyx.mockClear();
         await act(async () => {
             await Onyx.merge(ONYXKEYS.SESSION, {accountID: currentUserAccountID});
-            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+            await mergePersonalDetailsList({
                 [currentUserAccountID]: {accountID: currentUserAccountID, login: currentUserEmail},
                 [otherAccountID]: {accountID: otherAccountID, login: 'other@test.com'},
             });

@@ -18,6 +18,7 @@ import Onyx from 'react-native-onyx';
 
 import {createExpenseReport, createSelfDM} from '../../utils/collections/reports';
 import getOnyxValue from '../../utils/getOnyxValue';
+import {withPersonalDetails} from '../../utils/PersonalDetailsTestUtils';
 import {expectAPICommandToHaveBeenCalled, expectAPICommandToHaveBeenCalledWith, getCurrencyDecimalsLocal, getGlobalFetchMock} from '../../utils/TestHelper';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
@@ -53,7 +54,7 @@ beforeEach(async () => {
     await Onyx.clear();
     await Onyx.multiSet({
         [ONYXKEYS.SESSION]: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
-        [ONYXKEYS.PERSONAL_DETAILS_LIST]: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
+        ...withPersonalDetails({[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}}),
     });
 });
 

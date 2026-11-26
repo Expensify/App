@@ -29,6 +29,7 @@ import React from 'react';
 import Onyx from 'react-native-onyx';
 
 import getOnyxValue from '../utils/getOnyxValue';
+import {mergePersonalDetailsList, setPersonalDetailsList} from '../utils/PersonalDetailsTestUtils';
 import {buildPersonalDetails, translateLocal} from '../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
@@ -175,7 +176,7 @@ describe('WorkspaceWorkflowsApprovalsEditPage', () => {
             const personalDetails = buildPersonalDetailsList();
 
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, policy);
-            await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetails);
+            await setPersonalDetailsList(personalDetails);
             await Onyx.merge(ONYXKEYS.SESSION, {email: ALICE_EMAIL, accountID: ALICE_ACCOUNT_ID});
             await waitForBatchedUpdatesWithAct();
         });
@@ -264,7 +265,7 @@ describe('WorkspaceWorkflowsApprovalsEditPage', () => {
                     [carolEmail]: {email: carolEmail, submitsTo: bobEmail},
                 },
             });
-            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+            await mergePersonalDetailsList({
                 [bobAccountID]: buildPersonalDetails(bobEmail, bobAccountID, 'bob'),
                 [carolAccountID]: buildPersonalDetails(carolEmail, carolAccountID, 'carol'),
             });

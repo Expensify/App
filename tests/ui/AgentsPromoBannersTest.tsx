@@ -18,6 +18,7 @@ import React from 'react';
 import Onyx from 'react-native-onyx';
 
 import createRandomPolicy from '../utils/collections/policies';
+import {setPersonalDetailsList} from '../utils/PersonalDetailsTestUtils';
 import {buildPersonalDetails} from '../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
@@ -114,7 +115,7 @@ async function setupOnyxBaseline() {
     await Onyx.set(ONYXKEYS.HAS_LOADED_APP, true);
     await Onyx.set(ONYXKEYS.IS_LOADING_REPORT_DATA, false);
     await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, buildPolicy());
-    await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+    await setPersonalDetailsList({
         [USER_ACCOUNT_ID]: buildPersonalDetails(USER_EMAIL, USER_ACCOUNT_ID, 'Admin'),
     });
     await Onyx.merge(ONYXKEYS.SESSION, {email: USER_EMAIL, accountID: USER_ACCOUNT_ID});

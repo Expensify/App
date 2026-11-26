@@ -29,8 +29,8 @@ import {NavigationContainer} from '@react-navigation/native';
 import React from 'react';
 import Onyx from 'react-native-onyx';
 
-import getOnyxValue from '../utils/getOnyxValue';
 import * as LHNTestUtils from '../utils/LHNTestUtils';
+import {getPersonalDetailsList, mergePersonalDetailsList, setPersonalDetailsList} from '../utils/PersonalDetailsTestUtils';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
@@ -97,7 +97,7 @@ describe('WorkspaceMemberDisplayNamePage', () => {
         await act(async () => {
             await Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, CONST.LOCALES.EN);
             // The member with unloadedEmail gets no entry, like a member the backend returned no personal details for.
-            await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+            await setPersonalDetailsList({
                 [selfAccountID]: TestHelper.buildPersonalDetails(selfEmail, selfAccountID, 'Self'),
                 [invitedAccountID]: invitedPersonalDetails,
             });
@@ -141,7 +141,7 @@ describe('WorkspaceMemberDisplayNamePage', () => {
         await saveName();
 
         // Then the name is written to the member's real personal details entry, not to the stale ID
-        const personalDetailsList = await getOnyxValue(ONYXKEYS.PERSONAL_DETAILS_LIST);
+        const personalDetailsList = await getPersonalDetailsList();
         expect(personalDetailsList?.[invitedAccountID]?.firstName).toBe('Jane');
         expect(personalDetailsList?.[invitedAccountID]?.lastName).toBe('Doe');
         expect(personalDetailsList?.[staleOptimisticAccountID]).toBeUndefined();
@@ -178,7 +178,7 @@ describe('WorkspaceMemberDisplayNamePage', () => {
     it('stays blocked when the member found by login already has a name', async () => {
         // Given a stale optimistic route while the member's real entry already has a name
         await act(async () => {
-            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {[invitedAccountID]: {firstName: 'Jane'}});
+            await mergePersonalDetailsList({[invitedAccountID]: {firstName: 'Jane'}});
         });
 
         // When the page opens on the stale ID, so the name check has to use the entry found by login

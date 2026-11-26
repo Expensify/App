@@ -26,6 +26,7 @@ import {nl} from 'date-fns/locale/nl';
 import {pl} from 'date-fns/locale/pl';
 import Onyx from 'react-native-onyx';
 
+import {setPersonalDetailsList, withPersonalDetails} from '../utils/PersonalDetailsTestUtils';
 import {translateLocal} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
@@ -41,7 +42,7 @@ describe('DateUtils', () => {
                 [ONYXKEYS.SESSION]: {
                     accountID: 999,
                 },
-                [ONYXKEYS.PERSONAL_DETAILS_LIST]: {
+                ...withPersonalDetails({
                     '999': {
                         accountID: 999,
                         timezone: {
@@ -52,7 +53,7 @@ describe('DateUtils', () => {
                             selected: UTC as SelectedTimezone,
                         },
                     },
-                },
+                }),
             },
         });
         return waitForBatchedUpdates();
@@ -194,7 +195,7 @@ describe('DateUtils', () => {
                     resolvedOptions: () => ({timeZone: 'America/Chicago'}),
                 }) as Intl.DateTimeFormat,
         );
-        Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {'999': {accountID: 999, timezone: {selected: 'Europe/London', automatic: true}}});
+        setPersonalDetailsList({'999': {accountID: 999, timezone: {selected: 'Europe/London', automatic: true}}});
         await waitForBatchedUpdates();
         const result = DateUtils.getCurrentTimezone({selected: 'Europe/London', automatic: true});
         expect(result).toEqual({
@@ -211,7 +212,7 @@ describe('DateUtils', () => {
                     resolvedOptions: () => ({timeZone: UTC}),
                 }) as Intl.DateTimeFormat,
         );
-        Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {'999': {accountID: 999, timezone: {selected: 'Europe/London', automatic: true}}});
+        setPersonalDetailsList({'999': {accountID: 999, timezone: {selected: 'Europe/London', automatic: true}}});
         await waitForBatchedUpdates();
         const result = DateUtils.getCurrentTimezone({selected: 'Europe/London', automatic: true});
         expect(result).toEqual({
@@ -228,7 +229,7 @@ describe('DateUtils', () => {
                     resolvedOptions: () => ({timeZone: 'Asia/Calcutta'}),
                 }) as Intl.DateTimeFormat,
         );
-        Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {'999': {accountID: 999, timezone: {selected: 'Asia/Kolkata', automatic: true}}});
+        setPersonalDetailsList({'999': {accountID: 999, timezone: {selected: 'Asia/Kolkata', automatic: true}}});
         await waitForBatchedUpdates();
 
         // Given the stored timezone is already the supported equivalent of the Intl alias, it should stay unchanged

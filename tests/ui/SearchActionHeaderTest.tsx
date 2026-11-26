@@ -24,6 +24,7 @@ import Onyx from 'react-native-onyx';
 
 import createRandomReportAction from '../utils/collections/reportActions';
 import createRandomTransaction from '../utils/collections/transaction';
+import {mergePersonalDetailsList} from '../utils/PersonalDetailsTestUtils';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
 function ThemeProviderWithLight({children}: {children: React.ReactNode}) {
@@ -91,7 +92,7 @@ describe('SearchActionHeader', () => {
 
         async function setLinkedTransaction(transaction: Transaction) {
             await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
-            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+            await mergePersonalDetailsList({
                 [ownerAccountID]: {accountID: ownerAccountID, displayName: 'Jane Doe', login: 'jane@example.com'},
             });
             await waitForBatchedUpdatesWithAct();
@@ -148,7 +149,7 @@ describe('SearchActionHeader', () => {
             // getReportForHeader/getParentReport read the parent invoice report from the global Onyx-connected
             // cache (not from props), so it must be written to the REPORT collection directly.
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${invoiceReportID}`, invoiceReport);
-            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+            await mergePersonalDetailsList({
                 [ownerAccountID]: {accountID: ownerAccountID, displayName: 'Jane Doe', login: 'jane@example.com'},
             });
             const transaction: Transaction = {...createRandomTransaction(5), reportID: invoiceReportID, reimbursable: false};

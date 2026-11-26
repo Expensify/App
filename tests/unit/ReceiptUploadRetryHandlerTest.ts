@@ -20,6 +20,7 @@ import type {FileObject} from '@src/types/utils/Attachment';
 import Onyx from 'react-native-onyx';
 
 import createMock from '../utils/createMock';
+import {mergePersonalDetailsList} from '../utils/PersonalDetailsTestUtils';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 jest.mock('@libs/ReceiptUploadRetryHandler/resolveReceiptFile', () => ({__esModule: true, default: jest.fn()}));
@@ -257,7 +258,7 @@ describe('buildRetryPayload', () => {
 
     it('offers no retry for an expense whose report lost its type, because a retry would overwrite the wrong report', async () => {
         // Given a failed expense on a report that lost its type, where everything else about the retry is fine
-        await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {[OTHER_ACCOUNT_ID]: {accountID: OTHER_ACCOUNT_ID, login: 'other@example.com'}});
+        await mergePersonalDetailsList({[OTHER_ACCOUNT_ID]: {accountID: OTHER_ACCOUNT_ID, login: 'other@example.com'}});
         await waitForBatchedUpdates();
         const context = {
             ...buildContext(buildFailedTransaction()),
@@ -273,7 +274,7 @@ describe('buildRetryPayload', () => {
 
     it('resolves the DM counterpart and payee from the context user, not the Onyx session', async () => {
         // Given a 1:1 DM, and an Onyx session that disagrees with the context user
-        await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {[OTHER_ACCOUNT_ID]: {accountID: OTHER_ACCOUNT_ID, login: 'other@example.com'}});
+        await mergePersonalDetailsList({[OTHER_ACCOUNT_ID]: {accountID: OTHER_ACCOUNT_ID, login: 'other@example.com'}});
         await Onyx.merge(ONYXKEYS.SESSION, {accountID: 999});
         await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${CHAT_REPORT_ID}`, {
             reportID: CHAT_REPORT_ID,

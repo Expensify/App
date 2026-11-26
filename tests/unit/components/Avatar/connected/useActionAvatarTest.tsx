@@ -19,6 +19,7 @@ import React from 'react';
 import Onyx from 'react-native-onyx';
 
 import createMock from '../../../../utils/createMock';
+import {mergePersonalDetailsList} from '../../../../utils/PersonalDetailsTestUtils';
 import waitForBatchedUpdates from '../../../../utils/waitForBatchedUpdates';
 
 const USER_ACCOUNT_ID = 1;
@@ -491,7 +492,7 @@ describe('useActionAvatar', () => {
 
     beforeEach(async () => {
         await Promise.all([
-            Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetails),
+            mergePersonalDetailsList(personalDetails),
             Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, policy),
             Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${RECEIVER_POLICY_ID}`, receiverPolicy),
             Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${DM_ID}`, dm),
@@ -644,7 +645,7 @@ describe('useActionAvatar', () => {
                 await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`, {billID: 9402});
             }
             // Concierge keeps its email as its name here, as it does before its personal details fully load.
-            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+            await mergePersonalDetailsList({
                 [PROCESSOR_ACCOUNT_ID]: {accountID: PROCESSOR_ACCOUNT_ID, displayName: 'Tom Jones', avatar: 'https://example.com/tom.png'},
                 [CONST.ACCOUNT_ID.CONCIERGE]: {displayName: CONST.EMAIL.CONCIERGE},
             });

@@ -15,6 +15,7 @@ import type {ValueOf} from 'type-fest';
 import React from 'react';
 import Onyx from 'react-native-onyx';
 
+import {mergePersonalDetailsList} from '../../../utils/PersonalDetailsTestUtils';
 import waitForBatchedUpdates from '../../../utils/waitForBatchedUpdates';
 
 jest.mock('@components/MenuItem/presets/MenuItemFieldHTML', () => {
@@ -107,7 +108,7 @@ describe('ReportField', () => {
         await Onyx.clear();
         // `canAddTransaction` requires the submitter to own the report and the policy to be a group policy with an approver.
         await Onyx.merge(ONYXKEYS.SESSION, {accountID: SUBMITTER_ACCOUNT_ID, email: SUBMITTER_EMAIL});
-        await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+        await mergePersonalDetailsList({
             [SUBMITTER_ACCOUNT_ID]: {accountID: SUBMITTER_ACCOUNT_ID, login: SUBMITTER_EMAIL},
             [APPROVER_ACCOUNT_ID]: {accountID: APPROVER_ACCOUNT_ID, login: APPROVER_EMAIL},
         });

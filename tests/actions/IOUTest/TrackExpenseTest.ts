@@ -50,6 +50,7 @@ import createRandomTransaction, {createRandomDistanceRequestTransaction} from '.
 import createMock from '../../utils/createMock';
 import getOnyxValue from '../../utils/getOnyxValue';
 import initCurrencyListContext from '../../utils/initCurrencyListContext';
+import {getPersonalDetailsList, mergePersonalDetailsList, setPersonalDetailsList, withPersonalDetails} from '../../utils/PersonalDetailsTestUtils';
 import PusherHelper from '../../utils/PusherHelper';
 import * as TestHelper from '../../utils/TestHelper';
 import {formatPhoneNumber, getCurrencyDecimalsLocal, getOnyxData, setPersonalDetails, signInWithTestUser} from '../../utils/TestHelper';
@@ -131,9 +132,9 @@ describe('actions/IOU/TrackExpense', () => {
             keys: ONYXKEYS,
             initialKeyStates: {
                 [ONYXKEYS.SESSION]: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
-                [ONYXKEYS.PERSONAL_DETAILS_LIST]: {
+                ...withPersonalDetails({
                     [RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL},
-                },
+                }),
             },
         });
     });
@@ -672,7 +673,7 @@ describe('actions/IOU/TrackExpense', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${policyExpenseChat.reportID}`, policyExpenseChat);
             await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transaction.transactionID}`, transaction);
-            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {[accountant.accountID]: accountant});
+            await mergePersonalDetailsList({[accountant.accountID]: accountant});
 
             const recentWaypoints = (await getOnyxValue(ONYXKEYS.NVP_RECENT_WAYPOINTS)) ?? [];
 
@@ -826,7 +827,7 @@ describe('actions/IOU/TrackExpense', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${policyExpenseChat.reportID}`, policyExpenseChat);
             await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transaction.transactionID}`, transaction);
-            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {[accountant.accountID]: accountant});
+            await mergePersonalDetailsList({[accountant.accountID]: accountant});
 
             const recentWaypoints = (await getOnyxValue(ONYXKEYS.NVP_RECENT_WAYPOINTS)) ?? [];
 
@@ -1130,7 +1131,7 @@ describe('actions/IOU/TrackExpense', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${accountantExpenseChatID}`, {private_isArchived: DateUtils.getDBTime()});
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${archivedExpenseReportID}`, {private_isArchived: DateUtils.getDBTime()});
             await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transaction.transactionID}`, transaction);
-            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {[accountant.accountID]: accountant});
+            await mergePersonalDetailsList({[accountant.accountID]: accountant});
 
             // Build the REPORT_PREVIEW action OUTSIDE Onyx and pass it explicitly.
             // If the implementation falls back to deprecatedAllReportActions (Onyx) instead of using this explicit param,
@@ -1431,7 +1432,7 @@ describe('actions/IOU/TrackExpense', () => {
                 reportID: 'selfDM-current-user-details',
             };
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${selfDMReport.reportID}`, selfDMReport);
-            await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+            await setPersonalDetailsList({
                 [RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL, displayName: 'Onyx Display Name', avatar: 'https://example.com/onyx-avatar.png'},
             });
             await waitForBatchedUpdates();
@@ -2706,7 +2707,7 @@ describe('actions/IOU/TrackExpense', () => {
                 [CARLOS_ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN, role: CONST.REPORT.ROLE.MEMBER},
             });
 
-            const allPersonalDetails = await getOnyxValue(ONYXKEYS.PERSONAL_DETAILS_LIST);
+            const allPersonalDetails = await getPersonalDetailsList();
             const participantAccountIDs = Object.keys(thread.participants ?? {}).map(Number);
             jest.advanceTimersByTime(10);
             const participants = participantAccountIDs.flatMap((accountID) => {
@@ -2823,7 +2824,7 @@ describe('actions/IOU/TrackExpense', () => {
                 [CARLOS_ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN, role: CONST.REPORT.ROLE.MEMBER},
             });
 
-            const allPersonalDetails = await getOnyxValue(ONYXKEYS.PERSONAL_DETAILS_LIST);
+            const allPersonalDetails = await getPersonalDetailsList();
             const participantAccountIDs = Object.keys(thread.participants ?? {}).map(Number);
             jest.advanceTimersByTime(10);
             const participants = participantAccountIDs.flatMap((accountID) => {
@@ -3175,7 +3176,7 @@ describe('actions/IOU/TrackExpense', () => {
                 comment: {comment: 'Test expense'},
             };
 
-            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, testPersonalDetails);
+            await mergePersonalDetailsList(testPersonalDetails);
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${selfDMReportID}`, selfDMReport);
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${targetReportID}`, iouReport);
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`, chatReport);
@@ -3254,7 +3255,7 @@ describe('actions/IOU/TrackExpense', () => {
                 },
             };
 
-            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, testPersonalDetails);
+            await mergePersonalDetailsList(testPersonalDetails);
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${targetReportID}`, iouReport);
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`, chatReport);
             await waitForBatchedUpdates();

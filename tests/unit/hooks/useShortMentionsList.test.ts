@@ -10,6 +10,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import React from 'react';
 import Onyx from 'react-native-onyx';
 
+import {mergePersonalDetailsList} from '../../utils/PersonalDetailsTestUtils';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
 const ACCOUNT_ID_CURRENT_USER = 1;
@@ -35,7 +36,7 @@ describe('useShortMentionsList', () => {
     beforeEach(async () => {
         await Onyx.clear();
         await Onyx.merge(ONYXKEYS.SESSION, {email: 'user@acme.com', accountID: ACCOUNT_ID_CURRENT_USER});
-        await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetailsList);
+        await mergePersonalDetailsList(personalDetailsList);
     });
 
     it('returns usernames sharing the current user private domain', async () => {
@@ -77,7 +78,7 @@ describe('useShortMentionsList', () => {
         const listBefore = first.result.current.availableLoginsList;
         const rendersBefore = renderCount;
 
-        await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+        await mergePersonalDetailsList({
             [ACCOUNT_ID_COWORKER]: {avatar: 'https://example.com/new-avatar.png'},
         });
         await waitForBatchedUpdates();
@@ -110,7 +111,7 @@ describe('useShortMentionsList', () => {
             expect(result.current.availableLoginsList).toEqual(['user', 'coworker']);
         });
 
-        await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+        await mergePersonalDetailsList({
             [ACCOUNT_ID_NEW_HIRE]: {accountID: ACCOUNT_ID_NEW_HIRE, login: 'newcomer@acme.com'},
         });
 

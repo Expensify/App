@@ -25,6 +25,7 @@ import {
     createWorkspaceThread,
 } from '../utils/collections/reports';
 import createMock from '../utils/createMock';
+import {setPersonalDetailsList} from '../utils/PersonalDetailsTestUtils';
 import {translateLocal} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
@@ -156,7 +157,7 @@ describe('LHN Avatar Pipeline', () => {
         initOnyxDerivedValues();
 
         await Onyx.set(ONYXKEYS.SESSION, {accountID: CURRENT_USER_ACCOUNT_ID, email: 'user1@test.com'});
-        await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, PERSONAL_DETAILS);
+        await setPersonalDetailsList(PERSONAL_DETAILS);
         await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, TEST_POLICY);
 
         // Parent DM chat (for personal task cases)

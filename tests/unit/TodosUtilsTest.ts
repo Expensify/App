@@ -11,6 +11,7 @@ import {CONST as COMMON_CONST} from 'expensify-common';
 import Onyx from 'react-native-onyx';
 
 import createMock from '../utils/createMock';
+import {setPersonalDetailsList} from '../utils/PersonalDetailsTestUtils';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 const CURRENT_USER_ACCOUNT_ID = 1;
@@ -271,7 +272,7 @@ describe('TodosUtils', () => {
                 [CURRENT_USER_ACCOUNT_ID]: {accountID: CURRENT_USER_ACCOUNT_ID, login: CURRENT_USER_EMAIL},
                 [OTHER_USER_ACCOUNT_ID]: {accountID: OTHER_USER_ACCOUNT_ID, login: OTHER_USER_EMAIL},
             };
-            await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetailsList);
+            await setPersonalDetailsList(personalDetailsList);
             await waitForBatchedUpdates();
 
             const approverSubmitReport = createMockReport('approver_submit', {

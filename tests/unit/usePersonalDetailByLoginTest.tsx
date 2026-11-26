@@ -10,6 +10,7 @@ import type {PersonalDetails, PersonalDetailsList} from '@src/types/onyx';
 import React from 'react';
 import Onyx from 'react-native-onyx';
 
+import {mergePersonalDetailsList, setPersonalDetailsList} from '../utils/PersonalDetailsTestUtils';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 const ALICE = {accountID: 1, displayName: 'Alice', login: 'alice@test.com'};
@@ -27,7 +28,7 @@ async function setPersonalDetails(personalDetails: PersonalDetails[]) {
     }
 
     await act(async () => {
-        await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetailsList);
+        await setPersonalDetailsList(personalDetailsList);
     });
     await waitForBatchedUpdates();
 }
@@ -72,7 +73,7 @@ describe('usePersonalDetailByLogin', () => {
         const {result} = renderHook(() => usePersonalDetailByLogin(ALICE.login), {wrapper});
 
         await act(async () => {
-            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {[ALICE.accountID]: {displayName: 'Alice Renamed'}});
+            await mergePersonalDetailsList({[ALICE.accountID]: {displayName: 'Alice Renamed'}});
         });
         await waitForBatchedUpdates();
 
@@ -99,7 +100,7 @@ describe('usePersonalDetailByLogin', () => {
         const renderCountBeforeUpdate = renderCount;
 
         await act(async () => {
-            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {[BOB.accountID]: BOB});
+            await mergePersonalDetailsList({[BOB.accountID]: BOB});
         });
         await waitForBatchedUpdates();
 
@@ -120,7 +121,7 @@ describe('usePersonalDetailByLogin', () => {
         const renderCountBeforeUpdate = renderCount;
 
         await act(async () => {
-            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {[ALICE.accountID]: {displayName: 'Alice Renamed'}});
+            await mergePersonalDetailsList({[ALICE.accountID]: {displayName: 'Alice Renamed'}});
         });
         await waitForBatchedUpdates();
 
@@ -149,7 +150,7 @@ describe('usePersonalDetailByLogin', () => {
         const renderCountBeforeUpdate = renderCount;
 
         await act(async () => {
-            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {[ALICE.accountID]: {avatar: 'https://test.com/avatar.png'}});
+            await mergePersonalDetailsList({[ALICE.accountID]: {avatar: 'https://test.com/avatar.png'}});
         });
         await waitForBatchedUpdates();
 
@@ -162,7 +163,7 @@ describe('usePersonalDetailByLogin', () => {
         const {result} = renderHook(() => usePersonalDetailByLogin(ALICE.login, (personalDetails) => personalDetails?.displayName), {wrapper});
 
         await act(async () => {
-            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {[ALICE.accountID]: {displayName: 'Alice Renamed'}});
+            await mergePersonalDetailsList({[ALICE.accountID]: {displayName: 'Alice Renamed'}});
         });
         await waitForBatchedUpdates();
 
@@ -210,7 +211,7 @@ describe('usePersonalDetailsByLogins', () => {
         const {result} = renderHook(() => usePersonalDetailsByLogins([ALICE.login]), {wrapper});
 
         await act(async () => {
-            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {[ALICE.accountID]: {displayName: 'Alice Renamed'}});
+            await mergePersonalDetailsList({[ALICE.accountID]: {displayName: 'Alice Renamed'}});
         });
         await waitForBatchedUpdates();
 
@@ -237,7 +238,7 @@ describe('usePersonalDetailsByLogins', () => {
         const renderCountBeforeUpdate = renderCount;
 
         await act(async () => {
-            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {[BOB.accountID]: BOB});
+            await mergePersonalDetailsList({[BOB.accountID]: BOB});
         });
         await waitForBatchedUpdates();
 
@@ -258,7 +259,7 @@ describe('usePersonalDetailsByLogins', () => {
         const renderCountBeforeUpdate = renderCount;
 
         await act(async () => {
-            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {[ALICE.accountID]: {displayName: 'Alice Renamed'}});
+            await mergePersonalDetailsList({[ALICE.accountID]: {displayName: 'Alice Renamed'}});
         });
         await waitForBatchedUpdates();
 
@@ -287,7 +288,7 @@ describe('usePersonalDetailsByLogins', () => {
         const renderCountBeforeUpdate = renderCount;
 
         await act(async () => {
-            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {[ALICE.accountID]: {displayName: 'Alice Renamed'}});
+            await mergePersonalDetailsList({[ALICE.accountID]: {displayName: 'Alice Renamed'}});
         });
         await waitForBatchedUpdates();
 
@@ -300,7 +301,7 @@ describe('usePersonalDetailsByLogins', () => {
         const {result} = renderHook(() => usePersonalDetailsByLogins([ALICE.login, BOB.login], (personalDetailsByLogin) => Object.keys(personalDetailsByLogin).length), {wrapper});
 
         await act(async () => {
-            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {[BOB.accountID]: BOB});
+            await mergePersonalDetailsList({[BOB.accountID]: BOB});
         });
         await waitForBatchedUpdates();
 

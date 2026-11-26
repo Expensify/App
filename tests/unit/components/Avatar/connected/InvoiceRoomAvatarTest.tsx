@@ -14,6 +14,8 @@ import React from 'react';
 
 import type mockOnyxWithLivePersonalDetails from '../../../../utils/mockOnyxWithLivePersonalDetails';
 
+import {toPersonalDetailsCollection} from '../../../../utils/PersonalDetailsTestUtils';
+
 const SENDER_POLICY_ID = 'senderPolicy';
 const RECEIVER_POLICY_ID = 'receiverPolicy';
 const RECEIVER_POLICY_NAME = 'Receiver Workspace';
@@ -178,9 +180,11 @@ describe('InvoiceRoomAvatar (connected)', () => {
         mockPersonalDetails = {
             [RECEIVER_ACCOUNT_ID]: {accountID: RECEIVER_ACCOUNT_ID, login: RECEIVER_LOGIN, displayName: 'Live Name', avatar: 'https://example.com/live-avatar.png'},
         };
-        mockOnyxData[ONYXKEYS.PERSONAL_DETAILS_LIST] = {
+        const snapshotPersonalDetails = toPersonalDetailsCollection({
             [RECEIVER_ACCOUNT_ID]: {accountID: RECEIVER_ACCOUNT_ID, login: RECEIVER_LOGIN, displayName: RECEIVER_DISPLAY_NAME, avatar: RECEIVER_AVATAR_URL},
-        };
+        });
+        mockOnyxData[ONYXKEYS.COLLECTION.PERSONAL_DETAILS] = snapshotPersonalDetails;
+        Object.assign(mockOnyxData, snapshotPersonalDetails);
 
         // When it renders
         renderWithPersonalDetails(

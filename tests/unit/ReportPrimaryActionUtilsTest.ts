@@ -27,6 +27,7 @@ import type {InvoiceTestData} from '../data/Invoice';
 import {chatReportR14932 as chatReport} from '../../__mocks__/reportData/reports';
 import * as InvoiceData from '../data/Invoice';
 import createMock from '../utils/createMock';
+import {setPersonalDetailsList} from '../utils/PersonalDetailsTestUtils';
 
 const CURRENT_USER_ACCOUNT_ID = 1;
 const CURRENT_USER_EMAIL = 'tester@mail.com';
@@ -73,7 +74,7 @@ describe('getPrimaryAction', () => {
         Onyx.clear();
         await Onyx.merge(ONYXKEYS.SESSION, SESSION);
         await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, null);
-        await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {[CURRENT_USER_ACCOUNT_ID]: PERSONAL_DETAILS});
+        await setPersonalDetailsList({[CURRENT_USER_ACCOUNT_ID]: PERSONAL_DETAILS});
     });
 
     it('should return empty string for expense report with no transactions', async () => {
@@ -557,7 +558,7 @@ describe('getPrimaryAction', () => {
         const OWNER_EMAIL = 'owner@mail.com';
         // beforeEach's Onyx.clear isn't awaited; explicit clear + reset guarantees state.
         await Onyx.clear();
-        await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {[CURRENT_USER_ACCOUNT_ID]: PERSONAL_DETAILS});
+        await setPersonalDetailsList({[CURRENT_USER_ACCOUNT_ID]: PERSONAL_DETAILS});
         const report = createMock<Report>({
             reportID: REPORT_ID,
             type: CONST.REPORT.TYPE.EXPENSE,
@@ -608,7 +609,7 @@ describe('getPrimaryAction', () => {
         const SUBMITTER_ACCOUNT_ID = 2;
         const SUBMITTER_EMAIL = 'submitter@mail.com';
         await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, null);
-        await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {[CURRENT_USER_ACCOUNT_ID]: PERSONAL_DETAILS});
+        await setPersonalDetailsList({[CURRENT_USER_ACCOUNT_ID]: PERSONAL_DETAILS});
         const report = createMock<Report>({
             reportID: REPORT_ID,
             type: CONST.REPORT.TYPE.EXPENSE,
@@ -660,7 +661,7 @@ describe('getPrimaryAction', () => {
         const SUBMITTER_EMAIL = 'submitter@mail.com';
         const OTHER_WORKFLOW_APPROVER_EMAIL = 'other-approver@mail.com';
         await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, null);
-        await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {[CURRENT_USER_ACCOUNT_ID]: PERSONAL_DETAILS});
+        await setPersonalDetailsList({[CURRENT_USER_ACCOUNT_ID]: PERSONAL_DETAILS});
         const report = createMock<Report>({
             reportID: REPORT_ID,
             type: CONST.REPORT.TYPE.EXPENSE,
@@ -2607,7 +2608,7 @@ describe('isReviewDuplicatesAction', () => {
         Onyx.clear();
         await Onyx.merge(ONYXKEYS.SESSION, SESSION);
         await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, null);
-        await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {[CURRENT_USER_ACCOUNT_ID]: PERSONAL_DETAILS});
+        await setPersonalDetailsList({[CURRENT_USER_ACCOUNT_ID]: PERSONAL_DETAILS});
     });
 
     it('should return true when report approver has duplicated transactions', async () => {
@@ -2698,7 +2699,7 @@ describe('getTransactionThreadPrimaryAction', () => {
         Onyx.clear();
         await Onyx.merge(ONYXKEYS.SESSION, SESSION);
         await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, null);
-        await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {[CURRENT_USER_ACCOUNT_ID]: PERSONAL_DETAILS});
+        await setPersonalDetailsList({[CURRENT_USER_ACCOUNT_ID]: PERSONAL_DETAILS});
     });
 
     it('should return REMOVE HOLD for transaction thread being on hold', async () => {

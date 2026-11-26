@@ -18,6 +18,7 @@ import {createNavigationContainerRef, NavigationContainer} from '@react-navigati
 import React from 'react';
 import Onyx from 'react-native-onyx';
 
+import {setPersonalDetailsList} from '../utils/PersonalDetailsTestUtils';
 import {buildPersonalDetails} from '../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
@@ -93,7 +94,7 @@ describe('ProductMarketingWindow across navigation', () => {
     it('stays visible when the user navigates to another route, and hides under a screen-based centered modal', async () => {
         await act(async () => {
             await Onyx.set(ONYXKEYS.IS_LOADING_APP, false);
-            await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+            await setPersonalDetailsList({
                 [USER_ACCOUNT_ID]: buildPersonalDetails(USER_EMAIL, USER_ACCOUNT_ID, 'User'),
             });
             await Onyx.merge(ONYXKEYS.SESSION, {email: USER_EMAIL, accountID: USER_ACCOUNT_ID});

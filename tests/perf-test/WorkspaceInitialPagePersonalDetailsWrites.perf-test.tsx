@@ -30,6 +30,7 @@ import Onyx from 'react-native-onyx';
 import {measureRenders} from 'reassure';
 
 import * as LHNTestUtils from '../utils/LHNTestUtils';
+import {mergePersonalDetailsList} from '../utils/PersonalDetailsTestUtils';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
@@ -113,7 +114,7 @@ const renameUnrelatedUser = async () => {
         const displayName = `Unrelated ${run}-${index}`;
         // eslint-disable-next-line no-await-in-loop -- each rename must flush before the next so Reassure records one render per write
         await act(async () => {
-            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {[UNRELATED_ACCOUNT_ID]: {displayName}});
+            await mergePersonalDetailsList({[UNRELATED_ACCOUNT_ID]: {displayName}});
         });
     }
     run++;
@@ -138,7 +139,7 @@ beforeEach(async () => {
             outputCurrency: 'USD',
             employeeList,
         });
-        await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetails);
+        await mergePersonalDetailsList(personalDetails);
     });
 });
 

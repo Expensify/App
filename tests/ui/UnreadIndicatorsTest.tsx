@@ -32,6 +32,7 @@ import type {NativeNavigationMock} from '../../__mocks__/@react-navigation/nativ
 import {createRandomReport} from '../utils/collections/reports';
 import createRandomTransaction from '../utils/collections/transaction';
 import createMock from '../utils/createMock';
+import {mergePersonalDetailsList, withPersonalDetails} from '../utils/PersonalDetailsTestUtils';
 import PusherHelper from '../utils/PusherHelper';
 import {emitAppState} from '../utils/ReactNativeMockUtils';
 import * as TestHelper from '../utils/TestHelper';
@@ -195,9 +196,9 @@ async function fastSignInWithTestUser() {
         },
         [ONYXKEYS.BETAS]: ['all'],
         [ONYXKEYS.NVP_PRIVATE_PUSH_NOTIFICATION_ID]: 'randomID',
-        [ONYXKEYS.PERSONAL_DETAILS_LIST]: {
+        ...withPersonalDetails({
             [USER_A_ACCOUNT_ID]: TestHelper.buildPersonalDetails(USER_A_EMAIL, USER_A_ACCOUNT_ID, 'A'),
-        },
+        }),
     });
     await waitForBatchedUpdates();
 }
@@ -253,7 +254,7 @@ async function signInAndGetAppWithUnreadChat(): Promise<void> {
     await Promise.all([
         Onyx.merge(ONYXKEYS.IS_LOADING_APP, false),
         Onyx.merge(ONYXKEYS.HAS_LOADED_APP, true),
-        Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetails),
+        mergePersonalDetailsList(personalDetails),
         Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report),
         Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`, reportActions),
     ]);
@@ -387,7 +388,9 @@ describe('Unread Indicators', () => {
                 const NEW_REPORT_FIST_MESSAGE_CREATED_DATE = addSeconds(NEW_REPORT_CREATED_DATE, 1);
                 const createdReportActionIDLocal = rand64();
                 const commentReportActionID = rand64();
-                PusherHelper.emitOnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS | typeof ONYXKEYS.PERSONAL_DETAILS_LIST>([
+                PusherHelper.emitOnyxUpdate<
+                    typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS | typeof ONYXKEYS.PERSONAL_DETAILS_LIST | typeof ONYXKEYS.COLLECTION.PERSONAL_DETAILS
+                >([
                     {
                         onyxMethod: Onyx.METHOD.MERGE,
                         key: `${ONYXKEYS.COLLECTION.REPORT}${NEW_REPORT_ID}`,
@@ -432,6 +435,11 @@ describe('Unread Indicators', () => {
                         value: {
                             [USER_C_ACCOUNT_ID]: TestHelper.buildPersonalDetails(USER_C_EMAIL, USER_C_ACCOUNT_ID, 'C'),
                         },
+                    },
+                    {
+                        onyxMethod: Onyx.METHOD.MERGE,
+                        key: `${ONYXKEYS.COLLECTION.PERSONAL_DETAILS}${USER_C_ACCOUNT_ID}`,
+                        value: TestHelper.buildPersonalDetails(USER_C_EMAIL, USER_C_ACCOUNT_ID, 'C'),
                     },
                 ]);
                 return waitForBatchedUpdates();

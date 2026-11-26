@@ -7,6 +7,7 @@ import type {Attendee} from '@src/types/onyx/IOU';
 
 import Onyx from 'react-native-onyx';
 
+import {mergePersonalDetailsList} from '../utils/PersonalDetailsTestUtils';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
 describe('useAttendees', () => {
@@ -46,7 +47,7 @@ describe('useAttendees', () => {
         };
 
         await act(async () => {
-            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+            await mergePersonalDetailsList({
                 [ownerDetails.accountID]: ownerDetails,
             });
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {

@@ -116,7 +116,7 @@ describe('no-onyx-get-snapshot-key restricted keys', () => {
 
             // The key check does not depend on the position of the read
             {code: `${ONYX_IMPORT} function Row() { const value = Onyx.get(ONYXKEYS.COLLECTION.REPORT); return <View value={value} />; }`, errors: RESTRICTED_ERRORS},
-            {code: `${ONYX_IMPORT} const initialValue = Onyx.get(ONYXKEYS.PERSONAL_DETAILS_LIST);`, errors: RESTRICTED_ERRORS},
+            {code: `${ONYX_IMPORT} const initialValue = Onyx.get(ONYXKEYS.COLLECTION.PERSONAL_DETAILS);`, errors: RESTRICTED_ERRORS},
 
             // A local object named ONYXKEYS is not the real key map, so the key cannot be resolved
             {code: `${ONYX_IMPORT} const ONYXKEYS = {SESSION: 'report_1'}; export function submit() { return Onyx.get(ONYXKEYS.SESSION); }`, errors: UNRESOLVABLE_ERRORS},
@@ -285,7 +285,7 @@ describe('no-onyx-get-snapshot-key under the TypeScript parser', () => {
                 code: `${ONYX_IMPORT} export function submit(reportID: string) { const key = \`\${ONYXKEYS.COLLECTION.REPORT}\${reportID}\` as typeof ONYXKEYS.COLLECTION.REPORT; return Onyx.get(key); }`,
                 errors: RESTRICTED_ERRORS,
             },
-            {code: `${ONYX_IMPORT} export function submit() { return Onyx.get(ONYXKEYS.PERSONAL_DETAILS_LIST as OnyxKey); }`, errors: RESTRICTED_ERRORS},
+            {code: `${ONYX_IMPORT} export function submit() { return Onyx.get(ONYXKEYS.COLLECTION.PERSONAL_DETAILS as OnyxKey); }`, errors: RESTRICTED_ERRORS},
             {code: `${ONYX_IMPORT} export function submit(key: OnyxKey) { return Onyx.get(key as OnyxKey); }`, errors: UNRESOLVABLE_ERRORS},
             {code: `${ONYX_IMPORT} export function submit() { return Onyx.multiGet([ONYXKEYS.SESSION, ONYXKEYS.COLLECTION.REPORT] as const); }`, errors: RESTRICTED_ERRORS},
             // A cast around the Onyx object does not hide the read
@@ -310,7 +310,7 @@ describe('no-onyx-get-snapshot-key multiGet', () => {
         invalid: [
             {code: `${ONYX_IMPORT} export function submit() { return Onyx.multiGet([ONYXKEYS.SESSION, ONYXKEYS.COLLECTION.REPORT]); }`, errors: RESTRICTED_ERRORS},
             {
-                code: `${ONYX_IMPORT} export function submit(reportID) { return Onyx.multiGet([ONYXKEYS.PERSONAL_DETAILS_LIST, \`\${ONYXKEYS.COLLECTION.REPORT}\${reportID}\`]); }`,
+                code: `${ONYX_IMPORT} export function submit(reportID) { return Onyx.multiGet([ONYXKEYS.COLLECTION.PERSONAL_DETAILS, \`\${ONYXKEYS.COLLECTION.REPORT}\${reportID}\`]); }`,
                 errors: [{messageId: 'noRestrictedOnyxKey'}, {messageId: 'noRestrictedOnyxKey'}],
             },
             {code: `${ONYX_IMPORT} export function submit() { const keys = [ONYXKEYS.COLLECTION.REPORT]; return Onyx.multiGet(keys); }`, errors: RESTRICTED_ERRORS},

@@ -31,6 +31,7 @@ import React from 'react';
 import Onyx from 'react-native-onyx';
 
 import getOnyxValue from '../utils/getOnyxValue';
+import {mergePersonalDetailsList} from '../utils/PersonalDetailsTestUtils';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
@@ -99,7 +100,7 @@ function getInviteOnyxData(calls: ApiWriteCall[]): InviteOnyxData[] {
 }
 
 function hasPersonalDetailsUpdate(updates: Array<{key: string}> | undefined) {
-    return !!updates?.some((update) => update.key === ONYXKEYS.PERSONAL_DETAILS_LIST);
+    return !!updates?.some((update) => update.key === ONYXKEYS.COLLECTION.PERSONAL_DETAILS);
 }
 
 /**
@@ -109,7 +110,7 @@ function hasPersonalDetailsUpdate(updates: Array<{key: string}> | undefined) {
  */
 async function seedExistingDelegateExpenseChat() {
     await act(async () => {
-        await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {[DELEGATE_ACCOUNT_ID]: {accountID: DELEGATE_ACCOUNT_ID, login: DELEGATE_EMAIL}});
+        await mergePersonalDetailsList({[DELEGATE_ACCOUNT_ID]: {accountID: DELEGATE_ACCOUNT_ID, login: DELEGATE_EMAIL}});
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${EXISTING_CHAT_REPORT_ID}`, {
             reportID: EXISTING_CHAT_REPORT_ID,
             policyID: ADMIN_POLICY_ID,
@@ -195,7 +196,7 @@ describe('VacationDelegateMissingWorkspacesPage', () => {
         await TestHelper.signInWithTestUser(CREATOR_ACCOUNT_ID, CREATOR_EMAIL);
 
         // Mocked only after signing in: TestHelper.signInWithTestUser relies on the real
-        // API.write/makeRequestWithSideEffects to apply the SESSION/PERSONAL_DETAILS_LIST onyxData
+        // API.write/makeRequestWithSideEffects to apply the SESSION/personal details onyxData
         // from its mocked XHR responses. Mocking them earlier silently no-ops that Onyx application,
         // leaving useCurrentUserPersonalDetails() stuck on its default (unauthenticated) value.
         apiSideEffectSpy = jest.spyOn(require('@libs/API'), 'makeRequestWithSideEffects').mockImplementation(() => Promise.resolve());
@@ -277,7 +278,7 @@ describe('VacationDelegateMissingWorkspacesPage', () => {
         // Given a delegate whose personal details already carry a display name
         const DELEGATE_DISPLAY_NAME = 'Jane Doe';
         await act(async () => {
-            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {[DELEGATE_ACCOUNT_ID]: {accountID: DELEGATE_ACCOUNT_ID, login: DELEGATE_EMAIL, displayName: DELEGATE_DISPLAY_NAME}});
+            await mergePersonalDetailsList({[DELEGATE_ACCOUNT_ID]: {accountID: DELEGATE_ACCOUNT_ID, login: DELEGATE_EMAIL, displayName: DELEGATE_DISPLAY_NAME}});
         });
         await seedVacationDelegate({adminPolicies: [], nonAdminPolicies: [MEMBER_POLICY_ID]});
         renderPage();
