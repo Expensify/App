@@ -874,7 +874,13 @@ function MoneyRequestView({
         }
 
         const violations = getViolationsForField(field, data, policyHasDependentTags, tagValue);
-        const displayableViolations = field === 'merchant' ? violations.filter((violation) => violation.name === CONST.VIOLATIONS.NONDEFAULT_MERCHANT) : violations;
+        let displayableViolations = violations;
+        if (field === 'merchant') {
+            displayableViolations = violations.filter((violation) => violation.name === CONST.VIOLATIONS.NONDEFAULT_MERCHANT);
+        } else if (field === 'vendor' && !shouldShowVendor) {
+            // The vendor violations must follow the same gate as the Vendor field, or they would warn about a field that is hidden.
+            displayableViolations = [];
+        }
 
         if (displayableViolations.length > 0) {
             return `${displayableViolations

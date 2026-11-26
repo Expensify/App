@@ -1966,6 +1966,38 @@ describe('ModifiedExpenseMessage', () => {
                 expect(result).toEqual(expectedResult);
             });
 
+            it('shows the full vendor name and the help link when a rule sets a vendor before the workspace loads', () => {
+                // Given a non-admin viewer, no loaded policy, and a rule that set a vendor whose name has angle brackets
+                jest.mocked(isPolicyAdmin).mockReturnValue(false);
+                const reportAction = {
+                    ...createRandomReportAction(1),
+                    actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
+                    originalMessage: {
+                        policyID: policyRulesPolicyId,
+                        policyRulesModifiedFields: {
+                            vendor: {externalID: 'v-acme-west', name: 'Acme <West>'},
+                        },
+                    } as OriginalMessageModifiedExpense,
+                };
+
+                // When the message is built without a policy
+                const result = getForReportAction({
+                    convertToDisplayString,
+                    translate: translateLocal,
+                    reportAction,
+                    policy: undefined,
+                    policyTags: undefined,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                    currentUserLogin: CURRENT_USER_LOGIN,
+                    formatPhoneNumber,
+                    movedFromReportName: undefined,
+                });
+
+                // Then the persisted full name is shown (escaped) and the link goes to the help page
+                expect(result).toContain('set the vendor to "Acme &lt;West&gt;"');
+                expect(result).toContain(CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL);
+            });
+
             it('returns the correct text message with help link for non-admin', () => {
                 jest.mocked(isPolicyAdmin).mockReturnValue(false);
 
