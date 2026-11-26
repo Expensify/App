@@ -51,6 +51,9 @@ const KEYS_TO_PRESERVE_DELEGATE_ACCESS = [
     // before the dismissal value round-trips back from the server.
     ONYXKEYS.NVP_LAST_DISMISSED_MARKETING_WINDOW,
 
+    // Otherwise a new user would see the trial reminder after switching back in their first session
+    ONYXKEYS.RAM_ONLY_TRIAL_REMINDER_FIRST_SESSION_ACCOUNT_IDS,
+
     // We need to preserve the sidebar loaded state since we never unmount the sidebar when connecting as a delegate
     // This allows the report screen to load correctly when the delegate token expires and the delegate is returned to their original account.
     ONYXKEYS.RAM_ONLY_IS_SIDEBAR_LOADED,

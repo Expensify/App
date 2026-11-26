@@ -1,7 +1,7 @@
 /**
  * Determines whether the trial payment reminder modal is eligible to show and which variant/countdown
  * to display, based on the user's free-trial dates, payment-card status, and prior dismissals.
- * The modal never shows during the session in which a new user goes through onboarding.
+ * It stays hidden during a new user's first session.
  */
 import {getOwnedPaidPolicies, isPendingDeletePolicy} from '@libs/PolicyUtils';
 import {calculateRemainingTrialSeconds, calculateTrialDayNumber, doesUserHavePaymentCardAdded, isUserOnFreeTrial} from '@libs/SubscriptionUtils';

@@ -47,7 +47,7 @@ const ONYXKEYS = {
     /** Whether a semantic modal is covering the product marketing window in this app instance */
     RAM_ONLY_IS_PRODUCT_MARKETING_WINDOW_COVERED: 'isProductMarketingWindowCovered',
 
-    /** Accounts that went through onboarding in this app runtime. RAM-only, so a reload or relaunch starts their second session and the trial payment reminder can show again. */
+    /** Accounts that went through onboarding in this app runtime, used to hide the trial reminder until the next session */
     RAM_ONLY_TRIAL_REMINDER_FIRST_SESSION_ACCOUNT_IDS: 'trialReminderFirstSessionAccountIDs',
 
     /** Whether the current user can claim or nudge a billing owner about the Early Renewal 2027 offer */

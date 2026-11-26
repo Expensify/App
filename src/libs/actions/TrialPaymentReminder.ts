@@ -1,14 +1,9 @@
-/**
- * Actions for the trial payment reminder ("Stay ahead of the deadline") modal.
- */
+/** Actions for the trial payment reminder modal. */
 import ONYXKEYS from '@src/ONYXKEYS';
 
 import Onyx from 'react-native-onyx';
 
-/**
- * Records that this account went through onboarding in the current app runtime, so the trial payment reminder
- * stays hidden for the rest of the user's first session.
- */
+/** Remembers that this account is in its first session, so the trial reminder stays hidden. */
 function markTrialReminderFirstSession(accountID: number) {
     Onyx.merge(ONYXKEYS.RAM_ONLY_TRIAL_REMINDER_FIRST_SESSION_ACCOUNT_IDS, {
         [accountID]: true,
