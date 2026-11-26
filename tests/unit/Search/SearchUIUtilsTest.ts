@@ -12202,6 +12202,21 @@ describe('SearchUIUtils', () => {
             expect(SearchUIUtils.isSearchDataLoaded(makeSearchResults(), queryJSON)).toBe(true);
         });
 
+        it('only accepts the scoped Insights snapshot before successData restores its state', () => {
+            // Given equivalent queries with separate snapshot keys for Insights and Search
+            const insightsQuery = queryJSON && {...queryJSON, hash: -1 - queryJSON.hash};
+            const unscopedSnapshot = makeSearchResults();
+            const scopedSnapshot = makeSearchResults({search: {...unscopedSnapshot.search, hash: insightsQuery?.hash ?? 0}});
+
+            // When the snapshots contain response data and sort metadata but no client-side state
+            const isScopedSnapshotLoaded = SearchUIUtils.isSearchDataLoaded(scopedSnapshot, insightsQuery);
+            const isUnscopedSnapshotLoaded = SearchUIUtils.isSearchDataLoaded(unscopedSnapshot, insightsQuery);
+
+            // Then Insights shows its own results immediately and never falls back to unscoped Search
+            expect(isScopedSnapshotLoaded).toBe(true);
+            expect(isUnscopedSnapshotLoaded).toBe(false);
+        });
+
         it('should return true when data is absent but errors are present and type and hash match', () => {
             const results = makeSearchResults({data: undefined, errors: {error: 'Something went wrong'}});
             expect(SearchUIUtils.isSearchDataLoaded(results, queryJSON)).toBe(true);
