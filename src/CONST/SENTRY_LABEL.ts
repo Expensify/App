@@ -1954,6 +1954,8 @@ const SENTRY_LABEL = {
             IMPORTED_MEMBERS_ROLE: 'ImportedMembersConfirmation-Role',
             IMPORTED_MEMBERS_SUBMIT: 'ImportedMembersConfirmation-Submit',
             INVITE_MESSAGE_APPROVER: 'WorkspaceInviteMessage-Approver',
+            INVITE_MESSAGE_CATEGORY_VISIBILITY: 'WorkspaceInviteMessage-CategoryVisibility',
+            INVITE_MESSAGE_CATEGORY_VISIBILITY_SAVE: 'WorkspaceInviteMessage-CategoryVisibilitySave',
             INVITE_MESSAGE_MEMBERS: 'WorkspaceInviteMessage-Members',
             INVITE_MESSAGE_ROLE: 'WorkspaceInviteMessage-Role',
             INVITE_MESSAGE_WORK_ARRANGEMENT: 'WorkspaceInviteMessage-WorkArrangement',
