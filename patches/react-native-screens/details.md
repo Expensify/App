@@ -139,5 +139,5 @@
 
 - Reason: On a foldable iPhone (iOS 27.1 and later) UIKit moves the items of a navigation bar into the vertical bar, the column beside the content that also holds the status items and the tab bar. With the default `UIBarButtonItemAxisBehaviorAutomatic` it does that only for the items it draws itself, and keeps an item that wraps a custom view in the top bar. A header item of type `custom` is such an item (`ScreenStackHeaderLeftView` / `ScreenStackHeaderRightView`), and the create, scan and back buttons are header items of that type so that they look and behave in the vertical bar as the floating create and scan buttons do over the content. The patch sets `axisBehavior` to `UIBarButtonItemAxisBehaviorVerticalPreferred` on the bar button item of a header subview, so UIKit places it in the vertical bar when there is one. Without a vertical bar the item stays in the top bar as before. The app shows no other header subviews in a native navigation bar.
 - Upstream PR/issue: not reported yet. [software-mansion/react-native-screens#5142](https://github.com/software-mansion/react-native-screens/pull/5142) added an `axisBehavior` option for button and menu items only.
-- E/App issue: TBD
-- PR introducing patch: TBD
+- E/App issue: https://github.com/Expensify/App/issues/107743
+- PR introducing patch: https://github.com/Expensify/App/pull/107741
