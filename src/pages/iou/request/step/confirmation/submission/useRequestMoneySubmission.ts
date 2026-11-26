@@ -29,7 +29,7 @@ import type {GPSPoint as GpsPoint} from '@userActions/IOU/types/TrackExpenseTran
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {PersonalDetailsList, PolicyCategories, Report} from '@src/types/onyx';
+import type {PersonalDetailsList, PolicyCategories, Report, ReportAction} from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
 import type {CurrentUserPersonalDetails} from '@src/types/onyx/PersonalDetails';
 import type Policy from '@src/types/onyx/Policy';
@@ -178,6 +178,7 @@ function useRequestMoneySubmission({
         const optimisticReportPreviewActionID = rand64();
         const isExpenseReport = isMoneyRequestReportReportUtils(report);
         let existingIOUReport: Report | undefined;
+        let existingReportPreviewAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW> | undefined;
         let allTransactionsCreated = true;
         let lastOptimisticTransactionID: string | undefined;
 
@@ -245,12 +246,13 @@ function useRequestMoneySubmission({
                 }
             }
 
-            const {iouReport} = requestMoneyIOUActions({
+            const {iouReport, reportPreviewAction} = requestMoneyIOUActions({
                 isVendorMatchingBetaEnabled,
                 getCurrencyDecimals,
                 writeBarrier,
                 report,
                 existingIOUReport,
+                existingReportPreviewAction,
                 optimisticChatReportID,
                 optimisticCreatedReportActionID,
                 optimisticReportPreviewActionID,
@@ -328,6 +330,7 @@ function useRequestMoneySubmission({
                 personalDetailsByLogins: getPersonalDetailsByLogin(),
             });
             existingIOUReport = iouReport;
+            existingReportPreviewAction = reportPreviewAction;
             if (!iouReport) {
                 allTransactionsCreated = false;
             }

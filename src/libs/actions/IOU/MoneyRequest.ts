@@ -60,6 +60,7 @@ import type {
     QuickAction,
     RecentWaypoint,
     Report,
+    ReportAction,
     Rule,
     Transaction,
     TransactionViolation,
@@ -176,6 +177,7 @@ function createTransaction({
     const draftTransactionIDs = Object.keys(allTransactionDrafts ?? {});
     const isExpenseReport = isMoneyRequestReport(report);
     let existingIOUReport: Report | undefined;
+    let existingReportPreviewAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW> | undefined;
 
     for (const [index, receiptFile] of files.entries()) {
         const transaction = transactions.find((item) => item.transactionID === receiptFile.transactionID);
@@ -207,6 +209,7 @@ function createTransaction({
             const result = trackExpense({
                 report,
                 existingIOUReport,
+                existingReportPreviewAction,
                 isDraftPolicy: false,
                 isDraftChatReport,
                 existingTransaction: transaction,
@@ -250,6 +253,7 @@ function createTransaction({
                 shouldDeferAutoSubmit,
             });
             existingIOUReport = result?.iouReport;
+            existingReportPreviewAction = result?.reportPreviewAction;
         } else {
             const existingTransactionID = getExistingTransactionID(transaction?.linkedTrackedExpenseReportAction);
             const existingTransactionDraft = existingTransactionID ? allTransactionDrafts?.[existingTransactionID] : undefined;
@@ -258,6 +262,7 @@ function createTransaction({
                 isVendorMatchingBetaEnabled,
                 report,
                 existingIOUReport,
+                existingReportPreviewAction,
                 participantParams: {
                     payeeEmail: currentUserEmail,
                     payeeAccountID: currentUserAccountID,
@@ -302,6 +307,7 @@ function createTransaction({
                 personalDetailsByLogins,
             });
             existingIOUReport = result?.iouReport;
+            existingReportPreviewAction = result?.reportPreviewAction;
         }
     }
 }

@@ -8,6 +8,7 @@ import type {WriteReadyBarrier} from '@libs/API';
 import type {CurrentUser} from '@userActions/Policy/Policy';
 
 import type {IOUAction} from '@src/CONST';
+import type CONST from '@src/CONST';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {Accountant} from '@src/types/onyx/IOU';
 import type {CurrentUserPersonalDetails} from '@src/types/onyx/PersonalDetails';
@@ -28,6 +29,8 @@ type TrackExpenseAccountantParams = {
 type CreateTrackExpenseParams = {
     report: OnyxEntry<OnyxTypes.Report>;
     existingIOUReport?: OnyxEntry<OnyxTypes.Report>;
+    /** Carried from an earlier batch iteration so later items update the same preview before Onyx flushes. */
+    existingReportPreviewAction?: OnyxEntry<OnyxTypes.ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW>>;
     isDraftPolicy: boolean;
     action?: IOUAction;
     participantParams: RequestMoneyParticipantParams;

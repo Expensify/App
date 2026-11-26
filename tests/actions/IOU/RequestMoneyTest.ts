@@ -3460,13 +3460,30 @@ describe('actions/IOU', () => {
             expect(firstParams).toEqual(expect.objectContaining({iouReportID: firstReportID, reportPreviewReportActionID: firstPreviewActionID, shouldDeferAutoSubmit: true}));
             expect(secondParams).toEqual(expect.objectContaining({iouReportID: firstReportID, reportPreviewReportActionID: firstPreviewActionID, shouldDeferAutoSubmit: false}));
 
-            // And the final item restores the optimistic Submit and Close report status and avoids duplicate preview cards
+            // And the final item restores the optimistic Submit and Close report status, rolls it back on failure, and keeps preview count accurate
             const createdReport = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${String(firstReportID)}`);
             expect(createdReport?.stateNum).toBe(CONST.REPORT.STATE_NUM.APPROVED);
             expect(createdReport?.statusNum).toBe(CONST.REPORT.STATUS_NUM.CLOSED);
+            const secondOnyxData = commandCalls.at(1)?.at(2);
+            const failureDataUpdates =
+                typeof secondOnyxData === 'object' && secondOnyxData !== null && 'failureData' in secondOnyxData && Array.isArray(secondOnyxData.failureData)
+                    ? secondOnyxData.failureData
+                    : [];
+            expect(failureDataUpdates).toEqual(
+                expect.arrayContaining([
+                    expect.objectContaining({
+                        key: `${ONYXKEYS.COLLECTION.REPORT}${String(firstReportID)}`,
+                        value: expect.objectContaining({
+                            stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                            statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                        }),
+                    }),
+                ]),
+            );
             const chatActions = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReportID}`);
             const previewActions = Object.values(chatActions ?? {}).filter((action) => action?.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW);
             expect(previewActions).toHaveLength(1);
+            expect(previewActions.at(0)?.childMoneyRequestCount).toBe(2);
             writeSpy.mockRestore();
         });
     });

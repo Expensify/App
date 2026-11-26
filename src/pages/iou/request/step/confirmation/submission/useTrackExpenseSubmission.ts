@@ -30,7 +30,7 @@ import type {GPSPoint as GpsPoint} from '@userActions/IOU/types/TrackExpenseTran
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {PersonalDetailsList, PolicyCategories, Report} from '@src/types/onyx';
+import type {PersonalDetailsList, PolicyCategories, Report, ReportAction} from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
 import type {CurrentUserPersonalDetails} from '@src/types/onyx/PersonalDetails';
 import type Policy from '@src/types/onyx/Policy';
@@ -177,6 +177,7 @@ function useTrackExpenseSubmission({
 
         const isExpenseReport = isMoneyRequestReportReportUtils(trackReport);
         let existingIOUReport: Report | undefined;
+        let existingReportPreviewAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW> | undefined;
         let lastOptimisticTransactionID: string | undefined;
         for (const [index, item] of transactions.entries()) {
             const shouldDeferAutoSubmit = shouldDeferAutoSubmitForBatchItem({
@@ -213,6 +214,7 @@ function useTrackExpenseSubmission({
                 writeBarrier,
                 report: trackReport,
                 existingIOUReport,
+                existingReportPreviewAction,
                 isDraftPolicy,
                 isDraftChatReport: !!isDraftChatReport,
                 action,
@@ -289,6 +291,7 @@ function useTrackExpenseSubmission({
                 shouldDeferAutoSubmit,
             });
             existingIOUReport = result?.iouReport;
+            existingReportPreviewAction = result?.reportPreviewAction;
         }
         performPostBatchCleanup({
             transactions,

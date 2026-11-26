@@ -8645,6 +8645,48 @@ function getExpenseReportStateAndStatus(policy: OnyxEntry<Policy>, isASAPSubmitB
     };
 }
 
+type ReportStateAndStatus = {
+    stateNum: ValueOf<typeof CONST.REPORT.STATE_NUM>;
+    statusNum: ValueOf<typeof CONST.REPORT.STATUS_NUM>;
+};
+
+type GetFinalizedDeferredBatchReportStateParams = {
+    iouReport: Report;
+    hasExistingIOUReport: boolean;
+    shouldDeferAutoSubmit?: boolean;
+    policy: OnyxEntry<Policy>;
+    isASAPSubmitBetaEnabled: boolean;
+};
+
+/**
+ * Resolves the final optimistic state for the last item of a deferred batch, along with the previous
+ * state so failureData can roll it back if that final request fails.
+ */
+function getFinalizedDeferredBatchReportState({
+    iouReport,
+    hasExistingIOUReport,
+    shouldDeferAutoSubmit,
+    policy,
+    isASAPSubmitBetaEnabled,
+}: GetFinalizedDeferredBatchReportStateParams): {nextState: ReportStateAndStatus; previousState: ReportStateAndStatus} | undefined {
+    if (!hasExistingIOUReport || shouldDeferAutoSubmit !== false || !isOpenExpenseReport(iouReport)) {
+        return undefined;
+    }
+
+    const nextState = getExpenseReportStateAndStatus(policy, isASAPSubmitBetaEnabled);
+    if (nextState.stateNum === iouReport.stateNum && nextState.statusNum === iouReport.statusNum) {
+        return undefined;
+    }
+
+    return {
+        nextState,
+        previousState: {
+            stateNum: iouReport.stateNum ?? CONST.REPORT.STATE_NUM.OPEN,
+            statusNum: iouReport.statusNum ?? CONST.REPORT.STATUS_NUM.OPEN,
+        },
+    };
+}
+
 /**
  * Builds an optimistic Expense report with a randomly generated reportID
  *
@@ -16364,6 +16406,7 @@ export {
     formatReportLastMessageText,
     generateReportID,
     getExpenseReportStateAndStatus,
+    getFinalizedDeferredBatchReportState,
     getCreationReportErrors,
     getAllHeldTransactions,
     getAllPolicyReports,
@@ -16738,6 +16781,7 @@ export type {
     OptimisticIOUReportAction,
     OptimisticTaskReportAction,
     OptionData,
+    ReportStateAndStatus,
     TransactionDetails,
     PartialReportAction,
     SelfDMParameters,
