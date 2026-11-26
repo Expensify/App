@@ -1,3 +1,4 @@
+import DropdownFieldRow from '@components/DropdownFieldRow';
 import MenuItem from '@components/MenuItem';
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import {useConfirmationFields} from '@components/MoneyRequestConfirmationFields/context';
@@ -20,7 +21,7 @@ import React, {useState} from 'react';
 import {View} from 'react-native';
 
 import AutomaticFieldHint from './AutomaticFieldHint';
-import ExpenseFieldRow from './ExpenseFieldRow';
+import ExpenseFieldContainer from './ExpenseFieldContainer';
 import {useExpenseFormLayout} from './ExpenseFormLayoutContext';
 import {merchantStateSelector} from './selectors';
 import useSplitDraftBaseTransaction from './useSplitDraftBaseTransaction';
@@ -104,10 +105,10 @@ function MerchantField({isMerchantRequired, shouldDisplayFieldError, fieldError}
         // SplitBillDetailsPage and completeSplitBill read the latest value.
         if (isEditingSplitBill) {
             if (newMerchant.trim() === '') {
-                setDraftSplitTransaction(transactionID, baseTransaction, {merchant: '', isMerchantSet: false}, getCurrencyDecimals, getCurrencySymbol);
+                setDraftSplitTransaction(translate, transactionID, baseTransaction, {merchant: '', isMerchantSet: false}, getCurrencyDecimals, getCurrencySymbol);
                 return;
             }
-            setDraftSplitTransaction(transactionID, baseTransaction, {merchant: newMerchant, isMerchantSet: true}, getCurrencyDecimals, getCurrencySymbol);
+            setDraftSplitTransaction(translate, transactionID, baseTransaction, {merchant: newMerchant, isMerchantSet: true}, getCurrencyDecimals, getCurrencySymbol);
             return;
         }
 
@@ -152,16 +153,18 @@ function MerchantField({isMerchantRequired, shouldDisplayFieldError, fieldError}
     // too rather than as a push row, or the same screen answers "this field can't be changed" two different ways.
     if (shouldUseDropdownRows) {
         return (
-            <ExpenseFieldRow
-                name={translate('common.merchant')}
-                value={displayMerchantValue}
-                numberOfLinesValue={2}
-                rightLabel={isMerchantRequired ? translate('common.required') : ''}
-                errorText={merchantErrorText}
-                isDisabled={didConfirm}
-                isInteractive={false}
-                sentryLabel={CONST.SENTRY_LABEL.REQUEST_CONFIRMATION_LIST.MERCHANT_FIELD}
-            />
+            <ExpenseFieldContainer>
+                <DropdownFieldRow
+                    name={translate('common.merchant')}
+                    value={displayMerchantValue}
+                    numberOfLinesValue={2}
+                    rightLabel={isMerchantRequired ? translate('common.required') : ''}
+                    errorText={merchantErrorText}
+                    isDisabled={didConfirm}
+                    isInteractive={false}
+                    sentryLabel={CONST.SENTRY_LABEL.REQUEST_CONFIRMATION_LIST.MERCHANT_FIELD}
+                />
+            </ExpenseFieldContainer>
         );
     }
 

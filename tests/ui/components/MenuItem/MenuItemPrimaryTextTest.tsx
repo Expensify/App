@@ -40,6 +40,22 @@ beforeAll(async () => {
 });
 
 describe.each(primaryLeaves)('MenuItem.$name', ({Component}) => {
+    it('keeps an explicit heading role on the text without changing the row label', () => {
+        // Given a value is also the heading of the page it identifies.
+        render(
+            <Wrapper>
+                <Component accessibilityRole={CONST.ROLE.HEADER}>Workspace name</Component>
+            </Wrapper>,
+        );
+
+        // When the value is inspected independently of the row announcement.
+        const heading = screen.getByText('Workspace name');
+
+        // Then its heading semantics survive composition and its row still has a readable name.
+        expect(heading).toHaveProp('accessibilityRole', CONST.ROLE.HEADER);
+        expect(screen.getByLabelText('Workspace name')).toBeOnTheScreen();
+    });
+
     it('renders mixed custom emoji and preserves the full accessible label', async () => {
         // Given mixed text needs the emoji font without changing how the row is announced
         const title = `Review ${CONST.CUSTOM_EMOJIS.GLOBAL_CREATE} receipts`;

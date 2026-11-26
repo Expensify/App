@@ -90,6 +90,7 @@ async function renderTable(ratesData: DistanceRateTableItemData[], {canWriteDist
                 selectedKeys={[]}
                 canWriteDistanceRates={canWriteDistanceRates}
                 isDistanceRateTaxEnabled={false}
+                isGovernmentRateAutoUpdateEnabled
                 onRowSelectionChange={jest.fn()}
             />
         </LocaleContextProvider>,

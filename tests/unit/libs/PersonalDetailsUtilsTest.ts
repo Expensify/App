@@ -7,6 +7,7 @@ import {
     getAccountIDsByLogins,
     getDisplayNameOrYou,
     getEffectiveDisplayName,
+    getLoginsFromOnyxUpdates,
     getNewAccountIDsAndLogins,
     getPersonalDetailByEmail,
     getPersonalDetailsListByIDs,
@@ -1056,6 +1057,48 @@ describe('PersonalDetailsUtils', () => {
         test('should return displayName when accountID is not the same as currentUserAccountID', () => {
             const result = getDisplayNameOrYou('John Doe', 123, 456, translateLocal);
             expect(result).toBe('John Doe');
+        });
+    });
+
+    describe('getLoginsFromOnyxUpdates', () => {
+        test('extracts string logins from the personalDetailsList update and ignores entries without a login', () => {
+            // Given Onyx updates containing a personalDetailsList update with valid and login-less entries
+            const accountID1 = 101;
+            const accountID2 = 102;
+            const accountID3 = 103;
+            const accountID4 = 104;
+            const onyxUpdates = [
+                {
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+                    value: {
+                        [accountID1]: {accountID: accountID1, login: 'alice@example.com'},
+                        [accountID2]: {accountID: accountID2, displayName: 'Public Profile Only'},
+                        [accountID3]: null,
+                        [accountID4]: {accountID: accountID4, login: 'bob@example.com'},
+                    },
+                },
+            ];
+
+            // When extracting logins from the updates
+            const logins = getLoginsFromOnyxUpdates(onyxUpdates);
+
+            // Then only the string logins are returned
+            expect(logins).toEqual(['alice@example.com', 'bob@example.com']);
+        });
+
+        test('returns an empty array when onyxData is undefined or has no personalDetailsList object update', () => {
+            // Given undefined onyxData or updates without a record personalDetailsList value
+            expect(getLoginsFromOnyxUpdates(undefined)).toEqual([]);
+            expect(
+                getLoginsFromOnyxUpdates([
+                    {
+                        onyxMethod: Onyx.METHOD.SET,
+                        key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+                        value: null,
+                    },
+                ]),
+            ).toEqual([]);
         });
     });
 });

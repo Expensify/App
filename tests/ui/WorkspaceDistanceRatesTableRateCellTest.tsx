@@ -114,6 +114,7 @@ async function renderTable({canWriteDistanceRates, canEditRate}: RenderOptions) 
                                 selectedKeys={[]}
                                 canWriteDistanceRates={canWriteDistanceRates}
                                 isDistanceRateTaxEnabled={false}
+                                isGovernmentRateAutoUpdateEnabled
                                 onRowSelectionChange={jest.fn()}
                             />
                         </ScreenWrapperStatusContext.Provider>
