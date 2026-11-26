@@ -183,6 +183,7 @@ function ShippingAddressStep({policyID, stepNames, startStepIndex}: ShippingAddr
                                         defaultValue={shippingAddress?.legalFirstName}
                                         spellCheck={false}
                                         autoComplete="given-name"
+                                        forwardedFSClass={CONST.FULLSTORY.CLASS.MASK}
                                     />
                                     <View style={styles.formSpaceVertical} />
                                     <InputWrapper
@@ -194,6 +195,7 @@ function ShippingAddressStep({policyID, stepNames, startStepIndex}: ShippingAddr
                                         defaultValue={shippingAddress?.legalLastName}
                                         spellCheck={false}
                                         autoComplete="family-name"
+                                        forwardedFSClass={CONST.FULLSTORY.CLASS.MASK}
                                     />
                                     <View style={styles.formSpaceVertical} />
                                     <AddressFields

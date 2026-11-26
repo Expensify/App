@@ -163,6 +163,7 @@ function ActivatePhysicalCardPersonalDetails({card, lastFourDigits, onBackButton
                             role={CONST.ROLE.PRESENTATION}
                             defaultValue={legalFirstName}
                             autoComplete="given-name"
+                            forwardedFSClass={CONST.FULLSTORY.CLASS.MASK}
                         />
                         <View style={styles.formSpaceVertical} />
                         <InputWrapper
@@ -173,6 +174,7 @@ function ActivatePhysicalCardPersonalDetails({card, lastFourDigits, onBackButton
                             role={CONST.ROLE.PRESENTATION}
                             defaultValue={legalLastName}
                             autoComplete="family-name"
+                            forwardedFSClass={CONST.FULLSTORY.CLASS.MASK}
                         />
                         <View style={styles.formSpaceVertical} />
                         <InputWrapper
