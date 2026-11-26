@@ -2703,7 +2703,7 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         mergePendingDomainAdmin: {
             heading: 'ドメイン制限付きメール',
-            description: '<muted-text><centered-text>アカウントの統合リクエストを承認するため、ドメイン管理者に通知されました。</centered-text></muted-text>',
+            description: '<muted-text><centered-text>ドメイン管理者に、アカウント統合リクエストの承認依頼を通知しました。</centered-text></muted-text>',
             gotIt: '了解しました',
         },
         mergeFailureSAMLDomainControlDescription: (email: string) =>

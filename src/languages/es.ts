@@ -2710,7 +2710,7 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         mergePendingDomainAdmin: {
             heading: 'Correo electrónico restringido por dominio',
-            description: '<muted-text><centered-text>Se ha notificado a un administrador del dominio para que apruebe la solicitud de fusión de cuentas.</centered-text></muted-text>',
+            description: '<muted-text><centered-text>Se ha avisado a un administrador de dominio para que apruebe la solicitud de fusionar cuentas.</centered-text></muted-text>',
             gotIt: 'Entendido',
         },
         mergeFailureSAMLDomainControlDescription: (email) =>

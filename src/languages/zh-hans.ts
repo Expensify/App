@@ -2628,11 +2628,7 @@ const translations: TranslationDeepObject<typeof en> = {
             reachOutForHelp: '<muted-text><centered-text>如果有任何问题，欢迎<concierge-link>联系 Concierge</concierge-link>！</centered-text></muted-text>',
             goToExpensifyClassic: '前往 Expensify 经典版',
         },
-        mergePendingDomainAdmin: {
-            heading: '域名限制的电子邮件',
-            description: '<muted-text><centered-text>已通知域管理员批准合并账户的请求。</centered-text></muted-text>',
-            gotIt: '知道了',
-        },
+        mergePendingDomainAdmin: {heading: '受限域电子邮箱', description: '<muted-text><centered-text>已通知域管理员来批准合并账户的请求。</centered-text></muted-text>', gotIt: '明白了'},
         mergeFailureSAMLDomainControlDescription: (email: string) =>
             `<muted-text><centered-text>您无法合并 <strong>${email}</strong>，因为它由 <strong>${email.split('@').at(1) ?? ''}</strong> 管理。请<concierge-link>联系 Concierge</concierge-link>获取帮助。</centered-text></muted-text>`,
         mergeFailureSAMLAccountDescription: (email: string) =>

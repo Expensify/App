@@ -2718,7 +2718,7 @@ const translations: TranslationDeepObject<typeof en> = {
             goToExpensifyClassic: 'Ga naar Expensify Classic',
         },
         mergePendingDomainAdmin: {
-            heading: 'Domeinbeperkt e-mailadres',
+            heading: 'Domeinbeperkte e-mail',
             description: '<muted-text><centered-text>Een domeinbeheerder is op de hoogte gebracht om het verzoek om accounts samen te voegen goed te keuren.</centered-text></muted-text>',
             gotIt: 'Begrepen',
         },

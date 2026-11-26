@@ -2723,7 +2723,7 @@ const translations: TranslationDeepObject<typeof en> = {
             goToExpensifyClassic: 'Ir para o Expensify Clássico',
         },
         mergePendingDomainAdmin: {
-            heading: 'E-mail restrito por domínio',
+            heading: 'E-mail com domínio restrito',
             description: '<muted-text><centered-text>Um administrador de domínio foi notificado para aprovar a solicitação de mesclagem de contas.</centered-text></muted-text>',
             gotIt: 'Entendi',
         },

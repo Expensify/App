@@ -2737,8 +2737,8 @@ const translations: TranslationDeepObject<typeof en> = {
             goToExpensifyClassic: 'Aller à Expensify Classic',
         },
         mergePendingDomainAdmin: {
-            heading: 'E-mail restreint au domaine',
-            description: '<muted-text><centered-text>Un administrateur de domaine a été averti pour approuver la demande de fusion des comptes.</centered-text></muted-text>',
+            heading: 'E-mail avec domaine restreint',
+            description: '<muted-text><centered-text>Un administrateur de domaine a été informé pour approuver la demande de fusion de comptes.</centered-text></muted-text>',
             gotIt: 'Compris',
         },
         mergeFailureSAMLDomainControlDescription: (email: string) =>
