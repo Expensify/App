@@ -72,8 +72,10 @@ function GenericPressable({
     const [hitSlop, onLayout] = Accessibility.useAutoHitSlop();
     const [isHovered, setIsHovered] = useState(false);
     const isRoleButton = [rest.accessibilityRole, rest.role].includes(CONST.ROLE.BUTTON);
+    // A row rendered as a link with linkRoute still behaves like a button, so it suppresses selection too. Text links in content stay selectable.
+    const isRoleLinkRow = !!linkRoute && [rest.accessibilityRole, rest.role].includes(CONST.ROLE.LINK);
     // A button role normally means "not selectable, exclude from copy". Callers whose content is selectable text opt out.
-    const shouldSuppressSelection = isRoleButton && !shouldAllowTextSelection;
+    const shouldSuppressSelection = (isRoleButton || isRoleLinkRow) && !shouldAllowTextSelection;
     const internalRef = useRef<ComponentRef<typeof View> | null>(null);
     const composedRef = mergeRefs(ref, internalRef);
     const routeKey = useRouteKey();

@@ -102,7 +102,7 @@ function MenuItemRoot({
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const isInteractive = !!onPress;
     const rowLinkRoute = isInteractive ? linkRoute : undefined;
-    const rowRole = rowLinkRoute ? CONST.ROLE.LINK : CONST.ROLE.BUTTON;
+    const rowRole = rowLinkRoute && !isDisabled ? CONST.ROLE.LINK : CONST.ROLE.BUTTON;
     const shouldEnableTextSelection = shouldAllowTextSelection && getPlatform() === CONST.PLATFORM.WEB;
     const {
         didTouchStartOnCopyableText,

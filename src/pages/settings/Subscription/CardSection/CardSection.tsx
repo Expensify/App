@@ -280,6 +280,7 @@ function CardSection() {
             {!!account?.hasPurchases && (
                 <MenuItemSectionRoot
                     onPress={navigateToPaymentHistory}
+                    linkRoute={ROUTES.SETTINGS_SUBSCRIPTION_PAYMENT_HISTORY}
                     sentryLabel={CONST.SENTRY_LABEL.SETTINGS_SUBSCRIPTION.VIEW_PAYMENT_HISTORY}
                 >
                     <MenuItem.Row>

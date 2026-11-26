@@ -710,7 +710,7 @@ function MenuItem({
 
     const rowLinkRoute = shouldCheckActionAllowedOnPress && !isAnonymousAction ? getLinkRouteIfAuthenticated(linkRoute, session) : linkRoute;
     // Only the default button role turns into a link, so a row given its own role, such as a tab, keeps it
-    const rowRole = rowLinkRoute && role === CONST.ROLE.BUTTON ? CONST.ROLE.LINK : role;
+    const rowRole = rowLinkRoute && !disabled && role === CONST.ROLE.BUTTON ? CONST.ROLE.LINK : role;
 
     // A known account renders straight from the personal-details context. Only the report-derived avatars need `ReportAvatar`.
     const rightIconAccountIDNumber = Number(rightIconAccountID);

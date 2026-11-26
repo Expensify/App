@@ -256,7 +256,7 @@ function SecuritySettingsPage() {
         onPress: item.action,
         linkRoute: item.linkRoute,
         shouldShowRightIcon: true,
-        link: '',
+        link: item.linkRoute ? undefined : '',
         wrapperStyle: [styles.sectionMenuItemTopDescription],
         sentryLabel: item.sentryLabel,
         brickRoadIndicator: item.brickRoadIndicator,
