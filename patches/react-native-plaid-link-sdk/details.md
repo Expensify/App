@@ -48,6 +48,6 @@
     both standalone and HybridApp iOS builds can compile the Plaid module.
     ```
 
-- Upstream PR/issue: Related Plaid header import report: https://github.com/plaid/react-native-plaid-link-sdk/issues/675
+- Upstream PR/issue: Not fixed in v12 (the unqualified import is still present in `12.8.9`). [Issue #675](https://github.com/plaid/react-native-plaid-link-sdk/issues/675#issuecomment-2273991782) was closed without an upstream patch; Plaid suggested the qualified import as a workaround. [Version `13.0.0`](https://github.com/plaid/react-native-plaid-link-sdk/releases/tag/v13.0.0) rewrote the SDK on Expo Modules and removed `RNLinksdk.h` entirely. Keep this patch on v12 and drop it when migrating to v13 or later.
 - E/App issue: https://github.com/Expensify/App/issues/108096
 - PR introducing patch: https://github.com/Expensify/App/pull/108111
