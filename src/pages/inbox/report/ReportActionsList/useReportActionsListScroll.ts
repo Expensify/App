@@ -15,12 +15,13 @@ import useScrollToEditingReportAction from '@pages/inbox/report/useScrollToEditi
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import {canLoadNewerReportActionsSelector} from '@src/selectors/ReportMetaData';
 import type * as OnyxTypes from '@src/types/onyx';
 
 import type {LayoutChangeEvent, NativeScrollEvent, NativeSyntheticEvent} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 
-import {useEffect, useRef} from 'react';
+import {useEffect, useEffectEvent, useRef} from 'react';
 
 import type {UseReportActionsListScrollParams} from './types';
 
@@ -171,10 +172,14 @@ function useReportActionsListScroll({
     };
 
     const [newestFetchedReportActionID] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_PAGINATION_STATE}${reportID}`, {selector: newestFetchedReportActionIDSelector});
+    const [canLoadNewerReportActions = false] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${reportID}`, {selector: canLoadNewerReportActionsSelector});
     const requestedNewerCursorRef = useRef(newestFetchedReportActionID);
     const listHeightRef = useRef(0);
 
     const loadNewerChatsAfterTransitions = () => {
+        if (!canLoadNewerReportActions) {
+            return;
+        }
         requestedNewerCursorRef.current = newestFetchedReportActionID;
         if (!isSearchTopmostFullScreenRoute()) {
             loadNewerChats(false);
@@ -189,7 +194,7 @@ function useReportActionsListScroll({
     };
 
     // FlashList won't call onStartReached again while the user stays at the bottom, so ask for the next page when the cursor moves.
-    useEffect(() => {
+    const loadNewerChatsIfAtBottom = useEffectEvent(() => {
         if (!hasNewerActions || !newestFetchedReportActionID || requestedNewerCursorRef.current === newestFetchedReportActionID || listHeightRef.current <= 0) {
             return;
         }
@@ -198,7 +203,11 @@ function useReportActionsListScroll({
             return;
         }
         loadNewerChatsAfterTransitions();
-    }, [hasNewerActions, newestFetchedReportActionID, listRef, loadNewerChatsAfterTransitions]);
+    });
+
+    useEffect(() => {
+        loadNewerChatsIfAtBottom();
+    }, [hasNewerActions, newestFetchedReportActionID, canLoadNewerReportActions]);
 
     useFollowActionBadgeTarget({
         reportID,

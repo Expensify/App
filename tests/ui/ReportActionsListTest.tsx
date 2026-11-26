@@ -44,7 +44,7 @@ import useScrollToEditingReportAction from '@pages/inbox/report/useScrollToEditi
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {reportActionsListLoadingStateSelector} from '@src/selectors/ReportMetaData';
+import {canLoadNewerReportActionsSelector, reportActionsListLoadingStateSelector} from '@src/selectors/ReportMetaData';
 import type * as OnyxTypes from '@src/types/onyx';
 
 import type * as ReactNavigation from '@react-navigation/native';
@@ -128,6 +128,9 @@ const mockUseConciergeChatHistoryState = useConciergeChatHistoryState as jest.Mo
 const mockUseConciergeChatHistoryActions = useConciergeChatHistoryActions as jest.MockedFunction<typeof useConciergeChatHistoryActions>;
 
 function getMockReportLoadingState(selector: unknown, hasOnceLoadedReportActions = true) {
+    if (selector === canLoadNewerReportActionsSelector) {
+        return true;
+    }
     return selector === reportActionsListLoadingStateSelector ? {hasOnceLoadedReportActions, isLoadingInitialReportActions: false} : undefined;
 }
 
@@ -1605,12 +1608,15 @@ describe('ReportActionsList (body)', () => {
             expect(getCapturedListProps()?.onStartReached).toEqual(expect.any(Function));
         });
 
-        const renderChatWithNewerActions = ({scrollOffset, getCursor}: {scrollOffset: number; getCursor: () => string}) => {
+        const renderChatWithNewerActions = ({scrollOffset, getCursor, getCanLoadNewer = () => true}: {scrollOffset: number; getCursor: () => string; getCanLoadNewer?: () => boolean}) => {
             const loadNewerChats = jest.fn();
             mockUseNetwork.mockReturnValue({isOffline: false});
             jest.mocked(useLoadReportActions).mockReturnValue({loadOlderChats: jest.fn(), loadNewerChats, currentReportOldestActionID: undefined});
             jest.mocked(useActionListRef).mockReturnValue(createMock<ReturnType<typeof useActionListRef>>({current: {getAbsoluteLastScrollOffset: () => scrollOffset}}));
             mockUseOnyx.mockImplementation((key, options) => {
+                if (options?.selector === canLoadNewerReportActionsSelector) {
+                    return [getCanLoadNewer(), {status: 'loaded'}] as ReturnType<typeof getMockOnyxValue>;
+                }
                 if (!key.startsWith(ONYXKEYS.COLLECTION.REPORT_PAGINATION_STATE)) {
                     return getMockOnyxValue(key, options);
                 }
@@ -1648,6 +1654,40 @@ describe('ReportActionsList (body)', () => {
             // so without this the user would stay stuck at the bottom.
             expect(loadNewerChats).toHaveBeenCalledTimes(1);
             expect(loadNewerChats).toHaveBeenCalledWith(false);
+        });
+
+        it('does not ask for a second page from onStartReached while the first one is still loading', () => {
+            // Given a chat with newer messages on the server, scrolled to the bottom of what is loaded
+            let canLoadNewer = true;
+            const {loadNewerChats, rerender} = renderChatWithNewerActions({scrollOffset: 0, getCursor: () => '2', getCanLoadNewer: () => canLoadNewer});
+
+            // When FlashList reports reaching the start, and reports it again while that newer page is still loading,
+            // as it does when the first page renders at the bottom and then the list updates
+            act(() => getCapturedListProps()?.onStartReached?.());
+            canLoadNewer = false;
+            rerender();
+            act(() => getCapturedListProps()?.onStartReached?.());
+
+            // Then only one page is requested, so the same page isn't fetched twice
+            expect(loadNewerChats).toHaveBeenCalledTimes(1);
+        });
+
+        it('asks for the next page once the newer page that moved the cursor has finished loading', () => {
+            // Given a chat at the bottom of what is loaded, with a newer page still loading
+            let cursor = '2';
+            let canLoadNewer = false;
+            const {loadNewerChats, rerender} = renderChatWithNewerActions({scrollOffset: 0, getCursor: () => cursor, getCanLoadNewer: () => canLoadNewer});
+
+            // When that page moves the cursor before its loading flag clears, and then the flag clears
+            cursor = '3';
+            rerender();
+            expect(loadNewerChats).not.toHaveBeenCalled();
+            canLoadNewer = true;
+            rerender();
+
+            // Then the next page is requested. Without re-checking when loading ends, the cursor wouldn't move again
+            // and the user would stay stuck at the bottom.
+            expect(loadNewerChats).toHaveBeenCalledTimes(1);
         });
 
         it('does not ask for the next page when the cursor moves while the user reads above the bottom', () => {
