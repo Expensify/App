@@ -80,18 +80,13 @@ function Pressable({optionItem, isOptionFocused, selectedStyle, hoveredStyle, on
         accessibilityLabelForBadge = translate('common.pinned');
     }
 
-    const accessibilityLabel = [
-        `${translate('accessibilityHints.navigatesToChat')} ${optionItem.text}`,
-        optionItem.isUnread ? translate('common.unread') : '',
-        optionItem.alternateText ?? '',
-        accessibilityLabelForBadge,
-    ]
+    const accessibilityLabel = [optionItem.text, optionItem.isUnread ? translate('common.unread') : '', optionItem.alternateText ?? '', accessibilityLabelForBadge]
         .filter(Boolean)
         .join('. ');
     const contextMenuHint = getContextMenuAccessibilityHint({translate});
     const {accessibilityLabel: accessibilityLabelWithContextMenuHint, accessibilityHint} = getContextMenuAccessibilityProps({
         accessibilityLabel,
-        nativeAccessibilityHint: accessibilityLabel,
+        nativeAccessibilityHint: translate('accessibilityHints.navigatesToChat'),
         contextMenuHint,
     });
 

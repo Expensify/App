@@ -465,6 +465,8 @@ const translations = {
         },
         businessName: 'Business name',
         clear: 'Clear',
+        // @context Screen reader label of the button that clears a text field. fieldName is the field's label, such as "Date" or "Merchant".
+        clearField: (fieldName: string) => `Clear ${fieldName}`,
         type: 'Type',
         reportName: 'Report name',
         action: 'Action',

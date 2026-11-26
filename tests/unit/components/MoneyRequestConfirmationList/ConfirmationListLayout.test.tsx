@@ -29,19 +29,30 @@ jest.mock('@libs/telemetry/activeSpans', () => ({
     endSpan: jest.fn(),
 }));
 
-// The real list needs layout and keyboard plumbing. The layout only hands it the two footers, so render those directly.
+const mockListItemProps = jest.fn();
+
+// The real list needs layout and keyboard plumbing. The layout only hands it the two footers and its row component, so render those directly.
 jest.mock('@components/SelectionList/SelectionListWithSections', () => {
     const {View} = jest.requireActual<ReactNativeActual>('react-native');
     return {
         __esModule: true,
-        default: ({footerContent, listFooterContent}: {footerContent?: ReactNode; listFooterContent?: ReactNode}) => (
+        default: ({footerContent, listFooterContent, ListItem}: {footerContent?: ReactNode; listFooterContent?: ReactNode; ListItem: ComponentType<{item: {keyForList: string}}>}) => (
             <View>
+                <ListItem item={{keyForList: 'recipient'}} />
                 {listFooterContent}
                 {footerContent}
             </View>
         ),
     };
 });
+
+jest.mock('@components/SelectionList/ListItem/BareUserListItem', () => ({
+    __esModule: true,
+    default: (props: unknown) => {
+        mockListItemProps(props);
+        return null;
+    },
+}));
 
 jest.mock('@components/MoneyRequestConfirmationList/ConfirmationFooterContent', () => {
     const {View} = jest.requireActual<ReactNativeActual>('react-native');
@@ -107,6 +118,15 @@ describe('ConfirmationListLayout', () => {
 
         // And the field reads the shared provider props and the variant's flag from the fields context
         expect(screen.getByText('txn1:true')).toBeTruthy();
+    });
+
+    it('keeps the button role on its rows, since they open other pages instead of picking a value', () => {
+        // Given the confirmation list with a recipient row
+        // When the layout renders
+        renderLayout();
+
+        // Then each row opts out of the listbox option role, which Android cannot announce
+        expect(mockListItemProps).toHaveBeenCalledWith(expect.objectContaining({shouldUseOptionRole: false}));
     });
 
     it('does not render the confirm button block when read-only', () => {

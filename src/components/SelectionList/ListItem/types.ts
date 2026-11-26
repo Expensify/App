@@ -262,6 +262,9 @@ type BareUserListItemProps<TItem extends ListItem> = ListItemProps<TItem> &
         wrapperStyle?: StyleProp<ViewStyle>;
         pressableStyle?: StyleProp<ViewStyle>;
         shouldHighlightSelectedItem?: boolean;
+
+        /** When `false`, the row stays a `button` instead of becoming a listbox `option` */
+        shouldUseOptionRole?: boolean;
     };
 
 type SpendRuleListItemType = ListItem & {

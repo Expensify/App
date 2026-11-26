@@ -1,6 +1,7 @@
 import type {ProviderProps} from '@components/MoneyRequestConfirmationFields/Provider';
 import ConfirmationFieldsProvider from '@components/MoneyRequestConfirmationFields/Provider';
 import BareUserListItem from '@components/SelectionList/ListItem/BareUserListItem';
+import type {BareUserListItemProps} from '@components/SelectionList/ListItem/types';
 import SelectionListWithSections from '@components/SelectionList/SelectionListWithSections';
 import type {Section, SelectionListWithSectionsHandle} from '@components/SelectionList/SelectionListWithSections/types';
 
@@ -18,6 +19,16 @@ import type {MoneyRequestConfirmationListItem} from './types';
 
 import ConfirmationFooterContent from './ConfirmationFooterContent';
 import ConfirmationTelemetry from './ConfirmationTelemetry';
+
+// The rows open other pages instead of picking a value, so they keep the button role. Android has no `option` role and would announce none.
+function ConfirmationListItem(props: BareUserListItemProps<MoneyRequestConfirmationListItem>) {
+    return (
+        <BareUserListItem
+            {...props}
+            shouldUseOptionRole={false}
+        />
+    );
+}
 
 /** The expense-type flags a variant sets on `ConfirmationFieldsProvider`. Everything else is shared and comes from the hook. */
 type ConfirmationFieldFlags = Pick<
@@ -111,7 +122,7 @@ function ConfirmationListLayout({
             <SelectionListWithSections<MoneyRequestConfirmationListItem>
                 ref={listRef}
                 sections={sections}
-                ListItem={BareUserListItem}
+                ListItem={ConfirmationListItem}
                 onSelectRow={onSelectRow}
                 onDismissError={onDismissError}
                 shouldSingleExecuteRowSelect

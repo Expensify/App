@@ -30,6 +30,7 @@ function BareUserListItem<TItem extends ListItem>({
     forwardedFSClass,
     shouldDisableHoverStyle,
     shouldHighlightSelectedItem,
+    shouldUseOptionRole,
 }: BareUserListItemProps<TItem>) {
     // Disable accessible grouping when a right-side button is visible, so VoiceOver can focus it independently.
     const shouldDisableAccessibleGrouping = !!item.actionElement;
@@ -50,6 +51,7 @@ function BareUserListItem<TItem extends ListItem>({
             accessible={shouldDisableAccessibleGrouping ? false : undefined}
             shouldDisableHoverStyle={shouldDisableHoverStyle}
             shouldHighlightSelectedItem={shouldHighlightSelectedItem}
+            shouldUseOptionRole={shouldUseOptionRole}
         >
             <ListItemComposed.Row style={[wrapperStyle, item.itemStyle]}>
                 <UserListItemContent

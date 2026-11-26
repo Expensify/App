@@ -31,6 +31,17 @@ describe('getListItemAccessibilityProps', () => {
         ])('%s', (_name, params, expectedRole) => {
             expect(getListItemAccessibilityProps({item, ...params}).role).toBe(expectedRole);
         });
+
+        it('gives no role to a navigational row that does nothing on press', () => {
+            // Given a navigational row that is not interactive, like a split participant on the expense confirmation
+            const inertItem: ListItem = {...item, isInteractive: false};
+
+            // When its accessibility props are computed
+            const {role} = getListItemAccessibilityProps({item: inertItem, role: CONST.ROLE.BUTTON, shouldUseOptionRole: false});
+
+            // Then it is not announced as a button that does nothing when activated
+            expect(role).toBeUndefined();
+        });
     });
 
     describe('accessibility state', () => {
