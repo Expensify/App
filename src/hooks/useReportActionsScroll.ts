@@ -27,7 +27,7 @@ import type {NativeScrollEvent, NativeSyntheticEvent} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 
 import {useRoute} from '@react-navigation/native';
-import {useEffect, useEffectEvent, useState} from 'react';
+import {useEffect, useEffectEvent, useRef, useState} from 'react';
 
 import useIsMobileWebLandscape from './useIsMobileWebLandscape';
 import useNetworkWithOfflineStatus from './useNetworkWithOfflineStatus';
@@ -175,6 +175,7 @@ function useReportActionsScroll({
     const prevIsLoadingInitialReportActions = usePrevious(reportLoadingState?.isLoadingInitialReportActions);
 
     const [actionIdToHighlight, setActionIdToHighlight] = useState('');
+    const initialScrollStateRef = useRef<'awaitingLayout' | 'awaitingTransition' | 'scrolledAway' | undefined>('awaitingLayout');
 
     const lastAction = sortedVisibleReportActions.at(0);
     const lastVisibleActionCreated = getReportLastVisibleActionCreated(report, transactionThreadReport);
@@ -238,6 +239,9 @@ function useReportActionsScroll({
         shouldDisablePillTracking: shouldDisablePillTracking || isComposerFullSize,
         onTrackScrolling: (event: NativeSyntheticEvent<NativeScrollEvent>) => {
             const {contentOffset, contentSize, layoutMeasurement} = event.nativeEvent;
+            if (initialScrollStateRef.current === 'awaitingTransition' && contentOffset.y > 0) {
+                initialScrollStateRef.current = 'scrolledAway';
+            }
             scrollOffsetRef.current = contentOffset.y;
             syncScrollSharedValues({
                 offset: contentOffset.y,
@@ -323,12 +327,16 @@ function useReportActionsScroll({
 
     const scheduleInitialScrollToBottom = useEffectEvent(() => {
         if (initialScrollKey) {
+            initialScrollStateRef.current = undefined;
             return undefined;
         }
 
         return TransitionTracker.runAfterTransitions({
             callback: () => {
-                if (shouldFocusToTopOnMount) {
+                // The list can already be visible and scrollable while the opening transition is pending.
+                const hasScrolledAway = initialScrollStateRef.current === 'scrolledAway';
+                initialScrollStateRef.current = undefined;
+                if (shouldFocusToTopOnMount || hasScrolledAway) {
                     return;
                 }
                 setIsFloatingMessageCounterVisible(false);
@@ -454,6 +462,9 @@ function useReportActionsScroll({
 
     // Data is ready at the moment FlashList finishes its first render.
     const onLoad = () => {
+        if (initialScrollStateRef.current === 'awaitingLayout') {
+            initialScrollStateRef.current = 'awaitingTransition';
+        }
         if (shouldDisablePillTracking) {
             // Wait one frame so the initial positioning can settle, then disable it.
             requestAnimationFrame(() => {
