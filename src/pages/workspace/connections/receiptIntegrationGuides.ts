@@ -3,6 +3,8 @@
  */
 import type {ExpensifyIconName} from '@components/Icon/ExpensifyIconLoader';
 
+import CONST from '@src/CONST';
+
 type ReceiptIntegrationGuide = {
     key: string;
     title: string;
@@ -11,22 +13,22 @@ type ReceiptIntegrationGuide = {
 };
 
 const RECEIPT_INTEGRATION_GUIDES = [
-    {key: 'lyft', title: 'Lyft', iconName: 'Lyft', helpURL: 'https://help.expensify.com/articles/new-expensify/connections/Lyft'},
-    {key: 'instacart', title: 'Instacart', iconName: 'Instacart', helpURL: 'https://help.expensify.com/articles/new-expensify/connections/Instacart'},
-    {key: 'doordash', title: 'DoorDash', iconName: 'DoorDash', helpURL: 'https://help.expensify.com/articles/new-expensify/connections/DoorDash'},
-    {key: 'americanAirlines', title: 'American Airlines', iconName: 'AmericanAirlines', helpURL: 'https://help.expensify.com/articles/new-expensify/connections/American-Airlines'},
-    {key: 'united', title: 'United', iconName: 'United', helpURL: 'https://help.expensify.com/articles/new-expensify/connections/United-Airlines'},
+    {key: 'lyft', title: 'Lyft', iconName: 'Lyft', helpURL: CONST.RECEIPT_INTEGRATION_HELP_URLS.LYFT},
+    {key: 'instacart', title: 'Instacart', iconName: 'Instacart', helpURL: CONST.RECEIPT_INTEGRATION_HELP_URLS.INSTACART},
+    {key: 'doordash', title: 'DoorDash', iconName: 'DoorDash', helpURL: CONST.RECEIPT_INTEGRATION_HELP_URLS.DOORDASH},
+    {key: 'americanAirlines', title: 'American Airlines', iconName: 'AmericanAirlines', helpURL: CONST.RECEIPT_INTEGRATION_HELP_URLS.AMERICAN_AIRLINES},
+    {key: 'united', title: 'United', iconName: 'United', helpURL: CONST.RECEIPT_INTEGRATION_HELP_URLS.UNITED},
     {
         key: 'delta',
         title: 'Delta',
         iconName: 'Delta',
-        helpURL: 'https://help.expensify.com/articles/new-expensify/connections/Travel-receipt-integrations#delta-for-business',
+        helpURL: CONST.RECEIPT_INTEGRATION_HELP_URLS.DELTA,
     },
     {
         key: 'kayak',
         title: 'KAYAK',
         iconName: 'Kayak',
-        helpURL: 'https://help.expensify.com/articles/new-expensify/connections/Travel-receipt-integrations#kayak-for-business',
+        helpURL: CONST.RECEIPT_INTEGRATION_HELP_URLS.KAYAK,
     },
 ] as const satisfies readonly ReceiptIntegrationGuide[];
 

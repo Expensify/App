@@ -1996,6 +1996,15 @@ const CONST = {
     SAGE_INTACCT_INSTRUCTIONS: 'https://help.expensify.com/articles/expensify-classic/integrations/accounting-integrations/Sage-Intacct',
     HOW_TO_CONNECT_TO_SAGE_INTACCT: 'https://help.expensify.com/articles/expensify-classic/integrations/accounting-integrations/Sage-Intacct#how-to-connect-to-sage-intacct',
     BUSINESS_CENTRAL_HELP_URL: 'https://help.expensify.com/new-expensify/hubs/connections/business-central',
+    RECEIPT_INTEGRATION_HELP_URLS: {
+        LYFT: 'https://help.expensify.com/articles/new-expensify/connections/Lyft',
+        INSTACART: 'https://help.expensify.com/articles/new-expensify/connections/Instacart',
+        DOORDASH: 'https://help.expensify.com/articles/new-expensify/connections/DoorDash',
+        AMERICAN_AIRLINES: 'https://help.expensify.com/articles/new-expensify/connections/American-Airlines',
+        UNITED: 'https://help.expensify.com/articles/new-expensify/connections/United-Airlines',
+        DELTA: 'https://help.expensify.com/articles/new-expensify/connections/Travel-receipt-integrations#delta-for-business',
+        KAYAK: 'https://help.expensify.com/articles/new-expensify/connections/Travel-receipt-integrations#kayak-for-business',
+    },
     PRICING: `https://www.expensify.com/pricing`,
     COMPANY_CARDS_MASTERCARD_COMMERCIAL_CARDS:
         'https://help.expensify.com/articles/new-expensify/connect-credit-cards/connect-company-cards/Set-up-a-Commercial-Feed-for-Company-Cards#how-to-enable-a-mastercard-commercial-card-feed-cdf',
