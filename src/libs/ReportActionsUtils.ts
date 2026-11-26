@@ -2650,6 +2650,12 @@ const isIOUActionMatchingTransactionList = (
     return !!IOUTransactionID && reportTransactionIDs.includes(IOUTransactionID);
 };
 
+const oneTransactionThreadReportTypesSet = new Set<Report['type']>([CONST.REPORT.TYPE.IOU, CONST.REPORT.TYPE.EXPENSE, CONST.REPORT.UNSUPPORTED_TYPE.BILL, CONST.REPORT.TYPE.INVOICE]);
+
+function canHaveOneTransactionThread(type: Report['type']): boolean {
+    return oneTransactionThreadReportTypesSet.has(type);
+}
+
 /**
  * Gets the report action for the transaction thread associated with a report by iterating over the reportActions and identifying the IOU report actions.
  * Returns a report action if there is exactly one transaction thread for the report, and undefined otherwise.
@@ -2661,13 +2667,7 @@ function getOneTransactionThreadReportAction(
     isOffline: boolean | undefined = undefined,
     reportTransactionIDs?: string[],
 ): ReportAction<'IOU'> | undefined {
-    // Only reports that hold expenses have expense threads, so other report types never show the one-expense view.
-    if (
-        report?.type !== CONST.REPORT.TYPE.IOU &&
-        report?.type !== CONST.REPORT.TYPE.EXPENSE &&
-        report?.type !== CONST.REPORT.UNSUPPORTED_TYPE.BILL &&
-        report?.type !== CONST.REPORT.TYPE.INVOICE
-    ) {
+    if (!canHaveOneTransactionThread(report?.type)) {
         return;
     }
 
@@ -6455,6 +6455,7 @@ export {
     getMessageOfOldDotReportAction,
     getMessageTextOfOldDotReportAction,
     getNumberOfMoneyRequests,
+    canHaveOneTransactionThread,
     getOneTransactionThreadReportAction,
     getOneTransactionThreadReportID,
     getTransactionThreadReportIDFromAction,
