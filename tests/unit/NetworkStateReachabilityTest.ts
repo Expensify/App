@@ -3,7 +3,6 @@ import CONST from '@src/CONST';
 import type Middleware from '@src/libs/Middleware/types';
 import type * as NetworkState from '@src/libs/NetworkState';
 import type Request from '@src/types/onyx/Request';
-import type Response from '@src/types/onyx/Response';
 
 import type {NetInfoState, NetInfoWifiState} from '@react-native-community/netinfo';
 import type {OnyxKey} from 'react-native-onyx';
@@ -354,21 +353,6 @@ describe('NetworkState — a successful request clears the INTERNET_UNREACHABLE 
         expect(refresh).toHaveBeenCalledTimes(1);
         jest.runAllTimers();
         expect(reconnectListener).toHaveBeenCalledTimes(1);
-    });
-
-    test('a response to a request sent before NO_RADIO was set does not clear it', async () => {
-        // Given a request already in flight when the radio drops
-        fireNetInfoState({isInternetReachable: true});
-        const response = Promise.withResolvers<Response<OnyxKey>>();
-        const inFlight = FailureTracking(response.promise, mockRequest, false);
-        fireNetInfoState({isConnected: false});
-
-        // When its response arrives
-        response.resolve({jsonCode: 200});
-        await inFlight;
-
-        // Then it says nothing about the network after the drop, so the app stays offline
-        expect(getIsOffline()).toBe(true);
     });
 
     test('success while the app was never offline is a complete no-op', async () => {

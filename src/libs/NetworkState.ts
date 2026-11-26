@@ -41,12 +41,11 @@ onSustainedFailureChange((active) => setSustainedFailures(active));
 // prevIsInternetReachable stays false on purpose: the Ping may keep failing, and a repeated
 // false does not re-set the hard stop. When the Ping finally passes, the NetInfo listener
 // sees the app is already online and does nothing.
-onRequestSuccess((wasSentWithoutRadio) => {
-    const shouldClearNoRadio = !hasRadio && wasSentWithoutRadio;
-    if (!shouldClearNoRadio && !internetUnreachable) {
+onRequestSuccess(() => {
+    if (hasRadio && !internetUnreachable) {
         return;
     }
-    if (shouldClearNoRadio) {
+    if (!hasRadio) {
         Log.info('[NetworkState] NO_RADIO cleared — a successful request proved connectivity');
         hasRadio = true;
         NetInfo.refresh();
@@ -60,10 +59,6 @@ onRequestSuccess((wasSentWithoutRadio) => {
 
 function getIsOffline(): boolean {
     return !hasRadio || internetUnreachable || sustainedFailuresActive || shouldForceOffline || simulatedOffline;
-}
-
-function getHasRadio(): boolean {
-    return hasRadio;
 }
 
 function getShouldFailAllRequests(): boolean {
@@ -490,7 +485,6 @@ function refreshAndCheckIsOffline(): Promise<boolean> {
 
 export {
     getIsOffline,
-    getHasRadio,
     getShouldFailAllRequests,
     getLastOfflineAt,
     subscribe,
