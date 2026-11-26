@@ -50,10 +50,10 @@ jest.mock('@hooks/useLocalize', () => () => ({
 }));
 
 // The list itself is covered elsewhere; here only what the modal hands it matters.
-let mockTagPickerProps: TagPicker.TagPickerListProps | undefined;
+let mockTagPickerProps: TagPicker.TagPickerSearchProps | undefined;
 jest.mock('@components/TagPicker', () => ({
     ...jest.requireActual<typeof TagPicker>('@components/TagPicker'),
-    TagPickerList: (props: TagPicker.TagPickerListProps) => {
+    TagPickerSearch: (props: TagPicker.TagPickerSearchProps) => {
         mockTagPickerProps = props;
         return null;
     },
@@ -129,7 +129,7 @@ describe('TagPickerModal', () => {
         );
 
         // Then the list shows the second list's tags under its own name
-        expect(mockTagPickerProps?.sections.at(0)?.data.at(0)?.text).toBe('Alpha');
+        expect(mockTagPickerProps?.unfilteredSections?.at(0)?.data.at(0)?.text).toBe('Alpha');
         expect(screen.getByText('Project')).toBeOnTheScreen();
     });
 
@@ -147,7 +147,7 @@ describe('TagPickerModal', () => {
         );
 
         // Then the list shows its search input at that threshold rather than the standard one
-        expect(mockTagPickerProps?.options.shouldShowTextInput).toBe(true);
+        expect(mockTagPickerProps?.model.canSearch).toBe(true);
     });
 
     it('fills the screen on a phone in landscape, however short the list', () => {
@@ -187,7 +187,7 @@ describe('TagPickerModal', () => {
         );
 
         // Then it still shows the first list in the standard-size pop-over that may flip when it overflows
-        expect(mockTagPickerProps?.sections.at(0)?.data.at(0)?.text).toBe('Engineering');
+        expect(mockTagPickerProps?.unfilteredSections?.at(0)?.data.at(0)?.text).toBe('Engineering');
         expect(mockPopoverProps?.popoverDimensions).toEqual({width: CONST.POPOVER_DROPDOWN_WIDTH, height: CONST.POPOVER_DROPDOWN_MAX_HEIGHT});
         expect(mockPopoverProps?.shouldSwitchPositionIfOverflow).toBe(true);
     });

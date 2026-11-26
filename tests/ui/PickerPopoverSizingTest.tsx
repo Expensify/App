@@ -1,12 +1,15 @@
-import {act, fireEvent, render, screen} from '@testing-library/react-native';
+import {act, fireEvent, render, renderHook, screen} from '@testing-library/react-native';
 
 import CategoryPickerModal from '@components/CategoryPicker/CategoryPickerModal';
 import type PopoverWithMeasuredContentProps from '@components/PopoverWithMeasuredContent/types';
+import type SelectionListWithSections from '@components/SelectionList/SelectionListWithSections';
+import type {SelectionListViewportProps} from '@components/SelectionList/SelectionListWithSections/SelectionListViewport';
 import type {ListItem, SelectionListWithSectionsProps} from '@components/SelectionList/SelectionListWithSections/types';
 import TagPickerModal from '@components/TagPicker/TagPickerModal';
 
 import useLoadPolicyCategories from '@hooks/useLoadPolicyCategories';
 import useOnyx from '@hooks/useOnyx';
+import usePickerPopoverRowCount from '@hooks/usePickerPopoverRowCount';
 
 import * as CategoryOptionListUtils from '@libs/CategoryOptionListUtils';
 import getSelectionListPopoverContentHeight from '@libs/getSelectionListPopoverContentHeight';
@@ -53,19 +56,38 @@ jest.mock('@components/PopoverWithMeasuredContent', () => {
 
 jest.mock('@components/SelectionList/SelectionListWithSections', () => {
     const {Text: MockText, TextInput: MockTextInput} = jest.requireActual<{Text: React.ComponentType<TextProps>; TextInput: typeof TextInput}>('react-native');
-    return ({sections, textInputOptions, shouldShowTextInput, shouldShowLoadingPlaceholder}: SelectionListWithSectionsProps<ListItem>) => (
-        <>
-            {shouldShowLoadingPlaceholder && <MockText testID="loading-placeholder" />}
-            {shouldShowTextInput && (
-                <MockTextInput
-                    accessibilityLabel={textInputOptions?.label}
-                    value={textInputOptions?.value}
-                    onChangeText={textInputOptions?.onChangeText}
-                />
-            )}
-            {sections.flatMap(({sectionIndex, data}) => data.map(({keyForList, text}) => <MockText key={`${sectionIndex}-${keyForList}`}>{text}</MockText>))}
-        </>
-    );
+    function LegacyList({sections, textInputOptions, shouldShowTextInput, shouldShowLoadingPlaceholder}: SelectionListWithSectionsProps<ListItem>) {
+        return (
+            <>
+                {shouldShowLoadingPlaceholder && <MockText testID="loading-placeholder" />}
+                {shouldShowTextInput && (
+                    <MockTextInput
+                        accessibilityLabel={textInputOptions?.label}
+                        value={textInputOptions?.value}
+                        onChangeText={textInputOptions?.onChangeText}
+                    />
+                )}
+                {sections.flatMap(({sectionIndex, data}) => data.map(({keyForList, text}) => <MockText key={`${sectionIndex}-${keyForList}`}>{text}</MockText>))}
+            </>
+        );
+    }
+    return Object.assign(LegacyList, {
+        Root: ({children}: {children: React.ReactNode}) => children,
+        SearchInput: ({label, value, onChangeText}: React.ComponentProps<typeof SelectionListWithSections.SearchInput>) => (
+            <MockTextInput
+                accessibilityLabel={label}
+                value={value}
+                onChangeText={onChangeText}
+            />
+        ),
+        SearchStatus: () => null,
+        Viewport: ({sections, loading}: SelectionListViewportProps<ListItem>) => (
+            <>
+                {loading}
+                {sections.flatMap(({sectionIndex, data}) => data.map(({keyForList, text}) => <MockText key={`${sectionIndex}-${keyForList}`}>{text}</MockText>))}
+            </>
+        ),
+    });
 });
 
 const POLICY_ID = 'policy1';
@@ -92,6 +114,33 @@ describe('picker popover sizing', () => {
 
     afterEach(() => {
         jest.useRealTimers();
+    });
+
+    it('uses the final search edit when back-to-back updates are batched', () => {
+        // Given two available rows and no active query.
+        const {result, rerender} = renderHook((rowCount: number) => usePickerPopoverRowCount(() => [{data: Array.from({length: rowCount})}], 0), {initialProps: 2});
+        expect(result.current.rowCount).toBe(2);
+
+        // When the user types and clears before the first update commits.
+        act(() => {
+            result.current.setRowCountFrozen(true);
+            result.current.setRowCountFrozen(false);
+        });
+
+        // Then a newly available row can change the unfiltered height.
+        rerender(3);
+        expect(result.current.rowCount).toBe(3);
+
+        // When the user clears an active search and resumes typing in the same batch.
+        act(() => result.current.setRowCountFrozen(true));
+        act(() => {
+            result.current.setRowCountFrozen(false);
+            result.current.setRowCountFrozen(true);
+        });
+
+        // Then further rows do not change the height while the query is active.
+        rerender(4);
+        expect(result.current.rowCount).toBe(3);
     });
 
     it('fits nested category rows and holds that height until the debounced search clears', () => {

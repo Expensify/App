@@ -1,4 +1,3 @@
-import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
 import SelectionListWithSections from '@components/SelectionList/SelectionListWithSections';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 
@@ -6,22 +5,22 @@ import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLoadPolicyTags from '@hooks/useLoadPolicyTags';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import useThemeStyles from '@hooks/useThemeStyles';
 
 import canFocusInputOnScreenFocus from '@libs/canFocusInputOnScreenFocus';
-import {getHeaderMessageForNonUserList} from '@libs/OptionsListUtils';
-import {getCountOfEnabledTagsOfList, getTagList, matchesParentTagPath} from '@libs/PolicyUtils';
+import {getTagList, matchesParentTagPath} from '@libs/PolicyUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import type {SelectedTagOption} from '@libs/TagsOptionsListUtils';
-import {getTagListSections} from '@libs/TagsOptionsListUtils';
 import {getTagArrayFromName} from '@libs/TransactionUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PolicyTag, PolicyTags} from '@src/types/onyx';
-import getEmptyArray from '@src/types/utils/getEmptyArray';
 
-import React, {useState} from 'react';
+import React, {startTransition, useDeferredValue, useState} from 'react';
+
+import type {TagPickerModel, TagPickerSections} from './TagPickerResults';
+
+import TagPickerResults from './TagPickerResults';
 
 type TagPickerProps = {
     /** The policyID we are getting tags for */
@@ -82,48 +81,120 @@ const getSelectedOptions = (selectedTag: string): SelectedTagOption[] => {
     ];
 };
 
-type TagPickerOptionsProps = Pick<
-    TagPickerProps,
-    | 'policyID'
-    | 'selectedTag'
-    | 'transactionTag'
-    | 'hasDependentTags'
-    | 'tagListIndex'
-    | 'shouldShowDisabledAndSelectedOption'
-    | 'additionalTagsToInclude'
-    | 'shouldShowGLCode'
-    | 'searchInputThreshold'
-> & {
-    /** Defaults to the current policy tag list's name when a caller doesn't supply one. */
-    tagListName?: string;
+type TagPickerSearchFieldProps = {
+    canSearch: boolean;
+    isLoading: boolean;
+    shouldAutoFocusSearchInput: boolean;
+    onQueryChange: (query: string) => void;
 };
 
-function useTagPickerData({policyID, tagListIndex, tagListName}: Pick<TagPickerOptionsProps, 'policyID' | 'tagListIndex' | 'tagListName'>) {
+function TagPickerSearchField({canSearch, isLoading, shouldAutoFocusSearchInput, onQueryChange}: TagPickerSearchFieldProps) {
+    const {inputCallbackRef} = useAutoFocusInput();
+    const {translate} = useLocalize();
+    const [query, setQuery] = useState('');
+
+    if (!canSearch) {
+        return null;
+    }
+
+    const updateQuery = (value: string) => {
+        setQuery(value);
+        // An urgent input update must not render the parent that builds the results.
+        startTransition(() => onQueryChange(value));
+    };
+
+    return (
+        <SelectionListWithSections.SearchInput
+            ref={inputCallbackRef as (ref: BaseTextInputRef | null) => void}
+            label={translate('common.search')}
+            value={query}
+            onChangeText={updateQuery}
+            autoFocus={shouldAutoFocusSearchInput && canFocusInputOnScreenFocus()}
+            isLoading={isLoading}
+        />
+    );
+}
+
+type TagPickerSearchProps = Pick<TagPickerProps, 'onSubmit' | 'shouldAutoFocusSearchInput' | 'addBottomSafeAreaPadding'> & {
+    model: TagPickerModel;
+    unfilteredSections?: TagPickerSections;
+    setRowCountFrozen?: (shouldFreeze: boolean) => void;
+};
+
+function TagPickerSearch({model, shouldAutoFocusSearchInput = false, onSubmit, addBottomSafeAreaPadding = false, unfilteredSections, setRowCountFrozen}: TagPickerSearchProps) {
+    const [searchQuery, setSearchQuery] = useState('');
+    const updateResultsQuery = (query: string) => {
+        setSearchQuery(query);
+        setRowCountFrozen?.(!!query);
+    };
+
+    return (
+        <SelectionListWithSections.Root>
+            <TagPickerSearchField
+                canSearch={model.canSearch}
+                isLoading={model.isLoading}
+                shouldAutoFocusSearchInput={shouldAutoFocusSearchInput}
+                onQueryChange={updateResultsQuery}
+            />
+            <TagPickerResults
+                model={model}
+                searchQuery={searchQuery}
+                onSelectTag={onSubmit}
+                unfilteredSections={unfilteredSections}
+                addBottomSafeAreaPadding={addBottomSafeAreaPadding}
+            />
+        </SelectionListWithSections.Root>
+    );
+}
+
+type TagPickerDataProps = Pick<TagPickerProps, 'policyID' | 'tagListIndex'> & Partial<Pick<TagPickerProps, 'tagListName' | 'additionalTagsToInclude'>> & {shouldLoadTags?: boolean};
+
+function useTagPickerData({policyID, tagListIndex, tagListName, additionalTagsToInclude, shouldLoadTags = true}: TagPickerDataProps) {
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`);
     const [shouldShowGLCodeFromPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
         selector: (policy) => !!policy?.showTagGLCodes && !!policy?.glCodes,
     });
-    const {translate, localeCompare} = useLocalize();
-    const policyTagList = getTagList(policyTags, tagListIndex);
-    const recentTagListName = tagListName ?? policyTagList.name;
-    const [policyRecentlyUsedTagsList] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS}${policyID}`, {selector: (recentTags) => recentTags?.[recentTagListName]});
-    return {policyTagList, policyRecentlyUsedTagsList, shouldShowGLCodeFromPolicy, translate, localeCompare};
+    // Backfill the policy's tags on demand so lazy-loaded accounts don't get stuck showing only the selected tag.
+    const {isLoadingPolicyTags} = useLoadPolicyTags(shouldLoadTags ? policyID : undefined);
+
+    const currentPolicyTagList = getTagList(policyTags, tagListIndex);
+    const recentTagListName = tagListName ?? currentPolicyTagList.name;
+    const [recentlyUsedTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS}${policyID}`, {selector: (recentTags) => recentTags?.[recentTagListName]});
+    // Tag lists can have identical display names, so use the key of the selected Onyx entry.
+    const tagListKey = Object.entries(policyTags ?? {}).find(([, list]) => list === currentPolicyTagList)?.[0];
+    const policyTagSnapshot = {
+        policyID,
+        tagListIndex,
+        tagListName,
+        tagListKey,
+        policyTagList: currentPolicyTagList,
+        isLoadingNewOptions: isLoadingPolicyTags && !additionalTagsToInclude?.length,
+    };
+    // Defer loading and tags together, but never show tags from a different workspace or list.
+    const deferredTagSnapshot = useDeferredValue(policyTagSnapshot);
+    const hasListBeenReplaced = deferredTagSnapshot.tagListKey !== undefined && deferredTagSnapshot.tagListKey !== tagListKey;
+    const isSameTagList =
+        deferredTagSnapshot.policyID === policyID && deferredTagSnapshot.tagListIndex === tagListIndex && deferredTagSnapshot.tagListName === tagListName && !hasListBeenReplaced;
+    const {policyTagList, isLoadingNewOptions} = isSameTagList ? deferredTagSnapshot : policyTagSnapshot;
+    return {policyTagList, isLoadingNewOptions, recentlyUsedTags, shouldShowGLCodeFromPolicy};
 }
 
-function getTagPickerOptions(
-    {policyTagList, policyRecentlyUsedTagsList, shouldShowGLCodeFromPolicy, translate, localeCompare}: ReturnType<typeof useTagPickerData>,
+type TagPickerModelOptions = Omit<TagPickerProps, 'policyID' | 'tagListName' | 'onSubmit' | 'shouldAutoFocusSearchInput' | 'addBottomSafeAreaPadding'>;
+
+function getTagPickerModel(
+    {policyTagList, isLoadingNewOptions, recentlyUsedTags, shouldShowGLCodeFromPolicy}: ReturnType<typeof useTagPickerData>,
     {
         selectedTag,
         transactionTag,
         hasDependentTags,
         tagListIndex,
         shouldShowDisabledAndSelectedOption = false,
+        shouldOrderListByTagName = false,
         additionalTagsToInclude,
-        shouldShowGLCode: shouldShowGLCodeProp,
+        shouldShowGLCode,
         searchInputThreshold = CONST.STANDARD_LIST_ITEM_LIMIT,
-    }: Omit<TagPickerOptionsProps, 'policyID' | 'tagListName'>,
-) {
-    const shouldShowGLCode = shouldShowGLCodeProp ?? shouldShowGLCodeFromPolicy;
+    }: TagPickerModelOptions,
+): TagPickerModel {
     const selectedOptions = getSelectedOptions(selectedTag);
 
     // Merge any orphaned tag names into the policy's tag map so they appear as selectable options.
@@ -150,156 +221,59 @@ function getTagPickerOptions(
             : baseTags;
     }
 
-    const getEnabledTags = (): PolicyTags | Array<PolicyTag | SelectedTagOption> => {
-        if (!shouldShowDisabledAndSelectedOption && !hasDependentTags) {
-            return policyTagsWithAdditions;
+    // When the selected option is included explicitly, it takes precedence over the policy tag and the parent filter.
+    const parentTag =
+        hasDependentTags && !shouldShowDisabledAndSelectedOption
+            ? getTagArrayFromName(transactionTag ?? '')
+                  .slice(0, tagListIndex)
+                  .join(':')
+            : undefined;
+    const enabledTags: Array<PolicyTag | SelectedTagOption> = shouldShowDisabledAndSelectedOption ? [...selectedOptions] : [];
+    const selectedName = selectedOptions.at(0)?.name;
+    let availableTagsCount = enabledTags.length;
+    let policyTagCount = 0;
+    for (const [key, policyTag] of Object.entries(policyTagsWithAdditions)) {
+        if (policyTag.enabled && (baseTags === policyTagsWithAdditions || Object.hasOwn(baseTags, key))) {
+            policyTagCount++;
         }
-
-        if (!shouldShowDisabledAndSelectedOption && hasDependentTags) {
-            // Truncate transactionTag to the current level (e.g., "California:North")
-            const parentTag = getTagArrayFromName(transactionTag ?? '')
-                .slice(0, tagListIndex)
-                .join(':');
-
-            return Object.values(policyTagsWithAdditions).filter((policyTag) => matchesParentTagPath(policyTag, parentTag));
+        if (shouldShowDisabledAndSelectedOption && (!policyTag.enabled || policyTag.name === selectedName)) {
+            continue;
         }
-
-        const selectedNames = new Set(selectedOptions.map((s) => s.name));
-
-        return [...selectedOptions, ...Object.values(policyTagsWithAdditions).filter((policyTag) => policyTag.enabled && !selectedNames.has(policyTag.name))];
-    };
-
-    const enabledTags = getEnabledTags();
-    const enabledTagsList = Array.isArray(enabledTags) ? enabledTags : Object.values(enabledTags ?? {});
-    const availableTagsCount = enabledTagsList.filter((tag) => tag.enabled).length;
-
-    const getSections = (searchValue: string) =>
-        getTagListSections({
-            searchValue,
-            selectedOptions,
-            tags: enabledTags,
-            recentlyUsedTags: policyRecentlyUsedTagsList,
-            localeCompare,
-            translate,
-            shouldShowGLCode,
-            searchInputThreshold,
-        });
-    // The popover reserves search space from the full policy list, even if dependencies narrow the tags shown.
-    const policyTagCount = enabledTags === baseTags ? availableTagsCount : getCountOfEnabledTagsOfList(policyTagList.tags);
-    return {
-        hasSearchablePolicyTags: policyTagCount >= searchInputThreshold,
-        shouldShowTextInput: availableTagsCount >= searchInputThreshold,
-        getSections,
-    };
-}
-
-function useTagPickerOptions({policyID, tagListName, tagListIndex, ...options}: TagPickerOptionsProps) {
-    const data = useTagPickerData({policyID, tagListName, tagListIndex});
-    return getTagPickerOptions(data, {...options, tagListIndex});
-}
-
-type TagPickerListProps = Pick<
-    TagPickerProps,
-    'policyID' | 'selectedTag' | 'shouldOrderListByTagName' | 'onSubmit' | 'additionalTagsToInclude' | 'addBottomSafeAreaPadding' | 'shouldAutoFocusSearchInput'
-> & {
-    options: ReturnType<typeof getTagPickerOptions>;
-    sections: ReturnType<ReturnType<typeof getTagPickerOptions>['getSections']>;
-    searchValue: string;
-    setSearchValue: (value: string) => void;
-};
-
-function useTagPickerListProps({
-    selectedTag,
-    policyID,
-    shouldOrderListByTagName = false,
-    onSubmit,
-    additionalTagsToInclude,
-    addBottomSafeAreaPadding = false,
-    shouldAutoFocusSearchInput = false,
-    options,
-    sections: tagSections,
-    searchValue,
-    setSearchValue,
-}: TagPickerListProps) {
-    const styles = useThemeStyles();
-    const {inputCallbackRef} = useAutoFocusInput();
-    const {translate, localeCompare} = useLocalize();
-    const sections = tagSections.map((section) => ({
-        ...section,
-        data: (shouldOrderListByTagName ? section.data.toSorted((a, b) => localeCompare(a.text ?? '', b.text ?? '')) : section.data).map((tag) => ({...tag, titleStyles: styles.w100})),
-    }));
-
-    const selectedOptionKey = sections.at(0)?.data?.find((policyTag) => policyTag.searchText === selectedTag)?.keyForList;
-
-    // Backfill the policy's tags when the list mounts so it doesn't get stuck showing only the selected tag.
-    const {isLoadingPolicyTags} = useLoadPolicyTags(policyID);
-    // While the on-demand fetch above is in flight, show the list skeleton instead of flashing the selected-only
-    // fallback. Orphaned tags passed in by the caller are a complete local list, so they render immediately.
-    const isLoadingNewOptions = isLoadingPolicyTags && !additionalTagsToInclude?.length;
-
-    const textInputOptions = {
-        value: searchValue,
-        onChangeText: setSearchValue,
-        headerMessage: getHeaderMessageForNonUserList(translate, (sections?.at(0)?.data?.length ?? 0) > 0, searchValue),
-        label: translate('common.search'),
-        // Auto-focus is opt-in (inline-edit popover only) and skipped on touch surfaces to avoid popping the keyboard.
-        disableAutoFocus: !(shouldAutoFocusSearchInput && canFocusInputOnScreenFocus()),
-        ref: inputCallbackRef as (ref: BaseTextInputRef | null) => void,
-    };
+        if (parentTag !== undefined && !matchesParentTagPath(policyTag, parentTag)) {
+            continue;
+        }
+        enabledTags.push(policyTag);
+        if (policyTag.enabled) {
+            availableTagsCount++;
+        }
+    }
 
     return {
-        // The list only renders the skeleton when it has no items, so the sections have to be emptied too.
-        // Otherwise the selected-only fallback row still shows while the fetch is in flight.
-        sections: isLoadingNewOptions ? getEmptyArray<never>() : sections,
-        ListItem: SingleSelectListItem,
-        style: {sectionTitleStyles: styles.mt5},
-        textInputOptions,
-        shouldShowTextInput: options.shouldShowTextInput,
-        shouldShowLoadingPlaceholder: isLoadingNewOptions,
-        isLoadingNewOptions,
-        initiallyFocusedItemKey: selectedOptionKey,
-        onSelectRow: onSubmit,
-        addBottomSafeAreaPadding,
-        titleNumberOfLines: CONST.TRANSACTION_TAG_AND_CATEGORY_PICKER_MAX_TITLE_LINES,
-    };
-}
-
-function TagPickerList(props: TagPickerListProps) {
-    const listProps = useTagPickerListProps(props);
-    return <SelectionListWithSections {...listProps} />;
-}
-
-function TagPicker({
-    policyID,
-    selectedTag,
-    tagListName,
-    tagListIndex,
-    transactionTag,
-    hasDependentTags,
-    shouldShowGLCode,
-    shouldShowDisabledAndSelectedOption,
-    additionalTagsToInclude,
-    searchInputThreshold,
-    ...pickerProps
-}: TagPickerProps) {
-    const [searchValue, setSearchValue] = useState('');
-    const options = useTagPickerOptions({
-        policyID,
+        selectedOptions,
         selectedTag,
-        tagListName,
-        tagListIndex,
-        transactionTag,
-        hasDependentTags,
-        shouldShowGLCode,
-        shouldShowDisabledAndSelectedOption,
-        additionalTagsToInclude,
+        tags: enabledTags,
+        recentlyUsedTags: recentlyUsedTags ?? [],
+        shouldShowGLCode: !!(shouldShowGLCode ?? shouldShowGLCodeFromPolicy),
+        shouldOrderListByTagName,
         searchInputThreshold,
-    });
-    const sections = options.getSections(searchValue);
-    const listProps = useTagPickerListProps({...pickerProps, policyID, selectedTag, additionalTagsToInclude, options, sections, searchValue, setSearchValue});
-    return <SelectionListWithSections {...listProps} />;
+        canSearch: availableTagsCount >= searchInputThreshold,
+        hasSearchablePolicyTags: policyTagCount >= searchInputThreshold,
+        isLoading: isLoadingNewOptions,
+    };
+}
+
+function TagPicker({policyID, tagListName, onSubmit, shouldAutoFocusSearchInput, addBottomSafeAreaPadding, ...options}: TagPickerProps) {
+    const data = useTagPickerData({policyID, tagListName, tagListIndex: options.tagListIndex, additionalTagsToInclude: options.additionalTagsToInclude});
+    return (
+        <TagPickerSearch
+            model={getTagPickerModel(data, options)}
+            onSubmit={onSubmit}
+            shouldAutoFocusSearchInput={shouldAutoFocusSearchInput}
+            addBottomSafeAreaPadding={addBottomSafeAreaPadding}
+        />
+    );
 }
 
 export default TagPicker;
-export {getTagPickerOptions, TagPickerList, useTagPickerData};
-export type {TagPickerProps, TagPickerListProps};
+export {getTagPickerModel, TagPickerSearch, useTagPickerData};
+export type {TagPickerProps, TagPickerSearchProps};

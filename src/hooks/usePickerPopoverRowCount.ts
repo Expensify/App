@@ -26,11 +26,13 @@ function usePickerPopoverRowCount<TSections extends readonly PickerSection[]>(ge
     const rowCount = frozenRowCount ?? countListRows(unfilteredSections);
 
     const setRowCountFrozen = (shouldFreezeRowCount: boolean) => {
-        if (shouldFreezeRowCount && frozenRowCount === undefined) {
-            setSearchRowCountSnapshot({searchKey, rowCount});
-        } else if (!shouldFreezeRowCount && frozenRowCount !== undefined) {
-            setSearchRowCountSnapshot(undefined);
-        }
+        // Query transitions may batch several edits before this popover renders again.
+        setSearchRowCountSnapshot((snapshot) => {
+            if (!shouldFreezeRowCount) {
+                return undefined;
+            }
+            return snapshot?.searchKey === searchKey ? snapshot : {searchKey, rowCount};
+        });
     };
 
     return {rowCount, setRowCountFrozen, unfilteredSections};

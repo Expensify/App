@@ -1,6 +1,7 @@
 import AnchoredSelectionListPopover from '@components/AnchoredSelectionListPopover';
 import type {AnchoredSelectionListPopoverProps} from '@components/AnchoredSelectionListPopover';
 
+import useLocalize from '@hooks/useLocalize';
 import usePickerPopoverRowCount from '@hooks/usePickerPopoverRowCount';
 import usePickerPopoverSession from '@hooks/usePickerPopoverSession';
 
@@ -8,9 +9,10 @@ import type {OptionData} from '@libs/ReportUtils';
 
 import CONST from '@src/CONST';
 
-import React, {useState} from 'react';
+import React from 'react';
 
-import {getTagPickerOptions, TagPickerList, useTagPickerData} from '.';
+import {getTagPickerModel, TagPickerSearch, useTagPickerData} from '.';
+import {buildTagPickerSections} from './TagPickerResults';
 
 type TagPickerModalProps = {
     /** The policy whose tags should be shown */
@@ -52,16 +54,13 @@ function TagPickerModal({
     ...popoverProps
 }: TagPickerModalProps) {
     const {searchKey, shouldPrepareOptions, finishClosing} = usePickerPopoverSession(isVisible, onModalHide);
-    const data = useTagPickerData({policyID, tagListIndex});
-    const options = shouldPrepareOptions ? getTagPickerOptions(data, {selectedTag, transactionTag, hasDependentTags, shouldShowGLCode, tagListIndex, searchInputThreshold}) : undefined;
-    const {rowCount, setRowCountFrozen, unfilteredSections} = usePickerPopoverRowCount(options ? () => options.getSections('') : undefined, searchKey);
-    const [search, setSearch] = useState({searchKey, value: ''});
-    const searchValue = search.searchKey === searchKey ? search.value : '';
-    const sections = searchValue ? options?.getSections(searchValue) : unfilteredSections;
-    const setSearchValue = (value: string) => {
-        setSearch({searchKey, value});
-        setRowCountFrozen(!!value);
-    };
+    const data = useTagPickerData({policyID, tagListIndex, shouldLoadTags: shouldPrepareOptions});
+    const {translate, localeCompare} = useLocalize();
+    const model = shouldPrepareOptions ? getTagPickerModel(data, {selectedTag, transactionTag, hasDependentTags, shouldShowGLCode, tagListIndex, searchInputThreshold}) : undefined;
+    const {rowCount, setRowCountFrozen, unfilteredSections} = usePickerPopoverRowCount(
+        model && !model.isLoading ? () => buildTagPickerSections(model, '', {translate, localeCompare}) : undefined,
+        searchKey,
+    );
 
     const handleTagSelected = (item: Partial<OptionData>) => {
         // If clicking the same tag that's already selected, treat it as deselection
@@ -80,18 +79,16 @@ function TagPickerModal({
             onClose={onClose}
             onModalHide={finishClosing}
             optionCount={rowCount}
-            isSearchable={options?.hasSearchablePolicyTags ?? false}
+            isSearchable={model?.hasSearchablePolicyTags ?? false}
             title={data.policyTagList.name}
             backButtonSentryLabel={CONST.SENTRY_LABEL.TAG_PICKER_MODAL.BACK_BUTTON}
         >
-            {options && sections && (
-                <TagPickerList
-                    options={options}
-                    sections={sections}
-                    searchValue={searchValue}
-                    setSearchValue={setSearchValue}
-                    policyID={policyID}
-                    selectedTag={selectedTag}
+            {model && (
+                <TagPickerSearch
+                    key={searchKey}
+                    model={model}
+                    unfilteredSections={unfilteredSections}
+                    setRowCountFrozen={setRowCountFrozen}
                     onSubmit={handleTagSelected}
                     shouldAutoFocusSearchInput
                 />

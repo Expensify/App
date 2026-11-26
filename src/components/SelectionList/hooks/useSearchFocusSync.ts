@@ -50,60 +50,39 @@ function useSearchFocusSync<TItem extends ListItem, TData = TItem>({
     const prevSearchValue = usePrevious(searchValue);
     const prevSelectedOptionsCount = usePrevious(selectedOptionsCount);
     const prevItemsLength = usePrevious(data.length);
+    const searchChanged = prevSearchValue !== searchValue;
+    const selectedOptionsChanged = selectedOptionsCount !== prevSelectedOptionsCount;
+    const selectionChangedByClicking = !searchChanged && selectedOptionsChanged && shouldUpdateFocusedIndex;
 
-    useEffect(() => {
-        const searchChanged = prevSearchValue !== searchValue;
-        const selectedOptionsChanged = selectedOptionsCount !== prevSelectedOptionsCount;
-        const selectionChangedByClicking = !searchChanged && selectedOptionsChanged && shouldUpdateFocusedIndex;
-
-        // Do not change focus if:
-        // 1. Input value is the same or
-        // 2. Data length is 0 or
-        // 3. Selection changed via user interaction (not filtering), so focus is handled externally
-        if ((!searchChanged && !selectedOptionsChanged) || data.length === 0 || selectionChangedByClicking) {
-            return;
-        }
-
-        const hasSearchBeenCleared = prevSearchValue && !searchValue;
-        if (hasSearchBeenCleared) {
-            const foundSelectedItemIndex = data.findIndex(isItemSelected);
-
-            if (foundSelectedItemIndex !== -1 && !canSelectMultiple) {
-                scrollToIndex(foundSelectedItemIndex, false);
-                setFocusedIndex(foundSelectedItemIndex);
-                return;
-            }
-        }
-
-        // Remove focus (set focused index to -1) if:
-        // 1. If the search is idle or
-        // 2. If the user is just toggling options without changing the list content
-        // Otherwise (e.g. when filtering/typing), scroll to top and focus on the first focusable item
+    let nextFocusedIndex: number | undefined;
+    let scrollIndex: number | undefined;
+    if ((searchChanged || selectedOptionsChanged) && data.length > 0 && !selectionChangedByClicking) {
+        const selectedIndex = prevSearchValue && !searchValue && !canSelectMultiple ? data.findIndex(isItemSelected) : -1;
         const isSearchIdle = !prevSearchValue && !searchValue;
         const shouldResetFocus = isSearchIdle || (selectedOptionsChanged && prevItemsLength === data.length);
+        if (selectedIndex !== -1) {
+            nextFocusedIndex = selectedIndex;
+            scrollIndex = selectedIndex;
+        } else if (shouldResetFocus) {
+            nextFocusedIndex = -1;
+        } else {
+            nextFocusedIndex = firstFocusableIndex;
+            scrollIndex = 0;
+        }
+    }
 
-        if (shouldResetFocus) {
-            setFocusedIndex(-1);
+    useEffect(() => {
+        if (nextFocusedIndex === undefined) {
             return;
         }
+        if (scrollIndex !== undefined) {
+            scrollToIndex(scrollIndex, false);
+        }
+        setFocusedIndex(nextFocusedIndex);
+    }, [nextFocusedIndex, scrollIndex, scrollToIndex, setFocusedIndex, searchValue]);
 
-        // Scroll to top of list and focus on first focusable item (not header)
-        scrollToIndex(0, false);
-        setFocusedIndex(firstFocusableIndex);
-    }, [
-        canSelectMultiple,
-        data,
-        selectedOptionsCount,
-        prevItemsLength,
-        prevSelectedOptionsCount,
-        prevSearchValue,
-        scrollToIndex,
-        setFocusedIndex,
-        shouldUpdateFocusedIndex,
-        searchValue,
-        isItemSelected,
-        firstFocusableIndex,
-    ]);
+    // The displayed rows and their focus must agree at commit, before the scroll effect runs.
+    return searchChanged ? nextFocusedIndex : undefined;
 }
 
 export default useSearchFocusSync;

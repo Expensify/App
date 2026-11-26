@@ -3,7 +3,8 @@ import {act, render} from '@testing-library/react-native';
 import ComposeProviders from '@components/ComposeProviders';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
-import type {SelectionListWithSectionsProps} from '@components/SelectionList/SelectionListWithSections/types';
+import type SelectionListWithSections from '@components/SelectionList/SelectionListWithSections';
+import type {SelectionListViewportProps} from '@components/SelectionList/SelectionListWithSections/SelectionListViewport';
 import type {ListItem} from '@components/SelectionList/types';
 import TagPicker from '@components/TagPicker';
 
@@ -28,10 +29,16 @@ jest.mock('@libs/TagsOptionsListUtils', () => {
 });
 
 // Capture the sections TagPicker hands to the list, so the tests can read what it would show.
-const mockSelectionList = jest.fn<null, [SelectionListWithSectionsProps<ListItem>]>(() => null);
+const mockSelectionList = jest.fn<null, [SelectionListViewportProps<ListItem>]>(() => null);
+const mockSearchInput = jest.fn<null, [React.ComponentProps<typeof SelectionListWithSections.SearchInput>]>(() => null);
 jest.mock('@components/SelectionList/SelectionListWithSections', () => ({
     __esModule: true,
-    default: (props: SelectionListWithSectionsProps<ListItem>) => mockSelectionList(props),
+    default: {
+        Root: ({children}: {children: React.ReactNode}) => children,
+        SearchInput: (props: React.ComponentProps<typeof SelectionListWithSections.SearchInput>) => mockSearchInput(props),
+        SearchStatus: () => null,
+        Viewport: (props: SelectionListViewportProps<ListItem>) => mockSelectionList(props),
+    },
 }));
 
 // `useAutoFocusInput` pulls in navigation, so stub it the same way as tests/unit/CategoryTagPickerAutoFocusTest.tsx.
@@ -81,7 +88,7 @@ function getListedTagNames() {
 
 async function typeSearch(searchValue: string) {
     await act(async () => {
-        getLastListProps().textInputOptions?.onChangeText?.(searchValue);
+        mockSearchInput.mock.lastCall?.[0].onChangeText(searchValue);
     });
     await waitForBatchedUpdatesWithAct();
 }
@@ -94,6 +101,7 @@ describe('TagPicker', () => {
 
     beforeEach(async () => {
         mockSelectionList.mockClear();
+        mockSearchInput.mockClear();
         await act(async () => {
             await Onyx.clear();
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${POLICY_ID}`, policyTags);
@@ -110,6 +118,7 @@ describe('TagPicker', () => {
                     tagListName={TAG_LIST_NAME}
                     tagListIndex={0}
                     onSubmit={jest.fn()}
+                    searchInputThreshold={1}
                 />
             </ComposeProviders>,
         );
@@ -117,8 +126,8 @@ describe('TagPicker', () => {
         expect(getListedTagNames()).toEqual(['alpha', 'Charlie', 'Delta']);
 
         // When the user searches, and a tag that matches is then added to the workspace
-        await typeSearch('a');
-        expect(getListedTagNames()).toEqual(['alpha', 'Charlie', 'Delta']);
+        await typeSearch('e');
+        expect(getListedTagNames()).toEqual(['Charlie', 'Delta']);
         const buildSections = jest.mocked(TagsOptionsListUtils.getTagListSections);
         buildSections.mockClear();
         await act(async () => {
@@ -127,7 +136,7 @@ describe('TagPicker', () => {
         await waitForBatchedUpdatesWithAct();
 
         // Then the search results include the new tag in name order, and so does the full list once the search is cleared
-        expect(getListedTagNames()).toEqual(['Able', 'alpha', 'Charlie', 'Delta']);
+        expect(getListedTagNames()).toEqual(['Able', 'Charlie', 'Delta']);
         expect(buildSections).toHaveBeenCalled();
         expect(buildSections.mock.calls.map(([options]) => options.searchValue)).not.toContain('');
         await typeSearch('');
