@@ -289,6 +289,35 @@ describe('useLoadPolicyTags with several pickers', () => {
         });
     });
 
+    it('lets a later picker retry when the picker that sent the read switched to an already-loaded policy and the read failed', async () => {
+        // Given a picker that sent a read for one policy, and a second policy whose tags this session already loaded
+        const LOADED_POLICY_ID = 'G7H8I9';
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${LOADED_POLICY_ID}`, {
+            id: LOADED_POLICY_ID,
+            type: CONST.POLICY.TYPE.CORPORATE,
+            role: CONST.POLICY.ROLE.ADMIN,
+            employeeList: {[CURRENT_USER_EMAIL]: {email: CURRENT_USER_EMAIL, role: CONST.POLICY.ROLE.ADMIN}},
+        });
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.RAM_ONLY_POLICY_TAGS_LOADING_STATE}${LOADED_POLICY_ID}`, {isLoading: false, hasOnceLoaded: true});
+        const switchingPicker = renderHook(({policyID}: {policyID: string}) => useLoadPolicyTags(policyID), {initialProps: {policyID: POLICY_ID}});
+        await waitFor(() => {
+            expect(mockOpenPolicyTagsPage).toHaveBeenCalledWith(POLICY_ID);
+        });
+
+        // When that picker moves to the loaded policy before the first read's loading state reached Onyx, and the first read then fails
+        switchingPicker.rerender({policyID: LOADED_POLICY_ID});
+        await waitForBatchedUpdates();
+        await Onyx.merge(LOADING_STATE_KEY, {isLoading: false});
+        await waitForBatchedUpdates();
+
+        // Then a new picker for the first policy retries the read, since the switching picker no longer holds it
+        renderHook(() => useLoadPolicyTags(POLICY_ID));
+        await waitFor(() => {
+            expect(mockOpenPolicyTagsPage).toHaveBeenCalledTimes(2);
+        });
+        expect(mockOpenPolicyTagsPage).not.toHaveBeenCalledWith(LOADED_POLICY_ID);
+    });
+
     it('sends the read again after a reconnect cut off the one in flight', async () => {
         // Given a picker whose read was sent but never answered before the connection dropped
         renderHook(() => useLoadPolicyTags(POLICY_ID));

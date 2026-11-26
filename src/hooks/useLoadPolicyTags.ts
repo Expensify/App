@@ -58,6 +58,12 @@ function useLoadPolicyTags(policyID: string | undefined) {
     });
 
     useEffect(() => {
+        // Release the entry this picker owns for a policy it moved off, before any early return below, so a failed read for
+        // that policy does not block later pickers. Only the owner releases it, since another picker may have sent that read.
+        const previousPolicyID = requestedPolicyIDRef.current;
+        if (previousPolicyID && previousPolicyID !== policyID && pendingReadOwners.get(previousPolicyID) === requestedPolicyIDRef) {
+            pendingReadOwners.delete(previousPolicyID);
+        }
         if (!policyID) {
             return;
         }
@@ -68,11 +74,6 @@ function useLoadPolicyTags(policyID: string | undefined) {
         }
         if (!canReadTags || isOffline || requestedPolicyIDRef.current === policyID || pendingReadOwners.has(policyID)) {
             return;
-        }
-        // This picker is switching to another policy, so it releases the entry it holds for the previous one. Only the
-        // owner releases it, since another picker may have sent that read.
-        if (requestedPolicyIDRef.current && pendingReadOwners.get(requestedPolicyIDRef.current) === requestedPolicyIDRef) {
-            pendingReadOwners.delete(requestedPolicyIDRef.current);
         }
         requestedPolicyIDRef.current = policyID;
         pendingReadOwners.set(policyID, requestedPolicyIDRef);
