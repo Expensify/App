@@ -428,7 +428,8 @@ function AvatarWithDisplayName({
             sentryLabel={CONST.SENTRY_LABEL.AVATAR_WITH_DISPLAY_NAME.GO_TO_DETAILS_PAGE}
             onPress={goToDetailsPage}
             style={[styles.flexRow, styles.alignItemsCenter, styles.flex1]}
-            accessibilityLabel={title}
+            // The label replaces the header's text for screen readers, so it carries the status badge, such as "Paid", too
+            accessibilityLabel={[title, statusText].filter(Boolean).join(', ')}
             role={CONST.ROLE.BUTTON}
         >
             {headerView}

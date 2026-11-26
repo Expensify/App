@@ -3,6 +3,7 @@ import {render, screen} from '@testing-library/react-native';
 import ComposeProviders from '@components/ComposeProviders';
 import TransactionListItemNarrow from '@components/Search/SearchList/ListItem/TransactionListItem/TransactionListItemNarrow';
 import type {TransactionListItemType} from '@components/Search/SearchList/ListItem/types';
+import {useRowSelection} from '@components/Search/SearchSelectionProvider';
 import ThemeProvider from '@components/ThemeProvider';
 import ThemeStylesProvider from '@components/ThemeStylesContextProvider';
 
@@ -41,12 +42,13 @@ function makeItem(reportID: string): TransactionListItemType {
     });
 }
 
-function renderRow(item: TransactionListItemType, isDeletedTransaction: boolean) {
+function renderRow(item: TransactionListItemType, isDeletedTransaction: boolean, canSelectMultiple = false) {
     return render(
         <ComposeProviders components={[ThemeProvider, ThemeStylesProvider]}>
             <TransactionListItemNarrow
                 item={item}
                 isDeletedTransaction={isDeletedTransaction}
+                canSelectMultiple={canSelectMultiple}
                 showTooltip={false}
                 onSelectRow={jest.fn()}
                 transactionViolations={[]}
@@ -80,5 +82,16 @@ describe('TransactionListItemNarrow', () => {
 
         // Then From is shown as before
         expect(screen.getByTestId('narrow-row-user-info')).toBeOnTheScreen();
+    });
+
+    it('tells screen readers whether the row is selected in select mode', () => {
+        // Given a selected expense in select mode, where the checkbox is read as part of the row
+        jest.mocked(useRowSelection).mockReturnValue({isSelected: true});
+
+        // When the row renders
+        renderRow(makeItem('100'), false, true);
+
+        // Then the row itself carries the selected state, so screen readers announce it
+        expect(screen.getByRole(CONST.ROLE.BUTTON)).toBeSelected();
     });
 });

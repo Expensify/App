@@ -48,9 +48,12 @@ type InsightsChartMenuProps = {
 
     /** Rows listed under the stage row, such as View on Spend and Download CSV */
     actions: InsightsChartMenuAction[];
+
+    /** Screen reader name of the trigger, so it says which chart it belongs to */
+    accessibilityLabel?: string;
 };
 
-function InsightsChartMenu({graphKey, violationStage, onViolationStageChange, actions}: InsightsChartMenuProps) {
+function InsightsChartMenu({graphKey, violationStage, onViolationStageChange, actions, accessibilityLabel}: InsightsChartMenuProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const theme = useTheme();
@@ -132,7 +135,7 @@ function InsightsChartMenu({graphKey, violationStage, onViolationStageChange, ac
                         style={[styles.touchableButtonImage, styles.threeDotsMenuIconWidth, styles.getWidgetHeaderMenuButtonStyle(variables.componentSizeSmall)]}
                         hoverStyle={styles.widgetHeaderMenuButtonHovered}
                         role={CONST.ROLE.BUTTON}
-                        accessibilityLabel={translate('common.more')}
+                        accessibilityLabel={accessibilityLabel ?? translate('common.more')}
                         sentryLabel={CONST.SENTRY_LABEL.INSIGHTS.CHART_MENU}
                         testID={`insightsChartMenu-${graphKey}`}
                     >

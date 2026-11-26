@@ -1409,6 +1409,10 @@ const translations = {
         viewOnSpend: 'View on Spend',
         explain: 'Explain',
         explainChartPrompt: (chartTitle: string) => `Explain the data in ${chartTitle}.`,
+        // @context Screen reader label of a chart's Explain button. chartTitle is the chart's name, such as "Spend over time".
+        explainChart: (chartTitle: string) => `Explain ${chartTitle}`,
+        // @context Screen reader label of a chart's three-dots menu button. chartTitle is the chart's name, such as "Top merchants".
+        moreForChart: (chartTitle: string) => `More options for ${chartTitle}`,
         viewDetails: 'View details',
         viewAll: 'View all',
         topExpenses: 'Top expenses',

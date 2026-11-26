@@ -22,10 +22,13 @@ type InsightsExplainButtonProps = {
 
     /** Label shown next to the icon. Without one, the button shows a tooltip instead. */
     children?: React.ReactNode;
+
+    /** Screen reader name, so each chart's button says which chart it explains */
+    accessibilityLabel?: string;
 };
 
 /** Button that asks Concierge to explain an AI insight or chart, sending along the dashboard filters so the answer covers the data on screen. */
-function InsightsExplainButton({explainPrompt, insightsScope, children}: InsightsExplainButtonProps) {
+function InsightsExplainButton({explainPrompt, insightsScope, children, accessibilityLabel}: InsightsExplainButtonProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate} = useLocalize();
@@ -46,7 +49,7 @@ function InsightsExplainButton({explainPrompt, insightsScope, children}: Insight
                     size={CONST.BUTTON_SIZE.SMALL}
                     onPress={() => askConcierge(explainPrompt, {insightsScope})}
                     sentryLabel={CONST.SENTRY_LABEL.INSIGHTS.AI_EXPLAIN}
-                    accessibilityLabel={translate('insightsPage.explain')}
+                    accessibilityLabel={accessibilityLabel ?? translate('insightsPage.explain')}
                     innerStyles={styles.bgTransparent}
                     hoverStyles={styles.hoveredComponentBG}
                 >

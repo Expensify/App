@@ -30,7 +30,7 @@ import {
 } from '@libs/MoneyRequestReportUtils';
 import {hasFlexColumn} from '@libs/SearchUIUtils';
 import {COPYABLE_ROW_DATA_SET} from '@libs/SelectionScraper';
-import {getTransactionPendingAction} from '@libs/TransactionUtils';
+import {getTransactionAccessibilityName, getTransactionPendingAction} from '@libs/TransactionUtils';
 
 import variables from '@styles/variables';
 
@@ -273,6 +273,8 @@ function MoneyRequestReportTransactionItemBody({
         queueMicrotask(() => setShouldDisableHoverStyle(true));
     }, [wasRecentlyEditingCell]);
 
+    const transactionAccessibilityName = getTransactionAccessibilityName(transaction, translate);
+
     return (
         <OfflineWithFeedback
             pendingAction={pendingAction}
@@ -283,7 +285,8 @@ function MoneyRequestReportTransactionItemBody({
             <PressableWithFeedback
                 key={transaction.transactionID}
                 onPress={handlePress}
-                accessibilityLabel={translate('iou.viewDetails')}
+                accessibilityLabel={transactionAccessibilityName || translate('iou.viewDetails')}
+                accessibilityHint={transactionAccessibilityName ? translate('iou.viewDetails') : undefined}
                 sentryLabel={CONST.SENTRY_LABEL.REPORT.MONEY_REQUEST_REPORT_TRANSACTION_ITEM}
                 role={CONST.ROLE.BUTTON}
                 isNested

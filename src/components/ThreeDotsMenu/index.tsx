@@ -34,6 +34,7 @@ import type {ThreeDotsMenuHandle} from './types';
 
 function ThreeDotsMenu({
     iconTooltip = 'common.more',
+    accessibilityLabel,
     icon,
     iconFill,
     iconStyles,
@@ -196,7 +197,7 @@ function ThreeDotsMenu({
                         hoverStyle={iconHoverStyle}
                         role={CONST.ROLE.BUTTON}
                         isNested={isNested}
-                        accessibilityLabel={translate(iconTooltip)}
+                        accessibilityLabel={accessibilityLabel ?? translate(iconTooltip)}
                         sentryLabel={sentryLabel}
                         testID={testID}
                     >

@@ -30,6 +30,7 @@ import React from 'react';
 import Onyx from 'react-native-onyx';
 
 import currencyList from '../unit/currencyList.json';
+import {translateLocal} from '../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
 jest.mock('@components/WidgetHeaderMenu', () => jest.fn(() => null));
@@ -119,6 +120,16 @@ describe('Insights chart CSV action', () => {
     });
 
     afterEach(() => Onyx.clear());
+
+    it("names the chart's menu after the chart, so each card's menu can be told apart", async () => {
+        // Given a ready chart
+        // When its header renders
+        renderWidget();
+        await waitForBatchedUpdatesWithAct();
+
+        // Then its three-dots menu says which chart it belongs to instead of a bare "More"
+        expect(jest.mocked(WidgetHeaderMenu).mock.lastCall?.[0].accessibilityLabel).toBe(translateLocal('insightsPage.moreForChart', translateLocal(CHART.titleKey)));
+    });
 
     it('offers a local CSV below View on Spend and exports only the current period', async () => {
         // Given a ready chart compared against a different set of totals

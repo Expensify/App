@@ -20,6 +20,9 @@ type ThreeDotsMenuProps = WithRequiredSentryLabel & {
     /** Tooltip for the popup icon */
     iconTooltip?: TranslationPaths;
 
+    /** Screen reader name of the trigger, when it should say more than the tooltip, such as which card it belongs to */
+    accessibilityLabel?: string;
+
     /** icon for the popup trigger */
     icon?: IconAsset;
 
