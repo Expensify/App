@@ -365,6 +365,11 @@ const CONST = {
         PAUSE_DURATION: 250,
         RECOVERY_DURATION: 150,
     },
+    MARQUEE_ANIMATION: {
+        MS_PER_PIXEL: 25,
+        MIN_DURATION: 600,
+        HOLD_DURATION: 2000,
+    },
     FLAT_NAV_ROW_ACTION_ANIMATION: {
         DURATION: 150,
         HIDDEN_OFFSET: 8,

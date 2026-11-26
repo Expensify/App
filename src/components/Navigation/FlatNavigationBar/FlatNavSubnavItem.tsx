@@ -2,7 +2,6 @@
 import Badge from '@components/Badge';
 import Hoverable from '@components/Hoverable';
 import {PressableWithFeedback} from '@components/Pressable';
-import Text from '@components/Text';
 
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -16,6 +15,7 @@ import type {NativeSyntheticEvent, TargetedEvent} from 'react-native';
 import React, {createContext, useContext, useRef, useState} from 'react';
 import {View} from 'react-native';
 
+import FlatNavMarqueeText from './FlatNavMarqueeText';
 import hasKeyboardFocusIn from './hasKeyboardFocusIn';
 import isFocusMovingWithin from './isFocusMovingWithin';
 
@@ -80,11 +80,15 @@ type FlatNavSubnavItemLinkProps = {
 
     /** Drawn after the label, inside the pressable area, as a badge */
     children?: React.ReactNode;
+
+    /** Extra travel past the overflow in px, so the end of the label clears content drawn over the row's end. Defaults to 0. */
+    endInset?: number;
 };
 
-function FlatNavSubnavItemLink({label, isSelected, isDisabled = false, sentryLabel, onPress, children}: FlatNavSubnavItemLinkProps) {
+function FlatNavSubnavItemLink({label, isSelected, isDisabled = false, sentryLabel, onPress, children, endInset = 0}: FlatNavSubnavItemLinkProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
+    const isRowActive = useIsFlatNavSubnavRowActive();
 
     return (
         <PressableWithFeedback
@@ -100,14 +104,14 @@ function FlatNavSubnavItemLink({label, isSelected, isDisabled = false, sentryLab
         >
             {({hovered}) => (
                 <>
-                    <View style={styles.flex1}>
-                        <Text
+                    <View style={[styles.flex1, styles.overflowHidden]}>
+                        <FlatNavMarqueeText
+                            text={label}
+                            isActive={isRowActive}
+                            endInset={endInset}
                             variant={isSelected ? 'textStrong' : 'text'}
                             color={isSelected || hovered ? theme.text : theme.textSupporting}
-                            numberOfLines={1}
-                        >
-                            {label}
-                        </Text>
+                        />
                     </View>
                     {children}
                 </>

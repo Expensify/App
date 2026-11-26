@@ -3,6 +3,8 @@ import OfflineWithFeedback from '@components/OfflineWithFeedback';
 
 import type {FlatNavSavedSearchItem} from '@libs/Navigation/FlatNav/types';
 
+import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
 
 import React from 'react';
@@ -34,6 +36,8 @@ function FlatNavSavedSearchSubnavItem({item, isSelected, onPress}: FlatNavSavedS
                     isDisabled={item.isDisabled}
                     sentryLabel={CONST.SENTRY_LABEL.SEARCH.SAVED_SEARCH_MENU_ITEM}
                     onPress={openSavedSearch}
+                    // The menu is drawn over the row's end, so the label scrolls clear of it.
+                    endInset={variables.flatNavigationBarSubnavItemAccessoryWidth}
                 />
                 <FlatNavSavedSearchMenu item={item} />
             </FlatNavSubnavItem>
