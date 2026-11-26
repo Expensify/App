@@ -142,6 +142,7 @@ function ABAWithdrawalDetails({policyID, currency, onBackButtonPress, onSuccess}
                         role={CONST.ROLE.PRESENTATION}
                         containerStyles={styles.mt3}
                         shouldSaveDraft
+                        forwardedFSClass={CONST.FULLSTORY.CLASS.MASK}
                     />
                     <InputWrapper
                         InputComponent={TextInput}
@@ -152,6 +153,7 @@ function ABAWithdrawalDetails({policyID, currency, onBackButtonPress, onSuccess}
                         inputMode={CONST.INPUT_MODE.NUMERIC}
                         containerStyles={styles.mt6}
                         shouldSaveDraft
+                        forwardedFSClass={CONST.FULLSTORY.CLASS.MASK}
                     />
                     <InputWrapper
                         InputComponent={TextInput}
@@ -162,6 +164,7 @@ function ABAWithdrawalDetails({policyID, currency, onBackButtonPress, onSuccess}
                         inputMode={CONST.INPUT_MODE.NUMERIC}
                         containerStyles={styles.mt6}
                         shouldSaveDraft
+                        forwardedFSClass={CONST.FULLSTORY.CLASS.MASK}
                     />
                     <InputWrapper
                         InputComponent={TextInput}
