@@ -68,6 +68,19 @@ function getVisibleCategories(policyCategories: PolicyCategories, ownerAccountID
 }
 
 /**
+ * Returns the enabled categories the member can't use, which an admin recoding their expense sees listed separately.
+ */
+function getUnavailableCategories(policyCategories: PolicyCategories, accountID: number): PolicyCategories {
+    const unavailableCategories: PolicyCategories = {};
+    for (const [categoryName, category] of Object.entries(policyCategories)) {
+        if (category.enabled && !isCategoryVisibleToMember(category, accountID)) {
+            unavailableCategories[categoryName] = category;
+        }
+    }
+    return unavailableCategories;
+}
+
+/**
  * Returns the members who can use at least one of the categories being disabled but no other enabled category, so
  * disabling them would leave these members with nothing to choose from.
  */
@@ -395,6 +408,7 @@ export {
     getEnabledCategoriesCount,
     getMemberVisibleCategoryNames,
     getVisibleCategories,
+    getUnavailableCategories,
     getMembersWithoutVisibleCategories,
     getMemberCategoryVisibilityPatches,
     isCategoryMissing,

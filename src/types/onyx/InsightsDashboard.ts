@@ -24,6 +24,9 @@ type InsightsGraph = {
     /** Hash of the snapshot holding the data for the "Average" compare mode */
     averageSnapshotHash?: number;
 
+    /** Workspaces in the Top spenders ranking that its Spend link must keep in scope */
+    eligiblePolicyIDs?: string[];
+
     /** Average group total over the selected period, in the same units as the snapshot's totals, which the "Average" compare mode draws on amount charts */
     averageAmount?: number;
 

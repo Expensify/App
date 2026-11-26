@@ -9,6 +9,7 @@ import {
     getMemberDefaultCategory,
     getMemberVisibleCategoryNames,
     getMembersWithoutVisibleCategories,
+    getUnavailableCategories,
     getVisibleCategories,
     hasAnyCategoryGLCode,
     hasAnyCategoryRules,
@@ -729,6 +730,24 @@ describe('getVisibleCategories', () => {
 
         // Then the disabled one is still there, so filtering doesn't change how disabled categories are handled
         expect(Object.keys(visibleCategories)).toEqual(['Travel', 'Meals', 'Software', 'Office']);
+    });
+});
+
+describe('getUnavailableCategories', () => {
+    it("returns the enabled categories the member can't use, leaving out disabled ones", () => {
+        // Given a member on Meals' list but not on Software's, and a disabled category they can't use either
+        const policyCategories: PolicyCategories = {
+            Travel: {name: 'Travel', enabled: true, visibleTo: null},
+            Meals: {name: 'Meals', enabled: true, visibleTo: buildVisibleTo(1)},
+            Software: {name: 'Software', enabled: true, visibleTo: buildVisibleTo(2)},
+            Office: {name: 'Office', enabled: false, visibleTo: buildVisibleTo(2)},
+        };
+
+        // When an admin's picker works out what the member can't use
+        const unavailableCategories = getUnavailableCategories(policyCategories, 1);
+
+        // Then only Software is listed, since a disabled category can't be picked by anyone
+        expect(Object.keys(unavailableCategories)).toEqual(['Software']);
     });
 });
 
