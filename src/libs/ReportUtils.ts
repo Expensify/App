@@ -16363,6 +16363,7 @@ export {
     findSelfDMReportID,
     formatReportLastMessageText,
     generateReportID,
+    getExpenseReportStateAndStatus,
     getCreationReportErrors,
     getAllHeldTransactions,
     getAllPolicyReports,

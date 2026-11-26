@@ -50,11 +50,13 @@ import {
     generateReportID,
     getChatReportFromMoneyRequestReport,
     getDefaultNotificationPreferenceForReport,
+    getExpenseReportStateAndStatus,
     getParsedComment,
     getReportOrDraftReport,
     getReportRecipientAccountIDs,
     isHiddenForCurrentUser,
     isMoneyRequestReport as isMoneyRequestReportReportUtils,
+    isOpenExpenseReport,
     isPolicyExpenseChat as isPolicyExpenseChatReportUtil,
     isSelfDM,
     prepareOnboardingOnyxData,
@@ -1155,6 +1157,12 @@ function getTrackExpenseInformation(params: GetTrackExpenseInformationParams): T
                     iouReport.unheldNonReimbursableTotal -= amount;
                 }
             }
+            // Finalize the optimistic state on the last batch item when earlier items deferred auto-submit.
+            if (existingIOUReport && shouldDeferAutoSubmit === false && isOpenExpenseReport(iouReport)) {
+                const {stateNum, statusNum} = getExpenseReportStateAndStatus(policy, isASAPSubmitBetaEnabled);
+                iouReport.stateNum = stateNum;
+                iouReport.statusNum = statusNum;
+            }
         }
     }
 
@@ -1246,7 +1254,9 @@ function getTrackExpenseInformation(params: GetTrackExpenseInformationParams): T
         if (reportPreviewAction) {
             reportPreviewAction = updateReportPreview(iouReport, reportPreviewAction, getCurrencyDecimals, false, comment, optimisticTransaction);
         } else {
-            reportPreviewAction = buildOptimisticReportPreview(chatReport, iouReport, getCurrencyDecimals, delegateAccountID, comment, optimisticTransaction);
+            // Reuse the report preview action ID when a later batch item runs before Onyx caches the first preview.
+            const previewActionID = shouldCreateNewMoneyRequestReport ? undefined : existingIOUReport?.parentReportActionID;
+            reportPreviewAction = buildOptimisticReportPreview(chatReport, iouReport, getCurrencyDecimals, delegateAccountID, comment, optimisticTransaction, undefined, previewActionID);
             // Generated ReportPreview action is a parent report action of the iou report.
             // We are setting the iou report's parentReportActionID to display subtitle correctly in IOU page when offline.
             iouReport.parentReportActionID = reportPreviewAction.reportActionID;

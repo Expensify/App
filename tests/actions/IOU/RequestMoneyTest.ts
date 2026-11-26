@@ -3403,13 +3403,16 @@ describe('actions/IOU', () => {
             expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.TRACK_EXPENSE, 0);
         });
 
-        it('defers auto-submit on non-final receipts and keeps a new Submit and Close optimistic report open until the final receipt', async () => {
+        it.each([
+            {iouType: CONST.IOU.TYPE.TRACK, expectedCommand: WRITE_COMMANDS.TRACK_EXPENSE, seed: 92},
+            {iouType: CONST.IOU.TYPE.SUBMIT, expectedCommand: WRITE_COMMANDS.REQUEST_MONEY, seed: 95},
+        ])('defers auto-submit, reuses one preview card, and finalizes Submit and Close state for $expectedCommand batches', async ({iouType, expectedCommand, seed}) => {
             // Given a workspace with Instant Submit, Submit and Close, and reimbursements disabled, plus two receipts dropped at once
             await signInWithTestUser(CREATE_TRANSACTION_USER_ACCOUNT_ID, CREATE_TRANSACTION_USER_LOGIN);
-            const policyID = 'submit-and-close-policy';
-            const chatReportID = 'submit-and-close-chat';
+            const policyID = `submit-and-close-policy-${seed}`;
+            const chatReportID = `submit-and-close-chat-${seed}`;
             const policy: Policy = {
-                ...createRandomPolicy(92, CONST.POLICY.TYPE.TEAM),
+                ...createRandomPolicy(seed, CONST.POLICY.TYPE.TEAM),
                 id: policyID,
                 autoReporting: true,
                 autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT,
@@ -3417,7 +3420,7 @@ describe('actions/IOU', () => {
                 reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO,
             };
             const chatReport: Report = {
-                ...createRandomReport(92, CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT),
+                ...createRandomReport(seed, CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT),
                 reportID: chatReportID,
                 policyID,
                 ownerAccountID: CREATE_TRANSACTION_USER_ACCOUNT_ID,
@@ -3425,33 +3428,45 @@ describe('actions/IOU', () => {
             };
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`, chatReport);
-            const tx1 = {...createRandomTransaction(93), transactionID: 'batch-tx-1', amount: 0, currency: 'USD', created: '2026-11-26'};
-            const tx2 = {...createRandomTransaction(94), transactionID: 'batch-tx-2', amount: 0, currency: 'USD', created: '2026-11-26'};
+            const tx1 = {...createRandomTransaction(seed + 1), transactionID: `batch-tx-${seed}-1`, amount: 0, currency: 'USD', created: '2026-11-26'};
+            const tx2 = {...createRandomTransaction(seed + 2), transactionID: `batch-tx-${seed}-2`, amount: 0, currency: 'USD', created: '2026-11-26'};
 
             // When both receipts are submitted in one batch via createTransaction
             const writeSpy = jest.spyOn(API, 'writeWhenReady');
             createTransaction({
-                ...buildCreateTransactionParams(CONST.IOU.TYPE.TRACK, chatReport),
+                ...buildCreateTransactionParams(iouType, chatReport),
+                isASAPSubmitBetaEnabled: false,
                 policyParams: {policy},
                 participant: {reportID: chatReportID, isPolicyExpenseChat: true, policyID},
                 transactions: [tx1, tx2],
                 files: [
-                    {transactionID: tx1.transactionID, source: 'receipt-1'},
-                    {transactionID: tx2.transactionID, source: 'receipt-2'},
+                    {transactionID: tx1.transactionID, source: `receipt-${seed}-1`},
+                    {transactionID: tx2.transactionID, source: `receipt-${seed}-2`},
                 ],
-                optimisticTransactionIDs: ['opt-tx-1', 'opt-tx-2'],
+                optimisticTransactionIDs: [`opt-tx-${seed}-1`, `opt-tx-${seed}-2`],
             });
             await waitForBatchedUpdates();
 
-            // Then both TrackExpense calls target the same report, and only the first defers auto-submit
-            const trackCalls = writeSpy.mock.calls.filter(([command]) => command === WRITE_COMMANDS.TRACK_EXPENSE);
-            expect(trackCalls).toHaveLength(2);
-            const firstParams = trackCalls.at(0)?.at(1);
-            const secondParams = trackCalls.at(1)?.at(1);
+            // Then both calls target the same report and preview action, and only the first defers auto-submit
+            const commandCalls = writeSpy.mock.calls.filter(([command]) => command === expectedCommand);
+            expect(commandCalls).toHaveLength(2);
+            const firstParams = commandCalls.at(0)?.at(1);
+            const secondParams = commandCalls.at(1)?.at(1);
             const firstReportID = typeof firstParams === 'object' && firstParams !== null && 'iouReportID' in firstParams ? firstParams.iouReportID : undefined;
+            const firstPreviewActionID =
+                typeof firstParams === 'object' && firstParams !== null && 'reportPreviewReportActionID' in firstParams ? firstParams.reportPreviewReportActionID : undefined;
             expect(firstReportID).toBeTruthy();
-            expect(firstParams).toEqual(expect.objectContaining({iouReportID: firstReportID, shouldDeferAutoSubmit: true}));
-            expect(secondParams).toEqual(expect.objectContaining({iouReportID: firstReportID, shouldDeferAutoSubmit: false}));
+            expect(firstPreviewActionID).toBeTruthy();
+            expect(firstParams).toEqual(expect.objectContaining({iouReportID: firstReportID, reportPreviewReportActionID: firstPreviewActionID, shouldDeferAutoSubmit: true}));
+            expect(secondParams).toEqual(expect.objectContaining({iouReportID: firstReportID, reportPreviewReportActionID: firstPreviewActionID, shouldDeferAutoSubmit: false}));
+
+            // And the final item restores the optimistic Submit and Close report status and avoids duplicate preview cards
+            const createdReport = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${String(firstReportID)}`);
+            expect(createdReport?.stateNum).toBe(CONST.REPORT.STATE_NUM.APPROVED);
+            expect(createdReport?.statusNum).toBe(CONST.REPORT.STATUS_NUM.CLOSED);
+            const chatActions = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReportID}`);
+            const previewActions = Object.values(chatActions ?? {}).filter((action) => action?.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW);
+            expect(previewActions).toHaveLength(1);
             writeSpy.mockRestore();
         });
     });

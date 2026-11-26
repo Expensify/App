@@ -29,6 +29,7 @@ import {
     computeOptimisticReportNameWithMetadata,
     generateReportID,
     getChatByParticipants,
+    getExpenseReportStateAndStatus,
     getNewestOutstandingReportForUser,
     getOutstandingChildRequest,
     getReimbursableTotal,
@@ -41,6 +42,7 @@ import {
     isInvoiceReport as isInvoiceReportReportUtils,
     isMoneyRequestReport,
     isOneTransactionReport,
+    isOpenExpenseReport,
     isPolicyExpenseChat as isPolicyExpenseChatReportUtil,
     isReportTotalPending,
     isSelfDM,
@@ -1555,6 +1557,12 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
                 }
             }
         }
+        // Finalize the optimistic state on the last batch item when earlier items deferred auto-submit.
+        if (existingIOUReport && shouldDeferAutoSubmit === false && isOpenExpenseReport(iouReport)) {
+            const {stateNum, statusNum} = getExpenseReportStateAndStatus(policy, isASAPSubmitBetaEnabled);
+            iouReport.stateNum = stateNum;
+            iouReport.statusNum = statusNum;
+        }
     } else {
         iouReport = updateIOUOwnerAndTotal(iouReport, payeeAccountID, reportAmount, currency);
     }
@@ -1738,16 +1746,9 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
     if (reportPreviewAction) {
         reportPreviewAction = updateReportPreview(iouReport, reportPreviewAction, getCurrencyDecimals, false, comment, optimisticTransaction);
     } else {
-        reportPreviewAction = buildOptimisticReportPreview(
-            chatReport,
-            iouReport,
-            getCurrencyDecimals,
-            delegateAccountID,
-            comment,
-            optimisticTransaction,
-            undefined,
-            optimisticReportPreviewActionID,
-        );
+        // Reuse the report preview action ID when a later batch item runs before Onyx caches the first preview.
+        const previewActionID = shouldCreateNewMoneyRequestReport ? optimisticReportPreviewActionID : (optimisticReportPreviewActionID ?? existingIOUReport?.parentReportActionID);
+        reportPreviewAction = buildOptimisticReportPreview(chatReport, iouReport, getCurrencyDecimals, delegateAccountID, comment, optimisticTransaction, undefined, previewActionID);
         chatReport.lastVisibleActionCreated = reportPreviewAction.created;
 
         // Generated ReportPreview action is a parent report action of the iou report.
