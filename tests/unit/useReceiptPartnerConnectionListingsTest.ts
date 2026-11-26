@@ -41,7 +41,7 @@ jest.mock('@hooks/useGetReceiptPartnersIntegrationData', () => ({
         isUberConnected: mockUberState.isUberConnected,
     }),
 }));
-jest.mock('@hooks/useLocalize', () => () => ({translate: (key: string) => key}));
+jest.mock('@hooks/useLocalize', () => () => ({translate: (key: string) => `localized:${key}`}));
 jest.mock('@hooks/useLazyAsset', () => ({useMemoizedLazyExpensifyIcons: () => mockIcons}));
 jest.mock('@hooks/useNetwork', () => () => ({isOffline: false}));
 jest.mock('@hooks/usePolicyFeatureWriteAccess', () => () => ({canWrite: mockCanWrite, showReadOnlyModal: mockShowReadOnlyModal}));
@@ -74,9 +74,11 @@ describe('useReceiptPartnerConnectionListings', () => {
         // When the catalog is built
         const guides = result.current.slice(1);
 
-        // Then all seven approved brands have independent, status-free cards, without Navan
+        // Then all seven approved brands use localized titles and have independent, status-free cards, without Navan
         expect(result.current.at(0)?.key).toBe(CONST.POLICY.RECEIPT_PARTNERS.NAME.UBER);
-        expect(guides.map(({key, title, icon}) => ({key, title, icon}))).toEqual(expectedGuides.map(({key, title, icon}) => ({key, title, icon})));
+        expect(guides.map(({key, title, icon}) => ({key, title, icon}))).toEqual(
+            expectedGuides.map(({key, icon}) => ({key, title: `localized:workspace.receiptPartners.${key}.title`, icon})),
+        );
         expect(new Set(result.current.map(({key}) => key)).size).toBe(8);
         for (const guide of guides) {
             expect(guide.category).toBe(CONST.TAB.CONNECTIONS.RECEIPTS);

@@ -4,29 +4,30 @@
 import type {ExpensifyIconName} from '@components/Icon/ExpensifyIconLoader';
 
 import CONST from '@src/CONST';
+import type {TranslationPaths} from '@src/languages/types';
 
 type ReceiptIntegrationGuide = {
     key: string;
-    title: string;
+    titleKey: TranslationPaths;
     iconName: ExpensifyIconName;
     helpURL: string;
 };
 
 const RECEIPT_INTEGRATION_GUIDES = [
-    {key: 'lyft', title: 'Lyft', iconName: 'Lyft', helpURL: CONST.RECEIPT_INTEGRATION_HELP_URLS.LYFT},
-    {key: 'instacart', title: 'Instacart', iconName: 'Instacart', helpURL: CONST.RECEIPT_INTEGRATION_HELP_URLS.INSTACART},
-    {key: 'doordash', title: 'DoorDash', iconName: 'DoorDash', helpURL: CONST.RECEIPT_INTEGRATION_HELP_URLS.DOORDASH},
-    {key: 'americanAirlines', title: 'American Airlines', iconName: 'AmericanAirlines', helpURL: CONST.RECEIPT_INTEGRATION_HELP_URLS.AMERICAN_AIRLINES},
-    {key: 'united', title: 'United', iconName: 'United', helpURL: CONST.RECEIPT_INTEGRATION_HELP_URLS.UNITED},
+    {key: 'lyft', titleKey: 'workspace.receiptPartners.lyft.title', iconName: 'Lyft', helpURL: CONST.RECEIPT_INTEGRATION_HELP_URLS.LYFT},
+    {key: 'instacart', titleKey: 'workspace.receiptPartners.instacart.title', iconName: 'Instacart', helpURL: CONST.RECEIPT_INTEGRATION_HELP_URLS.INSTACART},
+    {key: 'doordash', titleKey: 'workspace.receiptPartners.doordash.title', iconName: 'DoorDash', helpURL: CONST.RECEIPT_INTEGRATION_HELP_URLS.DOORDASH},
+    {key: 'americanAirlines', titleKey: 'workspace.receiptPartners.americanAirlines.title', iconName: 'AmericanAirlines', helpURL: CONST.RECEIPT_INTEGRATION_HELP_URLS.AMERICAN_AIRLINES},
+    {key: 'united', titleKey: 'workspace.receiptPartners.united.title', iconName: 'United', helpURL: CONST.RECEIPT_INTEGRATION_HELP_URLS.UNITED},
     {
         key: 'delta',
-        title: 'Delta',
+        titleKey: 'workspace.receiptPartners.delta.title',
         iconName: 'Delta',
         helpURL: CONST.RECEIPT_INTEGRATION_HELP_URLS.DELTA,
     },
     {
         key: 'kayak',
-        title: 'KAYAK',
+        titleKey: 'workspace.receiptPartners.kayak.title',
         iconName: 'Kayak',
         helpURL: CONST.RECEIPT_INTEGRATION_HELP_URLS.KAYAK,
     },

@@ -5807,6 +5807,13 @@ ${amount} για ${merchant} - ${date}`,
             allConnectedPrompt: '<muted-text><centered-text>Όλα εδώ είναι ήδη συνδεδεμένα. Μπορείτε επίσης να <a href="#">προτείνετε μια ενσωμάτωση</a>.</centered-text></muted-text>',
         },
         receiptPartners: {
+            lyft: {title: 'Lyft'},
+            instacart: {title: 'Instacart'},
+            doordash: {title: 'DoorDash'},
+            americanAirlines: {title: 'American Airlines'},
+            united: {title: 'United'},
+            delta: {title: 'Delta'},
+            kayak: {title: 'KAYAK'},
             uber: {
                 subtitle: (organizationName: string) =>
                     organizationName ? `Συνδεθήκατε με την ${organizationName}` : 'Αυτοματοποιήστε τα έξοδα ταξιδιών και παράδοσης γευμάτων σε ολόκληρο τον οργανισμό σας.',

@@ -67,10 +67,10 @@ function useReceiptPartnerConnectionListings(policy: OnyxEntry<Policy>): Connect
         return [];
     }
 
-    const guideListings: ConnectionListing[] = RECEIPT_INTEGRATION_GUIDES.map(({key, title, iconName, helpURL}) => ({
+    const guideListings: ConnectionListing[] = RECEIPT_INTEGRATION_GUIDES.map(({key, titleKey, iconName, helpURL}) => ({
         key,
         category: CONST.TAB.CONNECTIONS.RECEIPTS,
-        title,
+        title: translate(titleKey),
         icon: icons[iconName],
         onConnect: () => openExternalLink(helpURL),
     }));
