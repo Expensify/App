@@ -272,7 +272,7 @@ describe('frameDropMonitor', () => {
         report();
 
         // Then the budget holds, nothing is lost, and the unresolved part isn't credited to the screens as healthy time
-        expect(mockFetchFramesDelay.mock.calls.length).toBeLessThanOrEqual(1 + FRAME_DROPS.MAX_QUERIES_PER_FLUSH);
+        expect(mockFetchFramesDelay.mock.calls.length).toBeLessThanOrEqual(FRAME_DROPS.MAX_QUERIES_PER_FLUSH);
         expect(sumCounts(FRAME_DROPS.METRIC_FRAME_DELAY)).toBe(200);
         expect(sumCounts(FRAME_DROPS.METRIC_ACTIVE_TIME)).toBe(2_000);
         const unattributed = {screen: FRAME_DROPS.UNATTRIBUTED, interaction: FRAME_DROPS.UNATTRIBUTED, operation: FRAME_DROPS.UNATTRIBUTED, flow: FRAME_DROPS.UNATTRIBUTED};
@@ -492,10 +492,13 @@ describe('frameDropMonitor', () => {
         expect(mockFetchFramesDelay).not.toHaveBeenCalled();
     });
 
-    it('flushes at the latest after a timeout on a screen that never leaves the JS thread idle, without piling up callbacks', () => {
+    it('flushes at the latest after a timeout on a screen that never leaves the JS thread idle, without piling up callbacks', async () => {
         // Given a JS thread that is never idle, so idle callbacks only run when their timeout expires
-        const requestIdleCallbackMock = jest.fn();
+        const requestIdleCallbackMock = jest.fn<void, [() => void, {timeout: number}]>();
         (globalThis as {requestIdleCallback?: unknown}).requestIdleCallback = requestIdleCallbackMock;
+        mockDelays([], 0);
+        recordScreen('Home');
+        now = 5_000;
 
         // When two flush intervals pass while the first callback is still waiting
         scheduleFlush();
@@ -504,6 +507,13 @@ describe('frameDropMonitor', () => {
         // Then a single callback is waiting, and it has a timeout so it still runs
         expect(requestIdleCallbackMock).toHaveBeenCalledTimes(1);
         expect(requestIdleCallbackMock).toHaveBeenCalledWith(expect.any(Function), {timeout: FRAME_DROPS.IDLE_FLUSH_TIMEOUT_MS});
+
+        // When the timeout expires and the callback runs
+        requestIdleCallbackMock.mock.calls.at(0)?.[0]();
+        await flush(now);
+
+        // Then the window is flushed
+        expect(mockFetchFramesDelay).toHaveBeenCalled();
     });
 
     it('turns itself off when native frame tracking never answers', async () => {

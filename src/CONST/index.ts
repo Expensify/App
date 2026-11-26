@@ -2980,9 +2980,10 @@ const CONST = {
             ATTRIBUTE_CONCURRENT_OPERATIONS: 'concurrent_operations',
             ATTRIBUTE_PLATFORM: 'platform',
             ATTRIBUTE_DEVICE_TIER: 'device_tier',
-            // Total RAM thresholds of the device tier (see getDeviceTier).
-            DEVICE_TIER_MEDIUM_MIN_MEMORY_BYTES: 4 * 1024 ** 3,
-            DEVICE_TIER_HIGH_MIN_MEMORY_BYTES: 6 * 1024 ** 3,
+            // Total RAM thresholds of the device tier (see getDeviceTier). The OS reports less than the nominal size, so a 4 GB phone is
+            // medium and a 6 GB phone is high.
+            DEVICE_TIER_MEDIUM_MIN_MEMORY_BYTES: 3.5 * 1024 ** 3,
+            DEVICE_TIER_HIGH_MIN_MEMORY_BYTES: 5.5 * 1024 ** 3,
             DEVICE_TIER: {
                 LOW: 'low',
                 MEDIUM: 'medium',

@@ -359,7 +359,7 @@ async function flushWindow(start: number, end: number) {
             return;
         }
 
-        const {delays, queryCount} = await splitDelay(segments, totalDelaySeconds, toUnixSeconds, CONST.TELEMETRY.FRAME_DROPS.MAX_QUERIES_PER_FLUSH);
+        const {delays, queryCount} = await splitDelay(segments, totalDelaySeconds, toUnixSeconds, CONST.TELEMETRY.FRAME_DROPS.MAX_QUERIES_PER_FLUSH - 1);
         // Native release bundles keep console calls, and React Native serializes every argument before passing it to the native logger.
         if (__DEV__) {
             console.debug('[FrameDrops] Flushed window', {
