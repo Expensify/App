@@ -93,7 +93,7 @@ type MenuData = WithRequiredSentryLabel & {
 /** Settings menu row that opens a route. */
 type RouteMenuData = Omit<MenuData, 'action' | 'route'> & {route: Route};
 
-function withNavigateAction(item: RouteMenuData): MenuData {
+function addNavigateAction(item: RouteMenuData): MenuData {
     return {...item, action: () => Navigation.navigate(item.route)};
 }
 
@@ -212,11 +212,11 @@ function useSettingsNavigationMenuData(): {accountMenuItemsData: MenuSection; ge
     return {
         accountMenuItemsData: {
             sectionTranslationKey: 'initialSettingsPage.account',
-            items: accountItems.map(withNavigateAction),
+            items: accountItems.map(addNavigateAction),
         },
         generalMenuItemsData: {
             sectionTranslationKey: 'initialSettingsPage.general',
-            items: generalItems.map(withNavigateAction),
+            items: generalItems.map(addNavigateAction),
         },
     };
 }
