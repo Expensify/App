@@ -1,6 +1,7 @@
 /**
  * Determines whether the trial payment reminder modal is eligible to show and which variant/countdown
  * to display, based on the user's free-trial dates, payment-card status, and prior dismissals.
+ * The modal never shows during the session in which a new user goes through onboarding.
  */
 import {getOwnedPaidPolicies, isPendingDeletePolicy} from '@libs/PolicyUtils';
 import {calculateRemainingTrialSeconds, calculateTrialDayNumber, doesUserHavePaymentCardAdded, isUserOnFreeTrial} from '@libs/SubscriptionUtils';
@@ -15,6 +16,7 @@ import type {ValueOf} from 'type-fest';
 
 import {useEffect, useState} from 'react';
 
+import useIsTrialReminderFirstSession from './useIsTrialReminderFirstSession';
 import useOnyx from './useOnyx';
 
 const FIVE_MINUTES_MS = 5 * 60 * 1000;
@@ -155,6 +157,7 @@ function useTrialPaymentReminder() {
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [currentUserAccountID] = useOnyx(ONYXKEYS.SESSION, {selector: (session) => session?.accountID});
     const [hasLoadedApp] = useOnyx(ONYXKEYS.HAS_LOADED_APP);
+    const isFirstSession = useIsTrialReminderFirstSession(currentUserAccountID);
 
     const [readinessState, setReadinessState] = useState<ReadinessState>(READINESS_STATE.LOADING);
 
@@ -224,6 +227,7 @@ function useTrialPaymentReminder() {
 
     let isEligibleToShow =
         hasLoadedApp &&
+        !isFirstSession &&
         isUserOnFreeTrial(firstDayFreeTrial, lastDayFreeTrial) &&
         !isLoadingOnyxValue(billingFundIDResult) &&
         !doesUserHavePaymentCardAdded(billingFundID) &&
