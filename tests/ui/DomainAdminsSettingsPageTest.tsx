@@ -16,7 +16,7 @@ import {toggleConsolidatedDomainBilling} from '@userActions/Domain';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {DYNAMIC_ROUTES} from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 
 import type * as ReactNavigationNative from '@react-navigation/native';
@@ -41,6 +41,7 @@ const BILLING_FUND_ID = 1234;
 
 let mockCurrentUserLogin = CURRENT_USER_EMAIL;
 let mockIsNativeApp = false;
+let mockPressPrimaryContactRow: (() => void) | undefined;
 
 jest.mock('@react-navigation/native', () => ({
     ...jest.requireActual<typeof ReactNavigationNative>('@react-navigation/native'),
@@ -63,7 +64,12 @@ jest.mock('@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute', () =
 jest.mock('@hooks/useConfirmModal', () => jest.requireActual<typeof ConfirmModalMock>('../utils/mockUseConfirmModal').default);
 jest.mock('@hooks/useCurrentUserPersonalDetails', () => jest.fn(() => ({login: mockCurrentUserLogin})));
 jest.mock('@pages/domain/BaseDomainSettingsPage', () => jest.fn(({children}: PropsWithChildren) => children));
-jest.mock('@components/MenuItem/presets/MenuItemField', () => jest.fn(() => null));
+jest.mock('@components/MenuItem/presets/MenuItemField', () =>
+    jest.fn(({onPress}: {onPress: () => void}) => {
+        mockPressPrimaryContactRow = onPress;
+        return null;
+    }),
+);
 jest.mock('@components/RenderHTML', () => () => null);
 jest.mock('@userActions/Domain', () => ({
     toggleConsolidatedDomainBilling: jest.fn(),
@@ -97,7 +103,7 @@ async function seedDomain(technicalContactEmail: string | undefined, isBillingOn
     });
 }
 
-async function renderPageAndPressSwitch() {
+async function renderPage() {
     render(
         <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>
             <DomainAdminsSettingsPage
@@ -107,6 +113,16 @@ async function renderPageAndPressSwitch() {
         </ComposeProviders>,
     );
     await waitForBatchedUpdatesWithAct();
+}
+
+async function renderPageAndPressPrimaryContactRow() {
+    await renderPage();
+    act(() => mockPressPrimaryContactRow?.());
+    await waitForBatchedUpdatesWithAct();
+}
+
+async function renderPageAndPressSwitch() {
+    await renderPage();
 
     const switchNode = screen.getByRole(CONST.ROLE.SWITCH);
     fireEvent.press(switchNode);
@@ -115,7 +131,7 @@ async function renderPageAndPressSwitch() {
     return switchNode;
 }
 
-describe('DomainAdminsSettingsPage consolidated domain billing switch', () => {
+describe('DomainAdminsSettingsPage', () => {
     beforeAll(() => {
         Onyx.init({keys: ONYXKEYS});
     });
@@ -125,6 +141,7 @@ describe('DomainAdminsSettingsPage consolidated domain billing switch', () => {
         resetMockConfirmModal();
         mockCurrentUserLogin = CURRENT_USER_EMAIL;
         mockIsNativeApp = false;
+        mockPressPrimaryContactRow = undefined;
         await act(async () => {
             await Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, CONST.LOCALES.EN);
         });
@@ -180,23 +197,25 @@ describe('DomainAdminsSettingsPage consolidated domain billing switch', () => {
         mockCurrentUserLogin = PRIMARY_CONTACT_EMAIL;
 
         // When the primary contact presses the switch
-        await renderPageAndPressSwitch();
+        const switchNode = await renderPageAndPressSwitch();
 
-        // Then the domain payment card page opens and billing stays off until a card is added
+        // Then the switch is not locked, and the domain payment card page opens and billing stays off until a card is added.
+        expect(switchNode.props.accessibilityLabel).not.toContain(getLockedSuffix());
         expect(Navigation.navigate).toHaveBeenCalledWith(DYNAMIC_ROUTES.DOMAIN_PAYMENT_CARD.getRoute(CONST.DOMAIN.PAYMENT_CARD_FLOW.CONSOLIDATED_BILLING));
         expect(toggleConsolidatedDomainBilling).not.toHaveBeenCalled();
     });
 
-    it('tells a primary contact without a payment card in the mobile app to add one on the web first', async () => {
+    it('locks the switch for a primary contact without a payment card in the mobile app and tells them to add one on the web first', async () => {
         // Given billing that is off, viewed in the mobile app by the primary contact, who has no payment card
         await seedDomain(PRIMARY_CONTACT_EMAIL);
         mockCurrentUserLogin = PRIMARY_CONTACT_EMAIL;
         mockIsNativeApp = true;
 
         // When the primary contact presses the switch
-        await renderPageAndPressSwitch();
+        const switchNode = await renderPageAndPressSwitch();
 
-        // Then a modal explains that a card is needed, and billing stays off
+        // Then the switch is locked, a modal explains that a card is needed, and billing stays off.
+        expect(switchNode.props.accessibilityLabel).toContain(getLockedSuffix());
         expect(mockShowConfirmModal).toHaveBeenCalledWith(
             expect.objectContaining({
                 title: TestHelper.translateLocal('workspace.distanceRates.oopsNotSoFast'),
@@ -219,11 +238,27 @@ describe('DomainAdminsSettingsPage consolidated domain billing switch', () => {
         mockIsNativeApp = true;
 
         // When the primary contact presses the switch
-        await renderPageAndPressSwitch();
+        const switchNode = await renderPageAndPressSwitch();
 
-        // Then billing turns on without a modal
+        // Then the switch is not locked and billing turns on without a modal.
+        expect(switchNode.props.accessibilityLabel).not.toContain(getLockedSuffix());
         expect(mockShowConfirmModal).not.toHaveBeenCalled();
         expect(toggleConsolidatedDomainBilling).toHaveBeenCalledWith(DOMAIN_ACCOUNT_ID, DOMAIN_NAME, true);
+    });
+
+    it('lets a primary contact without a payment card turn the setting off in the mobile app', async () => {
+        // Given billing that is on, viewed in the mobile app by the primary contact, who has no payment card.
+        await seedDomain(PRIMARY_CONTACT_EMAIL, true);
+        mockCurrentUserLogin = PRIMARY_CONTACT_EMAIL;
+        mockIsNativeApp = true;
+
+        // When the primary contact presses the switch.
+        const switchNode = await renderPageAndPressSwitch();
+
+        // Then the switch is not locked and billing turns off without a modal.
+        expect(switchNode.props.accessibilityLabel).not.toContain(getLockedSuffix());
+        expect(mockShowConfirmModal).not.toHaveBeenCalled();
+        expect(toggleConsolidatedDomainBilling).toHaveBeenCalledWith(DOMAIN_ACCOUNT_ID, DOMAIN_NAME, false);
     });
 
     it('lets any admin turn the setting off', async () => {
@@ -250,5 +285,67 @@ describe('DomainAdminsSettingsPage consolidated domain billing switch', () => {
         expect(switchNode.props.accessibilityLabel).toContain(getLockedSuffix());
         expect(mockShowConfirmModal).not.toHaveBeenCalled();
         expect(toggleConsolidatedDomainBilling).not.toHaveBeenCalled();
+    });
+
+    it('tells an admin without a payment card in the mobile app to add one on the web before taking over as primary contact while billing is on', async () => {
+        // Given billing that is on, viewed in the mobile app by another admin, who has no payment card.
+        await seedDomain(PRIMARY_CONTACT_EMAIL, true);
+        mockIsNativeApp = true;
+
+        // When the admin presses the primary contact row.
+        await renderPageAndPressPrimaryContactRow();
+
+        // Then a modal explains that a card is needed, and the primary contact picker stays closed.
+        expect(mockShowConfirmModal).toHaveBeenCalledWith(
+            expect.objectContaining({
+                title: TestHelper.translateLocal('workspace.distanceRates.oopsNotSoFast'),
+                prompt: TestHelper.translateLocal('domain.admins.primaryContactNoCardMobileMessage'),
+                confirmText: TestHelper.translateLocal('common.buttonConfirm'),
+                shouldShowCancelButton: false,
+            }),
+        );
+        expect(Navigation.navigate).not.toHaveBeenCalled();
+    });
+
+    it('opens the primary contact picker for the primary contact without a payment card in the mobile app while billing is on', async () => {
+        // Given billing that is on, viewed in the mobile app by the primary contact, who has no payment card.
+        await seedDomain(PRIMARY_CONTACT_EMAIL, true);
+        mockCurrentUserLogin = PRIMARY_CONTACT_EMAIL;
+        mockIsNativeApp = true;
+
+        // When the primary contact presses the primary contact row.
+        await renderPageAndPressPrimaryContactRow();
+
+        // Then the primary contact picker opens without a modal.
+        expect(mockShowConfirmModal).not.toHaveBeenCalled();
+        expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.DOMAIN_ADD_PRIMARY_CONTACT.getRoute(DOMAIN_ACCOUNT_ID));
+    });
+
+    it('opens the primary contact picker for an admin with a payment card in the mobile app while billing is on', async () => {
+        // Given billing that is on, viewed in the mobile app by another admin, who has a payment card.
+        await seedDomain(PRIMARY_CONTACT_EMAIL, true);
+        await act(async () => {
+            await Onyx.set(ONYXKEYS.NVP_BILLING_FUND_ID, BILLING_FUND_ID);
+        });
+        mockIsNativeApp = true;
+
+        // When the admin presses the primary contact row.
+        await renderPageAndPressPrimaryContactRow();
+
+        // Then the primary contact picker opens without a modal.
+        expect(mockShowConfirmModal).not.toHaveBeenCalled();
+        expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.DOMAIN_ADD_PRIMARY_CONTACT.getRoute(DOMAIN_ACCOUNT_ID));
+    });
+
+    it('opens the primary contact picker for an admin without a payment card on the web while billing is on', async () => {
+        // Given billing that is on, viewed on the web by another admin, who has no payment card.
+        await seedDomain(PRIMARY_CONTACT_EMAIL, true);
+
+        // When the admin presses the primary contact row.
+        await renderPageAndPressPrimaryContactRow();
+
+        // Then the primary contact picker opens, because the admin can add a card after picking themselves.
+        expect(mockShowConfirmModal).not.toHaveBeenCalled();
+        expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.DOMAIN_ADD_PRIMARY_CONTACT.getRoute(DOMAIN_ACCOUNT_ID));
     });
 });
