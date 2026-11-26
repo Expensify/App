@@ -971,6 +971,20 @@ describe('useSearchAutoRefetch', () => {
             expect(search).toHaveBeenCalledWith({queryJSON: baseProps.queryJSON, searchKey: undefined, offset: 0, shouldCalculateTotals: false, isLoading: false});
         });
 
+        it('searches again from the first page when a Select all job finishes after more pages loaded', async () => {
+            // Given Search is open on its third page while a Select all job runs
+            await Onyx.set(BULK_ACTION_KEY, {state: CONST.BULK_ACTION.STATE.RUNNING, action: CONST.SEARCH.BULK_ACTION_TYPES.CHANGE_WORKSPACE});
+            renderHook(() => useSearchAutoRefetch({...baseProps, offset: 100}));
+            await waitForBatchedUpdatesWithAct();
+
+            // When the job finishes
+            await Onyx.merge(BULK_ACTION_KEY, {state: CONST.BULK_ACTION.STATE.DONE, total: 1, failedReportIDs: []});
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the search starts over, since the job can change reports on the pages already loaded
+            expect(search).toHaveBeenCalledWith(expect.objectContaining({offset: 0}));
+        });
+
         it('searches again when a running job is deleted after Concierge sends its summary', async () => {
             // Given Search is open while a Select all job runs
             await Onyx.set(BULK_ACTION_KEY, {state: CONST.BULK_ACTION.STATE.RUNNING, action: CONST.SEARCH.BULK_ACTION_TYPES.CHANGE_WORKSPACE, shouldSendFromConcierge: true});

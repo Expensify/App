@@ -311,23 +311,13 @@ function useSearchAutoRefetch({
             return;
         }
         hasFinishedBulkActionRef.current = false;
+        // The job can change reports on every page, so the results are fetched again from the first one.
         TransitionTracker.runAfterTransitions({
             callback: () => {
-                search({queryJSON, searchKey, offset, shouldCalculateTotals, isLoading: !!searchResults?.search?.isLoading});
+                search({queryJSON, searchKey, offset: 0, shouldCalculateTotals, isLoading: !!searchResults?.search?.isLoading});
             },
         });
-    }, [
-        runningBulkActionKeys,
-        previousRunningBulkActionKeys,
-        isFocused,
-        isOffline,
-        shouldReturnTripRooms,
-        queryJSON,
-        searchKey,
-        offset,
-        shouldCalculateTotals,
-        searchResults?.search?.isLoading,
-    ]);
+    }, [runningBulkActionKeys, previousRunningBulkActionKeys, isFocused, isOffline, shouldReturnTripRooms, queryJSON, searchKey, shouldCalculateTotals, searchResults?.search?.isLoading]);
 
     return {newTransactions};
 }
