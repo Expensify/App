@@ -361,8 +361,8 @@ describe('service worker navigation', () => {
         expect(mockMatchPrecache).toHaveBeenCalledWith('/index.html');
     });
 
-    it.each(['/index.html', '/index.html?test=1', '/', '/r/123', '/settings/profile'])("handles app navigation to '%s'", (pathname) => {
-        // Given a navigation to the app shell or a deep link
+    it.each(['/index.html', '/index.html?test=1', '/', '/r/123', '/settings/profile', '/?exitTo=https://a.com', '/r/1?backTo=/a.b'])("handles app navigation to '%s'", (pathname) => {
+        // Given a navigation to the app shell or a deep link, whose query can contain a slash and a dot
         const denylist = mockNavigationRoute.mock.calls.at(0)?.[1].denylist;
 
         // When the navigation is matched
@@ -373,7 +373,7 @@ describe('service worker navigation', () => {
         expect(mockNavigationRoute.mock.calls.at(0)?.[1].allowlist).toBeUndefined();
     });
 
-    it.each(['/_test', '/.well-known/assetlinks.json', '/asset.js', '/fonts/font.woff2'])("leaves '%s' outside app navigation", (pathname) => {
+    it.each(['/_test', '/.well-known/assetlinks.json', '/asset.js', '/fonts/font.woff2', '/asset.js?v=1', '/asset.js?from=/r/1'])("leaves '%s' outside app navigation", (pathname) => {
         // Given a request that must not receive the app shell
         const denylist = mockNavigationRoute.mock.calls.at(0)?.[1].denylist;
 
@@ -457,9 +457,14 @@ describe('service worker navigation', () => {
             ['/index.html?appUpdateRequired=true', 1],
             ['/', 2],
             ['/inbox?authToken=t&email=e', 2],
+            ['/?exitTo=https://a.com', 2],
+            ['/concierge', 1],
+            ['/concierge/', undefined],
+            ['/SignOut//', 0],
             ['/reports', undefined],
             ['/signin', undefined],
             ['/inbox.php', undefined],
+            ['/r/x.php?from=/r/1', undefined],
             ['/r/123/receipt.pdf', undefined],
             ['/_support/x', undefined],
         ])("routes '%s' to navigation route %s", (url, expectedRoute) => {
@@ -793,6 +798,12 @@ describe('service worker navigation', () => {
             // cspell:disable-next-line
             ['/newjs/x.png', 'image', false],
             ['/Site/x.png', 'image', false],
+            ['/images/logo.png', 'image', false],
+            // cspell:disable-next-line
+            ['/newcss/x.png', 'image', false],
+            ['/help/x.png', 'image', false],
+            ['/_testify/x.png', 'image', false],
+            ['/images-x/logo.png', 'image', true],
             ['/receipts/w_123.jpg', '', true],
             ['/chat-attachments/1/x.png', 'image', true],
             ['/logo-abc12345.png', 'image', true],

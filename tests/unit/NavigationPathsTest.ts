@@ -26,15 +26,14 @@ const SHARED_EXAMPLES = ['/', '/inbox', '/home', '/settings', '/travel', '/state
 
 // Routes New Expensify parses that the service worker deliberately leaves to the network
 const UNCLASSIFIED_ROUTES = new Set([
-    // The experience router always sends /concierge to Expensify Classic
-    'concierge',
     // Tab screens whose exact paths only exist inside their parent route
     CONST.TAB.RECEIPT_PARTNERS.ALL,
     CONST.TAB.RECEIPT_PARTNERS.LINKED,
     CONST.TAB.RECEIPT_PARTNERS.OUTSTANDING,
 ]);
 
-// Pages Expensify Classic serves at the root of its host: every top-level PHP file, which nginx serves without the extension, and every directory
+// Pages Expensify Classic serves at the root of its host: every top-level PHP file, which nginx serves without the extension, and every directory.
+// `concierge` is left out, because only the directory `/concierge/` is Classic's.
 // cspell:disable
 const CLASSIC_PAGES = [
     ...['accessibility', 'accountants', 'achAuthentication', 'achterms', 'activate', 'addcreditcard', 'admin', 'admin_companycards', 'admin_domains'],
@@ -52,7 +51,7 @@ const CLASSIC_PAGES = [
     ...['statement', 'terms', 'tplprivacy', 'tpmlprivacy', 'travel', 'TravelBillingStatement', 'travelterms', 'trips', 'twt', 'ukcardagreement'],
     ...['ukeeacommercialcardprogramterms', 'uklaunch', 'unlimited', 'unlink-email', 'unsubscribe', 'upgrade', 'UrbanAirshipAPITest', 'user'],
     ...['validate-email', 'verifyReceipt', 'wifiRedirect', 'wifiSuccess', 'www-dev-config', 'xero', 'xlstojson'],
-    ...['apiassets', 'authentication', 'build', 'cdn', 'concierge', 'errors', 'expensiworks', 'font', 'homepage', 'js', 'm', 'mcp', 'newjs'],
+    ...['apiassets', 'authentication', 'build', 'cdn', 'errors', 'expensiworks', 'font', 'homepage', 'js', 'm', 'mcp', 'newjs'],
     ...['newtemplates', 'notifications', 'oauth', 'openID', 'pages', 'partners', 'site', 'statements', 'v', 'u'],
 ];
 // cspell:enable
@@ -156,6 +155,8 @@ describe('NavigationPaths', () => {
         '/two-factor-auth/verify',
         '/add-payment-card',
         '/auto-submit',
+        '/concierge',
+        '/concierge?x=1',
     ])("treats '%s' as a New Expensify path", (path) => {
         // Given a path only New Expensify serves
         // When the service worker classifies it
@@ -179,8 +180,8 @@ describe('NavigationPaths', () => {
         '/index',
         '/index/',
         '/index?x=1',
-        '/concierge',
         '/concierge/',
+        '/concierge/js/app.js',
         '/statements',
         '/Inbox',
         '/SETTINGS',
@@ -215,25 +216,36 @@ describe('NavigationPaths', () => {
         expect(pathClass).toBe(PATH_CLASS_BY_OWNER[owner]);
     });
 
-    it.each(['/signout', '/signout/', '/signout?clean=true', '/signout?resetSession=true', '/signout?shouldStartSignIn=1&email=a', '/signout.php', '/signout.php?clean=true'])(
-        "recognizes '%s' as signing out of Expensify Classic",
-        (path) => {
-            // Given a navigation that signs out of Expensify Classic
-            // When the service worker checks it
-            const isSignOut = SIGN_OUT_NAVIGATION_PATHS.some((pattern) => pattern.test(path));
+    it.each([
+        '/signout',
+        '/signout/',
+        '/signout//',
+        '/SignOut',
+        '/signout?clean=true',
+        '/signout?resetSession=true',
+        '/signout?shouldStartSignIn=1&email=a',
+        '/signout.php',
+        '/signout.PHP',
+        '/signout.php?clean=true',
+    ])("recognizes '%s' as signing out of Expensify Classic", (path) => {
+        // Given a navigation that signs out of Expensify Classic, in any spelling the experience router sends to Classic's sign-out page
+        // When the service worker checks it
+        const isSignOut = SIGN_OUT_NAVIGATION_PATHS.some((pattern) => pattern.test(path));
 
-            // Then it is recognized, so the previous user's saved media is cleared
-            expect(isSignOut).toBe(true);
-        },
-    );
+        // Then it is recognized, so the previous user's saved media is cleared
+        expect(isSignOut).toBe(true);
+    });
 
     it.each([
         '/authentication/saml/logoutCallback',
         '/authentication/saml/logoutCallback?domain=a.com',
         '/authentication/saml/logoutCallback.php',
         '/authentication/saml/logoutCallback.php?x=1',
+        '/authentication/saml/logoutCallback/',
+        // cspell:disable-next-line
+        '/authentication/saml/logoutcallback',
     ])("recognizes the SAML sign-out callback '%s'", (path) => {
-        // Given the callback a SAML provider opens after signing the user out, with or without the file extension
+        // Given the callback a SAML provider opens after signing the user out, with or without the file extension, in any spelling
         // When the service worker checks it
         const isSignOut = SIGN_OUT_NAVIGATION_PATHS.some((pattern) => pattern.test(path));
 
@@ -242,7 +254,7 @@ describe('NavigationPaths', () => {
     });
 
     // cspell:disable-next-line
-    it.each(['/signouts', '/signout-x', '/signout.phpx', '/signin', '/authentication/saml/logoutCallbackx'])("does not treat '%s' as signing out", (path) => {
+    it.each(['/signouts', '/signout-x', '/signout.phpx', '/signout.php/', '/signin', '/authentication/saml/logoutCallbackx'])("does not treat '%s' as signing out", (path) => {
         // Given a path that only resembles a sign-out page
         // When the service worker checks it
         const isSignOut = SIGN_OUT_NAVIGATION_PATHS.some((pattern) => pattern.test(path));

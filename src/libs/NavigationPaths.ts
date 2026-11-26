@@ -95,6 +95,9 @@ const APP_ONLY_FIRST_SEGMENTS = [
 const APP_ONLY_NAVIGATION_PATHS: RegExp[] = [
     new RegExp(String.raw`^\/(?:${APP_ONLY_FIRST_SEGMENTS.join('|')})${SEGMENT_END}`),
 
+    // The shortcut to the Concierge chat. Classic serves the directory `/concierge/`.
+    /^\/concierge(?:\?|$)/,
+
     // The installed app shell, which upgrade navigations load
     /^\/index\.html(?:\?|$)/,
 
@@ -117,7 +120,10 @@ const SHARED_NAVIGATION_PATHS: RegExp[] = [
     new RegExp(String.raw`^\/[uv]\/${SEGMENT}\/${SEGMENT}${OPTIONAL_TRAILING_SLASH}`),
 ];
 
-/** Expensify Classic sign-out pages, including the identity provider's SAML sign-out callback. */
-const SIGN_OUT_NAVIGATION_PATHS: RegExp[] = [/^\/signout(?:\.php)?\/?(?:\?|$)/, /^\/authentication\/saml\/logoutCallback(?:\.php)?(?:\?|$)/];
+/**
+ * Expensify Classic sign-out pages, including the identity provider's SAML sign-out callback.
+ * Matched without case and with any trailing slashes, like the experience router matches them.
+ */
+const SIGN_OUT_NAVIGATION_PATHS: RegExp[] = [/^\/signout(?:\.php|\/*)(?:\?|$)/i, /^\/authentication\/saml\/logoutCallback(?:\.php)?\/*(?:\?|$)/i];
 
 export {APP_ONLY_NAVIGATION_PATHS, SHARED_NAVIGATION_PATHS, SIGN_OUT_NAVIGATION_PATHS};
