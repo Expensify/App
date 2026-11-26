@@ -16,7 +16,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import {close} from '@libs/actions/Modal';
 import Navigation from '@libs/Navigation/Navigation';
-import {buildSearchQueryString, getDisplayDefaultQueryJSON, queryHasViolationFilter} from '@libs/SearchQueryUtils';
+import {buildSearchQueryString, getDisplayDefaultQueryJSON, getDisplayDefaultSort, queryHasViolationFilter} from '@libs/SearchQueryUtils';
 import {getColumnsToShow, getSortByOptions} from '@libs/SearchUIUtils';
 
 import variables from '@styles/variables';
@@ -104,11 +104,12 @@ function SortByPopup({searchResults, queryJSON, groupBy, shouldShowResetButton, 
 
     const resetChanges = () => {
         const defaultQueryJSON = getDisplayDefaultQueryJSON(queryJSON, currentDefaultSearchQueryJSON);
-        const defaultSortBy = defaultQueryJSON?.sortBy ?? sortableColumns.at(0)?.value;
+        const defaultSort = defaultQueryJSON ? getDisplayDefaultSort(queryJSON, defaultQueryJSON) : undefined;
+        const defaultSortBy = defaultSort?.sortBy ?? sortableColumns.at(0)?.value;
         if (!defaultSortBy) {
             return;
         }
-        const defaultSortOrder = defaultQueryJSON?.sortOrder ?? sortOrder;
+        const defaultSortOrder = defaultSort?.sortOrder ?? sortOrder;
         onSortChange(defaultSortBy, defaultSortOrder);
         closeOverlay();
     };

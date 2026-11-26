@@ -5,7 +5,7 @@ import useLocalize from '@hooks/useLocalize';
 
 import {close} from '@libs/actions/Modal';
 import Navigation from '@libs/Navigation/Navigation';
-import {buildSearchQueryString, getDisplayDefaultQueryJSON} from '@libs/SearchQueryUtils';
+import {buildSearchQueryString, getDisplayDefaultQueryJSON, getDisplayDefaultSort} from '@libs/SearchQueryUtils';
 import {getSortOrderOptions} from '@libs/SearchUIUtils';
 
 import CONST from '@src/CONST';
@@ -38,7 +38,8 @@ function SortOrderPopup({queryJSON, shouldShowResetButton, onSort, onBackButtonP
     };
 
     const sortOrderOptions = getSortOrderOptions(translate);
-    const defaultSortOrder = getDisplayDefaultQueryJSON(queryJSON, currentDefaultSearchQueryJSON)?.sortOrder;
+    const defaultQueryJSON = getDisplayDefaultQueryJSON(queryJSON, currentDefaultSearchQueryJSON);
+    const defaultSortOrder = defaultQueryJSON ? getDisplayDefaultSort(queryJSON, defaultQueryJSON).sortOrder : undefined;
     const sortOrder = {text: translate(`search.filters.sortOrder.${queryJSON.sortOrder}`), value: queryJSON.sortOrder};
 
     return (

@@ -24,6 +24,7 @@ import {
     getCurrentSearchQueryJSON,
     getDateRangeDisplayValueFromFormValue,
     getDisplayDefaultQueryJSON,
+    getDisplayDefaultSort,
     getGroupCurrencyValue,
     getDisplayQueryFiltersForKey,
     getFilterDisplayValue,
@@ -4159,6 +4160,51 @@ describe('SearchQueryUtils', () => {
             // Then only the sort offers Reset, since the order already matches the default
             expect(changedOptions?.sort).toBe(true);
             expect(changedOptions?.sortOrder).toBe(false);
+        });
+
+        it("doesn't mark the sort as changed when it's the one a new grouping starts with", () => {
+            // Given an ungrouped default and a query grouped by category, which sorts its groups A-Z
+            const defaultQueryJSON = buildSearchQueryJSON('type:expense');
+            const currentQueryJSON = buildSearchQueryJSON('type:expense groupBy:category');
+
+            // When checking which display options changed
+            const changedOptions = getChangedDisplayOptions(currentQueryJSON, defaultQueryJSON);
+
+            // Then only the grouping offers Reset, since the user didn't pick the sort
+            expect(changedOptions?.groupBy).toBe(true);
+            expect(changedOptions?.sort).toBe(false);
+            expect(changedOptions?.sortOrder).toBe(false);
+        });
+    });
+
+    describe('getDisplayDefaultSort', () => {
+        it("returns the default query's sort while the grouping matches it", () => {
+            // Given a default query that sorts by amount, and a query that keeps its grouping
+            const defaultQueryJSON = buildSearchQueryJSON('type:expense sortBy:amount sortOrder:asc');
+            const currentQueryJSON = buildSearchQueryJSON('type:expense sortBy:date sortOrder:desc');
+            if (!defaultQueryJSON || !currentQueryJSON) {
+                throw new Error('Failed to parse the queries');
+            }
+
+            // When getting the default sort
+            // Then it's the default query's own sort
+            expect(getDisplayDefaultSort(currentQueryJSON, defaultQueryJSON)).toEqual({sortBy: defaultQueryJSON.sortBy, sortOrder: CONST.SEARCH.SORT_ORDER.ASC});
+        });
+
+        it('returns the sort the new grouping starts with when the grouping differs', () => {
+            // Given an ungrouped default and a query grouped by category, sorted by the group total
+            const defaultQueryJSON = buildSearchQueryJSON('type:expense');
+            const currentQueryJSON = buildSearchQueryJSON('type:expense groupBy:category sortBy:groupTotal sortOrder:desc');
+            if (!defaultQueryJSON || !currentQueryJSON) {
+                throw new Error('Failed to parse the queries');
+            }
+
+            // When getting the default sort
+            // Then it's the category grouping's own A-Z sort, which Reset goes back to
+            expect(getDisplayDefaultSort(currentQueryJSON, defaultQueryJSON)).toEqual({
+                sortBy: buildSearchQueryJSON('type:expense groupBy:category')?.sortBy,
+                sortOrder: CONST.SEARCH.SORT_ORDER.ASC,
+            });
         });
     });
 

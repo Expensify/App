@@ -1507,6 +1507,33 @@ function getDisplayDefaultQueryJSON(currentQueryJSON: SearchQueryJSON, defaultQu
     return defaultQueryJSON ?? buildSearchQueryJSON(`${CONST.SEARCH.SYNTAX_ROOT_KEYS.TYPE}:${currentQueryJSON.type}`);
 }
 
+/**
+ * The sort the query falls back to. While the query keeps the default query's grouping and view, that's the default
+ * query's sort. Changing them resets the sort to the one the new grouping and view start with (see
+ * buildFilterQueryWithSortDefaults), so that sort is the default then, e.g. groupBy:category sorts its groups A-Z.
+ */
+function getDisplayDefaultSort(currentQueryJSON: SearchQueryJSON, defaultQueryJSON: SearchQueryJSON): Pick<SearchQueryJSON, 'sortBy' | 'sortOrder'> {
+    const keepsDefaultSort =
+        !shouldResetSort({newGroupBy: currentQueryJSON.groupBy, oldGroupBy: defaultQueryJSON.groupBy}) &&
+        !shouldResetSortForViewChange({newView: currentQueryJSON.view, oldView: defaultQueryJSON.view, groupBy: currentQueryJSON.groupBy});
+    if (keepsDefaultSort) {
+        return {sortBy: defaultQueryJSON.sortBy, sortOrder: defaultQueryJSON.sortOrder};
+    }
+
+    const queryParts = [`${CONST.SEARCH.SYNTAX_ROOT_KEYS.TYPE}:${currentQueryJSON.type}`];
+    if (currentQueryJSON.groupBy) {
+        queryParts.push(`${CONST.SEARCH.SYNTAX_ROOT_KEYS.GROUP_BY}:${currentQueryJSON.groupBy}`);
+    }
+    if (currentQueryJSON.view) {
+        queryParts.push(`${CONST.SEARCH.SYNTAX_ROOT_KEYS.VIEW}:${currentQueryJSON.view}`);
+    }
+    const groupingDefaultQueryJSON = buildSearchQueryJSON(queryParts.join(' '));
+    return {
+        sortBy: groupingDefaultQueryJSON?.sortBy ?? defaultQueryJSON.sortBy,
+        sortOrder: groupingDefaultQueryJSON?.sortOrder ?? defaultQueryJSON.sortOrder,
+    };
+}
+
 function buildQueryStringWithResetDisplay(currentQueryJSON: SearchQueryJSON, searchDefaultQueryJSON: SearchQueryJSON | undefined) {
     const defaultQueryJSON = getDisplayDefaultQueryJSON(currentQueryJSON, searchDefaultQueryJSON);
     if (!defaultQueryJSON) {
@@ -1567,9 +1594,10 @@ function getChangedDisplayOptions(currentQueryJSON: SearchQueryJSON | undefined,
         return undefined;
     }
 
-    const sortOrder = currentQueryJSON.sortOrder !== defaultQueryJSON.sortOrder;
+    const defaultSort = getDisplayDefaultSort(currentQueryJSON, defaultQueryJSON);
+    const sortOrder = currentQueryJSON.sortOrder !== defaultSort.sortOrder;
     return {
-        sort: currentQueryJSON.sortBy !== defaultQueryJSON.sortBy || sortOrder,
+        sort: currentQueryJSON.sortBy !== defaultSort.sortBy || sortOrder,
         sortOrder,
         groupBy: currentQueryJSON.groupBy !== defaultQueryJSON.groupBy,
         view: currentQueryJSON.view !== defaultQueryJSON.view,
@@ -3808,6 +3836,7 @@ export {
     buildQueryStringWithResetFilters,
     buildQueryStringWithResetDisplay,
     getDisplayDefaultQueryJSON,
+    getDisplayDefaultSort,
     getGroupCurrencyValue,
     buildUserReadableQueryString,
     buildFilterValuesString,
