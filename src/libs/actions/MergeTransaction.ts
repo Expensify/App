@@ -616,7 +616,7 @@ function mergeTransactionRequest({
                       {
                           onyxMethod: Onyx.METHOD.SET,
                           key: `${ONYXKEYS.COLLECTION.REPORT}${transactionToDelete.reportID}`,
-                          value: getReportOrDraftReport({reportID: transactionToDelete.reportID, reportDraft: {}}) ?? null,
+                          value: deletableReport ?? null,
                       },
                   ]
                 : [];
