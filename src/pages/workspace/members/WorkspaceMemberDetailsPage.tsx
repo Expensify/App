@@ -71,7 +71,7 @@ import {getChatByParticipants, isApproverOfOutstandingPolicyReports} from '@libs
 import shouldRenderTransferOwnerButton from '@libs/shouldRenderTransferOwnerButton';
 import {startSpan} from '@libs/telemetry/activeSpans';
 import {getDefaultAvatarURL} from '@libs/UserAvatarUtils';
-import {getEffectiveWorkArrangement, getMemberLoginByAccountID, getWorkArrangementLabel} from '@libs/WorkArrangementUtils';
+import {getEffectiveWorkArrangement, getMemberLoginByAccountID, getWorkArrangementLabel, isAccountIDGeneratedFromLogin} from '@libs/WorkArrangementUtils';
 import {getFirstApproverLabel, INITIAL_APPROVAL_WORKFLOW, isApprovalWorkflowLockedByIntegration, updateWorkflowDataOnApproverRemoval} from '@libs/WorkflowUtils';
 
 import Navigation from '@navigation/Navigation';
@@ -277,12 +277,16 @@ function WorkspaceMemberDetailsPage({policy, route}: WorkspaceMemberDetailsPageP
         Navigation.navigate(backTo);
     };
 
-    // While an invite is in flight, or when the member was only found because the route accountID is the one generated
-    // from their email, the server doesn't know accountID. Both profile requests below wait until the real accountID
-    // arrives, which runs them again. A route accountID that matches no member's email may be a real one whose personal
-    // details aren't cached yet, so it's still requested, and the public profile loads them.
+    // The server doesn't know an accountID the app generated from the member's login, so both profile requests below
+    // wait until the real accountID arrives, which runs them again. That ID is in use while an invite is in flight,
+    // while the cached personal details are a placeholder under it (not every flow flags those as optimistic), or when
+    // the route holds it and no personal details are cached, which also covers one generated from a secondary login.
+    // A route accountID that matches no member's email may be a real one whose personal details aren't cached yet, so
+    // it's still requested, and the public profile loads them.
     const isGeneratedAccountID =
-        member?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD || !!memberPersonalDetails?.isOptimisticPersonalDetail || (!memberPersonalDetails && !!memberLogin);
+        member?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD ||
+        (!!memberLogin && isAccountIDGeneratedFromLogin(accountID, memberLogin)) ||
+        (!memberPersonalDetails && !!memberLogin);
     useEffect(() => {
         if (isGeneratedAccountID) {
             return;

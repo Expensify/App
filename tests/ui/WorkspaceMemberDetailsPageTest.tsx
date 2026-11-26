@@ -1241,4 +1241,29 @@ describe('WorkspaceMemberDetailsPage', () => {
         unmount();
         await waitForBatchedUpdatesWithAct();
     });
+
+    it('does not load the profile when the cached personal details are a placeholder without the optimistic flag', async () => {
+        // Given a member whose only cached personal details are a placeholder under the accountID generated from their
+        // email, written by a flow that doesn't flag it as optimistic, and no invite in flight
+        const placeholderEmail = 'placeholder@example.com';
+        const placeholderAccountID = generateAccountID(placeholderEmail);
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {[placeholderAccountID]: TestHelper.buildPersonalDetails(placeholderEmail, placeholderAccountID, 'Placeholder')});
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, {
+                employeeList: {[placeholderEmail]: {email: placeholderEmail, role: CONST.POLICY.ROLE.USER}},
+            });
+        });
+
+        // When the admin opens their profile
+        const {unmount} = renderPage({policyID: policy.id, accountID: String(placeholderAccountID)});
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the page shows the member but nothing is requested, because the server would reject the generated accountID
+        expect(screen.getByTestId('WorkspaceMemberDetailsPage')).toBeOnTheScreen();
+        TestHelper.expectAPICommandToHaveBeenCalled(READ_COMMANDS.OPEN_POLICY_MEMBER_PROFILE_PAGE, 0);
+        TestHelper.expectAPICommandToHaveBeenCalled(READ_COMMANDS.OPEN_PUBLIC_PROFILE_PAGE, 0);
+
+        unmount();
+        await waitForBatchedUpdatesWithAct();
+    });
 });
