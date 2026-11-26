@@ -36,6 +36,7 @@ const mockSearchStateContext = {
     currentSearchResults: undefined,
     currentSearchTransactionsByReportID: new Map(),
     currentSearchViolations: {},
+    approvalWorkflowRules: undefined,
     currentSelectedTransactionReportID: undefined,
     selectedReports: [],
     selectedTransactionIDs: [],

@@ -74,6 +74,8 @@ import getReportURLForCurrentContext from './Navigation/helpers/getReportURLForC
 import {getIsOffline, subscribe as subscribeNetworkState} from './NetworkState';
 import Parser from './Parser';
 import {arePersonalDetailsMissing, getEffectiveDisplayName, temporaryGetDisplayNameOrDefault} from './PersonalDetailsUtils';
+import {canCreateRoomsOnPolicy} from './PolicyUtils/permissions';
+import {formatTaxRateName} from './PolicyUtils/tax';
 import stripFollowupListFromHtml from './ReportActionFollowupUtils/stripFollowupListFromHtml';
 import {getOriginalMessage, getReportActionHtml, getReportActionMessage, getReportActionText, getTextFromHtml} from './ReportActionMessageUtils';
 import {isActionOfType, isDynamicExternalWorkflowApproveFailedAction, isModifiedExpenseAction, isMoneyRequestAction} from './ReportActionTypeGuards';
@@ -477,6 +479,7 @@ function isDeletedAction(reportAction: OnyxInputOrEntry<ReportAction | Optimisti
         reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_DIRECTOR_INFORMATION_REQUIRED ||
         reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED_REPORT_FOR_UNAPPROVED_TRANSACTIONS ||
         reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.REASSIGN_APPROVER ||
+        reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ACTION_DELEGATE_SUBMIT ||
         reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.MERGED_EXPENSE_DELETED ||
         reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_AUTO_CATEGORIZE_NEW_EXPENSES ||
         reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_EMPLOYEE_DISPLAY_NAME ||
@@ -736,7 +739,7 @@ function getSystemMessageDisplayState(
     const firstAction = reportActions.at(0);
     const lastAction = reportActions.at(-1);
     const isNewestFirst = !!firstAction && !!lastAction && isNewerReportAction(firstAction, lastAction);
-    const chronologicalActions = isNewestFirst ? reportActions.toReversed() : reportActions;
+    const chronologicalActions = isNewestFirst ? [...reportActions].reverse() : reportActions;
 
     const appendAction = (reportAction: ReportAction) => {
         reportActionIDToDisplayIndex.set(reportAction.reportActionID, displayReportActions.length);
@@ -1739,6 +1742,9 @@ function shouldReportActionBeVisible(
     reportID?: string,
     isSupportTicketReport = false,
     reportActions?: OnyxEntry<ReportActions>,
+    isInvoice?: boolean,
+    policy?: OnyxEntry<Policy>,
+    currentUserEmail?: string,
 ): boolean {
     if (!reportAction) {
         return false;
@@ -1803,6 +1809,10 @@ function shouldReportActionBeVisible(
         return false;
     }
 
+    if (isActionableReportMentionWhisper(reportAction) && policy && !canCreateRoomsOnPolicy(policy, currentUserEmail ?? '')) {
+        return false;
+    }
+
     if (isTripPreview(reportAction) || isTravelUpdate(reportAction) || isTravelNudge(reportAction)) {
         return true;
     }
@@ -1812,10 +1822,12 @@ function shouldReportActionBeVisible(
         return false;
     }
 
-    // Hide REIMBURSED and MARKED_REIMBURSED actions created from NewDot since an IOU PAY action is displayed instead
-    if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.REIMBURSED) || isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED)) {
-        const originalMessage = getOriginalMessage(reportAction);
-        if (originalMessage?.isNewDot || reportAction.shouldShow === false) {
+    // Hide REIMBURSED and MARKED_REIMBURSED actions created from NewDot since an IOU PAY action is displayed instead.
+    // ReimburseReport and MarkReimbursed add no IOU PAY action to an invoice, and neither does paying its linked bill, so the payment action stays visible on invoices.
+    // Auth sets shouldShow to false on MARKED_REIMBURSED actions created from NewDot for the same reason, so invoices ignore it too.
+    if (isPaymentRecordedByReimbursedAction(reportAction)) {
+        // Search passes isInvoice because its invoice can exist only in the Search snapshot, not in Onyx.
+        if (isPaymentActionHiddenOutsideInvoices(reportAction) && !(isInvoice ?? isInvoiceReportID(reportAction.reportID ?? reportID))) {
             return false;
         }
 
@@ -1874,6 +1886,7 @@ function isReportActionVisible(
     // TODO: Remove optional (?) once all callers pass currentUserAccountID. Refactor issue: https://github.com/Expensify/App/issues/66408
     currentUserAccountID?: number,
     reportActions?: OnyxEntry<ReportActions>,
+    isInvoice?: boolean,
 ): boolean {
     if (!reportAction?.reportActionID) {
         return false;
@@ -1885,18 +1898,45 @@ function isReportActionVisible(
     // from what's cached in visibleReportActions (which reflects persisted Onyx data).
     // We must recalculate visibility at runtime to ensure accuracy for these transient states.
     if (reportAction.pendingAction) {
-        return shouldReportActionBeVisible(reportAction, reportAction.reportActionID, canUserPerformWriteAction, currentUserAccountID, reportID, isSupportTicketReport, reportActions);
+        return shouldReportActionBeVisible(
+            reportAction,
+            reportAction.reportActionID,
+            canUserPerformWriteAction,
+            currentUserAccountID,
+            reportID,
+            isSupportTicketReport,
+            reportActions,
+            isInvoice,
+        );
     }
 
     if (visibleReportActions && reportID) {
         const reportCache = visibleReportActions[reportID];
         if (!reportCache) {
-            return shouldReportActionBeVisible(reportAction, reportAction.reportActionID, canUserPerformWriteAction, currentUserAccountID, reportID, isSupportTicketReport, reportActions);
+            return shouldReportActionBeVisible(
+                reportAction,
+                reportAction.reportActionID,
+                canUserPerformWriteAction,
+                currentUserAccountID,
+                reportID,
+                isSupportTicketReport,
+                reportActions,
+                isInvoice,
+            );
         }
         const staticVisibility = reportCache[reportAction.reportActionID];
         // If action is not in derived value cache, fall back to runtime calculation
         if (staticVisibility === undefined) {
-            return shouldReportActionBeVisible(reportAction, reportAction.reportActionID, canUserPerformWriteAction, currentUserAccountID, reportID, isSupportTicketReport, reportActions);
+            return shouldReportActionBeVisible(
+                reportAction,
+                reportAction.reportActionID,
+                canUserPerformWriteAction,
+                currentUserAccountID,
+                reportID,
+                isSupportTicketReport,
+                reportActions,
+                isInvoice,
+            );
         }
         if (!staticVisibility) {
             return false;
@@ -1906,7 +1946,7 @@ function isReportActionVisible(
         }
         return true;
     }
-    return shouldReportActionBeVisible(reportAction, reportAction.reportActionID, canUserPerformWriteAction, currentUserAccountID, reportID, isSupportTicketReport, reportActions);
+    return shouldReportActionBeVisible(reportAction, reportAction.reportActionID, canUserPerformWriteAction, currentUserAccountID, reportID, isSupportTicketReport, reportActions, isInvoice);
 }
 
 /**
@@ -2610,6 +2650,12 @@ const isIOUActionMatchingTransactionList = (
     return !!IOUTransactionID && reportTransactionIDs.includes(IOUTransactionID);
 };
 
+const oneTransactionThreadReportTypesSet = new Set<Report['type']>([CONST.REPORT.TYPE.IOU, CONST.REPORT.TYPE.EXPENSE, CONST.REPORT.UNSUPPORTED_TYPE.BILL, CONST.REPORT.TYPE.INVOICE]);
+
+function canHaveOneTransactionThread(type: Report['type']): boolean {
+    return oneTransactionThreadReportTypesSet.has(type);
+}
+
 /**
  * Gets the report action for the transaction thread associated with a report by iterating over the reportActions and identifying the IOU report actions.
  * Returns a report action if there is exactly one transaction thread for the report, and undefined otherwise.
@@ -2621,13 +2667,7 @@ function getOneTransactionThreadReportAction(
     isOffline: boolean | undefined = undefined,
     reportTransactionIDs?: string[],
 ): ReportAction<'IOU'> | undefined {
-    // Only reports that hold expenses have expense threads, so other report types never show the one-expense view.
-    if (
-        report?.type !== CONST.REPORT.TYPE.IOU &&
-        report?.type !== CONST.REPORT.TYPE.EXPENSE &&
-        report?.type !== CONST.REPORT.UNSUPPORTED_TYPE.BILL &&
-        report?.type !== CONST.REPORT.TYPE.INVOICE
-    ) {
+    if (!canHaveOneTransactionThread(report?.type)) {
         return;
     }
 
@@ -2999,8 +3039,12 @@ function getMessageOfOldDotReportAction(translate: LocalizedTranslate, oldDotAct
             return originalMessage?.debitBankAccountLast4
                 ? translate('report.actions.type.reimbursementRefunded', {bankAccountLastFour: originalMessage.debitBankAccountLast4})
                 : translate('report.actions.type.reimbursementRefundedWithoutBankAccount');
-        case CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_RELEASED:
-            return translate('report.actions.type.reimbursementReleased');
+        case CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_RELEASED: {
+            const formattedExpectedDate = originalMessage?.expectedDate ? formatReimbursementDate(originalMessage.expectedDate) : '';
+            return formattedExpectedDate
+                ? translate('report.actions.type.reimbursementReleased', {expectedDate: formattedExpectedDate})
+                : translate('report.actions.type.reimbursementReleasedWithoutDate');
+        }
         case CONST.REPORT.ACTIONS.TYPE.SELECTED_FOR_RANDOM_AUDIT:
             return translate(`report.actions.type.selectedForRandomAudit${withMarkdown ? 'Markdown' : ''}`);
         case CONST.REPORT.ACTIONS.TYPE.SHARE:
@@ -3021,8 +3065,23 @@ function getTravelUpdateMessage(
 ) {
     const details = getOriginalMessage(action);
     const formattedStartDate = formatDate?.(details?.start.date ?? '', false) ?? format(details?.start.date ?? '', CONST.DATE.FNS_DATE_TIME_FORMAT_STRING);
+    const railOrigin = details?.start.cityName ?? details?.start.shortName ?? '';
+    const railDestination = details?.end.cityName ?? details?.end.shortName ?? '';
 
     switch (details?.operation) {
+        case CONST.TRAVEL.UPDATE_OPERATION_TYPE.BOOKING_CREATED:
+            if (details.type === CONST.RESERVATION_TYPE.HOTEL && details.start.longName) {
+                // Spotnana sends some hotel names in all caps, so this matches how the trip room preview shows them
+                return translate('travel.updates.hotelBooked', Str.recapitalize(details.start.longName), formattedStartDate);
+            }
+            if (details.type === CONST.RESERVATION_TYPE.CAR && details.vendor) {
+                return translate('travel.updates.carBooked', details.vendor, formattedStartDate);
+            }
+            if (details.type === CONST.RESERVATION_TYPE.TRAIN && (railOrigin || railDestination)) {
+                return translate('travel.updates.railTicketBooked', railOrigin, railDestination, formattedStartDate);
+            }
+            return translate('travel.updates.defaultBooked', details.type);
+
         case CONST.TRAVEL.UPDATE_OPERATION_TYPE.BOOKING_TICKETED:
             return translate(
                 'travel.updates.bookingTicketed',
@@ -3083,12 +3142,7 @@ function getTravelUpdateMessage(
                 return translate('travel.updates.defaultUpdate', details.type);
             }
             if (details.type === CONST.RESERVATION_TYPE.TRAIN) {
-                return translate(
-                    'travel.updates.railTicketUpdate',
-                    details.start.cityName ?? details.start.shortName ?? '',
-                    details.end.cityName ?? details.end.shortName ?? '',
-                    formattedStartDate,
-                );
+                return translate('travel.updates.railTicketUpdate', railOrigin, railDestination, formattedStartDate);
             }
             return translate('travel.updates.flightUpdated', details.route?.airlineCode ?? '', details.start.shortName ?? '', details.end?.shortName ?? '', formattedStartDate);
 
@@ -3097,30 +3151,15 @@ function getTravelUpdateMessage(
                 return translate('travel.updates.defaultUpdate', details.type);
             }
             if (details.type === CONST.RESERVATION_TYPE.TRAIN) {
-                return translate(
-                    'travel.updates.railTicketUpdate',
-                    details.start.cityName ?? details.start.shortName ?? '',
-                    details.end.cityName ?? details.end.shortName ?? '',
-                    formattedStartDate,
-                );
+                return translate('travel.updates.railTicketUpdate', railOrigin, railDestination, formattedStartDate);
             }
             return translate('travel.updates.flightUpdated', details.route?.airlineCode ?? '', details.start.shortName ?? '', details.end?.shortName ?? '', formattedStartDate);
 
         case CONST.TRAVEL.UPDATE_OPERATION_TYPE.REFUND:
-            return translate(
-                'travel.updates.railTicketRefund',
-                details.start.cityName ?? details.start.shortName ?? '',
-                details.end.cityName ?? details.end.shortName ?? '',
-                formattedStartDate,
-            );
+            return translate('travel.updates.railTicketRefund', railOrigin, railDestination, formattedStartDate);
 
         case CONST.TRAVEL.UPDATE_OPERATION_TYPE.EXCHANGE:
-            return translate(
-                'travel.updates.railTicketExchange',
-                details.start.cityName ?? details.start.shortName ?? '',
-                details.end.cityName ?? details.end.shortName ?? '',
-                formattedStartDate,
-            );
+            return translate('travel.updates.railTicketExchange', railOrigin, railDestination, formattedStartDate);
 
         default:
             return translate('travel.updates.defaultUpdate', details?.type ?? '');
@@ -3346,18 +3385,31 @@ function isReportActionUnread(reportAction: OnyxEntry<ReportAction>, lastReadTim
 }
 
 /**
+ * Finds the action just before the given one in the given list, which decides whether the given one is the first unread action.
+ * Shared by isCurrentActionUnread and the useAncestors selector, so both look at the same action.
+ */
+function getReportActionBefore(sortedReportActions: ReportAction[], reportActionID: string): {isFound: boolean; previousReportAction: ReportAction | undefined} {
+    const index = sortedReportActions.findIndex((action) => action.reportActionID === reportActionID);
+    return {isFound: index !== -1, previousReportAction: index > 0 ? sortedReportActions.at(index - 1) : undefined};
+}
+
+/**
  * Check whether the current report action of the report is unread or not
  *
  */
 function isCurrentActionUnread(report: OnyxEntry<Report>, reportAction: ReportAction, visibleReportActions?: ReportAction[]): boolean {
     const lastReadTime = report?.lastReadTime ?? '';
-    const sortedReportActions = visibleReportActions ?? getSortedReportActions(Object.values(getAllReportActions(report?.reportID)));
-    const currentActionIndex = sortedReportActions.findIndex((action) => action.reportActionID === reportAction.reportActionID);
-    if (currentActionIndex === -1) {
+
+    // A read action can't be the first unread one, so only an unread action needs the sorted list to find the action before it.
+    if (!isReportActionUnread(reportAction, lastReadTime)) {
         return false;
     }
-    const prevReportAction = sortedReportActions.at(currentActionIndex - 1);
-    return isReportActionUnread(reportAction, lastReadTime) && (currentActionIndex === 0 || !prevReportAction || !isReportActionUnread(prevReportAction, lastReadTime));
+    const sortedReportActions = visibleReportActions ?? getSortedReportActions(Object.values(getAllReportActions(report?.reportID)));
+    const {isFound, previousReportAction} = getReportActionBefore(sortedReportActions, reportAction.reportActionID);
+    if (!isFound) {
+        return false;
+    }
+    return !previousReportAction || !isReportActionUnread(previousReportAction, lastReadTime);
 }
 
 /**
@@ -3560,6 +3612,27 @@ function isActionableCardFraudAlert(reportAction: OnyxInputOrEntry<ReportAction>
 }
 
 /**
+ * Whether the action records a payment that ReimburseReport or MarkReimbursed made
+ */
+function isPaymentRecordedByReimbursedAction(
+    reportAction: OnyxEntry<ReportAction>,
+): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REIMBURSED | typeof CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED> {
+    return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.REIMBURSED) || isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED);
+}
+
+function isInvoiceReportID(reportID: string | undefined): boolean {
+    return !!reportID && getReportOrDraftReport({reportID})?.type === CONST.REPORT.TYPE.INVOICE;
+}
+
+/**
+ * Returns true for a REIMBURSED or MARKED_REIMBURSED action that was created from NewDot or that Auth marked with
+ * shouldShow false. Such an action is hidden on every report except an invoice.
+ */
+function isPaymentActionHiddenOutsideInvoices(reportAction: OnyxEntry<ReportAction>): boolean {
+    return isPaymentRecordedByReimbursedAction(reportAction) && (!!getOriginalMessage(reportAction)?.isNewDot || reportAction.shouldShow === false);
+}
+
+/**
  * Checks if a report action is an actionable whisper that requires write permission to be visible.
  */
 function isActionableWhisperRequiringWritePermission(reportAction: OnyxEntry<ReportAction>): boolean {
@@ -3700,6 +3773,7 @@ function getExportIntegrationActionFragments(
                     url = nonReimbursableUrls.at(0)?.substring(0, nonReimbursableUrls.at(0)?.lastIndexOf('/')) ?? '';
                     break;
                 case CONST.EXPORT_LABELS.CAMPFIRE:
+                case CONST.EXPORT_LABELS.DIGITS:
                 case CONST.EXPORT_LABELS.ZOHO_BOOKS:
                     url = nonReimbursableUrls.at(0)?.substring(0, nonReimbursableUrls.at(0)?.lastIndexOf('/')) ?? '';
                     break;
@@ -4394,7 +4468,8 @@ function getWorkspaceCustomUnitRateUpdatedMessage(translate: LocalizedTranslate,
     }
 
     if (customUnitRateName && updatedField === RATE_CHANGELOG_UPDATED_FIELD.TAX_RATE_EXTERNAL_ID && typeof newValue === 'string' && newTaxPercentage) {
-        return translate('workspaceActions.updatedCustomUnitTaxRateExternalID', customUnitRateName, newValue, newTaxPercentage, oldTaxPercentage, oldValue as string | undefined);
+        const oldTaxRate = oldTaxPercentage && typeof oldValue === 'string' && oldValue ? formatTaxRateName(oldValue, oldTaxPercentage) : undefined;
+        return translate('workspaceActions.updatedCustomUnitTaxRateExternalID', customUnitRateName, formatTaxRateName(newValue, newTaxPercentage), oldTaxRate);
     }
 
     if (customUnitRateName && updatedField === RATE_CHANGELOG_UPDATED_FIELD.TAX_CLAIMABLE_PERCENTAGE && typeof newValue === 'number' && customUnitRateName) {
@@ -4697,7 +4772,7 @@ function formatTax(taxName?: string, taxPercentage?: string): string {
     if (!taxName) {
         return '';
     }
-    return taxPercentage ? `${taxName} (${taxPercentage})` : taxName;
+    return formatTaxRateName(taxName, taxPercentage);
 }
 
 function getCategoryTaxRateMessage(translate: LocalizedTranslate, action: ReportAction): string {
@@ -6380,6 +6455,7 @@ export {
     getMessageOfOldDotReportAction,
     getMessageTextOfOldDotReportAction,
     getNumberOfMoneyRequests,
+    canHaveOneTransactionThread,
     getOneTransactionThreadReportAction,
     getOneTransactionThreadReportID,
     getTransactionThreadReportIDFromAction,
@@ -6434,6 +6510,7 @@ export {
     isCreatedTaskReportAction,
     isCreatedSupportTicketReportAction,
     isCurrentActionUnread,
+    getReportActionBefore,
     isDeletedAction,
     isDeletedReportPreviewWithError,
     getVisibleReportActionErrors,
@@ -6502,6 +6579,7 @@ export {
     isActionableAddPaymentCard,
     isActionableCardFraudAlert,
     isActionableWhisperRequiringWritePermission,
+    isPaymentActionHiddenOutsideInvoices,
     getExportIntegrationActionFragments,
     getExportIntegrationLastMessageText,
     getExportIntegrationMessageHTML,

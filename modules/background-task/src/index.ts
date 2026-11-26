@@ -22,7 +22,9 @@ function addBackgroundTaskListener() {
     if (subscription) {
         subscription.remove();
     }
-    subscription = eventEmitter.addListener('onBackgroundTaskExecution', onBackgroundTaskExecution);
+    // `NativeEventEmitter` can't type the `{taskName}` payload on both React Native 0.86 and the Strict TypeScript API
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
+    subscription = eventEmitter.addListener('onBackgroundTaskExecution', onBackgroundTaskExecution as (event: unknown) => void);
 }
 
 const TaskManager = {

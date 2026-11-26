@@ -186,7 +186,6 @@ function WithRadioItems() {
                             text={speed}
                             isSelected={selected === speed}
                             onSelect={() => setSelected(speed)}
-                            shouldPutLeftPaddingWhenNoIcon
                             sentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}
                         />
                     ))}

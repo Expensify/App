@@ -228,7 +228,9 @@ function ReanimatedModal({
                 transparent
                 animationType="none"
                 visible={modalVisibility}
-                onRequestClose={onBackButtonPressHandler}
+                onRequestClose={() => {
+                    onBackButtonPressHandler();
+                }}
                 statusBarTranslucent={statusBarTranslucent}
                 testID={testID}
                 onDismiss={() => {
