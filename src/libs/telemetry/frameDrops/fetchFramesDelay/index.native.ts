@@ -11,7 +11,7 @@ type SentryFramesModule = TurboModule & {
 };
 
 // Sentry's native SDKs already watch every frame and keep each delayed one for 5+ minutes (SentryFramesTracker on iOS,
-// SentryFrameMetricsCollector on Android); this is the query the Sentry JS SDK itself uses to put frames.delay on spans.
+// SentryFrameMetricsCollector on Android). This is the query the Sentry JS SDK itself uses to put frames.delay on spans.
 // Reusing it means frame drop attribution adds no frame observer of its own. The method isn't public Sentry API, so a
 // missing module or method means attribution doesn't start at all.
 const sentryModule = TurboModuleRegistry.get<SentryFramesModule>('RNSentry');

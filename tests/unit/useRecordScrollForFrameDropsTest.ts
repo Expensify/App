@@ -59,4 +59,17 @@ describe('useRecordScrollForFrameDrops', () => {
         // Then the scroll interaction ends right away
         expect(getTimeline().interactions).toEqual([expect.objectContaining({start: 0, end: 50})]);
     });
+
+    it('does no work in a session that does not record frame drops', () => {
+        // Given a session that isn't sampled
+        setRecording(false);
+        const {result} = renderHook(() => useRecordScrollForFrameDrops());
+
+        // When the list scrolls
+        result.current();
+
+        // Then no scroll end timer is started and nothing is recorded
+        expect(jest.getTimerCount()).toBe(0);
+        expect(getTimeline().interactions).toEqual([]);
+    });
 });

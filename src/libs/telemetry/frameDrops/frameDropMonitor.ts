@@ -89,7 +89,10 @@ let isSuspended = false;
 let windowStart: number | undefined;
 let lastReportTime = 0;
 let unmeasuredFlushCount = 0;
+// When the app last stopped being active (see flushWindow).
+let lastPauseTime: number | undefined;
 let isIdleFlushPending = false;
+let isReportScheduled = false;
 let hasFlushedStartupWindow = false;
 // Flushes run one after another, so a flush requested while another is waiting for native data is queued, not dropped.
 let flushQueue: Promise<void> = Promise.resolve();
@@ -256,7 +259,7 @@ function reportEndedInteractions(endedInteractionIDs: Set<number>) {
         interactionCount.count++;
         interactionCounts.set(countKey, interactionCount);
 
-        // Only janky interactions are sent one by one; interaction counts give the share of them (see report()).
+        // Only janky interactions are sent one by one. Interaction counts give the share of them (see report()).
         const delayMs = Math.round(interactionDelay.delayMs);
         if (delayMs <= 0) {
             continue;
@@ -320,11 +323,18 @@ async function flushWindow(start: number, end: number) {
                     getInteractionDelay(segment, segment.interactionID).isMeasured = false;
                 }
             }
-            unmeasuredFlushCount++;
+            // On iOS, Sentry clears its stored frames when the app resigns active, so a window the app left can't be measured.
+            // That doesn't mean tracking is broken, so it doesn't count towards turning the monitor off.
+            const wasClearedByPause = lastPauseTime !== undefined && lastPauseTime >= start;
+            if (!wasClearedByPause) {
+                unmeasuredFlushCount++;
+            }
             // Native frame tracking isn't running at all (e.g. native Sentry isn't initialized in development builds),
             // so there's nothing to attribute and the monitor turns itself off.
             if (unmeasuredFlushCount >= CONST.TELEMETRY.FRAME_DROPS.MAX_UNMEASURED_FLUSHES) {
                 stopMonitoring();
+                // Earlier windows may have been measured, and nothing would send them after this.
+                report();
             }
             return;
         }
@@ -350,13 +360,16 @@ async function flushWindow(start: number, end: number) {
         }
 
         const {delays, queryCount} = await splitDelay(segments, totalDelaySeconds, toUnixSeconds, CONST.TELEMETRY.FRAME_DROPS.MAX_QUERIES_PER_FLUSH);
-        console.debug('[FrameDrops] Flushed window', {
-            windowMs: Math.round(end - start),
-            segments: segments.length,
-            frameDelayMs: Math.round(totalDelaySeconds * 1000),
-            nativeQueries: 1 + queryCount,
-            longTasks: windowLongTasks.length,
-        });
+        // Native release bundles keep console calls, and React Native serializes every argument before passing it to the native logger.
+        if (__DEV__) {
+            console.debug('[FrameDrops] Flushed window', {
+                windowMs: Math.round(end - start),
+                segments: segments.length,
+                frameDelayMs: Math.round(totalDelaySeconds * 1000),
+                nativeQueries: 1 + queryCount,
+                longTasks: windowLongTasks.length,
+            });
+        }
 
         let attributedDelaySeconds = 0;
         for (const [index, segment] of segments.entries()) {
@@ -402,7 +415,21 @@ async function flushWindow(start: number, end: number) {
 /** Sends the aggregates as Sentry metrics. Summing them in Sentry gives total delay per context and delay per active second. */
 function report() {
     lastReportTime = performance.now();
-    console.debug('[FrameDrops] Reporting aggregates', [...aggregates.values()]);
+    isReportScheduled = false;
+    if (__DEV__) {
+        console.debug('[FrameDrops] Reporting aggregates', [...aggregates.values()]);
+    }
+    try {
+        sendAggregates();
+    } catch {
+        // Telemetry must never break the app: a report also runs in idle callbacks and right before HybridApp hands over to OldDot.
+    } finally {
+        aggregates.clear();
+        interactionCounts.clear();
+    }
+}
+
+function sendAggregates() {
     for (const aggregate of aggregates.values()) {
         const attributes = {
             [CONST.TELEMETRY.FRAME_DROPS.ATTRIBUTE_PLATFORM]: platform,
@@ -434,8 +461,6 @@ function report() {
             },
         });
     }
-    aggregates.clear();
-    interactionCounts.clear();
 }
 
 /** Closes the current window at `windowEnd` and queues its flush, followed by a report when asked for. */
@@ -453,6 +478,18 @@ function enqueueFlush(windowEnd: number, shouldReport: boolean): Promise<void> {
     return flushQueue;
 }
 
+/**
+ * A report makes hundreds of metric calls, so it waits for the JS thread to be idle. It stays out of the flush queue, so
+ * a background report never waits behind it.
+ */
+function reportWhenIdle() {
+    if (typeof requestIdleCallback !== 'function') {
+        report();
+        return;
+    }
+    requestIdleCallback(() => report(), {timeout: CONST.TELEMETRY.FRAME_DROPS.IDLE_FLUSH_TIMEOUT_MS});
+}
+
 function scheduleFlush() {
     const run = () => {
         const now = performance.now();
@@ -461,7 +498,13 @@ function scheduleFlush() {
         if (windowStart !== undefined && isInteractionActive(now) && now - windowStart < CONST.TELEMETRY.FRAME_DROPS.MAX_FLUSH_DEFER_MS) {
             return;
         }
-        enqueueFlush(now - CONST.TELEMETRY.FRAME_DROPS.SETTLE_MS, now - lastReportTime >= CONST.TELEMETRY.FRAME_DROPS.REPORT_INTERVAL_MS);
+        enqueueFlush(now - CONST.TELEMETRY.FRAME_DROPS.SETTLE_MS, false);
+        // A slow flush can outlast the flush interval, so a report that is already on its way isn't scheduled twice.
+        if (isReportScheduled || now - lastReportTime < CONST.TELEMETRY.FRAME_DROPS.REPORT_INTERVAL_MS) {
+            return;
+        }
+        isReportScheduled = true;
+        flushQueue = flushQueue.then(reportWhenIdle);
     };
     if (typeof requestIdleCallback !== 'function') {
         run();
@@ -501,12 +544,22 @@ function resume() {
  * interruptions (a permission prompt, the notification center) don't cause extra reports.
  */
 function pause(shouldReport: boolean) {
+    lastPauseTime = performance.now();
     if (flushIntervalID) {
         clearInterval(flushIntervalID);
         flushIntervalID = undefined;
     }
     pauseRecording();
+    if (shouldReport) {
+        // The app may be suspended or killed within seconds, before the last window's native queries answer, so what is
+        // already aggregated is sent right away. Sentry would otherwise only send its metric buffer on its next timer.
+        report();
+        flushSentry();
+    }
     enqueueFlush(performance.now(), shouldReport);
+    if (shouldReport) {
+        flushQueue = flushQueue.then(flushSentry);
+    }
     windowStart = undefined;
 }
 
@@ -537,7 +590,7 @@ function startFrameDropMonitor() {
     try {
         observeLongTasks();
     } catch {
-        // Long tasks are extra detail; frame delay attribution works without them.
+        // Long tasks are extra detail. Frame delay attribution works without them.
     }
     deviceTier = getDeviceTier();
     scrollSubscription = DeviceEventEmitter.addListener(CONST.EVENTS.SCROLLING, recordScroll);
@@ -559,10 +612,17 @@ function startFrameDropMonitor() {
     }
 }
 
+function flushSentry(): Promise<void> {
+    return Sentry.flush().then(
+        () => {},
+        () => {},
+    );
+}
+
 /**
  * Stops measuring for good because NewDot is handing over to OldDot (HybridApp). OldDot is drawn by the same app, so
- * its frames would be attributed to the last NewDot screen, and NewDot's JS runtime is torn down right after, so what
- * was collected so far is sent now instead of being lost.
+ * its frames would be attributed to the last NewDot screen. NewDot's JS runtime is torn down right after this, so it
+ * sends what it has the same way as going to the background (see pause).
  */
 function suspendFrameDropMonitor() {
     // Only a sampled session that is still measuring has anything to stop and send.
@@ -571,12 +631,6 @@ function suspendFrameDropMonitor() {
     }
     isSuspended = true;
     pause(true);
-    flushQueue = flushQueue
-        .then(() => Sentry.flush())
-        .then(
-            () => {},
-            () => {},
-        );
 }
 
 /** Waits for the queued flushes to finish. Only used by tests. */
@@ -593,7 +647,9 @@ function stopFrameDropMonitor() {
     longTasks = [];
     lastReportTime = 0;
     unmeasuredFlushCount = 0;
+    lastPauseTime = undefined;
     isIdleFlushPending = false;
+    isReportScheduled = false;
     hasFlushedStartupWindow = false;
     flushQueue = Promise.resolve();
     isStarted = false;

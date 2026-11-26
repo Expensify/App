@@ -87,7 +87,7 @@ function buildSegments(windowStart: number, windowEnd: number, {screens, interac
         const activeInteraction = findInteraction(start).at(-1);
         const interaction = activeInteraction?.label ?? CONST.TELEMETRY.FRAME_DROPS.NONE;
         const interactionID = activeInteraction?.id;
-        // The latest-started operation owns the frames; the others running alongside it are listed separately.
+        // The latest-started operation owns the frames, and the others running alongside it are listed separately.
         const activeOperations = findOperation(start);
         const operation = activeOperations.at(-1)?.name ?? CONST.TELEMETRY.FRAME_DROPS.NONE;
         const concurrentOperations = formatConcurrentOperations(activeOperations.map(({name}) => name));

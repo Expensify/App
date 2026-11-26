@@ -28,6 +28,8 @@ const PRESS_LABEL = CONST.SENTRY_LABEL.BULK_ACTION_BAR.MORE;
 // Date.now() - performance.now(), so timeline times map to Unix seconds as (time + offset) / 1000.
 const CLOCK_OFFSET_MS = 1_000_000;
 
+// Jest installs the app's requestIdleCallback polyfill, and tests that replace it get it back after each test.
+const originalRequestIdleCallback = globalThis.requestIdleCallback;
 const mockFetchFramesDelay = jest.mocked(fetchFramesDelay);
 const mockCount = jest.mocked(Sentry.metrics.count);
 const mockDistribution = jest.mocked(Sentry.metrics.distribution);
@@ -127,6 +129,7 @@ beforeEach(async () => {
 });
 
 afterEach(() => {
+    globalThis.requestIdleCallback = originalRequestIdleCallback;
     stopFrameDropMonitor();
     clear();
     delete (globalThis as {PerformanceObserver?: unknown}).PerformanceObserver;
@@ -326,11 +329,12 @@ describe('frameDropMonitor', () => {
         });
     });
 
-    it('attributes frames to the user flow that was running, but only for static span names', async () => {
-        // Given a report being opened (a root telemetry span), and a span whose name was built at runtime
+    it('attributes frames to the user flow that was running, not to helper spans or runtime names', async () => {
+        // Given a report being opened (a user flow), a request phase span started during it, and a span whose name was built at runtime
         mockDelays([], 0.2);
         recordScreen('Report');
         startFlow(CONST.TELEMETRY.SPAN_OPEN_REPORT);
+        startFlow(CONST.TELEMETRY.SPAN_SEARCH_DATA.APPLY);
         startFlow('Report Lincoln Foster');
 
         // When the window is flushed and reported
@@ -356,7 +360,7 @@ describe('frameDropMonitor', () => {
         await flush(5_000);
         report();
 
-        // Then the label never leaves the device; the press is still counted as a generic press
+        // Then the label never leaves the device, and the press is still counted as a generic press
         expect(JSON.stringify(mockCount.mock.calls)).not.toContain('ACME');
         expect(getCountCalls(FRAME_DROPS.METRIC_INTERACTION_COUNT)).toEqual([{value: 1, attributes: {screen: 'Home', interaction: FRAME_DROPS.INTERACTION_UNLABELED_PRESS}}]);
     });
@@ -430,20 +434,57 @@ describe('frameDropMonitor', () => {
         expect(mockDistribution).not.toHaveBeenCalled();
     });
 
-    it('sends what it has and stops for good when NewDot hands over to OldDot', async () => {
-        // Given a measured window on a NewDot screen
+    it('sends what it has right away when the app goes to the background, before the last window is measured', async () => {
+        // Given a flushed window, and a native store that hasn't answered for the window after it yet
         mockDelays([], 0);
         recordScreen('Home');
         now = 5_000;
+        await flush(5_000);
+        let resolveLastWindow: (delaySeconds: number) => void = () => {};
+        mockFetchFramesDelay.mockImplementationOnce(
+            () =>
+                new Promise<number>((resolve) => {
+                    resolveLastWindow = resolve;
+                }),
+        );
+
+        // When the app goes to the background
+        now = 8_000;
+        appStateListener?.('background');
+
+        // Then what was already aggregated is sent and flushed to Sentry without waiting for the native store
+        expect(sumCounts(FRAME_DROPS.METRIC_ACTIVE_TIME)).toBe(5_000);
+        expect(Sentry.flush).toHaveBeenCalled();
+
+        // Then the last window follows once the native store answers
+        while (mockFetchFramesDelay.mock.calls.length < 2) {
+            // The last window's flush is queued, so its query starts a few microtasks later.
+            await Promise.resolve();
+        }
+        resolveLastWindow(0);
+        await flush(8_000);
+        expect(sumCounts(FRAME_DROPS.METRIC_ACTIVE_TIME)).toBe(8_000);
+    });
+
+    it('sends what it has and stops for good when NewDot hands over to OldDot', async () => {
+        // Given a flushed window and a window that hasn't been flushed yet, on a NewDot screen
+        mockDelays([], 0);
+        recordScreen('Home');
+        now = 5_000;
+        await flush(5_000);
+        now = 8_000;
 
         // When NewDot closes in favor of OldDot, and AppState still reports active during the dismissal
         suspendFrameDropMonitor();
         appStateListener?.('active');
-        await flush(5_000);
 
-        // Then the window is reported and flushed to Sentry before the runtime goes away, and nothing is measured after
+        // Then what was already aggregated is sent and flushed to Sentry right away, before the runtime goes away
         expect(sumCounts(FRAME_DROPS.METRIC_ACTIVE_TIME)).toBe(5_000);
         expect(Sentry.flush).toHaveBeenCalled();
+
+        // Then the last window is sent once its native query answers, and nothing is measured after
+        await flush(8_000);
+        expect(sumCounts(FRAME_DROPS.METRIC_ACTIVE_TIME)).toBe(8_000);
         mockFetchFramesDelay.mockClear();
         now = 40_000;
         recordPress(PRESS_LABEL);
@@ -463,7 +504,6 @@ describe('frameDropMonitor', () => {
         // Then a single callback is waiting, and it has a timeout so it still runs
         expect(requestIdleCallbackMock).toHaveBeenCalledTimes(1);
         expect(requestIdleCallbackMock).toHaveBeenCalledWith(expect.any(Function), {timeout: FRAME_DROPS.IDLE_FLUSH_TIMEOUT_MS});
-        delete (globalThis as {requestIdleCallback?: unknown}).requestIdleCallback;
     });
 
     it('turns itself off when native frame tracking never answers', async () => {
@@ -485,5 +525,64 @@ describe('frameDropMonitor', () => {
         // Then nothing unmeasured is reported and the monitor stops recording and querying
         expect(mockCount).not.toHaveBeenCalled();
         expect(mockFetchFramesDelay).not.toHaveBeenCalled();
+    });
+
+    it('sends the windows it measured before turning itself off', async () => {
+        // Given a measured window, after which native frame tracking stops answering
+        mockFetchFramesDelay.mockResolvedValueOnce(0);
+        recordScreen('Home');
+        now = 30_000;
+        await flush(now);
+        mockFetchFramesDelay.mockResolvedValue(undefined);
+
+        // When it stays unanswered for the allowed number of flushes
+        for (let i = 2; i <= FRAME_DROPS.MAX_UNMEASURED_FLUSHES + 1; i++) {
+            now = i * 30_000;
+            await flush(now);
+        }
+
+        // Then the measured window is reported without waiting for a report that would never come
+        expect(sumCounts(FRAME_DROPS.METRIC_ACTIVE_TIME)).toBe(30_000);
+    });
+
+    it('keeps measuring when the windows it loses are the ones the app left before they were queried', async () => {
+        // Given a native store that is cleared whenever the app stops being active, like Sentry's iOS frame tracker
+        mockFetchFramesDelay.mockResolvedValue(undefined);
+        recordScreen('Home');
+
+        // When the user leaves the app and comes back more times than the unmeasured limit
+        for (let i = 1; i <= FRAME_DROPS.MAX_UNMEASURED_FLUSHES + 1; i++) {
+            now = i * 10_000;
+            appStateListener?.('inactive');
+            await flush(now);
+            now += 1_000;
+            appStateListener?.('active');
+        }
+        mockFetchFramesDelay.mockResolvedValue(0);
+        now += 30_000;
+        await flush(now);
+        report();
+
+        // Then the monitor is still running and measures the next window
+        expect(sumCounts(FRAME_DROPS.METRIC_ACTIVE_TIME)).toBe(30_000);
+    });
+
+    it('waits for the JS thread to be idle before a periodic report', async () => {
+        // Given a JS thread whose idle callbacks are run by the test, and a report that is due
+        const idleCallbacks: Array<() => void> = [];
+        (globalThis as {requestIdleCallback?: unknown}).requestIdleCallback = (callback: () => void) => idleCallbacks.push(callback);
+        mockDelays([], 0);
+        recordScreen('Home');
+        now = FRAME_DROPS.REPORT_INTERVAL_MS + 2_000;
+
+        // When the flush runs and its native query answers
+        scheduleFlush();
+        idleCallbacks.shift()?.();
+        await flush(now - FRAME_DROPS.SETTLE_MS);
+
+        // Then nothing is reported until the JS thread is idle again
+        expect(mockCount).not.toHaveBeenCalled();
+        idleCallbacks.shift()?.();
+        expect(sumCounts(FRAME_DROPS.METRIC_ACTIVE_TIME)).toBe(FRAME_DROPS.REPORT_INTERVAL_MS + 1_000);
     });
 });

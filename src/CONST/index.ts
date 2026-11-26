@@ -2930,7 +2930,7 @@ const CONST = {
             // A list counts as scrolling until it sends no scroll event for this long (the same delay useScrollEventEmitter uses).
             SCROLL_END_DELAY_MS: 250,
             // Upper bound of native queries per flush. On iOS each one runs on the UI thread (a sub-millisecond lookup), so a
-            // very busy window must not turn into a long burst of them; delay that can't be split within the budget is
+            // very busy window must not turn into a long burst of them. Delay that can't be split within the budget is
             // reported as unattributed. 20 resolved every press and scroll of a dense post-launch window on a simulator.
             MAX_QUERIES_PER_FLUSH: 20,
             // A native query that doesn't answer within this time counts as unmeasured, so a stuck query can't stall the monitor.
@@ -2941,7 +2941,7 @@ const CONST = {
             MAX_UNMEASURED_FLUSHES: 3,
             // Upper bound of timeline events kept between flushes, so a runaway caller can't grow memory.
             MAX_EVENTS: 500,
-            // Upper bound of distinct contexts per report; the rest is reported as "overflow".
+            // Upper bound of distinct contexts per report. The rest is reported as "overflow".
             MAX_AGGREGATES: 100,
             // An interval that was never closed (a lost scroll end, a request that never settled) stops owning frames after this long.
             MAX_OPEN_INTERVAL_MS: 60_000,
@@ -2961,6 +2961,8 @@ const CONST = {
             INTERACTION_UNLABELED_PRESS: 'press',
             OPERATION_API_PREFIX: 'api.',
             OPERATION_PUSHER: 'pusher',
+            // Queued responses are applied together once the request queue is empty, so they aren't split by command.
+            OPERATION_QUEUED_UPDATES: 'api.queued_updates',
             METRIC_ACTIVE_TIME: 'ui.frame_drops.active_time',
             METRIC_FRAME_DELAY: 'ui.frame_drops.frame_delay',
             METRIC_LONG_TASK_TIME: 'ui.frame_drops.long_task_time',

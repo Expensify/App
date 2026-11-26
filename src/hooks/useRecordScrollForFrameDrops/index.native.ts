@@ -1,4 +1,4 @@
-import {recordScroll} from '@libs/telemetry/frameDrops/frameDropTimeline';
+import {isRecordingEnabled, recordScroll} from '@libs/telemetry/frameDrops/frameDropTimeline';
 
 import CONST from '@src/CONST';
 
@@ -25,6 +25,13 @@ function useRecordScrollForFrameDrops() {
     );
 
     return () => {
+        // Scroll events arrive every frame, so they do nothing while not recording (most sessions).
+        // Pausing already ended the scroll on the timeline, so a pending end timer is dropped.
+        if (!isRecordingEnabled()) {
+            clearTimeout(scrollEndTimeoutRef.current);
+            scrollEndTimeoutRef.current = undefined;
+            return;
+        }
         if (scrollEndTimeoutRef.current) {
             clearTimeout(scrollEndTimeoutRef.current);
         } else {

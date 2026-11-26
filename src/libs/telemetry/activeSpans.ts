@@ -13,7 +13,7 @@ type ActiveSpanEntry = {
     span: ReturnType<typeof Sentry.startInactiveSpan>;
     spanName: string;
     startTimeForLog: number;
-    /** Set for root spans, which are recorded as the user flow frame drops are attributed to. */
+    /** Set for root spans of user flows, which frame drops are attributed to (see isUserFlowName). */
     frameDropFlowID?: number;
     /** Set by cancelSpan. endSpan reads this instead of the span's canceled attribute, because it calls spanToJSON only in development builds. */
     isCanceled?: boolean;
@@ -53,7 +53,8 @@ function startSpan(spanId: string, options: StartSpanOptions) {
 
     const startTimeForLog = getPerformanceStartTimeForLog(options.startTime);
 
-    const frameDropFlowID = options.parentSpan ? undefined : startFlow(options.name);
+    // The op is the static span constant. The name is sometimes built at runtime, like the screen a report was opened from.
+    const frameDropFlowID = options.parentSpan || !options.op ? undefined : startFlow(options.op);
 
     activeSpans.set(spanId, {span, spanName: options.name, startTimeForLog, frameDropFlowID});
 

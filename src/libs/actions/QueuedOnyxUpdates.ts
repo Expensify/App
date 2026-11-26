@@ -1,6 +1,8 @@
 import Log from '@libs/Log';
+import {endOperation, startOperation} from '@libs/telemetry/frameDrops/frameDropTimeline';
 
 import CONFIG from '@src/CONFIG';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {AnyOnyxUpdate} from '@src/types/onyx/Request';
 
@@ -85,9 +87,13 @@ function flushQueue(): Promise<void> {
 
         copyUpdates = copyUpdates.filter((update) => preservedKeys.has(update.key as OnyxKey));
     }
+    // Each request's operation (see Request.ts) ended when its response was queued, so applying the queued updates gets its own.
+    // The queue is also flushed with nothing in it.
+    const frameDropOperationID = copyUpdates.length > 0 ? startOperation(CONST.TELEMETRY.FRAME_DROPS.OPERATION_QUEUED_UPDATES) : undefined;
     // WRITE requests gate their lastUpdateID watermark advance on this flush (see OnyxUpdates.apply), so a
     // failure here keeps the watermark back and the next reconnect can refetch and reapply the missed updates.
     return Onyx.update(copyUpdates)
+        .finally(() => endOperation(frameDropOperationID))
         .then(() => resolveCurrentFlush?.())
         .catch((error: unknown) => {
             Log.alert('[OnyxUpdateManagerError] Deferred WRITE Onyx update failed to apply, not advancing lastUpdateID so the client can recover on the next reconnect', {

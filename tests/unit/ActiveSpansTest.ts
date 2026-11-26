@@ -1,4 +1,5 @@
 import {endSpan, getSpan, getSpanByPrefix, startSpan} from '@libs/telemetry/activeSpans';
+import {clear as clearFrameDropTimeline, getTimeline as getFrameDropTimeline, setRecording as setFrameDropRecording} from '@libs/telemetry/frameDrops/frameDropTimeline';
 
 import CONST from '@src/CONST';
 
@@ -128,5 +129,31 @@ describe('activeSpans', () => {
             endSpan(`${prefix}_1`);
             endSpan(`${prefix}_2`);
         });
+    });
+});
+
+describe('frame drop flows', () => {
+    beforeEach(() => {
+        jest.spyOn(console, 'debug').mockImplementation(() => {});
+        clearFrameDropTimeline();
+        setFrameDropRecording(true);
+    });
+
+    afterEach(() => {
+        setFrameDropRecording(false);
+        clearFrameDropTimeline();
+    });
+
+    it('records a user flow by its static op, even when the span name is built at runtime', () => {
+        // Given a report opened from the LHN, whose span name is the component it was opened from
+        startSpan(`${CONST.TELEMETRY.SPAN_OPEN_REPORT}_1`, {name: 'OptionRowLHN', op: CONST.TELEMETRY.SPAN_OPEN_REPORT});
+
+        // When a helper root span starts while the report opens
+        startSpan(CONST.TELEMETRY.SPAN_SEARCH_DATA.APPLY, {name: CONST.TELEMETRY.SPAN_SEARCH_DATA.APPLY, op: CONST.TELEMETRY.SPAN_SEARCH_DATA.APPLY});
+
+        // Then only the report opening is a flow frame drops can be attributed to
+        expect(getFrameDropTimeline().flows).toEqual([expect.objectContaining({name: CONST.TELEMETRY.SPAN_OPEN_REPORT})]);
+        endSpan(CONST.TELEMETRY.SPAN_SEARCH_DATA.APPLY);
+        endSpan(`${CONST.TELEMETRY.SPAN_OPEN_REPORT}_1`);
     });
 });

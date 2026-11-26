@@ -2,7 +2,7 @@ import CONST from '@src/CONST';
 
 import type {Interaction, Operation, ScreenChange, Timeline} from './types';
 
-import {isStaticFlowName, sanitizePressLabel} from './staticLabels';
+import {isUserFlowName, sanitizePressLabel} from './staticLabels';
 
 /**
  * Records what the app is doing, so frame drops measured natively can later be attributed to it.
@@ -61,6 +61,11 @@ function setRecording(enabled: boolean) {
     if (enabled && currentScreen) {
         pushScreen(currentScreen);
     }
+}
+
+/** False in sessions that aren't sampled, so hot callers (e.g. scroll handlers) can skip their own bookkeeping. */
+function isRecordingEnabled(): boolean {
+    return isRecording;
 }
 
 function recordScreen(screen: string | undefined) {
@@ -160,9 +165,9 @@ function endOperation(id: number | undefined) {
     }
 }
 
-/** Starts a user flow, e.g. a root telemetry span. Returns an id to pass to endFlow, or undefined when not recording or the name isn't static. */
+/** Starts a user flow, e.g. a root telemetry span. Returns an id to pass to endFlow, or undefined when not recording or the span isn't a user flow. */
 function startFlow(name: string): number | undefined {
-    if (!isRecording || !hasRoom() || !isStaticFlowName(name)) {
+    if (!isRecording || !hasRoom() || !isUserFlowName(name)) {
         return undefined;
     }
     const id = nextID++;
@@ -187,6 +192,7 @@ function keepWhere<T>(list: T[], predicate: (item: T) => boolean) {
 /**
  * Drops everything that ended before `time`, keeping the screen that was current at `time`.
  * Intervals that were never closed (e.g. a lost scroll end event) are dropped once they get too old, so they can't own frames forever.
+ * Modals are the exception: they are always closed when the modal unmounts, and one can stay open for minutes.
  */
 function pruneBefore(time: number) {
     const lastScreenBefore = screens.findLastIndex((change) => change.time <= time);
@@ -198,7 +204,7 @@ function pruneBefore(time: number) {
     keepWhere(interactions, isKept);
     keepWhere(operations, isKept);
     keepWhere(flows, isKept);
-    keepWhere(modals, isKept);
+    keepWhere(modals, (modal) => modal.end === undefined || modal.end > time);
     if (activeScroll && !interactions.includes(activeScroll)) {
         activeScroll = undefined;
         scrollingListCount = 0;
@@ -234,6 +240,7 @@ export {
     endOperation,
     getTimeline,
     isInteractionActive,
+    isRecordingEnabled,
     pauseRecording,
     pruneBefore,
     recordNavigationStart,

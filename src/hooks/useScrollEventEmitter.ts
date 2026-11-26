@@ -32,13 +32,18 @@ const useScrollEventEmitter = () => {
         }, 250);
     };
 
-    // Cleanup timeout on unmount
+    // The pending timeout is what would emit the scroll end, so clearing it on unmount emits that end right away.
+    // Otherwise listeners would treat the scroll as ongoing.
     useEffect(() => {
         return () => {
-            if (!timeoutRef.current) {
+            if (timeoutRef.current) {
+                clearTimeout(timeoutRef.current);
+            }
+            if (!isScrollingRef.current) {
                 return;
             }
-            clearTimeout(timeoutRef.current);
+            isScrollingRef.current = false;
+            DeviceEventEmitter.emit(CONST.EVENTS.SCROLLING, false);
         };
     }, []);
 

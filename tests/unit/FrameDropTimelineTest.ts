@@ -1,4 +1,17 @@
-import {clear, endModal, getTimeline, recordNavigationStart, recordPress, recordScreen, recordScroll, setRecording, startModal} from '@libs/telemetry/frameDrops/frameDropTimeline';
+import {
+    clear,
+    endModal,
+    getTimeline,
+    pruneBefore,
+    recordNavigationStart,
+    recordPress,
+    recordScreen,
+    recordScroll,
+    setRecording,
+    startModal,
+} from '@libs/telemetry/frameDrops/frameDropTimeline';
+
+import CONST from '@src/CONST';
 
 let now = 0;
 
@@ -98,6 +111,21 @@ describe('frameDropTimeline', () => {
         recordPress('FAB');
 
         // Then there is nothing to attribute frames to later
+        expect(getTimeline().interactions).toEqual([]);
+    });
+
+    it('keeps a modal that stays open longer than an unclosed interval may, but not a scroll whose end was lost', () => {
+        // Given a modal that is still open and a scroll whose end event never arrived
+        setRecording(true);
+        const modalID = startModal('centered');
+        recordScroll(true);
+
+        // When the timeline is pruned long after both started
+        now = 2 * CONST.TELEMETRY.FRAME_DROPS.MAX_OPEN_INTERVAL_MS;
+        pruneBefore(now);
+
+        // Then the modal still owns its frames, and the scroll doesn't
+        expect(getTimeline().modals).toEqual([{id: modalID, name: 'centered', start: 0}]);
         expect(getTimeline().interactions).toEqual([]);
     });
 });

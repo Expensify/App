@@ -37,10 +37,29 @@ function sanitizePressLabel(label: string | undefined): string {
     return pressLabels.has(label) ? label : CONST.TELEMETRY.FRAME_DROPS.INTERACTION_UNLABELED_PRESS;
 }
 
-/** Whether a span name is one of the static CONST.TELEMETRY names, so it can be reported as a flow. */
-function isStaticFlowName(name: string): boolean {
-    flowNames ??= buildSet(CONST.TELEMETRY);
+/**
+ * Whether a span is a user flow frame drops are attributed to. Helper root spans (request phases, locale loading) would
+ * otherwise take a running flow's frames.
+ */
+function isUserFlowName(name: string): boolean {
+    flowNames ??= new Set<string>([
+        CONST.TELEMETRY.SPAN_OPEN_REPORT,
+        CONST.TELEMETRY.SPAN_NAVIGATE_TO_REPORTS,
+        CONST.TELEMETRY.SPAN_NAVIGATE_TO_INBOX_TAB,
+        CONST.TELEMETRY.SPAN_OPEN_SEARCH_ROUTER,
+        CONST.TELEMETRY.SPAN_OPEN_CREATE_EXPENSE,
+        CONST.TELEMETRY.SPAN_SUBMIT_EXPENSE,
+        CONST.TELEMETRY.SPAN_SEND_MESSAGE_VISIBLE,
+        CONST.TELEMETRY.SPAN_ENTRY_TO_SCAN,
+        CONST.TELEMETRY.SPAN_SHUTTER_TO_CONFIRMATION,
+        CONST.TELEMETRY.SPAN_ODOMETER_TO_CONFIRMATION,
+        CONST.TELEMETRY.SPAN_OPEN_CATEGORY_PICKER,
+        CONST.TELEMETRY.SPAN_OPEN_MEMBER_CATEGORY_VISIBILITY,
+        CONST.TELEMETRY.SPAN_OD_ND_TRANSITION,
+        CONST.TELEMETRY.SPAN_OD_ND_TRANSITION_LOGGED_OUT,
+        CONST.TELEMETRY.SPAN_SHARE_EXTENSION_OPEN_SUBMIT_FLOW,
+    ]);
     return flowNames.has(name);
 }
 
-export {isStaticFlowName, sanitizePressLabel};
+export {isUserFlowName, sanitizePressLabel};
