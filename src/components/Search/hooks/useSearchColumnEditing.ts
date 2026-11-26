@@ -3,7 +3,7 @@ import type {ColumnEditing} from '@components/Search/SortableColumnMenu';
 import type {SearchColumnType, SearchCustomColumnIds, SearchQueryJSON} from '@components/Search/types';
 
 import Navigation from '@libs/Navigation/Navigation';
-import {getCustomColumns, getRequiredSearchColumns} from '@libs/SearchColumnsUtils';
+import {getCustomColumns, getRequiredSearchColumns, isColumnAvailableForViolationFilter} from '@libs/SearchColumnsUtils';
 import {getPinnedColumns, getQueryWithPinnedColumns} from '@libs/SearchPinnedColumnsUtils';
 import {buildSearchQueryString, queryHasViolationFilter} from '@libs/SearchQueryUtils';
 import {getColumnHiding, getCustomColumnDefault, getValidGroupBy, navigateToSearchWithColumns} from '@libs/SearchUIUtils';
@@ -42,8 +42,11 @@ function useSearchColumnEditing(shownQueryJSON: SearchQueryJSON, currentSearchQu
     });
 
     const hideColumn = (column: SearchColumnType) => {
-        const queryWithoutColumn = {...currentSearchQueryJSON, columns: getColumnsWithout(column)};
-        const query = buildSearchQueryString(getQueryWithPinnedColumns(queryWithoutColumn, getPinnedColumns(currentSearchQueryJSON), queryHasViolationFilter(currentSearchQueryJSON)));
+        const hasViolationFilter = queryHasViolationFilter(currentSearchQueryJSON);
+        // The columns come from the table on screen, which can still show the Violations column after the new search dropped its violation filter.
+        const columnsToSave = getColumnsWithout(column).filter((savedColumn) => isColumnAvailableForViolationFilter(savedColumn, hasViolationFilter));
+        const queryWithoutColumn = {...currentSearchQueryJSON, columns: columnsToSave};
+        const query = buildSearchQueryString(getQueryWithPinnedColumns(queryWithoutColumn, getPinnedColumns(currentSearchQueryJSON), hasViolationFilter));
         navigateToSearchWithColumns(query, currentSearchKey);
     };
 

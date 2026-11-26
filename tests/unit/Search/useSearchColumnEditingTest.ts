@@ -106,6 +106,51 @@ describe('useSearchColumnEditing', () => {
         ]);
     });
 
+    it('does not save the Violations column when the search that is loading dropped the violation filter', () => {
+        // Given a table still showing a search with a violation filter and its Violations column, while the same search without the filter loads
+        const savedColumns = `${CONST.SEARCH.TABLE_COLUMNS.DATE},${CONST.SEARCH.TABLE_COLUMNS.MERCHANT},${CONST.SEARCH.TABLE_COLUMNS.CATEGORY},${CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT}`;
+        const shownQueryJSON = getQueryJSON(
+            `type:expense has:${CONST.SEARCH.HAS_VALUES.SUBMITTED_VIOLATION} columns:${CONST.SEARCH.TABLE_COLUMNS.DATE},${CONST.SEARCH.TABLE_COLUMNS.MERCHANT},${CONST.SEARCH.TABLE_COLUMNS.CATEGORY},${CONST.SEARCH.TABLE_COLUMNS.VIOLATIONS},${CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT}`,
+        );
+        const currentSearchQueryJSON = getQueryJSON(`type:expense columns:${savedColumns}`);
+        const {result} = renderHook(() =>
+            useSearchColumnEditing(shownQueryJSON, currentSearchQueryJSON, [
+                CONST.SEARCH.TABLE_COLUMNS.DATE,
+                CONST.SEARCH.TABLE_COLUMNS.MERCHANT,
+                CONST.SEARCH.TABLE_COLUMNS.CATEGORY,
+                CONST.SEARCH.TABLE_COLUMNS.VIOLATIONS,
+                CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT,
+            ]),
+        );
+
+        // When Category is hidden from its menu before the results without the filter arrive
+        act(() => result.current.hideColumn(CONST.SEARCH.TABLE_COLUMNS.CATEGORY));
+
+        // Then Violations isn't saved, because without a violation filter the table never shows it, the same as when the filters build the query
+        expect(getSavedColumns()).toEqual([CONST.SEARCH.TABLE_COLUMNS.DATE, CONST.SEARCH.TABLE_COLUMNS.MERCHANT, CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT]);
+    });
+
+    it('keeps the Violations column saved when another column is hidden on a search with a violation filter', () => {
+        // Given a search with a violation filter that saved the Violations column
+        const queryJSON = getQueryJSON(
+            `type:expense has:${CONST.SEARCH.HAS_VALUES.SUBMITTED_VIOLATION} columns:${CONST.SEARCH.TABLE_COLUMNS.DATE},${CONST.SEARCH.TABLE_COLUMNS.CATEGORY},${CONST.SEARCH.TABLE_COLUMNS.VIOLATIONS},${CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT}`,
+        );
+        const {result} = renderHook(() =>
+            useSearchColumnEditing(queryJSON, queryJSON, [
+                CONST.SEARCH.TABLE_COLUMNS.DATE,
+                CONST.SEARCH.TABLE_COLUMNS.CATEGORY,
+                CONST.SEARCH.TABLE_COLUMNS.VIOLATIONS,
+                CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT,
+            ]),
+        );
+
+        // When Category is hidden from its menu
+        act(() => result.current.hideColumn(CONST.SEARCH.TABLE_COLUMNS.CATEGORY));
+
+        // Then Violations stays saved, because the filter still shows it
+        expect(getSavedColumns()).toEqual([CONST.SEARCH.TABLE_COLUMNS.DATE, CONST.SEARCH.TABLE_COLUMNS.VIOLATIONS, CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT]);
+    });
+
     it('keeps a saved column the table does not show when another column is hidden', () => {
         // Given an expense report search that saved Amount debited, which the table drops when no row has a debited amount
         const queryJSON = getQueryJSON(

@@ -9,7 +9,7 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useShouldReturnTripRooms from '@hooks/useShouldReturnTripRooms';
 
-import {getCustomColumns, getRequiredSearchColumns} from '@libs/SearchColumnsUtils';
+import {getCustomColumns, getRequiredSearchColumns, isColumnAvailableForViolationFilter} from '@libs/SearchColumnsUtils';
 import {getPinnedColumns} from '@libs/SearchPinnedColumnsUtils';
 import {buildQueryStringFromFilterFormValues, getCurrentSearchQueryJSON, hasValuesIncludeViolationFilter} from '@libs/SearchQueryUtils';
 import {getCustomColumnDefault, getValidGroupBy, insertColumnBeforeTotalAmount, isSearchDataLoaded, navigateToSearchWithColumns} from '@libs/SearchUIUtils';
@@ -35,7 +35,7 @@ function SearchColumnsPage() {
 
     // The vendor column only exists for workspaces with the vendor feature, so hide it when none of the user's workspaces has it.
     const isColumnAvailable = (column: SearchCustomColumnIds) =>
-        (shouldRequireViolationsColumn || column !== CONST.SEARCH.TABLE_COLUMNS.VIOLATIONS) && (isVendorColumnAvailable || column !== CONST.SEARCH.TABLE_COLUMNS.VENDOR);
+        isColumnAvailableForViolationFilter(column, shouldRequireViolationsColumn) && (isVendorColumnAvailable || column !== CONST.SEARCH.TABLE_COLUMNS.VENDOR);
 
     // Without the TravelApproval beta a trip search is an expense search with no trip columns to pick
     const shouldReturnTripRooms = useShouldReturnTripRooms(queryType);

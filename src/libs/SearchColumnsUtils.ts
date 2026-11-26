@@ -80,4 +80,12 @@ function getRequiredSearchColumns(shouldRequireViolationsColumn: boolean): Set<S
     return requiredColumns;
 }
 
-export {groupByRequiredColumns, getCustomColumns, getRequiredSearchColumns};
+/**
+ * Whether a column can be saved and shown for a search. The Violations column only applies to a search that filters by violations, since
+ * only those searches return violation data, so it's left out of every other search.
+ */
+function isColumnAvailableForViolationFilter(column: string, hasViolationFilter: boolean): boolean {
+    return hasViolationFilter || column !== CONST.SEARCH.TABLE_COLUMNS.VIOLATIONS;
+}
+
+export {groupByRequiredColumns, getCustomColumns, getRequiredSearchColumns, isColumnAvailableForViolationFilter};
