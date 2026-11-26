@@ -4181,6 +4181,11 @@ const translations = {
         enterRecoveryCode: 'Please enter your recovery code',
         requiredWhen2FAEnabled: 'Required when 2FA is enabled',
         requestNewCode: ({timeRemaining}: {timeRemaining: string}) => `Request a new code in <a>${timeRemaining}</a>`,
+        // @context Screen reader label for the countdown shown before a new magic code can be requested. Read instead of the visible "Request a new code in 00:26" text.
+        requestNewCodeAccessibilityLabel: ({count}: {count: number}) => ({
+            one: 'Request a new code in 1 second',
+            other: `Request a new code in ${count} seconds`,
+        }),
         requestNewCodeAfterErrorOccurred: 'Request a new code',
         timeRemainingAnnouncement: ({count}: {count: number}) => ({
             one: 'Time remaining: 1 second',

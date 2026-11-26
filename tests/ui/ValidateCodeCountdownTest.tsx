@@ -11,7 +11,12 @@ import React, {createRef} from 'react';
 
 jest.mock('@hooks/useLocalize', () =>
     jest.fn(() => ({
-        translate: (key: string, params?: {timeRemaining?: string}) => params?.timeRemaining ?? key,
+        translate: (key: string, params?: {timeRemaining?: string; count?: number}) => {
+            if (key === 'validateCodeForm.requestNewCodeAccessibilityLabel') {
+                return `Request a new code in ${params?.count} seconds`;
+            }
+            return params?.timeRemaining ?? key;
+        },
     })),
 );
 const mockAnnounce = jest.fn<void, [string, boolean]>();
@@ -133,5 +138,23 @@ describe('ValidateCodeCountdown', () => {
 
         suspendFor(10 * CONST.MILLISECONDS_PER_SECOND);
         expect(screen.getByText('00:19')).toBeOnTheScreen();
+    });
+
+    it('reads as one disabled element with the full sentence, so screen readers do not offer a link named only by the time', () => {
+        // Given the countdown has been running for a few seconds
+        renderCountdown();
+        tickSeconds(4);
+
+        // When a screen reader reaches it
+        const countdown = screen.getByLabelText('Request a new code in 26 seconds');
+
+        // Then it says what the time is for and that it can't be used yet
+        expect(countdown).toBeDisabled();
+
+        // When the next second passes
+        tickSeconds(1);
+
+        // Then the sentence keeps up with the visible time
+        expect(screen.getByLabelText('Request a new code in 25 seconds')).toBeOnTheScreen();
     });
 });

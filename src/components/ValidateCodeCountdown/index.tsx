@@ -9,6 +9,7 @@ import DateUtils from '@libs/DateUtils';
 import CONST from '@src/CONST';
 
 import React, {useEffect, useImperativeHandle, useRef, useState} from 'react';
+import {View} from 'react-native';
 
 import type {ValidateCodeCountdownProps} from './types';
 
@@ -81,11 +82,19 @@ function ValidateCodeCountdown({onCountdownFinish, requestedAt, ref}: ValidateCo
     );
 
     return (
-        <RenderHTML
-            html={translate('validateCodeForm.requestNewCode', {
-                timeRemaining: `00:${String(timeRemaining).padStart(2, '0')}`,
-            })}
-        />
+        // The visible text holds the time in a link, so screen readers would read a link named only "00:26" that does nothing.
+        // The countdown is read as one disabled element with the full sentence instead.
+        <View
+            accessible
+            accessibilityLabel={translate('validateCodeForm.requestNewCodeAccessibilityLabel', {count: timeRemaining})}
+            accessibilityState={{disabled: true}}
+        >
+            <RenderHTML
+                html={translate('validateCodeForm.requestNewCode', {
+                    timeRemaining: `00:${String(timeRemaining).padStart(2, '0')}`,
+                })}
+            />
+        </View>
     );
 }
 
