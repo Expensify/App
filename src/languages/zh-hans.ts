@@ -12675,8 +12675,7 @@ ${reportName}`,
             consolidatedBillingSuccessMessage: (domainName: string) =>
                 `<muted-text><centered-text>Consolidated domain billing is on for <strong>${domainName}</strong>. Your card will pay for all workspaces owned by its members.</centered-text></muted-text>`,
             primaryContactNoCardMobileMessage: 'To become the primary contact with consolidated domain billing on, first add a payment card. You can’t add a payment card in the mobile app.',
-            consolidatedBillingNoCardMobileMessage:
-                'The primary contact does not have a valid billing card. Please add a billing card first. You can’t add a payment card in the mobile app.',
+            consolidatedBillingNoCardMobileMessage: 'To turn on consolidated domain billing, first add a payment card. You can’t add a payment card in the mobile app.',
             addAdmin: '添加管理员',
             addAdminError: '无法将此成员添加为管理员。请重试。',
             requests: '请求',

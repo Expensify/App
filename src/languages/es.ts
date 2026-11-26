@@ -13516,7 +13516,7 @@ ${reportName}`,
             primaryContactNoCardMobileMessage:
                 'Para convertirte en el contacto principal con la facturación consolidada del dominio habilitada, primero añade una tarjeta de pago. No puedes añadir una tarjeta de pago en la aplicación móvil.',
             consolidatedBillingNoCardMobileMessage:
-                'El contacto principal no tiene una tarjeta de facturación válida. Por favor, añade primero una tarjeta de facturación. No puedes añadir una tarjeta de pago en la aplicación móvil.',
+                'Para habilitar la facturación consolidada del dominio, primero añade una tarjeta de pago. No puedes añadir una tarjeta de pago en la aplicación móvil.',
             addAdmin: 'Añadir administrador',
             addAdminError: 'No se pudo añadir a este miembro como administrador. Por favor, inténtalo de nuevo.',
             requests: 'Solicitudes',

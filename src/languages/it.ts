@@ -13198,8 +13198,7 @@ Ecco una *ricevuta di prova* per mostrarti come funziona:`,
             consolidatedBillingSuccessMessage: (domainName: string) =>
                 `<muted-text><centered-text>Consolidated domain billing is on for <strong>${domainName}</strong>. Your card will pay for all workspaces owned by its members.</centered-text></muted-text>`,
             primaryContactNoCardMobileMessage: 'To become the primary contact with consolidated domain billing on, first add a payment card. You can’t add a payment card in the mobile app.',
-            consolidatedBillingNoCardMobileMessage:
-                'The primary contact does not have a valid billing card. Please add a billing card first. You can’t add a payment card in the mobile app.',
+            consolidatedBillingNoCardMobileMessage: 'To turn on consolidated domain billing, first add a payment card. You can’t add a payment card in the mobile app.',
             addAdmin: 'Aggiungi amministratore',
             addAdminError: 'Impossibile aggiungere questo membro come amministratore. Riprova.',
             requests: 'Richieste',
