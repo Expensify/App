@@ -6,6 +6,7 @@ import {getPolicyFromSearchSnapshot, getReportFromSearchSnapshot} from '@libs/ac
 import {getBankPaySkippedReports, isSelectedReportBankPayBlocked} from '@libs/BulkPaySkippedReportsUtils';
 import deferModalPresentationAfterPopoverDismiss from '@libs/deferModalPresentationAfterPopoverDismiss';
 import {getReportName} from '@libs/ReportNameUtils';
+import {getTransactionsByReportID} from '@libs/SearchUIUtils';
 
 import type {BankAccountList, LastPaymentMethod, Policy, Report, ReportAttributesDerivedValue} from '@src/types/onyx';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
@@ -61,10 +62,13 @@ function useSearchBankPaySkippedReports({
 
     // A bank payment of this selection would pay none of it, so it explains why before asking for account validation or bank setup.
     // The backend pays a "Select all" selection itself, and only skips the reports with a negative total there.
+    const transactionsByReportID = getTransactionsByReportID(searchData ?? {});
     const isBankPayBlockedForSelection =
         !areAllMatchingItemsSelected &&
         bulkPaySelectedOptions.length > 0 &&
-        bulkPaySelectedOptions.every((item) => isSelectedReportBankPayBlocked(getReportFromSearchSnapshot(item.reportID, searchData, allReports), searchData, policies));
+        bulkPaySelectedOptions.every((item) =>
+            isSelectedReportBankPayBlocked(getReportFromSearchSnapshot(item.reportID, searchData, allReports), searchData, policies, transactionsByReportID),
+        );
 
     const getSkippedReportsForPayment = ({paymentMethod, isABAPayment, bankAccountID}: GetSkippedReportsForPaymentParams) => {
         const skippedReportsByID = getBankPaySkippedReports({

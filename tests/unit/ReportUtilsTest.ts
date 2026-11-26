@@ -33377,6 +33377,41 @@ describe('isBankPayBlockedBySpend', () => {
         expect(isBankPayBlockedBySpend(report, manualReimbursementPolicy)).toBe(false);
     });
 
+    it('returns false while an expense is still being scanned', () => {
+        // Given a $0 report whose only expense is a receipt still being SmartScanned, so its real amount isn't known yet
+        const report: Report = {...expenseReport, total: 0};
+        const scanningTransaction: Transaction = {
+            ...createRandomTransaction(1),
+            reportID: report.reportID,
+            hasEReceipt: false,
+            merchant: '',
+            modifiedMerchant: '',
+            modifiedAmount: '',
+            iouRequestType: CONST.IOU.REQUEST_TYPE.SCAN,
+            receipt: {state: CONST.IOU.RECEIPT_STATE.SCANNING},
+        };
+
+        // When checking whether the bank account can't pay it
+        // Then it fails closed until the scan settles the amount owed
+        expect(isBankPayBlockedBySpend(report, manualReimbursementPolicy, [scanningTransaction])).toBe(false);
+    });
+
+    it('returns false while an expense is a pending card charge', () => {
+        // Given a $0 report whose only expense is an Expensify Card charge that hasn't posted yet
+        const report: Report = {...expenseReport, total: 0};
+        const pendingCardTransaction: Transaction = {
+            ...createRandomTransaction(1),
+            reportID: report.reportID,
+            bank: CONST.EXPENSIFY_CARD.BANK,
+            status: CONST.TRANSACTION.STATUS.PENDING,
+            receipt: undefined,
+        };
+
+        // When checking whether the bank account can't pay it
+        // Then it fails closed until the charge posts with its final amount
+        expect(isBankPayBlockedBySpend(report, manualReimbursementPolicy, [pendingCardTransaction])).toBe(false);
+    });
+
     it('returns false for an IOU report', () => {
         // Given a non-reimbursable IOU report, which is paid from a personal wallet rather than a business bank account
         const report: Report = {...expenseReport, type: CONST.REPORT.TYPE.IOU, nonReimbursableTotal: -5000};

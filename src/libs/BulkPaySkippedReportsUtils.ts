@@ -2,7 +2,7 @@
  * Decides which selected reports a bulk bank payment leaves out because nothing on them is owed.
  */
 import CONST from '@src/CONST';
-import type {LastPaymentMethod, Policy, Report} from '@src/types/onyx';
+import type {LastPaymentMethod, Policy, Report, Transaction} from '@src/types/onyx';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import type {SearchResultDataType} from '@src/types/onyx/SearchResults';
 
@@ -10,6 +10,7 @@ import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
 import {getLastPolicyPaymentMethod, getPolicyFromSearchSnapshot, getReportFromSearchSnapshot, getReportType} from './actions/Search';
 import {isBankPayBlockedBySpend, isIOUReport} from './ReportUtils';
+import {getTransactionsByReportID} from './SearchUIUtils';
 
 type GetBankPaySkippedReportsParams = {
     /** The reports behind the selection, which repeat when several expenses of one report are selected */
@@ -28,9 +29,17 @@ type GetBankPaySkippedReportsParams = {
     lastPaymentMethods: OnyxEntry<LastPaymentMethod>;
 };
 
-/** Whether a bank payment leaves a selected report out because nothing on it is owed, judged by the report's own workspace */
-function isSelectedReportBankPayBlocked(report: OnyxEntry<Report>, searchData: SearchResultDataType | undefined, policies: OnyxCollection<Policy> | undefined): boolean {
-    return !!report && isBankPayBlockedBySpend(report, getPolicyFromSearchSnapshot(report.policyID, searchData, policies));
+/**
+ * Whether a bank payment leaves a selected report out because nothing on it is owed, judged by the report's own workspace.
+ * Takes the snapshot's expenses grouped by report, falling back to Onyx for a report whose expenses aren't in the snapshot.
+ */
+function isSelectedReportBankPayBlocked(
+    report: OnyxEntry<Report>,
+    searchData: SearchResultDataType | undefined,
+    policies: OnyxCollection<Policy> | undefined,
+    transactionsByReportID: Map<string, Transaction[]>,
+): boolean {
+    return !!report && isBankPayBlockedBySpend(report, getPolicyFromSearchSnapshot(report.policyID, searchData, policies), transactionsByReportID.get(report.reportID));
 }
 
 /** Returns the selected reports a bank payment leaves out, keyed by reportID. Marking as paid leaves none out */
@@ -45,6 +54,7 @@ function getBankPaySkippedReports({
     lastPaymentMethods,
 }: GetBankPaySkippedReportsParams): Map<string, Report> {
     const skippedReports = new Map<string, Report>();
+    const transactionsByReportID = getTransactionsByReportID(searchData ?? {});
     for (const reportID of new Set(reportIDs)) {
         const report = reportID ? getReportFromSearchSnapshot(reportID, searchData, allReports) : undefined;
         if (!reportID || !report) {
@@ -54,7 +64,7 @@ function getBankPaySkippedReports({
         if (!isABAPayment && (!reportPaymentMethod || reportPaymentMethod === CONST.IOU.PAYMENT_TYPE.ELSEWHERE)) {
             continue;
         }
-        if (isSelectedReportBankPayBlocked(report, searchData, policies)) {
+        if (isSelectedReportBankPayBlocked(report, searchData, policies, transactionsByReportID)) {
             skippedReports.set(reportID, report);
         }
     }

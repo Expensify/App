@@ -5675,16 +5675,29 @@ function isReportTotalLoadedAndSettled(report: OnyxInputOrEntry<Report>): boolea
 }
 
 /**
+ * The report's expenses that aren't being deleted.
+ */
+function getReportExpensesNotPendingDelete(report: OnyxInputOrEntry<Report>, transactionsParam?: Transaction[]): Transaction[] {
+    return resolveReportTransactions(report?.reportID, transactionsParam).filter((transaction) => !isTransactionPendingDelete(transaction));
+}
+
+/**
+ * Whether any expense on the report is still scanning, failed to scan or is a pending card charge, so the report's real reimbursable spend is not known yet.
+ */
+function hasUnsettledExpenseValue(expenses: Transaction[], report: OnyxInputOrEntry<Report>): boolean {
+    return expenses.some((transaction) => isExpenseValueUnsettled(transaction, report ?? undefined, isScanningTransaction));
+}
+
+/**
  * Whether an expense report has nothing to reimburse and every expense on it has a settled value, e.g. its reimbursable expenses cancel out.
- * Such a report can only be marked as paid. Fails closed while the report total is not loaded or is pending, or while any expense is still
- * scanning, failed to scan or is a pending card charge, because its real reimbursable spend is not known yet.
+ * Such a report can only be marked as paid. Fails closed while the report total is not loaded or is pending, or while any expense value is unsettled.
  */
 function hasSettledZeroReimbursableSpend(spendBreakdown: SpendBreakdown, report: OnyxInputOrEntry<Report>, transactionsParam?: Transaction[]): boolean {
     if (!isExpenseReport(report) || spendBreakdown.reimbursableSpend !== 0 || !isReportTotalLoadedAndSettled(report)) {
         return false;
     }
-    const expenses = resolveReportTransactions(report?.reportID, transactionsParam).filter((transaction) => !isTransactionPendingDelete(transaction));
-    return expenses.length > 0 && !expenses.some((transaction) => isExpenseValueUnsettled(transaction, report ?? undefined, isScanningTransaction));
+    const expenses = getReportExpensesNotPendingDelete(report, transactionsParam);
+    return expenses.length > 0 && !hasUnsettledExpenseValue(expenses, report);
 }
 
 /**
@@ -5704,7 +5717,7 @@ function hasOnlyNonReimbursableTotal(report: OnyxInputOrEntry<Report>): boolean 
  * These reports can still be marked as paid from the report, but aren't surfaced as something to pay (LHN badge, Search row action, Pay to-do).
  */
 function isPayOptional(report: OnyxInputOrEntry<Report>, transactionsParam?: Transaction[]): boolean {
-    const transactions = resolveReportTransactions(report?.reportID, transactionsParam).filter((transaction) => !isTransactionPendingDelete(transaction));
+    const transactions = getReportExpensesNotPendingDelete(report, transactionsParam);
     if (transactions.length === 0) {
         return hasOnlyNonReimbursableTotal(report);
     }
@@ -5714,14 +5727,15 @@ function isPayOptional(report: OnyxInputOrEntry<Report>, transactionsParam?: Tra
 /**
  * Whether a bank account can't pay an expense report because nothing on it is owed: it's non-reimbursable or totals $0 or less,
  * on a workspace that otherwise pays through a bank account. Such a report keeps the bank account option, and picking it explains why it can't be used.
- * Fails closed while the report total isn't known, so a report that may be owed is never left out of a bank payment.
+ * Fails closed while the report total isn't known or any loaded expense is still unsettled, so a report that may be owed is never left out of a bank payment.
  */
-function isBankPayBlockedBySpend(report: OnyxInputOrEntry<Report>, policy: OnyxInputOrEntry<Policy>): boolean {
+function isBankPayBlockedBySpend(report: OnyxInputOrEntry<Report>, policy: OnyxInputOrEntry<Policy>, transactionsParam?: Transaction[]): boolean {
     return (
         isExpenseReport(report) &&
         isReportTotalLoadedAndSettled(report) &&
         getReimbursementChoice(policy) !== CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO &&
-        getMoneyRequestSpendBreakdown(report).reimbursableSpend <= 0
+        getMoneyRequestSpendBreakdown(report).reimbursableSpend <= 0 &&
+        !hasUnsettledExpenseValue(getReportExpensesNotPendingDelete(report, transactionsParam), report)
     );
 }
 

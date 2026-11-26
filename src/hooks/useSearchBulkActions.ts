@@ -975,7 +975,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                     invoiceReceiverPolicy,
                 ) &&
                 // A bank payment leaves out a report with nothing owed instead of hiding the bank account for the whole selection
-                !isSelectedReportBankPayBlocked(report, currentSearchResults?.data, policies)
+                !isSelectedReportBankPayBlocked(report, currentSearchResults?.data, policies, transactionsByReportID)
             );
         });
     }, [
