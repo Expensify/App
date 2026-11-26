@@ -19,6 +19,7 @@ import useAllTransactionViolations from './useAllTransactionViolations';
 import {useCurrencyListActions} from './useCurrencyList';
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import useDelegateAccountID from './useDelegateAccountID';
+import useLocalize from './useLocalize';
 import useOnyx from './useOnyx';
 import usePermissions from './usePermissions';
 import {usePersonalDetail} from './usePersonalDetails';
@@ -74,6 +75,7 @@ function useUpdateTransactionCategory({
     isEditingSplit,
 }: UseUpdateTransactionCategoryParams): UseUpdateTransactionCategoryResult {
     const {getCurrencyDecimals, getCurrencySymbol} = useCurrencyListActions();
+    const {translate} = useLocalize();
     const {currentSearchHash} = useSearchQueryContext();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const delegateAccountID = useDelegateAccountID();
@@ -100,6 +102,7 @@ function useUpdateTransactionCategory({
     const updateCategory = (category: string, updatedPolicyCategories?: OnyxTypes.PolicyCategories) => {
         if (isSplitUpdate) {
             setDraftSplitTransaction(
+                translate,
                 transaction.transactionID,
                 splitDraftTransaction ?? transaction,
                 {category},
@@ -115,6 +118,7 @@ function useUpdateTransactionCategory({
 
         if (isExistingExpenseUpdate) {
             updateMoneyRequestCategory({
+                translate,
                 isVendorMatchingBetaEnabled: isBetaEnabledOrUnknown(CONST.BETAS.VENDOR_MATCHING),
                 transactionID: transaction.transactionID,
                 transaction,

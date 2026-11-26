@@ -193,4 +193,4 @@ function getWiseOnboardingPageParams(bankAccountID: number, page: DynamicFormPag
 }
 
 export default getWiseOnboardingPageParams;
-export {getFiles, getLabelledFileKey, getSavedFileAnswers, getSourceOfWealthEntries, isSavedFile, toSavedFile, withSavedFiles};
+export {getFiles, getLabelledFileKey, getSavedFileAnswers, getSourceOfWealthEntries, isSavedFile, isWiseOnboardingStep, toSavedFile, withSavedFiles};

@@ -1,12 +1,14 @@
 import {clearPolicyTagsLoadingState, openPolicyTagsPage} from '@libs/actions/Policy/Tag';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 import type {RefObject} from 'react';
 
 import {useEffect, useRef} from 'react';
 
+import useCanReadPolicyFeature from './useCanReadPolicyFeature';
 import useNetwork from './useNetwork';
 import useOnyx from './useOnyx';
 
@@ -25,10 +27,14 @@ const pendingReadOwners = new Map<string, RefObject<string | undefined>>();
  * `API.read` does not dedupe in-flight reads, and the optimistic `isLoading` reaches Onyx only after every picker that
  * mounted in the same render has run its effect. Until then, `pendingReadOwners` stops a second picker for the same
  * policy from sending its own read.
+ *
+ * Only roles that can read the workspace's tags send the read, since Auth rejects it for every other role. Those
+ * members get the tags with the report through `OpenReport` instead.
  */
 function useLoadPolicyTags(policyID: string | undefined) {
     const [loadingState] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_POLICY_TAGS_LOADING_STATE}${getNonEmptyStringOnyxID(policyID)}`);
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${getNonEmptyStringOnyxID(policyID)}`);
+    const canReadTags = useCanReadPolicyFeature(policyID, CONST.POLICY.POLICY_FEATURE.TAGS);
     const isLoading = !!loadingState?.isLoading;
     const hasOnceLoaded = !!loadingState?.hasOnceLoaded;
     const hasTags = policyTags !== undefined;
@@ -40,7 +46,7 @@ function useLoadPolicyTags(policyID: string | undefined) {
 
     const {isOffline} = useNetwork({
         onReconnect: () => {
-            if (!policyID || hasOnceLoaded) {
+            if (!policyID || !canReadTags || hasOnceLoaded) {
                 return;
             }
             // A read cut off by the disconnect never gets a response, so its `failureData` never applies and
@@ -60,7 +66,7 @@ function useLoadPolicyTags(policyID: string | undefined) {
             pendingReadOwners.delete(policyID);
             return;
         }
-        if (isOffline || requestedPolicyIDRef.current === policyID || pendingReadOwners.has(policyID)) {
+        if (!canReadTags || isOffline || requestedPolicyIDRef.current === policyID || pendingReadOwners.has(policyID)) {
             return;
         }
         // This picker is switching to another policy, so it releases the entry it holds for the previous one. Only the
@@ -71,7 +77,7 @@ function useLoadPolicyTags(policyID: string | undefined) {
         requestedPolicyIDRef.current = policyID;
         pendingReadOwners.set(policyID, requestedPolicyIDRef);
         openPolicyTagsPage(policyID);
-    }, [policyID, isOffline, isLoading, hasOnceLoaded]);
+    }, [policyID, canReadTags, isOffline, isLoading, hasOnceLoaded]);
 
     // A picker that unmounts before its read's loading state lands releases the entry, so it cannot block later pickers
     useEffect(() => {
@@ -86,9 +92,9 @@ function useLoadPolicyTags(policyID: string | undefined) {
     }, []);
 
     // True only while the read is unsettled and there is nothing to render yet, so the picker shows a skeleton instead
-    // of an empty list. The `policyID` check mirrors the effect's guard: with no policyID no read is ever dispatched,
-    // so the absent loading state would otherwise keep the skeleton up forever.
-    const isLoadingPolicyTags = !!policyID && !isOffline && !hasOnceLoaded && !hasTags && (isLoading || loadingState === undefined);
+    // of an empty list. The `policyID` and `canReadTags` checks mirror the effect's guard: when no read is ever
+    // dispatched, the absent loading state would otherwise keep the skeleton up forever.
+    const isLoadingPolicyTags = !!policyID && canReadTags && !isOffline && !hasOnceLoaded && !hasTags && (isLoading || loadingState === undefined);
 
     // Only a completed read guarantees the collection holds every tag list, so callers that rely on the full list count check this
     return {isLoadingPolicyTags, hasLoadedPolicyTags: hasOnceLoaded};
