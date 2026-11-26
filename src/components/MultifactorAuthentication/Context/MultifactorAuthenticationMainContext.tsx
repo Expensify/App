@@ -16,7 +16,7 @@ import {getErrorMessage} from '@libs/ErrorUtils';
 import getPlatform from '@libs/getPlatform';
 import {isHttpSuccess} from '@libs/MultifactorAuthentication/shared/helpers';
 import {createLocalMFAError, createMFAErrorFromApiResponse} from '@libs/MultifactorAuthentication/shared/MFAResult';
-import type {MultifactorAuthenticationCallbackInput} from '@libs/MultifactorAuthentication/shared/types';
+import type {MultifactorAuthenticationCallbackInput, MultifactorAuthenticationCallbackResponse} from '@libs/MultifactorAuthentication/shared/types';
 import Navigation from '@libs/Navigation/Navigation';
 
 import {clearLocalMFAPublicKeyList, getDeviceBiometricsOnyxKey, requestAuthorizationChallenge, requestRegistrationChallenge} from '@userActions/MultifactorAuthentication';
@@ -97,6 +97,9 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
 
     const startStateRef = useRef<CredentialsState | undefined>(undefined);
 
+    // Blocks a second finalization while handleCallback awaits, before SET_FLOW_COMPLETE lands (e.g. offline flap)
+    const isFinalizingRef = useRef(false);
+
     const captureCredentialsState = async (): Promise<CredentialsState> => {
         const hasLocalCredentials = await biometrics.areLocalCredentialsKnownToServer();
         return {
@@ -120,9 +123,10 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
     const handleCallback = async (isSuccessful: boolean) => {
         const {error, scenario, scenarioResponse, payload} = state;
 
-        if (!scenario) {
+        if (!scenario || isFinalizingRef.current) {
             return;
         }
+        isFinalizingRef.current = true;
 
         const scenarioConfig = scenario;
         const callbackInput: MultifactorAuthenticationCallbackInput = {
@@ -131,30 +135,39 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
             body: scenarioResponse?.body,
         };
 
-        const callbackResponse = await scenarioConfig.callback?.(isSuccessful, callbackInput, payload);
+        let callbackResponse: MultifactorAuthenticationCallbackResponse | undefined;
+        try {
+            callbackResponse = await scenarioConfig.callback?.(isSuccessful, callbackInput, payload);
 
-        addMFABreadcrumb('Flow completed', {
-            isSuccessful,
-            callbackResponse: callbackResponse ?? 'none',
-            httpStatusCode: scenarioResponse?.httpStatusCode ?? error?.httpStatusCode,
-            reason: scenarioResponse?.reason ?? error?.reason,
-            message: scenarioResponse?.message ?? error?.message,
-        });
+            addMFABreadcrumb('Flow completed', {
+                isSuccessful,
+                callbackResponse: callbackResponse ?? 'none',
+                httpStatusCode: scenarioResponse?.httpStatusCode ?? error?.httpStatusCode,
+                reason: scenarioResponse?.reason ?? error?.reason,
+                message: scenarioResponse?.message ?? error?.message,
+            });
 
-        const endState = await captureCredentialsState();
+            const endState = await captureCredentialsState();
 
-        trackMFAFlowOutcome({
-            isSuccessful,
-            scenario: state.scenarioName,
-            scenarioResponse,
-            error,
-            authenticationMethod: state.authenticationMethod?.name,
-            isRegistrationComplete: state.isRegistrationComplete,
-            isAuthorizationComplete: state.isAuthorizationComplete,
-            softPromptApproved: state.softPromptApproved,
-            startState: startStateRef.current ?? endState,
-            endState,
-        });
+            trackMFAFlowOutcome({
+                isSuccessful,
+                scenario: state.scenarioName,
+                scenarioResponse,
+                error,
+                authenticationMethod: state.authenticationMethod?.name,
+                isRegistrationComplete: state.isRegistrationComplete,
+                isAuthorizationComplete: state.isAuthorizationComplete,
+                softPromptApproved: state.softPromptApproved,
+                startState: startStateRef.current ?? endState,
+                endState,
+            });
+        } catch (finalizationError) {
+            // The finalization lock blocks any retry, so close the flow here or the modal stays open for good
+            addMFABreadcrumb('Flow finalization failed', {isSuccessful, message: getErrorMessage(finalizationError)}, 'error');
+            dispatch({type: 'SET_FLOW_COMPLETE', payload: true});
+            dispatch({type: 'CLOSE_MODAL'});
+            return;
+        }
 
         dispatch({type: 'SET_FLOW_COMPLETE', payload: true});
 
@@ -422,6 +435,8 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
         handleCallback(true);
     };
 
+    const isAuthorizedAndOnline = state.isAuthorizationComplete && !isOffline;
+
     /**
      * Drives the MFA state machine forward whenever relevant state changes occur.
      * This effect acts as the "engine" that progresses through the authentication flow:
@@ -435,6 +450,7 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
     useEffect(() => {
         // Don't run until a scenario has been initiated
         if (!state.scenario) {
+            isFinalizingRef.current = false;
             return;
         }
 
@@ -471,6 +487,9 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
         state.isRegistrationComplete,
         state.isAuthorizationComplete,
         state.isFlowComplete,
+
+        // Reconnect after authorization - resumes the final step that was skipped while offline
+        isAuthorizedAndOnline,
     ]);
 
     /**

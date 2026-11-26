@@ -1,9 +1,17 @@
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import MenuItem from '@components/MenuItem';
+import Text from '@components/Text';
+
+import useOnyx from '@hooks/useOnyx';
+import useThemeStyles from '@hooks/useThemeStyles';
 
 import Navigation from '@libs/Navigation/Navigation';
 
-import CONST from '@src/CONST';
+import {callIfAuthenticated} from '@userActions/Session';
 
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+
+import {authTokenTypeSelector} from '@selectors/Session';
 import React, {useState} from 'react';
 import {View} from 'react-native';
 
@@ -14,7 +22,7 @@ import ValueSelectorModal from './ValueSelectorModal';
 
 function ValuePicker({
     value,
-    label,
+    label = '',
     modalHeaderTitle,
     shouldReadErrorWithLabel,
     items,
@@ -33,6 +41,8 @@ function ValuePicker({
     disabled = false,
 }: ValuePickerProps) {
     const [isPickerVisible, setIsPickerVisible] = useState(false);
+    const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
+    const styles = useThemeStyles();
 
     const showPickerModal = () => {
         setIsPickerVisible(true);
@@ -51,25 +61,51 @@ function ValuePicker({
     };
 
     const selectedItem = items?.find((item) => item.value === value);
+    const title = selectedItem?.label || placeholder || '';
 
     return (
         <View>
             {shouldShowModal ? (
                 <>
-                    <MenuItemWithTopDescription
+                    <MenuItem.Root
                         ref={ref}
-                        shouldShowRightIcon
-                        title={selectedItem?.label || placeholder || ''}
-                        description={label}
-                        onPress={showPickerModal}
-                        disabled={disabled}
+                        onPress={callIfAuthenticated(showPickerModal, session)}
+                        isDisabled={disabled}
                         sentryLabel={CONST.SENTRY_LABEL.VALUE_PICKER.OPEN}
-                        furtherDetails={furtherDetails}
-                        brickRoadIndicator={errorText ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
-                        errorText={errorText}
-                        shouldReadErrorWithLabel={shouldReadErrorWithLabel}
                         forwardedFSClass={forwardedFSClass}
-                    />
+                    >
+                        <MenuItem.Row>
+                            <MenuItem.Content>
+                                {title ? (
+                                    <>
+                                        <MenuItem.FieldName>{label}</MenuItem.FieldName>
+                                        <MenuItem.FieldValue forwardedFSClass={forwardedFSClass}>{title}</MenuItem.FieldValue>
+                                    </>
+                                ) : (
+                                    <MenuItem.FieldNamePlaceholder>{label}</MenuItem.FieldNamePlaceholder>
+                                )}
+                                {!!furtherDetails && (
+                                    <Text
+                                        style={styles.textLabelSupporting}
+                                        numberOfLines={2}
+                                    >
+                                        {furtherDetails}
+                                    </Text>
+                                )}
+                            </MenuItem.Content>
+                            <MenuItem.Trailing>
+                                {!!errorText && <MenuItem.BrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />}
+                                <MenuItem.Chevron />
+                            </MenuItem.Trailing>
+                        </MenuItem.Row>
+                        {!!errorText && (
+                            <MenuItem.HelpText
+                                isError
+                                message={errorText}
+                                shouldReadErrorWithLabel={shouldReadErrorWithLabel}
+                            />
+                        )}
+                    </MenuItem.Root>
                     <ValueSelectorModal
                         isVisible={isPickerVisible}
                         label={modalHeaderTitle ?? label}

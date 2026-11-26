@@ -1,8 +1,7 @@
-import ActivityIndicator from '@components/ActivityIndicator';
 import Button from '@components/Button';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderCentralPane from '@components/Header/composed/HeaderCentralPane';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import ScreenWrapper from '@components/ScreenWrapper';
 import type {PersonalExpenseRuleRowData} from '@components/Tables/PersonalExpenseRulesTable';
@@ -33,7 +32,6 @@ import ROUTES from '@src/ROUTES';
 import type {ExpenseRule} from '@src/types/onyx';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
 import getEmptyArray from '@src/types/utils/getEmptyArray';
-import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 import React, {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
@@ -50,7 +48,7 @@ function ExpenseRulesPage() {
     const {pageGutter} = useLayoutSpacing();
     const isMobileSelectionModeEnabled = useMobileSelectionMode();
     const icons = useMemoizedLazyExpensifyIcons(['Pencil', 'Plus', 'Trashcan']);
-    const [expenseRules = getEmptyArray<ExpenseRule>(), expenseRulesResult] = useOnyx(ONYXKEYS.NVP_EXPENSE_RULES);
+    const [expenseRules = getEmptyArray<ExpenseRule>()] = useOnyx(ONYXKEYS.NVP_EXPENSE_RULES);
 
     const [selectedRules, setSelectedRules] = useState<string[]>([]);
     const {showConfirmModal} = useConfirmModal();
@@ -69,7 +67,6 @@ function ExpenseRulesPage() {
     }, [expenseRules]);
 
     const hasRules = expenseRules.filter((rule) => isOffline || rule.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE).length > 0;
-    const isLoading = !hasRules && isLoadingOnyxValue(expenseRulesResult);
 
     const canSelectMultiple = !shouldUseNarrowLayout || isMobileSelectionModeEnabled;
     const selectionModeHeader = isMobileSelectionModeEnabled && shouldUseNarrowLayout;
@@ -189,21 +186,19 @@ function ExpenseRulesPage() {
             onPress={() => null}
             options={headerDropdownOptions}
             shouldAlwaysShowDropdownMenu
-            style={[shouldDisplayButtonsInSeparateLine && styles.flexGrow1, shouldDisplayButtonsInSeparateLine && styles.mb3]}
+            style={shouldDisplayButtonsInSeparateLine && [styles.flexGrow1, styles.mb3]}
             testID="ExpenseRulesPage-header-dropdown-menu-button"
         />
     ) : (
-        <View style={[styles.flexRow, styles.gap2, shouldDisplayButtonsInSeparateLine && styles.mb3]}>
-            <Button
-                variant={CONST.BUTTON_VARIANT.SUCCESS}
-                onPress={navigateToNewRulePage}
-                style={[shouldDisplayButtonsInSeparateLine && styles.flex1]}
-                sentryLabel={CONST.SENTRY_LABEL.SETTINGS_RULES.NEW_RULE}
-            >
-                <Button.Icon src={icons.Plus} />
-                <Button.Text>{translate('expenseRulesPage.newRule')}</Button.Text>
-            </Button>
-        </View>
+        <Button
+            variant={CONST.BUTTON_VARIANT.SUCCESS}
+            onPress={navigateToNewRulePage}
+            style={shouldDisplayButtonsInSeparateLine && styles.mb3}
+            sentryLabel={CONST.SENTRY_LABEL.SETTINGS_RULES.NEW_RULE}
+        >
+            <Button.Icon src={icons.Plus} />
+            <Button.Text>{translate('expenseRulesPage.newRule')}</Button.Text>
+        </Button>
     );
 
     const expenseRulesSubtitle = (
@@ -220,7 +215,7 @@ function ExpenseRulesPage() {
             shouldShowOfflineIndicatorInWideScreen
             offlineIndicatorStyle={styles.mtAuto}
         >
-            <HeaderWithBackButton
+            <HeaderCentralPane
                 onBackButtonPress={() => {
                     if (isMobileSelectionModeEnabled) {
                         setSelectedRules([]);
@@ -230,33 +225,22 @@ function ExpenseRulesPage() {
 
                     Navigation.goBack();
                 }}
-                shouldShowBackButton={shouldUseNarrowLayout}
-                shouldUseHeadlineHeader={!selectionModeHeader}
-                shouldDisplayHelpButton
+                isHeadline={!selectionModeHeader}
                 title={selectionModeHeader ? translate('common.selectMultiple') : translate('expenseRulesPage.title')}
             >
                 {!shouldDisplayButtonsInSeparateLine && hasRules && headerButton}
-            </HeaderWithBackButton>
+            </HeaderCentralPane>
             {shouldDisplayButtonsInSeparateLine && hasRules && <View style={pageGutter}>{headerButton}</View>}
 
             {!hasRules && expenseRulesSubtitle}
 
-            {!hasRules && isLoading && (
-                <ActivityIndicator
-                    size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
-                    style={[styles.flex1]}
-                />
-            )}
-
-            {!isLoading && (
-                <PersonalExpenseRulesTable
-                    selectedKeys={selectedRules}
-                    personalExpenseRules={personalExpenseRules}
-                    onRowSelectionChange={setSelectedRules}
-                    headerComponent={hasRules ? expenseRulesSubtitle : undefined}
-                    bulkActionOptions={headerDropdownOptions}
-                />
-            )}
+            <PersonalExpenseRulesTable
+                selectedKeys={selectedRules}
+                personalExpenseRules={personalExpenseRules}
+                onRowSelectionChange={setSelectedRules}
+                headerComponent={hasRules ? expenseRulesSubtitle : undefined}
+                bulkActionOptions={headerDropdownOptions}
+            />
         </ScreenWrapper>
     );
 }

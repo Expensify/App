@@ -12,6 +12,7 @@ import CONST from '@src/CONST';
 import type ModalType from '@src/types/utils/ModalType';
 
 import type {ViewStyle} from 'react-native';
+import type {Writable} from 'type-fest';
 
 import type StyleUtilGenerator from './types';
 
@@ -89,7 +90,7 @@ const createModalStyleUtils: StyleUtilGenerator<GetModalStylesStyleUtil> = ({the
             zIndex: variables.modalBaseZIndex,
         };
 
-        let modalContainerStyle: GetModalStyles['modalContainerStyle'];
+        let modalContainerStyle: Writable<GetModalStyles['modalContainerStyle']>;
         let swipeDirection: GetModalStyles['swipeDirection'];
         let animationIn: GetModalStyles['animationIn'];
         let animationOut: GetModalStyles['animationOut'];

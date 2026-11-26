@@ -125,6 +125,17 @@ function parseAndLogRoute(state: NavigationState, authenticated: boolean) {
     trackFullstoryPageView(state);
 }
 
+let lastNewDotScreenName: string | undefined;
+
+function setNewDotScreenContext() {
+    const name = navigationRef.getCurrentRoute()?.name;
+    if (name === lastNewDotScreenName) {
+        return;
+    }
+    lastNewDotScreenName = name;
+    Sentry.setContext(CONST.TELEMETRY.CONTEXT_NEWDOT_SCREEN, {name, timestamp: Date.now() / 1000});
+}
+
 function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady}: NavigationRootProps) {
     useStartSpansOnRender([
         {
@@ -275,6 +286,7 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady}: N
         }
         const currentRoute = navigationRef.getCurrentRoute();
         Sentry.addBreadcrumb({message: `[NAVIGATION] screen: ${currentRoute?.name}, params: ${JSON.stringify(currentRoute?.params ?? {})}`, category: 'navigation'});
+        setNewDotScreenContext();
         recordScreen(currentRoute?.name);
 
         updateCurrentReportID(state);
@@ -298,6 +310,9 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady}: N
         // from the restored root state so isTopMostReportId is correct on the first report screen
         // (e.g. the composer's keyboard avoiding view is enabled right away).
         updateCurrentReportID(navigationRef.getRootState());
+
+        // Records the first screen, for the same reason.
+        setNewDotScreenContext();
         recordScreen(navigationRef.getCurrentRoute()?.name);
     };
 

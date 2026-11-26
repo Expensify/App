@@ -5,6 +5,7 @@ import {CurrentUserPersonalDetailsProvider} from '@components/CurrentUserPersona
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import FlatNavigationBar from '@components/Navigation/FlatNavigationBar';
 import NAVIGATION_TABS from '@components/Navigation/NavigationTabBar/NAVIGATION_TABS';
+import {FLAT_NAVIGATION_BAR_COLLAPSED_WIDTH} from '@components/Navigation/SearchSidebarCollapseStore';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 
 import {signOutAndRedirectToSignIn} from '@libs/actions/Session';
@@ -79,7 +80,20 @@ jest.mock('@libs/isHTMLElement', () => ({
         return true;
     },
 }));
-jest.mock('@pages/inbox/sidebar/SupportalSwitcherButton', () => () => null);
+type MockSupportalItemProps = {
+    isCollapsed?: boolean;
+    isSupportAgent?: boolean;
+    isRowVisible?: boolean;
+    isSwitcherVisible?: boolean;
+    showSwitcher?: () => void;
+    hideSwitcher?: () => void;
+    onSwitcherHidden?: () => void;
+};
+let mockSupportalItemProps: MockSupportalItemProps | undefined;
+jest.mock('@components/Navigation/FlatNavigationBar/FlatNavSupportalItem', () => (props: MockSupportalItemProps) => {
+    mockSupportalItemProps = props;
+    return null;
+});
 jest.mock('@components/Avatar/AccountNavigationAvatar', () => () => null);
 jest.mock('@libs/Navigation/Navigation', () => ({
     __esModule: true,
@@ -87,19 +101,28 @@ jest.mock('@libs/Navigation/Navigation', () => ({
 }));
 let mockOuterHoverOut: (() => void) | undefined;
 let mockInnerHoverIn: (() => void) | undefined;
-jest.mock(
-    '@components/Hoverable',
-    () =>
-        ({children, onHoverIn, onHoverOut}: {children: React.ReactNode | ((isHovered: boolean) => React.ReactNode); onHoverIn?: () => void; onHoverOut?: () => void}) => {
-            if (onHoverOut) {
-                mockOuterHoverOut = onHoverOut;
-            }
-            if (onHoverIn) {
-                mockInnerHoverIn = onHoverIn;
-            }
-            return typeof children === 'function' ? children(false) : children;
-        },
-);
+// Only the Account area reads its hover through a render function, so this flag drives just that area.
+let mockIsAccountAreaHovered = false;
+let mockIsAccountAreaHoverNative: boolean | undefined;
+type MockHoverableProps = {
+    children: React.ReactNode | ((isHovered: boolean) => React.ReactNode);
+    onHoverIn?: () => void;
+    onHoverOut?: () => void;
+    shouldUseNativeHoverEvents?: boolean;
+};
+jest.mock('@components/Hoverable', () => ({children, onHoverIn, onHoverOut, shouldUseNativeHoverEvents}: MockHoverableProps) => {
+    if (onHoverOut) {
+        mockOuterHoverOut = onHoverOut;
+    }
+    if (onHoverIn) {
+        mockInnerHoverIn = onHoverIn;
+    }
+    if (typeof children !== 'function') {
+        return children;
+    }
+    mockIsAccountAreaHoverNative = shouldUseNativeHoverEvents;
+    return children(mockIsAccountAreaHovered);
+});
 jest.mock('@libs/actions/Session', () => ({
     ...jest.requireActual<Record<string, unknown>>('@libs/actions/Session'),
     signOutAndRedirectToSignIn: jest.fn(),
@@ -136,11 +159,14 @@ describe('FlatNavigationBar', () => {
     beforeEach(async () => {
         jest.clearAllMocks();
         mockCreateButtonProps = undefined;
+        mockSupportalItemProps = undefined;
         mockIsElementHovered = false;
         mockIsFocusMovingInside = false;
         mockHasKeyboardFocusInside = false;
         mockOuterHoverOut = undefined;
         mockInnerHoverIn = undefined;
+        mockIsAccountAreaHovered = false;
+        mockIsAccountAreaHoverNative = undefined;
         mockInboxIndicator = NO_INDICATOR;
         mockWorkspacesIndicator = NO_INDICATOR;
         setIsSearchTabHovered(false);
@@ -339,7 +365,7 @@ describe('FlatNavigationBar', () => {
             await waitForBatchedUpdatesWithAct();
 
             // Then the bar narrows to the rail, the flag is saved for the next load, and the toggle now offers to expand
-            expect(getBarWidth()).toBe(variables.flatNavigationBarCollapsedWidth);
+            expect(getBarWidth()).toBe(FLAT_NAVIGATION_BAR_COLLAPSED_WIDTH);
             expect(await getSavedSidebarState()).toEqual({isCollapsed: true});
             expect(screen.getByRole(CONST.ROLE.BUTTON, {name: 'Expand'})).toBeOnTheScreen();
         });
@@ -353,7 +379,7 @@ describe('FlatNavigationBar', () => {
             await waitForBatchedUpdatesWithAct();
 
             // Then it is already the rail, so a reload does not flash the wide bar first
-            expect(getBarWidth()).toBe(variables.flatNavigationBarCollapsedWidth);
+            expect(getBarWidth()).toBe(FLAT_NAVIGATION_BAR_COLLAPSED_WIDTH);
         });
 
         it('keeps every row reachable by its name while collapsed', async () => {
@@ -427,7 +453,157 @@ describe('FlatNavigationBar', () => {
             await waitForBatchedUpdatesWithAct();
 
             // Then the peek ends and the bar collapses back to a rail
-            expect(getBarWidth()).toBe(variables.flatNavigationBarCollapsedWidth);
+            expect(getBarWidth()).toBe(FLAT_NAVIGATION_BAR_COLLAPSED_WIDTH);
+        });
+
+        it('hides the supportal row until the Account area is hovered', async () => {
+            // Given a support agent whose pointer is away from the Account row
+            await Onyx.merge(ONYXKEYS.ACCOUNT, {canSupportLogin: true});
+
+            // When the bar renders
+            renderBar(NAVIGATION_TABS.HOME);
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the supportal row stays hidden, because the design only reveals it from the Account row
+            expect(mockSupportalItemProps?.isRowVisible).toBe(false);
+        });
+
+        it('shows the supportal row while the Account area is hovered', async () => {
+            // Given a support agent whose pointer is over the Account row
+            await Onyx.merge(ONYXKEYS.ACCOUNT, {canSupportLogin: true});
+            mockIsAccountAreaHovered = true;
+
+            // When the bar renders
+            renderBar(NAVIGATION_TABS.HOME);
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the supportal row shows, so the agent can move up from Account onto it
+            expect(mockSupportalItemProps?.isRowVisible).toBe(true);
+        });
+
+        it('tracks the Account area hover with native events', async () => {
+            // Given a support agent
+            await Onyx.merge(ONYXKEYS.ACCOUNT, {canSupportLogin: true});
+
+            // When the bar renders
+            renderBar(NAVIGATION_TABS.HOME);
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the area listens on its own element, because the switcher's portal sits inside it in the React tree
+            // and synthetic events would leave the hover on, and Supportal showing, after the switcher closes
+            expect(mockIsAccountAreaHoverNative).toBe(true);
+        });
+
+        it('shows the supportal row while keyboard focus is on the Account area', async () => {
+            // Given a support agent using the keyboard
+            await Onyx.merge(ONYXKEYS.ACCOUNT, {canSupportLogin: true});
+            renderBar(NAVIGATION_TABS.HOME);
+            await waitForBatchedUpdatesWithAct();
+
+            // When keyboard focus lands on the Account row
+            mockHasKeyboardFocusInside = true;
+            fireEvent(screen.getByTestId('FlatNavAccountArea'), 'focus');
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the supportal row shows, so it stays reachable without a pointer
+            expect(mockSupportalItemProps?.isRowVisible).toBe(true);
+
+            // When focus leaves the Account area
+            mockHasKeyboardFocusInside = false;
+            fireEvent(screen.getByTestId('FlatNavAccountArea'), 'blur', {nativeEvent: {relatedTarget: null}});
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the supportal row hides again
+            expect(mockSupportalItemProps?.isRowVisible).toBe(false);
+        });
+
+        it('keeps the supportal row while keyboard focus moves between Account and Supportal', async () => {
+            // Given a support agent whose keyboard focus is on the Account row, so the supportal row shows
+            await Onyx.merge(ONYXKEYS.ACCOUNT, {canSupportLogin: true});
+            renderBar(NAVIGATION_TABS.HOME);
+            await waitForBatchedUpdatesWithAct();
+            mockHasKeyboardFocusInside = true;
+            fireEvent(screen.getByTestId('FlatNavAccountArea'), 'focus');
+            await waitForBatchedUpdatesWithAct();
+            expect(mockSupportalItemProps?.isRowVisible).toBe(true);
+
+            // When Shift+Tab moves focus from Account up onto Supportal, which stays inside the area
+            mockIsFocusMovingInside = true;
+            fireEvent(screen.getByTestId('FlatNavAccountArea'), 'blur', {
+                currentTarget: {},
+                nativeEvent: {relatedTarget: {}},
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the supportal row stays, so the row the focus is moving onto does not disappear under it
+            expect(mockSupportalItemProps?.isRowVisible).toBe(true);
+        });
+
+        it('keeps the bar peeking when hovering out while the supportal switcher is open', async () => {
+            // Given a support agent and a collapsed bar that is peeking
+            await Onyx.merge(ONYXKEYS.ACCOUNT, {canSupportLogin: true});
+            await Onyx.set(ONYXKEYS.NVP_SEARCH_SIDEBAR, {isCollapsed: true});
+            renderBar(NAVIGATION_TABS.HOME);
+            await waitForBatchedUpdatesWithAct();
+            act(() => {
+                mockInnerHoverIn?.();
+            });
+            await waitForBatchedUpdatesWithAct();
+            expect(getBarWidth()).toBe(variables.flatNavigationBarWidth);
+
+            // When the switcher opens and its overlay takes the hover away from the bar
+            act(() => {
+                mockSupportalItemProps?.showSwitcher?.();
+            });
+            await waitForBatchedUpdatesWithAct();
+            expect(mockSupportalItemProps?.isSwitcherVisible).toBe(true);
+            act(() => {
+                mockOuterHoverOut?.();
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the bar stays peeking so it does not narrow under the open switcher
+            expect(getBarWidth()).toBe(variables.flatNavigationBarWidth);
+
+            // When the switcher closes and its modal is gone with the pointer and focus outside the bar
+            act(() => {
+                mockSupportalItemProps?.hideSwitcher?.();
+            });
+            act(() => {
+                mockSupportalItemProps?.onSwitcherHidden?.();
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the peek ends and the bar collapses back to a rail
+            expect(getBarWidth()).toBe(FLAT_NAVIGATION_BAR_COLLAPSED_WIDTH);
+        });
+
+        it('keeps the bar peeking after the supportal switcher closes if the pointer is still hovering the bar', async () => {
+            // Given a peeking bar with the supportal switcher open
+            await Onyx.merge(ONYXKEYS.ACCOUNT, {canSupportLogin: true});
+            await Onyx.set(ONYXKEYS.NVP_SEARCH_SIDEBAR, {isCollapsed: true});
+            renderBar(NAVIGATION_TABS.HOME);
+            await waitForBatchedUpdatesWithAct();
+            act(() => {
+                mockInnerHoverIn?.();
+            });
+            act(() => {
+                mockSupportalItemProps?.showSwitcher?.();
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            // When the switcher closes with the pointer still over the bar
+            mockIsElementHovered = true;
+            act(() => {
+                mockSupportalItemProps?.hideSwitcher?.();
+            });
+            act(() => {
+                mockSupportalItemProps?.onSwitcherHidden?.();
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the bar stays peeking, so it does not flicker narrow and wide again
+            expect(getBarWidth()).toBe(variables.flatNavigationBarWidth);
         });
 
         it('keeps the bar peeking after the create menu closes if the pointer is still hovering the bar', async () => {
@@ -466,7 +642,7 @@ describe('FlatNavigationBar', () => {
             await waitForBatchedUpdatesWithAct();
 
             // Then the peek ends and the bar collapses back to a rail
-            expect(getBarWidth()).toBe(variables.flatNavigationBarCollapsedWidth);
+            expect(getBarWidth()).toBe(FLAT_NAVIGATION_BAR_COLLAPSED_WIDTH);
         });
 
         it('keeps the bar peeking after the create menu closes if an item has keyboard focus', async () => {
@@ -560,7 +736,7 @@ describe('FlatNavigationBar', () => {
             await Onyx.set(ONYXKEYS.NVP_SEARCH_SIDEBAR, {isCollapsed: true});
             renderBar(NAVIGATION_TABS.HOME);
             await waitForBatchedUpdatesWithAct();
-            expect(getBarWidth()).toBe(variables.flatNavigationBarCollapsedWidth);
+            expect(getBarWidth()).toBe(FLAT_NAVIGATION_BAR_COLLAPSED_WIDTH);
 
             // When navigation items gain focus via keyboard navigation
             mockHasKeyboardFocusInside = true;
@@ -578,7 +754,7 @@ describe('FlatNavigationBar', () => {
             await waitForBatchedUpdatesWithAct();
 
             // Then the bar collapses back to a skinny rail
-            expect(getBarWidth()).toBe(variables.flatNavigationBarCollapsedWidth);
+            expect(getBarWidth()).toBe(FLAT_NAVIGATION_BAR_COLLAPSED_WIDTH);
         });
 
         it('keeps the peek open when focus moves between items inside the bar', async () => {
@@ -640,7 +816,7 @@ describe('FlatNavigationBar', () => {
             await waitForBatchedUpdatesWithAct();
 
             // Then the bar collapses, because mouse focus must not hold it open
-            expect(getBarWidth()).toBe(variables.flatNavigationBarCollapsedWidth);
+            expect(getBarWidth()).toBe(FLAT_NAVIGATION_BAR_COLLAPSED_WIDTH);
         });
 
         it('stays collapsed when the closing create menu hands focus back to its button without the keyboard', async () => {
@@ -665,14 +841,14 @@ describe('FlatNavigationBar', () => {
                 mockCreateButtonProps?.onCreateMenuHidden?.();
             });
             await waitForBatchedUpdatesWithAct();
-            expect(getBarWidth()).toBe(variables.flatNavigationBarCollapsedWidth);
+            expect(getBarWidth()).toBe(FLAT_NAVIGATION_BAR_COLLAPSED_WIDTH);
 
             // And the modal then restores focus to the Create button, which is not keyboard focus
             fireEvent(screen.getByTestId('FlatNavPeekBody'), 'focus');
             await waitForBatchedUpdatesWithAct();
 
             // Then the bar stays collapsed, because only keyboard focus may start a peek
-            expect(getBarWidth()).toBe(variables.flatNavigationBarCollapsedWidth);
+            expect(getBarWidth()).toBe(FLAT_NAVIGATION_BAR_COLLAPSED_WIDTH);
         });
     });
 

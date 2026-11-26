@@ -11,7 +11,7 @@ import type {MergeATSConnectionData, MergeATSFilters, MergeApprovalMode, MergeAT
 import type {OnyxEntry} from 'react-native-onyx';
 import type {TupleToUnion, ValueOf} from 'type-fest';
 
-import {hasMergeSyncError, isMergeConnected, isMergeSyncDone} from './MergeUtils';
+import {isMergeConnected, isMergeSyncDone} from './MergeUtils';
 
 type RecruitingConnectionName = TupleToUnion<typeof CONST.POLICY.CONNECTIONS.RECRUITING_CONNECTION_NAMES>;
 
@@ -73,19 +73,6 @@ function getMergeATSFilterOptions(filterType: MergeATSFilterType, data: MergeATS
             return (data?.stages ?? []).map((stage) => ({value: stage.name, name: stage.name}));
         case CONST.MERGE.ATS_FILTER_TYPE.OFFICES:
             return (data?.offices ?? []).map((office) => ({value: office.id, name: office.name}));
-        default:
-            return [];
-    }
-}
-
-function getMergeATSFilterValues(filterType: MergeATSFilterType, data: MergeATSConnectionData | undefined): string[] {
-    switch (filterType) {
-        case CONST.MERGE.ATS_FILTER_TYPE.TAGS:
-            return data?.tags ?? [];
-        case CONST.MERGE.ATS_FILTER_TYPE.STAGES:
-            return (data?.stages ?? []).map((stage) => stage.name);
-        case CONST.MERGE.ATS_FILTER_TYPE.OFFICES:
-            return (data?.offices ?? []).map((office) => office.id);
         default:
             return [];
     }
@@ -162,14 +149,6 @@ function getMergeATSApproverFields(policy: OnyxEntry<Policy>): readonly MergeATS
     return approverFields ?? [];
 }
 
-/** Checks if the recruiting connection on the policy is in an error state the admin needs to resolve. */
-function shouldShowRecruitingConnectionError(policy: OnyxEntry<Policy>, isAdmin: boolean): boolean {
-    if (!isAdmin || !isMergeConnected(policy, CONST.POLICY.CONNECTIONS.NAME.MERGE_ATS)) {
-        return false;
-    }
-    return hasMergeSyncError(policy, CONST.POLICY.CONNECTIONS.NAME.MERGE_ATS);
-}
-
 export {
     getConnectedATSProvider,
     getMergeATSApprovalMode,
@@ -177,12 +156,10 @@ export {
     getMergeATSApproverFields,
     getMergeATSFilterLabel,
     getMergeATSFilterOptions,
-    getMergeATSFilterValues,
     isAnyRecruitingConnected,
     isAnyRecruitingReadOnlyWorkflowMode,
     isMergeATSCompleteSetupNeeded,
     isRecruitingAdvancedMode,
-    shouldShowRecruitingConnectionError,
 };
 
 export type {MergeATSFilterType, RecruitingConnectionName};

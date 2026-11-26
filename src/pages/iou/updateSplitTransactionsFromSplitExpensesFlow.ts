@@ -82,7 +82,7 @@ function updateSplitTransactionsFromSplitExpensesFlow(params: UpdateSplitTransac
         Navigation.dismissModal();
         requestAnimationFrame(() => {
             // Navigates to selfDM, not the expense report - nothing mounts to consume the highlight rail.
-            updateSplitTransactions({...splitWriteParams, shouldSkipReportHighlightRail: true});
+            updateSplitTransactions({...splitWriteParams, shouldFlagNewSplitsForReportTable: false});
         });
         params?.searchContext?.clearSelectedTransactions?.(true);
         return;
@@ -106,7 +106,7 @@ function updateSplitTransactionsFromSplitExpensesFlow(params: UpdateSplitTransac
     if (isSearchPageTopmostFullScreenRoute || !params.transactionReport?.parentReportID) {
         // Returns to Search, not the expense report, so rail flags would sit unconsumed and highlight stale rows the
         // next time that report is opened from the Inbox.
-        updateSplitTransactions({...splitWriteParams, shouldSkipReportHighlightRail: true});
+        updateSplitTransactions({...splitWriteParams, shouldFlagNewSplitsForReportTable: false});
         if (isSearchPageTopmostFullScreenRoute && !isReverseSplitOperation) {
             signalExpenseAddedGrowl(getNewSplitTransactionIDs().at(-1), CONST.SEARCH.DATA_TYPES.EXPENSE);
         }
@@ -133,7 +133,7 @@ function updateSplitTransactionsFromSplitExpensesFlow(params: UpdateSplitTransac
     // stale screens from the stack instead of leaving them behind.
     if (isLastTransactionInReport && fallbackReportID) {
         // Navigates to the fallback report, not the expense report - nothing mounts to consume the highlight rail.
-        updateSplitTransactions({...splitWriteParams, shouldSkipReportHighlightRail: true});
+        updateSplitTransactions({...splitWriteParams, shouldFlagNewSplitsForReportTable: false});
 
         const backRoute = ROUTES.REPORT_WITH_ID.getRoute(fallbackReportID);
         navigateBackOnDeleteTransaction(backRoute);
@@ -161,7 +161,7 @@ function updateSplitTransactionsFromSplitExpensesFlow(params: UpdateSplitTransac
     popReportsSplitNavigatorToReport(targetReportID);
     Navigation.dismissModalWithReport({reportID: targetReportID}, navigationRef, {forceReplace: shouldReplaceTransactionThread});
     requestAnimationFrame(() => {
-        updateSplitTransactions(splitWriteParams);
+        updateSplitTransactions({...splitWriteParams, shouldFlagNewSplitsForReportTable: true});
         if (shouldReplaceTransactionThread || !transactionThreadReportScreen?.key) {
             return;
         }

@@ -28,6 +28,8 @@ To connect HiBob, you must:
 
 HiBob syncs employees to one Expensify workspace. If your organization uses multiple workspaces, choose the workspace you want to sync before connecting HiBob.
 
+To prepare access in HiBob before you connect, follow the [Service User setup guide](https://expensify.integrations.guide/articles/6361857) or the [OAuth setup guide](https://expensify.integrations.guide/articles/1525990505).
+
 ---
 
 ## How to connect HiBob to Expensify
