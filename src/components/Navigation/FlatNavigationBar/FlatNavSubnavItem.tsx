@@ -10,26 +10,55 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 import type {SentryLabel} from '@src/types/utils/SentryLabel';
 
-import React, {createContext, useContext} from 'react';
+import type {ComponentRef} from 'react';
+import type {NativeSyntheticEvent, TargetedEvent} from 'react-native';
+
+import React, {createContext, useContext, useRef, useState} from 'react';
 import {View} from 'react-native';
 
-/** Whether the pointer is over the row, so the link can highlight its label while an accessory is hovered */
-const RowHoverContext = createContext(false);
+import hasKeyboardFocusIn from './hasKeyboardFocusIn';
+import isFocusMovingWithin from './isFocusMovingWithin';
+
+// Outside a row nothing is active, so the link and anything drawn over the row's end stay at rest.
+const RowActiveContext = createContext(false);
+
+/** Whether the pointer or keyboard focus is on the row, for content drawn over the row's end that animates in while the row is active */
+function useIsFlatNavSubnavRowActive() {
+    return useContext(RowActiveContext);
+}
 
 type FlatNavSubnavItemProps = {
-    /** The link, followed by anything drawn at the row's end, as a three-dot menu */
+    /** The row's link, and optionally content drawn over the row's end */
     children: React.ReactNode;
 };
 
 function FlatNavSubnavItemRow({children}: FlatNavSubnavItemProps) {
     const styles = useThemeStyles();
+    const rowRef = useRef<ComponentRef<typeof View>>(null);
+    // Keyboard focus activates the row like hover does, so content drawn over its end is never focused while hidden.
+    const [hasKeyboardFocus, setHasKeyboardFocus] = useState(false);
 
-    // The row is not a pressable itself, because an accessory with its own pressable cannot sit inside one.
+    const updateKeyboardFocus = () => setHasKeyboardFocus(hasKeyboardFocusIn(rowRef.current));
+
+    const clearKeyboardFocus = (event: NativeSyntheticEvent<TargetedEvent>) => {
+        // Tabbing from the link to the content drawn over the row's end keeps the row active.
+        if (isFocusMovingWithin(event)) {
+            return;
+        }
+        setHasKeyboardFocus(false);
+    };
+
+    // The row is not a pressable itself, because content drawn over its end can have its own pressable, which cannot sit inside one.
     return (
-        <Hoverable>
+        <Hoverable shouldUseNativeHoverEvents>
             {(isHovered) => (
-                <View style={[styles.flatNavigationBarSubnavItem, isHovered && styles.highlightBG]}>
-                    <RowHoverContext.Provider value={isHovered}>{children}</RowHoverContext.Provider>
+                <View
+                    ref={rowRef}
+                    style={[styles.flatNavigationBarSubnavItem, isHovered && styles.highlightBG]}
+                    onFocus={updateKeyboardFocus}
+                    onBlur={clearKeyboardFocus}
+                >
+                    <RowActiveContext.Provider value={isHovered || hasKeyboardFocus}>{children}</RowActiveContext.Provider>
                 </View>
             )}
         </Hoverable>
@@ -56,7 +85,7 @@ type FlatNavSubnavItemLinkProps = {
 function FlatNavSubnavItemLink({label, isSelected, isDisabled = false, sentryLabel, onPress, children}: FlatNavSubnavItemLinkProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
-    const isHovered = useContext(RowHoverContext);
+    const isRowActive = useIsFlatNavSubnavRowActive();
 
     return (
         <PressableWithFeedback
@@ -67,12 +96,13 @@ function FlatNavSubnavItemLink({label, isSelected, isDisabled = false, sentryLab
             accessibilityState={{selected: isSelected, disabled: isDisabled}}
             sentryLabel={sentryLabel}
             wrapperStyle={[styles.flex1, styles.h100]}
-            style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.gap2, styles.h100]}
+            // The link carries the row's padding, so it can be pressed across the whole row. Content drawn over the row's end covers the label's end.
+            style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.gap2, styles.h100, styles.flatNavigationBarSubnavItemLink, styles.flatNavigationBarSubnavItemRowEnd]}
         >
             <View style={styles.flex1}>
                 <Text
                     variant={isSelected ? 'textStrong' : 'text'}
-                    color={isSelected || isHovered ? theme.text : theme.textSupporting}
+                    color={isSelected || isRowActive ? theme.text : theme.textSupporting}
                     numberOfLines={1}
                 >
                     {label}
@@ -106,3 +136,4 @@ const FlatNavSubnavItem = Object.assign(FlatNavSubnavItemRow, {
 });
 
 export default FlatNavSubnavItem;
+export {useIsFlatNavSubnavRowActive};

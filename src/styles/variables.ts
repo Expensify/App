@@ -223,6 +223,7 @@ export default {
     flatNavigationBarRowInset: 8,
     // Space between a row's background edge and its icon. The header and dividers line up with the icon, at the inset plus this.
     flatNavigationBarRowPadding: 12,
+    flatNavigationBarSubnavItemAccessoryWidth: 40,
     // Space between a row's icon and its label. Subnav labels are indented by it to line up with the label above.
     flatNavigationBarItemGap: 12,
     flatNavigationBarHeaderHeight: 72,

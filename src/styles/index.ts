@@ -945,17 +945,37 @@ const staticStyles = (theme: ThemeColors) =>
             height: variables.flatNavigationBarAccountItemHeight,
         },
 
-        // The label lines up with the label of the destination row above the subnav.
+        // The row has no padding of its own: the link carries it, so the link can be pressed across the whole row.
         flatNavigationBarSubnavItem: {
             flexDirection: 'row',
             alignItems: 'center',
             gap: variables.spacing2,
             height: variables.flatNavigationBarSubnavItemHeight,
-            paddingLeft: flatNavigationBarSubnavIndent,
-            paddingRight: variables.flatNavigationBarRowPadding,
             marginHorizontal: variables.flatNavigationBarRowInset,
             borderRadius: variables.componentBorderRadiusNormal,
             overflow: 'hidden',
+        },
+
+        // The label lines up with the label of the destination row above the subnav.
+        flatNavigationBarSubnavItemLink: {
+            paddingLeft: flatNavigationBarSubnavIndent,
+        },
+
+        // Whatever sits at the row's end, as a three-dot menu, keeps the row's padding after it.
+        flatNavigationBarSubnavItemRowEnd: {
+            paddingRight: variables.flatNavigationBarRowPadding,
+        },
+
+        // Absolute, so the label keeps its full width whether or not the accessory is shown, rather than reflowing when the row is hovered.
+        flatNavigationBarSubnavItemAccessory: {
+            position: 'absolute',
+            top: 0,
+            bottom: 0,
+            right: variables.flatNavigationBarRowPadding,
+            // Wider than the icon, so the fade behind it has room to ramp up before the icon itself.
+            width: variables.flatNavigationBarSubnavItemAccessoryWidth,
+            alignItems: 'flex-end',
+            justifyContent: 'center',
         },
 
         // Sits at the bottom of its row, which leaves the gap above the group.
