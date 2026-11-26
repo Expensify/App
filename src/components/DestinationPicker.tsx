@@ -6,6 +6,7 @@ import usePolicy from '@hooks/usePolicy';
 import {getHeaderMessageForNonUserList} from '@libs/OptionsListUtils';
 import {getDestinationListSections} from '@libs/PerDiemRequestUtils';
 import type {Destination} from '@libs/PerDiemRequestUtils';
+import {getAvailablePerDiemRate} from '@libs/PolicyPerDiemUtils';
 import {getPerDiemCustomUnit} from '@libs/PolicyUtils';
 
 import CONST from '@src/CONST';
@@ -30,6 +31,9 @@ type DestinationPickerProps = {
 function DestinationPicker({selectedDestination, policyID, onSubmit, ref}: DestinationPickerProps) {
     const policy = usePolicy(policyID);
     const customUnit = getPerDiemCustomUnit(policy);
+    const availableRates = Object.values(customUnit?.rates ?? {})
+        .map((rate) => getAvailablePerDiemRate(rate))
+        .filter((rate) => rate !== undefined);
     const [policyRecentlyUsedDestinations] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_DESTINATIONS}${policyID}`);
 
     const {translate} = useLocalize();
@@ -40,7 +44,7 @@ function DestinationPicker({selectedDestination, policyID, onSubmit, ref}: Desti
             return [];
         }
 
-        const selectedRate = customUnit?.rates?.[selectedDestination];
+        const selectedRate = getAvailablePerDiemRate(customUnit?.rates?.[selectedDestination]);
         if (!selectedRate?.customUnitRateID) {
             return [];
         }
@@ -60,12 +64,12 @@ function DestinationPicker({selectedDestination, policyID, onSubmit, ref}: Desti
     const sections = getDestinationListSections({
         searchValue: debouncedSearchValue,
         selectedOptions,
-        destinations: Object.values(customUnit?.rates ?? {}),
+        destinations: availableRates,
         recentlyUsedDestinations: policyRecentlyUsedDestinations,
         translate,
     });
 
-    const destinationsCount = Object.values(customUnit?.rates ?? {}).length;
+    const destinationsCount = availableRates.length;
     const shouldShowTextInput = destinationsCount >= CONST.STANDARD_LIST_ITEM_LIMIT;
 
     const destinationData = sections?.at(0)?.data ?? [];

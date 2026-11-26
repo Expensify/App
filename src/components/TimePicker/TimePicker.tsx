@@ -1,4 +1,5 @@
 import AmountTextInput from '@components/AmountTextInput';
+import type {AmountTextInputKeyPressEvent} from '@components/AmountTextInput';
 import BigNumberPad from '@components/BigNumberPad';
 import Button from '@components/Button';
 import FormHelpMessage from '@components/FormHelpMessage';
@@ -18,7 +19,7 @@ import {canUseTouchScreen as canUseTouchScreenDeviceCapabilities} from '@libs/De
 import CONST from '@src/CONST';
 
 import type {ComponentRef} from 'react';
-import type {GestureResponderEvent, NativeSyntheticEvent, TextInput} from 'react-native';
+import type {GestureResponderEvent, TextInput} from 'react-native';
 
 import React, {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
@@ -658,7 +659,7 @@ function TimePicker({defaultValue = '', onSubmit, onInputChange = () => {}, shou
     useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ARROW_LEFT, arrowLeftCallback, arrowConfig);
     useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ARROW_RIGHT, arrowRightCallback, arrowConfig);
 
-    const handleFocusOnBackspace = (e: NativeSyntheticEvent<KeyboardEvent>) => {
+    const handleFocusOnBackspace = (e: AmountTextInputKeyPressEvent) => {
         if (e.nativeEvent.key !== 'Backspace') {
             return;
         }

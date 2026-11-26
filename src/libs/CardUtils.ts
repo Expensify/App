@@ -1052,10 +1052,43 @@ const ANZ_NZ_COMMERCIAL_FEED_DISPLAY_NAME = 'ANZ NZ';
 const COMMERCIAL_FEED_DISPLAY_BASES = [
     {base: ANZ_NZ_COMMERCIAL_FEED_BASE, displayName: ANZ_NZ_COMMERCIAL_FEED_DISPLAY_NAME, shouldHideOne: false},
     {base: CONST.COMPANY_CARD.FEED_BANK_NAME.VCF_MOCK, displayName: getBankName(CONST.COMPANY_CARD.FEED_BANK_NAME.VCF_MOCK), shouldHideOne: true},
-    {base: CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX, displayName: getBankName(CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX), shouldHideOne: true},
-    {base: CONST.COMPANY_CARD.FEED_BANK_NAME.VISA, displayName: getBankName(CONST.COMPANY_CARD.FEED_BANK_NAME.VISA), shouldHideOne: true},
-    {base: CONST.COMPANY_CARD.FEED_BANK_NAME.MASTER_CARD, displayName: getBankName(CONST.COMPANY_CARD.FEED_BANK_NAME.MASTER_CARD), shouldHideOne: true},
-] as const;
+    {base: CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX, displayName: getBankName(CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX), shouldHideOne: false},
+    {base: CONST.COMPANY_CARD.FEED_BANK_NAME.VISA, displayName: getBankName(CONST.COMPANY_CARD.FEED_BANK_NAME.VISA), shouldHideOne: false},
+    {base: CONST.COMPANY_CARD.FEED_BANK_NAME.MASTER_CARD, displayName: getBankName(CONST.COMPANY_CARD.FEED_BANK_NAME.MASTER_CARD), shouldHideOne: false},
+    {base: CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX_1205, displayName: 'American Express Hierarchy', shouldHideOne: false},
+    {base: 'anzfav', displayName: ANZ_NZ_COMMERCIAL_FEED_DISPLAY_NAME, shouldHideOne: false},
+    {base: 'vcfanz', displayName: 'ANZ', shouldHideOne: false},
+    {base: 'cdfaoc', displayName: 'AOC Solutions / Key Bank - Key2Purchase', shouldHideOne: false},
+    {base: 'cdfkey', displayName: 'Key Bank - Key2Business', shouldHideOne: false},
+    {base: 'cdfairplus', displayName: 'AirPlus', shouldHideOne: false},
+    {base: 'cdfbmo', displayName: 'BMO', shouldHideOne: false},
+    {base: 'cdfbrex', displayName: 'Brex', shouldHideOne: false},
+    {base: 'cdfcitibank', displayName: 'Citi Mastercard', shouldHideOne: false},
+    {base: 'vcfcitibank', displayName: 'Citi Visa', shouldHideOne: false},
+    {base: 'vcfccf', displayName: 'Citi CCF', shouldHideOne: false},
+    {base: 'vcfcgi', displayName: 'Citi CGI', shouldHideOne: false},
+    {base: 'cdfcsi', displayName: 'CSI Global', shouldHideOne: false},
+    {base: 'cdfsdf', displayName: 'Diners Club SDF', shouldHideOne: false},
+    {base: 'cdfdcf', displayName: 'Diners Club DCF', shouldHideOne: false},
+    {base: 'cdfhsbc', displayName: 'HSBC Mastercard', shouldHideOne: false},
+    {base: 'vcfhsbc', displayName: 'HSBC Visa', shouldHideOne: false},
+    {base: 'vcfext', displayName: 'HSBC Visa External', shouldHideOne: false},
+    {base: 'cdfvirt', displayName: 'Mastercard Virtual', shouldHideOne: false},
+    {base: 'cdfseb', displayName: 'SEB Kort EuroCard', shouldHideOne: false},
+    {base: 'cdfubt', displayName: 'UBT', shouldHideOne: false},
+    {base: 'cdfwex', displayName: 'WEX', shouldHideOne: false},
+    {base: 'vcfubs', displayName: 'UBS', shouldHideOne: false},
+    {base: 'vcfintecoms', displayName: 'NBSA', shouldHideOne: false},
+    {base: 'vcfbbva', displayName: 'BBVA', shouldHideOne: false},
+    {base: 'vcffpcu', displayName: 'FPCU', shouldHideOne: false},
+    {base: 'cdfhierarchy', displayName: 'Mastercard Hierarchy', shouldHideOne: false},
+    {base: 'vcfhierarchy', displayName: 'Visa Hierarchy', shouldHideOne: false},
+    {base: 'cdfvirthierarchy', displayName: 'Mastercard Virtual Hierarchy', shouldHideOne: false},
+    {base: 'cdfcitihierarchy', displayName: 'Citi Mastercard Hierarchy', shouldHideOne: false},
+    {base: 'vcfcgihierarchy', displayName: 'Citi CGI Hierarchy', shouldHideOne: false},
+    {base: 'vcfccfhierarchy', displayName: 'Citi CCF Hierarchy', shouldHideOne: false},
+    {base: 'vcfhsbchierarchy', displayName: 'HSBC Visa Hierarchy', shouldHideOne: false},
+].sort((a, b) => b.base.length - a.base.length);
 
 function getDefaultCommercialFeedDisplayName(feed: CardFeedWithNumber | CardFeedWithDomainID | undefined): string | undefined {
     const feedName = getCompanyCardFeed(feed);
@@ -1065,11 +1098,12 @@ function getDefaultCommercialFeedDisplayName(feed: CardFeedWithNumber | CardFeed
     }
 
     const suffix = feedName.slice(displayBase.base.length);
-    if (!suffix || !/^\d+$/.test(suffix) || (displayBase.shouldHideOne && suffix === '1')) {
+    if (!suffix || (displayBase.shouldHideOne && suffix === '1')) {
         return displayBase.displayName;
     }
 
-    return `${displayBase.displayName} ${suffix}`;
+    // Preserve unknown variants so they cannot be mistaken for the base feed.
+    return `${displayBase.displayName} ${/^\d+$/.test(suffix) ? suffix : suffix.toUpperCase()}`;
 }
 
 const getBankCardDetailsImage = (bank: BankName, illustrations: IllustrationsType, companyCardIllustrations: CompanyCardBankIcons): IconAsset => {

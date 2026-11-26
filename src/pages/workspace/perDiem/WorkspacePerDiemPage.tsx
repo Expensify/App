@@ -1,6 +1,6 @@
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderCentralPane from '@components/Header/composed/HeaderCentralPane';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -200,7 +200,7 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
                     customText={translate('workspace.common.selected', {count: selectedSubRateKeys.length})}
                     options={bulkActionOptions}
                     isSplitButton={false}
-                    style={[shouldDisplayButtonsInSeparateLine && styles.flexGrow1, shouldDisplayButtonsInSeparateLine && styles.mb3]}
+                    style={shouldDisplayButtonsInSeparateLine && [styles.flexGrow1, styles.mb3]}
                     isDisabled={!selectedSubRateKeys.length}
                     sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.PER_DIEM.BULK_ACTIONS_DROPDOWN}
                 />
@@ -284,11 +284,9 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
                 shouldShowOfflineIndicatorInWideScreen
                 offlineIndicatorStyle={styles.mtAuto}
             >
-                <HeaderWithBackButton
-                    shouldShowBackButton={shouldUseNarrowLayout}
+                <HeaderCentralPane
                     title={translate(selectionModeHeader ? 'common.selectMultiple' : 'common.perDiem')}
-                    shouldUseHeadlineHeader={!selectionModeHeader}
-                    shouldDisplayHelpButton
+                    isHeadline={!selectionModeHeader}
                     onBackButtonPress={() => {
                         if (isMobileSelectionModeEnabled) {
                             clearTableSelection();
@@ -305,7 +303,7 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
                     }}
                 >
                     {!shouldDisplayButtonsInSeparateLine && headerButtons}
-                </HeaderWithBackButton>
+                </HeaderCentralPane>
                 {!!headerButtons && shouldDisplayButtonsInSeparateLine && <View style={pageGutter}>{headerButtons}</View>}
                 {!hasVisibleSubRates && subtitleContent}
                 <WorkspacePerDiemTable

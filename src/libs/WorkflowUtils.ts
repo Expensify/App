@@ -1506,7 +1506,7 @@ function buildApprovalWorkflowRulesForSave(
     // `employeeList` chain would produce. A rule's shape ignores its `from` list, so the members these are built
     // against don't affect the comparison.
     const defaultWorkflowRules = hasRuleBasedDefault
-        ? Object.values(existingRules).filter((rule) => !!rule.isDefaultApprovalWorkflow)
+        ? Object.values(getDefaultWorkflowRules(existingRules, defaultApprover))
         : buildApprovalWorkflowRules({
               members: approvalWorkflow.members,
               approvers: calculateApprovers({employees, firstEmail: defaultApprover, personalDetailsByEmail: {}}),
@@ -1578,8 +1578,14 @@ function reconcileApprovalWorkflowRulesForEdit(newRules: ApprovalWorkflowRule[],
 
         const ruleShape = getRuleShape(existingRule);
         if (newRuleShapes.has(ruleShape)) {
-            // Structurally identical to a new rule: leave it alone but remember it as "covered".
+            // Structurally identical to a new rule, so it stands in for it. It can list only some of the members, such as
+            // a step of another chain that lists the submitters carried along with the default workflow, so it gets the rest.
             matchedExistingIDs.add(ruleID);
+            const ruleEmailSet = new Set(ruleEmails);
+            const missingMemberEmails = memberEmails.filter((email) => !ruleEmailSet.has(email));
+            if (missingMemberEmails.length > 0) {
+                diff[ruleID] = addMembersToRule(existingRule, missingMemberEmails);
+            }
             continue;
         }
 
@@ -1894,6 +1900,68 @@ function hasRuleBasedDefaultWorkflow(rules: Record<string, ApprovalWorkflowRule>
 }
 
 /**
+ * The rules of the policy's default workflow.
+ *
+ * A policy has a single default workflow, but rules saved before the backend refused a second one can declare several.
+ * The first one starting at the default approver wins, as on the Workflows page, or else the first one. That workflow is
+ * its submit rule plus the approve rules its chain reaches, found by walking from the first approver.
+ *
+ * Steps that route the same way are saved as one rule listing every submitter they route, so a step can list more
+ * submitters than the workflow, or the submit rule more than each of the chains after it. At each approver, the walk keeps
+ * the rules listing the most of the workflow's submitters, and carries on with only the submitters those rules list.
+ */
+function getDefaultWorkflowRules(rules: Record<string, ApprovalWorkflowRule>, defaultApprover: string): Record<string, ApprovalWorkflowRule> {
+    const defaultRuleEntries = Object.entries(rules).filter(([, rule]) => !!rule.isDefaultApprovalWorkflow);
+    const defaultSubmitEntries = defaultRuleEntries.filter(([, rule]) => isSubmitRule(rule));
+    const chosenSubmitEntry = defaultSubmitEntries.find(([, rule]) => getForwardApprover(rule) === defaultApprover) ?? defaultSubmitEntries.at(0);
+    if (!chosenSubmitEntry) {
+        return {};
+    }
+
+    const [chosenSubmitRuleID, chosenSubmitRule] = chosenSubmitEntry;
+    const getSubmittersKey = (rule: ApprovalWorkflowRule) => [...extractSubmitterEmails(rule)].sort().join(',');
+    let workflowSubmitters = new Set(extractSubmitterEmails(chosenSubmitRule));
+    const workflowRules: Record<string, ApprovalWorkflowRule> = {[chosenSubmitRuleID]: chosenSubmitRule};
+    const reachedApprovers = new Set<string>();
+    const approversToVisit = [getForwardApprover(chosenSubmitRule)];
+    while (approversToVisit.length > 0) {
+        const approver = approversToVisit.shift();
+        if (!approver || reachedApprovers.has(approver)) {
+            continue;
+        }
+        reachedApprovers.add(approver);
+
+        const submittersToFollow = workflowSubmitters;
+        const stepEntries = defaultRuleEntries
+            .filter(([, rule]) => !isSubmitRule(rule) && getFilter(rule.filters, CONST.SEARCH.SYNTAX_FILTER_KEYS.TO)?.right === approver)
+            .map(([ruleID, rule]) => ({ruleID, rule, listedWorkflowSubmitters: extractSubmitterEmails(rule).filter((email) => submittersToFollow.has(email))}))
+            .filter(({listedWorkflowSubmitters}) => listedWorkflowSubmitters.length > 0);
+        let bestStepEntry = stepEntries.at(0);
+        for (const stepEntry of stepEntries) {
+            if (bestStepEntry && stepEntry.listedWorkflowSubmitters.length > bestStepEntry.listedWorkflowSubmitters.length) {
+                bestStepEntry = stepEntry;
+            }
+        }
+        if (!bestStepEntry) {
+            continue;
+        }
+
+        // Rules splitting this step on the report amount list the same submitters, so they all stay in the workflow.
+        const bestSubmittersKey = getSubmittersKey(bestStepEntry.rule);
+        for (const {ruleID, rule} of stepEntries) {
+            if (getSubmittersKey(rule) !== bestSubmittersKey) {
+                continue;
+            }
+            workflowRules[ruleID] = rule;
+            approversToVisit.push(getForwardApprover(rule));
+        }
+        workflowSubmitters = new Set(bestStepEntry.listedWorkflowSubmitters);
+    }
+
+    return workflowRules;
+}
+
+/**
  * Whether approval workflow rules route the reports of the given policy.
  */
 function hasApprovalWorkflowRules(rulesCollection: OnyxCollection<Rule> | undefined, policyID: string | undefined): boolean {
@@ -2018,16 +2086,141 @@ function getApproverPendingActionByMemberEmail(
 }
 
 /**
+ * The submitters of the policy's default workflow, see `getDefaultWorkflowRules`. A rule can be shared with another
+ * workflow, so they are the submitters every one of its rules lists.
+ */
+function getDefaultWorkflowSubmitterEmails(rules: Record<string, ApprovalWorkflowRule>, defaultApprover: string): Set<string> {
+    let defaultWorkflowSubmitters: Set<string> | undefined;
+    for (const rule of Object.values(getDefaultWorkflowRules(rules, defaultApprover))) {
+        const ruleSubmitters = extractSubmitterEmails(rule);
+        const previousSubmitters = defaultWorkflowSubmitters;
+        defaultWorkflowSubmitters = new Set(previousSubmitters ? ruleSubmitters.filter((email) => previousSubmitters.has(email)) : ruleSubmitters);
+    }
+    return defaultWorkflowSubmitters ?? new Set();
+}
+
+/** Members for emails the Workflows page has no details for, such as submitters it doesn't show */
+function buildMembersFromEmails(emails: string[]): Member[] {
+    return emails.map((email) => ({email, displayName: email}));
+}
+
+/** The default workflow's rules, see `getDefaultWorkflowRules`, with `memberEmails` added to each of them */
+function addMembersToDefaultWorkflowRules(rules: Record<string, ApprovalWorkflowRule>, defaultApprover: string, memberEmails: string[]): Record<string, ApprovalWorkflowRule> {
+    return Object.fromEntries(Object.entries(getDefaultWorkflowRules(rules, defaultApprover)).map(([ruleID, rule]) => [ruleID, addMembersToRule(rule, memberEmails)]));
+}
+
+/**
+ * Whether the Workflows page lists this employee in its workflows. It leaves out Expensify team accounts hidden from the
+ * policy's admins, and members pending removal, since they keep a stale `submitsTo` and grouping them would build a
+ * workflow with no members.
+ */
+function isEmployeeShownInApprovalWorkflows(employee: PolicyEmployee | null | undefined, shouldFilterOutExpensifyTeam: boolean): employee is PolicyEmployee & {email: string} {
+    if (!employee?.email) {
+        return false;
+    }
+    if (shouldFilterOutExpensifyTeam && isExpensifyTeam(employee.email)) {
+        return false;
+    }
+    return employee.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
+}
+
+type DefaultFlaggedSubmittersOutsideWorkflow = {
+    /** Submitters the Workflows page doesn't show, such as members removed from the policy whose rules keep their workflow for when they rejoin */
+    unlistedSubmitterEmails: string[];
+
+    /** Submitters the Workflows page shows in a workflow other than the default one */
+    listedSubmitterEmails: string[];
+};
+
+/**
+ * The submitters rules flagged as the default workflow's list, other than `workflowMemberEmails`, the members of the default
+ * workflow being saved. The page shows a single default workflow, so these are either submitters it doesn't show or members
+ * it shows in another workflow. Each of them keeps a default `ReportSubmit` rule alive unless the save moves them.
+ */
+function getDefaultFlaggedSubmittersOutsideWorkflow(
+    rules: Record<string, ApprovalWorkflowRule>,
+    employees: PolicyEmployeeList,
+    shouldFilterOutExpensifyTeam: boolean,
+    workflowMemberEmails: string[],
+): DefaultFlaggedSubmittersOutsideWorkflow {
+    const workflowMemberEmailSet = new Set(workflowMemberEmails);
+    const submitterEmails = new Set(
+        Object.values(rules)
+            .filter((rule) => !!rule.isDefaultApprovalWorkflow)
+            .flatMap(extractSubmitterEmails)
+            .filter((email) => !workflowMemberEmailSet.has(email)),
+    );
+    const result: DefaultFlaggedSubmittersOutsideWorkflow = {unlistedSubmitterEmails: [], listedSubmitterEmails: []};
+    for (const email of submitterEmails) {
+        if (isEmployeeShownInApprovalWorkflows(employees[email], shouldFilterOutExpensifyTeam)) {
+            result.listedSubmitterEmails.push(email);
+        } else {
+            result.unlistedSubmitterEmails.push(email);
+        }
+    }
+    return result;
+}
+
+/**
+ * Save as normal workflows the members the Workflows page shows outside the default workflow although rules flagged as the
+ * default one list them. Rules can flag several chains as the default, and the page only shows one of them as the default
+ * workflow. Each member keeps the chain their rules route them through, rewritten into rules that aren't flagged.
+ */
+function buildApprovalWorkflowRulesDiffToUnflagMembers(
+    memberEmails: string[],
+    existingRules: Record<string, ApprovalWorkflowRule>,
+    employees: PolicyEmployeeList,
+): ApprovalWorkflowRulesDiff {
+    const rulesBySubmitter = groupApprovalWorkflowRulesBySubmitter(existingRules);
+    const workflowsByChain = new Map<string, ApprovalWorkflow>();
+    for (const email of memberEmails) {
+        const approvers = buildApproverChainFromRules({submitter: email, rules: rulesBySubmitter.get(email) ?? {}, employees, personalDetailsByEmail: {}});
+        const chainKey = getApproverChainKey(approvers);
+        const workflow = workflowsByChain.get(chainKey) ?? {members: [], approvers, isDefault: false};
+        workflow.members.push(...buildMembersFromEmails([email]));
+        workflowsByChain.set(chainKey, workflow);
+    }
+
+    let rules = existingRules;
+    const diffs: ApprovalWorkflowRulesDiff[] = [];
+    for (const workflow of workflowsByChain.values()) {
+        const workflowMemberEmails = getWorkflowMemberEmails(workflow.members);
+        const removeDiff = reconcileApprovalWorkflowRulesForRemove(workflowMemberEmails, {existingRules: rules});
+        rules = applyApprovalWorkflowRulesDiff(rules, removeDiff);
+        const createDiff = reconcileApprovalWorkflowRulesForCreate(buildApprovalWorkflowRules(workflow), workflowMemberEmails, {existingRules: rules});
+        rules = applyApprovalWorkflowRulesDiff(rules, createDiff);
+        diffs.push(removeDiff, createDiff);
+    }
+    return mergeApprovalWorkflowRulesDiffs(existingRules, diffs);
+}
+
+/**
+ * Merge diffs that were each worked out on the rules the previous ones left, so the last body written for a rule wins. A rule
+ * one of them creates and a later one removes never reached the backend, so there is nothing to delete.
+ */
+function mergeApprovalWorkflowRulesDiffs(existingRules: Record<string, ApprovalWorkflowRule>, diffs: ApprovalWorkflowRulesDiff[]): ApprovalWorkflowRulesDiff {
+    const mergedDiff: ApprovalWorkflowRulesDiff = {};
+    for (const diff of diffs) {
+        Object.assign(mergedDiff, diff);
+    }
+    return Object.fromEntries(Object.entries(mergedDiff).filter(([ruleID, rule]) => rule !== null || ruleID in existingRules));
+}
+
+/**
  * Map every submitter found in the rules to their workflow's first approver.
  */
 function getRulesSubmitterToFirstApprover(rules: Record<string, ApprovalWorkflowRule>, employees: PolicyEmployeeList = {}, defaultApprover?: string): Record<string, string> {
     const shouldExcludeDefaultWorkflow = defaultApprover !== undefined;
     const canReadDefaultWorkflowFromRules = shouldExcludeDefaultWorkflow && hasRuleBasedDefaultWorkflow(rules);
 
+    // Rules can mark more than one workflow as the default, but only one is, so the members of the others still count as
+    // being in a workflow.
+    const defaultWorkflowSubmitters = canReadDefaultWorkflowFromRules ? getDefaultWorkflowSubmitterEmails(rules, defaultApprover) : undefined;
+
     const result: Record<string, string> = {};
     for (const [submitter, submitterRules] of groupApprovalWorkflowRulesBySubmitter(rules)) {
         // Resolving the chain is the expensive part, so skip it for submitters the rules already exclude.
-        if (canReadDefaultWorkflowFromRules && hasRuleBasedDefaultWorkflow(submitterRules)) {
+        if (canReadDefaultWorkflowFromRules && defaultWorkflowSubmitters?.has(submitter)) {
             continue;
         }
 
@@ -2110,19 +2303,10 @@ function convertApprovalWorkflowRulesToWorkflows({
             continue;
         }
 
+        if (!isEmployeeShownInApprovalWorkflows(employee, shouldFilterOutExpensifyTeam)) {
+            continue;
+        }
         const {email, submitsTo, pendingAction} = employee;
-        if (!email) {
-            continue;
-        }
-        if (shouldFilterOutExpensifyTeam && isExpensifyTeam(email)) {
-            continue;
-        }
-
-        // Same reasoning as in convertPolicyEmployeesToApprovalWorkflows: a member pending deletion keeps a
-        // stale submitsTo, so grouping them would build a workflow with no members.
-        if (pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
-            continue;
-        }
 
         const member = buildMemberFromEmployee(employee, personalDetailsByEmail, email);
         availableMembers.push(member);
@@ -2309,7 +2493,17 @@ function hasApprovalWorkflowWithNonMemberApprover({policy, currentUserLogin, rul
     const {approvalWorkflows} = shouldUseRules ? convertApprovalWorkflowRulesToWorkflows(params) : convertPolicyEmployeesToApprovalWorkflows(params);
     const shownApprovalWorkflows = getEnforcedApprovalWorkflows(approvalWorkflows, policy, shouldUseRules);
 
-    return shownApprovalWorkflows.some((workflow) => workflow.approvers.some((approver) => !!getNonMemberApproverError(approver, workflow.isDefault)));
+    return shownApprovalWorkflows.some(hasNonMemberApprover);
+}
+
+/** Whether a workflow has an invalid approver, including its over-limit approver. */
+function hasNonMemberApprover(workflow: ApprovalWorkflow): boolean {
+    return workflow.approvers.some((approver) => !!getNonMemberApproverError(approver, workflow.isDefault));
+}
+
+/** Pin Everyone first, then surface broken workflows without changing the order within either group. */
+function sortApprovalWorkflowsByErrors(workflows: ApprovalWorkflow[]): ApprovalWorkflow[] {
+    return workflows.toSorted((first, second) => Number(!!second.isDefault) - Number(!!first.isDefault) || Number(hasNonMemberApprover(second)) - Number(hasNonMemberApprover(first)));
 }
 
 /**
@@ -2324,7 +2518,6 @@ function getNonMemberApproverError(approver: Approver | undefined, isDefaultWork
 }
 
 export {
-    addMembersToRule,
     applyApprovalWorkflowRulesDiff,
     buildApproverChainFromRules,
     getApproverChainKey,
@@ -2338,6 +2531,12 @@ export {
     extractSubmitterEmails,
     getApproverTitles,
     getApproversFromImportedApprovers,
+    getDefaultWorkflowRules,
+    getDefaultFlaggedSubmittersOutsideWorkflow,
+    buildMembersFromEmails,
+    addMembersToDefaultWorkflowRules,
+    buildApprovalWorkflowRulesDiffToUnflagMembers,
+    mergeApprovalWorkflowRulesDiffs,
     getFirstApproverByMemberEmail,
     getEnforcedApprovalWorkflows,
     getEnforcedApprovalWorkflowsForMembers,
@@ -2365,5 +2564,6 @@ export {
     reconcileApprovalWorkflowRulesForMembersChange,
     reconcileApprovalWorkflowRulesForRemove,
     shouldUseApprovalWorkflowRules,
+    sortApprovalWorkflowsByErrors,
     updateWorkflowDataOnApproverRemoval,
 };

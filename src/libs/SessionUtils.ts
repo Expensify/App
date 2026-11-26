@@ -4,6 +4,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import Onyx from 'react-native-onyx';
 
 import StringUtils from './StringUtils';
+import {decodeURIComponentSafely} from './Url';
 
 const NEW_PARTNER_USER_ID_PREFIX = 'expensify.cash-';
 
@@ -86,14 +87,7 @@ function getEmailFromTransitionURL(url?: string): string | undefined {
         return undefined;
     }
 
-    let decodedEmail: string;
-    try {
-        decodedEmail = decodeURIComponent(email);
-    } catch {
-        decodedEmail = email;
-    }
-
-    return StringUtils.normalize(decodedEmail);
+    return StringUtils.normalize(decodeURIComponentSafely(email));
 }
 
 let loggedInDuringSession: boolean | undefined;

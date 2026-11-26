@@ -12,22 +12,28 @@ import {getContactPermission} from './index';
 type UseContactPermissionsProps = {
     importAndSaveContacts: () => void;
     setContacts: (contacts: never[]) => void;
-    contactPermissionState: PermissionStatus;
     setContactPermissionState: (status: PermissionStatus) => void;
+
+    /** Whether the screen lists device contacts. When false, nothing is checked or imported on focus or on return to the foreground. */
+    shouldImportContacts: boolean;
 };
 
-function useContactPermissions({importAndSaveContacts, setContacts, contactPermissionState, setContactPermissionState}: UseContactPermissionsProps): void {
+function useContactPermissions({importAndSaveContacts, setContacts, setContactPermissionState, shouldImportContacts}: UseContactPermissionsProps): void {
     const checkPermissionAndUpdateContacts = () => {
-        return getContactPermission()
+        if (!shouldImportContacts) {
+            return;
+        }
+
+        getContactPermission()
             .then((newStatus) => {
                 const isNewStatusGranted = newStatus === RESULTS.GRANTED || newStatus === RESULTS.LIMITED; // Permission is enabled, or just became enabled
 
                 if (isNewStatusGranted) {
                     importAndSaveContacts();
                 } else {
-                    if (newStatus !== contactPermissionState) {
-                        setContactPermissionState(newStatus);
-                    }
+                    // Don't read the current status here: the focus effect below would then run again each time the status
+                    // changes, and the first import changes it, so every focus would import the contacts twice
+                    setContactPermissionState(newStatus);
                     setContacts([]);
                 }
             })

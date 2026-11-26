@@ -80,6 +80,7 @@ const baseState = {
     currentSearchResults: undefined,
     currentSearchTransactionsByReportID: new Map(),
     currentSearchViolations: {},
+    approvalWorkflowRules: undefined,
     currentSelectedTransactionReportID: undefined,
     currentDefaultSearchQueryJSON: undefined,
     currentDefaultSearchQueryFilterKeys: new Set(),

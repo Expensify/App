@@ -121,6 +121,30 @@ describe('getChatFSClass', () => {
         expect(result).toBe(CONST.FULLSTORY.CLASS.MASK);
     });
 
+    it('unmasks a support ticket without Concierge', () => {
+        // Given a support ticket opened from Concierge with "Talk to a human", whose participants are the user and a support agent
+        const report = createMock<Report>({type: CONST.REPORT.TYPE.SUPPORT_TICKET, participants: {[participantAccountID]: {}, 43: {}}});
+
+        // When Fullstory classifies it
+        const result = getChatFSClass(report);
+
+        // Then it's unmasked like a Concierge chat, since it's the user's conversation with Expensify support
+        expect(result).toBe(CONST.FULLSTORY.CLASS.UNMASK);
+    });
+
+    it('unmasks a thread inside a support ticket', async () => {
+        // Given a thread whose parent is a support ticket, delivered through the real report collection subscription
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}456`, createMock<Report>({reportID: '456', type: CONST.REPORT.TYPE.SUPPORT_TICKET}));
+        await waitForBatchedUpdates();
+        const report = createMock<Report>({parentReportID: '456', participants: {[participantAccountID]: {}, 43: {}}});
+
+        // When Fullstory classifies the thread
+        const result = getChatFSClass(report);
+
+        // Then it follows the support ticket and stays unmasked
+        expect(result).toBe(CONST.FULLSTORY.CLASS.UNMASK);
+    });
+
     it('unmasks participants that include Concierge', () => {
         // Given an ordinary chat with Concierge and another participant.
         const report = createMock<Report>({participants: {[CONST.ACCOUNT_ID.CONCIERGE]: {}, [participantAccountID]: {}}});

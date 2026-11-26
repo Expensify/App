@@ -3,7 +3,7 @@ import type {OfflineWithFeedbackProps} from '@components/OfflineWithFeedback';
 
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 
-import type {Policy, PolicyConnectionSyncProgress} from '@src/types/onyx';
+import type {Policy} from '@src/types/onyx';
 import type {ErrorFields, PendingAction, PendingFields} from '@src/types/onyx/OnyxCommon';
 import type IconAsset from '@src/types/utils/IconAsset';
 
@@ -11,14 +11,9 @@ import type {OnyxEntry} from 'react-native-onyx';
 
 type MenuItemData = MenuItemProps & {pendingAction?: OfflineWithFeedbackProps['pendingAction']; errors?: OfflineWithFeedbackProps['errors']};
 
-type PolicyAccountingPageOnyxProps = {
-    connectionSyncProgress: OnyxEntry<PolicyConnectionSyncProgress>;
+type ConnectionsAccountingPageProps = WithPolicyConnectionsProps & {
+    policy: OnyxEntry<Policy>;
 };
-
-type PolicyAccountingPageProps = WithPolicyConnectionsProps &
-    PolicyAccountingPageOnyxProps & {
-        policy: OnyxEntry<Policy>;
-    };
 
 type WorkspaceUpgradeNavigationDetails = {
     /** Integration alias for workspace upgrade navigation. If passed, and the user doesn't have control policy, they will be redirected to the upgrade page */
@@ -47,4 +42,4 @@ type AccountingIntegration = {
     hasUnmetConnectPrerequisite?: boolean;
 };
 
-export type {MenuItemData, PolicyAccountingPageProps, AccountingIntegration};
+export type {MenuItemData, ConnectionsAccountingPageProps, AccountingIntegration};
