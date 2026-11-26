@@ -60,8 +60,8 @@ If it flags something incorrectly, say so on the issue and tag the C+ or the ass
 
 | Path | What it holds |
 |------|---------------|
-| [`.github/workflows/proposalPolice.yml`](../.github/workflows/proposalPolice.yml) | Trigger conditions and the trusted-commenter check |
-| [`.github/actions/javascript/proposalPoliceComment`](../.github/actions/javascript/proposalPoliceComment) | All of the logic and the decision to act |
+| [`.github/workflows/proposalPolice.yml`](../.github/workflows/proposalPolice.yml) | Trigger conditions |
+| [`.github/actions/javascript/proposalPoliceComment`](../.github/actions/javascript/proposalPoliceComment) | All of the logic, including the trusted team check, and the decision to act |
 | [`prompts/proposalPolice`](../prompts/proposalPolice) | Instructions, response schemas, and every message it posts |
 | [`scripts/utils/ProposalPolice`](../scripts/utils/ProposalPolice) | Bookkeeping for the recorded proposals used by duplicate detection |
 | [`tests/tooling`](../tests/tooling) | Unit tests, which run in CI |
