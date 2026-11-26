@@ -2149,11 +2149,10 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             }
 
             const hasPaidInvoices = paidReportCount > 0;
+            const bankAccountFollowedForGlobalReimbursements = bulkPayBankAccountID && isBetaEnabled(CONST.BETAS.WISE_REIMBURSEMENTS) ? bankAccountList?.[bulkPayBankAccountID] : undefined;
             const payExpenseReports = (wiseQuoteIDsByReportID: Record<string, string> = {}) => {
-                const bankAccount = bulkPayBankAccountID ? bankAccountList?.[bulkPayBankAccountID] : undefined;
-                if (bulkPayBankAccountID && bankAccount && isBetaEnabled(CONST.BETAS.WISE_REIMBURSEMENTS)) {
-                    // The pre-check can't catch every report the backend rejects for global reimbursements, so the rejected reports are listed with the skipped ones
-                    // once every payment has a response. Only the leader tab gets the responses, so another tab lists the skipped reports right away.
+                if (bulkPayBankAccountID && bankAccountFollowedForGlobalReimbursements) {
+                    // One modal lists every skipped report and the ones the backend rejects once every payment has a response, which only the leader tab gets
                     const shouldWaitForResponses = isClientTheLeader();
                     const pendingReportNames = new Map<string, string>();
                     if (shouldWaitForResponses) {
@@ -2166,12 +2165,13 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                     followGlobalReimbursementsBulkPay({
                         bankAccount: {
                             bankAccountID: bulkPayBankAccountID,
-                            bankCountry: bankAccount.bankCountry,
-                            bankCurrency: bankAccount.bankCurrency,
-                            accountNumber: bankAccount.accountData?.accountNumber,
+                            bankCountry: bankAccountFollowedForGlobalReimbursements.bankCountry,
+                            bankCurrency: bankAccountFollowedForGlobalReimbursements.bankCurrency,
+                            accountNumber: bankAccountFollowedForGlobalReimbursements.accountData?.accountNumber,
                         },
                         pendingReportNames,
                         skippedReportNames: [...reportNamesNeedingGlobalReimbursements.values()],
+                        nothingOwedReportNames: bankPaySkippedReports.getSkippedReportNames(reportAttributes),
                         hasPaidReports: hasPaidInvoices || (!shouldWaitForResponses && expensePayments.length > 0),
                     });
                 }
@@ -2200,8 +2200,8 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
 
             // With a Wise quote to confirm, the skipped reports are listed once the expense reports are paid
             if (!shouldConfirmWiseQuotes) {
-                // The global reimbursements flow only names its own reports, so the reports skipped here still need listing when nothing else was paid
-                if (bankPaySkippedReportsByID.size > 0 && (paidReportCount > 0 || reportNamesNeedingGlobalReimbursements.size > 0)) {
+                // Unless the global reimbursements flow lists them next to its own reports, they're listed here once any other report was paid or needs global reimbursements
+                if (!bankAccountFollowedForGlobalReimbursements && bankPaySkippedReportsByID.size > 0 && (paidReportCount > 0 || reportNamesNeedingGlobalReimbursements.size > 0)) {
                     showBankPaySkippedReports();
                 }
                 return;
@@ -2230,7 +2230,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                         payExpenseReports(wiseQuoteIDsByReportID);
                         playSound(SOUNDS.SUCCESS);
                         clearSelectedTransactions();
-                        if (bankPaySkippedReportsByID.size > 0) {
+                        if (!bankAccountFollowedForGlobalReimbursements && bankPaySkippedReportsByID.size > 0) {
                             showBankPaySkippedReports();
                         }
                     },

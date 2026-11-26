@@ -944,6 +944,7 @@ describe('useSearchBulkActions - bulk pay with reports that need global reimburs
             bankAccount: {bankAccountID: BANK_ACCOUNT_ID, bankCountry: 'US', bankCurrency: CONST.CURRENCY.USD, accountNumber: 'XXXXXX1234'},
             pendingReportNames: new Map([[PAID_REPORT_ID, 'Payable report']]),
             skippedReportNames: ['Report needing GR'],
+            nothingOwedReportNames: [],
             hasPaidReports: false,
         });
         expect(mockShowConfirmModal).not.toHaveBeenCalled();
@@ -1387,6 +1388,7 @@ describe('useSearchBulkActions - bank pay with nothing owed', () => {
     });
 
     afterEach(async () => {
+        mockEnabledBetas = new Set();
         mockCurrentSearchResults = undefined;
         await Onyx.clear();
     });
@@ -1416,6 +1418,28 @@ describe('useSearchBulkActions - bank pay with nothing owed', () => {
         expect(mockShowBankPaySkippedModal).toHaveBeenCalledTimes(1);
         expect(mockShowBankPaySkippedModal).toHaveBeenCalledWith(expect.objectContaining({bankAccountID: BANK_ACCOUNT_ID, skippedReportNames: ['Card lunch']}));
         expect(mockClearSelectedTransactions).toHaveBeenCalled();
+    });
+
+    it('hands the report with nothing owed to the global reimbursements flow, so the click ends in one modal', async () => {
+        // Given the mixed selection, paid on the Wise beta from a bank account whose payments the global reimbursements flow follows
+        mockEnabledBetas = new Set([CONST.BETAS.WISE_REIMBURSEMENTS]);
+        await Onyx.merge(ONYXKEYS.BANK_ACCOUNT_LIST, {
+            [BANK_ACCOUNT_ID]: {bankCountry: CONST.COUNTRY.US, bankCurrency: CONST.CURRENCY.USD, accountData: {bankAccountID: BANK_ACCOUNT_ID, accountNumber: 'XXXXXX1234'}},
+        });
+        const {result} = await renderBulkActions();
+
+        // When the user pays the selection with that bank account
+        await act(async () => {
+            result.current.confirmPayment(CONST.IOU.PAYMENT_TYPE.VBBA, {bankAccountID: BANK_ACCOUNT_ID});
+        });
+
+        // Then only the owed report is paid
+        await waitFor(() => expect(payMoneyRequest).toHaveBeenCalledTimes(1));
+        expect(payMoneyRequest).toHaveBeenCalledWith(expect.objectContaining({iouReport: expect.objectContaining({reportID: OWED_REPORT_ID})}));
+
+        // And the skipped report goes to the modal that lists any report needing global reimbursements, instead of a modal of its own next to it
+        expect(followGlobalReimbursementsBulkPay).toHaveBeenCalledWith(expect.objectContaining({nothingOwedReportNames: ['Card lunch']}));
+        expect(mockShowBankPaySkippedModal).not.toHaveBeenCalled();
     });
 
     it('pays nothing and explains why when every selected report has nothing owed', async () => {

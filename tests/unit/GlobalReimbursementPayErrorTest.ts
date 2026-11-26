@@ -112,6 +112,7 @@ describe('GlobalReimbursementPayError middleware', () => {
                     [OTHER_IOU_REPORT_ID, 'Paid report'],
                 ]),
                 skippedReportNames: [],
+                nothingOwedReportNames: [],
                 hasPaidReports: false,
             });
             const request = buildPayRequest();
@@ -137,7 +138,7 @@ describe('GlobalReimbursementPayError middleware', () => {
             await waitForBatchedUpdates();
 
             // Then the rejected report is listed next to the paid one
-            expect(await getOnyxValue(ONYXKEYS.RAM_ONLY_ENABLE_GLOBAL_REIMBURSEMENTS_MODAL)).toEqual({...BANK_ACCOUNT, unpaidReportNames: ['Rejected report']});
+            expect(await getOnyxValue(ONYXKEYS.RAM_ONLY_ENABLE_GLOBAL_REIMBURSEMENTS_MODAL)).toEqual({...BANK_ACCOUNT, unpaidReportNames: ['Rejected report'], nothingOwedReportNames: []});
         });
     });
 

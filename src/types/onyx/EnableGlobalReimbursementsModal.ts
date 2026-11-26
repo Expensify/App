@@ -10,6 +10,8 @@ type EnableGlobalReimbursementsModal = {
     isPayingMultipleReports?: boolean;
     /** The names of the reports bulk pay left unpaid while paying others, set only by the client so they are listed before the intro opens */
     unpaidReportNames?: string[];
+    /** The names of the reports bulk pay left out because they're non-reimbursable or total $0 or less, set only by the client so they are listed in the same modal */
+    nothingOwedReportNames?: string[];
     /** The masked number of the bank account, set with unpaidReportNames so the list can name the account */
     accountNumber?: string;
 };

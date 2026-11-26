@@ -88,16 +88,22 @@ function useSearchBankPaySkippedReports({
                 showBankPaySkippedModal({bankAccountID, policy: getPolicyFromSearchSnapshot(policyID, searchData, policies), isABAPayment, skippedReportNames});
             });
 
+        // The skipped reports by the names shown everywhere else
+        const getSkippedReportNames = (reportAttributes: OnyxEntry<ReportAttributesDerivedValue>) =>
+            [...skippedReportsByID].map(([reportID, report]) => getReportName(report, reportAttributes?.reports?.[reportID]?.reportName) || translate('common.report'));
+
         return {
             skippedReportsByID,
+
+            /** The skipped reports by their names, for the global reimbursements modal to list once the payments settle */
+            getSkippedReportNames,
             isEveryReportSkipped: skippedReportsByID.size > 0 && bulkPaySelectedOptions.every((item) => !!item.reportID && skippedReportsByID.has(item.reportID)),
 
             /** Explains why none of the selected reports were paid */
             showAllReportsSkipped: () => showModal(),
 
-            /** Lists the skipped reports after the others were paid, by the names shown everywhere else */
-            showSkippedReports: (reportAttributes: OnyxEntry<ReportAttributesDerivedValue>) =>
-                showModal([...skippedReportsByID].map(([reportID, report]) => getReportName(report, reportAttributes?.reports?.[reportID]?.reportName) || translate('common.report'))),
+            /** Lists the skipped reports after the others were paid */
+            showSkippedReports: (reportAttributes: OnyxEntry<ReportAttributesDerivedValue>) => showModal(getSkippedReportNames(reportAttributes)),
         };
     };
 

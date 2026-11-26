@@ -1,3 +1,4 @@
+import useBankPaySkippedModal from '@hooks/useBankPaySkippedModal';
 import useConfirmModal from '@hooks/useConfirmModal';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -23,7 +24,9 @@ import {ModalActions} from './Modal/Global/ModalContext';
 function EnableGlobalReimbursementsPayModal() {
     const {translate} = useLocalize();
     const [enableGlobalReimbursementsModal] = useOnyx(ONYXKEYS.RAM_ONLY_ENABLE_GLOBAL_REIMBURSEMENTS_MODAL);
+    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const {showConfirmModal} = useConfirmModal();
+    const {showBankPaySkippedModal} = useBankPaySkippedModal({bankAccountList});
     const {isAccountLocked} = useLockedAccountState();
     const {showLockedAccountModal} = useLockedAccountActions();
     const {isBetaEnabled} = usePermissions();
@@ -34,15 +37,25 @@ function EnableGlobalReimbursementsPayModal() {
             return;
         }
 
-        // Search bulk pay paid some reports and left these unpaid. It lists them here rather than in Search, because the responses can arrive after the admin left the Search page
-        const {unpaidReportNames, accountNumber, ...bankAccount} = modalData;
+        // Search bulk pay left these reports unpaid, because they need global reimbursements or have nothing owed. It lists them here rather than in Search, because the responses can arrive after the admin left the Search page
+        const {unpaidReportNames, nothingOwedReportNames, accountNumber, ...bankAccount} = modalData;
+        if (!unpaidReportNames?.length && nothingOwedReportNames?.length) {
+            clearEnableGlobalReimbursementsModal();
+            deferModalPresentationAfterPopoverDismiss(() => {
+                showBankPaySkippedModal({bankAccountID: bankAccount.bankAccountID, skippedReportNames: nothingOwedReportNames});
+            });
+            return;
+        }
         if (unpaidReportNames?.length) {
+            const unpaidReportList = formatReportNamesAsBulletList(unpaidReportNames);
             clearEnableGlobalReimbursementsModal();
             deferModalPresentationAfterPopoverDismiss(() => {
                 showConfirmModal({
                     title: translate('walletPage.wiseGlobalReimbursementsBulkPayModal.title', getLastFourDigits(accountNumber ?? '')),
                     subtitle: translate('walletPage.wiseGlobalReimbursementsBulkPayModal.description'),
-                    prompt: formatReportNamesAsBulletList(unpaidReportNames),
+                    prompt: nothingOwedReportNames?.length
+                        ? `${unpaidReportList}\n\n${translate('iou.bankPaySkippedReportsDescription')}\n${formatReportNamesAsBulletList(nothingOwedReportNames)}`
+                        : unpaidReportList,
                     confirmText: translate('walletPage.wiseGlobalReimbursementsIntro.getStarted'),
                     cancelText: translate('common.notNow'),
                     shouldEnablePromptScroll: true,
