@@ -54,6 +54,8 @@ jest.mock('@libs/actions/Policy/PerDiem', () => ({
 jest.mock('@libs/Navigation/Navigation', () => ({
     navigate: jest.fn(),
     goBack: jest.fn(),
+    // The offline view reads the active route for its telemetry span
+    getActiveRoute: jest.fn(() => ''),
 }));
 
 jest.mock('@userActions/IOU/MoneyRequest', () => ({
