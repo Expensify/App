@@ -341,11 +341,12 @@ describe('DynamicCategoryVisibleToPage', () => {
             fireEvent.press(screen.getByText('Save'));
             await waitForBatchedUpdatesWithAct();
 
-            // Then Meals is open to everyone again, and the toast counts every member
+            // Then Meals is open to everyone again, and the toast says everyone instead of counting the members, since
+            // members who join later can use the categories too
             const categories = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policy.id}`);
             expect(categories?.Meals?.visibleTo).toBeUndefined();
             expect(categories?.Meals?.pendingFields?.visibleTo).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
-            expect(growlSuccess).toHaveBeenCalledWith({bodyText: 'Set 2 categories for 3 members. This replaces their current category visibility.'});
+            expect(growlSuccess).toHaveBeenCalledWith({bodyText: 'Set 2 categories for everyone. This replaces their current category visibility.'});
 
             unmount();
             await waitForBatchedUpdatesWithAct();

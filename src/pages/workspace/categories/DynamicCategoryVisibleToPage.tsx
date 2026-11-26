@@ -197,10 +197,12 @@ function DynamicCategoryVisibleToPage({route}: DynamicCategoryVisibleToPageProps
         Navigation.goBack(backPath, {afterTransition: clearWorkspaceCategoriesSelectedForBulkEdit});
         // Disabled categories go back to everyone if they're enabled again, so no member's visibility was set
         if (!isDisablingCategory) {
+            // Checking every member opens the categories to everyone, members who join later included, so the toast says everyone
+            const isOpeningToEveryone = newSelectedAccountIDs.length === memberAccountIDs.length;
             Growl.success({
                 bodyText: translate('workspace.people.bulkCategoryVisibilitySaved', {
                     categoryCount: translate('workspace.people.categoriesCount', {count: targetCategoryNames.length}),
-                    memberCount: translate('workspace.categories.membersCount', {count: newSelectedAccountIDs.length}),
+                    memberCount: isOpeningToEveryone ? translate('workspaceActions.everyone') : translate('workspace.categories.membersCount', {count: newSelectedAccountIDs.length}),
                 }),
             });
         }
