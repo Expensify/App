@@ -48,6 +48,8 @@ class HybridDocumentDetectorModule : HybridDocumentDetectorModuleSpec() {
 
     private class Rectangle(val corners: Array<DoubleArray>, val rebuiltCorner: Int, val confidence: Double)
 
+    private class PaperPatches(val largestRegion: Region?, val largestCount: Int, val secondCount: Int)
+
     private class StillMatch(val corners: Array<DoubleArray>, val pass: Pass, val confidence: Double, val isSnapped: Boolean)
 
     private enum class Gate { REJECTED, ACCEPTED, REACQUIRED, JUMPED, UNCONFIRMED }
@@ -126,14 +128,20 @@ class HybridDocumentDetectorModule : HybridDocumentDetectorModuleSpec() {
         val (fullFrameMatch, fullFramePass) = findStillMatch(session, fullFrame, width, height)
         var source = "full_frame"
         var match = fullFrameMatch
-        if (match == null) {
+        val patches = findPaperPatches(fullFramePass, width, height)
+        val largestPatchRegion = patches.largestRegion
+        if (match != null && largestPatchRegion != null && patches.secondCount >= SECOND_SHEET_SHARE * patches.largestCount) {
+            val sheetMatch = findStillMatch(session, largestPatchRegion, width, height).first
+            if (sheetMatch != null) {
+                match = sheetMatch
+                source = "largest_of_several"
+            }
+        }
+        if (match == null && largestPatchRegion != null) {
             // Two papers in view pull the corner peaks apart, so the whole-frame look fails. Looking again at just the
             // biggest patch of paper the mask found shows the model one sheet.
-            val patch = getLargestPatchRegion(fullFramePass, width, height)
-            if (patch != null) {
-                match = findStillMatch(session, patch, width, height).first
-                source = "largest_patch"
-            }
+            match = findStillMatch(session, largestPatchRegion, width, height).first
+            source = "largest_patch"
         }
         if (match == null) {
             match = findStillMatch(session, getCentreRegion(width, height), width, height).first
@@ -141,14 +149,14 @@ class HybridDocumentDetectorModule : HybridDocumentDetectorModuleSpec() {
         }
         val durationMs = SystemClock.uptimeMillis() - startedAt
         if (match == null) {
-            Log.i(TAG, "still ${bitmap.width}x${bitmap.height}: no receipt in ${durationMs}ms")
+            Log.i(TAG, "still ${bitmap.width}x${bitmap.height}: no receipt, paper patches ${patches.largestCount}/${patches.secondCount}, patch look ${largestPatchRegion != null} in ${durationMs}ms")
             return null
         }
 
         val readLuma = LumaReader(width, height, width, 0, width, height)
         val fitted = fitSidesPastFingers(match.corners, match.pass, readLuma) ?: match.corners
         val outline = bendOutline(fitted, match.pass, width, height, readLuma, match.isSnapped)
-        Log.i(TAG, "still ${bitmap.width}x${bitmap.height}: receipt from $source, confidence ${match.confidence}, outline ${outline != null} in ${durationMs}ms")
+        Log.i(TAG, "still ${bitmap.width}x${bitmap.height}: receipt from $source, confidence ${match.confidence}, outline ${outline != null}, paper patches ${patches.largestCount}/${patches.secondCount} in ${durationMs}ms")
         val toShare = { point: DoubleArray -> DocumentCorner(point[0] / width, point[1] / height) }
         return DetectedDocument(fitted.map(toShare).toTypedArray(), match.confidence, outline?.map(toShare)?.toTypedArray())
     }
@@ -168,13 +176,16 @@ class HybridDocumentDetectorModule : HybridDocumentDetectorModuleSpec() {
         return Pair(StillMatch(rectangle.corners, pass, rectangle.confidence, false), pass)
     }
 
-    private fun getLargestPatchRegion(pass: Pass, width: Int, height: Int): Region? {
+    private fun findPaperPatches(pass: Pass, width: Int, height: Int): PaperPatches {
+        var isPaper = BooleanArray(HEATMAP_SIZE * HEATMAP_SIZE) { pass.mask[it] > 0 }
+        repeat(SHEET_SPLIT_CELLS) { isPaper = erodePaper(isPaper) }
         val isSeen = BooleanArray(HEATMAP_SIZE * HEATMAP_SIZE)
         val queue = IntArray(HEATMAP_SIZE * HEATMAP_SIZE)
         var bestCount = 0
+        var secondCount = 0
         var bestBox = IntArray(4)
         for (start in 0 until HEATMAP_SIZE * HEATMAP_SIZE) {
-            if (isSeen[start] || pass.mask[start] <= 0) {
+            if (isSeen[start] || !isPaper[start]) {
                 continue
             }
             var head = 0
@@ -192,7 +203,7 @@ class HybridDocumentDetectorModule : HybridDocumentDetectorModuleSpec() {
                 box[3] = max(box[3], y)
                 for (neighbor in intArrayOf(cell - 1, cell + 1, cell - HEATMAP_SIZE, cell + HEATMAP_SIZE)) {
                     val isAdjacent = neighbor / HEATMAP_SIZE == y || abs(neighbor - cell) == HEATMAP_SIZE
-                    if (neighbor < 0 || neighbor >= isSeen.size || !isAdjacent || isSeen[neighbor] || pass.mask[neighbor] <= 0) {
+                    if (neighbor < 0 || neighbor >= isSeen.size || !isAdjacent || isSeen[neighbor] || !isPaper[neighbor]) {
                         continue
                     }
                     isSeen[neighbor] = true
@@ -200,13 +211,22 @@ class HybridDocumentDetectorModule : HybridDocumentDetectorModuleSpec() {
                 }
             }
             if (tail > bestCount) {
+                secondCount = bestCount
                 bestCount = tail
                 bestBox = box
+            } else if (tail > secondCount) {
+                secondCount = tail
             }
         }
         if (bestCount < MIN_PATCH_SHARE * HEATMAP_SIZE * HEATMAP_SIZE) {
-            return null
+            return PaperPatches(null, bestCount, secondCount)
         }
+        bestBox = intArrayOf(
+            max(0, bestBox[0] - SHEET_SPLIT_CELLS),
+            max(0, bestBox[1] - SHEET_SPLIT_CELLS),
+            min(HEATMAP_SIZE - 1, bestBox[2] + SHEET_SPLIT_CELLS),
+            min(HEATMAP_SIZE - 1, bestBox[3] + SHEET_SPLIT_CELLS),
+        )
         val toUprightX = { cell: Int -> pass.region.x + (cell * HEATMAP_STRIDE - pass.offsetX) / pass.scale }
         val toUprightY = { cell: Int -> pass.region.y + (cell * HEATMAP_STRIDE - pass.offsetY) / pass.scale }
         val left = toUprightX(bestBox[0])
@@ -220,10 +240,21 @@ class HybridDocumentDetectorModule : HybridDocumentDetectorModuleSpec() {
         val regionWidth = (right + marginX).coerceAtMost(width.toDouble()) - x
         val regionHeight = (bottom + marginY).coerceAtMost(height.toDouble()) - y
         if (regionWidth * regionHeight >= MAX_PATCH_REGION_SHARE * width * height) {
-            return null
+            return PaperPatches(null, bestCount, secondCount)
         }
-        return Region(x, y, regionWidth, regionHeight)
+        return PaperPatches(Region(x, y, regionWidth, regionHeight), bestCount, secondCount)
     }
+
+    private fun erodePaper(isPaper: BooleanArray): BooleanArray =
+        BooleanArray(isPaper.size) { cell ->
+            val x = cell % HEATMAP_SIZE
+            val y = cell / HEATMAP_SIZE
+            isPaper[cell] &&
+                (x == 0 || isPaper[cell - 1]) &&
+                (x == HEATMAP_SIZE - 1 || isPaper[cell + 1]) &&
+                (y == 0 || isPaper[cell - HEATMAP_SIZE]) &&
+                (y == HEATMAP_SIZE - 1 || isPaper[cell + HEATMAP_SIZE])
+        }
 
     private fun loadStill(bitmap: Bitmap): Pair<Int, Int> {
         val scale = min(1.0, STILL_LONG_SIDE.toDouble() / max(bitmap.width, bitmap.height))
@@ -1290,6 +1321,10 @@ class HybridDocumentDetectorModule : HybridDocumentDetectorModuleSpec() {
         private const val PATCH_MARGIN = 0.15
 
         private const val MAX_PATCH_REGION_SHARE = 0.9
+
+        private const val SECOND_SHEET_SHARE = 0.2
+
+        private const val SHEET_SPLIT_CELLS = 2
 
         private fun toByte(value: Double): Byte = value.roundToInt().coerceIn(0, 255).toByte()
 
