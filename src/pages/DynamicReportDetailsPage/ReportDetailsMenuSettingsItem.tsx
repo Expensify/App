@@ -34,6 +34,7 @@ function ReportDetailsMenuSettingsItem({reportID}: ReportDetailsMenuSettingsItem
 
     return (
         <MenuItemNavigation
+            sentryLabel={CONST.SENTRY_LABEL.REPORT_DETAILS.SETTINGS}
             title={translate('common.settings')}
             icon={expensifyIcons.Gear}
             onPress={() => {

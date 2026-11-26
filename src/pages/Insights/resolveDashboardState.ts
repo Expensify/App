@@ -1,3 +1,5 @@
+import type {ChartAverage} from '@components/Search/buildChartSeries';
+
 import {hasGroupWithExpenses} from '@libs/resolveInsightsChartData';
 import {isGroupEntry, isSearchDataLoaded} from '@libs/SearchUIUtils';
 
@@ -9,6 +11,7 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 
+import type {InsightsChartStage} from './dashboardSpecs';
 import type {InsightsChartQuery} from './insightsQueries';
 
 const INSIGHTS_DASHBOARD_STATE = {
@@ -19,6 +22,7 @@ const INSIGHTS_DASHBOARD_STATE = {
     OFFLINE: 'offline',
     EMPTY: 'empty',
     NO_EXPENSES: 'noExpenses',
+    UPSELL: 'upsell',
 } as const;
 
 type InsightsDashboardState = ValueOf<typeof INSIGHTS_DASHBOARD_STATE>;
@@ -26,8 +30,13 @@ type InsightsDashboardState = ValueOf<typeof INSIGHTS_DASHBOARD_STATE>;
 type InsightsDashboardChart = InsightsChartQuery & {
     snapshot: OnyxEntry<SearchResults>;
     previousPeriodSnapshot?: OnyxEntry<SearchResults>;
-    averageTotal?: number;
+    averageSnapshot?: OnyxEntry<SearchResults>;
+    average?: ChartAverage;
     isDashboardLoaded?: boolean;
+    eligiblePolicyIDs?: string[];
+
+    /** The chart's stages some workspace in scope is eligible for, set when the chart declares stages */
+    stages?: InsightsChartStage[];
 };
 
 /** Checks whether GetInsights has responded for the dashboard's filters, since only its response sets `inputQuery`. */
@@ -36,7 +45,18 @@ function hasDashboardResponse(dashboard: OnyxEntry<InsightsDashboard>): boolean 
 }
 
 /** Resolves the page's state from the dashboard record and the snapshot of every chart on screen. */
-function getDashboardState(dashboard: OnyxEntry<InsightsDashboard>, isOffline: boolean, charts: InsightsDashboardChart[], hasLoadedBefore = false): InsightsDashboardState {
+function getDashboardState(
+    dashboard: OnyxEntry<InsightsDashboard>,
+    isOffline: boolean,
+    charts: InsightsDashboardChart[],
+    shouldUpsell: boolean,
+    hasLoadedBefore = false,
+): InsightsDashboardState {
+    // Upsell wins over every other state because it is derived from policies already in Onyx, so the user never waits on GetInsights or sees the offline blocker.
+    if (shouldUpsell) {
+        return INSIGHTS_DASHBOARD_STATE.UPSELL;
+    }
+
     const chartStates = charts.map(({snapshot, queryJSON}) => {
         const isLoaded = isSearchDataLoaded(snapshot, queryJSON) && isEmptyObject(snapshot?.errors);
         const data = snapshot?.data;
@@ -49,9 +69,11 @@ function getDashboardState(dashboard: OnyxEntry<InsightsDashboard>, isOffline: b
     });
     const hasLoadedChart = chartStates.some(({isLoaded}) => isLoaded);
     const hasChartWithRows = chartStates.some(({hasRows}) => hasRows);
+    // The other violation stage may still have data, so the charts and their stage controls stay on screen to switch back
+    const hasViolationStageControl = charts.some(({chart}) => chart.hasViolationStageControl);
 
     if (isOffline && !hasLoadedChart && dashboard?.hasResults !== false) {
-        return INSIGHTS_DASHBOARD_STATE.OFFLINE;
+        return hasViolationStageControl ? INSIGHTS_DASHBOARD_STATE.READY : INSIGHTS_DASHBOARD_STATE.OFFLINE;
     }
     if (!isOffline && Object.keys(dashboard?.errors ?? {}).length > 0) {
         return dashboard?.responseJsonCode === CONST.JSON_CODE.NO_RESPONSE ? INSIGHTS_DASHBOARD_STATE.STALE : INSIGHTS_DASHBOARD_STATE.ERROR;
@@ -67,7 +89,7 @@ function getDashboardState(dashboard: OnyxEntry<InsightsDashboard>, isOffline: b
         return INSIGHTS_DASHBOARD_STATE.NO_EXPENSES;
     }
     if (chartStates.every(({isLoaded}) => isLoaded)) {
-        return INSIGHTS_DASHBOARD_STATE.EMPTY;
+        return hasViolationStageControl ? INSIGHTS_DASHBOARD_STATE.READY : INSIGHTS_DASHBOARD_STATE.EMPTY;
     }
     return INSIGHTS_DASHBOARD_STATE.READY;
 }

@@ -81,6 +81,47 @@ function getTagsOptions(tags: TagOptionInput[], selectedOptions?: SelectedTagOpt
     });
 }
 
+type SortedTagList = {
+    localeCompare: LocaleContextProps['localeCompare'];
+    shouldShowGLCode: boolean;
+    tagByName: Map<string, PolicyTag>;
+    enabledTags: TagOptionInput[];
+    enabledTagsNames: Set<string>;
+};
+
+// The tag picker rebuilds its sections on every render, including every keystroke in its search. Sorting a list of
+// tens of thousands of tags each time made typing slow, so the sorted list is kept per tags object. This is safe
+// because Onyx never edits a stored tags object in place: any change to the tags gives a new object, which is sorted again.
+const sortedTagListCache = new WeakMap<PolicyTags | Array<SelectedTagOption | PolicyTag>, SortedTagList>();
+
+/**
+ * Adds the GL code to a tag when GL codes are shown, looking it up by name for tags that do not carry it
+ */
+function getTagWithGLCode(tag: SelectedTagOption | PolicyTag, tagByName: Map<string, PolicyTag>, shouldShowGLCode: boolean): TagOptionInput {
+    if (!shouldShowGLCode) {
+        return tag;
+    }
+    const fullTag = 'GL Code' in tag ? tag : tagByName.get(tag.name);
+    return {...tag, glCode: getGLCodeFromPolicyTag(fullTag)};
+}
+
+/**
+ * Sorts the tags by name and lists the enabled ones, reusing the last result for the same tags, comparator and GL code setting
+ */
+function getSortedTagList(tags: PolicyTags | Array<SelectedTagOption | PolicyTag>, localeCompare: LocaleContextProps['localeCompare'], shouldShowGLCode: boolean): SortedTagList {
+    const cachedList = sortedTagListCache.get(tags);
+    if (cachedList?.localeCompare === localeCompare && cachedList.shouldShowGLCode === shouldShowGLCode) {
+        return cachedList;
+    }
+
+    const sortedTags = sortTags(tags, localeCompare);
+    const tagByName = new Map(sortedTags.map((tag) => [tag.name, tag]));
+    const enabledTags = sortedTags.filter((tag) => tag.enabled).map((tag) => getTagWithGLCode(tag, tagByName, shouldShowGLCode));
+    const sortedTagList = {localeCompare, shouldShowGLCode, tagByName, enabledTags, enabledTagsNames: new Set(enabledTags.map((tag) => tag.name))};
+    sortedTagListCache.set(tags, sortedTagList);
+    return sortedTagList;
+}
+
 /**
  * Build the section list for tags
  */
@@ -106,19 +147,10 @@ function getTagListSections({
     searchInputThreshold?: number;
 }) {
     const tagSections = [];
-    const sortedTags = sortTags(tags, localeCompare);
-    const tagByName = new Map(sortedTags.map((tag) => [tag.name, tag]));
-    const withGLCode = (tag: SelectedTagOption | PolicyTag): TagOptionInput => {
-        if (!shouldShowGLCode) {
-            return tag;
-        }
-        const fullTag = 'GL Code' in tag ? tag : tagByName.get(tag.name);
-        return {...tag, glCode: getGLCodeFromPolicyTag(fullTag)};
-    };
+    const {tagByName, enabledTags, enabledTagsNames} = getSortedTagList(tags, localeCompare, shouldShowGLCode);
+    const withGLCode = (tag: SelectedTagOption | PolicyTag): TagOptionInput => getTagWithGLCode(tag, tagByName, shouldShowGLCode);
 
     const selectedOptionNames = new Set(selectedOptions.map((selectedOption) => selectedOption.name));
-    const enabledTags = sortedTags.filter((tag) => tag.enabled).map(withGLCode);
-    const enabledTagsNames = new Set(enabledTags.map((tag) => tag.name));
     const enabledTagsWithoutSelectedOptions = enabledTags.filter((tag) => !selectedOptionNames.has(tag.name));
     const selectedTagsWithDisabledState: TagOptionInput[] = [];
     const numberOfTags = enabledTags.length;
@@ -419,7 +451,11 @@ function getUpdatedTransactionTag({
  * @param index - The index level to truncate the tag to for parent filtering
  * @returns Array of enabled policy tags that match the parent tag filter
  */
-function getEnabledTags(tags: PolicyTags, tag: string, index: number) {
+function getEnabledTags(tags: PolicyTags | null | undefined, tag: string, index: number) {
+    if (!tags) {
+        return [];
+    }
+
     // Truncate tag to the current level (e.g., "California:North")
     const parentTag = getTagArrayFromName(tag).slice(0, index).join(':');
 

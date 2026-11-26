@@ -17,7 +17,7 @@ import variables from '@styles/variables';
 import {setShouldFailAllRequests, setShouldForceOffline, setShouldSimulatePoorConnection} from '@userActions/Network';
 import {expireSessionWithDelay, invalidateAuthToken, invalidateCredentials} from '@userActions/Session';
 import {getBackToParam} from '@userActions/TestTool';
-import {setIsDebugModeEnabled, setShouldShowBranchNameInTitle} from '@userActions/User';
+import {setIsDebugModeEnabled, setShouldHideEnvironmentBadge, setShouldShowBranchNameInTitle} from '@userActions/User';
 
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
@@ -27,6 +27,7 @@ import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import React from 'react';
 import {Platform, View} from 'react-native';
 
+import BankAccountTestToolRows from './BankAccountTestToolRows';
 import BiometricsTestToolRow from './BiometricsTestToolRow';
 import Button from './Button';
 import Icon from './Icon';
@@ -48,6 +49,7 @@ function TestToolMenu({serverPageRoute}: TestToolMenuProps) {
     const {activeServer, isPinnedByEnvironment} = useActiveServer();
     const [isDebugModeEnabled = false] = useOnyx(ONYXKEYS.IS_DEBUG_MODE_ENABLED);
     const [shouldShowBranchNameInTitle = false] = useOnyx(ONYXKEYS.SHOULD_SHOW_BRANCH_NAME_IN_TITLE);
+    const [shouldHideEnvironmentBadge = false] = useOnyx(ONYXKEYS.SHOULD_HIDE_ENVIRONMENT_BADGE);
     const styles = useThemeStyles();
     const theme = useTheme();
     const icons = useMemoizedLazyExpensifyIcons(['ArrowRight']);
@@ -116,9 +118,22 @@ function TestToolMenu({serverPageRoute}: TestToolMenuProps) {
                         </TestToolRow>
                     )}
 
+                    {/* Hides the environment badge, for example to take screenshots. The badge is never shown on production, so neither is this row. */}
+                    {!isProduction && (
+                        <TestToolRow title={translate('initialSettingsPage.troubleshoot.hideEnvironmentBadge')}>
+                            <Switch
+                                accessibilityLabel={translate('initialSettingsPage.troubleshoot.hideEnvironmentBadge')}
+                                sentryLabel={CONST.SENTRY_LABEL.TEST_TOOL_MENU.HIDE_ENVIRONMENT_BADGE_SWITCH}
+                                isOn={shouldHideEnvironmentBadge}
+                                onToggle={() => setShouldHideEnvironmentBadge(!shouldHideEnvironmentBadge)}
+                            />
+                        </TestToolRow>
+                    )}
+
                     {/* Instantly invalidates a user's local authToken. Useful for testing flows related to reauthentication. */}
                     <TestToolRow title={translate('initialSettingsPage.troubleshoot.authenticationStatus')}>
                         <Button
+                            sentryLabel={CONST.SENTRY_LABEL.TEST_TOOL_MENU.INVALIDATE_AUTH_TOKEN}
                             size={CONST.BUTTON_SIZE.SMALL}
                             onPress={() => invalidateAuthToken()}
                         >
@@ -129,6 +144,7 @@ function TestToolMenu({serverPageRoute}: TestToolMenuProps) {
                     {/* Clears stored auto-generated credentials, corrupts the local authToken and fires a request so reauth fails and the user is signed out. Useful for manually testing sign out logic. */}
                     <TestToolRow title={translate('initialSettingsPage.troubleshoot.deviceCredentials')}>
                         <Button
+                            sentryLabel={CONST.SENTRY_LABEL.TEST_TOOL_MENU.DESTROY_CREDENTIALS}
                             size={CONST.BUTTON_SIZE.SMALL}
                             onPress={() => invalidateCredentials()}
                         >
@@ -139,6 +155,7 @@ function TestToolMenu({serverPageRoute}: TestToolMenuProps) {
                     {/* Sends an expired session to the FE and invalidates the session by the same time in the BE. Action is delayed for 15s */}
                     <TestToolRow title={translate('initialSettingsPage.troubleshoot.authenticationStatus')}>
                         <Button
+                            sentryLabel={CONST.SENTRY_LABEL.TEST_TOOL_MENU.INVALIDATE_WITH_DELAY}
                             size={CONST.BUTTON_SIZE.SMALL}
                             onPress={() => expireSessionWithDelay()}
                         >
@@ -149,6 +166,7 @@ function TestToolMenu({serverPageRoute}: TestToolMenuProps) {
                     {/* Clears the useSidebarOrderedReports cache to re-compute from latest onyx values */}
                     <TestToolRow title={translate('initialSettingsPage.troubleshoot.leftHandNavCache')}>
                         <Button
+                            sentryLabel={CONST.SENTRY_LABEL.TEST_TOOL_MENU.CLEAR_LHN_CACHE}
                             size={CONST.BUTTON_SIZE.SMALL}
                             onPress={clearLHNCache}
                         >
@@ -160,6 +178,7 @@ function TestToolMenu({serverPageRoute}: TestToolMenuProps) {
                     {!isProduction && (
                         <TestToolRow title={translate('initialSettingsPage.troubleshoot.betaOverrides')}>
                             <Button
+                                sentryLabel={CONST.SENTRY_LABEL.TEST_TOOL_MENU.BETA_OVERRIDES}
                                 size={CONST.BUTTON_SIZE.SMALL}
                                 onPress={() => {
                                     const activeRoute = Navigation.getActiveRoute();
@@ -177,6 +196,8 @@ function TestToolMenu({serverPageRoute}: TestToolMenuProps) {
                             </Button>
                         </TestToolRow>
                     )}
+
+                    <BankAccountTestToolRows />
 
                     {/* Allows testing and revoking biometric multifactor authentication */}
                     {isAgentAccount === false && <BiometricsTestToolRow />}

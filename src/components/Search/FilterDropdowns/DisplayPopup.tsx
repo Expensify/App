@@ -18,18 +18,18 @@ import {close} from '@libs/actions/Modal';
 import clearSelectedText from '@libs/clearSelectedText/clearSelectedText';
 import Navigation from '@libs/Navigation/Navigation';
 import {buildQueryStringWithResetDisplay, getChangedDisplayOptionsCount} from '@libs/SearchQueryUtils';
-import {getGroupBySections, getSearchColumnTranslationKey, getValidGroupBy, getViewOptions} from '@libs/SearchUIUtils';
+import {canEditSearchColumns, getGroupBySections, getHasOptionAvailability, getSearchColumnTranslationKey, getValidGroupBy, getViewOptions} from '@libs/SearchUIUtils';
 
-import {callFunctionIfActionIsAllowed} from '@userActions/Session';
+import {callIfAuthenticated} from '@userActions/Session';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {SearchAdvancedFiltersForm} from '@src/types/form';
-import type {SearchResults} from '@src/types/onyx';
+import type {Policy, SearchResults} from '@src/types/onyx';
 import {getEmptyObject} from '@src/types/utils/EmptyObject';
 
-import type {OnyxEntry} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
 import {authTokenTypeSelector} from '@selectors/Session';
 import React, {useState} from 'react';
@@ -48,6 +48,8 @@ type DisplayPopupProps = {
     closeOverlay: () => void;
     onSort: () => void;
 };
+
+const hasViolationSearchPolicySelector = (policies: OnyxCollection<Policy>) => getHasOptionAvailability(policies).shouldShowSubmittedViolation;
 
 function DisplayPopup({queryJSON, searchResults, closeOverlay, onSort}: DisplayPopupProps) {
     const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
@@ -69,12 +71,14 @@ function DisplayPopup({queryJSON, searchResults, closeOverlay, onSort}: DisplayP
         | null
     >(null);
 
-    const groupBySections = getGroupBySections(translate);
+    const [hasViolationSearchPolicy = false] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: hasViolationSearchPolicySelector});
+
+    // Keep Violation in the list while it's selected, so the current grouping still shows its label
+    const groupBySections = getGroupBySections(translate, hasViolationSearchPolicy || queryJSON.groupBy === CONST.SEARCH.GROUP_BY.VIOLATION);
     const groupBy = groupBySections.flatMap((section) => section.options).find((option) => option.value === queryJSON.groupBy) ?? null;
     const viewOptions = getViewOptions(translate);
     const view = viewOptions.find((option) => option.value === queryJSON.view) ?? viewOptions.at(0);
-    const shouldShowColumnsButton =
-        isLargeScreenWidth && (queryJSON.type === CONST.SEARCH.DATA_TYPES.EXPENSE || queryJSON.type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT || shouldReturnTripRooms);
+    const shouldShowColumnsButton = isLargeScreenWidth && canEditSearchColumns(queryJSON.type, shouldReturnTripRooms);
 
     const limitValue = searchAdvancedFilters[CONST.SEARCH.SYNTAX_ROOT_KEYS.LIMIT];
 
@@ -144,14 +148,10 @@ function DisplayPopup({queryJSON, searchResults, closeOverlay, onSort}: DisplayP
                 {shouldShowColumnsButton && (
                     <CompactMenuContext.Provider value>
                         <MenuItem.Root
-                            onPress={callFunctionIfActionIsAllowed(
-                                () => {
-                                    closeOverlay();
-                                    openSearchColumns();
-                                },
-                                false,
-                                session,
-                            )}
+                            onPress={callIfAuthenticated(() => {
+                                closeOverlay();
+                                openSearchColumns();
+                            }, session)}
                             accessibilityLabel={translate('search.editColumns')}
                             sentryLabel={CONST.SENTRY_LABEL.SEARCH.COLUMNS_BUTTON}
                         >

@@ -103,10 +103,10 @@ type PaymentMethodItem = PaymentMethod & {
     wiseSetupInProgress?: {
         bankAccountID: number;
 
-        /** Whether the admin has something to do, which shows Continue */
-        canContinue: boolean;
+        /** Whether Wise is reviewing the onboarding with nothing for the admin to do, so the row says it is in review */
+        isInReview: boolean;
 
-        /** Whether the onboarding is already with Wise, so Continue opens the status page instead of the intro */
+        /** Whether the onboarding is already with Wise, so the row links to the status page instead of the intro */
         isOnboardingSubmitted: boolean;
     };
 
@@ -179,7 +179,7 @@ function PaymentMethodListItem({item, shouldShowDefaultBadge, threeDotsMenuItems
     const isNeedingAction = isAccountNeedingAction(item);
     const digitalWalletApprovalCardID = item.digitalWalletApprovalCardID;
     const connectionStatus = item.connectionStatus;
-    const hasStatusMessages = !!connectionStatus || !!item.wiseMoreInfoNeeded;
+    const hasStatusMessages = !!connectionStatus || !!item.wiseMoreInfoNeeded || !!item.wiseSetupInProgress;
 
     // Check if this is a Chase personal bank account connected via Plaid
     const isChaseAccountConnectedViaPlaid =
@@ -263,6 +263,7 @@ function PaymentMethodListItem({item, shouldShowDefaultBadge, threeDotsMenuItems
     const rightComponent = showThreeDotsMenu ? (
         <View style={styles.alignSelfCenter}>
             <ThreeDotsMenu
+                sentryLabel={CONST.SENTRY_LABEL.PAYMENT_METHOD_LIST_ITEM.THREE_DOTS_MENU}
                 shouldSelfPosition
                 onIconPress={item.onThreeDotsMenuPress ?? item.onPress}
                 menuItems={threeDotsMenuItems}
@@ -276,6 +277,7 @@ function PaymentMethodListItem({item, shouldShowDefaultBadge, threeDotsMenuItems
     ) : undefined;
     const menuItemProps: React.ComponentProps<typeof MenuItem> = {
         onPress: handleRowPress,
+        sentryLabel: CONST.SENTRY_LABEL.PAYMENT_METHOD_LIST_ITEM.ROW,
         title: item.title,
         titleAddon: item.isGlobalReimbursementsEnabled ? <GlobalReimbursementsEnabledIcon onPress={handleRowPress} /> : undefined,
         // The globe sits inside the row's button, so screen readers only hear it through the row's label
@@ -314,7 +316,8 @@ function PaymentMethodListItem({item, shouldShowDefaultBadge, threeDotsMenuItems
     };
     const menuItem = <MenuItem {...menuItemProps} />;
 
-    const actionAccessibilityLabel = connectionStatus?.actionText ? `${connectionStatus.actionText} ${item.title ?? ''}, ${item.description}` : undefined;
+    const bankAccountLabel = `${item.title ?? ''}, ${item.description}`;
+    const actionAccessibilityLabel = connectionStatus?.actionText ? `${connectionStatus.actionText} ${bankAccountLabel}` : undefined;
 
     return (
         <OfflineWithFeedback
@@ -336,6 +339,7 @@ function PaymentMethodListItem({item, shouldShowDefaultBadge, threeDotsMenuItems
                                         actionText={connectionStatus.actionText}
                                         actionAccessibilityLabel={actionAccessibilityLabel}
                                         onActionPress={connectionStatus.onActionPress}
+                                        actionSentryLabel={CONST.SENTRY_LABEL.PAYMENT_METHOD_LIST_ITEM.CONNECTION_STATUS_ACTION}
                                         isActionDisabled={connectionStatus.isActionDisabled}
                                         statusTone={connectionStatus.statusTone}
                                         onLinkPress={connectionStatus.onLinkPress}
@@ -345,6 +349,16 @@ function PaymentMethodListItem({item, shouldShowDefaultBadge, threeDotsMenuItems
                             {!!item.wiseMoreInfoNeeded && (
                                 <View style={styles.mb2}>
                                     <WiseMoreInfoNeededRow bankAccountID={item.wiseMoreInfoNeeded.bankAccountID} />
+                                </View>
+                            )}
+                            {!!item.wiseSetupInProgress && (
+                                <View style={styles.mb2}>
+                                    <WiseSetupInProgressRow
+                                        bankAccountID={item.wiseSetupInProgress.bankAccountID}
+                                        isInReview={item.wiseSetupInProgress.isInReview}
+                                        isOnboardingSubmitted={item.wiseSetupInProgress.isOnboardingSubmitted}
+                                        bankAccountLabel={bankAccountLabel}
+                                    />
                                 </View>
                             )}
                         </View>
@@ -368,14 +382,6 @@ function PaymentMethodListItem({item, shouldShowDefaultBadge, threeDotsMenuItems
                     cardID={digitalWalletApprovalCardID}
                     walletProvider={item.digitalWalletProvider}
                     style={[styles.pv3, cardPaddingHorizontal]}
-                />
-            )}
-            {!!item.wiseSetupInProgress && (
-                <WiseSetupInProgressRow
-                    bankAccountID={item.wiseSetupInProgress.bankAccountID}
-                    canContinue={item.wiseSetupInProgress.canContinue}
-                    isOnboardingSubmitted={item.wiseSetupInProgress.isOnboardingSubmitted}
-                    style={[styles.pt4, styles.pb3, cardPaddingHorizontal]}
                 />
             )}
             {isChaseAccountConnectedViaPlaid && (

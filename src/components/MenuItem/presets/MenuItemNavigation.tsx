@@ -9,11 +9,11 @@ import MenuItemChevron from '@components/MenuItem/leaves/trailing/icons/MenuItem
 
 import useOnyx from '@hooks/useOnyx';
 
-import {callFunctionIfActionIsAllowed} from '@userActions/Session';
+import {callIfAuthenticated} from '@userActions/Session';
 
 import ONYXKEYS from '@src/ONYXKEYS';
 import type IconAsset from '@src/types/utils/IconAsset';
-import type WithSentryLabel from '@src/types/utils/SentryLabel';
+import type {WithRequiredSentryLabel} from '@src/types/utils/SentryLabel';
 import type WithTestID from '@src/types/utils/TestID';
 
 import type {GestureResponderEvent} from 'react-native';
@@ -21,7 +21,7 @@ import type {GestureResponderEvent} from 'react-native';
 import {authTokenTypeSelector} from '@selectors/Session';
 import React from 'react';
 
-type MenuItemNavigationProps = WithSentryLabel &
+type MenuItemNavigationProps = WithRequiredSentryLabel &
     WithTestID & {
         /** The title text of the row */
         title: string;
@@ -44,7 +44,7 @@ function MenuItemNavigation({title, icon, onPress, isDisabled = false, sentryLab
     const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
     return (
         <MenuItemRoot
-            onPress={callFunctionIfActionIsAllowed(onPress, false, session)}
+            onPress={callIfAuthenticated(onPress, session)}
             isDisabled={isDisabled}
             sentryLabel={sentryLabel}
             testID={testID}

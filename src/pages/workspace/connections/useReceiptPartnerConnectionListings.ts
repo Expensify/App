@@ -5,6 +5,7 @@ import useGetReceiptPartnersIntegrationData from '@hooks/useGetReceiptPartnersIn
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import useOnyx from '@hooks/useOnyx';
 import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
 import usePrevious from '@hooks/usePrevious';
 
@@ -12,9 +13,10 @@ import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/crea
 import Navigation from '@libs/Navigation/Navigation';
 
 import {openExternalLink} from '@userActions/Link';
-import {enablePolicyFeatureForConnection} from '@userActions/Policy/Policy';
+import {enablePolicyFeatureForConnection, openPolicyReceiptPartnersPage} from '@userActions/Policy/Policy';
 
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {Policy} from '@src/types/onyx';
 
@@ -33,6 +35,7 @@ function useReceiptPartnerConnectionListings(policy: OnyxEntry<Policy>): Connect
     const {canWrite, showReadOnlyModal} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.MORE_FEATURES);
     const prevIsUberConnected = usePrevious(isUberConnected);
     const {isOffline} = useNetwork();
+    const [isLoadingReceiptPartners] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_IS_LOADING_RECEIPT_PARTNERS}${policyID}`);
     const hasStartedUberConnectionRef = useRef(false);
     const icons = useMemoizedLazyExpensifyIcons(RECEIPT_INTEGRATION_GUIDES.map(({iconName}) => iconName));
 
@@ -50,6 +53,15 @@ function useReceiptPartnerConnectionListings(policy: OnyxEntry<Policy>): Connect
             ),
         );
     }, [prevIsUberConnected, isUberConnected, policyID, canWrite]);
+
+    // Disconnecting removes all of Uber's data, including the connectFormData that Connect needs, and this page only
+    // fetches it on mount. Fetch it again once Uber disconnects, whether from another device or from Uber's REVOKED webhook.
+    useEffect(() => {
+        if (!policyID || isUberConnected || !prevIsUberConnected) {
+            return;
+        }
+        openPolicyReceiptPartnersPage(policyID);
+    }, [policyID, isUberConnected, prevIsUberConnected]);
 
     if (!policyID) {
         return [];
@@ -108,7 +120,7 @@ function useReceiptPartnerConnectionListings(policy: OnyxEntry<Policy>): Connect
                           : undefined,
                   },
             onConnect: connectUber,
-            isLoading: !policy?.receiptPartners?.uber && !isOffline && !!policy?.isLoadingReceiptPartners,
+            isLoading: !policy?.receiptPartners?.uber && !isOffline && !!isLoadingReceiptPartners,
             onConfigure: () => Navigation.navigate(ROUTES.WORKSPACE_CONNECTIONS_RECEIPT_PARTNERS.getRoute(policyID)),
         },
         ...guideListings,

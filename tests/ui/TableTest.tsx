@@ -1,12 +1,13 @@
 import {act, fireEvent, render, screen, waitFor, within} from '@testing-library/react-native';
 
 import ComposeProviders from '@components/ComposeProviders';
+import HorizontalSafeAreaContext, {HORIZONTAL_SAFE_AREA_PLACEMENT} from '@components/HorizontalSafeArea/HorizontalSafeAreaContext';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import {ModalActions, ModalProvider} from '@components/Modal/Global/ModalContext';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import ScreenWrapperStatusContext from '@components/ScreenWrapper/ScreenWrapperStatusContext';
 import Table, {composeTableListHeader} from '@components/Table';
-import type {CompareItemsCallback, FilterConfig, IsItemInFilterCallback, IsItemInSearchCallback, TableColumn, TableHandle} from '@components/Table';
+import type {ActiveSorting, CompareItemsCallback, FilterConfig, IsItemInFilterCallback, IsItemInSearchCallback, TableColumn, TableHandle} from '@components/Table';
 import dismissKeyboardOnDrag from '@components/Table/dismissKeyboardOnDrag';
 import Text from '@components/Text';
 
@@ -15,6 +16,7 @@ import useMobileSelectionMenuModal from '@hooks/useMobileSelectionMenuModal';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import type ResponsiveLayoutResult from '@hooks/useResponsiveLayout/types';
+import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
 
 import {turnOnMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import {acquireBackgroundInputFocusSuppression} from '@libs/ModalFocusManager';
@@ -60,6 +62,7 @@ type MockFlashListProps<T> = {
     ListEmptyComponentStyle?: React.ComponentProps<typeof View>['style'];
     ListFooterComponent?: React.ComponentType | React.ReactElement | null;
     ListFooterComponentStyle?: React.ComponentProps<typeof View>['style'];
+    style?: React.ComponentProps<typeof View>['style'];
     contentContainerStyle?: React.ComponentProps<typeof View>['style'];
     onEndReached?: () => void;
     onChangeStickyIndex?: (current: number, previous: number) => void;
@@ -197,7 +200,7 @@ jest.mock('@components/ActivityIndicator', () => {
 jest.mock('@components/withNavigationFallback', () => (Component: React.ComponentType) => Component);
 
 jest.mock('@userActions/Session', () => ({
-    callFunctionIfActionIsAllowed: <TCallback extends ((...args: never[]) => unknown) | undefined>(callback: TCallback) => callback,
+    callIfAuthenticated: <TCallback extends ((...args: never[]) => unknown) | undefined>(callback: TCallback) => callback,
 }));
 
 jest.mock('@shopify/flash-list', () => {
@@ -355,6 +358,7 @@ jest.mock('@hooks/useThemeStyles', () =>
         textAlignRight: {},
         pr1: {},
         ml1: {marginLeft: 4},
+        mr1: {marginRight: 4},
         lh16: {},
         ph5: {},
         pt3: {},
@@ -443,6 +447,12 @@ jest.mock('@hooks/useResponsiveLayout', () => ({
 }));
 
 // Mock TextInput component
+// Wraps the real hook, so a test can give the screen a horizontal safe area and the rest keep the default insets.
+jest.mock('@hooks/useSafeAreaInsets', () => {
+    const actual = jest.requireActual<{default: typeof useSafeAreaInsets}>('@hooks/useSafeAreaInsets');
+    return {__esModule: true, default: jest.fn(actual.default)};
+});
+
 jest.mock('@components/TextInput', () => {
     const ReactLocal = jest.requireActual<typeof React>('react');
     // eslint-disable-next-line @typescript-eslint/consistent-type-imports
@@ -639,6 +649,16 @@ function getHostTableRows(): TestInstance[] {
     return screen.UNSAFE_getAllByProps({role: CONST.ROLE.ROW}).filter((row) => typeof row.type === 'string');
 }
 
+// A row's cells sit in one host view, whose style decides how the row lays them out.
+function getRowCellContainerStyle(cellTestID: string): unknown {
+    let cellContainer = screen.getByTestId(cellTestID).parent;
+    while (cellContainer && (typeof cellContainer.type !== 'string' || cellContainer.props.testID === cellTestID)) {
+        cellContainer = cellContainer.parent;
+    }
+    const cellContainerStyle: unknown = StyleSheet.flatten(cellContainer?.props.style);
+    return cellContainerStyle;
+}
+
 function getHostTableRowsWithin(container: TestInstance): TestInstance[] {
     return within(container)
         .UNSAFE_getAllByProps({role: CONST.ROLE.ROW})
@@ -667,6 +687,7 @@ describe('Table', () => {
                     rowIndex={index}
                     interactive={interactive}
                     accessibilityLabel={item.name}
+                    sentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}
                     testID={`selectable-row-${item.id}`}
                 >
                     <Text>{item.name}</Text>
@@ -805,6 +826,7 @@ describe('Table', () => {
                     rowIndex={index}
                     interactive
                     accessibilityLabel={item.name}
+                    sentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}
                     shouldAllowTextSelection
                     dataSet={{customMarker: true}}
                 >
@@ -833,6 +855,73 @@ describe('Table', () => {
                 tableRow: true,
                 [CONST.COPYABLE_ROW_ELEMENT]: true,
             });
+        });
+
+        it('should not let the grid of a wide row grow', () => {
+            const props = createDefaultProps();
+            const renderItem = ({item, index}: ListRenderItemInfo<TestItem>) => (
+                <Table.Row
+                    rowIndex={index}
+                    interactive
+                    accessibilityLabel={item.name}
+                    sentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}
+                >
+                    <View testID={`cell-${item.id}`} />
+                </Table.Row>
+            );
+
+            // Given a wide table, where every row lays out its cells in a grid
+            render(
+                <Table<TestItem, TestColumnKey>
+                    data={props.data.slice(0, 2)}
+                    columns={props.columns}
+                    renderItem={renderItem}
+                    keyExtractor={props.keyExtractor}
+                >
+                    <Table.Body />
+                </Table>,
+            );
+
+            // When the style that lays out the first row's cells is read
+            const firstRowCellContainerStyle = getRowCellContainerStyle('cell-1');
+
+            // Then the grid doesn't grow: in older Safari a growing grid centers the first row's cells against the whole list's height, behind the next row
+            expect(firstRowCellContainerStyle).toEqual(expect.objectContaining({gridTemplateColumns: '1fr 1fr 1fr', flexGrow: 0}));
+        });
+
+        it('should keep the flex layout of a narrow row unchanged', () => {
+            const props = createDefaultProps();
+            mockShouldUseNarrowLayout = true;
+            const renderItem = ({item, index}: ListRenderItemInfo<TestItem>) => (
+                <Table.Row
+                    rowIndex={index}
+                    interactive
+                    accessibilityLabel={item.name}
+                    sentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}
+                >
+                    <View testID={`cell-${item.id}`} />
+                </Table.Row>
+            );
+
+            // Given a narrow table, where rows lay out their cells with flex instead of a grid
+            render(
+                <Table<TestItem, TestColumnKey>
+                    data={props.data.slice(0, 2)}
+                    columns={props.columns}
+                    renderItem={renderItem}
+                    keyExtractor={props.keyExtractor}
+                >
+                    <Table.Body />
+                </Table>,
+            );
+
+            // When the style that lays out the first row's cells is read
+            const firstRowCellContainerStyle = getRowCellContainerStyle('cell-1');
+
+            // Then the narrow row still fills its row, since the grid fix only applies to the wide layout
+            expect(firstRowCellContainerStyle).toEqual(expect.objectContaining({flex: 1}));
+            expect(firstRowCellContainerStyle).not.toHaveProperty('gridTemplateColumns');
+            expect(firstRowCellContainerStyle).not.toHaveProperty('flexGrow');
         });
 
         it('should render column headers when Header component is used', () => {
@@ -1228,6 +1317,102 @@ describe('Table', () => {
             expect(screen.getByTestId('flash-list-sticky-header')).toBeTruthy();
         });
 
+        describe('in a screen with a horizontal safe area', () => {
+            const RIGHT_SAFE_AREA_INSET = 80;
+            const defaultResponsiveLayoutImplementation = jest.mocked(useResponsiveLayout).getMockImplementation();
+            const defaultSafeAreaInsetsImplementation = jest.mocked(useSafeAreaInsets).getMockImplementation();
+
+            beforeEach(() => {
+                jest.mocked(useResponsiveLayout).mockReturnValue(createMock<ResponsiveLayoutResult>({shouldUseNarrowLayout: true, isSmallScreenWidth: true, isInNarrowPaneModal: false}));
+                jest.mocked(useSafeAreaInsets).mockReturnValue({top: 0, bottom: 0, left: 0, right: RIGHT_SAFE_AREA_INSET});
+            });
+
+            afterEach(() => {
+                if (defaultResponsiveLayoutImplementation) {
+                    jest.mocked(useResponsiveLayout).mockImplementation(defaultResponsiveLayoutImplementation);
+                }
+                if (defaultSafeAreaInsetsImplementation) {
+                    jest.mocked(useSafeAreaInsets).mockImplementation(defaultSafeAreaInsetsImplementation);
+                }
+            });
+
+            it('should keep the stuck column header out of the safe area the list reaches into', () => {
+                // Given a table right inside a narrow screen that keeps out of a right safe area, like the one the
+                // vertical tab bar takes on a folded iPhone Duo
+                const props = createDefaultProps();
+
+                render(
+                    <HorizontalSafeAreaContext.Provider value={HORIZONTAL_SAFE_AREA_PLACEMENT.SCREEN}>
+                        <Table<TestItem, TestColumnKey>
+                            data={props.data}
+                            columns={props.columns}
+                            renderItem={props.renderItem}
+                            keyExtractor={props.keyExtractor}
+                            // A narrow table only keeps its column header when it has a title for the header to show
+                            title="Members"
+                        >
+                            <Table.ListHeader>
+                                <Text>Page controls</Text>
+                            </Table.ListHeader>
+                            <Table.Header />
+                            <Table.Body />
+                        </Table>
+                    </HorizontalSafeAreaContext.Provider>,
+                );
+
+                // When the column header sticks, which renders a copy of it over the list instead of in its content
+                activateStickyHeadersAfterListLoad();
+
+                // Then the list reaches the screen edge with its content padded by the safe area, so a tab row in
+                // its header isn't cut off there
+                const listProps = mockFlashListProps.at(-1);
+                expect(StyleSheet.flatten(listProps?.style)).toEqual(expect.objectContaining({marginRight: -RIGHT_SAFE_AREA_INSET}));
+                expect(StyleSheet.flatten(listProps?.contentContainerStyle)).toEqual(expect.objectContaining({paddingRight: RIGHT_SAFE_AREA_INSET}));
+
+                // And the stuck copy gets the same padding, because it would otherwise be wider than the rows under it
+                const stuckRow = screen.getByTestId('flash-list-sticky-header').children.at(0);
+                if (!stuckRow || typeof stuckRow === 'string') {
+                    throw new Error('Expected the stuck column header to be rendered');
+                }
+                expect(StyleSheet.flatten(stuckRow.props.style)).toEqual(expect.objectContaining({paddingLeft: 0, paddingRight: RIGHT_SAFE_AREA_INSET}));
+            });
+
+            it('should not pad the stuck column header of a table inside a box in the screen', () => {
+                // Given the same screen, but with the table in a box within it, where a list stays inside the box
+                const props = createDefaultProps();
+
+                render(
+                    <HorizontalSafeAreaContext.Provider value={HORIZONTAL_SAFE_AREA_PLACEMENT.BOX}>
+                        <Table<TestItem, TestColumnKey>
+                            data={props.data}
+                            columns={props.columns}
+                            renderItem={props.renderItem}
+                            keyExtractor={props.keyExtractor}
+                            // A narrow table only keeps its column header when it has a title for the header to show
+                            title="Members"
+                        >
+                            <Table.ListHeader>
+                                <Text>Page controls</Text>
+                            </Table.ListHeader>
+                            <Table.Header testID="declared-table-header" />
+                            <Table.Body />
+                        </Table>
+                    </HorizontalSafeAreaContext.Provider>,
+                );
+
+                // When the column header sticks
+                activateStickyHeadersAfterListLoad();
+
+                // Then the stuck copy is rendered as is, because the list doesn't reach into the safe area and
+                // padding the copy would make it narrower than the rows
+                const stuckRow = screen.getByTestId('flash-list-sticky-header').children.at(0);
+                if (!stuckRow || typeof stuckRow === 'string') {
+                    throw new Error('Expected the stuck column header to be rendered');
+                }
+                expect(stuckRow.props.testID).toBe('declared-table-header');
+            });
+        });
+
         it('should request drag dismissal and preserve the query and caller callback', () => {
             // Given a focused, filtered table with a caller-owned drag callback, scrolling must not erase its search.
             const props = createDefaultProps();
@@ -1297,6 +1482,7 @@ describe('Table', () => {
                     rowIndex={index}
                     interactive
                     accessibilityLabel={item.name}
+                    sentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}
                 >
                     <View role={CONST.ROLE.CELL}>
                         <Text>{item.name}</Text>
@@ -2979,6 +3165,141 @@ describe('Table', () => {
         });
     });
 
+    describe('column menu', () => {
+        const SCREEN_WRAPPER_STATUS = {didScreenTransitionEnd: true, isSafeAreaTopPaddingApplied: true, isSafeAreaBottomPaddingApplied: true};
+
+        // The menu's popover needs the real modal, navigation and portal providers.
+        function ColumnMenuTable({
+            tableRef,
+            initialSortColumn,
+            onSortingChange,
+        }: {
+            tableRef: React.RefObject<TableHandle<TestItem, TestColumnKey> | null>;
+            initialSortColumn?: TestColumnKey;
+            onSortingChange?: (sorting: ActiveSorting<TestColumnKey>) => void;
+        }) {
+            const props = createDefaultProps();
+            return (
+                <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, CurrentReportIDContextProvider]}>
+                    <PortalProvider>
+                        <ModalProvider>
+                            <NavigationContainer>
+                                <ScreenWrapperStatusContext.Provider value={SCREEN_WRAPPER_STATUS}>
+                                    <Table<TestItem, TestColumnKey>
+                                        ref={tableRef}
+                                        data={props.data}
+                                        columns={props.columns}
+                                        renderItem={props.renderItem}
+                                        keyExtractor={props.keyExtractor}
+                                        compareItems={props.compareItems}
+                                        initialSortColumn={initialSortColumn}
+                                        onSortingChange={onSortingChange}
+                                    >
+                                        <Table.Header />
+                                        <Table.Body />
+                                    </Table>
+                                </ScreenWrapperStatusContext.Provider>
+                            </NavigationContainer>
+                        </ModalProvider>
+                    </PortalProvider>
+                </ComposeProviders>
+            );
+        }
+
+        // The menu's rows render through `MenuItem`, which jest renders without its text, so they're found by their title.
+        const pressMenuItem = async (title: string) => {
+            fireEvent.press(screen.UNSAFE_getByProps({role: CONST.ROLE.MENUITEM, title}));
+            await waitForBatchedUpdatesWithAct();
+        };
+
+        const openNameColumnMenu = async () => {
+            const [nameColumnMenu] = screen.getAllByLabelText('search.columnMenu.openMenu');
+            fireEvent.press(nameColumnMenu);
+            await waitForBatchedUpdatesWithAct();
+        };
+
+        beforeAll(() => {
+            Onyx.init({keys: ONYXKEYS});
+            // Opening the menu measures its trigger, which jest's View doesn't support.
+            View.prototype.getBoundingClientRect = () => ({x: 0, y: 0, width: 0, height: 0, top: 0, left: 0, right: 0, bottom: 0, toJSON: () => ({})});
+        });
+
+        afterAll(() => {
+            Reflect.deleteProperty(View.prototype, 'getBoundingClientRect');
+        });
+
+        afterEach(async () => {
+            await act(async () => {
+                await Onyx.clear();
+            });
+        });
+
+        it('sorts by the chosen order when the beta is on', async () => {
+            // Given the column menu beta is on
+            await act(async () => {
+                await Onyx.set(ONYXKEYS.BETAS, [CONST.BETAS.PINNABLE_TABLE_COLUMNS]);
+            });
+            const tableRef = React.createRef<TableHandle<TestItem, TestColumnKey>>();
+            render(<ColumnMenuTable tableRef={tableRef} />);
+            await waitForBatchedUpdatesWithAct();
+
+            // When the user picks Sort descending from the Name column's menu
+            await openNameColumnMenu();
+            await pressMenuItem('search.columnMenu.sortDescending');
+
+            // Then the table sorts by that column in that order, rather than cycling the sort as a plain press does
+            expect(tableRef.current?.getActiveSorting()).toEqual({columnKey: 'name', order: 'desc'});
+            expect(tableRef.current?.getProcessedData().map((item) => item.name)).toEqual(['Eggplant', 'Date', 'Carrot', 'Banana', 'Apple']);
+        });
+
+        it('keeps the sort when the checked order is picked again', async () => {
+            // Given the column menu beta is on, and a table that starts sorted by Name is sorted by Category descending
+            await act(async () => {
+                await Onyx.set(ONYXKEYS.BETAS, [CONST.BETAS.PINNABLE_TABLE_COLUMNS]);
+            });
+            const onSortingChange = jest.fn();
+            const tableRef = React.createRef<TableHandle<TestItem, TestColumnKey>>();
+            render(
+                <ColumnMenuTable
+                    tableRef={tableRef}
+                    initialSortColumn="name"
+                    onSortingChange={onSortingChange}
+                />,
+            );
+            await waitForBatchedUpdatesWithAct();
+            act(() => tableRef.current?.updateSorting({columnKey: 'category', order: 'desc'}));
+            await waitForBatchedUpdatesWithAct();
+            onSortingChange.mockClear();
+
+            // When the user picks the checked Sort descending from the Category column's menu
+            const categoryColumnMenu = screen.getAllByLabelText('search.columnMenu.openMenu').at(1);
+            if (!categoryColumnMenu) {
+                throw new Error('Category column menu not found');
+            }
+            fireEvent.press(categoryColumnMenu);
+            await waitForBatchedUpdatesWithAct();
+            await pressMenuItem('search.columnMenu.sortDescending');
+
+            // Then nothing changes, the same as in Spend, and a server-sorted table isn't asked to refetch the sort it already shows
+            expect(tableRef.current?.getActiveSorting()).toEqual({columnKey: 'category', order: 'desc'});
+            expect(onSortingChange).not.toHaveBeenCalled();
+        });
+
+        it('keeps pressing a heading to cycle the sort when the beta is off', async () => {
+            // Given the column menu beta is off
+            const tableRef = React.createRef<TableHandle<TestItem, TestColumnKey>>();
+            render(<ColumnMenuTable tableRef={tableRef} />);
+            await waitForBatchedUpdatesWithAct();
+
+            // When the user presses the Name heading
+            fireEvent.press(screen.getByLabelText('Name'));
+
+            // Then no menu opens, and the press sorts the column as before
+            expect(screen.queryByLabelText('search.columnMenu.openMenu')).toBeNull();
+            expect(tableRef.current?.getActiveSorting()).toEqual({columnKey: 'name', order: 'desc'});
+        });
+    });
+
     describe('sorting functionality', () => {
         it('should render sortable column headers', () => {
             const props = createDefaultProps();
@@ -3359,6 +3680,7 @@ describe('Table', () => {
                 rowIndex={index}
                 disabled={item.disabled}
                 accessibilityLabel={item.name}
+                sentryLabel={CONST.SENTRY_LABEL.TEST.LABEL}
             >
                 <Text testID={`name-${item.id}`}>{item.name}</Text>
             </Table.Row>

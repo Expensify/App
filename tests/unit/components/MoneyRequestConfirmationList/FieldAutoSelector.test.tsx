@@ -4,7 +4,7 @@ import type {FieldAutoSelectorProps} from '@components/MoneyRequestConfirmationL
 import FieldAutoSelector from '@components/MoneyRequestConfirmationList/FieldAutoSelector';
 
 import CONST from '@src/CONST';
-import type {PolicyCategories, PolicyTagLists, Transaction} from '@src/types/onyx';
+import type {Policy, PolicyCategories, PolicyTagLists, Transaction} from '@src/types/onyx';
 
 import React from 'react';
 
@@ -88,7 +88,7 @@ describe('FieldAutoSelector', () => {
 
         // Then the category is selected, because the list is no longer remounted when the draft arrives
         expect(mockSetMoneyRequestCategory).toHaveBeenCalledTimes(1);
-        expect(mockSetMoneyRequestCategory).toHaveBeenCalledWith(TRANSACTION_ID, 'Travel', undefined, expect.any(Function), false);
+        expect(mockSetMoneyRequestCategory).toHaveBeenCalledWith(TRANSACTION_ID, 'Travel', undefined, false);
     });
 
     it('selects the only required category again once a stale draft is re-initialized as a scan', () => {
@@ -162,11 +162,34 @@ describe('FieldAutoSelector', () => {
 
         // Then the category is selected on the second scan too, so every expense of the batch is submitted with it
         expect(mockSetMoneyRequestCategory).toHaveBeenCalledTimes(2);
-        expect(mockSetMoneyRequestCategory).toHaveBeenLastCalledWith(NEXT_TRANSACTION_ID, 'Travel', undefined, expect.any(Function), false);
+        expect(mockSetMoneyRequestCategory).toHaveBeenLastCalledWith(NEXT_TRANSACTION_ID, 'Travel', undefined, false);
     });
 
     describe('required tag', () => {
         const tagProps: FieldAutoSelectorProps = {...baseProps, policyCategories: undefined, policyTags, policyTagLists, transactionID: TRANSACTION_ID};
+
+        it('preserves the singleton sibling index after a required list with missing tags', () => {
+            // Given an empty required level before a required singleton level.
+            const lists = createMock<PolicyTagLists>({
+                Empty: {name: 'Empty', orderWeight: 0, required: true},
+                Project: {...policyTags.Project, orderWeight: 1},
+            });
+
+            // When confirming a draft with independent multilevel tags.
+            render(
+                <FieldAutoSelector
+                    {...tagProps}
+                    transaction={buildDraft(CONST.IOU.REQUEST_TYPE.MANUAL)}
+                    policy={createMock<Policy>({hasMultipleTagLists: true})}
+                    policyTags={lists}
+                    policyTagLists={Object.values(lists)}
+                />,
+            );
+
+            // Then only the sibling is selected, leaving the first level empty.
+            expect(mockSetMoneyRequestTag).toHaveBeenCalledTimes(1);
+            expect(mockSetMoneyRequestTag).toHaveBeenCalledWith(TRANSACTION_ID, ':Alpha');
+        });
 
         it('selects the only required tag again once a stale draft is re-initialized as a scan', () => {
             // Given a manual draft left over from another flow, whose only required tag was auto-selected on mount

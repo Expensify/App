@@ -46,7 +46,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type {ImportedSpreadsheetMemberData} from '@src/types/onyx';
-import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 import React, {useState} from 'react';
 
@@ -54,7 +53,7 @@ type ImportedMembersPageProps = PlatformStackScreenProps<SettingsNavigatorParamL
 
 function ImportedMembersPage({route}: ImportedMembersPageProps) {
     const {translate} = useLocalize();
-    const [spreadsheet, spreadsheetMetadata] = useOnyx(ONYXKEYS.IMPORTED_SPREADSHEET);
+    const [spreadsheet] = useOnyx(ONYXKEYS.IMPORTED_SPREADSHEET);
     const [isImporting, setIsImporting] = useState(false);
     const [isValidationEnabled, setIsValidationEnabled] = useState(false);
     const {setIsClosing} = useCloseImportPage();
@@ -373,7 +372,7 @@ function ImportedMembersPage({route}: ImportedMembersPageProps) {
             Navigation.navigate(isWorkflowsImport ? ROUTES.WORKSPACE_WORKFLOWS_IMPORTED_CONFIRMATION.getRoute(policyID) : ROUTES.WORKSPACE_MEMBERS_IMPORTED_CONFIRMATION.getRoute(policyID));
         } else {
             setIsImporting(true);
-            const importFinalModal = await importPolicyMembers(policy, allMembers, shouldShowMemberRolePermissionWarning, rules);
+            const importFinalModal = await importPolicyMembers(policy, allMembers, shouldShowMemberRolePermissionWarning, rules, currentUserLogin);
             const didShowImportFinalModal = await showImportSpreadsheetConfirmModal(importFinalModal, {onModalHide: navigateBackToMembers});
             if (!didShowImportFinalModal) {
                 setIsImporting(false);
@@ -382,10 +381,6 @@ function ImportedMembersPage({route}: ImportedMembersPageProps) {
             closeImportPageAndModal();
         }
     };
-
-    if (!spreadsheet && isLoadingOnyxValue(spreadsheetMetadata)) {
-        return;
-    }
 
     const spreadsheetColumns = spreadsheet?.data;
     if (!spreadsheetColumns) {

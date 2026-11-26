@@ -139,6 +139,7 @@ import ImageCropCircleMask from '@assets/images/image-crop-circle-mask.svg';
 import ImageCropSquareMask from '@assets/images/image-crop-square-mask.svg';
 import Inbox from '@assets/images/inbox.svg';
 import Info from '@assets/images/info.svg';
+import AcumaticaSquare from '@assets/images/integrationicons/acumatica-icon-square.svg';
 import AmericanAirlines from '@assets/images/integrationicons/american-airlines.svg';
 import BillComSquare from '@assets/images/integrationicons/bill-com-icon-square.svg';
 import CampfireSquare from '@assets/images/integrationicons/campfire-icon-square.svg';
@@ -156,6 +157,7 @@ import NetSuiteExport from '@assets/images/integrationicons/export/netsuite-icon
 import QBOExport from '@assets/images/integrationicons/export/qbo-icon.svg';
 import SageIntacctExport from '@assets/images/integrationicons/export/sage-intacct-icon.svg';
 import XeroExport from '@assets/images/integrationicons/export/xero-icon.svg';
+import GrokSquare from '@assets/images/integrationicons/grok-icon-square.svg';
 import GustoSquare from '@assets/images/integrationicons/gusto-icon-square.svg';
 import Instacart from '@assets/images/integrationicons/instacart.svg';
 import IntuitSquare from '@assets/images/integrationicons/intuit-icon-square.svg';
@@ -164,6 +166,7 @@ import Lyft from '@assets/images/integrationicons/lyft.svg';
 import MCPSquare from '@assets/images/integrationicons/mcp-icon-square.svg';
 import MicrosoftDynamicsSquare from '@assets/images/integrationicons/microsoft-dynamics-icon-square.svg';
 import NetSuiteSquare from '@assets/images/integrationicons/netsuite-icon-square.svg';
+import OdooSquare from '@assets/images/integrationicons/odoo-icon-square.svg';
 import OracleSquare from '@assets/images/integrationicons/oracle-icon-square.svg';
 import QBDSquare from '@assets/images/integrationicons/qbd-icon-square.svg';
 import QBOCircle from '@assets/images/integrationicons/qbo-icon-circle.svg';
@@ -282,6 +285,7 @@ import ThumbsUp from '@assets/images/thumbs-up.svg';
 import TrainCircleSlash from '@assets/images/train-circle-slash.svg';
 import Train from '@assets/images/train.svg';
 import Transfer from '@assets/images/transfer.svg';
+import Translate from '@assets/images/translate.svg';
 import Trashcan from '@assets/images/trashcan.svg';
 import TreasureChestGreenWithSparkle from '@assets/images/treasure-chest-green-with-sparkle.svg';
 import TreasureChest from '@assets/images/treasure-chest.svg';
@@ -520,6 +524,8 @@ const Expensicons = {
     RilletSquare,
     DualEntrySquare,
     ExactOnlineSquare,
+    OdooSquare,
+    AcumaticaSquare,
     Rotate,
     RotateLeft,
     Scan,
@@ -535,6 +541,7 @@ const Expensicons = {
     ThumbsUpHourglass,
     ThreeDots,
     Transfer,
+    Translate,
     Trashcan,
     TriNetSquare,
     ZenefitsSquare,
@@ -566,6 +573,7 @@ const Expensicons = {
     ChatGPTSquare,
     ClaudeSquare,
     CursorSquare,
+    GrokSquare,
     MCPSquare,
     IntacctSquare: SageIntacctSquare,
     AdvancedApprovalsSquare,

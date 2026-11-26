@@ -96,7 +96,7 @@ describe('ReportUtils', () => {
         });
 
         await waitForBatchedUpdates();
-        await measureFunction(() => findLastAccessedReport(ignoreDomainRooms, undefined, false, openOnAdminRoom));
+        await measureFunction(() => findLastAccessedReport(ignoreDomainRooms, undefined, false, openOnAdminRoom, undefined, undefined));
     });
 
     test('[ReportUtils] canDeleteReportAction on 1k reports and policies', async () => {
@@ -196,11 +196,12 @@ describe('ReportUtils', () => {
                 isDefaultRoomsBetaEnabled: true,
                 doesReportHaveViolations: false,
                 excludeEmptyChats: false,
-                draftComment: undefined,
+                hasDraftComment: undefined,
                 isReportArchived: false,
                 hasGuidesEmails: false,
                 conciergeReportID: undefined,
                 derivedIsEmptyReport: undefined,
+                pendingExpenseActionMetadata: undefined,
             }),
         );
     });
@@ -234,7 +235,7 @@ describe('ReportUtils', () => {
         const transaction = createRandomTransaction(1);
 
         await waitForBatchedUpdates();
-        await measureFunction(() => getTransactionDetails(transaction, 'yyyy-MM-dd'));
+        await measureFunction(() => getTransactionDetails(transaction));
     });
 
     test('[ReportUtils] pushTransactionViolationsOnyxData on 1k reports with random expenses on each report', async () => {

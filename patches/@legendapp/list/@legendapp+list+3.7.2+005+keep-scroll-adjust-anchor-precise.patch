@@ -1,0 +1,26 @@
+diff --git a/node_modules/@legendapp/list/react-native.js b/node_modules/@legendapp/list/react-native.js
+index c9df90ee7b9..17727711406 100644
+--- a/node_modules/@legendapp/list/react-native.js
++++ b/node_modules/@legendapp/list/react-native.js
+@@ -6672,7 +6672,7 @@ function getAutoOtherAxisStyle({
+ function ScrollAdjust() {
+   var _a3;
+   const ctx = useStateContext();
+-  const bias = 1e7;
++  const bias = 1e6;
+   const [scrollAdjust, scrollAdjustUserOffset] = useArr$(["scrollAdjust", "scrollAdjustUserOffset"]);
+   const scrollOffset = (scrollAdjust || 0) + (scrollAdjustUserOffset || 0) + bias;
+   const horizontal = !!((_a3 = ctx.state) == null ? void 0 : _a3.props.horizontal);
+diff --git a/node_modules/@legendapp/list/react-native.mjs b/node_modules/@legendapp/list/react-native.mjs
+index 7de20403d1d..a895a1aad01 100644
+--- a/node_modules/@legendapp/list/react-native.mjs
++++ b/node_modules/@legendapp/list/react-native.mjs
+@@ -6651,7 +6651,7 @@ function getAutoOtherAxisStyle({
+ function ScrollAdjust() {
+   var _a3;
+   const ctx = useStateContext();
+-  const bias = 1e7;
++  const bias = 1e6;
+   const [scrollAdjust, scrollAdjustUserOffset] = useArr$(["scrollAdjust", "scrollAdjustUserOffset"]);
+   const scrollOffset = (scrollAdjust || 0) + (scrollAdjustUserOffset || 0) + bias;
+   const horizontal = !!((_a3 = ctx.state) == null ? void 0 : _a3.props.horizontal);

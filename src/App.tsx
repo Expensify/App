@@ -28,12 +28,12 @@ import HTMLEngineProvider from './components/HTMLEngineProvider';
 import InitialURLContextProvider from './components/InitialURLContextProvider';
 import {InputBlurContextProvider} from './components/InputBlurContext';
 import KeyboardProvider from './components/KeyboardProvider';
+import LandscapeKeyboardDismissAreas from './components/LandscapeKeyboardDismissAreas';
 import {LocaleContextProvider} from './components/LocaleContextProvider';
 import {ModalProvider} from './components/Modal/Global/ModalContext';
 import NavigationBar from './components/NavigationBar';
 import OnyxListItemProvider from './components/OnyxListItemProvider';
 import PopoverContextProvider from './components/PopoverProvider';
-import SafeArea from './components/SafeArea';
 import ScrollOffsetContextProvider from './components/ScrollOffsetContextProvider';
 import SidePanelContextProvider from './components/SidePanel/SidePanelContextProvider';
 import SVGDefinitionsProvider from './components/SVGDefinitionsProvider';
@@ -46,6 +46,7 @@ import CONST from './CONST';
 import Expensify from './Expensify';
 import {CurrentReportIDContextProvider} from './hooks/useCurrentReportID';
 import useDefaultDragAndDrop from './hooks/useDefaultDragAndDrop';
+import useRescueStuckReportTextSelection from './hooks/useRescueStuckReportTextSelection';
 import HybridAppHandler from './HybridAppHandler';
 import OnyxUpdateManager from './libs/actions/OnyxUpdateManager';
 import './libs/HybridApp';
@@ -53,7 +54,6 @@ import touchEventBoundaryProps from './libs/telemetry/touchEventBoundaryProps';
 import {ConciergeChatHistoryProvider} from './pages/inbox/ConciergeChatHistoryContext';
 import './setup/backgroundLocationTrackingTask';
 import './setup/backgroundTask';
-import './setup/fraudProtection';
 import './setup/hybridApp';
 import {SplashScreenStateContextProvider} from './SplashScreenStateContext';
 
@@ -77,6 +77,7 @@ const StrictModeWrapper = CONFIG.USE_REACT_STRICT_MODE_IN_DEV ? React.StrictMode
 
 function App() {
     useDefaultDragAndDrop();
+    useRescueStuckReportTextSelection();
     OnyxUpdateManager();
 
     return (
@@ -113,7 +114,6 @@ function App() {
                                         SVGDefinitionsProvider,
                                         HTMLEngineProvider,
                                         PortalProvider,
-                                        SafeArea,
                                         PopoverContextProvider,
                                         CurrentReportIDContextProvider,
                                         ConciergeChatHistoryProvider,
@@ -141,6 +141,7 @@ function App() {
                                         </ColorSchemeWrapper>
                                     </ErrorBoundary>
                                     <NavigationBar />
+                                    <LandscapeKeyboardDismissAreas />
                                 </ComposeProviders>
                             </View>
                         </SafeAreaProvider>

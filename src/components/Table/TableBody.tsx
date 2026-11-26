@@ -1,3 +1,5 @@
+import HorizontalSafeAreaContext from '@components/HorizontalSafeArea/HorizontalSafeAreaContext';
+import useHorizontalSafeAreaBleed from '@components/HorizontalSafeArea/useHorizontalSafeAreaBleed';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 
@@ -7,6 +9,8 @@ import useLocalize from '@hooks/useLocalize';
 import useScrollEnabled from '@hooks/useScrollEnabled';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
+
+import {toViewStyle} from '@libs/WebOnlyStyleUtils';
 
 import type {ListRenderItemInfo, ViewToken} from '@shopify/flash-list';
 import type {StyleProp, ViewProps, ViewStyle} from 'react-native';
@@ -67,14 +71,14 @@ function getColumnScrollOverrideProps(overflowXAutoStyle: ViewStyle, overridePro
  * Pins the page header to the scroller's left edge so it stays put while the columns move under it. Held at the
  * measured table width: a box spanning the scroll range has nothing to pin within, and a percentage resolves to it.
  */
-const columnScrollPageHeaderStyle = {position: 'sticky', left: 0} as ViewStyle;
+const columnScrollPageHeaderStyle = toViewStyle({position: 'sticky', left: 0});
 
 /**
  * Sticks the shared list-header box at minus the page header's height, so exactly that much scrolls off and leaves the
  * column header flush against the scroller. `zIndex` lifts it above the rows, which paint later in tree order.
  */
 function getColumnScrollListHeaderStyle(pageHeaderHeight: number): ViewStyle {
-    return {position: 'sticky', top: -pageHeaderHeight, zIndex: 1} as ViewStyle;
+    return toViewStyle({position: 'sticky', top: -pageHeaderHeight, zIndex: 1});
 }
 
 type ViewabilityInfo = {
@@ -212,11 +216,21 @@ function TableBodyList({contentContainerStyle, emptyMessage, onLayout, style, ..
     const contentContainerStyleWithoutMinHeight = flattenedContentContainerStyle ? {...flattenedContentContainerStyle, minHeight: undefined} : undefined;
     const contentMinHeight = flattenedContentContainerStyle?.minHeight;
     const {paddingBottom: tableBodyBottomPadding} = StyleSheet.flatten(tableBodyContentContainerStyle) ?? {};
+    const {paddingBottom: bulkActionBarBottomSpacing} = StyleSheet.flatten(styles.bulkActionBarListSpacing) ?? {};
+
+    // The bar's reserved space is bottom padding that replaces the list's own rather than adding to it, so a fixed
+    // minimum height has to grow by the difference to keep the content box the size it was. Leaving it alone shrinks
+    // the box, which lifts a footer the page pins to the bottom of it as soon as a selection shows the bar.
+    const bulkActionBarContentMinHeight =
+        typeof contentMinHeight === 'number' && typeof tableBodyBottomPadding === 'number' && typeof bulkActionBarBottomSpacing === 'number'
+            ? contentMinHeight + (shouldUseNarrowTableLayout ? tableBodyBottomPadding : 0) + bulkActionBarBottomSpacing - tableBodyBottomPadding
+            : undefined;
 
     const shouldRenderColumnHeaderAsStickyRow = rendersColumnHeaderAsStickyRow(tableListMetadata);
     const shouldRenderColumnHeaderInListHeader = rendersColumnHeaderInListHeader(tableListMetadata);
     const hasRows = filteredAndSortedData.length > 0;
     const shouldRenderFlashList = hasRows || (tableListMetadata.hasPageHeader && isEmptyResult);
+    const shouldRenderEmptyStateInList = !hasRows && tableListMetadata.hasPageHeader;
 
     // Columns wider than the table, so this list's scroller takes the horizontal axis (see `getColumnScrollOverrideProps`).
     // Only tables keeping their filter bar in the list scroll here. The rest are scrolled by an ancestor (see
@@ -335,18 +349,42 @@ function TableBodyList({contentContainerStyle, emptyMessage, onLayout, style, ..
     // Consumer footer flex growth is useful below normal rows, but inside the combined empty-state
     // footer it can expand over the page header. Preserve the remaining style while disabling growth.
     const emptyStateFooterStyle = [ListFooterComponentStyle, styles.flexGrow0];
+    const narrowTableMinHeightStyle =
+        shouldUseNarrowTableLayout &&
+        typeof contentMinHeight === 'number' &&
+        typeof tableBodyBottomPadding === 'number' &&
+        StyleUtils.getMinimumHeight(contentMinHeight + tableBodyBottomPadding);
     const emptyStateContainerStyle = [
         styles.flex1,
         styles.mnh0,
         tableListMetadata.hasPageHeader ? listContentContainerStyleWithoutMinHeight : listContentContainerStyle,
         tableListMetadata.hasPageHeader ? contentContainerStyleWithoutMinHeight : contentContainerStyle,
-        !tableListMetadata.hasPageHeader &&
-            shouldUseNarrowTableLayout &&
-            typeof contentMinHeight === 'number' &&
-            typeof tableBodyBottomPadding === 'number' && {
-                minHeight: contentMinHeight + tableBodyBottomPadding,
-            },
+        !tableListMetadata.hasPageHeader && narrowTableMinHeightStyle,
     ];
+
+    // Reaches the screen edge through the horizontal safe area like the screen's ScrollView, so a horizontal scroll view
+    // in the list header (like a tab row) isn't cut off there.
+    const {
+        style: listStyle,
+        contentContainerStyle: listContentStyle,
+        contentPlacement,
+        reach: listSafeAreaReach,
+    } = useHorizontalSafeAreaBleed({
+        style: [styles.flex1, styles.mnh0, isBulkActionBarVisible && styles.bulkActionBarScrollPadding],
+        contentContainerStyle: [
+            listContentContainerStyle,
+            tableBodyContentContainerStyle,
+            contentContainerStyle,
+            isBulkActionBarVisible && styles.bulkActionBarListSpacing,
+            // Absolutely positioned rows don't widen the scroller's content, so hold the scroll extent open.
+            isColumnScrollEnabled && StyleUtils.getMinimumWidth(scrollWidth),
+            shouldRenderEmptyStateInList && styles.flexGrow1,
+            narrowTableMinHeightStyle,
+            // Applied last so it wins at the in-between widths, where the narrow layout sets a minimum height
+            // of its own and the bar is shown as well.
+            isBulkActionBarVisible && bulkActionBarContentMinHeight !== undefined && StyleUtils.getMinimumHeight(bulkActionBarContentMinHeight),
+        ],
+    });
 
     if (!shouldRenderFlashList) {
         return (
@@ -385,14 +423,13 @@ function TableBodyList({contentContainerStyle, emptyMessage, onLayout, style, ..
     const adjustedStickyHeaderIndices = getAdjustedStickyHeaderIndices(tableListMetadata, stickyHeaderIndices);
     const canRenderStickyHeader = !shouldRenderColumnHeaderAsStickyRow || (isListLoaded && hasActivatedStickyHeader);
     const isTableHeaderSticky = activeStickyHeaderIndex === tableListMetadata.stickyTableHeaderIndex;
-    const shouldRenderEmptyStateInList = !hasRows && tableListMetadata.hasPageHeader;
 
     const handleLoad: NonNullable<typeof onLoad> = (info) => {
         setIsListLoaded(true);
         onLoad?.(info);
     };
 
-    const renderListItem = (info: ListRenderItemInfo<TableData>) => {
+    const renderRow = (info: ListRenderItemInfo<TableData>) => {
         const rowKind = getSyntheticRowKind(info.index, tableListMetadata);
 
         switch (rowKind) {
@@ -428,6 +465,18 @@ function TableBodyList({contentContainerStyle, emptyMessage, onLayout, style, ..
         }
     };
 
+    const renderListItem = (info: ListRenderItemInfo<TableData>) => {
+        const row = renderRow(info);
+
+        // A stuck row sits over the list rather than in its content, so it misses the padding that keeps the rows
+        // out of the horizontal safe area the list reaches into.
+        if (!row || info.target !== 'StickyHeader' || (!listSafeAreaReach.left && !listSafeAreaReach.right)) {
+            return row;
+        }
+
+        return <View style={[StyleUtils.getPaddingLeft(listSafeAreaReach.left), StyleUtils.getPaddingRight(listSafeAreaReach.right)]}>{row}</View>;
+    };
+
     const keyExtractorForList = (item: TableData, index: number) => {
         const rowKind = getSyntheticRowKind(index, tableListMetadata);
 
@@ -456,67 +505,57 @@ function TableBodyList({contentContainerStyle, emptyMessage, onLayout, style, ..
             {...tableBodyAccessibilityProps}
             {...props}
         >
-            <FlashList<TableData>
-                ref={(instance) => {
-                    listRef.current = instance;
-                    measureScrollbarRef(instance);
-                }}
-                data={listData}
-                style={[styles.flex1, styles.mnh0, isBulkActionBarVisible && styles.bulkActionBarScrollPadding]}
-                maintainVisibleContentPosition={{disabled: true}}
-                ListHeaderComponent={listHeaderContent}
-                ListHeaderComponentStyle={[
-                    ListHeaderComponentStyle,
-                    // An unmeasured page header leaves nothing to offset the stack by, and 0 would pin it instead.
-                    pageHeaderHeight > 0 && shouldRenderColumnHeaderInListHeader && getColumnScrollListHeaderStyle(pageHeaderHeight),
-                ]}
-                ListEmptyComponent={shouldRenderEmptyStateInList ? emptyStateContent : ListEmptyComponent}
-                ListEmptyComponentStyle={[ListEmptyComponentStyle, shouldRenderEmptyStateInList && styles.flexGrow1, shouldRenderEmptyStateInList && styles.justifyContentCenter]}
-                ListFooterComponent={ListFooterComponent}
-                ListFooterComponentStyle={shouldRenderEmptyStateInList ? emptyStateFooterStyle : ListFooterComponentStyle}
-                onLoad={handleLoad}
-                onChangeStickyIndex={handleChangeStickyIndex}
-                stickyHeaderIndices={hasRows && canRenderStickyHeader ? adjustedStickyHeaderIndices : undefined}
-                contentContainerStyle={[
-                    listContentContainerStyle,
-                    tableBodyContentContainerStyle,
-                    contentContainerStyle,
-                    isBulkActionBarVisible && styles.bulkActionBarListSpacing,
-                    // Absolutely positioned rows don't widen the scroller's content, so hold the scroll extent open.
-                    isColumnScrollEnabled && StyleUtils.getMinimumWidth(scrollWidth),
-                    shouldRenderEmptyStateInList && styles.flexGrow1,
-                    shouldUseNarrowTableLayout &&
-                        typeof contentMinHeight === 'number' &&
-                        typeof tableBodyBottomPadding === 'number' && {
-                            minHeight: contentMinHeight + tableBodyBottomPadding,
-                        },
-                ]}
-                keyboardShouldPersistTaps="handled"
-                onScrollBeginDrag={handleScrollBeginDrag}
-                renderItem={renderListItem}
-                keyExtractor={keyExtractorForList}
-                getItemType={getItemTypeForList}
-                onEndReached={hasRows ? onEndReached : undefined}
-                onStartReached={hasRows ? onStartReached : undefined}
-                initialScrollIndex={initialScrollIndexForList}
-                onViewableItemsChanged={hasRows && onViewableItemsChanged ? handleViewableItemsChanged : undefined}
-                overrideItemLayout={overrideItemLayout ? overrideItemLayoutForList : undefined}
-                viewabilityConfigCallbackPairs={hasRows ? viewabilityConfigCallbackPairsForList : undefined}
-                onScroll={(event) => {
-                    trackScrollOffset(event);
-                    onScroll?.(event);
-                }}
-                {...restListProps}
-                scrollEnabled={scrollEnabled}
-                overrideProps={isColumnScrollEnabled ? getColumnScrollOverrideProps(styles.overflowXAuto, overrideProps) : overrideProps}
-            />
+            <HorizontalSafeAreaContext.Provider value={contentPlacement}>
+                <FlashList<TableData>
+                    ref={(instance) => {
+                        listRef.current = instance;
+                        measureScrollbarRef(instance);
+                    }}
+                    data={listData}
+                    style={listStyle}
+                    maintainVisibleContentPosition={{disabled: true}}
+                    ListHeaderComponent={listHeaderContent}
+                    ListHeaderComponentStyle={[
+                        ListHeaderComponentStyle,
+                        // An unmeasured page header leaves nothing to offset the stack by, and 0 would pin it instead.
+                        pageHeaderHeight > 0 && shouldRenderColumnHeaderInListHeader && getColumnScrollListHeaderStyle(pageHeaderHeight),
+                    ]}
+                    ListEmptyComponent={shouldRenderEmptyStateInList ? emptyStateContent : ListEmptyComponent}
+                    ListEmptyComponentStyle={[ListEmptyComponentStyle, shouldRenderEmptyStateInList && styles.flexGrow1, shouldRenderEmptyStateInList && styles.justifyContentCenter]}
+                    ListFooterComponent={ListFooterComponent}
+                    ListFooterComponentStyle={shouldRenderEmptyStateInList ? emptyStateFooterStyle : ListFooterComponentStyle}
+                    onLoad={handleLoad}
+                    onChangeStickyIndex={handleChangeStickyIndex}
+                    stickyHeaderIndices={hasRows && canRenderStickyHeader ? adjustedStickyHeaderIndices : undefined}
+                    contentContainerStyle={listContentStyle}
+                    keyboardShouldPersistTaps="handled"
+                    onScrollBeginDrag={handleScrollBeginDrag}
+                    renderItem={renderListItem}
+                    keyExtractor={keyExtractorForList}
+                    getItemType={getItemTypeForList}
+                    onEndReached={hasRows ? onEndReached : undefined}
+                    onStartReached={hasRows ? onStartReached : undefined}
+                    initialScrollIndex={initialScrollIndexForList}
+                    onViewableItemsChanged={hasRows && onViewableItemsChanged ? handleViewableItemsChanged : undefined}
+                    overrideItemLayout={overrideItemLayout ? overrideItemLayoutForList : undefined}
+                    viewabilityConfigCallbackPairs={hasRows ? viewabilityConfigCallbackPairsForList : undefined}
+                    onScroll={(event) => {
+                        trackScrollOffset(event);
+                        onScroll?.(event);
+                    }}
+                    {...restListProps}
+                    scrollEnabled={scrollEnabled}
+                    overrideProps={isColumnScrollEnabled ? getColumnScrollOverrideProps(styles.overflowXAuto, overrideProps) : overrideProps}
+                />
+            </HorizontalSafeAreaContext.Provider>
         </View>
     );
 }
 
 function TableBody(props: TableBodyProps) {
     const {translate} = useLocalize();
-    const {activeSearchString, hasActiveFilters, hasSearchString, listHeaderElement, isEmptyResult, listProps, originalDataLength, isDefaultViewEmpty} = useTableContext<TableData>();
+    const {activeSearchString, hasActiveFilters, hasSearchString, listHeaderElement, isEmptyResult, listProps, originalDataLength, isDefaultViewEmpty, noResultsStateElement} =
+        useTableContext<TableData>();
     let emptyMessage = '';
 
     if (hasSearchString) {
@@ -525,7 +564,13 @@ function TableBody(props: TableBodyProps) {
         emptyMessage = translate('common.noResultsFound');
     }
 
-    useDebouncedAccessibilityAnnouncement(emptyMessage, isEmptyResult, activeSearchString);
+    const noResultsStateProps = noResultsStateElement?.props;
+    const isAsyncSearchInFlight =
+        typeof noResultsStateProps === 'object' &&
+        noResultsStateProps !== null &&
+        'shouldShowLoadingIndicator' in noResultsStateProps &&
+        noResultsStateProps.shouldShowLoadingIndicator === true;
+    useDebouncedAccessibilityAnnouncement(emptyMessage, isEmptyResult && !isAsyncSearchInFlight, activeSearchString);
 
     // Keep the body mounted when a page header or list empty state must remain visible without rows.
     if ((isEmptyResult || isDefaultViewEmpty || !originalDataLength) && !doesBodyRenderWhenEmpty(listProps, listHeaderElement)) {

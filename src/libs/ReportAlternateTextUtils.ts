@@ -14,7 +14,6 @@ import type {
     PolicyTagLists,
     Report,
     ReportAction,
-    ReportActions,
     ReportMetadata,
     Rule,
     Transaction,
@@ -32,7 +31,6 @@ import Onyx from 'react-native-onyx';
 
 import {getAddAgentRuleMessage, getDeleteAgentRuleMessage, getUpdateAgentRuleMessage} from './AgentRuleChangeLogUtils';
 import {isReportMessageAttachment} from './isReportMessageAttachment';
-import {formatPhoneNumber as formatPhoneNumberPhoneUtils} from './LocalePhoneNumber';
 import {formatList} from './Localize';
 import {getForReportAction, getMovedReportID} from './ModifiedExpenseMessage';
 import createDynamicRoute from './Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
@@ -60,9 +58,9 @@ import {
     getCardIssuedMessage,
     getCategoryTaxRateMessage,
     getChangedApproverActionMessage,
-    getCombinedReportActions,
     getCompanyAddressUpdateMessage,
     getCompanyCardConnectionBroken30DaysMessage,
+    getCompanyCardConsentExpiringMessage,
     getCompanyCardConnectionBrokenMessage,
     getConciergeAutoSelectDistanceRateMessage,
     getCurrencyConversionFeeMessage,
@@ -88,7 +86,7 @@ import {
     getLastVisibleMessage,
     getMarkedReimbursedMessage,
     getMccGroupCategoryMessage,
-    getMessageOfOldDotReportAction,
+    getMessageTextOfOldDotReportAction,
     getOneTransactionThreadReportID,
     getOriginalMessage,
     getOverLimitForwardsToUpdateMessage,
@@ -275,13 +273,9 @@ Onyx.connectWithoutView({
 });
 
 /** @deprecated Use sortedReportActionsData from ONYXKEYS.DERIVED.RAM_ONLY_SORTED_REPORT_ACTIONS instead. Will be removed once all flows are migrated. */
-const deprecatedLastReportActions: ReportActions = {};
-/** @deprecated Use sortedReportActionsData from ONYXKEYS.DERIVED.RAM_ONLY_SORTED_REPORT_ACTIONS instead. Will be removed once all flows are migrated. */
 const deprecatedAllSortedReportActions: Record<string, ReportAction[]> = {};
 /** @deprecated Use sortedReportActionsData from ONYXKEYS.DERIVED.RAM_ONLY_SORTED_REPORT_ACTIONS instead. Will be removed once all flows are migrated. */
 const deprecatedCachedOneTransactionThreadReportIDs: Record<string, string | undefined> = {};
-/** @deprecated Use sortedReportActionsData from ONYXKEYS.DERIVED.RAM_ONLY_SORTED_REPORT_ACTIONS instead. Will be removed once all flows are migrated. */
-let deprecatedAllReportActions: OnyxCollection<ReportActions>;
 
 // connectWithoutView is justified: this is module-level, non-render preview computation shared by LHN and Search;
 // the caches were moved verbatim from OptionsListUtils. Migration to the derived value is tracked in issue #66381.
@@ -291,50 +285,35 @@ Onyx.connectWithoutView({
         if (!actions) {
             return;
         }
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-        deprecatedAllReportActions = actions ?? {};
 
         // Iterate over the report actions to build the sorted report actions objects
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-        for (const reportActions of Object.entries(deprecatedAllReportActions)) {
+        for (const reportActions of Object.entries(actions)) {
             const reportID = reportActions[0].split('_').at(1);
             if (!reportID) {
                 continue;
             }
 
             const reportActionsArray = Object.values(reportActions[1] ?? {});
-            let sortedReportActions = getSortedReportActions(withDEWRoutedActionsArray(reportActionsArray), true);
+            const sortedReportActions = getSortedReportActions(withDEWRoutedActionsArray(reportActionsArray), true);
             // eslint-disable-next-line @typescript-eslint/no-deprecated
             deprecatedAllSortedReportActions[reportID] = sortedReportActions;
             const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
             const chatReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${report?.chatReportID}`];
 
-            // If the report is a one-transaction report, we need to return the combined reportActions so that the LHN can display modifications
-            // to the transaction thread or the report itself.
-            // Cache the result for O(1) lookup in renderItem.
+            // Cache the one-transaction thread ID for O(1) lookup in renderItem.
             const transactionThreadReportID = getOneTransactionThreadReportID(report, chatReport, actions[reportActions[0]], getIsOffline());
             // eslint-disable-next-line @typescript-eslint/no-deprecated
             deprecatedCachedOneTransactionThreadReportIDs[reportID] = transactionThreadReportID;
-
-            if (transactionThreadReportID) {
-                const transactionThreadReportActionsArray = Object.values(actions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`] ?? {});
-                const isSelfDMReport = report?.chatType === CONST.REPORT.CHAT_TYPE.SELF_DM;
-                sortedReportActions = getCombinedReportActions(sortedReportActions, transactionThreadReportID, transactionThreadReportActionsArray, isSelfDMReport);
-            }
-
-            const firstReportAction = sortedReportActions.at(0);
-            if (!firstReportAction) {
-                // eslint-disable-next-line @typescript-eslint/no-deprecated
-                delete deprecatedLastReportActions[reportID];
-            } else {
-                // eslint-disable-next-line @typescript-eslint/no-deprecated
-                deprecatedLastReportActions[reportID] = firstReportAction;
-            }
         }
     },
 });
 
-function getLastActorDisplayName(lastActorDetails: Partial<PersonalDetails> | null, currentUserAccountID: number, translate: LocalizedTranslate) {
+function getLastActorDisplayName(
+    lastActorDetails: Partial<PersonalDetails> | null,
+    currentUserAccountID: number,
+    translate: LocalizedTranslate,
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
+) {
     if (!lastActorDetails) {
         return '';
     }
@@ -344,7 +323,7 @@ function getLastActorDisplayName(lastActorDetails: Partial<PersonalDetails> | nu
     }
 
     return lastActorDetails.accountID !== currentUserAccountID
-        ? lastActorDetails.firstName || temporaryGetDisplayNameOrDefault({passedPersonalDetails: lastActorDetails, translate, formatPhoneNumber: formatPhoneNumberPhoneUtils})
+        ? lastActorDetails.firstName || temporaryGetDisplayNameOrDefault({passedPersonalDetails: lastActorDetails, translate, formatPhoneNumber})
         : translate('common.you');
 }
 
@@ -354,6 +333,7 @@ function shouldShowLastActorDisplayName(
     lastAction: OnyxEntry<ReportAction>,
     currentUserAccountIDParam: number,
     translate: LocalizedTranslate,
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
 ) {
     // Use lastAction directly instead of getLastVisibleReportAction to avoid using stale cache data
     const lastReportAction = lastAction;
@@ -371,7 +351,7 @@ function shouldShowLastActorDisplayName(
         return false;
     }
 
-    const lastActorDisplayName = getLastActorDisplayName(lastActorDetails, currentUserAccountIDParam, translate);
+    const lastActorDisplayName = getLastActorDisplayName(lastActorDetails, currentUserAccountIDParam, translate, formatPhoneNumber);
 
     if (!lastActorDisplayName) {
         return false;
@@ -429,12 +409,10 @@ function resolveLastActionContext(
     report: Report,
     isReportArchived: boolean | undefined,
     visibleReportActionsData: VisibleReportActionsDerivedValue | undefined,
-    oneTransactionThreadReportID?: string,
+    oneTransactionThreadReportID: string | undefined,
 ): LastActionContext {
     const canUserPerformWrite = canUserPerformWriteAction(report, isReportArchived);
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
-    const resolvedOneTransactionThreadReportID = oneTransactionThreadReportID ?? deprecatedCachedOneTransactionThreadReportIDs[report.reportID];
-    const lastAction = getLastVisibleActionIncludingTransactionThread(report.reportID, canUserPerformWrite, undefined, visibleReportActionsData, resolvedOneTransactionThreadReportID);
+    const lastAction = getLastVisibleActionIncludingTransactionThread(report.reportID, canUserPerformWrite, undefined, visibleReportActionsData, oneTransactionThreadReportID);
     let lastActionReport: OnyxEntry<Report>;
     if (isInviteOrRemovedAction(lastAction)) {
         const lastActionOriginalMessage = getOriginalMessage(lastAction);
@@ -448,6 +426,27 @@ function resolveLastActionContext(
     };
 }
 
+/**
+ * Returns the actor's personal details, with the name saved on the action when the details have no name. A user from
+ * another company, like the payer on an invoice, can have personal details with no name or login.
+ */
+function getActorDetailsWithActionName(
+    personalDetails: OnyxEntry<PersonalDetailsList>,
+    reportAction: OnyxEntry<ReportAction>,
+    actorAccountID: number | undefined,
+): Partial<PersonalDetails> | null {
+    const actorDetails = actorAccountID ? (personalDetails?.[actorAccountID] ?? null) : null;
+    const actionActorName = reportAction?.person?.at(0)?.text;
+    if (!actionActorName || actorDetails?.displayName || actorDetails?.firstName || actorDetails?.login) {
+        return actorDetails;
+    }
+    return {
+        ...actorDetails,
+        displayName: actionActorName,
+        accountID: actorDetails?.accountID ?? actorAccountID,
+    };
+}
+
 function getLastActorDisplayNameFromLastVisibleActions(
     report: OnyxEntry<Report>,
     lastActorDetails: Partial<PersonalDetails> | null,
@@ -455,6 +454,7 @@ function getLastActorDisplayNameFromLastVisibleActions(
     personalDetails: OnyxEntry<PersonalDetailsList>,
     privateIsArchived: boolean | undefined,
     translate: LocalizedTranslate,
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
     visibleReportActionsData?: VisibleReportActionsDerivedValue,
     lastAction?: OnyxEntry<ReportAction>,
     oneTransactionThreadReportID?: string,
@@ -465,21 +465,14 @@ function getLastActorDisplayNameFromLastVisibleActions(
 
     if (lastReportAction) {
         const lastActorAccountID = getReportActionActorAccountID(lastReportAction, undefined, undefined) || report?.lastActorAccountID;
-        let actorDetails: Partial<PersonalDetails> | null = lastActorAccountID ? (personalDetails?.[lastActorAccountID] ?? null) : null;
-
-        if (!actorDetails && lastReportAction.person?.at(0)?.text) {
-            actorDetails = {
-                displayName: lastReportAction.person?.at(0)?.text,
-                accountID: lastActorAccountID,
-            };
-        }
+        const actorDetails = getActorDetailsWithActionName(personalDetails, lastReportAction, lastActorAccountID);
 
         if (actorDetails) {
-            return getLastActorDisplayName(actorDetails, currentUserAccountIDParam, translate);
+            return getLastActorDisplayName(actorDetails, currentUserAccountIDParam, translate, formatPhoneNumber);
         }
     }
 
-    return getLastActorDisplayName(lastActorDetails, currentUserAccountIDParam, translate);
+    return getLastActorDisplayName(lastActorDetails, currentUserAccountIDParam, translate, formatPhoneNumber);
 }
 
 /**
@@ -526,7 +519,7 @@ function getLastMessageTextForReport({
     policyForMovingExpensesID?: string;
     reportMetadata?: OnyxEntry<ReportMetadata>;
     visibleReportActionsDataParam?: VisibleReportActionsDerivedValue;
-    lastAction?: OnyxEntry<ReportAction>;
+    lastAction: OnyxEntry<ReportAction>;
     reportAttributesDerived?: ReportNamesDerivedValue;
     policyTags?: OnyxEntry<PolicyTagLists>;
     currentUserLogin?: string;
@@ -536,7 +529,8 @@ function getLastMessageTextForReport({
     sortedActions?: Record<string, ReportAction[]>;
     currentUserAccountID: number;
     oneTransactionThreadReportID?: string;
-    lastOriginalAction?: OnyxEntry<ReportAction>;
+    /** The unfiltered last action of the report (some action types are filtered out of lastAction, but some checks need the actual last action) */
+    lastOriginalAction: OnyxEntry<ReportAction>;
     rules: OnyxCollection<Rule>;
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
 
@@ -548,15 +542,10 @@ function getLastMessageTextForReport({
 }): string {
     const reportID = report?.reportID;
     const canUserPerformWrite = canUserPerformWriteAction(report, isReportArchived);
-    let lastReportAction = lastAction ?? getLastVisibleAction(reportID, canUserPerformWrite, {}, undefined, visibleReportActionsDataParam);
+    let lastReportAction = lastAction;
 
     // eslint-disable-next-line @typescript-eslint/no-deprecated
     const transactionThreadReportID = oneTransactionThreadReportID ?? (reportID ? deprecatedCachedOneTransactionThreadReportIDs[reportID] : undefined);
-
-    if (reportID && !lastAction && transactionThreadReportID) {
-        lastReportAction =
-            getLastVisibleActionIncludingTransactionThread(reportID, canUserPerformWrite, undefined, visibleReportActionsDataParam, transactionThreadReportID) ?? lastReportAction;
-    }
 
     // Compute lastVisibleMessage before IOU filter — it needs IOU CREATE/TRACK for text extraction.
     const lastVisibleMessage = getLastVisibleMessage(report?.reportID, undefined, {}, lastReportAction, visibleReportActionsDataParam);
@@ -580,20 +569,17 @@ function getLastMessageTextForReport({
         }
     }
 
-    // some types of actions are filtered out for lastReportAction, in some cases we need to check the actual last action
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
-    const lastOriginalReportAction = lastOriginalAction ?? (reportID ? deprecatedLastReportActions[reportID] : undefined);
     let lastMessageTextFromReport = '';
 
     if (isArchivedNonExpenseReport(report, isReportArchived)) {
-        const archiveReason = (isClosedAction(lastOriginalReportAction) && getOriginalMessage(lastOriginalReportAction)?.reason) || CONST.REPORT.ARCHIVE_REASON.DEFAULT;
+        const archiveReason = (isClosedAction(lastOriginalAction) && getOriginalMessage(lastOriginalAction)?.reason) || CONST.REPORT.ARCHIVE_REASON.DEFAULT;
         switch (archiveReason) {
             case CONST.REPORT.ARCHIVE_REASON.ACCOUNT_CLOSED:
             case CONST.REPORT.ARCHIVE_REASON.REMOVED_FROM_POLICY:
             case CONST.REPORT.ARCHIVE_REASON.POLICY_DELETED:
             case CONST.REPORT.ARCHIVE_REASON.POLICY_ARCHIVED: {
                 lastMessageTextFromReport = translate(`reportArchiveReasons.${archiveReason}`, {
-                    displayName: temporaryGetDisplayNameOrDefault({passedPersonalDetails: lastActorDetails, translate, formatPhoneNumber: formatPhoneNumberPhoneUtils}),
+                    displayName: temporaryGetDisplayNameOrDefault({passedPersonalDetails: lastActorDetails, translate, formatPhoneNumber}),
                     policyName: getPolicyName({report, policy, unavailableTranslation: translate('workspace.common.unavailable')}),
                 });
                 break;
@@ -660,7 +646,7 @@ function getLastMessageTextForReport({
             lastMessageTextFromReport = formatReportLastMessageText(Parser.htmlToText(reportPreviewMessage));
         }
     } else if (isReimbursementQueuedAction(lastReportAction)) {
-        lastMessageTextFromReport = getReimbursementQueuedActionMessage({reportAction: lastReportAction, translate, formatPhoneNumber: formatPhoneNumberPhoneUtils, report});
+        lastMessageTextFromReport = getReimbursementQueuedActionMessage({reportAction: lastReportAction, translate, formatPhoneNumber, report});
     } else if (isReimbursementDeQueuedOrCanceledAction(lastReportAction)) {
         lastMessageTextFromReport = getReimbursementDeQueuedOrCanceledActionMessage(translate, formatPhoneNumber, lastReportAction, report?.ownerAccountID, convertToDisplayString);
     } else if (isDeletedParentAction(lastReportAction) && reportUtilsIsChatReport(report)) {
@@ -695,7 +681,7 @@ function getLastMessageTextForReport({
             policyTags,
             currentUserAccountID,
             currentUserLogin: currentUserLogin ?? '',
-            formatPhoneNumber: formatPhoneNumberPhoneUtils,
+            formatPhoneNumber,
             movedFromReportName: undefined,
         });
         // Strip HTML tags for plain text display in options list
@@ -790,7 +776,7 @@ function getLastMessageTextForReport({
         const missingFields = getOriginalMessage(lastReportAction)?.missingFields;
         lastMessageTextFromReport = translate('violations.smartscanFailed', {canEdit: wasActionTakenByCurrentUser(iouAction), missingFields});
     } else if (lastReportAction?.actionName && isOldDotReportAction(lastReportAction)) {
-        lastMessageTextFromReport = getMessageOfOldDotReportAction(translate, lastReportAction, false);
+        lastMessageTextFromReport = getMessageTextOfOldDotReportAction(translate, lastReportAction, false);
     } else if (isActionableJoinRequest(lastReportAction)) {
         lastMessageTextFromReport = getJoinRequestMessage(
             translate,
@@ -989,7 +975,7 @@ function getLastMessageTextForReport({
     }
 
     // If the last report action is a pending moderation action, get the last message text from the last visible report action
-    if (reportID && !lastMessageTextFromReport && isPendingRemove(lastOriginalReportAction)) {
+    if (reportID && !lastMessageTextFromReport && isPendingRemove(lastOriginalAction)) {
         lastMessageTextFromReport = getReportActionMessageText(lastReportAction);
     }
 
@@ -1042,7 +1028,7 @@ function getLastMessageTextForReport({
     }
 
     // If the last action differs from last original action, it means there's a hidden action (like a whisper), then use getLastVisibleMessage to get the preview text
-    if (!lastMessageTextFromReport && !lastReportAction && !!lastOriginalReportAction) {
+    if (!lastMessageTextFromReport && !lastReportAction && !!lastOriginalAction) {
         return lastVisibleMessage?.lastMessageText ?? '';
     }
 
@@ -1238,7 +1224,7 @@ type GetReportAlternateTextParams = {
     visibleReportActionsData?: VisibleReportActionsDerivedValue;
     sortedActions?: Record<string, ReportAction[]>;
     oneTransactionThreadReportID?: string;
-    lastOriginalAction?: OnyxEntry<ReportAction>;
+    lastOriginalAction: OnyxEntry<ReportAction>;
     currentUserAccountID: number;
     currentUserLogin: string;
     isTrackIntentUser?: boolean;
@@ -1316,21 +1302,9 @@ function getReportAlternateText({
     };
 
     const lastActorAccountID = getReportActionActorAccountID(lastAction, undefined, undefined) || report.lastActorAccountID;
-    // If the last actor's details are not currently saved in Onyx Collection,
-    // then try to get that from the last report action if that action is valid
-    // to get data from.
-    let lastActorDetails: Partial<PersonalDetails> | null = lastActorAccountID ? (personalDetails?.[lastActorAccountID] ?? null) : null;
-    if (!lastActorDetails && lastAction) {
-        const lastActorDisplayName = lastAction?.person?.[0]?.text;
-        lastActorDetails = lastActorDisplayName
-            ? {
-                  displayName: lastActorDisplayName,
-                  accountID: report.lastActorAccountID,
-              }
-            : null;
-    }
+    const lastActorDetails = getActorDetailsWithActionName(personalDetails, lastAction, lastActorAccountID);
 
-    const lastActorDisplayName = getLastActorDisplayName(lastActorDetails, currentUserAccountID, translate);
+    const lastActorDisplayName = getLastActorDisplayName(lastActorDetails, currentUserAccountID, translate, formatPhoneNumber);
     // An empty precomputed text means "not computed yet", so `||` (not `??`) keeps the recompute fallback meaningful.
     const lastMessageTextFromReport =
         lastMessageTextFromReportProp ||
@@ -1371,6 +1345,7 @@ function getReportAlternateText({
                 personalDetails,
                 privateIsArchived,
                 translate,
+                formatPhoneNumber,
                 visibleReportActionsData,
                 lastAction,
                 resolvedOneTransactionThreadReportID,
@@ -1415,7 +1390,7 @@ function getReportAlternateText({
                     accountID: lastAction.actorAccountID,
                 };
             }
-            actorDisplayName = actorDetails ? getLastActorDisplayName(actorDetails, currentUserAccountID, translate) : undefined;
+            actorDisplayName = actorDetails ? getLastActorDisplayName(actorDetails, currentUserAccountID, translate, formatPhoneNumber) : undefined;
             const lastActionOriginalMessage = lastAction?.actionName ? getOriginalMessage(lastAction) : null;
             const targetAccountIDs = lastActionOriginalMessage?.targetAccountIDs ?? [];
             const targetAccountIDsLength = targetAccountIDs.length !== 0 ? targetAccountIDs.length : (report.lastMessageHtml?.match(/<mention-user[^>]*><\/mention-user>/g)?.length ?? 0);
@@ -1464,6 +1439,8 @@ function getReportAlternateText({
             alternateText = Parser.htmlToText(getCompanyCardConnectionBrokenMessage(translate, lastAction));
         } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.COMPANY_CARD_CONNECTION_BROKEN_30_DAYS)) {
             alternateText = Parser.htmlToText(getCompanyCardConnectionBroken30DaysMessage(translate, lastAction));
+        } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.COMPANY_CARD_CONSENT_EXPIRING)) {
+            alternateText = Parser.htmlToText(getCompanyCardConsentExpiringMessage(translate, lastAction));
         } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.PERSONAL_CARD_CONNECTION_BROKEN)) {
             alternateText = Parser.htmlToText(getCardConnectionBrokenMessage(undefined, getOriginalMessage(lastAction)?.cardName, translate, false));
         } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.PERSONAL_CARD_CONNECTION_BROKEN_30_DAYS)) {
@@ -1589,7 +1566,7 @@ function getReportAlternateText({
         } else if (isCardIssuedAction(lastAction)) {
             alternateText = getCardIssuedMessage({reportAction: lastAction, expensifyCard: card, translate, currentUserAccountID, buildDynamicRoute: createDynamicRoute});
         } else if (lastAction && isOldDotReportAction(lastAction)) {
-            alternateText = getMessageOfOldDotReportAction(translate, lastAction);
+            alternateText = getMessageTextOfOldDotReportAction(translate, lastAction);
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG.UPDATE_ROOM_DESCRIPTION) {
             alternateText = StringUtils.lineBreaksToSpaces(Parser.htmlToText(getUpdateRoomDescriptionMessage(translate, lastAction)));
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG.UPDATE_ROOM_AVATAR) {
@@ -1754,7 +1731,7 @@ function getReportAlternateText({
                 }).messageText || translate('report.noActivityYet'),
             );
         }
-        if (shouldShowLastActorDisplayName(report, lastActorDetails, lastAction, currentUserAccountID, translate) && !isReportArchived) {
+        if (shouldShowLastActorDisplayName(report, lastActorDetails, lastAction, currentUserAccountID, translate, formatPhoneNumber) && !isReportArchived) {
             alternateText = `${getLastActorDisplayNamePrefix()}: ${formatReportLastMessageText(lastMessageText)}`;
         } else {
             alternateText = formatReportLastMessageText(lastMessageText);

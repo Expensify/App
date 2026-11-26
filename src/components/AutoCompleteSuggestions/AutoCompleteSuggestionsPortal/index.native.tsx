@@ -1,4 +1,6 @@
 import BaseAutoCompleteSuggestions from '@components/AutoCompleteSuggestions/BaseAutoCompleteSuggestions';
+import FSClassView from '@components/FSClassView';
+import FSClassContext from '@components/FSClassView/FSClassContext';
 
 import useKeyboardState from '@hooks/useKeyboardState';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -6,10 +8,12 @@ import useWindowDimensionsForAutoCompleteSuggestions from '@hooks/useWindowDimen
 
 import variables from '@styles/variables';
 
+import CONST from '@src/CONST';
+
 import type {ComponentRef} from 'react';
 
 import {Portal} from '@gorhom/portal';
-import React, {useEffect, useRef, useState} from 'react';
+import React, {useContext, useEffect, useRef, useState} from 'react';
 import {StyleSheet, View} from 'react-native';
 
 import type {AutoCompleteSuggestionsPortalProps} from './types';
@@ -28,6 +32,8 @@ function AutoCompleteSuggestionsPortal<TSuggestion>({
     ...props
 }: AutoCompleteSuggestionsPortalProps<TSuggestion>) {
     const StyleUtils = useStyleUtils();
+    // The portal host sits outside the masked views of the chat that opened it, so the suggestions apply the chat's class themselves
+    const fsClass = useContext(FSClassContext);
     const {height: windowHeight} = useWindowDimensionsForAutoCompleteSuggestions();
     const {keyboardHeight} = useKeyboardState();
     const hostFrameRef = useRef<ComponentRef<typeof View>>(null);
@@ -57,19 +63,21 @@ function AutoCompleteSuggestionsPortal<TSuggestion>({
                 <>
                     <TransparentOverlay
                         onPress={resetSuggestions}
+                        sentryLabel={CONST.SENTRY_LABEL.BASE_AUTO_COMPLETE_SUGGESTIONS.OVERLAY}
                         style={zIndexStyle}
                     />
-                    <View
+                    <FSClassView
                         style={[
                             StyleUtils.getBaseAutoCompleteSuggestionContainerStyle({left, width, bottom: bottom - hostBottomInset + getBottomSuggestionPadding(isMenuAbove)}),
                             zIndexStyle,
                         ]}
+                        forwardedFSClass={fsClass}
                     >
                         <BaseAutoCompleteSuggestions<TSuggestion>
                             width={width}
                             {...props}
                         />
-                    </View>
+                    </FSClassView>
                 </>
             )}
         </Portal>

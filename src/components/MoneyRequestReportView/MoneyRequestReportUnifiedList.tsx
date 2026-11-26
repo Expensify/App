@@ -1,16 +1,20 @@
 import FlashList from '@components/FlashList';
+import type {ViewableItemsChangedHandler} from '@components/FlashList/types';
 
+import useIsMobileWebLandscape from '@hooks/useIsMobileWebLandscape';
+import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 
 import type ActionListRefType from '@pages/inbox/ActionListTypes';
+import CollapsedReportHeaderSpacer from '@pages/inbox/report/CollapsibleReportHeader/CollapsedReportHeaderSpacer';
 import useScrollToEditingReportAction from '@pages/inbox/report/useScrollToEditingReportAction';
 
 import variables from '@styles/variables';
 
+import CONST from '@src/CONST';
 import type * as OnyxTypes from '@src/types/onyx';
-import type {ViewableItemsChanged, ViewToken} from '@src/types/utils/ReactNativeCompat';
 
-import type {FlashListProps, ListRenderItemInfo} from '@shopify/flash-list';
+import type {FlashListProps, ListRenderItemInfo, ViewToken} from '@shopify/flash-list';
 import type {LayoutChangeEvent, NativeScrollEvent, NativeSyntheticEvent, StyleProp, ViewStyle} from 'react-native';
 
 import React, {useEffect, useRef, useState} from 'react';
@@ -22,6 +26,7 @@ import type {MoneyRequestReportTransactionListController, TransactionListItemDat
 import ExternalScrollFlashListTable, {createScrollOffsetStore} from './ExternalScrollFlashListTable';
 import MoneyRequestViewReportFields from './MoneyRequestViewReportFields';
 import ReportActionsListLoadingSkeleton from './ReportActionsListLoadingSkeleton';
+import useScrollToNewTransaction from './useScrollToNewTransaction';
 
 /** Single virtualized data item rendered by the unified FlatList. Mixes transactions, a footer marker, and report actions in one scroll. */
 type UnifiedListItem = TransactionListItemData | {readonly type: 'transactions-footer'} | {readonly type: 'report-action'; readonly action: OnyxTypes.ReportAction};
@@ -110,7 +115,7 @@ type MoneyRequestReportUnifiedListProps = {
     onScrollBeginDrag: () => void;
 
     onContentSizeChange: (width: number, height: number) => void;
-    onViewableItemsChanged: ViewableItemsChanged;
+    onViewableItemsChanged: ViewableItemsChangedHandler;
 
     /** Called when the end of the list is reached (older actions). */
     onEndReached: () => void;
@@ -189,7 +194,7 @@ function MoneyRequestReportUnifiedList({
     const reportActionIndexOffset = shouldInlineTransactions ? controller.transactionListItems.length + 1 : 0;
 
     // Latest viewable items, kept current from onViewableItemsChanged, so the new-transaction scroll can skip when the row is already on screen.
-    const viewableItemsRef = useRef<ViewToken[]>([]);
+    const viewableItemsRef = useRef<Array<ViewToken<unknown>>>([]);
 
     const expandedFocusIndex = focusRequestedReportActionID ? visibleReportActions.findIndex((action) => action.reportActionID === focusRequestedReportActionID) : -1;
     useEffect(() => {
@@ -216,7 +221,9 @@ function MoneyRequestReportUnifiedList({
     // tableOffsetTop is the height of everything above the table region (the report-fields header).
     // Seed with the window height (a safe over-estimate) so the nested list windows against a non-zero viewport on the
     // first paint — otherwise a height of 0 renders the transactions area blank until onLayout corrects it next frame.
+    const styles = useThemeStyles();
     const {windowHeight} = useWindowDimensions();
+    const isMobileWebLandscape = useIsMobileWebLandscape();
     const [viewportHeight, setViewportHeight] = useState(windowHeight);
     const [tableOffsetTop, setTableOffsetTop] = useState(0);
 
@@ -247,7 +254,7 @@ function MoneyRequestReportUnifiedList({
     // The hook compares unreadMarkerReportActionIndex (0-based within visibleReportActions) against
     // raw FlashList indices. When transactions are present, report actions start at reportActionIndexOffset,
     // so we shift all viewable indices down before forwarding so the comparison is apples-to-apples.
-    const onViewableItemsChangedAdjusted = (info: Parameters<ViewableItemsChanged>[0]) => {
+    const onViewableItemsChangedAdjusted = (info: Parameters<ViewableItemsChangedHandler>[0]) => {
         // Keep the raw array so the new-transaction effect can tell whether the new row is already on screen.
         viewableItemsRef.current = info.viewableItems;
         if (reportActionIndexOffset === 0) {
@@ -314,53 +321,16 @@ function MoneyRequestReportUnifiedList({
         },
     });
 
-    // Scroll a newly-created transaction into view, once per transaction. The rows are virtualized, so the row can't
-    // drive this itself (an off-window row never mounts) — the list scrolls to it by index/layout instead, which
-    // reaches unmounted rows. Skipped when the row is already on screen so the user isn't yanked.
-    const scrolledToNewTransactionIDRef = useRef<string | undefined>(undefined);
-
-    // The index is derived at render (not inside the effect) so the effect keys on a stable number — the items array
-    // identity churns across the re-renders that follow a transaction insert, and re-firing the effect would cancel
-    // the scheduled frame below before it runs.
-    const newTransactionTableIndex = newTransactionID
-        ? controller.transactionListItems.findIndex((item) => item.type === 'transaction' && item.transaction.transactionID === newTransactionID)
-        : -1;
-
-    useEffect(() => {
-        if (newTransactionTableIndex < 0 || scrolledToNewTransactionIDRef.current === newTransactionID) {
-            return;
-        }
-
-        if (shouldInlineTransactions) {
-            // Inline: the transaction is a main-list item at the same index (transactions lead `data`).
-            const rafId = requestAnimationFrame(() => {
-                // The ID is consumed inside the frame (not at schedule time): if a re-fire cancels this frame, the next
-                // effect run reschedules instead of treating the scroll as done.
-                scrolledToNewTransactionIDRef.current = newTransactionID;
-                if (viewableItemsRef.current.some((token) => token.index === newTransactionTableIndex)) {
-                    return;
-                }
-                listRef?.current?.scrollToIndex({index: newTransactionTableIndex, animated: true, viewPosition: 0.5});
-            });
-            return () => cancelAnimationFrame(rafId);
-        }
-
-        // Horizontal table: the rows live in a nested FlashList whose own scroll is a no-op — only the parent page
-        // scrolls. Ask the table where the row sits in page space (works for unmounted rows) and scroll the parent there.
-        const rafId = requestAnimationFrame(() => {
-            scrolledToNewTransactionIDRef.current = newTransactionID;
-            const row = tableRef.current?.getRowPageOffset(newTransactionTableIndex);
-            if (!row) {
-                return;
-            }
-            const scrollOffset = scrollOffsetStore.getOffset();
-            if (row.top >= scrollOffset && row.top + row.height <= scrollOffset + viewportHeight) {
-                return;
-            }
-            listRef?.current?.scrollToOffset({offset: Math.max(0, row.top - viewportHeight / 2), animated: true});
-        });
-        return () => cancelAnimationFrame(rafId);
-    }, [newTransactionID, newTransactionTableIndex, shouldInlineTransactions, viewportHeight, scrollOffsetStore, listRef]);
+    useScrollToNewTransaction({
+        newTransactionID,
+        transactionListItems: controller.transactionListItems,
+        shouldInlineTransactions,
+        listRef,
+        tableRef,
+        viewableItemsRef,
+        scrollOffsetStore,
+        viewportHeight,
+    });
 
     const reportFieldsHeader = (
         <MoneyRequestViewReportFields
@@ -373,14 +343,16 @@ function MoneyRequestReportUnifiedList({
         <MoneyRequestReportFlashList
             ref={listRef}
             accessibilityLabel={accessibilityLabel}
-            testID="money-request-report-actions-list"
+            testID={CONST.TEST_ID.MONEY_REQUEST_REPORT_ACTIONS_LIST}
             data={data}
             extraData={reportActionsExtraData}
             renderItem={dispatchRenderItem}
             keyExtractor={unifiedListKeyExtractor}
             getItemType={unifiedListItemType}
             initialScrollIndex={initialScrollIndex}
-            maintainVisibleContentPosition={{autoscrollToBottomThreshold: undefined}}
+            // In mobile web landscape the report header collapses on scroll and CollapsedReportHeaderSpacer pads the list
+            // to keep its rows still, which this would scroll straight back out of view.
+            maintainVisibleContentPosition={{autoscrollToBottomThreshold: undefined, disabled: isMobileWebLandscape}}
             onViewableItemsChanged={onViewableItemsChangedAdjusted}
             onLayout={handleLayout}
             onCommitLayoutEffect={onCommitLayoutEffect}
@@ -394,6 +366,7 @@ function MoneyRequestReportUnifiedList({
                         {/* Report fields + group-by/columns controls stay pinned to the page; only the column header and
                             rows scroll horizontally. Measured together so the table's offset into the page is exact. */}
                         <View onLayout={(event: LayoutChangeEvent) => setTableOffsetTop(event.nativeEvent.layout.height)}>
+                            <CollapsedReportHeaderSpacer />
                             {reportFieldsHeader}
                             {controller.beforeListContent}
                         </View>
@@ -415,6 +388,7 @@ function MoneyRequestReportUnifiedList({
                     </>
                 ) : (
                     <>
+                        <CollapsedReportHeaderSpacer />
                         {reportFieldsHeader}
                         {controller.beforeListContent}
                         {controller.tableColumnHeader}
@@ -425,7 +399,9 @@ function MoneyRequestReportUnifiedList({
             onScroll={handleScroll}
             onScrollBeginDrag={onScrollBeginDrag}
             onContentSizeChange={onContentSizeChange}
-            contentContainerStyle={contentContainerStyle}
+            // Chrome's scroll anchoring would scroll by the height CollapsedReportHeaderSpacer adds above the rows, undoing the
+            // header hand-over. It doesn't help with rows above the viewport, which FlashList moves by rewriting their top.
+            contentContainerStyle={[contentContainerStyle, isMobileWebLandscape && styles.overflowAnchorNone]}
             ListEmptyComponent={shouldShowActionsLoadingSkeleton ? <ReportActionsListLoadingSkeleton /> : undefined}
             ListFooterComponent={
                 <>

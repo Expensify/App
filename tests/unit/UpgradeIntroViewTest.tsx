@@ -28,6 +28,7 @@ function renderView(props: Partial<React.ComponentProps<typeof UpgradeIntroView>
                 description="Upgrade these workspaces to continue."
                 buttonText="Upgrade"
                 onUpgrade={jest.fn()}
+                upgradeSentryLabel={CONST.SENTRY_LABEL.WORKSPACE.UPGRADE.COPY_SETTINGS_UPGRADE}
                 {...props}
             />
         </OnyxListItemProvider>,

@@ -109,13 +109,12 @@ function UpdatePersonalBankAccountPage() {
     const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS);
     const [personalBankAccountDraft] = useOnyx(ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM_DRAFT);
     const [homeAddressDraft] = useOnyx(ONYXKEYS.FORMS.HOME_ADDRESS_FORM_DRAFT);
-    const [personalBankAccount, personalBankAccountResult] = useOnyx(ONYXKEYS.PERSONAL_BANK_ACCOUNT);
+    const [personalBankAccount] = useOnyx(ONYXKEYS.PERSONAL_BANK_ACCOUNT);
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE);
 
     const shouldShowSuccess = personalBankAccount?.shouldShowSuccess ?? false;
     const bankAccountID = personalBankAccount?.bankAccountID;
-    const isPersonalBankAccountLoaded = personalBankAccountResult.status === 'loaded';
 
     // Clear PERSONAL_BANK_ACCOUNT (bankAccountID, shouldShowSuccess, updateError) when the page unmounts.
     useEffect(
@@ -126,12 +125,12 @@ function UpdatePersonalBankAccountPage() {
     );
 
     useEffect(() => {
-        if (!isPersonalBankAccountLoaded || bankAccountID) {
+        if (bankAccountID) {
             return;
         }
 
         Navigation.goBack(ROUTES.SETTINGS_WALLET);
-    }, [isPersonalBankAccountLoaded, bankAccountID]);
+    }, [bankAccountID]);
 
     const completedSteps = bankAccountID ? getCompletedStepsForBankAccount(bankAccountList, bankAccountID) : [];
 
@@ -261,6 +260,7 @@ function UpdatePersonalBankAccountPage() {
                         heading={translate('addPersonalBankAccount.updateSuccessTitle')}
                         description={translate('addPersonalBankAccount.updateSuccessMessage')}
                         buttonText={translate('common.continue')}
+                        buttonSentryLabel={CONST.SENTRY_LABEL.SETTINGS_WALLET.UPDATE_PERSONAL_BANK_ACCOUNT_SUCCESS_CONTINUE}
                         onButtonPress={exitFlow}
                     />
                 </ScrollView>

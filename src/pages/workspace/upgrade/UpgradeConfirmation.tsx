@@ -10,7 +10,9 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 
 import ROUTES from '@src/ROUTES';
+import type {SentryLabel} from '@src/types/utils/SentryLabel';
 
+import {Str} from 'expensify-common';
 import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
 
@@ -18,7 +20,8 @@ type Props = {
     policyName: string;
     /** Friendly name of the plan the workspace was upgraded to (e.g. Collect or Control) */
     planName?: string;
-    afterUpgradeAcknowledged: () => void;
+    afterUpgradeAcknowledged: () => void | Promise<void>;
+    confirmSentryLabel: SentryLabel;
     /** Whether is categorizing the expense */
     isCategorizing?: boolean;
     /** Whether is adding an unreported expense to a report */
@@ -29,7 +32,7 @@ type Props = {
     buttonText?: string;
 };
 
-function UpgradeConfirmation({policyName, planName, afterUpgradeAcknowledged, isReporting, isCategorizing, isTravelUpgrade, isDistanceRateUpgrade, buttonText}: Props) {
+function UpgradeConfirmation({policyName, planName, afterUpgradeAcknowledged, confirmSentryLabel, isReporting, isCategorizing, isTravelUpgrade, isDistanceRateUpgrade, buttonText}: Props) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {environmentURL} = useEnvironment();
@@ -52,9 +55,11 @@ function UpgradeConfirmation({policyName, planName, afterUpgradeAcknowledged, is
     } else if (isDistanceRateUpgrade) {
         description = <Text style={[styles.textAlignCenter, styles.w100]}>{translate('workspace.upgrade.completed.distanceRateMessage')}</Text>;
     } else {
+        // The workspace name is set by an admin and is interpolated into HTML, so markup in it must not be parsed as HTML.
+        const encodedPolicyName = Str.htmlEncode(policyName);
         description = (
             <View style={[styles.renderHTML, styles.textAlignCenter, styles.alignItemsCenter, styles.w100]}>
-                <RenderHTML html={translate('workspace.upgrade.completed.successMessage', policyName, planName ?? translate('workspace.type.control'), subscriptionLink)} />
+                <RenderHTML html={translate('workspace.upgrade.completed.successMessage', encodedPolicyName, planName ?? translate('workspace.type.control'), subscriptionLink)} />
             </View>
         );
     }
@@ -70,6 +75,7 @@ function UpgradeConfirmation({policyName, planName, afterUpgradeAcknowledged, is
             </ConfirmationPage.Content>
             <FixedFooter>
                 <ConfirmationPage.PrimaryButton
+                    sentryLabel={confirmSentryLabel}
                     text={buttonText ?? translate('workspace.upgrade.completed.gotIt')}
                     onPress={afterUpgradeAcknowledged}
                 />

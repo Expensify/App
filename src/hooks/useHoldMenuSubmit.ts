@@ -1,4 +1,6 @@
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
+import type {PaymentMethod} from '@components/KYCWall/types';
+import {useLockedAccountActions, useLockedAccountState} from '@components/LockedAccountModalProvider';
 
 import {isTrackOnboardingChoice} from '@libs/OnboardingUtils';
 import {getReportOrDraftReport, hasViolations as hasViolationsReportUtils} from '@libs/ReportUtils';
@@ -17,11 +19,13 @@ import {delegateEmailSelector} from '@selectors/Account';
 import {hasSeenTourSelector} from '@selectors/Onboarding';
 import {loginSelector} from '@selectors/PersonalDetails';
 
+import useConfirmApproveReportViolations from './useConfirmApproveReportViolations';
 import {useCurrencyListActions} from './useCurrencyList';
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import useDelegateAccountID from './useDelegateAccountID';
 import useOnyx from './useOnyx';
 import usePayChatReportActions from './usePayChatReportActions';
+import usePayViaABA from './usePayViaABA';
 import usePayWithWiseQuote from './usePayWithWiseQuote';
 import usePermissions from './usePermissions';
 import {useGetPersonalDetailsByLogin} from './usePersonalDetailByLogin';
@@ -36,12 +40,13 @@ type UseHoldMenuSubmitParams = {
     chatReport: OnyxEntry<OnyxTypes.Report>;
     requestType?: ActionHandledType;
     paymentType?: PaymentMethodType;
+    paymentMethod?: PaymentMethod;
     methodID?: number;
     onClose: () => void;
     onConfirm?: (full: boolean) => void;
 };
 
-function useHoldMenuSubmit({moneyRequestReport, chatReport, requestType, paymentType, methodID, onClose, onConfirm}: UseHoldMenuSubmitParams) {
+function useHoldMenuSubmit({moneyRequestReport, chatReport, requestType, paymentType, paymentMethod, methodID, onClose, onConfirm}: UseHoldMenuSubmitParams) {
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const [userBillingGracePeriodEnds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
@@ -68,16 +73,29 @@ function useHoldMenuSubmit({moneyRequestReport, chatReport, requestType, payment
     const {getCurrencyDecimals} = useCurrencyListActions();
     const getPersonalDetailsByLogin = useGetPersonalDetailsByLogin();
     const delegateAccountID = useDelegateAccountID();
+    const {payReportsViaABA} = usePayViaABA();
     const hasViolations = hasViolationsReportUtils(moneyRequestReport?.reportID, transactionViolations, currentUserDetails.accountID, currentUserDetails.email ?? '');
 
     const {isDelegateAccessRestricted} = useDelegateNoAccessState();
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
+    const {isAccountLocked} = useLockedAccountState();
+    const {showLockedAccountModal} = useLockedAccountActions();
 
     const isApprove = requestType === CONST.IOU.REPORT_ACTION_TYPE.APPROVE;
+    const confirmApproveReportViolations = useConfirmApproveReportViolations({
+        report: moneyRequestReport,
+        policy,
+        transactions: moneyRequestReportTransactions,
+        violationsCollection: transactionViolations,
+    });
 
     const onSubmit = (full: boolean) => {
         if (isDelegateAccessRestricted) {
             showDelegateNoAccessModal();
+            return;
+        }
+        if (isAccountLocked) {
+            showLockedAccountModal();
             return;
         }
 
@@ -91,26 +109,33 @@ function useHoldMenuSubmit({moneyRequestReport, chatReport, requestType, payment
         const currentChatReport = getReportOrDraftReport({reportID: chatReport?.reportID}) ?? chatReport;
 
         if (isApprove) {
-            approveMoneyRequest({
-                personalDetailsByLogins: getPersonalDetailsByLogin(),
-                getCurrencyDecimals,
-                expenseReport: currentMoneyRequestReport,
-                rules,
-                currentUserAccountIDParam: currentUserDetails.accountID,
-                currentUserEmailParam: currentUserDetails.email ?? '',
-                hasViolations,
-                isASAPSubmitBetaEnabled,
-                userBillingGracePeriodEnds,
-                amountOwed,
-                ownerBillingGracePeriodEnd,
-                ownerLogin,
-                full,
-                onApproved: animationCallback,
-                expenseReportPolicy: policy,
-                delegateEmail,
-                delegateAccountID,
-                isTrackIntentUser,
-            });
+            confirmApproveReportViolations(() => {
+                approveMoneyRequest({
+                    personalDetailsByLogins: getPersonalDetailsByLogin(),
+                    getCurrencyDecimals,
+                    expenseReport: currentMoneyRequestReport,
+                    rules,
+                    currentUserAccountIDParam: currentUserDetails.accountID,
+                    currentUserEmailParam: currentUserDetails.email ?? '',
+                    hasViolations,
+                    isASAPSubmitBetaEnabled,
+                    userBillingGracePeriodEnds,
+                    amountOwed,
+                    ownerBillingGracePeriodEnd,
+                    ownerLogin,
+                    full,
+                    onApproved: animationCallback,
+                    expenseReportPolicy: policy,
+                    delegateEmail,
+                    delegateAccountID,
+                    isTrackIntentUser,
+                    allTransactionViolations: transactionViolations,
+                });
+            }, full);
+        } else if (paymentMethod === CONST.PAYMENT_METHODS.ABA) {
+            if (currentMoneyRequestReport?.reportID) {
+                payReportsViaABA([currentMoneyRequestReport], policy, {shouldReimburseHeldTransactions: full, onPaid: animationCallback});
+            }
         } else if (currentChatReport && paymentType) {
             payWithWiseQuote({
                 bankAccountList,

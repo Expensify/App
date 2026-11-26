@@ -1,5 +1,5 @@
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderCentralPane from '@components/Header/composed/HeaderCentralPane';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollViewWithContext from '@components/ScrollViewWithContext';
 
@@ -103,6 +103,7 @@ function WorkspaceTravelPage({
             icon: icons.Exit,
             text: translate('common.export'),
             value: CONST.POLICY.SECONDARY_ACTIONS.EXPORT,
+            sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.TRAVEL.EXPORT,
             onSelected: () => Navigation.navigate(ROUTES.WORKSPACE_TRAVEL_EXPORT.getRoute(policyID)),
         },
     ];
@@ -121,15 +122,11 @@ function WorkspaceTravelPage({
                 shouldShowOfflineIndicatorInWideScreen
                 offlineIndicatorStyle={styles.mtAuto}
             >
-                <HeaderWithBackButton
-                    title={translate('workspace.moreFeatures.travel.title')}
-                    shouldUseHeadlineHeader
-                    shouldShowBackButton={shouldUseNarrowLayout}
-                    shouldDisplayHelpButton
-                    onBackButtonPress={Navigation.goBack}
-                >
+                <HeaderCentralPane title={translate('workspace.moreFeatures.travel.title')}>
                     {step === CONST.TRAVEL.STEPS.BOOK_OR_MANAGE_YOUR_TRIP && canWriteMoreFeatures && (
                         <ButtonWithDropdownMenu
+                            // With one option the dropdown renders that option as a plain button, so the label follows what is rendered.
+                            sentryLabel={secondaryActions.length > 1 ? CONST.SENTRY_LABEL.WORKSPACE.TRAVEL.MORE_DROPDOWN : CONST.SENTRY_LABEL.WORKSPACE.TRAVEL.EXPORT}
                             onPress={() => {}}
                             customText={translate('common.more')}
                             options={secondaryActions}
@@ -137,7 +134,7 @@ function WorkspaceTravelPage({
                             shouldUseOptionIcon
                         />
                     )}
-                </HeaderWithBackButton>
+                </HeaderCentralPane>
                 <ScrollViewWithContext addBottomSafeAreaPadding>
                     <View style={[styles.pt3, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>{mainContent}</View>
                 </ScrollViewWithContext>

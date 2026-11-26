@@ -10,7 +10,7 @@ import type {AutoReportingOffset} from '@src/types/onyx/Policy';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {TupleToUnion, ValueOf} from 'type-fest';
 
-import {getCorrectedAutoReportingFrequency} from './PolicyUtils';
+import {getCorrectedAutoReportingFrequency} from './PolicyUtils/workflows';
 
 type AutoReportingFrequency = ValueOf<typeof CONST.POLICY.AUTO_REPORTING_FREQUENCIES>;
 

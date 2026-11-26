@@ -14,6 +14,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+import type {PersonalDetailsList} from '@src/types/onyx';
 
 import React from 'react';
 
@@ -130,13 +131,6 @@ jest.mock('@components/OfflineWithFeedback', () => {
     return MockOfflineWithFeedback;
 });
 
-jest.mock('@components/ReportActionAvatars', () => {
-    function MockReportActionAvatars() {
-        return null;
-    }
-    return MockReportActionAvatars;
-});
-
 jest.mock('@pages/ErrorPage/NotFoundPage', () => {
     function MockNotFoundPage() {
         return 'notFound.notHere';
@@ -145,6 +139,13 @@ jest.mock('@pages/ErrorPage/NotFoundPage', () => {
 });
 
 const mockUseOnyx = jest.mocked(useOnyx);
+
+// Runs the selector a component passed to useOnyx over a given personal details list
+function selectFromPersonalDetails(selector: unknown, personalDetails: PersonalDetailsList) {
+    // jest erases the generic type info, so the selector needs a narrowing assertion back to its real signature.
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
+    return (selector as (personalDetailsList: PersonalDetailsList) => NonNullable<unknown> | undefined)(personalDetails);
+}
 
 const TEST_ACCOUNT_ID = 12345;
 
@@ -159,7 +160,7 @@ describe('DynamicEditAgentPage', () => {
         jest.clearAllMocks();
         mockUseOnyx.mockImplementation((key, options) => {
             if (key === ONYXKEYS.PERSONAL_DETAILS_LIST && options?.selector) {
-                return [{displayName: 'Default Agent'}, {status: 'loaded'}];
+                return [selectFromPersonalDetails(options.selector, {[TEST_ACCOUNT_ID]: {accountID: TEST_ACCOUNT_ID, displayName: 'Default Agent'}}), {status: 'loaded'}];
             }
             if (typeof key === 'string' && key.startsWith(ONYXKEYS.COLLECTION.AGENT)) {
                 return [{prompt: 'Default prompt'}, {status: 'loaded'}];
@@ -171,7 +172,7 @@ describe('DynamicEditAgentPage', () => {
     it('renders agent name from personalDetails', () => {
         mockUseOnyx.mockImplementation((key, options) => {
             if (key === ONYXKEYS.PERSONAL_DETAILS_LIST && options?.selector) {
-                return [{displayName: 'Test Agent'}, {status: 'loaded'}];
+                return [selectFromPersonalDetails(options.selector, {[TEST_ACCOUNT_ID]: {accountID: TEST_ACCOUNT_ID, displayName: 'Test Agent'}}), {status: 'loaded'}];
             }
             return [undefined, {status: 'loaded'}];
         });
@@ -218,7 +219,10 @@ describe('DynamicEditAgentPage', () => {
     it('navigates to the agent chat history search when the view agent history menu item is pressed', () => {
         mockUseOnyx.mockImplementation((key, options) => {
             if (key === ONYXKEYS.PERSONAL_DETAILS_LIST && options?.selector) {
-                return [{displayName: 'Test Agent', login: 'agent@expensify.com'}, {status: 'loaded'}];
+                return [
+                    selectFromPersonalDetails(options.selector, {[TEST_ACCOUNT_ID]: {accountID: TEST_ACCOUNT_ID, displayName: 'Test Agent', login: 'agent@expensify.com'}}),
+                    {status: 'loaded'},
+                ];
             }
             return [undefined, {status: 'loaded'}];
         });
@@ -295,9 +299,16 @@ describe('DynamicEditAgentPage', () => {
         expect(serialized).not.toContain('editAgentPage.deleteAgent');
     });
 
-    it('does not render NotFoundPage while Onyx is still loading', () => {
-        mockUseOnyx.mockReturnValue([undefined, {status: 'loading'}]);
+    it('does not render NotFoundPage while the app is still loading', () => {
+        // Given the agent and its personal details are missing because OpenApp hasn't returned them yet
+        mockUseOnyx.mockImplementation((key) => {
+            if (key === ONYXKEYS.IS_LOADING_APP) {
+                return [true, {status: 'loaded'}];
+            }
+            return [undefined, {status: 'loaded'}];
+        });
 
+        // When the edit agent page renders
         const {toJSON} = render(
             <DynamicEditAgentPage
                 route={mockRoute}
@@ -305,6 +316,7 @@ describe('DynamicEditAgentPage', () => {
             />,
         );
 
+        // Then it waits for the app to load instead of showing Not Found for an agent that may still arrive
         expect(JSON.stringify(toJSON())).not.toContain('notFound.notHere');
     });
 });

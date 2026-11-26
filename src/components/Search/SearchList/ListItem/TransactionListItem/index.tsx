@@ -1,4 +1,5 @@
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
+import {useLockedAccountActions, useLockedAccountState} from '@components/LockedAccountModalProvider';
 import {
     ReportSubmitToPopoverAnchor,
     SEARCH_REPORT_SUBMIT_TO_POPOVER_ANCHOR_ALIGNMENT,
@@ -12,11 +13,12 @@ import useLiveRowCapabilities from '@components/Search/SearchList/ListItem/useLi
 import type {ListItem} from '@components/SelectionList/types';
 
 import useConfirmModal from '@hooks/useConfirmModal';
-import useConfirmSubmitReportViolations from '@hooks/useConfirmSubmitReportViolations';
+import useConfirmSubmitViolations from '@hooks/useConfirmSubmitViolations';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDistanceRateOriginalPolicy from '@hooks/useDistanceRateOriginalPolicy';
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import {useReportPaymentContext} from '@hooks/usePaymentContext';
 import {useGetPersonalDetailsByLogin} from '@hooks/usePersonalDetailByLogin';
@@ -104,6 +106,7 @@ function TransactionListItemInner<TItem extends ListItem>({
     const isDeletedTransaction = isDeletedTransactionUtil(transactionItem);
 
     const {isLargeScreenWidth} = useResponsiveLayout();
+    const {isOffline} = useNetwork();
     const {currentSearchHash, currentSearchKey} = useSearchQueryContext();
     const {currentSearchResults} = useSearchResultsContext();
     const snapshotData = currentSearchResults?.data;
@@ -117,16 +120,15 @@ function TransactionListItemInner<TItem extends ListItem>({
     // so the screen does not re-render every row when the moving policy changes.
     const isAttendeesEnabledForMovingPolicy = shouldShowAttendees(CONST.IOU.TYPE.SUBMIT, policyForMovingExpenses);
 
-    // Use report's policyID as fallback when transaction doesn't have policyID directly
     // Use moving-expense policy as final fallback for SelfDM tracking expenses.
     // NOTE: Using || instead of ?? to treat empty string "" as falsy
-    const explicitPolicyID = transactionItem.policyID || snapshotReport?.policyID;
+    const explicitPolicyID = snapshotReport?.policyID || transactionItem.report?.policyID;
     let policyID = explicitPolicyID || activePolicyIDFromOnyx;
     if (!policyID && transactionItem.reportID === CONST.REPORT.UNREPORTED_REPORT_ID) {
         policyID = policyForMovingExpensesID;
     }
     const [parentPolicy] = useOnyxWithoutSnapshots(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(policyID)}`);
-    const snapshotPolicy = (currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.POLICY}${transactionItem.policyID}`] ?? {}) as Policy;
+    const snapshotPolicy = (currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.POLICY}${explicitPolicyID}`] ?? {}) as Policy;
 
     const actionsData = currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionItem.reportID}`];
     const reportActions = actionsData ? Object.values(actionsData) : [];
@@ -224,8 +226,7 @@ function TransactionListItemInner<TItem extends ListItem>({
     const transactionViolations = mergeProhibitedViolations(rateOnyxViolations);
 
     const filteredViolationsCollection: OnyxCollection<TransactionViolations> = {[transactionViolationsKey]: transactionViolations};
-    const confirmSubmitReportViolations = useConfirmSubmitReportViolations({
-        reportID: transactionItem.reportID,
+    const confirmSubmitReportViolations = useConfirmSubmitViolations({
         report: reportForViolations,
         policy: policyForViolations,
         shouldShowMarkAsDoneCopy,
@@ -235,6 +236,8 @@ function TransactionListItemInner<TItem extends ListItem>({
 
     const {isDelegateAccessRestricted} = useDelegateNoAccessState();
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
+    const {isAccountLocked} = useLockedAccountState();
+    const {showLockedAccountModal} = useLockedAccountActions();
     const {translate} = useLocalize();
     const {getCurrencyDecimals} = useCurrencyListActions();
     const {showConfirmModal} = useConfirmModal();
@@ -254,6 +257,7 @@ function TransactionListItemInner<TItem extends ListItem>({
             hash: currentSearchHash,
             item: liveTransactionItem,
             goToItem: () => onSelectRow(item, transactionPreviewData, event),
+            policyID: explicitPolicyID,
             snapshotReport,
             snapshotPolicy,
             submitterLogin,
@@ -263,6 +267,8 @@ function TransactionListItemInner<TItem extends ListItem>({
             currentSearchKey,
             isDelegateAccessRestricted,
             onDelegateAccessRestricted: showDelegateNoAccessModal,
+            isAccountLocked,
+            onAccountLocked: showLockedAccountModal,
             personalPolicyID,
             ownerBillingGracePeriodEnd,
             onUndelete: () => onUndelete?.(transactionItem),
@@ -270,6 +276,8 @@ function TransactionListItemInner<TItem extends ListItem>({
             onPendingCardTransactionsBlock: () => showPendingCardTransactionsBlockModal(showConfirmModal, translate, shouldShowMarkAsDoneCopy),
             onAllHeldExpensesBlock: () => showHeldExpensesBlockModal(showConfirmModal, translate, shouldShowMarkAsDoneCopy),
             confirmSubmitReportViolations,
+            // Transaction rows cannot approve reports; do not initialize a report approval hook for each row.
+            confirmApproveReportViolations: () => undefined,
             currentUserAccountID,
             currentUserLogin,
             activePolicy,
@@ -301,7 +309,8 @@ function TransactionListItemInner<TItem extends ListItem>({
         shouldSyncFocus,
         columns,
         isLoading,
-        isActionLoading,
+        // Queued actions cannot complete offline, so hide their spinner but keep the Onyx flag for Search row retention.
+        isActionLoading: !isOffline && isActionLoading,
         transactionViolations,
         handleActionButtonPress,
         shouldDisableActionPointerEvents: shouldDisableSearchSubmitPress,

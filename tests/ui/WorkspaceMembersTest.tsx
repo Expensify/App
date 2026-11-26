@@ -188,6 +188,100 @@ describe('WorkspaceMembers', () => {
         jest.clearAllMocks();
     });
 
+    describe('Edit category visibility option', () => {
+        const EDIT_CATEGORY_VISIBILITY = 'workspace.people.editCategoryVisibility';
+
+        const openActionsForMember = async () => {
+            const {unmount} = renderPage(SCREENS.WORKSPACE.MEMBERS, {policyID: policy.id});
+            await waitForBatchedUpdatesWithAct();
+            await waitFor(() => {
+                expect(screen.getByText(USER_OPTION)).toBeOnTheScreen();
+            });
+            selectCheckboxByMemberName('Member');
+            await openBulkActions();
+            return unmount;
+        };
+
+        it('is offered to an admin of a Control workspace with categories', async () => {
+            // Given a Control workspace with categories, where the current user is an admin
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, {areCategoriesEnabled: true});
+            });
+
+            // When a member is selected and the bulk actions are opened
+            const unmount = await openActionsForMember();
+
+            // Then the admin can set the selected members' category visibility in one go
+            expect(screen.getByText(TestHelper.translateLocal(EDIT_CATEGORY_VISIBILITY))).toBeOnTheScreen();
+
+            unmount();
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        it('is not offered when the workspace has categories turned off', async () => {
+            // Given a Control workspace without categories
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, {areCategoriesEnabled: false});
+            });
+
+            // When a member is selected and the bulk actions are opened
+            const unmount = await openActionsForMember();
+
+            // Then there's no category visibility to edit
+            expect(screen.queryByText(TestHelper.translateLocal(EDIT_CATEGORY_VISIBILITY))).not.toBeOnTheScreen();
+
+            unmount();
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        it('shows a failed category visibility change on the member’s row, and dismissing it keeps the member', async () => {
+            // Given a bulk category visibility change the server rejected for a member, since this list is where the admin returns to
+            const errorMessage = 'Category visibility could not be saved';
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, {
+                    employeeList: {[userEmail]: {errorFields: {categoryVisibility: {categoryVisibilityError: errorMessage}}}},
+                });
+            });
+
+            // When the members list renders
+            const {unmount} = renderPage(SCREENS.WORKSPACE.MEMBERS, {policyID: policy.id});
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the error shows on the member's row
+            expect(await screen.findByText(errorMessage)).toBeOnTheScreen();
+
+            // When the admin dismisses it
+            const memberRow = screen.getByLabelText(new RegExp(`^Member User, ${userEmail}`));
+            const dismissButton = within(memberRow).getByLabelText(TestHelper.translateLocal('common.dismiss'));
+            fireEvent.press(dismissButton);
+            await waitForBatchedUpdatesWithAct();
+
+            // Then only the error is cleared, and the member stays on the workspace
+            const updatedPolicy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`);
+            expect(updatedPolicy?.employeeList?.[userEmail]?.errorFields?.categoryVisibility).toBeUndefined();
+            expect(updatedPolicy?.employeeList?.[userEmail]?.email).toBe(userEmail);
+
+            unmount();
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        it('is not offered to a People Admin', async () => {
+            // Given a Control workspace with categories, where the current user is a People Admin rather than a workspace admin
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, {areCategoriesEnabled: true, role: CONST.POLICY.ROLE.PEOPLE_ADMIN});
+            });
+
+            // When a member is selected and the bulk actions are opened
+            const unmount = await openActionsForMember();
+
+            // Then the option isn't offered, since a People Admin can't change categories
+            expect(screen.queryByText(TestHelper.translateLocal(EDIT_CATEGORY_VISIBILITY))).not.toBeOnTheScreen();
+
+            unmount();
+            await waitForBatchedUpdatesWithAct();
+        });
+    });
+
     describe('Changing roles options', () => {
         it('should offer one Change role action instead of one action per role', async () => {
             // Given the members page with an admin selected
@@ -265,6 +359,53 @@ describe('WorkspaceMembers', () => {
             expect(screen.getByText(roleName(CONST.POLICY.ROLE.PEOPLE_ADMIN))).toBeOnTheScreen();
             expect(screen.getByText(roleName(CONST.POLICY.ROLE.PAYMENTS_ADMIN))).toBeOnTheScreen();
             expect(screen.getByText(memberRoleName())).toBeOnTheScreen();
+
+            unmount();
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        it('should group the roles into admin and other roles and badge the new ones', async () => {
+            // Given an admin selected for a role change on a Control workspace
+            await selectForRoleChange([adminEmail]);
+
+            // When the role screen opens
+            const {unmount} = renderRolePage(policy.id);
+            await waitForBatchedUpdatesWithAct();
+
+            // Then both group labels are shown, so admin roles read apart from the rest
+            await waitFor(() => {
+                expect(screen.getByText(TestHelper.translateLocal('workspace.common.adminRoles'))).toBeOnTheScreen();
+            });
+            expect(screen.getByText(TestHelper.translateLocal('workspace.common.otherRoles'))).toBeOnTheScreen();
+
+            // And both newly promoted roles are badged while admins learn about them
+            expect(screen.getByText(roleName(CONST.POLICY.ROLE.APPROVE_ONLY))).toBeOnTheScreen();
+            expect(screen.getByText(roleName(CONST.POLICY.ROLE.GUEST))).toBeOnTheScreen();
+            expect(screen.getAllByText(TestHelper.translateLocal('common.new'))).toHaveLength(2);
+
+            unmount();
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        it('should hide the admin roles label when no admin role can be assigned', async () => {
+            // Given a People Admin, who may assign no admin role
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, {
+                    role: CONST.POLICY.ROLE.PEOPLE_ADMIN,
+                    employeeList: {[selfEmail]: {email: selfEmail, role: CONST.POLICY.ROLE.PEOPLE_ADMIN}},
+                });
+            });
+            await selectForRoleChange([userEmail]);
+
+            // When the role screen opens
+            const {unmount} = renderRolePage(policy.id);
+            await waitForBatchedUpdatesWithAct();
+
+            // Then only the other roles group is labelled, so an empty admin group leaves no stray heading
+            await waitFor(() => {
+                expect(screen.getByText(TestHelper.translateLocal('workspace.common.otherRoles'))).toBeOnTheScreen();
+            });
+            expect(screen.queryByText(TestHelper.translateLocal('workspace.common.adminRoles'))).not.toBeOnTheScreen();
 
             unmount();
             await waitForBatchedUpdatesWithAct();
@@ -679,7 +820,8 @@ describe('WorkspaceMembers', () => {
     });
 
     describe('Approver column', () => {
-        const approverHeaderLabel = () => TestHelper.translateLocal('workflowsPage.approver');
+        // The heading opens the column menu, which is named after the column.
+        const approverHeaderLabel = () => TestHelper.translateLocal('search.columnMenu.openMenu', {columnName: TestHelper.translateLocal('workflowsPage.approver')});
 
         it("shows each member's first approver, including the admin who approves themselves", async () => {
             // Given a policy with approvals on and every member (including the admin) submitting to the admin:

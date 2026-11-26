@@ -1,6 +1,7 @@
 import FSClassView from '@components/FSClassView';
 
 import useConciergeAskState from '@hooks/useConciergeAskState';
+import useIsMobileWebLandscape from '@hooks/useIsMobileWebLandscape';
 import useReportRecipientLocalTime from '@hooks/useReportRecipientLocalTime';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -25,12 +26,14 @@ function ReportActionsListPaddingView({report, isReportArchived, children}: Repo
     const reportActionsListFSClass = FS.getChatFSClass(report);
 
     const shouldShowComposerForActiveEditDraft = useShouldShowComposerForActiveEditDraft();
+    const shouldUseCompactChrome = useIsMobileWebLandscape();
     const {isHistoryExpanded: isConciergeHistoryExpanded} = useConciergeAskState(report.reportID);
     const hideComposer = !canUserPerformWriteAction(report, isReportArchived) && !shouldShowComposerForActiveEditDraft;
+    const applyPaddingBetweenListAndComposer = !canShowRecipientLocalTime && !hideComposer && !isConciergeHistoryExpanded && !shouldUseCompactChrome;
 
     return (
         <FSClassView
-            style={[styles.flex1, !canShowRecipientLocalTime && !hideComposer && !isConciergeHistoryExpanded ? styles.pb4 : {}]}
+            style={[styles.flex1, applyPaddingBetweenListAndComposer ? styles.pb4 : {}]}
             forwardedFSClass={reportActionsListFSClass}
         >
             {children}

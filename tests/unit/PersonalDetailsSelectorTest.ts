@@ -1,22 +1,20 @@
-import type {LocalizedTranslate} from '@components/LocaleContextProvider';
+import {isEmailPublicDomain} from '@libs/LoginUtils';
+import {getParsedMessageWithShortMentions} from '@libs/ParsingUtils';
 
-import {temporaryGetDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
-
-import CONST from '@src/CONST';
 import type {PersonalDetails, PersonalDetailsList} from '@src/types/onyx';
 
 import {
     createDisplayDetailsByAccountIDsSelector,
     multiPersonalDetailsSelector,
-    personalDetailsDisplayNameSelector,
     personalDetailsListSelector,
     personalDetailsLoginSelector,
     personalDetailsLoginsSelector,
     personalDetailsSelector,
+    shortMentionLoginsSelector,
 } from '@selectors/PersonalDetails';
+import {Str} from 'expensify-common';
 
 import createMock from '../utils/createMock';
-import {formatPhoneNumber, translateLocal} from '../utils/TestHelper';
 
 describe('PersonalDetailsSelector', () => {
     const accountID = 123;
@@ -42,58 +40,6 @@ describe('PersonalDetailsSelector', () => {
         it('should return undefined if the personalDetailsList is undefined', () => {
             const result = personalDetailsSelector(accountID)(undefined);
             expect(result).toBeUndefined();
-        });
-    });
-
-    describe('personalDetailsDisplayNameSelector', () => {
-        it('should return the display name for the given accountID', () => {
-            const result = personalDetailsDisplayNameSelector(accountID, translateLocal, formatPhoneNumber)(personalDetailsList);
-            expect(result).toEqual(temporaryGetDisplayNameOrDefault({passedPersonalDetails: personalDetails, translate: translateLocal, formatPhoneNumber}));
-        });
-
-        it('should return concierge display name for concierge accountID', () => {
-            const conciergeDetails = {
-                accountID: CONST.ACCOUNT_ID.CONCIERGE,
-                displayName: 'Some Other Name',
-                login: 'concierge@expensify.com',
-            };
-            const list = createMock<PersonalDetailsList>({
-                [CONST.ACCOUNT_ID.CONCIERGE]: conciergeDetails,
-            });
-
-            const result = personalDetailsDisplayNameSelector(CONST.ACCOUNT_ID.CONCIERGE, translateLocal, formatPhoneNumber)(list);
-            expect(result).toBe(CONST.CONCIERGE_DISPLAY_NAME);
-        });
-
-        it('should return login when displayName is missing', () => {
-            const personalDetailsWithLoginOnly = {
-                accountID,
-                login: 'fallback@user.com',
-            };
-            const list = createMock<PersonalDetailsList>({
-                [accountID]: personalDetailsWithLoginOnly,
-            });
-
-            const result = personalDetailsDisplayNameSelector(accountID, translateLocal, formatPhoneNumber)(list);
-            expect(result).toBe('fallback@user.com');
-        });
-
-        it('should return default display name if the accountID is not in the list', () => {
-            const result = personalDetailsDisplayNameSelector(999, translateLocal, formatPhoneNumber)(personalDetailsList);
-            expect(result).toEqual(temporaryGetDisplayNameOrDefault({translate: translateLocal, formatPhoneNumber}));
-        });
-
-        it('should return default display name if the personalDetailsList is undefined', () => {
-            const result = personalDetailsDisplayNameSelector(accountID, translateLocal, formatPhoneNumber)(undefined);
-            expect(result).toEqual(temporaryGetDisplayNameOrDefault({translate: translateLocal, formatPhoneNumber}));
-        });
-
-        it('should resolve the hidden fallback through the provided translate function', () => {
-            const translateWithHiddenMarker: LocalizedTranslate = (path, ...parameters) => (path === 'common.hidden' ? 'HiddenMarker' : translateLocal(path, ...parameters));
-
-            const result = personalDetailsDisplayNameSelector(999, translateWithHiddenMarker, formatPhoneNumber)(personalDetailsList);
-
-            expect(result).toBe('HiddenMarker');
         });
     });
 
@@ -144,6 +90,55 @@ describe('PersonalDetailsSelector', () => {
         it('should return an empty array if none of the accountIDs exist in the list', () => {
             const result = personalDetailsLoginsSelector([888, 999])(multiPersonalDetailsList);
             expect(result).toEqual([]);
+        });
+    });
+
+    describe('shortMentionLoginsSelector', () => {
+        const teammateAccountID = 1;
+        const outsiderAccountID = 2;
+        const phoneAccountID = 3;
+        const noLoginAccountID = 4;
+        const loginsList = createMock<PersonalDetailsList>({
+            [teammateAccountID]: {accountID: teammateAccountID, login: 'john@acme.com'},
+            [outsiderAccountID]: {accountID: outsiderAccountID, login: 'jane@other.com'},
+            [phoneAccountID]: {accountID: phoneAccountID, login: '+15005550006@expensify.sms'},
+            [noLoginAccountID]: {accountID: noLoginAccountID, displayName: 'No Login'},
+        });
+        const allLogins = ['john@acme.com', 'jane@other.com', '+15005550006@expensify.sms'];
+
+        it('keeps teammates on the private domain and phone logins', () => {
+            // Given a user on a private domain
+            // When the logins are selected
+            const result = shortMentionLoginsSelector('me@acme.com')(loginsList);
+
+            // Then only logins a short mention can resolve to are kept
+            expect(result).toEqual(['john@acme.com', '+15005550006@expensify.sms']);
+        });
+
+        it('keeps only phone logins for a user on a public domain or without a login', () => {
+            // Given a user on a public domain, and a user whose login is not loaded
+            // When the logins are selected
+            // Then no email login can match a short mention, so only phone logins are kept
+            expect(shortMentionLoginsSelector('me@gmail.com')(loginsList)).toEqual(['+15005550006@expensify.sms']);
+            expect(shortMentionLoginsSelector('')(loginsList)).toEqual(['+15005550006@expensify.sms']);
+        });
+
+        it('returns an empty list before personal details load', () => {
+            // Given no personal details yet
+            // When the logins are selected
+            // Then there is nothing to resolve short mentions against
+            expect(shortMentionLoginsSelector('me@acme.com')(undefined)).toEqual([]);
+        });
+
+        it.each(['me@acme.com', 'me@gmail.com', ''])('resolves short mentions the same as the full list for %s', (currentUserLogin) => {
+            // Given a message that mentions a teammate, an outsider, a phone number with and without a plus, and unknown names
+            const text = 'hi @john @jane @15005550006 @+15005550006 @nobody @John';
+            const userEmailDomain = isEmailPublicDomain(currentUserLogin) ? '' : Str.extractEmailDomain(currentUserLogin);
+            const parse = (availableMentionLogins: string[]) => getParsedMessageWithShortMentions({text, userEmailDomain, availableMentionLogins, parserOptions: {}});
+
+            // When it is parsed with the selected logins and with every login
+            // Then the HTML is the same, so the narrower list never changes what a short mention resolves to
+            expect(parse(shortMentionLoginsSelector(currentUserLogin)(loginsList))).toBe(parse(allLogins));
         });
     });
 

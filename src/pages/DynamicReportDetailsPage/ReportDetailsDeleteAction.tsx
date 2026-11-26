@@ -55,6 +55,7 @@ function ReportDetailsDeleteAction({reportID, caseID, requestData}: ReportDetail
             isSingleTransactionView,
             isMoneyRequestReportArchived,
             isChatIOUReportArchived,
+            isArchivedIOUReport,
             iouPolicy,
             deleteTransactions,
         } = requestData;
@@ -81,6 +82,7 @@ function ReportDetailsDeleteAction({reportID, caseID, requestData}: ReportDetail
                 isSingleTransactionView,
                 isChatReportArchived: isMoneyRequestReportArchived,
                 isChatIOUReportArchived,
+                isArchivedIOUReport,
                 allTransactionViolationsParam: allTransactionViolations,
                 currentUserAccountID,
                 currentUserEmail: currentUserEmail ?? '',
@@ -98,6 +100,7 @@ function ReportDetailsDeleteAction({reportID, caseID, requestData}: ReportDetail
 
     return (
         <MenuItemAction
+            sentryLabel={shouldShowEditSplitOnDeleteAction ? CONST.SENTRY_LABEL.REPORT_DETAILS.EDIT_SPLITS : CONST.SENTRY_LABEL.REPORT_DETAILS.DELETE}
             key={CONST.REPORT_DETAILS_MENU_ITEM.DELETE}
             icon={shouldShowEditSplitOnDeleteAction ? expensifyIcons.ArrowSplit : expensifyIcons.Trashcan}
             title={deleteMenuItemTitle}

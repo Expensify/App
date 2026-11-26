@@ -1,17 +1,17 @@
 /**
  * Form where an admin describes a rule in plain English and Concierge builds the rule.
  */
-import Button from '@components/Button';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues, FormRef} from '@components/Form/types';
 import type {AnimatedTextInputRef} from '@components/RNTextInput';
-import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 
+import useKeyboardDrivenScroll from '@hooks/useKeyboardDrivenScroll';
+import type {KeyboardScrollable} from '@hooks/useKeyboardDrivenScroll/types';
 import useLocalize from '@hooks/useLocalize';
-import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import useScrollOnKeyboardReopen from '@hooks/useScrollOnKeyboardReopen';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {getDecodedCategoryName} from '@libs/CategoryUtils';
@@ -28,11 +28,10 @@ import {
 } from '@userActions/Policy/Rules';
 
 import CONST from '@src/CONST';
-import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/NewRulePromptForm';
 import type {PolicyCategories, PolicyCategory} from '@src/types/onyx';
-import type {GeneratedRuleImpossibleReason, GeneratedRuleState, GeneratedRuleType, GeneratedRuleValues} from '@src/types/onyx/GeneratedRule';
+import type {GeneratedRuleState, GeneratedRuleType, GeneratedRuleValues} from '@src/types/onyx/GeneratedRule';
 
 import type {ReactNode} from 'react';
 import type {StyleProp, TextInputKeyPressEvent, ViewStyle} from 'react-native';
@@ -41,6 +40,10 @@ import type {OnyxEntry} from 'react-native-onyx';
 import {useFocusEffect} from '@react-navigation/native';
 import React, {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
+import {useAnimatedRef} from 'react-native-reanimated';
+
+import ImpossibleRuleNotice from './ImpossibleRuleNotice';
+import useSuggestionButtonRow from './useSuggestionButtonRow';
 
 type NewRulePromptFormID = typeof ONYXKEYS.FORMS.NEW_RULE_PROMPT_FORM;
 
@@ -101,15 +104,6 @@ type PendingGeneration = {
 
 const GENERATED_RULE_TYPES = new Set<string>(Object.values(CONST.GENERATED_RULE.RULE_TYPE));
 
-// A reason that this app version does not know gets the general title
-const IMPOSSIBLE_TITLE_BY_REASON: Partial<Record<string, TranslationPaths>> = {
-    [CONST.GENERATED_RULE.IMPOSSIBLE_REASON.NO_TRIGGER]: 'workspace.rules.newRule.impossible.noTrigger',
-    [CONST.GENERATED_RULE.IMPOSSIBLE_REASON.NO_CAPABILITY]: 'workspace.rules.newRule.impossible.noCapability',
-    [CONST.GENERATED_RULE.IMPOSSIBLE_REASON.MISSING_DATA]: 'workspace.rules.newRule.impossible.missingData',
-    [CONST.GENERATED_RULE.IMPOSSIBLE_REASON.RETROACTIVE]: 'workspace.rules.newRule.impossible.retroactive',
-    [CONST.GENERATED_RULE.IMPOSSIBLE_REASON.HISTORY_LIMIT]: 'workspace.rules.newRule.impossible.historyLimit',
-} satisfies Record<GeneratedRuleImpossibleReason, TranslationPaths>;
-
 /** Returns whether a description with this answer can become an agent rule */
 function isAgentRuleFallbackState(state: GeneratedRuleState): boolean {
     return state === CONST.GENERATED_RULE.STATE.UNSUPPORTED || state === CONST.GENERATED_RULE.STATE.MULTIPLE_RULES || state === CONST.GENERATED_RULE.STATE.AGENT_RULE;
@@ -148,9 +142,10 @@ function DescribeRuleForm({
     onFinish,
 }: DescribeRuleFormProps) {
     const {translate} = useLocalize();
-    const {isOffline} = useNetwork();
     const styles = useThemeStyles();
     const formRef = useRef<FormRef>(null);
+    const scrollViewRef = useAnimatedRef<KeyboardScrollable>();
+    const scrollWithKeyboard = useKeyboardDrivenScroll(scrollViewRef);
     const inputRef = useRef<AnimatedTextInputRef>(null);
     const inputTopOffsetRef = useRef(0);
     const pendingGenerationRef = useRef<PendingGeneration>(undefined);
@@ -166,10 +161,6 @@ function DescribeRuleForm({
     const refusal = generatedRuleState === CONST.GENERATED_RULE.STATE.IMPOSSIBLE && !!generatedRuleID && generatedRuleID === submittedGenerationID ? generatedRule : undefined;
     const refusalSuggestedPrompt = refusal?.suggestedPrompt;
     const canCreateAnyway = !!refusalSuggestedPrompt && !!onAgentRuleFallback;
-    // An answer without an explanation still says why, with the general text for its reason
-    const refusalExplanation =
-        refusal && (refusal.explanation ? refusal.explanation : translate(IMPOSSIBLE_TITLE_BY_REASON[refusal.reason ?? ''] ?? 'workspace.rules.newRule.impossible.noCapability'));
-    const refusalDetail = refusalExplanation && refusalSuggestedPrompt ? translate('workspace.rules.newRule.impossible.explanationWithSuggestion', refusalExplanation) : refusalExplanation;
     const inputLabel = translate('workspace.rules.newRule.describeRuleInputLabel');
 
     const finish = () => {
@@ -296,9 +287,16 @@ function DescribeRuleForm({
         describeRule(prompt);
     };
 
+    // The keyboard reopens for an input that kept focus, so a drag since that focus must not cancel the scroll
+    const resetScrollOnKeyboardReopen = useScrollOnKeyboardReopen(inputRef, () => scrollWithKeyboard(inputTopOffsetRef.current, {shouldIgnoreEarlierDrag: true}), isActive);
+
     // On iOS and Android, the keyboard covers the focused input unless the form scrolls to it. The scroll stops at the end of
     // the content, therefore the submit button below the input also stays in view when it fits.
-    const scrollToInput = () => formRef.current?.scrollTo(inputTopOffsetRef.current);
+    const scrollToFocusedInput = () => {
+        // A genuine focus event already scrolls, so the corresponding keyboard show must not scroll again.
+        resetScrollOnKeyboardReopen();
+        scrollWithKeyboard(inputTopOffsetRef.current);
+    };
 
     const describeSuggestedRule = (suggestedPrompt: string) => {
         Log.info('[GenerateRule] Tried the suggested description', false, {policyID, generationID: refusal?.generationID, reason: refusal?.reason});
@@ -306,9 +304,12 @@ function DescribeRuleForm({
         describeRule(suggestedPrompt);
     };
 
+    const suggestionButtonRow = useSuggestionButtonRow(refusalSuggestedPrompt, describeSuggestedRule);
+
     return (
         <FormProvider
             ref={formRef}
+            scrollViewRef={scrollViewRef}
             formID={ONYXKEYS.FORMS.NEW_RULE_PROMPT_FORM}
             validate={validate}
             onSubmit={submit}
@@ -320,26 +321,10 @@ function DescribeRuleForm({
             shouldScrollChildToFocus={false}
             submitFlexEnabled={submitFlexEnabled}
             shouldHideFixErrorsAlert
-            isSubmitButtonNeutral={!!refusalSuggestedPrompt}
-            // The buttons share a row and wrap to two rows when a translated label does not fit beside the other one
-            submitButtonAndFooterContainerStyles={refusalSuggestedPrompt ? [styles.flexRow, styles.flexWrap, styles.gap2] : undefined}
-            // The form puts a bottom margin on the submit button when the footer follows it. Side by side, the buttons must line up.
-            submitButtonInnerStyles={refusalSuggestedPrompt ? [styles.flexGrow1, styles.flexBasisAuto, styles.mb0] : undefined}
-            footerContent={
-                !!refusalSuggestedPrompt && (
-                    <Button
-                        variant={CONST.BUTTON_VARIANT.SUCCESS}
-                        size={CONST.BUTTON_SIZE.LARGE}
-                        onPress={() => describeSuggestedRule(refusalSuggestedPrompt)}
-                        // Like the form's submit button, this button sends GenerateRule, which needs a connection
-                        isDisabled={isOffline}
-                        style={[styles.flexGrow1, styles.flexBasisAuto]}
-                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.DESCRIBE_RULE_TRY_SUGGESTION}
-                    >
-                        <Button.Text>{translate('workspace.rules.newRule.impossible.useSuggestion')}</Button.Text>
-                    </Button>
-                )
-            }
+            isSubmitButtonNeutral={suggestionButtonRow.isSubmitButtonNeutral}
+            submitButtonAndFooterContainerStyles={suggestionButtonRow.containerStyles}
+            submitButtonInnerStyles={suggestionButtonRow.submitButtonStyles}
+            footerContent={suggestionButtonRow.footerContent}
             // An empty description sends no request, so nothing would stop a loading state that starts on the press.
             shouldShowLoadingImmediatelyOnPress={!canSkipDescription}
             keyboardSubmitBehavior={CONST.KEYBOARD_SUBMIT_BEHAVIOR.SUBMIT_ONLY}
@@ -362,7 +347,9 @@ function DescribeRuleForm({
                     accessibilityLabel={inputLabel}
                     role={CONST.ROLE.PRESENTATION}
                     onKeyPress={submitFormOnModEnter}
-                    onFocus={scrollToInput}
+                    onFocus={scrollToFocusedInput}
+                    onBlur={resetScrollOnKeyboardReopen}
+                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.DESCRIBE_RULE_INPUT}
                     maxLength={CONST.GENERATED_RULE.PROMPT_MAX_LENGTH}
                     multiline
                     shouldSaveDraft
@@ -372,12 +359,7 @@ function DescribeRuleForm({
                     inputStyle={[styles.flex1, styles.textAlignVerticalTop]}
                 />
             </View>
-            {!!refusal && (
-                <View style={styles.mt4}>
-                    {!!refusalDetail && <Text style={styles.textSupporting}>{refusalDetail}</Text>}
-                    {!!refusalSuggestedPrompt && <Text style={styles.mt3}>{translate('workspace.rules.newRule.impossible.quotedSuggestion', refusalSuggestedPrompt)}</Text>}
-                </View>
-            )}
+            {!!refusal && <ImpossibleRuleNotice refusal={refusal} />}
         </FormProvider>
     );
 }

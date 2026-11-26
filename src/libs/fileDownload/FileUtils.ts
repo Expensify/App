@@ -1,17 +1,18 @@
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 
 import DateUtils from '@libs/DateUtils';
+import HttpsError from '@libs/Errors/HttpsError';
 import fileURIToPath from '@libs/fileURIToPath';
 import getPlatform from '@libs/getPlatform';
 import Log from '@libs/Log';
 import saveLastRoute from '@libs/saveLastRoute';
+import {decodeURIComponentSafely} from '@libs/Url';
 
 import CONST from '@src/CONST';
-import type {TranslationPaths} from '@src/languages/types';
 import type {FileObject, ImagePickerResponse} from '@src/types/utils/Attachment';
 
 import type {ReactNativeBlobUtilReadStream} from 'react-native-blob-util';
-import type {TupleToUnion, ValueOf} from 'type-fest';
+import type {ValueOf} from 'type-fest';
 
 import {Str} from 'expensify-common';
 import mimeDb from 'mime-db';
@@ -104,7 +105,8 @@ function showCameraPermissionsAlert(translate: LocalizedTranslate) {
  *
  * This function takes a URL as input and performs the following operations:
  * 1. Extracts the last segment of the URL.
- * 2. Decodes the extracted segment from URL encoding to a plain string for better readability.
+ * 2. Decodes the extracted segment from URL encoding to a plain string for better readability,
+ *    keeping the raw segment when its percent-encoding is malformed.
  * 3. Replaces any characters in the decoded string that are illegal in file names
  *    with underscores.
  */
@@ -115,7 +117,7 @@ function getFileName(url: string): string {
         Log.warn('[FileUtils] Could not get attachment name', {url});
     }
 
-    return decodeURIComponent(fileName).replaceAll(CONST.REGEX.ILLEGAL_FILENAME_CHARACTERS, '_');
+    return decodeURIComponentSafely(fileName).replaceAll(CONST.REGEX.ILLEGAL_FILENAME_CHARACTERS, '_');
 }
 
 function isImage(fileName: string): boolean {
@@ -165,6 +167,23 @@ function getDownloadFileName(displayName: string, source: string): string {
         return displayName;
     }
     return `${displayName}.${sourceExtension}`;
+}
+
+/**
+ * Whether the response to a file download is an API error instead of the file. The commands that return CSV and ABA
+ * files only respond with JSON when they fail.
+ */
+function isErrorResponseForFileDownload(contentType: string | null, fileName?: string): boolean {
+    return contentType === 'application/json' && ['.csv', '.aba'].some((extension) => fileName?.includes(extension));
+}
+
+/**
+ * Rejects with the API's error so the caller can tell the user why the download failed.
+ */
+function rejectWithFileDownloadError(response: Response): Promise<never> {
+    return response.json().then((error: {jsonCode?: number; message?: string}) => {
+        throw new HttpsError({message: error.message ?? '', status: String(error.jsonCode ?? '')});
+    });
 }
 
 /**
@@ -577,20 +596,6 @@ function matchesFileSignature(headerHex: string, formatSignatures: readonly stri
     return formatSignatures.some((signature) => hexAtOffset.startsWith(signature));
 }
 
-/**
- * Verify file format based on the magic bytes of the file - some formats might be identified by multiple signatures.
- *
- * `signatureOffset` is the byte offset the signatures are expected at (`CONST.HEIC_SIGNATURE_OFFSET`, `CONST.TIFF_SIGNATURE_OFFSET`).
- * To check one file against several formats, use `readFileHeaderHex` once and `matchesFileSignature` per format instead.
- */
-function verifyFileFormat({fileUri, formatSignatures, signatureOffset}: {fileUri: string; formatSignatures: readonly string[]; signatureOffset: number}): Promise<boolean> {
-    if (!fileUri || !formatSignatures || formatSignatures.length === 0) {
-        return Promise.resolve(false);
-    }
-
-    return readFileHeaderHex(fileUri).then((headerHex) => matchesFileSignature(headerHex, formatSignatures, signatureOffset));
-}
-
 function isLocalFile(receiptUri?: string | number): boolean {
     if (!receiptUri) {
         return false;
@@ -630,7 +635,11 @@ const getImageDimensionsFromFileHeader = (blob: Blob): Promise<{width: number; h
     return new Promise((resolve) => {
         const reader = new FileReader();
         reader.onload = () => {
-            const arr = new Uint8Array(reader.result as ArrayBuffer);
+            if (!(reader.result instanceof ArrayBuffer)) {
+                resolve(null);
+                return;
+            }
+            const arr = new Uint8Array(reader.result);
 
             // Check for JPEG (starts with 0xFF 0xD8)
             if (arr[0] === 0xff && arr[1] === 0xd8) {
@@ -743,41 +752,10 @@ const resizeImageIfNeeded = (file: FileObject) => {
         .then((result) => createFile(result));
 };
 
-const validateReceipt = (file: FileObject, setUploadReceiptError: (isInvalid: boolean, title: TranslationPaths, reason: TranslationPaths) => void) => {
-    return validateImageForCorruption(file)
-        .then(() => {
-            const {fileExtension} = splitExtensionFromFileName(file?.name ?? '');
-            if (
-                !CONST.API_ATTACHMENT_VALIDATIONS.ALLOWED_RECEIPT_EXTENSIONS.includes(
-                    fileExtension.toLowerCase() as TupleToUnion<typeof CONST.API_ATTACHMENT_VALIDATIONS.ALLOWED_RECEIPT_EXTENSIONS>,
-                )
-            ) {
-                setUploadReceiptError(true, 'attachmentPicker.wrongFileType', 'attachmentPicker.notAllowedExtension');
-                return false;
-            }
-
-            if (!Str.isImage(file.name ?? '') && (file?.size ?? 0) > CONST.API_ATTACHMENT_VALIDATIONS.RECEIPT_MAX_SIZE) {
-                setUploadReceiptError(true, 'attachmentPicker.attachmentTooLarge', 'attachmentPicker.sizeExceededWithLimit');
-                return false;
-            }
-
-            if ((file?.size ?? 0) < CONST.API_ATTACHMENT_VALIDATIONS.MIN_SIZE) {
-                setUploadReceiptError(true, 'attachmentPicker.attachmentTooSmall', 'attachmentPicker.sizeNotMet');
-                return false;
-            }
-            return true;
-        })
-        .catch(() => {
-            setUploadReceiptError(true, 'attachmentPicker.attachmentError', 'attachmentPicker.errorWhileSelectingCorruptedAttachment');
-            return false;
-        });
-};
-
 const isValidReceiptExtension = (file: FileObject) => {
     const {fileExtension} = splitExtensionFromFileName(file?.name ?? '');
-    return CONST.API_ATTACHMENT_VALIDATIONS.ALLOWED_RECEIPT_EXTENSIONS.includes(
-        fileExtension.toLowerCase() as TupleToUnion<typeof CONST.API_ATTACHMENT_VALIDATIONS.ALLOWED_RECEIPT_EXTENSIONS>,
-    );
+    const normalizedExtension = fileExtension.toLowerCase();
+    return CONST.API_ATTACHMENT_VALIDATIONS.ALLOWED_RECEIPT_EXTENSIONS.some((extension) => extension === normalizedExtension);
 };
 
 const hasHeicOrHeifExtension = (file: FileObject) => {
@@ -1008,7 +986,7 @@ const canvasFallback = (blob: Blob, fileName: string): Promise<File> => {
 function getFileWithUri(file: File) {
     const newFile = file;
     newFile.uri = URL.createObjectURL(newFile);
-    return newFile as FileObject;
+    return newFile;
 }
 
 function getFilesFromClipboardEvent(event: DragEvent) {
@@ -1020,15 +998,15 @@ function getFilesFromClipboardEvent(event: DragEvent) {
     return Array.from(files).map((file) => getFileWithUri(file));
 }
 
-function cleanFileObject(fileObject: FileObject): FileObject {
+function cleanFileObject(fileObject: FileObject): FileObject | null {
     if ('getAsFile' in fileObject && typeof fileObject.getAsFile === 'function') {
-        return fileObject.getAsFile() as FileObject;
+        return fileObject.getAsFile();
     }
 
     return fileObject;
 }
 
-function cleanFileObjectName(fileObject: FileObject): FileObject {
+function cleanFileObjectName(fileObject: FileObject | null): FileObject | null {
     if (fileObject instanceof File) {
         const cleanName = cleanFileName(fileObject.name);
         if (fileObject.name !== cleanName) {
@@ -1048,6 +1026,8 @@ function cleanFileObjectName(fileObject: FileObject): FileObject {
 
 export {
     showGeneralErrorAlert,
+    isErrorResponseForFileDownload,
+    rejectWithFileDownloadError,
     showSuccessAlert,
     showPermissionErrorAlert,
     showCameraPermissionsAlert,
@@ -1064,22 +1044,18 @@ export {
     getExportFileName,
     appendTimeToFileName,
     ANDROID_SAFE_FILE_NAME_LENGTH,
-    truncateFileNameToSafeLengthOnAndroid,
     readFileAsync,
     base64ToFile,
     convertFileObjectOrUriToBase64DataURL,
     isLocalFile,
     validateImageForCorruption,
-    isImage,
     getFileResolution,
     isHighResolutionImage,
-    verifyFileFormat,
     readFileHeaderHex,
     matchesFileSignature,
     getImageDimensionsAfterResize,
     resizeImageIfNeeded,
     createFile,
-    validateReceipt,
     normalizeFileObject,
     getMimeTypeFromUri,
     isValidReceiptExtension,
