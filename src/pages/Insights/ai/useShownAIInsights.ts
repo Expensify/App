@@ -1,5 +1,7 @@
 import INSIGHTS_DASHBOARD_SPECS from '@pages/Insights/dashboardSpecs';
 import type {InsightsFilters} from '@pages/Insights/insightsFilters';
+import type {InsightsTimeGroupBy} from '@pages/Insights/insightsGroupByUtils';
+import {getQueryGroupBy} from '@pages/Insights/insightsGroupByUtils';
 
 import CONST from '@src/CONST';
 import type {AIInsight, InsightsDashboardID, InsightsScope} from '@src/types/onyx';
@@ -18,26 +20,38 @@ function buildInsightsScope(dashboardID: InsightsDashboardID, filters: InsightsF
     };
 }
 
-/** AI insights and the scope they were written for */
-type AIInsightsWithScope = {
+/** Shown AI insights, with the scope, date grouping and dashboard entry they were written for */
+type ShownAIInsights = {
+    /** Filters the cards were written for, sent to Concierge when the user asks to explain */
     scope: InsightsScope;
+
+    /** Card's insights to show, undefined while the first entry of the scope is still loading */
     insights: AIInsight[] | undefined;
+
+    /** Date grouping the cards were written for, since a new one brings new cards */
+    groupBy: InsightsTimeGroupBy;
+
+    /** Dashboard entry the cards come from, since another entry of the same scope differs only by the violation stage */
+    hash: number | undefined;
 };
 
-function useShownAIInsights(dashboardID: InsightsDashboardID, filters: InsightsFilters, currentEntryInsights: AIInsight[] | undefined): AIInsightsWithScope {
+function useShownAIInsights(dashboardID: InsightsDashboardID, filters: InsightsFilters, hash: number | undefined, currentEntryInsights: AIInsight[] | undefined): ShownAIInsights {
     const scope = buildInsightsScope(dashboardID, filters);
-    const [shownInsights, setShownInsights] = useState<AIInsightsWithScope>();
-    const isSameScope = !!shownInsights && deepEqual(shownInsights.scope, scope);
+    const groupBy = getQueryGroupBy(filters);
+    const [shownInsights, setShownInsights] = useState<ShownAIInsights>();
+    // The cards are written for the date grouping too, but not for the violation stage, which only changes the hash
+    const isSameScope = !!shownInsights && shownInsights.groupBy === groupBy && deepEqual(shownInsights.scope, scope);
 
     if (currentEntryInsights === undefined) {
-        return isSameScope ? shownInsights : {scope, insights: undefined};
+        return isSameScope ? shownInsights : {scope, insights: undefined, groupBy, hash};
     }
 
-    if (isSameScope && deepEqual(shownInsights.insights, currentEntryInsights)) {
+    // Another entry of the same scope differs only by the violation stage, so its cards would only reword the shown ones
+    if (isSameScope && (shownInsights.hash !== hash || deepEqual(shownInsights.insights, currentEntryInsights))) {
         return shownInsights;
     }
 
-    const currentInsights = {scope: isSameScope ? shownInsights.scope : scope, insights: currentEntryInsights};
+    const currentInsights = {scope: isSameScope ? shownInsights.scope : scope, insights: currentEntryInsights, groupBy, hash};
     setShownInsights(currentInsights);
     return currentInsights;
 }
