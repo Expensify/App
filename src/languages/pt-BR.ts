@@ -405,6 +405,7 @@ const translations: TranslationDeepObject<typeof en> = {
         reportID: 'ID do relatório',
         longReportID: 'ID de relatório longo',
         withdrawalID: 'ID do saque',
+        transactionID: 'ID da transação',
         internationalReimbursementIDs: 'IDs de reembolso internacional',
         amountDebited: 'Valor debitado',
         amountReimbursed: 'Valor reembolsado',
@@ -1938,14 +1939,15 @@ const translations: TranslationDeepObject<typeof en> = {
         wisePaymentSummary: {
             confirmPayment: 'Confirmar pagamento',
             reportTotal: 'Total do relatório',
-            unheldAmountBeingPaid: 'Valor não retido a pagar',
-            debitAmount: 'Valor debitado',
             employeeWillReceive: 'O funcionário receberá',
+            companyWillPay: 'A empresa pagará',
             totalFees: 'Taxas totais',
             fxRate: 'Taxa de câmbio',
             paymentDetails: 'Detalhes do pagamento',
             debitedAmount: 'Valor debitado',
             employeeReceived: 'O funcionário recebeu',
+            paymentDisclosure: ({buttonText}: {buttonText: string}) =>
+                `<muted-text-micro>O destinatário pode receber menos devido a tarifas cobradas pelo banco dele e a impostos estrangeiros. Ao clicar em ${buttonText}, aceito os <a href="${CONST.WISE.TERMS_URL}">Termos de Uso</a> e a <a href="${CONST.WISE.PRIVACY_URL}">Política de Privacidade</a> da Wise.</muted-text-micro>`,
             payAll: 'Pagar tudo',
             fxRateExpiredTitle: 'Taxa de câmbio expirada',
             fxRatesExpiredTitle: 'Taxas de câmbio expiradas',
@@ -4486,7 +4488,9 @@ ${amount} para ${merchant} - ${date}`,
     },
     welcomeSignUpForm: {
         join: 'Participar',
-        marketingSMSConsent: 'Concordo em receber mensagens de texto de marketing da Expensify',
+        transactionalSMSConsent: 'Ao fornecer meu número de telefone, concordo em receber alertas transacionais da minha conta da Expensify.',
+        transactionalSMSConsentFinePrint: 'Podem ser aplicadas tarifas padrão de mensagens e dados. Responda STOP para cancelar.',
+        marketingSMSConsent: 'Concordo em receber mensagens de texto de marketing da Expensify.',
     },
     detailsPage: {
         localTime: 'Hora local',
@@ -4691,6 +4695,15 @@ ${amount} para ${merchant} - ${date}`,
         updateSuccessMessage: 'Parabéns, sua conta bancária está configurada e pronta para receber reembolsos.',
         bankDetails: 'Dados bancários',
         accountHolderDetails: 'Dados do titular da conta',
+        notices: {
+            katakanaName:
+                'Insira seu nome exatamente como aparece na sua conta bancária japonesa. Ele geralmente é escrito em カタカナ (katakana). Uma diferença pode atrasar ou fazer com que seu pagamento seja rejeitado.',
+            alipayRecipients: 'Somente destinatários da China continental, Hong Kong ou Macau podem receber pagamentos via Alipay.',
+            alipayLimits:
+                'O Alipay pode receber até 50.000 CNY por pagamento e entre 300.000 e 600.000 CNY por ano. Limites mensais quanto ao número de pagamentos também podem ser aplicados, dependendo da finalidade do pagamento.',
+            malaysianNonResidentLimit:
+                'Não residentes com conta bancária na Malásia só podem receber 10.000 ringgits malaios por dia. Um pagamento acima desse limite pode levar o seu banco a encerrar sua conta.',
+        },
     },
     addPersonalBankAccountPage: {
         enterPassword: 'Insira a senha do Expensify',
@@ -7272,6 +7285,8 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
             createFailureMessage: 'Ocorreu um erro ao criar a categoria, tente novamente.',
             addCategory: 'Adicionar categoria',
             createCategoryFromSearch: (categoryName: string) => `Criar categoria “${categoryName}”`,
+            availableToMember: (memberName: string) => `Disponível para ${memberName}`,
+            notAvailableToMember: (memberName: string) => `Não disponível para ${memberName}`,
             editCategory: 'Editar categoria',
             editCategories: 'Editar categorias',
             findCategory: 'Encontrar categoria',
@@ -8033,6 +8048,9 @@ O plano Control começa em US$ 9 por membro ativo por mês.`,
             categoryVisibilityRequiredModal: {title: 'Membros devem ter pelo menos uma categoria', description: 'Selecione pelo menos uma categoria que este membro possa usar.'},
             changeOfficeLocation: 'Alterar local do escritório',
             changeWorkArrangement: 'Alterar regime de trabalho',
+            editCategoryVisibility: 'Editar visibilidade da categoria',
+            bulkCategoryVisibilitySaved: ({categoryCount, memberCount}: {categoryCount: string; memberCount: string}) =>
+                `Definir ${categoryCount} para ${memberCount}. Isso substitui a visibilidade de categoria atual deles.`,
             changeRole: 'Alterar função',
             newRolesBanner: {
                 title: 'Novos cargos disponíveis',

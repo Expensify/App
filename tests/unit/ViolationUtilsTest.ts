@@ -178,6 +178,31 @@ describe('getViolationsOnyxData', () => {
         policyCategories = {};
     });
 
+    it('flags a stale selected value at a level with missing tags as out of policy', () => {
+        // Given independent levels with a valid selection followed by an empty list.
+        policyTags = createMock<PolicyTagLists>({
+            Department: {name: 'Department', orderWeight: 0, required: false, tags: {Sales: {name: 'Sales', enabled: true}}},
+            Broken: {name: 'Broken', orderWeight: 99},
+        });
+        transaction.tag = 'Sales:Previous selection';
+
+        // When an expense edit recalculates violations.
+        const result = ViolationsUtils.getViolationsOnyxData({
+            isVendorMatchingBetaEnabled: false,
+            ownerLogin: undefined,
+            updatedTransaction: transaction,
+            transactionViolations,
+            policy,
+            policyTagList: policyTags,
+            policyCategories,
+            hasDependentTags: false,
+            isInvoiceTransaction: false,
+        });
+
+        // Then the empty map invalidates its stale selection without crashing or shifting levels.
+        expect(getTransactionViolationsFromResult(result)).toContainEqual({...tagOutOfPolicyViolation, data: {tagName: 'Broken'}});
+    });
+
     it('should return an object with correct shape and with empty transactionViolations array', () => {
         const result = ViolationsUtils.getViolationsOnyxData({
             isVendorMatchingBetaEnabled: false,

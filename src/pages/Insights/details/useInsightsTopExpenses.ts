@@ -1,6 +1,6 @@
 import {useSession} from '@components/OnyxListItemProvider';
 import type {TransactionListItemType} from '@components/Search/SearchList/ListItem/types';
-import type {SearchQueryJSON, SearchQueryString} from '@components/Search/types';
+import type {SearchQueryJSON} from '@components/Search/types';
 
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useLocalize from '@hooks/useLocalize';
@@ -9,8 +9,6 @@ import useOnyx from '@hooks/useOnyx';
 
 import {getPositiveHasFilterValues, getViolationDisplayName, hasValuesIncludeViolationFilter} from '@libs/SearchQueryUtils';
 import {getSections, getSortedSections, getViolationNamesForTransaction, getViolationSnapshotActionsByTransactionID, isSearchDataLoaded} from '@libs/SearchUIUtils';
-
-import {buildTopExpensesQueryJSON} from '@pages/Insights/insightsQueries';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -26,28 +24,26 @@ type TopExpenses = {
     /** Labels of each expense's violations by transaction ID, undefined unless the query is narrowed to expenses with violations */
     violationsByTransactionID: Record<string, string[]> | undefined;
 
-    queryJSON: Readonly<SearchQueryJSON> | undefined;
     state: InsightsDetailsSectionState;
 };
 
 /** Returns the largest expenses stored for a Spend table query, as Spend rows sorted by amount, with their violations when the query is narrowed to expenses with violations. */
-function useInsightsTopExpenses(query: SearchQueryString, snapshotHash: number): TopExpenses {
+function useInsightsTopExpenses(queryJSON: Readonly<SearchQueryJSON>): TopExpenses {
     const {translate, localeCompare, formatPhoneNumber, dateFnsLocale} = useLocalize();
     const {convertToDisplayString} = useCurrencyListActions();
     const {isOffline} = useNetwork();
     const session = useSession();
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
-    const [snapshot] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${snapshotHash}`);
-    const queryJSON = buildTopExpensesQueryJSON(query);
+    const [snapshot] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${queryJSON.hash}`);
 
     const isLoaded = isSearchDataLoaded(snapshot, queryJSON);
     const hasErrors = !isEmptyObject(snapshot?.errors);
 
     const state = getInsightsDetailsSectionState({isOffline, isLoaded, hasErrors, responseJsonCode: snapshot?.search?.responseJsonCode});
 
-    if (!queryJSON || !snapshot?.data || state !== INSIGHTS_DETAILS_SECTION_STATE.READY) {
-        return {expenses: [], violationsByTransactionID: undefined, queryJSON, state};
+    if (!snapshot?.data || state !== INSIGHTS_DETAILS_SECTION_STATE.READY) {
+        return {expenses: [], violationsByTransactionID: undefined, state};
     }
 
     const [sections] = getSections({
@@ -75,7 +71,7 @@ function useInsightsTopExpenses(query: SearchQueryString, snapshotHash: number):
 
     const hasFilterValues = getPositiveHasFilterValues(queryJSON);
     if (!hasValuesIncludeViolationFilter(hasFilterValues)) {
-        return {expenses, violationsByTransactionID: undefined, queryJSON, state};
+        return {expenses, violationsByTransactionID: undefined, state};
     }
 
     // On a violation's panel, that violation leads each expense's list
@@ -92,7 +88,7 @@ function useInsightsTopExpenses(query: SearchQueryString, snapshotHash: number):
         }),
     );
 
-    return {expenses, violationsByTransactionID, queryJSON, state};
+    return {expenses, violationsByTransactionID, state};
 }
 
 export default useInsightsTopExpenses;

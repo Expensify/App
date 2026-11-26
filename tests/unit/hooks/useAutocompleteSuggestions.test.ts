@@ -513,6 +513,58 @@ describe('useAutocompleteSuggestions', () => {
         expect(suggestions).not.toContain(CONST.SEARCH.GROUP_BY.WORKFLOW_STAGE);
     });
 
+    it.each([
+        ['', true],
+        ['', false],
+        ['vio', false],
+    ] as const)('filters group-by suggestions for "%s" when violation search availability is %s', (value, shouldShowSubmittedViolation) => {
+        // Given violation search availability reflects the user's accessible group workspaces, independently of Rules
+        getHasOptionAvailability.mockReturnValueOnce({
+            shouldShowTag: true,
+            shouldShowCategory: true,
+            shouldShowSubmittedViolation,
+            shouldShowApprovedViolation: shouldShowSubmittedViolation,
+        });
+        parseForAutocomplete.mockReturnValue({
+            autocomplete: {key: CONST.SEARCH.SYNTAX_ROOT_KEYS.GROUP_BY, value},
+            ranges: [],
+        });
+
+        // When the user types a group-by value in the search input
+        const {result} = renderHook(() => useAutocompleteSuggestions({...defaultParams, autocompleteQueryValue: `group-by:${value}`}));
+
+        // Then Violation is only offered with an accessible group workspace, while other matching groupings remain available
+        const suggestions = result.current.map((suggestion) => suggestion.text);
+        expect(suggestions.includes(CONST.SEARCH.GROUP_BY.VIOLATION)).toBe(shouldShowSubmittedViolation);
+        if (!value) {
+            expect(suggestions).toContain(CONST.SEARCH.GROUP_BY.FROM);
+        }
+    });
+
+    it('removes the violation group-by suggestion when the last group workspace is removed', () => {
+        // Given an accessible group workspace with Rules off still supports violation search
+        const policies = {[`${ONYXKEYS.COLLECTION.POLICY}1`]: createMock<Policy>({id: '1', type: CONST.POLICY.TYPE.TEAM, areRulesEnabled: false})};
+        getHasOptionAvailability.mockReturnValueOnce({shouldShowTag: true, shouldShowCategory: true, shouldShowSubmittedViolation: true, shouldShowApprovedViolation: true});
+        parseForAutocomplete.mockReturnValue({
+            autocomplete: {key: CONST.SEARCH.SYNTAX_ROOT_KEYS.GROUP_BY, value: ''},
+            ranges: [],
+        });
+        const {result, rerender} = renderHook((props: Pick<Params, 'policies'>) => useAutocompleteSuggestions({...defaultParams, ...props, autocompleteQueryValue: 'group-by:'}), {
+            initialProps: {policies},
+        });
+        expect(getHasOptionAvailability).toHaveBeenLastCalledWith(policies);
+        expect(result.current.map((suggestion) => suggestion.text)).toContain(CONST.SEARCH.GROUP_BY.VIOLATION);
+
+        // When that workspace is removed while the search input stays open
+        getHasOptionAvailability.mockReturnValueOnce({shouldShowTag: false, shouldShowCategory: false, shouldShowSubmittedViolation: false, shouldShowApprovedViolation: false});
+        rerender({policies: {}});
+
+        // Then the suggestions use the updated workspaces and retain other grouping choices
+        expect(getHasOptionAvailability).toHaveBeenLastCalledWith({});
+        expect(result.current.map((suggestion) => suggestion.text)).not.toContain(CONST.SEARCH.GROUP_BY.VIOLATION);
+        expect(result.current.map((suggestion) => suggestion.text)).toContain(CONST.SEARCH.GROUP_BY.FROM);
+    });
+
     it('returns empty array for date key (presets filter)', () => {
         parseForAutocomplete.mockReturnValue({
             autocomplete: {key: CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE, value: 'to'},
