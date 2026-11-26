@@ -46,11 +46,19 @@ type SnapshotGuard = {
     includesReport: boolean;
 };
 
+/** Paging state of the search snapshot the navigation pages through */
 type SnapshotPaging = {
     isLoading: boolean;
+
     hasMoreResults: boolean;
+
+    /** Offset of the last page requested, written when the request goes out rather than when it answers */
     offset: number;
+
+    /** Whether a search on this snapshot is still running, including the ones that don't set `isLoading` */
     isPending: boolean;
+
+    /** Whether the last search on this snapshot failed. Its rows stay in place, but `offset` already moved to the failed page */
     didFail: boolean;
 };
 
@@ -102,10 +110,20 @@ const isSameReportList = (a: Array<string | undefined>, b: Array<string | undefi
     return true;
 };
 
+/**
+ * Puts the open report back into a live list that dropped it, right after the report that came before it in the
+ * last list that held it. When the live list no longer reaches the open report, the last list is returned instead.
+ */
 const keepReportInPlace = (liveReports: Array<string | undefined>, previousReports: Array<string | undefined>, reportID: string | undefined): Array<string | undefined> => {
     const previousIndex = previousReports.indexOf(reportID);
     if (!reportID || previousIndex === -1) {
         return liveReports;
+    }
+    // A first page refetch replaces the results with page 1, and the standalone list is empty until it is computed.
+    // Neither one holds the report next to the open one, and placing the open report in them would end the list there.
+    const neighborReport = previousReports.at(previousIndex + 1) ?? previousReports.at(previousIndex - 1);
+    if (!liveReports.includes(neighborReport)) {
+        return previousReports;
     }
     for (let i = previousIndex - 1; i >= 0; i--) {
         const liveIndex = liveReports.indexOf(previousReports.at(i));
@@ -179,8 +197,14 @@ function MoneyRequestReportNavigationContent({reportID, shouldDisplayNarrowVersi
 
     const hasUnconfirmedPage = paging.isPending || paging.didFail;
     const {answeredOffset: answeredLiveOffset, confirmedOffset: confirmedSnapshotOffset} = useLiveRowLimit(paging.offset, hasUnconfirmedPage);
+    // A failed first page refetch leaves `offset` at 0 while the pages after it are still loaded, so only a search
+    // that answered moves the snapshot cursor back
+    const [settledSnapshotOffset, setSettledSnapshotOffset] = useState(confirmedSnapshotOffset);
+    if (!hasUnconfirmedPage && settledSnapshotOffset !== confirmedSnapshotOffset) {
+        setSettledSnapshotOffset(confirmedSnapshotOffset);
+    }
     // A refresh rewinds the offset of a to-do search while its loaded rows stay in Onyx, so it pages on from the pages that answered
-    const nextPageOffset = (shouldUseLiveData ? answeredLiveOffset : confirmedSnapshotOffset) + CONST.SEARCH.RESULTS_PAGE_SIZE;
+    const nextPageOffset = (shouldUseLiveData ? answeredLiveOffset : settledSnapshotOffset) + CONST.SEARCH.RESULTS_PAGE_SIZE;
 
     // Fast path: use the pre-computed IDs from the search context when they are usable and no page is in
     // flight. Otherwise fall back to the standalone list, which is produced by the child below that mounts

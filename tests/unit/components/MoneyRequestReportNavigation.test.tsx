@@ -1,4 +1,4 @@
-import {act, render, renderHook} from '@testing-library/react-native';
+import {act, render, renderHook, screen} from '@testing-library/react-native';
 
 import MoneyRequestReportNavigation, {isNavigableReportID} from '@components/MoneyRequestReportView/MoneyRequestReportNavigation';
 import {useSearchResultsContext} from '@components/Search/SearchContext';
@@ -11,6 +11,8 @@ import {search} from '@userActions/Search';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import type {View} from 'react-native';
 
 import React from 'react';
 
@@ -47,14 +49,17 @@ jest.mock('@react-navigation/native', () => ({
 
 let mockOnNext: (() => void) | undefined;
 let mockIsNextButtonDisabled: boolean | undefined;
-jest.mock('@components/PrevNextButtons', () => ({
-    __esModule: true,
-    default: ({onNext, isNextButtonDisabled}: {onNext: () => void; isNextButtonDisabled: boolean}) => {
-        mockOnNext = onNext;
-        mockIsNextButtonDisabled = isNextButtonDisabled;
-        return null;
-    },
-}));
+jest.mock('@components/PrevNextButtons', () => {
+    const {View: RNView} = jest.requireActual<{View: typeof View}>('react-native');
+    return {
+        __esModule: true,
+        default: ({onNext, isNextButtonDisabled}: {onNext: () => void; isNextButtonDisabled: boolean}) => {
+            mockOnNext = onNext;
+            mockIsNextButtonDisabled = isNextButtonDisabled;
+            return <RNView testID="PrevNextButtons" />;
+        },
+    };
+});
 
 function pressNext() {
     act(() => mockOnNext?.());
@@ -181,6 +186,34 @@ describe('MoneyRequestReportNavigation', () => {
             // Then Next opens report 3 from the live list, because the cached list ended at report 2 and would leave Next stuck
             expect(Navigation.setParams).toHaveBeenCalledWith(expect.objectContaining({reportID: '3'}));
         });
+
+        it('keeps the loaded list when a first page refetch ends the results before the open report', () => {
+            // Given two pages of reports are loaded and report 60 is open
+            const loadedReportIDs = Array.from({length: CONST.SEARCH.RESULTS_PAGE_SIZE * 2}, (_, index) => `${index + 1}`);
+            const {rerenderWithReports} = renderNavigationWithReports('60', loadedReportIDs);
+
+            // When Pay or Submit loads the first page again, which replaces the results with reports 1-50
+            rerenderWithReports(loadedReportIDs.slice(0, CONST.SEARCH.RESULTS_PAGE_SIZE));
+            jest.mocked(Navigation.setParams).mockClear();
+            pressNext();
+
+            // Then Next opens report 61, because placing report 60 after report 50 would end the list at the open report
+            expect(Navigation.setParams).toHaveBeenCalledWith(expect.objectContaining({reportID: '61'}));
+        });
+
+        it('keeps the arrows while the standalone list is still empty', () => {
+            // Given report 2 of three loaded reports is open
+            const {rerenderWithReports} = renderNavigationWithReports('2', ['1', '2', '3']);
+
+            // When a search starts loading, so the navigation switches to the standalone list before it is computed
+            rerenderWithReports(['1', '2', '3'], {offset: 0, hasMoreResults: false, isLoading: true});
+
+            // Then the arrows stay visible and Next opens report 3 from the loaded list, instead of the list shrinking to the open report
+            expect(screen.getByTestId('PrevNextButtons')).toBeOnTheScreen();
+            jest.mocked(Navigation.setParams).mockClear();
+            pressNext();
+            expect(Navigation.setParams).toHaveBeenCalledWith(expect.objectContaining({reportID: '3'}));
+        });
     });
 
     describe('next page request', () => {
@@ -222,6 +255,18 @@ describe('MoneyRequestReportNavigation', () => {
 
             // Then page 2 is requested, because the snapshot is the only cursor that matches the loaded reports
             expect(search).toHaveBeenCalledWith(expect.objectContaining({offset: CONST.SEARCH.RESULTS_PAGE_SIZE}));
+        });
+
+        it('keeps paging from the loaded pages when a first page refetch fails', () => {
+            // Given two pages are loaded
+            const {setSnapshotSearch} = renderNavigationOnFirstPage('40', {offset: 0}, {offset: CONST.SEARCH.RESULTS_PAGE_SIZE, hasMoreResults: true});
+
+            // When a refetch of the first page fails, which moves the offset back to 0 but leaves both pages in the snapshot, and the user presses Next
+            setSnapshotSearch({offset: 0, hasMoreResults: true, responseJsonCode: CONST.JSON_CODE.EXP_ERROR});
+            pressNext();
+
+            // Then page 3 is requested, because page 2 is still loaded and asking for it again would add no reports
+            expect(search).toHaveBeenCalledWith(expect.objectContaining({offset: CONST.SEARCH.RESULTS_PAGE_SIZE * 2}));
         });
 
         it('requests the same page again after it failed', () => {
@@ -353,6 +398,35 @@ describe('MoneyRequestReportNavigation', () => {
         });
     });
 });
+
+/** Renders the navigation for `reportID` over `reportIDs`. `rerenderWithReports` replaces the context list and the snapshot's search state and re-renders. */
+function renderNavigationWithReports(reportID: string, reportIDs: string[]) {
+    const lastSearchQuery = {queryJSON: {type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT, hash: 1}};
+    const snapshot = {
+        data: Object.fromEntries(reportIDs.map((id) => [`${ONYXKEYS.COLLECTION.REPORT}${id}`, {reportID: id}])),
+        search: {offset: 0, hasMoreResults: false} as SnapshotSearch,
+    };
+    mockSortedReportIDs = reportIDs;
+    mockUseOnyx.mockImplementation((key: string, options?: {selector?: (value: unknown) => unknown}) => {
+        const value = key === ONYXKEYS.REPORT_NAVIGATION_LAST_SEARCH_QUERY ? lastSearchQuery : snapshot;
+        return [options?.selector ? options.selector(value) : value];
+    });
+    const renderNavigation = () => (
+        <MoneyRequestReportNavigation
+            reportID={reportID}
+            shouldDisplayNarrowVersion
+        />
+    );
+    const {rerender} = render(renderNavigation());
+
+    const rerenderWithReports = (nextReportIDs: string[], nextSnapshotSearch: SnapshotSearch = snapshot.search) => {
+        mockSortedReportIDs = nextReportIDs;
+        snapshot.search = nextSnapshotSearch;
+        rerender(renderNavigation());
+    };
+
+    return {rerenderWithReports};
+}
 
 /** Renders the navigation for `reportID` with the first page of 50 reports in the snapshot. `setSnapshotSearch` replaces the snapshot's search state and re-renders. */
 function renderNavigationOnFirstPage(reportID: string, searchParams: {offset: number}, snapshotSearch: SnapshotSearch) {
