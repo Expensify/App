@@ -3,7 +3,7 @@ import Button from '@components/Button';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import EmployeesSeeTagsAsText from '@components/EmployeesSeeTagsAsText';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderCentralPane from '@components/Header/composed/HeaderCentralPane';
 import ImportedFromAccountingSoftware from '@components/ImportedFromAccountingSoftware';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import RenderHTML from '@components/RenderHTML';
@@ -101,7 +101,7 @@ function getPendingAction(policyTagList: PolicyTagList): PendingAction | undefin
     if (!policyTagList) {
         return undefined;
     }
-    return (policyTagList.pendingAction ?? Object.values(policyTagList.tags).some((tag: PolicyTag) => tag.pendingAction)) ? CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE : undefined;
+    return (policyTagList.pendingAction ?? Object.values(policyTagList.tags ?? {}).some((tag: PolicyTag) => tag.pendingAction)) ? CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE : undefined;
 }
 
 /** Tag list names can repeat, so add the unique orderWeight to make each multi-level row key unique. */
@@ -682,7 +682,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                 size={CONST.BUTTON_SIZE.MEDIUM}
                 customText={translate('workspace.common.selected', {count: selectedTagKeys.length})}
                 options={getBulkActionOptions()}
-                style={[shouldDisplayButtonsInSeparateLine && styles.flexGrow1, shouldDisplayButtonsInSeparateLine && styles.mb3]}
+                style={shouldDisplayButtonsInSeparateLine && [styles.flexGrow1, styles.mb3]}
                 isDisabled={!selectedTagKeys.length}
                 sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.TAGS.BULK_ACTIONS_DROPDOWN}
                 testID="WorkspaceTagsPage-header-dropdown-menu-button"
@@ -783,11 +783,9 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                 shouldShowOfflineIndicatorInWideScreen
                 offlineIndicatorStyle={styles.mtAuto}
             >
-                <HeaderWithBackButton
-                    shouldUseHeadlineHeader={!selectionModeHeader}
+                <HeaderCentralPane
                     title={translate(selectionModeHeader ? 'common.selectMultiple' : 'workspace.common.tags')}
-                    shouldShowBackButton={shouldUseNarrowLayout}
-                    shouldDisplayHelpButton
+                    isHeadline={!selectionModeHeader}
                     onBackButtonPress={() => {
                         if (isMobileSelectionModeEnabled) {
                             clearTableSelection();
@@ -804,7 +802,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                     }}
                 >
                     {!shouldDisplayButtonsInSeparateLine && getHeaderButtons()}
-                </HeaderWithBackButton>
+                </HeaderCentralPane>
                 {shouldDisplayButtonsInSeparateLine && !!getHeaderButtons() && <View style={pageGutter}>{getHeaderButtons()}</View>}
                 {(!hasVisibleTags || isLoading) && headerContent}
                 {isLoading && (

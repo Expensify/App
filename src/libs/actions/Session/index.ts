@@ -2,6 +2,7 @@ import type {LocaleContextProps} from '@components/LocaleContextProvider';
 
 import {getFreshMarketingAttribution} from '@libs/actions/MarketingAttribution';
 import * as PersistedRequests from '@libs/actions/PersistedRequests';
+import getAdvertisingConsentParams from '@libs/AdvertisingConsent';
 import * as API from '@libs/API';
 import type {
     AuthenticatePusherParams,
@@ -680,6 +681,12 @@ function buildOnyxDataToCleanUpAnonymousUser(session: OnyxEntry<Session>): Perso
     return buildPersonalDetailsUpdate(data);
 }
 
+/** The text message consents collected when someone signs up with a phone number */
+type SMSConsent = {
+    hasSMSTransactionalConsent: boolean;
+    hasSMSMarketingConsent: boolean;
+};
+
 /**
  * Creates an account for the new user and signs them into the application with the newly created account.
  * The marketing attribution captured from the landing URL is sent with the request and cleared once signup succeeds.
@@ -687,7 +694,7 @@ function buildOnyxDataToCleanUpAnonymousUser(session: OnyxEntry<Session>): Perso
 function signUpUser(
     login: string | undefined,
     preferredLocale: Locale | undefined,
-    hasSMSMarketingConsent: boolean | undefined,
+    smsConsent: SMSConsent | undefined,
     storedMarketingAttribution: OnyxEntry<StoredMarketingAttribution>,
     session: OnyxEntry<Session>,
 ) {
@@ -732,9 +739,16 @@ function signUpUser(
     ];
 
     Device.getDeviceInfoWithID().then((deviceInfo) => {
-        const params: SignUpUserParams = {email: login, preferredLocale: preferredLocale ?? null, deviceInfo, ...getFreshMarketingAttribution(storedMarketingAttribution)};
-        if (hasSMSMarketingConsent !== undefined) {
-            params.hasSMSMarketingConsent = hasSMSMarketingConsent;
+        const params: SignUpUserParams = {
+            email: login,
+            preferredLocale: preferredLocale ?? null,
+            deviceInfo,
+            ...getAdvertisingConsentParams(),
+            ...getFreshMarketingAttribution(storedMarketingAttribution),
+        };
+        if (smsConsent) {
+            params.hasSMSTransactionalConsent = smsConsent.hasSMSTransactionalConsent;
+            params.hasSMSMarketingConsent = smsConsent.hasSMSMarketingConsent;
         }
         API.write(WRITE_COMMANDS.SIGN_UP_USER, params, {optimisticData, successData, failureData});
     });
@@ -920,7 +934,13 @@ function beginAppleSignIn(idToken: string | undefined | null, preferredLocale: L
     const onyxData = getThirdPartySignInOnyxData();
 
     Device.getDeviceInfoWithID().then((deviceInfo) => {
-        const params: BeginAppleSignInParams = {idToken, preferredLocale: preferredLocale ?? null, deviceInfo, ...getFreshMarketingAttribution(storedMarketingAttribution)};
+        const params: BeginAppleSignInParams = {
+            idToken,
+            preferredLocale: preferredLocale ?? null,
+            deviceInfo,
+            ...getAdvertisingConsentParams(),
+            ...getFreshMarketingAttribution(storedMarketingAttribution),
+        };
         API.write(WRITE_COMMANDS.SIGN_IN_WITH_APPLE, params, onyxData);
     });
 }
@@ -934,7 +954,13 @@ function beginGoogleSignIn(token: string | null, preferredLocale: Locale | undef
     const onyxData = getThirdPartySignInOnyxData();
 
     Device.getDeviceInfoWithID().then((deviceInfo) => {
-        const params: BeginGoogleSignInParams = {token, preferredLocale: preferredLocale ?? null, deviceInfo, ...getFreshMarketingAttribution(storedMarketingAttribution)};
+        const params: BeginGoogleSignInParams = {
+            token,
+            preferredLocale: preferredLocale ?? null,
+            deviceInfo,
+            ...getAdvertisingConsentParams(),
+            ...getFreshMarketingAttribution(storedMarketingAttribution),
+        };
         API.write(WRITE_COMMANDS.SIGN_IN_WITH_GOOGLE, params, onyxData);
     });
 }
@@ -1068,6 +1094,7 @@ function signIn(
             email: login,
             preferredLocale: preferredLocale ?? null,
             deviceInfo,
+            ...getAdvertisingConsentParams(),
         };
 
         // Conditionally pass a password or validateCode to command since we temporarily allow both flows

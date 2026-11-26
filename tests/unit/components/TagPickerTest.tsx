@@ -8,6 +8,7 @@ import type {ListItem} from '@components/SelectionList/types';
 import TagPicker from '@components/TagPicker';
 
 import type Navigation from '@libs/Navigation/Navigation';
+import * as TagsOptionsListUtils from '@libs/TagsOptionsListUtils';
 
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
@@ -21,6 +22,10 @@ import {setupGlobalFetchMock} from '../../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../../utils/waitForBatchedUpdatesWithAct';
 
 jest.mock('@libs/API');
+jest.mock('@libs/TagsOptionsListUtils', () => {
+    const actual = jest.requireActual<typeof TagsOptionsListUtils>('@libs/TagsOptionsListUtils');
+    return {...actual, getTagListSections: jest.fn(actual.getTagListSections)};
+});
 
 // Capture the sections TagPicker hands to the list, so the tests can read what it would show.
 const mockSelectionList = jest.fn<null, [SelectionListWithSectionsProps<ListItem>]>(() => null);
@@ -114,6 +119,8 @@ describe('TagPicker', () => {
         // When the user searches, and a tag that matches is then added to the workspace
         await typeSearch('a');
         expect(getListedTagNames()).toEqual(['alpha', 'Charlie', 'Delta']);
+        const buildSections = jest.mocked(TagsOptionsListUtils.getTagListSections);
+        buildSections.mockClear();
         await act(async () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${POLICY_ID}`, {[TAG_LIST_NAME]: {tags: {Able: {name: 'Able', enabled: true}}}});
         });
@@ -121,6 +128,8 @@ describe('TagPicker', () => {
 
         // Then the search results include the new tag in name order, and so does the full list once the search is cleared
         expect(getListedTagNames()).toEqual(['Able', 'alpha', 'Charlie', 'Delta']);
+        expect(buildSections).toHaveBeenCalled();
+        expect(buildSections.mock.calls.map(([options]) => options.searchValue)).not.toContain('');
         await typeSearch('');
         expect(getListedTagNames()).toEqual(['Able', 'alpha', 'Charlie', 'Delta']);
     });

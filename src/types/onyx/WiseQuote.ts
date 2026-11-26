@@ -38,6 +38,9 @@ type WiseQuoteRequest = {
 
     /** The amount being paid, in the report currency, in cents */
     amount: number;
+
+    /** Whether the company pays the FX conversion costs instead of the employee, which changes the fees Wise prices */
+    isFXCostPaidByCompany?: boolean;
 };
 
 export default WiseQuote;

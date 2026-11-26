@@ -177,24 +177,24 @@ describe('ReportAlternateTextUtils', () => {
 
     describe('getLastActorDisplayName', () => {
         it('should return an empty string when lastActorDetails is null', () => {
-            expect(getLastActorDisplayName(null, CURRENT_USER_ACCOUNT_ID, translateLocal)).toBe('');
+            expect(getLastActorDisplayName(null, CURRENT_USER_ACCOUNT_ID, translateLocal, formatPhoneNumber)).toBe('');
         });
 
         it('should return the Concierge display name for the Concierge account', () => {
-            expect(getLastActorDisplayName({accountID: CONST.ACCOUNT_ID.CONCIERGE}, CURRENT_USER_ACCOUNT_ID, translateLocal)).toBe(CONST.CONCIERGE_DISPLAY_NAME);
+            expect(getLastActorDisplayName({accountID: CONST.ACCOUNT_ID.CONCIERGE}, CURRENT_USER_ACCOUNT_ID, translateLocal, formatPhoneNumber)).toBe(CONST.CONCIERGE_DISPLAY_NAME);
         });
 
         it('should return the "you" translation when the actor is the current user', () => {
-            expect(getLastActorDisplayName(PERSONAL_DETAILS[CURRENT_USER_ACCOUNT_ID], CURRENT_USER_ACCOUNT_ID, translateLocal)).toBe(translateLocal('common.you'));
+            expect(getLastActorDisplayName(PERSONAL_DETAILS[CURRENT_USER_ACCOUNT_ID], CURRENT_USER_ACCOUNT_ID, translateLocal, formatPhoneNumber)).toBe(translateLocal('common.you'));
         });
 
         it('should prefer firstName for other users', () => {
-            expect(getLastActorDisplayName(PERSONAL_DETAILS[1], CURRENT_USER_ACCOUNT_ID, translateLocal)).toBe('Alice');
+            expect(getLastActorDisplayName(PERSONAL_DETAILS[1], CURRENT_USER_ACCOUNT_ID, translateLocal, formatPhoneNumber)).toBe('Alice');
         });
 
         it('should fall back to displayName when firstName is missing', () => {
             const details: Partial<PersonalDetails> = {accountID: 42, displayName: 'Mystery Person'};
-            expect(getLastActorDisplayName(details, CURRENT_USER_ACCOUNT_ID, translateLocal)).toBe('Mystery Person');
+            expect(getLastActorDisplayName(details, CURRENT_USER_ACCOUNT_ID, translateLocal, formatPhoneNumber)).toBe('Mystery Person');
         });
 
         it('should resolve the you label and hidden fallback through the provided translate function', () => {
@@ -208,8 +208,8 @@ describe('ReportAlternateTextUtils', () => {
                 return translateLocal(path, ...parameters);
             };
 
-            expect(getLastActorDisplayName(PERSONAL_DETAILS[CURRENT_USER_ACCOUNT_ID], CURRENT_USER_ACCOUNT_ID, translateWithMarkers)).toBe('YouMarker');
-            expect(getLastActorDisplayName({accountID: 999}, CURRENT_USER_ACCOUNT_ID, translateWithMarkers)).toBe('HiddenMarker');
+            expect(getLastActorDisplayName(PERSONAL_DETAILS[CURRENT_USER_ACCOUNT_ID], CURRENT_USER_ACCOUNT_ID, translateWithMarkers, formatPhoneNumber)).toBe('YouMarker');
+            expect(getLastActorDisplayName({accountID: 999}, CURRENT_USER_ACCOUNT_ID, translateWithMarkers, formatPhoneNumber)).toBe('HiddenMarker');
         });
     });
 
@@ -217,12 +217,14 @@ describe('ReportAlternateTextUtils', () => {
         const lastActorDetails: Partial<PersonalDetails> = PERSONAL_DETAILS[1] ?? {};
 
         it('should return false when there is no last action and no report lastActionType', () => {
-            expect(shouldShowLastActorDisplayName(makeReport(), lastActorDetails, undefined, CURRENT_USER_ACCOUNT_ID, translateLocal)).toBe(false);
+            expect(shouldShowLastActorDisplayName(makeReport(), lastActorDetails, undefined, CURRENT_USER_ACCOUNT_ID, translateLocal, formatPhoneNumber)).toBe(false);
         });
 
         it('should return false for a self DM', () => {
             const report = makeReport({chatType: CONST.REPORT.CHAT_TYPE.SELF_DM});
-            expect(shouldShowLastActorDisplayName(report, lastActorDetails, makeAction(CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT), CURRENT_USER_ACCOUNT_ID, translateLocal)).toBe(false);
+            expect(
+                shouldShowLastActorDisplayName(report, lastActorDetails, makeAction(CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT), CURRENT_USER_ACCOUNT_ID, translateLocal, formatPhoneNumber),
+            ).toBe(false);
         });
 
         it('should return false for a DM when the actor is another user', () => {
@@ -233,19 +235,27 @@ describe('ReportAlternateTextUtils', () => {
                     [CURRENT_USER_ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
                 },
             });
-            expect(shouldShowLastActorDisplayName(report, lastActorDetails, makeAction(CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT), CURRENT_USER_ACCOUNT_ID, translateLocal)).toBe(false);
+            expect(
+                shouldShowLastActorDisplayName(report, lastActorDetails, makeAction(CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT), CURRENT_USER_ACCOUNT_ID, translateLocal, formatPhoneNumber),
+            ).toBe(false);
         });
 
         it('should return false when the last action is an IOU action', () => {
-            expect(shouldShowLastActorDisplayName(makeReport(), lastActorDetails, makeAction(CONST.REPORT.ACTIONS.TYPE.IOU), CURRENT_USER_ACCOUNT_ID, translateLocal)).toBe(false);
+            expect(
+                shouldShowLastActorDisplayName(makeReport(), lastActorDetails, makeAction(CONST.REPORT.ACTIONS.TYPE.IOU), CURRENT_USER_ACCOUNT_ID, translateLocal, formatPhoneNumber),
+            ).toBe(false);
         });
 
         it('should return true in a room when the actor is known', () => {
-            expect(shouldShowLastActorDisplayName(makeReport(), lastActorDetails, makeAction(CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT), CURRENT_USER_ACCOUNT_ID, translateLocal)).toBe(true);
+            expect(
+                shouldShowLastActorDisplayName(makeReport(), lastActorDetails, makeAction(CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT), CURRENT_USER_ACCOUNT_ID, translateLocal, formatPhoneNumber),
+            ).toBe(true);
         });
 
         it('should return false when lastActorDetails is null', () => {
-            expect(shouldShowLastActorDisplayName(makeReport(), null, makeAction(CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT), CURRENT_USER_ACCOUNT_ID, translateLocal)).toBe(false);
+            expect(shouldShowLastActorDisplayName(makeReport(), null, makeAction(CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT), CURRENT_USER_ACCOUNT_ID, translateLocal, formatPhoneNumber)).toBe(
+                false,
+            );
         });
 
         it('should return true in a group chat when the last actor is the current user', () => {
@@ -256,6 +266,7 @@ describe('ReportAlternateTextUtils', () => {
                     makeAction(CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT),
                     CURRENT_USER_ACCOUNT_ID,
                     translateLocal,
+                    formatPhoneNumber,
                 ),
             ).toBe(true);
         });
@@ -274,6 +285,7 @@ describe('ReportAlternateTextUtils', () => {
                     makeAction(CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT),
                     CURRENT_USER_ACCOUNT_ID,
                     translateLocal,
+                    formatPhoneNumber,
                 ),
             ).toBe(true);
         });
@@ -288,6 +300,7 @@ describe('ReportAlternateTextUtils', () => {
                 PERSONAL_DETAILS,
                 false,
                 translateLocal,
+                formatPhoneNumber,
                 undefined,
                 makeAction(CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT),
             );
@@ -302,6 +315,7 @@ describe('ReportAlternateTextUtils', () => {
                 PERSONAL_DETAILS,
                 false,
                 translateLocal,
+                formatPhoneNumber,
                 undefined,
                 makeAction(CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT, {actorAccountID: 42, person: [{type: 'TEXT', style: 'strong', text: 'Mystery Person'}]}),
             );
@@ -320,6 +334,7 @@ describe('ReportAlternateTextUtils', () => {
                 personalDetails,
                 false,
                 translateLocal,
+                formatPhoneNumber,
                 undefined,
                 makeAction(CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT, {
                     actorAccountID: 42,
@@ -341,6 +356,7 @@ describe('ReportAlternateTextUtils', () => {
                 PERSONAL_DETAILS,
                 false,
                 translateLocal,
+                formatPhoneNumber,
                 undefined,
                 makeAction(CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT, {
                     person: [{type: 'TEXT', style: 'strong', text: 'Old Name'}],
@@ -352,7 +368,15 @@ describe('ReportAlternateTextUtils', () => {
         });
 
         it('should fall back to the passed lastActorDetails when there is no last action', () => {
-            const result = getLastActorDisplayNameFromLastVisibleActions(makeReport(), PERSONAL_DETAILS[2] ?? null, CURRENT_USER_ACCOUNT_ID, PERSONAL_DETAILS, false, translateLocal);
+            const result = getLastActorDisplayNameFromLastVisibleActions(
+                makeReport(),
+                PERSONAL_DETAILS[2] ?? null,
+                CURRENT_USER_ACCOUNT_ID,
+                PERSONAL_DETAILS,
+                false,
+                translateLocal,
+                formatPhoneNumber,
+            );
             expect(result).toBe('Bob');
         });
 
@@ -405,7 +429,15 @@ describe('ReportAlternateTextUtils', () => {
                     reportID: 'test-report-1',
                 };
 
-                const result = getLastActorDisplayNameFromLastVisibleActions(report, SPIDER_MAN_DETAILS, CURRENT_USER_ACCOUNT_ID, PERSONAL_DETAILS, undefined, translateLocal);
+                const result = getLastActorDisplayNameFromLastVisibleActions(
+                    report,
+                    SPIDER_MAN_DETAILS,
+                    CURRENT_USER_ACCOUNT_ID,
+                    PERSONAL_DETAILS,
+                    undefined,
+                    translateLocal,
+                    formatPhoneNumber,
+                );
 
                 expect(result).toBe('Spider-Man');
             });
@@ -422,7 +454,15 @@ describe('ReportAlternateTextUtils', () => {
 
                 await mergeReportWithAction(reportID, report, makeCommentAction(actorAccountID));
 
-                const result = getLastActorDisplayNameFromLastVisibleActions(report, lastActorDetails, CURRENT_USER_ACCOUNT_ID, PERSONAL_DETAILS_WITH_SPIDER_MAN, undefined, translateLocal);
+                const result = getLastActorDisplayNameFromLastVisibleActions(
+                    report,
+                    lastActorDetails,
+                    CURRENT_USER_ACCOUNT_ID,
+                    PERSONAL_DETAILS_WITH_SPIDER_MAN,
+                    undefined,
+                    translateLocal,
+                    formatPhoneNumber,
+                );
 
                 expect(result).toBe('Spider-Man');
             });
@@ -439,7 +479,15 @@ describe('ReportAlternateTextUtils', () => {
 
                 await mergeReportWithAction(reportID, report, makeCommentAction(actorAccountID, {reportActionID: 'action-2', person: [{text: 'Unknown User', type: 'TEXT'}]}));
 
-                const result = getLastActorDisplayNameFromLastVisibleActions(report, lastActorDetails, CURRENT_USER_ACCOUNT_ID, PERSONAL_DETAILS, undefined, translateLocal);
+                const result = getLastActorDisplayNameFromLastVisibleActions(
+                    report,
+                    lastActorDetails,
+                    CURRENT_USER_ACCOUNT_ID,
+                    PERSONAL_DETAILS,
+                    undefined,
+                    translateLocal,
+                    formatPhoneNumber,
+                );
 
                 expect(result).toBe('Unknown User');
             });
@@ -455,7 +503,15 @@ describe('ReportAlternateTextUtils', () => {
 
                 await mergeReportWithAction(reportID, report, makeCommentAction(CURRENT_USER_ACCOUNT_ID, {reportActionID: 'action-3'}));
 
-                const result = getLastActorDisplayNameFromLastVisibleActions(report, lastActorDetails, CURRENT_USER_ACCOUNT_ID, PERSONAL_DETAILS, undefined, translateLocal);
+                const result = getLastActorDisplayNameFromLastVisibleActions(
+                    report,
+                    lastActorDetails,
+                    CURRENT_USER_ACCOUNT_ID,
+                    PERSONAL_DETAILS,
+                    undefined,
+                    translateLocal,
+                    formatPhoneNumber,
+                );
 
                 expect(result).toBe('You');
             });
@@ -474,7 +530,15 @@ describe('ReportAlternateTextUtils', () => {
                 // Empty person array so no actorDetails can be built from the action itself
                 await mergeReportWithAction(reportID, report, makeCommentAction(undefined, {reportActionID: 'action-4', person: []}));
 
-                const result = getLastActorDisplayNameFromLastVisibleActions(report, lastActorDetails, CURRENT_USER_ACCOUNT_ID, PERSONAL_DETAILS, undefined, translateLocal);
+                const result = getLastActorDisplayNameFromLastVisibleActions(
+                    report,
+                    lastActorDetails,
+                    CURRENT_USER_ACCOUNT_ID,
+                    PERSONAL_DETAILS,
+                    undefined,
+                    translateLocal,
+                    formatPhoneNumber,
+                );
 
                 // getLastActorDisplayName prefers firstName when available
                 expect(result).toBe('Spider');
@@ -486,7 +550,7 @@ describe('ReportAlternateTextUtils', () => {
                     reportID: 'test-report-archived',
                 };
 
-                const result = getLastActorDisplayNameFromLastVisibleActions(report, SPIDER_MAN_DETAILS, CURRENT_USER_ACCOUNT_ID, PERSONAL_DETAILS, true, translateLocal);
+                const result = getLastActorDisplayNameFromLastVisibleActions(report, SPIDER_MAN_DETAILS, CURRENT_USER_ACCOUNT_ID, PERSONAL_DETAILS, true, translateLocal, formatPhoneNumber);
 
                 // Still resolves from lastActorDetails since there's no last visible action
                 expect(result).toBe('Spider-Man');

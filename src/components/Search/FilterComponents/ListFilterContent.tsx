@@ -19,7 +19,6 @@ import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
 
 import type {StyleProp, ViewStyle} from 'react-native';
 
-import {policyIDsWithCategoryRulesSelector} from '@selectors/PolicyCategories';
 import React from 'react';
 
 import BankAccountSelector from './BankAccountSelector';
@@ -108,20 +107,16 @@ function SingleSelectListFilterContent({baseFilterKey, value, selectionListStyle
 }
 
 /**
- * HAS is split out so other multi-select filters do not subscribe to the hot policy collections.
- * Availability is computed in render (not a POLICY selector that closes over categories) so a late
- * POLICY_CATEGORIES load still recomputes submitted-violation for migrated Control workspaces.
+ * HAS is split out so other multi-select filters do not subscribe to the policy collection.
  */
 function HasMultiSelectListFilterContent({value = [], type = CONST.SEARCH.DATA_TYPES.EXPENSE, selectionListStyle, footer, onChange}: HasMultiSelectListFilterContentProps) {
     const {translate} = useLocalize();
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
-    const [policyIDsWithCategoryRules] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES, {selector: policyIDsWithCategoryRulesSelector});
     const selectedValues = value as string[];
     // Include already-selected values even when the matching workspace feature is off, otherwise
     // toggling another option would call onChange without them and clear the saved/query selection.
     const items = getHasOptions(translate, type, {
         policies: policies ?? {},
-        policyIDsWithCategoryRules,
         selectedValues,
     });
     const multiSelectValues = items.filter((item) => selectedValues.includes(item.value));
@@ -159,7 +154,7 @@ function MultiSelectListFilterContent({baseFilterKey, value = [], type = CONST.S
     const items =
         baseFilterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.VIOLATION
             ? getViolationFilterOptions(translate, localeCompare)
-            : getMultiSelectFilterOptions(baseFilterKey, type, translate, undefined, undefined, shouldReturnTripRooms);
+            : getMultiSelectFilterOptions(baseFilterKey, type, translate, undefined, shouldReturnTripRooms);
     const selectedValues = shouldReturnTripRooms && baseFilterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.STATUS ? normalizeTripStatuses(value as string[]) : (value as string[]);
     const multiSelectValues = items.filter((item) => selectedValues.includes(item.value));
 
