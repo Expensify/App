@@ -25,7 +25,7 @@ const EXAMPLE_PARAM = '123';
 const SHARED_EXAMPLES = ['/', '/inbox', '/home', '/settings', '/travel', '/statements/202501', '/v/1/abc', '/u/1/abc'];
 
 // Routes New Expensify parses that the service worker deliberately leaves to the network
-const UNCLASSIFIED_ROUTES = new Set([
+const UNCLASSIFIED_ROUTES = new Set<string>([
     // Tab screens whose exact paths only exist inside their parent route
     CONST.TAB.RECEIPT_PARTNERS.ALL,
     CONST.TAB.RECEIPT_PARTNERS.LINKED,
