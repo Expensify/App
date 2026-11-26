@@ -281,16 +281,16 @@ function getWiseBankAccountForPayment(params: WiseQuotePaymentParams): OnyxTypes
     return isWiseAccount ? bankAccount : undefined;
 }
 
-/** Whether Wise converts the payment, because the submitter is paid in another currency than the bank account */
+/** Whether the submitter is paid in another currency than the bank account holds */
 function isPaidInDifferentCurrency(bankAccount: OnyxTypes.BankAccount, depositCurrency: string | undefined): boolean {
-    // `||` not `??`: bankCurrency can be an empty string, which falls through to additionalData
+    // `||` instead of `??`, because bankCurrency can be an empty string, which falls through to additionalData
     const bankCurrency = bankAccount.bankCurrency || bankAccount.accountData?.additionalData?.currency;
     return !!depositCurrency && depositCurrency !== bankCurrency;
 }
 
 /**
- * Whether Wise sends this report to the employee, which it prices with a quote.
- * The backend flags such reports for the workspace account only, and names the deposit currency for domestic reports too.
+ * Whether to ask Wise for a quote, which happens when the submitter is paid in another currency than the bank account, or the backend flags the report.
+ * The backend flags reports only when the workspace account pays them, and names the deposit currency for domestic reports too.
  */
 function shouldGetWiseQuote(params: WiseQuotePaymentParams): boolean {
     const bankAccount = getWiseBankAccountForPayment(params);

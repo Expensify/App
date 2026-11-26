@@ -492,7 +492,7 @@ describe('BankAccountUtils', () => {
         it('pays a domestic report without a quote', () => {
             // Given a report whose submitter is paid in USD to a US account, from a USD Wise account, which the backend doesn't flag
             // When deciding whether to get and show the quote first
-            // Then neither holds, because Wise doesn't send this payment and answers its quote request with no quote
+            // Then neither holds, because the payment needs no conversion and Wise gives no quote for it
             expect(shouldGetWiseQuote(sameCurrencyPayment)).toBe(false);
             expect(shouldConfirmWiseQuoteBeforePaying(sameCurrencyPayment)).toBe(false);
         });
