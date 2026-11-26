@@ -154,7 +154,7 @@ function InlineNumberEditCell({
             }
         >
             {children ? (
-                // Only a left-aligned value has its edit button at the trailing edge. The room stays while the button is hidden, so hovering doesn't shift the row.
+                // Keeps room for the trailing edit button even while it is hidden, so hover doesn't shift the row
                 <View
                     style={[
                         styles.flexRow,
