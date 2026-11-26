@@ -47,6 +47,10 @@ function areHeightsEqual(firstHeight: number, secondHeight: number) {
     return Math.abs(firstHeight - secondHeight) < 1;
 }
 
+function isLayoutEmpty(width: number, height: number) {
+    return width === 0 && height === 0;
+}
+
 function AutoGrowHeightInputContainer({children, style, shouldKeepMinimumHeight = false, shouldUseWebViewportHeightFallback = true}: AutoGrowHeightInputContainerProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -245,6 +249,11 @@ function AutoGrowHeightInputContainer({children, style, shouldKeepMinimumHeight 
             nestedScrollEnabled
             onLayout={(event) => {
                 const {height, width} = event.nativeEvent.layout;
+                // On web a screen that is hidden behind the next one reports an empty layout. Clamping to it shrank a long value to one row,
+                // and it grew back over several frames when the user returned. The slot is never empty while it is shown, so keep the last measurement.
+                if (isLayoutEmpty(width, height)) {
+                    return;
+                }
                 const availableHeight = Math.max(height, variables.componentSizeLarge);
                 const didWidthChange = width !== containerWidthRef.current;
                 const previousAvailableHeight = availableHeightRef.current;
@@ -319,6 +328,10 @@ function AutoGrowHeightInputContainer({children, style, shouldKeepMinimumHeight 
                 style={styles.userSelectText}
                 onLayout={(event) => {
                     const {height: contentHeight, width: contentWidth} = event.nativeEvent.layout;
+                    // The content always holds the input, so an empty layout only means the screen is hidden. See the container's onLayout.
+                    if (isLayoutEmpty(contentWidth, contentHeight)) {
+                        return;
+                    }
                     const didContentLayoutChange = contentWidth !== contentLayoutRef.current.width || contentHeight !== contentLayoutRef.current.height;
                     contentLayoutRef.current = {
                         width: contentWidth,
