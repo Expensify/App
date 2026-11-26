@@ -35,7 +35,6 @@ const mockMemberAccountID = MEMBER_ACCOUNT_ID;
 let mockDomain: Record<string, boolean | BaseVacationDelegate | {shared: Record<string, string>}> | undefined;
 let mockIsOffline = false;
 let mockUnlockPendingAction: string | undefined;
-const mockShowDecisionModal = jest.fn();
 const mockShowConfirmModal = jest.fn();
 const mockShowCloseAccountModal = jest.fn();
 
@@ -70,7 +69,6 @@ jest.mock('@hooks/useThemeStyles', () => jest.fn(() => new Proxy({}, {get: () =>
 jest.mock('@hooks/useLocalize', () => jest.fn(() => ({translate: (key: string) => key})));
 jest.mock('@hooks/useLazyAsset', () => ({useMemoizedLazyExpensifyIcons: jest.fn(() => ({}))}));
 jest.mock('@hooks/useConfirmModal', () => jest.fn(() => ({showConfirmModal: mockShowConfirmModal})));
-jest.mock('@hooks/useDecisionModal', () => jest.fn(() => ({showDecisionModal: mockShowDecisionModal})));
 jest.mock('@hooks/useCloseDomainAccountModal', () => jest.fn(() => ({showCloseAccountModal: mockShowCloseAccountModal})));
 jest.mock('@hooks/useResponsiveLayout', () => jest.fn(() => ({isSmallScreenWidth: false})));
 jest.mock('@hooks/usePersonalDetails', () => ({usePersonalDetail: jest.fn(() => [{accountID: 2, login: 'member@example.com'}])}));
@@ -160,17 +158,17 @@ describe('DomainMemberDetailsPage', () => {
             jest.mocked(MenuItemAction).mock.lastCall?.[0].onPress?.(createMock<GestureResponderEvent>({}));
         }
 
-        it('blocks offline unlock requests with the offline alert instead of a received-request modal', () => {
+        it('disables offline unlock requests without showing a modal or queuing a request', () => {
             // Given a locked member and an offline admin
             mockIsOffline = true;
 
             // When the admin presses Unlock account
             pressUnlockRow();
 
-            // Then nothing is queued and only the offline alert is shown
+            // Then the row is disabled, and the guard prevents requests or confirmation even if invoked directly
+            expect(jest.mocked(MenuItemAction).mock.lastCall?.[0].isDisabled).toBe(true);
             expect(requestUnlockAccount).not.toHaveBeenCalled();
             expect(mockShowConfirmModal).not.toHaveBeenCalled();
-            expect(mockShowDecisionModal).toHaveBeenCalledWith(expect.objectContaining({title: 'common.youAppearToBeOffline'}));
         });
 
         it('submits the online request with the domain context and shows the confirmation', () => {
@@ -179,6 +177,7 @@ describe('DomainMemberDetailsPage', () => {
             pressUnlockRow();
 
             // Then the request is submitted once and the next steps are explained
+            expect(jest.mocked(MenuItemAction).mock.lastCall?.[0].isDisabled).toBe(false);
             expect(requestUnlockAccount).toHaveBeenCalledWith(MEMBER_ACCOUNT_ID, DOMAIN_ACCOUNT_ID, undefined);
             expect(mockShowConfirmModal).toHaveBeenCalledWith(expect.objectContaining({title: 'lockAccountPage.unlockTitle'}));
         });

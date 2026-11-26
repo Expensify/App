@@ -5,7 +5,6 @@ import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import VacationDelegateMenuItem from '@components/VacationDelegateMenuItem';
 
-import useAlertModals from '@hooks/useAlertModals';
 import useCloseDomainAccountModal from '@hooks/useCloseDomainAccountModal';
 import useConfirmModal from '@hooks/useConfirmModal';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -59,7 +58,6 @@ function DomainMemberDetailsPage({route}: DomainMemberDetailsPageProps) {
     const {translate} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['RemoveMembers', 'Flag', 'Unlock', 'Hourglass', 'CircularArrowBackwards']);
     const {showConfirmModal} = useConfirmModal();
-    const {showOfflineModal} = useAlertModals();
     const {isOffline} = useNetwork();
     const {showCloseAccountModal: showCloseDomainAccountModal} = useCloseDomainAccountModal();
 
@@ -117,7 +115,6 @@ function DomainMemberDetailsPage({route}: DomainMemberDetailsPageProps) {
 
     const showUnlockAccountModal = () => {
         if (isOffline) {
-            showOfflineModal();
             return;
         }
 
@@ -213,6 +210,7 @@ function DomainMemberDetailsPage({route}: DomainMemberDetailsPageProps) {
                         sentryLabel={CONST.SENTRY_LABEL.DOMAIN.MEMBERS.UNLOCK_ACCOUNT}
                         title={translate(isUnlockRequested ? 'lockAccountPage.pendingUnlockRequest' : 'lockAccountPage.unlockAccount')}
                         icon={isUnlockRequested ? icons.Hourglass : icons.Unlock}
+                        isDisabled={isOffline}
                         onPress={showUnlockAccountModal}
                     />
                 </OfflineWithFeedback>
