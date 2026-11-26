@@ -15,7 +15,7 @@ type MoneyRequestConfirmationListItem = (Participant & {keyForList: string}) | O
 
 type MoneyRequestConfirmationListProps = {
     /** Runs validation and submits. */
-    onConfirm?: () => void;
+    onConfirm?: () => void | Promise<void>;
 
     /** Opens the participant picker owned by the page. */
     onOpenParticipantPicker: () => void;
@@ -74,8 +74,8 @@ type MoneyRequestConfirmationListProps = {
     /** Whether manual entry of amount / merchant / date is offered. */
     canEnterScanFieldsManually?: boolean;
 
-    /** ID of a partially filled Scan among the transactions being confirmed. */
-    partiallyManuallyFilledScanID?: string;
+    /** The other transactions being confirmed with this one, which Create submits together with it. */
+    siblingTransactions?: OnyxTypes.Transaction[];
 
     /** Brings another confirmed transaction on screen. */
     onSwitchToTransaction?: (transactionID: string) => void;
@@ -106,6 +106,12 @@ type MoneyRequestConfirmationListProps = {
 
     /** When true, hide the "To:" section */
     shouldHideToSection?: boolean;
+
+    /** Reports whether the inline amount field holds input the draft can't show as the user's: a sign with no digits, or a currency the user picked */
+    onUnsavedAmountInputChange?: (hasUnsavedInput: boolean) => void;
+
+    /** Called when the user confirms a valid expense, right before `onConfirm` or `onSendMoney` runs */
+    onSubmitWillStart?: () => void;
 };
 
 export type {MoneyRequestConfirmationListItem, MoneyRequestConfirmationListProps};

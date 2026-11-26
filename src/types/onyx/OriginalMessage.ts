@@ -1198,6 +1198,24 @@ type OriginalMessageTravelUpdate = Reservation & UpdateOperationType;
 /** Travel update operation type */
 type UpdateOperationType = {
     operation: ValueOf<typeof CONST.TRAVEL.UPDATE_OPERATION_TYPE>;
+
+    /** Spotnana PNR ID of the booking the update is about */
+    pnrID?: string;
+
+    /** Spotnana trip ID the booking belongs to */
+    tripID?: string;
+
+    /** In flight updates, the airline ticket number */
+    ticketNumber?: string;
+
+    /** In flight exchanges, the ticket number the new ticket replaced */
+    previousTicketNumber?: string;
+
+    /** In flight ticket charges and refunds, the signed amount of the ticket in cents */
+    amount?: number;
+
+    /** ISO 4217 currency code of `amount` */
+    currency?: string;
 };
 
 /** Model of the `deleted transaction` report action */

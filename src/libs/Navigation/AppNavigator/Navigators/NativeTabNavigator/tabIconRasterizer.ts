@@ -2,10 +2,10 @@ import FontUtils from '@styles/utils/FontUtils';
 import variables from '@styles/variables';
 
 import type {NativeBottomTabIcon, NativeBottomTabNavigationOptions} from '@react-navigation/bottom-tabs/unstable';
-import type {SkCanvas, SkParagraph, SkPath} from '@shopify/react-native-skia';
+import type {SkCanvas, SkParagraph, SkPath} from 'react-native-skia';
 
-import {BlendMode, FillType, FontWeight, ImageFormat, Skia, TextAlign} from '@shopify/react-native-skia';
 import {PixelRatio} from 'react-native';
+import {BlendMode, FillType, FontWeight, ImageFormat, Skia, TextAlign} from 'react-native-skia';
 
 import type {NativeTabGlyph, NativeTabGlyphName} from './NATIVE_TAB_GLYPHS';
 
@@ -58,10 +58,8 @@ function getGlyphPaths(name: NativeTabGlyphName): SkPath[] {
         if (!path) {
             continue;
         }
-        if (isEvenOdd) {
-            path.setFillType(FillType.EvenOdd);
-        }
-        paths.push(path);
+        // Paths are immutable since react-native-skia 2.15, so the fill type is set on a copy made through a builder.
+        paths.push(isEvenOdd ? Skia.PathBuilder.MakeFromPath(path).setFillType(FillType.EvenOdd).detach() : path);
     }
     glyphPathCache.set(name, paths);
     return paths;

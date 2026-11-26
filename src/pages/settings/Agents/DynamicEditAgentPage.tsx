@@ -47,16 +47,15 @@ function DynamicEditAgentPage({route}: DynamicEditAgentPageProps) {
     const styles = useThemeStyles();
     const icons = useMemoizedLazyExpensifyIcons(['Trashcan', 'ChatBubble', 'MagnifyingGlass', 'Users']);
     const accountID = route.params.accountID;
-    const [agent, agentMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.AGENT}${accountID}`);
-    const [personalDetails, personalDetailsMetadata] = usePersonalDetail(accountID);
+    const [agent] = useOnyx(`${ONYXKEYS.COLLECTION.AGENT}${accountID}`);
+    const [personalDetails] = usePersonalDetail(accountID);
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const {showConfirmModal} = useConfirmModal();
     const showRuleBotGuardModal = useRuleBotGuardModal();
     const chatWithAgent = useChatWithAgent();
     const switchToDelegator = useSwitchToDelegator();
-    const isOnyxLoaded = agentMetadata.status === 'loaded' && personalDetailsMetadata.status === 'loaded';
     const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP);
-    const shouldShowNotFoundPage = isLoadingApp === false && isOnyxLoaded && !agent && !personalDetails;
+    const shouldShowNotFoundPage = isLoadingApp === false && !agent && !personalDetails;
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.AGENT_EDIT.path);
 
     const agentLogin = personalDetails?.login ?? '';

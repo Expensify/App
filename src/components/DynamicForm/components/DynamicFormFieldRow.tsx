@@ -96,7 +96,7 @@ function DynamicFormFieldRow({
             inputID: field.key,
             shouldSaveDraft: !isSensitive && !isSensitiveField(field),
             forwardedFSClass: CONST.FULLSTORY.CLASS.MASK,
-            onValueChange: shouldRefreshOnChange ? (value, key) => onRefreshRequirements?.(key, value) : undefined,
+            onValueChange: shouldRefreshOnChange ? (value, key, otherAnswers) => onRefreshRequirements?.(key, value, otherAnswers) : undefined,
             onBlur: shouldRefreshOnBlur ? refreshRequirements : undefined,
             disabled: (isOffline || isRefreshingRequirements) && !!field.refreshOnChange,
         },

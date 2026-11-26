@@ -298,6 +298,7 @@ describe('GoogleTagManagerTest', () => {
             },
             isASAPSubmitBetaEnabled: false,
             currentUser: {accountID, email: 'test@test.com'},
+            currentUserPersonalDetails: {accountID, login: 'test@test.com'},
             introSelected: undefined,
             quickAction: undefined,
             recentWaypoints,

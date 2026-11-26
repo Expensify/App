@@ -12,6 +12,7 @@ import {isAllowedToApproveExpenseReport} from '@libs/ReportUtils';
 
 import DynamicReportChangeApproverPage from '@pages/DynamicReportChangeApproverPage';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
+import ReportAddApproverPage from '@pages/ReportAddApproverPage';
 import {ReportReassignApproverPage} from '@pages/ReportReassignApproverPage';
 
 import CONST from '@src/CONST';
@@ -297,6 +298,43 @@ describe('ReportReassignApproverPage', () => {
             expect(Navigation.goBack).toHaveBeenCalledWith(`${ROUTES.REPORT_WITH_ID.getRoute(report.reportID)}/${DYNAMIC_ROUTES.REPORT_CHANGE_APPROVER.path}`, {compareParams: false});
             expect(Navigation.dismissToPreviousRHP).not.toHaveBeenCalled();
         }
+    });
+
+    it.each([ReportAddApproverPage, ReportReassignApproverPage])('blocks an open %p picker when the workspace switches to DEW', (Page) => {
+        // Given an open picker with a selected eligible approver
+        const policy = buildPolicy();
+        const page = (currentPolicy: Policy) => (
+            <PersonalDetailsByLoginProvider>
+                <Page
+                    // @ts-expect-error Only the report, policy, and loading state are read by the unwrapped page.
+                    route={{params: {reportID: report.reportID}}}
+                    report={report}
+                    policy={currentPolicy}
+                    isLoadingReportData={false}
+                />
+            </PersonalDetailsByLoginProvider>
+        );
+        const {rerender} = render(page(policy));
+        const props = mockApproverSelectionList.mock.calls.at(-1)?.[0];
+        const option = props?.allApprovers.at(0);
+        if (!props || !option) {
+            throw new Error('Expected an eligible approver');
+        }
+        expect(props.shouldShowNotFoundView).toBe(false);
+        act(() => props.onSelectApprover?.([option]));
+
+        // When the workspace switches to a dynamic external workflow
+        rerender(page({...policy, approvalMode: CONST.POLICY.APPROVAL_MODE.DYNAMICEXTERNAL}));
+
+        // Then the picker is unavailable and a submitted selection cannot write changes
+        const updatedProps = mockApproverSelectionList.mock.calls.at(-1)?.[0];
+        expect(updatedProps?.shouldShowNotFoundView).toBe(true);
+        const footer = updatedProps?.footerContent;
+        if (!React.isValidElement<{onSubmit: () => void}>(footer)) {
+            throw new Error('Expected a submit button');
+        }
+        act(() => footer.props.onSubmit());
+        expect(addReportApprover).not.toHaveBeenCalled();
     });
 
     it('only lists members who can replace the current approver', () => {
