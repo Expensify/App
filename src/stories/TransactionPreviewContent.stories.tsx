@@ -3,8 +3,9 @@ import type {TransactionPreviewContentProps} from '@components/ReportActionItem/
 import ThemeProvider from '@components/ThemeProvider';
 import ThemeStylesProvider from '@components/ThemeStylesContextProvider';
 
+import {buildPersonalDetailsUpdate} from '@libs/PersonalDetailsUtils';
+
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 
@@ -23,7 +24,8 @@ import {transactionR14932} from '../../__mocks__/reportData/transactions';
 import {violationsR14932} from '../../__mocks__/reportData/violations';
 
 // The preview cards read the submitter and approver from Onyx
-Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetails);
+// eslint-disable-next-line rulesdir/prefer-actions-set-data -- stories seed Onyx directly
+Onyx.update([buildPersonalDetailsUpdate(personalDetails)]);
 
 const veryLongString = 'W'.repeat(1000);
 const veryBigNumber = Number('9'.repeat(12));

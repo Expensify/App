@@ -7,8 +7,9 @@ import ThemeStylesProvider from '@components/ThemeStylesContextProvider';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import {buildPersonalDetailsUpdate} from '@libs/PersonalDetailsUtils';
+
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
 import type {Transaction} from '@src/types/onyx';
 
@@ -27,7 +28,8 @@ import {transactionR14932} from '../../__mocks__/reportData/transactions';
 import {receiptErrorsR14932, violationsR14932} from '../../__mocks__/reportData/violations';
 
 // The preview cards read the submitter and approver from Onyx
-Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetails);
+// eslint-disable-next-line rulesdir/prefer-actions-set-data -- stories seed Onyx directly
+Onyx.update([buildPersonalDetailsUpdate(personalDetails)]);
 
 /**
  * We use the Component Story Format for writing stories. Follow the docs here:
