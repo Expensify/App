@@ -22,7 +22,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type {WiseBusinessOnboardingForm} from '@src/types/form';
-import type {BankAccount, DismissedProductTraining, DynamicFormPage, PrivatePersonalDetails} from '@src/types/onyx';
+import type {BankAccount, DismissedProductTraining, DynamicFormPage, PrivatePersonalDetails, WiseOnboardingUnsavedPages} from '@src/types/onyx';
 import type {WiseKYCRequirement} from '@src/types/onyx/WiseKYCReview';
 
 import type ReactNative from 'react-native';
@@ -32,6 +32,7 @@ import {NavigationContainer} from '@react-navigation/native';
 import React from 'react';
 import Onyx from 'react-native-onyx';
 
+import getOnyxValue from '../../../../utils/getOnyxValue';
 import waitForBatchedUpdatesWithAct from '../../../../utils/waitForBatchedUpdatesWithAct';
 
 const FLOW_TEST_ID = 'DynamicFormFlow';
@@ -81,7 +82,7 @@ const ELIGIBLE_BANK_ACCOUNT: BankAccount = {
 };
 
 /** The part of the reimbursement account the page reads */
-type BusinessReimbursementAccount = {achData: WiseBusinessAccountData; wiseOnboardingUnsavedPages?: Record<string, boolean>};
+type BusinessReimbursementAccount = {achData: WiseBusinessAccountData};
 
 const REIMBURSEMENT_ACCOUNT: BusinessReimbursementAccount = {
     achData: {
@@ -155,6 +156,9 @@ type RenderOptions = {
     /** What the reimbursement account holds when the page opens */
     reimbursementAccount?: BusinessReimbursementAccount;
 
+    /** The pages that have not saved yet when the page opens */
+    unsavedPages?: WiseOnboardingUnsavedPages;
+
     /** What the page's read of the reimbursement account returns */
     readResponse?: BusinessReimbursementAccount;
 
@@ -164,13 +168,21 @@ type RenderOptions = {
     subPage?: string;
 };
 
-async function renderPage({bankAccount = ELIGIBLE_BANK_ACCOUNT, reimbursementAccount, readResponse = REIMBURSEMENT_ACCOUNT, shouldLeaveReadRunning = false, subPage}: RenderOptions = {}) {
+async function renderPage({
+    bankAccount = ELIGIBLE_BANK_ACCOUNT,
+    reimbursementAccount,
+    unsavedPages,
+    readResponse = REIMBURSEMENT_ACCOUNT,
+    shouldLeaveReadRunning = false,
+    subPage,
+}: RenderOptions = {}) {
     await Onyx.multiSet({
         [ONYXKEYS.BETAS]: [CONST.BETAS.WISE_REIMBURSEMENTS],
         [ONYXKEYS.BANK_ACCOUNT_LIST]: {[BANK_ACCOUNT_ID]: bankAccount},
         [ONYXKEYS.IS_LOADING_PAYMENT_METHODS]: false,
         [ONYXKEYS.PRIVATE_PERSONAL_DETAILS]: PRIVATE_PERSONAL_DETAILS,
         ...(reimbursementAccount ? {[ONYXKEYS.REIMBURSEMENT_ACCOUNT]: reimbursementAccount} : {}),
+        ...(unsavedPages ? {[ONYXKEYS.WISE_ONBOARDING_UNSAVED_PAGES]: unsavedPages} : {}),
     });
     render(
         <OnyxListItemProvider>
@@ -438,7 +450,7 @@ describe('WiseBusinessOnboardingPage', () => {
     it('starts the draft over when it was started for another bank account', async () => {
         // Given a draft with answers the user gave for another bank account, and a sensitive answer, a failed page save and a page left offline from that visit
         await Onyx.multiSet({
-            [ONYXKEYS.REIMBURSEMENT_ACCOUNT]: {wiseOnboardingUnsavedPages: {representative: true}, wiseOnboardingPagesLeftOffline: {business: true}},
+            [ONYXKEYS.WISE_ONBOARDING_UNSAVED_PAGES]: {saveNotSucceeded: {representative: true}, leftOffline: {business: true}},
             [ONYXKEYS.FORMS.WISE_BUSINESS_ONBOARDING_FORM_DRAFT]: {
                 bankAccountID: '2',
                 companyName: 'Other Business LLC',
@@ -469,17 +481,7 @@ describe('WiseBusinessOnboardingPage', () => {
             });
         });
         expect(sensitiveAnswers?.[ONYXKEYS.FORMS.WISE_BUSINESS_ONBOARDING_FORM]).toBeFalsy();
-        const reimbursementAccount = await new Promise<OnyxEntry<Record<string, unknown>>>((resolve) => {
-            const connection = Onyx.connectWithoutView({
-                key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
-                callback: (value) => {
-                    connection.unsubscribe();
-                    resolve(value);
-                },
-            });
-        });
-        expect(reimbursementAccount?.wiseOnboardingUnsavedPages).toBeFalsy();
-        expect(reimbursementAccount?.wiseOnboardingPagesLeftOffline).toBeFalsy();
+        expect(await getOnyxValue(ONYXKEYS.WISE_ONBOARDING_UNSAVED_PAGES)).toBeFalsy();
         expect(screen.getByTestId(FLOW_TEST_ID)).toBeOnTheScreen();
     });
 
@@ -657,7 +659,7 @@ describe('WiseBusinessOnboardingPage', () => {
 
     it('keeps the user on the confirmation page while a page that failed to save has not saved since', async () => {
         // Given the representative page failed to save, and the business page saved after it, which cleared the shared error
-        await renderPage({reimbursementAccount: {...REIMBURSEMENT_ACCOUNT, wiseOnboardingUnsavedPages: {representative: true}}});
+        await renderPage({reimbursementAccount: REIMBURSEMENT_ACCOUNT, unsavedPages: {saveNotSucceeded: {representative: true}}});
         const navigateSpy = jest.spyOn(Navigation, 'navigate').mockImplementation(() => {});
 
         // When the user taps Confirm
@@ -669,12 +671,29 @@ describe('WiseBusinessOnboardingPage', () => {
         expect(flowProps?.submitError).toBe('common.genericErrorMessage');
     });
 
+    it('opens on a page left offline and keeps Confirm blocked after the read on reconnect replaces the reimbursement account', async () => {
+        // Given the business page was left offline with Save and fill out later, and the device is back online
+        await renderPage({reimbursementAccount: REIMBURSEMENT_ACCOUNT, unsavedPages: {leftOffline: {[CONST.WISE.ONBOARDING_STEP.BUSINESS]: true}}});
+        const navigateSpy = jest.spyOn(Navigation, 'navigate').mockImplementation(() => {});
+
+        // When the read answers by replacing the reimbursement account, as OpenReimbursementAccountPage does, and the user taps Confirm
+        await act(() => Onyx.set(ONYXKEYS.REIMBURSEMENT_ACCOUNT, REIMBURSEMENT_ACCOUNT));
+        await waitForBatchedUpdatesWithAct();
+        const flowProps = mockFlowProps.mock.lastCall?.[0];
+        act(() => flowProps?.onSubmit({}));
+
+        // Then the flow still opens on the business page and Confirm stays blocked, since Wise never got the answers left in the draft
+        expect(flowProps?.unsavedPageKeys).toEqual([CONST.WISE.ONBOARDING_STEP.BUSINESS]);
+        expect(navigateSpy).not.toHaveBeenCalled();
+        expect(flowProps?.submitError).toBe('common.genericErrorMessage');
+    });
+
     it('does not wait for a save the app closed during when it reloads on a page of the flow, but keeps the user on the confirmation page', async () => {
         // Given the app closed while the representative page was saving, so its save never answered, is not retried, and is gone with the app's memory
         const navigateSpy = jest.spyOn(Navigation, 'navigate').mockImplementation(() => {});
 
         // When the app reloads on the confirmation page and the user taps Confirm
-        await renderPage({reimbursementAccount: {...REIMBURSEMENT_ACCOUNT, wiseOnboardingUnsavedPages: {representative: true}}, subPage: CONST.DYNAMIC_FORM.CONFIRMATION_PAGE_KEY});
+        await renderPage({reimbursementAccount: REIMBURSEMENT_ACCOUNT, unsavedPages: {saveNotSucceeded: {representative: true}}, subPage: CONST.DYNAMIC_FORM.CONFIRMATION_PAGE_KEY});
         const flowProps = mockFlowProps.mock.lastCall?.[0];
         act(() => flowProps?.onSubmit({}));
 
@@ -687,7 +706,8 @@ describe('WiseBusinessOnboardingPage', () => {
     it('lets the user confirm when a step that did not save is no longer in the form', async () => {
         // Given the documents page was left unsaved, and the business no longer needs enhanced due diligence, so no page saves that step again
         await renderPage({
-            reimbursementAccount: {...REIMBURSEMENT_ACCOUNT, wiseOnboardingUnsavedPages: {[CONST.WISE.ONBOARDING_STEP.BUSINESS_SOURCE_OF_WEALTH_PROOF]: true}},
+            reimbursementAccount: REIMBURSEMENT_ACCOUNT,
+            unsavedPages: {saveNotSucceeded: {[CONST.WISE.ONBOARDING_STEP.BUSINESS_SOURCE_OF_WEALTH_PROOF]: true}},
             subPage: CONST.DYNAMIC_FORM.CONFIRMATION_PAGE_KEY,
         });
         const navigateSpy = jest.spyOn(Navigation, 'navigate').mockImplementation(() => {});
@@ -705,10 +725,8 @@ describe('WiseBusinessOnboardingPage', () => {
     it('keeps the user on the confirmation page when a requirement step did not save and the requirements of this bank account are not on the device', async () => {
         // Given the documents page was left unsaved, and the device holds another bank account's details, so the form does not have the requirement pages yet
         await renderPage({
-            reimbursementAccount: {
-                achData: {...REIMBURSEMENT_ACCOUNT.achData, bankAccountID: BANK_ACCOUNT_ID + 1},
-                wiseOnboardingUnsavedPages: {[CONST.WISE.ONBOARDING_STEP.BUSINESS_SOURCE_OF_WEALTH_PROOF]: true},
-            },
+            reimbursementAccount: {achData: {...REIMBURSEMENT_ACCOUNT.achData, bankAccountID: BANK_ACCOUNT_ID + 1}},
+            unsavedPages: {saveNotSucceeded: {[CONST.WISE.ONBOARDING_STEP.BUSINESS_SOURCE_OF_WEALTH_PROOF]: true}},
             subPage: CONST.DYNAMIC_FORM.CONFIRMATION_PAGE_KEY,
             shouldLeaveReadRunning: true,
         });
@@ -727,9 +745,9 @@ describe('WiseBusinessOnboardingPage', () => {
         // Given the sources page and the documents page failed to save, which records their steps
         // When the flow opens
         await renderPage({
-            reimbursementAccount: {
-                achData: {...REIMBURSEMENT_ACCOUNT.achData, wise: {kycRequirements: ENHANCED_DUE_DILIGENCE}},
-                wiseOnboardingUnsavedPages: {
+            reimbursementAccount: {achData: {...REIMBURSEMENT_ACCOUNT.achData, wise: {kycRequirements: ENHANCED_DUE_DILIGENCE}}},
+            unsavedPages: {
+                saveNotSucceeded: {
                     [CONST.WISE.ONBOARDING_STEP.BUSINESS_SOURCE_OF_WEALTH_INFO]: true,
                     [CONST.WISE.ONBOARDING_STEP.BUSINESS_SOURCE_OF_WEALTH_PROOF]: true,
                 },
@@ -826,7 +844,7 @@ describe('WiseBusinessOnboardingPage', () => {
         await act(() =>
             Promise.all([
                 Onyx.merge(ONYXKEYS.RAM_ONLY_WISE_ONBOARDING_PENDING_SAVES, {[SAVE_ID]: true}),
-                Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {wiseOnboardingUnsavedPages: {[CONST.WISE.ONBOARDING_STEP.BUSINESS]: true}}),
+                Onyx.merge(ONYXKEYS.WISE_ONBOARDING_UNSAVED_PAGES, {saveNotSucceeded: {[CONST.WISE.ONBOARDING_STEP.BUSINESS]: true}}),
             ]),
         );
         await waitForBatchedUpdatesWithAct();
@@ -838,10 +856,8 @@ describe('WiseBusinessOnboardingPage', () => {
         await act(() =>
             Promise.all([
                 Onyx.merge(ONYXKEYS.RAM_ONLY_WISE_ONBOARDING_PENDING_SAVES, {[SAVE_ID]: null}),
-                Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {
-                    wiseOnboardingUnsavedPages: {[CONST.WISE.ONBOARDING_STEP.BUSINESS]: null},
-                    achData: {wise: {kycRequirements: ENHANCED_DUE_DILIGENCE}},
-                }),
+                Onyx.merge(ONYXKEYS.WISE_ONBOARDING_UNSAVED_PAGES, {saveNotSucceeded: {[CONST.WISE.ONBOARDING_STEP.BUSINESS]: null}}),
+                Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {achData: {wise: {kycRequirements: ENHANCED_DUE_DILIGENCE}}}),
             ]),
         );
         await waitForBatchedUpdatesWithAct();
@@ -858,7 +874,7 @@ describe('WiseBusinessOnboardingPage', () => {
         await act(() =>
             Promise.all([
                 Onyx.merge(ONYXKEYS.RAM_ONLY_WISE_ONBOARDING_PENDING_SAVES, {[SAVE_ID]: true}),
-                Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {wiseOnboardingUnsavedPages: {[CONST.WISE.ONBOARDING_STEP.BUSINESS]: true}}),
+                Onyx.merge(ONYXKEYS.WISE_ONBOARDING_UNSAVED_PAGES, {saveNotSucceeded: {[CONST.WISE.ONBOARDING_STEP.BUSINESS]: true}}),
             ]),
         );
         await waitForBatchedUpdatesWithAct();
@@ -867,7 +883,7 @@ describe('WiseBusinessOnboardingPage', () => {
         await act(() =>
             Promise.all([
                 Onyx.merge(ONYXKEYS.RAM_ONLY_WISE_ONBOARDING_PENDING_SAVES, {[SAVE_ID]: null}),
-                Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {wiseOnboardingUnsavedPages: {[CONST.WISE.ONBOARDING_STEP.BUSINESS]: null}}),
+                Onyx.merge(ONYXKEYS.WISE_ONBOARDING_UNSAVED_PAGES, {saveNotSucceeded: {[CONST.WISE.ONBOARDING_STEP.BUSINESS]: null}}),
             ]),
         );
         await waitForBatchedUpdatesWithAct();
@@ -883,7 +899,7 @@ describe('WiseBusinessOnboardingPage', () => {
         await act(() =>
             Promise.all([
                 Onyx.merge(ONYXKEYS.RAM_ONLY_WISE_ONBOARDING_PENDING_SAVES, {[SAVE_ID]: true}),
-                Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {wiseOnboardingUnsavedPages: {[CONST.WISE.ONBOARDING_STEP.REPRESENTATIVE]: true}}),
+                Onyx.merge(ONYXKEYS.WISE_ONBOARDING_UNSAVED_PAGES, {saveNotSucceeded: {[CONST.WISE.ONBOARDING_STEP.REPRESENTATIVE]: true}}),
             ]),
         );
         await waitForBatchedUpdatesWithAct();
@@ -903,7 +919,7 @@ describe('WiseBusinessOnboardingPage', () => {
         await act(() =>
             Promise.all([
                 Onyx.merge(ONYXKEYS.RAM_ONLY_WISE_ONBOARDING_PENDING_SAVES, {[SAVE_ID]: true}),
-                Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {wiseOnboardingUnsavedPages: {[CONST.WISE.ONBOARDING_STEP.BUSINESS]: true}}),
+                Onyx.merge(ONYXKEYS.WISE_ONBOARDING_UNSAVED_PAGES, {saveNotSucceeded: {[CONST.WISE.ONBOARDING_STEP.BUSINESS]: true}}),
             ]),
         );
         await waitForBatchedUpdatesWithAct();
@@ -926,7 +942,7 @@ describe('WiseBusinessOnboardingPage', () => {
         await act(() =>
             Promise.all([
                 Onyx.merge(ONYXKEYS.RAM_ONLY_WISE_ONBOARDING_PENDING_SAVES, {[SAVE_ID]: true}),
-                Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {wiseOnboardingUnsavedPages: {[CONST.WISE.ONBOARDING_STEP.BUSINESS]: true}}),
+                Onyx.merge(ONYXKEYS.WISE_ONBOARDING_UNSAVED_PAGES, {saveNotSucceeded: {[CONST.WISE.ONBOARDING_STEP.BUSINESS]: true}}),
             ]),
         );
         await waitForBatchedUpdatesWithAct();

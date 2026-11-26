@@ -1,6 +1,6 @@
 /**
- * The save status of the Wise onboarding intake pages, read from the running saves kept in memory and from the unsaved pages and the shared error on the
- * reimbursement account. The flow uses it to hold Confirm while pages save and to keep the user on the confirmation page while a page has not saved.
+ * The save status of the Wise onboarding intake pages, read from the running saves kept in memory and from the shared error on the reimbursement account
+ * and the pages that have not saved yet. The flow uses it to hold Confirm while pages save and to keep the user on the confirmation page while a page has not saved.
  */
 import {getLatestErrorMessage} from '@libs/ErrorUtils';
 
@@ -10,7 +10,7 @@ import getEmptyArray from '@src/types/utils/getEmptyArray';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
-import {isSavingWiseOnboardingPageSelector, unsavedWiseOnboardingPageKeysSelector} from '@selectors/ReimbursementAccount';
+import {isSavingWiseOnboardingPageSelector, unsavedWiseOnboardingPageKeysSelector} from '@selectors/WiseOnboarding';
 
 import useOnyx from './useOnyx';
 
@@ -23,7 +23,7 @@ const saveErrorSelector = (reimbursementAccount: OnyxEntry<ReimbursementAccount>
 function useWiseOnboardingSaveStatus() {
     const [serverError] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {selector: saveErrorSelector});
     const [isSaving = false] = useOnyx(ONYXKEYS.RAM_ONLY_WISE_ONBOARDING_PENDING_SAVES, {selector: isSavingWiseOnboardingPageSelector});
-    const [unsavedPageKeys = getEmptyArray<string>()] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {selector: unsavedWiseOnboardingPageKeysSelector});
+    const [unsavedPageKeys = getEmptyArray<string>()] = useOnyx(ONYXKEYS.WISE_ONBOARDING_UNSAVED_PAGES, {selector: unsavedWiseOnboardingPageKeysSelector});
     return {isSaving, serverError, unsavedPageKeys};
 }
 

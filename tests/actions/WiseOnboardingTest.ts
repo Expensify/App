@@ -1,5 +1,5 @@
 import * as PersistedRequests from '@libs/actions/PersistedRequests';
-import saveWiseOnboardingPage, {markWiseOnboardingPageLeftOffline} from '@libs/actions/WiseOnboarding';
+import saveWiseOnboardingPage, {markWiseOnboardingPageLeftOffline, openReimbursementAccountPageForWiseIntro} from '@libs/actions/WiseOnboarding';
 import * as API from '@libs/API';
 import {SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
@@ -10,7 +10,7 @@ import type {DynamicFormPage} from '@src/types/onyx';
 
 import type {OnyxEntry, OnyxKey, OnyxValue} from 'react-native-onyx';
 
-import {isSavingWiseOnboardingPageSelector, unsavedWiseOnboardingPageKeysSelector} from '@selectors/ReimbursementAccount';
+import {isSavingWiseOnboardingPageSelector, unsavedWiseOnboardingPageKeysSelector} from '@selectors/WiseOnboarding';
 import Onyx from 'react-native-onyx';
 
 import type {MockFetch} from '../utils/TestHelper';
@@ -34,6 +34,10 @@ const BUSINESS_PAGE: DynamicFormPage = {
     key: 'business',
     content: [{key: 'description', type: 'text', required: true}],
 };
+
+async function readUnsavedPageKeys() {
+    return unsavedWiseOnboardingPageKeysSelector(await readOnyxValue(ONYXKEYS.WISE_ONBOARDING_UNSAVED_PAGES));
+}
 
 function readOnyxValue<TKey extends OnyxKey>(key: TKey) {
     return new Promise<OnyxEntry<OnyxValue<TKey>>>((resolve) => {
@@ -122,7 +126,7 @@ describe('actions/WiseOnboarding saveWiseOnboardingPage', () => {
         // Then the SSN never enters the request queue, which is written to disk. The dropped connection resolves the request instead of rejecting it,
         // so its failure data keeps the page unsaved, which shows the save error and stops a later page's save from letting Confirm through
         expect(writeSpy).not.toHaveBeenCalled();
-        expect(await readOnyxValue(ONYXKEYS.REIMBURSEMENT_ACCOUNT)).toMatchObject({wiseOnboardingUnsavedPages: {representative: true}});
+        expect(await readOnyxValue(ONYXKEYS.WISE_ONBOARDING_UNSAVED_PAGES)).toMatchObject({saveNotSucceeded: {representative: true}});
         expect(isSavingWiseOnboardingPageSelector(await readOnyxValue(ONYXKEYS.RAM_ONLY_WISE_ONBOARDING_PENDING_SAVES))).toBe(false);
     });
 
@@ -145,7 +149,7 @@ describe('actions/WiseOnboarding saveWiseOnboardingPage', () => {
         // page of the flow, does not wait for it forever. The page is unsaved on disk, so Confirm stays blocked after a reload until the page saves.
         expect(isSavingWiseOnboardingPageSelector(await readOnyxValue(ONYXKEYS.RAM_ONLY_WISE_ONBOARDING_PENDING_SAVES))).toBe(true);
         expect(reimbursementAccount).not.toHaveProperty('wiseOnboardingPendingSaves');
-        expect(reimbursementAccount).toMatchObject({wiseOnboardingUnsavedPages: {representative: true}});
+        expect(await readOnyxValue(ONYXKEYS.WISE_ONBOARDING_UNSAVED_PAGES)).toMatchObject({saveNotSucceeded: {representative: true}});
     });
 
     it('keeps the flow saving while a page with an SSN is still saving after another page saves', async () => {
@@ -164,24 +168,27 @@ describe('actions/WiseOnboarding saveWiseOnboardingPage', () => {
         await waitForBatchedUpdates();
 
         // Then a save is still running, so the confirmation page waits for the representative page instead of letting the user through
-        const reimbursementAccount = await readOnyxValue(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
+        const unsavedPages = await readOnyxValue(ONYXKEYS.WISE_ONBOARDING_UNSAVED_PAGES);
         expect(isSavingWiseOnboardingPageSelector(await readOnyxValue(ONYXKEYS.RAM_ONLY_WISE_ONBOARDING_PENDING_SAVES))).toBe(true);
-        expect(reimbursementAccount).toMatchObject({wiseOnboardingUnsavedPages: {representative: true}});
-        expect(reimbursementAccount).not.toHaveProperty('wiseOnboardingUnsavedPages.business');
+        expect(unsavedPages).toMatchObject({saveNotSucceeded: {representative: true}});
+        expect(unsavedPages).not.toHaveProperty('saveNotSucceeded.business');
     });
 
     it('keeps an unsaved page unsaved when another page saves', async () => {
         // Given a representative page whose save failed, so its error is shown
-        await Onyx.set(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {wiseOnboardingUnsavedPages: {representative: true}, errors: getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage')});
+        await Onyx.multiSet({
+            [ONYXKEYS.REIMBURSEMENT_ACCOUNT]: {errors: getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage')},
+            [ONYXKEYS.WISE_ONBOARDING_UNSAVED_PAGES]: {saveNotSucceeded: {representative: true}},
+        });
 
         // When the user edits the business page and it saves
         saveWiseOnboardingPage(1, BUSINESS_PAGE, {description: 'We sell bikes'}, {});
         await waitForBatchedUpdates();
 
         // Then the shared error is gone, but the representative page is still unsaved, since Wise still lacks it
-        const reimbursementAccount = await readOnyxValue(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
-        expect(reimbursementAccount).toMatchObject({wiseOnboardingUnsavedPages: {representative: true}});
-        expect(reimbursementAccount).not.toHaveProperty('wiseOnboardingUnsavedPages.business');
+        const unsavedPages = await readOnyxValue(ONYXKEYS.WISE_ONBOARDING_UNSAVED_PAGES);
+        expect(unsavedPages).toMatchObject({saveNotSucceeded: {representative: true}});
+        expect(unsavedPages).not.toHaveProperty('saveNotSucceeded.business');
         expect(isSavingWiseOnboardingPageSelector(await readOnyxValue(ONYXKEYS.RAM_ONLY_WISE_ONBOARDING_PENDING_SAVES))).toBe(false);
     });
 
@@ -194,7 +201,7 @@ describe('actions/WiseOnboarding saveWiseOnboardingPage', () => {
         await waitForBatchedUpdates();
 
         // Then the page is unsaved
-        expect(await readOnyxValue(ONYXKEYS.REIMBURSEMENT_ACCOUNT)).toMatchObject({wiseOnboardingUnsavedPages: {business: true}});
+        expect(await readOnyxValue(ONYXKEYS.WISE_ONBOARDING_UNSAVED_PAGES)).toMatchObject({saveNotSucceeded: {business: true}});
 
         // When the user saves the page again and the server accepts it
         mockFetch.succeed();
@@ -202,8 +209,7 @@ describe('actions/WiseOnboarding saveWiseOnboardingPage', () => {
         await waitForBatchedUpdates();
 
         // Then no page is unsaved, so Confirm is open again
-        const reimbursementAccount = await readOnyxValue(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
-        expect(reimbursementAccount).not.toHaveProperty('wiseOnboardingUnsavedPages.business');
+        expect(await readOnyxValue(ONYXKEYS.WISE_ONBOARDING_UNSAVED_PAGES)).not.toHaveProperty('saveNotSucceeded.business');
     });
 
     it('stops counting a save as running when the request queue gives up on it', async () => {
@@ -219,7 +225,7 @@ describe('actions/WiseOnboarding saveWiseOnboardingPage', () => {
 
         // Then the flow stops waiting for the save and the page stays unsaved, so the confirmation page shows the error instead of a spinner that never ends
         expect(isSavingWiseOnboardingPageSelector(await readOnyxValue(ONYXKEYS.RAM_ONLY_WISE_ONBOARDING_PENDING_SAVES))).toBe(false);
-        expect(await readOnyxValue(ONYXKEYS.REIMBURSEMENT_ACCOUNT)).toMatchObject({wiseOnboardingUnsavedPages: {business: true}});
+        expect(await readOnyxValue(ONYXKEYS.WISE_ONBOARDING_UNSAVED_PAGES)).toMatchObject({saveNotSucceeded: {business: true}});
     });
 
     it('keeps a page unsaved when its earlier save succeeds but its later save fails', async () => {
@@ -237,7 +243,7 @@ describe('actions/WiseOnboarding saveWiseOnboardingPage', () => {
 
         // Then the page is still unsaved, since Wise only holds the earlier answer, so Confirm stays blocked until the page saves again
         expect(requestCount).toBe(2);
-        expect(await readOnyxValue(ONYXKEYS.REIMBURSEMENT_ACCOUNT)).toMatchObject({wiseOnboardingUnsavedPages: {business: true}});
+        expect(await readOnyxValue(ONYXKEYS.WISE_ONBOARDING_UNSAVED_PAGES)).toMatchObject({saveNotSucceeded: {business: true}});
     });
 
     it('keeps a page with an SSN unsaved when its earlier save answers after its later save would fail', async () => {
@@ -270,7 +276,7 @@ describe('actions/WiseOnboarding saveWiseOnboardingPage', () => {
 
         // Then the page is still unsaved, since Wise only holds the older answers, so Confirm stays blocked until the page saves again
         expect(requestCount).toBe(2);
-        expect(await readOnyxValue(ONYXKEYS.REIMBURSEMENT_ACCOUNT)).toMatchObject({wiseOnboardingUnsavedPages: {representative: true}});
+        expect(await readOnyxValue(ONYXKEYS.WISE_ONBOARDING_UNSAVED_PAGES)).toMatchObject({saveNotSucceeded: {representative: true}});
         expect(isSavingWiseOnboardingPageSelector(await readOnyxValue(ONYXKEYS.RAM_ONLY_WISE_ONBOARDING_PENDING_SAVES))).toBe(false);
     });
 
@@ -287,7 +293,7 @@ describe('actions/WiseOnboarding saveWiseOnboardingPage', () => {
         await Onyx.update(onyxData?.successData ?? []);
 
         // Then the page is still unsaved, since its newest answers are only in the draft, so the next visit opens on it instead of submitting Wise's older answers
-        expect(unsavedWiseOnboardingPageKeysSelector(await readOnyxValue(ONYXKEYS.REIMBURSEMENT_ACCOUNT))).toEqual(['business']);
+        expect(await readUnsavedPageKeys()).toEqual(['business']);
 
         // When the page is saved again with its newest answers and the server accepts it
         writeSpy.mockRestore();
@@ -295,7 +301,7 @@ describe('actions/WiseOnboarding saveWiseOnboardingPage', () => {
         await waitForBatchedUpdates();
 
         // Then no page is unsaved, since Wise now holds the answers the user left offline
-        expect(unsavedWiseOnboardingPageKeysSelector(await readOnyxValue(ONYXKEYS.REIMBURSEMENT_ACCOUNT))).toEqual([]);
+        expect(await readUnsavedPageKeys()).toEqual([]);
     });
 
     it('keeps a page left offline unsaved when its next save fails', async () => {
@@ -309,9 +315,45 @@ describe('actions/WiseOnboarding saveWiseOnboardingPage', () => {
         await waitForBatchedUpdates();
 
         // Then the page is still unsaved, since Wise never got its newest answers, even though the save cleared the mark of the page left offline
-        const reimbursementAccount = await readOnyxValue(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
-        expect(unsavedWiseOnboardingPageKeysSelector(reimbursementAccount)).toEqual(['business']);
-        expect(reimbursementAccount).not.toHaveProperty('wiseOnboardingPagesLeftOffline.business');
+        expect(await readUnsavedPageKeys()).toEqual(['business']);
+        expect(await readOnyxValue(ONYXKEYS.WISE_ONBOARDING_UNSAVED_PAGES)).not.toHaveProperty('leftOffline.business');
+    });
+
+    it('keeps a page left offline unsaved when the reimbursement account is read again on reconnect', async () => {
+        // Given a business page the user left offline with Save and fill out later, and a server that answers the page read by replacing the
+        // reimbursement account, as it does with OpenReimbursementAccountPage
+        markWiseOnboardingPageLeftOffline('business');
+        mockFetch.mockAPICommand('OpenReimbursementAccountPage', () => ({
+            onyxData: [{onyxMethod: Onyx.METHOD.SET, key: ONYXKEYS.REIMBURSEMENT_ACCOUNT, value: {achData: {bankAccountID: 1}}}],
+        }));
+        await waitForBatchedUpdates();
+
+        // When the device comes back online and the flow reads the reimbursement account again
+        openReimbursementAccountPageForWiseIntro(1);
+        await waitForBatchedUpdates();
+
+        // Then the page is still unsaved, since its answers are still only in the draft, so the next visit opens on it instead of the confirmation page
+        expect(await readOnyxValue(ONYXKEYS.REIMBURSEMENT_ACCOUNT)).toMatchObject({achData: {bankAccountID: 1}});
+        expect(await readUnsavedPageKeys()).toEqual(['business']);
+    });
+
+    it('keeps a page whose save failed unsaved when the reimbursement account is read again', async () => {
+        // Given a business page whose save the server rejected, and a server that answers the page read by replacing the reimbursement account
+        mockFetch.fail();
+        saveWiseOnboardingPage(1, BUSINESS_PAGE, {description: 'We sell bikes'}, {});
+        await waitForBatchedUpdates();
+        mockFetch.succeed();
+        mockFetch.mockAPICommand('OpenReimbursementAccountPage', () => ({
+            onyxData: [{onyxMethod: Onyx.METHOD.SET, key: ONYXKEYS.REIMBURSEMENT_ACCOUNT, value: {achData: {bankAccountID: 1}}}],
+        }));
+
+        // When the next visit reads the reimbursement account again
+        openReimbursementAccountPageForWiseIntro(1);
+        await waitForBatchedUpdates();
+
+        // Then the page is still unsaved, since Wise never got it, so the next visit opens on it instead of submitting without it
+        expect(await readOnyxValue(ONYXKEYS.REIMBURSEMENT_ACCOUNT)).toMatchObject({achData: {bankAccountID: 1}});
+        expect(await readUnsavedPageKeys()).toEqual(['business']);
     });
 
     it('never writes a typed SSN to the request queue on disk', async () => {

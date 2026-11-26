@@ -231,8 +231,7 @@ describe('WiseBusinessOnboardingPage offline', () => {
         expect(goBackSpy).toHaveBeenCalledWith(INTRO_PATH);
         const draft = await getOnyxValue(ONYXKEYS.FORMS.WISE_BUSINESS_ONBOARDING_FORM_DRAFT);
         expect(draft).toEqual(expect.objectContaining({companyName: COMPLETE_DRAFT.companyName}));
-        const reimbursementAccount = await getOnyxValue(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
-        expect(reimbursementAccount?.wiseOnboardingPagesLeftOffline).toEqual({[CONST.WISE.ONBOARDING_STEP.BUSINESS]: true});
+        expect(await getOnyxValue(ONYXKEYS.WISE_ONBOARDING_UNSAVED_PAGES)).toEqual({leftOffline: {[CONST.WISE.ONBOARDING_STEP.BUSINESS]: true}});
     });
 
     it('asks again when Try again finds the device still offline', async () => {
