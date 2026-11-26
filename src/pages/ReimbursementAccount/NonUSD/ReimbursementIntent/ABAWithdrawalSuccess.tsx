@@ -2,6 +2,7 @@ import ConfirmationPageDefault from '@components/ConfirmationPage/composed/Confi
 import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
 import ScrollView from '@components/ScrollView';
 
+import useAndroidBackButtonHandler from '@hooks/useAndroidBackButtonHandler';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -20,6 +21,12 @@ type ABAWithdrawalSuccessProps = {
 function ABAWithdrawalSuccess({onFinish}: ABAWithdrawalSuccessProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+
+    // Ensure Android's back button closes the flow like the header's back button
+    useAndroidBackButtonHandler(() => {
+        onFinish();
+        return true;
+    });
 
     return (
         <InteractiveStepWrapper

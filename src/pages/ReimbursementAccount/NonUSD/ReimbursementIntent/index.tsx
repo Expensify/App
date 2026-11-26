@@ -96,6 +96,7 @@ function ReimbursementIntent({onSubmit, onBackButtonPress, policyID, currency, c
                             subPage: REIMBURSEMENT_INTENT_STEP.SUB_PAGE_NAMES.ABA_WITHDRAWAL_SUCCESS,
                             backTo,
                         }),
+                        {forceReplace: true},
                     )
                 }
             />
