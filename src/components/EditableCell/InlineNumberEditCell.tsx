@@ -59,10 +59,7 @@ type InlineNumberEditCellProps = {
     /** Rendered right after the display text (like an icon), so it stays next to the value instead of at the cell's edge. Hidden while editing. */
     children?: ReactNode;
 
-    /**
-     * Keeps the edit button's width clear after `children` in a left-aligned cell. Defaults to true. Pass false when the
-     * user can never edit the cell. Unlike `canEdit`, it must stay the same while the cell is shown, or the row shifts.
-     */
+    /** Pass true when `children` sit next to the edit button in a left-aligned cell, or it covers them. Keep it fixed while shown, or the row shifts. */
     shouldReserveEditButtonClearance?: boolean;
 } & EditableProps<string>;
 
@@ -78,7 +75,7 @@ function InlineNumberEditCell({
     textAlign = 'right',
     isEqual = areNumericValuesEqual,
     children,
-    shouldReserveEditButtonClearance = true,
+    shouldReserveEditButtonClearance = false,
     canEdit,
     onSave,
 }: InlineNumberEditCellProps) {

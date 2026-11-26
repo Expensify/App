@@ -53,28 +53,28 @@ function getTrailingContentRow() {
 }
 
 describe('InlineNumberEditCell', () => {
-    it('keeps the edit button clear of content after a left-aligned value', async () => {
-        // Given a left-aligned value with an icon after it, with the clearance left at its default
+    it('keeps the edit button clear of content after a left-aligned value when asked to', async () => {
+        // Given a left-aligned value with an icon after it, in a cell asked to keep the edit button's room
         // When the cell renders
-        await renderCellWithTrailingContent({textAlign: 'left'});
+        await renderCellWithTrailingContent({textAlign: 'left', shouldReserveEditButtonClearance: true});
 
         // Then the edit button keeps its room after the icon
         expect(getTrailingContentRow()).toHaveStyle({paddingRight: variables.editableCellEditButtonClearance});
     });
 
-    it('leaves no clearance when the cell asks not to reserve it', async () => {
-        // Given a left-aligned value with an icon after it, in an editable cell told not to reserve the clearance
+    it('leaves no clearance by default', async () => {
+        // Given a left-aligned value with an icon after it, with the clearance left at its default
         // When the cell renders
-        await renderCellWithTrailingContent({textAlign: 'left', shouldReserveEditButtonClearance: false});
+        await renderCellWithTrailingContent({textAlign: 'left'});
 
-        // Then no room is kept, which is what a table needs for members who never see the button
+        // Then no room is kept, so a cell only gets the extra width when it asks for it
         expect(getTrailingContentRow()).not.toHaveStyle({paddingRight: variables.editableCellEditButtonClearance});
     });
 
     it('leaves no clearance after a right-aligned value, whose edit button shows on the other side', async () => {
-        // Given a right-aligned value with an icon after it
+        // Given a right-aligned value with an icon after it, in a cell asked to keep the edit button's room
         // When the cell renders
-        await renderCellWithTrailingContent({textAlign: 'right'});
+        await renderCellWithTrailingContent({textAlign: 'right', shouldReserveEditButtonClearance: true});
 
         // Then no room is kept after the icon, since a right-aligned cell shows its edit button at the leading edge
         expect(getTrailingContentRow()).not.toHaveStyle({paddingRight: variables.editableCellEditButtonClearance});
