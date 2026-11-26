@@ -1,6 +1,7 @@
 import {act, fireEvent, render, screen, waitFor, within} from '@testing-library/react-native';
 
 import ComposeProviders from '@components/ComposeProviders';
+import HorizontalSafeAreaContext, {HORIZONTAL_SAFE_AREA_PLACEMENT} from '@components/HorizontalSafeArea/HorizontalSafeAreaContext';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import {ModalActions, ModalProvider} from '@components/Modal/Global/ModalContext';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
@@ -15,6 +16,7 @@ import useMobileSelectionMenuModal from '@hooks/useMobileSelectionMenuModal';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import type ResponsiveLayoutResult from '@hooks/useResponsiveLayout/types';
+import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
 
 import {turnOnMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import {acquireBackgroundInputFocusSuppression} from '@libs/ModalFocusManager';
@@ -60,6 +62,7 @@ type MockFlashListProps<T> = {
     ListEmptyComponentStyle?: React.ComponentProps<typeof View>['style'];
     ListFooterComponent?: React.ComponentType | React.ReactElement | null;
     ListFooterComponentStyle?: React.ComponentProps<typeof View>['style'];
+    style?: React.ComponentProps<typeof View>['style'];
     contentContainerStyle?: React.ComponentProps<typeof View>['style'];
     onEndReached?: () => void;
     onChangeStickyIndex?: (current: number, previous: number) => void;
@@ -444,6 +447,12 @@ jest.mock('@hooks/useResponsiveLayout', () => ({
 }));
 
 // Mock TextInput component
+// Wraps the real hook, so a test can give the screen a horizontal safe area and the rest keep the default insets.
+jest.mock('@hooks/useSafeAreaInsets', () => {
+    const actual = jest.requireActual<{default: typeof useSafeAreaInsets}>('@hooks/useSafeAreaInsets');
+    return {__esModule: true, default: jest.fn(actual.default)};
+});
+
 jest.mock('@components/TextInput', () => {
     const ReactLocal = jest.requireActual<typeof React>('react');
     // eslint-disable-next-line @typescript-eslint/consistent-type-imports
@@ -1306,6 +1315,102 @@ describe('Table', () => {
                     .some((node) => node.props.disabled === false && node.props.tabIndex === undefined),
             ).toBe(true);
             expect(screen.getByTestId('flash-list-sticky-header')).toBeTruthy();
+        });
+
+        describe('in a screen with a horizontal safe area', () => {
+            const RIGHT_SAFE_AREA_INSET = 80;
+            const defaultResponsiveLayoutImplementation = jest.mocked(useResponsiveLayout).getMockImplementation();
+            const defaultSafeAreaInsetsImplementation = jest.mocked(useSafeAreaInsets).getMockImplementation();
+
+            beforeEach(() => {
+                jest.mocked(useResponsiveLayout).mockReturnValue(createMock<ResponsiveLayoutResult>({shouldUseNarrowLayout: true, isSmallScreenWidth: true, isInNarrowPaneModal: false}));
+                jest.mocked(useSafeAreaInsets).mockReturnValue({top: 0, bottom: 0, left: 0, right: RIGHT_SAFE_AREA_INSET});
+            });
+
+            afterEach(() => {
+                if (defaultResponsiveLayoutImplementation) {
+                    jest.mocked(useResponsiveLayout).mockImplementation(defaultResponsiveLayoutImplementation);
+                }
+                if (defaultSafeAreaInsetsImplementation) {
+                    jest.mocked(useSafeAreaInsets).mockImplementation(defaultSafeAreaInsetsImplementation);
+                }
+            });
+
+            it('should keep the stuck column header out of the safe area the list reaches into', () => {
+                // Given a table right inside a narrow screen that keeps out of a right safe area, like the one the
+                // vertical tab bar takes on a folded iPhone Duo
+                const props = createDefaultProps();
+
+                render(
+                    <HorizontalSafeAreaContext.Provider value={HORIZONTAL_SAFE_AREA_PLACEMENT.SCREEN}>
+                        <Table<TestItem, TestColumnKey>
+                            data={props.data}
+                            columns={props.columns}
+                            renderItem={props.renderItem}
+                            keyExtractor={props.keyExtractor}
+                            // A narrow table only keeps its column header when it has a title for the header to show
+                            title="Members"
+                        >
+                            <Table.ListHeader>
+                                <Text>Page controls</Text>
+                            </Table.ListHeader>
+                            <Table.Header />
+                            <Table.Body />
+                        </Table>
+                    </HorizontalSafeAreaContext.Provider>,
+                );
+
+                // When the column header sticks, which renders a copy of it over the list instead of in its content
+                activateStickyHeadersAfterListLoad();
+
+                // Then the list reaches the screen edge with its content padded by the safe area, so a tab row in
+                // its header isn't cut off there
+                const listProps = mockFlashListProps.at(-1);
+                expect(StyleSheet.flatten(listProps?.style)).toEqual(expect.objectContaining({marginRight: -RIGHT_SAFE_AREA_INSET}));
+                expect(StyleSheet.flatten(listProps?.contentContainerStyle)).toEqual(expect.objectContaining({paddingRight: RIGHT_SAFE_AREA_INSET}));
+
+                // And the stuck copy gets the same padding, because it would otherwise be wider than the rows under it
+                const stuckRow = screen.getByTestId('flash-list-sticky-header').children.at(0);
+                if (!stuckRow || typeof stuckRow === 'string') {
+                    throw new Error('Expected the stuck column header to be rendered');
+                }
+                expect(StyleSheet.flatten(stuckRow.props.style)).toEqual(expect.objectContaining({paddingLeft: 0, paddingRight: RIGHT_SAFE_AREA_INSET}));
+            });
+
+            it('should not pad the stuck column header of a table inside a box in the screen', () => {
+                // Given the same screen, but with the table in a box within it, where a list stays inside the box
+                const props = createDefaultProps();
+
+                render(
+                    <HorizontalSafeAreaContext.Provider value={HORIZONTAL_SAFE_AREA_PLACEMENT.BOX}>
+                        <Table<TestItem, TestColumnKey>
+                            data={props.data}
+                            columns={props.columns}
+                            renderItem={props.renderItem}
+                            keyExtractor={props.keyExtractor}
+                            // A narrow table only keeps its column header when it has a title for the header to show
+                            title="Members"
+                        >
+                            <Table.ListHeader>
+                                <Text>Page controls</Text>
+                            </Table.ListHeader>
+                            <Table.Header testID="declared-table-header" />
+                            <Table.Body />
+                        </Table>
+                    </HorizontalSafeAreaContext.Provider>,
+                );
+
+                // When the column header sticks
+                activateStickyHeadersAfterListLoad();
+
+                // Then the stuck copy is rendered as is, because the list doesn't reach into the safe area and
+                // padding the copy would make it narrower than the rows
+                const stuckRow = screen.getByTestId('flash-list-sticky-header').children.at(0);
+                if (!stuckRow || typeof stuckRow === 'string') {
+                    throw new Error('Expected the stuck column header to be rendered');
+                }
+                expect(stuckRow.props.testID).toBe('declared-table-header');
+            });
         });
 
         it('should request drag dismissal and preserve the query and caller callback', () => {

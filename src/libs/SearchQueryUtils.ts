@@ -97,6 +97,7 @@ import {temporaryGetDisplayNameOrDefault} from './PersonalDetailsUtils';
 import {getCleanedTagName, getValidConnectedIntegration} from './PolicyUtils';
 import {getReportName} from './ReportNameUtils';
 import {parseAmountFilterValue, supportsAmountFilterCurrency} from './SearchAmountFilterUtils';
+import {getCustomColumns, getSortByForColumn} from './SearchColumnsUtils';
 import {TODO_SEARCH_KEYS} from './SearchKeyUtils';
 import {parse as parseSearchQuery} from './SearchParser/searchParser';
 import {getPinnedColumns, getPinsOnSavedColumns} from './SearchPinnedColumnsUtils';
@@ -1030,7 +1031,11 @@ function getUpdatedFilterValue(filterName: SyntaxFilterKey, filterValue: string 
         return filterValue.map((value) => resolvePolicyIDFromName(value, policies));
     }
 
-    if (filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.REPORT_ID || filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_ID) {
+    if (
+        filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.REPORT_ID ||
+        filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.TRANSACTION_ID ||
+        filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_ID
+    ) {
         const cleanIDs = (value: string) =>
             value
                 .split(',')
@@ -1500,6 +1505,19 @@ function buildQueryStringWithResetFilters(currentQueryJSON: SearchQueryJSON, def
         });
     }
 
+    // The reverse case: clearing a saved violation grouping's Has pill dropped the grouping, so bringing the Has pill back
+    // also brings back the grouping with the rest of the saved display (sorting, columns, chart view). Otherwise the
+    // search still differs from the saved one and keeps offering Save. A grouping chosen after clearing the Has pill is
+    // the user's own choice, so it stays.
+    if (
+        !currentQueryJSON.groupBy &&
+        defaultQueryJSON?.groupBy === CONST.SEARCH.GROUP_BY.VIOLATION &&
+        !queryHasHasFilter(currentQueryJSON, VIOLATION_HAS_VALUES) &&
+        queryHasHasFilter(resetQueryJSON, VIOLATION_HAS_VALUES)
+    ) {
+        return buildQueryStringWithResetDisplay(resetQueryJSON, defaultQueryJSON);
+    }
+
     return buildSearchQueryString(resetQueryJSON);
 }
 
@@ -1805,7 +1823,7 @@ function buildQueryStringFromFilterFormValues(filterValues: Partial<SearchAdvanc
                     return `${prefix}${CONST.SEARCH.SYNTAX_FILTER_KEYS[keyInCorrectForm]}${operatorToCharMap[CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO]}${sanitizeSearchValue(value)}`;
                 }
             }
-            if ((filterKey === FILTER_KEYS.REPORT_ID || filterKey === FILTER_KEYS.WITHDRAWAL_ID) && filterValue) {
+            if ((filterKey === FILTER_KEYS.REPORT_ID || filterKey === FILTER_KEYS.TRANSACTION_ID || filterKey === FILTER_KEYS.WITHDRAWAL_ID) && filterValue) {
                 const reportIDs = (filterValue as string)
                     .split(',')
                     .map((id) => sanitizeSearchValue(id.trim()))
@@ -2232,7 +2250,11 @@ function buildFilterFormValuesFromQuery(
         if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID || filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.STATUS) {
             filtersForm[addNegation(filterKey, isNegated)] = filterValues;
         }
-        if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_ID || filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.REPORT_ID) {
+        if (
+            filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_ID ||
+            filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.REPORT_ID ||
+            filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.TRANSACTION_ID
+        ) {
             filtersForm[addNegation(filterKey, isNegated)] = filterValues.join(',');
         }
         if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT || filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.DESCRIPTION || filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.TITLE) {
@@ -3401,9 +3423,7 @@ function shouldHighlight(referenceText: string, searchText: string) {
 const TIME_BASED_GROUP_BYS = new Set<string>([CONST.SEARCH.GROUP_BY.DAY, CONST.SEARCH.GROUP_BY.MONTH, CONST.SEARCH.GROUP_BY.WEEK, CONST.SEARCH.GROUP_BY.YEAR, CONST.SEARCH.GROUP_BY.QUARTER]);
 
 /**
- * Determines whether sortBy and sortOrder should be fully reset (re-derived by
- * the parser) when filters change.  Returns true only when the groupBy value
- * changes, because each groupBy has its own default sort column and order.
+ * Grouping changes require new sort defaults because each grouping has its own columns and order.
  */
 function shouldResetSort({newGroupBy, oldGroupBy}: {newGroupBy: string | undefined; oldGroupBy: string | undefined}): boolean {
     return newGroupBy !== oldGroupBy;
@@ -3436,8 +3456,8 @@ function shouldResetSortForViewChange({newView, oldView, groupBy}: {newView: str
 }
 
 /**
- * Builds a query string from filter form values, resetting sortBy and sortOrder
- * when the groupBy has changed so the parser can re-derive the correct defaults.
+ * Builds a query string from filter form values, preserving compatible columns and
+ * non-default directions when grouping changes so user choices are not lost.
  * When only the view changes between table and chart with a time-based groupBy,
  * both sortBy and sortOrder are reset to allow the parser to apply the appropriate
  * defaults (e.g., groupMonth asc for charts, groupMonth desc for tables).
@@ -3446,7 +3466,7 @@ function shouldResetSortForViewChange({newView, oldView, groupBy}: {newView: str
  */
 function buildFilterQueryWithSortDefaults(
     filterValues: Partial<SearchAdvancedFiltersForm>,
-    previousState: {view?: string; groupBy?: string},
+    previousState: Pick<Partial<SearchAdvancedFiltersForm>, 'view' | 'groupBy'>,
     currentQueryOptions: BuildQueryStringOptions,
     policies?: OnyxCollection<OnyxTypes.Policy>,
 ): string | undefined {
@@ -3463,9 +3483,30 @@ function buildFilterQueryWithSortDefaults(
             groupBy: filterValues.groupBy,
         });
 
+    let {sortBy, sortOrder} = currentQueryOptions;
+    if (resetSort) {
+        // The parser already remaps date and group default columns. Only custom columns need a compatibility check.
+        const queryWithSortBy = buildSearchQueryJSON(buildQueryStringFromFilterFormValues(filterValues, {sortBy}));
+        const isSortByRemapped = queryWithSortBy && queryWithSortBy.sortBy !== sortBy;
+        const isCustomSortBySupported = getCustomColumns(filterValues.groupBy ?? filterValues.type ?? CONST.SEARCH.DATA_TYPES.EXPENSE).some(
+            (column) => getSortByForColumn(column) === sortBy,
+        );
+
+        // A surviving custom column keeps its chosen direction even when it matches the old grouping's default.
+        // Otherwise, parse without sorting to distinguish the old defaults from a user's chosen direction, including chart defaults.
+        const previousDefaults = buildSearchQueryJSON(buildQueryStringFromFilterFormValues({type: filterValues.type, ...previousState}));
+        if ((isSortByRemapped || !isCustomSortBySupported) && sortOrder === previousDefaults?.sortOrder) {
+            sortOrder = undefined;
+        }
+
+        if (!isSortByRemapped && !isCustomSortBySupported) {
+            sortBy = undefined;
+        }
+    }
+
     const queryString = buildQueryStringFromFilterFormValues(filterValues, {
-        sortBy: resetSort || resetSortForViewChange ? undefined : currentQueryOptions.sortBy,
-        sortOrder: resetSort || resetSortForViewChange ? undefined : currentQueryOptions.sortOrder,
+        sortBy: resetSortForViewChange ? undefined : sortBy,
+        sortOrder: resetSortForViewChange ? undefined : sortOrder,
         flatFilters: currentQueryOptions.flatFilters,
     });
 

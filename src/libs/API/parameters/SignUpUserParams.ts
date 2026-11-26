@@ -4,6 +4,7 @@ import type MarketingAttribution from '@src/types/onyx/MarketingAttribution';
 type SignUpUserParams = {
     email?: string;
     preferredLocale: Locale | null;
+    hasSMSTransactionalConsent?: boolean;
     hasSMSMarketingConsent?: boolean;
     deviceInfo: string;
     isAdvertisingConsentGranted?: boolean;

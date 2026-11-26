@@ -1,4 +1,4 @@
-import {act, fireEvent, render, screen} from '@testing-library/react-native';
+import {fireEvent, render, screen} from '@testing-library/react-native';
 
 import FormContext from '@components/Form/FormContext';
 import FormWrapper from '@components/Form/FormWrapper';
@@ -6,25 +6,13 @@ import ScrollView from '@components/ScrollView';
 
 import Accessibility from '@libs/Accessibility';
 
-import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ErrorFields} from '@src/types/onyx/OnyxCommon';
 
 import React from 'react';
 import {View} from 'react-native';
 
-import type {FormWrapperRef, InputComponentBaseProps, InputRefs} from '../../../../src/components/Form/types';
-
-const mockScrollTo = jest.fn();
-
-jest.mock('@components/ScrollView', () => {
-    const ReactModule = jest.requireActual<typeof React>('react');
-    const {View: NativeView} = jest.requireActual<{View: typeof View}>('react-native');
-    return function MockScrollView({children, ref}: {children?: React.ReactNode; ref?: React.Ref<{scrollTo: typeof mockScrollTo}>}) {
-        ReactModule.useImperativeHandle(ref, () => ({scrollTo: mockScrollTo}));
-        return ReactModule.createElement(NativeView, null, children);
-    };
-});
+import type {FormProps, InputComponentBaseProps, InputRefs} from '../../../../src/components/Form/types';
 
 jest.mock('@hooks/useLocalize', () =>
     jest.fn(() => ({
@@ -61,13 +49,13 @@ function renderFormWrapper({
     serverErrorFields,
     inputRefs,
     shouldScrollChildToFocus,
-    ref,
+    scrollViewRef,
 }: {
     errors?: Record<string, string>;
     serverErrorFields?: ErrorFields | null;
     inputRefs: React.RefObject<InputRefs>;
     shouldScrollChildToFocus?: boolean;
-    ref?: React.Ref<FormWrapperRef>;
+    scrollViewRef?: FormProps['scrollViewRef'];
 }) {
     return render(
         <FormContext.Provider
@@ -78,7 +66,6 @@ function renderFormWrapper({
             }}
         >
             <FormWrapper
-                ref={ref}
                 formID={ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM}
                 submitButtonText="Submit"
                 onSubmit={jest.fn()}
@@ -87,6 +74,7 @@ function renderFormWrapper({
                 isAlertVisible
                 serverErrorFields={serverErrorFields}
                 shouldScrollChildToFocus={shouldScrollChildToFocus}
+                scrollViewRef={scrollViewRef}
             >
                 {null}
             </FormWrapper>
@@ -106,42 +94,19 @@ function createFocusableInput(inputID: string): InputComponentBaseProps {
 describe('FormWrapper', () => {
     beforeEach(() => {
         jest.clearAllMocks();
-        jest.useFakeTimers();
     });
 
-    afterEach(() => {
-        jest.clearAllTimers();
-        jest.useRealTimers();
-    });
+    it("gives the caller's scroll view ref the form's scroll view", () => {
+        // Given a caller that needs the form's scroll view, e.g. for useKeyboardDrivenScroll
+        // React fills current on an object ref, which is all FormWrapper needs from the animated ref
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- see the comment above
+        const scrollViewRef = {current: null} as unknown as NonNullable<FormProps['scrollViewRef']>;
 
-    it.each([undefined, true])('waits for the keyboard transition when shouldDelayScroll is %s', (shouldDelayScroll) => {
-        // Given a form that may receive focus before the keyboard has finished opening
-        const ref = React.createRef<FormWrapperRef>();
-        renderFormWrapper({inputRefs: {current: {}}, ref});
+        // When the form renders
+        renderFormWrapper({inputRefs: {current: {}}, scrollViewRef});
 
-        // When the caller uses the default delay or explicitly requests it
-        act(() => ref.current?.scrollTo(420, shouldDelayScroll));
-
-        // Then the scroll still waits for the existing transition duration
-        expect(mockScrollTo).not.toHaveBeenCalled();
-        act(() => jest.advanceTimersByTime(CONST.ANIMATED_TRANSITION));
-        expect(mockScrollTo).toHaveBeenCalledTimes(1);
-        expect(mockScrollTo).toHaveBeenCalledWith({y: 420, animated: true});
-    });
-
-    it.each([420, -10])('scrolls immediately to %s when the keyboard has finished opening', (y) => {
-        // Given a form whose keyboard animation is already complete
-        const ref = React.createRef<FormWrapperRef>();
-        renderFormWrapper({inputRefs: {current: {}}, ref});
-
-        // When the caller opts out of the keyboard transition delay
-        act(() => ref.current?.scrollTo(y, false));
-
-        // Then the animated scroll runs before advancing timers and still clamps negative offsets
-        expect(mockScrollTo).toHaveBeenCalledTimes(1);
-        expect(mockScrollTo).toHaveBeenCalledWith({y: Math.max(y, 0), animated: true});
-        act(() => jest.advanceTimersByTime(CONST.ANIMATED_TRANSITION));
-        expect(mockScrollTo).toHaveBeenCalledTimes(1);
+        // Then the ref points at the scroll view
+        expect(scrollViewRef.current).not.toBeNull();
     });
 
     it('focuses the first local validation error before server field errors', () => {
