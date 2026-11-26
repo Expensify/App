@@ -3920,7 +3920,7 @@ const staticStyles = (theme: ThemeColors) =>
             ...spacing.p5,
         },
 
-        // Square growl for finishing a whole list of work, sized to stay inside CONST.GROWL.OFFSCREEN_OFFSET when parked.
+        // Square growl for finishing a whole list of work, parked with CONST.GROWL.CELEBRATION_OFFSCREEN_OFFSET.
         growlNotificationCelebrationBox: {
             width: variables.growlNotificationCelebrationSize,
             height: variables.growlNotificationCelebrationSize,

@@ -5291,6 +5291,8 @@ const CONST = {
         // Pixel distance used to park the growl fully offscreen before it slides in. It only needs to
         // exceed the growl's height + margins; the exact value isn't tied to a measured dimension.
         OFFSCREEN_OFFSET: 255,
+        // The celebration growl is much taller, so it needs room for its height, the bottom inset, the native safe area and its shadow.
+        CELEBRATION_OFFSCREEN_OFFSET: 360,
     },
 
     /**

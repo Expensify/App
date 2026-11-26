@@ -26,11 +26,8 @@ import GrowlNotificationContainer from './GrowlNotificationContainer';
 import GrowlNotificationPortal from './GrowlNotificationPortal';
 import shouldUseExplicitBottomPosition from './shouldUseExplicitBottomPosition';
 
-const INACTIVE_OFFSET = CONST.GROWL.OFFSCREEN_OFFSET;
-
 /** Skips most of the first rocket's climb in the fireworks, so the first burst (frame 17 at 24 fps) comes right after the growl appears */
 const CELEBRATION_FIREWORKS_START_FRAME = 12;
-const INACTIVE_POSITION_Y = -INACTIVE_OFFSET;
 
 const PressableWithoutFeedback = Pressables.PressableWithoutFeedback;
 
@@ -76,7 +73,8 @@ function GrowlNotificationContent({bodyText, type, duration, action, position, t
 
     // Derived live so that resizing the window flips position + slide direction during display.
     const useBottomPosition = shouldUseExplicitBottomPosition(position) || (!!action && !shouldUseNarrowLayout);
-    const inactiveY = useBottomPosition ? INACTIVE_OFFSET : INACTIVE_POSITION_Y;
+    const inactiveOffset = type === CONST.GROWL.CELEBRATION ? CONST.GROWL.CELEBRATION_OFFSCREEN_OFFSET : CONST.GROWL.OFFSCREEN_OFFSET;
+    const inactiveY = useBottomPosition ? inactiveOffset : -inactiveOffset;
 
     const types: GrowlIconTypes = {
         [CONST.GROWL.SUCCESS]: {
