@@ -104,6 +104,15 @@ Onyx.init({
 
 OnyxUpdateManager();
 initReconnect();
+
+function goOffline() {
+    jest.mocked(HttpUtils.xhr).mockReturnValue(new Promise(() => {}));
+    setHasRadio(false);
+}
+function goOnline() {
+    jest.mocked(HttpUtils.xhr).mockReset();
+    setHasRadio(true);
+}
 beforeEach(() => {
     setHasRadio(true);
     return Onyx.clear().then(waitForBatchedUpdates);
@@ -493,7 +502,7 @@ describe('Session', () => {
     test('ReconnectApp should push request to the queue', async () => {
         await TestHelper.signInWithTestUser();
         await Onyx.set(ONYXKEYS.HAS_LOADED_APP, true);
-        setHasRadio(false);
+        goOffline();
         await waitForBatchedUpdates();
 
         reconnectApp();
@@ -503,7 +512,7 @@ describe('Session', () => {
         expect(getAllPersistedRequests().length).toBe(1);
         expect(getAllPersistedRequests().at(0)?.command).toBe(WRITE_COMMANDS.RECONNECT_APP);
 
-        setHasRadio(true);
+        goOnline();
         await waitForBatchedUpdates();
 
         await waitForBatchedUpdates();
@@ -514,7 +523,7 @@ describe('Session', () => {
     test('ReconnectApp should open if app is not loaded', async () => {
         await TestHelper.signInWithTestUser();
         await Onyx.set(ONYXKEYS.HAS_LOADED_APP, false);
-        setHasRadio(false);
+        goOffline();
         await waitForBatchedUpdates();
 
         reconnectApp();
@@ -524,7 +533,7 @@ describe('Session', () => {
         expect(getAllPersistedRequests().length).toBe(1);
         expect(getAllPersistedRequests().at(0)?.command).toBe(WRITE_COMMANDS.OPEN_APP);
 
-        setHasRadio(true);
+        goOnline();
         await waitForBatchedUpdates();
 
         await waitForBatchedUpdates();
@@ -535,7 +544,7 @@ describe('Session', () => {
     test('ReconnectApp should replace same requests from the queue', async () => {
         await TestHelper.signInWithTestUser();
         await Onyx.set(ONYXKEYS.HAS_LOADED_APP, true);
-        setHasRadio(false);
+        goOffline();
         await waitForBatchedUpdates();
 
         reconnectApp();
@@ -548,7 +557,7 @@ describe('Session', () => {
         expect(getAllPersistedRequests().length).toBe(1);
         expect(getAllPersistedRequests().at(0)?.command).toBe(WRITE_COMMANDS.RECONNECT_APP);
 
-        setHasRadio(true);
+        goOnline();
         await waitForBatchedUpdates();
 
         expect(getAllPersistedRequests().length).toBe(0);
@@ -556,7 +565,7 @@ describe('Session', () => {
 
     test('OpenApp should push request to the queue', async () => {
         await TestHelper.signInWithTestUser();
-        setHasRadio(false);
+        goOffline();
         await waitForBatchedUpdates();
 
         openApp();
@@ -566,7 +575,7 @@ describe('Session', () => {
         expect(getAllPersistedRequests().length).toBe(1);
         expect(getAllPersistedRequests().at(0)?.command).toBe(WRITE_COMMANDS.OPEN_APP);
 
-        setHasRadio(true);
+        goOnline();
         await waitForBatchedUpdates();
 
         await waitForBatchedUpdates();
@@ -576,7 +585,7 @@ describe('Session', () => {
 
     test('OpenApp should replace same requests from the queue', async () => {
         await TestHelper.signInWithTestUser();
-        setHasRadio(false);
+        goOffline();
         await waitForBatchedUpdates();
 
         openApp();
@@ -589,7 +598,7 @@ describe('Session', () => {
         expect(getAllPersistedRequests().length).toBe(1);
         expect(getAllPersistedRequests().at(0)?.command).toBe(WRITE_COMMANDS.OPEN_APP);
 
-        setHasRadio(true);
+        goOnline();
         await waitForBatchedUpdates();
 
         expect(getAllPersistedRequests().length).toBe(0);

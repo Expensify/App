@@ -1,5 +1,5 @@
 import {recordFailure, recordSuccess} from '@libs/FailureTracker';
-import {getShouldFailAllRequests} from '@libs/NetworkState';
+import {getHasRadio, getShouldFailAllRequests} from '@libs/NetworkState';
 
 import CONST from '@src/CONST';
 
@@ -14,17 +14,18 @@ import type Middleware from './types';
  * - EXPENSIFY_SERVICE_INTERRUPTED → failure (server down: 500/502/504/520, auth socket)
  * - SERVICE_UNAVAILABLE → success (app-level 503 inside an HTTP 200, so the server answered)
  */
-const FailureTracking: Middleware = (response) =>
-    response
+const FailureTracking: Middleware = (response) => {
+    const wasSentWithoutRadio = !getHasRadio();
+    return response
         .then((data) => {
-            recordSuccess();
+            recordSuccess(wasSentWithoutRadio);
             return data;
         })
         .catch((error: Error) => {
             // An app-level 503 is rejected so the write retries, but it still arrived in an HTTP 200,
             // so it proves reachability and must clear any failures recorded before it.
             if (error.message === CONST.ERROR.SERVICE_UNAVAILABLE) {
-                recordSuccess();
+                recordSuccess(wasSentWithoutRadio);
                 throw error;
             }
 
@@ -36,5 +37,6 @@ const FailureTracking: Middleware = (response) =>
 
             throw error;
         });
+};
 
 export default FailureTracking;

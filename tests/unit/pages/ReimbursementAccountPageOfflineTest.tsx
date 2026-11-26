@@ -134,14 +134,14 @@ describe('ReimbursementAccountPage offline', () => {
     });
 
     beforeEach(() => {
-        // The mount fetch is a read, so it still goes out offline. It fails, which applies the command's failureData.
-        mockFetch.fail();
+        // The mount fetch is a read, so it still goes out offline. Without a radio it never gets an answer.
+        mockFetch.pause();
         act(() => setHasRadio(false));
     });
 
     afterEach(async () => {
         act(() => setHasRadio(true));
-        mockFetch.succeed();
+        mockFetch.resume();
         jest.clearAllMocks();
         await act(async () => {
             await Onyx.clear();

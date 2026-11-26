@@ -3,7 +3,7 @@ import CONST from '@src/CONST';
 let failureCount = 0;
 let firstFailureTimestamp = 0;
 const sustainedFailureListeners = new Set<(active: boolean) => void>();
-const successListeners = new Set<() => void>();
+const successListeners = new Set<(wasSentWithoutRadio: boolean) => void>();
 
 /**
  * Register a listener for sustained failure state changes.
@@ -20,7 +20,7 @@ function onSustainedFailureChange(listener: (active: boolean) => void): () => vo
  * while the INTERNET_UNREACHABLE hard stop is set. NetworkState needs that signal
  * to clear the hard stop, because the Ping alone may keep failing.
  */
-function onSuccess(listener: () => void): () => void {
+function onSuccess(listener: (wasSentWithoutRadio: boolean) => void): () => void {
     successListeners.add(listener);
     return () => successListeners.delete(listener);
 }
@@ -29,9 +29,9 @@ function onSuccess(listener: () => void): () => void {
  * Record a successful request outcome.
  * Resets the failure tracker — one success proves connectivity.
  */
-function recordSuccess() {
+function recordSuccess(wasSentWithoutRadio = false) {
     for (const cb of successListeners) {
-        cb();
+        cb(wasSentWithoutRadio);
     }
 
     if (failureCount === 0) {
