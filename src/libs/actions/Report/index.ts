@@ -8894,7 +8894,9 @@ function buildOptimisticChangePolicyData({
     // Auth checks the original status before this move can reopen or close the report.
     const isDestinationGroupPolicy = isGroupPolicy(policy);
     const shouldMigrateDistanceRates = isOpenOrSubmitted && isDestinationGroupPolicy;
-    const distanceActionCreated = DateUtils.addMillisecondsFromDateTime(optimisticMovedReportAction.created, 1);
+    // Keep the expense explanation before the move so the combined single-expense timeline does not reorder after sync.
+    const modifiedExpenseActionCreated = DateUtils.subtractMillisecondsFromDateTime(optimisticMovedReportAction.created, 1);
+    const distanceRateUpdatedActionCreated = DateUtils.addMillisecondsFromDateTime(optimisticMovedReportAction.created, 1);
     const transactionIDToReportActionAndThreadData: Record<string, DistanceRateThreadData> = {};
     const expenseActions = Object.values(reportActions ?? {});
     const policyHasDependentTags = hasDependentTags(policy, policyTagList);
@@ -9027,7 +9029,7 @@ function buildOptimisticChangePolicyData({
             oldTransaction: transaction,
             updatedTransaction: repricedTransaction,
             policy,
-            created: distanceActionCreated,
+            created: modifiedExpenseActionCreated,
         });
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
@@ -9050,7 +9052,7 @@ function buildOptimisticChangePolicyData({
     });
     let distanceRateUpdatedReportActionID: string | undefined;
     if (hasFallbackDistanceRate) {
-        const action = buildOptimisticConciergeAutoSelectDistanceRateReportAction(policy.name, distanceActionCreated);
+        const action = buildOptimisticConciergeAutoSelectDistanceRateReportAction(policy.name, distanceRateUpdatedActionCreated);
         distanceRateUpdatedReportActionID = action.reportActionID;
         optimisticData.push({onyxMethod: Onyx.METHOD.MERGE, key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, value: {[action.reportActionID]: action}});
         successData.push({onyxMethod: Onyx.METHOD.MERGE, key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, value: {[action.reportActionID]: {pendingAction: null}}});

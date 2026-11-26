@@ -24,7 +24,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import REPORT_LINK_ROUTE_PARAMS from '@libs/Navigation/reportLinkRouteParams';
 import {buildOptimisticNextStep} from '@libs/NextStepUtils';
 import {getAccountIDsByLogins} from '@libs/PersonalDetailsUtils';
-import {getOriginalMessage, getReportActionMessage, isActionOfType, isDeletedAction} from '@libs/ReportActionsUtils';
+import {getCombinedReportActions, getOriginalMessage, getReportActionMessage, isActionOfType, isDeletedAction} from '@libs/ReportActionsUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
 import {appendParam} from '@libs/Url';
 
@@ -6932,6 +6932,76 @@ describe('actions/Report', () => {
                 }
             },
         );
+
+        it.each([false, true])('keeps fallback messages ordered after reconciliation with an existing thread: %s', async (hasExistingThread) => {
+            // Given one fallback expense whose thread is displayed together with its report's messages
+            const transaction = createDistanceTransaction();
+            const iouAction: OnyxTypes.ReportAction = {
+                reportActionID: 'distanceIOUAction',
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                actorAccountID: 1,
+                created: '2026-03-15 00:00:00.000',
+                originalMessage: {IOUTransactionID: transaction.transactionID, type: CONST.IOU.REPORT_ACTION_TYPE.CREATE},
+                ...(hasExistingThread ? {childReportID: 'existingDistanceThread'} : {}),
+            };
+
+            // When the move is queued before an authoritative response replaces its message timestamps
+            const {params, threadMap} = await changeWorkspace({transactions: [transaction], reportActions: {[iouAction.reportActionID]: iouAction}});
+            const entry = threadMap[transaction.transactionID];
+            const threadID = hasExistingThread ? 'existingDistanceThread' : entry.transactionThreadReportID;
+            const notificationID = params.distanceRateUpdatedReportActionID;
+            if (!threadID || !notificationID) {
+                throw new Error('Expected fallback expense thread and distance notification');
+            }
+            const expectedOrder = [entry.modifiedExpenseReportActionID, params.changePolicyReportActionID, notificationID];
+            const readTimeline = async () => {
+                const reportActions = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`);
+                const threadActions = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${threadID}`);
+                const orderedIDs = getCombinedReportActions(Object.values(reportActions ?? {}), threadID, Object.values(threadActions ?? {}))
+                    .map((action) => action.reportActionID)
+                    .filter((id) => expectedOrder.includes(id))
+                    .reverse();
+                return {reportActions, threadActions, orderedIDs};
+            };
+            const optimistic = await readTimeline();
+            const workspaceChangeCreated = optimistic.reportActions?.[params.changePolicyReportActionID]?.created;
+            if (!workspaceChangeCreated) {
+                throw new Error('Expected workspace-change timestamp');
+            }
+
+            // Then the expense explanation precedes the move and the report notice follows it without timestamp ties
+            expect(optimistic.threadActions?.[entry.modifiedExpenseReportActionID]?.created).toBe(DateUtils.subtractMillisecondsFromDateTime(workspaceChangeCreated, 1));
+            expect(optimistic.reportActions?.[notificationID]?.created).toBe(DateUtils.addMillisecondsFromDateTime(workspaceChangeCreated, 1));
+            expect(optimistic.orderedIDs).toEqual(expectedOrder);
+
+            // Model the reported server chronology at an independent absolute time, not the client's timestamps
+            const serverExpenseCreated = '2026-03-15 12:00:00.099';
+            const serverWorkspaceCreated = '2026-03-15 12:00:00.100';
+            const serverNotificationCreated = '2026-03-15 12:00:00.101';
+            const command = inviteSubmitter ? WRITE_COMMANDS.CHANGE_REPORT_POLICY_AND_INVITE_SUBMITTER : WRITE_COMMANDS.CHANGE_REPORT_POLICY;
+            mockFetch.mockAPICommand(command, () => ({
+                onyxData: [
+                    {
+                        onyxMethod: Onyx.METHOD.MERGE,
+                        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
+                        value: {[params.changePolicyReportActionID]: {created: serverWorkspaceCreated}, [notificationID]: {created: serverNotificationCreated}},
+                    },
+                    {
+                        onyxMethod: Onyx.METHOD.MERGE,
+                        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${threadID}`,
+                        value: {[entry.modifiedExpenseReportActionID]: {created: serverExpenseCreated}},
+                    },
+                ],
+            }));
+            await mockFetch.resume();
+            await waitForNetworkPromises();
+            await waitForBatchedUpdates();
+            const reconciled = await readTimeline();
+            expect(reconciled.threadActions?.[entry.modifiedExpenseReportActionID]?.created).toBe(serverExpenseCreated);
+            expect(reconciled.reportActions?.[params.changePolicyReportActionID]?.created).toBe(serverWorkspaceCreated);
+            expect(reconciled.reportActions?.[notificationID]?.created).toBe(serverNotificationCreated);
+            expect(reconciled.orderedIDs).toEqual(expectedOrder);
+        });
 
         it.each([undefined, '0', 'existingDistanceThread'])('handles a missing IOU action with thread ID: %s', async (transactionThreadReportID) => {
             // Given an expense whose IOU action has not been loaded
