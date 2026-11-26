@@ -54,6 +54,7 @@ const dateFieldProps: React.ComponentProps<typeof DateField> = {
     didConfirm: false,
     isReadOnly: false,
     fieldError: undefined,
+    formError: '',
     transactionID: '1',
     action: CONST.IOU.ACTION.CREATE,
     iouType: CONST.IOU.TYPE.CREATE,

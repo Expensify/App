@@ -10,10 +10,10 @@ import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useTransactionStartDateValidation from '@hooks/useTransactionStartDateValidation';
 
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
-import {isRequiredFulfilled} from '@libs/ValidationUtils';
 
 import Navigation from '@navigation/Navigation';
 
@@ -56,13 +56,13 @@ function PersonalCardEditTransactionStartDatePage({route}: PersonalCardEditTrans
     const [defaultStartDate] = useState(() => format(new Date(), CONST.DATE.FNS_FORMAT_STRING));
     const startDate = editedStartDate ?? (currentStartDate ? format(parseISO(currentStartDate), CONST.DATE.FNS_FORMAT_STRING) : defaultStartDate);
 
-    const [errorText, setErrorText] = useState('');
+    const {requiredError, onValidationErrorChange, forgetSubmitAttempt, validateOnSubmit} = useTransactionStartDateValidation({dateOption: dateOptionSelected, startDate});
 
-    const handleSelectDateOption = (dateOption: DateOption) => {
+    const selectDateOption = (dateOption: DateOption) => {
         if (!card) {
             return;
         }
-        setErrorText('');
+        forgetSubmitAttempt();
         setDateOptionSelected(dateOption);
         if (dateOption === CONST.COMPANY_CARD.TRANSACTION_START_DATE_OPTIONS.FROM_BEGINNING) {
             return;
@@ -81,8 +81,7 @@ function PersonalCardEditTransactionStartDatePage({route}: PersonalCardEditTrans
         if (!card) {
             return;
         }
-        if (dateOptionSelected === CONST.COMPANY_CARD.TRANSACTION_START_DATE_OPTIONS.CUSTOM && !isRequiredFulfilled(startDate)) {
-            setErrorText(translate('common.error.fieldRequired'));
+        if (!validateOnSubmit()) {
             return;
         }
 
@@ -122,7 +121,7 @@ function PersonalCardEditTransactionStartDatePage({route}: PersonalCardEditTrans
             <View style={styles.flex1}>
                 <SelectionList
                     ListItem={SingleSelectListItem}
-                    onSelectRow={({value}) => handleSelectDateOption(value)}
+                    onSelectRow={({value}) => selectDateOption(value)}
                     data={dateOptions}
                     shouldSingleExecuteRowSelect
                     initiallyFocusedItemKey={dateOptionSelected}
@@ -147,16 +146,10 @@ function PersonalCardEditTransactionStartDatePage({route}: PersonalCardEditTrans
                                     inputID=""
                                     value={startDate}
                                     label={translate('iou.startDate')}
-                                    onInputChange={(value) => {
-                                        if (!isRequiredFulfilled(value)) {
-                                            setErrorText(translate('common.error.fieldRequired'));
-                                        } else {
-                                            setErrorText('');
-                                        }
-                                        setStartDate(value);
-                                    }}
+                                    onInputChange={setStartDate}
                                     minDate={CONST.CALENDAR_PICKER.MIN_DATE}
-                                    errorText={errorText}
+                                    errorText={requiredError}
+                                    onValidationErrorChange={onValidationErrorChange}
                                 />
                             </View>
                         ) : null

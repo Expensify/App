@@ -85,7 +85,7 @@ declare module 'react-native' {
 
     interface ViewProps extends Pick<WebViewProps, WebOnlyViewPropKey | WebEventPropKey> {}
     interface TextProps extends Pick<WebTextProps, WebOnlyViewPropKey | WebEventPropKey | 'tabIndex'> {}
-    interface TextInputProps extends Pick<WebTextInputProps, 'disabled'> {}
+    interface TextInputProps extends Pick<WebTextInputProps, 'disabled' | 'aria-describedby' | 'aria-invalid'> {}
 
     interface PressableStateCallbackType extends Pick<WebPressableStateCallbackType, 'focused' | 'hovered'> {}
 }

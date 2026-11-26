@@ -66,6 +66,8 @@ function CompanyCardTransactionStartDateForm({
     const dateOptionSelected = localDateOption ?? initialDateOption;
     const [startDate, setStartDate] = useState(initialStartDate);
     const [errorText, setErrorText] = useState('');
+    // A typed date the calendar would never have offered has to block saving, and the field shows the reason itself
+    const [dateValidationError, setDateValidationError] = useState('');
 
     const handleSelectDateOption = (dateOption: DateOption) => {
         setErrorText('');
@@ -84,6 +86,10 @@ function CompanyCardTransactionStartDateForm({
 
         if (dateOptionSelected === CONST.COMPANY_CARD.TRANSACTION_START_DATE_OPTIONS.CUSTOM && !isRequiredFulfilled(startDate)) {
             setErrorText(translate('common.error.fieldRequired'));
+            return;
+        }
+
+        if (dateOptionSelected === CONST.COMPANY_CARD.TRANSACTION_START_DATE_OPTIONS.CUSTOM && dateValidationError) {
             return;
         }
 
@@ -149,6 +155,7 @@ function CompanyCardTransactionStartDateForm({
                                     }}
                                     minDate={CONST.CALENDAR_PICKER.MIN_DATE}
                                     errorText={errorText}
+                                    onValidationErrorChange={setDateValidationError}
                                 />
                             </View>
                         ) : (

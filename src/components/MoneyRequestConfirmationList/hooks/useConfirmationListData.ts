@@ -146,6 +146,7 @@ function useConfirmationListDataWithPolicy({
     const [didConfirm, setDidConfirm] = useState(isConfirmed);
     const [didConfirmSplit, setDidConfirmSplit] = useState(false);
     const [isTaxAmountEmpty, setIsTaxAmountEmpty] = useState(false);
+    const [hasDateValidationError, setHasDateValidationError] = useState(false);
 
     useEffect(() => {
         // eslint-disable-next-line react-hooks/set-state-in-effect -- reset the tax-empty flag whenever the transaction changes
@@ -175,6 +176,7 @@ function useConfirmationListDataWithPolicy({
         isTypeSplit,
         shouldShowReadOnlySplits,
         isDistanceRequest,
+        hasDateValidationError,
     });
 
     const isCategoryRequired = !!policy?.requiresCategory && !isTypeInvoice;
@@ -246,6 +248,7 @@ function useConfirmationListDataWithPolicy({
         isReadOnly,
         shouldShowDate,
         isTaxAmountEmpty,
+        hasDateValidationError,
     });
 
     const {visibleFieldErrors, revealFieldErrors} = useConfirmationFieldErrors({
@@ -334,6 +337,7 @@ function useConfirmationListDataWithPolicy({
                 fieldViewRefs,
                 onSubmitForm: confirm,
                 onTaxAmountEmptyChange: setIsTaxAmountEmpty,
+                onDateValidationErrorChange: setHasDateValidationError,
             },
         },
 

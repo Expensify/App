@@ -47,6 +47,9 @@ type DateFieldProps = {
     /** The date entry of the errors a blocked confirm revealed, from `getConfirmationFieldErrors` */
     fieldError: TranslationPaths | undefined;
 
+    /** The form error, read only for the entry this field could not make sense of, which no other field knows about */
+    formError: string;
+
     transactionID: string | undefined;
     action: IOUAction;
     iouType: Exclude<IOUType, typeof CONST.IOU.TYPE.REQUEST | typeof CONST.IOU.TYPE.SEND>;
@@ -54,9 +57,9 @@ type DateFieldProps = {
     reportActionID: string | undefined;
 };
 
-function DateField({shouldDisplayFieldError, didConfirm, isReadOnly, fieldError, transactionID, action, iouType, reportID, reportActionID}: DateFieldProps) {
+function DateField({shouldDisplayFieldError, didConfirm, isReadOnly, fieldError, formError, transactionID, action, iouType, reportID, reportActionID}: DateFieldProps) {
     const {getCurrencyDecimals, getCurrencySymbol} = useCurrencyListActions();
-    const {isEditingSplitBill, canEnterScanFieldsManually, fieldViewRefs} = useConfirmationFields();
+    const {isEditingSplitBill, canEnterScanFieldsManually, fieldViewRefs, onDateValidationErrorChange} = useConfirmationFields();
     const {shouldUseDropdownRows} = useExpenseFormLayout();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -85,10 +88,18 @@ function DateField({shouldDisplayFieldError, didConfirm, isReadOnly, fieldError,
     // Opening the calendar blurs the input, so the open picker stands in for focus here. The hint goes once the user
     // takes the field over, by opening the picker or by entering any of the three fields.
     const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
-    const shouldShowAutomaticHint = shouldShowEmptyDate && !isDatePickerOpen && !hasAnyManuallyEnteredScanField(dateState);
+
+    // A date the field cannot read is never handed over, so nothing about the transaction says the user has started
+    // filling this one in. The field reporting an error of its own is the only sign those digits are on screen.
+    const [hasUnusableDateEntry, setHasUnusableDateEntry] = useState(false);
+    const shouldShowAutomaticHint = shouldShowEmptyDate && !isDatePickerOpen && !hasUnusableDateEntry && !hasAnyManuallyEnteredScanField(dateState);
 
     const dateErrorText = shouldDisplayFieldError && createdMissing ? translate('common.error.enterDate') : '';
     const inlineDateErrorText = fieldError ? translate(fieldError) : '';
+
+    // The field holds back an entry it cannot read as a date, so it is the only thing that knows one is there. Pressing
+    // Create is what raises it, which is why the message is shown from the form error rather than as the user types.
+    const invalidDateErrorText = formError === 'common.error.dateInvalid' ? translate('common.error.dateInvalid') : '';
 
     const handleDateChange = (newDate: string) => {
         if (!transactionID) {
@@ -149,11 +160,15 @@ function DateField({shouldDisplayFieldError, didConfirm, isReadOnly, fieldError,
                     maxDate={CONST.CALENDAR_PICKER.MAX_DATE}
                     onInputChange={handleDateChange}
                     disabled={didConfirm}
-                    errorText={inlineDateErrorText || dateErrorText}
+                    errorText={inlineDateErrorText || invalidDateErrorText || dateErrorText}
+                    onValidationErrorChange={(error) => {
+                        setHasUnusableDateEntry(!!error);
+                        onDateValidationErrorChange?.(!!error);
+                    }}
                     shouldDeferShowUntilPositioned
                     // The hint only renders while the date is empty, and `TextInput` drops its right-hand-side
                     // component whenever the clear button can appear, which it can't without a value to clear.
-                    shouldHideClearButton={shouldShowEmptyDate}
+                    shouldHideClearButton={shouldShowEmptyDate && !hasUnusableDateEntry}
                     clearButtonSentryLabel={CONST.SENTRY_LABEL.REQUEST_CONFIRMATION_LIST.DATE_FIELD_CLEAR_BUTTON}
                     rightHandSideComponent={shouldShowAutomaticHint ? <AutomaticFieldHint /> : undefined}
                     // The calendar icon and the hint share the right-hand side, so the field shows one or the other.

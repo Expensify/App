@@ -68,6 +68,7 @@ function useManualWorkspaceConfirmation(
         isTypeSplit: false,
         shouldShowReadOnlySplits: true,
         isDistanceRequest: false,
+        hasDateValidationError: false,
     });
     const {validate, fieldErrors, siblingFieldErrors} = useConfirmationValidation({
         transaction,
@@ -100,6 +101,7 @@ function useManualWorkspaceConfirmation(
         shouldShowDate: true,
         isTaxAmountEmpty,
         siblingTransactions,
+        hasDateValidationError: false,
     });
     const {visibleFieldErrors, revealFieldErrors} = useConfirmationFieldErrors({
         transactionID: transaction.transactionID,

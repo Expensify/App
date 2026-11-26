@@ -60,6 +60,9 @@ type UseFormErrorManagementParams = {
 
     /** Whether the transaction is a distance request (its amount is read-only, so amount errors are not shown inline) */
     isDistanceRequest: boolean;
+
+    /** Whether the date field is holding something that is not a date, so its error can be cleared once it is not */
+    hasDateValidationError: boolean;
 };
 
 type UseFormErrorManagementResult = {
@@ -124,6 +127,7 @@ function useFormErrorManagement({
     isTypeSplit,
     shouldShowReadOnlySplits,
     isDistanceRequest,
+    hasDateValidationError,
 }: UseFormErrorManagementParams): UseFormErrorManagementResult {
     const isFocused = useIsFocused();
     const {translate} = useLocalize();
@@ -181,6 +185,14 @@ function useFormErrorManagement({
         formErrorRef.current = formError;
     }, [formError]);
 
+    // The field reports its own entry, so the error it raised on submit goes as soon as the entry reads as a date again
+    useEffect(() => {
+        if (formErrorRef.current !== 'common.error.dateInvalid' || hasDateValidationError) {
+            return;
+        }
+        setFormError('');
+    }, [hasDateValidationError, setFormError]);
+
     useEffect(() => {
         const currentFormError = formErrorRef.current;
         if (shouldDisplayFieldError && didConfirmSplit) {
@@ -209,17 +221,20 @@ function useFormErrorManagement({
     // An edited split sets this error as the user types and its amount input shows it, so the footer skips it; a distance amount has no input, so its error stays.
     const isShownOnAmountField = (error: TranslationPaths | ''): boolean => !isDistanceRequest && error === 'common.error.invalidAmount';
 
+    // The date field shows an entry it could not read under its own input, so the footer leaves that error out too.
+    const isShownOnInlineInput = (error: TranslationPaths | ''): boolean => isShownOnAmountField(error) || error === 'common.error.dateInvalid';
+
     const computeErrorMessage = (): string | undefined => {
         if (routeError) {
             return routeError;
         }
         // This runs ahead of the split branch below because splits render the same amount input, so the error duplicates the same way.
-        if (isShownOnAmountField(formError)) {
+        if (isShownOnInlineInput(formError)) {
             return undefined;
         }
         if (isTypeSplit && !shouldShowReadOnlySplits) {
             // The debounced value lags the live one after a fix, so it is checked too, or the amount error would flash into the footer for that moment (#96565).
-            return debouncedFormError && !isShownOnAmountField(debouncedFormError) ? translate(debouncedFormError) : undefined;
+            return debouncedFormError && !isShownOnInlineInput(debouncedFormError) ? translate(debouncedFormError) : undefined;
         }
         if (isErrorShownOnItsOwnField(formError)) {
             return undefined;

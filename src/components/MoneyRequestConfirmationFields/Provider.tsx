@@ -80,6 +80,9 @@ type ProviderProps = {
     /** Reports whether the inline tax amount field is currently empty, so submission can be blocked when it is left empty */
     onTaxAmountEmptyChange?: (isEmpty: boolean) => void;
 
+    /** Reports whether the inline date field is holding something that is not a date, so submission can be blocked while it is */
+    onDateValidationErrorChange?: (hasError: boolean) => void;
+
     /** Block components rendered inside the Provider */
     children: ReactNode;
 };
@@ -108,6 +111,7 @@ function Provider({
     fieldViewRefs,
     onSubmitForm,
     onTaxAmountEmptyChange,
+    onDateValidationErrorChange,
     children,
 }: ProviderProps) {
     const value = {
@@ -134,6 +138,7 @@ function Provider({
         fieldViewRefs,
         onSubmitForm,
         onTaxAmountEmptyChange,
+        onDateValidationErrorChange,
     };
     return <ConfirmationFieldsContext.Provider value={value}>{children}</ConfirmationFieldsContext.Provider>;
 }

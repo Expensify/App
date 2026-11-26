@@ -43,6 +43,11 @@ const translations: TranslationDeepObject<typeof en> = {
         invoiceSubmitted: ({receiver}) => `将此发票发送给 ${receiver}`,
     },
     common: {
+        dateSegments: {
+            year: '年',
+            month: '月',
+            day: '日',
+        },
         durationDays: ({count}: {count: number}) => ({
             one: `1 天`,
             other: `${count} 天`,

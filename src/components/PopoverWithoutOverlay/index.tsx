@@ -33,6 +33,7 @@ function PopoverWithoutOverlay({
     children,
     shouldDisplayBelowModals = false,
     enableEdgeToEdgeBottomSafeAreaPadding,
+    shouldCloseOnWheel = true,
     forwardedFSClass = CONST.FULLSTORY.CLASS.UNMASK,
 }: PopoverWithoutOverlayProps) {
     const styles = useThemeStyles();
@@ -64,6 +65,7 @@ function PopoverWithoutOverlay({
                 ref: withoutOverlayRef,
                 close: onClose ?? NOOP,
                 anchorRef,
+                shouldCloseOnWheel,
             });
             removeOnClose = setCloseModal(onClose ?? NOOP);
         } else {
