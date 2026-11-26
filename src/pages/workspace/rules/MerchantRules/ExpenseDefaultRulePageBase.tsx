@@ -247,7 +247,9 @@ function ExpenseDefaultRulePageBase({
         if (!formValues) {
             return;
         }
-        setDraftMerchantRule(formValues);
+        // A rule saved before cards could be matched on, or saved from elsewhere, can carry an amount default it
+        // will never apply. The editor has no row for it, so the draft drops it rather than saving it back unseen.
+        setDraftMerchantRule(formValues.cardsToMatch?.length ? {...formValues, amount: ''} : formValues);
     }, [isEditing, existingRule, initialCategoryName, initialCategoryToMatch]);
 
     // Clear the form on unmount
