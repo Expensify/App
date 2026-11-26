@@ -51,14 +51,12 @@ jest.mock('@react-navigation/native', () => ({
 jest.mock('@hooks/useRunWithPaymentCard', () => {
     const {default: useRunWithPaymentCardOnWeb} = jest.requireActual<typeof UseRunWithPaymentCardModule>('@hooks/useRunWithPaymentCard/index.ts');
     const {default: useRunWithPaymentCardOnNative} = jest.requireActual<typeof UseRunWithPaymentCardModule>('@hooks/useRunWithPaymentCard/index.native.ts');
-    return {
-        __esModule: true,
-        default: (flow: Parameters<typeof UseRunWithPaymentCardModule.default>[0]) => {
-            const runOnWeb = useRunWithPaymentCardOnWeb(flow);
-            const runOnNative = useRunWithPaymentCardOnNative(flow);
-            return mockIsNativeApp ? runOnNative : runOnWeb;
-        },
-    };
+    function useRunWithPaymentCardForPlatform(flow: Parameters<typeof UseRunWithPaymentCardModule.default>[0]) {
+        const runOnWeb = useRunWithPaymentCardOnWeb(flow);
+        const runOnNative = useRunWithPaymentCardOnNative(flow);
+        return mockIsNativeApp ? runOnNative : runOnWeb;
+    }
+    return {__esModule: true, default: useRunWithPaymentCardForPlatform};
 });
 jest.mock('@libs/Navigation/Navigation', () => ({navigate: jest.fn()}));
 jest.mock('@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute', () => jest.fn((suffix: string) => suffix));

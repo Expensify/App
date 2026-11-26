@@ -49,7 +49,7 @@ function DomainAddPrimaryContactPage({route}: DomainAddPrimaryContactPageProps) 
     const {translate, formatPhoneNumber, localeCompare} = useLocalize();
     const styles = useThemeStyles();
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
-    const runWithPaymentCard = useRunWithPaymentCard();
+    const runWithPaymentCard = useRunWithPaymentCard(CONST.DOMAIN.PAYMENT_CARD_FLOW.PRIMARY_CONTACT);
     const [adminAccountIDs] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {
         selector: adminAccountIDsSelector,
     });

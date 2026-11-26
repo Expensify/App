@@ -1315,6 +1315,8 @@ const SCREENS = {
         ADMIN_DETAILS: 'Domain_Admin_Details',
         ADMINS_SETTINGS: 'Admins_Settings',
         ADD_PRIMARY_CONTACT: 'Add_Primary_Contact',
+        DYNAMIC_PAYMENT_CARD: 'Dynamic_Domain_Payment_Card',
+        DYNAMIC_PAYMENT_CARD_SUCCESS: 'Dynamic_Domain_Payment_Card_Success',
         ADD_ADMIN: 'Domain_Add_Admin',
         MEMBERS: 'Domain_Members',
         MEMBER_DETAILS: 'Member_Details',

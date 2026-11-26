@@ -10768,6 +10768,12 @@ const CONST = {
                 ADMINS: 1,
             },
         },
+
+        /** Which domain change the payment card page runs once the card is added */
+        PAYMENT_CARD_FLOW: {
+            PRIMARY_CONTACT: 'primaryContact',
+            CONSOLIDATED_BILLING: 'consolidatedBilling',
+        },
     },
 
     AUTO_COMPLETE_VARIANTS: {

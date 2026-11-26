@@ -39,7 +39,7 @@ function DomainAdminsSettingsPage({route}: DomainAdminsSettingsPageProps) {
     const {translate} = useLocalize();
     const {showConfirmModal} = useConfirmModal();
     const {login: currentUserLogin} = useCurrentUserPersonalDetails();
-    const runWithPaymentCard = useRunWithPaymentCard();
+    const runWithPaymentCard = useRunWithPaymentCard(CONST.DOMAIN.PAYMENT_CARD_FLOW.CONSOLIDATED_BILLING);
 
     const [domainPendingActions] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`);
     const [domainErrors] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`);

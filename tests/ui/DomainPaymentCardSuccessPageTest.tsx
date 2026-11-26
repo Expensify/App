@@ -31,10 +31,14 @@ jest.mock('@hooks/useLocalize', () => () => ({translate: (key: string, ...params
 jest.mock('@pages/domain/DomainNotFoundPageWrapper', () => jest.fn(({children}: PropsWithChildren) => children));
 jest.mock('@components/ScreenWrapper', () => jest.fn(({children}: PropsWithChildren) => children));
 jest.mock('@components/ConfirmationPage/primitives/ConfirmationPageIllustration', () => () => null);
-jest.mock('@components/HeaderWithBackButton', () => {
+jest.mock('@components/Header', () => {
     const ReactMock = jest.requireActual<typeof React>('react');
     const {Text} = jest.requireActual<typeof ReactNative>('react-native');
-    return ({title}: {title: string}) => ReactMock.createElement(Text, null, title);
+    const ComposedHeader = jest.fn(({children}: PropsWithChildren) => children);
+    const BackButton = jest.fn(() => null);
+    const Title = ({title}: {title: string}) => ReactMock.createElement(Text, null, title);
+    Object.assign(ComposedHeader, {BackButton, Title});
+    return {__esModule: true, default: ComposedHeader};
 });
 jest.mock('@components/RenderHTML', () => {
     const ReactMock = jest.requireActual<typeof React>('react');

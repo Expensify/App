@@ -286,7 +286,24 @@ const DYNAMIC_ROUTES = {
     },
     CARD_AUTHENTICATION: {
         path: 'card-authentication',
-        entryScreens: [SCREENS.SETTINGS.SUBSCRIPTION.ROOT, SCREENS.SETTINGS.SUBSCRIPTION.DYNAMIC_ADD_PAYMENT_CARD, SCREENS.WORKSPACE.DYNAMIC_OWNER_CHANGE_CHECK],
+        entryScreens: [
+            SCREENS.SETTINGS.SUBSCRIPTION.ROOT,
+            SCREENS.SETTINGS.SUBSCRIPTION.DYNAMIC_ADD_PAYMENT_CARD,
+            SCREENS.WORKSPACE.DYNAMIC_OWNER_CHANGE_CHECK,
+            SCREENS.DOMAIN.DYNAMIC_PAYMENT_CARD,
+        ],
+    },
+    DOMAIN_PAYMENT_CARD: {
+        path: 'payment-card',
+        entryScreens: [SCREENS.DOMAIN.ADMINS_SETTINGS, SCREENS.DOMAIN.ADD_PRIMARY_CONTACT],
+        getRoute: (flow: ValueOf<typeof CONST.DOMAIN.PAYMENT_CARD_FLOW>) => getUrlWithParams('payment-card', {flow}),
+        queryParams: ['flow'],
+    },
+    DOMAIN_PAYMENT_CARD_SUCCESS: {
+        path: 'payment-card-success',
+        entryScreens: [SCREENS.DOMAIN.ADMINS_SETTINGS, SCREENS.DOMAIN.ADD_PRIMARY_CONTACT],
+        getRoute: (flow: ValueOf<typeof CONST.DOMAIN.PAYMENT_CARD_FLOW>) => getUrlWithParams('payment-card-success', {flow}),
+        queryParams: ['flow'],
     },
     OWNER_SELECTOR: {
         path: 'owner-selector',
@@ -330,7 +347,12 @@ const DYNAMIC_ROUTES = {
     },
     PAYMENT_CARD_CURRENCY_SELECTOR: {
         path: 'payment-card-currency',
-        entryScreens: [SCREENS.SETTINGS.SUBSCRIPTION.CHANGE_BILLING_CURRENCY, SCREENS.SETTINGS.SUBSCRIPTION.DYNAMIC_ADD_PAYMENT_CARD, SCREENS.WORKSPACE.DYNAMIC_OWNER_CHANGE_CHECK],
+        entryScreens: [
+            SCREENS.SETTINGS.SUBSCRIPTION.CHANGE_BILLING_CURRENCY,
+            SCREENS.SETTINGS.SUBSCRIPTION.DYNAMIC_ADD_PAYMENT_CARD,
+            SCREENS.WORKSPACE.DYNAMIC_OWNER_CHANGE_CHECK,
+            SCREENS.DOMAIN.DYNAMIC_PAYMENT_CARD,
+        ],
     },
     REPORT_SETTINGS_NAME: {
         path: 'settings/name',

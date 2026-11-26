@@ -13505,7 +13505,18 @@ ${reportName}`,
             consolidatedDomainBillingLockedMessage:
                 'Solo el contacto principal puede habilitar la facturación consolidada del dominio. Para habilitarla, primero conviértete en el contacto principal.',
             primaryContactConsolidatedBillingMessage: (domainName: string) =>
-                `La facturación consolidada del dominio está habilitada, así que solo puedes convertirte tú en el contacto principal. El contacto principal paga todos los espacios de trabajo de los miembros de <strong>${domainName}</strong>.`,
+                `<muted-text>La facturación consolidada del dominio está habilitada, así que solo puedes convertirte tú en el contacto principal. El contacto principal paga todos los espacios de trabajo de los miembros de <strong>${domainName}</strong>.</muted-text>`,
+            primaryContactPaymentCardTitle: 'Introduce tu tarjeta de pago para convertirte en el contacto principal',
+            consolidatedBillingPaymentCardTitle: 'Introduce tu tarjeta de pago para habilitar la facturación consolidada del dominio',
+            paymentCardSuccessTitle: '¡Guau! Todo listo.',
+            primaryContactSuccessMessage: (domainName: string) =>
+                `<muted-text><centered-text>Ahora eres el contacto principal de <strong>${domainName}</strong>. Tu tarjeta pagará todos los espacios de trabajo de sus miembros.</centered-text></muted-text>`,
+            consolidatedBillingSuccessMessage: (domainName: string) =>
+                `<muted-text><centered-text>La facturación consolidada del dominio está habilitada para <strong>${domainName}</strong>. Tu tarjeta pagará todos los espacios de trabajo de sus miembros.</centered-text></muted-text>`,
+            primaryContactNoCardMobileMessage:
+                'Para convertirte en el contacto principal con la facturación consolidada del dominio habilitada, primero añade una tarjeta de pago. No puedes añadir una tarjeta de pago en la aplicación móvil.',
+            consolidatedBillingNoCardMobileMessage:
+                'El contacto principal no tiene una tarjeta de facturación válida. Por favor, añade primero una tarjeta de facturación. No puedes añadir una tarjeta de pago en la aplicación móvil.',
             addAdmin: 'Añadir administrador',
             addAdminError: 'No se pudo añadir a este miembro como administrador. Por favor, inténtalo de nuevo.',
             requests: 'Solicitudes',

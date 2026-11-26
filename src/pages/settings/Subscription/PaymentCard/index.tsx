@@ -1,66 +1,30 @@
-import ActivityIndicator from '@components/ActivityIndicator';
-import PaymentCardForm from '@components/AddPaymentCard/PaymentCardForm';
+import SubscriptionPaymentCardForm from '@components/AddPaymentCard/SubscriptionPaymentCardForm';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import DelegateNoAccessWrapper from '@components/DelegateNoAccessWrapper';
-import type {FormOnyxValues} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import {loadIllustration} from '@components/Icon/IllustrationLoader';
-import type {IllustrationName} from '@components/Icon/IllustrationLoader';
 import ScreenWrapper from '@components/ScreenWrapper';
-import Section, {CARD_LAYOUT} from '@components/Section';
-import Text from '@components/Text';
-import TextLink from '@components/TextLink';
 
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
-import useHasTeam2025Pricing from '@hooks/useHasTeam2025Pricing';
-import {useMemoizedLazyAsset} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
-import useNavigateToCardAuthenticationOnLink from '@hooks/useNavigateToCardAuthenticationOnLink';
 import useOnyx from '@hooks/useOnyx';
-import usePreferredCurrency from '@hooks/usePreferredCurrency';
 import usePrevious from '@hooks/usePrevious';
-import usePrivateSubscription from '@hooks/usePrivateSubscription';
-import useSubscriptionPlan from '@hooks/useSubscriptionPlan';
-import useSubscriptionPrice from '@hooks/useSubscriptionPrice';
-import useThemeStyles from '@hooks/useThemeStyles';
 
-import {getMCardNumberString, getMonthFromExpirationDateString, getYearFromExpirationDateString} from '@libs/CardUtils';
-import {convertToShortDisplayString} from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getCardForSubscriptionBilling} from '@libs/SubscriptionUtils';
-
-import {addSubscriptionPaymentCard, clearPaymentCardFormErrorAndSubmit} from '@userActions/PaymentMethods';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 
-import {useRoute} from '@react-navigation/native';
-import {accountIDSelector} from '@selectors/Session';
 import {useEffect, useState} from 'react';
-import {StyleSheet, View} from 'react-native';
 
 function AddPaymentCard() {
-    const route = useRoute();
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.ADD_PAYMENT_CARD.path);
-    const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const privateSubscription = usePrivateSubscription();
-    const [accountID] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector});
     const [userBillingFundID] = useOnyx(ONYXKEYS.NVP_BILLING_FUND_ID);
     const [fundList] = useOnyx(ONYXKEYS.FUND_LIST);
-    const [isVerifyingSetupIntent] = useOnyx(ONYXKEYS.SUBSCRIPTION_VERIFY_SETUP_INTENT_PENDING);
-
-    const subscriptionPlan = useSubscriptionPlan();
-    const subscriptionPrice = useSubscriptionPrice();
-    const preferredCurrency = usePreferredCurrency();
-    const hasTeam2025Pricing = useHasTeam2025Pricing();
     // Keep the valid add-card flow visible when the new billing card reaches Onyx before this screen navigates back.
     const [hasSubmittedPaymentCard, setHasSubmittedPaymentCard] = useState(false);
-
-    const isCollect = subscriptionPlan === CONST.POLICY.TYPE.TEAM;
-    const isAnnual = privateSubscription?.type === CONST.SUBSCRIPTION.TYPE.ANNUAL;
-    const {asset: ShieldYellow} = useMemoizedLazyAsset(() => loadIllustration('ShieldYellow' as IllustrationName));
 
     let billingCard;
     const userBillingCard = userBillingFundID ? fundList?.[`${userBillingFundID}`] : undefined;
@@ -72,43 +36,6 @@ function AddPaymentCard() {
 
     const isSaveTheWorldAddPaymentCardRoute = backPath === ROUTES.SETTINGS_SAVE_THE_WORLD;
     const shouldShowBlockingView = isSaveTheWorldAddPaymentCardRoute && !!billingCard;
-
-    // The pending flag is one global key, shared with the Subscription page's Authenticate payment button, so a
-    // verification started on another screen would otherwise cover this form. Only a submission made here may block it.
-    const shouldShowVerificationSpinner = hasSubmittedPaymentCard && !!isVerifyingSetupIntent;
-
-    const subscriptionPricingInfo =
-        hasTeam2025Pricing && isCollect
-            ? translate('subscription.yourPlan.pricePerMemberPerMonth', convertToShortDisplayString(subscriptionPrice, preferredCurrency))
-            : translate(
-                  `subscription.yourPlan.${isCollect ? 'collect' : 'control'}.${isAnnual ? 'priceAnnual' : 'pricePayPerUse'}`,
-                  convertToShortDisplayString(subscriptionPrice, preferredCurrency),
-                  convertToShortDisplayString(subscriptionPrice * CONST.SUBSCRIPTION_PRICE_FACTOR, preferredCurrency),
-              );
-
-    useNavigateToCardAuthenticationOnLink();
-
-    useEffect(() => {
-        clearPaymentCardFormErrorAndSubmit();
-
-        return () => {
-            clearPaymentCardFormErrorAndSubmit();
-        };
-    }, []);
-
-    const addPaymentCard = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.ADD_PAYMENT_CARD_FORM>) => {
-        const cardData = {
-            cardNumber: getMCardNumberString(values.cardNumber),
-            cardMonth: getMonthFromExpirationDateString(values.expirationDate),
-            cardYear: getYearFromExpirationDateString(values.expirationDate),
-            cardCVV: values.securityCode,
-            addressName: values.nameOnCard,
-            addressZip: values.addressZipCode,
-            currency: values.currency ?? CONST.PAYMENT_CARD_CURRENCY.USD,
-        };
-        setHasSubmittedPaymentCard(true);
-        addSubscriptionPaymentCard(accountID ?? CONST.DEFAULT_NUMBER_ID, cardData, fundList, route.name);
-    };
 
     const [formData] = useOnyx(ONYXKEYS.FORMS.ADD_PAYMENT_CARD_FORM);
     const prevFormDataSetupComplete = usePrevious(!!formData?.setupComplete);
@@ -132,44 +59,10 @@ function AddPaymentCard() {
                         title={translate('subscription.paymentCard.addPaymentCard')}
                         onBackButtonPress={() => Navigation.goBack(backPath)}
                     />
-                    <View style={styles.containerWithSpaceBetween}>
-                        {shouldShowVerificationSpinner && (
-                            <View style={[StyleSheet.absoluteFill, styles.fullScreenLoading]}>
-                                <ActivityIndicator size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE} />
-                            </View>
-                        )}
-                        <PaymentCardForm
-                            shouldShowPaymentCardForm
-                            addPaymentCard={addPaymentCard}
-                            showAcceptTerms
-                            showCurrencyField
-                            submitButtonText={translate('subscription.paymentCard.addPaymentCard')}
-                            headerContent={<Text style={[styles.textHeadline, styles.mt3, styles.mb2, styles.ph5]}>{translate('subscription.paymentCard.enterPaymentCardDetails')}</Text>}
-                            footerContent={
-                                <>
-                                    <Section
-                                        icon={ShieldYellow}
-                                        cardLayout={CARD_LAYOUT.ICON_ON_LEFT}
-                                        iconContainerStyles={styles.mr4}
-                                        containerStyles={[styles.mh0, styles.mt5]}
-                                        renderTitle={() => (
-                                            <Text style={[styles.mutedTextLabel]}>
-                                                {translate('subscription.paymentCard.security')}{' '}
-                                                <TextLink
-                                                    sentryLabel={CONST.SENTRY_LABEL.SETTINGS_SUBSCRIPTION.PAYMENT_CARD_SECURITY_LINK}
-                                                    style={[styles.mutedTextLabel, styles.link]}
-                                                    href={CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}
-                                                >
-                                                    {translate('subscription.paymentCard.learnMoreAboutSecurity')}
-                                                </TextLink>
-                                            </Text>
-                                        )}
-                                    />
-                                    <Text style={[styles.textMicroSupporting, styles.mt3, styles.textAlignCenter, styles.mr5, styles.ml5]}>{subscriptionPricingInfo}</Text>
-                                </>
-                            }
-                        />
-                    </View>
+                    <SubscriptionPaymentCardForm
+                        headerText={translate('subscription.paymentCard.enterPaymentCardDetails')}
+                        onSubmit={() => setHasSubmittedPaymentCard(true)}
+                    />
                 </DelegateNoAccessWrapper>
             </FullPageNotFoundView>
         </ScreenWrapper>

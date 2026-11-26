@@ -12979,7 +12979,17 @@ ${reportName}`,
             consolidatedDomainBillingError: '統合ドメインの請求を変更できませんでした。後でもう一度お試しください。',
             consolidatedDomainBillingLockedMessage: 'Only the primary contact can turn on consolidated domain billing. To turn it on, make yourself the primary contact first.',
             primaryContactConsolidatedBillingMessage: (domainName: string) =>
-                `Consolidated domain billing is on, so you can only make yourself the primary contact. The primary contact pays for all workspaces owned by <strong>${domainName}</strong> members.`,
+                `<muted-text>Consolidated domain billing is on, so you can only make yourself the primary contact. The primary contact pays for all workspaces owned by <strong>${domainName}</strong> members.</muted-text>`,
+            primaryContactPaymentCardTitle: 'Enter your payment card to become the primary contact',
+            consolidatedBillingPaymentCardTitle: 'Enter your payment card to turn on consolidated domain billing',
+            paymentCardSuccessTitle: 'Woohoo! All set.',
+            primaryContactSuccessMessage: (domainName: string) =>
+                `<muted-text><centered-text>You're now the primary contact for <strong>${domainName}</strong>. Your card will pay for all workspaces owned by its members.</centered-text></muted-text>`,
+            consolidatedBillingSuccessMessage: (domainName: string) =>
+                `<muted-text><centered-text>Consolidated domain billing is on for <strong>${domainName}</strong>. Your card will pay for all workspaces owned by its members.</centered-text></muted-text>`,
+            primaryContactNoCardMobileMessage: 'To become the primary contact with consolidated domain billing on, first add a payment card. You can’t add a payment card in the mobile app.',
+            consolidatedBillingNoCardMobileMessage:
+                'The primary contact does not have a valid billing card. Please add a billing card first. You can’t add a payment card in the mobile app.',
             addAdmin: '管理者を追加',
             addAdminError: 'このメンバーを管理者として追加できませんでした。もう一度お試しください。',
             requests: 'リクエスト',

@@ -61,14 +61,12 @@ jest.mock('@react-navigation/native', () => ({
 jest.mock('@hooks/useRunWithPaymentCard', () => {
     const {default: useRunWithPaymentCardOnWeb} = jest.requireActual<typeof UseRunWithPaymentCardModule>('@hooks/useRunWithPaymentCard/index.ts');
     const {default: useRunWithPaymentCardOnNative} = jest.requireActual<typeof UseRunWithPaymentCardModule>('@hooks/useRunWithPaymentCard/index.native.ts');
-    return {
-        __esModule: true,
-        default: (flow: Parameters<typeof UseRunWithPaymentCardModule.default>[0]) => {
-            const runOnWeb = useRunWithPaymentCardOnWeb(flow);
-            const runOnNative = useRunWithPaymentCardOnNative(flow);
-            return mockIsNativeApp ? runOnNative : runOnWeb;
-        },
-    };
+    function useRunWithPaymentCardForPlatform(flow: Parameters<typeof UseRunWithPaymentCardModule.default>[0]) {
+        const runOnWeb = useRunWithPaymentCardOnWeb(flow);
+        const runOnNative = useRunWithPaymentCardOnNative(flow);
+        return mockIsNativeApp ? runOnNative : runOnWeb;
+    }
+    return {__esModule: true, default: useRunWithPaymentCardForPlatform};
 });
 jest.mock('@hooks/useConfirmModal', () => jest.requireActual<typeof ConfirmModalMock>('../utils/mockUseConfirmModal').default);
 jest.mock('@navigation/Navigation', () => ({navigate: jest.fn(), goBack: jest.fn()}));
