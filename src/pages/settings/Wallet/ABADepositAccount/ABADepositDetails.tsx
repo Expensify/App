@@ -145,6 +145,7 @@ function ABADepositDetails({onBackButtonPress, onSuccess}: ABADepositDetailsProp
                         role={CONST.ROLE.PRESENTATION}
                         containerStyles={styles.mt3}
                         shouldSaveDraft
+                        forwardedFSClass={CONST.FULLSTORY.CLASS.MASK}
                     />
                     <InputWrapper
                         InputComponent={TextInput}
@@ -155,6 +156,7 @@ function ABADepositDetails({onBackButtonPress, onSuccess}: ABADepositDetailsProp
                         inputMode={CONST.INPUT_MODE.NUMERIC}
                         containerStyles={styles.mt6}
                         shouldSaveDraft
+                        forwardedFSClass={CONST.FULLSTORY.CLASS.MASK}
                     />
                     <InputWrapper
                         InputComponent={TextInput}
@@ -164,6 +166,7 @@ function ABADepositDetails({onBackButtonPress, onSuccess}: ABADepositDetailsProp
                         role={CONST.ROLE.PRESENTATION}
                         containerStyles={styles.mt6}
                         shouldSaveDraft
+                        forwardedFSClass={CONST.FULLSTORY.CLASS.MASK}
                     />
                     <InputWrapper
                         InputComponent={TextInput}
@@ -173,6 +176,7 @@ function ABADepositDetails({onBackButtonPress, onSuccess}: ABADepositDetailsProp
                         role={CONST.ROLE.PRESENTATION}
                         containerStyles={styles.mt6}
                         shouldSaveDraft
+                        forwardedFSClass={CONST.FULLSTORY.CLASS.MASK}
                     />
                     <InputWrapper
                         InputComponent={AddressSearch}
@@ -194,6 +198,7 @@ function ABADepositDetails({onBackButtonPress, onSuccess}: ABADepositDetailsProp
                         role={CONST.ROLE.PRESENTATION}
                         containerStyles={styles.mt6}
                         shouldSaveDraft
+                        forwardedFSClass={CONST.FULLSTORY.CLASS.MASK}
                     />
                     <InputWrapper
                         InputComponent={CheckboxWithLabel}
