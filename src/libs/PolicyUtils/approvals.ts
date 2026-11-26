@@ -292,7 +292,8 @@ function getForwardsToFromRules(policy: OnyxEntry<Policy>, context: ApprovalWork
     // Pick the matching rule with the lowest Onyx key so the result stays the same across evaluations when more than one matches (which should not happen).
     let matchedRuleKey: string | undefined;
     let matchedRule: ApprovalWorkflowRule | undefined;
-    for (const [ruleKey, rule] of Object.entries(rules ?? {})) {
+    for (const ruleKey of Object.keys(rules ?? {})) {
+        const rule = rules?.[ruleKey];
         if (!rule || rule.scope !== CONST.RULES.SCOPE.POLICY || rule.scopeID !== policy.id || rule.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
             continue;
         }
