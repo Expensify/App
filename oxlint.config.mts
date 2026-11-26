@@ -142,8 +142,16 @@ const castToSentryLabelImportPatterns = [
 const victoryChartRendererRestrictedImportPaths = restrictedImportPaths.filter((entry) => entry.name !== '@styles/theme');
 const victoryChartRendererRestrictedImportPatterns = typescriptRestrictedImportPatterns.filter((entry) => !entry.group.includes('@styles/theme/themes/**'));
 
+// A QA build, or a production build with a stored 'qa', ignores the stored server, so a component reading the key
+// directly can show a server the requests don't go to. Only useActiveServer reads it, through resolveActiveServer.
+const activeServerReadRestriction = {
+    selector: 'CallExpression[callee.name="useOnyx"][arguments.0.object.name="ONYXKEYS"][arguments.0.property.name="ACTIVE_SERVER"]',
+    message: 'Do not read ONYXKEYS.ACTIVE_SERVER with useOnyx. Use useActiveServer() from @hooks/useActiveServer, which returns the server requests actually go to.',
+};
+
 /** `no-restricted-syntax` entries for all code. */
 const restrictedSyntax = [
+    activeServerReadRestriction,
     {selector: 'TSEnumDeclaration', message: "Please don't declare enums, use union types instead."},
     {
         selector: 'CallExpression[callee.object.name="React"][callee.property.name="forwardRef"]',
@@ -737,6 +745,11 @@ export default await buildOxlintConfig({
                 'src/**/__mocks__/**/*.{ts,tsx}',
             ],
             rules: {'rulesdir/no-onyx-loading-status': 'off'},
+        },
+        // The hook every other component goes through. This list replaces the one above, so it repeats it without the ban.
+        {
+            files: ['src/hooks/useActiveServer.ts'],
+            rules: {'core/no-restricted-syntax': ['error', ...restrictedSyntax.filter((entry) => entry !== activeServerReadRestriction)]},
         },
     ],
 });
