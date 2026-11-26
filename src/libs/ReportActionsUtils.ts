@@ -2650,6 +2650,12 @@ const isIOUActionMatchingTransactionList = (
     return !!IOUTransactionID && reportTransactionIDs.includes(IOUTransactionID);
 };
 
+const oneTransactionThreadReportTypesSet = new Set<Report['type']>([CONST.REPORT.TYPE.IOU, CONST.REPORT.TYPE.EXPENSE, CONST.REPORT.UNSUPPORTED_TYPE.BILL, CONST.REPORT.TYPE.INVOICE]);
+
+function canHaveOneTransactionThread(type: Report['type']): boolean {
+    return oneTransactionThreadReportTypesSet.has(type);
+}
+
 /**
  * Gets the report action for the transaction thread associated with a report by iterating over the reportActions and identifying the IOU report actions.
  * Returns a report action if there is exactly one transaction thread for the report, and undefined otherwise.
@@ -2661,13 +2667,7 @@ function getOneTransactionThreadReportAction(
     isOffline: boolean | undefined = undefined,
     reportTransactionIDs?: string[],
 ): ReportAction<'IOU'> | undefined {
-    // Only reports that hold expenses have expense threads, so other report types never show the one-expense view.
-    if (
-        report?.type !== CONST.REPORT.TYPE.IOU &&
-        report?.type !== CONST.REPORT.TYPE.EXPENSE &&
-        report?.type !== CONST.REPORT.UNSUPPORTED_TYPE.BILL &&
-        report?.type !== CONST.REPORT.TYPE.INVOICE
-    ) {
+    if (!canHaveOneTransactionThread(report?.type)) {
         return;
     }
 
@@ -3385,18 +3385,31 @@ function isReportActionUnread(reportAction: OnyxEntry<ReportAction>, lastReadTim
 }
 
 /**
+ * Finds the action just before the given one in the given list, which decides whether the given one is the first unread action.
+ * Shared by isCurrentActionUnread and the useAncestors selector, so both look at the same action.
+ */
+function getReportActionBefore(sortedReportActions: ReportAction[], reportActionID: string): {isFound: boolean; previousReportAction: ReportAction | undefined} {
+    const index = sortedReportActions.findIndex((action) => action.reportActionID === reportActionID);
+    return {isFound: index !== -1, previousReportAction: index > 0 ? sortedReportActions.at(index - 1) : undefined};
+}
+
+/**
  * Check whether the current report action of the report is unread or not
  *
  */
 function isCurrentActionUnread(report: OnyxEntry<Report>, reportAction: ReportAction, visibleReportActions?: ReportAction[]): boolean {
     const lastReadTime = report?.lastReadTime ?? '';
-    const sortedReportActions = visibleReportActions ?? getSortedReportActions(Object.values(getAllReportActions(report?.reportID)));
-    const currentActionIndex = sortedReportActions.findIndex((action) => action.reportActionID === reportAction.reportActionID);
-    if (currentActionIndex === -1) {
+
+    // A read action can't be the first unread one, so only an unread action needs the sorted list to find the action before it.
+    if (!isReportActionUnread(reportAction, lastReadTime)) {
         return false;
     }
-    const prevReportAction = sortedReportActions.at(currentActionIndex - 1);
-    return isReportActionUnread(reportAction, lastReadTime) && (currentActionIndex === 0 || !prevReportAction || !isReportActionUnread(prevReportAction, lastReadTime));
+    const sortedReportActions = visibleReportActions ?? getSortedReportActions(Object.values(getAllReportActions(report?.reportID)));
+    const {isFound, previousReportAction} = getReportActionBefore(sortedReportActions, reportAction.reportActionID);
+    if (!isFound) {
+        return false;
+    }
+    return !previousReportAction || !isReportActionUnread(previousReportAction, lastReadTime);
 }
 
 /**
@@ -6442,6 +6455,7 @@ export {
     getMessageOfOldDotReportAction,
     getMessageTextOfOldDotReportAction,
     getNumberOfMoneyRequests,
+    canHaveOneTransactionThread,
     getOneTransactionThreadReportAction,
     getOneTransactionThreadReportID,
     getTransactionThreadReportIDFromAction,
@@ -6496,6 +6510,7 @@ export {
     isCreatedTaskReportAction,
     isCreatedSupportTicketReportAction,
     isCurrentActionUnread,
+    getReportActionBefore,
     isDeletedAction,
     isDeletedReportPreviewWithError,
     getVisibleReportActionErrors,
