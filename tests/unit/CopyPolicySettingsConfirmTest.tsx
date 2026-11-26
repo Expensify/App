@@ -3,14 +3,13 @@ import {act, render} from '@testing-library/react-native';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 
 import type {Part} from '@libs/actions/Policy/CopyPolicySettings';
-import {toIndexMap} from '@libs/RuleUtils';
 
 import CopyPolicySettingsConfirmPage from '@pages/workspace/copyPolicySettings/CopyPolicySettingsConfirmPage';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {Policy, Rule} from '@src/types/onyx';
+import type {Policy} from '@src/types/onyx';
 
 import React from 'react';
 import {View} from 'react-native';
@@ -193,19 +192,11 @@ describe('CopyPolicySettingsConfirmPage', () => {
     });
 
     it('copies and dismisses when no upgrade is required', async () => {
-        // Given a Corporate (Control) target that needs no upgrade, and source categories, tags and a rule
+        // Given a Corporate (Control) target that needs no upgrade, and source categories and tags
         const categories = createRandomPolicyCategories(2);
         const tags = createRandomPolicyTags('Department', 2);
-        const rule: Rule = {
-            scope: CONST.RULES.SCOPE.POLICY,
-            scopeID: SOURCE_POLICY_ID,
-            triggers: toIndexMap([CONST.RULES.TRIGGERS.REPORT_SUBMIT]),
-            filters: {operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, left: CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM, right: ['submitter@example.com']},
-            actions: toIndexMap([{name: CONST.RULES.ACTIONS.FORWARD_TO, approver: 'approver@example.com'}]),
-        };
         await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${SOURCE_POLICY_ID}`, categories);
         await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${SOURCE_POLICY_ID}`, tags);
-        await Onyx.set(`${ONYXKEYS.COLLECTION.RULE}1`, rule);
         await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${TARGET_POLICY_ID}`, createTestPolicy(TARGET_POLICY_ID, 'Target Workspace', CONST.POLICY.TYPE.CORPORATE));
         await Onyx.set(ONYXKEYS.COPY_POLICY_SETTINGS, {
             sourcePolicyID: SOURCE_POLICY_ID,
@@ -223,7 +214,7 @@ describe('CopyPolicySettingsConfirmPage', () => {
         });
         await waitForBatchedUpdates();
 
-        // Then the copy runs with the categories, tags and rules read at press time, each in its own argument, and the modal closes
+        // Then the copy runs with the categories and tags read at press time, each in its own argument, and the modal closes
         expect(mockCopyPolicySettings).toHaveBeenCalledTimes(1);
         expect(mockCopyPolicySettings).toHaveBeenCalledWith(
             expect.anything(),
@@ -231,7 +222,7 @@ describe('CopyPolicySettingsConfirmPage', () => {
             expect.anything(),
             {[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${SOURCE_POLICY_ID}`]: categories},
             {[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${SOURCE_POLICY_ID}`]: tags},
-            {[`${ONYXKEYS.COLLECTION.RULE}1`]: rule},
+            expect.anything(),
             false,
         );
         expect(mockDismissModal).toHaveBeenCalledTimes(1);

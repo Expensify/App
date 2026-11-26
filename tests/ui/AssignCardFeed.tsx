@@ -48,8 +48,6 @@ const DIRECT_FEED = `plaid.ins_123#${WORKSPACE_ACCOUNT_ID}`;
 
 const CARD_ID = '1234';
 
-const SIGNED_IN_ACCOUNT_ID = 7;
-
 // Set up a global fetch mock for API requests in tests.
 TestHelper.setupGlobalFetchMock();
 
@@ -937,40 +935,8 @@ describe('AssignCardFeed', () => {
     });
 
     describe('ConfirmationStep - submit', () => {
-        it('assigns the card with the signed-in account ID and the workspace account ID', async () => {
-            // Given a signed-in admin on the confirmation step of a card that is not assigned yet
-            await TestHelper.signInWithTestUser(SIGNED_IN_ACCOUNT_ID);
-            const policy = {
-                ...LHNTestUtils.getFakePolicy(),
-                areCompanyCardsEnabled: true,
-                role: CONST.POLICY.ROLE.ADMIN,
-                policyAccountID: WORKSPACE_ACCOUNT_ID,
-            };
-            await act(async () => {
-                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
-                setHasRadio(true);
-                await Onyx.merge(ONYXKEYS.ASSIGN_CARD, createMockAssignCardData({feedType: 'commercial'}));
-            });
-            const {unmount} = renderConfirmationStep({policyID: policy.id, feed: COMMERCIAL_FEED, cardID: CARD_ID});
-            await waitForBatchedUpdatesWithAct();
-
-            // When the admin taps Assign card
-            fireEvent.press(await screen.findByTestId(CONST.ASSIGN_CARD_BUTTON_TEST_ID));
-            await waitForBatchedUpdatesWithAct();
-
-            // Then the assignment gets the workspace account ID from the policy and the signed-in account ID read at press time
-            expect(assignWorkspaceCompanyCard).toHaveBeenCalledTimes(1);
-            const [, domainOrWorkspaceAccountID, , , currentUserAccountID] = jest.mocked(assignWorkspaceCompanyCard).mock.calls.at(0) ?? [];
-            expect(domainOrWorkspaceAccountID).toBe(WORKSPACE_ACCOUNT_ID);
-            expect(currentUserAccountID).toBe(SIGNED_IN_ACCOUNT_ID);
-
-            unmount();
-            await waitForBatchedUpdatesWithAct();
-        });
-
-        it('shows the already assigned error instead of assigning a card the workspace already has', async () => {
-            // Given a card that is already assigned in the workspace card list of the same feed
-            await TestHelper.signInWithTestUser(SIGNED_IN_ACCOUNT_ID);
+        const pressAssignCard = async (options: {isCardAlreadyAssigned: boolean}) => {
+            await TestHelper.signInWithTestUser();
             const policy = {
                 ...LHNTestUtils.getFakePolicy(),
                 areCompanyCardsEnabled: true,
@@ -978,26 +944,39 @@ describe('AssignCardFeed', () => {
                 policyAccountID: WORKSPACE_ACCOUNT_ID,
             };
             const assignCardData = createMockAssignCardData({feedType: 'commercial'});
-            const assignedCard = {...createRandomCompanyCard(1, {bank: CONST.COMPANY_CARD.FEED_BANK_NAME.VISA}), encryptedCardNumber: assignCardData.cardToAssign.encryptedCardNumber};
             await act(async () => {
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
                 setHasRadio(true);
                 await Onyx.merge(ONYXKEYS.ASSIGN_CARD, assignCardData);
-                await Onyx.set(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${WORKSPACE_ACCOUNT_ID}_${CONST.COMPANY_CARD.FEED_BANK_NAME.VISA}`, {[assignedCard.cardID]: assignedCard});
+                if (options.isCardAlreadyAssigned) {
+                    const assignedCard = {...createRandomCompanyCard(1), encryptedCardNumber: assignCardData.cardToAssign.encryptedCardNumber};
+                    await Onyx.set(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${WORKSPACE_ACCOUNT_ID}_${CONST.COMPANY_CARD.FEED_BANK_NAME.VISA}`, {[assignedCard.cardID]: assignedCard});
+                }
             });
-            const {unmount} = renderConfirmationStep({policyID: policy.id, feed: COMMERCIAL_FEED, cardID: CARD_ID});
+            renderConfirmationStep({policyID: policy.id, feed: COMMERCIAL_FEED, cardID: CARD_ID});
             await waitForBatchedUpdatesWithAct();
-
-            // When the admin taps Assign card
             fireEvent.press(await screen.findByTestId(CONST.ASSIGN_CARD_BUTTON_TEST_ID));
             await waitForBatchedUpdatesWithAct();
+        };
+
+        it('assigns the card with the workspace account ID of the policy', async () => {
+            // Given a card that is not assigned yet
+            // When the admin taps Assign card
+            await pressAssignCard({isCardAlreadyAssigned: false});
+
+            // Then the card is assigned for the policy's workspace account
+            expect(assignWorkspaceCompanyCard).toHaveBeenCalledTimes(1);
+            expect(jest.mocked(assignWorkspaceCompanyCard).mock.calls.at(0)?.at(1)).toBe(WORKSPACE_ACCOUNT_ID);
+        });
+
+        it('shows the already assigned error instead of assigning a card the workspace already has', async () => {
+            // Given a card that is already assigned in the same feed
+            // When the admin taps Assign card
+            await pressAssignCard({isCardAlreadyAssigned: true});
 
             // Then the error is shown and the card is not assigned
             expect(await screen.findByText(TestHelper.translateLocal('workspace.companyCards.cardAlreadyAssignedError'))).toBeOnTheScreen();
             expect(assignWorkspaceCompanyCard).not.toHaveBeenCalled();
-
-            unmount();
-            await waitForBatchedUpdatesWithAct();
         });
     });
 

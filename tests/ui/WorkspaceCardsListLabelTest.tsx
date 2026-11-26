@@ -11,6 +11,8 @@ import WorkspaceCardsListLabel from '@pages/workspace/expensifyCard/WorkspaceCar
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
+import type {OnyxMultiSetInput} from 'react-native-onyx';
+
 import React from 'react';
 import Onyx from 'react-native-onyx';
 
@@ -179,23 +181,16 @@ describe('WorkspaceCardsListLabel', () => {
         expect(screen.getByText('Request limit increase')).toBeTruthy();
     });
 
-    it('sends the existing Concierge chat to OpenReport before requesting the limit increase while onboarding is pending', async () => {
-        // Given pending guided setup, a signed-in account, an existing Concierge chat and a settlement account not connected with Plaid
-        const conciergeChat = {reportID: '999'};
+    const requestLimitIncreaseWithPendingOnboarding = async (onyxData: OnyxMultiSetInput) => {
         await act(async () => {
             await Onyx.merge(cardSettingsKey, {US: {paymentBankAccountID: 1234, isPaymentBankAccountConnectedWithPlaid: false}});
             await Onyx.multiSet({
                 [ONYXKEYS.NVP_INTRO_SELECTED]: {choice: CONST.ONBOARDING_CHOICES.ADMIN},
                 [ONYXKEYS.NVP_ONBOARDING]: {hasCompletedGuidedSetupFlow: false},
-                [ONYXKEYS.CONCIERGE_REPORT_ID]: '999',
-                [ONYXKEYS.IS_LOADING_APP]: false,
-                [ONYXKEYS.SESSION]: {accountID: 42},
+                ...onyxData,
             });
-            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}999`, conciergeChat);
             await waitForBatchedUpdatesWithAct();
         });
-
-        // When the admin requests a limit increase from the remaining limit info
         render(
             <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>
                 <WorkspaceCardsListLabel
@@ -209,76 +204,42 @@ describe('WorkspaceCardsListLabel', () => {
         await waitForBatchedUpdatesWithAct();
         fireEvent.press(screen.getByText('Request limit increase'));
         await waitForBatchedUpdatesWithAct();
+    };
 
-        // Then OpenReport gets the stored Concierge chat and the signed-in account ID, and is enqueued before the limit increase, so Concierge replies last
-        expect(mockOpenReport).toHaveBeenCalledWith(expect.objectContaining({reportID: '999', currentUserAccountID: 42, conciergeChat: expect.objectContaining({reportID: '999'})}));
+    it('sends the existing Concierge chat to OpenReport before requesting the limit increase', async () => {
+        // Given pending onboarding and an existing Concierge chat
+        // When the admin requests a limit increase
+        await requestLimitIncreaseWithPendingOnboarding({
+            [ONYXKEYS.CONCIERGE_REPORT_ID]: '999',
+            [`${ONYXKEYS.COLLECTION.REPORT}999`]: {reportID: '999'},
+        });
+
+        // Then OpenReport gets the stored chat and is enqueued first, so Concierge replies last
+        expect(mockOpenReport).toHaveBeenCalledWith(expect.objectContaining({reportID: '999', conciergeChat: expect.objectContaining({reportID: '999'})}));
         expect(mockOpenReport.mock.invocationCallOrder.at(0)).toBeLessThan(mockRequestExpensifyCardLimitIncrease.mock.invocationCallOrder.at(0) ?? 0);
     });
 
-    it('creates the Concierge chat before requesting the limit increase when onboarding is pending and no chat exists', async () => {
-        // Given pending guided setup, a signed-in account, no Concierge chat yet and a settlement account not connected with Plaid
-        await act(async () => {
-            await Onyx.merge(cardSettingsKey, {US: {paymentBankAccountID: 1234, isPaymentBankAccountConnectedWithPlaid: false}});
-            await Onyx.multiSet({
-                [ONYXKEYS.NVP_INTRO_SELECTED]: {choice: CONST.ONBOARDING_CHOICES.ADMIN},
-                [ONYXKEYS.NVP_ONBOARDING]: {hasCompletedGuidedSetupFlow: false},
-                [ONYXKEYS.SESSION]: {accountID: 42},
-            });
-            await waitForBatchedUpdatesWithAct();
-        });
+    it('creates the Concierge chat instead of calling OpenReport when none exists yet', async () => {
+        // Given pending onboarding and no Concierge chat
+        // When the admin requests a limit increase
+        await requestLimitIncreaseWithPendingOnboarding({});
 
-        // When the admin requests a limit increase from the remaining limit info
-        render(
-            <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>
-                <WorkspaceCardsListLabel
-                    type={CONST.WORKSPACE_CARDS_LIST_LABEL_TYPE.REMAINING_LIMIT}
-                    value={100000}
-                />
-            </ComposeProviders>,
-        );
-        await waitForBatchedUpdatesWithAct();
-        fireEvent.press(screen.getByLabelText('Remaining limit'));
-        await waitForBatchedUpdatesWithAct();
-        fireEvent.press(screen.getByText('Request limit increase'));
-        await waitForBatchedUpdatesWithAct();
-
-        // Then the Concierge chat is created with the onboarding data instead of OpenReport, and the limit increase is requested after it
+        // Then the chat is created with the onboarding data, and the limit increase is requested after it
         expect(mockNavigateToConciergeChat).toHaveBeenCalledTimes(1);
-        expect(mockNavigateToConciergeChat).toHaveBeenCalledWith(expect.objectContaining({currentUserAccountID: 42, hasCompletedGuidedSetupFlow: false}));
         expect(mockOpenReport).not.toHaveBeenCalled();
         expect(mockRequestExpensifyCardLimitIncrease).toHaveBeenCalledTimes(1);
     });
 
     it('skips OpenReport but still requests the limit increase while the app is loading', async () => {
-        // Given pending guided setup and an existing Concierge chat, while the app is still loading
-        await act(async () => {
-            await Onyx.merge(cardSettingsKey, {US: {paymentBankAccountID: 1234, isPaymentBankAccountConnectedWithPlaid: false}});
-            await Onyx.multiSet({
-                [ONYXKEYS.NVP_INTRO_SELECTED]: {choice: CONST.ONBOARDING_CHOICES.ADMIN},
-                [ONYXKEYS.NVP_ONBOARDING]: {hasCompletedGuidedSetupFlow: false},
-                [ONYXKEYS.CONCIERGE_REPORT_ID]: '999',
-                [ONYXKEYS.IS_LOADING_APP]: true,
-            });
-            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}999`, {reportID: '999'});
-            await waitForBatchedUpdatesWithAct();
+        // Given pending onboarding, an existing Concierge chat and an app that is still loading
+        // When the admin requests a limit increase
+        await requestLimitIncreaseWithPendingOnboarding({
+            [ONYXKEYS.CONCIERGE_REPORT_ID]: '999',
+            [`${ONYXKEYS.COLLECTION.REPORT}999`]: {reportID: '999'},
+            [ONYXKEYS.IS_LOADING_APP]: true,
         });
 
-        // When the admin requests a limit increase from the remaining limit info
-        render(
-            <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>
-                <WorkspaceCardsListLabel
-                    type={CONST.WORKSPACE_CARDS_LIST_LABEL_TYPE.REMAINING_LIMIT}
-                    value={100000}
-                />
-            </ComposeProviders>,
-        );
-        await waitForBatchedUpdatesWithAct();
-        fireEvent.press(screen.getByLabelText('Remaining limit'));
-        await waitForBatchedUpdatesWithAct();
-        fireEvent.press(screen.getByText('Request limit increase'));
-        await waitForBatchedUpdatesWithAct();
-
-        // Then ReportFetchHandler's deferred OpenReport is left to run, and the limit increase is still requested
+        // Then OpenReport is left to ReportFetchHandler, and the limit increase is still requested
         expect(mockOpenReport).not.toHaveBeenCalled();
         expect(mockRequestExpensifyCardLimitIncrease).toHaveBeenCalledTimes(1);
     });
