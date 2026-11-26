@@ -265,5 +265,17 @@ describe('TravelApprovalUtils', () => {
             expect(getTripStatusFromBookings({tripID: 'trip', endDate: '2026-12-10', bookingApprovalState: bookings}, NOW)).toBe(CONST.SEARCH.TRIP_STATUS.UPCOMING);
             expect(getTripStatusFromBookings({tripID: 'trip', endDate: '2026-12-09', bookingApprovalState: bookings}, NOW)).toBe(CONST.SEARCH.TRIP_STATUS.DONE);
         });
+
+        it.each(['2026-12-10', '2026-12-10T00:00:00'])('ends a trip with end date %s on the UTC date, like the backend', (endDate) => {
+            // Given an approved trip ending Dec 10. The backend compares UTC dates, and Jest always runs in UTC, so the
+            // times below sit right around UTC midnight, where a local-date comparison west or east of UTC would differ
+            const bookings = {[HOTEL_PNR_ID]: buildBooking({status: STATUS.APPROVED})};
+            const tripData = {tripID: 'trip', endDate, bookingApprovalState: bookings};
+
+            // When the Spend status is worked out in the last minute of Dec 10 UTC and the first minute of Dec 11 UTC
+            // Then the trip is upcoming until the UTC date passes the end date, and done right after
+            expect(getTripStatusFromBookings(tripData, new Date('2026-12-10T23:59:00Z'))).toBe(CONST.SEARCH.TRIP_STATUS.UPCOMING);
+            expect(getTripStatusFromBookings(tripData, new Date('2026-12-11T00:01:00Z'))).toBe(CONST.SEARCH.TRIP_STATUS.DONE);
+        });
     });
 });

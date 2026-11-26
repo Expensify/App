@@ -9,7 +9,7 @@ import type ReportNameValuePairs from '@src/types/onyx/ReportNameValuePairs';
 
 import type {ValueOf} from 'type-fest';
 
-import {addDays, differenceInCalendarDays, differenceInDays, differenceInHours} from 'date-fns';
+import {addDays, differenceInDays, differenceInHours} from 'date-fns';
 import {fromZonedTime} from 'date-fns-tz';
 
 import DateUtils from './DateUtils';
@@ -77,7 +77,8 @@ function getTripStatusFromBookings(tripData: TripRoomData, now: Date = new Date(
         return CONST.SEARCH.TRIP_STATUS.REJECTED;
     }
 
-    const hasEnded = !!tripData?.endDate && differenceInCalendarDays(new Date(tripData.endDate), now) < 0;
+    // The backend compares UTC dates, so compare them here too rather than the user's local dates
+    const hasEnded = !!tripData?.endDate && tripData.endDate.slice(0, 10) < now.toISOString().slice(0, 10);
     return hasEnded ? CONST.SEARCH.TRIP_STATUS.DONE : CONST.SEARCH.TRIP_STATUS.UPCOMING;
 }
 
