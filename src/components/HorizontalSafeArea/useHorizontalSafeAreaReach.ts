@@ -43,4 +43,5 @@ function useHorizontalSafeAreaClipBleed(): ViewStyle | undefined {
 }
 
 export default useHorizontalSafeAreaReach;
-export {useHorizontalSafeAreaClipBleed};
+export {useHorizontalSafeAreaClipBleed, NO_REACH};
+export type {HorizontalSafeAreaReach};

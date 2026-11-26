@@ -83,6 +83,7 @@ jest.mock('@libs/isHTMLElement', () => ({
 type MockSupportalItemProps = {
     isCollapsed?: boolean;
     isSupportAgent?: boolean;
+    isRowVisible?: boolean;
     isSwitcherVisible?: boolean;
     showSwitcher?: () => void;
     hideSwitcher?: () => void;
@@ -100,19 +101,28 @@ jest.mock('@libs/Navigation/Navigation', () => ({
 }));
 let mockOuterHoverOut: (() => void) | undefined;
 let mockInnerHoverIn: (() => void) | undefined;
-jest.mock(
-    '@components/Hoverable',
-    () =>
-        ({children, onHoverIn, onHoverOut}: {children: React.ReactNode | ((isHovered: boolean) => React.ReactNode); onHoverIn?: () => void; onHoverOut?: () => void}) => {
-            if (onHoverOut) {
-                mockOuterHoverOut = onHoverOut;
-            }
-            if (onHoverIn) {
-                mockInnerHoverIn = onHoverIn;
-            }
-            return typeof children === 'function' ? children(false) : children;
-        },
-);
+// Only the Account area reads its hover through a render function, so this flag drives just that area.
+let mockIsAccountAreaHovered = false;
+let mockIsAccountAreaHoverNative: boolean | undefined;
+type MockHoverableProps = {
+    children: React.ReactNode | ((isHovered: boolean) => React.ReactNode);
+    onHoverIn?: () => void;
+    onHoverOut?: () => void;
+    shouldUseNativeHoverEvents?: boolean;
+};
+jest.mock('@components/Hoverable', () => ({children, onHoverIn, onHoverOut, shouldUseNativeHoverEvents}: MockHoverableProps) => {
+    if (onHoverOut) {
+        mockOuterHoverOut = onHoverOut;
+    }
+    if (onHoverIn) {
+        mockInnerHoverIn = onHoverIn;
+    }
+    if (typeof children !== 'function') {
+        return children;
+    }
+    mockIsAccountAreaHoverNative = shouldUseNativeHoverEvents;
+    return children(mockIsAccountAreaHovered);
+});
 jest.mock('@libs/actions/Session', () => ({
     ...jest.requireActual<Record<string, unknown>>('@libs/actions/Session'),
     signOutAndRedirectToSignIn: jest.fn(),
@@ -155,6 +165,8 @@ describe('FlatNavigationBar', () => {
         mockHasKeyboardFocusInside = false;
         mockOuterHoverOut = undefined;
         mockInnerHoverIn = undefined;
+        mockIsAccountAreaHovered = false;
+        mockIsAccountAreaHoverNative = undefined;
         mockInboxIndicator = NO_INDICATOR;
         mockWorkspacesIndicator = NO_INDICATOR;
         setIsSearchTabHovered(false);
@@ -442,6 +454,89 @@ describe('FlatNavigationBar', () => {
 
             // Then the peek ends and the bar collapses back to a rail
             expect(getBarWidth()).toBe(FLAT_NAVIGATION_BAR_COLLAPSED_WIDTH);
+        });
+
+        it('hides the supportal row until the Account area is hovered', async () => {
+            // Given a support agent whose pointer is away from the Account row
+            await Onyx.merge(ONYXKEYS.ACCOUNT, {canSupportLogin: true});
+
+            // When the bar renders
+            renderBar(NAVIGATION_TABS.HOME);
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the supportal row stays hidden, because the design only reveals it from the Account row
+            expect(mockSupportalItemProps?.isRowVisible).toBe(false);
+        });
+
+        it('shows the supportal row while the Account area is hovered', async () => {
+            // Given a support agent whose pointer is over the Account row
+            await Onyx.merge(ONYXKEYS.ACCOUNT, {canSupportLogin: true});
+            mockIsAccountAreaHovered = true;
+
+            // When the bar renders
+            renderBar(NAVIGATION_TABS.HOME);
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the supportal row shows, so the agent can move up from Account onto it
+            expect(mockSupportalItemProps?.isRowVisible).toBe(true);
+        });
+
+        it('tracks the Account area hover with native events', async () => {
+            // Given a support agent
+            await Onyx.merge(ONYXKEYS.ACCOUNT, {canSupportLogin: true});
+
+            // When the bar renders
+            renderBar(NAVIGATION_TABS.HOME);
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the area listens on its own element, because the switcher's portal sits inside it in the React tree
+            // and synthetic events would leave the hover on, and Supportal showing, after the switcher closes
+            expect(mockIsAccountAreaHoverNative).toBe(true);
+        });
+
+        it('shows the supportal row while keyboard focus is on the Account area', async () => {
+            // Given a support agent using the keyboard
+            await Onyx.merge(ONYXKEYS.ACCOUNT, {canSupportLogin: true});
+            renderBar(NAVIGATION_TABS.HOME);
+            await waitForBatchedUpdatesWithAct();
+
+            // When keyboard focus lands on the Account row
+            mockHasKeyboardFocusInside = true;
+            fireEvent(screen.getByTestId('FlatNavAccountArea'), 'focus');
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the supportal row shows, so it stays reachable without a pointer
+            expect(mockSupportalItemProps?.isRowVisible).toBe(true);
+
+            // When focus leaves the Account area
+            mockHasKeyboardFocusInside = false;
+            fireEvent(screen.getByTestId('FlatNavAccountArea'), 'blur', {nativeEvent: {relatedTarget: null}});
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the supportal row hides again
+            expect(mockSupportalItemProps?.isRowVisible).toBe(false);
+        });
+
+        it('keeps the supportal row while keyboard focus moves between Account and Supportal', async () => {
+            // Given a support agent whose keyboard focus is on the Account row, so the supportal row shows
+            await Onyx.merge(ONYXKEYS.ACCOUNT, {canSupportLogin: true});
+            renderBar(NAVIGATION_TABS.HOME);
+            await waitForBatchedUpdatesWithAct();
+            mockHasKeyboardFocusInside = true;
+            fireEvent(screen.getByTestId('FlatNavAccountArea'), 'focus');
+            await waitForBatchedUpdatesWithAct();
+            expect(mockSupportalItemProps?.isRowVisible).toBe(true);
+
+            // When Shift+Tab moves focus from Account up onto Supportal, which stays inside the area
+            mockIsFocusMovingInside = true;
+            fireEvent(screen.getByTestId('FlatNavAccountArea'), 'blur', {
+                currentTarget: {},
+                nativeEvent: {relatedTarget: {}},
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the supportal row stays, so the row the focus is moving onto does not disappear under it
+            expect(mockSupportalItemProps?.isRowVisible).toBe(true);
         });
 
         it('keeps the bar peeking when hovering out while the supportal switcher is open', async () => {

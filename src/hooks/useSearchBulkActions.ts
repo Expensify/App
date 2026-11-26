@@ -1685,6 +1685,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                     bankAccountList,
                     delegateAccountID,
                     hash,
+                    isChatReportArchived: isArchivedReport(allReportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.parentReportID}`]),
                 });
             }
         } else {
@@ -1740,6 +1741,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                     bankAccountList,
                     delegateAccountID,
                     hash,
+                    isChatReportArchived: isArchivedReport(allReportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.parentReportID}`]),
                 });
             }
         }
@@ -1768,6 +1770,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         duplicateTransactions,
         duplicateTransactionViolations,
         delegateAccountID,
+        allReportNameValuePairs,
     ]);
 
     const onBulkPaySelected = useCallback(
@@ -2152,15 +2155,18 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             }
 
             const reports = expensePayments.flatMap((params) => (params.iouReport?.reportID ? [params.iouReport] : []));
-            const quotedReports = expensePayments.flatMap((params) => (params.iouReport?.reportID && shouldGetWiseQuote(params) ? [params.iouReport] : []));
+            const quotedPayments = expensePayments.filter((params) => !!params.iouReport?.reportID && shouldGetWiseQuote(params));
+            const quotedReportIDs = quotedPayments.flatMap((params) => (params.iouReport?.reportID ? [params.iouReport.reportID] : []));
             const getQuotes = () => {
-                for (const report of quotedReports) {
+                for (const {iouReport: report, policy} of quotedPayments) {
+                    if (!report) {
+                        continue;
+                    }
                     // Search results don't hold the quote, which the server merges into the report in Onyx
-                    getWiseQuote({...report, ...allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`]}, true);
+                    getWiseQuote({...report, ...allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`]}, true, policy?.globalReimbursementFXPreferCompany);
                 }
             };
             getQuotes();
-            const quotedReportIDs = quotedReports.map((report) => report.reportID);
             // Bulk pay runs while the pay popover is still dismissing, and iOS can't present a modal until it's gone
             deferModalPresentationAfterPopoverDismiss(() => {
                 showWiseQuoteCarouselModal({
@@ -3543,7 +3549,6 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                   .map(({reportID}) => currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`])
                   .filter((report) => !!report?.reportID && report.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
         if (
-            isBetaEnabled(CONST.BETAS.REPORT_MERGE) &&
             selectedMergeReports.length === selectedReports.length &&
             queryJSON?.type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT &&
             canMergeReports(

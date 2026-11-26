@@ -37,6 +37,7 @@ import type {MockFetch} from '../utils/TestHelper';
 
 import createRandomPolicy from '../utils/collections/policies';
 import createRandomPolicyTags from '../utils/collections/policyTags';
+import createMock from '../utils/createMock';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
@@ -1990,6 +1991,31 @@ describe('actions/Policy', () => {
     });
 
     describe('EnablePolicyTags', () => {
+        it.each([false, true])('toggles the feature to %p with missing tags in the first list', async (enabled) => {
+            // Given an empty first level and a healthy sibling that must not be changed.
+            const fakePolicy = {...createRandomPolicy(0), areTagsEnabled: !enabled};
+            const lists = createMock<PolicyTagLists>({
+                Broken: {name: 'Broken', orderWeight: 0},
+                Region: {name: 'Region', orderWeight: 1, tags: {North: {name: 'North', enabled: true}}},
+            });
+            mockFetch.pause();
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${fakePolicy.id}`, lists);
+            await waitForBatchedUpdates();
+            const {result: policyData} = renderHook(() => usePolicyData(fakePolicy.id), {wrapper: OnyxListItemProvider});
+
+            // When toggling the feature before the API responds.
+            enablePolicyTags(policyData.current, enabled, false);
+            await waitForBatchedUpdates();
+
+            // Then the feature changes while both level identities and the sibling's tags are retained.
+            expect(policyData.current.policy?.areTagsEnabled).toBe(enabled);
+            expect(policyData.current.tags.Broken).toMatchObject({name: 'Broken', orderWeight: 0});
+            expect(policyData.current.tags.Region).toEqual(lists.Region);
+            await mockFetch.resume();
+            await waitForBatchedUpdates();
+        });
+
         it('should enable tags and create default tag list if none exists', async () => {
             // Given a policy without tags
             const fakePolicy = createRandomPolicy(0);

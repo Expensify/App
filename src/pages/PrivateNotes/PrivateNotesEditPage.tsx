@@ -32,6 +32,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+import {shortMentionLoginsSelector} from '@src/selectors/PersonalDetails';
 import INPUT_IDS from '@src/types/form/PrivateNotesForm';
 import type {Report} from '@src/types/onyx';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
@@ -96,7 +97,12 @@ function PrivateNotesEditPageInternal({route, report, accountID, privateNoteDraf
     const savePrivateNote = () => {
         let editedNote = '';
         if (privateNote.trim() !== originalNote.trim()) {
-            editedNote = handleUserDeletedLinksInHtml(privateNote.trim(), Parser.htmlToMarkdown(originalNote, {accountIDToName}).trim(), login ?? '', personalDetailsList);
+            editedNote = handleUserDeletedLinksInHtml(
+                privateNote.trim(),
+                Parser.htmlToMarkdown(originalNote, {accountIDToName}).trim(),
+                login ?? '',
+                shortMentionLoginsSelector(login ?? '')(personalDetailsList),
+            );
             updatePrivateNotes(report.reportID, Number(route.params.accountID), editedNote);
         }
 

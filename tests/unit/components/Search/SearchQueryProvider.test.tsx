@@ -4,13 +4,22 @@ import {SearchQueryContext} from '@components/Search/SearchContextDefinitions';
 import SearchQueryProvider from '@components/Search/SearchQueryProvider';
 
 import {buildSearchQueryJSON, buildSearchQueryString} from '@libs/SearchQueryUtils';
+import {getSuggestedSearches} from '@libs/SearchSuggestionUtils';
 
+import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
+import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
+import type {Policy} from '@src/types/onyx';
+
+import type {OnyxCollection} from 'react-native-onyx';
 
 import {useContext} from 'react';
 
+import createRandomPolicy from '../../../utils/collections/policies';
+
 let mockAccountID = 1;
+let mockPolicies: OnyxCollection<Policy>;
 let mockRootState: unknown;
 let mockFocusedScreen: {name: string; params: {q: string; rawQuery?: string}} | undefined;
 const mockNavigationListeners = new Set<() => void>();
@@ -43,7 +52,13 @@ jest.mock('@hooks/useCurrentUserPersonalDetails', () => ({
     default: () => ({accountID: mockAccountID, email: ''}),
 }));
 
-jest.mock('@hooks/useOnyx', () => ({__esModule: true, default: () => [undefined]}));
+jest.mock('@hooks/useOnyx', () => ({
+    __esModule: true,
+    default: (key: string, options?: {selector?: (value: unknown) => unknown}) => {
+        const value = key === jest.requireActual<{default: typeof ONYXKEYS}>('@src/ONYXKEYS').default.COLLECTION.POLICY ? mockPolicies : undefined;
+        return [options?.selector ? options.selector(value) : value];
+    },
+}));
 jest.mock('@hooks/useCardFeedsForDisplay', () => ({__esModule: true, default: () => ({})}));
 jest.mock('@hooks/useLoadSearchCategoryData', () => ({__esModule: true, default: jest.fn()}));
 jest.mock('@hooks/useShouldReturnTripRooms', () => ({__esModule: true, default: () => false}));
@@ -78,9 +93,61 @@ function setSearchRoute(q?: string, rawQuery?: string) {
     });
 }
 
+function buildPolicies(policy: Partial<Policy>): OnyxCollection<Policy> {
+    return {
+        [`${ONYXKEYS.COLLECTION.POLICY}1`]: {
+            ...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE),
+            role: CONST.POLICY.ROLE.ADMIN,
+            areExpensifyCardsEnabled: false,
+            ...policy,
+        },
+    };
+}
+
+describe('SearchQueryProvider policy updates', () => {
+    beforeEach(() => {
+        mockAccountID = 1;
+        mockNavigationListeners.clear();
+        mockRootState = undefined;
+    });
+
+    it('keeps the same context value when a policy changes without changing the Expensify Card flag', () => {
+        // Given the provider has built its value from the current policies
+        mockPolicies = buildPolicies({name: 'Workspace'});
+        setSearchRoute(buildSearchQueryString());
+        const {result, rerender} = renderHook(() => useContext(SearchQueryContext), {wrapper: SearchQueryProvider});
+        const firstValue = result.current;
+
+        // When a policy field the suggested searches don't read changes, as any policy update does
+        mockPolicies = buildPolicies({name: 'Renamed workspace'});
+        rerender({});
+
+        // Then the value is the same object, so the Search page and every other consumer don't render again
+        expect(result.current).toBe(firstValue);
+    });
+
+    it('rebuilds the suggested searches when a policy enables the Expensify Card', () => {
+        // Given an admin of a paid workspace without the Expensify Card
+        mockPolicies = buildPolicies({areExpensifyCardsEnabled: false});
+        setSearchRoute(buildSearchQueryString());
+        const {result, rerender} = renderHook(() => useContext(SearchQueryContext), {wrapper: SearchQueryProvider});
+        const firstSuggestedSearches = result.current.suggestedSearches;
+
+        // When the workspace enables the Expensify Card
+        mockPolicies = buildPolicies({areExpensifyCardsEnabled: true});
+        rerender({});
+
+        // Then the reconciliation search switches to Expensify Card withdrawals
+        const reconciliationKey = CONST.SEARCH.SEARCH_KEYS.RECONCILIATION;
+        expect(result.current.suggestedSearches).not.toBe(firstSuggestedSearches);
+        expect(result.current.suggestedSearches[reconciliationKey].searchQuery).toBe(getSuggestedSearches(mockAccountID, undefined, true)[reconciliationKey].searchQuery);
+    });
+});
+
 describe('SearchQueryProvider account-scoped retention', () => {
     beforeEach(() => {
         mockAccountID = 1;
+        mockPolicies = undefined;
         mockNavigationListeners.clear();
         mockRootState = undefined;
     });

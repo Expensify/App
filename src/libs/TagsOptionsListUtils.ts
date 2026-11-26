@@ -451,7 +451,11 @@ function getUpdatedTransactionTag({
  * @param index - The index level to truncate the tag to for parent filtering
  * @returns Array of enabled policy tags that match the parent tag filter
  */
-function getEnabledTags(tags: PolicyTags, tag: string, index: number) {
+function getEnabledTags(tags: PolicyTags | null | undefined, tag: string, index: number) {
+    if (!tags) {
+        return [];
+    }
+
     // Truncate tag to the current level (e.g., "California:North")
     const parentTag = getTagArrayFromName(tag).slice(0, index).join(':');
 
