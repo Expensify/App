@@ -32,8 +32,11 @@ const USER_MEDIA_MAX_AGE_SECONDS = 7 * 24 * 60 * 60;
 const UPGRADE_REDIRECT_MAX_AGE_MS = 60 * 1000;
 const upgradeRedirects = new Map<string, ReturnType<typeof setTimeout>>();
 
-// Files and internal tools never receive the app shell. A file is a path whose last segment has an extension, whatever the query contains.
-const NON_PAGE_PATHS = [/^\/_/, /^\/\.well-known/, /^(?!\/index\.html(?:\?|$))[^?]*\/[^/?]+\.[^/?]+(?:\?|$)/];
+// Files and internal tools never receive the app shell
+const NON_PAGE_PATHS = [/^\/_/, /^\/\.well-known/, /^(?!\/index\.html(?:\?|$)).*\/[^/?]+\.[^/]+$/];
+
+// On the host that serves both products, a file is a path whose last segment has an extension, whatever the query contains
+const SHARED_HOST_NON_PAGE_PATHS = [/^\/_/, /^\/\.well-known/, /^(?!\/index\.html(?:\?|$))[^?]*\/[^/?]+\.[^/?]+(?:\?|$)/];
 
 // Expensify Classic serves its pages' scripts and images under these paths, matched without case like the experience router does.
 // Receipts and attachments are user media, so their paths are not listed.
@@ -200,8 +203,8 @@ if (isSharedProductHost) {
 
     // Sign-out pages have a .php variant, so file paths are not excluded here.
     registerRoute(new NavigationRoute(signOutOfClassic, {allowlist: SIGN_OUT_NAVIGATION_PATHS}));
-    registerRoute(new NavigationRoute(openSavedApp, {allowlist: APP_ONLY_NAVIGATION_PATHS, denylist: NON_PAGE_PATHS}));
-    registerRoute(new NavigationRoute(openSharedPage, {allowlist: SHARED_NAVIGATION_PATHS, denylist: NON_PAGE_PATHS}));
+    registerRoute(new NavigationRoute(openSavedApp, {allowlist: APP_ONLY_NAVIGATION_PATHS, denylist: SHARED_HOST_NON_PAGE_PATHS}));
+    registerRoute(new NavigationRoute(openSharedPage, {allowlist: SHARED_NAVIGATION_PATHS, denylist: SHARED_HOST_NON_PAGE_PATHS}));
 } else {
     registerRoute(new NavigationRoute(openSavedApp, {denylist: NON_PAGE_PATHS}));
 }

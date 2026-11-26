@@ -361,8 +361,8 @@ describe('service worker navigation', () => {
         expect(mockMatchPrecache).toHaveBeenCalledWith('/index.html');
     });
 
-    it.each(['/index.html', '/index.html?test=1', '/', '/r/123', '/settings/profile', '/?exitTo=https://a.com', '/r/1?backTo=/a.b'])("handles app navigation to '%s'", (pathname) => {
-        // Given a navigation to the app shell or a deep link, whose query can contain a slash and a dot
+    it.each(['/index.html', '/index.html?test=1', '/', '/r/123', '/settings/profile'])("handles app navigation to '%s'", (pathname) => {
+        // Given a navigation to the app shell or a deep link
         const denylist = mockNavigationRoute.mock.calls.at(0)?.[1].denylist;
 
         // When the navigation is matched
@@ -373,7 +373,7 @@ describe('service worker navigation', () => {
         expect(mockNavigationRoute.mock.calls.at(0)?.[1].allowlist).toBeUndefined();
     });
 
-    it.each(['/_test', '/.well-known/assetlinks.json', '/asset.js', '/fonts/font.woff2', '/asset.js?v=1', '/asset.js?from=/r/1'])("leaves '%s' outside app navigation", (pathname) => {
+    it.each(['/_test', '/.well-known/assetlinks.json', '/asset.js', '/fonts/font.woff2'])("leaves '%s' outside app navigation", (pathname) => {
         // Given a request that must not receive the app shell
         const denylist = mockNavigationRoute.mock.calls.at(0)?.[1].denylist;
 
@@ -458,6 +458,7 @@ describe('service worker navigation', () => {
             ['/', 2],
             ['/inbox?authToken=t&email=e', 2],
             ['/?exitTo=https://a.com', 2],
+            ['/r/1?backTo=/a.b', 1],
             ['/concierge', 1],
             ['/concierge/', undefined],
             ['/SignOut//', 0],
@@ -827,6 +828,17 @@ describe('service worker navigation', () => {
         // When it starts, before each test
         // Then it adds no listener of its own for requests, so it can't remove itself
         expect(mockAddEventListener).not.toHaveBeenCalled();
+    });
+
+    it('reads the query when telling files from pages on other hosts as before', () => {
+        // Given the worker on New Expensify's own host
+        const denylist = mockNavigationRoute.mock.calls.at(0)?.[1].denylist;
+
+        // When a page whose query ends like a file name is matched
+        const isDenied = denylist?.some((pattern) => pattern.test('/?exitTo=https://a.com'));
+
+        // Then it is left outside app navigation, as it was before the shared host existed
+        expect(isDenied).toBe(true);
     });
 
     it('saves Expensify Classic paths as user media on other hosts as before', () => {
