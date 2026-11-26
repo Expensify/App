@@ -37,4 +37,4 @@
 
 - Upstream PR/issue: https://github.com/react-native-netinfo/react-native-netinfo/pull/817 (issue: https://github.com/react-native-netinfo/react-native-netinfo/issues/756)
 - E/App issue: 🛑 TODO
-- PR introducing patch: 🛑 TODO
+- PR introducing patch: https://github.com/Expensify/App/pull/108127
