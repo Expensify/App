@@ -20,17 +20,9 @@ import {buildSetPersonalDetailsAndShipExpensifyCardsParams} from '@libs/actions/
 import {requestValidateCodeAction} from '@libs/actions/User';
 import type {ActivatePhysicalCardPersonalDetails as PersonalDetailsToSave} from '@libs/API/parameters/SetPersonalDetailsAndActivateExpensifyCardParams';
 import {getLatestErrorMessage} from '@libs/ErrorUtils';
-import {appendCountryCode, formatE164PhoneNumber} from '@libs/LoginUtils';
+import {formatE164PhoneNumber, parsePhoneNumberForAddress} from '@libs/LoginUtils';
 import {getStreetLines} from '@libs/PersonalDetailsUtils';
-import {
-    getAddressFieldErrors,
-    getFieldRequiredErrors,
-    getLegalNameErrors,
-    isValidPastDate,
-    isValidPhoneNumber,
-    meetsMaximumAgeRequirement,
-    meetsMinimumAgeRequirement,
-} from '@libs/ValidationUtils';
+import {getAddressFieldErrors, getFieldRequiredErrors, getLegalNameErrors, isValidPastDate, meetsMaximumAgeRequirement, meetsMinimumAgeRequirement} from '@libs/ValidationUtils';
 
 import {getNormalizedSubPageValues} from '@pages/MissingPersonalDetails/utils';
 
@@ -104,14 +96,15 @@ function ActivatePhysicalCardPersonalDetails({card, lastFourDigits, onBackButton
                 errors.dob = translate('bankAccount.error.age');
             }
         }
-        if (values.phoneNumber && !isValidPhoneNumber(appendCountryCode(values.phoneNumber, countryCode))) {
+        if (values.phoneNumber && !parsePhoneNumberForAddress(values.phoneNumber, values.country, countryCode).possible) {
             errors.phoneNumber = translate('common.error.phoneNumber');
         }
         return {...errors, ...getLegalNameErrors(values, translate), ...getAddressFieldErrors(values, translate)};
     };
 
     const submit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM>) => {
-        const personalDetails = buildSetPersonalDetailsAndShipExpensifyCardsParams(values, countryCode);
+        const phoneNumber = parsePhoneNumberForAddress(values.phoneNumber, values.country, countryCode).number?.e164 ?? '';
+        const personalDetails = buildSetPersonalDetailsAndShipExpensifyCardsParams({...values, phoneNumber}, countryCode);
 
         // Only a new phone number needs a validateCode, because it's used for card 3DS verification
         if (personalDetails.phoneNumber === formatE164PhoneNumber(privatePersonalDetails?.phoneNumber ?? '', countryCode)) {

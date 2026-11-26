@@ -146,6 +146,28 @@ describe('ActivatePhysicalCardPersonalDetails', () => {
         expect(TestHelper.getFetchMockCalls(WRITE_COMMANDS.ACTIVATE_PHYSICAL_EXPENSIFY_CARD)).toHaveLength(0);
     });
 
+    it('reads a phone number without a country code as one from the address country', async () => {
+        // Given a cardholder in Singapore confirming a US address
+        await act(async () => {
+            await Onyx.set(ONYXKEYS.COUNTRY_CODE, 65);
+        });
+        renderPage();
+        await waitForBatchedUpdatesWithAct();
+
+        // When they enter a US number without the country code and submit
+        fireEvent.changeText(screen.getByLabelText(TestHelper.translateLocal('common.phoneNumber')), '(585) 752-7441');
+        fireEvent.press(screen.getByText(TestHelper.translateLocal('activateCardPage.activatePhysicalCard')));
+        await waitForBatchedUpdatesWithAct();
+        await act(async () => {
+            jest.mocked(ValidateCodeActionContent).mock.lastCall?.[0]?.handleSubmitForm('123456');
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        // Then it's sent as a US number, the same way the admin shipping form reads it
+        const body = TestHelper.getFetchMockCalls(WRITE_COMMANDS.SET_PERSONAL_DETAILS_AND_ACTIVATE_EXPENSIFY_CARD).at(-1)?.[1]?.body;
+        expect(body instanceof FormData ? Object.fromEntries(body) : {}).toEqual(expect.objectContaining({phoneNumber: '+15857527441'}));
+    });
+
     it('activates the card without a validateCode when the phone number on file is kept', async () => {
         // Given a cardholder who already has a phone number on file but no address
         await act(async () => {
