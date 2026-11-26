@@ -56,19 +56,21 @@ jest.mock('@components/PopoverWithMeasuredContent', () => {
 
 jest.mock('@components/SelectionList/SelectionListWithSections', () => {
     const {Text: MockText, TextInput: MockTextInput} = jest.requireActual<{Text: React.ComponentType<TextProps>; TextInput: typeof TextInput}>('react-native');
-    const LegacyList = ({sections, textInputOptions, shouldShowTextInput, shouldShowLoadingPlaceholder}: SelectionListWithSectionsProps<ListItem>) => (
-        <>
-            {shouldShowLoadingPlaceholder && <MockText testID="loading-placeholder" />}
-            {shouldShowTextInput && (
-                <MockTextInput
-                    accessibilityLabel={textInputOptions?.label}
-                    value={textInputOptions?.value}
-                    onChangeText={textInputOptions?.onChangeText}
-                />
-            )}
-            {sections.flatMap(({sectionIndex, data}) => data.map(({keyForList, text}) => <MockText key={`${sectionIndex}-${keyForList}`}>{text}</MockText>))}
-        </>
-    );
+    function LegacyList({sections, textInputOptions, shouldShowTextInput, shouldShowLoadingPlaceholder}: SelectionListWithSectionsProps<ListItem>) {
+        return (
+            <>
+                {shouldShowLoadingPlaceholder && <MockText testID="loading-placeholder" />}
+                {shouldShowTextInput && (
+                    <MockTextInput
+                        accessibilityLabel={textInputOptions?.label}
+                        value={textInputOptions?.value}
+                        onChangeText={textInputOptions?.onChangeText}
+                    />
+                )}
+                {sections.flatMap(({sectionIndex, data}) => data.map(({keyForList, text}) => <MockText key={`${sectionIndex}-${keyForList}`}>{text}</MockText>))}
+            </>
+        );
+    }
     return Object.assign(LegacyList, {
         Root: ({children}: {children: React.ReactNode}) => children,
         SearchInput: ({label, value, onChangeText}: React.ComponentProps<typeof SelectionListWithSections.SearchInput>) => (
