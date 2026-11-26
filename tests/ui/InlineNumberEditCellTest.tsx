@@ -17,7 +17,7 @@ const DISPLAY_TEXT = '$0.73 / mile';
 
 type RenderOptions = {
     textAlign: 'left' | 'right';
-    shouldReserveEditButtonClearance?: boolean;
+    shouldReserveEditButtonClearance: boolean;
 };
 
 async function renderCellWithTrailingContent({textAlign, shouldReserveEditButtonClearance}: RenderOptions) {
@@ -62,10 +62,10 @@ describe('InlineNumberEditCell', () => {
         expect(getTrailingContentRow()).toHaveStyle({paddingRight: variables.editableCellEditButtonClearance});
     });
 
-    it('leaves no clearance by default', async () => {
-        // Given a left-aligned value with an icon after it, with the clearance left at its default
+    it('leaves no clearance when the cell asks not to reserve it', async () => {
+        // Given a left-aligned value with an icon after it, in a cell told not to keep the edit button's room
         // When the cell renders
-        await renderCellWithTrailingContent({textAlign: 'left'});
+        await renderCellWithTrailingContent({textAlign: 'left', shouldReserveEditButtonClearance: false});
 
         // Then no room is kept, so a cell only gets the extra width when it asks for it
         expect(getTrailingContentRow()).not.toHaveStyle({paddingRight: variables.editableCellEditButtonClearance});

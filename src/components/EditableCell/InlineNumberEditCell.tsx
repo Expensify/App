@@ -30,6 +30,20 @@ import type {EditableProps} from './types';
 import EditableCell from './EditableCell';
 import useInlineEditState from './useInlineEditState';
 
+// A cell with `children` has to choose whether to keep room for the edit button, which sits at a left-aligned cell's trailing edge and can cover them.
+type TrailingContentProps =
+    | {
+          children?: never;
+          shouldReserveEditButtonClearance?: never;
+      }
+    | {
+          /** Rendered right after the display text (like an icon), so it stays next to the value instead of at the cell's edge. Hidden while editing. */
+          children: ReactNode;
+
+          /** Pass true when `children` sit next to the edit button in a left-aligned cell, or it covers them. Keep it fixed while shown, or the row shifts. */
+          shouldReserveEditButtonClearance: boolean;
+      };
+
 type InlineNumberEditCellProps = {
     /** Frontend numeric string used as the initial edit buffer. Conversion stays at the call site. */
     value: string;
@@ -55,13 +69,8 @@ type InlineNumberEditCellProps = {
 
     /** Defaults to Number() comparison so "1.00" and "1" are treated as unchanged. */
     isEqual?: (newValue: string, originalValue: string) => boolean;
-
-    /** Rendered right after the display text (like an icon), so it stays next to the value instead of at the cell's edge. Hidden while editing. */
-    children?: ReactNode;
-
-    /** Pass true when `children` sit next to the edit button in a left-aligned cell, or it covers them. Keep it fixed while shown, or the row shifts. */
-    shouldReserveEditButtonClearance?: boolean;
-} & EditableProps<string>;
+} & EditableProps<string> &
+    TrailingContentProps;
 
 const areNumericValuesEqual = (newValue: string, originalValue: string) => Number(newValue) === Number(originalValue);
 
@@ -75,7 +84,7 @@ function InlineNumberEditCell({
     textAlign = 'right',
     isEqual = areNumericValuesEqual,
     children,
-    shouldReserveEditButtonClearance = false,
+    shouldReserveEditButtonClearance,
     canEdit,
     onSave,
 }: InlineNumberEditCellProps) {
