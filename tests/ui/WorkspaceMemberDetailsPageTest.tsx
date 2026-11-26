@@ -16,6 +16,7 @@ import * as useResponsiveLayoutModule from '@hooks/useResponsiveLayout';
 import type ResponsiveLayoutResult from '@hooks/useResponsiveLayout/types';
 
 import {READ_COMMANDS} from '@libs/API/types';
+import * as GetIsNarrowLayoutModule from '@libs/getIsNarrowLayout';
 import Navigation from '@libs/Navigation/Navigation';
 import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
 import {generateAccountID} from '@libs/UserUtils';
@@ -963,8 +964,9 @@ describe('WorkspaceMemberDetailsPage', () => {
         await waitForBatchedUpdatesWithAct();
     });
 
-    it('closes the member details before opening their chat history, so browser Back returns to Members', async () => {
-        // Given the member details are open, with the panel close finishing straight away
+    it('closes the member details before opening their chat history on a wide layout, so browser Back returns to Members', async () => {
+        // Given the member details are open on a wide layout, with the panel close finishing straight away
+        jest.spyOn(GetIsNarrowLayoutModule, 'default').mockReturnValue(false);
         const dismissModalSpy = jest.spyOn(Navigation, 'dismissModal').mockImplementation((options) => options?.afterTransition?.());
         const navigateSpy = jest.spyOn(Navigation, 'navigate').mockImplementation(() => {});
         const revealSpy = jest.spyOn(Navigation, 'revealRouteBeforeDismissingModal').mockImplementation(() => {});
@@ -981,6 +983,27 @@ describe('WorkspaceMemberDetailsPage', () => {
         expect(typeof dismissModalSpy.mock.calls.at(0)?.at(0)?.afterTransition).toBe('function');
         expect(navigateSpy).toHaveBeenCalledWith(ROUTES.SEARCH_ROOT.getRoute({query, rawQuery: query}));
         expect(revealSpy).not.toHaveBeenCalled();
+
+        unmount();
+        await waitForBatchedUpdatesWithAct();
+    });
+
+    it('reveals the member chat history under the closing details on a narrow layout', async () => {
+        // Given the member details are open on a narrow layout (mobile web and native), where browser history stays in sync
+        jest.spyOn(GetIsNarrowLayoutModule, 'default').mockReturnValue(true);
+        const dismissModalSpy = jest.spyOn(Navigation, 'dismissModal').mockImplementation(() => {});
+        const revealSpy = jest.spyOn(Navigation, 'revealRouteBeforeDismissingModal').mockImplementation(() => {});
+        const {unmount} = renderPage({policyID: policy.id, accountID: String(invitedAccountID)});
+        await waitForBatchedUpdatesWithAct();
+
+        // When the admin presses See chat history
+        fireEvent.press(await screen.findByText(TestHelper.translateLocal('profilePage.seeChatHistory')), {nativeEvent: {}});
+        await waitForBatchedUpdatesWithAct();
+
+        // Then Search is revealed under the closing details, so Members never flashes between them
+        const query = `type:${CONST.SEARCH.DATA_TYPES.CHAT} from:${invitedAccountID}`;
+        expect(revealSpy).toHaveBeenCalledWith(ROUTES.SEARCH_ROOT.getRoute({query, rawQuery: query}));
+        expect(dismissModalSpy).not.toHaveBeenCalled();
 
         unmount();
         await waitForBatchedUpdatesWithAct();
