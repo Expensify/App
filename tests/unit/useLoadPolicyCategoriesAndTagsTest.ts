@@ -1,4 +1,4 @@
-import {renderHook, waitFor} from '@testing-library/react-native';
+import {act, renderHook, waitFor} from '@testing-library/react-native';
 
 import {SearchQueryContext} from '@components/Search/SearchContextDefinitions';
 import {SearchScopeProvider} from '@components/Search/SearchScopeProvider';
@@ -8,6 +8,7 @@ import useLoadPolicyTags from '@hooks/useLoadPolicyTags';
 
 import type * as PolicyCategory from '@libs/actions/Policy/Category';
 import type * as PolicyTag from '@libs/actions/Policy/Tag';
+import {setForceOffline} from '@libs/NetworkState';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -260,5 +261,48 @@ describe('useLoadPolicyTags with several pickers', () => {
             expect(mockOpenPolicyTagsPage).toHaveBeenCalledTimes(2);
         });
         firstPicker.unmount();
+    });
+    it('releases the previous policy when a picker switches to another one before the read lands', async () => {
+        // Given a picker that sent a read for one policy, and a second policy the user can also read tags for
+        const OTHER_POLICY_ID = 'D4E5F6';
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${OTHER_POLICY_ID}`, {
+            id: OTHER_POLICY_ID,
+            type: CONST.POLICY.TYPE.CORPORATE,
+            role: CONST.POLICY.ROLE.ADMIN,
+            employeeList: {[CURRENT_USER_EMAIL]: {email: CURRENT_USER_EMAIL, role: CONST.POLICY.ROLE.ADMIN}},
+        });
+        const switchingPicker = renderHook(({policyID}: {policyID: string}) => useLoadPolicyTags(policyID), {initialProps: {policyID: POLICY_ID}});
+        await waitFor(() => {
+            expect(mockOpenPolicyTagsPage).toHaveBeenCalledWith(POLICY_ID);
+        });
+
+        // When that picker moves to the other policy before the first read's loading state reached Onyx
+        switchingPicker.rerender({policyID: OTHER_POLICY_ID});
+        await waitFor(() => {
+            expect(mockOpenPolicyTagsPage).toHaveBeenCalledWith(OTHER_POLICY_ID);
+        });
+
+        // Then a new picker for the first policy can send its read, since the switching picker no longer holds it
+        renderHook(() => useLoadPolicyTags(POLICY_ID));
+        await waitFor(() => {
+            expect(mockOpenPolicyTagsPage).toHaveBeenCalledTimes(3);
+        });
+    });
+
+    it('sends the read again after a reconnect cut off the one in flight', async () => {
+        // Given a picker whose read was sent but never answered before the connection dropped
+        renderHook(() => useLoadPolicyTags(POLICY_ID));
+        await waitFor(() => {
+            expect(mockOpenPolicyTagsPage).toHaveBeenCalledTimes(1);
+        });
+        act(() => setForceOffline(true));
+
+        // When the connection comes back
+        act(() => setForceOffline(false));
+
+        // Then the picker sends the read again, since the cut-off read no longer blocks it
+        await waitFor(() => {
+            expect(mockOpenPolicyTagsPage).toHaveBeenCalledTimes(2);
+        });
     });
 });
