@@ -37,6 +37,9 @@ type DefaultPolicyTagLists = Record<
     }
 >;
 
+const EMOJIS_REGEX =
+    /[\p{Extended_Pictographic}\uE000-\uF8FF\u{F0000}-\u{FFFFD}\u{100000}-\u{10FFFD}](\u200D[\p{Extended_Pictographic}\uE000-\uF8FF\u{F0000}-\u{FFFFD}\u{100000}-\u{10FFFD}]|[\u{1F3FB}-\u{1F3FF}]|[\u{E0020}-\u{E007F}]|\uFE0F|\u20E3)*|[\u{1F1E6}-\u{1F1FF}]{2}|[#*0-9]\uFE0F?\u20E3/du;
+
 // Creating a default array and object this way because objects ({}) and arrays ([]) are not stable types.
 // Freezing the array ensures that it cannot be unintentionally modified.
 const EMPTY_ARRAY = Object.freeze([]);
@@ -6787,7 +6790,11 @@ const CONST = {
         // eslint-disable-next-line no-misleading-character-class
         EMOJI: /[\p{Extended_Pictographic}\u200d\u{1f1e6}-\u{1f1ff}\u{1f3fb}-\u{1f3ff}\u{e0020}-\u{e007f}\u20E3\uFE0F]|[#*0-9]\uFE0F?\u20E3/gu,
 
-        EMOJIS: /[\p{Extended_Pictographic}\uE000-\uF8FF\u{F0000}-\u{FFFFD}\u{100000}-\u{10FFFD}](\u200D[\p{Extended_Pictographic}\uE000-\uF8FF\u{F0000}-\u{FFFFD}\u{100000}-\u{10FFFD}]|[\u{1F3FB}-\u{1F3FF}]|[\u{E0020}-\u{E007F}]|\uFE0F|\u20E3)*|[\u{1F1E6}-\u{1F1FF}]{2}|[#*0-9]\uFE0F?\u20E3/du,
+        EMOJIS: EMOJIS_REGEX,
+
+        // Every EMOJIS match contains one of these code points, so text without them has no emoji
+        // eslint-disable-next-line no-misleading-character-class -- \u20E3 is listed alone on purpose, it marks keycap emojis
+        EMOJI_CODE_POINT: /[\p{Extended_Pictographic}\uE000-\uF8FF\u{F0000}-\u{FFFFD}\u{100000}-\u{10FFFD}\u{1F1E6}-\u{1F1FF}\u20E3]/u,
 
         EMOJI_SKIN_TONES: /[\u{1f3fb}-\u{1f3ff}]/gu,
 
@@ -6846,9 +6853,8 @@ const CONST = {
             return new RegExp(`[\\n\\s]|${this.SPECIAL_CHAR_MENTION_BREAKER.source}|${this.EMOJI.source}`, 'gu');
         },
 
-        get ALL_EMOJIS() {
-            return new RegExp(this.EMOJIS, this.EMOJIS.flags.concat('g'));
-        },
+        // Shared instance with the g flag: use it only with String.match, matchAll or replace. RegExp.test and exec keep lastIndex between calls.
+        ALL_EMOJIS: new RegExp(EMOJIS_REGEX, `${EMOJIS_REGEX.flags}g`),
 
         MERGED_ACCOUNT_PREFIX: /^(MERGED_\d+@)/g,
         ROUTES: {

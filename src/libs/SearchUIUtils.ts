@@ -233,7 +233,7 @@ import {
     shouldReportShowSubscript,
 } from './ReportUtils';
 import {getAmountFilterDisplayValue} from './SearchAmountFilterUtils';
-import {getCustomColumns, groupByRequiredColumns} from './SearchColumnsUtils';
+import {getCustomColumns, getSortByForColumn, groupByRequiredColumns} from './SearchColumnsUtils';
 import {isReportEntry, TODO_SEARCH_KEYS} from './SearchKeyUtils';
 import {
     buildSearchQueryJSON,
@@ -5264,26 +5264,6 @@ function isColumnSortable(column: SearchColumnType) {
     return !nonSortableColumns.has(column);
 }
 
-function getSortByForColumn(column: SearchColumnType): SearchSortBy {
-    // The trip columns sort by the trip search's own sort keys
-    if (column === CONST.SEARCH.TABLE_COLUMNS.START_DATE) {
-        return CONST.SEARCH.TABLE_COLUMNS.DATE;
-    }
-    if (column === CONST.SEARCH.TABLE_COLUMNS.TRIP_NAME) {
-        return CONST.SEARCH.TABLE_COLUMNS.TITLE;
-    }
-    if (column === CONST.SEARCH.TABLE_COLUMNS.TRAVELER) {
-        return CONST.SEARCH.TABLE_COLUMNS.FROM;
-    }
-    if (column === CONST.SEARCH.TABLE_COLUMNS.CATEGORY_GL_CODE) {
-        return CONST.SEARCH.SORT_BY_COLUMNS.CATEGORY_GL_CODE;
-    }
-    if (column === CONST.SEARCH.TABLE_COLUMNS.TAG_GL_CODE) {
-        return CONST.SEARCH.SORT_BY_COLUMNS.TAG_GL_CODE;
-    }
-    return column;
-}
-
 type OverflowMenuIconsType = Record<'Pencil' | 'Trashcan' | 'LinkCopy' | 'Checkmark', IconAsset>;
 
 type ShareProps = {
@@ -6835,7 +6815,14 @@ function getDateDisplayValue(syntaxKey: SearchDateFilterKeys, form: Partial<Sear
     const parts: string[] = [];
 
     if (on) {
-        parts.push(isSearchDatePreset(on) ? translate(`search.filters.date.presets.${on}`) : `${translate('common.on')} ${DateUtils.formatToReadableString(on, dateFnsLocale)}`);
+        if (isSearchDatePreset(on)) {
+            parts.push(translate(`search.filters.date.presets.${on}`));
+        } else {
+            const formattedOn = DateUtils.formatToReadableString(on, dateFnsLocale);
+            if (formattedOn) {
+                parts.push(`${translate('common.on')} ${formattedOn}`);
+            }
+        }
     }
 
     if (after) {

@@ -5040,6 +5040,48 @@ describe('SearchQueryUtils', () => {
             });
         });
 
+        test.each<{
+            input: string;
+            groupBy?: SearchAdvancedFiltersForm['groupBy'];
+            view?: SearchAdvancedFiltersForm['view'];
+            sortBy: string;
+            sortOrder: string;
+        }>([
+            {input: 'sortBy:date sortOrder:asc', groupBy: 'day', sortBy: CONST.SEARCH.TABLE_COLUMNS.GROUP_DAY, sortOrder: 'asc'},
+            {input: 'sortBy:date sortOrder:desc', groupBy: 'category', sortBy: 'groupCategory', sortOrder: 'asc'},
+            {input: 'sortBy:merchant sortOrder:asc', groupBy: 'day', sortBy: CONST.SEARCH.TABLE_COLUMNS.GROUP_DAY, sortOrder: 'asc'},
+            {input: 'sortBy:amount sortOrder:asc', groupBy: 'day', sortBy: CONST.SEARCH.TABLE_COLUMNS.GROUP_DAY, sortOrder: 'asc'},
+            {input: 'groupBy:day sortOrder:asc', groupBy: 'month', sortBy: 'groupmonth', sortOrder: 'asc'},
+            {input: 'groupBy:category sortOrder:desc', groupBy: 'day', sortBy: CONST.SEARCH.TABLE_COLUMNS.GROUP_DAY, sortOrder: 'desc'},
+            {input: 'groupBy:category sortBy:groupTotal sortOrder:desc', groupBy: 'day', sortBy: 'groupTotal', sortOrder: 'desc'},
+            {input: 'groupBy:category sortBy:groupExpenses sortOrder:asc', groupBy: 'day', sortBy: 'groupExpenses', sortOrder: 'asc'},
+            {input: 'groupBy:merchant sortBy:groupTotal sortOrder:asc', groupBy: 'day', sortBy: 'groupTotal', sortOrder: 'asc'},
+            {input: 'groupBy:day view:bar sortOrder:asc', groupBy: 'month', view: 'table', sortBy: 'groupmonth', sortOrder: 'desc'},
+            {input: 'groupBy:day view:bar sortOrder:desc', groupBy: 'month', view: 'bar', sortBy: 'groupmonth', sortOrder: 'desc'},
+            {input: 'groupBy:day sortOrder:asc', sortBy: 'date', sortOrder: 'asc'},
+            {input: 'groupBy:category sortBy:groupTotal sortOrder:asc', sortBy: 'date', sortOrder: 'desc'},
+            {input: 'groupBy:category sortBy:amount sortOrder:desc', sortBy: 'amount', sortOrder: 'desc'},
+            {input: 'groupBy:category sortBy:glcode sortOrder:desc', sortBy: 'glcode', sortOrder: 'desc'},
+            {input: 'groupBy:card sortBy:groupFeed sortOrder:desc', groupBy: 'day', sortBy: CONST.SEARCH.TABLE_COLUMNS.GROUP_DAY, sortOrder: 'desc'},
+            {input: 'groupBy:category sortBy:groupTotal sortOrder:desc', groupBy: 'paid-by', sortBy: 'date', sortOrder: 'desc'},
+            {input: 'groupBy:category sortBy:groupExpenses sortOrder:desc', groupBy: 'workflow-stage', sortBy: 'date', sortOrder: 'desc'},
+        ])('updates grouping to $groupBy without losing compatible sorting: $input', ({input, groupBy, view = CONST.SEARCH.VIEW.TABLE, sortBy, sortOrder}) => {
+            // Given sorting that may differ from the old grouping's defaults
+            const originalQuery = buildSearchQueryJSON(input);
+            if (!originalQuery) {
+                throw new Error('Invalid test query');
+            }
+            const form = buildFilterFormValuesFromQuery(originalQuery, {}, {}, {}, {}, {}, {});
+
+            // When the grouping changes, possibly together with the view
+            const result = buildFilterQueryWithSortDefaults({...form, groupBy, view}, originalQuery, originalQuery);
+            const queryJSON = buildSearchQueryJSON(result ?? '');
+
+            // Then compatible columns and non-default directions survive, while other values use the new defaults
+            expect(queryJSON).toMatchObject({sortBy, sortOrder});
+            expect(queryJSON?.groupBy).toBe(groupBy);
+        });
+
         test('groupBy change replaces stale sortBy with new default', () => {
             const result = buildFilterQueryWithSortDefaults(
                 {type: 'expense', groupBy: CONST.SEARCH.GROUP_BY.MONTH, view: CONST.SEARCH.VIEW.BAR},

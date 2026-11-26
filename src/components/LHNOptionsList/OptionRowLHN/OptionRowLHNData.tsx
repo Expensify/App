@@ -25,6 +25,7 @@ import {
     isInviteOrRemovedAction,
     isMoneyRequestAction,
 } from '@libs/ReportActionsUtils';
+import {getMentionedReportIDsInReportActions} from '@libs/ReportIDToNameMapUtils';
 import {canUserPerformWriteAction as canUserPerformWriteActionUtil, parseMovedTransactionReportIDs} from '@libs/ReportUtils';
 
 import CONST from '@src/CONST';
@@ -198,7 +199,14 @@ function OptionRowLHNData({isOptionFocused = false, viewMode = 'default', report
     const whisperTransactionID = isActionableTrackExpense(lastAction) ? getOriginalMessage(lastAction)?.transactionID : undefined;
     const lastActionTransactionID = isMoneyRequestAction(lastAction) ? getOriginalMessage(lastAction)?.IOUTransactionID : undefined;
     const lastActionReportID = isInviteOrRemovedAction(lastAction) && lastAction?.actionName ? getOriginalMessage(lastAction)?.reportID : undefined;
-    const reportNameIDs = [reportID, lastActionReportID ? String(lastActionReportID) : undefined, ...getActionReportIDs(lastAction), ...getActionReportIDs(ownLastAction)];
+    // The preview text names the rooms the last message mentions by reportID, so their names come from the same selector
+    const reportNameIDs = [
+        reportID,
+        lastActionReportID ? String(lastActionReportID) : undefined,
+        ...getActionReportIDs(lastAction),
+        ...getActionReportIDs(ownLastAction),
+        ...getMentionedReportIDsInReportActions([lastAction, ownLastAction]),
+    ];
 
     const [invoiceReceiverPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(invoiceReceiverPolicyID)}`);
     const [whisperTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(whisperTransactionID)}`);
