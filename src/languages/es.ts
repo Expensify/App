@@ -494,6 +494,7 @@ const translations: TranslationDeepObject<typeof en> = {
         corpayPayModalPrompt:
             'Esta persona que envió el informe tiene una cuenta bancaria que no es en USD. Habilita los reembolsos globales para pagar el informe, o pídele que añada una cuenta bancaria en USD.',
         purchaseAmount: 'Importe de compra',
+        convertedAmount: 'Importe convertido',
         originalAmount: 'Importe original',
         frequency: 'Frecuencia',
         link: 'Enlace',
@@ -1341,6 +1342,7 @@ const translations: TranslationDeepObject<typeof en> = {
             label: 'Infracciones de',
             [CONST.INSIGHTS.VIOLATION_STAGE.SUBMITTED]: 'Remitentes',
             [CONST.INSIGHTS.VIOLATION_STAGE.APPROVED]: 'Aprobadores',
+            chartTitle: (title: string, stage: string) => `${title} (${stage})`,
         },
         recentHistory: {
             title: 'Historial reciente',
@@ -1349,6 +1351,8 @@ const translations: TranslationDeepObject<typeof en> = {
             monthAverageFor: (count: number, item: string) => `Promedio de ${count} meses para ${item}`,
             quarterAverageFor: (count: number, item: string) => `Promedio de ${count} trimestres para ${item}`,
         },
+        flaggedExpenses: 'Gastos marcados',
+        noFlaggedExpensesInRange: 'No hay gastos marcados en este intervalo',
     },
     allSettingsScreen: {
         subscription: 'Suscripcion',
@@ -4684,6 +4688,14 @@ ${amount} para ${merchant} - ${date}`,
         numberedItem: ({item, number}: {item: string; number: number}) => `${item} ${number}`,
         questionsChanged: 'Las preguntas de esta página han cambiado',
         onFile: 'En archivo',
+        continueOffline: {
+            title: 'No puedes continuar sin conexión',
+            prompt: 'Se necesita una conexión a internet para completar este formulario. No te preocupes, guardaremos tu progreso y podrás continuar cuando vuelvas a estar en línea.',
+            saveForLater: 'Guardar y completar más tarde',
+            progressSaved: 'Tu progreso se ha guardado',
+            promptWithSensitiveAnswers:
+                'Se necesita conexión a internet para completar este formulario. Guardaremos tu progreso para que puedas continuar cuando vuelvas a estar en línea. Por seguridad, los datos sensibles no se guardan y tendrás que introducirlos de nuevo.',
+        },
     },
     addPersonalBankAccount: {
         swiftBicFormatError: 'El SWIFT/BIC debe tener 8 u 11 caracteres, con 6 letras seguidas de 2 o 5 letras o números.',
@@ -8428,7 +8440,6 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
                 willBeReadyToUse: 'Esta tarjeta estará lista para su uso inmediato.',
                 willBeReadyToShip: 'Esta tarjeta estará lista para enviarse de inmediato.',
                 cardholder: 'Titular de la tarjeta',
-                cardholderEmail: 'Correo electrónico del titular de la tarjeta',
                 cardType: 'Tipo de tarjeta',
                 limit: 'Limite',
                 limitType: 'Tipo de limite',

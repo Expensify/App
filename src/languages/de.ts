@@ -505,6 +505,7 @@ const translations: TranslationDeepObject<typeof en> = {
         corpayPayModalPrompt:
             'Diese einreichende Person hat ein Bankkonto in einer anderen Währung als USD. Aktiviere globale Rückerstattungen, um den Bericht zu bezahlen, oder bitte sie, ein USD-Bankkonto hinzuzufügen.',
         purchaseAmount: 'Kaufbetrag',
+        convertedAmount: 'Umgerechneter Betrag',
         originalAmount: 'Ursprünglicher Betrag',
         frequency: 'Häufigkeit',
         link: 'Link',
@@ -1347,6 +1348,7 @@ const translations: TranslationDeepObject<typeof en> = {
             label: 'Verstöße gegen',
             [CONST.INSIGHTS.VIOLATION_STAGE.SUBMITTED]: 'Einreichende',
             [CONST.INSIGHTS.VIOLATION_STAGE.APPROVED]: 'Genehmigende',
+            chartTitle: (title: string, stage: string) => `${title} (${stage})`,
         },
         recentHistory: {
             title: 'Letzte Aktivitäten',
@@ -1355,6 +1357,8 @@ const translations: TranslationDeepObject<typeof en> = {
             monthAverageFor: (count: number, item: string) => `${count}-Monatsdurchschnitt für ${item}`,
             quarterAverageFor: (count: number, item: string) => `${count}-Quartalsdurchschnitt für ${item}`,
         },
+        flaggedExpenses: 'Markierte Ausgaben',
+        noFlaggedExpensesInRange: 'Keine markierten Ausgaben in diesem Zeitraum',
     },
     allSettingsScreen: {
         subscription: 'Abonnement',
@@ -4703,6 +4707,14 @@ ${amount} für ${merchant} – ${date}`,
         numberedItem: ({item, number}: {item: string; number: number}) => `${item} ${number}`,
         questionsChanged: 'Die Fragen auf dieser Seite haben sich geändert',
         onFile: 'Vorhanden',
+        continueOffline: {
+            title: 'Sie können offline nicht fortfahren',
+            prompt: 'Zum Ausfüllen dieses Formulars wird eine Internetverbindung benötigt. Keine Sorge, wir speichern Ihren Fortschritt und Sie können fortfahren, sobald Sie wieder online sind.',
+            saveForLater: 'Speichern und später ausfüllen',
+            progressSaved: 'Ihr Fortschritt wurde gespeichert',
+            promptWithSensitiveAnswers:
+                'Für das Ausfüllen dieses Formulars ist eine Internetverbindung erforderlich. Wir speichern Ihren Fortschritt, damit Sie weitermachen können, sobald Sie wieder online sind. Zu Ihrer Sicherheit werden vertrauliche Angaben nicht gespeichert und müssen erneut eingegeben werden.',
+        },
     },
     addPersonalBankAccount: {
         swiftBicFormatError: 'Der SWIFT/BIC muss 8 oder 11 Zeichen lang sein, mit 6 Buchstaben gefolgt von 2 oder 5 Buchstaben oder Ziffern.',
@@ -8144,7 +8156,6 @@ Der Control-Tarif beginnt bei 9 $ pro aktivem Mitglied und Monat.`,
                 willBeReadyToUse: 'Diese Karte ist sofort einsatzbereit.',
                 willBeReadyToShip: 'Diese Karte ist sofort versandbereit.',
                 cardholder: 'Karteninhaber',
-                cardholderEmail: 'E-Mail-Adresse des Karteninhabers',
                 cardType: 'Kartentyp',
                 limit: 'Limit',
                 limitType: 'Limittyp',

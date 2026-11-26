@@ -153,6 +153,9 @@ type InsightsDashboardSpec = {
     /** Whether the charts link to the Spend page, from their menus and from a pressed point that has no Details panel to open. Defaults to true. */
     supportsDrillIn?: boolean;
 
+    /** Whether a pressed point opens the Details panel */
+    hasDetailsPanel: boolean;
+
     /** The dashboard's charts are replaced by the Control upsell when no workspace in scope is on Control */
     requiresControlPlan?: boolean;
 
@@ -168,6 +171,7 @@ const INSIGHTS_DASHBOARD_SPECS: Record<InsightsDashboardID, InsightsDashboardSpe
         searchKey: CONST.INSIGHTS.SEARCH_KEY.SPEND,
         labelKey: 'common.spend',
         queryType: CONST.SEARCH.DATA_TYPES.EXPENSE,
+        hasDetailsPanel: true,
         headlineChart: {
             graphKey: CONST.INSIGHTS.GRAPH.SPEND_OVER_TIME,
             titleKey: 'search.spendOverTime',
@@ -226,6 +230,7 @@ const INSIGHTS_DASHBOARD_SPECS: Record<InsightsDashboardID, InsightsDashboardSpe
         queryType: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
         countDimension: CONST.SEARCH.CHART_COUNT_DIMENSION.REPORT,
         supportsDrillIn: false,
+        hasDetailsPanel: false,
         headlineChart: {
             graphKey: CONST.INSIGHTS.GRAPH.WORKFLOW_EFFICIENCY,
             titleKey: 'insightsPage.workflowEfficiency',
@@ -287,6 +292,7 @@ const INSIGHTS_DASHBOARD_SPECS: Record<InsightsDashboardID, InsightsDashboardSpe
         isPolicyEligible: canViewAllPolicyData,
         queryType: CONST.SEARCH.DATA_TYPES.EXPENSE,
         requiresControlPlan: true,
+        hasDetailsPanel: true,
         headlineChart: {
             graphKey: CONST.INSIGHTS.GRAPH.VIOLATIONS_OVER_TIME,
             titleKey: 'insightsPage.violationsOverTime',
@@ -433,6 +439,16 @@ function applyViolationStage(chart: InsightsChartSpec, stage: InsightsViolationS
     return {...chart, ...VIOLATION_STAGE_FILTERS[stage]};
 }
 
+/** Returns the dashboard's chart with the given graph key, pointed at the given violation stage. */
+function getChartSpec(dashboardID: InsightsDashboardID, graphKey: string, stage: InsightsViolationStage | undefined): InsightsChartSpec | undefined {
+    const {headlineChart, supportingCharts} = INSIGHTS_DASHBOARD_SPECS[dashboardID];
+    const chart = [headlineChart, ...supportingCharts].find((spec) => spec.graphKey === graphKey);
+    if (!chart) {
+        return undefined;
+    }
+    return applyViolationStage(chart, stage);
+}
+
 /** Returns the stage a chart with a violation stage control counts, the submitters' until the user picks one. Other charts have none. */
 function getViolationStage(chart: InsightsChartSpec, violationStages: InsightsViolationStages): InsightsViolationStage | undefined {
     if (!chart.hasViolationStageControl) {
@@ -444,6 +460,7 @@ function getViolationStage(chart: InsightsChartSpec, violationStages: InsightsVi
 export {
     applyViolationStage,
     getAccessibleDashboards,
+    getChartSpec,
     getEnabledStages,
     getPoliciesInScope,
     getUpgradeablePolicyIDsInScope,

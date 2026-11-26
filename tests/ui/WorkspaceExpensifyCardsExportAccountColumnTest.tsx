@@ -21,7 +21,7 @@ TestHelper.setupApp();
 
 let capturedColumns: Array<TableColumn<string, WorkspaceExpensifyCardTableRowData>> = [];
 let capturedCompareItems: CompareItemsCallback<WorkspaceExpensifyCardTableRowData, string> | undefined;
-let capturedSortProps: Pick<MockTableProps, 'initialSortColumn' | 'narrowLayoutSortColumn'> = {};
+let capturedSortProps: Pick<MockTableProps, 'initialSortColumn'> = {};
 
 jest.mock('@hooks/useLazyAsset', () => ({
     useMemoizedLazyExpensifyIcons: () => ({}),
@@ -37,7 +37,6 @@ type MockTableProps = {
     columns: Array<TableColumn<string, WorkspaceExpensifyCardTableRowData>>;
     compareItems: CompareItemsCallback<WorkspaceExpensifyCardTableRowData, string>;
     initialSortColumn?: string;
-    narrowLayoutSortColumn?: string;
 };
 
 // The real Table drives a FlashList and its own text measurement, neither of which this test needs: it only checks
@@ -49,14 +48,14 @@ jest.mock('@components/Table', () => {
 
     // Kept outside MockTable, which the React Compiler treats as a component: capturing render props into a module
     // variable is only for this test's assertions and would otherwise look like an impure component body.
-    function captureTableProps({columns, compareItems, initialSortColumn, narrowLayoutSortColumn}: Omit<MockTableProps, 'children'>) {
+    function captureTableProps({columns, compareItems, initialSortColumn}: Omit<MockTableProps, 'children'>) {
         capturedColumns = columns;
         capturedCompareItems = compareItems;
-        capturedSortProps = {initialSortColumn, narrowLayoutSortColumn};
+        capturedSortProps = {initialSortColumn};
     }
 
-    function MockTable({children, columns, compareItems, initialSortColumn, narrowLayoutSortColumn}: MockTableProps) {
-        captureTableProps({columns, compareItems, initialSortColumn, narrowLayoutSortColumn});
+    function MockTable({children, columns, compareItems, initialSortColumn}: MockTableProps) {
+        captureTableProps({columns, compareItems, initialSortColumn});
         return <View testID="WorkspaceExpensifyCardsTable">{children}</View>;
     }
 
@@ -170,16 +169,14 @@ describe('WorkspaceExpensifyCardsTable Export account column', () => {
         expect(tieBreak).toBeGreaterThan(0);
     });
 
-    it('defaults to sorting by name without locking the sort on narrow layouts', async () => {
+    it('defaults to sorting by name', async () => {
         // Given an Expensify Card table
         renderTable([buildRow()], false);
 
         // When it renders
         await waitForBatchedUpdates();
 
-        // Then it starts sorted by name but passes no narrow-layout sort column, because that lock would hide the
-        // Display button and stop users from changing the sort on narrow layouts
+        // Then it preserves the initial alphabetical order
         expect(capturedSortProps.initialSortColumn).toBe('name');
-        expect(capturedSortProps.narrowLayoutSortColumn).toBeUndefined();
     });
 });

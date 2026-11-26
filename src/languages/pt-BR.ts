@@ -503,6 +503,7 @@ const translations: TranslationDeepObject<typeof en> = {
         corpayPayModalPrompt:
             'Esta pessoa que enviou o relatório tem uma conta bancária que não é em USD. Ative os reembolsos globais para pagar o relatório, ou peça para adicionar uma conta bancária em USD.',
         purchaseAmount: 'Valor da compra',
+        convertedAmount: 'Valor convertido',
         originalAmount: 'Valor original',
         frequency: 'Frequência',
         link: 'Link',
@@ -1349,6 +1350,7 @@ const translations: TranslationDeepObject<typeof en> = {
             label: 'Violações de',
             [CONST.INSIGHTS.VIOLATION_STAGE.SUBMITTED]: 'Remetentes',
             [CONST.INSIGHTS.VIOLATION_STAGE.APPROVED]: 'Aprovadores',
+            chartTitle: (title: string, stage: string) => `${title} (${stage})`,
         },
         recentHistory: {
             title: 'Histórico recente',
@@ -1357,6 +1359,8 @@ const translations: TranslationDeepObject<typeof en> = {
             monthAverageFor: (count: number, item: string) => `Média de ${count} mês(es) para ${item}`,
             quarterAverageFor: (count: number, item: string) => `Média de ${count} trimestres de ${item}`,
         },
+        flaggedExpenses: 'Despesas sinalizadas',
+        noFlaggedExpensesInRange: 'Nenhuma despesa sinalizada neste intervalo',
     },
     allSettingsScreen: {
         subscription: 'Assinatura',
@@ -4679,6 +4683,14 @@ ${amount} para ${merchant} - ${date}`,
         numberedItem: ({item, number}: {item: string; number: number}) => `${item} ${number}`,
         questionsChanged: 'As perguntas desta página mudaram',
         onFile: 'Em arquivo',
+        continueOffline: {
+            title: 'Você não pode continuar offline',
+            prompt: 'É necessária uma conexão com a internet para preencher este formulário. Não se preocupe, vamos salvar seu progresso e você poderá continuar quando estiver online novamente.',
+            saveForLater: 'Salvar e preencher depois',
+            progressSaved: 'Seu progresso foi salvo',
+            promptWithSensitiveAnswers:
+                'É necessário estar conectado à internet para preencher este formulário. Vamos salvar seu progresso para que você possa continuar quando estiver online novamente. Para sua segurança, detalhes confidenciais não são salvos e precisarão ser inseridos novamente.',
+        },
     },
     addPersonalBankAccount: {
         swiftBicFormatError: 'O SWIFT/BIC deve ter 8 ou 11 caracteres, com 6 letras seguidas de 2 ou 5 letras ou números.',
@@ -8092,7 +8104,6 @@ O plano Control começa em US$ 9 por membro ativo por mês.`,
                 willBeReadyToUse: 'Este cartão estará pronto para uso imediatamente.',
                 willBeReadyToShip: 'Este cartão estará pronto para envio imediatamente.',
                 cardholder: 'Titular do cartão',
-                cardholderEmail: 'E-mail do titular do cartão',
                 cardType: 'Tipo de cartão',
                 limit: 'Limite',
                 limitType: 'Tipo de limite',

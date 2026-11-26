@@ -503,6 +503,7 @@ const translations: TranslationDeepObject<typeof en> = {
         corpayPayModalTitle: 'レポートを支払う',
         corpayPayModalPrompt: 'この提出者は非USDの銀行口座を使用しています。レポートを支払うにはグローバル払い戻しを有効にするか、USDの銀行口座を追加するよう依頼してください。',
         purchaseAmount: '購入金額',
+        convertedAmount: '換算額',
         originalAmount: '元の金額',
         frequency: '頻度',
         link: 'リンク',
@@ -1335,6 +1336,7 @@ const translations: TranslationDeepObject<typeof en> = {
             label: '違反対象',
             [CONST.INSIGHTS.VIOLATION_STAGE.SUBMITTED]: '提出者',
             [CONST.INSIGHTS.VIOLATION_STAGE.APPROVED]: '承認者',
+            chartTitle: (title: string, stage: string) => `${title}（${stage}）`,
         },
         recentHistory: {
             title: '最近の履歴',
@@ -1343,6 +1345,8 @@ const translations: TranslationDeepObject<typeof en> = {
             monthAverageFor: (count: number, item: string) => `${item} の${count}か月平均`,
             quarterAverageFor: (count: number, item: string) => `${item}の${count}四半期平均`,
         },
+        flaggedExpenses: 'フラグ付き経費',
+        noFlaggedExpensesInRange: 'この範囲にはフラグ付き経費はありません',
     },
     allSettingsScreen: {
         subscription: 'サブスクリプション',
@@ -4635,6 +4639,14 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
         numberedItem: ({item, number}: {item: string; number: number}) => `${item}${number}`,
         questionsChanged: 'このページの質問が変更されました',
         onFile: 'ファイル登録済み',
+        continueOffline: {
+            title: 'オフラインのままでは続行できません',
+            prompt: 'このフォームを入力するにはインターネット接続が必要です。進行状況は保存されるので、オンラインに戻ったときに続けて行えます。',
+            saveForLater: '保存して後で入力する',
+            progressSaved: '進捗は保存されました',
+            promptWithSensitiveAnswers:
+                'このフォームに入力するにはインターネット接続が必要です。オフラインの場合でも進行状況は保存されるため、オンラインに戻ったときに続行できます。安全のため、機密性の高い情報は保存されず、再度入力していただく必要があります。',
+        },
     },
     addPersonalBankAccount: {
         swiftBicFormatError: 'SWIFT/BIC は 8 文字または 11 文字で、最初の 6 文字はアルファベット、続く 2 文字または 5 文字はアルファベットまたは数字である必要があります。',
@@ -7982,7 +7994,6 @@ Control プランは、アクティブメンバー1人あたり月額 $9 から�
                 willBeReadyToUse: 'このカードはすぐに利用できるようになります。',
                 willBeReadyToShip: 'このカードはすぐに発送できる状態になります。',
                 cardholder: 'カード名義人',
-                cardholderEmail: 'カード名義人のメールアドレス',
                 cardType: 'カードの種類',
                 limit: '上限',
                 limitType: '上限の種類',

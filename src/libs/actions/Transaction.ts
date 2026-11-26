@@ -1875,6 +1875,7 @@ function getChangeTransactionsReportOnyxData({
             originalCurrency: shouldCopyOriginalCurrency ? transaction.originalCurrency : undefined,
             reimbursable: transactionReimbursable,
             ...(shouldClearAmount && {convertedAmount: null, convertedTaxAmount: null}),
+            policyConvertedAmount: null,
         } as Transaction;
 
         const searchIOUAction = {

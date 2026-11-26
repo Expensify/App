@@ -262,6 +262,7 @@ import {getGroupChatName, getInvoicePayerName, getInvoiceReportName, getReportNa
 import {isTaskCompleted} from './TaskUtils';
 import {
     allHavePendingRTERViolation,
+    getAmountWithDisplaySign,
     getAttendees,
     getBillable,
     getCardID,
@@ -5244,12 +5245,13 @@ function buildOptimisticCancelPaymentReportAction(expenseReportID: string, amoun
  *
  * @param reportID - the report for which last visible message has to be fetched
  * @param [actionsToMerge] - the optimistic merge actions that needs to be considered while fetching last visible message
-
+ * @param [reportIDToName] - names for the rooms the message mentions by reportID, so they aren't shown as #Hidden
  */
 function getLastVisibleMessage(
     reportID: string | undefined,
     isReportArchived: boolean | undefined,
     actionsToMerge: Record<string, NullishDeep<ReportAction> | null> = {},
+    reportIDToName?: Record<string, string>,
 ): LastVisibleMessage {
     const report = getReportOrDraftReport({reportID});
     const lastVisibleAction = getLastVisibleActionReportActionsUtils(reportID, canUserPerformWriteAction(report, isReportArchived), actionsToMerge);
@@ -5263,7 +5265,7 @@ function getLastVisibleMessage(
     }
 
     // Fetch the last visible message for report represented by reportID and based on actions to merge.
-    return getLastVisibleMessageReportActionsUtils(reportID, canUserPerformWriteAction(report, isReportArchived), actionsToMerge);
+    return getLastVisibleMessageReportActionsUtils(reportID, canUserPerformWriteAction(report, isReportArchived), actionsToMerge, undefined, undefined, undefined, reportIDToName);
 }
 
 /**
@@ -6037,8 +6039,35 @@ function isTransactionFromExpenseReport(
  * negated. Any other transaction returns its magnitude.
  */
 function getTransactionDisplayAmount(transaction: OnyxInputOrEntry<Transaction>, report: OnyxInputOrEntry<Report>, policy: OnyxInputOrEntry<Policy>): number {
-    const isFromTrackedExpense = transaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
-    return getTransactionAmount(transaction, isTransactionFromExpenseReport(report, policy, transaction), isFromTrackedExpense, !!transaction && isDeletedTransaction(transaction));
+    const {isFromExpenseReport, isFromTrackedExpense, allowNegative} = getTransactionDisplaySignFlags(transaction, report, policy);
+    return getTransactionAmount(transaction, isFromExpenseReport, isFromTrackedExpense, allowNegative);
+}
+
+/**
+ * Returns the transaction amount in its workspace's output currency, signed the same way as getTransactionDisplayAmount.
+ * Expenses created offline have no workspace amount from the server yet, so they return their own amount until the next search.
+ */
+function getTransactionPolicyConvertedDisplayAmount(transaction: OnyxInputOrEntry<Transaction>, report: OnyxInputOrEntry<Report>, policy: OnyxInputOrEntry<Policy>): number {
+    if (transaction?.policyConvertedAmount == null) {
+        return getTransactionDisplayAmount(transaction, report, policy);
+    }
+    const {isFromExpenseReport, isFromTrackedExpense, allowNegative} = getTransactionDisplaySignFlags(transaction, report, policy);
+    return getAmountWithDisplaySign(transaction.policyConvertedAmount, isFromExpenseReport, isFromTrackedExpense, allowNegative);
+}
+
+/**
+ * Returns the flags that decide how a transaction's stored amounts are signed for display, so every displayed amount of one transaction shares the same sign.
+ */
+function getTransactionDisplaySignFlags(
+    transaction: OnyxInputOrEntry<Transaction>,
+    report: OnyxInputOrEntry<Report>,
+    policy: OnyxInputOrEntry<Policy>,
+): {isFromExpenseReport: boolean; isFromTrackedExpense: boolean; allowNegative: boolean} {
+    return {
+        isFromExpenseReport: isTransactionFromExpenseReport(report, policy, transaction),
+        isFromTrackedExpense: transaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID,
+        allowNegative: !!transaction && isDeletedTransaction(transaction),
+    };
 }
 
 /**
@@ -14881,15 +14910,16 @@ function findPolicyExpenseChatByPolicyID(policyID: string): OnyxEntry<Report> {
  * @param reportID
  * @param actionsToMerge
  * @param canUserPerformWriteActionInReport
+ * @param reportIDToName - names for the rooms the last message mentions by reportID, so they aren't shown as #Hidden
  * @returns containing the calculated message preview data of the report
  */
-function getReportLastMessage(reportID: string, isReportArchived: boolean | undefined, actionsToMerge?: ReportActions) {
+function getReportLastMessage(reportID: string, isReportArchived: boolean | undefined, actionsToMerge?: ReportActions, reportIDToName?: Record<string, string>) {
     let result: Partial<Report> = {
         lastMessageText: '',
         lastVisibleActionCreated: '',
     };
 
-    const {lastMessageText = ''} = getLastVisibleMessage(reportID, isReportArchived, actionsToMerge);
+    const {lastMessageText = ''} = getLastVisibleMessage(reportID, isReportArchived, actionsToMerge, reportIDToName);
 
     if (lastMessageText) {
         const report = getReport(reportID, deprecatedAllReports);
@@ -16434,6 +16464,7 @@ export {
     getTransactionCommentObject,
     getTransactionDetails,
     getTransactionDisplayAmount,
+    getTransactionPolicyConvertedDisplayAmount,
     getTransactionReportName,
     getDisplayedReportID,
     getTransactionsWithReceipts,

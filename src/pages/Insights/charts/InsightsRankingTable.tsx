@@ -59,6 +59,9 @@ type InsightsRankingTableProps = {
     queryJSON: Readonly<SearchQueryJSON> | undefined;
 
     isLoading?: boolean;
+
+    /** Called with the pressed row's group. Without it, a pressed row opens on Spend */
+    onRowPress?: (item: GroupedItem) => void;
 };
 
 /** Table of the groups with the highest count, with each group's share drawn as a bar, its count, its amount and, when comparing, how it changed. */
@@ -72,6 +75,7 @@ function InsightsRankingTable({
     isComparingPreviousPeriod,
     queryJSON,
     isLoading,
+    onRowPress,
 }: InsightsRankingTableProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -125,6 +129,7 @@ function InsightsRankingTable({
                         groupBy={groupBy}
                         countDimension={countDimension}
                         queryJSON={queryJSON}
+                        onPress={onRowPress}
                         averageWidthPercent={averageWidthPercent}
                         rowIndex={index}
                     />
@@ -226,6 +231,7 @@ function InsightsRankingTable({
                             groupBy={groupBy}
                             countDimension={countDimension}
                             queryJSON={queryJSON}
+                            onPress={onRowPress}
                             averageWidthPercent={averageWidthPercent}
                             rowIndex={index}
                         />
