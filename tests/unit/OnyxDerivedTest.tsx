@@ -3,6 +3,7 @@ import {act, renderHook} from '@testing-library/react-native';
 import useOnyx from '@hooks/useOnyx';
 
 import reportAttributes from '@libs/actions/OnyxDerived/configs/reportAttributes';
+import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import {isReportActionVisible} from '@libs/ReportActionsUtils';
 import * as ActiveSpans from '@libs/telemetry/activeSpans';
 
@@ -487,7 +488,7 @@ describe('OnyxDerived', () => {
         });
 
         it('should only recompute reports that reference the changed accountID when a display name changes', () => {
-            // Given two reports owned by different accounts, and a baseline cleared as Onyx.clear does so the first personal details compute has nothing to compare against
+            // Given two reports owned by different accounts and no saved names
             const reports: OnyxCollection<Report> = {
                 [`${ONYXKEYS.COLLECTION.REPORT}ref_report`]: {...mockReport, reportID: 'ref_report', ownerAccountID: 2},
                 [`${ONYXKEYS.COLLECTION.REPORT}unrelated_report`]: {...mockReport, reportID: 'unrelated_report', policyID: '456', ownerAccountID: 3},
@@ -506,7 +507,6 @@ describe('OnyxDerived', () => {
                 triggeredKeys: new Set([ONYXKEYS.PERSONAL_DETAILS_LIST]),
             } as unknown as Parameters<typeof reportAttributes.compute>[1];
 
-            // Clear the module-level diff baseline, as Onyx.clear does, so the first personal-details compute below has none.
             reportAttributes.onReset?.();
             // First personal-details compute computes both reports (no prior currentValue) and seeds the baseline.
             const initial = reportAttributes.compute(
@@ -555,7 +555,7 @@ describe('OnyxDerived', () => {
                 {...personalDetailsSource, currentValue: initial},
             );
 
-            // Then only account 2's report gets a new object, because the other report's name can't have changed and is carried over by reference
+            // Then only account 2's report is recomputed; the other is kept by reference
             expect(afterChange.reports.ref_report).not.toBe(initial.reports.ref_report);
             expect(afterChange.reports.unrelated_report).toBe(initial.reports.unrelated_report);
         });
@@ -933,7 +933,7 @@ describe('OnyxDerived', () => {
             const derivedBefore = await OnyxUtils.get(ONYXKEYS.DERIVED.RAM_ONLY_SORTED_REPORT_ACTIONS);
             const startSpanSpy = jest.spyOn(ActiveSpans, 'startSpan');
 
-            // When a response updates the clock skew, as every OpenReport, OpenApp and ReconnectApp response does
+            // When a server response writes timeSkew
             await Onyx.merge(ONYXKEYS.NETWORK, {timeSkew: 1234});
             await waitForBatchedUpdates();
 
@@ -1000,6 +1000,52 @@ describe('OnyxDerived', () => {
             // Then the live expense's thread is back
             derived = await OnyxUtils.get(ONYXKEYS.DERIVED.RAM_ONLY_SORTED_REPORT_ACTIONS);
             expect(derived?.transactionThreadIDs?.[expenseReportID]).toBe(threadReportID);
+        });
+
+        it('rebuilds on the next change when the rebuild for a Force offline toggle threw', async () => {
+            const expenseReportID = '20';
+            const parentChatReportID = '30';
+            const threadReportID = '40';
+            const liveExpense = getFakeReportAction(100, {
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                childReportID: threadReportID,
+                reportID: expenseReportID,
+                originalMessage: {IOUTransactionID: 'txn1', type: CONST.IOU.REPORT_ACTION_TYPE.CREATE, amount: 100, currency: 'USD'},
+            });
+            const pendingDeleteExpense = getFakeReportAction(101, {
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                childReportID: '41',
+                reportID: expenseReportID,
+                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                message: [{type: CONST.REPORT.MESSAGE.TYPE.COMMENT, html: '', text: ''}],
+                originalMessage: {IOUTransactionID: 'txn2', type: CONST.IOU.REPORT_ACTION_TYPE.CREATE, amount: 200, currency: 'USD'},
+            });
+
+            // Given an online report with one live expense and one pending deletion
+            await Onyx.multiSet({
+                [`${ONYXKEYS.COLLECTION.REPORT}${expenseReportID}` as const]: createMockReport({
+                    reportID: expenseReportID,
+                    type: CONST.REPORT.TYPE.EXPENSE,
+                    chatReportID: parentChatReportID,
+                }),
+                [`${ONYXKEYS.COLLECTION.REPORT}${parentChatReportID}` as const]: createMockReport({reportID: parentChatReportID, type: CONST.REPORT.TYPE.CHAT}),
+                [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReportID}` as const]: {'100': liveExpense, '101': pendingDeleteExpense},
+            });
+            await waitForBatchedUpdates();
+
+            // When the rebuild for turning on Force offline throws, and a comment then lands on another report
+            const getSortedReportActionsSpy = jest.spyOn(ReportActionsUtils, 'getSortedReportActions').mockImplementationOnce(() => {
+                throw new Error('compute failed');
+            });
+            await Onyx.merge(ONYXKEYS.NETWORK, {shouldForceOffline: true});
+            await waitForBatchedUpdates();
+            getSortedReportActionsSpy.mockRestore();
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentChatReportID}`, {'1': getFakeReportAction(1, {actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT})});
+            await waitForBatchedUpdates();
+
+            // Then that change rebuilds offline, so there is no one transaction thread
+            const derived = await OnyxUtils.get(ONYXKEYS.DERIVED.RAM_ONLY_SORTED_REPORT_ACTIONS);
+            expect(derived?.transactionThreadIDs?.[expenseReportID]).toBeUndefined();
         });
     });
 

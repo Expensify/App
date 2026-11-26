@@ -54,6 +54,7 @@ import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 // The name-related fields we saw for each account last time, so we can spot which accounts changed.
 let previousDisplayNames: Record<string, string> = {};
 let previousPersonalDetails: OnyxEntry<PersonalDetailsList> | undefined;
+let hasStartedFirstFlush = false;
 let previousPolicies: OnyxCollection<Policy>;
 let previousReportsTransactions: Record<string, Transaction[]> | undefined;
 let previousFraudAlertReportIDs: Set<string> | undefined;
@@ -313,8 +314,7 @@ export default createOnyxDerivedValueConfig({
         ],
         {currentValue, sourceValues, triggeredKeys},
     ) => {
-        // Read the in-memory offline state directly. Going offline doesn't recompute this value, so existing attributes
-        // (e.g. oneTransactionThreadReportID) keep the isOffline from their last recompute.
+        // Read the in-memory offline state directly. Going offline doesn't trigger a recompute.
         const isOffline = getIsOffline();
         const dateFnsLocale = IntlStore.getDateFnsLocale(preferredLocale);
         const translate: LocalizedTranslate = (path, ...parameters) => translateForLocale(preferredLocale, path, ...parameters);
@@ -355,9 +355,10 @@ export default createOnyxDerivedValueConfig({
         };
         // Check if display names changed when personal details are updated
         let displayNameChanges: Set<number> | typeof RECOMPUTE_ALL | null = null;
-        // No sourceValues: startup flush, or its retry after a throw. Only the retry has saved names to compare.
-        const hasPersonalDetailsTriggered = hasKeyTriggeredCompute(ONYXKEYS.PERSONAL_DETAILS_LIST, triggeredKeys);
-        if (hasPersonalDetailsTriggered && (sourceValues || Object.keys(previousDisplayNames).length > 0)) {
+        // The first flush saves the names; later flushes, including its retry after a throw, diff against them.
+        const isFirstFlush = !sourceValues && !hasStartedFirstFlush;
+        hasStartedFirstFlush = true;
+        if (!isFirstFlush && hasKeyTriggeredCompute(ONYXKEYS.PERSONAL_DETAILS_LIST, triggeredKeys)) {
             displayNameChanges = getDisplayNameChanges(personalDetails);
 
             // Only short-circuit when personal details were the sole trigger; coalescing can batch them
@@ -965,6 +966,7 @@ export default createOnyxDerivedValueConfig({
     onReset: () => {
         previousDisplayNames = {};
         previousPersonalDetails = undefined;
+        hasStartedFirstFlush = false;
         previousPolicies = undefined;
         previousFraudAlertReportIDs = undefined;
         previousCardList = undefined;

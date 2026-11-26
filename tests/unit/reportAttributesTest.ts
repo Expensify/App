@@ -960,8 +960,7 @@ describe('reportAttributes compute — policy change code flow', () => {
                 const computeReportName = jest.requireMock<{default: jest.Mock}>('@libs/computeReportName').default;
                 computeReportName.mockClear();
 
-                // Given a startup flush (no sourceValues) whose last connected dependency can be any key. Restored names are kept
-                // as they are, and with nothing stored every name is computed from the current personal details.
+                // Given a startup flush triggered by any key
                 const startupValue = config.compute(buildPersonalDetailsArgs(personalDetails), {
                     currentValue,
                     sourceValues: undefined,
@@ -983,7 +982,7 @@ describe('reportAttributes compute — policy change code flow', () => {
                     triggeredKeys: new Set<OnyxKey>([ONYXKEYS.PERSONAL_DETAILS_LIST]),
                 });
 
-                // Then the startup flush computes only the names that weren't stored, and it saves the names to compare against, so only Alice's report is renamed
+                // Then startup computes only the names that weren't stored, and only Alice's report is renamed
                 expect(startupNameComputes).toBe(expectedStartupNameComputes);
                 expect(computeReportName).toHaveBeenCalledTimes(1);
                 expect(computeReportName).toHaveBeenCalledWith(expect.objectContaining({report: aliceReport}));
@@ -994,7 +993,7 @@ describe('reportAttributes compute — policy change code flow', () => {
         it('recomputes the renamed account reports when the startup flush is retried after a compute threw', () => {
             const computeReportName = jest.requireMock<{default: jest.Mock}>('@libs/computeReportName').default;
 
-            // Given a startup flush that saved the names and then threw, so the engine retries it without sourceValues
+            // Given a startup flush that saved the names and then threw
             config.compute(buildPersonalDetailsArgs(personalDetails), {
                 currentValue: restoredValue,
                 sourceValues: undefined,
@@ -1002,7 +1001,7 @@ describe('reportAttributes compute — policy change code flow', () => {
             });
             computeReportName.mockClear();
 
-            // When the retry runs after a personal details write renamed only Alice
+            // When the retry runs after Alice was renamed
             const renamedPersonalDetails: PersonalDetailsList = {
                 ...personalDetails,
                 [ALICE_ACCOUNT_ID]: {accountID: ALICE_ACCOUNT_ID, displayName: 'Alice Smith', login: 'alice@example.com'},
@@ -1013,17 +1012,39 @@ describe('reportAttributes compute — policy change code flow', () => {
                 triggeredKeys: new Set<OnyxKey>([ONYXKEYS.CARD_LIST, ONYXKEYS.PERSONAL_DETAILS_LIST]),
             });
 
-            // Then the rename is compared against the saved names, so Alice's report is renamed and Bob's is kept
+            // Then only Alice's report is renamed
             expect(computeReportName).toHaveBeenCalledTimes(1);
             expect(computeReportName).toHaveBeenCalledWith(expect.objectContaining({report: aliceReport}));
             expect(result.reports.bob).toBe(restoredValue.reports.bob);
+        });
+
+        it('recomputes every report when personal details arrive before the retry of a startup flush without them that threw', () => {
+            const computeReportName = jest.requireMock<{default: jest.Mock}>('@libs/computeReportName').default;
+
+            // Given a startup flush that ran before any personal details were stored and then threw
+            config.compute(buildArgs(policies, namedReports), {
+                currentValue: restoredValue,
+                sourceValues: undefined,
+                triggeredKeys: new Set<OnyxKey>([ONYXKEYS.CARD_LIST]),
+            });
+            computeReportName.mockClear();
+
+            // When personal details arrive before the retry
+            config.compute(buildPersonalDetailsArgs(personalDetails), {
+                currentValue: restoredValue,
+                sourceValues: undefined,
+                triggeredKeys: new Set<OnyxKey>([ONYXKEYS.CARD_LIST, ONYXKEYS.PERSONAL_DETAILS_LIST]),
+            });
+
+            // Then every report name is recomputed
+            expect(computeReportName).toHaveBeenCalledTimes(2);
         });
 
         it('recomputes every report when personal details first arrive after a startup flush without them', () => {
             const computeReportName = jest.requireMock<{default: jest.Mock}>('@libs/computeReportName').default;
             computeReportName.mockClear();
 
-            // Given a startup flush that ran before any personal details were stored, so no names could be saved
+            // Given a startup flush without personal details
             const startupValue = config.compute(buildArgs(policies, namedReports), {
                 currentValue: restoredValue,
                 sourceValues: undefined,
@@ -1041,7 +1062,7 @@ describe('reportAttributes compute — policy change code flow', () => {
                 triggeredKeys: new Set<OnyxKey>([ONYXKEYS.PERSONAL_DETAILS_LIST]),
             });
 
-            // Then the startup flush keeps the restored names as they are, and with nothing to compare against every report name is recomputed with the new names
+            // Then startup keeps the restored names, and every report name is recomputed
             expect(startupValue).toBe(restoredValue);
             expect(startupNameComputes).toBe(0);
             expect(computeReportName).toHaveBeenCalledTimes(2);
