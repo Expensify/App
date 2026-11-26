@@ -183,7 +183,7 @@ function Search({
     const isFocused = useIsFocused();
 
     const {markReportRHPWidth} = useWideRHPActions();
-    const {currentSearchHash, currentSearchKey, currentSearchQueryJSON, shouldResetSearchQuery, suggestedSearches} = useSearchQueryContext();
+    const {currentSearchHash, currentSearchKey, currentSearchQueryJSON: contextSearchQueryJSON, shouldResetSearchQuery, suggestedSearches} = useSearchQueryContext();
     const {lastSearchType, shouldUseLiveData} = useSearchResultsContext();
 
     const {setShouldResetSearchQuery} = useSearchQueryActions();
@@ -1019,15 +1019,15 @@ function Search({
     const [columnsToShow, setColumnsToShow] = useState<SearchColumnType[]>(getEmptyArray);
     // While a filter change loads, the table keeps the previous query's results on screen. Sorting and column changes build on the search the
     // user is on instead, or they would drop the filter that was just applied.
-    const currentQueryJSON = currentSearchQueryJSON ?? queryJSON;
+    const currentSearchQueryJSON = contextSearchQueryJSON ?? queryJSON;
     // A filter change that switches the type, grouping or view brings a table with other columns and sorts (a line chart resets its sort to
     // run forward in time), which the table still on screen can't edit.
-    const canEditShownTable = type === currentQueryJSON.type && validGroupBy === getValidGroupBy(currentQueryJSON.groupBy) && view === currentQueryJSON.view;
+    const canEditShownTable = type === currentSearchQueryJSON.type && validGroupBy === getValidGroupBy(currentSearchQueryJSON.groupBy) && view === currentSearchQueryJSON.view;
     // A chart still plotting the previous search can't be drilled into: the pressed bar's range could contradict the filter that was just
     // applied, like a March bar under a Last month date filter, and open an empty list.
-    const isShowingCurrentSearch = hash === currentQueryJSON.hash;
-    const columnEditing = useSearchColumnEditing(queryJSON, currentQueryJSON, columnsToShow);
-    const pinSearchColumn = usePinSearchColumn(queryJSON, currentQueryJSON, currentSearchKey);
+    const isShowingCurrentSearchResults = hash === currentSearchQueryJSON.hash;
+    const columnEditing = useSearchColumnEditing(queryJSON, currentSearchQueryJSON, columnsToShow);
+    const pinSearchColumn = usePinSearchColumn(queryJSON, currentSearchQueryJSON, currentSearchKey);
     // Only a table whose column menu offers pin items honors pins, so grouped tables and tables without the beta keep their own order.
     const shouldPinColumns = shouldShowColumnMenu && canEditColumns && pinSearchColumn.canPinColumns;
     // Pinning only moves columns the table already shows, so it reorders them at once instead of fading them like a column change.
@@ -1428,14 +1428,14 @@ function Search({
         (column: SearchSortBy, order: SortOrder) => {
             clearSelectedTransactions();
             const newQuery = buildSearchQueryString({
-                ...currentQueryJSON,
+                ...currentSearchQueryJSON,
                 sortBy: column,
                 sortOrder: order,
             });
             onSortPressedCallback?.();
             navigation.setParams({q: newQuery, rawQuery: undefined});
         },
-        [clearSelectedTransactions, currentQueryJSON, onSortPressedCallback, navigation],
+        [clearSelectedTransactions, currentSearchQueryJSON, onSortPressedCallback, navigation],
     );
 
     // When heavy work is deferred (e.g. during the RHP dismiss animation after
@@ -1613,7 +1613,7 @@ function Search({
                                 groupBy={validGroupBy}
                                 data={sortedData}
                                 isLoading={shouldShowLoadingState}
-                                shouldDrillDownOnPress={isShowingCurrentSearch}
+                                shouldDrillDownOnPress={isShowingCurrentSearchResults}
                             />
                         </SearchChartWrapper>
                     </View>

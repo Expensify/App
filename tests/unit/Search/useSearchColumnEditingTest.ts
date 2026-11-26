@@ -85,11 +85,11 @@ describe('useSearchColumnEditing', () => {
 
     it('hides a column from the current search while the table still shows the results from before a filter change', () => {
         // Given a table still showing an expense search with Merchant pinned, while the same search with a Draft filter loads
-        const tableQueryJSON = getQueryJSON(`type:expense ${CONST.SEARCH.SYNTAX_ROOT_KEYS.LEFT_PINNED_COLUMNS}:${CONST.SEARCH.TABLE_COLUMNS.MERCHANT}`);
-        const currentQueryJSON = getQueryJSON(
+        const shownQueryJSON = getQueryJSON(`type:expense ${CONST.SEARCH.SYNTAX_ROOT_KEYS.LEFT_PINNED_COLUMNS}:${CONST.SEARCH.TABLE_COLUMNS.MERCHANT}`);
+        const currentSearchQueryJSON = getQueryJSON(
             `type:expense status:${CONST.SEARCH.STATUS.EXPENSE.DRAFTS} ${CONST.SEARCH.SYNTAX_ROOT_KEYS.LEFT_PINNED_COLUMNS}:${CONST.SEARCH.TABLE_COLUMNS.MERCHANT}`,
         );
-        const {result} = renderHook(() => useSearchColumnEditing(tableQueryJSON, currentQueryJSON, SHOWN_COLUMNS));
+        const {result} = renderHook(() => useSearchColumnEditing(shownQueryJSON, currentSearchQueryJSON, SHOWN_COLUMNS));
 
         // When Category is hidden from its menu before the filtered results arrive
         act(() => result.current.hideColumn(CONST.SEARCH.TABLE_COLUMNS.CATEGORY));
