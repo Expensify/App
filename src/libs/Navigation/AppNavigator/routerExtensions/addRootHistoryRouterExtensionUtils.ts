@@ -24,6 +24,14 @@ function isRemoveFullscreenUnderRHPAction(action: RootStackNavigatorAction): act
     return action.type === CONST.NAVIGATION.ACTION_TYPE.REMOVE_FULLSCREEN_UNDER_RHP;
 }
 
+/** History carried by a RESET payload (e.g. the state useLinking restores on browser Back), if it has one */
+function getResetHistory(action: RootStackNavigatorAction): unknown[] | undefined {
+    if (action.type !== CONST.NAVIGATION.ACTION_TYPE.RESET || !action.payload || !('history' in action.payload) || !Array.isArray(action.payload.history)) {
+        return undefined;
+    }
+    return action.payload.history;
+}
+
 function isDismissModalAction(action: RootStackNavigatorAction): action is DismissModalActionType {
     return action.type === CONST.NAVIGATION.ACTION_TYPE.DISMISS_MODAL;
 }
@@ -185,6 +193,7 @@ function applyRevealPaddingOffset(state: RootHistoryState, rehydrated: RootHisto
 export type {PendingReveal, RootHistoryState};
 export {
     applyRevealPaddingOffset,
+    getResetHistory,
     getFrozenHistoryStateForRemoveFullscreenUnderRHP,
     getFrozenHistoryStateForReplaceFullscreenUnderRHP,
     getRevealDismissState,

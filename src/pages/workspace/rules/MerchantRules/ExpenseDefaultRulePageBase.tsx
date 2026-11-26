@@ -4,7 +4,7 @@ import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import Header from '@components/Header';
 import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import MenuItem from '@components/MenuItem';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
@@ -62,7 +62,7 @@ import DescribeRuleButton from '@pages/workspace/rules/DescribeRuleButton';
 import DescribeRuleModal from '@pages/workspace/rules/DescribeRuleModal';
 import useRuleDeleteHeaderProps from '@pages/workspace/rules/useRuleDeleteHeaderProps';
 
-import variables from '@styles/variables';
+import {callIfAuthenticated} from '@userActions/Session';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -78,6 +78,7 @@ import type IconAsset from '@src/types/utils/IconAsset';
 import type {ValueOf} from 'type-fest';
 
 import {useFocusEffect} from '@react-navigation/native';
+import {authTokenTypeSelector} from '@selectors/Session';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 
@@ -192,6 +193,7 @@ function ExpenseDefaultRulePageBase({
     const icons = useMemoizedLazyExpensifyIcons(['Basket', 'Calendar', 'Cash', 'CreditCard', 'Folder', 'Paperclip', 'Pencil', 'InvoiceGeneric', 'Tag', 'Paycheck']);
 
     const [form] = useOnyx(ONYXKEYS.FORMS.MERCHANT_RULE_FORM);
+    const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
     const [policyTagsFromOnyx] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`);
     const policyTags = getTagLists(policyTagsFromOnyx) ?? getEmptyArray<ValueOf<PolicyTagLists>>();
@@ -808,28 +810,52 @@ function ExpenseDefaultRulePageBase({
 
     const renderSectionItem = (item: SectionItemType) => {
         const canEditItem = canWriteRules && !item.isLocked;
+        const errorText = canEditItem && shouldShowError && item.required && !item.title ? translate('common.error.fieldRequired') : '';
         return (
-            <MenuItemWithTopDescription
+            <MenuItem.Root
                 key={item.key}
-                description={item.description}
-                errorText={canEditItem && shouldShowError && item.required && !item.title ? translate('common.error.fieldRequired') : ''}
-                onPress={canEditItem ? item.onPress : undefined}
-                rightLabel={canEditItem && item.required ? translate('common.required') : undefined}
-                shouldShowRightIcon={canEditItem}
-                interactive={canEditItem}
-                title={item.title}
-                numberOfLinesTitle={2}
-                titleStyle={styles.flex1}
-                shouldRenderAsHTML={item.shouldRenderAsHTML}
-                shouldApplyIconPaddingToHTMLTitle={!!item.icon && !!item.shouldRenderAsHTML}
-                icon={item.icon}
-                {...(item.icon && {
-                    iconWidth: variables.iconSizeNormal,
-                    iconHeight: variables.iconSizeNormal,
-                    shouldIconUseAutoWidthStyle: true,
-                })}
+                onPress={canEditItem ? callIfAuthenticated(item.onPress, session) : undefined}
                 sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.MERCHANT_RULE_SECTION_ITEM}
-            />
+            >
+                <MenuItem.Row>
+                    {!!item.icon && (
+                        <MenuItem.Leading>
+                            <MenuItem.IconNarrow src={item.icon} />
+                        </MenuItem.Leading>
+                    )}
+                    <MenuItem.Content>
+                        {item.title ? (
+                            <>
+                                <MenuItem.FieldName>{item.description}</MenuItem.FieldName>
+                                {item.shouldRenderAsHTML ? (
+                                    <MenuItem.FieldValueHTML>{item.title}</MenuItem.FieldValueHTML>
+                                ) : (
+                                    <MenuItem.FieldValue
+                                        numberOfLines={2}
+                                        style={styles.flex1}
+                                    >
+                                        {item.title}
+                                    </MenuItem.FieldValue>
+                                )}
+                            </>
+                        ) : (
+                            <MenuItem.FieldNamePlaceholder>{item.description}</MenuItem.FieldNamePlaceholder>
+                        )}
+                    </MenuItem.Content>
+                    {canEditItem && (
+                        <MenuItem.Trailing>
+                            {!!item.required && !item.title && !errorText && <MenuItem.RightLabel>{translate('common.required')}</MenuItem.RightLabel>}
+                            <MenuItem.Chevron />
+                        </MenuItem.Trailing>
+                    )}
+                </MenuItem.Row>
+                {!!errorText && (
+                    <MenuItem.HelpText
+                        isError
+                        message={errorText}
+                    />
+                )}
+            </MenuItem.Root>
         );
     };
 
@@ -861,18 +887,17 @@ function ExpenseDefaultRulePageBase({
                 includeSafeAreaPaddingBottom
             >
                 <HeaderWithBackButtonAndTitle title={translate('workspace.rules.merchantRules.expenseDefaultsTitle')}>
-                    <Header.Actions>
-                        {/* Only while a condition is set, and only on an unsaved rule, since clearing the conditions of
+                    {/* Only while a condition is set, and only on an unsaved rule, since clearing the conditions of
                         a saved rule would leave it matching everything. A locked category isn't the admin's to clear. */}
-                        {canWriteRules && !isEditing && !isCategoryLocked && hasAnyCondition && (
-                            <TextLink
-                                sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.MERCHANT_RULE_RESET}
-                                onPress={resetRule}
-                            >
-                                {translate('common.reset')}
-                            </TextLink>
-                        )}
-                    </Header.Actions>
+                    {canWriteRules && !isEditing && !isCategoryLocked && hasAnyCondition && (
+                        <TextLink
+                            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.MERCHANT_RULE_RESET}
+                            onPress={resetRule}
+                            style={styles.p2}
+                        >
+                            {translate('common.reset')}
+                        </TextLink>
+                    )}
                     {!!deleteIconButtonProps && <Header.IconButton {...deleteIconButtonProps} />}
                 </HeaderWithBackButtonAndTitle>
                 <ScrollView contentContainerStyle={[styles.flexGrow1]}>

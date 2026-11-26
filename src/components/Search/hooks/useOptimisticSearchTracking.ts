@@ -220,15 +220,17 @@ function useOptimisticSearchTracking({searchResults, queryJSON, currentUserAccou
      *
      * Safe to call setState here: useFocusEffect only fires while the component
      * is mounted, and React 18+ silently ignores setState on unmounted components.
+     *
+     * @param shouldShowPlaceholder - false keeps the optimistic row tracked without the skeleton footer row
      */
-    const rearmTracking = () => {
+    const rearmTracking = (shouldShowPlaceholder = true) => {
         const tracking = mutableRef.current;
         tracking.hasPendingWriteOnMount = true;
         tracking.isCleanedUp = false;
         tracking.hasSwappedFromParent = false;
         tracking.cachedOptimisticItem = null;
         setIsOptimisticTrackingCleared(false);
-        setShowPendingExpensePlaceholder(true);
+        setShowPendingExpensePlaceholder(shouldShowPlaceholder);
         const latestKey = getSearchWriteWatchKey();
         tracking.optimisticWatchKey = latestKey;
         setOptimisticWatchKey(latestKey);

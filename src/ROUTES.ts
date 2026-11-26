@@ -3774,6 +3774,10 @@ const ROUTES = {
         route: 'workspaces/:policyID/members/change-office-location',
         getRoute: (policyID: string) => `workspaces/${policyID}/members/change-office-location` as const,
     },
+    WORKSPACE_MEMBERS_BULK_CATEGORY_VISIBILITY: {
+        route: 'workspaces/:policyID/members/category-visibility',
+        getRoute: (policyID: string) => `workspaces/${policyID}/members/category-visibility` as const,
+    },
     WORKSPACE_MEMBERS_CHANGE_WORK_ARRANGEMENT: {
         route: 'workspaces/:policyID/members/change-work-arrangement',
         getRoute: (policyID: string) => `workspaces/${policyID}/members/change-work-arrangement` as const,
@@ -5781,6 +5785,30 @@ const ROUTES = {
     POLICY_ACCOUNTING_DIGITS_COMPANY_CARD_ACCOUNT: {
         route: 'workspaces/:policyID/accounting/digits/export/company-card-account',
         getRoute: (policyID: string) => `workspaces/${policyID}/accounting/digits/export/company-card-account` as const,
+    },
+    POLICY_ACCOUNTING_DIGITS_ADVANCED: {
+        route: 'workspaces/:policyID/accounting/digits/advanced',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/digits/advanced` as const,
+    },
+    POLICY_ACCOUNTING_DIGITS_EXPORT_METHOD: {
+        route: 'workspaces/:policyID/accounting/digits/advanced/export-method',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/digits/advanced/export-method` as const,
+    },
+    POLICY_ACCOUNTING_DIGITS_BILL_PAYMENT_ACCOUNT: {
+        route: 'workspaces/:policyID/accounting/digits/advanced/bill-payment-account',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/digits/advanced/bill-payment-account` as const,
+    },
+    POLICY_ACCOUNTING_DIGITS_EXPENSIFY_CARD_SETTLEMENT_ACCOUNT: {
+        route: 'workspaces/:policyID/accounting/digits/advanced/expensify-card-settlement-account',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/digits/advanced/expensify-card-settlement-account` as const,
+    },
+    POLICY_ACCOUNTING_DIGITS_TRAVEL_BILLING_SETTLEMENT_ACCOUNT: {
+        route: 'workspaces/:policyID/accounting/digits/advanced/travel-billing-settlement-account',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/digits/advanced/travel-billing-settlement-account` as const,
+    },
+    POLICY_ACCOUNTING_DIGITS_TRAVEL_BILLING_PAYABLE_ACCOUNT: {
+        route: 'workspaces/:policyID/accounting/digits/advanced/travel-billing-payable-account',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/digits/advanced/travel-billing-payable-account` as const,
     },
     POLICY_ACCOUNTING_BUSINESS_CENTRAL_PREREQUISITES: {
         route: 'workspaces/:policyID/accounting/business-central/prerequisites',
