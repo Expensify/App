@@ -76,6 +76,31 @@ describe('AddressSearch', () => {
         expect(calls).toContainEqual([40.1, 'lat']);
         expect(calls).toContainEqual([-73.9, 'lng']);
         expect(calls).toContainEqual(['12 Main St, New York, NY, US', 'address']);
-        expect(onCountryChange).toHaveBeenCalledWith('US');
+        expect(onCountryChange).toHaveBeenCalledWith('US', expect.objectContaining({country: 'US'}));
+    });
+
+    it('leaves the country empty when the picked address is outside the allowed countries', () => {
+        const onInputChange = jest.fn<void, Parameters<NonNullable<ComponentProps<typeof AddressSearch>['onInputChange']>>>();
+        const onCountryChange = jest.fn();
+
+        // Given an address search that only takes British addresses.
+        render(
+            <AddressSearch
+                label="Address"
+                inputID="addressStreet"
+                renamedInputKeys={{street: 'addressStreet', country: 'addressCountry', state: 'addressState'}}
+                allowedCountries={['GB']}
+                onInputChange={onInputChange}
+                onCountryChange={onCountryChange}
+            />,
+        );
+
+        // When the user picks a US address.
+        act(() => places.mock.lastCall?.[0].onPress?.(place, details));
+
+        // Then the street is filled and the country stays empty, so the form asks for a country it can take.
+        expect(onInputChange.mock.calls).toContainEqual(['12 Main St, Apt 4', 'addressStreet']);
+        expect(onInputChange.mock.calls).toContainEqual(['', 'addressCountry']);
+        expect(onCountryChange).toHaveBeenCalledWith('', expect.objectContaining({country: ''}));
     });
 });

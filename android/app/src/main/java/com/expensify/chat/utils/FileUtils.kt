@@ -9,7 +9,6 @@ import java.io.File
 import java.io.FileOutputStream
 import java.io.IOException
 import java.io.InputStream
-import java.io.OutputStream
 
 object FileUtils {
     private const val tag = "FileUtils"
@@ -56,10 +55,10 @@ object FileUtils {
      */
     @Throws(IOException::class)
     fun saveFileFromProviderUri(fileUri: Uri, destinationFile: File?, context: Context) {
-        val inputStream: InputStream? = context.contentResolver.openInputStream(fileUri)
-        val outputStream: OutputStream = FileOutputStream(destinationFile)
-        inputStream?.use { input ->
-            outputStream.use { output ->
+        val inputStream: InputStream = context.contentResolver.openInputStream(fileUri)
+            ?: throw IOException("Couldn't open the shared file")
+        inputStream.use { input ->
+            FileOutputStream(destinationFile).use { output ->
                 input.copyTo(output)
             }
         }
@@ -98,16 +97,23 @@ object FileUtils {
      * @return The absolute path of the image
      */
     fun copyUriToStorage(fileUri: Uri, context: Context): String? {
-        val fileName = getFileName(context, fileUri) ?: return null
+        val fileName = getSafeFileName(getFileName(context, fileUri)) ?: return null
         val destinationFile = File(getInternalStorageDirectory(context), fileName)
 
         return try {
             saveFileFromProviderUri(fileUri, destinationFile, context)
             destinationFile.absolutePath
         } catch (ex: IOException) {
+            destinationFile.delete()
             Log.e(tag, "Couldn't save file from intent", ex)
             null
         }
+    }
+
+    /** The sending app controls this name, so only its last segment is kept; otherwise `../shared_prefs/x.xml` would write outside the share folder. */
+    fun getSafeFileName(name: String?): String? {
+        val baseName = name?.substringAfterLast('/')?.substringAfterLast('\\')?.trim()
+        return if (baseName.isNullOrEmpty() || baseName == "." || baseName == "..") null else baseName
     }
 
     private fun getFileName(context: Context, uri: Uri): String? {

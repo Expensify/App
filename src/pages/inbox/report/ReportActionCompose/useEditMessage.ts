@@ -1,20 +1,22 @@
 import type {ComposerRef} from '@components/Composer/types';
 
-import useAccountIDToNameMap from '@hooks/useAccountIDToNameMap';
+import {useMentionedAccountIDToNameMap} from '@hooks/useAccountIDToNameMap';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useOnyx from '@hooks/useOnyx';
 import {useAllPersonalDetails} from '@hooks/usePersonalDetails';
-import useReportIDToNameMap from '@hooks/useReportIDToNameMap';
+import {useMentionedReportIDToNameMap} from '@hooks/useReportIDToNameMap';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useReportScrollManager from '@hooks/useReportScrollManager';
 
 import {clearAllReportActionDrafts, editReportComment} from '@libs/actions/Report';
+import {getReportActionHtml} from '@libs/ReportActionsUtils';
 
 import * as ReportActionContextMenu from '@pages/inbox/report/ContextMenu/ReportActionContextMenu';
 import {useReportActionActiveEditActions} from '@pages/inbox/report/ReportActionEditMessageContext';
 import {draftMessageVideoAttributeCache} from '@pages/inbox/report/useDraftMessageVideoAttributeCache';
 
 import ONYXKEYS from '@src/ONYXKEYS';
+import {shortMentionLoginsSelector} from '@src/selectors/PersonalDetails';
 import type * as OnyxTypes from '@src/types/onyx';
 
 // eslint-disable-next-line lodash/import-scope
@@ -47,11 +49,13 @@ function useEditMessage({
 
     const {email, accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const actionOwnerReportID = originalReportID ?? reportID;
-    const [personalDetails] = useAllPersonalDetails();
     const [originalReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${actionOwnerReportID}`);
     const isOriginalReportArchived = useReportIsArchived(actionOwnerReportID);
-    const reportIDToName = useReportIDToNameMap();
-    const accountIDToName = useAccountIDToNameMap();
+    // Only the rooms and users mentioned in the original message are needed to tell whether the edit changed it.
+    const originalHtml = getReportActionHtml(reportAction);
+    const reportIDToName = useMentionedReportIDToNameMap(originalHtml);
+    const accountIDToName = useMentionedAccountIDToNameMap(originalHtml);
+    const [availableMentionLogins] = useAllPersonalDetails(shortMentionLoginsSelector(email ?? ''));
 
     const {stopEditing, submitEdit} = useReportActionActiveEditActions();
 
@@ -107,7 +111,7 @@ function useEditMessage({
             trimmedNewDraft,
             isOriginalReportArchived,
             email ?? '',
-            personalDetails,
+            availableMentionLogins,
             currentUserAccountID,
             Object.fromEntries(draftMessageVideoAttributeCache),
             reportIDToName,
