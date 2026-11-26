@@ -8798,7 +8798,6 @@ const translations = {
                 willBeReadyToUse: 'This card will be ready to use immediately.',
                 willBeReadyToShip: 'This card will be ready to ship immediately.',
                 cardholder: 'Cardholder',
-                cardholderEmail: 'Cardholder email',
                 cardType: 'Card type',
                 limit: 'Limit',
                 limitType: 'Limit type',
