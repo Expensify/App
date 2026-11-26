@@ -96,6 +96,8 @@ function TabSelectorBase<K extends string = string>({
                     updateScrollFade({offset: e.nativeEvent.contentOffset.x});
                 }}
                 ref={containerRef}
+                // VoiceOver reads the tab role and position of each item only inside a tab bar. Radio items get their group from the caller.
+                role={itemRole === CONST.ROLE.RADIO ? undefined : CONST.ROLE.TABLIST}
                 style={styles.scrollableTabSelector}
                 // On iOS a horizontal ScrollView lays out its content along an unbounded main axis, so flex-1 tabs
                 // (equalWidth) divide their intrinsic content width instead of the viewport. Giving the content
