@@ -4488,9 +4488,6 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** Indicates the Policy's SetWorkspaceReimbursement call loading state */
         isLoadingWorkspaceReimbursement?: boolean;
 
-        /** Indicates if the receipt partners page is loading */
-        isLoadingReceiptPartners?: boolean;
-
         /** Indicates if the Policy ownership change is successful */
         isChangeOwnerSuccessful?: boolean;
 
@@ -4607,6 +4604,7 @@ export type {
     CustomUnit,
     Attributes,
     Rate,
+    ReimbursementCountryInfo,
     RateAttributes,
     GovernmentRateSnapshot,
     TaxRate,

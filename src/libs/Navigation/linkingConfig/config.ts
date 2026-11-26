@@ -1100,6 +1100,9 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.WORKSPACE.MEMBERS_CHANGE_OFFICE_LOCATION]: {
                             path: ROUTES.WORKSPACE_MEMBERS_CHANGE_OFFICE_LOCATION.route,
                         },
+                        [SCREENS.WORKSPACE.MEMBERS_BULK_CATEGORY_VISIBILITY]: {
+                            path: ROUTES.WORKSPACE_MEMBERS_BULK_CATEGORY_VISIBILITY.route,
+                        },
                         [SCREENS.WORKSPACE.MEMBERS_CHANGE_WORK_ARRANGEMENT]: {
                             path: ROUTES.WORKSPACE_MEMBERS_CHANGE_WORK_ARRANGEMENT.route,
                         },

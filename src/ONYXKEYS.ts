@@ -64,6 +64,9 @@ const ONYXKEYS = {
 
     /** Ordered reportIDs from the latest SearchForReports response, used to display server search results in the tier order Auth returned. */
     RAM_ONLY_SEARCH_RESULT_REPORT_IDS: 'searchResultReportIDs',
+
+    /** Transactions (and the reports they left) that successful user writes or server pushes changed, each with the ID of the write that last changed it (only recent writes are kept), so Search can refetch the snapshot that shows them */
+    RAM_ONLY_SEARCH_TRANSACTION_WRITES: 'searchTransactionWrites',
     /** Boolean flag set whenever we are searching for users in the server */
     RAM_ONLY_IS_SEARCHING_FOR_USERS: 'isSearchingForUsers',
 
@@ -1076,6 +1079,9 @@ const ONYXKEYS = {
         /** Set while `GetDuplicateTransactionDetails` is in flight, keyed by transactionID.
          *  Registered as RAM-only in `setup/index.ts`. */
         RAM_ONLY_IS_LOADING_DUPLICATE_TRANSACTION_DETAILS: 'isLoadingDuplicateTransactionDetails_',
+        /** Set while `OpenPolicyReceiptPartnersPage` is in flight, keyed by policyID. Kept off the policy so the request doesn't
+         *  rewrite it and rerun everything that reads it. Registered as RAM-only in `setup/index.ts`. */
+        RAM_ONLY_IS_LOADING_RECEIPT_PARTNERS: 'isLoadingReceiptPartners_',
         /** Session-scoped loading flags for company cards page and feeds.
          *  Registered as RAM-only in `setup/index.ts`. */
         RAM_ONLY_COMPANY_CARDS_LOADING_STATE: 'companyCardsLoadingState_',
@@ -1744,6 +1750,7 @@ type OnyxCollectionValuesMapping = {
     [ONYXKEYS.COLLECTION.REPORT_UPCOMING_STEPS]: OnyxTypes.ReportUpcomingSteps;
     [ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE]: OnyxTypes.ReportLoadingState;
     [ONYXKEYS.COLLECTION.RAM_ONLY_IS_LOADING_DUPLICATE_TRANSACTION_DETAILS]: boolean;
+    [ONYXKEYS.COLLECTION.RAM_ONLY_IS_LOADING_RECEIPT_PARTNERS]: boolean;
     [ONYXKEYS.COLLECTION.RAM_ONLY_COMPANY_CARDS_LOADING_STATE]: OnyxTypes.CompanyCardsLoadingState;
     [ONYXKEYS.COLLECTION.RAM_ONLY_PERSONAL_DETAILS_LOADING_STATE]: OnyxTypes.PersonalDetailsLoadingState;
     [ONYXKEYS.COLLECTION.RAM_ONLY_COMPANY_CARD_NUMBER_SEARCH]: OnyxTypes.CompanyCardNumberSearch;
@@ -2030,6 +2037,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.RAM_ONLY_WISE_ONBOARDING_PENDING_SAVES]: Record<string, boolean>;
     [ONYXKEYS.RAM_ONLY_WISE_INTRO_READ_BANK_ACCOUNT_ID]: number;
     [ONYXKEYS.RAM_ONLY_SEARCH_RESULT_REPORT_IDS]: string[] | null;
+    [ONYXKEYS.RAM_ONLY_SEARCH_TRANSACTION_WRITES]: {writeID: number; oldestWriteID: number; transactionIDs: Record<string, number>; reportIDs: Record<string, number>};
     [ONYXKEYS.RAM_ONLY_IS_SEARCHING_FOR_USERS]: boolean;
     [ONYXKEYS.RAM_ONLY_IS_AUTHENTICATING_WITH_SHORT_LIVED_TOKEN]: boolean;
     [ONYXKEYS.LAST_VISITED_PATH]: string | undefined;

@@ -2,6 +2,7 @@ import CONST from '@src/CONST';
 import type {OnyxInputOrEntry, Report, ReportAction, ReportLoadingState} from '@src/types/onyx';
 
 import {isDeletedAction} from './ReportActionsUtils';
+import {decodeURIComponentSafely} from './Url';
 
 type ParentReportActionDeletionStatusParams = {
     hasLoadedParentReportActions?: boolean;
@@ -26,26 +27,18 @@ function isThreadReportDeleted(report: OnyxInputOrEntry<Report>, reportLoadingSt
     return (!report?.reportID && report?.statusNum === CONST.REPORT.STATUS_NUM.CLOSED) || (hasLoadedThreadReportActions && !report?.reportID);
 }
 
-function decodeDeleteNavigateBackUrl(url: string): string {
-    try {
-        return decodeURIComponent(url);
-    } catch {
-        return url;
-    }
-}
-
 function doesDeleteNavigateBackUrlIncludeDuplicatesReview(url?: string): boolean {
     if (!url) {
         return false;
     }
-    return decodeDeleteNavigateBackUrl(url).includes('/duplicates/review');
+    return decodeURIComponentSafely(url).includes('/duplicates/review');
 }
 
 function doesDeleteNavigateBackUrlIncludeSpecificDuplicatesReview(url?: string, threadReportID?: string): boolean {
     if (!threadReportID) {
         return false;
     }
-    const decodedDeleteNavigateBackUrl = decodeDeleteNavigateBackUrl(url ?? '');
+    const decodedDeleteNavigateBackUrl = decodeURIComponentSafely(url ?? '');
     return decodedDeleteNavigateBackUrl.includes('/duplicates/review') && decodedDeleteNavigateBackUrl.includes(threadReportID);
 }
 
@@ -70,7 +63,6 @@ function getParentReportActionDeletionStatus({
 }
 
 export {
-    decodeDeleteNavigateBackUrl,
     doesDeleteNavigateBackUrlIncludeDuplicatesReview,
     doesDeleteNavigateBackUrlIncludeSpecificDuplicatesReview,
     getParentReportActionDeletionStatus,

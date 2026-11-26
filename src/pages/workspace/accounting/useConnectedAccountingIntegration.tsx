@@ -57,7 +57,7 @@ import type {MenuItemData} from './types';
 
 import {useAccountingActions, useAccountingState} from './AccountingContext';
 import {getCertiniaSelectedCompanyID, isCertiniaFFAConnection} from './certinia/utils';
-import {getNetSuiteOAuthMigrationSeverity, shouldShowNetSuiteOAuthMigrationOption} from './netsuite/utils';
+import {getNetSuiteOAuthMigrationSeverity, hasNetSuiteOAuthConnection, shouldShowNetSuiteOAuthMigrationOption} from './netsuite/utils';
 import {getAccountingIntegrationData, getAccountingIntegrationDisplayName, getSynchronizationErrorMessage, isIntuitEnterpriseSuiteConnection} from './utils';
 
 type UseConnectedAccountingIntegrationOptions = {
@@ -162,7 +162,9 @@ function useConnectedAccountingIntegration(policy: OnyxEntry<Policy>, {onDisconn
         connectedIntegration === CONST.POLICY.CONNECTIONS.NAME.QBO && !synchronizationError && !isSyncInProgress ? getQBORefreshTokenExpiryStatus(policy) : undefined;
     const isQBOTokenExpiringSoon = !!qboTokenExpiryStatus;
     const qboTokenExpiryDate = isQBOTokenExpiringSoon ? getQBORefreshTokenExpiryDate(policy) : undefined;
-    const shouldShowEnterCredentials = !!connectedIntegration && (hasAuthError || isSageIntacct || isQBOTokenExpiringSoon);
+    const isNetSuiteOAuthConnection = connectedIntegration === CONST.POLICY.CONNECTIONS.NAME.NETSUITE && hasNetSuiteOAuthConnection(policy);
+    // During the NetSuite OAuth rollout, an admin can use this menu item to move an OAuth connection back to token-based authentication (TBA).
+    const shouldShowEnterCredentials = !!connectedIntegration && (hasAuthError || isSageIntacct || isNetSuiteOAuthConnection || isQBOTokenExpiringSoon);
 
     // Get the last successful date of the integration. Then, if `connectionSyncProgress` is the same integration displayed and the state is 'jobDone', get the more recent update time of the two.
     const successfulDate = getIntegrationLastSuccessfulDate(
@@ -180,8 +182,6 @@ function useConnectedAccountingIntegration(policy: OnyxEntry<Policy>, {onDisconn
     const shouldShowSynchronizationError = !!synchronizationError;
     const shouldShowReinstallConnectorMenuItem = shouldShowSynchronizationError && connectedIntegration === CONST.POLICY.CONNECTIONS.NAME.QBD;
     const shouldShowCardReconciliationOption = Object.values(allCardSettings ?? {})?.some((cardSetting) => isExpensifyCardFullySetUp(policy, cardSetting));
-    const isNetSuiteOAuthConnection =
-        connectedIntegration === CONST.POLICY.CONNECTIONS.NAME.NETSUITE && policy?.connections?.netsuite?.config?.authType === CONST.NETSUITE_CONFIG.TOKEN_INPUT.AUTH_TYPE.OAUTH2;
     const shouldShowReconnect =
         hasAuthError && (connectedIntegration === CONST.POLICY.CONNECTIONS.NAME.CERTINIA || connectedIntegration === CONST.POLICY.CONNECTIONS.NAME.ODOO || isNetSuiteOAuthConnection);
     let credentialsMenuTextKey: Parameters<typeof translate>[0] = 'workspace.accounting.enterCredentials';
@@ -189,7 +189,7 @@ function useConnectedAccountingIntegration(policy: OnyxEntry<Policy>, {onDisconn
     if (shouldShowReconnect || isQBOTokenExpiringSoon) {
         credentialsMenuTextKey = 'workspace.accounting.reconnect';
         credentialsMenuSentryLabel = CONST.SENTRY_LABEL.WORKSPACE.CONNECTIONS.ACCOUNTING_MENU_RECONNECT;
-    } else if (isSageIntacct && !hasAuthError) {
+    } else if ((isSageIntacct || isNetSuiteOAuthConnection) && !hasAuthError) {
         credentialsMenuTextKey = 'workspace.accounting.updateCredentials';
         credentialsMenuSentryLabel = CONST.SENTRY_LABEL.WORKSPACE.CONNECTIONS.ACCOUNTING_MENU_UPDATE_CREDENTIALS;
     }

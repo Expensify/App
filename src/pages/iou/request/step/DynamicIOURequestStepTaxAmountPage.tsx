@@ -121,7 +121,7 @@ function DynamicIOURequestStepTaxAmountPage({
         const taxAmountInSmallestCurrencyUnits = convertToBackendAmount(Number.parseFloat(currentAmount.amount));
 
         if (isEditingSplitBill) {
-            setDraftSplitTransaction(transactionID, currentTransaction, {taxAmount: taxAmountInSmallestCurrencyUnits}, getCurrencyDecimals, getCurrencySymbol);
+            setDraftSplitTransaction(translate, transactionID, currentTransaction, {taxAmount: taxAmountInSmallestCurrencyUnits}, getCurrencyDecimals, getCurrencySymbol);
             saveAndNavigateBack();
             return;
         }
@@ -139,6 +139,7 @@ function DynamicIOURequestStepTaxAmountPage({
                 ONYXKEYS.NVP_INTRO_SELECTED,
             ]);
             updateMoneyRequestTaxAmount({
+                translate,
                 isVendorMatchingBetaEnabled,
                 transactionID,
                 transaction: currentTransaction,
