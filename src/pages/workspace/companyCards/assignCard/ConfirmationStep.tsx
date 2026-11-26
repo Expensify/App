@@ -9,7 +9,6 @@ import Text from '@components/Text';
 
 import useCardFeeds from '@hooks/useCardFeeds';
 import {useCurrencyListState} from '@hooks/useCurrencyList';
-import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePersonalDetailByLogin from '@hooks/usePersonalDetailByLogin';
@@ -50,6 +49,7 @@ import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 
+import {accountIDSelector} from '@selectors/Session';
 import {Str} from 'expensify-common';
 import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
@@ -85,9 +85,6 @@ function ConfirmationStep({route}: ConfirmationStepProps) {
     const cardholderEmail = formatPhoneNumber(cardToAssign?.email ?? '');
     const cardholderAccountID = cardholder?.accountID;
 
-    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
-    const currentUserAccountID = currentUserPersonalDetails.accountID;
-
     const cardNameTitle = maskCardNumber(cardToAssign?.cardName ?? '', cardToAssign?.bankName);
 
     const transactionStartDateTitle =
@@ -114,7 +111,8 @@ function ConfirmationStep({route}: ConfirmationStepProps) {
             return;
         }
 
-        const [workspaceCardFeeds, countryByIp] = await Onyx.multiGet([ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST, ONYXKEYS.COUNTRY]);
+        const [workspaceCardFeeds, countryByIp, session] = await Onyx.multiGet([ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST, ONYXKEYS.COUNTRY, ONYXKEYS.SESSION]);
+        const currentUserAccountID = accountIDSelector(session) ?? CONST.DEFAULT_NUMBER_ID;
 
         const isFeedExpired = isSelectedFeedExpired(cardFeeds?.[feed]);
         const institutionId = !!getPlaidInstitutionId(bankName);
