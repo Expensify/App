@@ -96,7 +96,7 @@ import capturePageHTML from '@libs/PageHTMLCapture';
 import {prunePagesToNewestWindow} from '@libs/PaginationUtils';
 import Parser from '@libs/Parser';
 import {getParsedMessageWithShortMentions} from '@libs/ParsingUtils';
-import {getAllPersonalDetails, getPersonalDetail} from '@libs/PersonalDetailsStore';
+import {getAccountIDToNameMap, getAllPersonalDetailLogins, getPersonalDetail} from '@libs/PersonalDetailsStore';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import {addSMSDomainIfPhoneNumber} from '@libs/PhoneNumber';
 import {isMapOrGPSRequired} from '@libs/PolicyDistanceRatesUtils';
@@ -3820,13 +3820,14 @@ function removeLinksFromHtml(html: string, links: string[]): string {
  *
  * @param newCommentText text of the comment after editing.
  * @param originalCommentMarkdown original markdown of the comment before editing.
+ * @param availableMentionLogins logins that short mentions such as `@john` resolve against.
  * @param videoAttributeCache cache of video attributes ([videoSource]: videoAttributes)
  */
 function handleUserDeletedLinksInHtml(
     newCommentText: string,
     originalCommentMarkdown: string,
     currentUserLogin: string,
-    personalDetails: OnyxEntry<PersonalDetailsList>,
+    availableMentionLogins: string[] | undefined,
     videoAttributeCache?: Record<string, string>,
 ): string {
     if (newCommentText.length > CONST.MAX_MARKUP_LENGTH) {
@@ -3834,12 +3835,11 @@ function handleUserDeletedLinksInHtml(
     }
 
     const userEmailDomain = isEmailPublicDomain(currentUserLogin) ? '' : Str.extractEmailDomain(currentUserLogin);
-    const allPersonalDetailLogins = Object.values(personalDetails ?? {}).map((personalDetail) => personalDetail?.login ?? '');
 
     const htmlForNewComment = getParsedMessageWithShortMentions({
         text: newCommentText,
         userEmailDomain,
-        availableMentionLogins: allPersonalDetailLogins,
+        availableMentionLogins: availableMentionLogins ?? [],
         parserOptions: {
             extras: {videoAttributeCache},
         },
@@ -3865,7 +3865,7 @@ startDeferredAttachmentEditReplays((deferredEdit, syncedAction) => {
             textForNewComment,
             isOriginalReportArchived,
             currentUserLogin,
-            getAllPersonalDetails(),
+            getAllPersonalDetailLogins(),
             currentUserAccountID,
             videoAttributeCache,
             reportIDToName,
@@ -3882,7 +3882,7 @@ function editReportComment(
     textForNewComment: string,
     isOriginalReportArchived: boolean | undefined,
     currentUserLogin: string,
-    personalDetails: OnyxEntry<PersonalDetailsList>,
+    availableMentionLogins: string[] | undefined,
     currentUserAccountID: number,
     videoAttributeCache?: Record<string, string>,
     reportIDToName?: Record<string, string>,
@@ -3909,7 +3909,7 @@ function editReportComment(
     }
     const htmlForNewComment = restoreAttachmentAnchorLabels(
         restoreAttachmentAnchorAttributes(
-            handleUserDeletedLinksInHtml(draftForNewComment, originalCommentMarkdown, currentUserLogin, personalDetails, videoAttributeCache),
+            handleUserDeletedLinksInHtml(draftForNewComment, originalCommentMarkdown, currentUserLogin, availableMentionLogins, videoAttributeCache),
             originalCommentHTML,
         ),
         draftForNewComment,
@@ -4047,8 +4047,10 @@ function editReportComment(
             currentUserAccountID,
             isOriginalReportArchived,
             videoAttributeCache,
-            reportIDToName: getReportIDToNameMapForRoomsInMarkdown(reportIDToName, textForNewComment),
-            accountIDToName: getAccountIDToNameMapForMentionsInMarkdown(accountIDToName, textForNewComment),
+            // The caller's maps only have the rooms and users the original HTML mentions by ID. An offline message mentions
+            // them by name, and the synced copy this edit is compared against mentions them by ID, so look them up here.
+            reportIDToName: getReportIDToNameMapForRoomsInMarkdown(buildReportIDToNameMap(allReports), textForNewComment),
+            accountIDToName: getAccountIDToNameMapForMentionsInMarkdown(getAccountIDToNameMap(), textForNewComment),
         };
         deferAttachmentEdit(reportActionID, deferredEdit);
         return;
