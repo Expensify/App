@@ -405,6 +405,7 @@ const translations: TranslationDeepObject<typeof en> = {
         reportID: 'Rapport-ID',
         longReportID: 'Lang rapport-ID',
         withdrawalID: 'Opname-ID',
+        transactionID: 'Transactie-ID',
         internationalReimbursementIDs: 'Internationale terugbetalings-ID’s',
         amountDebited: 'Afgeschreven bedrag',
         amountReimbursed: 'Terugbetaald bedrag',
@@ -503,6 +504,7 @@ const translations: TranslationDeepObject<typeof en> = {
         corpayPayModalPrompt:
             'Deze indiener heeft een bankrekening die niet in USD is. Schakel wereldwijde terugbetalingen in om het rapport te betalen, of vraag hen een USD-bankrekening toe te voegen.',
         purchaseAmount: 'Aankoopsbedrag',
+        convertedAmount: 'Omgerekend bedrag',
         originalAmount: 'Oorspronkelijk bedrag',
         frequency: 'Frequentie',
         link: 'Link',
@@ -808,6 +810,11 @@ const translations: TranslationDeepObject<typeof en> = {
         setPin: {didNotShipCard: 'We hebben je kaart niet verzonden. Probeer het opnieuw.'},
         revealPin: {couldNotReveal: 'We konden je pincode niet tonen. Probeer het opnieuw.'},
         changePin: {didNotChange: 'We hebben je pincode niet gewijzigd. Probeer het opnieuw.'},
+        addToWallet: {
+            failedHeader: 'Kaart kon niet worden toegevoegd',
+            failedTitle: 'We konden je kaart niet aan je wallet toevoegen',
+            failedSubtitle: 'Er ging iets mis bij het toevoegen van de kaart. Als hij al in je wallet staat, kun je hem daar gebruiken.',
+        },
         revealCardDetail: {couldNotReveal: 'We konden je kaartgegevens niet weergeven. Probeer het opnieuw.'},
     },
     validateCodeModal: {
@@ -1345,7 +1352,10 @@ const translations: TranslationDeepObject<typeof en> = {
             label: 'Overtredingen van',
             [CONST.INSIGHTS.VIOLATION_STAGE.SUBMITTED]: 'Indieners',
             [CONST.INSIGHTS.VIOLATION_STAGE.APPROVED]: 'Fiatteurs',
+            chartTitle: (title: string, stage: string) => `${title} (${stage})`,
         },
+        flaggedExpenses: 'Gemarkeerde uitgaven',
+        noFlaggedExpensesInRange: 'Geen gemarkeerde uitgaven in dit bereik',
     },
     allSettingsScreen: {
         subscription: 'Abonnement',
@@ -4483,7 +4493,9 @@ ${amount} voor ${merchant} - ${date}`,
     },
     welcomeSignUpForm: {
         join: 'Deelnemen',
-        marketingSMSConsent: 'Ik ga akkoord met het ontvangen van marketing-sms van Expensify',
+        transactionalSMSConsent: 'Door mijn telefoonnummer op te geven, ga ik akkoord met het ontvangen van transactionele accountmeldingen van Expensify.',
+        transactionalSMSConsentFinePrint: 'Er kunnen standaardkosten voor berichten en data van toepassing zijn. Antwoord STOP om je af te melden.',
+        marketingSMSConsent: 'Ik ga akkoord met het ontvangen van marketing-sms van Expensify.',
     },
     detailsPage: {
         localTime: 'Lokale tijd',
@@ -4668,6 +4680,14 @@ ${amount} voor ${merchant} - ${date}`,
         numberedItem: ({item, number}: {item: string; number: number}) => `${item} ${number}`,
         questionsChanged: 'De vragen op deze pagina zijn gewijzigd',
         onFile: 'In bestand',
+        continueOffline: {
+            title: 'Je kunt offline niet doorgaan',
+            prompt: 'Er is een internetverbinding nodig om dit formulier in te vullen. Maak je geen zorgen, we slaan je voortgang op en je kunt doorgaan zodra je weer online bent.',
+            saveForLater: 'Opslaan en later invullen',
+            progressSaved: 'Je voortgang is opgeslagen',
+            promptWithSensitiveAnswers:
+                'Er is een internetverbinding nodig om dit formulier in te vullen. We slaan je voortgang op zodat je verder kunt gaan zodra je weer online bent. Voor jouw veiligheid worden gevoelige gegevens niet opgeslagen en moet je ze opnieuw invoeren.',
+        },
     },
     addPersonalBankAccount: {
         swiftBicFormatError: 'SWIFT/BIC moet 8 of 11 tekens lang zijn, met 6 letters gevolgd door 2 of 5 letters of cijfers.',
@@ -4688,6 +4708,15 @@ ${amount} voor ${merchant} - ${date}`,
         updateSuccessMessage: 'Gefeliciteerd, je bankrekening is ingesteld en klaar om terugbetalingen te ontvangen.',
         bankDetails: 'Bankgegevens',
         accountHolderDetails: 'Gegevens rekeninghouder',
+        notices: {
+            katakanaName:
+                'Vul je naam precies in zoals die op je Japanse bankrekening staat. Die wordt meestal in カタカナ (katakana) geschreven. Een verschil kan je betaling vertragen of laten afkeuren.',
+            alipayRecipients: 'Alleen ontvangers in vasteland-China, Hongkong of Macau kunnen via Alipay worden betaald.',
+            alipayLimits:
+                'Alipay kan tot 50.000 CNY per betaling ontvangen en tussen 300.000 en 600.000 CNY per jaar. Afhankelijk van het doel van de betaling kunnen er ook maandelijkse limieten gelden voor het aantal betalingen.',
+            malaysianNonResidentLimit:
+                'Niet-ingezetenen met een bankrekening in Maleisië kunnen maximaal 10.000 Maleisische ringgit per dag ontvangen. Een betaling boven deze limiet kan ertoe leiden dat je bank je rekening sluit.',
+        },
     },
     addPersonalBankAccountPage: {
         enterPassword: 'Voer Expensify-wachtwoord in',
@@ -7260,6 +7289,8 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
             createFailureMessage: 'Er is een fout opgetreden bij het aanmaken van de categorie, probeer het opnieuw.',
             addCategory: 'Categorie toevoegen',
             createCategoryFromSearch: (categoryName: string) => `Categorie „${categoryName}” aanmaken`,
+            availableToMember: (memberName: string) => `Beschikbaar voor ${memberName}`,
+            notAvailableToMember: (memberName: string) => `Niet beschikbaar voor ${memberName}`,
             editCategory: 'Categorie bewerken',
             editCategories: 'Categorieën bewerken',
             findCategory: 'Categorie zoeken',
@@ -7277,11 +7308,13 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
                 description: `Minstens één categorie moet ingeschakeld blijven, omdat je werkruimte categorieën vereist.`,
             },
             visibleTo: 'Zichtbaar voor',
+            editVisibility: 'Zichtbaarheid bewerken',
             membersCount: ({count}: {count: number}) => ({
                 one: '1 lid',
                 other: `${count} leden`,
             }),
             visibleToDescription: ({categoryName}: {categoryName: string}) => `Kies welke leden de categorie ${categoryName} kunnen gebruiken bij het indienen van uitgaven.`,
+            bulkVisibleToDescription: 'Kies welke leden deze categorieën kunnen gebruiken bij het indienen van declaraties.',
             cannotDisableCategoryForMembers: {
                 title: ({categoryName}: {categoryName: string}) => `Kan ${categoryName} niet uitschakelen`,
                 bulkTitle: 'Deze categorieën kunnen niet worden uitgeschakeld',
@@ -8016,6 +8049,9 @@ Het Control-abonnement begint bij $9 per actieve deelnemer per maand.`,
             categoryVisibilityRequiredModal: {title: 'Leden moeten ten minste één categorie hebben', description: 'Selecteer minstens één categorie die dit lid kan gebruiken.'},
             changeOfficeLocation: 'Locatie kantoor wijzigen',
             changeWorkArrangement: 'Werkregeling wijzigen',
+            editCategoryVisibility: 'Categoriezichtbaarheid bewerken',
+            bulkCategoryVisibilitySaved: ({categoryCount, memberCount}: {categoryCount: string; memberCount: string}) =>
+                `Stel ${categoryCount} in voor ${memberCount}. Dit vervangt hun huidige categorie‑zichtbaarheid.`,
             changeRole: 'Rol wijzigen',
             newRolesBanner: {
                 title: 'Nieuwe rollen beschikbaar',
@@ -8053,7 +8089,6 @@ Het Control-abonnement begint bij $9 per actieve deelnemer per maand.`,
                 willBeReadyToUse: 'Deze kaart is direct klaar voor gebruik.',
                 willBeReadyToShip: 'Deze kaart is meteen klaar om verzonden te worden.',
                 cardholder: 'Kaarthouder',
-                cardholderEmail: 'E-mailadres van de kaarthouder',
                 cardType: 'Kaarttype',
                 limit: 'Limiet',
                 limitType: 'Limiettype',

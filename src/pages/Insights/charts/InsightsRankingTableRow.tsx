@@ -2,7 +2,7 @@ import formatChartCount from '@components/Charts/utils/formatChartCount';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import {buildChartDrillDownQuery} from '@components/Search/chartDrillDown';
 import CHART_GROUP_BY_CONFIG from '@components/Search/chartGroupByConfig';
-import type {SearchChartCountDimension, SearchGroupBy, SearchQueryJSON} from '@components/Search/types';
+import type {GroupedItem, SearchChartCountDimension, SearchGroupBy, SearchQueryJSON} from '@components/Search/types';
 import {getCellAccessibilityProps, getRowAccessibilityProps, shouldUseTableSemantics} from '@components/Table/tableAccessibility';
 import Text from '@components/Text';
 
@@ -44,13 +44,18 @@ type InsightsRankingTableRowProps = {
     groupBy: SearchGroupBy;
     countDimension: SearchChartCountDimension;
     queryJSON: Readonly<SearchQueryJSON> | undefined;
+
+    /** Called with the row's group when pressed. Without it, the row opens on Spend */
+    onPress?: (item: GroupedItem) => void;
+
     /** Position on the same scale as the bars, omitted outside average comparison mode */
     averageWidthPercent?: number;
+
     /** Zero-based data row position, excluding the header */
     rowIndex: number;
 };
 
-function InsightsRankingTableRow({row, groupBy, countDimension, queryJSON, averageWidthPercent, rowIndex}: InsightsRankingTableRowProps) {
+function InsightsRankingTableRow({row, groupBy, countDimension, queryJSON, onPress, averageWidthPercent, rowIndex}: InsightsRankingTableRowProps) {
     const {item, share, barWidthPercent, change} = row;
     const styles = useThemeStyles();
     const {translate, numberFormat} = useLocalize();
@@ -72,7 +77,11 @@ function InsightsRankingTableRow({row, groupBy, countDimension, queryJSON, avera
     const accessibilityLabel = [label, formattedCount, formattedShare, formattedAmount, changeLabel].filter(Boolean).join(', ');
     const cellStyle = [styles.tableRowVerticalPadding, styles.justifyContentCenter];
 
-    const openOnSpend = () => {
+    const openRow = () => {
+        if (onPress) {
+            onPress(item);
+            return;
+        }
         if (!queryJSON) {
             return;
         }
@@ -85,7 +94,7 @@ function InsightsRankingTableRow({row, groupBy, countDimension, queryJSON, avera
     if (shouldUseNarrowLayout) {
         return (
             <PressableWithFeedback
-                onPress={openOnSpend}
+                onPress={openRow}
                 accessibilityRole={CONST.ROLE.BUTTON}
                 accessibilityLabel={accessibilityLabel}
                 sentryLabel={CONST.SENTRY_LABEL.INSIGHTS.TABLE_ROW}
@@ -121,7 +130,7 @@ function InsightsRankingTableRow({row, groupBy, countDimension, queryJSON, avera
 
     return (
         <PressableWithFeedback
-            onPress={openOnSpend}
+            onPress={openRow}
             role={isTableSemanticsEnabled ? CONST.ROLE.ROW : CONST.ROLE.BUTTON}
             accessibilityLabel={accessibilityLabel}
             sentryLabel={CONST.SENTRY_LABEL.INSIGHTS.TABLE_ROW}

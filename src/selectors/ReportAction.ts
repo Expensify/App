@@ -113,8 +113,8 @@ function getReimbursedExpectedDateSelector(reportActions: OnyxEntry<ReportAction
  * tiebreaker. reportActionID alone is unreliable because optimistic actions use random IDs, so
  * a purely numeric comparison can rank them ahead of real server actions.
  */
-function getNewestReportActionSelector(reportActions: OnyxEntry<ReportActions>): NewestReportAction | undefined {
-    const actions = Object.values(reportActions ?? {}).filter(Boolean);
+function getNewestReportActionSelector(reportActions: OnyxEntry<ReportActions>, actionName?: ReportAction['actionName']): NewestReportAction | undefined {
+    const actions = Object.values(reportActions ?? {}).filter((action) => !!action && (!actionName || action.actionName === actionName));
     if (actions.length === 0) {
         return undefined;
     }
@@ -132,6 +132,10 @@ function getNewestReportActionSelector(reportActions: OnyxEntry<ReportActions>):
         actorAccountID: newest.actorAccountID,
         actionName: newest.actionName,
     };
+}
+
+function getNewestCommentActionSelector(reportActions: OnyxEntry<ReportActions>): NewestReportAction | undefined {
+    return getNewestReportActionSelector(reportActions, CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT);
 }
 
 /**
@@ -283,6 +287,7 @@ export {
     getLatestFeedbackActionIDByAuthorSelector,
     getParentReportActionSelector,
     getLastClosedReportAction,
+    getNewestCommentActionSelector,
     getNewestReportActionSelector,
     getReimbursedExpectedDateSelector,
     getReportActionByIDSelector,

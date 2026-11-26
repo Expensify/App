@@ -1,5 +1,7 @@
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 
+import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
+
 import type CONST from '@src/CONST';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 
@@ -197,6 +199,9 @@ type TextInputOptions = {
 
     /** Whether the text input should intercept swipes */
     shouldInterceptSwipe?: boolean;
+
+    /** FullStory class for the text input, to mask searches that can hold sensitive data */
+    forwardedFSClass?: ForwardedFSClassProps['forwardedFSClass'];
 
     /** Styles for the text input */
     style?: {
