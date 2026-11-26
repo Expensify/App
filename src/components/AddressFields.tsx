@@ -87,6 +87,7 @@ function AddressFields({street1, street2, city, state, zip, defaultCountry, coun
                     country: INPUT_IDS.COUNTRY,
                 }}
                 autoComplete="address-line1"
+                forwardedFSClass={CONST.FULLSTORY.CLASS.MASK}
             />
             <View style={styles.formSpaceVertical} />
             <InputWrapper
@@ -106,6 +107,7 @@ function AddressFields({street1, street2, city, state, zip, defaultCountry, coun
                     inputID={INPUT_IDS.COUNTRY}
                     defaultValue={defaultCountry}
                     onValueChange={updateAddress}
+                    forwardedFSClass={CONST.FULLSTORY.CLASS.MASK}
                 />
             </View>
             <View style={styles.formSpaceVertical} />
@@ -116,6 +118,7 @@ function AddressFields({street1, street2, city, state, zip, defaultCountry, coun
                         inputID={INPUT_IDS.STATE}
                         value={usStateValue}
                         onValueChange={updateAddress}
+                        forwardedFSClass={CONST.FULLSTORY.CLASS.MASK}
                     />
                 </View>
             ) : (
@@ -128,6 +131,7 @@ function AddressFields({street1, street2, city, state, zip, defaultCountry, coun
                     value={stateValue}
                     onValueChange={updateAddress}
                     spellCheck={false}
+                    forwardedFSClass={CONST.FULLSTORY.CLASS.MASK}
                 />
             )}
             <View style={styles.formSpaceVertical} />
@@ -140,6 +144,7 @@ function AddressFields({street1, street2, city, state, zip, defaultCountry, coun
                 value={cityValue}
                 onValueChange={updateAddress}
                 spellCheck={false}
+                forwardedFSClass={CONST.FULLSTORY.CLASS.MASK}
             />
             <View style={styles.formSpaceVertical} />
             <InputWrapper
