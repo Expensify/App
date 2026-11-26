@@ -63,7 +63,10 @@ type WorkspaceDistanceRatesTableRowProps = {
     statusLabels: Record<string, string>;
     unit?: Unit;
 
-    /** Unlike an item's `canEditRate`, it doesn't change in selection mode or while deleting, so the rate cell doesn't shift. */
+    /**
+     * True when the user can edit rates at all, so the rate cell keeps room for the edit button. Unlike an item's
+     * `canEditRate`, it doesn't change in selection mode or while deleting, so the cell doesn't shift.
+     */
     canWriteDistanceRates: boolean;
 };
 
