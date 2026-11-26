@@ -200,6 +200,8 @@ export default {
     insightsRankingTableShareLabelSpace: 56,
     insightsRankingTableAverageMarkerWidth: 2,
     insightsRankingTableAverageMarkerOverhang: 6,
+    insightsBiggestChangeIconFrameWidth: 36,
+    insightsBiggestChangeIconFrameHeight: 40,
     minScanTooltipWidth: 320,
     chartTooltipMinWidth: 200,
     uploadViewMargin: 20,

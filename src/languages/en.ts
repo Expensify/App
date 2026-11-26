@@ -252,6 +252,7 @@ const translations = {
         settings: 'Settings',
         termsOfService: 'Terms of Service',
         members: 'Members',
+        merchants: 'Merchants',
         invite: 'Invite',
         here: 'here',
         avatar: 'Avatar',
@@ -1444,6 +1445,9 @@ const translations = {
             weekAverageFor: (count: number, item: string) => `${count}-week average for ${item}`,
             monthAverageFor: (count: number, item: string) => `${count}-month average for ${item}`,
             quarterAverageFor: (count: number, item: string) => `${count}-quarter average for ${item}`,
+        },
+        biggestChanges: {
+            title: 'Biggest changes',
         },
         compliance: 'Compliance',
         violationsOverTime: 'Violations over time',

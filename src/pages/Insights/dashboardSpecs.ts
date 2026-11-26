@@ -176,7 +176,7 @@ const INSIGHTS_DASHBOARD_SPECS: Record<InsightsDashboardID, InsightsDashboardSpe
             graphKey: CONST.INSIGHTS.GRAPH.SPEND_OVER_TIME,
             titleKey: 'search.spendOverTime',
             view: CONST.SEARCH.VIEW.LINE,
-            detailsSections: [CONST.INSIGHTS.DETAILS_SECTION.SUMMARY, CONST.INSIGHTS.DETAILS_SECTION.TOP_EXPENSES],
+            detailsSections: [CONST.INSIGHTS.DETAILS_SECTION.SUMMARY, CONST.INSIGHTS.DETAILS_SECTION.BIGGEST_CHANGES, CONST.INSIGHTS.DETAILS_SECTION.TOP_EXPENSES],
         },
         supportingCharts: [
             {

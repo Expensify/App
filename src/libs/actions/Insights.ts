@@ -8,7 +8,7 @@ import Log from '@libs/Log';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {OnyxKey} from '@src/ONYXKEYS';
-import type {InsightsDashboardID, InsightsSearchKey} from '@src/types/onyx';
+import type {InsightsBiggestChangesGroupBy, InsightsDashboardID, InsightsSearchKey} from '@src/types/onyx';
 import type {OnyxData} from '@src/types/onyx/Request';
 import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
 
@@ -125,8 +125,37 @@ function getInsightsDetails(hash: number, jsonQuery: string, topExpensesSnapshot
     requestInsights(READ_COMMANDS.GET_INSIGHTS_DETAILS, jsonQuery, key, {optimisticData, successData, failureData});
 }
 
+/** Fetches the Details panel's Biggest changes for another grouping, which the backend also saves as the user's choice */
+function getInsightsBiggestChanges(hash: number, jsonQuery: string) {
+    const key = `${ONYXKEYS.COLLECTION.INSIGHTS_DETAILS}${hash}` as const;
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.INSIGHTS_DETAILS>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key,
+            value: {errors: null, responseJsonCode: null},
+        },
+    ];
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.INSIGHTS_DETAILS>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key,
+            value: {
+                responseJsonCode: CONST.JSON_CODE.NO_RESPONSE,
+                errors: getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
+            },
+        },
+    ];
+
+    requestInsights(READ_COMMANDS.GET_INSIGHTS_DETAILS, jsonQuery, key, {optimisticData, failureData});
+}
+
+/** Saves what Biggest changes groups by, which the next Details request fetches and sends to the backend */
+function setInsightsBiggestChangesGroupBy(groupBy: InsightsBiggestChangesGroupBy) {
+    Onyx.set(ONYXKEYS.NVP_INSIGHTS_BIGGEST_CHANGES_GROUP_BY, groupBy);
+}
+
 function setInsightsFilters(searchKey: InsightsSearchKey, query: SearchQueryString) {
     Onyx.merge(ONYXKEYS.SEARCH_FILTERS, {[searchKey]: {query}});
 }
 
-export {getInsights, getInsightsDetails, setInsightsFilters};
+export {getInsights, getInsightsBiggestChanges, getInsightsDetails, setInsightsBiggestChangesGroupBy, setInsightsFilters};

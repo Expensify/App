@@ -11,7 +11,7 @@ import type {InsightsTimeGroupBy} from '@pages/Insights/insightsGroupByUtils';
 import {buildDetailsFiltersQueryJSON} from '@pages/Insights/insightsQueries';
 
 import CONST from '@src/CONST';
-import type {InsightsGraphKey} from '@src/types/onyx';
+import type {InsightsBiggestChangesGroupBy, InsightsGraphKey} from '@src/types/onyx';
 
 import getCalendarPeriod from './getCalendarPeriod';
 import getInsightsDetailsPeriod from './getInsightsDetailsPeriod';
@@ -41,6 +41,9 @@ type BuildInsightsDetailsQueryParams = {
 
     /** Sections to request, none for graphs GetInsightsDetails doesn't support */
     sections: InsightsDetailsSection[] | undefined;
+
+    /** What Biggest changes groups by, sent only when the section is requested */
+    biggestChangesGroupBy?: InsightsBiggestChangesGroupBy;
 
     filters: InsightsFilters;
 
@@ -90,6 +93,7 @@ function getSummarizedPeriod({
 function buildInsightsDetailsQuery({
     graphKey,
     sections,
+    biggestChangesGroupBy,
     filters,
     itemGroupBy,
     itemKey,
@@ -111,6 +115,7 @@ function buildInsightsDetailsQuery({
     }
 
     const item = itemGroupBy ? {groupBy: itemGroupBy, value: itemGroupBy === CONST.SEARCH.GROUP_BY.FROM ? Number(itemKey) : itemKey} : undefined;
+    // The sections and the Biggest changes grouping stay out of the hash, so a response for one of them merges into the same panel
     const hashedFields = {graphKey, filters: filtersQueryJSON.filters, targetCurrency: filters.groupCurrency, groupBy: periodGroupBy, period, item};
     const hash = hashText(JSON.stringify(hashedFields), 2 ** 32);
 
@@ -118,6 +123,7 @@ function buildInsightsDetailsQuery({
         jsonQuery: JSON.stringify({
             ...hashedFields,
             sections,
+            biggestChangesGroupBy: sections.includes(CONST.INSIGHTS.DETAILS_SECTION.BIGGEST_CHANGES) ? biggestChangesGroupBy : undefined,
             topExpensesSnapshotHash,
             hash,
         }),

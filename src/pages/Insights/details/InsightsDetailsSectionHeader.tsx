@@ -16,6 +16,8 @@ import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type {SentryLabel} from '@src/types/utils/SentryLabel';
 
+import type {ReactNode} from 'react';
+
 import React from 'react';
 import {View} from 'react-native';
 
@@ -24,10 +26,13 @@ type InsightsDetailsSectionHeaderProps = {
 
     /** Spend page query the View all link opens, and its Sentry label. The link is hidden without it */
     viewAll?: {query: SearchQueryString; sentryLabel: SentryLabel};
+
+    /** Content shown at the right end of the row, after View all */
+    children?: ReactNode;
 };
 
-/** Title row of a Details panel section, with an optional View all link to the Spend page on the right. */
-function InsightsDetailsSectionHeader({title, viewAll}: InsightsDetailsSectionHeaderProps) {
+/** Title row of a Details panel section, with an optional View all link to the Spend page or a control on the right. */
+function InsightsDetailsSectionHeader({title, viewAll, children}: InsightsDetailsSectionHeaderProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate} = useLocalize();
@@ -63,6 +68,7 @@ function InsightsDetailsSectionHeader({title, viewAll}: InsightsDetailsSectionHe
                     />
                 </PressableWithoutFeedback>
             )}
+            {children}
         </View>
     );
 }

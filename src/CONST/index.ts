@@ -10873,8 +10873,10 @@ const CONST = {
         DETAILS_SECTION: {
             SUMMARY: 'summary',
             RECENT_HISTORY: 'recentHistory',
+            BIGGEST_CHANGES: 'biggestChanges',
             TOP_EXPENSES: 'topExpenses',
         },
+        BIGGEST_CHANGES_LIMIT: 5,
     },
 
     SECTION_LIST_ITEM_TYPE: {

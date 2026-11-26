@@ -8,10 +8,15 @@ import type {ListItem} from '@components/SelectionList/types';
 
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import variables from '@styles/variables';
+
 import type {SentryLabel} from '@src/types/utils/SentryLabel';
 
 import React, {useState} from 'react';
 import {View} from 'react-native';
+
+/** Height of the line between option groups, with its vertical margins */
+const DIVIDER_HEIGHT = 25;
 
 type InsightsGroupByPopupProps<T extends string> = {
     optionGroups: Array<Array<{value: T; label: string}>>;
@@ -62,7 +67,9 @@ function InsightsGroupByPopup<T extends string>({
         >
             <ListFilterHeightContextProvider>
                 <ListFilterWrapper
-                    itemCount={optionGroups.reduce((count, options) => count + options.length, optionGroups.length - 1)}
+                    itemCount={optionGroups.reduce((count, options) => count + options.length, 0)}
+                    itemHeight={variables.optionRowHeight}
+                    extraHeight={(optionGroups.length - 1) * DIVIDER_HEIGHT}
                     hasHeader
                 >
                     <SelectionListWithSections
