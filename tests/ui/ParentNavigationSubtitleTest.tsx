@@ -1,5 +1,7 @@
 import {fireEvent, render, screen} from '@testing-library/react-native';
 
+import {IsInSidePanelContext} from '@hooks/useIsInSidePanel';
+
 import type * as Localize from '@libs/Localize';
 import Navigation from '@libs/Navigation/Navigation';
 import {isReportActionVisible} from '@libs/ReportActionsUtils';
@@ -46,6 +48,9 @@ jest.mock('@libs/ReportActionsUtils', () => ({
     getReportAction: jest.fn(() => undefined),
     isReportActionVisible: jest.fn(() => false),
 }));
+
+const mockOpenSidePanel = jest.fn();
+jest.mock('@hooks/useSidePanelActions', () => () => ({openSidePanel: mockOpenSidePanel}));
 
 const mockUseRootNavigationState = jest.fn();
 jest.mock('@hooks/useRootNavigationState', () => ({
@@ -318,6 +323,41 @@ describe('ParentNavigationSubtitle', () => {
 
         expect(Navigation.goBack).not.toHaveBeenCalled();
         expect(Navigation.navigate).toHaveBeenCalled();
+    });
+
+    it('opens the parent report in the side panel when rendered inside it', () => {
+        // Given a Concierge thread rendered in the side panel, whose parent action is visible
+        const parentReportID = 'concierge-report';
+        const parentReportActionID = 'parent-action';
+        jest.mocked(isReportActionVisible).mockReturnValue(true);
+        mockUseRoute.mockReturnValue(createMock<AnyRoute>({name: SCREENS.REPORT}));
+        mockUseRootNavigationState.mockImplementation((selector?: (state: unknown) => unknown) => {
+            const mockState = getMockRootStateWithReportsSplitStack('other-report', 'expense-report');
+            return selector ? selector(mockState) : undefined;
+        });
+
+        render(
+            <IsInSidePanelContext.Provider value>
+                <ParentNavigationSubtitle
+                    parentNavigationSubtitleData={{reportName: 'Concierge'}}
+                    parentReportID={parentReportID}
+                    parentReportActionID={parentReportActionID}
+                    reportID="thread-report"
+                />
+            </IsInSidePanelContext.Provider>,
+        );
+
+        // When the user presses the parent link
+        fireEvent(screen.getByTestId('parent-navigation-subtitle-link'), 'press', {
+            preventDefault: jest.fn(),
+            stopPropagation: jest.fn(),
+            nativeEvent: {},
+        });
+
+        // Then the side panel switches to the parent at that action, and the main pane does not navigate
+        expect(mockOpenSidePanel).toHaveBeenCalledWith({reportID: parentReportID, reportActionID: parentReportActionID});
+        expect(Navigation.navigate).not.toHaveBeenCalled();
+        expect(Navigation.goBack).not.toHaveBeenCalled();
     });
 
     describe('visible report actions subscription', () => {
