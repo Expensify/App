@@ -276,9 +276,11 @@ describe('SidebarLinksData', () => {
             await waitForBatchedUpdatesWithAct();
 
             // Then screen readers hear the chat first, because the navigation hint is no longer at the start of every row's label
-            const navigatesToChat = TestHelper.translateLocal('accessibilityHints.navigatesToChat');
-            const row = getOptionRows().at(0);
-            expect(row?.props.accessibilityLabel).not.toContain(navigatesToChat);
+            const chatNameText = screen.getByLabelText(TestHelper.translateLocal('accessibilityHints.chatUserDisplayNames'));
+            const chatName = String([chatNameText.props.children].flat().at(0));
+            const rowLabel = String(getOptionRows().at(0)?.props.accessibilityLabel);
+            expect(rowLabel.startsWith(chatName)).toBe(true);
+            expect(rowLabel).not.toContain(TestHelper.translateLocal('accessibilityHints.navigatesToChat'));
         });
 
         it('should display the report with violations', async () => {

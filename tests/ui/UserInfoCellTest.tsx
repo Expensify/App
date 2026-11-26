@@ -25,6 +25,6 @@ describe('UserInfoCell', () => {
         // Then a screen reader reads the name and skips the initials, which only repeat it
         expect(screen.getByText('Audit Tester')).toBeOnTheScreen();
         expect(screen.queryByText('AT')).not.toBeOnTheScreen();
-        expect(screen.getByText('AT', {includeHiddenElements: true})).toBeTruthy();
+        expect(screen.getByText('AT', {includeHiddenElements: true})).toBeOnTheScreen();
     });
 });

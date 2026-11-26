@@ -257,14 +257,12 @@ type SingleSelectListItemProps<TItem extends ListItem> = ListItemProps<TItem> & 
 };
 
 type BareUserListItemProps<TItem extends ListItem> = ListItemProps<TItem> &
-    ForwardedFSClassProps & {
+    ForwardedFSClassProps &
+    Pick<ListItemPressableProps<TItem>, 'shouldUseOptionRole'> & {
         /** Style of the row content wrapper, merged before `item.itemStyle` */
         wrapperStyle?: StyleProp<ViewStyle>;
         pressableStyle?: StyleProp<ViewStyle>;
         shouldHighlightSelectedItem?: boolean;
-
-        /** When `false`, the row stays a `button` instead of becoming a listbox `option` */
-        shouldUseOptionRole?: boolean;
     };
 
 type SpendRuleListItemType = ListItem & {
