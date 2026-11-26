@@ -12,6 +12,7 @@ import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
 type HookProps = {
     tagLevels: InsightsTagLevel[] | undefined;
+    respondedTagLevels?: InsightsTagLevel[];
     policyIDs?: string[];
     selectedTagLevel: number;
     canChangeFilters?: boolean;
@@ -25,8 +26,8 @@ const TWO_LEVELS = [
 function renderOptionsHook(initialProps: HookProps) {
     const setFilters = jest.fn();
     const hook = renderHook(
-        ({tagLevels, policyIDs = [], selectedTagLevel, canChangeFilters = true}: HookProps) =>
-            useInsightsTagLevelOptions({tagLevels, policyIDs, selectedTagLevel, canChangeFilters, setFilters}),
+        ({tagLevels, respondedTagLevels, policyIDs = [], selectedTagLevel, canChangeFilters = true}: HookProps) =>
+            useInsightsTagLevelOptions({tagLevels, respondedTagLevels, policyIDs, selectedTagLevel, canChangeFilters, setFilters}),
         {initialProps},
     );
     return {...hook, setFilters};
@@ -42,23 +43,32 @@ describe('useInsightsTagLevelOptions', () => {
         await waitForBatchedUpdates();
     });
 
-    it('waits for GetInsights to list the levels before resetting a saved level', () => {
+    it('resets a saved level once a response for it lists only lower levels', () => {
         // Given a saved level two and no response yet
         const {rerender, setFilters} = renderOptionsHook({tagLevels: undefined, selectedTagLevel: 2});
-
-        // Then the saved level is kept while the levels are unknown
         expect(setFilters).not.toHaveBeenCalled();
 
         // When the response lists only level one
-        rerender({tagLevels: [{level: 1, names: ['Department']}], selectedTagLevel: 2});
+        const oneLevel = [{level: 1, names: ['Department']}];
+        rerender({tagLevels: oneLevel, respondedTagLevels: oneLevel, selectedTagLevel: 2});
 
         // Then the dashboard falls back to level one
         expect(setFilters).toHaveBeenCalledWith({tagLevel: 1});
     });
 
+    it('keeps a saved level that a stored response predating it leaves out', () => {
+        // Given a stored response from before the workspace added level two
+        // When level two is selected and no response for it has arrived yet
+        const {setFilters} = renderOptionsHook({tagLevels: [{level: 1, names: ['Department']}], selectedTagLevel: 2});
+
+        // Then the selection is kept until a response confirms it
+        expect(setFilters).not.toHaveBeenCalled();
+    });
+
     it('keeps a saved level that a workspace in scope still has', () => {
-        // Given a saved level two and a response that lists it
-        const {result, setFilters} = renderOptionsHook({tagLevels: TWO_LEVELS, selectedTagLevel: 2});
+        // Given a saved level two
+        // When a response lists both levels
+        const {result, setFilters} = renderOptionsHook({tagLevels: TWO_LEVELS, respondedTagLevels: TWO_LEVELS, selectedTagLevel: 2});
 
         // Then both levels are offered and nothing is reset
         expect(result.current).toEqual([
@@ -93,11 +103,12 @@ describe('useInsightsTagLevelOptions', () => {
 
     it('waits until filters can change before resetting', () => {
         // Given a response without the saved level while filters can't change
-        const {rerender, setFilters} = renderOptionsHook({tagLevels: [{level: 1, names: []}], selectedTagLevel: 2, canChangeFilters: false});
+        const oneLevel = [{level: 1, names: []}];
+        const {rerender, setFilters} = renderOptionsHook({tagLevels: oneLevel, respondedTagLevels: oneLevel, selectedTagLevel: 2, canChangeFilters: false});
         expect(setFilters).not.toHaveBeenCalled();
 
         // When filters can change again
-        rerender({tagLevels: [{level: 1, names: []}], selectedTagLevel: 2, canChangeFilters: true});
+        rerender({tagLevels: oneLevel, respondedTagLevels: oneLevel, selectedTagLevel: 2, canChangeFilters: true});
 
         // Then the reset goes through
         expect(setFilters).toHaveBeenCalledWith({tagLevel: 1});

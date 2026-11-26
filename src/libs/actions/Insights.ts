@@ -42,7 +42,10 @@ function requestInsights<TKey extends OnyxKey>(
     );
 }
 
-function getInsights(dashboard: InsightsDashboardID, hash: number, jsonQuery: string, snapshotHashes: number[], queryType: SearchDataTypes) {
+/**
+ * @param requestID - Identifies this request, stored once it succeeds so the dashboard can tell its own response from one stored earlier
+ */
+function getInsights(dashboard: InsightsDashboardID, hash: number, jsonQuery: string, snapshotHashes: number[], queryType: SearchDataTypes, requestID: string) {
     const key = `${ONYXKEYS.COLLECTION.INSIGHTS}${dashboard}_${hash}` as const;
 
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.INSIGHTS | typeof ONYXKEYS.COLLECTION.SNAPSHOT>> = [
@@ -75,13 +78,20 @@ function getInsights(dashboard: InsightsDashboardID, hash: number, jsonQuery: st
         },
     ];
 
-    const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.SNAPSHOT>> = snapshotHashes.map((snapshotHash) => ({
-        onyxMethod: Onyx.METHOD.MERGE,
-        key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${snapshotHash}`,
-        value: {
-            search: {state: CONST.SEARCH.SNAPSHOT_STATE.LOADED, type: queryType, hash: snapshotHash},
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.SNAPSHOT | typeof ONYXKEYS.COLLECTION.RAM_ONLY_INSIGHTS_RESPONSE_REQUEST_ID>> = [
+        ...snapshotHashes.map<OnyxUpdate<typeof ONYXKEYS.COLLECTION.SNAPSHOT>>((snapshotHash) => ({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${snapshotHash}`,
+            value: {
+                search: {state: CONST.SEARCH.SNAPSHOT_STATE.LOADED, type: queryType, hash: snapshotHash},
+            },
+        })),
+        {
+            onyxMethod: Onyx.METHOD.SET,
+            key: `${ONYXKEYS.COLLECTION.RAM_ONLY_INSIGHTS_RESPONSE_REQUEST_ID}${dashboard}_${hash}`,
+            value: requestID,
         },
-    }));
+    ];
 
     requestInsights(READ_COMMANDS.GET_INSIGHTS, jsonQuery, key, {optimisticData, successData, failureData});
 }

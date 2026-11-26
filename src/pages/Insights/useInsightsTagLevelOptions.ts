@@ -14,8 +14,11 @@ import type {InsightsTagLevelOption} from './insightsTagLevels';
 import {getFittingTagLevel, getInsightsTagLevelOptions, getStoredTagLevels} from './insightsTagLevels';
 
 type UseInsightsTagLevelOptionsParams = {
-    /** Levels from the response for the current filters, undefined until GetInsights responds */
+    /** Levels stored with the dashboard for the current filters, undefined until GetInsights has responded to them */
     tagLevels: InsightsTagLevel[] | undefined;
+
+    /** Levels from a response for the current filters that arrived while the dashboard is open, the only ones a reset can trust */
+    respondedTagLevels: InsightsTagLevel[] | undefined;
 
     /** Workspaces the dashboard is scoped to, which are what the levels depend on */
     policyIDs: string[];
@@ -28,7 +31,7 @@ type UseInsightsTagLevelOptionsParams = {
     setFilters: (update: Partial<InsightsFilters>) => void;
 };
 
-function useInsightsTagLevelOptions({tagLevels, policyIDs, selectedTagLevel, canChangeFilters, setFilters}: UseInsightsTagLevelOptionsParams): InsightsTagLevelOption[] {
+function useInsightsTagLevelOptions({tagLevels, respondedTagLevels, policyIDs, selectedTagLevel, canChangeFilters, setFilters}: UseInsightsTagLevelOptionsParams): InsightsTagLevelOption[] {
     const {translate, numberFormat} = useLocalize();
     // Each filter change reads a new response, so levels stored for the same workspaces keep the menu up until it arrives, including offline and after a reload.
     const [storedTagLevels] = useOnyx(ONYXKEYS.COLLECTION.INSIGHTS, {selector: (dashboards) => getStoredTagLevels(dashboards, policyIDs)});
@@ -44,13 +47,12 @@ function useInsightsTagLevelOptions({tagLevels, policyIDs, selectedTagLevel, can
         setFilters({tagLevel: fittingTagLevel});
     });
 
-    // Only the response for the selected level can show that no workspace in scope has it anymore, so the reset waits for that response.
     useEffect(() => {
-        if (!tagLevels || !canChangeFilters) {
+        if (!respondedTagLevels || !canChangeFilters) {
             return;
         }
-        resetUnavailableTagLevel(tagLevels);
-    }, [tagLevels, canChangeFilters]);
+        resetUnavailableTagLevel(respondedTagLevels);
+    }, [respondedTagLevels, canChangeFilters]);
 
     return options;
 }

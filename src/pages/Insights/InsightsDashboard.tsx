@@ -24,6 +24,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {getInsights} from '@libs/actions/Insights';
+import {rand64} from '@libs/NumberUtils';
 
 import variables from '@styles/variables';
 
@@ -429,11 +430,15 @@ function InsightsDashboard({dashboardID, accessibleDashboards}: {dashboardID: In
     // The bucket actually queried, which Running total resolves to a real day/month bucket. Toggling Running total alone leaves this unchanged, so it stays a client-side transform with no refetch.
     const queryGroupBy = isResolved ? getQueryGroupBy(filters) : undefined;
 
+    const [lastRequest, setLastRequest] = useState<{hash: number; requestID: string}>();
+
     const requestDashboard = () => {
         if (!query || hash === undefined || isOffline) {
             return;
         }
-        getInsights(dashboardID, hash, query.jsonQuery, query.snapshotHashes, queryType);
+        const requestID = rand64();
+        setLastRequest({hash, requestID});
+        getInsights(dashboardID, hash, query.jsonQuery, query.snapshotHashes, queryType, requestID);
     };
 
     const onRequestConditionsChanged = useEffectEvent(() => {
@@ -452,6 +457,9 @@ function InsightsDashboard({dashboardID, accessibleDashboards}: {dashboardID: In
     }, [dashboardID, hash, queryGroupBy, snapshotHashes, isDashboardVisible, isFocused, isOffline]);
 
     const [dashboard] = useOnyx(`${ONYXKEYS.COLLECTION.INSIGHTS}${dashboardID}_${hash}`);
+    const [respondedRequestID] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_INSIGHTS_RESPONSE_REQUEST_ID}${dashboardID}_${hash}`);
+    // A stored response can predate a workspace's new tag levels, so the selected level is only checked against the response to the latest request for these filters.
+    const hasLatestResponse = !!lastRequest && lastRequest.hash === hash && respondedRequestID === lastRequest.requestID;
     const [hasLoadedBefore = false] = useOnyx(ONYXKEYS.COLLECTION.INSIGHTS, {
         selector: hasStoredDashboardResponse,
     });
@@ -483,6 +491,7 @@ function InsightsDashboard({dashboardID, accessibleDashboards}: {dashboardID: In
     });
     const tagLevelOptions = useInsightsTagLevelOptions({
         tagLevels: dashboard?.tagLevels,
+        respondedTagLevels: hasLatestResponse ? dashboard?.tagLevels : undefined,
         policyIDs: filters.policyIDs,
         selectedTagLevel: filters.tagLevel,
         canChangeFilters: !isExporting,
