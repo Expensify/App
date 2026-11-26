@@ -7,20 +7,17 @@ import {doesUserHavePaymentCardAdded} from '@libs/SubscriptionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
-import type {ValueOf} from 'type-fest';
+import type RunWithPaymentCard from './types';
+import type {PaymentCardFlow} from './types';
 
 /** Adding a payment card is only available on web, so without a card this explains why the action can't run. */
-function useRunWithPaymentCard(flow: ValueOf<typeof CONST.DOMAIN.PAYMENT_CARD_FLOW>) {
+function useRunWithPaymentCard(): RunWithPaymentCard {
     const [userBillingFundID] = useOnyx(ONYXKEYS.NVP_BILLING_FUND_ID);
     const {translate} = useLocalize();
     const {showConfirmModal} = useConfirmModal();
     const hasPaymentCard = doesUserHavePaymentCardAdded(userBillingFundID);
 
-    return (action: () => void) => {
-        if (hasPaymentCard) {
-            action();
-            return;
-        }
+    const showNoPaymentCardModal = (flow: PaymentCardFlow) => {
         showConfirmModal({
             title: translate('workspace.distanceRates.oopsNotSoFast'),
             prompt: translate(
@@ -29,6 +26,19 @@ function useRunWithPaymentCard(flow: ValueOf<typeof CONST.DOMAIN.PAYMENT_CARD_FL
             confirmText: translate('common.buttonConfirm'),
             shouldShowCancelButton: false,
         });
+    };
+
+    return {
+        hasPaymentCard,
+        canAddPaymentCard: false,
+        runWithPaymentCard: (flow, action) => {
+            if (hasPaymentCard) {
+                action();
+                return;
+            }
+            showNoPaymentCardModal(flow);
+        },
+        showNoPaymentCardModal,
     };
 }
 

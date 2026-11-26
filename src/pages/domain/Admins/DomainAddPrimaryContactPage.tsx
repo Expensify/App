@@ -49,7 +49,7 @@ function DomainAddPrimaryContactPage({route}: DomainAddPrimaryContactPageProps) 
     const {translate, formatPhoneNumber, localeCompare} = useLocalize();
     const styles = useThemeStyles();
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
-    const runWithPaymentCard = useRunWithPaymentCard(CONST.DOMAIN.PAYMENT_CARD_FLOW.PRIMARY_CONTACT);
+    const {runWithPaymentCard} = useRunWithPaymentCard();
     const [adminAccountIDs] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {
         selector: adminAccountIDsSelector,
     });
@@ -153,7 +153,7 @@ function DomainAddPrimaryContactPage({route}: DomainAddPrimaryContactPageProps) 
                             Navigation.goBack(ROUTES.DOMAIN_ADMINS_SETTINGS.getRoute(domainAccountID));
                         };
                         if (isConsolidatedBillingOn) {
-                            runWithPaymentCard(savePrimaryContact);
+                            runWithPaymentCard(CONST.DOMAIN.PAYMENT_CARD_FLOW.PRIMARY_CONTACT, savePrimaryContact);
                             return;
                         }
                         savePrimaryContact();

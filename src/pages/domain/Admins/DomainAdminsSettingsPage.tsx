@@ -39,7 +39,7 @@ function DomainAdminsSettingsPage({route}: DomainAdminsSettingsPageProps) {
     const {translate} = useLocalize();
     const {showConfirmModal} = useConfirmModal();
     const {login: currentUserLogin} = useCurrentUserPersonalDetails();
-    const runWithPaymentCard = useRunWithPaymentCard(CONST.DOMAIN.PAYMENT_CARD_FLOW.CONSOLIDATED_BILLING);
+    const {hasPaymentCard, canAddPaymentCard, runWithPaymentCard, showNoPaymentCardModal} = useRunWithPaymentCard();
 
     const [domainPendingActions] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`);
     const [domainErrors] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`);
@@ -49,9 +49,13 @@ function DomainAdminsSettingsPage({route}: DomainAdminsSettingsPageProps) {
     const [domainName] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {selector: domainNameSelector});
 
     const technicalContactEmail = technicalContactSettings?.technicalContactEmail;
+    const isConsolidatedBillingOn = !!technicalContactSettings?.useTechnicalContactBillingCard;
+    const isCurrentUserPrimaryContact = !!technicalContactEmail && Str.caseInsensitiveEquals(technicalContactEmail, currentUserLogin ?? '');
+    const isPaymentCardUnavailable = !hasPaymentCard && !canAddPaymentCard;
 
     // Consolidated billing charges the primary contact's card, so only they can turn it on.
-    const isLocked = !!technicalContactEmail && !technicalContactSettings?.useTechnicalContactBillingCard && !Str.caseInsensitiveEquals(technicalContactEmail, currentUserLogin ?? '');
+    const isLocked = !!technicalContactEmail && !isConsolidatedBillingOn && !isCurrentUserPrimaryContact;
+    const isLockedWithoutPaymentCard = isCurrentUserPrimaryContact && !isConsolidatedBillingOn && isPaymentCardUnavailable;
 
     return (
         <BaseDomainSettingsPage domainAccountID={domainAccountID}>
@@ -64,7 +68,14 @@ function DomainAdminsSettingsPage({route}: DomainAdminsSettingsPageProps) {
                 <MenuItemField
                     sentryLabel={CONST.SENTRY_LABEL.DOMAIN.ADMINS.PRIMARY_CONTACT}
                     name={translate('domain.admins.primaryContact')}
-                    onPress={() => Navigation.navigate(ROUTES.DOMAIN_ADD_PRIMARY_CONTACT.getRoute(domainAccountID))}
+                    onPress={() => {
+                        // While consolidated billing is on, taking over as primary contact charges the new contact's card.
+                        if (isConsolidatedBillingOn && !isCurrentUserPrimaryContact && isPaymentCardUnavailable) {
+                            showNoPaymentCardModal(CONST.DOMAIN.PAYMENT_CARD_FLOW.PRIMARY_CONTACT);
+                            return;
+                        }
+                        Navigation.navigate(ROUTES.DOMAIN_ADD_PRIMARY_CONTACT.getRoute(domainAccountID));
+                    }}
                     value={technicalContactSettings?.technicalContactEmail}
                 />
             </OfflineWithFeedback>
@@ -73,10 +84,14 @@ function DomainAdminsSettingsPage({route}: DomainAdminsSettingsPageProps) {
                 switchAccessibilityLabel={translate('domain.admins.consolidatedDomainBilling')}
                 switchSentryLabel={CONST.SENTRY_LABEL.DOMAIN.ADMINS.CONSOLIDATED_DOMAIN_BILLING_SWITCH}
                 isActive={!!technicalContactSettings?.technicalContactEmail && !!technicalContactSettings?.useTechnicalContactBillingCard}
-                disabled={!technicalContactEmail || isLocked}
+                disabled={!technicalContactEmail || isLocked || isLockedWithoutPaymentCard}
                 disabledAction={
-                    isLocked
+                    isLocked || isLockedWithoutPaymentCard
                         ? () => {
+                              if (isLockedWithoutPaymentCard) {
+                                  showNoPaymentCardModal(CONST.DOMAIN.PAYMENT_CARD_FLOW.CONSOLIDATED_BILLING);
+                                  return;
+                              }
                               showConfirmModal({
                                   title: translate('workspace.distanceRates.oopsNotSoFast'),
                                   prompt: translate('domain.admins.consolidatedDomainBillingLockedMessage'),
@@ -94,7 +109,7 @@ function DomainAdminsSettingsPage({route}: DomainAdminsSettingsPageProps) {
                         toggleConsolidatedDomainBilling(domainAccountID, domainName, false);
                         return;
                     }
-                    runWithPaymentCard(() => toggleConsolidatedDomainBilling(domainAccountID, domainName, true));
+                    runWithPaymentCard(CONST.DOMAIN.PAYMENT_CARD_FLOW.CONSOLIDATED_BILLING, () => toggleConsolidatedDomainBilling(domainAccountID, domainName, true));
                 }}
                 title={translate('domain.admins.consolidatedDomainBilling')}
                 subtitle={

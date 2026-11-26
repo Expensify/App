@@ -52,10 +52,10 @@ jest.mock('@react-navigation/native', () => ({
 jest.mock('@hooks/useRunWithPaymentCard', () => {
     const {default: useRunWithPaymentCardOnWeb} = jest.requireActual<typeof UseRunWithPaymentCardModule>('@hooks/useRunWithPaymentCard/index.ts');
     const {default: useRunWithPaymentCardOnNative} = jest.requireActual<typeof UseRunWithPaymentCardModule>('@hooks/useRunWithPaymentCard/index.native.ts');
-    function useRunWithPaymentCardForPlatform(flow: Parameters<typeof UseRunWithPaymentCardModule.default>[0]) {
-        const runOnWeb = useRunWithPaymentCardOnWeb(flow);
-        const runOnNative = useRunWithPaymentCardOnNative(flow);
-        return mockIsNativeApp ? runOnNative : runOnWeb;
+    function useRunWithPaymentCardForPlatform() {
+        const paymentCardOnWeb = useRunWithPaymentCardOnWeb();
+        const paymentCardOnNative = useRunWithPaymentCardOnNative();
+        return mockIsNativeApp ? paymentCardOnNative : paymentCardOnWeb;
     }
     return {__esModule: true, default: useRunWithPaymentCardForPlatform};
 });
