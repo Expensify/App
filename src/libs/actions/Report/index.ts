@@ -9130,7 +9130,19 @@ function buildOptimisticChangePolicyData({
     }
 
     // 7. Repricing can change totals even when the report's output currency stays the same.
-    if (destinationCurrency && ((sourceCurrency && sourceCurrency !== destinationCurrency) || hasRepricedTransaction)) {
+    // Cached totals can include foreign expenses whose individual conversions have not loaded yet.
+    // Keep those totals and their preview until the server can value every unchanged expense.
+    const hasUnvaluedUnchangedForeignExpense =
+        hasRepricedTransaction &&
+        sourceCurrency === destinationCurrency &&
+        updatedReportTransactions.some((transaction, index) => {
+            if (transaction.convertedAmount != null || getCurrency(transaction) === destinationCurrency) {
+                return false;
+            }
+            const originalTransaction = activeReportTransactions[index];
+            return getAmount(transaction, true) === getAmount(originalTransaction, true) && getCurrency(transaction) === getCurrency(originalTransaction);
+        });
+    if (destinationCurrency && !hasUnvaluedUnchangedForeignExpense && ((sourceCurrency && sourceCurrency !== destinationCurrency) || hasRepricedTransaction)) {
         let newTotal = 0;
         let newUnheldTotal = 0;
         let newNonReimbursableTotal = 0;
@@ -9145,7 +9157,7 @@ function buildOptimisticChangePolicyData({
                 sourceCurrency === destinationCurrency &&
                 getAmount(transaction, true) === getAmount(originalTransaction, true) &&
                 transactionCurrency === getCurrency(originalTransaction) &&
-                transaction.convertedAmount !== undefined;
+                transaction.convertedAmount != null;
 
             // Preserve valid conversions of unrelated expenses, including refunds.
             if (transactionCurrency === destinationCurrency || canKeepConversion) {

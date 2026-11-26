@@ -7244,6 +7244,95 @@ describe('actions/Report', () => {
             expect(await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`)).toMatchObject(originalTotals);
         });
 
+        it.each([
+            {conversion: 'missing', fails: false},
+            {conversion: 'missing', fails: true},
+            {conversion: 'known', fails: false},
+            {conversion: 'zero', fails: false},
+        ])('preserves foreign contributions with $conversion conversions when failure is $fails', async ({conversion, fails}) => {
+            // Given cached report totals include a held foreign debit and an unheld foreign refund
+            const distance = createDistanceTransaction();
+            const debitContribution = conversion === 'zero' ? 0 : -900;
+            const refundContribution = conversion === 'zero' ? 0 : 300;
+            const foreignDebit: OnyxTypes.Transaction = {
+                ...distance,
+                transactionID: 'foreignDebit',
+                amount: -1200,
+                currency: 'CAD',
+                reimbursable: false,
+                iouRequestType: undefined,
+                comment: {comment: 'Foreign purchase', hold: 'foreignHold'},
+                ...(conversion === 'missing' ? {} : {convertedAmount: debitContribution}),
+            };
+            const foreignRefund: OnyxTypes.Transaction = {
+                ...foreignDebit,
+                transactionID: 'foreignRefund',
+                amount: 200,
+                currency: 'EUR',
+                comment: {comment: 'Foreign refund'},
+                ...(conversion === 'missing' ? {} : {convertedAmount: refundContribution}),
+            };
+            const originalTotals = {
+                total: -500 + debitContribution + refundContribution,
+                unheldTotal: -500 + refundContribution,
+                reimbursableTotal: -500,
+                unheldReimbursableTotal: -500,
+                nonReimbursableTotal: debitContribution + refundContribution,
+                unheldNonReimbursableTotal: refundContribution,
+            };
+            const repricedTotals = {
+                ...originalTotals,
+                total: originalTotals.total - 300,
+                unheldTotal: originalTotals.unheldTotal - 300,
+                reimbursableTotal: -800,
+                unheldReimbursableTotal: -800,
+            };
+
+            // When a USD distance expense reprices without changing the report's output currency
+            const {params} = await changeWorkspace({transactions: [distance, foreignDebit, foreignRefund], reportOverrides: originalTotals});
+            const expectedOptimisticTotals = conversion === 'missing' ? originalTotals : repricedTotals;
+            const updatedReport = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
+            const previewChatID = updatedReport?.parentReportID;
+            if (!previewChatID) {
+                throw new Error('Expected destination workspace chat');
+            }
+            const getPreview = async () => (await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${previewChatID}`))?.[params.reportPreviewReportActionID];
+
+            // Then missing FX keeps every cached subtotal and preview, while known conversions retain signed contributions
+            expect((await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${distance.transactionID}`))?.modifiedAmount).toBe(-800);
+            expect(updatedReport).toMatchObject(expectedOptimisticTotals);
+            const expectedPreviewAmount = (Math.abs(expectedOptimisticTotals.total) / 100).toFixed(2);
+            expect(getReportActionMessage(await getPreview())?.text).toContain(`$${expectedPreviewAmount}`);
+            expect(await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${foreignDebit.transactionID}`)).toEqual(foreignDebit);
+            expect(await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${foreignRefund.transactionID}`)).toEqual(foreignRefund);
+            if (fails) {
+                mockFetch.fail();
+            } else {
+                const command = inviteSubmitter ? WRITE_COMMANDS.CHANGE_REPORT_POLICY_AND_INVITE_SUBMITTER : WRITE_COMMANDS.CHANGE_REPORT_POLICY;
+                const serverPreview = `Owner spent $${(Math.abs(repricedTotals.total) / 100).toFixed(2)}`;
+                mockFetch.mockAPICommand(command, () => ({
+                    onyxData: [
+                        {onyxMethod: Onyx.METHOD.MERGE, key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`, value: repricedTotals},
+                        {
+                            onyxMethod: Onyx.METHOD.MERGE,
+                            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${previewChatID}`,
+                            value: {[params.reportPreviewReportActionID]: {message: [{text: serverPreview, html: serverPreview, isEdited: false, type: CONST.REPORT.MESSAGE.TYPE.COMMENT}]}},
+                        },
+                    ],
+                }));
+            }
+            await mockFetch.resume();
+            await waitForNetworkPromises();
+            await waitForBatchedUpdates();
+            expect(await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`)).toMatchObject(fails ? originalTotals : repricedTotals);
+            if (fails) {
+                expect(await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${distance.transactionID}`)).toEqual(distance);
+                expect(await getPreview()).toBeUndefined();
+            } else {
+                expect(getReportActionMessage(await getPreview())?.text).toContain(`$${(Math.abs(repricedTotals.total) / 100).toFixed(2)}`);
+            }
+        });
+
         it('recomputes all violations and rolls back expense fields, totals and newly created threads on failure', async () => {
             // Given distance and ordinary expenses, including an existing ordinary-expense violation
             const distance = {...createDistanceTransaction(), convertedAmount: -500};
