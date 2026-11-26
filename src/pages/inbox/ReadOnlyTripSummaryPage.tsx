@@ -59,8 +59,9 @@ function ReadOnlyTripSummaryPage({reportID}: ReadOnlyTripSummaryPageProps) {
         search({queryJSON, searchKey: undefined, isLoading: false, shouldReturnTripRooms});
     }, [queryJSON, shouldReturnTripRooms]);
 
-    const shouldUseTripSearchOnly = !!tripSearch?.hasLoaded && !tripSearch.hasFailed;
-    const shouldUseTripSearch = shouldUseTripSearchOnly || !!tripSearch?.tripRoom;
+    // Until this trip search succeeds, its snapshot may be from an older visit, so the table's row comes first
+    const hasTripSearchSucceeded = !!tripSearch?.hasLoaded && !tripSearch.hasFailed;
+    const shouldUseTripSearch = hasTripSearchSucceeded || !currentSearchResults?.data?.[tripRoomKey];
     const tripRoom = shouldUseTripSearch ? tripSearch?.tripRoom : currentSearchResults?.data?.[tripRoomKey];
     const reportNameValuePairs = shouldUseTripSearch ? tripSearch?.reportNameValuePairs : currentSearchResults?.data?.[reportNameValuePairsKey];
     const isLoadingTrip = !tripRoom && !tripSearch?.hasLoaded;

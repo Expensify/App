@@ -226,4 +226,61 @@ describe('ReadOnlyTripSummaryPage', () => {
         expect(screen.getByText('Trip to Denver')).toBeOnTheScreen();
         expect(screen.queryByText('Trip to Denver from the table')).not.toBeOnTheScreen();
     });
+
+    it('prefers the table over a trip search saved on an earlier visit while the new one runs', async () => {
+        // Given a trip search saved when the trip was opened before, now being rerun, and a newer copy of the trip in the table
+        await act(async () => {
+            await Onyx.set(ONYXKEYS.BETAS, [CONST.BETAS.TRAVEL_APPROVAL]);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.SNAPSHOT}${tripQueryHash}`, {
+                ...tripSearchResults,
+                search: {...tripSearchResults.search, state: CONST.SEARCH.SNAPSHOT_STATE.LOADING},
+            });
+        });
+
+        // When the summary opens from the trips table
+        renderPage(tableSearchResults);
+        await waitForBatchedUpdatesWithAct();
+
+        // Then it shows the table's copy rather than the older saved one
+        expect(screen.getByText('Trip to Denver from the table')).toBeOnTheScreen();
+        expect(screen.queryByText('Trip to Denver')).not.toBeOnTheScreen();
+    });
+
+    it('prefers the table over a trip search saved on an earlier visit when the new one fails', async () => {
+        // Given the rerun of a saved trip search failed, while the table has a newer copy of the trip
+        await act(async () => {
+            await Onyx.set(ONYXKEYS.BETAS, [CONST.BETAS.TRAVEL_APPROVAL]);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.SNAPSHOT}${tripQueryHash}`, {
+                ...tripSearchResults,
+                search: {...tripSearchResults.search, responseJsonCode: CONST.JSON_CODE.EXP_ERROR},
+            });
+        });
+
+        // When the summary opens from the trips table
+        renderPage(tableSearchResults);
+        await waitForBatchedUpdatesWithAct();
+
+        // Then it keeps the table's copy
+        expect(screen.getByText('Trip to Denver from the table')).toBeOnTheScreen();
+        expect(screen.queryByText('Trip to Denver')).not.toBeOnTheScreen();
+    });
+
+    it('shows the saved trip search when there is no table to fall back on', async () => {
+        // Given a saved trip search that is being rerun, and no trips table, as when the summary is opened from a link offline
+        await act(async () => {
+            await Onyx.set(ONYXKEYS.BETAS, [CONST.BETAS.TRAVEL_APPROVAL]);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.SNAPSHOT}${tripQueryHash}`, {
+                ...tripSearchResults,
+                search: {...tripSearchResults.search, state: CONST.SEARCH.SNAPSHOT_STATE.LOADING},
+            });
+        });
+
+        // When the summary opens
+        renderPage();
+        await waitForBatchedUpdatesWithAct();
+
+        // Then it shows the saved trip instead of a spinner or not found
+        expect(screen.getByText('Trip to Denver')).toBeOnTheScreen();
+        expect(screen.getByText('Trip summary')).toBeOnTheScreen();
+    });
 });
