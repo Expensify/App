@@ -53,8 +53,20 @@ describe('no-role-as-accessibility-label', () => {
             '<Pressable accessibilityLabel={CONST.WORKSPACE.ROLE} />',
             // Given a role set on an object of props, When linted, Then it passes, since the key is not an accessible name
             'const props = {role: CONST.ROLE.BUTTON, accessibilityLabel: translate("common.close")};',
+            // Given accessibilityLabelledBy, which holds an element ID rather than a name, When linted, Then it passes, since only names are checked
+            '<TextInput accessibilityLabelledBy={labelID} />',
         ],
         invalid: [
+            {
+                // Given the role constant passed to a prop that becomes a close button's name, When linted, Then it is reported, since it is a name too
+                code: '<Modal closeAccessibilityLabel={CONST.ROLE.BUTTON} />',
+                errors: [{messageId: 'roleAsLabel', data: {prop: 'closeAccessibilityLabel', role: 'BUTTON'}}],
+            },
+            {
+                // Given the role constant as a label prop's default value, When linted, Then it is reported, since every caller that omits the prop gets it
+                code: 'function Row({accessibilityLabel = CONST.ROLE.BUTTON}) { return null; }',
+                errors: [{messageId: 'roleAsLabel', data: {prop: 'accessibilityLabel', role: 'BUTTON'}}],
+            },
             {
                 // Given the role constant as the label, When linted, Then it is reported, because the screen reader would read "button, button"
                 code: '<Pressable accessibilityLabel={CONST.ROLE.BUTTON} />',

@@ -14,7 +14,12 @@ const meta = {
     },
 };
 
-const ACCESSIBLE_NAME_PROPS = new Set(['accessibilityLabel', 'aria-label', 'switchAccessibilityLabel']);
+// `accessibilityLabel`, `aria-label`, and every prop that ends up as one, such as `closeAccessibilityLabel`. `accessibilityLabelledBy` is an ID, not a name.
+const ACCESSIBLE_NAME_PROP = /^(accessibilityLabel|aria-label|\w+AccessibilityLabel)$/;
+
+function isAccessibleNameProp(propName) {
+    return typeof propName === 'string' && ACCESSIBLE_NAME_PROP.test(propName);
+}
 const TS_WRAPPER_TYPES = new Set(['TSAsExpression', 'TSSatisfiesExpression', 'TSNonNullExpression', 'TSTypeAssertion']);
 
 function unwrap(node) {
@@ -50,9 +55,13 @@ function getRoleName(node) {
     return getPropertyName(node);
 }
 
-/** Finds every `CONST.ROLE.X` the value can resolve to, through `??`, `||`, `&&` and ternaries. */
+/** Finds every `CONST.ROLE.X` the value can resolve to, through `??`, `||`, `&&`, ternaries and default values. */
 function findRoleValues(node, found = []) {
     const unwrapped = unwrap(node);
+    if (unwrapped.type === 'AssignmentPattern') {
+        findRoleValues(unwrapped.right, found);
+        return found;
+    }
     if (unwrapped.type === 'LogicalExpression') {
         findRoleValues(unwrapped.left, found);
         findRoleValues(unwrapped.right, found);
@@ -79,7 +88,7 @@ function create(context) {
 
     return {
         JSXAttribute(node) {
-            if (node.name.type !== 'JSXIdentifier' || !ACCESSIBLE_NAME_PROPS.has(node.name.name)) {
+            if (node.name.type !== 'JSXIdentifier' || !isAccessibleNameProp(node.name.name)) {
                 return;
             }
             if (node.value?.type !== 'JSXExpressionContainer' || node.value.expression.type === 'JSXEmptyExpression') {
@@ -99,7 +108,7 @@ function create(context) {
             } else if (node.key.type === 'Literal') {
                 propName = node.key.value;
             }
-            if (!ACCESSIBLE_NAME_PROPS.has(propName)) {
+            if (!isAccessibleNameProp(propName)) {
                 return;
             }
             check(propName, node.value);

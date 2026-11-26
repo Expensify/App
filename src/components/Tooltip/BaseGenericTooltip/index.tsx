@@ -186,8 +186,7 @@ function BaseGenericTooltip({
                     style={[rootWrapperStyle, animationStyle]}
                     onPress={onTooltipPress}
                     role={CONST.ROLE.TOOLTIP}
-                    // Named by its text and not a tab stop, since a tooltip isn't a control; its close button stays focusable
-                    accessible={false}
+                    // No label, so the tooltip is named by its text instead of the word "tooltip"
                     interactive={!!onTooltipPress}
                 >
                     {wrapperChildren}

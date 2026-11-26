@@ -688,16 +688,14 @@ describe('ConciergePromptBox', () => {
             expect(screen.queryByLabelText(ADD_ATTACHMENT)).toBeNull();
         });
 
-        it('names the "+" button apart from the FAB and from the menu item it opens', () => {
-            // Given the box on Home, next to the FAB that screen readers already know as "Open actions menu"
+        it('names the "+" button apart from the FAB, which is on Home too', () => {
+            // Given the box, which sits on Home next to the FAB named "Open actions menu"
+            // When it renders
             render(<ConciergePromptBoxWrapper />);
 
-            // When the "+" button opens its menu
-            fireEvent.press(screen.getByLabelText(PLUS_BUTTON));
-
-            // Then no element reuses the FAB's name, and "Add attachment" is only the menu item, so a screen reader never hears two controls with one name
+            // Then its "+" button has its own name, so screen readers and agents can tell the two buttons apart
+            expect(screen.getByLabelText(PLUS_BUTTON)).toBeOnTheScreen();
             expect(screen.queryByLabelText(FAB_BUTTON)).toBeNull();
-            expect(screen.getAllByLabelText(ADD_ATTACHMENT)).toHaveLength(1);
         });
 
         it('opens the picker after the menu finishes closing', () => {

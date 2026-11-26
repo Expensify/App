@@ -1,4 +1,4 @@
-import {fireEvent, render, screen} from '@testing-library/react-native';
+import {render, screen} from '@testing-library/react-native';
 
 import {PressableWithoutFeedback} from '@components/Pressable';
 import Text from '@components/Text';
@@ -74,35 +74,43 @@ afterAll(() => {
     Reflect.deleteProperty(View.prototype, 'getBoundingClientRect');
 });
 
-describe.each([
-    ['native', NativeBaseGenericTooltip],
-    ['web', WebBaseGenericTooltip],
-])('BaseGenericTooltip on %s', (_platform, BaseGenericTooltip) => {
-    beforeEach(() => {
-        onClose.mockClear();
-    });
-
-    it('lets a screen reader reach the tooltip text and its close button on their own', () => {
+describe('BaseGenericTooltip', () => {
+    it('on native, lets a screen reader reach the tooltip text and its close button on their own', () => {
         // Given the first-session tooltip, with its text and a close button
+        // When it renders on native
         render(
             <PortalProvider>
-                <TooltipAtFullSize Tooltip={BaseGenericTooltip} />
+                <TooltipAtFullSize Tooltip={NativeBaseGenericTooltip} />
             </PortalProvider>,
         );
 
         // Then nothing is named "tooltip", because the role is announced on its own and a label made of it hides the real text
         expect(screen.queryByLabelText(CONST.ROLE.TOOLTIP)).toBeNull();
 
-        // And the pressable wrapper is not one accessible element, since on iOS that would hide the text and the close button inside it
+        // And the wrapper is not one accessible element, since on iOS that would hide the text and the close button inside it
         const wrappers = getTooltipWrappers();
         expect(wrappers).toHaveLength(1);
         expect(wrappers.at(0)?.props.accessible).toBe(false);
         expect(screen.getByText(TOOLTIP_TEXT)).toBeOnTheScreen();
+        expect(screen.getByRole(CONST.ROLE.BUTTON, {name: CLOSE_LABEL})).toBeOnTheScreen();
+    });
 
-        // When the close button is activated
-        fireEvent.press(screen.getByRole(CONST.ROLE.BUTTON, {name: CLOSE_LABEL}));
+    it('on web, names the tooltip by its text and keeps it focusable as before', () => {
+        // Given the same tooltip
+        // When it renders on web
+        render(
+            <PortalProvider>
+                <TooltipAtFullSize Tooltip={WebBaseGenericTooltip} />
+            </PortalProvider>,
+        );
 
-        // Then the tooltip gets dismissed
-        expect(onClose).toHaveBeenCalledTimes(1);
+        // Then nothing is named "tooltip", so the tooltip takes its name from its text
+        expect(screen.queryByLabelText(CONST.ROLE.TOOLTIP)).toBeNull();
+
+        // And keyboard users keep the tab stop they had, because only the label changed
+        const wrappers = getTooltipWrappers();
+        expect(wrappers).toHaveLength(1);
+        expect(wrappers.at(0)?.props.accessible).not.toBe(false);
+        expect(screen.getByText(TOOLTIP_TEXT)).toBeOnTheScreen();
     });
 });

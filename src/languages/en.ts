@@ -12280,7 +12280,7 @@ const translations = {
         selectAllTransactions: 'Select all transactions',
         selectAllItems: 'Select all items',
         openActionsMenu: 'Open actions menu',
-        // @context Screen reader label of the + button in the Ask Concierge box on Home. It must differ from the Add attachment item in the menu it opens.
+        // @context Screen reader label of the + button in the Ask Concierge box on Home. It must differ from the floating + button's "Open actions menu" on the same screen.
         openConciergeActionsMenu: 'Open Concierge actions menu',
         selectAllCategories: 'Select all categories',
         selectAllDistanceRates: 'Select all distance rates',
