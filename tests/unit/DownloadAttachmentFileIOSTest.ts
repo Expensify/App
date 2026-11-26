@@ -45,7 +45,6 @@ describe('downloadAttachmentFile on iOS', () => {
     beforeEach(() => {
         jest.clearAllMocks();
         callOrder.length = 0;
-        // @ts-expect-error The mock resolves the nonce of the growl, which is all the code under test passes around
         mockShow.mockReturnValue(mockGrowlNonce);
         mockHide.mockImplementation(() => {
             callOrder.push('hide');

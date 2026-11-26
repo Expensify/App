@@ -20,7 +20,6 @@ const download = () => downloadAttachmentFile(translateLocal, 'https://example.c
 describe('downloadAttachmentFile on Android', () => {
     beforeEach(() => {
         jest.clearAllMocks();
-        // @ts-expect-error The mock resolves the nonce of the growl, which is all the code under test passes around
         mockShow.mockReturnValue(growlNonce);
     });
 

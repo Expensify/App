@@ -78,7 +78,7 @@ describe('Device management sign out on all devices', () => {
 
     beforeEach(async () => {
         jest.clearAllMocks();
-        jest.spyOn(Growl, 'success').mockImplementation(() => {});
+        jest.spyOn(Growl, 'success').mockResolvedValue(undefined);
         NetworkState.setHasRadio(true);
         await Onyx.clear();
         await Onyx.set(ONYXKEYS.LOGINS, {
