@@ -54,7 +54,7 @@ function FlatNavSubnavItemRow({children}: FlatNavSubnavItemProps) {
             {(isHovered) => (
                 <View
                     ref={rowRef}
-                    style={[styles.flatNavigationBarSubnavItem, isHovered && styles.highlightBG]}
+                    style={styles.flatNavigationBarSubnavItem}
                     onFocus={updateKeyboardFocus}
                     onBlur={clearKeyboardFocus}
                 >
@@ -85,7 +85,6 @@ type FlatNavSubnavItemLinkProps = {
 function FlatNavSubnavItemLink({label, isSelected, isDisabled = false, sentryLabel, onPress, children}: FlatNavSubnavItemLinkProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
-    const isRowActive = useIsFlatNavSubnavRowActive();
 
     return (
         <PressableWithFeedback
@@ -99,16 +98,20 @@ function FlatNavSubnavItemLink({label, isSelected, isDisabled = false, sentryLab
             // The link carries the row's padding, so it can be pressed across the whole row. Content drawn over the row's end covers the label's end.
             style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.gap2, styles.h100, styles.flatNavigationBarSubnavItemLink, styles.flatNavigationBarSubnavItemRowEnd]}
         >
-            <View style={styles.flex1}>
-                <Text
-                    variant={isSelected ? 'textStrong' : 'text'}
-                    color={isSelected || isRowActive ? theme.text : theme.textSupporting}
-                    numberOfLines={1}
-                >
-                    {label}
-                </Text>
-            </View>
-            {children}
+            {({hovered}) => (
+                <>
+                    <View style={styles.flex1}>
+                        <Text
+                            variant={isSelected ? 'textStrong' : 'text'}
+                            color={isSelected || hovered ? theme.text : theme.textSupporting}
+                            numberOfLines={1}
+                        >
+                            {label}
+                        </Text>
+                    </View>
+                    {children}
+                </>
+            )}
         </PressableWithFeedback>
     );
 }
