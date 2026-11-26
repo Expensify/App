@@ -404,15 +404,35 @@ const KEYS_TO_PRESERVE_SUPPORTAL = [
     ONYXKEYS.COLLECTION.DEVICE_BIOMETRICS,
 ];
 
-function signOutAndRedirectToSignIn(
-    session: OnyxEntry<Session>,
-    shouldResetToHome?: boolean,
-    shouldStashSession?: boolean,
-    shouldSignOutFromOldDot = true,
-    shouldForceUseStashedSession?: boolean,
-    signOutReason: SignOutReason = CONST.SIGN_OUT_REASON.USER_SIGN_OUT,
-    shouldEndClassicBrowserSession = true,
-) {
+type SignOutAndRedirectToSignInOptions = {
+    /** Whether an anonymous user goes back to the home screen before the sign-in modal opens */
+    shouldResetToHome?: boolean;
+
+    /** Whether to keep the current session and credentials so they can be restored later, for example after a supportal action */
+    shouldStashSession?: boolean;
+
+    /** Whether HybridApp also signs out of Expensify Classic */
+    shouldSignOutFromOldDot?: boolean;
+
+    /** Whether to restore the stashed session instead of signing out completely */
+    shouldForceUseStashedSession?: boolean;
+
+    /** Why the user is signed out */
+    signOutReason?: SignOutReason;
+
+    /** Whether to also end the browser's Expensify Classic session on the host that serves both products */
+    shouldEndClassicBrowserSession?: boolean;
+};
+
+function signOutAndRedirectToSignIn(session: OnyxEntry<Session>, options: SignOutAndRedirectToSignInOptions = {}) {
+    const {
+        shouldResetToHome,
+        shouldStashSession,
+        shouldSignOutFromOldDot = true,
+        shouldForceUseStashedSession,
+        signOutReason = CONST.SIGN_OUT_REASON.USER_SIGN_OUT,
+        shouldEndClassicBrowserSession = true,
+    } = options;
     Log.info('Redirecting to Sign In because signOut() was called');
     hideContextMenu(false);
 

@@ -737,7 +737,7 @@ describe('Session', () => {
             const redirectToSignInSpy = jest.spyOn(SignInRedirect, 'default').mockImplementation(() => Promise.resolve());
 
             // When the session is stashed to come back to it later
-            signOutAndRedirectToSignIn(await Onyx.get(ONYXKEYS.SESSION), false, true);
+            signOutAndRedirectToSignIn(await Onyx.get(ONYXKEYS.SESSION), {shouldStashSession: true});
 
             await waitForBatchedUpdates();
 
@@ -755,7 +755,7 @@ describe('Session', () => {
             const redirectToSignInSpy = jest.spyOn(SignInRedirect, 'default').mockImplementation(() => Promise.resolve());
 
             // When the session is cleared for a user that Classic is signing in
-            signOutAndRedirectToSignIn(await Onyx.get(ONYXKEYS.SESSION), false, false, true, undefined, CONST.SIGN_OUT_REASON.LOGIN_AS_NEW_USER, false);
+            signOutAndRedirectToSignIn(await Onyx.get(ONYXKEYS.SESSION), {signOutReason: CONST.SIGN_OUT_REASON.LOGIN_AS_NEW_USER, shouldEndClassicBrowserSession: false});
 
             await waitForBatchedUpdates();
 
@@ -782,7 +782,7 @@ describe('Session', () => {
 
             await waitForBatchedUpdates();
 
-            signOutAndRedirectToSignIn(await Onyx.get(ONYXKEYS.SESSION), false, false, true, true);
+            signOutAndRedirectToSignIn(await Onyx.get(ONYXKEYS.SESSION), {shouldForceUseStashedSession: true});
 
             await waitForBatchedUpdates();
 
@@ -816,7 +816,7 @@ describe('Session', () => {
 
             const redirectToSignInSpy = jest.spyOn(SignInRedirect, 'default').mockImplementation(() => Promise.resolve());
 
-            signOutAndRedirectToSignIn(await Onyx.get(ONYXKEYS.SESSION), true, false, true, true);
+            signOutAndRedirectToSignIn(await Onyx.get(ONYXKEYS.SESSION), {shouldResetToHome: true, shouldForceUseStashedSession: true});
 
             await waitForBatchedUpdates();
 
@@ -847,7 +847,7 @@ describe('Session', () => {
             await waitForBatchedUpdates();
 
             // When the agent signs out
-            signOutAndRedirectToSignIn(await Onyx.get(ONYXKEYS.SESSION), false, false, true, true);
+            signOutAndRedirectToSignIn(await Onyx.get(ONYXKEYS.SESSION), {shouldForceUseStashedSession: true});
             await waitForBatchedUpdates();
 
             // Then supportal opens, and the signed-out sign-in screen can't open the Classic sign-in page before it
@@ -1662,7 +1662,7 @@ describe('Session', () => {
             const passedSession: Session = {authToken: 'passedAuthToken', email: 'passed@example.com', accountID: 2};
 
             // When the user signs out and asks to keep the session for later, as a supportal login does
-            signOutAndRedirectToSignIn(passedSession, false, true);
+            signOutAndRedirectToSignIn(passedSession, {shouldStashSession: true});
             await waitForBatchedUpdates();
 
             // Then the passed session is the one stashed, so it is the one restored afterwards
@@ -1856,7 +1856,7 @@ describe('Session', () => {
             await TestHelper.signInWithTestUser();
 
             // When they open Supportal, which signs them out and stashes their session to come back to it
-            signOutAndRedirectToSignIn(await Onyx.get(ONYXKEYS.SESSION), false, true, false, undefined, CONST.SIGN_OUT_REASON.LOGIN_AS_NEW_USER);
+            signOutAndRedirectToSignIn(await Onyx.get(ONYXKEYS.SESSION), {shouldStashSession: true, shouldSignOutFromOldDot: false, signOutReason: CONST.SIGN_OUT_REASON.LOGIN_AS_NEW_USER});
             await waitForBatchedUpdates();
 
             // Then their own cookie is left alone, because their session continues after Supportal

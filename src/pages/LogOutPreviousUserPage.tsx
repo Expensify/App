@@ -72,7 +72,7 @@ function LogOutPreviousUserPage({route}: LogOutPreviousUserPageProps) {
                 });
                 // We don't want to close react-native app in this particular case.
                 // The new user comes from Expensify Classic, so its web session there has to stay
-                signOutAndRedirectToSignIn(session, false, isSupportalLogin, true, undefined, CONST.SIGN_OUT_REASON.LOGIN_AS_NEW_USER, false);
+                signOutAndRedirectToSignIn(session, {shouldStashSession: isSupportalLogin, signOutReason: CONST.SIGN_OUT_REASON.LOGIN_AS_NEW_USER, shouldEndClassicBrowserSession: false});
                 return;
             }
 
@@ -98,7 +98,11 @@ function LogOutPreviousUserPage({route}: LogOutPreviousUserPageProps) {
                         isDelegateSession: isDelegateSession(session),
                         isSupportalLogin,
                     });
-                    signOutAndRedirectToSignIn(session, false, isSupportalLogin, true, undefined, CONST.SIGN_OUT_REASON.LOGIN_AS_NEW_USER, false);
+                    signOutAndRedirectToSignIn(session, {
+                        shouldStashSession: isSupportalLogin,
+                        signOutReason: CONST.SIGN_OUT_REASON.LOGIN_AS_NEW_USER,
+                        shouldEndClassicBrowserSession: false,
+                    });
                 });
                 return;
             }
@@ -154,7 +158,7 @@ function LogOutPreviousUserPage({route}: LogOutPreviousUserPageProps) {
 
                 // We don't want to close react-native app in this particular case.
                 // The new user comes from Expensify Classic, so its web session there has to stay
-                signOutAndRedirectToSignIn(session, false, isSupportalLogin, true, undefined, CONST.SIGN_OUT_REASON.LOGIN_AS_NEW_USER, false);
+                signOutAndRedirectToSignIn(session, {shouldStashSession: isSupportalLogin, signOutReason: CONST.SIGN_OUT_REASON.LOGIN_AS_NEW_USER, shouldEndClassicBrowserSession: false});
             });
 
             // The prompt lives above the navigators, so close it with the page. Otherwise a later confirm would sign out whatever session is current.
