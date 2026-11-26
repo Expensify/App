@@ -50,4 +50,4 @@
 
 - Upstream PR/issue: Related Plaid header import report: https://github.com/plaid/react-native-plaid-link-sdk/issues/675
 - E/App issue: https://github.com/Expensify/App/issues/108096
-- PR introducing patch: https://github.com/Expensify/App/compare/main...rory/fix-plaid-ios-rn88
+- PR introducing patch: https://github.com/Expensify/App/pull/108111
