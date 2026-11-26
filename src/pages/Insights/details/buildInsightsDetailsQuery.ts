@@ -2,7 +2,6 @@
 import type {ChartPeriod} from '@components/Search/comparisonBuckets';
 import type {SearchGroupBy} from '@components/Search/types';
 
-import DateUtils from '@libs/DateUtils';
 import {hashText} from '@libs/UserUtils';
 
 import type {InsightsDetailsSection} from '@pages/Insights/dashboardSpecs';
@@ -14,8 +13,7 @@ import {buildDetailsFiltersQueryJSON} from '@pages/Insights/insightsQueries';
 import CONST from '@src/CONST';
 import type {InsightsGraphKey} from '@src/types/onyx';
 
-import {format, getMonth, getQuarter, getYear, parseISO, startOfWeek} from 'date-fns';
-
+import getCalendarPeriod from './getCalendarPeriod';
 import getInsightsDetailsPeriod from './getInsightsDetailsPeriod';
 
 type InsightsDetailsQuery = {
@@ -61,24 +59,6 @@ type BuildInsightsDetailsQueryParams = {
     /** Last day the dashboard counts expenses through, as yyyy-MM-dd */
     lastDay: string;
 };
-
-/** Returns the calendar day, week, month, quarter or year that contains the date, or undefined when the date doesn't fall in a real month, quarter or year. */
-function getCalendarPeriod(groupBy: InsightsTimeGroupBy, date: string): ChartPeriod | undefined {
-    const day = parseISO(date);
-    switch (groupBy) {
-        case CONST.SEARCH.GROUP_BY.DAY:
-            return {start: date, end: date};
-        case CONST.SEARCH.GROUP_BY.WEEK:
-            // Weeks start on Sunday, matching the week buckets of group-by:week
-            return DateUtils.getWeekDateRange(format(startOfWeek(day, {weekStartsOn: 0}), CONST.DATE.FNS_FORMAT_STRING));
-        case CONST.SEARCH.GROUP_BY.MONTH:
-            return DateUtils.getMonthDateRange(getYear(day), getMonth(day) + 1);
-        case CONST.SEARCH.GROUP_BY.QUARTER:
-            return DateUtils.getQuarterDateRange(getYear(day), getQuarter(day));
-        default:
-            return DateUtils.getYearDateRange(getYear(day));
-    }
-}
 
 /** Returns the period the panel summarizes: the clicked one on Spend over time, the last one in the Date range on ranking graphs. */
 function getSummarizedPeriod({

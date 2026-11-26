@@ -690,6 +690,18 @@ describe('insightsQueries', () => {
             expect(queryJSON?.groupBy).toBe(CONST.SEARCH.GROUP_BY.MONTH);
             expect(queryJSON?.view).toBe(CONST.SEARCH.VIEW.TABLE);
         });
+
+        it('starts on the first day of the oldest period, so each listed period is complete', () => {
+            // Given a This quarter dashboard, summarizing Q4 2026 so far
+            const filters: InsightsFilters = {...FILTERS, date: {preset: CONST.SEARCH.DATE_PRESETS.THIS_QUARTER}};
+
+            // When the query behind Recent history's View all is built
+            const query = buildRecentHistoryQueryString(filters, CONST.SEARCH.GROUP_BY.QUARTER, '2026-11-24', 'merchant="Amazon"');
+
+            // Then it starts on October 1, 2025 rather than November 1, so Q4 2025 counts all of its months like the average does
+            expect(query).toContain(`${CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE}>=2025-10-01`);
+            expect(query).toContain(`${CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE}<=2026-11-24`);
+        });
     });
 
     describe('buildFutureExpensesQueryString', () => {
