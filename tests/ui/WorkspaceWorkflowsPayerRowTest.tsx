@@ -509,7 +509,7 @@ describe('WorkspaceWorkflowsPageRevamp - Payer row visibility', () => {
         renderPage();
         await waitForBatchedUpdatesWithAct();
 
-        fireEvent.press(screen.getByLabelText(`${TestHelper.translateLocal('workflowsPayerPage.payer')}, ${reimburser}`), {type: 'press'});
+        fireEvent.press(screen.getByLabelText(`${TestHelper.translateLocal('workflowsPayerPage.payer')}, ${reimburser}`), {type: 'press', preventDefault: jest.fn()});
         expect(navigateSpy).toHaveBeenCalledWith('workspaces/workflows-payer-test/workflows/payer');
     });
 
