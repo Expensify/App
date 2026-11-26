@@ -3,7 +3,6 @@ import type {PersonalDetailsByLogin} from '@components/PersonalDetailsByLoginPro
 
 import {getAccountIDToNameMapForMentionsInMarkdown} from '@hooks/useAccountIDToNameMap';
 import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
-import {buildReportIDToNameMap, getMentionedReportIDs, getReportIDToNameMapForRoomsInMarkdown} from '@hooks/useReportIDToNameMap';
 
 import {getExportLabelForConnection} from '@libs/AccountingUtils';
 import {isClientTheLeader} from '@libs/ActiveClientManager';
@@ -115,6 +114,7 @@ import Pusher from '@libs/Pusher';
 import type {UserIsLeavingRoomEvent, UserIsTypingEvent} from '@libs/Pusher/types';
 import * as ReportActionsFollowupUtils from '@libs/ReportActionFollowupUtils';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
+import {buildReportIDToNameMap, getMentionedReportIDs, getReportIDToNameMapForRoomsInMarkdown} from '@libs/ReportIDToNameMapUtils';
 import {updateTitleFieldToMatchPolicy} from '@libs/ReportTitleUtils';
 import type {Ancestor, OptimisticAddCommentReportAction, OptimisticChatReport, SelfDMParameters} from '@libs/ReportUtils';
 import {
