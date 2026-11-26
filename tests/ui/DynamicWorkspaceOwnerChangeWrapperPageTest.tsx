@@ -11,6 +11,7 @@ import type {SettingsNavigatorParamList} from '@navigation/types';
 
 import DynamicWorkspaceOwnerChangeWrapperPage from '@pages/workspace/members/DynamicWorkspaceOwnerChangeWrapperPage';
 
+import {addSubscriptionPaymentCard} from '@userActions/PaymentMethods';
 import {checkBulkTransferPolicyBillingOwner, queueBulkTransferPolicyBillingOwner, requestWorkspaceOwnerChange, skipBulkTransferPolicyBillingOwnerCheck} from '@userActions/Policy/Member';
 
 import CONST from '@src/CONST';
@@ -20,6 +21,7 @@ import type {SubscriptionTransfer} from '@src/types/onyx/BillingTakeoverPolicies
 import type Policy from '@src/types/onyx/Policy';
 
 import type * as NativeNavigation from '@react-navigation/native';
+import type {ValueOf} from 'type-fest';
 
 import React from 'react';
 import Onyx from 'react-native-onyx';
@@ -47,6 +49,15 @@ jest.mock(
         ({children}: React.PropsWithChildren) =>
             children,
 );
+jest.mock('@pages/workspace/members/WorkspaceOwnerPaymentCardForm', () => {
+    const Text = jest.requireActual<{default: React.ComponentType<React.PropsWithChildren<{onPress: () => void}>>}>('@components/Text').default;
+    return ({onAddPaymentCard}: {onAddPaymentCard?: (cardData: Record<string, string>) => void}) => (
+        <Text onPress={() => onAddPaymentCard?.({cardNumber: '4242424242424242', currency: 'USD'})}>Save card</Text>
+    );
+});
+jest.mock('@userActions/PaymentMethods', () => ({
+    addSubscriptionPaymentCard: jest.fn(),
+}));
 jest.mock('@userActions/Policy/Member', () => ({
     checkBulkTransferPolicyBillingOwner: jest.fn(),
     skipBulkTransferPolicyBillingOwnerCheck: jest.fn(),
@@ -87,14 +98,14 @@ async function setPolicies(...policies: Policy[]) {
     await Promise.all(policies.map((policy) => Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy)));
 }
 
-function renderOwnerChangePage() {
+function renderOwnerChangePage(error: ValueOf<typeof CONST.POLICY.OWNERSHIP_ERRORS> = CONST.POLICY.OWNERSHIP_ERRORS.AMOUNT_OWED) {
     return render(
         <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>
             <DynamicWorkspaceOwnerChangeWrapperPage
                 route={{
                     key: 'ownerChange',
                     name: SCREENS.WORKSPACE.DYNAMIC_OWNER_CHANGE_CHECK,
-                    params: {policyID: '1', accountID: CURRENT_USER_ACCOUNT_ID, error: CONST.POLICY.OWNERSHIP_ERRORS.AMOUNT_OWED},
+                    params: {policyID: '1', accountID: CURRENT_USER_ACCOUNT_ID, error},
                 }}
                 navigation={createMock<OwnerChangePageProps['navigation']>({})}
             />
@@ -276,5 +287,28 @@ describe('DynamicWorkspaceOwnerChangeWrapperPage', () => {
         expect(mockCheckBulkTransferPolicyBillingOwner).not.toHaveBeenCalled();
         expect(mockSkipBulkTransferPolicyBillingOwnerCheck).toHaveBeenCalled();
         expect(requestWorkspaceOwnerChange).toHaveBeenCalledWith(expect.objectContaining({id: '1'}), CURRENT_USER_ACCOUNT_ID, 'admin@example.com');
+    });
+
+    it('asks about all of the owner workspaces once the user saves a billing card', async () => {
+        // Given the user has no billing card, so the check fails and the card form shows
+        await setPolicies(createOwnerPolicy('1'), createOwnerPolicy('2'));
+        renderOwnerChangePage(CONST.POLICY.OWNERSHIP_ERRORS.NO_BILLING_CARD);
+        await waitForBatchedUpdatesWithAct();
+        await answerCheck([]);
+
+        // When the user saves a card
+        fireEvent.press(screen.getByText('Save card'));
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the card is saved without taking over this workspace, and the check runs again
+        expect(addSubscriptionPaymentCard).toHaveBeenCalledTimes(1);
+        expect(mockCheckBulkTransferPolicyBillingOwner).toHaveBeenCalledTimes(2);
+
+        // When the new check returns both workspaces
+        await answerCheck(['1', '2']);
+
+        // Then the user is asked whether to take over both instead of seeing the card form
+        expect(screen.getByText('Yes, all 2')).toBeOnTheScreen();
+        expect(screen.queryByText('Save card')).not.toBeOnTheScreen();
     });
 });

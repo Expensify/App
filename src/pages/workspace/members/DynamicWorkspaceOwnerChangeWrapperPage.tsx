@@ -22,6 +22,7 @@ import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import withPolicy from '@pages/workspace/withPolicy';
 import type {WithPolicyOnyxProps} from '@pages/workspace/withPolicy';
 
+import {addSubscriptionPaymentCard} from '@userActions/PaymentMethods';
 import {
     checkBulkTransferPolicyBillingOwner,
     clearWorkspaceOwnerChangeFlow,
@@ -39,6 +40,8 @@ import getEmptyArray from '@src/types/utils/getEmptyArray';
 import {createOwnedPaidAdminPolicyIDsSelector} from '@selectors/Policy';
 import React, {useEffect, useRef, useState} from 'react';
 import {StyleSheet, View} from 'react-native';
+
+import type {PaymentCardData} from './WorkspaceOwnerPaymentCardForm';
 
 import WorkspaceOwnerChangeAllWorkspacesCheck from './WorkspaceOwnerChangeAllWorkspacesCheck';
 import WorkspaceOwnerChangeCheck from './WorkspaceOwnerChangeCheck';
@@ -58,14 +61,13 @@ function DynamicWorkspaceOwnerChangeWrapperPage({route, policy, isLoadingPolicy}
     const error = route.params.error;
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const isAuthRequired = privateStripeCustomerID?.status === CONST.STRIPE_SCA_AUTH_STATUSES.CARD_AUTHENTICATION_REQUIRED;
-    const shouldShowPaymentCardForm = error === CONST.POLICY.OWNERSHIP_ERRORS.NO_BILLING_CARD || isAuthRequired;
     const [ownerPolicyIDs = getEmptyArray<string>()] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: createOwnedPaidAdminPolicyIDsSelector(policy?.ownerAccountID)});
     const otherOwnerPolicyIDs = ownerPolicyIDs.filter((ownerPolicyID) => ownerPolicyID !== policyID);
     const [billingTakeoverPolicies] = useOnyx(ONYXKEYS.BILLING_TAKEOVER_POLICIES);
     const {isOffline} = useNetwork();
 
     // Tags this visit's check, so an answer an earlier visit left in Onyx is never read
-    const [checkID] = useState(rand64);
+    const [checkID, setCheckID] = useState(rand64);
     const isCheckAnswered = billingTakeoverPolicies?.checkID === checkID && !billingTakeoverPolicies?.isLoading;
     const transferablePolicyIDs = isCheckAnswered ? (billingTakeoverPolicies?.policyIDs ?? getEmptyArray<string>()) : getEmptyArray<string>();
     const shouldOfferAllWorkspaces = transferablePolicyIDs.includes(policyID) && transferablePolicyIDs.length > 1;
@@ -75,7 +77,10 @@ function DynamicWorkspaceOwnerChangeWrapperPage({route, policy, isLoadingPolicy}
     const isCheckingTransferablePolicies = otherOwnerPolicyIDs.length > 0 && !isCheckAnswered;
     const shouldShowAllWorkspacesCheck = shouldOfferAllWorkspaces && !hasPickedThisWorkspace && !policy?.errorFields?.changeOwner;
     const shouldTakeOverThisWorkspaceOnly = otherOwnerPolicyIDs.length === 0 || (isCheckAnswered && !shouldOfferAllWorkspaces);
-    const hasStartedCheckRef = useRef(false);
+
+    // Once a saved card lets the user take over all of the owner's workspaces, the question replaces the card form
+    const shouldShowPaymentCardForm = isAuthRequired || (error === CONST.POLICY.OWNERSHIP_ERRORS.NO_BILLING_CARD && !isCheckingTransferablePolicies && !shouldShowAllWorkspacesCheck);
+    const startedCheckIDRef = useRef<string | undefined>(undefined);
     const hasRequestedOwnerChangeRef = useRef(false);
 
     // An earlier transfer's result stays on the policy until this visit's request starts loading
@@ -91,6 +96,17 @@ function DynamicWorkspaceOwnerChangeWrapperPage({route, policy, isLoadingPolicy}
     const takeOverThisWorkspace = () => {
         setHasPickedThisWorkspace(true);
         requestThisWorkspaceOwnerChange();
+    };
+
+    // The check fails without a billing card, so it runs again once the card is saved
+    const addPaymentCardAndCheckAllWorkspaces = (cardData: PaymentCardData) => {
+        const newCheckID = rand64();
+        setCheckID(newCheckID);
+        startedCheckIDRef.current = newCheckID;
+        hasRequestedOwnerChangeRef.current = false;
+        clearWorkspaceOwnerChangeFlow(policyID);
+        addSubscriptionPaymentCard(currentUserPersonalDetails.accountID, cardData, fundList, route.name);
+        checkBulkTransferPolicyBillingOwner([policyID, ...otherOwnerPolicyIDs], newCheckID);
     };
 
     // The transfer always ends on the success or error page, so keep loading until one of them opens
@@ -109,10 +125,10 @@ function DynamicWorkspaceOwnerChangeWrapperPage({route, policy, isLoadingPolicy}
             skipBulkTransferPolicyBillingOwnerCheck(checkID);
             return;
         }
-        if (hasStartedCheckRef.current) {
+        if (startedCheckIDRef.current === checkID) {
             return;
         }
-        hasStartedCheckRef.current = true;
+        startedCheckIDRef.current = checkID;
         checkBulkTransferPolicyBillingOwner([policyID, ...otherOwnerPolicyIDs], checkID);
     }, [checkID, isCheckAnswered, isLoadingPolicy, isOffline, otherOwnerPolicyIDs, policyID]);
 
@@ -175,7 +191,12 @@ function DynamicWorkspaceOwnerChangeWrapperPage({route, policy, isLoadingPolicy}
                             <ActivityIndicator size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE} />
                         </View>
                     )}
-                    {shouldShowPaymentCardForm && <WorkspaceOwnerPaymentCardForm policy={policy} />}
+                    {shouldShowPaymentCardForm && (
+                        <WorkspaceOwnerPaymentCardForm
+                            policy={policy}
+                            onAddPaymentCard={otherOwnerPolicyIDs.length > 0 ? addPaymentCardAndCheckAllWorkspaces : undefined}
+                        />
+                    )}
                     {!isLoading && !shouldShowPaymentCardForm && shouldShowAllWorkspacesCheck && (
                         <WorkspaceOwnerChangeAllWorkspacesCheck
                             policy={policy}
