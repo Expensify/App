@@ -116,7 +116,7 @@ function DynamicIOURequestStepMerchant({
         const newMerchant = value.moneyRequestMerchant?.trim();
 
         if (isEditingSplitBill) {
-            setDraftSplitTransaction(transactionID, splitDraftTransaction ?? transaction, {merchant: newMerchant}, getCurrencyDecimals, getCurrencySymbol);
+            setDraftSplitTransaction(translate, transactionID, splitDraftTransaction ?? transaction, {merchant: newMerchant}, getCurrencyDecimals, getCurrencySymbol);
             setIsSaved(true);
             armNavigateBack();
             return;

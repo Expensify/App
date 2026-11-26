@@ -405,6 +405,7 @@ const translations: TranslationDeepObject<typeof en> = {
         reportID: 'レポートID',
         longReportID: '長いレポートID',
         withdrawalID: '出金ID',
+        transactionID: '取引ID',
         internationalReimbursementIDs: '国際払い戻しID',
         amountDebited: '引き落とし額',
         amountReimbursed: '精算済み金額',
@@ -502,6 +503,7 @@ const translations: TranslationDeepObject<typeof en> = {
         corpayPayModalTitle: 'レポートを支払う',
         corpayPayModalPrompt: 'この提出者は非USDの銀行口座を使用しています。レポートを支払うにはグローバル払い戻しを有効にするか、USDの銀行口座を追加するよう依頼してください。',
         purchaseAmount: '購入金額',
+        convertedAmount: '換算額',
         originalAmount: '元の金額',
         frequency: '頻度',
         link: 'リンク',
@@ -800,6 +802,11 @@ const translations: TranslationDeepObject<typeof en> = {
         setPin: {didNotShipCard: 'カードを発送できませんでした。もう一度お試しください。'},
         revealPin: {couldNotReveal: 'PIN を表示できませんでした。もう一度お試しください。'},
         changePin: {didNotChange: 'お客様の暗証番号は変更されていません。もう一度お試しください。'},
+        addToWallet: {
+            failedHeader: 'カードを追加できませんでした',
+            failedTitle: 'カードをウォレットに追加できませんでした',
+            failedSubtitle: 'カードの追加中に問題が発生しました。すでにウォレットに入っている場合は、そちらでご利用いただけます。',
+        },
         revealCardDetail: {couldNotReveal: 'カード情報を表示できませんでした。もう一度お試しください。'},
     },
     validateCodeModal: {
@@ -1334,7 +1341,10 @@ const translations: TranslationDeepObject<typeof en> = {
             label: '違反対象',
             [CONST.INSIGHTS.VIOLATION_STAGE.SUBMITTED]: '提出者',
             [CONST.INSIGHTS.VIOLATION_STAGE.APPROVED]: '承認者',
+            chartTitle: (title: string, stage: string) => `${title}（${stage}）`,
         },
+        flaggedExpenses: 'フラグ付き経費',
+        noFlaggedExpensesInRange: 'この範囲にはフラグ付き経費はありません',
     },
     allSettingsScreen: {
         subscription: 'サブスクリプション',
@@ -4441,7 +4451,9 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
     },
     welcomeSignUpForm: {
         join: '参加',
-        marketingSMSConsent: 'Expensifyからのマーケティングテキストの受信に同意します',
+        transactionalSMSConsent: '電話番号を提供することにより、Expensifyからアカウントに関する取引通知を受け取ることに同意します。',
+        transactionalSMSConsentFinePrint: '標準のメッセージ料金およびデータ通信料金がかかる場合があります。配信を停止するにはSTOPと返信してください。',
+        marketingSMSConsent: 'Expensifyからのマーケティングテキストの受信に同意します。',
     },
     detailsPage: {
         localTime: '現地時間',
@@ -4625,6 +4637,14 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
         numberedItem: ({item, number}: {item: string; number: number}) => `${item}${number}`,
         questionsChanged: 'このページの質問が変更されました',
         onFile: 'ファイル登録済み',
+        continueOffline: {
+            title: 'オフラインのままでは続行できません',
+            prompt: 'このフォームを入力するにはインターネット接続が必要です。進行状況は保存されるので、オンラインに戻ったときに続けて行えます。',
+            saveForLater: '保存して後で入力する',
+            progressSaved: '進捗は保存されました',
+            promptWithSensitiveAnswers:
+                'このフォームに入力するにはインターネット接続が必要です。オフラインの場合でも進行状況は保存されるため、オンラインに戻ったときに続行できます。安全のため、機密性の高い情報は保存されず、再度入力していただく必要があります。',
+        },
     },
     addPersonalBankAccount: {
         swiftBicFormatError: 'SWIFT/BIC は 8 文字または 11 文字で、最初の 6 文字はアルファベット、続く 2 文字または 5 文字はアルファベットまたは数字である必要があります。',
@@ -4645,6 +4665,15 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
         updateSuccessMessage: 'おめでとうございます。銀行口座の設定が完了し、精算の受け取りができるようになりました。',
         bankDetails: '銀行口座情報',
         accountHolderDetails: '口座名義人の詳細',
+        notices: {
+            katakanaName:
+                '日本の銀行口座に記載されている名前を、まったく同じように入力してください。通常はカタカナで記載されています。一致しない場合、お支払いが遅れたり、拒否されたりすることがあります。',
+            alipayRecipients: 'Alipay で支払いできるのは、中国本土、香港、またはマカオの受取人のみです。',
+            alipayLimits:
+                'Alipay では、1 回の支払いにつき最大 50,000 CNY、年間合計で 300,000～600,000 CNY まで受け取ることができます。支払い目的によっては、月ごとの支払い回数にも上限が適用される場合があります。',
+            malaysianNonResidentLimit:
+                'マレーシアに銀行口座をお持ちの非居住者は、1日に受け取れるマレーシアリンギットは10,000リンギットまでです。この上限を超える支払いを受け取ると、銀行口座が閉鎖される可能性があります。',
+        },
     },
     addPersonalBankAccountPage: {
         enterPassword: 'Expensify のパスワードを入力',
@@ -7171,6 +7200,8 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
             createFailureMessage: 'カテゴリの作成中にエラーが発生しました。もう一度お試しください。',
             addCategory: 'カテゴリを追加',
             createCategoryFromSearch: (categoryName: string) => `カテゴリ「${categoryName}」を作成`,
+            availableToMember: (memberName: string) => `${memberName}が利用可能`,
+            notAvailableToMember: (memberName: string) => `${memberName} は利用できません`,
             editCategory: 'カテゴリーを編集',
             editCategories: 'カテゴリを編集',
             findCategory: 'カテゴリを検索',
@@ -7921,6 +7952,9 @@ Control プランは、アクティブメンバー1人あたり月額 $9 から�
             categoryVisibilityRequiredModal: {title: 'メンバーには少なくとも 1 つのカテゴリーが必要です', description: 'このメンバーが使用できるカテゴリを少なくとも 1 つ選択してください。'},
             changeOfficeLocation: 'オフィスの所在地を変更',
             changeWorkArrangement: '勤務形態を変更',
+            editCategoryVisibility: 'カテゴリの表示を編集',
+            bulkCategoryVisibilitySaved: ({categoryCount, memberCount}: {categoryCount: string; memberCount: string}) =>
+                `${memberCount} に ${categoryCount} を設定します。現在のカテゴリの表示設定が置き換えられます。`,
             changeRole: 'ロールを変更',
             newRolesBanner: {
                 title: '新しいロールが利用可能です',
@@ -7958,7 +7992,6 @@ Control プランは、アクティブメンバー1人あたり月額 $9 から�
                 willBeReadyToUse: 'このカードはすぐに利用できるようになります。',
                 willBeReadyToShip: 'このカードはすぐに発送できる状態になります。',
                 cardholder: 'カード名義人',
-                cardholderEmail: 'カード名義人のメールアドレス',
                 cardType: 'カードの種類',
                 limit: '上限',
                 limitType: '上限の種類',

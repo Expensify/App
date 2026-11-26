@@ -15,7 +15,7 @@ import type {
     SelectedTransactions,
 } from '@components/Search/types';
 
-import type {ConfirmSubmitReportViolationsOnProceed} from '@hooks/useConfirmSubmitReportViolations';
+import type {ConfirmSubmitReportViolationsOnProceed} from '@hooks/useConfirmSubmitViolations';
 import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
 import type {ReportSubmitToPopoverOpenOptions} from '@hooks/useReportSubmitToPopover';
 
@@ -1836,14 +1836,6 @@ function getFooterConvertedAmounts({
         filters: backendQueryJSON.filters ?? null,
     });
 
-    // The new stamp would otherwise vouch for the total an earlier request left, both while this one is in flight and
-    // after it fails, so each search total it re-stamps is cleared until this request answers.
-    const staleSearchTotals = sources?.searchTotals
-        ? Object.fromEntries(
-              Object.entries(sources.searchTotals).map(([hash, sourceByCurrency]) => [hash, Object.fromEntries(Object.keys(sourceByCurrency ?? {}).map((currency) => [currency, null]))]),
-          )
-        : undefined;
-
     read(
         READ_COMMANDS.GET_TRANSACTIONS_CONVERTED_AMOUNT,
         {
@@ -1856,13 +1848,7 @@ function getFooterConvertedAmounts({
             // Stamp the source figures this request converts (and clear any prior failure for this currency) so a later
             // edit that moves them is detected as stale and the footer can retry. The command merges its converted
             // figures into the same key, so the stamp and the converted value live side by side.
-            optimisticData: [
-                {
-                    onyxMethod: Onyx.METHOD.MERGE,
-                    key: ONYXKEYS.SEARCH_FOOTER_CONVERSION,
-                    value: {...(sources && {sources}), ...(staleSearchTotals && {searchTotals: staleSearchTotals}), failedCurrencies: {[targetCurrency]: null}},
-                },
-            ],
+            optimisticData: [{onyxMethod: Onyx.METHOD.MERGE, key: ONYXKEYS.SEARCH_FOOTER_CONVERSION, value: {...(sources && {sources}), failedCurrencies: {[targetCurrency]: null}}}],
             // A failed read leaves no converted value, so record the failure; the footer then falls back to the default
             // total instead of the stale converted value (or a skeleton that would stay until the next edit/reconnect).
             failureData: [{onyxMethod: Onyx.METHOD.MERGE, key: ONYXKEYS.SEARCH_FOOTER_CONVERSION, value: {failedCurrencies: {[targetCurrency]: true}}}],

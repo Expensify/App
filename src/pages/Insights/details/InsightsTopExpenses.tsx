@@ -2,10 +2,9 @@ import Icon from '@components/Icon';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
-import {buildViewOnSpendQuery} from '@components/Search/chartDrillDown';
 import ChartOfflineState from '@components/Search/ChartOfflineState';
 import type {TransactionListItemType} from '@components/Search/SearchList/ListItem/types';
-import type {SearchQueryString} from '@components/Search/types';
+import type {SearchQueryJSON, SearchQueryString} from '@components/Search/types';
 import SearchRowSkeleton from '@components/Skeletons/SearchRowSkeleton';
 import Text from '@components/Text';
 import TransactionItemRow from '@components/TransactionItemRow';
@@ -42,23 +41,30 @@ import {View} from 'react-native';
 
 import InsightsDetailsSectionError from './InsightsDetailsSectionError';
 import {INSIGHTS_DETAILS_SECTION_STATE} from './insightsDetailsSectionState';
+import InsightsFlaggedExpenseRow from './InsightsFlaggedExpenseRow';
 import useInsightsTopExpenses from './useInsightsTopExpenses';
 
 type InsightsTopExpensesProps = {
     /** Spend table query whose largest expenses the section lists */
-    query: SearchQueryString;
+    queryJSON: Readonly<SearchQueryJSON>;
 
-    snapshotHash: number;
+    title: string;
+
+    /** Shown in place of the list when the query has no expenses, the section is hidden without it */
+    emptyText?: string;
+
+    /** Omit to hide View all when the expenses cannot be opened with the same scope. */
+    viewAllQuery?: SearchQueryString;
     onRetry: () => void;
 };
 
 /** Lists the largest expenses behind the clicked item, each opening in the RHP. */
-function InsightsTopExpenses({query, snapshotHash, onRetry}: InsightsTopExpensesProps) {
+function InsightsTopExpenses({queryJSON, title, emptyText, viewAllQuery, onRetry}: InsightsTopExpensesProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate, dateFnsLocale} = useLocalize();
     const {convertToDisplayString} = useCurrencyListActions();
-    const {expenses, queryJSON, state} = useInsightsTopExpenses(query, snapshotHash);
+    const {expenses, violationsByTransactionID, state} = useInsightsTopExpenses(queryJSON);
     const icons = useMemoizedLazyExpensifyIcons(['ArrowUpRight']);
     const {markReportRHPWidth} = useWideRHPActions();
     const {email: currentUserEmail, accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
@@ -80,7 +86,7 @@ function InsightsTopExpenses({query, snapshotHash, onRetry}: InsightsTopExpenses
             DateUtils.doesDateBelongToAPastYear(created) ? CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT : CONST.DATE.MONTH_DAY_ABBR_FORMAT,
             dateFnsLocale,
         );
-        return [expense.formattedMerchant ?? expense.merchant, amount, date].filter(Boolean).join(', ');
+        return [expense.formattedMerchant ?? expense.merchant, amount, date, ...(violationsByTransactionID?.[expense.transactionID] ?? [])].filter(Boolean).join(', ');
     };
 
     const openExpense = (expense: TransactionListItemType) => {
@@ -118,7 +124,7 @@ function InsightsTopExpenses({query, snapshotHash, onRetry}: InsightsTopExpenses
         );
     }
 
-    if (isEmpty) {
+    if (isEmpty && !emptyText) {
         return null;
     }
 
@@ -129,11 +135,11 @@ function InsightsTopExpenses({query, snapshotHash, onRetry}: InsightsTopExpenses
                     variant="label"
                     style={styles.textSupporting}
                 >
-                    {translate('insightsPage.topExpenses')}
+                    {title}
                 </Text>
-                {!!queryJSON && expenses.length > 0 && (
+                {!!viewAllQuery && expenses.length > 0 && (
                     <PressableWithoutFeedback
-                        onPress={() => Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: buildViewOnSpendQuery(queryJSON)}))}
+                        onPress={() => Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: viewAllQuery}))}
                         accessibilityRole={CONST.ROLE.LINK}
                         accessibilityLabel={translate('insightsPage.viewAll')}
                         sentryLabel={CONST.SENTRY_LABEL.INSIGHTS.DETAILS_TOP_EXPENSES_VIEW_ALL}
@@ -162,6 +168,14 @@ function InsightsTopExpenses({query, snapshotHash, onRetry}: InsightsTopExpenses
                 />
             )}
             {state === INSIGHTS_DETAILS_SECTION_STATE.OFFLINE && <ChartOfflineState />}
+            {isEmpty && (
+                <Text
+                    variant="label"
+                    style={[styles.textSupporting, styles.p4]}
+                >
+                    {emptyText}
+                </Text>
+            )}
             {expenses.map((item, index) => (
                 <PressableWithFeedback
                     key={item.keyForList}
@@ -173,20 +187,27 @@ function InsightsTopExpenses({query, snapshotHash, onRetry}: InsightsTopExpenses
                     hoverStyle={styles.hoveredComponentBG}
                     style={[styles.ph4, styles.pv3, index < expenses.length - 1 && styles.borderBottom]}
                 >
-                    <TransactionItemRow
-                        transactionItem={item}
-                        report={item.report}
-                        policy={item.policy}
-                        shouldUseNarrowLayout
-                        isSelected={false}
-                        shouldShowTooltip
-                        shouldShowErrors={false}
-                        shouldShowCategoryOnNarrowLayout={false}
-                        dateColumnSize={CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL}
-                        amountColumnSize={CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL}
-                        taxAmountColumnSize={CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL}
-                        style={[styles.p0, styles.noBorderRadius]}
-                    />
+                    {violationsByTransactionID ? (
+                        <InsightsFlaggedExpenseRow
+                            expense={item}
+                            violations={violationsByTransactionID[item.transactionID] ?? []}
+                        />
+                    ) : (
+                        <TransactionItemRow
+                            transactionItem={item}
+                            report={item.report}
+                            policy={item.policy}
+                            shouldUseNarrowLayout
+                            isSelected={false}
+                            shouldShowTooltip
+                            shouldShowErrors={false}
+                            shouldShowCategoryOnNarrowLayout={false}
+                            dateColumnSize={CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL}
+                            amountColumnSize={CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL}
+                            taxAmountColumnSize={CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL}
+                            style={[styles.p0, styles.noBorderRadius]}
+                        />
+                    )}
                 </PressableWithFeedback>
             ))}
         </View>

@@ -420,7 +420,8 @@ function DynamicWorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingRe
             const updatedApprovalWorkflow = {...approvalWorkflow, members: allMembers};
             Navigation.goBack(backPath, {
                 compareParams: false,
-                afterTransition: () => saveFastEditApprovalWorkflow({approvalWorkflow: updatedApprovalWorkflow, policy, rules: rulesCollection, shouldUseApprovalWorkflowRules}),
+                afterTransition: () =>
+                    saveFastEditApprovalWorkflow({approvalWorkflow: updatedApprovalWorkflow, policy, rules: rulesCollection, shouldUseApprovalWorkflowRules, currentUserLogin}),
             });
         } else {
             // Use goBack so we return to the existing parent (e.g. the workflow edit page) in the stack

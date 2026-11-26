@@ -13,7 +13,7 @@ import useLiveRowCapabilities from '@components/Search/SearchList/ListItem/useLi
 import type {ListItem} from '@components/SelectionList/types';
 
 import useConfirmModal from '@hooks/useConfirmModal';
-import useConfirmSubmitReportViolations from '@hooks/useConfirmSubmitReportViolations';
+import useConfirmSubmitViolations from '@hooks/useConfirmSubmitViolations';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDistanceRateOriginalPolicy from '@hooks/useDistanceRateOriginalPolicy';
@@ -226,8 +226,7 @@ function TransactionListItemInner<TItem extends ListItem>({
     const transactionViolations = mergeProhibitedViolations(rateOnyxViolations);
 
     const filteredViolationsCollection: OnyxCollection<TransactionViolations> = {[transactionViolationsKey]: transactionViolations};
-    const confirmSubmitReportViolations = useConfirmSubmitReportViolations({
-        reportID: transactionItem.reportID,
+    const confirmSubmitReportViolations = useConfirmSubmitViolations({
         report: reportForViolations,
         policy: policyForViolations,
         shouldShowMarkAsDoneCopy,
