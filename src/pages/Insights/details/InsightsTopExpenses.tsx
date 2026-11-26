@@ -1,9 +1,8 @@
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
-import {buildViewOnSpendQuery} from '@components/Search/chartDrillDown';
 import ChartOfflineState from '@components/Search/ChartOfflineState';
 import type {TransactionListItemType} from '@components/Search/SearchList/ListItem/types';
-import type {SearchQueryString} from '@components/Search/types';
+import type {SearchQueryJSON, SearchQueryString} from '@components/Search/types';
 import SearchRowSkeleton from '@components/Skeletons/SearchRowSkeleton';
 import TransactionItemRow from '@components/TransactionItemRow';
 import {useWideRHPActions} from '@components/WideRHPContextProvider';
@@ -40,18 +39,19 @@ import useInsightsTopExpenses from './useInsightsTopExpenses';
 
 type InsightsTopExpensesProps = {
     /** Spend table query whose largest expenses the section lists */
-    query: SearchQueryString;
+    queryJSON: Readonly<SearchQueryJSON>;
 
-    snapshotHash: number;
+    /** Omit to hide View all when the expenses cannot be opened with the same scope. */
+    viewAllQuery?: SearchQueryString;
     onRetry: () => void;
 };
 
 /** Lists the largest expenses behind the clicked item, each opening in the RHP. */
-function InsightsTopExpenses({query, snapshotHash, onRetry}: InsightsTopExpensesProps) {
+function InsightsTopExpenses({queryJSON, viewAllQuery, onRetry}: InsightsTopExpensesProps) {
     const styles = useThemeStyles();
     const {translate, dateFnsLocale} = useLocalize();
     const {convertToDisplayString} = useCurrencyListActions();
-    const {expenses, queryJSON, state} = useInsightsTopExpenses(query, snapshotHash);
+    const {expenses, state} = useInsightsTopExpenses(queryJSON);
     const {markReportRHPWidth} = useWideRHPActions();
     const {email: currentUserEmail, accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const personalDetails = usePersonalDetails();
@@ -118,7 +118,7 @@ function InsightsTopExpenses({query, snapshotHash, onRetry}: InsightsTopExpenses
         <View style={[styles.highlightBG, styles.borderRadiusComponentLarge, styles.overflowHidden]}>
             <InsightsDetailsSectionHeader
                 title={translate('insightsPage.topExpenses')}
-                viewAll={queryJSON && expenses.length > 0 ? {query: buildViewOnSpendQuery(queryJSON), sentryLabel: CONST.SENTRY_LABEL.INSIGHTS.DETAILS_TOP_EXPENSES_VIEW_ALL} : undefined}
+                viewAll={viewAllQuery && expenses.length > 0 ? {query: viewAllQuery, sentryLabel: CONST.SENTRY_LABEL.INSIGHTS.DETAILS_TOP_EXPENSES_VIEW_ALL} : undefined}
             />
             {state === INSIGHTS_DETAILS_SECTION_STATE.LOADING && (
                 <SearchRowSkeleton

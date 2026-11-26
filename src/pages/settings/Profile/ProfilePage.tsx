@@ -5,7 +5,7 @@ import AvatarSkeleton from '@components/AvatarSkeleton';
 import Button from '@components/Button';
 import CollapsibleHeaderOnKeyboard from '@components/CollapsibleHeaderOnKeyboard';
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderCentralPane from '@components/Header/composed/HeaderCentralPane';
 import MenuItem from '@components/MenuItem';
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import MenuItemSectionRoot from '@components/MenuItem/presets/MenuItemSectionRoot';
@@ -67,8 +67,9 @@ import type {ValueOf} from 'type-fest';
 
 import {useRoute} from '@react-navigation/native';
 import {homeAndOfficeCommuterExclusionPolicyNameSelector} from '@selectors/Policy';
-import React, {useRef} from 'react';
+import React from 'react';
 import {View} from 'react-native';
+import {useAnimatedRef} from 'react-native-reanimated';
 
 import AgentAIPromptSection from './AgentAIPromptSection';
 
@@ -80,7 +81,7 @@ function ProfilePage() {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {safeAreaPaddingBottomStyle} = useSafeAreaPaddings();
     const scrollEnabled = useScrollEnabled();
-    const scrollViewRef = useRef<ComponentRef<typeof RNScrollView>>(null);
+    const scrollViewRef = useAnimatedRef<ComponentRef<typeof RNScrollView>>();
     const [loginList] = useOnyx(ONYXKEYS.LOGINS, {selector: expensifyLoginsSelector});
     const [hasIntegrationServerError] = useOnyx(ONYXKEYS.LOGINS, {selector: hasIntegrationServerLoginError});
     const [session] = useOnyx(ONYXKEYS.SESSION);
@@ -271,7 +272,7 @@ function ProfilePage() {
             shouldShowOfflineIndicatorInWideScreen
         >
             <CollapsibleHeaderOnKeyboard alwaysCollapseHeaderOnKeyboard>
-                <HeaderWithBackButton
+                <HeaderCentralPane
                     title={translate('common.profile')}
                     onBackButtonPress={() => {
                         if (route.params?.backTo) {
@@ -280,10 +281,7 @@ function ProfilePage() {
                         }
                         Navigation.goBack();
                     }}
-                    shouldShowBackButton={shouldUseNarrowLayout}
                     shouldDisplaySearchRouter
-                    shouldDisplayHelpButton
-                    shouldUseHeadlineHeader
                 />
             </CollapsibleHeaderOnKeyboard>
             <ScrollView

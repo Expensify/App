@@ -11,6 +11,7 @@ import useScrollToEditingReportAction from '@pages/inbox/report/useScrollToEditi
 
 import variables from '@styles/variables';
 
+import CONST from '@src/CONST';
 import type * as OnyxTypes from '@src/types/onyx';
 
 import type {FlashListProps, ListRenderItemInfo, ViewToken} from '@shopify/flash-list';
@@ -342,7 +343,7 @@ function MoneyRequestReportUnifiedList({
         <MoneyRequestReportFlashList
             ref={listRef}
             accessibilityLabel={accessibilityLabel}
-            testID="money-request-report-actions-list"
+            testID={CONST.TEST_ID.MONEY_REQUEST_REPORT_ACTIONS_LIST}
             data={data}
             extraData={reportActionsExtraData}
             renderItem={dispatchRenderItem}

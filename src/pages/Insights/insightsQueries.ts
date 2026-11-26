@@ -108,6 +108,11 @@ function buildDashboardQuery(query: SearchQueryString, dashboard: InsightsDashbo
     return buildSearchQueryJSON(`${CONST.SEARCH.SYNTAX_ROOT_KEYS.TYPE}:${INSIGHTS_DASHBOARD_SPECS[dashboard].queryType} ${query}`);
 }
 
+/** Builds the query used to request and read a chart snapshot. */
+function buildChartSnapshotQueryJSON(dashboard: InsightsDashboardID, chart: InsightsChartSpec, filters: InsightsFilters, compare?: SearchCompareMode): Readonly<SearchQueryJSON> | undefined {
+    return withInsightsSnapshotHash(buildDashboardQuery(applyInsightsFilters(chart, filters, compare), dashboard), chart.graphKey);
+}
+
 /** Builds the dashboard-wide query the whole page is narrowed by. Keeps the grouping the user picked, Running total included, so reopening the dashboard restores it. `getQueryGroupBy` resolves it to a real bucket for the backend request. */
 function buildInsightsQueryString(filters: InsightsFilters): SearchQueryString {
     // Running total is a display grouping outside the Search grammar, so it isn't a SearchGroupBy. The serializer writes it verbatim and the Insights parser reads it back.
@@ -143,6 +148,37 @@ function applyInsightsFilters(
     );
     // Appended, since the workflow stage isn't a filter the Search filter form has
     return chart.workflowStage ? `${query} ${CONST.SEARCH.SYNTAX_FILTER_KEYS.WORKFLOW_STAGE}:${chart.workflowStage}` : query;
+}
+
+/** Keeps Top spenders snapshots separate from ordinary Search, whose hashes are nonnegative. */
+function withInsightsSnapshotHash(query: Readonly<SearchQueryJSON> | undefined, graphKey: InsightsGraphKey): Readonly<SearchQueryJSON> | undefined {
+    return query && graphKey === CONST.INSIGHTS.GRAPH.TOP_SPENDERS ? {...query, hash: -1 - query.hash} : query;
+}
+
+/** Uses the workspace scope returned by Auth, without falling back to all workspaces when scope is missing. */
+function scopeInsightsDrillDownQuery(
+    query: Readonly<SearchQueryJSON> | undefined,
+    graphKey: InsightsGraphKey,
+    eligiblePolicyIDs: string[] | undefined,
+): Readonly<SearchQueryJSON> | undefined {
+    if (!query || graphKey !== CONST.INSIGHTS.GRAPH.TOP_SPENDERS) {
+        return query;
+    }
+    if (!eligiblePolicyIDs?.length) {
+        return undefined;
+    }
+    const policyFilterKey = CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID;
+    const flatFilters = [
+        ...query.flatFilters.filter(({key}) => key !== policyFilterKey),
+        {
+            key: policyFilterKey,
+            filters: eligiblePolicyIDs.map((value) => ({
+                value,
+                operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO,
+            })),
+        },
+    ];
+    return buildSearchQueryJSON(buildSearchQueryString({...query, flatFilters}));
 }
 
 /** Builds the Spend page query for the expenses the dashboard leaves out: those dated after `asOfDate` through the end of the date range, in the dashboard's workspaces, grouped by the time bucket Spend over time plots. */
@@ -211,7 +247,7 @@ function buildSnapshotHashEntry(
         return undefined;
     }
     const previousPeriodSnapshotHash = previousPeriodQueryJSON?.hash;
-    const averageSnapshotHash = (averageQueryJSON ?? buildDashboardQuery(applyInsightsFilters(chart, filters, CONST.SEARCH.COMPARE.AVERAGE), dashboard))?.hash;
+    const averageSnapshotHash = (averageQueryJSON ?? buildChartSnapshotQueryJSON(dashboard, chart, filters, CONST.SEARCH.COMPARE.AVERAGE))?.hash;
     if (!previousPeriodSnapshotHash || !averageSnapshotHash) {
         return undefined;
     }
@@ -253,9 +289,11 @@ function buildInsightsJsonQuery(
         const chart = applyViolationStage(declaredChart, violationStages[declaredChart.graphKey]);
         return {
             chart,
-            queryJSON: buildDashboardQuery(applyInsightsFilters(chart, filters), dashboard),
-            previousPeriodQueryJSON: buildDashboardQuery(applyInsightsFilters(chart, filters, CONST.SEARCH.COMPARE.PREVIOUS_PERIOD), dashboard),
-            ...(chart.graphKey === CONST.INSIGHTS.GRAPH.TOP_TAGS && {averageQueryJSON: buildDashboardQuery(applyInsightsFilters(chart, filters, CONST.SEARCH.COMPARE.AVERAGE), dashboard)}),
+            queryJSON: buildChartSnapshotQueryJSON(dashboard, chart, filters),
+            previousPeriodQueryJSON: buildChartSnapshotQueryJSON(dashboard, chart, filters, CONST.SEARCH.COMPARE.PREVIOUS_PERIOD),
+            ...(chart.graphKey === CONST.INSIGHTS.GRAPH.TOP_TAGS && {
+                averageQueryJSON: buildChartSnapshotQueryJSON(dashboard, chart, filters, CONST.SEARCH.COMPARE.AVERAGE),
+            }),
         };
     };
     const headlineChart = buildChartQuery(spec.headlineChart);
@@ -307,13 +345,16 @@ function buildTopExpensesQueryJSON(query: SearchQueryString): Readonly<SearchQue
 
 export {
     applyInsightsFilters,
+    buildChartSnapshotQueryJSON,
     buildDateFormValues,
     buildDetailsFiltersQueryJSON,
     buildFutureExpensesQueryString,
     buildInsightsQueryString,
     buildRecentHistoryQueryString,
     buildTopExpensesQueryJSON,
+    scopeInsightsDrillDownQuery,
     TOP_EXPENSES_LIMIT,
+    withInsightsSnapshotHash,
 };
 export type {InsightsChartQuery, InsightsQuery};
 export default buildInsightsJsonQuery;

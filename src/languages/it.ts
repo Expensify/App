@@ -406,6 +406,7 @@ const translations: TranslationDeepObject<typeof en> = {
         reportID: 'ID report',
         longReportID: 'ID report dettagliato',
         withdrawalID: 'ID prelievo',
+        transactionID: 'ID transazione',
         internationalReimbursementIDs: 'ID di rimborso internazionale',
         amountDebited: 'Importo addebitato',
         amountReimbursed: 'Importo rimborsato',
@@ -1946,14 +1947,15 @@ const translations: TranslationDeepObject<typeof en> = {
         wisePaymentSummary: {
             confirmPayment: 'Conferma pagamento',
             reportTotal: 'Totale del resoconto',
-            unheldAmountBeingPaid: 'Importo non in sospeso da pagare',
-            debitAmount: 'Importo addebitato',
             employeeWillReceive: 'Il dipendente riceverà',
+            companyWillPay: 'L’azienda pagherà',
             totalFees: 'Commissioni totali',
             fxRate: 'Tasso di cambio',
             paymentDetails: 'Dettagli del pagamento',
             debitedAmount: 'Importo addebitato',
             employeeReceived: 'Il dipendente ha ricevuto',
+            paymentDisclosure: ({buttonText}: {buttonText: string}) =>
+                `<muted-text-micro>Il destinatario potrebbe ricevere meno a causa delle commissioni della sua banca e delle imposte estere. Facendo clic su ${buttonText}, accetto i <a href="${CONST.WISE.TERMS_URL}">Termini di utilizzo</a> e l’<a href="${CONST.WISE.PRIVACY_URL}">Informativa sulla privacy</a> di Wise.</muted-text-micro>`,
             payAll: 'Paga tutto',
             fxRateExpiredTitle: 'Tasso di cambio scaduto',
             fxRatesExpiredTitle: 'Tassi di cambio scaduti',
@@ -4491,7 +4493,9 @@ ${amount} per ${merchant} - ${date}`,
     },
     welcomeSignUpForm: {
         join: 'Partecipa',
-        marketingSMSConsent: 'Accetto di ricevere SMS di marketing da Expensify',
+        transactionalSMSConsent: "Fornendo il mio numero di telefono, accetto di ricevere da Expensify avvisi transazionali relativi all'account.",
+        transactionalSMSConsentFinePrint: "Potrebbero essere applicate le tariffe standard per messaggi e dati. Rispondi STOP per annullare l'iscrizione.",
+        marketingSMSConsent: 'Accetto di ricevere SMS di marketing da Expensify.',
     },
     detailsPage: {
         localTime: 'Ora locale',
@@ -4696,6 +4700,15 @@ ${amount} per ${merchant} - ${date}`,
         updateSuccessMessage: 'Complimenti, il tuo conto bancario è configurato e pronto a ricevere rimborsi.',
         bankDetails: 'Coordinate bancarie',
         accountHolderDetails: "Dettagli del titolare dell'account",
+        notices: {
+            katakanaName:
+                'Inserisci il tuo nome esattamente come appare sul tuo conto bancario giapponese. Di solito è scritto in カタカナ (katakana). Una non corrispondenza potrebbe ritardare o far rifiutare il pagamento.',
+            alipayRecipients: 'Solo i destinatari nella Cina continentale, a Hong Kong o a Macao possono essere pagati tramite Alipay.',
+            alipayLimits:
+                "Alipay può ricevere fino a 50.000 CNY per pagamento e tra 300.000 e 600.000 CNY all'anno. A seconda dello scopo del pagamento, possono anche essere applicati limiti mensili al numero di pagamenti.",
+            malaysianNonResidentLimit:
+                'I non residenti con un conto bancario in Malesia possono ricevere solo 10.000 ringgit malesi al giorno. Un pagamento superiore a questo limite potrebbe portare la banca a chiudere il conto.',
+        },
     },
     addPersonalBankAccountPage: {
         enterPassword: 'Inserisci la password di Expensify',
@@ -7273,6 +7286,8 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
             createFailureMessage: 'Si è verificato un errore durante la creazione della categoria, riprova per favore',
             addCategory: 'Aggiungi categoria',
             createCategoryFromSearch: (categoryName: string) => `Crea categoria «${categoryName}»`,
+            availableToMember: (memberName: string) => `Disponibile per ${memberName}`,
+            notAvailableToMember: (memberName: string) => `Non disponibile per ${memberName}`,
             editCategory: 'Modifica categoria',
             editCategories: 'Modifica categorie',
             findCategory: 'Trova categoria',
@@ -8040,6 +8055,9 @@ Il piano Control parte da 9 $ al mese per ogni membro attivo.`,
             categoryVisibilityRequiredModal: {title: 'I membri devono avere almeno una categoria', description: 'Seleziona almeno una categoria che questo membro può usare.'},
             changeOfficeLocation: 'Cambia sede dell’ufficio',
             changeWorkArrangement: 'Modifica modalità di lavoro',
+            editCategoryVisibility: 'Modifica visibilità categoria',
+            bulkCategoryVisibilitySaved: ({categoryCount, memberCount}: {categoryCount: string; memberCount: string}) =>
+                `Imposta ${categoryCount} per ${memberCount}. Questo sostituisce le categorie attualmente visibili.`,
             changeRole: 'Cambia ruolo',
             newRolesBanner: {
                 title: 'Nuovi ruoli disponibili',

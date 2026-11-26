@@ -3,13 +3,12 @@ import VictoryTheme from '@components/Charts/VictoryTheme';
 import Header from '@components/Header';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
-import {buildChartDrillDownQuery} from '@components/Search/chartDrillDown';
+import {buildChartDrillDownQuery, buildViewOnSpendQuery} from '@components/Search/chartDrillDown';
 import Text from '@components/Text';
 
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
-import usePermissions from '@hooks/usePermissions';
 import {usePersonalDetail} from '@hooks/usePersonalDetails';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -20,7 +19,14 @@ import {buildSearchQueryJSON} from '@libs/SearchQueryUtils';
 import INSIGHTS_DASHBOARD_SPECS from '@pages/Insights/dashboardSpecs';
 import getInsightsLastDay from '@pages/Insights/getInsightsLastDay';
 import {getQueryGroupBy} from '@pages/Insights/insightsGroupByUtils';
-import {applyInsightsFilters, buildRecentHistoryQueryString, buildTopExpensesQueryJSON} from '@pages/Insights/insightsQueries';
+import {
+    applyInsightsFilters,
+    buildChartSnapshotQueryJSON,
+    buildRecentHistoryQueryString,
+    buildTopExpensesQueryJSON,
+    scopeInsightsDrillDownQuery,
+    withInsightsSnapshotHash,
+} from '@pages/Insights/insightsQueries';
 import useInsightsFilters from '@pages/Insights/useInsightsFilters';
 
 import CONST from '@src/CONST';
@@ -48,16 +54,16 @@ type InsightsDetailsPageProps = PlatformStackScreenProps<InsightsDetailsParamLis
 function InsightsDetailsPage({route}: InsightsDetailsPageProps) {
     const styles = useThemeStyles();
     const {translate, dateFnsLocale} = useLocalize();
-    const {isBetaEnabled} = usePermissions();
     const {graphKey, item: itemKey, end: periodEnd, level, parent: parentTagPath, asOf} = route.params;
     const tagLevel = level ? Number(level) : undefined;
     const {filters, isResolved} = useInsightsFilters(CONST.INSIGHTS.DASHBOARD.SPEND);
-    const memberAccountID = graphKey === CONST.INSIGHTS.GRAPH.TOP_SPENDERS ? Number(itemKey) : undefined;
+    const isTopSpenders = graphKey === CONST.INSIGHTS.GRAPH.TOP_SPENDERS;
+    const memberAccountID = isTopSpenders ? Number(itemKey) : undefined;
     const [storedMember] = usePersonalDetail(memberAccountID);
 
     const {headlineChart, supportingCharts} = INSIGHTS_DASHBOARD_SPECS[CONST.INSIGHTS.DASHBOARD.SPEND];
     const chartSpec = route.params.dashboardID === CONST.INSIGHTS.DASHBOARD.SPEND ? [headlineChart, ...supportingCharts].find((spec) => spec.graphKey === graphKey) : undefined;
-    const chartQueryJSON = chartSpec && isResolved ? buildSearchQueryJSON(applyInsightsFilters(chartSpec, filters)) : undefined;
+    const chartQueryJSON = chartSpec && isResolved ? buildChartSnapshotQueryJSON(CONST.INSIGHTS.DASHBOARD.SPEND, chartSpec, filters) : undefined;
     const [chartMember] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${chartQueryJSON?.hash}`, {
         selector: (snapshot) => (memberAccountID === undefined ? undefined : snapshot?.data?.personalDetailsList?.[memberAccountID]),
     });
@@ -81,7 +87,7 @@ function InsightsDetailsPage({route}: InsightsDetailsPageProps) {
             : undefined;
     const queryJSONThroughToday = chartSpec && isResolved ? buildSearchQueryJSON(applyInsightsFilters(chartSpec, filters, undefined, getInsightsLastDay(asOf))) : undefined;
     const drillDownQuery = queryJSONThroughToday && item ? buildChartDrillDownQuery(queryJSONThroughToday, item.filterQuery) : undefined;
-    const topExpensesQueryJSON = drillDownQuery ? buildTopExpensesQueryJSON(drillDownQuery) : undefined;
+    const topExpensesQueryJSON = chartSpec && drillDownQuery ? withInsightsSnapshotHash(buildTopExpensesQueryJSON(drillDownQuery), chartSpec.graphKey) : undefined;
     const topExpensesSnapshotHash = topExpensesQueryJSON?.hash;
     const detailsQuery =
         chartSpec && topExpensesSnapshotHash !== undefined
@@ -96,9 +102,10 @@ function InsightsDetailsPage({route}: InsightsDetailsPageProps) {
                   lastDay: getInsightsLastDay(asOf),
               })
             : undefined;
-    const requestDetails = useRequestInsightsDetails(detailsQuery, topExpensesQueryJSON);
+    const requestDetails = useRequestInsightsDetails(detailsQuery, isTopSpenders ? undefined : topExpensesQueryJSON);
     const {isOffline} = useNetwork();
     const [details] = useOnyx(`${ONYXKEYS.COLLECTION.INSIGHTS_DETAILS}${detailsQuery?.hash}`);
+    const viewAllQueryJSON = chartSpec ? scopeInsightsDrillDownQuery(topExpensesQueryJSON, chartSpec.graphKey, details?.eligiblePolicyIDs) : undefined;
     const summary = details?.summary;
     const detailsState = getInsightsDetailsSectionState({
         isOffline,
@@ -108,7 +115,7 @@ function InsightsDetailsPage({route}: InsightsDetailsPageProps) {
     });
     const hasDetailsFailed = !!detailsQuery && (detailsState === INSIGHTS_DETAILS_SECTION_STATE.STALE || detailsState === INSIGHTS_DETAILS_SECTION_STATE.ERROR);
 
-    if (!isBetaEnabled(CONST.BETAS.INSIGHTS_AI) || !chartSpec || (isResolved && !item)) {
+    if (!chartSpec || (isResolved && !item)) {
         return (
             <ScreenWrapper testID="InsightsDetailsPage">
                 <FullPageNotFoundView shouldShow />
@@ -169,10 +176,10 @@ function InsightsDetailsPage({route}: InsightsDetailsPageProps) {
                                     currentYear={getYear(parseISO(getInsightsLastDay(asOf)))}
                                 />
                             )}
-                            {topExpensesSnapshotHash !== undefined && (
+                            {!!topExpensesQueryJSON && (!isTopSpenders || !!detailsQuery) && (
                                 <InsightsTopExpenses
-                                    query={drillDownQuery}
-                                    snapshotHash={topExpensesSnapshotHash}
+                                    queryJSON={topExpensesQueryJSON}
+                                    viewAllQuery={viewAllQueryJSON && buildViewOnSpendQuery(viewAllQueryJSON)}
                                     onRetry={requestDetails}
                                 />
                             )}

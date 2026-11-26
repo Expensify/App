@@ -37,6 +37,9 @@ type InsightsDetails = {
 
     errors?: Errors;
 
+    /** Workspaces in the Top spenders panel that View all must keep in scope */
+    eligiblePolicyIDs?: string[];
+
     /** JSON code of the failed GetInsightsDetails request stored with errors */
     responseJsonCode?: number;
 };

@@ -96,7 +96,7 @@ import capturePageHTML from '@libs/PageHTMLCapture';
 import {prunePagesToNewestWindow} from '@libs/PaginationUtils';
 import Parser from '@libs/Parser';
 import {getParsedMessageWithShortMentions} from '@libs/ParsingUtils';
-import {getAllPersonalDetails, getPersonalDetail} from '@libs/PersonalDetailsStore';
+import {getAccountIDToNameMap, getAllPersonalDetailLogins, getPersonalDetail} from '@libs/PersonalDetailsStore';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import {addSMSDomainIfPhoneNumber} from '@libs/PhoneNumber';
 import {isMapOrGPSRequired} from '@libs/PolicyDistanceRatesUtils';
@@ -516,6 +516,7 @@ type MergeReportsProps = {
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
     getCurrencySymbol: CurrencyListActionsContextType['getCurrencySymbol'];
     isVendorMatchingBetaEnabled: boolean | undefined;
+    isChatReportArchived: boolean;
     currentUserPersonalDetails: CurrentUserPersonalDetails;
     personalDetailsByLogins: PersonalDetailsByLogin;
 };
@@ -3819,13 +3820,14 @@ function removeLinksFromHtml(html: string, links: string[]): string {
  *
  * @param newCommentText text of the comment after editing.
  * @param originalCommentMarkdown original markdown of the comment before editing.
+ * @param availableMentionLogins logins that short mentions such as `@john` resolve against.
  * @param videoAttributeCache cache of video attributes ([videoSource]: videoAttributes)
  */
 function handleUserDeletedLinksInHtml(
     newCommentText: string,
     originalCommentMarkdown: string,
     currentUserLogin: string,
-    personalDetails: OnyxEntry<PersonalDetailsList>,
+    availableMentionLogins: string[] | undefined,
     videoAttributeCache?: Record<string, string>,
 ): string {
     if (newCommentText.length > CONST.MAX_MARKUP_LENGTH) {
@@ -3833,12 +3835,11 @@ function handleUserDeletedLinksInHtml(
     }
 
     const userEmailDomain = isEmailPublicDomain(currentUserLogin) ? '' : Str.extractEmailDomain(currentUserLogin);
-    const allPersonalDetailLogins = Object.values(personalDetails ?? {}).map((personalDetail) => personalDetail?.login ?? '');
 
     const htmlForNewComment = getParsedMessageWithShortMentions({
         text: newCommentText,
         userEmailDomain,
-        availableMentionLogins: allPersonalDetailLogins,
+        availableMentionLogins: availableMentionLogins ?? [],
         parserOptions: {
             extras: {videoAttributeCache},
         },
@@ -3864,7 +3865,7 @@ startDeferredAttachmentEditReplays((deferredEdit, syncedAction) => {
             textForNewComment,
             isOriginalReportArchived,
             currentUserLogin,
-            getAllPersonalDetails(),
+            getAllPersonalDetailLogins(),
             currentUserAccountID,
             videoAttributeCache,
             reportIDToName,
@@ -3881,7 +3882,7 @@ function editReportComment(
     textForNewComment: string,
     isOriginalReportArchived: boolean | undefined,
     currentUserLogin: string,
-    personalDetails: OnyxEntry<PersonalDetailsList>,
+    availableMentionLogins: string[] | undefined,
     currentUserAccountID: number,
     videoAttributeCache?: Record<string, string>,
     reportIDToName?: Record<string, string>,
@@ -3908,7 +3909,7 @@ function editReportComment(
     }
     const htmlForNewComment = restoreAttachmentAnchorLabels(
         restoreAttachmentAnchorAttributes(
-            handleUserDeletedLinksInHtml(draftForNewComment, originalCommentMarkdown, currentUserLogin, personalDetails, videoAttributeCache),
+            handleUserDeletedLinksInHtml(draftForNewComment, originalCommentMarkdown, currentUserLogin, availableMentionLogins, videoAttributeCache),
             originalCommentHTML,
         ),
         draftForNewComment,
@@ -4046,8 +4047,10 @@ function editReportComment(
             currentUserAccountID,
             isOriginalReportArchived,
             videoAttributeCache,
-            reportIDToName: getReportIDToNameMapForRoomsInMarkdown(reportIDToName, textForNewComment),
-            accountIDToName: getAccountIDToNameMapForMentionsInMarkdown(accountIDToName, textForNewComment),
+            // The caller's maps only have the rooms and users the original HTML mentions by ID. An offline message mentions
+            // them by name, and the synced copy this edit is compared against mentions them by ID, so look them up here.
+            reportIDToName: getReportIDToNameMapForRoomsInMarkdown(buildReportIDToNameMap(allReports), textForNewComment),
+            accountIDToName: getAccountIDToNameMapForMentionsInMarkdown(getAccountIDToNameMap(), textForNewComment),
         };
         deferAttachmentEdit(reportActionID, deferredEdit);
         return;
@@ -7503,6 +7506,7 @@ type DeleteAppReportProps = {
     bankAccountList: OnyxEntry<BankAccountList>;
     delegateAccountID: number | undefined;
     hash?: number;
+    isChatReportArchived: boolean;
 };
 
 function buildOptimisticDeleteParentReportAction(
@@ -7578,6 +7582,7 @@ function clearChatIOUReportID(
     currentUserAccountIDParam: number,
     allTransactionViolations: OnyxCollection<TransactionViolations>,
     bankAccountList: OnyxEntry<BankAccountList>,
+    isChatReportArchived: boolean,
 ) {
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT>> = [];
     const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.SNAPSHOT>> = [];
@@ -7593,7 +7598,15 @@ function clearChatIOUReportID(
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`,
             value: {
-                hasOutstandingChildRequest: hasOutstandingChildRequest(chatReport, reports, currentUserEmailParam, currentUserAccountIDParam, allTransactionViolations, bankAccountList),
+                hasOutstandingChildRequest: hasOutstandingChildRequest(
+                    chatReport,
+                    reports,
+                    currentUserEmailParam,
+                    currentUserAccountIDParam,
+                    allTransactionViolations,
+                    bankAccountList,
+                    isChatReportArchived,
+                ),
                 ...(shouldClearChatIOUReportID ? {iouReportID: null} : {}),
             },
         });
@@ -7624,6 +7637,7 @@ function deleteAppReport({
     bankAccountList,
     delegateAccountID,
     hash,
+    isChatReportArchived,
 }: DeleteAppReportProps) {
     if (!report?.reportID) {
         Log.warn('[Report] deleteAppReport called with no reportID');
@@ -7985,6 +7999,7 @@ function deleteAppReport({
         currentUserAccountIDParam,
         allTransactionViolations,
         bankAccountList,
+        isChatReportArchived,
     );
     optimisticData.push(...clearChatIOUOptimisticData);
     failureData.push(...clearChatIOUFailureData);
@@ -8246,13 +8261,14 @@ function convertIOUReportToExpenseReport(
         parentReportID: optimisticPolicyExpenseChatReportID,
         type: CONST.REPORT.TYPE.EXPENSE,
         ...getNegatedReportTotals(iouReport),
+        // The server always reopens a moved IOU, even one that was already paid, so the workspace's coding and approval workflow can run on it
+        stateNum: CONST.REPORT.STATE_NUM.OPEN,
+        statusNum: CONST.REPORT.STATUS_NUM.OPEN,
     };
 
     // isUnapproved returns before the lookup by login, so personalDetailsByLogins isn't needed.
     const nextApproverAccountID = getNextApproverAccountID(iouReport, rules, true);
     if (iouReport.managerID !== nextApproverAccountID) {
-        expenseReport.stateNum = CONST.REPORT.STATE_NUM.OPEN;
-        expenseReport.statusNum = CONST.REPORT.STATUS_NUM.OPEN;
         expenseReport.managerID = nextApproverAccountID;
     }
 
@@ -9372,6 +9388,7 @@ function mergeReports({
     getCurrencyDecimals,
     getCurrencySymbol,
     isVendorMatchingBetaEnabled,
+    isChatReportArchived,
     currentUserPersonalDetails,
     personalDetailsByLogins,
 }: MergeReportsProps) {
@@ -9500,6 +9517,7 @@ function mergeReports({
         accountID,
         allTransactionViolation,
         bankAccountList,
+        isChatReportArchived,
     );
     deleteOptimisticData.push(...clearChatIOUOptimisticData);
     deleteFailureData.push(...clearChatIOUFailureData);
