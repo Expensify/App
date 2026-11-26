@@ -45,14 +45,13 @@ function WorkspacePerDiemDetailsPage({route}: WorkspacePerDiemDetailsPageProps) 
     const {translate} = useLocalize();
     const {showConfirmModal} = useConfirmModal();
     const {getCurrencySymbol, convertToDisplayStringWithoutCurrency} = useCurrencyListActions();
-    const customUnit = getPerDiemCustomUnit(policy);
     const {canWrite: canWritePerDiem} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.PER_DIEM);
-
-    const availableRate = getAvailablePerDiemRate(customUnit?.rates?.[rateID]);
-    const fetchedSubRate = availableRate?.subRates?.find((subRate) => subRate.id === subRateID);
     const [deletingRate, setDeletingRate] = useState<{rate: Rate; subRate: Subrate}>();
     const icons = useMemoizedLazyExpensifyIcons(['Trashcan']);
 
+    const customUnit = getPerDiemCustomUnit(policy);
+    const availableRate = getAvailablePerDiemRate(customUnit?.rates?.[rateID]);
+    const fetchedSubRate = availableRate?.subRates?.find((subRate) => subRate.id === subRateID);
     const selectedRate = deletingRate?.rate ?? availableRate;
     const selectedSubRate = deletingRate?.subRate ?? fetchedSubRate;
     const isDeleting = !!deletingRate;
