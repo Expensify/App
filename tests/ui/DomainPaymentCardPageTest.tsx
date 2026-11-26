@@ -65,6 +65,7 @@ jest.mock('@components/AddPaymentCard/SubscriptionPaymentCardForm', () => ({head
 });
 jest.mock('@userActions/Domain', () => ({setPrimaryContact: jest.fn(), toggleConsolidatedDomainBilling: jest.fn()}));
 jest.mock('@userActions/PaymentMethods', () => ({addSubscriptionPaymentCard: jest.fn(), clearPaymentCardFormErrorAndSubmit: jest.fn()}));
+// Jest resolves the native variant by default, so the test loads the web page that shows the card form.
 jest.mock('@pages/domain/Admins/DomainPaymentCardPage', () => jest.requireActual<typeof DomainPaymentCardPageModule>('@pages/domain/Admins/DomainPaymentCardPage/index.tsx'));
 
 type DomainPaymentCardPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.DOMAIN.DYNAMIC_PAYMENT_CARD>;
@@ -110,24 +111,24 @@ describe('DomainPaymentCardPage', () => {
     });
 
     it('makes the admin the primary contact only after their card setup finishes', async () => {
-        // Given an admin who picked themselves as primary contact while billing is on
+        // Given an admin who picked themselves as primary contact while billing is on.
         const entryPath = ROUTES.DOMAIN_ADD_PRIMARY_CONTACT.getRoute(DOMAIN_ACCOUNT_ID);
         await renderPage(CONST.DOMAIN.PAYMENT_CARD_FLOW.PRIMARY_CONTACT, entryPath, true);
 
-        // Then the page asks for a card to become the primary contact
+        // Then the page asks for a card to become the primary contact.
         expect(screen.getByText('domain.admins.addPrimaryContact')).toBeOnTheScreen();
         expect(screen.getByText('domain.admins.primaryContactPaymentCardTitle')).toBeOnTheScreen();
 
-        // When the card is saved but its setup has not finished
+        // When the card is saved but its setup has not finished.
         await setCardSetupComplete(false);
 
-        // Then the primary contact stays the same
+        // Then the primary contact stays the same.
         expect(setPrimaryContact).not.toHaveBeenCalled();
 
-        // When the card setup finishes
+        // When the card setup finishes.
         await setCardSetupComplete(true);
 
-        // Then the admin becomes the primary contact and the success page replaces the card page
+        // Then the admin becomes the primary contact and the success page replaces the card page.
         expect(setPrimaryContact).toHaveBeenCalledWith(DOMAIN_ACCOUNT_ID, CURRENT_USER_EMAIL, PRIMARY_CONTACT_EMAIL);
         expect(Navigation.navigate).toHaveBeenCalledWith(`${entryPath}/${DYNAMIC_ROUTES.DOMAIN_PAYMENT_CARD_SUCCESS.getRoute(CONST.DOMAIN.PAYMENT_CARD_FLOW.PRIMARY_CONTACT)}`, {
             forceReplace: true,
@@ -136,19 +137,19 @@ describe('DomainPaymentCardPage', () => {
     });
 
     it('turns consolidated domain billing on only after the card setup finishes', async () => {
-        // Given a primary contact who turned on the billing switch while billing is off
+        // Given a primary contact who turned on the billing switch while billing is off.
         const entryPath = ROUTES.DOMAIN_ADMINS_SETTINGS.getRoute(DOMAIN_ACCOUNT_ID);
         await renderPage(CONST.DOMAIN.PAYMENT_CARD_FLOW.CONSOLIDATED_BILLING, entryPath, false);
 
-        // Then the page asks for a card to turn on consolidated domain billing
+        // Then the page asks for a card to turn on consolidated domain billing.
         expect(screen.getByText('domain.admins.consolidatedDomainBilling')).toBeOnTheScreen();
         expect(screen.getByText('domain.admins.consolidatedBillingPaymentCardTitle')).toBeOnTheScreen();
         expect(toggleConsolidatedDomainBilling).not.toHaveBeenCalled();
 
-        // When the card setup finishes
+        // When the card setup finishes.
         await setCardSetupComplete(true);
 
-        // Then billing turns on and the success page replaces the card page
+        // Then billing turns on and the success page replaces the card page.
         expect(toggleConsolidatedDomainBilling).toHaveBeenCalledWith(DOMAIN_ACCOUNT_ID, DOMAIN_NAME, true);
         expect(Navigation.navigate).toHaveBeenCalledWith(`${entryPath}/${DYNAMIC_ROUTES.DOMAIN_PAYMENT_CARD_SUCCESS.getRoute(CONST.DOMAIN.PAYMENT_CARD_FLOW.CONSOLIDATED_BILLING)}`, {
             forceReplace: true,

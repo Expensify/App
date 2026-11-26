@@ -150,32 +150,32 @@ describe('DomainAddPrimaryContactPage', () => {
     });
 
     it('lists only the current user, without search, and explains why while billing is on', async () => {
-        // Given consolidated billing that is on and another admin as primary contact
-        // When an admin opens the primary contact picker
+        // Given consolidated billing that is on and another admin as primary contact.
+        // When an admin opens the primary contact picker.
         await renderPage(true);
 
-        // Then the list offers only the admin themselves, hides the search, and shows why
+        // Then the list offers only the admin themselves, hides the search, and shows why.
         expect(mockListProps?.data.map((option) => option.login)).toEqual([CURRENT_USER.login]);
         expect(mockListProps?.shouldShowTextInput).toBe(false);
         expect(screen.getByText(BILLING_ON_NOTE)).toBeOnTheScreen();
     });
 
     it('lists only the current user, checked, and still explains why while billing is on and they are the primary contact', async () => {
-        // Given consolidated billing that is on and the current user as primary contact
-        // When they open the primary contact picker
+        // Given consolidated billing that is on and the current user as primary contact.
+        // When they open the primary contact picker.
         await renderPage(true, CURRENT_USER.login);
 
-        // Then the list offers only them, checked, and shows why
+        // Then the list offers only them, checked, and shows why.
         expect(mockListProps?.data.map((option) => ({login: option.login, isSelected: option.isSelected}))).toEqual([{login: CURRENT_USER.login, isSelected: true}]);
         expect(screen.getByText(BILLING_ON_NOTE)).toBeOnTheScreen();
     });
 
     it('lists every admin with search and no note while billing is off', async () => {
-        // Given consolidated billing that is off
-        // When an admin opens the primary contact picker
+        // Given consolidated billing that is off.
+        // When an admin opens the primary contact picker.
         await renderPage(false);
 
-        // Then every admin can be picked and searched
+        // Then every admin can be picked and searched.
         expect(mockListProps?.data.map((option) => option.login).sort()).toEqual([CURRENT_USER.login, PRIMARY_CONTACT.login]);
         expect(mockListProps?.shouldShowTextInput).toBe(true);
         expect(screen.queryByText(BILLING_ON_NOTE)).not.toBeOnTheScreen();
@@ -188,23 +188,23 @@ describe('DomainAddPrimaryContactPage', () => {
     });
 
     it('asks an admin without a payment card to add one before taking over as primary contact while billing is on', async () => {
-        // Given consolidated billing that is on, viewed by an admin without a payment card
-        // When the admin picks themselves as primary contact
+        // Given consolidated billing that is on, viewed by an admin without a payment card.
+        // When the admin picks themselves as primary contact.
         await renderPageAndSelectCurrentUser(true);
 
-        // Then the domain payment card page opens and the primary contact stays the same until a card is added
+        // Then the domain payment card page opens and the primary contact stays the same until a card is added.
         expect(Navigation.navigate).toHaveBeenCalledWith(DYNAMIC_ROUTES.DOMAIN_PAYMENT_CARD.getRoute(CONST.DOMAIN.PAYMENT_CARD_FLOW.PRIMARY_CONTACT));
         expect(setPrimaryContact).not.toHaveBeenCalled();
     });
 
     it('tells an admin without a payment card in the mobile app to add one on the web before taking over as primary contact while billing is on', async () => {
-        // Given consolidated billing that is on, viewed in the mobile app by an admin without a payment card
+        // Given consolidated billing that is on, viewed in the mobile app by an admin without a payment card.
         mockIsNativeApp = true;
 
-        // When the admin picks themselves as primary contact
+        // When the admin picks themselves as primary contact.
         await renderPageAndSelectCurrentUser(true);
 
-        // Then a modal explains that a card is needed, and the primary contact stays the same
+        // Then a modal explains that a card is needed, and the primary contact stays the same.
         expect(mockShowConfirmModal).toHaveBeenCalledWith(
             expect.objectContaining({
                 title: 'workspace.distanceRates.oopsNotSoFast',
@@ -218,27 +218,27 @@ describe('DomainAddPrimaryContactPage', () => {
     });
 
     it('makes an admin with a payment card in the mobile app the primary contact while billing is on', async () => {
-        // Given consolidated billing that is on, viewed in the mobile app by an admin with a payment card
+        // Given consolidated billing that is on, viewed in the mobile app by an admin with a payment card.
         mockIsNativeApp = true;
         await act(async () => {
             await Onyx.set(ONYXKEYS.NVP_BILLING_FUND_ID, BILLING_FUND_ID);
         });
 
-        // When the admin picks themselves as primary contact
+        // When the admin picks themselves as primary contact.
         await renderPageAndSelectCurrentUser(true);
 
-        // Then the admin becomes the primary contact without a modal
+        // Then the admin becomes the primary contact without a modal.
         expect(mockShowConfirmModal).not.toHaveBeenCalled();
         expect(setPrimaryContact).toHaveBeenCalledWith(DOMAIN_ACCOUNT_ID, CURRENT_USER.login, PRIMARY_CONTACT_EMAIL);
         expect(Navigation.goBack).toHaveBeenCalledWith(ROUTES.DOMAIN_ADMINS_SETTINGS.getRoute(DOMAIN_ACCOUNT_ID));
     });
 
     it('makes an admin without a payment card the primary contact right away while billing is off', async () => {
-        // Given consolidated billing that is off, viewed by an admin without a payment card
-        // When the admin picks themselves as primary contact
+        // Given consolidated billing that is off, viewed by an admin without a payment card.
+        // When the admin picks themselves as primary contact.
         await renderPageAndSelectCurrentUser(false);
 
-        // Then the admin becomes the primary contact without adding a card
+        // Then the admin becomes the primary contact without adding a card.
         expect(Navigation.navigate).not.toHaveBeenCalled();
         expect(setPrimaryContact).toHaveBeenCalledWith(DOMAIN_ACCOUNT_ID, CURRENT_USER.login, PRIMARY_CONTACT_EMAIL);
         expect(Navigation.goBack).toHaveBeenCalledWith(ROUTES.DOMAIN_ADMINS_SETTINGS.getRoute(DOMAIN_ACCOUNT_ID));
