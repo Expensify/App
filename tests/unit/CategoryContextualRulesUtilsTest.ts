@@ -155,6 +155,7 @@ describe('getCategoryContextualRules', () => {
     describe('category tax default', () => {
         const policyWithTaxRule: Policy = {
             ...policy,
+            tax: {trackingEnabled: true},
             taxRates: {
                 name: 'Tax',
                 defaultExternalID: 'TAX_EXEMPT',
@@ -197,6 +198,26 @@ describe('getCategoryContextualRules', () => {
             expect(rules).toHaveLength(1);
             expect(rules.at(0)?.summary).toBe('Update tax to "VAT (20%)"');
             expect(rules.at(0)?.dynamicRoutePath).toBe(DYNAMIC_ROUTES.WORKSPACE_CATEGORY_RULES_TAX_EDIT.getRoute('rule1'));
+        });
+
+        it('hides a tax-only rule while workspace taxes are off', () => {
+            // Given a category with a saved tax default, but workspace taxes are off
+            const policyWithTaxesOff = {...policyWithTaxRule, tax: {trackingEnabled: false}};
+
+            // When opening the category details
+            const rules = getCategoryContextualRules({
+                policy: policyWithTaxesOff,
+                policyRules: taxDefaultRules,
+                category,
+                categoryName: 'Travel',
+                translate: translateLocal,
+                convertToDisplayString,
+                convertToDisplayStringWithoutCurrency,
+                isOffline: false,
+            });
+
+            // Then the paused default does not get a row
+            expect(rules).toEqual([]);
         });
 
         it('does not list a tax default belonging to another category', () => {
@@ -301,7 +322,7 @@ describe('getCategoryContextualRules', () => {
             expect(rules.at(0)?.summary).toBe('Update amount to "$10.00"');
         });
 
-        it('describes every field a rule sets, not just the tax', () => {
+        it('keeps the non-tax actions visible while workspace taxes are off', () => {
             // Given a rule that sets a tax and an amount
             const taxAndAmountRules: OnyxCollection<Rule> = {
                 [`${ONYXKEYS.COLLECTION.RULE}rule1`]: {
@@ -317,9 +338,9 @@ describe('getCategoryContextualRules', () => {
                 },
             };
 
-            // When the category details RHP builds its rules
+            // When the category details show a rule for a workspace with taxes turned off
             const rules = getCategoryContextualRules({
-                policy: policyWithTaxRule,
+                policy: {...policyWithTaxRule, tax: {trackingEnabled: false}},
                 policyRules: taxAndAmountRules,
                 category,
                 categoryName: 'Travel',
@@ -329,8 +350,8 @@ describe('getCategoryContextualRules', () => {
                 isOffline: false,
             });
 
-            // Then the amount is in the summary too, so the row is not a tax-only view of the rule
-            expect(rules.at(0)?.summary).toBe('Update tax to "VAT (20%)", update amount to "$10.00"');
+            // Then the amount still applies and the tax action is hidden
+            expect(rules.at(0)?.summary).toBe('Update amount to "$10.00"');
         });
 
         it('shows what a rule matches on, so two rules with the same action can be told apart', () => {

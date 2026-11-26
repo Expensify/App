@@ -7,6 +7,7 @@ import type {AvatarSource} from './UserUtils';
 import {splitExtensionFromFileName, validateImageForCorruption} from './fileDownload/FileUtils';
 import getImageResolution from './fileDownload/getImageResolution';
 import tryResolveUrlFromApiRoot from './tryResolveUrlFromApiRoot';
+import {decodeURIComponentSafely} from './Url';
 
 /**
  * Validation result containing error information if validation fails
@@ -120,7 +121,7 @@ function getValidatedImageSource(source: AvatarSource | undefined, shouldResolve
     }
 
     if (typeof source === 'string') {
-        const decoded = decodeURIComponent(source);
+        const decoded = decodeURIComponentSafely(source);
 
         return shouldResolveUrlFromApiRoot ? tryResolveUrlFromApiRoot(decoded) : decoded;
     }

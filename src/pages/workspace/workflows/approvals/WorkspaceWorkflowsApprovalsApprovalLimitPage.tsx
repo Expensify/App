@@ -226,6 +226,7 @@ function WorkspaceWorkflowsApprovalsApprovalLimitPage({policy, isLoadingReportDa
                     <ScrollView
                         style={styles.flex1}
                         contentContainerStyle={styles.flexGrow1}
+                        keyboardShouldPersistTaps="handled"
                     >
                         {isEditingApprover && (
                             <View style={styles.mh5}>
