@@ -179,6 +179,7 @@ describe('buildOnyxDataForMoneyRequest', () => {
             function buildSelfDMParams(): BuildOnyxDataParams {
                 return {
                     isVendorMatchingBetaEnabled: false,
+                    shouldFlagNewTransactionForReportTable: true,
                     getCurrencyDecimals: getCurrencyDecimalsLocal,
                     isNewChatReport: false,
                     shouldCreateNewMoneyRequestReport: false,
@@ -325,6 +326,7 @@ describe('buildOnyxDataForMoneyRequest', () => {
             function buildStandardParams(): BuildOnyxDataParams {
                 return {
                     isVendorMatchingBetaEnabled: false,
+                    shouldFlagNewTransactionForReportTable: true,
                     getCurrencyDecimals: getCurrencyDecimalsLocal,
                     isNewChatReport: false,
                     shouldCreateNewMoneyRequestReport: false,
@@ -368,6 +370,7 @@ describe('buildOnyxDataForMoneyRequest', () => {
             function buildNoSelfDMReportIDParams(): BuildOnyxDataParams {
                 return {
                     isVendorMatchingBetaEnabled: false,
+                    shouldFlagNewTransactionForReportTable: true,
                     getCurrencyDecimals: getCurrencyDecimalsLocal,
                     isNewChatReport: false,
                     shouldCreateNewMoneyRequestReport: false,
@@ -410,6 +413,7 @@ describe('buildOnyxDataForMoneyRequest', () => {
 
             return {
                 isVendorMatchingBetaEnabled: false,
+                shouldFlagNewTransactionForReportTable: true,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 isNewChatReport: false,
                 shouldCreateNewMoneyRequestReport,
@@ -493,6 +497,7 @@ describe('buildOnyxDataForMoneyRequest', () => {
         const mockFormatPhoneNumber = jest.fn((phoneNumber: string) => `formatted:${phoneNumber}`);
         const result = getMoneyRequestInformation({
             isVendorMatchingBetaEnabled: false,
+            shouldFlagNewTransactionForReportTable: true,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
             parentChatReport: undefined,
             participantParams: {

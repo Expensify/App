@@ -1,4 +1,4 @@
-import {act, render, screen} from '@testing-library/react-native';
+import {act, fireEvent, render, screen} from '@testing-library/react-native';
 
 import ComposeProviders from '@components/ComposeProviders';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
@@ -9,6 +9,7 @@ import {CurrentReportIDContextProvider} from '@hooks/useCurrentReportID';
 import * as useResponsiveLayoutModule from '@hooks/useResponsiveLayout';
 import type ResponsiveLayoutResult from '@hooks/useResponsiveLayout/types';
 
+import Navigation from '@libs/Navigation/Navigation';
 import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
 
 import type {WorkspaceSplitNavigatorParamList} from '@navigation/types';
@@ -17,6 +18,7 @@ import WorkspaceOverviewPage from '@pages/workspace/WorkspaceOverviewPage';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type {Policy} from '@src/types/onyx';
 
@@ -117,6 +119,24 @@ describe('WorkspaceOverviewPage currency error', () => {
 
         // Then the error is shown under the currency row instead of the currency quietly reverting
         expect(queryCurrencyError()).toBeOnTheScreen();
+    });
+
+    it('keeps the workspace name as an unlimited heading and opens its editor', async () => {
+        // Given an admin viewing a workspace with a long name.
+        const name = 'Workspace with a long name that must stay readable';
+        await setupPolicy({name});
+        const navigate = jest.spyOn(Navigation, 'navigate').mockImplementation(() => {});
+        renderPage();
+        await waitForBatchedUpdatesWithAct();
+
+        // When the composed name row is pressed.
+        fireEvent.press(screen.getByRole('button', {name: `Workspace name, ${name}`}), {nativeEvent: {}});
+
+        // Then the name retains heading semantics and the original rename destination.
+        expect(screen.getByText(name)).toHaveProp('accessibilityRole', CONST.ROLE.HEADER);
+        expect(screen.getByText(name)).toHaveProp('numberOfLines', 0);
+        expect(navigate).toHaveBeenCalledWith(ROUTES.WORKSPACE_OVERVIEW_NAME.getRoute(POLICY_ID));
+        navigate.mockRestore();
     });
 
     it('shows no currency error when the last currency change succeeded', async () => {

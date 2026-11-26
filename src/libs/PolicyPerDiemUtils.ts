@@ -6,6 +6,7 @@
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 
 import CONST from '@src/CONST';
+import type {Rate} from '@src/types/onyx/Policy';
 
 import {convertToBackendAmount} from './CurrencyUtils';
 import StringUtils from './StringUtils';
@@ -90,4 +91,18 @@ function getPerDiemRowKey(rateID: string, subRateID: string): string {
     return `${rateID}:${subRateID}`;
 }
 
-export {getPerDiemNameError, getPerDiemNameErrorMessage, getPerDiemAmountError, getPerDiemAmountErrorMessage, getPerDiemRowKey};
+/**
+ * Pending deletions remain in Onyx for workspace feedback, but must not be selected or edited.
+ * Only the offline workspace table includes them, to show the disabled rows with strikethrough.
+ */
+function getAvailablePerDiemRate(rate: Rate | undefined, shouldIncludePendingDeletion = false): Rate | undefined {
+    if (shouldIncludePendingDeletion) {
+        return rate;
+    }
+    if (!rate || rate.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
+        return undefined;
+    }
+    return {...rate, subRates: rate.subRates?.filter((subrate) => subrate.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE)};
+}
+
+export {getPerDiemNameError, getPerDiemNameErrorMessage, getPerDiemAmountError, getPerDiemAmountErrorMessage, getPerDiemRowKey, getAvailablePerDiemRate};

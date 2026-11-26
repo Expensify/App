@@ -1,4 +1,4 @@
-import {render} from '@testing-library/react-native';
+import {render, screen} from '@testing-library/react-native';
 
 import ComposeProviders from '@components/ComposeProviders';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
@@ -58,5 +58,28 @@ describe('BaseTextInput implementation - HTML paste handler scoping', () => {
         // This is the regression guard: calling useHtmlPaste unconditionally from BaseTextInput
         // made every form field in the app subscribe to reports for a path it cannot reach.
         expect(mockUseHtmlPaste).not.toHaveBeenCalled();
+    });
+});
+
+describe('BaseTextInput implementation - native password-manager props', () => {
+    it('does not forward web suppression props or change native email hints', () => {
+        // Given an email field explicitly opting in to web suppression
+        // When it renders through the native implementation
+        renderWithProviders(
+            <BaseTextInputImplementation
+                testID="native-email"
+                shouldIgnorePasswordManager
+                inputMode="email"
+                keyboardType="email-address"
+                autoComplete="email"
+                textContentType="emailAddress"
+            />,
+        );
+
+        // Then native keeps its existing keyboard and autofill props without the web-only option
+        const {props} = screen.getByTestId('native-email');
+        expect(props).not.toHaveProperty('shouldIgnorePasswordManager');
+        expect(props).not.toHaveProperty('dataSet');
+        expect(props).toMatchObject({keyboardType: 'email-address', autoComplete: 'email', textContentType: 'emailAddress'});
     });
 });

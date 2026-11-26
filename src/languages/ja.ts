@@ -405,6 +405,7 @@ const translations: TranslationDeepObject<typeof en> = {
         reportID: 'レポートID',
         longReportID: '長いレポートID',
         withdrawalID: '出金ID',
+        transactionID: '取引ID',
         internationalReimbursementIDs: '国際払い戻しID',
         amountDebited: '引き落とし額',
         amountReimbursed: '精算済み金額',
@@ -1019,6 +1020,7 @@ const translations: TranslationDeepObject<typeof en> = {
     },
     supportalSwitcher: {
         title: '別のアカウントでサポートポータルを開く',
+        navigationLabel: 'Supportal',
         emailLabel: 'メールアドレス',
         reasonLabel: 'サポートログインの理由',
         reasonHint: 'このアカウントには最近のチケットが見つかりませんでした。',
@@ -1238,6 +1240,8 @@ const translations: TranslationDeepObject<typeof en> = {
     },
     insightsPage: {
         tagLevel: (level: string) => `タグレベル ${level}`,
+        noTaggedExpenses: 'タグが付いた経費がありません',
+        noExpensesForTagLevel: (tagLevelName: string) => `この期間には${tagLevelName}の経費がありません。`,
         tagLevelLabel: 'タグレベル',
         parent: '親',
         shareOfTotal: '全体に占める割合（％）',
@@ -1290,7 +1294,6 @@ const translations: TranslationDeepObject<typeof en> = {
         viewDetails: '詳細を表示',
         viewAll: 'すべて表示',
         topExpenses: '上位の経費',
-        noExpensesInRange: 'この範囲内に経費はありません',
         efficiency: '効率',
         workflowEfficiency: 'ワークフロー効率',
         averageProcessingTime: '平均処理時間',
@@ -1299,6 +1302,29 @@ const translations: TranslationDeepObject<typeof en> = {
         mostTimeToPay: '支払いまで最も時間がかかる',
         share: 'シェア割合',
         averageDays: '平均日数',
+        summary: {
+            title: '概要',
+            over: (percentage: string) => `${percentage} 超過`,
+            under: (percentage: string) => `${percentage} 未満`,
+            versusMerchantAverage: (amount: string) => `${amount}（この加盟店の平均額との比較）`,
+            versusMemberAverage: (amount: string) => `${amount} 対 このメンバーの平均`,
+            versusCategoryAverage: (amount: string) => `${amount}（このカテゴリーの平均との比較）`,
+            versusAverageDay: (amount: string) => `平均日との比較：${amount}`,
+            versusAverageWeek: (amount: string) => `${amount}（平均的な週との比較）`,
+            versusAverageMonth: (amount: string) => `${amount} 対 平均月額`,
+            versusAverageQuarter: (amount: string) => `平均四半期との比較：${amount}`,
+            moreHistoryNeeded: 'さらに履歴が必要です:',
+            daysOfHistoryNeeded: (count: number) => `平均比較は、履歴が${count}日分そろってから表示されます`,
+            weeksOfHistoryNeeded: (count: number) => `平均比較は、${count}週間分の履歴がそろうと表示されます`,
+            monthsOfHistoryNeeded: (count: number) => `平均比較は、履歴が${count}か月分そろってから表示されます`,
+            quartersOfHistoryNeeded: (count: number) => `平均比較は、${count} 四半期分の履歴が完了すると表示されます`,
+            periodSpend: (period: string) => `${period}の支出`,
+            dayAverage: (count: number) => `${count}日平均`,
+            weekAverage: (count: number) => `${count}週間の平均`,
+            monthAverage: (count: number) => `${count}か月平均`,
+            quarterAverage: (count: number) => `${count} 四半期の平均`,
+            shareOfTotal: '合計に対する割合',
+        },
         generatingAIInsights: 'AI インサイトを生成しています…',
         generatingAIInsightsSubtitle: '1 分もかからないはずです',
         readingChart: (chartTitle: string) => `${chartTitle} を読み込み中`,
@@ -1452,6 +1478,8 @@ const translations: TranslationDeepObject<typeof en> = {
         flash: 'フラッシュ',
         flipCamera: 'カメラを反転',
         multiScan: 'マルチスキャン',
+        receiptEnhancements: 'レシート補正',
+        receiptEnhancementsEnabled: 'レシート補正をオンにしました',
         shutter: 'シャッター',
         gallery: 'ギャラリー',
         deleteReceipt: '領収書を削除',
@@ -1892,14 +1920,15 @@ const translations: TranslationDeepObject<typeof en> = {
         wisePaymentSummary: {
             confirmPayment: '支払いを確認',
             reportTotal: 'レポート合計',
-            unheldAmountBeingPaid: '支払われる保留外の金額',
-            debitAmount: '引き落とし額',
             employeeWillReceive: '従業員の受取額',
+            companyWillPay: '会社の支払予定額',
             totalFees: '手数料合計',
             fxRate: '為替レート',
             paymentDetails: '支払いの詳細',
             debitedAmount: '引き落とし額',
             employeeReceived: '従業員の受取額',
+            paymentDisclosure: ({buttonText}: {buttonText: string}) =>
+                `<muted-text-micro>受取人の銀行が請求する手数料や外国の税金により、受取額が少なくなる場合があります。${buttonText}をクリックすると、Wiseの<a href="${CONST.WISE.TERMS_URL}">利用規約</a>と<a href="${CONST.WISE.PRIVACY_URL}">プライバシーポリシー</a>に同意したものとみなされます。</muted-text-micro>`,
             payAll: 'すべて支払う',
             fxRateExpiredTitle: '為替レートの期限切れ',
             fxRatesExpiredTitle: '為替レートの期限切れ',
@@ -2327,6 +2356,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 }
                 return `キャンセルされた支払いの処理が完了するまでお待ちください${formattedETA}。`;
             },
+            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_PAYMENT_REVIEW]: (params: ReportNextStepMessageParams) => `支払いを保留しています。続報をお待ちください。`,
             [CONST.NEXT_STEP.MESSAGE_KEY.SUBMITTING_TO_SELF]: (params: ReportNextStepMessageParams) =>
                 `おっと！ <strong>ご自身</strong>に提出しようとしているようです。ご自身のレポートを承認することは、ワークスペースによって<strong>禁止</strong>されています。別の相手にこのレポートを提出するか、提出先を変更してもらうよう管理者に連絡してください。`,
             [CONST.NEXT_STEP.MESSAGE_KEY.REJECTED_REPORT]: ({actor, actorType}: ReportNextStepMessageParams) => {
@@ -2558,6 +2588,8 @@ const translations: TranslationDeepObject<typeof en> = {
             leftHandNavCache: '左側ナビキャッシュ',
             clearleftHandNavCache: 'クリア',
             softKillTheApp: 'アプリをソフトキルする',
+            testBusinessBankAccount: 'USD ビジネス銀行口座をテスト',
+            testPersonalBankAccount: 'テスト用 USD 個人口座',
             kill: '終了',
             sentryDebug: 'Sentry デバッグ',
             sentrySendDescription: 'Sentry にデータを送信',
@@ -2565,6 +2597,7 @@ const translations: TranslationDeepObject<typeof en> = {
             sentryHighlightedSpanOps: '強調表示されたスパン名',
             sentryHighlightedSpanOpsPlaceholder: 'ui.interaction.click、ナビゲーション、ui.load',
             showBranchNameInTitle: 'ブラウザのタイトルにブランチ名を表示',
+            hideEnvironmentBadge: '環境バッジを非表示',
             betaOverrides: 'ベータのオーバーライド',
             betaOverridesDescription:
                 'オーバーライドはこの端末にのみ適用され、フロントエンドのチェックにのみ影響します。ベータはアカウントのベータと異なる間だけオーバーライドを保持するため、元に戻すとオーバーライドは削除されます。「すべてのオーバーライドをリセット」はアカウントの値に戻します。一部のベータはバックエンドでも制御されているため、リクエストレベルで失敗する場合があります。',
@@ -4409,7 +4442,9 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
     },
     welcomeSignUpForm: {
         join: '参加',
-        marketingSMSConsent: 'Expensifyからのマーケティングテキストの受信に同意します',
+        transactionalSMSConsent: '電話番号を提供することにより、Expensifyからアカウントに関する取引通知を受け取ることに同意します。',
+        transactionalSMSConsentFinePrint: '標準のメッセージ料金およびデータ通信料金がかかる場合があります。配信を停止するにはSTOPと返信してください。',
+        marketingSMSConsent: 'Expensifyからのマーケティングテキストの受信に同意します。',
     },
     detailsPage: {
         localTime: '現地時間',
@@ -4621,6 +4656,15 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
         updateSuccessMessage: 'おめでとうございます。銀行口座の設定が完了し、精算の受け取りができるようになりました。',
         bankDetails: '銀行口座情報',
         accountHolderDetails: '口座名義人の詳細',
+        notices: {
+            katakanaName:
+                '日本の銀行口座に記載されている名前を、まったく同じように入力してください。通常はカタカナで記載されています。一致しない場合、お支払いが遅れたり、拒否されたりすることがあります。',
+            alipayRecipients: 'Alipay で支払いできるのは、中国本土、香港、またはマカオの受取人のみです。',
+            alipayLimits:
+                'Alipay では、1 回の支払いにつき最大 50,000 CNY、年間合計で 300,000～600,000 CNY まで受け取ることができます。支払い目的によっては、月ごとの支払い回数にも上限が適用される場合があります。',
+            malaysianNonResidentLimit:
+                'マレーシアに銀行口座をお持ちの非居住者は、1日に受け取れるマレーシアリンギットは10,000リンギットまでです。この上限を超える支払いを受け取ると、銀行口座が閉鎖される可能性があります。',
+        },
     },
     addPersonalBankAccountPage: {
         enterPassword: 'Expensify のパスワードを入力',
@@ -5312,6 +5356,10 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
             railTicketExchange: (origin: string, destination: string, startDate: string) => `${startDate}の${origin}発${destination}行きの鉄道チケットは交換されました。`,
             railTicketUpdate: (origin: string, destination: string, startDate: string) => `${startDate} の ${origin} → ${destination} 行きの鉄道チケットが更新されました。`,
             defaultUpdate: (type: string) => `${type}の予約が更新されました。`,
+            hotelBooked: (hotelName: string, startDate: string) => `${hotelName} のホテル予約（チェックイン ${startDate}）が完了しました。`,
+            carBooked: (vendor: string, startDate: string) => `${vendor}のレンタカー（${startDate}の受け取り）が予約されました。`,
+            railTicketBooked: (origin: string, destination: string, startDate: string) => `${startDate} の ${origin} → ${destination} 行きの鉄道チケットが予約されました。`,
+            defaultBooked: (type: string) => `${type}の予約が完了しました。`,
         },
         flightTo: '行きのフライト',
         trainTo: '方面行き',
@@ -5575,6 +5623,9 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
             },
             chatgpt: {
                 title: 'ChatGPT',
+            },
+            grok: {
+                title: 'Grok',
             },
         },
         connections: {
@@ -7140,6 +7191,8 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
             createFailureMessage: 'カテゴリの作成中にエラーが発生しました。もう一度お試しください。',
             addCategory: 'カテゴリを追加',
             createCategoryFromSearch: (categoryName: string) => `カテゴリ「${categoryName}」を作成`,
+            availableToMember: (memberName: string) => `${memberName}が利用可能`,
+            notAvailableToMember: (memberName: string) => `${memberName} は利用できません`,
             editCategory: 'カテゴリーを編集',
             editCategories: 'カテゴリを編集',
             findCategory: 'カテゴリを検索',
@@ -7890,6 +7943,9 @@ Control プランは、アクティブメンバー1人あたり月額 $9 から�
             categoryVisibilityRequiredModal: {title: 'メンバーには少なくとも 1 つのカテゴリーが必要です', description: 'このメンバーが使用できるカテゴリを少なくとも 1 つ選択してください。'},
             changeOfficeLocation: 'オフィスの所在地を変更',
             changeWorkArrangement: '勤務形態を変更',
+            editCategoryVisibility: 'カテゴリの表示を編集',
+            bulkCategoryVisibilitySaved: ({categoryCount, memberCount}: {categoryCount: string; memberCount: string}) =>
+                `${memberCount} に ${categoryCount} を設定します。現在のカテゴリの表示設定が置き換えられます。`,
             changeRole: 'ロールを変更',
             newRolesBanner: {
                 title: '新しいロールが利用可能です',
@@ -7927,6 +7983,7 @@ Control プランは、アクティブメンバー1人あたり月額 $9 から�
                 willBeReadyToUse: 'このカードはすぐに利用できるようになります。',
                 willBeReadyToShip: 'このカードはすぐに発送できる状態になります。',
                 cardholder: 'カード名義人',
+                cardholderEmail: 'カード名義人のメールアドレス',
                 cardType: 'カードの種類',
                 limit: '上限',
                 limitType: '上限の種類',
@@ -9867,6 +9924,30 @@ ${reportName}`,
             noVendorsFoundDescription: 'Digits に仕入先を追加して、もう一度同期してください',
             noAccountsFound: 'アカウントが見つかりません',
             noAccountsFoundDescription: 'Digits で銀行口座またはクレジットカード口座を追加して、もう一度同期してください',
+            noBankAccountsFoundDescription: 'Digits に銀行口座を追加して、もう一度同期してください',
+            noPayableAccountsFoundDescription: 'Digits でクレジットカードまたは流動負債の勘定科目を追加して、もう一度同期してください',
+            autoSyncDescription: 'Digits と Expensify を毎日自動同期できます。レポートはリアルタイムで同期されます。',
+            accountingMethods: {
+                label: 'エクスポート方法',
+                description: '経費をエクスポートするタイミングを選択します。',
+                values: {
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: '発生主義',
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: '現金',
+                },
+                alternateText: {
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: '立替経費は最終承認時にエクスポートされます',
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: '立替経費は支払われたタイミングでエクスポートされます',
+                },
+            },
+            syncReimbursedReports: '精算済みレポートを同期',
+            syncReimbursedReportsDescription: 'レポートが ACH で支払われると、この勘定科目に支払済みの請求が作成されます。',
+            billPaymentAccount: {label: '請求書支払用口座', description: '請求書の支払元を選択すると、Digits 内で支払いが作成されます。'},
+            syncExpensifyCardSettlements: 'Expensify カードの決済を同期',
+            settlementAccount: {label: 'Expensify カードの決済口座', description: '清算口座を選択すると、Digits で支払いを作成します。'},
+            syncTravelBillingSettlements: '統合トラベル請求の精算を同期する',
+            travelBillingSettlementAccount: {label: '集中管理された出張請求の決済口座', description: '清算口座を選択すると、Digits で支払いを作成します。'},
+            travelBillingPayableAccount: {label: '統合旅行請求支払勘定'},
+            missingSettlementAccount: (accountName: string) => `${accountName} を選択するまで決済は同期されません。`,
         },
         zohoBooks: {
             organization: 'Zoho Books 組織',
@@ -11427,7 +11508,9 @@ ${reportName}`,
                     mentionedAccountID?: number;
                 }) => {
                     let warningTime = 'まもなく';
-                    if (warningDaysBeforeExpiry === CONST.COMPANY_CARDS.CONSENT_EXPIRY_WARNING_DAYS.TWO_WEEKS) {
+                    if (warningDaysBeforeExpiry === CONST.COMPANY_CARDS.CONSENT_EXPIRY_WARNING_DAYS.ONE_MONTH) {
+                        warningTime = '1か月後';
+                    } else if (warningDaysBeforeExpiry === CONST.COMPANY_CARDS.CONSENT_EXPIRY_WARNING_DAYS.TWO_WEEKS) {
                         warningTime = '2週間後';
                     } else if (warningDaysBeforeExpiry === CONST.COMPANY_CARDS.CONSENT_EXPIRY_WARNING_DAYS.ONE_WEEK) {
                         warningTime = '1週間後';
@@ -11522,7 +11605,8 @@ ${reportName}`,
                 reimbursementRefundedWithoutBankAccount: '資金は返金されました。支払いを再試行できます。',
                 reimbursementHeld:
                     'パートナーによる審査が完了するまで支払いを保留しています。続報をお待ちください。<concierge-link>Concierge</concierge-link>にチャットでお問い合わせください。',
-                reimbursementReleased: '審査が完了し、お支払いは送金手続き中です。最終的な為替レートにより金額が変わる場合があります。',
+                reimbursementReleased: ({expectedDate}: {expectedDate: string}) => `支払いは送金されました。資金は${expectedDate}までに到着する見込みです。`,
+                reimbursementReleasedWithoutDate: '支払いが実行されました。',
             },
             error: {
                 invalidCredentials: '認証情報が無効です。接続の設定を確認してください。',
