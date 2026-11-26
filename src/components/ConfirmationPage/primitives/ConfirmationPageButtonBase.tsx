@@ -9,7 +9,7 @@ import type {WithRequiredSentryLabel} from '@src/types/utils/SentryLabel';
 type ConfirmationPageButtonProps = WithRequiredSentryLabel &
     Pick<ButtonProps, 'isDisabled' | 'isLoading'> & {
         text: string;
-        onPress?: () => void;
+        onPress?: () => void | Promise<void>;
     };
 
 type ConfirmationPageButtonBaseProps = ConfirmationPageButtonProps &

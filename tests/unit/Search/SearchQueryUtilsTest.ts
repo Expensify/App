@@ -2,9 +2,11 @@ import type {ASTNode, QueryFilter, SearchFilterKey, SearchQueryJSON} from '@comp
 
 import {generatePolicyID} from '@libs/actions/Policy/Policy';
 import {clearPreservedNavigatorStates, setPreservedNavigatorState} from '@libs/Navigation/AppNavigator/createSplitNavigator/usePreserveNavigatorState';
+import {TODO_SEARCH_KEYS} from '@libs/SearchKeyUtils';
 
 import CONST from '@src/CONST';
 import DateUtils from '@src/libs/DateUtils';
+import {getPinnedColumns} from '@src/libs/SearchPinnedColumnsUtils';
 import {
     applyContainsOperatorToTextFields,
     buildFilterFormValuesFromQuery,
@@ -15,6 +17,7 @@ import {
     buildSearchQueryString,
     buildUserReadableQueryString,
     doesQueryMatchDefaultFilterKeysAndType,
+    doesQueryMatchSearchContext,
     getAllPolicyValues,
     getAllPolicyValuesMap,
     getConnectedIntegrationNamesForPolicies,
@@ -30,6 +33,8 @@ import {
     getQueryWithoutGroupBy,
     queryHasViolationFilter,
     hasValuesIncludeViolationFilter,
+    getEffectiveSortBy,
+    getPositiveHasFilterValues,
     shouldRefetchSearchOnReportActionChange,
     getDateFilterRange,
     getKeywordQueryForSearchInput,
@@ -86,6 +91,7 @@ const mockGetRootState = jest.fn();
 describe('currency-qualified amount filters', () => {
     it.each([
         {filterKey: 'amount', type: 'expense', lower: '50.00 AUD', upper: '100.00 AUD'},
+        {filterKey: 'convertedAmount', type: 'expense', lower: '12.50 EUR', upper: '20.00 EUR'},
         {filterKey: 'purchaseAmount', type: 'expense', lower: '12.50 EUR', upper: '20.00 EUR'},
         {filterKey: 'total', type: 'expense-report', lower: '5000', upper: '10000'},
         {filterKey: 'amountDebited', type: 'expense-report', lower: '5000', upper: '10000'},
@@ -129,45 +135,51 @@ describe('currency-qualified amount filters', () => {
         },
     );
 
-    it.each([CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT, CONST.SEARCH.SYNTAX_FILTER_KEYS.PURCHASE_AMOUNT])('round-trips Any currency for %s using the legacy request format', (filterKey) => {
-        // Given an Any currency operand already expressed in legacy hundredths.
-        const form: Partial<SearchAdvancedFiltersForm> = {type: CONST.SEARCH.DATA_TYPES.EXPENSE, [`${filterKey}EqualTo`]: '10'};
+    it.each([CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT, CONST.SEARCH.SYNTAX_FILTER_KEYS.CONVERTED_AMOUNT, CONST.SEARCH.SYNTAX_FILTER_KEYS.PURCHASE_AMOUNT])(
+        'round-trips Any currency for %s using the legacy request format',
+        (filterKey) => {
+            // Given an Any currency operand already expressed in legacy hundredths.
+            const form: Partial<SearchAdvancedFiltersForm> = {type: CONST.SEARCH.DATA_TYPES.EXPENSE, [`${filterKey}EqualTo`]: '10'};
 
-        // When the filter becomes a backend query and is reopened.
-        const query = buildFilterQueryWithSortDefaults(form, {}, {}) ?? '';
-        const queryJSON = buildSearchQueryJSON(getQueryWithUpdatedValues(query, true) ?? '');
-        if (!queryJSON) {
-            throw new Error('Expected the legacy amount query to parse');
-        }
-        const reopenedForm = buildFilterFormValuesFromQuery(queryJSON, {}, {}, {}, {}, {}, {});
+            // When the filter becomes a backend query and is reopened.
+            const query = buildFilterQueryWithSortDefaults(form, {}, {}) ?? '';
+            const queryJSON = buildSearchQueryJSON(getQueryWithUpdatedValues(query, true) ?? '');
+            if (!queryJSON) {
+                throw new Error('Expected the legacy amount query to parse');
+            }
+            const reopenedForm = buildFilterFormValuesFromQuery(queryJSON, {}, {}, {}, {}, {}, {});
 
-        // Then the request has a bare operand and reopening does not add a currency or rescale it.
-        expect(query).toContain(`${filterKey}:10`);
-        expect(serializeQueryJSONForBackend(queryJSON)).toContain('"right":"10"');
-        expect(reopenedForm).toMatchObject({[`${filterKey}EqualTo`]: '10'});
-        expect(buildQueryStringFromFilterFormValues(reopenedForm)).toContain(`${filterKey}:10`);
-    });
+            // Then the request has a bare operand and reopening does not add a currency or rescale it.
+            expect(query).toContain(`${filterKey}:10`);
+            expect(serializeQueryJSONForBackend(queryJSON)).toContain('"right":"10"');
+            expect(reopenedForm).toMatchObject({[`${filterKey}EqualTo`]: '10'});
+            expect(buildQueryStringFromFilterFormValues(reopenedForm)).toContain(`${filterKey}:10`);
+        },
+    );
 
-    it.each([CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT, CONST.SEARCH.SYNTAX_FILTER_KEYS.PURCHASE_AMOUNT])('round-trips the selected currency for %s', (filterKey) => {
-        // Given a bare amount in the current query and a currency selected in its filter editor.
-        const currentQuery = buildSearchQueryJSON(`type:expense ${filterKey}:1199 total:1250`);
-        const form: Partial<SearchAdvancedFiltersForm> = {type: CONST.SEARCH.DATA_TYPES.EXPENSE, [`${filterKey}EqualTo`]: '11.99 GBP', totalEqualTo: '1250'};
+    it.each([CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT, CONST.SEARCH.SYNTAX_FILTER_KEYS.CONVERTED_AMOUNT, CONST.SEARCH.SYNTAX_FILTER_KEYS.PURCHASE_AMOUNT])(
+        'round-trips the selected currency for %s',
+        (filterKey) => {
+            // Given a bare amount in the current query and a currency selected in its filter editor.
+            const currentQuery = buildSearchQueryJSON(`type:expense ${filterKey}:1199 total:1250`);
+            const form: Partial<SearchAdvancedFiltersForm> = {type: CONST.SEARCH.DATA_TYPES.EXPENSE, [`${filterKey}EqualTo`]: '11.99 GBP', totalEqualTo: '1250'};
 
-        // When the form becomes a backend query and is reopened from that query.
-        const query = buildFilterQueryWithSortDefaults(form, {}, currentQuery ?? {}) ?? '';
-        const updatedQuery = getQueryWithUpdatedValues(query, true);
-        const queryJSON = buildSearchQueryJSON(updatedQuery ?? '');
-        if (!queryJSON) {
-            throw new Error('Expected the currency-qualified query to parse');
-        }
-        const reopenedForm = buildFilterFormValuesFromQuery(queryJSON, {}, {}, {}, {}, {}, {});
+            // When the form becomes a backend query and is reopened from that query.
+            const query = buildFilterQueryWithSortDefaults(form, {}, currentQuery ?? {}) ?? '';
+            const updatedQuery = getQueryWithUpdatedValues(query, true);
+            const queryJSON = buildSearchQueryJSON(updatedQuery ?? '');
+            if (!queryJSON) {
+                throw new Error('Expected the currency-qualified query to parse');
+            }
+            const reopenedForm = buildFilterFormValuesFromQuery(queryJSON, {}, {}, {}, {}, {}, {});
 
-        // Then the currency stays quoted, major units are not multiplied by 100, and legacy totals stay in hundredths.
-        expect(query).toContain(`${filterKey}:"11.99 GBP"`);
-        expect(serializeQueryJSONForBackend(queryJSON)).toContain('"right":"11.99 GBP"');
-        expect(reopenedForm).toMatchObject({[`${filterKey}EqualTo`]: '11.99 GBP', totalEqualTo: '1250'});
-        expect(buildQueryStringFromFilterFormValues(reopenedForm)).toContain(`${filterKey}:"11.99 GBP"`);
-    });
+            // Then the currency stays quoted, major units are not multiplied by 100, and legacy totals stay in hundredths.
+            expect(query).toContain(`${filterKey}:"11.99 GBP"`);
+            expect(serializeQueryJSONForBackend(queryJSON)).toContain('"right":"11.99 GBP"');
+            expect(reopenedForm).toMatchObject({[`${filterKey}EqualTo`]: '11.99 GBP', totalEqualTo: '1250'});
+            expect(buildQueryStringFromFilterFormValues(reopenedForm)).toContain(`${filterKey}:"11.99 GBP"`);
+        },
+    );
 
     it('preserves currencies on both range bounds and on negated purchase amounts', () => {
         // Given a range whose bounds have their own currencies, plus a negated purchase amount.
@@ -203,6 +215,18 @@ describe('currency-qualified amount filters', () => {
         expect(updatedQuery).toContain('amount:"11.99 GBP"');
         expect(updatedQuery).toContain('purchaseAmount:"-3.00 EUR"');
         expect(updatedQuery).toContain('total:1250');
+    });
+
+    it('reads converted-amount as the convertedAmount filter', () => {
+        // Given a typed query using the hyphenated converted amount key, with a bare and a qualified amount.
+        const query = 'type:expense converted-amount>12.50 converted-amount<"20.00 EUR"';
+
+        // When the search input prepares its operands for the backend.
+        const updatedQuery = getQueryWithUpdatedValues(query);
+
+        // Then both use the convertedAmount key Search expects, and only the bare amount is converted to hundredths.
+        expect(updatedQuery).toContain('convertedAmount>1250');
+        expect(updatedQuery).toContain('convertedAmount<"20.00 EUR"');
     });
 });
 
@@ -913,6 +937,39 @@ describe('SearchQueryUtils', () => {
 
             // Then the valid grouping and From filter remain applied
             expect(result).toEqual('type:expense sortBy:groupMerchant sortOrder:asc groupBy:merchant from:12345');
+        });
+
+        test('adds both violation has values to a typed violation grouping', () => {
+            // Given typed violation groupings with no has filter, a receipt has value, and a negated receipt has value
+            const violationHasValues = `${CONST.SEARCH.HAS_VALUES.SUBMITTED_VIOLATION},${CONST.SEARCH.HAS_VALUES.APPROVED_VIOLATION}`;
+
+            // When the router normalizes the submitted queries
+            const withoutHas = getQueryWithUpdatedValues(`type:expense group-by:${CONST.SEARCH.GROUP_BY.VIOLATION}`);
+            const withReceipt = getQueryWithUpdatedValues(`type:expense group-by:${CONST.SEARCH.GROUP_BY.VIOLATION} has:${CONST.SEARCH.HAS_VALUES.RECEIPT}`);
+            const withoutReceipt = getQueryWithUpdatedValues(`type:expense group-by:${CONST.SEARCH.GROUP_BY.VIOLATION} -has:${CONST.SEARCH.HAS_VALUES.RECEIPT}`);
+
+            // Then all get the violation has values, the same as choosing the grouping in the filters UI, so the Has pill shows.
+            // The negated receipt value stays on its own, so the violation values aren't negated along with it.
+            expect(withoutHas).toContain(`has:${violationHasValues}`);
+            expect(withReceipt).toContain(`has:${CONST.SEARCH.HAS_VALUES.RECEIPT},${violationHasValues}`);
+            expect(withoutReceipt).toContain(`-has:${CONST.SEARCH.HAS_VALUES.RECEIPT} `);
+            expect(withoutReceipt).toContain(` has:${violationHasValues}`);
+        });
+
+        test('keeps the violation has values typed with a violation grouping', () => {
+            // Given violation groupings typed with their own violation has value, positive and negated
+            const approvedOnly = `type:expense group-by:${CONST.SEARCH.GROUP_BY.VIOLATION} has:${CONST.SEARCH.HAS_VALUES.APPROVED_VIOLATION}`;
+            const excludingSubmitted = `type:expense group-by:${CONST.SEARCH.GROUP_BY.VIOLATION} -has:${CONST.SEARCH.HAS_VALUES.SUBMITTED_VIOLATION}`;
+
+            // When the router normalizes the submitted queries
+            const approvedOnlyResult = getQueryWithUpdatedValues(approvedOnly);
+            const excludingSubmittedResult = getQueryWithUpdatedValues(excludingSubmitted);
+
+            // Then the stages the user picked are kept as typed
+            expect(approvedOnlyResult).toContain(`has:${CONST.SEARCH.HAS_VALUES.APPROVED_VIOLATION}`);
+            expect(approvedOnlyResult).not.toContain(CONST.SEARCH.HAS_VALUES.SUBMITTED_VIOLATION);
+            expect(excludingSubmittedResult).toContain(`-has:${CONST.SEARCH.HAS_VALUES.SUBMITTED_VIOLATION}`);
+            expect(excludingSubmittedResult).not.toContain(CONST.SEARCH.HAS_VALUES.APPROVED_VIOLATION);
         });
 
         test('returns query with updated view', () => {
@@ -3479,6 +3536,74 @@ describe('SearchQueryUtils', () => {
             expect(resetQuery).not.toContain('groupCurrency:EUR');
             expect(resetQuery).not.toContain('tea');
         });
+
+        it('drops the violation grouping when the reset removes its violation has value', () => {
+            // Given a violation grouping chosen in the filters UI, which paired it with both violation has values
+            const violationQuery = parse(`type:expense group-by:${CONST.SEARCH.GROUP_BY.VIOLATION} has:submitted-violation,approved-violation columns:groupViolation,groupTotal`);
+
+            // When the filters are reset to a default with no violation has value
+            const resetQuery = parse(buildQueryStringWithResetFilters(violationQuery, parse('type:expense')));
+
+            // Then the grouping goes too, like clearing the Has pill, and the sorting and columns go back to the defaults
+            expect(resetQuery.groupBy).toBeUndefined();
+            expect(resetQuery.columns).toBeUndefined();
+            expect(resetQuery.sortBy).toBe(CONST.SEARCH.TABLE_COLUMNS.DATE);
+            expect(resetQuery.flatFilters).toEqual([]);
+        });
+
+        it('restores the violation grouping of the default query when the reset brings back its violation has value', () => {
+            // Given a saved violation grouping, and the same search after clearing its Has pill, which also dropped the
+            // grouping and moved the sorting and columns back to the defaults
+            const savedQuery = parse(
+                `type:expense group-by:${CONST.SEARCH.GROUP_BY.VIOLATION} view:bar has:submitted-violation,approved-violation sortBy:groupTotal sortOrder:asc columns:groupViolation,groupTotal`,
+            );
+            const clearedQuery = parse('type:expense sortBy:date sortOrder:desc');
+
+            // When the filters are reset to the saved search
+            const resetQuery = parse(buildQueryStringWithResetFilters(clearedQuery, savedQuery));
+
+            // Then the grouping and the rest of its display come back with the restored Has pill, so there is nothing left to save
+            expect(resetQuery.groupBy).toBe(CONST.SEARCH.GROUP_BY.VIOLATION);
+            expect(resetQuery.view).toBe(CONST.SEARCH.VIEW.BAR);
+            expect(resetQuery.sortBy).toBe(CONST.SEARCH.TABLE_COLUMNS.GROUP_TOTAL);
+            expect(resetQuery.sortOrder).toBe(CONST.SEARCH.SORT_ORDER.ASC);
+            expect(resetQuery.columns).toEqual(savedQuery.columns);
+            expect(isSearchQuerySavable(resetQuery, savedQuery)).toBe(false);
+        });
+
+        it('keeps a grouping chosen after clearing the violation has value when the reset brings it back', () => {
+            // Given a saved violation grouping that was cleared from the Has pill and then grouped by category instead
+            const savedQuery = parse(`type:expense group-by:${CONST.SEARCH.GROUP_BY.VIOLATION} has:submitted-violation,approved-violation`);
+            const regroupedQuery = parse(`type:expense group-by:${CONST.SEARCH.GROUP_BY.CATEGORY}`);
+
+            // When the filters are reset to the saved search
+            const resetQuery = parse(buildQueryStringWithResetFilters(regroupedQuery, savedQuery));
+
+            // Then the category grouping stays, since the user chose it on its own and Reset only resets filters
+            expect(resetQuery.groupBy).toBe(CONST.SEARCH.GROUP_BY.CATEGORY);
+        });
+
+        it('keeps the violation grouping when the default query restores a violation has value', () => {
+            // Given a violation grouping whose default search already asks for approved violations
+            const violationQuery = parse(`type:expense group-by:${CONST.SEARCH.GROUP_BY.VIOLATION} has:submitted-violation,approved-violation category:travel`);
+
+            // When the filters are reset to that default
+            const resetQuery = parse(buildQueryStringWithResetFilters(violationQuery, parse(`type:expense group-by:${CONST.SEARCH.GROUP_BY.VIOLATION} has:approved-violation`)));
+
+            // Then the grouping stays, since the Has pill still says which stage the groups count
+            expect(resetQuery.groupBy).toBe(CONST.SEARCH.GROUP_BY.VIOLATION);
+        });
+
+        it('keeps a typed violation grouping that never had a violation has value', () => {
+            // Given a typed violation grouping with no has filter, which Auth reads across both stages
+            const violationQuery = parse(`type:expense group-by:${CONST.SEARCH.GROUP_BY.VIOLATION} category:travel`);
+
+            // When the filters are reset
+            const resetQuery = parse(buildQueryStringWithResetFilters(violationQuery, undefined));
+
+            // Then the grouping stays, since resetting didn't remove anything it was paired with
+            expect(resetQuery.groupBy).toBe(CONST.SEARCH.GROUP_BY.VIOLATION);
+        });
     });
     describe('Spend footer selection hashing', () => {
         it('gives the footer count selection no effect on any hash, so switching it needs no new search', () => {
@@ -3912,6 +4037,34 @@ describe('SearchQueryUtils', () => {
     });
 
     describe('isSearchQuerySavable', () => {
+        it.each([
+            ['type:expense reportID:0', undefined],
+            ['type:expense merchant:coffee', CONST.JSON_CODE.INVALID_SEARCH_QUERY],
+        ])('returns false when the search is invalid (%s, %s)', (query, responseJsonCode) => {
+            // Given a query rejected by client validation or by Auth
+            const currentQueryJSON = buildSearchQueryJSON(query);
+            const search = {hash: currentQueryJSON?.hash ?? -1, responseJsonCode};
+
+            // When checking whether it can be saved
+            const canSave = isSearchQuerySavable(currentQueryJSON, undefined, search);
+
+            // Then the invalid query cannot be saved
+            expect(canSave).toBe(false);
+        });
+
+        it('ignores an invalid response for a previous query while the current query is pending', () => {
+            // Given a valid edit to a search whose previous query was rejected by Auth
+            const previousQueryJSON = buildSearchQueryJSON('type:expense merchant:tea');
+            const currentQueryJSON = buildSearchQueryJSON('type:expense merchant:coffee');
+            const search = {hash: previousQueryJSON?.hash ?? -1, responseJsonCode: CONST.JSON_CODE.INVALID_SEARCH_QUERY};
+
+            // When checking whether the edited query can be saved before its response arrives
+            const canSave = isSearchQuerySavable(currentQueryJSON, undefined, search);
+
+            // Then the previous query's failure does not block saving the current query
+            expect(canSave).toBe(true);
+        });
+
         it('returns true when there is no default query, even without filters or a keyword', () => {
             // Given a query that isn't bound to any suggested or saved search
             const currentQueryJSON = buildSearchQueryJSON('type:trip');
@@ -3981,6 +4134,19 @@ describe('SearchQueryUtils', () => {
             // Then the grouping alone is a view worth saving
             expect(isSearchQuerySavable(currentQueryJSON, defaultQueryJSON)).toBe(true);
         });
+
+        it('returns true when only the column pins differ from the default query', () => {
+            // Given a saved search that pins Category to the left
+            const defaultQueryJSON = buildSearchQueryJSON('type:expense leftPinnedColumns:category');
+
+            // When the pin moves to the right, or is removed, without any other change
+            const movedPinQueryJSON = buildSearchQueryJSON('type:expense rightPinnedColumns:category');
+            const unpinnedQueryJSON = buildSearchQueryJSON('type:expense');
+
+            // Then the header offers Save, so the new layout can be kept
+            expect(isSearchQuerySavable(movedPinQueryJSON, defaultQueryJSON)).toBe(true);
+            expect(isSearchQuerySavable(unpinnedQueryJSON, defaultQueryJSON)).toBe(true);
+        });
     });
 
     describe('getChangedDisplayOptionsCount', () => {
@@ -4032,6 +4198,16 @@ describe('SearchQueryUtils', () => {
             expect(getChangedDisplayOptionsCount(currentQueryJSON, defaultQueryJSON)).toBe(2);
         });
 
+        it('counts the columns and their pins as one display option', () => {
+            // Given a default query and one that picks its columns and pins one of them
+            const defaultQueryJSON = buildSearchQueryJSON('type:expense');
+            const currentQueryJSON = buildSearchQueryJSON('type:expense columns:date,merchant,category leftPinnedColumns:category');
+
+            // When counting the changed display options
+            // Then the table layout counts once, since the pins belong to the columns
+            expect(getChangedDisplayOptionsCount(currentQueryJSON, defaultQueryJSON)).toBe(1);
+        });
+
         it('counts the group currency and the view of a grouped query', () => {
             // Given a grouped default and a query that changes its currency and shows it as a bar chart
             const defaultQueryJSON = buildSearchQueryJSON('type:expense groupBy:category');
@@ -4059,6 +4235,22 @@ describe('SearchQueryUtils', () => {
             expect(getChangedDisplayOptionsCount(resetQueryJSON, defaultQueryJSON)).toBe(0);
             expect(resetQueryJSON?.flatFilters).toEqual(expect.arrayContaining([expect.objectContaining({key: CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY})]));
             expect(resetQueryJSON?.flatFilters).toEqual(expect.arrayContaining([expect.objectContaining({key: CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD})]));
+        });
+
+        it("restores the default query's column pins", () => {
+            // Given a saved search that pins Category to the left, viewed with Merchant pinned to the right instead
+            const defaultQueryJSON = buildSearchQueryJSON('type:expense leftPinnedColumns:category');
+            const currentQueryJSON = buildSearchQueryJSON('type:expense rightPinnedColumns:merchant');
+            if (!defaultQueryJSON || !currentQueryJSON) {
+                throw new Error('Failed to parse query string');
+            }
+
+            // When resetting the display options
+            const resetQueryJSON = buildSearchQueryJSON(buildQueryStringWithResetDisplay(currentQueryJSON, defaultQueryJSON));
+
+            // Then the saved pins come back, so the Display count drops to zero
+            expect(getPinnedColumns(resetQueryJSON ?? {})).toEqual({left: ['category'], right: []});
+            expect(getChangedDisplayOptionsCount(resetQueryJSON, defaultQueryJSON)).toBe(0);
         });
     });
 
@@ -4867,6 +5059,48 @@ describe('SearchQueryUtils', () => {
             });
         });
 
+        test.each<{
+            input: string;
+            groupBy?: SearchAdvancedFiltersForm['groupBy'];
+            view?: SearchAdvancedFiltersForm['view'];
+            sortBy: string;
+            sortOrder: string;
+        }>([
+            {input: 'sortBy:date sortOrder:asc', groupBy: 'day', sortBy: CONST.SEARCH.TABLE_COLUMNS.GROUP_DAY, sortOrder: 'asc'},
+            {input: 'sortBy:date sortOrder:desc', groupBy: 'category', sortBy: 'groupCategory', sortOrder: 'asc'},
+            {input: 'sortBy:merchant sortOrder:asc', groupBy: 'day', sortBy: CONST.SEARCH.TABLE_COLUMNS.GROUP_DAY, sortOrder: 'asc'},
+            {input: 'sortBy:amount sortOrder:asc', groupBy: 'day', sortBy: CONST.SEARCH.TABLE_COLUMNS.GROUP_DAY, sortOrder: 'asc'},
+            {input: 'groupBy:day sortOrder:asc', groupBy: 'month', sortBy: 'groupmonth', sortOrder: 'asc'},
+            {input: 'groupBy:category sortOrder:desc', groupBy: 'day', sortBy: CONST.SEARCH.TABLE_COLUMNS.GROUP_DAY, sortOrder: 'desc'},
+            {input: 'groupBy:category sortBy:groupTotal sortOrder:desc', groupBy: 'day', sortBy: 'groupTotal', sortOrder: 'desc'},
+            {input: 'groupBy:category sortBy:groupExpenses sortOrder:asc', groupBy: 'day', sortBy: 'groupExpenses', sortOrder: 'asc'},
+            {input: 'groupBy:merchant sortBy:groupTotal sortOrder:asc', groupBy: 'day', sortBy: 'groupTotal', sortOrder: 'asc'},
+            {input: 'groupBy:day view:bar sortOrder:asc', groupBy: 'month', view: 'table', sortBy: 'groupmonth', sortOrder: 'desc'},
+            {input: 'groupBy:day view:bar sortOrder:desc', groupBy: 'month', view: 'bar', sortBy: 'groupmonth', sortOrder: 'desc'},
+            {input: 'groupBy:day sortOrder:asc', sortBy: 'date', sortOrder: 'asc'},
+            {input: 'groupBy:category sortBy:groupTotal sortOrder:asc', sortBy: 'date', sortOrder: 'desc'},
+            {input: 'groupBy:category sortBy:amount sortOrder:desc', sortBy: 'amount', sortOrder: 'desc'},
+            {input: 'groupBy:category sortBy:glcode sortOrder:desc', sortBy: 'glcode', sortOrder: 'desc'},
+            {input: 'groupBy:card sortBy:groupFeed sortOrder:desc', groupBy: 'day', sortBy: CONST.SEARCH.TABLE_COLUMNS.GROUP_DAY, sortOrder: 'desc'},
+            {input: 'groupBy:category sortBy:groupTotal sortOrder:desc', groupBy: 'paid-by', sortBy: 'date', sortOrder: 'desc'},
+            {input: 'groupBy:category sortBy:groupExpenses sortOrder:desc', groupBy: 'workflow-stage', sortBy: 'date', sortOrder: 'desc'},
+        ])('updates grouping to $groupBy without losing compatible sorting: $input', ({input, groupBy, view = CONST.SEARCH.VIEW.TABLE, sortBy, sortOrder}) => {
+            // Given sorting that may differ from the old grouping's defaults
+            const originalQuery = buildSearchQueryJSON(input);
+            if (!originalQuery) {
+                throw new Error('Invalid test query');
+            }
+            const form = buildFilterFormValuesFromQuery(originalQuery, {}, {}, {}, {}, {}, {});
+
+            // When the grouping changes, possibly together with the view
+            const result = buildFilterQueryWithSortDefaults({...form, groupBy, view}, originalQuery, originalQuery);
+            const queryJSON = buildSearchQueryJSON(result ?? '');
+
+            // Then compatible columns and non-default directions survive, while other values use the new defaults
+            expect(queryJSON).toMatchObject({sortBy, sortOrder});
+            expect(queryJSON?.groupBy).toBe(groupBy);
+        });
+
         test('groupBy change replaces stale sortBy with new default', () => {
             const result = buildFilterQueryWithSortDefaults(
                 {type: 'expense', groupBy: CONST.SEARCH.GROUP_BY.MONTH, view: CONST.SEARCH.VIEW.BAR},
@@ -5040,6 +5274,24 @@ describe('SearchQueryUtils', () => {
             // Then the group by and customized columns survive the round trip
             expect(roundTripped?.groupBy).toBe(CONST.SEARCH.GROUP_BY.APPROVER);
             expect(roundTripped?.columns).toEqual([CONST.SEARCH.TABLE_COLUMNS.GROUP_APPROVER, CONST.SEARCH.TABLE_COLUMNS.GROUP_EXPENSES, CONST.SEARCH.TABLE_COLUMNS.GROUP_TOTAL]);
+        });
+    });
+
+    describe('group-by:violation parser round trip', () => {
+        test('round-trips group-by:violation and its default sort by translated label', () => {
+            // Given a query that groups by violation and customizes the group columns
+            const query = `type:expense group-by:${CONST.SEARCH.GROUP_BY.VIOLATION} columns:group-violation,group-expenses,group-total`;
+
+            // When it is parsed and then rebuilt into a query string and parsed again
+            const parsed = buildSearchQueryJSON(query);
+            const rebuilt = buildSearchQueryString(parsed);
+            const roundTripped = buildSearchQueryJSON(rebuilt);
+
+            // Then the grouping, its columns and the ascending sort by violation survive the round trip
+            expect(roundTripped?.groupBy).toBe(CONST.SEARCH.GROUP_BY.VIOLATION);
+            expect(roundTripped?.columns).toEqual([CONST.SEARCH.TABLE_COLUMNS.GROUP_VIOLATION, CONST.SEARCH.TABLE_COLUMNS.GROUP_EXPENSES, CONST.SEARCH.TABLE_COLUMNS.GROUP_TOTAL]);
+            expect(roundTripped?.sortBy).toBe(CONST.SEARCH.TABLE_COLUMNS.GROUP_VIOLATION);
+            expect(roundTripped?.sortOrder).toBe(CONST.SEARCH.SORT_ORDER.ASC);
         });
     });
 
@@ -6614,6 +6866,17 @@ describe('SearchQueryUtils', () => {
             expect(shouldRefetch).toBe(true);
         });
 
+        test('returns true when grouped by violation, even without a has filter', () => {
+            // Given a typed query grouped by violation with no has value, which Auth answers from both stages
+            const queryJSON = buildSearchQueryJSON(`type:expense groupBy:${CONST.SEARCH.GROUP_BY.VIOLATION}`);
+
+            // When checking whether workflow actions should refetch it
+            const shouldRefetch = queryJSON && shouldRefetchSearchOnReportActionChange(queryJSON);
+
+            // Then it should, because submitting or approving a report saves the violations its groups count
+            expect(shouldRefetch).toBe(true);
+        });
+
         test('returns true for a positive has:approved-violation filter', () => {
             // Given a query filtered to approved violations, whose matches change when a report is approved
             const queryJSON = buildSearchQueryJSON(`type:expense has:${CONST.SEARCH.HAS_VALUES.APPROVED_VIOLATION}`);
@@ -6738,6 +7001,79 @@ describe('SearchQueryUtils', () => {
 
         test('returns false for undefined has values', () => {
             expect(hasValuesIncludeViolationFilter(undefined)).toBe(false);
+        });
+    });
+
+    describe('getPositiveHasFilterValues', () => {
+        test('returns the positive has values and leaves out negated ones', () => {
+            // Given a query that includes approved violations and receipts but excludes submitted violations
+            const queryJSON = buildSearchQueryJSON(
+                `type:expense has:${CONST.SEARCH.HAS_VALUES.APPROVED_VIOLATION} has:${CONST.SEARCH.HAS_VALUES.RECEIPT} -has:${CONST.SEARCH.HAS_VALUES.SUBMITTED_VIOLATION}`,
+            );
+
+            // When the has values are read from the query
+            const hasValues = getPositiveHasFilterValues(queryJSON);
+
+            // Then only the positive values are returned, so the Violations column never lists a stage the query excludes
+            expect(hasValues).toEqual(expect.arrayContaining([CONST.SEARCH.HAS_VALUES.APPROVED_VIOLATION, CONST.SEARCH.HAS_VALUES.RECEIPT]));
+            expect(hasValues).not.toContain(CONST.SEARCH.HAS_VALUES.SUBMITTED_VIOLATION);
+        });
+
+        test('returns an empty list when the query has no has filter', () => {
+            // Given a query without any has filter
+            const queryJSON = buildSearchQueryJSON('type:expense');
+
+            // When the has values are read from the query
+            const hasValues = getPositiveHasFilterValues(queryJSON);
+
+            // Then nothing is returned, so no violation labels are computed for the rows
+            expect(hasValues).toEqual([]);
+        });
+    });
+
+    describe('getEffectiveSortBy', () => {
+        test('falls back to date for a Violations sort without a violation has filter', () => {
+            // Given a Violations sort on a query that has no violation data to sort by
+            const queryJSON = buildSearchQueryJSON(`type:expense sortBy:${CONST.SEARCH.TABLE_COLUMNS.VIOLATIONS}`);
+
+            // When the client sort column is resolved
+            const sortBy = getEffectiveSortBy(queryJSON);
+
+            // Then the rows sort by date, the same order the backend returns for this query
+            expect(sortBy).toBe(CONST.SEARCH.TABLE_COLUMNS.DATE);
+        });
+
+        test('falls back to date when the violation has filter is negated', () => {
+            // Given a Violations sort on a query that excludes approved violations instead of including them
+            const queryJSON = buildSearchQueryJSON(`type:expense -has:${CONST.SEARCH.HAS_VALUES.APPROVED_VIOLATION} sortBy:${CONST.SEARCH.TABLE_COLUMNS.VIOLATIONS}`);
+
+            // When the client sort column is resolved
+            const sortBy = getEffectiveSortBy(queryJSON);
+
+            // Then the rows sort by date, because a negated filter doesn't give the rows any violation labels
+            expect(sortBy).toBe(CONST.SEARCH.TABLE_COLUMNS.DATE);
+        });
+
+        test('keeps the Violations sort when the query includes a violation has filter', () => {
+            // Given a Violations sort on an expense query that includes approved violations
+            const queryJSON = buildSearchQueryJSON(`type:expense has:${CONST.SEARCH.HAS_VALUES.APPROVED_VIOLATION} sortBy:${CONST.SEARCH.TABLE_COLUMNS.VIOLATIONS}`);
+
+            // When the client sort column is resolved
+            const sortBy = getEffectiveSortBy(queryJSON);
+
+            // Then the rows sort by their violation labels
+            expect(sortBy).toBe(CONST.SEARCH.TABLE_COLUMNS.VIOLATIONS);
+        });
+
+        test('keeps any other sort column as it is', () => {
+            // Given a query sorted by merchant without any violation has filter
+            const queryJSON = buildSearchQueryJSON(`type:expense sortBy:${CONST.SEARCH.TABLE_COLUMNS.MERCHANT}`);
+
+            // When the client sort column is resolved
+            const sortBy = getEffectiveSortBy(queryJSON);
+
+            // Then the fallback only applies to the Violations column
+            expect(sortBy).toBe(CONST.SEARCH.TABLE_COLUMNS.MERCHANT);
         });
     });
 
@@ -7057,6 +7393,57 @@ describe('SearchQueryUtils', () => {
             expect(result).toContain(CONST.POLICY.CONNECTIONS.NAME.QBO);
             expect(result).toContain(CONST.POLICY.CONNECTIONS.NAME.XERO);
             expect(result.size).toBe(2);
+        });
+    });
+
+    describe('doesQueryMatchSearchContext', () => {
+        it.each([...TODO_SEARCH_KEYS])('keeps %s after removing its other default filters', (searchKey) => {
+            // Given a to-do search whose recipient and other default filters can be edited
+            const todoDefaultQuery = `type:expense-report action:${searchKey} to:123 reimbursable:yes`;
+            const editedQuery = `type:expense-report action:${searchKey} status:approved policyID:456`;
+
+            // When the edited query is validated and restored with its explicit tab
+            const matches = doesQueryMatchSearchContext(buildSearchQueryJSON(editedQuery), buildSearchQueryJSON(todoDefaultQuery), searchKey);
+
+            // Then its action keeps it on the same tab, including when revisiting
+            expect(matches).toBe(true);
+            expect(getValidLastQuery(editedQuery, todoDefaultQuery, searchKey)).toBe(editedQuery);
+        });
+
+        it.each([
+            'type:expense-report',
+            'type:expense-report action:pay',
+            'type:expense-report -action:approve',
+            'type:expense-report action:approve,pay',
+            'type:expense-report action:approve -action:approve',
+            'type:expense-report action:approve action:pay',
+            'type:expense-report action>approve',
+            'type:expense action:approve',
+        ])('rejects an incompatible Approve query: %s', (query) => {
+            // Given the default Approve query and an incompatible type or action
+            const todoDefaultQuery = 'type:expense-report action:approve to:123';
+
+            // When checking and restoring the query with an explicit Approve key
+            const matches = doesQueryMatchSearchContext(buildSearchQueryJSON(query), buildSearchQueryJSON(todoDefaultQuery), CONST.SEARCH.SEARCH_KEYS.APPROVE);
+
+            // Then an action key alone is insufficient to keep the Approve context
+            expect(matches).toBe(false);
+            expect(getValidLastQuery(query, todoDefaultQuery, CONST.SEARCH.SEARCH_KEYS.APPROVE)).toBe(todoDefaultQuery);
+        });
+
+        it('does not relax validation without a to-do key', () => {
+            // Given a query missing a filter from the default
+            const todoDefaultQuery = 'type:expense-report action:approve to:123';
+            const query = 'type:expense-report action:approve';
+
+            // When validating without a key or with an ordinary Reports key
+            const queryJSON = buildSearchQueryJSON(query);
+            const defaultQueryJSON = buildSearchQueryJSON(todoDefaultQuery);
+
+            // Then both cases still require the default filter keys
+            expect(doesQueryMatchSearchContext(queryJSON, defaultQueryJSON)).toBe(false);
+            expect(doesQueryMatchSearchContext(queryJSON, defaultQueryJSON, CONST.SEARCH.SEARCH_KEYS.REPORTS)).toBe(false);
+            expect(getValidLastQuery(query, todoDefaultQuery)).toBe(todoDefaultQuery);
         });
     });
 

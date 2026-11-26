@@ -7,9 +7,10 @@ import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
+import type {ViewKeyDownEvent} from '@src/types/utils/ReactNativeCompat';
 import type {WithRequiredSentryLabel} from '@src/types/utils/SentryLabel';
 
-import type {ComponentRef, ForwardedRef, MouseEventHandler, KeyboardEvent as ReactKeyboardEvent} from 'react';
+import type {ComponentRef, ForwardedRef, MouseEventHandler} from 'react';
 import type {GestureResponderEvent, StyleProp, ViewStyle} from 'react-native';
 
 import React from 'react';
@@ -132,21 +133,25 @@ function SelectionButton({
 
     const borderRadius = containerBorderRadius ?? (role === CONST.ROLE.RADIO ? variables.componentBorderRadiusCircle : variables.componentBorderRadiusSmall);
 
-    const handleSpaceOrEnterKey = (event?: ReactKeyboardEvent) => {
-        if (event?.code !== 'Space' && event?.code !== 'Enter') {
+    const handleSpaceOrEnterKey = (event: ViewKeyDownEvent) => {
+        if (event.nativeEvent.code !== 'Space' && event.nativeEvent.code !== 'Enter') {
             return;
         }
 
-        if (event?.code === 'Enter' && !shouldSelectOnPressEnter) {
+        if (event.nativeEvent.code === 'Enter' && !shouldSelectOnPressEnter) {
             return;
         }
 
         event.preventDefault();
-        onPress(event.nativeEvent);
+
+        // On web the native event is the DOM keyboard event. React Native's own key events are not DOM events, so those press without one.
+        const keyboardEvent = typeof KeyboardEvent !== 'undefined' && event.nativeEvent instanceof KeyboardEvent ? event.nativeEvent : undefined;
+        onPress(keyboardEvent);
     };
 
     const firePressHandlerOnClick = (event?: GestureResponderEvent | KeyboardEvent) => {
-        if (event?.type && event.type !== 'click') {
+        // Enter on the focused button is already handled on key down, so the key up press must not toggle it a second time.
+        if (event?.type === 'keyup') {
             return;
         }
 

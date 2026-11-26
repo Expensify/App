@@ -25,11 +25,11 @@ import type {OnyxData} from '@src/types/onyx/Request';
 import type {ConnectOptions, OnyxEntry, OnyxKey} from 'react-native-onyx/dist/types';
 
 import {Str} from 'expensify-common';
-import {Linking} from 'react-native';
 import Onyx from 'react-native-onyx';
 
 import currencyListFixture from '../unit/currencyList.json';
 import createMock from './createMock';
+import {setInitialURL} from './ReactNativeMockUtils';
 import {isObject} from './typeGuards';
 import waitForBatchedUpdates from './waitForBatchedUpdates';
 import waitForBatchedUpdatesWithAct from './waitForBatchedUpdatesWithAct';
@@ -51,7 +51,7 @@ type MockFetch = jest.Mock<ReturnType<typeof fetch>, FetchMockParameters> & {
 type ConnectionCallback<TKey extends OnyxKey> = NonNullable<ConnectOptions<TKey>['callback']>;
 type ConnectionCallbackParams<TKey extends OnyxKey> = Parameters<ConnectionCallback<TKey>>;
 type APIWriteOnyxData = OnyxData<OnyxKey>;
-type APIWriteDataType = keyof Pick<APIWriteOnyxData, 'failureData' | 'optimisticData' | 'successData'>;
+type APIWriteDataType = keyof Pick<APIWriteOnyxData, 'failureData' | 'finallyData' | 'optimisticData' | 'successData'>;
 type ProductionAPIWriteOnyxUpdate = NonNullable<APIWriteOnyxData[APIWriteDataType]>[number];
 type APIWriteOnyxKey = Extract<ProductionAPIWriteOnyxUpdate['key'], string>;
 type APIWriteOnyxUpdate<TKey extends string = APIWriteOnyxKey> = {
@@ -92,7 +92,7 @@ const anyString: unknown = expect.any(String);
  */
 function setupApp(initialUrl = `https://new.expensify.com/${ROUTES.INBOX}`) {
     beforeAll(() => {
-        Linking.setInitialURL(initialUrl);
+        setInitialURL(initialUrl);
         appSetup();
 
         // Connect to Pusher

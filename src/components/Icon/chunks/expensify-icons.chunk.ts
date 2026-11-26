@@ -139,6 +139,7 @@ import ImageCropCircleMask from '@assets/images/image-crop-circle-mask.svg';
 import ImageCropSquareMask from '@assets/images/image-crop-square-mask.svg';
 import Inbox from '@assets/images/inbox.svg';
 import Info from '@assets/images/info.svg';
+import AcumaticaSquare from '@assets/images/integrationicons/acumatica-icon-square.svg';
 import BillComSquare from '@assets/images/integrationicons/bill-com-icon-square.svg';
 import CampfireSquare from '@assets/images/integrationicons/campfire-icon-square.svg';
 import CertiniaSquare from '@assets/images/integrationicons/certinia-icon-square.svg';
@@ -153,6 +154,7 @@ import NetSuiteExport from '@assets/images/integrationicons/export/netsuite-icon
 import QBOExport from '@assets/images/integrationicons/export/qbo-icon.svg';
 import SageIntacctExport from '@assets/images/integrationicons/export/sage-intacct-icon.svg';
 import XeroExport from '@assets/images/integrationicons/export/xero-icon.svg';
+import GrokSquare from '@assets/images/integrationicons/grok-icon-square.svg';
 import GustoSquare from '@assets/images/integrationicons/gusto-icon-square.svg';
 import IntuitSquare from '@assets/images/integrationicons/intuit-icon-square.svg';
 import MCPSquare from '@assets/images/integrationicons/mcp-icon-square.svg';
@@ -516,6 +518,7 @@ const Expensicons = {
     DualEntrySquare,
     ExactOnlineSquare,
     OdooSquare,
+    AcumaticaSquare,
     Rotate,
     RotateLeft,
     Scan,
@@ -556,6 +559,7 @@ const Expensicons = {
     ChatGPTSquare,
     ClaudeSquare,
     CursorSquare,
+    GrokSquare,
     MCPSquare,
     IntacctSquare: SageIntacctSquare,
     AdvancedApprovalsSquare,

@@ -23,7 +23,7 @@
 
   // List fields where you cannot prefix it with "-" to negate it
   const nonNegatableKeys = new Set([
-    "type", "keyword", "groupCurrency", "groupBy", "columns", "limit", "view", "footerCount", "footerTotal", "footerCurrency"
+    "type", "keyword", "groupCurrency", "groupBy", "columns", "leftPinnedColumns", "rightPinnedColumns", "limit", "view", "footerCount", "footerTotal", "footerCurrency"
   ]);
 }
 
@@ -120,6 +120,7 @@ autocompleteKey "key"
       / date
       / submitted
       / anyApproval
+      / anySubmission
       / approved
       / paid
       / exportedTo
@@ -129,6 +130,7 @@ autocompleteKey "key"
       / has
       / is
       / purchaseCurrency
+      / convertedAmount
       / purchaseAmount
       // Both must precede `amount`, which would otherwise match their prefix.
       / amountDebited
@@ -137,6 +139,7 @@ autocompleteKey "key"
       / merchant
       / description
       / reportID
+      / transactionID
       / withdrawalID
       / title
       / submitterUserID
@@ -149,6 +152,8 @@ autocompleteKey "key"
       / footerCount
       / footerCurrency
       / footerTotal
+      / leftPinnedColumns
+      / rightPinnedColumns
     )
 
 filterKey

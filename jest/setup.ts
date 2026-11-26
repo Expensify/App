@@ -34,6 +34,20 @@ setupMockLegendList();
 // Polyfill necessary for Onyx.init in jest/setupAfterEnv.ts
 Object.assign(global, {TextDecoder, TextEncoder});
 
+// jsdom 20 has no AbortSignal.timeout. Expo SDK 57's runtime used to add it, but SDK 58 dropped that because React Native 0.88
+// ships its own AbortSignal, which Jest never installs since the preset mocks React Native's environment setup.
+if (!('timeout' in AbortSignal)) {
+    Object.defineProperty(AbortSignal, 'timeout', {
+        value(milliseconds: number): AbortSignal {
+            const controller = new AbortController();
+            setTimeout(() => controller.abort(new DOMException('The signal timed out.', 'TimeoutError')), milliseconds);
+            return controller.signal;
+        },
+        configurable: true,
+        writable: true,
+    });
+}
+
 // This mock is required as per setup instructions for react-navigation testing
 // https://reactnavigation.org/docs/testing/#mocking-native-modules
 jest.mock('react-native/src/private/animated/NativeAnimatedHelper');
@@ -154,7 +168,8 @@ jest.mock('react-native-reanimated', () => ({
     dispatchCommand: jest.fn(),
     useReducedMotion: jest.fn,
     useScrollViewOffset: jest.fn(() => 0),
-    useAnimatedRef: jest.fn(() => jest.fn()),
+    // A real animated ref is callable and has observe, which useKeyboardDrivenScroll uses to listen to the scroll view's events
+    useAnimatedRef: jest.fn(() => Object.assign(jest.fn(), {observe: jest.fn()})),
     LayoutAnimationConfig: ({children}: {children: React.ReactNode}) => children,
     makeShareableCloneRecursive: jest.fn,
 }));
@@ -337,7 +352,7 @@ jest.mock('react-native-nitro-fetch', () => ({
     removeAllFromAutoprefetch: jest.fn(() => Promise.resolve()),
 }));
 
-jest.mock('@shopify/react-native-skia', () => ({
+jest.mock('react-native-skia', () => ({
     useFont: jest.fn(() => null),
     matchFont: jest.fn(() => null),
     listFontFamilies: jest.fn(() => []),

@@ -11,15 +11,15 @@ import {markCanvasKitLoadStarted} from '@libs/telemetry/integrations/canvasKitNo
 import type {ComponentType} from 'react';
 
 import * as Sentry from '@sentry/react-native';
-import {LoadSkiaWeb} from '@shopify/react-native-skia/lib/module/web';
 import React from 'react';
 import {View} from 'react-native';
+import {LoadSkiaWeb} from 'react-native-skia/lib/module/web';
 
 import waitForBatchedUpdatesWithAct from '../../../utils/waitForBatchedUpdatesWithAct';
 
 jest.mock('@components/Charts/SkiaWebChart/getSkiaWebUnsupportedReason', () => jest.fn());
 
-jest.mock('@shopify/react-native-skia/lib/module/web', () => ({LoadSkiaWeb: jest.fn()}));
+jest.mock('react-native-skia/lib/module/web', () => ({LoadSkiaWeb: jest.fn()}));
 
 jest.mock('@libs/telemetry/integrations/canvasKitNoiseFilter', () => ({markCanvasKitLoadStarted: jest.fn()}));
 
@@ -280,6 +280,66 @@ describe('SkiaWebChart', () => {
         expect(screen.getByText('common.unableToDisplayChart')).toBeTruthy();
         expect(screen.queryByText('common.webGLNotSupported')).toBeNull();
         expect(mockCaptureException).toHaveBeenCalledWith(loadError, expect.objectContaining({level: 'warning', fingerprint: ['skia-web-chart-load-failure']}));
+
+        consoleErrorSpy.mockRestore();
+    });
+
+    it.each(['Could not create a WebGL context', 'Could not create a graphics context', 'Could not create a 2D context'])(
+        'should show the WebGL empty state and report its own warning when the renderer throws "%s"',
+        async (message) => {
+            // Given a browser where the capability probe passed, but the renderer is refused a drawing surface
+            // afterwards and throws one of the errors react-native-skia has for it when the chart mounts
+            mockGetSkiaWebUnsupportedReason.mockReturnValue(undefined);
+            const surfaceError = new Error(message);
+            function SurfaceUnavailableChart(): React.ReactNode {
+                throw surfaceError;
+            }
+            // React logs caught render errors to console.error. Mock it to keep the test output clean.
+            const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+
+            // When the chart mounts
+            render(
+                <SkiaWebChart
+                    getComponent={createChartLoader(SurfaceUnavailableChart)}
+                    componentProps={{}}
+                />,
+            );
+
+            // Then the error boundary explains it as missing WebGL rather than a failed load, and the failure is
+            // reported under a tag and fingerprint of its own so it does not look like a CanvasKit load failure in Sentry
+            await waitForBatchedUpdatesWithAct();
+            expect(screen.getByText('common.unableToDisplayChart')).toBeTruthy();
+            expect(screen.getByText('common.webGLNotSupported')).toBeTruthy();
+            expect(screen.queryByText('common.chartFailedToLoad')).toBeNull();
+            expect(mockCaptureException).toHaveBeenCalledWith(
+                surfaceError,
+                expect.objectContaining({level: 'warning', tags: {context: 'skia-web-chart-surface'}, fingerprint: ['skia-web-chart-surface-unavailable']}),
+            );
+
+            consoleErrorSpy.mockRestore();
+        },
+    );
+
+    it('should keep reporting a CanvasKit binary mismatch as a load failure', async () => {
+        // Given a browser that supports WebGL where react-native-skia rejects the wasm binary it downloaded
+        mockGetSkiaWebUnsupportedReason.mockReturnValue(undefined);
+        const mismatchError = new Error("[react-native-skia] The CanvasKit binary loaded from /canvaskit.wasm doesn't match the canvaskit.js bundled with react-native-skia");
+        mockLoadSkiaWeb.mockRejectedValueOnce(mismatchError);
+        // React logs caught render errors to console.error. Mock it to keep the test output clean.
+        const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+
+        // When the chart mounts
+        render(
+            <SkiaWebChart
+                getComponent={createChartLoader()}
+                componentProps={{}}
+            />,
+        );
+
+        // Then it is still explained and reported as a load failure, because WebGL is not what failed
+        await waitForBatchedUpdatesWithAct();
+        expect(screen.getByText('common.chartFailedToLoad')).toBeTruthy();
+        expect(mockCaptureException).toHaveBeenCalledWith(mismatchError, expect.objectContaining({tags: {context: 'skia-web-chart-load'}, fingerprint: ['skia-web-chart-load-failure']}));
 
         consoleErrorSpy.mockRestore();
     });

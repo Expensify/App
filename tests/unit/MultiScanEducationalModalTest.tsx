@@ -46,7 +46,7 @@ function renderMultiScan() {
     return renderHook(() => ({...useMultiScanState(), ...useMultiScanActions(), styles: useThemeStyles()}), {
         wrapper: ({children}: {children: React.ReactNode}) => (
             <ModalProvider>
-                <MultiScanProvider>{children}</MultiScanProvider>
+                <MultiScanProvider iouRequestType={CONST.IOU.REQUEST_TYPE.SCAN}>{children}</MultiScanProvider>
             </ModalProvider>
         ),
     });
@@ -59,9 +59,6 @@ describe('multi-scan education', () => {
         jest.mocked(useScanRouteParams).mockReturnValue({
             iouType: CONST.IOU.TYPE.SUBMIT,
             routeName: SCREENS.MONEY_REQUEST.CREATE,
-            action: CONST.IOU.ACTION.CREATE,
-            reportID: '1',
-            transactionID: CONST.IOU.OPTIMISTIC_TRANSACTION_ID,
         });
         jest.mocked(useShouldSuppressPromotionalUI).mockReturnValue(false);
         jest.mocked(useOnyx).mockImplementation((key) => [key === ONYXKEYS.COLLECTION.TRANSACTION_DRAFT ? ['1', '2'] : {}, {status: 'loaded'}]);

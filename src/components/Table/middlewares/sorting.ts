@@ -65,8 +65,6 @@ type UseSortingProps<T, ColumnKey extends string = string> = {
     compareItems?: CompareItemsCallback<T, ColumnKey>;
     initialSortColumn?: ColumnKey;
     initialSortOrder?: SortOrder;
-    narrowLayoutSortColumn?: ColumnKey;
-    shouldUseNarrowTableLayout?: boolean;
     onSortingChange?: (sorting: ActiveSorting<ColumnKey>) => void;
 
     /** Keys of the columns currently rendered, so sorting can fall back once its active column is no longer one of them. */
@@ -85,8 +83,7 @@ type UseSortingResult<T, ColumnKey extends string = string> = MiddlewareHookResu
 };
 
 /**
- * Resolves the sorting configuration that should actually be applied, forcing `narrowLayoutSortColumn`
- * when the table is in narrow layout.
+ * Resolves the sorting configuration, falling back when a column disappears.
  *
  * This is a standalone top-level function (rather than being inlined in the `useMemo` callback) because
  * OXC's React Compiler currently fails to compile a component/hook when a generic type expression
@@ -97,19 +94,11 @@ type UseSortingResult<T, ColumnKey extends string = string> = MiddlewareHookResu
  * @template ColumnKey - The type of column keys.
  */
 function resolveActiveSorting<ColumnKey extends string = string>(
-    shouldUseNarrowTableLayout: boolean | undefined,
-    narrowLayoutSortColumn: ColumnKey | undefined,
     userSorting: ActiveSorting<ColumnKey>,
     columnKeys: ColumnKey[],
     initialSortColumn: ColumnKey | undefined,
     initialSortOrder: SortOrder,
 ): ActiveSorting<ColumnKey> {
-    if (shouldUseNarrowTableLayout) {
-        // Narrow layouts drop columns for space rather than because the data lost them, so the fallback below must not
-        // run here. Otherwise resizing past the breakpoint would silently discard the sort the user picked.
-        return narrowLayoutSortColumn ? {columnKey: narrowLayoutSortColumn, order: CONST.SEARCH.SORT_ORDER.ASC} : userSorting;
-    }
-
     // A column that stops being rendered (e.g. a conditional column loses its last value) can leave the table sorted
     // by a key no header shows an arrow for. Falling back to the initial column keeps the sort visible and correct.
     if (userSorting.columnKey && !columnKeys.includes(userSorting.columnKey)) {
@@ -132,8 +121,6 @@ function useSorting<T, ColumnKey extends string = string>({
     compareItems,
     initialSortColumn,
     initialSortOrder = CONST.SEARCH.SORT_ORDER.ASC,
-    narrowLayoutSortColumn,
-    shouldUseNarrowTableLayout,
     onSortingChange,
     columnKeys,
 }: UseSortingProps<T, ColumnKey>): UseSortingResult<T, ColumnKey> {
@@ -142,7 +129,7 @@ function useSorting<T, ColumnKey extends string = string>({
         order: initialSortOrder,
     });
 
-    const activeSorting = resolveActiveSorting(shouldUseNarrowTableLayout, narrowLayoutSortColumn, userSorting, columnKeys, initialSortColumn, initialSortOrder);
+    const activeSorting = resolveActiveSorting(userSorting, columnKeys, initialSortColumn, initialSortOrder);
 
     const updateSorting: SortingMethods<ColumnKey>['updateSorting'] = (value) => {
         const newSorting = typeof value === 'function' ? value(userSorting) : value;
@@ -184,6 +171,16 @@ type SortMiddlewareParams<T, ColumnKey extends string = string> = {
     compareItems?: CompareItemsCallback<T, ColumnKey>;
 };
 
+type SortedDataCacheEntry = {
+    columnKey: string | undefined;
+    order: SortOrder;
+    compareItems: unknown;
+    sortedData: unknown[];
+};
+
+// Re-sorting on every selection change is too slow for very large tables, so the last result is kept per data array.
+const sortedDataCache = new WeakMap<WeakKey, SortedDataCacheEntry>();
+
 /**
  * Sorts table data based on the active sorting configuration.
  *
@@ -202,11 +199,19 @@ function sort<T, ColumnKey extends string = string>({data, activeSorting, compar
         return data;
     }
 
+    const cachedEntry = sortedDataCache.get(data);
+    if (cachedEntry && cachedEntry.columnKey === activeSorting.columnKey && cachedEntry.order === activeSorting.order && cachedEntry.compareItems === compareItems) {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- the entry was stored for this exact data array, so its sorted items have the same type
+        return cachedEntry.sortedData as T[];
+    }
+
     const sortedData = [...data];
 
     sortedData.sort((firstItem, secondItem) => {
         return compareItems(firstItem, secondItem, activeSorting);
     });
+
+    sortedDataCache.set(data, {columnKey: activeSorting.columnKey, order: activeSorting.order, compareItems, sortedData});
 
     return sortedData;
 }

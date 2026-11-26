@@ -44,7 +44,9 @@
 - Note: Re-ported onto 7.4.1. `createMemoryHistory` and `useLinking` were refactored upstream (`getPathWithoutHash`, `getHistoryLength`, `pendingPopStateDelta`, `isPoppingLastEntry`), so the hunks were re-anchored instead of applied verbatim: `backIndex` keeps upstream's hash handling and adds the focused-route-key match, and `useLinking` keeps upstream's `pendingPopStateDelta` guard and `getHistoryLength` delta while re-adding `historyDeltaByKeys`/`getStaleHistoryDiff`. Two parts of the old patch became redundant and were dropped: the `findFocusedRouteKey` helper file now matches upstream's own module, and the extra `history.replace` right after `history.go(nextIndex - currentIndex)` duplicated the replace that upstream already runs at the end of the same `try` block.
 - Note: The `popstate` listener keeps upstream's `isPoppingLastEntry` → `GO_BACK` shortcut, which preserves live state changes (e.g. `SET_PARAMS` on a screen under a modal), but targets the `GO_BACK` at the navigator whose history changed (`currentFocused.key` from `findMatchingState`). An untargeted `GO_BACK` is handled by the deepest focused navigator (e.g. the reports split), even when the browser history change happened in the tab or root navigator, so the screen drifted from the URL ([#103961](https://github.com/Expensify/App/issues/103961)).
 - Note: The `popstate` listener skips the `GO_BACK` shortcut when the last history entry of that navigator is a custom string entry (e.g. a `useSyncModalWithHistory` back-guard). No router can pop such an entry with `GO_BACK`, so it falls back to `resetRoot(record.state)` (the pre-7.3 behavior), which drops the entry and lets the modal close on browser Back.
-- Note: On the React Navigation v8 upgrade, remove `isPoppingCustomHistoryEntry` and handle `GO_BACK` for our custom history entries in the root router. Context: https://github.com/react-navigation/react-navigation/issues/13333 and https://github.com/react-navigation/react-navigation/pull/13334.
+- Note: The same fallback applies (`hasDifferentLeadingCustomEntries`) when the history starts with more or fewer custom string entries than the record (the reveal padding `CUSTOM_HISTORY-REVEAL_PADDING`), since the lengths then differ from the browser records and `GO_BACK` has nothing to pop. With the same padding on both sides, a real pop (e.g. closing a modal opened after a reveal) still uses `GO_BACK`.
+- Note: When history gets shorter and `backIndex` finds no entry for the new focused route, the route never had an entry of its own: it was pushed in one go with the removed route (e.g. the Expense quick action opens the RHP with the confirmation and the participant step at once), so both share the current entry. `hasEntryForFocusedRoute` detects that and the current entry is replaced. Upstream's `go(historyDeltaByKeys)` fallback stepped back onto the entry below (e.g. Home) and overwrote it, so browser Back skipped that screen.
+- Note: On the React Navigation v8 upgrade, remove `isPoppingCustomHistoryEntry` and `hasDifferentLeadingCustomEntries` and handle `GO_BACK` for our custom history entries in the root router. Context: https://github.com/react-navigation/react-navigation/issues/13333 and https://github.com/react-navigation/react-navigation/pull/13334.
 
 ### [@react-navigation+stack+7.11.2+001+edge-drag-gesture.patch](@react-navigation+stack+7.11.2+001+edge-drag-gesture.patch)
 
@@ -95,6 +97,22 @@
 - Upstream PR/issue: not reported, because it builds on patch 003, which has no upstream counterpart.
 - E/App issue: [#104197](https://github.com/Expensify/App/issues/104197)
 - PR Introducing Patch: [#104491](https://github.com/Expensify/App/pull/104491)
+- PR Updating Patch: N/A
+
+### [@react-navigation+bottom-tabs+7.19.2+006+hidden-tab-host.patch](@react-navigation+bottom-tabs+7.19.2+006+hidden-tab-host.patch)
+
+- Reason: Adds a `tabBarItemHostRouteName` option for `tabBarItemHidden` routes (patch 003). With the flat navigation beta the native bar shows Home, Inbox, Expenses, Reports and More, but Expenses and Reports both open the Search navigator and More stands for Insights and Workspaces, so those routes are hidden and drawn inside a placeholder tab that stands in for them. A hidden route whose host is a visible route is drawn inside that tab instead of the first visible tab (patch 005), and that tab shows as selected while the hidden route is focused, so the user tapping it is a repeated selection rather than leaving the hidden route. It also mounts ahead of its first visit, the way a visible tab does, deferred until after the first commit unless its `lazy` option is on. The route a host last showed stays laid out in it while another tab is focused, since native shows a tapped tab before JS focuses the route drawn in it, and a route hidden with `display: none` would show as an empty tab until then. When the host has its own selection disabled, as More does, native skips the pop to root and scroll to top on its repeated selection and leaves the tap to its `tabPress` listener. Moving a hidden route to another host moves its content to another native tab, which remounts its components; its navigation state is kept.
+- Upstream PR/issue: not reported, because it builds on patch 003, which has no upstream counterpart.
+- E/App issue: [#105631](https://github.com/Expensify/App/issues/105631)
+- PR Introducing Patch: [#106500](https://github.com/Expensify/App/pull/106500)
+- PR Updating Patch: N/A
+
+### [@react-navigation+bottom-tabs+7.19.2+007+native-selection-from-current-state.patch](@react-navigation+bottom-tabs+7.19.2+007+native-selection-from-current-state.patch)
+
+- Reason: The native tab selection handlers compared the tab native reported with the tab selected in the last render. When the JS thread is busy, native can report several taps before JS renders again, so a tap back to the tab of that render after a tap on another tab, such as Home, Inbox, Home, was taken for a repeated selection and only confirmed. JS stayed on Inbox and then selected it in the native bar again, so the bar jumped back to a tab the user had left. The handlers now read the focused route from the navigator's current state.
+- Upstream PR/issue: not reported yet. The same comparison exists upstream in `onTabSelected` of `NativeBottomTabView`, without the hidden route parts of patches 003 to 006.
+- E/App issue: [#105631](https://github.com/Expensify/App/issues/105631)
+- PR Introducing Patch: [#106500](https://github.com/Expensify/App/pull/106500)
 - PR Updating Patch: N/A
 
 ### Removed patches

@@ -6,7 +6,7 @@ import {updateDraftRule} from '@libs/actions/User';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
-import {getAllTaxRatesNamesAndValues} from '@libs/PolicyUtils';
+import {formatTaxRateName, getAllTaxRatesNamesAndValues} from '@libs/PolicyUtils';
 
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -21,7 +21,7 @@ function AddTaxRatePage({route}: AddTaxRatePageProps) {
     const [allTaxRates] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: getAllTaxRatesNamesAndValues});
 
     const taxItems = Object.entries(allTaxRates ?? {}).map(([taxRateKey, taxRate]) => ({
-        name: `${taxRate.name} (${taxRate.value})`,
+        name: formatTaxRateName(taxRate.name, taxRate.value),
         value: taxRateKey,
     }));
     const selectedTaxItem = form?.tax ? taxItems.find(({value}) => value === form.tax) : undefined;

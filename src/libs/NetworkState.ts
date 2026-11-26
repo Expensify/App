@@ -471,6 +471,11 @@ function refresh() {
     NetInfo.refresh();
 }
 
+/** Re-fetches the network state, for a user who asks to try again, and resolves with whether the app is still offline once the new state is in */
+function refreshAndCheckIsOffline(): Promise<boolean> {
+    return NetInfo.refresh().then(() => getIsOffline());
+}
+
 export {
     getIsOffline,
     getShouldFailAllRequests,
@@ -485,5 +490,6 @@ export {
     getDBTimeWithSkew,
     getServerAnchoredDBTime,
     refresh,
+    refreshAndCheckIsOffline,
     simulatePoorConnection,
 };

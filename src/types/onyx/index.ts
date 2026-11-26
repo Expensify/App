@@ -47,6 +47,7 @@ import type {
 import type CardOnWaitlist from './CardOnWaitlist';
 import type ChronosTimeTracking from './ChronosTimeTracking';
 import type CloudflareSession from './CloudflareSession';
+import type CompanyCardNumberSearch from './CompanyCardNumberSearch';
 import type CompanyCardsLoadingState from './CompanyCardsLoadingState';
 import type ConciergePendingFollowupList from './ConciergePendingFollowupList';
 import type CopyPolicySettings from './CopyPolicySettings';
@@ -77,6 +78,7 @@ import type DismissedProductTraining from './DismissedProductTraining';
 import type DismissedReferralBanners from './DismissedReferralBanners';
 import type Domain from './Domain';
 import type {DomainSecurityGroup, SamlMetadata, UserSecurityGroupData} from './Domain';
+import type DomainAccountMergeRequest from './DomainAccountMergeRequest';
 import type DomainErrors from './DomainErrors';
 import type DomainHighlightItems from './DomainHighlightItems';
 import type DomainPendingActions from './DomainPendingActions';
@@ -88,13 +90,16 @@ import type {
     DynamicFormContentItem,
     DynamicFormCountryField,
     DynamicFormField,
+    DynamicFormFieldFormat,
     DynamicFormFieldOption,
+    DynamicFormFileUpload,
     DynamicFormFieldType,
     DynamicFormHeading,
     DynamicFormLink,
     DynamicFormListField,
     DynamicFormListItem,
     DynamicFormMultiChoiceField,
+    DynamicFormNotice,
     DynamicFormNumberField,
     DynamicFormPage,
     DynamicFormSchema,
@@ -125,6 +130,8 @@ import type ImportedSpreadsheetMemberData from './ImportedSpreadsheetMemberData'
 import type InitiatingBankAccountUnlock from './InitiatingBankAccountUnlock';
 import type InsightsDashboard from './InsightsDashboard';
 import type {AIInsight, AIInsightChip, InsightsDashboardID, InsightsFutureExpenses, InsightsGraphKey, InsightsSearchKey} from './InsightsDashboard';
+import type InsightsDetails from './InsightsDetails';
+import type {InsightsDetailsSummary} from './InsightsDetails';
 import type IntroSelected from './IntroSelected';
 import type InvitedEmailsToAccountIDs from './InvitedEmailsToAccountIDs';
 import type JoinablePolicies from './JoinablePolicies';
@@ -163,7 +170,7 @@ import type PendingConciergeResponse from './PendingConciergeResponse';
 import type {PendingContactAction} from './PendingContactAction';
 import type PersonalBankAccount from './PersonalBankAccount';
 import type {AddNewPersonalCard} from './PersonalCard';
-import type {PersonalDetailsList, PersonalDetailsMetadata} from './PersonalDetails';
+import type {PersonalDetailsList, PersonalDetailsLoadingState} from './PersonalDetails';
 import type PersonalDetails from './PersonalDetails';
 import type PlaidData from './PlaidData';
 import type Policy from './Policy';
@@ -266,6 +273,7 @@ import type WalletTerms from './WalletTerms';
 import type WalletTransfer from './WalletTransfer';
 import type WiseBankAccountFields from './WiseBankAccountFields';
 import type {WiseKYCReviewEmbeddedLink} from './WiseKYCReview';
+import type WiseOnboardingUnsavedPages from './WiseOnboardingUnsavedPages';
 import type WiseQuote from './WiseQuote';
 import type WorkspaceMembersSelectedForBulkEdit from './WorkspaceMembersSelectedForBulkEdit';
 import type WorkspaceMembersSelectedForRoleChange from './WorkspaceMembersSelectedForRoleChange';
@@ -331,6 +339,8 @@ export type {
     AIInsightChip,
     InsightsDashboard,
     InsightsDashboardID,
+    InsightsDetails,
+    InsightsDetailsSummary,
     InsightsFutureExpenses,
     InsightsGraphKey,
     InsightsSearchKey,
@@ -369,7 +379,7 @@ export type {
     PersonalBankAccount,
     PersonalDetails,
     PersonalDetailsList,
-    PersonalDetailsMetadata,
+    PersonalDetailsLoadingState,
     PlaidData,
     Policy,
     PolicyCategories,
@@ -478,6 +488,7 @@ export type {
     CardFeeds,
     CardFeedsStatusByDomainID,
     CompanyCardsLoadingState,
+    CompanyCardNumberSearch,
     ReceiptTranslation,
     ReceiptTranslationState,
     TranslatedReceiptRow,
@@ -500,6 +511,7 @@ export type {
     CorpayFields,
     WiseBankAccountFields,
     WiseKYCReviewEmbeddedLink,
+    WiseOnboardingUnsavedPages,
     WiseQuote,
     CorpayFormField,
     DynamicFormAddressField,
@@ -507,13 +519,16 @@ export type {
     DynamicFormContentItem,
     DynamicFormCountryField,
     DynamicFormField,
+    DynamicFormFieldFormat,
     DynamicFormFieldOption,
+    DynamicFormFileUpload,
     DynamicFormFieldType,
     DynamicFormHeading,
     DynamicFormLink,
     DynamicFormListField,
     DynamicFormListItem,
     DynamicFormMultiChoiceField,
+    DynamicFormNotice,
     DynamicFormNumberField,
     DynamicFormPage,
     DynamicFormSchema,
@@ -552,6 +567,7 @@ export type {
     AppReview,
     AppReviewLastPrompt,
     SamlMetadata,
+    DomainAccountMergeRequest,
     DomainErrors,
     DomainHighlightItems,
     DomainPendingActions,

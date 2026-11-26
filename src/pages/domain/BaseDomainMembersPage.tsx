@@ -1,4 +1,5 @@
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import type {DomainMemberBulkActionType, DropdownOption} from '@components/ButtonWithDropdownMenu/types';
+import HeaderCentralPane from '@components/Header/composed/HeaderCentralPane';
 import ScreenWrapper from '@components/ScreenWrapper';
 import type {FilterConfig, IsItemInFilterCallback} from '@components/Table';
 import DomainMembersTable from '@components/Tables/DomainMembersTable';
@@ -6,11 +7,7 @@ import type {DomainMemberRowData, DomainMembersTableFilterKey} from '@components
 
 import useLayoutSpacing from '@hooks/useLayoutSpacing';
 import useLocalize from '@hooks/useLocalize';
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useShouldDisplayButtonsInSeparateLine from '@hooks/useShouldDisplayButtonsInSeparateLine';
-import useThemeStyles from '@hooks/useThemeStyles';
-
-import Navigation from '@navigation/Navigation';
 
 import React from 'react';
 import {View} from 'react-native';
@@ -48,6 +45,9 @@ type BaseDomainMembersPageProps = {
 
     /** Whether the group column should be shown in the table */
     shouldShowGroupColumn: boolean;
+
+    /** The actions the selected members support, offered in the floating bar the wide layout shows while rows are selected. */
+    bulkActionOptions?: Array<DropdownOption<DomainMemberBulkActionType>>;
 };
 
 function BaseDomainMembersPage({
@@ -63,11 +63,10 @@ function BaseDomainMembersPage({
     isItemInFilter,
     shouldShowGroupFilter,
     shouldShowGroupColumn,
+    bulkActionOptions,
 }: BaseDomainMembersPageProps) {
     const {translate} = useLocalize();
-    const styles = useThemeStyles();
     const {pageGutter} = useLayoutSpacing();
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const shouldDisplayButtonsInSeparateLine = useShouldDisplayButtonsInSeparateLine();
 
     return (
@@ -78,15 +77,13 @@ function BaseDomainMembersPage({
                 shouldShowOfflineIndicatorInWideScreen
                 testID="BaseDomainMembersPage"
             >
-                <HeaderWithBackButton
+                <HeaderCentralPane
                     title={useSelectionModeHeader ? translate('common.selectMultiple') : headerTitle}
-                    onBackButtonPress={onBackButtonPress ?? Navigation.goBack}
-                    shouldShowBackButton={shouldUseNarrowLayout}
-                    shouldUseHeadlineHeader={!useSelectionModeHeader}
-                    shouldDisplayHelpButton
+                    onBackButtonPress={onBackButtonPress}
+                    isHeadline={!useSelectionModeHeader}
                 >
-                    {!shouldDisplayButtonsInSeparateLine && !!headerContent && <View style={[styles.flexRow, styles.gap2]}>{headerContent}</View>}
-                </HeaderWithBackButton>
+                    {!shouldDisplayButtonsInSeparateLine && headerContent}
+                </HeaderCentralPane>
                 {shouldDisplayButtonsInSeparateLine && !!headerContent && <View style={pageGutter}>{headerContent}</View>}
                 <DomainMembersTable
                     domainAccountID={domainAccountID}
@@ -97,6 +94,7 @@ function BaseDomainMembersPage({
                     shouldShowGroupColumn={shouldShowGroupColumn}
                     filterConfig={shouldShowGroupFilter ? filterConfig : undefined}
                     isItemInFilter={shouldShowGroupFilter ? isItemInFilter : undefined}
+                    bulkActionOptions={bulkActionOptions}
                 />
             </ScreenWrapper>
         </DomainNotFoundPageWrapper>
