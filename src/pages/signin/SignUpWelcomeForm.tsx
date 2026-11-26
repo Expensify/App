@@ -1,6 +1,7 @@
 import Button from '@components/Button';
 import CheckboxWithLabel from '@components/CheckboxWithLabel';
 import FormHelpMessage from '@components/FormHelpMessage';
+import Text from '@components/Text';
 
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -23,6 +24,22 @@ import {View} from 'react-native';
 import ChangeExpensifyLoginLink from './ChangeExpensifyLoginLink';
 import Terms from './Terms';
 
+function TransactionalSMSConsentLabel() {
+    const styles = useThemeStyles();
+    const {translate} = useLocalize();
+    return (
+        <View style={[styles.ml1, styles.flex1]}>
+            <Text>{translate('welcomeSignUpForm.transactionalSMSConsent')}</Text>
+            <Text
+                variant="label"
+                style={styles.mt2}
+            >
+                {translate('welcomeSignUpForm.transactionalSMSConsentFinePrint')}
+            </Text>
+        </View>
+    );
+}
+
 function SignUpWelcomeForm() {
     const network = useNetwork();
     const styles = useThemeStyles();
@@ -34,13 +51,25 @@ function SignUpWelcomeForm() {
     const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeAndAccountIDSelector});
     const serverErrorText = account ? getLatestErrorMessage(account) : '';
     const isPhoneSignup = Str.isSMSLogin(login ?? '');
+    const [hasSMSTransactionalConsent, setHasSMSTransactionalConsent] = useState(false);
     const [hasSMSMarketingConsent, setHasSMSMarketingConsent] = useState(false);
+    const transactionalSMSConsentLabel = `${translate('welcomeSignUpForm.transactionalSMSConsent')} ${translate('welcomeSignUpForm.transactionalSMSConsentFinePrint')}`;
     const marketingSMSConsentLabel = translate('welcomeSignUpForm.marketingSMSConsent');
+
+    // Transactional texts are a condition of signing up with a phone number, so Join stays disabled until the user agrees to them
+    const isMissingRequiredSMSConsent = isPhoneSignup && !hasSMSTransactionalConsent;
 
     return (
         <>
             {isPhoneSignup && (
                 <View style={[styles.mt3, styles.mb2]}>
+                    <CheckboxWithLabel
+                        LabelComponent={TransactionalSMSConsentLabel}
+                        isChecked={hasSMSTransactionalConsent}
+                        onInputChange={(value) => setHasSMSTransactionalConsent(value ?? false)}
+                        accessibilityLabel={transactionalSMSConsentLabel}
+                        style={styles.mb3}
+                    />
                     <CheckboxWithLabel
                         label={marketingSMSConsentLabel}
                         isChecked={hasSMSMarketingConsent}
@@ -51,12 +80,12 @@ function SignUpWelcomeForm() {
             )}
             <View style={[styles.mt3, styles.mb2]}>
                 <Button
-                    isDisabled={network.isOffline || !!account?.message}
+                    isDisabled={network.isOffline || !!account?.message || isMissingRequiredSMSConsent}
                     variant={CONST.BUTTON_VARIANT.SUCCESS}
                     size={CONST.BUTTON_SIZE.LARGE}
                     isLoading={account?.isLoading}
                     onPress={() => {
-                        signUpUser(login, preferredLocale, isPhoneSignup ? hasSMSMarketingConsent : undefined, marketingAttribution, session);
+                        signUpUser(login, preferredLocale, isPhoneSignup ? {hasSMSTransactionalConsent, hasSMSMarketingConsent} : undefined, marketingAttribution, session);
                         setReadyToShowAuthScreens(true);
                     }}
                     style={[styles.mb2]}

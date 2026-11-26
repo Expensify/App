@@ -181,6 +181,9 @@ type TextInputOptions = {
     /** Input mode e.g., 'text', 'email', 'numeric') */
     inputMode?: InputModeOptions;
 
+    /** Web only. Defaults to true because selection searches are not credential inputs. */
+    shouldIgnorePasswordManager?: boolean;
+
     errorText?: string;
 
     /** Whether the text input should be shown as a header inside list */
