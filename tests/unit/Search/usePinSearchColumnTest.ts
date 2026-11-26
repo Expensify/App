@@ -3,6 +3,7 @@ import {act, renderHook} from '@testing-library/react-native';
 import usePinSearchColumn from '@components/Search/hooks/usePinSearchColumn';
 
 import {saveSearchFilters} from '@libs/actions/Search';
+import type * as SearchActions from '@libs/actions/Search';
 import {isQueryARefinement, markQueryAsRefinement} from '@libs/SearchQueryRefinement';
 import {buildSearchQueryJSON, getFilterFromQuery} from '@libs/SearchQueryUtils';
 
@@ -17,6 +18,7 @@ jest.mock('@react-navigation/native', () => ({
 }));
 
 jest.mock('@libs/actions/Search', () => ({
+    ...jest.requireActual<typeof SearchActions>('@libs/actions/Search'),
     saveSearchFilters: jest.fn(),
 }));
 
@@ -38,6 +40,8 @@ describe('usePinSearchColumn', () => {
     beforeEach(() => {
         mockSetParams.mockClear();
         jest.mocked(saveSearchFilters).mockClear();
+        // The refinement mark lives in a module, so a query one test marks would otherwise still count as a refinement in the next
+        markQueryAsRefinement('');
     });
 
     it('draws the pins of the current search while the table still shows the results from before a filter change', () => {
@@ -86,7 +90,7 @@ describe('usePinSearchColumn', () => {
     });
 
     it('does not hold any results when a column is pinned on a search that is not loading a filter change', () => {
-        // Given a loaded expense search that was opened directly rather than refined from the filters
+        // Given a loaded expense search that was opened directly, while the last filter change belonged to another search
         const queryJSON = getQueryJSON(`type:expense status:${CONST.SEARCH.STATUS.EXPENSE.OUTSTANDING}`);
         markQueryAsRefinement('type:expense');
         const {result} = renderHook(() => usePinSearchColumn(queryJSON, queryJSON, CONST.SEARCH.SEARCH_KEYS.EXPENSES));

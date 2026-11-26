@@ -108,11 +108,11 @@ describe('useSearchColumnEditing', () => {
 
     it('does not save the Violations column when the search that is loading dropped the violation filter', () => {
         // Given a table still showing a search with a violation filter and its Violations column, while the same search without the filter loads
-        const savedColumns = `${CONST.SEARCH.TABLE_COLUMNS.DATE},${CONST.SEARCH.TABLE_COLUMNS.MERCHANT},${CONST.SEARCH.TABLE_COLUMNS.CATEGORY},${CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT}`;
+        const currentSearchColumns = `${CONST.SEARCH.TABLE_COLUMNS.DATE},${CONST.SEARCH.TABLE_COLUMNS.MERCHANT},${CONST.SEARCH.TABLE_COLUMNS.CATEGORY},${CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT}`;
         const shownQueryJSON = getQueryJSON(
             `type:expense has:${CONST.SEARCH.HAS_VALUES.SUBMITTED_VIOLATION} columns:${CONST.SEARCH.TABLE_COLUMNS.DATE},${CONST.SEARCH.TABLE_COLUMNS.MERCHANT},${CONST.SEARCH.TABLE_COLUMNS.CATEGORY},${CONST.SEARCH.TABLE_COLUMNS.VIOLATIONS},${CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT}`,
         );
-        const currentSearchQueryJSON = getQueryJSON(`type:expense columns:${savedColumns}`);
+        const currentSearchQueryJSON = getQueryJSON(`type:expense columns:${currentSearchColumns}`);
         const {result} = renderHook(() =>
             useSearchColumnEditing(shownQueryJSON, currentSearchQueryJSON, [
                 CONST.SEARCH.TABLE_COLUMNS.DATE,

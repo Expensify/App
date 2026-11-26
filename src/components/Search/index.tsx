@@ -52,10 +52,12 @@ import {getPinnedColumnOrder, getQueryWithPinnedColumns, NO_PINNED_COLUMNS} from
 import {buildCannedSearchQuery, buildSearchQueryString, getFilterFromQuery} from '@libs/SearchQueryUtils';
 import {
     canEditSearchColumns,
+    canEditShownSearchTable,
     createAndOpenSearchTransactionThread,
     doesSearchItemMatchSort,
     getValidGroupBy,
     getWideAmountIndicators,
+    hasSameSearchResults,
     isCashBackWithdrawalGroup,
     isCreatedDateType,
     isGroupedItemArray,
@@ -1024,13 +1026,10 @@ function Search({
     // While a new search loads, the page keeps the previous results on screen, so `queryJSON` describes those results, not the search the
     // user is on. Sorting and column changes build on `currentSearchQueryJSON` instead, so they don't undo what the new search changed.
     const currentSearchQueryJSON = contextSearchQueryJSON ?? queryJSON;
-    // When the new search has another type, grouping or view, its table has other columns and sort options than the table on screen
-    // (switching to a line chart, for example, resets the sort so time runs forward), so the table on screen offers no column actions until
-    // the new results arrive.
-    const canEditShownTable = type === currentSearchQueryJSON.type && validGroupBy === getValidGroupBy(currentSearchQueryJSON.groupBy) && view === currentSearchQueryJSON.view;
+    const canEditShownTable = canEditShownSearchTable(queryJSON, currentSearchQueryJSON);
     // A chart that still shows the previous results can't be drilled into, because a pressed bar's range could contradict the new search,
     // like a March bar under a Last month date filter, and open an empty list.
-    const isShowingCurrentSearchResults = hash === currentSearchQueryJSON.hash;
+    const isShowingCurrentSearchResults = hasSameSearchResults(queryJSON, currentSearchQueryJSON);
     const columnEditing = useSearchColumnEditing(queryJSON, currentSearchQueryJSON, columnsToShow);
     const pinSearchColumn = usePinSearchColumn(queryJSON, currentSearchQueryJSON, currentSearchKey);
     // Only a table whose column menu offers pin items honors pins, so grouped tables and tables without the beta keep their own order.

@@ -409,6 +409,9 @@ async function applyRefinementThatKeepsLoading(rerender: ReturnType<typeof rende
 type TableHeaderProps = {
     onSortPress: (column: SearchSortBy, order: SortOrder) => void;
     shouldShowSorting: boolean;
+
+    /** The column menu, which <Search> passes as the header's children */
+    children?: React.ReactNode;
 };
 
 /** The props <Search> gives its table header, read off the element it hands the view, since the mocked list never renders the header. */
@@ -437,6 +440,8 @@ describe('SearchPageNarrow', () => {
             await Onyx.clear();
         });
         jest.clearAllMocks();
+        // The refinement mark lives in a module, so a query one test marks would otherwise still count as a refinement in the next
+        markQueryAsRefinement('');
     });
 
     beforeEach(() => {
@@ -718,14 +723,20 @@ describe('SearchPageNarrow', () => {
     });
 
     it('offers no column actions on the table on screen while a refinement that regroups it loads', async () => {
-        // Given the wide Expenses table with Merchant pinned
+        // Given the wide Expenses table with Merchant pinned, whose header offers the column menu and sorting
         const {rerender} = await renderPinnedExpenseTable();
+        const loadedHeaderProps = getTableHeaderProps(mockRenderExpenseFlatSearchView.mock.lastCall?.[0]);
+        expect(loadedHeaderProps?.shouldShowSorting).toBe(true);
+        expect(loadedHeaderProps?.children).toBeTruthy();
 
         // When it is grouped by category, whose results have not arrived yet
         await applyRefinementThatKeepsLoading(rerender, `group-by:${CONST.SEARCH.GROUP_BY.CATEGORY}`);
 
-        // Then the expense table still on screen can't be sorted, because its columns and sorts don't apply to the grouped search the user is on
-        expect(getTableHeaderProps(mockRenderExpenseFlatSearchView.mock.lastCall?.[0])?.shouldShowSorting).toBe(false);
+        // Then the expense table still on screen offers neither sorting nor the column menu, because its columns and sorts don't apply
+        // to the grouped search the user is on
+        const heldHeaderProps = getTableHeaderProps(mockRenderExpenseFlatSearchView.mock.lastCall?.[0]);
+        expect(heldHeaderProps?.shouldShowSorting).toBe(false);
+        expect(heldHeaderProps?.children).toBeFalsy();
     });
 
     it('does not request a query again when the persisted response marks it invalid', async () => {
