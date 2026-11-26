@@ -966,6 +966,8 @@ type RightModalNavigatorParamList = {
     [SCREENS.RIGHT_MODAL.SEARCH_REPORT]: {
         reportID: string;
         reportActionID?: string;
+        /** Preloaded answers open at their beginning; ordinary final-message links retain bottom alignment. */
+        reportActionAlignment?: 'start';
         anchorTransactionID?: string;
         shouldReplaceWithExpenseReportRHP?: string;
         // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
@@ -1016,6 +1018,8 @@ type ReportsSplitNavigatorParamList = {
     [SCREENS.REPORT]: {
         reportID: string;
         reportActionID?: string;
+        /** Preloaded answers open at their beginning; ordinary final-message links retain bottom alignment. */
+        reportActionAlignment?: 'start';
         openOnAdminRoom?: boolean;
         referrer?: string;
         /** Submit-via-PDF secure access link key. When present, the viewer is validated and joined to the report. */
@@ -1615,7 +1619,7 @@ type InsightsDetailsParamList = {
         /** Chart the clicked point was plotted on */
         graphKey: string;
 
-        /** The clicked member's account ID, merchant, category, tag, or the first day of the clicked period */
+        /** The clicked member's account ID, merchant, category, tag, violation, or the first day of the clicked period */
         item: string;
 
         /** Last day of the clicked period, trimmed to the date range like the chart's label */
@@ -1629,6 +1633,9 @@ type InsightsDetailsParamList = {
 
         /** Last day the dashboard counted expenses through, so Top expenses stops on the same day as the chart. Missing when the panel is opened from a link. */
         asOf?: string;
+
+        /** Whether the clicked chart counted the submitters' or the approvers' violations, absent for charts without a violation stage control */
+        stage?: string;
     };
 };
 

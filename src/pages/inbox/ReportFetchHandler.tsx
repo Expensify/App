@@ -367,7 +367,7 @@ function ReportFetchHandler() {
         if (!transactionThreadReportID || !route?.params?.reportActionID || !isOneTransactionThread(childReport, report, linkedAction, undefined, reportActions)) {
             return;
         }
-        navigation.setParams({reportActionID: ''});
+        navigation.setParams({reportActionID: '', reportActionAlignment: undefined});
     }, [transactionThreadReportID, route?.params?.reportActionID, linkedAction, reportID, navigation, report, childReport, reportActions]);
 
     // When an approver opens a Submit-via-PDF secure access link (/r/:reportID?secureKey=...), validate it once they're

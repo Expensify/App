@@ -231,7 +231,7 @@ function ReportActionsListContent({reportID, onLayout}: ReportActionsListProps) 
                     onPress={() => {
                         collapseConciergeHistory();
                         if (linkedReportActionID) {
-                            Navigation.setParams({reportActionID: ''}, route.key);
+                            Navigation.setParams({reportActionID: '', reportActionAlignment: undefined}, route.key);
                         }
                     }}
                 />

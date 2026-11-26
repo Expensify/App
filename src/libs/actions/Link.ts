@@ -405,7 +405,11 @@ function openLink(href: string, environmentURL: string, isAttachment: boolean, s
             return;
         }
         if (focusedSearchReportActionRoute && reportLinkRouteParams?.reportActionID) {
-            Navigation.setParams({reportActionID: reportLinkRouteParams.reportActionID}, focusedSearchReportActionRoute.routeKey, focusedSearchReportActionRoute.navigatorKey);
+            Navigation.setParams(
+                {reportActionID: reportLinkRouteParams.reportActionID, reportActionAlignment: undefined},
+                focusedSearchReportActionRoute.routeKey,
+                focusedSearchReportActionRoute.navigatorKey,
+            );
             return;
         }
         if (shouldCloseRHP) {

@@ -167,6 +167,7 @@ function useReportActionsScroll({
     const {scrollOffsetRef, syncScrollSharedValues, getListRef} = useActionListContext();
     const route = useRoute<PlatformStackRouteProp<ReportsSplitNavigatorParamList, typeof SCREENS.REPORT>>();
     const linkedReportActionID = route?.params?.reportActionID;
+    const shouldAlignLinkedActionToStart = route?.params?.reportActionAlignment === 'start';
     const {isOffline} = useNetworkWithOfflineStatus();
     const [liveTailRequestResults] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_PAGINATION_STATE}${reportID}`, {selector: (state) => state?.liveTailRequestResults});
     const [reportActionPages] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_PAGES}${getNonEmptyStringOnyxID(reportID)}`);
@@ -363,10 +364,10 @@ function useReportActionsScroll({
     let initialScrollIndexParams: {viewPosition?: number; viewOffset?: number} | undefined;
     if (targetIndex >= 0) {
         initialScrollIndex = targetIndex;
-        // A linked final action can be taller than the viewport, so show its highlighted end.
+        // Ordinary final links show the highlighted end; preloaded answers open at their beginning.
         // Unread actions still start at the New marker. Omit viewOffset for bottom alignment so
         // LegendList includes the footer (for example, Concierge's thinking indicator).
-        initialScrollIndexParams = isLinkedLastAction ? {viewPosition: 1} : {viewPosition: 0, viewOffset: CONST.REPORT.ACTIONS.LINKED_MESSAGE_OFFSET};
+        initialScrollIndexParams = isLinkedLastAction && !shouldAlignLinkedActionToStart ? {viewPosition: 1} : {viewPosition: 0, viewOffset: CONST.REPORT.ACTIONS.LINKED_MESSAGE_OFFSET};
     } else if (shouldFocusToTopOnMount) {
         initialScrollIndex = 0;
     }
@@ -381,6 +382,7 @@ function useReportActionsScroll({
         linkedReportActionID: initialScrollKey === linkedReportActionID ? linkedReportActionID : undefined,
         targetIndex,
         isLastAction: isLinkedLastAction,
+        shouldAlignToStart: shouldAlignLinkedActionToStart,
     });
 
     useScrollToEndOnNewMessageReceived({

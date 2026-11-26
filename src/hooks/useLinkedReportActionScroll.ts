@@ -17,9 +17,10 @@ type LinkedReportActionScrollParams = {
     linkedReportActionID: string | undefined;
     targetIndex: number;
     isLastAction: boolean;
+    shouldAlignToStart: boolean;
 };
 
-function useLinkedReportActionScroll({listID, linkedReportActionID, targetIndex, isLastAction}: LinkedReportActionScrollParams) {
+function useLinkedReportActionScroll({listID, linkedReportActionID, targetIndex, isLastAction, shouldAlignToStart}: LinkedReportActionScrollParams) {
     const isFocused = useIsFocused();
     const {getListRef} = useActionListContext();
     const reportScrollManager = useReportScrollManager();
@@ -57,22 +58,23 @@ function useLinkedReportActionScroll({listID, linkedReportActionID, targetIndex,
         if (shouldSkipPositioning) {
             return;
         }
-        // Once a reply follows a linked final action, normal live-tail following owns the viewport.
-        const didLinkedActionGainReplies = wasLastActionRef.current && !isLastAction;
-        if (didLinkedActionGainReplies) {
-            shouldPositionRef.current = false;
-            return;
-        }
-        wasLastActionRef.current = isLastAction;
         reportScrollManager.scrollToIndex(
             targetIndex,
-            isLastAction ? {animated: false, viewPosition: 1} : {animated: false, viewPosition: 0, viewOffset: CONST.REPORT.ACTIONS.LINKED_MESSAGE_OFFSET},
+            isLastAction && !shouldAlignToStart ? {animated: false, viewPosition: 1} : {animated: false, viewPosition: 0, viewOffset: CONST.REPORT.ACTIONS.LINKED_MESSAGE_OFFSET},
         );
     });
 
     // Positioning scrolls LegendList imperatively, so it runs here where it can be cancelled. The size and scroll
     // handlers only bump measurementVersion, so a burst of measurements collapses into one scroll to the latest target.
     useEffect(() => {
+        // Record the final action before deferring its scroll: a reply can arrive during the transition.
+        const didLinkedActionGainReplies = wasLastActionRef.current && !isLastAction;
+        wasLastActionRef.current = isLastAction;
+        if (didLinkedActionGainReplies) {
+            stopPositioningFromEffect();
+            return;
+        }
+
         const shouldSkipPositioning = !isFocused || !linkedReportActionID || readyListID !== listID || targetIndex < 0 || !shouldPositionRef.current;
         if (shouldSkipPositioning) {
             return;
@@ -94,11 +96,11 @@ function useLinkedReportActionScroll({listID, linkedReportActionID, targetIndex,
         };
         cancelPositionRef.current = cancel;
         return cancel;
-    }, [isFocused, linkedReportActionID, listID, readyListID, targetIndex, isLastAction, measurementVersion]);
+    }, [isFocused, linkedReportActionID, listID, readyListID, targetIndex, isLastAction, shouldAlignToStart, measurementVersion]);
 
     const onReady = () => setReadyListID(listID);
     const onScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
-        const shouldIgnoreLinkedActionScroll = !shouldPositionRef.current || readyListID !== listID || !linkedReportActionID || isLastAction;
+        const shouldIgnoreLinkedActionScroll = !shouldPositionRef.current || readyListID !== listID || !linkedReportActionID || (isLastAction && !shouldAlignToStart);
         if (shouldIgnoreLinkedActionScroll) {
             return;
         }

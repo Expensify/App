@@ -115,7 +115,7 @@ function ImportedMembersConfirmationPage({route}: ImportedMembersConfirmationPag
         }
         setIsImporting(true);
         const membersWithRole = (importedSpreadsheetMemberData ?? []).map((member) => ({...member, role: member.role || role}));
-        const importFinalModal = await importPolicyMembers(policy, membersWithRole, spreadsheet?.shouldShowMemberRolePermissionWarning, rules);
+        const importFinalModal = await importPolicyMembers(policy, membersWithRole, spreadsheet?.shouldShowMemberRolePermissionWarning, rules, currentUserLogin);
         const didShowImportFinalModal = await showImportSpreadsheetConfirmModal(importFinalModal, {shouldHandleNavigationBack: false});
         if (!didShowImportFinalModal) {
             setIsImporting(false);

@@ -129,7 +129,7 @@ jest.mock('@libs/Navigation/Navigation', () => ({
 }));
 
 // --- react-navigation route ---
-let mockRouteParams: {reportActionID?: string; backTo?: string; shouldScrollToLatest?: string} = {};
+let mockRouteParams: {reportActionID?: string; reportActionAlignment?: 'start'; backTo?: string; shouldScrollToLatest?: string} = {};
 let mockIsFocused = true;
 jest.mock('@react-navigation/native', () => {
     const actualNav = jest.requireActual<typeof Navigation>('@react-navigation/native');
@@ -327,6 +327,37 @@ describe('useReportActionsScroll', () => {
             expect(result.current.shouldShowNewerActionsSkeleton).toBe(false);
         });
 
+        it('keeps a preloaded final answer at its beginning as its layout settles', async () => {
+            // Given Explain opens a preloaded answer at index zero instead of its highlighted end.
+            mockRouteParams = {reportActionID: LINKED_ACTION_ID, reportActionAlignment: 'start'};
+            const reply = makeAction(LINKED_ACTION_ID);
+            const {result, rerender} = await renderScroll({sortedVisibleReportActions: [reply], renderedVisibleReportActions: [reply]});
+
+            // When the answer mounts and grows taller than the viewport.
+            expect(result.current.initialScrollIndex).toBe(0);
+            expect(result.current.initialScrollIndexParams).toEqual({viewPosition: 0, viewOffset: CONST.REPORT.ACTIONS.LINKED_MESSAGE_OFFSET});
+            act(() => result.current.onLoad());
+            flushTransitions();
+            mockScrollToIndex.mockClear();
+            act(() => result.current.onItemSizeChanged({index: 0, previous: 80, size: 1200}));
+            flushTransitions();
+
+            // Then measurement correction preserves the answer's beginning, without a newer-page skeleton.
+            expect(mockScrollToIndex).toHaveBeenLastCalledWith(0, {animated: false, viewPosition: 0, viewOffset: CONST.REPORT.ACTIONS.LINKED_MESSAGE_OFFSET});
+            expect(result.current.shouldShowNewerActionsSkeleton).toBe(false);
+
+            // When a reply follows the formerly final answer, normal live-tail following takes over.
+            const newerAction = makeAction('2');
+            mockScrollToIndex.mockClear();
+            rerender(buildParams({sortedVisibleReportActions: [newerAction, reply], renderedVisibleReportActions: [reply, newerAction]}));
+            flushTransitions();
+            act(() => result.current.onItemSizeChanged({index: 0, previous: 1200, size: 1250}));
+            flushTransitions();
+
+            // Then the old linked answer no longer pulls the viewport back.
+            expect(mockScrollToIndex).not.toHaveBeenCalled();
+        });
+
         it('top-aligns a final linked report action above a skeleton until the newest page loads', async () => {
             // Given OpenReport returned the linked action as the newest action of a historical page.
             mockRouteParams = {reportActionID: LINKED_ACTION_ID};
@@ -503,6 +534,26 @@ describe('useReportActionsScroll', () => {
     });
 
     describe('linked message positioning', () => {
+        it.each([undefined, 'start'] as const)('releases a final link when a reply arrives before its deferred correction (%s)', async (reportActionAlignment) => {
+            // Given the linked final answer opens far enough from the end that live-tail following will not cancel its correction.
+            mockRouteParams = {reportActionID: LINKED_ACTION_ID, reportActionAlignment};
+            mockScrollOffsetRef.current = 1000;
+            const answer = makeAction(LINKED_ACTION_ID);
+            const {result, rerender} = await renderScroll({sortedVisibleReportActions: [answer], renderedVisibleReportActions: [answer]});
+            act(() => result.current.onLoad());
+            expect(mockScrollToIndex).not.toHaveBeenCalled();
+
+            // When a reply arrives while the first linked scroll is still waiting for the navigation transition.
+            const reply = makeAction('2');
+            rerender(buildParams({sortedVisibleReportActions: [reply, answer], renderedVisibleReportActions: [answer, reply]}));
+            flushTransitions();
+            act(() => result.current.onItemSizeChanged({index: 0, previous: 80, size: 1200}));
+            flushTransitions();
+
+            // Then neither the deferred callback nor later layout changes pull the reader back to the old answer.
+            expect(mockScrollToIndex).not.toHaveBeenCalled();
+        });
+
         it('repositions an Android link when a preceding row changes height', async () => {
             // Given Android has already positioned the link.
             const platform = jest.replaceProperty(Platform, 'OS', 'android');

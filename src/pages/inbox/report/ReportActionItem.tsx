@@ -324,7 +324,7 @@ function ReportActionItem({
             return;
         }
         if (action.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD && isReportActionLinked) {
-            navigation.setParams({reportActionID: ''});
+            navigation.setParams({reportActionID: '', reportActionAlignment: undefined});
         }
         if (transactionIDToDismiss) {
             clearErrorWithOriginalTransactionError(transactionIDToDismiss, originalTransactionID, isOriginalTransactionSplitContainer);

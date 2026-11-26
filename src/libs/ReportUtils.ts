@@ -262,6 +262,7 @@ import {getGroupChatName, getInvoicePayerName, getInvoiceReportName, getReportNa
 import {isTaskCompleted} from './TaskUtils';
 import {
     allHavePendingRTERViolation,
+    getAmountWithDisplaySign,
     getAttendees,
     getBillable,
     getCardID,
@@ -5244,12 +5245,13 @@ function buildOptimisticCancelPaymentReportAction(expenseReportID: string, amoun
  *
  * @param reportID - the report for which last visible message has to be fetched
  * @param [actionsToMerge] - the optimistic merge actions that needs to be considered while fetching last visible message
-
+ * @param [reportIDToName] - names for the rooms the message mentions by reportID, so they aren't shown as #Hidden
  */
 function getLastVisibleMessage(
     reportID: string | undefined,
     isReportArchived: boolean | undefined,
     actionsToMerge: Record<string, NullishDeep<ReportAction> | null> = {},
+    reportIDToName?: Record<string, string>,
 ): LastVisibleMessage {
     const report = getReportOrDraftReport({reportID});
     const lastVisibleAction = getLastVisibleActionReportActionsUtils(reportID, canUserPerformWriteAction(report, isReportArchived), actionsToMerge);
@@ -5263,7 +5265,7 @@ function getLastVisibleMessage(
     }
 
     // Fetch the last visible message for report represented by reportID and based on actions to merge.
-    return getLastVisibleMessageReportActionsUtils(reportID, canUserPerformWriteAction(report, isReportArchived), actionsToMerge);
+    return getLastVisibleMessageReportActionsUtils(reportID, canUserPerformWriteAction(report, isReportArchived), actionsToMerge, undefined, undefined, undefined, reportIDToName);
 }
 
 /**
@@ -5958,6 +5960,23 @@ function getReportFieldsByPolicyID(policy: OnyxEntry<Policy>): Policy['fieldList
 }
 
 /**
+ * Returns the external ID of the option named `value` in a list report field, or an empty string when no option has that name.
+ * An enabled option wins over a disabled option with the same name, because the dropdown only offers enabled options.
+ */
+function getReportFieldOptionExternalID(reportField: PolicyReportField, value: string): string {
+    let optionIndex = reportField.values.findIndex((option, index) => option === value && !reportField.disabledOptions?.at(index));
+    if (optionIndex === -1) {
+        optionIndex = reportField.values.indexOf(value);
+    }
+
+    if (optionIndex === -1) {
+        return '';
+    }
+
+    return reportField.externalIDs?.at(optionIndex) ?? '';
+}
+
+/**
  * Get the report fields that we should display a MoneyReportView gets opened
  */
 
@@ -6020,8 +6039,35 @@ function isTransactionFromExpenseReport(
  * negated. Any other transaction returns its magnitude.
  */
 function getTransactionDisplayAmount(transaction: OnyxInputOrEntry<Transaction>, report: OnyxInputOrEntry<Report>, policy: OnyxInputOrEntry<Policy>): number {
-    const isFromTrackedExpense = transaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
-    return getTransactionAmount(transaction, isTransactionFromExpenseReport(report, policy, transaction), isFromTrackedExpense, !!transaction && isDeletedTransaction(transaction));
+    const {isFromExpenseReport, isFromTrackedExpense, allowNegative} = getTransactionDisplaySignFlags(transaction, report, policy);
+    return getTransactionAmount(transaction, isFromExpenseReport, isFromTrackedExpense, allowNegative);
+}
+
+/**
+ * Returns the transaction amount in its workspace's output currency, signed the same way as getTransactionDisplayAmount.
+ * Expenses created offline have no workspace amount from the server yet, so they return their own amount until the next search.
+ */
+function getTransactionPolicyConvertedDisplayAmount(transaction: OnyxInputOrEntry<Transaction>, report: OnyxInputOrEntry<Report>, policy: OnyxInputOrEntry<Policy>): number {
+    if (transaction?.policyConvertedAmount == null) {
+        return getTransactionDisplayAmount(transaction, report, policy);
+    }
+    const {isFromExpenseReport, isFromTrackedExpense, allowNegative} = getTransactionDisplaySignFlags(transaction, report, policy);
+    return getAmountWithDisplaySign(transaction.policyConvertedAmount, isFromExpenseReport, isFromTrackedExpense, allowNegative);
+}
+
+/**
+ * Returns the flags that decide how a transaction's stored amounts are signed for display, so every displayed amount of one transaction shares the same sign.
+ */
+function getTransactionDisplaySignFlags(
+    transaction: OnyxInputOrEntry<Transaction>,
+    report: OnyxInputOrEntry<Report>,
+    policy: OnyxInputOrEntry<Policy>,
+): {isFromExpenseReport: boolean; isFromTrackedExpense: boolean; allowNegative: boolean} {
+    return {
+        isFromExpenseReport: isTransactionFromExpenseReport(report, policy, transaction),
+        isFromTrackedExpense: transaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID,
+        allowNegative: !!transaction && isDeletedTransaction(transaction),
+    };
 }
 
 /**
@@ -9642,7 +9688,9 @@ function buildOptimisticModifiedExpenseReportAction(
     delegateAccountIDParam: number | undefined,
     updatedTransaction?: OnyxInputOrEntry<Transaction>,
     allowNegative = false,
+    actorAccountID = deprecatedCurrentUserAccountID,
 ): OptimisticModifiedExpenseReportAction {
+    const isConcierge = actorAccountID === CONST.ACCOUNT_ID.CONCIERGE;
     const originalMessage = getModifiedExpenseOriginalMessage(oldTransaction, transactionChanges, isFromExpenseReport, policy, updatedTransaction, allowNegative);
     // Expense edits can arrive without updating the report's lastVisibleActionCreated, so also check the loaded actions.
     const latestActionCreated = transactionThread?.reportID ? getLastVisibleAction(transactionThread.reportID)?.created : undefined;
@@ -9650,15 +9698,15 @@ function buildOptimisticModifiedExpenseReportAction(
 
     return {
         actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
-        actorAccountID: deprecatedCurrentUserAccountID,
+        actorAccountID,
         automatic: false,
-        avatar: getCurrentUserAvatar(),
+        avatar: isConcierge ? getDefaultAvatarURL({accountID: CONST.ACCOUNT_ID.CONCIERGE, accountEmail: CONST.EMAIL.CONCIERGE}) : getCurrentUserAvatar(),
         created: getServerAnchoredDBTime('', lastActionCreated),
         isAttachmentOnly: false,
         message: [
             {
                 // Currently we are composing the message from the originalMessage and message is only used in OldDot and not in the App
-                text: 'You',
+                text: isConcierge ? CONST.DISPLAY_NAME.EXPENSIFY_CONCIERGE : 'You',
                 style: 'strong',
                 type: CONST.REPORT.MESSAGE.TYPE.TEXT,
             },
@@ -9667,7 +9715,7 @@ function buildOptimisticModifiedExpenseReportAction(
         person: [
             {
                 style: 'strong',
-                text: getPersonalDetail(deprecatedCurrentUserAccountID)?.displayName ?? String(deprecatedCurrentUserAccountID),
+                text: isConcierge ? CONST.DISPLAY_NAME.EXPENSIFY_CONCIERGE : (getPersonalDetail(actorAccountID)?.displayName ?? String(actorAccountID)),
                 type: 'TEXT',
             },
         ],
@@ -11715,7 +11763,7 @@ type ShouldReportBeInOptionListParams = {
     currentUserAccountID?: number;
     includeDomainEmail?: boolean;
     isReportArchived: boolean | undefined;
-    draftComment: string | undefined;
+    hasDraftComment: boolean | undefined;
     conciergeReportID: string | undefined;
     /** Pre-computed value from reportAttributes derived value. When provided, skips the expensive requiresAttentionFromCurrentUser recomputation. */
     requiresAttention?: boolean;
@@ -11737,7 +11785,7 @@ function reasonForReportToBeInOptionList({
     isBillPayBetaEnabled = false,
     excludeEmptyChats,
     doesReportHaveViolations,
-    draftComment,
+    hasDraftComment,
     includeSelfDM = false,
     login,
     currentUserLogin,
@@ -11820,7 +11868,7 @@ function reasonForReportToBeInOptionList({
 
     // Include reports that are relevant to the user in any view mode. Criteria include having a draft or having a GBR showing.
 
-    if (draftComment) {
+    if (hasDraftComment) {
         return CONST.REPORT_IN_LHN_REASONS.HAS_DRAFT_COMMENT;
     }
 
@@ -12549,7 +12597,7 @@ function navigateToLinkedReportAction(
         const routeBelowParams = routeBelow?.params as {reportID?: string} | undefined;
 
         if (routeBelow?.key && routeBelowParams?.reportID === ancestor.report.reportID) {
-            Navigation.setParams({reportActionID: ancestor.reportAction.reportActionID}, routeBelow.key, rhpState?.key);
+            Navigation.setParams({reportActionID: ancestor.reportAction.reportActionID, reportActionAlignment: undefined}, routeBelow.key, rhpState?.key);
             Navigation.goBack();
             return;
         }
@@ -13327,6 +13375,47 @@ function shouldExcludeAncestorReportAction(ancestorReportAction: ReportAction, i
     return isReportPreviewAction(ancestorReportAction);
 }
 
+type ParentReportLink = {
+    /** ID of the parent report */
+    reportID: string;
+
+    /** ID of the action in the parent report that the child report was created from */
+    reportActionID: string;
+
+    /** The parent report, from the reports or the report drafts collection */
+    report: Report;
+};
+
+/**
+ * Traverses up the report hierarchy with the `parentReportID` until the root report and returns the parent links,
+ * from the immediate parent to the top-most one. Stops at the first parent missing from both collections.
+ *
+ * @param report - The report to start from.
+ * @param reportCollection - Collection of reports.
+ * @param reportDraftCollection - Collection of report drafts.
+ * @returns The parent links of the report.
+ */
+function getParentReportChain(report: OnyxEntry<Report>, reportCollection: OnyxCollection<Report>, reportDraftCollection: OnyxCollection<Report>): ParentReportLink[] {
+    const chain: ParentReportLink[] = [];
+    const visitedReportIDs = new Set<string>(report?.reportID ? [report.reportID] : []);
+    let currentReport = report;
+
+    // The visited check stops a malformed parent cycle from looping forever or listing the starting report as its own ancestor.
+    while (currentReport?.parentReportID && currentReport?.parentReportActionID && !visitedReportIDs.has(currentReport.parentReportID)) {
+        visitedReportIDs.add(currentReport.parentReportID);
+        const parentReport =
+            reportCollection?.[`${ONYXKEYS.COLLECTION.REPORT}${currentReport.parentReportID}`] ??
+            reportDraftCollection?.[`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${currentReport.parentReportID}`];
+        if (!parentReport) {
+            break;
+        }
+        chain.push({reportID: currentReport.parentReportID, reportActionID: currentReport.parentReportActionID, report: parentReport});
+        currentReport = parentReport;
+    }
+
+    return chain;
+}
+
 /**
  * Traverses up the report hierarchy with the `parentReportID` until the root report,
  * then returns the ancestor reports and their associated actions based on `parentReportActionID`.
@@ -13346,28 +13435,20 @@ function getAncestors(
     shouldExcludeAncestorReportActionCallback: (reportAction: ReportAction, isFirstAncestor: boolean) => boolean = () => false,
 ): Ancestor[] {
     const ancestors: Ancestor[] = [];
-    let currentReport = report;
 
-    // Traverse up the report hierarchy until current report has no parent
-    while (currentReport?.parentReportID && currentReport?.parentReportActionID) {
-        const currentReportAction = reportActionsCollection?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${currentReport.parentReportID}`]?.[`${currentReport.parentReportActionID}`];
-        if (!currentReportAction) {
-            return ancestors;
-        }
-
-        // As we traverse up the report hierarchy, we need to reassign `currentReport` to the parent's own report.
-        currentReport =
-            reportCollection?.[`${ONYXKEYS.COLLECTION.REPORT}${currentReport.parentReportID}`] ??
-            reportDraftCollection?.[`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${currentReport.parentReportID}`];
-        if (!currentReport || shouldExcludeAncestorReportActionCallback(currentReportAction, ancestors.length === 0)) {
+    for (const {reportID, reportActionID, report: ancestorReport} of getParentReportChain(report, reportCollection, reportDraftCollection)) {
+        const ancestorReportActions = reportActionsCollection?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`];
+        const ancestorReportAction = ancestorReportActions?.[reportActionID];
+        if (!ancestorReportAction || shouldExcludeAncestorReportActionCallback(ancestorReportAction, ancestors.length === 0)) {
             return ancestors;
         }
         // To maintain the order from the top-most ancestor down to the immediate parent
         // we `unshift` (push) each ancestor to the start of the array.
         ancestors.unshift({
-            report: currentReport,
-            reportAction: currentReportAction,
-            shouldDisplayNewMarker: isCurrentActionUnread(currentReport, currentReportAction),
+            report: ancestorReport,
+            reportAction: ancestorReportAction,
+            // Pass the actions we were given, so the marker is decided from the same data the caller subscribed to.
+            shouldDisplayNewMarker: isCurrentActionUnread(ancestorReport, ancestorReportAction, getSortedReportActions(Object.values(ancestorReportActions ?? {}))),
         });
     }
 
@@ -14828,15 +14909,16 @@ function findPolicyExpenseChatByPolicyID(policyID: string): OnyxEntry<Report> {
  * @param reportID
  * @param actionsToMerge
  * @param canUserPerformWriteActionInReport
+ * @param reportIDToName - names for the rooms the last message mentions by reportID, so they aren't shown as #Hidden
  * @returns containing the calculated message preview data of the report
  */
-function getReportLastMessage(reportID: string, isReportArchived: boolean | undefined, actionsToMerge?: ReportActions) {
+function getReportLastMessage(reportID: string, isReportArchived: boolean | undefined, actionsToMerge?: ReportActions, reportIDToName?: Record<string, string>) {
     let result: Partial<Report> = {
         lastMessageText: '',
         lastVisibleActionCreated: '',
     };
 
-    const {lastMessageText = ''} = getLastVisibleMessage(reportID, isReportArchived, actionsToMerge);
+    const {lastMessageText = ''} = getLastVisibleMessage(reportID, isReportArchived, actionsToMerge, reportIDToName);
 
     if (lastMessageText) {
         const report = getReport(reportID, deprecatedAllReports);
@@ -16357,6 +16439,7 @@ export {
     getReportDescription,
     getReportFieldKey,
     getReportFieldMaps,
+    getReportFieldOptionExternalID,
     getReportIDFromLink,
     getReportTransactions,
     getReportNotificationPreference,
@@ -16380,6 +16463,7 @@ export {
     getTransactionCommentObject,
     getTransactionDetails,
     getTransactionDisplayAmount,
+    getTransactionPolicyConvertedDisplayAmount,
     getTransactionReportName,
     getDisplayedReportID,
     getTransactionsWithReceipts,
@@ -16624,6 +16708,7 @@ export {
     excludeParticipantsForDisplay,
     getReceiptUploadErrorReason,
     getAncestors,
+    getParentReportChain,
     doesReportContainRequestsFromMultipleUsers,
     shouldBlockSubmitDueToStrictPolicyRules,
     isWorkspaceChat,

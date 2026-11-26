@@ -81,7 +81,7 @@ function FieldAutoSelector({
             if (!isTagListRequired) {
                 continue;
             }
-            const enabledTags = Object.values(tagList.tags).filter((tag) => tag.enabled);
+            const enabledTags = Object.values(tagList.tags ?? {}).filter((tag) => tag.enabled);
             if (enabledTags.length !== 1 || getTag(transaction, index)) {
                 continue;
             }

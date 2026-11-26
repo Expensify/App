@@ -206,7 +206,7 @@ describe('useReportActionsNewActionLiveTail', () => {
         expect(mockNavigationSetParams).not.toHaveBeenCalled();
         expect(params.setTreatAsNoPaginationAnchor).toHaveBeenLastCalledWith(true);
         rerender({...loadedParams, treatAsNoPaginationAnchor: true, hasNewestReportAction: true});
-        expect(mockNavigationSetParams).toHaveBeenCalledWith({reportActionID: ''});
+        expect(mockNavigationSetParams).toHaveBeenCalledWith({reportActionID: '', reportActionAlignment: undefined});
         await act(async () => Promise.resolve());
         expect(result.current.isScrollToBottomEnabled).toBe(true);
         act(() => {
@@ -319,7 +319,7 @@ describe('useReportActionsNewActionLiveTail', () => {
         // When the current user sends a comment, release the old pagination anchor without a request.
         act(() => newActionHandler?.(true, action, 'local'));
         expect(params.setTreatAsNoPaginationAnchor).toHaveBeenLastCalledWith(true);
-        expect(mockNavigationSetParams.mock.calls).toEqual([[{reportActionID: ''}]]);
+        expect(mockNavigationSetParams.mock.calls).toEqual([[{reportActionID: '', reportActionAlignment: undefined}]]);
         expect(mockOpenReport).not.toHaveBeenCalled();
         expect(result.current.isScrollToBottomEnabled).toBe(false);
 
@@ -425,7 +425,7 @@ describe('useReportActionsNewActionLiveTail', () => {
         expect(mockOpenReport).toHaveBeenCalledTimes(2);
         expect(retryRequestID).not.toBe(firstRequestID);
         rerender({...params, liveTailRequestResults: {[firstRequestID]: {settled: true}, [retryRequestID]: loadedNewestPage}, treatAsNoPaginationAnchor: true, hasNewestReportAction: true});
-        expect(mockNavigationSetParams).toHaveBeenCalledWith({reportActionID: ''});
+        expect(mockNavigationSetParams).toHaveBeenCalledWith({reportActionID: '', reportActionAlignment: undefined});
     });
 
     it('keeps End retryable when a committed newest page is still unavailable to the reader', async () => {
@@ -475,7 +475,7 @@ describe('useReportActionsNewActionLiveTail', () => {
         // Then the link clears only after the action from this response is available to the rendered window.
         rerender({...newPage, sortedAllReportActionsForPagination: [newRow, oldRow], renderedVisibleReportActions: [oldRow, newRow]});
         await waitFor(() => expect(result.current.isScrollToBottomEnabled).toBe(true));
-        expect(mockNavigationSetParams).toHaveBeenCalledWith({reportActionID: ''});
+        expect(mockNavigationSetParams).toHaveBeenCalledWith({reportActionID: '', reportActionAlignment: undefined});
     });
 
     it('keeps the historical link retryable when the cached newest page is stale', async () => {
@@ -510,7 +510,7 @@ describe('useReportActionsNewActionLiveTail', () => {
 
         rerender(buildParams({liveTailRequestResults: {[lastLiveTailRequestID()]: loadedNewestPage}, treatAsNoPaginationAnchor: true, hasNewestReportAction: true}));
 
-        expect(mockNavigationSetParams).toHaveBeenCalledWith({reportActionID: ''});
+        expect(mockNavigationSetParams).toHaveBeenCalledWith({reportActionID: '', reportActionAlignment: undefined});
         expect(mockGlobalSetParams).not.toHaveBeenCalled();
     });
 

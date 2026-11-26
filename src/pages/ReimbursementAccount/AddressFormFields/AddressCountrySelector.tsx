@@ -34,7 +34,8 @@ function AddressCountrySelector({shouldAllowChange = true}: AddressCountrySelect
                 searchInputTitle={translate('countryStep.findCountry')}
                 value={values?.country}
                 defaultValue={defaultValues?.country}
-                onValueChange={changeCountry}
+                // The form also passes the input key, which changeCountry would take as the picked address
+                onValueChange={(country) => changeCountry(country)}
                 stateInputIDToReset={inputKeys.state ?? 'stateInput'}
                 shouldAllowChange={shouldAllowChange}
                 forwardedFSClass={forwardedFSClass}

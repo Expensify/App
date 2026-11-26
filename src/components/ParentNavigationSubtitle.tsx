@@ -230,7 +230,7 @@ function ParentNavigationSubtitle({
 
                 if (topRouteReportID === parentReportID && topRoute?.key && fullScreenState?.key) {
                     if (isVisibleAction && parentReportActionID) {
-                        Navigation.setParams({reportActionID: parentReportActionID}, topRoute.key, fullScreenState.key);
+                        Navigation.setParams({reportActionID: parentReportActionID, reportActionAlignment: undefined}, topRoute.key, fullScreenState.key);
                     }
                     Navigation.dismissModal();
                     return;
@@ -262,7 +262,7 @@ function ParentNavigationSubtitle({
             if (prevRouteReportID === parentReportID && prevRoute?.key) {
                 if (isVisibleAction && parentReportActionID) {
                     // Set params on the background screen first so it is already correct when revealed.
-                    Navigation.setParams({reportActionID: parentReportActionID}, prevRoute.key, focusedNavigatorState.key);
+                    Navigation.setParams({reportActionID: parentReportActionID, reportActionAlignment: undefined}, prevRoute.key, focusedNavigatorState.key);
                 }
                 Navigation.goBack();
                 return;

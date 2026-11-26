@@ -129,7 +129,6 @@ function WorkspaceSpendRulesTable({rulesData, selectionEnabled, selectedKeys, em
             compareItems={compareItems}
             isItemInSearch={isItemInSearch}
             initialSortColumn="card"
-            narrowLayoutSortColumn="card"
             title={translate('workspace.rules.tabs.cardRestrictions')}
         >
             <Table.ListHeader>{tableHeaderComponent}</Table.ListHeader>

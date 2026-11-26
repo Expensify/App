@@ -183,7 +183,7 @@ function useReportActionsNewActionLiveTail({
                 if (shouldReleaseOfflineLink) {
                     liveTailJumpRef.current = {stage: 'await_prune'};
                     setTreatAsNoPaginationAnchor(true);
-                    navigation.setParams({reportActionID: ''});
+                    navigation.setParams({reportActionID: '', reportActionAlignment: undefined});
                 }
                 if (action?.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW) {
                     const index = renderedVisibleReportActions.findIndex((item) => item.reportActionID === action.reportActionID);
@@ -229,7 +229,7 @@ function useReportActionsNewActionLiveTail({
         if (isInSidePanel) {
             return;
         }
-        navigation.setParams({reportActionID: ''});
+        navigation.setParams({reportActionID: '', reportActionAlignment: undefined});
     });
 
     useEffect(() => {

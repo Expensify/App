@@ -1,3 +1,4 @@
+import useContinueOfflineModal from '@components/DynamicForm/hooks/useContinueOfflineModal';
 import type {DynamicFormSubPageProps} from '@components/DynamicForm/types';
 import getConfirmationItems from '@components/DynamicForm/utils/getConfirmationItems';
 import getServerPageErrors from '@components/DynamicForm/utils/getServerPageErrors';
@@ -30,10 +31,13 @@ function DynamicFormConfirmationPage({
     submitError,
     onOpenListItemEditor,
     shouldShowFieldErrors = false,
+    onSaveForLater,
+    markUnfinishedForm,
     children,
 }: DynamicFormSubPageProps) {
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
+    const {showContinueOfflineModal} = useContinueOfflineModal();
     const [formState] = useOnyx(formID);
     // The server can reject one answer, such as a SWIFT code for a country it does not pay to, so its row shows why and the alert opens its page
     const serverPageErrors = getServerPageErrors(pages, values, allFields, formState?.errorFields);
@@ -46,8 +50,19 @@ function DynamicFormConfirmationPage({
     return (
         <ConfirmationStep
             isEditing={isEditing}
-            // The flow submits whatever onNext carries, and the press event is not answers
-            onNext={() => onNext()}
+            // The flow submits whatever onNext carries, and the press event is not answers. Offline, the flow marks the rows to fix first, as it does online, so
+            // the modal opens only when the connection alone stops the user.
+            onNext={() => {
+                if (!isOffline || !onSaveForLater) {
+                    onNext();
+                    return;
+                }
+                if (markUnfinishedForm()) {
+                    return;
+                }
+                showContinueOfflineModal({onSaveForLater, onContinue: () => onNext()});
+            }}
+            isConfirmEnabledWhenOffline={!!onSaveForLater}
             onMove={onMove}
             pageTitle={confirmationTitle}
             pageSubtitle={confirmationSubtitle}
