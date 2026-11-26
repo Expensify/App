@@ -1082,6 +1082,9 @@ const ONYXKEYS = {
         /** Set while `GetDuplicateTransactionDetails` is in flight, keyed by transactionID.
          *  Registered as RAM-only in `setup/index.ts`. */
         RAM_ONLY_IS_LOADING_DUPLICATE_TRANSACTION_DETAILS: 'isLoadingDuplicateTransactionDetails_',
+        /** Set while `OpenPolicyReceiptPartnersPage` is in flight, keyed by policyID. Kept off the policy so the request doesn't
+         *  rewrite it and rerun everything that reads it. Registered as RAM-only in `setup/index.ts`. */
+        RAM_ONLY_IS_LOADING_RECEIPT_PARTNERS: 'isLoadingReceiptPartners_',
         /** Session-scoped loading flags for company cards page and feeds.
          *  Registered as RAM-only in `setup/index.ts`. */
         RAM_ONLY_COMPANY_CARDS_LOADING_STATE: 'companyCardsLoadingState_',
@@ -1747,6 +1750,7 @@ type OnyxCollectionValuesMapping = {
     [ONYXKEYS.COLLECTION.REPORT_UPCOMING_STEPS]: OnyxTypes.ReportUpcomingSteps;
     [ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE]: OnyxTypes.ReportLoadingState;
     [ONYXKEYS.COLLECTION.RAM_ONLY_IS_LOADING_DUPLICATE_TRANSACTION_DETAILS]: boolean;
+    [ONYXKEYS.COLLECTION.RAM_ONLY_IS_LOADING_RECEIPT_PARTNERS]: boolean;
     [ONYXKEYS.COLLECTION.RAM_ONLY_COMPANY_CARDS_LOADING_STATE]: OnyxTypes.CompanyCardsLoadingState;
     [ONYXKEYS.COLLECTION.RAM_ONLY_PERSONAL_DETAILS_LOADING_STATE]: OnyxTypes.PersonalDetailsLoadingState;
     [ONYXKEYS.COLLECTION.RAM_ONLY_COMPANY_CARD_NUMBER_SEARCH]: OnyxTypes.CompanyCardNumberSearch;

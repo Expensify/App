@@ -1,4 +1,6 @@
 /** Shares the form keys, answers and picked country of an address with the inputs that draw its parts */
+import type {PickedAddress} from '@components/AddressSearch/types';
+
 import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
 
 import CONST from '@src/CONST';
@@ -21,8 +23,8 @@ type AddressFieldsContextValue = ForwardedFSClassProps & {
     /** The country the address is in right now, which picks the states listed and the zip code format shown */
     country: Country;
 
-    /** Records a country picked from the country list or found by the address search */
-    changeCountry: (country: unknown) => void;
+    /** Records a country picked from the country list or found by the address search. The address search also passes the parts its pick fills in. */
+    changeCountry: (country: unknown, pickedAddress?: PickedAddress) => void;
 };
 
 type AddressFieldsProviderProps = ForwardedFSClassProps & {
@@ -39,7 +41,7 @@ type AddressFieldsProviderProps = ForwardedFSClassProps & {
     shouldSaveDraft?: boolean;
 
     /** Called with each country the address search or the country row reports, and with '' when the country row clears the state */
-    onCountryChange?: (country: unknown) => void;
+    onCountryChange?: (country: unknown, pickedAddress?: PickedAddress) => void;
 
     children: ReactNode;
 };
@@ -54,11 +56,11 @@ function AddressFieldsProvider({inputKeys, defaultValues, values, errors, should
     const defaultCountry = defaultValues?.country === '' ? CONST.COUNTRY.US : (defaultValues?.country ?? CONST.COUNTRY.US);
     const [countryInEditMode, setCountryInEditMode] = useState<Country | ''>('');
 
-    const changeCountry = (country: unknown) => {
+    const changeCountry = (country: unknown, pickedAddress?: PickedAddress) => {
         if (typeof country === 'string' && isCountry(country)) {
             setCountryInEditMode(country);
         }
-        onCountryChange?.(country);
+        onCountryChange?.(country, pickedAddress);
     };
 
     const contextValue: AddressFieldsContextValue = {

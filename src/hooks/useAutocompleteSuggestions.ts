@@ -33,7 +33,6 @@ import getEmptyArray from '@src/types/utils/getEmptyArray';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
 import {isTrackIntentUserSelector} from '@selectors/Onboarding';
-import {policyIDsWithCategoryRulesSelector} from '@selectors/PolicyCategories';
 
 import type {FeedKeysWithAssignedCards} from './useFeedKeysWithAssignedCards';
 
@@ -137,7 +136,6 @@ function useAutocompleteSuggestions({
     const {localeCompare, dateFnsLocale, formatPhoneNumber} = useLocalize();
     const {convertToDisplayString, convertToDisplayStringWithoutCurrency} = useCurrencyListActions();
     const [allPolicyCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES);
-    const [policyIDsWithCategoryRules] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES, {selector: policyIDsWithCategoryRulesSelector});
     const [allRecentCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CATEGORIES);
     const [recentCurrencyAutocompleteList] = useOnyx(ONYXKEYS.RECENTLY_USED_CURRENCIES);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
@@ -399,8 +397,13 @@ function useAutocompleteSuggestions({
                         return [];
                 }
             })();
+            const shouldShowViolationGroupBy = getHasOptionAvailability(policies).shouldShowSubmittedViolation;
+            const violationGroupByValue = getUserFriendlyValue(CONST.SEARCH.GROUP_BY.VIOLATION);
             const filteredGroupBy = groupByAutocompleteList.filter(
-                (groupByValue) => groupByValue.toLowerCase().includes(autocompleteValue.toLowerCase()) && !alreadyAutocompletedKeys.has(groupByValue.toLowerCase()),
+                (groupByValue) =>
+                    (groupByValue !== violationGroupByValue || shouldShowViolationGroupBy) &&
+                    groupByValue.toLowerCase().includes(autocompleteValue.toLowerCase()) &&
+                    !alreadyAutocompletedKeys.has(groupByValue.toLowerCase()),
             );
             return filteredGroupBy.map((groupByValue) => ({filterKey: CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.GROUP_BY, text: groupByValue}));
         }
@@ -462,7 +465,7 @@ function useAutocompleteSuggestions({
             }));
         }
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.VIOLATION: {
-            if (!getHasOptionAvailability(policies, policyIDsWithCategoryRules).shouldShowSubmittedViolation) {
+            if (!getHasOptionAvailability(policies).shouldShowSubmittedViolation) {
                 return getEmptyArray<AutocompleteItemData>();
             }
 
@@ -640,7 +643,6 @@ function useAutocompleteSuggestions({
             // Use {} while policies load so every has: option does not flash before the collection arrives.
             const hasAutocompleteList = getHasOptions(translate, currentType, {
                 policies: policies ?? {},
-                policyIDsWithCategoryRules,
             });
             const filteredHasValues = hasAutocompleteList.filter((hasValue) => {
                 return hasValue.value.toLowerCase().includes(autocompleteValue.toLowerCase()) && !alreadyAutocompletedKeys.has(hasValue.value.toLowerCase());
