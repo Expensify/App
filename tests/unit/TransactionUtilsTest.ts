@@ -15,6 +15,7 @@ import {
     shouldShowBrokenConnectionViolation,
     shouldShowBrokenConnectionViolationForMultipleTransactions,
 } from '@libs/TransactionUtils';
+import {removeSettledAndApprovedTransactions} from '@libs/TransactionUtils/duplicates';
 import hasDistanceRouteErrors from '@libs/TransactionUtils/hasDistanceRouteErrors';
 
 import CONST from '@src/CONST';
@@ -7240,7 +7241,7 @@ describe('removeSettledAndApprovedTransactions', () => {
 
         // When filtering that expense down to the ones Auth's MergeTransactions command would accept
         const transaction = {...createRandomTransaction(1), transactionID: 'tx1', reportID: DRAFT_ONLY_REPORT_ID};
-        const mergeable = TransactionUtils.removeSettledAndApprovedTransactions([transaction]);
+        const mergeable = removeSettledAndApprovedTransactions([transaction]);
 
         // Then the draft's open status does not make the expense mergeable: the report counts as not loaded, which Auth
         // would reject anyway, so REPORT_DRAFT can no longer let a merge through (https://github.com/Expensify/App/issues/66414)
