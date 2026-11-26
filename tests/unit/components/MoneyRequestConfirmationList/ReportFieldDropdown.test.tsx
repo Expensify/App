@@ -81,16 +81,19 @@ const CURRENT_USER_ACCOUNT_ID = 5;
 const SELF_DM_REPORT_ID = 'selfDM1';
 const selfDMReport: Report = {reportID: SELF_DM_REPORT_ID, chatType: CONST.REPORT.CHAT_TYPE.SELF_DM, type: CONST.REPORT.TYPE.CHAT, ownerAccountID: CURRENT_USER_ACCOUNT_ID};
 
+// The expense types a test renders the form with: a regular expense, or the tracked one None leaves behind.
+type FormIOUType = typeof CONST.IOU.TYPE.SUBMIT | typeof CONST.IOU.TYPE.TRACK;
+
 // The screen that owns the form's route switches its expense type, which a field inside a tab can't reach with `useRoute`.
 const mockIOUTypeChange = jest.fn();
 
-const getDropdown = (onClose: jest.Mock, isVisible = true) => (
+const getDropdown = (onClose: jest.Mock, isVisible = true, iouType: FormIOUType = CONST.IOU.TYPE.SUBMIT) => (
     <OnyxListItemProvider>
         <ConfirmationFieldsProvider
             transactionID={TRANSACTION_ID}
             reportID={CHAT_REPORT_ID}
             action={CONST.IOU.ACTION.CREATE}
-            iouType={CONST.IOU.TYPE.SUBMIT}
+            iouType={iouType}
             isPolicyExpenseChat
             onIOUTypeChange={mockIOUTypeChange}
         >
@@ -109,7 +112,7 @@ const getDropdown = (onClose: jest.Mock, isVisible = true) => (
     </OnyxListItemProvider>
 );
 
-const renderDropdown = (onClose: jest.Mock, isVisible = true) => render(getDropdown(onClose, isVisible));
+const renderDropdown = (onClose: jest.Mock, isVisible = true, iouType?: FormIOUType) => render(getDropdown(onClose, isVisible, iouType));
 
 const setDraftExpense = async () => {
     await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${TRANSACTION_ID}`, {
@@ -212,6 +215,54 @@ describe('ReportFieldDropdown', () => {
         expect(draft?.participants).toEqual([expect.objectContaining({reportID: SELF_DM_REPORT_ID, isSelfDM: true})]);
         expect(mockIOUTypeChange).toHaveBeenCalledWith(CONST.IOU.TYPE.TRACK);
         expect(onClose).toHaveBeenCalledTimes(1);
+    });
+
+    it('makes the form a regular expense again when a report is picked after no report', async () => {
+        // Given a draft expense that None already moved to the self DM, so the form holds a tracked expense
+        await Onyx.set(ONYXKEYS.SESSION, {accountID: CURRENT_USER_ACCOUNT_ID, email: 'user@test.com'});
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${SELF_DM_REPORT_ID}`, selfDMReport);
+        await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${TRANSACTION_ID}`, {
+            transactionID: TRANSACTION_ID,
+            reportID: CONST.REPORT.UNREPORTED_REPORT_ID,
+            participants: [{reportID: SELF_DM_REPORT_ID, isSelfDM: true, selected: true}],
+        });
+        await waitForBatchedUpdates();
+        mockIOUTypeChange.mockClear();
+        jest.mocked(setTransactionReport).mockClear();
+        const onClose = jest.fn();
+
+        // When the report row's dropdown opens again and the user picks a workspace report
+        renderDropdown(onClose, true, CONST.IOU.TYPE.TRACK);
+        await waitForBatchedUpdates();
+        await act(async () => {
+            mockModalProps?.selectReport({value: OTHER_REPORT_ID, keyForList: OTHER_REPORT_ID, policyID: POLICY_ID});
+        });
+
+        // Then the draft goes back on the workspace chat, and the form stops being a tracked expense, which would
+        // otherwise be tracked on the workspace chat when confirmed
+        expect(setTransactionReport).toHaveBeenCalledWith(
+            TRANSACTION_ID,
+            {reportID: OTHER_REPORT_ID, participants: [{selected: true, accountID: 0, isPolicyExpenseChat: true, reportID: CHAT_REPORT_ID, policyID: POLICY_ID}]},
+            true,
+        );
+        expect(mockIOUTypeChange).toHaveBeenCalledWith(CONST.IOU.TYPE.CREATE);
+        expect(onClose).toHaveBeenCalledTimes(1);
+    });
+
+    it('keeps a regular expense as it is when another report is picked', async () => {
+        // Given a draft expense on a workspace report, which was never moved to the self DM
+        await setDraftExpense();
+        mockIOUTypeChange.mockClear();
+
+        // When the user picks another report
+        renderDropdown(jest.fn());
+        await waitForBatchedUpdates();
+        await act(async () => {
+            mockModalProps?.selectReport({value: OTHER_REPORT_ID, keyForList: OTHER_REPORT_ID, policyID: POLICY_ID});
+        });
+
+        // Then the form's expense type is left alone, since only None changes it
+        expect(mockIOUTypeChange).not.toHaveBeenCalled();
     });
 
     it('does not offer no report for a per diem expense, which only exists on a workspace', async () => {

@@ -52,7 +52,7 @@ import {getParticipantsOption, getReportOption} from '@libs/OptionsListUtils';
 import {hasOnlyPersonalPolicies as hasOnlyPersonalPoliciesUtil, resolveCurrentTaxCode} from '@libs/PolicyUtils';
 import ReceiptStorage from '@libs/ReceiptStorage';
 import {shouldValidateFile} from '@libs/ReceiptUtils';
-import {buildOptimisticSelfDMReport, getReportOrDraftReport, isMoneyRequestReport, isSelfDM} from '@libs/ReportUtils';
+import {buildOptimisticSelfDMReport, getReportOrDraftReport, isMoneyRequestReport, isPolicyExpenseChat as isPolicyExpenseChatReportUtil, isSelfDM} from '@libs/ReportUtils';
 import {cancelSpan, endSpan} from '@libs/telemetry/activeSpans';
 import {logReceiptAdoptFailed, logReceiptCaptured, logReceiptSubmitted, mintAndStampReceiptTraceId} from '@libs/telemetry/ReceiptObservability';
 import {cancelTracking} from '@libs/telemetry/submitFollowUpAction';
@@ -741,6 +741,9 @@ function SubmitDetailsPage({
                         onToggleBillable={setBillable}
                         onToggleReimbursable={setReimbursable}
                         isPolicyExpenseChat={isPolicyExpenseChat}
+                        // This page has no recipient row, so the Report row is the only way back to a report once None
+                        // moved the draft to the self DM. It follows the chat the receipt was shared to.
+                        shouldShowReportField={isPolicyExpenseChat || isPolicyExpenseChatReportUtil(report)}
                         policyID={policy?.id}
                         isConfirming={isConfirming}
                         onConfirm={() => onConfirm(!hasAllManuallyEnteredScanFields(transaction, !!isPolicyExpenseChat))}

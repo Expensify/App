@@ -27,6 +27,8 @@ type ConfirmationFieldsContextValue = {
     /** Whether this surface offers manual entry of the amount / merchant / date. False for splits, test receipts and moved tracked expenses. */
     canEnterScanFieldsManually: boolean;
     isPolicyExpenseChat: boolean;
+    /** Whether the Report row is shown, which follows `isPolicyExpenseChat` unless the form says otherwise */
+    shouldShowReportField: boolean;
 
     // Mode — *what kind* of expense is being confirmed
     isScanRequest: boolean;

@@ -391,6 +391,35 @@ describe('SubmitDetailsPage', () => {
         expect(cleanupAndNavigateAfterExpenseCreate).toHaveBeenCalledWith(expect.objectContaining({isSelfDMDestination: true, navigationReportID: selfDMReportID}));
     });
 
+    it('keeps the Report row once Report > None moved a receipt shared to a workspace chat to the self DM', async () => {
+        // Given a receipt shared to a workspace chat, on a page with no recipient row to pick the workspace again
+        const selfDMReportID = 'self-dm-1';
+        const defaultReportLookup = jest.mocked(useReportOrReportDraft).getMockImplementation();
+        jest.mocked(useReportOrReportDraft).mockImplementation((reportID?: string) => {
+            if (reportID === selfDMReportID) {
+                return {reportID, chatType: CONST.REPORT.CHAT_TYPE.SELF_DM, type: CONST.REPORT.TYPE.CHAT};
+            }
+            return reportID ? {reportID, chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT, type: CONST.REPORT.TYPE.CHAT, policyID: 'policy-1'} : undefined;
+        });
+        renderSubmitDetailsPage();
+        await waitForBatchedUpdatesWithAct();
+        expect(mockConfirmationListProps.shouldShowReportField).toBe(true);
+
+        // When the Report row is set to None, which moves the draft to the self DM
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${CONST.IOU.OPTIMISTIC_TRANSACTION_ID}`, {
+                reportID: CONST.REPORT.UNREPORTED_REPORT_ID,
+                participants: [{reportID: selfDMReportID, isSelfDM: true, selected: true}],
+            });
+        });
+        await waitForBatchedUpdatesWithAct();
+        jest.mocked(useReportOrReportDraft).mockImplementation(defaultReportLookup);
+
+        // Then the form is a self DM one, but the Report row stays, since it is the only way back to a report
+        expect(mockConfirmationListProps.isPolicyExpenseChat).toBe(false);
+        expect(mockConfirmationListProps.shouldShowReportField).toBe(true);
+    });
+
     it('creates the self DM when Report > None moved the draft to one the account does not have yet', async () => {
         // Given an account with no self DM stored, so None moved the draft to the one the Report picker built under a new ID
         const selfDMReportID = 'unsaved-self-dm';

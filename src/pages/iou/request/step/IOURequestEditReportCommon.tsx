@@ -459,7 +459,7 @@ function IOURequestEditReportCommon({
     const noReportOption = selectNoReport ? (
         <MenuItem.Root
             onPress={selectNoReport}
-            sentryLabel={CONST.SENTRY_LABEL.REPORT_PICKER.NO_REPORT}
+            sentryLabel={CONST.SENTRY_LABEL.IOU_REQUEST_STEP.EDIT_REPORT_NO_REPORT}
         >
             <MenuItem.Row>
                 <MenuItem.Leading>

@@ -7,10 +7,9 @@ import useOnyx from '@hooks/useOnyx';
 import useOutstandingReports from '@hooks/useOutstandingReports';
 import usePermissions from '@hooks/usePermissions';
 import {usePersonalDetail} from '@hooks/usePersonalDetails';
-import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import {useDerivedReportNameByReportID} from '@hooks/useReportAttributes';
 
-import {canCreateReportForExpense, canLeaveExpenseUnreported, isMovingTransactionFromTrackExpense} from '@libs/IOUUtils';
+import {isMovingTransactionFromTrackExpense} from '@libs/IOUUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import Parser from '@libs/Parser';
@@ -27,6 +26,8 @@ import {
     isSavedThroughMoneyRequestBuilder,
     sortOutstandingReportsBySelected,
 } from '@libs/ReportUtils';
+
+import useReportPickerChoices from '@pages/iou/request/step/IOURequestStepReport/hooks/useReportPickerChoices';
 
 import CONST from '@src/CONST';
 import type {IOUAction, IOUType} from '@src/CONST';
@@ -151,11 +152,16 @@ function ReportField({selectedParticipants, iouType, reportID, reportActionID, a
     // Use the default rather than the picked report, so picking the only outstanding report keeps the field editable to switch back.
     const hasOtherReport = shouldReportFieldBeEditable(eligibleOutstandingReports, selectedReportID, isUnreported || !outstandingReportID);
     // The list also offers a new report when there is a workspace to make it on, and no report at all for an expense
-    // being created, so either is a choice too. The row asks the same questions the list does, so it never opens an
+    // being created, so either is a choice too. The row asks through the hook the list uses, so it never opens an
     // empty list, e.g. for someone with no workspace submitting a tracked expense.
-    const {policyForMovingExpensesID, shouldSelectPolicy} = usePolicyForMovingExpenses(isPerDiemRequest, isTimeRequest, policyID, isUnreportedManagedCardTransaction);
-    const canCreateReport = canCreateReportForExpense({policyForMovingExpensesID, shouldSelectPolicy, isPerDiemRequest, isUnreportedManagedCardTransaction});
-    const canLeaveUnreported = canLeaveExpenseUnreported(action, iouType, isPerDiemRequest, isTimeRequest);
+    const {canCreateReport, canLeaveUnreported} = useReportPickerChoices({
+        action,
+        iouType,
+        isPerDiemRequest,
+        isTimeRequest,
+        isUnreportedManagedCardTransaction,
+        expensePolicyID: policyID,
+    });
     // Editing an expense that is already on a report can hide the new report option (someone else's expense, edited by
     // a non-admin), so there the row needs another report to choose from. Creating from inside an expense report locks
     // the row, since the expense can only go on that report.

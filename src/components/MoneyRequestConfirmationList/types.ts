@@ -86,6 +86,12 @@ type MoneyRequestConfirmationListProps = {
     /** Whether the current report is a sub-report of an expense chat */
     isPolicyExpenseChat?: boolean;
 
+    /**
+     * Whether the Report row is shown. Defaults to `isPolicyExpenseChat`. A form that has no recipient row sets it from
+     * the chat it was opened for, so the row stays once None moves the expense to the self DM.
+     */
+    shouldShowReportField?: boolean;
+
     /** Whether smartscan failed on this receipt. */
     hasSmartScanFailed?: boolean;
 

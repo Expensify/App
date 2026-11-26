@@ -16,7 +16,7 @@ import useSelfDMReport from '@hooks/useSelfDMReport';
 import {moveMoneyRequestDraftToSelfDM} from '@libs/actions/IOU/MoneyRequest';
 import {createNewReport} from '@libs/actions/Report';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
-import {canCreateReportForExpense, canLeaveExpenseUnreported, isMovingTransactionFromTrackExpense} from '@libs/IOUUtils';
+import {isMovingTransactionFromTrackExpense} from '@libs/IOUUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import {getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {
@@ -54,6 +54,7 @@ import {createOutstandingReportsForPolicySelector} from '@selectors/Report';
 
 import useCreateReportRestrictionCheck from './useCreateReportRestrictionCheck';
 import usePerDiemPolicyData from './usePerDiemPolicyData';
+import useReportPickerChoices from './useReportPickerChoices';
 import useReportSelectionActions from './useReportSelectionActions';
 
 type TransactionGroupListItem = ListItem & {
@@ -217,7 +218,16 @@ function useReportPickerActions({
 
     // We need to fall back to transactionPolicyID because for a new workspace there is no report created yet
     // and if we choose this workspace as participant we want to create a new report in the chosen workspace
-    const {policyForMovingExpensesID, shouldSelectPolicy} = usePolicyForMovingExpenses(isPerDiemTransaction, isTimeTransaction, targetExpensePolicyID, isUnreportedManagedCardTransaction);
+    // A new expense with no report is saved on the user's self DM, the same as picking themselves as the recipient.
+    // Per diem and time expenses only exist on a workspace, and splits and invoices have no report to leave.
+    const {canCreateReport, canLeaveUnreported, policyForMovingExpensesID, shouldSelectPolicy} = useReportPickerChoices({
+        action,
+        iouType,
+        isPerDiemRequest: isPerDiemTransaction,
+        isTimeRequest: isTimeTransaction,
+        isUnreportedManagedCardTransaction,
+        expensePolicyID: targetExpensePolicyID,
+    });
 
     // No violations exist for a report that hasn't been created yet — kept as a literal to avoid subscribing to the entire TRANSACTION_VIOLATIONS collection.
     const hasViolations = false;
@@ -246,6 +256,16 @@ function useReportPickerActions({
         shouldWriteAfterTransition,
     });
 
+    // None moved the expense to the self DM and made the form a tracked expense. A report puts it back on a workspace,
+    // so the form goes back to a regular expense, the same as picking a workspace as the recipient does. Otherwise
+    // confirming would track the expense on the workspace chat.
+    const restoreFormIOUType = () => {
+        if (!isCreateReport || !isUnreported || iouType !== CONST.IOU.TYPE.TRACK) {
+            return;
+        }
+        setFormIOUType?.(CONST.IOU.TYPE.CREATE);
+    };
+
     const selectReport = (item: TransactionGroupListItem) => {
         if (!transaction) {
             return;
@@ -257,6 +277,8 @@ function useReportPickerActions({
             goBack();
             return;
         }
+
+        restoreFormIOUType();
 
         // Handle global create report
         if (isCreateReport && isFromGlobalCreate) {
@@ -287,6 +309,7 @@ function useReportPickerActions({
             shouldDismissEmptyReportsConfirmation,
             managedCardTransactionID: isUnreportedManagedCardTransaction ? transactionID : undefined,
         });
+        restoreFormIOUType();
         handleRegularReportSelection({value: optimisticReport.reportID, keyForList: optimisticReport.reportID, policyID: policyForNewReport?.id}, optimisticReport);
     };
 
@@ -318,9 +341,6 @@ function useReportPickerActions({
         handleCreateReport();
     };
 
-    // A new expense with no report is saved on the user's self DM, the same as picking themselves as the recipient.
-    // Per diem and time expenses only exist on a workspace, and splits and invoices have no report to leave.
-    const isNoReportSupported = canLeaveExpenseUnreported(action, iouType, isPerDiemTransaction, isTimeTransaction);
     const selectNoReport = () => {
         goBack();
         if (isUnreported) {
@@ -370,10 +390,8 @@ function useReportPickerActions({
             isTimeRequest: isTimeTransaction,
             isUnreportedManagedCardTransaction: transaction ? isUnreportedManagedCardTransaction : false,
             shouldOnlyListOpenReports: isMovingTransactionFromTrackExpense(action),
-            createReport: canCreateReportForExpense({policyForMovingExpensesID, shouldSelectPolicy, isPerDiemRequest: isPerDiemTransaction, isUnreportedManagedCardTransaction})
-                ? createReport
-                : undefined,
-            selectNoReport: isNoReportSupported ? selectNoReport : undefined,
+            createReport: canCreateReport ? createReport : undefined,
+            selectNoReport: canLeaveUnreported ? selectNoReport : undefined,
             targetOwnerAccountID: newReportOwnerAccountID,
         },
     };
