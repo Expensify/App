@@ -30,10 +30,19 @@ import {
     isExpenseDefaultTaxValue,
 } from './ExpenseDefaultRuleUtils';
 import {getMccGroupDisplayName} from './PolicyRulesUtils';
-import {getCommaSeparatedTagNameWithSanitizedColons, getVendorRuleDisplayValue, isTagInPolicy} from './PolicyUtils';
+import {getCommaSeparatedTagNameWithSanitizedColons, getVendorRuleDisplayValue, isPolicyFeatureEnabled, isTagInPolicy} from './PolicyUtils';
 import {getAmountFilterDisplayValue} from './SearchAmountFilterUtils';
 
 const MERCHANT_TYPE_RULE_KEY_PREFIX = 'mcc-group:';
+
+/** Returns the actions to show without changing the saved rule when Taxes is off. */
+function getVisibleExpenseDefaultRuleSummaryFields(rule: Rule, policy: OnyxEntry<Policy>): ExpenseDefaultRuleSummaryField[] {
+    const summaryFields = getExpenseDefaultRuleSummaryFields(rule);
+    if (isPolicyFeatureEnabled(policy, CONST.POLICY.MORE_FEATURES.ARE_TAXES_ENABLED)) {
+        return summaryFields;
+    }
+    return summaryFields.filter(({field}) => field !== CONST.RULES.EXPENSE_DEFAULT.FIELD.TAX);
+}
 
 /**
  * Reads the fields a rule sets into one sentence, such as "Update tax to GST, amount to $10".
@@ -211,12 +220,15 @@ function getMerchantRulesTableData({
                 }
                 return secondCreated < firstCreated ? -1 : 1;
             })
-            .map(({ruleID, rule}) => {
+            .map(({ruleID, rule}): ExpenseDefaultTableItem | undefined => {
+                const visibleFields = getVisibleExpenseDefaultRuleSummaryFields(rule, policy);
+                if (visibleFields.length === 0) {
+                    return undefined;
+                }
+
                 // The backend keeps a deleted tag on the rule so it applies again if the tag is recreated, so hide it here.
                 // Tags that haven't loaded yet are kept to avoid flicker.
-                const summaryFields = getExpenseDefaultRuleSummaryFields(rule).filter(
-                    ({field, value}) => field !== FIELD.TAG || !policyTags || typeof value !== 'string' || isTagInPolicy(value, policyTags),
-                );
+                const summaryFields = visibleFields.filter(({field, value}) => field !== FIELD.TAG || !policyTags || typeof value !== 'string' || isTagInPolicy(value, policyTags));
                 const {merchants, categories, tags, others} = getExpenseDefaultConditionSummary(rule.filters);
                 const merchantNames = merchants.map(({value}) => value).join(', ');
                 const categoryNames = categories.map(getDecodedCategoryName).join(', ');
@@ -258,6 +270,7 @@ function getMerchantRulesTableData({
                     action: openEditor,
                 };
             })
+            .filter((item) => item !== undefined)
     );
 }
 
@@ -582,6 +595,7 @@ export {
     getMerchantRulesTableData,
     getMerchantTypeRuleFormFromMccGroup,
     getSubmitterConditionName,
+    getVisibleExpenseDefaultRuleSummaryFields,
     isDefaultMccGroupID,
     isMerchantTypeRuleKey,
     saveMerchantTypeRule,
