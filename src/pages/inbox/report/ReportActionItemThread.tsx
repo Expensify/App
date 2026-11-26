@@ -3,12 +3,14 @@ import PressableWithSecondaryInteraction from '@components/PressableWithSecondar
 import Text from '@components/Text';
 
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useIsInSidePanel from '@hooks/useIsInSidePanel';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import {useAllPersonalDetailsWithoutSnapshots} from '@hooks/usePersonalDetails';
+import useSidePanelActions from '@hooks/useSidePanelActions';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {navigateToAndOpenChildReport, navigateToSupportTicket} from '@libs/actions/Report';
+import {createChildReport, navigateToAndOpenChildReport, navigateToSupportTicket} from '@libs/actions/Report';
 import {getParticipantsPersonalDetails} from '@libs/PersonalDetailsUtils';
 import {isCreatedSupportTicketReportAction} from '@libs/ReportActionsUtils';
 
@@ -47,6 +49,8 @@ type ReportActionItemThreadProps = {
 
 function ReportActionItemThread({report, reportAction, isHovered, onSecondaryInteraction, isEditingInline, isActive, processingAgentIDs}: ReportActionItemThreadProps) {
     const styles = useThemeStyles();
+    const isInSidePanel = useIsInSidePanel();
+    const {openSidePanel} = useSidePanelActions();
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const {translate, datetimeToCalendarTime} = useLocalize();
     const [childReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportAction.childReportID}`, {selector: getStableReportSelector});
@@ -86,6 +90,13 @@ function ReportActionItemThread({report, reportAction, isHovered, onSecondaryInt
                             return;
                         }
                         const participantsPersonalDetails = getParticipantsPersonalDetails(participantAccountIDs, personalDetails);
+                        if (isInSidePanel) {
+                            const threadReport =
+                                childReport ??
+                                createChildReport(childReport, reportAction, report, currentUserAccountID, introSelected, isSelfTourViewed, participantsPersonalDetails, conciergeChat);
+                            openSidePanel({reportID: threadReport.reportID});
+                            return;
+                        }
                         navigateToAndOpenChildReport(childReport, reportAction, report, currentUserAccountID, introSelected, participantsPersonalDetails, isSelfTourViewed, conciergeChat);
                     }}
                     role={CONST.ROLE.BUTTON}
