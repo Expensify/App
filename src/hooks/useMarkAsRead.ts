@@ -12,6 +12,7 @@ import type {ReportsSplitNavigatorParamList} from '@navigation/types';
 import {readNewestAction} from '@userActions/Report';
 
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
 
@@ -28,6 +29,7 @@ import useIsHiddenWideTabPreMount from './useIsHiddenWideTabPreMount';
 import useIsReportActionsLoaded from './useIsReportActionsLoaded';
 import useIsReportOutOfSight from './useIsReportOutOfSight';
 import useMarkReadAfterReveal from './useMarkReadAfterReveal';
+import useOnyx from './useOnyx';
 import {useDerivedIsEmptyReport} from './useReportAttributes';
 import useReportIsArchived from './useReportIsArchived';
 
@@ -81,7 +83,6 @@ function resetMarkAsReadScopes() {
 
 type UseMarkAsReadParams = {
     reportID: string;
-    report: OnyxEntry<OnyxTypes.Report>;
     transactionThreadReport: OnyxEntry<OnyxTypes.Report>;
     sortedVisibleReportActions: OnyxTypes.ReportAction[];
 
@@ -108,7 +109,6 @@ type UseMarkAsReadResult = {
 
 function useMarkAsRead({
     reportID,
-    report,
     transactionThreadReport,
     sortedVisibleReportActions,
     sortedReportActions,
@@ -117,6 +117,8 @@ function useMarkAsRead({
     scopeKey = 'default',
     shouldRequireScreenFocus = false,
 }: UseMarkAsReadParams): UseMarkAsReadResult {
+    // Read here instead of taking a `report` prop, so callers can pass the stable projection while this hook still sees the `last*` fields
+    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const isAnonymousUser = useIsAnonymousUser();
     const route = useRoute<PlatformStackRouteProp<ReportsSplitNavigatorParamList, typeof SCREENS.REPORT>>();

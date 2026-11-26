@@ -2,7 +2,7 @@ import {act, renderHook} from '@testing-library/react-native';
 
 import {IsHiddenWideTabPreMountContext} from '@hooks/useIsHiddenWideTabPreMount';
 import {IsInPreloadedTabContext} from '@hooks/useIsInPreloadedTab';
-import useMarkAsRead, {resetMarkAsReadScopes} from '@hooks/useMarkAsRead';
+import useMarkAsReadHook, {resetMarkAsReadScopes} from '@hooks/useMarkAsRead';
 
 import Log from '@libs/Log';
 import type Navigation from '@libs/Navigation/Navigation';
@@ -92,6 +92,25 @@ jest.mock('@react-navigation/native', () => {
     };
 });
 
+// The hook reads its report from Onyx itself, so the tests feed it through the mocked useOnyx instead of a param.
+const mockGetReport = jest.fn<OnyxEntry<OnyxTypes.Report>, []>();
+jest.mock('@hooks/useOnyx', () => {
+    const actual = jest.requireActual<{default: (key: string, options?: unknown) => unknown}>('@hooks/useOnyx');
+    return {
+        __esModule: true,
+        // Other hooks inside useMarkAsRead read different keys, so only the report key is replaced.
+        default: (key: string, options?: unknown) => (key.startsWith('report_') ? [mockGetReport(), {status: 'loaded'}] : actual.default(key, options)),
+    };
+});
+
+type MarkAsReadParams = Parameters<typeof useMarkAsReadHook>[0] & {report: OnyxEntry<OnyxTypes.Report>};
+
+/** Keeps the tests passing `report` while the real hook reads it from the mocked Onyx. */
+function useMarkAsRead({report, ...params}: MarkAsReadParams) {
+    mockGetReport.mockReturnValue(report);
+    return useMarkAsReadHook(params);
+}
+
 const {readNewestAction} = jest.requireMock<{readNewestAction: jest.Mock}>('@userActions/Report');
 const NavigationMock = jest.requireMock<{default: {setParams: jest.Mock}}>('@libs/Navigation/Navigation').default;
 
@@ -111,7 +130,7 @@ function createHiddenPreMountWrapper(getIsHiddenPreMount: () => boolean) {
     return ({children}: {children: React.ReactNode}) => React.createElement(IsHiddenWideTabPreMountContext.Provider, {value: getIsHiddenPreMount()}, children);
 }
 
-function renderMarkAsRead(params: Partial<Parameters<typeof useMarkAsRead>[0]> = {}, wrapper: React.ComponentType<{children: React.ReactNode}> = PreloadedTabWrapper) {
+function renderMarkAsRead(params: Partial<MarkAsReadParams> = {}, wrapper: React.ComponentType<{children: React.ReactNode}> = PreloadedTabWrapper) {
     return renderHook(
         (props?: {report: OnyxTypes.Report}) =>
             useMarkAsRead({
@@ -854,7 +873,7 @@ describe('useMarkAsRead', () => {
             mockNotificationPreference = CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS;
 
             // Given the last message is the current user's own, when it is opened, then nothing is logged
-            renderMarkAsRead({report: {...unreadChat, lastActorAccountID: CURRENT_USER_ACCOUNT_ID} as OnyxTypes.Report});
+            renderMarkAsRead({report: {...unreadChat, lastActorAccountID: CURRENT_USER_ACCOUNT_ID}});
             expect(logInfoSpy).not.toHaveBeenCalled();
 
             // Given the chat is mounted in a preloaded tab, when it mounts, then nothing is logged

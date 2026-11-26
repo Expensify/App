@@ -23,6 +23,7 @@ import type * as ReactNavigation from '@react-navigation/native';
 import type {OnyxKey, OnyxValue} from 'react-native-onyx';
 
 import {useRoute} from '@react-navigation/native';
+import {getStableReportSelector} from '@selectors/Report';
 import React from 'react';
 import {View} from 'react-native';
 import Onyx from 'react-native-onyx';
@@ -377,7 +378,7 @@ describe('ReportActions', () => {
         expect(screen.queryByTestId('ReportActionsSkeletonView')).toBeNull();
         expect(mockMoneyRequestList).not.toHaveBeenCalled();
         expect(mockReportActionsListBody.mock.calls.at(-1)?.at(0)).toEqual(expect.objectContaining({reportID: REPORT_ID}));
-        expect(mockUserTypingEventListener.mock.calls.at(-1)?.at(0)).toEqual(expect.objectContaining({report: mockReport}));
+        expect(mockUserTypingEventListener.mock.calls.at(-1)?.at(0)).toEqual(expect.objectContaining({report: getStableReportSelector(mockReport)}));
     });
 
     it('does not subscribe ordinary chats to money pagination or transaction collections', () => {

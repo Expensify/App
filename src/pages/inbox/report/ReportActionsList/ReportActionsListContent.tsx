@@ -41,6 +41,7 @@ import type * as OnyxTypes from '@src/types/onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 
 import {useRoute} from '@react-navigation/native';
+import {getStableReportSelector} from '@selectors/Report';
 import React, {useState} from 'react';
 
 import type {ReportActionsListProps} from './types';
@@ -63,7 +64,6 @@ function ReportActionsListContent({reportID, onLayout}: ReportActionsListProps) 
     const {isProduction} = useEnvironment();
 
     const {
-        report,
         hasOnceLoadedReportActions,
         isWaitingForOlderActions,
         hasNewerActions,
@@ -76,6 +76,9 @@ function ReportActionsListContent({reportID, onLayout}: ReportActionsListProps) 
         shouldShowConciergeWelcome,
         isConciergeHistoryExpanded,
     } = useReportActionsListState();
+
+    // The stable projection drops the `last*` heartbeat fields, which this component does not use. useMarkAsRead reads the full report itself.
+    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {selector: getStableReportSelector});
 
     // Remove rows hidden by the renderer before calculating summary counts, headers, and scroll positions.
     const paymentFilteredReportActions = report?.isWaitingOnBankAccount ? unfilteredReportActions.filter((action) => !shouldHidePayAction(action, true)) : unfilteredReportActions;
@@ -144,7 +147,6 @@ function ReportActionsListContent({reportID, onLayout}: ReportActionsListProps) 
 
     const {markNewestActionAsRead, completeSkippedMarkAsRead} = useMarkAsRead({
         reportID,
-        report,
         transactionThreadReport,
         sortedVisibleReportActions,
         isScrolledToEnd: !hasScrolledOverThreshold,
@@ -273,7 +275,7 @@ function ReportActionsListContent({reportID, onLayout}: ReportActionsListProps) 
                 onActionBadgePress={scrollToActionBadgeTarget}
             />
             <ReportActionsListPaddingView
-                report={report}
+                reportID={report.reportID}
                 isReportArchived={isReportArchived}
             >
                 <InvertedFlashList

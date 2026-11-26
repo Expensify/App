@@ -13,6 +13,8 @@ import type {UseReportActionsListDataParams} from './types';
 
 import getReportActionsWithStreamedReply from './getReportActionsWithStreamedReply';
 
+const EMPTY_CANONICAL_INDEX = new Map<string, number>();
+
 /** Prepares the rendered report rows, including streamed Concierge drafts and collapsed system messages. */
 function useReportActionsListData({sortedVisibleReportActions, sessionStartTime, linkedReportActionID, unreadMarkerReportActionID}: UseReportActionsListDataParams) {
     const {report, sortedAllReportActions, parentReportAction, isConciergeHiddenHistory, showFullHistory} = useReportActionsListState();
@@ -51,7 +53,11 @@ function useReportActionsListData({sortedVisibleReportActions, sessionStartTime,
         unreadMarkerReportActionID,
     });
     const listData = shouldCollapseSystemMessages ? displayReportActions : renderedVisibleReportActions;
-    const canonicalIndexByReportActionID = new Map(renderedVisibleReportActions.map((action, index) => [action.reportActionID, index]));
+    // Rows only need this to map a collapsed list's row back to its canonical index. Without collapsing, the row index already is
+    // the canonical index, so a shared empty Map keeps a stable identity instead of a fresh one on every render.
+    const canonicalIndexByReportActionID = shouldCollapseSystemMessages
+        ? new Map(renderedVisibleReportActions.map((action, index) => [action.reportActionID, index]))
+        : EMPTY_CANONICAL_INDEX;
     const unreadMarkerListIndex = shouldCollapseSystemMessages
         ? unreadMarkerReportActionIndex
         : renderedVisibleReportActions.findIndex((action) => action.reportActionID === unreadMarkerReportActionID);
