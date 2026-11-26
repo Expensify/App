@@ -68,8 +68,10 @@ function InsightsDetailsPage({route}: InsightsDetailsPageProps) {
         selector: (snapshot) => (memberAccountID === undefined ? undefined : snapshot?.data?.personalDetailsList?.[memberAccountID]),
     });
     const member = chartMember ?? storedMember;
+    // A comparison draws the donut as bars, which are colored by a different ranking
+    const shownView = filters.compare && chartSpec?.view === CONST.SEARCH.VIEW.PIE ? CONST.SEARCH.VIEW.BAR : chartSpec?.view;
     const [itemColor = VictoryTheme.colors.default] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${chartQueryJSON?.hash}`, {
-        selector: (snapshot) => getInsightsItemColor(snapshot?.data, chartSpec?.groupBy, chartSpec?.view, chartSpec?.limit, itemKey),
+        selector: (snapshot) => getInsightsItemColor(snapshot?.data, chartSpec?.groupBy, shownView, chartSpec?.limit, itemKey),
     });
     // A period's title depends on the saved Group by, so nothing resolves until the saved filters load
     const item =
