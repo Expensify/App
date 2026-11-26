@@ -45,7 +45,7 @@ describe('DropdownChoiceAdapter', () => {
 
     beforeEach(async () => {
         jest.mocked(ValuePickerPopover).mockClear();
-        jest.spyOn(View.prototype, 'measureInWindow').mockImplementation((callback) => callback(16, 100, 300, 60));
+        jest.spyOn<ComponentRef<typeof View>, 'measureInWindow'>(View.prototype, 'measureInWindow').mockImplementation((callback) => callback(16, 100, 300, 60));
         await Onyx.clear();
         await waitForBatchedUpdates();
     });

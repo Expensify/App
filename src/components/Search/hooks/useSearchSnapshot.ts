@@ -160,7 +160,7 @@ function useSearchSnapshot({queryJSON, searchResults, transactions, reportAction
     const {accountID, email} = useCurrentUserPersonalDetails();
     const {convertToDisplayString} = useCurrencyListActions();
     const {currentSearchKey} = useSearchQueryContext();
-    const {shouldUseLiveData} = useSearchResultsContext();
+    const {shouldUseLiveData, approvalWorkflowRules: rules} = useSearchResultsContext();
     const isActionLoadingSet = useActionLoadingReportIDs();
     const reportAttributesDerivedValue = useReportAttributes();
     const {policyForMovingExpensesID, policyForMovingExpenses} = usePolicyForMovingExpenses();
@@ -177,7 +177,6 @@ function useSearchSnapshot({queryJSON, searchResults, transactions, reportAction
     const [policyCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES);
     const [policyTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS);
     const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
-    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
 
     // Inject an optimistically-created transaction the server has not indexed yet so its row mounts
     // immediately.

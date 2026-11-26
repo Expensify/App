@@ -1,4 +1,4 @@
-import {isArchivedPolicy, isPolicyAdmin} from '@libs/PolicyUtils';
+import {isPolicyAdmin, shouldCheckPolicyForErrors} from '@libs/PolicyUtils';
 
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy} from '@src/types/onyx';
@@ -10,10 +10,7 @@ function usePoliciesWithCardFeedErrors() {
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [session] = useOnyx(ONYXKEYS.SESSION);
 
-    // If a policy was just deleted from Onyx, then Onyx will pass a null value to the props, and
-    // those should be cleaned out before doing any error checking. Archived policies are skipped too,
-    // because they are read-only and their errors can't be resolved
-    const cleanPolicies = Object.values(policies ?? {}).filter((policy) => policy?.id && !isArchivedPolicy(policy));
+    const cleanPolicies = Object.values(policies ?? {}).filter(shouldCheckPolicyForErrors);
 
     const {shouldShowRbrForWorkspaceAccountID} = useCardFeedErrors();
     const policiesWithCardFeedErrors: Policy[] = [];
