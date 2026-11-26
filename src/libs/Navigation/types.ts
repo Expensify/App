@@ -1643,9 +1643,11 @@ type MissingPersonalDetailsParamList = {
         cardID: string;
         subPage?: string;
         action?: 'edit';
+        walletEnrollmentID?: string;
     };
     [SCREENS.DYNAMIC_MISSING_PERSONAL_DETAILS_CONFIRM_VALIDATE_CODE]: {
         cardID: string;
+        walletEnrollmentID?: string;
     };
 };
 

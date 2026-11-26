@@ -382,6 +382,7 @@ const DYNAMIC_ROUTES = {
     },
     MISSING_PERSONAL_DETAILS: {
         path: 'missing-personal-details/:cardID/:subPage?/:action?',
+        queryParams: ['walletEnrollmentID'],
         entryScreens: [
             SCREENS.REPORT,
             SCREENS.RIGHT_MODAL.SEARCH_REPORT,
@@ -392,15 +393,17 @@ const DYNAMIC_ROUTES = {
             SCREENS.SETTINGS.WALLET.DYNAMIC_DOMAIN_CARD,
             SCREENS.DOMAIN_CARD.DOMAIN_CARD_DETAIL,
         ],
-        getRoute: (cardID: string, subPage?: string, action?: 'edit') => {
+        getRoute: (cardID: string, subPage?: string, action?: 'edit', walletEnrollmentID?: string) => {
+            const query = walletEnrollmentID ? `?walletEnrollmentID=${encodeURIComponent(walletEnrollmentID)}` : '';
             if (!subPage) {
-                return `missing-personal-details/${cardID}` as const;
+                return `missing-personal-details/${cardID}${query}` as const;
             }
-            return `missing-personal-details/${cardID}/${subPage}${action ? `/${action}` : ''}` as const;
+            return `missing-personal-details/${cardID}/${subPage}${action ? `/${action}` : ''}${query}` as const;
         },
     },
     MISSING_PERSONAL_DETAILS_CONFIRM_VALIDATE_CODE: {
         path: 'missing-personal-details/:cardID/confirm-validate-code',
+        queryParams: ['walletEnrollmentID'],
         entryScreens: [
             SCREENS.REPORT,
             SCREENS.RIGHT_MODAL.SEARCH_REPORT,
@@ -411,7 +414,8 @@ const DYNAMIC_ROUTES = {
             SCREENS.SETTINGS.WALLET.DYNAMIC_DOMAIN_CARD,
             SCREENS.DOMAIN_CARD.DOMAIN_CARD_DETAIL,
         ],
-        getRoute: (cardID: string) => `missing-personal-details/${cardID}/confirm-validate-code` as const,
+        getRoute: (cardID: string, walletEnrollmentID?: string) =>
+            `missing-personal-details/${cardID}/confirm-validate-code${walletEnrollmentID ? `?walletEnrollmentID=${encodeURIComponent(walletEnrollmentID)}` : ''}` as const,
     },
     MONEY_REQUEST_STEP_DISTANCE: {
         path: 'expense-distance',

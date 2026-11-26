@@ -53,6 +53,9 @@ type MissingPersonalDetailsContentProps = {
 
     /** Base path of the entry screen, used to build dynamic routes that keep the correct screen underneath the RHP */
     basePath: string;
+
+    /** Keeps wallet setup separate from card reveal and shipping. */
+    walletEnrollmentID?: string;
 };
 
 const baseFormPages = [
@@ -65,7 +68,7 @@ const baseFormPages = [
 const PINPage = {pageName: CONST.MISSING_PERSONAL_DETAILS.PAGE_NAME.PIN, component: PINStep};
 const confirmPage = {pageName: CONST.MISSING_PERSONAL_DETAILS.PAGE_NAME.CONFIRM, component: Confirmation};
 
-function MissingPersonalDetailsContent({privatePersonalDetails, draftValues, headerTitle, onComplete, cardID, basePath}: MissingPersonalDetailsContentProps) {
+function MissingPersonalDetailsContent({privatePersonalDetails, draftValues, headerTitle, onComplete, cardID, basePath, walletEnrollmentID}: MissingPersonalDetailsContentProps) {
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
     const {executeScenario} = useMultifactorAuthentication();
@@ -73,7 +76,7 @@ function MissingPersonalDetailsContent({privatePersonalDetails, draftValues, hea
     const targetCardSelector = (cardList: OnyxEntry<CardList>) => (cardID ? cardList?.[cardID] : undefined);
     const [targetCard] = useOnyx(ONYXKEYS.CARD_LIST, {selector: targetCardSelector});
     const isVirtualCard = !!targetCard?.nameValuePairs?.isVirtual;
-    const shouldCollectPIN = !!cardID && isUkEuExpensifyCard(targetCard) && !isVirtualCard;
+    const shouldCollectPIN = !walletEnrollmentID && !!cardID && isUkEuExpensifyCard(targetCard) && !isVirtualCard;
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE);
     const {PIN, isConfirmStep} = usePINState();
     const {setIsConfirmStep} = usePINActions();
@@ -89,6 +92,10 @@ function MissingPersonalDetailsContent({privatePersonalDetails, draftValues, hea
     const startFrom = findPageIndex<CustomSubPageProps>(formPages, initialPage);
 
     const handleFinishStep = () => {
+        if (walletEnrollmentID) {
+            onComplete();
+            return;
+        }
         if (shouldCollectPIN) {
             if (isOffline || !cardID) {
                 return;
@@ -126,7 +133,7 @@ function MissingPersonalDetailsContent({privatePersonalDetails, draftValues, hea
         pages: formPages,
         startFrom,
         onFinished: handleFinishStep,
-        buildRoute: (pageName, action) => createDynamicRoute(DYNAMIC_ROUTES.MISSING_PERSONAL_DETAILS.getRoute(cardID, pageName, action), basePath),
+        buildRoute: (pageName, action) => createDynamicRoute(DYNAMIC_ROUTES.MISSING_PERSONAL_DETAILS.getRoute(cardID, pageName, action, walletEnrollmentID), basePath),
         shouldReplaceRoute: true,
     });
 
@@ -142,9 +149,12 @@ function MissingPersonalDetailsContent({privatePersonalDetails, draftValues, hea
         }
 
         if (isEditing) {
-            Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.MISSING_PERSONAL_DETAILS.getRoute(cardID, CONST.MISSING_PERSONAL_DETAILS.PAGE_NAME.CONFIRM), basePath), {
-                forceReplace: true,
-            });
+            Navigation.navigate(
+                createDynamicRoute(DYNAMIC_ROUTES.MISSING_PERSONAL_DETAILS.getRoute(cardID, CONST.MISSING_PERSONAL_DETAILS.PAGE_NAME.CONFIRM, undefined, walletEnrollmentID), basePath),
+                {
+                    forceReplace: true,
+                },
+            );
             return;
         }
 
@@ -164,7 +174,7 @@ function MissingPersonalDetailsContent({privatePersonalDetails, draftValues, hea
             testID="MissingPersonalDetailsContent"
         >
             <HeaderWithBackButton
-                title={headerTitle ?? translate(isVirtualCard ? 'workspace.expensifyCard.addPersonalDetails' : 'workspace.expensifyCard.addShippingDetails')}
+                title={headerTitle ?? translate(isVirtualCard || walletEnrollmentID ? 'workspace.expensifyCard.addPersonalDetails' : 'workspace.expensifyCard.addShippingDetails')}
                 onBackButtonPress={handleBackButtonPress}
             />
             <View style={[styles.ph5, styles.mb3, styles.mt3, {height: CONST.NETSUITE_FORM_STEPS_HEADER_HEIGHT}]}>

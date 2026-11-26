@@ -34,6 +34,7 @@ import type {PersonalDetails} from '@src/types/onyx';
 import type {ExpensifyCardDetails} from '@src/types/onyx/Card';
 import type {CurrentUserPersonalDetails, SelectedTimezone, Timezone} from '@src/types/onyx/PersonalDetails';
 import type {Address} from '@src/types/onyx/PrivatePersonalDetails';
+import type {OnyxData} from '@src/types/onyx/Request';
 
 import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 
@@ -524,9 +525,13 @@ function clearPersonalDetailsErrors() {
     });
 }
 
-function updatePrivatePersonalDetails(values: FormOnyxValues<typeof ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM>, validateCode: string, countryCode: number) {
+function buildUpdatePrivatePersonalDetailsParams(
+    values: FormOnyxValues<typeof ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM>,
+    validateCode: string,
+    countryCode: number,
+): UpdatePrivatePersonalDetailsParams {
     const stateValue = (values.state ?? '').trim();
-    const parameters: UpdatePrivatePersonalDetailsParams = {
+    return {
         legalFirstName: values.legalFirstName?.trim() ?? '',
         legalLastName: values.legalLastName?.trim() ?? '',
         phoneNumber: LoginUtils.formatE164PhoneNumber(values.phoneNumber?.trim() ?? '', countryCode) ?? '',
@@ -540,8 +545,10 @@ function updatePrivatePersonalDetails(values: FormOnyxValues<typeof ONYXKEYS.FOR
         dob: values.dob ?? '',
         validateCode,
     };
+}
 
-    API.write(WRITE_COMMANDS.UPDATE_PRIVATE_PERSONAL_DETAILS, parameters, {
+function getUpdatePrivatePersonalDetailsOnyxData(): OnyxData<typeof ONYXKEYS.PRIVATE_PERSONAL_DETAILS> {
+    return {
         optimisticData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
@@ -573,7 +580,25 @@ function updatePrivatePersonalDetails(values: FormOnyxValues<typeof ONYXKEYS.FOR
                 },
             },
         ],
-    });
+    };
+}
+
+function updatePrivatePersonalDetails(values: FormOnyxValues<typeof ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM>, validateCode: string, countryCode: number) {
+    API.write(WRITE_COMMANDS.UPDATE_PRIVATE_PERSONAL_DETAILS, buildUpdatePrivatePersonalDetailsParams(values, validateCode, countryCode), getUpdatePrivatePersonalDetailsOnyxData());
+}
+
+/** Wallet enrollment needs the response to this save, not shared profile state or queued success data. */
+async function updatePrivatePersonalDetailsForWallet(values: FormOnyxValues<typeof ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM>, validateCode: string, countryCode: number): Promise<void> {
+    // The queue also applies success data for AlreadyCreated; only an explicit successful response may start enrollment.
+    // eslint-disable-next-line rulesdir/no-api-side-effects-method
+    const response = await API.makeRequestWithSideEffects(
+        SIDE_EFFECT_REQUEST_COMMANDS.UPDATE_PRIVATE_PERSONAL_DETAILS,
+        buildUpdatePrivatePersonalDetailsParams(values, validateCode, countryCode),
+        getUpdatePrivatePersonalDetailsOnyxData(),
+    );
+    if (response?.jsonCode !== CONST.JSON_CODE.SUCCESS) {
+        throw new Error('Failed to save personal details for wallet enrollment');
+    }
 }
 
 function setPersonalDetailsAndRevealExpensifyCard(
@@ -683,6 +708,7 @@ export {
     updatePronouns,
     updateSelectedTimezone,
     updatePrivatePersonalDetails,
+    updatePrivatePersonalDetailsForWallet,
     updatePersonalDetailsAndShipExpensifyCards,
     setPersonalDetailsAndRevealExpensifyCard,
     clearPersonalDetailsErrors,

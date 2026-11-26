@@ -7,7 +7,9 @@ import {useMultifactorAuthentication} from '@components/MultifactorAuthenticatio
 
 import {getPaymentMethods} from '@libs/actions/PaymentMethods';
 import Navigation from '@libs/Navigation/Navigation';
+import {areAddressAndPersonalDetailsMissing} from '@libs/PersonalDetailsUtils';
 import {handleAddCardToWallet} from '@libs/Wallet/index';
+import {beginWalletEnrollment, cancelWalletEnrollment} from '@libs/WalletEnrollment';
 
 import CONST from '@src/CONST';
 import type {Card} from '@src/types/onyx';
@@ -41,6 +43,10 @@ jest.mock('@components/MultifactorAuthentication/Context/MultifactorAuthenticati
 jest.mock('@libs/Wallet/index', () => ({handleAddCardToWallet: jest.fn()}));
 jest.mock('@libs/actions/PaymentMethods', () => ({getPaymentMethods: jest.fn()}));
 jest.mock('@libs/Navigation/Navigation', () => ({__esModule: true, default: {navigate: jest.fn()}}));
+jest.mock('@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute', () => ({__esModule: true, default: (route: string) => route}));
+jest.mock('@libs/PersonalDetailsUtils', () => ({areAddressAndPersonalDetailsMissing: jest.fn(() => false)}));
+jest.mock('@libs/WalletEnrollment', () => ({beginWalletEnrollment: jest.fn(() => 'attempt'), cancelWalletEnrollment: jest.fn()}));
+jest.mock('@hooks/useOnyx', () => ({__esModule: true, default: (_key: string, options: {selector: (value: undefined) => boolean}) => [options.selector(undefined)]}));
 jest.mock('@libs/getPlatform', () => ({__esModule: true, default: () => 'ios'}));
 jest.mock('@hooks/useThemeStyles', () => ({__esModule: true, default: () => ({addToWalletButtonStyles: {}})}));
 
@@ -51,8 +57,39 @@ const available = {isInWallet: false, isLoading: false, isCardAvailable: true, i
 describe('Native AddToWalletButton', () => {
     beforeEach(() => {
         jest.clearAllMocks();
+        jest.mocked(areAddressAndPersonalDetailsMissing).mockReturnValue(false);
         jest.mocked(useIsCardInWallet).mockReturnValue(available);
         jest.mocked(useMultifactorAuthentication).mockReturnValue(createMock<ReturnType<typeof useMultifactorAuthentication>>({executeScenario: mockExecuteScenario}));
+    });
+
+    it.each([true, false])('collects missing details before enrolling a UK/EU card (virtual: %s)', (isVirtual) => {
+        // Given either kind of UK/EU card and an incomplete private profile.
+        jest.mocked(areAddressAndPersonalDetailsMissing).mockReturnValue(true);
+        const targetCard = {...card, nameValuePairs: {...card.nameValuePairs, isVirtual}};
+        const {unmount} = render(
+            <AddToWalletButton
+                card={targetCard}
+                cardHolderName="Jane"
+                cardDescription="Card"
+            />,
+        );
+
+        // When the user starts wallet setup.
+        fireEvent.press(screen.getByText('Add to wallet'));
+
+        // Then collection is bound to this card, and authentication waits for its completion.
+        expect(beginWalletEnrollment).toHaveBeenCalledWith('123', expect.any(Function));
+        expect(Navigation.navigate).toHaveBeenCalledWith('missing-personal-details/123?walletEnrollmentID=attempt');
+        expect(mockExecuteScenario).not.toHaveBeenCalled();
+        expect(handleAddCardToWallet).not.toHaveBeenCalled();
+        jest.mocked(beginWalletEnrollment).mock.calls.at(-1)?.[1]();
+        expect(mockExecuteScenario).toHaveBeenCalledWith(CONST.MULTIFACTOR_AUTHENTICATION.SCENARIO.ADD_TO_DIGITAL_WALLET, {
+            card: targetCard,
+            cardHolderName: 'Jane',
+            cardDescription: 'Card',
+        });
+        unmount();
+        expect(cancelWalletEnrollment).toHaveBeenCalledWith('attempt');
     });
 
     it('starts MFA for the actual UK/EU program card without latching a button spinner', () => {

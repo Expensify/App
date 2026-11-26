@@ -5,16 +5,25 @@ import useOnyx from '@hooks/useOnyx';
 
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import type {MissingPersonalDetailsParamList} from '@libs/Navigation/types';
 
 import ONYXKEYS from '@src/ONYXKEYS';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
+import type SCREENS from '@src/SCREENS';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 import React from 'react';
 
 import MissingPersonalDetailsContent from './MissingPersonalDetailsContent';
 
-function MissingPersonalDetails({route: {params: {cardID = ''} = {}}}) {
+type MissingPersonalDetailsProps = PlatformStackScreenProps<MissingPersonalDetailsParamList, typeof SCREENS.DYNAMIC_MISSING_PERSONAL_DETAILS>;
+
+function MissingPersonalDetails({
+    route: {
+        params: {cardID = '', walletEnrollmentID},
+    },
+}: MissingPersonalDetailsProps) {
     const [privatePersonalDetails, privatePersonalDetailsMetadata] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS);
     const [draftValues, draftValuesMetadata] = useOnyx(ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM_DRAFT);
 
@@ -25,7 +34,7 @@ function MissingPersonalDetails({route: {params: {cardID = ''} = {}}}) {
     const isLoading = isLoadingOnyxValue(privatePersonalDetailsMetadata, draftValuesMetadata);
 
     const handleComplete = () => {
-        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.MISSING_PERSONAL_DETAILS_CONFIRM_VALIDATE_CODE.getRoute(cardID), basePath), {forceReplace: true});
+        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.MISSING_PERSONAL_DETAILS_CONFIRM_VALIDATE_CODE.getRoute(cardID, walletEnrollmentID), basePath), {forceReplace: true});
     };
 
     if (isLoading) {
@@ -39,6 +48,7 @@ function MissingPersonalDetails({route: {params: {cardID = ''} = {}}}) {
             onComplete={handleComplete}
             cardID={cardID}
             basePath={basePath}
+            walletEnrollmentID={walletEnrollmentID}
         />
     );
 }
