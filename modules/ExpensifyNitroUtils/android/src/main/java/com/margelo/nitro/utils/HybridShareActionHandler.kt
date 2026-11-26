@@ -18,21 +18,25 @@ class HybridShareActionHandler : HybridShareActionHandlerSpec() {
     override fun processFiles(): Promise<Array<SharedFile>> = Promise.parallel {
         val context = NitroModules.applicationContext ?: throw IllegalStateException("The React context is not available")
         val serializedShare = context.getSharedPreferences(PREFERENCES_FILE, Context.MODE_PRIVATE).getString(SHARE_OBJECT_PROPERTY, null)
-        if (serializedShare == null) emptyArray() else arrayOf(createSharedFile(JSONObject(serializedShare)))
+        if (serializedShare == null) emptyArray() else arrayOf(createSharedFile(JSONObject(serializedShare), File(context.filesDir, SHARE_DIRECTORY_NAME)))
     }
 
-    private fun createSharedFile(share: JSONObject): SharedFile {
+    private fun createSharedFile(share: JSONObject, shareDirectory: File): SharedFile {
         val content = share.getString(CONTENT_KEY)
         val processedAt = System.currentTimeMillis().toString()
-        val file = File(content)
-
-        // A share saved by an app version without isText marks text only by its content not being a file.
-        val isText = if (share.has(IS_TEXT_KEY)) share.getBoolean(IS_TEXT_KEY) else !file.exists()
-        if (isText) {
+        val hasTypeMarker = share.has(IS_TEXT_KEY)
+        if (hasTypeMarker && share.getBoolean(IS_TEXT_KEY)) {
             return SharedFile(TEXT_ID, content, TEXT_MIME_TYPE, processedAt, DEFAULT_ASPECT_RATIO)
         }
-        if (!file.isFile || !file.canRead()) {
-            throw IOException("The shared file is missing or unreadable")
+
+        // Shared text can be any path another app chooses, so only files inside the share folder are ever read.
+        val file = SharedFileGuard.resolveInside(shareDirectory, content)
+        if (file == null) {
+            // A writer without isText cannot tell text from a file, so anything outside the share folder is returned as text.
+            if (!hasTypeMarker) {
+                return SharedFile(TEXT_ID, content, TEXT_MIME_TYPE, processedAt, DEFAULT_ASPECT_RATIO)
+            }
+            throw IOException("The shared file is missing, unreadable or outside the share folder")
         }
 
         val mimeType = share.optString(MIME_TYPE_KEY)
@@ -74,12 +78,13 @@ class HybridShareActionHandler : HybridShareActionHandlerSpec() {
     companion object {
         private const val TAG = "HybridShareActionHandler"
 
-        // The intent handlers in both host apps save the share under these names, see IntentHandlerConstants and ShareFileObject.
+        // The intent handlers in both host apps save the share under these names, see IntentHandlerConstants, ShareFileObject and the share folder in FileUtils / InternalStorageUtils.
         private const val PREFERENCES_FILE = "shareActionHandler"
         private const val SHARE_OBJECT_PROPERTY = "shareObject"
         private const val CONTENT_KEY = "content"
         private const val MIME_TYPE_KEY = "mimeType"
         private const val IS_TEXT_KEY = "isText"
+        private const val SHARE_DIRECTORY_NAME = "Expensify"
 
         private const val TEXT_ID = "text"
         private const val TEXT_MIME_TYPE = "txt"

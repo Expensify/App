@@ -1,18 +1,22 @@
 import {act, renderHook} from '@testing-library/react-native';
 
+import OnyxListItemProvider from '@components/OnyxListItemProvider';
+
 import usePolicyIndicatorChecks from '@hooks/usePolicyIndicatorChecks';
 
+import {toIndexMap} from '@libs/RuleUtils';
 import * as WorkflowUtils from '@libs/WorkflowUtils';
 
 import CONST from '@src/CONST';
 import initOnyxDerivedValues from '@src/libs/actions/OnyxDerived';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Domain, Policy} from '@src/types/onyx';
+import type {Domain, Policy, Rule} from '@src/types/onyx';
 import type {CustomUnit} from '@src/types/onyx/Policy';
 import {toCollectionDataSet} from '@src/types/utils/CollectionDataSet';
 
 import type {OnyxInputValue, OnyxMultiSetInput} from 'react-native-onyx';
 
+import React from 'react';
 import Onyx from 'react-native-onyx';
 
 import createMock from '../utils/createMock';
@@ -58,6 +62,34 @@ function createNonMemberApproverPolicy(policyID: string) {
     });
 }
 
+/** A submit rule and its matching approve rule, the pair the multiple-approvers builder writes for a `submitter -> approver` workflow. */
+function createApprovalWorkflowRuleDataSet(policyID: string, submitter: string, approver: string): Record<`${typeof ONYXKEYS.COLLECTION.RULE}${string}`, Rule> {
+    return {
+        [`${ONYXKEYS.COLLECTION.RULE}${policyID}_submit`]: {
+            scope: CONST.RULES.SCOPE.POLICY,
+            scopeID: policyID,
+            triggers: toIndexMap([CONST.RULES.TRIGGERS.REPORT_SUBMIT]),
+            filters: {operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, left: CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM, right: [submitter]},
+            actions: toIndexMap([{name: CONST.RULES.ACTIONS.FORWARD_TO, approver}]),
+        },
+        [`${ONYXKEYS.COLLECTION.RULE}${policyID}_approve`]: {
+            scope: CONST.RULES.SCOPE.POLICY,
+            scopeID: policyID,
+            triggers: toIndexMap([CONST.RULES.TRIGGERS.REPORT_APPROVE]),
+            filters: {
+                operator: CONST.SEARCH.SYNTAX_OPERATORS.AND,
+                left: {operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, left: CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM, right: [submitter]},
+                right: {operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, left: CONST.SEARCH.SYNTAX_FILTER_KEYS.TO, right: approver},
+            },
+            actions: toIndexMap([{name: CONST.RULES.ACTIONS.APPROVE_REPORT}]),
+        },
+    };
+}
+
+function BetasWrapper({children}: {children: React.ReactNode}) {
+    return React.createElement(OnyxListItemProvider, null, children);
+}
+
 describe('usePolicyIndicatorChecks', () => {
     beforeAll(() => {
         Onyx.init({
@@ -67,6 +99,13 @@ describe('usePolicyIndicatorChecks', () => {
     });
 
     describe('policy error statuses', () => {
+        let checkSpy: jest.SpyInstance | undefined;
+
+        afterEach(() => {
+            checkSpy?.mockRestore();
+            checkSpy = undefined;
+        });
+
         it.each([false, true])('returns the fuel VAT warning status unless dismissed: %s', async (isDismissed) => {
             // Given an admin workspace with an invalid fuel-band tax mapping
             const policy = createUKFuelRateTaxPolicy();
@@ -390,9 +429,10 @@ describe('usePolicyIndicatorChecks', () => {
                 } satisfies OnyxMultiSetInput);
                 await waitForBatchedUpdatesWithAct();
             });
-            const checkSpy = jest.spyOn(WorkflowUtils, 'hasApprovalWorkflowWithNonMemberApprover');
+            checkSpy = jest.spyOn(WorkflowUtils, 'hasApprovalWorkflowWithNonMemberApprover');
             const {rerender} = renderHook(() => usePolicyIndicatorChecks());
             await waitForBatchedUpdatesWithAct();
+            expect(checkSpy).toHaveBeenCalled();
             checkSpy.mockClear();
 
             // When the hook re-renders, like the Workspaces tab button does on every tab switch
@@ -401,7 +441,38 @@ describe('usePolicyIndicatorChecks', () => {
 
             // Then the heavy check doesn't run again, since none of its inputs changed
             expect(checkSpy).not.toHaveBeenCalled();
-            checkSpy.mockRestore();
+        });
+
+        it('flags the workspace whose own approval rules route to a removed approver when the multiple-approvers beta is on', async () => {
+            // Given two workspaces whose member lists route only to members, so only the rules can flag them,
+            // and only the second workspace's rules forward to someone who isn't a member
+            const createRulesOnlyPolicy = (policyID: string) =>
+                createMock<Policy>({
+                    ...createNonMemberApproverPolicy(policyID),
+                    employeeList: {
+                        [userID]: {email: userID, role: CONST.POLICY.ROLE.ADMIN, submitsTo: userID},
+                        [otherUserID]: {email: otherUserID, role: CONST.POLICY.ROLE.USER, submitsTo: userID},
+                    },
+                });
+            await act(async () => {
+                await Onyx.clear();
+                await Onyx.multiSet({
+                    [ONYXKEYS.SESSION]: {email: userID},
+                    [ONYXKEYS.BETAS]: [CONST.BETAS.MULTIPLE_APPROVERS],
+                    ...toCollectionDataSet(ONYXKEYS.COLLECTION.POLICY, [createRulesOnlyPolicy('1'), createRulesOnlyPolicy('2')], (item) => item.id),
+                    ...createApprovalWorkflowRuleDataSet('1', otherUserID, userID),
+                    ...createApprovalWorkflowRuleDataSet('2', otherUserID, 'removed@example.com'),
+                } satisfies OnyxMultiSetInput);
+                await waitForBatchedUpdatesWithAct();
+            });
+
+            // When the indicator checks run with the beta on
+            const {result} = renderHook(() => usePolicyIndicatorChecks(), {wrapper: BetasWrapper});
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the dot points at the second workspace, because each workspace is checked against its own rules only
+            expect(result.current.policyErrorStatus).toBe(CONST.INDICATOR_STATUS.HAS_APPROVAL_WORKFLOW_NON_MEMBER_APPROVER);
+            expect(result.current.indicatorPolicyID).toBe('2');
         });
     });
 

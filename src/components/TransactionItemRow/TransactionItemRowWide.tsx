@@ -183,6 +183,7 @@ function TransactionItemRowWide({
     const session = useSession();
     const isOwnExpense = isExpenseUnreported(transactionItem) || isCurrentUserSubmitter(transactionItem.report ?? report, session?.accountID);
     const categoryOwnerAccountID = isOwnExpense ? session?.accountID : undefined;
+    const categorySubmitterAccountID = isOwnExpense ? undefined : (transactionItem.report ?? report)?.ownerAccountID;
     const submitterUserID = reportForCustomColumns?.submitterUserID;
     const submitterPayrollID = reportForCustomColumns?.submitterPayrollID;
     const orderDealNumbers = reportForCustomColumns?.orderDealNumbers;
@@ -371,6 +372,7 @@ function TransactionItemRowWide({
                             onSave={onEditCategory}
                             policyID={effectivePolicyID}
                             ownerAccountID={categoryOwnerAccountID}
+                            submitterAccountID={categorySubmitterAccountID}
                         />
                     </View>
                 );
@@ -388,6 +390,7 @@ function TransactionItemRowWide({
                             policyID={effectivePolicyID}
                             policyCategories={policyCategories}
                             ownerAccountID={categoryOwnerAccountID}
+                            submitterAccountID={categorySubmitterAccountID}
                         />
                     </View>
                 );
@@ -602,6 +605,15 @@ function TransactionItemRowWide({
                         style={[getSearchColumnStyles(CONST.SEARCH.TABLE_COLUMNS.BASE_62_REPORT_ID)]}
                     >
                         <TextCell text={transactionItem.reportID === CONST.REPORT.UNREPORTED_REPORT_ID ? '' : getBase62ReportID(Number(transactionItem.reportID))} />
+                    </View>
+                );
+            case CONST.SEARCH.TABLE_COLUMNS.TRANSACTION_ID:
+                return (
+                    <View
+                        key={column}
+                        style={[getSearchColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TRANSACTION_ID)]}
+                    >
+                        <TextCell text={transactionItem.transactionID} />
                     </View>
                 );
             case CONST.SEARCH.TABLE_COLUMNS.TAX_RATE:
