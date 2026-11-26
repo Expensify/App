@@ -43,9 +43,9 @@ import type IconAsset from '@src/types/utils/IconAsset';
 import React, {useEffect} from 'react';
 import {View} from 'react-native';
 
-import {AccountingContextProvider, useAccountingActions} from './AccountingContext';
+import {AccountingContextProvider, useAccountingActions, useAccountingState} from './AccountingContext';
 import {canConnectToIntuitEnterpriseSuiteSandbox} from './qbo/utils';
-import {getActiveIntegrationToConnect, getAvailableAccountingIntegrations, getConnectedAndSyncingIntegrations, isIntuitEnterpriseSuiteConnection} from './utils';
+import {getActiveIntegrationToConnect, getAvailableAccountingIntegrations, getConnectedAndSyncingIntegrations, isIntuitEnterpriseSuiteConnectionOrSync} from './utils';
 
 type IntegrationConfig = {
     title: string;
@@ -70,17 +70,20 @@ function ConnectAccountingIntegrationPage({route, policy}: ConnectAccountingInte
     const {translate} = useLocalize();
     const {environment} = useEnvironment();
     const {isBetaEnabled} = usePermissions();
+    const {activeIntegration} = useAccountingState();
     const {startIntegrationFlow} = useAccountingActions();
     const icons = useMemoizedLazyExpensifyIcons(['QBOSquare', 'IntuitSquare', 'XeroSquare', 'CertiniaSquare', 'Checkmark']);
     const [connectionSyncProgress] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${policyID}`);
 
     const accountingIntegrations = getAvailableAccountingIntegrations(policy, isBetaEnabled);
     const {connectedIntegration, syncingIntegration} = getConnectedAndSyncingIntegrations(policy, connectionSyncProgress, accountingIntegrations);
+    const isSyncInProgress = isConnectionInProgress(connectionSyncProgress, policy);
     // A failed first attempt leaves an unverified connection behind, which still needs connecting
-    const verifiedIntegration = getValidConnectedIntegration(policy, accountingIntegrations) ?? (isConnectionInProgress(connectionSyncProgress, policy) ? syncingIntegration : undefined);
+    const verifiedIntegration = getValidConnectedIntegration(policy, accountingIntegrations) ?? (isSyncInProgress ? syncingIntegration : undefined);
     // QBO and Intuit Enterprise Suite share a connection, so one isn't connected while the workspace uses the other
     const isThisIntegration = (integration: ConnectionName | undefined) =>
-        integration === connectionName && (connectionName !== CONST.POLICY.CONNECTIONS.NAME.QBO || isIntuitEnterpriseSuiteConnection(policy) === isIntuitEnterpriseSuite);
+        integration === connectionName &&
+        (connectionName !== CONST.POLICY.CONNECTIONS.NAME.QBO || isIntuitEnterpriseSuiteConnectionOrSync(policy, isSyncInProgress, activeIntegration) === isIntuitEnterpriseSuite);
     const isConnectedToIntegration = isThisIntegration(verifiedIntegration);
 
     const integrationConfig: Record<ConnectPageConnectionName, IntegrationConfig> = {

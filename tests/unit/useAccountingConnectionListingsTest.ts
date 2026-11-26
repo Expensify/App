@@ -44,7 +44,7 @@ jest.mock('@pages/workspace/accounting/utils', () => ({
     getAvailableAccountingIntegrations: jest.requireActual<typeof AccountingUtils>('@pages/workspace/accounting/utils').getAvailableAccountingIntegrations,
     getConnectedAndSyncingIntegrations: jest.requireActual<typeof AccountingUtils>('@pages/workspace/accounting/utils').getConnectedAndSyncingIntegrations,
     getSynchronizationErrorMessage: () => undefined,
-    isIntuitEnterpriseSuiteConnection: () => false,
+    isIntuitEnterpriseSuiteConnectionOrSync: jest.requireActual<typeof AccountingUtils>('@pages/workspace/accounting/utils').isIntuitEnterpriseSuiteConnectionOrSync,
 }));
 
 const policy: Policy = {...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE), id: 'policy-1'};

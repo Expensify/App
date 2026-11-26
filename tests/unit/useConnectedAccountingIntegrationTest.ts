@@ -81,7 +81,7 @@ jest.mock('@pages/workspace/accounting/utils', () => ({
     getAccountingIntegrationData: () => undefined,
     getAccountingIntegrationDisplayName: () => '',
     getSynchronizationErrorMessage: () => mockSynchronizationError,
-    isIntuitEnterpriseSuiteConnection: () => false,
+    isIntuitEnterpriseSuiteConnectionOrSync: () => false,
 }));
 
 const policy: Policy = {...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE), id: 'policy-1'};

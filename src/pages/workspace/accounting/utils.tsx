@@ -956,6 +956,14 @@ function getActiveIntegrationToConnect(activeIntegration: ActiveIntegration, con
     return {...activeIntegration, integrationToDisconnect: connectedIntegration, shouldDisconnectIntegrationBeforeConnecting: true};
 }
 
+/** The saved QBO connection gets the Intuit Enterprise Suite scope some time after the first sync starts, so a sync started for Intuit Enterprise Suite counts too */
+function isIntuitEnterpriseSuiteConnectionOrSync(policy: OnyxEntry<Policy>, isSyncInProgress: boolean, activeIntegration: ActiveIntegration | undefined): boolean {
+    if (isIntuitEnterpriseSuiteConnection(policy)) {
+        return true;
+    }
+    return isSyncInProgress && activeIntegration?.name === CONST.POLICY.CONNECTIONS.NAME.QBO && activeIntegration.isIntuitEnterpriseSuite === true;
+}
+
 export {
     getActiveIntegrationToConnect,
     getAvailableAccountingIntegrations,
@@ -967,4 +975,5 @@ export {
     getQBDReimbursableAccounts,
     getQuickbooksOnlineIntegrationName,
     isIntuitEnterpriseSuiteConnection,
+    isIntuitEnterpriseSuiteConnectionOrSync,
 };

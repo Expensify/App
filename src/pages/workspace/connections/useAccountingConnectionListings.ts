@@ -20,7 +20,7 @@ import {
     getAvailableAccountingIntegrations,
     getConnectedAndSyncingIntegrations,
     getSynchronizationErrorMessage,
-    isIntuitEnterpriseSuiteConnection,
+    isIntuitEnterpriseSuiteConnectionOrSync,
 } from '@pages/workspace/accounting/utils';
 
 import CONST from '@src/CONST';
@@ -81,9 +81,8 @@ function useAccountingConnectionListings(policy: OnyxEntry<Policy>): ConnectionL
     const {connectedIntegration, syncingIntegration} = getConnectedAndSyncingIntegrations(policy, connectionSyncProgress, accountingIntegrations);
     const accountingSyncProgress = syncingIntegration ? connectionSyncProgress : undefined;
     const isSyncInProgress = !!accountingSyncProgress && isConnectionInProgress(accountingSyncProgress, policy);
-    const isIntuitEnterpriseSuiteSyncInProgress = isSyncInProgress && activeIntegration?.name === CONST.POLICY.CONNECTIONS.NAME.QBO && activeIntegration.isIntuitEnterpriseSuite === true;
     const isConnectedToIntuitEnterpriseSuite =
-        connectedIntegration === CONST.POLICY.CONNECTIONS.NAME.QBO && (isIntuitEnterpriseSuiteConnection(policy) || isIntuitEnterpriseSuiteSyncInProgress);
+        connectedIntegration === CONST.POLICY.CONNECTIONS.NAME.QBO && isIntuitEnterpriseSuiteConnectionOrSync(policy, isSyncInProgress, activeIntegration);
 
     const connect = (name: ConnectionName, isIntuitEnterpriseSuite?: boolean) => {
         if (!canWrite) {

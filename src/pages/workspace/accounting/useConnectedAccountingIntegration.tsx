@@ -58,7 +58,7 @@ import type {MenuItemData} from './types';
 import {useAccountingActions, useAccountingState} from './AccountingContext';
 import {getCertiniaSelectedCompanyID, isCertiniaFFAConnection} from './certinia/utils';
 import {getNetSuiteOAuthMigrationSeverity, hasNetSuiteOAuthConnection, shouldShowNetSuiteOAuthMigrationOption} from './netsuite/utils';
-import {getAccountingIntegrationData, getAccountingIntegrationDisplayName, getSynchronizationErrorMessage, isIntuitEnterpriseSuiteConnection} from './utils';
+import {getAccountingIntegrationData, getAccountingIntegrationDisplayName, getSynchronizationErrorMessage, isIntuitEnterpriseSuiteConnectionOrSync} from './utils';
 
 type UseConnectedAccountingIntegrationOptions = {
     /** Runs once the user confirms disconnecting and takes over calling `disconnect`, so the panel can close before the connection is removed */
@@ -143,9 +143,8 @@ function useConnectedAccountingIntegration(policy: OnyxEntry<Policy>, {onDisconn
     });
     const syncingAccountingIntegration = accountingIntegrations.find((integration) => integration === connectionSyncProgress?.connectionName);
     const connectedIntegration = getConnectedIntegration(policy, accountingIntegrations) ?? syncingAccountingIntegration;
-    const isIntuitEnterpriseSuiteSyncInProgress = isSyncInProgress && activeIntegration?.name === CONST.POLICY.CONNECTIONS.NAME.QBO && activeIntegration.isIntuitEnterpriseSuite === true;
     const isConnectedToIntuitEnterpriseSuite =
-        connectedIntegration === CONST.POLICY.CONNECTIONS.NAME.QBO && (isIntuitEnterpriseSuiteConnection(policy) || isIntuitEnterpriseSuiteSyncInProgress);
+        connectedIntegration === CONST.POLICY.CONNECTIONS.NAME.QBO && isIntuitEnterpriseSuiteConnectionOrSync(policy, isSyncInProgress, activeIntegration);
     const connectedIntegrationDisplayName = connectedIntegration ? getAccountingIntegrationDisplayName(policy, connectedIntegration, translate) : undefined;
     const hasAccountingConnection = hasAccountingConnections(policy);
     const synchronizationError = connectedIntegration && getSynchronizationErrorMessage(policy, connectedIntegration, isSyncInProgress, translate, styles);
