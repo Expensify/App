@@ -10,7 +10,7 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 
 import React from 'react';
-import {StyleSheet, View} from 'react-native';
+import {AccessibilityInfo, StyleSheet, View} from 'react-native';
 import * as Reanimated from 'react-native-reanimated';
 
 jest.mock('@hooks/useResponsiveLayout');
@@ -167,5 +167,53 @@ describe('Native Growl placement', () => {
 
         // Then the same dismissal path completes without leaving the toast stuck onscreen
         expect(onDismissed).toHaveBeenCalledWith(9);
+    });
+});
+
+describe('Growl screen reader announcement', () => {
+    beforeEach(() => {
+        jest.useFakeTimers();
+        jest.spyOn(Reanimated, 'withSpring').mockImplementation((value) => value);
+    });
+
+    afterEach(() => {
+        jest.restoreAllMocks();
+        jest.useRealTimers();
+    });
+
+    it('announces each growl once, because it appears away from the screen reader focus and dismisses itself', () => {
+        // Given a screen reader is listening for announcements
+        const announceSpy = jest.spyOn(AccessibilityInfo, 'announceForAccessibility');
+        // The setup already mocks this method, so it keeps the calls the earlier growls in this file made.
+        announceSpy.mockClear();
+        const renderGrowl = (bodyText: string, nonce: number) => (
+            <GrowlNotificationContent
+                key={nonce}
+                bodyText={bodyText}
+                type={CONST.GROWL.SUCCESS}
+                duration={5000}
+                nonce={nonce}
+                onDismissed={jest.fn()}
+                action={{label: 'View', onPress: jest.fn()}}
+            />
+        );
+
+        // When the "Expense added" growl appears and then re-renders while it is still onscreen
+        const {rerender} = render(renderGrowl('Expense added', 1));
+        act(() => jest.advanceTimersByTime(CONST.ANIMATED_TRANSITION));
+        rerender(renderGrowl('Expense added', 1));
+        act(() => jest.advanceTimersByTime(CONST.ANIMATED_TRANSITION));
+
+        // Then its text is read once, not again on every re-render
+        expect(announceSpy).toHaveBeenCalledTimes(1);
+        expect(announceSpy).toHaveBeenCalledWith('Expense added');
+
+        // When the next growl replaces it
+        rerender(renderGrowl('Expense deleted', 2));
+        act(() => jest.advanceTimersByTime(CONST.ANIMATED_TRANSITION));
+
+        // Then the new message is read too
+        expect(announceSpy).toHaveBeenCalledTimes(2);
+        expect(announceSpy).toHaveBeenLastCalledWith('Expense deleted');
     });
 });
