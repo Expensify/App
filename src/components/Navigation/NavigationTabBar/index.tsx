@@ -60,7 +60,7 @@ function NavigationTabBar({selectedTab, shouldShowFloatingButtons = true}: Navig
 
     const navigateToSettings = useAccountTabNavigation(selectedTab === NAVIGATION_TABS.SETTINGS);
 
-    const {isCompact, onTabListLayout} = useIsNavigationTabBarCompact(WIDE_LAYOUT_ROW_COUNT);
+    const {isCompact, updateTabListHeight} = useIsNavigationTabBarCompact(WIDE_LAYOUT_ROW_COUNT);
     const compactItemStyle = isCompact ? StyleUtils.getHeight(variables.navigationTabBarCompactItemHeight) : undefined;
 
     // shouldShowFloatingButtons is false for the swipe-back duplicate tab bar rendered via
@@ -73,7 +73,7 @@ function NavigationTabBar({selectedTab, shouldShowFloatingButtons = true}: Navig
         // below don't cover the last tabs. It scrolls if even that doesn't fit.
         const sidebarTabs = (
             <ScrollView
-                onLayout={onTabListLayout}
+                onLayout={updateTabListHeight}
                 style={styles.flex1}
                 contentContainerStyle={styles.flexGrow1}
                 showsVerticalScrollIndicator={false}
