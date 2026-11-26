@@ -134,20 +134,30 @@ const emojiTrieForLocale: EmojiTrieForLocale = Object.values(FULLY_SUPPORTED_LOC
     return acc;
 }, {} as EmojiTrieForLocale);
 
+/**
+ * Starts loading the locale's emoji names without building the trie. Returns true when they are already loaded.
+ */
+const loadEmojiLocale = (locale: FullySupportedLocale): boolean => {
+    if (localeEmojis[locale]) {
+        return true;
+    }
+    startSpan(CONST.TELEMETRY.SPAN_LOCALE.EMOJI_IMPORT, {
+        name: CONST.TELEMETRY.SPAN_LOCALE.EMOJI_IMPORT,
+        op: CONST.TELEMETRY.SPAN_LOCALE.EMOJI_IMPORT,
+    });
+    importEmojiLocale(locale).then(() => {
+        endSpan(CONST.TELEMETRY.SPAN_LOCALE.EMOJI_IMPORT);
+    });
+    return false;
+};
+
 const buildEmojisTrie = (locale: FullySupportedLocale) => {
     if (emojiTrieForLocale[locale]) {
         return; // Return early if the trie is already built
     }
     // Don't build and cache the trie if locale emoji data hasn't been loaded yet,
     // otherwise we'd permanently cache a trie with only English fallback names.
-    if (!localeEmojis[locale]) {
-        startSpan(CONST.TELEMETRY.SPAN_LOCALE.EMOJI_IMPORT, {
-            name: CONST.TELEMETRY.SPAN_LOCALE.EMOJI_IMPORT,
-            op: CONST.TELEMETRY.SPAN_LOCALE.EMOJI_IMPORT,
-        });
-        importEmojiLocale(locale).then(() => {
-            endSpan(CONST.TELEMETRY.SPAN_LOCALE.EMOJI_IMPORT);
-        });
+    if (!loadEmojiLocale(locale)) {
         return;
     }
     startSpan(CONST.TELEMETRY.SPAN_LOCALE.EMOJI_TRIE_BUILD, {
@@ -167,4 +177,4 @@ const getEmojiTrie = (locale: FullySupportedLocale): Trie<EmojiMetaData> | undef
 };
 
 export default emojiTrieForLocale;
-export {buildEmojisTrie, getEmojiTrie};
+export {buildEmojisTrie, getEmojiTrie, loadEmojiLocale};

@@ -15,6 +15,7 @@ import SCREENS from '@src/SCREENS';
 
 import type {EventArg, InitialState, NavigationAction} from '@react-navigation/native';
 
+import {TabActions} from '@react-navigation/native';
 import React, {createContext, useContext} from 'react';
 
 import requireNavigationContainer from '../utils/requireNavigationContainer';
@@ -60,13 +61,18 @@ function buildDomainSplitRoute(domainAccountID: number, centralScreen: string = 
 
 type WorkspaceScopeRoute = ReturnType<typeof buildWorkspaceSplitRoute> | ReturnType<typeof buildDomainSplitRoute>;
 
+const WORKSPACES_LIST_ROUTE = {name: SCREENS.WORKSPACES_LIST};
+
+type WorkspaceStackRoute = WorkspaceScopeRoute | typeof WORKSPACES_LIST_ROUTE;
+
+const ACCOUNT_TAB_INDEX = 3;
 const WORKSPACES_TAB_INDEX = 4;
 
-function buildWorkspaceNavigationState(...workspaceSplits: WorkspaceScopeRoute[]): InitialState {
+function buildWorkspaceNavigationState(...workspaceSplits: WorkspaceStackRoute[]): InitialState {
     return buildWorkspaceNavigationStateWithActiveTab(WORKSPACES_TAB_INDEX, ...workspaceSplits);
 }
 
-function buildWorkspaceNavigationStateWithActiveTab(activeTabIndex: number, ...workspaceSplits: WorkspaceScopeRoute[]): InitialState {
+function buildWorkspaceNavigationStateWithActiveTab(activeTabIndex: number, ...workspaceSplits: WorkspaceStackRoute[]): InitialState {
     return {
         index: 0,
         routes: [
@@ -1408,6 +1414,93 @@ describe('Go back on the wide layout', () => {
             policyID: mockedPolicyID,
             backTo: mockedBackToRoute,
         });
+    });
+});
+
+describe.each([true, false])('Go back across tabs into the Workspaces tab with the narrow layout: %s', (isNarrowLayout) => {
+    const policyA = 'policy-a';
+    const policyB = 'policy-b';
+    const rightModalRoute = {name: NAVIGATORS.RIGHT_MODAL_NAVIGATOR, state: {index: 0, routes: [{name: SCREENS.RIGHT_MODAL.SETTINGS}]}};
+
+    beforeEach(() => {
+        mockedGetIsNarrowLayout.mockReturnValue(isNarrowLayout);
+        mockedUseResponsiveLayout.mockReturnValue({
+            ...CONST.NAVIGATION_TESTS.DEFAULT_USE_RESPONSIVE_LAYOUT_VALUE,
+            shouldUseNarrowLayout: isNarrowLayout,
+            isSmallScreenWidth: isNarrowLayout,
+            isLargeScreenWidth: !isNarrowLayout,
+        });
+    });
+
+    /** Workspaces tab with `workspaceRoutes`, then an RHP over the Account tab, like Wallet spend rules */
+    function renderRhpOverAccountTab(hasUnderlyingTabNavigator: boolean, ...workspaceRoutes: WorkspaceStackRoute[]) {
+        const workspacesTabState = buildWorkspaceNavigationState(...workspaceRoutes);
+        if (hasUnderlyingTabNavigator) {
+            const routes = [...workspacesTabState.routes, ...buildWorkspaceNavigationStateWithActiveTab(ACCOUNT_TAB_INDEX, ...workspaceRoutes).routes, rightModalRoute];
+            render(<TestNavigationContainer initialState={{index: routes.length - 1, routes}} />);
+            return;
+        }
+
+        render(<TestNavigationContainer initialState={{index: 1, routes: [...workspacesTabState.routes, rightModalRoute]}} />);
+        // Switching tabs keeps the visited Workspaces tab mounted
+        act(() => {
+            navigationRef.dispatch({...TabActions.jumpTo(NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR), target: navigationRef.getRootState().routes.at(0)?.state?.key});
+        });
+    }
+
+    /** Route names of the Workspaces stack, with each split's policyID */
+    function getWorkspacesStackSummary() {
+        return getActiveWorkspaceState()?.routes.map((route) => {
+            const sidebarParams = route.state?.routes.at(0)?.params as {policyID?: string} | undefined;
+            return sidebarParams?.policyID ? `${route.name}:${sidebarParams.policyID}` : route.name;
+        });
+    }
+
+    function getFocusedTabName() {
+        const rootState = navigationRef.getRootState();
+        const tabState = rootState.routes.at(rootState.index)?.state;
+        return tabState?.routes.at(tabState.index ?? 0)?.name;
+    }
+
+    it.each([false, true])('Should show the sidebar of the requested workspace, with an underlying tab navigator: %s', (hasUnderlyingTabNavigator) => {
+        // Given the Workspaces tab shows workspace B over the list
+        renderRhpOverAccountTab(hasUnderlyingTabNavigator, WORKSPACES_LIST_ROUTE, buildWorkspaceSplitRoute(policyB));
+
+        // When the RHP redirects to More features of workspace A
+        act(() => {
+            Navigation.goBack(ROUTES.WORKSPACE_MORE_FEATURES.getRoute(policyA));
+        });
+
+        // Then A's page doesn't show next to B's sidebar (issue #103751)
+        expect(navigationRef.getRootState().routes.map((route) => route.name)).toEqual([NAVIGATORS.TAB_NAVIGATOR]);
+        expect(getFocusedTabName()).toBe(NAVIGATORS.WORKSPACE_NAVIGATOR);
+        expect(getWorkspacesStackSummary()).toEqual([SCREENS.WORKSPACES_LIST, `${NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR}:${policyA}`]);
+        const activeSplitState = getActiveWorkspaceState()?.routes.at(-1)?.state;
+        expect(activeSplitState?.routes.at(-1)).toMatchObject({name: SCREENS.WORKSPACE.MORE_FEATURES, params: {policyID: policyA}});
+
+        // When the user goes back
+        act(() => {
+            Navigation.goBack();
+        });
+
+        // Then they stay in Workspaces and B doesn't come back
+        expect(getFocusedTabName()).toBe(NAVIGATORS.WORKSPACE_NAVIGATOR);
+        expect(getWorkspacesStackSummary()?.at(0)).toBe(SCREENS.WORKSPACES_LIST);
+        expect(getWorkspacesStackSummary()).not.toContain(`${NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR}:${policyB}`);
+    });
+
+    it('Should open the requested workspace over the list when the Workspaces tab shows only the list', () => {
+        // Given the Workspaces tab shows only the list
+        renderRhpOverAccountTab(false, WORKSPACES_LIST_ROUTE);
+
+        // When the RHP redirects to More features of workspace A
+        act(() => {
+            Navigation.goBack(ROUTES.WORKSPACE_MORE_FEATURES.getRoute(policyA));
+        });
+
+        // Then A opens over the list instead of replacing it
+        expect(getFocusedTabName()).toBe(NAVIGATORS.WORKSPACE_NAVIGATOR);
+        expect(getWorkspacesStackSummary()).toEqual([SCREENS.WORKSPACES_LIST, `${NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR}:${policyA}`]);
     });
 });
 

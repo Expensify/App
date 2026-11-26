@@ -18,7 +18,7 @@ import Navigation from '@navigation/Navigation';
 
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import {AccountingContextProvider} from '@pages/workspace/accounting/AccountingContext';
-import type {PolicyAccountingPageProps} from '@pages/workspace/accounting/types';
+import type {ConnectionsAccountingPageProps} from '@pages/workspace/accounting/types';
 import useConnectedAccountingIntegration from '@pages/workspace/accounting/useConnectedAccountingIntegration';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 
@@ -31,7 +31,7 @@ import React from 'react';
 import {View} from 'react-native';
 
 /** Settings for the workspace's connected accounting integration, opened from the Connections page. */
-function ConnectionsAccountingPage({policy}: PolicyAccountingPageProps) {
+function ConnectionsAccountingPage({policy}: ConnectionsAccountingPageProps) {
     useWorkspaceDocumentTitle(policy?.name, 'workspace.common.accounting');
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -85,10 +85,8 @@ function ConnectionsAccountingPage({policy}: PolicyAccountingPageProps) {
                         subtitle={connectionDetails?.connectionMessage}
                         titleStyles={[styles.textNormal, styles.lineHeightLarge]}
                     />
-                    <Header.Right>
-                        {!!connectionDetails && isSyncInProgress && <ActivityIndicator style={styles.popoverMenuIcon} />}
-                        {!!connectionDetails && canWriteAccounting && !isSyncInProgress && <Header.ThreeDotsMenu items={overflowMenu} />}
-                    </Header.Right>
+                    {!!connectionDetails && isSyncInProgress && <ActivityIndicator style={styles.popoverMenuIcon} />}
+                    {!!connectionDetails && canWriteAccounting && !isSyncInProgress && <Header.ThreeDotsMenu items={overflowMenu} />}
                 </Header>
                 <ScrollView
                     contentContainerStyle={styles.pt3}
@@ -157,7 +155,7 @@ function ConnectionsAccountingPage({policy}: PolicyAccountingPageProps) {
     );
 }
 
-function ConnectionsAccountingPageWrapper(props: PolicyAccountingPageProps) {
+function ConnectionsAccountingPageWrapper(props: ConnectionsAccountingPageProps) {
     return (
         <AccountingContextProvider policy={props.policy}>
             <ConnectionsAccountingPage {...props} />

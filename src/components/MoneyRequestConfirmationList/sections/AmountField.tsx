@@ -1,3 +1,4 @@
+import DropdownFieldRow from '@components/DropdownFieldRow';
 import MenuItem from '@components/MenuItem';
 import {useConfirmationFields} from '@components/MoneyRequestConfirmationFields/context';
 import NumberWithSymbolForm from '@components/NumberWithSymbolForm';
@@ -47,7 +48,7 @@ import React, {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 
 import AutomaticFieldHint from './AutomaticFieldHint';
-import ExpenseFieldRow from './ExpenseFieldRow';
+import ExpenseFieldContainer from './ExpenseFieldContainer';
 import {useExpenseFormLayout} from './ExpenseFormLayoutContext';
 import {amountSliceSelector} from './selectors';
 import useSplitDraftBaseTransaction from './useSplitDraftBaseTransaction';
@@ -87,7 +88,8 @@ function AmountField({
 }: AmountFieldProps) {
     const isScreenFocused = useIsFocused();
     const navigation = useNavigation();
-    const {isEditingSplitBill, canEnterScanFieldsManually, isReadOnly, didConfirm, transactionID, action, iouType, reportID, reportActionID, fieldViewRefs} = useConfirmationFields();
+    const {isEditingSplitBill, canEnterScanFieldsManually, isReadOnly, didConfirm, transactionID, action, iouType, reportID, reportActionID, fieldViewRefs, onUnsavedAmountInputChange} =
+        useConfirmationFields();
     // Filled by the forms that offer a receipt from beside the amount field rather than from a full-width empty
     // state, with their compact add-receipt button.
     const {amountTrailingAction, shouldUseDropdownRows} = useExpenseFormLayout();
@@ -184,6 +186,15 @@ function AmountField({
         };
     }, [shouldAutoFocusOnMount, isAmountFieldDisabled, isScreenFocused]);
 
+    // The draft drops a sign typed without digits and can't tell the user's currency pick from the workspace default, so the field tracks both itself.
+    const isSignOnlyInputRef = useRef(false);
+    const currencyBeforeUserPickRef = useRef<string | undefined>(undefined);
+
+    const reportUnsavedInput = (currency: string) => {
+        const hasPickedOtherCurrency = currencyBeforeUserPickRef.current !== undefined && currency !== currencyBeforeUserPickRef.current;
+        onUnsavedAmountInputChange?.(isSignOnlyInputRef.current || hasPickedOtherCurrency);
+    };
+
     const showCurrencyPicker = () => {
         setIsCurrencyPickerVisible(true);
     };
@@ -226,6 +237,7 @@ function AmountField({
             }, {});
 
             setDraftSplitTransaction(
+                translate,
                 transactionID,
                 baseTransaction,
                 {
@@ -269,6 +281,11 @@ function AmountField({
             return;
         }
 
+        if (currencyBeforeUserPickRef.current === undefined) {
+            currencyBeforeUserPickRef.current = effectiveCurrency;
+        }
+        reportUnsavedInput(value);
+
         const parsedAmount = getBackendAmountFromInput(transactionAmount);
         const updatedAmount = parsedAmount ?? amount;
 
@@ -296,6 +313,10 @@ function AmountField({
         if (!transactionID) {
             return;
         }
+
+        // Clearing the draft wipes the input only when it showed an amount, so only a sign typed into an already empty field stays on screen.
+        isSignOnlyInputRef.current = newAmount.trim() === '-' && transactionAmount === '';
+        reportUnsavedInput(effectiveCurrency);
 
         const parsedAmount = getBackendAmountFromInput(newAmount);
         if (parsedAmount === null) {
@@ -396,15 +417,17 @@ function AmountField({
                             // On the bordered form the editable amount is a text input, so a locked one reads as a
                             // disabled input too rather than as a push row, or a form whose amount is computed
                             // answers "this field can't be changed" differently from the fields under it.
-                            <ExpenseFieldRow
-                                name={translate('iou.amount')}
-                                value={formattedAmount}
-                                onPress={openAmountPage}
-                                isDisabled={didConfirm}
-                                isInteractive={canOpenAmountPage}
-                                errorText={shouldShowAmountMissingError ? translate('common.error.enterAmount') : ''}
-                                sentryLabel={CONST.SENTRY_LABEL.REQUEST_CONFIRMATION_LIST.AMOUNT_FIELD}
-                            />
+                            <ExpenseFieldContainer>
+                                <DropdownFieldRow
+                                    name={translate('iou.amount')}
+                                    value={formattedAmount}
+                                    onPress={openAmountPage}
+                                    isDisabled={didConfirm}
+                                    isInteractive={canOpenAmountPage}
+                                    errorText={shouldShowAmountMissingError ? translate('common.error.enterAmount') : ''}
+                                    sentryLabel={CONST.SENTRY_LABEL.REQUEST_CONFIRMATION_LIST.AMOUNT_FIELD}
+                                />
+                            </ExpenseFieldContainer>
                         ) : (
                             <MenuItem.Root
                                 onPress={canOpenAmountPage ? callIfAuthenticated(openAmountPage, session) : undefined}

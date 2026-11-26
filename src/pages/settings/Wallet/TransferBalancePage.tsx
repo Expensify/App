@@ -26,7 +26,7 @@ import {
 } from '@libs/actions/PaymentMethods';
 import {getLatestErrorMessage} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import {calculateWalletTransferBalanceFee, formatPaymentMethods, hasExpensifyPaymentMethod} from '@libs/PaymentUtils';
+import {calculateWalletTransferBalanceFee, formatPaymentMethods, getWalletTransferBankAccounts, hasExpensifyPaymentMethod} from '@libs/PaymentUtils';
 
 import variables from '@styles/variables';
 
@@ -85,7 +85,7 @@ function TransferBalancePage() {
      * Get the selected/default payment method account for wallet transfer
      */
     function getSelectedPaymentMethodAccount(): PaymentMethod | undefined {
-        const paymentMethods = formatPaymentMethods(bankAccountList ?? {}, paymentCardList, styles, translate);
+        const paymentMethods = formatPaymentMethods(getWalletTransferBankAccounts(bankAccountList ?? {}), paymentCardList, styles, translate);
 
         const defaultAccount = paymentMethods.find((method) => method.isDefault);
         const selectedAccount = paymentMethods.find(
@@ -98,7 +98,7 @@ function TransferBalancePage() {
         saveWalletTransferMethodType(filterPaymentMethodType);
 
         // If we only have a single option for the given paymentMethodType do not force the user to make a selection
-        const combinedPaymentMethods = formatPaymentMethods(bankAccountList ?? {}, paymentCardList, styles, translate);
+        const combinedPaymentMethods = formatPaymentMethods(getWalletTransferBankAccounts(bankAccountList ?? {}), paymentCardList, styles, translate);
 
         const filteredMethods = combinedPaymentMethods.filter((paymentMethod) => paymentMethod.accountType === filterPaymentMethodType);
         if (filteredMethods.length === 1) {

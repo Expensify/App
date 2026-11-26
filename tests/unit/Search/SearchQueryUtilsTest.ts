@@ -3532,6 +3532,38 @@ describe('SearchQueryUtils', () => {
             expect(resetQuery.flatFilters).toEqual([]);
         });
 
+        it('restores the violation grouping of the default query when the reset brings back its violation has value', () => {
+            // Given a saved violation grouping, and the same search after clearing its Has pill, which also dropped the
+            // grouping and moved the sorting and columns back to the defaults
+            const savedQuery = parse(
+                `type:expense group-by:${CONST.SEARCH.GROUP_BY.VIOLATION} view:bar has:submitted-violation,approved-violation sortBy:groupTotal sortOrder:asc columns:groupViolation,groupTotal`,
+            );
+            const clearedQuery = parse('type:expense sortBy:date sortOrder:desc');
+
+            // When the filters are reset to the saved search
+            const resetQuery = parse(buildQueryStringWithResetFilters(clearedQuery, savedQuery));
+
+            // Then the grouping and the rest of its display come back with the restored Has pill, so there is nothing left to save
+            expect(resetQuery.groupBy).toBe(CONST.SEARCH.GROUP_BY.VIOLATION);
+            expect(resetQuery.view).toBe(CONST.SEARCH.VIEW.BAR);
+            expect(resetQuery.sortBy).toBe(CONST.SEARCH.TABLE_COLUMNS.GROUP_TOTAL);
+            expect(resetQuery.sortOrder).toBe(CONST.SEARCH.SORT_ORDER.ASC);
+            expect(resetQuery.columns).toEqual(savedQuery.columns);
+            expect(isSearchQuerySavable(resetQuery, savedQuery)).toBe(false);
+        });
+
+        it('keeps a grouping chosen after clearing the violation has value when the reset brings it back', () => {
+            // Given a saved violation grouping that was cleared from the Has pill and then grouped by category instead
+            const savedQuery = parse(`type:expense group-by:${CONST.SEARCH.GROUP_BY.VIOLATION} has:submitted-violation,approved-violation`);
+            const regroupedQuery = parse(`type:expense group-by:${CONST.SEARCH.GROUP_BY.CATEGORY}`);
+
+            // When the filters are reset to the saved search
+            const resetQuery = parse(buildQueryStringWithResetFilters(regroupedQuery, savedQuery));
+
+            // Then the category grouping stays, since the user chose it on its own and Reset only resets filters
+            expect(resetQuery.groupBy).toBe(CONST.SEARCH.GROUP_BY.CATEGORY);
+        });
+
         it('keeps the violation grouping when the default query restores a violation has value', () => {
             // Given a violation grouping whose default search already asks for approved violations
             const violationQuery = parse(`type:expense group-by:${CONST.SEARCH.GROUP_BY.VIOLATION} has:submitted-violation,approved-violation category:travel`);
@@ -5006,6 +5038,48 @@ describe('SearchQueryUtils', () => {
 
                 expect(updatedQuery?.flatFilters).toEqual([]);
             });
+        });
+
+        test.each<{
+            input: string;
+            groupBy?: SearchAdvancedFiltersForm['groupBy'];
+            view?: SearchAdvancedFiltersForm['view'];
+            sortBy: string;
+            sortOrder: string;
+        }>([
+            {input: 'sortBy:date sortOrder:asc', groupBy: 'day', sortBy: CONST.SEARCH.TABLE_COLUMNS.GROUP_DAY, sortOrder: 'asc'},
+            {input: 'sortBy:date sortOrder:desc', groupBy: 'category', sortBy: 'groupCategory', sortOrder: 'asc'},
+            {input: 'sortBy:merchant sortOrder:asc', groupBy: 'day', sortBy: CONST.SEARCH.TABLE_COLUMNS.GROUP_DAY, sortOrder: 'asc'},
+            {input: 'sortBy:amount sortOrder:asc', groupBy: 'day', sortBy: CONST.SEARCH.TABLE_COLUMNS.GROUP_DAY, sortOrder: 'asc'},
+            {input: 'groupBy:day sortOrder:asc', groupBy: 'month', sortBy: 'groupmonth', sortOrder: 'asc'},
+            {input: 'groupBy:category sortOrder:desc', groupBy: 'day', sortBy: CONST.SEARCH.TABLE_COLUMNS.GROUP_DAY, sortOrder: 'desc'},
+            {input: 'groupBy:category sortBy:groupTotal sortOrder:desc', groupBy: 'day', sortBy: 'groupTotal', sortOrder: 'desc'},
+            {input: 'groupBy:category sortBy:groupExpenses sortOrder:asc', groupBy: 'day', sortBy: 'groupExpenses', sortOrder: 'asc'},
+            {input: 'groupBy:merchant sortBy:groupTotal sortOrder:asc', groupBy: 'day', sortBy: 'groupTotal', sortOrder: 'asc'},
+            {input: 'groupBy:day view:bar sortOrder:asc', groupBy: 'month', view: 'table', sortBy: 'groupmonth', sortOrder: 'desc'},
+            {input: 'groupBy:day view:bar sortOrder:desc', groupBy: 'month', view: 'bar', sortBy: 'groupmonth', sortOrder: 'desc'},
+            {input: 'groupBy:day sortOrder:asc', sortBy: 'date', sortOrder: 'asc'},
+            {input: 'groupBy:category sortBy:groupTotal sortOrder:asc', sortBy: 'date', sortOrder: 'desc'},
+            {input: 'groupBy:category sortBy:amount sortOrder:desc', sortBy: 'amount', sortOrder: 'desc'},
+            {input: 'groupBy:category sortBy:glcode sortOrder:desc', sortBy: 'glcode', sortOrder: 'desc'},
+            {input: 'groupBy:card sortBy:groupFeed sortOrder:desc', groupBy: 'day', sortBy: CONST.SEARCH.TABLE_COLUMNS.GROUP_DAY, sortOrder: 'desc'},
+            {input: 'groupBy:category sortBy:groupTotal sortOrder:desc', groupBy: 'paid-by', sortBy: 'date', sortOrder: 'desc'},
+            {input: 'groupBy:category sortBy:groupExpenses sortOrder:desc', groupBy: 'workflow-stage', sortBy: 'date', sortOrder: 'desc'},
+        ])('updates grouping to $groupBy without losing compatible sorting: $input', ({input, groupBy, view = CONST.SEARCH.VIEW.TABLE, sortBy, sortOrder}) => {
+            // Given sorting that may differ from the old grouping's defaults
+            const originalQuery = buildSearchQueryJSON(input);
+            if (!originalQuery) {
+                throw new Error('Invalid test query');
+            }
+            const form = buildFilterFormValuesFromQuery(originalQuery, {}, {}, {}, {}, {}, {});
+
+            // When the grouping changes, possibly together with the view
+            const result = buildFilterQueryWithSortDefaults({...form, groupBy, view}, originalQuery, originalQuery);
+            const queryJSON = buildSearchQueryJSON(result ?? '');
+
+            // Then compatible columns and non-default directions survive, while other values use the new defaults
+            expect(queryJSON).toMatchObject({sortBy, sortOrder});
+            expect(queryJSON?.groupBy).toBe(groupBy);
         });
 
         test('groupBy change replaces stale sortBy with new default', () => {
