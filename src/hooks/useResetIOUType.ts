@@ -50,9 +50,6 @@ type UseResetIOUTypeParams = {
 
     /** Whether this is a track distance expense */
     isTrackDistanceExpense?: boolean;
-
-    /** Whether to skip keyboard dismiss for per diem tab */
-    skipKeyboardDismissForPerDiem?: boolean;
 };
 
 /**
@@ -69,7 +66,6 @@ function useResetIOUType({
     iouType,
     policy,
     isTrackDistanceExpense = false,
-    skipKeyboardDismissForPerDiem = false,
 }: UseResetIOUTypeParams): (newIOUType: IOURequestType) => void {
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`);
     const [hasOnlyPersonalPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: hasOnlyPersonalPoliciesSelector});
@@ -101,9 +97,7 @@ function useResetIOUType({
             return;
         }
 
-        if (!(skipKeyboardDismissForPerDiem && newIOUType === CONST.IOU.REQUEST_TYPE.PER_DIEM)) {
-            Keyboard.dismiss();
-        }
+        Keyboard.dismiss();
 
         const isFromGlobalCreate = !report?.reportID;
 

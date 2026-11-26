@@ -183,8 +183,9 @@ function getDestinationForDisplay(customUnit: CustomUnit | undefined, transactio
 
 function getSubratesFields(customUnit: CustomUnit | undefined, transaction: OnyxEntry<Transaction>) {
     const customUnitRateID = transaction?.comment?.customUnit?.customUnitRateID;
+    // The form shows an empty subrate row before a destination is picked, so the user can see it is still to fill in.
     if (!customUnitRateID) {
-        return [];
+        return [undefined];
     }
     const selectedDestination = getAvailablePerDiemRate(customUnit?.rates?.[customUnitRateID]);
     const currentSubrates = transaction?.comment?.customUnit?.subRates ?? [];

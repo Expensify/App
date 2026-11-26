@@ -92,6 +92,9 @@ type DropdownFieldProps = Omit<DropdownFieldRowProps, 'onPress' | 'anchorRef' | 
      */
     onPress?: () => void;
 
+    /** Called whenever the field opens its list, in the container or on its own page, e.g. to dismiss the keyboard first */
+    onOpen?: () => void;
+
     /** Height of a header the list shows above its options, e.g. an add button, added to the container's limits so it still fits as many options */
     listHeaderHeight?: number;
 
@@ -114,7 +117,7 @@ type DropdownFieldHandle = {
  * pop-over matches the row's width and opens below it, or above when there isn't room, capped so it is never
  * clipped. Knows nothing about any particular field: each passes its own list in through `renderDropdown`.
  */
-function DropdownField({renderDropdown, shouldOpenInDropdown, onPress, listHeaderHeight = 0, ref, onVisibilityChange, ...rowProps}: DropdownFieldProps) {
+function DropdownField({renderDropdown, shouldOpenInDropdown, onPress, onOpen, listHeaderHeight = 0, ref, onVisibilityChange, ...rowProps}: DropdownFieldProps) {
     const {windowHeight} = useWindowDimensions();
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth -- must match PopoverWithMeasuredContent's dock decision, which is on isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
@@ -141,6 +144,11 @@ function DropdownField({renderDropdown, shouldOpenInDropdown, onPress, listHeade
 
     const closeDropdown = () => updateVisibility(false);
 
+    const openFullPage = () => {
+        onOpen?.();
+        onPress?.();
+    };
+
     /** Measures the row and hands back where the container goes, and whether that side has room for a list */
     const measureLayout = (onMeasured: (measuredLayout: DropdownLayout, hasUsableHeight: boolean) => void) => {
         anchorRef.current?.measureInWindow((x, y, width, height) => {
@@ -163,6 +171,7 @@ function DropdownField({renderDropdown, shouldOpenInDropdown, onPress, listHeade
     };
 
     const openDropdown = () => {
+        onOpen?.();
         if (isSmallScreenWidth) {
             setHasEverOpened(true);
             updateVisibility(true);
@@ -200,7 +209,7 @@ function DropdownField({renderDropdown, shouldOpenInDropdown, onPress, listHeade
 
     const handlePress = () => {
         if (!shouldOpenInDropdown) {
-            onPress?.();
+            openFullPage();
             return;
         }
         if (isVisible) {
@@ -213,7 +222,7 @@ function DropdownField({renderDropdown, shouldOpenInDropdown, onPress, listHeade
     useImperativeHandle(ref, () => ({
         open: () => {
             if (!shouldOpenInDropdown) {
-                onPress?.();
+                openFullPage();
                 return;
             }
             if (!isVisible) {

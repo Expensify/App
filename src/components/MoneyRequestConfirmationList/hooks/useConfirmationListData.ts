@@ -204,7 +204,6 @@ function useConfirmationListDataWithPolicy({
         isScanRequest,
         isTypeSplit,
         isTypeInvoice,
-        isPerDiemRequest,
         isTimeRequest,
         shouldHideToSection,
         shouldShowReadOnlySplits,

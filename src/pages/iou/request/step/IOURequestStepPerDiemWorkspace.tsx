@@ -1,26 +1,31 @@
 import ActivityIndicator from '@components/ActivityIndicator';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
+import SelectionList from '@components/SelectionList';
+import UserListItem from '@components/SelectionList/ListItem/UserListItem';
 
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDefaultExpensePolicy from '@hooks/useDefaultExpensePolicy';
+import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePersonalPolicy from '@hooks/usePersonalPolicy';
+import usePrevious from '@hooks/usePrevious';
+import useRequestStepWorkspaceList from '@hooks/useRequestStepWorkspaceList';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {fetchPerDiemRates} from '@libs/actions/Policy/PerDiem';
 import {getInitialPerDiemTargetReport} from '@libs/IOUUtils';
-import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {getActivePoliciesWithExpenseChatAndPerDiemEnabled, getPerDiemCustomUnit} from '@libs/PolicyUtils';
 import {findSelfDMReportID, getPolicyExpenseChat} from '@libs/ReportUtils';
 
 import {setCustomUnitID, setMoneyRequestCategory, setMoneyRequestParticipants, setMoneyRequestParticipantsFromReport} from '@userActions/IOU/MoneyRequest';
+import {resetPerDiemCustomUnit} from '@userActions/IOU/PerDiem';
 import {setTransactionReport} from '@userActions/Transaction';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
+import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {Policy} from '@src/types/onyx';
 
@@ -31,13 +36,14 @@ import {View} from 'react-native';
 
 import type {WithFullTransactionOrNotFoundProps} from './withFullTransactionOrNotFound';
 
-import BaseRequestStepWorkspace from './BaseRequestStepWorkspace';
+import RequestStepWorkspaceListHeader from './RequestStepWorkspaceListHeader';
 import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
 
 type IOURequestStepPerDiemWorkspaceProps = WithFullTransactionOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.CREATE>;
 
-function IOURequestStepPerDiemWorkspace({route, navigation, transaction}: IOURequestStepPerDiemWorkspaceProps) {
+function IOURequestStepPerDiemWorkspace({route, transaction}: IOURequestStepPerDiemWorkspaceProps) {
     const styles = useThemeStyles();
+    const {translate} = useLocalize();
     const {
         params: {action, iouType, transactionID},
     } = route;
@@ -48,6 +54,22 @@ function IOURequestStepPerDiemWorkspace({route, navigation, transaction}: IOUReq
     const {isOffline} = useNetwork();
     const [pendingPolicyID, setPendingPolicyID] = useState<string>();
     const [pendingPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${pendingPolicyID}`);
+    const [isLoadingPerDiemRates] = useOnyx(ONYXKEYS.RAM_ONLY_IS_LOADING_PER_DIEM_RATES);
+    const wasOffline = usePrevious(isOffline);
+    // Picking a row only marks it and the footer button moves on, so a workspace that starts out selected can be kept
+    // without having to tap it again.
+    const [markedPolicyID, setMarkedPolicyID] = useState<string>();
+    const [prevIsLoadingPerDiemRates, setPrevIsLoadingPerDiemRates] = useState(isLoadingPerDiemRates);
+
+    if (isLoadingPerDiemRates !== prevIsLoadingPerDiemRates) {
+        setPrevIsLoadingPerDiemRates(isLoadingPerDiemRates);
+        // The fetch finished without giving the workspace a per diem unit, e.g. it failed, so stop waiting on it and show
+        // the list again. Otherwise going offline would hide the list and reconnecting would refetch and open that
+        // workspace even after the user marked another one. Offline, the fetch was only dropped and is asked again on reconnect.
+        if (prevIsLoadingPerDiemRates && isLoadingPerDiemRates === false && !isOffline && pendingPolicyID && !getPerDiemCustomUnit(pendingPolicy)) {
+            setPendingPolicyID(undefined);
+        }
+    }
 
     const selectWorkspace = (policy: OnyxEntry<Policy>) => {
         const {targetReport, targetIouType, transactionReportID} = getInitialPerDiemTargetReport(
@@ -68,12 +90,17 @@ function IOURequestStepPerDiemWorkspace({route, navigation, transaction}: IOUReq
             fetchPerDiemRates(policy.id);
         }
 
-        const canDestinationResolvePolicy = !!perDiemUnit || (!!targetReport.policyID && targetReport.policyID !== CONST.POLICY.ID_FAKE);
-        if (!canDestinationResolvePolicy) {
+        // The form opens straight after this, and nothing there points the draft at the per diem unit once the rates load,
+        // so wait for them here before setting the draft up.
+        if (!perDiemUnit) {
             setPendingPolicyID(policy?.id);
             return;
         }
         setPendingPolicyID(undefined);
+
+        // Per diem unit IDs are generated per workspace, so the unit alone tells the workspace apart. The participants can't,
+        // since the self DM a draft from global create sits on has no policyID.
+        const isSameWorkspace = transaction?.comment?.customUnit?.customUnitID === perDiemUnit.customUnitID;
 
         setTransactionReport(transactionID, {reportID: transactionReportID}, true);
         if (targetIouType === CONST.IOU.TYPE.TRACK) {
@@ -89,13 +116,31 @@ function IOURequestStepPerDiemWorkspace({route, navigation, transaction}: IOUReq
                 },
             ]);
         }
-        setCustomUnitID(transactionID, perDiemUnit?.customUnitID ?? CONST.CUSTOM_UNITS.FAKE_P2P_ID);
-        setMoneyRequestCategory(transactionID, perDiemUnit?.defaultCategory ?? '', undefined);
+        if (isSameWorkspace) {
+            setCustomUnitID(transactionID, perDiemUnit.customUnitID);
+        } else {
+            // The destination and subrates filled in for the previous workspace are its rates, which don't exist in this one
+            resetPerDiemCustomUnit(transactionID, perDiemUnit.customUnitID);
+        }
+        setMoneyRequestCategory(transactionID, perDiemUnit.defaultCategory ?? '', undefined);
 
-        Navigation.navigate(
-            createDynamicRoute(DYNAMIC_ROUTES.MONEY_REQUEST_STEP_DESTINATION.path, ROUTES.MONEY_REQUEST_CREATE.getRoute(action, targetIouType, transactionID, targetReport.reportID)),
-        );
+        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(action, targetIouType, transactionID, targetReport.reportID));
     };
+
+    const {
+        initiallyFocusedKey,
+        selectedPolicyID,
+        workspaceOptions,
+        filteredWorkspaceOptions,
+        inputValue,
+        setInputValue,
+        selectWorkspace: confirmWorkspace,
+    } = useRequestStepWorkspaceList({
+        transaction,
+        getPolicies: getActivePoliciesWithExpenseChatAndPerDiemEnabled,
+        onSelectWorkspace: selectWorkspace,
+        markedPolicyID,
+    });
 
     useEffect(() => {
         if (!pendingPolicyID || !getPerDiemCustomUnit(pendingPolicy)) {
@@ -105,6 +150,15 @@ function IOURequestStepPerDiemWorkspace({route, navigation, transaction}: IOUReq
         return () => cancelAnimationFrame(frame);
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [pendingPolicy, pendingPolicyID]);
+
+    useEffect(() => {
+        // The fetch was dropped while offline, so ask again once back online rather than leave the loader up.
+        if (!pendingPolicyID || getPerDiemCustomUnit(pendingPolicy) || !wasOffline || isOffline) {
+            return;
+        }
+        fetchPerDiemRates(pendingPolicyID);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [isOffline]);
 
     if (pendingPolicyID) {
         if (isOffline) {
@@ -118,13 +172,31 @@ function IOURequestStepPerDiemWorkspace({route, navigation, transaction}: IOUReq
     }
 
     return (
-        <BaseRequestStepWorkspace
-            route={route}
-            navigation={navigation}
-            getPolicies={getActivePoliciesWithExpenseChatAndPerDiemEnabled}
-            onSelectWorkspace={selectWorkspace}
-        />
+        <>
+            <RequestStepWorkspaceListHeader
+                workspaceCount={workspaceOptions.length}
+                filteredWorkspaceCount={filteredWorkspaceOptions.length}
+                inputValue={inputValue}
+                onChangeText={setInputValue}
+            />
+            <SelectionList
+                key={initiallyFocusedKey}
+                data={filteredWorkspaceOptions}
+                onSelectRow={(item) => setMarkedPolicyID(item.policyID)}
+                confirmButtonOptions={{
+                    showButton: true,
+                    text: translate('common.next'),
+                    onConfirm: () => {
+                        confirmWorkspace(selectedPolicyID);
+                    },
+                    isDisabled: !selectedPolicyID,
+                }}
+                ListItem={UserListItem}
+                initiallyFocusedItemKey={initiallyFocusedKey}
+            />
+        </>
     );
 }
 
 export default withFullTransactionOrNotFound(IOURequestStepPerDiemWorkspace);
+export {IOURequestStepPerDiemWorkspace as IOURequestStepPerDiemWorkspaceContent};

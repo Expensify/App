@@ -111,4 +111,4 @@ type ValuePickerProps = ForwardedFSClassProps & {
     disabled?: boolean;
 };
 
-export type {ValuePickerItem, ValueSelectorModalProps, ValuePickerProps, ValueSelectionListProps};
+export type {ValuePickerItem, ValuePickerListItem, ValueSelectorModalProps, ValuePickerProps, ValueSelectionListProps};
