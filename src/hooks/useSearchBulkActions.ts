@@ -3161,6 +3161,15 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             },
         };
 
+        const deleteOption: DropdownOption<SearchHeaderOptionValue> = {
+            icon: expensifyIcons.Trashcan,
+            text: translate('search.bulkActions.delete'),
+            value: CONST.SEARCH.BULK_ACTION_TYPES.DELETE,
+            sentryLabel: CONST.SENTRY_LABEL.SEARCH.BULK_ACTIONS_DELETE,
+            shouldCloseModalOnSelect: true,
+            onSelected: handleDeleteSelectedTransactions,
+        };
+
         const holdOption: DropdownOption<SearchHeaderOptionValue> = {
             icon: expensifyIcons.Stopwatch,
             text: translate('search.bulkActions.hold'),
@@ -3375,14 +3384,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                           ),
                       ));
             if (shouldShowDeleteOptionForAllMatchingItems) {
-                allMatchingOptions.push({
-                    icon: expensifyIcons.Trashcan,
-                    text: translate('search.bulkActions.delete'),
-                    value: CONST.SEARCH.BULK_ACTION_TYPES.DELETE,
-                    sentryLabel: CONST.SENTRY_LABEL.SEARCH.BULK_ACTIONS_DELETE,
-                    shouldCloseModalOnSelect: true,
-                    onSelected: handleDeleteSelectedTransactions,
-                });
+                allMatchingOptions.push(deleteOption);
             }
             allMatchingOptions.push(exportButtonOption);
             if (isExpenseReportSearch) {
@@ -3788,14 +3790,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             });
         }
         if (canShowDeleteAction && !isFirstTransactionPerDiemSplit) {
-            options.push({
-                icon: expensifyIcons.Trashcan,
-                text: translate('search.bulkActions.delete'),
-                value: CONST.SEARCH.BULK_ACTION_TYPES.DELETE,
-                sentryLabel: CONST.SENTRY_LABEL.SEARCH.BULK_ACTIONS_DELETE,
-                shouldCloseModalOnSelect: true,
-                onSelected: handleDeleteSelectedTransactions,
-            });
+            options.push(deleteOption);
         }
 
         if (options.length === 0) {
