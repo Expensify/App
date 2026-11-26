@@ -3,7 +3,7 @@ import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Growl from '@libs/Growl';
 // eslint-disable-next-line no-restricted-imports -- Translate receipt is a paid feature.
 import {isPaidGroupPolicy, isPolicyAdmin, isWorkflowApprover} from '@libs/PolicyUtils';
-import {isExpenseReport, isOpenReport, isReportManager} from '@libs/ReportUtils';
+import {isOpenExpenseReport, isReportManager} from '@libs/ReportUtils';
 import {hasReceiptSource, isDistanceRequest, isPerDiemRequest, isReceiptScanBlockingEdit} from '@libs/TransactionUtils';
 
 import CONST from '@src/CONST';
@@ -36,18 +36,18 @@ const expenseReportApproverSelector = (report: OnyxEntry<Report>) =>
     };
 
 type ExpenseReportApprover = ReturnType<typeof expenseReportApproverSelector>;
-type SessionUser = ReturnType<typeof emailAndAccountIDSelector>;
 
 // A hook of its own so the compiler memoizes the rules selector
-function useIsOpenReportWorkflowApprover(expenseReport: ExpenseReportApprover, policy: OnyxEntry<Policy>, ownerLogin: string | undefined, session: SessionUser): boolean {
+function useIsOpenReportWorkflowApprover(
+    expenseReport: ExpenseReportApprover,
+    policy: OnyxEntry<Policy>,
+    ownerLogin: string | undefined,
+    email: string | undefined,
+    isAdminOrReportManager: boolean,
+): boolean {
     // A draft report's managerID can be stale, so we also check the policy's approver. Admins and the report's approver skip the rules scan.
     const [isOpenReportWorkflowApprover = false] = useOnyx(ONYXKEYS.COLLECTION.RULE, {
-        selector: (rules) =>
-            !isPolicyAdmin(policy) &&
-            !isReportManager(expenseReport, session?.accountID) &&
-            isExpenseReport(expenseReport) &&
-            isOpenReport(expenseReport) &&
-            isWorkflowApprover(policy, ownerLogin, rules, expenseReport?.total ?? 0, session?.email),
+        selector: (rules) => !isAdminOrReportManager && isOpenExpenseReport(expenseReport) && isWorkflowApprover(policy, ownerLogin, rules, expenseReport?.total ?? 0, email),
     });
     return isOpenReportWorkflowApprover;
 }
@@ -63,7 +63,8 @@ function useReceiptTranslation(transaction: OnyxEntry<Transaction>) {
     const policy = usePolicy(expenseReport?.policyID);
     const [session] = useOnyx(ONYXKEYS.SESSION, {selector: emailAndAccountIDSelector});
     const [ownerLogin] = usePersonalDetail(expenseReport?.ownerAccountID, loginSelector);
-    const isOpenReportWorkflowApprover = useIsOpenReportWorkflowApprover(expenseReport, policy, ownerLogin, session);
+    const isAdminOrReportManager = isPolicyAdmin(policy) || isReportManager(expenseReport, session?.accountID);
+    const isOpenReportWorkflowApprover = useIsOpenReportWorkflowApprover(expenseReport, policy, ownerLogin, session?.email, isAdminOrReportManager);
 
     const locale = preferredLocale ?? CONST.LOCALES.DEFAULT;
     const receiptID = transaction?.receipt?.receiptID;
@@ -109,7 +110,7 @@ function useReceiptTranslation(transaction: OnyxEntry<Transaction>) {
     const isGeneratedReceipt = isDistanceRequest(transaction) || isPerDiemRequest(transaction);
 
     // Employees often open Translate and then do nothing with it
-    const isReceiptReviewer = isPolicyAdmin(policy) || isReportManager(expenseReport, session?.accountID) || isOpenReportWorkflowApprover;
+    const isReceiptReviewer = isAdminOrReportManager || isOpenReportWorkflowApprover;
 
     return {
         canTranslate: isBetaEnabled(CONST.BETAS.RECEIPT_TRANSLATION) && hasReceiptSource(transaction) && !isGeneratedReceipt && isPaidGroupPolicy(policy) && isReceiptReviewer,
