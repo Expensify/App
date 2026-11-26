@@ -4,6 +4,7 @@ import Navigation from '@navigation/Navigation';
 import type {PlatformStackScreenProps} from '@navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 
+import type * as DomainPaymentCardPageModule from '@pages/domain/Admins/DomainPaymentCardPage';
 import DomainPaymentCardPage from '@pages/domain/Admins/DomainPaymentCardPage';
 
 import {setPrimaryContact, toggleConsolidatedDomainBilling} from '@userActions/Domain';
@@ -64,10 +65,7 @@ jest.mock('@components/AddPaymentCard/SubscriptionPaymentCardForm', () => ({head
 });
 jest.mock('@userActions/Domain', () => ({setPrimaryContact: jest.fn(), toggleConsolidatedDomainBilling: jest.fn()}));
 jest.mock('@userActions/PaymentMethods', () => ({addSubscriptionPaymentCard: jest.fn(), clearPaymentCardFormErrorAndSubmit: jest.fn()}));
-jest.mock('@pages/domain/Admins/DomainPaymentCardPage', () => {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
-    return jest.requireActual('@pages/domain/Admins/DomainPaymentCardPage/index.tsx');
-});
+jest.mock('@pages/domain/Admins/DomainPaymentCardPage', () => jest.requireActual<typeof DomainPaymentCardPageModule>('@pages/domain/Admins/DomainPaymentCardPage/index.tsx'));
 
 type DomainPaymentCardPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.DOMAIN.DYNAMIC_PAYMENT_CARD>;
 
