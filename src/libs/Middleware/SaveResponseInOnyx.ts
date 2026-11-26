@@ -35,7 +35,7 @@ const requestsExemptFromFullReconnect = new Set<string>([
 ]);
 
 // A request belongs here when its successData/finallyData is what unblocks authentication, because parking that leaves the client unable to reauthenticate.
-const requestsToApplyWithoutAdvancingLastUpdateID = new Set<string>([READ_COMMANDS.SIGN_IN_WITH_SHORT_LIVED_AUTH_TOKEN, READ_COMMANDS.SIGN_IN_WITH_SUPPORT_AUTH_TOKEN]);
+const requestsToApplyWithoutAdvancingLastUpdateID = new Set<string>([SIDE_EFFECT_REQUEST_COMMANDS.SIGN_IN_WITH_SHORT_LIVED_AUTH_TOKEN, READ_COMMANDS.SIGN_IN_WITH_SUPPORT_AUTH_TOKEN]);
 
 // API.read() waits for pending WRITEs before sending, but a READ already in flight when the user makes a WRITE can return data from before that WRITE
 // and overwrite its optimistic data. For these READs, a response is dropped when a WRITE was prepared after the READ was sent, and the READ is sent again

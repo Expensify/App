@@ -7,6 +7,14 @@ import type {ComponentRef, ForwardedRef, RefObject} from 'react';
 import type {BlurEvent, StyleProp, TextInputProps, View, ViewStyle} from 'react-native';
 import type {Place} from 'react-native-google-places-autocomplete';
 
+/** The parts of an address a pick fills in besides its country */
+type PickedAddress = {
+    street?: string;
+    city?: string;
+    state?: string;
+    zipCode?: string;
+};
+
 type CurrentLocationButtonProps = {
     /** Callback that is called when the button is clicked */
     onPress?: () => void;
@@ -60,7 +68,7 @@ type AddressSearchProps = ForwardedFSClassProps & {
     onInputChange?: (value: string | number | Address | StreetValue, key?: string) => void;
 
     /** A callback function when an address has been auto-selected */
-    onPress?: (props: OnPressProps) => void;
+    onPress?: (props: OnPressProps) => void | Promise<void>;
 
     /** Customize the TextInput container */
     containerStyles?: StyleProp<ViewStyle>;
@@ -80,6 +88,9 @@ type AddressSearchProps = ForwardedFSClassProps & {
     /** Whether the state stays a code outside the US and Canada, for a caller whose picker lists the states of other countries */
     shouldKeepStateCode?: boolean;
 
+    /** Codes of the countries a picked address can be in. A pick in any other country fills the rest of the address and leaves the country empty. */
+    allowedCountries?: string[];
+
     /** Auto complete attribute for the input field */
     autoComplete?: TextInputProps['autoComplete'];
 
@@ -95,7 +106,8 @@ type AddressSearchProps = ForwardedFSClassProps & {
     /** Location bias for querying search results. */
     locationBias?: string;
 
-    onCountryChange?: (country: unknown) => void;
+    /** Called with the country of a picked address, and with the parts the pick fills in, which the form's draft does not hold yet */
+    onCountryChange?: (country: unknown, pickedAddress?: PickedAddress) => void;
 
     /** If true, caret is hidden. The default value is false. */
     caretHidden?: boolean;
@@ -105,4 +117,4 @@ type AddressSearchProps = ForwardedFSClassProps & {
 
 type IsCurrentTargetInsideContainerType = (event: FocusEvent | BlurEvent, containerRef: RefObject<ComponentRef<typeof View> | HTMLElement | null>) => boolean;
 
-export type {CurrentLocationButtonProps, AddressSearchProps, IsCurrentTargetInsideContainerType, StreetValue, PredefinedPlace};
+export type {CurrentLocationButtonProps, AddressSearchProps, IsCurrentTargetInsideContainerType, StreetValue, PredefinedPlace, PickedAddress};

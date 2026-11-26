@@ -1,3 +1,4 @@
+import useHorizontalSafeAreaReach from '@components/HorizontalSafeArea/useHorizontalSafeAreaReach';
 import ScrollView from '@components/ScrollView';
 
 import useScrollEventEmitter from '@hooks/useScrollEventEmitter';
@@ -49,6 +50,9 @@ function TabSelectorBase<K extends string = string>({
     const {containerRef} = useTabSelectorState();
     const {onContainerLayout, onContainerScroll} = useTabSelectorActions();
     const triggerScrollEvent = useScrollEventEmitter();
+    // The row's ScrollView reaches the screen edge by this much, so a tab scrolled under the horizontal safe area
+    // doesn't count as visible.
+    const safeAreaReach = useHorizontalSafeAreaReach();
 
     const activeIndex = tabs.findIndex((tab) => tab.key === activeTabKey);
 
@@ -82,7 +86,7 @@ function TabSelectorBase<K extends string = string>({
             <ScrollView
                 scrollEventThrottle={CONST.TIMING.MIN_SMOOTH_SCROLL_EVENT_THROTTLE}
                 onLayout={(e) => {
-                    onContainerLayout(e);
+                    onContainerLayout(e, safeAreaReach);
                     updateScrollFade({viewportWidth: e.nativeEvent.layout.width});
                 }}
                 onContentSizeChange={(contentWidth) => updateScrollFade({contentWidth})}
@@ -168,6 +172,7 @@ function TabSelectorBase<K extends string = string>({
                             isBadgeCondensed={tab.isBadgeCondensed}
                             badgeStyles={tab.badgeStyles}
                             isBadgeError={tab.isBadgeError}
+                            shouldShowRedDotIndicator={tab.shouldShowRedDotIndicator}
                             pendingAction={tab.pendingAction}
                             isDisabled={tab.isDisabled}
                             disabledAction={tab.disabledAction}

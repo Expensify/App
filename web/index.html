@@ -87,6 +87,10 @@
             pointer-events: none;
             z-index: 1000;
         }
+        /* Reserve the width of a tab's bold label without putting the label in the link text that browsers drag and copy */
+        [data-tab-bar-label-bold-placeholder]::after {
+            content: attr(data-tab-bar-label-bold-placeholder);
+        }
         :focus[data-focusvisible-polyfill]:not([data-programmatic-focus="true"]) {
             outline: 0;
             box-shadow: inset 0px 0px 0px 1px #5AB0FF;
