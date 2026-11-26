@@ -307,6 +307,19 @@ describe('DomainAdminsSettingsPage', () => {
         expect(Navigation.navigate).not.toHaveBeenCalled();
     });
 
+    it('opens the primary contact picker for an admin without a payment card in the mobile app while billing is off', async () => {
+        // Given billing that is off, viewed in the mobile app by another admin, who has no payment card.
+        await seedDomain(PRIMARY_CONTACT_EMAIL);
+        mockIsNativeApp = true;
+
+        // When the admin presses the primary contact row.
+        await renderPageAndPressPrimaryContactRow();
+
+        // Then the primary contact picker opens without a modal.
+        expect(mockShowConfirmModal).not.toHaveBeenCalled();
+        expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.DOMAIN_ADD_PRIMARY_CONTACT.getRoute(DOMAIN_ACCOUNT_ID));
+    });
+
     it('opens the primary contact picker for the primary contact without a payment card in the mobile app while billing is on', async () => {
         // Given billing that is on, viewed in the mobile app by the primary contact, who has no payment card.
         await seedDomain(PRIMARY_CONTACT_EMAIL, true);
