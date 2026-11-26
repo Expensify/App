@@ -41,13 +41,18 @@ jest.mock('@hooks/usePermissions', () => {
 // building the policies and billing state the real hooks read.
 let mockPolicyForMovingExpenses: Policy | undefined;
 let mockShouldSelectPolicy = false;
-jest.mock('@hooks/usePolicyForMovingExpenses', () => () => ({
-    policyForMovingExpensesID: mockPolicyForMovingExpenses?.id,
-    policyForMovingExpenses: mockPolicyForMovingExpenses,
-    shouldSelectPolicy: mockShouldSelectPolicy,
-    shouldNavigateToUpgradePath: false,
-    arePoliciesLoaded: true,
-}));
+// The workspace each caller says the expense has to stay on, which decides where a new report is made.
+let mockExpensePolicyIDs: Array<string | undefined> = [];
+jest.mock('@hooks/usePolicyForMovingExpenses', () => (isPerDiemRequest?: boolean, isTimeRequest?: boolean, expensePolicyID?: string) => {
+    mockExpensePolicyIDs.push(expensePolicyID);
+    return {
+        policyForMovingExpensesID: mockPolicyForMovingExpenses?.id,
+        policyForMovingExpenses: mockPolicyForMovingExpenses,
+        shouldSelectPolicy: mockShouldSelectPolicy,
+        shouldNavigateToUpgradePath: false,
+        arePoliciesLoaded: true,
+    };
+});
 let mockIsCreateReportRestricted = false;
 jest.mock('@pages/iou/request/step/IOURequestStepReport/hooks/useCreateReportRestrictionCheck', () => () => () => mockIsCreateReportRestricted);
 
@@ -247,6 +252,68 @@ describe('ReportFieldDropdown', () => {
         );
         expect(mockIOUTypeChange).toHaveBeenCalledWith(CONST.IOU.TYPE.CREATE);
         expect(onClose).toHaveBeenCalledTimes(1);
+    });
+
+    it('makes a new report on the workspace of the chat the expense was started in after no report was picked', async () => {
+        // Given a draft expense started in a workspace chat, which None then moved to the self DM, leaving it with no
+        // workspace of its own
+        await Onyx.set(ONYXKEYS.SESSION, {accountID: CURRENT_USER_ACCOUNT_ID, email: 'user@test.com'});
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${SELF_DM_REPORT_ID}`, selfDMReport);
+        await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${TRANSACTION_ID}`, {
+            transactionID: TRANSACTION_ID,
+            reportID: CONST.REPORT.UNREPORTED_REPORT_ID,
+            participants: [{reportID: SELF_DM_REPORT_ID, isSelfDM: true, selected: true}],
+        });
+        await waitForBatchedUpdates();
+        mockExpensePolicyIDs = [];
+
+        // When the report row's dropdown opens again
+        renderDropdown(jest.fn(), true, CONST.IOU.TYPE.TRACK);
+        await waitForBatchedUpdates();
+
+        // Then a new report is asked for on the chat's workspace, where the listed reports are, instead of being left to
+        // the user's default workspace
+        expect(mockModalProps?.selectedPolicyID).toBe(POLICY_ID);
+        expect(mockExpensePolicyIDs).toContain(POLICY_ID);
+    });
+
+    it("gives a distance expense a rate of the picked report's workspace after no report was picked", async () => {
+        // Given a distance expense that None moved to the self DM, so it holds a rate the report's workspace doesn't have
+        const WORKSPACE_RATE_ID = 'workspaceRate';
+        await Onyx.set(ONYXKEYS.SESSION, {accountID: CURRENT_USER_ACCOUNT_ID, email: 'user@test.com'});
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${SELF_DM_REPORT_ID}`, selfDMReport);
+        await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, {
+            ...createRandomPolicy(1),
+            id: POLICY_ID,
+            customUnits: {
+                distanceUnit: {
+                    customUnitID: 'distanceUnit',
+                    name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+                    attributes: {unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES},
+                    rates: {[WORKSPACE_RATE_ID]: {customUnitRateID: WORKSPACE_RATE_ID, name: 'Default', rate: 70, enabled: true, currency: CONST.CURRENCY.USD}},
+                },
+            },
+        });
+        await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${TRANSACTION_ID}`, {
+            transactionID: TRANSACTION_ID,
+            reportID: CONST.REPORT.UNREPORTED_REPORT_ID,
+            iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE,
+            participants: [{reportID: SELF_DM_REPORT_ID, isSelfDM: true, selected: true}],
+            comment: {type: CONST.TRANSACTION.TYPE.CUSTOM_UNIT, customUnit: {name: CONST.CUSTOM_UNITS.NAME_DISTANCE, customUnitRateID: 'defaultWorkspaceRate'}},
+        });
+        await waitForBatchedUpdates();
+
+        // When the user picks a report on that workspace
+        renderDropdown(jest.fn(), true, CONST.IOU.TYPE.TRACK);
+        await waitForBatchedUpdates();
+        await act(async () => {
+            mockModalProps?.selectReport({value: OTHER_REPORT_ID, keyForList: OTHER_REPORT_ID, policyID: POLICY_ID});
+        });
+        await waitForBatchedUpdates();
+
+        // Then the expense takes the workspace's rate, rather than leaving the form with a rate error to fix by hand
+        const draft = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${TRANSACTION_ID}`);
+        expect(draft?.comment?.customUnit?.customUnitRateID).toBe(WORKSPACE_RATE_ID);
     });
 
     it('keeps a regular expense as it is when another report is picked', async () => {

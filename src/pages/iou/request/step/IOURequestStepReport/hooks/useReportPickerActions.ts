@@ -13,8 +13,9 @@ import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import useReportOrReportDraft from '@hooks/useReportOrReportDraft';
 import useSelfDMReport from '@hooks/useSelfDMReport';
 
-import {moveMoneyRequestDraftToSelfDM} from '@libs/actions/IOU/MoneyRequest';
+import {moveMoneyRequestDraftToSelfDM, setCustomUnitRateID} from '@libs/actions/IOU/MoneyRequest';
 import {createNewReport} from '@libs/actions/Report';
+import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {isMovingTransactionFromTrackExpense} from '@libs/IOUUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
@@ -226,7 +227,10 @@ function useReportPickerActions({
         isPerDiemRequest: isPerDiemTransaction,
         isTimeRequest: isTimeTransaction,
         isUnreportedManagedCardTransaction,
-        expensePolicyID: targetExpensePolicyID,
+        // None left the expense with no workspace of its own, so a new report would go on the default workspace while
+        // the list still shows the reports of the chat the expense was started in. Make it on that chat's workspace.
+        expensePolicyID:
+            targetExpensePolicyID ?? (isCreateReport && isUnreported && !isFromGlobalCreate && isPolicyExpenseChat(reportOrDraftReport) ? reportOrDraftReport?.policyID : undefined),
     });
 
     // No violations exist for a report that hasn't been created yet — kept as a literal to avoid subscribing to the entire TRANSACTION_VIOLATIONS collection.
@@ -256,14 +260,36 @@ function useReportPickerActions({
         shouldWriteAfterTransition,
     });
 
-    // None moved the expense to the self DM and made the form a tracked expense. A report puts it back on a workspace,
-    // so the form goes back to a regular expense, the same as picking a workspace as the recipient does. Otherwise
-    // confirming would track the expense on the workspace chat.
-    const restoreFormIOUType = () => {
-        if (!isCreateReport || !isUnreported || iouType !== CONST.IOU.TYPE.TRACK) {
+    // None moved the expense to the self DM, which made the form a tracked expense and gave a distance expense the
+    // rate the self DM uses. A report puts the expense back on a workspace, so both are undone here, the same as
+    // picking a workspace as the recipient does.
+    const returnDraftToWorkspace = (report: OnyxEntry<Report>) => {
+        if (!isCreateReport || !isUnreported) {
             return;
         }
-        setFormIOUType?.(CONST.IOU.TYPE.CREATE);
+        // Otherwise confirming would track the expense on the workspace chat.
+        if (iouType === CONST.IOU.TYPE.TRACK) {
+            setFormIOUType?.(CONST.IOU.TYPE.CREATE);
+        }
+
+        if (!transaction || !isDistanceRequestUtil(transaction)) {
+            return;
+        }
+        // The self DM's rate comes from the default workspace. On another workspace it does not exist, and the form
+        // would show a rate error unless that workspace happens to have a rate of the same amount.
+        const workspacePolicy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`];
+        const currentRateID = transaction.comment?.customUnit?.customUnitRateID;
+        if (currentRateID && DistanceRequestUtils.getMileageRates(workspacePolicy)[currentRateID]) {
+            return;
+        }
+        const workspaceRateID = DistanceRequestUtils.getCustomUnitRateID({
+            reportID: report?.chatReportID,
+            isPolicyExpenseChat: true,
+            policy: workspacePolicy,
+            lastSelectedDistanceRates,
+            expenseDate: transaction.created,
+        });
+        setCustomUnitRateID(transaction.transactionID, workspaceRateID, transaction, workspacePolicy, false, workspacePolicy?.outputCurrency);
     };
 
     const selectReport = (item: TransactionGroupListItem) => {
@@ -278,7 +304,8 @@ function useReportPickerActions({
             return;
         }
 
-        restoreFormIOUType();
+        const report = getReportOrDraftReport({reportID: item.value});
+        returnDraftToWorkspace(report);
 
         // Handle global create report
         if (isCreateReport && isFromGlobalCreate) {
@@ -286,7 +313,6 @@ function useReportPickerActions({
             return;
         }
 
-        const report = getReportOrDraftReport({reportID: item.value});
         // Handle regular report selection
         handleRegularReportSelection(item, report);
     };
@@ -309,7 +335,7 @@ function useReportPickerActions({
             shouldDismissEmptyReportsConfirmation,
             managedCardTransactionID: isUnreportedManagedCardTransaction ? transactionID : undefined,
         });
-        restoreFormIOUType();
+        returnDraftToWorkspace(optimisticReport);
         handleRegularReportSelection({value: optimisticReport.reportID, keyForList: optimisticReport.reportID, policyID: policyForNewReport?.id}, optimisticReport);
     };
 
