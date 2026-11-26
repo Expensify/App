@@ -1,17 +1,18 @@
 import AnchoredSelectionListPopover from '@components/AnchoredSelectionListPopover';
 import type {AnchoredSelectionListPopoverProps} from '@components/AnchoredSelectionListPopover';
 
-import useOnyx from '@hooks/useOnyx';
+import useLocalize from '@hooks/useLocalize';
+import usePickerPopoverRowCount from '@hooks/usePickerPopoverRowCount';
+import usePickerPopoverSession from '@hooks/usePickerPopoverSession';
 
-import {getCountOfEnabledTagsOfList, getTagList} from '@libs/PolicyUtils';
 import type {OptionData} from '@libs/ReportUtils';
 
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
 
-import React, {useState} from 'react';
+import React from 'react';
 
-import TagPicker from '.';
+import {getTagPickerModel, TagPickerSearch, useTagPickerData} from '.';
+import {buildTagPickerSections} from './TagPickerResults';
 
 type TagPickerModalProps = {
     /** The policy whose tags should be shown */
@@ -47,13 +48,19 @@ function TagPickerModal({
     onSelected,
     tagListIndex = 0,
     searchInputThreshold = CONST.STANDARD_LIST_ITEM_LIMIT,
+    isVisible,
     onClose,
+    onModalHide,
     ...popoverProps
 }: TagPickerModalProps) {
-    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`);
-    const [renderedRowCount, setRenderedRowCount] = useState<number>();
-    const policyTagList = getTagList(policyTags, tagListIndex);
-    const tagsCount = getCountOfEnabledTagsOfList(policyTagList.tags);
+    const {searchKey, shouldPrepareOptions, finishClosing} = usePickerPopoverSession(isVisible, onModalHide);
+    const data = useTagPickerData({policyID, tagListIndex, shouldLoadTags: shouldPrepareOptions});
+    const {translate, localeCompare} = useLocalize();
+    const model = shouldPrepareOptions ? getTagPickerModel(data, {selectedTag, transactionTag, hasDependentTags, shouldShowGLCode, tagListIndex, searchInputThreshold}) : undefined;
+    const {rowCount, setRowCountFrozen, unfilteredSections} = usePickerPopoverRowCount(
+        model && !model.isLoading ? () => buildTagPickerSections(model, '', {translate, localeCompare}) : undefined,
+        searchKey,
+    );
 
     const handleTagSelected = (item: Partial<OptionData>) => {
         // If clicking the same tag that's already selected, treat it as deselection
@@ -68,25 +75,24 @@ function TagPickerModal({
     return (
         <AnchoredSelectionListPopover
             {...popoverProps}
+            isVisible={isVisible}
             onClose={onClose}
-            optionCount={renderedRowCount ?? tagsCount}
-            isSearchable={tagsCount >= searchInputThreshold}
-            title={policyTagList.name}
+            onModalHide={finishClosing}
+            optionCount={rowCount}
+            isSearchable={model?.hasSearchablePolicyTags ?? false}
+            title={data.policyTagList.name}
             backButtonSentryLabel={CONST.SENTRY_LABEL.TAG_PICKER_MODAL.BACK_BUTTON}
         >
-            <TagPicker
-                onRenderedRowCountChange={setRenderedRowCount}
-                policyID={policyID}
-                tagListName={policyTagList.name}
-                tagListIndex={tagListIndex}
-                selectedTag={selectedTag}
-                transactionTag={transactionTag}
-                hasDependentTags={hasDependentTags}
-                shouldShowGLCode={shouldShowGLCode}
-                onSubmit={handleTagSelected}
-                shouldAutoFocusSearchInput
-                searchInputThreshold={searchInputThreshold}
-            />
+            {model && (
+                <TagPickerSearch
+                    key={searchKey}
+                    model={model}
+                    unfilteredSections={unfilteredSections}
+                    setRowCountFrozen={setRowCountFrozen}
+                    onSubmit={handleTagSelected}
+                    shouldAutoFocusSearchInput
+                />
+            )}
         </AnchoredSelectionListPopover>
     );
 }

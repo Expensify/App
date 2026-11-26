@@ -85,6 +85,7 @@ function SelectionListTextField({
         placeholder,
         maxLength,
         inputMode,
+        shouldIgnorePasswordManager = true,
         ref: optionsRef,
         style,
         disableAutoCorrect,
@@ -150,6 +151,7 @@ function SelectionListTextField({
                 maxLength={maxLength}
                 onChangeText={handleTextInputChange}
                 inputMode={inputMode}
+                shouldIgnorePasswordManager={shouldIgnorePasswordManager}
                 selectTextOnFocus
                 spellCheck={false}
                 onSubmitEditing={onSubmit}

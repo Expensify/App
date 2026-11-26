@@ -12,7 +12,7 @@ import type {OnyxUpdate} from 'react-native-onyx';
 
 import Onyx from 'react-native-onyx';
 
-import {getCurrencyDecimalsLocal, getCurrencySymbolLocal} from '../../utils/TestHelper';
+import {getCurrencyDecimalsLocal, getCurrencySymbolLocal, translateLocal} from '../../utils/TestHelper';
 import {hasDefinedProperty, isObject} from '../../utils/typeGuards';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
@@ -139,10 +139,12 @@ describe('getUpdateMoneyRequestParams - isSelfDMSplit', () => {
         await setupSelfDMTransaction();
 
         const {onyxData} = getUpdateMoneyRequestParams({
+            translate: translateLocal,
             isVendorMatchingBetaEnabled: false,
             rules: undefined,
             iouReportOwnerLogin: undefined,
             transactionID: selfDMTransaction.transactionID,
+            transaction: selfDMTransaction,
             transactionThreadReport,
             iouReport,
             transactionChanges: {amount: 1500, currency: CONST.CURRENCY.USD},
@@ -173,10 +175,12 @@ describe('getUpdateMoneyRequestParams - isSelfDMSplit', () => {
         await setupSelfDMTransaction();
 
         const {onyxData} = getUpdateMoneyRequestParams({
+            translate: translateLocal,
             isVendorMatchingBetaEnabled: false,
             rules: undefined,
             iouReportOwnerLogin: undefined,
             transactionID: selfDMTransaction.transactionID,
+            transaction: selfDMTransaction,
             transactionThreadReport,
             iouReport,
             transactionChanges: {amount: 1500, currency: CONST.CURRENCY.USD},
@@ -214,10 +218,12 @@ describe('getUpdateMoneyRequestParams - isSelfDMSplit', () => {
         await setupSelfDMTransaction();
 
         const {onyxData} = getUpdateMoneyRequestParams({
+            translate: translateLocal,
             isVendorMatchingBetaEnabled: false,
             rules: undefined,
             iouReportOwnerLogin: undefined,
             transactionID: selfDMTransaction.transactionID,
+            transaction: selfDMTransaction,
             transactionThreadReport,
             iouReport,
             transactionChanges: {amount: 1500, currency: CONST.CURRENCY.USD},
@@ -245,10 +251,12 @@ describe('getUpdateMoneyRequestParams - isSelfDMSplit', () => {
         await setupSelfDMTransaction();
 
         const {onyxData} = getUpdateMoneyRequestParams({
+            translate: translateLocal,
             isVendorMatchingBetaEnabled: false,
             rules: undefined,
             iouReportOwnerLogin: undefined,
             transactionID: selfDMTransaction.transactionID,
+            transaction: selfDMTransaction,
             transactionThreadReport,
             iouReport,
             transactionChanges: {amount: 1500, currency: CONST.CURRENCY.USD},
@@ -274,10 +282,12 @@ describe('getUpdateMoneyRequestParams - isSelfDMSplit', () => {
     it('does NOT add selfDM-specific transaction optimistic merge when transaction does not exist in Onyx', async () => {
         // Don't seed Onyx - transaction is absent
         const {onyxData} = getUpdateMoneyRequestParams({
+            translate: translateLocal,
             isVendorMatchingBetaEnabled: false,
             rules: undefined,
             iouReportOwnerLogin: undefined,
             transactionID: 'nonexistentTransactionID',
+            transaction: undefined,
             transactionThreadReport,
             iouReport,
             transactionChanges: {amount: 1500, currency: CONST.CURRENCY.USD},
@@ -314,10 +324,12 @@ describe('split distance system message', () => {
         await setupDistanceTransaction();
 
         const {params} = getUpdateMoneyRequestParams({
+            translate: translateLocal,
             isVendorMatchingBetaEnabled: false,
             rules: undefined,
             iouReportOwnerLogin: undefined,
             transactionID: TRANSACTION_ID,
+            transaction: baseTransaction,
             delegateAccountID: undefined,
             transactionThreadReport,
             iouReport,
@@ -351,10 +363,12 @@ describe('split distance system message', () => {
         await setupDistanceTransaction();
 
         const {params, onyxData} = getUpdateMoneyRequestParams({
+            translate: translateLocal,
             isVendorMatchingBetaEnabled: false,
             rules: undefined,
             iouReportOwnerLogin: undefined,
             transactionID: TRANSACTION_ID,
+            transaction: baseTransaction,
             delegateAccountID: undefined,
             transactionThreadReport,
             iouReport,
@@ -394,10 +408,12 @@ describe('split distance system message', () => {
         await setupDistanceTransaction();
 
         const {params} = getUpdateMoneyRequestParams({
+            translate: translateLocal,
             isVendorMatchingBetaEnabled: false,
             rules: undefined,
             iouReportOwnerLogin: undefined,
             transactionID: TRANSACTION_ID,
+            transaction: baseTransaction,
             delegateAccountID: undefined,
             transactionThreadReport,
             iouReport,
@@ -430,10 +446,12 @@ describe('split distance system message', () => {
         await setupDistanceTransaction();
 
         const {params} = getUpdateMoneyRequestParams({
+            translate: translateLocal,
             isVendorMatchingBetaEnabled: false,
             rules: undefined,
             iouReportOwnerLogin: undefined,
             transactionID: TRANSACTION_ID,
+            transaction: baseTransaction,
             delegateAccountID: undefined,
             transactionThreadReport,
             iouReport,

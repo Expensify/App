@@ -4,8 +4,13 @@ import ComposeProviders from '@components/ComposeProviders';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import {ModalProvider} from '@components/Modal/Global/ModalContext';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
+import ScreenWrapperStatusContext from '@components/ScreenWrapper/ScreenWrapperStatusContext';
+import type {TableHandle} from '@components/Table';
+import WorkspaceCategoriesTable from '@components/Tables/WorkspaceCategoriesTable';
+import type {WorkspaceCategoryTableColumnKey, WorkspaceCategoryTableRowData} from '@components/Tables/WorkspaceCategoriesTable';
 
 import {CurrentReportIDContextProvider} from '@hooks/useCurrentReportID';
+import * as useNetworkModule from '@hooks/useNetwork';
 import * as useResponsiveLayoutModule from '@hooks/useResponsiveLayout';
 import type ResponsiveLayoutResult from '@hooks/useResponsiveLayout/types';
 
@@ -24,6 +29,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
+import type {PolicyCategories} from '@src/types/onyx';
 
 import {PortalProvider} from '@gorhom/portal';
 import {createNavigationContainerRef, NavigationContainer} from '@react-navigation/native';
@@ -119,6 +125,7 @@ const renderPageUnderStackedScreen = (initialParams: WorkspaceSplitNavigatorPara
 describe('WorkspaceCategories', () => {
     const FIRST_CATEGORY = 'categoryOne';
     const SECOND_CATEGORY = 'categoryTwo';
+    const PAYROLL_CODE = 'Payroll Code';
 
     beforeAll(() => {
         Onyx.init({
@@ -144,6 +151,158 @@ describe('WorkspaceCategories', () => {
             await Onyx.clear();
         });
         jest.restoreAllMocks();
+    });
+
+    it.each<{
+        description: string;
+        hasPayrollCode?: boolean;
+        enabled?: boolean;
+        pendingDelete?: boolean;
+        isOffline?: boolean;
+        isControl?: boolean;
+        isNarrow?: boolean;
+        isMedium?: boolean;
+        expected: boolean;
+    }>([
+        {description: 'payroll codes without GL codes', expected: true},
+        {description: 'disabled categories', enabled: false, expected: true},
+        {description: 'no payroll codes', hasPayrollCode: false, expected: false},
+        {description: 'pending deletion online', pendingDelete: true, expected: false},
+        {description: 'pending deletion offline', pendingDelete: true, isOffline: true, expected: true},
+        {description: 'non-Control workspaces', isControl: false, expected: false},
+        {description: 'narrow layouts', isNarrow: true, expected: false},
+        {description: 'medium layouts', isMedium: true, expected: false},
+    ])(
+        'shows the Payroll code column appropriately for $description',
+        async ({hasPayrollCode = true, enabled = true, pendingDelete = false, isOffline = false, isControl = true, isNarrow = false, isMedium = false, expected}) => {
+            // Given category data that covers visibility boundaries without relying on a GL code.
+            await TestHelper.signInWithTestUser();
+            const policy = {
+                ...LHNTestUtils.getFakePolicy(),
+                type: isControl ? CONST.POLICY.TYPE.CORPORATE : CONST.POLICY.TYPE.TEAM,
+                role: CONST.POLICY.ROLE.ADMIN,
+                areCategoriesEnabled: true,
+            };
+            jest.mocked(useResponsiveLayoutModule.default).mockReturnValue(
+                createMock<ResponsiveLayoutResult>({shouldUseNarrowLayout: isNarrow, isSmallScreenWidth: isNarrow, isMediumScreenWidth: isMedium}),
+            );
+            jest.spyOn(useNetworkModule, 'default').mockReturnValue({isOffline});
+            const categories: PolicyCategories = {
+                [FIRST_CATEGORY]: {
+                    name: FIRST_CATEGORY,
+                    enabled,
+                    [PAYROLL_CODE]: hasPayrollCode ? 'PAY-100' : '',
+                    pendingAction: pendingDelete ? CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE : undefined,
+                },
+                [SECOND_CATEGORY]: {name: SECOND_CATEGORY, enabled: true},
+            };
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
+                await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policy.id}`, categories);
+            });
+
+            // When the unfiltered Categories page renders.
+            const {unmount} = renderPage(SCREENS.WORKSPACE.CATEGORIES, {policyID: policy.id});
+            await waitForBatchedUpdatesWithAct();
+
+            // Then both headers and cells follow the workspace, deletion, and responsive gates.
+            expect(screen.getByText(SECOND_CATEGORY)).toBeOnTheScreen();
+            expect(screen.queryAllByText(TestHelper.translateLocal('workspace.categories.payrollCode')).length > 0).toBe(expected);
+            expect(screen.queryAllByText('PAY-100').length > 0).toBe(expected);
+            unmount();
+        },
+    );
+
+    it('searches payroll codes without changing column visibility', async () => {
+        // Given a Control workspace with payroll codes that do not occur in category names.
+        await TestHelper.signInWithTestUser();
+        const policy = {...LHNTestUtils.getFakePolicy(), type: CONST.POLICY.TYPE.CORPORATE, role: CONST.POLICY.ROLE.ADMIN, areCategoriesEnabled: true};
+        const categories: PolicyCategories = {
+            [FIRST_CATEGORY]: {name: FIRST_CATEGORY, enabled: true, [PAYROLL_CODE]: 'PAY-100'},
+            [SECOND_CATEGORY]: {name: SECOND_CATEGORY, enabled: true, [PAYROLL_CODE]: 'PAY-200'},
+        };
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policy.id}`, categories);
+        });
+        const {unmount} = renderPage(SCREENS.WORKSPACE.CATEGORIES, {policyID: policy.id});
+        await waitForBatchedUpdatesWithAct();
+
+        // When searching by payroll code with a different case.
+        fireEvent.changeText(screen.getByPlaceholderText(TestHelper.translateLocal('workspace.categories.findCategory')), 'pay-100');
+        await waitForBatchedUpdatesWithAct();
+
+        // Then only the matching category remains, and clearing search restores both rows.
+        await waitFor(() => {
+            expect(screen.getByText(FIRST_CATEGORY)).toBeOnTheScreen();
+            expect(screen.queryByText(SECOND_CATEGORY)).not.toBeOnTheScreen();
+        });
+        fireEvent.changeText(screen.getByPlaceholderText(TestHelper.translateLocal('workspace.categories.findCategory')), '');
+        await waitForBatchedUpdatesWithAct();
+        expect(await screen.findByText(SECOND_CATEGORY)).toBeOnTheScreen();
+        expect(screen.getAllByText(TestHelper.translateLocal('workspace.categories.payrollCode')).length).toBeGreaterThan(0);
+        unmount();
+    });
+
+    it('sorts payroll codes in both directions with blanks and handles removing the last code', async () => {
+        // Given payroll code ordering that differs from category name ordering.
+        let categories: WorkspaceCategoryTableRowData[] = [FIRST_CATEGORY, SECOND_CATEGORY, 'categoryThree'].map((name, index) => ({
+            keyForList: name,
+            name,
+            payrollCode: ['PAY-200', 'PAY-100', ''].at(index),
+            enabled: true,
+            disabled: false,
+            isLocked: false,
+            canEditName: false,
+            action: jest.fn(),
+            dismissError: jest.fn(),
+            onToggleEnabled: jest.fn(),
+            onRenameName: jest.fn(),
+        }));
+        const tableRef = React.createRef<TableHandle<WorkspaceCategoryTableRowData, WorkspaceCategoryTableColumnKey, string>>();
+        const renderTable = (shouldShowPayrollCodeColumn: boolean) => (
+            <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, CurrentReportIDContextProvider, ModalProvider]}>
+                <PortalProvider>
+                    <NavigationContainer>
+                        <ScreenWrapperStatusContext.Provider value={{didScreenTransitionEnd: true, isSafeAreaTopPaddingApplied: true, isSafeAreaBottomPaddingApplied: true}}>
+                            <WorkspaceCategoriesTable
+                                ref={tableRef}
+                                categories={categories}
+                                selectedKeys={[]}
+                                selectionEnabled={false}
+                                shouldShowGLCodeColumn={false}
+                                shouldShowPayrollCodeColumn={shouldShowPayrollCodeColumn}
+                                shouldShowApproverColumn={false}
+                                emptyStateSubtitleText=""
+                                emptyStateButtons={undefined}
+                                onRowSelectionChange={jest.fn()}
+                            />
+                        </ScreenWrapperStatusContext.Provider>
+                    </NavigationContainer>
+                </PortalProvider>
+            </ComposeProviders>
+        );
+        const {unmount, rerender} = render(renderTable(true));
+        await waitForBatchedUpdatesWithAct();
+        const getRowNames = () => tableRef.current?.getProcessedData().map((row) => row.name);
+
+        // When sorting by payroll code, both directions include the category with no code.
+        const [payrollCodeHeader] = screen.getAllByRole('button', {name: TestHelper.translateLocal('workspace.categories.payrollCode')});
+        fireEvent.press(payrollCodeHeader);
+        await waitForBatchedUpdatesWithAct();
+
+        // Then descending and ascending order follow payroll codes rather than names.
+        expect(getRowNames()).toEqual([FIRST_CATEGORY, SECOND_CATEGORY, 'categoryThree']);
+        fireEvent.press(payrollCodeHeader);
+        await waitForBatchedUpdatesWithAct();
+        expect(getRowNames()).toEqual(['categoryThree', SECOND_CATEGORY, FIRST_CATEGORY]);
+
+        categories = categories.map((category) => ({...category, payrollCode: ''}));
+        rerender(renderTable(false));
+        await waitForBatchedUpdatesWithAct();
+        expect(screen.queryAllByText(TestHelper.translateLocal('workspace.categories.payrollCode'))).toHaveLength(0);
+        expect(getRowNames()).toEqual([FIRST_CATEGORY, 'categoryThree', SECOND_CATEGORY]);
+        unmount();
     });
 
     it('should delete categories through UI interactions', async () => {

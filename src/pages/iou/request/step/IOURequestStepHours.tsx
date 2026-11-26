@@ -94,6 +94,7 @@ function IOURequestStepHours({
     }, [selectedTab, committedCount]);
 
     const {suppressDiscardPrompt} = useDiscardChangesConfirmation({
+        shouldCloseRHPOnDiscard: action === CONST.IOU.ACTION.CREATE,
         getHasUnsavedChanges: () => getStringFieldHasUnsavedChanges(typedCount, committedCount, isEmbeddedInStartPage),
         onCancel: () => {
             focusTimeoutRef.current = setTimeout(() => textInputRef.current?.focus(), CONST.ANIMATED_TRANSITION);

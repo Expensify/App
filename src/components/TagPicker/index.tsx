@@ -18,7 +18,7 @@ import type {PolicyTag, PolicyTags} from '@src/types/onyx';
 
 import React, {startTransition, useDeferredValue, useState} from 'react';
 
-import type {TagPickerModel} from './TagPickerResults';
+import type {TagPickerModel, TagPickerSections} from './TagPickerResults';
 
 import TagPickerResults from './TagPickerResults';
 
@@ -63,9 +63,6 @@ type TagPickerProps = {
 
     /** Whether the search input should auto-focus when the picker mounts. Only opted into by the inline-edit popover wrapper. */
     shouldAutoFocusSearchInput?: boolean;
-
-    /** Reports how many rows the unfiltered list renders, section headings included, so a container can size itself to them */
-    onRenderedRowCountChange?: (rowCount: number) => void;
 
     /** Number of available tags at which the search input appears. Defaults to `CONST.STANDARD_LIST_ITEM_LIMIT`. */
     searchInputThreshold?: number;
@@ -118,14 +115,18 @@ function TagPickerSearchField({canSearch, isLoading, shouldAutoFocusSearchInput,
     );
 }
 
-type TagPickerSearchProps = Pick<TagPickerProps, 'onSubmit' | 'onRenderedRowCountChange'> & {
+type TagPickerSearchProps = Pick<TagPickerProps, 'onSubmit' | 'shouldAutoFocusSearchInput' | 'addBottomSafeAreaPadding'> & {
     model: TagPickerModel;
-    shouldAutoFocusSearchInput: boolean;
-    addBottomSafeAreaPadding: boolean;
+    unfilteredSections?: TagPickerSections;
+    setRowCountFrozen?: (shouldFreeze: boolean) => void;
 };
 
-function TagPickerSearch({model, shouldAutoFocusSearchInput, onSubmit, onRenderedRowCountChange, addBottomSafeAreaPadding}: TagPickerSearchProps) {
+function TagPickerSearch({model, shouldAutoFocusSearchInput = false, onSubmit, addBottomSafeAreaPadding = false, unfilteredSections, setRowCountFrozen}: TagPickerSearchProps) {
     const [searchQuery, setSearchQuery] = useState('');
+    const updateResultsQuery = (query: string) => {
+        setSearchQuery(query);
+        setRowCountFrozen?.(!!query);
+    };
 
     return (
         <SelectionListWithSections.Root>
@@ -133,47 +134,32 @@ function TagPickerSearch({model, shouldAutoFocusSearchInput, onSubmit, onRendere
                 canSearch={model.canSearch}
                 isLoading={model.isLoading}
                 shouldAutoFocusSearchInput={shouldAutoFocusSearchInput}
-                onQueryChange={setSearchQuery}
+                onQueryChange={updateResultsQuery}
             />
             <TagPickerResults
                 model={model}
                 searchQuery={searchQuery}
                 onSelectTag={onSubmit}
-                onRenderedRowCountChange={onRenderedRowCountChange}
+                unfilteredSections={unfilteredSections}
                 addBottomSafeAreaPadding={addBottomSafeAreaPadding}
             />
         </SelectionListWithSections.Root>
     );
 }
 
-function TagPicker({
-    selectedTag,
-    transactionTag,
-    hasDependentTags,
-    tagListName,
-    policyID,
-    tagListIndex,
-    shouldShowDisabledAndSelectedOption = false,
-    shouldOrderListByTagName = false,
-    onSubmit,
-    additionalTagsToInclude,
-    addBottomSafeAreaPadding = false,
-    shouldShowGLCode: shouldShowGLCodeProp,
-    shouldAutoFocusSearchInput = false,
-    onRenderedRowCountChange,
-    searchInputThreshold = CONST.STANDARD_LIST_ITEM_LIMIT,
-}: TagPickerProps) {
+type TagPickerDataProps = Pick<TagPickerProps, 'policyID' | 'tagListIndex'> & Partial<Pick<TagPickerProps, 'tagListName' | 'additionalTagsToInclude'>> & {shouldLoadTags?: boolean};
+
+function useTagPickerData({policyID, tagListIndex, tagListName, additionalTagsToInclude, shouldLoadTags = true}: TagPickerDataProps) {
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`);
     const [shouldShowGLCodeFromPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
         selector: (policy) => !!policy?.showTagGLCodes && !!policy?.glCodes,
     });
-    const shouldShowGLCode = shouldShowGLCodeProp ?? shouldShowGLCodeFromPolicy;
-    const [policyRecentlyUsedTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS}${policyID}`);
     // Backfill the policy's tags on demand so lazy-loaded accounts don't get stuck showing only the selected tag.
-    const {isLoadingPolicyTags} = useLoadPolicyTags(policyID);
+    const {isLoadingPolicyTags} = useLoadPolicyTags(shouldLoadTags ? policyID : undefined);
 
-    const policyRecentlyUsedTagsList = policyRecentlyUsedTags?.[tagListName] ?? [];
     const currentPolicyTagList = getTagList(policyTags, tagListIndex);
+    const recentTagListName = tagListName ?? currentPolicyTagList.name;
+    const [recentlyUsedTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS}${policyID}`, {selector: (recentTags) => recentTags?.[recentTagListName]});
     // Tag lists can have identical display names, so use the key of the selected Onyx entry.
     const tagListKey = Object.entries(policyTags ?? {}).find(([, list]) => list === currentPolicyTagList)?.[0];
     const policyTagSnapshot = {
@@ -190,6 +176,25 @@ function TagPicker({
     const isSameTagList =
         deferredTagSnapshot.policyID === policyID && deferredTagSnapshot.tagListIndex === tagListIndex && deferredTagSnapshot.tagListName === tagListName && !hasListBeenReplaced;
     const {policyTagList, isLoadingNewOptions} = isSameTagList ? deferredTagSnapshot : policyTagSnapshot;
+    return {policyTagList, isLoadingNewOptions, recentlyUsedTags, shouldShowGLCodeFromPolicy};
+}
+
+type TagPickerModelOptions = Omit<TagPickerProps, 'policyID' | 'tagListName' | 'onSubmit' | 'shouldAutoFocusSearchInput' | 'addBottomSafeAreaPadding'>;
+
+function getTagPickerModel(
+    {policyTagList, isLoadingNewOptions, recentlyUsedTags, shouldShowGLCodeFromPolicy}: ReturnType<typeof useTagPickerData>,
+    {
+        selectedTag,
+        transactionTag,
+        hasDependentTags,
+        tagListIndex,
+        shouldShowDisabledAndSelectedOption = false,
+        shouldOrderListByTagName = false,
+        additionalTagsToInclude,
+        shouldShowGLCode,
+        searchInputThreshold = CONST.STANDARD_LIST_ITEM_LIMIT,
+    }: TagPickerModelOptions,
+): TagPickerModel {
     const selectedOptions = getSelectedOptions(selectedTag);
 
     // Merge any orphaned tag names into the policy's tag map so they appear as selectable options.
@@ -226,7 +231,11 @@ function TagPicker({
     const enabledTags: Array<PolicyTag | SelectedTagOption> = shouldShowDisabledAndSelectedOption ? [...selectedOptions] : [];
     const selectedName = selectedOptions.at(0)?.name;
     let availableTagsCount = enabledTags.length;
-    for (const policyTag of Object.values(policyTagsWithAdditions)) {
+    let policyTagCount = 0;
+    for (const [key, policyTag] of Object.entries(policyTagsWithAdditions)) {
+        if (policyTag.enabled && (baseTags === policyTagsWithAdditions || Object.hasOwn(baseTags, key))) {
+            policyTagCount++;
+        }
         if (shouldShowDisabledAndSelectedOption && (!policyTag.enabled || policyTag.name === selectedName)) {
             continue;
         }
@@ -239,28 +248,32 @@ function TagPicker({
         }
     }
 
-    const model: TagPickerModel = {
+    return {
         selectedOptions,
         selectedTag,
         tags: enabledTags,
-        recentlyUsedTags: policyRecentlyUsedTagsList,
-        shouldShowGLCode: !!shouldShowGLCode,
+        recentlyUsedTags: recentlyUsedTags ?? [],
+        shouldShowGLCode: !!(shouldShowGLCode ?? shouldShowGLCodeFromPolicy),
         shouldOrderListByTagName,
         searchInputThreshold,
         canSearch: availableTagsCount >= searchInputThreshold,
+        hasSearchablePolicyTags: policyTagCount >= searchInputThreshold,
         isLoading: isLoadingNewOptions,
     };
+}
 
+function TagPicker({policyID, tagListName, onSubmit, shouldAutoFocusSearchInput, addBottomSafeAreaPadding, ...options}: TagPickerProps) {
+    const data = useTagPickerData({policyID, tagListName, tagListIndex: options.tagListIndex, additionalTagsToInclude: options.additionalTagsToInclude});
     return (
         <TagPickerSearch
-            model={model}
+            model={getTagPickerModel(data, options)}
             onSubmit={onSubmit}
             shouldAutoFocusSearchInput={shouldAutoFocusSearchInput}
-            onRenderedRowCountChange={onRenderedRowCountChange}
             addBottomSafeAreaPadding={addBottomSafeAreaPadding}
         />
     );
 }
 
 export default TagPicker;
-export type {TagPickerProps};
+export {getTagPickerModel, TagPickerSearch, useTagPickerData};
+export type {TagPickerProps, TagPickerSearchProps};

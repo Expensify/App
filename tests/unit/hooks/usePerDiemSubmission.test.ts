@@ -10,12 +10,12 @@ import {hasCompletePerDiemCustomUnit, submitPerDiemExpense, submitPerDiemExpense
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Policy} from '@src/types/onyx';
+import type {Policy, Report} from '@src/types/onyx';
 
 import Onyx from 'react-native-onyx';
 
 import createMock from '../../utils/createMock';
-import {buildChatReport, buildPerDiemTransaction, CURRENT_USER_PERSONAL_DETAILS, OTHER_USER_PARTICIPANT, renderAndSubmit} from '../../utils/expenseSubmissionTestUtils';
+import {buildChatReport, buildPerDiemTransaction, CURRENT_USER_PERSONAL_DETAILS, OTHER_USER_PARTICIPANT, renderAndSubmit, REPORT_ID} from '../../utils/expenseSubmissionTestUtils';
 
 jest.mock('@userActions/IOU/PerDiem', () => ({
     submitPerDiemExpense: jest.fn(),
@@ -145,6 +145,60 @@ describe('usePerDiemSubmission', () => {
             expect(mockNavigateAfterExpenseCreate).toHaveBeenCalledWith(
                 expect.objectContaining({activeReportID: EXPENSE_REPORT_ID, transactionID: PER_DIEM_TRANSACTION_ID, shouldNavigate: false}),
             );
+        });
+    });
+
+    describe('chat preview flag', () => {
+        const workspaceChat = buildChatReport({chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT});
+        let getTopmostReportIdSpy: jest.SpyInstance;
+
+        beforeEach(() => {
+            // A submission into an expense report reads the topmost report, and no navigator is mounted here
+            getTopmostReportIdSpy = jest.spyOn(Navigation, 'getTopmostReportId').mockReturnValue(undefined);
+            mockSubmitPerDiemExpenseAction.mockReturnValue({iouReport: buildChatReport({reportID: EXPENSE_REPORT_ID}), transactionID: PER_DIEM_TRANSACTION_ID});
+        });
+
+        afterEach(() => {
+            getTopmostReportIdSpy.mockRestore();
+        });
+
+        function buildWorkspaceChatParams(report: Report) {
+            return buildParams({
+                report,
+                reportDrafts: {[`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${REPORT_ID}`]: workspaceChat},
+                selectedParticipants: [{accountID: CONST.DEFAULT_NUMBER_ID, reportID: REPORT_ID, isPolicyExpenseChat: true, selected: true}],
+            });
+        }
+
+        it('flags the new per diem expense for the chat preview when it is submitted to the chat', async () => {
+            // Given a per diem expense submitted from the workspace chat
+
+            // When the submission finishes and this hook handles the navigation
+            await submit(buildWorkspaceChatParams(workspaceChat), true);
+
+            // Then the chat preview is asked to highlight it, since the user lands on that chat
+            expect(mockNavigateAfterExpenseCreate).toHaveBeenCalledWith(expect.objectContaining({activeReportID: REPORT_ID, shouldFlagNewTransactionForChatPreview: true}));
+        });
+
+        it('does not flag the chat preview when the per diem expense is submitted into an expense report', async () => {
+            // Given a per diem expense submitted from inside an expense report of that chat
+            const expenseReport = buildChatReport({reportID: EXPENSE_REPORT_ID, type: CONST.REPORT.TYPE.EXPENSE, chatReportID: REPORT_ID});
+
+            // When the submission finishes
+            await submit(buildWorkspaceChatParams(expenseReport), true);
+
+            // Then the chat preview is not flagged, since the user stays on the report, whose table highlights the expense instead
+            expect(mockNavigateAfterExpenseCreate).toHaveBeenCalledWith(expect.objectContaining({activeReportID: EXPENSE_REPORT_ID, shouldFlagNewTransactionForChatPreview: false}));
+        });
+
+        it('does not flag the chat preview when the navigation was already handled before the submission', async () => {
+            // Given a per diem expense submitted to the workspace chat, after the caller already navigated away
+
+            // When the submission finishes without this hook handling the navigation
+            await submit(buildWorkspaceChatParams(workspaceChat), false);
+
+            // Then the chat preview is not flagged by this hook
+            expect(mockNavigateAfterExpenseCreate).toHaveBeenCalledWith(expect.objectContaining({activeReportID: REPORT_ID, shouldFlagNewTransactionForChatPreview: false}));
         });
     });
 

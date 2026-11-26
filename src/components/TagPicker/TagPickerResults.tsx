@@ -15,7 +15,7 @@ import CONST from '@src/CONST';
 import type {PolicyTag} from '@src/types/onyx';
 import getEmptyArray from '@src/types/utils/getEmptyArray';
 
-import React, {useEffect} from 'react';
+import React from 'react';
 
 type TagPickerModel = {
     tags: Array<PolicyTag | SelectedTagOption>;
@@ -26,34 +26,36 @@ type TagPickerModel = {
     shouldOrderListByTagName: boolean;
     shouldShowGLCode: boolean;
     canSearch: boolean;
+    hasSearchablePolicyTags: boolean;
     isLoading: boolean;
 };
+
+type TagPickerSections = ReturnType<typeof getTagListSections>;
 
 type TagPickerResultsProps = {
     model: TagPickerModel;
     searchQuery: string;
     onSelectTag: (tag: Partial<OptionData>) => void;
-    onRenderedRowCountChange?: (rowCount: number) => void;
+    unfilteredSections?: TagPickerSections;
     addBottomSafeAreaPadding: boolean;
 };
 
-function TagPickerResults({model, searchQuery, onSelectTag, onRenderedRowCountChange, addBottomSafeAreaPadding}: TagPickerResultsProps) {
-    const {tags, selectedOptions, selectedTag, recentlyUsedTags, searchInputThreshold, shouldOrderListByTagName, shouldShowGLCode, canSearch, isLoading} = model;
+function buildTagPickerSections(
+    model: TagPickerModel,
+    searchQuery: string,
+    {translate, localeCompare}: Pick<ReturnType<typeof useLocalize>, 'translate' | 'localeCompare'>,
+): TagPickerSections {
+    const {tags, selectedOptions, recentlyUsedTags, searchInputThreshold, shouldShowGLCode} = model;
+    return getTagListSections({searchValue: searchQuery, selectedOptions, tags, recentlyUsedTags, localeCompare, translate, shouldShowGLCode, searchInputThreshold});
+}
+
+function TagPickerResults({model, searchQuery, onSelectTag, unfilteredSections, addBottomSafeAreaPadding}: TagPickerResultsProps) {
+    const {selectedTag, shouldOrderListByTagName, canSearch, isLoading} = model;
     const {translate, localeCompare} = useLocalize();
     const styles = useThemeStyles();
 
-    const tagSections = isLoading
-        ? getEmptyArray<never>()
-        : getTagListSections({
-              searchValue: searchQuery,
-              selectedOptions,
-              tags,
-              recentlyUsedTags,
-              localeCompare,
-              translate,
-              shouldShowGLCode,
-              searchInputThreshold,
-          });
+    const preparedSections = searchQuery ? undefined : unfilteredSections;
+    const tagSections = isLoading ? getEmptyArray<never>() : (preparedSections ?? buildTagPickerSections(model, searchQuery, {translate, localeCompare}));
     const sections = tagSections.map((section) => ({
         ...section,
         data: (shouldOrderListByTagName ? section.data.toSorted((a, b) => localeCompare(a.text ?? '', b.text ?? '')) : section.data).map((tag) => ({...tag, titleStyles: styles.w100})),
@@ -61,14 +63,6 @@ function TagPickerResults({model, searchQuery, onSelectTag, onRenderedRowCountCh
 
     const selectedOptionKey = sections.at(0)?.data.find((tag) => tag.searchText === selectedTag)?.keyForList;
     const itemCount = sections.reduce((total, section) => total + section.data.length, 0);
-    const renderedRowCount = sections.reduce((total, section) => total + (section.title ? 1 : 0), itemCount);
-
-    useEffect(() => {
-        if (isLoading || searchQuery) {
-            return;
-        }
-        onRenderedRowCountChange?.(renderedRowCount);
-    }, [renderedRowCount, searchQuery, isLoading, onRenderedRowCountChange]);
 
     return (
         <>
@@ -96,4 +90,5 @@ function TagPickerResults({model, searchQuery, onSelectTag, onRenderedRowCountCh
 }
 
 export default TagPickerResults;
-export type {TagPickerModel};
+export {buildTagPickerSections};
+export type {TagPickerModel, TagPickerSections};

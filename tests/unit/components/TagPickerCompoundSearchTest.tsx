@@ -285,7 +285,6 @@ describe('TagPicker', () => {
 
     it('keeps the skeleton until the loaded tags can render', async () => {
         // Given a lazy-loaded workspace whose picker only knows the selected tag.
-        const onRenderedRowCountChange = jest.fn();
         render(
             <TagPicker
                 policyID={POLICY_ID}
@@ -293,12 +292,10 @@ describe('TagPicker', () => {
                 tagListName="Department"
                 tagListIndex={0}
                 onSubmit={jest.fn()}
-                onRenderedRowCountChange={onRenderedRowCountChange}
             />,
         );
         await waitForBatchedUpdatesWithAct();
         expect(mockListCommit.mock.lastCall?.[0].loading).toBeDefined();
-        expect(onRenderedRowCountChange).not.toHaveBeenCalled();
         mockListCommit.mockClear();
 
         // When the policy tags arrive in Onyx.
@@ -312,6 +309,5 @@ describe('TagPicker', () => {
         // Then the first non-loading commit already contains a real policy tag.
         const firstLoadedList = mockListCommit.mock.calls.find(([props]) => !props.loading)?.[0];
         expect(firstLoadedList?.sections.flatMap(({data}) => data.map(({keyForList}) => keyForList))).toContain('Finance');
-        expect(onRenderedRowCountChange).toHaveBeenCalledWith(2);
     });
 });
