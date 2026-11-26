@@ -780,4 +780,34 @@ describe('getMoneyRequestInformation', () => {
 
         expect(result.transaction.comment?.customUnit).toEqual(customUnit);
     });
+
+    it('does not copy the workspace amount from Search to an optimistic split', () => {
+        // Given an expense that Search returned with its amount converted to the workspace currency
+        const existingTransaction: Transaction = {
+            transactionID: 'original-transaction',
+            reportID: 'expense-report',
+            amount: -10000,
+            currency: 'EUR',
+            policyConvertedAmount: -12000,
+            created: '2024-01-01',
+            merchant: 'Test Merchant',
+        };
+
+        // When it is split into a smaller expense
+        const result = getMoneyRequestInformation({
+            getCurrencyDecimals: getCurrencyDecimalsLocal,
+            ...baseParams,
+            existingTransaction,
+            isSplitExpense: true,
+            transactionParams: {
+                ...baseParams.transactionParams,
+                amount: 5000,
+                currency: 'EUR',
+                originalTransactionID: existingTransaction.transactionID,
+            },
+        });
+
+        // Then the split has no workspace amount, because the original's full value would be wrong for it until the next search
+        expect(result.transaction.policyConvertedAmount).toBeUndefined();
+    });
 });

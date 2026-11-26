@@ -106,6 +106,12 @@ type MoneyRequestConfirmationListProps = {
 
     /** When true, hide the "To:" section */
     shouldHideToSection?: boolean;
+
+    /** Reports whether the inline amount field holds input the draft can't show as the user's: a sign with no digits, or a currency the user picked */
+    onUnsavedAmountInputChange?: (hasUnsavedInput: boolean) => void;
+
+    /** Called when the user confirms a valid expense, right before `onConfirm` or `onSendMoney` runs */
+    onSubmitWillStart?: () => void;
 };
 
 export type {MoneyRequestConfirmationListItem, MoneyRequestConfirmationListProps};

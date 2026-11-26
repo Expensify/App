@@ -752,6 +752,60 @@ describe('TransactionUtils', () => {
             expect(TransactionUtils.isFailedScanAmountPlaceholder(updatedTransaction)).toBe(true);
         });
 
+        it('should clear the workspace amount from Search when the amount is edited', () => {
+            // Given a searched expense whose workspace amount came from Search
+            const transaction = generateTransaction({amount: -1000, currency: CONST.CURRENCY.USD, policyConvertedAmount: -1000, policyCurrency: CONST.CURRENCY.USD});
+
+            // When its amount is edited
+            const updatedTransaction = TransactionUtils.getUpdatedTransaction({
+                transaction,
+                isFromExpenseReport: true,
+                transactionChanges: {amount: 2500},
+                personalPolicyOutputCurrency: undefined,
+                getCurrencySymbol: getCurrencySymbolLocal,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+            });
+
+            // Then the stale workspace amount is cleared so the expense shows its own amount until the next search
+            expect(updatedTransaction.policyConvertedAmount).toBeNull();
+        });
+
+        it('should clear the workspace amount when the amount is edited on a transaction without one', () => {
+            // Given an expense whose stored copy has no workspace amount, while the Search snapshot still holds one from an earlier search
+            const transaction = generateTransaction({amount: -1000, currency: CONST.CURRENCY.USD});
+
+            // When its amount is edited
+            const updatedTransaction = TransactionUtils.getUpdatedTransaction({
+                transaction,
+                isFromExpenseReport: true,
+                transactionChanges: {amount: 2500},
+                personalPolicyOutputCurrency: undefined,
+                getCurrencySymbol: getCurrencySymbolLocal,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+            });
+
+            // Then the update still clears it, so the snapshot does not keep showing the old workspace amount
+            expect(updatedTransaction.policyConvertedAmount).toBeNull();
+        });
+
+        it('should keep the workspace amount from Search when the amount does not change', () => {
+            // Given a searched expense whose workspace amount came from Search
+            const transaction = generateTransaction({amount: -1000, currency: CONST.CURRENCY.USD, policyConvertedAmount: -1000, policyCurrency: CONST.CURRENCY.USD});
+
+            // When only its merchant is edited
+            const updatedTransaction = TransactionUtils.getUpdatedTransaction({
+                transaction,
+                isFromExpenseReport: true,
+                transactionChanges: {merchant: 'New merchant'},
+                personalPolicyOutputCurrency: undefined,
+                getCurrencySymbol: getCurrencySymbolLocal,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+            });
+
+            // Then the workspace amount stays because it still matches the expense
+            expect(updatedTransaction.policyConvertedAmount).toBe(-1000);
+        });
+
         it('should update transaction when distance is changed', () => {
             // Given: a policy with a mileage rate
             const fakePolicy: Policy = {
@@ -4357,6 +4411,42 @@ describe('TransactionUtils', () => {
                 convertedAmount: -100,
             });
             expect(TransactionUtils.getConvertedAmount(transaction, true, false, false, true)).toBe(-100);
+        });
+    });
+
+    describe('getAmountWithDisplaySign', () => {
+        it('shows an IOU amount as positive', () => {
+            // Given an amount stored as negative on an IOU, which can never be negative
+            const storedAmount = -100;
+
+            // When it is signed for display outside an expense report or tracked expense
+            const displayAmount = TransactionUtils.getAmountWithDisplaySign(storedAmount);
+
+            // Then it shows as positive
+            expect(displayAmount).toBe(100);
+        });
+
+        it('flips the stored sign for expense reports and tracked expenses', () => {
+            // Given an expense stored with the opposite sign, as expense reports and tracked expenses store it
+            const storedAmount = -100;
+
+            // When it is signed for display on an expense report and as a tracked expense
+            const expenseReportAmount = TransactionUtils.getAmountWithDisplaySign(storedAmount, true);
+            const trackedExpenseAmount = TransactionUtils.getAmountWithDisplaySign(storedAmount, false, true);
+
+            // Then both show the flipped sign, so a refund stored as positive would show as negative
+            expect(expenseReportAmount).toBe(100);
+            expect(trackedExpenseAmount).toBe(100);
+            expect(TransactionUtils.getAmountWithDisplaySign(100, true)).toBe(-100);
+        });
+
+        it('shows zero without a negative sign', () => {
+            // Given a zero amount on an expense report
+            // When it is signed for display
+            const displayAmount = TransactionUtils.getAmountWithDisplaySign(0, true);
+
+            // Then it is plain zero, so the cell never shows -0
+            expect(Object.is(displayAmount, 0)).toBe(true);
         });
     });
 

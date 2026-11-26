@@ -246,6 +246,20 @@ describe('OnyxDerived', () => {
             });
         });
 
+        it('keeps the stored name as the raw report name of an archived room', async () => {
+            // Given an archived room, whose display name gets the archived suffix
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${mockReport.reportID}`, {private_isArchived: 'true'});
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${mockReport.reportID}`, {...mockReport, reportName: '#archived-room'});
+            await waitForBatchedUpdates();
+
+            // When the report attributes are computed
+            const derivedReportAttributes = await OnyxUtils.get(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES);
+
+            // Then the raw report name stays the stored name, so room mentions in previews read the same as in the rendered message
+            expect(derivedReportAttributes?.reports?.[mockReport.reportID]?.reportName).toContain('(archived)');
+            expect(derivedReportAttributes?.reports?.[mockReport.reportID]?.rawReportName).toBe('#archived-room');
+        });
+
         it('should clear the report attributes when the report is cleared', async () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${mockReport.reportID}`, mockReport);
             await waitForBatchedUpdates();

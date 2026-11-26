@@ -537,6 +537,35 @@ describe('ReportNameUtils', () => {
     });
 
     describe('computeReportName - Thread report action names', () => {
+        test('Comment parent action that mentions a room by reportID', () => {
+            // Given a thread whose parent comment mentions a room by reportID, and the room only in the reports passed to the computation
+            const thread: Report = createWorkspaceThread(49);
+            const mentionedRoomID = '777';
+            const parentAction = createMock<ReportAction>({
+                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                reportActionID: String(thread.parentReportActionID),
+                message: [{type: CONST.REPORT.MESSAGE.TYPE.COMMENT, html: `see <mention-report reportID="${mentionedRoomID}"></mention-report>`, text: 'see'}],
+                created: '',
+                lastModified: '',
+                actorAccountID: 1,
+                person: [],
+            });
+            const reports: OnyxCollection<Report> = {
+                [`${ONYXKEYS.COLLECTION.REPORT}${mentionedRoomID}`]: {reportID: mentionedRoomID, reportName: '#mentioned-room'},
+            };
+            const reportActionsCollection: Record<string, ReportActions> = {
+                [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${thread.parentReportID}`]: {
+                    [String(thread.parentReportActionID)]: parentAction,
+                },
+            };
+
+            // When the thread name is computed from the parent comment
+            const name = computeReportName(thread, reports, emptyCollections.policies, undefined, undefined, participantsPersonalDetails, reportActionsCollection, currentUserAccountID);
+
+            // Then the room keeps its name instead of showing as #Hidden
+            expect(name).toBe('see #mentioned-room');
+        });
+
         test('Submitted parent action', () => {
             const thread: Report = createWorkspaceThread(50);
             const parentAction = createMock<ReportAction>({
