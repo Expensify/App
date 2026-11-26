@@ -121,7 +121,7 @@ function DisplayPopup({queryJSON, searchResults, closeOverlay, onSort}: DisplayP
                         value={validGroupByValue ? translate(`search.filters.groupBy.${validGroupByValue}`) : undefined}
                     />
                 )}
-                {!!groupBy && !shouldReturnTripRooms && (
+                {(!!groupBy || !!groupCurrencyValue) && !shouldReturnTripRooms && (
                     <MenuItemField
                         name={translate('common.groupCurrency')}
                         onPress={() => setSelectedDisplayFilter(CONST.SEARCH.SYNTAX_FILTER_KEYS.GROUP_CURRENCY)}
