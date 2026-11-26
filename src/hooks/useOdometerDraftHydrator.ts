@@ -14,20 +14,13 @@ import useOnyx from './useOnyx';
 type UseOdometerDraftHydratorParams = {
     transaction: OnyxEntry<Transaction>;
     transactionRequestType: IOURequestType | undefined;
-    isLoadingTransaction?: boolean;
-    isLoadingSelectedTab?: boolean;
 };
 
 // Module-level so it survives host screen remounts; otherwise the mount effect re-fires and
 // clobbers Replace/Crop/Rotate results with the stale rehydrated draft.
 let lastHydratedDraft: OdometerDraft | null = null;
 
-function useOdometerDraftHydrator({
-    transaction,
-    transactionRequestType,
-    isLoadingTransaction = false,
-    isLoadingSelectedTab = false,
-}: UseOdometerDraftHydratorParams): (newIOUType: IOURequestType) => void {
+function useOdometerDraftHydrator({transaction, transactionRequestType}: UseOdometerDraftHydratorParams): (newIOUType: IOURequestType) => void {
     const [odometerDraft] = useOnyx(ONYXKEYS.ODOMETER_DRAFT);
 
     useEffect(() => {
@@ -35,9 +28,6 @@ function useOdometerDraftHydrator({
             return;
         }
         if (!odometerDraft) {
-            return;
-        }
-        if (isLoadingTransaction || isLoadingSelectedTab) {
             return;
         }
         if (lastHydratedDraft === odometerDraft) {
@@ -52,7 +42,7 @@ function useOdometerDraftHydrator({
         lastHydratedDraft = odometerDraft;
         // transaction.comment intentionally excluded - it changes after our own merge and would re-fire.
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [transactionRequestType, odometerDraft, isLoadingTransaction, isLoadingSelectedTab]);
+    }, [transactionRequestType, odometerDraft]);
 
     return (newIOUType: IOURequestType) => {
         if (newIOUType !== CONST.IOU.REQUEST_TYPE.DISTANCE_ODOMETER) {

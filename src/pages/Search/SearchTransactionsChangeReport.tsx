@@ -113,7 +113,7 @@ function SearchTransactionsChangeReport() {
     // Get the policyID from the selected transactions' report to pass to usePolicyForMovingExpenses
     // This ensures the "Create report" button shows the correct workspace instead of the user's default
     const selectedReportPolicyID = selectedReportID ? allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${selectedReportID}`]?.policyID : undefined;
-    const {policyForMovingExpensesID, shouldSelectPolicy, shouldNavigateToUpgradePath, arePoliciesLoaded} = usePolicyForMovingExpenses(
+    const {policyForMovingExpensesID, shouldSelectPolicy, shouldNavigateToUpgradePath} = usePolicyForMovingExpenses(
         hasPerDiemTransactions,
         undefined,
         selectedReportPolicyID,
@@ -221,10 +221,6 @@ function SearchTransactionsChangeReport() {
     const createReport = () => {
         if (shouldBlockOfflineAllMatchingMove()) {
             showOfflineModal();
-            return;
-        }
-
-        if (!arePoliciesLoaded) {
             return;
         }
 

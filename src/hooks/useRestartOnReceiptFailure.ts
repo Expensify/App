@@ -9,27 +9,28 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {validTransactionDraftIDsSelector} from '@src/selectors/TransactionDraft';
 import type {Transaction} from '@src/types/onyx';
-import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
-import {useEffect} from 'react';
+import {useEffect, useRef} from 'react';
 
 import useOnyx from './useOnyx';
 
 const useRestartOnReceiptFailure = (transaction: OnyxEntry<Transaction>, reportID: string, iouType: IOUType, action: IOUAction) => {
-    const [draftTransactionIDs, draftTransactionsMetadata] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftIDsSelector});
+    const [draftTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftIDsSelector});
 
     // When the component mounts, if there is a receipt, see if the image can be read from the disk. If not, redirect the user to the starting step of the flow.
     // This is because until the request is saved, the receipt file is only stored in the browsers memory as a blob:// and if the browser is refreshed, then
     // the image ceases to exist. The best way for the user to recover from this is to start over from the start of the request process.
     // skip this in case user is moving the transaction as the receipt path will be valid in that case
+    const hasCheckedRef = useRef(false);
     useEffect(() => {
         let isScanFilesCanBeRead = true;
 
-        if (!transaction || action !== CONST.IOU.ACTION.CREATE || isLoadingOnyxValue(draftTransactionsMetadata)) {
+        if (hasCheckedRef.current || !transaction || action !== CONST.IOU.ACTION.CREATE) {
             return;
         }
+        hasCheckedRef.current = true;
         const itemReceiptFilename = transaction.receipt?.filename;
         const itemReceiptPath = transaction.receipt?.source;
         const itemReceiptType = transaction.receipt?.type;
@@ -53,10 +54,7 @@ const useRestartOnReceiptFailure = (transaction: OnyxEntry<Transaction>, reportI
             removeDraftTransactionsByIDs(draftTransactionIDs, true);
             navigateToStartMoneyRequestStep(requestType, iouType, transaction.transactionID, reportID);
         });
-
-        // We want this hook to run once after Onyx finishes loading the draft transactions
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [draftTransactionsMetadata]);
+    }, [transaction, action, draftTransactionIDs, iouType, reportID]);
 };
 
 export default useRestartOnReceiptFailure;

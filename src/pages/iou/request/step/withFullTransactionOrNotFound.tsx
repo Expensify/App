@@ -1,9 +1,6 @@
-import ActivityIndicator from '@components/ActivityIndicator';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
-import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 
 import useOnyx from '@hooks/useOnyx';
-import useThemeStyles from '@hooks/useThemeStyles';
 
 import getComponentDisplayName from '@libs/getComponentDisplayName';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
@@ -15,20 +12,16 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import type {Transaction} from '@src/types/onyx';
-import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 import type {ComponentType} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 
 import {useIsFocused} from '@react-navigation/native';
 import React from 'react';
-import {View} from 'react-native';
 
 type WithFullTransactionOrNotFoundOnyxProps = {
     /** Indicates whether the report data is loading */
     transaction: OnyxEntry<Transaction>;
-
-    isLoadingTransaction?: boolean;
 };
 
 type MoneyRequestRouteName =
@@ -75,27 +68,18 @@ type WithFullTransactionOrNotFoundProps<RouteName extends MoneyRequestRouteName>
 
 type WithFullTransactionOrNotFoundImplProps<TProps extends WithFullTransactionOrNotFoundProps<MoneyRequestRouteName>> = {
     WrappedComponent: ComponentType<TProps>;
-    shouldShowLoadingIndicator: boolean;
-
-    /** When the wrapped step is embedded in a page that already renders navigation chrome (e.g. IOURequestStartPage), the parent's header stays visible, so the loading indicator must not trap the user. */
-    shouldHideHeader?: boolean;
 } & Omit<TProps, keyof WithFullTransactionOrNotFoundOnyxProps>;
 
 function WithFullTransactionOrNotFoundImpl<TProps extends WithFullTransactionOrNotFoundProps<MoneyRequestRouteName>>({
     WrappedComponent,
-    shouldShowLoadingIndicator,
     ...props
 }: WithFullTransactionOrNotFoundImplProps<TProps>) {
-    const styles = useThemeStyles();
     const {route} = props;
-    // Read (but don't consume) shouldHideHeader so it is still forwarded to the wrapped component below.
-    const {shouldHideHeader} = props;
     const transactionID = route.params.transactionID;
     const userAction = 'action' in route.params && route.params.action ? route.params.action : CONST.IOU.ACTION.CREATE;
 
-    const [transaction, transactionResult] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transactionID)}`);
-    const [transactionDraft, transactionDraftResult] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${getNonEmptyStringOnyxID(transactionID)}`);
-    const isLoadingTransaction = isLoadingOnyxValue(transactionResult, transactionDraftResult);
+    const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transactionID)}`);
+    const [transactionDraft] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${getNonEmptyStringOnyxID(transactionID)}`);
 
     const [splitTransactionDraft] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${getNonEmptyStringOnyxID(transactionID)}`);
 
@@ -112,33 +96,21 @@ function WithFullTransactionOrNotFoundImpl<TProps extends WithFullTransactionOrN
         return <FullPageNotFoundView shouldShow={isFocused} />;
     }
 
-    if (isLoadingTransaction && shouldShowLoadingIndicator) {
-        return shouldHideHeader ? (
-            <View style={[styles.flex1, styles.fullScreenLoading]}>
-                <ActivityIndicator size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE} />
-            </View>
-        ) : (
-            <FullScreenLoadingIndicator />
-        );
-    }
     return (
         <WrappedComponent
             {...(props as unknown as TProps)}
             transaction={shouldUseTransactionDraft(userAction, userType) ? transactionDraftData : transaction}
-            isLoadingTransaction={isLoadingTransaction}
         />
     );
 }
 
 export default function <TProps extends WithFullTransactionOrNotFoundProps<MoneyRequestRouteName>>(
     WrappedComponent: ComponentType<TProps>,
-    shouldShowLoadingIndicator = false,
 ): React.ComponentType<Omit<TProps, keyof WithFullTransactionOrNotFoundOnyxProps> & {shouldHideHeader?: boolean}> {
     function WithFullTransactionOrNotFound(props: Omit<TProps, keyof WithFullTransactionOrNotFoundOnyxProps> & {shouldHideHeader?: boolean}) {
         return (
             <WithFullTransactionOrNotFoundImpl
                 WrappedComponent={WrappedComponent}
-                shouldShowLoadingIndicator={shouldShowLoadingIndicator}
                 {...props}
             />
         );

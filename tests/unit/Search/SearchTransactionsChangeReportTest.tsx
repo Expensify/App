@@ -56,7 +56,7 @@ jest.mock('@hooks/usePermissions', () => ({__esModule: true, default: () => ({is
 jest.mock('@hooks/usePersonalPolicy', () => ({__esModule: true, default: () => undefined}));
 jest.mock('@hooks/usePolicyForMovingExpenses', () => ({
     __esModule: true,
-    default: () => ({policyForMovingExpensesID: undefined, shouldSelectPolicy: false, shouldNavigateToUpgradePath: false, arePoliciesLoaded: true}),
+    default: () => ({policyForMovingExpensesID: undefined, shouldSelectPolicy: false, shouldNavigateToUpgradePath: false}),
 }));
 
 function makeUnreportedCardExpense(transactionID: string, cardID: number): SelectedTransactions[string] {

@@ -364,10 +364,10 @@ function IOURequestStepAmount({
 
 const IOURequestStepAmountWithWritableReportOrNotFound = withWritableReportOrNotFound(IOURequestStepAmount, true);
 
-const IOURequestStepAmountWithFullTransactionOrNotFound = withFullTransactionOrNotFound(IOURequestStepAmountWithWritableReportOrNotFound, true);
+const IOURequestStepAmountWithFullTransactionOrNotFound = withFullTransactionOrNotFound(IOURequestStepAmountWithWritableReportOrNotFound);
 
 // Version without withWritableReportOrNotFound, for use when parent already provides report prop
-const IOURequestStepAmountWithTransactionOnly = withFullTransactionOrNotFound(IOURequestStepAmount, true);
+const IOURequestStepAmountWithTransactionOnly = withFullTransactionOrNotFound(IOURequestStepAmount);
 
 export default IOURequestStepAmountWithFullTransactionOrNotFound;
 export {IOURequestStepAmountWithTransactionOnly};

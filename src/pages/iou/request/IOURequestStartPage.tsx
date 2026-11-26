@@ -37,7 +37,6 @@ import type SCREENS from '@src/SCREENS';
 import {createIOURequestStartPoliciesSelector} from '@src/selectors/Policy';
 import type {SelectedTabRequest} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 import type {TupleToUnion} from 'type-fest';
 
@@ -88,13 +87,11 @@ function IOURequestStartPage({
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
     const [reportDraft] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${reportID}`);
     const policy = usePolicy(report?.policyID);
-    const [lastSelectedTab, selectedTabResult] = useOnyx(`${ONYXKEYS.COLLECTION.SELECTED_TAB}${CONST.TAB.IOU_REQUEST_TYPE}`);
+    const [lastSelectedTab] = useOnyx(`${ONYXKEYS.COLLECTION.SELECTED_TAB}${CONST.TAB.IOU_REQUEST_TYPE}`);
     // Derive selectedTab directly instead of using state
     const selectedTab = lastSelectedTab;
 
-    const isLoadingSelectedTab = shouldUseTab ? isLoadingOnyxValue(selectedTabResult) : false;
-    const [transaction, transactionResult] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${getNonEmptyStringOnyxID(route?.params.transactionID)}`);
-    const isLoadingTransaction = isLoadingOnyxValue(transactionResult);
+    const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${getNonEmptyStringOnyxID(route?.params.transactionID)}`);
     const perDiemInputRef = useRef<AnimatedTextInputRef | null>(null);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const [iouRequestStartPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {
@@ -153,7 +150,7 @@ function IOURequestStartPage({
     // and leaves the previous flow's draft in place under OPTIMISTIC_TRANSACTION_ID. Detect it
     // by comparing the draft's reportID to the URL's so we don't inherit its stale iouRequestType.
     const [latchedDraftStaleness, setLatchedDraftStaleness] = useState<{reportID: string; isStale: boolean}>();
-    if (!isLoadingTransaction && latchedDraftStaleness?.reportID !== reportID) {
+    if (latchedDraftStaleness?.reportID !== reportID) {
         setLatchedDraftStaleness({reportID, isStale: !!transaction?.reportID && transaction.reportID !== reportID});
     }
     const isStaleTransactionDraft = latchedDraftStaleness?.isStale ?? false;
@@ -175,8 +172,6 @@ function IOURequestStartPage({
         reportID,
         report,
         transaction,
-        isLoadingTransaction,
-        isLoadingSelectedTab,
         transactionRequestType,
         iouType,
         policy,

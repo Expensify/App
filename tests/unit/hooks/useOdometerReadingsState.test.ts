@@ -37,7 +37,6 @@ const baseParams: Params = {
     currentTransaction: buildOdometerTransaction(),
     isEditing: false,
     selectedTab: CONST.TAB_REQUEST.DISTANCE_ODOMETER,
-    isLoadingSelectedTab: false,
     hasVerifiedBlobs: true,
     odometerDraft: undefined,
     userHasUnsavedTypingRef: {current: false},
@@ -301,16 +300,6 @@ describe('useOdometerReadingsState', () => {
         rerender({...baseParams, userHasUnsavedTypingRef: stuckTypingRef, selectedTab: CONST.TAB_REQUEST.DISTANCE_ODOMETER});
         expect(result.current.startReading).toBe('100');
         expect(result.current.endReading).toBe('250');
-    });
-
-    it('does not run the tab-reset effect while the selected-tab Onyx key is still loading', () => {
-        const initialProps: Params = {...baseParams, isLoadingSelectedTab: true, selectedTab: undefined};
-        const {result, rerender} = renderHook((params: Params) => useOdometerReadingsState(params), {initialProps});
-
-        const initialKey = result.current.inputKey;
-        rerender({...baseParams, isLoadingSelectedTab: true, selectedTab: CONST.TAB_REQUEST.DISTANCE});
-
-        expect(result.current.inputKey).toBe(initialKey);
     });
 
     // Create flow at the unit level: a fresh mount snapshots an EMPTY baseline, so readings typed + committed

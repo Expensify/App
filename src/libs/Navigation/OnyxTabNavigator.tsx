@@ -19,7 +19,6 @@ import Tab from '@userActions/Tab';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
-import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import KeyboardUtils from '@src/utils/keyboard';
 
 import type {MaterialTopTabNavigationEventMap} from '@react-navigation/material-top-tabs';
@@ -179,7 +178,7 @@ function createOnyxTabNavigator<const TTabName extends string>(names: ReadonlyAr
         const isFirstMountRef = useRef(true);
         // Mapping of tab name to focus trap container element
         const [focusTrapContainerElementMapping, setFocusTrapContainerElementMapping] = useState<Record<string, HTMLElement>>({});
-        const [selectedTab, selectedTabResult] = useOnyx(`${ONYXKEYS.COLLECTION.SELECTED_TAB}${id}`);
+        const [selectedTab] = useOnyx(`${ONYXKEYS.COLLECTION.SELECTED_TAB}${id}`);
 
         const pressedTabRef = useRef<{from: string | undefined; to: string; armedAt: number} | undefined>(undefined);
         // Frame handle of a queued re-apply jump, so it can be dropped when it is superseded by a newer press or by unmount.
@@ -359,10 +358,6 @@ function createOnyxTabNavigator<const TTabName extends string>(names: ReadonlyAr
         useEffect(() => {
             onActiveTabFocusTrapContainerElementChanged?.(selectedTab ? focusTrapContainerElementMapping[selectedTab] : null);
         }, [selectedTab, focusTrapContainerElementMapping, onActiveTabFocusTrapContainerElementChanged]);
-
-        if (isLoadingOnyxValue(selectedTabResult)) {
-            return null;
-        }
 
         return (
             <TabSwitchGuardContext.Provider value={registerTabGuard}>

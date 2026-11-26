@@ -1,4 +1,4 @@
-import {renderHook, waitFor} from '@testing-library/react-native';
+import {renderHook} from '@testing-library/react-native';
 
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 
@@ -15,16 +15,6 @@ import Onyx from 'react-native-onyx';
 
 import createRandomPolicy from '../../utils/collections/policies';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
-
-/**
- * Onyx resolves from the in-memory cache synchronously under Jest, so the real cold-start window can't be
- * reproduced by just rendering. Stub the loading check instead — it is the only thing the hydration guard reads.
- */
-let mockArePolicyResultsLoading = false;
-jest.mock('@src/types/utils/isLoadingOnyxValue', () => ({
-    __esModule: true,
-    default: (): boolean => mockArePolicyResultsLoading,
-}));
 
 const CURRENT_USER_LOGIN = 'member@example.com';
 const CURRENT_USER_ACCOUNT_ID = 1;
@@ -57,31 +47,16 @@ describe('usePolicyForMovingExpenses', () => {
     });
 
     beforeEach(async () => {
-        mockArePolicyResultsLoading = false;
         await Onyx.clear();
         await Onyx.merge(ONYXKEYS.SESSION, {accountID: CURRENT_USER_ACCOUNT_ID, email: CURRENT_USER_LOGIN});
         await waitForBatchedUpdates();
     });
 
-    it('does not route to the upgrade path before the policy collection has loaded', async () => {
-        // Given Onyx has not finished reading the policy collection yet, so it reads back empty
-        mockArePolicyResultsLoading = true;
-
+    it('should route to the upgrade path when the user has no group workspace', async () => {
+        // Given the policy collection contains no group workspace for this user
         // When the hook runs
         const {result} = renderHook(() => usePolicyForMovingExpenses(), {wrapper: Wrapper});
         await waitForBatchedUpdates();
-
-        // Then it reports "I don't know yet" rather than claiming a real member has no workspace
-        expect(result.current.arePoliciesLoaded).toBe(false);
-        expect(result.current.shouldNavigateToUpgradePath).toBe(false);
-    });
-
-    it('routes to the upgrade path once the collection has loaded and the user genuinely has no workspace', async () => {
-        // Given the policy collection has loaded and contains no group workspace for this user
-        const {result} = renderHook(() => usePolicyForMovingExpenses(), {wrapper: Wrapper});
-
-        // When hydration completes
-        await waitFor(() => expect(result.current.arePoliciesLoaded).toBe(true));
 
         // Then the upgrade path is the correct answer
         expect(result.current.shouldNavigateToUpgradePath).toBe(true);
@@ -94,7 +69,7 @@ describe('usePolicyForMovingExpenses', () => {
 
         // When the hook resolves a policy for moving expenses
         const {result} = renderHook(() => usePolicyForMovingExpenses(), {wrapper: Wrapper});
-        await waitFor(() => expect(result.current.arePoliciesLoaded).toBe(true));
+        await waitForBatchedUpdates();
 
         // Then that workspace is used and the user is not sent to the reports upgrade screen
         expect(result.current.policyForMovingExpensesID).toBe(POLICY_ID);

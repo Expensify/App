@@ -8,7 +8,6 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, Report, Transaction} from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
-import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
@@ -60,19 +59,16 @@ function useDefaultParticipants({sourceReport, transaction, iouType}: UseDefault
     const personalPolicy = usePersonalPolicy();
     const {isRestrictedToPreferredPolicy} = usePreferredPolicy();
     const {selfDMReport, isLoading: isLoadingSelfDMReport} = useResolvedSelfDMReport();
-    const [activePolicyID, activePolicyIDResult] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
+    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const hasExplicitPersonalDestinationSelector = (policies: OnyxCollection<Policy>) => !!activePolicyID && !isGroupPolicy(policies?.[`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`]);
-    const [hasExplicitPersonalDestination, policyCollectionResult] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: hasExplicitPersonalDestinationSelector});
-    const [amountOwed, amountOwedResult] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
-    const [userBillingGracePeriodEnds, userBillingGracePeriodEndsResult] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
-    const [ownerBillingGracePeriodEnd, ownerBillingGracePeriodEndResult] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
+    const [hasExplicitPersonalDestination] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: hasExplicitPersonalDestinationSelector});
+    const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
+    const [userBillingGracePeriodEnds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
+    const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
     const accountID = currentUserPersonalDetails.accountID;
     const [activePolicyExpenseChat] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: policyExpenseChatSelector(accountID, defaultExpensePolicy?.id)});
 
-    const isLoading =
-        !accountID ||
-        isLoadingSelfDMReport ||
-        isLoadingOnyxValue(activePolicyIDResult, policyCollectionResult, amountOwedResult, userBillingGracePeriodEndsResult, ownerBillingGracePeriodEndResult);
+    const isLoading = !accountID || isLoadingSelfDMReport;
 
     // These participants get stored in the draft (for example by the FAB quick action), so use the draft version
     const reportParticipants = getMoneyRequestDraftParticipantsFromReport(sourceReport, accountID).filter((participant) => participant.selected);
