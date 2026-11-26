@@ -22,6 +22,9 @@ type HomeTodoReportTransitionHandler = {
 
 const handlers = new Map<string, HomeTodoReportTransitionHandler>();
 
+/** The report screen whose swap is moving the panel right now. Only it may put the panel back when it unmounts. */
+let activeRouteKey: string | undefined;
+
 function registerHomeTodoReportTransition(routeKey: string, handler: HomeTodoReportTransitionHandler) {
     handlers.set(routeKey, handler);
     return () => {
@@ -44,8 +47,14 @@ function playHomeTodoReportTransition(routeKey: string, showNextReport: () => vo
         return;
     }
 
+    activeRouteKey = routeKey;
     handler.playExit(() => {
-        handler.prepareEnter();
+        // The exit also ends when the screen unmounts, and a screen that is gone must not open another report.
+        const currentHandler = handlers.get(routeKey);
+        if (!currentHandler) {
+            return;
+        }
+        currentHandler.prepareEnter();
         showNextReport();
     }, holdDuration);
 }
@@ -61,7 +70,43 @@ function playHomeTodoReportExit(routeKey: string, onExited: () => void, {isFocus
         return;
     }
 
-    handler.playExit(onExited, holdDuration);
+    activeRouteKey = routeKey;
+    handler.playExit(() => {
+        // The exit also ends when the screen unmounts, and a screen that is gone must not close whatever is open now.
+        if (!handlers.has(routeKey)) {
+            return;
+        }
+        onExited();
+    }, holdDuration);
 }
 
-export {registerHomeTodoReportTransition, playHomeTodoReportTransition, playHomeTodoReportExit, homeTodoPanelOpacity, homeTodoPanelTranslateX};
+/** Marks the swap of the report screen with `routeKey` as done, once the next report has moved in */
+function finishHomeTodoReportTransition(routeKey: string) {
+    if (activeRouteKey !== routeKey) {
+        return;
+    }
+    activeRouteKey = undefined;
+}
+
+/**
+ * Puts the panel back in view when the report screen with `routeKey` goes away mid-swap. Other screens leave it alone,
+ * so a report screen unmounting elsewhere does not cut into a swap that is still playing.
+ */
+function resetHomeTodoReportTransition(routeKey: string) {
+    if (activeRouteKey !== routeKey) {
+        return;
+    }
+    activeRouteKey = undefined;
+    homeTodoPanelOpacity.set(1);
+    homeTodoPanelTranslateX.set(0);
+}
+
+export {
+    registerHomeTodoReportTransition,
+    playHomeTodoReportTransition,
+    playHomeTodoReportExit,
+    finishHomeTodoReportTransition,
+    resetHomeTodoReportTransition,
+    homeTodoPanelOpacity,
+    homeTodoPanelTranslateX,
+};

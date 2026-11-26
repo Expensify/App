@@ -1,19 +1,15 @@
 import {easing} from '@components/Modal/ReanimatedModal/utils';
 
 import Accessibility from '@libs/Accessibility';
-import {homeTodoPanelOpacity, homeTodoPanelTranslateX, registerHomeTodoReportTransition} from '@libs/HomeTodoReportTransition';
+import {finishHomeTodoReportTransition, homeTodoPanelOpacity, homeTodoPanelTranslateX, registerHomeTodoReportTransition, resetHomeTodoReportTransition} from '@libs/HomeTodoReportTransition';
 
-import {useEffect, useRef} from 'react';
+import CONST from '@src/CONST';
+
+import {useEffect, useEffectEvent, useRef} from 'react';
 import {withDelay, withTiming} from 'react-native-reanimated';
 import {scheduleOnRN} from 'react-native-worklets';
 
-/** How far the panel moves while it fades, a short slide so it reads as the same panel leaving and coming back */
-const PANEL_OFFSET = 24;
-const EXIT_DURATION = 150;
-const ENTER_DURATION = 250;
-
-/** Shows the panel again even if the screen never renders a new report ID, so it cannot stay out of view */
-const ENTER_FALLBACK_DELAY = 1000;
+const {PANEL_OFFSET, EXIT_DURATION, ENTER_DURATION, ENTER_FALLBACK_DELAY} = CONST.HOME_TODO_REVIEW_ANIMATION;
 
 /**
  * Lets a Home to-do review swap the report on this screen with the RHP panel transition. The panel moves in once the
@@ -25,12 +21,20 @@ function useHomeTodoReportTransition(routeKey: string, reportID: string | undefi
     const isEnterPendingRef = useRef(false);
     const enterFallbackTimeoutRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
-    const playEnter = () => {
+    const playEnter = useEffectEvent(() => {
         isEnterPendingRef.current = false;
         clearTimeout(enterFallbackTimeoutRef.current);
         homeTodoPanelTranslateX.set(withTiming(0, {duration: ENTER_DURATION, easing}));
-        homeTodoPanelOpacity.set(withTiming(1, {duration: ENTER_DURATION, easing}));
-    };
+        homeTodoPanelOpacity.set(
+            withTiming(1, {duration: ENTER_DURATION, easing}, (finished) => {
+                // A next swap cancels this one, and it now owns the panel.
+                if (!finished) {
+                    return;
+                }
+                scheduleOnRN(finishHomeTodoReportTransition, routeKey);
+            }),
+        );
+    });
 
     useEffect(() => {
         const unregister = registerHomeTodoReportTransition(routeKey, {
@@ -47,18 +51,15 @@ function useHomeTodoReportTransition(routeKey: string, reportID: string | undefi
             prepareEnter: () => {
                 isEnterPendingRef.current = true;
                 homeTodoPanelTranslateX.set(offset);
-                enterFallbackTimeoutRef.current = setTimeout(playEnter, ENTER_FALLBACK_DELAY);
+                enterFallbackTimeoutRef.current = setTimeout(() => playEnter(), ENTER_FALLBACK_DELAY);
             },
         });
         return () => {
             unregister();
             clearTimeout(enterFallbackTimeoutRef.current);
             // The panel is shared by every RHP screen, so it must not stay hidden when this screen goes away mid-swap.
-            homeTodoPanelOpacity.set(1);
-            homeTodoPanelTranslateX.set(0);
+            resetHomeTodoReportTransition(routeKey);
         };
-        // playEnter only reads refs and shared values, so the handler only changes with the screen and the offset.
-        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [routeKey, offset]);
 
     useEffect(() => {
@@ -66,8 +67,6 @@ function useHomeTodoReportTransition(routeKey: string, reportID: string | undefi
             return;
         }
         playEnter();
-        // Only a new report on screen starts the enter animation.
-        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [reportID]);
 }
 

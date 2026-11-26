@@ -16,9 +16,6 @@ import type {HomeTodoSearchKey} from '@src/types/onyx';
 
 import {useIsFocused, useNavigation, useRoute} from '@react-navigation/native';
 import {useEffect, useEffectEvent, useState} from 'react';
-// We need direct access to useOnyx from react-native-onyx so a report opened over Spend still reads live data, not a search snapshot
-// eslint-disable-next-line no-restricted-imports
-import {useOnyx} from 'react-native-onyx';
 
 import useLocalize from './useLocalize';
 import useResponsiveLayout from './useResponsiveLayout';
@@ -57,9 +54,6 @@ const TOAST_TRANSLATION_KEYS = {
     [CONST.SEARCH.SEARCH_KEYS.EXPORT]: 'homePage.forYouSection.reportExported',
 } as const;
 
-/** Keeps the report on screen briefly after the action, so the result icon can pop in before the next report arrives */
-const RESULT_HOLD_DURATION = 550;
-
 const CELEBRATION_TRANSLATION_KEYS = {
     [CONST.SEARCH.SEARCH_KEYS.SUBMIT]: 'homePage.forYouSection.allReportsSubmitted',
     [CONST.SEARCH.SEARCH_KEYS.APPROVE]: 'homePage.forYouSection.allReportsApproved',
@@ -76,12 +70,12 @@ function useHomeTodoAutoAdvance({reportID, searchKey, reportIDs}: UseHomeTodoAut
     const route = useRoute();
     const navigation = useNavigation();
     const isFocused = useIsFocused();
-    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
-    const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`);
     // The to-do classification needs whole collections to find the next report that still needs the action. This
     // hook is mounted only while a report from a to-do row is open, which bounds the cost.
     const todoClassificationParams = useTodoClassificationParams();
     const {currentUserAccountID} = todoClassificationParams;
+    const report = todoClassificationParams.allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
+    const reportActions = todoClassificationParams.allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`];
 
     const isActionComplete = isHomeTodoActionComplete(searchKey, report, reportActions, currentUserAccountID);
     const latestTodoReportAction = getLatestHomeTodoReportAction(searchKey, reportActions);
@@ -124,7 +118,7 @@ function useHomeTodoAutoAdvance({reportID, searchKey, reportIDs}: UseHomeTodoAut
                     clearHomeTodoReview();
                     Navigation.goBack(ROUTES.HOME);
                 },
-                {isFocused, holdDuration: RESULT_HOLD_DURATION},
+                {isFocused, holdDuration: CONST.HOME_TODO_REVIEW_ANIMATION.RESULT_HOLD_DURATION},
             );
             return;
         }
@@ -137,7 +131,10 @@ function useHomeTodoAutoAdvance({reportID, searchKey, reportIDs}: UseHomeTodoAut
         // The report's navigator is targeted directly because a SET_PARAMS action without a target never reaches it
         // when a screen opened over the report sits in another navigator, as the RHP does on narrow layouts.
         const navigatorKey = navigation.getState()?.key;
-        playHomeTodoReportTransition(route.key, () => openReportInPlace(nextReportID, route.key, navigatorKey), {isFocused, holdDuration: RESULT_HOLD_DURATION});
+        playHomeTodoReportTransition(route.key, () => openReportInPlace(nextReportID, route.key, navigatorKey), {
+            isFocused,
+            holdDuration: CONST.HOME_TODO_REVIEW_ANIMATION.RESULT_HOLD_DURATION,
+        });
 
         // The action was taken on a screen opened over the report, so bring the report, now showing the next one, back on top.
         if (!isFocused) {

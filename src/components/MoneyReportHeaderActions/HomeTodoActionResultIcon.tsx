@@ -10,7 +10,9 @@ import Accessibility from '@libs/Accessibility';
 
 import variables from '@styles/variables';
 
-import React, {useEffect, useRef} from 'react';
+import CONST from '@src/CONST';
+
+import React, {useEffect, useEffectEvent, useRef} from 'react';
 import Animated, {css, cubicBezier} from 'react-native-reanimated';
 
 type HomeTodoActionResultIconProps = {
@@ -20,11 +22,6 @@ type HomeTodoActionResultIconProps = {
     /** Keeps the space of the button the icon replaces, so the buttons beside it stay in place */
     minWidth: number;
 };
-
-/** Restores the action button if the review does not move on, e.g. when the server rejects the action */
-const FALLBACK_DURATION = 3000;
-
-const POP_DURATION = 300;
 
 const popAnimation = css.keyframes({
     from: {opacity: 0, transform: [{scale: 0}]},
@@ -55,19 +52,18 @@ function HomeTodoActionResultIcon({reportID, minWidth}: HomeTodoActionResultIcon
 
     // The header stays mounted when the review swaps reports, so the result must not carry over to the next report.
     const resultReportIDRef = useRef(reportID);
+    const endResult = useEffectEvent(() => stopAnimation());
     useEffect(() => {
         if (resultReportIDRef.current === reportID) {
             return;
         }
-        stopAnimation();
-        // Only a new report ends the result. stopAnimation only resets state, so it is left out.
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        endResult();
     }, [reportID]);
 
+    // Restores the action button if the review does not move on, e.g. when the server rejects the action
     useEffect(() => {
-        const timer = setTimeout(stopAnimation, FALLBACK_DURATION);
+        const timer = setTimeout(() => endResult(), CONST.HOME_TODO_REVIEW_ANIMATION.RESULT_FALLBACK_DURATION);
         return () => clearTimeout(timer);
-        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     return (
@@ -79,7 +75,7 @@ function HomeTodoActionResultIcon({reportID, minWidth}: HomeTodoActionResultIcon
                 {minWidth},
                 {
                     animationName: popAnimation,
-                    animationDuration: isReduceMotionEnabled ? 0 : POP_DURATION,
+                    animationDuration: isReduceMotionEnabled ? 0 : CONST.HOME_TODO_REVIEW_ANIMATION.RESULT_POP_DURATION,
                     animationTimingFunction: POP_EASING,
                     animationFillMode: 'both',
                 },

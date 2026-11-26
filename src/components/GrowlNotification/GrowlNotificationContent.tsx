@@ -27,6 +27,9 @@ import GrowlNotificationPortal from './GrowlNotificationPortal';
 import shouldUseExplicitBottomPosition from './shouldUseExplicitBottomPosition';
 
 const INACTIVE_OFFSET = CONST.GROWL.OFFSCREEN_OFFSET;
+
+/** Skips most of the first rocket's climb in the fireworks, so the first burst (frame 17 at 24 fps) comes right after the growl appears */
+const CELEBRATION_FIREWORKS_START_FRAME = 12;
 const INACTIVE_POSITION_Y = -INACTIVE_OFFSET;
 
 const PressableWithoutFeedback = Pressables.PressableWithoutFeedback;
@@ -163,7 +166,10 @@ function GrowlNotificationContent({bodyText, type, duration, action, position, t
                                 ]}
                             >
                                 {/* Falls back to a still image with reduce motion on */}
-                                <ConfirmationPageIllustration illustrationStyle={styles.growlNotificationCelebrationAnimation} />
+                                <ConfirmationPageIllustration
+                                    illustrationStyle={styles.growlNotificationCelebrationAnimation}
+                                    initialFrame={CELEBRATION_FIREWORKS_START_FRAME}
+                                />
                                 {!!title && <Text style={[styles.growlNotificationText, styles.textStrong, styles.textAlignCenter, styles.flexGrow0]}>{title}</Text>}
                                 <Text style={[styles.growlNotificationText, styles.growlNotificationSupportingText, styles.textAlignCenter, styles.flexGrow0]}>{bodyText}</Text>
                             </PressableWithoutFeedback>

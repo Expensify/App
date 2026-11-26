@@ -5293,6 +5293,26 @@ const CONST = {
         OFFSCREEN_OFFSET: 255,
     },
 
+    /**
+     * Timings of a Home to-do review moving from one report to the next, in ms. They depend on each other:
+     * RESULT_HOLD_DURATION must exceed RESULT_POP_DURATION so the result icon finishes popping in before the report
+     * leaves, and RESULT_FALLBACK_DURATION must exceed RESULT_HOLD_DURATION + EXIT_DURATION so the fallback only
+     * restores the action button when the review did not move on.
+     */
+    HOME_TODO_REVIEW_ANIMATION: {
+        RESULT_POP_DURATION: 300,
+        RESULT_HOLD_DURATION: 550,
+        RESULT_FALLBACK_DURATION: 3000,
+        EXIT_DURATION: 150,
+        ENTER_DURATION: 250,
+
+        /** Shows the panel again even if the screen never renders a new report ID, so it cannot stay out of view */
+        ENTER_FALLBACK_DELAY: 1000,
+
+        /** How far the panel moves while it fades, a short slide so it reads as the same panel leaving and coming back */
+        PANEL_OFFSET: 24,
+    },
+
     LOCALES,
 
     PRONOUNS_LIST: [
