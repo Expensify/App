@@ -30,8 +30,8 @@ function isAgentZeroProcessingIndicatorMap(indicator: AgentZeroProcessingIndicat
 /**
  * Reads the AgentZero processing-indicator label for a single agent, trimmed.
  *
- * Tolerates a legacy scalar value (a plain string written by an older backend during a deploy
- * overlap) by attributing it to Concierge — that matches the pre-per-agent behavior.
+ * A plain string is a label the server saved on the report, such as the escalation notice, or a
+ * legacy value from an older backend. Either way it belongs to Concierge, matching the pre-per-agent behavior.
  */
 function getAgentZeroProcessingLabel(reportNameValuePairs: OnyxEntry<ReportNameValuePairs>, agentAccountID: number): string {
     const indicator = reportNameValuePairs?.agentZeroProcessingRequestIndicator;
@@ -70,6 +70,16 @@ function agentZeroProcessingAgentIDsSelector(reportNameValuePairs: OnyxEntry<Rep
         .sort((a, b) => a - b);
 }
 
+/**
+ * Whether the report carries a label the server saved on it, such as "Concierge is escalating for human
+ * review...". Saved labels are plain strings, unlike the per-agent map used for live progress, and only
+ * the server clears them, so a local safety clear must leave them alone.
+ */
+function hasPersistedAgentZeroProcessingLabelSelector(reportNameValuePairs: OnyxEntry<ReportNameValuePairs>): boolean {
+    const indicator = reportNameValuePairs?.agentZeroProcessingRequestIndicator;
+    return typeof indicator === 'string' && !!indicator.trim();
+}
+
 function latestCalendlyCallSelector(reportNameValuePairs: OnyxEntry<ReportNameValuePairs>) {
     return reportNameValuePairs?.calendlyCalls?.at(-1);
 }
@@ -78,5 +88,12 @@ function isLinkedToBillSelector(reportNameValuePairs: OnyxEntry<ReportNameValueP
     return !!reportNameValuePairs?.billID;
 }
 
-export {getAgentZeroProcessingLabel, agentZeroProcessingAgentIDsSelector, isLinkedToBillSelector, latestCalendlyCallSelector, reportNameValuePairsArchivedSelector};
+export {
+    getAgentZeroProcessingLabel,
+    agentZeroProcessingAgentIDsSelector,
+    hasPersistedAgentZeroProcessingLabelSelector,
+    isLinkedToBillSelector,
+    latestCalendlyCallSelector,
+    reportNameValuePairsArchivedSelector,
+};
 export type {ReportNameValuePairsArchivedState};

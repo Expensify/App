@@ -18,6 +18,7 @@ import {
     ReceiptTelemetry,
     RecordFullReconnectTime,
     ReconcileBulkEditReportAction,
+    ReconcileConciergeProcessingStatus,
     ReplaceOptimisticAgentAccountID,
     SaveResponseInOnyx,
     SentryServerTiming,
@@ -96,6 +97,9 @@ function registerMiddlewares() {
 
     // FlagSearchTransactionWrites - Tells Search which transactions a successful user write changed, so it can fetch server-computed values again.
     addMiddleware(FlagSearchTransactionWrites);
+
+    // Applies the server's Concierge decision for a sent message, so the optimistic indicator follows the real reply destination or clears.
+    addMiddleware(ReconcileConciergeProcessingStatus);
 
     // SaveResponseInOnyx - Merges either the successData or failureData (or finallyData, if included in place of the former two values) into Onyx depending on if the call was successful or not. This must be the last middleware that applies Onyx data
     // (middlewares after it, like FraudMonitoring, must not write Onyx), because the SequentialQueue depends on the result of this middleware to pause the queue (if needed) to bring the app to an up-to-date state.

@@ -16,6 +16,7 @@ import {
     ReceiptTelemetry,
     RecordFullReconnectTime,
     ReconcileBulkEditReportAction,
+    ReconcileConciergeProcessingStatus,
     ReplaceOptimisticAgentAccountID,
     SaveResponseInOnyx,
     SentryServerTiming,
@@ -52,6 +53,7 @@ const EXPECTED_ORDER: RequestModule.Middleware[] = [
     DiscardStaleSearchSnapshot,
     ReconcileBulkEditReportAction,
     FlagSearchTransactionWrites,
+    ReconcileConciergeProcessingStatus,
     SaveResponseInOnyx,
     FraudMonitoring,
 ];
@@ -68,9 +70,9 @@ describe('Middleware registration', () => {
         expect(registered).toEqual(EXPECTED_ORDER);
     });
 
-    it('registers all 21 middlewares with no duplicates', () => {
-        expect(registered).toHaveLength(21);
-        expect(new Set(registered).size).toBe(21);
+    it('registers all 22 middlewares with no duplicates', () => {
+        expect(registered).toHaveLength(22);
+        expect(new Set(registered).size).toBe(22);
     });
 
     it('keeps SaveResponseInOnyx after every other Onyx-writing middleware and before FraudMonitoring', () => {

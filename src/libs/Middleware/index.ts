@@ -14,6 +14,7 @@ import {Pagination} from './Pagination';
 import Reauthentication from './Reauthentication';
 import ReceiptTelemetry from './ReceiptTelemetry';
 import ReconcileBulkEditReportAction from './ReconcileBulkEditReportAction';
+import ReconcileConciergeProcessingStatus from './ReconcileConciergeProcessingStatus';
 import RecordFullReconnectTime from './RecordFullReconnectTime';
 import ReplaceOptimisticAgentAccountID from './ReplaceOptimisticAgentAccountID';
 import SaveResponseInOnyx from './SaveResponseInOnyx';
@@ -31,6 +32,7 @@ export {
     ReceiptTelemetry,
     RecordFullReconnectTime,
     ReconcileBulkEditReportAction,
+    ReconcileConciergeProcessingStatus,
     FailureTracking,
     FlagSearchTransactionWrites,
     SaveResponseInOnyx,

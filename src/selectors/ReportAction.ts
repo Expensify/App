@@ -1,3 +1,4 @@
+import type {PendingTurn} from '@libs/AgentZeroOptimisticStore';
 import {
     filterOutDeprecatedReportActions,
     getIOUActionForTransactionID,
@@ -183,6 +184,18 @@ const transactionThreadReportIDSelector = (transactionID: string | undefined) =>
     transactionID ? getIOUActionForTransactionID(Object.values(reportActions ?? {}), transactionID)?.childReportID : undefined;
 
 /**
+ * Returns the messages whose reply from the agent is saved under the ID the client reserved for it.
+ * A reply that is still being sent does not count, because it can still fail.
+ */
+const answeredTurnQuestionIDsSelector = (turns: PendingTurn[] | undefined, agentAccountID: number) => (reportActions: OnyxEntry<ReportActions>) =>
+    (turns ?? [])
+        .filter((turn) => {
+            const reply = reportActions?.[turn.responseReportActionID];
+            return reply?.actorAccountID === agentAccountID && !reply.pendingAction;
+        })
+        .map((turn) => turn.questionReportActionID);
+
+/**
  * Creates a selector returning the report actions `clearAllRelatedReportActionErrors` walks: the actions of every
  * report in `reportIDs` (the report whose error is dismissed, its ancestors and the original report holding the
  * dismissed action), plus the threads below `childRootReportID` that hang off actions with errors.
@@ -276,6 +289,7 @@ const reportActionsByReportIDsSelector =
     };
 
 export {
+    answeredTurnQuestionIDsSelector,
     parentActionAccountIDsSelector,
     reportActionsByReportIDsSelector,
     getBillPayHistoryParticipantSelector,

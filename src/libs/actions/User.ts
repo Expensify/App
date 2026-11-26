@@ -1,6 +1,7 @@
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 
 import * as ActiveClientManager from '@libs/ActiveClientManager';
+import AgentZeroOptimisticStore from '@libs/AgentZeroOptimisticStore';
 import * as API from '@libs/API';
 import type {
     AddNewContactMethodParams,
@@ -879,6 +880,13 @@ function subscribeToUserEvents(
     // Keep events in arrival order even when they wait on different queued requests.
     let processingStatusEventsPromise = Promise.resolve();
     PusherUtils.subscribeToPrivateUserChannelEvent(Pusher.TYPE.AGENT_ZERO_PROCESSING_STATUS, currentUserAccountID.toString(), (pushJSON) => {
+        // Each tab keeps its own pending messages in memory, so every tab applies the decision. It does not write Onyx,
+        // so it does not need to wait for this tab's queued requests, which may not include the send at all.
+        const status = pushJSON.conciergeProcessingStatus;
+        if (status && sessionAccountID === currentUserAccountID) {
+            AgentZeroOptimisticStore.reconcile(status);
+        }
+
         processingStatusEventsPromise = processingStatusEventsPromise
             .then(() => SequentialQueue.getCurrentRequest())
             .then(() => {

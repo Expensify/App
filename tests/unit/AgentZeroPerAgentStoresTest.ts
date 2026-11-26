@@ -33,6 +33,27 @@ describe('AgentZeroOptimisticStore (per-agent keying)', () => {
         expect(AgentZeroOptimisticStore.getEntry(REPORT, AGENT_B)?.count).toBe(1);
     });
 
+    it('merges messages from two predicted threads when the server answers both in one report', () => {
+        // Given two messages were tracked under the different threads the client predicted for them.
+        const SERVER_REPORT = '3001';
+        AgentZeroOptimisticStore.addTurn(REPORT, AGENT_A, null, {questionReportActionID: 'first', responseReportActionID: 'first-reply'});
+        AgentZeroOptimisticStore.addTurn('1002', AGENT_A, null, {questionReportActionID: 'second', responseReportActionID: 'second-reply'});
+        const latestStartedAt = AgentZeroOptimisticStore.getEntry('1002', AGENT_A)?.startedAt;
+
+        // When the server reports both runs in the same report, and repeats one of those decisions.
+        AgentZeroOptimisticStore.reconcile({reportID: SERVER_REPORT, reportActionID: 'first', isProcessing: true});
+        AgentZeroOptimisticStore.reconcile({reportID: SERVER_REPORT, reportActionID: 'second', isProcessing: true});
+        AgentZeroOptimisticStore.reconcile({reportID: SERVER_REPORT, reportActionID: 'first', isProcessing: true});
+
+        // Then that report waits for both messages once each, and the safety window still counts from the latest send.
+        const entry = AgentZeroOptimisticStore.getEntry(SERVER_REPORT, AGENT_A);
+        expect(entry?.turns.map((turn) => turn.questionReportActionID)).toEqual(['first', 'second']);
+        expect(entry?.startedAt).toBe(latestStartedAt);
+        expect(AgentZeroOptimisticStore.getEntry(REPORT, AGENT_A)).toBeUndefined();
+        expect(AgentZeroOptimisticStore.getEntry('1002', AGENT_A)).toBeUndefined();
+        AgentZeroOptimisticStore.clear(SERVER_REPORT, AGENT_A);
+    });
+
     it('notifies subscribers with the report and agent that changed', () => {
         const listener = jest.fn();
         const unsubscribe = AgentZeroOptimisticStore.subscribe(listener);

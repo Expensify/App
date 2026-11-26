@@ -17,7 +17,7 @@ import {getReportChatType, getReportParentReportID} from '@selectors/Report';
 import {getNewestReportActionSelector} from '@selectors/ReportAction';
 import {agentZeroProcessingAgentIDsSelector} from '@selectors/ReportNameValuePairs';
 import {accountIDSelector} from '@selectors/Session';
-import React, {createContext, useContext, useEffect} from 'react';
+import React, {createContext, useContext, useEffect, useSyncExternalStore} from 'react';
 
 type AgentZeroStatusState = {
     /**
@@ -150,6 +150,12 @@ function AgentZeroStatusGate({
 
     const optimisticAgentAccountID = includeConcierge ? CONST.ACCOUNT_ID.CONCIERGE : customAgentDMAccountID;
 
+    const subscribeToOptimisticStore = (onStoreChange: () => void) =>
+        reportID && optimisticAgentAccountID !== undefined ? AgentZeroOptimisticStore.subscribeToEntry(reportID, optimisticAgentAccountID, onStoreChange) : () => {};
+    const getHasPendingTurnsSnapshot = () =>
+        !!reportID && optimisticAgentAccountID !== undefined && AgentZeroOptimisticStore.hasPendingTurns(AgentZeroOptimisticStore.getEntry(reportID, optimisticAgentAccountID));
+    const hasPendingTurns = useSyncExternalStore(subscribeToOptimisticStore, getHasPendingTurnsSnapshot, getHasPendingTurnsSnapshot);
+
     // The composer calls this before the server's processing-indicator NVP lands. Concierge and
     // custom-agent DMs both use the same per-agent optimistic store; other custom-agent contexts
     // remain server-driven so report-activity agents don't appear before Auth decides to run them.
@@ -182,7 +188,10 @@ function AgentZeroStatusGate({
     // the completed response. Dropping the agent here as soon as their ADDCOMMENT lands prevents
     // that flash without waiting for the NVP clear.
     if (newestReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT && newestReportAction.actorAccountID !== undefined) {
-        candidateIDs.delete(newestReportAction.actorAccountID);
+        // The newest reply can answer an older message, so the agent stays while one of its sent messages is still pending.
+        if (!hasPendingTurns || newestReportAction.actorAccountID !== optimisticAgentAccountID) {
+            candidateIDs.delete(newestReportAction.actorAccountID);
+        }
     }
     // Render Concierge's bubble first, then any custom agents ascending by accountID — a stable,
     // intentional order instead of relying on Set insertion order.
