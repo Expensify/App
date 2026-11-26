@@ -150,6 +150,24 @@ describe('getReceiptCropQuad', () => {
         expect(quad?.at(0)).toEqual({x: 0, y: 0});
     });
 
+    it('skips the crop when keeping it inside the image would cut into a tilted receipt at the edge', () => {
+        // Given a tilted receipt with two corners on the image edge and a bent top edge that nearly touches it
+        const corners: DocumentQuad = [
+            {x: 0, y: 0.2},
+            {x: 0.6, y: 0},
+            {x: 0.8, y: 0.8},
+            {x: 0.1, y: 0.9},
+        ];
+        const outline: QuadPoint[] = [...corners, {x: 0.3, y: 0.01}];
+
+        // When the crop is worked out
+        const quad = getReceiptCropQuad(detect(corners, outline), SQUARE_IMAGE, MIN_CONFIDENCE);
+
+        // Then it is skipped, because clamping the corners to the image turns the top side into the paper, and a crop that
+        // loses part of the receipt must not replace the photo
+        expect(quad).toBeUndefined();
+    });
+
     it('skips the crop when the receipt fills nearly the whole image', () => {
         // Given a receipt that covers almost the whole frame
         const corners: DocumentQuad = [

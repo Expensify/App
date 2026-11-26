@@ -16,7 +16,7 @@ jest.mock('@expensify/nitro-utils', () => ({
 const MIN_CONFIDENCE = 0.5;
 
 function createImage(width: number, height: number): Image {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- The mock only implements the members enhanceReceipt uses
     return {width, height, dispose: jest.fn()} as unknown as Image;
 }
 

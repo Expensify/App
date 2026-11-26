@@ -26,6 +26,9 @@ const CORNER_COUNT = 4;
 // Below this the two sides are close to parallel and have no usable meeting point.
 const MIN_LINE_DETERMINANT = 1e-9;
 
+// Rounding in the line meeting points and the clamp can leave a point on the crop's edge a fraction of a pixel outside.
+const CONTAINMENT_TOLERANCE_PX = 0.5;
+
 type ReceiptDetection = {
     /** Shares of the image, clockwise from the top left */
     corners: QuadPoint[];
@@ -83,6 +86,19 @@ function isPlausibleSheet(quad: DocumentQuad): boolean {
     return true;
 }
 
+function isInsideQuad(point: QuadPoint, quad: DocumentQuad): boolean {
+    const insideSign = getSignedDoubledArea(quad) > 0 ? 1 : -1;
+    return quad.every((start, side) => {
+        const end = quad.at((side + 1) % quad.length) ?? start;
+        const length = Math.hypot(end.x - start.x, end.y - start.y);
+        if (length === 0) {
+            return true;
+        }
+        const distance = (insideSign * ((end.x - start.x) * (point.y - start.y) - (end.y - start.y) * (point.x - start.x))) / length;
+        return distance >= -CONTAINMENT_TOLERANCE_PX;
+    });
+}
+
 function intersectLines(first: Line, second: Line): QuadPoint | undefined {
     const determinant = first.direction.x * second.direction.y - first.direction.y * second.direction.x;
     if (Math.abs(determinant) < MIN_LINE_DETERMINANT) {
@@ -137,6 +153,12 @@ function getReceiptCropQuad(detection: ReceiptDetection, image: ImageSize, minCo
             return undefined;
         }
         cropCorners.push({x: Math.min(image.width, Math.max(0, point.x)), y: Math.min(image.height, Math.max(0, point.y))});
+    }
+
+    // Each corner is clamped to the image on its own, which turns the sides it joins. With a receipt that reaches the edge at
+    // an angle, a turned side can pass through the paper, and the crop would lose that part of the receipt for good.
+    if (![...corners, ...edgePoints].every((point) => isInsideQuad(point, cropCorners))) {
+        return undefined;
     }
 
     if (Math.abs(getSignedDoubledArea(cropCorners)) / 2 > MAX_CROP_AREA_SHARE * imageArea) {

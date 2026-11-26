@@ -30,7 +30,7 @@ jest.mock(
 
 jest.mock('@libs/getReceiptsUploadFolderPath', () => () => '/receipts');
 
-// eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
+// eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- The capture is mocked, so the photo output is never read
 const photoOutput = {} as CameraPhotoOutput;
 const transformImage: TransformImage = (image) => Promise.resolve({image, sourceReleased: Promise.resolve()});
 
@@ -95,7 +95,7 @@ describe('usePhotoUpgrade', () => {
         const photo: CapturedPhoto = {path: '/receipts/photo.jpg', width: 2016, height: 2688, isTransformed: true};
         let finishSave: () => void = () => {};
         mockCapturePhotoToPath.mockImplementation((...args: unknown[]) => {
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- The mock reads the callbacks argument the capture passes
             const callbacks = args.at(3) as {onDidCapturePhoto?: () => void};
             callbacks.onDidCapturePhoto?.();
             return new Promise<CapturedPhoto>((resolve) => {
