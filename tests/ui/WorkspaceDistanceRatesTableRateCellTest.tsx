@@ -6,7 +6,6 @@ import {ModalProvider} from '@components/Modal/Global/ModalContext';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import ScreenWrapperStatusContext from '@components/ScreenWrapper/ScreenWrapperStatusContext';
 import WorkspaceDistanceRatesTable from '@components/Tables/WorkspaceDistanceRatesTable';
-import type {DistanceRateTableItemData} from '@components/Tables/WorkspaceDistanceRatesTable/WorkspaceDistanceRatesTableRow';
 
 import {CurrentReportIDContextProvider} from '@hooks/useCurrentReportID';
 import * as useResponsiveLayoutModule from '@hooks/useResponsiveLayout';
@@ -16,13 +15,13 @@ import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Rate} from '@src/types/onyx/Policy';
 
 import {PortalProvider} from '@gorhom/portal';
 import {NavigationContainer} from '@react-navigation/native';
 import React from 'react';
 import Onyx from 'react-native-onyx';
 
+import {AUTO_GENERATED_RATE, buildDistanceRateTableItem} from '../utils/DistanceRatesTableTestUtils';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
@@ -55,41 +54,7 @@ const WIDE_LAYOUT: ResponsiveLayoutResult = {
 
 const SCREEN_WRAPPER_STATUS = {didScreenTransitionEnd: true, isSafeAreaTopPaddingApplied: true, isSafeAreaBottomPaddingApplied: true};
 
-const FORMATTED_RATE = '£0.45 / mile';
-const GOVERNMENT_RATE = {sourceRateID: 'GB_2011-04-06', rate: 45, startDate: '2011-04-06'};
-
-// Same amount and start date as the government rate it was created from, so its cell shows the bolt.
-const AUTO_GENERATED_RATE: Rate = {
-    customUnitRateID: 'auto',
-    name: 'Government',
-    rate: GOVERNMENT_RATE.rate,
-    startDate: GOVERNMENT_RATE.startDate,
-    currency: CONST.CURRENCY.GBP,
-    enabled: true,
-    attributes: {governmentRate: GOVERNMENT_RATE},
-};
-
-function buildItem(canEditRate: boolean): DistanceRateTableItemData {
-    return {
-        keyForList: AUTO_GENERATED_RATE.customUnitRateID,
-        rateID: AUTO_GENERATED_RATE.customUnitRateID,
-        rate: AUTO_GENERATED_RATE,
-        formattedRate: FORMATTED_RATE,
-        formattedTaxReclaimable: '',
-        enabled: true,
-        isLocked: false,
-        action: jest.fn(),
-        dismissError: jest.fn(),
-        onToggleEnabled: jest.fn(),
-        // The name isn't editable, so any edit button on screen belongs to the rate cell.
-        canEditName: false,
-        onRenameName: jest.fn(),
-        canEditRate,
-        onChangeRate: jest.fn(),
-        canEditTaxReclaimable: false,
-        onChangeTaxReclaimable: jest.fn(),
-    };
-}
+const FORMATTED_RATE = buildDistanceRateTableItem(AUTO_GENERATED_RATE).formattedRate;
 
 type RenderOptions = {
     canWriteDistanceRates: boolean;
@@ -104,7 +69,8 @@ async function renderTable({canWriteDistanceRates, canEditRate}: RenderOptions) 
                     <NavigationContainer>
                         <ScreenWrapperStatusContext.Provider value={SCREEN_WRAPPER_STATUS}>
                             <WorkspaceDistanceRatesTable
-                                ratesData={[buildItem(canEditRate)]}
+                                // The name isn't editable, so any edit button on screen belongs to the rate cell.
+                                ratesData={[buildDistanceRateTableItem(AUTO_GENERATED_RATE, {canEditName: false, canEditRate})]}
                                 policyID="policy-1"
                                 unit={CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES}
                                 selectionEnabled={false}
