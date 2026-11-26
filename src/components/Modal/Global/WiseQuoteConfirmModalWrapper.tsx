@@ -1,5 +1,7 @@
+import WisePaymentPrompt from '@components/WisePaymentSummary/components/WisePaymentPrompt';
 import WiseQuotePaymentSummary from '@components/WisePaymentSummary/components/WiseQuotePaymentSummary';
 
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 
@@ -30,8 +32,10 @@ type WiseQuoteConfirmModalWrapperProps = ModalProps & {
 /** Pay stays disabled until the quote is on screen, since Wise requires the admin to see it before paying */
 function WiseQuoteConfirmModalWrapper({closeModal, resolveModal, reportID, isPayingUnheldOnly, onConfirm, onQuoteExpired}: WiseQuoteConfirmModalWrapperProps) {
     const {translate} = useLocalize();
+    const {convertToDisplayString} = useCurrencyListActions();
     const [wiseQuote] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(reportID)}`, {selector: (report) => report?.wiseQuote});
     const wiseQuoteID = wiseQuote?.wiseQuoteID;
+    const confirmText = wiseQuote ? translate('iou.settlePayment', convertToDisplayString(wiseQuote.debitedAmount, wiseQuote.currency)) : translate('iou.pay');
 
     return (
         <ConfirmModalWrapper
@@ -49,12 +53,14 @@ function WiseQuoteConfirmModalWrapper({closeModal, resolveModal, reportID, isPay
             resolveModal={resolveModal}
             title={translate('iou.wisePaymentSummary.confirmPayment')}
             prompt={
-                <WiseQuotePaymentSummary
-                    reportID={reportID}
-                    isPayingUnheldOnly={isPayingUnheldOnly}
-                />
+                <WisePaymentPrompt buttonText={translate('iou.pay')}>
+                    <WiseQuotePaymentSummary
+                        reportID={reportID}
+                        isPayingUnheldOnly={isPayingUnheldOnly}
+                    />
+                </WisePaymentPrompt>
             }
-            confirmText={translate('iou.pay')}
+            confirmText={confirmText}
             cancelText={translate('common.cancel')}
             isConfirmDisabled={!wiseQuoteID}
             shouldDisableConfirmButtonWhenOffline

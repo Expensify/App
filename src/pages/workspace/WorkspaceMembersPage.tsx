@@ -38,6 +38,7 @@ import useWorkspaceMembers from '@hooks/useWorkspaceMembers';
 
 import {isConnectionInProgress, syncConnection} from '@libs/actions/connections';
 import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
+import {clearPolicyMemberCategoryVisibilityError} from '@libs/actions/Policy/Category';
 import {updateMemberRoleInline} from '@libs/actions/Policy/InlineEdit';
 import {
     clearAddMemberError,
@@ -140,7 +141,7 @@ function WorkspaceMembersPage({route, policy}: WorkspaceMembersPageProps) {
     const [personalDetails] = useAllPersonalDetails();
     useWorkspaceDocumentTitle(policy?.name, 'common.members');
     const tableRef = useRef<TableHandle<WorkspaceMemberRowData, WorkspaceMembersTableColumnKey, string>>(null);
-    const icons = useMemoizedLazyExpensifyIcons(['Building', 'Download', 'FallbackAvatar', 'Location', 'Plus', 'RemoveMembers', 'Sync', 'Table', 'UserPencil']);
+    const icons = useMemoizedLazyExpensifyIcons(['Building', 'Download', 'Eye', 'FallbackAvatar', 'Location', 'Plus', 'RemoveMembers', 'Sync', 'Table', 'UserPencil']);
     const employeePersonalDetails = usePersonalDetailsByLogins(Object.keys(policy?.employeeList ?? {}));
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const styles = useThemeStyles();
@@ -407,7 +408,16 @@ function WorkspaceMembersPage({route, policy}: WorkspaceMembersPageProps) {
         });
     };
 
-    const dismissError = (login: string, accountID: number, pendingAction?: PendingAction) => {
+    const dismissError = (login: string, accountID: number, pendingAction?: PendingAction, hasCategoryVisibilityError = false, hasMemberError = true) => {
+        if (hasCategoryVisibilityError) {
+            clearPolicyMemberCategoryVisibilityError(route.params.policyID, login);
+        }
+
+        // Only a category visibility change failed, so the member is left as is: clearing an add error would remove them
+        if (!hasMemberError) {
+            return;
+        }
+
         if (pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
             clearDeleteMemberError(route.params.policyID, login);
             return;
@@ -519,15 +529,16 @@ function WorkspaceMembersPage({route, policy}: WorkspaceMembersPageProps) {
                 !canMemberManageMemberWithRole(policy, currentUserLogin ?? '', policyEmployee.role),
             shouldShowEmployeeUserID: shouldShowCustomField1Column,
             shouldShowEmployeePayrollID: shouldShowCustomField2Column,
-            errors: getLatestErrorMessageField(policyEmployee),
-            pendingAction: policyEmployee.pendingAction,
+            errors: getLatestErrorMessageField({errors: {...policyEmployee.errorFields?.categoryVisibility, ...policyEmployee.errors}}),
+            pendingAction: policyEmployee.pendingAction ?? policyEmployee.pendingFields?.categoryVisibility,
             disabled: isPendingDeleteOrError,
             canEditRole,
             onChangeRole: (newRole) => changeMemberRole(login, accountID, policyEmployee.role, newRole),
             // Note which secondary login was used to invite this primary login
             invitedSecondaryLogin: details?.login ? (invitedPrimaryToSecondaryLogins[details.login] ?? '') : '',
             action: () => openMemberDetails(accountID, login),
-            dismissError: () => dismissError(login, accountID, policyEmployee.pendingAction),
+            dismissError: () =>
+                dismissError(login, accountID, policyEmployee.pendingAction, !isEmptyObject(policyEmployee.errorFields?.categoryVisibility), !isEmptyObject(policyEmployee.errors)),
         };
     });
 
@@ -642,6 +653,16 @@ function WorkspaceMembersPage({route, policy}: WorkspaceMembersPageProps) {
                 sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.MEMBERS.BULK_ACTIONS_CHANGE_WORK_ARRANGEMENT,
                 icon: icons.Building,
                 onSelected: () => editSelectedEmployees(ROUTES.WORKSPACE_MEMBERS_CHANGE_WORK_ARRANGEMENT.getRoute(policyID)),
+            });
+        }
+
+        if (isPolicyAdmin(policy) && isControlPolicy(policy) && !!policy?.areCategoriesEnabled) {
+            options.push({
+                text: translate('workspace.people.editCategoryVisibility'),
+                value: CONST.POLICY.MEMBERS_BULK_ACTION_TYPES.EDIT_CATEGORY_VISIBILITY,
+                sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.MEMBERS.BULK_ACTIONS_EDIT_CATEGORY_VISIBILITY,
+                icon: icons.Eye,
+                onSelected: () => editSelectedEmployees(ROUTES.WORKSPACE_MEMBERS_BULK_CATEGORY_VISIBILITY.getRoute(policyID)),
             });
         }
 

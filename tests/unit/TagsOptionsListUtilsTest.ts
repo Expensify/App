@@ -10,10 +10,45 @@ import type {PolicyTag, PolicyTagLists, PolicyTags} from '@src/types/onyx';
 
 import createRandomPolicy from '../utils/collections/policies';
 import createRandomTransaction from '../utils/collections/transaction';
+import createMock from '../utils/createMock';
 import {localeCompare, translateLocal} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 describe('TagsOptionsListUtils', () => {
+    it.each([undefined, null])('returns no enabled options for missing tags: %p', (tags) => {
+        // Given an empty list whose tags map was omitted.
+        // When rule editors ask for its selectable tags.
+        const result = getEnabledTags(tags, 'Parent', 1);
+
+        // Then the empty level offers no options.
+        expect(result).toEqual([]);
+    });
+
+    it('stops dependent automatic selection at missing tags without skipping a level', () => {
+        // Given a missing middle map followed by a selectable singleton.
+        const policyTags = createMock<PolicyTagLists>({
+            Parent: {name: 'Parent', orderWeight: 0, tags: {A: {name: 'A', enabled: true}}},
+            Empty: {name: 'Empty', orderWeight: 1},
+            Child: {name: 'Child', orderWeight: 2, tags: {B: {name: 'B', enabled: true}}},
+        });
+
+        // When selecting the parent in a dependent hierarchy.
+        const result = getUpdatedTransactionTag({
+            selectedTagName: 'A',
+            currentTag: '',
+            transactionTag: '',
+            tagListIndex: 0,
+            policyTags,
+            hasDependentTags: true,
+            hasMultipleTagLists: true,
+            tagListCount: 3,
+        });
+
+        // Then the later singleton is not moved into the empty level.
+        expect(result).toBe('A');
+        expect(getTagLists(policyTags).map(({name}) => name)).toEqual(['Parent', 'Empty', 'Child']);
+    });
+
     beforeAll(() => {
         IntlStore.load(CONST.LOCALES.EN);
         return waitForBatchedUpdates();
