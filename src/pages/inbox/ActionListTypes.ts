@@ -24,6 +24,9 @@ type ActionListRef = {
     getNativeScrollRef?: () => {scrollToEnd?: (params?: ScrollToEndParams) => void} | null | undefined;
     getScrollableNode?: () => unknown;
     getLayout?: (index: number) => unknown;
+    /** FlashList measurements, available after the first layout. */
+    getWindowSize?: () => {width: number; height: number};
+    getAbsoluteLastScrollOffset?: () => number;
     computeVisibleIndices?: () => {startIndex: number; endIndex: number} | undefined;
     /** Measured item positions supplied by LegendList. Other list implementations can omit this. */
     getState?: () => {positionByKey: (key: string) => number | undefined; scroll?: number; contentLength?: number; scrollLength?: number} | undefined;

@@ -4,9 +4,6 @@ import useReportActionsScroll from '@hooks/useReportActionsScroll';
 import useReportScrollManager from '@hooks/useReportScrollManager';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 
-import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
-import TransitionTracker from '@libs/Navigation/TransitionTracker';
-
 import {useActionListRef} from '@pages/inbox/ActionListContext';
 import {useReportActionsListActions, useReportActionsListState} from '@pages/inbox/report/ReportActionsListContext';
 import useFollowActionBadgeTarget from '@pages/inbox/report/useFollowActionBadgeTarget';
@@ -20,6 +17,8 @@ import type {LayoutChangeEvent, NativeScrollEvent, NativeSyntheticEvent} from 'r
 import {useEffect, useRef} from 'react';
 
 import type {UseReportActionsListScrollParams} from './types';
+
+import useReportActionsStartPagination from './useReportActionsStartPagination';
 
 /**
  * Create a unique key for each action in the FlatList.
@@ -58,6 +57,8 @@ function useReportActionsListScroll({
         report,
         hasOnceLoadedReportActions,
         hasNewerActions,
+        newestFetchedReportActionID,
+        isLoadingNewerReportActions,
         sortedAllReportActions,
         oldestUnreadReportAction,
         transactionThreadReport,
@@ -73,6 +74,14 @@ function useReportActionsListScroll({
     const listID = [reportID, linkedReportActionID, hasOnceLoadedReportActions ? undefined : oldestUnreadReportAction?.reportActionID].join(':');
 
     const listRef = useActionListRef();
+    const {loadNewerChatsAtStart, trackStartReachedThreshold, onStartReachedThreshold} = useReportActionsStartPagination({
+        listID,
+        listRef,
+        newestFetchedReportActionID,
+        hasNewerActions,
+        isLoadingNewerReportActions,
+        loadNewerChats,
+    });
     const reportScrollManager = useReportScrollManager();
 
     // Which rows are on screen, tracked so an edit started on a message the user can already see doesn't move the list.
@@ -147,6 +156,7 @@ function useReportActionsListScroll({
     });
 
     const trackScrollPositionAndThreshold = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
+        trackStartReachedThreshold(event);
         trackVerticalScrolling(event);
         onScrolledOverThresholdChange(event.nativeEvent.contentOffset.y >= CONST.REPORT.ACTIONS.ACTION_VISIBLE_THRESHOLD);
     };
@@ -161,19 +171,6 @@ function useReportActionsListScroll({
             return;
         }
         loadOlderChats(false);
-    };
-
-    const loadNewerChatsAfterTransitions = () => {
-        if (!isSearchTopmostFullScreenRoute()) {
-            loadNewerChats(false);
-            return;
-        }
-
-        TransitionTracker.runAfterTransitions({
-            callback: () => {
-                requestAnimationFrame(() => loadNewerChats(false));
-            },
-        });
     };
 
     useFollowActionBadgeTarget({
@@ -199,8 +196,8 @@ function useReportActionsListScroll({
             getItemType: (item: OnyxTypes.ReportAction) => item.actionName,
             onEndReached: loadOlderChatsOnEndReached,
             onEndReachedThreshold: 0.75,
-            onStartReached: loadNewerChatsAfterTransitions,
-            onStartReachedThreshold: 0.75,
+            onStartReached: loadNewerChatsAtStart,
+            onStartReachedThreshold,
             onLayout: (event: LayoutChangeEvent) => {
                 onLayout?.(event);
                 flushPendingScrollToBottom();
