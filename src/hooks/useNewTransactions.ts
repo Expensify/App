@@ -1,101 +1,152 @@
-import {deletePendingNewTransactionIDs} from '@libs/actions/IOU/PendingNewTransactions';
+import {deletePendingNewTransactionFlags} from '@libs/actions/IOU/PendingNewTransactions';
+import getNextNewTransactionsDiff, {EMPTY_TRANSACTION_IDS, getInitialNewTransactionsDiff} from '@libs/getNextNewTransactionsDiff';
 
 import CONST from '@src/CONST';
+import type {PendingNewTransactions} from '@src/selectors/ReportMetaData';
 import type {Transaction} from '@src/types/onyx';
 
-import {useEffect, useMemo, useRef} from 'react';
+import {useEffect, useState} from 'react';
 
-import usePrevious from './usePrevious';
+import useDeliveredReportTransactions from './useDeliveredReportTransactions';
 
-// Stable empty result so a "nothing new" return keeps a constant reference (no consumer re-render).
 const EMPTY_TRANSACTIONS: Transaction[] = [];
 
+/** Sweeps already scheduled, keyed `railReportID:flagKey`. Module-level because every preview in a chat reads the same rail. */
+const scheduledSweeps = new Set<string>();
+
+type UseNewTransactionsParams = {
+    hasOnceLoadedReportActions: boolean | undefined;
+
+    /** The report's transactions that have arrived so far. */
+    transactions: Transaction[];
+
+    /** Counted before the caller filters any out. */
+    arrivedTransactionCount: number;
+
+    expectedTransactionCount: number;
+
+    /** Must be the list's own report: a split and a different report both replace the whole list, and only this tells them apart. */
+    transactionsReportID: string | undefined;
+
+    /** Creation flags. Their rows are new even on first load. */
+    pendingNewTransactions: PendingNewTransactions | undefined;
+
+    /** Where `pendingNewTransactions` was read, and so where consumed flags are swept. */
+    railReportID: string | undefined;
+
+    isReportVisible: boolean;
+};
+
 /**
- * This hook returns new transactions that have been added since the last transactions update.
- * This hook should be used only in the context of highlighting the new transactions on the Report table view.
- *
- * When `pendingNewTransactionIDs` is provided, those transactions will be treated as new even on the
- * first load. This handles the case where a transaction was created before the component mounts
- * (e.g., submitting a tracked expense from Self DM to a workspace on Web).
- *
- * It marks a row "new" continuously, regardless of focus — the consumer gates when to show the highlight (e.g. only while the report is visible), keeping this hook free of layout concerns.
+ * The transactions to highlight: flagged rows as soon as they arrive, and rows the list diff finds added. The diff waits until
+ * every transaction has arrived, since a partial list would make the rest look new.
  */
-function useNewTransactions(
-    hasOnceLoadedReportActions: boolean | undefined,
-    transactions: Transaction[] | undefined,
-    pendingNewTransactionIDs?: Record<string, true | null>,
-    reportID?: string,
-    isFocused?: boolean,
-) {
-    // If we haven't loaded report yet we set previous transaction ids to undefined.
-    const prevTransactions = usePrevious(hasOnceLoadedReportActions ? transactions : undefined);
+function useNewTransactions({
+    hasOnceLoadedReportActions,
+    transactions,
+    arrivedTransactionCount,
+    expectedTransactionCount,
+    transactionsReportID,
+    pendingNewTransactions,
+    railReportID,
+    isReportVisible,
+}: UseNewTransactionsParams): Transaction[] {
+    const [diff, setDiff] = useState(() => getInitialNewTransactionsDiff(transactionsReportID, !!hasOnceLoadedReportActions));
+    const deliveredTransactions = useDeliveredReportTransactions({reportID: transactionsReportID, transactions, arrivedTransactionCount, expectedTransactionCount});
+    const trackedTransactionIDs = hasOnceLoadedReportActions && deliveredTransactions ? deliveredTransactions.map(({transactionID}) => transactionID) : undefined;
+    const nextDiff = getNextNewTransactionsDiff(diff, {transactionsReportID, trackedTransactionIDs, hasOnceLoadedReportActions: !!hasOnceLoadedReportActions});
+    if (nextDiff !== diff) {
+        setDiff(nextDiff);
+    }
+    const {addedIDs: latchedAddedIDs, hasSettledAfterInitialLoad} = diff;
 
-    // We need to skip the first transactions change, to avoid highlighting transactions on the first load.
-    const skipFirstTransactionsChange = useRef(!hasOnceLoadedReportActions);
+    const activeFlagKeys = pendingNewTransactions?.activeFlagKeys;
+    const railTransactions = railReportID && activeFlagKeys && transactions.length ? transactions.filter(({transactionID}) => activeFlagKeys[transactionID]) : EMPTY_TRANSACTIONS;
 
-    const newTransactions = useMemo(() => {
-        // Rail-flagged adds survive the remount the diff can't see. Truthy-only so an all-cleared tombstone rail falls through to the diff.
-        const activePendingTransactionIDs = pendingNewTransactionIDs ? Object.keys(pendingNewTransactionIDs).filter((id) => pendingNewTransactionIDs[id]) : [];
-        const railSet = new Set(activePendingTransactionIDs);
-        const railTransactions =
-            reportID && activePendingTransactionIDs.length && transactions?.length ? transactions.filter(({transactionID}) => railSet.has(transactionID)) : EMPTY_TRANSACTIONS;
+    let diffTransactions = EMPTY_TRANSACTIONS;
+    if (latchedAddedIDs.length && transactions.length) {
+        const addedIDs = new Set(latchedAddedIDs);
+        diffTransactions = transactions.filter(({transactionID}) => addedIDs.has(transactionID));
+    }
 
-        // Diff-detected adds the rail never flagged (e.g. a Pusher add).
-        let diffTransactions: Transaction[] = [];
-        if (transactions !== undefined && prevTransactions !== undefined && transactions.length > prevTransactions.length) {
-            if (skipFirstTransactionsChange.current) {
-                skipFirstTransactionsChange.current = false;
-            } else {
-                diffTransactions = transactions.filter((transaction) => !prevTransactions?.some((prevTransaction) => prevTransaction.transactionID === transaction.transactionID));
+    let newTransactions = railTransactions;
+    if (!railTransactions.length) {
+        newTransactions = diffTransactions.length ? diffTransactions : EMPTY_TRANSACTIONS;
+    } else {
+        const extraDiff = diffTransactions.filter(({transactionID}) => !activeFlagKeys?.[transactionID]);
+        newTransactions = extraDiff.length ? [...railTransactions, ...extraDiff] : railTransactions;
+    }
+
+    useEffect(() => {
+        if (!isReportVisible || !pendingNewTransactions) {
+            return;
+        }
+        const railFlagKeys = pendingNewTransactions.activeFlagKeys;
+        const consumedFlagKeys = newTransactions.map(({transactionID}) => railFlagKeys[transactionID]).filter(Boolean);
+        const claimedKeys: string[] = [];
+        for (const flagKey of [...consumedFlagKeys, ...pendingNewTransactions.expiredFlagKeys]) {
+            const sweepKey = `${railReportID}:${flagKey}`;
+            if (scheduledSweeps.has(sweepKey)) {
+                continue;
             }
+            scheduledSweeps.add(sweepKey);
+            claimedKeys.push(flagKey);
         }
-
-        // Union, rail first so newTransactions[0] (the scroll target) stays stable across a later add.
-        if (!railTransactions.length) {
-            return diffTransactions.length ? diffTransactions : EMPTY_TRANSACTIONS;
-        }
-        const extraDiff = diffTransactions.filter(({transactionID}) => !railSet.has(transactionID));
-        return extraDiff.length ? [...railTransactions, ...extraDiff] : railTransactions;
-
-        // We don't need to recalculate on change of prevTransactions as it will make the value
-        // disappear quickly which will break the scroll and highlight on slower devices like mobile app.
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [transactions, reportID, pendingNewTransactionIDs]);
-
-    useEffect(() => {
-        // Only the focused consumer clears the rail, so a covered view can't clear the flag before the visible one highlights it.
-        if (isFocused === false || !pendingNewTransactionIDs) {
-            return;
-        }
-        const pendingSet = new Set(Object.keys(pendingNewTransactionIDs));
-        const pendingTransactions = newTransactions.filter(({transactionID}) => pendingSet.has(transactionID) && pendingNewTransactionIDs[transactionID]);
-        if (!pendingTransactions.length) {
+        if (!claimedKeys.length) {
             return;
         }
 
-        // We deletePendingNewTransactionIDs after the scroll and highlight has occurred.
+        // No cleanup: a shown highlight's flag must go even if the row unmounts first.
         setTimeout(() => {
-            deletePendingNewTransactionIDs(
-                reportID,
-                pendingTransactions.map((transaction) => transaction.transactionID),
-            );
+            // Released before deleting, so a merge that never lands stays claimable.
+            for (const flagKey of claimedKeys) {
+                scheduledSweeps.delete(`${railReportID}:${flagKey}`);
+            }
+            deletePendingNewTransactionFlags(railReportID, claimedKeys);
         }, CONST.PENDING_TRANSACTION_DELETION_DELAY);
-    }, [isFocused, pendingNewTransactionIDs, newTransactions, reportID]);
+    }, [isReportVisible, pendingNewTransactions, newTransactions, railReportID]);
 
-    // In case when we have loaded the report, but there were no transactions in it, then we need to explicitly set skipFirstTransactionsChange to false, as it will be not set in the useMemo above.
+    // Compared by identity, so a later add of the same size gets its own window. Starts when the rows are first visible and never restarts, so covering them can't prolong it.
+    const [visibleAddedIDs, setVisibleAddedIDs] = useState<readonly string[] | undefined>(undefined);
+    if (isReportVisible && latchedAddedIDs.length && visibleAddedIDs !== latchedAddedIDs) {
+        setVisibleAddedIDs(latchedAddedIDs);
+    }
     useEffect(() => {
-        if (!hasOnceLoadedReportActions) {
+        if (!visibleAddedIDs?.length) {
             return;
         }
-        // This is needed to ensure that set we skipFirstTransactionsChange to false only after the Onyx merge is done.
+        const timer = setTimeout(() => {
+            setDiff((previousDiff) => (previousDiff.addedIDs === visibleAddedIDs ? {...previousDiff, addedIDs: EMPTY_TRANSACTION_IDS} : previousDiff));
+        }, CONST.PENDING_TRANSACTION_DELETION_DELAY);
+        return () => clearTimeout(timer);
+    }, [visibleAddedIDs]);
+
+    useEffect(() => {
+        if (!hasOnceLoadedReportActions || hasSettledAfterInitialLoad) {
+            return;
+        }
+        // A report that loads without growing settles here, a microtask and a frame later, so transactions in the same Onyx update as the loaded flag join the baseline, not the adds.
+        let frame: number | undefined;
+        let isStale = false;
         new Promise<void>((resolve) => {
             resolve();
         }).then(() => {
-            requestAnimationFrame(() => {
-                skipFirstTransactionsChange.current = false;
+            if (isStale) {
+                return;
+            }
+            frame = requestAnimationFrame(() => {
+                setDiff((previousDiff) => (previousDiff.hasSettledAfterInitialLoad ? previousDiff : {...previousDiff, hasSettledAfterInitialLoad: true}));
             });
         });
-    }, [hasOnceLoadedReportActions]);
+        // Cancelled on cleanup, so a frame queued for the previous report cannot undo the reset.
+        return () => {
+            isStale = true;
+            if (frame === undefined) {
+                return;
+            }
+            cancelAnimationFrame(frame);
+        };
+    }, [hasOnceLoadedReportActions, hasSettledAfterInitialLoad]);
 
     return newTransactions;
 }

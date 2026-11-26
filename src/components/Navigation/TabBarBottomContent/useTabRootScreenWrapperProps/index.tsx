@@ -22,7 +22,9 @@ function useTabRootScreenWrapperProps(selectedTab: TabBarBottomContentProps['sel
 
     return {
         bottomContent: <TabBarBottomContent selectedTab={selectedTab} />,
-        bottomContentStyle: shouldUseNarrowLayout ? [styles.stickToBottom, styles.overflowVisible] : styles.overflowVisible,
+        // The container spans the screen's width over the content, so it lets through the taps beside the bar, which is
+        // shorter than the screen in landscape.
+        bottomContentStyle: shouldUseNarrowLayout ? [styles.stickToBottom, styles.overflowVisible, styles.pointerEventsBoxNone] : styles.overflowVisible,
         offlineIndicatorStyle: shouldUseNarrowLayout ? styles.tabBarOfflineIndicator(tabBarCoveredHeight) : undefined,
     };
 }

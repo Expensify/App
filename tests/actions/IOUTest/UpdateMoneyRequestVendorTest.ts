@@ -138,15 +138,21 @@ describe('updateMoneyRequestVendor', () => {
         expect(violationsUpdate).toBe(false);
     });
 
-    it('falls back to the Onyx-cached transaction for vendor rollback when caller omits transaction', async () => {
+    it('restores the previous vendor from the passed transaction in failureData', () => {
         const previousVendor = {externalID: 'v-old', wasManuallySet: true};
-        await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${TRANSACTION_ID}`, {
+        const transactionWithVendor: Transaction = {
             ...baseTransaction,
             comment: {vendor: previousVendor},
-        });
-        await waitForBatchedUpdates();
+        };
 
-        updateMoneyRequestVendor({transactionID: TRANSACTION_ID, vendorID: 'v-new', vendorName: 'New Vendor', delegateAccountID: undefined, transactionViolations: undefined});
+        updateMoneyRequestVendor({
+            transactionID: TRANSACTION_ID,
+            vendorID: 'v-new',
+            vendorName: 'New Vendor',
+            transaction: transactionWithVendor,
+            delegateAccountID: undefined,
+            transactionViolations: undefined,
+        });
 
         const transactionFailure = getRequiredOnyxUpdate(getOnyxDataArg(), 'failureData', `${ONYXKEYS.COLLECTION.TRANSACTION}${TRANSACTION_ID}`, Onyx.METHOD.MERGE, true);
         expect(transactionFailure.value).toEqual({
@@ -156,10 +162,17 @@ describe('updateMoneyRequestVendor', () => {
     });
 
     it('omits vendor rollback from failureData when no prior transaction snapshot exists', async () => {
-        // No transaction arg + nothing in Onyx — the prior vendor is unknown, so we must not
-        // write `vendor: null` and silently clear whatever the server actually has. The
-        // pendingFields-clear entry still runs (so the offline indicator clears on rejection).
-        updateMoneyRequestVendor({transactionID: TRANSACTION_ID, vendorID: 'v-new', vendorName: 'New Vendor', delegateAccountID: undefined, transactionViolations: undefined});
+        // Without a transaction, the prior vendor is unknown, so we must not write `vendor: null`
+        // and silently clear whatever the server actually has. The pendingFields-clear entry still
+        // runs (so the offline indicator clears on rejection).
+        updateMoneyRequestVendor({
+            transactionID: TRANSACTION_ID,
+            vendorID: 'v-new',
+            vendorName: 'New Vendor',
+            transaction: undefined,
+            delegateAccountID: undefined,
+            transactionViolations: undefined,
+        });
 
         const transactionFailure = getRequiredOnyxUpdate(getOnyxDataArg(), 'failureData', `${ONYXKEYS.COLLECTION.TRANSACTION}${TRANSACTION_ID}`, Onyx.METHOD.MERGE, true);
         expect(transactionFailure.value).toEqual({pendingFields: {vendor: null}});
@@ -201,7 +214,14 @@ describe('updateMoneyRequestVendor', () => {
     it('clears pendingFields.vendor in failureData when the server rejects the write', () => {
         // Even without a prior snapshot to roll the vendor itself back, the pending indicator must
         // clear on failure — otherwise the row stays stuck in "pending" forever after a server reject.
-        updateMoneyRequestVendor({transactionID: TRANSACTION_ID, vendorID: 'v-new', vendorName: 'New Vendor', delegateAccountID: undefined, transactionViolations: undefined});
+        updateMoneyRequestVendor({
+            transactionID: TRANSACTION_ID,
+            vendorID: 'v-new',
+            vendorName: 'New Vendor',
+            transaction: undefined,
+            delegateAccountID: undefined,
+            transactionViolations: undefined,
+        });
 
         const transactionFailure = getRequiredOnyxUpdate(getOnyxDataArg(), 'failureData', `${ONYXKEYS.COLLECTION.TRANSACTION}${TRANSACTION_ID}`, Onyx.METHOD.MERGE, true);
         expect(transactionFailure.value).toMatchObject({pendingFields: {vendor: null}});

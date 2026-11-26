@@ -7,7 +7,9 @@ import type {HardwareBackPressEvent} from '@src/types/utils/ReactNativeCompat';
 
 import {BackHandler} from 'react-native';
 
-type MockBeforeRemoveEvent = {data: {action: {type: string}}};
+type MockNavigationAction = {type: string; source?: string; target?: string};
+
+type MockBeforeRemoveEvent = {data: {action: MockNavigationAction}};
 
 const mockHardwareBackPressEvent: HardwareBackPressEvent = {type: 'hardwareBackPress', timeStamp: 0};
 
@@ -56,6 +58,8 @@ jest.mock('@libs/Navigation/navigationRef', () => ({
         get current() {
             return {dispatch: mockNavigationDispatch, goBack: mockNavigationGoBack};
         },
+        isReady: () => true,
+        getRootState: () => ({key: 'root', routes: [{key: 'rhp-route'}]}),
     },
 }));
 
@@ -69,7 +73,8 @@ describe('useDiscardChangesConfirmation (native)', () => {
     const removeSubscription = jest.fn();
     let resolveModal: ((result: {action: string}) => void) | undefined;
 
-    const renderDiscardHook = (getHasUnsavedChanges: () => boolean) => renderHook(() => useDiscardChangesConfirmation({getHasUnsavedChanges}));
+    const renderDiscardHook = (getHasUnsavedChanges: () => boolean, shouldCloseRHPOnDiscard?: boolean) =>
+        renderHook(() => useDiscardChangesConfirmation({getHasUnsavedChanges, shouldCloseRHPOnDiscard}));
 
     const pressHardwareBack = (): boolean | null | undefined => {
         let consumed: boolean | null | undefined;
@@ -243,9 +248,9 @@ describe('useDiscardChangesConfirmation (native)', () => {
     });
 
     describe('usePreventRemove (removal case: header back, in-app pop)', () => {
-        const invokeBeforeRemove = (type: string) => {
+        const invokeBeforeRemove = (type: string, action: Omit<MockNavigationAction, 'type'> = {}) => {
             act(() => {
-                mockPreventRemoveCallback?.({data: {action: {type}}});
+                mockPreventRemoveCallback?.({data: {action: {type, ...action}}});
             });
         };
 
@@ -290,6 +295,43 @@ describe('useDiscardChangesConfirmation (native)', () => {
 
             expect(mockNavigationDispatch).not.toHaveBeenCalled();
             expect(mockNavigationGoBack).toHaveBeenCalledTimes(1);
+        });
+
+        it('replays a click outside the RHP at the root navigator on Discard, so the whole RHP closes', async () => {
+            // Given a dirty create expense step stacked in the RHP, which closes the whole RHP on Discard
+            renderDiscardHook(() => true, true);
+
+            // When the user clicks outside the RHP, which sends a GO_BACK without a target from the root-level RHP route, and picks Discard
+            invokeBeforeRemove('GO_BACK', {source: 'rhp-route'});
+            await resolveModalWith('CONFIRM');
+
+            // Then the replay targets the root, which closes the whole RHP instead of only the top screen
+            expect(mockNavigationDispatch).toHaveBeenCalledWith({type: 'GO_BACK', source: 'rhp-route', target: 'root'});
+        });
+
+        it('replays a click outside the RHP unchanged on Discard by default, so only the screen closes', async () => {
+            // Given a dirty screen stacked in the RHP outside the create expense flow, such as the agent avatar page
+            renderDiscardHook(() => true);
+
+            // When the user clicks outside the RHP and picks Discard
+            invokeBeforeRemove('GO_BACK', {source: 'rhp-route'});
+            await resolveModalWith('CONFIRM');
+
+            // Then it is sent again as it was, so the user goes back to the previous page as before
+            expect(mockNavigationDispatch).toHaveBeenCalledWith({type: 'GO_BACK', source: 'rhp-route'});
+        });
+
+        it('lets a click outside the RHP close the whole RHP while the prompt is suppressed', () => {
+            // Given a dirty create expense step, so prevention stays armed, whose prompt is suppressed during a save
+            const {result} = renderDiscardHook(() => true, true);
+            act(() => result.current.suppressDiscardPrompt());
+
+            // When the user clicks outside the RHP
+            invokeBeforeRemove('GO_BACK', {source: 'rhp-route'});
+
+            // Then the close goes through at the root, so the whole RHP closes instead of only the top screen
+            expect(mockShowConfirmModal).not.toHaveBeenCalled();
+            expect(mockNavigationDispatch).toHaveBeenCalledWith({type: 'GO_BACK', source: 'rhp-route', target: 'root'});
         });
     });
 });

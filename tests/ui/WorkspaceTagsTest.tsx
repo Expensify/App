@@ -18,6 +18,7 @@ import WorkspaceTagsPage from '@pages/workspace/tags/WorkspaceTagsPage';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
+import type {PolicyTagLists} from '@src/types/onyx';
 import type Beta from '@src/types/onyx/Beta';
 
 import {PortalProvider} from '@gorhom/portal';
@@ -43,6 +44,21 @@ jest.mock('react-native-render-html', () => {
 });
 
 const Stack = createPlatformStackNavigator<WorkspaceSplitNavigatorParamList>();
+
+/**
+ * The wide layout offers the bulk actions in the floating bar over the table, which gives the first few an inline
+ * button and moves the rest behind "More". Opening that menu puts every action on screen at once, whichever half of
+ * the bar it landed in.
+ */
+const openBulkActions = async () => {
+    const moreButton = screen.queryByLabelText(TestHelper.translateLocal('common.more'));
+
+    if (moreButton) {
+        fireEvent.press(moreButton);
+    }
+
+    await waitForBatchedUpdatesWithAct();
+};
 
 const renderPage = (initialRouteName: typeof SCREENS.WORKSPACE.TAGS, initialParams: WorkspaceSplitNavigatorParamList[typeof SCREENS.WORKSPACE.TAGS]) => {
     return render(
@@ -180,6 +196,28 @@ describe('WorkspaceTags', () => {
         jest.clearAllMocks();
     });
 
+    it('keeps list rows in order after merging a list with missing tags', async () => {
+        // Given the workspace tags page displaying an existing list.
+        await TestHelper.signInWithTestUser();
+        const policy = {...LHNTestUtils.getFakePolicy(), role: CONST.POLICY.ROLE.ADMIN, areTagsEnabled: true};
+        await act(async () => {
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policy.id}`, tags);
+        });
+        const {unmount} = renderPage(SCREENS.WORKSPACE.TAGS, {policyID: policy.id});
+        await waitForBatchedUpdatesWithAct();
+
+        // When a new list arrives with its nested tags map omitted.
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policy.id}`, createMock<PolicyTagLists>({Broken: {name: 'Broken', orderWeight: 99}}));
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        // Then multilevel rows render without dropping or reordering either list.
+        expect(screen.getAllByLabelText(/^(TagListOne|Broken),/).map((element) => String(element.props.accessibilityLabel).split(',').at(0))).toEqual(['TagListOne', 'Broken']);
+        unmount();
+    });
+
     it('should show select option when the item is not selected and deselect option when the item is selected', async () => {
         await TestHelper.signInWithTestUser();
 
@@ -259,18 +297,14 @@ describe('WorkspaceTags', () => {
 
         fireEvent.press(selectAll);
 
-        const dropdownMenuButtonTestID = 'WorkspaceTagsPage-header-dropdown-menu-button';
+        // Open the actions the bar moved behind "More"
+        await openBulkActions();
 
-        await waitFor(() => {
-            expect(screen.getByTestId(dropdownMenuButtonTestID)).toBeOnTheScreen();
-        });
-
-        fireEvent.press(screen.getByTestId(dropdownMenuButtonTestID));
         await waitFor(() => {
             expect(screen.getByText(TestHelper.translateLocal('workspace.tags.disableTags'))).toBeOnTheScreen();
         });
 
-        const disableMenuItem = screen.getByTestId('PopoverMenuItem-Disable tags');
+        const disableMenuItem = screen.getByText(TestHelper.translateLocal('workspace.tags.disableTags'));
         const mockEvent = {nativeEvent: {}, type: 'press', target: disableMenuItem, currentTarget: disableMenuItem};
         fireEvent.press(disableMenuItem, mockEvent);
 

@@ -1,7 +1,8 @@
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import {useAllReportsTransactionsAndViolations} from '@components/OnyxListItemProvider';
-import {useSearchQueryContext, useSearchSelectionActions, useSearchSelectionContext} from '@components/Search/SearchContext';
+import {useSearchQueryContext, useSearchResultsContext, useSearchSelectionActions, useSearchSelectionContext} from '@components/Search/SearchContext';
+import {getRowsCheckedInExcludedGroups} from '@components/Search/selectionBuilders';
 
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -11,9 +12,10 @@ import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 
 import {clearErrorFields, clearErrors} from '@libs/actions/FormActions';
-import {rejectMoneyRequestsOnSearch} from '@libs/actions/Search';
+import {queueBulkExpenseAction, rejectMoneyRequestsOnSearch} from '@libs/actions/Search';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import {getAllMatchingExpenseActionQuery} from '@libs/SearchUIUtils';
 import {getFieldRequiredErrors} from '@libs/ValidationUtils';
 
 import type {SearchReportActionsParamList} from '@navigation/types';
@@ -27,14 +29,16 @@ import SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/MoneyRequestRejectReasonForm';
 
 import React, {useEffect} from 'react';
+import Onyx from 'react-native-onyx';
 
 type SearchRejectReasonPageProps =
     | PlatformStackScreenProps<SearchReportActionsParamList, typeof SCREENS.SEARCH.MONEY_REQUEST_REPORT_REJECT_TRANSACTIONS>
     | PlatformStackScreenProps<SearchReportActionsParamList, typeof SCREENS.SEARCH.SEARCH_REJECT_REASON_RHP>;
 
 function SearchRejectReasonPage({route}: SearchRejectReasonPageProps) {
-    const {selectedTransactionIDs, selectedTransactions} = useSearchSelectionContext();
-    const {currentSearchHash} = useSearchQueryContext();
+    const {selectedTransactionIDs, selectedTransactions, excludedTransactions, areAllMatchingItemsSelected} = useSearchSelectionContext();
+    const {currentSearchHash, currentSearchKey, currentSearchQueryJSON} = useSearchQueryContext();
+    const {currentSearchResults} = useSearchResultsContext();
     const {clearSelectedTransactions} = useSearchSelectionActions();
     const {reportID} = route.params ?? {};
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
@@ -67,18 +71,35 @@ function SearchRejectReasonPage({route}: SearchRejectReasonPageProps) {
 
     const {isDelegateAccessRestricted} = useDelegateNoAccessState();
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
-    const onSubmit = ({comment}: FormOnyxValues<typeof ONYXKEYS.FORMS.MONEY_REQUEST_REJECT_FORM>) => {
+    // "Select all" can cover more expenses than are loaded, so the backend rejects every match.
+    const shouldQueueOnServer = route.name === SCREENS.SEARCH.SEARCH_REJECT_REASON_RHP && areAllMatchingItemsSelected;
+    const rejectSelectedMoneyRequests = async ({comment}: FormOnyxValues<typeof ONYXKEYS.FORMS.MONEY_REQUEST_REJECT_FORM>) => {
         if (isDelegateAccessRestricted) {
             showDelegateNoAccessModal();
             return;
         }
 
+        if (shouldQueueOnServer) {
+            queueBulkExpenseAction(
+                CONST.SEARCH.BULK_ACTION_TYPES.REJECT,
+                getAllMatchingExpenseActionQuery(currentSearchQueryJSON, excludedTransactions, currentSearchResults?.data, currentSearchKey),
+                getRowsCheckedInExcludedGroups(selectedTransactions, excludedTransactions),
+                comment,
+            );
+            clearSelectedTransactions();
+            Navigation.dismissToSuperWideRHP();
+            return;
+        }
+
+        // eslint-disable-next-line rulesdir/no-onyx-get-snapshot-key -- replaces a module-level Onyx.connect used only by handlers, never read a snapshot
+        const allReportNameValuePairs = await Onyx.get(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
         const urlToNavigateBack = rejectMoneyRequestsOnSearch({
             hash: currentSearchHash,
             selectedTransactions: selectedTransactionsForReject,
             comment,
             allPolicies,
             allReports,
+            allReportNameValuePairs,
             currentUserAccountIDParam: currentUserAccountID,
             currentUserLogin: currentUserLogin ?? '',
             isASAPSubmitBetaEnabled: isBetaEnabled(CONST.BETAS.ASAP_SUBMIT),
@@ -110,8 +131,11 @@ function SearchRejectReasonPage({route}: SearchRejectReasonPageProps) {
 
     return (
         <RejectReasonFormView
-            onSubmit={onSubmit}
+            onSubmit={(values) => {
+                rejectSelectedMoneyRequests(values);
+            }}
             validate={validate}
+            enabledWhenOffline={!shouldQueueOnServer}
         />
     );
 }

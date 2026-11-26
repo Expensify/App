@@ -25,13 +25,10 @@ import type {SettingsNavigatorParamList} from '@navigation/types';
 
 import variables from '@styles/variables';
 
-import {dismissWiseGlobalReimbursementsBanners} from '@userActions/WiseOnboarding';
-
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 import {useIsFocused} from '@react-navigation/native';
 import React, {useEffect} from 'react';
@@ -42,7 +39,8 @@ function WiseGlobalReimbursementsIntroPage({route}: WiseGlobalReimbursementsIntr
     const bankAccountID = Number(route.params.bankAccountID);
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.WISE_GLOBAL_REIMBURSEMENTS_INTRO.path);
     const isPayingReport = isWiseGlobalReimbursementsIntroOverPayReportScreen(backPath);
-    const [bankAccountList, bankAccountListMetadata] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
+    const isPayingMultipleReports = route.params.isPayingMultipleReports === 'true';
+    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const [isLoadingPaymentMethods = true] = useOnyx(ONYXKEYS.IS_LOADING_PAYMENT_METHODS);
     const bankAccount = bankAccountList?.[bankAccountID];
     const isOnboardingSubmitted = isWiseOnboardingSubmitted(bankAccount?.accountData);
@@ -73,7 +71,7 @@ function WiseGlobalReimbursementsIntroPage({route}: WiseGlobalReimbursementsIntr
     // On a cold direct link the account list can be empty until the payment-method fetch finishes, so wait for it before judging eligibility
     const isWaitingForBankAccount = !bankAccount && !!isLoadingPaymentMethods;
 
-    if (isLoadingOnyxValue(bankAccountListMetadata) || isWaitingForBankAccount || !isWiseReimbursementsBetaEnabled) {
+    if (isWaitingForBankAccount || !isWiseReimbursementsBetaEnabled) {
         return <FullScreenLoadingIndicator shouldUseGoBackButton />;
     }
 
@@ -95,7 +93,9 @@ function WiseGlobalReimbursementsIntroPage({route}: WiseGlobalReimbursementsIntr
                         />
                         <ConfirmationPage.Heading>{translate('walletPage.wiseGlobalReimbursementsIntro.title')}</ConfirmationPage.Heading>
                         <ConfirmationPage.Description style={styles.textSupporting}>
-                            {translate(isPayingReport ? 'walletPage.wiseGlobalReimbursementsIntro.payingReportSubtitle' : 'walletPage.wiseGlobalReimbursementsIntro.subtitle')}
+                            {isPayingMultipleReports
+                                ? translate('walletPage.wiseGlobalReimbursementsIntro.payingMultipleReportsSubtitle')
+                                : translate(isPayingReport ? 'walletPage.wiseGlobalReimbursementsIntro.payingReportSubtitle' : 'walletPage.wiseGlobalReimbursementsIntro.subtitle')}
                         </ConfirmationPage.Description>
                     </ConfirmationPage.Content>
                     <FixedFooter>
@@ -112,13 +112,10 @@ function WiseGlobalReimbursementsIntroPage({route}: WiseGlobalReimbursementsIntr
                             }
                             text={translate(isOnboardingSubmitted || isWiseOnboardingPendingSubmit(bankAccount) ? 'common.continue' : 'walletPage.wiseGlobalReimbursementsIntro.getStarted')}
                             onPress={() => {
-                                // A submitted business goes to its status page, which leaves the banners alone, so they are dismissed here. The form dismisses them itself
-                                if (isOnboardingSubmitted) {
-                                    dismissWiseGlobalReimbursementsBanners();
-                                    Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WISE_ONBOARDING_STATUS.path));
-                                    return;
-                                }
-                                Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WISE_BUSINESS_ONBOARDING.getRoute()));
+                                // A submitted business has nothing left to submit, so it sees where its onboarding stands instead of ending on the terms
+                                Navigation.navigate(
+                                    createDynamicRoute(isOnboardingSubmitted ? DYNAMIC_ROUTES.WISE_ONBOARDING_STATUS.path : DYNAMIC_ROUTES.WISE_BUSINESS_ONBOARDING.getRoute()),
+                                );
                             }}
                         />
                     </FixedFooter>

@@ -6,7 +6,7 @@ import {
     SearchSelectionActionsContext,
     SearchSelectionContext,
 } from '@components/Search/SearchContext';
-import {SearchSelectionClearGenerationContext} from '@components/Search/SearchContextDefinitions';
+import {SearchSelectionClearGenerationContext, SearchShouldUseLiveDataContext} from '@components/Search/SearchContextDefinitions';
 import type {
     SearchActionsContextValue,
     SearchQueryActionsValue,
@@ -50,6 +50,7 @@ function splitState(value: SearchStateContextValue): {
             currentSearchResults: value.currentSearchResults,
             currentSearchTransactionsByReportID: value.currentSearchTransactionsByReportID,
             currentSearchViolations: value.currentSearchViolations,
+            approvalWorkflowRules: value.approvalWorkflowRules,
             shouldUseLiveData: value.shouldUseLiveData,
             sortedReportIDs: value.sortedReportIDs,
             shouldShowFiltersBarLoading: value.shouldShowFiltersBarLoading,
@@ -108,15 +109,17 @@ function MockSearchContextProvider({state, actions, selectionClearGeneration = 0
     return (
         <SearchQueryContext value={stateSlices.query}>
             <SearchQueryActionsContext value={actionsSlices.query}>
-                <SearchResultsContext value={stateSlices.results}>
-                    <SearchResultsActionsContext value={actionsSlices.results}>
-                        <SearchSelectionContext value={stateSlices.selection}>
-                            <SearchSelectionActionsContext value={selectionActions}>
-                                <SearchSelectionClearGenerationContext value={selectionClearGeneration}>{children}</SearchSelectionClearGenerationContext>
-                            </SearchSelectionActionsContext>
-                        </SearchSelectionContext>
-                    </SearchResultsActionsContext>
-                </SearchResultsContext>
+                <SearchShouldUseLiveDataContext value={state.shouldUseLiveData}>
+                    <SearchResultsContext value={stateSlices.results}>
+                        <SearchResultsActionsContext value={actionsSlices.results}>
+                            <SearchSelectionContext value={stateSlices.selection}>
+                                <SearchSelectionActionsContext value={selectionActions}>
+                                    <SearchSelectionClearGenerationContext value={selectionClearGeneration}>{children}</SearchSelectionClearGenerationContext>
+                                </SearchSelectionActionsContext>
+                            </SearchSelectionContext>
+                        </SearchResultsActionsContext>
+                    </SearchResultsContext>
+                </SearchShouldUseLiveDataContext>
             </SearchQueryActionsContext>
         </SearchQueryContext>
     );

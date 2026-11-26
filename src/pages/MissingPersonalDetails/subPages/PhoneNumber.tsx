@@ -61,6 +61,7 @@ function PhoneNumberStep({isEditing, onNext, onMove, personalDetailsValues}: Cus
             inputMode={CONST.INPUT_MODE.TEL}
             defaultValue={personalDetailsValues[INPUT_IDS.PHONE_NUMBER]}
             shouldShowHelpLinks={false}
+            forwardedFSClass={CONST.FULLSTORY.CLASS.MASK}
         />
     );
 }

@@ -1,45 +1,16 @@
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 
-import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
-
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Policy, PolicyCategories, PolicyCategory} from '@src/types/onyx';
+import type {PolicyCategories, PolicyCategory} from '@src/types/onyx';
 import type {ApprovalRule, MccGroup} from '@src/types/onyx/Policy';
 
-import type {OnyxCollection} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
 import {Str} from 'expensify-common';
 
 import StringUtils from './StringUtils';
 import {containsHtmlTag} from './ValidationUtils';
-
-function formatRequireItemizedReceiptsOverText(
-    translate: LocaleContextProps['translate'],
-    policy: Policy,
-    categoryMaxAmountNoItemizedReceipt: number | null | undefined,
-    convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'],
-) {
-    const isAlwaysSelected = categoryMaxAmountNoItemizedReceipt === 0;
-    const isNeverSelected = categoryMaxAmountNoItemizedReceipt === CONST.DISABLED_MAX_EXPENSE_VALUE;
-
-    if (isAlwaysSelected) {
-        return translate(`workspace.rules.categoryRules.requireItemizedReceiptsOverList.always`);
-    }
-
-    if (isNeverSelected) {
-        return translate(`workspace.rules.categoryRules.requireItemizedReceiptsOverList.never`);
-    }
-
-    if (policy?.maxExpenseAmountNoItemizedReceipt === CONST.DISABLED_MAX_EXPENSE_VALUE || policy?.maxExpenseAmountNoItemizedReceipt === undefined) {
-        return translate(`workspace.rules.categoryRules.requireItemizedReceiptsOverList.never`);
-    }
-
-    return translate(
-        `workspace.rules.categoryRules.requireItemizedReceiptsOverList.default`,
-        convertToDisplayString(policy.maxExpenseAmountNoItemizedReceipt, policy?.outputCurrency ?? CONST.CURRENCY.USD),
-    );
-}
 
 function getCategoryApproverRule(approvalRules: ApprovalRule[], categoryName: string) {
     const approverRule = approvalRules?.find((rule) =>
@@ -97,6 +68,19 @@ function getVisibleCategories(policyCategories: PolicyCategories, ownerAccountID
 }
 
 /**
+ * Returns the enabled categories the member can't use, which an admin recoding their expense sees listed separately.
+ */
+function getUnavailableCategories(policyCategories: PolicyCategories, accountID: number): PolicyCategories {
+    const unavailableCategories: PolicyCategories = {};
+    for (const [categoryName, category] of Object.entries(policyCategories)) {
+        if (category.enabled && !isCategoryVisibleToMember(category, accountID)) {
+            unavailableCategories[categoryName] = category;
+        }
+    }
+    return unavailableCategories;
+}
+
+/**
  * Returns the members who can use at least one of the categories being disabled but no other enabled category, so
  * disabling them would leave these members with nothing to choose from.
  */
@@ -147,6 +131,19 @@ function isCategoryMissing(category: string | undefined): boolean {
  */
 function isCategoryVisibleToMember(policyCategory: PolicyCategory | undefined, accountID: number): boolean {
     return !!policyCategory && (!policyCategory.visibleTo || !!policyCategory.visibleTo[accountID]);
+}
+
+/**
+ * A workspace default category, such as the distance or per diem one, only applies to members who can use it, so this
+ * returns an empty category for a member it's hidden from. The default is kept while the category isn't loaded, since
+ * its visibility isn't known yet.
+ */
+function getMemberDefaultCategory(defaultCategory: string | undefined, policyCategories: OnyxEntry<PolicyCategories>, accountID: number): string {
+    if (!defaultCategory) {
+        return '';
+    }
+    const policyCategory = policyCategories?.[defaultCategory];
+    return !policyCategory || isCategoryVisibleToMember(policyCategory, accountID) ? defaultCategory : '';
 }
 
 function isCategoryDescriptionRequired(policyCategories: PolicyCategories | undefined, category: string | undefined, areRulesEnabled: boolean | undefined): boolean {
@@ -352,12 +349,12 @@ function hasAnyCategoryRules(categories: PolicyCategories | undefined): boolean 
 }
 
 export {
-    formatRequireItemizedReceiptsOverText,
     getCategoryApproverRule,
     updateCategoryInMccGroup,
     getEnabledCategoriesCount,
     getMemberVisibleCategoryNames,
     getVisibleCategories,
+    getUnavailableCategories,
     getMembersWithoutVisibleCategories,
     isCategoryMissing,
     isCategoryDescriptionRequired,
@@ -375,4 +372,5 @@ export {
     getDisabledCategoryKey,
     canCreateCategoryFromSearch,
     isCategoryVisibleToMember,
+    getMemberDefaultCategory,
 };

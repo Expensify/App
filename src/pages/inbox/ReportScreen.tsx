@@ -124,7 +124,7 @@ function ReportScreen({route, navigation, shouldDeferReportActions = false}: Rep
                             testID={`report-screen-${reportIDFromRoute}`}
                         >
                             <ReportNonEssentialsDeferredMount reportID={reportIDFromRoute}>
-                                <DeleteTransactionNavigateBackHandler />
+                                <DeleteTransactionNavigateBackHandler reportID={reportIDFromRoute} />
                                 <ReportRouteParamHandler />
                                 <OneTransactionThreadRedirectHandler />
                                 <ReportFetchHandler />

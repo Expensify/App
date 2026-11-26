@@ -14,6 +14,7 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type {Locale as DateFnsLocale} from 'date-fns';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
+import {isLinkedToBillSelector} from '@selectors/ReportNameValuePairs';
 import {format} from 'date-fns';
 import {Str} from 'expensify-common';
 
@@ -43,6 +44,7 @@ import {
     getChangedApproverActionMessage,
     getCompanyAddressUpdateMessage,
     getCompanyCardConnectionBroken30DaysMessage,
+    getCompanyCardConsentExpiringMessage,
     getCompanyCardConnectionBrokenMessage,
     getConciergeAutoSelectDistanceRateMessage,
     getCreatedReportForUnapprovedTransactionsMessage,
@@ -68,7 +70,7 @@ import {
     getLinkedTransactionID,
     getMarkedReimbursedMessage,
     getMccGroupCategoryMessage,
-    getMessageOfOldDotReportAction,
+    getMessageTextOfOldDotReportAction,
     getOriginalMessage,
     getOverLimitForwardsToUpdateMessage,
     getPlaidBalanceFailureMessage,
@@ -142,6 +144,7 @@ import {
     isUnapprovedAction,
     wasActionTakenByCurrentUser,
 } from './ReportActionsUtils';
+import {buildReportIDToNameMap, getMentionedReportIDsInReportActions} from './ReportIDToNameMapUtils';
 import {buildReportNameFromParticipantNames, getGroupChatName, getInvoiceReportName, getInvoicesChatName, getMoneyRequestReportName, getPolicyExpenseChatName} from './ReportNameUtils';
 import {
     formatReportLastMessageText,
@@ -663,6 +666,10 @@ function computeReportNameBasedOnReportAction({
         return Parser.htmlToText(getCompanyCardConnectionBroken30DaysMessage(translate, parentReportAction));
     }
 
+    if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.COMPANY_CARD_CONSENT_EXPIRING)) {
+        return Parser.htmlToText(getCompanyCardConsentExpiringMessage(translate, parentReportAction));
+    }
+
     if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.PERSONAL_CARD_CONNECTION_BROKEN)) {
         return Parser.htmlToText(getCardConnectionBrokenMessage(undefined, getOriginalMessage(parentReportAction)?.cardName, translate, false));
     }
@@ -704,7 +711,7 @@ function computeReportNameBasedOnReportAction({
     }
 
     if (isOldDotReportAction(parentReportAction)) {
-        return getMessageOfOldDotReportAction(translate, parentReportAction);
+        return getMessageTextOfOldDotReportAction(translate, parentReportAction);
     }
 
     if (isRenamedAction(parentReportAction)) {
@@ -856,7 +863,8 @@ function computeChatThreadReportName({
         return translate('parentReportAction.deletedMessage');
     }
 
-    const parentReportActionText = getReportActionText(parentReportAction);
+    // Look up only the rooms the parent message mentions, so a thread without mentions costs nothing on each recompute
+    const parentReportActionText = getReportActionText(parentReportAction, buildReportIDToNameMap(reports, getMentionedReportIDsInReportActions([parentReportAction])));
 
     // Concierge titles each of its threads with a summary of the question, so prefer that over the question itself.
     // A thread opened by hand is named after the parent message, and that copy isn't localized (an attachment is stored
@@ -1088,6 +1096,7 @@ function computeReportName({
             personalDetailsList,
             policy,
             invoiceReceiverPolicy,
+            isLinkedToBillSelector(allReportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`]),
         );
     }
 

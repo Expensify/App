@@ -47,6 +47,50 @@ describe('getSubmittedAnswers', () => {
         expect(answers).toMatchObject({home: '1 Main St', [cityKey]: 'Austin', fee: '100', feeCurrency: 'EUR'});
     });
 
+    it('leaves out the state of an address in a country where no state is asked', () => {
+        // Given a British address, whose state AddressSearch filled with the nation name although the form never showed a state picker
+        const addressKeys = getAddressInputKeys('home');
+        const fields: DynamicFormField[] = [{key: 'home', type: 'address', required: true}];
+
+        // When the answers are collected
+        const answers = getSubmittedAnswers(fields, {home: '1 Main Street', [addressKeys.state]: 'England', [addressKeys.country]: 'GB'});
+
+        // Then the state is not submitted, since Wise rejects a region name where it takes no state
+        expect(answers).not.toHaveProperty(addressKeys.state);
+    });
+
+    it('submits the state only when the schema lists states for the address', () => {
+        // Given a US address whose draft holds a state, under a schema that lists states and under one that lists none
+        const addressKeys = getAddressInputKeys('home');
+        const values = {home: '350 5th Avenue', [addressKeys.state]: 'NY', [addressKeys.country]: 'US'};
+        const withStates: DynamicFormField = {key: 'home', type: 'address', required: true, states: [{key: 'NY', label: 'New York'}]};
+        const withoutStates: DynamicFormField = {key: 'home', type: 'address', required: true, states: []};
+
+        // When the answers are collected
+        const answersWithStates = getSubmittedAnswers([withStates], values);
+        const answersWithoutStates = getSubmittedAnswers([withoutStates], values);
+
+        // Then the state goes out only where the form showed a state picker
+        expect(answersWithStates).toMatchObject({[addressKeys.state]: 'NY'});
+        expect(answersWithoutStates).not.toHaveProperty(addressKeys.state);
+    });
+
+    it('submits the zip only when the schema asks for one', () => {
+        // Given an address whose draft holds a zip, under a schema that does not ask for one and under one that does not say
+        const addressKeys = getAddressInputKeys('home');
+        const values = {home: "1 Queen's Road Central", [addressKeys.zipCode]: 'SW1W 9SR', [addressKeys.country]: 'HK'};
+        const withoutZip: DynamicFormField = {key: 'home', type: 'address', required: true, isZipCodeAsked: false};
+        const unspecified: DynamicFormField = {key: 'home', type: 'address', required: true};
+
+        // When the answers are collected
+        const answersWithoutZip = getSubmittedAnswers([withoutZip], values);
+        const unspecifiedAnswers = getSubmittedAnswers([unspecified], values);
+
+        // Then the zip goes out only where the form showed a zip input
+        expect(answersWithoutZip).not.toHaveProperty(addressKeys.zipCode);
+        expect(unspecifiedAnswers).toMatchObject({[addressKeys.zipCode]: 'SW1W 9SR'});
+    });
+
     it('lists every answer key of a compound field', () => {
         // Given an address field, whose answer is spread over several keys
         const field: DynamicFormField = {key: 'home', type: 'address', required: true, sensitive: true};

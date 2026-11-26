@@ -4,6 +4,7 @@ import type {ListItem, ListItemPressableProps} from '@components/SelectionList/L
 import {ListItemContext, ListItemHoverContext} from '@components/SelectionList/ListItemContext';
 import getListItemAccessibilityProps from '@components/SelectionList/utils/getListItemAccessibilityProps';
 import isListItemSelected from '@components/SelectionList/utils/isListItemSelected';
+import isRoleHandlingOwnEnter from '@components/SelectionList/utils/isRoleHandlingOwnEnter';
 
 import useCopyableTextRowPress, {isPressStartOnCopyableText} from '@hooks/useCopyableTextRowPress';
 import useHover from '@hooks/useHover';
@@ -18,6 +19,7 @@ import {COPYABLE_ROW_DATA_SET} from '@libs/SelectionScraper';
 import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
+import type {ViewKeyDownEvent, ViewMouseLeaveEvent} from '@src/types/utils/ReactNativeCompat';
 
 import type {ComponentRef} from 'react';
 import type {View} from 'react-native';
@@ -76,14 +78,14 @@ function ListItemPressable<TItem extends ListItem>({
     // When the list-level keyboard shortcut is disabled (disableKeyboardShortcuts), we handle
     // Enter activation here at the item level so each row can still be activated individually
     // without interfering with other focusable controls (e.g. footer inputs) on the same screen.
-    const selectRowOnEnterKey = (event: React.KeyboardEvent) => {
+    const selectRowOnEnterKey = (event: ViewKeyDownEvent) => {
         if (
             shouldPreventEnterKeySubmit ||
             accessible === false ||
-            event.key !== CONST.KEYBOARD_SHORTCUTS.ENTER.shortcutKey ||
-            event.shiftKey ||
-            event.metaKey ||
-            event.ctrlKey ||
+            event.nativeEvent.key !== CONST.KEYBOARD_SHORTCUTS.ENTER.shortcutKey ||
+            event.nativeEvent.shiftKey ||
+            event.nativeEvent.metaKey ||
+            event.nativeEvent.ctrlKey ||
             item.isInteractive === false
         ) {
             return;
@@ -93,7 +95,7 @@ function ListItemPressable<TItem extends ListItem>({
         onSelectRow(item);
     };
 
-    const clearHoverAndMouseDownState = (e: React.MouseEvent<Element, MouseEvent>) => {
+    const clearHoverAndMouseDownState = (e: ViewMouseLeaveEvent) => {
         onMouseLeave();
         e.stopPropagation();
         setMouseUp();
@@ -138,12 +140,13 @@ function ListItemPressable<TItem extends ListItem>({
                         e?.stopPropagation(); // Preventing the click action
                         return;
                     }
-                    if (shouldPreventEnterKeySubmit && e && 'key' in e && e.key === CONST.KEYBOARD_SHORTCUTS.ENTER.shortcutKey) {
+                    // The list's Enter shortcut stands aside while a row with such a role is focused, so the row presses itself.
+                    if (shouldPreventEnterKeySubmit && !isRoleHandlingOwnEnter(role) && e && 'key' in e && e.key === CONST.KEYBOARD_SHORTCUTS.ENTER.shortcutKey) {
                         return;
                     }
                     onSelectRow(item, undefined, e);
                 }}
-                disabled={isDisabled && !isRowSelected}
+                disabled={!!isDisabled && !isRowSelected}
                 interactive={item.isInteractive}
                 isNested
                 shouldAllowTextSelection={shouldAllowTextSelection}
