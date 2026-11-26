@@ -3727,18 +3727,15 @@ function getHandledBySections(
             continue;
         }
         let formattedHandledBy = translate(`insightsPage.handledBy.source.${handledByGroup.handledBy}`);
-        let avatar: OnyxTypes.PersonalDetails['avatar'];
         if (handledByGroup.handledBy === CONST.INSIGHTS.HANDLED_BY_SOURCE.AGENT && handledByGroup.accountID) {
             const personalDetails = data.personalDetailsList?.[handledByGroup.accountID] ?? onyxPersonalDetailsList?.[handledByGroup.accountID] ?? emptyPersonalDetails;
             formattedHandledBy = temporaryGetDisplayNameOrDefault({passedPersonalDetails: personalDetails, translate, formatPhoneNumber});
-            avatar = personalDetails.avatar;
         }
         handledBySections.push({
             groupedBy: CONST.SEARCH.GROUP_BY.HANDLED_BY,
             transactions: [],
             ...handledByGroup,
             formattedHandledBy,
-            avatar,
             keyForList: key,
         });
     }

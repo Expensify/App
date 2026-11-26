@@ -32,8 +32,8 @@ describe('getHandledBySetupRows', () => {
         // When the setup rows are worked out for the approve stage
         const rows = getHandledBySetupRows({policyIDs: ['A1'], policy, login: ADMIN_LOGIN, stage: CONST.INSIGHTS.HANDLED_BY_STAGE.APPROVE});
 
-        // Then both setup rows are offered, the agent first, as the issue lists them
-        expect(rows).toEqual([HANDLED_BY_SETUP_ROW.AGENT, HANDLED_BY_SETUP_ROW.RULE]);
+        // Then both setup rows are offered, the rule first, as the design lists them
+        expect(rows).toEqual([HANDLED_BY_SETUP_ROW.RULE, HANDLED_BY_SETUP_ROW.AGENT]);
     });
 
     it('offers nothing when no single workspace is picked or the user is not its admin', () => {
@@ -78,6 +78,6 @@ describe('getHandledBySetupRows', () => {
 
         // Then the rule row only shows for the stage whose setting is off
         expect(approve).toEqual([HANDLED_BY_SETUP_ROW.AGENT]);
-        expect(submit).toEqual([HANDLED_BY_SETUP_ROW.AGENT, HANDLED_BY_SETUP_ROW.RULE]);
+        expect(submit).toEqual([HANDLED_BY_SETUP_ROW.RULE, HANDLED_BY_SETUP_ROW.AGENT]);
     });
 });

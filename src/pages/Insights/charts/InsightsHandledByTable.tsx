@@ -1,41 +1,36 @@
-/** Table splitting the reports that finished a workflow stage between people, each AI agent and rules, with setup rows for a workspace admin under them. */
-import {COUNT_COLUMN_TITLE_KEYS} from '@components/Charts/utils/formatChartCount';
+/** The ranking table set up for Handled by: who finished a workflow stage, with each source's average time, and setup rows for a workspace admin under them. */
 import type {ChartComparison} from '@components/Search/buildChartSeries';
-import ChartEmptyState from '@components/Search/ChartEmptyState';
-import {SortableHeaderLabel} from '@components/Search/SortableHeaderText';
 import type {GroupedItem} from '@components/Search/types';
-import {
-    getColumnHeaderAccessibilityProps,
-    getRowAccessibilityProps,
-    getRowGroupAccessibilityProps,
-    getTableContainerAccessibilityProps,
-    shouldUseTableSemantics,
-} from '@components/Table/tableAccessibility';
+import Text from '@components/Text';
 
-import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
-import useLayoutSpacing from '@hooks/useLayoutSpacing';
 import useLocalize from '@hooks/useLocalize';
-import usePolicy from '@hooks/usePolicy';
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useThemeStyles from '@hooks/useThemeStyles';
+
+import DateUtils from '@libs/DateUtils';
 
 import type {InsightsHandledByStage} from '@pages/Insights/dashboardSpecs';
 
-import variables from '@styles/variables';
-
 import CONST from '@src/CONST';
 
-import React from 'react';
-import {View} from 'react-native';
+import type {ValueOf} from 'type-fest';
 
-import buildHandledByRows from './buildHandledByRows';
-import getHandledBySetupRows from './getHandledBySetupRows';
-import InsightsDataTableSkeleton from './InsightsDataTableSkeleton';
+import React from 'react';
+
+import type {InsightsHandledBySourceIcon} from './InsightsHandledBySource';
+import type {InsightsRankingTableColumn} from './InsightsRankingTableRow';
+
 import InsightsHandledBySetupRow from './InsightsHandledBySetupRow';
-import InsightsHandledByTableRow, {getHandledByAverageTimeColumn, HANDLED_BY_TABLE_COLUMN} from './InsightsHandledByTableRow';
+import InsightsHandledBySource from './InsightsHandledBySource';
+import InsightsRankingTable from './InsightsRankingTable';
+import useHandledBySetupRows from './useHandledBySetupRows';
 
 /** Rows the loading skeleton shows: people, an agent and rules */
 const SKELETON_ROW_COUNT = 3;
+
+const SOURCE_ICONS: Record<ValueOf<typeof CONST.INSIGHTS.HANDLED_BY_SOURCE>, InsightsHandledBySourceIcon> = {
+    [CONST.INSIGHTS.HANDLED_BY_SOURCE.PEOPLE]: 'Users',
+    [CONST.INSIGHTS.HANDLED_BY_SOURCE.AGENT]: 'Bot',
+    [CONST.INSIGHTS.HANDLED_BY_SOURCE.RULES]: 'Bolt',
+};
 
 type InsightsHandledByTableProps = {
     /** Names the table to screen readers */
@@ -54,155 +49,71 @@ type InsightsHandledByTableProps = {
     /** The workspaces the page's Workspace filter picked, which decide whether setup rows show */
     policyIDs: string[];
 
-    /** Locates the empty state, shown when the stage has no reports and no setup rows */
-    emptyStateTestID: string;
-
     isLoading?: boolean;
 };
 
-function InsightsHandledByTable({title, data, comparison, isComparingPreviousPeriod, stage, policyIDs, emptyStateTestID, isLoading}: InsightsHandledByTableProps) {
-    const styles = useThemeStyles();
-    const {translate} = useLocalize();
-    const {cardPaddingHorizontal, cardPaddingBottom} = useLayoutSpacing();
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const {login} = useCurrentUserPersonalDetails();
-    // Setup rows change one workspace, so only the workspace picked alone is read
-    const setupPolicyID = policyIDs.length === 1 ? policyIDs.at(0) : undefined;
-    const setupPolicy = usePolicy(setupPolicyID);
+function InsightsHandledByTable({title, data, comparison, isComparingPreviousPeriod, stage, policyIDs, isLoading}: InsightsHandledByTableProps) {
+    const {translate, numberFormat} = useLocalize();
+    const {setupRows, setupPolicyID} = useHandledBySetupRows(policyIDs, stage);
+    // A row of zeros says nothing, so sources that finished no reports are left out
+    const sources = data.filter((item) => item.count > 0);
 
-    if (isLoading) {
-        // The column headers: a label line, its padding and the divider below
-        const headerHeight = variables.tableHeaderContentHeight + 2 * styles.pv2.paddingVertical + variables.borderTopWidth;
-        // A narrow row: its padding, the name, description and count lines with the gaps between, the gap above the bar, the bar and the divider
-        const narrowRowHeight =
-            2 * variables.tableRowPaddingVerticalCompact +
-            variables.fontSizeNormalHeight +
-            2 * (styles.gap1.gap + variables.lineHeightNormal) +
-            styles.gap3.gap +
-            variables.insightsRankingTableBarHeight +
-            variables.borderTopWidth;
+    const formatAverageTime = (item: GroupedItem) => {
+        if (item.groupedBy !== CONST.SEARCH.GROUP_BY.HANDLED_BY || item.averageDuration === null) {
+            return CONST.INSIGHTS.NO_CHANGE_PLACEHOLDER;
+        }
+        return DateUtils.formatHandlingTime(item.averageDuration, translate, numberFormat);
+    };
+    const averageTimeColumn: InsightsRankingTableColumn = {
+        title: translate('insightsPage.handledBy.averageTimeColumn'),
+        renderCell: (item) => <Text>{formatAverageTime(item)}</Text>,
+        getAccessibilityText: formatAverageTime,
+    };
 
-        return (
-            <View style={!shouldUseNarrowLayout && cardPaddingBottom}>
-                <InsightsDataTableSkeleton
-                    fixedNumItems={SKELETON_ROW_COUNT}
-                    shouldShowIndicator={false}
-                    rowHeight={shouldUseNarrowLayout ? narrowRowHeight : variables.tableRowHeight}
-                    topOffset={shouldUseNarrowLayout ? variables.borderTopWidth : headerHeight}
-                />
-            </View>
-        );
-    }
-
-    const rows = buildHandledByRows({data, comparison, isComparingPreviousPeriod});
-    const setupRows = getHandledBySetupRows({policyIDs, policy: setupPolicy, login, stage});
-    if (rows.length === 0 && setupRows.length === 0) {
-        return <ChartEmptyState testID={emptyStateTestID} />;
-    }
-
-    const renderRows = () => (
-        <>
-            {rows.map((row, index) => (
-                <InsightsHandledByTableRow
-                    key={row.item.keyForList}
-                    row={row}
-                    stage={stage}
-                    rowIndex={index}
-                    isComparingPreviousPeriod={isComparingPreviousPeriod}
-                />
-            ))}
-            {!!setupPolicyID &&
-                setupRows.map((setupRow, index) => (
-                    <InsightsHandledBySetupRow
-                        key={setupRow}
-                        type={setupRow}
-                        stage={stage}
-                        policyID={setupPolicyID}
-                        rowIndex={rows.length + index}
-                        isComparingPreviousPeriod={isComparingPreviousPeriod}
-                    />
-                ))}
-        </>
-    );
-
-    if (shouldUseNarrowLayout) {
-        return <View style={styles.borderTop}>{renderRows()}</View>;
-    }
-
-    const isTableSemanticsEnabled = shouldUseTableSemantics(shouldUseNarrowLayout);
-    const headerLabelStyle = [styles.tableHeaderContentHeight, styles.pv2];
-    const averageTimeColumn = getHandledByAverageTimeColumn(isComparingPreviousPeriod);
+    const renderSource = (item: GroupedItem) =>
+        item.groupedBy === CONST.SEARCH.GROUP_BY.HANDLED_BY ? (
+            <InsightsHandledBySource
+                label={item.formattedHandledBy}
+                iconName={SOURCE_ICONS[item.handledBy]}
+            />
+        ) : null;
 
     return (
-        <View style={cardPaddingBottom}>
-            <View {...getTableContainerAccessibilityProps(isTableSemanticsEnabled, title, rows.length + setupRows.length, averageTimeColumn)}>
-                <View
-                    style={[styles.flexRow, styles.gap5, cardPaddingHorizontal, styles.borderBottom]}
-                    {...getRowAccessibilityProps(isTableSemanticsEnabled, 0, true)}
-                >
-                    <View
-                        style={[styles.flex1, styles.mnw0]}
-                        {...getColumnHeaderAccessibilityProps(isTableSemanticsEnabled, false, false, undefined, HANDLED_BY_TABLE_COLUMN.SOURCE)}
-                    >
-                        <SortableHeaderLabel
-                            text={translate('insightsPage.handledBy.sourceColumn')}
-                            isActive={false}
-                            sortOrder={CONST.SEARCH.SORT_ORDER.DESC}
-                            innerContainerStyle={headerLabelStyle}
-                        />
-                    </View>
-                    <View
-                        style={styles.insightsRankingTableShareColumn}
-                        {...getColumnHeaderAccessibilityProps(isTableSemanticsEnabled, false, false, undefined, HANDLED_BY_TABLE_COLUMN.SHARE)}
-                    >
-                        <View style={styles.flex1}>
-                            <SortableHeaderLabel
-                                text={translate('insightsPage.share')}
-                                isActive={false}
-                                sortOrder={CONST.SEARCH.SORT_ORDER.DESC}
-                                innerContainerStyle={headerLabelStyle}
-                            />
-                        </View>
-                    </View>
-                    <View
-                        style={styles.insightsRankingTableNumberColumn}
-                        {...getColumnHeaderAccessibilityProps(isTableSemanticsEnabled, true, true, CONST.SEARCH.SORT_ORDER.DESC, HANDLED_BY_TABLE_COLUMN.REPORTS)}
-                    >
-                        <SortableHeaderLabel
-                            text={translate(COUNT_COLUMN_TITLE_KEYS[CONST.SEARCH.CHART_COUNT_DIMENSION.REPORT])}
-                            isActive
-                            sortOrder={CONST.SEARCH.SORT_ORDER.DESC}
-                            innerContainerStyle={headerLabelStyle}
-                        />
-                    </View>
-                    {isComparingPreviousPeriod && (
-                        <View
-                            style={styles.insightsRankingTableChangeColumn}
-                            {...getColumnHeaderAccessibilityProps(isTableSemanticsEnabled, false, false, undefined, HANDLED_BY_TABLE_COLUMN.CHANGE)}
-                        >
-                            <SortableHeaderLabel
-                                text={translate('insightsPage.compare.percentChange')}
-                                isActive={false}
-                                sortOrder={CONST.SEARCH.SORT_ORDER.DESC}
-                                innerContainerStyle={headerLabelStyle}
-                            />
-                        </View>
-                    )}
-                    <View
-                        style={[styles.insightsRankingTableNumberColumn, styles.alignItemsEnd]}
-                        {...getColumnHeaderAccessibilityProps(isTableSemanticsEnabled, false, false, undefined, averageTimeColumn)}
-                    >
-                        <SortableHeaderLabel
-                            text={translate('insightsPage.handledBy.averageTimeColumn')}
-                            isActive={false}
-                            sortOrder={CONST.SEARCH.SORT_ORDER.DESC}
-                            innerContainerStyle={headerLabelStyle}
-                        />
-                    </View>
-                </View>
-                <View {...getRowGroupAccessibilityProps(isTableSemanticsEnabled)}>{renderRows()}</View>
-            </View>
-        </View>
+        <InsightsRankingTable
+            title={title}
+            data={sources}
+            groupBy={CONST.SEARCH.GROUP_BY.HANDLED_BY}
+            countDimension={CONST.SEARCH.CHART_COUNT_DIMENSION.REPORT}
+            rowLimit={SKELETON_ROW_COUNT}
+            // An average across people, agents and rules means nothing, so only the previous period is compared
+            comparison={isComparingPreviousPeriod ? comparison : undefined}
+            isComparingPreviousPeriod={isComparingPreviousPeriod}
+            isLoading={isLoading}
+            groupColumnTitle={translate('insightsPage.handledBy.sourceColumn')}
+            renderLabel={renderSource}
+            valueColumn={averageTimeColumn}
+            isChangeNeutral
+            // The design runs the last row to the card's bottom edge
+            shouldPadBottom={false}
+            extraRows={
+                setupPolicyID
+                    ? {
+                          count: setupRows.length,
+                          render: (firstRowIndex, columnIndexes) =>
+                              setupRows.map((setupRow, index) => (
+                                  <InsightsHandledBySetupRow
+                                      key={setupRow}
+                                      type={setupRow}
+                                      stage={stage}
+                                      policyID={setupPolicyID}
+                                      rowIndex={firstRowIndex + index}
+                                      columnIndexes={columnIndexes}
+                                  />
+                              )),
+                      }
+                    : undefined
+            }
+        />
     );
 }
 

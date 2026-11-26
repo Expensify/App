@@ -1417,20 +1417,20 @@ const translations = {
             sourceColumn: 'Source',
             averageTimeColumn: 'Average time',
             source: {
-                [CONST.INSIGHTS.HANDLED_BY_SOURCE.PEOPLE]: 'People',
+                [CONST.INSIGHTS.HANDLED_BY_SOURCE.PEOPLE]: 'Members',
                 [CONST.INSIGHTS.HANDLED_BY_SOURCE.AGENT]: 'AI agent',
                 [CONST.INSIGHTS.HANDLED_BY_SOURCE.RULES]: 'Rules',
             },
-            ruleSetting: {
-                [CONST.INSIGHTS.HANDLED_BY_STAGE.APPROVE]: 'Auto-approve compliant reports',
-                [CONST.INSIGHTS.HANDLED_BY_STAGE.SUBMIT]: 'Submissions',
-            },
             agentSetup: {
-                [CONST.INSIGHTS.HANDLED_BY_STAGE.APPROVE]: 'Approve reports in minutes, not days',
-                [CONST.INSIGHTS.HANDLED_BY_STAGE.SUBMIT]: "Submit reports as soon as they're ready",
+                [CONST.INSIGHTS.HANDLED_BY_STAGE.APPROVE]: 'Set up a custom agent to approve reports in minutes, not days.',
+                [CONST.INSIGHTS.HANDLED_BY_STAGE.SUBMIT]: "Set up a custom agent to submit reports as soon as they're ready.",
+            },
+            ruleSetup: {
+                [CONST.INSIGHTS.HANDLED_BY_STAGE.APPROVE]: 'Create rules to streamline your approval workflow automatically.',
+                [CONST.INSIGHTS.HANDLED_BY_STAGE.SUBMIT]: 'Create rules to streamline your submission workflow automatically.',
             },
             setUp: 'Set up',
-            turnOn: 'Turn on',
+            create: 'Create',
             lessThanHours: (formattedHours: string) => `<${formattedHours} hours`,
             hourCount: ({formattedCount}: {count: number; formattedCount?: string}) => ({
                 one: (count: number) => `${formattedCount ?? count} hour`,

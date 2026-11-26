@@ -59,6 +59,7 @@ import InsightsDataTable from './InsightsDataTable';
 import InsightsHandledByTable from './InsightsHandledByTable';
 import InsightsRankingTable from './InsightsRankingTable';
 import InsightsTrackedFromNote from './InsightsTrackedFromNote';
+import useHandledBySetupRows from './useHandledBySetupRows';
 
 type InsightsChartWidgetProps = {
     dashboardID: InsightsDashboardID;
@@ -158,6 +159,7 @@ function InsightsChartWidget({
     const {cardPaddingHorizontal, cardPaddingBottom} = useLayoutSpacing();
     const icons = useMemoizedLazyExpensifyIcons(['Expand', 'Table']);
     const {getCurrencyDecimals} = useCurrencyListActions();
+    const {setupRows: handledBySetupRows} = useHandledBySetupRows(filters.policyIDs, handledByStage);
     const controls: React.ReactNode[] = [];
     const notes: React.ReactNode[] = [];
     for (const child of React.Children.toArray(children)) {
@@ -277,8 +279,9 @@ function InsightsChartWidget({
 
     // Handled by has no menu, since its rows can't be listed on Spend
     const canUseMenuActions = !handledByStage && !!queryJSON && (state === INSIGHTS_CHART_STATE.READY || (isLoading && supportsDrillIn));
-    // The Handled by table decides its own empty state, since an empty stage can still list setup rows
-    const shouldShowHandledByTable = !!handledByStage && (state === INSIGHTS_CHART_STATE.LOADING || state === INSIGHTS_CHART_STATE.READY || state === INSIGHTS_CHART_STATE.EMPTY);
+    // An empty stage still lists its setup rows, which are what a workspace without automation needs
+    const shouldShowHandledByTable =
+        !!handledByStage && (state === INSIGHTS_CHART_STATE.LOADING || state === INSIGHTS_CHART_STATE.READY || (state === INSIGHTS_CHART_STATE.EMPTY && handledBySetupRows.length > 0));
     const shownViolationStage = chart.hasViolationStageControl ? violationStage : undefined;
     let headerMenu: React.ReactNode = null;
     // The stage row stays reachable while the picked stage is empty or failed, so the user can switch back
@@ -346,7 +349,6 @@ function InsightsChartWidget({
                         isComparingPreviousPeriod={filters.compare === CONST.SEARCH.COMPARE.PREVIOUS_PERIOD}
                         stage={handledByStage}
                         policyIDs={filters.policyIDs}
-                        emptyStateTestID={`insightsChartEmptyState-${chart.graphKey}`}
                         isLoading={isLoading}
                     />
                 )}

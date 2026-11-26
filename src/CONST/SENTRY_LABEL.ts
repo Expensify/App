@@ -900,7 +900,7 @@ const SENTRY_LABEL = {
         CONTROL_TAG_LEVEL: 'Insights-ControlTagLevel',
         CONTROL_HANDLED_BY_STAGE: 'Insights-ControlHandledByStage',
         HANDLED_BY_SET_UP_AGENT: 'Insights-HandledBySetUpAgent',
-        HANDLED_BY_TURN_ON_RULE: 'Insights-HandledByTurnOnRule',
+        HANDLED_BY_CREATE_RULE: 'Insights-HandledByCreateRule',
         CONTROL_COMPARE: 'Insights-ControlCompare',
         AI_EXPLAIN: 'Insights-AIExplain',
         DASHBOARD_TAB: 'Insights-DashboardTab',

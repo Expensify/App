@@ -569,11 +569,8 @@ type TransactionWorkflowStageGroupListItemType = TransactionGroupListItemType & 
     };
 
 type TransactionHandledByGroupListItemType = TransactionGroupListItemType & {groupedBy: typeof CONST.SEARCH.GROUP_BY.HANDLED_BY} & SearchHandledByGroup & {
-        /** Source name for display: People, Rules or the AI agent's name */
+        /** Source name for display: Members, Rules or the AI agent's name */
         formattedHandledBy: string;
-
-        /** The AI agent's avatar, set only on agent groups */
-        avatar?: PersonalDetails['avatar'];
     };
 
 type TransactionListItemProps<TItem extends ListItem> = ListItemProps<TItem> &

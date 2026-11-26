@@ -1,4 +1,4 @@
-/** Works out which setup rows the Handled by table offers a workspace admin: adding an AI agent, and turning on the stage's rule. */
+/** Works out which setup rows the Handled by table offers a workspace admin: creating the stage's rule, and adding an AI agent. */
 import {isAutoApproveCompliantReportsEnabled, isPolicyAdmin} from '@libs/PolicyUtils';
 import {isAgentEmail} from '@libs/SessionUtils';
 
@@ -43,12 +43,12 @@ function getHandledBySetupRows({policyIDs, policy, login, stage}: GetHandledBySe
     }
 
     const rows: HandledBySetupRow[] = [];
+    if (!isStageRuleEnabled(policy, stage)) {
+        rows.push(HANDLED_BY_SETUP_ROW.RULE);
+    }
     const hasAgent = Object.keys(policy.employeeList ?? {}).some((memberLogin) => isAgentEmail(memberLogin));
     if (!hasAgent) {
         rows.push(HANDLED_BY_SETUP_ROW.AGENT);
-    }
-    if (!isStageRuleEnabled(policy, stage)) {
-        rows.push(HANDLED_BY_SETUP_ROW.RULE);
     }
     return rows;
 }

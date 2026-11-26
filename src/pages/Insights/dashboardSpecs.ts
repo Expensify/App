@@ -238,16 +238,6 @@ const INSIGHTS_DASHBOARD_SPECS: Record<InsightsDashboardID, InsightsDashboardSpe
         },
         supportingCharts: [
             {
-                graphKey: CONST.INSIGHTS.GRAPH.AVERAGE_PROCESSING_TIME,
-                titleKey: 'insightsPage.averageProcessingTime',
-                view: CONST.SEARCH.VIEW.PIE,
-                groupBy: CONST.SEARCH.GROUP_BY.WORKFLOW_STAGE,
-                metric: CONST.SEARCH.CHART_METRIC.DURATION,
-                sortBy: CONST.SEARCH.SORT_BY_COLUMNS.AVERAGE_TIME,
-                sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
-                stages: WORKFLOW_STAGES,
-            },
-            {
                 graphKey: CONST.INSIGHTS.GRAPH.HANDLED_BY,
                 titleKey: 'insightsPage.handledBy.title',
                 ...HANDLED_BY_STAGE_FILTERS[CONST.INSIGHTS.HANDLED_BY_STAGE.APPROVE],
@@ -258,6 +248,16 @@ const INSIGHTS_DASHBOARD_SPECS: Record<InsightsDashboardID, InsightsDashboardSpe
                 metric: CONST.SEARCH.CHART_METRIC.COUNT,
                 sortBy: CONST.SEARCH.TABLE_COLUMNS.GROUP_EXPENSES,
                 sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
+            },
+            {
+                graphKey: CONST.INSIGHTS.GRAPH.AVERAGE_PROCESSING_TIME,
+                titleKey: 'insightsPage.averageProcessingTime',
+                view: CONST.SEARCH.VIEW.PIE,
+                groupBy: CONST.SEARCH.GROUP_BY.WORKFLOW_STAGE,
+                metric: CONST.SEARCH.CHART_METRIC.DURATION,
+                sortBy: CONST.SEARCH.SORT_BY_COLUMNS.AVERAGE_TIME,
+                sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
+                stages: WORKFLOW_STAGES,
             },
             {
                 graphKey: CONST.INSIGHTS.GRAPH.LONGEST_TO_SUBMIT,

@@ -1,5 +1,4 @@
-/** Names a Handled by row's source: an icon or the AI agent's avatar, its name, and the line beneath it. */
-import UserAvatar from '@components/Avatar/UserAvatar';
+/** Names a Handled by row's source with its icon, and for a setup row the line beneath it. */
 import Icon from '@components/Icon';
 import Text from '@components/Text';
 
@@ -9,9 +8,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import variables from '@styles/variables';
 
-import CONST from '@src/CONST';
-import type {PersonalDetails} from '@src/types/onyx';
-
 import React from 'react';
 import {View} from 'react-native';
 
@@ -19,53 +15,39 @@ type InsightsHandledBySourceIcon = 'Users' | 'Bolt' | 'Bot';
 
 type InsightsHandledBySourceProps = {
     label: string;
+    iconName: InsightsHandledBySourceIcon;
 
-    /** Shown under the label, e.g. "AI agent" or the rule's setting */
+    /** Shown under the label */
     description?: string;
 
-    /** Icon drawn before the label, left out when the source is an AI agent with an avatar */
-    iconName?: InsightsHandledBySourceIcon;
-
-    /** Set for an AI agent, whose avatar stands in for the icon */
-    agentAccountID?: number;
-
-    agentAvatar?: PersonalDetails['avatar'];
+    /** Draws the icon green and the label bold, for a setup row that invites the admin to add the source */
+    isSetup?: boolean;
 };
 
-function InsightsHandledBySource({label, description, iconName, agentAccountID, agentAvatar}: InsightsHandledBySourceProps) {
+function InsightsHandledBySource({label, iconName, description, isSetup = false}: InsightsHandledBySourceProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const icons = useMemoizedLazyExpensifyIcons(['Users', 'Bolt', 'Bot']);
 
     return (
-        <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap3, styles.flex1, styles.mnw0]}>
-            {agentAccountID !== undefined ? (
-                <UserAvatar
-                    size={CONST.AVATAR_SIZE.XX_SMALL}
-                    source={agentAvatar}
-                    accountID={agentAccountID}
+        <View style={[styles.mnw0, styles.gap1]}>
+            <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap3]}>
+                <Icon
+                    src={icons[iconName]}
+                    fill={isSetup ? theme.iconSuccessFill : theme.icon}
+                    width={variables.iconSizeNormal}
+                    height={variables.iconSizeNormal}
                 />
-            ) : (
-                !!iconName && (
-                    <Icon
-                        src={icons[iconName]}
-                        fill={theme.icon}
-                        width={variables.iconSizeNormal}
-                        height={variables.iconSizeNormal}
-                    />
-                )
-            )}
-            <View style={[styles.flex1, styles.mnw0]}>
-                <Text style={styles.breakWord}>{label}</Text>
-                {!!description && (
-                    <Text
-                        variant="label"
-                        style={[styles.textSupporting, styles.breakWord]}
-                    >
-                        {description}
-                    </Text>
-                )}
+                <Text style={[styles.flex1, styles.breakWord, isSetup && styles.textStrong]}>{label}</Text>
             </View>
+            {!!description && (
+                <Text
+                    variant="label"
+                    style={[styles.textSupporting, styles.breakWord]}
+                >
+                    {description}
+                </Text>
+            )}
         </View>
     );
 }
