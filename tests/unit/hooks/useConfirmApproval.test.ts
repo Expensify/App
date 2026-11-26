@@ -137,6 +137,22 @@ describe('useConfirmApproval', () => {
         expect(mockedApproveMoneyRequest).toHaveBeenCalledWith(expect.objectContaining({expenseReport: snapshotReport, full: false}));
     });
 
+    it('approves with the same transactions it used to offer a partial approval', async () => {
+        // Given a Search row whose held expense only exists in the snapshot, so live Onyx only has the unheld one
+        mockLiveTransactions([unheldTransaction]);
+        const {result} = renderHook(() => useConfirmApproval(REPORT_ID, () => {}, {fallbackReport: snapshotReport, fallbackTransactions: [unheldTransaction, heldTransaction]}));
+        await act(waitForBatchedUpdates);
+
+        // When the user approves only the unheld expenses, an option offered because of the held snapshot expense
+        act(() => {
+            result.current.onApprove(false);
+        });
+
+        // Then approveMoneyRequest also sees the held expense, so it computes the partial total instead of treating the approval as full
+        expect(result.current.isAnyTransactionOnHold).toBe(true);
+        expect(mockedApproveMoneyRequest).toHaveBeenCalledWith(expect.objectContaining({expenseReportTransactions: [unheldTransaction, heldTransaction], full: false}));
+    });
+
     it('shows the locked account modal and does not approve when the account is locked', async () => {
         // Given a locked account viewing a report it can approve
         mockIsAccountLocked = true;

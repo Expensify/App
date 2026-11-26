@@ -64,12 +64,7 @@ function useConfirmApproval(
     const [delegateEmail] = useOnyx(ONYXKEYS.ACCOUNT, {selector: delegateEmailSelector});
     const delegateAccountID = useDelegateAccountID();
     const [ownerLogin] = usePersonalDetail(moneyRequestReport?.ownerAccountID, loginSelector);
-    const {
-        transactions,
-        liveTransactions,
-        violations: warningViolations,
-        liveViolations: transactionViolations,
-    } = useReportApprovalWarningData(reportID, fallbackTransactions, fallbackViolations);
+    const {transactions, violations: warningViolations, liveViolations: transactionViolations} = useReportApprovalWarningData(reportID, fallbackTransactions, fallbackViolations);
     // Approving also recomputes the chat's hasOutstandingChildRequest, which checks sibling reports' transactions for auto-reported rejected expenses.
     const [autoReportedRejectedExpenseViolations] = useOnyxWithoutSnapshots(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {selector: autoReportedRejectedExpenseViolationsSelector});
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
@@ -102,7 +97,7 @@ function useConfirmApproval(
                 personalDetailsByLogins: getPersonalDetailsByLogin(),
                 getCurrencyDecimals,
                 expenseReport: moneyRequestReport,
-                expenseReportTransactions: liveTransactions,
+                expenseReportTransactions: transactions,
                 expenseReportPolicy: policy,
                 rules,
                 currentUserAccountIDParam: accountID,
