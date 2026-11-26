@@ -173,6 +173,13 @@ function reportTypeAndParentIDsSelector(report: OnyxEntry<Report>): Pick<Report,
     return {type: report.type, chatReportID: report.chatReportID, parentReportID: report.parentReportID};
 }
 
+function reportPolicyAndChatReportIDsSelector(report: OnyxEntry<Report>): Pick<Report, 'policyID' | 'chatReportID'> | undefined {
+    if (!report) {
+        return undefined;
+    }
+    return {policyID: report.policyID, chatReportID: report.chatReportID};
+}
+
 const policyIDsWithEmptyReportsSelector =
     (accountID: number | undefined, transactionsByReportID: Record<string, Transaction[]>, hasDismissedEmptyReportsConfirmation: boolean) => (reports: OnyxCollection<Report>) => {
         if (hasDismissedEmptyReportsConfirmation || !accountID) {
@@ -412,6 +419,10 @@ function isDraftReportSelector(draft: OnyxEntry<Report>): boolean {
     return !!draft;
 }
 
+function hasDraftCommentSelector(draftComment: OnyxEntry<string>): boolean {
+    return !!draftComment;
+}
+
 /**
  * Creates a selector returning the parent links of the given report and each of its ancestors, so a consumer only
  * looks up the reports on that chain instead of iterating the whole collection.
@@ -466,6 +477,7 @@ export {
     policyChatRoomsSelector,
     reportAvatarFieldsSelector,
     reportAvatarKindSelector,
+    reportPolicyAndChatReportIDsSelector,
     reportPolicyFieldsSelector,
     reportTypeAndParentIDsSelector,
     roomAvatarFieldsSelector,
@@ -474,6 +486,7 @@ export {
     openExpenseReportIDsSelector,
     getStableReportSelector,
     isDraftReportSelector,
+    hasDraftCommentSelector,
     reportParentChainSelector,
     policyExpenseChatSelector,
     reportsByIDsSelector,

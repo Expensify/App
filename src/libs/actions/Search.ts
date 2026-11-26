@@ -15,7 +15,7 @@ import type {
     SelectedTransactions,
 } from '@components/Search/types';
 
-import type {ConfirmSubmitReportViolationsOnProceed} from '@hooks/useConfirmSubmitReportViolations';
+import type {ConfirmSubmitReportViolationsOnProceed} from '@hooks/useConfirmSubmitViolations';
 import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
 import type {ReportSubmitToPopoverOpenOptions} from '@hooks/useReportSubmitToPopover';
 
@@ -28,6 +28,8 @@ import type {
     OpenSearchPageParams,
     OpenSearchTagFiltersPageParams,
     OpenSearchTagFiltersPageResponse,
+    OpenSearchUserFiltersPageParams,
+    OpenSearchUserFiltersPageResponse,
     QueueBulkMarkAsExportedParams,
     QueueExportSearchItemsToCSVParams,
     QueueExportSearchWithTemplateParams,
@@ -54,6 +56,7 @@ import {isSupportAuthToken} from '@libs/Network/NetworkStore';
 import {getIsOffline} from '@libs/NetworkState';
 import {rand64} from '@libs/NumberUtils';
 import {canPayOffline, getActivePaymentType} from '@libs/PaymentUtils';
+import {getLoginsFromOnyxUpdates} from '@libs/PersonalDetailsUtils';
 import {canAccessPolicyBankAccount} from '@libs/PolicyPaymentUtils';
 import {
     getAccountIDForSubmitManagerEmail,
@@ -76,6 +79,7 @@ import {
     hasHeldExpenses,
     hasOnlyHeldExpenses,
     hasViolations as hasViolationsReportUtils,
+    isArchivedReport,
     isExpenseReport,
     isIOUReport as isIOUReportUtil,
 } from '@libs/ReportUtils';
@@ -112,6 +116,7 @@ import type {
     Report,
     ReportAction,
     ReportActions,
+    ReportNameValuePairs,
     Rule,
     SaveSearch,
     SearchResults,
@@ -299,7 +304,7 @@ type HandleActionButtonPressParams = {
     onPendingCardTransactionsBlock?: () => void;
     onAllHeldExpensesBlock?: () => void;
     /** Confirms any unacknowledged report violations before proceeding with the SUBMIT action. */
-    confirmSubmitReportViolations: (onProceed: ConfirmSubmitReportViolationsOnProceed) => void;
+    confirmSubmitReportViolations: (onProceed: ConfirmSubmitReportViolationsOnProceed) => void | Promise<void>;
     /** Requires approval callers to confirm report violations before proceeding. */
     confirmApproveReportViolations: (onProceed: () => void) => void;
     openReportSubmitToPopover?: (options?: ReportSubmitToPopoverOpenOptions) => void;
@@ -1289,6 +1294,22 @@ function setSearchTagFiltersPagination(
     });
 }
 
+function openSearchUserFiltersPage(params: OpenSearchUserFiltersPageParams, shouldCancelPendingRequests = false): Promise<{hasMore: boolean; nextCursor: string; logins: string[]}> {
+    if (shouldCancelPendingRequests) {
+        HttpUtils.cancelPendingRequests(SIDE_EFFECT_REQUEST_COMMANDS.OPEN_SEARCH_USER_FILTERS_PAGE);
+    }
+
+    return makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.OPEN_SEARCH_USER_FILTERS_PAGE, {...params, canCancel: true}).then((response) => {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- OpenSearchUserFiltersPage response fields are command-specific and not declared on the shared Response type
+        const userFiltersResponse = response as OpenSearchUserFiltersPageResponse | undefined;
+        return {
+            hasMore: !!userFiltersResponse?.hasMore,
+            nextCursor: userFiltersResponse?.nextCursor ?? '',
+            logins: getLoginsFromOnyxUpdates(response?.onyxData),
+        };
+    });
+}
+
 function openBulkChangeApproverPage(reportIDList: OpenBulkChangeApproverPageParams['reportIDList']) {
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.IS_LOADING_BULK_CHANGE_APPROVER_PAGE>> = [
         {
@@ -2130,6 +2151,7 @@ function rejectMoneyRequestInBulk(
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'],
     rules: OnyxCollection<Rule>,
     reportTransactionsCollection: Record<string, Transaction>,
+    isChatReportArchived: boolean,
     hash?: number,
 ) {
     const optimisticData: Array<RejectMoneyRequestData['optimisticData'][number] | OnyxUpdate<typeof ONYXKEYS.COLLECTION.SNAPSHOT>> = [];
@@ -2162,6 +2184,7 @@ function rejectMoneyRequestInBulk(
             rules,
             shouldUseBulkAction: true,
             reportTransactionsCollection,
+            isChatReportArchived,
         });
         if (data) {
             optimisticData.push(...data.optimisticData);
@@ -2196,6 +2219,7 @@ function rejectMoneyRequestsOnSearch({
     comment,
     allPolicies,
     allReports,
+    allReportNameValuePairs,
     currentUserAccountIDParam,
     currentUserLogin,
     isASAPSubmitBetaEnabled,
@@ -2209,6 +2233,7 @@ function rejectMoneyRequestsOnSearch({
     comment: string;
     allPolicies: OnyxCollection<Policy>;
     allReports: OnyxCollection<Report>;
+    allReportNameValuePairs: OnyxCollection<ReportNameValuePairs>;
     currentUserAccountIDParam: number;
     currentUserLogin: string;
     isASAPSubmitBetaEnabled: boolean;
@@ -2251,6 +2276,7 @@ function rejectMoneyRequestsOnSearch({
         const areAllExpensesSelected = selectedTransactionIDs.length === effectiveTransactionCount;
         const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`];
         const isPolicyDelayedSubmissionEnabled = policy ? isDelayedSubmissionEnabled(policy) : false;
+        const isChatReportArchived = isArchivedReport(allReportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.chatReportID}`]);
         if (isPolicyDelayedSubmissionEnabled && areAllExpensesSelected) {
             rejectMoneyRequestInBulk(
                 reportID,
@@ -2264,6 +2290,7 @@ function rejectMoneyRequestsOnSearch({
                 getCurrencyDecimals,
                 rules,
                 reportTransactionsCollection,
+                isChatReportArchived,
                 hash,
             );
         } else {
@@ -2291,6 +2318,7 @@ function rejectMoneyRequestsOnSearch({
                         setExistingRejectedReport,
                     },
                     reportTransactionsCollection,
+                    isChatReportArchived,
                 });
             }
         }
@@ -3075,6 +3103,7 @@ export {
     openSearchCardFiltersPage,
     openSearchCategoryFiltersPage,
     openSearchTagFiltersPage,
+    openSearchUserFiltersPage,
     ALL_POLICY_IDS_KEY,
     setSearchTagFiltersPagination,
     getPolicyFromSearchSnapshot,

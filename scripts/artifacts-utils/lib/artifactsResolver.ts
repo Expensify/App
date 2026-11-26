@@ -30,11 +30,6 @@ type ResolveOptions = {
     packageName: string;
     newDotRoot: string;
     isHybrid: boolean;
-    /**
-     * React Native's Hermes tag file for the engine this build links (`sdks/.hermesv1version`, or
-     * `sdks/.hermesversion` with Hermes V1 disabled). The native caller picks it, since it owns the V1 flag.
-     */
-    hermesVersionFile: string;
 };
 
 /** What a published artifact was built from, as recorded in its POM's `<properties>`. A property the POM does not carry is null. */
@@ -155,19 +150,15 @@ function computePatchesHash(newDotRoot: string, isHybrid: boolean): string {
 }
 
 /**
- * The Hermes version this build links, read from its tag file without the tag prefix, so `hermes-v250829098.0.14`
- * becomes `250829098.0.14`. That is the form the publish workflows record (`get-hermes-version.sh`, which reads
- * HERMES_V1_VERSION_NAME from `version.properties` like upstream does). The artifacts are not bundled with a Hermes
- * engine, but their React code is compiled against the headers of one, so an artifact is only usable when its
- * recorded Hermes version is the one this build links.
+ * The Hermes version this build links, read by the same script the publish workflows record it with, so the two can
+ * never disagree. The artifacts are not bundled with a Hermes engine, but their React code is compiled against the
+ * headers of one, so an artifact is only usable when its recorded Hermes version is the one this build links.
  */
-function getLocalHermesVersion(hermesVersionFile: string): string {
-    const version = fs
-        .readFileSync(hermesVersionFile, 'utf8')
-        .trim()
-        .replace(/^hermes-v?/, '');
+function getLocalHermesVersion(newDotRoot: string): string {
+    const script = path.join(newDotRoot, 'scripts/artifacts-utils/get-hermes-version.sh');
+    const version = execFileSync('bash', [script, newDotRoot], {encoding: 'utf8'}).trim();
     if (!version) {
-        throw new Error(`Could not read the Hermes version from ${hermesVersionFile}`);
+        throw new Error(`Could not read the Hermes version with ${script}`);
     }
     return version;
 }
@@ -195,9 +186,9 @@ async function getRemotePomProperties(packageName: string, artifactId: string, v
 
 /** Returns null when no published artifact was built from the local patches and Hermes. That is a legitimate result, not a failure. */
 async function findMatchingArtifactsVersion(options: ResolveOptions, artifactId: string, githubToken: string): Promise<string | null> {
-    const {packageName, newDotRoot, isHybrid, hermesVersionFile} = options;
+    const {packageName, newDotRoot, isHybrid} = options;
     const localPatchesHash = computePatchesHash(newDotRoot, isHybrid);
-    const localHermesVersion = getLocalHermesVersion(hermesVersionFile);
+    const localHermesVersion = getLocalHermesVersion(newDotRoot);
     const rnVersion = getReactNativeVersion(newDotRoot);
     const candidates = await getArtifactsCandidates(packageName, artifactId, rnVersion);
     for (const candidate of candidates) {

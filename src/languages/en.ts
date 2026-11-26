@@ -497,6 +497,7 @@ const translations = {
         reportID: 'Report ID',
         longReportID: 'Long Report ID',
         withdrawalID: 'Withdrawal ID',
+        transactionID: 'Transaction ID',
         internationalReimbursementIDs: 'International reimbursement IDs',
         amountDebited: 'Amount debited',
         amountReimbursed: 'Amount reimbursed',
@@ -614,6 +615,7 @@ const translations = {
         corpayPayModalTitle: 'Pay report',
         corpayPayModalPrompt: 'This submitter has a non-USD bank account. Enable global reimbursements to pay the report, or ask them to add a USD bank account.',
         purchaseAmount: 'Purchase amount',
+        convertedAmount: 'Converted amount',
         originalAmount: 'Original amount',
         frequency: 'Frequency',
         link: 'Link',
@@ -902,6 +904,11 @@ const translations = {
         },
         changePin: {
             didNotChange: "We didn't change your PIN. Please try again.",
+        },
+        addToWallet: {
+            failedHeader: "Couldn't add card",
+            failedTitle: "We couldn't add your card to your wallet",
+            failedSubtitle: "Something went wrong while adding the card. If it's already in your wallet, you can use it there.",
         },
         revealCardDetail: {
             couldNotReveal: "We couldn't reveal your card details. Please try again.",
@@ -1411,6 +1418,8 @@ const translations = {
         viewDetails: 'View details',
         viewAll: 'View all',
         topExpenses: 'Top expenses',
+        flaggedExpenses: 'Flagged expenses',
+        noFlaggedExpensesInRange: 'No flagged expenses in this range',
         summary: {
             title: 'Summary',
             over: (percentage: string) => `${percentage} over`,
@@ -1455,6 +1464,7 @@ const translations = {
             label: 'Violations by',
             [CONST.INSIGHTS.VIOLATION_STAGE.SUBMITTED]: 'Submitters',
             [CONST.INSIGHTS.VIOLATION_STAGE.APPROVED]: 'Approvers',
+            chartTitle: (title: string, stage: string) => `${title} (${stage})`,
         },
         compare: {
             label: 'Compare',
@@ -2100,14 +2110,15 @@ const translations = {
         wisePaymentSummary: {
             confirmPayment: 'Confirm payment',
             reportTotal: 'Report total',
-            unheldAmountBeingPaid: 'Unheld amount being paid',
-            debitAmount: 'Debit amount',
             employeeWillReceive: 'Employee will receive',
+            companyWillPay: 'Company will pay',
             totalFees: 'Total fees',
             fxRate: 'FX rate',
             paymentDetails: 'Payment details',
             debitedAmount: 'Debited amount',
             employeeReceived: 'Employee received',
+            paymentDisclosure: ({buttonText}: {buttonText: string}) =>
+                `<muted-text-micro>Recipient may receive less due to fees charged by the recipient’s bank and foreign taxes. By clicking ${buttonText}, I accept Wise’s <a href="${CONST.WISE.TERMS_URL}">Terms of Use</a> and <a href="${CONST.WISE.PRIVACY_URL}">Privacy Policy</a>.</muted-text-micro>`,
             payAll: 'Pay all',
             fxRateExpiredTitle: 'FX rate expired',
             fxRatesExpiredTitle: 'FX rates expired',
@@ -4718,7 +4729,9 @@ const translations = {
     },
     welcomeSignUpForm: {
         join: 'Join',
-        marketingSMSConsent: 'I agree to receive marketing texts from Expensify',
+        transactionalSMSConsent: 'By providing my phone number, I agree to receive transactional account alerts from Expensify.',
+        transactionalSMSConsentFinePrint: 'Standard message and data rates may apply. Reply STOP to opt out.',
+        marketingSMSConsent: 'I agree to receive marketing texts from Expensify.',
     },
     detailsPage: {
         localTime: 'Local time',
@@ -4913,6 +4926,14 @@ const translations = {
         maskedValueLabel: ({label, ending}: {label: string; ending: string}) => `${label} ending in ${ending}`,
         numberedItem: ({item, number}: {item: string; number: number}) => `${item} ${number}`,
         questionsChanged: 'The questions on this page changed',
+        continueOffline: {
+            title: "You can't continue offline",
+            prompt: "An internet connection is needed to fill out this form. Don't worry, we'll save your progress and you can continue when you're back online.",
+            promptWithSensitiveAnswers:
+                "An internet connection is needed to fill out this form. We'll save your progress so you can continue when you're back online. For your security, sensitive details aren't saved and will need to be entered again.",
+            saveForLater: 'Save and fill out later',
+            progressSaved: 'Your progress has been saved',
+        },
     },
     addPersonalBankAccount: {
         swiftBicFormatError: 'SWIFT/BIC must be 8 or 11 characters long, with 6 letters followed by 2 or 5 letters or numbers.',
@@ -4924,6 +4945,14 @@ const translations = {
         bankDetails: 'Bank details',
         accountHolderDetails: 'Account holder details',
         howDoWeProtectYourData: 'How do we protect your data?',
+        notices: {
+            katakanaName: 'Enter your name exactly as it appears on your Japanese bank account. It is usually written in カタカナ (katakana). A mismatch may delay or reject your payment.',
+            alipayRecipients: 'Only mainland Chinese, Hong Kong, or Macao recipients can be paid through Alipay.',
+            alipayLimits:
+                'Alipay can receive up to 50,000 CNY per payment and between 300,000 and 600,000 CNY per year. Monthly limits on the number of payments may also apply, depending on the purpose of the payment.',
+            malaysianNonResidentLimit:
+                'Non-residents with a bank account in Malaysia can only receive 10,000 Malaysian ringgit per day. A payment above this limit may lead your bank to close your account.',
+        },
         currencyHeader: "What's your bank account's currency?",
         confirmationStepHeader: 'Check your info.',
         confirmationStepSubHeader: 'Double check the details below, and check the terms box to confirm.',
@@ -7372,6 +7401,41 @@ const translations = {
             noVendorsFoundDescription: 'Please add vendors in Digits and sync the connection again',
             noAccountsFound: 'No accounts found',
             noAccountsFoundDescription: 'Please add bank or credit card accounts in Digits and sync the connection again',
+            noBankAccountsFoundDescription: 'Please add bank accounts in Digits and sync the connection again',
+            noPayableAccountsFoundDescription: 'Please add credit card or current liability accounts in Digits and sync the connection again',
+            autoSyncDescription: 'Sync Digits and Expensify automatically, every day. Reports sync in realtime.',
+            accountingMethods: {
+                label: 'Export method',
+                description: 'Choose when to export expenses.',
+                values: {
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: 'Accrual',
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: 'Cash',
+                },
+                alternateText: {
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: 'Out-of-pocket expenses will export when final approved',
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: 'Out-of-pocket expenses will export when paid',
+                },
+            },
+            syncReimbursedReports: 'Sync reimbursed reports',
+            syncReimbursedReportsDescription: 'When a report is paid via ACH, a bill payment will be generated in this account.',
+            billPaymentAccount: {
+                label: 'Bill payment account',
+                description: "Choose where to pay bills from and we'll create the payment in Digits.",
+            },
+            syncExpensifyCardSettlements: 'Sync Expensify Card settlements',
+            settlementAccount: {
+                label: 'Expensify Card settlement account',
+                description: "Choose your settlement account and we'll create the payment in Digits.",
+            },
+            syncTravelBillingSettlements: 'Sync Consolidated Travel Billing settlements',
+            travelBillingSettlementAccount: {
+                label: 'Consolidated Travel Billing settlement account',
+                description: "Choose your settlement account and we'll create the payment in Digits.",
+            },
+            travelBillingPayableAccount: {
+                label: 'Consolidated Travel Billing payable account',
+            },
+            missingSettlementAccount: (accountName: string) => `Settlements won't sync until you choose the ${accountName}.`,
         },
         zohoBooks: {
             organization: 'Zoho Books organization',
@@ -7954,6 +8018,8 @@ const translations = {
             createFailureMessage: 'An error occurred while creating the category, please try again',
             addCategory: 'Add category',
             createCategoryFromSearch: (categoryName: string) => `Create “${categoryName}” category`,
+            availableToMember: (memberName: string) => `Available to ${memberName}`,
+            notAvailableToMember: (memberName: string) => `Not available to ${memberName}`,
             editCategory: 'Edit category',
             editCategories: 'Edit categories',
             findCategory: 'Find category',
@@ -8645,6 +8711,9 @@ const translations = {
             },
             changeOfficeLocation: 'Change office location',
             changeWorkArrangement: 'Change work arrangement',
+            editCategoryVisibility: 'Edit category visibility',
+            bulkCategoryVisibilitySaved: ({categoryCount, memberCount}: {categoryCount: string; memberCount: string}) =>
+                `Set ${categoryCount} for ${memberCount}. This replaces their current category visibility.`,
             removeWorkspaceMemberButtonTitle: 'Remove from workspace',
             removeGroupMemberButtonTitle: 'Remove from group',
             removeRoomMemberButtonTitle: 'Remove from chat',
@@ -8766,7 +8835,6 @@ const translations = {
                 willBeReadyToUse: 'This card will be ready to use immediately.',
                 willBeReadyToShip: 'This card will be ready to ship immediately.',
                 cardholder: 'Cardholder',
-                cardholderEmail: 'Cardholder email',
                 cardType: 'Card type',
                 limit: 'Limit',
                 limitType: 'Limit type',
