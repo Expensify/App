@@ -82,8 +82,7 @@ function ValidateCodeCountdown({onCountdownFinish, requestedAt, ref}: ValidateCo
     );
 
     return (
-        // The visible text holds the time in a link, so screen readers would read a link named only "00:26" that does nothing.
-        // The countdown is read as one disabled element with the full sentence instead.
+        // The time sits in a link that would be read alone as "00:26", so the countdown is read as one disabled sentence
         <View
             accessible
             accessibilityLabel={translate('validateCodeForm.requestNewCodeAccessibilityLabel', {count: timeRemaining})}

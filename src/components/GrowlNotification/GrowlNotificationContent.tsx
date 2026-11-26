@@ -68,8 +68,7 @@ function GrowlNotificationContent({bodyText, type, duration, action, position, n
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const icons = useMemoizedLazyExpensifyIcons(['Exclamation', 'Checkmark']);
 
-    // The growl appears away from the screen reader's focus and dismisses itself, so it is announced instead of waiting to be found.
-    // The parent remounts this component for every growl, which makes the hook announce each growl once.
+    // The growl shows away from focus and hides itself, so it is announced; the parent remounts it per growl, so each is read once
     useAccessibilityAnnouncement(bodyText, true, {
         shouldAnnounceOnNative: true,
         shouldAnnounceOnWeb: true,
