@@ -4340,7 +4340,9 @@ ${amount}，商户：${merchant} - 日期：${date}`,
     },
     welcomeSignUpForm: {
         join: '加入',
-        marketingSMSConsent: '我同意接收来自 Expensify 的营销短信',
+        transactionalSMSConsent: '提供我的电话号码即表示我同意接收来自 Expensify 的账户交易提醒。',
+        transactionalSMSConsentFinePrint: '可能会产生标准短信和数据费用。回复 STOP 退订。',
+        marketingSMSConsent: '我同意接收来自 Expensify 的营销短信。',
     },
     detailsPage: {
         localTime: '本地时间',

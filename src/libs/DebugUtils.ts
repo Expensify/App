@@ -1622,7 +1622,7 @@ function getReasonForShowingRowInLHN({
         doesReportHaveViolations,
         includeSelfDM: true,
         isReportArchived,
-        draftComment,
+        hasDraftComment: !!draftComment,
         currentUserLogin,
         currentUserAccountID,
         conciergeReportID,

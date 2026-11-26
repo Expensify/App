@@ -13,7 +13,7 @@ const representativePage: DynamicFormPage = {
         {key: 'lastName', type: 'text', required: true, rule: 'legalName', labelKey: 'walletPage.wiseOnboarding.representative.legalLastName'},
         {key: 'phoneNumber', type: 'text', required: true, rule: 'phone', labelKey: 'common.phoneNumber'},
         {key: 'dateOfBirth', type: 'date', required: true, rule: 'dateOfBirth', labelKey: 'common.dob'},
-        {key: 'address', type: 'address', required: true, labelKey: 'common.address'},
+        {key: 'address', type: 'address', required: true, labelKey: 'common.address', maxLength: CONST.FORM_CHARACTER_LIMIT},
         {
             key: 'ssn',
             type: 'text',

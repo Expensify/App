@@ -158,8 +158,11 @@ type DynamicFormTextField = DynamicFormFieldBase & {
     rule?: 'legalName' | 'phone';
 };
 
+/** The format checks a text field, a number field and the zip of an address share */
+type DynamicFormFieldFormat = Pick<DynamicFormTextField, 'regex' | 'minLength' | 'maxLength' | 'example'>;
+
 /** Text that must parse as a finite number, typed on the numeric keyboard */
-type DynamicFormNumberField = DynamicFormFieldBase & Pick<DynamicFormTextField, 'regex' | 'minLength' | 'maxLength' | 'example'> & {type: 'number'};
+type DynamicFormNumberField = DynamicFormFieldBase & DynamicFormFieldFormat & {type: 'number'};
 
 /** One answer out of a list of options */
 type DynamicFormChoiceField = DynamicFormFieldBase & {
@@ -201,6 +204,27 @@ type DynamicFormAddressField = DynamicFormFieldBase & {
 
     /** Checks the zip against the format of the chosen country */
     rule?: 'zipCode';
+
+    /** Longest street the field takes, in characters. No limit when not set. Typing stops at it, and a longer address search pick is flagged. */
+    maxLength?: number;
+
+    /** Codes of the countries the address can be in. Every country the App knows when not set or empty. */
+    countries?: string[];
+
+    /** The states of the picked country, in place of the App's own lists. An empty list asks for no state. */
+    states?: DynamicFormFieldOption[];
+
+    /** True shows the zip input and requires it, false hides it. When not set the input shows, and is required unless the country's zip format allows an empty zip. */
+    isZipCodeAsked?: boolean;
+
+    /** Checks of a filled-in zip, the same ones a text field takes. They apply as well as `rule: 'zipCode'`, not in place of it. */
+    zipCodeFormat?: DynamicFormFieldFormat;
+
+    /** Checks of a filled-in city, the same ones a text field takes */
+    cityFormat?: DynamicFormFieldFormat;
+
+    /** What the picked country calls its states, such as "Province", shown on the state row in place of "State" */
+    stateLabel?: string;
 };
 
 /** Uploaded documents */
@@ -365,6 +389,7 @@ export type {
     DynamicFormContentItem,
     DynamicFormCountryField,
     DynamicFormField,
+    DynamicFormFieldFormat,
     DynamicFormFieldOption,
     DynamicFormFileUpload,
     DynamicFormFieldType,

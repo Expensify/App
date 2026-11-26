@@ -1,5 +1,5 @@
 import {getAllPersonalDetails} from '@libs/PersonalDetailsStore';
-import {chatIncludesConcierge, isDM, isInvoiceReport, isMoneyRequestReport} from '@libs/ReportUtils';
+import {chatIncludesConcierge, isDM, isInvoiceReport, isMoneyRequestReport, isSupportTicket} from '@libs/ReportUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -61,6 +61,11 @@ const getChatFSClass: GetChatFSClass = (report) => {
     // If the report doesn't meet the condition above we check if the parent report is an IOU, expense or invoice.
     const parentReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID}`];
     if (isMoneyRequestReport(parentReport) || isInvoiceReport(parentReport)) {
+        return CONST.FULLSTORY.CLASS.UNMASK;
+    }
+
+    // Support tickets, and threads inside them, are the user's conversation with Expensify support that Concierge hands off to, so they're unmasked like Concierge chats.
+    if (isSupportTicket(report) || isSupportTicket(parentReport)) {
         return CONST.FULLSTORY.CLASS.UNMASK;
     }
 

@@ -4716,7 +4716,9 @@ const translations = {
     },
     welcomeSignUpForm: {
         join: 'Join',
-        marketingSMSConsent: 'I agree to receive marketing texts from Expensify',
+        transactionalSMSConsent: 'By providing my phone number, I agree to receive transactional account alerts from Expensify.',
+        transactionalSMSConsentFinePrint: 'Standard message and data rates may apply. Reply STOP to opt out.',
+        marketingSMSConsent: 'I agree to receive marketing texts from Expensify.',
     },
     detailsPage: {
         localTime: 'Local time',
