@@ -10,10 +10,9 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import getDeviceOrientationAwareImageSize from '@libs/cropOrRotateImage/getDeviceOrientationAwareImageSize';
-import {containsOnlyEmojis} from '@libs/EmojiUtils';
+import {containsOnlyEmojisInDraft} from '@libs/EmojiUtils';
 import {getExtensionFromMimeType, splitExtensionFromFileName} from '@libs/fileDownload/FileUtils';
 import getLandscapeTextInputRefProxy from '@libs/getLandscapeTextInputRefProxy';
-import Parser from '@libs/Parser';
 
 import getFileSize from '@pages/Share/getFileSize';
 
@@ -71,7 +70,7 @@ function Composer({
     ...props
 }: ComposerProps) {
     const textInputRef = useRef<ComponentRef<typeof TextInput> | null>(null);
-    const textContainsOnlyEmojis = containsOnlyEmojis(Parser.htmlToText(Parser.replace(value ?? '')));
+    const textContainsOnlyEmojis = containsOnlyEmojisInDraft(value ?? '');
     const theme = useTheme();
     const markdownStyle = useMarkdownStyle(textContainsOnlyEmojis, !isGroupPolicyReport ? excludeReportMentionStyle : excludeNoStyles);
     const styles = useThemeStyles();
