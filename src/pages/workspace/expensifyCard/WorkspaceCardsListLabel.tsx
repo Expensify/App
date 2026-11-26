@@ -7,7 +7,6 @@ import WorkspaceCardLabel, {useWorkspaceCardLabelPopover} from '@components/Work
 import useConfirmModal from '@hooks/useConfirmModal';
 import useCurrencyForExpensifyCard from '@hooks/useCurrencyForExpensifyCard';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
-import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDefaultFundID from '@hooks/useDefaultFundID';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -37,6 +36,7 @@ import type {ValueOf} from 'type-fest';
 
 import {useRoute} from '@react-navigation/native';
 import {guidedSetupAndTourStatusSelector} from '@selectors/Onboarding';
+import {accountIDSelector} from '@selectors/Session';
 import {addDays, format} from 'date-fns';
 import React from 'react';
 import {View} from 'react-native';
@@ -88,7 +88,6 @@ function WorkspaceCardsListLabel({type, value, style}: WorkspaceCardsListLabelPr
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [hasReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${conciergeReportID}`, {selector: Boolean});
     const [conciergePersonalDetails] = usePersonalDetailsByIDs([CONST.ACCOUNT_ID.CONCIERGE]);
-    const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
 
     const defaultFundID = useDefaultFundID(policyID);
 
@@ -109,12 +108,14 @@ function WorkspaceCardsListLabel({type, value, style}: WorkspaceCardsListLabelPr
     const requestLimitIncrease = async (closePopover: () => void) => {
         closePopover();
 
-        const [introSelected, onboarding, isLoadingApp, conciergeChat] = await Onyx.multiGet([
+        const [introSelected, onboarding, isLoadingApp, conciergeChat, session] = await Onyx.multiGet([
             ONYXKEYS.NVP_INTRO_SELECTED,
             ONYXKEYS.NVP_ONBOARDING,
             ONYXKEYS.IS_LOADING_APP,
             `${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`,
+            ONYXKEYS.SESSION,
         ]);
+        const currentUserAccountID = accountIDSelector(session) ?? CONST.DEFAULT_NUMBER_ID;
         const guidedSetupAndTourStatus = guidedSetupAndTourStatusSelector(onboarding);
         const isSelfTourViewed = guidedSetupAndTourStatus?.isSelfTourViewed;
         const hasCompletedGuidedSetupFlow = guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow;

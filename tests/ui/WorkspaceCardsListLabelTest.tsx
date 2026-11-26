@@ -176,7 +176,7 @@ describe('WorkspaceCardsListLabel', () => {
     });
 
     it('sends the existing Concierge chat to OpenReport before requesting the limit increase while onboarding is pending', async () => {
-        // Given pending guided setup, an existing Concierge chat and a settlement account not connected with Plaid
+        // Given pending guided setup, a signed-in account, an existing Concierge chat and a settlement account not connected with Plaid
         const conciergeChat = {reportID: '999'};
         await act(async () => {
             await Onyx.merge(cardSettingsKey, {US: {paymentBankAccountID: 1234, isPaymentBankAccountConnectedWithPlaid: false}});
@@ -185,6 +185,7 @@ describe('WorkspaceCardsListLabel', () => {
                 [ONYXKEYS.NVP_ONBOARDING]: {hasCompletedGuidedSetupFlow: false},
                 [ONYXKEYS.CONCIERGE_REPORT_ID]: '999',
                 [ONYXKEYS.IS_LOADING_APP]: false,
+                [ONYXKEYS.SESSION]: {accountID: 42},
             });
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}999`, conciergeChat);
             await waitForBatchedUpdatesWithAct();
@@ -205,8 +206,8 @@ describe('WorkspaceCardsListLabel', () => {
         fireEvent.press(screen.getByText('Request limit increase'));
         await waitForBatchedUpdatesWithAct();
 
-        // Then OpenReport gets the stored Concierge chat and is enqueued before the limit increase, so Concierge replies last
-        expect(mockOpenReport).toHaveBeenCalledWith(expect.objectContaining({reportID: '999', conciergeChat: expect.objectContaining({reportID: '999'})}));
+        // Then OpenReport gets the stored Concierge chat and the signed-in account ID, and is enqueued before the limit increase, so Concierge replies last
+        expect(mockOpenReport).toHaveBeenCalledWith(expect.objectContaining({reportID: '999', currentUserAccountID: 42, conciergeChat: expect.objectContaining({reportID: '999'})}));
         expect(mockOpenReport.mock.invocationCallOrder.at(0)).toBeLessThan(mockRequestExpensifyCardLimitIncrease.mock.invocationCallOrder.at(0) ?? 0);
     });
 });
