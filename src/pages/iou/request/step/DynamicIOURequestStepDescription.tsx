@@ -144,7 +144,7 @@ function DynamicIOURequestStepDescription({
         }
 
         if (isEditingSplit) {
-            setDraftSplitTransaction(transaction?.transactionID, splitDraftTransaction ?? transaction, {comment: newComment}, getCurrencyDecimals, getCurrencySymbol);
+            setDraftSplitTransaction(translate, transaction?.transactionID, splitDraftTransaction ?? transaction, {comment: newComment}, getCurrencyDecimals, getCurrencySymbol);
             setIsSaved(true);
             armNavigateBack();
             return;
@@ -159,6 +159,7 @@ function DynamicIOURequestStepDescription({
                 ONYXKEYS.NVP_INTRO_SELECTED,
             ]);
             updateMoneyRequestDescription({
+                translate,
                 isVendorMatchingBetaEnabled,
                 transactionID: transaction?.transactionID,
                 transaction,

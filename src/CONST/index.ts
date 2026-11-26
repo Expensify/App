@@ -37,6 +37,9 @@ type DefaultPolicyTagLists = Record<
     }
 >;
 
+const EMOJIS_REGEX =
+    /[\p{Extended_Pictographic}\uE000-\uF8FF\u{F0000}-\u{FFFFD}\u{100000}-\u{10FFFD}](\u200D[\p{Extended_Pictographic}\uE000-\uF8FF\u{F0000}-\u{FFFFD}\u{100000}-\u{10FFFD}]|[\u{1F3FB}-\u{1F3FF}]|[\u{E0020}-\u{E007F}]|\uFE0F|\u20E3)*|[\u{1F1E6}-\u{1F1FF}]{2}|[#*0-9]\uFE0F?\u20E3/du;
+
 // Creating a default array and object this way because objects ({}) and arrays ([]) are not stable types.
 // Freezing the array ensures that it cannot be unintentionally modified.
 const EMPTY_ARRAY = Object.freeze([]);
@@ -1620,10 +1623,6 @@ const CONST = {
         DEFAULT_LETTER_AVATARS: 'defaultLetterAvatars',
         ARCHIVE_POLICIES: 'archivePolicies',
         MERGE_ATS: 'mergeATSConnections',
-        REPORT_MERGE: 'reportMerge',
-        INSIGHTS_AI: 'insightsAI',
-        INSIGHTS_COMPLIANCE: 'insightsCompliance',
-        INSIGHTS_EFFICIENCY: 'insightsEfficiency',
         NL_FILTERS: 'nlFilters',
         SUPPORT_TICKET: 'supportTicket',
         RESIZABLE_TABLE_COLUMNS: 'resizableTableColumns',
@@ -1633,6 +1632,7 @@ const CONST = {
         TRAVEL_APPROVAL: 'travelApproval',
         FLAT_NAV: 'flatNav',
         RECEIPT_TRANSLATION: 'receiptTranslation',
+        RECEIPT_ENHANCEMENT: 'receiptEnhancement',
         SCAN_FLASH_TORCH: 'scanFlashTorch',
         NEW_DOT_BILL_PAY: 'newDotBillPay',
         HYBRID_WEB: 'hybridWeb',
@@ -2946,6 +2946,7 @@ const CONST = {
             EXPENSE_HAS_RECEIPT: 'expense_has_receipt',
             EXPENSE_COMMAND: 'expense_command',
             EXPENSE_JSON_CODE: 'expense_json_code',
+            EXPENSE_ERROR_UUID: 'expense_error_uuid',
             MFA_SCENARIO: 'mfa_scenario',
             MFA_ERROR_REASON: 'mfa_error_reason',
             BUILD_TYPE: 'build_type',
@@ -5522,6 +5523,7 @@ const CONST = {
             CHANGE_ROLE: 'changeRole',
             CHANGE_OFFICE_LOCATION: 'changeOfficeLocation',
             CHANGE_WORK_ARRANGEMENT: 'changeWorkArrangement',
+            EDIT_CATEGORY_VISIBILITY: 'editCategoryVisibility',
         },
         BULK_ACTION_TYPES: {
             DELETE: 'delete',
@@ -5732,6 +5734,7 @@ const CONST = {
                 EXACT_ONLINE: 'exactOnline',
                 ODOO: 'odoo',
                 SAGE_ACCOUNTING: 'sageAccounting',
+                ACUMATICA: 'acumatica',
                 GUSTO: 'gusto',
                 ZENEFITS: 'zenefits',
                 MERGE_HR: 'merge_hris',
@@ -5775,6 +5778,7 @@ const CONST = {
                 exactOnline: 'Exact Online',
                 odoo: 'Odoo',
                 sageAccounting: 'Sage Accounting',
+                acumatica: 'Acumatica',
                 gusto: 'Gusto',
                 billCom: 'Bill.com',
                 zenefits: 'TriNet',
@@ -5807,7 +5811,7 @@ const CONST = {
             },
             // Integrations that aren't available yet, so the Connections page offers their waitlist instead of connecting
             get WAITLIST_CONNECTION_NAMES() {
-                return [this.NAME.SAGE_ACCOUNTING] as const;
+                return [this.NAME.SAGE_ACCOUNTING, this.NAME.ACUMATICA] as const;
             },
             // The `origin` the backend stamps on a report field imported by an accounting integration. These values
             // differ from the connection names above (e.g. `quickbooksOnline` is stamped as `qbo`), so map them here.
@@ -6786,7 +6790,11 @@ const CONST = {
         // eslint-disable-next-line no-misleading-character-class
         EMOJI: /[\p{Extended_Pictographic}\u200d\u{1f1e6}-\u{1f1ff}\u{1f3fb}-\u{1f3ff}\u{e0020}-\u{e007f}\u20E3\uFE0F]|[#*0-9]\uFE0F?\u20E3/gu,
 
-        EMOJIS: /[\p{Extended_Pictographic}\uE000-\uF8FF\u{F0000}-\u{FFFFD}\u{100000}-\u{10FFFD}](\u200D[\p{Extended_Pictographic}\uE000-\uF8FF\u{F0000}-\u{FFFFD}\u{100000}-\u{10FFFD}]|[\u{1F3FB}-\u{1F3FF}]|[\u{E0020}-\u{E007F}]|\uFE0F|\u20E3)*|[\u{1F1E6}-\u{1F1FF}]{2}|[#*0-9]\uFE0F?\u20E3/du,
+        EMOJIS: EMOJIS_REGEX,
+
+        // Every EMOJIS match contains one of these code points, so text without them has no emoji
+        // eslint-disable-next-line no-misleading-character-class -- \u20E3 is listed alone on purpose, it marks keycap emojis
+        EMOJI_CODE_POINT: /[\p{Extended_Pictographic}\uE000-\uF8FF\u{F0000}-\u{FFFFD}\u{100000}-\u{10FFFD}\u{1F1E6}-\u{1F1FF}\u20E3]/u,
 
         EMOJI_SKIN_TONES: /[\u{1f3fb}-\u{1f3ff}]/gu,
 
@@ -6845,9 +6853,8 @@ const CONST = {
             return new RegExp(`[\\n\\s]|${this.SPECIAL_CHAR_MENTION_BREAKER.source}|${this.EMOJI.source}`, 'gu');
         },
 
-        get ALL_EMOJIS() {
-            return new RegExp(this.EMOJIS, this.EMOJIS.flags.concat('g'));
-        },
+        // Shared instance with the g flag: use it only with String.match, matchAll or replace. RegExp.test and exec keep lastIndex between calls.
+        ALL_EMOJIS: new RegExp(EMOJIS_REGEX, `${EMOJIS_REGEX.flags}g`),
 
         MERGED_ACCOUNT_PREFIX: /^(MERGED_\d+@)/g,
         ROUTES: {
@@ -8482,6 +8489,7 @@ const CONST = {
             UNSUPPORTED_FILTER: '59f73192-0ecc-4af4-8192-96fb2bb3d42a',
         },
         TAG_FILTER_PAGE_SIZE: 200,
+        USER_FILTER_PAGE_SIZE: 50,
         EXITING_ANIMATION_DURATION: 200,
         ME: 'me',
         // Null byte can't appear in a query, so it's safe to join query parts with it
@@ -8761,6 +8769,11 @@ const CONST = {
                 },
                 BASE_62_REPORT_ID: {
                     column: this.TABLE_COLUMNS.BASE_62_REPORT_ID,
+                    search: true,
+                    reportView: false,
+                },
+                TRANSACTION_ID: {
+                    column: this.TABLE_COLUMNS.TRANSACTION_ID,
                     search: true,
                     reportView: false,
                 },
@@ -9179,6 +9192,7 @@ const CONST = {
             BANK_ACCOUNT: 'bankAccount',
             REPORT_ID: 'reportID',
             BASE_62_REPORT_ID: 'base62ReportID',
+            TRANSACTION_ID: 'transactionID',
             EXPORTED_TO: 'exportedto',
             EXCHANGE_RATE: 'exchangeRate',
             REIMBURSABLE_TOTAL: 'reimbursableTotal',
@@ -9297,6 +9311,7 @@ const CONST = {
             FEED: 'feed',
             BANK_ACCOUNT: 'bankAccount',
             REPORT_ID: 'reportID',
+            TRANSACTION_ID: 'transactionID',
             KEYWORD: 'keyword',
             IN: 'in',
             SUBMITTED: 'submitted',
@@ -9400,6 +9415,7 @@ const CONST = {
             FEED: 'feed',
             BANK_ACCOUNT: 'bank-account',
             REPORT_ID: 'report-id',
+            TRANSACTION_ID: 'transaction-id',
             KEYWORD: 'keyword',
             IN: 'in',
             SUBMITTED: 'submitted',
@@ -9489,6 +9505,7 @@ const CONST = {
                 [this.TABLE_COLUMNS.BANK_ACCOUNT]: 'bank-account',
                 [this.TABLE_COLUMNS.REPORT_ID]: 'long-report-id',
                 [this.TABLE_COLUMNS.BASE_62_REPORT_ID]: 'report-id',
+                [this.TABLE_COLUMNS.TRANSACTION_ID]: 'transaction-id',
                 [this.TABLE_COLUMNS.EXPORTED_TO]: 'exported-to',
                 [this.TABLE_COLUMNS.EXCHANGE_RATE]: 'exchange-rate',
                 [this.TABLE_COLUMNS.REIMBURSABLE_TOTAL]: 'reimbursable-total',
@@ -10723,6 +10740,9 @@ const CONST = {
             DISTANCE: 'QuickCreationActionsBar-Distance',
             BOOK_TRAVEL: 'QuickCreationActionsBar-BookTravel',
         },
+        REPORT_ACTIONS_LIST: 'report-actions-list',
+        MONEY_REQUEST_REPORT_ACTIONS_LIST: 'money-request-report-actions-list',
+        BASE_SIDEBAR_SCREEN: 'BaseSidebarScreen',
     },
 
     AGENTS: {

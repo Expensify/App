@@ -16,7 +16,6 @@ import ROUTES from '@src/ROUTES';
 import type {OnyxEntry, OnyxMultiSetInput} from 'react-native-onyx';
 
 import {Str} from 'expensify-common';
-import {Linking} from 'react-native';
 import Onyx from 'react-native-onyx';
 
 import type * as MockReanimatedModalModule from '../utils/mockReanimatedModal';
@@ -24,6 +23,7 @@ import type * as MockReanimatedModalModule from '../utils/mockReanimatedModal';
 import {createRandomReport} from '../utils/collections/reports';
 import createMock from '../utils/createMock';
 import PusherHelper from '../utils/PusherHelper';
+import {setInitialURL} from '../utils/ReactNativeMockUtils';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
@@ -164,7 +164,7 @@ describe('Deep linking', () => {
         PusherHelper.teardown();
         jest.clearAllMocks();
         lastVisitedPath = undefined;
-        Linking.setInitialURL('');
+        setInitialURL('');
         setLastShortAuthToken(null);
     });
 
@@ -177,7 +177,7 @@ describe('Deep linking', () => {
 
             const url = getInitialURL();
             // User signs in automatically when the app is rendered because of the deep link
-            Linking.setInitialURL(url);
+            setInitialURL(url);
             const {unmount} = render(<App />);
 
             await waitForBatchedUpdatesWithAct();
@@ -230,7 +230,7 @@ describe('Deep linking', () => {
             const url = getInitialURL();
             // User signs in automatically when the app is remounted because of the deep link.
             // This overrides the previous sign-in.
-            Linking.setInitialURL(url);
+            setInitialURL(url);
             const {unmount: unmount2} = render(<App />);
 
             await waitForBatchedUpdatesWithAct();
@@ -280,7 +280,7 @@ describe('Deep linking', () => {
 
             // When the app remounts because of a deep link that would sign them in as account 1 instead
             const url = getInitialURL();
-            Linking.setInitialURL(url);
+            setInitialURL(url);
             const {unmount: unmount2} = render(<App />);
 
             await waitForBatchedUpdatesWithAct();
@@ -312,7 +312,7 @@ describe('Deep linking', () => {
 
             // When the app remounts because of a deep link that would sign them in as account 1, and they cancel the switch
             const url = getInitialURL();
-            Linking.setInitialURL(url);
+            setInitialURL(url);
             const {unmount: unmount2} = render(<App />);
 
             await waitForBatchedUpdatesWithAct();
@@ -345,7 +345,7 @@ describe('Deep linking', () => {
 
             // When they open the same transition link again
             const url = getInitialURL();
-            Linking.setInitialURL(url);
+            setInitialURL(url);
             const {unmount} = render(<App />);
 
             await waitForBatchedUpdatesWithAct();
@@ -390,7 +390,7 @@ describe('Support auth token login', () => {
         await waitForNetworkPromises();
         PusherHelper.teardown();
         jest.clearAllMocks();
-        Linking.setInitialURL('');
+        setInitialURL('');
         setLastShortAuthToken(null);
     });
 
@@ -417,7 +417,7 @@ describe('Support auth token login', () => {
             // LogOutPreviousUserPage. It must skip the duplicate sign-in; before the fix it fired
             // unconditionally and tripped the support-token rate limit.
             setLastShortAuthToken(TEST_SUPPORT_AUTH_TOKEN);
-            Linking.setInitialURL(getSupportAuthURL());
+            setInitialURL(getSupportAuthURL());
             const {unmount: unmount2} = render(<App />);
 
             await waitForBatchedUpdatesWithAct();
@@ -458,7 +458,7 @@ describe('Switching accounts with a rejected shortLivedAuthToken', () => {
         await waitForNetworkPromises();
         PusherHelper.teardown();
         jest.clearAllMocks();
-        Linking.setInitialURL('');
+        setInitialURL('');
         setLastShortAuthToken(null);
 
         // Put back the default response so the rejection does not reach later blocks. mockFetch.mockReset() would also drop the fetch implementation.
@@ -481,7 +481,7 @@ describe('Switching accounts with a rejected shortLivedAuthToken', () => {
             mockFetch.mockAPICommand(SIDE_EFFECT_REQUEST_COMMANDS.SIGN_IN_WITH_SHORT_LIVED_AUTH_TOKEN, () => ({jsonCode: CONST.JSON_CODE.NOT_AUTHENTICATED, message: ''}));
 
             // When the app is opened on a transition link for a different account, and the switch is confirmed
-            Linking.setInitialURL(getInitialURL());
+            setInitialURL(getInitialURL());
             const {unmount: unmount2} = render(<App />);
             await waitForBatchedUpdatesWithAct();
             fireEvent.press(await screen.findByRole(CONST.ROLE.BUTTON, {name: TestHelper.translateLocal('deeplinkWrapper.switchAccount.confirm')}));
@@ -520,7 +520,7 @@ describe('SAML re-fire loop guard', () => {
         await waitForNetworkPromises();
         PusherHelper.teardown();
         jest.clearAllMocks();
-        Linking.setInitialURL('');
+        setInitialURL('');
         setLastShortAuthToken(null);
     });
 

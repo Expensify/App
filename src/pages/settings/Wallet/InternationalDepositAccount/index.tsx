@@ -1,5 +1,3 @@
-import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
-
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 
@@ -11,7 +9,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {PersonalBankAccount} from '@src/types/onyx';
-import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
@@ -31,18 +28,12 @@ const isLoadingPersonalBankAccountSelector = (personalBankAccount: OnyxEntry<Per
 
 // Owns the Corpay subscriptions so the Wise flow doesn't load data it never reads
 function CorpayDepositAccount({backTo}: CorpayDepositAccountProps) {
-    const [privatePersonalDetails, privatePersonalDetailsMetadata] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS);
-    const [corpayFields, corpayFieldsMetadata] = useOnyx(ONYXKEYS.CORPAY_FIELDS);
-    const [bankAccountList, bankAccountListMetadata] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
-    const [draftValues, draftValuesMetadata] = useOnyx(ONYXKEYS.FORMS.INTERNATIONAL_BANK_ACCOUNT_FORM_DRAFT);
-    const [country, countryMetadata] = useOnyx(ONYXKEYS.COUNTRY);
-    const [isAccountLoading, isLoadingMetadata] = useOnyx(ONYXKEYS.PERSONAL_BANK_ACCOUNT, {selector: isLoadingPersonalBankAccountSelector});
-
-    const isLoading = isLoadingOnyxValue(privatePersonalDetailsMetadata, corpayFieldsMetadata, bankAccountListMetadata, draftValuesMetadata, countryMetadata, isLoadingMetadata);
-
-    if (isLoading) {
-        return <FullScreenLoadingIndicator />;
-    }
+    const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS);
+    const [corpayFields] = useOnyx(ONYXKEYS.CORPAY_FIELDS);
+    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
+    const [draftValues] = useOnyx(ONYXKEYS.FORMS.INTERNATIONAL_BANK_ACCOUNT_FORM_DRAFT);
+    const [country] = useOnyx(ONYXKEYS.COUNTRY);
+    const [isAccountLoading] = useOnyx(ONYXKEYS.PERSONAL_BANK_ACCOUNT, {selector: isLoadingPersonalBankAccountSelector});
 
     return (
         <InternationalDepositAccountContent
