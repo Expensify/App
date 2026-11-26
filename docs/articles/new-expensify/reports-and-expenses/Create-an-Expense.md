@@ -126,7 +126,7 @@ The total amount will be calculated automatically using the hourly rate set for 
 ## What happens after submitting an expense to a workspace
 
 - Expenses are automatically added to a report.
-- [Workspace Merchant Rules](https://help.expensify.com/articles/new-expensify/workspaces/Workspace-Merchant-Rules) may automatically apply categories, tags, descriptions, and other coding based on the merchant name.
+- [Workspace expense defaults](/articles/new-expensify/workspaces/Workspace-Rules#how-to-apply-expense-defaults-on-the-expense-defaults-tab) may automatically apply categories, tags, descriptions, and other coding based on the merchant name.
 - Workspace rules check for violations or missing fields.
 - Approvers are notified to review and approve.
 - Reports can be submitted manually or automatically.

@@ -892,18 +892,17 @@ function ExpenseDefaultRulePageBase({
                 includeSafeAreaPaddingBottom
             >
                 <HeaderWithBackButtonAndTitle title={translate('workspace.rules.merchantRules.expenseDefaultsTitle')}>
-                    <Header.Actions>
-                        {/* Only while a condition is set, and only on an unsaved rule, since clearing the conditions of
+                    {/* Only while a condition is set, and only on an unsaved rule, since clearing the conditions of
                         a saved rule would leave it matching everything. A locked category isn't the admin's to clear. */}
-                        {canWriteRules && !isEditing && !isCategoryLocked && hasAnyCondition && (
-                            <TextLink
-                                sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.MERCHANT_RULE_RESET}
-                                onPress={resetRule}
-                            >
-                                {translate('common.reset')}
-                            </TextLink>
-                        )}
-                    </Header.Actions>
+                    {canWriteRules && !isEditing && !isCategoryLocked && hasAnyCondition && (
+                        <TextLink
+                            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.MERCHANT_RULE_RESET}
+                            onPress={resetRule}
+                            style={styles.p2}
+                        >
+                            {translate('common.reset')}
+                        </TextLink>
+                    )}
                     {!!deleteIconButtonProps && <Header.IconButton {...deleteIconButtonProps} />}
                 </HeaderWithBackButtonAndTitle>
                 <ScrollView contentContainerStyle={[styles.flexGrow1]}>
