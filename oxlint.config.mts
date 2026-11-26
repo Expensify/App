@@ -247,6 +247,7 @@ export default await buildOxlintConfig({
                 'rulesdir/no-onyx-loading-status': 'error',
                 'rulesdir/no-opaque-namespace-usage': 'error',
                 'rulesdir/no-raw-typography': 'error',
+                'rulesdir/no-role-as-accessibility-label': 'error',
                 'rulesdir/no-unsafe-onyx-read': 'error',
                 'rulesdir/prefer-type-fest': 'error',
                 'rulesdir/require-a11y-disable-justification': 'error',
