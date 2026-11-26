@@ -12,6 +12,7 @@ import useLocalize from '@hooks/useLocalize';
 import useShouldFooterBeInsideList from '@hooks/useShouldFooterBeInsideList';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import getPlatform from '@libs/getPlatform';
 import {FILTER_VIEW_MAP} from '@libs/SearchUIUtils';
 import StringUtils from '@libs/StringUtils';
 
@@ -116,13 +117,17 @@ type TextInputFilterLayoutProps = Pick<TextInputFilterContentProps, 'size' | 'st
     children: ReactNode;
 
     onSubmit: () => void;
+
+    /** Bounds the web scroll content to its viewport, so an input that fills the remaining height cannot enlarge that height when its error appears. */
+    shouldConstrainWebContentHeight?: boolean;
 };
 
 /** The scrollable layout and submit button shared by every text filter variant, so the variants differ only in what they render inside it. */
-function TextInputFilterLayout({size, style, buttonText, buttonStyles, sentryLabel, children, onSubmit}: TextInputFilterLayoutProps) {
+function TextInputFilterLayout({size, style, buttonText, buttonStyles, sentryLabel, children, onSubmit, shouldConstrainWebContentHeight = false}: TextInputFilterLayoutProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const shouldButtonBeInScrollView = useShouldFooterBeInsideList();
+    const shouldConstrainContentHeight = shouldConstrainWebContentHeight && getPlatform() === CONST.PLATFORM.WEB;
 
     const button = (
         <Button
@@ -141,7 +146,7 @@ function TextInputFilterLayout({size, style, buttonText, buttonStyles, sentryLab
         <View style={[styles.flex1, styles.justifyContentBetween, style]}>
             <ScrollView
                 keyboardShouldPersistTaps="handled"
-                contentContainerStyle={[styles.flexGrow1, styles.gap3]}
+                contentContainerStyle={[styles.flexGrow1, styles.gap3, shouldConstrainContentHeight && styles.flex1]}
             >
                 {children}
                 {shouldButtonBeInScrollView && button}
@@ -223,6 +228,7 @@ function TextInputFilterContentFillHeight({
             buttonText={buttonText}
             buttonStyles={buttonStyles}
             sentryLabel={sentryLabel}
+            shouldConstrainWebContentHeight
             onSubmit={submit}
         >
             <NegatableFilter
@@ -231,7 +237,11 @@ function TextInputFilterContentFillHeight({
                 style={styles.flex1}
                 onNegationChange={setIsNegated}
             >
-                <AutoGrowHeightInputContainer shouldUseWebViewportHeightFallback={shouldUseWebViewportHeightFallback}>
+                <AutoGrowHeightInputContainer
+                    // Keeps the same space above Confirm as between the other rows when the input fills the height.
+                    style={styles.mb3}
+                    shouldUseWebViewportHeightFallback={shouldUseWebViewportHeightFallback}
+                >
                     {(maxAutoGrowHeight) =>
                         renderTextInput({
                             autoGrowHeight: true,
