@@ -1,6 +1,12 @@
 /** Builds the Top tags level options from the tag levels GetInsights lists for the dashboard's workspaces. */
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import type {InsightsDashboard} from '@src/types/onyx';
 import type {InsightsTagLevel} from '@src/types/onyx/InsightsDashboard';
+
+import type {OnyxCollection} from 'react-native-onyx';
+
+import {parseInsightsFilters} from './insightsFilterParsing';
 
 type InsightsTagLevelOption = {value: number; label: string};
 
@@ -22,5 +28,32 @@ function getFittingTagLevel(level: number, tagLevels: InsightsTagLevel[]): numbe
     return level === CONST.INSIGHTS.DEFAULT_TAG_LEVEL || tagLevels.some((tagLevel) => tagLevel.level === level) ? level : CONST.INSIGHTS.DEFAULT_TAG_LEVEL;
 }
 
-export {getFittingTagLevel, getInsightsTagLevelOptions};
+// The selector reading stored levels runs on every Insights update, so each stored query is parsed only once.
+const policyScopeByQuery = new Map<string, string>();
+
+function getPolicyScope(policyIDs: string[]): string {
+    return [...policyIDs].sort().join(',');
+}
+
+function getQueryPolicyScope(inputQuery: string): string {
+    const cachedScope = policyScopeByQuery.get(inputQuery);
+    if (cachedScope !== undefined) {
+        return cachedScope;
+    }
+    const scope = getPolicyScope(parseInsightsFilters(inputQuery).policyIDs ?? []);
+    policyScopeByQuery.set(inputQuery, scope);
+    return scope;
+}
+
+/** Finds the tag levels a stored Spend response listed for the same workspaces, which the level menu shows until the response for the current filters arrives. */
+function getStoredTagLevels(dashboards: OnyxCollection<InsightsDashboard>, policyIDs: string[]): InsightsTagLevel[] | undefined {
+    const spendKeyPrefix = `${ONYXKEYS.COLLECTION.INSIGHTS}${CONST.INSIGHTS.DASHBOARD.SPEND}_`;
+    const scope = getPolicyScope(policyIDs);
+    const storedDashboard = Object.entries(dashboards ?? {}).find(
+        ([key, dashboard]) => key.startsWith(spendKeyPrefix) && !!dashboard?.tagLevels && !!dashboard.inputQuery && getQueryPolicyScope(dashboard.inputQuery) === scope,
+    );
+    return storedDashboard?.[1]?.tagLevels;
+}
+
+export {getFittingTagLevel, getInsightsTagLevelOptions, getStoredTagLevels};
 export type {InsightsTagLevelOption};

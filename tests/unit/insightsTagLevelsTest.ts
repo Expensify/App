@@ -1,6 +1,9 @@
 import formatTagParentPath from '@libs/formatTagParentPath';
 
-import {getFittingTagLevel, getInsightsTagLevelOptions} from '@pages/Insights/insightsTagLevels';
+import {getFittingTagLevel, getInsightsTagLevelOptions, getStoredTagLevels} from '@pages/Insights/insightsTagLevels';
+
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 
 const fallback = (level: number) => `Tag level ${level}`;
 
@@ -63,5 +66,41 @@ describe('Insights tag levels', () => {
 
         // Then only real level separators become breadcrumbs
         expect(label).toBe('US › New: York › Path\\name & Co');
+    });
+
+    describe('getStoredTagLevels', () => {
+        const levels = [{level: 1, names: ['Region']}];
+        const spendKey = (hash: number) => `${ONYXKEYS.COLLECTION.INSIGHTS}${CONST.INSIGHTS.DASHBOARD.SPEND}_${hash}` as const;
+
+        it('matches the workspaces in any order', () => {
+            // Given a stored response for two workspaces
+            const dashboards = {[spendKey(1)]: {inputQuery: 'groupBy:month policyID:A,B date:this-month', tagLevels: levels}};
+
+            // When the same workspaces are selected in another order
+            // Then its levels are found
+            expect(getStoredTagLevels(dashboards, ['B', 'A'])).toBe(levels);
+        });
+
+        it('tells all workspaces apart from a selection', () => {
+            // Given a stored response for all workspaces
+            const dashboards = {[spendKey(1)]: {inputQuery: 'groupBy:month date:this-month', tagLevels: levels}};
+
+            // When all workspaces or one workspace is selected
+            // Then only the all-workspaces scope finds its levels
+            expect(getStoredTagLevels(dashboards, [])).toBe(levels);
+            expect(getStoredTagLevels(dashboards, ['A'])).toBeUndefined();
+        });
+
+        it('skips other dashboards and responses without levels', () => {
+            // Given a Compliance entry and a Spend entry without levels for the same workspace
+            const dashboards = {
+                [`${ONYXKEYS.COLLECTION.INSIGHTS}${CONST.INSIGHTS.DASHBOARD.COMPLIANCE}_1`]: {inputQuery: 'policyID:A date:this-month', tagLevels: levels},
+                [spendKey(2)]: {inputQuery: 'policyID:A date:this-month'},
+            };
+
+            // When workspace A is selected
+            // Then neither entry provides levels
+            expect(getStoredTagLevels(dashboards, ['A'])).toBeUndefined();
+        });
     });
 });

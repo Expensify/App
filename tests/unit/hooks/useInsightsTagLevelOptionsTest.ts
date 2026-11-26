@@ -1,8 +1,14 @@
-import {renderHook} from '@testing-library/react-native';
+import {act, renderHook, waitFor} from '@testing-library/react-native';
 
 import useInsightsTagLevelOptions from '@pages/Insights/useInsightsTagLevelOptions';
 
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import type {InsightsTagLevel} from '@src/types/onyx/InsightsDashboard';
+
+import Onyx from 'react-native-onyx';
+
+import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
 type HookProps = {
     tagLevels: InsightsTagLevel[] | undefined;
@@ -27,6 +33,15 @@ function renderOptionsHook(initialProps: HookProps) {
 }
 
 describe('useInsightsTagLevelOptions', () => {
+    beforeAll(() => {
+        Onyx.init({keys: ONYXKEYS});
+    });
+
+    beforeEach(async () => {
+        await Onyx.clear();
+        await waitForBatchedUpdates();
+    });
+
     it('waits for GetInsights to list the levels before resetting a saved level', () => {
         // Given a saved level two and no response yet
         const {rerender, setFilters} = renderOptionsHook({tagLevels: undefined, selectedTagLevel: 2});
@@ -53,21 +68,27 @@ describe('useInsightsTagLevelOptions', () => {
         expect(setFilters).not.toHaveBeenCalled();
     });
 
-    it('keeps the last levels for the same workspaces while the next response loads', () => {
-        // Given levels loaded for the current workspaces
-        const {result, rerender} = renderOptionsHook({tagLevels: TWO_LEVELS, policyIDs: ['A'], selectedTagLevel: 1});
+    it('shows the levels stored for the same workspaces until the current response arrives', async () => {
+        // Given a stored Spend response that listed two levels for workspace A
+        await act(async () => {
+            await Onyx.set(`${ONYXKEYS.COLLECTION.INSIGHTS}${CONST.INSIGHTS.DASHBOARD.SPEND}_1`, {
+                inputQuery: 'groupBy:month tagLevel:1 groupCurrency:USD policyID:A date:this-month',
+                tagLevels: TWO_LEVELS,
+            });
+            await waitForBatchedUpdates();
+        });
 
-        // When a filter change reads a response that hasn't arrived yet
-        rerender({tagLevels: undefined, policyIDs: ['A'], selectedTagLevel: 2});
+        // When the dashboard for workspace A waits on a response for new filters
+        const {result, rerender} = renderOptionsHook({tagLevels: undefined, policyIDs: ['A'], selectedTagLevel: 2});
 
-        // Then the menu still offers both levels
-        expect(result.current).toHaveLength(2);
+        // Then the menu offers the stored levels
+        await waitFor(() => expect(result.current).toHaveLength(2));
 
-        // When the workspace scope changes before its response arrives
+        // When the workspace scope changes to one with nothing stored
         rerender({tagLevels: undefined, policyIDs: ['B'], selectedTagLevel: 2});
 
         // Then the levels of the other workspaces are not offered
-        expect(result.current).toHaveLength(1);
+        await waitFor(() => expect(result.current).toHaveLength(1));
     });
 
     it('waits until filters can change before resetting', () => {
