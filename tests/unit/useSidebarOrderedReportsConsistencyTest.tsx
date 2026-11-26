@@ -285,6 +285,39 @@ async function applyRandomChange(random: ReturnType<typeof createRandom>, step: 
     }
 }
 
+/** Stores the account's reports, their actions and transactions, the way they arrive after sign-in. */
+async function setUpAccount({reports, reportActions, transactions}: ReturnType<typeof getInitialData>) {
+    await Onyx.multiSet({
+        [ONYXKEYS.SESSION]: {accountID: CURRENT_USER_ACCOUNT_ID, email: CURRENT_USER_LOGIN},
+        [ONYXKEYS.PERSONAL_DETAILS_LIST]: {
+            [CURRENT_USER_ACCOUNT_ID]: {accountID: CURRENT_USER_ACCOUNT_ID, login: CURRENT_USER_LOGIN, displayName: 'Current User'},
+            ...Object.fromEntries(OTHER_ACCOUNT_IDS.map((accountID) => [accountID, {accountID, login: `user${accountID}@test.com`, displayName: `User ${accountID}`}])),
+            ...Object.fromEntries(
+                Array.from({length: 8}, (unused, index) => [
+                    DIRECT_CHAT_ACCOUNT_ID + index,
+                    {accountID: DIRECT_CHAT_ACCOUNT_ID + index, login: `person${index}@test.com`, displayName: `Person ${index}`},
+                ]),
+            ),
+        },
+        [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.DEFAULT,
+    });
+    await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, policy);
+    const reportCollection: ReportCollectionDataSet = {};
+    for (const [reportID, report] of Object.entries(reports)) {
+        reportCollection[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`] = report;
+    }
+    const reportActionsCollection: ReportActionsCollectionDataSet = {};
+    for (const [reportID, actions] of Object.entries(reportActions)) {
+        reportActionsCollection[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`] = actions;
+    }
+    const transactionCollection: TransactionCollectionDataSet = {};
+    for (const [transactionID, transaction] of Object.entries(transactions)) {
+        transactionCollection[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`] = transaction;
+    }
+    await Onyx.multiSet({...reportCollection, ...reportActionsCollection, ...transactionCollection});
+    await waitForBatchedUpdatesWithAct();
+}
+
 describe('useSidebarOrderedReports', () => {
     beforeAll(async () => {
         Onyx.init({keys: ONYXKEYS});
@@ -302,35 +335,7 @@ describe('useSidebarOrderedReports', () => {
         // Given an account with chats, rooms, workspace chats, expense reports and their one transaction threads
         const random = createRandom(seed);
         const {reports, reportActions, transactions} = getInitialData();
-        await Onyx.multiSet({
-            [ONYXKEYS.SESSION]: {accountID: CURRENT_USER_ACCOUNT_ID, email: CURRENT_USER_LOGIN},
-            [ONYXKEYS.PERSONAL_DETAILS_LIST]: {
-                [CURRENT_USER_ACCOUNT_ID]: {accountID: CURRENT_USER_ACCOUNT_ID, login: CURRENT_USER_LOGIN, displayName: 'Current User'},
-                ...Object.fromEntries(OTHER_ACCOUNT_IDS.map((accountID) => [accountID, {accountID, login: `user${accountID}@test.com`, displayName: `User ${accountID}`}])),
-                ...Object.fromEntries(
-                    Array.from({length: 8}, (unused, index) => [
-                        DIRECT_CHAT_ACCOUNT_ID + index,
-                        {accountID: DIRECT_CHAT_ACCOUNT_ID + index, login: `person${index}@test.com`, displayName: `Person ${index}`},
-                    ]),
-                ),
-            },
-            [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.DEFAULT,
-        });
-        await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, policy);
-        const reportCollection: ReportCollectionDataSet = {};
-        for (const [reportID, report] of Object.entries(reports)) {
-            reportCollection[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`] = report;
-        }
-        const reportActionsCollection: ReportActionsCollectionDataSet = {};
-        for (const [reportID, actions] of Object.entries(reportActions)) {
-            reportActionsCollection[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`] = actions;
-        }
-        const transactionCollection: TransactionCollectionDataSet = {};
-        for (const [transactionID, transaction] of Object.entries(transactions)) {
-            transactionCollection[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`] = transaction;
-        }
-        await Onyx.multiSet({...reportCollection, ...reportActionsCollection, ...transactionCollection});
-        await waitForBatchedUpdatesWithAct();
+        await setUpAccount({reports, reportActions, transactions});
         currentReportIDForTestsValue = undefined;
         const {result: liveResult, rerender, unmount} = renderHook(() => useSidebarOrderedReportsState(), {wrapper: TestWrapper});
         await waitForBatchedUpdatesWithAct();
@@ -360,6 +365,47 @@ describe('useSidebarOrderedReports', () => {
             });
             unmountFresh();
         }
+        unmount();
+    });
+
+    it('hides the thread of the expense left on a report after the other expense is deleted', async () => {
+        // Given an expense report with two expenses, whose threads both have a comment, so both show in the LHN
+        const data = getInitialData();
+        const deletedIOUActionID = '700';
+        const firstThreadCommentID = '1500';
+        const secondThreadCommentID = '1510';
+        data.transactions['610'] = {transactionID: '610', reportID: '400', amount: -1000, currency: CONST.CURRENCY.USD, created: '2024-01-01', merchant: 'Merchant', comment: {}};
+        data.reports['510'] = {...data.reports['500'], reportID: '510', reportName: 'Expense 10', parentReportActionID: '710'};
+        data.reportActions['400']['710'] = {
+            ...data.reportActions['400']['700'],
+            reportActionID: '710',
+            childReportID: '510',
+            // eslint-disable-next-line @typescript-eslint/no-deprecated -- the backend still sends originalMessage on report actions
+            originalMessage: {type: CONST.IOU.REPORT_ACTION_TYPE.CREATE, IOUTransactionID: '610', IOUReportID: '400', amount: 1000, currency: CONST.CURRENCY.USD},
+        };
+        data.reportActions['500'] = {[firstThreadCommentID]: getCommentAction(firstThreadCommentID, getTime(40), 1)};
+        data.reportActions['510'] = {[secondThreadCommentID]: getCommentAction(secondThreadCommentID, getTime(41), 1)};
+        await setUpAccount(data);
+        currentReportIDForTestsValue = undefined;
+        const {result: liveResult, unmount} = renderHook(() => useSidebarOrderedReportsState(), {wrapper: TestWrapper});
+        await waitForBatchedUpdatesWithAct();
+        expect(liveResult.current.orderedReportIDs).toEqual(expect.arrayContaining(['500', '510']));
+
+        // When the first expense is deleted, so the report is left with one expense
+        await act(async () => {
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}600`, null);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}400`, {
+                [deletedIOUActionID]: {message: [{type: CONST.REPORT.MESSAGE.TYPE.COMMENT, html: '', text: '', deleted: getTime(50)}]},
+            });
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the thread of the expense that is left is hidden, like in a list built from scratch, because the report now shows that expense
+        const {result: freshResult, unmount: unmountFresh} = renderHook(() => useSidebarOrderedReportsState(), {wrapper: TestWrapper});
+        await waitForBatchedUpdatesWithAct();
+        expect(freshResult.current.orderedReportIDs).not.toContain('510');
+        expect(liveResult.current.orderedReportIDs).toEqual(freshResult.current.orderedReportIDs);
+        unmountFresh();
         unmount();
     });
 });
