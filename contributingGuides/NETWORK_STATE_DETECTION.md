@@ -122,7 +122,7 @@ Counts consecutive failures and applies a dual threshold:
 
 Both thresholds must be met simultaneously to trigger a sustained failure hard stop. This prevents brief transient errors from being misidentified as connectivity loss.
 
-One successful request resets everything — it proves the server is reachable and clears the `sustainedFailuresActive` flag.
+One successful request resets everything — it proves the server is reachable and clears the `sustainedFailuresActive`, `internetUnreachable` and `hasRadio` hard stops. Clearing `hasRadio` matters on web: Chrome can fire `connection.change` before `navigator.onLine` turns true, so NetInfo can keep reporting no connection, and it sends no Ping while it does. A success therefore also calls `NetInfo.refresh()` so NetInfo re-reads the connection.
 
 ## Central State Machine
 
@@ -131,7 +131,7 @@ One successful request resets everything — it proves the server is reachable a
 `NetworkState` is the single source of truth for offline status. It holds module-level boolean flags and uses a subscriber pattern — components use `useNetwork()` (backed by `useSyncExternalStore`) and `SequentialQueue` subscribes via `subscribe()`. Because the state is module-level (not persisted in Onyx), each browser tab detects connectivity independently. This is intentional — each tab has its own network conditions and should evaluate them on its own.
 
 ```
-hasRadio                — set by NetInfo listener (Layer 1), inverted: !hasRadio = noRadio hard stop
+hasRadio                — set by NetInfo listener (Layer 1), inverted: !hasRadio = noRadio hard stop; a successful request also sets it back to true
 internetUnreachable     — set by NetInfo listener when isInternetReachable transitions to false (any non-false→false)
 sustainedFailuresActive — set by FailureTracker (Layer 2)
 shouldForceOffline      — set by debug tools (Onyx NETWORK key)

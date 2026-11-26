@@ -41,11 +41,21 @@ onSustainedFailureChange((active) => setSustainedFailures(active));
 // prevIsInternetReachable stays false on purpose: the Ping may keep failing, and a repeated
 // false does not re-set the hard stop. When the Ping finally passes, the NetInfo listener
 // sees the app is already online and does nothing.
+// It also clears NO_RADIO. NetInfo can miss the reconnect (on Chrome, connection.change can fire
+// before navigator.onLine turns true), and while it reports no connection it sends no Ping either.
 onRequestSuccess(() => {
-    if (!internetUnreachable) {
+    if (hasRadio && !internetUnreachable) {
         return;
     }
-    Log.info('[NetworkState] INTERNET_UNREACHABLE cleared — a successful request proved connectivity');
+    if (!hasRadio) {
+        Log.info('[NetworkState] NO_RADIO cleared — a successful request proved connectivity');
+        hasRadio = true;
+        // Re-read the connection so NetInfo leaves its stale disconnected state and resumes the Ping
+        NetInfo.refresh();
+    }
+    if (internetUnreachable) {
+        Log.info('[NetworkState] INTERNET_UNREACHABLE cleared — a successful request proved connectivity');
+    }
     clearHardStops();
     scheduleJitteredReconnect();
 });
