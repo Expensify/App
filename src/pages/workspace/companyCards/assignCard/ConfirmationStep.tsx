@@ -14,7 +14,6 @@ import useOnyx from '@hooks/useOnyx';
 import usePersonalDetailByLogin from '@hooks/usePersonalDetailByLogin';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWorkspaceAccountID from '@hooks/useWorkspaceAccountID';
 
 import {
     getCompanyCardFeed,
@@ -71,11 +70,6 @@ function ConfirmationStep({route}: ConfirmationStepProps) {
     const bankName = assignCard?.cardToAssign?.bankName ?? getCompanyCardFeed(feed);
     const [cardFeeds] = useCardFeeds(policyID);
 
-    const companyCardFeedData = cardFeeds?.[feed];
-
-    const workspaceAccountID = useWorkspaceAccountID(policyID);
-    const domainOrWorkspaceAccountID = getDomainOrWorkspaceAccountID(workspaceAccountID, companyCardFeedData);
-
     const cardToAssign = assignCard?.cardToAssign;
 
     const cardholder = usePersonalDetailByLogin(cardToAssign?.email ?? '');
@@ -113,6 +107,9 @@ function ConfirmationStep({route}: ConfirmationStepProps) {
 
         const [workspaceCardFeeds, countryByIp, session] = await Onyx.multiGet([ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST, ONYXKEYS.COUNTRY, ONYXKEYS.SESSION]);
         const currentUserAccountID = accountIDSelector(session) ?? CONST.DEFAULT_NUMBER_ID;
+        const companyCardFeedData = cardFeeds?.[feed];
+        const workspaceAccountID = policy?.policyAccountID ?? CONST.DEFAULT_NUMBER_ID;
+        const domainOrWorkspaceAccountID = getDomainOrWorkspaceAccountID(workspaceAccountID, companyCardFeedData);
 
         const isFeedExpired = isSelectedFeedExpired(cardFeeds?.[feed]);
         const institutionId = !!getPlaidInstitutionId(bankName);
